@@ -29,7 +29,7 @@ from .utils import (
 
 @frappe.whitelist()
 @error_logger
-def get_timesheet_data(employee: str, start_date=None, max_week: int = 4):
+def get_timesheet_data(employee: str, start_date: str | None = None, max_week: int = 4):
     """Get timesheet data for the given employee for the given number of weeks."""
     if not employee:
         employee = get_employee_from_user(throw_exception=frappe.session.user != "Administrator")
@@ -505,7 +505,7 @@ def get_timesheet_details(date: str, task: str, employee: str):
 
 @frappe.whitelist()
 @error_logger
-def bulk_update_timesheet_detail(data):
+def bulk_update_timesheet_detail(data: list):
     for entry in data:
         if isinstance(entry, str):
             entry = frappe.parse_json(entry)
@@ -514,7 +514,7 @@ def bulk_update_timesheet_detail(data):
 
 
 @frappe.whitelist()
-def bulk_save(timesheet_entries):
+def bulk_save(timesheet_entries: list):
     """
     Create multiple time entries in Timesheet Detail child table.
 

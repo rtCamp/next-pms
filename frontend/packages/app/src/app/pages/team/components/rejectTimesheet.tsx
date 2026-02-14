@@ -41,7 +41,9 @@ export const RejectTimesheet = ({
   isRejecting,
   setIsRejecting,
 }: TimesheetRejectionProps) => {
-  const { call } = useFrappePostCall("next_pms.timesheet.api.team.approve_or_reject_timesheet");
+  const { call } = useFrappePostCall(
+    "next_pms.timesheet.api.team.approve_or_reject_timesheet",
+  );
   const { toast } = useToast();
   const form = useForm<z.infer<typeof TimesheetRejectionSchema>>({
     resolver: zodResolver(TimesheetRejectionSchema),
@@ -96,7 +98,9 @@ export const RejectTimesheet = ({
       <DialogContent>
         <DialogTitle>Reject timesheet</DialogTitle>
         <div>
-          <Typography variant="p">The following day's timesheet will be rejected</Typography>
+          <Typography variant="p">
+            The following day's timesheet will be rejected
+          </Typography>
           <ol className="list-disc pl-6">
             {dates.map((date: string, index: number) => {
               return (
@@ -114,7 +118,9 @@ export const RejectTimesheet = ({
               name="note"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel htmlFor="note">Please add reason for rejection.</FormLabel>
+                  <FormLabel htmlFor="note">
+                    Please add reason for rejection.
+                  </FormLabel>
                   <FormControl>
                     <TextArea {...field} placeholder="Add a note" rows={4} />
                   </FormControl>
@@ -123,8 +129,16 @@ export const RejectTimesheet = ({
               )}
             />
             <DialogFooter className="sm:justify-start my-2">
-              <Button variant="destructive" type="submit" disabled={isRejecting}>
-                {isRejecting ? <LoaderCircle className="animate-spin w-4 h-4" /> : <X />}
+              <Button
+                variant="destructive"
+                type="submit"
+                disabled={isRejecting}
+              >
+                {isRejecting ? (
+                  <LoaderCircle className="animate-spin w-4 h-4" />
+                ) : (
+                  <X />
+                )}
                 Reject
               </Button>
             </DialogFooter>

@@ -4,7 +4,11 @@
 import { useMemo } from "react";
 import { prettyDate } from "@next-pms/design-system/date";
 import { ResourceTableCell } from "@next-pms/resource-management/components";
-import { getTableCellClass, getTodayDateCellClass, getCellBackGroundColor } from "@next-pms/resource-management/utils";
+import {
+  getTableCellClass,
+  getTodayDateCellClass,
+  getCellBackGroundColor,
+} from "@next-pms/resource-management/utils";
 import { useContextSelector } from "use-context-selector";
 
 /**
@@ -20,7 +24,10 @@ import { EmptyTableCell } from "../../../components/empty";
 import { ResourceAllocationList } from "../../../components/resource-allocation-list/resourceAllocationList";
 import { ProjectContext } from "../../../store/projectContext";
 import { ResourceFormContext } from "../../../store/resourceFormContext";
-import type { AllocationDataProps, EmployeeResourceProps } from "../../../store/types";
+import type {
+  AllocationDataProps,
+  EmployeeResourceProps,
+} from "../../../store/types";
 import { getIsBillableValue } from "../../../utils/helper";
 
 /**
@@ -60,8 +67,14 @@ const ExpandViewCell = ({
   customer: ResourceCustomerObjectProps;
   onSubmit: (oldData: AllocationDataProps, data: AllocationDataProps) => void;
 }) => {
-  const { tableView, filters } = useContextSelector(ProjectContext, (value) => value.state);
-  const { updateAllocationData, updateDialogState } = useContextSelector(ResourceFormContext, (value) => value.actions);
+  const { tableView, filters } = useContextSelector(
+    ProjectContext,
+    (value) => value.state,
+  );
+  const { updateAllocationData, updateDialogState } = useContextSelector(
+    ResourceFormContext,
+    (value) => value.actions,
+  );
 
   const allocationType = filters.allocationType;
 
@@ -70,8 +83,16 @@ const ExpandViewCell = ({
       return -1;
     }
 
-    return 100 - (allocationsData.total_worked_hours / allocationsData.total_allocated_hours) * 100;
-  }, [allocationsData.total_allocated_hours, allocationsData.total_worked_hours]);
+    return (
+      100 -
+      (allocationsData.total_worked_hours /
+        allocationsData.total_allocated_hours) *
+        100
+    );
+  }, [
+    allocationsData.total_allocated_hours,
+    allocationsData.total_worked_hours,
+  ]);
 
   const cellBackGroundColor = useMemo(() => {
     if (allocationPercentage === -1 || tableView.view == "planned") {
@@ -103,13 +124,16 @@ const ExpandViewCell = ({
   const { date: dateStr, day } = prettyDate(allocationsData.date);
   const title = employee_name + " (" + dateStr + " - " + day + ")";
 
-  if (allocationsData.total_allocated_hours == 0 && allocationsData.total_worked_hours == 0) {
+  if (
+    allocationsData.total_allocated_hours == 0 &&
+    allocationsData.total_worked_hours == 0
+  ) {
     return (
       <EmptyTableCell
         title={title}
         cellClassName={mergeClassNames(
           getTableCellClass(index, weekIndex),
-          getTodayDateCellClass(allocationsData.date)
+          getTodayDateCellClass(allocationsData.date),
         )}
         onCellClick={onCellClick}
         value={"-"}
@@ -125,7 +149,7 @@ const ExpandViewCell = ({
       cellClassName={mergeClassNames(
         getTableCellClass(index, weekIndex),
         cellBackGroundColor,
-        getTodayDateCellClass(allocationsData.date)
+        getTodayDateCellClass(allocationsData.date),
       )}
       value={
         tableView.view == "planned"

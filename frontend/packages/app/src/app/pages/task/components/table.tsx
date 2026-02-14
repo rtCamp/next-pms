@@ -21,7 +21,11 @@ import { LockKeyhole, LockOpen } from "lucide-react";
 /**
  * Internal dependencies.
  */
-import type { ColumnsType, columnsToExcludeActionsInTablesType, TaskTableType } from "@/types/task";
+import type {
+  ColumnsType,
+  columnsToExcludeActionsInTablesType,
+  TaskTableType,
+} from "@/types/task";
 import type { TaskState } from "../types";
 
 export const Table = ({
@@ -60,10 +64,15 @@ export const Table = ({
                   const column = header.column;
                   const columnId = column.id;
                   const isPinned = column.getIsPinned() === "left";
-                  const leftPosition = isPinned ? column.getStart("left") : undefined;
+                  const leftPosition = isPinned
+                    ? column.getStart("left")
+                    : undefined;
                   return (
                     <TableHead
-                      className={mergeClassNames("group", isPinned && "sticky z-10 bg-slate-200 dark:bg-gray-900")}
+                      className={mergeClassNames(
+                        "group",
+                        isPinned && "sticky z-10 bg-slate-200 dark:bg-gray-900",
+                      )}
                       key={header.id}
                       style={{
                         userSelect: "none",
@@ -79,7 +88,9 @@ export const Table = ({
                       }}
                     >
                       <div className="w-full h-full flex items-center justify-between group gap-2">
-                        {!columnsToExcludeActionsInTables.includes(header.id) && (
+                        {!columnsToExcludeActionsInTables.includes(
+                          header.id,
+                        ) && (
                           <Button
                             variant="ghost"
                             title={isPinned ? "Unpin Column" : "Pin Column"}
@@ -92,18 +103,27 @@ export const Table = ({
                               }
                             }}
                           >
-                            {isPinned ? <LockKeyhole className="h-4 w-4" /> : <LockOpen className="h-4 w-4" />}
+                            {isPinned ? (
+                              <LockKeyhole className="h-4 w-4" />
+                            ) : (
+                              <LockOpen className="h-4 w-4" />
+                            )}
                           </Button>
                         )}
                         <div className="w-full dark:group-hover:!text-white truncate">
-                          {flexRender(header.column.columnDef.header, header.getContext())}
+                          {flexRender(
+                            header.column.columnDef.header,
+                            header.getContext(),
+                          )}
                         </div>
-                        {!columnsToExcludeActionsInTables.includes(header.id) && (
+                        {!columnsToExcludeActionsInTables.includes(
+                          header.id,
+                        ) && (
                           <Separator
                             orientation="vertical"
                             className={mergeClassNames(
                               "group-hover:w-[3px] dark:bg-primary cursor-col-resize shrink-0",
-                              isPinned && "bg-slate-300"
+                              isPinned && "bg-slate-300",
                             )}
                             {...{
                               onMouseDown: header.getResizeHandler(),
@@ -126,29 +146,43 @@ export const Table = ({
             {table.getRowModel().rows?.length ? (
               table.getRowModel().rows.map((row) => {
                 return (
-                  <TableRow key={row.id} data-state={row.getIsSelected() && "selected"}>
+                  <TableRow
+                    key={row.id}
+                    data-state={row.getIsSelected() && "selected"}
+                  >
                     {row.getVisibleCells().map((cell, cellIndex) => {
                       const isPinned = cell.column.getIsPinned() === "left";
                       const isFirstUnpinnedCell =
                         !isPinned &&
-                        cellIndex === row.getVisibleCells().findIndex((c) => c.column.getIsPinned() !== "left");
+                        cellIndex ===
+                          row
+                            .getVisibleCells()
+                            .findIndex(
+                              (c) => c.column.getIsPinned() !== "left",
+                            );
                       const needToAddRef = task.hasMore && isFirstUnpinnedCell;
                       return (
                         <TableCell
                           ref={needToAddRef ? cellRef : null}
                           className={mergeClassNames(
                             "overflow-hidden",
-                            isPinned && "sticky z-1 bg-slate-100 dark:bg-gray-900"
+                            isPinned &&
+                              "sticky z-1 bg-slate-100 dark:bg-gray-900",
                           )}
                           style={{
                             width: cell.column.getSize(),
                             minWidth: cell.column.columnDef.minSize,
-                            left: isPinned ? cell.column.getStart("left") : undefined,
+                            left: isPinned
+                              ? cell.column.getStart("left")
+                              : undefined,
                             zIndex: isPinned ? 1 : undefined,
                           }}
                           key={cell.id}
                         >
-                          {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                          {flexRender(
+                            cell.column.columnDef.cell,
+                            cell.getContext(),
+                          )}
                         </TableCell>
                       );
                     })}
@@ -157,7 +191,10 @@ export const Table = ({
               })
             ) : (
               <TableRow>
-                <TableCell colSpan={columns.length} className="h-24 text-center">
+                <TableCell
+                  colSpan={columns.length}
+                  className="h-24 text-center"
+                >
                   No results
                 </TableCell>
               </TableRow>

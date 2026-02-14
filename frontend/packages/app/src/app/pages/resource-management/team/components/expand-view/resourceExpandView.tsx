@@ -3,7 +3,10 @@
  */
 import { useMemo, useCallback, memo } from "react";
 import { Table, TableBody, TableRow } from "@next-pms/design-system/components";
-import { TableDisabledRow, TableInformationCellContent } from "@next-pms/resource-management/components";
+import {
+  TableDisabledRow,
+  TableInformationCellContent,
+} from "@next-pms/resource-management/components";
 import { useContextSelector } from "use-context-selector";
 /**
  * Internal dependencies.
@@ -11,8 +14,16 @@ import { useContextSelector } from "use-context-selector";
 import { ExpandViewCell } from "./expandViewCell";
 import { EmptyRow } from "../../../components/empty";
 import { TeamContext } from "../../../store/teamContext";
-import type { AllocationDataProps, DateProps, EmployeeDataProps } from "../../../store/types";
-import { CombinedResourceDataProps, CombinedResourceObjectProps, groupAllocations } from "../../../utils/group";
+import type {
+  AllocationDataProps,
+  DateProps,
+  EmployeeDataProps,
+} from "../../../store/types";
+import {
+  CombinedResourceDataProps,
+  CombinedResourceObjectProps,
+  groupAllocations,
+} from "../../../utils/group";
 
 /**
  * This component is responsible for loading Team view expand view data.
@@ -24,7 +35,7 @@ import { CombinedResourceDataProps, CombinedResourceObjectProps, groupAllocation
 const findCombineData = (
   all_dates_data: EmployeeDataProps["all_dates_data"],
   employee_allocations: EmployeeDataProps["employee_allocations"],
-  dates: DateProps[]
+  dates: DateProps[],
 ) => {
   return groupAllocations(all_dates_data, employee_allocations, dates);
 };
@@ -37,12 +48,23 @@ export const ResourceExpandView = memo(
     employeeData: EmployeeDataProps;
     onSubmit: (oldData: AllocationDataProps, data: AllocationDataProps) => void;
   }) => {
-    const teamData = useContextSelector(TeamContext, (value) => value.state.teamData);
+    const teamData = useContextSelector(
+      TeamContext,
+      (value) => value.state.teamData,
+    );
     const dates = teamData.dates;
 
-    const employeeResourceData: { combinedResourceData: CombinedResourceObjectProps; allDates: string[] } = useMemo(
-      () => findCombineData(employeeData?.all_dates_data, employeeData.employee_allocations, dates),
-      [dates, employeeData?.all_dates_data, employeeData.employee_allocations]
+    const employeeResourceData: {
+      combinedResourceData: CombinedResourceObjectProps;
+      allDates: string[];
+    } = useMemo(
+      () =>
+        findCombineData(
+          employeeData?.all_dates_data,
+          employeeData.employee_allocations,
+          dates,
+        ),
+      [dates, employeeData?.all_dates_data, employeeData.employee_allocations],
     );
 
     const onProjectClick = useCallback((projectId: string) => {
@@ -75,24 +97,36 @@ export const ResourceExpandView = memo(
                   weekIndex={weekIndex}
                   onSubmit={onSubmit}
                 />
-              ))
+              )),
             )}
           </TableRow>
-        )
+        ),
       );
-    }, [employeeResourceData.combinedResourceData, dates, employeeData, onProjectClick, onSubmit]);
+    }, [
+      employeeResourceData.combinedResourceData,
+      dates,
+      employeeData,
+      onProjectClick,
+      onSubmit,
+    ]);
 
     return (
       <Table>
         <TableBody className="[&_tr]:pr-0">
-          {Object.keys(employeeResourceData.combinedResourceData).length === 0 &&
-            Object.keys(employeeData.all_leave_data).length === 0 && <EmptyRow dates={employeeResourceData.allDates} />}
+          {Object.keys(employeeResourceData.combinedResourceData).length ===
+            0 &&
+            Object.keys(employeeData.all_leave_data).length === 0 && (
+              <EmptyRow dates={employeeResourceData.allDates} />
+            )}
           {renderedRows}
           {Object.keys(employeeData.all_leave_data).length !== 0 && (
-            <TableDisabledRow dates={employeeResourceData.allDates} data={employeeData.all_leave_data} />
+            <TableDisabledRow
+              dates={employeeResourceData.allDates}
+              data={employeeData.all_leave_data}
+            />
           )}
         </TableBody>
       </Table>
     );
-  }
+  },
 );

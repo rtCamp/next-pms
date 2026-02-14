@@ -27,7 +27,12 @@ import {
 } from "@next-pms/design-system/components";
 import { getFormatedDate } from "@next-pms/design-system/date";
 import { floatToTime } from "@next-pms/design-system/utils";
-import { FrappeConfig, FrappeContext, useFrappeGetCall, useFrappePostCall } from "frappe-react-sdk";
+import {
+  FrappeConfig,
+  FrappeContext,
+  useFrappeGetCall,
+  useFrappePostCall,
+} from "frappe-react-sdk";
 import { LoaderCircle, Save, Search, X } from "lucide-react";
 import { z } from "zod";
 
@@ -35,7 +40,11 @@ import { z } from "zod";
  * Internal Dependencies
  */
 import EmployeeCombo from "@/app/components/employeeComboBox";
-import { mergeClassNames, expectatedHours, parseFrappeErrorMsg } from "@/lib/utils";
+import {
+  mergeClassNames,
+  expectatedHours,
+  parseFrappeErrorMsg,
+} from "@/lib/utils";
 import { TimesheetSchema } from "@/schema/timesheet";
 import type { TaskData } from "@/types";
 import TimeSelector from "./time-selector";
@@ -69,13 +78,19 @@ const AddTime = ({
   project = "",
 }: AddTimeProps) => {
   const { call } = useContext(FrappeContext) as FrappeConfig;
-  const { call: save } = useFrappePostCall("next_pms.timesheet.api.timesheet.save");
+  const { call: save } = useFrappePostCall(
+    "next_pms.timesheet.api.timesheet.save",
+  );
   const [searchTask, setSearchTask] = useState(task);
   const [tasks, setTask] = useState([]);
   const [submitting, setSubmitting] = useState(false);
   const [isTaskLoading, setIsTaskLoading] = useState(false);
-  const [selectedProject, setSelectedProject] = useState<string[]>(project ? [project] : []);
-  const [selectedDate, setSelectedDate] = useState(getFormatedDate(initialDate));
+  const [selectedProject, setSelectedProject] = useState<string[]>(
+    project ? [project] : [],
+  );
+  const [selectedDate, setSelectedDate] = useState(
+    getFormatedDate(initialDate),
+  );
   const [selectedEmployee, setSelectedEmployee] = useState(employee);
   const expectedHours = expectatedHours(workingHours, workingFrequency);
   const { toast } = useToast();
@@ -140,7 +155,7 @@ const AddTime = ({
         });
       }
     },
-    [selectedProject, tasks]
+    [selectedProject, tasks],
   );
   const handleProjectChange = (value: string | string[]) => {
     if (value instanceof Array) {
@@ -199,12 +214,15 @@ const AddTime = ({
       });
   }, [call, searchTask, selectedProject, toast]);
 
-  const { data: projects, isLoading: isProjectLoading } = useFrappeGetCall("frappe.client.get_list", {
-    doctype: "Project",
-    fields: ["name", "project_name"],
-    filters: window.frappe?.boot?.global_filters.project,
-    limit_page_length: "null",
-  });
+  const { data: projects, isLoading: isProjectLoading } = useFrappeGetCall(
+    "frappe.client.get_list",
+    {
+      doctype: "Project",
+      fields: ["name", "project_name"],
+      filters: window.frappe?.boot?.global_filters.project,
+      limit_page_length: "null",
+    },
+  );
 
   const { data: perDayEmpHours, mutate: mutatePerDayHrs } = useFrappeGetCall(
     "next_pms.timesheet.api.timesheet.get_remaining_hour_for_employee",
@@ -215,7 +233,7 @@ const AddTime = ({
     undefined,
     {
       revalidateOnFocus: false,
-    }
+    },
   );
   const onEmployeeChange = (value: string) => {
     setSelectedEmployee(value);
@@ -243,16 +261,20 @@ const AddTime = ({
 
   return (
     <Dialog open={open} onOpenChange={handleOpen}>
-      <DialogContent className="max-w-xl" onPointerDownOutside={event?.preventDefault}>
+      <DialogContent
+        className="max-w-xl"
+        onPointerDownOutside={event?.preventDefault}
+      >
         <DialogHeader>
           <DialogTitle className="flex gap-x-2">
             Add Time
             <Typography
               variant="p"
               className={mergeClassNames(
-                Number(perDayEmpHours?.message) >= 0 && Number(perDayEmpHours?.message) <= expectedHours
+                Number(perDayEmpHours?.message) >= 0 &&
+                  Number(perDayEmpHours?.message) <= expectedHours
                   ? "text-success"
-                  : "text-destructive"
+                  : "text-destructive",
               )}
             >
               {perDayEmpHours
@@ -273,7 +295,9 @@ const AddTime = ({
                   name="employee"
                   render={() => (
                     <FormItem className="w-full space-y-1">
-                      <FormLabel className="flex gap-2 items-center text-sm">Employee</FormLabel>
+                      <FormLabel className="flex gap-2 items-center text-sm">
+                        Employee
+                      </FormLabel>
                       <FormControl>
                         <EmployeeCombo
                           onSelect={onEmployeeChange}
@@ -316,9 +340,14 @@ const AddTime = ({
                     name="date"
                     render={({ field }) => (
                       <FormItem className="w-full space-y-1">
-                        <FormLabel className="flex gap-2 items-center text-sm">Date</FormLabel>
+                        <FormLabel className="flex gap-2 items-center text-sm">
+                          Date
+                        </FormLabel>
                         <FormControl>
-                          <DatePicker date={field.value} onDateChange={handleDateChange} />
+                          <DatePicker
+                            date={field.value}
+                            onDateChange={handleDateChange}
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -334,11 +363,13 @@ const AddTime = ({
                     showSelected
                     shouldFilter
                     value={selectedProject}
-                    data={projects?.message?.map((item: { project_name: string; name: string }) => ({
-                      label: item.project_name,
-                      value: item.name,
-                      disabled: false,
-                    }))}
+                    data={projects?.message?.map(
+                      (item: { project_name: string; name: string }) => ({
+                        label: item.project_name,
+                        value: item.name,
+                        disabled: false,
+                      }),
+                    )}
                     isLoading={isProjectLoading}
                     onSelect={handleProjectChange}
                     rightIcon={<Search className="h-4 w-4 stroke-slate-400" />}
@@ -356,7 +387,10 @@ const AddTime = ({
                           showSelected
                           deBounceTime={200}
                           value={
-                            form.getValues("task") && form.getValues("task").length > 0 ? [form.getValues("task")] : []
+                            form.getValues("task") &&
+                            form.getValues("task").length > 0
+                              ? [form.getValues("task")]
+                              : []
                           }
                           isLoading={isTaskLoading}
                           data={
@@ -369,7 +403,9 @@ const AddTime = ({
                           }
                           onSelect={handleTaskChange}
                           onSearch={handleTaskSearch}
-                          rightIcon={<Search className="h-4 w-4  stroke-slate-400" />}
+                          rightIcon={
+                            <Search className="h-4 w-4  stroke-slate-400" />
+                          }
                         />
                       </FormControl>
                       <FormMessage />
@@ -399,10 +435,19 @@ const AddTime = ({
               <DialogFooter className="sm:justify-start w-full pt-3">
                 <div className="flex gap-x-4 w-full">
                   <Button disabled={!isDirty || !isValid || submitting}>
-                    {submitting ? <LoaderCircle className="animate-spin w-4 h-4" /> : <Save className="w-4 h-4" />}
+                    {submitting ? (
+                      <LoaderCircle className="animate-spin w-4 h-4" />
+                    ) : (
+                      <Save className="w-4 h-4" />
+                    )}
                     Add Time
                   </Button>
-                  <Button variant="secondary" type="button" onClick={handleOpen} disabled={submitting}>
+                  <Button
+                    variant="secondary"
+                    type="button"
+                    onClick={handleOpen}
+                    disabled={submitting}
+                  >
                     <X className="w-4 h-4" />
                     Cancel
                   </Button>

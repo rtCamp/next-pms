@@ -7,7 +7,10 @@ import { Filter } from "lucide-react";
 /**
  * Internal dependencies
  */
-import type { FilterPops, ApiCallProps } from "@/app/components/list-view/types";
+import type {
+  FilterPops,
+  ApiCallProps,
+} from "@/app/components/list-view/types";
 import { mergeClassNames } from "@/lib/utils";
 
 /**
@@ -31,7 +34,9 @@ const ComboBoxWrapper = ({
     apiCall?.url as string,
     apiCall?.filters,
     undefined,
-    apiCall?.options ? { revalidateOnMount: false, ...apiCall.options } : { revalidateOnMount: false }
+    apiCall?.options
+      ? { revalidateOnMount: false, ...apiCall.options }
+      : { revalidateOnMount: false },
   );
 
   const handleOnClick = () => {
@@ -54,9 +59,13 @@ const ComboBoxWrapper = ({
       rightIcon={
         filter?.isMultiComboBox
           ? ((filter.value as string[])?.length ?? 0) > 0 && (
-              <Badge className="p-0 justify-center w-5 h-5">{(filter.value as string[]).length}</Badge>
+              <Badge className="p-0 justify-center w-5 h-5">
+                {(filter.value as string[]).length}
+              </Badge>
             )
-          : (filter.value?.toString()?.length ?? 0) > 0 && <Badge className="p-0 justify-center w-5 h-5">1</Badge>
+          : (filter.value?.toString()?.length ?? 0) > 0 && (
+              <Badge className="p-0 justify-center w-5 h-5">1</Badge>
+            )
       }
       leftIcon={
         <Filter
@@ -64,7 +73,7 @@ const ComboBoxWrapper = ({
             "h-4 w-4",
             filter?.isMultiComboBox
               ? (filter.value as string[])?.length != 0 && "fill-primary"
-              : (filter.value?.toString()?.length ?? 0) > 0 && "fill-primary"
+              : (filter.value?.toString()?.length ?? 0) > 0 && "fill-primary",
           )}
         />
       }

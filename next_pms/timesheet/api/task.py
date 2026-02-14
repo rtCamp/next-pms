@@ -15,7 +15,7 @@ def get_task_list(
     search: str = None,
     page_length: int | bool = 20,
     start: int | None = 0,
-    projects=None,
+    projects: str | list | None = None,
     status: list | str = None,
     fields: list | str = None,
     filter_recent: bool = False,

@@ -30,9 +30,15 @@ const ResourceProjectTable = ({
   onSubmit: (oldData: AllocationDataProps, data: AllocationDataProps) => void;
   dateToAddHeaderRef: string;
 }) => {
-  const { projectData, filters, apiController } = useContextSelector(ProjectContext, (value) => value.state);
+  const { projectData, filters, apiController } = useContextSelector(
+    ProjectContext,
+    (value) => value.state,
+  );
 
-  const { getHasMore, setMaxWeek, setStart } = useContextSelector(ProjectContext, (value) => value.actions);
+  const { getHasMore, setMaxWeek, setStart } = useContextSelector(
+    ProjectContext,
+    (value) => value.actions,
+  );
 
   const dates: DateProps[] = projectData.dates;
   const isLoading = apiController.isLoading;
@@ -46,7 +52,11 @@ const ResourceProjectTable = ({
     setMaxWeek(maxWeek + 3);
   };
 
-  const cellHeaderRef = useInfiniteScroll({ isLoading: isLoading, hasMore: true, next: () => handleLoadMore() });
+  const cellHeaderRef = useInfiniteScroll({
+    isLoading: isLoading,
+    hasMore: true,
+    next: () => handleLoadMore(),
+  });
 
   const handleVerticalLoadMore = () => {
     if (!hasMore) return;
@@ -70,7 +80,11 @@ const ResourceProjectTable = ({
           cellHeaderRef={cellHeaderRef}
           dateToAddHeaderRef={dateToAddHeaderRef}
         />
-        <InfiniteScroll isLoading={isLoading ? true : false} hasMore={hasMore} verticalLodMore={handleVerticalLoadMore}>
+        <InfiniteScroll
+          isLoading={isLoading ? true : false}
+          hasMore={hasMore}
+          verticalLodMore={handleVerticalLoadMore}
+        >
           <ResourceProjectTableBody onSubmit={onSubmit} />
         </InfiniteScroll>
       </Table>

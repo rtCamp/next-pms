@@ -23,14 +23,21 @@ export const Variants = cva("", {
     variant: "Open",
   },
 });
-type TaskStatusProps = "Open" | "Working" | "Pending Review" | "Overdue" | "Template" | "Completed" | "Cancelled";
+type TaskStatusProps =
+  | "Open"
+  | "Working"
+  | "Pending Review"
+  | "Overdue"
+  | "Template"
+  | "Completed"
+  | "Cancelled";
 const TaskStatus = ({ status }: { status: string }) => {
   return (
     <div
       title={status}
       className={mergeClassNames(
         Variants({ variant: status as TaskStatusProps }),
-        "py-1 px-2 truncate  w-fit max-w-40 text-xs font-bold text-center cursor-pointer rounded-full "
+        "py-1 px-2 truncate  w-fit max-w-40 text-xs font-bold text-center cursor-pointer rounded-full ",
       )}
     >
       {status}

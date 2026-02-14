@@ -34,14 +34,19 @@ import { Table } from "./components/table";
 import { TaskLog } from "./components/taskLog";
 import { initialState, reducer } from "./reducer";
 import { createFilter } from "./utils";
-import { initialState as timesheetInitialState, reducer as timesheetReducer } from "../timesheet/reducer";
+import {
+  initialState as timesheetInitialState,
+  reducer as timesheetReducer,
+} from "../timesheet/reducer";
 import type { TaskTableProps } from "./components/types";
 
 const Task = () => {
   const docType = "Task";
   return (
     <ViewWrapper docType={docType}>
-      {({ viewData, meta }) => <TaskTable viewData={viewData} meta={meta.message} />}
+      {({ viewData, meta }) => (
+        <TaskTable viewData={viewData} meta={meta.message} />
+      )}
     </ViewWrapper>
   );
 };
@@ -53,11 +58,20 @@ const TaskTable = ({ viewData, meta }: TaskTableProps) => {
   const [viewInfo, setViewInfo] = useState<ViewData>(viewData);
 
   const user = useSelector((state: RootState) => state.user);
-  const [timesheet, timesheetDispatch] = useReducer(timesheetReducer, timesheetInitialState);
-  const columnsToExcludeActionsInTables: columnsToExcludeActionsInTablesType = ["liked", "timesheetAction"];
+  const [timesheet, timesheetDispatch] = useReducer(
+    timesheetReducer,
+    timesheetInitialState,
+  );
+  const columnsToExcludeActionsInTables: columnsToExcludeActionsInTablesType = [
+    "liked",
+    "timesheetAction",
+  ];
 
   const dispatch = useDispatch();
-  const [pinnedColumns, setPinnedColumns] = useState<{ left: string[]; right: string[] }>({
+  const [pinnedColumns, setPinnedColumns] = useState<{
+    left: string[];
+    right: string[];
+  }>({
     left: viewData.pinnedColumns || [],
     right: [],
   });
@@ -65,10 +79,14 @@ const TaskTable = ({ viewData, meta }: TaskTableProps) => {
   const { toast } = useToast();
 
   const [hasViewUpdated, setHasViewUpdated] = useState(false);
-  const [colSizing, setColSizing] = useState<ColumnSizingState>(viewData.columns ?? {});
+  const [colSizing, setColSizing] = useState<ColumnSizingState>(
+    viewData.columns ?? {},
+  );
   const [columnOrder, setColumnOrder] = useState<string[]>(viewData.rows ?? []);
 
-  const { call: toggleLikeCall } = useFrappePostCall("frappe.desk.like.toggle_like");
+  const { call: toggleLikeCall } = useFrappePostCall(
+    "frappe.desk.like.toggle_like",
+  );
 
   useEffect(() => {
     taskDispatch({
@@ -140,7 +158,7 @@ const TaskTable = ({ viewData, meta }: TaskTableProps) => {
       revalidateOnReconnect: false,
       revalidateIfStale: false,
       revalidateOnMount: false,
-    }
+    },
   );
 
   useEffect(() => {
@@ -196,7 +214,12 @@ const TaskTable = ({ viewData, meta }: TaskTableProps) => {
     toggleLikeCall(data)
       .then(() => {
         mutate();
-        toggleLikedByForTask(LIKED_TASK_KEY, taskName as string, user?.user, add);
+        toggleLikedByForTask(
+          LIKED_TASK_KEY,
+          taskName as string,
+          user?.user,
+          add,
+        );
       })
       .catch((err) => {
         const error = parseFrappeErrorMsg(err);
@@ -251,7 +274,7 @@ const TaskTable = ({ viewData, meta }: TaskTableProps) => {
     openTaskLog,
     handleAddTime,
     user,
-    handleLike
+    handleLike,
   );
 
   const table = useReactTable({
@@ -336,7 +359,9 @@ const TaskTable = ({ viewData, meta }: TaskTableProps) => {
           workingHours={user.workingHours}
         />
       )}
-      {task.isAddTaskDialogBoxOpen && <AddTask dispatch={taskDispatch} mutate={mutate} task={task} />}
+      {task.isAddTaskDialogBoxOpen && (
+        <AddTask dispatch={taskDispatch} mutate={mutate} task={task} />
+      )}
     </>
   );
 };

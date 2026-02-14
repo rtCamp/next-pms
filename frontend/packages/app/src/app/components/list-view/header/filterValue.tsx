@@ -38,7 +38,10 @@ const FilterValue = ({ filters }: { filters: FilterPops[] }) => {
   }
 
   return (
-    <div id="filters" className="flex gap-x-2 max-md:gap-x-3 w-full px-4 py-2 items-center">
+    <div
+      id="filters"
+      className="flex gap-x-2 max-md:gap-x-3 w-full px-4 py-2 items-center"
+    >
       <div className="px-2 rounded text-sm">Filters</div>
       <div className="flex gap-x-2 overflow-scroll w-fit px-4 no-scrollbar">
         {updateFilters &&
@@ -46,13 +49,19 @@ const FilterValue = ({ filters }: { filters: FilterPops[] }) => {
             if (Array.isArray(filter.value)) {
               return (
                 <div key={idx} className="flex gap-2 flex-shrink-0">
-                  <div className="bg-gray-200 dark:bg-accent px-2 py-1 rounded text-sm">{filter.label}</div>
+                  <div className="bg-gray-200 dark:bg-accent px-2 py-1 rounded text-sm">
+                    {filter.label}
+                  </div>
                   {filter.value.map((value, index) => (
                     <Badge
                       variant="secondary"
                       key={index}
                       className="break-keep gap-x-1 font-normal text-sm flex items-center cursor-pointer"
-                      onClick={() => filter.handleDelete(removeValueFromArray(value, filter.value as string[]))}
+                      onClick={() =>
+                        filter.handleDelete(
+                          removeValueFromArray(value, filter.value as string[]),
+                        )
+                      }
                     >
                       <div className="w-fit">{value}</div>
                       <X className=" cursor-pointer" />
@@ -63,7 +72,9 @@ const FilterValue = ({ filters }: { filters: FilterPops[] }) => {
             }
             return (
               <div key={idx} className="flex gap-2 w-fit flex-shrink-0">
-                <div className="bg-gray-200 dark:bg-accent px-2 py-1 rounded text-sm">{filter.label}</div>
+                <div className="bg-gray-200 dark:bg-accent px-2 py-1 rounded text-sm">
+                  {filter.label}
+                </div>
                 <Badge
                   variant="secondary"
                   className="break-keep gap-x-1 font-normal text-sm flex items-center cursor-pointer"

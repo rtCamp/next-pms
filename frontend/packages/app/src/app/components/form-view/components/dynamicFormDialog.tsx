@@ -28,7 +28,7 @@ import { enrichChildMeta } from "../utils";
 interface DynamicFormDialogProps {
   open: boolean;
   onClose: () => void;
-  onSubmit: (values: any) => void;
+  onSubmit: (values: Record<string, unknown>) => void;
   fieldMeta: FieldMeta[];
   value: ChildRow[];
   currencySymbol: string;
@@ -48,12 +48,17 @@ const DynamicFormDialog = ({
 }: DynamicFormDialogProps) => {
   const filteredMeta: Field[] = useMemo(() => {
     return enrichChildMeta(fieldMeta, value, rowName)?.filter(
-      (f) => f.label !== null && f.read_only !== 1 && f.fieldtype !== "Read Only"
+      (f) =>
+        f.label !== null && f.read_only !== 1 && f.fieldtype !== "Read Only",
     );
   }, [fieldMeta, value, rowName]);
   const { doctype, docname, mutateData } = useFormContext();
 
-  const { updateDoc: updateChildTableRow, loading, error } = useFrappeUpdateDoc();
+  const {
+    updateDoc: updateChildTableRow,
+    loading,
+    error,
+  } = useFrappeUpdateDoc();
 
   const {
     control,
@@ -73,13 +78,19 @@ const DynamicFormDialog = ({
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent aria-describedby="DynamicForm" aria-description="DynamicForm">
+      <DialogContent
+        aria-describedby="DynamicForm"
+        aria-description="DynamicForm"
+      >
         <DialogHeader>
           <DialogTitle>Editing Row #{rowIndex}</DialogTitle>
-          <DialogDescription></DialogDescription> {/* To remove description warnings in console*/}
+          <DialogDescription></DialogDescription>{" "}
+          {/* To remove description warnings in console*/}
         </DialogHeader>
         <form className="space-y-4 py-4">
-          {filteredMeta.map((meta) => RenderField(meta, control, () => {}, false, currencySymbol, {}))}
+          {filteredMeta.map((meta) =>
+            RenderField(meta, control, () => {}, false, currencySymbol, {}),
+          )}
           <DialogFooter className="sm:justify-start w-full pt-3">
             <div className="flex gap-x-4 w-full">
               <Button
@@ -89,7 +100,11 @@ const DynamicFormDialog = ({
                       [fieldMeta[0].parentfield]: [
                         {
                           ...value.find((obj) => obj.name === rowName),
-                          ...Object.fromEntries([...Object.entries(values).filter(([, value]) => value !== "")]),
+                          ...Object.fromEntries([
+                            ...Object.entries(values).filter(
+                              ([, value]) => value !== "",
+                            ),
+                          ]),
                           modified: 1,
                           idx: rowIndex,
                         },
@@ -107,7 +122,11 @@ const DynamicFormDialog = ({
                 }}
                 disabled={!isDirty || !isValid || loading}
               >
-                {loading ? <LoaderCircle className="animate-spin size-4" /> : <Save className="size-4" />}
+                {loading ? (
+                  <LoaderCircle className="animate-spin size-4" />
+                ) : (
+                  <Save className="size-4" />
+                )}
                 Save
               </Button>
               <Button

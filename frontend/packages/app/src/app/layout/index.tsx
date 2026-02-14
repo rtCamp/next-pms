@@ -19,18 +19,24 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
   const user = useSelector((state: RootState) => state.user);
   const dispatch = useDispatch();
   const { toast } = useToast();
-  const { data, error } = useFrappeGetCall("next_pms.timesheet.api.employee.get_data", {}, undefined, {
-    revalidateOnFocus: false,
-    revalidateIfStale: false,
-    errorRetryCount: 1,
-  });
+  const { data, error } = useFrappeGetCall(
+    "next_pms.timesheet.api.employee.get_data",
+    {},
+    undefined,
+    {
+      revalidateOnFocus: false,
+      revalidateIfStale: false,
+      errorRetryCount: 1,
+    },
+  );
 
   useEffect(() => {
     if (data) {
       const info = {
         employee: data.message?.employee ?? "",
         workingHours: data.message?.employee_working_detail?.working_hour ?? 8,
-        workingFrequency: data.message?.employee_working_detail?.working_frequency ?? "Per Day",
+        workingFrequency:
+          data.message?.employee_working_detail?.working_frequency ?? "Per Day",
         reportsTo: data.message?.employee_report_to ?? "",
         employeeName: data.message?.employee_name ?? "",
       };

@@ -32,8 +32,14 @@ const ResourceTeamTable = ({
   dateToAddHeaderRef: string;
   handleVerticalLoadMore: () => void;
 }) => {
-  const { teamData, apiController } = useContextSelector(TeamContext, (value) => value.state);
-  const { getHasMore } = useContextSelector(TeamContext, (value) => value.actions);
+  const { teamData, apiController } = useContextSelector(
+    TeamContext,
+    (value) => value.state,
+  );
+  const { getHasMore } = useContextSelector(
+    TeamContext,
+    (value) => value.actions,
+  );
 
   const dates: DateProps[] = teamData.dates;
   const isLoading = apiController.isLoading;
@@ -56,7 +62,11 @@ const ResourceTeamTable = ({
           dates={dates}
           title="Members"
         />
-        <InfiniteScroll isLoading={isLoading} hasMore={hasMore} verticalLodMore={handleVerticalLoadMore}>
+        <InfiniteScroll
+          isLoading={isLoading}
+          hasMore={hasMore}
+          verticalLodMore={handleVerticalLoadMore}
+        >
           <ResourceTeamTableBody onSubmit={onSubmit} />
         </InfiniteScroll>
       </Table>

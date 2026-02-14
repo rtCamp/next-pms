@@ -15,14 +15,24 @@ interface TagsProps {
   mutate?: () => void;
 }
 
-const Tags: React.FC<TagsProps> = ({ userTags, doctype, docname, className, mutate }) => {
+const Tags: React.FC<TagsProps> = ({
+  userTags,
+  doctype,
+  docname,
+  className,
+  mutate,
+}) => {
   const tags: string[] = (userTags || "")
     .split(",")
     .map((tag: string) => tag?.trim())
     .filter((tag: string) => tag.length > 0);
 
-  const { call, loading } = useFrappePostCall("frappe.desk.doctype.tag.tag.remove_tag");
-  const { call: addTagCall, loading: addTagLoading } = useFrappePostCall("frappe.desk.doctype.tag.tag.add_tag");
+  const { call, loading } = useFrappePostCall(
+    "frappe.desk.doctype.tag.tag.remove_tag",
+  );
+  const { call: addTagCall, loading: addTagLoading } = useFrappePostCall(
+    "frappe.desk.doctype.tag.tag.add_tag",
+  );
   const [tagSearch, setTagSearch] = useState("");
   const [hideComboBox, setHideComboBox] = useState(true);
   const {
@@ -75,7 +85,9 @@ const Tags: React.FC<TagsProps> = ({ userTags, doctype, docname, className, muta
   };
 
   return (
-    <div className={mergeClassNames("flex flex-col gap-4 pb-0 pt-1", className)}>
+    <div
+      className={mergeClassNames("flex flex-col gap-4 pb-0 pt-1", className)}
+    >
       <div className="flex h-10 border-b lg:px-4 max-lg:px-3 w-full">
         <div className="flex items-center justify-between gap-2 text-sm font-medium w-full">
           <span className="flex items-center gap-1">
@@ -90,7 +102,11 @@ const Tags: React.FC<TagsProps> = ({ userTags, doctype, docname, className, muta
             aria-disabled={loading}
             onClick={() => setHideComboBox(!hideComboBox)}
           >
-            {hideComboBox ? <Plus className="w-3 h-3" /> : <Minus className="w-3 h-3" />}
+            {hideComboBox ? (
+              <Plus className="w-3 h-3" />
+            ) : (
+              <Minus className="w-3 h-3" />
+            )}
           </Button>
         </div>
       </div>
@@ -124,11 +140,14 @@ const Tags: React.FC<TagsProps> = ({ userTags, doctype, docname, className, muta
                   aria-disabled={loading}
                   className={mergeClassNames(
                     "px-2 rounded-full bg-muted text-foreground hover:bg-muted/80 py-1 text-xs flex items-center gap-1 truncate",
-                    loading && "opacity-50 pointer-events-none"
+                    loading && "opacity-50 pointer-events-none",
                   )}
                 >
                   <p className="flex-shrink truncate">{tag}</p>{" "}
-                  <X className="w-3 h-3 flex-shrink-0 flex-grow cursor-pointer" onClick={() => handleRemoveTag(tag)} />
+                  <X
+                    className="w-3 h-3 flex-shrink-0 flex-grow cursor-pointer"
+                    onClick={() => handleRemoveTag(tag)}
+                  />
                 </Badge>
               ))}
             </div>

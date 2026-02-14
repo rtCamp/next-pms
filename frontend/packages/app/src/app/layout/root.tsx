@@ -18,7 +18,10 @@ export const Header = ({ children, className, parentClassName }: Props) => {
   return (
     <div className={mergeClassNames("flex border-b", parentClassName)}>
       <header
-        className={mergeClassNames("flex h-14 max-md:h-fit items-center justify-between px-3 py-2 w-full", className)}
+        className={mergeClassNames(
+          "flex h-14 max-md:h-fit items-center justify-between px-3 py-2 w-full",
+          className,
+        )}
       >
         {children}
       </header>

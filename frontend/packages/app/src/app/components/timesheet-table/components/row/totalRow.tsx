@@ -1,14 +1,22 @@
 /**
  * External dependencies
  */
-import { TableCell, TableRow, Typography } from "@next-pms/design-system/components";
+import {
+  TableCell,
+  TableRow,
+  Typography,
+} from "@next-pms/design-system/components";
 import { getDateFromDateAndTimeString } from "@next-pms/design-system/date";
 import { floatToTime } from "@next-pms/design-system/utils";
 
 /**
  * Internal dependencies
  */
-import { expectatedHours, mergeClassNames, getBgCsssForToday } from "@/lib/utils";
+import {
+  expectatedHours,
+  mergeClassNames,
+  getBgCsssForToday,
+} from "@/lib/utils";
 import type { HolidayProp, LeaveProps, TaskProps } from "@/types/timesheet";
 import { WeekTotal } from "../weekTotal";
 import type { TotalHourRowProps } from "./types";
@@ -26,7 +34,14 @@ import type { TotalHourRowProps } from "./types";
  * @param {WorkingFrequency} props.workingFrequency - The working frequency
  */
 
-export const TotalHourRow = ({ leaves, dates, tasks, holidays, workingHour, workingFrequency }: TotalHourRowProps) => {
+export const TotalHourRow = ({
+  leaves,
+  dates,
+  tasks,
+  holidays,
+  workingHour,
+  workingFrequency,
+}: TotalHourRowProps) => {
   let total = 0;
   const dailyWorkingHours = expectatedHours(workingHour, workingFrequency);
 
@@ -34,9 +49,12 @@ export const TotalHourRow = ({ leaves, dates, tasks, holidays, workingHour, work
     <TableRow>
       <TableCell></TableCell>
       {dates.map((date) => {
-        const holiday = holidays.find((holiday) => holiday.holiday_date === date);
+        const holiday = holidays.find(
+          (holiday) => holiday.holiday_date === date,
+        );
         const totalHours =
-          calculateTotalHours(tasks, date) + calculateLeaveHours(leaves, date, dailyWorkingHours, holiday);
+          calculateTotalHours(tasks, date) +
+          calculateLeaveHours(leaves, date, dailyWorkingHours, holiday);
 
         total += totalHours;
 
@@ -48,21 +66,35 @@ export const TotalHourRow = ({ leaves, dates, tasks, holidays, workingHour, work
             <TableCell key={date} className="text-center">
               <Typography
                 variant="p"
-                className={mergeClassNames(!holiday.weekly_off && "text-slate-400 dark:text-primary/50")}
+                className={mergeClassNames(
+                  !holiday.weekly_off && "text-slate-400 dark:text-primary/50",
+                )}
               >
-                {holiday.weekly_off ? floatToTime(totalHours) : floatToTime(workingHour)}
+                {holiday.weekly_off
+                  ? floatToTime(totalHours)
+                  : floatToTime(workingHour)}
               </Typography>
             </TableCell>
           );
         }
 
         return (
-          <TableCell key={date} className={mergeClassNames("text-center px-2", getBgCsssForToday(date))}>
+          <TableCell
+            key={date}
+            className={mergeClassNames(
+              "text-center px-2",
+              getBgCsssForToday(date),
+            )}
+          >
             <Typography variant="p">{floatToTime(totalHours)}</Typography>
           </TableCell>
         );
       })}
-      <WeekTotal total={total} expected_hour={workingHour} frequency={workingFrequency} />
+      <WeekTotal
+        total={total}
+        expected_hour={workingHour}
+        frequency={workingFrequency}
+      />
     </TableRow>
   );
 };
@@ -80,7 +112,7 @@ const calculateLeaveHours = (
   leaves: LeaveProps[],
   date: string,
   daily_working_hours: number,
-  holiday: HolidayProp | undefined
+  holiday: HolidayProp | undefined,
 ) => {
   return leaves.reduce((total, leave) => {
     if (date >= leave.from_date && date <= leave.to_date) {

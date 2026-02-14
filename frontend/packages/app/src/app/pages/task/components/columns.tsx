@@ -15,7 +15,12 @@ import { UserState } from "@/store/user";
 import type { TaskData } from "@/types";
 import type { ColumnsType } from "@/types/task";
 import { TaskPriority } from "./taskPriority";
-import type { FieldMeta, handleAddTimeType, handleLikeType, openTaskLogType } from "./types";
+import type {
+  FieldMeta,
+  handleAddTimeType,
+  handleLikeType,
+  openTaskLogType,
+} from "./types";
 
 export const getColumn = (
   fieldMeta: FieldMeta["fields"],
@@ -27,7 +32,7 @@ export const getColumn = (
   openTaskLog: openTaskLogType,
   handleAddTime: handleAddTimeType,
   user: UserState,
-  handleLike: handleLikeType
+  handleLike: handleLikeType,
 ): ColumnsType => {
   const columns: ColumnsType = [];
   const ProjectNameColumn: ColumnDef<TaskData> = {
@@ -119,7 +124,15 @@ export const getColumn = (
             </Typography>
           );
         }
-        return <DataCell meta={meta} title_field={title_field} docType={docType} value={value} row={row} />;
+        return (
+          <DataCell
+            meta={meta}
+            title_field={title_field}
+            docType={docType}
+            value={value}
+            row={row}
+          />
+        );
       },
     };
     columns.push(col as ColumnDef<TaskData>);
@@ -134,7 +147,10 @@ export const getColumn = (
       maxSize: 60, // Maximum size
       cell: ({ row }) => {
         return (
-          <div title="Add Timesheet" className="w-full flex justify-center items-center">
+          <div
+            title="Add Timesheet"
+            className="w-full flex justify-center items-center"
+          >
             <Clock
               className={"w-4 h-4 hover:cursor-pointer hover:text-blue-600"}
               onClick={() => {
@@ -158,7 +174,8 @@ export const getColumn = (
             <Heart
               className={mergeClassNames(
                 "hover:cursor-pointer",
-                isLiked(row.original._liked_by, user.user) && "fill-destructive stroke-destructive"
+                isLiked(row.original._liked_by, user.user) &&
+                  "fill-destructive stroke-destructive",
               )}
               data-task={row.original.name}
               data-liked-by={row.original._liked_by}

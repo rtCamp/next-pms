@@ -1,6 +1,9 @@
 import path from "path";
 import fs from "fs";
-import { deleteByTaskName, readAndCleanAllOrphanData } from "../helpers/timesheetHelper";
+import {
+  deleteByTaskName,
+  readAndCleanAllOrphanData,
+} from "../helpers/timesheetHelper";
 import { deleteUserGroupForEmployee } from "../helpers/teamTabHelper";
 // ------------------------------------------------------------------------------------------
 
@@ -26,7 +29,10 @@ const globalTeardown = async () => {
   await readAndCleanAllOrphanData();
 
   //Pass allTCIds to cleanup function
-  await deleteUserGroupForEmployee(allTCIds, path.resolve(projectRoot, "data/json-files"));
+  await deleteUserGroupForEmployee(
+    allTCIds,
+    path.resolve(projectRoot, "data/json-files"),
+  );
 };
 
 export default globalTeardown;

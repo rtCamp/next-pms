@@ -27,16 +27,16 @@ from next_pms.timesheet.api.team import get_holidays
 def get_resource_management_team_view_data(
     date: str,
     max_week: int = 2,
-    employee_name=None,
-    business_unit=None,
-    designation=None,
-    reports_to=None,
-    is_billable=-1,
-    page_length=10,
-    start=0,
-    skills=None,
-    employee_id=None,
-    need_hours_summary=False,
+    employee_name: str | None = None,
+    business_unit: str | None = None,
+    designation: str | None = None,
+    reports_to: str | None = None,
+    is_billable: int = -1,
+    page_length: int = 10,
+    start: int = 0,
+    skills: str | list | None = None,
+    employee_id: str | list | None = None,
+    need_hours_summary: bool = False,
 ):
     permissions = resource_api_permissions_check()
 

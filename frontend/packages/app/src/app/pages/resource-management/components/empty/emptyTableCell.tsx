@@ -1,7 +1,10 @@
 /**
  * External dependencies.
  */
-import { ResourceTableCell, EmptyTableCell as ResourceEmptyTableCell } from "@next-pms/resource-management/components";
+import {
+  ResourceTableCell,
+  EmptyTableCell as ResourceEmptyTableCell,
+} from "@next-pms/resource-management/components";
 import { useContextSelector } from "use-context-selector";
 
 /**
@@ -19,8 +22,16 @@ import { ResourceFormContext } from "../../store/resourceFormContext";
  * @param props.onCellClick on cell click event for cell based on this will decide where to show + icon on hover or not.
  * @returns React.FC
  */
-const EmptyTableCell = ({ cellClassName, title, textClassName, onCellClick }: EmptyTableCellProps) => {
-  const resourceAllocationPermission = useContextSelector(ResourceFormContext, (value) => value.state.permission);
+const EmptyTableCell = ({
+  cellClassName,
+  title,
+  textClassName,
+  onCellClick,
+}: EmptyTableCellProps) => {
+  const resourceAllocationPermission = useContextSelector(
+    ResourceFormContext,
+    (value) => value.state.permission,
+  );
 
   if (!onCellClick || !resourceAllocationPermission.write) {
     return (
@@ -45,7 +56,12 @@ const EmptyTableCell = ({ cellClassName, title, textClassName, onCellClick }: Em
   }
 
   return (
-    <ResourceTableCell type="default" cellClassName={cellClassName} cellTypographyClassName={textClassName} value="-" />
+    <ResourceTableCell
+      type="default"
+      cellClassName={cellClassName}
+      cellTypographyClassName={textClassName}
+      value="-"
+    />
   );
 };
 

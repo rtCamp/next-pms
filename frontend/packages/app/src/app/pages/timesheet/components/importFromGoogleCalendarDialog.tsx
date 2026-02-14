@@ -20,7 +20,12 @@ import {
 } from "@next-pms/design-system/components";
 import { getFormatedDate, getTodayDate } from "@next-pms/design-system/date";
 import { addDays } from "date-fns";
-import { FrappeConfig, FrappeContext, useFrappeGetCall, useFrappePostCall } from "frappe-react-sdk";
+import {
+  FrappeConfig,
+  FrappeContext,
+  useFrappeGetCall,
+  useFrappePostCall,
+} from "frappe-react-sdk";
 import { Calendar, Clock, X, Save, Search } from "lucide-react";
 /**
  * Internal dependencies
@@ -35,14 +40,14 @@ interface ImportFromGoogleCalendarDialogProps {
   ignoreAlldayEvents?: boolean;
 }
 
-const ImportFromGoogleCalendarDialog: React.FC<ImportFromGoogleCalendarDialogProps> = ({
-  open,
-  onOpenChange,
-  ignoreAlldayEvents = true,
-}) => {
+const ImportFromGoogleCalendarDialog: React.FC<
+  ImportFromGoogleCalendarDialogProps
+> = ({ open, onOpenChange, ignoreAlldayEvents = true }) => {
   const [startDate, setStartDate] = useState<string>(getTodayDate());
 
-  const [endDate, setEndDate] = useState<string>(getFormatedDate(addDays(getTodayDate(), 7)));
+  const [endDate, setEndDate] = useState<string>(
+    getFormatedDate(addDays(getTodayDate(), 7)),
+  );
 
   const {
     data: eventData,
@@ -59,7 +64,7 @@ const ImportFromGoogleCalendarDialog: React.FC<ImportFromGoogleCalendarDialogPro
       errorRetryCount: 0,
       shouldRetryOnError: false,
       revalidateOnFocus: false,
-    }
+    },
   );
 
   const [events, setEvents] = useState<Event[]>([]);
@@ -74,13 +79,18 @@ const ImportFromGoogleCalendarDialog: React.FC<ImportFromGoogleCalendarDialogPro
   const { call } = useContext(FrappeContext) as FrappeConfig;
   const { toast } = useToast();
 
-  const { call: bulkSave, loading: isSaving } = useFrappePostCall("next_pms.timesheet.api.timesheet.bulk_save");
+  const { call: bulkSave, loading: isSaving } = useFrappePostCall(
+    "next_pms.timesheet.api.timesheet.bulk_save",
+  );
 
-  const { data: projects, isLoading: isProjectLoading } = useFrappeGetCall("frappe.client.get_list", {
-    doctype: "Project",
-    fields: ["name", "project_name"],
-    limit_page_length: "null",
-  });
+  const { data: projects, isLoading: isProjectLoading } = useFrappeGetCall(
+    "frappe.client.get_list",
+    {
+      doctype: "Project",
+      fields: ["name", "project_name"],
+      limit_page_length: "null",
+    },
+  );
 
   const fetchTask = useCallback(() => {
     setIsTaskLoading(true);
@@ -124,7 +134,9 @@ const ImportFromGoogleCalendarDialog: React.FC<ImportFromGoogleCalendarDialogPro
 
   const toggleEventSelection = (eventId: string) => {
     setSelectedEvents((prev) => {
-      const updatedSelection = prev.includes(eventId) ? prev.filter((id) => id !== eventId) : [...prev, eventId];
+      const updatedSelection = prev.includes(eventId)
+        ? prev.filter((id) => id !== eventId)
+        : [...prev, eventId];
 
       setIsAllSelected(updatedSelection.length === events.length);
 
@@ -165,7 +177,7 @@ const ImportFromGoogleCalendarDialog: React.FC<ImportFromGoogleCalendarDialogPro
         });
       }
     },
-    [selectedProject, tasks]
+    [selectedProject, tasks],
   );
 
   const handleProjectChange = (value: string | string[]) => {
@@ -179,7 +191,9 @@ const ImportFromGoogleCalendarDialog: React.FC<ImportFromGoogleCalendarDialogPro
   };
 
   const handleCreateTask = () => {
-    const selectedEventDetails = events.filter((event) => selectedEvents.includes(event.id));
+    const selectedEventDetails = events.filter((event) =>
+      selectedEvents.includes(event.id),
+    );
     const eventsData = selectedEventDetails.map((event) => {
       const startsOn = new Date(event.starts_on);
       const endsOn = new Date(event.ends_on);
@@ -215,9 +229,14 @@ const ImportFromGoogleCalendarDialog: React.FC<ImportFromGoogleCalendarDialogPro
 
   return (
     <Dialog open={open} onOpenChange={() => onOpenChange(null)}>
-      <DialogContent aria-describedby="Content" className="sm:max-w-xl md:max-h-[80vh] overflow-y-auto">
+      <DialogContent
+        aria-describedby="Content"
+        className="sm:max-w-xl md:max-h-[80vh] overflow-y-auto"
+      >
         <DialogHeader className="max-md:mt-2">
-          <DialogTitle className="flex w-full gap-x-2 text-left">Import Events From Google Calendar</DialogTitle>
+          <DialogTitle className="flex w-full gap-x-2 text-left">
+            Import Events From Google Calendar
+          </DialogTitle>
         </DialogHeader>
         <Separator />
 
@@ -282,7 +301,8 @@ const ImportFromGoogleCalendarDialog: React.FC<ImportFromGoogleCalendarDialogPro
                 </Label>
               </span>
               <span className="text-xs font-medium">
-                {events.length > 0 && `${selectedEvents.length} of ${events.length}`}
+                {events.length > 0 &&
+                  `${selectedEvents.length} of ${events.length}`}
               </span>
             </div>
 
@@ -302,17 +322,25 @@ const ImportFromGoogleCalendarDialog: React.FC<ImportFromGoogleCalendarDialogPro
                           <div className="mt-1 text-sm text-gray-500 dark:text-gray-400 flex items-center space-x-3">
                             <span className="flex items-center gap-1">
                               <Calendar className="size-4" />
-                              <span className="text-xs">{new Date(event.starts_on).toLocaleDateString()}</span>
+                              <span className="text-xs">
+                                {new Date(event.starts_on).toLocaleDateString()}
+                              </span>
                             </span>
                             <span className="flex items-center gap-1">
                               <Clock className="size-4" />
                               <span className="text-xs">
-                                {new Date(event.starts_on).toLocaleTimeString([], {
-                                  hour: "2-digit",
-                                  minute: "2-digit",
-                                })}{" "}
+                                {new Date(event.starts_on).toLocaleTimeString(
+                                  [],
+                                  {
+                                    hour: "2-digit",
+                                    minute: "2-digit",
+                                  },
+                                )}{" "}
                                 -{" "}
-                                {new Date(event.ends_on).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                                {new Date(event.ends_on).toLocaleTimeString(
+                                  [],
+                                  { hour: "2-digit", minute: "2-digit" },
+                                )}
                               </span>
                             </span>
                           </div>
@@ -337,11 +365,13 @@ const ImportFromGoogleCalendarDialog: React.FC<ImportFromGoogleCalendarDialogPro
                   showSelected
                   shouldFilter
                   value={selectedProject as string[]}
-                  data={projects?.message?.map((item: { project_name: string; name: string }) => ({
-                    label: item.project_name,
-                    value: item.name,
-                    disabled: false,
-                  }))}
+                  data={projects?.message?.map(
+                    (item: { project_name: string; name: string }) => ({
+                      label: item.project_name,
+                      value: item.name,
+                      disabled: false,
+                    }),
+                  )}
                   disabled={Boolean(eventError)}
                   isLoading={isProjectLoading}
                   onSelect={handleProjectChange}
@@ -355,7 +385,11 @@ const ImportFromGoogleCalendarDialog: React.FC<ImportFromGoogleCalendarDialogPro
                   label="Search Task"
                   showSelected
                   deBounceTime={200}
-                  value={selectedTask && selectedTask.length > 0 ? [selectedTask[0]] : []}
+                  value={
+                    selectedTask && selectedTask.length > 0
+                      ? [selectedTask[0]]
+                      : []
+                  }
                   isLoading={isTaskLoading}
                   disabled={Boolean(eventError)}
                   data={
@@ -382,13 +416,24 @@ const ImportFromGoogleCalendarDialog: React.FC<ImportFromGoogleCalendarDialogPro
             <Button
               onClick={handleCreateTask}
               disabled={
-                selectedTask.length == 0 || selectedProject.length == 0 || selectedEvents.length === 0 || isSaving
+                selectedTask.length == 0 ||
+                selectedProject.length == 0 ||
+                selectedEvents.length === 0 ||
+                isSaving
               }
             >
-              {isSaving ? <Spinner className="w-4 h-4" /> : <Save className="w-4 h-4" />}
+              {isSaving ? (
+                <Spinner className="w-4 h-4" />
+              ) : (
+                <Save className="w-4 h-4" />
+              )}
               Add Time
             </Button>
-            <Button variant="secondary" type="button" onClick={() => onOpenChange(null)}>
+            <Button
+              variant="secondary"
+              type="button"
+              onClick={() => onOpenChange(null)}
+            >
               <X className="w-4 h-4" />
               Cancel
             </Button>

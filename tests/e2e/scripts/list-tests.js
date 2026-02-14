@@ -60,10 +60,15 @@ function collectTests(rootDir) {
           // Handle test.describe cases (including serial, skip, only, fixme)
           if (chain[0] === "test" && chain[1] === "describe") {
             const titleArg = node.arguments[0];
-            const descTitle = titleArg && titleArg.type === "StringLiteral" ? titleArg.value : "<unknown describe>";
+            const descTitle =
+              titleArg && titleArg.type === "StringLiteral"
+                ? titleArg.value
+                : "<unknown describe>";
             // detect modifiers in describe chain (e.g., .serial, .only, .skip, .fixme)
             const modifiers = chain.slice(2);
-            const mod = modifiers.find((m) => ["only", "skip", "fixme"].includes(m)) || null;
+            const mod =
+              modifiers.find((m) => ["only", "skip", "fixme"].includes(m)) ||
+              null;
             describeStack.push({ title: descTitle, modifier: mod });
             return;
           }
@@ -72,7 +77,9 @@ function collectTests(rootDir) {
           if (chain[0] !== "test") return;
           const testModifiers = chain.slice(1);
           let kind = "normal";
-          const found = testModifiers.find((m) => ["only", "skip", "fixme", "fail"].includes(m));
+          const found = testModifiers.find((m) =>
+            ["only", "skip", "fixme", "fail"].includes(m),
+          );
           if (found) kind = found;
 
           if (!kind) return;
@@ -81,17 +88,28 @@ function collectTests(rootDir) {
           if (!titleArg || titleArg.type !== "StringLiteral") return;
 
           // Build full title path
-          const fullTitle = [...describeStack.map((d) => d.title), titleArg.value].join(" ");
+          const fullTitle = [
+            ...describeStack.map((d) => d.title),
+            titleArg.value,
+          ].join(" ");
 
           // Determine skip/only flags
           const inOnlyDesc = describeStack.some((d) => d.modifier === "only");
-          const inSkipDesc = describeStack.some((d) => ["skip", "fixme"].includes(d.modifier));
+          const inSkipDesc = describeStack.some((d) =>
+            ["skip", "fixme"].includes(d.modifier),
+          );
 
           const isOnly = kind === "only" || inOnlyDesc;
           const isSkipped = ["skip", "fixme"].includes(kind) || inSkipDesc;
 
           results.push(
-            new TestNode(path.relative(process.cwd(), filePath), titleArg.loc.start.line, fullTitle, isOnly, isSkipped)
+            new TestNode(
+              path.relative(process.cwd(), filePath),
+              titleArg.loc.start.line,
+              fullTitle,
+              isOnly,
+              isSkipped,
+            ),
           );
         },
         exit(pathNode) {

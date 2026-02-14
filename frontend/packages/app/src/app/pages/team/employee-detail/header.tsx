@@ -16,7 +16,11 @@ import type { EmployeeDetailHeaderProps } from "./types";
 import { EditTime } from "../../timesheet/components/editTime";
 import { Approval } from "../components/approval";
 
-export const EmployeeDetailHeader = ({ state, dispatch, employeeId }: EmployeeDetailHeaderProps) => {
+export const EmployeeDetailHeader = ({
+  state,
+  dispatch,
+  employeeId,
+}: EmployeeDetailHeaderProps) => {
   const navigate = useNavigate();
   const user = useSelector((state: RootState) => state.user);
   const { data: employee } = useFrappeGetCall(
@@ -29,7 +33,7 @@ export const EmployeeDetailHeader = ({ state, dispatch, employeeId }: EmployeeDe
       errorRetryCount: 1,
       revalidateOnFocus: true,
       revalidateIfStale: false,
-    }
+    },
   );
 
   const onEmployeeChange = (name: string) => {
@@ -42,7 +46,10 @@ export const EmployeeDetailHeader = ({ state, dispatch, employeeId }: EmployeeDe
   const onClose = useCallback(() => {
     dispatch({
       type: "SET_DATE_RANGE",
-      payload: { dateRange: { startDate: "", endDate: "" }, isAprrovalDialogOpen: false },
+      payload: {
+        dateRange: { startDate: "", endDate: "" },
+        isAprrovalDialogOpen: false,
+      },
     });
   }, [dispatch]);
   return (

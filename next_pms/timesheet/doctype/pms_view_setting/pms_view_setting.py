@@ -41,7 +41,7 @@ def get_views():
 
 
 @frappe.whitelist()
-def create_view(view):
+def create_view(view: str | dict):
     import json
 
     view = frappe._dict(view)
@@ -70,7 +70,7 @@ def create_view(view):
 
 
 @frappe.whitelist()
-def update_view(view):
+def update_view(view: str | dict):
     import json
 
     view = frappe._dict(view)

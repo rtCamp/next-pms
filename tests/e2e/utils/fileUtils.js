@@ -20,7 +20,11 @@ export const createJSONFile = async (filePath, initialData = {}) => {
     await fs.promises.mkdir(dir, { recursive: true });
 
     // Write initial data
-    await fs.promises.writeFile(filePath, JSON.stringify(initialData, null, 2), "utf-8");
+    await fs.promises.writeFile(
+      filePath,
+      JSON.stringify(initialData, null, 2),
+      "utf-8",
+    );
     console.log(`✅ Created JSON file: ${filePath}`);
   } catch (error) {
     console.error(`❌ Error creating JSON file ${filePath}:`, error.message);
@@ -35,7 +39,9 @@ export const createJSONFile = async (filePath, initialData = {}) => {
  * @returns {Promise<object>} The parsed JSON data
  */
 export const readJSONFile = async (filePath, maxRetries = 5) => {
-  const absolutePath = path.isAbsolute(filePath) ? filePath : path.resolve(__dirname, filePath);
+  const absolutePath = path.isAbsolute(filePath)
+    ? filePath
+    : path.resolve(__dirname, filePath);
 
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     let release = null;
@@ -47,7 +53,10 @@ export const readJSONFile = async (filePath, maxRetries = 5) => {
       }
 
       // Check if file exists
-      await fs.promises.access(absolutePath, fs.constants.F_OK | fs.constants.R_OK);
+      await fs.promises.access(
+        absolutePath,
+        fs.constants.F_OK | fs.constants.R_OK,
+      );
 
       // Try to acquire a lock with retries
       try {
@@ -60,7 +69,9 @@ export const readJSONFile = async (filePath, maxRetries = 5) => {
           stale: 5000, // Consider lock stale after 5 seconds
         });
       } catch {
-        console.warn(`⚠️ Could not acquire lock for reading (attempt ${attempt}/${maxRetries}): ${absolutePath}`);
+        console.warn(
+          `⚠️ Could not acquire lock for reading (attempt ${attempt}/${maxRetries}): ${absolutePath}`,
+        );
         // Continue without lock if we can't acquire it
       }
 
@@ -84,11 +95,17 @@ export const readJSONFile = async (filePath, maxRetries = 5) => {
         }
       }
 
-      console.warn(`⚠️ Attempt ${attempt}/${maxRetries} failed to read ${absolutePath}: ${error.message}`);
+      console.warn(
+        `⚠️ Attempt ${attempt}/${maxRetries} failed to read ${absolutePath}: ${error.message}`,
+      );
 
       if (attempt === maxRetries) {
-        console.error(`❌ Failed to read JSON file after ${maxRetries} attempts: ${absolutePath}`);
-        throw new Error(`Cannot read JSON file ${absolutePath} after ${maxRetries} attempts: ${error.message}`);
+        console.error(
+          `❌ Failed to read JSON file after ${maxRetries} attempts: ${absolutePath}`,
+        );
+        throw new Error(
+          `Cannot read JSON file ${absolutePath} after ${maxRetries} attempts: ${error.message}`,
+        );
       }
     }
   }
@@ -101,7 +118,9 @@ export const readJSONFile = async (filePath, maxRetries = 5) => {
  * @param {number} maxRetries - Maximum number of retry attempts
  */
 export const writeDataToFile = async (filePath, data, maxRetries = 5) => {
-  const absolutePath = path.isAbsolute(filePath) ? filePath : path.resolve(__dirname, filePath);
+  const absolutePath = path.isAbsolute(filePath)
+    ? filePath
+    : path.resolve(__dirname, filePath);
 
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     let release = null;
@@ -127,18 +146,26 @@ export const writeDataToFile = async (filePath, data, maxRetries = 5) => {
           stale: 5000, // Consider lock stale after 5 seconds
         });
       } catch (lockErr) {
-        console.warn(`⚠️ Could not acquire lock for writing (attempt ${attempt}/${maxRetries}): ${absolutePath}`);
+        console.warn(
+          `⚠️ Could not acquire lock for writing (attempt ${attempt}/${maxRetries}): ${absolutePath}`,
+        );
 
         // If file doesn't exist yet, create it without lock
         if (lockErr.code === "ENOENT") {
-          await fs.promises.writeFile(absolutePath, JSON.stringify(data, null, 2), "utf-8");
+          await fs.promises.writeFile(
+            absolutePath,
+            JSON.stringify(data, null, 2),
+            "utf-8",
+          );
           console.log(`✅ Created new file: ${absolutePath}`);
           return;
         }
 
         // For other lock errors, retry
         if (attempt === maxRetries) {
-          throw new Error(`Failed to acquire write lock after ${maxRetries} attempts: ${lockErr.message}`);
+          throw new Error(
+            `Failed to acquire write lock after ${maxRetries} attempts: ${lockErr.message}`,
+          );
         }
         continue;
       }
@@ -156,7 +183,11 @@ export const writeDataToFile = async (filePath, data, maxRetries = 5) => {
       const mergedData = deepMerge(existingData, data);
 
       // Write the merged data
-      await fs.promises.writeFile(absolutePath, JSON.stringify(mergedData, null, 2), "utf-8");
+      await fs.promises.writeFile(
+        absolutePath,
+        JSON.stringify(mergedData, null, 2),
+        "utf-8",
+      );
 
       // Release lock
       if (release) {
@@ -175,11 +206,17 @@ export const writeDataToFile = async (filePath, data, maxRetries = 5) => {
         }
       }
 
-      console.warn(`⚠️ Attempt ${attempt}/${maxRetries} failed to write ${absolutePath}: ${error.message}`);
+      console.warn(
+        `⚠️ Attempt ${attempt}/${maxRetries} failed to write ${absolutePath}: ${error.message}`,
+      );
 
       if (attempt === maxRetries) {
-        console.error(`❌ Failed to write JSON file after ${maxRetries} attempts: ${absolutePath}`);
-        throw new Error(`Cannot write JSON file ${absolutePath} after ${maxRetries} attempts: ${error.message}`);
+        console.error(
+          `❌ Failed to write JSON file after ${maxRetries} attempts: ${absolutePath}`,
+        );
+        throw new Error(
+          `Cannot write JSON file ${absolutePath} after ${maxRetries} attempts: ${error.message}`,
+        );
       }
     }
   }

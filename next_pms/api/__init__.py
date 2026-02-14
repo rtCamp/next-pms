@@ -45,7 +45,7 @@ def get_user_calendar_events(start_date: datetime, end_date: datetime):
             return None
 
         google_calendar = frappe.get_all("Google Calendar", filters={"user": user}, fields=["*"])[0]
-        google_calendar_api_obj, account = get_google_calendar_object(google_calendar.name)
+        google_calendar_api_obj, _account = get_google_calendar_object(google_calendar.name)
         time_min = datetime(start_date.year, start_date.month, start_date.day, 0, 0, 0)
         time_max = datetime(end_date.year, end_date.month, end_date.day, 23, 59, 59)
         time_min_str = time_min.isoformat() + "Z"
@@ -71,7 +71,7 @@ def get_user_calendar_events(start_date: datetime, end_date: datetime):
 
 
 @frappe.whitelist()
-def get_doc_with_meta(doctype, docname):
+def get_doc_with_meta(doctype: str, docname: str):
     """Fetch all fields (excluding non-data fields) and their values categorized under respective tabs."""
 
     doc = frappe.get_doc(doctype, docname)

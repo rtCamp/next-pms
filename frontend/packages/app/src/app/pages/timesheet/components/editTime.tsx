@@ -39,9 +39,18 @@ import { parseFrappeErrorMsg } from "@/lib/utils";
 import { TimesheetUpdateSchema } from "@/schema/timesheet";
 import type { EditTimeProps, TimesheetDetail } from "./types";
 
-export const EditTime = ({ employee, date, task, open, onClose, user }: EditTimeProps) => {
+export const EditTime = ({
+  employee,
+  date,
+  task,
+  open,
+  onClose,
+  user,
+}: EditTimeProps) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const hasAccess = user.roles.includes("Projects Manager") || user.roles.includes("Timesheet Manager");
+  const hasAccess =
+    user.roles.includes("Projects Manager") ||
+    user.roles.includes("Timesheet Manager");
 
   const form = useForm<z.infer<typeof TimesheetUpdateSchema>>({
     resolver: zodResolver(TimesheetUpdateSchema),
@@ -58,13 +67,20 @@ export const EditTime = ({ employee, date, task, open, onClose, user }: EditTime
 
   const columns = ["Date", "Hours", "Description", "Billable", ""];
   const { toast } = useToast();
-  const { call: updateTimesheet } = useFrappePostCall("next_pms.timesheet.api.timesheet.bulk_update_timesheet_detail");
-  const { call: deleteTimesheet } = useFrappePostCall("next_pms.timesheet.api.timesheet.delete");
-  const { data, isLoading, mutate } = useFrappeGetCall("next_pms.timesheet.api.timesheet.get_timesheet_details", {
-    employee: employee,
-    date: date,
-    task: task,
-  });
+  const { call: updateTimesheet } = useFrappePostCall(
+    "next_pms.timesheet.api.timesheet.bulk_update_timesheet_detail",
+  );
+  const { call: deleteTimesheet } = useFrappePostCall(
+    "next_pms.timesheet.api.timesheet.delete",
+  );
+  const { data, isLoading, mutate } = useFrappeGetCall(
+    "next_pms.timesheet.api.timesheet.get_timesheet_details",
+    {
+      employee: employee,
+      date: date,
+      task: task,
+    },
+  );
 
   const updatedData = useMemo(() => {
     if (!data) return [];
@@ -157,10 +173,18 @@ export const EditTime = ({ employee, date, task, open, onClose, user }: EditTime
           <Separator />
           <div className="flex justify-between w-full ">
             <span className="flex flex-col items-start">
-              <Typography title={data?.message?.task} variant="p" className="max-w-80 truncate font-semibold">
+              <Typography
+                title={data?.message?.task}
+                variant="p"
+                className="max-w-80 truncate font-semibold"
+              >
                 {data?.message?.task}
               </Typography>
-              <Typography title={data?.message?.project} variant="small" className="max-w-80 truncate">
+              <Typography
+                title={data?.message?.project}
+                variant="small"
+                className="max-w-80 truncate"
+              >
                 {data?.message?.project}
               </Typography>
             </span>
@@ -183,7 +207,7 @@ export const EditTime = ({ employee, date, task, open, onClose, user }: EditTime
                           key != 2 && "max-w-16",
                           key == 0 && "max-w-28",
                           key == 3 && "max-w-8",
-                          key == 3 && !hasAccess && "hidden"
+                          key == 3 && !hasAccess && "hidden",
                         )}
                       >
                         {column}
@@ -211,11 +235,15 @@ export const EditTime = ({ employee, date, task, open, onClose, user }: EditTime
                               date={new Date(field.value)}
                               onDateChange={(date) => {
                                 if (!date) return;
-                                form.setValue(`data.${index}.date`, getFormatedDate(date), {
-                                  shouldValidate: true,
-                                  shouldDirty: true,
-                                  shouldTouch: true,
-                                });
+                                form.setValue(
+                                  `data.${index}.date`,
+                                  getFormatedDate(date),
+                                  {
+                                    shouldValidate: true,
+                                    shouldDirty: true,
+                                    shouldTouch: true,
+                                  },
+                                );
                               }}
                             />
                           </FormControl>
@@ -241,7 +269,7 @@ export const EditTime = ({ employee, date, task, open, onClose, user }: EditTime
                                   type="text"
                                   {...field}
                                   className={mergeClassNames(
-                                    "p-1 border-0 border-r rounded-none focus-visible:ring-0 focus-visible:ring-offset-0"
+                                    "p-1 border-0 border-r rounded-none focus-visible:ring-0 focus-visible:ring-offset-0",
                                   )}
                                 />
                                 <TimeSelector
@@ -296,7 +324,10 @@ export const EditTime = ({ employee, date, task, open, onClose, user }: EditTime
                                 </p>
                               </FormLabel>
                               <FormControl>
-                                <Checkbox checked={Boolean(field.value)} onCheckedChange={field.onChange} />
+                                <Checkbox
+                                  checked={Boolean(field.value)}
+                                  onCheckedChange={field.onChange}
+                                />
                               </FormControl>
                               <FormMessage className="text-xs" />
                             </FormItem>
@@ -312,7 +343,10 @@ export const EditTime = ({ employee, date, task, open, onClose, user }: EditTime
                         onClick={() => removeFormRow(index)}
                       >
                         <Trash2 />{" "}
-                        <Typography className="hidden text-sm text-white max-md:block" variant="p">
+                        <Typography
+                          className="hidden text-sm text-white max-md:block"
+                          variant="p"
+                        >
                           Delete Row
                         </Typography>
                       </Button>
@@ -326,8 +360,19 @@ export const EditTime = ({ employee, date, task, open, onClose, user }: EditTime
                 <Plus />
                 Add Row
               </Button>
-              <Button variant="success" disabled={!form.formState.isValid || !form.formState.isDirty || isSubmitting}>
-                {isSubmitting ? <LoaderCircle className="animate-spin" /> : <Save />}
+              <Button
+                variant="success"
+                disabled={
+                  !form.formState.isValid ||
+                  !form.formState.isDirty ||
+                  isSubmitting
+                }
+              >
+                {isSubmitting ? (
+                  <LoaderCircle className="animate-spin" />
+                ) : (
+                  <Save />
+                )}
                 Save
               </Button>
             </DialogFooter>

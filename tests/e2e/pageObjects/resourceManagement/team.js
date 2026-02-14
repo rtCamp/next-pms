@@ -5,32 +5,58 @@ export class TeamPage extends TimelinePage {
   constructor(page) {
     super(page);
     this.deleteButton = page.getByRole("img", { name: "Delete" });
-    this.firstEmployeeFromTable = page.locator("table:nth-child(1) tbody > div:nth-child(1) p").first(); // using locator to fetch dynamically the first employee
-    this.extendedListResourceAllocation = page.locator("div[data-state=open] .pt-0.pb-0");
-    this.reportsToDropdown = page.getByRole("button", { name: "Reporting Manager" });
-    this.employeeCountFromTable = page.locator("table:nth-child(1) tbody > div"); // locator for all employees in the table
-    this.leftSidebar = page.getByText("Next PMSHomeTimesheetTeamProjectTaskResource");
+    this.firstEmployeeFromTable = page
+      .locator("table:nth-child(1) tbody > div:nth-child(1) p")
+      .first(); // using locator to fetch dynamically the first employee
+    this.extendedListResourceAllocation = page.locator(
+      "div[data-state=open] .pt-0.pb-0",
+    );
+    this.reportsToDropdown = page.getByRole("button", {
+      name: "Reporting Manager",
+    });
+    this.employeeCountFromTable = page.locator(
+      "table:nth-child(1) tbody > div",
+    ); // locator for all employees in the table
+    this.leftSidebar = page.getByText(
+      "Next PMSHomeTimesheetTeamProjectTaskResource",
+    );
 
     // filter locators related to skill filter dropdown
     this.skillFilterDropdown = page.getByRole("button", { name: "Skill" });
-    this.searchSkillInput = page.getByRole("textbox", { name: "Search skills..." });
-    this.skillSelectorFromModal = (value) => page.getByRole("button", { name: value });
-    this.twoStarsSelector = page.getByRole("dialog").getByRole("button").filter({ hasText: /^$/ }).nth(1);
+    this.searchSkillInput = page.getByRole("textbox", {
+      name: "Search skills...",
+    });
+    this.skillSelectorFromModal = (value) =>
+      page.getByRole("button", { name: value });
+    this.twoStarsSelector = page
+      .getByRole("dialog")
+      .getByRole("button")
+      .filter({ hasText: /^$/ })
+      .nth(1);
     this.searchSkillButton = page.getByRole("button", { name: "Search" });
     this.clearSkillButton = page.getByRole("button", { name: "Clear" });
 
     // filter locators related to business unit filter dropdown
-    this.businessUnitFilterDropdown = page.getByRole("button", { name: "Business Unit" });
-    this.businessUnitOptionSelector = (value) => page.getByRole("option", { name: value, exact: true });
+    this.businessUnitFilterDropdown = page.getByRole("button", {
+      name: "Business Unit",
+    });
+    this.businessUnitOptionSelector = (value) =>
+      page.getByRole("option", { name: value, exact: true });
 
     // filter locators related to designation filter dropdown
-    this.designationFilterDropdown = page.getByRole("button", { name: "Designation" });
+    this.designationFilterDropdown = page.getByRole("button", {
+      name: "Designation",
+    });
     this.designationSearchDropdown = page.getByPlaceholder("Designation");
-    this.designationOptionSelector = (value) => page.getByRole("option", { name: value });
+    this.designationOptionSelector = (value) =>
+      page.getByRole("option", { name: value });
 
     // filter locators related to allocation type filter dropdown
-    this.allocationTypeFilterDropdown = page.getByRole("button", { name: "Allocation Type" });
-    this.allocationTypeOptionSelector = (value) => page.getByRole("option", { name: value, exact: true });
+    this.allocationTypeFilterDropdown = page.getByRole("button", {
+      name: "Allocation Type",
+    });
+    this.allocationTypeOptionSelector = (value) =>
+      page.getByRole("option", { name: value, exact: true });
 
     // filter locators related to views filter dropdown
     this.viewsFilterDropdown = page.getByRole("combobox");
@@ -38,7 +64,9 @@ export class TeamPage extends TimelinePage {
 
     // filter locators related to employee filter dropdown
     this.combineWeekHoursCheckbox = page.locator("#combineWeekHours");
-    this.previousWeekButton = page.getByRole("button", { name: "previous-week" });
+    this.previousWeekButton = page.getByRole("button", {
+      name: "previous-week",
+    });
     this.nextWeekButton = page.getByRole("button", { name: "next-week" });
   }
 
@@ -51,10 +79,13 @@ export class TeamPage extends TimelinePage {
         (resp) =>
           resp
             .url()
-            .includes("/api/method/next_pms.resource_management.api.team.get_resource_management_team_view_data") &&
-          resp.status() === 200
+            .includes(
+              "/api/method/next_pms.resource_management.api.team.get_resource_management_team_view_data",
+            ) && resp.status() === 200,
       ),
-      this.page.goto("/next-pms/resource-management/team", { waitUntil: "domcontentloaded" }),
+      this.page.goto("/next-pms/resource-management/team", {
+        waitUntil: "domcontentloaded",
+      }),
     ]);
   }
 
@@ -65,11 +96,21 @@ export class TeamPage extends TimelinePage {
   /**
    * Adds an allocation for a specific employee by clicking on their cell and filling the allocation form.
    */
-  async addAllocationFromTeamTab(projectName, customerName, employeeName, date, day) {
+  async addAllocationFromTeamTab(
+    projectName,
+    customerName,
+    employeeName,
+    date,
+    day,
+  ) {
     await this.filterEmployeeByName(employeeName);
-    await expect(this.page.locator(`//tr[1]//p[@title="${employeeName}"]`)).toBeVisible({ timeout: 30000 });
+    await expect(
+      this.page.locator(`//tr[1]//p[@title="${employeeName}"]`),
+    ).toBeVisible({ timeout: 30000 });
 
-    await expect(this.page.locator(`//tr[1]//p[@title="${employeeName}"]`)).toHaveAttribute("title", employeeName, {
+    await expect(
+      this.page.locator(`//tr[1]//p[@title="${employeeName}"]`),
+    ).toHaveAttribute("title", employeeName, {
       timeout: 30000,
     });
     await this.page.waitForTimeout(1000); // added to avoid flaky test
@@ -78,7 +119,9 @@ export class TeamPage extends TimelinePage {
     let allotmentDay = day;
 
     // Always uses final date & day for title
-    await this.page.getByTitle(`${employeeName} (${allotmentDate} - ${allotmentDay})`).click();
+    await this.page
+      .getByTitle(`${employeeName} (${allotmentDate} - ${allotmentDay})`)
+      .click();
 
     await this.selectCustomer(customerName);
     await this.selectProject(customerName, projectName);
@@ -88,8 +131,11 @@ export class TeamPage extends TimelinePage {
     const [response] = await Promise.all([
       this.page.waitForResponse(
         (response) =>
-          response.url().includes("/api/method/next_pms.resource_management.api.allocation.handle_allocation") &&
-          response.status() === 200
+          response
+            .url()
+            .includes(
+              "/api/method/next_pms.resource_management.api.allocation.handle_allocation",
+            ) && response.status() === 200,
       ),
       this.clickCreateButton(),
     ]);
@@ -143,7 +189,9 @@ export class TeamPage extends TimelinePage {
    * Performs a search and selection within a modal based on a placeholder text.
    */
   async searchAndSelectOption(placeholder, value) {
-    const searchInput = this.page.getByRole("dialog").getByPlaceholder(`${placeholder}`);
+    const searchInput = this.page
+      .getByRole("dialog")
+      .getByPlaceholder(`${placeholder}`);
     await searchInput.fill(value);
     await this.page.waitForTimeout(1000);
     await this.page.getByRole("option", { name: value }).click();

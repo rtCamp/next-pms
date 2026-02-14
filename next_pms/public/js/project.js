@@ -8,11 +8,20 @@ frappe.ui.form.on("Project", {
     if (!frm.doc.custom_client_point_of_contact || frm.is_new()) {
       return;
     }
-    const poc_info = await frappe.db.get_doc("Contact", frm.doc.custom_client_point_of_contact);
-    const email = poc_info.email_id ? `<a href="mailto:${poc_info.email_id}">${poc_info.email_id}</a> ` : "";
-    const phone = poc_info.phone ? `<a href="tel:${poc_info.phone}">${poc_info.phone}</a>` : "";
+    const poc_info = await frappe.db.get_doc(
+      "Contact",
+      frm.doc.custom_client_point_of_contact,
+    );
+    const email = poc_info.email_id
+      ? `<a href="mailto:${poc_info.email_id}">${poc_info.email_id}</a> `
+      : "";
+    const phone = poc_info.phone
+      ? `<a href="tel:${poc_info.phone}">${poc_info.phone}</a>`
+      : "";
     const full_name = poc_info.full_name ? poc_info.full_name : "";
-    const wrapper = $(frm.fields_dict["custom_client_poc_information"].wrapper).html("");
+    const wrapper = $(
+      frm.fields_dict["custom_client_poc_information"].wrapper,
+    ).html("");
 
     wrapper.html(`
       <div class="address-box">
@@ -22,7 +31,6 @@ frappe.ui.form.on("Project", {
         <p><span class="text-muted">Phone</span> : <span class="text-muted">${phone}</span> </p>
 
 </div>`);
-
   },
   refresh: function (frm) {
     if (!frm.is_new()) {
@@ -32,7 +40,9 @@ frappe.ui.form.on("Project", {
     }
 
     frm.events.update_custom_table_project();
-    frm.events.custom_send_reminder_when_approaching_project_threshold_limit(frm);
+    frm.events.custom_send_reminder_when_approaching_project_threshold_limit(
+      frm,
+    );
 
     document
       .querySelector('[data-fieldname="project_details"]')
@@ -42,8 +52,12 @@ frappe.ui.form.on("Project", {
       .addEventListener("click", frm.events.update_custom_table_project);
   },
   update_custom_table_project: function () {
-    const section = document.querySelector('[data-fieldname="project_details"] .section-head');
-    const table_section = document.querySelector('[data-fieldname="custom_section_break_ca8jh"]');
+    const section = document.querySelector(
+      '[data-fieldname="project_details"] .section-head',
+    );
+    const table_section = document.querySelector(
+      '[data-fieldname="custom_section_break_ca8jh"]',
+    );
     if (section.classList.contains("collapsed")) {
       table_section.classList.add("hidden");
     } else {
@@ -51,20 +65,24 @@ frappe.ui.form.on("Project", {
     }
   },
   custom_billing_type: function (frm) {
-    frm.events.custom_send_reminder_when_approaching_project_threshold_limit(frm);
+    frm.events.custom_send_reminder_when_approaching_project_threshold_limit(
+      frm,
+    );
   },
-  custom_send_reminder_when_approaching_project_threshold_limit: function (frm) {
+  custom_send_reminder_when_approaching_project_threshold_limit: function (
+    frm,
+  ) {
     if (frm.doc.custom_billing_type == "Retainer") {
       frm.set_df_property(
         "custom_send_reminder_when_approaching_project_threshold_limit",
         "description",
-        "For retainer project, reminder is sent based on Latest Consumed Hours vs Latest Hours Purchased."
+        "For retainer project, reminder is sent based on Latest Consumed Hours vs Latest Hours Purchased.",
       );
     } else if (frm.doc.custom_billing_type == "Time and Material") {
       frm.set_df_property(
         "custom_send_reminder_when_approaching_project_threshold_limit",
         "description",
-        "For time and material project, reminder is sent based on Total Billable Amount (via Timesheet) vs Estimated Cost."
+        "For time and material project, reminder is sent based on Total Billable Amount (via Timesheet) vs Estimated Cost.",
       );
     }
   },
@@ -82,12 +100,17 @@ frappe.ui.form.on("Project", {
       title: "Recalculate timesheet billing for project",
       fields: base_fields,
       size: "small",
-      description: "This will recalculate the billing for all the timesheets of the project from the given date.",
+      description:
+        "This will recalculate the billing for all the timesheets of the project from the given date.",
       primary_action_label: "Submit",
       primary_action(values) {
         frappe.call({
-          method: "next_pms.project_currency.api.project_timesheet_billing_recalculation.calculate",
-          args: { project_id: frm.doc.name, valid_from_date: values.valid_from_date },
+          method:
+            "next_pms.project_currency.api.project_timesheet_billing_recalculation.calculate",
+          args: {
+            project_id: frm.doc.name,
+            valid_from_date: values.valid_from_date,
+          },
           callback: function (r) {
             if (r && !r.exc) {
               frm.refresh();
@@ -99,7 +122,7 @@ frappe.ui.form.on("Project", {
     });
 
     recalculate_dialog.$body.append(
-      `<p class="frappe-confirm-message">Please ensure all billing information is accurate before initiating the recalculation.</p>`
+      `<p class="frappe-confirm-message">Please ensure all billing information is accurate before initiating the recalculation.</p>`,
     );
     recalculate_dialog.show();
   },
@@ -109,13 +132,17 @@ frappe.ui.form.on("Project Billing Team", {
   custom_project_billing_team_add: function (frm, cdt, cdn) {
     if (frm.doc.custom_is_flat_rate_applicable && frm.doc.custom_flat_rate) {
       // Find the current row object.
-      const custom_project_billing_team = frm.doc.custom_project_billing_team.find(
-        (custom_project_billing_team) => custom_project_billing_team.name == cdn
-      );
+      const custom_project_billing_team =
+        frm.doc.custom_project_billing_team.find(
+          (custom_project_billing_team) =>
+            custom_project_billing_team.name == cdn,
+        );
 
       // Update the values as well as html of child table.
-      custom_project_billing_team.hourly_billing_rate = frm.doc.custom_flat_rate;
-      custom_project_billing_team.valid_from = frm.doc.custom_flat_rate_valid_from;
+      custom_project_billing_team.hourly_billing_rate =
+        frm.doc.custom_flat_rate;
+      custom_project_billing_team.valid_from =
+        frm.doc.custom_flat_rate_valid_from;
       frm.refresh_field("custom_project_billing_team");
     }
   },

@@ -24,7 +24,10 @@ const loadAuthState = (role) => {
  */
 export const apiRequest = async (endpoint, options = {}, role = "admin") => {
   const authFilePath = loadAuthState(role);
-  const requestContext = await request.newContext({ baseURL, storageState: authFilePath });
+  const requestContext = await request.newContext({
+    baseURL,
+    storageState: authFilePath,
+  });
   const response = await requestContext.fetch(endpoint, {
     ...options,
     postData: options.data ? JSON.stringify(options.data) : undefined, // Transform to json format
@@ -41,7 +44,7 @@ export const apiRequest = async (endpoint, options = {}, role = "admin") => {
   } else {
     await requestContext.dispose();
     throw new Error(
-      `API request failed for ${role} and endpoint ${endpoint}: ${response.status()} ${response.statusText()}`
+      `API request failed for ${role} and endpoint ${endpoint}: ${response.status()} ${response.statusText()}`,
     );
   }
 

@@ -16,7 +16,7 @@ export function mergeClassNames(...inputs: ClassValue[]) {
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function deBounce<T extends (...args: any[]) => void>(
   func: T,
-  wait: number
+  wait: number,
 ): (...args: Parameters<T>) => void {
   let timeout: ReturnType<typeof setTimeout>;
 
@@ -35,7 +35,7 @@ export const getBgCsssForToday = (date: string) => {
 export function floatToTime(
   float: number,
   hourPadding: number = 1,
-  minutePadding: number = 2
+  minutePadding: number = 2,
 ) {
   const totalMinutes = Math.round(float * 60);
   const hours = Math.floor(totalMinutes / 60);

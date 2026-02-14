@@ -9,8 +9,15 @@ import { useContextSelector } from "use-context-selector";
  * Internal dependencies.
  */
 import { EmptyTableBody } from "../../../components/empty";
-import { emptyProjectDayData, ProjectContext } from "../../../store/projectContext";
-import type { AllocationDataProps, DateProps, ProjectDataProps } from "../../../store/types";
+import {
+  emptyProjectDayData,
+  ProjectContext,
+} from "../../../store/projectContext";
+import type {
+  AllocationDataProps,
+  DateProps,
+  ProjectDataProps,
+} from "../../../store/types";
 import { getIsBillableValue } from "../../../utils/helper";
 import { ResourceExpandView } from "../expand-view";
 import { ResourceProjectTableCell } from "./resourceProjectTableCell";
@@ -26,7 +33,10 @@ const ResourceProjectTableBody = ({
 }: {
   onSubmit: (oldData: AllocationDataProps, data: AllocationDataProps) => void;
 }) => {
-  const { projectData, filters } = useContextSelector(ProjectContext, (value) => value.state);
+  const { projectData, filters } = useContextSelector(
+    ProjectContext,
+    (value) => value.state,
+  );
 
   const data = projectData.data;
   const dates = projectData.dates;

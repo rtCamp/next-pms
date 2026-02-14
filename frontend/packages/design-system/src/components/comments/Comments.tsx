@@ -54,10 +54,14 @@ const Comments = React.forwardRef<HTMLDivElement, CommentsProps>(
       activeCommentName,
       ...props
     },
-    ref
+    ref,
   ) => {
     return (
-      <div ref={ref} className={mergeClassNames("space-y-4 h-full", className)} {...props}>
+      <div
+        ref={ref}
+        className={mergeClassNames("space-y-4 h-full", className)}
+        {...props}
+      >
         <div className="flex items-center justify-between">
           <Typography variant="h4" className="font-semibold">
             {title}
@@ -95,7 +99,7 @@ const Comments = React.forwardRef<HTMLDivElement, CommentsProps>(
         />
       </div>
     );
-  }
+  },
 );
 
 Comments.displayName = "Comments";

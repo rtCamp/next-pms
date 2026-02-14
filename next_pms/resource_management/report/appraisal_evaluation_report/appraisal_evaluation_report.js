@@ -89,7 +89,9 @@ const setup_filters = () => {
     let meta = frappe.get_meta(employeeDoctype);
     const fields = meta.fields;
 
-    const statusField = fields.find((field) => field.fieldtype === "Select" && field.fieldname === "status");
+    const statusField = fields.find(
+      (field) => field.fieldtype === "Select" && field.fieldname === "status",
+    );
     if (statusField) {
       frappe.query_reports["Appraisal Evaluation Report"].filters.push({
         fieldname: "status",
@@ -101,7 +103,9 @@ const setup_filters = () => {
       });
     }
 
-    const buField = fields.find((field) => field.fieldtype === "Link" && field.options === buDoctype);
+    const buField = fields.find(
+      (field) => field.fieldtype === "Link" && field.options === buDoctype,
+    );
     if (buField) {
       // frappe.query_reports["Appraisal Evaluation Report"].filters.push({
       //   fieldname: "business_unit",

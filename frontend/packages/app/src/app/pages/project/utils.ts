@@ -69,7 +69,7 @@ export const getValidUserTagsValues = (input: string) => {
 
 export const convertProjectCommentToComment = (
   projectComment: ProjectComment,
-  currentUser?: string
+  currentUser?: string,
 ): Comment => {
   return {
     name: projectComment.name,

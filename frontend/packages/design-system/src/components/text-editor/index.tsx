@@ -24,7 +24,12 @@ class MentionBlot extends Inline {
   static className = "mention";
   static tagName = "SPAN";
 
-  static create(value: { id?: string; value?: string; label?: string; className?: string }) {
+  static create(value: {
+    id?: string;
+    value?: string;
+    label?: string;
+    className?: string;
+  }) {
     const node = super.create() as HTMLElement;
     node.setAttribute("data-mention", "true");
     if (value?.id) node.setAttribute("data-id", String(value.id));
@@ -44,10 +49,24 @@ class MentionBlot extends Inline {
 
   format(name: string, value: unknown) {
     if (name === MentionBlot.blotName && value && typeof value === "object") {
-      const val = value as { id?: string; value?: string; label?: string; className?: string };
-      if (val.id) (this.domNode as HTMLElement).setAttribute("data-id", String(val.id));
-      if (val.value) (this.domNode as HTMLElement).setAttribute("data-value", String(val.value));
-      if (val.label) (this.domNode as HTMLElement).setAttribute("data-label", String(val.label));
+      const val = value as {
+        id?: string;
+        value?: string;
+        label?: string;
+        className?: string;
+      };
+      if (val.id)
+        (this.domNode as HTMLElement).setAttribute("data-id", String(val.id));
+      if (val.value)
+        (this.domNode as HTMLElement).setAttribute(
+          "data-value",
+          String(val.value),
+        );
+      if (val.label)
+        (this.domNode as HTMLElement).setAttribute(
+          "data-label",
+          String(val.label),
+        );
       return;
     }
     super.format(name, value);
@@ -87,7 +106,12 @@ const TextEditor = ({
   const toolbarOptions = [
     ["bold", "italic"],
     [{ color: [] }],
-    [{ list: "ordered" }, { list: "bullet" }, { indent: "-1" }, { indent: "+1" }],
+    [
+      { list: "ordered" },
+      { list: "bullet" },
+      { indent: "-1" },
+      { indent: "+1" },
+    ],
     [{ align: [] }],
     ["link"],
   ];
@@ -124,7 +148,8 @@ const TextEditor = ({
         setShowMentions(false);
       }
     }, 300),
-    [onFetchUsers]
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [onFetchUsers],
   );
 
   const detectMention = useCallback(
@@ -180,12 +205,16 @@ const TextEditor = ({
 
       debouncedFetchUsers(searchTerm);
     },
-    [enableMentions, debouncedFetchUsers, onFetchUsers]
+    [enableMentions, debouncedFetchUsers, onFetchUsers],
   );
 
   const selectMention = useCallback(
     (user: User) => {
-      if (!quillRef.current || mentionStartIndex.current === -1 || mentionEndIndex.current === -1) {
+      if (
+        !quillRef.current ||
+        mentionStartIndex.current === -1 ||
+        mentionEndIndex.current === -1
+      ) {
         return;
       }
 
@@ -208,15 +237,20 @@ const TextEditor = ({
             const currentHtml = editor.root.innerHTML;
             const mentionHtml = `<span class="mention ${mentionClassName}" data-type="mention" data-id="${user.id}" data-value="${user.value}" data-label="${user.value}" data-mention="true">${mentionText}</span>`;
             const updatedHtml = currentHtml.replace(
-              new RegExp(mentionText.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "g"),
-              mentionHtml
+              new RegExp(
+                mentionText.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"),
+                "g",
+              ),
+              mentionHtml,
             );
             editor.root.innerHTML = updatedHtml;
             const event = new Event("input", { bubbles: true });
             editor.root.dispatchEvent(event);
             const newContent = editor.root.innerHTML;
             onChange(newContent);
-            const mentionElements = editor.root.querySelectorAll('span.mention, span[data-mention="true"]');
+            const mentionElements = editor.root.querySelectorAll(
+              'span.mention, span[data-mention="true"]',
+            );
             mentionElements.forEach((span) => {
               const htmlSpan = span as HTMLElement;
               htmlSpan.className = `mention ${mentionClassName}`;
@@ -248,7 +282,7 @@ const TextEditor = ({
       mentionStartIndex.current = -1;
       mentionEndIndex.current = -1;
     },
-    [mentionClassName, onChange]
+    [mentionClassName, onChange],
   );
 
   const handleMentionDeletion = useCallback(() => {
@@ -270,7 +304,8 @@ const TextEditor = ({
       // Capture groups:
       // 1: data-value (if present)
       // 2: inner text of the span
-      const mentionRegex = /<span[^>]*class="[^"]*mention[^"]*"[^>]*data-value="([^"]*)"[^>]*>([^<]*)<\/span>/g;
+      const mentionRegex =
+        /<span[^>]*class="[^"]*mention[^"]*"[^>]*data-value="([^"]*)"[^>]*>([^<]*)<\/span>/g;
 
       let match;
       const mentions = [];
@@ -290,7 +325,10 @@ const TextEditor = ({
 
       for (const mention of mentions) {
         const mentionIndex = textBeforeCursor.lastIndexOf(mention.fullText);
-        if (mentionIndex !== -1 && mentionIndex + mention.fullText.length === currentIndex) {
+        if (
+          mentionIndex !== -1 &&
+          mentionIndex + mention.fullText.length === currentIndex
+        ) {
           quill.deleteText(mentionIndex, mention.fullText.length);
           quill.setSelection(mentionIndex, 0);
           return true;
@@ -299,7 +337,9 @@ const TextEditor = ({
 
       if (currentIndex > 0) {
         for (const mention of mentions) {
-          const mentionStartIndex = textBeforeCursor.lastIndexOf(mention.fullText);
+          const mentionStartIndex = textBeforeCursor.lastIndexOf(
+            mention.fullText,
+          );
           if (
             mentionStartIndex !== -1 &&
             currentIndex > mentionStartIndex &&
@@ -325,11 +365,15 @@ const TextEditor = ({
       switch (event.key) {
         case "ArrowDown":
           event.preventDefault();
-          setSelectedMentionIndex((prev) => (prev < mentionUsers.length - 1 ? prev + 1 : 0));
+          setSelectedMentionIndex((prev) =>
+            prev < mentionUsers.length - 1 ? prev + 1 : 0,
+          );
           break;
         case "ArrowUp":
           event.preventDefault();
-          setSelectedMentionIndex((prev) => (prev > 0 ? prev - 1 : mentionUsers.length - 1));
+          setSelectedMentionIndex((prev) =>
+            prev > 0 ? prev - 1 : mentionUsers.length - 1,
+          );
           break;
         case "Enter":
           event.preventDefault();
@@ -343,12 +387,13 @@ const TextEditor = ({
           break;
       }
     },
-    [showMentions, mentionUsers, selectedMentionIndex, selectMention]
+    [showMentions, mentionUsers, selectedMentionIndex, selectMention],
   );
 
   const handleBackspace = useCallback(
     (event: KeyboardEvent) => {
-      if (event.key !== "Backspace" || !quillRef.current || !enableMentions) return;
+      if (event.key !== "Backspace" || !quillRef.current || !enableMentions)
+        return;
 
       const handled = handleMentionDeletion();
 
@@ -357,13 +402,18 @@ const TextEditor = ({
         event.stopPropagation();
       }
     },
-    [enableMentions, handleMentionDeletion]
+    [enableMentions, handleMentionDeletion],
   );
 
   const formatHtml = (html: string) => {
     return preProcessLink(html);
   };
-  const handleChange = (value: string, delta: DeltaStatic, source: Sources, editor: ReactQuill.UnprivilegedEditor) => {
+  const handleChange = (
+    value: string,
+    delta: DeltaStatic,
+    source: Sources,
+    editor: ReactQuill.UnprivilegedEditor,
+  ) => {
     let actualHtml = value;
 
     if (quillRef.current && enableMentions) {
@@ -397,7 +447,8 @@ const TextEditor = ({
         element.hasAttribute("data-value");
 
       if (isMention) {
-        const label = element.getAttribute("data-label") || element.textContent || "";
+        const label =
+          element.getAttribute("data-label") || element.textContent || "";
         const valueAttr = element.getAttribute("data-value") || label;
         const idAttr = element.getAttribute("data-id") || valueAttr;
         return new (Quill.import("delta"))().insert(label, {
@@ -409,11 +460,14 @@ const TextEditor = ({
 
     try {
       const root = quill.root;
-      const spans = root.querySelectorAll('span.mention, span[data-mention="true"], span[data-value]');
+      const spans = root.querySelectorAll(
+        'span.mention, span[data-mention="true"], span[data-value]',
+      );
       spans.forEach((span) => {
         const el = span as HTMLElement;
         el.className = `mention ${mentionClassName}`;
-        if (!el.getAttribute("data-mention")) el.setAttribute("data-mention", "true");
+        if (!el.getAttribute("data-mention"))
+          el.setAttribute("data-mention", "true");
       });
     } catch (error) {
       console.error("Error in mention styling:", error);
@@ -441,11 +495,14 @@ const TextEditor = ({
       const editor = quillRef.current?.getEditor();
       if (editor) {
         const mentionElements = editor.root.querySelectorAll(
-          'span.mention, span[data-mention="true"], span[data-value]'
+          'span.mention, span[data-mention="true"], span[data-value]',
         );
         mentionElements.forEach((span: Element) => {
           const htmlSpan = span as HTMLElement;
-          if (!htmlSpan.classList.contains("mention") || htmlSpan.className === "mention") {
+          if (
+            !htmlSpan.classList.contains("mention") ||
+            htmlSpan.className === "mention"
+          ) {
             htmlSpan.className = `mention ${mentionClassName}`;
             if (!htmlSpan.getAttribute("data-mention")) {
               htmlSpan.setAttribute("data-mention", "true");
@@ -468,12 +525,22 @@ const TextEditor = ({
         {...Props}
         className={mergeClassNames(
           "border p-2 rounded-md border-input [&>div:first-child]:border-t-0 [&>div:first-child]:border-r-0 [&>div:first-child]:border-l-0 [&>div:first-child]:border-input [&>div:first-child]:border-bottom [&>div:last-child]:border-none text-foreground bg-background whitespace-normal",
-          hideToolbar && "border-none !resize-none [&_.ql-editor]:min-h-0 [&_.ql-editor]:p-2",
+          hideToolbar &&
+            "border-none !resize-none [&_.ql-editor]:min-h-0 [&_.ql-editor]:p-2",
           !hideToolbar && "break-all",
-          className
+          className,
         )}
         theme="snow"
-        formats={["bold", "italic", "color", "list", "indent", "align", "link", "mention"]}
+        formats={[
+          "bold",
+          "italic",
+          "color",
+          "list",
+          "indent",
+          "align",
+          "link",
+          "mention",
+        ]}
         modules={modules}
         onChange={handleChange}
         value={editorValue}
@@ -493,7 +560,8 @@ const TextEditor = ({
               key={user.id}
               className={mergeClassNames(
                 "px-3 py-2 cursor-pointer flex items-center gap-2 hover:bg-foreground/10",
-                index === selectedMentionIndex && "bg-blue-50 text-blue-700 hover:bg-blue-50"
+                index === selectedMentionIndex &&
+                  "bg-blue-50 text-blue-700 hover:bg-blue-50",
               )}
               onMouseDown={(e) => {
                 e.preventDefault();

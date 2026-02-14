@@ -28,7 +28,7 @@ export const initialState: TaskState = {
 const actionHandlers = {
   SET_TASK_DATA: (
     state: TaskState,
-    payload: Partial<TaskState>
+    payload: Partial<TaskState>,
   ): TaskState => ({
     ...state,
     ...payload,
@@ -37,7 +37,7 @@ const actionHandlers = {
   }),
   UPDATE_TASK_DATA: (
     state: TaskState,
-    payload: { task: TaskData[] }
+    payload: { task: TaskData[] },
   ): TaskState => ({
     ...state,
     task: [...state.task, ...payload.task],
@@ -74,7 +74,7 @@ const actionHandlers = {
   }),
   SET_SELECTED_TASK: (
     state: TaskState,
-    payload: { task: string; isOpen: boolean }
+    payload: { task: string; isOpen: boolean },
   ): TaskState => ({
     ...state,
     selectedTask: payload.task,
@@ -82,7 +82,7 @@ const actionHandlers = {
   }),
   SET_ORDER_BY: (
     state: TaskState,
-    payload: { order: sortOrder; orderColumn: string }
+    payload: { order: sortOrder; orderColumn: string },
   ): TaskState => ({
     ...state,
     order: payload.order,
@@ -104,7 +104,7 @@ const actionHandlers = {
   }),
   SET_SELECTED_STATUS: (
     state: TaskState,
-    payload: TaskStatusType[]
+    payload: TaskStatusType[],
   ): TaskState => ({
     ...state,
     selectedStatus: payload,
@@ -119,7 +119,7 @@ const actionHandlers = {
       selectedStatus: TaskStatusType[];
       search: string;
       selectedProject: string[];
-    }
+    },
   ): TaskState => ({
     ...state,
     selectedProject: payload.selectedProject,

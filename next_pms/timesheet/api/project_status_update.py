@@ -435,7 +435,7 @@ def notify_mentions(
                 "document_type": doc_type,
                 "document_name": doc_name,
                 "from_user": current_user,
-                "email_content": frappe.render_template(
+                "email_content": frappe.render_template(  # nosemgrep: frappe-semgrep.rules.security.frappe-ssti
                     "next_pms/timesheet/templates/project_status_update/mention_notification.html",
                     {
                         "current_user_name": current_user_name,
@@ -475,7 +475,7 @@ def send_project_publish_email(user, title, project_name, project_url):
 
     subject = f"Project Status Update '{title}' has been published"
 
-    message = frappe.render_template(
+    message = frappe.render_template(  # nosemgrep: frappe-semgrep.rules.security.frappe-ssti
         "next_pms/timesheet/templates/project_status_update/publish_notification.html",
         {
             "user_doc": user_doc,

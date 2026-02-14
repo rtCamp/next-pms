@@ -44,7 +44,7 @@ export type MergedAllocationProps = EmployeeAllocationForDateProps &
 function groupAllocations(
   resourceData: EmployeeResourceObjectProps,
   employee_allocations: ResourceAllocationObjectProps,
-  dates: DateProps[]
+  dates: DateProps[],
 ): { combinedResourceData: CombinedResourceObjectProps; allDates: string[] } {
   let allResourceAllocation: MergedAllocationProps[] = [];
   let allDates: string[] = [];

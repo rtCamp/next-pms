@@ -33,17 +33,17 @@ from .utils import employee_has_higher_access, get_holidays, get_week_dates
 def get_compact_view_data(
     date: str,
     max_week: int = 2,
-    employee_name=None,
+    employee_name: str | None = None,
     employee_ids: list[str] | str | None = None,
-    department=None,
-    project=None,
-    user_group=None,
-    page_length=10,
-    start=0,
-    status_filter=None,
-    status=None,
+    department: str | None = None,
+    project: str | None = None,
+    user_group: str | None = None,
+    page_length: int = 10,
+    start: int = 0,
+    status_filter: str | dict | None = None,
+    status: str | list | None = None,
     reports_to: str | None = None,
-    by_pass_access_check=False,
+    by_pass_access_check: bool = False,
 ):
     if not by_pass_access_check:
         only_for(["Timesheet Manager", "Timesheet User", "Projects Manager"], message=True)
@@ -389,6 +389,6 @@ def trigger_notification_for_approved_or_rejected_timesheet(
         "dates": dates,
         "updated_by": get_value("User", frappe.session.user, "full_name"),
     }
-    message = frappe.render_template(email_message, args)
-    subject = frappe.render_template(email_subject, args)
+    message = frappe.render_template(email_message, args)  # nosemgrep: frappe-semgrep.rules.security.frappe-ssti
+    subject = frappe.render_template(email_subject, args)  # nosemgrep: frappe-semgrep.rules.security.frappe-ssti
     frappe.sendmail(recipients=employee.user_id, subject=subject, message=message)

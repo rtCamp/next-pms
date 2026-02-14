@@ -52,7 +52,7 @@ const DeleteIcon = ({
         if (onSubmit) {
           onSubmit(
             resourceAllocation as unknown as AllocationDataProps,
-            resourceAllocation as unknown as AllocationDataProps
+            resourceAllocation as unknown as AllocationDataProps,
           );
           setIsOpen(false);
         }

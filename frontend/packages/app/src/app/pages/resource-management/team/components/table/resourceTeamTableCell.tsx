@@ -4,19 +4,30 @@
 import { useMemo, useCallback, memo } from "react";
 import { prettyDate } from "@next-pms/design-system/date";
 import { ResourceTableCell } from "@next-pms/resource-management/components";
-import { getTableCellClass, getTodayDateCellClass, getCellBackGroundColor } from "@next-pms/resource-management/utils";
+import {
+  getTableCellClass,
+  getTodayDateCellClass,
+  getCellBackGroundColor,
+} from "@next-pms/resource-management/utils";
 import { useContextSelector } from "use-context-selector";
 
 /**
  * Internal dependencies.
  */
 import { mergeClassNames } from "@/lib/utils";
-import type { ResourceAllocationObjectProps, ResourceAllocationProps } from "@/types/resource_management";
+import type {
+  ResourceAllocationObjectProps,
+  ResourceAllocationProps,
+} from "@/types/resource_management";
 import { EmptyTableCell } from "../../../components/empty";
 import { ResourceAllocationList } from "../../../components/resource-allocation-list/resourceAllocationList";
 import { ResourceFormContext } from "../../../store/resourceFormContext";
 import { TeamContext } from "../../../store/teamContext";
-import type { AllocationDataProps, EmployeeAllWeekDataProps, EmployeeResourceProps } from "../../../store/types";
+import type {
+  AllocationDataProps,
+  EmployeeAllWeekDataProps,
+  EmployeeResourceProps,
+} from "../../../store/types";
 import { getIsBillableValue } from "../../../utils/helper";
 
 /**
@@ -54,7 +65,10 @@ const ResourceTeamTableCellComponent = ({
   employeeAllocations,
   onSubmit,
 }: ResourceTeamTableCellProps) => {
-  const { teamData, tableView, filters } = useContextSelector(TeamContext, (value) => value.state);
+  const { teamData, tableView, filters } = useContextSelector(
+    TeamContext,
+    (value) => value.state,
+  );
 
   const customer = teamData.customer;
   const allocationType = filters.allocationType;
@@ -62,16 +76,27 @@ const ResourceTeamTableCellComponent = ({
   const { date: dateStr, day } = prettyDate(employeeSingleDay.date);
   const title = employee_name + " (" + dateStr + " - " + day + ")";
 
-  const { updateAllocationData, updateDialogState } = useContextSelector(ResourceFormContext, (value) => value.actions);
+  const { updateAllocationData, updateDialogState } = useContextSelector(
+    ResourceFormContext,
+    (value) => value.actions,
+  );
 
   const allocationPercentage = useMemo(() => {
     if (tableView.combineWeekHours) {
       if (weekData.total_working_hours === 0) return -1;
-      return 100 - (weekData.total_allocated_hours / weekData.total_working_hours) * 100;
+      return (
+        100 -
+        (weekData.total_allocated_hours / weekData.total_working_hours) * 100
+      );
     }
 
     if (employeeSingleDay.total_working_hours === 0) return -1;
-    return 100 - (employeeSingleDay.total_allocated_hours / employeeSingleDay.total_working_hours) * 100;
+    return (
+      100 -
+      (employeeSingleDay.total_allocated_hours /
+        employeeSingleDay.total_working_hours) *
+        100
+    );
   }, [
     employeeSingleDay.total_allocated_hours,
     employeeSingleDay.total_working_hours,
@@ -79,14 +104,17 @@ const ResourceTeamTableCellComponent = ({
     weekData,
   ]);
 
-  const cellBackGroundColor = useMemo(() => getCellBackGroundColor(allocationPercentage), [allocationPercentage]);
+  const cellBackGroundColor = useMemo(
+    () => getCellBackGroundColor(allocationPercentage),
+    [allocationPercentage],
+  );
 
   const hasTentativeAllocation = useMemo(
     () =>
       employeeSingleDay.employee_resource_allocation_for_given_date?.some(
-        (alloc: AllocationDataProps) => alloc.is_tentative
+        (alloc: AllocationDataProps) => alloc.is_tentative,
       ),
-    [employeeSingleDay.employee_resource_allocation_for_given_date]
+    [employeeSingleDay.employee_resource_allocation_for_given_date],
   );
 
   const onCellClick = useCallback(() => {
@@ -107,7 +135,14 @@ const ResourceTeamTableCellComponent = ({
       name: "",
       is_tentative: false,
     });
-  }, [allocationType, employee, employeeSingleDay.date, employee_name, updateAllocationData, updateDialogState]);
+  }, [
+    allocationType,
+    employee,
+    employeeSingleDay.date,
+    employee_name,
+    updateAllocationData,
+    updateDialogState,
+  ]);
 
   const combinedWeekCell = useMemo(() => {
     if (!tableView.combineWeekHours) return null;
@@ -118,7 +153,7 @@ const ResourceTeamTableCellComponent = ({
         cellClassName={mergeClassNames(
           getTableCellClass(rowCount, midIndex),
           cellBackGroundColor,
-          getTodayDateCellClass(employeeSingleDay.date)
+          getTodayDateCellClass(employeeSingleDay.date),
         )}
         value={
           rowCount === 2 &&
@@ -140,7 +175,11 @@ const ResourceTeamTableCellComponent = ({
   ]);
 
   const emptyDayCell = useMemo(() => {
-    if (tableView.combineWeekHours || employeeSingleDay.is_on_leave || employeeSingleDay.total_allocated_hours !== 0)
+    if (
+      tableView.combineWeekHours ||
+      employeeSingleDay.is_on_leave ||
+      employeeSingleDay.total_allocated_hours !== 0
+    )
       return null;
     return (
       <EmptyTableCell
@@ -148,7 +187,7 @@ const ResourceTeamTableCellComponent = ({
         cellClassName={mergeClassNames(
           getTableCellClass(rowCount, midIndex),
           cellBackGroundColor,
-          getTodayDateCellClass(employeeSingleDay.date)
+          getTodayDateCellClass(employeeSingleDay.date),
         )}
         onCellClick={onCellClick}
       />
@@ -166,7 +205,8 @@ const ResourceTeamTableCellComponent = ({
   ]);
 
   const leaveDayCell = useMemo(() => {
-    if (tableView.combineWeekHours || !employeeSingleDay.is_on_leave) return null;
+    if (tableView.combineWeekHours || !employeeSingleDay.is_on_leave)
+      return null;
     return (
       <ResourceTableCell
         type="default"
@@ -174,7 +214,7 @@ const ResourceTeamTableCellComponent = ({
         cellClassName={mergeClassNames(
           getTableCellClass(rowCount),
           cellBackGroundColor,
-          getTodayDateCellClass(employeeSingleDay.date)
+          getTodayDateCellClass(employeeSingleDay.date),
         )}
         value={employeeSingleDay.total_leave_hours}
       />
@@ -190,7 +230,11 @@ const ResourceTeamTableCellComponent = ({
   ]);
 
   const hoverCardCell = useMemo(() => {
-    if (tableView.combineWeekHours || employeeSingleDay.is_on_leave || employeeSingleDay.total_allocated_hours === 0)
+    if (
+      tableView.combineWeekHours ||
+      employeeSingleDay.is_on_leave ||
+      employeeSingleDay.total_allocated_hours === 0
+    )
       return null;
     return (
       <ResourceTableCell
@@ -200,7 +244,7 @@ const ResourceTeamTableCellComponent = ({
           getTableCellClass(rowCount, midIndex),
           cellBackGroundColor,
           getTodayDateCellClass(employeeSingleDay.date),
-          hasTentativeAllocation && "italic"
+          hasTentativeAllocation && "italic",
         )}
         value={
           tableView.view === "planned-vs-capacity"

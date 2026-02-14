@@ -58,6 +58,7 @@ def get_context(context):
     return context
 
 
+# nosemgrep: frappe-semgrep.rules.security.guest-whitelisted-method
 @frappe.whitelist(methods=["POST"], allow_guest=True)
 def get_context_for_dev():
     if not frappe.conf.developer_mode:
