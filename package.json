@@ -23,7 +23,7 @@
     "visual:test:update": "npx playwright test --update-snapshots tests/visualAutomation/specs/visualAutomation.spec.js --config=tests/visualAutomation/playwright.config.js --workers=1"
   },
   "devDependencies": {
-    "@babel/parser": "^7.28.0",
+    "@babel/parser": "^7.29.0",
     "@babel/traverse": "^7.28.6",
     "@eslint/js": "^9.39.2",
     "@playwright/test": "^1.58.0",
