@@ -358,21 +358,35 @@ def get_timesheet(dates: list, employee: str):
     """
     data = {}
     total_hours = 0
-    timesheet_logs = frappe.get_list(
+
+    # Get parent timesheet names first
+    timesheet_names = frappe.get_all(
         "Timesheet",
         filters={
             "employee": employee,
             "start_date": ["in", dates],
             "docstatus": ["!=", 2],
         },
-        fields=["time_logs.name"],
+        pluck="name",
         ignore_permissions=employee_has_higher_access(employee, ptype="read"),
     )
+
+    if not timesheet_names:
+        return [data, total_hours]
+
+    # Fetch all timesheet detail records with needed fields in one query
+    timesheet_logs = frappe.get_all(
+        "Timesheet Detail",
+        filters={
+            "parent": ["in", timesheet_names],
+        },
+        fields=ALLOWED_TIMESHET_DETAIL_FIELDS,
+    )
+
     if not timesheet_logs:
         return [data, total_hours]
-    timesheet_logs = [frappe.get_doc("Timesheet Detail", ts.name) for ts in timesheet_logs]
 
-    task_ids = [ts.task for ts in timesheet_logs if ts.task]
+    task_ids = [ts.get("task") for ts in timesheet_logs if ts.get("task")]
     task_details = frappe.get_all(
         "Task",
         filters={"name": ["in", task_ids]},
@@ -390,10 +404,10 @@ def get_timesheet(dates: list, employee: str):
     )
     task_details_dict = {task["name"]: task for task in task_details}
     for log in timesheet_logs:
-        total_hours += log.hours
-        if not log.task:
+        total_hours += log.get("hours", 0)
+        if not log.get("task"):
             continue
-        task = task_details_dict.get(log.task)
+        task = task_details_dict.get(log.get("task"))
         if not task:
             continue
         task_name = task["name"]
