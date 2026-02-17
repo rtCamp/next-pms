@@ -7,54 +7,140 @@ from next_pms.project_currency.api.project_timesheet_billing_recalculation impor
 
 def send_reminder_mail():
     try:
-        project_list = frappe.get_all(
+        # Batch fetch all required project fields upfront
+        projects = frappe.get_all(
             "Project",
             filters={
                 "custom_send_reminder_when_approaching_project_threshold_limit": 1,
                 "status": "Open",
             },
-            fields=["name"],
+            fields=[
+                "name",
+                "custom_billing_type",
+                "custom_reminder_threshold_percentage",
+                "custom_email_template",
+            ],
         )
 
-        need_to_send_reminder_project_list = filter_project_list(project_list)
+        if not projects:
+            return
 
-        for project in need_to_send_reminder_project_list:
-            send_reminder_mail_for_project(project)
+        project_names = [p.name for p in projects]
+
+        # Batch fetch Project Budget child table data for all projects
+        budget_hours = frappe.get_all(
+            "Project Budget",
+            filters={"parent": ["in", project_names]},
+            fields=["parent", "hours_purchased", "consumed_hours", "idx"],
+            order_by="parent, idx",
+        )
+
+        # Group budget hours by project
+        budget_map = {}
+        for bh in budget_hours:
+            if bh.parent not in budget_map:
+                budget_map[bh.parent] = []
+            budget_map[bh.parent].append(bh)
+
+        # Filter projects that need reminders
+        projects_needing_reminder = []
+        for project in projects:
+            project_budget = budget_map.get(project.name, [])
+            threshold = calculate_threshold(project, project_budget)
+
+            if (
+                threshold is not None
+                and project.custom_reminder_threshold_percentage <= threshold
+                and project.custom_email_template
+            ):
+                project.calculated_threshold = threshold
+                projects_needing_reminder.append(project)
+
+        if not projects_needing_reminder:
+            return
+
+        reminder_project_names = [p.name for p in projects_needing_reminder]
+
+        # Batch fetch DocShare for all projects needing reminder
+        doc_shares = frappe.get_all(
+            "DocShare",
+            filters={"share_doctype": "Project", "share_name": ["in", reminder_project_names]},
+            fields=["share_name", "user"],
+        )
+
+        # Group by project
+        share_map = {}
+        for ds in doc_shares:
+            if ds.share_name not in share_map:
+                share_map[ds.share_name] = []
+            share_map[ds.share_name].append(ds.user)
+
+        # Get all unique users who have access to any project
+        all_users = list(set([ds.user for ds in doc_shares]))
+
+        # Batch fetch users with "Projects Manager" role
+        if all_users:
+            pms = frappe.get_all(
+                "Has Role",
+                filters={
+                    "role": "Projects Manager",
+                    "parenttype": "User",
+                    "parent": ["in", all_users],
+                },
+                fields=["parent"],
+            )
+            pm_set = set([pm.parent for pm in pms])
+        else:
+            pm_set = set()
+
+        # Get all unique email templates
+        template_names = list(set([p.custom_email_template for p in projects_needing_reminder if p.custom_email_template]))
+
+        # Batch fetch email templates
+        email_templates = {}
+        if template_names:
+            templates = frappe.get_all(
+                "Email Template",
+                filters={"name": ["in", template_names]},
+                fields=["name", "subject", "response_html", "response", "use_html"],
+            )
+            for tmpl in templates:
+                email_templates[tmpl.name] = tmpl
+
+        # Send reminders
+        for project in projects_needing_reminder:
+            send_reminder_mail_for_project(project, share_map, pm_set, email_templates)
     except Exception:
         generate_the_error_log(
             "send_reminder_project_threshold_mail_failed",
         )
 
 
-def send_reminder_mail_for_project(project: str):
-    if not project:
-        return frappe.throw(frappe._("Project not found"))
-
-    if not project.custom_email_template:
+def send_reminder_mail_for_project(project, share_map, pm_set, email_templates):
+    """Send reminder email for a project using pre-fetched data.
+    
+    Args:
+        project: Project object with fields
+        share_map: Dict mapping project names to list of users with access
+        pm_set: Set of user IDs who have Projects Manager role
+        email_templates: Dict mapping template names to template objects
+    """
+    if not project or not project.custom_email_template:
         return
 
-    user_list = frappe.get_all(
-        "DocShare",
-        fields=["name", "user"],
-        filters=dict(share_doctype=project.doctype, share_name=project.name),
-    )
+    # Get users with access to this project from pre-fetched data
+    user_list = share_map.get(project.name, [])
+    
+    # Filter to only Project Managers from pre-fetched data
+    all_pms = [user for user in user_list if user in pm_set]
 
-    user_list = [user["user"] for user in user_list]
+    if not all_pms:
+        return
 
-    all_pms = [
-        d.parent
-        for d in frappe.get_all(
-            "Has Role",
-            filters={
-                "role": "Projects Manager",
-                "parenttype": "User",
-                "parent": ["in", user_list],
-            },
-            fields=["parent"],
-        )
-    ]
-
-    reminder_template = frappe.get_doc("Email Template", project.custom_email_template)
+    # Get email template from pre-fetched data
+    reminder_template = email_templates.get(project.custom_email_template)
+    if not reminder_template:
+        return
 
     email_message = ""
     if reminder_template.use_html:
@@ -75,32 +161,39 @@ def send_reminder_mail_for_project(project: str):
     frappe.sendmail(recipients=recipients, subject=subject, message=message)
 
 
-def filter_project_list(project_list: list):
-    need_to_send_reminder_project_list = []
-    for project_name in project_list:
-        project = frappe.get_doc("Project", project_name)
+def calculate_threshold(project, project_budget):
+    """Calculate threshold percentage for a project.
+    
+    Args:
+        project: Project object with custom fields
+        project_budget: List of Project Budget objects for this project
+    
+    Returns:
+        float: Threshold percentage or None if not applicable
+    """
+    if project.custom_billing_type == "Retainer":
+        if not project_budget:
+            return None
 
-        project_threshold = 0
+        # Use the last budget entry
+        latest_budget = project_budget[-1]
+        
+        # Validate that we have valid numeric values for calculation
+        if (
+            not latest_budget.hours_purchased
+            or latest_budget.hours_purchased <= 0
+            or latest_budget.consumed_hours is None
+        ):
+            return None
 
-        if project.custom_billing_type == "Retainer":
-            custom_project_budget_hours = project.custom_project_budget_hours
-            if len(custom_project_budget_hours) == 0:
-                continue
+        threshold = (latest_budget.consumed_hours * 100) / latest_budget.hours_purchased
+        return threshold
 
-            custom_project_budget_hours = custom_project_budget_hours[-1]
-            project_threshold = (
-                custom_project_budget_hours.consumed_hours * 100
-            ) / custom_project_budget_hours.hours_purchased
+    elif project.custom_billing_type == "Time and Material":
+        # Time and Material billing is not currently supported for threshold reminders
+        # The original implementation had a bug referencing undefined fields
+        # (total_billable_amount, estimated_costing) that don't exist in Project Budget.
+        # TODO: Implement proper Time and Material threshold calculation if needed
+        return None
 
-        elif project.custom_billing_type == "Time and Material":
-            project_threshold = (
-                custom_project_budget_hours.total_billable_amount * 100
-            ) / custom_project_budget_hours.estimated_costing
-
-        else:
-            continue
-
-        if project.custom_reminder_threshold_percentage <= project_threshold and project.custom_email_template:
-            need_to_send_reminder_project_list.append(project)
-
-    return need_to_send_reminder_project_list
+    return None
