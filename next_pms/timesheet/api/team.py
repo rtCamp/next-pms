@@ -124,27 +124,17 @@ def get_compact_view_data(
         timesheet_map[ts.employee].append(ts)
 
     # Batch fetch all leaves for all employees
-    all_leaves = db.sql(
-        """
-        SELECT employee, from_date, to_date, half_day, half_day_date
-        FROM `tabLeave Application`
-        WHERE employee IN %(employees)s
-        AND (
-            (from_date <= %(start_date)s AND to_date >= %(start_date)s)
-            OR (from_date >= %(start_date)s AND to_date <= %(end_date)s)
-            OR (from_date <= %(end_date)s AND to_date >= %(end_date)s)
-            OR (from_date <= %(start_date)s AND to_date >= %(end_date)s)
-        )
-        AND (docstatus = 1 OR docstatus = 0)
-        AND (status = 'Approved' OR status = 'Open')
-        ORDER BY employee, from_date, to_date
-    """,
-        {
-            "employees": employee_names,
-            "start_date": extended_start,
-            "end_date": extended_end,
-        },
-        as_dict=True,
+    all_leaves = get_all(
+        "Leave Application",
+        filters=[
+            ["employee", "in", employee_names],
+            ["from_date", "<=", extended_end],
+            ["to_date", ">=", extended_start],
+            ["docstatus", "in", [0, 1]],
+            ["status", "in", ["Approved", "Open"]],
+        ],
+        fields=["employee", "from_date", "to_date", "half_day", "half_day_date"],
+        order_by="employee asc, from_date asc, to_date asc",
     )
 
     leave_map = {}
@@ -256,7 +246,7 @@ def get_compact_view_data(
 
 def batch_get_timesheet_states(employee_names, start_date, end_date):
     """Batch fetch timesheet states for all employees.
-    
+
     Returns a dictionary mapping employee names to their timesheet status.
     If an employee has no timesheets or all their timesheets have None status,
     they won't be in the returned dict (caller will use "Not Submitted" as default).
