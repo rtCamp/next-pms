@@ -75,18 +75,25 @@ def get_data(filters=None, has_bu_field=False):
     default_hours = frappe.db.get_single_value("HR Settings", "standard_working_hours") or 8
 
     # Batch fetch all leaves for all employees
-    all_leaves = frappe.db.sql(
-        """
-        SELECT employee, from_date, to_date, half_day, half_day_date, total_leave_days, name, leave_type
-        FROM `tabLeave Application`
-        WHERE employee IN %(employees)s
-        AND status IN ('Approved', 'Open')
-        AND from_date <= %(end_date)s
-        AND to_date >= %(start_date)s
-        AND (docstatus = 1 OR docstatus = 0)
-    """,
-        {"employees": employee_names, "start_date": getdate(start_date), "end_date": getdate(end_date)},
-        as_dict=True,
+    all_leaves = frappe.get_all(
+        "Leave Application",
+        filters={
+            "employee": ["in", employee_names],
+            "status": ["in", ["Approved", "Open"]],
+            "from_date": ["<=", getdate(end_date)],
+            "to_date": [">=", getdate(start_date)],
+            "docstatus": ["in", [0, 1]],
+        },
+        fields=[
+            "employee",
+            "from_date",
+            "to_date",
+            "half_day",
+            "half_day_date",
+            "total_leave_days",
+            "name",
+            "leave_type",
+        ],
     )
 
     # Build leave map for quick lookup
