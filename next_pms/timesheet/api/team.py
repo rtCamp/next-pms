@@ -19,13 +19,13 @@ from frappe import (
 from frappe.utils.data import add_days, getdate
 
 from next_pms.api.utils import error_logger
-from next_pms.resource_management.api.utils.query import get_employee_leaves
 from next_pms.timesheet.doc_events.timesheet import flush_cache, publish_timesheet_update
 
 from . import filter_employees
-from .employee import get_employee_daily_working_norm, get_employee_working_hours
-from .timesheet import get_timesheet_state
-from .utils import employee_has_higher_access, get_holidays, get_week_dates
+from .utils import employee_has_higher_access, get_week_dates
+
+# Constants
+WORK_DAYS_PER_WEEK = 5
 
 
 @whitelist()
@@ -61,6 +61,11 @@ def get_compact_view_data(
     dates.reverse()
     res = {"dates": dates}
 
+    start_date = dates[0].get("start_date")
+    end_date = dates[-1].get("end_date")
+    extended_start = add_days(start_date, -max_week * 7)
+    extended_end = add_days(end_date, max_week * 7)
+
     employees, total_count = filter_employee_by_timesheet_status(
         employee_name=employee_name,
         department=department,
@@ -72,18 +77,33 @@ def get_compact_view_data(
         status=status,
         timesheet_status=status_filter,
         employee_ids=employee_ids,
-        start_date=dates[0].get("start_date"),
-        end_date=dates[-1].get("end_date"),
+        start_date=start_date,
+        end_date=end_date,
     )
+
+    if not employees:
+        return {"dates": dates, "data": {}, "total_count": 0, "has_more": False}
+
     employee_names = [employee.name for employee in employees]
+
+    # Batch fetch employee working hours
+    emp_work_data = get_all(
+        "Employee",
+        filters={"name": ["in", employee_names]},
+        fields=["name", "custom_working_hours", "custom_work_schedule"],
+    )
+    emp_work_map = {e.name: e for e in emp_work_data}
+
+    # Default working hours from settings
+    default_hours = db.get_single_value("HR Settings", "standard_working_hours") or 8
 
     # Get all the timesheet between the date range for the employees
     timesheet_data = get_all(
         "Timesheet",
         filters={
             "employee": ["in", employee_names],
-            "start_date": [">=", dates[0].get("start_date")],
-            "end_date": ["<=", dates[-1].get("end_date")],
+            "start_date": [">=", start_date],
+            "end_date": ["<=", end_date],
             "docstatus": ["!=", 2],
         },
         fields=[
@@ -103,58 +123,112 @@ def get_compact_view_data(
             timesheet_map[ts.employee] = []
         timesheet_map[ts.employee].append(ts)
 
-    for employee in employees:
-        working_hours = get_employee_working_hours(employee.name)
-        daily_working_hours = get_employee_daily_working_norm(employee.name)
-        local_data = {**employee, **working_hours}
-        employee_timesheets = timesheet_map.get(employee.name, [])
+    # Batch fetch all leaves for all employees
+    all_leaves = get_all(
+        "Leave Application",
+        filters=[
+            ["employee", "in", employee_names],
+            ["from_date", "<=", extended_end],
+            ["to_date", ">=", extended_start],
+            ["docstatus", "in", [0, 1]],
+            ["status", "in", ["Approved", "Open"]],
+        ],
+        fields=["employee", "from_date", "to_date", "half_day", "half_day_date"],
+        order_by="employee asc, from_date asc, to_date asc",
+    )
 
-        status = get_timesheet_state(
-            employee=employee.name,
-            start_date=dates[0].get("start_date"),
-            end_date=dates[-1].get("end_date"),
+    leave_map = {}
+    for leave in all_leaves:
+        if leave.employee not in leave_map:
+            leave_map[leave.employee] = []
+        leave_map[leave.employee].append(leave)
+
+    # Batch fetch holiday lists for all employees
+    emp_holiday_lists = get_all(
+        "Employee",
+        filters={"name": ["in", employee_names]},
+        fields=["name", "holiday_list"],
+    )
+    holiday_list_names = {e.holiday_list for e in emp_holiday_lists if e.holiday_list}
+
+    # Fetch holidays for all holiday lists in date range
+    holidays_by_list = {}
+    if holiday_list_names:
+        holidays = get_all(
+            "Holiday",
+            filters={
+                "parent": ["in", list(holiday_list_names)],
+                "holiday_date": ["between", [start_date, end_date]],
+            },
+            fields=["parent", "holiday_date", "weekly_off"],
         )
-        local_data["status"] = status
+        for h in holidays:
+            if h.parent not in holidays_by_list:
+                holidays_by_list[h.parent] = []
+            holidays_by_list[h.parent].append(h)
+
+    emp_holiday_map = {e.name: e.holiday_list for e in emp_holiday_lists}
+
+    # Batch get timesheet states
+    all_states = batch_get_timesheet_states(employee_names, start_date, end_date)
+
+    # Process employees without additional queries
+    for employee in employees:
+        emp_work = emp_work_map.get(employee.name, _dict())
+        working_hour = emp_work.get("custom_working_hours") or default_hours
+        working_frequency = emp_work.get("custom_work_schedule") or "Per Day"
+
+        daily_working_hours = working_hour / WORK_DAYS_PER_WEEK if working_frequency != "Per Day" else working_hour
+
+        local_data = {
+            **employee,
+            "working_hour": working_hour,
+            "working_frequency": working_frequency,
+        }
+
+        employee_timesheets = timesheet_map.get(employee.name, [])
+        local_data["status"] = all_states.get(employee.name, "Not Submitted")
         local_data["data"] = []
 
-        leaves = get_employee_leaves(
-            start_date=add_days(dates[0].get("start_date"), -max_week * 7),
-            end_date=add_days(dates[-1].get("end_date"), max_week * 7),
-            employee=employee.name,
-        )
-        holidays = get_holidays(employee.name, dates[0].get("start_date"), dates[-1].get("end_date"))
+        leaves = leave_map.get(employee.name, [])
+        holiday_list = emp_holiday_map.get(employee.name)
+        holidays = holidays_by_list.get(holiday_list, [])
+
+        # Convert to dict for O(1) lookup
+        holiday_date_map = {h.holiday_date: h for h in holidays}
 
         for date_info in dates:
-            for date in date_info.get("dates"):
+            for check_date in date_info.get("dates"):
                 hour = 0
                 on_leave = False
 
+                # Check leaves
                 for leave in leaves:
-                    if leave["from_date"] <= date <= leave["to_date"]:
-                        if leave.get("half_day") and leave.get("half_day_date") == date:
+                    if leave["from_date"] <= check_date <= leave["to_date"]:
+                        if leave.get("half_day") and leave.get("half_day_date") == check_date:
                             hour += daily_working_hours / 2
                         else:
                             hour += daily_working_hours
                         on_leave = True
 
-                for holiday in holidays:
-                    if date == holiday.holiday_date:
-                        if not holiday.weekly_off:
-                            hour = daily_working_hours
-                        else:
-                            hour = 0
-                        on_leave = False
+                # Check holidays
+                if check_date in holiday_date_map:
+                    holiday = holiday_date_map[check_date]
+                    hour = daily_working_hours if not holiday.weekly_off else 0
+                    on_leave = False
+
+                # Sum timesheet hours
                 total_hours = 0
                 notes = ""
                 for ts in employee_timesheets:
-                    if ts.start_date == date and ts.end_date == date:
+                    if ts.start_date == check_date and ts.end_date == check_date:
                         total_hours += ts.get("total_hours")
                         notes += ts.get("note", "")
                 hour += total_hours
 
                 local_data["data"].append(
                     {
-                        "date": date,
+                        "date": check_date,
                         "hour": hour,
                         "is_leave": on_leave,
                         "note": notes.replace("<br>", "\n"),
@@ -168,6 +242,38 @@ def get_compact_view_data(
     res["has_more"] = int(start) + int(page_length) < total_count
 
     return res
+
+
+def batch_get_timesheet_states(employee_names, start_date, end_date):
+    """Batch fetch timesheet states for all employees.
+
+    Returns a dictionary mapping employee names to their timesheet status.
+    If an employee has no timesheets or all their timesheets have None status,
+    they won't be in the returned dict (caller will use "Not Submitted" as default).
+    """
+    if not employee_names:
+        return {}
+
+    # Get all timesheets for all employees in one query
+    timesheets = get_all(
+        "Timesheet",
+        filters={
+            "employee": ["in", employee_names],
+            "start_date": [">=", start_date],
+            "end_date": ["<=", end_date],
+            "docstatus": ["!=", 2],
+        },
+        fields=["employee", "custom_weekly_approval_status"],
+    )
+
+    # Build a map of employee to their status
+    # If an employee has multiple timesheets, use the first non-None status found
+    states = {}
+    for ts in timesheets:
+        if ts.employee not in states and ts.custom_weekly_approval_status is not None:
+            states[ts.employee] = ts.custom_weekly_approval_status
+
+    return states
 
 
 @whitelist(methods=["POST"])
