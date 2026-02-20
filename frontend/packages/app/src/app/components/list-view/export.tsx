@@ -85,12 +85,12 @@ export const Export = ({
   const handleSubmit = (data: z.infer<typeof schema>) => {
     const length = data.export_all ? totalCount : pageLength;
     let url = `/api/method/frappe.desk.reportview.export_query?file_format_type=${
-      data.file_type
-    }&title=${doctype}&doctype=${doctype}&fields=${JSON.stringify(
+      encodeURIComponent(data.file_type)
+    }&title=${encodeURIComponent(doctype)}&doctype=${encodeURIComponent(doctype)}&fields=${encodeURIComponent(JSON.stringify(
       columns
-    )}&order_by=${orderBy}&page_length=${length}&start=0`;
+    ))}&order_by=${encodeURIComponent(orderBy)}&page_length=${encodeURIComponent(length)}&start=0`;
     if (filters) {
-      url += `&filters=${JSON.stringify(filters)}`;
+      url += `&filters=${encodeURIComponent(JSON.stringify(filters))}`;
     }
     window.location.href = url;
     setIsOpen(false);
