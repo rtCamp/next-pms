@@ -78,20 +78,31 @@ export const Export = ({
     },
   });
   useEffect(() => {
-    const uniqueColumns = Array.from(new Set(["name", ...Object.keys(fields), "creation", "modified"]));
+    const uniqueColumns = Array.from(
+      new Set(["name", ...Object.keys(fields), "creation", "modified"]),
+    );
     setColumns(uniqueColumns);
   }, [fields]);
 
   const handleSubmit = (data: z.infer<typeof schema>) => {
     const length = data.export_all ? totalCount : pageLength;
-    let url = `/api/method/frappe.desk.reportview.export_query?file_format_type=${
-      encodeURIComponent(data.file_type)
-    }&title=${encodeURIComponent(doctype)}&doctype=${encodeURIComponent(doctype)}&fields=${encodeURIComponent(JSON.stringify(
-      columns
-    ))}&order_by=${encodeURIComponent(orderBy)}&page_length=${encodeURIComponent(length)}&start=0`;
+
+    const params = new URLSearchParams({
+      file_format_type: data.file_type,
+      title: doctype,
+      doctype,
+      fields: JSON.stringify(columns),
+      order_by: orderBy,
+      page_length: String(length),
+      start: "0",
+    });
+
     if (filters) {
-      url += `&filters=${encodeURIComponent(JSON.stringify(filters))}`;
+      params.append("filters", JSON.stringify(filters));
     }
+
+    const url = `/api/method/frappe.desk.reportview.export_query?${params.toString()}`;
+
     window.location.href = url;
     setIsOpen(false);
   };
@@ -113,7 +124,10 @@ export const Export = ({
                   <FormItem className="w-full">
                     <FormLabel>File Type</FormLabel>
                     <FormControl>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <Select
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}
+                      >
                         <SelectTrigger className="w-full">
                           <SelectValue placeholder="File Type" />
                         </SelectTrigger>
@@ -134,8 +148,15 @@ export const Export = ({
                   <FormItem className="w-full">
                     <FormControl>
                       <div className="flex items-center gap-x-2">
-                        <Checkbox onCheckedChange={field.onChange} checked={field.value} name="export_all" />
-                        <Typography> Export All {totalCount} Record/s</Typography>
+                        <Checkbox
+                          onCheckedChange={field.onChange}
+                          checked={field.value}
+                          name="export_all"
+                        />
+                        <Typography>
+                          {" "}
+                          Export All {totalCount} Record/s
+                        </Typography>
                       </div>
                     </FormControl>
                     <FormMessage />
@@ -144,7 +165,10 @@ export const Export = ({
               />
             </div>
             <Separator className="my-3" />
-            <div id="column-selector" className="grid grid-cols-2 gap-2  max-h-64 lg:max-h-96 overflow-y-auto">
+            <div
+              id="column-selector"
+              className="grid grid-cols-2 gap-2  max-h-64 lg:max-h-96 overflow-y-auto"
+            >
               {Object.entries(fields).map(([key, value]) => {
                 return (
                   <div className="flex gap-x-1 text-sm items-center" key={key}>
