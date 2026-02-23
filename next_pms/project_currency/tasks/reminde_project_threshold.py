@@ -19,6 +19,8 @@ def send_reminder_mail():
                 "custom_billing_type",
                 "custom_reminder_threshold_percentage",
                 "custom_email_template",
+                "total_billable_amount",
+                "estimated_costing",
             ],
         )
 
@@ -94,7 +96,9 @@ def send_reminder_mail():
             pm_set = set()
 
         # Get all unique email templates
-        template_names = list(set([p.custom_email_template for p in projects_needing_reminder if p.custom_email_template]))
+        template_names = list(
+            set([p.custom_email_template for p in projects_needing_reminder if p.custom_email_template])
+        )
 
         # Batch fetch email templates
         email_templates = {}
@@ -118,7 +122,7 @@ def send_reminder_mail():
 
 def send_reminder_mail_for_project(project, share_map, pm_set, email_templates):
     """Send reminder email for a project using pre-fetched data.
-    
+
     Args:
         project: Project object with fields
         share_map: Dict mapping project names to list of users with access
@@ -130,7 +134,7 @@ def send_reminder_mail_for_project(project, share_map, pm_set, email_templates):
 
     # Get users with access to this project from pre-fetched data
     user_list = share_map.get(project.name, [])
-    
+
     # Filter to only Project Managers from pre-fetched data
     all_pms = [user for user in user_list if user in pm_set]
 
@@ -163,11 +167,11 @@ def send_reminder_mail_for_project(project, share_map, pm_set, email_templates):
 
 def calculate_threshold(project, project_budget):
     """Calculate threshold percentage for a project.
-    
+
     Args:
         project: Project object with custom fields
         project_budget: List of Project Budget objects for this project
-    
+
     Returns:
         float: Threshold percentage or None if not applicable
     """
@@ -177,8 +181,6 @@ def calculate_threshold(project, project_budget):
 
         # Use the last budget entry
         latest_budget = project_budget[-1]
-        
-        # Validate that we have valid numeric values for calculation
         if (
             not latest_budget.hours_purchased
             or latest_budget.hours_purchased <= 0
@@ -194,6 +196,7 @@ def calculate_threshold(project, project_budget):
         # The original implementation had a bug referencing undefined fields
         # (total_billable_amount, estimated_costing) that don't exist in Project Budget.
         # TODO: Implement proper Time and Material threshold calculation if needed
-        return None
+        project_threshold = (project.total_billable_amount * 100) / (project.estimated_costing)
+        return project_threshold
 
     return None
