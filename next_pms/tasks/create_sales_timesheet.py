@@ -106,6 +106,71 @@ def execute(
     return "\n".join(employee_lines)
 
 
+def delete(
+    start_date: str,
+    end_date: str,
+    project: str,
+    task: str | None = None,
+):
+    """Bulk delete timesheets created by Administrator for the given filters."""
+    if not start_date or not end_date:
+        frappe.throw(_("Start Date and End Date are mandatory."))
+
+    if not project:
+        frappe.throw(_("Project is mandatory."))
+
+    start_date = getdate(start_date)
+    end_date = getdate(end_date)
+
+    if start_date > end_date:
+        frappe.throw(_("Start Date cannot be greater than End Date."))
+
+    timesheets = frappe.get_all(
+        "Timesheet",
+        filters={
+            "owner": "Administrator",
+            "parent_project": project,
+            "start_date": [">=", start_date],
+            "end_date": ["<=", end_date],
+            "docstatus": 0,
+        },
+        fields=["name", "employee"],
+        limit_page_length=0,
+    )
+    if not timesheets:
+        return f"No draft timesheets created by Administrator found for project {project} in the given date range."
+
+    parent_names = [row.name for row in timesheets]
+
+    if task:
+        detail_rows = frappe.get_all(
+            "Timesheet Detail",
+            filters={
+                "parent": ["in", parent_names],
+                "task": task,
+            },
+            fields=["parent"],
+            limit_page_length=0,
+        )
+        parent_names = sorted({row.parent for row in detail_rows})
+
+    if not parent_names:
+        return f"No draft timesheets created by Administrator matched the given task for project {project}."
+
+    employee_counter = {}
+    for row in timesheets:
+        if row.name in parent_names:
+            employee_counter[row.employee] = employee_counter.get(row.employee, 0) + 1
+
+    deleted_logs = frappe.db.delete("Timesheet Detail", {"parent": ["in", parent_names]})
+    deleted_timesheets = frappe.db.delete("Timesheet", {"name": ["in", parent_names]})
+
+    frappe.clear_cache()
+    lines = [f"{employee}: deleted_timesheets={count}" for employee, count in sorted(employee_counter.items())]
+    lines.append(f"summary: deleted_timesheets={deleted_timesheets}, deleted_logs={deleted_logs}")
+    return "\n".join(lines)
+
+
 def _get_active_department_employees(department: str):
     return frappe.get_all(
         "Employee",
