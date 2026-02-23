@@ -147,7 +147,6 @@ def get_count(
         doctype,
         fields=[fieldname],
         distinct=distinct,
-        limit=limit,
         filters=filters,
         or_filters=or_filters,
         ignore_permissions=ignore_permissions,
