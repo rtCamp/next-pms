@@ -34,7 +34,7 @@
     "playwright": "^1.56.1"
   },
   "dependencies": {
-    "dotenv": "^17.2.3",
+    "dotenv": "^17.3.1",
     "axios": "^1.13.5",
     "proper-lockfile": "^4.1.2"
   }
