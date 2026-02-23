@@ -1,3 +1,4 @@
+import frappe
 from frappe import get_all, get_list, get_roles, get_value, whitelist
 
 
@@ -139,21 +140,19 @@ def get_count(
     ignore_permissions=False,
 ) -> int:
     from frappe.desk.reportview import execute
+    from frappe.query_builder.functions import Count
 
-    fields = [
-        {
-            "COUNT": "*",
-            "AS": "total_count",
-        }
-    ]
-
-    count = execute(
+    fieldname = f"`tab{doctype}`.name"
+    subquery = execute(
         doctype,
+        fields=[fieldname],
         distinct=distinct,
         limit=limit,
-        fields=fields,
         filters=filters,
         or_filters=or_filters,
         ignore_permissions=ignore_permissions,
-    )[0].get("total_count")
-    return count
+        run=0,
+    )
+    count_query = frappe.qb.from_(subquery.as_("sub")).select(Count("*").as_("total_count"))
+    result = count_query.run(as_dict=True)
+    return result[0]["total_count"] if result else 0
