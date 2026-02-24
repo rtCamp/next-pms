@@ -4,7 +4,17 @@ import frappe
 from frappe import _
 from frappe.utils import add_days, getdate
 
+"""
+to execute :
+ bench execute next_pms.timesheet.patches.create_sales_timesheet.execute --kwargs '{"start_date":"2025-10-01","end_date":"2026-02-22","project":"PROJ-0024","department":"sales - test - T","task":"TASK-2026-00280"}'
 
+ to delete :
+ bench execute next_pms.timesheet.patches.create_sales_timesheet.delete --kwargs '{"start_date":"2025-10-01","end_date":"2026-02-22","project":"PROJ-0024","task":"TASK-2026-00280"}'
+
+"""
+
+
+@frappe.whitelist()
 def execute(
     start_date: str,
     end_date: str,
@@ -106,6 +116,7 @@ def execute(
     return "\n".join(employee_lines)
 
 
+@frappe.whitelist()
 def delete(
     start_date: str,
     end_date: str,
