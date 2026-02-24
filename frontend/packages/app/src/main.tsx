@@ -8,8 +8,6 @@ import ReactDOM from "react-dom/client";
  * Internal dependencies.
  */
 import App from "./app";
-import "@next-pms/design-system/index.css";
-import "@next-pms/resource-management/index.css";
 import "./global.css";
 
 if (import.meta.env.DEV) {

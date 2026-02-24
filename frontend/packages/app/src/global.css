@@ -1,6 +1,6 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "@rtcamp/frappe-ui-react/theme";
+@import "tailwindcss";
+@source "../../../node_modules/@rtcamp/frappe-ui-react/dist";
 
 .resizer {
   position: absolute;
@@ -13,22 +13,6 @@
 
 .isResizing {
   background-color: #dedfe091;
-}
-@layer base {
-  * {
-    @apply border-border;
-  }
-  body {
-    @apply bg-background text-foreground;
-  }
-  @media (pointer: fine) { /* Only works for precise pointer devices such as laptops and desktops */
-    ::-webkit-scrollbar {
-      @apply w-1 h-1 bg-background;
-    }
-    ::-webkit-scrollbar-thumb {
-      @apply rounded bg-secondary /*color trackbar*/;
-    }
-  }
 }
 
 .custom-resource-management-team-view-bg {

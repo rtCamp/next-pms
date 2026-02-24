@@ -46,7 +46,8 @@
         "lucide-react": "^0.408.0",
         "react-day-picker": "^8.10.1",
         "react-quill": "^2.0.0",
-        "quill-image-resize-module-react": "^3.0.0"
+        "quill-image-resize-module-react": "^3.0.0",
+        "tailwindcss": "^4.1.18"
     },
     "devDependencies": {
     }
