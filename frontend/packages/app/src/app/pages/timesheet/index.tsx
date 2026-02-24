@@ -174,7 +174,7 @@ function Timesheet() {
     <>
       <Header className="justify-end gap-x-3">
         {window.frappe?.boot?.user?.can_create.includes("Leave Application") && (
-            <Button variant="outline" onClick={handleAddLeave} title="Add Time">
+          <Button variant="outline" onClick={handleAddLeave} title="Add Time">
             <Plus />
             Leave
           </Button>
