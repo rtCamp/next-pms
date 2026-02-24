@@ -1,0 +1,4 @@
+[submodule "frappe-ui-react"]
+	path = frappe-ui-react
+	url = git@github.com:rtCamp/frappe-ui-react.git
+	branch = feat/timesheet
