@@ -12,6 +12,7 @@
     "lint:fix": "eslint . --ext ts,tsx --fix"
   },
   "dependencies": {
+    "@rtcamp/frappe-ui-react": "file:../../../frappe-ui-react/packages/frappe-ui-react",
     "@hookform/resolvers": "^3.9.0",
     "@next-pms/design-system": "*",
     "@next-pms/hooks": "*",
