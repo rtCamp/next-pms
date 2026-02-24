@@ -25,7 +25,6 @@ import { addDays } from "date-fns";
 import { useFrappeEventListener, useFrappeGetCall, useFrappePostCall } from "frappe-react-sdk";
 import { isEmpty } from "lodash";
 import { Calendar, CalendarArrowDown, EllipsisVertical, Paperclip, Plus } from "lucide-react";
-import { Button as NewButton } from "@rtcamp/frappe-ui-react";
 
 /**
  * Internal dependencies.
@@ -107,7 +106,7 @@ function Timesheet() {
     dispatch({ type: "APPEND_DATA", payload: res });
   });
   const { call: fetchLikedTask, loading: loadingLikedTasks } = useFrappePostCall(
-    "next_pms.timesheet.api.task.get_liked_tasks",
+    "next_pms.timesheet.api.task.get_liked_tasks"
   );
   const [likedTaskData, setLikedTaskData] = useState([]);
 
@@ -175,7 +174,10 @@ function Timesheet() {
     <>
       <Header className="justify-end gap-x-3">
         {window.frappe?.boot?.user?.can_create.includes("Leave Application") && (
-          <NewButton theme="gray" size="sm" iconLeft={() => <Plus />} onClick={handleAddLeave} label="Add Leave"/>
+            <Button variant="outline" onClick={handleAddLeave} title="Add Time">
+            <Plus />
+            Leave
+          </Button>
         )}
 
         <Button onClick={handleAddTime} title="Add Time">
@@ -216,7 +218,7 @@ function Timesheet() {
                       value.total_hours,
                       timesheet.data.leaves,
                       timesheet.data.holidays,
-                      dailyWorkingHour,
+                      dailyWorkingHour
                     );
                     return (
                       <Accordion type="single" collapsible key={key} defaultValue={key}>
@@ -240,7 +242,7 @@ function Timesheet() {
                                     e.stopPropagation();
                                     setStartDateParam(getFormatedDate(value.start_date));
                                     copyToClipboard(
-                                      `${window.location.origin}${window.location.pathname}?date="${value.start_date}"`,
+                                      `${window.location.origin}${window.location.pathname}?date="${value.start_date}"`
                                     );
                                   }}
                                 />
