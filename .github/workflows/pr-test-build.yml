@@ -34,6 +34,13 @@ jobs:
         with:
           version: 10
 
+      - name: Install dependencies for Submodule - frappe-ui-react
+        run: |
+          cd frappe-ui-react
+          pnpm i
+        env:
+          npm_config_cache: ~/.npm
+
       - name: Install dependencies
         run: |
           cd frontend
@@ -48,6 +55,11 @@ jobs:
           key: ${{ runner.os }}-node-${{ hashFiles('frontend/package-lock.json') }}
           restore-keys: |
             ${{ runner.os }}-node-
+
+      - name: Build Submodule - frappe-ui-react
+        run: |
+          cd frappe-ui-react
+          pnpm build
 
       - name: Build app
         run: |
