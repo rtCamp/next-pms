@@ -25,10 +25,12 @@ export default defineConfig(({ mode }) => {
   return {
     envDir: resolve(__dirname),
     root: resolve(__dirname, "./packages/app"),
-    plugins: [react(), tailwindcss(),
- svgr({
-      include: "**/*.svg?react",
-    }), 
+    plugins: [
+      react(),
+      tailwindcss(),
+      svgr({
+        include: "**/*.svg?react",
+      }),
     ],
     server: {
       port: 5173,
