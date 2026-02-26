@@ -6,9 +6,9 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   ComboBox,
-  DatePicker,
-  Button,
-  Dialog,
+  //   DatePicker,
+  //   Button,
+  //   Dialog,
   DialogContent,
   DialogFooter,
   DialogHeader,
@@ -20,18 +20,19 @@ import {
   FormLabel,
   FormMessage,
   Separator,
-  TextArea,
+  //   TextArea,
   Checkbox,
-  Select,
+  //   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
 } from "@next-pms/design-system/components";
+import { DatePicker, Dialog, Button, TabButtons, Select, Textarea, TextInput } from "@rtcamp/frappe-ui-react";
 import { getFormatedDate, getTodayDate } from "@next-pms/design-system/date";
 import { useToast } from "@next-pms/design-system/hooks";
 import { useFrappeCreateDoc, useFrappeGetCall } from "frappe-react-sdk";
-import { LoaderCircle, Save, Search, X } from "lucide-react";
+import { Calendar, CalendarX2, LoaderCircle, Save, Search, X } from "lucide-react";
 import { z } from "zod";
 /**
  * Internal Dependencies
@@ -60,7 +61,7 @@ const AddLeave = ({ employee, employeeName, open = false, onOpenChange, onSucces
     {
       employee: selectedEmployee,
       date: postingDate,
-    }
+    },
   );
 
   useEffect(() => {
@@ -160,170 +161,93 @@ const AddLeave = ({ employee, employeeName, open = false, onOpenChange, onSucces
   };
 
   return (
-    <>
-      <Dialog open={open} onOpenChange={handleOpen}>
-        <DialogContent className="max-w-xl " onPointerDownOutside={event?.preventDefault}>
-          <DialogHeader>
-            <DialogTitle className="flex gap-x-2">Add Leave</DialogTitle>
-            <Separator />
-          </DialogHeader>
-
-          <LeaveInfo leaveInfo={leaveDetails?.message?.leave_allocation} />
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(handleSubmit)}>
-              <div className="overflow-y-auto no-scrollbar">
-                <div className="flex flex-col gap-y-4">
-                  <FormField
-                    control={form.control}
-                    name="employee"
-                    render={() => (
-                      <FormItem className="w-full space-y-1">
-                        <FormLabel className="flex gap-2 items-center text-sm">Employee</FormLabel>
-                        <FormControl>
-                          <EmployeeCombo
-                            onSelect={onEmployeeChange}
-                            employeeName={employeeName}
-                            value={selectedEmployee}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <div className="grid max-sm:gap-y-4 sm:gap-x-4 max-sm:grid-rows-2 sm:grid-cols-2">
-                    <FormField
-                      control={form.control}
-                      name="from_date"
-                      render={({ field }) => (
-                        <FormItem className="w-full space-y-1">
-                          <FormLabel className="flex gap-2 items-center text-sm">From</FormLabel>
-                          <FormControl>
-                            <DatePicker date={field.value} onDateChange={handleFromDateChange} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="to_date"
-                      render={({ field }) => (
-                        <FormItem className="w-full space-y-1">
-                          <FormLabel className="flex gap-2 items-center text-sm">To</FormLabel>
-                          <FormControl>
-                            <DatePicker date={field.value} onDateChange={handleToDateChange} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+    <Dialog
+      open={open}
+      onOpenChange={handleOpen}
+      actions={<Button className="w-full" variant="solid" iconLeft={() => <CalendarX2 />} label="Add time-off" />}
+      options={{
+        title: "Add time-off",
+      }}
+    >
+      <div className="space-y-4">
+        <div className="flex gap-4">
+          <div className="flex-1">
+            <DatePicker label="From" onChange={() => {}} placeholder="Placeholder" value="">
+              {({ displayValue }) => {
+                return (
+                  <div className=" flex-1 flex w-full flex-col space-y-1.5 ">
+                    <label className="block text-xs text-ink-gray-5">From</label>
+                    <div
+                      className={`relative flex items-center border border-outline-gray-2 px-[10px] py-2 rounded-lg`}
+                    >
+                      <input type="text" id="start" value={displayValue} className={`flex-1`} placeholder="Today" />
+                      <Calendar className="size-4" />
+                    </div>
                   </div>
-                  <FormItem className="space-y-1">
-                    <FormLabel>Leave Type</FormLabel>
-                    <ComboBox
-                      isMulti={false}
-                      label="Search Leave Type"
-                      showSelected
-                      shouldFilter
-                      value={selectedLeaveType}
-                      data={leaveType.map((item) => ({ label: item, value: item }))}
-                      onSelect={handleLeaveChange}
-                      rightIcon={<Search className="h-4 w-4 stroke-slate-400" />}
-                    />
-                  </FormItem>
-                  <FormField
-                    control={form.control}
-                    name="description"
-                    render={({ field }) => (
-                      <FormItem className="space-y-1">
-                        <FormLabel>Reason</FormLabel>
-                        <FormControl>
-                          <TextArea
-                            placeholder="Reason for leave"
-                            rows={4}
-                            className="w-full placeholder:text-slate-400 focus-visible:ring-0 focus-visible:ring-offset-0"
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                );
+              }}
+            </DatePicker>
+          </div>
+          <div className="flex-1">
+            <DatePicker label="From" onChange={() => {}} placeholder="Placeholder" value="">
+              {({ displayValue }) => {
+                return (
+                  <div className=" flex-1 flex w-full flex-col space-y-1.5 ">
+                    <label className="block text-xs text-ink-gray-5">From</label>
+                    <div
+                      className={`relative flex items-center border border-outline-gray-2 px-[10px] py-2 rounded-lg`}
+                    >
+                      <input type="text" id="start" value={displayValue} className={`flex-1`} placeholder="Today" />
+                      <Calendar className="size-4" />
+                    </div>
+                  </div>
+                );
+              }}
+            </DatePicker>
+          </div>
+        </div>
 
-                  <FormField
-                    control={form.control}
-                    name="half_day"
-                    render={({ field }) => (
-                      <FormItem className="space-y-0 pl-1 gap-x-2 flex items-center">
-                        <FormControl>
-                          <Checkbox
-                            checked={field.value}
-                            onCheckedChange={(value) => {
-                              form.setValue("half_day", value as boolean, {
-                                shouldValidate: true,
-                                shouldDirty: true,
-                                shouldTouch: true,
-                              });
-                              setIsHalfDay(value as boolean);
-                            }}
-                          />
-                        </FormControl>
-                        <FormLabel>Half day</FormLabel>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  {isHalfDay && (
-                    <FormField
-                      control={form.control}
-                      name="custom_first_halfsecond_half"
-                      render={() => (
-                        <FormItem className="space-y-1 col-span-3">
-                          <FormLabel>First Half / Second Half</FormLabel>
-                          <FormControl>
-                            <Select
-                              onValueChange={(value) => {
-                                form.setValue("custom_first_halfsecond_half", value, {
-                                  shouldValidate: true,
-                                  shouldDirty: true,
-                                  shouldTouch: true,
-                                });
-                              }}
-                              defaultValue="First Half"
-                            >
-                              <SelectTrigger className="w-full">
-                                <SelectValue placeholder="Select Half" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="First Half">First Half</SelectItem>
-                                <SelectItem value="Second Half">Second Half</SelectItem>
-                              </SelectContent>
-                            </Select>
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  )}
-                </div>
-              </div>
-              <DialogFooter className="sm:justify-start w-full pt-3">
-                <div className="flex gap-x-4 w-full">
-                  <Button disabled={!isDirty || !isValid || (loading && !isCompleted)}>
-                    {loading && !isCompleted ? <LoaderCircle className="animate-spin " /> : <Save />}
-                    Add Leave
-                  </Button>
-                  <Button variant="secondary" type="button" onClick={handleOpen}>
-                    <X className="w-4 h-4" />
-                    Cancel
-                  </Button>
-                </div>
-              </DialogFooter>
-            </form>
-          </Form>
-        </DialogContent>
-      </Dialog>
-    </>
+        <label className="block text-xs text-ink-gray-5">Leave duration</label>
+        <TabButtons
+          buttons={[
+            {
+              label: "Full day",
+              value: "full-day",
+            },
+            {
+              label: "First half",
+              value: "first-half",
+            },
+            {
+              label: "Second half",
+              value: "second-half",
+            },
+          ]}
+          onChange={() => {}}
+          value="second-half"
+        />
+        <label className="block text-xs text-ink-gray-5">Leave type</label>
+        <Select
+          options={[
+            {
+              label: "Paid time-off",
+              value: "paid",
+            },
+            {
+              label: "Unpaid time-off",
+              value: "unpaid",
+            },
+            {
+              label: "Paternity time-off",
+              value: "paternity",
+            },
+          ]}
+          value="without-pay"
+        />
+        <label className="block text-xs text-ink-gray-5">Reason</label>
+        <Textarea className="bg-white border-outline-gray-2" />
+      </div>
+    </Dialog>
   );
 };
 

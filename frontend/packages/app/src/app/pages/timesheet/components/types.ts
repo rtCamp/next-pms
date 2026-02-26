@@ -74,7 +74,7 @@ export type Action =
   | { type: "SET_DIALOG_STATE"; payload: boolean }
   | { type: "SET_IMPORT_FROM_GOOGLE_CALENDAR_DIALOG_STATE"; payload: boolean }
   | { type: "SET_APPROVAL_DIALOG_STATE"; payload: boolean }
-  | { type: "SET_LEAVE_DIALOG_STATE"; payload: boolean }
+  | { type: "SET_TIME_OFF_DIALOG_STATE"; payload: boolean }
   | { type: "SET_EDIT_DIALOG_STATE"; payload: boolean }
   | { type: "APPEND_DATA"; payload: DataProp }
   | { type: "RESET_STATE" }

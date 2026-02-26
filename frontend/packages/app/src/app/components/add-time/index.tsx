@@ -6,8 +6,8 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   useToast,
-  Button,
-  Dialog,
+//   Button,
+//   Dialog,
   DialogContent,
   DialogFooter,
   DialogHeader,
@@ -21,14 +21,15 @@ import {
   Input,
   Separator,
   ComboBox,
-  DatePicker,
+//   DatePicker,
   Typography,
   TextEditor,
 } from "@next-pms/design-system/components";
+import { DatePicker, Dialog, Button, TabButtons, Select, Textarea, TextInput } from "@rtcamp/frappe-ui-react";
 import { getFormatedDate } from "@next-pms/design-system/date";
 import { floatToTime } from "@next-pms/design-system/utils";
 import { FrappeConfig, FrappeContext, useFrappeGetCall, useFrappePostCall } from "frappe-react-sdk";
-import { LoaderCircle, Save, Search, X } from "lucide-react";
+import { Calendar, CalendarX2, LoaderCircle, Save, Search, X } from "lucide-react";
 import { z } from "zod";
 
 /**
@@ -242,176 +243,91 @@ const AddTime = ({
   } = form;
 
   return (
-    <Dialog open={open} onOpenChange={handleOpen}>
-      <DialogContent className="max-w-xl" onPointerDownOutside={event?.preventDefault}>
-        <DialogHeader>
-          <DialogTitle className="flex gap-x-2">
-            Add Time
-            <Typography
-              variant="p"
-              className={mergeClassNames(
-                Number(perDayEmpHours?.message) >= 0 && Number(perDayEmpHours?.message) <= expectedHours
-                  ? "text-success"
-                  : "text-destructive"
-              )}
-            >
-              {perDayEmpHours
-                ? `${floatToTime(Math.abs(perDayEmpHours?.message))} hrs ${
-                    perDayEmpHours?.message < 0 ? "extended" : "remaining"
-                  }`
-                : ""}
-            </Typography>
-          </DialogTitle>
-          <Separator />
-        </DialogHeader>
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(handleSubmit)}>
-            <div className="flex flex-col gap-y-4">
-              <div className="grid max-sm:gap-y-4 sm:gap-x-4 max-sm:grid-rows-2 sm:grid-cols-2">
-                <FormField
-                  control={form.control}
-                  name="employee"
-                  render={() => (
-                    <FormItem className="w-full space-y-1">
-                      <FormLabel className="flex gap-2 items-center text-sm">Employee</FormLabel>
-                      <FormControl>
-                        <EmployeeCombo
-                          onSelect={onEmployeeChange}
-                          value={selectedEmployee}
-                          employeeName={employeeName}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <div className="grid grid-cols-2 gap-x-4">
-                  <FormField
-                    control={form.control}
-                    name="hours"
-                    render={({ field }) => (
-                      <FormItem className="w-full space-y-1">
-                        <FormLabel className="flex gap-2 items-center">
-                          <p className="text-sm">Time</p>
-                        </FormLabel>
-                        <FormControl>
-                          <>
-                            <div className=" flex w-full border rounded-md ">
-                              <Input
-                                placeholder="00:00"
-                                className="placeholder:text-slate-400 focus-visible:ring-0 focus-visible:ring-offset-0 border-0 border-r rounded-none px-2"
-                                type="text"
-                                {...field}
-                              />
-                              <TimeSelector onClick={UpdateTime} />
-                            </div>
-                          </>
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="date"
-                    render={({ field }) => (
-                      <FormItem className="w-full space-y-1">
-                        <FormLabel className="flex gap-2 items-center text-sm">Date</FormLabel>
-                        <FormControl>
-                          <DatePicker date={field.value} onDateChange={handleDateChange} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-              </div>
-              <div className="grid gap-x-4 grid-cols-2">
-                <FormItem className="space-y-1">
-                  <FormLabel>Projects</FormLabel>
-                  <ComboBox
-                    label="Search Projects"
-                    showSelected
-                    shouldFilter
-                    value={selectedProject}
-                    data={projects?.message?.map((item: { project_name: string; name: string }) => ({
-                      label: item.project_name,
-                      value: item.name,
-                      disabled: false,
-                    }))}
-                    isLoading={isProjectLoading}
-                    onSelect={handleProjectChange}
-                    rightIcon={<Search className="h-4 w-4 stroke-slate-400" />}
-                  />
-                </FormItem>
-                <FormField
-                  control={form.control}
-                  name="task"
-                  render={() => (
-                    <FormItem className="space-y-1">
-                      <FormLabel>Tasks</FormLabel>
-                      <FormControl>
-                        <ComboBox
-                          label="Search Task"
-                          showSelected
-                          deBounceTime={200}
-                          value={
-                            form.getValues("task") && form.getValues("task").length > 0 ? [form.getValues("task")] : []
-                          }
-                          isLoading={isTaskLoading}
-                          data={
-                            tasks.map((item: TaskData) => ({
-                              label: item.subject,
-                              value: item.name,
-                              description: item.project_name as string,
-                              disabled: false,
-                            })) ?? []
-                          }
-                          onSelect={handleTaskChange}
-                          onSearch={handleTaskSearch}
-                          rightIcon={<Search className="h-4 w-4  stroke-slate-400" />}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-              <FormField
-                control={form.control}
-                name="description"
-                render={({ field }) => (
-                  <FormItem className="space-y-1">
-                    <FormLabel>Comment</FormLabel>
-                    <FormControl>
-                      <TextEditor
-                        placeholder="Explain your progress"
-                        defaultValue={field.value}
-                        onChange={(value) => {
-                          field.onChange(value);
-                        }}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <DialogFooter className="sm:justify-start w-full pt-3">
-                <div className="flex gap-x-4 w-full">
-                  <Button disabled={!isDirty || !isValid || submitting}>
-                    {submitting ? <LoaderCircle className="animate-spin w-4 h-4" /> : <Save className="w-4 h-4" />}
-                    Add Time
-                  </Button>
-                  <Button variant="secondary" type="button" onClick={handleOpen} disabled={submitting}>
-                    <X className="w-4 h-4" />
-                    Cancel
-                  </Button>
-                </div>
-              </DialogFooter>
+<Dialog
+      open={open}
+      onOpenChange={handleOpen}
+      actions={<Button className="w-full" variant="solid" label="Save entry" />}
+      options={{
+        title: "Add time",
+      }}
+    >
+      <div className="space-y-4">
+        <label className="block text-xs text-ink-gray-5">Project</label>
+        <Select
+          options={[
+            {
+              label: "Paid time-off",
+              value: "paid",
+            },
+            {
+              label: "Unpaid time-off",
+              value: "unpaid",
+            },
+            {
+              label: "Paternity time-off",
+              value: "paternity",
+            },
+          ]}
+          value="without-pay"
+        />
+                <label className="block text-xs text-ink-gray-5">Task</label>
+        <Select
+          options={[
+            {
+              label: "Paid time-off",
+              value: "paid",
+            },
+            {
+              label: "Unpaid time-off",
+              value: "unpaid",
+            },
+            {
+              label: "Paternity time-off",
+              value: "paternity",
+            },
+          ]}
+          value="without-pay"
+        />
+        <div className="flex gap-4">
+          <DatePicker label="From" onChange={() => {}} placeholder="Placeholder" value="">
+              {({ displayValue }) => {
+                return (
+                  <div className=" flex-1 flex w-full flex-col space-y-1.5 ">
+                    <label className="block text-xs text-ink-gray-5">From</label>
+                    <div
+                      className={`relative flex items-center border border-outline-gray-2 px-[10px] py-2 rounded-lg`}
+                    >
+                      <input type="text" id="start" value={displayValue} className={`flex-1`} placeholder="Today" />
+                      <Calendar className="size-4" />
+                    </div>
+                  </div>
+                );
+              }}
+            </DatePicker>
+            <div className="space-y-4">
+                <label className="block text-xs text-ink-gray-5">Duration Time</label>
+        <Select
+          options={[
+            {
+              label: "Paid time-off",
+              value: "paid",
+            },
+            {
+              label: "Unpaid time-off",
+              value: "unpaid",
+            },
+            {
+              label: "Paternity time-off",
+              value: "paternity",
+            },
+          ]}
+          value="without-pay"
+        />
             </div>
-          </form>
-        </Form>
-      </DialogContent>
+        </div>
+         <label className="block text-xs text-ink-gray-5">Comment</label>
+        <Textarea className="bg-white border-outline-gray-2" />
+      </div>
     </Dialog>
   );
 };

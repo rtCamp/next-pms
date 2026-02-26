@@ -4,7 +4,6 @@
 import { useEffect, useReducer, useRef, useState } from "react";
 import { useSelector } from "react-redux";
 import {
-  Button,
   Separator,
   Accordion,
   AccordionContent,
@@ -24,7 +23,8 @@ import { useQueryParam } from "@next-pms/hooks";
 import { addDays } from "date-fns";
 import { useFrappeEventListener, useFrappeGetCall, useFrappePostCall } from "frappe-react-sdk";
 import { isEmpty } from "lodash";
-import { Calendar, CalendarArrowDown, EllipsisVertical, Paperclip, Plus } from "lucide-react";
+import { Calendar, CalendarArrowDown, CalendarX2, EllipsisVertical, Paperclip, Plus } from "lucide-react";
+import { Button } from "@rtcamp/frappe-ui-react";
 
 /**
  * Internal dependencies.
@@ -134,8 +134,8 @@ function Timesheet() {
     dispatch({ type: "SET_TIMESHEET", payload: timesheetData });
     dispatch({ type: "SET_DIALOG_STATE", payload: true });
   };
-  const handleAddLeave = () => {
-    dispatch({ type: "SET_LEAVE_DIALOG_STATE", payload: true });
+  const handleAddTimeOff = () => {
+    dispatch({ type: "SET_TIME_OFF_DIALOG_STATE", payload: true });
   };
 
   const onCellClick = (data: NewTimesheetProps) => {
@@ -174,16 +174,14 @@ function Timesheet() {
     <>
       <Header className="justify-end gap-x-3">
         {window.frappe?.boot?.user?.can_create.includes("Leave Application") && (
-          <Button variant="outline" onClick={handleAddLeave} title="Add Time">
-            <Plus />
-            Leave
-          </Button>
+          <Button onClick={handleAddTimeOff} label="Add time-off" iconLeft={()=>(
+            <CalendarX2/>
+          )}/>
         )}
 
-        <Button onClick={handleAddTime} title="Add Time">
-          <Plus />
-          Time
-        </Button>
+          <Button variant="solid" onClick={handleAddTime} label="Add time" iconLeft={()=>(
+            <Plus/>
+          )}/>
         {window.frappe?.boot?.is_calendar_setup && (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
