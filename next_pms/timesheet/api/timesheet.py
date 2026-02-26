@@ -27,7 +27,7 @@ from .utils import (
 )
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["GET"])
 @error_logger
 def get_timesheet_data(employee: str, start_date=None, max_week: int = 4):
     """Get timesheet data for the given employee for the given number of weeks."""
@@ -117,7 +117,7 @@ def get_timesheet_data(employee: str, start_date=None, max_week: int = 4):
     return res
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])
 @error_logger
 def save(date: str, description: str, task: str, hours: float = 0, employee: str = None):
     """create time entry in Timesheet Detail child table."""
@@ -164,10 +164,10 @@ def save(date: str, description: str, task: str, hours: float = 0, employee: str
     return _("New Timesheet created successfully.")
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])
 @error_logger
 def delete(parent: str, name: str):
-    """Delete single time entry from timesheet doctype."""
+    """Delete single time entry (child table entry) from timesheet doctype."""
     employee = get_employee_from_user()
     ignore_permissions = employee_has_higher_access(employee, ptype="write")
     parent_doc = frappe.get_doc("Timesheet", parent)
@@ -181,9 +181,10 @@ def delete(parent: str, name: str):
     return _("Time entry deleted successfully.")
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])
 @error_logger
 def submit_for_approval(start_date: str, notes: str = None, employee: str = None, approver: str = None):
+    """Submit timesheet for approval for the given week."""
     from next_pms.timesheet.doc_events.timesheet import flush_cache, publish_timesheet_update
     from next_pms.timesheet.tasks.reminder_on_approval_request import (
         send_approval_reminder,
@@ -241,7 +242,7 @@ def submit_for_approval(start_date: str, notes: str = None, employee: str = None
     return _("Timesheet has been sent for Approval to {0}.").format(reporting_manager_name)
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])
 def update_timesheet_detail(
     name: str,
     parent: str,
@@ -251,6 +252,7 @@ def update_timesheet_detail(
     date: str | None = None,
     is_billable: bool | None = None,
 ):
+    """Update time entry in Timesheet Detail child table."""
     parent_doc = frappe.get_doc("Timesheet", parent)
     ignore_permissions = employee_has_higher_access(parent_doc.employee, ptype="write")
     logs_to_remove = []
@@ -433,7 +435,7 @@ def get_timesheet_state(employee: str, start_date: str, end_date: str):
     return "Not Submitted"
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["GET"])
 @validate_current_employee(ptype="write")
 def get_remaining_hour_for_employee(employee: str, date: str):
     """Return the working hours for the given employee on the given date."""
@@ -472,9 +474,10 @@ def get_remaining_hour_for_employee(employee: str, date: str):
     return working_hours.get("working_hour") - total_hours
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["GET"])
 @validate_current_employee(ptype="read")
 def get_timesheet_details(date: str, task: str, employee: str):
+    """Return the time entry details for the given date, task and employee."""
     logs = frappe.get_list(
         "Timesheet",
         fields=[
@@ -506,6 +509,7 @@ def get_timesheet_details(date: str, task: str, employee: str):
 @frappe.whitelist()
 @error_logger
 def bulk_update_timesheet_detail(data):
+    """Update multiple time entries in Timesheet Detail child table."""
     for entry in data:
         if isinstance(entry, str):
             entry = frappe.parse_json(entry)
@@ -513,7 +517,7 @@ def bulk_update_timesheet_detail(data):
     return _("Time entries updated successfully.")
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])
 def bulk_save(timesheet_entries):
     """
     Create multiple time entries in Timesheet Detail child table.
