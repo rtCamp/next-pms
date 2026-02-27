@@ -2,6 +2,14 @@
 @import "tailwindcss";
 @source "../../../node_modules/@rtcamp/frappe-ui-react/dist";
 
+#root {
+    isolation: isolate; 
+}
+
+body {
+  position: relative;
+}
+
 .resizer {
   position: absolute;
   right: 0;

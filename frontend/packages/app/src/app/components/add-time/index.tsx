@@ -6,8 +6,8 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   useToast,
-//   Button,
-//   Dialog,
+  //   Button,
+  //   Dialog,
   DialogContent,
   DialogFooter,
   DialogHeader,
@@ -21,7 +21,7 @@ import {
   Input,
   Separator,
   ComboBox,
-//   DatePicker,
+  //   DatePicker,
   Typography,
   TextEditor,
 } from "@next-pms/design-system/components";
@@ -141,7 +141,7 @@ const AddTime = ({
         });
       }
     },
-    [selectedProject, tasks]
+    [selectedProject, tasks],
   );
   const handleProjectChange = (value: string | string[]) => {
     if (value instanceof Array) {
@@ -216,7 +216,7 @@ const AddTime = ({
     undefined,
     {
       revalidateOnFocus: false,
-    }
+    },
   );
   const onEmployeeChange = (value: string) => {
     setSelectedEmployee(value);
@@ -243,7 +243,7 @@ const AddTime = ({
   } = form;
 
   return (
-<Dialog
+    <Dialog
       open={open}
       onOpenChange={handleOpen}
       actions={<Button className="w-full" variant="solid" label="Save entry" />}
@@ -270,7 +270,7 @@ const AddTime = ({
           ]}
           value="without-pay"
         />
-                <label className="block text-xs text-ink-gray-5">Task</label>
+        <label className="block text-xs text-ink-gray-5">Task</label>
         <Select
           options={[
             {
@@ -290,42 +290,40 @@ const AddTime = ({
         />
         <div className="flex gap-4">
           <DatePicker label="From" onChange={() => {}} placeholder="Placeholder" value="">
-              {({ displayValue }) => {
-                return (
-                  <div className=" flex-1 flex w-full flex-col space-y-1.5 ">
-                    <label className="block text-xs text-ink-gray-5">From</label>
-                    <div
-                      className={`relative flex items-center border border-outline-gray-2 px-[10px] py-2 rounded-lg`}
-                    >
-                      <input type="text" id="start" value={displayValue} className={`flex-1`} placeholder="Today" />
-                      <Calendar className="size-4" />
-                    </div>
+            {({ displayValue }) => {
+              return (
+                <div className=" flex-1 flex w-full flex-col space-y-1.5 ">
+                  <label className="block text-xs text-ink-gray-5">From</label>
+                  <div className={`relative flex items-center border border-outline-gray-2 px-[10px] py-2 rounded-lg`}>
+                    <input type="text" id="start" value={displayValue} className={`flex-1`} placeholder="Today" />
+                    <Calendar className="size-4" />
                   </div>
-                );
-              }}
-            </DatePicker>
-            <div className="space-y-4">
-                <label className="block text-xs text-ink-gray-5">Duration Time</label>
-        <Select
-          options={[
-            {
-              label: "Paid time-off",
-              value: "paid",
-            },
-            {
-              label: "Unpaid time-off",
-              value: "unpaid",
-            },
-            {
-              label: "Paternity time-off",
-              value: "paternity",
-            },
-          ]}
-          value="without-pay"
-        />
-            </div>
+                </div>
+              );
+            }}
+          </DatePicker>
+          <div className="space-y-4">
+            <label className="block text-xs text-ink-gray-5">Duration Time</label>
+            <Select
+              options={[
+                {
+                  label: "Paid time-off",
+                  value: "paid",
+                },
+                {
+                  label: "Unpaid time-off",
+                  value: "unpaid",
+                },
+                {
+                  label: "Paternity time-off",
+                  value: "paternity",
+                },
+              ]}
+              value="without-pay"
+            />
+          </div>
         </div>
-         <label className="block text-xs text-ink-gray-5">Comment</label>
+        <label className="block text-xs text-ink-gray-5">Comment</label>
         <Textarea className="bg-white border-outline-gray-2" />
       </div>
     </Dialog>
