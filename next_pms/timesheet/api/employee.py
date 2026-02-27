@@ -6,8 +6,9 @@ import frappe
 from next_pms.timesheet.utils.constant import EMP_WOKING_DETAILS
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["GET"])
 def get_data():
+    """returns employee, employee_name, employee_working_detail and employee_report_to for the current user"""
     employee = get_employee_from_user()
     doc = frappe.get_cached_doc("Employee", employee)
     working_hour = doc.custom_working_hours
@@ -23,8 +24,9 @@ def get_data():
     }
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["GET"])
 def get_employee_from_user(user=None, throw_exception=False):
+    """returns the employee id for the current user"""
     user = frappe.session.user
     employee = frappe.db.get_value("Employee", {"user_id": user})
     if not employee and throw_exception:
@@ -36,8 +38,9 @@ def get_user_from_employee(employee: str):
     return frappe.get_value("Employee", employee, "user_id")
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["GET"])
 def get_employee_working_hours(employee: str = None):
+    """returns the working hours and working frequency for the given employee or current user's employee if employee is not provided"""
     if not employee:
         employee = get_employee_from_user()
     if not employee:
@@ -73,8 +76,9 @@ def get_employee_weekly_working_norm(employee: str) -> int:
     return hours * 5
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["GET"])
 def get_employee(filters=None, fieldname=None):
+    """returns the employee's information for the given filters"""
     import json
 
     if not fieldname:
@@ -101,6 +105,7 @@ def get_employee_list(
     reports_to: str | None = None,
     ignore_default_filters=False,
 ):
+    """get the list employee with pagination for the employee dropdown in timesheet entry form respecting user permission"""
     from . import filter_employees
 
     employees, count = filter_employees(

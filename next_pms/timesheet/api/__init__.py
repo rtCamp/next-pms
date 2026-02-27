@@ -1,8 +1,9 @@
 from frappe import get_all, get_list, get_roles, get_value, whitelist
 
 
-@whitelist()
+@whitelist(methods=["GET"])
 def get_employee_with_role(role: str | list[str]):
+    """returns a list of all approvers for the given role like ["Project Manager","Project User"]"""
     import json
 
     from frappe import get_all
