@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { LEAVE_DURATION, LEAVE_TYPES } from "./types";
 
 export const addLeaveFormSchema = z
 	.object({
@@ -15,23 +16,19 @@ export const addLeaveFormSchema = z
 			.trim()
 			.min(1, { message: "Please select to date." }),
 		leaveDuration: z
-			.string({
-				required_error: "Please select leave type.",
-			})
-			.trim()
-			.min(1, { message: "Please select leave type." }),
+			.enum(LEAVE_DURATION, {
+				required_error: "Please select leave duration.",
+			}),
 		leaveType: z
-			.string({
-				required_error: "Please select leave type.",
-			})
-			.trim()
-			.min(1, { message: "Please select leave type." }),
+			.enum(LEAVE_TYPES, {
+				required_error: "Please select leave types.",
+			}),
 		reason: z
 			.string({
-				required_error: "Please select leave type.",
+				required_error: "Please enter a reason.",
 			})
 			.trim()
-			.min(1, { message: "Please select leave type." }),
+			.min(1, { message: "Please enter a reason." }),
 	})
 
 export type AddLeaveFormValues = z.infer<typeof addLeaveFormSchema>;

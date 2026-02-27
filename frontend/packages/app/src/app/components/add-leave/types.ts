@@ -1,3 +1,7 @@
+export const LEAVE_TYPES = ["leave-without-pay", "leave-with-pay", "paternity"] as const;
+
+export const LEAVE_DURATION = ["full-day" , "first-half" , "second-half"] as const;
+
 export interface LeaveTimeProps {
   employee: string;
   employeeName: string;

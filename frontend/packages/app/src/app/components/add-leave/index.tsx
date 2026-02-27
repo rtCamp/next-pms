@@ -2,60 +2,75 @@
  * External Dependencies
  */
 import { useForm } from "@tanstack/react-form";
-import { DatePicker, Dialog, Button, TabButtons, Select, Textarea } from "@rtcamp/frappe-ui-react";
+import { DatePicker, Dialog, Button, TabButtons, Select, Textarea, ErrorMessage } from "@rtcamp/frappe-ui-react";
 import { getTodayDate } from "@next-pms/design-system/date";
 import { Calendar, CalendarX2 } from "lucide-react";
-import { useFrappeCreateDoc, useFrappeGetCall } from "frappe-react-sdk";
+import { FrappeError, useFrappeCreateDoc } from "frappe-react-sdk";
 import { useToast } from "@next-pms/design-system/hooks";
 
 /**
  * Internal Dependencies
  */
-import type { LeaveTimeProps } from "./types";
+import { type LeaveTimeProps, LEAVE_DURATION, LEAVE_TYPES } from "./types";
 import { addLeaveFormSchema } from "./schema";
 import { parseFrappeErrorMsg } from "@/lib/utils";
 
-const AddLeave = ({ employee, employeeName, open = false, onOpenChange, onSuccess }: LeaveTimeProps) => {
+const AddLeave = ({ employee, open = false, onOpenChange, onSuccess }: LeaveTimeProps) => {
   const { toast } = useToast();
-  const { createDoc, loading, isCompleted } = useFrappeCreateDoc();
-
-  const { data: leaveDetails } = useFrappeGetCall(
-    "hrms.hr.doctype.leave_application.leave_application.get_leave_details",
-    {
-      employee: employee,
-      date: getTodayDate(),
-    }
-  );
-
-  console.log(leaveDetails);
+  const { createDoc, loading } = useFrappeCreateDoc();
 
   const form = useForm({
     defaultValues: {
       fromDate: getTodayDate(),
       toDate: getTodayDate(),
-      leaveDuration: "first-half",
-      leaveType: "unpaid",
+      leaveDuration: LEAVE_DURATION[0] as string,
+      leaveType: LEAVE_TYPES[0] as string,
       reason: "",
     },
     validators: {
       onSubmit: addLeaveFormSchema,
     },
     onSubmit: async ({ value }) => {
-    //   try {
-    //     await createDoc("Leave Application", data);
-    //     toast({
-    //       variant: "success",
-    //       description: "Leave created successfully",
-    //     });
-    //     handleOpen();
-    //     onSuccess?.();
-    //   } catch (error) {
-    //     const error = parseFrappeErrorMsg(err);
-    //     toast({
-    //       description: error,
-    //       variant: "destructive",
-    //     });
-    //   }
+      // Convert to Title case
+      const leave_type = value.leaveType
+        .split("-")
+        .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(" ");
+
+      // Convert to Title case
+      const custom_first_halfsecond_half = value.leaveDuration
+        .split("-")
+        .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(" ");
+
+      const half_day = value.leaveType === "first-half" || value.leaveType === "second-half";
+
+      try {
+        const data = {
+          employee,
+          description: "",
+          from_date: value.fromDate,
+          to_date: value.toDate,
+          leave_type,
+          half_day,
+          custom_first_halfsecond_half,
+        };
+        await createDoc("Leave Application", data);
+        toast({
+          variant: "success",
+          description: "Leave created successfully",
+        });
+        handleOpen();
+        onSuccess?.();
+      } catch (err) {
+        const error = parseFrappeErrorMsg(err as FrappeError);
+        toast({
+          description: error,
+          variant: "destructive",
+        });
+      } finally {
+        handleOpen();
+      }
     },
   });
 
@@ -74,6 +89,7 @@ const AddLeave = ({ employee, employeeName, open = false, onOpenChange, onSucces
           variant="solid"
           iconLeft={() => <CalendarX2 />}
           label="Add time-off"
+          disabled={loading}
           onClick={() => {
             form.handleSubmit();
           }}
@@ -94,7 +110,7 @@ const AddLeave = ({ employee, employeeName, open = false, onOpenChange, onSucces
                   <DatePicker
                     label="From"
                     onChange={(val) => field.handleChange(val as string)}
-                    placeholder="Placeholder"
+                    placeholder="Start Date"
                     value={field.state.value}
                   >
                     {({ displayValue }) => {
@@ -108,6 +124,7 @@ const AddLeave = ({ employee, employeeName, open = false, onOpenChange, onSucces
                       );
                     }}
                   </DatePicker>
+                  {!field.state.meta.isValid && <ErrorMessage message={field.state.meta.errors[0]?.message} />}
                 </div>
               );
             }}
@@ -117,8 +134,13 @@ const AddLeave = ({ employee, employeeName, open = false, onOpenChange, onSucces
             children={(field) => {
               return (
                 <div className="flex-1 flex w-full flex-col space-y-1.5">
-                  <label className="block text-xs text-ink-gray-5">From</label>
-                  <DatePicker label="From" onChange={() => {}} placeholder="Placeholder" value="">
+                  <label className="block text-xs text-ink-gray-5">To</label>
+                  <DatePicker 
+                    label="To"
+                    onChange={(val) => field.handleChange(val as string)}
+                    placeholder="End Date"
+                    value={field.state.value}
+>
                     {({ displayValue }) => {
                       return (
                         <div
@@ -130,6 +152,7 @@ const AddLeave = ({ employee, employeeName, open = false, onOpenChange, onSucces
                       );
                     }}
                   </DatePicker>
+                  {!field.state.meta.isValid && <ErrorMessage message={field.state.meta.errors[0]?.message} />}
                 </div>
               );
             }}
@@ -146,21 +169,15 @@ const AddLeave = ({ employee, employeeName, open = false, onOpenChange, onSucces
                   className="h-8"
                   value={field.state.value}
                   onChange={(val) => field.handleChange(val as string)}
-                  buttons={[
-                    {
-                      label: "Full day",
-                      value: "full-day",
-                    },
-                    {
-                      label: "First half",
-                      value: "first-half",
-                    },
-                    {
-                      label: "Second half",
-                      value: "second-half",
-                    },
-                  ]}
+                  buttons={LEAVE_DURATION.map((value) => ({
+                    label: value
+                      .split("-")
+                      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+                      .join(" "),
+                    value,
+                  }))}
                 />
+                {!field.state.meta.isValid && <ErrorMessage message={field.state.meta.errors[0]?.message} />}
               </>
             );
           }}
@@ -178,22 +195,16 @@ const AddLeave = ({ employee, employeeName, open = false, onOpenChange, onSucces
                   onChange={(val) => field.handleChange(val as string)}
                   variant="outline"
                   className="h-8"
-                  options={[
-                    {
-                      label: "Paid time off",
-                      value: "paid",
-                    },
-                    {
-                      label: "Unpaid time off",
-                      value: "unpaid",
-                    },
-                    {
-                      label: "Paternity time off",
-                      value: "paternity",
-                    },
-                  ]}
+                  options={LEAVE_TYPES.map((value) => ({
+                    label: value
+                      .split("-")
+                      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+                      .join(" "),
+                    value,
+                  }))}
                   placeholder="Select Leave Type"
                 />
+                {!field.state.meta.isValid && <ErrorMessage message={field.state.meta.errors[0]?.message} />}
               </>
             );
           }}
@@ -209,6 +220,7 @@ const AddLeave = ({ employee, employeeName, open = false, onOpenChange, onSucces
                   onChange={(e) => field.handleChange(e.target.value)}
                   className="bg-white border-outline-gray-2"
                 />
+                {!field.state.meta.isValid && <ErrorMessage message={field.state.meta.errors[0]?.message} />}
               </>
             );
           }}
