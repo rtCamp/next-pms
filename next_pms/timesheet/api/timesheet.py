@@ -506,7 +506,7 @@ def get_timesheet_details(date: str, task: str, employee: str):
     }
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])
 @error_logger
 def bulk_update_timesheet_detail(data):
     """Update multiple time entries in Timesheet Detail child table."""

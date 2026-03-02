@@ -6,6 +6,7 @@ from next_pms.resource_management.api.utils.helpers import resource_api_permissi
 
 @frappe.whitelist(methods=["POST"])
 def handle_allocation(allocation: object, repeat_till_week_count: int = 0):
+    """Endpoint to add or update a resource allocation. If 'name' is present in the allocation object, it will update the existing allocation; otherwise, it will create a new one. Optionally, it can repeat the allocation for a specified number of weeks."""
     permission = resource_api_permissions_check()
 
     if not permission["write"]:

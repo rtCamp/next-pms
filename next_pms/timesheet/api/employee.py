@@ -93,7 +93,7 @@ def get_employee(filters=None, fieldname=None):
     return frappe.db.get_value("Employee", filters=filters, fieldname=fieldname, as_dict=True)
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["GET"])
 def get_employee_list(
     employee_name=None,
     department=None,
