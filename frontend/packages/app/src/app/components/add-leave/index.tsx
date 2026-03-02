@@ -189,7 +189,6 @@ const AddLeave = ({ employee, open = false, onOpenChange, onSuccess }: LeaveTime
             return (
               <>
                 <label className="block text-xs text-ink-gray-5">Leave type</label>
-
                 <Select
                   value={field.state.value}
                   onChange={(val) => field.handleChange(val as string)}
