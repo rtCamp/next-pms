@@ -22,7 +22,7 @@ from next_pms.timesheet.api.employee import get_employee_working_hours
 from next_pms.timesheet.api.team import get_holidays
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])
 @redis_cache()
 def get_resource_management_team_view_data(
     date: str,
@@ -38,6 +38,7 @@ def get_resource_management_team_view_data(
     employee_id=None,
     need_hours_summary=False,
 ):
+    """Get the resource management team view data for given filters."""
     permissions = resource_api_permissions_check()
 
     if not permissions["write"]:
@@ -326,7 +327,7 @@ def get_resource_management_team_view_data(
     return res
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["GET"])
 def get_leave_information(employee: str, start_date: str, end_date: str):
     """
     Get the leave information for given employee for given time range.

@@ -10,7 +10,7 @@ from . import get_count
 from .project import get_project_filter_for_contractor
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["GET"])
 def get_task_list(
     search: str = None,
     page_length: int | bool = 20,
@@ -20,6 +20,7 @@ def get_task_list(
     fields: list | str = None,
     filter_recent: bool = False,
 ):
+    """gets the list of tasks , if no filter is provided it will fetch all the tasks for the projects that the user has access to. User can filter based on projects, status and search text. User can also filter the tasks that they have worked recently by setting filter_recent to True."""
     import json
 
     frappe.has_permission(doctype="Project", throw=True)
@@ -155,8 +156,9 @@ def get_task_list(
     }
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])
 def add_task(subject: str, expected_time: str, project: str, description: str):
+    """API to add task, it will create a task under the given project with the given details."""
     frappe.get_doc(
         {
             "doctype": "Task",
@@ -169,8 +171,9 @@ def add_task(subject: str, expected_time: str, project: str, description: str):
     return frappe._("Task Created Successfully")
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["GET"])
 def get_task(task: str, start_date: str | datetime.date, end_date: str | datetime.date):
+    """API to get the task details along with the time logged against it between the given start date and end date."""
     from frappe.query_builder.functions import Sum
 
     if isinstance(start_date, str):
@@ -219,8 +222,9 @@ def get_task(task: str, start_date: str | datetime.date, end_date: str | datetim
     }
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["GET"])
 def get_task_log(task: str, start_date: str = None, end_date: str = None):
+    """API to get the time log details for a task between the given start date and end date."""
     project = frappe.db.get_value("Task", task, "project")
 
     if project:
@@ -282,8 +286,9 @@ def get_task_log(task: str, start_date: str = None, end_date: str = None):
     return response
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["GET"])
 def get_liked_tasks():
+    """API to get the list of tasks that the user has liked, along with the project name."""
     from next_pms.timesheet.api.app import get_liked_documents
 
     return get_liked_documents("Task", fields=["project.project_name"])

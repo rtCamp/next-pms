@@ -12,8 +12,9 @@ class PMSViewSetting(Document):
             self.user = None
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["GET", "POST"])
 def get_view(dt: str):
+    """Endpoint to get all views for a doctype. It accepts doctype as parameter and returns list of views for that doctype."""
     views = frappe.get_all("PMS View Setting", filters={"dt": dt}, fields=["*"])
     for view in views:
         view.filters = frappe.parse_json(view.filters)
@@ -24,8 +25,9 @@ def get_view(dt: str):
     return views
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["GET", "POST"])
 def get_views():
+    """Endpoint to get all views for a user. It returns list of views for the user."""
     views = frappe.get_all(
         "PMS View Setting",
         fields=["*"],
@@ -40,8 +42,9 @@ def get_views():
     return views
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])
 def create_view(view):
+    """Endpoint to create a new view. It accepts view object as parameter and creates a new view for the user."""
     import json
 
     view = frappe._dict(view)
@@ -69,8 +72,9 @@ def create_view(view):
     return get_views()
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])
 def update_view(view):
+    """Endpoint to update an existing view. It accepts view object as parameter and updates the view for the user."""
     import json
 
     view = frappe._dict(view)
