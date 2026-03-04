@@ -5,6 +5,7 @@ import { useCallback, useContext, useEffect, useState } from "react";
 import { useForm } from "@tanstack/react-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
+    DurationInput,
   useToast,
 } from "@next-pms/design-system/components";
 import {
@@ -238,15 +239,7 @@ const AddTime = ({
                     children={(field) => {
                       return (
                         <div className="w-full flex flex-col gap-2">
-                            <div className="w-full flex justify-between text-xs text-ink-gray-5 ">
-                                <label>Duration</label>
-                                <p>{remainingHours}h left</p>
-                            </div>
-                          <div
-                            className={`relative h-10 flex items-center border border-outline-gray-2 px-[10px] py-2 rounded-lg`}
-                          >
-                            <Calendar className="size-4" />
-                          </div>
+                            <DurationInput/>
                           {!field.state.meta.isValid && <ErrorMessage message={field.state.meta.errors[0]?.message} />}
                         </div>
                       );
