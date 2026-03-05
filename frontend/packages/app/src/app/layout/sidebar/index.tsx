@@ -3,9 +3,9 @@
  */
 import React, { useCallback, useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import { useLocation } from "react-router-dom";
-import { ErrorFallback, Typography, Button } from "@next-pms/design-system/components";
+import { Sidebar as BaseSidebar, Batches, Notifications, People, Reports, Tasks, Time } from "@rtcamp/frappe-ui-react";
 import {
   ArrowLeftToLine,
   ChevronDown,
@@ -18,11 +18,21 @@ import {
   GanttChartSquareIcon,
   Home,
   Users,
+  LucideSettings,
+  LucideUser,
+  LogOut,
+  Moon,
+  ArrowLeftRight,
+  LayoutGrid,
+  Sun,
+  Search,
+  Folder,
+  Layers,
 } from "lucide-react";
 /**
  * Internal dependencies.
  */
-import { HOME, PROJECT, RESOURCE_MANAGEMENT, ROLES, TASK, TEAM, TIMESHEET } from "@/lib/constant";
+import { HOME, PROJECT, RESOURCE_MANAGEMENT, ROLES, TASK, TEAM, TIMESHEET, DESK } from "@/lib/constant";
 import { setLocalStorage } from "@/lib/storage";
 import { checkIsMobile, mergeClassNames } from "@/lib/utils";
 import { setSidebarCollapsed } from "@/store/user";
@@ -32,9 +42,23 @@ import ViewLoader from "./viewLoader";
 import logo from "../../../logo.svg";
 import { RootState } from "../../../store";
 import type { ViewData } from "../../../store/view";
+import { ErrorFallback } from "@next-pms/design-system/components";
+import { useContextSelector } from "use-context-selector";
+import { UserContext } from "@/lib/UserProvider";
+import { useTheme } from "@/providers/theme/hook";
 
 const Sidebar = () => {
   const user = useSelector((state: RootState) => state.user);
+  const { theme, isDarkThemeOnSystem, setTheme } = useTheme();
+  const logout = useContextSelector(UserContext, (value) => value.actions.logout);
+  const changeTheme = () => {
+    if (theme === "system") {
+      setTheme(isDarkThemeOnSystem ? "light" : "dark");
+    } else {
+      setTheme(theme === "light" ? "dark" : "light");
+    }
+  };
+  const navigate = useNavigate();
   const viewInfo = useSelector((state: RootState) => state.view);
   const dispatch = useDispatch();
   const location = useLocation();
@@ -45,7 +69,7 @@ const Sidebar = () => {
 
   const hasPmRole = user.roles.some((role: string) => ROLES.includes(role));
   const privateViews = viewInfo.views.filter(
-    (view: ViewData) => view.user === user.user && !view.default && !view.public
+    (view: ViewData) => view.user === user.user && !view.default && !view.public,
   );
   const publicViews = viewInfo.views.filter((view: ViewData) => view.public && !view.default);
   const routes: Array<Route> = [
@@ -134,176 +158,118 @@ const Sidebar = () => {
 
   return (
     <ErrorFallback>
-      <aside
-        className={mergeClassNames(
-          "bg-slate-100  w-1/5   px-4 py-4 flex flex-col dark:bg-background border-r",
-          user.isSidebarCollapsed && "w-16 items-center"
-        )}
-      >
-        <div
-          className={mergeClassNames("flex shrink-0 gap-x-2 items-center", !user.isSidebarCollapsed && "px-2")}
-          id="app-logo"
-        >
-          <img
-            src={logo}
-            alt="app-logo"
-            className=" w-8 h-auto max-xl:w-7 max-xl:h-7   max-lg:w-7 max-lg:h-7 max-md:w-7 max-md:h-7"
-          />
-          <Typography
-            title="Next PMS"
-            variant="h5"
-            className={mergeClassNames(
-              "transition-all cursor-pointer duration-300 truncate  max-md:hidden",
-              user.isSidebarCollapsed && "hidden"
-            )}
-          >
-            Next PMS
-          </Typography>
-        </div>
-        <div className="overflow-y-auto no-scrollbar">
-          <div className="pt-3 h-fit  flex flex-col gap-y-2  ">
-            {routes.map((route: Route) => {
-              if (route.isPmRoute && !hasPmRole) return null;
-              return route.children ? (
-                <React.Fragment key={route.key}>
-                  <Button
-                    key={route.key}
-                    variant="ghost"
-                    title={route.label}
-                    className={mergeClassNames(
-                      "flex items-center gap-x-2 justify-start w-full text-left p-2 hover:bg-slate-200 rounded-lg dark:hover:bg-secondary",
-                      user.isSidebarCollapsed && "hidden"
-                    )}
-                    onClick={() => toggleNestedRoutes(route.key)}
-                  >
-                    {openRoutes[route.key] ? (
-                      <ChevronUp className=" w-4 h-4 shrink-0" />
-                    ) : (
-                      <ChevronDown className=" w-4 h-4 shrink-0" />
-                    )}
-                    <Typography
-                      variant="p"
-                      className={mergeClassNames("  truncate", user.isSidebarCollapsed && "hidden")}
-                    >
-                      {route.label}
-                    </Typography>
-                  </Button>
-                  <div
-                    className={mergeClassNames(
-                      "flex flex-col gap-y-1",
-                      openRoutes[route.key] ? "flex" : "hidden",
-                      user.isSidebarCollapsed ? "flex" : "pl-2"
-                    )}
-                  >
-                    {route.children.map((child: NestedRoute) => {
-                      const isChildActive = child.to === location.pathname;
-                      return (
-                        <NavLink
-                          to={child.to}
-                          key={child.key}
-                          title={child.label}
-                          className="flex items-center h-9 group"
-                        >
-                          <div
-                            className={mergeClassNames(
-                              "flex w-full p-2 rounded-lg items-center  hover:bg-slate-200 text-primary gap-x-2 max-md:justify-center dark:hover:bg-secondary",
-                              isChildActive && "bg-primary shadow-md hover:bg-slate-700 ",
-                              !user.isSidebarCollapsed && "pl-3"
-                            )}
-                          >
-                            {child.icon && (
-                              <child.icon
-                                className={mergeClassNames(
-                                  "shrink-0 stroke-primary h-4 w-4",
-                                  isChildActive && "stroke-background dark:group-hover:stroke-foreground"
-                                )}
-                              />
-                            )}
-                            <Typography
-                              variant="p"
-                              className={mergeClassNames(
-                                "text-background  dark:group-hover:text-foreground truncate",
-                                !isChildActive && "text-primary",
-                                user.isSidebarCollapsed && "hidden"
-                              )}
-                            >
-                              {child.label}
-                            </Typography>
-                          </div>
-                        </NavLink>
-                      );
-                    })}
-                  </div>
-                </React.Fragment>
-              ) : (
-                <NavLink to={route.to} key={route.key} title={route.label} className="  flex items-center h-9 group">
-                  {({ isActive }) => (
-                    <div
-                      className={mergeClassNames(
-                        "flex w-full pl-2 rounded-lg items-center p-2 hover:bg-slate-200 dark:hover:bg-secondary  gap-x-2 max-md:justify-center  ",
-                        isActive &&
-                          "bg-primary shadow-md hover:bg-slate-700 dark:hover:bg-secondary dark:bg-foreground "
-                      )}
-                    >
-                      <route.icon
-                        className={mergeClassNames(
-                          "shrink-0 stroke-primary h-4 w-4",
-                          isActive && "stroke-background  dark:group-hover:stroke-foreground"
-                        )}
-                      />
-                      <Typography
-                        variant="p"
-                        className={mergeClassNames(
-                          "text-background  dark:group-hover:text-foreground",
-                          !isActive && "text-primary ",
-                          user.isSidebarCollapsed && "hidden"
-                        )}
-                      >
-                        {route.label}
-                      </Typography>
-                    </div>
-                  )}
-                </NavLink>
-              );
-            })}
-          </div>
-          <ViewLoader
-            label="Private Views"
-            isSidebarCollapsed={user.isSidebarCollapsed}
-            openRoutes={openRoutes}
-            hasPmRole={hasPmRole}
-            id="private_view"
-            views={privateViews}
-            onClick={() => toggleNestedRoutes("private_view")}
-          />
-          <ViewLoader
-            label="Public Views"
-            isSidebarCollapsed={user.isSidebarCollapsed}
-            openRoutes={openRoutes}
-            hasPmRole={hasPmRole}
-            views={publicViews}
-            id="public_view"
-            onClick={() => toggleNestedRoutes("public_view")}
-          />
-        </div>
-        <div className="grow"></div>
-        <div className={mergeClassNames("flex justify-between items-center", user.isSidebarCollapsed && "flex-col")}>
-          <UserNavigation user={user} />
-
-          <Button
-            variant="ghost"
-            className="justify-end shrink-0 gap-x-2 max-md:hidden   h-6"
-            onClick={() => dispatch(setSidebarCollapsed(!user.isSidebarCollapsed))}
-          >
-            <ArrowLeftToLine
-              className={mergeClassNames(
-                "stroke-primary h-4 w-4 transition-all duration-600",
-                user.isSidebarCollapsed && "rotate-180"
-              )}
-            />
-          </Button>
-        </div>
-      </aside>
+      <BaseSidebar
+        header={{
+          title: "Next PMS",
+          subtitle: user.userName,
+          logo,
+          menuItems: [
+            {
+              label: "Apps",
+              icon: <LayoutGrid size={16} className="text-ink-gray-6 mr-2" />,
+              onClick: () => {
+                window.location.assign("/apps");
+              },
+            },
+            {
+              label: "Switch To Desk",
+              icon: <ArrowLeftRight size={16} className="text-ink-gray-6 mr-2" />,
+              onClick: () => {
+                window.location.assign(DESK);
+              },
+            },
+            {
+              label: "Toggle Theme",
+              icon:
+                theme === "dark" ? <Sun className="text-ink-gray-6 mr-2" /> : <Moon className="text-ink-gray-6 mr-2" />,
+              onClick: changeTheme,
+            },
+            {
+              label: "Logout",
+              icon: <LogOut size={16} className="text-ink-gray-6 mr-2" />,
+              onClick: logout,
+            },
+          ],
+        }}
+        sections={[
+          {
+            label: "",
+            items: [
+              {
+                label: "Notifications",
+                icon: Notifications,
+                to: "",
+              },
+              {
+                label: "Search",
+                icon: Search,
+                to: "",
+              },
+            ],
+          },
+          {
+            label: "",
+            items: [
+              {
+                label: "Home",
+                icon: Home,
+                to: "",
+              },
+              {
+                label: "Tasks",
+                icon: Tasks,
+                to: "",
+              },
+              {
+                label: "Projects",
+                icon: Folder,
+                to: "",
+              },
+            ],
+          },
+          {
+            label: "Timesheet",
+            collapsible: true,
+            items: [
+              {
+                label: "Personal",
+                icon: Time,
+                to: "",
+              },
+              {
+                label: "Team",
+                icon: People,
+                to: "",
+              },
+              {
+                label: "Projects",
+                icon: Folder,
+                to: "",
+              },
+            ],
+          },
+          {
+            label: "",
+            items: [
+              {
+                label: "Allocation",
+                icon: Batches,
+                to: "",
+              },
+              {
+                label: "Roadmap",
+                icon: Layers,
+                to: "",
+              },
+              {
+                label: "Reports",
+                icon: Reports,
+                to: "",
+              },
+            ],
+          },
+        ]}
+      />
     </ErrorFallback>
   );
 };
