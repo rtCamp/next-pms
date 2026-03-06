@@ -74,7 +74,7 @@ const DurationInput = ({ label = "Duration", maxDurationInHours = 8 }) => {
   const sliderValue = snapToSliderStep(duration);
 
   return (
-    <div>
+    <div className="space-y-1.5">
       <div className="w-full flex justify-between text-xs text-ink-gray-5 ">
         <label>{label}</label>
         <p>
@@ -90,13 +90,9 @@ const DurationInput = ({ label = "Duration", maxDurationInHours = 8 }) => {
           value={sliderValue}
           onValueChange={handleSliderChange}
         >
-          <Slider.Control className="flex items-center w-56 py-3 relative">
+          <Slider.Control className="flex items-center relative focus:border-outline-gray-4 focus:shadow-sm focus:ring-0 focus-visible:ring-2 focus-visible:ring-outline-gray-3">
             <Slider.Track className="w-full h-8 bg-surface-gray-1 rounded">
               <Slider.Indicator className="rounded bg-surface-gray-3 select-none" />
-              <Slider.Thumb
-                aria-label="Duration"
-                className="w-4 h-4 rounded-full bg-white outline outline-gray-300 select-none focus-visible:outline-2 focus-visible:outline-blue-500"
-              />
             </Slider.Track>
           </Slider.Control>
         </Slider.Root>

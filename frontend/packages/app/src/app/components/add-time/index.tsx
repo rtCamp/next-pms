@@ -15,6 +15,7 @@ import {
   Select,
   Textarea,
   ErrorMessage,
+  Combobox
 } from "@rtcamp/frappe-ui-react";
 import { getFormatedDate } from "@next-pms/design-system/date";
 import { FrappeConfig, FrappeContext, useFrappeGetCall, useFrappePostCall } from "frappe-react-sdk";
@@ -165,9 +166,8 @@ const AddTime = ({
             return (
               <>
                 <label className="block text-xs text-ink-gray-5">Project</label>
-                <Select
-                  variant="outline"
-                  className="h-8"
+                <Combobox
+                  inputClassName="bg-white h-8 border-outline-gray-2"
                   options={projectOptions}
                   placeholder="Select Project"
                   value={field.state.value}
@@ -182,15 +182,14 @@ const AddTime = ({
           name="task"
           children={(field) => {
             return (
-              <>
+            <>
                 <label className="block text-xs text-ink-gray-5">Task</label>
-                <Select
-                  variant="outline"
-                  value={field.state.value}
-                  onChange={(val) => field.handleChange(val as string)}
-                  className="h-8"
+                <Combobox
+                  inputClassName="bg-white h-8 border-outline-gray-2"
                   options={tasksOptions}
                   placeholder="Select Task"
+                  value={field.state.value}
+                  onChange={(val) => field.handleChange(val as string)}
                 />
                 {!field.state.meta.isValid && <ErrorMessage message={field.state.meta.errors[0]?.message} />}
               </>
@@ -209,7 +208,7 @@ const AddTime = ({
                         <div className=" flex-1 flex w-full flex-col space-y-1.5 ">
                           <label className="block text-xs text-ink-gray-5">Date</label>
                           <div
-                            className={`relative flex items-center border border-outline-gray-2 px-[10px] py-2 rounded-lg`}
+                            className={`relative flex items-center border border-outline-gray-2 px-[10px] py-1 rounded-lg`}
                           >
                             <input
                               type="text"
