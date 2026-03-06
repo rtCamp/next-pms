@@ -24,6 +24,7 @@
         "lint:fix": "eslint .  --fix"
     },
     "dependencies": {
+        "@base-ui/react": "^1.2.0",
         "@radix-ui/react-accordion": "^1.2.0",
         "@radix-ui/react-avatar": "^1.1.0",
         "@radix-ui/react-checkbox": "^1.1.1",
@@ -44,11 +45,9 @@
         "@tanstack/react-table": "^8.20.5",
         "cmdk": "^1.0.0",
         "lucide-react": "^0.408.0",
+        "quill-image-resize-module-react": "^3.0.0",
         "react-day-picker": "^8.10.1",
         "react-quill": "^2.0.0",
-        "quill-image-resize-module-react": "^3.0.0",
         "tailwindcss": "^4.1.18"
-    },
-    "devDependencies": {
     }
 }

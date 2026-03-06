@@ -73,7 +73,7 @@ const actionHandlers = {
     ...state,
     isAprrovalDialogOpen: payload,
   }),
-  SET_LEAVE_DIALOG_STATE: (
+  SET_TIME_OFF_DIALOG_STATE: (
     state: TimesheetState,
     payload: boolean
   ): TimesheetState => ({

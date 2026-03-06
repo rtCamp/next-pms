@@ -67,6 +67,7 @@ export {
   CommandSeparator,
 } from "./command";
 export { default as DatePicker } from "./date-picker";
+export { default as DurationInput, type DurationInputProps } from "./durationInput";
 
 export {
   Dialog,

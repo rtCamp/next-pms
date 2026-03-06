@@ -53,7 +53,7 @@ export const Footer = ({ timesheet, user, dispatch, callback }: FooterProps) => 
           employeeName={user.employeeName}
           open={timesheet.isLeaveDialogOpen}
           onOpenChange={() => {
-            dispatch({ type: "SET_LEAVE_DIALOG_STATE", payload: false });
+            dispatch({ type: "SET_TIME_OFF_DIALOG_STATE", payload: false });
             callback();
           }}
           onSuccess={() => {
