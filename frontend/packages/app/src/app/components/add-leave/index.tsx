@@ -166,7 +166,7 @@ const AddLeave = ({ employee, open = false, onOpenChange, onSuccess }: LeaveTime
               <>
                 <label className="block text-xs text-ink-gray-5">Leave duration</label>
                 <TabButtons
-                  className="h-auto p-0.5"
+                  className="h-"
                   value={field.state.value}
                   onChange={(val) => field.handleChange(val as string)}
                   buttons={LEAVE_DURATION.map((value) => ({
