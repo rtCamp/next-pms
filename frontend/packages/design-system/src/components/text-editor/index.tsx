@@ -2,9 +2,9 @@
  * External dependencies.
  */
 import { useEffect, useState, useRef, useCallback } from "react";
-import ReactQuill, { Quill } from "react-quill";
+import ReactQuill, { Quill } from "react-quill-new";
 import { DeltaStatic, Sources } from "quill";
-import "react-quill/dist/quill.snow.css";
+import "react-quill-new/dist/quill.snow.css";
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
 import ImageResize from "quill-image-resize-module-react";
