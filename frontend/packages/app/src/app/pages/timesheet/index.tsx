@@ -23,8 +23,18 @@ import { useQueryParam } from "@next-pms/hooks";
 import { addDays } from "date-fns";
 import { useFrappeEventListener, useFrappeGetCall, useFrappePostCall } from "frappe-react-sdk";
 import { isEmpty } from "lodash";
-import { Calendar, CalendarArrowDown, CalendarX2, EllipsisVertical, Paperclip, Plus } from "lucide-react";
-import { Button } from "@rtcamp/frappe-ui-react";
+import {
+  Calendar,
+  CalendarArrowDown,
+  CalendarX2,
+  ChevronDown,
+  Clock,
+  Ellipsis,
+  EllipsisVertical,
+  Paperclip,
+  Plus,
+} from "lucide-react";
+import { Breadcrumbs, Button, Filter, FilterCondition, Select, TextInput } from "@rtcamp/frappe-ui-react";
 
 /**
  * Internal dependencies.
@@ -41,10 +51,12 @@ import { Footer } from "./components/footer";
 import { initialState, reducer } from "./reducer";
 import { validateDate } from "./utils";
 import { InfiniteScroll } from "../../components/infiniteScroll";
+import { sampleFields } from "./constants";
 
 function Timesheet() {
   const targetRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
+  const [filters, setFilters] = useState<FilterCondition[]>([]);
 
   const [startDateParam, setStartDateParam] = useQueryParam<string>("date", "");
   const user = useSelector((state: RootState) => state.user);
@@ -106,7 +118,7 @@ function Timesheet() {
     dispatch({ type: "APPEND_DATA", payload: res });
   });
   const { call: fetchLikedTask, loading: loadingLikedTasks } = useFrappePostCall(
-    "next_pms.timesheet.api.task.get_liked_tasks"
+    "next_pms.timesheet.api.task.get_liked_tasks",
   );
   const [likedTaskData, setLikedTaskData] = useState([]);
 
@@ -172,16 +184,61 @@ function Timesheet() {
 
   return (
     <>
-      <Header className="justify-end gap-x-3">
-        {window.frappe?.boot?.user?.can_create.includes("Leave Application") && (
-          <Button onClick={handleAddTimeOff} label="Add time-off" iconLeft={()=>(
-            <CalendarX2/>
-          )}/>
-        )}
+      <Header className="justify-between">
+        <Breadcrumbs
+          items={[
+            {
+              id: "timesheets",
+              label: "Timesheets",
+            },
+            {
+              id: "personal",
+              label: "Personal",
+              prefixIcon: <Clock className="w-4 h-4" />,
+              suffixIcon: <ChevronDown className="w-4 h-4" />,
+              dropdown: {
+                dropdownClassName: "w-[220px] px-1",
+                groupClassName: "px-0 py-1 space-y-1",
+                itemClassName: "text-ink-gray-8 hover:text-ink-gray-7",
+                selectedKey: "personal",
+                selectedGroupKey: "views-group",
+                options: [
+                  {
+                    group: "",
+                    key: "views-group",
+                    items: [
+                      {
+                        label: "Personal",
+                        key: "personal",
+                        icon: "clock",
+                        onClick: () => console.log("personal"),
+                      },
+                      {
+                        label: "Team",
+                        key: "team",
+                        icon: "copy",
+                        onClick: () => console.log("team"),
+                      },
+                      {
+                        label: "Project",
+                        key: "project",
+                        icon: "briefcase",
+                        onClick: () => console.log("project"),
+                      },
+                    ],
+                  },
+                ],
+              },
+            },
+          ]}
+        />
+        <div className="flex gap-2">
+          {window.frappe?.boot?.user?.can_create.includes("Leave Application") && (
+            <Button onClick={handleAddTimeOff} label="Add time-off" iconLeft={() => <CalendarX2 />} />
+          )}
 
-          <Button variant="solid" onClick={handleAddTime} label="Add time" iconLeft={()=>(
-            <Plus/>
-          )}/>
+          <Button variant="solid" onClick={handleAddTime} label="Add time" iconLeft={() => <Plus />} />
+        </div>
         {window.frappe?.boot?.is_calendar_setup && (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -198,6 +255,46 @@ function Timesheet() {
           </DropdownMenu>
         )}
       </Header>
+
+      <div className="flex justify-between py-3.5 px-5">
+        <div className="flex gap-2">
+          <TextInput placeholder="Search Tasks" />
+          <Select
+            placeholder="Approval Status"
+            className="w-fit"
+            options={[
+              {
+                label: "Pending",
+                value: "pending",
+              },
+              {
+                label: "Not Submitted",
+                value: "not-submitted",
+              },
+              {
+                label: "Approved",
+                value: "approved",
+              },
+              {
+                label: "Rejected",
+                value: "rejected",
+              },
+            ]}
+          />
+        </div>
+        <div className="flex gap-2">
+            
+        <Filter
+          fields={sampleFields}
+          value={filters}
+          onChange={(newFilters) => {
+            setFilters(newFilters);
+          }}
+        />
+        <Button icon={()=><Ellipsis size={16}/>}/>
+
+        </div>
+      </div>
 
       {isLoading && Object.keys(timesheet.data?.data).length == 0 ? (
         <Spinner isFull />
@@ -216,7 +313,7 @@ function Timesheet() {
                       value.total_hours,
                       timesheet.data.leaves,
                       timesheet.data.holidays,
-                      dailyWorkingHour
+                      dailyWorkingHour,
                     );
                     return (
                       <Accordion type="single" collapsible key={key} defaultValue={key}>
@@ -240,7 +337,7 @@ function Timesheet() {
                                     e.stopPropagation();
                                     setStartDateParam(getFormatedDate(value.start_date));
                                     copyToClipboard(
-                                      `${window.location.origin}${window.location.pathname}?date="${value.start_date}"`
+                                      `${window.location.origin}${window.location.pathname}?date="${value.start_date}"`,
                                     );
                                   }}
                                 />
