@@ -1,4 +1,9 @@
 /**
+ * External dependencies.
+ */
+import { HeaderRowProps as BaseHeaderRowProps, WeekRowProps as BaseWeekRowProps } from "@next-pms/design-system/components";
+
+/**
  * Internal dependencies
  */
 import type { WorkingFrequency } from "@/types";
@@ -72,4 +77,20 @@ export interface TotalHourRowProps {
   holidays: Array<HolidayProp>;
   workingHour: number;
   workingFrequency: WorkingFrequency;
+}
+
+export interface HeaderRowProps extends Omit<BaseHeaderRowProps, 'days'> {
+  dates: string[];
+  showHeading: boolean;
+}
+
+export interface WeekRowProps extends Omit<BaseWeekRowProps, 'dates' | 'status'> {
+  dates: string[];
+  tasks: TaskProps;
+  leaves: Array<LeaveProps>;
+  holidays: Array<HolidayProp>;
+  workingHour: number;
+  workingFrequency: WorkingFrequency;
+  status?: string;
+  children?: React.ReactNode;
 }

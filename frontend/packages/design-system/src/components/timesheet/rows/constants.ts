@@ -12,3 +12,11 @@ export const statusLabel: Record<RowStatus, string> = {
   "approval-pending": "Approval Pending",
   none: "None",
 };
+
+export const statusMap: Record<string, RowStatus> = {
+  "Not Submitted": "not-submitted",
+  Approved: "approved",
+  Rejected: "rejected",
+  "Approval Pending": "approval-pending",
+  None: "none",
+};

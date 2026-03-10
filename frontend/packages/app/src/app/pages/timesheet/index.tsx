@@ -315,6 +315,7 @@ function Timesheet() {
                           likedTaskData={likedTaskData}
                           getLikedTaskData={getLikedTaskData}
                           onButtonClick={() => handleApproval(value.start_date, value.end_date)}
+                          status={value.status}
                         />
                       </div>
                     );

@@ -79,4 +79,6 @@ export type timesheetTableProps = {
   likedTaskData?: Array<object>;
   getLikedTaskData?: () => void;
   hideLikeButton?: boolean;
+  onButtonClick?: () => void;
+  status?: string;
 };
