@@ -2,8 +2,8 @@
  * External dependencies
  */
 import { useCallback, useEffect, useState } from "react";
+import { HeaderRow, WeekRow, TotalRow, TimeOffRow, ProjectRow, TaskRow } from "@next-pms/design-system/components";
 import { ErrorFallback, Accordion, AccordionItem, AccordionContent } from "@next-pms/design-system/components";
-import { HeaderRow, WeekRow, TotalRow, TimeOffRow, ProjectRow, TaskRow } from "@rtcamp/frappe-ui-react";
 /**
  * Internal dependencies
  */
