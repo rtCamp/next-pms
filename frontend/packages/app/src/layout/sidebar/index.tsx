@@ -49,15 +49,8 @@ import { useTheme } from "@/providers/theme/hook";
 
 const Sidebar = () => {
   const user = useSelector((state: RootState) => state.user);
-  const { theme, isDarkThemeOnSystem, setTheme } = useTheme();
+  const { theme, changeTheme } = useTheme();
   const logout = useContextSelector(UserContext, (value) => value.actions.logout);
-  const changeTheme = () => {
-    if (theme === "system") {
-      setTheme(isDarkThemeOnSystem ? "light" : "dark");
-    } else {
-      setTheme(theme === "light" ? "dark" : "light");
-    }
-  };
   const navigate = useNavigate();
   const viewInfo = useSelector((state: RootState) => state.view);
   const dispatch = useDispatch();
