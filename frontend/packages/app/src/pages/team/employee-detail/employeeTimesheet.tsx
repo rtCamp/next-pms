@@ -4,17 +4,12 @@
 import { useEffect, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
 import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
   Button,
-  Separator,
 } from "@next-pms/design-system/components";
-import { floatToTime } from "@next-pms/design-system/utils";
+
 import { useFrappePostCall } from "frappe-react-sdk";
 import { isEmpty } from "lodash";
-import { Calendar, Paperclip } from "lucide-react";
+
 /**
  * Internal dependencies
  */
@@ -98,79 +93,33 @@ export const EmployeeTimesheet = ({
     <>
       {teamState.timesheetData.data &&
         Object.keys(teamState.timesheetData.data).length > 0 &&
-        Object.entries(teamState.timesheetData.data).map(([key, value]: [string, timesheet]) => {
-          const data = getTimesheetHours(
-            value.dates,
-            value.total_hours,
-            teamState.timesheetData.leaves,
-            teamState.timesheetData.holidays,
-            dailyWorkingHour
-          );
-
+        Object.entries(teamState.timesheetData.data).map(([key, value]: [string, timesheet], index) => {
           return (
-            <Accordion type="single" key={key} collapsible defaultValue={key}>
-              <AccordionItem value={key}>
-                <AccordionTrigger className="hover:no-underline w-full max-md:[&>svg]:hidden">
-                  <div className="flex justify-between items-center w-full pr-2 group">
-                    <div className="font-normal text-xs sm:text-base flex items-center gap-x-2 max-md:gap-x-3 sm:flex-row overflow-x-auto no-scrollbar max-md:w-4/5">
-                      <span className="flex items-center gap-2 shrink-0">
-                        <Calendar className="w-4 h-4 text-muted-foreground shrink-0" />
-                        <h2 className="font-medium">{key}</h2>
-                      </span>
-                      <Separator orientation="vertical" className="block h-5 shrink-0" />
-                      <ExpandableHours
-                        totalHours={floatToTime(data.totalHours)}
-                        workingHours={floatToTime(data.totalHours - data.timeOffHours)}
-                        timeoffHours={floatToTime(data.timeOffHours)}
-                      />
-                      <Paperclip
-                        className="w-3 h-3 hidden group-hover:block shrink-0"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setStartDateParam(value.start_date);
-                          copyToClipboard(
-                            `${window.location.origin}${window.location.pathname}?date="${value.start_date}"`
-                          );
-                        }}
-                      />
-                    </div>
-                    <Button
-                      variant="ghost"
-                      className="p-1 h-fit"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleStatusClick(value.start_date, value.end_date);
-                      }}
-                    >
-                      <StatusIndicator status={value.status} />
-                    </Button>
-                  </div>
-                </AccordionTrigger>
-                <AccordionContent
-                  className="pb-0"
-                  ref={
-                    !isEmpty(startDateParam) && isDateInRange(startDateParam, value.start_date, value.end_date)
-                      ? targetRef
-                      : null
-                  }
-                >
-                  <TimesheetTable
-                    dates={value.dates}
-                    holidays={teamState.timesheetData.holidays}
-                    leaves={teamState.timesheetData.leaves}
-                    tasks={value.tasks}
-                    onCellClick={onCellClick}
-                    disabled={value.status === "Approved"}
-                    workingFrequency={teamState.timesheetData.working_frequency}
-                    workingHour={teamState.timesheetData.working_hour}
-                    loadingLikedTasks={loadingLikedTasks}
-                    likedTaskData={likedTaskData}
-                    getLikedTaskData={getLikedTaskData}
-                    hideLikeButton={true}
-                  />
-                </AccordionContent>
-              </AccordionItem>
-            </Accordion>
+            <div
+              key={key}
+              ref={
+                !isEmpty(startDateParam) && isDateInRange(startDateParam, value.start_date, value.end_date)
+                  ? targetRef
+                  : null
+              }
+            >
+              <TimesheetTable
+                dates={value.dates}
+                holidays={teamState.timesheetData.holidays}
+                leaves={teamState.timesheetData.leaves}
+                tasks={value.tasks}
+                onCellClick={onCellClick}
+                disabled={value.status === "Approved"}
+                workingFrequency={teamState.timesheetData.working_frequency}
+                workingHour={teamState.timesheetData.working_hour}
+                weeklyStatus={value.status}
+                loadingLikedTasks={loadingLikedTasks}
+                likedTaskData={likedTaskData}
+                getLikedTaskData={getLikedTaskData}
+                hideLikeButton={true}
+                showHeading={index === 0}
+              />
+            </div>
           );
         })}
     </>
