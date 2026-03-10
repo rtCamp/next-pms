@@ -11,7 +11,7 @@ import { useContextSelector } from "use-context-selector";
  */
 import { TIMESHEET, HOME, TEAM, TASK, PROJECT, RESOURCE_MANAGEMENT, ROLES } from "@/lib/constant";
 import { UserContext } from "@/lib/UserProvider";
-import { default as Layout } from "./app/layout";
+import { default as Layout } from "@/layout";
 import { RootState } from "./store";
 import { setCurrency, setHasBuField, setHasIndustryField } from "./store/user";
 import { setRole } from "./store/user";
@@ -19,17 +19,17 @@ import { setViews } from "./store/view";
 /**
  * Lazy load components.
  */
-const Timesheet = lazy(() => import("@/app/pages/timesheet"));
-const Home = lazy(() => import("@/app/pages/home"));
-const Team = lazy(() => import("@/app/pages/team"));
-const ResourceTeam = lazy(() => import("@/app/pages/resource-management/team"));
-const ResourceProject = lazy(() => import("@/app/pages/resource-management/project"));
-const ResourceTimeLine = lazy(() => import("@/app/pages/resource-management/timeline"));
-const EmployeeDetail = lazy(() => import("@/app/pages/team/employee-detail"));
-const Task = lazy(() => import("@/app/pages/task"));
-const Project = lazy(() => import("@/app/pages/project"));
-const ProjectDetail = lazy(() => import("@/app/pages/project/project-detail"));
-const NotFound = lazy(() => import("@/app/pages/404"));
+const Timesheet = lazy(() => import("@/pages/timesheet"));
+const Home = lazy(() => import("@/pages/home"));
+const Team = lazy(() => import("@/pages/team"));
+const ResourceTeam = lazy(() => import("@/pages/resource-management/team"));
+const ResourceProject = lazy(() => import("@/pages/resource-management/project"));
+const ResourceTimeLine = lazy(() => import("@/pages/resource-management/timeline"));
+const EmployeeDetail = lazy(() => import("@/pages/team/employee-detail"));
+const Task = lazy(() => import("@/pages/task"));
+const Project = lazy(() => import("@/pages/project"));
+const ProjectDetail = lazy(() => import("@/pages/project/project-detail"));
+const NotFound = lazy(() => import("@/pages/404"));
 
 export function Router() {
   return (
