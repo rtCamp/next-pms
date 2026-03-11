@@ -6,44 +6,9 @@ import type {
   HolidayProp,
   LeaveProps,
   NewTimesheetProps,
-  TaskDataItemProps,
   TaskDataProps,
   TaskProps,
 } from "@/types/timesheet";
-
-export type cellProps = {
-  date: string;
-  data: TaskDataItemProps[];
-  isHoliday: boolean;
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  // @ts-ignore
-  onCellClick?: (val) => void;
-  disabled?: boolean;
-  className?: string;
-};
-
-export type HeaderProps = {
-  dates: string[];
-  holidays: HolidayProp[];
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  // @ts-ignore
-  onCellClick?: (data) => void;
-  weeklyStatus?: string;
-  importTasks?: boolean;
-  loadingLikedTasks?: boolean;
-  showHeading: boolean;
-  setTaskInLocalStorage?: () => void;
-};
-
-export type submitButtonProps = {
-  start_date: string;
-  end_date: string;
-  onApproval?: (start_date: string, end_date: string) => void;
-  status: string;
-  expectedHours: number;
-  totalHours: number;
-  workingFrequency: WorkingFrequency;
-};
 
 export type TaskHoverCardProps = {
   name: string;
@@ -68,9 +33,7 @@ export type timesheetTableProps = {
   holidays: Array<HolidayProp>;
   tasks: TaskProps;
   leaves: Array<LeaveProps>;
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  // @ts-ignore
-  onCellClick?: (data) => void;
+  onCellClick?: (data: NewTimesheetProps) => void;
   showHeading?: boolean;
   workingHour: number;
   disabled?: boolean;
@@ -81,6 +44,6 @@ export type timesheetTableProps = {
   likedTaskData?: Array<object>;
   getLikedTaskData?: () => void;
   hideLikeButton?: boolean;
-  onButtonClick?: (data: NewTimesheetProps) => void;
+  onButtonClick?: () => void;
   status?: string;
 };

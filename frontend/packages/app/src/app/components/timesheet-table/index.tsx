@@ -2,8 +2,8 @@
  * External dependencies
  */
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { TimeOffRow } from "@next-pms/design-system/components";
 import { ErrorFallback } from "@next-pms/design-system/components";
+
 /**
  * Internal dependencies
  */
@@ -14,12 +14,10 @@ import { TaskDataProps } from "@/types/timesheet";
 import { HeaderRow } from "./components/row/headerRow";
 import { ProjectRow } from "./components/row/projectRow";
 import { TaskRow } from "./components/row/taskRow";
+import { TimeOffRow } from "./components/row/timeOffRow";
 import { TotalRow } from "./components/row/totalRow";
 import { WeekRow } from "./components/row/weekRow";
 import type { timesheetTableProps } from "./components/types";
-
-const MOCK_TIMEOFF_ENTRIES = ["", "", "", "", "", "08:00", ""];
-const MOCK_TIMEOFF_TOTAL = "08:00";
 
 export const TimesheetTable = ({
   label,
@@ -124,7 +122,7 @@ export const TimesheetTable = ({
         className="pl-3"
         onButtonClick={onButtonClick}
       >
-        {({ totalHours, totalTimeEntries, status }) => (
+        {({ totalHours, totalTimeEntries, dailyWorkingHours, status }) => (
           <>
             <TotalRow
               breadcrumbs={{
@@ -160,6 +158,7 @@ export const TimesheetTable = ({
                     likedTaskData={likedTaskData as TaskDataProps[]}
                     onCellClick={onCellClick}
                     className="pl-[54px]"
+                    disabled={disabled}
                   />
                 ))}
               </ProjectRow>
@@ -167,9 +166,11 @@ export const TimesheetTable = ({
 
             <TimeOffRow
               label="Time-off"
-              timeOffEntries={MOCK_TIMEOFF_ENTRIES}
-              totalHours={MOCK_TIMEOFF_TOTAL}
               className="pl-[30px]"
+              dates={dates}
+              leaves={leaves}
+              holidayList={holidayList}
+              expectedHours={dailyWorkingHours}
             />
           </>
         )}

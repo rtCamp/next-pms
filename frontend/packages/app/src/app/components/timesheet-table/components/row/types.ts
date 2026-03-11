@@ -7,6 +7,7 @@ import {
   TotalRowProps as BaseTotalRowProps,
   ProjectRowProps as BaseProjectRowProps,
   TaskRowProps as BaseTaskRowProps,
+  TimeOffRowProps as BaseTimeOffRowProps,
   RowStatus,
 } from "@next-pms/design-system/components";
 
@@ -21,62 +22,6 @@ import type {
   TaskDataProps,
   TaskProps,
 } from "@/types/timesheet";
-
-export type emptyRowProps = {
-  dates: string[];
-  holidayList: Array<string>;
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  // @ts-ignore
-  onCellClick?: (data) => void;
-  disabled?: boolean;
-  rowClassName?: string;
-  headingCellClassName?: string;
-  totalCellClassName?: string;
-  cellClassName?: string;
-  setSelectedTask?: React.Dispatch<React.SetStateAction<string>>;
-  setIsTaskLogDialogBoxOpen?: React.Dispatch<React.SetStateAction<boolean>>;
-  taskData?: TaskDataProps;
-  name?: string;
-  setTaskInLocalStorage?: () => void;
-  likedTaskData?: Array<object>;
-  getLikedTaskData?: () => void;
-};
-
-export interface RowProps {
-  dates: string[];
-  tasks: TaskProps;
-  holidays: HolidayProp[];
-  workingHour: number;
-  workingFrequency: WorkingFrequency;
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  // @ts-ignore
-  onCellClick?: (data) => void;
-  importTasks?: boolean;
-  loadingLikedTasks?: boolean;
-  likedTaskData?: Array<object>;
-  getLikedTaskData?: () => void;
-  setSelectedTask: React.Dispatch<React.SetStateAction<string>>;
-  setIsTaskLogDialogBoxOpen: React.Dispatch<React.SetStateAction<boolean>>;
-  disabled?: boolean;
-  rowClassName?: string;
-  taskCellClassName?: string;
-  cellClassName?: string;
-  totalCellClassName?: string;
-  showEmptyCell?: boolean;
-  hideLikeButton?: boolean;
-}
-
-export interface leaveRowProps {
-  leaves: Array<LeaveProps>;
-  dates: string[];
-  holidayList: Array<string>;
-  expectedHours: number;
-  rowClassName?: string;
-  headingClassName?: string;
-  dataCellClassName?: string;
-  totalCellClassName?: string;
-  showEmptyCell?: boolean;
-}
 
 export interface HeaderRowProps extends Omit<BaseHeaderRowProps, "days"> {
   dates: string[];
@@ -94,6 +39,7 @@ export interface WeekRowProps extends Omit<BaseWeekRowProps, "status"> {
   children?: (props: {
     totalHours: string;
     totalTimeEntries: string[];
+    dailyWorkingHours: number;
     status: RowStatus;
   }) => React.ReactNode;
 }
@@ -119,4 +65,15 @@ export interface TaskRowProps extends Omit<
   status?: string;
   likedTaskData: TaskDataProps[];
   onCellClick?: (data: NewTimesheetProps) => void;
+  disabled?: boolean;
+}
+
+export interface TimeOffRowProps extends Omit<
+  BaseTimeOffRowProps,
+  "timeOffEntries"
+> {
+  dates: string[];
+  leaves: Array<LeaveProps>;
+  holidayList: Array<string>;
+  expectedHours: number;
 }

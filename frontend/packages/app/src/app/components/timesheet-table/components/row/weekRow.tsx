@@ -50,7 +50,7 @@ export const WeekRow = ({
     return dates?.map((date: string) => prettyDate(date).date);
   }, [dates]);
 
-  const totalHours = useMemo(() => {
+  const weekData = useMemo(() => {
     let total = 0;
     const totalTimeEntries = [];
     for (const date of dates) {
@@ -80,7 +80,7 @@ export const WeekRow = ({
           today={today}
           thisWeek={thisWeek}
           dates={formattedDates}
-          totalHours={floatToTime(totalHours.total)}
+          totalHours={floatToTime(weekData.total)}
           status={status ? statusMap[status] : "none"}
           collapsed={collapsed}
           onToggle={() => setCollapsed((prev) => !prev)}
@@ -88,8 +88,9 @@ export const WeekRow = ({
         />
         <AccordionContent className="pb-0">
           {children?.({
-            totalHours: floatToTime(totalHours.total, 2),
-            totalTimeEntries: totalHours.totalTimeEntries,
+            totalHours: floatToTime(weekData.total, 2),
+            totalTimeEntries: weekData.totalTimeEntries,
+            dailyWorkingHours,
             status: status ? statusMap[status] : "none",
           })}
         </AccordionContent>

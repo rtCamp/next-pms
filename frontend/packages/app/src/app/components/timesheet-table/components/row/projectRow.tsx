@@ -27,7 +27,7 @@ import type { ProjectRowProps } from "./types";
 export const ProjectRow = ({ dates, tasks, children, ...rest }: ProjectRowProps) => {
   const [collapsed, setCollapsed] = useState(false);
 
-  const totalHours = useMemo(() => {
+  const projectData = useMemo(() => {
     let total = 0;
     const totalTimeEntries = [];
     for (const date of dates) {
@@ -43,8 +43,8 @@ export const ProjectRow = ({ dates, tasks, children, ...rest }: ProjectRowProps)
       <AccordionItem value="project" className="border-none">
         <BaseProjectRow
           {...rest}
-          totalHours={floatToTime(totalHours.total, 2)}
-          timeEntries={totalHours.totalTimeEntries}
+          totalHours={floatToTime(projectData.total, 2)}
+          timeEntries={projectData.totalTimeEntries}
           collapsed={collapsed}
           onToggle={() => setCollapsed((prev) => !prev)}
         />
