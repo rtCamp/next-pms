@@ -10,6 +10,7 @@ import { ErrorFallback } from "@next-pms/design-system/components";
 import { LIKED_TASK_KEY } from "@/lib/constant";
 import { hasKeyInLocalStorage, getLocalStorage, removeFromLikedTask, setLikedTask } from "@/lib/storage";
 import { getHolidayList } from "@/lib/utils";
+import { TaskDataProps } from "@/types/timesheet";
 import { HeaderRow } from "./components/row/headerRow";
 import { ProjectRow } from "./components/row/projectRow";
 import { TaskRow } from "./components/row/taskRow";
@@ -156,8 +157,8 @@ export const TimesheetTable = ({
                     tasks={{ [taskKey]: task }}
                     label={task.subject || task.name}
                     status={task.status}
-                    starred={task.starred ? true : false}
-                    onCellClick={() => {}}
+                    likedTaskData={likedTaskData as TaskDataProps[]}
+                    onCellClick={onCellClick}
                     className="pl-[54px]"
                   />
                 ))}

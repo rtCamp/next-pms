@@ -17,6 +17,7 @@ import type { WorkingFrequency } from "@/types";
 import type {
   HolidayProp,
   LeaveProps,
+  NewTimesheetProps,
   TaskDataProps,
   TaskProps,
 } from "@/types/timesheet";
@@ -110,10 +111,12 @@ export interface ProjectRowProps extends Omit<
 
 export interface TaskRowProps extends Omit<
   BaseTaskRowProps,
-  "timeEntries" | "status"
+  "timeEntries" | "status" | "onCellClick"
 > {
   dates: string[];
   taskKey?: string;
   tasks: TaskProps;
   status?: string;
+  likedTaskData: TaskDataProps[];
+  onCellClick?: (data: NewTimesheetProps) => void;
 }

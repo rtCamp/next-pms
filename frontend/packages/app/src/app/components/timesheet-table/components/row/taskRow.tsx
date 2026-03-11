@@ -1,7 +1,7 @@
 /**
  * External dependencies
  */
-import { useMemo } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { floatToTime } from "@next-pms/design-system";
 import { TaskRow as BaseTaskRow, taskStatusMap } from "@next-pms/design-system/components";
 
@@ -9,6 +9,7 @@ import { TaskRow as BaseTaskRow, taskStatusMap } from "@next-pms/design-system/c
  * Internal dependencies
  */
 import { calculateTotalHours } from "@/lib/utils";
+import { NewTimesheetProps } from "@/types/timesheet";
 import type { TaskRowProps } from "./types";
 
 /**
@@ -20,7 +21,9 @@ import type { TaskRowProps } from "./types";
  * @param {TaskProps} props.tasks - TaskProps object containing task data for the week.
  * @param {string} props.status - Status of the task.
  */
-export const TaskRow = ({ dates, taskKey, tasks, status, ...rest }: TaskRowProps) => {
+export const TaskRow = ({ dates, taskKey, tasks, status, likedTaskData, onCellClick, ...rest }: TaskRowProps) => {
+  const [taskLiked, setTaskedLiked] = useState(false);
+
   const totalHours = useMemo(() => {
     let total = 0;
     const totalTimeEntries = [];
@@ -36,12 +39,35 @@ export const TaskRow = ({ dates, taskKey, tasks, status, ...rest }: TaskRowProps
     return { total, totalTimeEntries };
   }, [dates, taskKey, tasks]);
 
+  const handleCellClick = useCallback(
+    (_: number | undefined, dayIndex: number) => {
+      if (!taskKey) return;
+      const value: NewTimesheetProps = {
+        date: dates[dayIndex],
+        hours: 0,
+        description: "",
+        name: "",
+        task: taskKey,
+        project: tasks[taskKey].project,
+		employee: "",
+      };
+      onCellClick?.(value);
+    },
+    [taskKey, dates, tasks, onCellClick],
+  );
+
+  useEffect(() => {
+    setTaskedLiked(likedTaskData.some((obj) => obj.name === taskKey) || false);
+  }, [likedTaskData, taskKey]);
+
   return (
     <BaseTaskRow
       {...rest}
       status={status ? taskStatusMap[status] : "open"}
       totalHours={floatToTime(totalHours.total, 2)}
       timeEntries={totalHours.totalTimeEntries}
+      starred={taskLiked}
+      onCellClick={handleCellClick}
     />
   );
 };

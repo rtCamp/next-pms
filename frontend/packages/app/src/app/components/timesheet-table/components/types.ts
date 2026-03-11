@@ -5,6 +5,7 @@ import type { TaskData, WorkingFrequency } from "@/types";
 import type {
   HolidayProp,
   LeaveProps,
+  NewTimesheetProps,
   TaskDataItemProps,
   TaskDataProps,
   TaskProps,
@@ -80,6 +81,6 @@ export type timesheetTableProps = {
   likedTaskData?: Array<object>;
   getLikedTaskData?: () => void;
   hideLikeButton?: boolean;
-  onButtonClick?: () => void;
+  onButtonClick?: (data: NewTimesheetProps) => void;
   status?: string;
 };
