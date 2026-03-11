@@ -41,7 +41,7 @@ export const TotalRow: React.FC<TotalRowProps> = ({
     <div
       className={cn(
         "flex items-center border-b border-outline-gray-1 transition-colors w-full justify-between px-1 py-2",
-        className
+        className,
       )}
     >
       <div className="min-w-0 flex flex-1 items-center">
@@ -50,17 +50,9 @@ export const TotalRow: React.FC<TotalRowProps> = ({
             {renderPrefix ? (
               renderPrefix()
             ) : starred ? (
-              <Star
-                strokeWidth={1.5}
-                size={16}
-                className="fill-current text-ink-amber-2"
-              />
+              <Star strokeWidth={1.5} size={16} className="fill-current text-ink-amber-2" />
             ) : (
-              <StarOff
-                strokeWidth={1.5}
-                size={16}
-                className="text-ink-gray-4 scale-x-[-1]"
-              />
+              <StarOff strokeWidth={1.5} size={16} className="text-ink-gray-4 scale-x-[-1]" />
             )}
           </span>
           <Breadcrumbs compactCrumbs={false} {...breadcrumbs} />
@@ -73,7 +65,11 @@ export const TotalRow: React.FC<TotalRowProps> = ({
             key={index}
             className="shrink-0 flex justify-end items-center text-base font-medium text-ink-gray-9 whitespace-nowrap w-16 h-7 px-2 py-1.5 leading-3.5 lining-nums tabular-nums"
           >
-            <span>{totalTimeEntry}</span>
+            {totalTimeEntry === "" ? (
+              <span className="flex-1 ml-2 text-center text-ink-gray-4">-</span>
+            ) : (
+              <span>{totalTimeEntry}</span>
+            )}
           </div>
         );
       })}

@@ -5,6 +5,8 @@ import {
   HeaderRowProps as BaseHeaderRowProps,
   WeekRowProps as BaseWeekRowProps,
   TotalRowProps as BaseTotalRowProps,
+  ProjectRowProps as BaseProjectRowProps,
+  TaskRowProps as BaseTaskRowProps,
   RowStatus,
 } from "@next-pms/design-system/components";
 
@@ -80,10 +82,7 @@ export interface HeaderRowProps extends Omit<BaseHeaderRowProps, "days"> {
   showHeading: boolean;
 }
 
-export interface WeekRowProps extends Omit<
-  BaseWeekRowProps,
-  "dates" | "status"
-> {
+export interface WeekRowProps extends Omit<BaseWeekRowProps, "status"> {
   dates: string[];
   tasks: TaskProps;
   leaves: Array<LeaveProps>;
@@ -91,7 +90,30 @@ export interface WeekRowProps extends Omit<
   workingHour: number;
   workingFrequency: WorkingFrequency;
   status?: string;
-  children?: (props: { totalHours: string, totalTimeEntries: string[], status: RowStatus }) => React.ReactNode;
+  children?: (props: {
+    totalHours: string;
+    totalTimeEntries: string[];
+    status: RowStatus;
+  }) => React.ReactNode;
 }
 
 export type TotalRowProps = BaseTotalRowProps;
+
+export interface ProjectRowProps extends Omit<
+  BaseProjectRowProps,
+  "timeEntries"
+> {
+  dates: string[];
+  tasks: TaskProps;
+  children?: React.ReactNode;
+}
+
+export interface TaskRowProps extends Omit<
+  BaseTaskRowProps,
+  "timeEntries" | "status"
+> {
+  dates: string[];
+  taskKey?: string;
+  tasks: TaskProps;
+  status?: string;
+}

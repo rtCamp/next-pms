@@ -57,7 +57,7 @@ export const WeekRow = ({
       const holiday = holidays.find((holiday) => holiday.holiday_date === date);
       const currentTotal =
         calculateTotalHours(tasks, date) + calculateLeaveHours(leaves, date, dailyWorkingHours, holiday);
-      totalTimeEntries.push(floatToTime(currentTotal, 2));
+      totalTimeEntries.push(currentTotal === 0 ? "" : floatToTime(currentTotal, 2));
       total += currentTotal;
     }
     return { total, totalTimeEntries };
