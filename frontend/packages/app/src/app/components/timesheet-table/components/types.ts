@@ -62,6 +62,7 @@ export type weekTotalProps = {
 };
 
 export type timesheetTableProps = {
+  label?: string;
   dates: string[];
   holidays: Array<HolidayProp>;
   tasks: TaskProps;

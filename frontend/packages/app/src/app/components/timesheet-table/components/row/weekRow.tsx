@@ -39,6 +39,7 @@ export const WeekRow = ({
   workingFrequency,
   status,
   children,
+  onButtonClick,
   ...rest
 }: WeekRowProps) => {
   const [collapsed, setCollapsed] = useState(false);
@@ -51,11 +52,15 @@ export const WeekRow = ({
 
   const totalHours = useMemo(() => {
     let total = 0;
+    const totalTimeEntries = [];
     for (const date of dates) {
       const holiday = holidays.find((holiday) => holiday.holiday_date === date);
-      total += calculateTotalHours(tasks, date) + calculateLeaveHours(leaves, date, dailyWorkingHours, holiday);
+      const currentTotal =
+        calculateTotalHours(tasks, date) + calculateLeaveHours(leaves, date, dailyWorkingHours, holiday);
+      totalTimeEntries.push(floatToTime(currentTotal, 2));
+      total += currentTotal;
     }
-    return total;
+    return { total, totalTimeEntries };
   }, [dates, tasks, leaves, holidays, dailyWorkingHours]);
 
   const today = useMemo(() => {
@@ -75,12 +80,19 @@ export const WeekRow = ({
           today={today}
           thisWeek={thisWeek}
           dates={formattedDates}
-          totalHours={floatToTime(totalHours)}
+          totalHours={floatToTime(totalHours.total)}
           status={status ? statusMap[status] : "none"}
           collapsed={collapsed}
           onToggle={() => setCollapsed((prev) => !prev)}
+          onButtonClick={() => (status && statusMap[status] === "not-submitted" ? onButtonClick?.() : {})}
         />
-        <AccordionContent className="pb-0">{children}</AccordionContent>
+        <AccordionContent className="pb-0">
+          {children?.({
+            totalHours: floatToTime(totalHours.total, 2),
+            totalTimeEntries: totalHours.totalTimeEntries,
+            status: status ? statusMap[status] : "none",
+          })}
+        </AccordionContent>
       </AccordionItem>
     </Accordion>
   );

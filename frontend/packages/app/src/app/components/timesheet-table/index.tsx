@@ -2,7 +2,7 @@
  * External dependencies
  */
 import { useCallback, useEffect, useState } from "react";
-import { TotalRow, TimeOffRow, ProjectRow, TaskRow } from "@next-pms/design-system/components";
+import { TimeOffRow, ProjectRow, TaskRow } from "@next-pms/design-system/components";
 import { ErrorFallback, Accordion, AccordionItem, AccordionContent } from "@next-pms/design-system/components";
 /**
  * Internal dependencies
@@ -13,10 +13,7 @@ import { expectatedHours, getHolidayList } from "@/lib/utils";
 import type { timesheetTableProps } from "./components/types";
 import { HeaderRow } from "./components/row/headerRow";
 import { WeekRow } from "./components/row/weekRow";
-
-const MOCK_DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
-const MOCK_DATES = ["Mar 3", "Mar 4", "Mar 5", "Mar 6", "Mar 7", "Mar 8", "Mar 9"];
-const MOCK_TODAY = "Mar 9";
+import { TotalRow } from "./components/row/totalRow";
 
 const MOCK_PROJECTS = [
   {
@@ -107,6 +104,7 @@ const MOCK_TIMEOFF_ENTRIES = ["", "", "", "", "", "08:00", ""];
 const MOCK_TIMEOFF_TOTAL = "08:00";
 
 export const TimesheetTable = ({
+  label,
   dates,
   holidays,
   tasks,
@@ -185,7 +183,7 @@ export const TimesheetTable = ({
         </div>
       )}
       <WeekRow
-        label="This Week"
+        label={label}
         dates={dates}
         tasks={tasks}
         leaves={leaves}
@@ -196,65 +194,69 @@ export const TimesheetTable = ({
         className="pl-3"
         onButtonClick={onButtonClick}
       >
-        <TotalRow
-          breadcrumbs={{
-            items: [{ label: "Projects" }, { label: "Tasks" }],
-            size: "md",
-            highlightAllItems: true,
-            crumbClassName: "first:pl-0 last:pr-0",
-          }}
-          totalTimeEntries={MOCK_TOTAL_ENTRIES}
-          totalHours={MOCK_WEEK_TOTAL}
-          status="approved"
-          className="pl-[30px]"
-          starred={true}
-        />
+        {({ totalHours, totalTimeEntries, status }) => (
+          <>
+            <TotalRow
+              breadcrumbs={{
+                items: [{ label: "Projects" }, { label: "Tasks" }],
+                size: "md",
+                highlightAllItems: true,
+                crumbClassName: "first:pl-0 last:pr-0",
+              }}
+              totalHours={totalHours}
+              totalTimeEntries={totalTimeEntries}
+              status={status}
+              className="pl-[30px]"
+              starred={true}
+            />
 
-        {MOCK_PROJECTS.map((project) => {
-          const isProjectCollapsed = collapsedProjects[project.key] ?? false;
-          return (
-            <Accordion
-              key={project.key}
-              value={isProjectCollapsed ? [] : ["project"]}
-              onValueChange={(v) =>
-                setCollapsedProjects((prev) => ({ ...prev, [project.key]: !v.includes("project") }))
-              }
-            >
-              <AccordionItem value="project" className="border-none">
-                <ProjectRow
-                  label={project.label}
-                  timeEntries={project.timeEntries}
-                  totalHours={project.totalHours}
-                  status="approved"
-                  collapsed={isProjectCollapsed}
-                  onToggle={() => setCollapsedProjects((prev) => ({ ...prev, [project.key]: !prev[project.key] }))}
-                  className="pl-[30px]"
-                />
-                <AccordionContent className="pb-0">
-                  {project.tasks.map((task) => (
-                    <TaskRow
-                      key={task.key}
-                      label={task.label}
-                      timeEntries={task.timeEntries}
-                      totalHours={task.totalHours}
-                      status={task.status}
-                      starred={task.starred}
-                      onCellClick={() => {}}
-                      className="pl-[54px]"
+            {MOCK_PROJECTS.map((project) => {
+              const isProjectCollapsed = collapsedProjects[project.key] ?? false;
+              return (
+                <Accordion
+                  key={project.key}
+                  value={isProjectCollapsed ? [] : ["project"]}
+                  onValueChange={(v) =>
+                    setCollapsedProjects((prev) => ({ ...prev, [project.key]: !v.includes("project") }))
+                  }
+                >
+                  <AccordionItem value="project" className="border-none">
+                    <ProjectRow
+                      label={project.label}
+                      timeEntries={project.timeEntries}
+                      totalHours={project.totalHours}
+                      status="approved"
+                      collapsed={isProjectCollapsed}
+                      onToggle={() => setCollapsedProjects((prev) => ({ ...prev, [project.key]: !prev[project.key] }))}
+                      className="pl-[30px]"
                     />
-                  ))}
-                </AccordionContent>
-              </AccordionItem>
-            </Accordion>
-          );
-        })}
+                    <AccordionContent className="pb-0">
+                      {project.tasks.map((task) => (
+                        <TaskRow
+                          key={task.key}
+                          label={task.label}
+                          timeEntries={task.timeEntries}
+                          totalHours={task.totalHours}
+                          status={task.status}
+                          starred={task.starred}
+                          onCellClick={() => {}}
+                          className="pl-[54px]"
+                        />
+                      ))}
+                    </AccordionContent>
+                  </AccordionItem>
+                </Accordion>
+              );
+            })}
 
-        <TimeOffRow
-          label="Time-off"
-          timeOffEntries={MOCK_TIMEOFF_ENTRIES}
-          totalHours={MOCK_TIMEOFF_TOTAL}
-          className="pl-[30px]"
-        />
+            <TimeOffRow
+              label="Time-off"
+              timeOffEntries={MOCK_TIMEOFF_ENTRIES}
+              totalHours={MOCK_TIMEOFF_TOTAL}
+              className="pl-[30px]"
+            />
+          </>
+        )}
       </WeekRow>
     </ErrorFallback>
   );

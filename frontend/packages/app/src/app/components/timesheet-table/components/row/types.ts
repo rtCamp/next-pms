@@ -1,7 +1,12 @@
 /**
  * External dependencies.
  */
-import { HeaderRowProps as BaseHeaderRowProps, WeekRowProps as BaseWeekRowProps } from "@next-pms/design-system/components";
+import {
+  HeaderRowProps as BaseHeaderRowProps,
+  WeekRowProps as BaseWeekRowProps,
+  TotalRowProps as BaseTotalRowProps,
+  RowStatus,
+} from "@next-pms/design-system/components";
 
 /**
  * Internal dependencies
@@ -70,21 +75,15 @@ export interface leaveRowProps {
   showEmptyCell?: boolean;
 }
 
-export interface TotalHourRowProps {
-  leaves: Array<LeaveProps>;
-  dates: string[];
-  tasks: TaskProps;
-  holidays: Array<HolidayProp>;
-  workingHour: number;
-  workingFrequency: WorkingFrequency;
-}
-
-export interface HeaderRowProps extends Omit<BaseHeaderRowProps, 'days'> {
+export interface HeaderRowProps extends Omit<BaseHeaderRowProps, "days"> {
   dates: string[];
   showHeading: boolean;
 }
 
-export interface WeekRowProps extends Omit<BaseWeekRowProps, 'dates' | 'status'> {
+export interface WeekRowProps extends Omit<
+  BaseWeekRowProps,
+  "dates" | "status"
+> {
   dates: string[];
   tasks: TaskProps;
   leaves: Array<LeaveProps>;
@@ -92,5 +91,7 @@ export interface WeekRowProps extends Omit<BaseWeekRowProps, 'dates' | 'status'>
   workingHour: number;
   workingFrequency: WorkingFrequency;
   status?: string;
-  children?: React.ReactNode;
+  children?: (props: { totalHours: string, totalTimeEntries: string[], status: RowStatus }) => React.ReactNode;
 }
+
+export type TotalRowProps = BaseTotalRowProps;
