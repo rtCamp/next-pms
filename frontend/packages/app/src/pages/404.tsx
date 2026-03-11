@@ -7,7 +7,7 @@ import { ArrowLeft } from "lucide-react";
 /**
  * Internal dependencies.
  */
-import { TIMESHEET } from "@/lib/constant";
+import { ROUTES } from "@/lib/constant";
 
 export default function Component() {
   const navigate = useNavigate();
@@ -24,7 +24,7 @@ export default function Component() {
         </div>
         <Button
           onClick={() => {
-            navigate(TIMESHEET);
+            navigate(ROUTES["timesheet-personal"]);
           }}
         >
           <ArrowLeft />
