@@ -10,7 +10,7 @@ import { ErrorFallback, TooltipProvider } from "@next-pms/design-system/componen
  * Internal dependencies.
  */
 
-import { BASE_ROUTE } from "@/lib/constant";
+import { ROUTES } from "@/lib/constant";
 import { UserProvider } from "@/lib/UserProvider";
 import FrappeProvider from "./providers/frappe";
 import ThemeProvider from "./providers/theme";
@@ -18,7 +18,7 @@ import { Router } from "./route";
 import { store } from "./store";
 const App = () => {
   const router = createBrowserRouter(createRoutesFromElements(Router()), {
-    basename: BASE_ROUTE,
+    basename: ROUTES.base,
   });
 
   return (

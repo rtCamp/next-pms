@@ -9,7 +9,7 @@ import { useContextSelector } from "use-context-selector";
 /**
  * Internal dependencies.
  */
-import { TIMESHEET } from "@/lib/constant";
+import { ROUTES } from "@/lib/constant";
 import { UserContext } from "@/lib/UserProvider";
 import { default as Layout } from "@/layout";
 import { RootState } from "./store";
@@ -19,30 +19,33 @@ import { setViews } from "./store/view";
 /**
  * Lazy load components.
  */
+const Home = lazy(() => import("@/pages/home"));
+const Task = lazy(() => import("@/pages/task"));
+const Project = lazy(() => import("@/pages/project"));
 const TimesheetLayout = lazy(() => import("@/pages/timesheet/layout"));
 const TimesheetPersonal = lazy(() => import("@/pages/timesheet/personal"));
 const TimesheetTeam = lazy(() => import("@/pages/timesheet/team"));
 const TimesheetProject = lazy(() => import("./pages/timesheet/project"));
-const Home = lazy(() => import("@/pages/home"));
-const Task = lazy(() => import("@/pages/task"));
-const Project = lazy(() => import("@/pages/project"));
+const Allocation = lazy(() => import("@/pages/allocation"));
+const Roadmap = lazy(() => import("@/pages/roadmap"));
+const Report = lazy(() => import("@/pages/report"));
 const NotFound = lazy(() => import("@/pages/404"));
 
 export function Router() {
   return (
     <Route>
       <Route element={<AuthenticatedRoute />}>
-        <Route path="/" element={<Home />} />
-        <Route path="/tasks" element={<Task />} />
-        <Route path="/project" element={<Project />} />
+        <Route path={ROUTES.home} element={<Home />} />
+        <Route path={ROUTES.task} element={<Task />} />
+        <Route path={ROUTES.project} element={<Project />} />
         <Route element={<TimesheetLayout />}>
-          <Route path={TIMESHEET + "/personal"} element={<TimesheetPersonal />} />
-          <Route path={TIMESHEET + "/team"} element={<TimesheetTeam />} />
-          <Route path={TIMESHEET + "/project"} element={<TimesheetProject />} />
+          <Route path={ROUTES["timesheet-personal"]} element={<TimesheetPersonal />} />
+          <Route path={ROUTES["timesheet-team"]} element={<TimesheetTeam />} />
+          <Route path={ROUTES["timesheet-project"]} element={<TimesheetProject />} />
         </Route>
-        <Route path="/allocation" element={<Project />} />
-        <Route path="/roadmap" element={<Project />} />
-        <Route path="/report" element={<Project />} />
+        <Route path={ROUTES.allocation} element={<Allocation />} />
+        <Route path={ROUTES.roadmap} element={<Roadmap />} />
+        <Route path={ROUTES.report} element={<Report />} />
       </Route>
       <Route path="*" element={<NotFound />} />
     </Route>

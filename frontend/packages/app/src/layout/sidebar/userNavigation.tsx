@@ -24,7 +24,7 @@ import { useContextSelector } from "use-context-selector";
 /**
  * Internal dependencies.
  */
-import { DESK } from "@/lib/constant";
+import { ROUTES } from "@/lib/constant";
 import { UserContext } from "@/lib/UserProvider";
 import { mergeClassNames } from "@/lib/utils";
 import { useTheme } from "@/providers/theme/hook";
@@ -74,7 +74,7 @@ const UserNavigation = ({ user }: UserNavigationProps) => {
           <Separator className="my-1" />
           <a
             className="flex justify-start rounded text-sm hover:no-underline hover:bg-accent p-2 gap-x-2 items-center"
-            href={DESK}
+            href={ROUTES.desk}
           >
             <ArrowRightLeft />
             Switch To Desk

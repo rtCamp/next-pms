@@ -3,40 +3,26 @@
  */
 import React, { useCallback, useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { NavLink, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useLocation } from "react-router-dom";
 import { Sidebar as BaseSidebar, Batches, Notifications, People, Reports, Tasks, Time } from "@rtcamp/frappe-ui-react";
 import {
-  ArrowLeftToLine,
-  ChevronDown,
-  ChevronUp,
-  ClipboardList,
-  Clock3,
-  FolderDot,
-  FolderKanban,
-  BookUser,
-  GanttChartSquareIcon,
+  ArrowLeftRight,
+  Folder,
   Home,
-  Users,
-  LucideSettings,
-  LucideUser,
+  Layers,
+  LayoutGrid,
   LogOut,
   Moon,
-  ArrowLeftRight,
-  LayoutGrid,
-  Sun,
   Search,
-  Folder,
-  Layers,
+  Sun,
 } from "lucide-react";
 /**
  * Internal dependencies.
  */
-import { HOME, PROJECT, RESOURCE_MANAGEMENT, ROLES, TASK, TEAM, TIMESHEET, DESK } from "@/lib/constant";
 import { setLocalStorage } from "@/lib/storage";
-import { checkIsMobile, mergeClassNames } from "@/lib/utils";
+import { checkIsMobile } from "@/lib/utils";
 import { setSidebarCollapsed } from "@/store/user";
-import type { NestedRoute, Route } from "./types";
 import UserNavigation from "./userNavigation";
 import ViewLoader from "./viewLoader";
 import logo from "@/logo.svg";
@@ -46,6 +32,7 @@ import { ErrorFallback } from "@next-pms/design-system/components";
 import { useContextSelector } from "use-context-selector";
 import { UserContext } from "@/lib/UserProvider";
 import { useTheme } from "@/providers/theme/hook";
+import { ROLES, ROUTES } from "@/lib/constant";
 
 const Sidebar = () => {
   const user = useSelector((state: RootState) => state.user);
@@ -65,74 +52,6 @@ const Sidebar = () => {
     (view: ViewData) => view.user === user.user && !view.default && !view.public,
   );
   const publicViews = viewInfo.views.filter((view: ViewData) => view.public && !view.default);
-  const routes: Array<Route> = [
-    {
-      to: HOME,
-      icon: Home,
-      label: "Home",
-      key: "home",
-      isPmRoute: true,
-    },
-    {
-      to: TIMESHEET,
-      icon: Clock3,
-      label: "Timesheet",
-      key: "timesheet",
-      isPmRoute: false,
-    },
-    {
-      to: TEAM,
-      icon: Users,
-      label: "Team",
-      key: "team",
-      isPmRoute: true,
-    },
-    {
-      to: PROJECT,
-      icon: FolderDot,
-      label: "Project",
-      key: "project",
-      isPmRoute: true,
-    },
-    {
-      to: TASK,
-      icon: ClipboardList,
-      label: "Task",
-      key: "task",
-      isPmRoute: false,
-    },
-  ];
-  if (!user.roles.includes("Contractor") || user.userName == "Administrator") {
-    routes.push({
-      to: RESOURCE_MANAGEMENT,
-      label: "Resource Management",
-      key: "resource-management",
-      isPmRoute: false,
-      children: [
-        {
-          to: RESOURCE_MANAGEMENT + "/timeline",
-          label: "Timeline",
-          key: "timeline-view",
-          icon: GanttChartSquareIcon,
-        },
-        {
-          to: RESOURCE_MANAGEMENT + "/team",
-          label: "Team",
-          key: "team-view",
-          icon: BookUser,
-        },
-        {
-          to: RESOURCE_MANAGEMENT + "/project",
-          label: "Project",
-          key: "project-view",
-          icon: FolderKanban,
-        },
-      ],
-    });
-  }
-  const toggleNestedRoutes = (key: string) => {
-    setOpenRoutes((prev) => ({ ...prev, [key]: !prev[key] }));
-  };
 
   const handleSidebarCollapse = useCallback(() => {
     dispatch(setSidebarCollapsed(checkIsMobile()));
@@ -161,14 +80,14 @@ const Sidebar = () => {
               label: "Apps",
               icon: <LayoutGrid size={16} className="text-ink-gray-6 mr-2" />,
               onClick: () => {
-                window.location.assign("/apps");
+                window.location.assign(ROUTES.apps);
               },
             },
             {
               label: "Switch To Desk",
               icon: <ArrowLeftRight size={16} className="text-ink-gray-6 mr-2" />,
               onClick: () => {
-                window.location.assign(DESK);
+                window.location.assign(ROUTES.desk);
               },
             },
             {
@@ -209,22 +128,22 @@ const Sidebar = () => {
                 label: "Home",
                 icon: Home,
                 to: "",
-                isActive: pathname === "/",
-                onClick: () => navigate("/"),
+                isActive: pathname === ROUTES.home,
+                onClick: () => navigate(ROUTES.home),
               },
               {
                 label: "Tasks",
                 icon: Tasks,
                 to: "",
-                isActive: pathname.startsWith("/task"),
-                onClick: () => navigate("/tasks"),
+                isActive: pathname.startsWith(ROUTES.task),
+                onClick: () => navigate(ROUTES.task),
               },
               {
                 label: "Projects",
                 icon: Folder,
                 to: "",
-                isActive: pathname.startsWith("/project"),
-                onClick: () => navigate("/project"),
+                isActive: pathname.startsWith(ROUTES.project),
+                onClick: () => navigate(ROUTES.project),
               },
             ],
           },
@@ -235,20 +154,20 @@ const Sidebar = () => {
               {
                 label: "Personal",
                 icon: Time,
-                isActive: pathname.startsWith("/timesheet/personal"),
-                onClick: () => navigate("/timesheet/personal"),
+                isActive: pathname.startsWith(ROUTES["timesheet-personal"]),
+                onClick: () => navigate(ROUTES["timesheet-personal"]),
               },
               {
                 label: "Team",
                 icon: People,
-                isActive: pathname.startsWith("/timesheet/team"),
-                onClick: () => navigate("/timesheet/team"),
+                isActive: pathname.startsWith(ROUTES["timesheet-team"]),
+                onClick: () => navigate(ROUTES["timesheet-team"]),
               },
               {
                 label: "Projects",
                 icon: Folder,
-                isActive: pathname.startsWith("/timesheet/project"),
-                onClick: () => navigate("/timesheet/project"),
+                isActive: pathname.startsWith(ROUTES["timesheet-project"]),
+                onClick: () => navigate(ROUTES["timesheet-project"]),
               },
             ],
           },
@@ -260,21 +179,21 @@ const Sidebar = () => {
                 icon: Batches,
                 to: "",
                 isActive: false,
-                onClick: () => navigate("/allocation"),
+                onClick: () => navigate(ROUTES.allocation),
               },
               {
                 label: "Roadmap",
                 icon: Layers,
                 to: "",
                 isActive: false,
-                onClick: () => navigate("/roadmap"),
+                onClick: () => navigate(ROUTES.roadmap),
               },
               {
                 label: "Reports",
                 icon: Reports,
                 to: "",
                 isActive: false,
-                onClick: () => navigate("/report"),
+                onClick: () => navigate(ROUTES.report),
               },
             ],
           },
