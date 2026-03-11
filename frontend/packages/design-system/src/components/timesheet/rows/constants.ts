@@ -19,4 +19,7 @@ export const statusMap: Record<string, RowStatus> = {
   Rejected: "rejected",
   "Approval Pending": "approval-pending",
   None: "none",
+  "Partially Approved": "approved",
+  "Partially Rejected": "rejected",
+  "Processing Timesheet": "approval-pending",
 };

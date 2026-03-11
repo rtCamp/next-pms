@@ -60,7 +60,7 @@ export interface TaskRowProps extends Omit<
   "timeEntries" | "status" | "onCellClick"
 > {
   dates: string[];
-  taskKey?: string;
+  taskKey: string;
   tasks: TaskProps;
   status?: string;
   likedTaskData: TaskDataProps[];

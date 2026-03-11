@@ -84,7 +84,7 @@ export const WeekRow = ({
           status={status ? statusMap[status] : "none"}
           collapsed={collapsed}
           onToggle={() => setCollapsed((prev) => !prev)}
-          onButtonClick={() => (status && statusMap[status] === "not-submitted" ? onButtonClick?.() : {})}
+          onButtonClick={() => (status && statusMap[status] === "not-submitted" ? onButtonClick?.() : undefined)}
         />
         <AccordionContent className="pb-0">
           {children?.({

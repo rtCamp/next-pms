@@ -25,7 +25,7 @@ import type { TaskRowProps } from "./types";
  * @param {boolean} props.disabled - Whether the task row is disabled.
  */
 export const TaskRow = ({ dates, taskKey, tasks, status, likedTaskData, onCellClick, disabled, ...rest }: TaskRowProps) => {
-  const [taskLiked, setTaskedLiked] = useState(false);
+  const [taskLiked, setTaskLiked] = useState(false);
 
   const taskData = useMemo(() => {
     let total = 0;
@@ -60,7 +60,7 @@ export const TaskRow = ({ dates, taskKey, tasks, status, likedTaskData, onCellCl
   );
 
   useEffect(() => {
-    setTaskedLiked(likedTaskData.some((obj) => obj.name === taskKey) || false);
+    setTaskLiked(likedTaskData.some((obj) => obj.name === taskKey) || false);
   }, [likedTaskData, taskKey]);
 
   return (

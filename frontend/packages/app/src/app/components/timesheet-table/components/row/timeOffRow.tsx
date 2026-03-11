@@ -12,8 +12,8 @@ import { LeaveProps } from "@/types/timesheet";
 import type { TimeOffRowProps } from "./types";
 
 /**
- * @description This is the task row component for the timesheet table.
- * It is responsible for rendering the task row of the timesheet table.
+ * @description This is the time off row component for the timesheet table.
+ * It is responsible for rendering the time off row of the timesheet table.
  *
  * @param {Array} props.dates - Array of date strings for the week.
  * @param {Array} props.leaves - Array of leave objects for the week.
@@ -42,13 +42,13 @@ export const TimeOffRow = ({ dates, leaves, holidayList, expectedHours, ...rest 
         continue;
       }
 
-      data.map((item) => {
+      for (const item of data) {
         if (item.half_day && item.half_day_date && item.half_day_date === date) {
           hour += expectedHours / 2;
         } else {
           hour += expectedHours;
         }
-      });
+      }
       totalHours += hour;
       totalTimeEntries.push(hour === 0 ? "" : floatToTime(hour, 2));
     }
