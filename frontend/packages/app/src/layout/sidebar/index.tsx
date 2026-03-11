@@ -54,7 +54,7 @@ const Sidebar = () => {
   const navigate = useNavigate();
   const viewInfo = useSelector((state: RootState) => state.view);
   const dispatch = useDispatch();
-  const location = useLocation();
+  const { pathname } = useLocation();
 
   const [openRoutes, setOpenRoutes] = useState<{ [key: string]: boolean }>({
     reports: false,
@@ -192,11 +192,13 @@ const Sidebar = () => {
                 label: "Notifications",
                 icon: Notifications,
                 to: "",
+                isActive: false,
               },
               {
                 label: "Search",
                 icon: Search,
                 to: "",
+                isActive: false,
               },
             ],
           },
@@ -207,16 +209,22 @@ const Sidebar = () => {
                 label: "Home",
                 icon: Home,
                 to: "",
+                isActive: pathname === "/",
+                onClick: () => navigate("/"),
               },
               {
                 label: "Tasks",
                 icon: Tasks,
                 to: "",
+                isActive: pathname.startsWith("/task"),
+                onClick: () => navigate("/tasks"),
               },
               {
                 label: "Projects",
                 icon: Folder,
                 to: "",
+                isActive: pathname.startsWith("/project"),
+                onClick: () => navigate("/project"),
               },
             ],
           },
@@ -227,17 +235,20 @@ const Sidebar = () => {
               {
                 label: "Personal",
                 icon: Time,
-                to: "",
+                isActive: pathname.startsWith("/timesheet/personal"),
+                onClick: () => navigate("/timesheet/personal"),
               },
               {
                 label: "Team",
                 icon: People,
-                to: "",
+                isActive: pathname.startsWith("/timesheet/team"),
+                onClick: () => navigate("/timesheet/team"),
               },
               {
                 label: "Projects",
                 icon: Folder,
-                to: "",
+                isActive: pathname.startsWith("/timesheet/project"),
+                onClick: () => navigate("/timesheet/project"),
               },
             ],
           },
@@ -248,16 +259,22 @@ const Sidebar = () => {
                 label: "Allocation",
                 icon: Batches,
                 to: "",
+                isActive: false,
+                onClick: () => navigate("/allocation"),
               },
               {
                 label: "Roadmap",
                 icon: Layers,
                 to: "",
+                isActive: false,
+                onClick: () => navigate("/roadmap"),
               },
               {
                 label: "Reports",
                 icon: Reports,
                 to: "",
+                isActive: false,
+                onClick: () => navigate("/report"),
               },
             ],
           },

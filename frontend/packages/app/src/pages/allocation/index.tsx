@@ -3,8 +3,8 @@
  */
 import { UnderConstruction } from "@/components/under-construction";
 
-function ProjectPage() {
+function AllocationPage() {
   return <UnderConstruction />;
 }
 
-export default ProjectPage;
+export default AllocationPage;

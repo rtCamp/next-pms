@@ -1,8 +1,8 @@
 /**
  * External dependencies.
  */
-import { Breadcrumbs, Button } from "@rtcamp/frappe-ui-react";
-import { Briefcase, CalendarX2, ChevronDown, Clock, Copy, Plus } from "lucide-react";
+import { Breadcrumbs, Button, Folder, People, Time } from "@rtcamp/frappe-ui-react";
+import { CalendarX2, ChevronDown, Plus } from "lucide-react";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useReducer } from "react";
 import { getUTCDateTime, getFormatedDate } from "@next-pms/design-system/date";
@@ -16,9 +16,9 @@ import { initialState, reducer } from "@/pages/timesheet/reducer";
 import { RootState } from "@/store";
 
 const timesheetViews = [
-  { key: "personal", label: "Personal", to: "/timesheet/personal", icon: Clock },
-  { key: "team", label: "Team", to: "/timesheet/team", icon: Copy },
-  { key: "project", label: "Project", to: "/timesheet/project", icon: Briefcase },
+  { key: "personal", label: "Personal", to: "/timesheet/personal", icon: Time },
+  { key: "team", label: "Team", to: "/timesheet/team", icon: People },
+  { key: "project", label: "Project", to: "/timesheet/project", icon: Folder },
 ] as const;
 
 function TimesheetLayout() {
