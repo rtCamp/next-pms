@@ -19,7 +19,10 @@ import { setViews } from "./store/view";
 /**
  * Lazy load components.
  */
-const Timesheet = lazy(() => import("@/pages/timesheet"));
+const TimesheetLayout = lazy(()=>import("@/pages/timesheet/layout"));
+const TimesheetPersonal = lazy(() => import("@/pages/timesheet/personal"));
+const TimesheetTeam = lazy(() => import("@/pages/timesheet/team"));
+const TimesheetProject = lazy(() => import("./pages/timesheet/project"));
 const Home = lazy(() => import("@/pages/home"));
 const Team = lazy(() => import("@/pages/team"));
 const ResourceTeam = lazy(() => import("@/pages/resource-management/team"));
@@ -36,7 +39,14 @@ export function Router() {
     <Route>
       <Route element={<AuthenticatedRoute />}>
         <Route path="/" element={<Navigate to={TIMESHEET} replace />} />
-        <Route path={TIMESHEET} element={<Timesheet />} />
+        <Route element={<TimesheetLayout />} >
+            <Route path={TIMESHEET + "/personal"} element={<TimesheetPersonal />} />
+            <Route path={TIMESHEET + "/team"} element={<TimesheetTeam />} />
+            <Route path={TIMESHEET + "/project"} element={<TimesheetProject />} />
+        </Route>
+
+
+
         <Route element={<PmRoute />}>
           <Route path={HOME} element={<Home />} />
           <Route path={TEAM}>

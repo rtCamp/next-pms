@@ -6,41 +6,37 @@ import { useSelector } from "react-redux";
 import {
   Spinner,
   Typography,
-  DropdownMenu,
-  DropdownMenuTrigger,
-  DropdownMenuContent,
-  DropdownMenuItem,
 } from "@next-pms/design-system/components";
 import { useToast } from "@next-pms/design-system/components";
 import { getUTCDateTime, getFormatedDate } from "@next-pms/design-system/date";
 
 import { useQueryParam } from "@next-pms/hooks";
-import { Button, Breadcrumbs, TextInput, Select, Filter } from "@rtcamp/frappe-ui-react";
+import { Button, TextInput, Select, Filter, FilterCondition } from "@rtcamp/frappe-ui-react";
 import { addDays } from "date-fns";
 import { useFrappeEventListener, useFrappeGetCall, useFrappePostCall } from "frappe-react-sdk";
 import { isEmpty } from "lodash";
-import { CalendarArrowDown, CalendarX2, EllipsisVertical, Plus, Clock, ChevronDown, Ellipsis } from "lucide-react";
+import { Ellipsis } from "lucide-react";
 
 /**
  * Internal dependencies.
  */
 import { TimesheetTable } from "@/components/timesheet-table";
-import { SubmitButton } from "@/components/timesheet-table/components/submitButton";
-import { Header, Main } from "@/layout/root";
-import { parseFrappeErrorMsg, expectatedHours, copyToClipboard, isDateInRange, getTimesheetHours } from "@/lib/utils";
+import { Main } from "@/layout/root";
+import { parseFrappeErrorMsg, isDateInRange } from "@/lib/utils";
 import type { RootState } from "@/store";
 import type { WorkingFrequency } from "@/types";
 import type { NewTimesheetProps, timesheet } from "@/types/timesheet";
-import { Footer } from "./components/footer";
-import { initialState, reducer } from "./reducer";
-import { validateDate } from "./utils";
-import { InfiniteScroll } from "../../components/infiniteScroll";
-import { sampleFields } from "./constants";
+import { Footer } from "../components/footer";
+import { initialState, reducer } from "../reducer";
+import { validateDate } from "../utils";
+import { InfiniteScroll } from "../../../components/infiniteScroll";
+import { sampleFields } from "../constants";
 
 function Timesheet() {
   const targetRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
   const [filters, setFilters] = useState<FilterCondition[]>([]);
+
 
   const [startDateParam, setStartDateParam] = useQueryParam<string>("date", "");
   const user = useSelector((state: RootState) => state.user);
@@ -129,9 +125,6 @@ function Timesheet() {
     dispatch({ type: "SET_TIMESHEET", payload: timesheetData });
     dispatch({ type: "SET_DIALOG_STATE", payload: true });
   };
-  const handleAddTimeOff = () => {
-    dispatch({ type: "SET_TIME_OFF_DIALOG_STATE", payload: true });
-  };
 
   const onCellClick = (data: NewTimesheetProps) => {
     data.employee = user.employee;
@@ -167,78 +160,6 @@ function Timesheet() {
 
   return (
     <>
-      <Header className="justify-between">
-        <Breadcrumbs
-          items={[
-            {
-              id: "timesheets",
-              label: "Timesheets",
-            },
-            {
-              id: "personal",
-              label: "Personal",
-              prefixIcon: <Clock className="w-4 h-4" />,
-              suffixIcon: <ChevronDown className="w-4 h-4" />,
-              dropdown: {
-                dropdownClassName: "w-[220px] px-1",
-                groupClassName: "px-0 py-1 space-y-1",
-                itemClassName: "text-ink-gray-8 hover:text-ink-gray-7",
-                selectedKey: "personal",
-                selectedGroupKey: "views-group",
-                options: [
-                  {
-                    group: "",
-                    key: "views-group",
-                    items: [
-                      {
-                        label: "Personal",
-                        key: "personal",
-                        icon: "clock",
-                        onClick: () => console.log("personal"),
-                      },
-                      {
-                        label: "Team",
-                        key: "team",
-                        icon: "copy",
-                        onClick: () => console.log("team"),
-                      },
-                      {
-                        label: "Project",
-                        key: "project",
-                        icon: "briefcase",
-                        onClick: () => console.log("project"),
-                      },
-                    ],
-                  },
-                ],
-              },
-            },
-          ]}
-        />
-        <div className="flex gap-2">
-          {window.frappe?.boot?.user?.can_create.includes("Leave Application") && (
-            <Button onClick={handleAddTimeOff} label="Add time-off" iconLeft={() => <CalendarX2 />} />
-          )}
-
-          <Button variant="solid" onClick={handleAddTime} label="Add time" iconLeft={() => <Plus />} />
-        </div>
-        {window.frappe?.boot?.is_calendar_setup && (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline">
-                <EllipsisVertical />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent className="mr-2 [&_div]:cursor-pointer  [&_div]:gap-x-2">
-              <DropdownMenuItem onClick={handleImportTaskFromGoogleCalendar}>
-                <CalendarArrowDown />
-                <Typography variant="p">Import Events From Google Calendar</Typography>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        )}
-      </Header>
-
       <div className="flex justify-between py-3.5 px-5">
         <div className="flex gap-2">
           <TextInput placeholder="Search Tasks" />

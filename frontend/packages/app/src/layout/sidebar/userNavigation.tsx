@@ -32,15 +32,8 @@ import type { UserNavigationProps } from "./types";
 
 const UserNavigation = ({ user }: UserNavigationProps) => {
   const logout = useContextSelector(UserContext, (value) => value.actions.logout);
-  const { theme, isDarkThemeOnSystem, setTheme } = useTheme();
+  const { theme, changeTheme, isDarkThemeOnSystem} = useTheme();
   const [showSwitcher, setShowSwitcher] = useState(false);
-  const changeTheme = () => {
-    if (theme === "system") {
-      setTheme(isDarkThemeOnSystem ? "light" : "dark");
-    } else {
-      setTheme(theme === "light" ? "dark" : "light");
-    }
-  };
 
   return (
     <ErrorFallback>
