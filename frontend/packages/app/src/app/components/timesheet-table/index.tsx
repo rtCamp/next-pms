@@ -26,7 +26,6 @@ export const TimesheetTable = ({
   tasks,
   leaves,
   onCellClick,
-  showHeading = true,
   workingHour,
   workingFrequency,
   disabled,
@@ -91,25 +90,6 @@ export const TimesheetTable = ({
 
   return (
     <ErrorFallback>
-      {showHeading && (
-        <div className="mb-4">
-          <HeaderRow
-            dates={dates}
-            showHeading={showHeading}
-            breadcrumbs={{
-              items: [
-                { label: "Week", interactive: false },
-                { label: "Project", interactive: false },
-                { label: "Task", interactive: false },
-              ],
-              highlightLastItem: false,
-              size: "sm",
-              crumbClassName: "first:pl-0 last:pr-0",
-              className: "pl-[8px]",
-            }}
-          />
-        </div>
-      )}
       <WeekRow
         label={label}
         dates={dates}

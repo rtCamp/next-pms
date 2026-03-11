@@ -35,6 +35,7 @@ import { initialState, reducer } from "./reducer";
 import { validateDate } from "./utils";
 import { InfiniteScroll } from "../../components/infiniteScroll";
 import { sampleFields } from "./constants";
+import { HeaderRow } from "@/app/components/timesheet-table/components/row/headerRow";
 
 function Timesheet() {
   const targetRef = useRef<HTMLDivElement>(null);
@@ -166,7 +167,7 @@ function Timesheet() {
 
   return (
     <>
-      <Header className="justify-between">
+      <Header className="justify-between bg-surface-white">
         <Breadcrumbs
           items={[
             {
@@ -238,7 +239,7 @@ function Timesheet() {
         )}
       </Header>
 
-      <div className="flex justify-between py-3.5 px-5">
+      <div className="flex justify-between py-3.5 px-3 bg-surface-white">
         <div className="flex gap-2">
           <TextInput placeholder="Search Tasks" />
           <Select
@@ -265,16 +266,14 @@ function Timesheet() {
           />
         </div>
         <div className="flex gap-2">
-            
-        <Filter
-          fields={sampleFields}
-          value={filters}
-          onChange={(newFilters) => {
-            setFilters(newFilters);
-          }}
-        />
-        <Button icon={()=><Ellipsis size={16}/>}/>
-
+          <Filter
+            fields={sampleFields}
+            value={filters}
+            onChange={(newFilters) => {
+              setFilters(newFilters);
+            }}
+          />
+          <Button icon={() => <Ellipsis size={16} />} />
         </div>
       </div>
 
@@ -285,40 +284,59 @@ function Timesheet() {
           {Object.keys(timesheet.data?.data).length == 0 ? (
             <Typography className="flex items-center justify-center">No Data</Typography>
           ) : (
-            <Main className="w-full h-full overflow-y-auto">
+            <Main className="w-full min-w-225 h-full overflow-y-auto overflow-x-auto relative bg-surface-white">
               <InfiniteScroll isLoading={isLoading} hasMore={true} verticalLodMore={loadData} className="w-full">
                 {timesheet.data?.data &&
                   Object.keys(timesheet.data?.data).length > 0 &&
                   Object.entries(timesheet.data?.data).map(([key, value]: [string, timesheet], index) => {
                     return (
-                      <div
-                        key={key}
-                        ref={
-                          !isEmpty(startDateParam) &&
-                          isDateInRange(startDateParam, value.start_date, value.end_date)
-                            ? targetRef
-                            : null
-                        }
-                      >
-                        <TimesheetTable
-                          label={key}
-                          workingHour={timesheet.data.working_hour}
-                          workingFrequency={timesheet.data.working_frequency as WorkingFrequency}
-                          dates={value.dates}
-                          holidays={timesheet.data.holidays}
-                          leaves={timesheet.data.leaves}
-                          tasks={value.tasks}
-                          onCellClick={onCellClick}
-                          weeklyStatus={value.status}
-                          disabled={value.status === "Approved"}
-                          showHeading={index === 0}
-                          loadingLikedTasks={loadingLikedTasks}
-                          likedTaskData={likedTaskData}
-                          getLikedTaskData={getLikedTaskData}
-                          onButtonClick={() => handleApproval(value.start_date, value.end_date)}
-                          status={value.status}
-                        />
-                      </div>
+                      <>
+                        {index === 0 ? (
+                          <div className="mb-4 sticky top-0 bg-surface-white z-10">
+                            <HeaderRow
+                              dates={value.dates}
+                              showHeading={true}
+                              breadcrumbs={{
+                                items: [
+                                  { label: "Week", interactive: false },
+                                  { label: "Project", interactive: false },
+                                  { label: "Task", interactive: false },
+                                ],
+                                highlightLastItem: false,
+                                size: "sm",
+                                crumbClassName: "first:pl-0 last:pr-0",
+                                className: "pl-[8px]",
+                              }}
+                            />
+                          </div>
+                        ) : null}
+                        <div
+                          key={key}
+                          ref={
+                            !isEmpty(startDateParam) && isDateInRange(startDateParam, value.start_date, value.end_date)
+                              ? targetRef
+                              : null
+                          }
+                        >
+                          <TimesheetTable
+                            label={key}
+                            workingHour={timesheet.data.working_hour}
+                            workingFrequency={timesheet.data.working_frequency as WorkingFrequency}
+                            dates={value.dates}
+                            holidays={timesheet.data.holidays}
+                            leaves={timesheet.data.leaves}
+                            tasks={value.tasks}
+                            onCellClick={onCellClick}
+                            weeklyStatus={value.status}
+                            disabled={value.status === "Approved"}
+                            loadingLikedTasks={loadingLikedTasks}
+                            likedTaskData={likedTaskData}
+                            getLikedTaskData={getLikedTaskData}
+                            onButtonClick={() => handleApproval(value.start_date, value.end_date)}
+                            status={value.status}
+                          />
+                        </div>
+                      </>
                     );
                   })}
               </InfiniteScroll>

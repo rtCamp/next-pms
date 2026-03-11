@@ -34,7 +34,6 @@ export type timesheetTableProps = {
   tasks: TaskProps;
   leaves: Array<LeaveProps>;
   onCellClick?: (data: NewTimesheetProps) => void;
-  showHeading?: boolean;
   workingHour: number;
   disabled?: boolean;
   workingFrequency: WorkingFrequency;
