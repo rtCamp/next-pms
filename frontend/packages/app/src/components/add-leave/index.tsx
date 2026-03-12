@@ -15,7 +15,7 @@ import { type LeaveTimeProps, LEAVE_DURATION, LEAVE_TYPES } from "./types";
 import { addLeaveFormSchema } from "./schema";
 import { parseFrappeErrorMsg } from "@/lib/utils";
 
-const AddLeave = ({ employee, open = false, onOpenChange, onSuccess }: LeaveTimeProps) => {
+const AddLeave = ({ employee, open = false, onOpenChange }: LeaveTimeProps) => {
   const { toast } = useToast();
   const { createDoc, loading } = useFrappeCreateDoc();
 

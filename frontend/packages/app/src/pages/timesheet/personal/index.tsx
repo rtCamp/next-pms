@@ -242,7 +242,6 @@ function Timesheet() {
           )}
         </>
       )}
-      <Footer timesheet={timesheet} user={user} dispatch={dispatch} callback={mutate} />
     </div>
   );
 }

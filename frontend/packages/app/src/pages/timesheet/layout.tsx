@@ -4,16 +4,17 @@
 import { Breadcrumbs, Button, Folder, People, Time } from "@rtcamp/frappe-ui-react";
 import { CalendarX2, ChevronDown, Plus } from "lucide-react";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
-import { useReducer } from "react";
-import { getUTCDateTime, getFormatedDate } from "@next-pms/design-system/date";
+import { useState } from "react";
 import { useSelector } from "react-redux";
 
 /**
  * Internal dependencies.
  */
-import { Header, Main } from "@/layout/root";
-import { initialState, reducer } from "@/pages/timesheet/reducer";
+import { Header } from "@/layout/root";
 import { RootState } from "@/store";
+import AddTime from "@/components/add-time";
+import AddLeave from "@/components/add-leave";
+import { getTodayDate } from "@next-pms/design-system";
 
 const timesheetViews = [
   { key: "personal", label: "Personal", to: "/timesheet/personal", icon: Time },
@@ -23,32 +24,15 @@ const timesheetViews = [
 
 function TimesheetLayout() {
   const navigate = useNavigate();
+  const [isTimeDialogOpen, setIsTimeDialogOpen] = useState(false);
+  const [isLeaveDialogOpen, setIsLeaveDialogOpen] = useState(false);
+
   const { pathname } = useLocation();
   const user = useSelector((state: RootState) => state.user);
-
-  const [_, dispatch] = useReducer(reducer, initialState);
 
   const selectedKey = pathname.includes("team") ? "team" : pathname.includes("project") ? "project" : "personal";
 
   const activeView = timesheetViews.find((v) => v.key === selectedKey)!;
-
-  const handleAddTimeOff = () => {
-    dispatch({ type: "SET_TIME_OFF_DIALOG_STATE", payload: true });
-  };
-
-  const handleAddTime = () => {
-    const timesheetData = {
-      name: "",
-      task: "",
-      date: getFormatedDate(getUTCDateTime()),
-      description: "",
-      hours: 0,
-      employee: user.employee,
-      project: "",
-    };
-    dispatch({ type: "SET_TIMESHEET", payload: timesheetData });
-    dispatch({ type: "SET_DIALOG_STATE", payload: true });
-  };
 
   return (
     <div className="h-screen">
@@ -88,13 +72,30 @@ function TimesheetLayout() {
         />
         <div className="flex gap-2">
           {window.frappe?.boot?.user?.can_create.includes("Leave Application") && (
-            <Button onClick={handleAddTimeOff} label="Add time-off" iconLeft={() => <CalendarX2 />} />
+            <Button onClick={() => setIsLeaveDialogOpen(true)} label="Add time-off" iconLeft={() => <CalendarX2 />} />
           )}
 
-          <Button variant="solid" onClick={handleAddTime} label="Add time" iconLeft={() => <Plus />} />
+          <Button
+            variant="solid"
+            onClick={() => setIsTimeDialogOpen(true)}
+            label="Add time"
+            iconLeft={() => <Plus />}
+          />
         </div>
       </Header>
       <Outlet />
+      <AddTime
+        initialDate={getTodayDate()}
+        employee={user.employee}
+        open={isTimeDialogOpen}
+        onOpenChange={setIsTimeDialogOpen}
+        onSuccess={() => setIsTimeDialogOpen(false)}
+      />
+      <AddLeave
+        employee={user.employee}
+        open={isLeaveDialogOpen}
+        onOpenChange={setIsLeaveDialogOpen}
+      />
     </div>
   );
 }

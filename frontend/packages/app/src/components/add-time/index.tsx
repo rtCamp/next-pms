@@ -24,25 +24,11 @@ import { parseFrappeErrorMsg } from "@/lib/utils";
  * @param employee - Employee for the timesheet entry(In case of employee role they can select their employee only).
  * @param open - Boolean value to open the dialog.
  * @param onOpenChange - Function to change the open state of the dialog.
- * @param workingFrequency - Working frequency of the employee.(Used to calculating remaining hours).
- * @param workingHours - Working hours of the employee.(Used to calculating remaining hours).
- * @param onSuccess - Function to call after successfully adding the timesheet entry.
  * @param task - Task name for the timesheet entry (eg: TASK-0001).
  * @param project - Project name for the timesheet entry (eg: Project-0001).
  */
-const AddTime = ({
-  initialDate,
-  employee,
-  employeeName,
-  open = false,
-  onOpenChange,
-  workingFrequency,
-  workingHours,
-  onSuccess,
-  task = "",
-  project = "",
-}: AddTimeProps) => {
-    const {toast} = useToast();
+const AddTime = ({ initialDate, employee, open = false, onOpenChange, task = "", project = "" }: AddTimeProps) => {
+  const { toast } = useToast();
   const [submitting, setSubmitting] = useState(false);
   const { call: saveTime } = useFrappePostCall("next_pms.timesheet.api.timesheet.save");
 
@@ -61,14 +47,17 @@ const AddTime = ({
       setSubmitting(true);
       try {
         await saveTime({
-            date: value.date,
-            description: value.comment,
-            task: value.task,
-            hours: value.duration,
-            employee
-        })
-        handleOpen();
+          date: value.date,
+          description: value.comment,
+          task: value.task,
+          hours: value.duration,
+          employee,
+        });
         setSubmitting(false);
+        toast({
+          variant: "success",
+          description: "Time Entry submitted successfully",
+        });
       } catch (err) {
         const error = parseFrappeErrorMsg(err as FrappeError);
         toast({
@@ -77,6 +66,7 @@ const AddTime = ({
         });
       } finally {
         setSubmitting(false);
+        onOpenChange(false);
       }
     },
   });
@@ -112,17 +102,20 @@ const AddTime = ({
     projectName: task.project,
   }));
 
-  const handleOpen = () => {
-    if (submitting) return;
-    form.reset();
-    onOpenChange(form.state.values);
-  };
-
   return (
     <Dialog
       open={open}
-      onOpenChange={handleOpen}
-      actions={<Button className="w-full" variant="solid" label="Save entry" onClick={() => form.handleSubmit()} />}
+      onOpenChange={onOpenChange}
+      actions={
+        <Button
+          className="w-full"
+          variant="solid"
+          label="Save entry"
+          onClick={() => form.handleSubmit()}
+          disabled={submitting}
+          loading={submitting}
+        />
+      }
       options={{
         title: "Add time",
       }}

@@ -4,10 +4,8 @@ export const LEAVE_DURATION = ["full-day" , "first-half" , "second-half"] as con
 
 export interface LeaveTimeProps {
   employee: string;
-  employeeName: string;
   open: boolean;
-  onOpenChange: () => void;
-  onSuccess?: () => void;
+  onOpenChange: (open: boolean) => void;
 }
 
 export type LeaveInfoData = {
