@@ -63,7 +63,7 @@ const AddTime = ({
   const [tasks, setTask] = useState([]);
   const [submitting, setSubmitting] = useState(false);
   const [isTaskLoading, setIsTaskLoading] = useState(false);
-  const [selectedProject, setSelectedProject] = useState<string[]>(project ? [project] : []);
+  const [selectedProject, setSelectedProject] = useState<string>(project);
   const [selectedDate, setSelectedDate] = useState(getFormatedDate(initialDate));
   const [selectedEmployee, setSelectedEmployee] = useState(employee);
   const expectedHours = expectatedHours(workingHours, workingFrequency);
@@ -81,12 +81,17 @@ const AddTime = ({
     value: project.name,
   }));
 
-  const { data: tasksData } = useFrappeGetCall("next_pms.timesheet.api.task.get_task_list", {
+  const { data: tasksData, mutate:mutateTasksData } = useFrappeGetCall("next_pms.timesheet.api.task.get_task_list", {
     search: searchTask,
-    projects: selectedProject,
+    projects: [selectedProject],
     page_length: 100,
     filter_recent: true,
   });
+
+  useEffect(()=>{
+    console.log(selectedProject);
+    mutateTasksData()
+  },[selectedProject])
 
   const tasksOptions = ((tasksData?.message?.task ?? []) as TaskItem[]).map((task) => ({
     label: task.subject,
@@ -171,7 +176,10 @@ const AddTime = ({
                   options={projectOptions}
                   placeholder="Select Project"
                   value={field.state.value}
-                  onChange={(val) => field.handleChange(val as string)}
+                  onChange={(val) => {
+                    field.handleChange(val as string)
+                    setSelectedProject(val);
+                }}
                 />
                 {!field.state.meta.isValid && <ErrorMessage message={field.state.meta.errors[0]?.message} />}
               </>
