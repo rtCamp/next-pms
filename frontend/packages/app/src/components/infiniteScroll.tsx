@@ -13,12 +13,12 @@ const InfiniteScroll = ({ children, isLoading, hasMore, verticalLodMore, classNa
   const verticalLoderRef = useInfiniteScroll({ isLoading: isLoading, hasMore: hasMore, next: () => verticalLodMore() });
 
   return (
-    <div>
+    <div className={className}>
       {children}
       {hasMore && (
         <div
           ref={verticalLoderRef}
-          className={mergeClassNames("flex flex-col items-start w-screen sticky left-0 h-30", className)}
+          className="flex flex-col items-start w-screen sticky left-0 h-30"
         >
           <Skeleton className="h-10 w-full rounded-none" />
         </div>

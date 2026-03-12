@@ -3,10 +3,7 @@
  */
 import { useEffect, useReducer, useRef, useState } from "react";
 import { useSelector } from "react-redux";
-import {
-  Spinner,
-  Typography,
-} from "@next-pms/design-system/components";
+import { Spinner, Typography } from "@next-pms/design-system/components";
 import { useToast } from "@next-pms/design-system/components";
 import { getUTCDateTime, getFormatedDate } from "@next-pms/design-system/date";
 
@@ -36,7 +33,6 @@ function Timesheet() {
   const targetRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
   const [filters, setFilters] = useState<FilterCondition[]>([]);
-
 
   const [startDateParam, setStartDateParam] = useQueryParam<string>("date", "");
   const user = useSelector((state: RootState) => state.user);
@@ -159,8 +155,8 @@ function Timesheet() {
   };
 
   return (
-    <>
-      <div className="flex justify-between py-3.5 px-5">
+    <div className="w-full h-full py-3.5 px-5">
+      <div className="flex justify-between mb-3.5">
         <div className="flex gap-2">
           <TextInput placeholder="Search Tasks" />
           <Select
@@ -187,16 +183,14 @@ function Timesheet() {
           />
         </div>
         <div className="flex gap-2">
-            
-        <Filter
-          fields={sampleFields}
-          value={filters}
-          onChange={(newFilters) => {
-            setFilters(newFilters);
-          }}
-        />
-        <Button icon={()=><Ellipsis size={16}/>}/>
-
+          <Filter
+            fields={sampleFields}
+            value={filters}
+            onChange={(newFilters) => {
+              setFilters(newFilters);
+            }}
+          />
+          <Button icon={() => <Ellipsis size={16} />} />
         </div>
       </div>
 
@@ -207,47 +201,49 @@ function Timesheet() {
           {Object.keys(timesheet.data?.data).length == 0 ? (
             <Typography className="flex items-center justify-center">No Data</Typography>
           ) : (
-            <Main className="w-full h-full overflow-y-auto">
-              <InfiniteScroll isLoading={isLoading} hasMore={true} verticalLodMore={loadData} className="w-full">
-                {timesheet.data?.data &&
-                  Object.keys(timesheet.data?.data).length > 0 &&
-                  Object.entries(timesheet.data?.data).map(([key, value]: [string, timesheet], index) => {
-                    return (
-                      <div
-                        key={key}
-                        ref={
-                          !isEmpty(startDateParam) &&
-                          isDateInRange(startDateParam, value.start_date, value.end_date)
-                            ? targetRef
-                            : null
-                        }
-                      >
-                        <TimesheetTable
-                          workingHour={timesheet.data.working_hour}
-                          workingFrequency={timesheet.data.working_frequency as WorkingFrequency}
-                          dates={value.dates}
-                          holidays={timesheet.data.holidays}
-                          leaves={timesheet.data.leaves}
-                          tasks={value.tasks}
-                          onCellClick={onCellClick}
-                          weeklyStatus={value.status}
-                          disabled={value.status === "Approved"}
-                          showHeading={index === 0}
-                          loadingLikedTasks={loadingLikedTasks}
-                          likedTaskData={likedTaskData}
-                          getLikedTaskData={getLikedTaskData}
-                          onButtonClick={() => handleApproval(value.start_date, value.end_date)}
-                        />
-                      </div>
-                    );
-                  })}
-              </InfiniteScroll>
-            </Main>
+            <InfiniteScroll
+              isLoading={isLoading}
+              hasMore={true}
+              verticalLodMore={loadData}
+              className="w-full h-full overflow-scroll"
+            >
+              {timesheet.data?.data &&
+                Object.keys(timesheet.data?.data).length > 0 &&
+                Object.entries(timesheet.data?.data).map(([key, value]: [string, timesheet], index) => {
+                  return (
+                    <div
+                      key={key}
+                      ref={
+                        !isEmpty(startDateParam) && isDateInRange(startDateParam, value.start_date, value.end_date)
+                          ? targetRef
+                          : null
+                      }
+                    >
+                      <TimesheetTable
+                        workingHour={timesheet.data.working_hour}
+                        workingFrequency={timesheet.data.working_frequency as WorkingFrequency}
+                        dates={value.dates}
+                        holidays={timesheet.data.holidays}
+                        leaves={timesheet.data.leaves}
+                        tasks={value.tasks}
+                        onCellClick={onCellClick}
+                        weeklyStatus={value.status}
+                        disabled={value.status === "Approved"}
+                        showHeading={index === 0}
+                        loadingLikedTasks={loadingLikedTasks}
+                        likedTaskData={likedTaskData}
+                        getLikedTaskData={getLikedTaskData}
+                        onButtonClick={() => handleApproval(value.start_date, value.end_date)}
+                      />
+                    </div>
+                  );
+                })}
+            </InfiniteScroll>
           )}
         </>
       )}
       <Footer timesheet={timesheet} user={user} dispatch={dispatch} callback={mutate} />
-    </>
+    </div>
   );
 }
 

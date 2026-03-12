@@ -11,7 +11,7 @@ import { useSelector } from "react-redux";
 /**
  * Internal dependencies.
  */
-import { Header } from "@/layout/root";
+import { Header, Main } from "@/layout/root";
 import { initialState, reducer } from "@/pages/timesheet/reducer";
 import { RootState } from "@/store";
 
@@ -51,7 +51,7 @@ function TimesheetLayout() {
   };
 
   return (
-    <div>
+    <div className="h-screen">
       <Header className="justify-between">
         <Breadcrumbs
           items={[
@@ -94,9 +94,7 @@ function TimesheetLayout() {
           <Button variant="solid" onClick={handleAddTime} label="Add time" iconLeft={() => <Plus />} />
         </div>
       </Header>
-      <main>
-        <Outlet />
-      </main>
+      <Outlet />
     </div>
   );
 }
