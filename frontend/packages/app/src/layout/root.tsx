@@ -29,7 +29,7 @@ export const Header = ({ children, className, parentClassName }: Props) => {
 export const Main = ({ children, className }: Props) => {
   return (
     <div className="overflow-auto h-full w-full">
-      <div className={mergeClassNames("px-3 flex flex-col", className)}>
+      <div className={mergeClassNames("flex flex-col", className)}>
         <div className="w-full">{children}</div>
       </div>
     </div>

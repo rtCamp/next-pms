@@ -156,7 +156,7 @@ function Timesheet() {
   };
 
   return (
-    <div className="w-full h-full py-3.5 px-5">
+    <div className="w-full h-full py-3.5 px-3">
       <div className="flex justify-between mb-3.5">
         <div className="flex gap-2">
           <TextInput placeholder="Search Tasks" />
@@ -202,8 +202,13 @@ function Timesheet() {
           {Object.keys(timesheet.data?.data).length == 0 ? (
             <Typography className="flex items-center justify-center">No Data</Typography>
           ) : (
-            <Main className="w-full min-w-225 h-full overflow-y-auto overflow-x-auto relative bg-surface-white">
-              <InfiniteScroll isLoading={isLoading} hasMore={true} verticalLodMore={loadData} className="w-full">
+            <InfiniteScroll
+              isLoading={isLoading}
+              hasMore={true}
+              verticalLodMore={loadData}
+              className="w-full h-full overflow-auto"
+            >
+              <div className="min-w-225">
                 {timesheet.data?.data &&
                   Object.keys(timesheet.data?.data).length > 0 &&
                   Object.entries(timesheet.data?.data).map(([key, value]: [string, timesheet], index) => {
@@ -257,8 +262,8 @@ function Timesheet() {
                       </>
                     );
                   })}
-              </InfiniteScroll>
-            </Main>
+              </div>
+            </InfiniteScroll>
           )}
         </>
       )}
