@@ -1,3 +1,5 @@
+import json
+
 import frappe
 from frappe.query_builder.functions import Sum
 from frappe.utils.caching import redis_cache
@@ -10,6 +12,7 @@ def get_allocation_list_for_employee_for_given_range(
     start_date,
     end_date,
     is_billable=-1,
+    project_type=None,
     is_need_fetch_all_weeks=False,
 ):
     """
@@ -27,6 +30,23 @@ def get_allocation_list_for_employee_for_given_range(
     if not values:
         return []
 
+    if isinstance(project_type, str):
+        project_type = json.loads(project_type)
+
+    project_names = None
+    if project_type and len(project_type) > 0:
+        project_names = frappe.get_all("Project", filters={"project_type": ["in", project_type]}, pluck="name")
+
+        if len(project_names) == 0:
+            return []
+
+        if value_key == "project":
+            values = list(set(values).intersection(project_names))
+            if len(values) == 0:
+                return []
+
+    allocation_project_names = project_names if value_key == "employee" else values if project_names else None
+
     if is_need_fetch_all_weeks:
         filters = {}
 
@@ -37,6 +57,9 @@ def get_allocation_list_for_employee_for_given_range(
 
         if is_billable == "0" or is_billable == "1":
             filters["is_billable"] = is_billable
+
+        if allocation_project_names is not None:
+            filters["project"] = ["in", allocation_project_names]
 
         return frappe.db.get_all(
             "Resource Allocation",
@@ -52,6 +75,7 @@ def get_allocation_list_for_employee_for_given_range(
         SELECT {", ".join(columns)} FROM `tabResource Allocation`
             WHERE {"employee" if value_key == "employee" else "project"} IN %(names)s
             {get_is_billable_condition(is_billable)}
+            {get_project_condition(allocation_project_names)}
             AND (
                 (allocation_start_date <= %(start_date)s AND allocation_end_date >= %(start_date)s)
                 OR (allocation_start_date >= %(start_date)s AND allocation_end_date <= %(end_date)s)
@@ -65,6 +89,7 @@ def get_allocation_list_for_employee_for_given_range(
             "names": values,
             "start_date": start_date,
             "end_date": end_date,
+            "project_names": allocation_project_names,
         },
         as_dict=True,
     )  # nosemgrep
@@ -73,6 +98,13 @@ def get_allocation_list_for_employee_for_given_range(
 def get_is_billable_condition(is_billable):
     if is_billable == "0" or is_billable == "1":
         return f"AND (is_billable = {is_billable})"
+
+    return "AND (1=1)"
+
+
+def get_project_condition(project_names):
+    if project_names is not None:
+        return "AND project IN %(project_names)s"
 
     return "AND (1=1)"
 

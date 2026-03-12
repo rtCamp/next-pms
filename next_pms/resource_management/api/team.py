@@ -32,6 +32,7 @@ def get_resource_management_team_view_data(
     designation=None,
     reports_to=None,
     is_billable=-1,
+    project_type=None,
     page_length=10,
     start=0,
     skills=None,
@@ -45,6 +46,7 @@ def get_resource_management_team_view_data(
         business_unit = None
         designation = None
         reports_to = None
+        project_type = None
         customer = None
         employee_id = None
 
@@ -120,6 +122,7 @@ def get_resource_management_team_view_data(
         dates[0].get("start_date"),
         dates[-1].get("end_date"),
         is_billable,
+        project_type=project_type,
         is_need_fetch_all_weeks=not need_hours_summary,
     )
 
