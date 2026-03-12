@@ -19,6 +19,7 @@ export type cellProps = {
   onCellClick?: (val) => void;
   disabled?: boolean;
   className?: string;
+  isBackdatedDisabled?: boolean;
 };
 
 export type HeaderProps = {
@@ -79,4 +80,5 @@ export type timesheetTableProps = {
   likedTaskData?: Array<object>;
   getLikedTaskData?: () => void;
   hideLikeButton?: boolean;
+  oldestAllowedDate?: string | null;
 };

@@ -51,6 +51,7 @@ export interface RowProps {
   totalCellClassName?: string;
   showEmptyCell?: boolean;
   hideLikeButton?: boolean;
+  isDateBackdatedDisabled?: (date: string) => boolean;
 }
 
 export interface leaveRowProps {
