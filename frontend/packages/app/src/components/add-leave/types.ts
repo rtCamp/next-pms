@@ -1,0 +1,21 @@
+export const LEAVE_TYPES = ["leave-without-pay", "leave-with-pay", "paternity"] as const;
+
+export const LEAVE_DURATION = ["full-day" , "first-half" , "second-half"] as const;
+
+export interface LeaveTimeProps {
+  employee: string;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}
+
+export type LeaveInfoData = {
+  total_leaves: number;
+  expired_leaves: number;
+  leaves_taken: number;
+  leaves_pending_approval: number;
+  remaining_leaves: number;
+};
+
+export type LeaveInfoProps = {
+  leaveInfo: { [key: string]: LeaveInfoData };
+};
