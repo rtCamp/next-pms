@@ -1,34 +1,19 @@
 /**
  * External Dependencies
  */
-import { useCallback, useContext, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm, useStore } from "@tanstack/react-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import {
-    DurationInput,
-  useToast,
-} from "@next-pms/design-system/components";
-import {
-  DatePicker,
-  Dialog,
-  Button,
-  Select,
-  Textarea,
-  ErrorMessage,
-  Combobox
-} from "@rtcamp/frappe-ui-react";
-import { getFormatedDate } from "@next-pms/design-system/date";
-import { FrappeConfig, FrappeContext, useFrappeGetCall, useFrappePostCall } from "frappe-react-sdk";
+import { DurationInput, useToast } from "@next-pms/design-system/components";
+import { DatePicker, Dialog, Button, Textarea, ErrorMessage, Combobox } from "@rtcamp/frappe-ui-react";
+import { FrappeError, useFrappeGetCall, useFrappePostCall } from "frappe-react-sdk";
 import { Calendar } from "lucide-react";
-import { z } from "zod";
 
 /**
  * Internal Dependencies
  */
-import { expectatedHours, parseFrappeErrorMsg } from "@/lib/utils";
-import { TimesheetSchema } from "@/schema/timesheet";
 import type { AddTimeProps, ProjectData, TaskItem } from "./type";
 import { addTimeFormSchema } from "./schema";
+import { parseFrappeErrorMsg } from "@/lib/utils";
 
 /**
  * Add Time Component
@@ -57,7 +42,9 @@ const AddTime = ({
   task = "",
   project = "",
 }: AddTimeProps) => {
+    const {toast} = useToast();
   const [submitting, setSubmitting] = useState(false);
+  const { call: saveTime } = useFrappePostCall("next_pms.timesheet.api.timesheet.save");
 
   const form = useForm({
     defaultValues: {
@@ -71,12 +58,30 @@ const AddTime = ({
       onSubmit: addTimeFormSchema,
     },
     onSubmit: async ({ value }) => {
-      console.log(value);
+      setSubmitting(true);
+      try {
+        await saveTime({
+            date: value.date,
+            description: value.comment,
+            task: value.task,
+            hours: value.duration,
+            employee
+        })
+        setSubmitting(false);
+        handleOpen();
+      } catch (err) {
+        const error = parseFrappeErrorMsg(err as FrappeError);
+        toast({
+          variant: "destructive",
+          description: error,
+        });
+      } finally {
+        setSubmitting(false);
+      }
     },
   });
 
-  const selectedProject = useStore(form.store, (state) => state.values.project)
-  const selectedTask = useStore(form.store, (state) => state.values.task)
+  const selectedProject = useStore(form.store, (state) => state.values.project);
 
   const { data: projectsData } = useFrappeGetCall("frappe.client.get_list", {
     doctype: "Project",
@@ -90,21 +95,21 @@ const AddTime = ({
     value: project.name,
   }));
 
-  const { data: tasksData, mutate:mutateTasksData } = useFrappeGetCall("next_pms.timesheet.api.task.get_task_list", {
+  const { data: tasksData, mutate: mutateTasksData } = useFrappeGetCall("next_pms.timesheet.api.task.get_task_list", {
     search: task,
-    projects: selectedProject ? [selectedProject] :[],
+    projects: selectedProject ? [selectedProject] : [],
     page_length: 100,
     filter_recent: true,
   });
 
-  useEffect(()=>{
-    mutateTasksData()
-  },[project,task])
+  useEffect(() => {
+    mutateTasksData();
+  }, [project, task]);
 
   const tasksOptions = ((tasksData?.message?.task ?? []) as TaskItem[]).map((task) => ({
     label: task.subject,
     value: task.name,
-    projectName: task.project
+    projectName: task.project,
   }));
 
   const handleOpen = () => {
@@ -117,7 +122,7 @@ const AddTime = ({
     <Dialog
       open={open}
       onOpenChange={handleOpen}
-      actions={<Button className="w-full" variant="solid" label="Save entry" />}
+      actions={<Button className="w-full" variant="solid" label="Save entry" onClick={() => form.handleSubmit()} />}
       options={{
         title: "Add time",
       }}
@@ -135,8 +140,8 @@ const AddTime = ({
                   placeholder="Select Project"
                   value={field.state.value}
                   onChange={(val) => {
-                    field.handleChange(val as string)
-                }}
+                    field.handleChange(val as string);
+                  }}
                 />
                 {!field.state.meta.isValid && <ErrorMessage message={field.state.meta.errors[0]?.message} />}
               </>
@@ -147,7 +152,7 @@ const AddTime = ({
           name="task"
           children={(field) => {
             return (
-            <>
+              <>
                 <label className="block text-xs text-ink-gray-5">Task</label>
                 <Combobox
                   inputClassName="bg-white h-8 border-outline-gray-2"
@@ -155,12 +160,12 @@ const AddTime = ({
                   placeholder="Select Task"
                   value={field.state.value}
                   onChange={(val) => {
-                    field.handleChange(val as string)
-                    const selectedTask = tasksOptions.find(task => task.value === val)
+                    field.handleChange(val as string);
+                    const selectedTask = tasksOptions.find((task) => task.value === val);
                     if (selectedTask?.projectName) {
-                      form.setFieldValue('project', selectedTask.projectName)
+                      form.setFieldValue("project", selectedTask.projectName);
                     }
-                }}
+                  }}
                 />
                 {!field.state.meta.isValid && <ErrorMessage message={field.state.meta.errors[0]?.message} />}
               </>
@@ -173,7 +178,12 @@ const AddTime = ({
             children={(field) => {
               return (
                 <>
-                  <DatePicker label="From" onChange={() => {}} placeholder="Placeholder" value="">
+                  <DatePicker
+                    label="From"
+                    onChange={(val) => field.handleChange(val as string)}
+                    placeholder="Placeholder"
+                    value={field.state.value}
+                  >
                     {({ displayValue }) => {
                       return (
                         <div className=" flex-1 flex w-full flex-col space-y-1.5 ">
@@ -203,20 +213,10 @@ const AddTime = ({
             name="duration"
             children={(field) => {
               return (
-                <>
-                  <form.Field
-                    name="date"
-                    children={(field) => {
-                      return (
-                        <div className="w-full flex flex-col gap-2">
-                            <DurationInput/>
-                          {!field.state.meta.isValid && <ErrorMessage message={field.state.meta.errors[0]?.message} />}
-                        </div>
-                      );
-                    }}
-                  />
+                <div className="w-full flex flex-col gap-2">
+                  <DurationInput value={field.state.value} onChange={(val) => field.handleChange(val)} />
                   {!field.state.meta.isValid && <ErrorMessage message={field.state.meta.errors[0]?.message} />}
-                </>
+                </div>
               );
             }}
           />
@@ -227,7 +227,11 @@ const AddTime = ({
             return (
               <>
                 <label className="block text-xs text-ink-gray-5">Comment</label>
-                <Textarea className="bg-white border-outline-gray-2" />
+                <Textarea
+                  value={field.state.value}
+                  onChange={(e) => field.handleChange(e.target.value)}
+                  className="bg-white border-outline-gray-2"
+                />
                 {!field.state.meta.isValid && <ErrorMessage message={field.state.meta.errors[0]?.message} />}
               </>
             );
