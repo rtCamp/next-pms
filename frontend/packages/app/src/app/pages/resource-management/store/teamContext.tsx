@@ -41,6 +41,7 @@ const defaultFilters: ResourceTeamFilters = {
   allocationType: [],
   designation: [],
   businessUnit: [],
+  projectType: [],
   maxWeek: 5,
   skillSearch: [],
 };
@@ -90,9 +91,13 @@ const TeamContextProvider = ({ children }: ContextProviderProps) => {
   const [teamData, setTeanData] = useState<ResourceTeamDataProps>(defaultData);
   const [filters, setFilters] = useState<ResourceTeamFilters>(defaultFilters);
   const [tableView, setTableView] = useState<TableViewProps>(defaultTableView);
-  const [apiController, setApiController] = useState<APIController>(defaultApiController);
+  const [apiController, setApiController] =
+    useState<APIController>(defaultApiController);
 
-  const updateTeamData = (updatedTeamData: ResourceTeamDataProps, type: "SET" | "UPDATE" = "SET") => {
+  const updateTeamData = (
+    updatedTeamData: ResourceTeamDataProps,
+    type: "SET" | "UPDATE" = "SET",
+  ) => {
     if (type === "SET") {
       setTeanData({
         ...teamData,
@@ -113,7 +118,11 @@ const TeamContextProvider = ({ children }: ContextProviderProps) => {
       });
     }
 
-    setApiController({ ...apiController, isNeedToFetchDataAfterUpdate: false, isLoading: false });
+    setApiController({
+      ...apiController,
+      isNeedToFetchDataAfterUpdate: false,
+      isLoading: false,
+    });
   };
 
   const setStart = (start: number) => {
@@ -122,9 +131,18 @@ const TeamContextProvider = ({ children }: ContextProviderProps) => {
   };
 
   const updateFilter = (updatedFilters: OptionalResourceTeamFilters) => {
-    setFilters((prev) => ({ ...prev, ...updatedFilters, start: 0, maxWeek: defaultFilters.maxWeek }));
+    setFilters((prev) => ({
+      ...prev,
+      ...updatedFilters,
+      start: 0,
+      maxWeek: defaultFilters.maxWeek,
+    }));
     setTeanData(defaultData);
-    setApiController({ ...apiController, isLoading: true, isNeedToFetchDataAfterUpdate: true });
+    setApiController({
+      ...apiController,
+      isLoading: true,
+      isNeedToFetchDataAfterUpdate: true,
+    });
   };
 
   const updateTableView = (updatedTableView: TableViewProps) => {
@@ -152,7 +170,11 @@ const TeamContextProvider = ({ children }: ContextProviderProps) => {
       pageLength: defaultFilters.pageLength,
       maxWeek: defaultFilters.maxWeek,
     });
-    setApiController({ ...apiController, isLoading: true, isNeedToFetchDataAfterUpdate: true });
+    setApiController({
+      ...apiController,
+      isLoading: true,
+      isNeedToFetchDataAfterUpdate: true,
+    });
     setTeanData({ ...defaultData, dates: getDatesArrays(value, 10) });
   };
 

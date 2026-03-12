@@ -8,6 +8,7 @@ export type ResourceAllocationProps = {
   total_allocated_hours: number;
   project: string;
   project_name: string;
+  project_type?: string;
   customer: string;
   is_billable: number;
   numberDays?: number;
