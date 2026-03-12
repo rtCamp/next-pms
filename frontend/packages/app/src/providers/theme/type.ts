@@ -10,6 +10,7 @@ export type ThemeProviderState = {
   theme: Theme;
   isDarkThemeOnSystem: boolean;
   setTheme: (theme: Theme) => void;
+  changeTheme: () => void;
 };
 
 export const defaultTheme: Theme =

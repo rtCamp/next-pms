@@ -8,7 +8,7 @@ import { FrappeProvider as _FrappeProvider } from "frappe-react-sdk";
  * Internal dependencies.
  */
 import { getSiteName, enableSocket } from "@/lib/utils";
-import { VersionUpdate } from "../../app/components/versionUpdate";
+import { VersionUpdate } from "@/components/versionUpdate";
 const FrappeProvider = ({ children }: { children: ReactNode }) => {
   return (
     <_FrappeProvider

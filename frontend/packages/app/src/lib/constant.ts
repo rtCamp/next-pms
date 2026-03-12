@@ -1,13 +1,17 @@
-export const BASE_ROUTE = "/next-pms";
-export const TIMESHEET = "timesheet";
-export const HOME = "home";
-export const TEAM = "/team";
-export const DESK = "/desk";
-export const EMPLOYEE = "/employee";
-export const TASK = "task";
-export const PROJECT = "/project";
-export const LOCAL_STORAGE_TASK = "task_list";
-export const RESOURCE_MANAGEMENT = "/resource-management";
+export const ROUTES = {
+  base: "/next-pms",
+  home: "/",
+  task: "/task",
+  project: "/project",
+  "timesheet-personal": "/timesheet/personal",
+  "timesheet-team": "/timesheet/team",
+  "timesheet-project": "/timesheet/project",
+  allocation: "/allocation",
+  roadmap: "/roadmap",
+  report: "/report",
+  desk:"/desk",
+  apps:"/apps"
+};
 export const LIKED_TASK_KEY = "next_pms_liked_task";
 // user roles for timesheet
 export const ROLES = [
