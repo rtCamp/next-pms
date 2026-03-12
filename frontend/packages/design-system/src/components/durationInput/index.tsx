@@ -34,9 +34,21 @@ const snapToSliderStep = (minutes: number): number => {
   return Math.round(minutes / SLIDER_STEP_MINUTES) * SLIDER_STEP_MINUTES;
 };
 
-const DurationInput = ({ label = "Duration", maxDurationInHours = 8 }) => {
-  const [duration, setDuration] = useState(0);
-  const [inputValue, setInputValue] = useState("00:00");
+interface DurationInputProps {
+  label?: string;
+  maxDurationInHours?: number;
+  value?: number;
+  onChange?: (value: number) => void;
+}
+
+const DurationInput = ({ 
+  label = "Duration", 
+  maxDurationInHours = 8,
+  value = 0,
+  onChange
+}: DurationInputProps) => {
+  const [duration, setDuration] = useState(value);
+  const [inputValue, setInputValue] = useState(formatMinutesToHHMM(value));
 
   const totalMinutes = maxDurationInHours * 60;
   const usedMinutes = duration;
@@ -48,6 +60,7 @@ const DurationInput = ({ label = "Duration", maxDurationInHours = 8 }) => {
     const clampedValue = Math.min(Math.max(normalizedValue, 0), totalMinutes);
     setDuration(clampedValue);
     setInputValue(formatMinutesToHHMM(clampedValue));
+    onChange?.(clampedValue / 60);
   };
 
   const handleInputChange = (value: string) => {
@@ -58,6 +71,7 @@ const DurationInput = ({ label = "Duration", maxDurationInHours = 8 }) => {
     }
     const clampedValue = Math.min(Math.max(parsedMinutes, 0), totalMinutes);
     setDuration(clampedValue);
+    onChange?.(clampedValue / 60);
   };
 
   const handleInputBlur = () => {
@@ -69,6 +83,7 @@ const DurationInput = ({ label = "Duration", maxDurationInHours = 8 }) => {
     const clampedValue = Math.min(Math.max(parsedMinutes, 0), totalMinutes);
     setDuration(clampedValue);
     setInputValue(formatMinutesToHHMM(clampedValue));
+    onChange?.(clampedValue / 60);
   };
 
   const sliderValue = snapToSliderStep(duration);
