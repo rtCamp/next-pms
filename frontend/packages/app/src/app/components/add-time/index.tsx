@@ -2,7 +2,7 @@
  * External Dependencies
  */
 import { useCallback, useContext, useEffect, useState } from "react";
-import { useForm } from "@tanstack/react-form";
+import { useForm, useStore } from "@tanstack/react-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
     DurationInput,
@@ -57,17 +57,26 @@ const AddTime = ({
   task = "",
   project = "",
 }: AddTimeProps) => {
-  const { call } = useContext(FrappeContext) as FrappeConfig;
-  const { call: save } = useFrappePostCall("next_pms.timesheet.api.timesheet.save");
-  const [searchTask, setSearchTask] = useState(task);
-  const [tasks, setTask] = useState([]);
   const [submitting, setSubmitting] = useState(false);
-  const [isTaskLoading, setIsTaskLoading] = useState(false);
-  const [selectedProject, setSelectedProject] = useState<string>(project);
-  const [selectedDate, setSelectedDate] = useState(getFormatedDate(initialDate));
-  const [selectedEmployee, setSelectedEmployee] = useState(employee);
-  const expectedHours = expectatedHours(workingHours, workingFrequency);
-  const { toast } = useToast();
+
+  const form = useForm({
+    defaultValues: {
+      project: project,
+      task: task,
+      date: initialDate,
+      duration: 0,
+      comment: "",
+    },
+    validators: {
+      onSubmit: addTimeFormSchema,
+    },
+    onSubmit: async ({ value }) => {
+      console.log(value);
+    },
+  });
+
+  const selectedProject = useStore(form.store, (state) => state.values.project)
+  const selectedTask = useStore(form.store, (state) => state.values.task)
 
   const { data: projectsData } = useFrappeGetCall("frappe.client.get_list", {
     doctype: "Project",
@@ -82,78 +91,27 @@ const AddTime = ({
   }));
 
   const { data: tasksData, mutate:mutateTasksData } = useFrappeGetCall("next_pms.timesheet.api.task.get_task_list", {
-    search: searchTask,
-    projects: [selectedProject],
+    search: task,
+    projects: selectedProject ? [selectedProject] :[],
     page_length: 100,
     filter_recent: true,
   });
 
   useEffect(()=>{
-    console.log(selectedProject);
     mutateTasksData()
-  },[selectedProject])
+  },[project,task])
 
   const tasksOptions = ((tasksData?.message?.task ?? []) as TaskItem[]).map((task) => ({
     label: task.subject,
     value: task.name,
+    projectName: task.project
   }));
-
-  const form = useForm({
-    defaultValues: {
-      project: "",
-      task: task,
-      date: initialDate,
-      duration: 0,
-      comment: "",
-    },
-    validators: {
-      onSubmit: addTimeFormSchema,
-    },
-    onSubmit: async ({ value }) => {
-      console.log(value);
-    },
-  });
 
   const handleOpen = () => {
     if (submitting) return;
     form.reset();
     onOpenChange(form.state.values);
   };
-  const handleSubmit = (data: z.infer<typeof TimesheetSchema>) => {
-    setSubmitting(true);
-    save(data)
-      .then((res) => {
-        toast({
-          variant: "success",
-          description: res.message,
-        });
-        onSuccess?.(form.state.values);
-        setSubmitting(false);
-        handleOpen();
-      })
-      .catch((err) => {
-        setSubmitting(false);
-        const error = parseFrappeErrorMsg(err);
-        toast({
-          variant: "destructive",
-          description: error,
-        });
-      });
-  };
-
-  const { data: remainingHoursData , mutate: mutateRemainingHoursData } = useFrappeGetCall(
-    "next_pms.timesheet.api.timesheet.get_remaining_hour_for_employee",
-    {
-      employee: selectedEmployee,
-      date: selectedDate,
-    },
-    undefined,
-    {
-      revalidateOnFocus: false,
-    },
-  );
-
-  const remainingHours = remainingHoursData?.message ?? 8
 
   return (
     <Dialog
@@ -178,7 +136,6 @@ const AddTime = ({
                   value={field.state.value}
                   onChange={(val) => {
                     field.handleChange(val as string)
-                    setSelectedProject(val);
                 }}
                 />
                 {!field.state.meta.isValid && <ErrorMessage message={field.state.meta.errors[0]?.message} />}
@@ -197,7 +154,13 @@ const AddTime = ({
                   options={tasksOptions}
                   placeholder="Select Task"
                   value={field.state.value}
-                  onChange={(val) => field.handleChange(val as string)}
+                  onChange={(val) => {
+                    field.handleChange(val as string)
+                    const selectedTask = tasksOptions.find(task => task.value === val)
+                    if (selectedTask?.projectName) {
+                      form.setFieldValue('project', selectedTask.projectName)
+                    }
+                }}
                 />
                 {!field.state.meta.isValid && <ErrorMessage message={field.state.meta.errors[0]?.message} />}
               </>
