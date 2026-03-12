@@ -64,8 +64,12 @@ export const WeekRow = ({
   }, [dates, tasks, leaves, holidays, dailyWorkingHours]);
 
   const today = useMemo(() => {
-    return prettyDate(getTodayDate()).date;
-  }, []);
+    const currentDate = getTodayDate();
+    if (!dates.includes(currentDate)) {
+      return "";
+    }
+    return prettyDate(currentDate).date;
+  }, [dates]);
 
   const thisWeek = useMemo(() => {
     const todayIndex = dates.findIndex((date) => prettyDate(date).date === today);

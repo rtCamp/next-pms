@@ -1,7 +1,7 @@
 /**
  * External dependencies.
  */
-import { useEffect, useReducer, useRef, useState } from "react";
+import { useEffect, useMemo, useReducer, useRef, useState } from "react";
 import { useSelector } from "react-redux";
 import { Spinner, Typography } from "@next-pms/design-system/components";
 import { getUTCDateTime, getFormatedDate } from "@next-pms/design-system/date";
@@ -31,6 +31,7 @@ function Timesheet() {
   const targetRef = useRef<HTMLDivElement>(null);
   const toast = useToasts();
   const [filters, setFilters] = useState<FilterCondition[]>([]);
+  const [search, setSearch] = useState("");
 
   const [startDateParam, setStartDateParam] = useQueryParam<string>("date", "");
   const user = useSelector((state: RootState) => state.user);
@@ -145,6 +146,23 @@ function Timesheet() {
     dispatch({ type: "SET_APPROVAL_DIALOG_STATE", payload: true });
   };
 
+  const filteredWeekEntries = useMemo(() => {
+    const entries = Object.entries(timesheet.data.data) as [string, timesheet][];
+    const query = search.trim().toLowerCase();
+
+    if (!query) return entries;
+
+    return entries.map(([key, week]) => {
+      const filteredTasks = Object.fromEntries(
+        Object.entries(week.tasks).filter(
+          ([_, task]) => task.name.toLowerCase().includes(query) || task.subject.toLowerCase().includes(query),
+        ),
+      );
+
+      return [key, { ...week, tasks: filteredTasks }] as [string, timesheet];
+    });
+  }, [timesheet.data.data, search]);
+
   const handleImportTaskFromGoogleCalendar = () => {
     dispatch({ type: "SET_IMPORT_FROM_GOOGLE_CALENDAR_DIALOG_STATE", payload: true });
   };
@@ -153,18 +171,22 @@ function Timesheet() {
     <div className="w-full h-full py-3.5 px-3">
       <div className="flex justify-between mb-3.5">
         <div className="flex gap-2">
-          <TextInput placeholder="Search Tasks" />
+          <TextInput
+            placeholder="Search Tasks"
+            value={search}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearch(e.target.value)}
+          />
           <Select
             placeholder="Approval Status"
             className="w-fit"
             options={[
               {
-                label: "Pending",
-                value: "pending",
-              },
-              {
                 label: "Not Submitted",
                 value: "not-submitted",
+              },
+              {
+                label: "Approval Pending",
+                value: "approval-pending",
               },
               {
                 label: "Approved",
@@ -205,7 +227,7 @@ function Timesheet() {
               <div className="min-w-225">
                 {timesheet.data?.data &&
                   Object.keys(timesheet.data?.data).length > 0 &&
-                  Object.entries(timesheet.data?.data).map(([key, value]: [string, timesheet], index) => {
+                  filteredWeekEntries.map(([key, value], index) => {
                     return (
                       <>
                         {index === 0 ? (
