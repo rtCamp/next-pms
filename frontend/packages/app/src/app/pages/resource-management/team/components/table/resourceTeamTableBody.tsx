@@ -10,8 +10,10 @@ import { useContextSelector } from "use-context-selector";
  * Internal dependencies.
  */
 import { EmptyTableBody } from "../../../components/empty";
-import { defaultEmployeeDayData } from "../../../store/defaultEmployeeDayData";
-import { TeamContext } from "../../../store/teamContext";
+import {
+  defaultEmployeeDayData,
+  TeamContext,
+} from "../../../store/teamContext";
 import type {
   AllocationDataProps,
   DateProps,
