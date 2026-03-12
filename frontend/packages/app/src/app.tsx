@@ -5,6 +5,7 @@ import { Suspense } from "react";
 import { Provider } from "react-redux";
 import { RouterProvider, createBrowserRouter, createRoutesFromElements } from "react-router-dom";
 import { ErrorFallback, TooltipProvider } from "@next-pms/design-system/components";
+import { ToastProvider } from "@rtcamp/frappe-ui-react";
 
 /**
  * Internal dependencies.
@@ -23,19 +24,21 @@ const App = () => {
 
   return (
     <FrappeProvider>
-      <ThemeProvider>
-        <UserProvider>
-          <Provider store={store}>
-            <TooltipProvider>
-              <Suspense fallback={<></>}>
-                <ErrorFallback>
-                  <RouterProvider router={router} />
-                </ErrorFallback>
-              </Suspense>
-            </TooltipProvider>
-          </Provider>
-        </UserProvider>
-      </ThemeProvider>
+      <ToastProvider>
+        <ThemeProvider>
+          <UserProvider>
+            <Provider store={store}>
+              <TooltipProvider>
+                <Suspense fallback={<></>}>
+                  <ErrorFallback>
+                    <RouterProvider router={router} />
+                  </ErrorFallback>
+                </Suspense>
+              </TooltipProvider>
+            </Provider>
+          </UserProvider>
+        </ThemeProvider>
+      </ToastProvider>
     </FrappeProvider>
   );
 };

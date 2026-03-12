@@ -3,8 +3,8 @@
  */
 import { useEffect, useState } from "react";
 import { useForm, useStore } from "@tanstack/react-form";
-import { DurationInput, useToast } from "@next-pms/design-system/components";
-import { DatePicker, Dialog, Button, Textarea, ErrorMessage, Combobox } from "@rtcamp/frappe-ui-react";
+import { DurationInput } from "@next-pms/design-system/components";
+import { DatePicker, Dialog, Button, Textarea, ErrorMessage, Combobox, useToasts } from "@rtcamp/frappe-ui-react";
 import { FrappeError, useFrappeGetCall, useFrappePostCall } from "frappe-react-sdk";
 import { Calendar } from "lucide-react";
 
@@ -28,7 +28,7 @@ import { parseFrappeErrorMsg } from "@/lib/utils";
  * @param project - Project name for the timesheet entry (eg: Project-0001).
  */
 const AddTime = ({ initialDate, employee, open = false, onOpenChange, task = "", project = "" }: AddTimeProps) => {
-  const { toast } = useToast();
+  const toast = useToasts();
   const [submitting, setSubmitting] = useState(false);
   const { call: saveTime } = useFrappePostCall("next_pms.timesheet.api.timesheet.save");
 
@@ -54,16 +54,10 @@ const AddTime = ({ initialDate, employee, open = false, onOpenChange, task = "",
           employee,
         });
         setSubmitting(false);
-        toast({
-          variant: "success",
-          description: "Time Entry submitted successfully",
-        });
+        toast.success("Time Entry submitted successfully");
       } catch (err) {
         const error = parseFrappeErrorMsg(err as FrappeError);
-        toast({
-          variant: "destructive",
-          description: error,
-        });
+        toast.error( error);
       } finally {
         setSubmitting(false);
         onOpenChange(false);

@@ -4,11 +4,10 @@
 import { useEffect, useReducer, useRef, useState } from "react";
 import { useSelector } from "react-redux";
 import { Spinner, Typography } from "@next-pms/design-system/components";
-import { useToast } from "@next-pms/design-system/components";
 import { getUTCDateTime, getFormatedDate } from "@next-pms/design-system/date";
 
 import { useQueryParam } from "@next-pms/hooks";
-import { Button, TextInput, Select, Filter, FilterCondition } from "@rtcamp/frappe-ui-react";
+import { Button, TextInput, Select, Filter, FilterCondition, useToasts } from "@rtcamp/frappe-ui-react";
 import { addDays } from "date-fns";
 import { useFrappeEventListener, useFrappeGetCall, useFrappePostCall } from "frappe-react-sdk";
 import { isEmpty } from "lodash";
@@ -18,12 +17,10 @@ import { Ellipsis } from "lucide-react";
  * Internal dependencies.
  */
 import { TimesheetTable } from "@/components/timesheet-table";
-import { Main } from "@/layout/root";
 import { parseFrappeErrorMsg, isDateInRange } from "@/lib/utils";
 import type { RootState } from "@/store";
 import type { WorkingFrequency } from "@/types";
 import type { NewTimesheetProps, timesheet } from "@/types/timesheet";
-import { Footer } from "../components/footer";
 import { initialState, reducer } from "../reducer";
 import { validateDate } from "../utils";
 import { InfiniteScroll } from "../../../components/infiniteScroll";
@@ -32,7 +29,7 @@ import { HeaderRow } from "../../../components/timesheet-table/components/row/he
 
 function Timesheet() {
   const targetRef = useRef<HTMLDivElement>(null);
-  const { toast } = useToast();
+  const toast = useToasts();
   const [filters, setFilters] = useState<FilterCondition[]>([]);
 
   const [startDateParam, setStartDateParam] = useQueryParam<string>("date", "");
@@ -65,10 +62,7 @@ function Timesheet() {
     }
     if (error) {
       const err = parseFrappeErrorMsg(error);
-      toast({
-        variant: "destructive",
-        description: err,
-      });
+      toast.error(err);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data, dispatch, error, toast]);

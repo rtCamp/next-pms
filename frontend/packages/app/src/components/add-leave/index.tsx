@@ -5,38 +5,42 @@ import { useForm } from "@tanstack/react-form";
 import { DatePicker, Dialog, Button, TabButtons, Select, Textarea, ErrorMessage } from "@rtcamp/frappe-ui-react";
 import { getTodayDate } from "@next-pms/design-system/date";
 import { Calendar, CalendarX2 } from "lucide-react";
-import { FrappeError, useFrappeCreateDoc } from "frappe-react-sdk";
-import { useToast } from "@next-pms/design-system/hooks";
+import { FrappeError, useFrappeCreateDoc, useFrappeGetCall } from "frappe-react-sdk";
+import { useToasts } from "@rtcamp/frappe-ui-react";
 
 /**
  * Internal Dependencies
  */
-import { type LeaveTimeProps, LEAVE_DURATION, LEAVE_TYPES } from "./types";
+import { type LeaveTimeProps, LEAVE_DURATION } from "./types";
 import { addLeaveFormSchema } from "./schema";
 import { parseFrappeErrorMsg } from "@/lib/utils";
 
 const AddLeave = ({ employee, open = false, onOpenChange }: LeaveTimeProps) => {
-  const { toast } = useToast();
+  const toast = useToasts();
   const { createDoc, loading } = useFrappeCreateDoc();
+
+  const { data: leaveDetails } = useFrappeGetCall(
+    "hrms.hr.doctype.leave_application.leave_application.get_leave_details",
+    {
+      employee: employee,
+      date: getTodayDate(),
+    },
+  );
+
+  const leaveTypeOptions = ((leaveDetails?.message?.lwps as string[]) || []).map((val) => ({ label: val, value: val }));
 
   const form = useForm({
     defaultValues: {
       fromDate: getTodayDate(),
       toDate: getTodayDate(),
       leaveDuration: LEAVE_DURATION[0] as string,
-      leaveType: LEAVE_TYPES[0] as string,
+      leaveType: "",
       reason: "",
     },
     validators: {
       onSubmit: addLeaveFormSchema,
     },
     onSubmit: async ({ value }) => {
-      // Convert to Title case
-      const leave_type = value.leaveType
-        .split("-")
-        .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-        .join(" ");
-
       // Convert to Title case
       const custom_first_halfsecond_half = value.leaveDuration
         .split("-")
@@ -51,38 +55,25 @@ const AddLeave = ({ employee, open = false, onOpenChange }: LeaveTimeProps) => {
           description: "",
           from_date: value.fromDate,
           to_date: value.toDate,
-          leave_type,
+          leave_type: value.leaveType,
           half_day,
           custom_first_halfsecond_half,
         };
         await createDoc("Leave Application", data);
-        toast({
-          variant: "success",
-          description: "Leave created successfully",
-        });
-        handleOpen();
-        onSuccess?.();
+        toast.success("Leave created successfully");
       } catch (err) {
         const error = parseFrappeErrorMsg(err as FrappeError);
-        toast({
-          description: error,
-          variant: "destructive",
-        });
+        toast.error(error);
       } finally {
-        handleOpen();
+        onOpenChange(false);
       }
     },
   });
 
-  const handleOpen = () => {
-    form.reset();
-    onOpenChange();
-  };
-
   return (
     <Dialog
       open={open}
-      onOpenChange={handleOpen}
+      onOpenChange={onOpenChange}
       actions={
         <Button
           className="w-full"
@@ -135,12 +126,12 @@ const AddLeave = ({ employee, open = false, onOpenChange }: LeaveTimeProps) => {
               return (
                 <div className="flex-1 flex w-full flex-col space-y-1.5">
                   <label className="block text-xs text-ink-gray-5">To</label>
-                  <DatePicker 
+                  <DatePicker
                     label="To"
                     onChange={(val) => field.handleChange(val as string)}
                     placeholder="End Date"
                     value={field.state.value}
->
+                  >
                     {({ displayValue }) => {
                       return (
                         <div
@@ -194,13 +185,7 @@ const AddLeave = ({ employee, open = false, onOpenChange }: LeaveTimeProps) => {
                   onChange={(val) => field.handleChange(val as string)}
                   variant="outline"
                   className="h-8"
-                  options={LEAVE_TYPES.map((value) => ({
-                    label: value
-                      .split("-")
-                      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-                      .join(" "),
-                    value,
-                  }))}
+                  options={leaveTypeOptions}
                   placeholder="Select Leave Type"
                 />
                 {!field.state.meta.isValid && <ErrorMessage message={field.state.meta.errors[0]?.message} />}

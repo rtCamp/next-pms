@@ -23,7 +23,6 @@ import {
   FormMessage,
   Input,
   Separator,
-  useToast,
   TextEditor,
 } from "@next-pms/design-system/components";
 import { getFormatedDate } from "@next-pms/design-system/date";
@@ -38,6 +37,7 @@ import TimeSelector from "@/components/add-time/time-selector";
 import { parseFrappeErrorMsg } from "@/lib/utils";
 import { TimesheetUpdateSchema } from "@/schema/timesheet";
 import type { EditTimeProps, TimesheetDetail } from "./types";
+import { useToasts } from "@rtcamp/frappe-ui-react";
 
 export const EditTime = ({ employee, date, task, open, onClose, user }: EditTimeProps) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -57,7 +57,7 @@ export const EditTime = ({ employee, date, task, open, onClose, user }: EditTime
   });
 
   const columns = ["Date", "Hours", "Description", "Billable", ""];
-  const { toast } = useToast();
+  const toast = useToasts();
   const { call: updateTimesheet } = useFrappePostCall("next_pms.timesheet.api.timesheet.bulk_update_timesheet_detail");
   const { call: deleteTimesheet } = useFrappePostCall("next_pms.timesheet.api.timesheet.delete");
   const { data, isLoading, mutate } = useFrappeGetCall("next_pms.timesheet.api.timesheet.get_timesheet_details", {
@@ -106,18 +106,12 @@ export const EditTime = ({ employee, date, task, open, onClose, user }: EditTime
       .then((res) => {
         mutate();
         form.reset({ data: updatedData });
-        toast({
-          variant: "success",
-          description: res.message,
-        });
+        toast.success(res.message);
         setIsSubmitting(false);
       })
       .catch((err) => {
         const error = parseFrappeErrorMsg(err);
-        toast({
-          variant: "destructive",
-          description: error,
-        });
+        toast.error(error);
         setIsSubmitting(false);
       });
   };
@@ -135,17 +129,11 @@ export const EditTime = ({ employee, date, task, open, onClose, user }: EditTime
     deleteTimesheet({ parent, name })
       .then((res) => {
         mutate();
-        toast({
-          variant: "success",
-          description: res.message,
-        });
+        toast.success(res.message);
       })
       .catch((err) => {
         const error = parseFrappeErrorMsg(err);
-        toast({
-          variant: "destructive",
-          description: error,
-        });
+        toast.error(error);
       });
   };
 
