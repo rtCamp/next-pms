@@ -67,8 +67,8 @@ const AddTime = ({
             hours: value.duration,
             employee
         })
-        setSubmitting(false);
         handleOpen();
+        setSubmitting(false);
       } catch (err) {
         const error = parseFrappeErrorMsg(err as FrappeError);
         toast({
