@@ -13,7 +13,6 @@ import {
   CommandInput,
   CommandItem,
   CommandList,
-  useToast,
   Spinner,
   Avatar,
   AvatarImage,
@@ -26,6 +25,7 @@ import { ArrowRight } from "lucide-react";
  */
 import { mergeClassNames, parseFrappeErrorMsg } from "@/lib/utils";
 import { Field } from "../types";
+import { useToasts } from "@rtcamp/frappe-ui-react";
 
 interface LinkFieldProps {
   field: Field;
@@ -171,7 +171,7 @@ interface LinkFieldOptionsProps {
  * @returns A JSX Component
  */
 const LinkFieldOptions = ({ field, input, setFilteredOptions, filteredOptions, onSelect }: LinkFieldOptionsProps) => {
-  const { toast } = useToast();
+  const toast = useToasts();
 
   const { data, isLoading, error } = useFrappeGetCall("frappe.client.get_list", {
     doctype: field.options,
@@ -193,10 +193,7 @@ const LinkFieldOptions = ({ field, input, setFilteredOptions, filteredOptions, o
     }
     if (error) {
       const err = parseFrappeErrorMsg(error);
-      toast({
-        variant: "destructive",
-        description: err,
-      });
+      toast.error(err);
     }
   }, [data, error]);
 

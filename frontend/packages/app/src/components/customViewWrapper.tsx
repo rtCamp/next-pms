@@ -5,7 +5,7 @@ import { useContext, useEffect, useMemo, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { useLocation, useSearchParams } from "react-router-dom";
 import { Spinner } from "@next-pms/design-system/components";
-import { useToast } from "@next-pms/design-system/hooks";
+import { useToasts } from "@rtcamp/frappe-ui-react";
 import { FrappeContext, FrappeConfig } from "frappe-react-sdk";
 
 /**
@@ -30,7 +30,7 @@ const CustomViewWrapper = ({ label, createFilter, children }: CustomViewWrapperP
   const [viewData, setViewData] = useState<ViewData | undefined>(undefined);
   const { call } = useContext(FrappeContext) as FrappeConfig;
   const dispatch = useDispatch();
-  const { toast } = useToast();
+  const toast = useToasts();
 
   const view = searchParams.get("view");
 
@@ -59,10 +59,7 @@ const CustomViewWrapper = ({ label, createFilter, children }: CustomViewWrapperP
         })
         .catch((error) => {
           const e = parseFrappeErrorMsg(error);
-          toast({
-            variant: "destructive",
-            description: e,
-          });
+          toast.error(e);
         });
     } else {
       setViewData(viewInfo);

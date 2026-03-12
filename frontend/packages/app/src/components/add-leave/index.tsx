@@ -6,7 +6,7 @@ import { DatePicker, Dialog, Button, TabButtons, Select, Textarea, ErrorMessage 
 import { getTodayDate } from "@next-pms/design-system/date";
 import { Calendar, CalendarX2 } from "lucide-react";
 import { FrappeError, useFrappeCreateDoc } from "frappe-react-sdk";
-import { useToast } from "@next-pms/design-system/hooks";
+import {useToasts} from "@rtcamp/frappe-ui-react";
 
 /**
  * Internal Dependencies
@@ -16,7 +16,7 @@ import { addLeaveFormSchema } from "./schema";
 import { parseFrappeErrorMsg } from "@/lib/utils";
 
 const AddLeave = ({ employee, open = false, onOpenChange }: LeaveTimeProps) => {
-  const { toast } = useToast();
+  const toast  = useToasts();
   const { createDoc, loading } = useFrappeCreateDoc();
 
   const form = useForm({
@@ -56,18 +56,12 @@ const AddLeave = ({ employee, open = false, onOpenChange }: LeaveTimeProps) => {
           custom_first_halfsecond_half,
         };
         await createDoc("Leave Application", data);
-        toast({
-          variant: "success",
-          description: "Leave created successfully",
-        });
+        toast.success( "Leave created successfully");
         handleOpen();
         onSuccess?.();
       } catch (err) {
         const error = parseFrappeErrorMsg(err as FrappeError);
-        toast({
-          description: error,
-          variant: "destructive",
-        });
+        toast.error( error);
       } finally {
         handleOpen();
       }

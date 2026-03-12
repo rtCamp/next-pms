@@ -21,7 +21,6 @@ import {
   TextArea,
 } from "@next-pms/design-system/components";
 import { prettyDate } from "@next-pms/design-system/date";
-import { useToast } from "@next-pms/design-system/hooks";
 import { useFrappeGetCall, useFrappePostCall } from "frappe-react-sdk";
 import { LoaderCircle, Send } from "lucide-react";
 import { z } from "zod";
@@ -31,10 +30,11 @@ import { z } from "zod";
 import { parseFrappeErrorMsg } from "@/lib/utils";
 import { TimesheetApprovalSchema } from "@/schema/timesheet";
 import type { ApprovalProps } from "./types";
+import { useToasts } from "@rtcamp/frappe-ui-react";
 
 export const Approval = ({ onClose, user, timesheetState, dispatch }: ApprovalProps) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { toast } = useToast();
+  const toast = useToasts();
   const { call } = useFrappePostCall("next_pms.timesheet.api.timesheet.submit_for_approval");
   const { data } = useFrappeGetCall("next_pms.timesheet.api.get_employee_with_role", {
     role: ["Projects Manager", "Projects User"],
@@ -63,19 +63,13 @@ export const Approval = ({ onClose, user, timesheetState, dispatch }: ApprovalPr
     setIsSubmitting(true);
     call(data)
       .then((res) => {
-        toast({
-          variant: "success",
-          description: res.message,
-        });
+        toast.success(res.message);
         setIsSubmitting(false);
         handleOpen();
       })
       .catch((err) => {
         const error = parseFrappeErrorMsg(err);
-        toast({
-          variant: "destructive",
-          description: error,
-        });
+        toast.error(error);
         setIsSubmitting(false);
       });
   };

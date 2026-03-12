@@ -15,7 +15,6 @@ import {
   Separator,
   Spinner,
   Typography,
-  useToast,
   DatePicker,
 } from "@next-pms/design-system/components";
 import { getFormatedDate, getTodayDate } from "@next-pms/design-system/date";
@@ -28,6 +27,7 @@ import { Calendar, Clock, X, Save, Search } from "lucide-react";
 import { parseFrappeErrorMsg } from "@/lib/utils";
 import { TaskData } from "@/types";
 import { Event } from "./types";
+import { useToasts } from "@rtcamp/frappe-ui-react";
 
 interface ImportFromGoogleCalendarDialogProps {
   open: boolean;
@@ -72,7 +72,7 @@ const ImportFromGoogleCalendarDialog: React.FC<ImportFromGoogleCalendarDialogPro
   const [isTaskLoading, setIsTaskLoading] = useState(false);
 
   const { call } = useContext(FrappeContext) as FrappeConfig;
-  const { toast } = useToast();
+  const toast = useToasts();
 
   const { call: bulkSave, loading: isSaving } = useFrappePostCall("next_pms.timesheet.api.timesheet.bulk_save");
 
@@ -96,10 +96,7 @@ const ImportFromGoogleCalendarDialog: React.FC<ImportFromGoogleCalendarDialogPro
       })
       .catch((err) => {
         const error = parseFrappeErrorMsg(err);
-        toast({
-          variant: "destructive",
-          description: error,
-        });
+        toast.error(error);
         setIsTaskLoading(false);
       });
   }, [call, searchTask, selectedProject, toast]);
@@ -198,18 +195,12 @@ const ImportFromGoogleCalendarDialog: React.FC<ImportFromGoogleCalendarDialogPro
 
     bulkSave({ timesheet_entries: eventsData })
       .then((res) => {
-        toast({
-          variant: "success",
-          description: res.message,
-        });
+        toast.success(res.message);
         onOpenChange(startDate);
       })
       .catch((err) => {
         const error = parseFrappeErrorMsg(err);
-        toast({
-          variant: "destructive",
-          description: error,
-        });
+        toast.error(error);
       });
   };
 

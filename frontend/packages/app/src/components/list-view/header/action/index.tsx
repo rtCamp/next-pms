@@ -11,7 +11,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
   DropdownMenuSeparator,
-  useToast,
 } from "@next-pms/design-system/components";
 import { useFrappeDeleteDoc, useFrappeUpdateDoc, FrappeContext, FrappeConfig } from "frappe-react-sdk";
 import { Download, EllipsisVertical, Plus, Trash2, Globe } from "lucide-react";
@@ -23,6 +22,7 @@ import { Export } from "@/components/list-view/export";
 import { canExport, canCreate, parseFrappeErrorMsg } from "@/lib/utils";
 import { removeView, setViews } from "@/store/view";
 import type { ActionProps } from "../../types";
+import { useToasts } from "@rtcamp/frappe-ui-react";
 
 /**
  * Action component
@@ -35,7 +35,7 @@ import type { ActionProps } from "../../types";
 const Action = ({ docType, exportProps, viewProps }: ActionProps) => {
   const [exportDialog, setExportDialog] = useState(false);
   const [createViewDialog, setCreateViewDialog] = useState(false);
-  const { toast } = useToast();
+  const toast = useToasts();
   const dispatch = useDispatch();
   const { deleteDoc, loading: deleteLoading } = useFrappeDeleteDoc();
   const { updateDoc, loading: updateLoading } = useFrappeUpdateDoc();
@@ -63,17 +63,11 @@ const Action = ({ docType, exportProps, viewProps }: ActionProps) => {
     updateDoc("PMS View Setting", viewProps.name, { public: 1 })
       .then(async () => {
         await fetchAllViews();
-        toast({
-          variant: "success",
-          description: "View has been made public successfully",
-        });
+        toast.success("View has been made public successfully");
       })
       .catch((err) => {
         const error = parseFrappeErrorMsg(err);
-        toast({
-          variant: "destructive",
-          description: error,
-        });
+        toast.error(error);
       });
   };
 
@@ -83,17 +77,11 @@ const Action = ({ docType, exportProps, viewProps }: ActionProps) => {
     deleteDoc("PMS View Setting", viewProps.name)
       .then(async () => {
         dispatch(removeView(viewProps.name));
-        toast({
-          variant: "success",
-          description: "View deleted successfully",
-        });
+        toast.success("View deleted successfully");
       })
       .catch((err) => {
         const error = parseFrappeErrorMsg(err);
-        toast({
-          variant: "destructive",
-          description: error,
-        });
+        toast.error(error);
       });
   };
 

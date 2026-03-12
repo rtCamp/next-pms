@@ -4,8 +4,8 @@
 import { Suspense, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { ErrorFallback } from "@next-pms/design-system/components";
-import { useToast, Toaster } from "@next-pms/design-system/components";
 import { useFrappeGetCall } from "frappe-react-sdk";
+import { useToasts } from "@rtcamp/frappe-ui-react";
 
 /**
  * Internal dependencies.
@@ -18,7 +18,7 @@ import { setInitialData } from "@/store/user";
 const Layout = ({ children }: { children: React.ReactNode }) => {
   const user = useSelector((state: RootState) => state.user);
   const dispatch = useDispatch();
-  const { toast } = useToast();
+  const toast = useToasts();
   const { data, error } = useFrappeGetCall("next_pms.timesheet.api.employee.get_data", {}, undefined, {
     revalidateOnFocus: false,
     revalidateIfStale: false,
@@ -38,12 +38,8 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
     }
     if (error) {
       const err = parseFrappeErrorMsg(error);
-      toast({
-        variant: "destructive",
-        description: err,
-      });
+      toast.error(err);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data, error]);
 
   return (
@@ -62,7 +58,6 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
           )}
         </div>
       </div>
-      <Toaster />
     </ErrorFallback>
   );
 };

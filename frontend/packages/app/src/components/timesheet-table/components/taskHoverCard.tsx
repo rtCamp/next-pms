@@ -10,7 +10,6 @@ import {
   Separator,
   TaskStatus,
   Typography,
-  useToast,
 } from "@next-pms/design-system/components";
 import { floatToTime } from "@next-pms/design-system/utils";
 import { useFrappePostCall } from "frappe-react-sdk";
@@ -26,6 +25,7 @@ import type { TaskData } from "@/types";
 import type { TaskDataProps } from "@/types/timesheet";
 import type { TaskHoverCardProps } from "./types";
 import TaskStatusIndicator from "../../taskStatusIndicator";
+import { useToasts } from "@rtcamp/frappe-ui-react";
 
 export const TaskHoverCard = ({
   name,
@@ -43,7 +43,7 @@ export const TaskHoverCard = ({
   }, [taskData, likedTaskData]);
 
   const { call: toggleLikeCall } = useFrappePostCall("frappe.desk.like.toggle_like");
-  const { toast } = useToast();
+  const toast = useToasts();
 
   const handleLike = (e: React.MouseEvent<SVGSVGElement>) => {
     e.stopPropagation();
@@ -64,10 +64,7 @@ export const TaskHoverCard = ({
       })
       .catch((err) => {
         const error = parseFrappeErrorMsg(err);
-        toast({
-          variant: "destructive",
-          description: error,
-        });
+        toast.error(error);
       });
   };
   return (
