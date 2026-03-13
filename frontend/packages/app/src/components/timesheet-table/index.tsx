@@ -106,7 +106,7 @@ export const TimesheetTable = ({
         onButtonClick={onButtonClick}
         collapsed={!firstWeek}
       >
-        {({ totalHours, totalTimeEntries, dailyWorkingHours, status }) => (
+        {({ totalHours, totalTimeEntries, totalTimeEntriesInHours, dailyWorkingHours, status }) => (
           <>
             <TotalRow
               breadcrumbs={{
@@ -144,6 +144,7 @@ export const TimesheetTable = ({
                     className="pl-[54px]"
                     disabled={disabled}
                     dailyWorkingHours={dailyWorkingHours}
+                    totalTimeEntriesInHours={totalTimeEntriesInHours}
                     employee={emplyoyee}
                   />
                 ))}

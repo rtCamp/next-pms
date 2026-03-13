@@ -36,6 +36,7 @@ export const TaskRow = ({
   onCellClick,
   disabled,
   dailyWorkingHours,
+  totalTimeEntriesInHours,
   employee,
   ...rest
 }: TaskRowProps) => {
@@ -88,6 +89,8 @@ export const TaskRow = ({
       popoverContent={(_, dayIndex, closePopover) => (
         <InlineTimeEntry
           dailyWorkingHours={dailyWorkingHours}
+          totalUsedHoursInDay={totalTimeEntriesInHours?.[dayIndex]}
+          isBillable={taskData.totalTimeEntries[dayIndex]?.nonBillable === false}
           date={dates[dayIndex]}
           task={taskKey}
           employee={employee}

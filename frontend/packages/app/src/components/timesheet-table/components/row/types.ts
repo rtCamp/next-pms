@@ -39,6 +39,7 @@ export interface WeekRowProps extends Omit<BaseWeekRowProps, "status"> {
   children?: (props: {
     totalHours: string;
     totalTimeEntries: string[];
+    totalTimeEntriesInHours: number[];
     dailyWorkingHours: number;
     status: RowStatus;
   }) => React.ReactNode;
@@ -67,6 +68,7 @@ export interface TaskRowProps extends Omit<
   onCellClick?: (data: NewTimesheetProps) => void;
   disabled?: boolean;
   dailyWorkingHours?: number;
+  totalTimeEntriesInHours?: number[];
   employee?: string;
 }
 

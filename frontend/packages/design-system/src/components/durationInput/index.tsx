@@ -34,9 +34,10 @@ const snapToSliderStep = (minutes: number): number => {
   return Math.round(minutes / SLIDER_STEP_MINUTES) * SLIDER_STEP_MINUTES;
 };
 
-interface DurationInputProps {
+export interface DurationInputProps {
   label?: string;
   maxDurationInHours?: number;
+  hoursLeft?: number;
   value?: number;
   variant?: "default" | "compact";
   onChange?: (value: number) => void;
@@ -45,6 +46,7 @@ interface DurationInputProps {
 const DurationInput = ({
   label = "Duration",
   maxDurationInHours = 8,
+  hoursLeft = maxDurationInHours,
   value = 0,
   variant = "default",
   onChange,
@@ -54,9 +56,11 @@ const DurationInput = ({
 
   const totalMinutes = maxDurationInHours * 60;
   const usedMinutes = duration;
-  const remainingMins = (totalMinutes - usedMinutes) % 60;
-  const remainingHours = Math.floor((totalMinutes - usedMinutes) / 60);
-
+  const safeHoursLeft = Number.isFinite(hoursLeft) ? hoursLeft : maxDurationInHours;
+  const remainingHours = safeHoursLeft - usedMinutes / 60;
+  const isOverHours = remainingHours < 0;
+  const formattedRemainingHours = Number(remainingHours.toFixed(1));
+  
   const handleSliderChange = (nextValue: number | number[]) => {
     const normalizedValue = Array.isArray(nextValue) ? nextValue[0] : nextValue;
     const clampedValue = Math.min(Math.max(normalizedValue, 0), totalMinutes);
@@ -95,8 +99,8 @@ const DurationInput = ({
       {variant === "default" ? (
         <div className="w-full flex justify-between text-xs text-ink-gray-5 ">
           <label>{label}</label>
-          <p>
-            {remainingHours}h {remainingMins}m left
+          <p className={isOverHours ? "text-ink-red-4" : undefined}>
+            {formattedRemainingHours}h left
           </p>
         </div>
       ) : null}
