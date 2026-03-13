@@ -5,14 +5,13 @@ import { Breadcrumbs, Button, Folder, People, Time } from "@rtcamp/frappe-ui-rea
 import { CalendarX2, ChevronDown, Plus } from "lucide-react";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useState } from "react";
-import { useSelector } from "react-redux";
 
 /**
  * Internal dependencies.
  */
 import { Header } from "@/layout/root";
 import type { TimesheetOutletContext } from "./outletContext";
-import { RootState } from "@/store";
+import { useUser } from "@/hooks/useUser";
 import AddTime from "@/pages/timesheet/components/add-time";
 import AddLeave from "@/pages/timesheet/components/add-leave";
 import SubmitApproval from "@/pages/timesheet/components/submit-approval";
@@ -29,15 +28,15 @@ function TimesheetLayout() {
   const [isTimeDialogOpen, setIsTimeDialogOpen] = useState(false);
   const [isLeaveDialogOpen, setIsLeaveDialogOpen] = useState(false);
   const [isSubmitApprovalOpen, setIsSubmitApprovalOpen] = useState(false);
-  const [submitApprovalDates, setSubmitApprovalDates] = useState({ startDate: "", endDate: "" });
+  const [submitApprovalDates, setSubmitApprovalDates] = useState({ startDate: "", endDate: "", totalHours: 0 });
 
-  const handleApproval = (startDate: string, endDate: string) => {
-    setSubmitApprovalDates({ startDate, endDate});
+  const handleApproval = (startDate: string, endDate: string, totalHours: number) => {
+    setSubmitApprovalDates({ startDate, endDate, totalHours });
     setIsSubmitApprovalOpen(true);
   };
 
   const { pathname } = useLocation();
-  const user = useSelector((state: RootState) => state.user);
+  const user = useUser();
 
   const selectedKey = pathname.includes("team") ? "team" : pathname.includes("project") ? "project" : "personal";
 
@@ -99,13 +98,11 @@ function TimesheetLayout() {
       } satisfies TimesheetOutletContext} />
       <AddTime
         initialDate={getTodayDate()}
-        employee={user.employee}
         open={isTimeDialogOpen}
         onOpenChange={setIsTimeDialogOpen}
         onSuccess={() => setIsTimeDialogOpen(false)}
       />
       <AddLeave
-        employee={user.employee}
         open={isLeaveDialogOpen}
         onOpenChange={setIsLeaveDialogOpen}
       />
@@ -114,6 +111,7 @@ function TimesheetLayout() {
         onOpenChange={setIsSubmitApprovalOpen}
         startDate={submitApprovalDates.startDate}
         endDate={submitApprovalDates.endDate}
+        totalHours={submitApprovalDates.totalHours}
       />
     </div>
   );

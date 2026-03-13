@@ -14,15 +14,18 @@ import { useToasts } from "@rtcamp/frappe-ui-react";
 import { type LeaveTimeProps, LEAVE_DURATION } from "./types";
 import { addLeaveFormSchema } from "./schema";
 import { parseFrappeErrorMsg } from "@/lib/utils";
+import { useUser } from "@/hooks/useUser";
 
-const AddLeave = ({ employee, open = false, onOpenChange }: LeaveTimeProps) => {
+const AddLeave = ({ open = false, onOpenChange }: LeaveTimeProps) => {
+  const user = useUser();
+
   const toast = useToasts();
   const { createDoc, loading } = useFrappeCreateDoc();
 
   const { data: leaveDetails } = useFrappeGetCall(
     "hrms.hr.doctype.leave_application.leave_application.get_leave_details",
     {
-      employee: employee,
+      employee: user.employee,
       date: getTodayDate(),
     },
   );

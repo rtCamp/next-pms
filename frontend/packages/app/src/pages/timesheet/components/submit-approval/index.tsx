@@ -2,16 +2,18 @@
  * External Dependencies
  */
 import { useState } from "react";
-import { Dialog, Button, Textarea, Select, Combobox } from "@rtcamp/frappe-ui-react";
+import { useForm } from "@tanstack/react-form";
+import { Dialog, Button, Textarea, Combobox, ErrorMessage, useToasts } from "@rtcamp/frappe-ui-react";
 import { format, parseISO } from "date-fns";
-import { useFrappeGetCall } from "frappe-react-sdk";
+import { FrappeError, useFrappeGetCall, useFrappePostCall } from "frappe-react-sdk";
 
-type SubmitApprovalProps = {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  startDate: string;
-  endDate: string;
-};
+/**
+ * Internal Dependencies
+ */
+import type { SubmitApprovalProps, EmployeeRecord } from "./types";
+import { submitApprovalSchema } from "./schema";
+import { useUser } from "@/hooks/useUser";
+import { parseFrappeErrorMsg } from "@/lib/utils";
 
 const formatWeekLabel = (startDate: string, endDate: string) => {
   try {
@@ -23,64 +25,99 @@ const formatWeekLabel = (startDate: string, endDate: string) => {
   }
 };
 
-const SubmitApproval = ({ open, onOpenChange, startDate, endDate }: SubmitApprovalProps) => {
-  const [note, setNote] = useState("");
+const SubmitApproval = ({ open, onOpenChange, startDate, endDate, totalHours }: SubmitApprovalProps) => {
+  const user = useUser();
+  const toast = useToasts();
+  const [submitting, setSubmitting] = useState(false);
+  const { call: submitForApproval } = useFrappePostCall("next_pms.timesheet.api.timesheet.submit_for_approval");
 
   const { data } = useFrappeGetCall("next_pms.timesheet.api.get_employee_with_role", {
     role: ["Projects Manager", "Projects User"],
   });
 
-  const approvers = (data?.message || []).map((emp:{
-    employee_name:string,
-    name:string
-  })=>({
-    label:emp.employee_name,
-    value:emp.name
-  }))
-  
-  const [sendTo, setSendTo] = useState("");
+  const approvers = ((data?.message ?? []) as EmployeeRecord[]).map((emp) => ({
+    label: emp.employee_name,
+    value: emp.name,
+  }));
 
-  // Hardcoded for now
-  const totalHours = "40:00";
   const weekLabel = formatWeekLabel(startDate, endDate);
+  const formattedHours = `${Math.floor(totalHours)}:${String(Math.round((totalHours % 1) * 60)).padStart(2, "0")}`;
 
-  const handleSubmit = () => {
-    onOpenChange(false);
-  };
+  const form = useForm({
+    defaultValues: {
+      note: "",
+      sendTo: user.reportsTo,
+    },
+    validators: {
+      onSubmit: submitApprovalSchema,
+    },
+    onSubmit: async ({ value }) => {
+      setSubmitting(true);
+      try {
+        await submitForApproval({
+          employee: user.employee,
+          start_date: startDate,
+          end_date: endDate,
+          approver: value.sendTo,
+          notes: value.note,
+        });
+        toast.success("Timesheet submitted for approval successfully");
+      } catch (err) {
+        const error = parseFrappeErrorMsg(err as FrappeError);
+        toast.error(error);
+      } finally {
+        setSubmitting(false);
+        onOpenChange(false);
+        form.reset();
+      }
+    },
+  });
 
   return (
     <Dialog
       open={open}
       onOpenChange={onOpenChange}
-      actions={
-        <Button className="w-full" variant="solid" label="Submit" onClick={handleSubmit} />
-      }
+      actions={<Button className="w-full" variant="solid" label="Submit" onClick={() => form.handleSubmit()} disabled={submitting} loading={submitting} />}
       options={{ title: "Submit for approval" }}
     >
       <div className="space-y-4">
         <div className="flex justify-between items-center bg-surface-gray-1 rounded-lg px-4 py-2.5">
           <span className="text-sm text-ink-gray-8">{weekLabel}</span>
-          <span className="text-sm text-ink-green-3 font-medium">{totalHours}</span>
+          <span className="text-sm text-ink-green-3 font-medium">{formattedHours}</span>
         </div>
 
-        <div className="space-y-1.5">
-          <label className="block text-xs text-ink-gray-5">Note</label>
-          <Textarea
-            value={note}
-            onChange={(e) => setNote(e.target.value)}
-            className="bg-white border-outline-gray-2"
-          />
-        </div>
+        <form.Field
+          name="note"
+          children={(field) => (
+            <div className="space-y-1.5">
+              <label className="block text-xs text-ink-gray-5">Note</label>
+              <Textarea
+                value={field.state.value}
+                placeholder="Comment"
+                onChange={(e) => field.handleChange(e.target.value)}
+                className="bg-white border-outline-gray-2"
+              />
+              {!field.state.meta.isValid && <ErrorMessage message={field.state.meta.errors[0]?.message} />}
+            </div>
+          )}
+        />
 
-        <div className="space-y-1.5">
-          <label className="block text-xs text-ink-gray-5">Send to</label>
-          <Combobox
-            value={sendTo}
-            onChange={(val) => setSendTo(val as string)}
-            options={approvers}
-            inputClassName="bg-white h-8 border-outline-gray-2"
-          />
-        </div>
+        <form.Field
+          name="sendTo"
+          children={(field) => (
+            <div className="space-y-1.5">
+              <label className="block text-xs text-ink-gray-5">Send to</label>
+              <Combobox
+                value={field.state.value}
+                placeholder="Select Approver"
+                onChange={(val) => field.handleChange(val as string)}
+                options={approvers}
+                inputClassName="bg-white h-8 border-outline-gray-2"
+              />
+              {!field.state.meta.isValid && <ErrorMessage message={field.state.meta.errors[0]?.message} />}
+            </div>
+          )}
+        />
       </div>
     </Dialog>
   );

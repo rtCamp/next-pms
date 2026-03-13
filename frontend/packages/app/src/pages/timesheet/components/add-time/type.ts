@@ -30,7 +30,6 @@ export type TaskListData = {
 
 export interface AddTimeProps {
   initialDate: string;
-  employee: string;
   open: boolean;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   onOpenChange: (data: any) => void;
