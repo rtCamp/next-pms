@@ -26,12 +26,15 @@ import { validateDate } from "../utils";
 import { InfiniteScroll } from "../../../components/infiniteScroll";
 import { sampleFields } from "../constants";
 import { HeaderRow } from "../../../components/timesheet-table/components/row/headerRow";
+import { useTimesheetOutletContext } from "../outletContext";
 
 function Timesheet() {
   const targetRef = useRef<HTMLDivElement>(null);
   const toast = useToasts();
   const [filters, setFilters] = useState<FilterCondition[]>([]);
   const [search, setSearch] = useState("");
+
+  const {handleApproval} = useTimesheetOutletContext();
 
   const [startDateParam, setStartDateParam] = useQueryParam<string>("date", "");
   const user = useSelector((state: RootState) => state.user);
@@ -136,14 +139,6 @@ function Timesheet() {
     const obj = data[lastKey];
     setStartDateParam("");
     dispatch({ type: "SET_WEEK_DATE", payload: getFormatedDate(addDays(obj.start_date, -1)) });
-  };
-  const handleApproval = (start_date: string, end_date: string) => {
-    const data = {
-      start_date: start_date,
-      end_date: end_date,
-    };
-    dispatch({ type: "SET_DATE_RANGE", payload: data });
-    dispatch({ type: "SET_APPROVAL_DIALOG_STATE", payload: true });
   };
 
   const filteredWeekEntries = useMemo(() => {

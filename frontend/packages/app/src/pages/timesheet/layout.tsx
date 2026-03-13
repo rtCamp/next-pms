@@ -15,6 +15,7 @@ import type { TimesheetOutletContext } from "./outletContext";
 import { RootState } from "@/store";
 import AddTime from "@/pages/timesheet/components/add-time";
 import AddLeave from "@/pages/timesheet/components/add-leave";
+import SubmitApproval from "@/pages/timesheet/components/submit-approval";
 import { getTodayDate } from "@next-pms/design-system";
 
 const timesheetViews = [
@@ -27,6 +28,13 @@ function TimesheetLayout() {
   const navigate = useNavigate();
   const [isTimeDialogOpen, setIsTimeDialogOpen] = useState(false);
   const [isLeaveDialogOpen, setIsLeaveDialogOpen] = useState(false);
+  const [isSubmitApprovalOpen, setIsSubmitApprovalOpen] = useState(false);
+  const [submitApprovalDates, setSubmitApprovalDates] = useState({ startDate: "", endDate: "" });
+
+  const handleApproval = (startDate: string, endDate: string) => {
+    setSubmitApprovalDates({ startDate, endDate});
+    setIsSubmitApprovalOpen(true);
+  };
 
   const { pathname } = useLocation();
   const user = useSelector((state: RootState) => state.user);
@@ -87,6 +95,7 @@ function TimesheetLayout() {
       <Outlet context={{
         openAddTimeDialog: () => setIsTimeDialogOpen(true),
         openAddLeaveDialog: () => setIsLeaveDialogOpen(true),
+        handleApproval
       } satisfies TimesheetOutletContext} />
       <AddTime
         initialDate={getTodayDate()}
@@ -99,6 +108,12 @@ function TimesheetLayout() {
         employee={user.employee}
         open={isLeaveDialogOpen}
         onOpenChange={setIsLeaveDialogOpen}
+      />
+      <SubmitApproval
+        open={isSubmitApprovalOpen}
+        onOpenChange={setIsSubmitApprovalOpen}
+        startDate={submitApprovalDates.startDate}
+        endDate={submitApprovalDates.endDate}
       />
     </div>
   );
