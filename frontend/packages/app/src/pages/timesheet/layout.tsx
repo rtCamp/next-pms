@@ -11,9 +11,10 @@ import { useSelector } from "react-redux";
  * Internal dependencies.
  */
 import { Header } from "@/layout/root";
+import type { TimesheetOutletContext } from "./outletContext";
 import { RootState } from "@/store";
-import AddTime from "@/components/add-time";
-import AddLeave from "@/components/add-leave";
+import AddTime from "@/pages/timesheet/components/add-time";
+import AddLeave from "@/pages/timesheet/components/add-leave";
 import { getTodayDate } from "@next-pms/design-system";
 
 const timesheetViews = [
@@ -83,7 +84,10 @@ function TimesheetLayout() {
           />
         </div>
       </Header>
-      <Outlet />
+      <Outlet context={{
+        openAddTimeDialog: () => setIsTimeDialogOpen(true),
+        openAddLeaveDialog: () => setIsLeaveDialogOpen(true),
+      } satisfies TimesheetOutletContext} />
       <AddTime
         initialDate={getTodayDate()}
         employee={user.employee}
