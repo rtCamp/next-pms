@@ -266,6 +266,7 @@ function Timesheet() {
                             leaves={timesheet.data.leaves}
                             tasks={value.tasks}
                             onCellClick={onCellClick}
+                            firstWeek={index === 0}
                             weeklyStatus={value.status}
                             disabled={value.status === "Approved"}
                             loadingLikedTasks={loadingLikedTasks}

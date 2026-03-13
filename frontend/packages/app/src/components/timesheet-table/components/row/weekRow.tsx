@@ -40,9 +40,10 @@ export const WeekRow = ({
   status,
   children,
   onButtonClick,
+  collapsed: initialCollapsed,
   ...rest
 }: WeekRowProps) => {
-  const [collapsed, setCollapsed] = useState(false);
+  const [collapsed, setCollapsed] = useState(initialCollapsed);
 
   const dailyWorkingHours = expectatedHours(workingHour, workingFrequency);
 

@@ -27,6 +27,7 @@ export const TimesheetTable = ({
   tasks,
   leaves,
   onCellClick,
+  firstWeek,
   workingHour,
   workingFrequency,
   disabled,
@@ -102,6 +103,7 @@ export const TimesheetTable = ({
         status={status}
         className="pl-3"
         onButtonClick={onButtonClick}
+        collapsed={!firstWeek}
       >
         {({ totalHours, totalTimeEntries, dailyWorkingHours, status }) => (
           <>
