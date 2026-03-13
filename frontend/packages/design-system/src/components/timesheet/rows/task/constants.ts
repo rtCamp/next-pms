@@ -19,6 +19,15 @@ export type TaskStatus =
   | "completed"
   | "cancelled";
 
+export const taskStatusMap: Record<string, TaskStatus> = {
+  Open: "open",
+  Working: "working",
+  "Pending Review": "pending-rev",
+  Overdue: "overdue",
+  Completed: "completed",
+  Cancelled: "cancelled",
+};
+
 export type TaskRowTimeEntry = {
   time: string;
   nonBillable?: boolean;

@@ -77,6 +77,7 @@ export interface NewTimesheetProps {
   name: string;
   parent?: string;
   task: string;
+  project?: string;
   date: string;
   description: string;
   hours: number;

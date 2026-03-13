@@ -2,7 +2,7 @@
  * External dependencies.
  */
 import { floatToTime } from "@next-pms/design-system";
-import { getUTCDateTime, normalizeDate } from "@next-pms/design-system/date";
+import { getDateFromDateAndTimeString, getUTCDateTime, normalizeDate } from "@next-pms/design-system/date";
 import { toast } from "@next-pms/design-system/hooks";
 import { type ClassValue, clsx } from "clsx";
 import { isToday } from "date-fns";
@@ -13,7 +13,7 @@ import { twMerge } from "tailwind-merge";
  */
 import { timeStringToFloat } from "@/schema/timesheet";
 import { WorkingFrequency } from "@/types";
-import { HolidayProp, LeaveProps } from "@/types/timesheet";
+import { HolidayProp, LeaveProps, TaskProps } from "@/types/timesheet";
 
 export const NO_VALUE_FIELDS = [
   "Section Break",
@@ -413,4 +413,49 @@ export const getDefaultView = (
     public: false,
     default: true,
   };
+};
+
+/**
+ * Calculates the total hours for a given date across all tasks.
+ *
+ * @param tasks TaskProps object containing task data.
+ * @param date Date string for which to calculate total hours.
+ * @returns Total hours for the given date.
+ */
+export const calculateTotalHours = (tasks: TaskProps, date: string) => {
+  return Object.values(tasks).reduce((total, taskData) => {
+    const taskHours = taskData.data
+      .filter((data) => getDateFromDateAndTimeString(data.from_time) === date)
+      .reduce((sum, item) => sum + item.hours, 0);
+    return total + taskHours;
+  }, 0);
+};
+
+/**
+ * Calculates the total leave hours for a given date.
+ *
+ * @param leaves Array of LeaveProps containing leave data.
+ * @param date Date string for which to calculate leave hours.
+ * @param daily_working_hours Number of working hours in a day.
+ * @param holiday HolidayProp object for the given date (if any).
+ * @returns Total leave hours for the given date.
+ */
+export const calculateLeaveHours = (
+  leaves: LeaveProps[],
+  date: string,
+  daily_working_hours: number,
+  holiday: HolidayProp | undefined
+) => {
+  return leaves.reduce((total, leave) => {
+    if (date >= leave.from_date && date <= leave.to_date) {
+      if (!leave.is_lwp && holiday?.weekly_off) {
+        return 0;
+      } else if (leave.half_day && leave.half_day_date === date) {
+        return total + daily_working_hours / 2;
+      } else {
+        return total + daily_working_hours;
+      }
+    }
+    return total;
+  }, 0);
 };

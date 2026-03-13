@@ -35,7 +35,7 @@ function TimesheetLayout() {
   const activeView = timesheetViews.find((v) => v.key === selectedKey)!;
 
   return (
-    <div className="h-screen">
+    <div className="h-screen bg-surface-white">
       <Header className="justify-between">
         <Breadcrumbs
           items={[

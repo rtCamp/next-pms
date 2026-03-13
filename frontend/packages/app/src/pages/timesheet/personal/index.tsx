@@ -1,7 +1,7 @@
 /**
  * External dependencies.
  */
-import { useEffect, useReducer, useRef, useState } from "react";
+import { useEffect, useMemo, useReducer, useRef, useState } from "react";
 import { useSelector } from "react-redux";
 import { Spinner, Typography } from "@next-pms/design-system/components";
 import { getUTCDateTime, getFormatedDate } from "@next-pms/design-system/date";
@@ -25,11 +25,13 @@ import { initialState, reducer } from "../reducer";
 import { validateDate } from "../utils";
 import { InfiniteScroll } from "../../../components/infiniteScroll";
 import { sampleFields } from "../constants";
+import { HeaderRow } from "../../../components/timesheet-table/components/row/headerRow";
 
 function Timesheet() {
   const targetRef = useRef<HTMLDivElement>(null);
   const toast = useToasts();
   const [filters, setFilters] = useState<FilterCondition[]>([]);
+  const [search, setSearch] = useState("");
 
   const [startDateParam, setStartDateParam] = useQueryParam<string>("date", "");
   const user = useSelector((state: RootState) => state.user);
@@ -144,26 +146,47 @@ function Timesheet() {
     dispatch({ type: "SET_APPROVAL_DIALOG_STATE", payload: true });
   };
 
+  const filteredWeekEntries = useMemo(() => {
+    const entries = Object.entries(timesheet.data.data) as [string, timesheet][];
+    const query = search.trim().toLowerCase();
+
+    if (!query) return entries;
+
+    return entries.map(([key, week]) => {
+      const filteredTasks = Object.fromEntries(
+        Object.entries(week.tasks).filter(
+          ([_, task]) => task.name.toLowerCase().includes(query) || task.subject.toLowerCase().includes(query),
+        ),
+      );
+
+      return [key, { ...week, tasks: filteredTasks }] as [string, timesheet];
+    });
+  }, [timesheet.data.data, search]);
+
   const handleImportTaskFromGoogleCalendar = () => {
     dispatch({ type: "SET_IMPORT_FROM_GOOGLE_CALENDAR_DIALOG_STATE", payload: true });
   };
 
   return (
-    <div className="w-full h-full py-3.5 px-5">
+    <div className="w-full h-full py-3.5 px-3">
       <div className="flex justify-between mb-3.5">
         <div className="flex gap-2">
-          <TextInput placeholder="Search Tasks" />
+          <TextInput
+            placeholder="Search Tasks"
+            value={search}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearch(e.target.value)}
+          />
           <Select
             placeholder="Approval Status"
             className="w-fit"
             options={[
               {
-                label: "Pending",
-                value: "pending",
-              },
-              {
                 label: "Not Submitted",
                 value: "not-submitted",
+              },
+              {
+                label: "Approval Pending",
+                value: "approval-pending",
               },
               {
                 label: "Approved",
@@ -199,39 +222,64 @@ function Timesheet() {
               isLoading={isLoading}
               hasMore={true}
               verticalLodMore={loadData}
-              className="w-full h-full overflow-scroll"
+              className="w-full h-full overflow-auto"
             >
-              {timesheet.data?.data &&
-                Object.keys(timesheet.data?.data).length > 0 &&
-                Object.entries(timesheet.data?.data).map(([key, value]: [string, timesheet], index) => {
-                  return (
-                    <div
-                      key={key}
-                      ref={
-                        !isEmpty(startDateParam) && isDateInRange(startDateParam, value.start_date, value.end_date)
-                          ? targetRef
-                          : null
-                      }
-                    >
-                      <TimesheetTable
-                        workingHour={timesheet.data.working_hour}
-                        workingFrequency={timesheet.data.working_frequency as WorkingFrequency}
-                        dates={value.dates}
-                        holidays={timesheet.data.holidays}
-                        leaves={timesheet.data.leaves}
-                        tasks={value.tasks}
-                        onCellClick={onCellClick}
-                        weeklyStatus={value.status}
-                        disabled={value.status === "Approved"}
-                        showHeading={index === 0}
-                        loadingLikedTasks={loadingLikedTasks}
-                        likedTaskData={likedTaskData}
-                        getLikedTaskData={getLikedTaskData}
-                        onButtonClick={() => handleApproval(value.start_date, value.end_date)}
-                      />
-                    </div>
-                  );
-                })}
+              <div className="min-w-225">
+                {timesheet.data?.data &&
+                  Object.keys(timesheet.data?.data).length > 0 &&
+                  filteredWeekEntries.map(([key, value], index) => {
+                    return (
+                      <>
+                        {index === 0 ? (
+                          <div className="mb-4 sticky top-0 bg-surface-white z-10">
+                            <HeaderRow
+                              dates={value.dates}
+                              showHeading={true}
+                              breadcrumbs={{
+                                items: [
+                                  { label: "Week", interactive: false },
+                                  { label: "Project", interactive: false },
+                                  { label: "Task", interactive: false },
+                                ],
+                                highlightLastItem: false,
+                                size: "sm",
+                                crumbClassName: "first:pl-0 last:pr-0",
+                                className: "pl-[8px]",
+                              }}
+                            />
+                          </div>
+                        ) : null}
+                        <div
+                          key={key}
+                          ref={
+                            !isEmpty(startDateParam) && isDateInRange(startDateParam, value.start_date, value.end_date)
+                              ? targetRef
+                              : null
+                          }
+                        >
+                          <TimesheetTable
+                            label={key}
+                            workingHour={timesheet.data.working_hour}
+                            workingFrequency={timesheet.data.working_frequency as WorkingFrequency}
+                            dates={value.dates}
+                            holidays={timesheet.data.holidays}
+                            leaves={timesheet.data.leaves}
+                            tasks={value.tasks}
+                            onCellClick={onCellClick}
+                            firstWeek={index === 0}
+                            weeklyStatus={value.status}
+                            disabled={value.status === "Approved"}
+                            loadingLikedTasks={loadingLikedTasks}
+                            likedTaskData={likedTaskData}
+                            getLikedTaskData={getLikedTaskData}
+                            onButtonClick={() => handleApproval(value.start_date, value.end_date)}
+                            status={value.status}
+                          />
+                        </div>
+                      </>
+                    );
+                  })}
+              </div>
             </InfiniteScroll>
           )}
         </>
