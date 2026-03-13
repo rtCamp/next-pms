@@ -22,6 +22,7 @@ import type { timesheetTableProps } from "./components/types";
 
 export const TimesheetTable = ({
   label,
+  emplyoyee,
   dates,
   holidays,
   tasks,
@@ -142,6 +143,8 @@ export const TimesheetTable = ({
                     onCellClick={onCellClick}
                     className="pl-[54px]"
                     disabled={disabled}
+                    dailyWorkingHours={dailyWorkingHours}
+                    employee={emplyoyee}
                   />
                 ))}
               </ProjectRow>

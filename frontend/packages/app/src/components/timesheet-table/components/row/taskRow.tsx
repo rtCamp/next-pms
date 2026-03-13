@@ -11,6 +11,7 @@ import { TaskRow as BaseTaskRow, taskStatusMap } from "@next-pms/design-system/c
 import { calculateTotalHours } from "@/lib/utils";
 import { NewTimesheetProps } from "@/types/timesheet";
 import type { TaskRowProps } from "./types";
+import { InlineTimeEntry } from "../inline-time-entry";
 
 /**
  * @description This is the task row component for the timesheet table.
@@ -23,8 +24,21 @@ import type { TaskRowProps } from "./types";
  * @param {Array} props.likedTaskData - Array of liked task data to determine if the task is liked or not.
  * @param {function} props.onCellClick - Function to be called when a cell is clicked.
  * @param {boolean} props.disabled - Whether the task row is disabled.
+ * @param {number} props.dailyWorkingHours - Daily working hours for the task.
+ * @param {string} props.employee - Employee for the timesheet entry.
  */
-export const TaskRow = ({ dates, taskKey, tasks, status, likedTaskData, onCellClick, disabled, ...rest }: TaskRowProps) => {
+export const TaskRow = ({
+  dates,
+  taskKey,
+  tasks,
+  status,
+  likedTaskData,
+  onCellClick,
+  disabled,
+  dailyWorkingHours,
+  employee,
+  ...rest
+}: TaskRowProps) => {
   const [taskLiked, setTaskLiked] = useState(false);
 
   const taskData = useMemo(() => {
@@ -52,7 +66,7 @@ export const TaskRow = ({ dates, taskKey, tasks, status, likedTaskData, onCellCl
         name: "",
         task: taskKey,
         project: tasks[taskKey].project,
-		employee: "",
+        employee: "",
       };
       onCellClick?.(value);
     },
@@ -71,6 +85,15 @@ export const TaskRow = ({ dates, taskKey, tasks, status, likedTaskData, onCellCl
       timeEntries={taskData.totalTimeEntries}
       starred={taskLiked}
       onCellClick={handleCellClick}
+      popoverContent={(_, dayIndex, closePopover) => (
+        <InlineTimeEntry
+          dailyWorkingHours={dailyWorkingHours}
+          date={dates[dayIndex]}
+          task={taskKey}
+          employee={employee}
+          onSubmitSuccess={closePopover}
+        />
+      )}
     />
   );
 };

@@ -38,14 +38,16 @@ interface DurationInputProps {
   label?: string;
   maxDurationInHours?: number;
   value?: number;
+  variant?: "default" | "compact";
   onChange?: (value: number) => void;
 }
 
-const DurationInput = ({ 
-  label = "Duration", 
+const DurationInput = ({
+  label = "Duration",
   maxDurationInHours = 8,
   value = 0,
-  onChange
+  variant = "default",
+  onChange,
 }: DurationInputProps) => {
   const [duration, setDuration] = useState(value);
   const [inputValue, setInputValue] = useState(formatMinutesToHHMM(value));
@@ -90,12 +92,14 @@ const DurationInput = ({
 
   return (
     <div className="space-y-1.5">
-      <div className="w-full flex justify-between text-xs text-ink-gray-5 ">
-        <label>{label}</label>
-        <p>
-          {remainingHours}h {remainingMins}m left
-        </p>
-      </div>
+      {variant === "default" ? (
+        <div className="w-full flex justify-between text-xs text-ink-gray-5 ">
+          <label>{label}</label>
+          <p>
+            {remainingHours}h {remainingMins}m left
+          </p>
+        </div>
+      ) : null}
       <div className="relative">
         <Slider.Root
           defaultValue={0}
@@ -105,7 +109,7 @@ const DurationInput = ({
           value={sliderValue}
           onValueChange={handleSliderChange}
         >
-          <Slider.Control className="flex items-center relative focus:border-outline-gray-4 focus:shadow-sm focus:ring-0 focus-visible:ring-2 focus-visible:ring-outline-gray-3">
+          <Slider.Control className="flex items-center rounded relative focus:border-outline-gray-4 focus:shadow-sm focus:ring-0 focus-visible:ring-2 focus-visible:ring-outline-gray-3">
             <Slider.Track className="w-full h-8 bg-surface-gray-1 rounded">
               <Slider.Indicator className="rounded bg-surface-gray-3 select-none" />
             </Slider.Track>

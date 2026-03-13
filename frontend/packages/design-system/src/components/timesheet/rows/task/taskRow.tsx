@@ -30,7 +30,8 @@ export interface TaskRowProps {
   /** Optional function to render popover content for a time entry, receiving the task index and day index. */
   popoverContent?: (
     taskIndex: number | undefined,
-    dayIndex: number
+    dayIndex: number,
+    closePopover: () => void
   ) => React.ReactNode;
   /** Total hours logged for the week. */
   totalHours?: string;
@@ -84,12 +85,15 @@ export const TaskRow: React.FC<TaskRowProps> = ({
         </div>
       </div>
       {timeEntries.map((timeEntry, index) => {
+        const actionsRef: React.RefObject<Popover.Root.Actions | null> = { current: null };
+        const closePopover = () => actionsRef.current?.close();
+
         return (
           <div
             key={index}
             className="shrink-0 flex justify-end items-center text-base text-ink-gray-6 whitespace-nowrap w-16 h-7 pl-2 py-1.5 leading-3.5"
           >
-            <Popover.Root>
+            <Popover.Root actionsRef={actionsRef}>
               <Popover.Trigger
                 openOnHover
                 render={
@@ -120,7 +124,7 @@ export const TaskRow: React.FC<TaskRowProps> = ({
               <Popover.Portal>
                 <Popover.Positioner sideOffset={8} align="end">
                   <Popover.Popup>
-                    {popoverContent?.(taskIndex, index)}
+                    {popoverContent?.(taskIndex, index, closePopover)}
                   </Popover.Popup>
                 </Popover.Positioner>
               </Popover.Portal>

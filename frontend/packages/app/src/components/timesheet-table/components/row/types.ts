@@ -66,6 +66,8 @@ export interface TaskRowProps extends Omit<
   likedTaskData: TaskDataProps[];
   onCellClick?: (data: NewTimesheetProps) => void;
   disabled?: boolean;
+  dailyWorkingHours?: number;
+  employee?: string;
 }
 
 export interface TimeOffRowProps extends Omit<

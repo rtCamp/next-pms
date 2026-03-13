@@ -259,6 +259,7 @@ function Timesheet() {
                         >
                           <TimesheetTable
                             label={key}
+                            emplyoyee={user.employee}
                             workingHour={timesheet.data.working_hour}
                             workingFrequency={timesheet.data.working_frequency as WorkingFrequency}
                             dates={value.dates}
