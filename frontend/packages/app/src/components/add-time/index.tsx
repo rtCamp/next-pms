@@ -61,6 +61,7 @@ const AddTime = ({ initialDate, employee, open = false, onOpenChange, task = "",
       } finally {
         setSubmitting(false);
         onOpenChange(false);
+        form.reset();
       }
     },
   });
