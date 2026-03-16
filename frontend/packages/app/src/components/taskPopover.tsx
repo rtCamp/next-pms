@@ -1,12 +1,18 @@
 /**
  * External dependencies
  */
-import { Badge, } from "@rtcamp/frappe-ui-react";
 import React from "react";
 import { ProgressV2 } from "@next-pms/design-system/components";
+import { Badge } from "@rtcamp/frappe-ui-react";
 import { TaskStatus } from "../../../design-system/src/components/timesheet";
-import { statusIcon, statusIconVariants } from "../../../design-system/src/components/timesheet/rows/task/constants";
-import { mergeClassNames as cn } from "../../../design-system/src/utils";
+import {
+  statusIcon,
+  statusIconVariants,
+} from "../../../design-system/src/components/timesheet/rows/task/constants";
+import {
+  mergeClassNames as cn,
+  timeToDecimalHours,
+} from "../../../design-system/src/utils";
 
 type BadgeItem = {
   icon: React.ReactNode;
@@ -19,14 +25,20 @@ type TaskPopoverProps = {
   actualHours: string;
   estimatedHours: string;
   status: TaskStatus;
-}
+};
 
-const TaskPopover: React.FC<TaskPopoverProps> = ({ label, badges, actualHours, estimatedHours, status }) => {
+const TaskPopover: React.FC<TaskPopoverProps> = ({
+  label,
+  badges,
+  actualHours,
+  estimatedHours,
+  status,
+}) => {
   const StatusIcon = statusIcon[status];
 
   // Calculate progress percentage
-  const actual = parseFloat(actualHours) || 0;
-  const estimated = parseFloat(estimatedHours) || 1;
+  const actual = timeToDecimalHours(actualHours);
+  const estimated = timeToDecimalHours(estimatedHours) || 1;
   const progress = Math.round((actual / estimated) * 100);
 
   return (
@@ -35,23 +47,24 @@ const TaskPopover: React.FC<TaskPopoverProps> = ({ label, badges, actualHours, e
         <StatusIcon
           strokeWidth={1.5}
           size={16}
-          className={cn(statusIconVariants({ status }), "col-start-1 col-end-2 w-full shrink-0")}
+          className={cn(
+            statusIconVariants({ status }),
+            "col-start-1 col-end-2 w-full shrink-0",
+          )}
         />
         <div className="col-start-2 col-end-3 text-base font-semibold">
           {label}
         </div>
 
-        {
-          badges.length > 0 && (
-            <div className="flex flex-wrap col-start-2 col-end-3 gap-1">
-              {badges.map((badge, index) => (
-                <Badge key={index} variant="subtle" size="md" prefix={badge.icon}>
-                  {badge.text}
-                </Badge>
-              ))}
-            </div>
-          )
-        }
+        {badges.length > 0 && (
+          <div className="flex flex-wrap col-start-2 col-end-3 gap-1">
+            {badges.map((badge, index) => (
+              <Badge key={index} variant="subtle" size="md" prefix={badge.icon}>
+                {badge.text}
+              </Badge>
+            ))}
+          </div>
+        )}
       </div>
 
       <div className="flex justify-between text-base">
@@ -73,6 +86,6 @@ const TaskPopover: React.FC<TaskPopoverProps> = ({ label, badges, actualHours, e
       <ProgressV2 value={progress} size="xxl" className="mt-2.5" />
     </div>
   );
-}
+};
 
 export default TaskPopover;
