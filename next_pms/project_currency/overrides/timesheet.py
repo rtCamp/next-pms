@@ -136,7 +136,7 @@ class TimesheetOverwrite(Timesheet):
             employee = frappe.get_doc(
                 "Employee",
                 self.employee,
-                ["ctc", "salary_currency"],
+                fields=["ctc", "salary_currency"],
             )
             employee_salary = employee.ctc
             employee_currency = employee.salary_currency
