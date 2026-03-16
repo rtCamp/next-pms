@@ -12,6 +12,7 @@ export {
 export { default as Input, type InputProps } from "./input";
 export { default as Spinner, type SpinnerProp } from "./spinner";
 export { default as Progress } from "./progress";
+export { ProgressV2, type ProgressV2Props } from "./progress-v2";
 export { default as Label } from "./label";
 export { default as Typography, type TypographyProps } from "./typography";
 export { default as Skeleton } from "./skeleton";
