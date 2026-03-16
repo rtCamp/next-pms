@@ -4,15 +4,11 @@
 import React from "react";
 import { ProgressV2 } from "@next-pms/design-system/components";
 import { Badge } from "@rtcamp/frappe-ui-react";
-import { TaskStatus } from "../../../design-system/src/components/timesheet";
-import {
-  statusIcon,
-  statusIconVariants,
-} from "../../../design-system/src/components/timesheet/rows/task/constants";
+import { TaskStatus, statusIcon, statusIconVariants } from "@next-pms/design-system/components/timesheet";
 import {
   mergeClassNames as cn,
   timeToDecimalHours,
-} from "../../../design-system/src/utils";
+} from "@next-pms/design-system/utils";
 
 type BadgeItem = {
   icon: React.ReactNode;
