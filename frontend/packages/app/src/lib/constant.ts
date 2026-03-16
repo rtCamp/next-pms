@@ -3,14 +3,14 @@ export const ROUTES = {
   home: "/",
   task: "/task",
   project: "/project",
-  "timesheet-personal": "/timesheet/personal",
+  "timesheet-personal": "/timesheet",
   "timesheet-team": "/timesheet/team",
   "timesheet-project": "/timesheet/project",
   allocation: "/allocation",
   roadmap: "/roadmap",
   report: "/report",
-  desk:"/desk",
-  apps:"/apps"
+  desk: "/desk",
+  apps: "/apps",
 };
 export const LIKED_TASK_KEY = "next_pms_liked_task";
 // user roles for timesheet

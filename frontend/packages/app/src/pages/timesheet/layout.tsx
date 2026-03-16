@@ -1,25 +1,42 @@
 /**
  * External dependencies.
  */
-import { Breadcrumbs, Button, Folder, People, Time } from "@rtcamp/frappe-ui-react";
-import { CalendarX2, ChevronDown, Plus } from "lucide-react";
-import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { useSelector } from "react-redux";
+import { Outlet, useLocation, useNavigate } from "react-router-dom";
+import { getTodayDate } from "@next-pms/design-system";
+import {
+  Breadcrumbs,
+  Button,
+  Folder,
+  People,
+  Time,
+} from "@rtcamp/frappe-ui-react";
+import { CalendarX2, ChevronDown, Plus } from "lucide-react";
 
 /**
  * Internal dependencies.
  */
-import { Header } from "@/layout/root";
-import { RootState } from "@/store";
-import AddTime from "@/components/add-time";
 import AddLeave from "@/components/add-leave";
-import { getTodayDate } from "@next-pms/design-system";
+import AddTime from "@/components/add-time";
+import { Header } from "@/layout/root";
+import { ROUTES } from "@/lib/constant";
+import { RootState } from "@/store";
 
 const timesheetViews = [
-  { key: "personal", label: "Personal", to: "/timesheet/personal", icon: Time },
-  { key: "team", label: "Team", to: "/timesheet/team", icon: People },
-  { key: "project", label: "Project", to: "/timesheet/project", icon: Folder },
+  {
+    key: "personal",
+    label: "Personal",
+    to: ROUTES["timesheet-personal"],
+    icon: Time,
+  },
+  { key: "team", label: "Team", to: ROUTES["timesheet-team"], icon: People },
+  {
+    key: "project",
+    label: "Project",
+    to: ROUTES["timesheet-project"],
+    icon: Folder,
+  },
 ] as const;
 
 function TimesheetLayout() {
@@ -30,7 +47,11 @@ function TimesheetLayout() {
   const { pathname } = useLocation();
   const user = useSelector((state: RootState) => state.user);
 
-  const selectedKey = pathname.includes("team") ? "team" : pathname.includes("project") ? "project" : "personal";
+  const selectedKey = pathname.includes("team")
+    ? "team"
+    : pathname.includes("project")
+      ? "project"
+      : "personal";
 
   const activeView = timesheetViews.find((v) => v.key === selectedKey)!;
 
@@ -71,8 +92,14 @@ function TimesheetLayout() {
           ]}
         />
         <div className="flex gap-2">
-          {window.frappe?.boot?.user?.can_create.includes("Leave Application") && (
-            <Button onClick={() => setIsLeaveDialogOpen(true)} label="Add time-off" iconLeft={() => <CalendarX2 />} />
+          {window.frappe?.boot?.user?.can_create.includes(
+            "Leave Application",
+          ) && (
+            <Button
+              onClick={() => setIsLeaveDialogOpen(true)}
+              label="Add time-off"
+              iconLeft={() => <CalendarX2 />}
+            />
           )}
 
           <Button
