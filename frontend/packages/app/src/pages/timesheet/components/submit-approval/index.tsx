@@ -14,6 +14,7 @@ import type { SubmitApprovalProps, EmployeeRecord } from "./types";
 import { submitApprovalSchema } from "./schema";
 import { useUser } from "@/hooks/useUser";
 import { parseFrappeErrorMsg } from "@/lib/utils";
+import { floatToTime } from "@next-pms/design-system";
 
 const formatWeekLabel = (startDate: string, endDate: string) => {
   try {
@@ -43,7 +44,7 @@ const SubmitApproval = ({ open, onOpenChange, startDate, endDate, totalHours }: 
 ));
 
   const weekLabel = formatWeekLabel(startDate, endDate);
-  const formattedHours = `${Math.floor(totalHours)}:${String(Math.round((totalHours % 1) * 60)).padStart(2, "0")}`;
+  const formattedHours = floatToTime(totalHours,2)
 
   const form = useForm({
     defaultValues: {
