@@ -36,7 +36,6 @@ function TimesheetLayout() {
   };
 
   const { pathname } = useLocation();
-  const user = useUser();
 
   const selectedKey = pathname.includes("team") ? "team" : pathname.includes("project") ? "project" : "personal";
 
