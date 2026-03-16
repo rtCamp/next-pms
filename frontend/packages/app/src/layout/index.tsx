@@ -12,11 +12,11 @@ import { useToasts } from "@rtcamp/frappe-ui-react";
  */
 import Sidebar from "@/layout/sidebar";
 import { parseFrappeErrorMsg } from "@/lib/utils";
-import type { RootState } from "@/store";
 import { setInitialData } from "@/store/user";
+import { useUser } from "@/hooks/useUser";
 
 const Layout = ({ children }: { children: React.ReactNode }) => {
-  const user = useSelector((state: RootState) => state.user);
+  const user = useUser();
   const dispatch = useDispatch();
   const toast = useToasts();
   const { data, error } = useFrappeGetCall("next_pms.timesheet.api.employee.get_data", {}, undefined, {

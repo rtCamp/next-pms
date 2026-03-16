@@ -14,8 +14,9 @@ import { UserContext } from "@/lib/UserProvider";
 import { default as Layout } from "@/layout";
 import { RootState } from "./store";
 import { setCurrency, setHasBuField, setHasIndustryField } from "./store/user";
-import { setRole } from "./store/user";
-import { setViews } from "./store/view";
+import { setRole } from "@/store/user";
+import { setViews } from "@/store/view";
+import { useUser } from "@/hooks/useUser";
 /**
  * Lazy load components.
  */
@@ -55,7 +56,7 @@ export function Router() {
 const AuthenticatedRoute = () => {
   const { currentUser, isLoading } = useContextSelector(UserContext, (value) => value.state);
   const { call } = useContext(FrappeContext) as FrappeConfig;
-  const user = useSelector((state: RootState) => state.user);
+  const user = useUser();
   const views = useSelector((state: RootState) => state.view);
   const dispatch = useDispatch();
 

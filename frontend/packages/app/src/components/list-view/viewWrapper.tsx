@@ -15,6 +15,7 @@ import { parseFrappeErrorMsg } from "@/lib/utils";
 import { RootState } from "@/store";
 import { setViews, ViewData } from "@/store/view";
 import type { ViewWrapperProps } from "./types";
+import { useUser } from "@/hooks/useUser";
 
 /**
  * Custom View Wrapper
@@ -25,7 +26,7 @@ import type { ViewWrapperProps } from "./types";
  */
 const ViewWrapper = ({ docType, children }: ViewWrapperProps) => {
   const views = useSelector((state: RootState) => state.view);
-  const user = useSelector((state: RootState) => state.user);
+  const user = useUser();
   const [searchParams, setSearchParams] = useSearchParams();
   const [viewData, setViewData] = useState<ViewData | undefined>(undefined);
   const { call } = useContext(FrappeContext) as FrappeConfig;
