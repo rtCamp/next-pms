@@ -53,10 +53,7 @@ export const InlineTimeEntry = ({
   });
 
   const hoursLeft = (dailyWorkingHours ?? 0) - (totalUsedHoursInDay ?? 0);
-  const effectiveHoursLeft =
-    entryFormMode === "edit" && selectedEntry
-      ? hoursLeft + selectedEntry.hours
-      : hoursLeft;
+  const effectiveHoursLeft = entryFormMode === "edit" && selectedEntry ? hoursLeft + selectedEntry.hours : hoursLeft;
   const hasNoTimeEntries = (data?.message?.data?.length ?? 0) === 0;
   const isEntryFormExpanded = entryFormMode !== null;
 
@@ -100,7 +97,9 @@ export const InlineTimeEntry = ({
           toast.success("Time Entry submitted successfully");
         }
         await mutate();
-        onSubmitSuccess?.();
+        if (hasNoTimeEntries) {
+          onSubmitSuccess?.();
+        }
       } catch (err) {
         const error = parseFrappeErrorMsg(err as FrappeError);
         toast.error(error);
@@ -142,12 +141,6 @@ export const InlineTimeEntry = ({
     form.setFieldValue("comment", entry.description ?? "");
   };
 
-  const handleCancelAddMode = () => {
-    setEntryFormMode(null);
-    setSelectedEntry(null);
-    form.reset();
-  };
-
   const handleToggleAddMode = () => {
     if (entryFormMode === "add") {
       void form.handleSubmit();
@@ -162,7 +155,8 @@ export const InlineTimeEntry = ({
       void form.handleSubmit();
       return;
     }
-    if (e.key === "Enter" && !e.shiftKey) {
+
+    if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
       e.preventDefault();
       void form.handleSubmit();
     }
@@ -244,10 +238,7 @@ export const InlineTimeEntry = ({
                   children={(field) => {
                     return (
                       <>
-                        <div
-                          className="w-full relative"
-                          onKeyDownCapture={(e) => (isEntryFormExpanded ? undefined : handleSubmit(e))}
-                        >
+                        <div className="w-full relative" onKeyDownCapture={(e) => handleSubmit(e)}>
                           <Textarea
                             value={field.state.value}
                             onChange={(e) => field.handleChange(e.target.value)}
@@ -268,54 +259,31 @@ export const InlineTimeEntry = ({
                 />
               </div>
             ) : null}
-            <div className="w-full flex justify-between gap-2">
-              {entryFormMode === null && !hasNoTimeEntries && (
+            {!hasNoTimeEntries ? (
+              <div className="w-full flex justify-between gap-2">
                 <Button
-                  variant="ghost"
+                  variant={entryFormMode === null ? "ghost" : "subtle"}
                   size="sm"
-                  iconLeft={() => <Plus className="text-ink-gray-7" size={16} />}
-                  onClick={handleToggleAddMode}
+                  iconLeft={() => <Plus size={16} />}
+                  onClick={() => (entryFormMode === null ? handleToggleAddMode() : handleSubmit())}
                   disabled={submitting}
                 >
-                  Add time
+                  {entryFormMode === null ? "Add time" : "Save entry"}
                 </Button>
-              )}
-              {(entryFormMode !== null || hasNoTimeEntries) && (
-                <>
+                {entryFormMode === "edit" ? (
                   <Button
                     variant="subtle"
+                    theme="red"
                     size="sm"
-                    iconLeft={() => <Plus className="text-ink-gray-7" size={16} />}
-                    onClick={() => handleSubmit()}
+                    iconLeft={() => <Trash2 size={16} />}
+                    onClick={handleDelete}
                     disabled={submitting}
                   >
-                    Save entry
+                    Delete entry
                   </Button>
-                  {entryFormMode === "add" || hasNoTimeEntries ? (
-                    <Button
-                      variant="subtle"
-                      size="sm"
-                      iconLeft={() => <X className="text-ink-gray-7" size={16} />}
-                      onClick={handleCancelAddMode}
-                      disabled={submitting}
-                    >
-                      Cancel
-                    </Button>
-                  ) : (
-                    <Button
-                      variant="subtle"
-                      theme="red"
-                      size="sm"
-                      iconLeft={() => <Trash2 size={16} />}
-                      onClick={handleDelete}
-                      disabled={submitting}
-                    >
-                      Delete entry
-                    </Button>
-                  )}
-                </>
-              )}
-            </div>
+                ) : null}
+              </div>
+            ) : null}
           </div>
         </>
       )}
