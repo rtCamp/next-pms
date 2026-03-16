@@ -1,20 +1,16 @@
 # Copyright (c) 2025, rtCamp and contributors
 # For license information, please see license.txt
 
-# import frappe
-
-
+import frappe
 from frappe import _, get_meta
 from frappe.utils import getdate
 
 from next_pms.resource_management.api.utils.query import get_allocation_list_for_employee_for_given_range
 from next_pms.resource_management.report.utils import calculate_employee_available_hours, calculate_employee_hours
-from next_pms.timesheet.api.employee import get_employee_daily_working_norm
-from next_pms.utils.employee import generate_flat_tree, get_employee_leaves_and_holidays, get_employee_salary
+from next_pms.utils.employee import generate_flat_tree
 
 from .utils import (
     BU_FIELD_NAME,
-    convert_currency,
     filter_by_capacity,
     get_employee_fields,
     get_employee_filters,
@@ -69,20 +65,87 @@ def get_data(filters=None, has_bu_field=False):
         emp.is_employee = True
 
     employee_names = [emp.name for emp in employees if emp.get("is_employee", False)]
+    if not employee_names:
+        return []
+
+    # Batch fetch allocations
     resource_allocation_map = get_allocations(start_date, end_date, employee_names)
+
+    # Get default working hours from HR Settings
+    default_hours = frappe.db.get_single_value("HR Settings", "standard_working_hours") or 8
+
+    # Batch fetch all leaves for all employees
+    all_leaves = frappe.get_all(
+        "Leave Application",
+        filters={
+            "employee": ["in", employee_names],
+            "status": ["in", ["Approved", "Open"]],
+            "from_date": ["<=", getdate(end_date)],
+            "to_date": [">=", getdate(start_date)],
+            "docstatus": ["in", [0, 1]],
+        },
+        fields=[
+            "employee",
+            "from_date",
+            "to_date",
+            "half_day",
+            "half_day_date",
+            "total_leave_days",
+            "name",
+            "leave_type",
+        ],
+    )
+
+    # Build leave map for quick lookup
+    leave_map = {}
+    for leave in all_leaves:
+        if leave.employee not in leave_map:
+            leave_map[leave.employee] = []
+        leave_map[leave.employee].append(leave)
+
+    # Batch fetch holidays for all unique holiday lists
+    holiday_lists = list({e.holiday_list for e in employees if e.get("holiday_list")})
+    holidays_map = {}
+    if holiday_lists:
+        holidays = frappe.get_all(
+            "Holiday",
+            filters={"parent": ["in", holiday_lists], "holiday_date": ["between", [start_date, end_date]]},
+            fields=["parent", "holiday_date", "weekly_off", "description"],
+        )
+        for h in holidays:
+            if h.parent not in holidays_map:
+                holidays_map[h.parent] = []
+            holidays_map[h.parent].append(h)
+
+    # Pre-fetch exchange rates for all currencies
+    from erpnext.setup.utils import get_exchange_rate
+
+    currencies = {e.currency for e in employees if e.get("currency") and e.currency != currency}
+    exchange_rates = {currency: 1}  # Base currency
+    for curr in currencies:
+        try:
+            exchange_rates[curr] = get_exchange_rate(curr, currency) or 1
+        except Exception:
+            exchange_rates[curr] = 1
+
+    # Process employees with pre-fetched data
     for emp in employees:
         if not emp.get("is_employee", False):
             continue  # Skip if not an employee
-        daily_hours = get_employee_daily_working_norm(emp.name)
+
+        # Calculate daily hours from pre-fetched fields
+        working_hour = emp.get("custom_working_hours") or default_hours
+        working_frequency = emp.get("custom_work_schedule") or "Per Day"
+        daily_hours = working_hour / 5 if working_frequency != "Per Day" else working_hour
+
         employee_allocations = resource_allocation_map.get(emp.name, [])
 
         non_billable_allocations = [resource for resource in employee_allocations if not resource.is_billable]
         billable_allocations = [resource for resource in employee_allocations if resource.is_billable]
 
-        employee_leave_and_holiday = get_employee_leaves_and_holidays(emp.name, getdate(start_date), getdate(end_date))
-
-        holidays = employee_leave_and_holiday.get("holidays")
-        leaves = employee_leave_and_holiday.get("leaves")
+        # Use pre-fetched holidays and leaves
+        holidays = holidays_map.get(emp.get("holiday_list"), [])
+        leaves = leave_map.get(emp.name, [])
 
         employee_non_billable_hours = calculate_employee_hours(
             daily_hours,
@@ -107,26 +170,28 @@ def get_data(filters=None, has_bu_field=False):
         emp.available_capacity = employee_free_hours + employee_non_billable_hours
         emp._available_capacity = emp.available_capacity  # Store original available capacity
 
-        # Calculate monthly salary
-        if emp.currency != currency:
-            emp.ctc = convert_currency(emp.ctc, emp.currency, currency)
+        # Convert currency using pre-fetched rates
+        if emp.currency != currency and emp.get("ctc"):
+            rate = exchange_rates.get(emp.currency, 1)
+            emp.ctc = emp.ctc * rate
             emp.currency = currency
 
-        salary_info = get_employee_salary(emp.name, currency, throw=False)
-        emp.monthly_salary = salary_info.get("monthly_salary", 0)
-        emp._monthly_salary = emp.monthly_salary  # Store original monthly salary
+        # Calculate salary using pre-fetched data
+        ctc = emp.get("ctc") or 0
+        monthly_working_hours = (working_hour * 4) if working_frequency != "Per Day" else 160
+        monthly_salary = ctc / 12 if ctc else 0
+        hourly_salary = monthly_salary / monthly_working_hours if monthly_working_hours else 0
 
-        emp.hourly_salary = salary_info.get("hourly_salary", 0)
-        emp.actual_unbilled_cost = emp.hourly_salary * emp.available_capacity
+        emp.monthly_salary = monthly_salary
+        emp._monthly_salary = monthly_salary  # Store original monthly salary
+
+        emp.hourly_salary = hourly_salary
+        emp.actual_unbilled_cost = hourly_salary * emp.available_capacity
         emp._actual_unbilled_cost = emp.actual_unbilled_cost  # Store original unbilled cost
-        # Calculate % Capacity
 
-        if emp.available_capacity > 0:
-            emp.percentage_capacity_available = (
-                emp.available_capacity / (emp.available_capacity + employee_billable_hours)
-            ) * 100
-        else:
-            emp.percentage_capacity_available = 0
+        # Calculate % Capacity
+        total_hours = emp.available_capacity + employee_billable_hours
+        emp.percentage_capacity_available = (emp.available_capacity / total_hours * 100) if total_hours > 0 else 0
         emp._percentage_capacity_available = emp.percentage_capacity_available  # Store original percentage capacity
 
     #  Filter out employees based on the capacity filter
