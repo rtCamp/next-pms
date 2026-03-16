@@ -1,9 +1,10 @@
 @import "@rtcamp/frappe-ui-react/theme";
 @import "tailwindcss";
 @source "../../../node_modules/@rtcamp/frappe-ui-react/dist";
+@source "../../design-system/src";
 
 #root {
-    isolation: isolate; 
+    isolation: isolate;
 }
 
 body {
