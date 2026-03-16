@@ -6,16 +6,20 @@ import { useSelector, useDispatch } from "react-redux";
 import { useSearchParams } from "react-router-dom";
 import { Spinner } from "@next-pms/design-system/components";
 import { useToasts } from "@rtcamp/frappe-ui-react";
-import { FrappeContext, FrappeConfig, useFrappeGetCall } from "frappe-react-sdk";
+import {
+  FrappeContext,
+  FrappeConfig,
+  useFrappeGetCall,
+} from "frappe-react-sdk";
 /**
  * Internal dependencies
  */
 import { getDefaultView } from "@/components/list-view/utils";
 import { parseFrappeErrorMsg } from "@/lib/utils";
+import { useUserState } from "@/providers/user";
 import { RootState } from "@/store";
 import { setViews, ViewData } from "@/store/view";
 import type { ViewWrapperProps } from "./types";
-import { useUser } from "@/hooks/useUser";
 
 /**
  * Custom View Wrapper
@@ -26,7 +30,7 @@ import { useUser } from "@/hooks/useUser";
  */
 const ViewWrapper = ({ docType, children }: ViewWrapperProps) => {
   const views = useSelector((state: RootState) => state.view);
-  const user = useUser();
+  const { userId } = useUserState();
   const [searchParams, setSearchParams] = useSearchParams();
   const [viewData, setViewData] = useState<ViewData | undefined>(undefined);
   const { call } = useContext(FrappeContext) as FrappeConfig;
@@ -42,20 +46,26 @@ const ViewWrapper = ({ docType, children }: ViewWrapperProps) => {
     {
       revalidateIfStale: false,
       revalidateOnFocus: false,
-    }
+    },
   );
 
   const defaultFields = useMemo(() => {
-    return meta?.message?.default_fields?.map((field: { fieldname: string }) => field.fieldname) || [];
+    return (
+      meta?.message?.default_fields?.map(
+        (field: { fieldname: string }) => field.fieldname,
+      ) || []
+    );
   }, [meta]);
 
   const userViews = useMemo(() => {
-    return views.views.filter((v) => v.dt === docType && v.user === user.user);
-  }, [views, docType, user]);
+    return views.views.filter((v) => v.dt === docType && v.user === userId);
+  }, [views, docType, userId]);
 
   useEffect(() => {
     if (!meta) return;
-    let viewInfo = view ? views.views.find((v) => v.name == view) : userViews.find((v) => v.default);
+    let viewInfo = view
+      ? views.views.find((v) => v.name == view)
+      : userViews.find((v) => v.default);
     if (!viewInfo) {
       searchParams.delete("view");
       setSearchParams(searchParams);
@@ -64,9 +74,17 @@ const ViewWrapper = ({ docType, children }: ViewWrapperProps) => {
 
     if (!viewInfo) {
       call
-        .post("next_pms.timesheet.doctype.pms_view_setting.pms_view_setting.create_view", {
-          view: getDefaultView(defaultFields, docType, docType, docType.toLowerCase()),
-        })
+        .post(
+          "next_pms.timesheet.doctype.pms_view_setting.pms_view_setting.create_view",
+          {
+            view: getDefaultView(
+              defaultFields,
+              docType,
+              docType,
+              docType.toLowerCase(),
+            ),
+          },
+        )
         .then((res) => {
           dispatch(setViews(res.message));
         })

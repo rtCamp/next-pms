@@ -2,7 +2,7 @@
  * External dependencies
  */
 import { useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import { useDispatch } from "react-redux";
 import {
   Dialog,
   DialogContent,
@@ -17,10 +17,9 @@ import { useFrappePostCall } from "frappe-react-sdk";
 /**
  * Internal dependencies
  */
-import type { RootState } from "@/store";
+import { useUserState } from "@/providers/user";
 import { setViews } from "@/store/view";
 import type { CreateViewProps } from "./types";
-import { useUser } from "@/hooks/useUser";
 
 export const CreateView = ({
   isOpen = false,
@@ -35,8 +34,10 @@ export const CreateView = ({
   setIsOpen,
   pinnedColumns,
 }: CreateViewProps) => {
-  const { call } = useFrappePostCall("next_pms.timesheet.doctype.pms_view_setting.pms_view_setting.create_view");
-  const user = useUser();
+  const { call } = useFrappePostCall(
+    "next_pms.timesheet.doctype.pms_view_setting.pms_view_setting.create_view",
+  );
+  const { userId } = useUserState();
   const [label, setLabel] = useState("");
   const dispatch = useDispatch();
   const [openEmoji, setOpenEmoji] = useState(false);
@@ -48,7 +49,7 @@ export const CreateView = ({
       label: label,
       filters: filters,
       columns: columns,
-      user: user.user,
+      user: userId,
       default: isDefault,
       public: isPublic,
       route: route,
@@ -73,13 +74,20 @@ export const CreateView = ({
           <DialogTitle>Create View</DialogTitle>
         </DialogHeader>
         <div className="flex gap-x-2">
-          <Button onClick={() => setOpenEmoji(!openEmoji)} className="w-10 p-0" variant="outline">
+          <Button
+            onClick={() => setOpenEmoji(!openEmoji)}
+            className="w-10 p-0"
+            variant="outline"
+          >
             {selectedEmoji}
           </Button>
           {openEmoji && (
             <EmojiPicker
               lazyLoadEmojis={true}
-              previewConfig={{ showPreview: false, defaultEmoji: selectedEmoji }}
+              previewConfig={{
+                showPreview: false,
+                defaultEmoji: selectedEmoji,
+              }}
               emojiStyle={EmojiStyle.NATIVE}
               className="absolute mt-11 h-80 overflow-y-auto dark:bg-accent"
               onEmojiClick={(event) => {

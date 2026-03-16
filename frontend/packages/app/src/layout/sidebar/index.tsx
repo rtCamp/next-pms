@@ -1,11 +1,18 @@
 /**
  * External dependencies.
  */
-import React, { useCallback, useEffect, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { useLocation } from "react-router-dom";
-import { Sidebar as BaseSidebar, Batches, Notifications, People, Reports, Tasks, Time } from "@rtcamp/frappe-ui-react";
+import { ErrorFallback } from "@next-pms/design-system/components";
+import {
+  Sidebar as BaseSidebar,
+  Batches,
+  Notifications,
+  People,
+  Reports,
+  Tasks,
+  Time,
+} from "@rtcamp/frappe-ui-react";
 import {
   ArrowLeftRight,
   Folder,
@@ -20,61 +27,27 @@ import {
 /**
  * Internal dependencies.
  */
-import { setLocalStorage } from "@/lib/storage";
-import { checkIsMobile } from "@/lib/utils";
-import { setSidebarCollapsed } from "@/store/user";
-import UserNavigation from "./userNavigation";
-import ViewLoader from "./viewLoader";
+import { ROUTES } from "@/lib/constant";
 import logo from "@/logo.svg";
-import { RootState } from "@/store";
-import type { ViewData } from "@/store/view";
-import { ErrorFallback } from "@next-pms/design-system/components";
-import { useContextSelector } from "use-context-selector";
-import { UserContext } from "@/lib/UserProvider";
 import { useTheme } from "@/providers/theme/hook";
-import { ROLES, ROUTES } from "@/lib/constant";
-import { useUser } from "@/hooks/useUser";
+import { useUserActions, useUserState } from "@/providers/user";
 
 const Sidebar = () => {
-  const user = useUser();
+  const { isSidebarCollapsed, employeeName } = useUserState();
+  const { updateIsSidebarCollapsed } = useUserActions();
+  const { logout } = useUserActions();
   const { theme, changeTheme } = useTheme();
-  const logout = useContextSelector(UserContext, (value) => value.actions.logout);
   const navigate = useNavigate();
-  const viewInfo = useSelector((state: RootState) => state.view);
-  const dispatch = useDispatch();
   const { pathname } = useLocation();
-
-  const [openRoutes, setOpenRoutes] = useState<{ [key: string]: boolean }>({
-    reports: false,
-  });
-
-  const hasPmRole = user.roles.some((role: string) => ROLES.includes(role));
-  const privateViews = viewInfo.views.filter(
-    (view: ViewData) => view.user === user.user && !view.default && !view.public,
-  );
-  const publicViews = viewInfo.views.filter((view: ViewData) => view.public && !view.default);
-
-  const handleSidebarCollapse = useCallback(() => {
-    dispatch(setSidebarCollapsed(checkIsMobile()));
-  }, [dispatch]);
-
-  useEffect(() => {
-    setLocalStorage("next-pms:isSidebarCollapsed", user.isSidebarCollapsed);
-  }, [user.isSidebarCollapsed]);
-  useEffect(() => {
-    if (checkIsMobile()) {
-      dispatch(setSidebarCollapsed(true));
-    }
-    window.addEventListener("resize", handleSidebarCollapse);
-    return () => window.removeEventListener("resize", handleSidebarCollapse);
-  }, [dispatch, handleSidebarCollapse]);
 
   return (
     <ErrorFallback>
       <BaseSidebar
+        collapsed={isSidebarCollapsed}
+        onCollapseChange={updateIsSidebarCollapsed}
         header={{
           title: "Next PMS",
-          subtitle: user.userName,
+          subtitle: employeeName,
           logo,
           menuItems: [
             {
@@ -86,7 +59,9 @@ const Sidebar = () => {
             },
             {
               label: "Switch To Desk",
-              icon: <ArrowLeftRight size={16} className="text-ink-gray-6 mr-2" />,
+              icon: (
+                <ArrowLeftRight size={16} className="text-ink-gray-6 mr-2" />
+              ),
               onClick: () => {
                 window.location.assign(ROUTES.desk);
               },
@@ -94,7 +69,11 @@ const Sidebar = () => {
             {
               label: "Toggle Theme",
               icon:
-                theme === "dark" ? <Sun className="text-ink-gray-6 mr-2" /> : <Moon className="text-ink-gray-6 mr-2" />,
+                theme === "dark" ? (
+                  <Sun className="text-ink-gray-6 mr-2" />
+                ) : (
+                  <Moon className="text-ink-gray-6 mr-2" />
+                ),
               onClick: changeTheme,
             },
             {
