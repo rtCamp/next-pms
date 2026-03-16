@@ -14,6 +14,7 @@ import { FrappeContext, FrappeConfig } from "frappe-react-sdk";
 import { getDefaultView, parseFrappeErrorMsg } from "@/lib/utils";
 import { RootState } from "@/store";
 import { setViews, ViewData } from "@/store/view";
+import { useUser } from "@/hooks/useUser";
 
 type CustomViewWrapperProps = {
   label: string;
@@ -26,7 +27,7 @@ const CustomViewWrapper = ({ label, createFilter, children }: CustomViewWrapperP
   const { pathname } = useLocation();
   const [searchParams, setSearchParams] = useSearchParams();
   const views = useSelector((state: RootState) => state.view);
-  const user = useSelector((state: RootState) => state.user);
+  const user = useUser;
   const [viewData, setViewData] = useState<ViewData | undefined>(undefined);
   const { call } = useContext(FrappeContext) as FrappeConfig;
   const dispatch = useDispatch();

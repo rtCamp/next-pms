@@ -14,6 +14,7 @@ import { Calendar } from "lucide-react";
 import type { AddTimeProps, ProjectData, TaskItem } from "./type";
 import { addTimeFormSchema } from "./schema";
 import { parseFrappeErrorMsg } from "@/lib/utils";
+import { useUser } from "@/hooks/useUser";
 
 /**
  * Add Time Component
@@ -27,7 +28,10 @@ import { parseFrappeErrorMsg } from "@/lib/utils";
  * @param task - Task name for the timesheet entry (eg: TASK-0001).
  * @param project - Project name for the timesheet entry (eg: Project-0001).
  */
-const AddTime = ({ initialDate, employee, open = false, onOpenChange, task = "", project = "" }: AddTimeProps) => {
+const AddTime = ({ initialDate, open = false, onOpenChange, task = "", project = "" }: AddTimeProps) => {
+
+    const user = useUser();
+
   const toast = useToasts();
   const [submitting, setSubmitting] = useState(false);
   const { call: saveTime } = useFrappePostCall("next_pms.timesheet.api.timesheet.save");
@@ -51,7 +55,7 @@ const AddTime = ({ initialDate, employee, open = false, onOpenChange, task = "",
           description: value.comment,
           task: value.task,
           hours: value.duration,
-          employee,
+          employee:user.employee,
         });
         setSubmitting(false);
         toast.success("Time Entry submitted successfully");
