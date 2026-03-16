@@ -27,7 +27,6 @@ export const TimesheetTable = ({
   holidays,
   tasks,
   leaves,
-  onCellClick,
   firstWeek,
   workingHour,
   workingFrequency,
@@ -42,30 +41,7 @@ export const TimesheetTable = ({
   status,
 }: timesheetTableProps) => {
   const holidayList = getHolidayList(holidays);
-  const [isTaskLogDialogBoxOpen, setIsTaskLogDialogBoxOpen] = useState(false);
-  const [selectedTask, setSelectedTask] = useState<string>("");
   const task_date_range_key = dates[0] + "-" + dates[dates.length - 1];
-  const has_liked_task = hasKeyInLocalStorage(LIKED_TASK_KEY);
-
-  const setTaskInLocalStorage = () => {
-    setLikedTask(LIKED_TASK_KEY, task_date_range_key, likedTaskData!);
-    setFilteredLikedTasks(
-      likedTaskData?.filter((likedTask: { name: string }) => !Object.keys(tasks).includes(likedTask.name)),
-    );
-  };
-
-  const liked_tasks = has_liked_task ? (getLocalStorage(LIKED_TASK_KEY)[task_date_range_key] ?? []) : [];
-
-  const [filteredLikedTasks, setFilteredLikedTasks] = useState(
-    liked_tasks.filter((likedTask: { name: string }) => !Object.keys(tasks).includes(likedTask.name)),
-  );
-  useEffect(() => {
-    const filteredLikedTasks = liked_tasks.filter(
-      (likedTask: { name: string }) => !Object.keys(tasks).includes(likedTask.name),
-    );
-    setFilteredLikedTasks(filteredLikedTasks);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tasks]);
 
   const deleteTaskFromLocalStorage = useCallback(() => {
     removeFromLikedTask(LIKED_TASK_KEY, task_date_range_key);
@@ -140,7 +116,6 @@ export const TimesheetTable = ({
                     label={task.subject || task.name}
                     status={task.status}
                     likedTaskData={likedTaskData as TaskDataProps[]}
-                    onCellClick={onCellClick}
                     className="pl-[54px]"
                     disabled={disabled}
                     dailyWorkingHours={dailyWorkingHours}

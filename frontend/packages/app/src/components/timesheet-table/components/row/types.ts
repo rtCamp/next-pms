@@ -65,7 +65,6 @@ export interface TaskRowProps extends Omit<
   tasks: TaskProps;
   status?: string;
   likedTaskData: TaskDataProps[];
-  onCellClick?: (data: NewTimesheetProps) => void;
   disabled?: boolean;
   dailyWorkingHours?: number;
   totalTimeEntriesInHours?: number[];

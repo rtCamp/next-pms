@@ -34,7 +34,6 @@ export type timesheetTableProps = {
   holidays: Array<HolidayProp>;
   tasks: TaskProps;
   leaves: Array<LeaveProps>;
-  onCellClick?: (data: NewTimesheetProps) => void;
   firstWeek: boolean;
   workingHour: number;
   disabled?: boolean;
