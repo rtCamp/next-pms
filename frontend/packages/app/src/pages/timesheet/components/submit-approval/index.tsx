@@ -31,7 +31,7 @@ const SubmitApproval = ({ open, onOpenChange, startDate, endDate, totalHours }: 
   const [submitting, setSubmitting] = useState(false);
   const { call: submitForApproval } = useFrappePostCall("next_pms.timesheet.api.timesheet.submit_for_approval");
 
-  const { data } = useFrappeGetCall("next_pms.timesheet.api.get_employee_with_role", {
+  const { data } = useFrappeGetCall("next_pms.timesheet.api.get_employee_list", {
     role: ["Projects Manager", "Projects User"],
   });
 

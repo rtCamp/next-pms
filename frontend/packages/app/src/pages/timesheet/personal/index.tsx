@@ -27,6 +27,7 @@ import { InfiniteScroll } from "../../../components/infiniteScroll";
 import { sampleFields } from "../constants";
 import { HeaderRow } from "../../../components/timesheet-table/components/row/headerRow";
 import { useTimesheetOutletContext } from "../outletContext";
+import { useUser } from "@/hooks/useUser";
 
 function Timesheet() {
   const targetRef = useRef<HTMLDivElement>(null);
@@ -37,7 +38,7 @@ function Timesheet() {
   const {handleApproval} = useTimesheetOutletContext();
 
   const [startDateParam, setStartDateParam] = useQueryParam<string>("date", "");
-  const user = useSelector((state: RootState) => state.user);
+  const user = useUser();
   const [timesheet, dispatch] = useReducer(reducer, initialState);
   const { data, isLoading, error, mutate } = useFrappeGetCall("next_pms.timesheet.api.timesheet.get_timesheet_data", {
     employee: user.employee,

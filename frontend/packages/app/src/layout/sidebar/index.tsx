@@ -33,9 +33,10 @@ import { useContextSelector } from "use-context-selector";
 import { UserContext } from "@/lib/UserProvider";
 import { useTheme } from "@/providers/theme/hook";
 import { ROLES, ROUTES } from "@/lib/constant";
+import { useUser } from "@/hooks/useUser";
 
 const Sidebar = () => {
-  const user = useSelector((state: RootState) => state.user);
+  const user = useUser();
   const { theme, changeTheme } = useTheme();
   const logout = useContextSelector(UserContext, (value) => value.actions.logout);
   const navigate = useNavigate();
