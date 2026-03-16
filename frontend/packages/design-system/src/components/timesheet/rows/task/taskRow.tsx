@@ -1,6 +1,7 @@
 /**
  * External dependencies.
- */
+*/
+import { createRef, useRef } from "react";
 import { Popover } from "@base-ui/react";
 import { Button } from "@rtcamp/frappe-ui-react";
 import { Plus, Star } from "lucide-react";
@@ -53,6 +54,9 @@ export const TaskRow: React.FC<TaskRowProps> = ({
   className,
 }) => {
   const StatusIcon = statusIcon[status];
+  const actionRefs = useRef<
+    Array<React.RefObject<Popover.Root.Actions | null>>
+  >([]);
   return (
     <div
       className={cn(
@@ -85,7 +89,11 @@ export const TaskRow: React.FC<TaskRowProps> = ({
         </div>
       </div>
       {timeEntries.map((timeEntry, index) => {
-        const actionsRef: React.RefObject<Popover.Root.Actions | null> = { current: null };
+        if (!actionRefs.current[index]) {
+          actionRefs.current[index] =
+            createRef<Popover.Root.Actions | null>();
+        }
+        const actionsRef = actionRefs.current[index];
         const closePopover = () => actionsRef.current?.close();
 
         return (

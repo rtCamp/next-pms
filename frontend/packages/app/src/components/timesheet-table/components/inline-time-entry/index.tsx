@@ -53,6 +53,10 @@ export const InlineTimeEntry = ({
   });
 
   const hoursLeft = (dailyWorkingHours ?? 0) - (totalUsedHoursInDay ?? 0);
+  const effectiveHoursLeft =
+    entryFormMode === "edit" && selectedEntry
+      ? hoursLeft + selectedEntry.hours
+      : hoursLeft;
   const hasNoTimeEntries = (data?.message?.data?.length ?? 0) === 0;
   const isEntryFormExpanded = entryFormMode !== null;
 
@@ -223,7 +227,7 @@ export const InlineTimeEntry = ({
                     return (
                       <div className="w-full flex flex-col gap-2">
                         <DurationInput
-                          hoursLeft={hoursLeft}
+                          hoursLeft={effectiveHoursLeft}
                           label={entryFormMode === "edit" ? "Edit time" : "Add time"}
                           variant={isEntryFormExpanded ? "default" : "compact"}
                           value={field.state.value}

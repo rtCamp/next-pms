@@ -1,9 +1,7 @@
 export interface InlineTimeEntry {
-  date?: string;
-  employee?: string;
-  task?: string;
-  project?: string;
-  employeeName?: string;
+  date: string;
+  employee: string;
+  task: string;
   dailyWorkingHours?: number;
   totalUsedHoursInDay?: number;
   onSubmitSuccess?: () => void;

@@ -22,7 +22,7 @@ import type { timesheetTableProps } from "./components/types";
 
 export const TimesheetTable = ({
   label,
-  emplyoyee,
+  employee,
   dates,
   holidays,
   tasks,
@@ -120,7 +120,7 @@ export const TimesheetTable = ({
                     disabled={disabled}
                     dailyWorkingHours={dailyWorkingHours}
                     totalTimeEntriesInHours={totalTimeEntriesInHours}
-                    employee={emplyoyee}
+                    employee={employee}
                   />
                 ))}
               </ProjectRow>

@@ -1,7 +1,7 @@
 /**
  * External dependencies
  */
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { floatToTime } from "@next-pms/design-system";
 import { TaskRow as BaseTaskRow, taskStatusMap } from "@next-pms/design-system/components";
 
@@ -9,7 +9,6 @@ import { TaskRow as BaseTaskRow, taskStatusMap } from "@next-pms/design-system/c
  * Internal dependencies
  */
 import { calculateTotalHours } from "@/lib/utils";
-import { NewTimesheetProps } from "@/types/timesheet";
 import type { TaskRowProps } from "./types";
 import { InlineTimeEntry } from "../inline-time-entry";
 
@@ -73,7 +72,7 @@ export const TaskRow = ({
           isBillable={taskData.totalTimeEntries[dayIndex]?.nonBillable === false}
           date={dates[dayIndex]}
           task={taskKey}
-          employee={employee}
+          employee={employee ?? ""}
           onSubmitSuccess={closePopover}
         />
       )}
