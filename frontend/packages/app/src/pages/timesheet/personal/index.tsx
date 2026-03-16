@@ -26,6 +26,8 @@ import { validateDate } from "../utils";
 import { InfiniteScroll } from "../../../components/infiniteScroll";
 import { sampleFields } from "../constants";
 import { HeaderRow } from "../../../components/timesheet-table/components/row/headerRow";
+import { useTimesheetOutletContext } from "../outletContext";
+import { useUser } from "@/hooks/useUser";
 
 function Timesheet() {
   const targetRef = useRef<HTMLDivElement>(null);
@@ -33,8 +35,10 @@ function Timesheet() {
   const [filters, setFilters] = useState<FilterCondition[]>([]);
   const [search, setSearch] = useState("");
 
+  const {handleApproval} = useTimesheetOutletContext();
+
   const [startDateParam, setStartDateParam] = useQueryParam<string>("date", "");
-  const user = useSelector((state: RootState) => state.user);
+  const user = useUser();
   const [timesheet, dispatch] = useReducer(reducer, initialState);
   const { data, isLoading, error, mutate } = useFrappeGetCall("next_pms.timesheet.api.timesheet.get_timesheet_data", {
     employee: user.employee,
@@ -136,14 +140,6 @@ function Timesheet() {
     const obj = data[lastKey];
     setStartDateParam("");
     dispatch({ type: "SET_WEEK_DATE", payload: getFormatedDate(addDays(obj.start_date, -1)) });
-  };
-  const handleApproval = (start_date: string, end_date: string) => {
-    const data = {
-      start_date: start_date,
-      end_date: end_date,
-    };
-    dispatch({ type: "SET_DATE_RANGE", payload: data });
-    dispatch({ type: "SET_APPROVAL_DIALOG_STATE", payload: true });
   };
 
   const filteredWeekEntries = useMemo(() => {
@@ -273,7 +269,7 @@ function Timesheet() {
                             loadingLikedTasks={loadingLikedTasks}
                             likedTaskData={likedTaskData}
                             getLikedTaskData={getLikedTaskData}
-                            onButtonClick={() => handleApproval(value.start_date, value.end_date)}
+                            onButtonClick={() => handleApproval(value.start_date, value.end_date, value.total_hours)}
                             status={value.status}
                           />
                         </div>

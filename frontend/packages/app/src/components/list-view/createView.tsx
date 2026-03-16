@@ -20,6 +20,7 @@ import { useFrappePostCall } from "frappe-react-sdk";
 import type { RootState } from "@/store";
 import { setViews } from "@/store/view";
 import type { CreateViewProps } from "./types";
+import { useUser } from "@/hooks/useUser";
 
 export const CreateView = ({
   isOpen = false,
@@ -35,7 +36,7 @@ export const CreateView = ({
   pinnedColumns,
 }: CreateViewProps) => {
   const { call } = useFrappePostCall("next_pms.timesheet.doctype.pms_view_setting.pms_view_setting.create_view");
-  const user = useSelector((state: RootState) => state.user);
+  const user = useUser();
   const [label, setLabel] = useState("");
   const dispatch = useDispatch();
   const [openEmoji, setOpenEmoji] = useState(false);

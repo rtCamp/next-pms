@@ -26,6 +26,7 @@ import type { TaskDataProps } from "@/types/timesheet";
 import type { TaskHoverCardProps } from "./types";
 import TaskStatusIndicator from "../../taskStatusIndicator";
 import { useToasts } from "@rtcamp/frappe-ui-react";
+import { useUser } from "@/hooks/useUser";
 
 export const TaskHoverCard = ({
   name,
@@ -36,7 +37,7 @@ export const TaskHoverCard = ({
   getLikedTaskData,
   hideLikeButton = false,
 }: TaskHoverCardProps) => {
-  const user = useSelector((state: RootState) => state.user);
+  const user = useUser();
   const [taskLiked, setTaskedLiked] = useState(false);
   useEffect(() => {
     setTaskedLiked(likedTaskData.some((obj: TaskDataProps) => obj.name === name) || false);
