@@ -9,4 +9,5 @@ export type SubmitApprovalProps = {
 export type EmployeeRecord = {
   employee_name: string;
   name: string;
+  image?: string;
 };

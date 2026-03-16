@@ -3,7 +3,7 @@
  */
 import { useState } from "react";
 import { useForm } from "@tanstack/react-form";
-import { Dialog, Button, Textarea, Combobox, ErrorMessage, useToasts } from "@rtcamp/frappe-ui-react";
+import { Dialog, Button, Textarea, Combobox, ErrorMessage, useToasts, Avatar } from "@rtcamp/frappe-ui-react";
 import { format, parseISO } from "date-fns";
 import { FrappeError, useFrappeGetCall, useFrappePostCall } from "frappe-react-sdk";
 
@@ -38,7 +38,9 @@ const SubmitApproval = ({ open, onOpenChange, startDate, endDate, totalHours }: 
   const approvers = ((data?.message ?? []) as EmployeeRecord[]).map((emp) => ({
     label: emp.employee_name,
     value: emp.name,
-  }));
+    icon: <Avatar image={emp.image} label={emp.employee_name}/>
+  }
+));
 
   const weekLabel = formatWeekLabel(startDate, endDate);
   const formattedHours = `${Math.floor(totalHours)}:${String(Math.round((totalHours % 1) * 60)).padStart(2, "0")}`;
