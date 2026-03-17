@@ -12,7 +12,7 @@ from frappe.utils import (
 
 from next_pms.api.utils import error_logger
 from next_pms.resource_management.api.utils.query import get_employee_leaves
-from next_pms.timesheet.utils.constant import EMP_TIMESHEET
+from next_pms.timesheet.utils.constant import ALLOWED_FILTER_FIELDS, EMP_TIMESHEET
 
 from .employee import (
     get_employee_daily_working_norm,
@@ -29,6 +29,59 @@ from .utils import (
 )
 
 
+def parse_filters(raw_filters):
+    """Parse Frappe desk-style filters into per-doctype filter lists.
+
+    Input: [["Timesheet", "parent_project", "=", "PROJ-001"], ...]
+    Output: {"Timesheet": [["parent_project", "=", "PROJ-001"]], "Timesheet Detail": [], "Task": []}
+    """
+    result = {dt: [] for dt in ALLOWED_FILTER_FIELDS}
+
+    if not raw_filters:
+        return result
+
+    if isinstance(raw_filters, str):
+        try:
+            raw_filters = json.loads(raw_filters)
+        except (json.JSONDecodeError, ValueError):
+            frappe.throw(_("Invalid filters format. Expected a JSON array."))
+
+    if not isinstance(raw_filters, list):
+        frappe.throw(_("Filters must be a list of [doctype, field, operator, value] entries."))
+
+    for f in raw_filters:
+        if not isinstance(f, list) or len(f) != 4:
+            frappe.throw(_("Each filter must be a list of [doctype, field, operator, value]."))
+
+        doctype, field, operator, value = f
+
+        if doctype not in ALLOWED_FILTER_FIELDS:
+            frappe.throw(_("Filtering on doctype '{0}' is not supported.").format(doctype))
+
+        if field not in ALLOWED_FILTER_FIELDS[doctype]:
+            frappe.throw(_("Filtering on field '{0}' of '{1}' is not supported.").format(field, doctype))
+
+        result[doctype].append([field, operator, value])
+
+    return result
+
+
+def _build_filters(base_filters, additional_filters):
+    """Merge base dict filters with parsed list-of-lists filters for frappe.get_all.
+
+    Converts base dict format {field: value} or {field: [op, value]} into
+    list-of-lists format and extends with additional filters.
+    """
+    result = []
+    for field, value in base_filters.items():
+        if isinstance(value, list) and len(value) == 2 and isinstance(value[0], str):
+            result.append([field, value[0], value[1]])
+        else:
+            result.append([field, "=", value])
+    result.extend(additional_filters)
+    return result
+
+
 @frappe.whitelist()
 @error_logger
 def get_timesheet_data(
@@ -36,8 +89,8 @@ def get_timesheet_data(
     start_date=None,
     max_week: int = 4,
     search: str | None = None,
-    project: str | list | None = None,
     approval_status: str | list | None = None,
+    filters: str | list | None = None,
 ):
     """Get timesheet data for the given employee for the given number of weeks."""
     if not employee:
@@ -46,29 +99,21 @@ def get_timesheet_data(
         start_date = nowdate()
     apply_role_permission_for_doctype(["Timesheet User", "Timesheet Manager"], "Employee", "read", employee)
 
-    # Parse JSON list params
-    if isinstance(project, str):
-        try:
-            project = json.loads(project)
-        except (json.JSONDecodeError, ValueError):
-            project = [project]
+    # Parse approval_status from JSON string to list
     if isinstance(approval_status, str):
         try:
             approval_status = json.loads(approval_status)
         except (json.JSONDecodeError, ValueError):
             approval_status = [approval_status]
 
-    # Build filters dict
-    filters = {}
-    if search:
-        filters["search"] = search
-    if project:
-        filters["project"] = project if isinstance(project, list) else [project]
+    # Parse generic filters
+    parsed_filters = parse_filters(filters)
+    has_filters = bool(search or approval_status or any(parsed_filters.values()))
 
-    def generate_week_data(start_date, max_week, employee=None, leaves=None, holidays=None, filters=None):
+    def generate_week_data(start_date, max_week, employee=None, leaves=None, holidays=None):
         data = {}
         daily_norm = get_employee_daily_working_norm(employee)
-        use_cache = not filters
+        use_cache = not has_filters
 
         cache_key = f"{EMP_TIMESHEET}::{employee}"
         for i in range(max_week):
@@ -87,7 +132,9 @@ def get_timesheet_data(
             tasks, total_hours, status = {}, 0, "Not Submitted"
             if employee:
                 holiday_dates = [holiday["holiday_date"] for holiday in holidays] if holidays else []
-                tasks, total_hours = get_timesheet(week_dates["dates"], employee, filters=filters)
+                tasks, total_hours = get_timesheet(
+                    week_dates["dates"], employee, search=search, parsed_filters=parsed_filters
+                )
                 status = get_timesheet_state(
                     start_date=week_dates["dates"][0],
                     end_date=week_dates["dates"][-1],
@@ -131,7 +178,7 @@ def get_timesheet_data(
     res = {**hour_detail}
 
     if not employee and frappe.session.user == "Administrator":
-        res["data"] = generate_week_data(start_date, max_week, filters=filters)
+        res["data"] = generate_week_data(start_date, max_week)
         res["holidays"] = []
         res["leaves"] = []
         return res
@@ -149,7 +196,7 @@ def get_timesheet_data(
     )
     res["leaves"] = leaves
     res["holidays"] = holidays
-    res["data"] = generate_week_data(start_date, max_week, employee, leaves, holidays, filters=filters)
+    res["data"] = generate_week_data(start_date, max_week, employee, leaves, holidays)
     return res
 
 
@@ -369,7 +416,7 @@ def update_timesheet_detail(
     return _("Time entry updated successfully.")
 
 
-def get_timesheet(dates: list, employee: str, filters: dict | None = None):
+def get_timesheet(dates: list, employee: str, search: str | None = None, parsed_filters: dict | None = None):
     from next_pms.timesheet.utils.constant import ALLOWED_TIMESHET_DETAIL_FIELDS
 
     """Return the time entry from Timesheet Detail child table based on the list of dates and for the given employee.
@@ -392,17 +439,19 @@ def get_timesheet(dates: list, employee: str, filters: dict | None = None):
             ...
         }
     """
+    if not parsed_filters:
+        parsed_filters = {dt: [] for dt in ALLOWED_FILTER_FIELDS}
+
     data = {}
     total_hours = 0
 
     # Get parent timesheet names first
-    ts_filters = {
+    base_ts_filters = {
         "employee": employee,
         "start_date": ["in", dates],
         "docstatus": ["!=", 2],
     }
-    if filters and filters.get("project"):
-        ts_filters["parent_project"] = ["in", filters["project"]]
+    ts_filters = _build_filters(base_ts_filters, parsed_filters.get("Timesheet", []))
 
     timesheet_names = frappe.get_all(
         "Timesheet",
@@ -415,26 +464,27 @@ def get_timesheet(dates: list, employee: str, filters: dict | None = None):
         return [data, total_hours]
 
     # Fetch all timesheet detail records with needed fields in one query
+    base_detail_filters = {"parent": ["in", timesheet_names]}
+    detail_filters = _build_filters(base_detail_filters, parsed_filters.get("Timesheet Detail", []))
+
     timesheet_logs = frappe.get_all(
         "Timesheet Detail",
-        filters={
-            "parent": ["in", timesheet_names],
-        },
+        filters=detail_filters,
         fields=ALLOWED_TIMESHET_DETAIL_FIELDS,
     )
 
     if not timesheet_logs:
         return [data, total_hours]
 
-    # Apply project filter at detail level
-    if filters and filters.get("project"):
-        project_list = filters["project"]
-        timesheet_logs = [log for log in timesheet_logs if log.get("project") in project_list]
-
     task_ids = [ts.get("task") for ts in timesheet_logs if ts.get("task")]
+
+    # Build Task query filters
+    base_task_filters = {"name": ["in", task_ids]}
+    task_filters = _build_filters(base_task_filters, parsed_filters.get("Task", []))
+
     task_details = frappe.get_all(
         "Task",
-        filters={"name": ["in", task_ids]},
+        filters=task_filters,
         fields=[
             "name",
             "subject",
@@ -448,9 +498,9 @@ def get_timesheet(dates: list, employee: str, filters: dict | None = None):
         ],
     )
 
-    # Apply search filter on task details
-    if filters and filters.get("search"):
-        search_term = filters["search"].lower()
+    # Apply search filter on task details (in-memory, OR logic across multiple fields)
+    if search:
+        search_term = search.lower()
         task_details = [
             t
             for t in task_details
@@ -462,7 +512,7 @@ def get_timesheet(dates: list, employee: str, filters: dict | None = None):
     task_details_dict = {task["name"]: task for task in task_details}
 
     # Filter timesheet_logs to only include entries for matching tasks
-    if filters and filters.get("search"):
+    if search or parsed_filters.get("Task"):
         timesheet_logs = [log for log in timesheet_logs if log.get("task") in task_details_dict]
 
     for log in timesheet_logs:
