@@ -1,4 +1,5 @@
-import type { KeyboardEvent } from "react";
+import type { KeyboardEvent, ReactNode } from "react";
+import { EntryFormMode } from ".";
 import { TimeEntryFormApi } from "./form";
 
 export interface InlineTimeEntryProps {
@@ -20,10 +21,14 @@ export type TimeEntryFormValues = {
 
 export type TimeEntryFormProps = {
   form: TimeEntryFormApi;
+  mode: EntryFormMode;
   hoursLeft: number;
   durationLabel: string;
   durationVariant: "default" | "compact";
   maxDurationInHours: number;
   submitting: boolean;
+  editBaseline?: { duration: number; comment: string } | null;
+  onSave: () => void;
   onCommentKeyDown: (e: KeyboardEvent<Element>) => void;
+  children?: ReactNode;
 };

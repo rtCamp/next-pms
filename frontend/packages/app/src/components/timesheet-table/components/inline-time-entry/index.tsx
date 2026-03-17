@@ -1,7 +1,7 @@
 /**
  * External Dependencies
  */
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import { floatToTime, mergeClassNames } from "@next-pms/design-system";
 import { Badge, Button, LoadingIndicator, useToasts } from "@rtcamp/frappe-ui-react";
 import { FrappeError, useFrappeGetCall, useFrappePostCall } from "frappe-react-sdk";
@@ -15,6 +15,14 @@ import { TaskDataItemProps } from "@/types/timesheet";
 import { useInlineTimeEntryForm } from "./form";
 import { TimeEntryForm } from "./timeEntryForm";
 import type { InlineTimeEntryProps, TimeEntryFormValues } from "./types";
+
+export const ENTRY_FORM_MODE = {
+  DEFAULT: "default",
+  ADD: "add",
+  EDIT: "edit",
+} as const;
+
+export type EntryFormMode = (typeof ENTRY_FORM_MODE)[keyof typeof ENTRY_FORM_MODE];
 
 /**
  * InlineTimeEntry Component
@@ -40,9 +48,10 @@ export const InlineTimeEntry = ({
 }: InlineTimeEntryProps) => {
   const toast = useToasts();
   const [submitting, setSubmitting] = useState(false);
-  const [entryFormMode, setEntryFormMode] = useState<"default" | "add" | "edit" | null>("default");
+  const [entryFormMode, setEntryFormMode] = useState<EntryFormMode>(ENTRY_FORM_MODE.DEFAULT);
   const [selectedEntry, setSelectedEntry] = useState<TaskDataItemProps | null>(null);
   const [addDraft, setAddDraft] = useState<{ duration: number; comment: string } | null>(null);
+  const editBaselineRef = useRef<{ duration: number; comment: string } | null>(null);
   const { call: saveTime } = useFrappePostCall("next_pms.timesheet.api.timesheet.save");
   const { call: updateTimesheet } = useFrappePostCall("next_pms.timesheet.api.timesheet.bulk_update_timesheet_detail");
   const { call: deleteTimesheet } = useFrappePostCall("next_pms.timesheet.api.timesheet.delete");
@@ -53,17 +62,22 @@ export const InlineTimeEntry = ({
   });
 
   const hoursLeft = (dailyWorkingHours ?? 0) - (totalUsedHoursInDay ?? 0);
-  const effectiveHoursLeft = entryFormMode === "edit" && selectedEntry ? hoursLeft + selectedEntry.hours : hoursLeft;
+  const effectiveHoursLeft =
+    entryFormMode === ENTRY_FORM_MODE.EDIT && selectedEntry ? hoursLeft + selectedEntry.hours : hoursLeft;
+  const defaultDuration = hoursLeft >= 0.5 ? 0.5 : 0;
   const hasNoTimeEntries = (data?.message?.data?.length ?? 0) === 0;
-  const isEntryFormExpanded = entryFormMode !== "default";
-  const isDraftAvailableInEdit = entryFormMode === "edit" && addDraft !== null;
+  const isEntryFormExpanded = entryFormMode !== ENTRY_FORM_MODE.DEFAULT;
+  const isDraftAvailableInEdit = entryFormMode === ENTRY_FORM_MODE.EDIT && addDraft !== null;
 
-  const defaultValues: TimeEntryFormValues = {
-    task: task,
-    date: date,
-    duration: 0,
-    comment: "",
-  };
+  const defaultValues = useMemo<TimeEntryFormValues>(
+    () => ({
+      task: task,
+      date: date,
+      duration: defaultDuration,
+      comment: "",
+    }),
+    [task, date, defaultDuration],
+  );
 
   const form = useInlineTimeEntryForm({
     defaultValues,
@@ -71,7 +85,7 @@ export const InlineTimeEntry = ({
       setSubmitting(true);
 
       try {
-        if (entryFormMode === "edit" && selectedEntry) {
+        if (entryFormMode === ENTRY_FORM_MODE.EDIT && selectedEntry) {
           await updateTimesheet({
             data: [
               {
@@ -97,7 +111,7 @@ export const InlineTimeEntry = ({
           toast.success("Time Entry submitted successfully");
         }
         await mutate();
-        if (hasNoTimeEntries) {
+        if (hasNoTimeEntries && entryFormMode === ENTRY_FORM_MODE.DEFAULT) {
           onSubmitSuccess?.();
         }
       } catch (err) {
@@ -106,9 +120,10 @@ export const InlineTimeEntry = ({
       } finally {
         setSubmitting(false);
         form.reset();
+        editBaselineRef.current = null;
         setSelectedEntry(null);
         setAddDraft(null);
-        setEntryFormMode("default");
+        setEntryFormMode(ENTRY_FORM_MODE.DEFAULT);
       }
     },
   });
@@ -130,35 +145,41 @@ export const InlineTimeEntry = ({
     } finally {
       setSubmitting(false);
       form.reset();
+      editBaselineRef.current = null;
       setSelectedEntry(null);
       setAddDraft(null);
-      setEntryFormMode("default");
+      setEntryFormMode(ENTRY_FORM_MODE.DEFAULT);
     }
   }, [selectedEntry, deleteTimesheet, toast, mutate, onSubmitSuccess, form]);
 
   const handleEditEntry = useCallback(
     (entry: TaskDataItemProps) => {
-      if (entryFormMode === "add") {
+      if (entryFormMode === ENTRY_FORM_MODE.ADD) {
         const { duration, comment } = form.state.values;
-        const hasDraftValue = duration > 0 || comment.trim() !== "";
+        const hasDraftValue = duration !== defaultValues.duration || comment !== defaultValues.comment;
         setAddDraft(hasDraftValue ? { duration, comment } : null);
       }
       setSelectedEntry(entry);
-      setEntryFormMode("edit");
+      setEntryFormMode(ENTRY_FORM_MODE.EDIT);
+      editBaselineRef.current = {
+        duration: entry.hours,
+        comment: entry.description ?? "",
+      };
       form.setFieldValue("duration", entry.hours);
       form.setFieldValue("comment", entry.description ?? "");
     },
-    [entryFormMode, form],
+    [entryFormMode, form, defaultValues],
   );
 
   const handleToggleAddMode = useCallback(() => {
-    if (entryFormMode === "add") {
+    if (entryFormMode === ENTRY_FORM_MODE.ADD) {
       void form.handleSubmit();
       return;
     }
 
     setSelectedEntry(null);
-    setEntryFormMode("add");
+    setEntryFormMode(ENTRY_FORM_MODE.ADD);
+    editBaselineRef.current = null;
 
     if (addDraft) {
       form.setFieldValue("duration", addDraft.duration);
@@ -167,9 +188,9 @@ export const InlineTimeEntry = ({
       return;
     }
 
-    form.setFieldValue("duration", 0);
+    form.setFieldValue("duration", defaultDuration);
     form.setFieldValue("comment", "");
-  }, [entryFormMode, form, addDraft]);
+  }, [entryFormMode, form, addDraft, defaultDuration]);
 
   const handleSubmit = useCallback(
     (e: React.KeyboardEvent<Element> | null = null) => {
@@ -205,27 +226,20 @@ export const InlineTimeEntry = ({
               )}
               key={entry.name}
             >
-              {entryFormMode === "edit" && selectedEntry?.name === entry.name ? (
+              {entryFormMode === ENTRY_FORM_MODE.EDIT && selectedEntry?.name === entry.name ? (
                 <div className="w-full flex flex-col gap-2">
                   <TimeEntryForm
                     form={form}
+                    mode="edit"
                     hoursLeft={effectiveHoursLeft}
                     durationLabel="Edit time"
                     durationVariant="default"
                     maxDurationInHours={dailyWorkingHours}
+                    editBaseline={editBaselineRef.current}
                     submitting={submitting}
+                    onSave={() => handleSubmit()}
                     onCommentKeyDown={handleSubmit}
-                  />
-                  <div className="w-full flex justify-between gap-2">
-                    <Button
-                      variant="subtle"
-                      size="sm"
-                      iconLeft={() => <Plus size={16} />}
-                      onClick={() => handleSubmit()}
-                      disabled={submitting}
-                    >
-                      Save entry
-                    </Button>
+                  >
                     <Button
                       variant="subtle"
                       theme="red"
@@ -236,7 +250,7 @@ export const InlineTimeEntry = ({
                     >
                       Delete entry
                     </Button>
-                  </div>
+                  </TimeEntryForm>
                 </div>
               ) : (
                 <>
@@ -278,27 +292,29 @@ export const InlineTimeEntry = ({
           ))}
 
           <div className="w-full flex flex-col gap-2">
-            {hasNoTimeEntries || entryFormMode === "add" ? (
+            {hasNoTimeEntries || entryFormMode === ENTRY_FORM_MODE.ADD ? (
               <TimeEntryForm
                 form={form}
+                mode="add"
                 hoursLeft={effectiveHoursLeft}
                 durationLabel="Add time"
                 durationVariant={hasNoTimeEntries ? "compact" : "default"}
                 maxDurationInHours={dailyWorkingHours}
                 submitting={submitting}
+                onSave={() => handleSubmit()}
                 onCommentKeyDown={handleSubmit}
               />
             ) : null}
-            {!hasNoTimeEntries ? (
+            {!hasNoTimeEntries && entryFormMode !== ENTRY_FORM_MODE.ADD ? (
               <div className="w-full flex justify-between gap-2">
                 <Button
-                  variant={entryFormMode !== "add" ? "ghost" : "subtle"}
+                  variant="ghost"
                   size="sm"
                   iconLeft={() => (isDraftAvailableInEdit ? <Pen size={16} /> : <Plus size={16} />)}
-                  onClick={() => (entryFormMode !== "add" ? handleToggleAddMode() : handleSubmit())}
+                  onClick={handleToggleAddMode}
                   disabled={submitting}
                 >
-                  {isDraftAvailableInEdit ? "Draft" : entryFormMode === "add" ? "Save Entry" : "Add time"}
+                  {isDraftAvailableInEdit ? "Draft" : "Add time"}
                 </Button>
               </div>
             ) : null}
