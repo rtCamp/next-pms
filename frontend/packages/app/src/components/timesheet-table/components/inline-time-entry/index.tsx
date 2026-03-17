@@ -51,7 +51,10 @@ export const InlineTimeEntry = ({
   const [entryFormMode, setEntryFormMode] = useState<EntryFormMode>(ENTRY_FORM_MODE.DEFAULT);
   const [selectedEntry, setSelectedEntry] = useState<TaskDataItemProps | null>(null);
   const [addDraft, setAddDraft] = useState<{ duration: number; comment: string } | null>(null);
+  const [collapsedEntryNames, setCollapsedEntryNames] = useState<string[]>([]);
+  const hasInitializedInteractiveModeRef = useRef(false);
   const editBaselineRef = useRef<{ duration: number; comment: string } | null>(null);
+
   const { call: saveTime } = useFrappePostCall("next_pms.timesheet.api.timesheet.save");
   const { call: updateTimesheet } = useFrappePostCall("next_pms.timesheet.api.timesheet.bulk_update_timesheet_detail");
   const { call: deleteTimesheet } = useFrappePostCall("next_pms.timesheet.api.timesheet.delete");
@@ -66,8 +69,9 @@ export const InlineTimeEntry = ({
     entryFormMode === ENTRY_FORM_MODE.EDIT && selectedEntry ? hoursLeft + selectedEntry.hours : hoursLeft;
   const defaultDuration = hoursLeft >= 0.5 ? 0.5 : 0;
   const hasNoTimeEntries = (data?.message?.data?.length ?? 0) === 0;
-  const isEntryFormExpanded = entryFormMode !== ENTRY_FORM_MODE.DEFAULT;
   const isDraftAvailableInEdit = entryFormMode === ENTRY_FORM_MODE.EDIT && addDraft !== null;
+
+  const entries = useMemo(() => data?.message?.data ?? [], [data]);
 
   const defaultValues = useMemo<TimeEntryFormValues>(
     () => ({
@@ -159,16 +163,21 @@ export const InlineTimeEntry = ({
         const hasDraftValue = duration !== defaultValues.duration || comment !== defaultValues.comment;
         setAddDraft(hasDraftValue ? { duration, comment } : null);
       }
+      if (!hasInitializedInteractiveModeRef.current) {
+        setCollapsedEntryNames(entries.map((timeEntry: TaskDataItemProps) => timeEntry.name));
+        hasInitializedInteractiveModeRef.current = true;
+      }
       setSelectedEntry(entry);
       setEntryFormMode(ENTRY_FORM_MODE.EDIT);
       editBaselineRef.current = {
         duration: entry.hours,
         comment: entry.description ?? "",
       };
+      setCollapsedEntryNames((prev) => prev.filter((name) => name !== entry.name));
       form.setFieldValue("duration", entry.hours);
       form.setFieldValue("comment", entry.description ?? "");
     },
-    [entryFormMode, form, defaultValues],
+    [entryFormMode, form, defaultValues, entries],
   );
 
   const handleToggleAddMode = useCallback(() => {
@@ -180,6 +189,10 @@ export const InlineTimeEntry = ({
     setSelectedEntry(null);
     setEntryFormMode(ENTRY_FORM_MODE.ADD);
     editBaselineRef.current = null;
+    if (!hasInitializedInteractiveModeRef.current) {
+      setCollapsedEntryNames(entries.map((timeEntry: TaskDataItemProps) => timeEntry.name));
+      hasInitializedInteractiveModeRef.current = true;
+    }
 
     if (addDraft) {
       form.setFieldValue("duration", addDraft.duration);
@@ -190,7 +203,7 @@ export const InlineTimeEntry = ({
 
     form.setFieldValue("duration", defaultDuration);
     form.setFieldValue("comment", "");
-  }, [entryFormMode, form, addDraft, defaultDuration]);
+  }, [entryFormMode, form, addDraft, defaultDuration, entries]);
 
   const handleSubmit = useCallback(
     (e: React.KeyboardEvent<Element> | null = null) => {
@@ -207,6 +220,15 @@ export const InlineTimeEntry = ({
     [form],
   );
 
+  const handleToggleEntryExpand = useCallback((entryName: string) => {
+    setCollapsedEntryNames((prev) => {
+      if (prev.includes(entryName)) {
+        return prev.filter((name) => name !== entryName);
+      }
+      return [...prev, entryName];
+    });
+  }, []);
+
   return (
     <div
       className={mergeClassNames(
@@ -218,16 +240,18 @@ export const InlineTimeEntry = ({
         <LoadingIndicator className="w-3 h-3" />
       ) : (
         <>
-          {data?.message?.data?.map((entry: TaskDataItemProps) => (
-            <div
-              className={mergeClassNames(
-                "relative group flex justify-start items-start gap-2 border-b border-outline-gray-modals pb-2",
-                isEntryFormExpanded ? "flex-row" : "flex-col",
-              )}
-              key={entry.name}
-            >
-              {entryFormMode === ENTRY_FORM_MODE.EDIT && selectedEntry?.name === entry.name ? (
-                <div className="w-full flex flex-col gap-2">
+          {entries.map((entry: TaskDataItemProps) => {
+            const isEditingThisEntry = entryFormMode === ENTRY_FORM_MODE.EDIT && selectedEntry?.name === entry.name;
+            const isExpanded = isEditingThisEntry || !collapsedEntryNames.includes(entry.name);
+
+            return (
+              <div
+                className={mergeClassNames(
+                  "flex justify-start items-start gap-2 border-b border-outline-gray-modals pb-2",
+                )}
+                key={entry.name}
+              >
+                {isEditingThisEntry ? (
                   <TimeEntryForm
                     form={form}
                     mode="edit"
@@ -251,45 +275,50 @@ export const InlineTimeEntry = ({
                       Delete entry
                     </Button>
                   </TimeEntryForm>
-                </div>
-              ) : (
-                <>
+                ) : (
                   <div
-                    className={mergeClassNames("flex justify-between items-center", !isEntryFormExpanded && "w-full")}
+                    className={mergeClassNames(
+                      "w-full relative group flex justify-start items-start gap-2 cursor-pointer",
+                      !isExpanded ? "flex-row" : "flex-col",
+                    )}
+                    onClick={() => handleToggleEntryExpand(entry.name)}
                   >
-                    <Badge
-                      prefix={
-                        !isBillable ? (
-                          <div className="w-3 h-3 flex justify-center items-center">
-                            <span className="block z-10 -bottom-0.5 left-1/2 w-1 h-1 rounded-full bg-surface-amber-3 transform -translate-x-1/2"></span>
-                          </div>
-                        ) : null
-                      }
-                      variant="subtle"
-                      size="md"
-                      className="lining-nums tabular-nums text-ink-gray-9 gap-0"
-                    >
-                      {entry.hours ? floatToTime(entry.hours, 2) : "00:00"}
-                    </Badge>
-                    <Button
-                      className={mergeClassNames(
-                        "w-5 h-5 hidden group-hover:inline-flex",
-                        isEntryFormExpanded && "absolute right-0 group-hover:bg-surface-gray-3 ",
-                      )}
-                      variant="ghost"
-                      icon={() => <Edit className="text-ink-gray-7" size={16} />}
-                      onClick={() => handleEditEntry(entry)}
-                    />
+                    <div className={mergeClassNames("flex justify-between items-center", isExpanded && "w-full")}>
+                      <Badge
+                        prefix={
+                          !isBillable ? (
+                            <div className="w-3 h-3 flex justify-center items-center">
+                              <span className="block z-10 -bottom-0.5 left-1/2 w-1 h-1 rounded-full bg-surface-amber-3 transform -translate-x-1/2"></span>
+                            </div>
+                          ) : null
+                        }
+                        variant="subtle"
+                        size="md"
+                        className="lining-nums tabular-nums text-ink-gray-9 gap-0"
+                      >
+                        {entry.hours ? floatToTime(entry.hours, 2) : "00:00"}
+                      </Badge>
+                      <Button
+                        className={mergeClassNames(
+                          "w-5 h-5 hidden group-hover:inline-flex",
+                          !isExpanded && "absolute right-0 group-hover:bg-surface-gray-3 ",
+                        )}
+                        variant="ghost"
+                        icon={() => <Edit className="text-ink-gray-7" size={16} />}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleEditEntry(entry);
+                        }}
+                      />
+                    </div>
+                    <span className={mergeClassNames("text-base text-ink-gray-6", !isExpanded && "w-full truncate")}>
+                      {entry.description}
+                    </span>
                   </div>
-                  <span
-                    className={mergeClassNames("text-base text-ink-gray-6", isEntryFormExpanded && "w-full truncate")}
-                  >
-                    {entry.description}
-                  </span>
-                </>
-              )}
-            </div>
-          ))}
+                )}
+              </div>
+            );
+          })}
 
           <div className="w-full flex flex-col gap-2">
             {hasNoTimeEntries || entryFormMode === ENTRY_FORM_MODE.ADD ? (
