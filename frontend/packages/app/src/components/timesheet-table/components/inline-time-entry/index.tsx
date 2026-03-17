@@ -7,7 +7,7 @@ import { DurationInput } from "@next-pms/design-system/components";
 import { Badge, Button, ErrorMessage, LoadingIndicator, Textarea, useToasts } from "@rtcamp/frappe-ui-react";
 import { useForm } from "@tanstack/react-form";
 import { FrappeError, useFrappeGetCall, useFrappePostCall } from "frappe-react-sdk";
-import { Command, CornerDownLeft, Edit, Plus, Trash2, X } from "lucide-react";
+import { Command, CornerDownLeft, Edit, Pen, Plus, Trash2 } from "lucide-react";
 
 /**
  * Internal Dependencies
@@ -41,8 +41,9 @@ export const InlineTimeEntry = ({
 }: InlineTimeEntryProps) => {
   const toast = useToasts();
   const [submitting, setSubmitting] = useState(false);
-  const [entryFormMode, setEntryFormMode] = useState<"add" | "edit" | null>(null);
+  const [entryFormMode, setEntryFormMode] = useState<"default" | "add" | "edit" | null>("default");
   const [selectedEntry, setSelectedEntry] = useState<TaskDataItemProps | null>(null);
+  const [addDraft, setAddDraft] = useState<{ duration: number; comment: string } | null>(null);
   const { call: saveTime } = useFrappePostCall("next_pms.timesheet.api.timesheet.save");
   const { call: updateTimesheet } = useFrappePostCall("next_pms.timesheet.api.timesheet.bulk_update_timesheet_detail");
   const { call: deleteTimesheet } = useFrappePostCall("next_pms.timesheet.api.timesheet.delete");
@@ -55,7 +56,8 @@ export const InlineTimeEntry = ({
   const hoursLeft = (dailyWorkingHours ?? 0) - (totalUsedHoursInDay ?? 0);
   const effectiveHoursLeft = entryFormMode === "edit" && selectedEntry ? hoursLeft + selectedEntry.hours : hoursLeft;
   const hasNoTimeEntries = (data?.message?.data?.length ?? 0) === 0;
-  const isEntryFormExpanded = entryFormMode !== null;
+  const isEntryFormExpanded = entryFormMode !== "default";
+  const isDraftAvailableInEdit = entryFormMode === "edit" && addDraft !== null;
 
   const form = useForm({
     defaultValues: {
@@ -107,7 +109,8 @@ export const InlineTimeEntry = ({
         setSubmitting(false);
         form.reset();
         setSelectedEntry(null);
-        setEntryFormMode(null);
+        setAddDraft(null);
+        setEntryFormMode("default");
       }
     },
   });
@@ -130,11 +133,17 @@ export const InlineTimeEntry = ({
       setSubmitting(false);
       form.reset();
       setSelectedEntry(null);
-      setEntryFormMode(null);
+      setAddDraft(null);
+      setEntryFormMode("default");
     }
   };
 
   const handleEditEntry = (entry: TaskDataItemProps) => {
+    if (entryFormMode === "add") {
+      const { duration, comment } = form.state.values;
+      const hasDraftValue = duration > 0 || comment.trim() !== "";
+      setAddDraft(hasDraftValue ? { duration, comment } : null);
+    }
     setSelectedEntry(entry);
     setEntryFormMode("edit");
     form.setFieldValue("duration", entry.hours);
@@ -146,8 +155,19 @@ export const InlineTimeEntry = ({
       void form.handleSubmit();
       return;
     }
+
     setSelectedEntry(null);
     setEntryFormMode("add");
+
+    if (addDraft) {
+      form.setFieldValue("duration", addDraft.duration);
+      form.setFieldValue("comment", addDraft.comment);
+      setAddDraft(null);
+      return;
+    }
+
+    form.setFieldValue("duration", 0);
+    form.setFieldValue("comment", "");
   };
 
   const handleSubmit = (e: React.KeyboardEvent<Element> | null = null) => {
@@ -181,39 +201,125 @@ export const InlineTimeEntry = ({
               )}
               key={entry.name}
             >
-              <div className={mergeClassNames("flex justify-between items-center", !isEntryFormExpanded && "w-full")}>
-                <Badge
-                  prefix={
-                    !isBillable ? (
-                      <div className="w-3 h-3 flex justify-center items-center">
-                        <span className="block z-10 -bottom-0.5 left-1/2 w-1 h-1 rounded-full bg-surface-amber-3 transform -translate-x-1/2"></span>
-                      </div>
-                    ) : null
-                  }
-                  variant="subtle"
-                  size="md"
-                  className="lining-nums tabular-nums text-ink-gray-9 gap-0"
-                >
-                  {entry.hours ? floatToTime(entry.hours, 2) : "00:00"}
-                </Badge>
-                <Button
-                  className={mergeClassNames(
-                    "w-5 h-5 hidden group-hover:inline-flex",
-                    isEntryFormExpanded && "absolute right-0 group-hover:bg-surface-gray-3 ",
-                  )}
-                  variant="ghost"
-                  icon={() => <Edit className="text-ink-gray-7" size={16} />}
-                  onClick={() => handleEditEntry(entry)}
-                />
-              </div>
-              <span className={mergeClassNames("text-base text-ink-gray-6", isEntryFormExpanded && "w-full truncate")}>
-                {entry.description}
-              </span>
+              {entryFormMode === "edit" && selectedEntry?.name === entry.name ? (
+                <div className="w-full flex flex-col gap-2">
+                  {hasNoTimeEntries || isEntryFormExpanded ? (
+                    <div className="w-full flex flex-col gap-2">
+                      <form.Field
+                        name="duration"
+                        children={(field) => {
+                          return (
+                            <div className="w-full flex flex-col gap-2">
+                              <DurationInput
+                                hoursLeft={effectiveHoursLeft}
+                                label={"Edit time"}
+                                variant="default"
+                                value={field.state.value}
+                                onChange={(val) => field.handleChange(val)}
+                                maxDurationInHours={dailyWorkingHours}
+                              />
+                              {!field.state.meta.isValid && (
+                                <ErrorMessage message={field.state.meta.errors[0]?.message} />
+                              )}
+                            </div>
+                          );
+                        }}
+                      />
+                      <form.Field
+                        name="comment"
+                        children={(field) => {
+                          return (
+                            <>
+                              <div className="w-full relative" onKeyDownCapture={(e) => handleSubmit(e)}>
+                                <Textarea
+                                  value={field.state.value}
+                                  onChange={(e) => field.handleChange(e.target.value)}
+                                  className="bg-white border-outline-gray-2"
+                                  placeholder="Comment"
+                                  disabled={submitting}
+                                />
+                                {field.state.value === "" ? (
+                                  <span className="absolute text-xs right-1 bottom-1 align-middle flex justify-center items-center text-ink-gray-4">
+                                    <Command className="w-3.5! h-3.5!" />+<CornerDownLeft className="w-3.5! h-3.5!" />
+                                  </span>
+                                ) : null}
+                              </div>
+                              {!field.state.meta.isValid && (
+                                <ErrorMessage message={field.state.meta.errors[0]?.message} />
+                              )}
+                            </>
+                          );
+                        }}
+                      />
+                    </div>
+                  ) : null}
+                  {!hasNoTimeEntries ? (
+                    <div className="w-full flex justify-between gap-2">
+                      <Button
+                        variant={entryFormMode === null ? "ghost" : "subtle"}
+                        size="sm"
+                        iconLeft={() => <Plus size={16} />}
+                        onClick={() => (entryFormMode === null ? handleToggleAddMode() : handleSubmit())}
+                        disabled={submitting}
+                      >
+                        {entryFormMode === null ? "Add time" : "Save entry"}
+                      </Button>
+                      {entryFormMode === "edit" ? (
+                        <Button
+                          variant="subtle"
+                          theme="red"
+                          size="sm"
+                          iconLeft={() => <Trash2 size={16} />}
+                          onClick={handleDelete}
+                          disabled={submitting}
+                        >
+                          Delete entry
+                        </Button>
+                      ) : null}
+                    </div>
+                  ) : null}
+                </div>
+              ) : (
+                <>
+                  <div
+                    className={mergeClassNames("flex justify-between items-center", !isEntryFormExpanded && "w-full")}
+                  >
+                    <Badge
+                      prefix={
+                        !isBillable ? (
+                          <div className="w-3 h-3 flex justify-center items-center">
+                            <span className="block z-10 -bottom-0.5 left-1/2 w-1 h-1 rounded-full bg-surface-amber-3 transform -translate-x-1/2"></span>
+                          </div>
+                        ) : null
+                      }
+                      variant="subtle"
+                      size="md"
+                      className="lining-nums tabular-nums text-ink-gray-9 gap-0"
+                    >
+                      {entry.hours ? floatToTime(entry.hours, 2) : "00:00"}
+                    </Badge>
+                    <Button
+                      className={mergeClassNames(
+                        "w-5 h-5 hidden group-hover:inline-flex",
+                        isEntryFormExpanded && "absolute right-0 group-hover:bg-surface-gray-3 ",
+                      )}
+                      variant="ghost"
+                      icon={() => <Edit className="text-ink-gray-7" size={16} />}
+                      onClick={() => handleEditEntry(entry)}
+                    />
+                  </div>
+                  <span
+                    className={mergeClassNames("text-base text-ink-gray-6", isEntryFormExpanded && "w-full truncate")}
+                  >
+                    {entry.description}
+                  </span>
+                </>
+              )}
             </div>
           ))}
 
           <div className="w-full flex flex-col gap-2">
-            {hasNoTimeEntries || isEntryFormExpanded ? (
+            {hasNoTimeEntries || entryFormMode === "add" ? (
               <div className="w-full flex flex-col gap-2">
                 <form.Field
                   name="duration"
@@ -222,8 +328,8 @@ export const InlineTimeEntry = ({
                       <div className="w-full flex flex-col gap-2">
                         <DurationInput
                           hoursLeft={effectiveHoursLeft}
-                          label={entryFormMode === "edit" ? "Edit time" : "Add time"}
-                          variant={isEntryFormExpanded ? "default" : "compact"}
+                          label="Add time"
+                          variant={hasNoTimeEntries ? "compact" : "default"}
                           value={field.state.value}
                           onChange={(val) => field.handleChange(val)}
                           maxDurationInHours={dailyWorkingHours}
@@ -262,26 +368,24 @@ export const InlineTimeEntry = ({
             {!hasNoTimeEntries ? (
               <div className="w-full flex justify-between gap-2">
                 <Button
-                  variant={entryFormMode === null ? "ghost" : "subtle"}
+                  variant={entryFormMode === "default" || entryFormMode === "edit" ? "ghost" : "subtle"}
                   size="sm"
-                  iconLeft={() => <Plus size={16} />}
-                  onClick={() => (entryFormMode === null ? handleToggleAddMode() : handleSubmit())}
+                  iconLeft={() =>
+                    entryFormMode === "add" ? (
+                      <Plus size={16} />
+                    ) : isDraftAvailableInEdit ? (
+                      <Pen size={16} />
+                    ) : (
+                      <Plus size={16} />
+                    )
+                  }
+                  onClick={() =>
+                    entryFormMode === "default" || entryFormMode === "edit" ? handleToggleAddMode() : handleSubmit()
+                  }
                   disabled={submitting}
                 >
-                  {entryFormMode === null ? "Add time" : "Save entry"}
+                  {entryFormMode === "add" ? "Save entry" : isDraftAvailableInEdit ? "Draft" : "Add time"}
                 </Button>
-                {entryFormMode === "edit" ? (
-                  <Button
-                    variant="subtle"
-                    theme="red"
-                    size="sm"
-                    iconLeft={() => <Trash2 size={16} />}
-                    onClick={handleDelete}
-                    disabled={submitting}
-                  >
-                    Delete entry
-                  </Button>
-                ) : null}
               </div>
             ) : null}
           </div>
