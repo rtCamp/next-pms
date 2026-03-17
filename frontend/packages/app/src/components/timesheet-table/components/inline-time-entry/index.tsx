@@ -276,44 +276,54 @@ export const InlineTimeEntry = ({
                     </Button>
                   </TimeEntryForm>
                 ) : (
-                  <div
-                    className={mergeClassNames(
-                      "w-full relative group flex justify-start items-start gap-2 cursor-pointer",
-                      !isExpanded ? "flex-row" : "flex-col",
-                    )}
-                    onClick={() => handleToggleEntryExpand(entry.name)}
-                  >
-                    <div className={mergeClassNames("flex justify-between items-center", isExpanded && "w-full")}>
-                      <Badge
-                        prefix={
-                          !isBillable ? (
-                            <div className="w-3 h-3 flex justify-center items-center">
-                              <span className="block z-10 -bottom-0.5 left-1/2 w-1 h-1 rounded-full bg-surface-amber-3 transform -translate-x-1/2"></span>
-                            </div>
-                          ) : null
-                        }
-                        variant="subtle"
-                        size="md"
-                        className="lining-nums tabular-nums text-ink-gray-9 gap-0"
-                      >
-                        {entry.hours ? floatToTime(entry.hours, 2) : "00:00"}
-                      </Badge>
-                      <Button
+                  <div className="w-full relative group flex items-center">
+                    <button
+                      className={mergeClassNames(
+                        "w-full relative flex justify-start gap-2 cursor-pointer text-left",
+                        "focus:outline-none focus-visible:ring focus-visible:ring-outline-gray-3 rounded-sm",
+                        !isExpanded ? "flex-row items-center" : "flex-col items-start ",
+                      )}
+                      onClick={() => handleToggleEntryExpand(entry.name)}
+                    >
+                      <div className={mergeClassNames("flex justify-between items-center", isExpanded && "w-full")}>
+                        <Badge
+                          prefix={
+                            !isBillable ? (
+                              <div className="w-3 h-3 flex justify-center items-center">
+                                <span className="block z-10 -bottom-0.5 left-1/2 w-1 h-1 rounded-full bg-surface-amber-3 transform -translate-x-1/2"></span>
+                              </div>
+                            ) : null
+                          }
+                          variant="subtle"
+                          size="md"
+                          className="lining-nums tabular-nums text-ink-gray-9 gap-0"
+                        >
+                          {entry.hours ? floatToTime(entry.hours, 2) : "00:00"}
+                        </Badge>
+                      </div>
+                      <span
                         className={mergeClassNames(
-                          "w-5 h-5 hidden group-hover:inline-flex",
-                          !isExpanded && "absolute right-0 group-hover:bg-surface-gray-3 ",
+                          "min-w-0 w-full line-clamp-6 break-words text-base text-ink-gray-6",
+                          !isExpanded && "w-full truncate group-hover:pr-6 group-focus-within:pr-6",
                         )}
-                        variant="ghost"
-                        icon={() => <Edit className="text-ink-gray-7" size={16} />}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleEditEntry(entry);
-                        }}
-                      />
-                    </div>
-                    <span className={mergeClassNames("text-base text-ink-gray-6", !isExpanded && "w-full truncate")}>
-                      {entry.description}
-                    </span>
+                      >
+                        {entry.description}
+                      </span>
+                    </button>
+                    <Button
+                      className={mergeClassNames(
+                        "w-5 h-5 absolute right-0 top-0",
+                        "opacity-0 pointer-events-none",
+                        "group-hover:opacity-100 group-hover:pointer-events-auto",
+                        "group-focus-within:opacity-100 group-focus-within:pointer-events-auto",
+                      )}
+                      variant="ghost"
+                      icon={() => <Edit className="text-ink-gray-7" size={16} />}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleEditEntry(entry);
+                      }}
+                    />
                   </div>
                 )}
               </div>
