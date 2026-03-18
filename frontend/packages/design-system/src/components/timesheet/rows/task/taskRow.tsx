@@ -1,17 +1,19 @@
 /**
  * External dependencies.
  */
-import { Popover } from "@base-ui/react";
+import { Popover, PreviewCard } from "@base-ui/react";
+import {
+  TaskStatus,
+  type TaskStatusType,
+} from "@next-pms/design-system/components";
 import { Button } from "@rtcamp/frappe-ui-react";
 import { Plus, Star } from "lucide-react";
 
 /**
  * Internal dependencies.
  */
-import { TaskData, type TaskRowTimeEntry } from "./constants";
+import { type TaskRowTimeEntry } from "./constants";
 import { mergeClassNames as cn } from "../../../../utils";
-import TaskStatus, { type TaskStatusType } from "../../../task-status";
-import TaskPopover from "../../taskPopover";
 
 export interface TaskRowProps {
   /** Optional index of the task, used for identifying the task in callbacks. */
@@ -35,7 +37,12 @@ export interface TaskRowProps {
   status?: TaskStatusType;
   /** Additional class names for the task row container. */
   className?: string;
-  taskData: TaskData;
+  /** Optional function to render hover content for the task, receiving the task key. */
+  taskHoverContent?: (taskKey: string) => React.ReactNode;
+  /** Optional function to handle label click events, receiving the task key. */
+  onLabelClick?: (taskKey: string) => void;
+  /** Key of the task, used for identifying the task in callbacks. */
+  taskKey: string;
 }
 
 export const TaskRow: React.FC<TaskRowProps> = ({
@@ -45,10 +52,12 @@ export const TaskRow: React.FC<TaskRowProps> = ({
   timeEntries,
   onCellClick,
   popoverContent,
+  taskHoverContent,
   totalHours = "",
-  status = "open",
+  status = "Open",
   className,
-  taskData,
+  onLabelClick,
+  taskKey,
 }) => {
   return (
     <div
@@ -62,22 +71,21 @@ export const TaskRow: React.FC<TaskRowProps> = ({
         <div className="flex gap-2 items-center min-w-0">
           <TaskStatus status={status} />
           <span className="min-w-0 text-base font-medium truncate">
-            <Popover.Root>
-              <Popover.Trigger openOnHover>{label}</Popover.Trigger>
-              <Popover.Portal>
-                <Popover.Positioner sideOffset={8} align="start">
-                  <Popover.Popup>
-                    <TaskPopover
-                      label={label}
-                      badges={[]}
-                      actualHours={taskData.actual_time}
-                      estimatedHours={taskData.expected_time}
-                      status={status}
-                    />
-                  </Popover.Popup>
-                </Popover.Positioner>
-              </Popover.Portal>
-            </Popover.Root>
+            <PreviewCard.Root>
+              <PreviewCard.Trigger
+                onClick={() => onLabelClick?.(taskKey)}
+                className="cursor-pointer"
+              >
+                {label}
+              </PreviewCard.Trigger>
+              <PreviewCard.Portal>
+                <PreviewCard.Positioner sideOffset={8} align="start">
+                  <PreviewCard.Popup>
+                    {taskHoverContent?.(taskKey)}
+                  </PreviewCard.Popup>
+                </PreviewCard.Positioner>
+              </PreviewCard.Portal>
+            </PreviewCard.Root>
           </span>
           {starred ? (
             <span className="w-4 shrink-0">
