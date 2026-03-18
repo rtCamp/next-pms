@@ -1,11 +1,13 @@
-import { ProgressV2 } from "@next-pms/design-system/components";
-import { timeToDecimalHours } from "@next-pms/design-system/utils";
-import { Avatar, Badge, Dialog, Select } from "@rtcamp/frappe-ui-react";
 import {
-  statusIcon,
-  statusIconVariants,
-  type TaskStatus,
-} from "../rows/task/constants";
+  TaskProgress,
+  TaskStatus,
+  type TaskStatusType,
+} from "@next-pms/design-system/components";
+import {
+  mergeClassNames as cn,
+  floatToTime,
+} from "@next-pms/design-system/utils";
+import { Avatar, Badge, Dialog, Select } from "@rtcamp/frappe-ui-react";
 
 type BadgeItem = {
   icon: React.ReactNode;
@@ -14,11 +16,11 @@ type BadgeItem = {
 
 type TaskModalProps = {
   open: boolean;
-  status: TaskStatus;
+  status: TaskStatusType;
   label: string;
   badges?: BadgeItem[];
-  actualHours: string;
-  estimatedHours: string;
+  actualHours: number;
+  estimatedHours: number;
   onOpenChange: (open: boolean) => void;
 };
 
@@ -31,12 +33,9 @@ const TaskModal: React.FC<TaskModalProps> = ({
   estimatedHours,
   onOpenChange,
 }) => {
-  const StatusIcon = statusIcon[status];
-
   // Calculate progress percentage
-  const actual = timeToDecimalHours(actualHours);
-  const estimated = timeToDecimalHours(estimatedHours) || 1;
-  const progress = Math.round((actual / estimated) * 100);
+  const progress =
+    estimatedHours === 0 ? 0 : Math.round((actualHours / estimatedHours) * 100);
 
   return (
     <Dialog
@@ -46,10 +45,7 @@ const TaskModal: React.FC<TaskModalProps> = ({
         title: () => {
           return (
             <div className="flex items-center gap-x-2 gap-y-1.5">
-              <StatusIcon
-                size={16}
-                className={statusIconVariants({ status })}
-              />
+              <TaskStatus status={status} />
               <div className="text-lg font-semibold">{label}</div>
             </div>
           );
@@ -70,12 +66,19 @@ const TaskModal: React.FC<TaskModalProps> = ({
       <div className="flex justify-between mt-4 text-base">
         <div className="flex gap-0.75 mb-0.5">
           <div className="flex gap-1">
-            <span>{actualHours}</span>
+            <span
+              className={cn(
+                "font-medium",
+                progress > 100 && "text-surface-red-7",
+              )}
+            >
+              {floatToTime(actualHours, 2)}
+            </span>
             <span className="text-ink-gray-5">Actual</span>
           </div>
           <span className="text-ink-gray-5">/</span>
           <div className="flex gap-1">
-            <span>{estimatedHours}</span>
+            <span>{floatToTime(estimatedHours, 2)}</span>
             <span className="text-ink-gray-5">Est.</span>
           </div>
         </div>
@@ -83,7 +86,7 @@ const TaskModal: React.FC<TaskModalProps> = ({
         <div className="text-ink-gray-6">{progress}%</div>
       </div>
 
-      <ProgressV2 value={progress} size="lg" className="mt-2.5" />
+      <TaskProgress value={progress} className="mt-2.5" />
 
       <div className="flex justify-between items-center mt-6">
         <div className="flex justify-between items-center rounded bg-surface-gray-2 px-2 py-1.5 gap-1">
