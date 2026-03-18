@@ -63,7 +63,6 @@ export const TaskRow: React.FC<TaskRowProps> = ({
         "flex items-center border-b border-outline-gray-1 transition-colors w-full justify-between px-1 py-2",
         className,
       )}
-      data-testid="task-row"
     >
       <div className="flex items-center flex-1 min-w-0">
         <div className="flex items-center min-w-0 gap-2">

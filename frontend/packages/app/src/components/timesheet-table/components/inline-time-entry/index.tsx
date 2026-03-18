@@ -306,11 +306,6 @@ export const InlineTimeEntry = ({
                         <button
                           type="button"
                           aria-expanded={isExpanded}
-                          title={
-                            isExpanded
-                              ? "Collapse time entry"
-                              : "Expand time entry"
-                          }
                           className={cn(
                             "w-full relative flex justify-start gap-2 cursor-pointer text-left",
                             "focus:outline-none focus-visible:ring focus-visible:ring-outline-gray-3 rounded-sm",

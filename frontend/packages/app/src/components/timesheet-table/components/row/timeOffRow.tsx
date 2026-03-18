@@ -20,10 +20,16 @@ import type { TimeOffRowProps } from "./types";
  * @param {Array} props.holidayList - Array of holiday date strings for the week.
  * @param {number} props.expectedHours - Expected working hours for the day.
  */
-export const TimeOffRow = ({ dates, leaves, holidayList, expectedHours, ...rest }: TimeOffRowProps) => {
+export const TimeOffRow = ({
+  dates,
+  leaves,
+  holidayList,
+  expectedHours,
+  ...rest
+}: TimeOffRowProps) => {
   const timeOffData = useMemo(() => {
     let totalHours = 0;
-    const totalTimeEntries: string[] = [];
+    const totalTimeEntries = [];
 
     for (const date of dates) {
       let hour = 0;
@@ -36,21 +42,31 @@ export const TimeOffRow = ({ dates, leaves, holidayList, expectedHours, ...rest 
         if (is_lwp) {
           hour = expectedHours;
           totalHours += hour;
-          totalTimeEntries.push(hour === 0 ? "" : floatToTime(hour, 2));
+          totalTimeEntries.push({
+            time: hour === 0 ? "" : floatToTime(hour, 2),
+            holiday: true,
+          });
           continue;
         }
         continue;
       }
 
       for (const item of data) {
-        if (item.half_day && item.half_day_date && item.half_day_date === date) {
+        if (
+          item.half_day &&
+          item.half_day_date &&
+          item.half_day_date === date
+        ) {
           hour += expectedHours / 2;
         } else {
           hour += expectedHours;
         }
       }
       totalHours += hour;
-      totalTimeEntries.push(hour === 0 ? "" : floatToTime(hour, 2));
+      totalTimeEntries.push({
+        time: hour === 0 ? "" : floatToTime(hour, 2),
+        holiday: false,
+      });
     }
 
     return { totalHours: floatToTime(totalHours, 2), totalTimeEntries };
@@ -60,5 +76,11 @@ export const TimeOffRow = ({ dates, leaves, holidayList, expectedHours, ...rest 
     return <></>;
   }
 
-  return <BaseTimeOffRow {...rest} totalHours={timeOffData.totalHours} timeOffEntries={timeOffData.totalTimeEntries} />;
+  return (
+    <BaseTimeOffRow
+      {...rest}
+      totalHours={timeOffData.totalHours}
+      timeOffEntries={timeOffData.totalTimeEntries}
+    />
+  );
 };

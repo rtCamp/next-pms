@@ -26,8 +26,6 @@ export interface MemberRowProps {
   collapsed?: boolean;
   /** Status of the timesheet for the member. */
   status?: RowStatus;
-  /** Callback function when the member row is toggled between collapsed and expanded. */
-  onToggle?: () => void;
   /** Callback function when the action button is clicked. */
   onButtonClick?: () => void;
   /** Array of time entries for each day of the week for the member. */
@@ -44,7 +42,6 @@ export const MemberRow: React.FC<MemberRowProps> = ({
   collapsed = false,
   status = "not-submitted",
   timeEntries,
-  onToggle,
   onButtonClick,
   totalHours = "",
   className,
@@ -57,20 +54,16 @@ export const MemberRow: React.FC<MemberRowProps> = ({
         "flex items-center border-b border-outline-gray-1 transition-colors w-full justify-between px-1 py-2",
         className,
       )}
-      data-testid="member-row"
     >
       <div className="flex items-center flex-1 min-w-0 gap-2 align-middle">
-        <Button
-          onClick={onToggle}
-          disabled={!onToggle}
-          variant="ghost"
+        <span
           className={cn(
-            "w-4 shrink-0 border-none outline-none focus:ring-0 focus-visible:ring-0 transition-transform bg-transparent hover:bg-transparent focus:bg-transparent active:bg-transparent",
+            "w-4 shrink-0 transition-transform",
             collapsed ? "-rotate-90" : "rotate-0",
           )}
-          icon={() => <ChevronDown strokeWidth={1.5} size={16} />}
-          aria-label="Toggle member"
-        />
+        >
+          <ChevronDown strokeWidth={1.5} size={16} />
+        </span>
         <div className="flex items-center min-w-0 gap-2">
           <Avatar image={avatarUrl} shape="circle" label={label} size="xs" />
           <span className="text-base font-medium text-ink-gray-9 truncate leading-3.5">
@@ -109,7 +102,10 @@ export const MemberRow: React.FC<MemberRowProps> = ({
       <div className="flex items-center justify-end w-12 shrink-0 h-7 whitespace-nowrap">
         {!isStatusNone && statusIcon[status]?.icon ? (
           <Button
-            onClick={onButtonClick}
+            onClick={(e) => {
+              e.stopPropagation();
+              onButtonClick?.();
+            }}
             className={cn(
               buttonVariants({
                 status,

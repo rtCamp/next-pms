@@ -1,7 +1,6 @@
 /**
  * External dependencies.
  */
-import { Button } from "@rtcamp/frappe-ui-react";
 import { ChevronDown, Folder } from "lucide-react";
 
 /**
@@ -16,8 +15,6 @@ export interface ProjectRowProps {
   label?: string;
   /** Whether the project row is collapsed or expanded. */
   collapsed?: boolean;
-  /** Callback function when the project row is toggled between collapsed and expanded. */
-  onToggle?: () => void;
   /** Array of time entries for each day of the week for the project. */
   timeEntries: string[];
   /** Total hours logged for the week. */
@@ -35,7 +32,6 @@ export interface ProjectRowProps {
 export const ProjectRow: React.FC<ProjectRowProps> = ({
   label,
   collapsed = false,
-  onToggle,
   timeEntries,
   totalHours = "",
   status = "not-submitted",
@@ -51,17 +47,14 @@ export const ProjectRow: React.FC<ProjectRowProps> = ({
       )}
     >
       <div className="flex items-center flex-1 min-w-0 gap-2">
-        <Button
-          onClick={onToggle}
-          disabled={!onToggle}
-          variant="ghost"
+        <span
           className={cn(
-            "w-4 shrink-0 border-none outline-none focus:ring-0 focus-visible:ring-0 transition-transform bg-transparent hover:bg-transparent focus:bg-transparent active:bg-transparent",
+            "w-4 shrink-0 transition-transform",
             collapsed ? "-rotate-90" : "rotate-0",
           )}
-          icon={() => <ChevronDown strokeWidth={1.5} size={16} />}
-          aria-label="Toggle project"
-        />
+        >
+          <ChevronDown strokeWidth={1.5} size={16} />
+        </span>
         <div className="flex items-center min-w-0 gap-2 text-ink-gray-9">
           <span className="shrink-0">
             {renderPrefix ? (

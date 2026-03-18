@@ -7,6 +7,7 @@ import {
   Accordion,
   AccordionContent,
   AccordionItem,
+  AccordionTrigger,
   WeekRow as BaseWeekRow,
   statusMap,
 } from "@next-pms/design-system/components";
@@ -89,23 +90,29 @@ export const WeekRow = ({
   }, [dates, today]);
 
   return (
-    <Accordion value={collapsed ? [] : ["week"]} onValueChange={() => {}}>
+    <Accordion
+      value={collapsed ? [] : ["week"]}
+      onValueChange={(value) => {
+        setCollapsed(value.length === 0);
+      }}
+    >
       <AccordionItem value="week" className="border-none">
-        <BaseWeekRow
-          {...rest}
-          today={today}
-          thisWeek={thisWeek}
-          dates={formattedDates}
-          totalHours={floatToTime(weekData.total, 2)}
-          status={status ? statusMap[status] : "none"}
-          collapsed={collapsed}
-          onToggle={() => setCollapsed((prev) => !prev)}
-          onButtonClick={() =>
-            status && statusMap[status] === "not-submitted"
-              ? onButtonClick?.()
-              : undefined
-          }
-        />
+        <AccordionTrigger>
+          <BaseWeekRow
+            {...rest}
+            today={today}
+            thisWeek={thisWeek}
+            dates={formattedDates}
+            totalHours={floatToTime(weekData.total, 2)}
+            status={status ? statusMap[status] : "none"}
+            collapsed={collapsed}
+            onButtonClick={() =>
+              status && statusMap[status] === "not-submitted"
+                ? onButtonClick?.()
+                : undefined
+            }
+          />
+        </AccordionTrigger>
         <AccordionContent className="pb-0">
           {children?.({
             totalHours: floatToTime(weekData.total, 2),

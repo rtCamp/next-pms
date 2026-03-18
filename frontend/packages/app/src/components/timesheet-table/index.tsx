@@ -99,7 +99,10 @@ export const TimesheetTable = ({
           <>
             <TotalRow
               breadcrumbs={{
-                items: [{ label: "Projects" }, { label: "Tasks" }],
+                items: [
+                  { label: "Projects", interactive: false },
+                  { label: "Tasks", interactive: false },
+                ],
                 size: "md",
                 highlightAllItems: true,
                 crumbClassName: "first:pl-0 last:pr-0",
