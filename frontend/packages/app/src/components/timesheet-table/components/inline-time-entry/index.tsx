@@ -2,9 +2,23 @@
  * External Dependencies
  */
 import { useCallback, useMemo, useRef, useState } from "react";
-import { floatToTime, mergeClassNames } from "@next-pms/design-system";
-import { Badge, Button, LoadingIndicator, useToasts } from "@rtcamp/frappe-ui-react";
-import { FrappeError, useFrappeGetCall, useFrappePostCall } from "frappe-react-sdk";
+import { floatToTime, mergeClassNames as cn } from "@next-pms/design-system";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+} from "@next-pms/design-system/components";
+import {
+  Badge,
+  Button,
+  LoadingIndicator,
+  useToasts,
+} from "@rtcamp/frappe-ui-react";
+import {
+  FrappeError,
+  useFrappeGetCall,
+  useFrappePostCall,
+} from "frappe-react-sdk";
 import { Edit, Pen, Plus, Trash2 } from "lucide-react";
 
 /**
@@ -22,7 +36,8 @@ export const ENTRY_FORM_MODE = {
   EDIT: "edit",
 } as const;
 
-export type EntryFormMode = (typeof ENTRY_FORM_MODE)[keyof typeof ENTRY_FORM_MODE];
+export type EntryFormMode =
+  (typeof ENTRY_FORM_MODE)[keyof typeof ENTRY_FORM_MODE];
 
 /**
  * InlineTimeEntry Component
@@ -48,28 +63,49 @@ export const InlineTimeEntry = ({
 }: InlineTimeEntryProps) => {
   const toast = useToasts();
   const [submitting, setSubmitting] = useState(false);
-  const [entryFormMode, setEntryFormMode] = useState<EntryFormMode>(ENTRY_FORM_MODE.DEFAULT);
-  const [selectedEntry, setSelectedEntry] = useState<TaskDataItemProps | null>(null);
-  const [addDraft, setAddDraft] = useState<{ duration: number; comment: string } | null>(null);
+  const [entryFormMode, setEntryFormMode] = useState<EntryFormMode>(
+    ENTRY_FORM_MODE.DEFAULT,
+  );
+  const [selectedEntry, setSelectedEntry] = useState<TaskDataItemProps | null>(
+    null,
+  );
+  const [addDraft, setAddDraft] = useState<{
+    duration: number;
+    comment: string;
+  } | null>(null);
   const [collapsedEntryNames, setCollapsedEntryNames] = useState<string[]>([]);
   const hasInitializedInteractiveModeRef = useRef(false);
-  const editBaselineRef = useRef<{ duration: number; comment: string } | null>(null);
+  const editBaselineRef = useRef<{ duration: number; comment: string } | null>(
+    null,
+  );
 
-  const { call: saveTime } = useFrappePostCall("next_pms.timesheet.api.timesheet.save");
-  const { call: updateTimesheet } = useFrappePostCall("next_pms.timesheet.api.timesheet.bulk_update_timesheet_detail");
-  const { call: deleteTimesheet } = useFrappePostCall("next_pms.timesheet.api.timesheet.delete");
-  const { data, isLoading, mutate } = useFrappeGetCall("next_pms.timesheet.api.timesheet.get_timesheet_details", {
-    employee: employee,
-    date: date,
-    task: task,
-  });
+  const { call: saveTime } = useFrappePostCall(
+    "next_pms.timesheet.api.timesheet.save",
+  );
+  const { call: updateTimesheet } = useFrappePostCall(
+    "next_pms.timesheet.api.timesheet.bulk_update_timesheet_detail",
+  );
+  const { call: deleteTimesheet } = useFrappePostCall(
+    "next_pms.timesheet.api.timesheet.delete",
+  );
+  const { data, isLoading, mutate } = useFrappeGetCall(
+    "next_pms.timesheet.api.timesheet.get_timesheet_details",
+    {
+      employee: employee,
+      date: date,
+      task: task,
+    },
+  );
 
   const hoursLeft = (dailyWorkingHours ?? 0) - (totalUsedHoursInDay ?? 0);
   const effectiveHoursLeft =
-    entryFormMode === ENTRY_FORM_MODE.EDIT && selectedEntry ? hoursLeft + selectedEntry.hours : hoursLeft;
+    entryFormMode === ENTRY_FORM_MODE.EDIT && selectedEntry
+      ? hoursLeft + selectedEntry.hours
+      : hoursLeft;
   const defaultDuration = hoursLeft >= 0.5 ? 0.5 : 0;
   const hasNoTimeEntries = (data?.message?.data?.length ?? 0) === 0;
-  const isDraftAvailableInEdit = entryFormMode === ENTRY_FORM_MODE.EDIT && addDraft !== null;
+  const isDraftAvailableInEdit =
+    entryFormMode === ENTRY_FORM_MODE.EDIT && addDraft !== null;
 
   const entries = useMemo(() => data?.message?.data ?? [], [data]);
 
@@ -142,7 +178,6 @@ export const InlineTimeEntry = ({
       });
       toast.success("Time Entry deleted successfully");
       await mutate();
-      onSubmitSuccess?.();
     } catch (err) {
       const error = parseFrappeErrorMsg(err as FrappeError);
       toast.error(error);
@@ -154,17 +189,21 @@ export const InlineTimeEntry = ({
       setAddDraft(null);
       setEntryFormMode(ENTRY_FORM_MODE.DEFAULT);
     }
-  }, [selectedEntry, deleteTimesheet, toast, mutate, onSubmitSuccess, form]);
+  }, [selectedEntry, deleteTimesheet, toast, mutate, form]);
 
   const handleEditEntry = useCallback(
     (entry: TaskDataItemProps) => {
       if (entryFormMode === ENTRY_FORM_MODE.ADD) {
         const { duration, comment } = form.state.values;
-        const hasDraftValue = duration !== defaultValues.duration || comment !== defaultValues.comment;
+        const hasDraftValue =
+          duration !== defaultValues.duration ||
+          comment !== defaultValues.comment;
         setAddDraft(hasDraftValue ? { duration, comment } : null);
       }
       if (!hasInitializedInteractiveModeRef.current) {
-        setCollapsedEntryNames(entries.map((timeEntry: TaskDataItemProps) => timeEntry.name));
+        setCollapsedEntryNames(
+          entries.map((timeEntry: TaskDataItemProps) => timeEntry.name),
+        );
         hasInitializedInteractiveModeRef.current = true;
       }
       setSelectedEntry(entry);
@@ -173,7 +212,9 @@ export const InlineTimeEntry = ({
         duration: entry.hours,
         comment: entry.description ?? "",
       };
-      setCollapsedEntryNames((prev) => prev.filter((name) => name !== entry.name));
+      setCollapsedEntryNames((prev) =>
+        prev.filter((name) => name !== entry.name),
+      );
       form.setFieldValue("duration", entry.hours);
       form.setFieldValue("comment", entry.description ?? "");
     },
@@ -190,7 +231,9 @@ export const InlineTimeEntry = ({
     setEntryFormMode(ENTRY_FORM_MODE.ADD);
     editBaselineRef.current = null;
     if (!hasInitializedInteractiveModeRef.current) {
-      setCollapsedEntryNames(entries.map((timeEntry: TaskDataItemProps) => timeEntry.name));
+      setCollapsedEntryNames(
+        entries.map((timeEntry: TaskDataItemProps) => timeEntry.name),
+      );
       hasInitializedInteractiveModeRef.current = true;
     }
 
@@ -231,8 +274,8 @@ export const InlineTimeEntry = ({
 
   return (
     <div
-      className={mergeClassNames(
-        "w-64 shadow bg-surface-modal rounded-lg flex flex-col gap-2 p-2",
+      className={cn(
+        "w-68 max-h-[min(500px,90dvh)] overflow-y-auto shadow bg-surface-modal rounded-lg flex flex-col gap-2 p-2",
         isLoading && "h-25 flex justify-center items-center",
       )}
     >
@@ -241,96 +284,126 @@ export const InlineTimeEntry = ({
       ) : (
         <>
           {entries.map((entry: TaskDataItemProps) => {
-            const isEditingThisEntry = entryFormMode === ENTRY_FORM_MODE.EDIT && selectedEntry?.name === entry.name;
-            const isExpanded = isEditingThisEntry || !collapsedEntryNames.includes(entry.name);
+            const isEditingThisEntry =
+              entryFormMode === ENTRY_FORM_MODE.EDIT &&
+              selectedEntry?.name === entry.name;
+            const isExpanded =
+              isEditingThisEntry || !collapsedEntryNames.includes(entry.name);
 
             return (
-              <div
-                className={mergeClassNames(
-                  "flex justify-start items-start gap-2 border-b border-outline-gray-modals pb-2",
-                )}
-                key={entry.name}
-              >
-                {isEditingThisEntry ? (
-                  <TimeEntryForm
-                    form={form}
-                    mode="edit"
-                    hoursLeft={effectiveHoursLeft}
-                    durationLabel="Edit time"
-                    durationVariant="default"
-                    maxDurationInHours={dailyWorkingHours}
-                    editBaseline={editBaselineRef.current}
-                    submitting={submitting}
-                    onSave={() => handleSubmit()}
-                    onCommentKeyDown={handleSubmit}
+              <div className="w-full group">
+                <Accordion
+                  key={entry.name}
+                  value={isExpanded ? [entry.name] : []}
+                  onValueChange={() => {}}
+                >
+                  <AccordionItem
+                    value={entry.name}
+                    className="pb-2 border-b border-outline-gray-modals"
                   >
-                    <Button
-                      variant="subtle"
-                      theme="red"
-                      size="sm"
-                      iconLeft={() => <Trash2 size={16} />}
-                      onClick={handleDelete}
-                      disabled={submitting}
-                    >
-                      Delete entry
-                    </Button>
-                  </TimeEntryForm>
-                ) : (
-                  <div className="w-full relative group flex items-center">
-                    <button
-                      className={mergeClassNames(
-                        "w-full relative flex justify-start gap-2 cursor-pointer text-left",
-                        "focus:outline-none focus-visible:ring focus-visible:ring-outline-gray-3 rounded-sm",
-                        !isExpanded ? "flex-row items-center" : "flex-col items-start ",
-                      )}
-                      onClick={() => handleToggleEntryExpand(entry.name)}
-                    >
-                      <div className={mergeClassNames("flex justify-between items-center", isExpanded && "w-full")}>
-                        <Badge
-                          prefix={
-                            !isBillable ? (
-                              <div className="w-3 h-3 flex justify-center items-center">
-                                <span className="block z-10 -bottom-0.5 left-1/2 w-1 h-1 rounded-full bg-surface-amber-3 transform -translate-x-1/2"></span>
-                              </div>
-                            ) : null
+                    {!isEditingThisEntry ? (
+                      <div className="relative flex items-center w-full">
+                        <button
+                          type="button"
+                          aria-expanded={isExpanded}
+                          title={
+                            isExpanded
+                              ? "Collapse time entry"
+                              : "Expand time entry"
                           }
-                          variant="subtle"
-                          size="md"
-                          className="lining-nums tabular-nums text-ink-gray-9 gap-0"
+                          className={cn(
+                            "w-full relative flex justify-start gap-2 cursor-pointer text-left",
+                            "focus:outline-none focus-visible:ring focus-visible:ring-outline-gray-3 rounded-sm",
+                            !isExpanded
+                              ? "flex-row items-center"
+                              : "flex-col items-start ",
+                          )}
+                          onClick={() => handleToggleEntryExpand(entry.name)}
                         >
-                          {entry.hours ? floatToTime(entry.hours, 2) : "00:00"}
-                        </Badge>
+                          <div
+                            className={cn(
+                              "flex justify-between items-center",
+                              isExpanded && "w-full",
+                            )}
+                          >
+                            <Badge
+                              prefix={
+                                !isBillable ? (
+                                  <div className="flex items-center justify-center w-3 h-3">
+                                    <span className="block z-10 -bottom-0.5 left-1/2 w-1 h-1 rounded-full bg-surface-amber-3 transform -translate-x-1/2"></span>
+                                  </div>
+                                ) : null
+                              }
+                              variant="subtle"
+                              size="md"
+                              className="gap-0 lining-nums tabular-nums text-ink-gray-9"
+                            >
+                              {entry.hours
+                                ? floatToTime(entry.hours, 2)
+                                : "00:00"}
+                            </Badge>
+                          </div>
+                          {!isExpanded ? (
+                            <span className="w-full min-w-0 text-base truncate group-hover:pr-4 group-focus-within:pr-4 text-ink-gray-6">
+                              {entry.description}
+                            </span>
+                          ) : null}
+                        </button>
+                        <Button
+                          className={cn(
+                            "w-5 h-5 absolute right-0 top-0 opacity-0 pointer-events-none",
+                            "group-hover:opacity-100 group-hover:pointer-events-auto",
+                            "group-focus-within:opacity-100 group-focus-within:pointer-events-auto",
+                          )}
+                          variant="ghost"
+                          icon={() => (
+                            <Edit className="text-ink-gray-7" size={16} />
+                          )}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleEditEntry(entry);
+                          }}
+                        />
                       </div>
-                      <span
-                        className={mergeClassNames(
-                          "min-w-0 w-full line-clamp-6 break-words text-base text-ink-gray-6",
-                          !isExpanded && "w-full truncate group-hover:pr-6 group-focus-within:pr-6",
-                        )}
-                      >
-                        {entry.description}
-                      </span>
-                    </button>
-                    <Button
-                      className={mergeClassNames(
-                        "w-5 h-5 absolute right-0 top-0",
-                        "opacity-0 pointer-events-none",
-                        "group-hover:opacity-100 group-hover:pointer-events-auto",
-                        "group-focus-within:opacity-100 group-focus-within:pointer-events-auto",
+                    ) : null}
+                    <AccordionContent className="pt-2 pb-0">
+                      {isEditingThisEntry ? (
+                        <TimeEntryForm
+                          form={form}
+                          mode="edit"
+                          hoursLeft={effectiveHoursLeft}
+                          durationLabel="Edit time"
+                          durationVariant="default"
+                          maxDurationInHours={dailyWorkingHours}
+                          editBaseline={editBaselineRef.current}
+                          submitting={submitting}
+                          onSave={() => handleSubmit()}
+                          onCommentKeyDown={handleSubmit}
+                        >
+                          <Button
+                            variant="subtle"
+                            theme="red"
+                            size="sm"
+                            iconLeft={() => <Trash2 size={16} />}
+                            onClick={handleDelete}
+                            disabled={submitting}
+                          >
+                            Delete entry
+                          </Button>
+                        </TimeEntryForm>
+                      ) : (
+                        <span className="text-base whitespace-pre-wrap wrap-break-word line-clamp-6 text-ink-gray-6">
+                          {entry.description}
+                        </span>
                       )}
-                      variant="ghost"
-                      icon={() => <Edit className="text-ink-gray-7" size={16} />}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleEditEntry(entry);
-                      }}
-                    />
-                  </div>
-                )}
+                    </AccordionContent>
+                  </AccordionItem>
+                </Accordion>
               </div>
             );
           })}
 
-          <div className="w-full flex flex-col gap-2">
+          <div className="flex flex-col w-full gap-2">
             {hasNoTimeEntries || entryFormMode === ENTRY_FORM_MODE.ADD ? (
               <TimeEntryForm
                 form={form}
@@ -345,11 +418,17 @@ export const InlineTimeEntry = ({
               />
             ) : null}
             {!hasNoTimeEntries && entryFormMode !== ENTRY_FORM_MODE.ADD ? (
-              <div className="w-full flex justify-between gap-2">
+              <div className="flex justify-between w-full gap-2">
                 <Button
                   variant="ghost"
                   size="sm"
-                  iconLeft={() => (isDraftAvailableInEdit ? <Pen size={16} /> : <Plus size={16} />)}
+                  iconLeft={() =>
+                    isDraftAvailableInEdit ? (
+                      <Pen size={16} />
+                    ) : (
+                      <Plus size={16} />
+                    )
+                  }
                   onClick={handleToggleAddMode}
                   disabled={submitting}
                 >

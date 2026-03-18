@@ -3,7 +3,10 @@
  */
 import { useEffect, useMemo, useState } from "react";
 import { floatToTime } from "@next-pms/design-system";
-import { TaskRow as BaseTaskRow, taskStatusMap } from "@next-pms/design-system/components";
+import {
+  TaskRow as BaseTaskRow,
+  taskStatusMap,
+} from "@next-pms/design-system/components";
 
 /**
  * Internal dependencies
@@ -46,7 +49,10 @@ export const TaskRow = ({
       const currentTotal = calculateTotalHours(tasks, date);
       totalTimeEntries.push({
         time: currentTotal === 0 ? "" : floatToTime(currentTotal, 2),
-        nonBillable: currentTotal === 0 || (taskKey && tasks[taskKey]?.is_billable) ? false : true,
+        nonBillable:
+          currentTotal === 0 || (taskKey && tasks[taskKey]?.is_billable)
+            ? false
+            : true,
         disabled: disabled || false,
       });
       total += currentTotal;
@@ -65,11 +71,13 @@ export const TaskRow = ({
       totalHours={floatToTime(taskData.total, 2)}
       timeEntries={taskData.totalTimeEntries}
       starred={taskLiked}
-      popoverContent={(_, dayIndex, closePopover) => (
+      renderInlineTimeEntryPopover={(_, dayIndex, closePopover) => (
         <InlineTimeEntry
           dailyWorkingHours={dailyWorkingHours}
           totalUsedHoursInDay={totalTimeEntriesInHours?.[dayIndex]}
-          isBillable={taskData.totalTimeEntries[dayIndex]?.nonBillable === false}
+          isBillable={
+            taskData.totalTimeEntries[dayIndex]?.nonBillable === false
+          }
           date={dates[dayIndex]}
           task={taskKey}
           employee={employee ?? ""}

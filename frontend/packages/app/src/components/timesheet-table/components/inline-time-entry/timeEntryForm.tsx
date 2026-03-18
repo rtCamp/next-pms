@@ -38,12 +38,12 @@ export const TimeEntryForm = ({
   children,
 }: TimeEntryFormProps) => {
   return (
-    <div className="w-full flex flex-col gap-2">
+    <div className="flex flex-col w-full gap-2">
       <form.Field
         name="duration"
         children={(field) => {
           return (
-            <div className="w-full flex flex-col gap-2">
+            <div className="flex flex-col w-full gap-2">
               <DurationInput
                 hoursLeft={hoursLeft}
                 label={durationLabel}
@@ -52,7 +52,9 @@ export const TimeEntryForm = ({
                 onChange={(val) => field.handleChange(val)}
                 maxDurationInHours={maxDurationInHours}
               />
-              {!field.state.meta.isValid && <ErrorMessage message={field.state.meta.errors[0]?.message} />}
+              {!field.state.meta.isValid && (
+                <ErrorMessage message={field.state.meta.errors[0]?.message} />
+              )}
             </div>
           );
         }}
@@ -62,7 +64,10 @@ export const TimeEntryForm = ({
         children={(field) => {
           return (
             <>
-              <div className="w-full relative" onKeyDownCapture={(e) => onCommentKeyDown(e)}>
+              <div
+                className="relative w-full"
+                onKeyDownCapture={(e) => onCommentKeyDown(e)}
+              >
                 <Textarea
                   value={field.state.value}
                   onChange={(e) => field.handleChange(e.target.value)}
@@ -71,12 +76,15 @@ export const TimeEntryForm = ({
                   disabled={submitting}
                 />
                 {field.state.value === "" ? (
-                  <span className="absolute text-xs right-1 bottom-1 align-middle flex justify-center items-center text-ink-gray-4">
-                    <Command className="w-3.5! h-3.5!" />+<CornerDownLeft className="w-3.5! h-3.5!" />
+                  <span className="absolute flex items-center justify-center text-xs align-middle right-1 bottom-1 text-ink-gray-4">
+                    <Command className="w-3.5! h-3.5!" />+
+                    <CornerDownLeft className="w-3.5! h-3.5!" />
                   </span>
                 ) : null}
               </div>
-              {!field.state.meta.isValid && <ErrorMessage message={field.state.meta.errors[0]?.message} />}
+              {!field.state.meta.isValid && (
+                <ErrorMessage message={field.state.meta.errors[0]?.message} />
+              )}
             </>
           );
         }}
@@ -88,14 +96,23 @@ export const TimeEntryForm = ({
           durationIsDefault: state.fieldMeta.duration?.isDefaultValue ?? true,
           commentIsDefault: state.fieldMeta.comment?.isDefaultValue ?? true,
         })}
-        children={({ duration, comment, durationIsDefault, commentIsDefault }) => {
+        children={({
+          duration,
+          comment,
+          durationIsDefault,
+          commentIsDefault,
+        }) => {
           const isAddUnchanged = durationIsDefault && commentIsDefault;
           const isEditUnchanged =
-            editBaseline !== null && duration === editBaseline.duration && comment === editBaseline.comment;
-          const isSaveDisabled = submitting || (mode === ENTRY_FORM_MODE.ADD ? isAddUnchanged : isEditUnchanged);
+            editBaseline !== null &&
+            duration === editBaseline.duration &&
+            comment === editBaseline.comment;
+          const isSaveDisabled =
+            submitting ||
+            (mode === ENTRY_FORM_MODE.ADD ? isAddUnchanged : isEditUnchanged);
 
           return (
-            <div className="w-full flex justify-between gap-2">
+            <div className="flex justify-between w-full gap-2">
               <Button
                 variant="subtle"
                 size="sm"

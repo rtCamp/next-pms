@@ -7,12 +7,16 @@ import { ErrorFallback } from "@next-pms/design-system/components";
 /**
  * Internal dependencies
  */
-import { TaskLog } from "@/pages/task/components/taskLog";
 import { LIKED_TASK_KEY } from "@/lib/constant";
-import { hasKeyInLocalStorage, getLocalStorage, removeFromLikedTask, setLikedTask } from "@/lib/storage";
+import {
+  hasKeyInLocalStorage,
+  getLocalStorage,
+  removeFromLikedTask,
+  setLikedTask,
+} from "@/lib/storage";
 import { getHolidayList } from "@/lib/utils";
+import { TaskLog } from "@/pages/task/components/taskLog";
 import { TaskDataProps } from "@/types/timesheet";
-import { HeaderRow } from "./components/row/headerRow";
 import { ProjectRow } from "./components/row/projectRow";
 import { TaskRow } from "./components/row/taskRow";
 import { TimeOffRow } from "./components/row/timeOffRow";
@@ -54,7 +58,10 @@ export const TimesheetTable = ({
   }, [deleteTaskFromLocalStorage, weeklyStatus]);
 
   const projects = useMemo(() => {
-    const projectMap = new Map<string, { project_name: string | null; project: string; tasks: typeof tasks }>();
+    const projectMap = new Map<
+      string,
+      { project_name: string | null; project: string; tasks: typeof tasks }
+    >();
 
     Object.entries(tasks).forEach(([taskKey, taskData]) => {
       const { project, project_name } = taskData;
@@ -82,7 +89,13 @@ export const TimesheetTable = ({
         onButtonClick={onButtonClick}
         collapsed={!firstWeek}
       >
-        {({ totalHours, totalTimeEntries, totalTimeEntriesInHours, dailyWorkingHours, status }) => (
+        {({
+          totalHours,
+          totalTimeEntries,
+          totalTimeEntriesInHours,
+          dailyWorkingHours,
+          status,
+        }) => (
           <>
             <TotalRow
               breadcrumbs={{
@@ -94,7 +107,7 @@ export const TimesheetTable = ({
               totalHours={totalHours}
               totalTimeEntries={totalTimeEntries}
               status={status}
-              className="pl-[30px]"
+              className="pl-7.5"
               starred={true}
             />
 
@@ -105,7 +118,7 @@ export const TimesheetTable = ({
                 tasks={project.tasks}
                 label={project.project_name || project.project}
                 status={status}
-                className="pl-[30px]"
+                className="pl-7.5"
               >
                 {Object.entries(project.tasks).map(([taskKey, task]) => (
                   <TaskRow
@@ -116,7 +129,7 @@ export const TimesheetTable = ({
                     label={task.subject || task.name}
                     status={task.status}
                     likedTaskData={likedTaskData as TaskDataProps[]}
-                    className="pl-[54px]"
+                    className="pl-13.5"
                     disabled={disabled}
                     dailyWorkingHours={dailyWorkingHours}
                     totalTimeEntriesInHours={totalTimeEntriesInHours}
@@ -128,7 +141,7 @@ export const TimesheetTable = ({
 
             <TimeOffRow
               label="Time-off"
-              className="pl-[30px]"
+              className="pl-7.5"
               dates={dates}
               leaves={leaves}
               holidayList={holidayList}

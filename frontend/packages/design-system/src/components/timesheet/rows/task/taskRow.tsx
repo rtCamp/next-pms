@@ -1,6 +1,6 @@
 /**
  * External dependencies.
-*/
+ */
 import { createRef, useRef } from "react";
 import { Popover } from "@base-ui/react";
 import { Button } from "@rtcamp/frappe-ui-react";
@@ -28,11 +28,11 @@ export interface TaskRowProps {
   timeEntries: TaskRowTimeEntry[];
   /** Optional function to handle cell click events, receiving the task index and day index. */
   onCellClick?: (taskIndex: number | undefined, dayIndex: number) => void;
-  /** Optional function to render popover content for a time entry, receiving the task index and day index. */
-  popoverContent?: (
+  /** Optional function to render inline time entry popover for a time entry, receiving the task index and day index. */
+  renderInlineTimeEntryPopover?: (
     taskIndex: number | undefined,
     dayIndex: number,
-    closePopover: () => void
+    closePopover: () => void,
   ) => React.ReactNode;
   /** Total hours logged for the week. */
   totalHours?: string;
@@ -48,7 +48,7 @@ export const TaskRow: React.FC<TaskRowProps> = ({
   starred = false,
   timeEntries,
   onCellClick,
-  popoverContent,
+  renderInlineTimeEntryPopover,
   totalHours = "",
   status = "open",
   className,
@@ -61,12 +61,12 @@ export const TaskRow: React.FC<TaskRowProps> = ({
     <div
       className={cn(
         "flex items-center border-b border-outline-gray-1 transition-colors w-full justify-between px-1 py-2",
-        className
+        className,
       )}
       data-testid="task-row"
     >
-      <div className="min-w-0 flex flex-1 items-center">
-        <div className="min-w-0 flex items-center gap-2">
+      <div className="flex items-center flex-1 min-w-0">
+        <div className="flex items-center min-w-0 gap-2">
           <span className="w-4 shrink-0">
             <StatusIcon
               strokeWidth={1.5}
@@ -74,7 +74,7 @@ export const TaskRow: React.FC<TaskRowProps> = ({
               className={statusIconVariants({ status })}
             />
           </span>
-          <span className="text-base font-medium truncate min-w-0">
+          <span className="min-w-0 text-base font-medium truncate">
             {label}
           </span>
           {starred ? (
@@ -90,8 +90,7 @@ export const TaskRow: React.FC<TaskRowProps> = ({
       </div>
       {timeEntries.map((timeEntry, index) => {
         if (!actionRefs.current[index]) {
-          actionRefs.current[index] =
-            createRef<Popover.Root.Actions | null>();
+          actionRefs.current[index] = createRef<Popover.Root.Actions | null>();
         }
         const actionsRef = actionRefs.current[index];
         const closePopover = () => actionsRef.current?.close();
@@ -115,10 +114,10 @@ export const TaskRow: React.FC<TaskRowProps> = ({
               >
                 {timeEntry.time === "" ? (
                   <>
-                    <span className="group-hover:hidden group-disabled:group-hover:flex flex-1 text-center text-ink-gray-4">
+                    <span className="flex-1 text-center group-hover:hidden group-disabled:group-hover:flex text-ink-gray-4">
                       -
                     </span>
-                    <span className="group-hover:flex group-disabled:group-hover:hidden hidden absolute w-full h-full top-0 left-0 justify-center items-center">
+                    <span className="absolute top-0 left-0 items-center justify-center hidden w-full h-full group-hover:flex group-disabled:group-hover:hidden">
                       <Plus strokeWidth={1.5} size={16} className="" />
                     </span>
                   </>
@@ -132,7 +131,11 @@ export const TaskRow: React.FC<TaskRowProps> = ({
               <Popover.Portal>
                 <Popover.Positioner sideOffset={8} align="end">
                   <Popover.Popup>
-                    {popoverContent?.(taskIndex, index, closePopover)}
+                    {renderInlineTimeEntryPopover?.(
+                      taskIndex,
+                      index,
+                      closePopover,
+                    )}
                   </Popover.Popup>
                 </Popover.Positioner>
               </Popover.Portal>
@@ -145,7 +148,7 @@ export const TaskRow: React.FC<TaskRowProps> = ({
         <span>{totalHours}</span>
       </div>
 
-      <div className="shrink-0 w-12 h-7"></div>
+      <div className="w-12 shrink-0 h-7"></div>
     </div>
   );
 };
