@@ -32,11 +32,11 @@ export const TimeOffRow: React.FC<TimeOffRowProps> = ({
     <div
       className={cn(
         "flex items-center border-b border-outline-gray-1 transition-colors w-full justify-between px-1 py-2",
-        className
+        className,
       )}
       data-testid="time-off-row"
     >
-      <div className="min-w-0 flex flex-1 items-center text-ink-gray-9 gap-2">
+      <div className="flex items-center flex-1 min-w-0 gap-2 text-ink-gray-9">
         <span className="w-4 shrink-0">
           {renderPrefix ? (
             renderPrefix()
@@ -44,7 +44,7 @@ export const TimeOffRow: React.FC<TimeOffRowProps> = ({
             <CalendarX2 strokeWidth={1.5} size={16} />
           )}
         </span>
-        <span className="text-base font-medium truncate min-w-0">{label}</span>
+        <span className="min-w-0 text-base font-medium truncate">{label}</span>
       </div>
       {timeOffEntries.map((timeOffEntry, index) => {
         return (
@@ -65,7 +65,7 @@ export const TimeOffRow: React.FC<TimeOffRowProps> = ({
         <span>{totalHours}</span>
       </div>
 
-      <div className="shrink-0 w-12 h-7"></div>
+      <div className="w-12 shrink-0 h-7"></div>
     </div>
   );
 };

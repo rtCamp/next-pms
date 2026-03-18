@@ -22,11 +22,11 @@ export const HeaderRow: React.FC<HeaderRowProps> = ({
     <div
       className={cn(
         "flex items-center border-b border-outline-gray-1 transition-colors w-full justify-between px-1 h-7",
-        className
+        className,
       )}
       data-testid="header-row"
     >
-      <div className="shrink-0 flex flex-1 items-center">
+      <div className="flex items-center flex-1 shrink-0">
         <Breadcrumbs compactCrumbs={false} {...breadcrumbs} />
       </div>
       {days.map((day, index) => (
@@ -42,7 +42,7 @@ export const HeaderRow: React.FC<HeaderRowProps> = ({
         <span>Total</span>
       </div>
 
-      <div className="shrink-0 w-12 h-7"></div>
+      <div className="w-12 shrink-0 h-7"></div>
     </div>
   );
 };
