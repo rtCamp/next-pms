@@ -12,11 +12,18 @@ export {
 export { default as Input, type InputProps } from "./input";
 export { default as Spinner, type SpinnerProp } from "./spinner";
 export { default as Progress } from "./progress";
-export { ProgressV2, type ProgressV2Props } from "./progress-v2";
 export { default as Label } from "./label";
 export { default as Typography, type TypographyProps } from "./typography";
 export { default as Skeleton } from "./skeleton";
-export { default as TaskStatus } from "./task-status";
+export { default as TaskStatus, type TaskStatusType } from "./task-status";
+export {
+  default as TaskProgress,
+  type TaskProgressProps,
+} from "./task-progress";
+export {
+  default as TaskPopover,
+  type TaskPopoverProps,
+} from "./timesheet/taskPopover";
 export { default as TextArea } from "./text-area";
 export {
   Tooltip,
@@ -68,7 +75,10 @@ export {
   CommandSeparator,
 } from "./command";
 export { default as DatePicker } from "./date-picker";
-export { default as DurationInput, type DurationInputProps } from "./durationInput";
+export {
+  default as DurationInput,
+  type DurationInputProps,
+} from "./durationInput";
 
 export {
   Dialog,
@@ -154,7 +164,7 @@ export {
 } from "./table";
 export { Tabs, TabsList, TabsTrigger, TabsContent } from "./tabs";
 
-export * from "./timesheet"
+export * from "./timesheet";
 
 export { DeleteConfirmationDialog } from "./confirmation-dialog";
 export { default as TextEditor } from "./text-editor";

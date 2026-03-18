@@ -8,19 +8,16 @@ import { Plus, Star } from "lucide-react";
 /**
  * Internal dependencies.
  */
-import {
-  statusIcon,
-  statusIconVariants,
-  type TaskRowTimeEntry,
-  type TaskStatus,
-} from "./constants";
+import { TaskData, type TaskRowTimeEntry } from "./constants";
 import { mergeClassNames as cn } from "../../../../utils";
+import TaskStatus, { type TaskStatusType } from "../../../task-status";
+import TaskPopover from "../../taskPopover";
 
 export interface TaskRowProps {
   /** Optional index of the task, used for identifying the task in callbacks. */
   taskIndex?: number;
   /** Label for the task row. */
-  label?: string;
+  label: string;
   /** Whether the task row is starred. */
   starred?: boolean;
   /** Array of time entries for each day of the week for the task. */
@@ -30,14 +27,15 @@ export interface TaskRowProps {
   /** Optional function to render popover content for a time entry, receiving the task index and day index. */
   popoverContent?: (
     taskIndex: number | undefined,
-    dayIndex: number
+    dayIndex: number,
   ) => React.ReactNode;
   /** Total hours logged for the week. */
   totalHours?: string;
   /** Status of the task row. */
-  status?: TaskStatus;
+  status?: TaskStatusType;
   /** Additional class names for the task row container. */
   className?: string;
+  taskData: TaskData;
 }
 
 export const TaskRow: React.FC<TaskRowProps> = ({
@@ -50,27 +48,36 @@ export const TaskRow: React.FC<TaskRowProps> = ({
   totalHours = "",
   status = "open",
   className,
+  taskData,
 }) => {
-  const StatusIcon = statusIcon[status];
   return (
     <div
       className={cn(
-        "flex items-center border-b border-outline-gray-1 transition-colors w-full justify-between px-1 py-2",
-        className
+        "flex justify-between items-center px-1 py-2 w-full border-b transition-colors border-outline-gray-1",
+        className,
       )}
       data-testid="task-row"
     >
-      <div className="min-w-0 flex flex-1 items-center">
-        <div className="min-w-0 flex items-center gap-2">
-          <span className="w-4 shrink-0">
-            <StatusIcon
-              strokeWidth={1.5}
-              size={16}
-              className={statusIconVariants({ status })}
-            />
-          </span>
-          <span className="text-base font-medium truncate min-w-0">
-            {label}
+      <div className="flex flex-1 items-center min-w-0">
+        <div className="flex gap-2 items-center min-w-0">
+          <TaskStatus status={status} />
+          <span className="min-w-0 text-base font-medium truncate">
+            <Popover.Root>
+              <Popover.Trigger openOnHover>{label}</Popover.Trigger>
+              <Popover.Portal>
+                <Popover.Positioner sideOffset={8} align="start">
+                  <Popover.Popup>
+                    <TaskPopover
+                      label={label}
+                      badges={[]}
+                      actualHours={taskData.actual_time}
+                      estimatedHours={taskData.expected_time}
+                      status={status}
+                    />
+                  </Popover.Popup>
+                </Popover.Positioner>
+              </Popover.Portal>
+            </Popover.Root>
           </span>
           {starred ? (
             <span className="w-4 shrink-0">
@@ -103,10 +110,10 @@ export const TaskRow: React.FC<TaskRowProps> = ({
               >
                 {timeEntry.time === "" ? (
                   <>
-                    <span className="group-hover:hidden group-disabled:group-hover:flex flex-1 text-center text-ink-gray-4">
+                    <span className="flex-1 text-center group-hover:hidden group-disabled:group-hover:flex text-ink-gray-4">
                       -
                     </span>
-                    <span className="group-hover:flex group-disabled:group-hover:hidden hidden absolute w-full h-full top-0 left-0 justify-center items-center">
+                    <span className="hidden absolute top-0 left-0 justify-center items-center w-full h-full group-hover:flex group-disabled:group-hover:hidden">
                       <Plus strokeWidth={1.5} size={16} className="" />
                     </span>
                   </>
@@ -133,7 +140,7 @@ export const TaskRow: React.FC<TaskRowProps> = ({
         <span>{totalHours}</span>
       </div>
 
-      <div className="shrink-0 w-12 h-7"></div>
+      <div className="w-12 h-7 shrink-0"></div>
     </div>
   );
 };
