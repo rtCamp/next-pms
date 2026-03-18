@@ -44,15 +44,23 @@ export const TotalRow: React.FC<TotalRowProps> = ({
         className,
       )}
     >
-      <div className="min-w-0 flex flex-1 items-center">
-        <div className="min-w-0 flex items-center text-ink-gray-9 gap-2">
-          <span className="w-4 shrink-0 flex justify-center items-center">
+      <div className="flex items-center flex-1 min-w-0">
+        <div className="flex items-center min-w-0 gap-2 text-ink-gray-9">
+          <span className="flex items-center justify-center w-4 shrink-0">
             {renderPrefix ? (
               renderPrefix()
             ) : starred ? (
-              <Star strokeWidth={1.5} size={16} className="fill-current text-ink-amber-2" />
+              <Star
+                strokeWidth={1.5}
+                size={16}
+                className="fill-current text-ink-amber-2"
+              />
             ) : (
-              <StarOff strokeWidth={1.5} size={16} className="text-ink-gray-4 scale-x-[-1]" />
+              <StarOff
+                strokeWidth={1.5}
+                size={16}
+                className="text-ink-gray-4 scale-x-[-1]"
+              />
             )}
           </span>
           <Breadcrumbs compactCrumbs={false} {...breadcrumbs} />
@@ -78,7 +86,7 @@ export const TotalRow: React.FC<TotalRowProps> = ({
         <span className={cn(totalHoursVariants({ status }))}>{totalHours}</span>
       </div>
 
-      <div className="shrink-0 w-12 h-7"></div>
+      <div className="w-12 shrink-0 h-7"></div>
     </div>
   );
 };

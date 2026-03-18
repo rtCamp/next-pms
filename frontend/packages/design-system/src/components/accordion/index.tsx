@@ -18,13 +18,24 @@ Accordion.displayName = "Accordion";
 
 const AccordionItem = React.forwardRef<
   React.ComponentRef<typeof BaseAccordion.Item>,
-  React.ComponentPropsWithoutRef<typeof BaseAccordion.Item> & { className?: string }
->(({ className, ...props }, ref) => <BaseAccordion.Item ref={ref} className={mergeClassNames(className)} {...props} />);
+  React.ComponentPropsWithoutRef<typeof BaseAccordion.Item> & {
+    className?: string;
+  }
+>(({ className, ...props }, ref) => (
+  <BaseAccordion.Item
+    ref={ref}
+    className={mergeClassNames(className)}
+    {...props}
+  />
+));
 AccordionItem.displayName = "AccordionItem";
 
 const AccordionTrigger = React.forwardRef<
   React.ComponentRef<typeof BaseAccordion.Trigger>,
-  React.ComponentPropsWithoutRef<typeof BaseAccordion.Trigger> & { hideChevronDown?: boolean; className?: string }
+  React.ComponentPropsWithoutRef<typeof BaseAccordion.Trigger> & {
+    hideChevronDown?: boolean;
+    className?: string;
+  }
 >(({ className, children, hideChevronDown, ...props }, ref) => (
   <BaseAccordion.Header className="flex">
     <BaseAccordion.Trigger
@@ -37,7 +48,7 @@ const AccordionTrigger = React.forwardRef<
     >
       {children}
       {!hideChevronDown && (
-        <ChevronDown className="h-4 w-4 shrink-0 transition-transform duration-200 in-data-open:rotate-180" />
+        <ChevronDown className="w-4 h-4 transition-transform duration-200 shrink-0 in-data-open:rotate-180" />
       )}
     </BaseAccordion.Trigger>
   </BaseAccordion.Header>
@@ -46,7 +57,9 @@ AccordionTrigger.displayName = "AccordionTrigger";
 
 const AccordionContent = React.forwardRef<
   React.ComponentRef<typeof BaseAccordion.Panel>,
-  React.ComponentPropsWithoutRef<typeof BaseAccordion.Panel> & { className?: string }
+  React.ComponentPropsWithoutRef<typeof BaseAccordion.Panel> & {
+    className?: string;
+  }
 >(({ className, children, ...props }, ref) => (
   <BaseAccordion.Panel ref={ref} className="accordion-panel" {...props}>
     <div className={mergeClassNames("pb-0 pt-0", className)}>{children}</div>

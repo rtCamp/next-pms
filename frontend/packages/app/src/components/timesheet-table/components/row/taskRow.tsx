@@ -12,8 +12,8 @@ import { prettyDate } from "@next-pms/design-system/date";
 import { CalendarFoldIcon, Folder } from "lucide-react";
 import TaskPopover from "@/components/taskPopover";
 import { calculateTotalHours } from "@/lib/utils";
-import { NewTimesheetProps } from "@/types/timesheet";
 import type { TaskRowProps } from "./types";
+import { InlineTimeEntry } from "../inline-time-entry";
 
 const MOCK_END_DATE = "2024-12-31";
 
@@ -26,8 +26,9 @@ const MOCK_END_DATE = "2024-12-31";
  * @param {TaskProps} props.tasks - TaskProps object containing task data for the week.
  * @param {string} props.status - Status of the task.
  * @param {Array} props.likedTaskData - Array of liked task data to determine if the task is liked or not.
- * @param {function} props.onCellClick - Function to be called when a cell is clicked.
  * @param {boolean} props.disabled - Whether the task row is disabled.
+ * @param {number} props.dailyWorkingHours - Daily working hours for the task.
+ * @param {string} props.employee - Employee for the timesheet entry.
  */
 export const TaskRow = ({
   dates,
@@ -35,8 +36,10 @@ export const TaskRow = ({
   tasks,
   status,
   likedTaskData,
-  onCellClick,
   disabled,
+  dailyWorkingHours,
+  totalTimeEntriesInHours,
+  employee,
   ...rest
 }: TaskRowProps) => {
   const [taskLiked, setTaskLiked] = useState(false);
@@ -58,23 +61,6 @@ export const TaskRow = ({
     }
     return { total, totalTimeEntries };
   }, [dates, taskKey, tasks, disabled]);
-
-  const handleCellClick = useCallback(
-    (_: number | undefined, dayIndex: number) => {
-      if (!taskKey) return;
-      const value: NewTimesheetProps = {
-        date: dates[dayIndex],
-        hours: 0,
-        description: "",
-        name: "",
-        task: taskKey,
-        project: tasks[taskKey].project,
-        employee: "",
-      };
-      onCellClick?.(value);
-    },
-    [taskKey, dates, tasks, onCellClick],
-  );
 
   const taskHoverContent = useCallback(
     (taskKey: string) => {
@@ -115,9 +101,21 @@ export const TaskRow = ({
       totalHours={floatToTime(taskData.total, 2)}
       timeEntries={taskData.totalTimeEntries}
       starred={taskLiked}
-      onCellClick={handleCellClick}
       taskHoverContent={taskHoverContent}
       taskKey={taskKey}
+      renderInlineTimeEntryPopover={(_, dayIndex, closePopover) => (
+        <InlineTimeEntry
+          dailyWorkingHours={dailyWorkingHours}
+          totalUsedHoursInDay={totalTimeEntriesInHours?.[dayIndex]}
+          isBillable={
+            taskData.totalTimeEntries[dayIndex]?.nonBillable === false
+          }
+          date={dates[dayIndex]}
+          task={taskKey}
+          employee={employee ?? ""}
+          onSubmitSuccess={closePopover}
+        />
+      )}
     />
   );
 };
