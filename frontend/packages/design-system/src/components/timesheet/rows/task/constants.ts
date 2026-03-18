@@ -7,9 +7,13 @@ import {
   CircleCheckBig,
   CircleX,
   ClipboardClock,
-  Clock12,
   Loader,
 } from "lucide-react";
+
+/**
+ * Internal dependencies.
+ */
+import { Overdue } from "../../icons/overdue";
 
 export type TaskStatus =
   | "open"
@@ -45,7 +49,7 @@ export const statusIcon: Record<
   open: Circle,
   working: Loader,
   "pending-rev": ClipboardClock,
-  overdue: Clock12,
+  overdue: Overdue,
   completed: CircleCheckBig,
   cancelled: CircleX,
 };
