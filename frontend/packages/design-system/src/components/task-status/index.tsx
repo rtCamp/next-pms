@@ -2,39 +2,68 @@
  * External dependencies.
  */
 import { cva } from "class-variance-authority";
+import {
+  Circle,
+  CircleCheckBig,
+  CircleX,
+  ClipboardClock,
+  Clock12,
+  Loader,
+} from "lucide-react";
+
 /**
  * Internal dependencies.
  */
-import { mergeClassNames } from "../../utils";
+import type { TaskStatusType } from "./types";
+import { mergeClassNames as cn } from "../../utils";
 
-export const Variants = cva("", {
+export type { TaskStatusType } from "./types";
+
+export const statusIcon: Record<
+  TaskStatusType,
+  React.ComponentType<{
+    size?: number;
+    strokeWidth?: number;
+    className?: string;
+  }>
+> = {
+  open: Circle,
+  working: Loader,
+  "pending-rev": ClipboardClock,
+  overdue: Clock12,
+  completed: CircleCheckBig,
+  cancelled: CircleX,
+};
+
+export const statusIconVariants = cva("", {
   variants: {
-    variant: {
-      Open: "bg-blue-100 text-blue-500 hover:bg-blue-200",
-      Working: "bg-warning/20 text-warning hover:bg-warning/20",
-      "Pending Review": "bg-orange-100 text-orange-400 hover:bg-warning/20",
-      Overdue: "bg-destructive/20 text-destructive hover:bg-destructive/20",
-      Template: "bg-slate-200 text-slate-900 hover:bg-slate-200",
-      Completed: "bg-success/20 text-success hover:bg-success/20",
-      Cancelled: "bg-destructive/20 text-destructive hover:bg-destructive/20",
+    status: {
+      open: "text-ink-gray-3",
+      working: "text-ink-gray-9",
+      "pending-rev": "text-ink-gray-9",
+      overdue: "text-ink-red-4",
+      completed: "text-ink-gray-9",
+      cancelled: "text-ink-gray-9",
     },
   },
-  defaultVariants: {
-    variant: "Open",
-  },
 });
-type TaskStatusProps = "Open" | "Working" | "Pending Review" | "Overdue" | "Template" | "Completed" | "Cancelled";
-const TaskStatus = ({ status }: { status: string }) => {
+
+interface TaskStatusProps {
+  status: TaskStatusType;
+  className?: string;
+}
+
+const TaskStatus = ({ status, className }: TaskStatusProps) => {
+  const StatusIcon = statusIcon[status];
+
   return (
-    <div
-      title={status}
-      className={mergeClassNames(
-        Variants({ variant: status as TaskStatusProps }),
-        "py-1 px-2 truncate  w-fit max-w-40 text-xs font-bold text-center cursor-pointer rounded-full "
-      )}
-    >
-      {status}
-    </div>
+    <span className={cn("w-4 shrink-0", className)}>
+      <StatusIcon
+        strokeWidth={1.5}
+        size={16}
+        className={statusIconVariants({ status })}
+      />
+    </span>
   );
 };
 
