@@ -3,7 +3,10 @@
  */
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { floatToTime } from "@next-pms/design-system";
-import { TaskRow as BaseTaskRow, taskStatusMap } from "@next-pms/design-system/components";
+import {
+  TaskRow as BaseTaskRow,
+  taskStatusMap,
+} from "@next-pms/design-system/components";
 
 /**
  * Internal dependencies
@@ -24,7 +27,16 @@ import type { TaskRowProps } from "./types";
  * @param {function} props.onCellClick - Function to be called when a cell is clicked.
  * @param {boolean} props.disabled - Whether the task row is disabled.
  */
-export const TaskRow = ({ dates, taskKey, tasks, status, likedTaskData, onCellClick, disabled, ...rest }: TaskRowProps) => {
+export const TaskRow = ({
+  dates,
+  taskKey,
+  tasks,
+  status,
+  likedTaskData,
+  onCellClick,
+  disabled,
+  ...rest
+}: TaskRowProps) => {
   const [taskLiked, setTaskLiked] = useState(false);
 
   const taskData = useMemo(() => {
@@ -34,7 +46,10 @@ export const TaskRow = ({ dates, taskKey, tasks, status, likedTaskData, onCellCl
       const currentTotal = calculateTotalHours(tasks, date);
       totalTimeEntries.push({
         time: currentTotal === 0 ? "" : floatToTime(currentTotal, 2),
-        nonBillable: currentTotal === 0 || (taskKey && tasks[taskKey]?.is_billable) ? false : true,
+        nonBillable:
+          currentTotal === 0 || (taskKey && tasks[taskKey]?.is_billable)
+            ? false
+            : true,
         disabled: disabled || false,
       });
       total += currentTotal;
@@ -52,7 +67,7 @@ export const TaskRow = ({ dates, taskKey, tasks, status, likedTaskData, onCellCl
         name: "",
         task: taskKey,
         project: tasks[taskKey].project,
-		employee: "",
+        employee: "",
       };
       onCellClick?.(value);
     },
@@ -71,6 +86,7 @@ export const TaskRow = ({ dates, taskKey, tasks, status, likedTaskData, onCellCl
       timeEntries={taskData.totalTimeEntries}
       starred={taskLiked}
       onCellClick={handleCellClick}
+      taskData={tasks[taskKey]}
     />
   );
 };
