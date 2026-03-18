@@ -24,7 +24,7 @@ import {
  * Internal Dependencies
  */
 import { parseFrappeErrorMsg } from "@/lib/utils";
-import { useUserState } from "@/providers/user";
+import { useUser } from "@/providers/user";
 import { submitApprovalSchema } from "./schema";
 import type { SubmitApprovalProps, EmployeeRecord } from "./types";
 
@@ -45,7 +45,10 @@ const SubmitApproval = ({
   endDate,
   totalHours,
 }: SubmitApprovalProps) => {
-  const { reportsTo, employeeId } = useUserState();
+  const { reportsTo, employeeId } = useUser(({ state }) => ({
+    reportsTo: state.reportsTo,
+    employeeId: state.employeeId,
+  }));
   const toast = useToasts();
   const [submitting, setSubmitting] = useState(false);
   const { call: submitForApproval } = useFrappePostCall(

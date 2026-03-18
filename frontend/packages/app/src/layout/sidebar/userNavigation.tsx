@@ -33,11 +33,13 @@ import {
 import { ROUTES } from "@/lib/constant";
 import { mergeClassNames } from "@/lib/utils";
 import { useTheme } from "@/providers/theme/hook";
-import { useUserActions } from "@/providers/user";
+import { useUser } from "@/providers/user";
 import type { UserNavigationProps } from "./types";
 
 const UserNavigation = ({ user }: UserNavigationProps) => {
-  const { logout } = useUserActions();
+  const { logout } = useUser(({ actions }) => ({
+    logout: actions.logout,
+  }));
   const { theme, changeTheme, isDarkThemeOnSystem } = useTheme();
   const [showSwitcher, setShowSwitcher] = useState(false);
 

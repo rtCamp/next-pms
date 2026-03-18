@@ -24,12 +24,14 @@ import { Calendar, CalendarX2 } from "lucide-react";
  * Internal Dependencies
  */
 import { parseFrappeErrorMsg } from "@/lib/utils";
-import { useUserState } from "@/providers/user";
+import { useUser } from "@/providers/user";
 import { addLeaveFormSchema } from "./schema";
 import { type LeaveTimeProps, LEAVE_DURATION } from "./types";
 
 const AddLeave = ({ open = false, onOpenChange }: LeaveTimeProps) => {
-  const { employeeId } = useUserState();
+  const { employeeId } = useUser(({ state }) => ({
+    employeeId: state.employeeId,
+  }));
 
   const toast = useToasts();
   const { createDoc, loading } = useFrappeCreateDoc();

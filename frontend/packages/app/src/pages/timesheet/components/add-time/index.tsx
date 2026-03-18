@@ -24,7 +24,7 @@ import { Calendar } from "lucide-react";
  * Internal Dependencies
  */
 import { parseFrappeErrorMsg } from "@/lib/utils";
-import { useUserState } from "@/providers/user";
+import { useUser } from "@/providers/user";
 import { addTimeFormSchema } from "./schema";
 import type { AddTimeProps, ProjectData, TaskItem } from "./type";
 
@@ -47,7 +47,9 @@ const AddTime = ({
   task = "",
   project = "",
 }: AddTimeProps) => {
-  const { employeeId } = useUserState();
+  const { employeeId } = useUser(({ state }) => ({
+    employeeId: state.employeeId,
+  }));
 
   const toast = useToasts();
   const [submitting, setSubmitting] = useState(false);

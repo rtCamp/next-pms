@@ -17,7 +17,7 @@ import { useFrappePostCall } from "frappe-react-sdk";
 /**
  * Internal dependencies
  */
-import { useUserState } from "@/providers/user";
+import { useUser } from "@/providers/user";
 import { setViews } from "@/store/view";
 import type { CreateViewProps } from "./types";
 
@@ -37,7 +37,9 @@ export const CreateView = ({
   const { call } = useFrappePostCall(
     "next_pms.timesheet.doctype.pms_view_setting.pms_view_setting.create_view",
   );
-  const { userId } = useUserState();
+  const { userId } = useUser(({ state }) => ({
+    userId: state.userId,
+  }));
   const [label, setLabel] = useState("");
   const dispatch = useDispatch();
   const [openEmoji, setOpenEmoji] = useState(false);

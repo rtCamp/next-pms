@@ -8,10 +8,13 @@ import { ErrorFallback } from "@next-pms/design-system/components";
  * Internal dependencies.
  */
 import Sidebar from "@/layout/sidebar";
-import { useUserState } from "@/providers/user";
+import { useUser } from "@/providers/user";
 
 const Layout = ({ children }: { children: React.ReactNode }) => {
-  const { employeeId, userId } = useUserState();
+  const { employeeId, userId } = useUser(({ state }) => ({
+    employeeId: state.employeeId,
+    userId: state.userId,
+  }));
 
   return (
     <ErrorFallback>

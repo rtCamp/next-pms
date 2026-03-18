@@ -28,7 +28,7 @@ import { Ellipsis } from "lucide-react";
  */
 import { TimesheetTable } from "@/components/timesheet-table";
 import { parseFrappeErrorMsg, isDateInRange } from "@/lib/utils";
-import { useUserState } from "@/providers/user";
+import { useUser } from "@/providers/user";
 import type { WorkingFrequency } from "@/types";
 import type { NewTimesheetProps, timesheet } from "@/types/timesheet";
 import { InfiniteScroll } from "../../../components/infiniteScroll";
@@ -47,7 +47,9 @@ function Timesheet() {
   const { handleApproval } = useTimesheetOutletContext();
 
   const [startDateParam, setStartDateParam] = useQueryParam<string>("date", "");
-  const { employeeId } = useUserState();
+  const { employeeId } = useUser(({ state }) => ({
+    employeeId: state.employeeId,
+  }));
   const [timesheet, dispatch] = useReducer(reducer, initialState);
   const { data, isLoading, error } = useFrappeGetCall(
     "next_pms.timesheet.api.timesheet.get_timesheet_data",

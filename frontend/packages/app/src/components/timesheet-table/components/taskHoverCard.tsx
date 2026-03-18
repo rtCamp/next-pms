@@ -20,7 +20,7 @@ import { Heart } from "lucide-react";
 import { LIKED_TASK_KEY } from "@/lib/constant";
 import { addAction, toggleLikedByForTask } from "@/lib/storage";
 import { mergeClassNames, parseFrappeErrorMsg } from "@/lib/utils";
-import { useUserState } from "@/providers/user";
+import { useUser } from "@/providers/user";
 import type { TaskData } from "@/types";
 import type { TaskDataProps } from "@/types/timesheet";
 import type { TaskHoverCardProps } from "./types";
@@ -35,10 +35,14 @@ export const TaskHoverCard = ({
   getLikedTaskData,
   hideLikeButton = false,
 }: TaskHoverCardProps) => {
-  const { userId } = useUserState();
+  const { userId } = useUser(({ state }) => ({
+    userId: state.userId,
+  }));
   const [taskLiked, setTaskedLiked] = useState(false);
   useEffect(() => {
-    setTaskedLiked(likedTaskData.some((obj: TaskDataProps) => obj.name === name) || false);
+    setTaskedLiked(
+      likedTaskData.some((obj: TaskDataProps) => obj.name === name) || false,
+    );
   }, [taskData, likedTaskData, name]);
 
   const { call: toggleLikeCall } = useFrappePostCall(

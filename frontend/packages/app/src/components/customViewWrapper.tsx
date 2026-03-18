@@ -12,7 +12,7 @@ import { FrappeContext, FrappeConfig } from "frappe-react-sdk";
  * Internal dependencies
  */
 import { getDefaultView, parseFrappeErrorMsg } from "@/lib/utils";
-import { useUserState } from "@/providers/user";
+import { useUser } from "@/providers/user";
 import { RootState } from "@/store";
 import { setViews, ViewData } from "@/store/view";
 
@@ -31,7 +31,9 @@ const CustomViewWrapper = ({
   const { pathname } = useLocation();
   const [searchParams, setSearchParams] = useSearchParams();
   const views = useSelector((state: RootState) => state.view);
-  const { userId } = useUserState();
+  const { userId } = useUser(({ state }) => ({
+    userId: state.userId,
+  }));
   const [viewData, setViewData] = useState<ViewData | undefined>(undefined);
   const { call } = useContext(FrappeContext) as FrappeConfig;
   const dispatch = useDispatch();

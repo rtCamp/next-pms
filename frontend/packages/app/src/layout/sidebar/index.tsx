@@ -30,12 +30,17 @@ import {
 import { ROUTES } from "@/lib/constant";
 import logo from "@/logo.svg";
 import { useTheme } from "@/providers/theme/hook";
-import { useUserActions, useUserState } from "@/providers/user";
+import { useUser } from "@/providers/user";
 
 const Sidebar = () => {
-  const { isSidebarCollapsed, employeeName } = useUserState();
-  const { updateIsSidebarCollapsed } = useUserActions();
-  const { logout } = useUserActions();
+  const { isSidebarCollapsed, employeeName, updateIsSidebarCollapsed, logout } =
+    useUser(({ state, actions }) => ({
+      isSidebarCollapsed: state.isSidebarCollapsed,
+      employeeName: state.employeeName,
+      updateIsSidebarCollapsed: actions.updateIsSidebarCollapsed,
+      logout: actions.logout,
+    }));
+
   const { theme, changeTheme } = useTheme();
   const navigate = useNavigate();
   const { pathname } = useLocation();

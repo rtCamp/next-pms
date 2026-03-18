@@ -11,7 +11,7 @@ import { FrappeConfig, FrappeContext } from "frappe-react-sdk";
 import { default as Layout } from "@/layout";
 import { ROUTES } from "@/lib/constant";
 import { setViews } from "@/store/view";
-import { useUserState } from "./providers/user";
+import { useUser } from "./providers/user";
 import { RootState } from "./store";
 /**
  * Lazy load components.
@@ -57,7 +57,10 @@ export function Router() {
 
 const AuthenticatedRoute = () => {
   const { call } = useContext(FrappeContext) as FrappeConfig;
-  const { isLoading: isUserLoading, currentUser } = useUserState();
+  const { isLoading: isUserLoading, currentUser } = useUser(({ state }) => ({
+    isLoading: state.isLoading,
+    currentUser: state.currentUser,
+  }));
   const views = useSelector((state: RootState) => state.view);
   const dispatch = useDispatch();
 

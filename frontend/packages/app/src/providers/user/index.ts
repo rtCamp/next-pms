@@ -12,24 +12,41 @@ import { WorkingFrequency } from "@/types";
 
 export interface UserContextProps {
   state: {
+    /** Indicates whether user/auth data is still being resolved. */
     isLoading: boolean;
+    /** Employee record ID linked to the current user. */
     employeeId: string;
+    /** Display name of the current employee. */
     employeeName: string;
+    /** Configured working hours for the employee. */
     workingHours: number;
+    /** Frequency used to interpret configured working hours. */
     workingFrequency: WorkingFrequency;
+    /** Employee ID of the reporting manager. */
     reportsTo: string;
+    /** Authenticated user identifier returned by Frappe auth. */
     currentUser: string | null | undefined;
+    /** System user ID from cookies/session state. */
     userId: string;
+    /** Full name of the logged-in user. */
     userName: string;
+    /** Profile image URL for the logged-in user. */
     image: string;
+    /** Whether the main sidebar is currently collapsed. */
     isSidebarCollapsed: boolean;
+    /** Roles assigned to the logged-in user. */
     roles: string[];
+    /** Currency options available to the user in boot data. */
     currencies: Array<string>;
+    /** Whether the business unit field is enabled in the system. */
     hasBuField: boolean;
+    /** Whether the industry field is enabled in the system. */
     hasIndustryField: boolean;
   };
   actions: {
+    /** Logs out the current user and clears the active session. */
     logout: () => Promise<void>;
+    /** Updates and persists the sidebar collapsed state. */
     updateIsSidebarCollapsed: (state: boolean) => void;
   };
 }
@@ -58,10 +75,8 @@ export const UserContext = createContext<UserContextProps>({
   },
 });
 
-export const useUserState = () => {
-  return useContextSelector(UserContext, (value) => value.state);
-};
-
-export const useUserActions = () => {
-  return useContextSelector(UserContext, (value) => value.actions);
+export const useUser = <T>(
+  selector: (state: UserContextProps) => T = (state) => state as T,
+) => {
+  return useContextSelector(UserContext, selector);
 };

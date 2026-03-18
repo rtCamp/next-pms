@@ -22,15 +22,17 @@ export const UserProvider: FC<PropsWithChildren> = ({ children }) => {
     useState<UserContextProps["state"]["workingFrequency"]>("Per Day");
   const [reportsTo, setReportsTo] =
     useState<UserContextProps["state"]["reportsTo"]>("");
-  const [userId, setUserId] = useState<UserContextProps["state"]["userId"]>(
-    decodeURIComponent(getCookie("user_id") ?? ""),
+
+  const userId: UserContextProps["state"]["userId"] = decodeURIComponent(
+    getCookie("user_id") ?? "",
   );
-  const [userName, setUserName] = useState<
-    UserContextProps["state"]["userName"]
-  >(decodeURIComponent(getCookie("full_name") ?? ""));
-  const [image, setImage] = useState<UserContextProps["state"]["image"]>(
-    decodeURIComponent(getCookie("user_image") ?? ""),
+  const userName: UserContextProps["state"]["userName"] = decodeURIComponent(
+    getCookie("full_name") ?? "",
   );
+  const image: UserContextProps["state"]["image"] = decodeURIComponent(
+    getCookie("userImage") ?? "",
+  );
+
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState<
     UserContextProps["state"]["isSidebarCollapsed"]
   >(getLocalStorage("next-pms:isSidebarCollapsed") || false);
@@ -50,6 +52,10 @@ export const UserProvider: FC<PropsWithChildren> = ({ children }) => {
   const { logout, isLoading, currentUser } = useFrappeAuth();
   const { call } = useContext(FrappeContext) as FrappeConfig;
 
+  /**
+   * Fetches app-level data including roles, currencies, and business unit/industry flags.
+   * Only executes if roles haven't been populated yet.
+   */
   const populateData = async () => {
     if (roles.length < 1) {
       try {
@@ -58,10 +64,15 @@ export const UserProvider: FC<PropsWithChildren> = ({ children }) => {
         setCurrencies(res.message.currencies);
         setHasBuField(res.message.has_business_unit);
         setHasIndustryField(res.message.has_industry);
-      } catch (error) {}
+      } catch (error) {
+        console.error("Failed to populate app data:", error);
+      }
     }
   };
 
+  /**
+   * Fetches employee-specific data including employee ID, name, working hours, frequency, and reporting manager.
+   */
   const populateEmployeeData = async () => {
     try {
       const res = await call.get("next_pms.timesheet.api.employee.get_data");
@@ -72,14 +83,23 @@ export const UserProvider: FC<PropsWithChildren> = ({ children }) => {
       );
       setReportsTo(res.message?.employee_report_to ?? "");
       setEmployeeName(res.message?.employee_name ?? "");
-    } catch (error) {}
+    } catch (error) {
+      console.error("Failed to populate user data:", error);
+    }
   };
 
+  /**
+   * Updates the sidebar collapsed state and persists it to local storage.
+   * @param state - Boolean indicating if sidebar should be collapsed
+   */
   const updateIsSidebarCollapsed = (state: boolean) => {
     setIsSidebarCollapsed(state);
     setLocalStorage("next-pms:isSidebarCollapsed", state);
   };
 
+  /**
+   * Handles user logout by calling the logout function and redirecting to the login page.
+   */
   const handleLogout = async () => {
     return logout().then(() => {
       window.location.replace("/login?redirect-to=/timesheet");
