@@ -1,8 +1,8 @@
 /**
  * External dependencies.
  */
-import { FC, PropsWithChildren, useContext, useEffect, useState } from "react";
-import { FrappeConfig, FrappeContext, useFrappeAuth } from "frappe-react-sdk";
+import { FC, PropsWithChildren, useEffect, useState } from "react";
+import { useFrappeAuth, useFrappeGetCall } from "frappe-react-sdk";
 
 /**
  * Internal dependencies.
@@ -49,44 +49,34 @@ export const UserProvider: FC<PropsWithChildren> = ({ children }) => {
     UserContextProps["state"]["hasIndustryField"]
   >(window.frappe?.boot?.has_industry || false);
 
-  const { logout, isLoading, currentUser } = useFrappeAuth();
-  const { call } = useContext(FrappeContext) as FrappeConfig;
+  const { logout, isLoading: isAuthLoading, currentUser } = useFrappeAuth();
 
-  /**
-   * Fetches app-level data including roles, currencies, and business unit/industry flags.
-   * Only executes if roles haven't been populated yet.
-   */
-  const populateData = async () => {
-    if (roles.length < 1) {
-      try {
-        const res = await call.get("next_pms.timesheet.api.app.get_data");
-        setRoles(res.message.roles);
-        setCurrencies(res.message.currencies);
-        setHasBuField(res.message.has_business_unit);
-        setHasIndustryField(res.message.has_industry);
-      } catch (error) {
-        console.error("Failed to populate app data:", error);
-      }
-    }
-  };
+  const { isLoading: isAppDataLoading, data: appData } = useFrappeGetCall(
+    "next_pms.timesheet.api.app.get_data",
+  );
 
-  /**
-   * Fetches employee-specific data including employee ID, name, working hours, frequency, and reporting manager.
-   */
-  const populateEmployeeData = async () => {
-    try {
-      const res = await call.get("next_pms.timesheet.api.employee.get_data");
-      setEmployeeId(res.message?.employee ?? "");
-      setWorkingHours(res.message?.employee_working_detail?.working_hour ?? 8);
-      setWorkingFrequency(
-        res.message?.employee_working_detail?.working_frequency ?? "Per Day",
-      );
-      setReportsTo(res.message?.employee_report_to ?? "");
-      setEmployeeName(res.message?.employee_name ?? "");
-    } catch (error) {
-      console.error("Failed to populate user data:", error);
-    }
-  };
+  useEffect(() => {
+    setRoles(appData.message.roles);
+    setCurrencies(appData.message.currencies);
+    setHasBuField(appData.message.has_business_unit);
+    setHasIndustryField(appData.message.has_industry);
+  }, [appData]);
+
+  const { isLoading: isEmployeeDataLoading, data: employeeData } =
+    useFrappeGetCall("next_pms.timesheet.api.employee.get_data");
+
+  useEffect(() => {
+    setEmployeeId(employeeData.message?.employee ?? "");
+    setWorkingHours(
+      employeeData.message?.employee_working_detail?.working_hour ?? 8,
+    );
+    setWorkingFrequency(
+      employeeData.message?.employee_working_detail?.working_frequency ??
+        "Per Day",
+    );
+    setReportsTo(employeeData.message?.employee_report_to ?? "");
+    setEmployeeName(employeeData.message?.employee_name ?? "");
+  }, [employeeData]);
 
   /**
    * Updates the sidebar collapsed state and persists it to local storage.
@@ -107,16 +97,11 @@ export const UserProvider: FC<PropsWithChildren> = ({ children }) => {
     });
   };
 
-  useEffect(() => {
-    populateEmployeeData();
-    populateData();
-  }, []);
-
   return (
     <UserContext.Provider
       value={{
         state: {
-          isLoading,
+          isLoading: isAuthLoading || isAppDataLoading || isEmployeeDataLoading,
           employeeId,
           employeeName,
           workingHours,
