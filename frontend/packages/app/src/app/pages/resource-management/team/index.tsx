@@ -17,20 +17,21 @@ import { ViewData } from "@/store/view";
 import AddResourceAllocations from "../components/addAllocation";
 import { ResourceTeamHeaderSection } from "./components/header";
 import { ResourceTeamTable } from "./components/table";
-import { ResourceContextProvider, ResourceFormContext } from "../store/resourceFormContext";
+import { createFilter } from "./utils";
+import {
+  ResourceContextProvider,
+  ResourceFormContext,
+} from "../store/resourceFormContext";
 import { TeamContext, TeamContextProvider } from "../store/teamContext";
 import type {
   AllocationDataProps,
   DateProps,
   EmployeeDataProps,
   ResourceTeam,
-  ResourceTeamDataProps,
 } from "../store/types";
 import type { ResourceTeamAPIBodyProps } from "../timeline/types";
 import { getDatesArrays } from "../utils/dates";
 import { getIsBillableValue } from "../utils/helper";
-import type { PreProcessDataProps } from "./components/types";
-import { createFilter } from "./utils";
 
 const ResourceTeamViewWrapper = () => {
   return (
@@ -53,28 +54,41 @@ interface ResourceTeamViewComponentProps {
  */
 const ResourceTeamView = () => {
   return (
-    <CustomViewWrapper label="ResourceTeamView" createFilter={createFilter({} as ResourceTeam)}>
+    <CustomViewWrapper
+      label="ResourceTeamView"
+      createFilter={createFilter({} as ResourceTeam)}
+    >
       {({ viewData }) => <ResourceTeamViewComponent viewData={viewData} />}
     </CustomViewWrapper>
   );
 };
 
-const ResourceTeamViewComponent = ({ viewData }: ResourceTeamViewComponentProps) => {
+const ResourceTeamViewComponent = ({
+  viewData,
+}: ResourceTeamViewComponentProps) => {
   const { toast } = useToast();
-  const { teamData, filters, apiController } = useContextSelector(TeamContext, (value) => value.state);
-
-  const { updateTeamData, getHasMore, setStart, setMaxWeek, setDates, setReFetchData } = useContextSelector(
+  const { teamData, filters, apiController } = useContextSelector(
     TeamContext,
-    (value) => value.actions
+    (value) => value.state,
   );
 
-  const { permission: resourceAllocationPermission, dialogState: resourceAllocationDialogState } = useContextSelector(
-    ResourceFormContext,
-    (value) => value.state
-  );
+  const {
+    updateTeamData,
+    mergeHorizontalData,
+    getHasMore,
+    setStart,
+    setMaxWeek,
+    setDates,
+    setReFetchData,
+  } = useContextSelector(TeamContext, (value) => value.actions);
+
+  const {
+    permission: resourceAllocationPermission,
+    dialogState: resourceAllocationDialogState,
+  } = useContextSelector(ResourceFormContext, (value) => value.state);
 
   const { call: fetchData } = useFrappePostCall(
-    "next_pms.resource_management.api.team.get_resource_management_team_view_data"
+    "next_pms.resource_management.api.team.get_resource_management_team_view_data",
   );
 
   const getFilterApiBody = useCallback(
@@ -103,7 +117,7 @@ const ResourceTeamViewComponent = ({ viewData }: ResourceTeamViewComponentProps)
 
       return newReqBody;
     },
-    [resourceAllocationPermission.write, filters]
+    [resourceAllocationPermission.write, filters],
   );
 
   const handleApiCall = useCallback(
@@ -123,56 +137,7 @@ const ResourceTeamViewComponent = ({ viewData }: ResourceTeamViewComponentProps)
         return null;
       }
     },
-    [fetchData, getFilterApiBody, toast]
-  );
-
-  const updateHorizontalData = useCallback(
-    (horizontalPreProcessData: PreProcessDataProps, data: ResourceTeamDataProps | null, dates: DateProps[]) => {
-      if (horizontalPreProcessData) {
-        let updatedTeamData = teamData;
-
-        if (data) {
-          updatedTeamData = data;
-        }
-
-        updatedTeamData.customer = { ...updatedTeamData.customer, ...horizontalPreProcessData.customer };
-
-        const start = horizontalPreProcessData.start;
-        const updateDate = [...updatedTeamData.data];
-
-        for (let count = 0; count < horizontalPreProcessData.data.length; count++) {
-          const dataIndex = start + count;
-
-          const updateEmployeeData = updateDate[dataIndex];
-
-          updateEmployeeData.all_dates_data = {
-            ...updateEmployeeData?.all_dates_data,
-            ...horizontalPreProcessData.data[count]?.all_dates_data,
-          };
-          updateEmployeeData.all_leave_data = {
-            ...updateEmployeeData?.all_leave_data,
-            ...horizontalPreProcessData.data[count]?.all_leave_data,
-          };
-          updateEmployeeData.all_week_data = {
-            ...updateEmployeeData?.all_week_data,
-            ...horizontalPreProcessData.data[count]?.all_week_data,
-          };
-          updateEmployeeData.employee_allocations = {
-            ...updateEmployeeData?.employee_allocations,
-            ...horizontalPreProcessData.data[count]?.employee_allocations,
-          };
-
-          updateDate[dataIndex] = updateEmployeeData;
-        }
-
-        updatedTeamData.data = updateDate;
-
-        updateTeamData({ ...updatedTeamData, dates: dates });
-
-        return updatedTeamData;
-      }
-    },
-    [teamData, updateTeamData]
+    [fetchData, getFilterApiBody, toast],
   );
 
   const addVerticalPreProcessData = useCallback(async () => {
@@ -190,29 +155,18 @@ const ResourceTeamViewComponent = ({ viewData }: ResourceTeamViewComponentProps)
 
     let currentWeek = 5;
 
-    let newData: ResourceTeamDataProps = {
-      data: [...teamData.data, ...mainThredData.data],
-      customer: { ...teamData.customer, ...mainThredData.customer },
-      dates: [],
-      total_count: mainThredData.total_count,
-      has_more: mainThredData.has_more,
-    };
-
     while (currentWeek <= filters.maxWeek) {
       const currentWeekCopy = currentWeek;
-      handleApiCall({ ...req, date: getNextDate(req.date, currentWeekCopy) }).then((res) => {
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore: Ignore type checking for the following line
-        newData = updateHorizontalData(
-          {
-            ...res,
-            date: getNextDate(req.date, currentWeekCopy),
-            max_week: req.max_week,
-            start: req.start,
-            page_length: filters.pageLength,
-          },
-          newData
-        );
+      handleApiCall({
+        ...req,
+        date: getNextDate(req.date, currentWeekCopy),
+      }).then((res) => {
+        if (!res) return;
+        mergeHorizontalData({
+          start: req.start,
+          data: res.data,
+          customer: res.customer,
+        });
       });
       currentWeek += 5;
     }
@@ -222,14 +176,12 @@ const ResourceTeamViewComponent = ({ viewData }: ResourceTeamViewComponentProps)
     filters.start,
     filters.weekDate,
     handleApiCall,
-    teamData.customer,
-    teamData.data,
-    updateHorizontalData,
+    mergeHorizontalData,
     updateTeamData,
   ]);
 
   const addHorizontalPreProcessData = useCallback(
-    (isNeedToUpdateReqWeeks: boolean = false, data: ResourceTeamDataProps | null = null, dates: DateProps[]) => {
+    (dates: DateProps[]) => {
       const req = {
         date: filters.weekDate,
         max_week: filters.maxWeek,
@@ -240,25 +192,30 @@ const ResourceTeamViewComponent = ({ viewData }: ResourceTeamViewComponentProps)
 
       while (currentStart <= filters.start) {
         const currentStartCopy = currentStart;
-        handleApiCall({ ...req, start: currentStartCopy, date: getNextDate(req.date, req.max_week) }).then((res) => {
-          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-          // @ts-ignore: Ignore type checking for the following line
-          data = updateHorizontalData(
-            {
-              ...res,
-              date: getNextDate(req.date, req.max_week + (isNeedToUpdateReqWeeks ? 10 : 0)),
-              max_week: req.max_week,
-              start: currentStartCopy,
-              page_length: filters.pageLength,
-            },
-            data,
-            dates
-          );
+        handleApiCall({
+          ...req,
+          start: currentStartCopy,
+          date: getNextDate(req.date, req.max_week),
+        }).then((res) => {
+          if (!res) return;
+          mergeHorizontalData({
+            start: currentStartCopy,
+            data: res.data,
+            customer: res.customer,
+            dates,
+          });
         });
         currentStart += filters.pageLength;
       }
     },
-    [filters.maxWeek, filters.pageLength, filters.start, filters.weekDate, handleApiCall, updateHorizontalData]
+    [
+      filters.maxWeek,
+      filters.pageLength,
+      filters.start,
+      filters.weekDate,
+      handleApiCall,
+      mergeHorizontalData,
+    ],
   );
 
   const loadIntialData = useCallback(async () => {
@@ -274,7 +231,7 @@ const ResourceTeamViewComponent = ({ viewData }: ResourceTeamViewComponentProps)
 
     updateTeamData(mainThredData);
 
-    addHorizontalPreProcessData(false, mainThredData, teamData.dates);
+    addHorizontalPreProcessData(teamData.dates);
   }, [
     addHorizontalPreProcessData,
     filters.maxWeek,
@@ -303,7 +260,9 @@ const ResourceTeamViewComponent = ({ viewData }: ResourceTeamViewComponentProps)
         const newEmployeeData = res.message?.data;
         if (newEmployeeData && newEmployeeData.length > 0) {
           const updatedData = teamData.data.map((item) => {
-            const index = newEmployeeData.findIndex((employee: EmployeeDataProps) => employee.name == item.name);
+            const index = newEmployeeData.findIndex(
+              (employee: EmployeeDataProps) => employee.name == item.name,
+            );
             if (index != -1) {
               return newEmployeeData[index];
             }
@@ -317,7 +276,14 @@ const ResourceTeamViewComponent = ({ viewData }: ResourceTeamViewComponentProps)
         }
       });
     },
-    [fetchData, filters.allocationType, filters.maxWeek, filters.weekDate, teamData, updateTeamData]
+    [
+      fetchData,
+      filters.allocationType,
+      filters.maxWeek,
+      filters.weekDate,
+      teamData,
+      updateTeamData,
+    ],
   );
 
   const cellHeaderRef = useInfiniteScroll({
@@ -333,9 +299,9 @@ const ResourceTeamViewComponent = ({ viewData }: ResourceTeamViewComponentProps)
     if (filters.maxWeek + 5 >= 10) {
       const newDates = getDatesArrays(filters.weekDate, filters.maxWeek + 5);
       setDates(newDates);
-      addHorizontalPreProcessData(true, null, newDates);
+      addHorizontalPreProcessData(newDates);
     } else {
-      addHorizontalPreProcessData(true, null, teamData.dates);
+      addHorizontalPreProcessData(teamData.dates);
     }
   }, [
     apiController.isLoading,
@@ -352,7 +318,11 @@ const ResourceTeamViewComponent = ({ viewData }: ResourceTeamViewComponentProps)
       loadIntialData();
       setReFetchData(false);
     }
-  }, [apiController.isNeedToFetchDataAfterUpdate, loadIntialData, setReFetchData]);
+  }, [
+    apiController.isNeedToFetchDataAfterUpdate,
+    loadIntialData,
+    setReFetchData,
+  ]);
 
   return (
     <>
@@ -364,10 +334,15 @@ const ResourceTeamViewComponent = ({ viewData }: ResourceTeamViewComponentProps)
           handleVerticalLoadMore={handleVerticalLoadMore}
           onSubmit={onFormSubmit}
           cellHeaderRef={cellHeaderRef}
-          dateToAddHeaderRef={getNextDate(filters.weekDate, filters.maxWeek - 1)}
+          dateToAddHeaderRef={getNextDate(
+            filters.weekDate,
+            filters.maxWeek - 1,
+          )}
         />
       )}
-      {resourceAllocationDialogState.isShowDialog && <AddResourceAllocations onSubmit={onFormSubmit} />}
+      {resourceAllocationDialogState.isShowDialog && (
+        <AddResourceAllocations onSubmit={onFormSubmit} />
+      )}
     </>
   );
 };
