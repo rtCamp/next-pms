@@ -94,7 +94,7 @@ export const TimesheetRow = ({
           totalTimeEntries,
           totalTimeEntriesInHours,
           dailyWorkingHours,
-          status,
+          totalHoursTheme,
         }) => (
           <>
             <TotalRow
@@ -108,8 +108,8 @@ export const TimesheetRow = ({
                 crumbClassName: "first:pl-0 last:pr-0",
               }}
               totalHours={totalHours}
+              totalHoursTheme={totalHoursTheme}
               totalTimeEntries={totalTimeEntries}
-              status={status}
               className="pl-7.5"
               starred={true}
             />
@@ -120,7 +120,6 @@ export const TimesheetRow = ({
                 dates={dates}
                 tasks={project.tasks}
                 label={project.project_name || project.project}
-                status={status}
                 className="pl-7.5"
               >
                 {Object.entries(project.tasks).map(([taskKey, task]) => (

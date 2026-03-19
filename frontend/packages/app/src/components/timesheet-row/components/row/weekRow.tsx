@@ -10,6 +10,7 @@ import {
   AccordionTrigger,
   WeekRow as BaseWeekRow,
   statusMap,
+  totalHoursThemeMap,
 } from "@next-pms/design-system/components";
 import { getTodayDate, prettyDate } from "@next-pms/design-system/date";
 
@@ -17,8 +18,10 @@ import { getTodayDate, prettyDate } from "@next-pms/design-system/date";
  * Internal dependencies
  */
 import {
+  calculateExtendedWorkingHour,
   calculateLeaveHours,
   calculateTotalHours,
+  calculateWeeklyHour,
   expectatedHours,
 } from "@/lib/utils";
 import type { WeekRowProps } from "./types";
@@ -74,6 +77,12 @@ export const WeekRow = ({
     return { total, totalTimeEntries, totalTimeEntriesInHours };
   }, [dates, tasks, leaves, holidays, dailyWorkingHours]);
 
+  const isExtended = calculateExtendedWorkingHour(
+    weekData.total,
+    calculateWeeklyHour(workingHour, workingFrequency),
+    workingFrequency,
+  );
+
   const today = useMemo(() => {
     const currentDate = getTodayDate();
     if (!dates.includes(currentDate)) {
@@ -104,6 +113,7 @@ export const WeekRow = ({
             thisWeek={thisWeek}
             dates={formattedDates}
             totalHours={floatToTime(weekData.total, 2)}
+            totalHoursTheme={totalHoursThemeMap[isExtended]}
             status={status ? statusMap[status] : "none"}
             collapsed={collapsed}
             onButtonClick={() =>
@@ -116,6 +126,7 @@ export const WeekRow = ({
         <AccordionContent className="pb-0">
           {children?.({
             totalHours: floatToTime(weekData.total, 2),
+            totalHoursTheme: totalHoursThemeMap[isExtended],
             totalTimeEntries: weekData.totalTimeEntries,
             totalTimeEntriesInHours: weekData.totalTimeEntriesInHours,
             dailyWorkingHours,

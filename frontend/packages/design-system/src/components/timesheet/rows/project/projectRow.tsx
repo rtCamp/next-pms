@@ -6,9 +6,8 @@ import { ChevronDown, Folder } from "lucide-react";
 /**
  * Internal dependencies.
  */
-import { totalHoursVariants } from "./constants";
 import { mergeClassNames as cn } from "../../../../utils";
-import { type RowStatus } from "../constants";
+import { type TotalHoursTheme, totalHoursVariants } from "../constants";
 
 export interface ProjectRowProps {
   /** Label for the project row. */
@@ -19,8 +18,8 @@ export interface ProjectRowProps {
   timeEntries: string[];
   /** Total hours logged for the week. */
   totalHours?: string;
-  /** Status of the timesheet for the project row. */
-  status?: RowStatus;
+  /** Theme for the total hours */
+  totalHoursTheme?: TotalHoursTheme;
   /** Optionally highlight time entries **/
   highlightTimeEntries?: boolean;
   /** Optional function to render a prefix icon next to the label. */
@@ -34,7 +33,7 @@ export const ProjectRow: React.FC<ProjectRowProps> = ({
   collapsed = false,
   timeEntries,
   totalHours = "",
-  status = "not-submitted",
+  totalHoursTheme,
   highlightTimeEntries = false,
   renderPrefix,
   className,
@@ -89,7 +88,13 @@ export const ProjectRow: React.FC<ProjectRowProps> = ({
       })}
 
       <div className="shrink-0 flex justify-end items-center text-base text-end font-medium text-ink-gray-5 whitespace-nowrap w-16 h-7 px-2 py-1.5">
-        <span className={cn(totalHoursVariants({ status }))}>{totalHours}</span>
+        <span
+          className={cn(
+            totalHoursVariants({ theme: totalHoursTheme, weight: "default" }),
+          )}
+        >
+          {totalHours}
+        </span>
       </div>
 
       <div className="w-12 shrink-0 h-7"></div>

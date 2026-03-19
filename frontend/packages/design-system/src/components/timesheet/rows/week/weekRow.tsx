@@ -8,14 +8,14 @@ import { ChevronDown } from "lucide-react";
 /**
  * Internal dependencies.
  */
-import {
-  buttonVariants,
-  statusIcon,
-  statusTheme,
-  totalHoursVariants,
-} from "./constants";
+import { buttonVariants, statusIcon, statusTheme } from "./constants";
 import { mergeClassNames as cn } from "../../../../utils";
-import { statusLabel, type RowStatus } from "../constants";
+import {
+  statusLabel,
+  type TotalHoursTheme,
+  totalHoursVariants,
+  type RowStatus,
+} from "../constants";
 
 export interface WeekRowProps {
   /** Label for the week row. */
@@ -34,6 +34,8 @@ export interface WeekRowProps {
   today?: string;
   /** Total hours logged for the week. */
   totalHours?: string;
+  /** Theme for the total hours */
+  totalHoursTheme?: TotalHoursTheme;
   /** Additional class names for the week row container. */
   className?: string;
 }
@@ -47,6 +49,7 @@ export const WeekRow: React.FC<WeekRowProps> = ({
   today = "",
   onButtonClick,
   totalHours = "",
+  totalHoursTheme,
   className,
 }) => {
   const isStatusNone = status === "none";
@@ -106,7 +109,7 @@ export const WeekRow: React.FC<WeekRowProps> = ({
         <div className="shrink-0 flex justify-end items-center text-sm text-end text-ink-gray-5 whitespace-nowrap w-16 h-7 px-2 py-1.5 leading-3.5">
           <span
             className={cn(
-              collapsed && totalHoursVariants({ status, thisWeek }),
+              collapsed && totalHoursVariants({ theme: totalHoursTheme }),
             )}
           >
             {collapsed ? totalHours : "Total"}

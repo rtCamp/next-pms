@@ -7,9 +7,8 @@ import { Star, StarOff } from "lucide-react";
 /**
  * Internal dependencies.
  */
-import { totalHoursVariants } from "./constants";
 import { mergeClassNames as cn } from "../../../../utils";
-import { type RowStatus } from "../constants";
+import { type TotalHoursTheme, totalHoursVariants } from "../constants";
 
 export interface TotalRowProps {
   /** Props configuration for the Breadcrumbs component displayed in the total row. */
@@ -20,8 +19,8 @@ export interface TotalRowProps {
   totalTimeEntries: string[];
   /** Total hours logged for the week. */
   totalHours?: string;
-  /** Status of the timesheet for the total row. */
-  status?: RowStatus;
+  /** Theme for the total hours */
+  totalHoursTheme?: TotalHoursTheme;
   /** Optional function to render a prefix icon next to the breadcrumbs. */
   renderPrefix?: () => React.ReactNode;
   /** Additional class names for the total row container. */
@@ -33,7 +32,7 @@ export const TotalRow: React.FC<TotalRowProps> = ({
   starred = false,
   totalTimeEntries,
   totalHours = "",
-  status = "not-submitted",
+  totalHoursTheme,
   renderPrefix,
   className,
 }) => {
@@ -83,7 +82,9 @@ export const TotalRow: React.FC<TotalRowProps> = ({
       })}
 
       <div className="shrink-0 flex justify-end items-center text-base font-medium text-end text-ink-gray-5 whitespace-nowrap w-16 h-7 px-2 py-1.5">
-        <span className={cn(totalHoursVariants({ status }))}>{totalHours}</span>
+        <span className={cn(totalHoursVariants({ theme: totalHoursTheme }))}>
+          {totalHours}
+        </span>
       </div>
 
       <div className="w-12 shrink-0 h-7"></div>

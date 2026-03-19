@@ -18,8 +18,6 @@ import {
 import { mergeClassNames as cn } from "../../../../utils";
 
 export interface TaskRowProps {
-  /** Optional index of the task, used for identifying the task in callbacks. */
-  taskIndex?: number;
   /** Label for the task row. */
   label?: string;
   /** Whether the task row is starred. */
@@ -52,7 +50,6 @@ export interface TaskRowProps {
 }
 
 export const TaskRow: React.FC<TaskRowProps> = ({
-  taskIndex,
   label,
   starred = false,
   timeEntries,
@@ -76,7 +73,7 @@ export const TaskRow: React.FC<TaskRowProps> = ({
         className,
       )}
     >
-      <div className="group flex items-center flex-1 min-w-0">
+      <div className="flex items-center flex-1 min-w-0 group">
         <div className="flex items-center min-w-0 gap-2">
           <span className="w-4 shrink-0">
             <StatusIcon
@@ -132,7 +129,7 @@ export const TaskRow: React.FC<TaskRowProps> = ({
                     variant="ghost"
                     className="w-14.25 relative group flex justify-center items-center enabled:hover:bg-surface-gray-2 enabled:focus:bg-surface-gray-2 enabled:active:bg-surface-gray-3 disabled:cursor-default! lining-nums tabular-nums [&_span]:overflow-visible [&_span]:whitespace-normal"
                     disabled={timeEntry.disabled}
-                    onClick={() => onCellClick?.(taskIndex, index)}
+                    onClick={() => onCellClick?.(taskKey, index)}
                   />
                 }
               >
@@ -156,7 +153,7 @@ export const TaskRow: React.FC<TaskRowProps> = ({
                 <Popover.Positioner sideOffset={8} align="end">
                   <Popover.Popup>
                     {renderInlineTimeEntryPopover?.(
-                      taskIndex,
+                      taskKey,
                       index,
                       closePopover,
                     )}

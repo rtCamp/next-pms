@@ -8,14 +8,14 @@ import { ChevronDown } from "lucide-react";
 /**
  * Internal dependencies.
  */
-import {
-  buttonVariants,
-  statusIcon,
-  statusTheme,
-  totalHoursVariants,
-} from "./constants";
+import { buttonVariants, statusIcon, statusTheme } from "./constants";
 import { mergeClassNames as cn } from "../../../../utils";
-import { statusLabel, type RowStatus } from "../constants";
+import {
+  statusLabel,
+  type TotalHoursTheme,
+  type RowStatus,
+  totalHoursVariants,
+} from "../constants";
 
 export interface MemberRowProps {
   /** Name of the member. */
@@ -32,6 +32,8 @@ export interface MemberRowProps {
   timeEntries: string[];
   /** Total hours logged for the week. */
   totalHours?: string;
+  /** Theme for the total hours */
+  totalHoursTheme?: TotalHoursTheme;
   /** Additional class names for the member row container. */
   className?: string;
 }
@@ -44,6 +46,7 @@ export const MemberRow: React.FC<MemberRowProps> = ({
   timeEntries,
   onButtonClick,
   totalHours = "",
+  totalHoursTheme,
   className,
 }) => {
   const isStatusNone = status === "none";
@@ -96,7 +99,9 @@ export const MemberRow: React.FC<MemberRowProps> = ({
       })}
 
       <div className="shrink-0 flex justify-end items-center text-sm text-end text-ink-gray-5 whitespace-nowrap w-16 h-7 px-2 py-1.5 leading-3.5">
-        <span className={cn(totalHoursVariants({ status }))}>{totalHours}</span>
+        <span className={cn(totalHoursVariants({ theme: totalHoursTheme }))}>
+          {totalHours}
+        </span>
       </div>
 
       <div className="flex items-center justify-end w-12 shrink-0 h-7 whitespace-nowrap">
