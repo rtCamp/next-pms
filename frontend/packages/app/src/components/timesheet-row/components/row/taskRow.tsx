@@ -30,6 +30,7 @@ import { InlineTimeEntry } from "../inline-time-entry";
  * @param {number} props.dailyWorkingHours - Daily working hours for the task.
  * @param {string} props.employee - Employee for the timesheet entry.
  * @param {function} props.getLikedTaskData - Function to fetch liked task data after toggling like status.
+ * @param {boolean} props.hideStarButton - Whether to hide the star button for liking the task.
  */
 export const TaskRow = ({
   dates,
@@ -42,6 +43,7 @@ export const TaskRow = ({
   totalTimeEntriesInHours,
   employee,
   getLikedTaskData,
+  hideLikeButton,
   ...rest
 }: TaskRowProps) => {
   const [taskLiked, setTaskLiked] = useState(false);
@@ -105,6 +107,7 @@ export const TaskRow = ({
       starred={taskLiked}
       taskKey={taskKey}
       onStarClick={handleStar}
+      hideStarButton={hideLikeButton}
       renderInlineTimeEntryPopover={(_, dayIndex, closePopover) => (
         <InlineTimeEntry
           dailyWorkingHours={dailyWorkingHours}

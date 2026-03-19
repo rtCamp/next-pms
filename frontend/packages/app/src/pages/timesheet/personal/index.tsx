@@ -223,7 +223,7 @@ function Timesheet() {
               isLoading={isLoading}
               hasMore={true}
               verticalLodMore={loadData}
-              className="w-full h-full overflow-auto"
+              className="w-full h-full overflow-auto scrollbar"
             >
               <div className="min-w-225">
                 {timesheet.data?.data &&

@@ -138,6 +138,7 @@ export const TimesheetRow = ({
                     totalTimeEntriesInHours={totalTimeEntriesInHours}
                     employee={employee}
                     getLikedTaskData={getLikedTaskData}
+                    hideLikeButton={hideLikeButton}
                   />
                 ))}
               </ProjectRow>

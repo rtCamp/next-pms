@@ -47,6 +47,8 @@ export interface TaskRowProps {
   className?: string;
   /** Key of the task, used for identifying the task in callbacks. */
   taskKey: string;
+  /** Whether to hide the star button for liking the task. */
+  hideStarButton?: boolean;
 }
 
 export const TaskRow: React.FC<TaskRowProps> = ({
@@ -61,6 +63,7 @@ export const TaskRow: React.FC<TaskRowProps> = ({
   status = "open",
   className,
   taskKey,
+  hideStarButton,
 }) => {
   const StatusIcon = statusIcon[status];
   const actionRefs = useRef<
@@ -85,24 +88,28 @@ export const TaskRow: React.FC<TaskRowProps> = ({
           <span className="min-w-0 text-base font-medium truncate">
             {label}
           </span>
-          <Button
-            variant="ghost"
-            className={cn(
-              "w-4 h-4 bg-transparent hover:bg-transparent active:bg-transparent shrink-0 p-0",
-              !starred &&
-                "transition-opacity opacity-0 group-hover:opacity-100",
-            )}
-            onClick={(e) => onStarClick?.(e, taskKey)}
-            icon={() => (
-              <Star
-                strokeWidth={1.5}
-                size={16}
-                className={cn(
-                  starred ? "fill-current text-ink-amber-2" : "text-ink-gray-4",
-                )}
-              />
-            )}
-          />
+          {!hideStarButton ? (
+            <Button
+              variant="ghost"
+              className={cn(
+                "w-4 h-4 bg-transparent hover:bg-transparent active:bg-transparent shrink-0 p-0",
+                !starred &&
+                  "transition-opacity duration-100 opacity-0 group-hover:opacity-100",
+              )}
+              onClick={(e) => onStarClick?.(e, taskKey)}
+              icon={() => (
+                <Star
+                  strokeWidth={1.5}
+                  size={16}
+                  className={cn(
+                    starred
+                      ? "fill-current text-ink-amber-2"
+                      : "text-ink-gray-4",
+                  )}
+                />
+              )}
+            />
+          ) : null}
         </div>
       </div>
       {timeEntries.map((timeEntry, index) => {

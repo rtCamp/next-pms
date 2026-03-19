@@ -4,7 +4,7 @@
 import React from "react";
 import type { BadgeProps, ButtonVariant } from "@rtcamp/frappe-ui-react";
 import { cva } from "class-variance-authority";
-import { CircleCheck, CircleX } from "lucide-react";
+import { Check, CircleCheck, CircleX } from "lucide-react";
 
 /**
  * Internal dependencies.
@@ -40,7 +40,7 @@ export const statusIcon: Record<
   },
   "approval-pending": {
     variant: "solid",
-    icon: CircleCheck,
+    icon: Check,
   },
   none: {
     variant: "ghost",
@@ -60,7 +60,7 @@ export const totalHoursVariants = cva(
         none: "text-ink-green-4",
       },
     },
-  }
+  },
 );
 
 export const buttonVariants = cva("", {

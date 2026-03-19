@@ -275,7 +275,7 @@ export const InlineTimeEntry = ({
   return (
     <div
       className={cn(
-        "w-68 max-h-[min(500px,90dvh)] overflow-y-auto shadow bg-surface-modal rounded-lg flex flex-col gap-2 p-2",
+        "w-68 max-h-[min(500px,90dvh)] overflow-y-auto scrollbar-thin shadow bg-surface-modal rounded-lg flex flex-col gap-2 p-2",
         isLoading && "h-25 flex justify-center items-center",
       )}
     >

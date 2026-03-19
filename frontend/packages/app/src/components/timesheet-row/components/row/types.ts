@@ -70,6 +70,7 @@ export interface TaskRowProps extends Omit<
   totalTimeEntriesInHours?: number[];
   employee?: string;
   getLikedTaskData?: () => void;
+  hideLikeButton?: boolean;
 }
 
 export interface TimeOffRowProps extends Omit<
