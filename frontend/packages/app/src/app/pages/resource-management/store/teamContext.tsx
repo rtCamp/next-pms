@@ -89,7 +89,7 @@ const defaulTeamState: TeamContextProps = {
 const TeamContext = createContext<TeamContextProps>(defaulTeamState);
 
 const TeamContextProvider = ({ children }: ContextProviderProps) => {
-  const [teamData, setTeanData] = useState<ResourceTeamDataProps>(defaultData);
+  const [teamData, setTeamData] = useState<ResourceTeamDataProps>(defaultData);
   const [filters, setFilters] = useState<ResourceTeamFilters>(defaultFilters);
   const [tableView, setTableView] = useState<TableViewProps>(defaultTableView);
   const [apiController, setApiController] =
@@ -99,7 +99,7 @@ const TeamContextProvider = ({ children }: ContextProviderProps) => {
     updatedTeamData: ResourceTeamDataProps,
     type: "SET" | "UPDATE" = "SET",
   ) => {
-    setTeanData((prev) => {
+    setTeamData((prev) => {
       if (type === "SET") {
         return {
           ...prev,
@@ -134,7 +134,7 @@ const TeamContextProvider = ({ children }: ContextProviderProps) => {
     customer: ResourceTeamDataProps["customer"];
     dates?: DateProps[];
   }) => {
-    setTeanData((prev) => {
+    setTeamData((prev) => {
       const updatedData = [...prev.data];
       for (let i = 0; i < horizontalData.data.length; i++) {
         const idx = horizontalData.start + i;
@@ -180,7 +180,7 @@ const TeamContextProvider = ({ children }: ContextProviderProps) => {
       start: 0,
       maxWeek: defaultFilters.maxWeek,
     }));
-    setTeanData(defaultData);
+    setTeamData(defaultData);
     setApiController((prev) => ({
       ...prev,
       isLoading: true,
@@ -207,7 +207,7 @@ const TeamContextProvider = ({ children }: ContextProviderProps) => {
   };
 
   const setDates = (dates: DateProps[]) => {
-    setTeanData((prev) => ({ ...prev, dates }));
+    setTeamData((prev) => ({ ...prev, dates }));
   };
 
   const setWeekDate = (value: string) => {
@@ -223,11 +223,11 @@ const TeamContextProvider = ({ children }: ContextProviderProps) => {
       isLoading: true,
       isNeedToFetchDataAfterUpdate: true,
     }));
-    setTeanData({ ...defaultData, dates: getDatesArrays(value, 10) });
+    setTeamData({ ...defaultData, dates: getDatesArrays(value, 10) });
   };
 
   const resetState = () => {
-    setTeanData(defaultData);
+    setTeamData(defaultData);
     setFilters(defaultFilters);
     setTableView(defaultTableView);
     setApiController(defaultApiController);
