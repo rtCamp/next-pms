@@ -8,7 +8,12 @@ import { ChevronDown } from "lucide-react";
 /**
  * Internal dependencies.
  */
-import { buttonVariants, statusIcon, statusTheme, totalHoursVariants } from "./constants";
+import {
+  buttonVariants,
+  statusIcon,
+  statusTheme,
+  totalHoursVariants,
+} from "./constants";
 import { mergeClassNames as cn } from "../../../../utils";
 import { statusLabel, type RowStatus } from "../constants";
 
@@ -57,7 +62,7 @@ export const WeekRow: React.FC<WeekRowProps> = ({
       )}
       data-testid="week-row"
     >
-      <div className="min-w-0 align-middle flex flex-1 items-center gap-2">
+      <div className="flex items-center flex-1 min-w-0 gap-2 align-middle">
         <Button
           onClick={onToggle}
           disabled={!onToggle}
@@ -69,8 +74,10 @@ export const WeekRow: React.FC<WeekRowProps> = ({
           icon={() => <ChevronDown strokeWidth={1.5} size={16} />}
           aria-label="Toggle week"
         />
-        <div className="min-w-0 flex items-center gap-2">
-          <span className="text-base font-medium text-ink-gray-9 truncate leading-3.5">{label}</span>
+        <div className="flex items-center min-w-0 gap-2">
+          <span className="text-base font-medium text-ink-gray-9 truncate leading-3.5">
+            {label}
+          </span>
           {status !== "none" && (
             <Badge theme={statusTheme[status]} className="shrink-0">
               {statusLabel[status]}
@@ -89,7 +96,12 @@ export const WeekRow: React.FC<WeekRowProps> = ({
             >
               <span>
                 {monthAndDay[0]}{" "}
-                <span className={cn(isToday && "w-4.25 h-4.25 px-1 py-px rounded-sm bg-surface-red-5 text-ink-white")}>
+                <span
+                  className={cn(
+                    isToday &&
+                      "w-4.25 h-4.25 px-1 py-px rounded-sm bg-surface-red-5 text-ink-white",
+                  )}
+                >
                   {monthAndDay[1]}
                 </span>
               </span>
@@ -99,13 +111,17 @@ export const WeekRow: React.FC<WeekRowProps> = ({
 
       {!(isStatusNone && collapsed) && (
         <div className="shrink-0 flex justify-end items-center text-sm text-end text-ink-gray-5 whitespace-nowrap w-16 h-7 px-2 py-1.5 leading-3.5">
-          <span className={cn(collapsed && totalHoursVariants({ status, thisWeek }))}>
+          <span
+            className={cn(
+              collapsed && totalHoursVariants({ status, thisWeek }),
+            )}
+          >
             {collapsed ? totalHours : "Total"}
           </span>
         </div>
       )}
 
-      <div className="shrink-0 w-12 h-7 flex justify-end items-center whitespace-nowrap">
+      <div className="flex items-center justify-end w-12 shrink-0 h-7 whitespace-nowrap">
         {!isStatusNone ? (
           <Button
             onClick={onButtonClick}

@@ -255,13 +255,13 @@ function Timesheet() {
                         >
                           <TimesheetTable
                             label={key}
+                            employee={user.employee}
                             workingHour={timesheet.data.working_hour}
                             workingFrequency={timesheet.data.working_frequency as WorkingFrequency}
                             dates={value.dates}
                             holidays={timesheet.data.holidays}
                             leaves={timesheet.data.leaves}
                             tasks={value.tasks}
-                            onCellClick={onCellClick}
                             firstWeek={index === 0}
                             weeklyStatus={value.status}
                             disabled={value.status === "Approved"}

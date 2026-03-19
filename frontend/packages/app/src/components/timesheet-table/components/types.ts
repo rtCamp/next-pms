@@ -29,11 +29,11 @@ export type weekTotalProps = {
 
 export type timesheetTableProps = {
   label?: string;
+  employee?: string;
   dates: string[];
   holidays: Array<HolidayProp>;
   tasks: TaskProps;
   leaves: Array<LeaveProps>;
-  onCellClick?: (data: NewTimesheetProps) => void;
   firstWeek: boolean;
   workingHour: number;
   disabled?: boolean;

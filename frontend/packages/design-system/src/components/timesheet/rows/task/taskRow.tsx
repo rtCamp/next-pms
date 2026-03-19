@@ -1,17 +1,20 @@
 /**
  * External dependencies.
  */
-import { Popover } from "@base-ui/react";
+import { createRef, useRef } from "react";
+import { Popover, PreviewCard } from "@base-ui/react";
+import {
+  TaskStatus,
+  type TaskStatusType,
+} from "@next-pms/design-system/components";
 import { Button } from "@rtcamp/frappe-ui-react";
 import { Plus, Star } from "lucide-react";
 
 /**
  * Internal dependencies.
  */
-import { TaskData, type TaskRowTimeEntry } from "./constants";
+import { type TaskRowTimeEntry } from "./constants";
 import { mergeClassNames as cn } from "../../../../utils";
-import TaskStatus, { type TaskStatusType } from "../../../task-status";
-import TaskPopover from "../../taskPopover";
 
 export interface TaskRowProps {
   /** Optional index of the task, used for identifying the task in callbacks. */
@@ -24,10 +27,11 @@ export interface TaskRowProps {
   timeEntries: TaskRowTimeEntry[];
   /** Optional function to handle cell click events, receiving the task index and day index. */
   onCellClick?: (taskIndex: number | undefined, dayIndex: number) => void;
-  /** Optional function to render popover content for a time entry, receiving the task index and day index. */
-  popoverContent?: (
+  /** Optional function to render inline time entry popover for a time entry, receiving the task index and day index. */
+  renderInlineTimeEntryPopover?: (
     taskIndex: number | undefined,
     dayIndex: number,
+    closePopover: () => void,
   ) => React.ReactNode;
   /** Total hours logged for the week. */
   totalHours?: string;
@@ -35,7 +39,12 @@ export interface TaskRowProps {
   status?: TaskStatusType;
   /** Additional class names for the task row container. */
   className?: string;
-  taskData: TaskData;
+  /** Optional function to render hover content for the task, receiving the task key. */
+  taskHoverContent?: (taskKey: string) => React.ReactNode;
+  /** Optional function to handle label click events, receiving the task key. */
+  onLabelClick?: (taskKey: string) => void;
+  /** Key of the task, used for identifying the task in callbacks. */
+  taskKey: string;
 }
 
 export const TaskRow: React.FC<TaskRowProps> = ({
@@ -44,12 +53,17 @@ export const TaskRow: React.FC<TaskRowProps> = ({
   starred = false,
   timeEntries,
   onCellClick,
-  popoverContent,
+  taskHoverContent,
+  renderInlineTimeEntryPopover,
   totalHours = "",
-  status = "open",
+  status = "Open",
   className,
-  taskData,
+  onLabelClick,
+  taskKey,
 }) => {
+  const actionRefs = useRef<
+    Array<React.RefObject<Popover.Root.Actions | null>>
+  >([]);
   return (
     <div
       className={cn(
@@ -62,22 +76,21 @@ export const TaskRow: React.FC<TaskRowProps> = ({
         <div className="flex gap-2 items-center min-w-0">
           <TaskStatus status={status} />
           <span className="min-w-0 text-base font-medium truncate">
-            <Popover.Root>
-              <Popover.Trigger openOnHover>{label}</Popover.Trigger>
-              <Popover.Portal>
-                <Popover.Positioner sideOffset={8} align="start">
-                  <Popover.Popup>
-                    <TaskPopover
-                      label={label}
-                      badges={[]}
-                      actualHours={taskData.actual_time}
-                      estimatedHours={taskData.expected_time}
-                      status={status}
-                    />
-                  </Popover.Popup>
-                </Popover.Positioner>
-              </Popover.Portal>
-            </Popover.Root>
+            <PreviewCard.Root>
+              <PreviewCard.Trigger
+                onClick={() => onLabelClick?.(taskKey)}
+                className="cursor-pointer"
+              >
+                {label}
+              </PreviewCard.Trigger>
+              <PreviewCard.Portal>
+                <PreviewCard.Positioner sideOffset={8} align="start">
+                  <PreviewCard.Popup>
+                    {taskHoverContent?.(taskKey)}
+                  </PreviewCard.Popup>
+                </PreviewCard.Positioner>
+              </PreviewCard.Portal>
+            </PreviewCard.Root>
           </span>
           {starred ? (
             <span className="w-4 shrink-0">
@@ -91,12 +104,18 @@ export const TaskRow: React.FC<TaskRowProps> = ({
         </div>
       </div>
       {timeEntries.map((timeEntry, index) => {
+        if (!actionRefs.current[index]) {
+          actionRefs.current[index] = createRef<Popover.Root.Actions | null>();
+        }
+        const actionsRef = actionRefs.current[index];
+        const closePopover = () => actionsRef.current?.close();
+
         return (
           <div
             key={index}
             className="shrink-0 flex justify-end items-center text-base text-ink-gray-6 whitespace-nowrap w-16 h-7 pl-2 py-1.5 leading-3.5"
           >
-            <Popover.Root>
+            <Popover.Root actionsRef={actionsRef}>
               <Popover.Trigger
                 openOnHover
                 render={
@@ -127,7 +146,11 @@ export const TaskRow: React.FC<TaskRowProps> = ({
               <Popover.Portal>
                 <Popover.Positioner sideOffset={8} align="end">
                   <Popover.Popup>
-                    {popoverContent?.(taskIndex, index)}
+                    {renderInlineTimeEntryPopover?.(
+                      taskIndex,
+                      index,
+                      closePopover,
+                    )}
                   </Popover.Popup>
                 </Popover.Positioner>
               </Popover.Portal>

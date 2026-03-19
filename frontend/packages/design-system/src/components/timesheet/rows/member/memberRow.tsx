@@ -55,23 +55,23 @@ export const MemberRow: React.FC<MemberRowProps> = ({
     <div
       className={cn(
         "flex items-center border-b border-outline-gray-1 transition-colors w-full justify-between px-1 py-2",
-        className
+        className,
       )}
       data-testid="member-row"
     >
-      <div className="min-w-0 align-middle flex flex-1 items-center gap-2">
+      <div className="flex items-center flex-1 min-w-0 gap-2 align-middle">
         <Button
           onClick={onToggle}
           disabled={!onToggle}
           variant="ghost"
           className={cn(
             "w-4 shrink-0 border-none outline-none focus:ring-0 focus-visible:ring-0 transition-transform bg-transparent hover:bg-transparent focus:bg-transparent active:bg-transparent",
-            collapsed ? "-rotate-90" : "rotate-0"
+            collapsed ? "-rotate-90" : "rotate-0",
           )}
           icon={() => <ChevronDown strokeWidth={1.5} size={16} />}
           aria-label="Toggle member"
         />
-        <div className="min-w-0 flex items-center gap-2">
+        <div className="flex items-center min-w-0 gap-2">
           <Avatar image={avatarUrl} shape="circle" label={label} size="xs" />
           <span className="text-base font-medium text-ink-gray-9 truncate leading-3.5">
             {label}
@@ -106,7 +106,7 @@ export const MemberRow: React.FC<MemberRowProps> = ({
         <span className={cn(totalHoursVariants({ status }))}>{totalHours}</span>
       </div>
 
-      <div className="shrink-0 w-12 h-7 flex justify-end items-center whitespace-nowrap">
+      <div className="flex items-center justify-end w-12 shrink-0 h-7 whitespace-nowrap">
         {!isStatusNone && statusIcon[status]?.icon ? (
           <Button
             onClick={onButtonClick}
@@ -114,7 +114,7 @@ export const MemberRow: React.FC<MemberRowProps> = ({
               buttonVariants({
                 status,
                 variant: statusIcon[status]?.variant,
-              })
+              }),
             )}
             variant={statusIcon[status]?.variant}
             size="sm"

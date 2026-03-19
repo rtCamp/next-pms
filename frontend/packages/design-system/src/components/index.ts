@@ -15,15 +15,16 @@ export { default as Progress } from "./progress";
 export { default as Label } from "./label";
 export { default as Typography, type TypographyProps } from "./typography";
 export { default as Skeleton } from "./skeleton";
-export { default as TaskStatus, type TaskStatusType } from "./task-status";
+export {
+  TaskStatus,
+  statusIcon,
+  statusIconVariants,
+  type TaskStatusType,
+} from "./task-status";
 export {
   default as TaskProgress,
   type TaskProgressProps,
 } from "./task-progress";
-export {
-  default as TaskPopover,
-  type TaskPopoverProps,
-} from "./timesheet/taskPopover";
 export { default as TextArea } from "./text-area";
 export {
   Tooltip,
