@@ -22,9 +22,9 @@ import { TaskRow } from "./components/row/taskRow";
 import { TimeOffRow } from "./components/row/timeOffRow";
 import { TotalRow } from "./components/row/totalRow";
 import { WeekRow } from "./components/row/weekRow";
-import type { timesheetTableProps } from "./components/types";
+import type { TimesheetRowProps } from "./components/types";
 
-export const TimesheetTable = ({
+export const TimesheetRow = ({
   label,
   employee,
   dates,
@@ -43,7 +43,7 @@ export const TimesheetTable = ({
   hideLikeButton,
   onButtonClick,
   status,
-}: timesheetTableProps) => {
+}: TimesheetRowProps) => {
   const holidayList = getHolidayList(holidays);
   const task_date_range_key = dates[0] + "-" + dates[dates.length - 1];
 
