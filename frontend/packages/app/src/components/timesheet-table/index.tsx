@@ -137,6 +137,7 @@ export const TimesheetTable = ({
                     dailyWorkingHours={dailyWorkingHours}
                     totalTimeEntriesInHours={totalTimeEntriesInHours}
                     employee={employee}
+                    getLikedTaskData={getLikedTaskData}
                   />
                 ))}
               </ProjectRow>

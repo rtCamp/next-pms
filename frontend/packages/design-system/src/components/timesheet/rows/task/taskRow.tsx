@@ -26,11 +26,16 @@ export interface TaskRowProps {
   starred?: boolean;
   /** Array of time entries for each day of the week for the task. */
   timeEntries: TaskRowTimeEntry[];
-  /** Optional function to handle cell click events, receiving the task index and day index. */
-  onCellClick?: (taskIndex: number | undefined, dayIndex: number) => void;
-  /** Optional function to render inline time entry popover for a time entry, receiving the task index and day index. */
+  /** Optional function to handle cell click events, receiving the task key and day index. */
+  onCellClick?: (taskKey: string, dayIndex: number) => void;
+  /** Optional function to handle star click events, receiving the task key. */
+  onStarClick?: (
+    e: React.MouseEvent<HTMLButtonElement>,
+    taskKey: string,
+  ) => void;
+  /** Optional function to render inline time entry popover for a time entry, receiving the task key and day index. */
   renderInlineTimeEntryPopover?: (
-    taskIndex: number | undefined,
+    taskKey: string,
     dayIndex: number,
     closePopover: () => void,
   ) => React.ReactNode;
@@ -40,6 +45,8 @@ export interface TaskRowProps {
   status?: TaskStatus;
   /** Additional class names for the task row container. */
   className?: string;
+  /** Key of the task, used for identifying the task in callbacks. */
+  taskKey: string;
 }
 
 export const TaskRow: React.FC<TaskRowProps> = ({
@@ -48,10 +55,12 @@ export const TaskRow: React.FC<TaskRowProps> = ({
   starred = false,
   timeEntries,
   onCellClick,
+  onStarClick,
   renderInlineTimeEntryPopover,
   totalHours = "",
   status = "open",
   className,
+  taskKey,
 }) => {
   const StatusIcon = statusIcon[status];
   const actionRefs = useRef<
@@ -64,7 +73,7 @@ export const TaskRow: React.FC<TaskRowProps> = ({
         className,
       )}
     >
-      <div className="flex items-center flex-1 min-w-0">
+      <div className="group flex items-center flex-1 min-w-0">
         <div className="flex items-center min-w-0 gap-2">
           <span className="w-4 shrink-0">
             <StatusIcon
@@ -76,15 +85,24 @@ export const TaskRow: React.FC<TaskRowProps> = ({
           <span className="min-w-0 text-base font-medium truncate">
             {label}
           </span>
-          {starred ? (
-            <span className="w-4 shrink-0">
+          <Button
+            variant="ghost"
+            className={cn(
+              "w-4 h-4 bg-transparent hover:bg-transparent active:bg-transparent shrink-0 p-0",
+              !starred &&
+                "transition-opacity opacity-0 group-hover:opacity-100",
+            )}
+            onClick={(e) => onStarClick?.(e, taskKey)}
+            icon={() => (
               <Star
                 strokeWidth={1.5}
                 size={16}
-                className="fill-current text-ink-amber-2"
+                className={cn(
+                  starred ? "fill-current text-ink-amber-2" : "text-ink-gray-4",
+                )}
               />
-            </span>
-          ) : null}
+            )}
+          />
         </div>
       </div>
       {timeEntries.map((timeEntry, index) => {
