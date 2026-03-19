@@ -495,6 +495,7 @@ def get_timesheet(dates: list, employee: str, search: str | None = None, parsed_
             "actual_time",
             "status",
             "_liked_by",
+            "exp_end_date",
         ],
     )
 
@@ -535,6 +536,7 @@ def get_timesheet(dates: list, employee: str, search: str | None = None, parsed_
                 "actual_time": task["actual_time"],
                 "status": task["status"],
                 "_liked_by": task["_liked_by"],
+                "exp_end_date": task["exp_end_date"] or "",
             }
 
         data[task_name]["data"].append({field: log.get(field) for field in ALLOWED_TIMESHET_DETAIL_FIELDS})
