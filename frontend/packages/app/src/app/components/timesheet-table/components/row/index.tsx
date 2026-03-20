@@ -30,6 +30,7 @@ const Row = ({
   totalCellClassName,
   showEmptyCell,
   hideLikeButton,
+  isDateBackdatedDisabled,
 }: RowProps) => {
   return (
     <>
@@ -86,6 +87,7 @@ const Row = ({
                     isHoliday={result.isHoliday && !result.weekly_off}
                     onCellClick={onCellClick}
                     disabled={disabled}
+                    isBackdatedDisabled={isDateBackdatedDisabled?.(date)}
                   />
                 );
               })}

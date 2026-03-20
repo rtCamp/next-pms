@@ -173,3 +173,80 @@ def validate_current_employee(ptype: str = "read"):
         return wrapper
 
     return decorator
+
+
+@frappe.whitelist()
+def get_backdated_settings(employee: str = None):
+    """
+    Get backdated time entry settings for the current user/employee.
+    Returns the allowed backdated days limit based on user role.
+    """
+    from frappe import get_roles
+    from frappe.utils import add_days, getdate, today
+    from hrms.hr.utils import get_holiday_dates_for_employee
+
+    from next_pms.resource_management.api.utils.query import get_employee_leaves
+
+    if not employee:
+        employee = get_employee_from_user()
+
+    if not employee:
+        return {
+            "allow_backdated_entries": False,
+            "allowed_days_employee": 0,
+            "allowed_days_manager": 0,
+            "oldest_allowed_date": None,
+        }
+
+    # Get settings from Timesheet Settings
+    allow_backdated_entries = frappe.db.get_single_value("Timesheet Settings", "allow_backdated_entries")
+    allowed_days_employee = frappe.db.get_single_value("Timesheet Settings", "allow_backdated_entries_till_employee") or 0
+    allowed_days_manager = frappe.db.get_single_value("Timesheet Settings", "allow_backdated_entries_till_manager") or 0
+
+    # Check if user has manager/higher access roles
+    ROLES = {"Projects Manager", "HR User", "HR Manager", "Projects User"}
+    frappe_roles = set(get_roles())
+    has_access = bool(ROLES.intersection(frappe_roles))
+
+    # Determine which limit applies
+    allowed_days = allowed_days_manager if has_access else allowed_days_employee
+
+    # Calculate oldest allowed date considering holidays and leaves
+    today_date = getdate(today())
+    oldest_date = add_days(today_date, -allowed_days)
+
+    # Get holidays and leaves to adjust the calculation
+    holidays = get_holiday_dates_for_employee(employee, oldest_date, today_date)
+    leaves = get_employee_leaves(
+        start_date=add_days(oldest_date, -28),
+        end_date=add_days(today_date, 28),
+        employee=employee,
+    )
+
+    # Add leave dates to holidays list
+    for leave in leaves:
+        from_date = getdate(leave.from_date)
+        to_date = getdate(leave.to_date)
+        current_date = from_date
+        while current_date <= to_date:
+            holidays.append(str(current_date))
+            current_date = add_days(current_date, 1)
+
+    # Count holidays between oldest_date and today
+    holiday_counter = 0
+    holidays = set(holidays)
+    for holiday in holidays:
+        if oldest_date <= getdate(holiday) < today_date:
+            holiday_counter += 1
+
+    # Adjust oldest date by subtracting holidays
+    adjusted_oldest_date = add_days(oldest_date, -holiday_counter)
+
+    return {
+        "allow_backdated_entries": allow_backdated_entries,
+        "allowed_days_employee": allowed_days_employee,
+        "allowed_days_manager": allowed_days_manager,
+        "allowed_days": allowed_days,
+        "oldest_allowed_date": str(adjusted_oldest_date) if allow_backdated_entries else str(today_date),
+        "has_manager_access": has_access,
+    }

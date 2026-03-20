@@ -13,7 +13,7 @@ import { useFrappeGetCall } from "frappe-react-sdk";
 import Sidebar from "@/app/layout/sidebar";
 import { parseFrappeErrorMsg } from "@/lib/utils";
 import type { RootState } from "@/store";
-import { setInitialData } from "@/store/user";
+import { setInitialData, setBackdatedSettings } from "@/store/user";
 
 const Layout = ({ children }: { children: React.ReactNode }) => {
   const user = useSelector((state: RootState) => state.user);
@@ -24,6 +24,17 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
     revalidateIfStale: false,
     errorRetryCount: 1,
   });
+
+  const { data: backdatedData } = useFrappeGetCall(
+    "next_pms.timesheet.api.employee.get_backdated_settings",
+    {},
+    undefined,
+    {
+      revalidateOnFocus: false,
+      revalidateIfStale: false,
+      errorRetryCount: 1,
+    }
+  );
 
   useEffect(() => {
     if (data) {
@@ -45,6 +56,13 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data, error]);
+
+  useEffect(() => {
+    if (backdatedData?.message) {
+      dispatch(setBackdatedSettings(backdatedData.message));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [backdatedData]);
 
   return (
     <ErrorFallback>
