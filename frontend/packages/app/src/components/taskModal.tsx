@@ -1,5 +1,9 @@
-import React, { useEffect } from "react";
-import { getTodayDate, prettyDate } from "@next-pms/design-system";
+import React, { useEffect, useState } from "react";
+import {
+  getFormatedDate,
+  getTodayDate,
+  prettyDate,
+} from "@next-pms/design-system";
 import {
   TaskProgress,
   TaskStatus,
@@ -17,6 +21,7 @@ import {
   Spinner,
 } from "@rtcamp/frappe-ui-react";
 import { useToasts } from "@rtcamp/frappe-ui-react";
+import { addDays } from "date-fns";
 import { useFrappeGetCall } from "frappe-react-sdk";
 import { CalendarFoldIcon, Folder } from "lucide-react";
 import { useUser } from "@/hooks/useUser";
@@ -62,7 +67,9 @@ const TaskModal: React.FC<TaskModalProps> = ({ task, open, onOpenChange }) => {
 
   const toast = useToasts();
   const user = useUser();
-  const startDate = "2026-03-01";
+  const [startDate, setStartDate] = useState<string>(
+    getFormatedDate(addDays(getTodayDate(), -15)),
+  );
   const endDate = getTodayDate();
 
   const dateMap = [
@@ -132,8 +139,6 @@ const TaskModal: React.FC<TaskModalProps> = ({ task, open, onOpenChange }) => {
     end_date: endDate,
   });
 
-  console.log("Task logs:", logs, "Loading:", isLogLoading, "Error:", logError);
-
   // filter the timesheets for the current user
   const { message: taskLogs }: { message: TaskLogList } = logs || {
     message: {},
@@ -166,6 +171,13 @@ const TaskModal: React.FC<TaskModalProps> = ({ task, open, onOpenChange }) => {
   const progress =
     estimatedHours === 0 ? 0 : Math.round((actualHours / estimatedHours) * 100);
 
+  const handleDateRangeChange = (value: string | undefined) => {
+    if (!value) return;
+    const days = parseInt(value, 10);
+    const newStartDate = getFormatedDate(addDays(getTodayDate(), -days));
+    setStartDate(newStartDate);
+  };
+
   return (
     <Dialog
       open={open}
@@ -187,7 +199,7 @@ const TaskModal: React.FC<TaskModalProps> = ({ task, open, onOpenChange }) => {
       ) : (
         <>
           {badges && badges.length > 0 && (
-            <div className="flex flex-wrap gap-1 -mt-5.5 ml-6">
+            <div className="flex flex-wrap gap-1 -mt-4 ml-6">
               {badges.map((badge, index) => (
                 <Badge
                   key={index}
@@ -240,14 +252,16 @@ const TaskModal: React.FC<TaskModalProps> = ({ task, open, onOpenChange }) => {
 
             <Select
               className="w-auto"
-              onChange={() => {}}
+              onChange={(value) => {
+                handleDateRangeChange(value);
+              }}
               options={dateMap}
               placeholder="Select option"
               value="30"
             />
           </div>
 
-          <div className="flex overflow-y-auto flex-col gap-3 mt-3 h-54 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-transparent [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-surface-gray-4">
+          <div className="flex overflow-y-auto flex-col gap-3 mt-3 max-h-54 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-transparent [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-surface-gray-4">
             {userTaskLogs && Object.entries(userTaskLogs).length > 0 ? (
               Object.entries(userTaskLogs).map(([date, logs]) => (
                 <React.Fragment key={date}>
@@ -256,7 +270,7 @@ const TaskModal: React.FC<TaskModalProps> = ({ task, open, onOpenChange }) => {
                       key={index}
                       className="pb-3 border-b border-outline-gray-modals text-ink-gray-6 last:border-none"
                     >
-                      <div className="flex justify-between items-center">
+                      <div className="flex justify-between items-center mb-1">
                         <Badge variant="subtle" size="md">
                           {floatToTime(log.hours, 2)}
                         </Badge>
@@ -265,11 +279,7 @@ const TaskModal: React.FC<TaskModalProps> = ({ task, open, onOpenChange }) => {
                         </span>
                       </div>
 
-                      <div
-                        key={log.description}
-                        className="overflow-x-auto ql-editor"
-                        dangerouslySetInnerHTML={{ __html: log.description }}
-                      ></div>
+                      <div key={log.description}>{log.description}</div>
                     </div>
                   ))}
                 </React.Fragment>
