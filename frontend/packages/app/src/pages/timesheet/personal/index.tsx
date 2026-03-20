@@ -38,6 +38,8 @@ import { useTimesheetOutletContext } from "../outletContext";
 import { initialState, reducer } from "../reducer";
 import { validateDate } from "../utils";
 
+const NUMBER_OF_WEEKS_TO_FETCH = 4;
+
 function Timesheet() {
   const targetRef = useRef<HTMLDivElement>(null);
   const toast = useToasts();
@@ -54,7 +56,7 @@ function Timesheet() {
     {
       employee: user.employee,
       start_date: timesheet.weekDate,
-      max_week: 4,
+      max_week: NUMBER_OF_WEEKS_TO_FETCH,
     },
   );
 
@@ -154,7 +156,7 @@ function Timesheet() {
     return entries.map(([key, week]) => {
       const filteredTasks = Object.fromEntries(
         Object.entries(week.tasks).filter(
-          ([_, task]) =>
+          ([, task]) =>
             task.name.toLowerCase().includes(query) ||
             task.subject.toLowerCase().includes(query),
         ),
@@ -223,7 +225,8 @@ function Timesheet() {
               isLoading={isLoading}
               hasMore={true}
               verticalLodMore={loadData}
-              className="w-full h-full overflow-auto scrollbar"
+              className="w-full h-full overflow-auto scrollbar [scrollbar-gutter:stable]"
+              count={NUMBER_OF_WEEKS_TO_FETCH}
             >
               <div className="min-w-225">
                 {timesheet.data?.data &&
@@ -262,6 +265,7 @@ function Timesheet() {
                               ? targetRef
                               : null
                           }
+                          className="animate-fade-in"
                         >
                           <TimesheetRow
                             label={key}

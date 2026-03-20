@@ -3,7 +3,7 @@
 @source "../../../node_modules/@rtcamp/frappe-ui-react/dist";
 
 #root {
-    isolation: isolate; 
+  isolation: isolate;
 }
 
 body {
@@ -129,12 +129,13 @@ html,
   -moz-cursor: cell !important;
 }
 
-.justify-normal-overide{
-  justify-content: normal !important
+.justify-normal-overide {
+  justify-content: normal !important;
 }
 
 @theme {
   --animate-fade-left: fade-left 0.2s ease;
+  --animate-fade-in: fade-in 0.2s ease;
 }
 
 @keyframes fade-left {
@@ -145,5 +146,14 @@ html,
   100% {
     opacity: 1;
     transform: translateX(0);
+  }
+}
+
+@keyframes fade-in {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
   }
 }

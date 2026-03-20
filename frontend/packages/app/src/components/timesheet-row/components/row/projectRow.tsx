@@ -58,6 +58,7 @@ export const ProjectRow = ({
             totalHours={floatToTime(projectData.total, 2)}
             timeEntries={projectData.totalTimeEntries}
             collapsed={collapsed}
+            totalHoursTheme="green"
           />
         </AccordionTrigger>
         <AccordionContent className="pb-0">{children}</AccordionContent>
