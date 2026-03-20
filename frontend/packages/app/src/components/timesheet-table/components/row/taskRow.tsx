@@ -1,19 +1,24 @@
 /**
  * External dependencies
  */
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { floatToTime } from "@next-pms/design-system";
 import {
   TaskRow as BaseTaskRow,
   taskStatusMap,
 } from "@next-pms/design-system/components";
+import { prettyDate } from "@next-pms/design-system/date";
 
 /**
  * Internal dependencies
  */
+import { CalendarFoldIcon, Folder } from "lucide-react";
+import TaskPopover from "@/components/taskPopover";
 import { calculateTotalHours } from "@/lib/utils";
 import type { TaskRowProps } from "./types";
 import { InlineTimeEntry } from "../inline-time-entry";
+
+const MOCK_END_DATE = "2024-12-31";
 
 /**
  * @description This is the task row component for the timesheet table.
@@ -60,6 +65,34 @@ export const TaskRow = ({
     return { total, totalTimeEntries };
   }, [dates, taskKey, tasks, disabled]);
 
+  const renderTaskHoverContent = useCallback(
+    (taskKey: string) => {
+      const task = tasks[taskKey];
+
+      const badges = [
+        {
+          icon: <CalendarFoldIcon size={12} />,
+          text: prettyDate(task?.due_date || MOCK_END_DATE).date,
+        },
+        {
+          icon: <Folder size={12} />,
+          text: task?.project_name || "",
+        },
+      ];
+
+      return (
+        <TaskPopover
+          label={rest.label}
+          badges={badges}
+          actualHours={task?.actual_time || 0}
+          estimatedHours={task?.expected_time || 0}
+          status={taskStatusMap[status] ?? "open"}
+        />
+      );
+    },
+    [rest.label, tasks, status],
+  );
+
   useEffect(() => {
     setTaskLiked(likedTaskData.some((obj) => obj.name === taskKey) || false);
   }, [likedTaskData, taskKey]);
@@ -67,10 +100,12 @@ export const TaskRow = ({
   return (
     <BaseTaskRow
       {...rest}
-      status={status ? taskStatusMap[status] : "open"}
+      status={taskStatusMap[status] ?? "open"}
       totalHours={floatToTime(taskData.total, 2)}
       timeEntries={taskData.totalTimeEntries}
       starred={taskLiked}
+      renderTaskHoverContent={renderTaskHoverContent}
+      taskKey={taskKey}
       renderInlineTimeEntryPopover={(_, dayIndex, closePopover) => (
         <InlineTimeEntry
           dailyWorkingHours={dailyWorkingHours}

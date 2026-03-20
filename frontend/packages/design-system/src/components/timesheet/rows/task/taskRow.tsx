@@ -2,26 +2,25 @@
  * External dependencies.
  */
 import { createRef, useRef } from "react";
-import { Popover } from "@base-ui/react";
+import { Popover, PreviewCard } from "@base-ui/react";
+import {
+  TaskStatus,
+  type TaskStatusType,
+} from "@next-pms/design-system/components";
 import { Button } from "@rtcamp/frappe-ui-react";
 import { Plus, Star } from "lucide-react";
 
 /**
  * Internal dependencies.
  */
-import {
-  statusIcon,
-  statusIconVariants,
-  type TaskRowTimeEntry,
-  type TaskStatus,
-} from "./constants";
+import { type TaskRowTimeEntry } from "./constants";
 import { mergeClassNames as cn } from "../../../../utils";
 
 export interface TaskRowProps {
   /** Optional index of the task, used for identifying the task in callbacks. */
   taskIndex?: number;
   /** Label for the task row. */
-  label?: string;
+  label: string;
   /** Whether the task row is starred. */
   starred?: boolean;
   /** Array of time entries for each day of the week for the task. */
@@ -37,9 +36,15 @@ export interface TaskRowProps {
   /** Total hours logged for the week. */
   totalHours?: string;
   /** Status of the task row. */
-  status?: TaskStatus;
+  status?: TaskStatusType;
   /** Additional class names for the task row container. */
   className?: string;
+  /** Optional function to render hover content for the task, receiving the task key. */
+  renderTaskHoverContent?: (taskKey: string) => React.ReactNode;
+  /** Optional function to handle label click events, receiving the task key. */
+  onLabelClick?: (taskKey: string) => void;
+  /** Key of the task, used for identifying the task in callbacks. */
+  taskKey: string;
 }
 
 export const TaskRow: React.FC<TaskRowProps> = ({
@@ -48,34 +53,44 @@ export const TaskRow: React.FC<TaskRowProps> = ({
   starred = false,
   timeEntries,
   onCellClick,
+  renderTaskHoverContent,
   renderInlineTimeEntryPopover,
   totalHours = "",
   status = "open",
   className,
+  onLabelClick,
+  taskKey,
 }) => {
-  const StatusIcon = statusIcon[status];
   const actionRefs = useRef<
     Array<React.RefObject<Popover.Root.Actions | null>>
   >([]);
   return (
     <div
       className={cn(
-        "flex items-center border-b border-outline-gray-1 transition-colors w-full justify-between px-1 py-2",
+        "flex justify-between items-center px-1 py-2 w-full border-b transition-colors border-outline-gray-1",
         className,
       )}
       data-testid="task-row"
     >
-      <div className="flex items-center flex-1 min-w-0">
-        <div className="flex items-center min-w-0 gap-2">
-          <span className="w-4 shrink-0">
-            <StatusIcon
-              strokeWidth={1.5}
-              size={16}
-              className={statusIconVariants({ status })}
-            />
-          </span>
+      <div className="flex flex-1 items-center min-w-0">
+        <div className="flex gap-2 items-center min-w-0">
+          <TaskStatus status={status} />
           <span className="min-w-0 text-base font-medium truncate">
-            {label}
+            <PreviewCard.Root>
+              <PreviewCard.Trigger
+                onClick={() => onLabelClick?.(taskKey)}
+                className="cursor-pointer"
+              >
+                {label}
+              </PreviewCard.Trigger>
+              <PreviewCard.Portal>
+                <PreviewCard.Positioner sideOffset={8} align="start">
+                  <PreviewCard.Popup>
+                    {renderTaskHoverContent?.(taskKey)}
+                  </PreviewCard.Popup>
+                </PreviewCard.Positioner>
+              </PreviewCard.Portal>
+            </PreviewCard.Root>
           </span>
           {starred ? (
             <span className="w-4 shrink-0">
@@ -117,7 +132,7 @@ export const TaskRow: React.FC<TaskRowProps> = ({
                     <span className="flex-1 text-center group-hover:hidden group-disabled:group-hover:flex text-ink-gray-4">
                       -
                     </span>
-                    <span className="absolute top-0 left-0 items-center justify-center hidden w-full h-full group-hover:flex group-disabled:group-hover:hidden">
+                    <span className="hidden absolute top-0 left-0 justify-center items-center w-full h-full group-hover:flex group-disabled:group-hover:hidden">
                       <Plus strokeWidth={1.5} size={16} className="" />
                     </span>
                   </>
@@ -148,7 +163,7 @@ export const TaskRow: React.FC<TaskRowProps> = ({
         <span>{totalHours}</span>
       </div>
 
-      <div className="w-12 shrink-0 h-7"></div>
+      <div className="w-12 h-7 shrink-0"></div>
     </div>
   );
 };
