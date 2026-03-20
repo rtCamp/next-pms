@@ -5,5 +5,9 @@ export { TotalRow, type TotalRowProps } from "./rows/total/totalRow";
 export { ProjectRow, type ProjectRowProps } from "./rows/project/projectRow";
 export { MemberRow, type MemberRowProps } from "./rows/member/memberRow";
 export { TaskRow, type TaskRowProps } from "./rows/task/taskRow";
-export { type RowStatus, statusLabel, statusMap } from "./rows/constants";
-export { type TaskStatus, taskStatusMap } from "./rows/task/constants";
+export {
+  type RowStatus,
+  statusLabel,
+  statusMap,
+  taskStatusMap,
+} from "./rows/constants";

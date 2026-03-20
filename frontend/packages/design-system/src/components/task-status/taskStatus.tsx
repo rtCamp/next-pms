@@ -27,25 +27,25 @@ export const statusIcon: Record<
     className?: string;
   }>
 > = {
-  Open: Circle,
-  Working: Loader,
-  "Pending Review": ClipboardClock,
-  Overdue: Clock12,
-  Completed: CircleCheckBig,
-  Cancelled: CircleX,
-  Template: Circle,
+  open: Circle,
+  working: Loader,
+  pendingReview: ClipboardClock,
+  overdue: Clock12,
+  completed: CircleCheckBig,
+  cancelled: CircleX,
+  template: Circle,
 };
 
 export const statusIconVariants = cva("", {
   variants: {
     status: {
-      Open: "text-ink-gray-3",
-      Working: "text-ink-gray-9",
-      "Pending Review": "text-ink-gray-9",
-      Overdue: "text-ink-red-4",
-      Completed: "text-ink-gray-9",
-      Cancelled: "text-ink-gray-9",
-      Template: "text-ink-gray-9",
+      open: "text-ink-gray-3",
+      working: "text-ink-gray-9",
+      pendingReview: "text-ink-gray-9",
+      overdue: "text-ink-red-4",
+      completed: "text-ink-gray-9",
+      cancelled: "text-ink-gray-9",
+      template: "text-ink-gray-9",
     },
   },
 });

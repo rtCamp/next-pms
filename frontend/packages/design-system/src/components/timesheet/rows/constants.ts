@@ -1,3 +1,5 @@
+import { TaskStatusType } from "@/components/task-status";
+
 export type RowStatus =
   | "not-submitted"
   | "approved"
@@ -22,4 +24,14 @@ export const statusMap: Record<string, RowStatus> = {
   "Partially Approved": "approved",
   "Partially Rejected": "rejected",
   "Processing Timesheet": "approval-pending",
+};
+
+export const taskStatusMap: Record<string, TaskStatusType> = {
+  Open: "open",
+  Working: "working",
+  "Pending Review": "pendingReview",
+  Overdue: "overdue",
+  Template: "template",
+  Completed: "completed",
+  Cancelled: "cancelled",
 };

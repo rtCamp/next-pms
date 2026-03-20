@@ -64,7 +64,7 @@ export interface TaskRowProps extends Omit<
   dates: string[];
   taskKey: string;
   tasks: TaskProps;
-  status: TaskStatusType;
+  status: string;
   likedTaskData: TaskDataProps[];
   disabled?: boolean;
   dailyWorkingHours?: number;

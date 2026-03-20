@@ -3,7 +3,10 @@
  */
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { floatToTime } from "@next-pms/design-system";
-import { TaskRow as BaseTaskRow } from "@next-pms/design-system/components";
+import {
+  TaskRow as BaseTaskRow,
+  taskStatusMap,
+} from "@next-pms/design-system/components";
 import { prettyDate } from "@next-pms/design-system/date";
 
 /**
@@ -62,7 +65,7 @@ export const TaskRow = ({
     return { total, totalTimeEntries };
   }, [dates, taskKey, tasks, disabled]);
 
-  const taskHoverContent = useCallback(
+  const renderTaskHoverContent = useCallback(
     (taskKey: string) => {
       const task = tasks[taskKey];
 
@@ -83,7 +86,7 @@ export const TaskRow = ({
           badges={badges}
           actualHours={task?.actual_time || 0}
           estimatedHours={task?.expected_time || 0}
-          status={status}
+          status={taskStatusMap[status] ?? "open"}
         />
       );
     },
@@ -97,11 +100,11 @@ export const TaskRow = ({
   return (
     <BaseTaskRow
       {...rest}
-      status={status}
+      status={taskStatusMap[status] ?? "open"}
       totalHours={floatToTime(taskData.total, 2)}
       timeEntries={taskData.totalTimeEntries}
       starred={taskLiked}
-      taskHoverContent={taskHoverContent}
+      renderTaskHoverContent={renderTaskHoverContent}
       taskKey={taskKey}
       renderInlineTimeEntryPopover={(_, dayIndex, closePopover) => (
         <InlineTimeEntry

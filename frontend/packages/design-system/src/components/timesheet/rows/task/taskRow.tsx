@@ -40,7 +40,7 @@ export interface TaskRowProps {
   /** Additional class names for the task row container. */
   className?: string;
   /** Optional function to render hover content for the task, receiving the task key. */
-  taskHoverContent?: (taskKey: string) => React.ReactNode;
+  renderTaskHoverContent?: (taskKey: string) => React.ReactNode;
   /** Optional function to handle label click events, receiving the task key. */
   onLabelClick?: (taskKey: string) => void;
   /** Key of the task, used for identifying the task in callbacks. */
@@ -53,10 +53,10 @@ export const TaskRow: React.FC<TaskRowProps> = ({
   starred = false,
   timeEntries,
   onCellClick,
-  taskHoverContent,
+  renderTaskHoverContent,
   renderInlineTimeEntryPopover,
   totalHours = "",
-  status = "Open",
+  status = "open",
   className,
   onLabelClick,
   taskKey,
@@ -86,7 +86,7 @@ export const TaskRow: React.FC<TaskRowProps> = ({
               <PreviewCard.Portal>
                 <PreviewCard.Positioner sideOffset={8} align="start">
                   <PreviewCard.Popup>
-                    {taskHoverContent?.(taskKey)}
+                    {renderTaskHoverContent?.(taskKey)}
                   </PreviewCard.Popup>
                 </PreviewCard.Positioner>
               </PreviewCard.Portal>

@@ -2,14 +2,13 @@
  * External dependencies
  */
 import React from "react";
-import { TaskStatus } from "@next-pms/design-system/components";
+import { TaskStatus, TaskStatusType } from "@next-pms/design-system/components";
 import { TaskProgress } from "@next-pms/design-system/components";
 import {
   mergeClassNames as cn,
   floatToTime,
 } from "@next-pms/design-system/utils";
 import { Badge } from "@rtcamp/frappe-ui-react";
-import { TaskStatusType } from "@/types/task";
 
 type BadgeItem = {
   icon: React.ReactNode;
@@ -39,14 +38,20 @@ const TaskPopover: React.FC<TaskPopoverProps> = ({
     <div className="p-3 rounded-xl shadow-2xl bg-surface-modal w-88">
       <div className="grid grid-cols-[min-content_auto] items-center gap-x-2 gap-y-1.5 mb-6">
         <TaskStatus status={status} className="col-start-1 col-end-2" />
-        <div className="col-start-2 col-end-3 text-base font-semibold">
+        <div className="col-start-2 col-end-3 text-base font-semibold wrap-break-word">
           {label}
         </div>
 
         {badges.length > 0 && (
           <div className="flex flex-wrap col-start-2 col-end-3 gap-1">
             {badges.map((badge, index) => (
-              <Badge key={index} variant="subtle" size="md" prefix={badge.icon}>
+              <Badge
+                key={index}
+                variant="subtle"
+                size="md"
+                prefix={badge.icon}
+                className="truncate"
+              >
                 {badge.text}
               </Badge>
             ))}

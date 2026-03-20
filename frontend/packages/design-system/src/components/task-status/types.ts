@@ -1,8 +1,8 @@
 export type TaskStatusType =
-  | "Open"
-  | "Working"
-  | "Pending Review"
-  | "Overdue"
-  | "Template"
-  | "Completed"
-  | "Cancelled";
+  | "open"
+  | "working"
+  | "pendingReview"
+  | "overdue"
+  | "template"
+  | "completed"
+  | "cancelled";
