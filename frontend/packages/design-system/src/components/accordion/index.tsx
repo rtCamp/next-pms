@@ -33,7 +33,6 @@ AccordionItem.displayName = "AccordionItem";
 const AccordionTrigger = React.forwardRef<
   React.ComponentRef<typeof BaseAccordion.Trigger>,
   React.ComponentPropsWithoutRef<typeof BaseAccordion.Trigger> & {
-    hideChevronDown?: boolean;
     className?: string;
   }
 >(({ className, children, ...props }, ref) => (

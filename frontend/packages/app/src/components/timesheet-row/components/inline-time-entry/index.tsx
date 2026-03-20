@@ -50,7 +50,7 @@ export type EntryFormMode =
  * @param dailyWorkingHours - Daily working hours for the task.
  * @param totalUsedHoursInDay - Total used hours in the day for the task.
  * @param onSubmitSuccess - Callback function to be called after successful submission of time entry.
- * @param isBillable - Whether the time entry is billable or not.
+ * @param timeEntry - Time entry data for the cell
  */
 export const InlineTimeEntry = ({
   date,
@@ -59,7 +59,7 @@ export const InlineTimeEntry = ({
   dailyWorkingHours = 8,
   totalUsedHoursInDay,
   onSubmitSuccess,
-  isBillable = true,
+  timeEntry,
 }: InlineTimeEntryProps) => {
   const toast = useToasts();
   const [submitting, setSubmitting] = useState(false);
@@ -276,10 +276,12 @@ export const InlineTimeEntry = ({
     <div
       className={cn(
         "w-68 max-h-[min(500px,90dvh)] overflow-y-auto scrollbar-thin shadow bg-surface-modal rounded-lg flex flex-col gap-2 p-2",
-        isLoading && "h-25 flex justify-center items-center",
+        isLoading &&
+          timeEntry.time !== "" &&
+          "h-25 flex justify-center items-center",
       )}
     >
-      {isLoading ? (
+      {isLoading && timeEntry.time !== "" ? (
         <LoadingIndicator className="w-3 h-3" />
       ) : (
         <>
@@ -323,7 +325,7 @@ export const InlineTimeEntry = ({
                           >
                             <Badge
                               prefix={
-                                !isBillable ? (
+                                timeEntry.nonBillable ? (
                                   <div className="flex items-center justify-center w-3 h-3">
                                     <span className="block z-10 -bottom-0.5 left-1/2 w-1 h-1 rounded-full bg-surface-amber-3 transform -translate-x-1/2"></span>
                                   </div>

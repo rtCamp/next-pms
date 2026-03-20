@@ -5,7 +5,16 @@ import React, { useCallback, useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { useLocation } from "react-router-dom";
-import { Sidebar as BaseSidebar, Batches, Notifications, People, Reports, Tasks, Time } from "@rtcamp/frappe-ui-react";
+import { ErrorFallback } from "@next-pms/design-system/components";
+import {
+  Sidebar as BaseSidebar,
+  Batches,
+  Notifications,
+  People,
+  Reports,
+  Tasks,
+  Time,
+} from "@rtcamp/frappe-ui-react";
 import {
   ArrowLeftRight,
   Folder,
@@ -20,25 +29,27 @@ import {
 /**
  * Internal dependencies.
  */
+import { useContextSelector } from "use-context-selector";
+import { useUser } from "@/hooks/useUser";
+import { ROLES, ROUTES } from "@/lib/constant";
 import { setLocalStorage } from "@/lib/storage";
+import { UserContext } from "@/lib/UserProvider";
 import { checkIsMobile } from "@/lib/utils";
+import logo from "@/logo.svg";
+import { useTheme } from "@/providers/theme/hook";
+import { RootState } from "@/store";
 import { setSidebarCollapsed } from "@/store/user";
+import type { ViewData } from "@/store/view";
 import UserNavigation from "./userNavigation";
 import ViewLoader from "./viewLoader";
-import logo from "@/logo.svg";
-import { RootState } from "@/store";
-import type { ViewData } from "@/store/view";
-import { ErrorFallback } from "@next-pms/design-system/components";
-import { useContextSelector } from "use-context-selector";
-import { UserContext } from "@/lib/UserProvider";
-import { useTheme } from "@/providers/theme/hook";
-import { ROLES, ROUTES } from "@/lib/constant";
-import { useUser } from "@/hooks/useUser";
 
 const Sidebar = () => {
   const user = useUser();
-  const { theme, changeTheme } = useTheme();
-  const logout = useContextSelector(UserContext, (value) => value.actions.logout);
+  const { theme, setTheme } = useTheme();
+  const logout = useContextSelector(
+    UserContext,
+    (value) => value.actions.logout,
+  );
   const navigate = useNavigate();
   const viewInfo = useSelector((state: RootState) => state.view);
   const dispatch = useDispatch();
@@ -50,9 +61,12 @@ const Sidebar = () => {
 
   const hasPmRole = user.roles.some((role: string) => ROLES.includes(role));
   const privateViews = viewInfo.views.filter(
-    (view: ViewData) => view.user === user.user && !view.default && !view.public,
+    (view: ViewData) =>
+      view.user === user.user && !view.default && !view.public,
   );
-  const publicViews = viewInfo.views.filter((view: ViewData) => view.public && !view.default);
+  const publicViews = viewInfo.views.filter(
+    (view: ViewData) => view.public && !view.default,
+  );
 
   const handleSidebarCollapse = useCallback(() => {
     dispatch(setSidebarCollapsed(checkIsMobile()));
@@ -86,7 +100,9 @@ const Sidebar = () => {
             },
             {
               label: "Switch To Desk",
-              icon: <ArrowLeftRight size={16} className="text-ink-gray-6 mr-2" />,
+              icon: (
+                <ArrowLeftRight size={16} className="text-ink-gray-6 mr-2" />
+              ),
               onClick: () => {
                 window.location.assign(ROUTES.desk);
               },
@@ -94,8 +110,12 @@ const Sidebar = () => {
             {
               label: "Toggle Theme",
               icon:
-                theme === "dark" ? <Sun className="text-ink-gray-6 mr-2" /> : <Moon className="text-ink-gray-6 mr-2" />,
-              onClick: changeTheme,
+                theme === "dark" ? (
+                  <Sun className="text-ink-gray-6 mr-2" />
+                ) : (
+                  <Moon className="text-ink-gray-6 mr-2" />
+                ),
+              onClick: () => setTheme(theme === "dark" ? "light" : "dark"),
             },
             {
               label: "Logout",

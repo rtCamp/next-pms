@@ -94,6 +94,7 @@ export const TaskRow: React.FC<TaskRowProps> = ({
                   "transition-opacity duration-100 opacity-0 group-hover:opacity-100",
               )}
               onClick={(e) => onStarClick?.(e, taskKey)}
+              aria-label={starred ? "Unstar task" : "Star task"}
               icon={() => (
                 <Star
                   strokeWidth={1.5}

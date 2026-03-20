@@ -112,9 +112,7 @@ export const TaskRow = ({
         <InlineTimeEntry
           dailyWorkingHours={dailyWorkingHours}
           totalUsedHoursInDay={totalTimeEntriesInHours?.[dayIndex]}
-          isBillable={
-            taskData.totalTimeEntries[dayIndex]?.nonBillable === false
-          }
+          timeEntry={taskData.totalTimeEntries[dayIndex]}
           date={dates[dayIndex]}
           task={taskKey}
           employee={employee ?? ""}
