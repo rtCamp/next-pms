@@ -34,15 +34,16 @@ def filter_employees(
     reports_to: None | str = None,
     business_unit=None,
     designation=None,
+    roles: list[str] | None = None,
     ignore_default_filters=False,
     ignore_permissions=False,
 ):
     import json
 
-    roles = get_roles()
+    user_roles = get_roles()
 
     if not ignore_permissions:
-        ignore_permissions = set(roles).intersection(["Timesheet User", "Timesheet Manager"])
+        ignore_permissions = set(user_roles).intersection(["Timesheet User", "Timesheet Manager"])
 
     fields = ["name", "image", "employee_name", "department", "designation"]
     employee_ids = []
@@ -103,6 +104,18 @@ def filter_employees(
     if user_group and len(user_group) > 0:
         users = get_all("User Group Member", pluck="user", filters={"parent": ["in", user_group]})
         ids = [get_value("Employee", {"user_id": user}, cache=True) for user in users]
+        employee_ids.extend(ids)
+
+    if isinstance(roles, str):
+        roles = json.loads(roles)
+
+    if roles and len(roles) > 0:
+        user_ids = get_all(
+            "Has Role",
+            filters={"role": ["in", roles], "parenttype": "User", "parent": ["!=", "Administrator"]},
+            pluck="parent",
+        )
+        ids = get_all("Employee", filters={"user_id": ["in", user_ids]}, pluck="name")
         employee_ids.extend(ids)
 
     if len(employee_ids) > 0:

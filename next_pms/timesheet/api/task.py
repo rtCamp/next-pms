@@ -220,7 +220,7 @@ def get_task(task: str, start_date: str | datetime.date, end_date: str | datetim
 
 
 @frappe.whitelist()
-def get_task_log(task: str, start_date: str = None, end_date: str = None):
+def get_task_log(task: str, start_date: str = None, end_date: str = None, employee: str = None):
     project = frappe.db.get_value("Task", task, "project")
 
     if project:
@@ -246,6 +246,9 @@ def get_task_log(task: str, start_date: str = None, end_date: str = None):
         )
         .orderby(timesheet.start_date, order=frappe.qb.desc)
     )
+
+    if employee:
+        query = query.where(timesheet.employee == employee)
 
     result = query.run(as_dict=True)
 
