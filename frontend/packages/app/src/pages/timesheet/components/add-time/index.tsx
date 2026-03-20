@@ -75,7 +75,6 @@ const AddTime = ({ initialDate, open = false, onOpenChange, task = "", project =
   const { data: projectsData } = useFrappeGetCall("frappe.client.get_list", {
     doctype: "Project",
     fields: ["name", "project_name"],
-    filters: window.frappe?.boot?.global_filters.project,
     limit_page_length: "null",
   });
 
@@ -123,6 +122,7 @@ const AddTime = ({ initialDate, open = false, onOpenChange, task = "", project =
         <form.Field
           name="project"
           children={(field) => {
+            console.log(field.state.value);
             return (
               <>
                 <label className="block text-xs text-ink-gray-5">Project</label>
