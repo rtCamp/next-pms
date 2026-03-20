@@ -276,6 +276,7 @@ function Timesheet() {
                         >
                           <TimesheetTable
                             label={key}
+                            employee={employeeId}
                             workingHour={timesheet.data.working_hour}
                             workingFrequency={
                               timesheet.data
@@ -285,7 +286,6 @@ function Timesheet() {
                             holidays={timesheet.data.holidays}
                             leaves={timesheet.data.leaves}
                             tasks={value.tasks}
-                            onCellClick={onCellClick}
                             firstWeek={index === 0}
                             weeklyStatus={value.status}
                             disabled={value.status === "Approved"}

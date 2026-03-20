@@ -1,8 +1,7 @@
 /**
  * External dependencies.
  */
-import { useNavigate } from "react-router-dom";
-import { useLocation } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { ErrorFallback } from "@next-pms/design-system/components";
 import {
   Sidebar as BaseSidebar,
@@ -120,14 +119,14 @@ const Sidebar = () => {
                 label: "Tasks",
                 icon: Tasks,
                 to: "",
-                isActive: pathname.startsWith(ROUTES.task),
+                isActive: pathname === ROUTES.task,
                 onClick: () => navigate(ROUTES.task),
               },
               {
                 label: "Projects",
                 icon: Folder,
                 to: "",
-                isActive: pathname.startsWith(ROUTES.project),
+                isActive: pathname === ROUTES.project,
                 onClick: () => navigate(ROUTES.project),
               },
             ],
@@ -139,19 +138,19 @@ const Sidebar = () => {
               {
                 label: "Personal",
                 icon: Time,
-                isActive: pathname.startsWith(ROUTES["timesheet-personal"]),
+                isActive: pathname === ROUTES["timesheet-personal"],
                 onClick: () => navigate(ROUTES["timesheet-personal"]),
               },
               {
                 label: "Team",
                 icon: People,
-                isActive: pathname.startsWith(ROUTES["timesheet-team"]),
+                isActive: pathname === ROUTES["timesheet-team"],
                 onClick: () => navigate(ROUTES["timesheet-team"]),
               },
               {
                 label: "Projects",
                 icon: Folder,
-                isActive: pathname.startsWith(ROUTES["timesheet-project"]),
+                isActive: pathname === ROUTES["timesheet-project"],
                 onClick: () => navigate(ROUTES["timesheet-project"]),
               },
             ],
@@ -163,21 +162,21 @@ const Sidebar = () => {
                 label: "Allocation",
                 icon: Batches,
                 to: "",
-                isActive: false,
+                isActive: pathname === ROUTES.allocation,
                 onClick: () => navigate(ROUTES.allocation),
               },
               {
                 label: "Roadmap",
                 icon: Layers,
                 to: "",
-                isActive: false,
+                isActive: pathname === ROUTES.roadmap,
                 onClick: () => navigate(ROUTES.roadmap),
               },
               {
                 label: "Reports",
                 icon: Reports,
                 to: "",
-                isActive: false,
+                isActive: pathname === ROUTES.report,
                 onClick: () => navigate(ROUTES.report),
               },
             ],

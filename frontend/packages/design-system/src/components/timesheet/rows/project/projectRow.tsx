@@ -47,22 +47,22 @@ export const ProjectRow: React.FC<ProjectRowProps> = ({
     <div
       className={cn(
         "flex items-center border-b border-outline-gray-1 transition-colors w-full justify-between px-1 py-2",
-        className
+        className,
       )}
     >
-      <div className="min-w-0 flex flex-1 items-center gap-2">
+      <div className="flex items-center flex-1 min-w-0 gap-2">
         <Button
           onClick={onToggle}
           disabled={!onToggle}
           variant="ghost"
           className={cn(
             "w-4 shrink-0 border-none outline-none focus:ring-0 focus-visible:ring-0 transition-transform bg-transparent hover:bg-transparent focus:bg-transparent active:bg-transparent",
-            collapsed ? "-rotate-90" : "rotate-0"
+            collapsed ? "-rotate-90" : "rotate-0",
           )}
           icon={() => <ChevronDown strokeWidth={1.5} size={16} />}
           aria-label="Toggle project"
         />
-        <div className="min-w-0 flex items-center text-ink-gray-9 gap-2">
+        <div className="flex items-center min-w-0 gap-2 text-ink-gray-9">
           <span className="shrink-0">
             {renderPrefix ? (
               renderPrefix()
@@ -70,7 +70,7 @@ export const ProjectRow: React.FC<ProjectRowProps> = ({
               <Folder strokeWidth={1.5} size={16} />
             )}
           </span>
-          <span className="text-base font-medium truncate min-w-0">
+          <span className="min-w-0 text-base font-medium truncate">
             {label}
           </span>
         </div>
@@ -83,7 +83,7 @@ export const ProjectRow: React.FC<ProjectRowProps> = ({
               "shrink-0 flex justify-end items-center text-base text-ink-gray-6 whitespace-nowrap w-16 h-7 px-2 py-1.5 leading-3.5 lining-nums tabular-nums",
               highlightTimeEntries &&
                 timeEntry !== "" &&
-                "text-ink-gray-9 font-medium"
+                "text-ink-gray-9 font-medium",
             )}
           >
             {timeEntry === "" ? (
@@ -99,7 +99,7 @@ export const ProjectRow: React.FC<ProjectRowProps> = ({
         <span className={cn(totalHoursVariants({ status }))}>{totalHours}</span>
       </div>
 
-      <div className="shrink-0 w-12 h-7"></div>
+      <div className="w-12 shrink-0 h-7"></div>
     </div>
   );
 };
