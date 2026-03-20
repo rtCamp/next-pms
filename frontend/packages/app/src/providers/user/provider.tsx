@@ -56,10 +56,10 @@ export const UserProvider: FC<PropsWithChildren> = ({ children }) => {
   );
 
   useEffect(() => {
-    setRoles(appData.message.roles);
-    setCurrencies(appData.message.currencies);
-    setHasBuField(appData.message.has_business_unit);
-    setHasIndustryField(appData.message.has_industry);
+    setRoles(appData?.message?.roles || []);
+    setCurrencies(appData?.message?.currencies || []);
+    setHasBuField(appData.message.has_business_unit || false);
+    setHasIndustryField(appData.message.has_industry || false);
   }, [appData]);
 
   const { isLoading: isEmployeeDataLoading, data: employeeData } =
