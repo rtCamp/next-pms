@@ -40,6 +40,7 @@ export const TaskRow = ({
   dailyWorkingHours,
   totalTimeEntriesInHours,
   employee,
+  setSelectedTask,
   ...rest
 }: TaskRowProps) => {
   const [taskLiked, setTaskLiked] = useState(false);
@@ -90,32 +91,45 @@ export const TaskRow = ({
     [rest.label, tasks, status],
   );
 
+  const onLabelClick = useCallback(
+    (taskKey: string) => {
+      if (!setSelectedTask) {
+        return;
+      }
+      setSelectedTask(taskKey);
+    },
+    [setSelectedTask],
+  );
+
   useEffect(() => {
     setTaskLiked(likedTaskData.some((obj) => obj.name === taskKey) || false);
   }, [likedTaskData, taskKey]);
 
   return (
-    <BaseTaskRow
-      {...rest}
-      status={status}
-      totalHours={floatToTime(taskData.total, 2)}
-      timeEntries={taskData.totalTimeEntries}
-      starred={taskLiked}
-      taskHoverContent={taskHoverContent}
-      taskKey={taskKey}
-      renderInlineTimeEntryPopover={(_, dayIndex, closePopover) => (
-        <InlineTimeEntry
-          dailyWorkingHours={dailyWorkingHours}
-          totalUsedHoursInDay={totalTimeEntriesInHours?.[dayIndex]}
-          isBillable={
-            taskData.totalTimeEntries[dayIndex]?.nonBillable === false
-          }
-          date={dates[dayIndex]}
-          task={taskKey}
-          employee={employee ?? ""}
-          onSubmitSuccess={closePopover}
-        />
-      )}
-    />
+    <>
+      <BaseTaskRow
+        {...rest}
+        status={status}
+        totalHours={floatToTime(taskData.total, 2)}
+        timeEntries={taskData.totalTimeEntries}
+        starred={taskLiked}
+        taskHoverContent={taskHoverContent}
+        taskKey={taskKey}
+        onLabelClick={onLabelClick}
+        renderInlineTimeEntryPopover={(_, dayIndex, closePopover) => (
+          <InlineTimeEntry
+            dailyWorkingHours={dailyWorkingHours}
+            totalUsedHoursInDay={totalTimeEntriesInHours?.[dayIndex]}
+            isBillable={
+              taskData.totalTimeEntries[dayIndex]?.nonBillable === false
+            }
+            date={dates[dayIndex]}
+            task={taskKey}
+            employee={employee ?? ""}
+            onSubmitSuccess={closePopover}
+          />
+        )}
+      />
+    </>
   );
 };

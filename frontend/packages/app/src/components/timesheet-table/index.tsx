@@ -1,7 +1,7 @@
 /**
  * External dependencies
  */
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo } from "react";
 import { ErrorFallback } from "@next-pms/design-system/components";
 
 /**
@@ -15,7 +15,6 @@ import {
   setLikedTask,
 } from "@/lib/storage";
 import { getHolidayList } from "@/lib/utils";
-import { TaskLog } from "@/pages/task/components/taskLog";
 import { TaskDataProps } from "@/types/timesheet";
 import { ProjectRow } from "./components/row/projectRow";
 import { TaskRow } from "./components/row/taskRow";
@@ -43,6 +42,7 @@ export const TimesheetTable = ({
   hideLikeButton,
   onButtonClick,
   status,
+  setSelectedTask,
 }: timesheetTableProps) => {
   const holidayList = getHolidayList(holidays);
   const task_date_range_key = dates[0] + "-" + dates[dates.length - 1];
@@ -134,6 +134,7 @@ export const TimesheetTable = ({
                     dailyWorkingHours={dailyWorkingHours}
                     totalTimeEntriesInHours={totalTimeEntriesInHours}
                     employee={employee}
+                    setSelectedTask={setSelectedTask}
                   />
                 ))}
               </ProjectRow>

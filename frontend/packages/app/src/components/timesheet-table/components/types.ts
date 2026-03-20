@@ -46,4 +46,5 @@ export type timesheetTableProps = {
   hideLikeButton?: boolean;
   onButtonClick?: () => void;
   status?: string;
+  setSelectedTask?: (taskKey: string) => void;
 };

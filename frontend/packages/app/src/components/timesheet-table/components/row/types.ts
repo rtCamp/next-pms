@@ -70,6 +70,7 @@ export interface TaskRowProps extends Omit<
   dailyWorkingHours?: number;
   totalTimeEntriesInHours?: number[];
   employee?: string;
+  setSelectedTask?: (taskKey: string) => void;
 }
 
 export interface TimeOffRowProps extends Omit<
