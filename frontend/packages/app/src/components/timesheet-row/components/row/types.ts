@@ -16,6 +16,7 @@ import type {
  * Internal dependencies
  */
 import type { WorkingFrequency } from "@/types";
+import { TaskStatusType } from "@/types/task";
 import type {
   HolidayProp,
   LeaveProps,
@@ -35,7 +36,7 @@ export interface WeekRowProps extends Omit<BaseWeekRowProps, "status"> {
   holidays: Array<HolidayProp>;
   workingHour: number;
   workingFrequency: WorkingFrequency;
-  status?: string;
+  status: TaskStatusType;
   children?: (props: {
     totalHours: string;
     totalHoursTheme: TotalHoursTheme;
@@ -64,7 +65,7 @@ export interface TaskRowProps extends Omit<
   dates: string[];
   taskKey: string;
   tasks: TaskProps;
-  status?: string;
+  status: string;
   likedTaskData: TaskDataProps[];
   disabled?: boolean;
   dailyWorkingHours?: number;

@@ -2,7 +2,6 @@
  * External dependencies
  */
 import { useState, useEffect } from "react";
-import { useSelector } from "react-redux";
 import {
   HoverCard,
   HoverCardContent,
@@ -12,7 +11,6 @@ import {
   Typography,
 } from "@next-pms/design-system/components";
 import { floatToTime } from "@next-pms/design-system/utils";
-import { useToasts } from "@rtcamp/frappe-ui-react";
 import { useFrappePostCall } from "frappe-react-sdk";
 import { Heart } from "lucide-react";
 /**
@@ -22,7 +20,7 @@ import { useUser } from "@/hooks/useUser";
 import { LIKED_TASK_KEY } from "@/lib/constant";
 import { addAction, toggleLikedByForTask } from "@/lib/storage";
 import { mergeClassNames, parseFrappeErrorMsg } from "@/lib/utils";
-import { RootState } from "@/store";
+import { useUser } from "@/providers/user";
 import type { TaskData } from "@/types";
 import type { TaskDataProps } from "@/types/timesheet";
 import type { TaskHoverCardProps } from "./types";
@@ -37,13 +35,15 @@ export const TaskHoverCard = ({
   getLikedTaskData,
   hideLikeButton = false,
 }: TaskHoverCardProps) => {
-  const user = useUser();
+  const { userId } = useUser(({ state }) => ({
+    userId: state.userId,
+  }));
   const [taskLiked, setTaskedLiked] = useState(false);
   useEffect(() => {
     setTaskedLiked(
       likedTaskData.some((obj: TaskDataProps) => obj.name === name) || false,
     );
-  }, [taskData, likedTaskData]);
+  }, [taskData, likedTaskData, name]);
 
   const { call: toggleLikeCall } = useFrappePostCall(
     "frappe.desk.like.toggle_like",
@@ -64,7 +64,7 @@ export const TaskHoverCard = ({
     setTaskedLiked((prev) => !prev);
     toggleLikeCall(data)
       .then(() => {
-        toggleLikedByForTask(LIKED_TASK_KEY, name, user?.user, add);
+        toggleLikedByForTask(LIKED_TASK_KEY, name, userId, add);
         getLikedTaskData();
       })
       .catch((err) => {

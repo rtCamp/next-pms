@@ -26,10 +26,11 @@ import { Ellipsis } from "lucide-react";
 /**
  * Internal dependencies.
  */
-import { useUser } from "@/hooks/useUser";
 import { parseFrappeErrorMsg, isDateInRange } from "@/lib/utils";
+import { useUser } from "@/providers/user";
+import type { RootState } from "@/store";
 import type { WorkingFrequency } from "@/types";
-import type { timesheet } from "@/types/timesheet";
+import type { NewTimesheetProps, timesheet } from "@/types/timesheet";
 import { InfiniteScroll } from "../../../components/infiniteScroll";
 import { TimesheetRow } from "../../../components/timesheet-row";
 import { HeaderRow } from "../../../components/timesheet-row/components/row/headerRow";
@@ -49,12 +50,14 @@ function Timesheet() {
   const { handleApproval } = useTimesheetOutletContext();
 
   const [startDateParam, setStartDateParam] = useQueryParam<string>("date", "");
-  const user = useUser();
+  const { employeeId } = useUser(({ state }) => ({
+    employeeId: state.employeeId,
+  }));
   const [timesheet, dispatch] = useReducer(reducer, initialState);
   const { data, isLoading, error } = useFrappeGetCall(
     "next_pms.timesheet.api.timesheet.get_timesheet_data",
     {
-      employee: user.employee,
+      employee: employeeId,
       start_date: timesheet.weekDate,
       max_week: NUMBER_OF_WEEKS_TO_FETCH,
     },
@@ -107,7 +110,7 @@ function Timesheet() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dispatch, startDateParam, timesheet.data.data, validateDate]);
 
-  useFrappeEventListener(`timesheet_update::${user.employee}`, (payload) => {
+  useFrappeEventListener(`timesheet_update::${employeeId}`, (payload) => {
     const res = payload.message;
     const key = Object.keys(res.data)[0];
     if (!Object.prototype.hasOwnProperty.call(timesheet.data.data, key)) {
@@ -269,7 +272,7 @@ function Timesheet() {
                         >
                           <TimesheetRow
                             label={key}
-                            employee={user.employee}
+                            employee={employeeId}
                             workingHour={timesheet.data.working_hour}
                             workingFrequency={
                               timesheet.data

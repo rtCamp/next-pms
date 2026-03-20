@@ -11,5 +11,5 @@ export {
   totalHoursThemeMap,
   statusLabel,
   statusMap,
+  taskStatusMap,
 } from "./rows/constants";
-export { type TaskStatus, taskStatusMap } from "./rows/task/constants";

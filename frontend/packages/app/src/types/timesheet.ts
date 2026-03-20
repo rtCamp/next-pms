@@ -2,6 +2,7 @@
  * Internal dependencies.
  */
 import { WorkingFrequency } from "@/types";
+import { TaskStatusType } from "./task";
 
 export interface TaskProps {
   [key: string]: TaskDataProps;
@@ -15,7 +16,8 @@ export interface TaskDataProps {
   project: string;
   expected_time: number;
   actual_time: number;
-  status: string;
+  status: TaskStatusType;
+  due_date?: string;
   data: Array<TaskDataItemProps>;
 }
 

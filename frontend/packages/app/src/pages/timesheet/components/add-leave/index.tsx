@@ -1,23 +1,37 @@
 /**
  * External Dependencies
  */
-import { useForm } from "@tanstack/react-form";
-import { DatePicker, Dialog, Button, TabButtons, Select, Textarea, ErrorMessage } from "@rtcamp/frappe-ui-react";
 import { getTodayDate } from "@next-pms/design-system/date";
-import { Calendar, CalendarX2 } from "lucide-react";
-import { FrappeError, useFrappeCreateDoc, useFrappeGetCall } from "frappe-react-sdk";
+import {
+  DatePicker,
+  Dialog,
+  Button,
+  TabButtons,
+  Select,
+  Textarea,
+  ErrorMessage,
+} from "@rtcamp/frappe-ui-react";
 import { useToasts } from "@rtcamp/frappe-ui-react";
+import { useForm } from "@tanstack/react-form";
+import {
+  FrappeError,
+  useFrappeCreateDoc,
+  useFrappeGetCall,
+} from "frappe-react-sdk";
+import { Calendar, CalendarX2 } from "lucide-react";
 
 /**
  * Internal Dependencies
  */
-import { type LeaveTimeProps, LEAVE_DURATION } from "./types";
-import { addLeaveFormSchema } from "./schema";
 import { parseFrappeErrorMsg } from "@/lib/utils";
-import { useUser } from "@/hooks/useUser";
+import { useUser } from "@/providers/user";
+import { addLeaveFormSchema } from "./schema";
+import { type LeaveTimeProps, LEAVE_DURATION } from "./types";
 
 const AddLeave = ({ open = false, onOpenChange }: LeaveTimeProps) => {
-  const user = useUser();
+  const { employeeId } = useUser(({ state }) => ({
+    employeeId: state.employeeId,
+  }));
 
   const toast = useToasts();
   const { createDoc, loading } = useFrappeCreateDoc();
@@ -25,12 +39,14 @@ const AddLeave = ({ open = false, onOpenChange }: LeaveTimeProps) => {
   const { data: leaveDetails } = useFrappeGetCall(
     "hrms.hr.doctype.leave_application.leave_application.get_leave_details",
     {
-      employee: user.employee,
+      employee: employeeId,
       date: getTodayDate(),
     },
   );
 
-  const leaveTypeOptions = ((leaveDetails?.message?.lwps as string[]) || []).map((val) => ({ label: val, value: val }));
+  const leaveTypeOptions = (
+    (leaveDetails?.message?.lwps as string[]) || []
+  ).map((val) => ({ label: val, value: val }));
 
   const form = useForm({
     defaultValues: {
@@ -50,11 +66,12 @@ const AddLeave = ({ open = false, onOpenChange }: LeaveTimeProps) => {
         .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
         .join(" ");
 
-      const half_day = value.leaveType === "first-half" || value.leaveType === "second-half";
+      const half_day =
+        value.leaveType === "first-half" || value.leaveType === "second-half";
 
       try {
         const data = {
-          employee,
+          employee: employeeId,
           description: "",
           from_date: value.fromDate,
           to_date: value.toDate,
@@ -112,13 +129,23 @@ const AddLeave = ({ open = false, onOpenChange }: LeaveTimeProps) => {
                         <div
                           className={`relative flex items-center border border-outline-gray-2 px-[10px] py-1 rounded-lg`}
                         >
-                          <input type="text" id="start" value={displayValue} className={`flex-1`} placeholder="Today" />
+                          <input
+                            type="text"
+                            id="start"
+                            value={displayValue}
+                            className={`flex-1`}
+                            placeholder="Today"
+                          />
                           <Calendar className="size-4" />
                         </div>
                       );
                     }}
                   </DatePicker>
-                  {!field.state.meta.isValid && <ErrorMessage message={field.state.meta.errors[0]?.message} />}
+                  {!field.state.meta.isValid && (
+                    <ErrorMessage
+                      message={field.state.meta.errors[0]?.message}
+                    />
+                  )}
                 </div>
               );
             }}
@@ -140,13 +167,23 @@ const AddLeave = ({ open = false, onOpenChange }: LeaveTimeProps) => {
                         <div
                           className={`relative flex items-center border border-outline-gray-2 px-[10px] py-1 rounded-lg`}
                         >
-                          <input type="text" id="start" value={displayValue} className={`flex-1`} placeholder="Today" />
+                          <input
+                            type="text"
+                            id="start"
+                            value={displayValue}
+                            className={`flex-1`}
+                            placeholder="Today"
+                          />
                           <Calendar className="size-4" />
                         </div>
                       );
                     }}
                   </DatePicker>
-                  {!field.state.meta.isValid && <ErrorMessage message={field.state.meta.errors[0]?.message} />}
+                  {!field.state.meta.isValid && (
+                    <ErrorMessage
+                      message={field.state.meta.errors[0]?.message}
+                    />
+                  )}
                 </div>
               );
             }}
@@ -158,7 +195,9 @@ const AddLeave = ({ open = false, onOpenChange }: LeaveTimeProps) => {
           children={(field) => {
             return (
               <>
-                <label className="block text-xs text-ink-gray-5">Leave duration</label>
+                <label className="block text-xs text-ink-gray-5">
+                  Leave duration
+                </label>
                 <TabButtons
                   className="h-"
                   value={field.state.value}
@@ -166,12 +205,16 @@ const AddLeave = ({ open = false, onOpenChange }: LeaveTimeProps) => {
                   buttons={LEAVE_DURATION.map((value) => ({
                     label: value
                       .split("-")
-                      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+                      .map(
+                        (word) => word.charAt(0).toUpperCase() + word.slice(1),
+                      )
                       .join(" "),
                     value,
                   }))}
                 />
-                {!field.state.meta.isValid && <ErrorMessage message={field.state.meta.errors[0]?.message} />}
+                {!field.state.meta.isValid && (
+                  <ErrorMessage message={field.state.meta.errors[0]?.message} />
+                )}
               </>
             );
           }}
@@ -182,7 +225,9 @@ const AddLeave = ({ open = false, onOpenChange }: LeaveTimeProps) => {
           children={(field) => {
             return (
               <>
-                <label className="block text-xs text-ink-gray-5">Leave type</label>
+                <label className="block text-xs text-ink-gray-5">
+                  Leave type
+                </label>
                 <Select
                   value={field.state.value}
                   onChange={(val) => field.handleChange(val as string)}
@@ -191,7 +236,9 @@ const AddLeave = ({ open = false, onOpenChange }: LeaveTimeProps) => {
                   options={leaveTypeOptions}
                   placeholder="Select Leave Type"
                 />
-                {!field.state.meta.isValid && <ErrorMessage message={field.state.meta.errors[0]?.message} />}
+                {!field.state.meta.isValid && (
+                  <ErrorMessage message={field.state.meta.errors[0]?.message} />
+                )}
               </>
             );
           }}
@@ -207,7 +254,9 @@ const AddLeave = ({ open = false, onOpenChange }: LeaveTimeProps) => {
                   onChange={(e) => field.handleChange(e.target.value)}
                   className="bg-white border-outline-gray-2"
                 />
-                {!field.state.meta.isValid && <ErrorMessage message={field.state.meta.errors[0]?.message} />}
+                {!field.state.meta.isValid && (
+                  <ErrorMessage message={field.state.meta.errors[0]?.message} />
+                )}
               </>
             );
           }}

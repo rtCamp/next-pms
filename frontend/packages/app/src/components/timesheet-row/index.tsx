@@ -15,7 +15,6 @@ import {
   setLikedTask,
 } from "@/lib/storage";
 import { getHolidayList } from "@/lib/utils";
-import { TaskLog } from "@/pages/task/components/taskLog";
 import { TaskDataProps } from "@/types/timesheet";
 import { ProjectRow } from "./components/row/projectRow";
 import { TaskRow } from "./components/row/taskRow";

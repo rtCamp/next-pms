@@ -23,8 +23,8 @@ import {
 /**
  * Internal Dependencies
  */
-import { useUser } from "@/hooks/useUser";
 import { parseFrappeErrorMsg } from "@/lib/utils";
+import { useUser } from "@/providers/user";
 import { submitApprovalSchema } from "./schema";
 import type { SubmitApprovalProps, EmployeeRecord } from "./types";
 
@@ -45,7 +45,10 @@ const SubmitApproval = ({
   endDate,
   totalHours,
 }: SubmitApprovalProps) => {
-  const user = useUser();
+  const { reportsTo, employeeId } = useUser(({ state }) => ({
+    reportsTo: state.reportsTo,
+    employeeId: state.employeeId,
+  }));
   const toast = useToasts();
   const [submitting, setSubmitting] = useState(false);
   const { call: submitForApproval } = useFrappePostCall(
@@ -73,7 +76,7 @@ const SubmitApproval = ({
   const form = useForm({
     defaultValues: {
       note: "",
-      sendTo: user.reportsTo,
+      sendTo: reportsTo,
     },
     validators: {
       onSubmit: submitApprovalSchema,
@@ -82,7 +85,7 @@ const SubmitApproval = ({
       setSubmitting(true);
       try {
         await submitForApproval({
-          employee: user.employee,
+          employee: employeeId,
           start_date: startDate,
           end_date: endDate,
           approver: value.sendTo,
