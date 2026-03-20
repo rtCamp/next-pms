@@ -66,16 +66,16 @@ export const UserProvider: FC<PropsWithChildren> = ({ children }) => {
     useFrappeGetCall("next_pms.timesheet.api.employee.get_data");
 
   useEffect(() => {
-    setEmployeeId(employeeData.message?.employee ?? "");
+    setEmployeeId(employeeData?.message?.employee ?? "");
     setWorkingHours(
-      employeeData.message?.employee_working_detail?.working_hour ?? 8,
+      employeeData?.message?.employee_working_detail?.working_hour ?? 8,
     );
     setWorkingFrequency(
-      employeeData.message?.employee_working_detail?.working_frequency ??
+      employeeData?.message?.employee_working_detail?.working_frequency ??
         "Per Day",
     );
-    setReportsTo(employeeData.message?.employee_report_to ?? "");
-    setEmployeeName(employeeData.message?.employee_name ?? "");
+    setReportsTo(employeeData?.message?.employee_report_to ?? "");
+    setEmployeeName(employeeData?.message?.employee_name ?? "");
   }, [employeeData]);
 
   /**
