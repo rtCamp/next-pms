@@ -48,6 +48,10 @@ export const TimeOffRow = ({
           });
           continue;
         }
+        totalTimeEntries.push({
+          time: "",
+          holiday: true,
+        });
         continue;
       }
 
