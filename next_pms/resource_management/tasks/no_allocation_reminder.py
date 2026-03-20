@@ -142,9 +142,9 @@ def send_reminder():
     template = get_doc("Email Template", doc.allocation_email_template)
 
     for arg in args:
-        message = render_template(
+        message = render_template(  # nosemgrep - trusted Email Template from DB
             template.response if not template.use_html else template.response_html, arg
-        )  # nosemgrep - trusted Email Template from DB
+        )
         subject = render_template(template.subject, arg)  # nosemgrep - trusted Email Template from DB
         sender = template.custom_sender_email if hasattr(template, "custom_sender_email") else None
         sendmail(recipients=arg["user_id"], subject=subject, message=message, sender=sender)
