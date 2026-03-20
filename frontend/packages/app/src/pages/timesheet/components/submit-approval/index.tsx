@@ -2,19 +2,31 @@
  * External Dependencies
  */
 import { useState } from "react";
+import { floatToTime } from "@next-pms/design-system";
+import {
+  Dialog,
+  Button,
+  Textarea,
+  Combobox,
+  ErrorMessage,
+  useToasts,
+  Avatar,
+} from "@rtcamp/frappe-ui-react";
 import { useForm } from "@tanstack/react-form";
-import { Dialog, Button, Textarea, Combobox, ErrorMessage, useToasts, Avatar } from "@rtcamp/frappe-ui-react";
 import { format, parseISO } from "date-fns";
-import { FrappeError, useFrappeGetCall, useFrappePostCall } from "frappe-react-sdk";
+import {
+  FrappeError,
+  useFrappeGetCall,
+  useFrappePostCall,
+} from "frappe-react-sdk";
 
 /**
  * Internal Dependencies
  */
-import type { SubmitApprovalProps, EmployeeRecord } from "./types";
-import { submitApprovalSchema } from "./schema";
-import { useUser } from "@/hooks/useUser";
 import { parseFrappeErrorMsg } from "@/lib/utils";
-import { floatToTime } from "@next-pms/design-system";
+import { useUser } from "@/providers/user";
+import { submitApprovalSchema } from "./schema";
+import type { SubmitApprovalProps, EmployeeRecord } from "./types";
 
 const formatWeekLabel = (startDate: string, endDate: string) => {
   try {
@@ -26,30 +38,43 @@ const formatWeekLabel = (startDate: string, endDate: string) => {
   }
 };
 
-const SubmitApproval = ({ open, onOpenChange, startDate, endDate, totalHours }: SubmitApprovalProps) => {
-  const user = useUser();
+const SubmitApproval = ({
+  open,
+  onOpenChange,
+  startDate,
+  endDate,
+  totalHours,
+}: SubmitApprovalProps) => {
+  const { reportsTo, employeeId } = useUser(({ state }) => ({
+    reportsTo: state.reportsTo,
+    employeeId: state.employeeId,
+  }));
   const toast = useToasts();
   const [submitting, setSubmitting] = useState(false);
-  const { call: submitForApproval } = useFrappePostCall("next_pms.timesheet.api.timesheet.submit_for_approval");
+  const { call: submitForApproval } = useFrappePostCall(
+    "next_pms.timesheet.api.timesheet.submit_for_approval",
+  );
 
-  const { data } = useFrappeGetCall("next_pms.timesheet.api.get_employee_list", {
-    role: ["Projects Manager", "Projects User"],
-  });
+  const { data } = useFrappeGetCall(
+    "next_pms.timesheet.api.get_employee_list",
+    {
+      role: ["Projects Manager", "Projects User"],
+    },
+  );
 
   const approvers = ((data?.message ?? []) as EmployeeRecord[]).map((emp) => ({
     label: emp.employee_name,
     value: emp.name,
-    icon: <Avatar image={emp.image} label={emp.employee_name}/>
-  }
-));
+    icon: <Avatar image={emp.image} label={emp.employee_name} />,
+  }));
 
   const weekLabel = formatWeekLabel(startDate, endDate);
-  const formattedHours = floatToTime(totalHours,2)
+  const formattedHours = floatToTime(totalHours, 2);
 
   const form = useForm({
     defaultValues: {
       note: "",
-      sendTo: user.reportsTo,
+      sendTo: reportsTo,
     },
     validators: {
       onSubmit: submitApprovalSchema,
@@ -58,7 +83,7 @@ const SubmitApproval = ({ open, onOpenChange, startDate, endDate, totalHours }: 
       setSubmitting(true);
       try {
         await submitForApproval({
-          employee: user.employee,
+          employee: employeeId,
           start_date: startDate,
           end_date: endDate,
           approver: value.sendTo,
@@ -80,13 +105,24 @@ const SubmitApproval = ({ open, onOpenChange, startDate, endDate, totalHours }: 
     <Dialog
       open={open}
       onOpenChange={onOpenChange}
-      actions={<Button className="w-full" variant="solid" label="Submit" onClick={() => form.handleSubmit()} disabled={submitting} loading={submitting} />}
+      actions={
+        <Button
+          className="w-full"
+          variant="solid"
+          label="Submit"
+          onClick={() => form.handleSubmit()}
+          disabled={submitting}
+          loading={submitting}
+        />
+      }
       options={{ title: "Submit for approval" }}
     >
       <div className="space-y-4">
         <div className="flex justify-between items-center bg-surface-gray-1 rounded-lg px-4 py-2.5">
           <span className="text-sm text-ink-gray-8">{weekLabel}</span>
-          <span className="text-sm text-ink-green-3 font-medium">{formattedHours}</span>
+          <span className="text-sm text-ink-green-3 font-medium">
+            {formattedHours}
+          </span>
         </div>
 
         <form.Field
@@ -100,7 +136,9 @@ const SubmitApproval = ({ open, onOpenChange, startDate, endDate, totalHours }: 
                 onChange={(e) => field.handleChange(e.target.value)}
                 className="bg-white border-outline-gray-2"
               />
-              {!field.state.meta.isValid && <ErrorMessage message={field.state.meta.errors[0]?.message} />}
+              {!field.state.meta.isValid && (
+                <ErrorMessage message={field.state.meta.errors[0]?.message} />
+              )}
             </div>
           )}
         />
@@ -117,7 +155,9 @@ const SubmitApproval = ({ open, onOpenChange, startDate, endDate, totalHours }: 
                 options={approvers}
                 inputClassName="bg-white h-8 border-outline-gray-2"
               />
-              {!field.state.meta.isValid && <ErrorMessage message={field.state.meta.errors[0]?.message} />}
+              {!field.state.meta.isValid && (
+                <ErrorMessage message={field.state.meta.errors[0]?.message} />
+              )}
             </div>
           )}
         />

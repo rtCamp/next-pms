@@ -2,14 +2,24 @@
  * External dependencies.
  */
 import { useEffect, useMemo, useReducer, useRef, useState } from "react";
-import { useSelector } from "react-redux";
 import { Spinner, Typography } from "@next-pms/design-system/components";
-import { getUTCDateTime, getFormatedDate } from "@next-pms/design-system/date";
+import { getFormatedDate } from "@next-pms/design-system/date";
 
 import { useQueryParam } from "@next-pms/hooks";
-import { Button, TextInput, Select, Filter, FilterCondition, useToasts } from "@rtcamp/frappe-ui-react";
+import {
+  Button,
+  TextInput,
+  Select,
+  Filter,
+  FilterCondition,
+  useToasts,
+} from "@rtcamp/frappe-ui-react";
 import { addDays } from "date-fns";
-import { useFrappeEventListener, useFrappeGetCall, useFrappePostCall } from "frappe-react-sdk";
+import {
+  useFrappeEventListener,
+  useFrappeGetCall,
+  useFrappePostCall,
+} from "frappe-react-sdk";
 import { isEmpty } from "lodash";
 import { Ellipsis } from "lucide-react";
 
@@ -18,16 +28,15 @@ import { Ellipsis } from "lucide-react";
  */
 import { TimesheetTable } from "@/components/timesheet-table";
 import { parseFrappeErrorMsg, isDateInRange } from "@/lib/utils";
-import type { RootState } from "@/store";
+import { useUser } from "@/providers/user";
 import type { WorkingFrequency } from "@/types";
 import type { NewTimesheetProps, timesheet } from "@/types/timesheet";
+import { InfiniteScroll } from "../../../components/infiniteScroll";
+import { HeaderRow } from "../../../components/timesheet-table/components/row/headerRow";
+import { sampleFields } from "../constants";
+import { useTimesheetOutletContext } from "../outletContext";
 import { initialState, reducer } from "../reducer";
 import { validateDate } from "../utils";
-import { InfiniteScroll } from "../../../components/infiniteScroll";
-import { sampleFields } from "../constants";
-import { HeaderRow } from "../../../components/timesheet-table/components/row/headerRow";
-import { useTimesheetOutletContext } from "../outletContext";
-import { useUser } from "@/hooks/useUser";
 
 function Timesheet() {
   const targetRef = useRef<HTMLDivElement>(null);
@@ -35,21 +44,29 @@ function Timesheet() {
   const [filters, setFilters] = useState<FilterCondition[]>([]);
   const [search, setSearch] = useState("");
 
-  const {handleApproval} = useTimesheetOutletContext();
+  const { handleApproval } = useTimesheetOutletContext();
 
   const [startDateParam, setStartDateParam] = useQueryParam<string>("date", "");
-  const user = useUser();
+  const { employeeId } = useUser(({ state }) => ({
+    employeeId: state.employeeId,
+  }));
   const [timesheet, dispatch] = useReducer(reducer, initialState);
-  const { data, isLoading, error, mutate } = useFrappeGetCall("next_pms.timesheet.api.timesheet.get_timesheet_data", {
-    employee: user.employee,
-    start_date: timesheet.weekDate,
-    max_week: 4,
-  });
+  const { data, isLoading, error } = useFrappeGetCall(
+    "next_pms.timesheet.api.timesheet.get_timesheet_data",
+    {
+      employee: employeeId,
+      start_date: timesheet.weekDate,
+      max_week: 4,
+    },
+  );
 
   useEffect(() => {
     const scrollToElement = () => {
       if (targetRef.current) {
-        targetRef.current.scrollIntoView({ behavior: "smooth", block: "center" });
+        targetRef.current.scrollIntoView({
+          behavior: "smooth",
+          block: "center",
+        });
       }
     };
     const observer = new MutationObserver(scrollToElement);
@@ -59,7 +76,10 @@ function Timesheet() {
 
   useEffect(() => {
     if (data) {
-      if (timesheet.data?.data && Object.keys(timesheet.data?.data).length > 0) {
+      if (
+        timesheet.data?.data &&
+        Object.keys(timesheet.data?.data).length > 0
+      ) {
         dispatch({ type: "APPEND_DATA", payload: data.message });
       } else {
         dispatch({ type: "SET_DATA", payload: data.message });
@@ -79,12 +99,15 @@ function Timesheet() {
       const lastKey = Object.keys(obj).pop();
       if (!lastKey) return;
       const info = obj[lastKey];
-      dispatch({ type: "SET_WEEK_DATE", payload: getFormatedDate(addDays(info.start_date, -1)) });
+      dispatch({
+        type: "SET_WEEK_DATE",
+        payload: getFormatedDate(addDays(info.start_date, -1)),
+      });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dispatch, startDateParam, timesheet.data.data, validateDate]);
 
-  useFrappeEventListener(`timesheet_update::${user.employee}`, (payload) => {
+  useFrappeEventListener(`timesheet_update::${employeeId}`, (payload) => {
     const res = payload.message;
     const key = Object.keys(res.data)[0];
     if (!Object.prototype.hasOwnProperty.call(timesheet.data.data, key)) {
@@ -92,9 +115,8 @@ function Timesheet() {
     }
     dispatch({ type: "APPEND_DATA", payload: res });
   });
-  const { call: fetchLikedTask, loading: loadingLikedTasks } = useFrappePostCall(
-    "next_pms.timesheet.api.task.get_liked_tasks",
-  );
+  const { call: fetchLikedTask, loading: loadingLikedTasks } =
+    useFrappePostCall("next_pms.timesheet.api.task.get_liked_tasks");
   const [likedTaskData, setLikedTaskData] = useState([]);
 
   const getLikedTaskData = () => {
@@ -108,22 +130,8 @@ function Timesheet() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const handleAddTime = () => {
-    const timesheetData = {
-      name: "",
-      task: "",
-      date: getFormatedDate(getUTCDateTime()),
-      description: "",
-      hours: 0,
-      employee: user.employee,
-      project: "",
-    };
-    dispatch({ type: "SET_TIMESHEET", payload: timesheetData });
-    dispatch({ type: "SET_DIALOG_STATE", payload: true });
-  };
-
   const onCellClick = (data: NewTimesheetProps) => {
-    data.employee = user.employee;
+    data.employee = employeeId;
     dispatch({ type: "SET_TIMESHEET", payload: data });
     if (data.hours > 0) {
       dispatch({ type: "SET_EDIT_DIALOG_STATE", payload: true });
@@ -139,11 +147,17 @@ function Timesheet() {
     if (!lastKey) return;
     const obj = data[lastKey];
     setStartDateParam("");
-    dispatch({ type: "SET_WEEK_DATE", payload: getFormatedDate(addDays(obj.start_date, -1)) });
+    dispatch({
+      type: "SET_WEEK_DATE",
+      payload: getFormatedDate(addDays(obj.start_date, -1)),
+    });
   };
 
   const filteredWeekEntries = useMemo(() => {
-    const entries = Object.entries(timesheet.data.data) as [string, timesheet][];
+    const entries = Object.entries(timesheet.data.data) as [
+      string,
+      timesheet,
+    ][];
     const query = search.trim().toLowerCase();
 
     if (!query) return entries;
@@ -151,17 +165,15 @@ function Timesheet() {
     return entries.map(([key, week]) => {
       const filteredTasks = Object.fromEntries(
         Object.entries(week.tasks).filter(
-          ([_, task]) => task.name.toLowerCase().includes(query) || task.subject.toLowerCase().includes(query),
+          ([_, task]) =>
+            task.name.toLowerCase().includes(query) ||
+            task.subject.toLowerCase().includes(query),
         ),
       );
 
       return [key, { ...week, tasks: filteredTasks }] as [string, timesheet];
     });
   }, [timesheet.data.data, search]);
-
-  const handleImportTaskFromGoogleCalendar = () => {
-    dispatch({ type: "SET_IMPORT_FROM_GOOGLE_CALENDAR_DIALOG_STATE", payload: true });
-  };
 
   return (
     <div className="w-full h-full py-3.5 px-3">
@@ -170,7 +182,9 @@ function Timesheet() {
           <TextInput
             placeholder="Search Tasks"
             value={search}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearch(e.target.value)}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+              setSearch(e.target.value)
+            }
           />
           <Select
             placeholder="Approval Status"
@@ -212,7 +226,9 @@ function Timesheet() {
       ) : (
         <>
           {Object.keys(timesheet.data?.data).length == 0 ? (
-            <Typography className="flex items-center justify-center">No Data</Typography>
+            <Typography className="flex items-center justify-center">
+              No Data
+            </Typography>
           ) : (
             <InfiniteScroll
               isLoading={isLoading}
@@ -248,16 +264,24 @@ function Timesheet() {
                         <div
                           key={key}
                           ref={
-                            !isEmpty(startDateParam) && isDateInRange(startDateParam, value.start_date, value.end_date)
+                            !isEmpty(startDateParam) &&
+                            isDateInRange(
+                              startDateParam,
+                              value.start_date,
+                              value.end_date,
+                            )
                               ? targetRef
                               : null
                           }
                         >
                           <TimesheetTable
                             label={key}
-                            employee={user.employee}
+                            employee={employeeId}
                             workingHour={timesheet.data.working_hour}
-                            workingFrequency={timesheet.data.working_frequency as WorkingFrequency}
+                            workingFrequency={
+                              timesheet.data
+                                .working_frequency as WorkingFrequency
+                            }
                             dates={value.dates}
                             holidays={timesheet.data.holidays}
                             leaves={timesheet.data.leaves}
@@ -268,7 +292,13 @@ function Timesheet() {
                             loadingLikedTasks={loadingLikedTasks}
                             likedTaskData={likedTaskData}
                             getLikedTaskData={getLikedTaskData}
-                            onButtonClick={() => handleApproval(value.start_date, value.end_date, value.total_hours)}
+                            onButtonClick={() =>
+                              handleApproval(
+                                value.start_date,
+                                value.end_date,
+                                value.total_hours,
+                              )
+                            }
                             status={value.status}
                           />
                         </div>

@@ -1,10 +1,7 @@
 /**
  * External dependencies.
  */
-import { useCallback, useEffect, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
-import { useNavigate } from "react-router-dom";
-import { useLocation } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { ErrorFallback } from "@next-pms/design-system/components";
 import {
   Sidebar as BaseSidebar,
@@ -29,64 +26,32 @@ import {
 /**
  * Internal dependencies.
  */
-import { useContextSelector } from "use-context-selector";
-import { useUser } from "@/hooks/useUser";
-import { ROLES, ROUTES } from "@/lib/constant";
-import { setLocalStorage } from "@/lib/storage";
-import { UserContext } from "@/lib/UserProvider";
-import { checkIsMobile } from "@/lib/utils";
+import { ROUTES } from "@/lib/constant";
 import logo from "@/logo.svg";
 import { useTheme } from "@/providers/theme/hook";
-import { RootState } from "@/store";
-import { setSidebarCollapsed } from "@/store/user";
-import type { ViewData } from "@/store/view";
+import { useUser } from "@/providers/user";
 
 const Sidebar = () => {
-  const user = useUser();
+  const { isSidebarCollapsed, employeeName, updateIsSidebarCollapsed, logout } =
+    useUser(({ state, actions }) => ({
+      isSidebarCollapsed: state.isSidebarCollapsed,
+      employeeName: state.employeeName,
+      updateIsSidebarCollapsed: actions.updateIsSidebarCollapsed,
+      logout: actions.logout,
+    }));
+
   const { theme, changeTheme } = useTheme();
-  const logout = useContextSelector(
-    UserContext,
-    (value) => value.actions.logout,
-  );
   const navigate = useNavigate();
-  const viewInfo = useSelector((state: RootState) => state.view);
-  const dispatch = useDispatch();
   const { pathname } = useLocation();
-
-  const [openRoutes, setOpenRoutes] = useState<{ [key: string]: boolean }>({
-    reports: false,
-  });
-
-  const hasPmRole = user.roles.some((role: string) => ROLES.includes(role));
-  const privateViews = viewInfo.views.filter(
-    (view: ViewData) =>
-      view.user === user.user && !view.default && !view.public,
-  );
-  const publicViews = viewInfo.views.filter(
-    (view: ViewData) => view.public && !view.default,
-  );
-
-  const handleSidebarCollapse = useCallback(() => {
-    dispatch(setSidebarCollapsed(checkIsMobile()));
-  }, [dispatch]);
-
-  useEffect(() => {
-    setLocalStorage("next-pms:isSidebarCollapsed", user.isSidebarCollapsed);
-  }, [user.isSidebarCollapsed]);
-  useEffect(() => {
-    if (checkIsMobile()) {
-      dispatch(setSidebarCollapsed(true));
-    }
-    window.addEventListener("resize", handleSidebarCollapse);
-    return () => window.removeEventListener("resize", handleSidebarCollapse);
-  }, [dispatch, handleSidebarCollapse]);
 
   return (
     <ErrorFallback>
       <BaseSidebar
+        collapsed={isSidebarCollapsed}
+        onCollapseChange={updateIsSidebarCollapsed}
         header={{
           title: "Next PMS",
-          subtitle: user.userName,
+          subtitle: employeeName,
           logo,
           menuItems: [
             {

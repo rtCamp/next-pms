@@ -2,7 +2,6 @@
  * External dependencies
  */
 import { useState, useEffect } from "react";
-import { useSelector } from "react-redux";
 import {
   HoverCard,
   HoverCardContent,
@@ -12,6 +11,7 @@ import {
   Typography,
 } from "@next-pms/design-system/components";
 import { floatToTime } from "@next-pms/design-system/utils";
+import { useToasts } from "@rtcamp/frappe-ui-react";
 import { useFrappePostCall } from "frappe-react-sdk";
 import { Heart } from "lucide-react";
 /**
@@ -20,13 +20,11 @@ import { Heart } from "lucide-react";
 import { LIKED_TASK_KEY } from "@/lib/constant";
 import { addAction, toggleLikedByForTask } from "@/lib/storage";
 import { mergeClassNames, parseFrappeErrorMsg } from "@/lib/utils";
-import { RootState } from "@/store";
+import { useUser } from "@/providers/user";
 import type { TaskData } from "@/types";
 import type { TaskDataProps } from "@/types/timesheet";
 import type { TaskHoverCardProps } from "./types";
 import TaskStatusIndicator from "../../taskStatusIndicator";
-import { useToasts } from "@rtcamp/frappe-ui-react";
-import { useUser } from "@/hooks/useUser";
 
 export const TaskHoverCard = ({
   name,
@@ -37,13 +35,19 @@ export const TaskHoverCard = ({
   getLikedTaskData,
   hideLikeButton = false,
 }: TaskHoverCardProps) => {
-  const user = useUser();
+  const { userId } = useUser(({ state }) => ({
+    userId: state.userId,
+  }));
   const [taskLiked, setTaskedLiked] = useState(false);
   useEffect(() => {
-    setTaskedLiked(likedTaskData.some((obj: TaskDataProps) => obj.name === name) || false);
-  }, [taskData, likedTaskData]);
+    setTaskedLiked(
+      likedTaskData.some((obj: TaskDataProps) => obj.name === name) || false,
+    );
+  }, [taskData, likedTaskData, name]);
 
-  const { call: toggleLikeCall } = useFrappePostCall("frappe.desk.like.toggle_like");
+  const { call: toggleLikeCall } = useFrappePostCall(
+    "frappe.desk.like.toggle_like",
+  );
   const toast = useToasts();
 
   const handleLike = (e: React.MouseEvent<SVGSVGElement>) => {
@@ -60,7 +64,7 @@ export const TaskHoverCard = ({
     setTaskedLiked((prev) => !prev);
     toggleLikeCall(data)
       .then(() => {
-        toggleLikedByForTask(LIKED_TASK_KEY, name, user?.user, add);
+        toggleLikedByForTask(LIKED_TASK_KEY, name, userId, add);
         getLikedTaskData();
       })
       .catch((err) => {
@@ -92,7 +96,7 @@ export const TaskHoverCard = ({
                 <Heart
                   className={mergeClassNames(
                     "hover:cursor-pointer shrink-0",
-                    taskLiked && "fill-destructive stroke-destructive"
+                    taskLiked && "fill-destructive stroke-destructive",
                   )}
                   data-task={name}
                   data-liked-by={taskData?._liked_by}
@@ -101,7 +105,10 @@ export const TaskHoverCard = ({
               )}
             </Typography>
 
-            <Typography variant="small" className="text-primary/80 whitespace-nowrap text-ellipsis overflow-hidden ">
+            <Typography
+              variant="small"
+              className="text-primary/80 whitespace-nowrap text-ellipsis overflow-hidden "
+            >
               {taskData?.project_name}
             </Typography>
           </HoverCardTrigger>
@@ -112,7 +119,10 @@ export const TaskHoverCard = ({
         <span className="flex gap-x-2">
           <div>
             <Typography>{taskData.subject}</Typography>
-            <Typography variant="small" className="text-primary/80 whitespace-nowrap text-ellipsis overflow-hidden ">
+            <Typography
+              variant="small"
+              className="text-primary/80 whitespace-nowrap text-ellipsis overflow-hidden "
+            >
               {taskData.project_name}
             </Typography>
           </div>
@@ -129,8 +139,9 @@ export const TaskHoverCard = ({
           <Typography>Actual Time</Typography>
           <Typography
             className={mergeClassNames(
-              taskData.actual_time > taskData.expected_time && "text-destructive",
-              taskData.actual_time < taskData.expected_time && "text-success"
+              taskData.actual_time > taskData.expected_time &&
+                "text-destructive",
+              taskData.actual_time < taskData.expected_time && "text-success",
             )}
           >
             {floatToTime(taskData.actual_time)}
