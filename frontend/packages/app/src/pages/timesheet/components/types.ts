@@ -1,14 +1,12 @@
 /**
  * Internal dependencies.
  */
-import type { RootState } from "@/store";
-import type { UserState } from "@/store/user";
+import { UserContextProps } from "@/providers/user";
 import type { DataProp, TaskDataItemProps } from "@/types/timesheet";
 
 export interface ApprovalProps {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  onClose?: (data: any) => void;
-  user: UserState;
+  onClose?: (data: unknown) => void;
+  user: UserContextProps;
   timesheetState: TimesheetState;
   dispatch: (value: Action) => void;
 }
@@ -26,7 +24,7 @@ export interface EditTimeProps {
   task: string;
   open: boolean;
   onClose: () => void;
-  user: UserState;
+  user: UserContextProps;
 }
 
 export interface ExpandableHoursProps {
@@ -37,7 +35,7 @@ export interface ExpandableHoursProps {
 
 export type FooterProps = {
   timesheet: TimesheetState;
-  user: RootState["user"];
+  user: UserContextProps;
   dispatch: React.Dispatch<Action>;
   callback: () => void;
 };
