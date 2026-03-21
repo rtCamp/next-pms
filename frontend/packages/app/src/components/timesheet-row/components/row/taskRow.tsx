@@ -6,15 +6,17 @@ import { floatToTime } from "@next-pms/design-system";
 import {
   TaskRow as BaseTaskRow,
   taskStatusMap,
+  useToast,
 } from "@next-pms/design-system/components";
 import { prettyDate } from "@next-pms/design-system/date";
+import { useFrappePostCall } from "frappe-react-sdk";
 
 /**
  * Internal dependencies
  */
 import { CalendarFoldIcon, Folder } from "lucide-react";
 import TaskPopover from "@/components/taskPopover";
-import { calculateTotalHours } from "@/lib/utils";
+import { calculateTotalHours, parseFrappeErrorMsg } from "@/lib/utils";
 import type { TaskRowProps } from "./types";
 import { InlineTimeEntry } from "../inline-time-entry";
 
@@ -32,6 +34,8 @@ const MOCK_END_DATE = "2024-12-31";
  * @param {boolean} props.disabled - Whether the task row is disabled.
  * @param {number} props.dailyWorkingHours - Daily working hours for the task.
  * @param {string} props.employee - Employee for the timesheet entry.
+ * @param {function} props.getLikedTaskData - Function to fetch liked task data after toggling like status.
+ * @param {boolean} props.hideStarButton - Whether to hide the star button for liking the task.
  */
 export const TaskRow = ({
   dates,
@@ -43,9 +47,15 @@ export const TaskRow = ({
   dailyWorkingHours,
   totalTimeEntriesInHours,
   employee,
+  getLikedTaskData,
+  hideLikeButton,
   ...rest
 }: TaskRowProps) => {
   const [taskLiked, setTaskLiked] = useState(false);
+  const { call: toggleLikeCall } = useFrappePostCall(
+    "frappe.desk.like.toggle_like",
+  );
+  const { toast } = useToast();
 
   const taskData = useMemo(() => {
     let total = 0;
@@ -93,6 +103,30 @@ export const TaskRow = ({
     [rest.label, tasks, status],
   );
 
+  const handleStar = (
+    e: React.MouseEvent<HTMLButtonElement>,
+    taskKey: string,
+  ) => {
+    e.stopPropagation();
+    const data = {
+      name: taskKey,
+      add: taskLiked ? "No" : "Yes",
+      doctype: "Task",
+    };
+    setTaskLiked((prev) => !prev);
+    toggleLikeCall(data)
+      .then(() => {
+        getLikedTaskData?.();
+      })
+      .catch((err) => {
+        const error = parseFrappeErrorMsg(err);
+        toast({
+          variant: "destructive",
+          description: error,
+        });
+      });
+  };
+
   useEffect(() => {
     setTaskLiked(likedTaskData.some((obj) => obj.name === taskKey) || false);
   }, [likedTaskData, taskKey]);
@@ -106,13 +140,13 @@ export const TaskRow = ({
       starred={taskLiked}
       renderTaskHoverContent={renderTaskHoverContent}
       taskKey={taskKey}
+      onStarClick={handleStar}
+      hideStarButton={hideLikeButton}
       renderInlineTimeEntryPopover={(_, dayIndex, closePopover) => (
         <InlineTimeEntry
           dailyWorkingHours={dailyWorkingHours}
           totalUsedHoursInDay={totalTimeEntriesInHours?.[dayIndex]}
-          isBillable={
-            taskData.totalTimeEntries[dayIndex]?.nonBillable === false
-          }
+          timeEntry={taskData.totalTimeEntries[dayIndex]}
           date={dates[dayIndex]}
           task={taskKey}
           employee={employee ?? ""}

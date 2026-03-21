@@ -5,7 +5,6 @@ import type { TaskData, WorkingFrequency } from "@/types";
 import type {
   HolidayProp,
   LeaveProps,
-  NewTimesheetProps,
   TaskDataProps,
   TaskProps,
 } from "@/types/timesheet";
@@ -20,14 +19,7 @@ export type TaskHoverCardProps = {
   hideLikeButton?: boolean;
 };
 
-export type weekTotalProps = {
-  total: number;
-  expected_hour: number;
-  frequency: WorkingFrequency;
-  className?: string;
-};
-
-export type timesheetTableProps = {
+export type TimesheetRowProps = {
   label?: string;
   employee?: string;
   dates: string[];

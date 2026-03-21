@@ -12,7 +12,7 @@ export interface TimeOffRowProps {
   /** Label for the time-off row. */
   label?: string;
   /** Array of time-off entries for each day of the week. */
-  timeOffEntries: string[];
+  timeOffEntries: { time: string; holiday: boolean }[];
   /** Total time-off hours logged for the week. */
   totalHours?: string;
   /** Optional icon to display next to the label. */
@@ -50,12 +50,15 @@ export const TimeOffRow: React.FC<TimeOffRowProps> = ({
         return (
           <div
             key={index}
-            className="shrink-0 flex justify-end items-center text-base text-ink-gray-6 whitespace-nowrap w-16 h-7 px-2 py-1.5 leading-3.5 lining-nums tabular-nums"
+            className={cn(
+              "shrink-0 flex justify-end items-center text-base whitespace-nowrap w-16 h-7 px-2 py-1.5 leading-3.5 lining-nums tabular-nums",
+              timeOffEntry.holiday ? "text-ink-gray-4" : "text-ink-gray-6",
+            )}
           >
-            {timeOffEntry === "" ? (
+            {timeOffEntry.time === "" ? (
               <span className="flex-1 ml-2 text-center text-ink-gray-4">-</span>
             ) : (
-              <span>{timeOffEntry}</span>
+              <span>{timeOffEntry.time}</span>
             )}
           </div>
         );

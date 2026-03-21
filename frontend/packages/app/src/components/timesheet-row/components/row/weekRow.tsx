@@ -7,15 +7,23 @@ import {
   Accordion,
   AccordionContent,
   AccordionItem,
+  AccordionTrigger,
   WeekRow as BaseWeekRow,
   statusMap,
+  totalHoursThemeMap,
 } from "@next-pms/design-system/components";
 import { getTodayDate, prettyDate } from "@next-pms/design-system/date";
 
 /**
  * Internal dependencies
  */
-import { calculateLeaveHours, calculateTotalHours, expectatedHours } from "@/lib/utils";
+import {
+  calculateExtendedWorkingHour,
+  calculateLeaveHours,
+  calculateTotalHours,
+  calculateWeeklyHour,
+  expectatedHours,
+} from "@/lib/utils";
 import type { WeekRowProps } from "./types";
 
 /**
@@ -58,13 +66,22 @@ export const WeekRow = ({
     for (const date of dates) {
       const holiday = holidays.find((holiday) => holiday.holiday_date === date);
       const currentTotal =
-        calculateTotalHours(tasks, date) + calculateLeaveHours(leaves, date, dailyWorkingHours, holiday);
-      totalTimeEntries.push(currentTotal === 0 ? "" : floatToTime(currentTotal, 2));
+        calculateTotalHours(tasks, date) +
+        calculateLeaveHours(leaves, date, dailyWorkingHours, holiday);
+      totalTimeEntries.push(
+        currentTotal === 0 ? "" : floatToTime(currentTotal, 2),
+      );
       totalTimeEntriesInHours.push(currentTotal);
       total += currentTotal;
     }
     return { total, totalTimeEntries, totalTimeEntriesInHours };
   }, [dates, tasks, leaves, holidays, dailyWorkingHours]);
+
+  const isExtended = calculateExtendedWorkingHour(
+    weekData.total,
+    calculateWeeklyHour(workingHour, workingFrequency),
+    workingFrequency,
+  );
 
   const today = useMemo(() => {
     const currentDate = getTodayDate();
@@ -75,27 +92,41 @@ export const WeekRow = ({
   }, [dates]);
 
   const thisWeek = useMemo(() => {
-    const todayIndex = dates.findIndex((date) => prettyDate(date).date === today);
+    const todayIndex = dates.findIndex(
+      (date) => prettyDate(date).date === today,
+    );
     return todayIndex >= 0 && todayIndex < 7;
   }, [dates, today]);
 
   return (
-    <Accordion value={collapsed ? [] : ["week"]} onValueChange={() => {}}>
+    <Accordion
+      value={collapsed ? [] : ["week"]}
+      onValueChange={(value) => {
+        setCollapsed(value.length === 0);
+      }}
+    >
       <AccordionItem value="week" className="border-none">
-        <BaseWeekRow
-          {...rest}
-          today={today}
-          thisWeek={thisWeek}
-          dates={formattedDates}
-          totalHours={floatToTime(weekData.total)}
-          status={status ? statusMap[status] : "none"}
-          collapsed={collapsed}
-          onToggle={() => setCollapsed((prev) => !prev)}
-          onButtonClick={() => (status && statusMap[status] === "not-submitted" ? onButtonClick?.() : undefined)}
-        />
+        <AccordionTrigger>
+          <BaseWeekRow
+            {...rest}
+            today={today}
+            thisWeek={thisWeek}
+            dates={formattedDates}
+            totalHours={floatToTime(weekData.total, 2)}
+            totalHoursTheme={totalHoursThemeMap[isExtended]}
+            status={status ? statusMap[status] : "none"}
+            collapsed={collapsed}
+            onButtonClick={() =>
+              status && statusMap[status] === "not-submitted"
+                ? onButtonClick?.()
+                : undefined
+            }
+          />
+        </AccordionTrigger>
         <AccordionContent className="pb-0">
           {children?.({
             totalHours: floatToTime(weekData.total, 2),
+            totalHoursTheme: totalHoursThemeMap[isExtended],
             totalTimeEntries: weekData.totalTimeEntries,
             totalTimeEntriesInHours: weekData.totalTimeEntriesInHours,
             dailyWorkingHours,

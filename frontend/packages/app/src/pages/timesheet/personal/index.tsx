@@ -26,17 +26,20 @@ import { Ellipsis } from "lucide-react";
 /**
  * Internal dependencies.
  */
-import { TimesheetTable } from "@/components/timesheet-table";
 import { parseFrappeErrorMsg, isDateInRange } from "@/lib/utils";
 import { useUser } from "@/providers/user";
+import type { RootState } from "@/store";
 import type { WorkingFrequency } from "@/types";
 import type { NewTimesheetProps, timesheet } from "@/types/timesheet";
 import { InfiniteScroll } from "../../../components/infiniteScroll";
-import { HeaderRow } from "../../../components/timesheet-table/components/row/headerRow";
+import { TimesheetRow } from "../../../components/timesheet-row";
+import { HeaderRow } from "../../../components/timesheet-row/components/row/headerRow";
 import { sampleFields } from "../constants";
 import { useTimesheetOutletContext } from "../outletContext";
 import { initialState, reducer } from "../reducer";
 import { validateDate } from "../utils";
+
+const NUMBER_OF_WEEKS_TO_FETCH = 4;
 
 function Timesheet() {
   const targetRef = useRef<HTMLDivElement>(null);
@@ -56,7 +59,7 @@ function Timesheet() {
     {
       employee: employeeId,
       start_date: timesheet.weekDate,
-      max_week: 4,
+      max_week: NUMBER_OF_WEEKS_TO_FETCH,
     },
   );
 
@@ -130,15 +133,6 @@ function Timesheet() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const onCellClick = (data: NewTimesheetProps) => {
-    data.employee = employeeId;
-    dispatch({ type: "SET_TIMESHEET", payload: data });
-    if (data.hours > 0) {
-      dispatch({ type: "SET_EDIT_DIALOG_STATE", payload: true });
-    } else {
-      dispatch({ type: "SET_DIALOG_STATE", payload: true });
-    }
-  };
   const loadData = () => {
     const data = timesheet.data.data;
     if (Object.keys(data).length === 0) return;
@@ -165,7 +159,7 @@ function Timesheet() {
     return entries.map(([key, week]) => {
       const filteredTasks = Object.fromEntries(
         Object.entries(week.tasks).filter(
-          ([_, task]) =>
+          ([, task]) =>
             task.name.toLowerCase().includes(query) ||
             task.subject.toLowerCase().includes(query),
         ),
@@ -234,7 +228,8 @@ function Timesheet() {
               isLoading={isLoading}
               hasMore={true}
               verticalLodMore={loadData}
-              className="w-full h-full overflow-auto"
+              className="w-full h-full overflow-auto scrollbar [scrollbar-gutter:stable]"
+              count={NUMBER_OF_WEEKS_TO_FETCH}
             >
               <div className="min-w-225">
                 {timesheet.data?.data &&
@@ -273,8 +268,9 @@ function Timesheet() {
                               ? targetRef
                               : null
                           }
+                          className="animate-fade-in"
                         >
-                          <TimesheetTable
+                          <TimesheetRow
                             label={key}
                             employee={employeeId}
                             workingHour={timesheet.data.working_hour}

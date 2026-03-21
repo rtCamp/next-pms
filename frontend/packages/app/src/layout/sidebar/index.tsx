@@ -40,7 +40,7 @@ const Sidebar = () => {
       logout: actions.logout,
     }));
 
-  const { theme, changeTheme } = useTheme();
+  const { theme, setTheme } = useTheme();
   const navigate = useNavigate();
   const { pathname } = useLocation();
 
@@ -78,7 +78,7 @@ const Sidebar = () => {
                 ) : (
                   <Moon className="text-ink-gray-6 mr-2" />
                 ),
-              onClick: changeTheme,
+              onClick: () => setTheme(theme === "dark" ? "light" : "dark"),
             },
             {
               label: "Logout",

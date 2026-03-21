@@ -17,19 +17,22 @@ import { type TaskRowTimeEntry } from "./constants";
 import { mergeClassNames as cn } from "../../../../utils";
 
 export interface TaskRowProps {
-  /** Optional index of the task, used for identifying the task in callbacks. */
-  taskIndex?: number;
   /** Label for the task row. */
   label: string;
   /** Whether the task row is starred. */
   starred?: boolean;
   /** Array of time entries for each day of the week for the task. */
   timeEntries: TaskRowTimeEntry[];
-  /** Optional function to handle cell click events, receiving the task index and day index. */
-  onCellClick?: (taskIndex: number | undefined, dayIndex: number) => void;
-  /** Optional function to render inline time entry popover for a time entry, receiving the task index and day index. */
+  /** Optional function to handle cell click events, receiving the task key and day index. */
+  onCellClick?: (taskKey: string, dayIndex: number) => void;
+  /** Optional function to handle star click events, receiving the task key. */
+  onStarClick?: (
+    e: React.MouseEvent<HTMLButtonElement>,
+    taskKey: string,
+  ) => void;
+  /** Optional function to render inline time entry popover for a time entry, receiving the task key and day index. */
   renderInlineTimeEntryPopover?: (
-    taskIndex: number | undefined,
+    taskKey: string,
     dayIndex: number,
     closePopover: () => void,
   ) => React.ReactNode;
@@ -45,14 +48,16 @@ export interface TaskRowProps {
   onLabelClick?: (taskKey: string) => void;
   /** Key of the task, used for identifying the task in callbacks. */
   taskKey: string;
+  /** Whether to hide the star button for liking the task. */
+  hideStarButton?: boolean;
 }
 
 export const TaskRow: React.FC<TaskRowProps> = ({
-  taskIndex,
   label,
   starred = false,
   timeEntries,
   onCellClick,
+  onStarClick,
   renderTaskHoverContent,
   renderInlineTimeEntryPopover,
   totalHours = "",
@@ -60,6 +65,7 @@ export const TaskRow: React.FC<TaskRowProps> = ({
   className,
   onLabelClick,
   taskKey,
+  hideStarButton,
 }) => {
   const actionRefs = useRef<
     Array<React.RefObject<Popover.Root.Actions | null>>
@@ -70,9 +76,8 @@ export const TaskRow: React.FC<TaskRowProps> = ({
         "flex justify-between items-center px-1 py-2 w-full border-b transition-colors border-outline-gray-1",
         className,
       )}
-      data-testid="task-row"
     >
-      <div className="flex flex-1 items-center min-w-0">
+      <div className="flex flex-1 items-center min-w-0 group">
         <div className="flex gap-2 items-center min-w-0">
           <TaskStatus status={status} />
           <span className="min-w-0 text-base font-medium truncate">
@@ -92,14 +97,28 @@ export const TaskRow: React.FC<TaskRowProps> = ({
               </PreviewCard.Portal>
             </PreviewCard.Root>
           </span>
-          {starred ? (
-            <span className="w-4 shrink-0">
-              <Star
-                strokeWidth={1.5}
-                size={16}
-                className="fill-current text-ink-amber-2"
-              />
-            </span>
+          {!hideStarButton ? (
+            <Button
+              variant="ghost"
+              className={cn(
+                "w-4 h-4 bg-transparent hover:bg-transparent active:bg-transparent shrink-0 p-0",
+                !starred &&
+                  "transition-opacity duration-100 opacity-0 group-hover:opacity-100",
+              )}
+              onClick={(e) => onStarClick?.(e, taskKey)}
+              aria-label={starred ? "Unstar task" : "Star task"}
+              icon={() => (
+                <Star
+                  strokeWidth={1.5}
+                  size={16}
+                  className={cn(
+                    starred
+                      ? "fill-current text-ink-amber-2"
+                      : "text-ink-gray-4",
+                  )}
+                />
+              )}
+            />
           ) : null}
         </div>
       </div>
@@ -123,7 +142,7 @@ export const TaskRow: React.FC<TaskRowProps> = ({
                     variant="ghost"
                     className="w-14.25 relative group flex justify-center items-center enabled:hover:bg-surface-gray-2 enabled:focus:bg-surface-gray-2 enabled:active:bg-surface-gray-3 disabled:cursor-default! lining-nums tabular-nums [&_span]:overflow-visible [&_span]:whitespace-normal"
                     disabled={timeEntry.disabled}
-                    onClick={() => onCellClick?.(taskIndex, index)}
+                    onClick={() => onCellClick?.(taskKey, index)}
                   />
                 }
               >
@@ -147,7 +166,7 @@ export const TaskRow: React.FC<TaskRowProps> = ({
                 <Popover.Positioner sideOffset={8} align="end">
                   <Popover.Popup>
                     {renderInlineTimeEntryPopover?.(
-                      taskIndex,
+                      taskKey,
                       index,
                       closePopover,
                     )}

@@ -9,7 +9,11 @@ export interface InlineTimeEntryProps {
   dailyWorkingHours?: number;
   totalUsedHoursInDay?: number;
   onSubmitSuccess?: () => void;
-  isBillable?: boolean;
+  timeEntry: {
+    time: string;
+    nonBillable: boolean;
+    disabled: boolean;
+  };
 }
 
 export type TimeEntryFormValues = {
