@@ -2,9 +2,9 @@
  * External dependencies.
  */
 import { ReactNode } from "react";
-import { Button } from "@next-pms/design-system/components";
 import { useToast } from "@next-pms/design-system/hooks";
 import { useFrappeVersionUpdate } from "@next-pms/hooks";
+import { Button } from "@rtcamp/frappe-ui-react";
 
 export const VersionUpdate = ({ children }: { children: ReactNode }) => {
   const { toast } = useToast();

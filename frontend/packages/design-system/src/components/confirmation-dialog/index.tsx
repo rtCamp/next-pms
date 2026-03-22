@@ -3,7 +3,6 @@
  */
 import { mergeClassNames } from "@next-pms/design-system";
 import {
-  Button,
   Dialog,
   DialogContent,
   DialogDescription,
@@ -12,6 +11,7 @@ import {
   DialogTrigger,
   Typography,
 } from "@next-pms/design-system/components";
+import { Button } from "@rtcamp/frappe-ui-react";
 import { LoaderCircle, Trash2, X } from "lucide-react";
 
 /**
@@ -59,13 +59,15 @@ const DeleteConfirmationDialog = ({
       <DialogContent className="sm:max-w-[425px] z-[1000]">
         <DialogHeader>
           <DialogDescription>
-            <Typography className="text-xl mb-2 mt-3 font-semibold">{title}</Typography>
+            <Typography className="text-xl mb-2 mt-3 font-semibold">
+              {title}
+            </Typography>
             <Typography className="text-sm">{description}</Typography>
           </DialogDescription>
         </DialogHeader>
 
         <DialogFooter>
-          <Button className="outline-none" variant="destructive" onClick={onDelete}>
+          <Button className="outline-none" theme="red" onClick={onDelete}>
             {isLoading ? (
               <LoaderCircle className="animate-spin w-4 h-4 outline-none" />
             ) : (
@@ -73,7 +75,12 @@ const DeleteConfirmationDialog = ({
             )}
             Delete
           </Button>
-          <Button type="button" className="outline-none" variant="secondary" onClick={onCancel}>
+          <Button
+            type="button"
+            className="outline-none"
+            theme="gray"
+            onClick={onCancel}
+          >
             <X className="w-4 h-4" />
             Cancel
           </Button>
