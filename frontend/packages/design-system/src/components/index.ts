@@ -84,17 +84,6 @@ export {
 
 export { default as ErrorFallback } from "./error-fallback";
 
-/* Form */
-export {
-  Form,
-  FormItem,
-  FormLabel,
-  FormControl,
-  FormDescription,
-  FormMessage,
-  FormField,
-} from "./form";
-export { FormFieldContext, FormItemContext, useFormField } from "./form/hooks";
 export { HoverCard, HoverCardTrigger, HoverCardContent } from "./hover-card";
 export { Popover, PopoverTrigger, PopoverContent } from "./popover";
 export { RadioGroup, RadioGroupItem } from "./radio-group";
