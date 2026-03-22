@@ -2,7 +2,6 @@
  * Internal dependencies
  */
 export { default as Button, type ButtonProps } from "./button";
-export { default as Badge, type BadgeProps } from "./badge";
 export { default as Checkbox } from "./checkbox";
 export { type CheckedState } from "@radix-ui/react-checkbox";
 export {
@@ -53,7 +52,6 @@ export {
   AccordionTrigger,
   AccordionContent,
 } from "./accordion";
-export { Avatar, AvatarImage, AvatarFallback } from "./avatar";
 export { default as Calendar } from "./calendar";
 export {
   Card,
