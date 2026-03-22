@@ -8,7 +8,6 @@ import { Route, Outlet } from "react-router-dom";
  * Internal dependencies.
  */
 import { FrappeConfig, FrappeContext } from "frappe-react-sdk";
-import { default as Layout } from "@/layout";
 import { ROUTES } from "@/lib/constant";
 import { setViews } from "@/store/view";
 import { useUser } from "./providers/user";
@@ -83,10 +82,6 @@ const AuthenticatedRoute = () => {
   }
 
   if (!isUserLoading && currentUser && currentUser !== "Guest") {
-    return (
-      <Layout>
-        <Outlet />
-      </Layout>
-    );
+    return <Outlet />;
   }
 };
