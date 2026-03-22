@@ -2,10 +2,6 @@
  * Internal dependencies
  */
 export { type CheckedState } from "@radix-ui/react-checkbox";
-export {
-  default as DeBouncedInput,
-  type DeBounceInputProps,
-} from "./debounced-input";
 export { default as Input, type InputProps } from "./input";
 export { default as Spinner, type SpinnerProp } from "./spinner";
 export { default as Progress } from "./progress";
