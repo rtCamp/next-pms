@@ -2,8 +2,11 @@
  * External dependencies.
  */
 import { floatToTime } from "@next-pms/design-system";
-import { getDateFromDateAndTimeString, getUTCDateTime, normalizeDate } from "@next-pms/design-system/date";
-import { toast } from "@next-pms/design-system/hooks";
+import {
+  getDateFromDateAndTimeString,
+  getUTCDateTime,
+  normalizeDate,
+} from "@next-pms/design-system/date";
 import { type ClassValue, clsx } from "clsx";
 import { isToday } from "date-fns";
 import { Error as FrappeError } from "frappe-js-sdk/lib/frappe_app/types";
@@ -72,7 +75,7 @@ export function removeHtmlString(data: string) {
 export function calculateExtendedWorkingHour(
   hours: number,
   expected_hours: number,
-  frequency: WorkingFrequency
+  frequency: WorkingFrequency,
 ) {
   const flotTime = floatToTime(hours);
   const timeToFloat = timeStringToFloat(flotTime);
@@ -97,7 +100,7 @@ export function calculateExtendedWorkingHour(
 
 export function calculateWeeklyHour(
   expected_hours: number,
-  frequency: WorkingFrequency
+  frequency: WorkingFrequency,
 ) {
   if (frequency === "Per Day") {
     return expected_hours * 5;
@@ -108,7 +111,7 @@ export function calculateWeeklyHour(
 
 export const expectatedHours = (
   expected_hours: number,
-  frequency: WorkingFrequency
+  frequency: WorkingFrequency,
 ): number => {
   if (frequency === "Per Day") {
     return expected_hours;
@@ -181,17 +184,11 @@ export const checkIsMobile = () => {
   }
 };
 
-export const copyToClipboard = (text: string) => {
-  navigator.clipboard.writeText(text);
-  toast({ title: "Copied to clipboard", variant: "success" });
-};
-
 export const canExport = (doctype: string) => {
   // @ts-expect-error - frappe is global object provided by frappe
   return window.frappe?.boot?.user?.can_export?.includes(doctype) ?? true;
 };
 export const canCreate = (doctype: string) => {
-  // @ts-expect-error - frappe is global object provided by frappe
   return window.frappe?.boot?.user?.can_create?.includes(doctype) ?? true;
 };
 
@@ -245,7 +242,7 @@ export const getBgCsssForToday = (date: string) => {
 export const isDateInRange = (
   date: string,
   startDate: string,
-  endDate: string
+  endDate: string,
 ) => {
   const targetDate = getUTCDateTime(normalizeDate(date));
 
@@ -260,7 +257,7 @@ export const getTimesheetHours = (
   timesheetTotalHour: number,
   leaves: Array<LeaveProps>,
   holidays: Array<HolidayProp>,
-  dailyWorkingHours: number
+  dailyWorkingHours: number,
 ) => {
   let totalHours = timesheetTotalHour;
   let timeOffHours = 0;
@@ -314,7 +311,7 @@ export const getCurrencySymbol = (currencyCode: string): string | null => {
 
 export const evaluateDependsOn = (
   dependsOn: string,
-  doc: Record<string, string | number | null>
+  doc: Record<string, string | number | null>,
 ): boolean => {
   if (!dependsOn) return true; // No condition means always true
 
@@ -323,7 +320,7 @@ export const evaluateDependsOn = (
       const condition = dependsOn.slice(5).replace(/\\"/g, '"'); // Remove "eval:" prefix
       return new Function(
         "doc",
-        `try { return Boolean(${condition}); } catch (e) { return false; }`
+        `try { return Boolean(${condition}); } catch (e) { return false; }`,
       )(doc);
     } else if (dependsOn in doc) {
       return Boolean(doc[dependsOn]); // If it's just a fieldname, check if it's truthy
@@ -337,12 +334,15 @@ export const evaluateDependsOn = (
 };
 
 export const mapFieldsToObject = (
-  fields: Array<Record<string, string | number | null>>
+  fields: Array<Record<string, string | number | null>>,
 ) => {
-  return fields.reduce((acc, field) => {
-    acc[field.fieldname!] = field.value;
-    return acc;
-  }, {} as Record<string, string | number | null>);
+  return fields.reduce(
+    (acc, field) => {
+      acc[field.fieldname!] = field.value;
+      return acc;
+    },
+    {} as Record<string, string | number | null>,
+  );
 };
 
 export const extractTextFromHTML = (htmlContent: string) => {
@@ -402,7 +402,7 @@ export const getDefaultView = (
   user: string,
   route: string,
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  filters: any = {}
+  filters: any = {},
 ) => {
   return {
     label,
@@ -444,7 +444,7 @@ export const calculateLeaveHours = (
   leaves: LeaveProps[],
   date: string,
   daily_working_hours: number,
-  holiday: HolidayProp | undefined
+  holiday: HolidayProp | undefined,
 ) => {
   return leaves.reduce((total, leave) => {
     if (date >= leave.from_date && date <= leave.to_date) {
