@@ -127,7 +127,7 @@ export const TaskHoverCard = ({
             </Typography>
           </div>
           <span>
-            <TaskStatus status={taskData.status as TaskData["status"]} />
+            <TaskStatus status={taskData.status} />
           </span>
         </span>
         <Separator className="my-1" />
