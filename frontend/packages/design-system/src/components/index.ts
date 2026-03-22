@@ -51,7 +51,6 @@ export {
   AccordionTrigger,
   AccordionContent,
 } from "./accordion";
-export { default as ComboBox } from "./combo-box";
 export {
   Command,
   CommandDialog,
