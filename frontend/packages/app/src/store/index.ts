@@ -8,12 +8,10 @@ import { configureStore } from "@reduxjs/toolkit";
  */
 
 import projectReducer from "./project";
-import viewReducer from "./view";
 
 export const store = configureStore({
   reducer: {
     project: projectReducer,
-    view: viewReducer,
   },
 });
 export type RootState = ReturnType<typeof store.getState>;
