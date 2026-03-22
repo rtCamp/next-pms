@@ -5,7 +5,6 @@ export { type CheckedState } from "@radix-ui/react-checkbox";
 export { default as Input, type InputProps } from "./input";
 export { default as Spinner, type SpinnerProp } from "./spinner";
 export { default as Progress } from "./progress";
-export { default as Label } from "./label";
 export { default as Typography, type TypographyProps } from "./typography";
 export { default as Skeleton } from "./skeleton";
 export {
@@ -85,7 +84,6 @@ export {
 export { default as ErrorFallback } from "./error-fallback";
 
 export { HoverCard, HoverCardTrigger, HoverCardContent } from "./hover-card";
-export { Popover, PopoverTrigger, PopoverContent } from "./popover";
 export { RadioGroup, RadioGroupItem } from "./radio-group";
 export {
   Select,
