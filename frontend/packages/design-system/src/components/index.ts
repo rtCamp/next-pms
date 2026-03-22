@@ -51,15 +51,6 @@ export {
   AccordionTrigger,
   AccordionContent,
 } from "./accordion";
-export { default as Calendar } from "./calendar";
-export {
-  Card,
-  CardHeader,
-  CardFooter,
-  CardTitle,
-  CardDescription,
-  CardContent,
-} from "./card";
 export { default as ComboBox } from "./combo-box";
 export {
   Command,
@@ -72,7 +63,6 @@ export {
   CommandShortcut,
   CommandSeparator,
 } from "./command";
-export { default as DatePicker } from "./date-picker";
 export {
   default as DurationInput,
   type DurationInputProps,
