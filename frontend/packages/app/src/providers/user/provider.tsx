@@ -61,7 +61,7 @@ export const UserProvider: FC<PropsWithChildren> = ({ children }) => {
    */
   const updateIsSidebarCollapsed = (state: boolean) => {
     setIsSidebarCollapsed(state);
-    setLocalStorage("next-pms:isSidebarCollapsed", state);
+    setLocalStorage("next-pms:isSidebarCollapsed", state ? "true" : "false");
   };
 
   /**
