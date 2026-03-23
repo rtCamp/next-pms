@@ -7,9 +7,10 @@ export { MemberRow, type MemberRowProps } from "./rows/member/memberRow";
 export { TaskRow, type TaskRowProps } from "./rows/task/taskRow";
 export {
   type RowStatus,
+  type RowStatusLabel,
   type TotalHoursTheme,
   totalHoursThemeMap,
-  statusLabel,
+  statusLabelMap,
   statusMap,
   taskStatusMap,
 } from "./rows/constants";

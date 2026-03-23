@@ -11,7 +11,7 @@ import { ChevronDown } from "lucide-react";
 import { buttonVariants, statusIcon, statusTheme } from "./constants";
 import { mergeClassNames as cn } from "../../../../utils";
 import {
-  statusLabel,
+  statusLabelMap,
   type TotalHoursTheme,
   type RowStatus,
   totalHoursVariants,
@@ -74,7 +74,7 @@ export const MemberRow: React.FC<MemberRowProps> = ({
           </span>
           {status !== "none" && (
             <Badge theme={statusTheme[status]} className="shrink-0">
-              {statusLabel[status]}
+              {statusLabelMap[status]}
             </Badge>
           )}
         </div>
@@ -123,7 +123,7 @@ export const MemberRow: React.FC<MemberRowProps> = ({
               const IconComponent = statusIcon[status]?.icon;
               return IconComponent ? <IconComponent size={16} /> : null;
             }}
-            title={statusLabel[status]}
+            title={statusLabelMap[status]}
           />
         ) : null}
       </div>

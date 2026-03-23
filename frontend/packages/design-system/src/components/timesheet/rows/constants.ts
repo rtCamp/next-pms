@@ -15,7 +15,17 @@ export type RowStatus =
   | "approval-pending"
   | "none";
 
-export const statusLabel: Record<RowStatus, string> = {
+export type RowStatusLabel =
+  | "Not Submitted"
+  | "Approved"
+  | "Rejected"
+  | "Approval Pending"
+  | "None"
+  | "Partially Approved"
+  | "Partially Rejected"
+  | "Processing Timesheet";
+
+export const statusLabelMap: Record<RowStatus, RowStatusLabel> = {
   "not-submitted": "Not Submitted",
   approved: "Approved",
   rejected: "Rejected",
@@ -23,7 +33,7 @@ export const statusLabel: Record<RowStatus, string> = {
   none: "None",
 };
 
-export const statusMap: Record<string, RowStatus> = {
+export const statusMap: Record<RowStatusLabel, RowStatus> = {
   "Not Submitted": "not-submitted",
   Approved: "approved",
   Rejected: "rejected",

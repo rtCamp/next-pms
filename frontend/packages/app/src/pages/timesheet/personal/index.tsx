@@ -1,8 +1,8 @@
 /**
  * External dependencies.
  */
-import { useEffect, useMemo, useReducer, useRef, useState } from "react";
-import { Spinner, Typography } from "@next-pms/design-system/components";
+import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from "react";
+import { RowStatus, RowStatusLabel, Spinner, statusLabelMap, Typography } from "@next-pms/design-system/components";
 import { getFormatedDate } from "@next-pms/design-system/date";
 
 import { useQueryParam } from "@next-pms/hooks";
@@ -43,9 +43,11 @@ const NUMBER_OF_WEEKS_TO_FETCH = 4;
 
 function Timesheet() {
   const targetRef = useRef<HTMLDivElement>(null);
+  const isFilterRequestRef = useRef(false);
   const toast = useToasts();
   const [filters, setFilters] = useState<FilterCondition[]>([]);
   const [search, setSearch] = useState("");
+  const [approvalStatus, setApprovalStatus] = useState<RowStatusLabel | "all" | null>(null);
 
   const { handleApproval } = useTimesheetOutletContext();
 
@@ -54,13 +56,37 @@ function Timesheet() {
     employeeId: state.employeeId,
   }));
   const [timesheet, dispatch] = useReducer(reducer, initialState);
-  const { data, isLoading, error } = useFrappeGetCall(
-    "next_pms.timesheet.api.timesheet.get_timesheet_data",
-    {
-      employee: employeeId,
-      start_date: timesheet.weekDate,
-      max_week: NUMBER_OF_WEEKS_TO_FETCH,
+  const { data, isLoading, error } = useFrappeGetCall("next_pms.timesheet.api.timesheet.get_timesheet_data", {
+    employee: employeeId,
+    start_date: timesheet.weekDate,
+    max_week: NUMBER_OF_WEEKS_TO_FETCH,
+    search,
+    approval_status: approvalStatus,
+  });
+
+  const resetWeekDateForFilters = useCallback(() => {
+    isFilterRequestRef.current = true;
+    setStartDateParam("");
+    dispatch({
+      type: "SET_WEEK_DATE",
+      payload: initialState.weekDate,
+    });
+  }, [dispatch, setStartDateParam]);
+
+  const handleSearchChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      resetWeekDateForFilters();
+      setSearch(e.target.value);
     },
+    [resetWeekDateForFilters],
+  );
+
+  const handleApprovalStatusChange = useCallback(
+    (value: string | undefined) => {
+      resetWeekDateForFilters();
+      setApprovalStatus(value && value !== "all" ? statusLabelMap[value as RowStatus] : null);
+    },
+    [resetWeekDateForFilters],
   );
 
   useEffect(() => {
@@ -79,14 +105,15 @@ function Timesheet() {
 
   useEffect(() => {
     if (data) {
-      if (
-        timesheet.data?.data &&
-        Object.keys(timesheet.data?.data).length > 0
-      ) {
+      if (isFilterRequestRef.current) {
+        dispatch({ type: "SET_DATA", payload: data.message });
+      } else if (timesheet.data?.data && Object.keys(timesheet.data?.data).length > 0) {
         dispatch({ type: "APPEND_DATA", payload: data.message });
       } else {
         dispatch({ type: "SET_DATA", payload: data.message });
       }
+
+      isFilterRequestRef.current = false;
     }
     if (error) {
       const err = parseFrappeErrorMsg(error);
@@ -118,8 +145,9 @@ function Timesheet() {
     }
     dispatch({ type: "APPEND_DATA", payload: res });
   });
-  const { call: fetchLikedTask, loading: loadingLikedTasks } =
-    useFrappePostCall("next_pms.timesheet.api.task.get_liked_tasks");
+  const { call: fetchLikedTask, loading: loadingLikedTasks } = useFrappePostCall(
+    "next_pms.timesheet.api.task.get_liked_tasks",
+  );
   const [likedTaskData, setLikedTaskData] = useState([]);
 
   const getLikedTaskData = () => {
@@ -147,28 +175,6 @@ function Timesheet() {
     });
   };
 
-  const filteredWeekEntries = useMemo(() => {
-    const entries = Object.entries(timesheet.data.data) as [
-      string,
-      timesheet,
-    ][];
-    const query = search.trim().toLowerCase();
-
-    if (!query) return entries;
-
-    return entries.map(([key, week]) => {
-      const filteredTasks = Object.fromEntries(
-        Object.entries(week.tasks).filter(
-          ([, task]) =>
-            task.name.toLowerCase().includes(query) ||
-            task.subject.toLowerCase().includes(query),
-        ),
-      );
-
-      return [key, { ...week, tasks: filteredTasks }] as [string, timesheet];
-    });
-  }, [timesheet.data.data, search]);
-
   return (
     <div className="w-full h-full py-3.5 px-3">
       <div className="flex justify-between mb-3.5">
@@ -176,14 +182,16 @@ function Timesheet() {
           <TextInput
             placeholder="Search Tasks"
             value={search}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-              setSearch(e.target.value)
-            }
+            onChange={handleSearchChange}
           />
           <Select
             placeholder="Approval Status"
             className="w-fit"
             options={[
+              {
+                label: "All",
+                value: "all",
+              },
               {
                 label: "Not Submitted",
                 value: "not-submitted",
@@ -201,6 +209,7 @@ function Timesheet() {
                 value: "rejected",
               },
             ]}
+            onChange={handleApprovalStatusChange}
           />
         </div>
         <div className="flex gap-2">
@@ -220,8 +229,8 @@ function Timesheet() {
       ) : (
         <>
           {Object.keys(timesheet.data?.data).length == 0 ? (
-            <Typography className="flex items-center justify-center">
-              No Data
+            <Typography className="w-full h-full flex items-center justify-center">
+              No Data Found
             </Typography>
           ) : (
             <InfiniteScroll
@@ -234,7 +243,8 @@ function Timesheet() {
               <div className="min-w-225">
                 {timesheet.data?.data &&
                   Object.keys(timesheet.data?.data).length > 0 &&
-                  filteredWeekEntries.map(([key, value], index) => {
+                  timesheet.data?.data &&
+                  Object.entries(timesheet.data?.data).map(([key, value], index) => {
                     return (
                       <>
                         {index === 0 ? (
