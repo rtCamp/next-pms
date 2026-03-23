@@ -32,9 +32,9 @@ const App = () => {
   });
 
   return (
-    <BootProvider>
-      <ToastProvider>
-        <FrappeProvider>
+    <ToastProvider>
+      <FrappeProvider>
+        <BootProvider>
           <ThemeProvider>
             <UserProvider>
               <Provider store={store}>
@@ -48,9 +48,9 @@ const App = () => {
               </Provider>
             </UserProvider>
           </ThemeProvider>
-        </FrappeProvider>
-      </ToastProvider>
-    </BootProvider>
+        </BootProvider>
+      </FrappeProvider>
+    </ToastProvider>
   );
 };
 

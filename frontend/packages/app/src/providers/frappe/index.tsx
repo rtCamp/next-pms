@@ -8,16 +8,16 @@ import { FrappeProvider as _FrappeProvider } from "frappe-react-sdk";
  */
 import { VersionUpdate } from "@/components/versionUpdate";
 import { enableSocket } from "@/lib/utils";
-import { useBoot } from "../boot/hook";
 
 const FrappeProvider = ({ children }: { children: ReactNode }) => {
-  const { sitename } = useBoot();
+
+  console.log("Frappe Provider");
   return (
     <_FrappeProvider
       url={import.meta.env.VITE_BASE_URL ?? ""}
       socketPort={import.meta.env.VITE_SOCKET_PORT}
       enableSocket={enableSocket()}
-      siteName={sitename}
+      siteName={window?.frappe?.boot?.sitename}
     >
       <VersionUpdate>{children}</VersionUpdate>
     </_FrappeProvider>

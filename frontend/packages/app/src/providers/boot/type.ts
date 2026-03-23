@@ -1,5 +1,4 @@
 export type BootProviderState = {
-  sitename: string;
   user: {
     roles: string[];
     canCreate: string[];

@@ -9,7 +9,6 @@ import { createContext } from "react";
 import { BootProviderState } from "./type";
 
 const initialState: BootProviderState = {
-  sitename: "",
   user: {
     roles: [],
     canCreate: [],

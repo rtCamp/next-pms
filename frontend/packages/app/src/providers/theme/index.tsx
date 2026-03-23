@@ -15,6 +15,8 @@ const ThemeProvider = ({
   storageKey = "next-pms-ui-theme",
   ...props
 }: ThemeProviderProps) => {
+
+  console.log("Theme Provider");
   const { deskTheme } = useBoot();
   const [theme, setTheme] = useState<Theme>(
     () =>

@@ -35,10 +35,12 @@ const BootProvider: FC<PropsWithChildren> = ({ children }) => {
     setHasIndustry(appData?.message?.has_industry || false);
   }, [appData]);
 
+  console.log("boot Provider");
+  
+
   return (
     <BootProviderContext.Provider
       value={{
-        sitename: window.frappe?.boot?.sitename ?? "",
         user: {
           roles,
           canCreate: window.frappe?.boot?.user?.can_create ?? [],
