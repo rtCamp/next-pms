@@ -3,7 +3,7 @@
  */
 import * as React from "react";
 import { Accordion as BaseAccordion } from "@base-ui/react/accordion";
-import { ChevronDown } from "lucide-react";
+
 /**
  * Internal dependencies.
  */
@@ -33,23 +33,19 @@ AccordionItem.displayName = "AccordionItem";
 const AccordionTrigger = React.forwardRef<
   React.ComponentRef<typeof BaseAccordion.Trigger>,
   React.ComponentPropsWithoutRef<typeof BaseAccordion.Trigger> & {
-    hideChevronDown?: boolean;
     className?: string;
   }
->(({ className, children, hideChevronDown, ...props }, ref) => (
+>(({ className, children, ...props }, ref) => (
   <BaseAccordion.Header className="flex">
     <BaseAccordion.Trigger
       ref={ref}
       className={mergeClassNames(
-        "flex flex-1 items-center justify-between py-4 font-medium transition-all hover:underline",
+        "flex flex-1 items-center justify-between",
         className,
       )}
       {...props}
     >
       {children}
-      {!hideChevronDown && (
-        <ChevronDown className="w-4 h-4 transition-transform duration-200 shrink-0 in-data-open:rotate-180" />
-      )}
     </BaseAccordion.Trigger>
   </BaseAccordion.Header>
 ));

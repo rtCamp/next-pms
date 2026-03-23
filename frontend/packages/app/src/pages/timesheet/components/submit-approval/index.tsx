@@ -56,17 +56,19 @@ const SubmitApproval = ({
   );
 
   const { data } = useFrappeGetCall(
-    "next_pms.timesheet.api.get_employee_list",
+    "next_pms.timesheet.api.employee.get_employee_list",
     {
       role: ["Projects Manager", "Projects User"],
     },
   );
 
-  const approvers = ((data?.message ?? []) as EmployeeRecord[]).map((emp) => ({
-    label: emp.employee_name,
-    value: emp.name,
-    icon: <Avatar image={emp.image} label={emp.employee_name} />,
-  }));
+  const approvers = ((data?.message?.data ?? []) as EmployeeRecord[]).map(
+    (emp) => ({
+      label: emp.employee_name,
+      value: emp.name,
+      icon: <Avatar size="xs" image={emp.image} label={emp.employee_name} />,
+    }),
+  );
 
   const weekLabel = formatWeekLabel(startDate, endDate);
   const formattedHours = floatToTime(totalHours, 2);

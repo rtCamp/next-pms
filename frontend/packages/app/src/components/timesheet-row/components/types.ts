@@ -2,6 +2,7 @@
  * Internal dependencies
  */
 import type { TaskData, WorkingFrequency } from "@/types";
+import { TaskStatusType } from "@/types/task";
 import type {
   HolidayProp,
   LeaveProps,
@@ -19,14 +20,7 @@ export type TaskHoverCardProps = {
   hideLikeButton?: boolean;
 };
 
-export type weekTotalProps = {
-  total: number;
-  expected_hour: number;
-  frequency: WorkingFrequency;
-  className?: string;
-};
-
-export type timesheetTableProps = {
+export type TimesheetRowProps = {
   label?: string;
   employee?: string;
   dates: string[];
@@ -44,5 +38,5 @@ export type timesheetTableProps = {
   getLikedTaskData?: () => void;
   hideLikeButton?: boolean;
   onButtonClick?: () => void;
-  status?: string;
+  status: TaskStatusType;
 };

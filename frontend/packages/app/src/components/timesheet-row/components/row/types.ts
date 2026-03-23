@@ -1,7 +1,7 @@
 /**
  * External dependencies.
  */
-import {
+import type {
   HeaderRowProps as BaseHeaderRowProps,
   WeekRowProps as BaseWeekRowProps,
   TotalRowProps as BaseTotalRowProps,
@@ -10,6 +10,7 @@ import {
   TimeOffRowProps as BaseTimeOffRowProps,
   RowStatus,
   TaskStatusType,
+  TotalHoursTheme,
 } from "@next-pms/design-system/components";
 
 /**
@@ -38,6 +39,7 @@ export interface WeekRowProps extends Omit<BaseWeekRowProps, "status"> {
   status: TaskStatusType;
   children?: (props: {
     totalHours: string;
+    totalHoursTheme: TotalHoursTheme;
     totalTimeEntries: string[];
     totalTimeEntriesInHours: number[];
     dailyWorkingHours: number;
@@ -69,6 +71,8 @@ export interface TaskRowProps extends Omit<
   dailyWorkingHours?: number;
   totalTimeEntriesInHours?: number[];
   employee?: string;
+  getLikedTaskData?: () => void;
+  hideLikeButton?: boolean;
 }
 
 export interface TimeOffRowProps extends Omit<

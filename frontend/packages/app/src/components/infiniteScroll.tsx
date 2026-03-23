@@ -10,8 +10,19 @@ import { Skeleton } from "@rtcamp/frappe-ui-react";
  */
 import { InfiniteScrollProps } from "./types";
 
-const InfiniteScroll = ({ children, isLoading, hasMore, verticalLodMore, className }: InfiniteScrollProps) => {
-  const verticalLoderRef = useInfiniteScroll({ isLoading: isLoading, hasMore: hasMore, next: () => verticalLodMore() });
+const InfiniteScroll = ({
+  children,
+  isLoading,
+  hasMore,
+  verticalLodMore,
+  className,
+  count = 1,
+}: InfiniteScrollProps) => {
+  const verticalLoderRef = useInfiniteScroll({
+    isLoading: isLoading,
+    hasMore: hasMore,
+    next: () => verticalLodMore(),
+  });
 
   return (
     <div className={className}>
@@ -19,9 +30,14 @@ const InfiniteScroll = ({ children, isLoading, hasMore, verticalLodMore, classNa
       {hasMore && (
         <div
           ref={verticalLoderRef}
-          className="flex flex-col items-start w-full sticky left-0 h-30"
+          className="flex flex-col items-start w-full sticky left-0 h-30 gap-px"
         >
-          <Skeleton className="h-10 w-full rounded-none" />
+          {Array.from({ length: count }).map((_, index) => (
+            <Skeleton
+              key={index}
+              className="h-11.25 shrink-0 w-full rounded-none"
+            />
+          ))}
         </div>
       )}
     </div>

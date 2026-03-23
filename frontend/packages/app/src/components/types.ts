@@ -21,6 +21,7 @@ export interface InfiniteScrollProps {
   hasMore: boolean;
   verticalLodMore: () => void;
   className?: string;
+  count?: number;
 }
 
 export interface TaskIndicatorProps {

@@ -11,12 +11,12 @@ import {
   Typography,
 } from "@next-pms/design-system/components";
 import { floatToTime } from "@next-pms/design-system/utils";
-import { useToasts } from "@rtcamp/frappe-ui-react";
 import { useFrappePostCall } from "frappe-react-sdk";
 import { Heart } from "lucide-react";
 /**
  * Internal dependencies
  */
+import { useUser } from "@/hooks/useUser";
 import { LIKED_TASK_KEY } from "@/lib/constant";
 import { addAction, toggleLikedByForTask } from "@/lib/storage";
 import { mergeClassNames, parseFrappeErrorMsg } from "@/lib/utils";

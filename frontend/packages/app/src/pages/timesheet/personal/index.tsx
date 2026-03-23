@@ -26,17 +26,19 @@ import { Ellipsis } from "lucide-react";
 /**
  * Internal dependencies.
  */
-import { TimesheetTable } from "@/components/timesheet-table";
 import { parseFrappeErrorMsg, isDateInRange } from "@/lib/utils";
 import { useUser } from "@/providers/user";
 import type { WorkingFrequency } from "@/types";
 import type { timesheet } from "@/types/timesheet";
 import { InfiniteScroll } from "../../../components/infiniteScroll";
-import { HeaderRow } from "../../../components/timesheet-table/components/row/headerRow";
+import { TimesheetRow } from "../../../components/timesheet-row";
+import { HeaderRow } from "../../../components/timesheet-row/components/row/headerRow";
 import { sampleFields } from "../constants";
 import { useTimesheetOutletContext } from "../outletContext";
 import { initialState, reducer } from "../reducer";
 import { validateDate } from "../utils";
+
+const NUMBER_OF_WEEKS_TO_FETCH = 4;
 
 function Timesheet() {
   const targetRef = useRef<HTMLDivElement>(null);
@@ -56,7 +58,7 @@ function Timesheet() {
     {
       employee: employeeId,
       start_date: timesheet.weekDate,
-      max_week: 4,
+      max_week: NUMBER_OF_WEEKS_TO_FETCH,
     },
   );
 
@@ -225,7 +227,8 @@ function Timesheet() {
               isLoading={isLoading}
               hasMore={true}
               verticalLodMore={loadData}
-              className="w-full h-full overflow-auto"
+              className="w-full h-full overflow-auto scrollbar [scrollbar-gutter:stable]"
+              count={NUMBER_OF_WEEKS_TO_FETCH}
             >
               <div className="min-w-225">
                 {timesheet.data?.data &&
@@ -264,8 +267,9 @@ function Timesheet() {
                               ? targetRef
                               : null
                           }
+                          className="animate-fade-in"
                         >
-                          <TimesheetTable
+                          <TimesheetRow
                             label={key}
                             employee={employeeId}
                             workingHour={timesheet.data.working_hour}

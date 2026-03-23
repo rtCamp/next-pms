@@ -8,14 +8,14 @@ import { ChevronDown } from "lucide-react";
 /**
  * Internal dependencies.
  */
-import {
-  buttonVariants,
-  statusIcon,
-  statusTheme,
-  totalHoursVariants,
-} from "./constants";
+import { buttonVariants, statusIcon, statusTheme } from "./constants";
 import { mergeClassNames as cn } from "../../../../utils";
-import { statusLabel, type RowStatus } from "../constants";
+import {
+  statusLabel,
+  type TotalHoursTheme,
+  type RowStatus,
+  totalHoursVariants,
+} from "../constants";
 
 export interface MemberRowProps {
   /** Name of the member. */
@@ -26,14 +26,14 @@ export interface MemberRowProps {
   collapsed?: boolean;
   /** Status of the timesheet for the member. */
   status?: RowStatus;
-  /** Callback function when the member row is toggled between collapsed and expanded. */
-  onToggle?: () => void;
   /** Callback function when the action button is clicked. */
   onButtonClick?: () => void;
   /** Array of time entries for each day of the week for the member. */
   timeEntries: string[];
   /** Total hours logged for the week. */
   totalHours?: string;
+  /** Theme for the total hours */
+  totalHoursTheme?: TotalHoursTheme;
   /** Additional class names for the member row container. */
   className?: string;
 }
@@ -44,9 +44,9 @@ export const MemberRow: React.FC<MemberRowProps> = ({
   collapsed = false,
   status = "not-submitted",
   timeEntries,
-  onToggle,
   onButtonClick,
   totalHours = "",
+  totalHoursTheme,
   className,
 }) => {
   const isStatusNone = status === "none";
@@ -57,20 +57,16 @@ export const MemberRow: React.FC<MemberRowProps> = ({
         "flex items-center border-b border-outline-gray-1 transition-colors w-full justify-between px-1 py-2",
         className,
       )}
-      data-testid="member-row"
     >
       <div className="flex items-center flex-1 min-w-0 gap-2 align-middle">
-        <Button
-          onClick={onToggle}
-          disabled={!onToggle}
-          variant="ghost"
+        <span
           className={cn(
-            "w-4 shrink-0 border-none outline-none focus:ring-0 focus-visible:ring-0 transition-transform bg-transparent hover:bg-transparent focus:bg-transparent active:bg-transparent",
+            "w-4 shrink-0 transition-transform",
             collapsed ? "-rotate-90" : "rotate-0",
           )}
-          icon={() => <ChevronDown strokeWidth={1.5} size={16} />}
-          aria-label="Toggle member"
-        />
+        >
+          <ChevronDown strokeWidth={1.5} size={16} />
+        </span>
         <div className="flex items-center min-w-0 gap-2">
           <Avatar image={avatarUrl} shape="circle" label={label} size="xs" />
           <span className="text-base font-medium text-ink-gray-9 truncate leading-3.5">
@@ -103,13 +99,18 @@ export const MemberRow: React.FC<MemberRowProps> = ({
       })}
 
       <div className="shrink-0 flex justify-end items-center text-sm text-end text-ink-gray-5 whitespace-nowrap w-16 h-7 px-2 py-1.5 leading-3.5">
-        <span className={cn(totalHoursVariants({ status }))}>{totalHours}</span>
+        <span className={cn(totalHoursVariants({ theme: totalHoursTheme }))}>
+          {totalHours}
+        </span>
       </div>
 
       <div className="flex items-center justify-end w-12 shrink-0 h-7 whitespace-nowrap">
         {!isStatusNone && statusIcon[status]?.icon ? (
           <Button
-            onClick={onButtonClick}
+            onClick={(e) => {
+              e.stopPropagation();
+              onButtonClick?.();
+            }}
             className={cn(
               buttonVariants({
                 status,
