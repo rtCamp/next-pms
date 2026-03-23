@@ -103,10 +103,10 @@ export const TaskRow = ({
     [rest.label, tasks, status],
   );
 
-  const handleStar = (
+  const handleStar = async (
     e: React.MouseEvent<HTMLButtonElement>,
     taskKey: string,
-  ) => {
+  ): Promise<void> => {
     e.stopPropagation();
     const data = {
       name: taskKey,
@@ -114,17 +114,18 @@ export const TaskRow = ({
       doctype: "Task",
     };
     setTaskLiked((prev) => !prev);
-    toggleLikeCall(data)
-      .then(() => {
-        getLikedTaskData?.();
-      })
-      .catch((err) => {
-        const error = parseFrappeErrorMsg(err);
-        toast({
-          variant: "destructive",
-          description: error,
-        });
+    try {
+      await toggleLikeCall(data);
+      getLikedTaskData?.();
+    } catch (err) {
+      const error = parseFrappeErrorMsg(
+        err as Parameters<typeof parseFrappeErrorMsg>[0],
+      );
+      toast({
+        variant: "destructive",
+        description: error,
       });
+    }
   };
 
   useEffect(() => {

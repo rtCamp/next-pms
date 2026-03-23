@@ -2,6 +2,7 @@
  * Internal dependencies
  */
 import type { TaskData, WorkingFrequency } from "@/types";
+import { TaskStatusType } from "@/types/task";
 import type {
   HolidayProp,
   LeaveProps,
@@ -37,5 +38,5 @@ export type TimesheetRowProps = {
   getLikedTaskData?: () => void;
   hideLikeButton?: boolean;
   onButtonClick?: () => void;
-  status?: string;
+  status: TaskStatusType;
 };
