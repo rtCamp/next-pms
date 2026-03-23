@@ -6,12 +6,14 @@ import { createContext } from "react";
 /**
  * Internal dependencies
  */
-import { ThemeProviderState, defaultTheme } from "./type";
+import { ThemeProviderState } from "./type";
 
 const initialState: ThemeProviderState = {
-  theme: defaultTheme,
-  isDarkThemeOnSystem: window.matchMedia("(prefers-color-scheme: dark)").matches,
+  theme: "system",
+  isDarkThemeOnSystem: window.matchMedia("(prefers-color-scheme: dark)")
+    .matches,
   setTheme: () => null,
-  changeTheme: ()=> null,
+  changeTheme: () => null,
 };
-export const ThemeProviderContext = createContext<ThemeProviderState>(initialState);
+export const ThemeProviderContext =
+  createContext<ThemeProviderState>(initialState);

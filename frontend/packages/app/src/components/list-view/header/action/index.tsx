@@ -12,17 +12,23 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator,
 } from "@next-pms/design-system/components";
-import { useFrappeDeleteDoc, useFrappeUpdateDoc, FrappeContext, FrappeConfig } from "frappe-react-sdk";
+import { useToasts } from "@rtcamp/frappe-ui-react";
+import {
+  useFrappeDeleteDoc,
+  useFrappeUpdateDoc,
+  FrappeContext,
+  FrappeConfig,
+} from "frappe-react-sdk";
 import { Download, EllipsisVertical, Plus, Trash2, Globe } from "lucide-react";
 /**
  * Internal dependencies
  */
 import { CreateView } from "@/components/list-view/createView";
 import { Export } from "@/components/list-view/export";
-import { canExport, canCreate, parseFrappeErrorMsg } from "@/lib/utils";
+import { parseFrappeErrorMsg } from "@/lib/utils";
+import { useBoot } from "@/providers/boot/hook";
 import { removeView, setViews } from "@/store/view";
 import type { ActionProps } from "../../types";
-import { useToasts } from "@rtcamp/frappe-ui-react";
 
 /**
  * Action component
@@ -33,6 +39,9 @@ import { useToasts } from "@rtcamp/frappe-ui-react";
  * @returns React.FC
  */
 const Action = ({ docType, exportProps, viewProps }: ActionProps) => {
+  const {
+    user: { canCreate, canExport },
+  } = useBoot();
   const [exportDialog, setExportDialog] = useState(false);
   const [createViewDialog, setCreateViewDialog] = useState(false);
   const toast = useToasts();
@@ -50,7 +59,9 @@ const Action = ({ docType, exportProps, viewProps }: ActionProps) => {
 
   const fetchAllViews = async () => {
     try {
-      const response = await call.post("next_pms.timesheet.doctype.pms_view_setting.pms_view_setting.get_views");
+      const response = await call.post(
+        "next_pms.timesheet.doctype.pms_view_setting.pms_view_setting.get_views",
+      );
       dispatch(setViews(response.message));
     } catch (error) {
       console.error("Error fetching views:", error);
@@ -85,12 +96,17 @@ const Action = ({ docType, exportProps, viewProps }: ActionProps) => {
       });
   };
 
-  if (!canExport(docType) || !canCreate(docType)) return;
+  if (!canExport.includes(docType) || !canCreate.includes(docType)) return;
   return (
     <>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="outline" size="sm" className="h-10 px-2 " aria-label="More actions">
+          <Button
+            variant="outline"
+            size="sm"
+            className="h-10 px-2 "
+            aria-label="More actions"
+          >
             <EllipsisVertical className="h-4 w-4" />
           </Button>
         </DropdownMenuTrigger>
@@ -99,7 +115,7 @@ const Action = ({ docType, exportProps, viewProps }: ActionProps) => {
           align="end"
           sideOffset={5}
         >
-          {canCreate("PMS View Setting") && (
+          {canCreate.includes("PMS View Setting") && (
             <DropdownMenuItem
               onClick={openCreateView}
               className="flex items-center gap-3 px-3 py-2.5 rounded-md cursor-pointer transition-colors duration-150 hover:bg-primary/10 hover:text-primary dark:hover:bg-primary/10 dark:hover:text-primary focus:bg-primary/10 focus:text-primary group"
@@ -141,7 +157,7 @@ const Action = ({ docType, exportProps, viewProps }: ActionProps) => {
               )}
             </>
           )}
-          {canExport(docType) && (
+          {canExport.includes(docType) && (
             <DropdownMenuItem
               onClick={openExportDialog}
               className="flex items-center gap-3 px-3 py-2.5 rounded-md cursor-pointer transition-colors duration-150 hover:bg-secondary hover:text-secondary-foreground dark:hover:bg-secondary dark:hover:text-secondary-foreground focus:bg-secondary focus:text-secondary-foreground group"
@@ -155,7 +171,14 @@ const Action = ({ docType, exportProps, viewProps }: ActionProps) => {
         </DropdownMenuContent>
       </DropdownMenu>
 
-      {exportDialog && <Export doctype={docType} isOpen={exportDialog} setIsOpen={setExportDialog} {...exportProps} />}
+      {exportDialog && (
+        <Export
+          doctype={docType}
+          isOpen={exportDialog}
+          setIsOpen={setExportDialog}
+          {...exportProps}
+        />
+      )}
 
       {createViewDialog && (
         <CreateView

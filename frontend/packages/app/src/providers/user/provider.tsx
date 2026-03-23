@@ -36,31 +36,8 @@ export const UserProvider: FC<PropsWithChildren> = ({ children }) => {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState<
     UserContextProps["state"]["isSidebarCollapsed"]
   >(getLocalStorage("next-pms:isSidebarCollapsed") || false);
-  const [roles, setRoles] = useState<UserContextProps["state"]["roles"]>(
-    window.frappe?.boot?.user?.roles || [],
-  );
-  const [currencies, setCurrencies] = useState<
-    UserContextProps["state"]["currencies"]
-  >(window.frappe?.boot?.currencies || []);
-  const [hasBuField, setHasBuField] = useState<
-    UserContextProps["state"]["hasBuField"]
-  >(window.frappe?.boot?.has_business_unit || false);
-  const [hasIndustryField, setHasIndustryField] = useState<
-    UserContextProps["state"]["hasIndustryField"]
-  >(window.frappe?.boot?.has_industry || false);
 
   const { logout, isLoading: isAuthLoading, currentUser } = useFrappeAuth();
-
-  const { isLoading: isAppDataLoading, data: appData } = useFrappeGetCall(
-    "next_pms.timesheet.api.app.get_data",
-  );
-
-  useEffect(() => {
-    setRoles(appData?.message?.roles || []);
-    setCurrencies(appData?.message?.currencies || []);
-    setHasBuField(appData?.message?.has_business_unit || false);
-    setHasIndustryField(appData?.message?.has_industry || false);
-  }, [appData]);
 
   const { isLoading: isEmployeeDataLoading, data: employeeData } =
     useFrappeGetCall("next_pms.timesheet.api.employee.get_data");
@@ -101,7 +78,7 @@ export const UserProvider: FC<PropsWithChildren> = ({ children }) => {
     <UserContext.Provider
       value={{
         state: {
-          isLoading: isAuthLoading || isAppDataLoading || isEmployeeDataLoading,
+          isLoading: isAuthLoading || isEmployeeDataLoading,
           employeeId,
           employeeName,
           workingHours,
@@ -111,10 +88,6 @@ export const UserProvider: FC<PropsWithChildren> = ({ children }) => {
           userName,
           image,
           isSidebarCollapsed,
-          roles,
-          currencies,
-          hasBuField,
-          hasIndustryField,
           currentUser,
         },
         actions: {

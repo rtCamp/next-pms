@@ -35,13 +35,6 @@ export interface UserContextProps {
     /** Whether the main sidebar is currently collapsed. */
     isSidebarCollapsed: boolean;
     /** Roles assigned to the logged-in user. */
-    roles: string[];
-    /** Currency options available to the user in boot data. */
-    currencies: Array<string>;
-    /** Whether the business unit field is enabled in the system. */
-    hasBuField: boolean;
-    /** Whether the industry field is enabled in the system. */
-    hasIndustryField: boolean;
   };
   actions: {
     /** Logs out the current user and clears the active session. */
@@ -64,10 +57,6 @@ export const UserContext = createContext<UserContextProps>({
     userName: decodeURIComponent(getCookie("full_name") ?? ""),
     image: decodeURIComponent(getCookie("user_image") ?? ""),
     isSidebarCollapsed: getLocalStorage("next-pms:isSidebarCollapsed") || false,
-    roles: window.frappe?.boot?.user?.roles ?? [],
-    currencies: window.frappe?.boot?.currencies ?? [],
-    hasBuField: window.frappe?.boot?.has_business_unit ?? false,
-    hasIndustryField: window.frappe?.boot?.has_industry ?? false,
   },
   actions: {
     logout: () => Promise.resolve(),

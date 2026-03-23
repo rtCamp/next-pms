@@ -20,33 +20,37 @@ import { ToastProvider } from "@rtcamp/frappe-ui-react";
 
 import { ROUTES } from "@/lib/constant";
 import { UserProvider } from "@/providers/user/provider";
+import BootProvider from "./providers/boot";
 import FrappeProvider from "./providers/frappe";
 import ThemeProvider from "./providers/theme";
 import { Router } from "./route";
 import { store } from "./store";
+
 const App = () => {
   const router = createBrowserRouter(createRoutesFromElements(Router()), {
     basename: ROUTES.base,
   });
 
   return (
-    <FrappeProvider>
-      <ToastProvider>
-        <ThemeProvider>
-          <UserProvider>
-            <Provider store={store}>
-              <TooltipProvider>
-                <Suspense fallback={<></>}>
-                  <ErrorFallback>
-                    <RouterProvider router={router} />
-                  </ErrorFallback>
-                </Suspense>
-              </TooltipProvider>
-            </Provider>
-          </UserProvider>
-        </ThemeProvider>
-      </ToastProvider>
-    </FrappeProvider>
+    <BootProvider>
+      <FrappeProvider>
+        <ToastProvider>
+          <ThemeProvider>
+            <UserProvider>
+              <Provider store={store}>
+                <TooltipProvider>
+                  <Suspense fallback={<></>}>
+                    <ErrorFallback>
+                      <RouterProvider router={router} />
+                    </ErrorFallback>
+                  </Suspense>
+                </TooltipProvider>
+              </Provider>
+            </UserProvider>
+          </ThemeProvider>
+        </ToastProvider>
+      </FrappeProvider>
+    </BootProvider>
   );
 };
 

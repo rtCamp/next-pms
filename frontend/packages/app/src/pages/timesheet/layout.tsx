@@ -21,6 +21,7 @@ import { ROUTES } from "@/lib/constant";
 import AddLeave from "@/pages/timesheet/components/add-leave";
 import AddTime from "@/pages/timesheet/components/add-time";
 import SubmitApproval from "@/pages/timesheet/components/submit-approval";
+import { useBoot } from "@/providers/boot/hook";
 import type { TimesheetOutletContext } from "./outletContext";
 
 const timesheetViews = [
@@ -41,6 +42,9 @@ const timesheetViews = [
 
 function TimesheetLayout() {
   const navigate = useNavigate();
+  const {
+    user: { canCreate },
+  } = useBoot();
   const [isTimeDialogOpen, setIsTimeDialogOpen] = useState(false);
   const [isLeaveDialogOpen, setIsLeaveDialogOpen] = useState(false);
   const [isSubmitApprovalOpen, setIsSubmitApprovalOpen] = useState(false);
@@ -106,9 +110,7 @@ function TimesheetLayout() {
           ]}
         />
         <div className="flex gap-2">
-          {window.frappe?.boot?.user?.can_create.includes(
-            "Leave Application",
-          ) && (
+          {canCreate.includes("Leave Application") && (
             <Button
               onClick={() => setIsLeaveDialogOpen(true)}
               label="Add time-off"

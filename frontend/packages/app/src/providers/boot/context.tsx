@@ -1,0 +1,28 @@
+/**
+ * External dependencies
+ */
+import { createContext } from "react";
+
+/**
+ * Internal dependencies
+ */
+import { BootProviderState } from "./type";
+
+const initialState: BootProviderState = {
+  sitename: "",
+  user: {
+    roles: [],
+    canCreate: [],
+    canExport: [],
+  },
+  currencies: [],
+  hasBusinessUnit: false,
+  hasIndustry: false,
+  deskTheme: "system",
+  views: [],
+  isCalendarSetup: false,
+  globalFilters: {},
+};
+
+export const BootProviderContext =
+  createContext<BootProviderState>(initialState);

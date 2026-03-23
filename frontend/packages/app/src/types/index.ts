@@ -43,28 +43,30 @@ export interface DocMetaProps {
   fields: Array<fieldMetaProps>;
   title_field: string;
 }
-declare global {
-  interface Window {
-    frappe: {
-      boot?: {
-        user?: {
-          roles?: string[];
-          can_create: string[];
-        };
-        currencies?: string[];
-        has_business_unit?: boolean;
-        has_industry?: boolean;
-        desk_theme?: string;
-        views: ViewState["views"];
-        is_calendar_setup: boolean;
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        global_filters: { [key: string]: Array<any> };
-      };
-    };
-  }
-}
 
 export type Project = {
   name: string;
   project_name: string;
 };
+
+declare global {
+  interface Window {
+    frappe?: {
+      boot?: {
+        sitename?: string;
+        user?: {
+          roles?: string[];
+          can_create: string[];
+          can_export: string[];
+        };
+        currencies?: string[];
+        has_business_unit?: boolean;
+        has_industry?: boolean;
+        desk_theme?: string;
+        views?: ViewState["views"];
+        is_calendar_setup?: boolean;
+        global_filters?: { [key: string]: Array<unknown> };
+      };
+    };
+  }
+}

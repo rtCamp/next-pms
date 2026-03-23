@@ -7,15 +7,22 @@ import { useEffect, useState } from "react";
  * Internal dependencies
  */
 import { ThemeProviderContext } from "./context";
-import { Theme, ThemeProviderProps, defaultTheme as dTheme } from "./type";
+import { Theme, ThemeProviderProps } from "./type";
+import { useBoot } from "../boot/hook";
 
 const ThemeProvider = ({
   children,
-  defaultTheme = dTheme,
   storageKey = "next-pms-ui-theme",
   ...props
 }: ThemeProviderProps) => {
-  const [theme, setTheme] = useState<Theme>(() => (localStorage.getItem(storageKey) as Theme) || defaultTheme);
+  const { deskTheme } = useBoot();
+  const [theme, setTheme] = useState<Theme>(
+    () =>
+      (localStorage.getItem(storageKey) as Theme) ||
+      deskTheme ||
+      window.matchMedia("(prefers-color-scheme: dark)").matches ||
+      "system",
+  );
 
   useEffect(() => {
     const root = window.document.documentElement;
@@ -23,7 +30,10 @@ const ThemeProvider = ({
     root.classList.remove("light", "dark");
 
     if (theme === "system") {
-      const systemTheme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+      const systemTheme = window.matchMedia("(prefers-color-scheme: dark)")
+        .matches
+        ? "dark"
+        : "light";
 
       root.classList.add(systemTheme);
       return;
@@ -34,14 +44,19 @@ const ThemeProvider = ({
 
   const value = {
     theme,
-    isDarkThemeOnSystem: window.matchMedia("(prefers-color-scheme: dark)").matches,
+    isDarkThemeOnSystem: window.matchMedia("(prefers-color-scheme: dark)")
+      .matches,
     setTheme: (theme: Theme) => {
       localStorage.setItem(storageKey, theme);
       setTheme(theme);
     },
     changeTheme: () => {
       if (theme === "system") {
-        setTheme(window.matchMedia("(prefers-color-scheme: dark)").matches ? "light" : "dark");
+        setTheme(
+          window.matchMedia("(prefers-color-scheme: dark)").matches
+            ? "light"
+            : "dark",
+        );
       } else {
         setTheme(theme === "light" ? "dark" : "light");
       }

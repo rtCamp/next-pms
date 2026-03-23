@@ -24,6 +24,7 @@ import { Calendar } from "lucide-react";
  * Internal Dependencies
  */
 import { parseFrappeErrorMsg } from "@/lib/utils";
+import { useBoot } from "@/providers/boot/hook";
 import { useUser } from "@/providers/user";
 import { addTimeFormSchema } from "./schema";
 import type { AddTimeProps, ProjectData, TaskItem } from "./type";
@@ -47,6 +48,7 @@ const AddTime = ({
   task = "",
   project = "",
 }: AddTimeProps) => {
+  const { globalFilters } = useBoot();
   const { employeeId } = useUser(({ state }) => ({
     employeeId: state.employeeId,
   }));
@@ -96,7 +98,7 @@ const AddTime = ({
   const { data: projectsData } = useFrappeGetCall("frappe.client.get_list", {
     doctype: "Project",
     fields: ["name", "project_name"],
-    filters: window.frappe?.boot?.global_filters.project,
+    filters: globalFilters.project,
     limit_page_length: "null",
   });
 
