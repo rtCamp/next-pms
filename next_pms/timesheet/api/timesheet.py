@@ -1,3 +1,5 @@
+import json
+
 import frappe
 from frappe import _, throw
 from frappe.utils import (
@@ -10,7 +12,7 @@ from frappe.utils import (
 
 from next_pms.api.utils import error_logger
 from next_pms.resource_management.api.utils.query import get_employee_leaves
-from next_pms.timesheet.utils.constant import EMP_TIMESHEET
+from next_pms.timesheet.utils.constant import ALLOWED_FILTER_FIELDS, EMP_TIMESHEET
 
 from .employee import (
     get_employee_daily_working_norm,
@@ -27,9 +29,69 @@ from .utils import (
 )
 
 
+def parse_filters(raw_filters):
+    """Parse Frappe desk-style filters into per-doctype filter lists.
+
+    Input: [["Timesheet", "parent_project", "=", "PROJ-001"], ...]
+    Output: {"Timesheet": [["parent_project", "=", "PROJ-001"]], "Timesheet Detail": [], "Task": []}
+    """
+    result = {dt: [] for dt in ALLOWED_FILTER_FIELDS}
+
+    if not raw_filters:
+        return result
+
+    if isinstance(raw_filters, str):
+        try:
+            raw_filters = json.loads(raw_filters)
+        except (json.JSONDecodeError, ValueError):
+            frappe.throw(_("Invalid filters format. Expected a JSON array."))
+
+    if not isinstance(raw_filters, list):
+        frappe.throw(_("Filters must be a list of [doctype, field, operator, value] entries."))
+
+    for f in raw_filters:
+        if not isinstance(f, list) or len(f) != 4:
+            frappe.throw(_("Each filter must be a list of [doctype, field, operator, value]."))
+
+        doctype, field, operator, value = f
+
+        if doctype not in ALLOWED_FILTER_FIELDS:
+            frappe.throw(_("Filtering on doctype '{0}' is not supported.").format(doctype))
+
+        if field not in ALLOWED_FILTER_FIELDS[doctype]:
+            frappe.throw(_("Filtering on field '{0}' of '{1}' is not supported.").format(field, doctype))
+
+        result[doctype].append([field, operator, value])
+
+    return result
+
+
+def _build_filters(base_filters, additional_filters):
+    """Merge base dict filters with parsed list-of-lists filters for frappe.get_all.
+
+    Converts base dict format {field: value} or {field: [op, value]} into
+    list-of-lists format and extends with additional filters.
+    """
+    result = []
+    for field, value in base_filters.items():
+        if isinstance(value, list) and len(value) == 2 and isinstance(value[0], str):
+            result.append([field, value[0], value[1]])
+        else:
+            result.append([field, "=", value])
+    result.extend(additional_filters)
+    return result
+
+
 @frappe.whitelist()
 @error_logger
-def get_timesheet_data(employee: str, start_date=None, max_week: int = 4):
+def get_timesheet_data(
+    employee: str,
+    start_date=None,
+    max_week: int = 4,
+    search: str | None = None,
+    approval_status: str | list | None = None,
+    filters: str | list | None = None,
+):
     """Get timesheet data for the given employee for the given number of weeks."""
     if not employee:
         employee = get_employee_from_user(throw_exception=frappe.session.user != "Administrator")
@@ -37,27 +99,42 @@ def get_timesheet_data(employee: str, start_date=None, max_week: int = 4):
         start_date = nowdate()
     apply_role_permission_for_doctype(["Timesheet User", "Timesheet Manager"], "Employee", "read", employee)
 
+    # Parse approval_status from JSON string to list
+    if isinstance(approval_status, str):
+        try:
+            approval_status = json.loads(approval_status)
+        except (json.JSONDecodeError, ValueError):
+            approval_status = [approval_status]
+
+    # Parse generic filters
+    parsed_filters = parse_filters(filters)
+    has_filters = bool(search or approval_status or any(parsed_filters.values()))
+
     def generate_week_data(start_date, max_week, employee=None, leaves=None, holidays=None):
         data = {}
         daily_norm = get_employee_daily_working_norm(employee)
+        use_cache = not has_filters
 
         cache_key = f"{EMP_TIMESHEET}::{employee}"
         for i in range(max_week):
             week_dates = get_week_dates(start_date)
             week_key = week_dates["key"]
 
-            week_cache_key = f"{week_dates['start_date']}::{week_dates['end_date']}"
-            week_data = frappe.cache().hget(cache_key, week_cache_key)
+            if use_cache:
+                week_cache_key = f"{week_dates['start_date']}::{week_dates['end_date']}"
+                week_data = frappe.cache().hget(cache_key, week_cache_key)
 
-            if week_data:
-                start_date = add_days(getdate(week_dates["start_date"]), -1)
-                data[week_key] = week_data
-                continue
+                if week_data:
+                    start_date = add_days(getdate(week_dates["start_date"]), -1)
+                    data[week_key] = week_data
+                    continue
 
             tasks, total_hours, status = {}, 0, "Not Submitted"
             if employee:
                 holiday_dates = [holiday["holiday_date"] for holiday in holidays] if holidays else []
-                tasks, total_hours = get_timesheet(week_dates["dates"], employee)
+                tasks, total_hours = get_timesheet(
+                    week_dates["dates"], employee, search=search, parsed_filters=parsed_filters
+                )
                 status = get_timesheet_state(
                     start_date=week_dates["dates"][0],
                     end_date=week_dates["dates"][-1],
@@ -81,13 +158,19 @@ def get_timesheet_data(employee: str, start_date=None, max_week: int = 4):
 
                 if daily_norm * 5 == leave_total:
                     status = "Approved"
+
+            if approval_status and status not in approval_status:
+                start_date = add_days(getdate(week_dates["start_date"]), -1)
+                continue
+
             data[week_key] = {
                 **week_dates,
                 "total_hours": total_hours,
                 "tasks": tasks,
                 "status": status,
             }
-            frappe.cache().hset(cache_key, week_cache_key, data[week_key])
+            if use_cache:
+                frappe.cache().hset(cache_key, week_cache_key, data[week_key])
             start_date = add_days(getdate(week_dates["start_date"]), -1)
         return data
 
@@ -333,7 +416,7 @@ def update_timesheet_detail(
     return _("Time entry updated successfully.")
 
 
-def get_timesheet(dates: list, employee: str):
+def get_timesheet(dates: list, employee: str, search: str | None = None, parsed_filters: dict | None = None):
     from next_pms.timesheet.utils.constant import ALLOWED_TIMESHET_DETAIL_FIELDS
 
     """Return the time entry from Timesheet Detail child table based on the list of dates and for the given employee.
@@ -356,17 +439,23 @@ def get_timesheet(dates: list, employee: str):
             ...
         }
     """
+    if not parsed_filters:
+        parsed_filters = {dt: [] for dt in ALLOWED_FILTER_FIELDS}
+
     data = {}
     total_hours = 0
 
     # Get parent timesheet names first
+    base_ts_filters = {
+        "employee": employee,
+        "start_date": ["in", dates],
+        "docstatus": ["!=", 2],
+    }
+    ts_filters = _build_filters(base_ts_filters, parsed_filters.get("Timesheet", []))
+
     timesheet_names = frappe.get_all(
         "Timesheet",
-        filters={
-            "employee": employee,
-            "start_date": ["in", dates],
-            "docstatus": ["!=", 2],
-        },
+        filters=ts_filters,
         pluck="name",
         ignore_permissions=employee_has_higher_access(employee, ptype="read"),
     )
@@ -375,11 +464,12 @@ def get_timesheet(dates: list, employee: str):
         return [data, total_hours]
 
     # Fetch all timesheet detail records with needed fields in one query
+    base_detail_filters = {"parent": ["in", timesheet_names]}
+    detail_filters = _build_filters(base_detail_filters, parsed_filters.get("Timesheet Detail", []))
+
     timesheet_logs = frappe.get_all(
         "Timesheet Detail",
-        filters={
-            "parent": ["in", timesheet_names],
-        },
+        filters=detail_filters,
         fields=ALLOWED_TIMESHET_DETAIL_FIELDS,
     )
 
@@ -387,9 +477,14 @@ def get_timesheet(dates: list, employee: str):
         return [data, total_hours]
 
     task_ids = [ts.get("task") for ts in timesheet_logs if ts.get("task")]
+
+    # Build Task query filters
+    base_task_filters = {"name": ["in", task_ids]}
+    task_filters = _build_filters(base_task_filters, parsed_filters.get("Task", []))
+
     task_details = frappe.get_all(
         "Task",
-        filters={"name": ["in", task_ids]},
+        filters=task_filters,
         fields=[
             "name",
             "subject",
@@ -400,9 +495,27 @@ def get_timesheet(dates: list, employee: str):
             "actual_time",
             "status",
             "_liked_by",
+            "exp_end_date",
         ],
     )
+
+    # Apply search filter on task details (in-memory, OR logic across multiple fields)
+    if search:
+        search_term = search.lower()
+        task_details = [
+            t
+            for t in task_details
+            if search_term in (t.get("subject") or "").lower()
+            or search_term in (t.get("name") or "").lower()
+            or search_term in (t.get("project_name") or "").lower()
+        ]
+
     task_details_dict = {task["name"]: task for task in task_details}
+
+    # Filter timesheet_logs to only include entries for matching tasks
+    if search or parsed_filters.get("Task"):
+        timesheet_logs = [log for log in timesheet_logs if log.get("task") in task_details_dict]
+
     for log in timesheet_logs:
         total_hours += log.get("hours", 0)
         if not log.get("task"):
@@ -423,6 +536,7 @@ def get_timesheet(dates: list, employee: str):
                 "actual_time": task["actual_time"],
                 "status": task["status"],
                 "_liked_by": task["_liked_by"],
+                "exp_end_date": task["exp_end_date"] or "",
             }
 
         data[task_name]["data"].append({field: log.get(field) for field in ALLOWED_TIMESHET_DETAIL_FIELDS})
