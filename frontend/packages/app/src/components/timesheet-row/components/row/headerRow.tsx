@@ -24,7 +24,5 @@ export const HeaderRow = ({ dates, showHeading, ...rest }: HeaderRowProps) => {
 
   if (!showHeading) return <></>;
 
-  return (
-    <BaseHeaderRow {...rest} days={days}/>
-  );
+  return <BaseHeaderRow {...rest} days={days} />;
 };

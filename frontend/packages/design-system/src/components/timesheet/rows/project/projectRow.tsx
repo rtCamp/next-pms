@@ -1,29 +1,25 @@
 /**
  * External dependencies.
  */
-import { Button } from "@rtcamp/frappe-ui-react";
 import { ChevronDown, Folder } from "lucide-react";
 
 /**
  * Internal dependencies.
  */
-import { totalHoursVariants } from "./constants";
 import { mergeClassNames as cn } from "../../../../utils";
-import { type RowStatus } from "../constants";
+import { type TotalHoursTheme, totalHoursVariants } from "../constants";
 
 export interface ProjectRowProps {
   /** Label for the project row. */
   label?: string;
   /** Whether the project row is collapsed or expanded. */
   collapsed?: boolean;
-  /** Callback function when the project row is toggled between collapsed and expanded. */
-  onToggle?: () => void;
   /** Array of time entries for each day of the week for the project. */
   timeEntries: string[];
   /** Total hours logged for the week. */
   totalHours?: string;
-  /** Status of the timesheet for the project row. */
-  status?: RowStatus;
+  /** Theme for the total hours */
+  totalHoursTheme?: TotalHoursTheme;
   /** Optionally highlight time entries **/
   highlightTimeEntries?: boolean;
   /** Optional function to render a prefix icon next to the label. */
@@ -35,10 +31,9 @@ export interface ProjectRowProps {
 export const ProjectRow: React.FC<ProjectRowProps> = ({
   label,
   collapsed = false,
-  onToggle,
   timeEntries,
   totalHours = "",
-  status = "not-submitted",
+  totalHoursTheme,
   highlightTimeEntries = false,
   renderPrefix,
   className,
@@ -51,17 +46,14 @@ export const ProjectRow: React.FC<ProjectRowProps> = ({
       )}
     >
       <div className="flex items-center flex-1 min-w-0 gap-2">
-        <Button
-          onClick={onToggle}
-          disabled={!onToggle}
-          variant="ghost"
+        <span
           className={cn(
-            "w-4 shrink-0 border-none outline-none focus:ring-0 focus-visible:ring-0 transition-transform bg-transparent hover:bg-transparent focus:bg-transparent active:bg-transparent",
+            "w-4 shrink-0 transition-transform",
             collapsed ? "-rotate-90" : "rotate-0",
           )}
-          icon={() => <ChevronDown strokeWidth={1.5} size={16} />}
-          aria-label="Toggle project"
-        />
+        >
+          <ChevronDown strokeWidth={1.5} size={16} />
+        </span>
         <div className="flex items-center min-w-0 gap-2 text-ink-gray-9">
           <span className="shrink-0">
             {renderPrefix ? (
@@ -96,7 +88,13 @@ export const ProjectRow: React.FC<ProjectRowProps> = ({
       })}
 
       <div className="shrink-0 flex justify-end items-center text-base text-end font-medium text-ink-gray-5 whitespace-nowrap w-16 h-7 px-2 py-1.5">
-        <span className={cn(totalHoursVariants({ status }))}>{totalHours}</span>
+        <span
+          className={cn(
+            totalHoursVariants({ theme: totalHoursTheme, weight: "default" }),
+          )}
+        >
+          {totalHours}
+        </span>
       </div>
 
       <div className="w-12 shrink-0 h-7"></div>

@@ -21,9 +21,9 @@ import { TaskRow } from "./components/row/taskRow";
 import { TimeOffRow } from "./components/row/timeOffRow";
 import { TotalRow } from "./components/row/totalRow";
 import { WeekRow } from "./components/row/weekRow";
-import type { timesheetTableProps } from "./components/types";
+import type { TimesheetRowProps } from "./components/types";
 
-export const TimesheetTable = ({
+export const TimesheetRow = ({
   label,
   employee,
   dates,
@@ -42,7 +42,7 @@ export const TimesheetTable = ({
   hideLikeButton,
   onButtonClick,
   status,
-}: timesheetTableProps) => {
+}: TimesheetRowProps) => {
   const holidayList = getHolidayList(holidays);
   const task_date_range_key = dates[0] + "-" + dates[dates.length - 1];
 
@@ -93,19 +93,22 @@ export const TimesheetTable = ({
           totalTimeEntries,
           totalTimeEntriesInHours,
           dailyWorkingHours,
-          status,
+          totalHoursTheme,
         }) => (
           <>
             <TotalRow
               breadcrumbs={{
-                items: [{ label: "Projects" }, { label: "Tasks" }],
+                items: [
+                  { label: "Projects", interactive: false },
+                  { label: "Tasks", interactive: false },
+                ],
                 size: "md",
                 highlightAllItems: true,
                 crumbClassName: "first:pl-0 last:pr-0",
               }}
               totalHours={totalHours}
+              totalHoursTheme={totalHoursTheme}
               totalTimeEntries={totalTimeEntries}
-              status={status}
               className="pl-7.5"
               starred={true}
             />
@@ -116,7 +119,6 @@ export const TimesheetTable = ({
                 dates={dates}
                 tasks={project.tasks}
                 label={project.project_name || project.project}
-                status={status}
                 className="pl-7.5"
               >
                 {Object.entries(project.tasks).map(([taskKey, task]) => (
@@ -133,6 +135,8 @@ export const TimesheetTable = ({
                     dailyWorkingHours={dailyWorkingHours}
                     totalTimeEntriesInHours={totalTimeEntriesInHours}
                     employee={employee}
+                    getLikedTaskData={getLikedTaskData}
+                    hideLikeButton={hideLikeButton}
                   />
                 ))}
               </ProjectRow>

@@ -72,7 +72,7 @@ export interface timesheet {
   dates: string[];
   total_hours: number;
   tasks: TaskProps;
-  status: string;
+  status: TaskStatusType;
 }
 
 export interface NewTimesheetProps {
