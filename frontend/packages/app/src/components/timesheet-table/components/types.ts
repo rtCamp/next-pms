@@ -5,7 +5,6 @@ import type { TaskData, WorkingFrequency } from "@/types";
 import type {
   HolidayProp,
   LeaveProps,
-  NewTimesheetProps,
   TaskDataProps,
   TaskProps,
 } from "@/types/timesheet";

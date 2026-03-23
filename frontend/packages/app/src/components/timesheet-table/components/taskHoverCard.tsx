@@ -21,7 +21,6 @@ import { LIKED_TASK_KEY } from "@/lib/constant";
 import { addAction, toggleLikedByForTask } from "@/lib/storage";
 import { mergeClassNames, parseFrappeErrorMsg } from "@/lib/utils";
 import { useUser } from "@/providers/user";
-import type { TaskData } from "@/types";
 import type { TaskDataProps } from "@/types/timesheet";
 import type { TaskHoverCardProps } from "./types";
 import TaskStatusIndicator from "../../taskStatusIndicator";

@@ -1,8 +1,6 @@
 /**
  * Internal Dependencies
  */
-import { WorkingFrequency } from "@/types";
-
 export type ProjectData = {
   name: string;
   project_name: string;

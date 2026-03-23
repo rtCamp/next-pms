@@ -30,7 +30,7 @@ import { TimesheetTable } from "@/components/timesheet-table";
 import { parseFrappeErrorMsg, isDateInRange } from "@/lib/utils";
 import { useUser } from "@/providers/user";
 import type { WorkingFrequency } from "@/types";
-import type { NewTimesheetProps, timesheet } from "@/types/timesheet";
+import type { timesheet } from "@/types/timesheet";
 import { InfiniteScroll } from "../../../components/infiniteScroll";
 import { HeaderRow } from "../../../components/timesheet-table/components/row/headerRow";
 import { sampleFields } from "../constants";
@@ -130,15 +130,6 @@ function Timesheet() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const onCellClick = (data: NewTimesheetProps) => {
-    data.employee = employeeId;
-    dispatch({ type: "SET_TIMESHEET", payload: data });
-    if (data.hours > 0) {
-      dispatch({ type: "SET_EDIT_DIALOG_STATE", payload: true });
-    } else {
-      dispatch({ type: "SET_DIALOG_STATE", payload: true });
-    }
-  };
   const loadData = () => {
     const data = timesheet.data.data;
     if (Object.keys(data).length === 0) return;
@@ -165,9 +156,9 @@ function Timesheet() {
     return entries.map(([key, week]) => {
       const filteredTasks = Object.fromEntries(
         Object.entries(week.tasks).filter(
-          ([_, task]) =>
-            task.name.toLowerCase().includes(query) ||
-            task.subject.toLowerCase().includes(query),
+          (entry) =>
+            entry[1].name.toLowerCase().includes(query) ||
+            entry[1].subject.toLowerCase().includes(query),
         ),
       );
 
