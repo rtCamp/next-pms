@@ -2,13 +2,13 @@
  * External dependencies.
  */
 import { ReactNode } from "react";
-
 import { FrappeProvider as _FrappeProvider } from "frappe-react-sdk";
 /**
  * Internal dependencies.
  */
-import { getSiteName, enableSocket } from "@/lib/utils";
 import { VersionUpdate } from "@/components/versionUpdate";
+import { getSiteName, enableSocket } from "@/lib/utils";
+
 const FrappeProvider = ({ children }: { children: ReactNode }) => {
   return (
     <_FrappeProvider
