@@ -47,8 +47,7 @@ const BootProvider: FC<PropsWithChildren> = ({ children }) => {
         currencies,
         hasBusinessUnit,
         hasIndustry,
-        deskTheme: window.frappe?.boot?.desk_theme ?? "system",
-        views: window.frappe?.boot?.views ?? [],
+        deskTheme: window.frappe?.boot?.desk_theme,
         isCalendarSetup: window.frappe?.boot?.is_calendar_setup ?? false,
         globalFilters: window.frappe?.boot?.global_filters ?? {},
       }}

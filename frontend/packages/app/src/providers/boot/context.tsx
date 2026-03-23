@@ -18,8 +18,7 @@ const initialState: BootProviderState = {
   currencies: [],
   hasBusinessUnit: false,
   hasIndustry: false,
-  deskTheme: "system",
-  views: [],
+  deskTheme: undefined,
   isCalendarSetup: false,
   globalFilters: {},
 };

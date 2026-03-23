@@ -8,7 +8,7 @@ export type BootProviderState = {
   currencies: string[];
   hasBusinessUnit: boolean;
   hasIndustry: boolean;
-  deskTheme: string;
+  deskTheme?: string;
   isCalendarSetup: boolean;
   globalFilters: { [key: string]: Array<unknown> };
 };
