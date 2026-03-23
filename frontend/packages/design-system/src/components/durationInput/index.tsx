@@ -2,7 +2,7 @@
  * External dependencies.
  */
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Slider } from "@base-ui/react/slider";
 import { floatToTime } from "../../utils";
 
@@ -53,13 +53,18 @@ const DurationInput = ({
   const [durationInHours, setDurationInHours] = useState(value);
   const [inputValue, setInputValue] = useState(floatToTime(value, 2, 2));
 
-  const clampHours = (hours: number) => {
-    return Math.min(Math.max(hours, 0), maxDurationInHours);
-  };
+  const clampHours = useCallback(
+    (hours: number) => {
+      return Math.min(Math.max(hours, 0), maxDurationInHours);
+    },
+    [maxDurationInHours],
+  );
 
   const totalMinutes = maxDurationInHours * 60;
   const usedHours = durationInHours;
-  const safeHoursLeft = Number.isFinite(hoursLeft) ? hoursLeft : maxDurationInHours;
+  const safeHoursLeft = Number.isFinite(hoursLeft)
+    ? hoursLeft
+    : maxDurationInHours;
   const remainingHours = safeHoursLeft - usedHours;
   const isOverHours = remainingHours < 0;
   const formattedRemainingHours = Number(remainingHours.toFixed(1));
@@ -102,14 +107,16 @@ const DurationInput = ({
     const clampedHours = clampHours(value);
     setDurationInHours(clampedHours);
     setInputValue(floatToTime(clampedHours, 2, 2));
-  }, [value, maxDurationInHours]);
+  }, [value, maxDurationInHours, clampHours]);
 
   return (
     <div className="space-y-1.5">
       {variant === "default" ? (
         <div className="w-full flex justify-between text-xs text-ink-gray-5 ">
           <label>{label}</label>
-          <p className={isOverHours ? "text-ink-red-4" : undefined}>{formattedRemainingHours}h left</p>
+          <p className={isOverHours ? "text-ink-red-4" : undefined}>
+            {formattedRemainingHours}h left
+          </p>
         </div>
       ) : null}
       <div className="relative">

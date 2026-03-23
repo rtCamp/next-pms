@@ -16,7 +16,8 @@ import { CalendarX2, ChevronDown, Plus } from "lucide-react";
 /**
  * Internal dependencies.
  */
-import { Header } from "@/layout/root";
+import LayoutWithSidebar from "@/layout";
+import { Header } from "@/layout/header";
 import { ROUTES } from "@/lib/constant";
 import AddLeave from "@/pages/timesheet/components/add-leave";
 import AddTime from "@/pages/timesheet/components/add-time";
@@ -74,7 +75,7 @@ function TimesheetLayout() {
   const activeView = timesheetViews.find((v) => v.key === selectedKey)!;
 
   return (
-    <div className="h-screen bg-surface-white">
+    <LayoutWithSidebar>
       <Header className="justify-between">
         <Breadcrumbs
           items={[
@@ -135,6 +136,7 @@ function TimesheetLayout() {
           } satisfies TimesheetOutletContext
         }
       />
+
       <AddTime
         initialDate={getTodayDate()}
         open={isTimeDialogOpen}
@@ -149,7 +151,7 @@ function TimesheetLayout() {
         endDate={submitApprovalDates.endDate}
         totalHours={submitApprovalDates.totalHours}
       />
-    </div>
+    </LayoutWithSidebar>
   );
 }
 

@@ -9,6 +9,7 @@ import type {
   TaskRowProps as BaseTaskRowProps,
   TimeOffRowProps as BaseTimeOffRowProps,
   RowStatus,
+  TaskStatusType,
   TotalHoursTheme,
 } from "@next-pms/design-system/components";
 
@@ -16,7 +17,6 @@ import type {
  * Internal dependencies
  */
 import type { WorkingFrequency } from "@/types";
-import { TaskStatusType } from "@/types/task";
 import type {
   HolidayProp,
   LeaveProps,

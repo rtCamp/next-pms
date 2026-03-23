@@ -7,7 +7,6 @@ import {
   getUTCDateTime,
   normalizeDate,
 } from "@next-pms/design-system/date";
-import { toast } from "@next-pms/design-system/hooks";
 import { type ClassValue, clsx } from "clsx";
 import { isToday } from "date-fns";
 import { Error as FrappeError } from "frappe-js-sdk/lib/frappe_app/types";
@@ -177,11 +176,6 @@ export const checkIsMobile = () => {
   } else {
     return false;
   }
-};
-
-export const copyToClipboard = (text: string) => {
-  navigator.clipboard.writeText(text);
-  toast({ title: "Copied to clipboard", variant: "success" });
 };
 
 export const currencyFormat = (currency: string = "INR"): Intl.NumberFormat => {

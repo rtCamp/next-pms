@@ -33,8 +33,8 @@ const App = () => {
 
   return (
     <BootProvider>
-      <FrappeProvider>
-        <ToastProvider>
+      <ToastProvider>
+        <FrappeProvider>
           <ThemeProvider>
             <UserProvider>
               <Provider store={store}>
@@ -48,8 +48,8 @@ const App = () => {
               </Provider>
             </UserProvider>
           </ThemeProvider>
-        </ToastProvider>
-      </FrappeProvider>
+        </FrappeProvider>
+      </ToastProvider>
     </BootProvider>
   );
 };

@@ -2,7 +2,6 @@
  * External dependencies.
  */
 import { ReactNode } from "react";
-
 import { FrappeProvider as _FrappeProvider } from "frappe-react-sdk";
 /**
  * Internal dependencies.

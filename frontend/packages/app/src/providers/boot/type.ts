@@ -1,5 +1,3 @@
-import { ViewState } from "@/store/view";
-
 export type BootProviderState = {
   sitename: string;
   user: {
@@ -11,7 +9,6 @@ export type BootProviderState = {
   hasBusinessUnit: boolean;
   hasIndustry: boolean;
   deskTheme: string;
-  views: ViewState["views"];
   isCalendarSetup: boolean;
-  globalFilters: { [key: string]: Array<any> };
+  globalFilters: { [key: string]: Array<unknown> };
 };

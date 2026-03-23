@@ -28,9 +28,8 @@ import { Ellipsis } from "lucide-react";
  */
 import { parseFrappeErrorMsg, isDateInRange } from "@/lib/utils";
 import { useUser } from "@/providers/user";
-import type { RootState } from "@/store";
 import type { WorkingFrequency } from "@/types";
-import type { NewTimesheetProps, timesheet } from "@/types/timesheet";
+import type { timesheet } from "@/types/timesheet";
 import { InfiniteScroll } from "../../../components/infiniteScroll";
 import { TimesheetRow } from "../../../components/timesheet-row";
 import { HeaderRow } from "../../../components/timesheet-row/components/row/headerRow";
@@ -159,9 +158,9 @@ function Timesheet() {
     return entries.map(([key, week]) => {
       const filteredTasks = Object.fromEntries(
         Object.entries(week.tasks).filter(
-          ([, task]) =>
-            task.name.toLowerCase().includes(query) ||
-            task.subject.toLowerCase().includes(query),
+          (entry) =>
+            entry[1].name.toLowerCase().includes(query) ||
+            entry[1].subject.toLowerCase().includes(query),
         ),
       );
 
