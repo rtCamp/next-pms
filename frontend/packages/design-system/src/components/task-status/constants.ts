@@ -1,6 +1,7 @@
 /**
  * External dependencies.
  */
+import { Overdue } from "@rtcamp/frappe-ui-react";
 import { cva } from "class-variance-authority";
 import {
   Circle,
@@ -13,7 +14,6 @@ import {
 /**
  * Internal dependencies.
  */
-import { Overdue } from "./icons/overdue";
 import type { TaskStatusType } from "./types";
 
 export const statusIcon: Record<
