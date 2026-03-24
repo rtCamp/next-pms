@@ -107,7 +107,7 @@ class TestNextPms(FrappeAPITestCase):
         params = {**(params or {}), "sid": self.sid}
         return super().get(path, params, **kwargs)
 
-    def post(self, path, data, **kwargs):
+    def post(self, path, data=None, **kwargs):
         data = {**(data or {}), "sid": self.sid}
         return super().post(path, data, **kwargs)
 
