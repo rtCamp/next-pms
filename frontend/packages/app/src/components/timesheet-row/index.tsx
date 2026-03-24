@@ -33,6 +33,8 @@ export const TimesheetRow = ({
   likedTaskData,
   onButtonClick,
   status,
+  getLikedTaskData,
+hideLikeButton
 }: TimesheetRowProps) => {
   const holidayList = getHolidayList(holidays);
   const task_date_range_key = dates[0] + "-" + dates[dates.length - 1];
