@@ -2,7 +2,7 @@
  * External Dependencies
  */
 import { useCallback, useMemo, useRef, useState } from "react";
-import { Accordion } from "@base-ui/react";
+import { Accordion } from "@base-ui/react/accordion";
 import { floatToTime, mergeClassNames as cn } from "@next-pms/design-system";
 import {
   Badge,
