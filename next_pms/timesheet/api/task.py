@@ -209,6 +209,7 @@ def get_task(task: str, start_date: str | datetime.date, end_date: str | datetim
     return {
         "subject": task.subject,
         "expected_time": task.expected_time,
+        "exp_end_date": task.exp_end_date or "",
         "project_name": frappe.db.get_value("Project", task.project, "project_name"),
         "project": task.project,
         "actual_time": task.actual_time,
