@@ -2,12 +2,8 @@
  * External Dependencies
  */
 import { useCallback, useMemo, useRef, useState } from "react";
+import { Accordion } from "@base-ui/react";
 import { floatToTime, mergeClassNames as cn } from "@next-pms/design-system";
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-} from "@next-pms/design-system/components";
 import {
   Badge,
   Button,
@@ -294,12 +290,12 @@ export const InlineTimeEntry = ({
 
             return (
               <div className="w-full group">
-                <Accordion
+                <Accordion.Root
                   key={entry.name}
                   value={isExpanded ? [entry.name] : []}
                   onValueChange={() => {}}
                 >
-                  <AccordionItem
+                  <Accordion.Item
                     value={entry.name}
                     className="pb-2 border-b border-outline-gray-modals"
                   >
@@ -363,7 +359,7 @@ export const InlineTimeEntry = ({
                         />
                       </div>
                     ) : null}
-                    <AccordionContent className="pt-2 pb-0">
+                    <Accordion.Panel className="pt-2 pb-0 accordion-panel">
                       {isEditingThisEntry ? (
                         <TimeEntryForm
                           form={form}
@@ -393,9 +389,9 @@ export const InlineTimeEntry = ({
                           {entry.description}
                         </span>
                       )}
-                    </AccordionContent>
-                  </AccordionItem>
-                </Accordion>
+                    </Accordion.Panel>
+                  </Accordion.Item>
+                </Accordion.Root>
               </div>
             );
           })}

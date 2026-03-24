@@ -23,12 +23,6 @@ export {
 } from "./tooltip";
 
 export {
-  Accordion,
-  AccordionItem,
-  AccordionTrigger,
-  AccordionContent,
-} from "./accordion";
-export {
   default as DurationInput,
   type DurationInputProps,
 } from "./durationInput";

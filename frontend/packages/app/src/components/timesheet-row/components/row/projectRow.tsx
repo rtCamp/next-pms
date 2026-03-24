@@ -2,14 +2,9 @@
  * External dependencies
  */
 import { useMemo, useState } from "react";
+import { Accordion } from "@base-ui/react";
 import { floatToTime } from "@next-pms/design-system";
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-  ProjectRow as BaseProjectRow,
-} from "@next-pms/design-system/components";
+import { ProjectRow as BaseProjectRow } from "@next-pms/design-system/components";
 
 /**
  * Internal dependencies
@@ -47,22 +42,29 @@ export const ProjectRow = ({
   }, [dates, tasks]);
 
   return (
-    <Accordion
+    <Accordion.Root
       value={collapsed ? [] : ["project"]}
       onValueChange={(value) => setCollapsed(value.length === 0)}
     >
-      <AccordionItem value="project" className="border-none">
-        <AccordionTrigger>
-          <BaseProjectRow
-            {...rest}
-            totalHours={floatToTime(projectData.total, 2)}
-            timeEntries={projectData.totalTimeEntries}
-            collapsed={collapsed}
-            totalHoursTheme="green"
-          />
-        </AccordionTrigger>
-        <AccordionContent className="pb-0">{children}</AccordionContent>
-      </AccordionItem>
-    </Accordion>
+      <Accordion.Item value="project" className="border-none">
+        <Accordion.Trigger
+          nativeButton={false}
+          render={(props) => (
+            <div {...props}>
+              <BaseProjectRow
+                {...rest}
+                totalHours={floatToTime(projectData.total, 2)}
+                timeEntries={projectData.totalTimeEntries}
+                collapsed={collapsed}
+                totalHoursTheme="green"
+              />
+            </div>
+          )}
+        />
+        <Accordion.Panel className="pb-0 accordion-panel">
+          {children}
+        </Accordion.Panel>
+      </Accordion.Item>
+    </Accordion.Root>
   );
 };
