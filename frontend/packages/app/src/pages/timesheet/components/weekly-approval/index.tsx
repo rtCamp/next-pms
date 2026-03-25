@@ -7,8 +7,10 @@ import {
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
+  TaskStatus,
 } from "@next-pms/design-system/components";
 import { Avatar, Button, Checkbox } from "@rtcamp/frappe-ui-react";
+import { useFrappeGetCall, useFrappeGetDoc } from "frappe-react-sdk";
 import {
   ChevronDown,
   X,
@@ -22,97 +24,63 @@ import {
  * Internal Dependencies
  */
 import type { WeeklyApprovalProps } from "./types";
+import { convertTimesheetToEntries, type TimesheetEntry } from "../../utils";
 
-// Hardcoded data based on the design
-const EMPLOYEE_DATA = {
-  name: "Julian Andrews",
-  avatar: "",
-  dateRange: "Dec 15 - 21",
-  totalHours: "40:45",
+interface GroupedDay {
+  day: string;
+  totalHours: number;
+  entries: TimesheetEntry[];
+}
+
+/**
+ * Groups entries by day and calculates total hours per day
+ */
+const groupEntriesByDay = (entries: TimesheetEntry[]): GroupedDay[] => {
+  const grouped = entries.reduce<Record<string, GroupedDay>>((acc, entry) => {
+    if (!acc[entry.day]) {
+      acc[entry.day] = {
+        day: entry.day,
+        totalHours: 0,
+        entries: [],
+      };
+    }
+    acc[entry.day].totalHours += entry.hours;
+    acc[entry.day].entries.push(entry);
+    return acc;
+  }, {});
+
+  return Object.values(grouped);
 };
 
-const TIMESHEET_DATA = [
-  {
-    id: "mon",
-    day: "Mon, Dec 15",
-    isFirstHalfOff: false,
-    totalHours: "08:45",
-    entries: [
-      {
-        id: "1",
-        title: "Design system component refinements",
-        project: "Atlas UI Stabilization",
-        hours: "00:45",
-        description:
-          "Fixed spacing and alignment inconsistencies and resolved visual styling issues across components",
-        icon: "sparkles",
-      },
-      {
-        id: "2",
-        title: "Design system component refinements",
-        project: "Atlas UI Stabilization",
-        hours: "02:10",
-        description:
-          "Updated component states to match latest UI guidelines and ensured consistency and reusability across screens",
-        icon: "sparkles",
-      },
-      {
-        id: "3",
-        title: "Client dashboard layout improvements",
-        project: "Atlas UI Stabilisation",
-        hours: "02:15",
-        description:
-          "Fixed spacing and alignment inconsistencies and resolved visual styling issues across components",
-        icon: "check",
-      },
-    ],
-  },
-  {
-    id: "tue",
-    day: "Tue, Dec 16",
-    isFirstHalfOff: false,
-    totalHours: "08:00",
-    entries: [
-      {
-        id: "4",
-        title: "Design system component refinements",
-        project: "Atlas UI Stabilization",
-        hours: "05:00",
-        description:
-          "Reviewed existing design system components and documented visual inconsistencies and spacing issues across commonly used components.",
-        icon: "sparkles",
-      },
-      {
-        id: "5",
-        title: "Client dashboard layout improvements",
-        project: "Atlas UI Stabilisation",
-        hours: "03:00",
-        description:
-          "Analyzed the existing dashboard layout to identify content hierarchy and usability gaps.",
-        icon: "check",
-      },
-    ],
-  },
-  {
-    id: "wed",
-    day: "Wed, Dec 17",
-    totalHours: "08:00",
-    isFirstHalfOff: true,
-    entries: [
-      {
-        id: "6",
-        title: "Design system component refinements",
-        project: "Atlas UI Stabilization",
-        hours: "02:00",
-        description: null,
-        bulletPoints: ["Fixed spacing and alignment issues in shared"],
-        icon: "sparkles",
-      },
-    ],
-  },
-];
+const WeeklyApproval = ({
+  open,
+  onOpenChange,
+  employee,
+  startDate,
+}: WeeklyApprovalProps) => {
+  const { isLoading, data } = useFrappeGetCall(
+    "next_pms.timesheet.api.timesheet.get_timesheet_data",
+    {
+      employee: employee,
+      start_date: startDate,
+      max_week: 1,
+    },
+  );
 
-const WeeklyApproval = ({ open, onOpenChange }: WeeklyApprovalProps) => {
+  const timesheetData = convertTimesheetToEntries(data);
+  const groupedByDay = groupEntriesByDay(timesheetData.entries);
+  const totalHours = timesheetData.totalHours;
+  const dateRange = timesheetData.dateRange;
+
+  const { data: employeeData } = useFrappeGetDoc("Employee", employee);
+
+  const employeeName = employeeData?.employee_name || "";
+  const avatarUrl = employeeData?.image || "";
+
+  if (isLoading) {
+    return <></>;
+  }
+
   return (
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
       <Dialog.Portal>
@@ -121,21 +89,15 @@ const WeeklyApproval = ({ open, onOpenChange }: WeeklyApprovalProps) => {
           {/* Header */}
           <div className="flex items-center justify-between px-3.5 py-4 border-b border-outline-gray-modals">
             <div className="flex items-center gap-3">
-              <Avatar
-                size="xs"
-                image={EMPLOYEE_DATA.avatar}
-                label={EMPLOYEE_DATA.name}
-              />
+              <Avatar size="xs" image={avatarUrl} label={employeeName} />
               <h1 className="text-lg font-medium text-ink-gray-8">
-                {EMPLOYEE_DATA.name}
+                {employeeName}
               </h1>
-              <p className="text-base text-ink-gray-5">
-                {EMPLOYEE_DATA.dateRange}
-              </p>
+              <p className="text-base text-ink-gray-5">{dateRange}</p>
             </div>
             <div className="flex items-center gap-3">
               <span className="text-md font-medium text-ink-green-4">
-                {EMPLOYEE_DATA.totalHours}
+                {totalHours}
               </span>
               <Dialog.Close className="p-1 hover:bg-surface-gray-2 rounded">
                 <X className="h-5 w-5 text-ink-gray-5" />
@@ -145,27 +107,22 @@ const WeeklyApproval = ({ open, onOpenChange }: WeeklyApprovalProps) => {
           {/* Content */}
           <div className="flex-1 overflow-y-auto">
             <Accordion>
-              {TIMESHEET_DATA.map((day) => (
+              {groupedByDay.map((dayGroup) => (
                 <AccordionItem
-                  key={day.id}
-                  value={day.id}
+                  key={dayGroup.day}
+                  value={dayGroup.day}
                   className="bg-surface-gray-2 border-b border-outline-gray-modals last:border-b-0"
                 >
                   <AccordionTrigger className="w-full flex items-center justify-between px-3.5 py-3">
                     <div className="flex items-center gap-2">
                       <ChevronDown className="h-4 w-4 text-ink-gray-5 transition-transform duration-200 group-data-[state=open]:rotate-180" />
                       <span className="text-sm font-medium text-ink-gray-8">
-                        {day.day}
+                        {dayGroup.day}
                       </span>
-                      {day.isFirstHalfOff && (
-                        <p className="text-base text-ink-gray-5">
-                          First Half off
-                        </p>
-                      )}
                     </div>
                     <div className="flex items-center gap-3">
                       <span className="text-sm font-semibold text-ink-green-3">
-                        {day.totalHours}
+                        {dayGroup.totalHours}
                       </span>
                       <div
                         onClick={(e) => e.stopPropagation()}
@@ -176,19 +133,19 @@ const WeeklyApproval = ({ open, onOpenChange }: WeeklyApprovalProps) => {
                     </div>
                   </AccordionTrigger>
                   <AccordionContent className="bg-white">
-                    {day.entries.map((entry) => (
+                    {dayGroup.entries.map((entry) => (
                       <div
-                        key={entry.id}
+                        key={entry.timesheetId}
                         className="px-3.5 py-3 flex gap-3 border-b border-outline-gray-modals last:border-b-0"
                       >
-                        <Sparkles size={16} className="text-ink-gray-5" />
+                        <TaskStatus status={entry.status} />
                         <div className="flex-1 min-w-0">
                           <div className="space-y-1">
                             <p className="text-base font-medium text-ink-gray-7">
-                              {entry.title}
+                              {entry.taskName}
                             </p>
                             <p className="text-xs text-ink-gray-5">
-                              {entry.project}
+                              {entry.projectName}
                             </p>
                             <p className="text-sm text-ink-gray-7 mt-3">
                               {entry.description}

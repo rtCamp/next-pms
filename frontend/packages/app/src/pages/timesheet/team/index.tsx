@@ -8,13 +8,15 @@ import WeeklyApproval from "../components/weekly-approval";
 
 function TimesheetTeamPage() {
   const [isWeeklyApprovalModalOpen, setIsWeeklyApprovalModalOpen] =
-    useState(false);
-  const [isWeeklyRejectionModalOpen, setIsWeeklyRejectionModalOpen] =
     useState(true);
+  const [isWeeklyRejectionModalOpen, setIsWeeklyRejectionModalOpen] =
+    useState(false);
   return (
     <div>
       <UnderConstruction />
       <WeeklyApproval
+        employee="HR-EMP-00001"
+        startDate="2026-03-15"
         open={isWeeklyApprovalModalOpen}
         onOpenChange={setIsWeeklyApprovalModalOpen}
       />
