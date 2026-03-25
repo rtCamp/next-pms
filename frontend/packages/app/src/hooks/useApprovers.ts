@@ -1,5 +1,5 @@
 import { useFrappeGetCall } from "frappe-react-sdk";
-import { Employee } from "@/types";
+import type { Employee } from "@/types";
 
 type UseApproversOptions = {
   role?: string[];
