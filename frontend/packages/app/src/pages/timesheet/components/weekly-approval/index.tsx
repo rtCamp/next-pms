@@ -11,14 +11,7 @@ import {
 } from "@next-pms/design-system/components";
 import { Avatar, Button, Checkbox } from "@rtcamp/frappe-ui-react";
 import { useFrappeGetCall, useFrappeGetDoc } from "frappe-react-sdk";
-import {
-  ChevronDown,
-  X,
-  Sparkles,
-  CircleX,
-  CircleCheck,
-  Edit,
-} from "lucide-react";
+import { ChevronDown, X, CircleX, CircleCheck, Edit } from "lucide-react";
 
 /**
  * Internal Dependencies
