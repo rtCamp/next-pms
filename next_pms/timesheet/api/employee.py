@@ -99,11 +99,15 @@ def get_employee_list(
     status=None,
     user_group=None,
     reports_to: str | None = None,
-    roles: list[str] | None = None,
+    roles: str | list[str] | None = None,
     ignore_default_filters=False,
 ):
+    import json
+
     from . import filter_employees
 
+    if roles and isinstance(roles, str):
+        roles = json.loads(roles)
     employees, count = filter_employees(
         employee_name=employee_name,
         department=department,
