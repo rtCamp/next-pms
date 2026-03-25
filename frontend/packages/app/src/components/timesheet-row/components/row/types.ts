@@ -4,6 +4,7 @@
 import type {
   HeaderRowProps as BaseHeaderRowProps,
   WeekRowProps as BaseWeekRowProps,
+  MemberRowProps as BaseMemberRowProps,
   TotalRowProps as BaseTotalRowProps,
   ProjectRowProps as BaseProjectRowProps,
   TaskRowProps as BaseTaskRowProps,
@@ -36,7 +37,7 @@ export interface WeekRowProps extends Omit<BaseWeekRowProps, "status"> {
   holidays: Array<HolidayProp>;
   workingHour: number;
   workingFrequency: WorkingFrequency;
-  status: TaskStatusType;
+  status?: TaskStatusType | string;
   children?: (props: {
     totalHours: string;
     totalHoursTheme: TotalHoursTheme;
@@ -44,6 +45,23 @@ export interface WeekRowProps extends Omit<BaseWeekRowProps, "status"> {
     totalTimeEntriesInHours: number[];
     dailyWorkingHours: number;
     status: RowStatus;
+  }) => React.ReactNode;
+}
+
+export interface MemberRowProps extends Omit<
+  BaseMemberRowProps,
+  "status" | "timeEntries"
+> {
+  dates: string[];
+  tasks: TaskProps;
+  leaves: Array<LeaveProps>;
+  holidays: Array<HolidayProp>;
+  workingHour: number;
+  workingFrequency: WorkingFrequency;
+  status: TaskStatusType;
+  children?: (props: {
+    totalTimeEntriesInHours: number[];
+    dailyWorkingHours: number;
   }) => React.ReactNode;
 }
 

@@ -17,14 +17,8 @@ import { getTodayDate, prettyDate } from "@next-pms/design-system/date";
 /**
  * Internal dependencies
  */
-import {
-  calculateExtendedWorkingHour,
-  calculateLeaveHours,
-  calculateTotalHours,
-  calculateWeeklyHour,
-  expectatedHours,
-} from "@/lib/utils";
 import type { WeekRowProps } from "./types";
+import { computeRowData } from "../../utils";
 
 /**
  * @description This is the week row component for the timesheet table.
@@ -53,35 +47,22 @@ export const WeekRow = ({
 }: WeekRowProps) => {
   const [collapsed, setCollapsed] = useState(initialCollapsed);
 
-  const dailyWorkingHours = expectatedHours(workingHour, workingFrequency);
-
   const formattedDates = useMemo(() => {
     return dates?.map((date: string) => prettyDate(date).date);
   }, [dates]);
 
-  const weekData = useMemo(() => {
-    let total = 0;
-    const totalTimeEntries: string[] = [];
-    const totalTimeEntriesInHours: number[] = [];
-    for (const date of dates) {
-      const holiday = holidays.find((holiday) => holiday.holiday_date === date);
-      const currentTotal =
-        calculateTotalHours(tasks, date) +
-        calculateLeaveHours(leaves, date, dailyWorkingHours, holiday);
-      totalTimeEntries.push(
-        currentTotal === 0 ? "" : floatToTime(currentTotal, 2),
-      );
-      totalTimeEntriesInHours.push(currentTotal);
-      total += currentTotal;
-    }
-    return { total, totalTimeEntries, totalTimeEntriesInHours };
-  }, [dates, tasks, leaves, holidays, dailyWorkingHours]);
+  const isReadOnlyWeek = !tasks || Object.keys(tasks).length === 0;
 
-  const isExtended = calculateExtendedWorkingHour(
-    weekData.total,
-    calculateWeeklyHour(workingHour, workingFrequency),
-    workingFrequency,
-  );
+  const weekData = useMemo(() => {
+    return computeRowData({
+      dates,
+      tasks,
+      leaves,
+      holidays,
+      workingHour,
+      workingFrequency,
+    });
+  }, [dates, tasks, leaves, holidays, workingHour, workingFrequency]);
 
   const today = useMemo(() => {
     const currentDate = getTodayDate();
@@ -93,7 +74,7 @@ export const WeekRow = ({
 
   const thisWeek = useMemo(() => {
     const todayIndex = dates.findIndex(
-      (date) => prettyDate(date).date === today,
+      (date: string) => prettyDate(date).date === today,
     );
     return todayIndex >= 0 && todayIndex < 7;
   }, [dates, today]);
@@ -113,11 +94,11 @@ export const WeekRow = ({
             thisWeek={thisWeek}
             dates={formattedDates}
             totalHours={floatToTime(weekData.total, 2)}
-            totalHoursTheme={totalHoursThemeMap[isExtended]}
+            totalHoursTheme={totalHoursThemeMap[weekData.isExtended]}
             status={status ? statusMap[status] : "none"}
             collapsed={collapsed}
             onButtonClick={() =>
-              status && statusMap[status] === "not-submitted"
+              !isReadOnlyWeek && status && statusMap[status] === "not-submitted"
                 ? onButtonClick?.()
                 : undefined
             }
@@ -126,10 +107,10 @@ export const WeekRow = ({
         <AccordionContent className="pb-0">
           {children?.({
             totalHours: floatToTime(weekData.total, 2),
-            totalHoursTheme: totalHoursThemeMap[isExtended],
+            totalHoursTheme: totalHoursThemeMap[weekData.isExtended],
             totalTimeEntries: weekData.totalTimeEntries,
             totalTimeEntriesInHours: weekData.totalTimeEntriesInHours,
-            dailyWorkingHours,
+            dailyWorkingHours: weekData.dailyWorkingHours,
             status: status ? statusMap[status] : "none",
           })}
         </AccordionContent>

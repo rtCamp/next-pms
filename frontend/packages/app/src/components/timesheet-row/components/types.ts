@@ -1,8 +1,8 @@
 /**
  * Internal dependencies
  */
+import type { TaskStatusType } from "@next-pms/design-system/components";
 import type { TaskData, WorkingFrequency } from "@/types";
-import { TaskStatusType } from "@/types/task";
 import type {
   HolidayProp,
   LeaveProps,

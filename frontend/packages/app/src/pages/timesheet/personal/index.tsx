@@ -31,8 +31,8 @@ import { useUser } from "@/providers/user";
 import type { WorkingFrequency } from "@/types";
 import type { timesheet } from "@/types/timesheet";
 import { InfiniteScroll } from "../../../components/infiniteScroll";
-import { TimesheetRow } from "../../../components/timesheet-row";
 import { HeaderRow } from "../../../components/timesheet-row/components/row/headerRow";
+import { PersonalTimesheetRow } from "../../../components/timesheet-row/personalTimesheetRow";
 import { sampleFields } from "../constants";
 import { useTimesheetOutletContext } from "../outletContext";
 import { initialState, reducer } from "../reducer";
@@ -40,7 +40,7 @@ import { validateDate } from "../utils";
 
 const NUMBER_OF_WEEKS_TO_FETCH = 4;
 
-function Timesheet() {
+function PersonalTimesheet() {
   const targetRef = useRef<HTMLDivElement>(null);
   const toast = useToasts();
   const [filters, setFilters] = useState<FilterCondition[]>([]);
@@ -269,7 +269,7 @@ function Timesheet() {
                           }
                           className="animate-fade-in"
                         >
-                          <TimesheetRow
+                          <PersonalTimesheetRow
                             label={key}
                             employee={employeeId}
                             workingHour={timesheet.data.working_hour}
@@ -309,4 +309,4 @@ function Timesheet() {
   );
 }
 
-export default Timesheet;
+export default PersonalTimesheet;
