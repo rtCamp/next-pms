@@ -6,15 +6,15 @@ import { floatToTime } from "@next-pms/design-system";
 import {
   TaskRow as BaseTaskRow,
   taskStatusMap,
-  useToast,
 } from "@next-pms/design-system/components";
 import { prettyDate } from "@next-pms/design-system/date";
+import { useToasts } from "@rtcamp/frappe-ui-react";
 import { useFrappePostCall } from "frappe-react-sdk";
+import { CalendarFoldIcon, Folder } from "lucide-react";
 
 /**
  * Internal dependencies
  */
-import { CalendarFoldIcon, Folder } from "lucide-react";
 import TaskPopover from "@/components/taskPopover";
 import { calculateTotalHours, parseFrappeErrorMsg } from "@/lib/utils";
 import type { TaskRowProps } from "./types";
@@ -55,7 +55,7 @@ export const TaskRow = ({
   const { call: toggleLikeCall } = useFrappePostCall(
     "frappe.desk.like.toggle_like",
   );
-  const { toast } = useToast();
+  const toast = useToasts();
 
   const taskData = useMemo(() => {
     let total = 0;
@@ -121,10 +121,7 @@ export const TaskRow = ({
       const error = parseFrappeErrorMsg(
         err as Parameters<typeof parseFrappeErrorMsg>[0],
       );
-      toast({
-        variant: "destructive",
-        description: error,
-      });
+      toast.error(error);
     }
   };
 

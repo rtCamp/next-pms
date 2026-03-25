@@ -1,19 +1,14 @@
 /**
  * External dependencies
  */
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo } from "react";
 import { ErrorFallback } from "@next-pms/design-system/components";
 
 /**
  * Internal dependencies
  */
 import { LIKED_TASK_KEY } from "@/lib/constant";
-import {
-  hasKeyInLocalStorage,
-  getLocalStorage,
-  removeFromLikedTask,
-  setLikedTask,
-} from "@/lib/storage";
+import { removeFromLikedTask } from "@/lib/storage";
 import { getHolidayList } from "@/lib/utils";
 import { TaskDataProps } from "@/types/timesheet";
 import { ProjectRow } from "./components/row/projectRow";
@@ -35,13 +30,11 @@ export const TimesheetRow = ({
   workingFrequency,
   disabled,
   weeklyStatus,
-  importTasks = false,
-  loadingLikedTasks,
   likedTaskData,
-  getLikedTaskData,
-  hideLikeButton,
   onButtonClick,
   status,
+  getLikedTaskData,
+hideLikeButton
 }: TimesheetRowProps) => {
   const holidayList = getHolidayList(holidays);
   const task_date_range_key = dates[0] + "-" + dates[dates.length - 1];

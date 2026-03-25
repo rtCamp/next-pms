@@ -10,7 +10,7 @@ import { ErrorFallback } from "@next-pms/design-system/components";
 import Sidebar from "@/layout/sidebar";
 import { useUser } from "@/providers/user";
 
-const Layout = ({ children }: { children: React.ReactNode }) => {
+const LayoutWithSidebar = ({ children }: { children: React.ReactNode }) => {
   const { employeeId, userId } = useUser(({ state }) => ({
     employeeId: state.employeeId,
     userId: state.userId,
@@ -36,4 +36,4 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
   );
 };
 
-export default Layout;
+export default LayoutWithSidebar;

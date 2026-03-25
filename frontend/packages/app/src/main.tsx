@@ -9,7 +9,6 @@ import ReactDOM from "react-dom/client";
  */
 import App from "./app";
 import "@next-pms/design-system/index.css";
-import "@next-pms/resource-management/index.css";
 import "./global.css";
 
 if (import.meta.env.DEV) {
@@ -27,5 +26,5 @@ if (import.meta.env.DEV) {
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
     <App />
-  </React.StrictMode>
+  </React.StrictMode>,
 );
