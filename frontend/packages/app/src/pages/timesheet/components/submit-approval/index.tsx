@@ -58,7 +58,7 @@ const SubmitApproval = ({
   const { data } = useFrappeGetCall(
     "next_pms.timesheet.api.employee.get_employee_list",
     {
-      role: ["Projects Manager", "Projects User"],
+      roles: ["Projects Manager", "Projects User"],
     },
   );
 
