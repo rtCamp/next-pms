@@ -1,28 +1,29 @@
 /**
  * Internal dependencies.
  */
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { UnderConstruction } from "@/components/under-construction";
-import WeeklyRejection from "../components/submit-rejection";
-import WeeklyApproval from "../components/weekly-approval";
+import WeeklyApproval from "./weekly-approval";
 
 function TimesheetTeamPage() {
-  const [isWeeklyApprovalModalOpen, setIsWeeklyApprovalModalOpen] =
-    useState(true);
-  const [isWeeklyRejectionModalOpen, setIsWeeklyRejectionModalOpen] =
-    useState(false);
+  const [employee, setEmployee] = useState("");
+  const [startDate, setStartDate] = useState("");
+  const [isWeeklyApprovalOpen, setIsWeeklyApprovalOpen] = useState(false);
+
+  const openWeeklyApproval = useCallback((employeeId: string, date: string) => {
+    setEmployee(employeeId);
+    setStartDate(date);
+    setIsWeeklyApprovalOpen(true);
+  }, []);
+
   return (
     <div>
       <UnderConstruction />
       <WeeklyApproval
-        employee="HR-EMP-00001"
-        startDate="2026-03-15"
-        open={isWeeklyApprovalModalOpen}
-        onOpenChange={setIsWeeklyApprovalModalOpen}
-      />
-      <WeeklyRejection
-        open={isWeeklyRejectionModalOpen}
-        onOpenChange={setIsWeeklyRejectionModalOpen}
+        employee={employee}
+        startDate={startDate}
+        open={isWeeklyApprovalOpen}
+        onOpenChange={setIsWeeklyApprovalOpen}
       />
     </div>
   );
