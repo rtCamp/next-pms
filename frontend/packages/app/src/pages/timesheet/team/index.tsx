@@ -6,9 +6,9 @@ import { UnderConstruction } from "@/components/under-construction";
 import WeeklyApproval from "./weekly-approval";
 
 function TimesheetTeamPage() {
-  const [employee, setEmployee] = useState("");
-  const [startDate, setStartDate] = useState("");
-  const [isWeeklyApprovalOpen, setIsWeeklyApprovalOpen] = useState(false);
+  const [employee, setEmployee] = useState("HR-EMP-00001");
+  const [startDate, setStartDate] = useState("2026-03-15");
+  const [isWeeklyApprovalOpen, setIsWeeklyApprovalOpen] = useState(true);
 
   const openWeeklyApproval = useCallback((employeeId: string, date: string) => {
     setEmployee(employeeId);
@@ -19,12 +19,14 @@ function TimesheetTeamPage() {
   return (
     <div>
       <UnderConstruction />
-      <WeeklyApproval
-        employee={employee}
-        startDate={startDate}
-        open={isWeeklyApprovalOpen}
-        onOpenChange={setIsWeeklyApprovalOpen}
-      />
+      {employee !== "" && (
+        <WeeklyApproval
+          employee={employee}
+          startDate={startDate}
+          open={isWeeklyApprovalOpen}
+          onOpenChange={setIsWeeklyApprovalOpen}
+        />
+      )}
     </div>
   );
 }

@@ -131,7 +131,7 @@ const ApprovalPopup = ({
                 {dayGroup.entries.map((entry) => (
                   <div
                     key={entry.timesheetId}
-                    className="px-3.5 py-3 flex gap-3 border-b border-outline-gray-modals last:border-b-0"
+                    className="px-3.5 py-3 flex gap-3 border-b border-outline-gray-modals last:border-b-0 group"
                   >
                     <TaskStatus status={entry.status} />
                     <div className="flex-1 min-w-0">
@@ -150,7 +150,10 @@ const ApprovalPopup = ({
                     <span className="text-sm text-ink-gray-6 shrink-0">
                       {entry.hours}
                     </span>
-                    <Edit size={16} className="text-ink-gray-7" />
+                    <Edit
+                      size={16}
+                      className="text-ink-gray-7 opacity-0 group-hover:opacity-100 transition-opacity"
+                    />
                   </div>
                 ))}
               </AccordionContent>
