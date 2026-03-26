@@ -3,11 +3,18 @@
  */
 import { useState } from "react";
 import { Dialog } from "@base-ui/react/dialog";
-import { useFrappeGetCall, useFrappeGetDoc } from "frappe-react-sdk";
+import { useToasts } from "@rtcamp/frappe-ui-react";
+import {
+  FrappeError,
+  useFrappeGetCall,
+  useFrappeGetDoc,
+  useFrappePostCall,
+} from "frappe-react-sdk";
 
 /**
  * Internal Dependencies
  */
+import { parseFrappeErrorMsg } from "@/lib/utils";
 import ApprovalPopup from "./approval-popup";
 import RejectionPopup from "./rejection-popup";
 import type { WeeklyApprovalProps } from "./types";
@@ -47,9 +54,12 @@ const WeeklyApproval = ({
   open,
   onOpenChange,
 }: WeeklyApprovalProps) => {
+  const toast = useToasts();
   const [currentView, setCurrentView] = useState<ModalView>("approval");
-  const [rejectionTimesheetIds, setRejectionTimesheetIds] = useState<string[]>(
-    [],
+  const [checkedDays, setCheckedDays] = useState<Set<string>>(new Set());
+
+  const { call: approveOrRejectTimesheet } = useFrappePostCall(
+    "next_pms.timesheet.api.team.approve_or_reject_timesheet",
   );
 
   const { isLoading, data } = useFrappeGetCall(
@@ -66,28 +76,68 @@ const WeeklyApproval = ({
   const totalHours = timesheetData.totalHours;
   const dateRange = timesheetData.dateRange;
 
+  // Initialize checkedDays with all days when data loads
+  if (checkedDays.size === 0 && groupedByDay.length > 0) {
+    setCheckedDays(new Set(groupedByDay.map((dayGroup) => dayGroup.day)));
+  }
+
   const { data: employeeData } = useFrappeGetDoc("Employee", employee);
 
   const employeeName = employeeData?.employee_name || "";
   const avatarUrl = employeeData?.image || "";
 
-  const handleReject = (timesheetIds: string[]) => {
-    setRejectionTimesheetIds(timesheetIds);
+  const handleDayCheckChange = (day: string, checked: boolean) => {
+    setCheckedDays((prev) => {
+      const newSet = new Set(prev);
+      if (checked) {
+        newSet.add(day);
+      } else {
+        newSet.delete(day);
+      }
+      return newSet;
+    });
+  };
+
+  const getCheckedDates = () => {
+    return groupedByDay
+      .filter((dayGroup) => checkedDays.has(dayGroup.day))
+      .map((dayGroup) => dayGroup.entries[0].date);
+  };
+
+  const handleReject = () => {
     setCurrentView("rejection");
   };
 
-  const handleApproveSubmit = (timesheetIds: string[]) => {
-    console.log("Approved timesheetIds:", timesheetIds);
+  const handleApproveSubmit = async () => {
+    const dates = getCheckedDates();
+    try {
+      const res = await approveOrRejectTimesheet({
+        dates,
+        status: "Approved",
+        employee,
+      });
+      toast.success(res.message);
+    } catch (error) {
+      const message = parseFrappeErrorMsg(error as FrappeError);
+      toast.error(message);
+    }
     onOpenChange(false);
   };
 
-  const handleRejectionSubmit = (reason: string) => {
-    console.log(
-      "Rejected timesheetIds:",
-      rejectionTimesheetIds,
-      "Reason:",
-      reason,
-    );
+  const handleRejectionSubmit = async (reason: string) => {
+    const dates = getCheckedDates();
+    try {
+      const res = await approveOrRejectTimesheet({
+        dates,
+        status: "Rejected",
+        employee,
+        note: reason,
+      });
+      toast.success(res.message);
+    } catch (error) {
+      const message = parseFrappeErrorMsg(error as FrappeError);
+      toast.error(message);
+    }
     onOpenChange(false);
   };
 
@@ -106,6 +156,8 @@ const WeeklyApproval = ({
             dateRange={dateRange}
             totalHours={totalHours}
             groupedByDay={groupedByDay}
+            checkedDays={checkedDays}
+            onDayCheckChange={handleDayCheckChange}
             onApprove={handleApproveSubmit}
             onReject={handleReject}
           />
@@ -113,7 +165,6 @@ const WeeklyApproval = ({
           <RejectionPopup
             employeeName={employeeName}
             avatarUrl={avatarUrl}
-            timesheetIds={rejectionTimesheetIds}
             onReject={handleRejectionSubmit}
           />
         )}

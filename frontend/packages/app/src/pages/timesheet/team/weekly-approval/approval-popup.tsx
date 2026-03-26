@@ -1,9 +1,8 @@
 /**
  * External Dependencies
  */
-import { useState } from "react";
-import { Dialog } from "@base-ui/react/dialog";
 import { Accordion } from "@base-ui/react/accordion";
+import { Dialog } from "@base-ui/react/dialog";
 import { floatToTime } from "@next-pms/design-system";
 import { Avatar, Button, Checkbox } from "@rtcamp/frappe-ui-react";
 import { ChevronDown, X, CircleX, CircleCheck } from "lucide-react";
@@ -11,8 +10,8 @@ import { ChevronDown, X, CircleX, CircleCheck } from "lucide-react";
 /**
  * Internal Dependencies
  */
-import type { TimesheetEntry } from "../../utils";
 import EntryRow from "./entry-row";
+import type { TimesheetEntry } from "../../utils";
 
 interface GroupedDay {
   day: string;
@@ -26,8 +25,10 @@ interface ApprovalPopupProps {
   dateRange: string;
   totalHours: number;
   groupedByDay: GroupedDay[];
-  onApprove: (timesheetIds: string[]) => void;
-  onReject: (timesheetIds: string[]) => void;
+  checkedDays: Set<string>;
+  onDayCheckChange: (day: string, checked: boolean) => void;
+  onApprove: () => void;
+  onReject: () => void;
 }
 
 const ApprovalPopup = ({
@@ -36,42 +37,11 @@ const ApprovalPopup = ({
   dateRange,
   totalHours,
   groupedByDay,
+  checkedDays,
+  onDayCheckChange,
   onApprove,
   onReject,
 }: ApprovalPopupProps) => {
-  const [checkedDays, setCheckedDays] = useState<Set<string>>(
-    () => new Set(groupedByDay.map((dayGroup) => dayGroup.day))
-  );
-
-  const handleDayCheckChange = (day: string, checked: boolean) => {
-    setCheckedDays((prev) => {
-      const newSet = new Set(prev);
-      if (checked) {
-        newSet.add(day);
-      } else {
-        newSet.delete(day);
-      }
-      return newSet;
-    });
-  };
-
-  const getCheckedTimesheetIds = () => {
-    const checkedEntries = groupedByDay
-      .filter((dayGroup) => checkedDays.has(dayGroup.day))
-      .flatMap((dayGroup) => dayGroup.entries);
-    return checkedEntries.map((entry) => entry.timesheetId);
-  };
-
-  const handleApprove = () => {
-    const timesheetIds = getCheckedTimesheetIds();
-    onApprove(timesheetIds);
-  };
-
-  const handleReject = () => {
-    const timesheetIds = getCheckedTimesheetIds();
-    onReject(timesheetIds);
-  };
-
   const handleEntrySave = (
     timesheetId: string,
     updates: { description: string; hours: number },
@@ -125,12 +95,12 @@ const ApprovalPopup = ({
                   </span>
                   <div
                     onClick={(e) => e.stopPropagation()}
-                    className="flex items-center" 
+                    className="flex items-center"
                   >
                     <Checkbox
                       value={checkedDays.has(dayGroup.day)}
                       onChange={(checked) =>
-                        handleDayCheckChange(dayGroup.day, checked)
+                        onDayCheckChange(dayGroup.day, checked)
                       }
                     />
                   </div>
@@ -156,14 +126,14 @@ const ApprovalPopup = ({
           variant="solid"
           label="Reject"
           iconLeft={() => <CircleX size={16} className="text-white" />}
-          onClick={handleReject}
+          onClick={onReject}
         />
         <Button
           theme="green"
           variant="solid"
           label="Approve"
           iconLeft={() => <CircleCheck size={16} className="text-white" />}
-          onClick={handleApprove}
+          onClick={onApprove}
         />
       </div>
     </Dialog.Popup>

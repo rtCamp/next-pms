@@ -9,7 +9,6 @@ import { X } from "lucide-react";
 interface RejectionPopupProps {
   employeeName: string;
   avatarUrl: string;
-  timesheetIds: string[];
   onReject: (reason: string) => void;
 }
 

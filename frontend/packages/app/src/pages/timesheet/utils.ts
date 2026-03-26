@@ -15,6 +15,7 @@ export interface TimesheetEntry {
   hours: number;
   description: string;
   day: string;
+  date: string;
   status: TaskStatusType;
 }
 
@@ -67,6 +68,13 @@ interface TimesheetApiResponse {
 }
 
 /**
+ * Extracts the date part from a datetime string like "2026-03-16 00:00:00"
+ */
+const extractDate = (dateTimeStr: string): string => {
+  return dateTimeStr.split(" ")[0];
+};
+
+/**
  * Formats a datetime string like "2026-03-16 00:00:00" to "Mon, Mar 16"
  */
 const formatDay = (dateTimeStr: string): string => {
@@ -105,6 +113,7 @@ export const convertTimesheetToEntries = (response: TimesheetApiResponse) => {
           hours: entry.hours,
           description: entry.description,
           day: formatDay(entry.from_time),
+          date: extractDate(entry.from_time),
           status: task.status.toLowerCase() as TaskStatusType,
         });
       });
