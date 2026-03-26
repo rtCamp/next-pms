@@ -27,6 +27,14 @@ interface ApprovalPopupProps {
   groupedByDay: GroupedDay[];
   checkedDays: Set<string>;
   onDayCheckChange: (day: string, checked: boolean) => void;
+  onTimesheetUpdate: (
+    timesheetId: string,
+    taskId: string,
+    description: string,
+    hours: number,
+    parent: string,
+    date: string,
+  ) => void;
   onApprove: () => void;
   onReject: () => void;
 }
@@ -39,17 +47,10 @@ const ApprovalPopup = ({
   groupedByDay,
   checkedDays,
   onDayCheckChange,
+  onTimesheetUpdate,
   onApprove,
   onReject,
 }: ApprovalPopupProps) => {
-  const handleEntrySave = (
-    timesheetId: string,
-    updates: { description: string; hours: number },
-  ) => {
-    console.log("Saving entry:", timesheetId, updates);
-    // TODO: Call API to update the entry
-  };
-
   return (
     <Dialog.Popup className="fixed right-0 top-0 w-112 h-[calc(100vh-20px)] m-2.5 z-101 bg-surface-modal rounded-xl shadow-xl flex flex-col">
       {/* Header */}
@@ -111,7 +112,7 @@ const ApprovalPopup = ({
                   <EntryRow
                     key={entry.timesheetId}
                     entry={entry}
-                    onSave={handleEntrySave}
+                    onSave={onTimesheetUpdate}
                   />
                 ))}
               </Accordion.Panel>

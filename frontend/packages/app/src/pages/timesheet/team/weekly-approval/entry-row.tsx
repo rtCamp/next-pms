@@ -2,8 +2,8 @@
  * External Dependencies
  */
 import { useState, useCallback } from "react";
-import { TaskStatus, DurationInput } from "@next-pms/design-system/components";
 import { floatToTime } from "@next-pms/design-system";
+import { TaskStatus, DurationInput } from "@next-pms/design-system/components";
 import { Button, Textarea } from "@rtcamp/frappe-ui-react";
 import { Edit, Check, X, Trash2 } from "lucide-react";
 
@@ -14,7 +14,14 @@ import type { TimesheetEntry } from "../../utils";
 
 interface EntryRowProps {
   entry: TimesheetEntry;
-  onSave: (timesheetId: string, updates: { description: string; hours: number }) => void;
+  onSave: (
+    timesheetId: string,
+    taskId: string,
+    description: string,
+    hours: number,
+    parent: string,
+    date: string,
+  ) => void;
 }
 
 const EntryRow = ({ entry, onSave }: EntryRowProps) => {
@@ -33,9 +40,24 @@ const EntryRow = ({ entry, onSave }: EntryRowProps) => {
   }, [entry.description, entry.hours]);
 
   const handleSave = useCallback(() => {
-    onSave(entry.timesheetId, { description, hours });
+    onSave(
+      entry.timesheetId,
+      entry.taskId,
+      description,
+      hours,
+      entry.parent,
+      entry.day,
+    );
     setIsEditing(false);
-  }, [entry.timesheetId, description, hours, onSave]);
+  }, [
+    entry.timesheetId,
+    entry.taskId,
+    entry.parent,
+    entry.day,
+    description,
+    hours,
+    onSave,
+  ]);
 
   if (isEditing) {
     return (
@@ -43,7 +65,9 @@ const EntryRow = ({ entry, onSave }: EntryRowProps) => {
         <TaskStatus status={entry.status} />
         <div className="flex-1 min-w-0">
           <div className="space-y-1">
-            <p className="text-base font-medium text-ink-gray-7">{entry.taskName}</p>
+            <p className="text-base font-medium text-ink-gray-7">
+              {entry.taskName}
+            </p>
             <p className="text-xs text-ink-gray-5">{entry.projectName}</p>
             <Textarea
               value={description}
@@ -54,11 +78,7 @@ const EntryRow = ({ entry, onSave }: EntryRowProps) => {
             />
           </div>
         </div>
-        <DurationInput
-          value={hours}
-          onChange={setHours}
-          variant="compact"
-        />
+        <DurationInput value={hours} onChange={setHours} variant="compact" />
 
         <div className="flex flex-col gap-2">
           <Button
@@ -89,12 +109,16 @@ const EntryRow = ({ entry, onSave }: EntryRowProps) => {
       <TaskStatus status={entry.status} />
       <div className="flex-1 min-w-0">
         <div className="space-y-1">
-          <p className="text-base font-medium text-ink-gray-7">{entry.taskName}</p>
+          <p className="text-base font-medium text-ink-gray-7">
+            {entry.taskName}
+          </p>
           <p className="text-xs text-ink-gray-5">{entry.projectName}</p>
           <p className="text-sm text-ink-gray-7 mt-3">{entry.description}</p>
         </div>
       </div>
-      <span className="size-fit text-md text-ink-gray-6 rounded-sm outline outline-offset-4 outline-outline-gray-modals">{floatToTime(entry.hours, 2, 2)}</span>
+      <span className="size-fit text-md text-ink-gray-6 rounded-sm outline outline-offset-4 outline-outline-gray-modals">
+        {floatToTime(entry.hours, 2, 2)}
+      </span>
       <Button
         className="m-0 size-fit hover:bg-white opacity-0 group-hover:opacity-100 transition-opacity"
         variant="ghost"

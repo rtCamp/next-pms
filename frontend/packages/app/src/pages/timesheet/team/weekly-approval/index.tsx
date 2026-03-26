@@ -58,6 +58,10 @@ const WeeklyApproval = ({
   const [currentView, setCurrentView] = useState<ModalView>("approval");
   const [checkedDays, setCheckedDays] = useState<Set<string>>(new Set());
 
+  const { call: updateTimesheet } = useFrappePostCall(
+    "next_pms.timesheet.api.timesheet.update_timesheet_detail",
+  );
+
   const { call: approveOrRejectTimesheet } = useFrappePostCall(
     "next_pms.timesheet.api.team.approve_or_reject_timesheet",
   );
@@ -106,6 +110,31 @@ const WeeklyApproval = ({
 
   const handleReject = () => {
     setCurrentView("rejection");
+  };
+
+  const handleTimesheetUpdate = async (
+    timesheetId: string,
+    taskId: string,
+    description: string,
+    hours: number,
+    parent: string,
+    day: string,
+  ) => {
+    try {
+      const res = await updateTimesheet({
+        name: timesheetId,
+        task: taskId,
+        date: day,
+        parent,
+        description,
+        hours,
+        employee,
+      });
+      toast.success(res.message);
+    } catch (error) {
+      const message = parseFrappeErrorMsg(error as FrappeError);
+      toast.error(message);
+    }
   };
 
   const handleApproveSubmit = async () => {
@@ -158,6 +187,7 @@ const WeeklyApproval = ({
             groupedByDay={groupedByDay}
             checkedDays={checkedDays}
             onDayCheckChange={handleDayCheckChange}
+            onTimesheetUpdate={handleTimesheetUpdate}
             onApprove={handleApproveSubmit}
             onReject={handleReject}
           />

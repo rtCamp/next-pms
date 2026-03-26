@@ -16,6 +16,7 @@ export interface TimesheetEntry {
   description: string;
   day: string;
   date: string;
+  parent: string;
   status: TaskStatusType;
 }
 
@@ -114,6 +115,7 @@ export const convertTimesheetToEntries = (response: TimesheetApiResponse) => {
           description: entry.description,
           day: formatDay(entry.from_time),
           date: extractDate(entry.from_time),
+          parent: entry.parent,
           status: task.status.toLowerCase() as TaskStatusType,
         });
       });
