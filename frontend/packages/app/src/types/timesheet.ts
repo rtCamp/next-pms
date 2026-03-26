@@ -1,6 +1,7 @@
 /**
  * Internal dependencies.
  */
+import { ApprovalStatusType } from "@next-pms/design-system/components";
 import { WorkingFrequency } from "@/types";
 
 export interface TaskProps {
@@ -84,12 +85,6 @@ export interface NewTimesheetProps {
   hours: number;
   employee: string;
 }
-
-export type ApprovalStatusType =
-  | "not-submitted"
-  | "approval-pending"
-  | "approved"
-  | "rejected";
 
 export interface TimesheetFilters {
   search: string;

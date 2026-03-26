@@ -6,7 +6,7 @@ import { Accordion } from "@base-ui/react/accordion";
 import { floatToTime } from "@next-pms/design-system";
 import {
   WeekRow as BaseWeekRow,
-  statusMap,
+  ApprovalStatusMap,
   totalHoursThemeMap,
 } from "@next-pms/design-system/components";
 import { getTodayDate, prettyDate } from "@next-pms/design-system/date";
@@ -114,10 +114,10 @@ export const WeekRow = ({
                 dates={formattedDates}
                 totalHours={floatToTime(weekData.total, 2)}
                 totalHoursTheme={totalHoursThemeMap[isExtended]}
-                status={status ? statusMap[status] : "none"}
+                status={status ? ApprovalStatusMap[status] : "none"}
                 collapsed={collapsed}
                 onButtonClick={() =>
-                  status && statusMap[status] === "not-submitted"
+                  status && ApprovalStatusMap[status] === "not-submitted"
                     ? onButtonClick?.()
                     : undefined
                 }
@@ -132,7 +132,7 @@ export const WeekRow = ({
             totalTimeEntries: weekData.totalTimeEntries,
             totalTimeEntriesInHours: weekData.totalTimeEntriesInHours,
             dailyWorkingHours,
-            status: status ? statusMap[status] : "none",
+            status: status ? ApprovalStatusMap[status] : "none",
           })}
         </Accordion.Panel>
       </Accordion.Item>

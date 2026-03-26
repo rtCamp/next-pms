@@ -11,10 +11,10 @@ import { ChevronDown } from "lucide-react";
 import { buttonVariants, statusIcon, statusTheme } from "./constants";
 import { mergeClassNames as cn } from "../../../../utils";
 import {
-  statusLabelMap,
+  ApprovalStatusLabelMap,
   type TotalHoursTheme,
   totalHoursVariants,
-  type RowStatus,
+  type ApprovalStatusType,
 } from "../constants";
 
 export interface WeekRowProps {
@@ -23,7 +23,7 @@ export interface WeekRowProps {
   /** Whether the week row is collapsed or expanded. */
   collapsed?: boolean;
   /** Status of the timesheet for the week. */
-  status?: RowStatus;
+  status?: ApprovalStatusType;
   /** Whether the week row represents the current week. */
   thisWeek?: boolean;
   /** Callback function when the action button is clicked. */
@@ -76,7 +76,7 @@ export const WeekRow: React.FC<WeekRowProps> = ({
           </span>
           {status !== "none" && (
             <Badge theme={statusTheme[status]} className="shrink-0">
-              {statusLabelMap[status]}
+              {ApprovalStatusLabelMap[status]}
             </Badge>
           )}
         </div>
@@ -139,7 +139,7 @@ export const WeekRow: React.FC<WeekRowProps> = ({
               return IconComponent ? <IconComponent size={16} /> : null;
             }}
             aria-label="Submit week"
-            title={statusLabelMap[status]}
+            title={ApprovalStatusLabelMap[status]}
           />
         ) : null}
       </div>

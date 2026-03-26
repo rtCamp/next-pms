@@ -9,9 +9,9 @@ import { Send, CircleCheck, CircleX, Hourglass } from "lucide-react";
 /**
  * Internal dependencies.
  */
-import type { RowStatus } from "../constants";
+import type { ApprovalStatusType } from "../constants";
 
-export const statusTheme: Record<RowStatus, BadgeProps["theme"]> = {
+export const statusTheme: Record<ApprovalStatusType, BadgeProps["theme"]> = {
   "not-submitted": "gray",
   approved: "green",
   rejected: "red",
@@ -20,7 +20,7 @@ export const statusTheme: Record<RowStatus, BadgeProps["theme"]> = {
 };
 
 export const statusIcon: Record<
-  RowStatus,
+  ApprovalStatusType,
   {
     variant: ButtonVariant;
     icon: React.ComponentType<{ size?: number }> | null;

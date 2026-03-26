@@ -3,10 +3,9 @@
  */
 import { useCallback, useEffect, useReducer, useRef, useState } from "react";
 import {
-  RowStatus,
-  RowStatusLabel,
+  ApprovalStatusLabelMap,
+  ApprovalStatusType,
   Spinner,
-  statusLabelMap,
   Typography,
 } from "@next-pms/design-system/components";
 import { getFormatedDate } from "@next-pms/design-system/date";
@@ -30,16 +29,11 @@ import { Ellipsis } from "lucide-react";
 /**
  * Internal dependencies.
  */
-import {
-  parseFrappeErrorMsg,
-  isDateInRange,
-  filterTimesheetEntries,
-} from "@/lib/utils";
+import { parseFrappeErrorMsg, isDateInRange } from "@/lib/utils";
 import { useUser } from "@/providers/user";
 import type { WorkingFrequency } from "@/types";
 import type { TimesheetFilters } from "@/types/timesheet";
 import ApprovalStatusFilter from "../../../components/filters/approvalStatusFilter";
-import ReportsToFilter from "../../../components/filters/reportsToFilter";
 import SearchTasks from "../../../components/filters/searchTasks";
 import { InfiniteScroll } from "../../../components/infiniteScroll";
 import { TimesheetRow } from "../../../components/timesheet-row";
@@ -61,11 +55,7 @@ function Timesheet() {
   const [filters, setFilters] = useState<TimesheetFilters>({
     search: "",
     approvalStatus: null,
-    reportsTo: null,
   });
-  const [approvalStatus, setApprovalStatus] = useState<
-    RowStatusLabel | "all" | null
-  >(null);
   const [hasMore, setHasMore] = useState(true);
 
   const { handleApproval } = useTimesheetOutletContext();
@@ -81,8 +71,11 @@ function Timesheet() {
       employee: employeeId,
       start_date: timesheet.weekDate,
       max_week: NUMBER_OF_WEEKS_TO_FETCH,
-      search,
-      approval_status: approvalStatus,
+      search: filters.search,
+      approval_status: filters.approvalStatus
+        ? ApprovalStatusLabelMap[filters.approvalStatus]
+        : null,
+      compositeFilters: JSON.stringify(compositeFilters),
     },
   );
 
@@ -97,23 +90,23 @@ function Timesheet() {
   }, [dispatch, setStartDateParam]);
 
   const handleSearchChange = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
+    (value: string) => {
       resetWeekDateForFilters();
-      setSearch(e.target.value);
+      setFilters((prev) => ({ ...prev, search: value }));
     },
     [resetWeekDateForFilters],
   );
 
   const handleApprovalStatusChange = useCallback(
-    (value: string | undefined) => {
+    (value?: ApprovalStatusType | null) => {
       resetWeekDateForFilters();
-      setApprovalStatus(
-        value && value !== "all" ? statusLabelMap[value as RowStatus] : null,
-      );
+      setFilters((prev) => ({
+        ...prev,
+        approvalStatus: value,
+      }));
     },
     [resetWeekDateForFilters],
   );
-
   useEffect(() => {
     const scrollToElement = () => {
       if (targetRef.current) {
@@ -211,21 +204,10 @@ function Timesheet() {
     <div className="w-full h-full py-3.5 px-3">
       <div className="flex justify-between mb-3.5">
         <div className="flex gap-2">
-          <SearchTasks
-            value={filters.search}
-            onChange={(search) => setFilters((prev) => ({ ...prev, search }))}
-          />
+          <SearchTasks value={filters.search} onChange={handleSearchChange} />
           <ApprovalStatusFilter
             value={filters.approvalStatus}
-            onChange={(approvalStatus) =>
-              setFilters((prev) => ({ ...prev, approvalStatus }))
-            }
-          />
-          <ReportsToFilter
-            value={filters.reportsTo}
-            onChange={(reportsTo) =>
-              setFilters((prev) => ({ ...prev, reportsTo }))
-            }
+            onChange={handleApprovalStatusChange}
           />
         </div>
         <div className="flex gap-2">

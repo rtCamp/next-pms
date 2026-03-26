@@ -1,5 +1,5 @@
+import { ApprovalStatusType } from "@next-pms/design-system/components";
 import { Select } from "@rtcamp/frappe-ui-react";
-import { ApprovalStatusType } from "@/types/timesheet";
 
 type ApprovalStatusFilterProps = {
   value?: ApprovalStatusType | null;
@@ -11,6 +11,10 @@ const ApprovalStatusFilter: React.FC<ApprovalStatusFilterProps> = ({
   onChange,
 }) => {
   const options = [
+    {
+      label: "All",
+      value: "",
+    },
     {
       label: "Not Submitted",
       value: "not-submitted",
@@ -26,10 +30,6 @@ const ApprovalStatusFilter: React.FC<ApprovalStatusFilterProps> = ({
     {
       label: "Rejected",
       value: "rejected",
-    },
-    {
-      label: "All",
-      value: "",
     },
   ];
 

@@ -2,7 +2,7 @@
  * External dependencies.
  */
 import { floatToTime } from "@next-pms/design-system";
-import { statusMap } from "@next-pms/design-system/components";
+import { ApprovalStatusMap } from "@next-pms/design-system/components";
 import {
   getDateFromDateAndTimeString,
   getUTCDateTime,
@@ -473,7 +473,7 @@ export function filterTimesheetEntries(
     // Status filter
     if (
       filters.approvalStatus &&
-      statusMap[week.status] !== filters.approvalStatus
+      ApprovalStatusMap[week.status] !== filters.approvalStatus
     ) {
       return [key, { ...week, tasks: {} }] as [string, timesheet];
     }

@@ -11,9 +11,9 @@ import { ChevronDown } from "lucide-react";
 import { buttonVariants, statusIcon, statusTheme } from "./constants";
 import { mergeClassNames as cn } from "../../../../utils";
 import {
-  statusLabelMap,
+  ApprovalStatusLabelMap,
   type TotalHoursTheme,
-  type RowStatus,
+  type ApprovalStatusType,
   totalHoursVariants,
 } from "../constants";
 
@@ -25,7 +25,7 @@ export interface MemberRowProps {
   /** Whether the member row is collapsed or expanded. */
   collapsed?: boolean;
   /** Status of the timesheet for the member. */
-  status?: RowStatus;
+  status?: ApprovalStatusType;
   /** Callback function when the action button is clicked. */
   onButtonClick?: () => void;
   /** Array of time entries for each day of the week for the member. */
@@ -74,7 +74,7 @@ export const MemberRow: React.FC<MemberRowProps> = ({
           </span>
           {status !== "none" && (
             <Badge theme={statusTheme[status]} className="shrink-0">
-              {statusLabelMap[status]}
+              {ApprovalStatusLabelMap[status]}
             </Badge>
           )}
         </div>
@@ -123,7 +123,7 @@ export const MemberRow: React.FC<MemberRowProps> = ({
               const IconComponent = statusIcon[status]?.icon;
               return IconComponent ? <IconComponent size={16} /> : null;
             }}
-            title={statusLabelMap[status]}
+            title={ApprovalStatusLabelMap[status]}
           />
         ) : null}
       </div>
