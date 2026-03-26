@@ -2,12 +2,8 @@
  * External Dependencies
  */
 import { useCallback, useMemo, useRef, useState } from "react";
+import { Accordion } from "@base-ui/react/accordion";
 import { floatToTime, mergeClassNames as cn } from "@next-pms/design-system";
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-} from "@next-pms/design-system/components";
 import {
   Badge,
   Button,
@@ -293,109 +289,111 @@ export const InlineTimeEntry = ({
               isEditingThisEntry || !collapsedEntryNames.includes(entry.name);
 
             return (
-              <div className="w-full group">
-                <Accordion
-                  key={entry.name}
+              <div key={entry.name} className="w-full group">
+                <Accordion.Root
                   value={isExpanded ? [entry.name] : []}
-                  onValueChange={() => {}}
+                  onValueChange={() => handleToggleEntryExpand(entry.name)}
                 >
-                  <AccordionItem
+                  <Accordion.Item
                     value={entry.name}
                     className="pb-2 border-b border-outline-gray-modals"
                   >
                     {!isEditingThisEntry ? (
-                      <div className="relative flex items-center w-full">
-                        <button
-                          type="button"
-                          aria-expanded={isExpanded}
-                          className={cn(
-                            "w-full relative flex justify-start gap-2 cursor-pointer text-left",
-                            "focus:outline-none focus-visible:ring focus-visible:ring-outline-gray-3 rounded-sm",
-                            !isExpanded
-                              ? "flex-row items-center"
-                              : "flex-col items-start ",
-                          )}
-                          onClick={() => handleToggleEntryExpand(entry.name)}
-                        >
+                      <Accordion.Trigger
+                        nativeButton={false}
+                        render={(props) => (
                           <div
+                            {...props}
                             className={cn(
-                              "flex justify-between items-center",
-                              isExpanded && "w-full",
+                              "w-full relative flex justify-start gap-2 cursor-pointer text-left",
+                              "focus:outline-none focus-visible:ring focus-visible:ring-outline-gray-3 rounded-sm",
+                              !isExpanded
+                                ? "flex-row items-center"
+                                : "flex-col items-start ",
                             )}
                           >
-                            <Badge
-                              prefix={
-                                timeEntry.nonBillable ? (
-                                  <div className="flex items-center justify-center w-3 h-3">
-                                    <span className="block z-10 -bottom-0.5 left-1/2 w-1 h-1 rounded-full bg-surface-amber-3 transform -translate-x-1/2"></span>
-                                  </div>
-                                ) : null
-                              }
-                              variant="subtle"
-                              size="md"
-                              className="gap-0 lining-nums tabular-nums text-ink-gray-9"
+                            <div
+                              className={cn(
+                                "flex justify-between items-center",
+                                isExpanded && "w-full",
+                              )}
                             >
-                              {entry.hours
-                                ? floatToTime(entry.hours, 2)
-                                : "00:00"}
-                            </Badge>
+                              <Badge
+                                prefix={
+                                  timeEntry.nonBillable ? (
+                                    <div className="flex items-center justify-center w-3 h-3">
+                                      <span className="block z-10 -bottom-0.5 left-1/2 w-1 h-1 rounded-full bg-surface-amber-3 transform -translate-x-1/2"></span>
+                                    </div>
+                                  ) : null
+                                }
+                                variant="subtle"
+                                size="md"
+                                className="gap-0 lining-nums tabular-nums text-ink-gray-9"
+                              >
+                                {entry.hours
+                                  ? floatToTime(entry.hours, 2)
+                                  : "00:00"}
+                              </Badge>
+                            </div>
+                            {!isExpanded ? (
+                              <span className="w-full min-w-0 text-base truncate group-hover:pr-4 group-focus-within:pr-4 text-ink-gray-6">
+                                {entry.description}
+                              </span>
+                            ) : null}
+                            <Button
+                              className={cn(
+                                "w-5 h-5 absolute right-0 top-0 opacity-0 pointer-events-none",
+                                "group-hover:opacity-100 group-hover:pointer-events-auto",
+                                "group-focus-within:opacity-100 group-focus-within:pointer-events-auto",
+                              )}
+                              variant="ghost"
+                              icon={() => (
+                                <Edit className="text-ink-gray-7" size={16} />
+                              )}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleEditEntry(entry);
+                              }}
+                            />
                           </div>
-                          {!isExpanded ? (
-                            <span className="w-full min-w-0 text-base truncate group-hover:pr-4 group-focus-within:pr-4 text-ink-gray-6">
-                              {entry.description}
-                            </span>
-                          ) : null}
-                        </button>
-                        <Button
-                          className={cn(
-                            "w-5 h-5 absolute right-0 top-0 opacity-0 pointer-events-none",
-                            "group-hover:opacity-100 group-hover:pointer-events-auto",
-                            "group-focus-within:opacity-100 group-focus-within:pointer-events-auto",
-                          )}
-                          variant="ghost"
-                          icon={() => (
-                            <Edit className="text-ink-gray-7" size={16} />
-                          )}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleEditEntry(entry);
-                          }}
-                        />
-                      </div>
+                        )}
+                      />
                     ) : null}
-                    <AccordionContent className="pt-2 pb-0">
-                      {isEditingThisEntry ? (
-                        <TimeEntryForm
-                          form={form}
-                          mode="edit"
-                          hoursLeft={effectiveHoursLeft}
-                          durationLabel="Edit time"
-                          durationVariant="default"
-                          maxDurationInHours={dailyWorkingHours}
-                          editBaseline={editBaselineRef.current}
-                          submitting={submitting}
-                          onSave={() => handleSubmit()}
-                          onCommentKeyDown={handleSubmit}
-                        >
-                          <Button
-                            variant="subtle"
-                            theme="red"
-                            size="sm"
-                            iconLeft={() => <Trash2 size={16} />}
-                            onClick={handleDelete}
-                            disabled={submitting}
+                    <Accordion.Panel className="accordion-panel">
+                      <div className="pt-2">
+                        {isEditingThisEntry ? (
+                          <TimeEntryForm
+                            form={form}
+                            mode="edit"
+                            hoursLeft={effectiveHoursLeft}
+                            durationLabel="Edit time"
+                            durationVariant="default"
+                            maxDurationInHours={dailyWorkingHours}
+                            editBaseline={editBaselineRef.current}
+                            submitting={submitting}
+                            onSave={() => handleSubmit()}
+                            onCommentKeyDown={handleSubmit}
                           >
-                            Delete entry
-                          </Button>
-                        </TimeEntryForm>
-                      ) : (
-                        <span className="text-base whitespace-pre-wrap wrap-break-word line-clamp-6 text-ink-gray-6">
-                          {entry.description}
-                        </span>
-                      )}
-                    </AccordionContent>
-                  </AccordionItem>
-                </Accordion>
+                            <Button
+                              variant="subtle"
+                              theme="red"
+                              size="sm"
+                              iconLeft={() => <Trash2 size={16} />}
+                              onClick={handleDelete}
+                              disabled={submitting}
+                            >
+                              Delete entry
+                            </Button>
+                          </TimeEntryForm>
+                        ) : (
+                          <span className="text-base whitespace-pre-wrap wrap-break-word line-clamp-6 text-ink-gray-6">
+                            {entry.description}
+                          </span>
+                        )}
+                      </div>
+                    </Accordion.Panel>
+                  </Accordion.Item>
+                </Accordion.Root>
               </div>
             );
           })}

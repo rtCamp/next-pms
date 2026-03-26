@@ -2,12 +2,9 @@
  * External dependencies
  */
 import { useMemo, useState } from "react";
+import { Accordion } from "@base-ui/react/accordion";
 import { floatToTime } from "@next-pms/design-system";
 import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
   WeekRow as BaseWeekRow,
   statusMap,
   totalHoursThemeMap,
@@ -99,31 +96,36 @@ export const WeekRow = ({
   }, [dates, today]);
 
   return (
-    <Accordion
+    <Accordion.Root
       value={collapsed ? [] : ["week"]}
       onValueChange={(value) => {
         setCollapsed(value.length === 0);
       }}
     >
-      <AccordionItem value="week" className="border-none">
-        <AccordionTrigger>
-          <BaseWeekRow
-            {...rest}
-            today={today}
-            thisWeek={thisWeek}
-            dates={formattedDates}
-            totalHours={floatToTime(weekData.total, 2)}
-            totalHoursTheme={totalHoursThemeMap[isExtended]}
-            status={status ? statusMap[status] : "none"}
-            collapsed={collapsed}
-            onButtonClick={() =>
-              status && statusMap[status] === "not-submitted"
-                ? onButtonClick?.()
-                : undefined
-            }
-          />
-        </AccordionTrigger>
-        <AccordionContent className="pb-0">
+      <Accordion.Item value="week" className="border-none">
+        <Accordion.Trigger
+          nativeButton={false}
+          render={(props) => (
+            <div {...props}>
+              <BaseWeekRow
+                {...rest}
+                today={today}
+                thisWeek={thisWeek}
+                dates={formattedDates}
+                totalHours={floatToTime(weekData.total, 2)}
+                totalHoursTheme={totalHoursThemeMap[isExtended]}
+                status={status ? statusMap[status] : "none"}
+                collapsed={collapsed}
+                onButtonClick={() =>
+                  status && statusMap[status] === "not-submitted"
+                    ? onButtonClick?.()
+                    : undefined
+                }
+              />
+            </div>
+          )}
+        />
+        <Accordion.Panel className="pb-0 accordion-panel">
           {children?.({
             totalHours: floatToTime(weekData.total, 2),
             totalHoursTheme: totalHoursThemeMap[isExtended],
@@ -132,8 +134,8 @@ export const WeekRow = ({
             dailyWorkingHours,
             status: status ? statusMap[status] : "none",
           })}
-        </AccordionContent>
-      </AccordionItem>
-    </Accordion>
+        </Accordion.Panel>
+      </Accordion.Item>
+    </Accordion.Root>
   );
 };
