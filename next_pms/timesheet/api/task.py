@@ -212,6 +212,7 @@ def get_task(task: str, start_date: str | datetime.date, end_date: str | datetim
     return {
         "subject": task.subject,
         "expected_time": task.expected_time,
+        "exp_end_date": task.exp_end_date or "",
         "project_name": frappe.db.get_value("Project", task.project, "project_name"),
         "project": task.project,
         "actual_time": task.actual_time,
@@ -256,37 +257,22 @@ def get_task_log(task: str, start_date: str = None, end_date: str = None, employ
 
     result = query.run(as_dict=True)
 
-    aggregated_data = {}
+    log_entries = {}
 
     for res in result:
-        employee_name = res.get("employee")
-        start_date = res.get("start_date")
-        hours = res.get("hours")
-        description = res.get("description")
+        key = str(res.get("start_date"))
+        if key not in log_entries:
+            log_entries[key] = []
 
-        key = start_date
-
-        if key not in aggregated_data:
-            aggregated_data[key] = {}
-
-        if employee_name not in aggregated_data[key]:
-            aggregated_data[key][employee_name] = {"hours": 0, "description": []}
-
-        aggregated_data[key][employee_name]["hours"] += hours
-        aggregated_data[key][employee_name]["description"].append(description)
-
-    response = {
-        str(key): [
+        log_entries[key].append(
             {
-                "employee": emp,
-                "hours": data["hours"],
-                "description": data["description"],
+                "employee": res.get("employee"),
+                "hours": res.get("hours"),
+                "description": [res.get("description")] if res.get("description") else [],
             }
-            for emp, data in value.items()
-        ]
-        for key, value in aggregated_data.items()
-    }
-    return response
+        )
+
+    return log_entries
 
 
 @frappe.whitelist(methods=["GET"])
