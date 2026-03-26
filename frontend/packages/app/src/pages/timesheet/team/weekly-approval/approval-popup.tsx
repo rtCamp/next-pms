@@ -3,12 +3,7 @@
  */
 import { useState } from "react";
 import { Dialog } from "@base-ui/react/dialog";
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@next-pms/design-system/components";
+import { Accordion } from "@base-ui/react/accordion";
 import { floatToTime } from "@next-pms/design-system";
 import { Avatar, Button, Checkbox } from "@rtcamp/frappe-ui-react";
 import { ChevronDown, X, CircleX, CircleCheck } from "lucide-react";
@@ -44,7 +39,9 @@ const ApprovalPopup = ({
   onApprove,
   onReject,
 }: ApprovalPopupProps) => {
-  const [checkedDays, setCheckedDays] = useState<Set<string>>(new Set());
+  const [checkedDays, setCheckedDays] = useState<Set<string>>(
+    () => new Set(groupedByDay.map((dayGroup) => dayGroup.day))
+  );
 
   const handleDayCheckChange = (day: string, checked: boolean) => {
     setCheckedDays((prev) => {
@@ -105,16 +102,19 @@ const ApprovalPopup = ({
       </div>
       {/* Content */}
       <div className="flex-1 overflow-y-auto">
-        <Accordion>
+        <Accordion.Root
+          multiple
+          defaultValue={groupedByDay.map((dayGroup) => dayGroup.day)}
+        >
           {groupedByDay.map((dayGroup) => (
-            <AccordionItem
+            <Accordion.Item
               key={dayGroup.day}
               value={dayGroup.day}
               className="bg-surface-gray-2 border-b border-outline-gray-modals last:border-b-0"
             >
-              <AccordionTrigger className="w-full flex items-center justify-between px-3.5 py-3">
+              <Accordion.Trigger className="w-full flex items-center justify-between px-3.5 py-3 group">
                 <div className="flex items-center gap-2">
-                  <ChevronDown className="h-4 w-4 text-ink-gray-5 transition-transform duration-200 group-data-[state=open]:rotate-180" />
+                  <ChevronDown className="h-4 w-4 text-ink-gray-5 transition-transform duration-200 group-data-[panel-open]:rotate-180" />
                   <span className="text-sm font-medium text-ink-gray-8">
                     {dayGroup.day}
                   </span>
@@ -135,8 +135,8 @@ const ApprovalPopup = ({
                     />
                   </div>
                 </div>
-              </AccordionTrigger>
-              <AccordionContent className="bg-white">
+              </Accordion.Trigger>
+              <Accordion.Panel className="bg-white">
                 {dayGroup.entries.map((entry) => (
                   <EntryRow
                     key={entry.timesheetId}
@@ -144,10 +144,10 @@ const ApprovalPopup = ({
                     onSave={handleEntrySave}
                   />
                 ))}
-              </AccordionContent>
-            </AccordionItem>
+              </Accordion.Panel>
+            </Accordion.Item>
           ))}
-        </Accordion>
+        </Accordion.Root>
       </div>
       {/* Footer */}
       <div className="flex items-center justify-between p-3.5 border-t border-outline-gray-modals">
