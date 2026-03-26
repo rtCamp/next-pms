@@ -107,7 +107,10 @@ def get_employee_list(
     from . import filter_employees
 
     if roles and isinstance(roles, str):
-        roles = json.loads(roles)
+        try:
+            roles = json.loads(roles)
+        except json.JSONDecodeError:
+            roles = None  ## useFrappeGetCall will  pass string as JSON-String if string received its better to set it to None and handle it in filter_employees function
     employees, count = filter_employees(
         employee_name=employee_name,
         department=department,
