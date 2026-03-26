@@ -8,14 +8,27 @@ import { cva } from "class-variance-authority";
  */
 import { TaskStatusType } from "@/components/task-status";
 
-export type RowStatus =
+export type ApprovalStatusType =
   | "not-submitted"
   | "approved"
   | "rejected"
   | "approval-pending"
   | "none";
 
-export const statusLabel: Record<RowStatus, string> = {
+export type ApprovalStatusLabelType =
+  | "Not Submitted"
+  | "Approved"
+  | "Rejected"
+  | "Approval Pending"
+  | "None"
+  | "Partially Approved"
+  | "Partially Rejected"
+  | "Processing Timesheet";
+
+export const ApprovalStatusLabelMap: Record<
+  ApprovalStatusType,
+  ApprovalStatusLabelType
+> = {
   "not-submitted": "Not Submitted",
   approved: "Approved",
   rejected: "Rejected",
@@ -23,7 +36,10 @@ export const statusLabel: Record<RowStatus, string> = {
   none: "None",
 };
 
-export const statusMap: Record<string, RowStatus> = {
+export const ApprovalStatusMap: Record<
+  ApprovalStatusLabelType,
+  ApprovalStatusType
+> = {
   "Not Submitted": "not-submitted",
   Approved: "approved",
   Rejected: "rejected",

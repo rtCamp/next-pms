@@ -8,7 +8,7 @@ import type {
   ProjectRowProps as BaseProjectRowProps,
   TaskRowProps as BaseTaskRowProps,
   TimeOffRowProps as BaseTimeOffRowProps,
-  RowStatus,
+  ApprovalStatusType,
   TaskStatusType,
   TotalHoursTheme,
 } from "@next-pms/design-system/components";
@@ -43,7 +43,7 @@ export interface WeekRowProps extends Omit<BaseWeekRowProps, "status"> {
     totalTimeEntries: string[];
     totalTimeEntriesInHours: number[];
     dailyWorkingHours: number;
-    status: RowStatus;
+    status: ApprovalStatusType;
   }) => React.ReactNode;
 }
 
