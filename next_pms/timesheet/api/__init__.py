@@ -1,3 +1,4 @@
+import frappe
 from frappe import get_all, get_list, get_roles, get_value, whitelist
 
 
@@ -34,15 +35,16 @@ def filter_employees(
     reports_to: None | str = None,
     business_unit=None,
     designation=None,
+    roles: list[str] | None = None,
     ignore_default_filters=False,
     ignore_permissions=False,
 ):
     import json
 
-    roles = get_roles()
+    user_roles = get_roles()
 
     if not ignore_permissions:
-        ignore_permissions = set(roles).intersection(["Timesheet User", "Timesheet Manager"])
+        ignore_permissions = set(user_roles).intersection(["Timesheet User", "Timesheet Manager"])
 
     fields = ["name", "image", "employee_name", "department", "designation"]
     employee_ids = []
@@ -105,6 +107,18 @@ def filter_employees(
         ids = [get_value("Employee", {"user_id": user}, cache=True) for user in users]
         employee_ids.extend(ids)
 
+    if isinstance(roles, str):
+        roles = json.loads(roles)
+
+    if roles and len(roles) > 0:
+        user_ids = get_all(
+            "Has Role",
+            filters={"role": ["in", roles], "parenttype": "User", "parent": ["!=", "Administrator"]},
+            pluck="parent",
+        )
+        ids = get_all("Employee", filters={"user_id": ["in", user_ids]}, pluck="name")
+        employee_ids.extend(ids)
+
     if len(employee_ids) > 0:
         filters["name"] = ["in", employee_ids]
 
@@ -140,18 +154,18 @@ def get_count(
     ignore_permissions=False,
 ) -> int:
     from frappe.desk.reportview import execute
+    from frappe.query_builder.functions import Count
 
-    distinct = "distinct " if distinct else ""
-    fieldname = f"{distinct}`tab{doctype}`.name"
-
-    fieldname = [f"count({fieldname}) as total_count"]
-    count = execute(
+    fieldname = f"`tab{doctype}`.name"
+    subquery = execute(
         doctype,
+        fields=[fieldname],
         distinct=distinct,
-        limit=limit,
-        fields=fieldname,
         filters=filters,
         or_filters=or_filters,
         ignore_permissions=ignore_permissions,
-    )[0].get("total_count")
-    return count
+        run=0,
+    )
+    count_query = frappe.qb.from_(subquery.as_("sub")).select(Count("*").as_("total_count"))
+    result = count_query.run(as_dict=True)
+    return result[0]["total_count"] if result else 0

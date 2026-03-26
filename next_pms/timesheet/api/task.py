@@ -221,10 +221,10 @@ def get_task(task: str, start_date: str | datetime.date, end_date: str | datetim
         "gh_link": task.custom_github_issue_link if task.meta.has_field("custom_github_issue_link") else "",
     }
 
-
+    
 @frappe.whitelist(methods=["GET"])
-def get_task_log(task: str, start_date: str = None, end_date: str = None):
-    """API to get the time log details for a task between the given start date and end date."""
+def get_task_log(task: str, start_date: str = None, end_date: str = None, employee: str = None):
+  """API to get the time log details for a task between the given start date and end date. with an optional parameter of passing in employee"""
     project = frappe.db.get_value("Task", task, "project")
 
     if project:
@@ -250,6 +250,9 @@ def get_task_log(task: str, start_date: str = None, end_date: str = None):
         )
         .orderby(timesheet.start_date, order=frappe.qb.desc)
     )
+
+    if employee:
+        query = query.where(timesheet.employee == employee)
 
     result = query.run(as_dict=True)
 
