@@ -8,15 +8,16 @@ import {
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
-  TaskStatus,
 } from "@next-pms/design-system/components";
+import { floatToTime } from "@next-pms/design-system";
 import { Avatar, Button, Checkbox } from "@rtcamp/frappe-ui-react";
-import { ChevronDown, X, CircleX, CircleCheck, Edit } from "lucide-react";
+import { ChevronDown, X, CircleX, CircleCheck } from "lucide-react";
 
 /**
  * Internal Dependencies
  */
 import type { TimesheetEntry } from "../../utils";
+import EntryRow from "./entry-row";
 
 interface GroupedDay {
   day: string;
@@ -74,6 +75,14 @@ const ApprovalPopup = ({
     onReject(timesheetIds);
   };
 
+  const handleEntrySave = (
+    timesheetId: string,
+    updates: { description: string; hours: number },
+  ) => {
+    console.log("Saving entry:", timesheetId, updates);
+    // TODO: Call API to update the entry
+  };
+
   return (
     <Dialog.Popup className="fixed right-0 top-0 w-112 h-[calc(100vh-20px)] m-2.5 z-101 bg-surface-modal rounded-xl shadow-xl flex flex-col">
       {/* Header */}
@@ -87,9 +96,9 @@ const ApprovalPopup = ({
         </div>
         <div className="flex items-center gap-3">
           <span className="text-md font-medium text-ink-green-4">
-            {totalHours}
+            {floatToTime(totalHours, 2, 2)}
           </span>
-          <Dialog.Close className="p-1 hover:bg-surface-gray-2 rounded">
+          <Dialog.Close className="hover:bg-surface-gray-2 rounded">
             <X className="h-5 w-5 text-ink-gray-5" />
           </Dialog.Close>
         </div>
@@ -111,12 +120,12 @@ const ApprovalPopup = ({
                   </span>
                 </div>
                 <div className="flex items-center gap-3">
-                  <span className="text-sm font-semibold text-ink-green-3">
-                    {dayGroup.totalHours}
+                  <span className="text-md font-semibold text-ink-green-3">
+                    {floatToTime(dayGroup.totalHours, 2, 2)}
                   </span>
                   <div
                     onClick={(e) => e.stopPropagation()}
-                    className="flex items-center"
+                    className="flex items-center" 
                   >
                     <Checkbox
                       value={checkedDays.has(dayGroup.day)}
@@ -129,32 +138,11 @@ const ApprovalPopup = ({
               </AccordionTrigger>
               <AccordionContent className="bg-white">
                 {dayGroup.entries.map((entry) => (
-                  <div
+                  <EntryRow
                     key={entry.timesheetId}
-                    className="px-3.5 py-3 flex gap-3 border-b border-outline-gray-modals last:border-b-0 group"
-                  >
-                    <TaskStatus status={entry.status} />
-                    <div className="flex-1 min-w-0">
-                      <div className="space-y-1">
-                        <p className="text-base font-medium text-ink-gray-7">
-                          {entry.taskName}
-                        </p>
-                        <p className="text-xs text-ink-gray-5">
-                          {entry.projectName}
-                        </p>
-                        <p className="text-sm text-ink-gray-7 mt-3">
-                          {entry.description}
-                        </p>
-                      </div>
-                    </div>
-                    <span className="text-sm text-ink-gray-6 shrink-0">
-                      {entry.hours}
-                    </span>
-                    <Edit
-                      size={16}
-                      className="text-ink-gray-7 opacity-0 group-hover:opacity-100 transition-opacity"
-                    />
-                  </div>
+                    entry={entry}
+                    onSave={handleEntrySave}
+                  />
                 ))}
               </AccordionContent>
             </AccordionItem>
