@@ -2,14 +2,11 @@
  * External dependencies
  */
 import { useMemo, useState } from "react";
+import { Accordion } from "@base-ui/react/accordion";
 import { floatToTime } from "@next-pms/design-system";
 import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
   WeekRow as BaseWeekRow,
-  statusMap,
+  ApprovalStatusMap,
   totalHoursThemeMap,
 } from "@next-pms/design-system/components";
 import { getTodayDate, prettyDate } from "@next-pms/design-system/date";
@@ -80,41 +77,48 @@ export const WeekRow = ({
   }, [dates, today]);
 
   return (
-    <Accordion
+    <Accordion.Root
       value={collapsed ? [] : ["week"]}
       onValueChange={(value) => {
         setCollapsed(value.length === 0);
       }}
     >
-      <AccordionItem value="week" className="border-none">
-        <AccordionTrigger>
-          <BaseWeekRow
-            {...rest}
-            today={today}
-            thisWeek={thisWeek}
-            dates={formattedDates}
-            totalHours={floatToTime(weekData.total, 2)}
-            totalHoursTheme={totalHoursThemeMap[weekData.isExtended]}
-            status={status ? statusMap[status] : "none"}
-            collapsed={collapsed}
-            onButtonClick={() =>
-              !isReadOnlyWeek && status && statusMap[status] === "not-submitted"
-                ? onButtonClick?.()
-                : undefined
-            }
-          />
-        </AccordionTrigger>
-        <AccordionContent className="pb-0">
+      <Accordion.Item value="week" className="border-none">
+        <Accordion.Trigger
+          nativeButton={false}
+          render={(props) => (
+            <div {...props}>
+              <BaseWeekRow
+                {...rest}
+                today={today}
+                thisWeek={thisWeek}
+                dates={formattedDates}
+                totalHours={floatToTime(weekData.total, 2)}
+                totalHoursTheme={totalHoursThemeMap[weekData.isExtended]}
+                status={status ? ApprovalStatusMap[status] : "none"}
+                collapsed={collapsed}
+                onButtonClick={() =>
+                  !isReadOnlyWeek &&
+                  status &&
+                  ApprovalStatusMap[status] === "not-submitted"
+                    ? onButtonClick?.()
+                    : undefined
+                }
+              />
+            </div>
+          )}
+        />
+        <Accordion.Panel className="pb-0 accordion-panel">
           {children?.({
             totalHours: floatToTime(weekData.total, 2),
             totalHoursTheme: totalHoursThemeMap[weekData.isExtended],
             totalTimeEntries: weekData.totalTimeEntries,
             totalTimeEntriesInHours: weekData.totalTimeEntriesInHours,
             dailyWorkingHours: weekData.dailyWorkingHours,
-            status: status ? statusMap[status] : "none",
+            status: status ? ApprovalStatusMap[status] : "none",
           })}
-        </AccordionContent>
-      </AccordionItem>
-    </Accordion>
+        </Accordion.Panel>
+      </Accordion.Item>
+    </Accordion.Root>
   );
 };

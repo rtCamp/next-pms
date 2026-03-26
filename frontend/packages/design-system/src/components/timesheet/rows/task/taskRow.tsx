@@ -103,7 +103,7 @@ export const TaskRow: React.FC<TaskRowProps> = ({
               className={cn(
                 "w-4 h-4 bg-transparent hover:bg-transparent active:bg-transparent shrink-0 p-0",
                 !starred &&
-                  "transition-opacity duration-100 opacity-0 group-hover:opacity-100",
+                  "transition-opacity duration-100 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100",
               )}
               onClick={(e) => onStarClick?.(e, taskKey)}
               aria-label={starred ? "Unstar task" : "Star task"}

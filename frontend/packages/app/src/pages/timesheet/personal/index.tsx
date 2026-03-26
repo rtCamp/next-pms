@@ -1,15 +1,18 @@
 /**
  * External dependencies.
  */
-import { useEffect, useMemo, useReducer, useRef, useState } from "react";
-import { Spinner, Typography } from "@next-pms/design-system/components";
+import { useCallback, useEffect, useReducer, useRef, useState } from "react";
+import {
+  ApprovalStatusLabelMap,
+  ApprovalStatusType,
+  Spinner,
+  Typography,
+} from "@next-pms/design-system/components";
 import { getFormatedDate } from "@next-pms/design-system/date";
 
 import { useQueryParam } from "@next-pms/hooks";
 import {
   Button,
-  TextInput,
-  Select,
   Filter,
   FilterCondition,
   useToasts,
@@ -29,7 +32,9 @@ import { Ellipsis } from "lucide-react";
 import { parseFrappeErrorMsg, isDateInRange } from "@/lib/utils";
 import { useUser } from "@/providers/user";
 import type { WorkingFrequency } from "@/types";
-import type { timesheet } from "@/types/timesheet";
+import type { TimesheetFilters } from "@/types/timesheet";
+import ApprovalStatusFilter from "../../../components/filters/approvalStatusFilter";
+import SearchTasks from "../../../components/filters/searchTasks";
 import { InfiniteScroll } from "../../../components/infiniteScroll";
 import { HeaderRow } from "../../../components/timesheet-row/components/row/headerRow";
 import { PersonalTimesheetRow } from "../../../components/timesheet-row/personalTimesheetRow";
@@ -42,9 +47,16 @@ const NUMBER_OF_WEEKS_TO_FETCH = 4;
 
 function PersonalTimesheet() {
   const targetRef = useRef<HTMLDivElement>(null);
+  const isFilterRequestRef = useRef(false);
   const toast = useToasts();
-  const [filters, setFilters] = useState<FilterCondition[]>([]);
-  const [search, setSearch] = useState("");
+  const [compositeFilters, setCompositeFilters] = useState<FilterCondition[]>(
+    [],
+  );
+  const [filters, setFilters] = useState<TimesheetFilters>({
+    search: "",
+    approvalStatus: null,
+  });
+  const [hasMore, setHasMore] = useState(true);
 
   const { handleApproval } = useTimesheetOutletContext();
 
@@ -59,9 +71,42 @@ function PersonalTimesheet() {
       employee: employeeId,
       start_date: timesheet.weekDate,
       max_week: NUMBER_OF_WEEKS_TO_FETCH,
+      search: filters.search,
+      approval_status: filters.approvalStatus
+        ? ApprovalStatusLabelMap[filters.approvalStatus]
+        : null,
+      compositeFilters: JSON.stringify(compositeFilters),
     },
   );
 
+  const resetWeekDateForFilters = useCallback(() => {
+    isFilterRequestRef.current = true;
+    setHasMore(true);
+    setStartDateParam("");
+    dispatch({
+      type: "SET_WEEK_DATE",
+      payload: initialState.weekDate,
+    });
+  }, [dispatch, setStartDateParam]);
+
+  const handleSearchChange = useCallback(
+    (value: string) => {
+      resetWeekDateForFilters();
+      setFilters((prev) => ({ ...prev, search: value }));
+    },
+    [resetWeekDateForFilters],
+  );
+
+  const handleApprovalStatusChange = useCallback(
+    (value?: ApprovalStatusType | null) => {
+      resetWeekDateForFilters();
+      setFilters((prev) => ({
+        ...prev,
+        approvalStatus: value,
+      }));
+    },
+    [resetWeekDateForFilters],
+  );
   useEffect(() => {
     const scrollToElement = () => {
       if (targetRef.current) {
@@ -78,7 +123,12 @@ function PersonalTimesheet() {
 
   useEffect(() => {
     if (data) {
-      if (
+      const fetchedWeekCount = Object.keys(data.message?.data ?? {}).length;
+      setHasMore(fetchedWeekCount === NUMBER_OF_WEEKS_TO_FETCH);
+
+      if (isFilterRequestRef.current) {
+        dispatch({ type: "SET_DATA", payload: data.message });
+      } else if (
         timesheet.data?.data &&
         Object.keys(timesheet.data?.data).length > 0
       ) {
@@ -86,6 +136,8 @@ function PersonalTimesheet() {
       } else {
         dispatch({ type: "SET_DATA", payload: data.message });
       }
+
+      isFilterRequestRef.current = false;
     }
     if (error) {
       const err = parseFrappeErrorMsg(error);
@@ -133,6 +185,8 @@ function PersonalTimesheet() {
   }, []);
 
   const loadData = () => {
+    if (!hasMore) return;
+
     const data = timesheet.data.data;
     if (Object.keys(data).length === 0) return;
 
@@ -146,68 +200,22 @@ function PersonalTimesheet() {
     });
   };
 
-  const filteredWeekEntries = useMemo(() => {
-    const entries = Object.entries(timesheet.data.data) as [
-      string,
-      timesheet,
-    ][];
-    const query = search.trim().toLowerCase();
-
-    if (!query) return entries;
-
-    return entries.map(([key, week]) => {
-      const filteredTasks = Object.fromEntries(
-        Object.entries(week.tasks).filter(
-          (entry) =>
-            entry[1].name.toLowerCase().includes(query) ||
-            entry[1].subject.toLowerCase().includes(query),
-        ),
-      );
-
-      return [key, { ...week, tasks: filteredTasks }] as [string, timesheet];
-    });
-  }, [timesheet.data.data, search]);
-
   return (
     <div className="w-full h-full py-3.5 px-3">
       <div className="flex justify-between mb-3.5">
         <div className="flex gap-2">
-          <TextInput
-            placeholder="Search Tasks"
-            value={search}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-              setSearch(e.target.value)
-            }
-          />
-          <Select
-            placeholder="Approval Status"
-            className="w-fit"
-            options={[
-              {
-                label: "Not Submitted",
-                value: "not-submitted",
-              },
-              {
-                label: "Approval Pending",
-                value: "approval-pending",
-              },
-              {
-                label: "Approved",
-                value: "approved",
-              },
-              {
-                label: "Rejected",
-                value: "rejected",
-              },
-            ]}
+          <SearchTasks value={filters.search} onChange={handleSearchChange} />
+          <ApprovalStatusFilter
+            value={filters.approvalStatus}
+            onChange={handleApprovalStatusChange}
           />
         </div>
         <div className="flex gap-2">
           <Filter
             fields={sampleFields}
-            value={filters}
+            value={compositeFilters}
             onChange={(newFilters) => {
-              setFilters(newFilters);
+              setCompositeFilters(newFilters);
             }}
           />
           <Button icon={() => <Ellipsis size={16} />} />
@@ -219,13 +227,13 @@ function PersonalTimesheet() {
       ) : (
         <>
           {Object.keys(timesheet.data?.data).length == 0 ? (
-            <Typography className="flex items-center justify-center">
-              No Data
+            <Typography className="w-full h-full flex items-center justify-center">
+              No Data Found
             </Typography>
           ) : (
             <InfiniteScroll
               isLoading={isLoading}
-              hasMore={true}
+              hasMore={hasMore}
               verticalLodMore={loadData}
               className="w-full h-full overflow-auto scrollbar [scrollbar-gutter:stable]"
               count={NUMBER_OF_WEEKS_TO_FETCH}
@@ -233,73 +241,76 @@ function PersonalTimesheet() {
               <div className="min-w-225">
                 {timesheet.data?.data &&
                   Object.keys(timesheet.data?.data).length > 0 &&
-                  filteredWeekEntries.map(([key, value], index) => {
-                    return (
-                      <>
-                        {index === 0 ? (
-                          <div className="mb-4 sticky top-0 bg-surface-white z-10">
-                            <HeaderRow
-                              dates={value.dates}
-                              showHeading={true}
-                              breadcrumbs={{
-                                items: [
-                                  { label: "Week", interactive: false },
-                                  { label: "Project", interactive: false },
-                                  { label: "Task", interactive: false },
-                                ],
-                                highlightLastItem: false,
-                                size: "sm",
-                                crumbClassName: "first:pl-0 last:pr-0",
-                                className: "pl-[8px]",
-                              }}
-                            />
-                          </div>
-                        ) : null}
-                        <div
-                          key={key}
-                          ref={
-                            !isEmpty(startDateParam) &&
-                            isDateInRange(
-                              startDateParam,
-                              value.start_date,
-                              value.end_date,
-                            )
-                              ? targetRef
-                              : null
-                          }
-                          className="animate-fade-in"
-                        >
-                          <PersonalTimesheetRow
-                            label={key}
-                            employee={employeeId}
-                            workingHour={timesheet.data.working_hour}
-                            workingFrequency={
-                              timesheet.data
-                                .working_frequency as WorkingFrequency
-                            }
-                            dates={value.dates}
-                            holidays={timesheet.data.holidays}
-                            leaves={timesheet.data.leaves}
-                            tasks={value.tasks}
-                            firstWeek={index === 0}
-                            weeklyStatus={value.status}
-                            disabled={value.status === "Approved"}
-                            loadingLikedTasks={loadingLikedTasks}
-                            likedTaskData={likedTaskData}
-                            getLikedTaskData={getLikedTaskData}
-                            onButtonClick={() =>
-                              handleApproval(
+                  timesheet.data?.data &&
+                  Object.entries(timesheet.data?.data).map(
+                    ([key, value], index) => {
+                      return (
+                        <>
+                          {index === 0 ? (
+                            <div className="mb-4 sticky top-0 bg-surface-white z-10">
+                              <HeaderRow
+                                dates={value.dates}
+                                showHeading={true}
+                                breadcrumbs={{
+                                  items: [
+                                    { label: "Week", interactive: false },
+                                    { label: "Project", interactive: false },
+                                    { label: "Task", interactive: false },
+                                  ],
+                                  highlightLastItem: false,
+                                  size: "sm",
+                                  crumbClassName: "first:pl-0 last:pr-0",
+                                  className: "pl-[8px]",
+                                }}
+                              />
+                            </div>
+                          ) : null}
+                          <div
+                            key={key}
+                            ref={
+                              !isEmpty(startDateParam) &&
+                              isDateInRange(
+                                startDateParam,
                                 value.start_date,
                                 value.end_date,
-                                value.total_hours,
                               )
+                                ? targetRef
+                                : null
                             }
-                            status={value.status}
-                          />
-                        </div>
-                      </>
-                    );
-                  })}
+                            className="animate-fade-in"
+                          >
+                            <PersonalTimesheetRow
+                              label={key}
+                              employee={employeeId}
+                              workingHour={timesheet.data.working_hour}
+                              workingFrequency={
+                                timesheet.data
+                                  .working_frequency as WorkingFrequency
+                              }
+                              dates={value.dates}
+                              holidays={timesheet.data.holidays}
+                              leaves={timesheet.data.leaves}
+                              tasks={value.tasks}
+                              firstWeek={index === 0}
+                              weeklyStatus={value.status}
+                              disabled={value.status === "Approved"}
+                              loadingLikedTasks={loadingLikedTasks}
+                              likedTaskData={likedTaskData}
+                              getLikedTaskData={getLikedTaskData}
+                              onButtonClick={() =>
+                                handleApproval(
+                                  value.start_date,
+                                  value.end_date,
+                                  value.total_hours,
+                                )
+                              }
+                              status={value.status}
+                            />
+                          </div>
+                        </>
+                      );
+                    },
+                  )}
               </div>
             </InfiniteScroll>
           )}

@@ -6,10 +6,11 @@ export { ProjectRow, type ProjectRowProps } from "./rows/project/projectRow";
 export { MemberRow, type MemberRowProps } from "./rows/member/memberRow";
 export { TaskRow, type TaskRowProps } from "./rows/task/taskRow";
 export {
-  type RowStatus,
+  type ApprovalStatusType,
+  type ApprovalStatusLabelType,
   type TotalHoursTheme,
   totalHoursThemeMap,
-  statusLabel,
-  statusMap,
+  ApprovalStatusLabelMap,
+  ApprovalStatusMap,
   taskStatusMap,
 } from "./rows/constants";

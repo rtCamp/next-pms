@@ -9,9 +9,10 @@ import type {
   ProjectRowProps as BaseProjectRowProps,
   TaskRowProps as BaseTaskRowProps,
   TimeOffRowProps as BaseTimeOffRowProps,
-  RowStatus,
+  ApprovalStatusType,
   TaskStatusType,
   TotalHoursTheme,
+  ApprovalStatusLabelType,
 } from "@next-pms/design-system/components";
 
 /**
@@ -37,14 +38,14 @@ export interface WeekRowProps extends Omit<BaseWeekRowProps, "status"> {
   holidays: Array<HolidayProp>;
   workingHour: number;
   workingFrequency: WorkingFrequency;
-  status?: TaskStatusType | string;
+  status?: ApprovalStatusLabelType;
   children?: (props: {
     totalHours: string;
     totalHoursTheme: TotalHoursTheme;
     totalTimeEntries: string[];
     totalTimeEntriesInHours: number[];
     dailyWorkingHours: number;
-    status: RowStatus;
+    status: ApprovalStatusType;
   }) => React.ReactNode;
 }
 
