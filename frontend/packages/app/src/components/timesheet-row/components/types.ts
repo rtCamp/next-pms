@@ -1,14 +1,8 @@
 /**
  * Internal dependencies
  */
-import type { TaskStatusType } from "@next-pms/design-system/components";
-import type { TaskData, WorkingFrequency } from "@/types";
-import type {
-  HolidayProp,
-  LeaveProps,
-  TaskDataProps,
-  TaskProps,
-} from "@/types/timesheet";
+import type { TaskData } from "@/types";
+import type { TaskDataProps } from "@/types/timesheet";
 
 export type TaskHoverCardProps = {
   name: string;
@@ -18,25 +12,4 @@ export type TaskHoverCardProps = {
   likedTaskData: TaskDataProps[];
   getLikedTaskData: () => void;
   hideLikeButton?: boolean;
-};
-
-export type TimesheetRowProps = {
-  label?: string;
-  employee?: string;
-  dates: string[];
-  holidays: Array<HolidayProp>;
-  tasks: TaskProps;
-  leaves: Array<LeaveProps>;
-  firstWeek: boolean;
-  workingHour: number;
-  disabled?: boolean;
-  workingFrequency: WorkingFrequency;
-  weeklyStatus?: string;
-  importTasks?: boolean;
-  loadingLikedTasks?: boolean;
-  likedTaskData?: Array<object>;
-  getLikedTaskData?: () => void;
-  hideLikeButton?: boolean;
-  onButtonClick?: () => void;
-  status: TaskStatusType;
 };

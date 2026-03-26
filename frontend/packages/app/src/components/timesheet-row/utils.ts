@@ -15,15 +15,6 @@ export type ProjectTaskGroup = {
   tasks: TaskProps;
 };
 
-/**
- * Extracts the dates of holidays from an array of holiday objects.
- * @param holidays - An array of holiday objects.
- * @returns An array of holiday dates.
- */
-export const getHolidayDates = (holidays: Array<HolidayProp>) => {
-  return holidays.map((holiday) => holiday.holiday_date);
-};
-
 export const groupTasksByProject = (taskMap: TaskProps): ProjectTaskGroup[] => {
   const projectMap = new Map<string, ProjectTaskGroup>();
 

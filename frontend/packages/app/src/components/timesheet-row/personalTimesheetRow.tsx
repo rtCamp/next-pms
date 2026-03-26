@@ -2,19 +2,48 @@
  * External dependencies
  */
 import { useMemo } from "react";
-import { ErrorFallback } from "@next-pms/design-system/components";
+import {
+  ApprovalStatusLabelType,
+  ErrorFallback,
+} from "@next-pms/design-system/components";
 
 /**
  * Internal dependencies
  */
-import type { TaskDataProps } from "@/types/timesheet";
+import { getHolidayList } from "@/lib/utils";
+import { WorkingFrequency } from "@/types";
+import type {
+  HolidayProp,
+  LeaveProps,
+  TaskDataProps,
+  TaskProps,
+} from "@/types/timesheet";
 import { ProjectRow } from "./components/row/projectRow";
 import { TaskRow } from "./components/row/taskRow";
 import { TimeOffRow } from "./components/row/timeOffRow";
 import { TotalRow } from "./components/row/totalRow";
 import { WeekRow } from "./components/row/weekRow";
-import type { TimesheetRowProps } from "./components/types";
-import { getHolidayDates, groupTasksByProject } from "./utils";
+import { groupTasksByProject } from "./utils";
+
+export type PersonalTimesheetRowProps = {
+  label?: string;
+  employee?: string;
+  dates: string[];
+  holidays: Array<HolidayProp>;
+  tasks: TaskProps;
+  leaves: Array<LeaveProps>;
+  firstWeek: boolean;
+  workingHour: number;
+  disabled?: boolean;
+  workingFrequency: WorkingFrequency;
+  importTasks?: boolean;
+  loadingLikedTasks?: boolean;
+  likedTaskData?: Array<object>;
+  getLikedTaskData?: () => void;
+  hideLikeButton?: boolean;
+  onButtonClick?: () => void;
+  status: ApprovalStatusLabelType;
+};
 
 export const PersonalTimesheetRow = ({
   label,
@@ -32,9 +61,8 @@ export const PersonalTimesheetRow = ({
   status,
   getLikedTaskData,
   hideLikeButton,
-}: TimesheetRowProps) => {
-  const holidayList = getHolidayDates(holidays);
-
+}: PersonalTimesheetRowProps) => {
+  const holidayList = getHolidayList(holidays);
   const projects = useMemo(() => groupTasksByProject(tasks), [tasks]);
 
   return (
