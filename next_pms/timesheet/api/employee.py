@@ -27,7 +27,7 @@ def get_data():
 @frappe.whitelist(methods=["GET"])
 def get_employee_from_user(user=None, throw_exception=False):
     """returns the employee id for the current user"""
-    user = frappe.session.user
+    user = user if user else frappe.session.user
     employee = frappe.db.get_value("Employee", {"user_id": user})
     if not employee and throw_exception:
         frappe.throw(frappe._("No employee found for {0}.").format(user), frappe.DoesNotExistError)
