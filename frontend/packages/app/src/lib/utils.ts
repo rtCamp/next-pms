@@ -2,6 +2,7 @@
  * External dependencies.
  */
 import { floatToTime } from "@next-pms/design-system";
+import { statusMap } from "@next-pms/design-system/components";
 import {
   getDateFromDateAndTimeString,
   getUTCDateTime,
@@ -17,6 +18,7 @@ import { twMerge } from "tailwind-merge";
 import { timeStringToFloat } from "@/schema/timesheet";
 import { WorkingFrequency } from "@/types";
 import { HolidayProp, LeaveProps, TaskProps } from "@/types/timesheet";
+import type { timesheet, TimesheetFilters } from "@/types/timesheet";
 
 export const NO_VALUE_FIELDS = [
   "Section Break",
@@ -459,3 +461,36 @@ export const calculateLeaveHours = (
     return total;
   }, 0);
 };
+
+export function filterTimesheetEntries(
+  data: Record<string, timesheet>,
+  filters: TimesheetFilters,
+): [string, timesheet][] {
+  const entries = Object.entries(data) as [string, timesheet][];
+  const query = filters.search.trim().toLowerCase();
+
+  return entries.map(([key, week]) => {
+    // Status filter
+    if (
+      filters.approvalStatus &&
+      statusMap[week.status] !== filters.approvalStatus
+    ) {
+      return [key, { ...week, tasks: {} }] as [string, timesheet];
+    }
+
+    let filteredTasks = week.tasks;
+
+    // Search filter
+    if (query) {
+      filteredTasks = Object.fromEntries(
+        Object.entries(filteredTasks).filter(
+          ([, task]) =>
+            task.name.toLowerCase().includes(query) ||
+            task.subject.toLowerCase().includes(query),
+        ),
+      );
+    }
+
+    return [key, { ...week, tasks: filteredTasks }] as [string, timesheet];
+  });
+}

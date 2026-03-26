@@ -14,8 +14,6 @@ import { getFormatedDate } from "@next-pms/design-system/date";
 import { useQueryParam } from "@next-pms/hooks";
 import {
   Button,
-  TextInput,
-  Select,
   Filter,
   FilterCondition,
   useToasts,
@@ -32,9 +30,17 @@ import { Ellipsis } from "lucide-react";
 /**
  * Internal dependencies.
  */
-import { parseFrappeErrorMsg, isDateInRange } from "@/lib/utils";
+import {
+  parseFrappeErrorMsg,
+  isDateInRange,
+  filterTimesheetEntries,
+} from "@/lib/utils";
 import { useUser } from "@/providers/user";
 import type { WorkingFrequency } from "@/types";
+import type { TimesheetFilters } from "@/types/timesheet";
+import ApprovalStatusFilter from "../../../components/filters/approvalStatusFilter";
+import ReportsToFilter from "../../../components/filters/reportsToFilter";
+import SearchTasks from "../../../components/filters/searchTasks";
 import { InfiniteScroll } from "../../../components/infiniteScroll";
 import { TimesheetRow } from "../../../components/timesheet-row";
 import { HeaderRow } from "../../../components/timesheet-row/components/row/headerRow";
@@ -49,8 +55,14 @@ function Timesheet() {
   const targetRef = useRef<HTMLDivElement>(null);
   const isFilterRequestRef = useRef(false);
   const toast = useToasts();
-  const [filters, setFilters] = useState<FilterCondition[]>([]);
-  const [search, setSearch] = useState("");
+  const [compositeFilters, setCompositeFilters] = useState<FilterCondition[]>(
+    [],
+  );
+  const [filters, setFilters] = useState<TimesheetFilters>({
+    search: "",
+    approvalStatus: null,
+    reportsTo: null,
+  });
   const [approvalStatus, setApprovalStatus] = useState<
     RowStatusLabel | "all" | null
   >(null);
@@ -199,45 +211,29 @@ function Timesheet() {
     <div className="w-full h-full py-3.5 px-3">
       <div className="flex justify-between mb-3.5">
         <div className="flex gap-2">
-          <TextInput
-            placeholder="Search Tasks"
-            value={search}
-            onChange={handleSearchChange}
+          <SearchTasks
+            value={filters.search}
+            onChange={(search) => setFilters((prev) => ({ ...prev, search }))}
           />
-          <Select
-            placeholder="Approval Status"
-            className="w-fit"
-            options={[
-              {
-                label: "All",
-                value: "all",
-              },
-              {
-                label: "Not Submitted",
-                value: "not-submitted",
-              },
-              {
-                label: "Approval Pending",
-                value: "approval-pending",
-              },
-              {
-                label: "Approved",
-                value: "approved",
-              },
-              {
-                label: "Rejected",
-                value: "rejected",
-              },
-            ]}
-            onChange={handleApprovalStatusChange}
+          <ApprovalStatusFilter
+            value={filters.approvalStatus}
+            onChange={(approvalStatus) =>
+              setFilters((prev) => ({ ...prev, approvalStatus }))
+            }
+          />
+          <ReportsToFilter
+            value={filters.reportsTo}
+            onChange={(reportsTo) =>
+              setFilters((prev) => ({ ...prev, reportsTo }))
+            }
           />
         </div>
         <div className="flex gap-2">
           <Filter
             fields={sampleFields}
-            value={filters}
+            value={compositeFilters}
             onChange={(newFilters) => {
-              setFilters(newFilters);
+              setCompositeFilters(newFilters);
             }}
           />
           <Button icon={() => <Ellipsis size={16} />} />
