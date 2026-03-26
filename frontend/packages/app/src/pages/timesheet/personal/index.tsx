@@ -8,8 +8,6 @@ import { getFormatedDate } from "@next-pms/design-system/date";
 import { useQueryParam } from "@next-pms/hooks";
 import {
   Button,
-  TextInput,
-  Select,
   Filter,
   FilterCondition,
   useToasts,
@@ -26,10 +24,17 @@ import { Ellipsis } from "lucide-react";
 /**
  * Internal dependencies.
  */
-import { parseFrappeErrorMsg, isDateInRange } from "@/lib/utils";
+import {
+  parseFrappeErrorMsg,
+  isDateInRange,
+  filterTimesheetEntries,
+} from "@/lib/utils";
 import { useUser } from "@/providers/user";
 import type { WorkingFrequency } from "@/types";
-import type { timesheet } from "@/types/timesheet";
+import type { TimesheetFilters } from "@/types/timesheet";
+import ApprovalStatusFilter from "../../../components/filters/approvalStatusFilter";
+import ReportsToFilter from "../../../components/filters/reportsToFilter";
+import SearchTasks from "../../../components/filters/searchTasks";
 import { InfiniteScroll } from "../../../components/infiniteScroll";
 import { TimesheetRow } from "../../../components/timesheet-row";
 import { HeaderRow } from "../../../components/timesheet-row/components/row/headerRow";
@@ -43,8 +48,14 @@ const NUMBER_OF_WEEKS_TO_FETCH = 4;
 function Timesheet() {
   const targetRef = useRef<HTMLDivElement>(null);
   const toast = useToasts();
-  const [filters, setFilters] = useState<FilterCondition[]>([]);
-  const [search, setSearch] = useState("");
+  const [compositeFilters, setCompositeFilters] = useState<FilterCondition[]>(
+    [],
+  );
+  const [filters, setFilters] = useState<TimesheetFilters>({
+    search: "",
+    approvalStatus: null,
+    reportsTo: null,
+  });
 
   const { handleApproval } = useTimesheetOutletContext();
 
@@ -146,68 +157,38 @@ function Timesheet() {
     });
   };
 
-  const filteredWeekEntries = useMemo(() => {
-    const entries = Object.entries(timesheet.data.data) as [
-      string,
-      timesheet,
-    ][];
-    const query = search.trim().toLowerCase();
-
-    if (!query) return entries;
-
-    return entries.map(([key, week]) => {
-      const filteredTasks = Object.fromEntries(
-        Object.entries(week.tasks).filter(
-          (entry) =>
-            entry[1].name.toLowerCase().includes(query) ||
-            entry[1].subject.toLowerCase().includes(query),
-        ),
-      );
-
-      return [key, { ...week, tasks: filteredTasks }] as [string, timesheet];
-    });
-  }, [timesheet.data.data, search]);
+  const filteredWeekEntries = useMemo(
+    () => filterTimesheetEntries(timesheet.data.data, filters),
+    [timesheet.data.data, filters],
+  );
 
   return (
     <div className="w-full h-full py-3.5 px-3">
       <div className="flex justify-between mb-3.5">
         <div className="flex gap-2">
-          <TextInput
-            placeholder="Search Tasks"
-            value={search}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-              setSearch(e.target.value)
+          <SearchTasks
+            value={filters.search}
+            onChange={(search) => setFilters((prev) => ({ ...prev, search }))}
+          />
+          <ApprovalStatusFilter
+            value={filters.approvalStatus}
+            onChange={(approvalStatus) =>
+              setFilters((prev) => ({ ...prev, approvalStatus }))
             }
           />
-          <Select
-            placeholder="Approval Status"
-            className="w-fit"
-            options={[
-              {
-                label: "Not Submitted",
-                value: "not-submitted",
-              },
-              {
-                label: "Approval Pending",
-                value: "approval-pending",
-              },
-              {
-                label: "Approved",
-                value: "approved",
-              },
-              {
-                label: "Rejected",
-                value: "rejected",
-              },
-            ]}
+          <ReportsToFilter
+            value={filters.reportsTo}
+            onChange={(reportsTo) =>
+              setFilters((prev) => ({ ...prev, reportsTo }))
+            }
           />
         </div>
         <div className="flex gap-2">
           <Filter
             fields={sampleFields}
-            value={filters}
+            value={compositeFilters}
             onChange={(newFilters) => {
-              setFilters(newFilters);
+              setCompositeFilters(newFilters);
             }}
           />
           <Button icon={() => <Ellipsis size={16} />} />
@@ -219,7 +200,7 @@ function Timesheet() {
       ) : (
         <>
           {Object.keys(timesheet.data?.data).length == 0 ? (
-            <Typography className="flex items-center justify-center">
+            <Typography className="flex justify-center items-center">
               No Data
             </Typography>
           ) : (
@@ -237,7 +218,7 @@ function Timesheet() {
                     return (
                       <>
                         {index === 0 ? (
-                          <div className="mb-4 sticky top-0 bg-surface-white z-10">
+                          <div className="sticky top-0 z-10 mb-4 bg-surface-white">
                             <HeaderRow
                               dates={value.dates}
                               showHeading={true}

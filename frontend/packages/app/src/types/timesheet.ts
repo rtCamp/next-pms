@@ -2,7 +2,6 @@
  * Internal dependencies.
  */
 import { WorkingFrequency } from "@/types";
-import { TaskStatusType } from "./task";
 
 export interface TaskProps {
   [key: string]: TaskDataProps;
@@ -16,7 +15,7 @@ export interface TaskDataProps {
   project: string;
   expected_time: number;
   actual_time: number;
-  status: TaskStatusType;
+  status: string;
   due_date?: string;
   data: Array<TaskDataItemProps>;
 }
@@ -72,7 +71,7 @@ export interface timesheet {
   dates: string[];
   total_hours: number;
   tasks: TaskProps;
-  status: TaskStatusType;
+  status: string;
 }
 
 export interface NewTimesheetProps {
@@ -84,4 +83,16 @@ export interface NewTimesheetProps {
   description: string;
   hours: number;
   employee: string;
+}
+
+export type ApprovalStatusType =
+  | "not-submitted"
+  | "approval-pending"
+  | "approved"
+  | "rejected";
+
+export interface TimesheetFilters {
+  search: string;
+  approvalStatus?: ApprovalStatusType | null;
+  reportsTo?: string | null;
 }
