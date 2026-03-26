@@ -106,7 +106,7 @@ def get_employee_list(
     roles: list[str] | None = None,
     ignore_default_filters=False,
 ):
-    """get the list employee with pagination for the employee dropdown in timesheet entry form respecting user permission"""
+    """Get a paginated list of employees for the employee dropdown in the timesheet entry form, respecting user permissions."""
     from . import filter_employees
 
     employees, count = filter_employees(
