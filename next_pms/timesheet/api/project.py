@@ -8,7 +8,7 @@ from frappe.utils import flt, getdate
 from . import get_count
 
 
-@whitelist()
+@whitelist(methods=["GET"])
 def get_projects(
     limit=20,
     currency=None,
@@ -18,6 +18,7 @@ def get_projects(
     start=0,
     order_by="modified desc",
 ):
+    """Returns list of projects based on filters and fields provided. If currency is provided, it converts the currency fields to the provided currency based on the exchange rate as of today."""
     meta = get_meta("Project")
     if isinstance(fields, str):
         fields = json.loads(fields)

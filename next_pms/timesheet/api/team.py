@@ -28,7 +28,7 @@ from .timesheet import get_timesheet_state
 from .utils import employee_has_higher_access, get_holidays, get_week_dates
 
 
-@whitelist()
+@whitelist(methods=["GET"])
 @error_logger
 def get_compact_view_data(
     date: str,
@@ -45,6 +45,7 @@ def get_compact_view_data(
     reports_to: str | None = None,
     by_pass_access_check=False,
 ):
+    """API to get the timesheet data in compact view format, it will return the timesheet data for the employees based on the filters provided. It will return the data in a format which can be used to render the compact view of the timesheet. If no filters are provided, it will return the timesheet data for all the employees for the current week and previous weeks based on the max_week parameter."""
     if not by_pass_access_check:
         only_for(["Timesheet Manager", "Timesheet User", "Projects Manager"], message=True)
 
@@ -173,6 +174,7 @@ def get_compact_view_data(
 @whitelist(methods=["POST"])
 @error_logger
 def approve_or_reject_timesheet(employee: str, status: str, dates: list[str] | None = None, note: str = ""):
+    """API to approve or reject the timesheet for the given employee and date range. It will update the custom_approval_status and custom_weekly_approval_status field of the timesheet to "Processing Timesheet" and then enqueue a background job to approve or reject the timesheet. The background job will update the status of the timesheet to "Approved" or "Rejected" based on the status parameter passed in the API and then trigger a notification to the employee about the approval or rejection of the timesheet."""
     only_for(["Timesheet Manager", "Timesheet User", "Projects Manager"], message=True)
     if not dates:
         return throw(_("Please select the dates to approve or reject the timesheet."))
