@@ -10,6 +10,7 @@ import { ErrorFallback } from "@next-pms/design-system/components";
 import { LIKED_TASK_KEY } from "@/lib/constant";
 import { removeFromLikedTask } from "@/lib/storage";
 import { getHolidayList } from "@/lib/utils";
+import { useTimesheetOutletContext } from "@/pages/timesheet/outletContext";
 import { TaskDataProps } from "@/types/timesheet";
 import { ProjectRow } from "./components/row/projectRow";
 import { TaskRow } from "./components/row/taskRow";
@@ -34,8 +35,9 @@ export const TimesheetRow = ({
   onButtonClick,
   status,
   getLikedTaskData,
-hideLikeButton
+  hideLikeButton,
 }: TimesheetRowProps) => {
+  const { openAddTimeDialog } = useTimesheetOutletContext();
   const holidayList = getHolidayList(holidays);
   const task_date_range_key = dates[0] + "-" + dates[dates.length - 1];
 
@@ -104,6 +106,8 @@ hideLikeButton
               totalTimeEntries={totalTimeEntries}
               className="pl-7.5"
               starred={true}
+              disabled={disabled}
+              onCellClick={openAddTimeDialog}
             />
 
             {projects.map((project) => (

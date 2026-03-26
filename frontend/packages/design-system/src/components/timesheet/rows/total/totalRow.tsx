@@ -1,8 +1,12 @@
 /**
  * External dependencies.
  */
-import { Breadcrumbs, type BreadcrumbsProps } from "@rtcamp/frappe-ui-react";
-import { Star, StarOff } from "lucide-react";
+import {
+  Breadcrumbs,
+  Button,
+  type BreadcrumbsProps,
+} from "@rtcamp/frappe-ui-react";
+import { Plus, Star, StarOff } from "lucide-react";
 
 /**
  * Internal dependencies.
@@ -16,13 +20,17 @@ export interface TotalRowProps {
   /** Whether the total row is starred or not. */
   starred?: boolean;
   /** Array of total time entries for each day of the week. */
-  totalTimeEntries: string[];
+  totalTimeEntries: { date: string; time: string }[];
   /** Total hours logged for the week. */
   totalHours?: string;
   /** Theme for the total hours */
   totalHoursTheme?: TotalHoursTheme;
   /** Optional function to render a prefix icon next to the breadcrumbs. */
   renderPrefix?: () => React.ReactNode;
+  /** Optional function to handle cell click events, receiving the task key and day index. */
+  onCellClick?: (date: string) => void;
+  /** Whether the cells in the total row are disabled */
+  disabled?: boolean;
   /** Additional class names for the total row container. */
   className?: string;
 }
@@ -34,6 +42,8 @@ export const TotalRow: React.FC<TotalRowProps> = ({
   totalHours = "",
   totalHoursTheme,
   renderPrefix,
+  onCellClick,
+  disabled = false,
   className,
 }) => {
   return (
@@ -70,13 +80,35 @@ export const TotalRow: React.FC<TotalRowProps> = ({
         return (
           <div
             key={index}
-            className="shrink-0 flex justify-end items-center text-base font-medium text-ink-gray-9 whitespace-nowrap w-16 h-7 px-2 py-1.5 leading-3.5 lining-nums tabular-nums"
+            className="shrink-0 flex justify-end items-center whitespace-nowrap w-16 h-7 pl-2 py-1.5 leading-3.5 lining-nums tabular-nums"
           >
-            {totalTimeEntry === "" ? (
-              <span className="flex-1 ml-2 text-center text-ink-gray-4">-</span>
-            ) : (
-              <span>{totalTimeEntry}</span>
-            )}
+            <Button
+              variant="ghost"
+              className={cn(
+                "w-14.25 relative group flex justify-center items-center enabled:hover:bg-surface-gray-2 ",
+                "enabled:focus:bg-surface-gray-2 enabled:active:bg-surface-gray-3 disabled:cursor-default!",
+                "lining-nums tabular-nums [&_span]:overflow-visible [&_span]:whitespace-normal",
+                "text-base font-medium text-ink-gray-9",
+              )}
+              disabled={disabled}
+              onClick={(e) => {
+                e.currentTarget.blur();
+                onCellClick?.(totalTimeEntry.date);
+              }}
+            >
+              {totalTimeEntry.time === "" ? (
+                <>
+                  <span className="flex-1 text-center group-hover:hidden group-disabled:group-hover:flex text-ink-gray-4">
+                    -
+                  </span>
+                  <span className="hidden absolute top-0 left-0 justify-center items-center w-full h-full group-hover:flex group-disabled:group-hover:hidden">
+                    <Plus strokeWidth={1.5} size={16} className="" />
+                  </span>
+                </>
+              ) : (
+                <span>{totalTimeEntry.time}</span>
+              )}
+            </Button>
           </div>
         );
       })}

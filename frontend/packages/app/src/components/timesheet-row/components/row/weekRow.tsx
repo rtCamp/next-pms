@@ -58,16 +58,17 @@ export const WeekRow = ({
 
   const weekData = useMemo(() => {
     let total = 0;
-    const totalTimeEntries: string[] = [];
+    const totalTimeEntries = [];
     const totalTimeEntriesInHours: number[] = [];
     for (const date of dates) {
       const holiday = holidays.find((holiday) => holiday.holiday_date === date);
       const currentTotal =
         calculateTotalHours(tasks, date) +
         calculateLeaveHours(leaves, date, dailyWorkingHours, holiday);
-      totalTimeEntries.push(
-        currentTotal === 0 ? "" : floatToTime(currentTotal, 2),
-      );
+      totalTimeEntries.push({
+        date,
+        time: currentTotal === 0 ? "" : floatToTime(currentTotal, 2),
+      });
       totalTimeEntriesInHours.push(currentTotal);
       total += currentTotal;
     }
