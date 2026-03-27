@@ -3,12 +3,12 @@
  */
 import { useCallback, useState } from "react";
 import { UnderConstruction } from "@/components/under-construction";
-import WeeklyApproval from "./weekly-approval";
+import WeeklyApproval from "./weeklyApproval";
 
 function TimesheetTeamPage() {
-  const [employee, setEmployee] = useState("HR-EMP-00001");
-  const [startDate, setStartDate] = useState("2026-03-08");
-  const [isWeeklyApprovalOpen, setIsWeeklyApprovalOpen] = useState(true);
+  const [employee, setEmployee] = useState("");
+  const [startDate, setStartDate] = useState("");
+  const [isWeeklyApprovalOpen, setIsWeeklyApprovalOpen] = useState(false);
 
   /**
    * Opens the weekly approval modal for a specific employee's timesheet.
