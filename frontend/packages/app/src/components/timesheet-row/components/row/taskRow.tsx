@@ -126,7 +126,7 @@ export const TaskRow = ({
   };
 
   useEffect(() => {
-    setTaskLiked(likedTaskData.some((obj) => obj.name === taskKey) || false);
+    setTaskLiked(likedTaskData?.some((obj) => obj.name === taskKey) || false);
   }, [likedTaskData, taskKey]);
 
   return (

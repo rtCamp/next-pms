@@ -40,6 +40,7 @@ export const WeekRow = ({
   children,
   onButtonClick,
   collapsed: initialCollapsed,
+  isReadOnlyWeek,
   ...rest
 }: WeekRowProps) => {
   const [collapsed, setCollapsed] = useState(initialCollapsed);
@@ -48,9 +49,17 @@ export const WeekRow = ({
     return dates?.map((date: string) => prettyDate(date).date);
   }, [dates]);
 
-  const isReadOnlyWeek = !tasks || Object.keys(tasks).length === 0;
-
   const weekData = useMemo(() => {
+    if (isReadOnlyWeek) {
+      return {
+        total: 0,
+        totalTimeEntries: [],
+        totalTimeEntriesInHours: [],
+        dailyWorkingHours: 0,
+        isExtended: 0,
+      };
+    }
+
     return computeRowData({
       dates,
       tasks,
@@ -59,7 +68,15 @@ export const WeekRow = ({
       workingHour,
       workingFrequency,
     });
-  }, [dates, tasks, leaves, holidays, workingHour, workingFrequency]);
+  }, [
+    dates,
+    tasks,
+    leaves,
+    holidays,
+    workingHour,
+    workingFrequency,
+    isReadOnlyWeek,
+  ]);
 
   const today = useMemo(() => {
     const currentDate = getTodayDate();
