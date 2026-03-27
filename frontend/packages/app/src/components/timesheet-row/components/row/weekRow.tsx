@@ -56,7 +56,7 @@ export const WeekRow = ({
         totalTimeEntries: [],
         totalTimeEntriesInHours: [],
         dailyWorkingHours: 0,
-        isExtended: 0,
+        isExtended: 3,
       };
     }
 

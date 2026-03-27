@@ -2,7 +2,7 @@
  * External dependencies
  */
 import { useMemo, useState } from "react";
-import { Accordion } from "@base-ui/react";
+import { Accordion } from "@base-ui/react/accordion";
 import { floatToTime } from "@next-pms/design-system";
 import {
   ApprovalStatusMap,
