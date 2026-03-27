@@ -1,7 +1,7 @@
 /**
  * External dependencies.
  */
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useCallback, useState } from "react";
 import { Spinner, Typography } from "@next-pms/design-system/components";
 import { getFormatedDate, getTodayDate } from "@next-pms/design-system/date";
 import { TextInput, useToasts } from "@rtcamp/frappe-ui-react";
@@ -16,6 +16,7 @@ import { parseFrappeErrorMsg } from "@/lib/utils";
 import { useUser } from "@/providers/user";
 import type { WorkingFrequency } from "@/types";
 import type { DataProp, timesheet } from "@/types/timesheet";
+import WeeklyApproval from "./weeklyApproval";
 import { InfiniteScroll } from "../../../components/infiniteScroll";
 import { HeaderRow } from "../../../components/timesheet-row/components/row/headerRow";
 import { TeamTimesheetRow } from "../../../components/timesheet-row/teamTimesheetRow";
@@ -57,32 +58,36 @@ function TeamTimesheet() {
   const [weekDate, setWeekDate] = useState(getTodayDate());
   const [hasMoreWeeks, setHasMoreWeeks] = useState(true);
   const [hasCompactPermission, setHasCompactPermission] = useState(true);
-  const [compactWeeks, setCompactWeeks] = useState<Record<string, CompactWeek>>(
-    {},
-  );
-  const [memberMap, setMemberMap] = useState<Record<string, EmployeeRecord>>(
-    {},
-  );
-  const [employeeTimesheetMap, setEmployeeTimesheetMap] = useState<
-    Record<string, DataProp>
-  >({});
+
+  const [employee, setEmployee] = useState("");
+  const [startDate, setStartDate] = useState("");
+  const [isWeeklyApprovalOpen, setIsWeeklyApprovalOpen] = useState(false);
+  const [compactWeeks, setCompactWeeks] = useState<Record<string, CompactWeek>>({});
+  const [memberMap, setMemberMap] = useState<Record<string, EmployeeRecord>>({});
+  const [employeeTimesheetMap, setEmployeeTimesheetMap] = useState<Record<string, DataProp>>({});
   const [isLoadingTeamData, setIsLoadingTeamData] = useState(false);
 
   const { employeeId, roles } = useUser(({ state }) => ({
     employeeId: state.employeeId,
     roles: state.roles,
   }));
-  const { call: getCompactViewData } = useFrappePostCall(
-    "next_pms.timesheet.api.team.get_compact_view_data",
-  );
-  const { call: getTimesheetData } = useFrappePostCall(
-    "next_pms.timesheet.api.timesheet.get_timesheet_data",
-  );
+  const { call: getCompactViewData } = useFrappePostCall("next_pms.timesheet.api.team.get_compact_view_data");
+  const { call: getTimesheetData } = useFrappePostCall("next_pms.timesheet.api.timesheet.get_timesheet_data");
+
+  /**
+   * Opens the weekly approval modal for a specific employee's timesheet.
+   *
+   * @param employeeId - The unique identifier of the employee (e.g., "HR-EMP-00001")
+   * @param date - The start date of the week to review in "YYYY-MM-DD" format
+   */
+  const openWeeklyApproval = useCallback((employeeId: string, date: string) => {
+    setEmployee(employeeId);
+    setStartDate(date);
+    setIsWeeklyApprovalOpen(true);
+  }, []);
 
   useEffect(() => {
-    const canAccessCompactView = roles.some((role) =>
-      ROLES.includes(role),
-    );
+    const canAccessCompactView = roles.some((role) => ROLES.includes(role));
 
     if (!canAccessCompactView) {
       setHasCompactPermission(false);
@@ -185,12 +190,8 @@ function TeamTimesheet() {
               return;
             }
 
-            const existingLeaveIds = new Set(
-              existing.leaves.map((leave) => leave.name),
-            );
-            const existingHolidayDates = new Set(
-              existing.holidays.map((holiday) => holiday.holiday_date),
-            );
+            const existingLeaveIds = new Set(existing.leaves.map((leave) => leave.name));
+            const existingHolidayDates = new Set(existing.holidays.map((holiday) => holiday.holiday_date));
 
             mapped[employee] = {
               ...existing,
@@ -198,17 +199,10 @@ function TeamTimesheet() {
                 ...existing.data,
                 ...payload.data,
               },
-              leaves: [
-                ...existing.leaves,
-                ...payload.leaves.filter(
-                  (leave) => !existingLeaveIds.has(leave.name),
-                ),
-              ],
+              leaves: [...existing.leaves, ...payload.leaves.filter((leave) => !existingLeaveIds.has(leave.name))],
               holidays: [
                 ...existing.holidays,
-                ...payload.holidays.filter(
-                  (holiday) => !existingHolidayDates.has(holiday.holiday_date),
-                ),
+                ...payload.holidays.filter((holiday) => !existingHolidayDates.has(holiday.holiday_date)),
               ],
             };
           });
@@ -217,9 +211,7 @@ function TeamTimesheet() {
         });
       }
 
-      const failed = settled.filter(
-        (result) => result.status === "rejected",
-      ).length;
+      const failed = settled.filter((result) => result.status === "rejected").length;
       if (failed > 0) {
         toast.error(`Failed to load ${failed} member timesheet(s).`);
       }
@@ -243,14 +235,7 @@ function TeamTimesheet() {
     return () => {
       cancelled = true;
     };
-  }, [
-    employeeId,
-    getCompactViewData,
-    getTimesheetData,
-    roles,
-    toast,
-    weekDate,
-  ]);
+  }, [employeeId, getCompactViewData, getTimesheetData, roles, toast, weekDate]);
 
   useEffect(() => {
     setEmployeeTimesheetMap({});
@@ -309,8 +294,7 @@ function TeamTimesheet() {
     });
 
     const groups = Array.from(weekMap.values()).sort(
-      (a, b) =>
-        new Date(b.start_date).getTime() - new Date(a.start_date).getTime(),
+      (a, b) => new Date(b.start_date).getTime() - new Date(a.start_date).getTime(),
     );
 
     return groups.map((group) => {
@@ -323,10 +307,7 @@ function TeamTimesheet() {
         }
 
         return Object.values(member.week.tasks).some((task) =>
-          [task.name, task.subject, task.project_name || task.project]
-            .join(" ")
-            .toLowerCase()
-            .includes(query),
+          [task.name, task.subject, task.project_name || task.project].join(" ").toLowerCase().includes(query),
         );
       });
 
@@ -349,9 +330,7 @@ function TeamTimesheet() {
         <TextInput
           placeholder="Search Member or Task"
           value={search}
-          onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-            setSearch(e.target.value)
-          }
+          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearch(e.target.value)}
         />
       </div>
 
@@ -362,9 +341,7 @@ function TeamTimesheet() {
           You do not have permission to view Team Timesheets.
         </Typography>
       ) : !hasData ? (
-        <Typography className="flex items-center justify-center">
-          No Data
-        </Typography>
+        <Typography className="flex items-center justify-center">No Data</Typography>
       ) : (
         <InfiniteScroll
           isLoading={isLoadingTeamData}
@@ -376,10 +353,7 @@ function TeamTimesheet() {
           <div className="min-w-225">
             {weekGroups.map((week, index) => {
               return (
-                <div
-                  key={`${week.start_date}-${week.end_date}`}
-                  className="animate-fade-in"
-                >
+                <div key={`${week.start_date}-${week.end_date}`} className="animate-fade-in">
                   {index === 0 ? (
                     <div className="mb-4 sticky top-0 bg-surface-white z-10">
                       <HeaderRow
@@ -423,6 +397,14 @@ function TeamTimesheet() {
             })}
           </div>
         </InfiniteScroll>
+      )}
+      {employee !== "" && (
+        <WeeklyApproval
+          employee={employee}
+          startDate={startDate}
+          open={isWeeklyApprovalOpen}
+          onOpenChange={setIsWeeklyApprovalOpen}
+        />
       )}
     </div>
   );

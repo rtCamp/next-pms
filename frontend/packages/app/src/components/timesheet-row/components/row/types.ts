@@ -35,7 +35,7 @@ interface WeekRowBaseProps extends Omit<BaseWeekRowProps, "status"> {
   children?: (props: {
     totalHours: string;
     totalHoursTheme: TotalHoursTheme;
-    totalTimeEntries: string[];
+    totalTimeEntries: { date: string; time: string }[];
     totalTimeEntriesInHours: number[];
     dailyWorkingHours: number;
     status: ApprovalStatusType;

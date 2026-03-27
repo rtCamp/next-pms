@@ -31,3 +31,6 @@ json-files
 
 # Env file
 .env
+
+# scripts
+next_pms/scripts
