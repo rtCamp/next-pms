@@ -11,6 +11,7 @@ import {
  * Internal dependencies
  */
 import { getHolidayList } from "@/lib/utils";
+import { useTimesheetOutletContext } from "@/pages/timesheet/outletContext";
 import { WorkingFrequency } from "@/types";
 import type {
   HolidayProp,
@@ -62,6 +63,7 @@ export const PersonalTimesheetRow = ({
   getLikedTaskData,
   hideLikeButton,
 }: PersonalTimesheetRowProps) => {
+  const { openAddTimeDialog } = useTimesheetOutletContext();
   const holidayList = getHolidayList(holidays);
   const projects = useMemo(() => groupTasksByProject(tasks), [tasks]);
 
@@ -103,6 +105,8 @@ export const PersonalTimesheetRow = ({
               totalTimeEntries={totalTimeEntries}
               className="pl-7.5"
               starred={true}
+              disabled={disabled}
+              onCellClick={openAddTimeDialog}
             />
 
             {projects.map((project) => (

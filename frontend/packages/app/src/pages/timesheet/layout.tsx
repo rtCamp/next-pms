@@ -42,6 +42,7 @@ const timesheetViews = [
 
 function TimesheetLayout() {
   const navigate = useNavigate();
+  const [initialDate, setInitialDate] = useState(getTodayDate());
   const [isTimeDialogOpen, setIsTimeDialogOpen] = useState(false);
   const [isLeaveDialogOpen, setIsLeaveDialogOpen] = useState(false);
   const [isSubmitApprovalOpen, setIsSubmitApprovalOpen] = useState(false);
@@ -50,6 +51,11 @@ function TimesheetLayout() {
     endDate: "",
     totalHours: 0,
   });
+
+  const handleAddTime = (date?: string) => {
+    setInitialDate(date || getTodayDate());
+    setIsTimeDialogOpen(true);
+  };
 
   const handleApproval = (
     startDate: string,
@@ -119,7 +125,7 @@ function TimesheetLayout() {
 
           <Button
             variant="solid"
-            onClick={() => setIsTimeDialogOpen(true)}
+            onClick={() => handleAddTime()}
             label="Add time"
             iconLeft={() => <Plus />}
           />
@@ -128,7 +134,7 @@ function TimesheetLayout() {
       <Outlet
         context={
           {
-            openAddTimeDialog: () => setIsTimeDialogOpen(true),
+            openAddTimeDialog: handleAddTime,
             openAddLeaveDialog: () => setIsLeaveDialogOpen(true),
             handleApproval,
           } satisfies TimesheetOutletContext
@@ -136,7 +142,7 @@ function TimesheetLayout() {
       />
 
       <AddTime
-        initialDate={getTodayDate()}
+        initialDate={initialDate}
         open={isTimeDialogOpen}
         onOpenChange={setIsTimeDialogOpen}
         onSuccess={() => setIsTimeDialogOpen(false)}

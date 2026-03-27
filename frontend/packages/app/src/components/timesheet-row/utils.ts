@@ -61,18 +61,18 @@ export const computeRowData = ({
   const dailyWorkingHours = expectatedHours(workingHour, workingFrequency);
 
   let total = 0;
-  const totalTimeEntries: string[] = [];
+  const totalTimeEntries: { date: string; time: string }[] = [];
   const totalTimeEntriesInHours: number[] = [];
 
   for (const date of dates) {
-    const holiday = holidays.find((item) => item.holiday_date === date);
+    const holiday = holidays.find((holiday) => holiday.holiday_date === date);
     const currentTotal =
       calculateTotalHours(tasks, date) +
       calculateLeaveHours(leaves, date, dailyWorkingHours, holiday);
-
-    totalTimeEntries.push(
-      currentTotal === 0 ? "" : floatToTime(currentTotal, 2),
-    );
+    totalTimeEntries.push({
+      date,
+      time: currentTotal === 0 ? "" : floatToTime(currentTotal, 2),
+    });
     totalTimeEntriesInHours.push(currentTotal);
     total += currentTotal;
   }
