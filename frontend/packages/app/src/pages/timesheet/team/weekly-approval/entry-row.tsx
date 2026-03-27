@@ -5,7 +5,7 @@ import { useState, useCallback } from "react";
 import { floatToTime } from "@next-pms/design-system";
 import { TaskStatus, DurationInput } from "@next-pms/design-system/components";
 import { Button, Textarea } from "@rtcamp/frappe-ui-react";
-import { Edit, Check, X, Trash2 } from "lucide-react";
+import { Edit, Check, X } from "lucide-react";
 
 /**
  * Internal Dependencies
@@ -92,12 +92,6 @@ const EntryRow = ({ entry, onSave }: EntryRowProps) => {
             variant="ghost"
             icon={() => <X size={16} className="text-ink-gray-5" />}
             onClick={handleCancel}
-          />
-          <Button
-            className="m-0 size-fit"
-            variant="ghost"
-            icon={() => <Trash2 size={16} className="text-ink-red-4" />}
-            onClick={() => {}}
           />
         </div>
       </div>
