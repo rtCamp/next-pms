@@ -1,25 +1,52 @@
 /**
  * External dependencies
  */
-import { useCallback, useEffect, useMemo } from "react";
-import { ErrorFallback } from "@next-pms/design-system/components";
+import { useMemo } from "react";
+import {
+  ApprovalStatusLabelType,
+  ErrorFallback,
+} from "@next-pms/design-system/components";
 
 /**
  * Internal dependencies
  */
-import { LIKED_TASK_KEY } from "@/lib/constant";
-import { removeFromLikedTask } from "@/lib/storage";
 import { getHolidayList } from "@/lib/utils";
 import { useTimesheetOutletContext } from "@/pages/timesheet/outletContext";
-import { TaskDataProps } from "@/types/timesheet";
+import { WorkingFrequency } from "@/types";
+import type {
+  HolidayProp,
+  LeaveProps,
+  TaskDataProps,
+  TaskProps,
+} from "@/types/timesheet";
 import { ProjectRow } from "./components/row/projectRow";
 import { TaskRow } from "./components/row/taskRow";
 import { TimeOffRow } from "./components/row/timeOffRow";
 import { TotalRow } from "./components/row/totalRow";
 import { WeekRow } from "./components/row/weekRow";
-import type { TimesheetRowProps } from "./components/types";
+import { groupTasksByProject } from "./utils";
 
-export const TimesheetRow = ({
+export type PersonalTimesheetRowProps = {
+  label?: string;
+  employee?: string;
+  dates: string[];
+  holidays: Array<HolidayProp>;
+  tasks: TaskProps;
+  leaves: Array<LeaveProps>;
+  firstWeek: boolean;
+  workingHour: number;
+  disabled?: boolean;
+  workingFrequency: WorkingFrequency;
+  importTasks?: boolean;
+  loadingLikedTasks?: boolean;
+  likedTaskData?: Array<object>;
+  getLikedTaskData?: () => void;
+  hideLikeButton?: boolean;
+  onButtonClick?: () => void;
+  status: ApprovalStatusLabelType;
+};
+
+export const PersonalTimesheetRow = ({
   label,
   employee,
   dates,
@@ -30,43 +57,15 @@ export const TimesheetRow = ({
   workingHour,
   workingFrequency,
   disabled,
-  weeklyStatus,
   likedTaskData,
   onButtonClick,
   status,
   getLikedTaskData,
   hideLikeButton,
-}: TimesheetRowProps) => {
+}: PersonalTimesheetRowProps) => {
   const { openAddTimeDialog } = useTimesheetOutletContext();
   const holidayList = getHolidayList(holidays);
-  const task_date_range_key = dates[0] + "-" + dates[dates.length - 1];
-
-  const deleteTaskFromLocalStorage = useCallback(() => {
-    removeFromLikedTask(LIKED_TASK_KEY, task_date_range_key);
-  }, [task_date_range_key]);
-
-  useEffect(() => {
-    if (weeklyStatus === "Approved") {
-      deleteTaskFromLocalStorage();
-    }
-  }, [deleteTaskFromLocalStorage, weeklyStatus]);
-
-  const projects = useMemo(() => {
-    const projectMap = new Map<
-      string,
-      { project_name: string | null; project: string; tasks: typeof tasks }
-    >();
-
-    Object.entries(tasks).forEach(([taskKey, taskData]) => {
-      const { project, project_name } = taskData;
-      if (!projectMap.has(project)) {
-        projectMap.set(project, { project_name, project, tasks: {} });
-      }
-      projectMap.get(project)!.tasks[taskKey] = taskData;
-    });
-
-    return Array.from(projectMap.values());
-  }, [tasks]);
+  const projects = useMemo(() => groupTasksByProject(tasks), [tasks]);
 
   return (
     <ErrorFallback>

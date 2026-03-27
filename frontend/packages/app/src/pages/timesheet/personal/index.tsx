@@ -36,8 +36,8 @@ import type { TimesheetFilters } from "@/types/timesheet";
 import ApprovalStatusFilter from "../../../components/filters/approvalStatusFilter";
 import SearchTasks from "../../../components/filters/searchTasks";
 import { InfiniteScroll } from "../../../components/infiniteScroll";
-import { TimesheetRow } from "../../../components/timesheet-row";
 import { HeaderRow } from "../../../components/timesheet-row/components/row/headerRow";
+import { PersonalTimesheetRow } from "../../../components/timesheet-row/personalTimesheetRow";
 import { sampleFields } from "../constants";
 import { useTimesheetOutletContext } from "../outletContext";
 import { initialState, reducer } from "../reducer";
@@ -45,7 +45,7 @@ import { validateDate } from "../utils";
 
 const NUMBER_OF_WEEKS_TO_FETCH = 4;
 
-function Timesheet() {
+function PersonalTimesheet() {
   const targetRef = useRef<HTMLDivElement>(null);
   const isFilterRequestRef = useRef(false);
   const toast = useToasts();
@@ -107,6 +107,7 @@ function Timesheet() {
     },
     [resetWeekDateForFilters],
   );
+
   useEffect(() => {
     const scrollToElement = () => {
       if (targetRef.current) {
@@ -202,7 +203,7 @@ function Timesheet() {
 
   return (
     <div className="w-full h-full py-3.5 px-3">
-      <div className="flex justify-between mb-3.5">
+      <div className="flex flex-wrap gap-2 justify-between mb-3.5">
         <div className="flex gap-2">
           <SearchTasks value={filters.search} onChange={handleSearchChange} />
           <ApprovalStatusFilter
@@ -279,7 +280,7 @@ function Timesheet() {
                             }
                             className="animate-fade-in"
                           >
-                            <TimesheetRow
+                            <PersonalTimesheetRow
                               label={key}
                               employee={employeeId}
                               workingHour={timesheet.data.working_hour}
@@ -292,7 +293,6 @@ function Timesheet() {
                               leaves={timesheet.data.leaves}
                               tasks={value.tasks}
                               firstWeek={index === 0}
-                              weeklyStatus={value.status}
                               disabled={value.status === "Approved"}
                               loadingLikedTasks={loadingLikedTasks}
                               likedTaskData={likedTaskData}
@@ -320,4 +320,4 @@ function Timesheet() {
   );
 }
 
-export default Timesheet;
+export default PersonalTimesheet;

@@ -1,7 +1,10 @@
 /**
  * Internal dependencies.
  */
-import { ApprovalStatusType } from "@next-pms/design-system/components";
+import {
+  ApprovalStatusLabelType,
+  ApprovalStatusType,
+} from "@next-pms/design-system/components";
 import { WorkingFrequency } from "@/types";
 
 export interface TaskProps {
@@ -72,7 +75,7 @@ export interface timesheet {
   dates: string[];
   total_hours: number;
   tasks: TaskProps;
-  status: string;
+  status: ApprovalStatusLabelType;
 }
 
 export interface NewTimesheetProps {
