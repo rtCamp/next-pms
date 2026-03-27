@@ -11,6 +11,7 @@ import {
  * Internal dependencies
  */
 import { getHolidayList } from "@/lib/utils";
+import { useTimesheetOutletContext } from "@/pages/timesheet/outletContext";
 import { WorkingFrequency } from "@/types";
 import { HolidayProp, LeaveProps, TaskProps } from "@/types/timesheet";
 import { MemberRow } from "./components/row/memberRow";
@@ -47,6 +48,7 @@ export const TeamTimesheetRow = ({
   teamMembers,
   disabled,
 }: TeamTimesheetRowProps) => {
+  const { openWeeklyApproval } = useTimesheetOutletContext();
   const teamMembersData = useMemo(() => {
     return teamMembers.map((member) => {
       const projects = groupTasksByProject(member.tasks);
@@ -86,6 +88,9 @@ export const TeamTimesheetRow = ({
                 status={member.status}
                 className="pl-7.5"
                 collapsed={true}
+                onButtonClick={() =>
+                  openWeeklyApproval(member.employee, dates[0])
+                }
               >
                 {({ totalTimeEntriesInHours, dailyWorkingHours }) => (
                   <>
