@@ -20,7 +20,7 @@ export const Header = ({
     >
       <header
         className={mergeClassNames(
-          "flex h-14 max-md:h-fit items-center justify-between px-3 py-2 w-full",
+          "flex flex-wrap gap-2 h-14 max-md:h-fit items-center justify-between px-3 py-2 w-full",
           className,
         )}
       >
