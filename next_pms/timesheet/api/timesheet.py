@@ -91,6 +91,7 @@ def get_timesheet_data(
     search: str | None = None,
     approval_status: str | list | None = None,
     filters: str | list | None = None,
+    skip_empty_weeks: bool = False,
 ):
     """Get timesheet data for the given employee for the given number of weeks."""
     if not employee:
@@ -109,6 +110,9 @@ def get_timesheet_data(
     # Parse generic filters
     parsed_filters = parse_filters(filters)
     has_filters = bool(search or approval_status or any(parsed_filters.values()))
+
+    if isinstance(skip_empty_weeks, str):
+        skip_empty_weeks = skip_empty_weeks.lower() in ("true", "1")
 
     def generate_week_data(start_date, max_week, employee=None, leaves=None, holidays=None):
         data = {}
@@ -163,6 +167,10 @@ def get_timesheet_data(
                 start_date = add_days(getdate(week_dates["start_date"]), -1)
                 continue
 
+            if skip_empty_weeks and search and not tasks:
+                start_date = add_days(getdate(week_dates["start_date"]), -1)
+                continue
+
             data[week_key] = {
                 **week_dates,
                 "total_hours": total_hours,
@@ -172,13 +180,26 @@ def get_timesheet_data(
             if use_cache:
                 frappe.cache().hset(cache_key, week_cache_key, data[week_key])
             start_date = add_days(getdate(week_dates["start_date"]), -1)
-        return data
+
+        has_more = False
+        if has_filters and employee:
+            has_more = bool(
+                frappe.db.exists(
+                    "Timesheet",
+                    {
+                        "employee": employee,
+                        "start_date": ["<", getdate(start_date)],
+                        "docstatus": ["!=", 2],
+                    },
+                )
+            )
+        return data, has_more
 
     hour_detail = get_employee_working_hours(employee)
     res = {**hour_detail}
 
     if not employee and frappe.session.user == "Administrator":
-        res["data"] = generate_week_data(start_date, max_week)
+        res["data"], res["has_more"] = generate_week_data(start_date, max_week)
         res["holidays"] = []
         res["leaves"] = []
         return res
@@ -196,7 +217,7 @@ def get_timesheet_data(
     )
     res["leaves"] = leaves
     res["holidays"] = holidays
-    res["data"] = generate_week_data(start_date, max_week, employee, leaves, holidays)
+    res["data"], res["has_more"] = generate_week_data(start_date, max_week, employee, leaves, holidays)
     return res
 
 
