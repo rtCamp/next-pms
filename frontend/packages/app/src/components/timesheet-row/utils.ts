@@ -15,6 +15,11 @@ export type ProjectTaskGroup = {
   tasks: TaskProps;
 };
 
+/**
+ * Groups tasks by their associated projects.
+ * @param taskMap - An object where keys are task identifiers and values are task data.
+ * @returns An array of project groups, where each group contains the project name, project identifier, and the tasks associated with that project.
+ */
 export const groupTasksByProject = (taskMap: TaskProps): ProjectTaskGroup[] => {
   const projectMap = new Map<string, ProjectTaskGroup>();
 
