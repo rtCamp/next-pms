@@ -10,7 +10,7 @@ import { ChevronDown, X, CircleX, CircleCheck } from "lucide-react";
 /**
  * Internal Dependencies
  */
-import EntryRow from "./entry-row";
+import EntryRow from "./entryRow";
 import { useWeeklyApproval } from "./provider";
 
 const ApprovalPopup = () => {
@@ -47,7 +47,7 @@ const ApprovalPopup = () => {
         </div>
       </div>
       {/* Content */}
-      <div className="flex-1 overflow-y-auto">
+      <div className="flex-1 overflow-y-auto scrollbar">
         <Accordion.Root
           multiple
           defaultValue={groupedByDay.map((dayGroup) => dayGroup.day)}
@@ -60,7 +60,7 @@ const ApprovalPopup = () => {
             >
               <Accordion.Trigger className="w-full flex items-center justify-between px-3.5 py-3 group">
                 <div className="flex items-center gap-2">
-                  <ChevronDown className="h-4 w-4 text-ink-gray-5 transition-transform duration-200 group-data-[panel-open]:rotate-180" />
+                  <ChevronDown className="h-4 w-4 text-ink-gray-5 transition-transform duration-200 -rotate-90 group-data-panel-open:rotate-0" />
                   <span className="text-sm font-medium text-ink-gray-8">
                     {dayGroup.day}
                   </span>
@@ -82,7 +82,7 @@ const ApprovalPopup = () => {
                   </div>
                 </div>
               </Accordion.Trigger>
-              <Accordion.Panel className="bg-white">
+              <Accordion.Panel className="bg-surface-white accordion-panel">
                 {dayGroup.entries.map((entry) => (
                   <EntryRow
                     key={entry.timesheetId}
@@ -101,14 +101,14 @@ const ApprovalPopup = () => {
           theme="red"
           variant="solid"
           label="Reject"
-          iconLeft={() => <CircleX size={16} className="text-white" />}
+          iconLeft={() => <CircleX size={16} className="text-ink-white" />}
           onClick={handleReject}
         />
         <Button
           theme="green"
           variant="solid"
           label="Approve"
-          iconLeft={() => <CircleCheck size={16} className="text-white" />}
+          iconLeft={() => <CircleCheck size={16} className="text-ink-white" />}
           onClick={handleApproveSubmit}
         />
       </div>

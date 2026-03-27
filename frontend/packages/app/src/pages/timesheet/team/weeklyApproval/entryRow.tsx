@@ -114,7 +114,7 @@ const EntryRow = ({ entry, onSave }: EntryRowProps) => {
         {floatToTime(entry.hours, 2, 2)}
       </span>
       <Button
-        className="m-0 size-fit hover:bg-white opacity-0 group-hover:opacity-100 transition-opacity"
+        className="m-0 size-fit hover:bg-surface-white opacity-0 group-hover:opacity-100 transition-opacity"
         variant="ghost"
         icon={() => <Edit size={16} className="text-ink-gray-7" />}
         onClick={handleEdit}
