@@ -3,8 +3,9 @@ from frappe import _dict, get_all, whitelist
 from frappe.utils.caching import redis_cache
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["GET"])
 def has_bu_field():
+    """Returns true if Business Unit field is present in Employee and Project doctype and Business Unit doctype exists"""
     return (
         frappe.db.exists("DocType", "Business Unit")
         and frappe.get_meta("Employee").has_field("custom_business_unit")
@@ -12,13 +13,15 @@ def has_bu_field():
     )
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["GET"])
 def has_industry_field():
+    """returns true if industry field is present in Project doctype"""
     return frappe.get_meta("Project").has_field("custom_industry")
 
 
-@whitelist()
+@whitelist(methods=["GET"])
 def get_data(user: str = None):
+    """returns roles.currencies, has_business_unit, has_industry  data for the current user or passed in user"""
     return {
         "roles": get_current_user_roles(user),
         "currencies": get_currencies(),
@@ -27,8 +30,9 @@ def get_data(user: str = None):
     }
 
 
-@whitelist()
+@whitelist(methods=["GET"])
 def get_current_user_roles(user: str = None):
+    """returns the roles for the current user or for the user passed as argument"""
     import frappe
 
     if not user:
@@ -41,9 +45,10 @@ def get_currencies():
     return get_all("Currency", pluck="name", filters={"enabled": 1})
 
 
-@whitelist()
+@whitelist(methods=["GET"])
 @redis_cache()
 def get_doc_meta(doctype: str):
+    """returns the meta for the given doctype with only the fields that the user has permission to access"""
     from frappe import get_meta
     from frappe.model import default_fields
     from frappe.model.meta import get_default_df
@@ -90,8 +95,9 @@ def get_doc_meta(doctype: str):
     }
 
 
-@whitelist()
+@whitelist(methods=["GET"])
 def get_liked_documents(doctype: str, fields: list = None):
+    """returns the documents liked by the user for the given doctype and fields if provided"""
     from frappe import get_all
 
     doc_names = get_all(
