@@ -27,7 +27,7 @@ export interface TotalRowProps {
   totalHoursTheme?: TotalHoursTheme;
   /** Optional function to render a prefix icon next to the breadcrumbs. */
   renderPrefix?: () => React.ReactNode;
-  /** Optional function to handle cell click events, receiving the task key and day index. */
+  /** Optional function to handle cell click events, receiving the date of the clicked cell. */
   onCellClick?: (date: string) => void;
   /** Whether the cells in the total row are disabled */
   disabled?: boolean;
@@ -90,11 +90,9 @@ export const TotalRow: React.FC<TotalRowProps> = ({
                 "lining-nums tabular-nums [&_span]:overflow-visible [&_span]:whitespace-normal",
                 "text-base font-medium text-ink-gray-9",
               )}
-              disabled={disabled}
-              onClick={(e) => {
-                e.currentTarget.blur();
-                onCellClick?.(totalTimeEntry.date);
-              }}
+              disabled={disabled || !onCellClick}
+              onClick={() => onCellClick?.(totalTimeEntry.date)}
+              aria-label="Add time"
             >
               {totalTimeEntry.time === "" ? (
                 <>

@@ -58,7 +58,7 @@ export const WeekRow = ({
 
   const weekData = useMemo(() => {
     let total = 0;
-    const totalTimeEntries = [];
+    const totalTimeEntries: { date: string; time: string }[] = [];
     const totalTimeEntriesInHours: number[] = [];
     for (const date of dates) {
       const holiday = holidays.find((holiday) => holiday.holiday_date === date);
