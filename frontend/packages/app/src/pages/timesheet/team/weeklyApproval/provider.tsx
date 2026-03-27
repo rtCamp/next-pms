@@ -21,17 +21,10 @@ import {
  * Internal Dependencies
  */
 import { parseFrappeErrorMsg } from "@/lib/utils";
-import { convertTimesheetToEntries, type TimesheetEntry } from "../../utils";
+import { convertTimesheetToEntries, groupEntriesByDay } from "./utils";
+import { GroupedDay, ModalView } from "./types";
 
-type ModalView = "approval" | "rejection";
-
-interface GroupedDay {
-  day: string;
-  totalHours: number;
-  entries: TimesheetEntry[];
-}
-
-interface WeeklyApprovalContextValue {
+export interface WeeklyApprovalContextValue {
   // Modal state
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -82,26 +75,6 @@ interface WeeklyApprovalProviderProps {
 }
 
 /**
- * Groups entries by day and calculates total hours per day
- */
-const groupEntriesByDay = (entries: TimesheetEntry[]): GroupedDay[] => {
-  const grouped = entries.reduce<Record<string, GroupedDay>>((acc, entry) => {
-    if (!acc[entry.day]) {
-      acc[entry.day] = {
-        day: entry.day,
-        totalHours: 0,
-        entries: [],
-      };
-    }
-    acc[entry.day].totalHours += entry.hours;
-    acc[entry.day].entries.push(entry);
-    return acc;
-  }, {});
-
-  return Object.values(grouped);
-};
-
-/**
  * Provider component for the Weekly Approval modal.
  * Manages all state, data fetching, and callbacks for the approval workflow.
  *
@@ -122,7 +95,6 @@ export const WeeklyApprovalProvider = ({
   const [currentView, setCurrentView] = useState<ModalView>("approval");
   const [checkedDays, setCheckedDays] = useState<Set<string>>(new Set());
 
-  // API calls
   const { call: updateTimesheet } = useFrappePostCall(
     "next_pms.timesheet.api.timesheet.update_timesheet_detail",
   );
@@ -131,8 +103,7 @@ export const WeeklyApprovalProvider = ({
     "next_pms.timesheet.api.team.approve_or_reject_timesheet",
   );
 
-  // Fetch timesheet data
-  const { isLoading, data } = useFrappeGetCall(
+  const { isLoading, data, mutate } = useFrappeGetCall(
     "next_pms.timesheet.api.timesheet.get_timesheet_data",
     {
       employee: employee,
@@ -141,10 +112,8 @@ export const WeeklyApprovalProvider = ({
     },
   );
 
-  // Fetch employee data
   const { data: employeeData } = useFrappeGetDoc("Employee", employee);
 
-  // Derived data
   const timesheetData = useMemo(() => convertTimesheetToEntries(data), [data]);
   const groupedByDay = useMemo(
     () => groupEntriesByDay(timesheetData.entries),
@@ -160,9 +129,6 @@ export const WeeklyApprovalProvider = ({
     setCheckedDays(new Set(groupedByDay.map((dayGroup) => dayGroup.day)));
   }
 
-  /**
-   * Handles checking/unchecking a day in the approval list
-   */
   const handleDayCheckChange = useCallback((day: string, checked: boolean) => {
     setCheckedDays((prev) => {
       const newSet = new Set(prev);
@@ -175,25 +141,17 @@ export const WeeklyApprovalProvider = ({
     });
   }, []);
 
-  /**
-   * Gets the dates of all checked days
-   */
   const getCheckedDates = useCallback(() => {
     return groupedByDay
       .filter((dayGroup) => checkedDays.has(dayGroup.day))
       .map((dayGroup) => dayGroup.entries[0].date);
   }, [groupedByDay, checkedDays]);
 
-  /**
-   * Switches to the rejection view
-   */
   const handleReject = useCallback(() => {
+    mutate();
     setCurrentView("rejection");
   }, []);
 
-  /**
-   * Updates a timesheet entry's description and hours
-   */
   const handleTimesheetUpdate = useCallback(
     async (
       timesheetId: string,
@@ -214,6 +172,7 @@ export const WeeklyApprovalProvider = ({
           employee,
         });
         toast.success(res.message);
+        mutate()
       } catch (error) {
         const message = parseFrappeErrorMsg(error as FrappeError);
         toast.error(message);
@@ -222,9 +181,6 @@ export const WeeklyApprovalProvider = ({
     [updateTimesheet, employee, toast],
   );
 
-  /**
-   * Submits approval for the checked days
-   */
   const handleApproveSubmit = useCallback(async () => {
     const dates = getCheckedDates();
     try {
@@ -234,6 +190,7 @@ export const WeeklyApprovalProvider = ({
         employee,
       });
       toast.success(res.message);
+      mutate()
     } catch (error) {
       const message = parseFrappeErrorMsg(error as FrappeError);
       toast.error(message);
@@ -247,9 +204,6 @@ export const WeeklyApprovalProvider = ({
     onOpenChange,
   ]);
 
-  /**
-   * Submits rejection for the checked days with a reason
-   */
   const handleRejectionSubmit = useCallback(
     async (reason: string) => {
       const dates = getCheckedDates();
@@ -261,6 +215,7 @@ export const WeeklyApprovalProvider = ({
           note: reason,
         });
         toast.success(res.message);
+        mutate()
       } catch (error) {
         const message = parseFrappeErrorMsg(error as FrappeError);
         toast.error(message);
@@ -272,30 +227,19 @@ export const WeeklyApprovalProvider = ({
 
   const value: WeeklyApprovalContextValue = useMemo(
     () => ({
-      // Modal state
       open,
       onOpenChange,
       currentView,
       setCurrentView,
-
-      // Loading state
       isLoading,
-
-      // Employee data
       employee,
       employeeName,
       avatarUrl,
-
-      // Timesheet data
       dateRange,
       totalHours,
       groupedByDay,
-
-      // Checked days state
       checkedDays,
       handleDayCheckChange,
-
-      // Callbacks
       handleTimesheetUpdate,
       handleApproveSubmit,
       handleRejectionSubmit,
@@ -343,5 +287,3 @@ export const useWeeklyApproval = (): WeeklyApprovalContextValue => {
   }
   return context;
 };
-
-export type { GroupedDay, ModalView, WeeklyApprovalContextValue };

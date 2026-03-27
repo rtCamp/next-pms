@@ -11,46 +11,21 @@ import { ChevronDown, X, CircleX, CircleCheck } from "lucide-react";
  * Internal Dependencies
  */
 import EntryRow from "./entry-row";
-import type { TimesheetEntry } from "../../utils";
+import { useWeeklyApproval } from "./provider";
 
-interface GroupedDay {
-  day: string;
-  totalHours: number;
-  entries: TimesheetEntry[];
-}
-
-interface ApprovalPopupProps {
-  employeeName: string;
-  avatarUrl: string;
-  dateRange: string;
-  totalHours: number;
-  groupedByDay: GroupedDay[];
-  checkedDays: Set<string>;
-  onDayCheckChange: (day: string, checked: boolean) => void;
-  onTimesheetUpdate: (
-    timesheetId: string,
-    taskId: string,
-    description: string,
-    hours: number,
-    parent: string,
-    date: string,
-  ) => void;
-  onApprove: () => void;
-  onReject: () => void;
-}
-
-const ApprovalPopup = ({
-  employeeName,
-  avatarUrl,
-  dateRange,
-  totalHours,
-  groupedByDay,
-  checkedDays,
-  onDayCheckChange,
-  onTimesheetUpdate,
-  onApprove,
-  onReject,
-}: ApprovalPopupProps) => {
+const ApprovalPopup = () => {
+  const {
+    employeeName,
+    avatarUrl,
+    dateRange,
+    totalHours,
+    groupedByDay,
+    checkedDays,
+    handleDayCheckChange,
+    handleTimesheetUpdate,
+    handleApproveSubmit,
+    handleReject,
+  } = useWeeklyApproval();
   return (
     <Dialog.Popup className="fixed right-0 top-0 w-112 h-[calc(100vh-20px)] m-2.5 z-101 bg-surface-modal rounded-xl shadow-xl flex flex-col">
       {/* Header */}
@@ -101,7 +76,7 @@ const ApprovalPopup = ({
                     <Checkbox
                       value={checkedDays.has(dayGroup.day)}
                       onChange={(checked) =>
-                        onDayCheckChange(dayGroup.day, checked)
+                        handleDayCheckChange(dayGroup.day, checked)
                       }
                     />
                   </div>
@@ -112,7 +87,7 @@ const ApprovalPopup = ({
                   <EntryRow
                     key={entry.timesheetId}
                     entry={entry}
-                    onSave={onTimesheetUpdate}
+                    onSave={handleTimesheetUpdate}
                   />
                 ))}
               </Accordion.Panel>
@@ -127,14 +102,14 @@ const ApprovalPopup = ({
           variant="solid"
           label="Reject"
           iconLeft={() => <CircleX size={16} className="text-white" />}
-          onClick={onReject}
+          onClick={handleReject}
         />
         <Button
           theme="green"
           variant="solid"
           label="Approve"
           iconLeft={() => <CircleCheck size={16} className="text-white" />}
-          onClick={onApprove}
+          onClick={handleApproveSubmit}
         />
       </div>
     </Dialog.Popup>

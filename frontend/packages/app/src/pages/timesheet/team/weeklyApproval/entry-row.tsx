@@ -10,7 +10,7 @@ import { Edit, Check, X } from "lucide-react";
 /**
  * Internal Dependencies
  */
-import type { TimesheetEntry } from "../../utils";
+import type { TimesheetEntry } from "./types";
 
 interface EntryRowProps {
   entry: TimesheetEntry;

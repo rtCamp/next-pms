@@ -6,21 +6,18 @@ import { Dialog } from "@base-ui/react/dialog";
 import { Avatar, Button, Textarea } from "@rtcamp/frappe-ui-react";
 import { X } from "lucide-react";
 
-interface RejectionPopupProps {
-  employeeName: string;
-  avatarUrl: string;
-  onReject: (reason: string) => void;
-}
+/**
+ * Internal Dependencies
+ */
+import { useWeeklyApproval } from "./provider";
 
-const RejectionPopup = ({
-  employeeName,
-  avatarUrl,
-  onReject,
-}: RejectionPopupProps) => {
+const RejectionPopup = () => {
+  const { employeeName, avatarUrl, handleRejectionSubmit } =
+    useWeeklyApproval();
   const [reason, setReason] = useState("");
 
   const handleReject = () => {
-    onReject(reason);
+    handleRejectionSubmit(reason);
   };
 
   return (
