@@ -36,7 +36,7 @@ export const groupTasksByProject = (taskMap: TaskProps): ProjectTaskGroup[] => {
   return Array.from(projectMap.values());
 };
 
-type RowComputationInput = {
+export type RowComputationInput = {
   dates: string[];
   tasks: TaskProps;
   leaves: Array<LeaveProps>;

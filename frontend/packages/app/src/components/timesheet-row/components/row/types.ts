@@ -10,7 +10,6 @@ import type {
   TaskRowProps as BaseTaskRowProps,
   TimeOffRowProps as BaseTimeOffRowProps,
   ApprovalStatusType,
-  TaskStatusType,
   TotalHoursTheme,
   ApprovalStatusLabelType,
 } from "@next-pms/design-system/components";
@@ -31,14 +30,8 @@ export interface HeaderRowProps extends Omit<BaseHeaderRowProps, "days"> {
   showHeading: boolean;
 }
 
-export interface WeekRowProps extends Omit<BaseWeekRowProps, "status"> {
+interface WeekRowBaseProps extends Omit<BaseWeekRowProps, "status"> {
   dates: string[];
-  tasks: TaskProps;
-  leaves: Array<LeaveProps>;
-  holidays: Array<HolidayProp>;
-  workingHour: number;
-  workingFrequency: WorkingFrequency;
-  status?: ApprovalStatusLabelType;
   children?: (props: {
     totalHours: string;
     totalHoursTheme: TotalHoursTheme;
@@ -48,6 +41,28 @@ export interface WeekRowProps extends Omit<BaseWeekRowProps, "status"> {
     status: ApprovalStatusType;
   }) => React.ReactNode;
 }
+
+type ReadOnlyWeekRowProps = WeekRowBaseProps & {
+  isReadOnlyWeek: true;
+  tasks?: TaskProps;
+  leaves?: Array<LeaveProps>;
+  holidays?: Array<HolidayProp>;
+  workingHour?: number;
+  workingFrequency?: WorkingFrequency;
+  status?: ApprovalStatusLabelType;
+};
+
+type EditableWeekRowProps = WeekRowBaseProps & {
+  isReadOnlyWeek?: false | undefined;
+  tasks: TaskProps;
+  leaves: Array<LeaveProps>;
+  holidays: Array<HolidayProp>;
+  workingHour: number;
+  workingFrequency: WorkingFrequency;
+  status: ApprovalStatusLabelType;
+};
+
+export type WeekRowProps = ReadOnlyWeekRowProps | EditableWeekRowProps;
 
 export interface MemberRowProps extends Omit<
   BaseMemberRowProps,
@@ -59,7 +74,7 @@ export interface MemberRowProps extends Omit<
   holidays: Array<HolidayProp>;
   workingHour: number;
   workingFrequency: WorkingFrequency;
-  status: TaskStatusType;
+  status: ApprovalStatusLabelType;
   children?: (props: {
     totalTimeEntriesInHours: number[];
     dailyWorkingHours: number;
@@ -85,7 +100,7 @@ export interface TaskRowProps extends Omit<
   taskKey: string;
   tasks: TaskProps;
   status: string;
-  likedTaskData: TaskDataProps[];
+  likedTaskData?: TaskDataProps[];
   disabled?: boolean;
   dailyWorkingHours?: number;
   totalTimeEntriesInHours?: number[];
