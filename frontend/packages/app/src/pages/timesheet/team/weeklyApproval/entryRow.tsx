@@ -110,7 +110,10 @@ const EntryRow = ({ entry, onSave }: EntryRowProps) => {
           <p className="text-sm text-ink-gray-7 mt-3">{entry.description}</p>
         </div>
       </div>
-      <span className="size-fit text-md text-ink-gray-6 rounded-sm outline outline-offset-4 outline-outline-gray-modals">
+      <span className="relative size-fit text-md text-ink-gray-6 rounded-sm outline outline-offset-4 outline-outline-gray-modals">
+        {entry.isBillable ? (
+          <span className="block absolute z-10 -bottom-0.5 left-1/2 w-1 h-1 rounded-full bg-surface-amber-3 transform -translate-x-1/2"></span>
+        ) : null}
         {floatToTime(entry.hours, 2, 2)}
       </span>
       <Button

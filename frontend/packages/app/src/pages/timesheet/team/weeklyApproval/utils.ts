@@ -58,6 +58,7 @@ export const convertTimesheetToEntries = (response: TimesheetApiResponse) => {
           date: extractDate(entry.from_time),
           parent: entry.parent,
           status: task.status.toLowerCase() as TaskStatusType,
+          isBillable: Boolean(task.is_billable),
         });
       });
     }

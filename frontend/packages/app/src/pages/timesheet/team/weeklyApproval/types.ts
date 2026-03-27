@@ -1,6 +1,5 @@
 import { TaskStatusType } from "@next-pms/design-system/components";
 
-
 export type ModalView = "approval" | "rejection";
 
 export type WeeklyApprovalProps = {
@@ -28,6 +27,7 @@ export interface TimesheetEntry {
   date: string;
   parent: string;
   status: TaskStatusType;
+  isBillable: boolean;
 }
 
 export interface TaskDataEntry {
