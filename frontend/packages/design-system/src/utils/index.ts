@@ -16,7 +16,7 @@ export function mergeClassNames(...inputs: ClassValue[]) {
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function deBounce<T extends (...args: any[]) => void>(
   func: T,
-  wait: number
+  wait: number,
 ): (...args: Parameters<T>) => void {
   let timeout: ReturnType<typeof setTimeout>;
 
@@ -35,7 +35,7 @@ export const getBgCsssForToday = (date: string) => {
 export function floatToTime(
   float: number,
   hourPadding: number = 1,
-  minutePadding: number = 2
+  minutePadding: number = 2,
 ) {
   const totalMinutes = Math.round(float * 60);
   const hours = Math.floor(totalMinutes / 60);
@@ -53,9 +53,9 @@ export const preProcessLink = (input: string) => {
   const processText = (text: string) => {
     return text.replace(linkRegex, (url) => {
       const href = url.startsWith("http") ? url : `https://${url}`;
-      return `<a 
-                href="${href}" 
-                class="text-blue-500 hover:text-blue-700 underline" 
+      return `<a
+                href="${href}"
+                class="text-blue-500 underline hover:text-blue-700"
                 target="_blank"
                 rel="noopener noreferrer">${url}</a>`;
     });
@@ -84,4 +84,17 @@ export const preProcessLink = (input: string) => {
   });
 
   return doc.body.innerHTML;
+};
+
+/**
+ * Converts time string in "HH:MM" format to decimal hours.
+ * @param timeStr - Time string in "HH:MM" format (e.g., "8:30")
+ * @returns Decimal hours (e.g., 8.5)
+ */
+export const timeToDecimalHours = (timeStr: string): number => {
+  if (!timeStr) return 0;
+  const parts = timeStr.split(":");
+  const hours = parseInt(parts[0], 10) || 0;
+  const minutes = parseInt(parts[1], 10) || 0;
+  return hours + minutes / 60;
 };

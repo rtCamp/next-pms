@@ -4,9 +4,13 @@
 import { useOutletContext } from "react-router-dom";
 
 export type TimesheetOutletContext = {
-  openAddTimeDialog: () => void;
+  openAddTimeDialog: (date?: string) => void;
   openAddLeaveDialog: () => void;
-  handleApproval: (startDate: string, endDate: string, totalHours: number) => void;
+  handleApproval: (
+    startDate: string,
+    endDate: string,
+    totalHours: number,
+  ) => void;
 };
 
 export function useTimesheetOutletContext() {

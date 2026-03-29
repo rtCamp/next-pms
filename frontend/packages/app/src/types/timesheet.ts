@@ -1,6 +1,10 @@
 /**
  * Internal dependencies.
  */
+import {
+  ApprovalStatusLabelType,
+  ApprovalStatusType,
+} from "@next-pms/design-system/components";
 import { WorkingFrequency } from "@/types";
 
 export interface TaskProps {
@@ -16,6 +20,7 @@ export interface TaskDataProps {
   expected_time: number;
   actual_time: number;
   status: string;
+  due_date?: string;
   data: Array<TaskDataItemProps>;
 }
 
@@ -70,7 +75,7 @@ export interface timesheet {
   dates: string[];
   total_hours: number;
   tasks: TaskProps;
-  status: string;
+  status: ApprovalStatusLabelType;
 }
 
 export interface NewTimesheetProps {
@@ -82,4 +87,10 @@ export interface NewTimesheetProps {
   description: string;
   hours: number;
   employee: string;
+}
+
+export interface TimesheetFilters {
+  search: string;
+  approvalStatus?: ApprovalStatusType | null;
+  reportsTo?: string | null;
 }

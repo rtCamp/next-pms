@@ -9,9 +9,9 @@ import { Send, CircleCheck, CircleX, Hourglass } from "lucide-react";
 /**
  * Internal dependencies.
  */
-import type { RowStatus } from "../constants";
+import type { ApprovalStatusType } from "../constants";
 
-export const statusTheme: Record<RowStatus, BadgeProps["theme"]> = {
+export const statusTheme: Record<ApprovalStatusType, BadgeProps["theme"]> = {
   "not-submitted": "gray",
   approved: "green",
   rejected: "red",
@@ -20,7 +20,7 @@ export const statusTheme: Record<RowStatus, BadgeProps["theme"]> = {
 };
 
 export const statusIcon: Record<
-  RowStatus,
+  ApprovalStatusType,
   {
     variant: ButtonVariant;
     icon: React.ComponentType<{ size?: number }> | null;
@@ -47,30 +47,6 @@ export const statusIcon: Record<
     icon: null,
   },
 };
-
-export const totalHoursVariants = cva(
-  "text-base font-medium lining-nums tabular-nums",
-  {
-    variants: {
-      status: {
-        "not-submitted": "text-ink-green-4",
-        approved: "text-ink-green-4",
-        rejected: "text-ink-red-4",
-        "approval-pending": "text-ink-amber-4",
-        none: "",
-      },
-      thisWeek: { true: "", false: "" },
-    },
-    compoundVariants: [
-      {
-        status: "approval-pending",
-        thisWeek: false,
-        class: "text-ink-red-4",
-      },
-    ],
-    defaultVariants: { thisWeek: true },
-  }
-);
 
 export const buttonVariants = cva("", {
   variants: {

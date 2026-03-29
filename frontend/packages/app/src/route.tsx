@@ -1,22 +1,13 @@
 /**
  * External dependencies.
  */
-import { lazy, useContext, useEffect } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import { lazy } from "react";
 import { Route, Outlet } from "react-router-dom";
-import { FrappeConfig, FrappeContext } from "frappe-react-sdk";
-import { useContextSelector } from "use-context-selector";
 /**
  * Internal dependencies.
  */
 import { ROUTES } from "@/lib/constant";
-import { UserContext } from "@/lib/UserProvider";
-import { default as Layout } from "@/layout";
-import { RootState } from "./store";
-import { setCurrency, setHasBuField, setHasIndustryField } from "./store/user";
-import { setRole } from "@/store/user";
-import { setViews } from "@/store/view";
-import { useUser } from "@/hooks/useUser";
+import { useUser } from "./providers/user";
 /**
  * Lazy load components.
  */
@@ -40,9 +31,15 @@ export function Router() {
         <Route path={ROUTES.task} element={<Task />} />
         <Route path={ROUTES.project} element={<Project />} />
         <Route element={<TimesheetLayout />}>
-          <Route path={ROUTES["timesheet-personal"]} element={<TimesheetPersonal />} />
+          <Route
+            path={ROUTES["timesheet-personal"]}
+            element={<TimesheetPersonal />}
+          />
           <Route path={ROUTES["timesheet-team"]} element={<TimesheetTeam />} />
-          <Route path={ROUTES["timesheet-project"]} element={<TimesheetProject />} />
+          <Route
+            path={ROUTES["timesheet-project"]}
+            element={<TimesheetProject />}
+          />
         </Route>
         <Route path={ROUTES.allocation} element={<Allocation />} />
         <Route path={ROUTES.roadmap} element={<Roadmap />} />
@@ -54,39 +51,18 @@ export function Router() {
 }
 
 const AuthenticatedRoute = () => {
-  const { currentUser, isLoading } = useContextSelector(UserContext, (value) => value.state);
-  const { call } = useContext(FrappeContext) as FrappeConfig;
-  const user = useUser();
-  const views = useSelector((state: RootState) => state.view);
-  const dispatch = useDispatch();
+  const { isLoading: isUserLoading, currentUser } = useUser(({ state }) => ({
+    isLoading: state.isLoading,
+    currentUser: state.currentUser,
+  }));
 
-  useEffect(() => {
-    if (user.roles.length < 1) {
-      call.get("next_pms.timesheet.api.app.get_data").then((res) => {
-        dispatch(setRole(res.message.roles));
-        dispatch(setCurrency(res.message.currencies));
-        dispatch(setHasBuField(res.message.has_business_unit));
-        dispatch(setHasIndustryField(res.message.has_industry));
-      });
-    }
-    if (views.views.length < 1) {
-      call.get("next_pms.timesheet.doctype.pms_view_setting.pms_view_setting.get_views").then((res) => {
-        dispatch(setViews(res.message));
-      });
-    }
-  }, [call, dispatch, user.roles.length, views.views.length]);
-
-  if (isLoading) {
+  if (isUserLoading) {
     return <></>;
   } else if (!currentUser || currentUser === "Guest") {
     window.location.replace("/login?redirect-to=/next-pms/timesheet");
   }
 
-  if (!isLoading && currentUser && currentUser !== "Guest") {
-    return (
-      <Layout>
-        <Outlet />
-      </Layout>
-    );
+  if (!isUserLoading && currentUser && currentUser !== "Guest") {
+    return <Outlet />;
   }
 };

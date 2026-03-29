@@ -1,11 +1,17 @@
 /**
  * External dependencies.
  */
-import React, { useCallback, useEffect, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
-import { useNavigate } from "react-router-dom";
-import { useLocation } from "react-router-dom";
-import { Sidebar as BaseSidebar, Batches, Notifications, People, Reports, Tasks, Time } from "@rtcamp/frappe-ui-react";
+import { useNavigate, useLocation } from "react-router-dom";
+import { ErrorFallback } from "@next-pms/design-system/components";
+import {
+  Sidebar as BaseSidebar,
+  Batches,
+  Notifications,
+  People,
+  Reports,
+  Tasks,
+  Time,
+} from "@rtcamp/frappe-ui-react";
 import {
   ArrowLeftRight,
   Folder,
@@ -20,61 +26,32 @@ import {
 /**
  * Internal dependencies.
  */
-import { setLocalStorage } from "@/lib/storage";
-import { checkIsMobile } from "@/lib/utils";
-import { setSidebarCollapsed } from "@/store/user";
-import UserNavigation from "./userNavigation";
-import ViewLoader from "./viewLoader";
+import { ROUTES } from "@/lib/constant";
 import logo from "@/logo.svg";
-import { RootState } from "@/store";
-import type { ViewData } from "@/store/view";
-import { ErrorFallback } from "@next-pms/design-system/components";
-import { useContextSelector } from "use-context-selector";
-import { UserContext } from "@/lib/UserProvider";
 import { useTheme } from "@/providers/theme/hook";
-import { ROLES, ROUTES } from "@/lib/constant";
-import { useUser } from "@/hooks/useUser";
+import { useUser } from "@/providers/user";
 
 const Sidebar = () => {
-  const user = useUser();
-  const { theme, changeTheme } = useTheme();
-  const logout = useContextSelector(UserContext, (value) => value.actions.logout);
+  const { isSidebarCollapsed, employeeName, updateIsSidebarCollapsed, logout } =
+    useUser(({ state, actions }) => ({
+      isSidebarCollapsed: state.isSidebarCollapsed,
+      employeeName: state.employeeName,
+      updateIsSidebarCollapsed: actions.updateIsSidebarCollapsed,
+      logout: actions.logout,
+    }));
+
+  const { theme, setTheme } = useTheme();
   const navigate = useNavigate();
-  const viewInfo = useSelector((state: RootState) => state.view);
-  const dispatch = useDispatch();
   const { pathname } = useLocation();
-
-  const [openRoutes, setOpenRoutes] = useState<{ [key: string]: boolean }>({
-    reports: false,
-  });
-
-  const hasPmRole = user.roles.some((role: string) => ROLES.includes(role));
-  const privateViews = viewInfo.views.filter(
-    (view: ViewData) => view.user === user.user && !view.default && !view.public,
-  );
-  const publicViews = viewInfo.views.filter((view: ViewData) => view.public && !view.default);
-
-  const handleSidebarCollapse = useCallback(() => {
-    dispatch(setSidebarCollapsed(checkIsMobile()));
-  }, [dispatch]);
-
-  useEffect(() => {
-    setLocalStorage("next-pms:isSidebarCollapsed", user.isSidebarCollapsed);
-  }, [user.isSidebarCollapsed]);
-  useEffect(() => {
-    if (checkIsMobile()) {
-      dispatch(setSidebarCollapsed(true));
-    }
-    window.addEventListener("resize", handleSidebarCollapse);
-    return () => window.removeEventListener("resize", handleSidebarCollapse);
-  }, [dispatch, handleSidebarCollapse]);
 
   return (
     <ErrorFallback>
       <BaseSidebar
+        collapsed={isSidebarCollapsed}
+        onCollapseChange={updateIsSidebarCollapsed}
         header={{
           title: "Next PMS",
-          subtitle: user.userName,
+          subtitle: employeeName,
           logo,
           menuItems: [
             {
@@ -86,7 +63,9 @@ const Sidebar = () => {
             },
             {
               label: "Switch To Desk",
-              icon: <ArrowLeftRight size={16} className="text-ink-gray-6 mr-2" />,
+              icon: (
+                <ArrowLeftRight size={16} className="text-ink-gray-6 mr-2" />
+              ),
               onClick: () => {
                 window.location.assign(ROUTES.desk);
               },
@@ -94,8 +73,12 @@ const Sidebar = () => {
             {
               label: "Toggle Theme",
               icon:
-                theme === "dark" ? <Sun className="text-ink-gray-6 mr-2" /> : <Moon className="text-ink-gray-6 mr-2" />,
-              onClick: changeTheme,
+                theme === "dark" ? (
+                  <Sun className="text-ink-gray-6 mr-2" />
+                ) : (
+                  <Moon className="text-ink-gray-6 mr-2" />
+                ),
+              onClick: () => setTheme(theme === "dark" ? "light" : "dark"),
             },
             {
               label: "Logout",
@@ -136,14 +119,14 @@ const Sidebar = () => {
                 label: "Tasks",
                 icon: Tasks,
                 to: "",
-                isActive: pathname.startsWith(ROUTES.task),
+                isActive: pathname === ROUTES.task,
                 onClick: () => navigate(ROUTES.task),
               },
               {
                 label: "Projects",
                 icon: Folder,
                 to: "",
-                isActive: pathname.startsWith(ROUTES.project),
+                isActive: pathname === ROUTES.project,
                 onClick: () => navigate(ROUTES.project),
               },
             ],
@@ -155,19 +138,19 @@ const Sidebar = () => {
               {
                 label: "Personal",
                 icon: Time,
-                isActive: pathname.startsWith(ROUTES["timesheet-personal"]),
+                isActive: pathname === ROUTES["timesheet-personal"],
                 onClick: () => navigate(ROUTES["timesheet-personal"]),
               },
               {
                 label: "Team",
                 icon: People,
-                isActive: pathname.startsWith(ROUTES["timesheet-team"]),
+                isActive: pathname === ROUTES["timesheet-team"],
                 onClick: () => navigate(ROUTES["timesheet-team"]),
               },
               {
                 label: "Projects",
                 icon: Folder,
-                isActive: pathname.startsWith(ROUTES["timesheet-project"]),
+                isActive: pathname === ROUTES["timesheet-project"],
                 onClick: () => navigate(ROUTES["timesheet-project"]),
               },
             ],
@@ -179,21 +162,21 @@ const Sidebar = () => {
                 label: "Allocation",
                 icon: Batches,
                 to: "",
-                isActive: false,
+                isActive: pathname === ROUTES.allocation,
                 onClick: () => navigate(ROUTES.allocation),
               },
               {
                 label: "Roadmap",
                 icon: Layers,
                 to: "",
-                isActive: false,
+                isActive: pathname === ROUTES.roadmap,
                 onClick: () => navigate(ROUTES.roadmap),
               },
               {
                 label: "Reports",
                 icon: Reports,
                 to: "",
-                isActive: false,
+                isActive: pathname === ROUTES.report,
                 onClick: () => navigate(ROUTES.report),
               },
             ],

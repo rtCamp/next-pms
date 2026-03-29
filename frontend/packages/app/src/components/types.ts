@@ -21,6 +21,7 @@ export interface InfiniteScrollProps {
   hasMore: boolean;
   verticalLodMore: () => void;
   className?: string;
+  count?: number;
 }
 
 export interface TaskIndicatorProps {
@@ -29,3 +30,8 @@ export interface TaskIndicatorProps {
   actualTime: number;
   status: string;
 }
+
+export type TaskBadgeItem = {
+  icon: React.ReactNode;
+  text: string;
+};

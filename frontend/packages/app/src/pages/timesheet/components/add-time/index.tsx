@@ -2,19 +2,31 @@
  * External Dependencies
  */
 import { useEffect, useState } from "react";
-import { useForm, useStore } from "@tanstack/react-form";
 import { DurationInput } from "@next-pms/design-system/components";
-import { DatePicker, Dialog, Button, Textarea, ErrorMessage, Combobox, useToasts } from "@rtcamp/frappe-ui-react";
-import { FrappeError, useFrappeGetCall, useFrappePostCall } from "frappe-react-sdk";
+import {
+  DatePicker,
+  Dialog,
+  Button,
+  Textarea,
+  ErrorMessage,
+  Combobox,
+  useToasts,
+} from "@rtcamp/frappe-ui-react";
+import { useForm, useStore } from "@tanstack/react-form";
+import {
+  FrappeError,
+  useFrappeGetCall,
+  useFrappePostCall,
+} from "frappe-react-sdk";
 import { Calendar } from "lucide-react";
 
 /**
  * Internal Dependencies
  */
-import type { AddTimeProps, ProjectData, TaskItem } from "./type";
-import { addTimeFormSchema } from "./schema";
 import { parseFrappeErrorMsg } from "@/lib/utils";
-import { useUser } from "@/hooks/useUser";
+import { useUser } from "@/providers/user";
+import { addTimeFormSchema } from "./schema";
+import type { AddTimeProps, ProjectData, TaskItem } from "./type";
 
 /**
  * Add Time Component
@@ -28,13 +40,22 @@ import { useUser } from "@/hooks/useUser";
  * @param task - Task name for the timesheet entry (eg: TASK-0001).
  * @param project - Project name for the timesheet entry (eg: Project-0001).
  */
-const AddTime = ({ initialDate, open = false, onOpenChange, task = "", project = "" }: AddTimeProps) => {
-
-    const user = useUser();
+const AddTime = ({
+  initialDate,
+  open = false,
+  onOpenChange,
+  task = "",
+  project = "",
+}: AddTimeProps) => {
+  const { employeeId } = useUser(({ state }) => ({
+    employeeId: state.employeeId,
+  }));
 
   const toast = useToasts();
   const [submitting, setSubmitting] = useState(false);
-  const { call: saveTime } = useFrappePostCall("next_pms.timesheet.api.timesheet.save");
+  const { call: saveTime } = useFrappePostCall(
+    "next_pms.timesheet.api.timesheet.save",
+  );
 
   const form = useForm({
     defaultValues: {
@@ -55,13 +76,13 @@ const AddTime = ({ initialDate, open = false, onOpenChange, task = "", project =
           description: value.comment,
           task: value.task,
           hours: value.duration,
-          employee:user.employee,
+          employee: employeeId,
         });
         setSubmitting(false);
         toast.success("Time Entry submitted successfully");
       } catch (err) {
         const error = parseFrappeErrorMsg(err as FrappeError);
-        toast.error( error);
+        toast.error(error);
       } finally {
         setSubmitting(false);
         onOpenChange(false);
@@ -79,27 +100,34 @@ const AddTime = ({ initialDate, open = false, onOpenChange, task = "", project =
     limit_page_length: "null",
   });
 
-  const projectOptions = ((projectsData?.message ?? []) as ProjectData[]).map((project) => ({
-    label: project.project_name,
-    value: project.name,
-  }));
+  const projectOptions = ((projectsData?.message ?? []) as ProjectData[]).map(
+    (project) => ({
+      label: project.project_name,
+      value: project.name,
+    }),
+  );
 
-  const { data: tasksData, mutate: mutateTasksData } = useFrappeGetCall("next_pms.timesheet.api.task.get_task_list", {
-    search: task,
-    projects: selectedProject ? [selectedProject] : [],
-    page_length: 100,
-    filter_recent: true,
-  });
+  const { data: tasksData, mutate: mutateTasksData } = useFrappeGetCall(
+    "next_pms.timesheet.api.task.get_task_list",
+    {
+      search: task,
+      projects: selectedProject ? [selectedProject] : [],
+      page_length: 100,
+      filter_recent: true,
+    },
+  );
 
   useEffect(() => {
     mutateTasksData();
-  }, [project, task]);
+  }, [project, task, mutateTasksData]);
 
-  const tasksOptions = ((tasksData?.message?.task ?? []) as TaskItem[]).map((task) => ({
-    label: task.subject,
-    value: task.name,
-    projectName: task.project,
-  }));
+  const tasksOptions = ((tasksData?.message?.task ?? []) as TaskItem[]).map(
+    (task) => ({
+      label: task.subject,
+      value: task.name,
+      projectName: task.project,
+    }),
+  );
 
   return (
     <Dialog
@@ -135,7 +163,9 @@ const AddTime = ({ initialDate, open = false, onOpenChange, task = "", project =
                     field.handleChange(val as string);
                   }}
                 />
-                {!field.state.meta.isValid && <ErrorMessage message={field.state.meta.errors[0]?.message} />}
+                {!field.state.meta.isValid && (
+                  <ErrorMessage message={field.state.meta.errors[0]?.message} />
+                )}
               </>
             );
           }}
@@ -153,13 +183,17 @@ const AddTime = ({ initialDate, open = false, onOpenChange, task = "", project =
                   value={field.state.value}
                   onChange={(val) => {
                     field.handleChange(val as string);
-                    const selectedTask = tasksOptions.find((task) => task.value === val);
+                    const selectedTask = tasksOptions.find(
+                      (task) => task.value === val,
+                    );
                     if (selectedTask?.projectName) {
                       form.setFieldValue("project", selectedTask.projectName);
                     }
                   }}
                 />
-                {!field.state.meta.isValid && <ErrorMessage message={field.state.meta.errors[0]?.message} />}
+                {!field.state.meta.isValid && (
+                  <ErrorMessage message={field.state.meta.errors[0]?.message} />
+                )}
               </>
             );
           }}
@@ -179,7 +213,9 @@ const AddTime = ({ initialDate, open = false, onOpenChange, task = "", project =
                     {({ displayValue }) => {
                       return (
                         <div className=" flex-1 flex w-full flex-col space-y-1.5 ">
-                          <label className="block text-xs text-ink-gray-5">Date</label>
+                          <label className="block text-xs text-ink-gray-5">
+                            Date
+                          </label>
                           <div
                             className={`relative flex items-center border border-outline-gray-2 px-[10px] py-1 rounded-lg`}
                           >
@@ -196,7 +232,11 @@ const AddTime = ({ initialDate, open = false, onOpenChange, task = "", project =
                       );
                     }}
                   </DatePicker>
-                  {!field.state.meta.isValid && <ErrorMessage message={field.state.meta.errors[0]?.message} />}
+                  {!field.state.meta.isValid && (
+                    <ErrorMessage
+                      message={field.state.meta.errors[0]?.message}
+                    />
+                  )}
                 </>
               );
             }}
@@ -206,8 +246,15 @@ const AddTime = ({ initialDate, open = false, onOpenChange, task = "", project =
             children={(field) => {
               return (
                 <div className="w-full flex flex-col gap-2">
-                  <DurationInput value={field.state.value} onChange={(val) => field.handleChange(val)} />
-                  {!field.state.meta.isValid && <ErrorMessage message={field.state.meta.errors[0]?.message} />}
+                  <DurationInput
+                    value={field.state.value}
+                    onChange={(val) => field.handleChange(val)}
+                  />
+                  {!field.state.meta.isValid && (
+                    <ErrorMessage
+                      message={field.state.meta.errors[0]?.message}
+                    />
+                  )}
                 </div>
               );
             }}
@@ -224,7 +271,9 @@ const AddTime = ({ initialDate, open = false, onOpenChange, task = "", project =
                   onChange={(e) => field.handleChange(e.target.value)}
                   className="bg-white border-outline-gray-2"
                 />
-                {!field.state.meta.isValid && <ErrorMessage message={field.state.meta.errors[0]?.message} />}
+                {!field.state.meta.isValid && (
+                  <ErrorMessage message={field.state.meta.errors[0]?.message} />
+                )}
               </>
             );
           }}

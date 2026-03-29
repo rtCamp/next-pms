@@ -16,7 +16,8 @@ import { CalendarX2, ChevronDown, Plus } from "lucide-react";
 /**
  * Internal dependencies.
  */
-import { Header } from "@/layout/root";
+import LayoutWithSidebar from "@/layout";
+import { Header } from "@/layout/header";
 import { ROUTES } from "@/lib/constant";
 import AddLeave from "@/pages/timesheet/components/add-leave";
 import AddTime from "@/pages/timesheet/components/add-time";
@@ -41,6 +42,7 @@ const timesheetViews = [
 
 function TimesheetLayout() {
   const navigate = useNavigate();
+  const [initialDate, setInitialDate] = useState(getTodayDate());
   const [isTimeDialogOpen, setIsTimeDialogOpen] = useState(false);
   const [isLeaveDialogOpen, setIsLeaveDialogOpen] = useState(false);
   const [isSubmitApprovalOpen, setIsSubmitApprovalOpen] = useState(false);
@@ -49,6 +51,11 @@ function TimesheetLayout() {
     endDate: "",
     totalHours: 0,
   });
+
+  const handleAddTime = (date?: string) => {
+    setInitialDate(date || getTodayDate());
+    setIsTimeDialogOpen(true);
+  };
 
   const handleApproval = (
     startDate: string,
@@ -70,7 +77,7 @@ function TimesheetLayout() {
   const activeView = timesheetViews.find((v) => v.key === selectedKey)!;
 
   return (
-    <div className="h-screen bg-surface-white">
+    <LayoutWithSidebar>
       <Header className="justify-between">
         <Breadcrumbs
           items={[
@@ -118,7 +125,7 @@ function TimesheetLayout() {
 
           <Button
             variant="solid"
-            onClick={() => setIsTimeDialogOpen(true)}
+            onClick={() => handleAddTime()}
             label="Add time"
             iconLeft={() => <Plus />}
           />
@@ -127,14 +134,15 @@ function TimesheetLayout() {
       <Outlet
         context={
           {
-            openAddTimeDialog: () => setIsTimeDialogOpen(true),
+            openAddTimeDialog: handleAddTime,
             openAddLeaveDialog: () => setIsLeaveDialogOpen(true),
             handleApproval,
           } satisfies TimesheetOutletContext
         }
       />
+
       <AddTime
-        initialDate={getTodayDate()}
+        initialDate={initialDate}
         open={isTimeDialogOpen}
         onOpenChange={setIsTimeDialogOpen}
         onSuccess={() => setIsTimeDialogOpen(false)}
@@ -147,7 +155,7 @@ function TimesheetLayout() {
         endDate={submitApprovalDates.endDate}
         totalHours={submitApprovalDates.totalHours}
       />
-    </div>
+    </LayoutWithSidebar>
   );
 }
 
