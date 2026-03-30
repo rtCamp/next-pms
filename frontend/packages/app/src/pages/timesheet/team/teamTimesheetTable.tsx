@@ -15,14 +15,14 @@ import { TeamTimesheetRow } from "../../../components/timesheet-row/teamTimeshee
 import { NUMBER_OF_WEEKS_TO_FETCH } from "../constants";
 
 export const TeamTimesheetTable = () => {
-  const search = useTeamTimesheet((ctx) => ctx.state.search);
-  const hasMoreWeeks = useTeamTimesheet((ctx) => ctx.state.hasMoreWeeks);
+  const search = useTeamTimesheet(({ state }) => state.search);
+  const hasMoreWeeks = useTeamTimesheet(({ state }) => state.hasMoreWeeks);
   const isLoadingTeamData = useTeamTimesheet(
-    (ctx) => ctx.state.isLoadingTeamData,
+    ({ state }) => state.isLoadingTeamData,
   );
-  const weekGroups = useTeamTimesheet((ctx) => ctx.state.weekGroups);
-  const setSearch = useTeamTimesheet((ctx) => ctx.actions.setSearch);
-  const loadData = useTeamTimesheet((ctx) => ctx.actions.loadData);
+  const weekGroups = useTeamTimesheet(({ state }) => state.weekGroups);
+  const setSearch = useTeamTimesheet(({ actions }) => actions.setSearch);
+  const loadData = useTeamTimesheet(({ actions }) => actions.loadData);
 
   const hasData = weekGroups.length > 0;
 

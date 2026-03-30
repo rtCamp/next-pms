@@ -6,6 +6,7 @@ import { createContext, useContextSelector } from "use-context-selector";
 /**
  * Internal dependencies.
  */
+import { ROLES } from "@/lib/constant";
 import { getLocalStorage } from "@/lib/storage";
 import { getCookie } from "@/lib/utils";
 import { WorkingFrequency } from "@/types";
@@ -36,6 +37,8 @@ export interface UserContextProps {
     isSidebarCollapsed: boolean;
     /** Roles assigned to the logged-in user. */
     roles: string[];
+    /** Whether the current user has role-based access to restricted views. */
+    hasRoleAccess: boolean;
     /** Currency options available to the user in boot data. */
     currencies: Array<string>;
     /** Whether the business unit field is enabled in the system. */
@@ -65,6 +68,9 @@ export const UserContext = createContext<UserContextProps>({
     image: decodeURIComponent(getCookie("user_image") ?? ""),
     isSidebarCollapsed: getLocalStorage("next-pms:isSidebarCollapsed") || false,
     roles: window.frappe?.boot?.user?.roles ?? [],
+    hasRoleAccess: (window.frappe?.boot?.user?.roles ?? []).some((role) =>
+      ROLES.includes(role),
+    ),
     currencies: window.frappe?.boot?.currencies ?? [],
     hasBuField: window.frappe?.boot?.has_business_unit ?? false,
     hasIndustryField: window.frappe?.boot?.has_industry ?? false,

@@ -23,26 +23,12 @@ import AddLeave from "@/pages/timesheet/components/add-leave";
 import AddTime from "@/pages/timesheet/components/add-time";
 import SubmitApproval from "@/pages/timesheet/components/submit-approval";
 import WeeklyApproval from "@/pages/timesheet/components/weekly-approval";
+import { useUser } from "@/providers/user";
 import type { TimesheetOutletContext } from "./outletContext";
-
-const timesheetViews = [
-  {
-    key: "personal",
-    label: "Personal",
-    to: ROUTES["timesheet-personal"],
-    icon: Time,
-  },
-  { key: "team", label: "Team", to: ROUTES["timesheet-team"], icon: People },
-  {
-    key: "project",
-    label: "Project",
-    to: ROUTES["timesheet-project"],
-    icon: Folder,
-  },
-] as const;
 
 function TimesheetLayout() {
   const navigate = useNavigate();
+  const hasRoleAccess = useUser(({ state }) => state.hasRoleAccess);
   const [initialDate, setInitialDate] = useState(getTodayDate());
   const [isTimeDialogOpen, setIsTimeDialogOpen] = useState(false);
   const [isLeaveDialogOpen, setIsLeaveDialogOpen] = useState(false);
@@ -76,6 +62,31 @@ function TimesheetLayout() {
   }, []);
 
   const { pathname } = useLocation();
+
+  const timesheetViews = [
+    {
+      key: "personal",
+      label: "Personal",
+      to: ROUTES["timesheet-personal"],
+      icon: Time,
+    },
+    ...(hasRoleAccess
+      ? [
+          {
+            key: "team",
+            label: "Team",
+            to: ROUTES["timesheet-team"],
+            icon: People,
+          },
+        ]
+      : []),
+    {
+      key: "project",
+      label: "Project",
+      to: ROUTES["timesheet-project"],
+      icon: Folder,
+    },
+  ] as const;
 
   const selectedKey = pathname.includes("team")
     ? "team"

@@ -32,13 +32,19 @@ import { useTheme } from "@/providers/theme/hook";
 import { useUser } from "@/providers/user";
 
 const Sidebar = () => {
-  const { isSidebarCollapsed, employeeName, updateIsSidebarCollapsed, logout } =
-    useUser(({ state, actions }) => ({
-      isSidebarCollapsed: state.isSidebarCollapsed,
-      employeeName: state.employeeName,
-      updateIsSidebarCollapsed: actions.updateIsSidebarCollapsed,
-      logout: actions.logout,
-    }));
+  const {
+    isSidebarCollapsed,
+    employeeName,
+    hasRoleAccess,
+    updateIsSidebarCollapsed,
+    logout,
+  } = useUser(({ state, actions }) => ({
+    isSidebarCollapsed: state.isSidebarCollapsed,
+    employeeName: state.employeeName,
+    hasRoleAccess: state.hasRoleAccess,
+    updateIsSidebarCollapsed: actions.updateIsSidebarCollapsed,
+    logout: actions.logout,
+  }));
 
   const { theme, setTheme } = useTheme();
   const navigate = useNavigate();
@@ -141,12 +147,16 @@ const Sidebar = () => {
                 isActive: pathname === ROUTES["timesheet-personal"],
                 onClick: () => navigate(ROUTES["timesheet-personal"]),
               },
-              {
-                label: "Team",
-                icon: People,
-                isActive: pathname === ROUTES["timesheet-team"],
-                onClick: () => navigate(ROUTES["timesheet-team"]),
-              },
+              ...(hasRoleAccess
+                ? [
+                    {
+                      label: "Team",
+                      icon: People,
+                      isActive: pathname === ROUTES["timesheet-team"],
+                      onClick: () => navigate(ROUTES["timesheet-team"]),
+                    },
+                  ]
+                : []),
               {
                 label: "Projects",
                 icon: Folder,
