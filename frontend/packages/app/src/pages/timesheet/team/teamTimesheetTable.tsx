@@ -1,28 +1,29 @@
 /**
  * External dependencies.
  */
-import type { ChangeEvent } from "react";
+import { useCallback, useState } from "react";
 import { Spinner, Typography } from "@next-pms/design-system/components";
-import { TextInput } from "@rtcamp/frappe-ui-react";
+import { Button, Filter, FilterCondition } from "@rtcamp/frappe-ui-react";
+import { Ellipsis } from "lucide-react";
 
 /**
  * Internal dependencies.
  */
+import SearchTasks from "@/components/filters/searchTasks";
+import { InfiniteScroll } from "@/components/infiniteScroll";
+import { HeaderRow } from "@/components/timesheet-row/components/row/headerRow";
+import { TeamTimesheetRow } from "@/components/timesheet-row/teamTimesheetRow";
+import { TimesheetFilters } from "@/types/timesheet";
 import { useTeamTimesheet } from "./context";
 import WeeklyApproval from "./weekly-approval";
-import { InfiniteScroll } from "../../../components/infiniteScroll";
-import { HeaderRow } from "../../../components/timesheet-row/components/row/headerRow";
-import { TeamTimesheetRow } from "../../../components/timesheet-row/teamTimesheetRow";
-import { NUMBER_OF_WEEKS_TO_FETCH } from "../constants";
+import { NUMBER_OF_WEEKS_TO_FETCH, sampleFields } from "../constants";
 
 export const TeamTimesheetTable = () => {
-  const search = useTeamTimesheet(({ state }) => state.search);
   const hasMoreWeeks = useTeamTimesheet(({ state }) => state.hasMoreWeeks);
   const isLoadingTeamData = useTeamTimesheet(
     ({ state }) => state.isLoadingTeamData,
   );
   const weekGroups = useTeamTimesheet(({ state }) => state.weekGroups);
-  const setSearch = useTeamTimesheet(({ actions }) => actions.setSearch);
   const loadData = useTeamTimesheet(({ actions }) => actions.loadData);
   const isWeeklyApprovalOpen = useTeamTimesheet(
     ({ state }) => state.isWeeklyApprovalOpen,
@@ -32,8 +33,17 @@ export const TeamTimesheetTable = () => {
   const setIsWeeklyApprovalOpen = useTeamTimesheet(
     ({ actions }) => actions.setIsWeeklyApprovalOpen,
   );
+  const [compositeFilters, setCompositeFilters] = useState<FilterCondition[]>(
+    [],
+  );
+  const [filters, setFilters] = useState<TimesheetFilters>({
+    search: "",
+    reportsTo: null,
+  });
 
-  const hasData = weekGroups.length > 0;
+  const handleSearchChange = useCallback((value: string) => {
+    setFilters((prev) => ({ ...prev, search: value }));
+  }, []);
 
   return (
     <div className="w-full h-full py-3.5 px-3">
@@ -43,19 +53,25 @@ export const TeamTimesheetTable = () => {
         open={isWeeklyApprovalOpen}
         onOpenChange={setIsWeeklyApprovalOpen}
       />
-      <div className="flex justify-between mb-3.5">
-        <TextInput
-          placeholder="Search Member or Task"
-          value={search}
-          onChange={(e: ChangeEvent<HTMLInputElement>) =>
-            setSearch(e.target.value)
-          }
-        />
+      <div className="flex flex-wrap gap-2 justify-between mb-3.5">
+        <div className="flex gap-2">
+          <SearchTasks value={filters.search} onChange={handleSearchChange} />
+        </div>
+        <div className="flex gap-2">
+          <Filter
+            fields={sampleFields}
+            value={compositeFilters}
+            onChange={(newFilters) => {
+              setCompositeFilters(newFilters);
+            }}
+          />
+          <Button icon={() => <Ellipsis size={16} />} />
+        </div>
       </div>
 
-      {isLoadingTeamData && !hasData ? (
+      {isLoadingTeamData && weekGroups.length === 0 ? (
         <Spinner isFull />
-      ) : !hasData ? (
+      ) : weekGroups.length === 0 ? (
         <Typography className="flex items-center justify-center">
           No Data
         </Typography>

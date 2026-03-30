@@ -34,7 +34,6 @@ export type WeekGroup = {
 
 export interface TeamTimesheetContextProps {
   state: {
-    search: string;
     hasMoreWeeks: boolean;
     isLoadingTeamData: boolean;
     weekGroups: WeekGroup[];
@@ -43,7 +42,6 @@ export interface TeamTimesheetContextProps {
     startDate: string;
   };
   actions: {
-    setSearch: (value: string) => void;
     loadData: () => void;
     openWeeklyApproval: (employeeId: string, date: string) => void;
     setIsWeeklyApprovalOpen: (state: boolean) => void;
@@ -52,7 +50,6 @@ export interface TeamTimesheetContextProps {
 
 export const TeamTimesheetContext = createContext<TeamTimesheetContextProps>({
   state: {
-    search: "",
     hasMoreWeeks: false,
     isLoadingTeamData: false,
     weekGroups: [],
@@ -61,7 +58,6 @@ export const TeamTimesheetContext = createContext<TeamTimesheetContextProps>({
     startDate: "",
   },
   actions: {
-    setSearch: () => null,
     loadData: () => null,
     openWeeklyApproval: () => null,
     setIsWeeklyApprovalOpen: () => null,

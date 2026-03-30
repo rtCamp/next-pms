@@ -71,12 +71,12 @@ const mergeEmployeeTimesheetData = (
   };
 };
 
+// TODO: Refactor to use direct API call when API is ready.
 export const TeamTimesheetProvider: FC<PropsWithChildren> = ({ children }) => {
   const toast = useToasts();
   const [employee, setEmployee] = useState("");
   const [startDate, setStartDate] = useState("");
   const [isWeeklyApprovalOpen, setIsWeeklyApprovalOpen] = useState(false);
-  const [search, setSearch] = useState("");
   const [weekDate, setWeekDate] = useState(getTodayDate());
   const [hasMoreWeeks, setHasMoreWeeks] = useState(true);
   const [compactWeeks, setCompactWeeks] = useState<Record<string, CompactWeek>>(
@@ -113,42 +113,19 @@ export const TeamTimesheetProvider: FC<PropsWithChildren> = ({ children }) => {
     setFetchedRequestKeys({});
   }, []);
 
-  const compactViewParams = useMemo(
-    () => ({
-      date: weekDate,
-      max_week: String(NUMBER_OF_WEEKS_TO_FETCH),
-      reports_to: employeeId,
-      page_length: "100",
-      start: "0",
-    }),
-    [employeeId, weekDate],
-  );
-
   const {
     data: compactViewData,
     error: compactViewError,
     isLoading: isLoadingCompactView,
-  } = useFrappeGetCall(
-    "next_pms.timesheet.api.team.get_compact_view_data",
-    compactViewParams,
-  );
+  } = useFrappeGetCall("next_pms.timesheet.api.team.get_compact_view_data", {
+    date: weekDate,
+    max_week: String(NUMBER_OF_WEEKS_TO_FETCH),
+    reports_to: employeeId,
+    page_length: "100",
+    start: "0",
+  });
 
-  const activeTimesheetRequest = useMemo(
-    () => pendingTimesheetRequests[0] ?? null,
-    [pendingTimesheetRequests],
-  );
-
-  const memberTimesheetParams = useMemo(
-    () =>
-      activeTimesheetRequest
-        ? {
-            employee: activeTimesheetRequest.employee,
-            start_date: activeTimesheetRequest.startDate,
-            max_week: String(NUMBER_OF_WEEKS_TO_FETCH),
-          }
-        : undefined,
-    [activeTimesheetRequest],
-  );
+  const activeTimesheetRequest = pendingTimesheetRequests[0] ?? null;
 
   const {
     data: memberTimesheetData,
@@ -156,7 +133,14 @@ export const TeamTimesheetProvider: FC<PropsWithChildren> = ({ children }) => {
     isLoading: isLoadingActiveTimesheetRequest,
   } = useFrappeGetCall(
     "next_pms.timesheet.api.timesheet.get_timesheet_data",
-    memberTimesheetParams,
+    activeTimesheetRequest
+      ? {
+          employee: activeTimesheetRequest.employee,
+          start_date: activeTimesheetRequest.startDate,
+          max_week: String(NUMBER_OF_WEEKS_TO_FETCH),
+        }
+      : undefined,
+    activeTimesheetRequest ? undefined : null,
   );
 
   const appendCompactWeeks = useCallback((weeks: CompactWeek[]) => {
@@ -379,7 +363,6 @@ export const TeamTimesheetProvider: FC<PropsWithChildren> = ({ children }) => {
   const value: TeamTimesheetContextProps = useMemo(
     () => ({
       state: {
-        search,
         hasMoreWeeks,
         isLoadingTeamData,
         weekGroups,
@@ -388,7 +371,6 @@ export const TeamTimesheetProvider: FC<PropsWithChildren> = ({ children }) => {
         startDate,
       },
       actions: {
-        setSearch,
         loadData,
         openWeeklyApproval,
         setIsWeeklyApprovalOpen,
@@ -398,13 +380,11 @@ export const TeamTimesheetProvider: FC<PropsWithChildren> = ({ children }) => {
       hasMoreWeeks,
       isLoadingTeamData,
       loadData,
-      search,
       weekGroups,
       openWeeklyApproval,
       employee,
       startDate,
       isWeeklyApprovalOpen,
-      setIsWeeklyApprovalOpen,
     ],
   );
 
