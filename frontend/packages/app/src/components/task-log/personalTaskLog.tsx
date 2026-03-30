@@ -26,6 +26,16 @@ type PersonalTaskLogProps = {
   onOpenChange: (open: boolean) => void;
 };
 
+const dateMap = [
+  { label: "Last 7 days", value: "7" },
+  { label: "Last 15 days", value: "15" },
+  { label: "Last 30 days", value: "30" },
+  { label: "Last 60 days", value: "60" },
+  { label: "Last 90 days", value: "90" },
+  { label: "Last 180 days", value: "180" },
+  { label: "Last 365 days", value: "365" },
+];
+
 const PersonalTaskLog: React.FC<PersonalTaskLogProps> = ({
   task,
   open,
@@ -47,16 +57,6 @@ const PersonalTaskLog: React.FC<PersonalTaskLogProps> = ({
     endDate,
     employeeId: employeeId,
   });
-
-  const dateMap = [
-    { label: "Last 7 days", value: "7" },
-    { label: "Last 15 days", value: "15" },
-    { label: "Last 30 days", value: "30" },
-    { label: "Last 60 days", value: "60" },
-    { label: "Last 90 days", value: "90" },
-    { label: "Last 180 days", value: "180" },
-    { label: "Last 365 days", value: "365" },
-  ];
 
   useEffect(() => {
     if (error) {

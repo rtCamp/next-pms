@@ -6,7 +6,7 @@ import { Avatar } from "@rtcamp/frappe-ui-react";
 
 type MemberTimeSummaryProps = {
   name: string;
-  image: string | null;
+  image?: string;
   totalHours: number;
 };
 

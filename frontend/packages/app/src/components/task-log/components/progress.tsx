@@ -26,10 +26,9 @@ const Progress: React.FC<ProgressProps> = ({
         <div className="flex gap-0.75 mb-0.5">
           <div className="flex gap-1">
             <span
-              className={cn(
-                "font-medium",
-                progress > 100 && "text-surface-red-7",
-              )}
+              className={cn("font-medium", {
+                "text-surface-red-7": progress > 100,
+              })}
             >
               {floatToTime(actualHours, 2)}
             </span>

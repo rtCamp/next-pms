@@ -1,5 +1,5 @@
 export type TaskWorker = {
-  employee: string;
+  employeeId: string;
   employeeName: string;
   image: string | null;
   totalHours: number;

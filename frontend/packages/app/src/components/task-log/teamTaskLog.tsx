@@ -25,6 +25,16 @@ type TeamTaskLogProps = {
   onOpenChange: (open: boolean) => void;
 };
 
+const dateMap = [
+  { label: "Last 7 days", value: "7" },
+  { label: "Last 15 days", value: "15" },
+  { label: "Last 30 days", value: "30" },
+  { label: "Last 60 days", value: "60" },
+  { label: "Last 90 days", value: "90" },
+  { label: "Last 180 days", value: "180" },
+  { label: "Last 365 days", value: "365" },
+];
+
 const TeamTaskLog: React.FC<TeamTaskLogProps> = ({
   task,
   open,
@@ -42,16 +52,6 @@ const TeamTaskLog: React.FC<TeamTaskLogProps> = ({
     startDate,
     endDate,
   });
-
-  const dateMap = [
-    { label: "Last 7 days", value: "7" },
-    { label: "Last 15 days", value: "15" },
-    { label: "Last 30 days", value: "30" },
-    { label: "Last 60 days", value: "60" },
-    { label: "Last 90 days", value: "90" },
-    { label: "Last 180 days", value: "180" },
-    { label: "Last 365 days", value: "365" },
-  ];
 
   useEffect(() => {
     if (error) {

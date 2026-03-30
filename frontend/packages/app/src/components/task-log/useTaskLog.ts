@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { FrappeError, useFrappeGetCall } from "frappe-react-sdk";
 import { ResponseLogItem, TaskLog, TaskWorker } from "./types";
 
@@ -56,7 +57,7 @@ const useTaskLog = ({
       image: string | null;
       total_hour: number;
     }) => ({
-      employee: worker.employee,
+      employeeId: worker.employee,
       employeeName: worker.employee_name,
       image: worker.image,
       totalHours: worker.total_hour,
@@ -65,13 +66,13 @@ const useTaskLog = ({
 
   if (employeeId) {
     workedBy = workedBy.filter(
-      (worker: TaskWorker) => worker.employee === employeeId,
+      (worker: TaskWorker) => worker.employeeId === employeeId,
     );
   }
 
   const employeeMap: { [employeeId: string]: TaskWorker } = workedBy.reduce(
     (acc: { [employeeId: string]: TaskWorker }, worker: TaskWorker) => {
-      acc[worker.employee] = worker;
+      acc[worker.employeeId] = worker;
       return acc;
     },
     {},
@@ -89,23 +90,27 @@ const useTaskLog = ({
     employee: employeeId,
   });
 
-  const taskLogs: TaskLog[] = [];
+  const taskLogs = useMemo(() => {
+    const result: TaskLog[] = [];
 
-  if (logs?.message) {
-    Object.entries(logs.message).forEach(([date, item]) => {
-      (item as ResponseLogItem[]).forEach((entry: ResponseLogItem) => {
-        const employee = employeeMap[entry.employee];
-        if (employee) {
-          taskLogs.push({
-            date,
-            employee,
-            description: entry.description,
-            hours: entry.hours,
-          });
-        }
+    if (logs?.message) {
+      Object.entries(logs.message).forEach(([date, item]) => {
+        (item as ResponseLogItem[]).forEach((entry: ResponseLogItem) => {
+          const employee = employeeMap[entry.employee];
+          if (employee) {
+            result.push({
+              date,
+              employee,
+              description: entry.description,
+              hours: entry.hours,
+            });
+          }
+        });
       });
-    });
-  }
+    }
+
+    return result;
+  }, [logs?.message, employeeMap]);
 
   return {
     isLoading: isLoading || isLogLoading,
