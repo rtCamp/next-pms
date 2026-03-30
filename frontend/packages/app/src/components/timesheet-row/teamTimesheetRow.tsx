@@ -3,7 +3,7 @@
  */
 import { useMemo } from "react";
 import {
-  ApprovalStatusLabelType,
+  type ApprovalStatusLabelType,
   ErrorFallback,
 } from "@next-pms/design-system/components";
 
@@ -12,8 +12,8 @@ import {
  */
 import { getHolidayList } from "@/lib/utils";
 import { useTimesheetOutletContext } from "@/pages/timesheet/outletContext";
-import { WorkingFrequency } from "@/types";
-import { HolidayProp, LeaveProps, TaskProps } from "@/types/timesheet";
+import type { WorkingFrequency } from "@/types";
+import type { HolidayProp, LeaveProps, TaskProps } from "@/types/timesheet";
 import { MemberRow } from "./components/row/memberRow";
 import { ProjectRow } from "./components/row/projectRow";
 import { TaskRow } from "./components/row/taskRow";

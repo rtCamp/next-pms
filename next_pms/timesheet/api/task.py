@@ -10,7 +10,7 @@ from . import get_count
 from .project import get_project_filter_for_contractor
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["GET"])
 def get_task_list(
     search: str = None,
     page_length: int | bool = 20,
@@ -20,6 +20,7 @@ def get_task_list(
     fields: list | str = None,
     filter_recent: bool = False,
 ):
+    """Get the list of tasks. If no filters are provided, it fetches all tasks for projects the user has access to. Users can filter by projects, status, and search text, and can also limit results to tasks they have worked on recently by setting filter_recent to True."""
     import json
 
     frappe.has_permission(doctype="Project", throw=True)
@@ -155,8 +156,9 @@ def get_task_list(
     }
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])
 def add_task(subject: str, expected_time: str, project: str, description: str):
+    """API to add task, it will create a task under the given project with the given details."""
     frappe.get_doc(
         {
             "doctype": "Task",
@@ -169,8 +171,9 @@ def add_task(subject: str, expected_time: str, project: str, description: str):
     return frappe._("Task Created Successfully")
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["GET"])
 def get_task(task: str, start_date: str | datetime.date, end_date: str | datetime.date):
+    """API to get the task details along with the time logged against it between the given start date and end date."""
     from frappe.query_builder.functions import Sum
 
     if isinstance(start_date, str):
@@ -209,6 +212,7 @@ def get_task(task: str, start_date: str | datetime.date, end_date: str | datetim
     return {
         "subject": task.subject,
         "expected_time": task.expected_time,
+        "exp_end_date": task.exp_end_date or "",
         "project_name": frappe.db.get_value("Project", task.project, "project_name"),
         "project": task.project,
         "actual_time": task.actual_time,
@@ -219,8 +223,9 @@ def get_task(task: str, start_date: str | datetime.date, end_date: str | datetim
     }
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["GET"])
 def get_task_log(task: str, start_date: str = None, end_date: str = None, employee: str = None):
+    """API to get the time log details for a task between the given start date and end date. with an optional parameter of passing in employee"""
     project = frappe.db.get_value("Task", task, "project")
 
     if project:
@@ -252,41 +257,27 @@ def get_task_log(task: str, start_date: str = None, end_date: str = None, employ
 
     result = query.run(as_dict=True)
 
-    aggregated_data = {}
+    log_entries = {}
 
     for res in result:
-        employee_name = res.get("employee")
-        start_date = res.get("start_date")
-        hours = res.get("hours")
-        description = res.get("description")
+        key = str(res.get("start_date"))
+        if key not in log_entries:
+            log_entries[key] = []
 
-        key = start_date
-
-        if key not in aggregated_data:
-            aggregated_data[key] = {}
-
-        if employee_name not in aggregated_data[key]:
-            aggregated_data[key][employee_name] = {"hours": 0, "description": []}
-
-        aggregated_data[key][employee_name]["hours"] += hours
-        aggregated_data[key][employee_name]["description"].append(description)
-
-    response = {
-        str(key): [
+        log_entries[key].append(
             {
-                "employee": emp,
-                "hours": data["hours"],
-                "description": data["description"],
+                "employee": res.get("employee"),
+                "hours": res.get("hours"),
+                "description": [res.get("description")] if res.get("description") else [],
             }
-            for emp, data in value.items()
-        ]
-        for key, value in aggregated_data.items()
-    }
-    return response
+        )
+
+    return log_entries
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["GET"])
 def get_liked_tasks():
+    """API to get the list of tasks that the user has liked, along with the project name."""
     from next_pms.timesheet.api.app import get_liked_documents
 
     return get_liked_documents("Task", fields=["project.project_name"])

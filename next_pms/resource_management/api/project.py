@@ -19,7 +19,7 @@ from next_pms.resource_management.api.utils.query import (
 )
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["GET", "POST"])
 @redis_cache()
 def get_resource_management_project_view_data(
     date: str,
@@ -32,6 +32,7 @@ def get_resource_management_project_view_data(
     start=0,
     project_id=None,
 ):
+    """Returns the data required for resource management project view based on the filters provided"""
     permissions = resource_api_permissions_check()
 
     if not permissions["write"]:
@@ -162,9 +163,10 @@ def get_resource_management_project_view_data(
     return res
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["GET"])
 @redis_cache()
 def get_employees_resrouce_data_for_given_project(project: str, start_date: str, end_date: str, is_billable: int = -1):
+    """Returns the data required for resource management employee view based on the filters provided for a given project"""
     permissions = resource_api_permissions_check()
 
     if not permissions["write"]:
