@@ -86,10 +86,7 @@ export const TeamTimesheetTable = () => {
           <div className="min-w-225">
             {weekGroups.map((week, index) => {
               return (
-                <div
-                  key={`${week.start_date}-${week.end_date}`}
-                  className="animate-fade-in"
-                >
+                <>
                   {index === 0 ? (
                     <div className="mb-4 sticky top-0 bg-surface-white z-10">
                       <HeaderRow
@@ -111,24 +108,29 @@ export const TeamTimesheetTable = () => {
                     </div>
                   ) : null}
 
-                  <TeamTimesheetRow
-                    label={week.key}
-                    dates={week.dates}
-                    firstWeek={index === 0}
-                    disabled={true}
-                    teamMembers={week.members.map((member) => ({
-                      label: member.employee.employee_name,
-                      employee: member.employee.name,
-                      avatarUrl: member.employee.image,
-                      tasks: member.week.tasks,
-                      leaves: member.leaves,
-                      holidays: member.holidays,
-                      workingHour: member.working_hour,
-                      workingFrequency: member.working_frequency,
-                      status: member.week.status,
-                    }))}
-                  />
-                </div>
+                  <div
+                    key={`${week.start_date}-${week.end_date}`}
+                    className="animate-fade-in"
+                  >
+                    <TeamTimesheetRow
+                      label={week.key}
+                      dates={week.dates}
+                      firstWeek={index === 0}
+                      disabled={true}
+                      teamMembers={week.members.map((member) => ({
+                        label: member.employee.employee_name,
+                        employee: member.employee.name,
+                        avatarUrl: member.employee.image,
+                        tasks: member.week.tasks,
+                        leaves: member.leaves,
+                        holidays: member.holidays,
+                        workingHour: member.working_hour,
+                        workingFrequency: member.working_frequency,
+                        status: member.week.status,
+                      }))}
+                    />
+                  </div>
+                </>
               );
             })}
           </div>
