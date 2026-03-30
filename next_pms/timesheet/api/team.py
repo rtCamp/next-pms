@@ -24,7 +24,7 @@ from next_pms.timesheet.doc_events.timesheet import flush_cache, publish_timeshe
 
 from . import filter_employees
 from .employee import get_employee_daily_working_norm, get_employee_working_hours
-from .timesheet import get_timesheet_state
+from .timesheet import get_timesheet, get_timesheet_state, parse_filters
 from .utils import employee_has_higher_access, get_holidays, get_week_dates
 
 
@@ -46,6 +46,7 @@ def get_compact_view_data(
     by_pass_access_check=False,
 ):
     """API to get the timesheet data in compact view format, it will return the timesheet data for the employees based on the filters provided. It will return the data in a format which can be used to render the compact view of the timesheet. If no filters are provided, it will return the timesheet data for all the employees for the current week and previous weeks based on the max_week parameter."""
+    ## WILL BE REMOVED ONCE THE REDESIGN IS DONE AND WILL BE REPLACED BY get_team_timesheet_data API WHICH RETURNS BOTH COMPACT VIEW DATA AND DETAILED TIMESHEET DATA.
     if not by_pass_access_check:
         only_for(["Timesheet Manager", "Timesheet User", "Projects Manager"], message=True)
 
@@ -156,6 +157,216 @@ def get_compact_view_data(
                 local_data["data"].append(
                     {
                         "date": date,
+                        "hour": hour,
+                        "is_leave": on_leave,
+                        "note": notes.replace("<br>", "\n"),
+                    }
+                )
+
+        data[employee.name] = local_data
+
+    res["data"] = data
+    res["total_count"] = total_count
+    res["has_more"] = int(start) + int(page_length) < total_count
+
+    return res
+
+
+@whitelist(methods=["GET"])
+@error_logger
+def get_team_timesheet_data(
+    date: str,
+    max_week: int = 2,
+    employee_name=None,
+    employee_ids: list[str] | str | None = None,
+    department=None,
+    project=None,
+    user_group=None,
+    page_length=10,
+    start=0,
+    status_filter=None,
+    status=None,
+    reports_to: str | None = None,
+    by_pass_access_check=False,
+    search: str | None = None,
+    approval_status: str | list | None = None,
+    filters: str | list | None = None,
+):
+    """API that combines compact view data with detailed timesheet data per employee per week.
+
+    Returns everything get_compact_view_data returns, plus a ``timesheet_data`` dict
+    keyed by week containing tasks and time-log details for each employee.  This
+    eliminates the need for separate per-employee per-week get_timesheet_data calls.
+
+    Additional parameters over get_compact_view_data:
+        search: free-text search across task name, subject, and project name.
+        approval_status: filter weeks by their weekly approval status (string or JSON list).
+        filters: Frappe desk-style filters for Timesheet / Timesheet Detail / Task doctypes.
+    """
+    if not by_pass_access_check:
+        only_for(["Timesheet Manager", "Timesheet User", "Projects Manager"], message=True)
+
+    dates = []
+    data = {}
+    if status_filter and isinstance(status_filter, str):
+        status_filter = json.loads(status_filter)
+
+    if isinstance(approval_status, str):
+        try:
+            approval_status = json.loads(approval_status)
+        except (json.JSONDecodeError, ValueError):
+            approval_status = [approval_status]
+
+    parsed_filters = parse_filters(filters)
+
+    for i in range(max_week):
+        week = get_week_dates(date=date)
+        dates.append(week)
+        date = add_days(getdate(week["start_date"]), -1)
+
+    dates.reverse()
+    res = {"dates": dates}
+
+    employees, total_count = filter_employee_by_timesheet_status(
+        employee_name=employee_name,
+        department=department,
+        project=project,
+        user_group=user_group,
+        page_length=page_length,
+        start=start,
+        reports_to=reports_to,
+        status=status,
+        timesheet_status=status_filter,
+        employee_ids=employee_ids,
+        start_date=dates[0].get("start_date"),
+        end_date=dates[-1].get("end_date"),
+    )
+    employee_names = [employee.name for employee in employees]
+
+    # Get all timesheets in the date range for compact view aggregation
+    timesheet_data = get_all(
+        "Timesheet",
+        filters={
+            "employee": ["in", employee_names],
+            "start_date": [">=", dates[0].get("start_date")],
+            "end_date": ["<=", dates[-1].get("end_date")],
+            "docstatus": ["!=", 2],
+        },
+        fields=[
+            "employee",
+            "start_date",
+            "end_date",
+            "total_hours",
+            "note",
+            "custom_approval_status",
+        ],
+    )
+
+    timesheet_map = {}
+    for ts in timesheet_data:
+        if ts.employee not in timesheet_map:
+            timesheet_map[ts.employee] = []
+        timesheet_map[ts.employee].append(ts)
+
+    for employee in employees:
+        working_hours = get_employee_working_hours(employee.name)
+        daily_working_hours = get_employee_daily_working_norm(employee.name)
+        local_data = {**employee, **working_hours}
+        employee_timesheets = timesheet_map.get(employee.name, [])
+
+        emp_status = get_timesheet_state(
+            employee=employee.name,
+            start_date=dates[0].get("start_date"),
+            end_date=dates[-1].get("end_date"),
+        )
+        local_data["status"] = emp_status
+        local_data["data"] = []
+        local_data["timesheet_data"] = {}
+
+        leaves = get_employee_leaves(
+            start_date=add_days(dates[0].get("start_date"), -max_week * 7),
+            end_date=add_days(dates[-1].get("end_date"), max_week * 7),
+            employee=employee.name,
+        )
+        holidays = get_holidays(employee.name, dates[0].get("start_date"), dates[-1].get("end_date"))
+        holiday_dates = [holiday["holiday_date"] for holiday in holidays] if holidays else []
+
+        for date_info in dates:
+            week_key = date_info.get("key")
+
+            # Detailed timesheet data for this employee for this week
+            tasks, total_hours_for_week = get_timesheet(
+                date_info.get("dates"),
+                employee.name,
+                search=search,
+                parsed_filters=parsed_filters,
+            )
+            week_status = get_timesheet_state(
+                start_date=date_info["dates"][0],
+                end_date=date_info["dates"][-1],
+                employee=employee.name,
+            )
+
+            # Calculate leave total for the week to handle full-leave weeks
+            leave_total = 0
+            week_leaves = [
+                leave
+                for leave in leaves
+                if leave["from_date"] <= date_info["dates"][-1] and leave["to_date"] >= date_info["dates"][0]
+            ]
+            for leave in week_leaves:
+                if leave["half_day"]:
+                    leave_total += daily_working_hours / 2
+                else:
+                    num_days = 0
+                    for d in date_info["dates"]:
+                        if d not in holiday_dates and leave["from_date"] <= d <= leave["to_date"]:
+                            num_days += 1
+                    leave_total += daily_working_hours * num_days
+
+            if daily_working_hours * 5 == leave_total:
+                week_status = "Approved"
+
+            if not approval_status or week_status in approval_status:
+                local_data["timesheet_data"][week_key] = {
+                    **date_info,
+                    "total_hours": total_hours_for_week,
+                    "tasks": tasks,
+                    "status": week_status,
+                }
+
+            # Compact view per-day data
+            for dt in date_info.get("dates"):
+                hour = 0
+                on_leave = False
+
+                for leave in leaves:
+                    if leave["from_date"] <= dt <= leave["to_date"]:
+                        if leave.get("half_day") and leave.get("half_day_date") == dt:
+                            hour += daily_working_hours / 2
+                        else:
+                            hour += daily_working_hours
+                        on_leave = True
+
+                for holiday in holidays:
+                    if dt == holiday.holiday_date:
+                        if not holiday.weekly_off:
+                            hour = daily_working_hours
+                        else:
+                            hour = 0
+                        on_leave = False
+
+                total_hours = 0
+                notes = ""
+                for ts in employee_timesheets:
+                    if ts.start_date == dt and ts.end_date == dt:
+                        total_hours += ts.get("total_hours")
+                        notes += ts.get("note", "")
+                hour += total_hours
+
+                local_data["data"].append(
+                    {
+                        "date": dt,
                         "hour": hour,
                         "is_leave": on_leave,
                         "note": notes.replace("<br>", "\n"),
