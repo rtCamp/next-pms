@@ -11,7 +11,7 @@ import {
  * Internal dependencies
  */
 import { getHolidayList } from "@/lib/utils";
-import { useTimesheetOutletContext } from "@/pages/timesheet/outletContext";
+import { useTeamTimesheet } from "@/pages/timesheet/team/context";
 import type { WorkingFrequency } from "@/types";
 import type { HolidayProp, LeaveProps, TaskProps } from "@/types/timesheet";
 import { MemberRow } from "./components/row/memberRow";
@@ -48,7 +48,9 @@ export const TeamTimesheetRow = ({
   teamMembers,
   disabled,
 }: TeamTimesheetRowProps) => {
-  const { openWeeklyApproval } = useTimesheetOutletContext();
+  const openWeeklyApproval = useTeamTimesheet(
+    ({ actions }) => actions.openWeeklyApproval,
+  );
   const teamMembersData = useMemo(() => {
     return teamMembers.map((member) => {
       const projects = groupTasksByProject(member.tasks);

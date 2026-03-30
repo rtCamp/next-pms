@@ -73,6 +73,9 @@ const mergeEmployeeTimesheetData = (
 
 export const TeamTimesheetProvider: FC<PropsWithChildren> = ({ children }) => {
   const toast = useToasts();
+  const [employee, setEmployee] = useState("");
+  const [startDate, setStartDate] = useState("");
+  const [isWeeklyApprovalOpen, setIsWeeklyApprovalOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [weekDate, setWeekDate] = useState(getTodayDate());
   const [hasMoreWeeks, setHasMoreWeeks] = useState(true);
@@ -95,6 +98,12 @@ export const TeamTimesheetProvider: FC<PropsWithChildren> = ({ children }) => {
   const { employeeId } = useUser(({ state }) => ({
     employeeId: state.employeeId,
   }));
+
+  const openWeeklyApproval = useCallback((employeeId: string, date: string) => {
+    setEmployee(employeeId);
+    setStartDate(date);
+    setIsWeeklyApprovalOpen(true);
+  }, []);
 
   const clearLoadedData = useCallback(() => {
     setEmployeeTimesheetMap({});
@@ -374,13 +383,29 @@ export const TeamTimesheetProvider: FC<PropsWithChildren> = ({ children }) => {
         hasMoreWeeks,
         isLoadingTeamData,
         weekGroups,
+        isWeeklyApprovalOpen,
+        employee,
+        startDate,
       },
       actions: {
         setSearch,
         loadData,
+        openWeeklyApproval,
+        setIsWeeklyApprovalOpen,
       },
     }),
-    [hasMoreWeeks, isLoadingTeamData, loadData, search, weekGroups],
+    [
+      hasMoreWeeks,
+      isLoadingTeamData,
+      loadData,
+      search,
+      weekGroups,
+      openWeeklyApproval,
+      employee,
+      startDate,
+      isWeeklyApprovalOpen,
+      setIsWeeklyApprovalOpen,
+    ],
   );
 
   return (

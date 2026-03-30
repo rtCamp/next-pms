@@ -11,7 +11,6 @@ export type TimesheetOutletContext = {
     endDate: string,
     totalHours: number,
   ) => void;
-  openWeeklyApproval: (employeeId: string, date: string) => void;
 };
 
 export function useTimesheetOutletContext() {

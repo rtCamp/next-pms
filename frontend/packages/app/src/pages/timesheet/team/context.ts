@@ -38,10 +38,15 @@ export interface TeamTimesheetContextProps {
     hasMoreWeeks: boolean;
     isLoadingTeamData: boolean;
     weekGroups: WeekGroup[];
+    isWeeklyApprovalOpen: boolean;
+    employee: string;
+    startDate: string;
   };
   actions: {
     setSearch: (value: string) => void;
     loadData: () => void;
+    openWeeklyApproval: (employeeId: string, date: string) => void;
+    setIsWeeklyApprovalOpen: (state: boolean) => void;
   };
 }
 
@@ -51,10 +56,15 @@ export const TeamTimesheetContext = createContext<TeamTimesheetContextProps>({
     hasMoreWeeks: false,
     isLoadingTeamData: false,
     weekGroups: [],
+    isWeeklyApprovalOpen: false,
+    employee: "",
+    startDate: "",
   },
   actions: {
     setSearch: () => null,
     loadData: () => null,
+    openWeeklyApproval: () => null,
+    setIsWeeklyApprovalOpen: () => null,
   },
 });
 

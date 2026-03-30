@@ -22,7 +22,6 @@ import { ROUTES } from "@/lib/constant";
 import AddLeave from "@/pages/timesheet/components/add-leave";
 import AddTime from "@/pages/timesheet/components/add-time";
 import SubmitApproval from "@/pages/timesheet/components/submit-approval";
-import WeeklyApproval from "@/pages/timesheet/components/weekly-approval";
 import { useUser } from "@/providers/user";
 import type { TimesheetOutletContext } from "./outletContext";
 
@@ -38,9 +37,6 @@ function TimesheetLayout() {
     endDate: "",
     totalHours: 0,
   });
-  const [employee, setEmployee] = useState("");
-  const [startDate, setStartDate] = useState("");
-  const [isWeeklyApprovalOpen, setIsWeeklyApprovalOpen] = useState(false);
 
   const handleAddTime = useCallback((date?: string) => {
     setInitialDate(date || getTodayDate());
@@ -54,12 +50,6 @@ function TimesheetLayout() {
     },
     [],
   );
-
-  const openWeeklyApproval = useCallback((employeeId: string, date: string) => {
-    setEmployee(employeeId);
-    setStartDate(date);
-    setIsWeeklyApprovalOpen(true);
-  }, []);
 
   const { pathname } = useLocation();
 
@@ -157,7 +147,6 @@ function TimesheetLayout() {
             openAddTimeDialog: handleAddTime,
             openAddLeaveDialog: () => setIsLeaveDialogOpen(true),
             handleApproval,
-            openWeeklyApproval,
           } satisfies TimesheetOutletContext
         }
       />
@@ -175,12 +164,6 @@ function TimesheetLayout() {
         startDate={submitApprovalDates.startDate}
         endDate={submitApprovalDates.endDate}
         totalHours={submitApprovalDates.totalHours}
-      />
-      <WeeklyApproval
-        employee={employee}
-        startDate={startDate}
-        open={isWeeklyApprovalOpen}
-        onOpenChange={setIsWeeklyApprovalOpen}
       />
     </LayoutWithSidebar>
   );

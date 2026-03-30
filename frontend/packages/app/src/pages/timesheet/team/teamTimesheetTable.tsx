@@ -9,6 +9,7 @@ import { TextInput } from "@rtcamp/frappe-ui-react";
  * Internal dependencies.
  */
 import { useTeamTimesheet } from "./context";
+import WeeklyApproval from "./weekly-approval";
 import { InfiniteScroll } from "../../../components/infiniteScroll";
 import { HeaderRow } from "../../../components/timesheet-row/components/row/headerRow";
 import { TeamTimesheetRow } from "../../../components/timesheet-row/teamTimesheetRow";
@@ -23,11 +24,25 @@ export const TeamTimesheetTable = () => {
   const weekGroups = useTeamTimesheet(({ state }) => state.weekGroups);
   const setSearch = useTeamTimesheet(({ actions }) => actions.setSearch);
   const loadData = useTeamTimesheet(({ actions }) => actions.loadData);
+  const isWeeklyApprovalOpen = useTeamTimesheet(
+    ({ state }) => state.isWeeklyApprovalOpen,
+  );
+  const employee = useTeamTimesheet(({ state }) => state.employee);
+  const startDate = useTeamTimesheet(({ state }) => state.startDate);
+  const setIsWeeklyApprovalOpen = useTeamTimesheet(
+    ({ actions }) => actions.setIsWeeklyApprovalOpen,
+  );
 
   const hasData = weekGroups.length > 0;
 
   return (
     <div className="w-full h-full py-3.5 px-3">
+      <WeeklyApproval
+        employee={employee}
+        startDate={startDate}
+        open={isWeeklyApprovalOpen}
+        onOpenChange={setIsWeeklyApprovalOpen}
+      />
       <div className="flex justify-between mb-3.5">
         <TextInput
           placeholder="Search Member or Task"
