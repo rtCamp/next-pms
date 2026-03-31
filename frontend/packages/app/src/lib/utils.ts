@@ -9,7 +9,13 @@ import {
 } from "@next-pms/design-system/date";
 import { FilterCondition } from "@rtcamp/frappe-ui-react";
 import { type ClassValue, clsx } from "clsx";
-import { differenceInCalendarDays, isToday } from "date-fns";
+import {
+  getISOWeek,
+  getISOWeekYear,
+  getISOWeeksInYear,
+  isToday,
+  parseISO,
+} from "date-fns";
 import { Error as FrappeError } from "frappe-js-sdk/lib/frappe_app/types";
 import { twMerge } from "tailwind-merge";
 
@@ -507,7 +513,7 @@ const buildCompositeFilters = (compositeFilters: FilterCondition[]) => {
     return {
       startDate: undefined,
       maxWeek: NUMBER_OF_WEEKS_TO_FETCH,
-      cFilters: [],
+      frappeFilters: [],
     };
   }
 
@@ -534,13 +540,34 @@ const buildCompositeFilters = (compositeFilters: FilterCondition[]) => {
 
   let maxWeek = NUMBER_OF_WEEKS_TO_FETCH;
   if (startDate && endDate) {
-    const totalDays = differenceInCalendarDays(
-      new Date(endDate),
-      new Date(startDate),
-    );
-    maxWeek = Math.max(Math.ceil(totalDays / 7), 1);
+    // Calculate the number of calendar weeks spanned (inclusive) using ISO week logic
+    // to correctly handle week boundary crossings (e.g., Sun→Mon spans 2 weeks).
+    const start = parseISO(startDate);
+    const end = parseISO(endDate);
+
+    const startWeekYear = getISOWeekYear(start);
+    const startWeek = getISOWeek(start);
+    const endWeekYear = getISOWeekYear(end);
+    const endWeek = getISOWeek(end);
+
+    if (startWeekYear === endWeekYear) {
+      // Same ISO week year: simple difference
+      maxWeek = Math.max(endWeek - startWeek + 1, 1);
+    } else {
+      // Different ISO week years: sum weeks from start year and end year
+      const weeksInStartYear = getISOWeeksInYear(start);
+      maxWeek = Math.max(
+        weeksInStartYear -
+          startWeek +
+          1 +
+          endWeek +
+          (endWeekYear - startWeekYear - 1) * 52, // Estimate for years in between
+        1,
+      );
+    }
   }
 
+  // Note: We are return end date as start date because API expects end date and fetches backwards from there.
   return {
     startDate: endDate,
     maxWeek: maxWeek,
