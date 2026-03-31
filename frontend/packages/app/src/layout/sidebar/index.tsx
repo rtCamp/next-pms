@@ -48,6 +48,7 @@ const Sidebar = () => {
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
   }, []);
+
   const { isSidebarCollapsed, employeeName, updateIsSidebarCollapsed, logout } =
     useUser(({ state, actions }) => ({
       isSidebarCollapsed: state.isSidebarCollapsed,
@@ -205,11 +206,24 @@ const Sidebar = () => {
         open={isSearchOpen}
         onOpenChange={setIsSearchOpen}
         items={[
-          { value: "linear", label: "Linear" },
-          { value: "figma", label: "Figma" },
-          { value: "slack", label: "Slack" },
-          { value: "youtube", label: "YouTube" },
-          { value: "raycast", label: "Raycast" },
+          { label: "Home", action: () => navigate(ROUTES.home) },
+          { label: "Tasks", action: () => navigate(ROUTES.task) },
+          { label: "Projects", action: () => navigate(ROUTES.project) },
+          {
+            label: "Timesheet - Personal",
+            action: () => navigate(ROUTES["timesheet-personal"]),
+          },
+          {
+            label: "Timesheet - Team",
+            action: () => navigate(ROUTES["timesheet-team"]),
+          },
+          {
+            label: "Timesheet - Projects",
+            action: () => navigate(ROUTES["timesheet-project"]),
+          },
+          { label: "Allocation", action: () => navigate(ROUTES.allocation) },
+          { label: "Roadmap", action: () => navigate(ROUTES.roadmap) },
+          { label: "Reports", action: () => navigate(ROUTES.report) },
         ]}
       />
     </ErrorFallback>

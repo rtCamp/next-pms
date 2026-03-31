@@ -6,13 +6,15 @@ import { Dialog } from "@base-ui/react/dialog";
 import { ScrollArea } from "@base-ui/react/scroll-area";
 import { ArrowDown, ArrowUp, CornerDownLeft } from "lucide-react";
 
+interface Item {
+  label: string;
+  action: () => Promise<void> | void;
+}
+
 interface GlobalSearchProps {
   open: boolean;
   onOpenChange: (val: boolean) => void;
-  items: {
-    value: string;
-    label: string;
-  }[];
+  items: Item[];
 }
 
 export default function GlobalSearch({
@@ -20,9 +22,10 @@ export default function GlobalSearch({
   onOpenChange,
   items,
 }: GlobalSearchProps) {
-  function handleItemClick() {
+  const handleItemClick = async (item: Item) => {
+    await item.action();
     onOpenChange(false);
-  }
+  };
 
   return (
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
@@ -51,7 +54,7 @@ export default function GlobalSearch({
                           <Autocomplete.Item
                             key={item.value}
                             value={item}
-                            onClick={handleItemClick}
+                            onClick={() => handleItemClick(item)}
                             className="flex items-center justify-between mx-2 px-3 py-2.5 rounded-lg cursor-pointer data-highlighted:bg-surface-gray-2 outline-none"
                           >
                             <span className="text-base text-ink-gray-8">
