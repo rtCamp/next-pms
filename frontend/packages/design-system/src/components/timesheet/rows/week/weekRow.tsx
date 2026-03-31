@@ -36,6 +36,8 @@ export interface WeekRowProps {
   totalHours?: string;
   /** Theme for the total hours */
   totalHoursTheme?: TotalHoursTheme;
+  /** Optional badge label shown next to the week label. */
+  badgeLabel?: string;
   /** Additional class names for the week row container. */
   className?: string;
 }
@@ -50,6 +52,7 @@ export const WeekRow: React.FC<WeekRowProps> = ({
   onButtonClick,
   totalHours = "",
   totalHoursTheme,
+  badgeLabel,
   className,
 }) => {
   const isStatusNone = status === "none";
@@ -79,6 +82,11 @@ export const WeekRow: React.FC<WeekRowProps> = ({
               {ApprovalStatusLabelMap[status]}
             </Badge>
           )}
+          {badgeLabel ? (
+            <p className="shrink-0 text-ink-gray-5 text-base whitespace-nowrap">
+              {badgeLabel}
+            </p>
+          ) : null}
         </div>
       </div>
       {!collapsed &&

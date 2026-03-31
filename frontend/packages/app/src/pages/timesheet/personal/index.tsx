@@ -39,12 +39,10 @@ import SearchTasks from "../../../components/filters/searchTasks";
 import { InfiniteScroll } from "../../../components/infiniteScroll";
 import { HeaderRow } from "../../../components/timesheet-row/components/row/headerRow";
 import { PersonalTimesheetRow } from "../../../components/timesheet-row/personalTimesheetRow";
-import { sampleFields } from "../constants";
+import { NUMBER_OF_WEEKS_TO_FETCH, sampleFields } from "../constants";
 import { useTimesheetOutletContext } from "../outletContext";
 import { initialState, reducer } from "../reducer";
 import { validateDate } from "../utils";
-
-const NUMBER_OF_WEEKS_TO_FETCH = 4;
 
 function PersonalTimesheet() {
   const targetRef = useRef<HTMLDivElement>(null);

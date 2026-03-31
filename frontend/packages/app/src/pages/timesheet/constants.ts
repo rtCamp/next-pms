@@ -1,5 +1,7 @@
 import { FilterField } from "@rtcamp/frappe-ui-react";
 
+export const NUMBER_OF_WEEKS_TO_FETCH = 4;
+
 const projectOptions = [
   { label: "Atlas UI Stabilization", value: "atlas-ui" },
   { label: "Backend Refactor", value: "backend" },

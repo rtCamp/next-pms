@@ -40,6 +40,7 @@ interface WeekRowBaseProps extends Omit<BaseWeekRowProps, "status"> {
     dailyWorkingHours: number;
     status: ApprovalStatusType;
   }) => React.ReactNode;
+  approvalPendingCount?: number;
 }
 
 type ReadOnlyWeekRowProps = WeekRowBaseProps & {
