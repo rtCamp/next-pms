@@ -47,6 +47,7 @@ def get_compact_view_data(
     by_pass_access_check=False,
 ):
     """API to get the timesheet data in compact view format, it will return the timesheet data for the employees based on the filters provided. It will return the data in a format which can be used to render the compact view of the timesheet. If no filters are provided, it will return the timesheet data for all the employees for the current week and previous weeks based on the max_week parameter."""
+    ## TODO: Deprecated ; can be removed after the redesign is completed
     if not by_pass_access_check:
         only_for(["Timesheet Manager", "Timesheet User", "Projects Manager"], message=True)
 
@@ -177,15 +178,9 @@ def get_compact_view_data(
 def get_team_timesheet_data(
     date: str,
     max_week: int = 2,
-    employee_name=None,
-    employee_ids: list[str] | str | None = None,
-    department=None,
-    project=None,
-    user_group=None,
     page_length=10,
     start=0,
     status_filter=None,
-    status=None,
     reports_to: str | None = None,
     by_pass_access_check=False,
     search: str | None = None,
@@ -211,16 +206,10 @@ def get_team_timesheet_data(
     res = {"dates": dates}
 
     employees, total_count = filter_employee_by_timesheet_status(
-        employee_name=employee_name,
-        department=department,
-        project=project,
-        user_group=user_group,
         page_length=page_length,
         start=start,
         reports_to=reports_to,
-        status=status,
         timesheet_status=status_filter,
-        employee_ids=employee_ids,
         start_date=dates[0].get("start_date"),
         end_date=dates[-1].get("end_date"),
     )
