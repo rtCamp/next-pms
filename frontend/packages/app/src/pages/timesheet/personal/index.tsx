@@ -1,7 +1,14 @@
 /**
  * External dependencies.
  */
-import { useCallback, useEffect, useReducer, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useReducer,
+  useRef,
+  useState,
+} from "react";
 import {
   ApprovalStatusLabelMap,
   ApprovalStatusType,
@@ -11,12 +18,7 @@ import {
 import { getFormatedDate } from "@next-pms/design-system/date";
 
 import { useQueryParam } from "@next-pms/hooks";
-import {
-  Button,
-  Filter,
-  FilterCondition,
-  useToasts,
-} from "@rtcamp/frappe-ui-react";
+import { Button, FilterCondition, useToasts } from "@rtcamp/frappe-ui-react";
 import { addDays } from "date-fns";
 import {
   useFrappeEventListener,
@@ -29,8 +31,13 @@ import { Ellipsis } from "lucide-react";
 /**
  * Internal dependencies.
  */
+import CompositeFilter from "@/components/filters/compositeFilter";
 import PersonalTaskLog from "@/components/task-log/personalTaskLog";
-import { parseFrappeErrorMsg, isDateInRange } from "@/lib/utils";
+import { NUMBER_OF_WEEKS_TO_FETCH } from "@/lib/constant";
+import buildCompositeFilters, {
+  parseFrappeErrorMsg,
+  isDateInRange,
+} from "@/lib/utils";
 import { useUser } from "@/providers/user";
 import type { WorkingFrequency } from "@/types";
 import type { TimesheetFilters } from "@/types/timesheet";
@@ -39,7 +46,6 @@ import SearchTasks from "../../../components/filters/searchTasks";
 import { InfiniteScroll } from "../../../components/infiniteScroll";
 import { HeaderRow } from "../../../components/timesheet-row/components/row/headerRow";
 import { PersonalTimesheetRow } from "../../../components/timesheet-row/personalTimesheetRow";
-import { NUMBER_OF_WEEKS_TO_FETCH, sampleFields } from "../constants";
 import { useTimesheetOutletContext } from "../outletContext";
 import { initialState, reducer } from "../reducer";
 import { validateDate } from "../utils";
@@ -65,17 +71,27 @@ function PersonalTimesheet() {
     employeeId: state.employeeId,
   }));
   const [timesheet, dispatch] = useReducer(reducer, initialState);
+
+  const {
+    startDate: filterStartDate,
+    maxWeek,
+    frappeFilters,
+  } = useMemo(
+    () => buildCompositeFilters(compositeFilters),
+    [compositeFilters],
+  );
+
   const { data, isLoading, error } = useFrappeGetCall(
     "next_pms.timesheet.api.timesheet.get_timesheet_data",
     {
       employee: employeeId,
-      start_date: timesheet.weekDate,
-      max_week: NUMBER_OF_WEEKS_TO_FETCH,
+      start_date: filterStartDate ?? timesheet.weekDate,
+      max_week: maxWeek,
       search: filters.search,
       approval_status: filters.approvalStatus
         ? ApprovalStatusLabelMap[filters.approvalStatus]
         : null,
-      compositeFilters: JSON.stringify(compositeFilters),
+      filters: JSON.stringify(frappeFilters),
     },
   );
 
@@ -104,6 +120,14 @@ function PersonalTimesheet() {
         ...prev,
         approvalStatus: value,
       }));
+    },
+    [resetWeekDateForFilters],
+  );
+
+  const handleCompositeFilterChange = useCallback(
+    (filters: FilterCondition[]) => {
+      resetWeekDateForFilters();
+      setCompositeFilters(filters);
     },
     [resetWeekDateForFilters],
   );
@@ -212,12 +236,9 @@ function PersonalTimesheet() {
           />
         </div>
         <div className="flex gap-2">
-          <Filter
-            fields={sampleFields}
-            value={compositeFilters}
-            onChange={(newFilters) => {
-              setCompositeFilters(newFilters);
-            }}
+          <CompositeFilter
+            filter={compositeFilters}
+            handleFilterChange={handleCompositeFilterChange}
           />
           <Button icon={() => <Ellipsis size={16} />} />
         </div>
@@ -282,11 +303,11 @@ function PersonalTimesheet() {
                             key={key}
                             ref={
                               !isEmpty(startDateParam) &&
-                              isDateInRange(
-                                startDateParam,
-                                value.start_date,
-                                value.end_date,
-                              )
+                                isDateInRange(
+                                  startDateParam,
+                                  value.start_date,
+                                  value.end_date,
+                                )
                                 ? targetRef
                                 : null
                             }
