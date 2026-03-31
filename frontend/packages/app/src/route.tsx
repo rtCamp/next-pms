@@ -7,6 +7,7 @@ import { Route, Outlet } from "react-router-dom";
  * Internal dependencies.
  */
 import { ROUTES } from "@/lib/constant";
+import LayoutWithSidebar from "./layout";
 import { useUser } from "./providers/user";
 /**
  * Lazy load components.
@@ -27,23 +28,28 @@ export function Router() {
   return (
     <Route>
       <Route element={<AuthenticatedRoute />}>
-        <Route path={ROUTES.home} element={<Home />} />
-        <Route path={ROUTES.task} element={<Task />} />
-        <Route path={ROUTES.project} element={<Project />} />
-        <Route element={<TimesheetLayout />}>
-          <Route
-            path={ROUTES["timesheet-personal"]}
-            element={<TimesheetPersonal />}
-          />
-          <Route path={ROUTES["timesheet-team"]} element={<TimesheetTeam />} />
-          <Route
-            path={ROUTES["timesheet-project"]}
-            element={<TimesheetProject />}
-          />
+        <Route element={<LayoutWithSidebar />}>
+          <Route path={ROUTES.home} element={<Home />} />
+          <Route path={ROUTES.task} element={<Task />} />
+          <Route path={ROUTES.project} element={<Project />} />
+          <Route element={<TimesheetLayout />}>
+            <Route
+              path={ROUTES["timesheet-personal"]}
+              element={<TimesheetPersonal />}
+            />
+            <Route
+              path={ROUTES["timesheet-team"]}
+              element={<TimesheetTeam />}
+            />
+            <Route
+              path={ROUTES["timesheet-project"]}
+              element={<TimesheetProject />}
+            />
+          </Route>
+          <Route path={ROUTES.allocation} element={<Allocation />} />
+          <Route path={ROUTES.roadmap} element={<Roadmap />} />
+          <Route path={ROUTES.report} element={<Report />} />
         </Route>
-        <Route path={ROUTES.allocation} element={<Allocation />} />
-        <Route path={ROUTES.roadmap} element={<Roadmap />} />
-        <Route path={ROUTES.report} element={<Report />} />
       </Route>
       <Route path="*" element={<NotFound />} />
     </Route>

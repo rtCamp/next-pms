@@ -2,6 +2,7 @@
  * External dependencies.
  */
 import { Suspense } from "react";
+import { Outlet } from "react-router-dom";
 import { ErrorFallback } from "@next-pms/design-system/components";
 
 /**
@@ -10,7 +11,7 @@ import { ErrorFallback } from "@next-pms/design-system/components";
 import Sidebar from "@/layout/sidebar";
 import { useUser } from "@/providers/user";
 
-const LayoutWithSidebar = ({ children }: { children: React.ReactNode }) => {
+const LayoutWithSidebar = () => {
   const { employeeId, userId } = useUser(({ state }) => ({
     employeeId: state.employeeId,
     userId: state.userId,
@@ -26,7 +27,9 @@ const LayoutWithSidebar = ({ children }: { children: React.ReactNode }) => {
           {(employeeId || userId == "Administrator") && (
             <>
               <Suspense fallback={<></>}>
-                <ErrorFallback>{children}</ErrorFallback>
+                <ErrorFallback>
+                  <Outlet />
+                </ErrorFallback>
               </Suspense>
             </>
           )}
