@@ -50,10 +50,10 @@ export default function GlobalSearch({
                   <ScrollArea.Viewport className="max-h-80">
                     <ScrollArea.Content className="py-2">
                       <Autocomplete.List>
-                        {(item) => (
+                        {(item:Item) => (
                           <Autocomplete.Item
-                            key={item.value}
-                            value={item}
+                            key={item.label}
+                            value={item.label}
                             onClick={() => handleItemClick(item)}
                             className="flex items-center justify-between mx-2 px-3 py-2.5 rounded-lg cursor-pointer data-highlighted:bg-surface-gray-2 outline-none"
                           >

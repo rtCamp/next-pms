@@ -38,16 +38,9 @@ import { useUser } from "@/providers/user";
 const Sidebar = () => {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
 
-  useEffect(() => {
-    function handleKeyDown(e: KeyboardEvent) {
-      if (e.key === "k" && (e.metaKey || e.ctrlKey)) {
-        e.preventDefault();
-        setIsSearchOpen((prev) => !prev);
-      }
-    }
-    document.addEventListener("keydown", handleKeyDown);
-    return () => document.removeEventListener("keydown", handleKeyDown);
-  }, []);
+  const { theme, setTheme } = useTheme();
+  const navigate = useNavigate();
+  const { pathname } = useLocation();
 
   const {
     isSidebarCollapsed,
@@ -63,9 +56,17 @@ const Sidebar = () => {
     logout: actions.logout,
   }));
 
-  const { theme, setTheme } = useTheme();
-  const navigate = useNavigate();
-  const { pathname } = useLocation();
+  useEffect(() => {
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.key === "k" && (e.metaKey || e.ctrlKey)) {
+        e.preventDefault();
+        setIsSearchOpen((prev) => !prev);
+      }
+    }
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, []);
+
 
   return (
     <ErrorFallback>
