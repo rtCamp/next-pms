@@ -173,7 +173,7 @@ def get_compact_view_data(
     return res
 
 
-@whitelist(methods=["GET"])
+@whitelist(methods=["GET", "POST"])
 @error_logger
 def get_team_timesheet_data(
     date: str,
@@ -393,7 +393,8 @@ def get_team_timesheet_data(
                     if log_date not in week_dates_set:
                         continue
 
-                    week_total_hours += log.get("hours", 0)
+                    if not has_search_or_task_filters:
+                        week_total_hours += log.get("hours", 0)
 
                     if not log.get("task"):
                         continue
@@ -403,6 +404,9 @@ def get_team_timesheet_data(
                     task = task_details_dict.get(log.task)
                     if not task:
                         continue
+
+                    if has_search_or_task_filters:
+                        week_total_hours += log.get("hours", 0)
 
                     task_name = task["name"]
                     if task_name not in tasks:
