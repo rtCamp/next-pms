@@ -6,7 +6,6 @@ export type { TaskProgressProps } from "./types";
 
 const MIN_VALUE = 0;
 const MAX_VALUE = 100;
-const OVERFLOW_COLOR = "bg-surface-red-7";
 
 const TaskProgress: React.FC<TaskProgressProps> = ({
   value,
@@ -31,11 +30,9 @@ const TaskProgress: React.FC<TaskProgressProps> = ({
         />
         {isOverflow && (
           <div
-            className={cn(
-              "relative h-full rounded-r-sm",
-              OVERFLOW_COLOR,
-              "before:content-[''] before:absolute before:bg-outline-gray-5 before:left-0 before:bottom-0 before:h-[160%] before:w-px",
-            )}
+            className={
+              "relative h-full rounded-r-sm bg-surface-red-6 before:content-[''] before:absolute before:bg-outline-gray-5 before:left-0 before:bottom-0 before:h-[160%] before:w-px"
+            }
             style={{ width: `${overflowWidth}%` }}
           />
         )}

@@ -11,6 +11,7 @@ import {
  * Internal dependencies
  */
 import { getHolidayList } from "@/lib/utils";
+import { useTeamTimesheet } from "@/pages/timesheet/team/context";
 import type { WorkingFrequency } from "@/types";
 import type { HolidayProp, LeaveProps, TaskProps } from "@/types/timesheet";
 import { MemberRow } from "./components/row/memberRow";
@@ -38,6 +39,7 @@ type TeamTimesheetRowProps = {
   firstWeek: boolean;
   teamMembers: TeamMember[];
   disabled?: boolean;
+  approvalPendingCount?: number;
 };
 
 export const TeamTimesheetRow = ({
@@ -46,7 +48,11 @@ export const TeamTimesheetRow = ({
   firstWeek,
   teamMembers,
   disabled,
+  approvalPendingCount,
 }: TeamTimesheetRowProps) => {
+  const openWeeklyApproval = useTeamTimesheet(
+    ({ actions }) => actions.openWeeklyApproval,
+  );
   const teamMembersData = useMemo(() => {
     return teamMembers.map((member) => {
       const projects = groupTasksByProject(member.tasks);
@@ -69,6 +75,7 @@ export const TeamTimesheetRow = ({
         className="pl-3"
         collapsed={!firstWeek}
         isReadOnlyWeek={true}
+        approvalPendingCount={approvalPendingCount}
       >
         {() => (
           <>
@@ -86,6 +93,9 @@ export const TeamTimesheetRow = ({
                 status={member.status}
                 className="pl-7.5"
                 collapsed={true}
+                onButtonClick={() =>
+                  openWeeklyApproval(member.employee, dates[0])
+                }
               >
                 {({ totalTimeEntriesInHours, dailyWorkingHours }) => (
                   <>

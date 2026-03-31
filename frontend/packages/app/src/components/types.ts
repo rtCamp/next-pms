@@ -30,3 +30,8 @@ export interface TaskIndicatorProps {
   actualTime: number;
   status: string;
 }
+
+export type TaskBadgeItem = {
+  icon: React.ReactNode;
+  text: string;
+};

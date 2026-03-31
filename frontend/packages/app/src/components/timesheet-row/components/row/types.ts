@@ -40,6 +40,7 @@ interface WeekRowBaseProps extends Omit<BaseWeekRowProps, "status"> {
     dailyWorkingHours: number;
     status: ApprovalStatusType;
   }) => React.ReactNode;
+  approvalPendingCount?: number;
 }
 
 type ReadOnlyWeekRowProps = WeekRowBaseProps & {
@@ -107,6 +108,7 @@ export interface TaskRowProps extends Omit<
   employee?: string;
   getLikedTaskData?: () => void;
   hideLikeButton?: boolean;
+  setSelectedTask?: (taskKey: string) => void;
 }
 
 export interface TimeOffRowProps extends Omit<

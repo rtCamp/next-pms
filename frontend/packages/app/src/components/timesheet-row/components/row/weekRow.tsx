@@ -41,6 +41,7 @@ export const WeekRow = ({
   onButtonClick,
   collapsed: initialCollapsed,
   isReadOnlyWeek,
+  approvalPendingCount,
   ...rest
 }: WeekRowProps) => {
   const [collapsed, setCollapsed] = useState(initialCollapsed);
@@ -93,6 +94,13 @@ export const WeekRow = ({
     return todayIndex >= 0 && todayIndex < 7;
   }, [dates, today]);
 
+  const pendingApprovalLabel =
+    !approvalPendingCount || approvalPendingCount <= 0
+      ? undefined
+      : `· ${approvalPendingCount} pending ${
+          approvalPendingCount === 1 ? "approval" : "approvals"
+        }`;
+
   return (
     <Accordion.Root
       value={collapsed ? [] : ["week"]}
@@ -113,6 +121,7 @@ export const WeekRow = ({
                 totalHours={floatToTime(weekData.total, 2)}
                 totalHoursTheme={totalHoursThemeMap[weekData.isExtended]}
                 status={status ? ApprovalStatusMap[status] : "none"}
+                badgeLabel={pendingApprovalLabel}
                 collapsed={collapsed}
                 onButtonClick={() =>
                   !isReadOnlyWeek &&

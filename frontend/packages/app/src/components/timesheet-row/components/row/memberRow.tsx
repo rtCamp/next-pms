@@ -24,6 +24,7 @@ export const MemberRow = ({
   workingHour,
   workingFrequency,
   status,
+  onButtonClick,
   children,
   avatarUrl,
   collapsed: initialCollapsed,
@@ -62,6 +63,7 @@ export const MemberRow = ({
                 timeEntries={memberData.totalTimeEntries}
                 totalHours={floatToTime(memberData.total, 2)}
                 totalHoursTheme={totalHoursThemeMap[memberData.isExtended]}
+                onButtonClick={() => onButtonClick?.()}
               />
             </div>
           )}

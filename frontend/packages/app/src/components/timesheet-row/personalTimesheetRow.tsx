@@ -42,6 +42,7 @@ export type PersonalTimesheetRowProps = {
   likedTaskData?: Array<object>;
   getLikedTaskData?: () => void;
   hideLikeButton?: boolean;
+  setSelectedTask?: (task: string) => void;
   onButtonClick?: () => void;
   status: ApprovalStatusLabelType;
 };
@@ -60,6 +61,7 @@ export const PersonalTimesheetRow = ({
   likedTaskData,
   onButtonClick,
   status,
+  setSelectedTask,
   getLikedTaskData,
   hideLikeButton,
 }: PersonalTimesheetRowProps) => {
@@ -131,6 +133,7 @@ export const PersonalTimesheetRow = ({
                     dailyWorkingHours={dailyWorkingHours}
                     totalTimeEntriesInHours={totalTimeEntriesInHours}
                     employee={employee}
+                    setSelectedTask={setSelectedTask}
                     getLikedTaskData={getLikedTaskData}
                     hideLikeButton={hideLikeButton}
                   />

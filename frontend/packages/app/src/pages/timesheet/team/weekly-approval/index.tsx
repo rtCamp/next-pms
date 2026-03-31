@@ -7,8 +7,8 @@ import { Dialog } from "@base-ui/react/dialog";
  * Internal Dependencies
  */
 import ApprovalPopup from "./approvalPopup";
-import RejectionPopup from "./rejectionPopup";
 import { WeeklyApprovalProvider, useWeeklyApproval } from "./provider";
+import RejectionPopup from "./rejectionPopup";
 import type { WeeklyApprovalProps } from "./types";
 
 /**

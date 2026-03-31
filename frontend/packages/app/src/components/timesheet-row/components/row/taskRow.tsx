@@ -49,6 +49,7 @@ export const TaskRow = ({
   employee,
   getLikedTaskData,
   hideLikeButton,
+  setSelectedTask,
   ...rest
 }: TaskRowProps) => {
   const [taskLiked, setTaskLiked] = useState(false);
@@ -79,21 +80,11 @@ export const TaskRow = ({
     (taskKey: string) => {
       const task = tasks[taskKey];
 
-      const badges = [
-        {
-          icon: <CalendarFoldIcon size={12} />,
-          text: prettyDate(task?.due_date || MOCK_END_DATE).date,
-        },
-        {
-          icon: <Folder size={12} />,
-          text: task?.project_name || "",
-        },
-      ];
-
       return (
         <TaskPopover
           label={rest.label}
-          badges={badges}
+          projectName={task?.project_name || ""}
+          dueDate={task?.due_date}
           actualHours={task?.actual_time || 0}
           estimatedHours={task?.expected_time || 0}
           status={taskStatusMap[status] ?? "open"}
@@ -125,6 +116,16 @@ export const TaskRow = ({
     }
   };
 
+  const onLabelClick = useCallback(
+    (taskKey: string) => {
+      if (!setSelectedTask) {
+        return;
+      }
+      setSelectedTask(taskKey);
+    },
+    [setSelectedTask],
+  );
+
   useEffect(() => {
     setTaskLiked(likedTaskData?.some((obj) => obj.name === taskKey) || false);
   }, [likedTaskData, taskKey]);
@@ -138,6 +139,7 @@ export const TaskRow = ({
       starred={taskLiked}
       renderTaskHoverContent={renderTaskHoverContent}
       taskKey={taskKey}
+      onLabelClick={onLabelClick}
       onStarClick={handleStar}
       hideStarButton={hideLikeButton}
       renderInlineTimeEntryPopover={(_, dayIndex, closePopover) => (

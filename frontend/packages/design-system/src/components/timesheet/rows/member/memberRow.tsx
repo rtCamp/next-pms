@@ -29,7 +29,7 @@ export interface MemberRowProps {
   /** Callback function when the action button is clicked. */
   onButtonClick?: () => void;
   /** Array of time entries for each day of the week for the member. */
-  timeEntries: string[];
+  timeEntries: {date: string; time: string}[];
   /** Total hours logged for the week. */
   totalHours?: string;
   /** Theme for the total hours */
@@ -85,13 +85,13 @@ export const MemberRow: React.FC<MemberRowProps> = ({
             key={index}
             className="shrink-0 flex justify-end items-center text-base text-ink-gray-9 whitespace-nowrap w-16 h-7 px-2 py-1.5 leading-3.5 lining-nums tabular-nums"
           >
-            {timeEntry === "" ? (
+            {timeEntry.time === "" ? (
               <span className="flex-1 ml-2 text-center text-ink-gray-4">-</span>
             ) : (
               <span
                 className={cn(isStatusNone ? "text-ink-gray-6" : "font-medium")}
               >
-                {timeEntry}
+                {timeEntry.time}
               </span>
             )}
           </div>
