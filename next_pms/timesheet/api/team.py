@@ -25,8 +25,8 @@ from next_pms.timesheet.utils.constant import ALLOWED_TIMESHET_DETAIL_FIELDS
 
 from . import filter_employees
 from .employee import get_employee_daily_working_norm, get_employee_working_hours
-from .timesheet import _build_filters, get_timesheet_state, parse_filters
-from .utils import employee_has_higher_access, get_holidays, get_week_dates
+from .timesheet import get_timesheet_state
+from .utils import build_filters, employee_has_higher_access, get_holidays, get_week_dates, parse_filters
 
 
 @whitelist(methods=["GET"])
@@ -230,7 +230,7 @@ def get_team_timesheet_data(
         "end_date": ["<=", dates[-1].get("end_date")],
         "docstatus": ["!=", 2],
     }
-    ts_filters = _build_filters(base_ts_filters, parsed_filters.get("Timesheet", []))
+    ts_filters = build_filters(base_ts_filters, parsed_filters.get("Timesheet", []))
     all_timesheets = get_all(
         "Timesheet",
         filters=ts_filters,
@@ -256,7 +256,7 @@ def get_team_timesheet_data(
     detail_by_parent = {}
     if all_timesheet_names:
         base_detail_filters = {"parent": ["in", all_timesheet_names]}
-        detail_filters = _build_filters(base_detail_filters, parsed_filters.get("Timesheet Detail", []))
+        detail_filters = build_filters(base_detail_filters, parsed_filters.get("Timesheet Detail", []))
         all_logs = get_all(
             "Timesheet Detail",
             filters=detail_filters,
@@ -271,7 +271,7 @@ def get_team_timesheet_data(
         all_task_ids = list({log.task for log in all_logs if log.task})
         if all_task_ids:
             base_task_filters = {"name": ["in", all_task_ids]}
-            task_filters = _build_filters(base_task_filters, parsed_filters.get("Task", []))
+            task_filters = build_filters(base_task_filters, parsed_filters.get("Task", []))
             all_tasks = get_all(
                 "Task",
                 filters=task_filters,
