@@ -117,6 +117,7 @@ export const TeamTimesheetTable = () => {
                       dates={week.dates}
                       firstWeek={index === 0}
                       disabled={true}
+                      approvalPendingCount={week.approvalPendingCount}
                       teamMembers={week.members.map((member) => ({
                         label: member.employee.employee_name,
                         employee: member.employee.name,

@@ -300,6 +300,7 @@ export const TeamTimesheetProvider: FC<PropsWithChildren> = ({ children }) => {
             end_date: week.end_date,
             dates: week.dates,
             members: [],
+            approvalPendingCount: 0,
           } as WeekGroup,
         ];
       }),
@@ -322,9 +323,14 @@ export const TeamTimesheetProvider: FC<PropsWithChildren> = ({ children }) => {
             end_date: week.end_date,
             dates: week.dates,
             members: [],
+            approvalPendingCount: 0,
           });
         }
-        weekMap.get(weekId)!.members.push({
+        const targetWeek = weekMap.get(weekId)!;
+        if (week.status === "Approval Pending") {
+          targetWeek.approvalPendingCount += 1;
+        }
+        targetWeek.members.push({
           employee: member,
           week,
           holidays: employeePayload.holidays,

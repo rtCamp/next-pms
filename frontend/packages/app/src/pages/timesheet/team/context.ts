@@ -30,6 +30,7 @@ export type WeekGroup = {
   end_date: string;
   dates: string[];
   members: WeekEmployeeData[];
+  approvalPendingCount: number;
 };
 
 export interface TeamTimesheetContextProps {

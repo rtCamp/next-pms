@@ -39,6 +39,7 @@ type TeamTimesheetRowProps = {
   firstWeek: boolean;
   teamMembers: TeamMember[];
   disabled?: boolean;
+  approvalPendingCount?: number;
 };
 
 export const TeamTimesheetRow = ({
@@ -47,6 +48,7 @@ export const TeamTimesheetRow = ({
   firstWeek,
   teamMembers,
   disabled,
+  approvalPendingCount,
 }: TeamTimesheetRowProps) => {
   const openWeeklyApproval = useTeamTimesheet(
     ({ actions }) => actions.openWeeklyApproval,
@@ -73,6 +75,7 @@ export const TeamTimesheetRow = ({
         className="pl-3"
         collapsed={!firstWeek}
         isReadOnlyWeek={true}
+        approvalPendingCount={approvalPendingCount}
       >
         {() => (
           <>
