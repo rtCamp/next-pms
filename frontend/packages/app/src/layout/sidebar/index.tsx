@@ -1,8 +1,12 @@
 /**
  * External dependencies.
  */
+import { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { ErrorFallback } from "@next-pms/design-system/components";
+import {
+  ErrorFallback,
+  GlobalSearch,
+} from "@next-pms/design-system/components";
 import {
   Sidebar as BaseSidebar,
   Batches,
@@ -32,6 +36,18 @@ import { useTheme } from "@/providers/theme/hook";
 import { useUser } from "@/providers/user";
 
 const Sidebar = () => {
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+
+  useEffect(() => {
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.key === "k" && (e.metaKey || e.ctrlKey)) {
+        e.preventDefault();
+        setIsSearchOpen((prev) => !prev);
+      }
+    }
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, []);
   const { isSidebarCollapsed, employeeName, updateIsSidebarCollapsed, logout } =
     useUser(({ state, actions }) => ({
       isSidebarCollapsed: state.isSidebarCollapsed,
@@ -102,6 +118,7 @@ const Sidebar = () => {
                 icon: Search,
                 to: "",
                 isActive: false,
+                onClick: () => setIsSearchOpen(true),
               },
             ],
           },
@@ -181,6 +198,18 @@ const Sidebar = () => {
               },
             ],
           },
+        ]}
+      />
+
+      <GlobalSearch
+        open={isSearchOpen}
+        onOpenChange={setIsSearchOpen}
+        items={[
+          { value: "linear", label: "Linear" },
+          { value: "figma", label: "Figma" },
+          { value: "slack", label: "Slack" },
+          { value: "youtube", label: "YouTube" },
+          { value: "raycast", label: "Raycast" },
         ]}
       />
     </ErrorFallback>

@@ -2,7 +2,9 @@
  * External dependencies.
  */
 import { Suspense } from "react";
-import { ErrorFallback } from "@next-pms/design-system/components";
+import {
+  ErrorFallback,
+} from "@next-pms/design-system/components";
 
 /**
  * Internal dependencies.
