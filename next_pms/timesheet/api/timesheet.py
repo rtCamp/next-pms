@@ -82,6 +82,125 @@ def _build_filters(base_filters, additional_filters):
     return result
 
 
+def _apply_qb_condition(query, doctype_ref, field_name, operator, value):
+    """Apply a single desk-style filter condition to a query builder query."""
+    field = getattr(doctype_ref, field_name)
+    op = operator.lower().strip()
+
+    if op == "=":
+        return query.where(field == value)
+    elif op == "!=":
+        return query.where(field != value)
+    elif op == "like":
+        return query.where(field.like(value))
+    elif op == "not like":
+        return query.where(field.not_like(value))
+    elif op == "in":
+        return query.where(field.isin(value if isinstance(value, (list, tuple)) else [value]))
+    elif op == "not in":
+        return query.where(field.notin(value if isinstance(value, (list, tuple)) else [value]))
+    elif op == ">=":
+        return query.where(field >= value)
+    elif op == "<=":
+        return query.where(field <= value)
+    elif op == ">":
+        return query.where(field > value)
+    elif op == "<":
+        return query.where(field < value)
+    elif op == "between":
+        return query.where(field.between(value[0], value[1]))
+    elif op == "is" and value == "set":
+        return query.where(field.isnotnull() & (field != ""))
+    elif op == "is" and value == "not set":
+        return query.where(field.isnull() | (field == ""))
+    else:
+        frappe.throw(_("Unsupported filter operator '{0}'").format(operator))
+
+
+def _compute_has_more(
+    employee,
+    start_date,
+    approval_status=None,
+    search=None,
+    parsed_filters=None,
+):
+    """Check if there are more matching weeks beyond the current results.
+
+    Builds a single query builder query that mirrors the filter chain used
+    in generate_week_data(). Returns True if at least one older Timesheet
+    exists that would pass all applied filters.
+
+    Known limitations:
+    - Leave-based "Approved" override (full-leave weeks) cannot be computed
+      in SQL; has_more may under-report for that edge case.
+    - approval_status is checked on the same Timesheet row as other filters,
+      whereas the loop checks ANY timesheet in the week via get_timesheet_state().
+    """
+    from pypika import Criterion
+
+    if not parsed_filters:
+        parsed_filters = {dt: [] for dt in ALLOWED_FILTER_FIELDS}
+
+    if approval_status:
+        db_statuses = [s for s in approval_status if s != "Not Submitted"]
+    else:
+        db_statuses = None
+
+    # JOIN detail/task tables when search or detail/task filters are active, so has_more
+    # only returns True if older weeks actually contain matching data.
+    needs_detail_join = bool(search or parsed_filters.get("Timesheet Detail") or parsed_filters.get("Task"))
+
+    # --- Build query ---
+    Timesheet = frappe.qb.DocType("Timesheet")
+    query = (
+        frappe.qb.from_(Timesheet)
+        .select(Timesheet.name)
+        .where(Timesheet.employee == employee)
+        .where(Timesheet.start_date < getdate(start_date))
+        .where(Timesheet.docstatus != 2)
+    )
+
+    if db_statuses:
+        query = query.where(Timesheet.custom_weekly_approval_status.isin(db_statuses))
+
+    for f in parsed_filters.get("Timesheet", []):
+        query = _apply_qb_condition(query, Timesheet, f[0], f[1], f[2])
+
+    if needs_detail_join:
+        TimesheetDetail = frappe.qb.DocType("Timesheet Detail")
+        Task = frappe.qb.DocType("Task")
+        Project = frappe.qb.DocType("Project")
+
+        query = (
+            query.join(TimesheetDetail)
+            .on(TimesheetDetail.parent == Timesheet.name)
+            .join(Task)
+            .on(Task.name == TimesheetDetail.task)
+            .left_join(Project)
+            .on(Project.name == Task.project)
+        )
+
+        for f in parsed_filters.get("Timesheet Detail", []):
+            query = _apply_qb_condition(query, TimesheetDetail, f[0], f[1], f[2])
+
+        for f in parsed_filters.get("Task", []):
+            query = _apply_qb_condition(query, Task, f[0], f[1], f[2])
+
+        search_term = f"%{search}%"
+        query = query.where(
+            Criterion.any(
+                [
+                    Task.subject.like(search_term),
+                    Task.name.like(search_term),
+                    Project.project_name.like(search_term),
+                ]
+            )
+        )
+
+    query = query.limit(1)
+    return bool(query.run())
+
+
 @frappe.whitelist(methods=["GET"])
 @error_logger
 def get_timesheet_data(
@@ -91,6 +210,7 @@ def get_timesheet_data(
     search: str | None = None,
     approval_status: str | list | None = None,
     filters: str | list | None = None,
+    skip_empty_weeks: bool = False,
 ):
     """Get timesheet data for the given employee for the given number of weeks."""
     if not employee:
@@ -109,6 +229,9 @@ def get_timesheet_data(
     # Parse generic filters
     parsed_filters = parse_filters(filters)
     has_filters = bool(search or approval_status or any(parsed_filters.values()))
+
+    if isinstance(skip_empty_weeks, str):
+        skip_empty_weeks = skip_empty_weeks.lower() in ("true", "1")
 
     def generate_week_data(start_date, max_week, employee=None, leaves=None, holidays=None):
         data = {}
@@ -163,6 +286,10 @@ def get_timesheet_data(
                 start_date = add_days(getdate(week_dates["start_date"]), -1)
                 continue
 
+            if skip_empty_weeks and search and not tasks:
+                start_date = add_days(getdate(week_dates["start_date"]), -1)
+                continue
+
             data[week_key] = {
                 **week_dates,
                 "total_hours": total_hours,
@@ -172,13 +299,23 @@ def get_timesheet_data(
             if use_cache:
                 frappe.cache().hset(cache_key, week_cache_key, data[week_key])
             start_date = add_days(getdate(week_dates["start_date"]), -1)
-        return data
+
+        has_more = False
+        if has_filters and employee:
+            has_more = _compute_has_more(
+                employee=employee,
+                start_date=start_date,
+                approval_status=approval_status,
+                search=search,
+                parsed_filters=parsed_filters,
+            )
+        return data, has_more
 
     hour_detail = get_employee_working_hours(employee)
     res = {**hour_detail}
 
     if not employee and frappe.session.user == "Administrator":
-        res["data"] = generate_week_data(start_date, max_week)
+        res["data"], res["has_more"] = generate_week_data(start_date, max_week)
         res["holidays"] = []
         res["leaves"] = []
         return res
@@ -196,7 +333,7 @@ def get_timesheet_data(
     )
     res["leaves"] = leaves
     res["holidays"] = holidays
-    res["data"] = generate_week_data(start_date, max_week, employee, leaves, holidays)
+    res["data"], res["has_more"] = generate_week_data(start_date, max_week, employee, leaves, holidays)
     return res
 
 
