@@ -29,6 +29,7 @@ import { Ellipsis } from "lucide-react";
 /**
  * Internal dependencies.
  */
+import PersonalTaskLog from "@/components/task-log/personalTaskLog";
 import { parseFrappeErrorMsg, isDateInRange } from "@/lib/utils";
 import { useUser } from "@/providers/user";
 import type { WorkingFrequency } from "@/types";
@@ -57,6 +58,7 @@ function PersonalTimesheet() {
     approvalStatus: null,
   });
   const [hasMore, setHasMore] = useState(true);
+  const [selectedTask, setSelectedTask] = useState<string | null>(null);
 
   const { handleApproval } = useTimesheetOutletContext();
 
@@ -227,9 +229,21 @@ function PersonalTimesheet() {
         <Spinner isFull />
       ) : (
         <>
+          {selectedTask && (
+            <PersonalTaskLog
+              task={selectedTask}
+              open={!!selectedTask}
+              onOpenChange={(open: boolean) => {
+                if (!open) {
+                  setSelectedTask(null);
+                }
+              }}
+            />
+          )}
+
           {Object.keys(timesheet.data?.data).length == 0 ? (
-            <Typography className="w-full h-full flex items-center justify-center">
-              No Data Found
+            <Typography className="flex justify-center items-center">
+              No Data
             </Typography>
           ) : (
             <InfiniteScroll
@@ -248,7 +262,7 @@ function PersonalTimesheet() {
                       return (
                         <>
                           {index === 0 ? (
-                            <div className="mb-4 sticky top-0 bg-surface-white z-10">
+                            <div className="sticky top-0 z-10 mb-4 bg-surface-white">
                               <HeaderRow
                                 dates={value.dates}
                                 showHeading={true}
@@ -297,6 +311,7 @@ function PersonalTimesheet() {
                               loadingLikedTasks={loadingLikedTasks}
                               likedTaskData={likedTaskData}
                               getLikedTaskData={getLikedTaskData}
+                              setSelectedTask={setSelectedTask}
                               onButtonClick={() =>
                                 handleApproval(
                                   value.start_date,

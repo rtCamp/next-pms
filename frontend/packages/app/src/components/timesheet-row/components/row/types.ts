@@ -107,6 +107,7 @@ export interface TaskRowProps extends Omit<
   employee?: string;
   getLikedTaskData?: () => void;
   hideLikeButton?: boolean;
+  setSelectedTask?: (taskKey: string) => void;
 }
 
 export interface TimeOffRowProps extends Omit<
