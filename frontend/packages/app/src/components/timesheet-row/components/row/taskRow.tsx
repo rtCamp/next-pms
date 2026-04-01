@@ -7,10 +7,8 @@ import {
   TaskRow as BaseTaskRow,
   taskStatusMap,
 } from "@next-pms/design-system/components";
-import { prettyDate } from "@next-pms/design-system/date";
 import { useToasts } from "@rtcamp/frappe-ui-react";
 import { useFrappePostCall } from "frappe-react-sdk";
-import { CalendarFoldIcon, Folder } from "lucide-react";
 
 /**
  * Internal dependencies
@@ -19,8 +17,6 @@ import TaskPopover from "@/components/taskPopover";
 import { calculateTotalHours, parseFrappeErrorMsg } from "@/lib/utils";
 import type { TaskRowProps } from "./types";
 import { InlineTimeEntry } from "../inline-time-entry";
-
-const MOCK_END_DATE = "2024-12-31";
 
 /**
  * @description This is the task row component for the timesheet table.
@@ -34,7 +30,6 @@ const MOCK_END_DATE = "2024-12-31";
  * @param {boolean} props.disabled - Whether the task row is disabled.
  * @param {number} props.dailyWorkingHours - Daily working hours for the task.
  * @param {string} props.employee - Employee for the timesheet entry.
- * @param {function} props.getLikedTaskData - Function to fetch liked task data after toggling like status.
  * @param {boolean} props.hideStarButton - Whether to hide the star button for liking the task.
  */
 export const TaskRow = ({
@@ -47,7 +42,6 @@ export const TaskRow = ({
   dailyWorkingHours,
   totalTimeEntriesInHours,
   employee,
-  getLikedTaskData,
   hideLikeButton,
   setSelectedTask,
   ...rest
@@ -107,7 +101,6 @@ export const TaskRow = ({
     setTaskLiked((prev) => !prev);
     try {
       await toggleLikeCall(data);
-      getLikedTaskData?.();
     } catch (err) {
       const error = parseFrappeErrorMsg(
         err as Parameters<typeof parseFrappeErrorMsg>[0],

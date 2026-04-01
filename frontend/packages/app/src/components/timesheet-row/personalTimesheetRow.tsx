@@ -38,9 +38,7 @@ export type PersonalTimesheetRowProps = {
   disabled?: boolean;
   workingFrequency: WorkingFrequency;
   importTasks?: boolean;
-  loadingLikedTasks?: boolean;
-  likedTaskData?: Array<object>;
-  getLikedTaskData?: () => void;
+  likedTaskData?: Array<TaskDataProps>;
   hideLikeButton?: boolean;
   setSelectedTask?: (task: string) => void;
   onButtonClick?: () => void;
@@ -62,7 +60,6 @@ export const PersonalTimesheetRow = ({
   onButtonClick,
   status,
   setSelectedTask,
-  getLikedTaskData,
   hideLikeButton,
 }: PersonalTimesheetRowProps) => {
   const { openAddTimeDialog } = useTimesheetOutletContext();
@@ -127,14 +124,13 @@ export const PersonalTimesheetRow = ({
                     tasks={{ [taskKey]: task }}
                     label={task.subject || task.name}
                     status={task.status}
-                    likedTaskData={likedTaskData as TaskDataProps[]}
+                    likedTaskData={likedTaskData}
                     className="pl-13.5"
                     disabled={disabled}
                     dailyWorkingHours={dailyWorkingHours}
                     totalTimeEntriesInHours={totalTimeEntriesInHours}
                     employee={employee}
                     setSelectedTask={setSelectedTask}
-                    getLikedTaskData={getLikedTaskData}
                     hideLikeButton={hideLikeButton}
                   />
                 ))}

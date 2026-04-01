@@ -106,7 +106,6 @@ export interface TaskRowProps extends Omit<
   dailyWorkingHours?: number;
   totalTimeEntriesInHours?: number[];
   employee?: string;
-  getLikedTaskData?: () => void;
   hideLikeButton?: boolean;
   setSelectedTask?: (taskKey: string) => void;
 }

@@ -46,7 +46,7 @@ export const TeamTimesheetTable = () => {
   }, []);
 
   return (
-    <div className="w-full h-full py-3.5 px-3">
+    <div className="w-full flex-1 min-h-0 py-3.5 px-3">
       <WeeklyApproval
         employee={employee}
         startDate={startDate}
@@ -80,7 +80,7 @@ export const TeamTimesheetTable = () => {
           isLoading={isLoadingTeamData}
           hasMore={hasMoreWeeks}
           verticalLodMore={loadData}
-          className="w-full h-full overflow-auto scrollbar [scrollbar-gutter:stable]"
+          className="w-full h-[calc(100%-var(--spacing)*7)] overflow-auto scrollbar [scrollbar-gutter:stable]"
           count={NUMBER_OF_WEEKS_TO_FETCH}
         >
           <div className="min-w-225">
