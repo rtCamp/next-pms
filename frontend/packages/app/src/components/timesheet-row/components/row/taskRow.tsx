@@ -61,6 +61,7 @@ export const TaskRow = ({
   const taskData = useMemo(() => {
     let total = 0;
     const totalTimeEntries = [];
+    const tasksForDates = [];
     for (const date of dates) {
       const currentTotal = calculateTotalHours(tasks, date);
       totalTimeEntries.push({
@@ -71,9 +72,10 @@ export const TaskRow = ({
             : true,
         disabled: disabled || false,
       });
+      tasksForDates.push(tasksForDate);
       total += currentTotal;
     }
-    return { total, totalTimeEntries };
+    return { total, totalTimeEntries, tasksForDates };
   }, [dates, taskKey, tasks, disabled]);
 
   const renderTaskHoverContent = useCallback(
@@ -144,11 +146,13 @@ export const TaskRow = ({
       hideStarButton={hideLikeButton}
       renderInlineTimeEntryPopover={(_, dayIndex, closePopover) => (
         <InlineTimeEntry
+          tasks={taskData.tasksForDates[dayIndex]}
           dailyWorkingHours={dailyWorkingHours}
           totalUsedHoursInDay={totalTimeEntriesInHours?.[dayIndex]}
           timeEntry={taskData.totalTimeEntries[dayIndex]}
+          disabled={taskData.totalTimeEntries[dayIndex].disabled}
           date={dates[dayIndex]}
-          task={taskKey}
+          taskKey={taskKey}
           employee={employee ?? ""}
           onSubmitSuccess={closePopover}
         />

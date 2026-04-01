@@ -1,11 +1,14 @@
 import type { KeyboardEvent, ReactNode } from "react";
+import { TaskDataItemProps } from "@/types/timesheet";
 import { EntryFormMode } from ".";
 import { TimeEntryFormApi } from "./form";
 
 export interface InlineTimeEntryProps {
   date: string;
   employee: string;
-  task: string;
+  taskKey: string;
+  tasks: TaskDataItemProps[];
+  disabled: boolean;
   dailyWorkingHours?: number;
   totalUsedHoursInDay?: number;
   onSubmitSuccess?: () => void;
