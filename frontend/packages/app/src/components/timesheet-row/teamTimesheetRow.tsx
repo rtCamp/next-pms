@@ -38,7 +38,6 @@ type TeamTimesheetRowProps = {
   dates: string[];
   firstWeek: boolean;
   teamMembers: TeamMember[];
-  disabled?: boolean;
   approvalPendingCount?: number;
 };
 
@@ -116,7 +115,10 @@ export const TeamTimesheetRow = ({
                               label={task.subject || task.name}
                               status={task.status}
                               className="pl-19.5"
-                              disabled={member.status === "Approved"}
+                              disabled={
+                                member.status === "Approved" ||
+                                member.status === "Processing Timesheet"
+                              }
                               dailyWorkingHours={dailyWorkingHours}
                               totalTimeEntriesInHours={totalTimeEntriesInHours}
                               employee={member.employee}
