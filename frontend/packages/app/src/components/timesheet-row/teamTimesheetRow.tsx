@@ -47,7 +47,6 @@ export const TeamTimesheetRow = ({
   dates,
   firstWeek,
   teamMembers,
-  disabled,
   approvalPendingCount,
 }: TeamTimesheetRowProps) => {
   const openWeeklyApproval = useTeamTimesheet(
@@ -117,7 +116,7 @@ export const TeamTimesheetRow = ({
                               label={task.subject || task.name}
                               status={task.status}
                               className="pl-19.5"
-                              disabled={disabled}
+                              disabled={member.status === "Approved"}
                               dailyWorkingHours={dailyWorkingHours}
                               totalTimeEntriesInHours={totalTimeEntriesInHours}
                               employee={member.employee}
