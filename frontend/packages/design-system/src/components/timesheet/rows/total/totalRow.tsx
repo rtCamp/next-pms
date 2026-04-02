@@ -99,7 +99,7 @@ export const TotalRow: React.FC<TotalRowProps> = ({
                   <span className="flex-1 text-center group-hover:hidden group-disabled:group-hover:flex text-ink-gray-4">
                     -
                   </span>
-                  <span className="hidden absolute top-0 left-0 justify-center items-center w-full h-full group-hover:flex group-disabled:group-hover:hidden">
+                  <span className="absolute top-0 left-0 items-center justify-center hidden w-full h-full group-hover:flex group-disabled:group-hover:hidden text-ink-gray-6">
                     <Plus strokeWidth={1.5} size={16} className="" />
                   </span>
                 </>
