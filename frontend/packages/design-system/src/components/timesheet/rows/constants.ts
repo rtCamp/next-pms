@@ -1,7 +1,9 @@
 /**
  * External dependencies.
  */
+import { BadgeProps, ButtonVariant } from "@rtcamp/frappe-ui-react";
 import { cva } from "class-variance-authority";
+import { Check, CircleCheck, CircleX, Send } from "lucide-react";
 
 /**
  * Internal dependencies.
@@ -13,6 +15,8 @@ export type ApprovalStatusType =
   | "approved"
   | "rejected"
   | "approval-pending"
+  | "partially-approved"
+  | "partially-rejected"
   | "none";
 
 export type ApprovalStatusLabelType =
@@ -33,6 +37,8 @@ export const ApprovalStatusLabelMap: Record<
   approved: "Approved",
   rejected: "Rejected",
   "approval-pending": "Approval Pending",
+  "partially-approved": "Partially Approved",
+  "partially-rejected": "Partially Rejected",
   none: "None",
 };
 
@@ -44,10 +50,10 @@ export const ApprovalStatusMap: Record<
   Approved: "approved",
   Rejected: "rejected",
   "Approval Pending": "approval-pending",
-  None: "none",
-  "Partially Approved": "approved",
-  "Partially Rejected": "rejected",
+  "Partially Approved": "partially-approved",
+  "Partially Rejected": "partially-rejected",
   "Processing Timesheet": "approval-pending",
+  None: "none",
 };
 
 export const taskStatusMap: Record<string, TaskStatusType> = {
@@ -84,3 +90,53 @@ export const totalHoursVariants = cva("text-base lining-nums tabular-nums", {
   },
   defaultVariants: { theme: "gray", weight: "medium" },
 });
+
+export const approvalStatusTheme: Record<
+  ApprovalStatusType,
+  BadgeProps["theme"]
+> = {
+  "not-submitted": "gray",
+  approved: "green",
+  rejected: "red",
+  "approval-pending": "orange",
+  "partially-approved": "green",
+  "partially-rejected": "red",
+  none: "gray",
+};
+
+export const approvalStatusIcon: Record<
+  ApprovalStatusType,
+  {
+    variant: ButtonVariant;
+    icon: React.ComponentType<{ size?: number }> | null;
+  }
+> = {
+  "not-submitted": {
+    variant: "solid",
+    icon: Send,
+  },
+  approved: {
+    variant: "ghost",
+    icon: CircleCheck,
+  },
+  rejected: {
+    variant: "ghost",
+    icon: CircleX,
+  },
+  "approval-pending": {
+    variant: "solid",
+    icon: Check,
+  },
+  "partially-approved": {
+    variant: "ghost",
+    icon: CircleCheck,
+  },
+  "partially-rejected": {
+    variant: "ghost",
+    icon: CircleX,
+  },
+  none: {
+    variant: "ghost",
+    icon: null,
+  },
+};
