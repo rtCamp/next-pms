@@ -2,23 +2,30 @@
  * External dependencies.
  */
 import { floatToTime } from "@next-pms/design-system";
-import { ApprovalStatusMap } from "@next-pms/design-system/components";
 import {
   getDateFromDateAndTimeString,
   getUTCDateTime,
   normalizeDate,
 } from "@next-pms/design-system/date";
+import { FilterCondition } from "@rtcamp/frappe-ui-react";
 import { type ClassValue, clsx } from "clsx";
-import { isToday } from "date-fns";
+import {
+  getISOWeek,
+  getISOWeekYear,
+  getISOWeeksInYear,
+  isToday,
+  parseISO,
+} from "date-fns";
 import { Error as FrappeError } from "frappe-js-sdk/lib/frappe_app/types";
 import { twMerge } from "tailwind-merge";
+
 /**
  * Internal dependencies.
  */
 import { timeStringToFloat } from "@/schema/timesheet";
 import { WorkingFrequency } from "@/types";
 import { HolidayProp, LeaveProps, TaskProps } from "@/types/timesheet";
-import type { timesheet, TimesheetFilters } from "@/types/timesheet";
+import { NUMBER_OF_WEEKS_TO_FETCH } from "./constant";
 
 export const NO_VALUE_FIELDS = [
   "Section Break",
@@ -462,35 +469,110 @@ export const calculateLeaveHours = (
   }, 0);
 };
 
-export function filterTimesheetEntries(
-  data: Record<string, timesheet>,
-  filters: TimesheetFilters,
-): [string, timesheet][] {
-  const entries = Object.entries(data) as [string, timesheet][];
-  const query = filters.search.trim().toLowerCase();
+/**
+ * Builds native Frappe filters from the given composite filters.
+ *
+ * @param compositeFilters Array of FilterCondition objects.
+ * @returns Array of Frappe filters in the format [[fieldCategory, field, operator, value]].
+ */
+const buildFrappeFilters = (compositeFilters: FilterCondition[]) => {
+  const f = compositeFilters.filter((filter) => filter.fieldCategory);
 
-  return entries.map(([key, week]) => {
-    // Status filter
-    if (
-      filters.approvalStatus &&
-      ApprovalStatusMap[week.status] !== filters.approvalStatus
-    ) {
-      return [key, { ...week, tasks: {} }] as [string, timesheet];
-    }
+  return f
+    .map((filter) => {
+      if (
+        !filter.fieldCategory ||
+        !filter.field ||
+        !filter.operator ||
+        filter.value === null ||
+        filter.value === undefined ||
+        (typeof filter.value === "string" && filter.value.trim() === "")
+      ) {
+        return null;
+      }
+      return [
+        filter.fieldCategory,
+        filter.field,
+        filter.operator,
+        filter.value,
+      ];
+    })
+    .filter(Boolean);
+};
 
-    let filteredTasks = week.tasks;
+/**
+ * Builds composite filters by extracting relevant information from the given
+ * array of FilterCondition objects, including start date, maximum week range,
+ * and native Frappe filters.
+ *
+ * @param compositeFilters Array of FilterCondition objects.
+ * @returns Object containing startDate, maxWeek, and frappeFilters derived from the composite filters.
+ */
+const buildCompositeFilters = (compositeFilters: FilterCondition[]) => {
+  if (compositeFilters.length === 0) {
+    return {
+      startDate: undefined,
+      maxWeek: NUMBER_OF_WEEKS_TO_FETCH,
+      frappeFilters: [],
+    };
+  }
 
-    // Search filter
-    if (query) {
-      filteredTasks = Object.fromEntries(
-        Object.entries(filteredTasks).filter(
-          ([, task]) =>
-            task.name.toLowerCase().includes(query) ||
-            task.subject.toLowerCase().includes(query),
-        ),
+  // Frappe filter (i.e. filters that have fieldCategory set).
+  const frappeFilters = buildFrappeFilters(compositeFilters);
+
+  // Date filter.
+  const dateFilters = compositeFilters.filter(
+    (filter) => filter.field === "date",
+  );
+  const startDate =
+    dateFilters.length > 0
+      ? (dateFilters[0].value as string[])?.length > 0
+        ? (dateFilters[0].value as string[])[0]
+        : undefined
+      : undefined;
+
+  const endDate =
+    dateFilters.length > 0
+      ? (dateFilters[0].value as string[])?.length > 1
+        ? (dateFilters[0].value as string[])[1]
+        : undefined
+      : undefined;
+
+  let maxWeek = NUMBER_OF_WEEKS_TO_FETCH;
+  if (startDate && endDate) {
+    // Calculate the number of calendar weeks spanned (inclusive) using ISO week logic
+    // to correctly handle week boundary crossings (e.g., Sun→Mon spans 2 weeks).
+    const start = parseISO(startDate);
+    const end = parseISO(endDate);
+
+    const startWeekYear = getISOWeekYear(start);
+    const startWeek = getISOWeek(start);
+    const endWeekYear = getISOWeekYear(end);
+    const endWeek = getISOWeek(end);
+
+    if (startWeekYear === endWeekYear) {
+      // Same ISO week year: simple difference
+      maxWeek = Math.max(endWeek - startWeek + 1, 1);
+    } else {
+      // Different ISO week years: sum weeks from start year and end year
+      const weeksInStartYear = getISOWeeksInYear(start);
+      maxWeek = Math.max(
+        weeksInStartYear -
+          startWeek +
+          1 +
+          endWeek +
+          (endWeekYear - startWeekYear - 1) * 52, // Estimate for years in between
+        1,
       );
     }
+  }
 
-    return [key, { ...week, tasks: filteredTasks }] as [string, timesheet];
-  });
-}
+  // Note: We are return end date as start date because API expects end date and fetches backwards from there.
+  return {
+    startDate: endDate,
+    maxWeek: maxWeek,
+    frappeFilters,
+  };
+};
+
+export default buildCompositeFilters;
