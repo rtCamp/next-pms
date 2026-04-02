@@ -8,13 +8,15 @@ import { ChevronDown } from "lucide-react";
 /**
  * Internal dependencies.
  */
-import { buttonVariants, statusIcon, statusTheme } from "./constants";
+import { buttonVariants } from "./constants";
 import { mergeClassNames as cn } from "../../../../utils";
 import {
   ApprovalStatusLabelMap,
   type TotalHoursTheme,
   type ApprovalStatusType,
   totalHoursVariants,
+  approvalStatusTheme,
+  approvalStatusIcon,
 } from "../constants";
 
 export interface MemberRowProps {
@@ -29,7 +31,7 @@ export interface MemberRowProps {
   /** Callback function when the action button is clicked. */
   onButtonClick?: () => void;
   /** Array of time entries for each day of the week for the member. */
-  timeEntries: {date: string; time: string}[];
+  timeEntries: { date: string; time: string }[];
   /** Total hours logged for the week. */
   totalHours?: string;
   /** Theme for the total hours */
@@ -73,7 +75,7 @@ export const MemberRow: React.FC<MemberRowProps> = ({
             {label}
           </span>
           {status !== "none" && (
-            <Badge theme={statusTheme[status]} className="shrink-0">
+            <Badge theme={approvalStatusTheme[status]} className="shrink-0">
               {ApprovalStatusLabelMap[status]}
             </Badge>
           )}
@@ -105,7 +107,7 @@ export const MemberRow: React.FC<MemberRowProps> = ({
       </div>
 
       <div className="flex items-center justify-end w-12 shrink-0 h-7 whitespace-nowrap">
-        {!isStatusNone && statusIcon[status]?.icon ? (
+        {!isStatusNone && approvalStatusIcon[status]?.icon ? (
           <Button
             onClick={(e) => {
               e.stopPropagation();
@@ -114,13 +116,13 @@ export const MemberRow: React.FC<MemberRowProps> = ({
             className={cn(
               buttonVariants({
                 status,
-                variant: statusIcon[status]?.variant,
+                variant: approvalStatusIcon[status]?.variant,
               }),
             )}
-            variant={statusIcon[status]?.variant}
+            variant={approvalStatusIcon[status]?.variant}
             size="sm"
             icon={() => {
-              const IconComponent = statusIcon[status]?.icon;
+              const IconComponent = approvalStatusIcon[status]?.icon;
               return IconComponent ? <IconComponent size={16} /> : null;
             }}
             title={ApprovalStatusLabelMap[status]}

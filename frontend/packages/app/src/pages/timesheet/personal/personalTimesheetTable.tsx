@@ -4,25 +4,26 @@
 import { useEffect, useRef, useState } from "react";
 import { Spinner, Typography } from "@next-pms/design-system/components";
 import { useQueryParam } from "@next-pms/hooks";
-import { Button, Filter } from "@rtcamp/frappe-ui-react";
+import { Button } from "@rtcamp/frappe-ui-react";
 import { isEmpty } from "lodash";
 import { Ellipsis } from "lucide-react";
 
 /**
  * Internal dependencies.
  */
+import CompositeFilter from "@/components/filters/compositeFilter";
 import PersonalTaskLog from "@/components/task-log/personalTaskLog";
+import { NUMBER_OF_WEEKS_TO_FETCH } from "@/lib/constant";
 import { isDateInRange } from "@/lib/utils";
 import { useUser } from "@/providers/user";
 import type { WorkingFrequency } from "@/types";
+import { usePersonalTimesheet } from "./context";
 import ApprovalStatusFilter from "../../../components/filters/approvalStatusFilter";
 import SearchTasks from "../../../components/filters/searchTasks";
 import { InfiniteScroll } from "../../../components/infiniteScroll";
 import { HeaderRow } from "../../../components/timesheet-row/components/row/headerRow";
 import { PersonalTimesheetRow } from "../../../components/timesheet-row/personalTimesheetRow";
-import { NUMBER_OF_WEEKS_TO_FETCH, sampleFields } from "../constants";
 import { useTimesheetOutletContext } from "../outletContext";
-import { usePersonalTimesheet } from "./context";
 
 export const PersonalTimesheetTable = () => {
   const targetRef = useRef<HTMLDivElement>(null);
@@ -49,8 +50,8 @@ export const PersonalTimesheetTable = () => {
   const handleApprovalStatusChange = usePersonalTimesheet(
     ({ actions }) => actions.handleApprovalStatusChange,
   );
-  const handleCompositeFiltersChange = usePersonalTimesheet(
-    ({ actions }) => actions.handleCompositeFiltersChange,
+  const handleCompositeFilterChange = usePersonalTimesheet(
+    ({ actions }) => actions.handleCompositeFilterChange,
   );
 
   const { employeeId } = useUser(({ state }) => ({
@@ -85,12 +86,9 @@ export const PersonalTimesheetTable = () => {
           />
         </div>
         <div className="flex gap-2">
-          <Filter
-            fields={sampleFields}
-            value={compositeFilters}
-            onChange={(newFilters) => {
-              handleCompositeFiltersChange(newFilters);
-            }}
+          <CompositeFilter
+            filter={compositeFilters}
+            handleFilterChange={handleCompositeFilterChange}
           />
           <Button icon={() => <Ellipsis size={16} />} />
         </div>
@@ -113,7 +111,7 @@ export const PersonalTimesheetTable = () => {
           )}
 
           {Object.keys(timesheetData?.data).length == 0 ? (
-            <Typography className="flex justify-center items-center">
+            <Typography className="flex items-center justify-center">
               No Data
             </Typography>
           ) : (

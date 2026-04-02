@@ -8,13 +8,15 @@ import { ChevronDown } from "lucide-react";
 /**
  * Internal dependencies.
  */
-import { buttonVariants, statusIcon, statusTheme } from "./constants";
+import { buttonVariants } from "./constants";
 import { mergeClassNames as cn } from "../../../../utils";
 import {
   ApprovalStatusLabelMap,
   type TotalHoursTheme,
   totalHoursVariants,
   type ApprovalStatusType,
+  approvalStatusTheme,
+  approvalStatusIcon,
 } from "../constants";
 
 export interface WeekRowProps {
@@ -78,7 +80,7 @@ export const WeekRow: React.FC<WeekRowProps> = ({
             {label}
           </span>
           {status !== "none" && (
-            <Badge theme={statusTheme[status]} className="shrink-0">
+            <Badge theme={approvalStatusTheme[status]} className="shrink-0">
               {ApprovalStatusLabelMap[status]}
             </Badge>
           )}
@@ -136,14 +138,14 @@ export const WeekRow: React.FC<WeekRowProps> = ({
               buttonVariants({
                 status,
                 thisWeek,
-                variant: statusIcon[status]?.variant,
+                variant: approvalStatusIcon[status]?.variant,
                 collapsed,
               }),
             )}
-            variant={statusIcon[status]?.variant}
+            variant={approvalStatusIcon[status]?.variant}
             size="sm"
             icon={() => {
-              const IconComponent = statusIcon[status]?.icon;
+              const IconComponent = approvalStatusIcon[status]?.icon;
               return IconComponent ? <IconComponent size={16} /> : null;
             }}
             aria-label="Submit week"

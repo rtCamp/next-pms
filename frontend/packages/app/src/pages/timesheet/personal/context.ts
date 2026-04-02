@@ -27,7 +27,7 @@ export interface PersonalTimesheetContextProps {
     loadData: () => void;
     handleSearchChange: (value: string) => void;
     handleApprovalStatusChange: (value?: ApprovalStatusType | null) => void;
-    handleCompositeFiltersChange: (value: FilterCondition[]) => void;
+    handleCompositeFilterChange: (value: FilterCondition[]) => void;
   };
 }
 
@@ -56,7 +56,7 @@ export const PersonalTimesheetContext =
       loadData: () => null,
       handleSearchChange: () => null,
       handleApprovalStatusChange: () => null,
-      handleCompositeFiltersChange: () => null,
+      handleCompositeFilterChange: () => null,
     },
   });
 

@@ -24,10 +24,10 @@ import { useFrappeEventListener, useFrappeGetCall } from "frappe-react-sdk";
 /**
  * Internal dependencies.
  */
+import { NUMBER_OF_WEEKS_TO_FETCH } from "@/lib/constant";
 import { parseFrappeErrorMsg } from "@/lib/utils";
 import { useUser } from "@/providers/user";
 import type { DataProp, TimesheetFilters } from "@/types/timesheet";
-import { NUMBER_OF_WEEKS_TO_FETCH } from "../constants";
 import {
   initialTimesheetData,
   PersonalTimesheetContext,
@@ -103,7 +103,7 @@ export const PersonalTimesheetProvider: FC<PropsWithChildren> = ({
     [resetWeekDateForFilters],
   );
 
-  const handleCompositeFiltersChange = useCallback(
+  const handleCompositeFilterChange = useCallback(
     (value: FilterCondition[]) => {
       resetWeekDateForFilters();
       setCompositeFilters(value);
@@ -195,7 +195,7 @@ export const PersonalTimesheetProvider: FC<PropsWithChildren> = ({
         loadData,
         handleSearchChange,
         handleApprovalStatusChange,
-        handleCompositeFiltersChange,
+        handleCompositeFilterChange,
       },
     }),
     [
@@ -208,7 +208,7 @@ export const PersonalTimesheetProvider: FC<PropsWithChildren> = ({
       loadData,
       handleSearchChange,
       handleApprovalStatusChange,
-      handleCompositeFiltersChange,
+      handleCompositeFilterChange,
     ],
   );
 

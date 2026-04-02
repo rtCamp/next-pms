@@ -57,13 +57,18 @@ export const TaskRow = ({
     const totalTimeEntries = [];
     for (const date of dates) {
       const currentTotal = calculateTotalHours(tasks, date);
+      // Check if the time entry for the day is approved or not.
+      const tasksForDate = tasks[taskKey].data.filter((entry) =>
+        entry.from_time.includes(date),
+      );
+      const isApproved = tasksForDate.some((entry) => entry.docstatus === 1);
       totalTimeEntries.push({
         time: currentTotal === 0 ? "" : floatToTime(currentTotal, 2),
         nonBillable:
           currentTotal === 0 || (taskKey && tasks[taskKey]?.is_billable)
             ? false
             : true,
-        disabled: disabled || false,
+        disabled: disabled || isApproved || false,
       });
       total += currentTotal;
     }
