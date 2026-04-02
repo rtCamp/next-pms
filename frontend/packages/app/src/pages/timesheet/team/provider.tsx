@@ -17,10 +17,10 @@ import { useFrappeGetCall } from "frappe-react-sdk";
 /**
  * Internal dependencies.
  */
+import { NUMBER_OF_WEEKS_TO_FETCH } from "@/lib/constant";
 import { parseFrappeErrorMsg } from "@/lib/utils";
 import { useUser } from "@/providers/user";
 import type { DataProp } from "@/types/timesheet";
-import { NUMBER_OF_WEEKS_TO_FETCH } from "../constants";
 import {
   TeamTimesheetContext,
   type EmployeeRecord,

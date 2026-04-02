@@ -74,3 +74,4 @@ export {
 } from "./table";
 
 export * from "./timesheet";
+export { default as GlobalSearch } from "./globalSearch";

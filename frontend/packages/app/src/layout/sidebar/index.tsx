@@ -1,8 +1,12 @@
 /**
  * External dependencies.
  */
+import { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { ErrorFallback } from "@next-pms/design-system/components";
+import {
+  ErrorFallback,
+  GlobalSearch,
+} from "@next-pms/design-system/components";
 import {
   Sidebar as BaseSidebar,
   Batches,
@@ -32,6 +36,12 @@ import { useTheme } from "@/providers/theme/hook";
 import { useUser } from "@/providers/user";
 
 const Sidebar = () => {
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+
+  const { theme, setTheme } = useTheme();
+  const navigate = useNavigate();
+  const { pathname } = useLocation();
+
   const {
     isSidebarCollapsed,
     employeeName,
@@ -46,9 +56,17 @@ const Sidebar = () => {
     logout: actions.logout,
   }));
 
-  const { theme, setTheme } = useTheme();
-  const navigate = useNavigate();
-  const { pathname } = useLocation();
+  useEffect(() => {
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.key === "k" && (e.metaKey || e.ctrlKey)) {
+        e.preventDefault();
+        setIsSearchOpen((prev) => !prev);
+      }
+    }
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, []);
+
 
   return (
     <ErrorFallback>
@@ -108,6 +126,7 @@ const Sidebar = () => {
                 icon: Search,
                 to: "",
                 isActive: false,
+                onClick: () => setIsSearchOpen(true),
               },
             ],
           },
@@ -191,6 +210,31 @@ const Sidebar = () => {
               },
             ],
           },
+        ]}
+      />
+
+      <GlobalSearch
+        open={isSearchOpen}
+        onOpenChange={setIsSearchOpen}
+        items={[
+          { label: "Home", action: () => navigate(ROUTES.home) },
+          { label: "Tasks", action: () => navigate(ROUTES.task) },
+          { label: "Projects", action: () => navigate(ROUTES.project) },
+          {
+            label: "Timesheet - Personal",
+            action: () => navigate(ROUTES["timesheet-personal"]),
+          },
+          {
+            label: "Timesheet - Team",
+            action: () => navigate(ROUTES["timesheet-team"]),
+          },
+          {
+            label: "Timesheet - Projects",
+            action: () => navigate(ROUTES["timesheet-project"]),
+          },
+          { label: "Allocation", action: () => navigate(ROUTES.allocation) },
+          { label: "Roadmap", action: () => navigate(ROUTES.roadmap) },
+          { label: "Reports", action: () => navigate(ROUTES.report) },
         ]}
       />
     </ErrorFallback>
