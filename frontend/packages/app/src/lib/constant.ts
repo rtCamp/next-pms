@@ -38,3 +38,5 @@ export const CustomTime = [
   "07:30",
   "08:00",
 ];
+
+export const NUMBER_OF_WEEKS_TO_FETCH = 4;

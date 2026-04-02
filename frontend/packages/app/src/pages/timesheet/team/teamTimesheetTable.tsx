@@ -13,10 +13,11 @@ import SearchTasks from "@/components/filters/searchTasks";
 import { InfiniteScroll } from "@/components/infiniteScroll";
 import { HeaderRow } from "@/components/timesheet-row/components/row/headerRow";
 import { TeamTimesheetRow } from "@/components/timesheet-row/teamTimesheetRow";
+import { NUMBER_OF_WEEKS_TO_FETCH } from "@/lib/constant";
 import { TimesheetFilters } from "@/types/timesheet";
 import { useTeamTimesheet } from "./context";
 import WeeklyApproval from "./weekly-approval";
-import { NUMBER_OF_WEEKS_TO_FETCH, sampleFields } from "../constants";
+import { sampleFields } from "../constants";
 
 export const TeamTimesheetTable = () => {
   const hasMoreWeeks = useTeamTimesheet(({ state }) => state.hasMoreWeeks);
@@ -72,7 +73,7 @@ export const TeamTimesheetTable = () => {
       {isLoadingTeamData && weekGroups.length === 0 ? (
         <Spinner isFull />
       ) : weekGroups.length === 0 ? (
-        <Typography className="flex items-center justify-center">
+        <Typography className="flex justify-center items-center">
           No Data
         </Typography>
       ) : (
@@ -88,7 +89,7 @@ export const TeamTimesheetTable = () => {
               return (
                 <>
                   {index === 0 ? (
-                    <div className="mb-4 sticky top-0 bg-surface-white z-10">
+                    <div className="sticky top-0 z-10 mb-4 bg-surface-white">
                       <HeaderRow
                         dates={week.dates}
                         showHeading={true}
