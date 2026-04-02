@@ -32,13 +32,13 @@ export type EntryFormMode =
  * the cell in task row of timesheet table.User can enter the duration and comment for the time entry and
  * submit the form to save the time entry for the task and date.
  * @param date - Date for which the time entry is being added.
- * @param task - Task name for the timesheet entry (eg: TASK-0001).
+ * @param taskKey - Task name for the timesheet entry (eg: TASK-0001).
  * @param employee - Employee for the timesheet entry
  * @param dailyWorkingHours - Daily working hours for the task.
  * @param totalUsedHoursInDay - Total used hours in the day for the task.
  * @param onSubmitSuccess - Callback function to be called after successful submission of time entry.
  * @param timeEntry - Time entry data for the cell
- * @param tasks - All time entries for the task for the week, used to show in the inline time entry form.
+ * @param tasks - All time entries for the task for the day.
  * @param disabled - Whether the time entry form is disabled or not.
  */
 export const InlineTimeEntry = ({
@@ -250,6 +250,10 @@ export const InlineTimeEntry = ({
       return [...prev, entryName];
     });
   }, []);
+
+  if (disabled && tasks.length === 0) {
+    return null;
+  }
 
   return (
     <div className="animate-fade-in w-68 max-h-[min(350px,90dvh)] overflow-y-auto scrollbar-thin shadow bg-surface-modal rounded-lg flex flex-col gap-2 p-2">

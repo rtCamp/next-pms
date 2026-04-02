@@ -1,22 +1,19 @@
 import type { KeyboardEvent, ReactNode } from "react";
-import { TaskDataItemProps } from "@/types/timesheet";
-import { EntryFormMode } from ".";
-import { TimeEntryFormApi } from "./form";
+import type { TaskRowTimeEntry } from "@next-pms/design-system/components";
+import type { TaskDataItemProps } from "@/types/timesheet";
+import type { EntryFormMode } from ".";
+import type { TimeEntryFormApi } from "./form";
 
 export interface InlineTimeEntryProps {
   date: string;
   employee: string;
   taskKey: string;
   tasks: TaskDataItemProps[];
-  disabled: boolean;
+  disabled: boolean | undefined;
   dailyWorkingHours?: number;
   totalUsedHoursInDay?: number;
   onSubmitSuccess?: () => void;
-  timeEntry: {
-    time: string;
-    nonBillable: boolean;
-    disabled: boolean;
-  };
+  timeEntry: TaskRowTimeEntry;
 }
 
 export type TimeEntryFormValues = {

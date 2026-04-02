@@ -77,8 +77,8 @@ export const TaskRow: React.FC<TaskRowProps> = ({
         className,
       )}
     >
-      <div className="flex flex-1 items-center min-w-0 group">
-        <div className="flex gap-2 items-center min-w-0">
+      <div className="flex items-center flex-1 min-w-0 group">
+        <div className="flex items-center min-w-0 gap-2">
           <TaskStatus status={status} />
           <span className="min-w-0 text-base font-medium truncate">
             <PreviewCard.Root>
@@ -136,33 +136,52 @@ export const TaskRow: React.FC<TaskRowProps> = ({
           >
             <Popover.Root actionsRef={actionsRef}>
               <Popover.Trigger
-                openOnHover
-                nativeButton={false}
+                openOnHover={!(timeEntry.disabled && timeEntry.time === "")}
                 render={(props) => (
-                  <div {...props} className="">
-                    <Button
-                      variant="ghost"
-                      className="w-14.25 relative group flex justify-center items-center enabled:hover:bg-surface-gray-2 enabled:focus:bg-surface-gray-2 enabled:active:bg-surface-gray-3 disabled:cursor-default! lining-nums tabular-nums [&_span]:overflow-visible [&_span]:whitespace-normal"
-                      disabled={timeEntry.disabled}
-                      onClick={() => onCellClick?.(taskKey, index)}
-                    >
-                      {timeEntry.time === "" ? (
-                        <>
-                          <span className="flex-1 text-center group-hover:hidden group-disabled:group-hover:flex text-ink-gray-4">
-                            -
-                          </span>
-                          <span className="hidden absolute top-0 left-0 justify-center items-center w-full h-full group-hover:flex group-disabled:group-hover:hidden">
-                            <Plus strokeWidth={1.5} size={16} className="" />
-                          </span>
-                        </>
-                      ) : (
-                        <span>{timeEntry.time}</span>
-                      )}
-                      {timeEntry.nonBillable ? (
-                        <span className="block absolute z-10 -bottom-0.5 left-1/2 w-1 h-1 rounded-full bg-surface-amber-3 transform -translate-x-1/2"></span>
-                      ) : null}
-                    </Button>
-                  </div>
+                  <Button
+                    {...props}
+                    variant="ghost"
+                    className={cn(
+                      "w-14.25 relative group flex justify-center items-center text-ink-gray-6 lining-nums tabular-nums [&_span]:overflow-visible [&_span]:whitespace-normal",
+                      "enabled:hover:bg-surface-gray-2 enabled:focus:bg-surface-gray-2 enabled:active:bg-surface-gray-3",
+                      "aria-disabled:cursor-default! aria-disabled:text-ink-gray-5 aria-disabled:hover:bg-transparent aria-disabled:focus:bg-transparent aria-disabled:active:bg-transparent",
+                    )}
+                    aria-disabled={timeEntry.disabled}
+                    onClick={() =>
+                      !timeEntry.disabled
+                        ? onCellClick?.(taskKey, index)
+                        : undefined
+                    }
+                  >
+                    {timeEntry.time === "" ? (
+                      <>
+                        <span
+                          className={cn("flex-1 text-center text-ink-gray-4", {
+                            "group-hover:hidden group-disabled:group-hover:flex":
+                              !timeEntry.disabled,
+                          })}
+                        >
+                          -
+                        </span>
+                        <span
+                          className={cn(
+                            "hidden absolute top-0 left-0 justify-center items-center w-full h-full",
+                            {
+                              "group-hover:flex group-disabled:group-hover:hidden":
+                                !timeEntry.disabled,
+                            },
+                          )}
+                        >
+                          <Plus strokeWidth={1.5} size={16} className="" />
+                        </span>
+                      </>
+                    ) : (
+                      <span>{timeEntry.time}</span>
+                    )}
+                    {timeEntry.nonBillable ? (
+                      <span className="block absolute z-10 -bottom-0.5 left-1/2 w-1 h-1 rounded-full bg-surface-amber-3 transform -translate-x-1/2"></span>
+                    ) : null}
+                  </Button>
                 )}
               />
               <Popover.Portal>
