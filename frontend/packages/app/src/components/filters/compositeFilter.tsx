@@ -32,6 +32,7 @@ const CompositeFilter: React.FC<CompositeFilterProps> = ({
 }) => {
   return (
     <Filter
+      align="end"
       fields={filters}
       value={filter}
       onChange={(newFilters) => {

@@ -33,6 +33,7 @@ import { Ellipsis } from "lucide-react";
  */
 import CompositeFilter from "@/components/filters/compositeFilter";
 import PersonalTaskLog from "@/components/task-log/personalTaskLog";
+import { useDebounce } from "@/hooks/useDebounce";
 import { NUMBER_OF_WEEKS_TO_FETCH } from "@/lib/constant";
 import buildCompositeFilters, {
   parseFrappeErrorMsg,
@@ -71,14 +72,15 @@ function PersonalTimesheet() {
     employeeId: state.employeeId,
   }));
   const [timesheet, dispatch] = useReducer(reducer, initialState);
+  const debouncedCompositeFilters = useDebounce(compositeFilters, 1000);
 
   const {
     startDate: filterStartDate,
     maxWeek,
     frappeFilters,
   } = useMemo(
-    () => buildCompositeFilters(compositeFilters),
-    [compositeFilters],
+    () => buildCompositeFilters(debouncedCompositeFilters),
+    [debouncedCompositeFilters],
   );
 
   const { data, isLoading, error } = useFrappeGetCall(
@@ -303,11 +305,11 @@ function PersonalTimesheet() {
                             key={key}
                             ref={
                               !isEmpty(startDateParam) &&
-                                isDateInRange(
-                                  startDateParam,
-                                  value.start_date,
-                                  value.end_date,
-                                )
+                              isDateInRange(
+                                startDateParam,
+                                value.start_date,
+                                value.end_date,
+                              )
                                 ? targetRef
                                 : null
                             }
