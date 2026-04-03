@@ -7,10 +7,8 @@ import {
   TaskRow as BaseTaskRow,
   taskStatusMap,
 } from "@next-pms/design-system/components";
-import { prettyDate } from "@next-pms/design-system/date";
 import { useToasts } from "@rtcamp/frappe-ui-react";
 import { useFrappePostCall } from "frappe-react-sdk";
-import { CalendarFoldIcon, Folder } from "lucide-react";
 
 /**
  * Internal dependencies
@@ -19,8 +17,6 @@ import TaskPopover from "@/components/taskPopover";
 import { calculateTotalHours, parseFrappeErrorMsg } from "@/lib/utils";
 import type { TaskRowProps } from "./types";
 import { InlineTimeEntry } from "../inline-time-entry";
-
-const MOCK_END_DATE = "2024-12-31";
 
 /**
  * @description This is the task row component for the timesheet table.
@@ -63,13 +59,18 @@ export const TaskRow = ({
     const totalTimeEntries = [];
     for (const date of dates) {
       const currentTotal = calculateTotalHours(tasks, date);
+      // Check if the time entry for the day is approved or not.
+      const tasksForDate = tasks[taskKey].data.filter((entry) =>
+        entry.from_time.includes(date),
+      );
+      const isApproved = tasksForDate.some((entry) => entry.docstatus === 1);
       totalTimeEntries.push({
         time: currentTotal === 0 ? "" : floatToTime(currentTotal, 2),
         nonBillable:
           currentTotal === 0 || (taskKey && tasks[taskKey]?.is_billable)
             ? false
             : true,
-        disabled: disabled || false,
+        disabled: disabled || isApproved || false,
       });
       total += currentTotal;
     }
