@@ -21,7 +21,7 @@ if (import.meta.env.DEV) {
       if (!window.frappe) window.frappe = {};
       window.frappe.boot = v;
     })
-    .then(() => {
+    .finally(() => {
       ReactDOM.createRoot(document.getElementById("root")!).render(
         <React.StrictMode>
           <App />

@@ -139,7 +139,13 @@ const AddLeave = ({ open = false, onOpenChange }: LeaveTimeProps) => {
                         <div
                           className={`w-full relative flex items-center border border-outline-gray-2 px-[10px] py-1 rounded-lg`}
                         >
-                          <p className={`flex-1`}>{displayValue}</p>
+                          <input
+                            readOnly
+                            type="text"
+                            id="start"
+                            value={displayValue}
+                            className={`flex-1`}
+                          />
                           <Calendar className="size-4" />
                         </div>
                       );
@@ -171,7 +177,13 @@ const AddLeave = ({ open = false, onOpenChange }: LeaveTimeProps) => {
                         <div
                           className={`w-full relative flex items-center border border-outline-gray-2 px-[10px] py-1 rounded-lg`}
                         >
-                          <p className={`flex-1`}>{displayValue}</p>
+                          <input
+                            readOnly
+                            type="text"
+                            id="start"
+                            value={displayValue}
+                            className={`flex-1`}
+                          />
                           <Calendar className="size-4" />
                         </div>
                       );
