@@ -46,7 +46,10 @@ const AddLeave = ({ open = false, onOpenChange }: LeaveTimeProps) => {
 
   const unpaidLeaveOptions = (
     (leaveDetails?.message?.lwps as string[]) || []
-  ).map((val) => ({ label: val, value: val }));
+  ).map((val) => ({
+    label: val,
+    value: val,
+  }));
   const allocatedLeaveOptions = Object.keys(
     (leaveDetails?.message?.leave_allocation as Record<string, unknown>) || {},
   ).map((val) => ({ label: val, value: val }));
@@ -64,10 +67,13 @@ const AddLeave = ({ open = false, onOpenChange }: LeaveTimeProps) => {
     },
     onSubmit: async ({ value }) => {
       // Convert to Title case
-      const custom_first_halfsecond_half = value.leaveDuration
-        .split("-")
-        .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-        .join(" ");
+      const custom_first_halfsecond_half =
+        value.leaveDuration !== "full-day"
+          ? value.leaveDuration
+              .split("-")
+              .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+              .join(" ")
+          : "";
 
       const half_day =
         value.leaveDuration === "first-half" ||
