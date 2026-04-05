@@ -243,11 +243,11 @@ const Sidebar = () => {
           },
           {
             label: "Allocations - Team",
-            action: () => navigate(ROUTES["timesheet-team"]),
+            action: () => navigate(ROUTES["allocations-team"]),
           },
           {
             label: "Allocations - project",
-            action: () => navigate(ROUTES["timesheet-project"]),
+            action: () => navigate(ROUTES["allocations-project"]),
           },
           { label: "Roadmap", action: () => navigate(ROUTES.roadmap) },
           { label: "Reports", action: () => navigate(ROUTES.report) },

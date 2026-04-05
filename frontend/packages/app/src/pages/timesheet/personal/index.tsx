@@ -32,13 +32,15 @@ import {
   useFrappePostCall,
 } from "frappe-react-sdk";
 import { isEmpty } from "lodash";
-import { Ellipsis, Key } from "lucide-react";
+import { Ellipsis } from "lucide-react";
 
 /**
  * Internal dependencies.
  */
 import CompositeFilter from "@/components/filters/compositeFilter";
+import { InfiniteScroll } from "@/components/infiniteScroll";
 import PersonalTaskLog from "@/components/task-log/personalTaskLog";
+import { HeaderRow } from "@/components/timesheet-row/components/row/headerRow";
 import { useDebounce } from "@/hooks/useDebounce";
 import { NUMBER_OF_WEEKS_TO_FETCH } from "@/lib/constant";
 import buildCompositeFilters, {
@@ -48,8 +50,6 @@ import buildCompositeFilters, {
 import { useUser } from "@/providers/user";
 import type { WorkingFrequency } from "@/types";
 import type { TimesheetFilters } from "@/types/timesheet";
-import { InfiniteScroll } from "../../../components/infiniteScroll";
-import { HeaderRow } from "../../../components/timesheet-row/components/row/headerRow";
 import { PersonalTimesheetRow } from "../../../components/timesheet-row/personalTimesheetRow";
 import { useTimesheetOutletContext } from "../outletContext";
 import { initialState, reducer } from "../reducer";
@@ -244,8 +244,8 @@ function PersonalTimesheet() {
             className="w-fit"
             options={Object.entries(ApprovalStatusLabelMap).map(
               ([key, value]) => ({
-                label: key,
-                value,
+                label: value,
+                value: key,
               }),
             )}
             value={filters.approvalStatus}

@@ -34,7 +34,9 @@ const FILTER_FIELDS: FilterField[] = [
 ];
 
 function AllocationsTeam() {
+  const [search, setSearch] = useState("");
   const [allocationsType, setAllocationsType] = useState<string | undefined>();
+  const [duration, setDuration] = useState<string | undefined>();
   const [compositeFilters, setCompositeFilters] = useState<FilterCondition[]>(
     [],
   );
@@ -47,7 +49,7 @@ function AllocationsTeam() {
             className="w-xs"
             placeholder="Search Members or designation"
             debounce={200}
-            onChange={(e) => console.log(e.target.value)}
+            onChange={(e) => setSearch(e.target.value)}
           />
           <Select
             placeholder="Duration"
@@ -58,8 +60,8 @@ function AllocationsTeam() {
               { label: "This quarter", value: "this-quarter" },
               { label: "All time", value: "all-time" },
             ]}
-            value={allocationsType}
-            onChange={(value) => setAllocationsType(value)}
+            value={duration}
+            onChange={(value) => setDuration(value)}
           />
           <Select
             placeholder="Allocations Type"
