@@ -7,10 +7,10 @@ import {
   DatePicker,
   Dialog,
   Button,
-  Textarea,
   ErrorMessage,
   Combobox,
   useToasts,
+  TextEditor,
 } from "@rtcamp/frappe-ui-react";
 import { useForm, useStore } from "@tanstack/react-form";
 import {
@@ -266,10 +266,11 @@ const AddTime = ({
             return (
               <>
                 <label className="block text-xs text-ink-gray-5">Comment</label>
-                <Textarea
-                  value={field.state.value}
-                  onChange={(e) => field.handleChange(e.target.value)}
-                  className="bg-white border-outline-gray-2"
+                <TextEditor
+                  content={field.state.value}
+                  onChange={(value) => field.handleChange(value)}
+                  fixedMenu={false}
+                  editorClass="h-24 overflow-scroll bg-white border rounded-md border-outline-gray-2"
                 />
                 {!field.state.meta.isValid && (
                   <ErrorMessage message={field.state.meta.errors[0]?.message} />

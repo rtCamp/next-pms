@@ -2,7 +2,7 @@
  * External dependencies
  */
 import { DurationInput } from "@next-pms/design-system/components";
-import { Button, ErrorMessage, Textarea } from "@rtcamp/frappe-ui-react";
+import { Button, ErrorMessage, TextEditor } from "@rtcamp/frappe-ui-react";
 import { Command, CornerDownLeft, Plus } from "lucide-react";
 
 /**
@@ -68,12 +68,12 @@ export const TimeEntryForm = ({
                 className="relative w-full"
                 onKeyDownCapture={(e) => onCommentKeyDown(e)}
               >
-                <Textarea
-                  value={field.state.value}
-                  onChange={(e) => field.handleChange(e.target.value)}
-                  className="bg-white border-outline-gray-2"
+                <TextEditor
+                  content={field.state.value}
+                  onChange={(value) => field.handleChange(value)}
+                  fixedMenu={false}
                   placeholder="Comment"
-                  disabled={submitting}
+                  editorClass="h-24 overflow-scroll bg-white border rounded-md border-outline-gray-2"
                 />
                 {field.state.value === "" ? (
                   <span className="absolute flex items-center justify-center text-xs align-middle right-1 bottom-1 text-ink-gray-4">

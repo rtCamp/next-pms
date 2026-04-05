@@ -4,7 +4,7 @@
 import { useState, useCallback } from "react";
 import { floatToTime } from "@next-pms/design-system";
 import { TaskStatus, DurationInput } from "@next-pms/design-system/components";
-import { Button, Textarea } from "@rtcamp/frappe-ui-react";
+import { Button, TextEditor } from "@rtcamp/frappe-ui-react";
 import { Edit, Check, X } from "lucide-react";
 
 /**
@@ -69,12 +69,12 @@ const EntryRow = ({ entry, onSave }: EntryRowProps) => {
               {entry.taskName}
             </p>
             <p className="text-xs text-ink-gray-5">{entry.projectName}</p>
-            <Textarea
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder="Enter description"
-              className="bg-white border-outline-gray-2"
-              rows={2}
+            <TextEditor
+              content={description}
+              onChange={(val) => setDescription(val)}
+              fixedMenu={false}
+              placeholder="Comment"
+              editorClass="h-24 overlow-scroll bg-white border rounded-md border-outline-gray-2"
             />
           </div>
         </div>
