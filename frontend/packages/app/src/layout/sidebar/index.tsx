@@ -67,7 +67,6 @@ const Sidebar = () => {
     return () => document.removeEventListener("keydown", handleKeyDown);
   }, []);
 
-
   return (
     <ErrorFallback>
       <BaseSidebar
@@ -174,14 +173,14 @@ const Sidebar = () => {
                       isActive: pathname === ROUTES["timesheet-team"],
                       onClick: () => navigate(ROUTES["timesheet-team"]),
                     },
+                    {
+                      label: "Projects",
+                      icon: Folder,
+                      isActive: pathname === ROUTES["timesheet-project"],
+                      onClick: () => navigate(ROUTES["timesheet-project"]),
+                    },
                   ]
                 : []),
-              {
-                label: "Projects",
-                icon: Folder,
-                isActive: pathname === ROUTES["timesheet-project"],
-                onClick: () => navigate(ROUTES["timesheet-project"]),
-              },
             ],
           },
           {

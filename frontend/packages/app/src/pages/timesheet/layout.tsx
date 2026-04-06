@@ -67,14 +67,14 @@ function TimesheetLayout() {
             to: ROUTES["timesheet-team"],
             icon: People,
           },
+          {
+            key: "project",
+            label: "Project",
+            to: ROUTES["timesheet-project"],
+            icon: Folder,
+          },
         ]
       : []),
-    {
-      key: "project",
-      label: "Project",
-      to: ROUTES["timesheet-project"],
-      icon: Folder,
-    },
   ] as const;
 
   const selectedKey = pathname.includes("team")
