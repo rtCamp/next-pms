@@ -31,3 +31,7 @@ json-files
 
 # Env file
 .env
+
+# Lando
+.data/
+.lando.local.yml
