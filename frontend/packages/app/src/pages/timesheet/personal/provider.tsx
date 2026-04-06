@@ -73,6 +73,7 @@ export const PersonalTimesheetProvider: FC<PropsWithChildren> = ({
         ? ApprovalStatusLabelMap[filters.approvalStatus]
         : null,
       compositeFilters: JSON.stringify(compositeFilters),
+      skip_empty_weeks: hasActiveFilters,
     },
   );
 
@@ -113,18 +114,16 @@ export const PersonalTimesheetProvider: FC<PropsWithChildren> = ({
 
   useEffect(() => {
     if (data) {
-      const fetchedWeekCount = Object.keys(data.message?.data ?? {}).length;
       setHasMoreWeeks(
-        hasActiveFilters
-          ? fetchedWeekCount > 0
-          : fetchedWeekCount === NUMBER_OF_WEEKS_TO_FETCH,
+        hasActiveFilters ? (data.message?.has_more ?? false) : true,
       );
-
       setTimesheetData((prev) => {
+        // If the request was triggered due to filter changes, replace the existing data with the new filtered data.
         if (isFilterRequestRef.current) {
           return data.message;
         }
 
+        // For regular pagination requests, merge the new data with the existing data.
         if (Object.keys(prev.data).length > 0) {
           return mergeTimesheetData(prev, data.message);
         }
