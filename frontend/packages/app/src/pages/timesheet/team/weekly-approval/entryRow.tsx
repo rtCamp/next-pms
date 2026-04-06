@@ -107,7 +107,12 @@ const EntryRow = ({ entry, onSave }: EntryRowProps) => {
             {entry.taskName}
           </p>
           <p className="text-xs text-ink-gray-5">{entry.projectName}</p>
-          <p className="text-sm text-ink-gray-7 mt-3">{entry.description}</p>
+          <TextEditor
+            editorClass="text-sm text-ink-gray-7 mt-3"
+            content={entry.description}
+            editable={false}
+            fixedMenu={false}
+          />
         </div>
       </div>
       <span className="relative size-fit text-md text-ink-gray-6 rounded-sm outline outline-offset-4 outline-outline-gray-modals">
