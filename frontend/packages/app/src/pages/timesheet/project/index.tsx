@@ -1,10 +1,15 @@
 /**
  * Internal dependencies.
  */
-import { UnderConstruction } from "@/components/under-construction";
+import { ProjectTimesheetTable } from "./projectTimesheetTable";
+import { ProjectTimesheetProvider } from "./provider";
 
 function TimesheetProjectPage() {
-  return <UnderConstruction />;
+  return (
+    <ProjectTimesheetProvider>
+      <ProjectTimesheetTable />
+    </ProjectTimesheetProvider>
+  );
 }
 
 export default TimesheetProjectPage;
