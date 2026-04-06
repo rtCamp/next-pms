@@ -1,7 +1,8 @@
 /**
  * External Dependencies
  */
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+import { getFormatedDate, getTodayDate } from "@next-pms/design-system";
 import { DurationInput } from "@next-pms/design-system/components";
 import {
   DatePicker,
@@ -13,6 +14,7 @@ import {
   useToasts,
 } from "@rtcamp/frappe-ui-react";
 import { useForm, useStore } from "@tanstack/react-form";
+import { addDays } from "date-fns";
 import {
   FrappeError,
   useFrappeGetCall,
@@ -25,8 +27,14 @@ import { Calendar } from "lucide-react";
  */
 import { parseFrappeErrorMsg } from "@/lib/utils";
 import { useUser } from "@/providers/user";
+import CalendarEvents from "./calendar-events";
 import { addTimeFormSchema } from "./schema";
-import type { AddTimeProps, ProjectData, TaskItem } from "./type";
+import type {
+  AddTimeProps,
+  CalendarEvent,
+  ProjectData,
+  TaskItem,
+} from "./type";
 
 /**
  * Add Time Component
@@ -55,6 +63,24 @@ const AddTime = ({
   const [submitting, setSubmitting] = useState(false);
   const { call: saveTime } = useFrappePostCall(
     "next_pms.timesheet.api.timesheet.save",
+  );
+
+  const { data: eventData } = useFrappeGetCall(
+    "next_pms.api.get_user_calendar_events",
+    {
+      start_date: initialDate,
+      end_date: getFormatedDate(addDays(getTodayDate(), 7)),
+    },
+    undefined,
+    {
+      errorRetryCount: 0,
+      shouldRetryOnError: false,
+      revalidateOnFocus: false,
+    },
+  );
+
+  const calendarEvents = ((eventData?.message || []) as CalendarEvent[]).filter(
+    (event) => !event.all_day,
   );
 
   const form = useForm({
@@ -121,6 +147,37 @@ const AddTime = ({
     mutateTasksData();
   }, [project, task, mutateTasksData]);
 
+  const handleCalendarSelectionChange = useCallback(
+    (selectedLabels: string[]) => {
+      const allEventSubjects = calendarEvents
+        .map((event) => event.subject.trim())
+        .filter(Boolean);
+
+      const currentComment = form.state.values.comment || "";
+      const preservedLines = currentComment
+        .split("\n")
+        .map((line) => line.trim())
+        .filter(
+          (line) =>
+            line &&
+            !allEventSubjects.some(
+              (subject) =>
+                line === subject ||
+                line === `- ${subject}` ||
+                line.startsWith(`- ${subject} | `),
+            ),
+        );
+
+      const selectedSubjectLines = selectedLabels.map((label) => `- ${label}`);
+
+      form.setFieldValue(
+        "comment",
+        [...preservedLines, ...selectedSubjectLines].join("\n"),
+      );
+    },
+    [calendarEvents, form],
+  );
+
   const tasksOptions = ((tasksData?.message?.task ?? []) as TaskItem[]).map(
     (task) => ({
       label: task.subject,
@@ -153,7 +210,9 @@ const AddTime = ({
           children={(field) => {
             return (
               <>
-                <label className="block text-xs text-ink-gray-5">Project</label>
+                <label className="block text-xs text-ink-gray-5 mb-1.5">
+                  Project
+                </label>
                 <Combobox
                   inputClassName="bg-white h-8 border-outline-gray-2"
                   options={projectOptions}
@@ -175,7 +234,9 @@ const AddTime = ({
           children={(field) => {
             return (
               <>
-                <label className="block text-xs text-ink-gray-5">Task</label>
+                <label className="block text-xs text-ink-gray-5 mb-1.5">
+                  Task
+                </label>
                 <Combobox
                   inputClassName="bg-white h-8 border-outline-gray-2"
                   options={tasksOptions}
@@ -217,7 +278,9 @@ const AddTime = ({
                             Date
                           </label>
                           <div
-                            className={`relative flex items-center border border-outline-gray-2 px-[10px] py-1 rounded-lg`}
+                            className={
+                              "flex relative items-center py-1 rounded-lg border border-outline-gray-2 px-2.5"
+                            }
                           >
                             <input
                               type="text"
@@ -245,7 +308,7 @@ const AddTime = ({
             name="duration"
             children={(field) => {
               return (
-                <div className="w-full flex flex-col gap-2">
+                <div className="flex flex-col gap-2 w-full">
                   <DurationInput
                     value={field.state.value}
                     onChange={(val) => field.handleChange(val)}
@@ -260,6 +323,12 @@ const AddTime = ({
             }}
           />
         </div>
+
+        <CalendarEvents
+          events={calendarEvents}
+          onSelectionChange={handleCalendarSelectionChange}
+        />
+
         <form.Field
           name="comment"
           children={(field) => {
