@@ -4,10 +4,9 @@ from frappe import get_all, get_list, get_roles, get_value, whitelist
 
 @whitelist(methods=["GET"])
 def get_employee_with_role(role: str | list[str]):
-    """returns a list of all approvers for the given role like ["Project Manager","Project User"]"""
+    """returns a list of all approvers for the given role like ["Projects Manager","Projects User"]"""
+    ## TODO : Deprecate this method and use get_approver_details instead, as it returns only approver details and does not expose role-based output.
     import json
-
-    from frappe import get_all
 
     if isinstance(role, str):
         role = json.loads(role)
@@ -19,6 +18,22 @@ def get_employee_with_role(role: str | list[str]):
     )
     employees = get_all(
         "Employee", filters={"user_id": ["in", user_ids], "status": "Active"}, fields=["name", "employee_name"]
+    )
+    return employees
+
+
+@whitelist(methods=["GET"])
+def get_approver_details():
+    """returns a list of approver details"""
+    roles = ["Projects Manager", "Projects User"]
+
+    user_ids = get_all(
+        "Has Role",
+        filters={"role": ["in", roles], "parenttype": "User", "parent": ["!=", "Administrator"]},
+        pluck="parent",
+    )
+    employees = get_all(
+        "Employee", filters={"user_id": ["in", user_ids], "status": "Active"}, fields=["name", "employee_name", "image"]
     )
     return employees
 
