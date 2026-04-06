@@ -19,7 +19,9 @@ const TimesheetLayout = lazy(() => import("@/pages/timesheet/layout"));
 const TimesheetPersonal = lazy(() => import("@/pages/timesheet/personal"));
 const TimesheetTeam = lazy(() => import("@/pages/timesheet/team"));
 const TimesheetProject = lazy(() => import("./pages/timesheet/project"));
-const Allocation = lazy(() => import("@/pages/allocation"));
+const AllocationsLayout = lazy(() => import("@/pages/allocations/layout"));
+const AllocationsProject = lazy(() => import("@/pages/allocations/project"));
+const AllocationsTeam = lazy(() => import("@/pages/allocations/team"));
 const Roadmap = lazy(() => import("@/pages/roadmap"));
 const Report = lazy(() => import("@/pages/report"));
 const NotFound = lazy(() => import("@/pages/404"));
@@ -46,7 +48,16 @@ export function Router() {
               element={<TimesheetProject />}
             />
           </Route>
-          <Route path={ROUTES.allocation} element={<Allocation />} />
+          <Route element={<AllocationsLayout />}>
+            <Route
+              path={ROUTES["allocations-team"]}
+              element={<AllocationsTeam />}
+            />
+            <Route
+              path={ROUTES["allocations-project"]}
+              element={<AllocationsProject />}
+            />
+          </Route>
           <Route path={ROUTES.roadmap} element={<Roadmap />} />
           <Route path={ROUTES.report} element={<Report />} />
         </Route>

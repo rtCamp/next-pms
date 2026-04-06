@@ -18,7 +18,13 @@ import {
 import { getFormatedDate } from "@next-pms/design-system/date";
 
 import { useQueryParam } from "@next-pms/hooks";
-import { Button, FilterCondition, useToasts } from "@rtcamp/frappe-ui-react";
+import {
+  Button,
+  FilterCondition,
+  Select,
+  TextInput,
+  useToasts,
+} from "@rtcamp/frappe-ui-react";
 import { addDays } from "date-fns";
 import {
   useFrappeEventListener,
@@ -32,7 +38,9 @@ import { Ellipsis } from "lucide-react";
  * Internal dependencies.
  */
 import CompositeFilter from "@/components/filters/compositeFilter";
+import { InfiniteScroll } from "@/components/infiniteScroll";
 import PersonalTaskLog from "@/components/task-log/personalTaskLog";
+import { HeaderRow } from "@/components/timesheet-row/components/row/headerRow";
 import { useDebounce } from "@/hooks/useDebounce";
 import { NUMBER_OF_WEEKS_TO_FETCH } from "@/lib/constant";
 import buildCompositeFilters, {
@@ -42,10 +50,6 @@ import buildCompositeFilters, {
 import { useUser } from "@/providers/user";
 import type { WorkingFrequency } from "@/types";
 import type { TimesheetFilters } from "@/types/timesheet";
-import ApprovalStatusFilter from "../../../components/filters/approvalStatusFilter";
-import SearchTasks from "../../../components/filters/searchTasks";
-import { InfiniteScroll } from "../../../components/infiniteScroll";
-import { HeaderRow } from "../../../components/timesheet-row/components/row/headerRow";
 import { PersonalTimesheetRow } from "../../../components/timesheet-row/personalTimesheetRow";
 import { useTimesheetOutletContext } from "../outletContext";
 import { initialState, reducer } from "../reducer";
@@ -60,7 +64,6 @@ function PersonalTimesheet() {
   );
   const [filters, setFilters] = useState<TimesheetFilters>({
     search: "",
-    approvalStatus: null,
   });
   const [hasMore, setHasMore] = useState(true);
   const [selectedTask, setSelectedTask] = useState<string | null>(null);
@@ -116,11 +119,11 @@ function PersonalTimesheet() {
   );
 
   const handleApprovalStatusChange = useCallback(
-    (value?: ApprovalStatusType | null) => {
+    (value?: string) => {
       resetWeekDateForFilters();
       setFilters((prev) => ({
         ...prev,
-        approvalStatus: value,
+        approvalStatus: value as ApprovalStatusType,
       }));
     },
     [resetWeekDateForFilters],
@@ -231,10 +234,22 @@ function PersonalTimesheet() {
     <div className="w-full h-full py-3.5 px-3">
       <div className="flex flex-wrap gap-2 justify-between mb-3.5">
         <div className="flex gap-2">
-          <SearchTasks value={filters.search} onChange={handleSearchChange} />
-          <ApprovalStatusFilter
+          <TextInput
+            placeholder="Search Tasks"
+            value={filters.search}
+            onChange={(e) => handleSearchChange(e.target.value)}
+          />
+          <Select
+            placeholder="Approval Status"
+            className="w-fit"
+            options={Object.entries(ApprovalStatusLabelMap).map(
+              ([key, value]) => ({
+                label: value,
+                value: key,
+              }),
+            )}
             value={filters.approvalStatus}
-            onChange={handleApprovalStatusChange}
+            onChange={(value) => handleApprovalStatusChange(value)}
           />
         </div>
         <div className="flex gap-2">
