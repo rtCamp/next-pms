@@ -28,6 +28,7 @@ export default defineConfig(({ mode }) => {
     server: {
       port: 5173,
       proxy: proxyConfig,
+      allowedHosts: ["next-pms-frontend.lndo.site"],
     },
     resolve: {
       alias: {
