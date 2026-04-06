@@ -2,7 +2,7 @@
  * External Dependencies
  */
 import { useCallback, useEffect, useState } from "react";
-import { getFormatedDate, getTodayDate } from "@next-pms/design-system";
+import { getFormatedDate } from "@next-pms/design-system";
 import { DurationInput } from "@next-pms/design-system/components";
 import {
   DatePicker,
@@ -69,9 +69,9 @@ const AddTime = ({
     "next_pms.api.get_user_calendar_events",
     {
       start_date: initialDate,
-      end_date: getFormatedDate(addDays(getTodayDate(), 7)),
+      end_date: getFormatedDate(addDays(initialDate, 7)),
     },
-    undefined,
+    open ? undefined : null,
     {
       errorRetryCount: 0,
       shouldRetryOnError: false,

@@ -45,6 +45,7 @@ const CalendarEvents = ({ events, onSelectionChange }: CalendarEventsProps) => {
     if (!val) {
       setSelectedIds([]);
       setSelectAll(false);
+      notifySelectionChange([]);
     }
   };
 
