@@ -1,8 +1,12 @@
+import json
+
 import frappe
 from erpnext.setup.doctype.employee.employee import get_holiday_list_for_employee
 from frappe.utils import add_days, get_first_day_of_week, get_last_day_of_week
 from frappe.utils.caching import redis_cache
 from frappe.utils.data import getdate
+
+from next_pms.timesheet.utils.constant import ALLOWED_FILTER_FIELDS
 
 READ_ONLY_ROLE = ["Timesheet User", "Projects User"]
 READ_WRITE_ROLE = ["Timesheet Manager", "Projects Manager"]
@@ -191,3 +195,56 @@ def employee_has_higher_access(employee: str, ptype: str = "read") -> bool:
         return True
 
     return employee == session_employee
+
+
+def parse_filters(raw_filters):
+    """Parse Frappe desk-style filters into per-doctype filter lists.
+
+    Input: [["Timesheet", "parent_project", "=", "PROJ-001"], ...]
+    Output: {"Timesheet": [["parent_project", "=", "PROJ-001"]], "Timesheet Detail": [], "Task": []}
+    """
+    result = {dt: [] for dt in ALLOWED_FILTER_FIELDS}
+
+    if not raw_filters:
+        return result
+
+    if isinstance(raw_filters, str):
+        try:
+            raw_filters = json.loads(raw_filters)
+        except (json.JSONDecodeError, ValueError):
+            frappe.throw(frappe._("Invalid filters format. Expected a JSON array."))
+
+    if not isinstance(raw_filters, list):
+        frappe.throw(frappe._("Filters must be a list of [doctype, field, operator, value] entries."))
+
+    for f in raw_filters:
+        if not isinstance(f, list) or len(f) != 4:
+            frappe.throw(frappe._("Each filter must be a list of [doctype, field, operator, value]."))
+
+        doctype, field, operator, value = f
+
+        if doctype not in ALLOWED_FILTER_FIELDS:
+            frappe.throw(frappe._("Filtering on doctype '{0}' is not supported.").format(doctype))
+
+        if field not in ALLOWED_FILTER_FIELDS[doctype]:
+            frappe.throw(frappe._("Filtering on field '{0}' of '{1}' is not supported.").format(field, doctype))
+
+        result[doctype].append([field, operator, value])
+
+    return result
+
+
+def build_filters(base_filters, additional_filters):
+    """Merge base dict filters with parsed list-of-lists filters for frappe.get_all.
+
+    Converts base dict format {field: value} or {field: [op, value]} into
+    list-of-lists format and extends with additional filters.
+    """
+    result = []
+    for field, value in base_filters.items():
+        if isinstance(value, list) and len(value) == 2 and isinstance(value[0], str):
+            result.append([field, value[0], value[1]])
+        else:
+            result.append([field, "=", value])
+    result.extend(additional_filters)
+    return result

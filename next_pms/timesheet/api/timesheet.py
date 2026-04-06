@@ -22,64 +22,13 @@ from .employee import (
 )
 from .utils import (
     apply_role_permission_for_doctype,
+    build_filters,
     employee_has_higher_access,
     get_holidays,
     get_week_dates,
     has_write_access,
+    parse_filters,
 )
-
-
-def parse_filters(raw_filters):
-    """Parse Frappe desk-style filters into per-doctype filter lists.
-
-    Input: [["Timesheet", "parent_project", "=", "PROJ-001"], ...]
-    Output: {"Timesheet": [["parent_project", "=", "PROJ-001"]], "Timesheet Detail": [], "Task": []}
-    """
-    result = {dt: [] for dt in ALLOWED_FILTER_FIELDS}
-
-    if not raw_filters:
-        return result
-
-    if isinstance(raw_filters, str):
-        try:
-            raw_filters = json.loads(raw_filters)
-        except (json.JSONDecodeError, ValueError):
-            frappe.throw(_("Invalid filters format. Expected a JSON array."))
-
-    if not isinstance(raw_filters, list):
-        frappe.throw(_("Filters must be a list of [doctype, field, operator, value] entries."))
-
-    for f in raw_filters:
-        if not isinstance(f, list) or len(f) != 4:
-            frappe.throw(_("Each filter must be a list of [doctype, field, operator, value]."))
-
-        doctype, field, operator, value = f
-
-        if doctype not in ALLOWED_FILTER_FIELDS:
-            frappe.throw(_("Filtering on doctype '{0}' is not supported.").format(doctype))
-
-        if field not in ALLOWED_FILTER_FIELDS[doctype]:
-            frappe.throw(_("Filtering on field '{0}' of '{1}' is not supported.").format(field, doctype))
-
-        result[doctype].append([field, operator, value])
-
-    return result
-
-
-def _build_filters(base_filters, additional_filters):
-    """Merge base dict filters with parsed list-of-lists filters for frappe.get_all.
-
-    Converts base dict format {field: value} or {field: [op, value]} into
-    list-of-lists format and extends with additional filters.
-    """
-    result = []
-    for field, value in base_filters.items():
-        if isinstance(value, list) and len(value) == 2 and isinstance(value[0], str):
-            result.append([field, value[0], value[1]])
-        else:
-            result.append([field, "=", value])
-    result.extend(additional_filters)
-    return result
 
 
 def _apply_qb_condition(query, doctype_ref, field_name, operator, value):
@@ -590,7 +539,7 @@ def get_timesheet(dates: list, employee: str, search: str | None = None, parsed_
         "start_date": ["in", dates],
         "docstatus": ["!=", 2],
     }
-    ts_filters = _build_filters(base_ts_filters, parsed_filters.get("Timesheet", []))
+    ts_filters = build_filters(base_ts_filters, parsed_filters.get("Timesheet", []))
 
     timesheet_names = frappe.get_all(
         "Timesheet",
@@ -604,7 +553,7 @@ def get_timesheet(dates: list, employee: str, search: str | None = None, parsed_
 
     # Fetch all timesheet detail records with needed fields in one query
     base_detail_filters = {"parent": ["in", timesheet_names]}
-    detail_filters = _build_filters(base_detail_filters, parsed_filters.get("Timesheet Detail", []))
+    detail_filters = build_filters(base_detail_filters, parsed_filters.get("Timesheet Detail", []))
 
     timesheet_logs = frappe.get_all(
         "Timesheet Detail",
@@ -619,7 +568,7 @@ def get_timesheet(dates: list, employee: str, search: str | None = None, parsed_
 
     # Build Task query filters
     base_task_filters = {"name": ["in", task_ids]}
-    task_filters = _build_filters(base_task_filters, parsed_filters.get("Task", []))
+    task_filters = build_filters(base_task_filters, parsed_filters.get("Task", []))
 
     task_details = frappe.get_all(
         "Task",
