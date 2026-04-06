@@ -9,7 +9,6 @@ import {
 } from "@next-pms/design-system/components";
 import {
   Sidebar as BaseSidebar,
-  Batches,
   Notifications,
   People,
   Reports,
@@ -66,7 +65,6 @@ const Sidebar = () => {
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
   }, []);
-
 
   return (
     <ErrorFallback>
@@ -185,15 +183,26 @@ const Sidebar = () => {
             ],
           },
           {
-            label: "",
+            label: "Allocations",
+            collapsible: true,
             items: [
               {
-                label: "Allocation",
-                icon: Batches,
-                to: "",
-                isActive: pathname === ROUTES.allocation,
-                onClick: () => navigate(ROUTES.allocation),
+                label: "Team",
+                icon: People,
+                isActive: pathname === ROUTES["allocations-team"],
+                onClick: () => navigate(ROUTES["allocations-team"]),
               },
+              {
+                label: "Projects",
+                icon: Folder,
+                isActive: pathname === ROUTES["allocations-project"],
+                onClick: () => navigate(ROUTES["allocations-project"]),
+              },
+            ],
+          },
+          {
+            label: "",
+            items: [
               {
                 label: "Roadmap",
                 icon: Layers,
@@ -232,7 +241,14 @@ const Sidebar = () => {
             label: "Timesheet - Projects",
             action: () => navigate(ROUTES["timesheet-project"]),
           },
-          { label: "Allocation", action: () => navigate(ROUTES.allocation) },
+          {
+            label: "Allocations - Team",
+            action: () => navigate(ROUTES["allocations-team"]),
+          },
+          {
+            label: "Allocations - project",
+            action: () => navigate(ROUTES["allocations-project"]),
+          },
           { label: "Roadmap", action: () => navigate(ROUTES.roadmap) },
           { label: "Reports", action: () => navigate(ROUTES.report) },
         ]}

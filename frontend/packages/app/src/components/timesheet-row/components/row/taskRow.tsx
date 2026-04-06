@@ -5,6 +5,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { floatToTime } from "@next-pms/design-system";
 import {
   TaskRow as BaseTaskRow,
+  type TaskRowTimeEntry,
   taskStatusMap,
 } from "@next-pms/design-system/components";
 import { useToasts } from "@rtcamp/frappe-ui-react";
@@ -15,6 +16,7 @@ import { useFrappePostCall } from "frappe-react-sdk";
  */
 import TaskPopover from "@/components/taskPopover";
 import { calculateTotalHours, parseFrappeErrorMsg } from "@/lib/utils";
+import type { TaskDataItemProps } from "@/types/timesheet";
 import type { TaskRowProps } from "./types";
 import { InlineTimeEntry } from "../inline-time-entry";
 
@@ -56,7 +58,8 @@ export const TaskRow = ({
 
   const taskData = useMemo(() => {
     let total = 0;
-    const totalTimeEntries = [];
+    const totalTimeEntries: TaskRowTimeEntry[] = [];
+    const tasksForDates: TaskDataItemProps[][] = [];
     for (const date of dates) {
       const currentTotal = calculateTotalHours(tasks, date);
       // Check if the time entry for the day is approved or not.
@@ -72,9 +75,10 @@ export const TaskRow = ({
             : true,
         disabled: disabled || isApproved || false,
       });
+      tasksForDates.push(tasksForDate);
       total += currentTotal;
     }
-    return { total, totalTimeEntries };
+    return { total, totalTimeEntries, tasksForDates };
   }, [dates, taskKey, tasks, disabled]);
 
   const renderTaskHoverContent = useCallback(
@@ -145,11 +149,13 @@ export const TaskRow = ({
       hideStarButton={hideLikeButton}
       renderInlineTimeEntryPopover={(_, dayIndex, closePopover) => (
         <InlineTimeEntry
+          tasks={taskData.tasksForDates[dayIndex]}
           dailyWorkingHours={dailyWorkingHours}
           totalUsedHoursInDay={totalTimeEntriesInHours?.[dayIndex]}
           timeEntry={taskData.totalTimeEntries[dayIndex]}
+          disabled={taskData.totalTimeEntries[dayIndex].disabled}
           date={dates[dayIndex]}
-          task={taskKey}
+          taskKey={taskKey}
           employee={employee ?? ""}
           onSubmitSuccess={closePopover}
         />

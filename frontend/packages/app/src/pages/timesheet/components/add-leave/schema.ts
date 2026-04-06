@@ -17,9 +17,12 @@ export const addLeaveFormSchema = z.object({
   leaveDuration: z.enum(LEAVE_DURATION, {
     required_error: "Please select leave duration.",
   }),
-  leaveType: z.string({
-    required_error: "Please select leave types.",
-  }),
+  leaveType: z
+    .string({
+      required_error: "Please select leave type.",
+    })
+    .trim()
+    .min(1, { message: "Please select leave type." }),
   reason: z
     .string({
       required_error: "Please enter a reason.",
