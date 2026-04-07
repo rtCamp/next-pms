@@ -3,13 +3,17 @@
  */
 import { Fragment, useCallback, useState } from "react";
 import { Spinner, Typography } from "@next-pms/design-system/components";
-import { Button, Filter, FilterCondition } from "@rtcamp/frappe-ui-react";
+import {
+  Button,
+  Filter,
+  FilterCondition,
+  TextInput,
+} from "@rtcamp/frappe-ui-react";
 import { Ellipsis } from "lucide-react";
 
 /**
  * Internal dependencies.
  */
-import SearchTasks from "@/components/filters/searchTasks";
 import { InfiniteScroll } from "@/components/infiniteScroll";
 import { ProjectTimesheetRow } from "@/components/timesheet-row";
 import { HeaderRow } from "@/components/timesheet-row/components/row/headerRow";
@@ -31,7 +35,7 @@ export const ProjectTimesheetTable = () => {
   );
   const [filters, setFilters] = useState<TimesheetFilters>({
     search: "",
-    reportsTo: null,
+    reportsTo: undefined,
   });
 
   const handleSearchChange = useCallback((value: string) => {
@@ -42,7 +46,11 @@ export const ProjectTimesheetTable = () => {
     <div className="w-full h-full py-3.5 px-3">
       <div className="flex flex-wrap gap-2 justify-between mb-3.5">
         <div className="flex gap-2">
-          <SearchTasks value={filters.search} onChange={handleSearchChange} />
+          <TextInput
+            placeholder="Search Tasks"
+            value={filters.search}
+            onChange={(e) => handleSearchChange(e.target.value)}
+          />
         </div>
         <div className="flex gap-2">
           <Filter
