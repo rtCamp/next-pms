@@ -11,7 +11,7 @@ import {
  * Internal dependencies
  */
 import type { WorkingFrequency } from "@/types";
-import type { TaskProps } from "@/types/timesheet";
+import type { HolidayProp, LeaveProps, TaskProps } from "@/types/timesheet";
 import { MemberRow } from "./components/row/memberRow";
 import { ProjectRow } from "./components/row/projectRow";
 import { TaskRow } from "./components/row/taskRow";
@@ -25,6 +25,8 @@ export type ProjectTimesheetMember = {
   tasks: TaskProps;
   workingHour: number;
   workingFrequency: WorkingFrequency;
+  leaves: LeaveProps[];
+  holidays: HolidayProp[];
   status: ApprovalStatusLabelType;
 };
 
@@ -34,7 +36,7 @@ export type ProjectTimesheetProject = {
   members: ProjectTimesheetMember[];
 };
 
-type ProjectTimesheetRowProps = {
+export type ProjectTimesheetRowProps = {
   label?: string;
   dates: string[];
   firstWeek: boolean;
@@ -81,8 +83,8 @@ export const ProjectTimesheetRow = ({
                     avatarUrl={member.avatarUrl}
                     dates={dates}
                     tasks={member.tasks}
-                    leaves={[]}
-                    holidays={[]}
+                    leaves={member.leaves}
+                    holidays={member.holidays}
                     workingHour={member.workingHour}
                     workingFrequency={member.workingFrequency}
                     status="None"

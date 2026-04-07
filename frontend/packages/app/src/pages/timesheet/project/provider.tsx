@@ -317,6 +317,11 @@ export const ProjectTimesheetProvider: FC<PropsWithChildren> = ({
 
   useEffect(() => {
     clearLoadedData();
+
+    if (!employeeId) {
+      return;
+    }
+
     setHasMoreWeeks(true);
     setWeekDate(getTodayDate());
   }, [clearLoadedData, employeeId]);
