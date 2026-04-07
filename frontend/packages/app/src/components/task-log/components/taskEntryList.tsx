@@ -25,7 +25,7 @@ const TaskEntryList: React.FC<TaskEntryListProps> = ({
   return (
     <div
       className={cn(
-        "flex overflow-y-auto flex-col gap-3 mt-3 max-h-54 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-transparent [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-surface-gray-4",
+        "flex overflow-y-auto flex-col gap-3 mt-3 max-h-54 scrollbar-thin",
         className,
       )}
     >

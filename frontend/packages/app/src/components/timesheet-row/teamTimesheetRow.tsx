@@ -39,6 +39,7 @@ type TeamTimesheetRowProps = {
   firstWeek: boolean;
   teamMembers: TeamMember[];
   approvalPendingCount?: number;
+  setSelectedTask?: (task: string) => void;
 };
 
 export const TeamTimesheetRow = ({
@@ -47,6 +48,7 @@ export const TeamTimesheetRow = ({
   firstWeek,
   teamMembers,
   approvalPendingCount,
+  setSelectedTask,
 }: TeamTimesheetRowProps) => {
   const openWeeklyApproval = useTeamTimesheet(
     ({ actions }) => actions.openWeeklyApproval,
@@ -123,6 +125,7 @@ export const TeamTimesheetRow = ({
                               totalTimeEntriesInHours={totalTimeEntriesInHours}
                               employee={member.employee}
                               hideLikeButton={true}
+                              setSelectedTask={setSelectedTask}
                             />
                           ),
                         )}

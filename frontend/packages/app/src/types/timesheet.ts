@@ -91,6 +91,6 @@ export interface NewTimesheetProps {
 
 export interface TimesheetFilters {
   search: string;
-  approvalStatus?: ApprovalStatusType | null;
-  reportsTo?: string | null;
+  approvalStatus?: ApprovalStatusType;
+  reportsTo?: string;
 }

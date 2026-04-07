@@ -4,7 +4,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Spinner, Typography } from "@next-pms/design-system/components";
 import { useQueryParam } from "@next-pms/hooks";
-import { Button } from "@rtcamp/frappe-ui-react";
+import { Button, TextInput } from "@rtcamp/frappe-ui-react";
 import { isEmpty } from "lodash";
 import { Ellipsis } from "lucide-react";
 
@@ -19,7 +19,6 @@ import { useUser } from "@/providers/user";
 import type { WorkingFrequency } from "@/types";
 import { usePersonalTimesheet } from "./context";
 import ApprovalStatusFilter from "../../../components/filters/approvalStatusFilter";
-import SearchTasks from "../../../components/filters/searchTasks";
 import { InfiniteScroll } from "../../../components/infiniteScroll";
 import { HeaderRow } from "../../../components/timesheet-row/components/row/headerRow";
 import { PersonalTimesheetRow } from "../../../components/timesheet-row/personalTimesheetRow";
@@ -79,7 +78,11 @@ export const PersonalTimesheetTable = () => {
     <div className="w-full flex-1 min-h-0 py-3.5 px-3">
       <div className="flex flex-wrap gap-2 justify-between mb-3.5">
         <div className="flex gap-2">
-          <SearchTasks value={filters.search} onChange={handleSearchChange} />
+          <TextInput
+            placeholder="Search Tasks"
+            value={filters.search}
+            onChange={(e) => handleSearchChange(e.target.value)}
+          />
           <ApprovalStatusFilter
             value={filters.approvalStatus}
             onChange={handleApprovalStatusChange}

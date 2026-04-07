@@ -3,7 +3,7 @@
  */
 import { BadgeProps, ButtonVariant } from "@rtcamp/frappe-ui-react";
 import { cva } from "class-variance-authority";
-import { Check, CircleCheck, CircleX, Send } from "lucide-react";
+import { CircleCheck, CircleX, Hourglass, Send } from "lucide-react";
 
 /**
  * Internal dependencies.
@@ -124,8 +124,8 @@ export const approvalStatusIcon: Record<
     icon: CircleX,
   },
   "approval-pending": {
-    variant: "solid",
-    icon: Check,
+    variant: "ghost",
+    icon: Hourglass,
   },
   "partially-approved": {
     variant: "ghost",

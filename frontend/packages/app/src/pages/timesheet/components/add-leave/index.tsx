@@ -44,8 +44,14 @@ const AddLeave = ({ open = false, onOpenChange }: LeaveTimeProps) => {
     },
   );
 
-  const leaveTypeOptions = (
+  const unpaidLeaveOptions = (
     (leaveDetails?.message?.lwps as string[]) || []
+  ).map((val) => ({
+    label: val,
+    value: val,
+  }));
+  const allocatedLeaveOptions = Object.keys(
+    (leaveDetails?.message?.leave_allocation as Record<string, unknown>) || {},
   ).map((val) => ({ label: val, value: val }));
 
   const form = useForm({
@@ -61,18 +67,22 @@ const AddLeave = ({ open = false, onOpenChange }: LeaveTimeProps) => {
     },
     onSubmit: async ({ value }) => {
       // Convert to Title case
-      const custom_first_halfsecond_half = value.leaveDuration
-        .split("-")
-        .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-        .join(" ");
+      const custom_first_halfsecond_half =
+        value.leaveDuration !== "full-day"
+          ? value.leaveDuration
+              .split("-")
+              .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+              .join(" ")
+          : "";
 
       const half_day =
-        value.leaveType === "first-half" || value.leaveType === "second-half";
+        value.leaveDuration === "first-half" ||
+        value.leaveDuration === "second-half";
 
       try {
         const data = {
           employee: employeeId,
-          description: "",
+          description: value.reason,
           from_date: value.fromDate,
           to_date: value.toDate,
           leave_type: value.leaveType,
@@ -127,14 +137,14 @@ const AddLeave = ({ open = false, onOpenChange }: LeaveTimeProps) => {
                     {({ displayValue }) => {
                       return (
                         <div
-                          className={`relative flex items-center border border-outline-gray-2 px-[10px] py-1 rounded-lg`}
+                          className={`w-full relative flex items-center border border-outline-gray-2 px-[10px] py-1 rounded-lg`}
                         >
                           <input
+                            readOnly
                             type="text"
                             id="start"
                             value={displayValue}
                             className={`flex-1`}
-                            placeholder="Today"
                           />
                           <Calendar className="size-4" />
                         </div>
@@ -165,14 +175,14 @@ const AddLeave = ({ open = false, onOpenChange }: LeaveTimeProps) => {
                     {({ displayValue }) => {
                       return (
                         <div
-                          className={`relative flex items-center border border-outline-gray-2 px-[10px] py-1 rounded-lg`}
+                          className={`w-full relative flex items-center border border-outline-gray-2 px-[10px] py-1 rounded-lg`}
                         >
                           <input
+                            readOnly
                             type="text"
                             id="start"
                             value={displayValue}
                             className={`flex-1`}
-                            placeholder="Today"
                           />
                           <Calendar className="size-4" />
                         </div>
@@ -233,7 +243,7 @@ const AddLeave = ({ open = false, onOpenChange }: LeaveTimeProps) => {
                   onChange={(val) => field.handleChange(val as string)}
                   variant="outline"
                   className="h-8"
-                  options={leaveTypeOptions}
+                  options={[...unpaidLeaveOptions, ...allocatedLeaveOptions]}
                   placeholder="Select Leave Type"
                 />
                 {!field.state.meta.isValid && (

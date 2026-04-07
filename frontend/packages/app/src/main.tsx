@@ -20,11 +20,18 @@ if (import.meta.env.DEV) {
       const v = JSON.parse(values.message);
       if (!window.frappe) window.frappe = {};
       window.frappe.boot = v;
+    })
+    .finally(() => {
+      ReactDOM.createRoot(document.getElementById("root")!).render(
+        <React.StrictMode>
+          <App />
+        </React.StrictMode>,
+      );
     });
+} else {
+  ReactDOM.createRoot(document.getElementById("root")!).render(
+    <React.StrictMode>
+      <App />
+    </React.StrictMode>,
+  );
 }
-
-ReactDOM.createRoot(document.getElementById("root")!).render(
-  <React.StrictMode>
-    <App />
-  </React.StrictMode>,
-);
