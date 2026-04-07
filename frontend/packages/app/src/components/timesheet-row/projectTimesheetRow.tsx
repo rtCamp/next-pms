@@ -74,6 +74,7 @@ export const ProjectTimesheetRow = ({
                 dates={dates}
                 tasks={project.mergedTasks}
                 label={project.projectName || project.project}
+                highlightTimeEntries={true}
                 className="pl-7.5"
               >
                 {project.members.map((member) => (
