@@ -1,7 +1,7 @@
 /**
  * External Dependencies
  */
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useId } from "react";
 import {
   formatDateTimeLabel,
@@ -41,11 +41,12 @@ const CalendarEvents = ({
     enabled: enabled && show && isCalendarSetup,
   });
 
-  const notifySelectionChange = (nextIds: string[]) => {
-    const allEventSubjects = events
-      .map((e) => e.subject.trim())
-      .filter(Boolean);
+  const allEventSubjects = useMemo(
+    () => events.map((e) => e.subject.trim()).filter(Boolean),
+    [events],
+  );
 
+  const notifySelectionChange = (nextIds: string[]) => {
     const selectedLabels = events
       .filter((e) => nextIds.includes(e.id))
       .map(
