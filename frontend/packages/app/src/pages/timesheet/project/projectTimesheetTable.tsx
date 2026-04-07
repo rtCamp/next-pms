@@ -108,21 +108,7 @@ export const ProjectTimesheetTable = () => {
                       label={week.key}
                       dates={week.dates}
                       firstWeek={index === 0}
-                      projects={week.projects.map((project) => ({
-                        project: project.project,
-                        projectName: project.projectName,
-                        members: project.members.map((member) => ({
-                          label: member.employee.employee_name,
-                          employee: member.employee.name,
-                          avatarUrl: member.employee.image,
-                          tasks: member.projectTasks,
-                          leaves: member.leaves,
-                          holidays: member.holidays,
-                          workingHour: member.working_hour,
-                          workingFrequency: member.working_frequency,
-                          status: member.week.status,
-                        })),
-                      }))}
+                      projects={week.projects}
                     />
                   </div>
                 </Fragment>

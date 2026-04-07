@@ -49,6 +49,12 @@ type ProjectRecord = {
   project_name: string;
 };
 
+type CompactMemberApiRecord = {
+  name: string;
+  employee_name: string;
+  image: string;
+};
+
 const mergeEmployeeTimesheetData = (
   existing: DataProp | undefined,
   payload: DataProp,
@@ -260,7 +266,7 @@ export const ProjectTimesheetProvider: FC<PropsWithChildren> = ({
     }
 
     const compactPayload = compactViewData.message as {
-      data?: Record<string, EmployeeRecord>;
+      data?: Record<string, CompactMemberApiRecord>;
       dates?: CompactWeek[];
     };
     const compactWeekEntries = compactPayload.dates ?? [];
@@ -272,7 +278,7 @@ export const ProjectTimesheetProvider: FC<PropsWithChildren> = ({
       .filter((member) => member.name)
       .map((member) => ({
         name: member.name,
-        employee_name: member.employee_name,
+        employeeName: member.employee_name,
         image: member.image,
       }));
 
@@ -398,13 +404,15 @@ export const ProjectTimesheetProvider: FC<PropsWithChildren> = ({
           }
 
           targetProject.members.push({
-            employee: member,
-            week,
-            projectTasks: project.tasks,
+            label: member.employeeName,
+            employee: member.name,
+            avatarUrl: member.image,
+            tasks: project.tasks,
             holidays: employeePayload.holidays,
             leaves: employeePayload.leaves,
-            working_hour: employeePayload.working_hour,
-            working_frequency: employeePayload.working_frequency,
+            workingHour: employeePayload.working_hour,
+            workingFrequency: employeePayload.working_frequency,
+            status: week.status,
           } as ProjectMemberData);
         });
       });

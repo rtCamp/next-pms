@@ -1,28 +1,31 @@
 /**
  * External dependencies.
  */
+import type { ApprovalStatusLabelType } from "@next-pms/design-system/components";
 import { createContext, useContextSelector } from "use-context-selector";
 
 /**
  * Internal dependencies.
  */
 import type { WorkingFrequency } from "@/types";
-import type { DataProp, TaskProps, timesheet } from "@/types/timesheet";
+import type { HolidayProp, LeaveProps, TaskProps } from "@/types/timesheet";
 
 export type EmployeeRecord = {
   name: string;
   image: string;
-  employee_name: string;
+  employeeName: string;
 };
 
 export type ProjectMemberData = {
-  employee: EmployeeRecord;
-  week: timesheet;
-  projectTasks: TaskProps;
-  holidays: DataProp["holidays"];
-  leaves: DataProp["leaves"];
-  working_hour: number;
-  working_frequency: WorkingFrequency;
+  label: string;
+  employee: string;
+  avatarUrl?: string;
+  tasks: TaskProps;
+  holidays: HolidayProp[];
+  leaves: LeaveProps[];
+  workingHour: number;
+  workingFrequency: WorkingFrequency;
+  status: ApprovalStatusLabelType;
 };
 
 export type WeekProjectGroup = {
