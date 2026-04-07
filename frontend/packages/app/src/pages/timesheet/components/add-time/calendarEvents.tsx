@@ -7,28 +7,45 @@ import {
   formatDateTimeLabel,
   formatDurationLabel,
 } from "@next-pms/design-system";
+import { Spinner } from "@next-pms/design-system/components";
 import { Checkbox, Badge } from "@rtcamp/frappe-ui-react";
 import { Calendar, Clock } from "lucide-react";
 
 /**
  * Internal Dependencies
  */
-import type { CalendarEvent } from "./type";
+import useCalendarEvents from "./useCalendarEvents";
 
 interface CalendarEventsProps {
-  events: CalendarEvent[];
-  onSelectionChange: (selectedLabels: string[]) => void;
+  initialDate: string;
+  enabled: boolean;
+  onSelectionChange: (
+    selectedLabels: string[],
+    allEventSubjects: string[],
+  ) => void;
 }
 
-const CalendarEvents = ({ events, onSelectionChange }: CalendarEventsProps) => {
+const CalendarEvents = ({
+  initialDate,
+  enabled,
+  onSelectionChange,
+}: CalendarEventsProps) => {
   const id = useId();
   const [show, setShow] = useState(false);
   const [selectAll, setSelectAll] = useState(false);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
 
   const isCalendarSetup = window.frappe?.boot?.is_calendar_setup ?? false;
+  const { events, isLoading, error } = useCalendarEvents({
+    initialDate,
+    enabled: enabled && show && isCalendarSetup,
+  });
 
   const notifySelectionChange = (nextIds: string[]) => {
+    const allEventSubjects = events
+      .map((e) => e.subject.trim())
+      .filter(Boolean);
+
     const selectedLabels = events
       .filter((e) => nextIds.includes(e.id))
       .map(
@@ -37,7 +54,7 @@ const CalendarEvents = ({ events, onSelectionChange }: CalendarEventsProps) => {
       )
       .filter(Boolean);
 
-    onSelectionChange(selectedLabels);
+    onSelectionChange(selectedLabels, allEventSubjects);
   };
 
   const handleToggleShow = (val: boolean) => {
@@ -78,7 +95,11 @@ const CalendarEvents = ({ events, onSelectionChange }: CalendarEventsProps) => {
         />
 
         {!isCalendarSetup && (
-          <a href="#" className="px-2 text-base text-ink-gray-7">
+          <a
+            href="/desk/google-calendar"
+            target="_blank"
+            className="px-2 text-base text-ink-gray-7"
+          >
             Enable
           </a>
         )}
@@ -86,7 +107,13 @@ const CalendarEvents = ({ events, onSelectionChange }: CalendarEventsProps) => {
 
       {show && (
         <div className="px-2.5 py-2 rounded border border-outline-gray-2">
-          {events.length === 0 ? (
+          {isLoading ? (
+            <Spinner />
+          ) : error ? (
+            <p className="py-2 text-base text-center text-ink-gray-5">
+              Failed to load calendar events.
+            </p>
+          ) : events.length === 0 ? (
             <p className="py-2 text-base text-center text-ink-gray-5">
               No events found for the selected date.
             </p>

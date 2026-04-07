@@ -2,7 +2,6 @@
  * External Dependencies
  */
 import { useCallback, useEffect, useState } from "react";
-import { getFormatedDate } from "@next-pms/design-system";
 import { DurationInput } from "@next-pms/design-system/components";
 import {
   DatePicker,
@@ -14,7 +13,6 @@ import {
   useToasts,
 } from "@rtcamp/frappe-ui-react";
 import { useForm, useStore } from "@tanstack/react-form";
-import { addDays } from "date-fns";
 import {
   FrappeError,
   useFrappeGetCall,
@@ -27,14 +25,9 @@ import { Calendar } from "lucide-react";
  */
 import { parseFrappeErrorMsg } from "@/lib/utils";
 import { useUser } from "@/providers/user";
-import CalendarEvents from "./calendar-events";
+import CalendarEvents from "./calendarEvents";
 import { addTimeFormSchema } from "./schema";
-import type {
-  AddTimeProps,
-  CalendarEvent,
-  ProjectData,
-  TaskItem,
-} from "./type";
+import type { AddTimeProps, ProjectData, TaskItem } from "./type";
 
 /**
  * Add Time Component
@@ -63,24 +56,6 @@ const AddTime = ({
   const [submitting, setSubmitting] = useState(false);
   const { call: saveTime } = useFrappePostCall(
     "next_pms.timesheet.api.timesheet.save",
-  );
-
-  const { data: eventData } = useFrappeGetCall(
-    "next_pms.api.get_user_calendar_events",
-    {
-      start_date: initialDate,
-      end_date: getFormatedDate(addDays(initialDate, 7)),
-    },
-    open ? undefined : null,
-    {
-      errorRetryCount: 0,
-      shouldRetryOnError: false,
-      revalidateOnFocus: false,
-    },
-  );
-
-  const calendarEvents = ((eventData?.message || []) as CalendarEvent[]).filter(
-    (event) => !event.all_day,
   );
 
   const form = useForm({
@@ -118,6 +93,7 @@ const AddTime = ({
   });
 
   const selectedProject = useStore(form.store, (state) => state.values.project);
+  const selectedDate = useStore(form.store, (state) => state.values.date);
 
   const { data: projectsData } = useFrappeGetCall("frappe.client.get_list", {
     doctype: "Project",
@@ -148,11 +124,7 @@ const AddTime = ({
   }, [project, task, mutateTasksData]);
 
   const handleCalendarSelectionChange = useCallback(
-    (selectedLabels: string[]) => {
-      const allEventSubjects = calendarEvents
-        .map((event) => event.subject.trim())
-        .filter(Boolean);
-
+    (selectedLabels: string[], allEventSubjects: string[]) => {
       const currentComment = form.state.values.comment || "";
       const preservedLines = currentComment
         .split("\n")
@@ -175,7 +147,7 @@ const AddTime = ({
         [...preservedLines, ...selectedSubjectLines].join("\n"),
       );
     },
-    [calendarEvents, form],
+    [form],
   );
 
   const tasksOptions = ((tasksData?.message?.task ?? []) as TaskItem[]).map(
@@ -325,7 +297,8 @@ const AddTime = ({
         </div>
 
         <CalendarEvents
-          events={calendarEvents}
+          initialDate={selectedDate}
+          enabled={open}
           onSelectionChange={handleCalendarSelectionChange}
         />
 
