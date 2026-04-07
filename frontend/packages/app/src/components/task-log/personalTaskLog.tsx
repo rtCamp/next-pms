@@ -3,8 +3,8 @@
  */
 import React, { useEffect, useState } from "react";
 import { getFormatedDate, getTodayDate } from "@next-pms/design-system";
-import { taskStatusMap } from "@next-pms/design-system/components";
-import { Dialog, Select, Spinner } from "@rtcamp/frappe-ui-react";
+import { Spinner, taskStatusMap } from "@next-pms/design-system/components";
+import { Dialog, Select } from "@rtcamp/frappe-ui-react";
 import { useToasts } from "@rtcamp/frappe-ui-react";
 import { addDays } from "date-fns";
 

@@ -10,6 +10,7 @@ import { Ellipsis } from "lucide-react";
  * Internal dependencies.
  */
 import { InfiniteScroll } from "@/components/infiniteScroll";
+import TeamTaskLog from "@/components/task-log/teamTaskLog";
 import { HeaderRow } from "@/components/timesheet-row/components/row/headerRow";
 import { TeamTimesheetRow } from "@/components/timesheet-row/teamTimesheetRow";
 import { NUMBER_OF_WEEKS_TO_FETCH } from "@/lib/constant";
@@ -19,6 +20,7 @@ import WeeklyApproval from "./weekly-approval";
 import { sampleFields } from "../constants";
 
 export const TeamTimesheetTable = () => {
+  const [selectedTask, setSelectedTask] = useState<string | null>(null);
   const hasMoreWeeks = useTeamTimesheet(({ state }) => state.hasMoreWeeks);
   const isLoadingTeamData = useTeamTimesheet(
     ({ state }) => state.isLoadingTeamData,
@@ -52,6 +54,17 @@ export const TeamTimesheetTable = () => {
         open={isWeeklyApprovalOpen}
         onOpenChange={setIsWeeklyApprovalOpen}
       />
+      {selectedTask && (
+        <TeamTaskLog
+          task={selectedTask}
+          open={!!selectedTask}
+          onOpenChange={(open: boolean) => {
+            if (!open) {
+              setSelectedTask(null);
+            }
+          }}
+        />
+      )}
       <div className="flex flex-wrap gap-2 justify-between mb-3.5">
         <div className="flex gap-2">
           <TextInput
@@ -120,6 +133,7 @@ export const TeamTimesheetTable = () => {
                       dates={week.dates}
                       firstWeek={index === 0}
                       approvalPendingCount={week.approvalPendingCount}
+                      setSelectedTask={setSelectedTask}
                       teamMembers={week.members.map((member) => ({
                         label: member.employee.employee_name,
                         employee: member.employee.name,
