@@ -59,22 +59,19 @@ function TimesheetLayout() {
       to: ROUTES["timesheet-personal"],
       icon: Time,
     },
-    ...(hasRoleAccess
-      ? [
-          {
-            key: "team",
-            label: "Team",
-            to: ROUTES["timesheet-team"],
-            icon: People,
-          },
-          {
-            key: "project",
-            label: "Project",
-            to: ROUTES["timesheet-project"],
-            icon: Folder,
-          },
-        ]
-      : []),
+
+    {
+      key: "team",
+      label: "Team",
+      to: ROUTES["timesheet-team"],
+      icon: People,
+    },
+    {
+      key: "project",
+      label: "Project",
+      to: ROUTES["timesheet-project"],
+      icon: Folder,
+    },
   ] as const;
 
   const selectedKey = pathname.includes("team")
@@ -93,31 +90,37 @@ function TimesheetLayout() {
             {
               id: "timesheets",
               label: "Timesheets",
+              interactive: false,
             },
             {
               id: "personal",
               label: activeView.label,
               prefixIcon: <activeView.icon className="size-4" />,
-              suffixIcon: <ChevronDown className="w-4 h-4" />,
-              dropdown: {
-                dropdownClassName: "w-[220px] px-1",
-                groupClassName: "px-0 py-1 space-y-1",
-                itemClassName: "text-ink-gray-8 hover:text-ink-gray-7",
-                selectedKey: selectedKey,
-                selectedGroupKey: "views-group",
-                options: [
-                  {
-                    group: "",
-                    key: "views-group",
-                    items: timesheetViews.map((v) => ({
-                      label: v.label,
-                      key: v.key,
-                      icon: <v.icon className="size-4 mr-2" />,
-                      onClick: () => navigate(v.to),
-                    })),
-                  },
-                ],
-              },
+              interactive: hasRoleAccess,
+              suffixIcon: hasRoleAccess ? (
+                <ChevronDown className="w-4 h-4" />
+              ) : undefined,
+              dropdown: hasRoleAccess
+                ? {
+                    dropdownClassName: "w-[220px] px-1",
+                    groupClassName: "px-0 py-1 space-y-1",
+                    itemClassName: "text-ink-gray-8 hover:text-ink-gray-7",
+                    selectedKey: selectedKey,
+                    selectedGroupKey: "views-group",
+                    options: [
+                      {
+                        group: "",
+                        key: "views-group",
+                        items: timesheetViews.map((v) => ({
+                          label: v.label,
+                          key: v.key,
+                          icon: <v.icon className="size-4 mr-2" />,
+                          onClick: () => navigate(v.to),
+                        })),
+                      },
+                    ],
+                  }
+                : undefined,
             },
           ]}
         />

@@ -152,20 +152,31 @@ const Sidebar = () => {
                 isActive: pathname === ROUTES.project,
                 onClick: () => navigate(ROUTES.project),
               },
+              ...(!hasRoleAccess
+                ? [
+                    {
+                      label: "Timesheet",
+                      icon: Time,
+                      to: "",
+                      isActive: pathname === ROUTES["timesheet-personal"],
+                      onClick: () => navigate(ROUTES["timesheet-personal"]),
+                    },
+                  ]
+                : []),
             ],
           },
-          {
-            label: "Timesheet",
-            collapsible: true,
-            items: [
-              {
-                label: "Personal",
-                icon: Time,
-                isActive: pathname === ROUTES["timesheet-personal"],
-                onClick: () => navigate(ROUTES["timesheet-personal"]),
-              },
-              ...(hasRoleAccess
-                ? [
+          ...(hasRoleAccess
+            ? [
+                {
+                  label: "Timesheet",
+                  collapsible: true,
+                  items: [
+                    {
+                      label: "Personal",
+                      icon: Time,
+                      isActive: pathname === ROUTES["timesheet-personal"],
+                      onClick: () => navigate(ROUTES["timesheet-personal"]),
+                    },
                     {
                       label: "Team",
                       icon: People,
@@ -178,10 +189,10 @@ const Sidebar = () => {
                       isActive: pathname === ROUTES["timesheet-project"],
                       onClick: () => navigate(ROUTES["timesheet-project"]),
                     },
-                  ]
-                : []),
-            ],
-          },
+                  ],
+                },
+              ]
+            : []),
           {
             label: "Allocations",
             collapsible: true,
