@@ -67,12 +67,12 @@ export const getDayDiff = (startString: string, endString: string): number => {
 export const checkInRange = (
   start: string,
   weeks: number,
-  dateString: string
+  dateString: string,
 ) => {
   const startDate = getFormatedDate(
     startOfWeek(getUTCDateTime(start), {
       weekStartsOn: 1,
-    })
+    }),
   );
 
   const endDate = getNextDate(startDate, weeks);
@@ -103,7 +103,7 @@ export const prettyDate = (dateString: string, isLong: boolean = false) => {
 };
 
 export const getDateFromDateAndTimeString = (
-  dateTimeString: string
+  dateTimeString: string,
 ): string => {
   // Split the date and time parts exa: '2024-05-08 00:00:00'
   const parts = dateTimeString.split(" ");
@@ -133,6 +133,59 @@ export const getDisplayDate = (date: Date): string => {
   if (isToday(utcDate)) return "Today";
   if (isYesterday(utcDate)) return "Yesterday";
   return format(utcDate, "MMM d");
+};
+
+/**
+ * Parses a datetime string into a Date.
+ * Accepts both "YYYY-MM-DD HH:mm:ss" and ISO strings.
+ *
+ * @example
+ * parseDateTimeString("2026-04-06 09:45:00") // Date("2026-04-06T09:45:00")
+ */
+export const parseDateTimeString = (value: string): Date => {
+  return parseISO(value.includes("T") ? value : value.replace(" ", "T"));
+};
+
+/**
+ * Formats a datetime string using a date-fns format pattern.
+ *
+ * @example
+ * formatDateTimeLabel("2026-04-06 09:45:00", "MMM d, h:mm a") // "Apr 6, 9:45 AM"
+ */
+export const formatDateTimeLabel = (value: string, pattern: string): string => {
+  return format(parseDateTimeString(value), pattern);
+};
+
+/**
+ * Formats a duration between two datetime strings into a compact label.
+ *
+ * @example
+ * formatDurationLabel("2026-04-06 09:00:00", "2026-04-06 09:45:00") // "45m"
+ */
+export const formatDurationLabel = (
+  startsOn: string,
+  endsOn: string,
+): string => {
+  const totalMinutes = Math.max(
+    differenceInMinutes(
+      parseDateTimeString(endsOn),
+      parseDateTimeString(startsOn),
+    ),
+    0,
+  );
+
+  if (totalMinutes < 60) {
+    return `${totalMinutes}m`;
+  }
+
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+
+  if (minutes === 0) {
+    return `${hours}hr`;
+  }
+
+  return `${hours}hr ${minutes}m`;
 };
 
 export const formatDate = (date: string | Date): string => {

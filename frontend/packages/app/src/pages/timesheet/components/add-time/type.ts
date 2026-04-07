@@ -26,6 +26,15 @@ export type TaskListData = {
   task: TaskItem[];
 };
 
+export type CalendarEvent = {
+  id: string;
+  subject: string;
+  starts_on: string;
+  ends_on: string;
+  all_day: number;
+  event_type: string;
+};
+
 export interface AddTimeProps {
   initialDate: string;
   open: boolean;
