@@ -1,7 +1,7 @@
 /**
  * External dependencies.
  */
-import { useCallback, useState } from "react";
+import { Fragment, useCallback, useState } from "react";
 import { Spinner, Typography } from "@next-pms/design-system/components";
 import { Button, Filter, FilterCondition } from "@rtcamp/frappe-ui-react";
 import { Ellipsis } from "lucide-react";
@@ -87,7 +87,7 @@ export const TeamTimesheetTable = () => {
           <div className="min-w-225">
             {weekGroups.map((week, index) => {
               return (
-                <>
+                <Fragment key={`${week.start_date}-${week.end_date}`}>
                   {index === 0 ? (
                     <div className="sticky top-0 z-10 mb-4 bg-surface-white">
                       <HeaderRow
@@ -109,10 +109,7 @@ export const TeamTimesheetTable = () => {
                     </div>
                   ) : null}
 
-                  <div
-                    key={`${week.start_date}-${week.end_date}`}
-                    className="animate-fade-in"
-                  >
+                  <div className="animate-fade-in">
                     <TeamTimesheetRow
                       label={week.key}
                       dates={week.dates}
@@ -131,7 +128,7 @@ export const TeamTimesheetTable = () => {
                       }))}
                     />
                   </div>
-                </>
+                </Fragment>
               );
             })}
           </div>

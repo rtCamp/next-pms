@@ -2,6 +2,7 @@
  * External dependencies.
  */
 import {
+  Fragment,
   useCallback,
   useEffect,
   useMemo,
@@ -281,7 +282,7 @@ function PersonalTimesheet() {
                   Object.entries(timesheet.data?.data).map(
                     ([key, value], index) => {
                       return (
-                        <>
+                        <Fragment key={key}>
                           {index === 0 ? (
                             <div className="sticky top-0 z-10 mb-4 bg-surface-white">
                               <HeaderRow
@@ -302,7 +303,6 @@ function PersonalTimesheet() {
                             </div>
                           ) : null}
                           <div
-                            key={key}
                             ref={
                               !isEmpty(startDateParam) &&
                               isDateInRange(
@@ -343,7 +343,7 @@ function PersonalTimesheet() {
                               status={value.status}
                             />
                           </div>
-                        </>
+                        </Fragment>
                       );
                     },
                   )}
