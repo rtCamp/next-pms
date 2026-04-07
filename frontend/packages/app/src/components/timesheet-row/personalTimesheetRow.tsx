@@ -13,12 +13,7 @@ import {
 import { getHolidayList } from "@/lib/utils";
 import { useTimesheetOutletContext } from "@/pages/timesheet/outletContext";
 import { WorkingFrequency } from "@/types";
-import type {
-  HolidayProp,
-  LeaveProps,
-  TaskDataProps,
-  TaskProps,
-} from "@/types/timesheet";
+import type { HolidayProp, LeaveProps, TaskProps } from "@/types/timesheet";
 import { ProjectRow } from "./components/row/projectRow";
 import { TaskRow } from "./components/row/taskRow";
 import { TimeOffRow } from "./components/row/timeOffRow";
@@ -38,7 +33,6 @@ export type PersonalTimesheetRowProps = {
   disabled?: boolean;
   workingFrequency: WorkingFrequency;
   importTasks?: boolean;
-  likedTaskData?: Array<TaskDataProps>;
   hideLikeButton?: boolean;
   setSelectedTask?: (task: string) => void;
   onButtonClick?: () => void;
@@ -56,7 +50,6 @@ export const PersonalTimesheetRow = ({
   workingHour,
   workingFrequency,
   disabled,
-  likedTaskData,
   onButtonClick,
   status,
   setSelectedTask,
@@ -124,7 +117,6 @@ export const PersonalTimesheetRow = ({
                     tasks={{ [taskKey]: task }}
                     label={task.subject || task.name}
                     status={task.status}
-                    likedTaskData={likedTaskData}
                     className="pl-13.5"
                     disabled={disabled}
                     dailyWorkingHours={dailyWorkingHours}

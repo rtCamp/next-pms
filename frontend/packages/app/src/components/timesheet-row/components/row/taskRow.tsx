@@ -16,6 +16,7 @@ import { useFrappePostCall } from "frappe-react-sdk";
  */
 import TaskPopover from "@/components/taskPopover";
 import { calculateTotalHours, parseFrappeErrorMsg } from "@/lib/utils";
+import { usePersonalTimesheet } from "@/pages/timesheet/personal/context";
 import type { TaskDataItemProps } from "@/types/timesheet";
 import type { TaskRowProps } from "./types";
 import { InlineTimeEntry } from "../inline-time-entry";
@@ -28,7 +29,6 @@ import { InlineTimeEntry } from "../inline-time-entry";
  * @param {string} props.taskKey - Key of the task to be rendered.
  * @param {TaskProps} props.tasks - TaskProps object containing task data for the week.
  * @param {string} props.status - Status of the task.
- * @param {Array} props.likedTaskData - Array of liked task data to determine if the task is liked or not.
  * @param {boolean} props.disabled - Whether the task row is disabled.
  * @param {number} props.dailyWorkingHours - Daily working hours for the task.
  * @param {string} props.employee - Employee for the timesheet entry.
@@ -39,7 +39,6 @@ export const TaskRow = ({
   taskKey,
   tasks,
   status,
-  likedTaskData,
   disabled,
   dailyWorkingHours,
   totalTimeEntriesInHours,
@@ -49,6 +48,9 @@ export const TaskRow = ({
   ...rest
 }: TaskRowProps) => {
   const [taskLiked, setTaskLiked] = useState(false);
+  const likedTaskData = usePersonalTimesheet(
+    ({ state }) => state.likedTaskData,
+  );
   const { call: toggleLikeCall } = useFrappePostCall(
     "frappe.desk.like.toggle_like",
   );

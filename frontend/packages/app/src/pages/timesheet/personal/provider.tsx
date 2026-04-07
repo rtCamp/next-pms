@@ -50,7 +50,7 @@ export const PersonalTimesheetProvider: FC<PropsWithChildren> = ({
   );
   const [filters, setFilters] = useState<TimesheetFilters>({
     search: "",
-    approvalStatus: null,
+    approvalStatus: undefined,
   });
 
   const hasActiveFilters =
@@ -98,7 +98,7 @@ export const PersonalTimesheetProvider: FC<PropsWithChildren> = ({
       resetWeekDateForFilters();
       setFilters((prev) => ({
         ...prev,
-        approvalStatus: value,
+        approvalStatus: value ? value : undefined,
       }));
     },
     [resetWeekDateForFilters],

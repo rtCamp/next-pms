@@ -39,9 +39,6 @@ export const PersonalTimesheetTable = () => {
   const compositeFilters = usePersonalTimesheet(
     ({ state }) => state.compositeFilters,
   );
-  const likedTaskData = usePersonalTimesheet(
-    ({ state }) => state.likedTaskData,
-  );
   const loadData = usePersonalTimesheet(({ actions }) => actions.loadData);
   const handleSearchChange = usePersonalTimesheet(
     ({ actions }) => actions.handleSearchChange,
@@ -176,7 +173,6 @@ export const PersonalTimesheetTable = () => {
                             tasks={value.tasks}
                             firstWeek={index === 0}
                             disabled={value.status === "Approved"}
-                            likedTaskData={likedTaskData}
                             setSelectedTask={setSelectedTask}
                             onButtonClick={() =>
                               handleApproval(

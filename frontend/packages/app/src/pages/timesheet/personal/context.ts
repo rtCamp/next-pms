@@ -47,7 +47,7 @@ export const PersonalTimesheetContext =
       timesheetData: initialTimesheetData,
       filters: {
         search: "",
-        approvalStatus: null,
+        approvalStatus: undefined,
       },
       compositeFilters: [],
       likedTaskData: [],
