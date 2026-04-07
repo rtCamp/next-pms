@@ -2,6 +2,7 @@
  * External dependencies.
  */
 import { useEffect, useRef, useState } from "react";
+import { mergeClassNames as cn } from "@next-pms/design-system";
 import { Spinner, Typography } from "@next-pms/design-system/components";
 import { useQueryParam } from "@next-pms/hooks";
 import { Button, TextInput } from "@rtcamp/frappe-ui-react";
@@ -32,6 +33,10 @@ export const PersonalTimesheetTable = () => {
   const isLoadingPersonalData = usePersonalTimesheet(
     ({ state }) => state.isLoadingPersonalData,
   );
+  const isIntialLoad = usePersonalTimesheet(({ state }) => state.isIntialLoad);
+  const isFilterRequest = usePersonalTimesheet(
+    ({ state }) => state.isFilterRequest,
+  );
   const timesheetData = usePersonalTimesheet(
     ({ state }) => state.timesheetData,
   );
@@ -49,13 +54,14 @@ export const PersonalTimesheetTable = () => {
   const handleCompositeFilterChange = usePersonalTimesheet(
     ({ actions }) => actions.handleCompositeFilterChange,
   );
-
   const { employeeId } = useUser(({ state }) => ({
     employeeId: state.employeeId,
   }));
   const [startDateParam] = useQueryParam<string>("date", "");
 
   const { handleApproval } = useTimesheetOutletContext();
+
+  const isFilteredDataLoading = isFilterRequest && isLoadingPersonalData;
 
   useEffect(() => {
     const scrollToElement = () => {
@@ -72,7 +78,7 @@ export const PersonalTimesheetTable = () => {
   }, []);
 
   return (
-    <div className="w-full flex-1 min-h-0 py-3.5 px-3">
+    <div className="w-full flex-1 min-h-0 py-3.5 px-3 relative">
       <div className="flex flex-wrap gap-2 justify-between mb-3.5">
         <div className="flex gap-2">
           <TextInput
@@ -94,7 +100,9 @@ export const PersonalTimesheetTable = () => {
         </div>
       </div>
 
-      {isLoadingPersonalData && Object.keys(timesheetData?.data).length == 0 ? (
+      {isIntialLoad &&
+      isLoadingPersonalData &&
+      Object.keys(timesheetData?.data).length == 0 ? (
         <Spinner isFull />
       ) : (
         <>
@@ -117,9 +125,15 @@ export const PersonalTimesheetTable = () => {
           ) : (
             <InfiniteScroll
               isLoading={isLoadingPersonalData}
-              hasMore={hasMoreWeeks}
+              hasMore={!isFilterRequest && hasMoreWeeks}
               verticalLodMore={loadData}
-              className="w-full h-[calc(100%-var(--spacing)*7)] overflow-auto scrollbar [scrollbar-gutter:stable]"
+              className={cn(
+                "relative w-full h-[calc(100%-var(--spacing)*7)] overflow-auto scrollbar [scrollbar-gutter:stable] opacity-100",
+                {
+                  "opacity-50 transition-opacity duration-150":
+                    isFilteredDataLoading,
+                },
+              )}
               count={NUMBER_OF_WEEKS_TO_FETCH}
             >
               <div className="min-w-225">
@@ -191,6 +205,13 @@ export const PersonalTimesheetTable = () => {
               </div>
             </InfiniteScroll>
           )}
+
+          {isFilteredDataLoading ? (
+            <Spinner
+              isFull
+              className="absolute top-0 left-0 w-full h-full cursor-wait"
+            />
+          ) : null}
         </>
       )}
     </div>

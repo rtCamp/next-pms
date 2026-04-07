@@ -39,6 +39,7 @@ export const PersonalTimesheetProvider: FC<PropsWithChildren> = ({
   children,
 }) => {
   const isFilterRequestRef = useRef(false);
+  const isIntialLoadRef = useRef(true);
   const toast = useToasts();
   const [startDateParam, setStartDateParam] = useQueryParam<string>("date", "");
   const [weekDate, setWeekDate] = useState(getTodayDate());
@@ -80,7 +81,6 @@ export const PersonalTimesheetProvider: FC<PropsWithChildren> = ({
   const resetWeekDateForFilters = useCallback(() => {
     isFilterRequestRef.current = true;
     setHasMoreWeeks(true);
-    setTimesheetData(initialTimesheetData);
     setStartDateParam("");
     setWeekDate(getTodayDate());
   }, [setStartDateParam]);
@@ -117,9 +117,13 @@ export const PersonalTimesheetProvider: FC<PropsWithChildren> = ({
       setHasMoreWeeks(
         hasActiveFilters ? (data.message?.has_more ?? false) : true,
       );
+
+      const isFilterRequest = isFilterRequestRef.current;
+      isFilterRequestRef.current = false;
+
       setTimesheetData((prev) => {
         // If the request was triggered due to filter changes, replace the existing data with the new filtered data.
-        if (isFilterRequestRef.current) {
+        if (isFilterRequest) {
           return data.message;
         }
 
@@ -127,11 +131,8 @@ export const PersonalTimesheetProvider: FC<PropsWithChildren> = ({
         if (Object.keys(prev.data).length > 0) {
           return mergeTimesheetData(prev, data.message);
         }
-
         return data.message;
       });
-
-      isFilterRequestRef.current = false;
     }
 
     if (error) {
@@ -169,6 +170,9 @@ export const PersonalTimesheetProvider: FC<PropsWithChildren> = ({
 
   const loadData = useCallback(() => {
     if (!hasMoreWeeks || isLoading) return;
+    if (isIntialLoadRef.current) {
+      isIntialLoadRef.current = false;
+    }
 
     const weeks = timesheetData.data;
     if (Object.keys(weeks).length === 0) return;
@@ -185,6 +189,8 @@ export const PersonalTimesheetProvider: FC<PropsWithChildren> = ({
       state: {
         hasMoreWeeks,
         isLoadingPersonalData: isLoading,
+        isIntialLoad: isIntialLoadRef.current,
+        isFilterRequest: isFilterRequestRef.current,
         timesheetData,
         filters,
         compositeFilters,

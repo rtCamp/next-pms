@@ -18,6 +18,8 @@ export interface PersonalTimesheetContextProps {
   state: {
     hasMoreWeeks: boolean;
     isLoadingPersonalData: boolean;
+    isIntialLoad: boolean;
+    isFilterRequest: boolean;
     timesheetData: DataProp;
     filters: TimesheetFilters;
     compositeFilters: FilterCondition[];
@@ -44,6 +46,8 @@ export const PersonalTimesheetContext =
     state: {
       hasMoreWeeks: false,
       isLoadingPersonalData: false,
+      isIntialLoad: true,
+      isFilterRequest: false,
       timesheetData: initialTimesheetData,
       filters: {
         search: "",
