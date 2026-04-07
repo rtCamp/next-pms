@@ -45,7 +45,7 @@ const TeamTimeSummary: React.FC<TeamTimeSummaryProps> = ({
           <div>
             <p className="mb-1 text-sm font-medium">{member.employeeName}</p>
             <p className="text-xs text-ink-gray-5">
-              {floatToTime(member.totalHours)}
+              {floatToTime(member.totalHours, 2)}
             </p>
           </div>
         </div>
