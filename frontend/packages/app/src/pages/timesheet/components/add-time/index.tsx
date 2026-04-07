@@ -1,7 +1,7 @@
 /**
  * External Dependencies
  */
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { DurationInput } from "@next-pms/design-system/components";
 import {
   DatePicker,
@@ -25,6 +25,7 @@ import { Calendar } from "lucide-react";
  */
 import { parseFrappeErrorMsg } from "@/lib/utils";
 import { useUser } from "@/providers/user";
+import CalendarEvents from "./calendarEvents";
 import { addTimeFormSchema } from "./schema";
 import type { AddTimeProps, ProjectData, TaskItem } from "./type";
 
@@ -92,6 +93,7 @@ const AddTime = ({
   });
 
   const selectedProject = useStore(form.store, (state) => state.values.project);
+  const selectedDate = useStore(form.store, (state) => state.values.date);
 
   const { data: projectsData } = useFrappeGetCall("frappe.client.get_list", {
     doctype: "Project",
@@ -120,6 +122,33 @@ const AddTime = ({
   useEffect(() => {
     mutateTasksData();
   }, [project, task, mutateTasksData]);
+
+  const handleCalendarSelectionChange = useCallback(
+    (selectedLabels: string[], allEventSubjects: string[]) => {
+      const currentComment = form.state.values.comment || "";
+      const preservedLines = currentComment
+        .split("\n")
+        .map((line) => line.trim())
+        .filter(
+          (line) =>
+            line &&
+            !allEventSubjects.some(
+              (subject) =>
+                line === subject ||
+                line === `- ${subject}` ||
+                line.startsWith(`- ${subject} | `),
+            ),
+        );
+
+      const selectedSubjectLines = selectedLabels.map((label) => `- ${label}`);
+
+      form.setFieldValue(
+        "comment",
+        [...preservedLines, ...selectedSubjectLines].join("\n"),
+      );
+    },
+    [form],
+  );
 
   const tasksOptions = ((tasksData?.message?.task ?? []) as TaskItem[]).map(
     (task) => ({
@@ -153,7 +182,9 @@ const AddTime = ({
           children={(field) => {
             return (
               <>
-                <label className="block text-xs text-ink-gray-5">Project</label>
+                <label className="block text-xs text-ink-gray-5 mb-1.5">
+                  Project
+                </label>
                 <Combobox
                   inputClassName="bg-white h-8 border-outline-gray-2"
                   options={projectOptions}
@@ -175,7 +206,9 @@ const AddTime = ({
           children={(field) => {
             return (
               <>
-                <label className="block text-xs text-ink-gray-5">Task</label>
+                <label className="block text-xs text-ink-gray-5 mb-1.5">
+                  Task
+                </label>
                 <Combobox
                   inputClassName="bg-white h-8 border-outline-gray-2"
                   options={tasksOptions}
@@ -217,7 +250,9 @@ const AddTime = ({
                             Date
                           </label>
                           <div
-                            className={`relative flex items-center border border-outline-gray-2 px-[10px] py-1 rounded-lg`}
+                            className={
+                              "flex relative items-center py-1 rounded-lg border border-outline-gray-2 px-2.5"
+                            }
                           >
                             <input
                               type="text"
@@ -245,7 +280,7 @@ const AddTime = ({
             name="duration"
             children={(field) => {
               return (
-                <div className="w-full flex flex-col gap-2">
+                <div className="flex flex-col gap-2 w-full">
                   <DurationInput
                     value={field.state.value}
                     onChange={(val) => field.handleChange(val)}
@@ -260,6 +295,13 @@ const AddTime = ({
             }}
           />
         </div>
+
+        <CalendarEvents
+          initialDate={selectedDate}
+          enabled={open}
+          onSelectionChange={handleCalendarSelectionChange}
+        />
+
         <form.Field
           name="comment"
           children={(field) => {

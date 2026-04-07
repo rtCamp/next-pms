@@ -18,7 +18,7 @@ const MemberTimeSummary: React.FC<MemberTimeSummaryProps> = ({
   return (
     <div className="flex justify-between items-center rounded bg-surface-gray-2 px-2 py-1.5 gap-1">
       <Avatar size="xs" label={name || ""} image={image || ""} />
-      <span className="text-base">{floatToTime(totalHours || 0, 2)}</span>
+      <span className="text-base">{floatToTime(totalHours, 2)}</span>
     </div>
   );
 };

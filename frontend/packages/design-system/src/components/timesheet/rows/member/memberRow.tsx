@@ -8,7 +8,7 @@ import { ChevronDown } from "lucide-react";
 /**
  * Internal dependencies.
  */
-import { buttonVariants } from "./constants";
+import { buttonVariants, memberStatusIcon } from "./constants";
 import { mergeClassNames as cn } from "../../../../utils";
 import {
   ApprovalStatusLabelMap,
@@ -16,7 +16,6 @@ import {
   type ApprovalStatusType,
   totalHoursVariants,
   approvalStatusTheme,
-  approvalStatusIcon,
 } from "../constants";
 
 export interface MemberRowProps {
@@ -107,7 +106,7 @@ export const MemberRow: React.FC<MemberRowProps> = ({
       </div>
 
       <div className="flex items-center justify-end w-12 shrink-0 h-7 whitespace-nowrap">
-        {!isStatusNone && approvalStatusIcon[status]?.icon ? (
+        {!isStatusNone && memberStatusIcon[status]?.icon ? (
           <Button
             onClick={(e) => {
               e.stopPropagation();
@@ -116,13 +115,13 @@ export const MemberRow: React.FC<MemberRowProps> = ({
             className={cn(
               buttonVariants({
                 status,
-                variant: approvalStatusIcon[status]?.variant,
+                variant: memberStatusIcon[status]?.variant,
               }),
             )}
-            variant={approvalStatusIcon[status]?.variant}
+            variant={memberStatusIcon[status]?.variant}
             size="sm"
             icon={() => {
-              const IconComponent = approvalStatusIcon[status]?.icon;
+              const IconComponent = memberStatusIcon[status]?.icon;
               return IconComponent ? <IconComponent size={16} /> : null;
             }}
             title={ApprovalStatusLabelMap[status]}

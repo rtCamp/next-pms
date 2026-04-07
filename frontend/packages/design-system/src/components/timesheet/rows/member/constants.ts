@@ -1,7 +1,24 @@
 /**
  * External dependencies.
  */
+import { ButtonVariant } from "@rtcamp/frappe-ui-react";
 import { cva } from "class-variance-authority";
+import { Check } from "lucide-react";
+import { approvalStatusIcon, ApprovalStatusType } from "../constants";
+
+export const memberStatusIcon = {
+  ...approvalStatusIcon,
+  "approval-pending": {
+    variant: "solid",
+    icon: Check,
+  },
+} as Record<
+  ApprovalStatusType,
+  {
+    variant: ButtonVariant;
+    icon: React.ComponentType<{ size?: number }> | null;
+  }
+>;
 
 export const buttonVariants = cva("", {
   variants: {
