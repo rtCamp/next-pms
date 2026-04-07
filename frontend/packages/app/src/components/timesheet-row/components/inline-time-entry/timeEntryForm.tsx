@@ -69,6 +69,7 @@ export const TimeEntryForm = ({
                 onKeyDownCapture={(e) => onCommentKeyDown(e)}
               >
                 <TextEditor
+                  editable={!submitting}
                   content={field.state.value}
                   onChange={(value) => field.handleChange(value)}
                   fixedMenu={false}

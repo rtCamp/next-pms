@@ -74,7 +74,7 @@ const EntryRow = ({ entry, onSave }: EntryRowProps) => {
               onChange={(val) => setDescription(val)}
               fixedMenu={false}
               placeholder="Comment"
-              editorClass="h-24 overlow-scroll bg-white border rounded-md border-outline-gray-2"
+              editorClass="h-24 overflow-scroll bg-white border rounded-md border-outline-gray-2"
             />
           </div>
         </div>
