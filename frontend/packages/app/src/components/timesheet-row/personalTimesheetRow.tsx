@@ -37,6 +37,7 @@ export type PersonalTimesheetRowProps = {
   setSelectedTask?: (task: string) => void;
   onButtonClick?: () => void;
   status: ApprovalStatusLabelType;
+  hideTotalRow: boolean;
 };
 
 export const PersonalTimesheetRow = ({
@@ -52,6 +53,7 @@ export const PersonalTimesheetRow = ({
   disabled,
   onButtonClick,
   status,
+  hideTotalRow,
   setSelectedTask,
   hideLikeButton,
 }: PersonalTimesheetRowProps) => {
@@ -82,24 +84,26 @@ export const PersonalTimesheetRow = ({
           totalHoursTheme,
         }) => (
           <>
-            <TotalRow
-              breadcrumbs={{
-                items: [
-                  { label: "Projects", interactive: false },
-                  { label: "Tasks", interactive: false },
-                ],
-                size: "md",
-                highlightAllItems: true,
-                crumbClassName: "first:pl-0 last:pr-0",
-              }}
-              totalHours={totalHours}
-              totalHoursTheme={totalHoursTheme}
-              totalTimeEntries={totalTimeEntries}
-              className="pl-7.5"
-              starred={true}
-              disabled={disabled}
-              onCellClick={openAddTimeDialog}
-            />
+            {!hideTotalRow ? (
+              <TotalRow
+                breadcrumbs={{
+                  items: [
+                    { label: "Projects", interactive: false },
+                    { label: "Tasks", interactive: false },
+                  ],
+                  size: "md",
+                  highlightAllItems: true,
+                  crumbClassName: "first:pl-0 last:pr-0",
+                }}
+                totalHours={totalHours}
+                totalHoursTheme={totalHoursTheme}
+                totalTimeEntries={totalTimeEntries}
+                className="pl-7.5"
+                starred={true}
+                disabled={disabled}
+                onCellClick={openAddTimeDialog}
+              />
+            ) : null}
 
             {projects.map((project) => (
               <ProjectRow
@@ -107,6 +111,7 @@ export const PersonalTimesheetRow = ({
                 dates={dates}
                 tasks={project.tasks}
                 label={project.project_name || project.project}
+                hideTime={hideTotalRow}
                 className="pl-7.5"
               >
                 {Object.entries(project.tasks).map(([taskKey, task]) => (

@@ -85,6 +85,7 @@ export interface ProjectRowProps extends Omit<
 > {
   dates: string[];
   tasks: TaskProps;
+  hideTime?: boolean;
   children?: React.ReactNode;
 }
 

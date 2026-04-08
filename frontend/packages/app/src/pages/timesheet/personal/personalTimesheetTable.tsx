@@ -65,6 +65,12 @@ export const PersonalTimesheetTable = () => {
 
   const isFilteredDataLoading = isFilterRequest && isLoadingPersonalData;
 
+  const hasTaskFilter =
+    filters.search !== "" ||
+    compositeFilters.some(
+      (filter) => filter.fieldCategory === "Task" || filter.field === "subject",
+    );
+
   useEffect(() => {
     const scrollToElement = () => {
       if (targetRef.current) {
@@ -197,6 +203,7 @@ export const PersonalTimesheetTable = () => {
                               )
                             }
                             status={value.status}
+                            hideTotalRow={hasTaskFilter}
                           />
                         </div>
                       </Fragment>
