@@ -55,9 +55,11 @@ def setup_project_and_tasks():
             "project": project.name,
         },
     ]
+
     for task in task_list:
         if frappe.db.exists("Task", {"subject": task["subject"]}):
             continue
+
         task_doc = frappe.get_doc(
             {
                 "doctype": "Task",
@@ -82,9 +84,7 @@ def setup_employee():
 
 
 class TestNextPms(FrappeAPITestCase):
-    """This is base class for all the test cases in next_pms app.
-    It will contain common method which will be used in test cases.
-    """
+    """Base class for all test cases in next_pms app."""
 
     @classmethod
     def setUpClass(cls):
@@ -95,7 +95,8 @@ class TestNextPms(FrappeAPITestCase):
     def tearDownClass(cls):
         super().tearDownClass()
 
-    def assign_roles_to_user(self, user: str, roles):
+    @classmethod
+    def assign_roles_to_user(cls, user: str, roles):
         user = frappe.get_doc("User", user)
         user.add_roles(*roles)
 
@@ -103,16 +104,26 @@ class TestNextPms(FrappeAPITestCase):
         frappe.set_user(user)
 
     def get(self, path, params=None, **kwargs):
-        params = {**params, "sid": self.sid}
+        params = {**(params or {}), "sid": self.sid}
         return super().get(path, params, **kwargs)
 
-    def post(self, path, data, **kwargs):
-        data = {**data, "sid": self.sid}
+    def post(self, path, data=None, **kwargs):
+        data = {**(data or {}), "sid": self.sid}
         return super().post(path, data, **kwargs)
 
     def get_login_employee(self):
-        return frappe.get_value("Employee", {"user_id": frappe.session.user}, "name")
+        return frappe.get_value(
+            "Employee",
+            {"user_id": frappe.session.user},
+            "name"
+        )
 
-    def setup_project_manager_role(self):
-        if "Projects manager" not in frappe.get_roles("next-project-manager@example.com"):
-            self.assign_roles_to_user("next-project-manager@example.com", ["Projects manager"])
+    @classmethod
+    def setup_project_manager_role(cls):
+        if "Projects manager" not in frappe.get_roles(
+            "next-project-manager@example.com"
+        ):
+            cls.assign_roles_to_user(
+                "next-project-manager@example.com",
+                ["Projects manager"]
+            )
