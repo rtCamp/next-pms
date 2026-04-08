@@ -42,13 +42,18 @@ services:
           echo 'Waiting for bench setup to complete...';
           sleep 5;
         done;
-        cd $$BENCH_DIR && exec bench start"
+        if [ -f \"$$BENCH_DIR/.frontend-gateway.py\" ]; then
+          python3 \"$$BENCH_DIR/.frontend-gateway.py\" &
+          echo 'Frontend gateway running on :5173 (proxies to Vite on :5175)';
+        fi;
+        cd $$BENCH_DIR && bench start"
       working_dir: /workspace/development
       ports:
         - "8000"
         - "9000"
         - "6787"
         - "5173"
+        - "5175"
       environment:
         # CRITICAL: Lando remaps UID 1000 to www-data with HOME=/var/www.
         # The bench CLI is installed under /home/frappe/.local via PEP 660
@@ -212,6 +217,50 @@ services:
         # may fail with "Module <X> not found".
         bench --site development.localhost clear-cache
 
+        # --- Write frontend gateway script ---
+        # A reverse proxy on port 5173 that auto-detects Vite on port 5175.
+        # When Vite is not running, serves a placeholder page.
+        # When Vite is running, proxies all requests to it.
+        # No kill/restart needed — lando frontend-dev just starts Vite on 5175.
+        printf '%s\n' \
+          'import http.server, socketserver, urllib.request, urllib.error' \
+          'VITE_PORT = 5175' \
+          'PLACEHOLDER = b"""<!doctype html>' \
+          '<html><head><title>Next PMS - Frontend</title>' \
+          '<meta http-equiv="refresh" content="3"></head>' \
+          '<body style="font-family:system-ui,sans-serif;display:flex;justify-content:center;align-items:center;height:100vh;margin:0;background:#f5f5f5;color:#333">' \
+          '<div style="text-align:center;max-width:500px;padding:2rem">' \
+          '<h2 style="margin-bottom:0.5rem">Frontend Dev Server Not Running</h2>' \
+          '<p style="color:#666">Run <code style="background:#e5e5e5;padding:2px 8px;border-radius:4px">lando frontend-dev</code> in a separate terminal.</p>' \
+          '<p style="color:#999;font-size:0.85rem">This page will auto-refresh when Vite starts.</p>' \
+          '</div></body></html>"""' \
+          'class Handler(http.server.BaseHTTPRequestHandler):' \
+          '    def do_GET(self):' \
+          '        try:' \
+          '            url = f"http://localhost:{VITE_PORT}{self.path}"' \
+          '            req = urllib.request.Request(url)' \
+          '            for h in self.headers:' \
+          '                if h.lower() not in ("host",):' \
+          '                    req.add_header(h, self.headers[h])' \
+          '            resp = urllib.request.urlopen(req, timeout=2)' \
+          '            self.send_response(resp.status)' \
+          '            for h, v in resp.getheaders():' \
+          '                if h.lower() not in ("transfer-encoding",):' \
+          '                    self.send_header(h, v)' \
+          '            self.end_headers()' \
+          '            self.wfile.write(resp.read())' \
+          '        except (urllib.error.URLError, OSError):' \
+          '            self.send_response(200)' \
+          '            self.send_header("Content-Type", "text/html")' \
+          '            self.end_headers()' \
+          '            self.wfile.write(PLACEHOLDER)' \
+          '    do_POST = do_GET' \
+          '    def log_message(self, *args):' \
+          '        pass' \
+          'socketserver.TCPServer.allow_reuse_address = True' \
+          'socketserver.TCPServer(("0.0.0.0", 5173), Handler).serve_forever()' \
+          > "$BENCH_DIR/.frontend-gateway.py"
+
         # Signal to the command loop that setup is done
         touch "$BENCH_DIR/.setup-complete"
         echo "==> Setup complete. Bench will start automatically."
@@ -364,7 +413,7 @@ tooling:
     service: frappe
     description: "Start frontend dev server (Vite)"
     dir: /workspace/apps/next_pms/frontend
-    cmd: npm run dev -w @next-pms/app -- --host 0.0.0.0
+    cmd: npm run dev -w @next-pms/app -- --host 0.0.0.0 --port 5175
   frontend-install:
     service: frappe
     description: "Install frontend dependencies"
