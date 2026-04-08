@@ -283,9 +283,9 @@ tooling:
     description: "Run any bench command"
     dir: /workspace/development/frappe-bench
     cmd: bench
-  start:
+  bench-start:
     service: frappe
-    description: "Start Frappe dev server"
+    description: "Start Frappe dev server manually"
     dir: /workspace/development/frappe-bench
     cmd: bench start
   migrate:
