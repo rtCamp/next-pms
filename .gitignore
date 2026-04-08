@@ -29,6 +29,9 @@ tests/e2e/data/manager/tasks-to-delete.json
 test-tc-ids.json
 json-files
 
+# TypeScript build cache
+*.tsbuildinfo
+
 # Env file
 .env
 
