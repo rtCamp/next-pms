@@ -24,7 +24,7 @@ import SubmitApproval from "@/pages/timesheet/components/submit-approval";
 import { useUser } from "@/providers/user";
 import type { TimesheetOutletContext } from "./outletContext";
 import AddEmployeeLeave from "./team/add-employee-leave";
-import AddEmployeeTime from "./team/add-empolyee-time";
+import AddEmployeeTime from "./team/add-employee-time";
 
 function TimesheetLayout() {
   const navigate = useNavigate();

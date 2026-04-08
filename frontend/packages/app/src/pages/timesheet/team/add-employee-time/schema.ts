@@ -1,9 +1,12 @@
 import { z } from "zod";
 
 export const addTimeFormSchema = z.object({
-  employeeId: z.string({
-    required_error: "Employee ID is required",
-  }),
+  employeeId: z
+    .string({
+      required_error: "Please select an employee.",
+    })
+    .trim()
+    .min(1, { message: "Please select an employee." }),
   project: z
     .string({
       required_error: "Select Project",

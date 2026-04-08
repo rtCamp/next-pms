@@ -1,7 +1,7 @@
 /**
  * External Dependencies
  */
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { DurationInput } from "@next-pms/design-system/components";
 import {
   DatePicker,
@@ -24,7 +24,6 @@ import { Calendar } from "lucide-react";
  * Internal Dependencies
  */
 import { parseFrappeErrorMsg } from "@/lib/utils";
-import CalendarEvents from "./calendarEvents";
 import { addTimeFormSchema } from "./schema";
 import type { AddTimeProps, ProjectData, TaskItem } from "./type";
 
@@ -88,12 +87,10 @@ const AddEmployeeTime = ({
   });
 
   const selectedProject = useStore(form.store, (state) => state.values.project);
-  const selectedDate = useStore(form.store, (state) => state.values.date);
 
   const { data: employeesData } = useFrappeGetCall("frappe.client.get_list", {
     doctype: "Employee",
     fields: ["name", "employee_name"],
-    filters: window.frappe?.boot?.global_filters.employee,
     limit_page_length: "null",
   });
 
@@ -107,7 +104,6 @@ const AddEmployeeTime = ({
   const { data: projectsData } = useFrappeGetCall("frappe.client.get_list", {
     doctype: "Project",
     fields: ["name", "project_name"],
-    filters: window.frappe?.boot?.global_filters.project,
     limit_page_length: "null",
   });
 
@@ -131,33 +127,6 @@ const AddEmployeeTime = ({
   useEffect(() => {
     mutateTasksData();
   }, [project, task, mutateTasksData]);
-
-  const handleCalendarSelectionChange = useCallback(
-    (selectedLabels: string[], allEventSubjects: string[]) => {
-      const currentComment = form.state.values.comment || "";
-      const preservedLines = currentComment
-        .split("\n")
-        .map((line) => line.trim())
-        .filter(
-          (line) =>
-            line &&
-            !allEventSubjects.some(
-              (subject) =>
-                line === subject ||
-                line === `- ${subject}` ||
-                line.startsWith(`- ${subject} | `),
-            ),
-        );
-
-      const selectedSubjectLines = selectedLabels.map((label) => `- ${label}`);
-
-      form.setFieldValue(
-        "comment",
-        [...preservedLines, ...selectedSubjectLines].join("\n"),
-      );
-    },
-    [form],
-  );
 
   const tasksOptions = ((tasksData?.message?.task ?? []) as TaskItem[]).map(
     (task) => ({
@@ -328,12 +297,6 @@ const AddEmployeeTime = ({
             }}
           />
         </div>
-
-        <CalendarEvents
-          initialDate={selectedDate}
-          enabled={open}
-          onSelectionChange={handleCalendarSelectionChange}
-        />
 
         <form.Field
           name="comment"

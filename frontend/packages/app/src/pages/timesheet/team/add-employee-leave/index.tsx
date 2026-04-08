@@ -83,7 +83,6 @@ const AddEmployeeLeave = ({ open = false, onOpenChange }: LeaveTimeProps) => {
   const { data: employeesData } = useFrappeGetCall("frappe.client.get_list", {
     doctype: "Employee",
     fields: ["name", "employee_name"],
-    filters: window.frappe?.boot?.global_filters.employee,
     limit_page_length: "null",
   });
 
@@ -100,6 +99,7 @@ const AddEmployeeLeave = ({ open = false, onOpenChange }: LeaveTimeProps) => {
       employee: employeeId,
       date: getTodayDate(),
     },
+    employeeId ? undefined : false,
   );
 
   const unpaidLeaveOptions = (
