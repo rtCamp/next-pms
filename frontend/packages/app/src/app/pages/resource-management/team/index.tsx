@@ -17,6 +17,7 @@ import { ViewData } from "@/store/view";
 import AddResourceAllocations from "../components/addAllocation";
 import { ResourceTeamHeaderSection } from "./components/header";
 import { ResourceTeamTable } from "./components/table";
+import { createFilter } from "./utils";
 import {
   ResourceContextProvider,
   ResourceFormContext,
@@ -27,13 +28,10 @@ import type {
   DateProps,
   EmployeeDataProps,
   ResourceTeam,
-  ResourceTeamDataProps,
 } from "../store/types";
 import type { ResourceTeamAPIBodyProps } from "../timeline/types";
 import { getDatesArrays } from "../utils/dates";
 import { getIsBillableValue } from "../utils/helper";
-import type { PreProcessDataProps } from "./components/types";
-import { createFilter } from "./utils";
 
 const ResourceTeamViewWrapper = () => {
   return (
@@ -76,6 +74,7 @@ const ResourceTeamViewComponent = ({
 
   const {
     updateTeamData,
+    mergeHorizontalData,
     getHasMore,
     setStart,
     setMaxWeek,
@@ -142,66 +141,6 @@ const ResourceTeamViewComponent = ({
     [fetchData, getFilterApiBody, toast],
   );
 
-  const updateHorizontalData = useCallback(
-    (
-      horizontalPreProcessData: PreProcessDataProps,
-      data: ResourceTeamDataProps | null,
-      dates: DateProps[],
-    ) => {
-      if (horizontalPreProcessData) {
-        let updatedTeamData = teamData;
-
-        if (data) {
-          updatedTeamData = data;
-        }
-
-        updatedTeamData.customer = {
-          ...updatedTeamData.customer,
-          ...horizontalPreProcessData.customer,
-        };
-
-        const start = horizontalPreProcessData.start;
-        const updateDate = [...updatedTeamData.data];
-
-        for (
-          let count = 0;
-          count < horizontalPreProcessData.data.length;
-          count++
-        ) {
-          const dataIndex = start + count;
-
-          const updateEmployeeData = updateDate[dataIndex];
-
-          updateEmployeeData.all_dates_data = {
-            ...updateEmployeeData?.all_dates_data,
-            ...horizontalPreProcessData.data[count]?.all_dates_data,
-          };
-          updateEmployeeData.all_leave_data = {
-            ...updateEmployeeData?.all_leave_data,
-            ...horizontalPreProcessData.data[count]?.all_leave_data,
-          };
-          updateEmployeeData.all_week_data = {
-            ...updateEmployeeData?.all_week_data,
-            ...horizontalPreProcessData.data[count]?.all_week_data,
-          };
-          updateEmployeeData.employee_allocations = {
-            ...updateEmployeeData?.employee_allocations,
-            ...horizontalPreProcessData.data[count]?.employee_allocations,
-          };
-
-          updateDate[dataIndex] = updateEmployeeData;
-        }
-
-        updatedTeamData.data = updateDate;
-
-        updateTeamData({ ...updatedTeamData, dates: dates });
-
-        return updatedTeamData;
-      }
-    },
-    [teamData, updateTeamData],
-  );
-
   const addVerticalPreProcessData = useCallback(async () => {
     const req = {
       date: filters.weekDate,
@@ -217,32 +156,18 @@ const ResourceTeamViewComponent = ({
 
     let currentWeek = 5;
 
-    let newData: ResourceTeamDataProps = {
-      data: [...teamData.data, ...mainThredData.data],
-      customer: { ...teamData.customer, ...mainThredData.customer },
-      dates: [],
-      total_count: mainThredData.total_count,
-      has_more: mainThredData.has_more,
-    };
-
     while (currentWeek <= filters.maxWeek) {
       const currentWeekCopy = currentWeek;
       handleApiCall({
         ...req,
         date: getNextDate(req.date, currentWeekCopy),
       }).then((res) => {
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore: Ignore type checking for the following line
-        newData = updateHorizontalData(
-          {
-            ...res,
-            date: getNextDate(req.date, currentWeekCopy),
-            max_week: req.max_week,
-            start: req.start,
-            page_length: filters.pageLength,
-          },
-          newData,
-        );
+        if (!res) return;
+        mergeHorizontalData({
+          start: req.start,
+          data: res.data,
+          customer: res.customer,
+        });
       });
       currentWeek += 5;
     }
@@ -252,18 +177,12 @@ const ResourceTeamViewComponent = ({
     filters.start,
     filters.weekDate,
     handleApiCall,
-    teamData.customer,
-    teamData.data,
-    updateHorizontalData,
+    mergeHorizontalData,
     updateTeamData,
   ]);
 
   const addHorizontalPreProcessData = useCallback(
-    (
-      isNeedToUpdateReqWeeks: boolean = false,
-      data: ResourceTeamDataProps | null = null,
-      dates: DateProps[],
-    ) => {
+    (dates: DateProps[]) => {
       const req = {
         date: filters.weekDate,
         max_week: filters.maxWeek,
@@ -279,22 +198,13 @@ const ResourceTeamViewComponent = ({
           start: currentStartCopy,
           date: getNextDate(req.date, req.max_week),
         }).then((res) => {
-          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-          // @ts-ignore: Ignore type checking for the following line
-          data = updateHorizontalData(
-            {
-              ...res,
-              date: getNextDate(
-                req.date,
-                req.max_week + (isNeedToUpdateReqWeeks ? 10 : 0),
-              ),
-              max_week: req.max_week,
-              start: currentStartCopy,
-              page_length: filters.pageLength,
-            },
-            data,
+          if (!res) return;
+          mergeHorizontalData({
+            start: currentStartCopy,
+            data: res.data,
+            customer: res.customer,
             dates,
-          );
+          });
         });
         currentStart += filters.pageLength;
       }
@@ -305,7 +215,7 @@ const ResourceTeamViewComponent = ({
       filters.start,
       filters.weekDate,
       handleApiCall,
-      updateHorizontalData,
+      mergeHorizontalData,
     ],
   );
 
@@ -322,7 +232,7 @@ const ResourceTeamViewComponent = ({
 
     updateTeamData(mainThredData);
 
-    addHorizontalPreProcessData(false, mainThredData, teamData.dates);
+    addHorizontalPreProcessData(teamData.dates);
   }, [
     addHorizontalPreProcessData,
     filters.maxWeek,
@@ -392,9 +302,9 @@ const ResourceTeamViewComponent = ({
     if (filters.maxWeek + 5 >= 10) {
       const newDates = getDatesArrays(filters.weekDate, filters.maxWeek + 5);
       setDates(newDates);
-      addHorizontalPreProcessData(true, null, newDates);
+      addHorizontalPreProcessData(newDates);
     } else {
-      addHorizontalPreProcessData(true, null, teamData.dates);
+      addHorizontalPreProcessData(teamData.dates);
     }
   }, [
     apiController.isLoading,

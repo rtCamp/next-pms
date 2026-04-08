@@ -307,6 +307,12 @@ export interface TeamContextProps extends ResourceTeamState {
       updatedTeamData: ResourceTeamDataProps,
       type?: "SET" | "UPDATE",
     ) => void;
+    mergeHorizontalData: (horizontalData: {
+      start: number;
+      data: EmployeeDataProps[];
+      customer: ResourceCustomerObjectProps;
+      dates?: DateProps[];
+    }) => void;
     getHasMore: () => boolean;
     setMaxWeek: (maxWeek: number) => void;
     setDates: (dates: DateProps[]) => void;
