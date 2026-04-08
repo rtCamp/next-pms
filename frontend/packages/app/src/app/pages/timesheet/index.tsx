@@ -281,6 +281,7 @@ function Timesheet() {
                               loadingLikedTasks={loadingLikedTasks}
                               likedTaskData={likedTaskData}
                               getLikedTaskData={getLikedTaskData}
+                              oldestAllowedDate={user.backdatedSettings?.oldest_allowed_date}
                             />
                           </AccordionContent>
                         </AccordionItem>

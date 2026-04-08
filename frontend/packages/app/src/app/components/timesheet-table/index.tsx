@@ -34,12 +34,22 @@ export const TimesheetTable = ({
   likedTaskData,
   getLikedTaskData,
   hideLikeButton,
+  oldestAllowedDate,
 }: timesheetTableProps) => {
   const holidayList = getHolidayList(holidays);
   const [isTaskLogDialogBoxOpen, setIsTaskLogDialogBoxOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState<string>("");
   const task_date_range_key = dates[0] + "-" + dates[dates.length - 1];
   const has_liked_task = hasKeyInLocalStorage(LIKED_TASK_KEY);
+
+  // Helper function to check if a date is backdated and disabled
+  const isDateBackdatedDisabled = useCallback(
+    (date: string) => {
+      if (!oldestAllowedDate) return false;
+      return new Date(date) < new Date(oldestAllowedDate);
+    },
+    [oldestAllowedDate]
+  );
 
   const setTaskInLocalStorage = () => {
     setLikedTask(LIKED_TASK_KEY, task_date_range_key, likedTaskData!);
@@ -146,6 +156,7 @@ export const TimesheetTable = ({
             workingFrequency={workingFrequency}
             workingHour={workingHour}
             hideLikeButton={hideLikeButton}
+            isDateBackdatedDisabled={isDateBackdatedDisabled}
           />
         </TableBody>
       </Table>

@@ -22,6 +22,15 @@ interface InitiDataProps {
   employeeName: string;
 }
 
+export interface BackdatedSettings {
+  allow_backdated_entries: boolean;
+  allowed_days_employee: number;
+  allowed_days_manager: number;
+  allowed_days: number;
+  oldest_allowed_date: string | null;
+  has_manager_access: boolean;
+}
+
 export interface UserState {
   userName: string;
   image: string;
@@ -36,6 +45,7 @@ export interface UserState {
   currencies: Array<string>;
   hasBuField: boolean;
   hasIndustryField: boolean;
+  backdatedSettings: BackdatedSettings | null;
 }
 
 const initialState: UserState = {
@@ -52,6 +62,7 @@ const initialState: UserState = {
   currencies: window.frappe?.boot?.currencies ?? [],
   hasBuField: window.frappe?.boot?.has_business_unit ?? false,
   hasIndustryField: window.frappe?.boot?.has_industry ?? false,
+  backdatedSettings: null,
 };
 
 const userSlice = createSlice({
@@ -102,6 +113,9 @@ const userSlice = createSlice({
       state.reportsTo = action.payload.reportsTo;
       state.employeeName = action.payload.employeeName;
     },
+    setBackdatedSettings: (state, action: PayloadAction<BackdatedSettings>) => {
+      state.backdatedSettings = action.payload;
+    },
   },
 });
 
@@ -116,6 +130,7 @@ export const {
   setCurrency,
   setHasBuField,
   setHasIndustryField,
+  setBackdatedSettings,
 } = userSlice.actions;
 
 export default userSlice.reducer;
