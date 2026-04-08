@@ -23,6 +23,8 @@ import AddTime from "@/pages/timesheet/components/add-time";
 import SubmitApproval from "@/pages/timesheet/components/submit-approval";
 import { useUser } from "@/providers/user";
 import type { TimesheetOutletContext } from "./outletContext";
+import AddEmployeeLeave from "./team/add-employee-leave";
+import AddEmployeeTime from "./team/add-empolyee-time";
 
 function TimesheetLayout() {
   const navigate = useNavigate();
@@ -112,7 +114,7 @@ function TimesheetLayout() {
                     items: timesheetViews.map((v) => ({
                       label: v.label,
                       key: v.key,
-                      icon: <v.icon className="size-4 mr-2" />,
+                      icon: <v.icon className="mr-2 size-4" />,
                       onClick: () => navigate(v.to),
                     })),
                   },
@@ -150,13 +152,34 @@ function TimesheetLayout() {
         }
       />
 
-      <AddTime
-        initialDate={initialDate}
-        open={isTimeDialogOpen}
-        onOpenChange={setIsTimeDialogOpen}
-        onSuccess={() => setIsTimeDialogOpen(false)}
-      />
-      <AddLeave open={isLeaveDialogOpen} onOpenChange={setIsLeaveDialogOpen} />
+      {selectedKey === "personal" ? (
+        <>
+          <AddTime
+            initialDate={initialDate}
+            open={isTimeDialogOpen}
+            onOpenChange={setIsTimeDialogOpen}
+            onSuccess={() => setIsTimeDialogOpen(false)}
+          />
+          <AddLeave
+            open={isLeaveDialogOpen}
+            onOpenChange={setIsLeaveDialogOpen}
+          />
+        </>
+      ) : (
+        <>
+          <AddEmployeeTime
+            initialDate={initialDate}
+            open={isTimeDialogOpen}
+            onOpenChange={setIsTimeDialogOpen}
+            onSuccess={() => setIsTimeDialogOpen(false)}
+          />
+          <AddEmployeeLeave
+            open={isLeaveDialogOpen}
+            onOpenChange={setIsLeaveDialogOpen}
+          />
+        </>
+      )}
+
       <SubmitApproval
         open={isSubmitApprovalOpen}
         onOpenChange={setIsSubmitApprovalOpen}
