@@ -475,7 +475,7 @@ export const calculateLeaveHours = (
  * @param compositeFilters Array of FilterCondition objects.
  * @returns Array of Frappe filters in the format [[fieldCategory, field, operator, value]].
  */
-const buildFrappeFilters = (compositeFilters: FilterCondition[]) => {
+export const buildFrappeFilters = (compositeFilters: FilterCondition[]) => {
   const f = compositeFilters.filter((filter) => filter.fieldCategory);
 
   return f
@@ -508,7 +508,7 @@ const buildFrappeFilters = (compositeFilters: FilterCondition[]) => {
  * @param compositeFilters Array of FilterCondition objects.
  * @returns Object containing startDate, maxWeek, and frappeFilters derived from the composite filters.
  */
-const buildCompositeFilters = (compositeFilters: FilterCondition[]) => {
+export const buildCompositeFilters = (compositeFilters: FilterCondition[]) => {
   if (compositeFilters.length === 0) {
     return {
       startDate: undefined,
@@ -574,5 +574,3 @@ const buildCompositeFilters = (compositeFilters: FilterCondition[]) => {
     frappeFilters,
   };
 };
-
-export default buildCompositeFilters;

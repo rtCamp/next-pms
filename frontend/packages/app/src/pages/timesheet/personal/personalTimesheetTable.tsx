@@ -1,7 +1,7 @@
 /**
  * External dependencies.
  */
-import { useEffect, useRef, useState } from "react";
+import { Fragment, useEffect, useRef, useState } from "react";
 import { mergeClassNames as cn } from "@next-pms/design-system";
 import { Spinner, Typography } from "@next-pms/design-system/components";
 import { useQueryParam } from "@next-pms/hooks";
@@ -33,7 +33,9 @@ export const PersonalTimesheetTable = () => {
   const isLoadingPersonalData = usePersonalTimesheet(
     ({ state }) => state.isLoadingPersonalData,
   );
-  const isIntialLoad = usePersonalTimesheet(({ state }) => state.isIntialLoad);
+  const isInitialLoad = usePersonalTimesheet(
+    ({ state }) => state.isInitialLoad,
+  );
   const isFilterRequest = usePersonalTimesheet(
     ({ state }) => state.isFilterRequest,
   );
@@ -100,7 +102,7 @@ export const PersonalTimesheetTable = () => {
         </div>
       </div>
 
-      {isIntialLoad &&
+      {isInitialLoad &&
       isLoadingPersonalData &&
       Object.keys(timesheetData?.data).length == 0 ? (
         <Spinner isFull />
@@ -140,7 +142,7 @@ export const PersonalTimesheetTable = () => {
                 {Object.entries(timesheetData.data).map(
                   ([key, value], index) => {
                     return (
-                      <>
+                      <Fragment key={`${value.start_date}-${value.end_date}`}>
                         {index === 0 ? (
                           <div className="sticky top-0 z-10 mb-4 bg-surface-white">
                             <HeaderRow
@@ -161,7 +163,6 @@ export const PersonalTimesheetTable = () => {
                           </div>
                         ) : null}
                         <div
-                          key={key}
                           ref={
                             !isEmpty(startDateParam) &&
                             isDateInRange(
@@ -198,7 +199,7 @@ export const PersonalTimesheetTable = () => {
                             status={value.status}
                           />
                         </div>
-                      </>
+                      </Fragment>
                     );
                   },
                 )}

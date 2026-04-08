@@ -24,7 +24,7 @@ import { useFrappeEventListener, useFrappeGetCall } from "frappe-react-sdk";
  * Internal dependencies.
  */
 import { NUMBER_OF_WEEKS_TO_FETCH } from "@/lib/constant";
-import { parseFrappeErrorMsg } from "@/lib/utils";
+import { buildCompositeFilters, parseFrappeErrorMsg } from "@/lib/utils";
 import { useUser } from "@/providers/user";
 import {
   PersonalTimesheetContext,
@@ -58,17 +58,22 @@ export const PersonalTimesheetProvider: FC<PropsWithChildren> = ({
     state.compositeFilters,
   );
 
+  const { startDate, maxWeek, frappeFilters } = useMemo(
+    () => buildCompositeFilters(state.compositeFilters),
+    [state.compositeFilters],
+  );
+
   const { data, isLoading, error } = useFrappeGetCall(
     "next_pms.timesheet.api.timesheet.get_timesheet_data",
     {
       employee: employeeId,
-      start_date: state.weekDate,
-      max_week: NUMBER_OF_WEEKS_TO_FETCH,
+      start_date: startDate ?? state.weekDate,
+      max_week: maxWeek ?? NUMBER_OF_WEEKS_TO_FETCH,
       search: state.filters.search,
       approval_status: state.filters.approvalStatus
         ? ApprovalStatusLabelMap[state.filters.approvalStatus]
         : null,
-      compositeFilters: JSON.stringify(state.compositeFilters),
+      filters: JSON.stringify(frappeFilters),
       skip_empty_weeks: hasActiveFilters,
     },
   );
@@ -166,7 +171,7 @@ export const PersonalTimesheetProvider: FC<PropsWithChildren> = ({
       state: {
         hasMoreWeeks: state.hasMoreWeeks,
         isLoadingPersonalData: isLoading,
-        isIntialLoad: state.isInitialLoad,
+        isInitialLoad: state.isInitialLoad,
         isFilterRequest: state.isFilterRequest,
         timesheetData: state.timesheetData,
         filters: state.filters,
