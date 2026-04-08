@@ -30,6 +30,7 @@ services:
     api: 3
     type: lando
     ssl: true
+    sslExpose: false
     app_mount: false
     meUser: frappe
     services:
@@ -260,6 +261,7 @@ services:
     api: 3
     type: lando
     ssl: true
+    sslExpose: false
     app_mount: false
     services:
       image: axllent/mailpit
