@@ -1,14 +1,17 @@
 /**
  * Internal dependencies.
  */
+import { ErrorFallback } from "@next-pms/design-system/components";
 import { ProjectTimesheetTable } from "./projectTimesheetTable";
 import { ProjectTimesheetProvider } from "./provider";
 
 function TimesheetProjectPage() {
   return (
-    <ProjectTimesheetProvider>
-      <ProjectTimesheetTable />
-    </ProjectTimesheetProvider>
+    <ErrorFallback>
+      <ProjectTimesheetProvider>
+        <ProjectTimesheetTable />
+      </ProjectTimesheetProvider>
+    </ErrorFallback>
   );
 }
 
