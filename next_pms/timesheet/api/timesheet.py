@@ -12,7 +12,7 @@ from frappe.utils import (
 
 from next_pms.api.utils import error_logger
 from next_pms.resource_management.api.utils.query import get_employee_leaves
-from next_pms.timesheet.utils.constant import ALLOWED_FILTER_FIELDS, EMP_TIMESHEET
+from next_pms.timesheet.utils.constant import ALLOWED_FILTER_FIELDS, EMP_TIMESHEET, FILTER_LOOKBACK_WEEKS
 
 from .employee import (
     get_employee_daily_working_norm,
@@ -160,6 +160,7 @@ def get_timesheet_data(
     approval_status: str | list | None = None,
     filters: str | list | None = None,
     skip_empty_weeks: bool = False,
+    filter_lookback_weeks: int = FILTER_LOOKBACK_WEEKS,
 ):
     """Get timesheet data for the given employee for the given number of weeks."""
     if not employee:
@@ -186,9 +187,14 @@ def get_timesheet_data(
         data = {}
         daily_norm = get_employee_daily_working_norm(employee)
         use_cache = not has_filters
+        max_lookback = max(filter_lookback_weeks, max_week) if has_filters else max_week
 
         cache_key = f"{EMP_TIMESHEET}::{employee}"
-        for i in range(max_week):
+        matching_weeks = 0
+        weeks_checked = 0
+
+        while matching_weeks < max_week and weeks_checked < max_lookback:
+            weeks_checked += 1
             week_dates = get_week_dates(start_date)
             week_key = week_dates["key"]
 
@@ -199,6 +205,7 @@ def get_timesheet_data(
                 if week_data:
                     start_date = add_days(getdate(week_dates["start_date"]), -1)
                     data[week_key] = week_data
+                    matching_weeks += 1
                     continue
 
             tasks, total_hours, status = {}, 0, "Not Submitted"
@@ -245,6 +252,7 @@ def get_timesheet_data(
                 "tasks": tasks,
                 "status": status,
             }
+            matching_weeks += 1
             if use_cache:
                 frappe.cache().hset(cache_key, week_cache_key, data[week_key])
             start_date = add_days(getdate(week_dates["start_date"]), -1)
@@ -269,15 +277,17 @@ def get_timesheet_data(
         res["leaves"] = []
         return res
 
+    lookback = max(filter_lookback_weeks, max_week) if has_filters else max_week
+
     holidays = get_holidays(
         employee,
-        add_days(start_date, -max_week * 7),
-        add_days(start_date, max_week * 7),
+        add_days(start_date, -lookback * 7),
+        add_days(start_date, lookback * 7),
     )
 
     leaves = get_employee_leaves(
-        start_date=add_days(start_date, -max_week * 7),
-        end_date=add_days(start_date, max_week * 7),
+        start_date=add_days(start_date, -lookback * 7),
+        end_date=add_days(start_date, lookback * 7),
         employee=employee,
     )
     res["leaves"] = leaves
