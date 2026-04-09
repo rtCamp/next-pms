@@ -35,7 +35,7 @@ export type CalendarEvent = {
   event_type: string;
 };
 
-export interface AddTimeProps {
+export interface AddTeamTimeProps {
   initialDate: string;
   open: boolean;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -44,4 +44,5 @@ export interface AddTimeProps {
   onSuccess?: (data: any) => void;
   task?: string;
   project?: string;
+  employeeId?: string;
 }

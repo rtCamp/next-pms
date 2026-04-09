@@ -25,26 +25,16 @@ import { Calendar } from "lucide-react";
  */
 import { parseFrappeErrorMsg } from "@/lib/utils";
 import { addTimeFormSchema } from "./schema";
-import type { AddTimeProps, ProjectData, TaskItem } from "./type";
+import type { AddTeamTimeProps, ProjectData, TaskItem } from "./type";
 
-/**
- * Add Time Component
- * @description This component is used to show dialog to the user to add time
- * entry for the timesheet. User can select the  date, time, project, task and
- * and description for the timesheet entry.
- * @param initialDate - Initial date for the timesheet, this select the date in date picker.
- * @param open - Boolean value to open the dialog.
- * @param onOpenChange - Function to change the open state of the dialog.
- * @param task - Task name for the timesheet entry (eg: TASK-0001).
- * @param project - Project name for the timesheet entry (eg: Project-0001).
- */
 const AddEmployeeTime = ({
   initialDate,
   open = false,
   onOpenChange,
   task = "",
   project = "",
-}: AddTimeProps) => {
+  employeeId = "",
+}: AddTeamTimeProps) => {
   const toast = useToasts();
   const [submitting, setSubmitting] = useState(false);
   const { call: saveTime } = useFrappePostCall(
@@ -53,7 +43,7 @@ const AddEmployeeTime = ({
 
   const form = useForm({
     defaultValues: {
-      employeeId: "",
+      employeeId: employeeId,
       project: project,
       task: task,
       date: initialDate,
@@ -91,7 +81,6 @@ const AddEmployeeTime = ({
   const { data: employeesData } = useFrappeGetCall("frappe.client.get_list", {
     doctype: "Employee",
     fields: ["name", "employee_name"],
-    limit_page_length: "null",
   });
 
   const employeeOptions = (
@@ -104,7 +93,6 @@ const AddEmployeeTime = ({
   const { data: projectsData } = useFrappeGetCall("frappe.client.get_list", {
     doctype: "Project",
     fields: ["name", "project_name"],
-    limit_page_length: "null",
   });
 
   const projectOptions = ((projectsData?.message ?? []) as ProjectData[]).map(

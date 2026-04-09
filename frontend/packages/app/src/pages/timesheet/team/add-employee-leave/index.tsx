@@ -26,12 +26,16 @@ import { Calendar, CalendarX2 } from "lucide-react";
  */
 import { parseFrappeErrorMsg } from "@/lib/utils";
 import { addLeaveFormSchema } from "./schema";
-import { type LeaveTimeProps, LEAVE_DURATION } from "./types";
+import { type EmployeeLeaveTimeProps, LEAVE_DURATION } from "./types";
 
-const AddEmployeeLeave = ({ open = false, onOpenChange }: LeaveTimeProps) => {
+const AddEmployeeLeave = ({
+  open = false,
+  onOpenChange,
+  employeeId = "",
+}: EmployeeLeaveTimeProps) => {
   const form = useForm({
     defaultValues: {
-      employeeId: "",
+      employeeId: employeeId,
       fromDate: getTodayDate(),
       toDate: getTodayDate(),
       leaveDuration: LEAVE_DURATION[0] as string,
@@ -78,12 +82,14 @@ const AddEmployeeLeave = ({ open = false, onOpenChange }: LeaveTimeProps) => {
 
   const toast = useToasts();
   const { createDoc, loading } = useFrappeCreateDoc();
-  const employeeId = useStore(form.store, (state) => state.values.employeeId);
+  const employeeIdFormValue = useStore(
+    form.store,
+    (state) => state.values.employeeId,
+  );
 
   const { data: employeesData } = useFrappeGetCall("frappe.client.get_list", {
     doctype: "Employee",
     fields: ["name", "employee_name"],
-    limit_page_length: "null",
   });
 
   const employeeOptions = (
@@ -96,10 +102,10 @@ const AddEmployeeLeave = ({ open = false, onOpenChange }: LeaveTimeProps) => {
   const { data: leaveDetails } = useFrappeGetCall(
     "hrms.hr.doctype.leave_application.leave_application.get_leave_details",
     {
-      employee: employeeId,
+      employee: employeeIdFormValue,
       date: getTodayDate(),
     },
-    employeeId ? undefined : false,
+    employeeIdFormValue ? undefined : false,
   );
 
   const unpaidLeaveOptions = (
