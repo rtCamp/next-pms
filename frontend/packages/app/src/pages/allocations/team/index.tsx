@@ -34,13 +34,30 @@ const FILTER_FIELDS: FilterField[] = [
   },
 ];
 
+const DURATION_WEEK_COUNT: Record<string, number> = {
+  "this-week": 1,
+  "this-month": 4,
+  "this-quarter": 13,
+  "all-time": 100,
+};
+
 function AllocationsTeam() {
   const [search, setSearch] = useState("");
   const [allocationsType, setAllocationsType] = useState<string | undefined>();
-  const [duration, setDuration] = useState<string | undefined>();
+  const [duration, setDuration] = useState<string>("this-month");
   const [compositeFilters, setCompositeFilters] = useState<FilterCondition[]>(
     [],
   );
+
+  const weekCount = DURATION_WEEK_COUNT[duration];
+
+  const filteredMembers = search.trim()
+    ? FAKE_MEMBERS.filter(
+        (m) =>
+          m.name.toLowerCase().includes(search.toLowerCase()) ||
+          m.role?.toLowerCase().includes(search.toLowerCase()),
+      )
+    : FAKE_MEMBERS;
 
   return (
     <>
@@ -62,7 +79,7 @@ function AllocationsTeam() {
               { label: "All time", value: "all-time" },
             ]}
             value={duration}
-            onChange={(value) => setDuration(value)}
+            onChange={(value) => setDuration(value || "this-month")}
           />
           <Select
             placeholder="Allocations Type"
@@ -91,9 +108,10 @@ function AllocationsTeam() {
         </div>
       </div>
       <GanttGrid
+        key={weekCount + search}
         startDate={GANTT_START_DATE}
-        members={FAKE_MEMBERS}
-        weekCount={3}
+        members={filteredMembers}
+        weekCount={weekCount}
       />
     </>
   );
