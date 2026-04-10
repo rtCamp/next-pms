@@ -139,7 +139,7 @@ export const TeamTimesheetTable = () => {
                       teamMembers={week.members.map((member) => ({
                         label: member.employee.employee_name,
                         employee: member.employee.name,
-                        avatarUrl: member.employee.image,
+                        avatarUrl: member.employee.image ?? undefined,
                         tasks: member.week.tasks,
                         leaves: member.leaves,
                         holidays: member.holidays,

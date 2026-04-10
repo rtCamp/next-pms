@@ -11,7 +11,7 @@ import type { DataProp, timesheet } from "@/types/timesheet";
 
 export type EmployeeRecord = {
   name: string;
-  image: string;
+  image: string | null;
   employee_name: string;
 };
 
