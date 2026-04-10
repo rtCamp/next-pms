@@ -2,6 +2,7 @@
  * Internal dependencies.
  */
 import { useState } from "react";
+import { GanttGrid } from "@next-pms/design-system/components";
 import {
   Button,
   Filter,
@@ -11,7 +12,7 @@ import {
   TextInput,
 } from "@rtcamp/frappe-ui-react";
 import { Ellipsis } from "lucide-react";
-import { UnderConstruction } from "@/components/under-construction";
+import { FAKE_MEMBERS, GANTT_START_DATE } from "./constants";
 
 const FILTER_FIELDS: FilterField[] = [
   {
@@ -89,7 +90,11 @@ function AllocationsTeam() {
           <Button icon={() => <Ellipsis size={16} />} />
         </div>
       </div>
-      <UnderConstruction />
+      <GanttGrid
+        startDate={GANTT_START_DATE}
+        members={FAKE_MEMBERS}
+        weekCount={3}
+      />
     </>
   );
 }
