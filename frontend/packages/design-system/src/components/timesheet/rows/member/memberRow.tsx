@@ -70,7 +70,7 @@ export const MemberRow: React.FC<MemberRowProps> = ({
         </span>
         <div className="flex gap-2 items-center min-w-0">
           <Avatar image={avatarUrl} shape="circle" label={label} size="xs" />
-          <span className="text-base font-medium text-ink-gray-9 leading-3.5">
+          <span className="text-base font-medium truncate text-ink-gray-9">
             {label}
           </span>
           {status !== "none" && (

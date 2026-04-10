@@ -47,7 +47,7 @@ type UseTeamTimesheetDataResult = {
 };
 
 type UseTeamTimesheetOptions = {
-  employeeId?: string;
+  employeeId: string;
 };
 
 export function useTeamTimesheetData({
@@ -73,8 +73,6 @@ export function useTeamTimesheetData({
     start: "0",
   });
 
-  // This is the only legitimate effect here: syncing external data (the API response)
-  // into local state. No transformation happens here, that belongs in useMemo.
   useEffect(() => {
     if (!employeeId || !teamData?.message) {
       return;
