@@ -11,7 +11,7 @@ import { Edit, Pen, Plus, Trash2 } from "lucide-react";
 /**
  * Internal Dependencies
  */
-import { parseFrappeErrorMsg } from "@/lib/utils";
+import { parseFrappeErrorMsg, stripTags } from "@/lib/utils";
 import { TaskDataItemProps } from "@/types/timesheet";
 import { useInlineTimeEntryForm } from "./form";
 import { TimeEntryForm } from "./timeEntryForm";
@@ -323,7 +323,9 @@ export const InlineTimeEntry = ({
                               },
                             )}
                           >
-                            {entry.description}
+                            {entry.description
+                              ? stripTags(entry.description)
+                              : null}
                           </span>
                         ) : null}
                         {!disabled ? (
