@@ -16,6 +16,10 @@ const Home = lazy(() => import("@/pages/home"));
 const Task = lazy(() => import("@/pages/task"));
 const Project = lazy(() => import("@/pages/project"));
 const TimesheetLayout = lazy(() => import("@/pages/timesheet/layout"));
+const PersonalTimesheetLayout = lazy(
+  () => import("@/pages/timesheet/personal/layout"),
+);
+const TeamTimesheetLayout = lazy(() => import("@/pages/timesheet/team/layout"));
 const TimesheetPersonal = lazy(() => import("@/pages/timesheet/personal"));
 const TimesheetTeam = lazy(() => import("@/pages/timesheet/team"));
 const TimesheetProject = lazy(() => import("./pages/timesheet/project"));
@@ -34,15 +38,19 @@ export function Router() {
           <Route path={ROUTES.home} element={<Home />} />
           <Route path={ROUTES.task} element={<Task />} />
           <Route path={ROUTES.project} element={<Project />} />
-          <Route element={<TimesheetLayout />}>
+          <Route element={<PersonalTimesheetLayout />}>
             <Route
               path={ROUTES["timesheet-personal"]}
               element={<TimesheetPersonal />}
             />
+          </Route>
+          <Route element={<TeamTimesheetLayout />}>
             <Route
               path={ROUTES["timesheet-team"]}
               element={<TimesheetTeam />}
             />
+          </Route>
+          <Route element={<TimesheetLayout />}>
             <Route
               path={ROUTES["timesheet-project"]}
               element={<TimesheetProject />}
