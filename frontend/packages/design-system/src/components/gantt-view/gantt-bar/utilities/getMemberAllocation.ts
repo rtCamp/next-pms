@@ -7,7 +7,7 @@ import type { Allocation, Project } from "../../types";
  * contiguous days with the same total hours are merged into a single entry.
  */
 export function getMemberAllocation(projects: Project[]): Allocation[] {
-  const allAllocs = projects.flatMap((p) => p.allocation ?? []);
+  const allAllocs = projects.flatMap((p) => p.allocations ?? []);
   if (allAllocs.length === 0) return [];
 
   // Use local-midnight timestamps as keys to avoid UTC-offset date shifts

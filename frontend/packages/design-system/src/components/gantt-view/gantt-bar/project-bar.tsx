@@ -9,8 +9,9 @@ interface GanttProjectBarProps {
 }
 
 export function GanttProjectBar({ allocation }: GanttProjectBarProps) {
-  const { weekStart, showWeekend } = useGanttStore((s) => ({
+  const { weekStart, showWeekend, headerWidth } = useGanttStore((s) => ({
     weekStart: s.weekStart,
+    headerWidth: s.headerWidth,
     showWeekend: s.showWeekend,
     columnCount: s.columnCount,
   }));
@@ -18,7 +19,8 @@ export function GanttProjectBar({ allocation }: GanttProjectBarProps) {
   const numDays =
     getNumDays(allocation.endDate, allocation.startDate, showWeekend) + 1;
   const left =
-    getNumDays(allocation.startDate, weekStart, showWeekend) * CELL_WIDTH;
+    getNumDays(allocation.startDate, weekStart, showWeekend) * CELL_WIDTH +
+    headerWidth;
   const label = `${allocation.hours}h/day for ${numDays} day${numDays !== 1 ? "s" : ""}`;
 
   return (

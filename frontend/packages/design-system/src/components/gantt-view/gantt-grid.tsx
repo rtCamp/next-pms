@@ -55,7 +55,7 @@ const GanttGridInner: React.FC = () => {
                 className={cn(
                   "absolute top-0 right-0 h-full w-1 cursor-col-resize",
                   {
-                    "bg-outline-grggVGay-3": resizeHandleActive,
+                    "bg-outline-gray-3": resizeHandleActive,
                   },
                 )}
                 onMouseDown={onResizeMouseDown}
@@ -73,8 +73,6 @@ const GanttGridInner: React.FC = () => {
         <tbody>
           {members.map((member: Member, rowIndex: number) => {
             const isExpanded = expandedRows.has(rowIndex);
-            const isMemberLastRow =
-              rowIndex === members.length - 1 && !isExpanded;
 
             const memberAlloc = getMemberAllocation(member.projects || []);
 
@@ -83,7 +81,6 @@ const GanttGridInner: React.FC = () => {
                 {/* Member row */}
                 <tr className="relative last:border-b border-outline-gray-2">
                   <GanttMemberItem
-                    {...member}
                     memberInd={rowIndex}
                     onResizeStart={onResizeMouseDown}
                     onResizeHandleEnter={() => setResizeHandleActive(true)}
@@ -95,7 +92,7 @@ const GanttGridInner: React.FC = () => {
                       <td
                         key={i}
                         colSpan={7}
-                        className={cn("border-r border-outline-gray-2", {})}
+                        className={cn("border-r border-outline-gray-2")}
                         style={{
                           height: CELL_HEIGHT,
                         }}
@@ -107,17 +104,23 @@ const GanttGridInner: React.FC = () => {
                   ))}
                 </tr>
 
-                {/* Project child rows
+                {/* Project child rows */}
                 {isExpanded &&
-                  row.projects?.map((project: Project, projectIndex: number) => {
-                    const isLastProjectRow = isLastMember && projectIndex === (row.projects?.length ?? 0) - 1;
+                  member.projects?.map((project, projectIndex) => {
                     return (
-                      <tr key={`${rowIndex}-project-${projectIndex}`}>
+                      <tr
+                        key={`${rowIndex}-project-${projectIndex}`}
+                        className="relative"
+                      >
                         <GanttProjectItem
                           {...project}
                           onResizeStart={onResizeMouseDown}
-                          onResizeHandleEnter={() => setResizeHandleActive(true)}
-                          onResizeHandleLeave={() => setResizeHandleActive(false)}
+                          onResizeHandleEnter={() =>
+                            setResizeHandleActive(true)
+                          }
+                          onResizeHandleLeave={() =>
+                            setResizeHandleActive(false)
+                          }
                           highlightResizeHandle={resizeHandleActive}
                           style={{
                             height: CELL_HEIGHT,
@@ -125,43 +128,29 @@ const GanttGridInner: React.FC = () => {
                             minWidth: headerWidth,
                           }}
                         />
-                        {columns.map((i) => {
-                          const isSaturday = (i + 2) % daysPerWeek === 0 && showWeekend;
-                          const isSunday = (i + 1) % daysPerWeek === 0 && showWeekend;
-                          const isLastday = (i + 1) % daysPerWeek === 0;
+                        {weeks.map((_, i) => {
                           return (
                             <td
                               key={i}
-                              className={cn({
-                                "border-r border-outline-gray-2": isLastday,
-                                "border-b border-outline-gray-2": isLastProjectRow,
-                                "bg-surface-gray-1": isSaturday || isSunday,
-                              })}
+                              colSpan={7}
+                              className={cn("border-r border-outline-gray-2")}
                               style={{
-                                position: i === 0 ? "relative" : undefined,
                                 height: CELL_HEIGHT,
-                                width: CELL_WIDTH,
                               }}
-                            >
-                              {i === 0 && project.allocation?.length && (
-                                <div
-                                  className="absolute top-0 left-0 pointer-events-none"
-                                  style={{
-                                    width: columnCount * CELL_WIDTH,
-                                    height: CELL_HEIGHT,
-                                  }}
-                                >
-                                  {project.allocation.map((alloc, allocIndex) => (
-                                    <GanttProjectBar key={allocIndex} allocation={alloc} />
-                                  ))}
-                                </div>
-                              )}
-                            </td>
+                            />
+                          );
+                        })}
+                        {project.allocations?.map((alloc, allocIndex) => {
+                          return (
+                            <GanttProjectBar
+                              key={allocIndex}
+                              allocation={alloc}
+                            />
                           );
                         })}
                       </tr>
                     );
-                  })} */}
+                  })}
               </React.Fragment>
             );
           })}

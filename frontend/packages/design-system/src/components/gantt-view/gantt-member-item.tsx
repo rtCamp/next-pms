@@ -1,12 +1,11 @@
-import type { CSSProperties, MouseEvent } from "react";
+import type { MouseEvent } from "react";
 import { Avatar, Badge } from "@rtcamp/frappe-ui-react";
 import { ChevronRight } from "lucide-react";
 import { CELL_HEIGHT } from "./constants";
 import { useGanttStore } from "./gantt-store";
-import type { Member } from "./types";
 import { mergeClassNames as cn } from "../../utils";
 
-export interface GanttMemberItemProps extends Member {
+export interface GanttMemberItemProps {
   memberInd: number;
   onResizeStart?: (e: MouseEvent) => void;
   onResizeHandleEnter?: () => void;
@@ -16,10 +15,6 @@ export interface GanttMemberItemProps extends Member {
 
 export function GanttMemberItem({
   memberInd,
-  name,
-  role,
-  image,
-  badge,
   onResizeStart,
   onResizeHandleEnter,
   onResizeHandleLeave,
@@ -58,19 +53,28 @@ export function GanttMemberItem({
       </button>
 
       <div className="flex items-center gap-2 flex-1 min-w-0 overflow-hidden">
-        <Avatar size="xs" shape="circle" image={image} label={name} />
+        <Avatar
+          size="xs"
+          shape="circle"
+          image={member.image}
+          label={member.name}
+        />
 
         <div className="flex flex-col flex-1 min-w-0 leading-tight">
           <span className="text-sm font-medium text-ink-gray-8 truncate">
-            {name}
+            {member.name}
           </span>
-          {role && (
-            <span className="text-xs text-ink-gray-6 truncate">{role}</span>
+          {member.role && (
+            <span className="text-xs text-ink-gray-6 truncate">
+              {member.role}
+            </span>
           )}
         </div>
       </div>
 
-      {badge && <Badge label={badge} size="sm" variant="subtle" theme="gray" />}
+      {member.badge && (
+        <Badge label={member.badge} size="sm" variant="subtle" theme="gray" />
+      )}
       {onResizeStart && (
         <div
           className={cn("absolute top-0 right-0 h-full w-1 cursor-col-resize", {

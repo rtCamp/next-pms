@@ -12,7 +12,7 @@ export interface Project {
   dateRange?: string;
   client?: string;
   badge?: string;
-  allocation?: Allocation[];
+  allocations?: Allocation[];
 }
 
 export interface Member {

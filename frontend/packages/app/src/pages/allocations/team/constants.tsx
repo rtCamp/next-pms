@@ -12,7 +12,7 @@ export const FAKE_MEMBERS: Member[] = [
         name: "Next PMS Redesign",
         client: "Internal",
         badge: "NP",
-        allocation: [
+        allocations: [
           {
             hours: 6,
             startDate: new Date(2026, 3, 7),
@@ -24,7 +24,7 @@ export const FAKE_MEMBERS: Member[] = [
         name: "Client Portal",
         client: "Acme Corp",
         badge: "CP",
-        allocation: [
+        allocations: [
           {
             hours: 2,
             startDate: new Date(2026, 3, 21),
@@ -43,7 +43,7 @@ export const FAKE_MEMBERS: Member[] = [
         name: "API Gateway",
         client: "Globex",
         badge: "AG",
-        allocation: [
+        allocations: [
           {
             hours: 8,
             startDate: new Date(2026, 3, 6),
@@ -62,7 +62,7 @@ export const FAKE_MEMBERS: Member[] = [
         name: "Design System v2",
         client: "Internal",
         badge: "DS",
-        allocation: [
+        allocations: [
           {
             hours: 4,
             startDate: new Date(2026, 3, 8),
@@ -87,7 +87,7 @@ export const FAKE_MEMBERS: Member[] = [
         name: "Automated Testing Suite",
         client: "Internal",
         badge: "AT",
-        allocation: [
+        allocations: [
           {
             hours: 5,
             startDate: new Date(2026, 3, 6),
@@ -106,7 +106,7 @@ export const FAKE_MEMBERS: Member[] = [
         name: "Next PMS Redesign",
         client: "Internal",
         badge: "NP",
-        allocation: [
+        allocations: [
           {
             hours: 3,
             startDate: new Date(2026, 3, 7),
@@ -125,7 +125,7 @@ export const FAKE_MEMBERS: Member[] = [
         name: "iOS App v3",
         client: "Initech",
         badge: "IA",
-        allocation: [
+        allocations: [
           {
             hours: 7,
             startDate: new Date(2026, 3, 6),
@@ -137,7 +137,7 @@ export const FAKE_MEMBERS: Member[] = [
         name: "Android App",
         client: "Initech",
         badge: "AA",
-        allocation: [
+        allocations: [
           {
             hours: 4,
             startDate: new Date(2026, 3, 21),
@@ -156,7 +156,7 @@ export const FAKE_MEMBERS: Member[] = [
         name: "Data Pipeline",
         client: "Umbrella Inc",
         badge: "DP",
-        allocation: [
+        allocations: [
           {
             hours: 6,
             startDate: new Date(2026, 3, 13),
@@ -181,7 +181,7 @@ export const FAKE_MEMBERS: Member[] = [
         name: "Security Audit",
         client: "Globex",
         badge: "SA",
-        allocation: [
+        allocations: [
           {
             hours: 8,
             startDate: new Date(2026, 3, 6),
@@ -200,7 +200,7 @@ export const FAKE_MEMBERS: Member[] = [
         name: "API Documentation",
         client: "Internal",
         badge: "AD",
-        allocation: [
+        allocations: [
           {
             hours: 4,
             startDate: new Date(2026, 3, 8),
@@ -219,7 +219,7 @@ export const FAKE_MEMBERS: Member[] = [
         name: "Client Portal",
         client: "Acme Corp",
         badge: "CP",
-        allocation: [
+        allocations: [
           {
             hours: 6,
             startDate: new Date(2026, 3, 6),
@@ -231,7 +231,7 @@ export const FAKE_MEMBERS: Member[] = [
         name: "API Gateway",
         client: "Globex",
         badge: "AG",
-        allocation: [
+        allocations: [
           {
             hours: 3,
             startDate: new Date(2026, 3, 20),
@@ -250,7 +250,7 @@ export const FAKE_MEMBERS: Member[] = [
         name: "Cloud Migration",
         client: "Umbrella Inc",
         badge: "CM",
-        allocation: [
+        allocations: [
           {
             hours: 7,
             startDate: new Date(2026, 3, 6),
@@ -269,7 +269,7 @@ export const FAKE_MEMBERS: Member[] = [
         name: "Recommendation Engine",
         client: "Initech",
         badge: "RE",
-        allocation: [
+        allocations: [
           {
             hours: 5,
             startDate: new Date(2026, 3, 13),
