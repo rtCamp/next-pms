@@ -111,7 +111,6 @@ def get_project_filter_for_contractor(only_list=False):
 def get_project_timesheet_data(
     date: str,
     max_week: int = 2,
-    project=None,
     reports_to: str | None = None,
     page_length=10,
     start=0,
@@ -127,14 +126,7 @@ def get_project_timesheet_data(
 
     dates.reverse()
 
-    if isinstance(project, str):
-        try:
-            project = json.loads(project)
-        except (json.JSONDecodeError, ValueError):
-            project = [project]
-
     employees, total_count = filter_employees(
-        project=project,
         page_length=page_length,
         start=start,
         reports_to=reports_to,
