@@ -161,7 +161,6 @@ def get_timesheet_data(
     approval_status: str | list | None = None,
     filters: str | list | None = None,
     skip_empty_weeks: bool = False,
-    filter_lookback_weeks: int = FILTER_LOOKBACK_WEEKS,
 ):
     """Get timesheet data for the given employee for the given number of weeks."""
     if not employee:
@@ -169,7 +168,7 @@ def get_timesheet_data(
     if not start_date:
         start_date = nowdate()
     apply_role_permission_for_doctype(["Timesheet User", "Timesheet Manager"], "Employee", "read", employee)
-
+    filter_lookback_weeks = FILTER_LOOKBACK_WEEKS
     # Parse approval_status from JSON string to list
     if isinstance(approval_status, str):
         try:
@@ -257,7 +256,7 @@ def get_timesheet_data(
             start_date = add_days(getdate(week_dates["start_date"]), -1)
 
         has_more = False
-        if has_filters and employee:
+        if employee:
             has_more = _compute_has_more(
                 employee=employee,
                 start_date=start_date,
