@@ -135,16 +135,17 @@ def _compute_has_more(
         for f in parsed_filters.get("Task", []):
             query = _apply_qb_condition(query, Task, f[0], f[1], f[2])
 
-        search_term = f"%{search}%"
-        query = query.where(
-            Criterion.any(
-                [
-                    Task.subject.like(search_term),
-                    Task.name.like(search_term),
-                    Project.project_name.like(search_term),
-                ]
+        if search:
+            search_term = f"%{search}%"
+            query = query.where(
+                Criterion.any(
+                    [
+                        Task.subject.like(search_term),
+                        Task.name.like(search_term),
+                        Project.project_name.like(search_term),
+                    ]
+                )
             )
-        )
 
     query = query.limit(1)
     return bool(query.run())
@@ -238,11 +239,9 @@ def get_timesheet_data(
                 if daily_norm * 5 == leave_total:
                     status = "Approved"
 
-            if approval_status and status not in approval_status:
-                start_date = add_days(getdate(week_dates["start_date"]), -1)
-                continue
-
-            if skip_empty_weeks and search and not tasks:
+            should_skip_empty = has_filters and skip_empty_weeks
+            should_skip_week = (should_skip_empty and not tasks) or (approval_status and status not in approval_status)
+            if should_skip_week:
                 start_date = add_days(getdate(week_dates["start_date"]), -1)
                 continue
 
@@ -277,17 +276,17 @@ def get_timesheet_data(
         res["leaves"] = []
         return res
 
-    lookback = max(filter_lookback_weeks, max_week) if has_filters else max_week
+    backward = max(filter_lookback_weeks, max_week) if has_filters else max_week
 
     holidays = get_holidays(
         employee,
-        add_days(start_date, -lookback * 7),
-        add_days(start_date, lookback * 7),
+        add_days(start_date, -backward * 7),
+        add_days(start_date, backward * 7),
     )
 
     leaves = get_employee_leaves(
-        start_date=add_days(start_date, -lookback * 7),
-        end_date=add_days(start_date, lookback * 7),
+        start_date=add_days(start_date, -backward * 7),
+        end_date=add_days(start_date, backward * 7),
         employee=employee,
     )
     res["leaves"] = leaves
