@@ -44,6 +44,10 @@ export function mergeClassNames(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
+export function stripTags(html: string): string {
+  return html.replace(/<[^>]*>/g, "");
+}
+
 export function getCookie(name: string) {
   const value = `; ${document.cookie}`;
   const parts = value.split(`; ${name}=`);
