@@ -106,7 +106,7 @@ def get_project_filter_for_contractor(only_list=False):
     return []
 
 
-@whitelist(methods=["GET"])
+@whitelist(methods=["GET", "POST"])
 @error_logger
 def get_project_timesheet_data(
     date: str,
