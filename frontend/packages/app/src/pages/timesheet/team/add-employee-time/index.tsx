@@ -1,16 +1,16 @@
 /**
  * External Dependencies
  */
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { DurationInput } from "@next-pms/design-system/components";
 import {
   DatePicker,
   Dialog,
   Button,
+  Textarea,
   ErrorMessage,
   Combobox,
   useToasts,
-  TextEditor,
 } from "@rtcamp/frappe-ui-react";
 import { useForm, useStore } from "@tanstack/react-form";
 import {
@@ -24,34 +24,17 @@ import { Calendar } from "lucide-react";
  * Internal Dependencies
  */
 import { parseFrappeErrorMsg } from "@/lib/utils";
-import { useUser } from "@/providers/user";
-import CalendarEvents from "./calendarEvents";
 import { addTimeFormSchema } from "./schema";
-import type { AddTimeProps, ProjectData, TaskItem } from "./type";
+import type { AddTeamTimeProps, ProjectData, TaskItem } from "./type";
 
-/**
- * Add Time Component
- * @description This component is used to show dialog to the user to add time
- * entry for the timesheet. User can select the  date, time, project, task and
- * and description for the timesheet entry.
- * @param initialDate - Initial date for the timesheet, this select the date in date picker.
- * @param employee - Employee for the timesheet entry(In case of employee role they can select their employee only).
- * @param open - Boolean value to open the dialog.
- * @param onOpenChange - Function to change the open state of the dialog.
- * @param task - Task name for the timesheet entry (eg: TASK-0001).
- * @param project - Project name for the timesheet entry (eg: Project-0001).
- */
-const AddTime = ({
+const AddEmployeeTime = ({
   initialDate,
   open = false,
   onOpenChange,
   task = "",
   project = "",
-}: AddTimeProps) => {
-  const { employeeId } = useUser(({ state }) => ({
-    employeeId: state.employeeId,
-  }));
-
+  employeeId = "",
+}: AddTeamTimeProps) => {
   const toast = useToasts();
   const [submitting, setSubmitting] = useState(false);
   const { call: saveTime } = useFrappePostCall(
@@ -60,6 +43,7 @@ const AddTime = ({
 
   const form = useForm({
     defaultValues: {
+      employeeId: employeeId,
       project: project,
       task: task,
       date: initialDate,
@@ -77,7 +61,7 @@ const AddTime = ({
           description: value.comment,
           task: value.task,
           hours: value.duration,
-          employee: employeeId,
+          employee: value.employeeId,
         });
         setSubmitting(false);
         toast.success("Time Entry submitted successfully");
@@ -93,13 +77,22 @@ const AddTime = ({
   });
 
   const selectedProject = useStore(form.store, (state) => state.values.project);
-  const selectedDate = useStore(form.store, (state) => state.values.date);
+
+  const { data: employeesData } = useFrappeGetCall("frappe.client.get_list", {
+    doctype: "Employee",
+    fields: ["name", "employee_name"],
+  });
+
+  const employeeOptions = (
+    (employeesData?.message ?? []) as { name: string; employee_name: string }[]
+  ).map((employee) => ({
+    label: employee.employee_name,
+    value: employee.name,
+  }));
 
   const { data: projectsData } = useFrappeGetCall("frappe.client.get_list", {
     doctype: "Project",
     fields: ["name", "project_name"],
-    filters: window.frappe?.boot?.global_filters.project,
-    limit_page_length: "null",
   });
 
   const projectOptions = ((projectsData?.message ?? []) as ProjectData[]).map(
@@ -122,33 +115,6 @@ const AddTime = ({
   useEffect(() => {
     mutateTasksData();
   }, [project, task, mutateTasksData]);
-
-  const handleCalendarSelectionChange = useCallback(
-    (selectedLabels: string[], allEventSubjects: string[]) => {
-      const currentComment = form.state.values.comment || "";
-      const preservedLines = currentComment
-        .split("\n")
-        .map((line) => line.trim())
-        .filter(
-          (line) =>
-            line &&
-            !allEventSubjects.some(
-              (subject) =>
-                line === subject ||
-                line === `- ${subject}` ||
-                line.startsWith(`- ${subject} | `),
-            ),
-        );
-
-      const selectedSubjectLines = selectedLabels.map((label) => `- ${label}`);
-
-      form.setFieldValue(
-        "comment",
-        [...preservedLines, ...selectedSubjectLines].join("\n"),
-      );
-    },
-    [form],
-  );
 
   const tasksOptions = ((tasksData?.message?.task ?? []) as TaskItem[]).map(
     (task) => ({
@@ -177,6 +143,30 @@ const AddTime = ({
       }}
     >
       <div className="space-y-4">
+        <form.Field
+          name="employeeId"
+          children={(field) => {
+            return (
+              <>
+                <label className="block text-xs text-ink-gray-5 mb-1.5">
+                  Employee
+                </label>
+                <Combobox
+                  inputClassName="bg-white h-8 border-outline-gray-2"
+                  options={employeeOptions}
+                  placeholder="Select Employee"
+                  value={field.state.value}
+                  onChange={(val) => {
+                    field.handleChange(val as string);
+                  }}
+                />
+                {!field.state.meta.isValid && (
+                  <ErrorMessage message={field.state.meta.errors[0]?.message} />
+                )}
+              </>
+            );
+          }}
+        />
         <form.Field
           name="project"
           children={(field) => {
@@ -296,23 +286,16 @@ const AddTime = ({
           />
         </div>
 
-        <CalendarEvents
-          initialDate={selectedDate}
-          enabled={open}
-          onSelectionChange={handleCalendarSelectionChange}
-        />
-
         <form.Field
           name="comment"
           children={(field) => {
             return (
               <>
                 <label className="block text-xs text-ink-gray-5">Comment</label>
-                <TextEditor
-                  content={field.state.value}
-                  onChange={(value) => field.handleChange(value)}
-                  fixedMenu={false}
-                  editorClass="px-2 h-24 overflow-auto scrollbar bg-white border rounded-md border-outline-gray-2"
+                <Textarea
+                  value={field.state.value}
+                  onChange={(e) => field.handleChange(e.target.value)}
+                  className="bg-white border-outline-gray-2"
                 />
                 {!field.state.meta.isValid && (
                   <ErrorMessage message={field.state.meta.errors[0]?.message} />
@@ -326,4 +309,4 @@ const AddTime = ({
   );
 };
 
-export default AddTime;
+export default AddEmployeeTime;
