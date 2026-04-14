@@ -43,6 +43,7 @@ export const PersonalTimesheetTable = () => {
     ({ state }) => state.timesheetData,
   );
   const filters = usePersonalTimesheet(({ state }) => state.filters);
+  const searchInput = usePersonalTimesheet(({ state }) => state.searchInput);
   const compositeFilters = usePersonalTimesheet(
     ({ state }) => state.compositeFilters,
   );
@@ -91,7 +92,7 @@ export const PersonalTimesheetTable = () => {
         <div className="flex gap-2">
           <TextInput
             placeholder="Search Tasks"
-            value={filters.search}
+            value={searchInput}
             onChange={(e) => handleSearchChange(e.target.value)}
           />
           <ApprovalStatusFilter

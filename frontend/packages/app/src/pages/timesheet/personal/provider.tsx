@@ -8,6 +8,7 @@ import {
   useEffect,
   useMemo,
   useReducer,
+  useState,
 } from "react";
 import {
   ApprovalStatusLabelMap,
@@ -23,6 +24,7 @@ import { useFrappeEventListener, useFrappeGetCall } from "frappe-react-sdk";
 /**
  * Internal dependencies.
  */
+import { useDebounce } from "@/hooks/useDebounce";
 import { NUMBER_OF_WEEKS_TO_FETCH } from "@/lib/constant";
 import { buildCompositeFilters, parseFrappeErrorMsg } from "@/lib/utils";
 import { useUser } from "@/providers/user";
@@ -48,6 +50,8 @@ export const PersonalTimesheetProvider: FC<PropsWithChildren> = ({
 
   const toast = useToasts();
   const [startDateParam, setStartDateParam] = useQueryParam<string>("date", "");
+  const [searchInput, setSearchInput] = useState("");
+  const debouncedSearch = useDebounce(searchInput, 400);
 
   const { employeeId } = useUser(({ state }) => ({
     employeeId: state.employeeId,
@@ -118,10 +122,14 @@ export const PersonalTimesheetProvider: FC<PropsWithChildren> = ({
     "next_pms.timesheet.api.task.get_liked_tasks",
   );
 
+  useEffect(() => {
+    dispatch({ type: "SEARCH_CHANGED", payload: debouncedSearch });
+  }, [debouncedSearch]);
+
   const handleSearchChange = useCallback(
     (value: string) => {
       setStartDateParam("");
-      dispatch({ type: "SEARCH_CHANGED", payload: value });
+      setSearchInput(value);
     },
     [setStartDateParam],
   );
@@ -175,6 +183,7 @@ export const PersonalTimesheetProvider: FC<PropsWithChildren> = ({
         isFilterRequest: state.isFilterRequest,
         timesheetData: state.timesheetData,
         filters: state.filters,
+        searchInput,
         compositeFilters: state.compositeFilters,
         likedTaskData: likedTasksResponse?.message ?? [],
       },
@@ -191,6 +200,7 @@ export const PersonalTimesheetProvider: FC<PropsWithChildren> = ({
       state.isFilterRequest,
       state.timesheetData,
       state.filters,
+      searchInput,
       state.compositeFilters,
       isLoading,
       likedTasksResponse,
