@@ -32,6 +32,7 @@ class MentionBlot extends Inline {
   }) {
     const node = super.create() as HTMLElement;
     node.setAttribute("data-mention", "true");
+    node.setAttribute("contenteditable", "false");
     if (value?.id) node.setAttribute("data-id", String(value.id));
     if (value?.value) node.setAttribute("data-value", String(value.value));
     if (value?.label) node.setAttribute("data-label", String(value.label));
@@ -431,6 +432,7 @@ const TextEditor = ({
         "allowfullscreen",
         "alt",
         "class",
+        "contenteditable",
         "data-id",
         "data-label",
         "data-mention",
@@ -634,6 +636,7 @@ const TextEditor = ({
         el.className = `mention ${mentionClassName}`;
         if (!el.getAttribute("data-mention"))
           el.setAttribute("data-mention", "true");
+        el.setAttribute("contenteditable", "false");
       });
     } catch (error) {
       console.error("Error in mention styling:", error);
@@ -673,6 +676,7 @@ const TextEditor = ({
             if (!htmlSpan.getAttribute("data-mention")) {
               htmlSpan.setAttribute("data-mention", "true");
             }
+            htmlSpan.setAttribute("contenteditable", "false");
           }
         });
       }
