@@ -18,11 +18,13 @@ import type { ProjectRowProps } from "./types";
  *
  * @param {Array} props.dates - Array of date strings for the week.
  * @param {TaskProps} props.tasks - TaskProps object containing task data for the week.
+ * @param {boolean} props.hideTime - Optional flag to hide time entries in the row.
  * @param {React.ReactNode} props.children - Child components to be rendered inside the accordion content.
  */
 export const ProjectRow = ({
   dates,
   tasks,
+  hideTime,
   children,
   ...rest
 }: ProjectRowProps) => {
@@ -30,7 +32,12 @@ export const ProjectRow = ({
 
   const projectData = useMemo(() => {
     let total = 0;
-    const totalTimeEntries = [];
+    const totalTimeEntries: string[] = [];
+
+    if (hideTime) {
+      return { total, totalTimeEntries };
+    }
+
     for (const date of dates) {
       const currentTotal = calculateTotalHours(tasks, date);
       totalTimeEntries.push(
@@ -39,7 +46,7 @@ export const ProjectRow = ({
       total += currentTotal;
     }
     return { total, totalTimeEntries };
-  }, [dates, tasks]);
+  }, [dates, tasks, hideTime]);
 
   return (
     <Accordion.Root
@@ -53,7 +60,7 @@ export const ProjectRow = ({
             <div {...props}>
               <BaseProjectRow
                 {...rest}
-                totalHours={floatToTime(projectData.total, 2)}
+                totalHours={hideTime ? "" : floatToTime(projectData.total, 2)}
                 timeEntries={projectData.totalTimeEntries}
                 collapsed={collapsed}
                 totalHoursTheme="green"

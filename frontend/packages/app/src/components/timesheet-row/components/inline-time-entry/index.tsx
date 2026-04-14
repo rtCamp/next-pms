@@ -4,14 +4,14 @@
 import { useCallback, useMemo, useRef, useState } from "react";
 import { Accordion } from "@base-ui/react/accordion";
 import { floatToTime, mergeClassNames as cn } from "@next-pms/design-system";
-import { Badge, Button, useToasts } from "@rtcamp/frappe-ui-react";
+import { Badge, Button, TextEditor, useToasts } from "@rtcamp/frappe-ui-react";
 import { FrappeError, useFrappePostCall } from "frappe-react-sdk";
 import { Edit, Pen, Plus, Trash2 } from "lucide-react";
 
 /**
  * Internal Dependencies
  */
-import { parseFrappeErrorMsg } from "@/lib/utils";
+import { parseFrappeErrorMsg, stripTags } from "@/lib/utils";
 import { TaskDataItemProps } from "@/types/timesheet";
 import { useInlineTimeEntryForm } from "./form";
 import { TimeEntryForm } from "./timeEntryForm";
@@ -323,7 +323,9 @@ export const InlineTimeEntry = ({
                               },
                             )}
                           >
-                            {entry.description}
+                            {entry.description
+                              ? stripTags(entry.description)
+                              : null}
                           </span>
                         ) : null}
                         {!disabled ? (
@@ -374,9 +376,11 @@ export const InlineTimeEntry = ({
                         </Button>
                       </TimeEntryForm>
                     ) : (
-                      <span className="text-base whitespace-pre-wrap wrap-break-word line-clamp-6 text-ink-gray-6">
-                        {entry.description}
-                      </span>
+                      <TextEditor
+                        content={entry.description}
+                        editable={false}
+                        fixedMenu={false}
+                      />
                     )}
                   </div>
                 </Accordion.Panel>

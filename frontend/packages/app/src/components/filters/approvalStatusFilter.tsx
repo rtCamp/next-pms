@@ -28,8 +28,16 @@ const ApprovalStatusFilter: React.FC<ApprovalStatusFilterProps> = ({
       value: "approved",
     },
     {
+      label: "Partially Approved",
+      value: "partially-approved",
+    },
+    {
       label: "Rejected",
       value: "rejected",
+    },
+    {
+      label: "Partially Rejected",
+      value: "partially-rejected",
     },
   ];
 
