@@ -231,57 +231,38 @@ const TextEditor = ({
         const mentionText = `${user.value}`;
         editor.insertText(startIndex, mentionText + " ", "user");
 
-        setTimeout(() => {
-          try {
-            const currentHtml = editor.root.innerHTML;
-            const mentionHtml = `<span class="mention ${mentionClassName}" data-type="mention" data-id="${user.id}" data-value="${user.value}" data-label="${user.value}" data-mention="true">${mentionText}</span>`;
-            const updatedHtml = currentHtml.replace(
-              new RegExp(
-                mentionText.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"),
-                "g",
-              ),
-              mentionHtml,
-            );
-            editor.root.innerHTML = updatedHtml;
-            const event = new Event("input", { bubbles: true });
-            editor.root.dispatchEvent(event);
-            const newContent = editor.root.innerHTML;
-            onChange(newContent);
-            const mentionElements = editor.root.querySelectorAll(
-              'span.mention, span[data-mention="true"]',
-            );
-            mentionElements.forEach((span) => {
-              const htmlSpan = span as HTMLElement;
-              htmlSpan.className = `mention ${mentionClassName}`;
-              if (!htmlSpan.getAttribute("data-mention")) {
-                htmlSpan.setAttribute("data-mention", "true");
-              }
-            });
+        editor.formatText(
+          startIndex,
+          mentionText.length,
+          {
+            mention: {
+              id: user.id,
+              value: user.value,
+              label: user.value,
+              className: mentionClassName,
+            },
+          },
+          "user",
+        );
 
-            const newCursorPosition = startIndex + mentionText.length + 1;
-            editor.setSelection(newCursorPosition, 0);
-            editor.focus();
-          } catch (error) {
-            console.error("Error applying mention styling:", error);
-          }
-        }, 50);
+        const newCursorPosition = startIndex + mentionText.length + 1;
+        editor.setSelection(newCursorPosition, 0);
+        editor.focus();
       } catch (error) {
         console.error("Error inserting mention:", error);
         editor.deleteText(startIndex, replaceLength);
         const fallbackText = `@${user.value} `;
         editor.insertText(startIndex, fallbackText, "user");
         const fallbackCursorPosition = startIndex + fallbackText.length;
-        setTimeout(() => {
-          editor.setSelection(fallbackCursorPosition, 0);
-          editor.focus();
-        }, 10);
+        editor.setSelection(fallbackCursorPosition, 0);
+        editor.focus();
       }
 
       setShowMentions(false);
       mentionStartIndex.current = -1;
       mentionEndIndex.current = -1;
     },
-    [mentionClassName, onChange],
+    [mentionClassName],
   );
 
   const handleMentionDeletion = useCallback(() => {
