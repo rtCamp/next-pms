@@ -35,7 +35,10 @@
   },
   "dependencies": {
     "dotenv": "^17.2.3",
-    "axios": "^1.13.5",
+    "axios": "^1.15.0",
     "proper-lockfile": "^4.1.2"
-  }
+  },
+  "overrides": {
+    "follow-redirects": "^1.15.12"
+}
 }
