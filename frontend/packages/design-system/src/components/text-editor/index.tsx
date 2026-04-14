@@ -1,7 +1,7 @@
 /**
  * External dependencies.
  */
-import { useEffect, useState, useRef, useCallback } from "react";
+import { useEffect, useState, useRef, useCallback, useMemo } from "react";
 import ReactQuill, { Quill } from "react-quill";
 import { DeltaStatic, Sources } from "quill";
 import "react-quill/dist/quill.snow.css";
@@ -97,6 +97,17 @@ const TextEditor = ({
   const quillRef = useRef<ReactQuill>(null);
   const mentionStartIndex = useRef<number>(-1);
   const mentionEndIndex = useRef<number>(-1);
+  const mentionContextId = useRef(0);
+  const latestMentionRequestId = useRef(0);
+
+  const closeMentions = useCallback(() => {
+    setShowMentions(false);
+    setMentionUsers([]);
+    setSelectedMentionIndex(0);
+    mentionStartIndex.current = -1;
+    mentionEndIndex.current = -1;
+    mentionContextId.current += 1;
+  }, []);
 
   useEffect(() => {
     if (Props?.value !== undefined) {
@@ -136,19 +147,37 @@ const TextEditor = ({
     };
   }
 
-  const debouncedFetchUsers = useCallback(
-    deBounce(async (searchTerm: string) => {
-      if (!onFetchUsers) return;
-      try {
-        const users = await onFetchUsers(searchTerm);
-        setMentionUsers(users);
-        setSelectedMentionIndex(0);
-        setShowMentions(true);
-      } catch (error) {
-        console.error("Error fetching users:", error);
-        setShowMentions(false);
-      }
-    }, 300),
+  const debouncedFetchUsers = useMemo(
+    () =>
+      deBounce(
+        async (searchTerm: string, requestId: number, contextId: number) => {
+          if (!onFetchUsers) return;
+          try {
+            const users = await onFetchUsers(searchTerm);
+
+            const hasValidMentionRange =
+              mentionStartIndex.current !== -1 &&
+              mentionEndIndex.current !== -1;
+            const isStaleRequest = requestId !== latestMentionRequestId.current;
+            const isStaleContext = contextId !== mentionContextId.current;
+
+            if (isStaleRequest || isStaleContext || !hasValidMentionRange) {
+              return;
+            }
+
+            setMentionUsers(users);
+            setSelectedMentionIndex(0);
+            setShowMentions(users.length > 0);
+          } catch (error) {
+            console.error("Error fetching users:", error);
+            if (requestId !== latestMentionRequestId.current) return;
+            if (contextId !== mentionContextId.current) return;
+            setMentionUsers([]);
+            setShowMentions(false);
+          }
+        },
+        300,
+      ),
     [onFetchUsers],
   );
 
@@ -174,18 +203,14 @@ const TextEditor = ({
       }
 
       if (atIndex === -1) {
-        setShowMentions(false);
-        mentionStartIndex.current = -1;
-        mentionEndIndex.current = -1;
+        closeMentions();
         return;
       }
 
       const searchTerm = text.slice(atIndex + 1, cursorPosition);
 
       if (!/^[a-zA-Z0-9\s]*$/.test(searchTerm)) {
-        setShowMentions(false);
-        mentionStartIndex.current = -1;
-        mentionEndIndex.current = -1;
+        closeMentions();
         return;
       }
 
@@ -203,9 +228,10 @@ const TextEditor = ({
         });
       }
 
-      debouncedFetchUsers(searchTerm);
+      const requestId = ++latestMentionRequestId.current;
+      debouncedFetchUsers(searchTerm, requestId, mentionContextId.current);
     },
-    [enableMentions, debouncedFetchUsers, onFetchUsers],
+    [enableMentions, closeMentions, debouncedFetchUsers, onFetchUsers],
   );
 
   const selectMention = useCallback(
@@ -259,11 +285,9 @@ const TextEditor = ({
         editor.focus();
       }
 
-      setShowMentions(false);
-      mentionStartIndex.current = -1;
-      mentionEndIndex.current = -1;
+      closeMentions();
     },
-    [mentionClassName],
+    [closeMentions, mentionClassName],
   );
 
   const handleMentionDeletion = useCallback(() => {
@@ -364,11 +388,17 @@ const TextEditor = ({
           break;
         case "Escape":
           event.preventDefault();
-          setShowMentions(false);
+          closeMentions();
           break;
       }
     },
-    [showMentions, mentionUsers, selectedMentionIndex, selectMention],
+    [
+      showMentions,
+      mentionUsers,
+      selectedMentionIndex,
+      selectMention,
+      closeMentions,
+    ],
   );
 
   const handleBackspace = useCallback(
