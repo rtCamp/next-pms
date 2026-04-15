@@ -40,57 +40,65 @@ export function GanttMemberItem({
         width: headerWidth,
       }}
     >
-      <div className="w-full flex flex-col gap-1 min-w-0">
-        <div className="flex items-center flex-1 w-full min-w-0 overflow-hidden">
-          <button
-            onClick={() => toggleRow(memberInd)}
-            className={cn(
-              "shrink-0 mr-1 text-ink-gray-4 transition-transform duration-150",
-              { "opacity-0 pointer-events-none": !hasProjects },
-              { "rotate-90": isExpanded },
-            )}
-            aria-label={isExpanded ? "Collapse" : "Expand"}
-          >
-            <ChevronRight size={16} />
-          </button>
-          <Avatar
-            size="xs"
-            shape="circle"
-            image={member.image}
-            label={member.name}
-          />
-          <span className="ml-2 text-sm font-medium leading-tight truncate text-ink-gray-8">
-            {member.name}
-          </span>
-        </div>
-        <div className="flex items-center flex-1 w-full min-w-0 overflow-hidden pl-11">
-          {member.role && (
-            <span className="text-xs leading-tight truncate text-ink-gray-6">
-              {member.role}
+      <button
+        onClick={() => toggleRow(memberInd)}
+        className={cn("shrink-0 w-full flex items-center", {
+          "pointer-events-none": !hasProjects,
+        })}
+        aria-label={isExpanded ? "Collapse" : "Expand"}
+      >
+        <div className="w-full flex flex-col gap-1 min-w-0">
+          <div className="flex items-center flex-1 w-full min-w-0 overflow-hidden">
+            <ChevronRight
+              className={cn(
+                "shrink-0 mr-1 text-ink-gray-4 transition-transform duration-150",
+                { "opacity-0 pointer-events-none": !hasProjects },
+                { "rotate-90": isExpanded },
+              )}
+              size={16}
+            />
+            <Avatar
+              size="xs"
+              shape="circle"
+              image={member.image}
+              label={member.name}
+            />
+            <span className="ml-2 text-sm font-medium leading-tight truncate text-ink-gray-8">
+              {member.name}
             </span>
-          )}
+          </div>
+          <div className="flex items-center flex-1 w-full min-w-0 overflow-hidden pl-11">
+            {member.role && (
+              <span className="text-xs leading-tight truncate text-ink-gray-6">
+                {member.role}
+              </span>
+            )}
+          </div>
         </div>
-      </div>
 
-      {member.badge && (
-        <Badge
-          className=""
-          label={member.badge}
-          size="sm"
-          variant="subtle"
-          theme="gray"
-        />
-      )}
-      {onResizeStart && (
-        <div
-          className={cn("absolute top-0 right-0 h-full w-1 cursor-col-resize", {
-            "bg-outline-gray-3": highlightResizeHandle,
-          })}
-          onMouseDown={onResizeStart}
-          onMouseEnter={onResizeHandleEnter}
-          onMouseLeave={onResizeHandleLeave}
-        />
-      )}
+        {member.badge && (
+          <Badge
+            className=""
+            label={member.badge}
+            size="sm"
+            variant="subtle"
+            theme="gray"
+          />
+        )}
+        {onResizeStart && (
+          <div
+            className={cn(
+              "absolute top-0 right-0 h-full w-1 cursor-col-resize",
+              {
+                "bg-outline-gray-3": highlightResizeHandle,
+              },
+            )}
+            onMouseDown={onResizeStart}
+            onMouseEnter={onResizeHandleEnter}
+            onMouseLeave={onResizeHandleLeave}
+          />
+        )}
+      </button>
     </th>
   );
 }
