@@ -29,6 +29,7 @@ export function GanttProjectBar({ allocation }: GanttProjectBarProps) {
       label={label}
       left={left}
       width={numDays * CELL_WIDTH}
+      billable={allocation.billable}
     />
   );
 }
