@@ -72,7 +72,6 @@ const GanttGridInner: React.FC = () => {
       <tbody>
         {members.map((member: Member, rowIndex: number) => {
           const isExpanded = expandedRows.has(rowIndex);
-
           const memberAlloc = getMemberAllocation(member.projects || []);
 
           return (
@@ -104,38 +103,50 @@ const GanttGridInner: React.FC = () => {
               </tr>
 
               {/* Project child rows */}
-              {isExpanded &&
-                member.projects?.map((project, projectIndex) => {
-                  return (
-                    <tr
-                      key={`${rowIndex}-project-${projectIndex}`}
-                      className="relative"
-                    >
-                      <GanttProjectItem
-                        {...project}
-                        onResizeStart={onResizeMouseDown}
-                        onResizeHandleEnter={() => setResizeHandleActive(true)}
-                        onResizeHandleLeave={() => setResizeHandleActive(false)}
-                        highlightResizeHandle={resizeHandleActive}
-                        style={{
-                          height: CELL_HEIGHT,
-                          width: headerWidth,
-                          minWidth: headerWidth,
-                        }}
-                      />
-                      {weeks.map((_, i) => {
-                        return (
-                          <td
-                            key={i}
-                            colSpan={7}
-                            className={cn("border-r border-outline-gray-2")}
-                            style={{
-                              height: CELL_HEIGHT,
-                            }}
-                          />
-                        );
-                      })}
-                      {project.allocations?.map((alloc, allocIndex) => {
+              {member.projects?.map((project, projectIndex) => {
+                const animatedRowHeight = isExpanded ? CELL_HEIGHT : 0;
+
+                return (
+                  <tr
+                    key={`${rowIndex}-project-${projectIndex}`}
+                    className={cn("relative", {
+                      "pointer-events-none": !isExpanded,
+                    })}
+                    aria-hidden={!isExpanded}
+                  >
+                    <GanttProjectItem
+                      {...project}
+                      onResizeStart={onResizeMouseDown}
+                      onResizeHandleEnter={() => setResizeHandleActive(true)}
+                      onResizeHandleLeave={() => setResizeHandleActive(false)}
+                      highlightResizeHandle={resizeHandleActive}
+                      style={{
+                        height: animatedRowHeight,
+                        width: headerWidth,
+                        minWidth: headerWidth,
+                        borderBottomWidth: isExpanded ? undefined : 0,
+                        borderRightWidth: isExpanded ? undefined : 0,
+                      }}
+                    />
+                    {weeks.map((_, i) => {
+                      return (
+                        <td
+                          key={i}
+                          colSpan={7}
+                          className={cn(
+                            "overflow-hidden transition-[height] duration-200 ease-in-out",
+                            {
+                              "border-r border-outline-gray-2": isExpanded,
+                            },
+                          )}
+                          style={{
+                            height: animatedRowHeight,
+                          }}
+                        />
+                      );
+                    })}
+                    {isExpanded &&
+                      project.allocations?.map((alloc, allocIndex) => {
                         return (
                           <GanttProjectBar
                             key={allocIndex}
@@ -143,9 +154,9 @@ const GanttGridInner: React.FC = () => {
                           />
                         );
                       })}
-                    </tr>
-                  );
-                })}
+                  </tr>
+                );
+              })}
             </React.Fragment>
           );
         })}
