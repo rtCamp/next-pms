@@ -36,7 +36,7 @@ function AllocationLayout() {
 
   return (
     <>
-      <Header className="justify-between">
+      <Header className="justify-between px-5">
         <Breadcrumbs
           items={[
             {

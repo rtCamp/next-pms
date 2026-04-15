@@ -31,7 +31,7 @@ export function GanttWeekHeader({ weekIndex }: GanttWeekProps) {
       }}
     >
       {/* Week label row */}
-      <div className="border-b border-outline-gray-2 p-2">
+      <div className="border-outline-gray-2 p-0.75">
         <span className="truncate text-xs text-ink-gray-4">{label}</span>
       </div>
       {/* Day numbers row */}
@@ -43,16 +43,16 @@ export function GanttWeekHeader({ weekIndex }: GanttWeekProps) {
           return (
             <div
               key={i}
+              className="relative shrink-0"
               style={{
                 width: CELL_WIDTH,
                 height: CELL_WIDTH,
               }}
             >
               <span
-                className={cn(
-                  "rounded-sm text-xs text-ink-gray-4 px-1.5 py-0.5",
-                  { "text-white bg-surface-gray-7": isTodayDate },
-                )}
+                className={cn("text-xs text-ink-gray-4 px-1.25 py-0.5", {
+                  "text-white bg-surface-gray-7 rounded-[6px]": isTodayDate,
+                })}
               >
                 {format(day, "d")}
               </span>

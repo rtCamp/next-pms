@@ -69,51 +69,53 @@ function AllocationsTeam() {
   }, [fetchData]);
 
   return (
-    <div className="flex flex-wrap gap-2 justify-between px-5 py-3.5">
-      <div className="flex gap-2">
-        <TextInput
-          className="w-xs"
-          placeholder="Search Members or designation"
-          debounce={200}
-          onChange={(e) => setSearch(e.target.value)}
-          value={search}
-        />
-        <Select
-          placeholder="Duration"
-          className="w-fit"
-          options={[
-            { label: "This week", value: "this-week" },
-            { label: "This month", value: "this-month" },
-            { label: "This quarter", value: "this-quarter" },
-            { label: "All time", value: "all-time" },
-          ]}
-          value={duration}
-          onChange={(value) => setDuration(value || "this-month")}
-        />
-        <Select
-          placeholder="Allocations Type"
-          className="w-fit"
-          options={[
-            { label: "All", value: "all" },
-            { label: "Confirmed only", value: "confirmed" },
-            { label: "Tentative only", value: "tentative" },
-            { label: "Billable only", value: "billable" },
-            { label: "Non-billable only", value: "non-billable" },
-          ]}
-          value={allocationsType}
-          onChange={(value) => setAllocationsType(value)}
-        />
-      </div>
-      <div className="flex gap-2">
-        <Filter
-          align="end"
-          fields={FILTER_FIELDS}
-          value={compositeFilters}
-          onChange={(newFilters: FilterCondition[]) => {
-            setCompositeFilters(newFilters);
-          }}
-        />
-        <Button icon={() => <Ellipsis size={16} />} />
+    <div className="flex flex-wrap gap-3.5 justify-between py-3.5">
+      <div className="w-full flex justify-between px-5">
+        <div className="flex gap-2">
+          <TextInput
+            className="w-xs"
+            placeholder="Search Members or designation"
+            debounce={200}
+            onChange={(e) => setSearch(e.target.value)}
+            value={search}
+          />
+          <Select
+            placeholder="Duration"
+            className="w-fit"
+            options={[
+              { label: "This week", value: "this-week" },
+              { label: "This month", value: "this-month" },
+              { label: "This quarter", value: "this-quarter" },
+              { label: "All time", value: "all-time" },
+            ]}
+            value={duration}
+            onChange={(value) => setDuration(value || "this-month")}
+          />
+          <Select
+            placeholder="Allocations Type"
+            className="w-fit"
+            options={[
+              { label: "All", value: "all" },
+              { label: "Confirmed only", value: "confirmed" },
+              { label: "Tentative only", value: "tentative" },
+              { label: "Billable only", value: "billable" },
+              { label: "Non-billable only", value: "non-billable" },
+            ]}
+            value={allocationsType}
+            onChange={(value) => setAllocationsType(value)}
+          />
+        </div>
+        <div className="flex gap-2">
+          <Filter
+            align="end"
+            fields={FILTER_FIELDS}
+            value={compositeFilters}
+            onChange={(newFilters: FilterCondition[]) => {
+              setCompositeFilters(newFilters);
+            }}
+          />
+          <Button icon={() => <Ellipsis size={16} />} />
+        </div>
       </div>
       <GanttGrid
         key={weekCount + search}

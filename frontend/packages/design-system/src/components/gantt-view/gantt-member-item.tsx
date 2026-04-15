@@ -34,38 +34,38 @@ export function GanttMemberItem({
 
   return (
     <th
-      className="sticky left-0 z-10 bg-surface-white border-b border-r border-outline-gray-2 px-3 font-normal text-left align-middle flex items-center gap-1 w-full overflow-hidden"
+      className="sticky left-0 z-10 flex items-center w-full p-3 overflow-hidden font-normal text-left align-middle border-b border-r bg-surface-white border-outline-gray-2"
       style={{
         height: CELL_HEIGHT,
         width: headerWidth,
       }}
     >
-      <button
-        onClick={() => toggleRow(memberInd)}
-        className={cn(
-          "shrink-0 text-ink-gray-4 transition-transform duration-150",
-          { "opacity-0 pointer-events-none": !hasProjects },
-          { "rotate-90": isExpanded },
-        )}
-        aria-label={isExpanded ? "Collapse" : "Expand"}
-      >
-        <ChevronRight size={16} />
-      </button>
-
-      <div className="flex items-center gap-2 flex-1 min-w-0 overflow-hidden">
-        <Avatar
-          size="xs"
-          shape="circle"
-          image={member.image}
-          label={member.name}
-        />
-
-        <div className="flex flex-col flex-1 min-w-0 leading-tight">
-          <span className="text-sm font-medium text-ink-gray-8 truncate">
+      <div className="w-full flex flex-col gap-1 min-w-0">
+        <div className="flex items-center flex-1 w-full min-w-0 overflow-hidden">
+          <button
+            onClick={() => toggleRow(memberInd)}
+            className={cn(
+              "shrink-0 mr-1 text-ink-gray-4 transition-transform duration-150",
+              { "opacity-0 pointer-events-none": !hasProjects },
+              { "rotate-90": isExpanded },
+            )}
+            aria-label={isExpanded ? "Collapse" : "Expand"}
+          >
+            <ChevronRight size={16} />
+          </button>
+          <Avatar
+            size="xs"
+            shape="circle"
+            image={member.image}
+            label={member.name}
+          />
+          <span className="ml-2 text-sm font-medium leading-tight truncate text-ink-gray-8">
             {member.name}
           </span>
+        </div>
+        <div className="flex items-center flex-1 w-full min-w-0 overflow-hidden pl-11">
           {member.role && (
-            <span className="text-xs text-ink-gray-6 truncate">
+            <span className="text-xs leading-tight truncate text-ink-gray-6">
               {member.role}
             </span>
           )}
@@ -73,7 +73,13 @@ export function GanttMemberItem({
       </div>
 
       {member.badge && (
-        <Badge label={member.badge} size="sm" variant="subtle" theme="gray" />
+        <Badge
+          className=""
+          label={member.badge}
+          size="sm"
+          variant="subtle"
+          theme="gray"
+        />
       )}
       {onResizeStart && (
         <div
