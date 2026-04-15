@@ -5,6 +5,8 @@ export interface Allocation {
   startDate: Date;
   /** Last day of the allocation (inclusive). */
   endDate: Date;
+  /** Whether the allocation is billable. */
+  billable?: boolean;
 }
 
 export interface Project {

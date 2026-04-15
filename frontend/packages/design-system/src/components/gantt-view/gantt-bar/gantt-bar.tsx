@@ -21,6 +21,7 @@ interface GanttBarProps extends VariantProps<typeof ganttBarVariants> {
   label: string;
   left: number;
   width: number;
+  billable?: boolean;
   className?: string;
 }
 
@@ -29,6 +30,7 @@ export function GanttBar({
   label,
   left,
   width,
+  billable,
   className,
 }: GanttBarProps) {
   return (
@@ -44,6 +46,9 @@ export function GanttBar({
       <span className="text-[13px] font-medium tracking-[0.02em] truncate">
         {label}
       </span>
+      {billable === false && variant !== "under" && (
+        <span className="block ml-1 w-1 h-1 rounded-full bg-surface-amber-3"></span>
+      )}
     </div>
   );
 }

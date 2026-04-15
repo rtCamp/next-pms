@@ -1,4 +1,4 @@
-import { CELL_WIDTH, FULL_DAY_HOURS, ROW_HEADER_WIDTH } from "../constants";
+import { CELL_WIDTH, FULL_DAY_HOURS } from "../constants";
 import { useGanttStore } from "../gantt-store";
 import type { Allocation } from "../types";
 import { GanttBar } from "./gantt-bar";
@@ -40,6 +40,7 @@ export function GanttMemberBar({ allocation }: GanttMemberBarProps) {
       label={label}
       left={left}
       width={numDays * CELL_WIDTH}
+      billable={allocation.billable}
     />
   );
 }
