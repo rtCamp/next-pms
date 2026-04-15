@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { CELL_HEIGHT, CELL_WIDTH } from "./constants";
+import { CELL_HEIGHT, CELL_WIDTH, HEADER_HEIGHT } from "./constants";
 import { GanttMemberBar } from "./gantt-bar/member-bar";
 import { GanttProjectBar } from "./gantt-bar/project-bar";
 import { getMemberAllocation } from "./gantt-bar/utilities/getMemberAllocation";
@@ -15,6 +15,8 @@ const GanttGridInner: React.FC = () => {
     members,
     expandedRows,
     headerWidth,
+    daysPerWeek,
+    weekendColumns,
     resizeHandleActive,
     setResizeHandleActive,
     startResize,
@@ -24,6 +26,8 @@ const GanttGridInner: React.FC = () => {
     members: s.members,
     expandedRows: s.expandedRows,
     headerWidth: s.headerWidth,
+    daysPerWeek: s.daysPerWeek,
+    weekendColumns: s.weekendColumns,
     resizeHandleActive: s.resizeHandleActive,
     setResizeHandleActive: s.setResizeHandleActive,
     startResize: s.startResize,
@@ -41,8 +45,24 @@ const GanttGridInner: React.FC = () => {
       className="relative"
       style={{ width: headerWidth + columnCount * CELL_WIDTH }}
     >
+      {weekendColumns.length > 0 && (
+        <div className="pointer-events-none absolute inset-0 z-0">
+          {weekendColumns.map((columnIndex) => (
+            <div
+              key={`weekend-overlay-${columnIndex}`}
+              className="absolute bottom-0 bg-surface-gray-3/20"
+              style={{
+                top: HEADER_HEIGHT,
+                left: headerWidth + columnIndex * CELL_WIDTH,
+                width: CELL_WIDTH,
+              }}
+            />
+          ))}
+        </div>
+      )}
+
       <table
-        className="relative border-separate border-spacing-0"
+        className="relative z-10 border-separate border-spacing-0"
         style={{ width: headerWidth + columnCount * CELL_WIDTH }}
       >
         <thead className="sticky top-0 z-20">
@@ -50,8 +70,8 @@ const GanttGridInner: React.FC = () => {
           <tr>
             <th
               rowSpan={2}
-              className="sticky left-0 z-20 bg-surface-white border border-l-0 border-outline-gray-2 font-normal"
-              style={{ width: headerWidth }}
+              className="sticky left-0 z-20 bg-surface-white border border-l-0 border-outline-gray-1 font-normal"
+              style={{ width: headerWidth, height: HEADER_HEIGHT }}
             >
               Members
             </th>
@@ -70,14 +90,14 @@ const GanttGridInner: React.FC = () => {
             return (
               <React.Fragment key={rowIndex}>
                 {/* Member row */}
-                <tr className="relative last:border-b border-outline-gray-2">
+                <tr className="relative last:border-b border-outline-gray-1">
                   <GanttMemberItem memberInd={rowIndex} />
                   {weeks.map((_, i) => {
                     return (
                       <td
                         key={i}
-                        colSpan={7}
-                        className={cn("border-r border-outline-gray-2")}
+                        colSpan={daysPerWeek}
+                        className={cn("border-r border-outline-gray-1")}
                         style={{
                           height: CELL_HEIGHT,
                         }}
@@ -115,11 +135,11 @@ const GanttGridInner: React.FC = () => {
                         return (
                           <td
                             key={i}
-                            colSpan={7}
+                            colSpan={daysPerWeek}
                             className={cn(
                               "overflow-hidden transition-[height] duration-200 ease-in-out",
                               {
-                                "border-r border-outline-gray-2": isExpanded,
+                                "border-r border-outline-gray-1": isExpanded,
                               },
                             )}
                             style={{
@@ -152,7 +172,7 @@ const GanttGridInner: React.FC = () => {
             className={cn(
               "pointer-events-auto absolute top-0 bottom-0 w-1 cursor-col-resize touch-none",
               {
-                "bg-outline-gray-3": resizeHandleActive,
+                "bg-outline-gray-1": resizeHandleActive,
               },
             )}
             style={{ left: headerWidth - 2 }}

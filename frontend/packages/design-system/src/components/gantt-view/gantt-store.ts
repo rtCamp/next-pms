@@ -1,5 +1,5 @@
 import { createContext, useContext } from "react";
-import { startOfWeek } from "date-fns";
+import { addDays, startOfWeek } from "date-fns";
 import { createStore, useStore } from "zustand";
 import { useShallow } from "zustand/react/shallow";
 import { ROW_HEADER_WIDTH } from "./constants";
@@ -19,6 +19,7 @@ interface GanttState extends GanttProps {
   weekStart: Date;
   weeks: number[];
   columns: number[];
+  weekendColumns: number[];
   // ui state
   expandedRows: Set<number>;
   headerWidth: number;
@@ -40,6 +41,13 @@ export const createGanttStore = (initProps: GanttProps) => {
   });
   const weeks = Array.from({ length: initProps.weekCount }, (_, i) => i);
   const columns = Array.from({ length: columnCount }, (_, i) => i);
+  const weekendColumns = initProps.showWeekend
+    ? columns.filter((colIndex) => {
+        const day = addDays(weekStart, colIndex);
+        const dayOfWeek = day.getDay();
+        return dayOfWeek === 0 || dayOfWeek === 6;
+      })
+    : [];
 
   return createStore<GanttState>()((set, get) => ({
     ...initProps,
@@ -48,6 +56,7 @@ export const createGanttStore = (initProps: GanttProps) => {
     weekStart,
     weeks,
     columns,
+    weekendColumns,
     expandedRows: new Set(),
     headerWidth: ROW_HEADER_WIDTH,
     resizeHandleActive: false,

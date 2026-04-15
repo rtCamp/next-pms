@@ -23,7 +23,7 @@ export function GanttMemberItem({ memberInd }: GanttMemberItemProps) {
 
   return (
     <th
-      className="sticky left-0 z-10 flex items-center w-full p-3 overflow-hidden font-normal text-left align-middle border-b border-r bg-surface-white border-outline-gray-2"
+      className="sticky left-0 z-10 flex items-center w-full p-3 overflow-hidden font-normal text-left align-middle border-b border-r bg-surface-white border-outline-gray-1"
       style={{
         height: CELL_HEIGHT,
         width: headerWidth,
