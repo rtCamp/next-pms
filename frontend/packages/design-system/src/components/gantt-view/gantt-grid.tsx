@@ -31,137 +31,138 @@ const GanttGridInner: React.FC = () => {
     weeks: s.weeks,
   }));
 
-  const onResizeMouseDown = (e: React.MouseEvent) => {
+  const onResizePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
     e.preventDefault();
     startResize(e.clientX);
   };
 
   return (
-    <table
-      className="relative border-separate border-spacing-0"
+    <div
+      className="relative"
       style={{ width: headerWidth + columnCount * CELL_WIDTH }}
     >
-      <thead className="sticky top-0 z-20">
-        {/* Row 1: corner + week range labels */}
-        <tr>
-          <th
-            rowSpan={2}
-            className="sticky left-0 z-20 bg-surface-white border border-l-0 border-outline-gray-2 font-normal"
-            style={{ width: headerWidth }}
-          >
-            Members
-            <div
-              className={cn(
-                "absolute top-0 right-0 h-full w-1 cursor-col-resize",
-                {
-                  "bg-outline-gray-3": resizeHandleActive,
-                },
-              )}
-              onMouseDown={onResizeMouseDown}
-              onMouseEnter={() => setResizeHandleActive(true)}
-              onMouseLeave={() => setResizeHandleActive(false)}
-            />
-          </th>
+      <table
+        className="relative border-separate border-spacing-0"
+        style={{ width: headerWidth + columnCount * CELL_WIDTH }}
+      >
+        <thead className="sticky top-0 z-20">
+          {/* Row 1: corner + week range labels */}
+          <tr>
+            <th
+              rowSpan={2}
+              className="sticky left-0 z-20 bg-surface-white border border-l-0 border-outline-gray-2 font-normal"
+              style={{ width: headerWidth }}
+            >
+              Members
+            </th>
 
-          {weeks.map((weekIndex) => (
-            <GanttWeekHeader key={weekIndex} weekIndex={weekIndex} />
-          ))}
-        </tr>
-      </thead>
+            {weeks.map((weekIndex) => (
+              <GanttWeekHeader key={weekIndex} weekIndex={weekIndex} />
+            ))}
+          </tr>
+        </thead>
 
-      <tbody>
-        {members.map((member: Member, rowIndex: number) => {
-          const isExpanded = expandedRows.has(rowIndex);
-          const memberAlloc = getMemberAllocation(member.projects || []);
+        <tbody>
+          {members.map((member: Member, rowIndex: number) => {
+            const isExpanded = expandedRows.has(rowIndex);
+            const memberAlloc = getMemberAllocation(member.projects || []);
 
-          return (
-            <React.Fragment key={rowIndex}>
-              {/* Member row */}
-              <tr className="relative last:border-b border-outline-gray-2">
-                <GanttMemberItem
-                  memberInd={rowIndex}
-                  onResizeStart={onResizeMouseDown}
-                  onResizeHandleEnter={() => setResizeHandleActive(true)}
-                  onResizeHandleLeave={() => setResizeHandleActive(false)}
-                  highlightResizeHandle={resizeHandleActive}
-                />
-                {weeks.map((_, i) => {
+            return (
+              <React.Fragment key={rowIndex}>
+                {/* Member row */}
+                <tr className="relative last:border-b border-outline-gray-2">
+                  <GanttMemberItem memberInd={rowIndex} />
+                  {weeks.map((_, i) => {
+                    return (
+                      <td
+                        key={i}
+                        colSpan={7}
+                        className={cn("border-r border-outline-gray-2")}
+                        style={{
+                          height: CELL_HEIGHT,
+                        }}
+                      />
+                    );
+                  })}
+                  {memberAlloc.map((alloc, idx) => (
+                    <GanttMemberBar key={idx} allocation={alloc} />
+                  ))}
+                </tr>
+
+                {/* Project child rows */}
+                {member.projects?.map((project, projectIndex) => {
+                  const animatedRowHeight = isExpanded ? CELL_HEIGHT : 0;
+
                   return (
-                    <td
-                      key={i}
-                      colSpan={7}
-                      className={cn("border-r border-outline-gray-2")}
-                      style={{
-                        height: CELL_HEIGHT,
-                      }}
-                    />
-                  );
-                })}
-                {memberAlloc.map((alloc, idx) => (
-                  <GanttMemberBar key={idx} allocation={alloc} />
-                ))}
-              </tr>
-
-              {/* Project child rows */}
-              {member.projects?.map((project, projectIndex) => {
-                const animatedRowHeight = isExpanded ? CELL_HEIGHT : 0;
-
-                return (
-                  <tr
-                    key={`${rowIndex}-project-${projectIndex}`}
-                    className={cn("relative", {
-                      "pointer-events-none": !isExpanded,
-                    })}
-                    aria-hidden={!isExpanded}
-                  >
-                    <GanttProjectItem
-                      {...project}
-                      onResizeStart={onResizeMouseDown}
-                      onResizeHandleEnter={() => setResizeHandleActive(true)}
-                      onResizeHandleLeave={() => setResizeHandleActive(false)}
-                      highlightResizeHandle={resizeHandleActive}
-                      style={{
-                        height: animatedRowHeight,
-                        width: headerWidth,
-                        minWidth: headerWidth,
-                        borderBottomWidth: isExpanded ? undefined : 0,
-                        borderRightWidth: isExpanded ? undefined : 0,
-                      }}
-                    />
-                    {weeks.map((_, i) => {
-                      return (
-                        <td
-                          key={i}
-                          colSpan={7}
-                          className={cn(
-                            "overflow-hidden transition-[height] duration-200 ease-in-out",
-                            {
-                              "border-r border-outline-gray-2": isExpanded,
-                            },
-                          )}
-                          style={{
-                            height: animatedRowHeight,
-                          }}
-                        />
-                      );
-                    })}
-                    {isExpanded &&
-                      project.allocations?.map((alloc, allocIndex) => {
+                    <tr
+                      key={`${rowIndex}-project-${projectIndex}`}
+                      className={cn("relative", {
+                        "pointer-events-none": !isExpanded,
+                      })}
+                      aria-hidden={!isExpanded}
+                    >
+                      <GanttProjectItem
+                        {...project}
+                        style={{
+                          height: animatedRowHeight,
+                          width: headerWidth,
+                          minWidth: headerWidth,
+                          borderBottomWidth: isExpanded ? undefined : 0,
+                          borderRightWidth: isExpanded ? undefined : 0,
+                        }}
+                      />
+                      {weeks.map((_, i) => {
                         return (
-                          <GanttProjectBar
-                            key={allocIndex}
-                            allocation={alloc}
+                          <td
+                            key={i}
+                            colSpan={7}
+                            className={cn(
+                              "overflow-hidden transition-[height] duration-200 ease-in-out",
+                              {
+                                "border-r border-outline-gray-2": isExpanded,
+                              },
+                            )}
+                            style={{
+                              height: animatedRowHeight,
+                            }}
                           />
                         );
                       })}
-                  </tr>
-                );
-              })}
-            </React.Fragment>
-          );
-        })}
-      </tbody>
-    </table>
+                      {isExpanded &&
+                        project.allocations?.map((alloc, allocIndex) => {
+                          return (
+                            <GanttProjectBar
+                              key={allocIndex}
+                              allocation={alloc}
+                            />
+                          );
+                        })}
+                    </tr>
+                  );
+                })}
+              </React.Fragment>
+            );
+          })}
+        </tbody>
+      </table>
+
+      <div className="pointer-events-none absolute inset-0 z-30">
+        <div className="sticky left-0 top-0 h-full w-0">
+          <div
+            className={cn(
+              "pointer-events-auto absolute top-0 bottom-0 w-1 cursor-col-resize touch-none",
+              {
+                "bg-outline-gray-3": resizeHandleActive,
+              },
+            )}
+            style={{ left: headerWidth - 2 }}
+            onPointerDown={onResizePointerDown}
+            onMouseEnter={() => setResizeHandleActive(true)}
+            onMouseLeave={() => setResizeHandleActive(false)}
+          />
+        </div>
+      </div>
+    </div>
   );
 };
 

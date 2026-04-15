@@ -1,14 +1,9 @@
-import type { CSSProperties, MouseEvent } from "react";
+import type { CSSProperties } from "react";
 import { Badge } from "@rtcamp/frappe-ui-react";
 import { Folder } from "lucide-react";
 import type { Project } from "./types";
-import { mergeClassNames as cn } from "../../utils";
 
 export interface GanttProjectItemProps extends Project {
-  onResizeStart?: (e: MouseEvent) => void;
-  onResizeHandleEnter?: () => void;
-  onResizeHandleLeave?: () => void;
-  highlightResizeHandle?: boolean;
   style?: CSSProperties;
 }
 
@@ -17,10 +12,6 @@ export function GanttProjectItem({
   dateRange,
   client,
   badge,
-  onResizeStart,
-  onResizeHandleEnter,
-  onResizeHandleLeave,
-  highlightResizeHandle,
   style,
 }: GanttProjectItemProps) {
   const subtext = [dateRange, client].filter(Boolean).join(" · ");
@@ -46,16 +37,6 @@ export function GanttProjectItem({
       </div>
 
       {badge && <Badge label={badge} size="sm" variant="subtle" theme="gray" />}
-      {onResizeStart && (
-        <div
-          className={cn("absolute top-0 right-0 h-full w-1 cursor-col-resize", {
-            "bg-outline-gray-3": highlightResizeHandle,
-          })}
-          onMouseDown={onResizeStart}
-          onMouseEnter={onResizeHandleEnter}
-          onMouseLeave={onResizeHandleLeave}
-        />
-      )}
     </th>
   );
 }
