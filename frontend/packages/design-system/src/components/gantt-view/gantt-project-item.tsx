@@ -17,7 +17,7 @@ export function GanttProjectItem({
   const subtext = [dateRange, client].filter(Boolean).join(" · ");
   return (
     <th
-      className="sticky left-0 z-10 bg-surface-white border-b border-r border-outline-gray-2 pl-8 pr-3 font-normal text-left align-middle flex items-center gap-2 w-full overflow-hidden transition-[height] duration-200 ease-in-out"
+      className="sticky left-0 z-10 bg-surface-white border-b border-r border-outline-gray-1 pl-8 pr-3 font-normal text-left align-middle flex items-center gap-2 w-full overflow-hidden transition-[height] duration-200 ease-in-out"
       style={style}
     >
       <div className="w-full flex flex-col gap-1 min-w-0">
