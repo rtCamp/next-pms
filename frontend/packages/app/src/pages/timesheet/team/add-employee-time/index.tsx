@@ -156,6 +156,7 @@ const AddEmployeeTime = ({
                   options={employeeOptions}
                   placeholder="Select Employee"
                   value={field.state.value}
+                  openOnFocus
                   onChange={(val) => {
                     field.handleChange(val as string);
                   }}
@@ -180,6 +181,7 @@ const AddEmployeeTime = ({
                   options={projectOptions}
                   placeholder="Select Project"
                   value={field.state.value}
+                  openOnFocus
                   onChange={(val) => {
                     field.handleChange(val as string);
                   }}
@@ -204,6 +206,7 @@ const AddEmployeeTime = ({
                   options={tasksOptions}
                   placeholder="Select Task"
                   value={field.state.value}
+                  openOnFocus
                   onChange={(val) => {
                     field.handleChange(val as string);
                     const selectedTask = tasksOptions.find(

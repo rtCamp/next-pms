@@ -57,6 +57,10 @@ export function timesheetReducer(
 ): TimesheetState {
   switch (action.type) {
     case "SEARCH_CHANGED":
+      if (state.filters.search === action.payload) {
+        return state;
+      }
+
       return {
         ...state,
         filters: { ...state.filters, search: action.payload },
