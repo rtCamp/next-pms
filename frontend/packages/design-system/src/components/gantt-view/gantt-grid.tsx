@@ -104,9 +104,15 @@ const GanttGridInner: React.FC = () => {
                       />
                     );
                   })}
-                  {memberAlloc.map((alloc, idx) => (
-                    <GanttMemberBar key={idx} allocation={alloc} />
-                  ))}
+                  <td
+                    aria-hidden="true"
+                    className="p-0 border-0 w-0 min-w-0 max-w-0"
+                    style={{ width: 0 }}
+                  >
+                    {memberAlloc.map((alloc, idx) => (
+                      <GanttMemberBar key={idx} allocation={alloc} />
+                    ))}
+                  </td>
                 </tr>
 
                 {/* Project child rows */}
@@ -148,15 +154,21 @@ const GanttGridInner: React.FC = () => {
                           />
                         );
                       })}
-                      {isExpanded &&
-                        project.allocations?.map((alloc, allocIndex) => {
-                          return (
-                            <GanttProjectBar
-                              key={allocIndex}
-                              allocation={alloc}
-                            />
-                          );
-                        })}
+                      <td
+                        aria-hidden="true"
+                        className="p-0 border-0 w-0 min-w-0 max-w-0"
+                        style={{ width: 0 }}
+                      >
+                        {isExpanded &&
+                          project.allocations?.map((alloc, allocIndex) => {
+                            return (
+                              <GanttProjectBar
+                                key={allocIndex}
+                                allocation={alloc}
+                              />
+                            );
+                          })}
+                      </td>
                     </tr>
                   );
                 })}
