@@ -117,12 +117,14 @@ function AllocationsTeam() {
           <Button icon={() => <Ellipsis size={16} />} />
         </div>
       </div>
-      <GanttGrid
-        key={weekCount + search}
-        startDate={GANTT_START_DATE}
-        members={filteredMembers}
-        weekCount={weekCount}
-      />
+      <div className="overflow-auto no-scrollbar w-full h-[calc(100vh-112px)]">
+        <GanttGrid
+          key={weekCount + search}
+          startDate={GANTT_START_DATE}
+          members={filteredMembers}
+          weekCount={weekCount}
+        />
+      </div>
     </div>
   );
 }
