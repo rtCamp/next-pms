@@ -1,4 +1,3 @@
-import type { MouseEvent } from "react";
 import { Avatar, Badge } from "@rtcamp/frappe-ui-react";
 import { ChevronRight } from "lucide-react";
 import { CELL_HEIGHT } from "./constants";
@@ -7,19 +6,9 @@ import { mergeClassNames as cn } from "../../utils";
 
 export interface GanttMemberItemProps {
   memberInd: number;
-  onResizeStart?: (e: MouseEvent) => void;
-  onResizeHandleEnter?: () => void;
-  onResizeHandleLeave?: () => void;
-  highlightResizeHandle?: boolean;
 }
 
-export function GanttMemberItem({
-  memberInd,
-  onResizeStart,
-  onResizeHandleEnter,
-  onResizeHandleLeave,
-  highlightResizeHandle,
-}: GanttMemberItemProps) {
+export function GanttMemberItem({ memberInd }: GanttMemberItemProps) {
   const { members, expandedRows, toggleRow, headerWidth } = useGanttStore(
     (s) => ({
       members: s.members,
@@ -83,19 +72,6 @@ export function GanttMemberItem({
             size="sm"
             variant="subtle"
             theme="gray"
-          />
-        )}
-        {onResizeStart && (
-          <div
-            className={cn(
-              "absolute top-0 right-0 h-full w-1 cursor-col-resize",
-              {
-                "bg-outline-gray-3": highlightResizeHandle,
-              },
-            )}
-            onMouseDown={onResizeStart}
-            onMouseEnter={onResizeHandleEnter}
-            onMouseLeave={onResizeHandleLeave}
           />
         )}
       </button>

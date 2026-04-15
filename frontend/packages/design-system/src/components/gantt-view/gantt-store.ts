@@ -71,16 +71,20 @@ export const createGanttStore = (initProps: GanttProps) => {
       const startWidth = get().headerWidth;
       set({ resizeHandleActive: true });
 
-      const onMouseMove = (e: MouseEvent) => {
+      const onPointerMove = (e: PointerEvent) => {
         get().setHeaderWidth(Math.max(120, startWidth + (e.clientX - startX)));
       };
-      const onMouseUp = () => {
+
+      const stopResize = () => {
         set({ resizeHandleActive: false });
-        document.removeEventListener("mousemove", onMouseMove);
-        document.removeEventListener("mouseup", onMouseUp);
+        document.removeEventListener("pointermove", onPointerMove);
+        document.removeEventListener("pointerup", stopResize);
+        document.removeEventListener("pointercancel", stopResize);
       };
-      document.addEventListener("mousemove", onMouseMove);
-      document.addEventListener("mouseup", onMouseUp);
+
+      document.addEventListener("pointermove", onPointerMove);
+      document.addEventListener("pointerup", stopResize);
+      document.addEventListener("pointercancel", stopResize);
     },
   }));
 };
