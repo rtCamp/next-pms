@@ -190,6 +190,7 @@ const AddTime = ({
                   options={projectOptions}
                   placeholder="Select Project"
                   value={field.state.value}
+                  openOnFocus
                   onChange={(val) => {
                     field.handleChange(val as string);
                   }}
@@ -214,6 +215,7 @@ const AddTime = ({
                   options={tasksOptions}
                   placeholder="Select Task"
                   value={field.state.value}
+                  openOnFocus
                   onChange={(val) => {
                     field.handleChange(val as string);
                     const selectedTask = tasksOptions.find(

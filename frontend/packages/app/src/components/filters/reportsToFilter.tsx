@@ -17,6 +17,7 @@ const ReportsToFilter: React.FC<ReportsToFilterProps> = ({
       placeholder="Reports to"
       options={approvers}
       value={value}
+      openOnFocus
       onChange={(value) => onChange(value ?? null)}
       className="w-auto"
     />

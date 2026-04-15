@@ -152,6 +152,7 @@ const AddEmployeeLeave = ({
                   options={employeeOptions}
                   placeholder="Select Employee"
                   value={field.state.value}
+                  openOnFocus
                   onChange={(val) => {
                     field.handleChange(val as string);
                   }}
