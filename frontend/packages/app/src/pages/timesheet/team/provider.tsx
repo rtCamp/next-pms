@@ -33,7 +33,7 @@ export const TeamTimesheetProvider: FC<PropsWithChildren> = ({ children }) => {
     employeeId: state.employeeId,
   }));
 
-  const { hasMoreWeeks, isLoadingTeamData, weekGroups, loadData, error } =
+  const { hasMore, isLoadingTeamData, weekGroups, loadMore, error } =
     useTeamTimesheetData({ employeeId });
 
   useEffect(() => {
@@ -52,7 +52,7 @@ export const TeamTimesheetProvider: FC<PropsWithChildren> = ({ children }) => {
   const value: TeamTimesheetContextProps = useMemo(
     () => ({
       state: {
-        hasMoreWeeks,
+        hasMore,
         isLoadingTeamData,
         weekGroups,
         isWeeklyApprovalOpen,
@@ -60,15 +60,15 @@ export const TeamTimesheetProvider: FC<PropsWithChildren> = ({ children }) => {
         startDate,
       },
       actions: {
-        loadData,
+        loadMore,
         openWeeklyApproval,
         setIsWeeklyApprovalOpen,
       },
     }),
     [
-      hasMoreWeeks,
+      hasMore,
       isLoadingTeamData,
-      loadData,
+      loadMore,
       weekGroups,
       openWeeklyApproval,
       employee,

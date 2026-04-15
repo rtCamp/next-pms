@@ -26,12 +26,12 @@ import { sampleFields } from "../constants";
 
 export const TeamTimesheetTable = () => {
   const [selectedTask, setSelectedTask] = useState<string | null>(null);
-  const hasMoreWeeks = useTeamTimesheet(({ state }) => state.hasMoreWeeks);
+  const hasMore = useTeamTimesheet(({ state }) => state.hasMore);
   const isLoadingTeamData = useTeamTimesheet(
     ({ state }) => state.isLoadingTeamData,
   );
   const weekGroups = useTeamTimesheet(({ state }) => state.weekGroups);
-  const loadData = useTeamTimesheet(({ actions }) => actions.loadData);
+  const loadMore = useTeamTimesheet(({ actions }) => actions.loadMore);
   const isWeeklyApprovalOpen = useTeamTimesheet(
     ({ state }) => state.isWeeklyApprovalOpen,
   );
@@ -99,8 +99,8 @@ export const TeamTimesheetTable = () => {
       ) : (
         <InfiniteScroll
           isLoading={isLoadingTeamData}
-          hasMore={hasMoreWeeks}
-          verticalLodMore={loadData}
+          hasMore={hasMore}
+          verticalLodMore={loadMore}
           className="w-full h-[calc(100%-var(--spacing)*7)] overflow-auto scrollbar [scrollbar-gutter:stable]"
           count={NUMBER_OF_WEEKS_TO_FETCH}
         >
