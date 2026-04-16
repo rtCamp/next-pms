@@ -21,7 +21,7 @@ from frappe.utils.data import add_days, getdate
 from next_pms.api.utils import error_logger
 from next_pms.resource_management.api.utils.query import get_employee_leaves
 from next_pms.timesheet.doc_events.timesheet import flush_cache, publish_timesheet_update
-from next_pms.timesheet.utils.constant import ALLOWED_TIMESHET_DETAIL_FIELDS
+from next_pms.timesheet.utils.constant import ALLOWED_TIMESHET_DETAIL_FIELDS, FILTER_LOOKBACK_WEEKS
 
 from . import filter_employees
 from .employee import get_employee_daily_working_norm, get_employee_working_hours
@@ -185,6 +185,8 @@ def get_team_timesheet_data(
     by_pass_access_check=False,
     search: str | None = None,
     filters: str | list | None = None,
+    approval_status: str | list | None = None,
+    skip_empty_weeks: bool = False,
 ):
     """API to get team timesheet data with task-level detail in a single request.
     Combines the compact view (daily hours per employee) with detailed timesheet
@@ -192,12 +194,26 @@ def get_team_timesheet_data(
     if not by_pass_access_check:
         only_for(["Timesheet Manager", "Timesheet User", "Projects Manager"], message=True)
 
+    if isinstance(approval_status, str):
+        try:
+            approval_status = json.loads(approval_status)
+        except (json.JSONDecodeError, ValueError):
+            approval_status = [approval_status]
+
+    if isinstance(skip_empty_weeks, str):
+        skip_empty_weeks = skip_empty_weeks.lower() in ("true", "1")
+
     dates = []
     data = {}
     if status_filter and isinstance(status_filter, str):
         status_filter = json.loads(status_filter)
 
-    for i in range(max_week):
+    parsed_filters = parse_filters(filters)
+    has_filters = bool(search or approval_status or any(parsed_filters.values()))
+    filter_lookback_weeks = FILTER_LOOKBACK_WEEKS
+    max_lookback = max(filter_lookback_weeks, max_week) if has_filters else max_week
+
+    for i in range(max_lookback):
         week = get_week_dates(date=date)
         dates.append(week)
         date = add_days(getdate(week["start_date"]), -1)
@@ -220,8 +236,6 @@ def get_team_timesheet_data(
         res["total_count"] = 0
         res["has_more"] = False
         return res
-
-    parsed_filters = parse_filters(filters)
 
     # Query 1: Bulk fetch all Timesheets for all employees in date range
     base_ts_filters = {
@@ -320,12 +334,18 @@ def get_team_timesheet_data(
         local_data["status"] = emp_status
         local_data["data"] = []
 
+        backward = max_lookback
+
         leaves = get_employee_leaves(
-            start_date=add_days(dates[0].get("start_date"), -max_week * 7),
-            end_date=add_days(dates[-1].get("end_date"), max_week * 7),
+            start_date=add_days(dates[0].get("start_date"), -backward * 7),
+            end_date=add_days(dates[-1].get("end_date"), backward * 7),
             employee=employee.name,
         )
-        holidays = get_holidays(employee.name, dates[0].get("start_date"), dates[-1].get("end_date"))
+        holidays = get_holidays(
+            employee.name,
+            add_days(dates[0].get("start_date"), -backward * 7),
+            add_days(dates[-1].get("end_date"), backward * 7),
+        )
 
         local_data["leaves"] = leaves
         local_data["holidays"] = holidays
@@ -434,6 +454,13 @@ def get_team_timesheet_data(
                 )
             )
 
+            should_skip_empty = has_filters and skip_empty_weeks
+            should_skip_week = (should_skip_empty and not tasks) or (
+                approval_status and week_status not in approval_status
+            )
+            if should_skip_week:
+                continue
+
             timesheet_details[week_key] = {
                 **date_info,
                 "total_hours": week_total_hours,
@@ -441,8 +468,20 @@ def get_team_timesheet_data(
                 "status": week_status,
             }
 
+        if has_filters:
+            if len(timesheet_details) > max_week:
+                sorted_keys = list(timesheet_details.keys())
+                timesheet_details = {k: timesheet_details[k] for k in sorted_keys[-max_week:]}
+            kept_week_dates = set()
+            for wk in timesheet_details.values():
+                kept_week_dates.update(wk.get("dates", []))
+            local_data["data"] = [d for d in local_data["data"] if d["date"] in kept_week_dates]
+
         local_data["timesheet_details"] = timesheet_details
         data[employee.name] = local_data
+
+    if has_filters and len(dates) > max_week:
+        res["dates"] = dates[-max_week:]
 
     res["data"] = data
     res["total_count"] = total_count
