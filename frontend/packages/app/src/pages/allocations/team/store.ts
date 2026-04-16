@@ -1,12 +1,8 @@
-import { getTodayDate } from "@next-pms/design-system";
 import type { Member } from "@next-pms/design-system/components";
 import type { FilterCondition } from "@rtcamp/frappe-ui-react";
 import { create } from "zustand";
 import { useShallow } from "zustand/react/shallow";
-import { frappe } from "@/providers/frappe";
 import { FAKE_MEMBERS, GANTT_START_DATE } from "./constants";
-import { TeamAllocationResponse } from "./type";
-import { mapTeamAllocationToMembers } from "./utils";
 
 const DURATION_WEEK_COUNT: Record<string, number> = {
   "this-week": 1,
@@ -48,58 +44,60 @@ function applyFilter(members: Member[], search: string): Member[] {
   );
 }
 
-export const useAllocationsTeam = create<AllocationsTeamState>()(
-  (set, get) => ({
-    // data
-    members: FAKE_MEMBERS,
-    startDate: GANTT_START_DATE,
-    // filters
-    search: "",
-    allocationsType: undefined,
-    duration: "this-month",
-    compositeFilters: [],
-    // derived
-    weekCount: DURATION_WEEK_COUNT["this-month"],
-    filteredMembers: FAKE_MEMBERS,
-    // async state
-    isLoading: false,
+export const useAllocationsTeam = create<AllocationsTeamState>()((set) => ({
+  // data
+  members: FAKE_MEMBERS,
+  startDate: GANTT_START_DATE,
+  // filters
+  search: "",
+  allocationsType: undefined,
+  duration: "this-quarter",
+  compositeFilters: [],
+  // derived
+  weekCount: DURATION_WEEK_COUNT["this-quarter"],
+  filteredMembers: FAKE_MEMBERS,
+  // async state
+  isLoading: false,
 
-    // actions
-    setSearch: (search) =>
+  // actions
+  setSearch: (search) =>
+    set((state) => ({
+      search,
+      filteredMembers: applyFilter(state.members, search),
+    })),
+
+  setAllocationsType: (allocationsType) => set({ allocationsType }),
+
+  setDuration: (duration) =>
+    set({
+      duration,
+      weekCount:
+        DURATION_WEEK_COUNT[duration] ?? DURATION_WEEK_COUNT["this-quarter"],
+    }),
+
+  setCompositeFilters: (compositeFilters) => set({ compositeFilters }),
+
+  setMembers: (members) =>
+    set((state) => ({
+      members,
+      filteredMembers: applyFilter(members, state.search),
+    })),
+
+  fetchData: async () => {
+    set({ isLoading: true });
+    try {
+      // TODO: replace with real API call
+      await new Promise((resolve) => setTimeout(resolve, 800));
+      const data: Member[] = FAKE_MEMBERS;
       set((state) => ({
-        search,
-        filteredMembers: applyFilter(state.members, search),
-      })),
-
-    setAllocationsType: (allocationsType) => set({ allocationsType }),
-
-    setDuration: (duration) =>
-      set({ duration, weekCount: DURATION_WEEK_COUNT[duration] ?? 4 }),
-
-    setCompositeFilters: (compositeFilters) => set({ compositeFilters }),
-
-    setMembers: (members) =>
-      set((state) => ({
-        members,
-        filteredMembers: applyFilter(members, state.search),
-      })),
-
-    fetchData: async () => {
-      set({ isLoading: true });
-      try {
-        // TODO: replace with real API call
-        await new Promise((resolve) => setTimeout(resolve, 800));
-        const data: Member[] = FAKE_MEMBERS;
-        set((state) => ({
-          members: data,
-          filteredMembers: applyFilter(data, state.search),
-        }));
-      } finally {
-        set({ isLoading: false });
-      }
-    },
-  }),
-);
+        members: data,
+        filteredMembers: applyFilter(data, state.search),
+      }));
+    } finally {
+      set({ isLoading: false });
+    }
+  },
+}));
 
 export function useAllocationsTeamShallow<T>(
   selector: (state: AllocationsTeamState) => T,

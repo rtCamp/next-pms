@@ -38,24 +38,35 @@ export function GanttMemberItem({ memberInd }: GanttMemberItemProps) {
         aria-label={isExpanded ? "Collapse" : "Expand"}
       >
         <div className="w-full flex flex-col gap-1 min-w-0">
-          <div className="flex items-center flex-1 w-full min-w-0 overflow-hidden">
-            <ChevronRight
-              className={cn(
-                "shrink-0 mr-1 text-ink-gray-4 transition-transform duration-150",
-                { "opacity-0 pointer-events-none": !canExpand },
-                { "rotate-90": isExpanded },
-              )}
-              size={16}
-            />
-            <Avatar
-              size="xs"
-              shape="circle"
-              image={member.image}
-              label={member.name}
-            />
-            <span className="ml-2 text-sm font-medium leading-tight truncate text-ink-gray-8">
-              {member.name}
-            </span>
+          <div className="flex items-center justify-between gap-1 w-full">
+            <div className="flex items-center flex-1 w-full min-w-0 overflow-hidden">
+              <ChevronRight
+                className={cn(
+                  "shrink-0 mr-1 text-ink-gray-9 transition-transform duration-150",
+                  { "opacity-0 pointer-events-none": !canExpand },
+                  { "rotate-90": isExpanded },
+                )}
+                size={16}
+              />
+              <Avatar
+                size="xs"
+                shape="circle"
+                image={member.image}
+                label={member.name}
+              />
+              <span className="ml-2 text-base font-medium leading-tight truncate text-ink-gray-9">
+                {member.name}
+              </span>
+            </div>
+            {member.badge && (
+              <Badge
+                className=""
+                label={member.badge}
+                size="sm"
+                variant="subtle"
+                theme="gray"
+              />
+            )}
           </div>
           <div className="flex items-center flex-1 w-full min-w-0 overflow-hidden pl-11">
             {member.role && (
@@ -65,16 +76,6 @@ export function GanttMemberItem({ memberInd }: GanttMemberItemProps) {
             )}
           </div>
         </div>
-
-        {member.badge && (
-          <Badge
-            className=""
-            label={member.badge}
-            size="sm"
-            variant="subtle"
-            theme="gray"
-          />
-        )}
       </button>
     </th>
   );
