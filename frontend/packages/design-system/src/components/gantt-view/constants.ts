@@ -5,3 +5,4 @@ export const HEADER_HEIGHT = WEEK_LABEL_HEIGHT + CELL_WIDTH;
 export const BAR_HEIGHT = 32;
 export const ROW_HEADER_WIDTH = 240;
 export const FULL_DAY_HOURS = 8;
+export const ADD_PROJECT_ROW_HEIGHT = 40;

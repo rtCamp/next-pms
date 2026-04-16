@@ -10,6 +10,7 @@ interface GanttProps {
   showWeekend: boolean;
   startDate: Date;
   weekCount: number;
+  hasRoleAccess: boolean;
 }
 
 interface GanttState extends GanttProps {
