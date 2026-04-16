@@ -1,7 +1,8 @@
-import { CELL_WIDTH, FULL_DAY_HOURS } from "../constants";
+import { FULL_DAY_HOURS } from "../constants";
 import { useGanttStore } from "../gantt-store";
 import type { Allocation } from "../types";
 import { GanttBar } from "./gantt-bar";
+import { getClampedBarLayout } from "./utilities/getClampedBarLayout";
 import { getNumDays } from "./utilities/getNumDays";
 
 interface GanttMemberBarProps {
@@ -9,18 +10,35 @@ interface GanttMemberBarProps {
 }
 
 export function GanttMemberBar({ allocation }: GanttMemberBarProps) {
-  const { weekStart, showWeekend, headerWidth } = useGanttStore((s) => ({
-    weekStart: s.weekStart,
-    headerWidth: s.headerWidth,
-    showWeekend: s.showWeekend,
-    columnCount: s.columnCount,
-  }));
+  const { weekStart, showWeekend, headerWidth, columnCount } = useGanttStore(
+    (s) => ({
+      weekStart: s.weekStart,
+      headerWidth: s.headerWidth,
+      showWeekend: s.showWeekend,
+      columnCount: s.columnCount,
+    }),
+  );
 
-  const numDays =
-    getNumDays(allocation.endDate, allocation.startDate, showWeekend) + 1;
-  const left =
-    getNumDays(allocation.startDate, weekStart, showWeekend) * CELL_WIDTH +
-    headerWidth;
+  const allocationStartCol = getNumDays(
+    allocation.startDate,
+    weekStart,
+    showWeekend,
+  );
+  const allocationEndCol = getNumDays(
+    allocation.endDate,
+    weekStart,
+    showWeekend,
+  );
+  const layout = getClampedBarLayout({
+    allocationStartCol,
+    allocationEndCol,
+    columnCount,
+    headerWidth,
+  });
+
+  if (!layout) {
+    return null;
+  }
 
   const { hours } = allocation;
   const diff = hours - FULL_DAY_HOURS;
@@ -39,8 +57,8 @@ export function GanttMemberBar({ allocation }: GanttMemberBarProps) {
       variant={variant}
       theme={allocation.tentative ? "crosshatch" : "default"}
       label={label}
-      left={left}
-      width={numDays * CELL_WIDTH}
+      left={layout.left}
+      width={layout.width}
       billable={allocation.billable}
     />
   );

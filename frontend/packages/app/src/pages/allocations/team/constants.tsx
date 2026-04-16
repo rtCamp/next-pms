@@ -57,6 +57,20 @@ export const FAKE_MEMBERS: Member[] = [
           },
         ],
       },
+      {
+        name: "Backend Stabilization",
+        client: "Globex",
+        badge: "BS",
+        allocations: [
+          {
+            hours: 4,
+            startDate: new Date(2026, 2, 31),
+            endDate: new Date(2026, 3, 9),
+            billable: true,
+            tentative: false,
+          },
+        ],
+      },
     ],
   },
   {
@@ -123,6 +137,20 @@ export const FAKE_MEMBERS: Member[] = [
             endDate: new Date(2026, 3, 30),
             billable: false,
             tentative: false,
+          },
+        ],
+      },
+      {
+        name: "Release Planning",
+        client: "Internal",
+        badge: "RP",
+        allocations: [
+          {
+            hours: 5,
+            startDate: new Date(2026, 3, 28),
+            endDate: new Date(2026, 4, 12),
+            billable: false,
+            tentative: true,
           },
         ],
       },
@@ -282,6 +310,20 @@ export const FAKE_MEMBERS: Member[] = [
             endDate: new Date(2026, 3, 30),
             billable: true,
             tentative: false,
+          },
+        ],
+      },
+      {
+        name: "Infrastructure Modernization",
+        client: "Umbrella Inc",
+        badge: "IM",
+        allocations: [
+          {
+            hours: 6,
+            startDate: new Date(2026, 2, 25),
+            endDate: new Date(2026, 4, 20),
+            billable: true,
+            tentative: true,
           },
         ],
       },

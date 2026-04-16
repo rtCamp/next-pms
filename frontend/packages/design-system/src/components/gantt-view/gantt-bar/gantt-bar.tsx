@@ -56,7 +56,7 @@ export function GanttBar({
       className={cn(ganttBarVariants({ variant }), className)}
       style={{
         left,
-        width: width - 2, // Account for 2px margin
+        width: Math.max(width - 2, 0), // Account for margin
         height: BAR_HEIGHT,
         top: (CELL_HEIGHT - BAR_HEIGHT) / 2,
       }}
