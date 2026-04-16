@@ -1,8 +1,10 @@
 /**
  * External dependencies.
  */
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { ApprovalStatusLabelMap } from "@next-pms/design-system/components";
 import { getFormatedDate, getTodayDate } from "@next-pms/design-system/date";
+import type { FilterCondition } from "@rtcamp/frappe-ui-react";
 import { addDays } from "date-fns";
 import type { Error as FrappeError } from "frappe-js-sdk/lib/frappe_app/types";
 import { useFrappeGetCall } from "frappe-react-sdk";
@@ -11,7 +13,8 @@ import { useFrappeGetCall } from "frappe-react-sdk";
  * Internal dependencies.
  */
 import { NUMBER_OF_WEEKS_TO_FETCH } from "@/lib/constant";
-import type { DataProp } from "@/types/timesheet";
+import { buildCompositeFilters } from "@/lib/utils";
+import type { DataProp, TimesheetFilters } from "@/types/timesheet";
 import type { EmployeeRecord, WeekGroup } from "./context";
 
 type WeekEntry = {
@@ -44,16 +47,19 @@ type UseTeamTimesheetDataResult = {
   weekGroups: WeekGroup[];
   loadMore: () => void;
   error: FrappeError | undefined;
+  resetData: () => void;
 };
 
 type UseTeamTimesheetOptions = {
-  employeeId: string;
+  filters: TimesheetFilters;
+  compositeFilters: FilterCondition[];
 };
 
 const EMPLOYEE_PAGE_LENGTH = 10;
 
 export function useTeamTimesheetData({
-  employeeId,
+  filters,
+  compositeFilters,
 }: UseTeamTimesheetOptions): UseTeamTimesheetDataResult {
   const [weekDate, setWeekDate] = useState(getTodayDate());
   const [employeeStart, setEmployeeStart] = useState(0);
@@ -62,24 +68,58 @@ export function useTeamTimesheetData({
   // All derived data (weeks, members, timesheets) is computed from this.
   const [pages, setPages] = useState<ApiPayload[]>([]);
 
+  // Track filter changes to reset pagination
+  const prevFiltersRef = useRef({ filters, compositeFilters });
+
+  // Build Frappe-compatible filters from composite filters
+  const { frappeFilters } = useMemo(
+    () => buildCompositeFilters(compositeFilters),
+    [compositeFilters],
+  );
+
+  const resetData = useCallback(() => {
+    setPages([]);
+    setWeekDate(getTodayDate());
+    setEmployeeStart(0);
+  }, []);
+
+  // Reset pagination when filters change
+  useEffect(() => {
+    const filtersChanged =
+      JSON.stringify(prevFiltersRef.current.filters) !==
+        JSON.stringify(filters) ||
+      JSON.stringify(prevFiltersRef.current.compositeFilters) !==
+        JSON.stringify(compositeFilters);
+
+    if (filtersChanged) {
+      resetData();
+      prevFiltersRef.current = { filters, compositeFilters };
+    }
+  }, [filters, compositeFilters, resetData]);
+
   const {
     data: teamData,
     error: teamDataError,
     isLoading: isLoadingTeamApiData,
   } = useFrappeGetCall("next_pms.timesheet.api.team.get_team_timesheet_data", {
     date: weekDate,
-    reports_to: employeeId,
+    reports_to: filters.reportsTo || null,
     max_week: NUMBER_OF_WEEKS_TO_FETCH,
     page_length: EMPLOYEE_PAGE_LENGTH,
     start: employeeStart,
+    search: filters.search || null,
+    status_filter: filters.approvalStatus
+      ? JSON.stringify([ApprovalStatusLabelMap[filters.approvalStatus]])
+      : null,
+    filters: frappeFilters.length > 0 ? JSON.stringify(frappeFilters) : null,
   });
 
   useEffect(() => {
-    if (!employeeId || !teamData?.message) {
+    if (!teamData?.message) {
       return;
     }
     setPages((prev) => [...prev, teamData.message as ApiPayload]);
-  }, [teamData, employeeId]);
+  }, [teamData]);
 
   // All transformation lives here. Because this is pure data derivation (no side effects).
   const { hasMoreWeeks, hasMoreEmployees, hasMore, weekGroups } =
@@ -243,5 +283,6 @@ export function useTeamTimesheetData({
     weekGroups,
     loadMore,
     error: teamDataError,
+    resetData,
   };
 }
