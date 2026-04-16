@@ -11,6 +11,13 @@ export interface Allocation {
   tentative?: boolean;
 }
 
+export interface LeaveAllocation {
+  /** First day of leave. */
+  startDate: Date;
+  /** Last day of leave (inclusive). */
+  endDate: Date;
+}
+
 export interface Project {
   name: string;
   dateRange?: string;
@@ -25,6 +32,7 @@ export interface Member {
   image?: string;
   badge?: string;
   projects?: Project[];
+  leaves?: LeaveAllocation[];
 }
 
 export interface GanttGridProps {

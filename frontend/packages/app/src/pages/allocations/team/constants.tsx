@@ -99,6 +99,16 @@ export const FAKE_MEMBERS: Member[] = [
     role: "DevOps Engineer",
     badge: "DO",
     projects: [],
+    leaves: [
+      {
+        startDate: new Date(2026, 3, 15),
+        endDate: new Date(2026, 3, 15),
+      },
+      {
+        startDate: new Date(2026, 3, 22),
+        endDate: new Date(2026, 3, 24),
+      },
+    ],
   },
   {
     name: "Eva Chen",
@@ -118,6 +128,12 @@ export const FAKE_MEMBERS: Member[] = [
             tentative: true,
           },
         ],
+      },
+    ],
+    leaves: [
+      {
+        startDate: new Date(2026, 3, 19),
+        endDate: new Date(2026, 3, 20),
       },
     ],
   },
@@ -347,6 +363,12 @@ export const FAKE_MEMBERS: Member[] = [
             tentative: true,
           },
         ],
+      },
+    ],
+    leaves: [
+      {
+        startDate: new Date(2026, 3, 30),
+        endDate: new Date(2026, 4, 1),
       },
     ],
   },
