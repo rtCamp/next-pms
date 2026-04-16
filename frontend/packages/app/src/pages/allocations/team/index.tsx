@@ -12,6 +12,7 @@ import {
   TextInput,
 } from "@rtcamp/frappe-ui-react";
 import { Ellipsis } from "lucide-react";
+import { useUser } from "@/providers/user";
 import { GANTT_START_DATE } from "./constants";
 import { useAllocationsTeamShallow } from "./store";
 
@@ -47,7 +48,6 @@ function AllocationsTeam() {
     setCompositeFilters,
     weekCount,
     filteredMembers,
-    isLoading,
     fetchData,
   } = useAllocationsTeamShallow((s) => ({
     search: s.search,
@@ -60,8 +60,11 @@ function AllocationsTeam() {
     setCompositeFilters: s.setCompositeFilters,
     weekCount: s.weekCount,
     filteredMembers: s.filteredMembers,
-    isLoading: s.isLoading,
     fetchData: s.fetchData,
+  }));
+
+  const { hasRoleAccess } = useUser(({ state }) => ({
+    hasRoleAccess: state.hasRoleAccess,
   }));
 
   useEffect(() => {
@@ -123,6 +126,7 @@ function AllocationsTeam() {
           startDate={GANTT_START_DATE}
           members={filteredMembers}
           weekCount={weekCount}
+          hasRoleAccess={hasRoleAccess}
         />
       </div>
     </div>

@@ -44,4 +44,6 @@ export interface GanttGridProps {
   members: Member[];
   /** Whether to include Saturday and Sunday columns. When false, week boundary is every 5th column. */
   showWeekend?: boolean;
+  /** Whether current user can manage member projects. */
+  hasRoleAccess?: boolean;
 }

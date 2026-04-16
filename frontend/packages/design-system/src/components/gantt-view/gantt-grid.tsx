@@ -1,5 +1,11 @@
 import React, { useState } from "react";
-import { CELL_HEIGHT, CELL_WIDTH, HEADER_HEIGHT } from "./constants";
+import { Plus } from "lucide-react";
+import {
+  ADD_PROJECT_ROW_HEIGHT,
+  CELL_HEIGHT,
+  CELL_WIDTH,
+  HEADER_HEIGHT,
+} from "./constants";
 import { GanttMemberBar } from "./gantt-bar/member-bar";
 import { GanttProjectBar } from "./gantt-bar/project-bar";
 import { getMemberAllocation } from "./gantt-bar/utilities/getMemberAllocation";
@@ -22,6 +28,7 @@ const GanttGridInner: React.FC = () => {
     startResize,
     columnCount,
     weeks,
+    hasRoleAccess,
   } = useGanttStore((s) => ({
     members: s.members,
     expandedRows: s.expandedRows,
@@ -33,6 +40,7 @@ const GanttGridInner: React.FC = () => {
     startResize: s.startResize,
     columnCount: s.columnCount,
     weeks: s.weeks,
+    hasRoleAccess: s.hasRoleAccess,
   }));
 
   const onResizePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
@@ -85,6 +93,8 @@ const GanttGridInner: React.FC = () => {
         <tbody>
           {members.map((member: Member, rowIndex: number) => {
             const isExpanded = expandedRows.has(rowIndex);
+            const animatedRowHeight = isExpanded ? CELL_HEIGHT : 0;
+            const addProjectRowHeight = isExpanded ? ADD_PROJECT_ROW_HEIGHT : 0;
             const memberAlloc = getMemberAllocation(
               member.projects || [],
               member.leaves || [],
@@ -120,8 +130,6 @@ const GanttGridInner: React.FC = () => {
 
                 {/* Project child rows */}
                 {member.projects?.map((project, projectIndex) => {
-                  const animatedRowHeight = isExpanded ? CELL_HEIGHT : 0;
-
                   return (
                     <tr
                       key={`${rowIndex}-project-${projectIndex}`}
@@ -175,6 +183,55 @@ const GanttGridInner: React.FC = () => {
                     </tr>
                   );
                 })}
+
+                {hasRoleAccess && (
+                  <tr
+                    className={cn("relative", {
+                      "pointer-events-none": !isExpanded,
+                    })}
+                    aria-hidden={!isExpanded}
+                  >
+                    <th
+                      className="sticky left-0 z-10 bg-surface-white border-b border-r border-outline-gray-1 pl-8 pr-3 font-normal text-left align-middle flex items-center gap-2 w-full overflow-hidden transition-[height] duration-200 ease-in-out"
+                      style={{
+                        width: headerWidth,
+                        minWidth: headerWidth,
+                        height: addProjectRowHeight,
+                        borderBottomWidth: isExpanded ? undefined : 0,
+                        borderRightWidth: isExpanded ? undefined : 0,
+                      }}
+                    >
+                      <button
+                        type="button"
+                        onClick={() => {}}
+                        className="w-full h-full flex items-center gap-2 text-base font-medium text-ink-gray-6 overflow-hidden"
+                      >
+                        <Plus size={16} className="shrink-0" />
+                        <span className="truncate">Add project</span>
+                      </button>
+                    </th>
+                    {weeks.map((_, i) => {
+                      return (
+                        <td
+                          key={i}
+                          colSpan={daysPerWeek}
+                          className={cn(
+                            "overflow-hidden transition-[height] duration-200 ease-in-out",
+                            {
+                              "border-r border-outline-gray-1": isExpanded,
+                            },
+                          )}
+                          style={{ height: addProjectRowHeight }}
+                        />
+                      );
+                    })}
+                    <td
+                      aria-hidden="true"
+                      className="p-0 border-0 w-0 min-w-0 max-w-0"
+                      style={{ width: 0 }}
+                    />
+                  </tr>
+                )}
               </React.Fragment>
             );
           })}
@@ -208,6 +265,7 @@ export const GanttGrid: React.FC<GanttGridProps> = (props) => {
       showWeekend: props.showWeekend ?? true,
       startDate: props.startDate,
       weekCount: props.weekCount ?? 3,
+      hasRoleAccess: props.hasRoleAccess ?? false,
     }),
   );
   return (

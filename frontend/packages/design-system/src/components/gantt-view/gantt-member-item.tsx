@@ -9,17 +9,18 @@ export interface GanttMemberItemProps {
 }
 
 export function GanttMemberItem({ memberInd }: GanttMemberItemProps) {
-  const { members, expandedRows, toggleRow, headerWidth } = useGanttStore(
-    (s) => ({
+  const { members, expandedRows, toggleRow, headerWidth, hasRoleAccess } =
+    useGanttStore((s) => ({
       members: s.members,
       expandedRows: s.expandedRows,
       headerWidth: s.headerWidth,
       toggleRow: s.toggleRow,
-    }),
-  );
+      hasRoleAccess: s.hasRoleAccess,
+    }));
   const member = members[memberInd];
   const isExpanded = expandedRows.has(memberInd);
   const hasProjects = Boolean(member.projects?.length);
+  const canExpand = hasProjects || hasRoleAccess;
 
   return (
     <th
@@ -32,7 +33,7 @@ export function GanttMemberItem({ memberInd }: GanttMemberItemProps) {
       <button
         onClick={() => toggleRow(memberInd)}
         className={cn("shrink-0 w-full flex items-center", {
-          "pointer-events-none": !hasProjects,
+          "pointer-events-none": !canExpand,
         })}
         aria-label={isExpanded ? "Collapse" : "Expand"}
       >
@@ -41,7 +42,7 @@ export function GanttMemberItem({ memberInd }: GanttMemberItemProps) {
             <ChevronRight
               className={cn(
                 "shrink-0 mr-1 text-ink-gray-4 transition-transform duration-150",
-                { "opacity-0 pointer-events-none": !hasProjects },
+                { "opacity-0 pointer-events-none": !canExpand },
                 { "rotate-90": isExpanded },
               )}
               size={16}
