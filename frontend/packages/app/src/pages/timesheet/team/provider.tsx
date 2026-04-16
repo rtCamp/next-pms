@@ -9,8 +9,8 @@ import {
   useMemo,
   useState,
 } from "react";
-import { ApprovalStatusType } from "@next-pms/design-system/components";
-import { FilterCondition } from "@rtcamp/frappe-ui-react";
+import { type ApprovalStatusType } from "@next-pms/design-system/components";
+import { type FilterCondition } from "@rtcamp/frappe-ui-react";
 import { useToasts } from "@rtcamp/frappe-ui-react";
 
 /**
