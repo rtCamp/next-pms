@@ -136,11 +136,13 @@ def update_weekly_status_of_timesheet(employee: str, date: str):
     if working_days:
         total_working_days = working_days.get("total_working_days") or 0
 
-    if status_count["Approval Pending"] >= total_working_days:
+    effective_total_days = total_working_days if total_working_days > 0 else len(final_status_per_day)
+
+    if effective_total_days > 0 and status_count["Approval Pending"] >= effective_total_days:
         week_status = "Approval Pending"
-    elif status_count["Rejected"] >= total_working_days:
+    elif effective_total_days > 0 and status_count["Rejected"] >= effective_total_days:
         week_status = "Rejected"
-    elif status_count["Approved"] >= total_working_days:
+    elif effective_total_days > 0 and status_count["Approved"] >= effective_total_days:
         week_status = "Approved"
     elif status_count["Processing Timesheet"] > 0:
         week_status = "Processing Timesheet"

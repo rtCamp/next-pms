@@ -128,10 +128,14 @@ def get_project_timesheet_data(
     max_week = int(max_week)
 
     if isinstance(approval_status, str):
-        try:
-            approval_status = json.loads(approval_status)
-        except (json.JSONDecodeError, ValueError):
-            approval_status = [approval_status]
+        approval_status = approval_status.strip()
+        if not approval_status:
+            approval_status = None
+        else:
+            try:
+                approval_status = json.loads(approval_status)
+            except (json.JSONDecodeError, ValueError):
+                approval_status = [approval_status]
 
     if approval_status == "":
         approval_status = None

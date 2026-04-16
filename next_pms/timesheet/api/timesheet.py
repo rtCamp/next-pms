@@ -171,10 +171,14 @@ def get_timesheet_data(
     filter_lookback_weeks = FILTER_LOOKBACK_WEEKS
     # Parse approval_status from JSON string to list
     if isinstance(approval_status, str):
-        try:
-            approval_status = json.loads(approval_status)
-        except (json.JSONDecodeError, ValueError):
-            approval_status = [approval_status]
+        approval_status = approval_status.strip()
+        if not approval_status:
+            approval_status = None
+        else:
+            try:
+                approval_status = json.loads(approval_status)
+            except (json.JSONDecodeError, ValueError):
+                approval_status = [approval_status]
 
     # Parse generic filters
     parsed_filters = parse_filters(filters)
