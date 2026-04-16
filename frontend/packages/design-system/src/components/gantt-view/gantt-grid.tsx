@@ -78,7 +78,7 @@ const GanttGridInner: React.FC = () => {
           <tr>
             <th
               rowSpan={2}
-              className="sticky left-0 z-20 bg-surface-white border border-l-0 border-outline-gray-1 font-normal"
+              className="sticky left-0 z-20 bg-surface-white text-ink-gray-8 border border-l-0 border-outline-gray-1 font-medium text-start p-3 pl-4.25"
               style={{ width: headerWidth, height: HEADER_HEIGHT }}
             >
               Members
@@ -204,7 +204,7 @@ const GanttGridInner: React.FC = () => {
                       <button
                         type="button"
                         onClick={() => {}}
-                        className="w-full h-full flex items-center gap-2 text-base font-medium text-ink-gray-6 overflow-hidden"
+                        className="w-full h-full flex items-center gap-2 text-base font-medium text-ink-gray-9 overflow-hidden"
                       >
                         <Plus size={16} className="shrink-0" />
                         <span className="truncate">Add project</span>

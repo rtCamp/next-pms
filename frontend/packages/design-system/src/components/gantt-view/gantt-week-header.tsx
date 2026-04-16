@@ -32,7 +32,7 @@ export function GanttWeekHeader({ weekIndex }: GanttWeekProps) {
     >
       {/* Week label row */}
       <div
-        className="border-outline-gray-1 bg-surface-white px-2 py-0.75"
+        className="flex justify-center items-center border-outline-gray-1 bg-surface-white px-2 py-2"
         style={{ height: WEEK_LABEL_HEIGHT }}
       >
         <span className="truncate text-xs text-ink-gray-4">{label}</span>

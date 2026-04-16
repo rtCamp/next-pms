@@ -21,11 +21,16 @@ export function GanttProjectItem({
       style={style}
     >
       <div className="w-full flex flex-col gap-1 min-w-0">
-        <div className="flex items-center w-full min-w-0 overflow-hidden">
-          <Folder size={16} className="shrink-0" />
-          <span className="ml-2 text-sm font-medium leading-tight truncate text-ink-gray-8">
-            {name}
-          </span>
+        <div className="flex items-center justify-between gap-1 w-full">
+          <div className="flex items-center w-full min-w-0 overflow-hidden">
+            <Folder size={16} className="shrink-0" />
+            <span className="ml-2 text-base font-medium leading-tight truncate text-ink-gray-9">
+              {name}
+            </span>
+          </div>
+          {badge && (
+            <Badge label={badge} size="sm" variant="subtle" theme="gray" />
+          )}
         </div>
         {subtext && (
           <div className="flex items-center flex-1 w-full min-w-0 overflow-hidden pl-6">
@@ -35,8 +40,6 @@ export function GanttProjectItem({
           </div>
         )}
       </div>
-
-      {badge && <Badge label={badge} size="sm" variant="subtle" theme="gray" />}
     </th>
   );
 }

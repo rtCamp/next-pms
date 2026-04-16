@@ -92,7 +92,7 @@ function AllocationsTeam() {
               { label: "All time", value: "all-time" },
             ]}
             value={duration}
-            onChange={(value) => setDuration(value || "this-month")}
+            onChange={(value) => setDuration(value || "this-quarter")}
           />
           <Select
             placeholder="Allocations Type"
