@@ -3,7 +3,12 @@
  */
 import { Fragment, useCallback, useState } from "react";
 import { Spinner, Typography } from "@next-pms/design-system/components";
-import { Button, Filter, FilterCondition, TextInput } from "@rtcamp/frappe-ui-react";
+import {
+  Button,
+  Filter,
+  FilterCondition,
+  TextInput,
+} from "@rtcamp/frappe-ui-react";
 import { Ellipsis } from "lucide-react";
 
 /**
@@ -21,12 +26,12 @@ import { sampleFields } from "../constants";
 
 export const TeamTimesheetTable = () => {
   const [selectedTask, setSelectedTask] = useState<string | null>(null);
-  const hasMoreWeeks = useTeamTimesheet(({ state }) => state.hasMoreWeeks);
+  const hasMore = useTeamTimesheet(({ state }) => state.hasMore);
   const isLoadingTeamData = useTeamTimesheet(
     ({ state }) => state.isLoadingTeamData,
   );
   const weekGroups = useTeamTimesheet(({ state }) => state.weekGroups);
-  const loadData = useTeamTimesheet(({ actions }) => actions.loadData);
+  const loadMore = useTeamTimesheet(({ actions }) => actions.loadMore);
   const isWeeklyApprovalOpen = useTeamTimesheet(
     ({ state }) => state.isWeeklyApprovalOpen,
   );
@@ -47,7 +52,7 @@ export const TeamTimesheetTable = () => {
   }, []);
 
   return (
-    <div className="w-full h-full py-3.5 px-3">
+    <div className="w-full flex-1 min-h-0 py-3.5 px-3">
       <WeeklyApproval
         employee={employee}
         startDate={startDate}
@@ -94,9 +99,9 @@ export const TeamTimesheetTable = () => {
       ) : (
         <InfiniteScroll
           isLoading={isLoadingTeamData}
-          hasMore={hasMoreWeeks}
-          verticalLodMore={loadData}
-          className="w-full h-full overflow-auto scrollbar [scrollbar-gutter:stable]"
+          hasMore={hasMore}
+          verticalLodMore={loadMore}
+          className="w-full h-[calc(100%-var(--spacing)*7)] overflow-auto scrollbar [scrollbar-gutter:stable]"
           count={NUMBER_OF_WEEKS_TO_FETCH}
         >
           <div className="min-w-225">
@@ -134,7 +139,7 @@ export const TeamTimesheetTable = () => {
                       teamMembers={week.members.map((member) => ({
                         label: member.employee.employee_name,
                         employee: member.employee.name,
-                        avatarUrl: member.employee.image,
+                        avatarUrl: member.employee.image ?? undefined,
                         tasks: member.week.tasks,
                         leaves: member.leaves,
                         holidays: member.holidays,

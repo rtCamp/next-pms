@@ -11,7 +11,7 @@ import type { DataProp, timesheet } from "@/types/timesheet";
 
 export type EmployeeRecord = {
   name: string;
-  image: string;
+  image: string | null;
   employee_name: string;
 };
 
@@ -35,7 +35,7 @@ export type WeekGroup = {
 
 export interface TeamTimesheetContextProps {
   state: {
-    hasMoreWeeks: boolean;
+    hasMore: boolean;
     isLoadingTeamData: boolean;
     weekGroups: WeekGroup[];
     isWeeklyApprovalOpen: boolean;
@@ -43,7 +43,7 @@ export interface TeamTimesheetContextProps {
     startDate: string;
   };
   actions: {
-    loadData: () => void;
+    loadMore: () => void;
     openWeeklyApproval: (employeeId: string, date: string) => void;
     setIsWeeklyApprovalOpen: (state: boolean) => void;
   };
@@ -51,7 +51,7 @@ export interface TeamTimesheetContextProps {
 
 export const TeamTimesheetContext = createContext<TeamTimesheetContextProps>({
   state: {
-    hasMoreWeeks: false,
+    hasMore: false,
     isLoadingTeamData: false,
     weekGroups: [],
     isWeeklyApprovalOpen: false,
@@ -59,7 +59,7 @@ export const TeamTimesheetContext = createContext<TeamTimesheetContextProps>({
     startDate: "",
   },
   actions: {
-    loadData: () => null,
+    loadMore: () => null,
     openWeeklyApproval: () => null,
     setIsWeeklyApprovalOpen: () => null,
   },

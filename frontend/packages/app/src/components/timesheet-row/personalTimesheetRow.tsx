@@ -13,12 +13,7 @@ import {
 import { getHolidayList } from "@/lib/utils";
 import { useTimesheetOutletContext } from "@/pages/timesheet/outletContext";
 import { WorkingFrequency } from "@/types";
-import type {
-  HolidayProp,
-  LeaveProps,
-  TaskDataProps,
-  TaskProps,
-} from "@/types/timesheet";
+import type { HolidayProp, LeaveProps, TaskProps } from "@/types/timesheet";
 import { ProjectRow } from "./components/row/projectRow";
 import { TaskRow } from "./components/row/taskRow";
 import { TimeOffRow } from "./components/row/timeOffRow";
@@ -38,13 +33,11 @@ export type PersonalTimesheetRowProps = {
   disabled?: boolean;
   workingFrequency: WorkingFrequency;
   importTasks?: boolean;
-  loadingLikedTasks?: boolean;
-  likedTaskData?: Array<object>;
-  getLikedTaskData?: () => void;
   hideLikeButton?: boolean;
   setSelectedTask?: (task: string) => void;
   onButtonClick?: () => void;
   status: ApprovalStatusLabelType;
+  hideTotalRow: boolean;
 };
 
 export const PersonalTimesheetRow = ({
@@ -58,11 +51,10 @@ export const PersonalTimesheetRow = ({
   workingHour,
   workingFrequency,
   disabled,
-  likedTaskData,
   onButtonClick,
   status,
+  hideTotalRow,
   setSelectedTask,
-  getLikedTaskData,
   hideLikeButton,
 }: PersonalTimesheetRowProps) => {
   const { openAddTimeDialog } = useTimesheetOutletContext();
@@ -92,24 +84,26 @@ export const PersonalTimesheetRow = ({
           totalHoursTheme,
         }) => (
           <>
-            <TotalRow
-              breadcrumbs={{
-                items: [
-                  { label: "Projects", interactive: false },
-                  { label: "Tasks", interactive: false },
-                ],
-                size: "md",
-                highlightAllItems: true,
-                crumbClassName: "first:pl-0 last:pr-0",
-              }}
-              totalHours={totalHours}
-              totalHoursTheme={totalHoursTheme}
-              totalTimeEntries={totalTimeEntries}
-              className="pl-7.5"
-              starred={true}
-              disabled={disabled}
-              onCellClick={openAddTimeDialog}
-            />
+            {!hideTotalRow ? (
+              <TotalRow
+                breadcrumbs={{
+                  items: [
+                    { label: "Projects", interactive: false },
+                    { label: "Tasks", interactive: false },
+                  ],
+                  size: "md",
+                  highlightAllItems: true,
+                  crumbClassName: "first:pl-0 last:pr-0",
+                }}
+                totalHours={totalHours}
+                totalHoursTheme={totalHoursTheme}
+                totalTimeEntries={totalTimeEntries}
+                className="pl-7.5"
+                starred={true}
+                disabled={disabled}
+                onCellClick={openAddTimeDialog}
+              />
+            ) : null}
 
             {projects.map((project) => (
               <ProjectRow
@@ -117,6 +111,7 @@ export const PersonalTimesheetRow = ({
                 dates={dates}
                 tasks={project.tasks}
                 label={project.project_name || project.project}
+                hideTime={hideTotalRow}
                 className="pl-7.5"
               >
                 {Object.entries(project.tasks).map(([taskKey, task]) => (
@@ -127,14 +122,12 @@ export const PersonalTimesheetRow = ({
                     tasks={{ [taskKey]: task }}
                     label={task.subject || task.name}
                     status={task.status}
-                    likedTaskData={likedTaskData as TaskDataProps[]}
                     className="pl-13.5"
                     disabled={disabled}
                     dailyWorkingHours={dailyWorkingHours}
                     totalTimeEntriesInHours={totalTimeEntriesInHours}
                     employee={employee}
                     setSelectedTask={setSelectedTask}
-                    getLikedTaskData={getLikedTaskData}
                     hideLikeButton={hideLikeButton}
                   />
                 ))}
