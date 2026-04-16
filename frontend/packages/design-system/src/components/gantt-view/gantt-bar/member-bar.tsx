@@ -1,3 +1,4 @@
+import { differenceInCalendarDays } from "date-fns";
 import { FULL_DAY_HOURS } from "../constants";
 import { useGanttStore } from "../gantt-store";
 import type { Allocation } from "../types";
@@ -5,8 +6,12 @@ import { GanttBar } from "./gantt-bar";
 import { getClampedBarLayout } from "./utilities/getClampedBarLayout";
 import { getNumDays } from "./utilities/getNumDays";
 
+interface MemberBarAllocation extends Allocation {
+  type?: "default" | "timeoff";
+}
+
 interface GanttMemberBarProps {
-  allocation: Allocation;
+  allocation: MemberBarAllocation;
 }
 
 export function GanttMemberBar({ allocation }: GanttMemberBarProps) {
@@ -38,6 +43,21 @@ export function GanttMemberBar({ allocation }: GanttMemberBarProps) {
 
   if (!layout) {
     return null;
+  }
+
+  if (allocation.type === "timeoff") {
+    const leaveDays =
+      differenceInCalendarDays(allocation.endDate, allocation.startDate) + 1;
+    const leaveLabel = leaveDays > 2 ? `${leaveDays} days` : "";
+
+    return (
+      <GanttBar
+        variant="timeoff"
+        label={leaveLabel}
+        left={layout.left}
+        width={layout.width}
+      />
+    );
   }
 
   const { hours } = allocation;

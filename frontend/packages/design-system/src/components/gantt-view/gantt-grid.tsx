@@ -85,7 +85,10 @@ const GanttGridInner: React.FC = () => {
         <tbody>
           {members.map((member: Member, rowIndex: number) => {
             const isExpanded = expandedRows.has(rowIndex);
-            const memberAlloc = getMemberAllocation(member.projects || []);
+            const memberAlloc = getMemberAllocation(
+              member.projects || [],
+              member.leaves || [],
+            );
 
             return (
               <React.Fragment key={rowIndex}>
