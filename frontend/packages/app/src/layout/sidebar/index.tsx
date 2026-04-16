@@ -244,14 +244,18 @@ const Sidebar = () => {
             label: "Timesheet - Personal",
             action: () => navigate(ROUTES["timesheet-personal"]),
           },
-          {
-            label: "Timesheet - Team",
-            action: () => navigate(ROUTES["timesheet-team"]),
-          },
-          {
-            label: "Timesheet - Projects",
-            action: () => navigate(ROUTES["timesheet-project"]),
-          },
+          ...(hasRoleAccess
+            ? [
+                {
+                  label: "Timesheet - Team",
+                  action: () => navigate(ROUTES["timesheet-team"]),
+                },
+                {
+                  label: "Timesheet - Projects",
+                  action: () => navigate(ROUTES["timesheet-project"]),
+                },
+              ]
+            : []),
           {
             label: "Allocations - Team",
             action: () => navigate(ROUTES["allocations-team"]),
