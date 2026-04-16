@@ -132,11 +132,15 @@ def update_weekly_status_of_timesheet(employee: str, date: str):
         if day_status in status_count:
             status_count[day_status] += 1
 
-    if status_count["Approval Pending"] >= working_days.get("total_working_days"):
+    total_working_days = 0
+    if working_days:
+        total_working_days = working_days.get("total_working_days") or 0
+
+    if status_count["Approval Pending"] >= total_working_days:
         week_status = "Approval Pending"
-    elif status_count["Rejected"] >= working_days.get("total_working_days"):
+    elif status_count["Rejected"] >= total_working_days:
         week_status = "Rejected"
-    elif status_count["Approved"] >= working_days.get("total_working_days"):
+    elif status_count["Approved"] >= total_working_days:
         week_status = "Approved"
     elif status_count["Processing Timesheet"] > 0:
         week_status = "Processing Timesheet"
@@ -289,41 +293,131 @@ def build_aggregate_dates(date: str, max_week: int, has_filters: bool):
     return dates, max_lookback
 
 
-def get_all_filtered_employees(reports_to: str | None = None, ids=None):
-    employee_ids = list(ids) if ids else None
-    _, total_count = filter_employees(page_length=1, start=0, reports_to=reports_to, ids=employee_ids)
-    if not total_count:
+def get_matching_timesheet_employee_ids(
+    dates: list,
+    parsed_filters: dict,
+    search: str | None = None,
+    approval_status: list[str] | None = None,
+    require_project_tasks: bool = False,
+):
+    if not dates:
         return []
 
-    employees, _ = filter_employees(page_length=total_count, start=0, reports_to=reports_to, ids=employee_ids)
-    return employees
+    base_ts_filters = {
+        "start_date": [">=", dates[0].get("start_date")],
+        "end_date": ["<=", dates[-1].get("end_date")],
+        "docstatus": ["!=", 2],
+    }
+    if approval_status:
+        base_ts_filters["custom_weekly_approval_status"] = ["in", approval_status]
 
+    ts_filters = build_filters(base_ts_filters, parsed_filters.get("Timesheet", []))
+    timesheets = get_all("Timesheet", filters=ts_filters, fields=["name", "employee"])
+    if not timesheets:
+        return []
 
-def get_team_candidate_employees(
-    reports_to: str | None = None,
-    timesheet_status: list[str] | None = None,
-    start_date: str | None = None,
-    end_date: str | None = None,
-):
-    if not timesheet_status:
-        return get_all_filtered_employees(reports_to=reports_to)
-
-    Timesheet = frappe.qb.DocType("Timesheet")
-    rows = (
-        frappe.qb.from_(Timesheet)
-        .select(Timesheet.employee)
-        .where(Timesheet.start_date >= getdate(start_date))
-        .where(Timesheet.end_date <= getdate(end_date))
-        .where(Timesheet.docstatus != 2)
-        .where(Timesheet.custom_weekly_approval_status.isin(timesheet_status))
-        .groupby(Timesheet.employee)
-        .run(as_dict=True)
+    requires_detail_scan = bool(
+        require_project_tasks or search or parsed_filters.get("Task") or parsed_filters.get("Timesheet Detail")
     )
-    employee_ids = [row.employee for row in rows]
+    if not requires_detail_scan:
+        return list({timesheet.employee for timesheet in timesheets})
+
+    timesheet_by_name = {timesheet.name: timesheet for timesheet in timesheets}
+    detail_filters = build_filters(
+        {"parent": ["in", list(timesheet_by_name)]}, parsed_filters.get("Timesheet Detail", [])
+    )
+    details = get_all("Timesheet Detail", filters=detail_filters, fields=["parent", "task"])
+    if not details:
+        return []
+
+    requires_task_scan = bool(require_project_tasks or search or parsed_filters.get("Task"))
+    if not requires_task_scan:
+        matched_parent_names = {detail.parent for detail in details}
+        return list(
+            {timesheet_by_name[parent].employee for parent in matched_parent_names if parent in timesheet_by_name}
+        )
+
+    task_ids = list({detail.task for detail in details if detail.task})
+    if not task_ids:
+        return []
+
+    task_filters = build_filters({"name": ["in", task_ids]}, parsed_filters.get("Task", []))
+    tasks = get_all("Task", filters=task_filters, fields=TASK_FIELDS)
+    if search:
+        search_term = search.lower()
+        tasks = [
+            task
+            for task in tasks
+            if search_term in (task.get("subject") or "").lower()
+            or search_term in (task.get("name") or "").lower()
+            or search_term in (task.get("project_name") or "").lower()
+        ]
+    if require_project_tasks:
+        tasks = [task for task in tasks if task.get("project")]
+
+    valid_task_ids = {task.name for task in tasks}
+    if not valid_task_ids:
+        return []
+
+    matched_parent_names = {detail.parent for detail in details if detail.task in valid_task_ids}
+    return list({timesheet_by_name[parent].employee for parent in matched_parent_names if parent in timesheet_by_name})
+
+
+def get_team_candidate_employee_ids(
+    reports_to: str | None = None,
+    dates: list | None = None,
+    parsed_filters: dict | None = None,
+    search: str | None = None,
+    timesheet_status: list[str] | None = None,
+):
+    if not dates:
+        return []
+
+    has_candidate_filters = bool(timesheet_status or search or any((parsed_filters or {}).values()))
+    if not has_candidate_filters:
+        return None
+
+    employee_ids = get_matching_timesheet_employee_ids(
+        dates=dates,
+        parsed_filters=parsed_filters or {dt: [] for dt in ALLOWED_FILTER_FIELDS},
+        search=search,
+        approval_status=timesheet_status,
+    )
     if not employee_ids:
         return []
 
-    return get_all_filtered_employees(reports_to=reports_to, ids=employee_ids)
+    _, filtered_count = filter_employees(page_length=1, start=0, reports_to=reports_to, ids=employee_ids)
+    if not filtered_count:
+        return []
+
+    return employee_ids
+
+
+def get_project_candidate_employee_ids(
+    reports_to: str | None = None,
+    dates: list | None = None,
+    parsed_filters: dict | None = None,
+    search: str | None = None,
+    approval_status: list[str] | None = None,
+):
+    if not dates:
+        return []
+
+    employee_ids = get_matching_timesheet_employee_ids(
+        dates=dates,
+        parsed_filters=parsed_filters or {dt: [] for dt in ALLOWED_FILTER_FIELDS},
+        search=search,
+        approval_status=approval_status,
+        require_project_tasks=True,
+    )
+    if not employee_ids:
+        return []
+
+    _, filtered_count = filter_employees(page_length=1, start=0, reports_to=reports_to, ids=employee_ids)
+    if not filtered_count:
+        return []
+
+    return employee_ids
 
 
 def iter_employee_chunks(employees: list, chunk_size: int = EMPLOYEE_SCAN_CHUNK_SIZE):
@@ -373,9 +467,10 @@ def build_chunk_context(employees: list, dates: list, parsed_filters: dict, sear
             if working_frequency != "Per Day"
             else working_hours_map[employee_name]["working_hour"]
         )
-        holiday_list = meta.get("holiday_list")
+        holiday_list = get_holiday_list_for_employee(employee_name, raise_exception=False) or meta.get("holiday_list")
         if holiday_list:
             holiday_lists.add(holiday_list)
+        meta["resolved_holiday_list"] = holiday_list
 
     holidays_by_list = defaultdict(list)
     if holiday_lists:
@@ -393,7 +488,7 @@ def build_chunk_context(employees: list, dates: list, parsed_filters: dict, sear
     holidays_by_employee = {}
     for employee_name in employee_names:
         meta = employee_meta_map.get(employee_name) or {}
-        holidays_by_employee[employee_name] = holidays_by_list.get(meta.get("holiday_list"), [])
+        holidays_by_employee[employee_name] = holidays_by_list.get(meta.get("resolved_holiday_list"), [])
 
     leaves_by_employee = defaultdict(list)
     leaves = get_employee_leaves(tuple(employee_names), dates[0].get("start_date"), dates[-1].get("end_date"))
@@ -591,29 +686,42 @@ def build_employee_week_details(
     return week_details
 
 
-def collect_qualifying_employee_payloads(
-    employees: list,
+def paginate_qualifying_employee_payloads(
+    reports_to: str | None,
+    employee_ids,
     dates: list,
     parsed_filters: dict,
     search: str | None,
+    start: int,
+    page_length: int,
     builder,
 ):
-    payloads = []
+    selected = []
+    total_count = 0
+    employee_start = 0
 
-    for chunk in iter_employee_chunks(employees):
+    while True:
+        chunk, _ = filter_employees(
+            page_length=EMPLOYEE_SCAN_CHUNK_SIZE,
+            start=employee_start,
+            reports_to=reports_to,
+            ids=employee_ids,
+        )
+        if not chunk:
+            break
+
         context = build_chunk_context(chunk, dates, parsed_filters, search)
         for employee in chunk:
             payload = builder(employee, context)
             if not payload:
                 continue
 
-            payloads.append(payload)
+            if total_count >= start and len(selected) < page_length:
+                selected.append(payload)
 
-    return payloads
+            total_count += 1
 
+        employee_start += len(chunk)
 
-def paginate_payloads(payloads: list, start: int, page_length: int):
-    total_count = len(payloads)
-    selected = payloads[start : start + page_length]
     has_more = start + page_length < total_count
     return selected, total_count, has_more

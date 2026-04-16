@@ -28,12 +28,11 @@ from .timesheet import get_timesheet_state
 from .utils import (
     build_aggregate_dates,
     build_employee_week_details,
-    collect_qualifying_employee_payloads,
     employee_has_higher_access,
     get_holidays,
-    get_team_candidate_employees,
+    get_team_candidate_employee_ids,
     get_week_dates,
-    paginate_payloads,
+    paginate_qualifying_employee_payloads,
     parse_filters,
 )
 
@@ -182,9 +181,7 @@ def get_compact_view_data(
     return res
 
 
-@whitelist(methods=["GET", "POST"])
-@error_logger
-def get_team_timesheet_data(
+def _get_team_timesheet_data(
     date: str,
     max_week: int = 2,
     page_length=10,
@@ -196,9 +193,6 @@ def get_team_timesheet_data(
     filters: str | list | None = None,
     skip_empty_weeks: bool = False,
 ):
-    """API to get team timesheet data with task-level detail in a single request.
-    Combines the compact view (daily hours per employee) with detailed timesheet
-    entries (tasks, hours per day) to avoid N+1 API calls from the frontend."""
     if not by_pass_access_check:
         only_for(["Timesheet Manager", "Timesheet User", "Projects Manager"], message=True)
 
@@ -218,14 +212,15 @@ def get_team_timesheet_data(
     response_dates = dates[-max_week:] if has_filters and len(dates) > max_week else dates
     res = {"dates": response_dates}
 
-    candidate_employees = get_team_candidate_employees(
+    candidate_employee_ids = get_team_candidate_employee_ids(
         reports_to=reports_to,
+        dates=dates,
+        parsed_filters=parsed_filters,
+        search=search,
         timesheet_status=status_filter,
-        start_date=dates[0].get("start_date"),
-        end_date=dates[-1].get("end_date"),
     )
 
-    if not candidate_employees:
+    if candidate_employee_ids == []:
         res["data"] = {}
         res["total_count"] = 0
         res["has_more"] = False
@@ -310,20 +305,78 @@ def get_team_timesheet_data(
         local_data["timesheet_details"] = timesheet_details
         return employee.name, local_data
 
-    employee_payloads = collect_qualifying_employee_payloads(
-        employees=candidate_employees,
+    selected_employees, total_count, has_more = paginate_qualifying_employee_payloads(
+        reports_to=reports_to,
+        employee_ids=candidate_employee_ids,
         dates=dates,
         parsed_filters=parsed_filters,
         search=search,
+        start=start,
+        page_length=page_length,
         builder=build_team_employee_payload,
     )
-    selected_employees, total_count, has_more = paginate_payloads(employee_payloads, start, page_length)
 
     res["data"] = {employee_name: payload for employee_name, payload in selected_employees}
     res["total_count"] = total_count
     res["has_more"] = has_more
 
     return res
+
+
+@whitelist(methods=["GET", "POST"])
+@error_logger
+def get_team_timesheet_data(
+    date: str,
+    max_week: int = 2,
+    page_length=10,
+    start=0,
+    status_filter=None,
+    reports_to: str | None = None,
+    by_pass_access_check=False,
+    search: str | None = None,
+    filters: str | list | None = None,
+    skip_empty_weeks: bool = False,
+):
+    """API to get team timesheet data with task-level detail in a single request.
+    Combines the compact view (daily hours per employee) with detailed timesheet
+    entries (tasks, hours per day) to avoid N+1 API calls from the frontend."""
+    return _get_team_timesheet_data(
+        date=date,
+        max_week=max_week,
+        page_length=page_length,
+        start=start,
+        status_filter=status_filter,
+        reports_to=reports_to,
+        by_pass_access_check=False,
+        search=search,
+        filters=filters,
+        skip_empty_weeks=skip_empty_weeks,
+    )
+
+
+def get_team_timesheet_data_internal(
+    date: str,
+    max_week: int = 2,
+    page_length=10,
+    start=0,
+    status_filter=None,
+    reports_to: str | None = None,
+    search: str | None = None,
+    filters: str | list | None = None,
+    skip_empty_weeks: bool = False,
+):
+    return _get_team_timesheet_data(
+        date=date,
+        max_week=max_week,
+        page_length=page_length,
+        start=start,
+        status_filter=status_filter,
+        reports_to=reports_to,
+        by_pass_access_check=True,
+        search=search,
+        filters=filters,
+        skip_empty_weeks=skip_empty_weeks,
+    )
 
 
 @whitelist(methods=["POST"])

@@ -11,9 +11,8 @@ from . import get_count
 from .utils import (
     build_aggregate_dates,
     build_employee_week_details,
-    collect_qualifying_employee_payloads,
-    get_all_filtered_employees,
-    paginate_payloads,
+    get_project_candidate_employee_ids,
+    paginate_qualifying_employee_payloads,
     parse_filters,
 )
 
@@ -147,9 +146,15 @@ def get_project_timesheet_data(
     approval_statuses = approval_status if isinstance(approval_status, list) else None
 
     dates, _ = build_aggregate_dates(date=date, max_week=max_week, has_filters=has_filters)
-    candidate_employees = get_all_filtered_employees(reports_to=reports_to)
+    candidate_employee_ids = get_project_candidate_employee_ids(
+        reports_to=reports_to,
+        dates=dates,
+        parsed_filters=parsed_filters,
+        search=search,
+        approval_status=approval_statuses,
+    )
 
-    if not candidate_employees:
+    if candidate_employee_ids == []:
         return {
             "week_groups": [],
             "total_count": 0,
@@ -209,14 +214,16 @@ def get_project_timesheet_data(
             "week_details": week_details,
         }
 
-    employee_payloads = collect_qualifying_employee_payloads(
-        employees=candidate_employees,
+    selected_employees, total_count, has_more = paginate_qualifying_employee_payloads(
+        reports_to=reports_to,
+        employee_ids=candidate_employee_ids,
         dates=dates,
         parsed_filters=parsed_filters,
         search=search,
+        start=start,
+        page_length=page_length,
         builder=build_project_employee_payload,
     )
-    selected_employees, total_count, has_more = paginate_payloads(employee_payloads, start, page_length)
 
     employee_data_map = {employee_name: payload for employee_name, payload in selected_employees}
     response_dates = dates[-max_week:] if has_filters and len(dates) > max_week else dates
@@ -283,16 +290,3 @@ def get_project_timesheet_data(
         "total_count": total_count,
         "has_more": has_more,
     }
-
-
-def _build_empty_week_groups(dates):
-    return [
-        {
-            "key": d["key"],
-            "start_date": d["start_date"],
-            "end_date": d["end_date"],
-            "dates": d["dates"],
-            "projects": [],
-        }
-        for d in dates
-    ]
