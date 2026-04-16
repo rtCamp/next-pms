@@ -1,12 +1,20 @@
 import json
+from collections import defaultdict
 
 import frappe
 from erpnext.setup.doctype.employee.employee import get_holiday_list_for_employee
-from frappe.utils import add_days, get_first_day_of_week, get_last_day_of_week
+from frappe import get_all
+from frappe.utils import add_days, get_first_day_of_week, get_last_day_of_week, getdate
 from frappe.utils.caching import redis_cache
-from frappe.utils.data import getdate
 
-from next_pms.timesheet.utils.constant import ALLOWED_FILTER_FIELDS
+from next_pms.resource_management.api.utils.query import get_employee_leaves
+from next_pms.timesheet.utils.constant import (
+    ALLOWED_FILTER_FIELDS,
+    ALLOWED_TIMESHET_DETAIL_FIELDS,
+    FILTER_LOOKBACK_WEEKS,
+)
+
+from . import filter_employees
 
 READ_ONLY_ROLE = ["Timesheet User", "Projects User"]
 READ_WRITE_ROLE = ["Timesheet Manager", "Projects Manager"]
@@ -248,3 +256,364 @@ def build_filters(base_filters, additional_filters):
             result.append([field, "=", value])
     result.extend(additional_filters)
     return result
+
+
+EMPLOYEE_SCAN_CHUNK_SIZE = 50
+TASK_FIELDS = [
+    "name",
+    "subject",
+    "project.project_name as project_name",
+    "project",
+    "custom_is_billable",
+    "expected_time",
+    "actual_time",
+    "status",
+    "_liked_by",
+    "exp_end_date",
+]
+
+
+def build_aggregate_dates(date: str, max_week: int, has_filters: bool):
+    max_lookback = max(FILTER_LOOKBACK_WEEKS, max_week) if has_filters else max_week
+    dates = []
+    current_date = getdate(date)
+
+    for _ in range(max_lookback):
+        week = get_week_dates(date=current_date)
+        if not week:
+            break
+        dates.append(week)
+        current_date = getdate(add_days(week["start_date"], -1))
+
+    dates.reverse()
+    return dates, max_lookback
+
+
+def get_all_filtered_employees(reports_to: str | None = None, ids=None):
+    employee_ids = list(ids) if ids else None
+    _, total_count = filter_employees(page_length=1, start=0, reports_to=reports_to, ids=employee_ids)
+    if not total_count:
+        return []
+
+    employees, _ = filter_employees(page_length=total_count, start=0, reports_to=reports_to, ids=employee_ids)
+    return employees
+
+
+def get_team_candidate_employees(
+    reports_to: str | None = None,
+    timesheet_status: list[str] | None = None,
+    start_date: str | None = None,
+    end_date: str | None = None,
+):
+    if not timesheet_status:
+        return get_all_filtered_employees(reports_to=reports_to)
+
+    Timesheet = frappe.qb.DocType("Timesheet")
+    rows = (
+        frappe.qb.from_(Timesheet)
+        .select(Timesheet.employee)
+        .where(Timesheet.start_date >= getdate(start_date))
+        .where(Timesheet.end_date <= getdate(end_date))
+        .where(Timesheet.docstatus != 2)
+        .where(Timesheet.custom_weekly_approval_status.isin(timesheet_status))
+        .groupby(Timesheet.employee)
+        .run(as_dict=True)
+    )
+    employee_ids = [row.employee for row in rows]
+    if not employee_ids:
+        return []
+
+    return get_all_filtered_employees(reports_to=reports_to, ids=employee_ids)
+
+
+def iter_employee_chunks(employees: list, chunk_size: int = EMPLOYEE_SCAN_CHUNK_SIZE):
+    for index in range(0, len(employees), chunk_size):
+        yield employees[index : index + chunk_size]
+
+
+def build_chunk_context(employees: list, dates: list, parsed_filters: dict, search: str | None = None):
+    employee_names = [employee.name for employee in employees]
+    if not employee_names:
+        return {
+            "working_hours_map": {},
+            "daily_norm_map": {},
+            "leaves_by_employee": {},
+            "holidays_by_employee": {},
+            "timesheet_map": {},
+            "emp_ts_by_start": {},
+            "detail_by_parent": {},
+            "task_details_dict": {},
+            "week_status_map": {},
+            "overall_status_map": {},
+            "has_search_or_task_filters": False,
+        }
+
+    employee_meta_rows = get_all(
+        "Employee",
+        filters={"name": ["in", employee_names]},
+        fields=["name", "custom_working_hours", "custom_work_schedule", "holiday_list"],
+    )
+    employee_meta_map = {row.name: row for row in employee_meta_rows}
+
+    default_hours = frappe.db.get_single_value("HR Settings", "standard_working_hours") or 8
+    working_hours_map = {}
+    daily_norm_map = {}
+    holiday_lists = set()
+
+    for employee_name in employee_names:
+        meta = employee_meta_map.get(employee_name) or {}
+        working_hour = meta.get("custom_working_hours") or default_hours
+        working_frequency = meta.get("custom_work_schedule") or "Per Day"
+        working_hours_map[employee_name] = {
+            "working_hour": working_hour or 8,
+            "working_frequency": working_frequency,
+        }
+        daily_norm_map[employee_name] = (
+            working_hours_map[employee_name]["working_hour"] / 5
+            if working_frequency != "Per Day"
+            else working_hours_map[employee_name]["working_hour"]
+        )
+        holiday_list = meta.get("holiday_list")
+        if holiday_list:
+            holiday_lists.add(holiday_list)
+
+    holidays_by_list = defaultdict(list)
+    if holiday_lists:
+        holidays = get_all(
+            "Holiday",
+            filters={
+                "parent": ["in", list(holiday_lists)],
+                "holiday_date": ["between", (dates[0].get("start_date"), dates[-1].get("end_date"))],
+            },
+            fields=["parent", "holiday_date", "description", "weekly_off"],
+        )
+        for holiday in holidays:
+            holidays_by_list[holiday.parent].append(holiday)
+
+    holidays_by_employee = {}
+    for employee_name in employee_names:
+        meta = employee_meta_map.get(employee_name) or {}
+        holidays_by_employee[employee_name] = holidays_by_list.get(meta.get("holiday_list"), [])
+
+    leaves_by_employee = defaultdict(list)
+    leaves = get_employee_leaves(tuple(employee_names), dates[0].get("start_date"), dates[-1].get("end_date"))
+    for leave in leaves:
+        leaves_by_employee[leave.employee].append(leave)
+
+    base_ts_filters = {
+        "employee": ["in", employee_names],
+        "start_date": [">=", dates[0].get("start_date")],
+        "end_date": ["<=", dates[-1].get("end_date")],
+        "docstatus": ["!=", 2],
+    }
+    ts_filters = build_filters(base_ts_filters, parsed_filters.get("Timesheet", []))
+    all_timesheets = get_all(
+        "Timesheet",
+        filters=ts_filters,
+        fields=[
+            "name",
+            "employee",
+            "start_date",
+            "end_date",
+            "total_hours",
+            "note",
+            "custom_approval_status",
+            "custom_weekly_approval_status",
+        ],
+    )
+
+    timesheet_map = defaultdict(list)
+    emp_ts_by_start = defaultdict(lambda: defaultdict(list))
+    week_status_map = {}
+    overall_status_map = {}
+    all_timesheet_names = []
+
+    for timesheet in all_timesheets:
+        timesheet_map[timesheet.employee].append(timesheet)
+        emp_ts_by_start[timesheet.employee][timesheet.start_date].append(timesheet.name)
+        week_status_map[(timesheet.employee, timesheet.start_date)] = (
+            timesheet.get("custom_weekly_approval_status") or "Not Submitted"
+        )
+        all_timesheet_names.append(timesheet.name)
+
+    for employee_name, items in timesheet_map.items():
+        sorted_items = sorted(items, key=lambda item: item.start_date)
+        timesheet_map[employee_name] = sorted_items
+        overall_status_map[employee_name] = (
+            sorted_items[-1].get("custom_weekly_approval_status") if sorted_items else "Not Submitted"
+        ) or "Not Submitted"
+
+    detail_by_parent = defaultdict(list)
+    all_logs = []
+    if all_timesheet_names:
+        base_detail_filters = {"parent": ["in", all_timesheet_names]}
+        detail_filters = build_filters(base_detail_filters, parsed_filters.get("Timesheet Detail", []))
+        all_logs = get_all(
+            "Timesheet Detail",
+            filters=detail_filters,
+            fields=ALLOWED_TIMESHET_DETAIL_FIELDS,
+        )
+        for log in all_logs:
+            detail_by_parent[log.parent].append(log)
+
+    task_details_dict = {}
+    if all_logs:
+        all_task_ids = list({log.task for log in all_logs if log.task})
+        if all_task_ids:
+            base_task_filters = {"name": ["in", all_task_ids]}
+            task_filters = build_filters(base_task_filters, parsed_filters.get("Task", []))
+            all_tasks = get_all("Task", filters=task_filters, fields=TASK_FIELDS)
+            if search:
+                search_term = search.lower()
+                all_tasks = [
+                    task
+                    for task in all_tasks
+                    if search_term in (task.get("subject") or "").lower()
+                    or search_term in (task.get("name") or "").lower()
+                    or search_term in (task.get("project_name") or "").lower()
+                ]
+            task_details_dict = {task["name"]: task for task in all_tasks}
+
+    if search and all_logs:
+        filtered_task_ids = set(task_details_dict.keys())
+        all_logs = [log for log in all_logs if not log.get("task") or log.get("task") in filtered_task_ids]
+        detail_by_parent = defaultdict(list)
+        for log in all_logs:
+            detail_by_parent[log.parent].append(log)
+
+    matched_parent_names = set(detail_by_parent.keys())
+    if matched_parent_names and (search or parsed_filters.get("Task") or parsed_filters.get("Timesheet Detail")):
+        for employee_name, timesheets in list(timesheet_map.items()):
+            filtered_timesheets = [timesheet for timesheet in timesheets if timesheet.name in matched_parent_names]
+            timesheet_map[employee_name] = filtered_timesheets
+            emp_ts_by_start[employee_name] = defaultdict(list)
+            for timesheet in filtered_timesheets:
+                emp_ts_by_start[employee_name][timesheet.start_date].append(timesheet.name)
+            if filtered_timesheets:
+                latest_timesheet = filtered_timesheets[-1]
+                overall_status_map[employee_name] = (
+                    latest_timesheet.get("custom_weekly_approval_status") or "Not Submitted"
+                )
+            else:
+                overall_status_map[employee_name] = "Not Submitted"
+
+    has_search_or_task_filters = bool(search or parsed_filters.get("Task"))
+
+    return {
+        "working_hours_map": working_hours_map,
+        "daily_norm_map": daily_norm_map,
+        "leaves_by_employee": leaves_by_employee,
+        "holidays_by_employee": holidays_by_employee,
+        "timesheet_map": timesheet_map,
+        "emp_ts_by_start": emp_ts_by_start,
+        "detail_by_parent": detail_by_parent,
+        "task_details_dict": task_details_dict,
+        "week_status_map": week_status_map,
+        "overall_status_map": overall_status_map,
+        "has_search_or_task_filters": has_search_or_task_filters,
+    }
+
+
+def build_employee_week_details(
+    employee_name: str,
+    dates: list,
+    context: dict,
+    has_filters: bool,
+    skip_empty_weeks: bool,
+    approval_status: list[str] | None = None,
+):
+    week_details = {}
+    emp_ts_by_start = context["emp_ts_by_start"].get(employee_name, {})
+    detail_by_parent = context["detail_by_parent"]
+    task_details_dict = context["task_details_dict"]
+    has_search_or_task_filters = context["has_search_or_task_filters"]
+
+    for date_info in dates:
+        week_key = date_info["key"]
+        week_dates_set = set(date_info["dates"])
+        week_ts_names = []
+        for current_date in date_info["dates"]:
+            week_ts_names.extend(emp_ts_by_start.get(current_date, []))
+
+        tasks = {}
+        week_total_hours = 0
+
+        for ts_name in week_ts_names:
+            for log in detail_by_parent.get(ts_name, []):
+                log_date = getdate(log.from_time)
+                if log_date not in week_dates_set:
+                    continue
+
+                if not has_search_or_task_filters:
+                    week_total_hours += log.get("hours", 0)
+
+                if not log.get("task"):
+                    continue
+
+                task = task_details_dict.get(log.task)
+                if not task:
+                    continue
+
+                if has_search_or_task_filters:
+                    week_total_hours += log.get("hours", 0)
+
+                task_name = task["name"]
+                if task_name not in tasks:
+                    tasks[task_name] = {
+                        "name": task_name,
+                        "subject": task["subject"],
+                        "project": task["project"],
+                        "project_name": task["project_name"],
+                        "is_billable": task["custom_is_billable"],
+                        "expected_time": task["expected_time"],
+                        "actual_time": task["actual_time"],
+                        "status": task["status"],
+                        "_liked_by": task["_liked_by"],
+                        "exp_end_date": task["exp_end_date"] or "",
+                        "data": [],
+                    }
+
+                tasks[task_name]["data"].append({field: log.get(field) for field in ALLOWED_TIMESHET_DETAIL_FIELDS})
+
+        week_status = context["week_status_map"].get((employee_name, date_info["start_date"]), "Not Submitted")
+        should_skip_empty = has_filters and skip_empty_weeks
+        should_skip_week = (should_skip_empty and not tasks) or (approval_status and week_status not in approval_status)
+        if should_skip_week:
+            continue
+
+        week_details[week_key] = {
+            **date_info,
+            "total_hours": week_total_hours,
+            "tasks": tasks,
+            "status": week_status,
+        }
+
+    return week_details
+
+
+def collect_qualifying_employee_payloads(
+    employees: list,
+    dates: list,
+    parsed_filters: dict,
+    search: str | None,
+    builder,
+):
+    payloads = []
+
+    for chunk in iter_employee_chunks(employees):
+        context = build_chunk_context(chunk, dates, parsed_filters, search)
+        for employee in chunk:
+            payload = builder(employee, context)
+            if not payload:
+                continue
+
+            payloads.append(payload)
+
+    return payloads
+
+
+def paginate_payloads(payloads: list, start: int, page_length: int):
+    total_count = len(payloads)
+    selected = payloads[start : start + page_length]
+    has_more = start + page_length < total_count
+    return selected, total_count, has_more
