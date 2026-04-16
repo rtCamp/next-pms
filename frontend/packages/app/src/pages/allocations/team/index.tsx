@@ -11,7 +11,7 @@ import {
   Select,
   TextInput,
 } from "@rtcamp/frappe-ui-react";
-import { Ellipsis } from "lucide-react";
+import { ChevronLeft, ChevronRight, Ellipsis } from "lucide-react";
 import { useUser } from "@/providers/user";
 import { GANTT_START_DATE } from "./constants";
 import { useAllocationsTeamShallow } from "./store";
@@ -73,8 +73,8 @@ function AllocationsTeam() {
 
   return (
     <div className="flex flex-wrap gap-3.5 justify-between py-3.5">
-      <div className="w-full flex justify-between px-5">
-        <div className="flex gap-2">
+      <div className="w-full flex flex-wrap gap-2 justify-between px-5">
+        <div className="flex flex-wrap gap-2">
           <TextInput
             className="w-xs"
             placeholder="Search Members or designation"
@@ -109,6 +109,21 @@ function AllocationsTeam() {
           />
         </div>
         <div className="flex gap-2">
+          <div className="flex items-center gap-1">
+            <Button
+              variant="ghost"
+              icon={() => <ChevronLeft size={16} />}
+              onClick={() => {}}
+              aria-label="Previous week"
+            />
+            <Button variant="ghost" label="Today" onClick={() => {}} />
+            <Button
+              variant="ghost"
+              icon={() => <ChevronRight size={16} />}
+              onClick={() => {}}
+              aria-label="Next week"
+            />
+          </div>
           <Filter
             align="end"
             fields={FILTER_FIELDS}
