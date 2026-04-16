@@ -26,6 +26,7 @@ export function GanttProjectBar({ allocation }: GanttProjectBarProps) {
   return (
     <GanttBar
       variant="project"
+      theme={allocation.tentative ? "crosshatch" : "default"}
       label={label}
       left={left}
       width={numDays * CELL_WIDTH}

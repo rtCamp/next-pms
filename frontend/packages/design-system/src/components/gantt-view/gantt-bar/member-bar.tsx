@@ -37,6 +37,7 @@ export function GanttMemberBar({ allocation }: GanttMemberBarProps) {
   return (
     <GanttBar
       variant={variant}
+      theme={allocation.tentative ? "crosshatch" : "default"}
       label={label}
       left={left}
       width={numDays * CELL_WIDTH}
