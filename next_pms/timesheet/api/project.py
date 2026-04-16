@@ -7,7 +7,7 @@ from frappe.utils import add_days, flt, getdate
 
 from next_pms.api.utils import error_logger
 from next_pms.resource_management.api.utils.query import get_employee_leaves
-from next_pms.timesheet.utils.constant import ALLOWED_TIMESHET_DETAIL_FIELDS
+from next_pms.timesheet.utils.constant import ALLOWED_TIMESHET_DETAIL_FIELDS, FILTER_LOOKBACK_WEEKS
 
 from . import filter_employees, get_count
 from .employee import get_employee_daily_working_norm, get_employee_working_hours
@@ -115,11 +115,29 @@ def get_project_timesheet_data(
     page_length=10,
     start=0,
     filters: str | list | None = None,
+    search: str | None = None,
+    approval_status: str | list | None = None,
+    skip_empty_weeks: bool = False,
 ):
     only_for(["Timesheet Manager", "Timesheet User", "Projects Manager"], message=True)
 
+    if isinstance(approval_status, str):
+        try:
+            approval_status = json.loads(approval_status)
+        except (json.JSONDecodeError, ValueError):
+            approval_status = [approval_status]
+
+    if isinstance(skip_empty_weeks, str):
+        skip_empty_weeks = skip_empty_weeks.lower() in ("true", "1")
+
+    parsed_filters = parse_filters(filters)
+    has_filters = bool(search or approval_status or any(parsed_filters.values()))
+
+    filter_lookback_weeks = FILTER_LOOKBACK_WEEKS
+    max_lookback = max(filter_lookback_weeks, max_week) if has_filters else max_week
+
     dates = []
-    for i in range(max_week):
+    for i in range(max_lookback):
         week = get_week_dates(date=date)
         dates.append(week)
         date = add_days(getdate(week["start_date"]), -1)
@@ -135,11 +153,9 @@ def get_project_timesheet_data(
 
     if not employee_names:
         return {
-            "week_groups": _build_empty_week_groups(dates),
+            "week_groups": _build_empty_week_groups(dates[-max_week:]),
             "has_more": False,
         }
-
-    parsed_filters = parse_filters(filters)
 
     base_ts_filters = {
         "employee": ["in", employee_names],
@@ -205,6 +221,23 @@ def get_project_timesheet_data(
             )
             task_details_dict = {task["name"]: task for task in all_tasks}
 
+    if search:
+        search_term = search.lower()
+        task_details_dict = {
+            k: v
+            for k, v in task_details_dict.items()
+            if search_term in (v.get("subject") or "").lower()
+            or search_term in (v.get("name") or "").lower()
+            or search_term in (v.get("project_name") or "").lower()
+        }
+        filtered_task_ids = set(task_details_dict.keys())
+        all_logs = [log for log in all_logs if not log.get("task") or log.get("task") in filtered_task_ids]
+        detail_by_parent = {}
+        for log in all_logs:
+            detail_by_parent.setdefault(log.parent, []).append(log)
+
+    backward = max_lookback
+
     employee_data_map = {}
 
     for employee in employees:
@@ -214,11 +247,15 @@ def get_project_timesheet_data(
         emp_timesheets = timesheet_map.get(employee.name, [])
 
         leaves = get_employee_leaves(
-            start_date=add_days(dates[0].get("start_date"), -max_week * 7),
-            end_date=add_days(dates[-1].get("end_date"), max_week * 7),
+            start_date=add_days(dates[0].get("start_date"), -backward * 7),
+            end_date=add_days(dates[-1].get("end_date"), backward * 7),
             employee=employee.name,
         )
-        holidays = get_holidays(employee.name, dates[0].get("start_date"), dates[-1].get("end_date"))
+        holidays = get_holidays(
+            employee.name,
+            add_days(dates[0].get("start_date"), -backward * 7),
+            add_days(dates[-1].get("end_date"), backward * 7),
+        )
 
         emp_ts_by_start = {}
         for ts in emp_timesheets:
@@ -275,6 +312,13 @@ def get_project_timesheet_data(
                 start_date=date_info["dates"][0],
                 end_date=date_info["dates"][-1],
             )
+
+            should_skip_empty = has_filters and skip_empty_weeks
+            should_skip_week = (should_skip_empty and not tasks) or (
+                approval_status and week_status not in approval_status
+            )
+            if should_skip_week:
+                continue
 
             week_details[week_key] = {
                 **date_info,
@@ -347,6 +391,11 @@ def get_project_timesheet_data(
                 "projects": list(project_groups.values()),
             }
         )
+
+    if has_filters and skip_empty_weeks:
+        week_groups = [wg for wg in week_groups if wg.get("projects")]
+
+    week_groups = week_groups[-max_week:]
 
     has_more = int(start) + int(page_length) < total_count
 
