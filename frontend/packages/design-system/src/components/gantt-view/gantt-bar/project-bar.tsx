@@ -1,7 +1,7 @@
-import { CELL_WIDTH } from "../constants";
 import { useGanttStore } from "../gantt-store";
 import type { Allocation } from "../types";
 import { GanttBar } from "./gantt-bar";
+import { getClampedBarLayout } from "./utilities/getClampedBarLayout";
 import { getNumDays } from "./utilities/getNumDays";
 
 interface GanttProjectBarProps {
@@ -9,27 +9,46 @@ interface GanttProjectBarProps {
 }
 
 export function GanttProjectBar({ allocation }: GanttProjectBarProps) {
-  const { weekStart, showWeekend, headerWidth } = useGanttStore((s) => ({
-    weekStart: s.weekStart,
-    headerWidth: s.headerWidth,
-    showWeekend: s.showWeekend,
-    columnCount: s.columnCount,
-  }));
+  const { weekStart, showWeekend, headerWidth, columnCount } = useGanttStore(
+    (s) => ({
+      weekStart: s.weekStart,
+      headerWidth: s.headerWidth,
+      showWeekend: s.showWeekend,
+      columnCount: s.columnCount,
+    }),
+  );
 
-  const numDays =
+  const fullNumDays =
     getNumDays(allocation.endDate, allocation.startDate, showWeekend) + 1;
-  const left =
-    getNumDays(allocation.startDate, weekStart, showWeekend) * CELL_WIDTH +
-    headerWidth;
-  const label = `${allocation.hours}h/day for ${numDays} day${numDays !== 1 ? "s" : ""}`;
+  const allocationStartCol = getNumDays(
+    allocation.startDate,
+    weekStart,
+    showWeekend,
+  );
+  const allocationEndCol = getNumDays(
+    allocation.endDate,
+    weekStart,
+    showWeekend,
+  );
+  const layout = getClampedBarLayout({
+    allocationStartCol,
+    allocationEndCol,
+    columnCount,
+    headerWidth,
+  });
+
+  if (!layout) {
+    return null;
+  }
+  const label = `${allocation.hours}h/day for ${fullNumDays} day${fullNumDays !== 1 ? "s" : ""}`;
 
   return (
     <GanttBar
       variant="project"
       theme={allocation.tentative ? "crosshatch" : "default"}
       label={label}
-      left={left}
-      width={numDays * CELL_WIDTH}
+      left={layout.left}
+      width={layout.width}
       billable={allocation.billable}
     />
   );
