@@ -185,7 +185,6 @@ def get_team_timesheet_data(
     by_pass_access_check=False,
     search: str | None = None,
     filters: str | list | None = None,
-    approval_status: str | list | None = None,
     skip_empty_weeks: bool = False,
 ):
     """API to get team timesheet data with task-level detail in a single request.
@@ -193,12 +192,6 @@ def get_team_timesheet_data(
     entries (tasks, hours per day) to avoid N+1 API calls from the frontend."""
     if not by_pass_access_check:
         only_for(["Timesheet Manager", "Timesheet User", "Projects Manager"], message=True)
-
-    if isinstance(approval_status, str):
-        try:
-            approval_status = json.loads(approval_status)
-        except (json.JSONDecodeError, ValueError):
-            approval_status = [approval_status]
 
     if isinstance(skip_empty_weeks, str):
         skip_empty_weeks = skip_empty_weeks.lower() in ("true", "1")
@@ -209,7 +202,7 @@ def get_team_timesheet_data(
         status_filter = json.loads(status_filter)
 
     parsed_filters = parse_filters(filters)
-    has_filters = bool(search or approval_status or any(parsed_filters.values()))
+    has_filters = bool(search or any(parsed_filters.values()))
     filter_lookback_weeks = FILTER_LOOKBACK_WEEKS
     max_lookback = max(filter_lookback_weeks, max_week) if has_filters else max_week
 
@@ -455,9 +448,7 @@ def get_team_timesheet_data(
             )
 
             should_skip_empty = has_filters and skip_empty_weeks
-            should_skip_week = (should_skip_empty and not tasks) or (
-                approval_status and week_status not in approval_status
-            )
+            should_skip_week = should_skip_empty and not tasks
             if should_skip_week:
                 continue
 
