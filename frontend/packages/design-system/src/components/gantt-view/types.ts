@@ -7,6 +7,8 @@ export interface Allocation {
   endDate: Date;
   /** Whether the allocation is billable. */
   billable?: boolean;
+  /** Whether the allocation is tentative. */
+  tentative?: boolean;
 }
 
 export interface Project {

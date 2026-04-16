@@ -14,6 +14,7 @@ export function getMemberAllocation(projects: Project[]): Allocation[] {
   // (toISOString() would produce the wrong date in UTC+ timezones)
   const dayHours = new Map<number, number>();
   const dayHasNonBillable = new Map<number, boolean>();
+  const dayHasTentative = new Map<number, boolean>();
   for (const alloc of allAllocs) {
     for (const day of eachDayOfInterval({
       start: alloc.startDate,
@@ -23,6 +24,9 @@ export function getMemberAllocation(projects: Project[]): Allocation[] {
       dayHours.set(key, (dayHours.get(key) ?? 0) + alloc.hours);
       if (alloc.billable === false) {
         dayHasNonBillable.set(key, true);
+      }
+      if (alloc.tentative) {
+        dayHasTentative.set(key, true);
       }
     }
   }
@@ -34,20 +38,22 @@ export function getMemberAllocation(projects: Project[]): Allocation[] {
       date: new Date(ts),
       hours,
       billable: !dayHasNonBillable.get(ts),
+      tentative: Boolean(dayHasTentative.get(ts)),
     }));
 
   const merged: Allocation[] = [];
-  for (const { date, hours, billable } of sortedDays) {
+  for (const { date, hours, billable, tentative } of sortedDays) {
     const last = merged[merged.length - 1];
     if (
       last &&
       last.hours === hours &&
       last.billable === billable &&
+      last.tentative === tentative &&
       isSameDay(addDays(last.endDate, 1), date)
     ) {
       last.endDate = date;
     } else {
-      merged.push({ hours, startDate: date, endDate: date, billable });
+      merged.push({ hours, startDate: date, endDate: date, billable, tentative });
     }
   }
   return merged;
