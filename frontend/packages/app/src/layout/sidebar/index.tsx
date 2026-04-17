@@ -152,36 +152,47 @@ const Sidebar = () => {
                 isActive: pathname === ROUTES.project,
                 onClick: () => navigate(ROUTES.project),
               },
+              ...(!hasRoleAccess
+                ? [
+                    {
+                      label: "Timesheet",
+                      icon: Time,
+                      to: "",
+                      isActive: pathname === ROUTES["timesheet-personal"],
+                      onClick: () => navigate(ROUTES["timesheet-personal"]),
+                    },
+                  ]
+                : []),
             ],
           },
-          {
-            label: "Timesheet",
-            collapsible: true,
-            items: [
-              {
-                label: "Personal",
-                icon: Time,
-                isActive: pathname === ROUTES["timesheet-personal"],
-                onClick: () => navigate(ROUTES["timesheet-personal"]),
-              },
-              ...(hasRoleAccess
-                ? [
+          ...(hasRoleAccess
+            ? [
+                {
+                  label: "Timesheet",
+                  collapsible: true,
+                  items: [
+                    {
+                      label: "Personal",
+                      icon: Time,
+                      isActive: pathname === ROUTES["timesheet-personal"],
+                      onClick: () => navigate(ROUTES["timesheet-personal"]),
+                    },
                     {
                       label: "Team",
                       icon: People,
                       isActive: pathname === ROUTES["timesheet-team"],
                       onClick: () => navigate(ROUTES["timesheet-team"]),
                     },
-                  ]
-                : []),
-              {
-                label: "Projects",
-                icon: Folder,
-                isActive: pathname === ROUTES["timesheet-project"],
-                onClick: () => navigate(ROUTES["timesheet-project"]),
-              },
-            ],
-          },
+                    {
+                      label: "Projects",
+                      icon: Folder,
+                      isActive: pathname === ROUTES["timesheet-project"],
+                      onClick: () => navigate(ROUTES["timesheet-project"]),
+                    },
+                  ],
+                },
+              ]
+            : []),
           {
             label: "Allocations",
             collapsible: true,
@@ -233,14 +244,18 @@ const Sidebar = () => {
             label: "Timesheet - Personal",
             action: () => navigate(ROUTES["timesheet-personal"]),
           },
-          {
-            label: "Timesheet - Team",
-            action: () => navigate(ROUTES["timesheet-team"]),
-          },
-          {
-            label: "Timesheet - Projects",
-            action: () => navigate(ROUTES["timesheet-project"]),
-          },
+          ...(hasRoleAccess
+            ? [
+                {
+                  label: "Timesheet - Team",
+                  action: () => navigate(ROUTES["timesheet-team"]),
+                },
+                {
+                  label: "Timesheet - Projects",
+                  action: () => navigate(ROUTES["timesheet-project"]),
+                },
+              ]
+            : []),
           {
             label: "Allocations - Team",
             action: () => navigate(ROUTES["allocations-team"]),

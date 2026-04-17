@@ -23,16 +23,12 @@ export const TimesheetBreadcrumbs = () => {
       to: ROUTES["timesheet-personal"],
       icon: Time,
     },
-    ...(hasRoleAccess
-      ? [
-          {
-            key: "team",
-            label: "Team",
-            to: ROUTES["timesheet-team"],
-            icon: People,
-          },
-        ]
-      : []),
+    {
+      key: "team",
+      label: "Team",
+      to: ROUTES["timesheet-team"],
+      icon: People,
+    },
     {
       key: "project",
       label: "Project",
@@ -58,27 +54,32 @@ export const TimesheetBreadcrumbs = () => {
         },
         {
           label: activeView.label,
+          interactive: hasRoleAccess,
           prefixIcon: <activeView.icon className="size-4" />,
-          suffixIcon: <ChevronDown className="w-4 h-4" />,
-          dropdown: {
-            dropdownClassName: "w-[220px] px-1",
-            groupClassName: "px-0 py-1 space-y-1",
-            itemClassName: "text-ink-gray-8 hover:text-ink-gray-7",
-            selectedKey: selectedKey,
-            selectedGroupKey: "views-group",
-            options: [
-              {
-                group: "",
-                key: "views-group",
-                items: timesheetViews.map((v) => ({
-                  label: v.label,
-                  key: v.key,
-                  icon: <v.icon className="mr-2 size-4" />,
-                  onClick: () => navigate(v.to),
-                })),
-              },
-            ],
-          },
+          suffixIcon: hasRoleAccess ? (
+            <ChevronDown className="w-4 h-4" />
+          ) : undefined,
+          dropdown: hasRoleAccess
+            ? {
+                dropdownClassName: "w-[220px] px-1",
+                groupClassName: "px-0 py-1 space-y-1",
+                itemClassName: "text-ink-gray-8 hover:text-ink-gray-7",
+                selectedKey: selectedKey,
+                selectedGroupKey: "views-group",
+                options: [
+                  {
+                    group: "",
+                    key: "views-group",
+                    items: timesheetViews.map((v) => ({
+                      label: v.label,
+                      key: v.key,
+                      icon: <v.icon className="mr-2 size-4" />,
+                      onClick: () => navigate(v.to),
+                    })),
+                  },
+                ],
+              }
+            : undefined,
         },
       ]}
     />

@@ -1,4 +1,7 @@
-import { ApprovalStatusType } from "@next-pms/design-system/components";
+import {
+  ApprovalStatusLabelMap,
+  ApprovalStatusType,
+} from "@next-pms/design-system/components";
 import { Select } from "@rtcamp/frappe-ui-react";
 
 type ApprovalStatusFilterProps = {
@@ -6,48 +9,21 @@ type ApprovalStatusFilterProps = {
   onChange: (value?: ApprovalStatusType | null) => void;
 };
 
+const options = Object.entries(ApprovalStatusLabelMap).map(([key, label]) =>
+  key === "none" ? { label: "All", value: "" } : { label, value: key },
+);
+
 const ApprovalStatusFilter: React.FC<ApprovalStatusFilterProps> = ({
   value,
   onChange,
 }) => {
-  const options = [
-    {
-      label: "All",
-      value: "",
-    },
-    {
-      label: "Not Submitted",
-      value: "not-submitted",
-    },
-    {
-      label: "Approval Pending",
-      value: "approval-pending",
-    },
-    {
-      label: "Approved",
-      value: "approved",
-    },
-    {
-      label: "Partially Approved",
-      value: "partially-approved",
-    },
-    {
-      label: "Rejected",
-      value: "rejected",
-    },
-    {
-      label: "Partially Rejected",
-      value: "partially-rejected",
-    },
-  ];
-
   return (
     <Select
       placeholder="Approval Status"
       className="w-fit"
       options={options}
       value={value ?? ""}
-      onChange={(value) => onChange(value as ApprovalStatusType)}
+      onChange={(val) => onChange(val ? (val as ApprovalStatusType) : null)}
     />
   );
 };
