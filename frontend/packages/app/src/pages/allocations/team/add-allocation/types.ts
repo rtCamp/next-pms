@@ -1,6 +1,8 @@
 export interface AddAllocationModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  variant?: "add" | "edit";
+  onEditScheduleClick?: () => void;
 }
 
 export type AllocationEmployeeOption = {

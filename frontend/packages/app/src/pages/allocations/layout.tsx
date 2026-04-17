@@ -64,7 +64,7 @@ function AllocationLayout() {
                     items: ALLOCATIONS_VIEWS.map((v) => ({
                       label: v.label,
                       key: v.key,
-                      icon: <v.icon className="size-4 mr-2" />,
+                      icon: <v.icon className="mr-2 size-4" />,
                       onClick: () => navigate(v.to),
                     })),
                   },

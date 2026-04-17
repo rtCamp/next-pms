@@ -27,7 +27,12 @@ import {
 } from "./constants";
 import { type AddAllocationModalProps } from "./types";
 
-function AddAllocationModal({ open, onOpenChange }: AddAllocationModalProps) {
+function AddAllocationModal({
+  variant = "add",
+  open,
+  onOpenChange,
+  onEditScheduleClick,
+}: AddAllocationModalProps) {
   const toast = useToasts();
 
   const defaultValues: {
@@ -87,15 +92,17 @@ function AddAllocationModal({ open, onOpenChange }: AddAllocationModalProps) {
       }}
       options={{
         title: () => (
-          <span className="text-lg font-medium">Add allocation</span>
+          <span className="text-lg font-medium">
+            {variant === "add" ? "Add Allocation" : "Edit Allocation"}
+          </span>
         ),
       }}
       actions={
-        <div className="flex items-center justify-between gap-2 w-full -mt-5">
+        <div className="flex items-center justify-between w-full gap-2 -mt-5">
           <form.Field
             name="isTentative"
             children={(field) => (
-              <label className="shrink-0 inline-flex items-center gap-2 text-base text-ink-gray-6">
+              <label className="inline-flex items-center gap-2 text-base shrink-0 text-ink-gray-6">
                 <Checkbox
                   value={field.state.value}
                   onChange={(checked) => field.handleChange(Boolean(checked))}
@@ -104,7 +111,7 @@ function AddAllocationModal({ open, onOpenChange }: AddAllocationModalProps) {
               </label>
             )}
           />
-          <div className="flex items-center justify-end gap-2 w-full">
+          <div className="flex items-center justify-end w-full gap-2">
             <Button
               variant="ghost"
               label="Cancel"
@@ -112,14 +119,14 @@ function AddAllocationModal({ open, onOpenChange }: AddAllocationModalProps) {
             />
             <Button
               variant="solid"
-              label="Allocate"
+              label={variant === "add" ? "Allocate" : "Save Changes"}
               onClick={() => form.handleSubmit()}
             />
           </div>
         </div>
       }
     >
-      <div className="space-y-4">
+      <div className="-mt-2 space-y-4">
         <form.Field
           name="employeeId"
           children={(field) => (
@@ -194,9 +201,19 @@ function AddAllocationModal({ open, onOpenChange }: AddAllocationModalProps) {
               name="toDate"
               children={(toField) => (
                 <div className="flex w-full flex-col gap-1.5">
-                  <label className="block text-base text-ink-gray-5">
-                    Start and end date
-                  </label>
+                  <div className="flex justify-between">
+                    <label className="block text-base text-ink-gray-5">
+                      Start and end date
+                    </label>
+                    {variant === "edit" ? (
+                      <Button
+                        variant="ghost"
+                        label="Edit Schedule"
+                        className="p-0 bg-transparent h-fit text-ink-gray-5 hover:bg-transparent focus:bg-transparent active:bg-transparent"
+                        onClick={onEditScheduleClick}
+                      />
+                    ) : null}
+                  </div>
                   <DateRangePicker
                     value={[fromField.state.value, toField.state.value]}
                     onChange={(value) => {
@@ -286,7 +303,7 @@ function AddAllocationModal({ open, onOpenChange }: AddAllocationModalProps) {
                 onChange={(checked) => field.handleChange(!checked)}
               />
               Mark as non-billable
-              <span className="inline-block size-1 rounded-full bg-surface-amber-3" />
+              <span className="inline-block rounded-full size-1 bg-surface-amber-3" />
             </label>
           )}
         />
