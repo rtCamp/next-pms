@@ -1,10 +1,6 @@
-export const setLocalStorage = (key: string, value: string) => {
+export const setLocalStorage = <T>(key: string, value: T): boolean => {
   try {
-    if (typeof value === "object") {
-      localStorage.setItem(key, JSON.stringify(value));
-    } else {
-      localStorage.setItem(key, value);
-    }
+    localStorage.setItem(key, JSON.stringify(value));
     return true;
   } catch (error) {
     console.error(error);
@@ -15,13 +11,14 @@ export const setLocalStorage = (key: string, value: string) => {
 export const removeLocalStorage = (key: string) => {
   localStorage.removeItem(key);
 };
-export const getLocalStorage = (key: string) => {
+
+export const getLocalStorage = <T>(key: string, defaultValue: T): T => {
   const value = localStorage.getItem(key);
-  if (!value) return false;
+  if (!value) return defaultValue;
   try {
-    return JSON.parse(value);
+    return JSON.parse(value) as T;
   } catch {
-    return value;
+    return defaultValue;
   }
 };
 

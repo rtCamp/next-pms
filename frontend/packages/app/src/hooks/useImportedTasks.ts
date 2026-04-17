@@ -1,7 +1,7 @@
-import { useCallback, useMemo, useSyncExternalStore } from "react";
+import { useCallback, useState } from "react";
+import { LIKED_TASK_STORAGE_KEY as STORAGE_KEY } from "@/lib/constant";
+import { getLocalStorage, setLocalStorage } from "@/lib/storage";
 import type { TaskDataProps } from "@/types/timesheet";
-
-const STORAGE_KEY = "next-pms:importedTasks";
 
 type ImportedTasksStore = Record<string, TaskDataProps[]>;
 
@@ -16,83 +16,40 @@ interface UseImportedTasksReturn {
   clearImportedTasks: () => void;
 }
 
-// Module-level cache to maintain stable references
-let cachedValue: ImportedTasksStore = {};
-let cachedRawValue: string | null = null;
-
-const getStorageValue = (): ImportedTasksStore => {
-  try {
-    const rawValue = localStorage.getItem(STORAGE_KEY);
-    // Only parse and update cache if the raw value changed
-    if (rawValue !== cachedRawValue) {
-      cachedRawValue = rawValue;
-      cachedValue = rawValue ? JSON.parse(rawValue) : {};
-    }
-    return cachedValue;
-  } catch {
-    return cachedValue;
-  }
-};
-
-const setStorageValue = (value: ImportedTasksStore): void => {
-  try {
-    const rawValue = JSON.stringify(value);
-    localStorage.setItem(STORAGE_KEY, rawValue);
-    // Update cache immediately
-    cachedRawValue = rawValue;
-    cachedValue = value;
-    // Dispatch storage event to notify subscribers
-    window.dispatchEvent(new StorageEvent("storage", { key: STORAGE_KEY }));
-  } catch {
-    // Silently fail if localStorage is not available
-  }
-};
-
-const subscribe = (callback: () => void): (() => void) => {
-  const handleStorage = (e: StorageEvent) => {
-    if (e.key === STORAGE_KEY || e.key === null) {
-      callback();
-    }
-  };
-  window.addEventListener("storage", handleStorage);
-  return () => window.removeEventListener("storage", handleStorage);
-};
-
 /**
  * Hook to manage imported liked tasks in localStorage on a per-week basis.
  *
  * @param weekStartDate - The start date of the week in "YYYY-MM-DD" format
- * @returns Object with imported task IDs and methods to import/clear tasks
+ * @returns Object with imported tasks and methods to import/clear tasks
  */
 export const useImportedTasks = (
   weekStartDate: string,
 ): UseImportedTasksReturn => {
-  const store = useSyncExternalStore(subscribe, getStorageValue);
-
-  const importedTasks = useMemo(() => {
+  const [importedTasks, setImportedTasks] = useState<TaskDataProps[]>(() => {
+    const store = getLocalStorage<ImportedTasksStore>(STORAGE_KEY, {});
     return store[weekStartDate] ?? [];
-  }, [store, weekStartDate]);
+  });
 
-  const isWeekImported = useMemo(() => {
-    return importedTasks.length > 0;
-  }, [importedTasks]);
+  const isWeekImported = importedTasks.length > 0;
 
   const importLikedTasks = useCallback(
     (tasks: TaskDataProps[]) => {
-      const current = getStorageValue();
-      setStorageValue({
+      const current = getLocalStorage<ImportedTasksStore>(STORAGE_KEY, {});
+      setLocalStorage(STORAGE_KEY, {
         ...current,
         [weekStartDate]: tasks,
       });
+      setImportedTasks(tasks);
     },
     [weekStartDate],
   );
 
   const clearImportedTasks = useCallback(() => {
-    const current = getStorageValue();
+    const current = getLocalStorage<ImportedTasksStore>(STORAGE_KEY, {});
     /* eslint-disable @typescript-eslint/no-unused-vars */
     const { [weekStartDate]: _, ...rest } = current;
-    setStorageValue(rest);
+    setLocalStorage(STORAGE_KEY, rest);
+    setImportedTasks([]);
   }, [weekStartDate]);
 
   return {
