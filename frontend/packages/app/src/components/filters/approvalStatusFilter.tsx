@@ -7,16 +7,20 @@ import { Select } from "@rtcamp/frappe-ui-react";
 type ApprovalStatusFilterProps = {
   value?: ApprovalStatusType | null;
   onChange: (value?: ApprovalStatusType | null) => void;
+  excludeOptions?: ApprovalStatusType[];
 };
-
-const options = Object.entries(ApprovalStatusLabelMap).map(([key, label]) =>
-  key === "none" ? { label: "All", value: "" } : { label, value: key },
-);
 
 const ApprovalStatusFilter: React.FC<ApprovalStatusFilterProps> = ({
   value,
   onChange,
+  excludeOptions = [],
 }) => {
+  const options = Object.entries(ApprovalStatusLabelMap)
+    .filter(([key]) => !excludeOptions.includes(key as ApprovalStatusType))
+    .map(([key, label]) =>
+      key === "none" ? { label: "All", value: "" } : { label, value: key },
+    );
+
   return (
     <Select
       placeholder="Approval Status"

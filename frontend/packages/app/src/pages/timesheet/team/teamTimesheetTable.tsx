@@ -87,6 +87,7 @@ export const TeamTimesheetTable = () => {
           <ApprovalStatusFilter
             value={filters.approvalStatus}
             onChange={handleApprovalStatusChange}
+            excludeOptions={["not-submitted"]}
           />
         </div>
         <div className="flex gap-2">
