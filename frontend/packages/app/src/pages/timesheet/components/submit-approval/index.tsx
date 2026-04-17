@@ -155,6 +155,7 @@ const SubmitApproval = ({
                 placeholder="Select Approver"
                 onChange={(val) => field.handleChange(val as string)}
                 options={approvers}
+                openOnFocus
                 inputClassName="bg-white h-8 border-outline-gray-2"
               />
               {!field.state.meta.isValid && (

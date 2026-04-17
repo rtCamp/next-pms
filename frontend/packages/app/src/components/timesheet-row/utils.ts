@@ -8,6 +8,7 @@ import {
 } from "@/lib/utils";
 import type { WorkingFrequency } from "@/types";
 import type { HolidayProp, LeaveProps, TaskProps } from "@/types/timesheet";
+import type { ProjectTimesheetMember } from "./projectTimesheetRow";
 
 export type ProjectTaskGroup = {
   project_name: string | null;
@@ -91,4 +92,23 @@ export const computeRowData = ({
     dailyWorkingHours,
     isExtended,
   };
+};
+
+/**
+ * Merges tasks from multiple project members into a single TaskProps object.
+ * @param members - An array of project members whose tasks need to be merged.
+ * @returns A single TaskProps object containing all merged tasks.
+ */
+export const mergeProjectMemberTasks = (
+  members: ProjectTimesheetMember[],
+): TaskProps => {
+  const mergedTasks: TaskProps = {};
+
+  members.forEach((member) => {
+    Object.entries(member.tasks).forEach(([taskKey, task]) => {
+      mergedTasks[`${member.employee}::${taskKey}`] = task;
+    });
+  });
+
+  return mergedTasks;
 };

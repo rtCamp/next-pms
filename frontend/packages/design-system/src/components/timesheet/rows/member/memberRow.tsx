@@ -55,22 +55,22 @@ export const MemberRow: React.FC<MemberRowProps> = ({
   return (
     <div
       className={cn(
-        "flex items-center border-b border-outline-gray-1 transition-colors w-full justify-between px-1 py-2",
+        "flex justify-between items-center px-1 py-2 w-full border-b transition-colors border-outline-gray-1",
         className,
       )}
     >
-      <div className="flex items-center flex-1 min-w-0 gap-2 align-middle">
+      <div className="flex flex-1 gap-2 items-center min-w-0 align-middle">
         <span
           className={cn(
-            "w-4 shrink-0 transition-transform",
+            "w-4 transition-transform shrink-0",
             collapsed ? "-rotate-90" : "rotate-0",
           )}
         >
           <ChevronDown strokeWidth={1.5} size={16} />
         </span>
-        <div className="flex items-center min-w-0 gap-2">
+        <div className="flex gap-2 items-center min-w-0">
           <Avatar image={avatarUrl} shape="circle" label={label} size="xs" />
-          <span className="text-base font-medium text-ink-gray-9 truncate leading-3.5">
+          <span className="text-base font-medium truncate text-ink-gray-9">
             {label}
           </span>
           {status !== "none" && (
@@ -105,7 +105,7 @@ export const MemberRow: React.FC<MemberRowProps> = ({
         </span>
       </div>
 
-      <div className="flex items-center justify-end w-12 shrink-0 h-7 whitespace-nowrap">
+      <div className="flex justify-end items-center w-12 h-7 whitespace-nowrap shrink-0">
         {!isStatusNone && memberStatusIcon[status]?.icon ? (
           <Button
             onClick={(e) => {

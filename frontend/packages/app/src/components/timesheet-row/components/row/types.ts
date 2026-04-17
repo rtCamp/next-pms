@@ -18,12 +18,7 @@ import type {
  * Internal dependencies
  */
 import type { WorkingFrequency } from "@/types";
-import type {
-  HolidayProp,
-  LeaveProps,
-  TaskDataProps,
-  TaskProps,
-} from "@/types/timesheet";
+import type { HolidayProp, LeaveProps, TaskProps } from "@/types/timesheet";
 
 export interface HeaderRowProps extends Omit<BaseHeaderRowProps, "days"> {
   dates: string[];
@@ -90,6 +85,7 @@ export interface ProjectRowProps extends Omit<
 > {
   dates: string[];
   tasks: TaskProps;
+  hideTime?: boolean;
   children?: React.ReactNode;
 }
 
@@ -101,12 +97,10 @@ export interface TaskRowProps extends Omit<
   taskKey: string;
   tasks: TaskProps;
   status: string;
-  likedTaskData?: TaskDataProps[];
   disabled?: boolean;
   dailyWorkingHours?: number;
   totalTimeEntriesInHours?: number[];
   employee?: string;
-  getLikedTaskData?: () => void;
   hideLikeButton?: boolean;
   setSelectedTask?: (taskKey: string) => void;
 }

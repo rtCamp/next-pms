@@ -19,6 +19,8 @@ ALLOWED_FILTER_FIELDS = {
     "Task": {"project", "status", "subject", "custom_is_billable", "expected_time", "actual_time"},
 }
 
+FILTER_LOOKBACK_WEEKS = 12
+
 ALLOWED_TIMESHET_DETAIL_FIELDS = [
     "name",
     "from_time",
