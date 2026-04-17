@@ -1,6 +1,7 @@
 /**
  * External dependencies.
  */
+import { useState } from "react";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import { Breadcrumbs, Button, People } from "@rtcamp/frappe-ui-react";
 import { ChevronDown, Folder, Plus } from "lucide-react";
@@ -10,6 +11,7 @@ import { ChevronDown, Folder, Plus } from "lucide-react";
  */
 import { Header } from "@/layout/header";
 import { ROUTES } from "@/lib/constant";
+import AddAllocationModal from "./team/add-allocation";
 
 const ALLOCATIONS_VIEWS = [
   {
@@ -29,6 +31,7 @@ const ALLOCATIONS_VIEWS = [
 function AllocationLayout() {
   const navigate = useNavigate();
   const { pathname } = useLocation();
+  const [isAddAllocationOpen, setIsAddAllocationOpen] = useState(false);
 
   const selectedKey = pathname.includes("team") ? "team" : "project";
 
@@ -72,12 +75,16 @@ function AllocationLayout() {
         />
         <Button
           variant="solid"
-          onClick={() => {}}
+          onClick={() => setIsAddAllocationOpen(true)}
           label="Add allocation"
           iconLeft={() => <Plus />}
         />
       </Header>
       <Outlet />
+      <AddAllocationModal
+        open={isAddAllocationOpen}
+        onOpenChange={setIsAddAllocationOpen}
+      />
     </>
   );
 }
