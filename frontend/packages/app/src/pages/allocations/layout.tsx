@@ -12,6 +12,7 @@ import { ChevronDown, Folder, Plus } from "lucide-react";
 import { Header } from "@/layout/header";
 import { ROUTES } from "@/lib/constant";
 import AddAllocationModal from "./team/add-allocation";
+import EditScheduleModal from "./team/edit-allocation";
 
 const ALLOCATIONS_VIEWS = [
   {
@@ -32,6 +33,14 @@ function AllocationLayout() {
   const navigate = useNavigate();
   const { pathname } = useLocation();
   const [isAddAllocationOpen, setIsAddAllocationOpen] = useState(false);
+  const [isEditScheduleOpen, setIsEditScheduleOpen] = useState(false);
+  const [editScheduleContext, setEditScheduleContext] = useState({
+    fromDate: "",
+    toDate: "",
+    hoursPerDay: 0,
+    recurrence: "one-time" as "one-time" | "recurring",
+    repeatFor: 0,
+  });
 
   const selectedKey = pathname.includes("team") ? "team" : "project";
 
@@ -84,6 +93,32 @@ function AllocationLayout() {
       <AddAllocationModal
         open={isAddAllocationOpen}
         onOpenChange={setIsAddAllocationOpen}
+        onEditScheduleClick={({
+          fromDate,
+          toDate,
+          hoursPerDay,
+          recurrence,
+          repeatFor,
+        }) => {
+          setEditScheduleContext({
+            fromDate,
+            toDate,
+            hoursPerDay,
+            recurrence,
+            repeatFor,
+          });
+          setIsAddAllocationOpen(false);
+          setIsEditScheduleOpen(true);
+        }}
+      />
+      <EditScheduleModal
+        open={isEditScheduleOpen}
+        onOpenChange={setIsEditScheduleOpen}
+        fromDate={editScheduleContext.fromDate}
+        toDate={editScheduleContext.toDate}
+        initialHoursPerDay={editScheduleContext.hoursPerDay}
+        recurrence={editScheduleContext.recurrence}
+        repeatFor={editScheduleContext.repeatFor}
       />
     </>
   );

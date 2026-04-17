@@ -210,7 +210,18 @@ function AddAllocationModal({
                         variant="ghost"
                         label="Edit Schedule"
                         className="p-0 bg-transparent h-fit text-ink-gray-5 hover:bg-transparent focus:bg-transparent active:bg-transparent"
-                        onClick={onEditScheduleClick}
+                        onClick={() => {
+                          onEditScheduleClick?.({
+                            fromDate: fromField.state.value,
+                            toDate: toField.state.value,
+                            hoursPerDay,
+                            recurrence:
+                              recurrence === "recurring"
+                                ? "recurring"
+                                : "one-time",
+                            repeatFor,
+                          });
+                        }}
                       />
                     ) : null}
                   </div>
