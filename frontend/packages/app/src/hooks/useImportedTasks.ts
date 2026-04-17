@@ -1,5 +1,5 @@
 import { useCallback, useState } from "react";
-import { LIKED_TASK_STORAGE_KEY as STORAGE_KEY } from "@/lib/constant";
+import { IMPORTED_TASKS_STORAGE_KEY as STORAGE_KEY } from "@/lib/constant";
 import { getLocalStorage, setLocalStorage } from "@/lib/storage";
 import type { TaskDataProps } from "@/types/timesheet";
 
@@ -46,7 +46,7 @@ export const useImportedTasks = (
 
   const clearImportedTasks = useCallback(() => {
     const current = getLocalStorage<ImportedTasksStore>(STORAGE_KEY, {});
-    /* eslint-disable @typescript-eslint/no-unused-vars */
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { [weekStartDate]: _, ...rest } = current;
     setLocalStorage(STORAGE_KEY, rest);
     setImportedTasks([]);

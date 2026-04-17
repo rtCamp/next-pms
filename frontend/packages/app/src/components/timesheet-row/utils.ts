@@ -137,7 +137,7 @@ export const mergeImportedTasks = (
   const merged = { ...tasks };
 
   for (const importedTask of importedTasks) {
-    // Skip if task already exists with time entries
+    // Skip if task already exists in the tasks list.
     if (merged[importedTask.name]) {
       continue;
     }
