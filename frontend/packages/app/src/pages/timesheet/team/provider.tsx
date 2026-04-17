@@ -43,15 +43,20 @@ export const TeamTimesheetProvider: FC<PropsWithChildren> = ({ children }) => {
 
   const [filters, setFilters] = useState<Omit<TimesheetFilters, "search">>({
     approvalStatus: undefined,
-    reportsTo: employeeId,
+    reportsTo: undefined,
   });
 
   const debouncedSearch = useDebounce(searchInput, 400);
 
-  // Compute the full filters object with the debounced search
+  // Compute the full filters object with the debounced search.
+  // Use employeeId as the default for reportsTo until the user changes it.
   const effectiveFilters = useMemo(
-    () => ({ ...filters, search: debouncedSearch }),
-    [filters, debouncedSearch],
+    () => ({
+      ...filters,
+      search: debouncedSearch,
+      reportsTo: (filters.reportsTo ?? employeeId) || undefined,
+    }),
+    [filters, debouncedSearch, employeeId],
   );
 
   const { hasMore, isLoadingTeamData, weekGroups, loadMore, error } =
