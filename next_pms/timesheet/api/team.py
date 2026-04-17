@@ -21,12 +21,20 @@ from frappe.utils.data import add_days, getdate
 from next_pms.api.utils import error_logger
 from next_pms.resource_management.api.utils.query import get_employee_leaves
 from next_pms.timesheet.doc_events.timesheet import flush_cache, publish_timesheet_update
-from next_pms.timesheet.utils.constant import ALLOWED_TIMESHET_DETAIL_FIELDS
 
 from . import filter_employees
 from .employee import get_employee_daily_working_norm, get_employee_working_hours
 from .timesheet import get_timesheet_state
-from .utils import build_filters, employee_has_higher_access, get_holidays, get_week_dates, parse_filters
+from .utils import (
+    build_aggregate_dates,
+    build_employee_week_details,
+    employee_has_higher_access,
+    get_holidays,
+    get_team_candidate_employee_ids,
+    get_week_dates,
+    paginate_qualifying_employee_payloads,
+    parse_filters,
+)
 
 
 @whitelist(methods=["GET"])
@@ -173,9 +181,7 @@ def get_compact_view_data(
     return res
 
 
-@whitelist(methods=["GET", "POST"])
-@error_logger
-def get_team_timesheet_data(
+def _get_team_timesheet_data(
     date: str,
     max_week: int = 2,
     page_length=10,
@@ -185,270 +191,166 @@ def get_team_timesheet_data(
     by_pass_access_check=False,
     search: str | None = None,
     filters: str | list | None = None,
+    skip_empty_weeks: bool = False,
 ):
-    """API to get team timesheet data with task-level detail in a single request.
-    Combines the compact view (daily hours per employee) with detailed timesheet
-    entries (tasks, hours per day) to avoid N+1 API calls from the frontend."""
     if not by_pass_access_check:
         only_for(["Timesheet Manager", "Timesheet User", "Projects Manager"], message=True)
 
-    dates = []
-    data = {}
+    start = int(start)
+    page_length = int(page_length)
+    max_week = int(max_week)
+
+    if isinstance(skip_empty_weeks, str):
+        skip_empty_weeks = skip_empty_weeks.lower() in ("true", "1")
+
     if status_filter and isinstance(status_filter, str):
         status_filter = json.loads(status_filter)
 
-    for i in range(max_week):
-        week = get_week_dates(date=date)
-        dates.append(week)
-        date = add_days(getdate(week["start_date"]), -1)
+    parsed_filters = parse_filters(filters)
+    has_filters = bool(search or any(parsed_filters.values()))
+    dates, _ = build_aggregate_dates(date=date, max_week=max_week, has_filters=has_filters)
+    response_dates = dates[-max_week:] if has_filters and len(dates) > max_week else dates
+    res = {"dates": response_dates}
 
-    dates.reverse()
-    res = {"dates": dates}
-
-    employees, total_count = filter_employee_by_timesheet_status(
-        page_length=page_length,
-        start=start,
+    candidate_employee_ids = get_team_candidate_employee_ids(
         reports_to=reports_to,
+        dates=dates,
+        parsed_filters=parsed_filters,
+        search=search,
         timesheet_status=status_filter,
-        start_date=dates[0].get("start_date"),
-        end_date=dates[-1].get("end_date"),
     )
-    employee_names = [employee.name for employee in employees]
 
-    if not employee_names:
+    if candidate_employee_ids == []:
         res["data"] = {}
         res["total_count"] = 0
         res["has_more"] = False
         return res
 
-    parsed_filters = parse_filters(filters)
-
-    # Query 1: Bulk fetch all Timesheets for all employees in date range
-    base_ts_filters = {
-        "employee": ["in", employee_names],
-        "start_date": [">=", dates[0].get("start_date")],
-        "end_date": ["<=", dates[-1].get("end_date")],
-        "docstatus": ["!=", 2],
-    }
-    ts_filters = build_filters(base_ts_filters, parsed_filters.get("Timesheet", []))
-    all_timesheets = get_all(
-        "Timesheet",
-        filters=ts_filters,
-        fields=[
-            "name",
-            "employee",
-            "start_date",
-            "end_date",
-            "total_hours",
-            "note",
-            "custom_approval_status",
-        ],
-    )
-
-    timesheet_map = {}
-    all_timesheet_names = []
-    for ts in all_timesheets:
-        timesheet_map.setdefault(ts.employee, []).append(ts)
-        all_timesheet_names.append(ts.name)
-
-    # Query 2: Bulk fetch all Timesheet Detail records
-    all_logs = []
-    detail_by_parent = {}
-    if all_timesheet_names:
-        base_detail_filters = {"parent": ["in", all_timesheet_names]}
-        detail_filters = build_filters(base_detail_filters, parsed_filters.get("Timesheet Detail", []))
-        all_logs = get_all(
-            "Timesheet Detail",
-            filters=detail_filters,
-            fields=ALLOWED_TIMESHET_DETAIL_FIELDS,
+    def build_team_employee_payload(employee, context):
+        working_hours = context["working_hours_map"].get(
+            employee.name, {"working_hour": 0, "working_frequency": "Per Day"}
         )
-        for log in all_logs:
-            detail_by_parent.setdefault(log.parent, []).append(log)
+        daily_working_hours = context["daily_norm_map"].get(employee.name, 0)
+        employee_timesheets = context["timesheet_map"].get(employee.name, [])
+        leaves = list(context["leaves_by_employee"].get(employee.name, []))
+        holidays = list(context["holidays_by_employee"].get(employee.name, []))
 
-    # Query 3: Bulk fetch all Task details
-    task_details_dict = {}
-    if all_logs:
-        all_task_ids = list({log.task for log in all_logs if log.task})
-        if all_task_ids:
-            base_task_filters = {"name": ["in", all_task_ids]}
-            task_filters = build_filters(base_task_filters, parsed_filters.get("Task", []))
-            all_tasks = get_all(
-                "Task",
-                filters=task_filters,
-                fields=[
-                    "name",
-                    "subject",
-                    "project.project_name as project_name",
-                    "project",
-                    "custom_is_billable",
-                    "expected_time",
-                    "actual_time",
-                    "status",
-                    "_liked_by",
-                    "exp_end_date",
-                ],
-            )
-
-            if search:
-                search_term = search.lower()
-                all_tasks = [
-                    t
-                    for t in all_tasks
-                    if search_term in (t.get("subject") or "").lower()
-                    or search_term in (t.get("name") or "").lower()
-                    or search_term in (t.get("project_name") or "").lower()
-                ]
-
-            task_details_dict = {task["name"]: task for task in all_tasks}
-
-    has_search_or_task_filters = bool(search or parsed_filters.get("Task"))
-
-    # Build per-employee response
-    for employee in employees:
-        working_hours = get_employee_working_hours(employee.name)
-        daily_working_hours = get_employee_daily_working_norm(employee.name)
         local_data = {**employee, **working_hours}
-        employee_timesheets = timesheet_map.get(employee.name, [])
-
-        emp_status = (
-            get_timesheet_state(  # for that employee based on the timesheet status of the timesheets in the date range
-                employee=employee.name,
-                start_date=dates[0].get("start_date"),
-                end_date=dates[-1].get("end_date"),
-            )
-        )
-        local_data["status"] = emp_status
-        local_data["data"] = []
-
-        leaves = get_employee_leaves(
-            start_date=add_days(dates[0].get("start_date"), -max_week * 7),
-            end_date=add_days(dates[-1].get("end_date"), max_week * 7),
-            employee=employee.name,
-        )
-        holidays = get_holidays(employee.name, dates[0].get("start_date"), dates[-1].get("end_date"))
-
+        local_data["status"] = context["overall_status_map"].get(employee.name, "Not Submitted")
         local_data["leaves"] = leaves
         local_data["holidays"] = holidays
+        local_data["data"] = []
 
-        # Build compact summary (daily hours)
+        hours_by_date = {}
+        notes_by_date = {}
+        for ts in employee_timesheets:
+            if ts.start_date != ts.end_date:
+                continue
+            hours_by_date[ts.start_date] = hours_by_date.get(ts.start_date, 0) + (ts.get("total_hours") or 0)
+            notes_by_date[ts.start_date] = notes_by_date.get(ts.start_date, "") + (ts.get("note") or "")
+
+        holidays_by_date = {holiday.holiday_date: holiday for holiday in holidays}
         for date_info in dates:
-            for d in date_info.get("dates"):
+            for current_date in date_info.get("dates"):
                 hour = 0
                 on_leave = False
 
                 for leave in leaves:
-                    if leave["from_date"] <= d <= leave["to_date"]:
-                        if leave.get("half_day") and leave.get("half_day_date") == d:
+                    if leave["from_date"] <= current_date <= leave["to_date"]:
+                        if leave.get("half_day") and leave.get("half_day_date") == current_date:
                             hour += daily_working_hours / 2
                         else:
                             hour += daily_working_hours
                         on_leave = True
 
-                for holiday in holidays:
-                    if d == holiday.holiday_date:
-                        if not holiday.weekly_off:
-                            hour = daily_working_hours
-                        else:
-                            hour = 0
-                        on_leave = False
+                holiday = holidays_by_date.get(current_date)
+                if holiday:
+                    if not holiday.weekly_off:
+                        hour = daily_working_hours
+                    else:
+                        hour = 0
+                    on_leave = False
 
-                total_hours = 0
-                notes = ""
-                for ts in employee_timesheets:
-                    if ts.start_date == d and ts.end_date == d:
-                        total_hours += ts.get("total_hours")
-                        notes += ts.get("note", "")
-                hour += total_hours
-
+                hour += hours_by_date.get(current_date, 0)
                 local_data["data"].append(
                     {
-                        "date": d,
+                        "date": current_date,
                         "hour": hour,
                         "is_leave": on_leave,
-                        "note": notes.replace("<br>", "\n"),
+                        "note": notes_by_date.get(current_date, "").replace("<br>", "\n"),
                     }
                 )
 
-        # Build task-level detail per week
-        emp_ts_by_start = {}
-        for ts in employee_timesheets:
-            emp_ts_by_start.setdefault(ts.start_date, []).append(ts.name)
+        timesheet_details = build_employee_week_details(
+            employee_name=employee.name,
+            dates=dates,
+            context=context,
+            has_filters=has_filters,
+            skip_empty_weeks=skip_empty_weeks,
+        )
 
-        timesheet_details = {}
-        for date_info in dates:
-            week_key = date_info["key"]
-            week_dates_set = set(date_info["dates"])
-            tasks = {}
-            week_total_hours = 0
+        if has_filters and len(timesheet_details) > max_week:
+            sorted_keys = list(timesheet_details.keys())
+            timesheet_details = {key: timesheet_details[key] for key in sorted_keys[-max_week:]}
 
-            # Get timesheet names for this employee in this week
-            week_ts_names = []
-            for d in date_info["dates"]:
-                week_ts_names.extend(emp_ts_by_start.get(d, []))
+        if not timesheet_details:
+            return None
 
-            # Collect detail logs for those timesheets
-            for ts_name in week_ts_names:
-                for log in detail_by_parent.get(ts_name, []):
-                    log_date = getdate(log.from_time)
-                    if log_date not in week_dates_set:
-                        continue
-
-                    if not has_search_or_task_filters:
-                        week_total_hours += log.get("hours", 0)
-
-                    if not log.get("task"):
-                        continue
-                    if has_search_or_task_filters and log.task not in task_details_dict:
-                        continue
-
-                    task = task_details_dict.get(log.task)
-                    if not task:
-                        continue
-
-                    if has_search_or_task_filters:
-                        week_total_hours += log.get("hours", 0)
-
-                    task_name = task["name"]
-                    if task_name not in tasks:
-                        tasks[task_name] = {
-                            "name": task_name,
-                            "subject": task["subject"],
-                            "project": task["project"],
-                            "project_name": task["project_name"],
-                            "is_billable": task["custom_is_billable"],
-                            "expected_time": task["expected_time"],
-                            "actual_time": task["actual_time"],
-                            "status": task["status"],
-                            "_liked_by": task["_liked_by"],
-                            "exp_end_date": task["exp_end_date"] or "",
-                            "data": [],
-                        }
-
-                    tasks[task_name]["data"].append({field: log.get(field) for field in ALLOWED_TIMESHET_DETAIL_FIELDS})
-
-            week_status = (
-                get_timesheet_state(  # for that week based on the timesheet status of the timesheets in that week
-                    employee=employee.name,
-                    start_date=date_info["dates"][0],
-                    end_date=date_info["dates"][-1],
-                )
-            )
-
-            timesheet_details[week_key] = {
-                **date_info,
-                "total_hours": week_total_hours,
-                "tasks": tasks,
-                "status": week_status,
-            }
+        if has_filters:
+            kept_week_dates = set()
+            for week in timesheet_details.values():
+                kept_week_dates.update(week.get("dates", []))
+            local_data["data"] = [row for row in local_data["data"] if row["date"] in kept_week_dates]
 
         local_data["timesheet_details"] = timesheet_details
-        data[employee.name] = local_data
+        return employee.name, local_data
 
-    res["data"] = data
+    selected_employees, total_count, has_more = paginate_qualifying_employee_payloads(
+        reports_to=reports_to,
+        employee_ids=candidate_employee_ids,
+        dates=dates,
+        parsed_filters=parsed_filters,
+        search=search,
+        start=start,
+        page_length=page_length,
+        builder=build_team_employee_payload,
+    )
+
+    res["data"] = {employee_name: payload for employee_name, payload in selected_employees}
     res["total_count"] = total_count
-    res["has_more"] = int(start) + int(page_length) < total_count
+    res["has_more"] = has_more
 
     return res
+
+
+@whitelist(methods=["GET", "POST"])
+@error_logger
+def get_team_timesheet_data(
+    date: str,
+    max_week: int = 2,
+    page_length: int = 10,
+    start: int = 0,
+    status_filter: str | list | None = None,
+    reports_to: str | None = None,
+    search: str | None = None,
+    filters: str | list | None = None,
+    skip_empty_weeks: bool = False,
+):
+    """API to get team timesheet data with task-level detail in a single request.
+    Combines the compact view (daily hours per employee) with detailed timesheet
+    entries (tasks, hours per day) to avoid N+1 API calls from the frontend."""
+    return _get_team_timesheet_data(
+        date=date,
+        max_week=max_week,
+        page_length=page_length,
+        start=start,
+        status_filter=status_filter,
+        reports_to=reports_to,
+        by_pass_access_check=False,
+        search=search,
+        filters=filters,
+        skip_empty_weeks=skip_empty_weeks,
+    )
 
 
 @whitelist(methods=["POST"])
