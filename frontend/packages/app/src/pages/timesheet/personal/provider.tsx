@@ -118,9 +118,8 @@ export const PersonalTimesheetProvider: FC<PropsWithChildren> = ({
     dispatch({ type: "REALTIME_UPDATE", payload: updatedData });
   });
 
-  const { data: likedTasksResponse } = useFrappeGetCall(
-    "next_pms.timesheet.api.task.get_liked_tasks",
-  );
+  const { data: likedTasksResponse, mutate: refetchLikedTasks } =
+    useFrappeGetCall("next_pms.timesheet.api.task.get_liked_tasks");
 
   useEffect(() => {
     dispatch({ type: "SEARCH_CHANGED", payload: debouncedSearch });
@@ -192,6 +191,7 @@ export const PersonalTimesheetProvider: FC<PropsWithChildren> = ({
         handleSearchChange,
         handleApprovalStatusChange,
         handleCompositeFilterChange,
+        refetchLikedTasks,
       },
     }),
     [
@@ -208,6 +208,7 @@ export const PersonalTimesheetProvider: FC<PropsWithChildren> = ({
       handleSearchChange,
       handleApprovalStatusChange,
       handleCompositeFilterChange,
+      refetchLikedTasks,
     ],
   );
 

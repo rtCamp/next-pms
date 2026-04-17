@@ -1,7 +1,7 @@
 /**
  * External dependencies
  */
-import { useMemo } from "react";
+import { useCallback, useMemo } from "react";
 import {
   ApprovalStatusLabelType,
   ErrorFallback,
@@ -10,8 +10,10 @@ import {
 /**
  * Internal dependencies
  */
+import { useImportedTasks } from "@/hooks/useImportedTasks";
 import { getHolidayList } from "@/lib/utils";
 import { useTimesheetOutletContext } from "@/pages/timesheet/outletContext";
+import { usePersonalTimesheet } from "@/pages/timesheet/personal/context";
 import { WorkingFrequency } from "@/types";
 import type { HolidayProp, LeaveProps, TaskProps } from "@/types/timesheet";
 import { ProjectRow } from "./components/row/projectRow";
@@ -19,7 +21,7 @@ import { TaskRow } from "./components/row/taskRow";
 import { TimeOffRow } from "./components/row/timeOffRow";
 import { TotalRow } from "./components/row/totalRow";
 import { WeekRow } from "./components/row/weekRow";
-import { groupTasksByProject } from "./utils";
+import { groupTasksByProject, mergeImportedTasks } from "./utils";
 
 export type PersonalTimesheetRowProps = {
   label?: string;
@@ -59,7 +61,43 @@ export const PersonalTimesheetRow = ({
 }: PersonalTimesheetRowProps) => {
   const { openAddTimeDialog } = useTimesheetOutletContext();
   const holidayList = getHolidayList(holidays);
-  const projects = useMemo(() => groupTasksByProject(tasks), [tasks]);
+
+  // Get liked tasks from context
+  const likedTaskData = usePersonalTimesheet(
+    ({ state }) => state.likedTaskData,
+  );
+
+  // Week start date is the first date in the dates array
+  const weekStartDate = dates[0] ?? "";
+
+  // Hook to manage imported tasks in localStorage
+  const {
+    importedTasks,
+    isWeekImported,
+    importLikedTasks,
+    clearImportedTasks,
+  } = useImportedTasks(weekStartDate);
+
+  // Merge imported tasks with existing tasks
+  const mergedTasks = useMemo(
+    () => mergeImportedTasks(tasks, importedTasks),
+    [tasks, importedTasks],
+  );
+
+  const projects = useMemo(
+    () => groupTasksByProject(mergedTasks),
+    [mergedTasks],
+  );
+
+  // Handle star click - toggle import/clear of liked tasks
+  const handleStarClick = useCallback(() => {
+    if (isWeekImported) {
+      clearImportedTasks();
+    } else {
+      // Import all liked tasks (full objects)
+      importLikedTasks(likedTaskData ?? []);
+    }
+  }, [isWeekImported, clearImportedTasks, importLikedTasks, likedTaskData]);
 
   return (
     <ErrorFallback>
@@ -99,9 +137,10 @@ export const PersonalTimesheetRow = ({
                 totalHoursTheme={totalHoursTheme}
                 totalTimeEntries={totalTimeEntries}
                 className="pl-7.5"
-                starred={true}
+                starred={isWeekImported}
                 disabled={disabled}
                 onCellClick={openAddTimeDialog}
+                onStarClick={handleStarClick}
               />
             ) : null}
 
