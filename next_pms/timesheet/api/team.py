@@ -353,31 +353,6 @@ def get_team_timesheet_data(
     )
 
 
-def get_team_timesheet_data_internal(
-    date: str,
-    max_week: int = 2,
-    page_length=10,
-    start=0,
-    status_filter=None,
-    reports_to: str | None = None,
-    search: str | None = None,
-    filters: str | list | None = None,
-    skip_empty_weeks: bool = False,
-):
-    return _get_team_timesheet_data(
-        date=date,
-        max_week=max_week,
-        page_length=page_length,
-        start=start,
-        status_filter=status_filter,
-        reports_to=reports_to,
-        by_pass_access_check=True,
-        search=search,
-        filters=filters,
-        skip_empty_weeks=skip_empty_weeks,
-    )
-
-
 @whitelist(methods=["POST"])
 @error_logger
 def approve_or_reject_timesheet(employee: str, status: str, dates: list[str] | None = None, note: str = ""):
