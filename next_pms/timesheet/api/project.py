@@ -13,6 +13,7 @@ from .utils import (
     build_aggregate_dates,
     build_employee_week_details,
     get_project_candidate_employee_ids,
+    normalize_status_filter,
     paginate_qualifying_employee_payloads,
     parse_filters,
 )
@@ -109,25 +110,6 @@ def get_project_filter_for_contractor(only_list=False):
     return []
 
 
-def _normalize_project_approval_status(approval_status: str | list | None):
-    if isinstance(approval_status, str):
-        approval_status = approval_status.strip()
-        if not approval_status:
-            return None
-
-        try:
-            approval_status = json.loads(approval_status)
-        except (json.JSONDecodeError, ValueError):
-            approval_status = [approval_status]
-
-    if approval_status == "":
-        return None
-    if approval_status and not isinstance(approval_status, list):
-        return [approval_status]
-
-    return approval_status
-
-
 def _coerce_project_skip_empty_weeks(skip_empty_weeks: bool | str):
     if isinstance(skip_empty_weeks, str):
         return skip_empty_weeks.lower() in ("true", "1")
@@ -146,7 +128,7 @@ def _normalize_project_timesheet_inputs(
         int(start),
         int(page_length),
         int(max_week),
-        _normalize_project_approval_status(approval_status),
+        normalize_status_filter(approval_status, coerce_non_list=True),
         _coerce_project_skip_empty_weeks(skip_empty_weeks),
     )
 

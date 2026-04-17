@@ -1,5 +1,3 @@
-import json
-
 import frappe
 from frappe import _, throw
 from frappe.utils import (
@@ -27,6 +25,7 @@ from .utils import (
     get_holidays,
     get_week_dates,
     has_write_access,
+    normalize_status_filter,
     parse_filters,
 )
 
@@ -169,16 +168,7 @@ def get_timesheet_data(
         start_date = nowdate()
     apply_role_permission_for_doctype(["Timesheet User", "Timesheet Manager"], "Employee", "read", employee)
     filter_lookback_weeks = FILTER_LOOKBACK_WEEKS
-    # Parse approval_status from JSON string to list
-    if isinstance(approval_status, str):
-        approval_status = approval_status.strip()
-        if not approval_status:
-            approval_status = None
-        else:
-            try:
-                approval_status = json.loads(approval_status)
-            except (json.JSONDecodeError, ValueError):
-                approval_status = [approval_status]
+    approval_status = normalize_status_filter(approval_status)
 
     # Parse generic filters
     parsed_filters = parse_filters(filters)

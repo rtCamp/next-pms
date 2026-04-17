@@ -211,6 +211,25 @@ def employee_has_higher_access(employee: str, ptype: str = "read") -> bool:
     return employee == session_employee
 
 
+def normalize_status_filter(status_filter, coerce_non_list: bool = False):
+    if isinstance(status_filter, str):
+        status_filter = status_filter.strip()
+        if not status_filter:
+            return None
+
+        try:
+            status_filter = json.loads(status_filter)
+        except (json.JSONDecodeError, ValueError):
+            return [status_filter]
+
+    if status_filter == "":
+        return None
+    if coerce_non_list and status_filter and not isinstance(status_filter, list):
+        return [status_filter]
+
+    return status_filter
+
+
 def parse_filters(raw_filters):
     """Parse Frappe desk-style filters into per-doctype filter lists.
 
