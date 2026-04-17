@@ -1,13 +1,15 @@
 /**
  * External dependencies.
  */
+import type { ApprovalStatusType } from "@next-pms/design-system/components";
+import type { FilterCondition } from "@rtcamp/frappe-ui-react";
 import { createContext, useContextSelector } from "use-context-selector";
 
 /**
  * Internal dependencies.
  */
 import type { WorkingFrequency } from "@/types";
-import type { DataProp, timesheet } from "@/types/timesheet";
+import type { DataProp, TimesheetFilters, timesheet } from "@/types/timesheet";
 
 export type EmployeeRecord = {
   name: string;
@@ -41,11 +43,18 @@ export interface TeamTimesheetContextProps {
     isWeeklyApprovalOpen: boolean;
     employee: string;
     startDate: string;
+    filters: TimesheetFilters;
+    searchInput: string;
+    compositeFilters: FilterCondition[];
   };
   actions: {
     loadMore: () => void;
     openWeeklyApproval: (employeeId: string, date: string) => void;
     setIsWeeklyApprovalOpen: (state: boolean) => void;
+    handleSearchChange: (value: string) => void;
+    handleApprovalStatusChange: (value?: ApprovalStatusType | null) => void;
+    handleReportsToChange: (value: string | null) => void;
+    handleCompositeFilterChange: (value: FilterCondition[]) => void;
   };
 }
 
@@ -57,11 +66,22 @@ export const TeamTimesheetContext = createContext<TeamTimesheetContextProps>({
     isWeeklyApprovalOpen: false,
     employee: "",
     startDate: "",
+    filters: {
+      search: "",
+      approvalStatus: undefined,
+      reportsTo: undefined,
+    },
+    searchInput: "",
+    compositeFilters: [],
   },
   actions: {
     loadMore: () => null,
     openWeeklyApproval: () => null,
     setIsWeeklyApprovalOpen: () => null,
+    handleSearchChange: () => null,
+    handleApprovalStatusChange: () => null,
+    handleReportsToChange: () => null,
+    handleCompositeFilterChange: () => null,
   },
 });
 

@@ -1,25 +1,21 @@
 /**
  * External dependencies.
  */
-import { Fragment, useCallback, useState } from "react";
+import { Fragment, useState } from "react";
 import { Spinner, Typography } from "@next-pms/design-system/components";
-import {
-  Button,
-  Filter,
-  FilterCondition,
-  TextInput,
-} from "@rtcamp/frappe-ui-react";
+import { Button, Filter, TextInput } from "@rtcamp/frappe-ui-react";
 import { Ellipsis } from "lucide-react";
 
 /**
  * Internal dependencies.
  */
+import ApprovalStatusFilter from "@/components/filters/approvalStatusFilter";
+import ReportsToFilter from "@/components/filters/reportsToFilter";
 import { InfiniteScroll } from "@/components/infiniteScroll";
 import TeamTaskLog from "@/components/task-log/teamTaskLog";
 import { HeaderRow } from "@/components/timesheet-row/components/row/headerRow";
 import { TeamTimesheetRow } from "@/components/timesheet-row/teamTimesheetRow";
 import { NUMBER_OF_WEEKS_TO_FETCH } from "@/lib/constant";
-import { TimesheetFilters } from "@/types/timesheet";
 import { useTeamTimesheet } from "./context";
 import WeeklyApproval from "./weekly-approval";
 import { sampleFields } from "../constants";
@@ -40,16 +36,23 @@ export const TeamTimesheetTable = () => {
   const setIsWeeklyApprovalOpen = useTeamTimesheet(
     ({ actions }) => actions.setIsWeeklyApprovalOpen,
   );
-  const [compositeFilters, setCompositeFilters] = useState<FilterCondition[]>(
-    [],
+  const filters = useTeamTimesheet(({ state }) => state.filters);
+  const searchInput = useTeamTimesheet(({ state }) => state.searchInput);
+  const compositeFilters = useTeamTimesheet(
+    ({ state }) => state.compositeFilters,
   );
-  const [filters, setFilters] = useState<TimesheetFilters>({
-    search: "",
-  });
-
-  const handleSearchChange = useCallback((value: string) => {
-    setFilters((prev) => ({ ...prev, search: value }));
-  }, []);
+  const handleSearchChange = useTeamTimesheet(
+    ({ actions }) => actions.handleSearchChange,
+  );
+  const handleApprovalStatusChange = useTeamTimesheet(
+    ({ actions }) => actions.handleApprovalStatusChange,
+  );
+  const handleReportsToChange = useTeamTimesheet(
+    ({ actions }) => actions.handleReportsToChange,
+  );
+  const handleCompositeFilterChange = useTeamTimesheet(
+    ({ actions }) => actions.handleCompositeFilterChange,
+  );
 
   return (
     <div className="w-full flex-1 min-h-0 py-3.5 px-3">
@@ -74,17 +77,23 @@ export const TeamTimesheetTable = () => {
         <div className="flex gap-2">
           <TextInput
             placeholder="Search Tasks"
-            value={filters.search}
+            value={searchInput}
             onChange={(e) => handleSearchChange(e.target.value)}
+          />
+          <ReportsToFilter
+            value={filters.reportsTo}
+            onChange={handleReportsToChange}
+          />
+          <ApprovalStatusFilter
+            value={filters.approvalStatus}
+            onChange={handleApprovalStatusChange}
           />
         </div>
         <div className="flex gap-2">
           <Filter
             fields={sampleFields}
             value={compositeFilters}
-            onChange={(newFilters) => {
-              setCompositeFilters(newFilters);
-            }}
+            onChange={handleCompositeFilterChange}
           />
           <Button icon={() => <Ellipsis size={16} />} />
         </div>

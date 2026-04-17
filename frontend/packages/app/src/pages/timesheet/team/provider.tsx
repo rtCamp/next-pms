@@ -9,14 +9,18 @@ import {
   useMemo,
   useState,
 } from "react";
+import { type ApprovalStatusType } from "@next-pms/design-system/components";
+import { type FilterCondition } from "@rtcamp/frappe-ui-react";
 import { useToasts } from "@rtcamp/frappe-ui-react";
 
 /**
  * Internal dependencies.
  */
 import type { Error as FrappeError } from "frappe-js-sdk/lib/frappe_app/types";
+import { useDebounce } from "@/hooks/useDebounce";
 import { parseFrappeErrorMsg } from "@/lib/utils";
 import { useUser } from "@/providers/user";
+import { TimesheetFilters } from "@/types/timesheet";
 import {
   TeamTimesheetContext,
   type TeamTimesheetContextProps,
@@ -28,13 +32,33 @@ export const TeamTimesheetProvider: FC<PropsWithChildren> = ({ children }) => {
   const [employee, setEmployee] = useState("");
   const [startDate, setStartDate] = useState("");
   const [isWeeklyApprovalOpen, setIsWeeklyApprovalOpen] = useState(false);
+  const [searchInput, setSearchInput] = useState("");
+  const [compositeFilters, setCompositeFilters] = useState<FilterCondition[]>(
+    [],
+  );
 
   const { employeeId } = useUser(({ state }) => ({
     employeeId: state.employeeId,
   }));
 
+  const [filters, setFilters] = useState<Omit<TimesheetFilters, "search">>({
+    approvalStatus: undefined,
+    reportsTo: employeeId,
+  });
+
+  const debouncedSearch = useDebounce(searchInput, 400);
+
+  // Compute the full filters object with the debounced search
+  const effectiveFilters = useMemo(
+    () => ({ ...filters, search: debouncedSearch }),
+    [filters, debouncedSearch],
+  );
+
   const { hasMore, isLoadingTeamData, weekGroups, loadMore, error } =
-    useTeamTimesheetData({ employeeId });
+    useTeamTimesheetData({
+      filters: effectiveFilters,
+      compositeFilters,
+    });
 
   useEffect(() => {
     if (error) {
@@ -49,6 +73,34 @@ export const TeamTimesheetProvider: FC<PropsWithChildren> = ({ children }) => {
     setIsWeeklyApprovalOpen(true);
   }, []);
 
+  const handleSearchChange = useCallback((value: string) => {
+    setSearchInput(value);
+  }, []);
+
+  const handleApprovalStatusChange = useCallback(
+    (value?: ApprovalStatusType | null) => {
+      setFilters((prev) => ({
+        ...prev,
+        approvalStatus: value ?? undefined,
+      }));
+    },
+    [],
+  );
+
+  const handleReportsToChange = useCallback((value: string | null) => {
+    setFilters((prev) => ({
+      ...prev,
+      reportsTo: value ?? undefined,
+    }));
+  }, []);
+
+  const handleCompositeFilterChange = useCallback(
+    (value: FilterCondition[]) => {
+      setCompositeFilters(value);
+    },
+    [],
+  );
+
   const value: TeamTimesheetContextProps = useMemo(
     () => ({
       state: {
@@ -58,11 +110,18 @@ export const TeamTimesheetProvider: FC<PropsWithChildren> = ({ children }) => {
         isWeeklyApprovalOpen,
         employee,
         startDate,
+        filters: effectiveFilters,
+        searchInput,
+        compositeFilters,
       },
       actions: {
         loadMore,
         openWeeklyApproval,
         setIsWeeklyApprovalOpen,
+        handleSearchChange,
+        handleApprovalStatusChange,
+        handleReportsToChange,
+        handleCompositeFilterChange,
       },
     }),
     [
@@ -74,6 +133,13 @@ export const TeamTimesheetProvider: FC<PropsWithChildren> = ({ children }) => {
       employee,
       startDate,
       isWeeklyApprovalOpen,
+      effectiveFilters,
+      searchInput,
+      compositeFilters,
+      handleSearchChange,
+      handleApprovalStatusChange,
+      handleReportsToChange,
+      handleCompositeFilterChange,
     ],
   );
 
