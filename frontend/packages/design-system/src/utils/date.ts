@@ -204,3 +204,37 @@ export const formatDate = (date: string | Date): string => {
 
   return format(dateObj, "P");
 };
+
+/**
+ * Formats a date range string pair.
+ */
+export const formatDateRange = (
+  from: string,
+  to: string,
+  pattern: string = "MMM d, yyyy",
+): string => {
+  const formatPart = (value: string) => {
+    if (!value) {
+      return "";
+    }
+
+    return format(getUTCDateTime(value), pattern);
+  };
+
+  const formattedFrom = formatPart(from);
+  const formattedTo = formatPart(to);
+
+  if (!formattedFrom && !formattedTo) {
+    return "";
+  }
+
+  if (!formattedFrom) {
+    return formattedTo;
+  }
+
+  if (!formattedTo) {
+    return formattedFrom;
+  }
+
+  return `${formattedFrom} - ${formattedTo}`;
+};
