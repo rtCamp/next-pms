@@ -51,9 +51,11 @@ function ProjectsLayout() {
                       key: v.key,
                       icon: <v.icon className="size-4 mr-2" />,
                       onClick: () =>
-                        v.key === "list"
-                          ? setSearchParams({})
-                          : setSearchParams({ view: v.key }),
+                        setSearchParams((prev) => {
+                          if (v.key === "list") prev.delete("view");
+                          else prev.set("view", v.key);
+                          return prev;
+                        }),
                     })),
                   },
                 ],
