@@ -1,3 +1,5 @@
+export type ListViewColumn = { key: string; label: string; width?: string };
+
 export type RiskLevel = "at-risk" | "caution" | "on-track";
 
 export type Phase =
