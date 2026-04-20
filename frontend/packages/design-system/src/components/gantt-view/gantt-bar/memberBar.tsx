@@ -6,9 +6,9 @@ import { GanttBar } from "./ganttBar";
 import { getClampedBarLayout } from "./utilities/getClampedBarLayout";
 import { getNumDays } from "./utilities/getNumDays";
 
-interface MemberBarAllocation extends Allocation {
+export type MemberBarAllocation = Allocation & {
   type?: "default" | "timeoff";
-}
+};
 
 interface GanttMemberBarProps {
   allocation: MemberBarAllocation;

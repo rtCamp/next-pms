@@ -31,9 +31,10 @@ export function GanttMemberItem({ memberInd }: GanttMemberItemProps) {
       }}
     >
       <button
+        disabled={!canExpand}
         onClick={() => toggleRow(memberInd)}
         className={cn("shrink-0 w-full flex items-center", {
-          "pointer-events-none": !canExpand,
+          "cursor-default!": !canExpand,
         })}
         aria-label={isExpanded ? "Collapse" : "Expand"}
       >
