@@ -32,7 +32,11 @@ export interface Project {
   status?: "Open" | "Completed" | "Cancelled";
   custom_key_account?: "" | "Yes" | "No";
   project_type?: string;
-  percent_complete_method?: "Manual" | "Task Completion" | "Task Progress" | "Task Weight";
+  percent_complete_method?:
+    | "Manual"
+    | "Task Completion"
+    | "Task Progress"
+    | "Task Weight";
   project_template?: string;
   priority?: "Medium" | "Low" | "High";
   custom_host?: string;
@@ -47,7 +51,11 @@ export interface Project {
   expected_end_date?: string;
   actual_end_date?: string;
   custom_complexity?: "" | "C1" | "C2" | "C3";
-  custom_billing_type?: "Non-Billable" | "Fixed Cost" | "Retainer" | "Time and Material";
+  custom_billing_type?:
+    | "Non-Billable"
+    | "Fixed Cost"
+    | "Retainer"
+    | "Time and Material";
   estimated_costing?: number;
   custom_estimated_profit?: number;
   custom_default_hourly_billing_rate?: number;
@@ -71,7 +79,14 @@ export interface Project {
   first_email?: string;
   second_email?: string;
   daily_time_to_send?: string;
-  day_to_send?: "Monday" | "Tuesday" | "Wednesday" | "Thursday" | "Friday" | "Saturday" | "Sunday";
+  day_to_send?:
+    | "Monday"
+    | "Tuesday"
+    | "Wednesday"
+    | "Thursday"
+    | "Friday"
+    | "Saturday"
+    | "Sunday";
   weekly_time_to_send?: string;
   subject?: string;
   message?: string;
@@ -99,7 +114,6 @@ export interface Project {
   custom_percentage_estimated_cost?: number;
 }
 
-
 // Problemns
 // - Phase - Add a new field
 // - Burn rate - Ask product people
@@ -107,12 +121,10 @@ export interface Project {
 // - Total budget - Estimated costing, confirm from product people
 // - Margin - custom_percentage_estimated_profit , Confirm from product people
 // - start date - Expected or actual - ask product people
-// - next milestone date - custom_next_milestone_details has a dated field 
+// - next milestone date - custom_next_milestone_details has a dated field
 // - end date - Expected or actual - ask product people
 // - project manager avatar - make a get call with custom_project_manager
 // - lead engineer avatar - make a get call with custom_engineering_manager
 // - project type - custom billing or project type - Ask product people
 // - client name - customer link field, make api call to get name
 // - contract end-date - Expected or actual - ask product people
-
-
