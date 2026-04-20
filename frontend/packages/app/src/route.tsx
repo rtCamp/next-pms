@@ -14,7 +14,7 @@ import { useUser } from "./providers/user";
  */
 const Home = lazy(() => import("@/pages/home"));
 const Task = lazy(() => import("@/pages/task"));
-const Project = lazy(() => import("@/pages/project"));
+const Projects = lazy(() => import("@/pages/projects"));
 const TimesheetLayout = lazy(() => import("@/pages/timesheet/layout"));
 const PersonalTimesheetLayout = lazy(
   () => import("@/pages/timesheet/personal/layout"),
@@ -37,7 +37,7 @@ export function Router() {
         <Route element={<LayoutWithSidebar />}>
           <Route path={ROUTES.home} element={<Home />} />
           <Route path={ROUTES.task} element={<Task />} />
-          <Route path={ROUTES.project} element={<Project />} />
+          <Route path={ROUTES.project} element={<Projects />} />
           <Route element={<PersonalTimesheetLayout />}>
             <Route
               path={ROUTES["timesheet-personal"]}

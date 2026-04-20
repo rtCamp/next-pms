@@ -2,7 +2,7 @@ export const ROUTES = {
   base: "/next-pms",
   home: "/",
   task: "/task",
-  project: "/project",
+  project: "/projects",
   "timesheet-personal": "/timesheet",
   "timesheet-team": "/timesheet/team",
   "timesheet-project": "/timesheet/project",
