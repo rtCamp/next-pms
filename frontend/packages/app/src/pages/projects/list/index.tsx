@@ -18,7 +18,6 @@ import {
 } from "./cells";
 import { PROJECT_LIST_COLUMNS } from "./columns";
 import { FAKE_PROJECTS } from "./fake-data";
-import { formatCurrency, formatPercent } from "./format";
 import type { Project } from "./types";
 
 type ListViewColumn = { key: string; label: string; width?: string };
@@ -39,11 +38,11 @@ function ProjectListCell({
       return <PhaseCell phase={row.phase} />;
     case "burnRatePerWeek":
     case "totalBudget":
-      return <span>{formatCurrency(item as number)}</span>;
+      return <span>{`$${(item as number).toLocaleString("en-US")}`}</span>;
     case "costBurnPercent":
       return <BudgetProgressCell percent={item as number} />;
     case "profitMargin":
-      return <span>{formatPercent(item as number)}</span>;
+      return <span>{`${item}%`}</span>;
     case "startDate":
     case "nextMilestone":
     case "endDate":
