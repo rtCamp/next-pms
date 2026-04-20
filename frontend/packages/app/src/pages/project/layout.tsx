@@ -3,7 +3,7 @@
  */
 import { useSearchParams } from "react-router-dom";
 import { Breadcrumbs, Button } from "@rtcamp/frappe-ui-react";
-import { ChevronDown, Kanban, List, Plus } from "lucide-react";
+import { ChevronDown, Kanban, AlignLeft, Plus } from "lucide-react";
 
 /**
  * Internal dependencies.
@@ -13,7 +13,7 @@ import ProjectKanban from "./kanban";
 import ProjectList from "./list";
 
 const VIEWS = [
-  { key: "list", label: "List view", icon: List },
+  { key: "list", label: "List view", icon: AlignLeft },
   { key: "kanban", label: "Kanban view", icon: Kanban },
 ] as const;
 
