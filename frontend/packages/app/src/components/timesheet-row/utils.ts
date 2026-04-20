@@ -7,7 +7,12 @@ import {
   expectatedHours,
 } from "@/lib/utils";
 import type { WorkingFrequency } from "@/types";
-import type { HolidayProp, LeaveProps, TaskProps } from "@/types/timesheet";
+import type {
+  HolidayProp,
+  LeaveProps,
+  TaskDataProps,
+  TaskProps,
+} from "@/types/timesheet";
 import type { ProjectTimesheetMember } from "./projectTimesheetRow";
 
 export type ProjectTaskGroup = {
@@ -111,4 +116,38 @@ export const mergeProjectMemberTasks = (
   });
 
   return mergedTasks;
+};
+
+/**
+ * Merges imported liked tasks with existing tasks for a week.
+ * Only adds tasks that don't already exist in the tasks list.
+ *
+ * @param tasks - The existing tasks for the week
+ * @param importedTasks - Array of imported task data from localStorage
+ * @returns Merged tasks object with imported tasks added
+ */
+export const mergeImportedTasks = (
+  tasks: TaskProps,
+  importedTasks: TaskDataProps[],
+): TaskProps => {
+  if (!importedTasks.length) {
+    return tasks;
+  }
+
+  const merged = { ...tasks };
+
+  for (const importedTask of importedTasks) {
+    // Skip if task already exists in the tasks list.
+    if (merged[importedTask.name]) {
+      continue;
+    }
+
+    // Add as an empty task entry (no time entries)
+    merged[importedTask.name] = {
+      ...importedTask,
+      data: [],
+    };
+  }
+
+  return merged;
 };

@@ -4,6 +4,7 @@
 import {
   Breadcrumbs,
   Button,
+  Tooltip,
   type BreadcrumbsProps,
 } from "@rtcamp/frappe-ui-react";
 import { Plus, Star, StarOff } from "lucide-react";
@@ -29,6 +30,8 @@ export interface TotalRowProps {
   renderPrefix?: () => React.ReactNode;
   /** Optional function to handle cell click events, receiving the date of the clicked cell. */
   onCellClick?: (date: string) => void;
+  /** Optional function to handle star click events for importing/clearing liked tasks. */
+  onStarClick?: () => void;
   /** Whether the cells in the total row are disabled */
   disabled?: boolean;
   /** Additional class names for the total row container. */
@@ -43,34 +46,62 @@ export const TotalRow: React.FC<TotalRowProps> = ({
   totalHoursTheme,
   renderPrefix,
   onCellClick,
+  onStarClick,
   disabled = false,
   className,
 }) => {
+  const starTooltipText = starred
+    ? "Clear imported tasks"
+    : "Import liked tasks to this week";
+
+  const renderStarIcon = () => {
+    if (renderPrefix) {
+      return renderPrefix();
+    }
+
+    const starIcon = starred ? (
+      <Star
+        strokeWidth={1.5}
+        size={16}
+        className="fill-current text-ink-amber-2"
+      />
+    ) : (
+      <StarOff
+        strokeWidth={1.5}
+        size={16}
+        className="text-ink-gray-4 scale-x-[-1]"
+      />
+    );
+
+    if (onStarClick) {
+      return (
+        <Tooltip text={starTooltipText}>
+          <button
+            type="button"
+            onClick={onStarClick}
+            className="flex justify-center items-center w-4 h-4 rounded transition-colors cursor-pointer hover:bg-surface-gray-2"
+            aria-label={starTooltipText}
+          >
+            {starIcon}
+          </button>
+        </Tooltip>
+      );
+    }
+
+    return starIcon;
+  };
+
   return (
     <div
       className={cn(
-        "flex items-center border-b border-outline-gray-1 transition-colors w-full justify-between px-1 py-2",
+        "flex justify-between items-center px-1 py-2 w-full border-b transition-colors border-outline-gray-1",
         className,
       )}
     >
-      <div className="flex items-center flex-1 min-w-0">
-        <div className="flex items-center min-w-0 gap-2 text-ink-gray-9">
-          <span className="flex items-center justify-center w-4 shrink-0">
-            {renderPrefix ? (
-              renderPrefix()
-            ) : starred ? (
-              <Star
-                strokeWidth={1.5}
-                size={16}
-                className="fill-current text-ink-amber-2"
-              />
-            ) : (
-              <StarOff
-                strokeWidth={1.5}
-                size={16}
-                className="text-ink-gray-4 scale-x-[-1]"
-              />
-            )}
+      <div className="flex flex-1 items-center min-w-0">
+        <div className="flex gap-2 items-center min-w-0 text-ink-gray-9">
+          <span className="flex justify-center items-center w-4 shrink-0">
+            {renderStarIcon()}
           </span>
           <Breadcrumbs compactCrumbs={false} {...breadcrumbs} />
         </div>
@@ -99,7 +130,7 @@ export const TotalRow: React.FC<TotalRowProps> = ({
                   <span className="flex-1 text-center group-hover:hidden group-disabled:group-hover:flex text-ink-gray-4">
                     -
                   </span>
-                  <span className="absolute top-0 left-0 items-center justify-center hidden w-full h-full group-hover:flex group-disabled:group-hover:hidden text-ink-gray-6">
+                  <span className="hidden absolute top-0 left-0 justify-center items-center w-full h-full group-hover:flex group-disabled:group-hover:hidden text-ink-gray-6">
                     <Plus strokeWidth={1.5} size={16} className="" />
                   </span>
                 </>
@@ -117,7 +148,7 @@ export const TotalRow: React.FC<TotalRowProps> = ({
         </span>
       </div>
 
-      <div className="w-12 shrink-0 h-7"></div>
+      <div className="w-12 h-7 shrink-0"></div>
     </div>
   );
 };

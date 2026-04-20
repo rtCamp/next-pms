@@ -66,7 +66,7 @@ export const UserContext = createContext<UserContextProps>({
     userId: decodeURIComponent(getCookie("user_id") ?? ""),
     userName: decodeURIComponent(getCookie("full_name") ?? ""),
     image: decodeURIComponent(getCookie("user_image") ?? ""),
-    isSidebarCollapsed: getLocalStorage("next-pms:isSidebarCollapsed") || false,
+    isSidebarCollapsed: getLocalStorage("next-pms:isSidebarCollapsed", false),
     roles: window.frappe?.boot?.user?.roles ?? [],
     hasRoleAccess: (window.frappe?.boot?.user?.roles ?? []).some((role) =>
       ROLES.includes(role),

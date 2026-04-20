@@ -31,6 +31,7 @@ export interface PersonalTimesheetContextProps {
     handleSearchChange: (value: string) => void;
     handleApprovalStatusChange: (value?: ApprovalStatusType | null) => void;
     handleCompositeFilterChange: (value: FilterCondition[]) => void;
+    refetchLikedTasks: () => void;
   };
 }
 
@@ -63,6 +64,7 @@ export const PersonalTimesheetContext =
       handleSearchChange: () => null,
       handleApprovalStatusChange: () => null,
       handleCompositeFilterChange: () => null,
+      refetchLikedTasks: () => null,
     },
   });
 
