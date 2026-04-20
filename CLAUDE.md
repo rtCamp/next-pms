@@ -126,6 +126,16 @@ The repo has AI review bots (e.g. CodeRabbit) plus GitHub Actions CI. Both post 
    - **Failing CI check unrelated to the PR's diff** (pre-existing breakage, infra flake, unrelated config, missing secret) — leave a comment on the PR explicitly noting the failure is pre-existing and not introduced by this PR, with a short reason / link to the failing job. This tells the human reviewer it's safe to ignore. Do not attempt to fix unrelated CI issues in the same PR.
 4. **Only after every AI thread has been addressed or answered AND all PR-related CI failures are resolved** should you notify the human reviewer that the PR is ready.
 
+**CI checks to ignore for now** — the following workflows/jobs are explicitly out-of-scope for the redesign work. Do not try to fix their failures, do not block a PR on them, and do not leave long-winded "pre-existing" comments about them — a one-liner pointing at this list is enough:
+
+| Workflow file | Display name | Job(s) | Why ignored |
+|---|---|---|---|
+| `.github/workflows/e2e-playwright-test.yml` | **Playwright Tests** | `get-branch`, `deploy`, `test` | End-to-end Playwright suite against a deployed preview site. Triggered on `pull_request_review` / `schedule`. Not part of the redesign scope; URL / data assumptions in the tests often lag the redesign branch. |
+| `.github/workflows/visual-test-playwright.yml` | **Visual Regression Tests** | `run-visual-tests` (*Run Visual Tests*) | Playwright-based visual snapshot regression. Baselines are captured against pre-redesign UI, so every redesign PR is expected to show diffs until the baselines are refreshed post-redesign. |
+| `.github/workflows/linter.yml` | **Linters** | `pre-commit` (*Frappe Linter*) | Pre-commit runs `semgrep` security rules over the whole repo (~70+ findings live on `feat/redesign` in `next_pms/**/*.py`). Findings are pre-existing backend security items unrelated to the frontend redesign and have their own dedicated hardening cleanup. The JS/TS parts of this workflow (JS/TS Formatter, ESLint React, ESLint JS) are already gated by `Frontend Build Test`, so a red Frappe Linter does not mean frontend lint regressed. |
+
+Everything outside that table still goes through the normal PR-caused-vs-pre-existing triage in step 3 (e.g. Frontend Build Test, Bench-Build-Test, CodeQL, Vulnerable Dependency Check, WIP).
+
 ### Project conventions learned from reviews
 
 Apply these pre-emptively rather than re-learning them in review. Each rule here comes from an actual correction a maintainer made on a past PR.
