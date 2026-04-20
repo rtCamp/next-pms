@@ -15,6 +15,7 @@ export type ProjectType = "Fixed cost" | "Retainer" | "External";
 export type EmployeeRef = {
   name: string;
   initials: string;
+  email: string;
   avatar?: string;
 };
 

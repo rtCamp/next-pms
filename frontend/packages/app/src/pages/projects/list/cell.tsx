@@ -21,7 +21,13 @@ export function ProjectListCell({
 }) {
   switch (column.key) {
     case "name":
-      return <ProjectNameCell name={row.name} riskLevel={row.riskLevel} />;
+      return (
+        <ProjectNameCell
+          id={row.id}
+          name={row.name}
+          riskLevel={row.riskLevel}
+        />
+      );
     case "phase":
       return <PhaseCell phase={row.phase} />;
     case "burnRatePerWeek":
