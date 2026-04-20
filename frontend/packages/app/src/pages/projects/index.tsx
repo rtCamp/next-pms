@@ -14,7 +14,7 @@ import ProjectKanban from "./kanban";
 import ProjectList from "./list";
 import { ViewKey } from "./types";
 
-function ProjectsLayout() {
+function Projects() {
   const [searchParams, setSearchParams] = useSearchParams();
   const view: ViewKey =
     searchParams.get("view") === "kanban" ? "kanban" : "list";
@@ -70,4 +70,4 @@ function ProjectsLayout() {
   );
 }
 
-export default ProjectsLayout;
+export default Projects;
