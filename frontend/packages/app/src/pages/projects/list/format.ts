@@ -10,7 +10,13 @@ const DATE_NO_YEAR = new Intl.DateTimeFormat("en-US", {
 });
 
 export function formatProjectDate(isoDate: string): string {
-  const date = new Date(isoDate);
+  // Parse YYYY-MM-DD as a local date, not UTC. `new Date("2026-01-10")` is
+  // parsed as UTC midnight, then formatted in the viewer's local timezone —
+  // in UTC-5 that renders as "Jan 9". Splitting into y/m/d and constructing
+  // via Date(y, m, d) anchors to local midnight and keeps the displayed day
+  // stable across timezones.
+  const [year, month, day] = isoDate.split("-").map(Number);
+  const date = new Date(year, month - 1, day);
   const currentYear = new Date().getFullYear();
   return date.getFullYear() === currentYear
     ? DATE_NO_YEAR.format(date)
