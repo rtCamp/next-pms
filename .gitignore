@@ -34,3 +34,18 @@ json-files
 
 # scripts
 next_pms/scripts
+
+# Per-issue planning docs (see CLAUDE.md §1) — never committed
+plan.md
+plan_*.md
+plan_issue_*.md
+
+# Claude Code local-only files (permissions etc); skills/ is committed
+.claude/settings.local.json
+
+# Stray local clones of skill source repos (refresh procedure lives in .claude/skills/README.md)
+/advanced-react/
+/anthropic-skills/
+
+# Stray yarn.lock at repo root — not part of the build (npm workspaces)
+/yarn.lock

@@ -22,7 +22,7 @@ The goal: plan first, build section-by-section with live browser feedback, reuse
 
 Before editing any file, produce a **detailed, drilled-down plan** and post it for manual review. Do not start coding until the user approves.
 
-**Where the plan lives:** always save the plan as `plan.md` at the repo root (`apps/next_pms/plan.md`) *in addition to* posting a summary in chat. Overwrite the previous `plan.md` at the start of each new task — there is only ever one active plan on disk. Do not commit `plan.md`; it's a working doc for human review (add to `.gitignore` if it surfaces in diffs).
+**Where the plan lives:** save the plan as `plan_issue_<issue_number>.md` at the repo root (e.g. `apps/next_pms/plan_issue_1194.md`) *in addition to* posting a summary in chat. One plan file per issue — no overwriting across tasks, since the filename is keyed on the issue number. For ad-hoc work without an issue number, use `plan_<short-slug>.md`. **Never commit plan files** — they are working docs for human review. `.gitignore` already covers `plan.md` and `plan_issue_*.md` / `plan_*.md`; verify `git status` does not list the plan file as staged before any commit.
 
 The plan must contain:
 
@@ -103,7 +103,7 @@ Hard rules. Never open a PR that violates any of these:
 1. **Base branch is always `feat/redesign`.** Never open PRs against `main` for this work. The redesign lands on `main` in larger drops; individual task PRs go to `feat/redesign`.
 2. **Head branch is a feature trunk named `claude/feat/<trunk-name>`.** One trunk per feature/task (e.g. `claude/feat/projects-page`, `claude/feat/timesheet-filters`). Cut the trunk off the latest `upstream/feat/redesign`. Do not pile unrelated work onto a catch-all branch like `claude/redesign`. Reuse the same trunk for follow-up sequential PRs within the same feature.
 3. **Size cap: ≤ 15 files AND ≤ 1000 LOC changed per PR.** If the planned diff will exceed either threshold, split into **sequential stacked PRs** before implementing:
-   - Phase the work in `plan.md` so each phase is its own independently-reviewable PR with a clear boundary (e.g. "Phase 1: routing + placeholders", "Phase 2: list table", "Phase 3: kanban board").
+   - Phase the work in the plan file (`plan_issue_<n>.md`) so each phase is its own independently-reviewable PR with a clear boundary (e.g. "Phase 1: routing + placeholders", "Phase 2: list table", "Phase 3: kanban board").
    - PR #1 bases on `feat/redesign`. PR #2 bases on the head of PR #1 (stacked). Each PR in the chain targets `feat/redesign` as its merge target but may be chained off the previous PR's branch so the diff stays minimal.
    - Do not open a single monster PR and "promise to split later" — split first.
 4. **Always add `ayushnirwal` as a reviewer** on `gh pr create` (`--reviewer ayushnirwal`).
@@ -282,6 +282,13 @@ fm restart pms-temp.frappe.rt.gw
 ```
 
 Top-level `package.json` `build` script = `git submodule update --init --recursive && pnpm (frappe-ui-react) install + build && npm (frontend) install + build`. Per README: "If using frappe-manager, you might require `fm restart` to provision the worker queues."
+
+## Figma design source
+
+- **Canonical file** (`rtBot` has access): `h1EnhdK8swe6FCyxUW1XHx` — "Frappe-PMS--Copy-"
+  URL: https://www.figma.com/design/h1EnhdK8swe6FCyxUW1XHx/Frappe-PMS--Copy-?t=GcilHC5EC5w1H0xO-0
+- **Issue bodies sometimes link to the original file `HGoZEoIH64xUwnqO5Y3zqx` ("Frappe-PMS"), which `rtBot` does not have access to.** When drafting a `plan_issue_*.md` or calling `mcp__figma__*`, **always substitute the fileKey to `h1EnhdK8swe6FCyxUW1XHx`** — node IDs typically resolve across both files (verified for `3518:444604` on Issue #1194). If a node ID doesn't resolve in the Copy file, ask the maintainer before proceeding.
+- **Never call `get_metadata` / `get_design_context` on the file root (`0:1`)** — it returns ~5.8MB of metadata and blows context. Always scope to a specific frame/node ID from the issue's Figma link.
 
 ## Site access
 
