@@ -96,19 +96,16 @@ Every change must hold up to this checklist before you call a section done:
 
 Only report a task complete when every section's acceptance criteria are green **and** the subagent's final full-page check passes.
 
-### 5. Before creating a PR — base, feature trunk, size, reviewers
+### 5. Before creating a PR — base, feature trunk, reviewers
 
 Hard rules. Never open a PR that violates any of these:
 
 1. **Base branch is always `feat/redesign`.** Never open PRs against `main` for this work. The redesign lands on `main` in larger drops; individual task PRs go to `feat/redesign`.
-2. **Head branch is a feature trunk named `claude/feat/<trunk-name>`.** One trunk per feature/task (e.g. `claude/feat/projects-page`, `claude/feat/timesheet-filters`). Cut the trunk off the latest `upstream/feat/redesign`. Do not pile unrelated work onto a catch-all branch like `claude/redesign`. Reuse the same trunk for follow-up sequential PRs within the same feature.
-3. **Size cap: ≤ 15 files AND ≤ 1000 LOC changed per PR.** If the planned diff will exceed either threshold, split into **sequential stacked PRs** before implementing:
-   - Phase the work in the plan file (`plan_issue_<n>.md`) so each phase is its own independently-reviewable PR with a clear boundary (e.g. "Phase 1: routing + placeholders", "Phase 2: list table", "Phase 3: kanban board").
-   - PR #1 bases on `feat/redesign`. PR #2 bases on the head of PR #1 (stacked). Each PR in the chain targets `feat/redesign` as its merge target but may be chained off the previous PR's branch so the diff stays minimal.
-   - Do not open a single monster PR and "promise to split later" — split first.
+2. **Head branch is a feature trunk named `claude/feat/<trunk-name>`.** One trunk per feature/task (e.g. `claude/feat/projects-page`, `claude/feat/timesheet-filters`). Cut the trunk off the latest `upstream/feat/redesign`. Do not pile unrelated work onto a catch-all branch like `claude/redesign`.
+3. **One PR per feature — do not split into stacked/sequential PRs.** Deliver the complete feature in a single PR on its trunk branch. Plan phases (`plan_issue_<n>.md` sections S1, S2, …) are for implementation ordering and section-by-section browser checks, **not** for PR boundaries. If work remains after an initial push, add commits to the same branch and the same PR — update the PR title/description if the scope shifts.
 4. **Always add `ayushnirwal` as a reviewer** on `gh pr create` (`--reviewer ayushnirwal`).
 5. **If the base advances mid-flight, rebase — don't merge.** Run `git rebase upstream/feat/redesign` and `git push --force-with-lease`. Never merge `feat/redesign` back into the PR branch; that pollutes the diff.
-6. **Before running `gh pr create`**: confirm `git diff --stat upstream/feat/redesign..HEAD` shows only the files this PR is supposed to touch and the file/line counts fall under the size cap. If a stale base has padded the diff, rebase first.
+6. **Before running `gh pr create`**: confirm `git diff --stat upstream/feat/redesign..HEAD` shows only the files this PR is supposed to touch. If a stale base has padded the diff, rebase first.
 
 ### 6. After creating a PR — wait for AI review + CI, then triage
 
