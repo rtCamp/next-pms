@@ -1,6 +1,6 @@
 import { addDays, format, isToday } from "date-fns";
 import { CELL_WIDTH, WEEK_LABEL_HEIGHT } from "./constants";
-import { useGanttStore } from "./gantt-store";
+import { useGanttStore } from "./ganttStore";
 import { mergeClassNames as cn } from "../../utils";
 
 interface GanttWeekProps {

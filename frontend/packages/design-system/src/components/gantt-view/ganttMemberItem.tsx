@@ -1,7 +1,7 @@
 import { Avatar, Badge } from "@rtcamp/frappe-ui-react";
 import { ChevronRight } from "lucide-react";
 import { CELL_HEIGHT } from "./constants";
-import { useGanttStore } from "./gantt-store";
+import { useGanttStore } from "./ganttStore";
 import { mergeClassNames as cn } from "../../utils";
 
 export interface GanttMemberItemProps {

@@ -135,6 +135,7 @@ function AllocationsTeam() {
           <Button icon={() => <Ellipsis size={16} />} />
         </div>
       </div>
+      {/* 112px is the height of header and filters section */}
       <div className="overflow-auto no-scrollbar w-full h-[calc(100vh-112px)]">
         <GanttGrid
           key={weekCount + search}

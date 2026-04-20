@@ -2,7 +2,7 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { CalendarX2 } from "lucide-react";
 import { mergeClassNames as cn } from "../../../utils";
 import { BAR_HEIGHT, CELL_HEIGHT } from "../constants";
-import { CrosshatchOverlay } from "./crosshatch-overlay";
+import { CrosshatchLayer } from "./crosshatchLayer";
 
 const ganttBarVariants = cva(
   "absolute shrink-0 flex items-center gap-1.5 rounded-[9px] mx-0.5 px-2.5 py-2 overflow-hidden whitespace-nowrap",
@@ -19,17 +19,6 @@ const ganttBarVariants = cva(
     },
   },
 );
-
-const CROSSHATCH_COLOR_TO_BY_VARIANT: Record<
-  NonNullable<VariantProps<typeof ganttBarVariants>["variant"]>,
-  string
-> = {
-  under: "var(--color-ink-amber-3, #B45309)",
-  full: "var(--color-ink-green-3, #15803D)",
-  over: "var(--color-ink-violet-1, #7C3AED)",
-  timeoff: "var(--color-ink-gray-6, #616161)",
-  project: "var(--color-ink-gray-5, #3D3D3D)",
-};
 
 interface GanttBarProps extends VariantProps<typeof ganttBarVariants> {
   label: string;
@@ -49,9 +38,6 @@ export function GanttBar({
   billable,
   className,
 }: GanttBarProps) {
-  const crosshatchColorTo = variant
-    ? CROSSHATCH_COLOR_TO_BY_VARIANT[variant]
-    : "#3D3D3D";
   const isTimeoff = variant === "timeoff";
   const isCrosshatch = theme === "crosshatch";
 
@@ -66,7 +52,7 @@ export function GanttBar({
       }}
     >
       {!isTimeoff && isCrosshatch && (
-        <CrosshatchOverlay color={crosshatchColorTo} />
+        <CrosshatchLayer variant={variant ?? "project"} />
       )}
       {isTimeoff ? (
         <>

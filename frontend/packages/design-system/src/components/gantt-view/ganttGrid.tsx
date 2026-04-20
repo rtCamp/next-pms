@@ -6,13 +6,13 @@ import {
   CELL_WIDTH,
   HEADER_HEIGHT,
 } from "./constants";
-import { GanttMemberBar } from "./gantt-bar/member-bar";
-import { GanttProjectBar } from "./gantt-bar/project-bar";
+import { GanttMemberBar } from "./gantt-bar/memberBar";
+import { GanttProjectBar } from "./gantt-bar/projectBar";
 import { getMemberAllocation } from "./gantt-bar/utilities/getMemberAllocation";
-import { GanttMemberItem } from "./gantt-member-item";
-import { GanttProjectItem } from "./gantt-project-item";
-import { createGanttStore, GanttContext, useGanttStore } from "./gantt-store";
-import { GanttWeekHeader } from "./gantt-week-header";
+import { GanttMemberItem } from "./ganttMemberItem";
+import { GanttProjectItem } from "./ganttProjectItem";
+import { createGanttStore, GanttContext, useGanttStore } from "./ganttStore";
+import { GanttWeekHeader } from "./ganttWeekHeader";
 import type { GanttGridProps, Member } from "./types";
 import { mergeClassNames as cn } from "../../utils";
 
@@ -184,6 +184,7 @@ const GanttGridInner: React.FC = () => {
                   );
                 })}
 
+                {/* Add project row */}
                 {hasRoleAccess && (
                   <tr
                     className={cn("relative", {

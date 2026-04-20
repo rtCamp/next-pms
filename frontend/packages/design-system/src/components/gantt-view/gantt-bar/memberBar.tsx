@@ -1,8 +1,8 @@
 import { differenceInCalendarDays } from "date-fns";
 import { FULL_DAY_HOURS } from "../constants";
-import { useGanttStore } from "../gantt-store";
+import { useGanttStore } from "../ganttStore";
 import type { Allocation } from "../types";
-import { GanttBar } from "./gantt-bar";
+import { GanttBar } from "./ganttBar";
 import { getClampedBarLayout } from "./utilities/getClampedBarLayout";
 import { getNumDays } from "./utilities/getNumDays";
 

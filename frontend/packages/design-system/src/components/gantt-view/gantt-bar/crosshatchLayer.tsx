@@ -1,14 +1,28 @@
 import { useId } from "react";
 
-interface CrosshatchOverlayProps {
-  color: string;
+type CrosshatchVariant = "under" | "full" | "over" | "timeoff" | "project";
+
+const hatchColorByVariant: Record<CrosshatchVariant, string> = {
+  under: "var(--color-ink-amber-3, #B45309)",
+  full: "var(--color-ink-green-3, #15803D)",
+  over: "var(--color-ink-violet-1, #7C3AED)",
+  timeoff: "var(--color-ink-gray-6, #616161)",
+  project: "var(--color-ink-gray-5, #3D3D3D)",
+};
+
+interface CrosshatchLayerProps {
+  variant?: CrosshatchVariant;
 }
 
-export const CrosshatchOverlay = ({ color }: CrosshatchOverlayProps) => {
+export const CrosshatchLayer = ({ variant }: CrosshatchLayerProps) => {
+  // Many bars render this component at once. IDs must be unique, otherwise one bar can accidentally use another bar's pattern/mask.
   const uniqueId = useId().replace(/:/g, "");
   const hatchPatternId = `gantt-hatch-${uniqueId}`;
   const hatchFadeId = `gantt-hatch-fade-${uniqueId}`;
   const hatchMaskId = `gantt-hatch-mask-${uniqueId}`;
+  const color = variant
+    ? hatchColorByVariant[variant]
+    : hatchColorByVariant.project;
 
   return (
     <svg

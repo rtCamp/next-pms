@@ -1,2 +1,2 @@
-export * from "./gantt-grid";
+export * from "./ganttGrid";
 export * from "./types";
