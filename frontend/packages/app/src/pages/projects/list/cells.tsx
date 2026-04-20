@@ -8,7 +8,7 @@ import { Calendar } from "lucide-react";
  * Internal dependencies.
  */
 import {
-  PHASE_DOT_CLASS,
+  PHASE_INDICATOR_CLASS,
   PHASE_LABELS,
   RISK_DOT_CLASS,
 } from "./constants";
@@ -33,6 +33,28 @@ function Dot({ colorClass }: { colorClass: string }) {
   );
 }
 
+// Phase indicator: approximates the Figma `icon/solid/stages` component
+// (16×16 donut). The underlying Figma asset is only reachable via its
+// instance path and would be served as a rasterised PNG with a 7-day
+// expiry — inline SVG is more robust and tints via `currentColor` so the
+// Tailwind `text-*` class on the caller picks the phase color.
+function StagesIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      aria-hidden="true"
+      viewBox="0 0 16 16"
+      fill="currentColor"
+      className={`size-4 shrink-0 ${className ?? ""}`}
+    >
+      <path
+        fillRule="evenodd"
+        clipRule="evenodd"
+        d="M8 2a6 6 0 1 1 0 12A6 6 0 0 1 8 2Zm0 3a3 3 0 1 0 0 6 3 3 0 0 0 0-6Z"
+      />
+    </svg>
+  );
+}
+
 export function ProjectNameCell({
   name,
   riskLevel,
@@ -53,7 +75,7 @@ export function ProjectNameCell({
 export function PhaseCell({ phase }: { phase: Phase }) {
   return (
     <div className="flex min-w-0 items-center gap-2 text-ink-gray-7">
-      <Dot colorClass={PHASE_DOT_CLASS[phase]} />
+      <StagesIcon className={PHASE_INDICATOR_CLASS[phase]} />
       <span className="truncate">{PHASE_LABELS[phase]}</span>
     </div>
   );
