@@ -139,12 +139,36 @@ Apply these pre-emptively rather than re-learning them in review. Each rule here
 
 **Page file layout**
 - **Folder name follows the URL segment, not the repo's singular default.** If the route is `/projects`, the directory is `pages/projects/` (plural). Don't default to singular just because sibling folders happen to be (`task/`, `report/`, etc.) — look at the route. (PR #1208 correction: `pages/project/` → `pages/projects/`.)
-- **Each `pages/<feature>/` has a dedicated `constants.ts` and a dedicated `types.ts`.** `constants.ts` holds feature data constants (e.g. a `VIEWS` array); `types.ts` holds shared types derived from or referenced alongside them (e.g. `ViewKey`). Don't co-locate types with constants in a single file, and don't inline either in the component.
+- **Each `pages/<feature>/` has a dedicated `constants.ts` and a dedicated `types.ts`.** `constants.ts` holds feature data constants (e.g. a `VIEWS` array); `types.ts` holds shared types derived from or referenced alongside them (e.g. `ViewKey`). Don't co-locate types with constants in a single file, and don't inline either in the component. **The rule recurses into sub-folders**: `pages/<feature>/<sub>/` also gets its own `constants.ts` + `types.ts`, not a flat everything-in-`index.tsx`. (PR #1220 correction: `pages/projects/list/` needed its own `constants.ts` for label + color maps and a `types.ts` entry for `ListViewColumn`.)
 - **Main page component is `index.tsx`, exporting a component named after the feature.** E.g. `pages/projects/index.tsx` exporting `Projects`. Only call a file `layout.tsx` when it is an actual React-Router route layout wrapping `<Outlet />` children (the `allocations/layout.tsx` pattern). A route that conditionally renders children based on a query param is **not** a layout — don't mechanically mirror the Allocations file structure if the routing shape is different.
 - **Placeholder/child view components stay next to `index.tsx`** (e.g. `list.tsx`, `kanban.tsx` alongside `index.tsx`) unless a maintainer explicitly asks for a `components/` subdirectory. Review feedback sometimes mentions a `components/` directory in passing — only create it if the reviewer's *fix commit* actually uses it.
+- **Per-cell rendering lives in its own file**, not a giant `switch(column.key)` block inside `index.tsx`. For a ListView-driven page, put the dispatch component (e.g. `ProjectListCell`) in `cell.tsx` and the individual visual components (e.g. `DateCell`, `BudgetProgressCell`) in `cells.tsx`.
 
 **UI details**
 - **Icon identifiers must be verified against Figma metadata or a design-system story — never inferred by eyeballing a thumbnail.** `AlignLeft` vs `List` vs `TextAlignStart` look similar enough to confuse, and even a reviewer's suggested name can be wrong. When the exact lucide icon isn't obvious from Figma, ask the maintainer instead of guessing. (PR #1208 correction: `List` → `AlignLeft`.)
+- **Phase indicators in this codebase are donut SVGs (Figma component `icon/solid/stages`), not solid dots.** More generally: a small visual that *looks* like a dot in a low-resolution screenshot is often a themed icon instance. Before rendering a `<div className="rounded-full">`, drill into the Figma node for the phase/status cell and check whether it's a shape fill or an `<instance>` reference to a component. (PR #1220 correction: solid dots → `icon/solid/stages` donut.)
+- **Prefer design-system Tailwind tokens over inline `style={{ backgroundColor }}` or arbitrary `bg-[#hex]`.** The `ink/*` scale (`ink-red-3`, `ink-amber-3`, `ink-green-3`, `ink-cyan-3`, `ink-blue-3`, `ink-violet-3`, `ink-gray-4/5/7/8`) and most of `surface/*` are exposed as Tailwind classes. Where a scale stop is missing (e.g. `surface-green-5`, `surface-amber-5`), **extend `index.css` to add the token** — don't sidestep with arbitrary values or hex literals. (PR #1220 correction: `!bg-[#c3f9d3]` → extend `surface-green-5`.)
+
+**Reading Figma — drill to the leaf node**
+
+The `mcp__figma__*` tools return different data depending on which node you call them on. Frame-level calls give you the palette and top-level structure; sub-node and leaf-node calls give you the actual component instances and the specific tokens applied to each element.
+
+- **Always drill into the node for the specific element you're rendering**, not just the containing frame. Chain: frame → row/cell → inner group → `<instance>` or text node. Stop at the leaf that represents the visual primitive you'll render.
+- For an **icon-like element** (dot, donut, pill, chevron, badge): call `mcp__figma__get_metadata` on the parent cell, follow the `<instance>` to the component name, then `mcp__figma__get_design_context` on that component to see the SVG / variants. If a component name like `icon/solid/stages` surfaces, render that SVG — don't substitute a `div.rounded-full` based on how it looks in a screenshot of the outer frame.
+- For a **color decision** (status dot, phase, tier): call `mcp__figma__get_variable_defs` on the specific cell/node that uses the color, not the frame. Frame-level returns every token referenced *anywhere* in the frame, which over-indexes on colors that don't apply to your element.
+- For **typography** (font size, weight, leading, tracking): read the specific text node's token, not the frame's palette.
+- The rule is recursive with the existing "verify before inferring" rule — that rule says look up canonical identifiers in metadata; this one adds that metadata calls are *themselves* scoped to the node you pass, so you have to pass the right one.
+
+**Formatting helpers**
+- **Use `date-fns`** for all date/time management. Don't hand-roll `Intl.DateTimeFormat` formatters or parsers. (PR #1220 correction.)
+- **Don't build formatter infrastructure for fake/placeholder data.** Currency in fake data renders as inline `` `$${amount}` `` at the call site — no helper function, no `Intl.NumberFormat`. Real currency wiring (locale + fraction digits + global default) is BE-integration work that lives in a separate issue.
+
+**Interaction patterns**
+- **Per-cell click handlers, not `onRowClick`** when only some cells should navigate. A ListView `onRowClick` conflates row-select, name-click, and employee-click into one target; attach the `onClick` to the specific cell component (e.g. `ProjectNameCell`, `EmployeeCell`) so each column controls its own behavior.
+- **Employee/user cells navigate to `<base>/desk/user/<user_email>`.** Any cell that represents a person needs the email in its data contract (not just name + initials) so the click target resolves.
+
+**Workaround discipline**
+- **If a workaround for a library gap starts feeling load-bearing, ping the maintainer before committing cycles to it.** Signs a workaround is getting expensive: defensive selector specificity, mirroring library internals, a growing code comment explaining *why* the workaround exists, or multiple iterations patching side-effects of the workaround. Ask whether the AC might flex — cheaper than a rollback later. (PR #1220 lesson: the sticky-column `overflow-y-*` override saga went through two iterations of overflow-neutralising before Ayush dropped the sticky requirement from the AC entirely.)
 
 ### Reading review comments
 - **Path anchor vs body text** — GitHub shows each inline comment against a file path. When the anchor says `pages/projects/index.tsx` but the body text mentions `pages/project/...`, the anchor is the intent; treat the body path as a typo.
