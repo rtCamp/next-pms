@@ -1,7 +1,7 @@
 # next_pms — Working Notes
 
 Working directory: `apps/next_pms`. Everything below assumes this path.
-Current branch: `claude/redesign`. Active work: **next-pms module redesign**.
+Active work: **next-pms module redesign** (runs on the `feat/redesign` integration branch — see §5 for branching rules).
 
 ## Task workflow — **MANDATORY, NO-GO COMPULSORY FLOW**
 
@@ -290,8 +290,7 @@ Top-level `package.json` `build` script = `git submodule update --init --recursi
 - **If `gh auth status` reports not logged in**, ask the user to run `gh auth login` (or export `GH_TOKEN`) before attempting PR/issue operations.
 - `gh` is NOT installed inside the frappe container — run gh from the host.
 
-## Current git state (snapshot — verify with `git status`)
+## Git hygiene notes
 
-- Branch: `claude/redesign`
-- Modified: `frappe-ui-react` submodule (new commits), `frontend/package-lock.json`
-- Untracked: `yarn.lock` (note: app uses npm workspaces top-level and pnpm for frappe-ui-react — a stray yarn.lock likely shouldn't be committed)
+- The app uses npm workspaces at the top level and pnpm inside the `frappe-ui-react` submodule. A stray `yarn.lock` at the repo root is not part of the build — don't commit one if it appears.
+- Always `git status` at the start of a task and run `git fetch upstream` before cutting a new feature trunk so the branch is off the latest `feat/redesign`.
