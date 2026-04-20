@@ -148,6 +148,16 @@ html,
 @theme {
   --animate-fade-left: fade-left 0.2s ease;
   --animate-fade-in: fade-in 0.2s ease;
+
+  /*
+   * frappe-ui-react's surface-red scale is full (-1…-7: 50/100/200/300/600/700/800)
+   * but surface-green and surface-amber stop at -3 (dark saturated). Add -5
+   * aliases so green/amber match red's "-5 = saturated fill" meaning — keeps
+   * existing -3 callers intact while exposing a consistent fill token for
+   * progress bars, badges, tier backgrounds, etc.
+   */
+  --color-surface-green-5: var(--color-green-600);
+  --color-surface-amber-5: var(--color-amber-600);
 }
 
 @keyframes fade-left {

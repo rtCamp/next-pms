@@ -90,16 +90,14 @@ export function PhaseCell({ phase }: { phase: Phase }) {
   );
 }
 
-// Cost-burn tier colors per Figma get_variable_defs on 3518:444604. The
-// design-system's Tailwind `surface-green-*` / `surface-amber-*` tokens
-// don't line up with Figma's `-3` (light) / `-5` (saturated) scale — only
-// `surface-red-3` / `-5` match — so the green and amber pairs are passed
-// as arbitrary hex to stay faithful to the design. `!` overrides Progress's
-// default `bg-surface-gray-2` container + inner `bg-surface-gray-7` fill.
+// Tier bg + fill tokens. surface-red-* already has the full -3 (light) / -5
+// (saturated) pair; surface-green-5 and surface-amber-5 are defined in
+// global.css as app-level aliases to the saturated stop. `!` wins the
+// override against Progress's default bg-surface-gray-2 / bg-surface-gray-7.
 const BUDGET_TIER_CLASSES: Record<"healthy" | "moderate" | "over", string> = {
-  healthy: "!bg-[#c3f9d3] [&>div]:!bg-[#278f5e]",
-  moderate: "!bg-[#feeda9] [&>div]:!bg-[#db7706]",
-  over: "!bg-[#ffd8d8] [&>div]:!bg-[#cc2929]",
+  healthy: "!bg-surface-green-2 [&>div]:!bg-surface-green-5",
+  moderate: "!bg-surface-amber-2 [&>div]:!bg-surface-amber-5",
+  over: "!bg-surface-red-3 [&>div]:!bg-surface-red-5",
 };
 
 function budgetTier(percent: number): "healthy" | "moderate" | "over" {
