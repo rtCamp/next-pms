@@ -1,13 +1,11 @@
 /**
  * Internal dependencies.
  */
-import {
-  BudgetProgressCell,
-  DateCell,
-  EmployeeCell,
-  PhaseCell,
-  ProjectNameCell,
-} from "./cells";
+import { BudgetProgressCell } from "./budget-progress-cell";
+import { DateCell } from "./date-cell";
+import { EmployeeCell } from "./employee-cell";
+import { PhaseCell } from "./phase-cell";
+import { ProjectNameCell } from "./project-name-cell";
 import type { ListViewColumn, Project } from "./types";
 
 export function ProjectListCell({
