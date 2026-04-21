@@ -1,7 +1,7 @@
 /**
  * External dependencies.
  */
-import { Tooltip } from "@rtcamp/frappe-ui-react";
+import { Button, Tooltip } from "@rtcamp/frappe-ui-react";
 import { useNavigate } from "react-router-dom";
 
 /**
@@ -22,20 +22,18 @@ export function ProjectNameCell({
   riskLevel: RiskLevel;
 }) {
   const navigate = useNavigate();
-  const href = `${ROUTES.base}${ROUTES.project}/${id}`;
   return (
     <Tooltip text={name}>
-      <a
-        href={href}
-        onClick={(e) => {
-          e.preventDefault();
-          navigate(`${ROUTES.project}/${id}`);
-        }}
-        className="flex min-w-0 items-center gap-2"
+      <Button
+        variant="ghost"
+        theme="gray"
+        size="sm"
+        onClick={() => navigate(`${ROUTES.project}/${id}`)}
+        className="w-full justify-start font-medium"
       >
         <Dot risk={riskLevel} />
-        <span className="truncate font-medium text-ink-gray-8">{name}</span>
-      </a>
+        <span className="truncate">{name}</span>
+      </Button>
     </Tooltip>
   );
 }
