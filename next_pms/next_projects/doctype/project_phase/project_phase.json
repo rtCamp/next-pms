@@ -1,6 +1,7 @@
 {
  "actions": [],
  "allow_rename": 1,
+ "autoname": "field:phase",
  "creation": "2026-04-21 19:48:16.814423",
  "doctype": "DocType",
  "engine": "InnoDB",
@@ -36,10 +37,11 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-04-21 19:54:27.476199",
+ "modified": "2026-04-21 20:30:34.799796",
  "modified_by": "Administrator",
  "module": "Next Projects",
  "name": "Project Phase",
+ "naming_rule": "By fieldname",
  "owner": "Administrator",
  "permissions": [
   {
