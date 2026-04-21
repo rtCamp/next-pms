@@ -7,14 +7,14 @@ import {
   ErrorFallback,
   GlobalSearch,
 } from "@next-pms/design-system/components";
+import { Sidebar as BaseSidebar } from "@rtcamp/frappe-ui-react";
 import {
-  Sidebar as BaseSidebar,
   Notifications,
   People,
   Reports,
   Tasks,
   Time,
-} from "@rtcamp/frappe-ui-react";
+} from "@rtcamp/frappe-ui-react/icons";
 import {
   ArrowLeftRight,
   Folder,

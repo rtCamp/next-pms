@@ -2,7 +2,8 @@
  * External dependencies.
  */
 import { useLocation, useNavigate } from "react-router-dom";
-import { Breadcrumbs, Folder, People, Time } from "@rtcamp/frappe-ui-react";
+import { Breadcrumbs } from "@rtcamp/frappe-ui-react";
+import { Folder, People, Time } from "@rtcamp/frappe-ui-react/icons";
 import { ChevronDown } from "lucide-react";
 
 /**

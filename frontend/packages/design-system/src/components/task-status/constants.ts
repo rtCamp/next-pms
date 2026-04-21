@@ -1,7 +1,7 @@
 /**
  * External dependencies.
  */
-import { Overdue } from "@rtcamp/frappe-ui-react";
+import { Overdue } from "@rtcamp/frappe-ui-react/icons";
 import { cva } from "class-variance-authority";
 import {
   Circle,
