@@ -2,6 +2,7 @@
  * External dependencies.
  */
 import { Avatar, Progress, Tooltip } from "@rtcamp/frappe-ui-react";
+import { type VariantProps } from "class-variance-authority";
 import { Calendar } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
@@ -12,9 +13,10 @@ import { ROUTES } from "@/lib/constant";
 import { formatProjectDate } from "@/lib/utils";
 
 import {
-  PHASE_INDICATOR_CLASS,
+  budgetProgressVariants,
+  phaseIconVariants,
   PHASE_LABELS,
-  RISK_DOT_CLASS,
+  riskDotVariants,
 } from "./constants";
 import type { EmployeeRef, Phase, RiskLevel } from "./types";
 
@@ -27,22 +29,23 @@ export function DateCell({ isoDate }: { isoDate: string }) {
   );
 }
 
-function Dot({ colorClass }: { colorClass: string }) {
+type DotProps = VariantProps<typeof riskDotVariants>;
+
+function Dot({ risk }: DotProps) {
   return (
-    <span
-      aria-hidden="true"
-      className={`inline-block h-2 w-2 shrink-0 rounded-full ${colorClass}`}
-    />
+    <span aria-hidden="true" className={riskDotVariants({ risk })} />
   );
 }
 
-function StagesIcon({ className }: { className?: string }) {
+type StagesIconProps = VariantProps<typeof phaseIconVariants>;
+
+function StagesIcon({ phase }: StagesIconProps) {
   return (
     <svg
       aria-hidden="true"
       viewBox="0 0 16 16"
       fill="currentColor"
-      className={`size-4 shrink-0 ${className ?? ""}`}
+      className={phaseIconVariants({ phase })}
     >
       <path
         fillRule="evenodd"
@@ -74,7 +77,7 @@ export function ProjectNameCell({
         }}
         className="flex min-w-0 items-center gap-2"
       >
-        <Dot colorClass={RISK_DOT_CLASS[riskLevel]} />
+        <Dot risk={riskLevel} />
         <span className="truncate font-medium text-ink-gray-8">{name}</span>
       </a>
     </Tooltip>
@@ -84,19 +87,17 @@ export function ProjectNameCell({
 export function PhaseCell({ phase }: { phase: Phase }) {
   return (
     <div className="flex min-w-0 items-center gap-2 text-ink-gray-7">
-      <StagesIcon className={PHASE_INDICATOR_CLASS[phase]} />
+      <StagesIcon phase={phase} />
       <span className="truncate">{PHASE_LABELS[phase]}</span>
     </div>
   );
 }
 
-const BUDGET_TIER_CLASSES: Record<"healthy" | "moderate" | "over", string> = {
-  healthy: "!bg-surface-green-2 [&>div]:!bg-surface-green-5",
-  moderate: "!bg-surface-amber-2 [&>div]:!bg-surface-amber-5",
-  over: "!bg-surface-red-3 [&>div]:!bg-surface-red-5",
-};
+type BudgetTier = NonNullable<
+  VariantProps<typeof budgetProgressVariants>["tier"]
+>;
 
-function budgetTier(percent: number): "healthy" | "moderate" | "over" {
+function budgetTier(percent: number): BudgetTier {
   if (percent > 100) return "over";
   if (percent >= 70) return "moderate";
   return "healthy";
@@ -109,7 +110,7 @@ export function BudgetProgressCell({ percent }: { percent: number }) {
       <Progress
         value={Math.min(percent, 100)}
         size="md"
-        className={BUDGET_TIER_CLASSES[tier]}
+        className={budgetProgressVariants({ tier })}
       />
     </div>
   );
