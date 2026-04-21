@@ -10,10 +10,12 @@ import {
 import { FilterCondition } from "@rtcamp/frappe-ui-react";
 import { type ClassValue, clsx } from "clsx";
 import {
+  format,
   getISOWeek,
   getISOWeekYear,
   getISOWeeksInYear,
   isToday,
+  parse,
   parseISO,
 } from "date-fns";
 import { Error as FrappeError } from "frappe-js-sdk/lib/frappe_app/types";
@@ -42,6 +44,15 @@ export const NO_VALUE_FIELDS = [
 
 export function mergeClassNames(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
+}
+
+export function formatProjectDate(isoDate: string): string {
+  const date = parse(isoDate, "yyyy-MM-dd", new Date());
+  const pattern =
+    date.getFullYear() === new Date().getFullYear()
+      ? "MMM d"
+      : "MMM d, yyyy";
+  return format(date, pattern);
 }
 
 export function stripTags(html: string): string {

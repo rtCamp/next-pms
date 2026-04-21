@@ -9,13 +9,13 @@ import { useNavigate } from "react-router-dom";
  * Internal dependencies.
  */
 import { ROUTES } from "@/lib/constant";
+import { formatProjectDate } from "@/lib/utils";
 
 import {
   PHASE_INDICATOR_CLASS,
   PHASE_LABELS,
   RISK_DOT_CLASS,
 } from "./constants";
-import { formatProjectDate } from "./format";
 import type { EmployeeRef, Phase, RiskLevel } from "./types";
 
 export function DateCell({ isoDate }: { isoDate: string }) {
