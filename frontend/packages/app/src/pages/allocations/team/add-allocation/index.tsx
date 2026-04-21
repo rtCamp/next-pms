@@ -1,75 +1,194 @@
 /**
  * External dependencies.
  */
+import { useEffect, useMemo, useState } from "react";
 import { DurationInput } from "@next-pms/design-system/components";
-import { formatDateRange, getTodayDate } from "@next-pms/design-system/date";
+import { formatDateRange } from "@next-pms/design-system/date";
 import {
   Button,
   Checkbox,
   Combobox,
   DateRangePicker,
   Dialog,
+  ErrorMessage,
   TabButtons,
   Textarea,
   TextInput,
   useToasts,
 } from "@rtcamp/frappe-ui-react";
 import { useForm, useStore } from "@tanstack/react-form";
+import {
+  FrappeError,
+  useFrappeGetCall,
+  useFrappePostCall,
+} from "frappe-react-sdk";
 import { Calendar } from "lucide-react";
 
 /**
  * Internal dependencies.
  */
+import { parseFrappeErrorMsg } from "@/lib/utils";
 import {
-  ALLOCATION_RECURRENCE_LABELS,
-  EMPLOYEE_OPTIONS,
-  PROJECT_OPTIONS,
+  addAllocationDefaultValues,
+  allocationRecurrenceLabels,
 } from "./constants";
+import { addAllocationFormSchema } from "./schema";
 import { type AddAllocationModalProps } from "./types";
+import { getRangeDayCount } from "./utils";
+
+type ComboboxOption = {
+  value: string;
+  label: string;
+};
 
 function AddAllocationModal({
   variant = "add",
   open,
   onOpenChange,
   onEditScheduleClick,
+  initialValues,
 }: AddAllocationModalProps) {
   const toast = useToasts();
+  const [submitting, setSubmitting] = useState(false);
 
-  const defaultValues: {
-    employeeId: string;
-    projectId: string;
-    recurrence: string;
-    includeWeekends: boolean;
-    fromDate: string;
-    toDate: string;
-    hoursPerDay: number;
-    repeatFor: number;
-    isBillable: boolean;
-    isTentative: boolean;
-    note: string;
-  } = {
-    employeeId: EMPLOYEE_OPTIONS[0]?.value ?? "",
-    projectId: PROJECT_OPTIONS[0]?.value ?? "",
-    recurrence: "one-time",
-    includeWeekends: true,
-    fromDate: getTodayDate(),
-    toDate: getTodayDate(),
-    hoursPerDay: 3.5,
-    repeatFor: 56,
-    isBillable: true,
-    isTentative: false,
-    note: "",
-  };
+  const { call: handleAllocation } = useFrappePostCall(
+    "next_pms.resource_management.api.allocation.handle_allocation",
+  );
+
+  const { data: employeesData } = useFrappeGetCall("frappe.client.get_list", {
+    doctype: "Employee",
+    fields: ["name", "employee_name"],
+    limit_page_length: "null",
+  });
+
+  const { data: projectsData } = useFrappeGetCall("frappe.client.get_list", {
+    doctype: "Project",
+    fields: ["name", "project_name"],
+    filters: window.frappe?.boot?.global_filters.project,
+    limit_page_length: "null",
+  });
+
+  const employeeOptions = useMemo(() => {
+    const fromApi = (
+      (employeesData?.message ?? []) as {
+        name: string;
+        employee_name: string;
+      }[]
+    ).map((employee) => ({
+      label: employee.employee_name,
+      value: employee.name,
+    }));
+
+    return fromApi as ComboboxOption[];
+  }, [employeesData?.message]);
+
+  const projectOptions = useMemo(() => {
+    const fromApi = (
+      (projectsData?.message ?? []) as { name: string; project_name: string }[]
+    ).map((project) => ({
+      label: project.project_name,
+      value: project.name,
+    }));
+
+    return fromApi as ComboboxOption[];
+  }, [projectsData?.message]);
+
+  const allocationName = initialValues?.allocationName;
+  const mergedDefaultValues = useMemo(() => {
+    const initialFormValues = {
+      ...(initialValues ?? {}),
+    };
+
+    delete initialFormValues.allocationName;
+
+    return {
+      ...addAllocationDefaultValues,
+      ...initialFormValues,
+    };
+  }, [initialValues]);
 
   const form = useForm({
-    defaultValues,
+    defaultValues: mergedDefaultValues,
     onSubmit: async ({ value }) => {
-      void value;
-      toast.success("Allocation created (static mode)");
-      onOpenChange(false);
-      form.reset();
+      const parsed = addAllocationFormSchema.safeParse(value);
+      if (!parsed.success) {
+        const firstError = parsed.error.issues[0]?.message;
+        if (firstError) {
+          toast.error(firstError);
+        }
+        return;
+      }
+
+      setSubmitting(true);
+
+      const repeatTillWeekCount =
+        variant === "edit"
+          ? 0
+          : value.recurrence === "recurring"
+            ? Math.max(0, Math.ceil((value.repeatFor ?? 1) / 7) - 1)
+            : 0;
+
+      const rangeDays = getRangeDayCount(value.fromDate, value.toDate);
+      const totalAllocatedHours = Math.round(
+        value.hoursPerDay *
+          (value.recurrence === "recurring"
+            ? Math.max(1, value.repeatFor ?? 1)
+            : Math.max(1, rangeDays)),
+      );
+
+      try {
+        await handleAllocation({
+          allocation: {
+            doctype: "Resource Allocation",
+            ...(variant === "edit" && allocationName
+              ? { name: allocationName }
+              : {}),
+            employee: value.employeeId,
+            project: value.projectId,
+            allocation_start_date: value.fromDate,
+            allocation_end_date: value.toDate,
+            hours_allocated_per_day: value.hoursPerDay,
+            total_allocated_hours: totalAllocatedHours,
+            is_billable: Number(value.isBillable),
+            status: value.isTentative ? "Tentative" : "Confirmed",
+            note: value.note ?? "",
+          },
+          repeat_till_week_count: repeatTillWeekCount,
+        });
+
+        toast.success(
+          variant === "edit"
+            ? "Allocation updated successfully"
+            : "Allocation created successfully",
+        );
+      } catch (err) {
+        const error = parseFrappeErrorMsg(err as FrappeError);
+        toast.error(error);
+      } finally {
+        setSubmitting(false);
+        onOpenChange(false);
+        form.reset();
+      }
     },
   });
+
+  useEffect(() => {
+    if (!open || variant !== "edit") {
+      return;
+    }
+
+    form.setFieldValue("employeeId", mergedDefaultValues.employeeId);
+    form.setFieldValue("projectId", mergedDefaultValues.projectId);
+    form.setFieldValue("recurrence", mergedDefaultValues.recurrence);
+    form.setFieldValue("includeWeekends", mergedDefaultValues.includeWeekends);
+    form.setFieldValue("fromDate", mergedDefaultValues.fromDate);
+    form.setFieldValue("toDate", mergedDefaultValues.toDate);
+    form.setFieldValue("hoursPerDay", mergedDefaultValues.hoursPerDay);
+    form.setFieldValue("repeatFor", mergedDefaultValues.repeatFor);
+    form.setFieldValue("isBillable", mergedDefaultValues.isBillable);
+    form.setFieldValue("isTentative", mergedDefaultValues.isTentative);
+    form.setFieldValue("note", mergedDefaultValues.note);
+  }, [form, mergedDefaultValues, open, variant]);
 
   const recurrence = useStore(form.store, (state) => state.values.recurrence);
   const hoursPerDay = useStore(form.store, (state) => state.values.hoursPerDay);
@@ -77,8 +196,14 @@ function AddAllocationModal({
     form.store,
     (state) => state.values.repeatFor ?? 1,
   );
+  const fromDate = useStore(form.store, (state) => state.values.fromDate);
+  const toDate = useStore(form.store, (state) => state.values.toDate);
+
   const totalHours = Math.round(
-    hoursPerDay * (recurrence === "recurring" ? repeatFor : 16),
+    hoursPerDay *
+      (recurrence === "recurring"
+        ? Math.max(1, repeatFor)
+        : Math.max(1, getRangeDayCount(fromDate, toDate))),
   );
 
   return (
@@ -121,6 +246,8 @@ function AddAllocationModal({
               variant="solid"
               label={variant === "add" ? "Allocate" : "Save Changes"}
               onClick={() => form.handleSubmit()}
+              disabled={submitting}
+              loading={submitting}
             />
           </div>
         </div>
@@ -136,11 +263,17 @@ function AddAllocationModal({
               </label>
               <Combobox
                 inputClassName="bg-white h-8 border-outline-gray-2"
-                options={EMPLOYEE_OPTIONS}
+                options={employeeOptions}
+                placeholder="Select Employee"
                 value={field.state.value}
                 onChange={(value) => field.handleChange(value as string)}
                 openOnFocus
               />
+              {!field.state.meta.isValid && (
+                <ErrorMessage
+                  message={String(field.state.meta.errors[0] ?? "")}
+                />
+              )}
             </>
           )}
         />
@@ -154,11 +287,17 @@ function AddAllocationModal({
               </label>
               <Combobox
                 inputClassName="bg-white h-8 border-outline-gray-2"
-                options={PROJECT_OPTIONS}
+                options={projectOptions}
+                placeholder="Select Project"
                 value={field.state.value}
                 onChange={(value) => field.handleChange(value as string)}
                 openOnFocus
               />
+              {!field.state.meta.isValid && (
+                <ErrorMessage
+                  message={String(field.state.meta.errors[0] ?? "")}
+                />
+              )}
             </>
           )}
         />
@@ -172,11 +311,18 @@ function AddAllocationModal({
               </label>
               <TabButtons
                 value={field.state.value}
-                onChange={(value) => field.handleChange(value)}
-                buttons={Object.entries(ALLOCATION_RECURRENCE_LABELS).map(
+                onChange={(value) =>
+                  field.handleChange(value as "one-time" | "recurring")
+                }
+                buttons={Object.entries(allocationRecurrenceLabels).map(
                   ([value, label]) => ({ value, label }),
                 )}
               />
+              {!field.state.meta.isValid && (
+                <ErrorMessage
+                  message={String(field.state.meta.errors[0] ?? "")}
+                />
+              )}
             </>
           )}
         />
@@ -268,6 +414,11 @@ function AddAllocationModal({
                   onChange={(value) => field.handleChange(value)}
                   variant="compact"
                 />
+                {!field.state.meta.isValid && (
+                  <ErrorMessage
+                    message={String(field.state.meta.errors[0] ?? "")}
+                  />
+                )}
               </div>
             )}
           />
@@ -287,6 +438,11 @@ function AddAllocationModal({
                     value={field.state.value ?? ""}
                     onChange={(e) => field.handleChange(Number(e.target.value))}
                   />
+                  {!field.state.meta.isValid && (
+                    <ErrorMessage
+                      message={String(field.state.meta.errors[0] ?? "")}
+                    />
+                  )}
                 </div>
               )}
             />
