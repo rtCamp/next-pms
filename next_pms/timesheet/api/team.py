@@ -207,6 +207,17 @@ def _get_team_timesheet_data(
         status_filter = json.loads(status_filter)
 
     parsed_filters = parse_filters(filters)
+
+    # get the employee status and business unit from the filters (drop down ui in frontend)
+    # this will be passed to the global employee filter so the pool of employees is narrowed down.
+    employee_status = None
+    employee_business_unit = None
+    for field, _operator, value in parsed_filters.get("Employee", []):
+        if field == "status":
+            employee_status = [value] if isinstance(value, str) else value
+        elif field == "custom_business_unit":
+            employee_business_unit = [value] if isinstance(value, str) else value
+
     has_filters = bool(search or any(parsed_filters.values()))
     dates, _ = build_aggregate_dates(date=date, max_week=max_week, has_filters=has_filters)
     response_dates = dates[-max_week:] if has_filters and len(dates) > max_week else dates
@@ -218,6 +229,8 @@ def _get_team_timesheet_data(
         parsed_filters=parsed_filters,
         search=search,
         timesheet_status=status_filter,
+        status=employee_status,
+        business_unit=employee_business_unit,
     )
 
     if candidate_employee_ids == []:
@@ -314,6 +327,8 @@ def _get_team_timesheet_data(
         start=start,
         page_length=page_length,
         builder=build_team_employee_payload,
+        status=employee_status,
+        business_unit=employee_business_unit,
     )
 
     res["data"] = {employee_name: payload for employee_name, payload in selected_employees}
