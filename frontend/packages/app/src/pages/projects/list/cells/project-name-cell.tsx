@@ -33,7 +33,7 @@ export function ProjectNameCell({
         className="w-full justify-start font-medium"
       >
         <Dot risk={riskLevel} />
-        <span className="truncate">{name}</span>
+        <span className="ml-2 truncate">{name}</span>
       </Button>
     </Tooltip>
   );
