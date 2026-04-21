@@ -9,10 +9,6 @@ export const RISK_DOT_CLASS: Record<RiskLevel, string> = {
   "on-track": "bg-ink-green-3",
 };
 
-// Phase → Tailwind text color class for the donut indicator's currentColor.
-// Values come from Ayush's review on PR #1220 (cells.tsx:33, 2026-04-20)
-// and override the earlier Figma-derived map. `kick-off` was not listed
-// in his note and is kept on `ink-blue-3` pending clarification.
 export const PHASE_INDICATOR_CLASS: Record<Phase, string> = {
   "delivery-prep": "text-ink-gray-4",
   "kick-off": "text-ink-blue-3",

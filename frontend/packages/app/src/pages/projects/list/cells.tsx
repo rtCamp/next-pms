@@ -36,11 +36,6 @@ function Dot({ colorClass }: { colorClass: string }) {
   );
 }
 
-// Phase indicator: approximates the Figma `icon/solid/stages` component
-// (16×16 donut). The underlying Figma asset is only reachable via its
-// instance path and would be served as a rasterised PNG with a 7-day
-// expiry — inline SVG is more robust and tints via `currentColor` so the
-// Tailwind `text-*` class on the caller picks the phase color.
 function StagesIcon({ className }: { className?: string }) {
   return (
     <svg
