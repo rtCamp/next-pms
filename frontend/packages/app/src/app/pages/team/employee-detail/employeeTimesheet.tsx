@@ -52,9 +52,14 @@ export const EmployeeTimesheet = ({
   const [likedTaskData, setLikedTaskData] = useState([]);
 
   const getLikedTaskData = () => {
-    fetchLikedTask({}).then((res) => {
-      setLikedTaskData(res.message ?? []);
-    });
+    fetchLikedTask({})
+      .then((res) => {
+        setLikedTaskData(res.message ?? []);
+      })
+      .catch((err) => {
+        console.error("Failed to fetch liked tasks:", err);
+        setLikedTaskData([]);
+      });
   };
 
   useEffect(() => {

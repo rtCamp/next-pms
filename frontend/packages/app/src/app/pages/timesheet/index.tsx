@@ -54,6 +54,12 @@ function Timesheet() {
     employee: user.employee,
     start_date: timesheet.weekDate,
     max_week: 4,
+  }, undefined, {
+    revalidateOnFocus: false,
+    revalidateIfStale: false,
+    revalidateOnReconnect: false,
+    errorRetryCount: 0,
+    shouldRetryOnError: false,
   });
 
   useEffect(() => {
@@ -68,13 +74,16 @@ function Timesheet() {
   }, []);
 
   useEffect(() => {
-    if (data) {
+    if (data?.message) {
       if (timesheet.data?.data && Object.keys(timesheet.data?.data).length > 0) {
         dispatch({ type: "APPEND_DATA", payload: data.message });
       } else {
         dispatch({ type: "SET_DATA", payload: data.message });
       }
     }
+  }, [data?.message]);
+
+  useEffect(() => {
     if (error) {
       const err = parseFrappeErrorMsg(error);
       toast({
@@ -82,8 +91,7 @@ function Timesheet() {
         description: err,
       });
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [data, dispatch, error, toast]);
+  }, [error]);
 
   useEffect(() => {
     if (Object.keys(timesheet.data.data).length == 0) return;
@@ -111,9 +119,14 @@ function Timesheet() {
   const [likedTaskData, setLikedTaskData] = useState([]);
 
   const getLikedTaskData = () => {
-    fetchLikedTask({}).then((res) => {
-      setLikedTaskData(res.message ?? []);
-    });
+    fetchLikedTask({})
+      .then((res) => {
+        setLikedTaskData(res.message ?? []);
+      })
+      .catch((err) => {
+        console.error("Failed to fetch liked tasks:", err);
+        setLikedTaskData([]);
+      });
   };
 
   useEffect(() => {
