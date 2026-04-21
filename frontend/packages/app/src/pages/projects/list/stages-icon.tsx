@@ -1,14 +1,22 @@
 /**
  * External dependencies.
  */
-import { type VariantProps } from "class-variance-authority";
+import { cva, type VariantProps } from "class-variance-authority";
 
-/**
- * Internal dependencies.
- */
-import { phaseIconVariants } from "./constants";
+const stagesIconVariants = cva("size-4 shrink-0", {
+  variants: {
+    phase: {
+      "delivery-prep": "text-ink-gray-4",
+      "kick-off": "text-ink-blue-3",
+      discovery: "text-ink-blue-3",
+      development: "text-ink-cyan-3",
+      launch: "text-ink-cyan-3",
+      "close-out": "text-ink-violet-3",
+    },
+  },
+});
 
-type StagesIconProps = VariantProps<typeof phaseIconVariants>;
+type StagesIconProps = VariantProps<typeof stagesIconVariants>;
 
 // @todo Use the Stages icon from frappe-ui-react when
 // https://github.com/rtCamp/frappe-ui-react/pull/248 is merged.
@@ -18,7 +26,7 @@ export function StagesIcon({ phase }: StagesIconProps) {
       aria-hidden="true"
       viewBox="0 0 16 16"
       fill="currentColor"
-      className={phaseIconVariants({ phase })}
+      className={stagesIconVariants({ phase })}
     >
       <path
         fillRule="evenodd"

@@ -2,12 +2,17 @@
  * External dependencies.
  */
 import { Progress } from "@rtcamp/frappe-ui-react";
-import { type VariantProps } from "class-variance-authority";
+import { cva, type VariantProps } from "class-variance-authority";
 
-/**
- * Internal dependencies.
- */
-import { budgetProgressVariants } from "./constants";
+const budgetProgressVariants = cva("", {
+  variants: {
+    tier: {
+      healthy: "!bg-surface-green-2 [&>div]:!bg-surface-green-5",
+      moderate: "!bg-surface-amber-2 [&>div]:!bg-surface-amber-5",
+      over: "!bg-surface-red-3 [&>div]:!bg-surface-red-5",
+    },
+  },
+});
 
 type BudgetTier = NonNullable<
   VariantProps<typeof budgetProgressVariants>["tier"]
