@@ -8,7 +8,7 @@ const stagesIconVariants = cva("size-4 shrink-0", {
     phase: {
       "delivery-prep": "text-ink-gray-4",
       "kick-off": "text-ink-blue-3",
-      discovery: "text-ink-blue-3",
+      discovery: "text-ink-amber-3",
       development: "text-ink-cyan-3",
       launch: "text-ink-cyan-3",
       "close-out": "text-ink-violet-3",
