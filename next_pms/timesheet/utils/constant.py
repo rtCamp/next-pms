@@ -17,6 +17,7 @@ ALLOWED_FILTER_FIELDS = {
     },
     "Timesheet Detail": {"project", "project_name", "task", "is_billable", "hours"},
     "Task": {"project", "status", "subject", "custom_is_billable", "expected_time", "actual_time"},
+    "Employee": {"status", "custom_business_unit"},
 }
 
 FILTER_LOOKBACK_WEEKS = 12

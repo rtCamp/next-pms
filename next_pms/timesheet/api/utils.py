@@ -390,12 +390,14 @@ def get_team_candidate_employee_ids(
     parsed_filters: dict | None = None,
     search: str | None = None,
     timesheet_status: list[str] | None = None,
+    status=None,
+    business_unit=None,
 ):
     if not dates:
         return []
 
     has_candidate_filters = bool(timesheet_status or search or any((parsed_filters or {}).values()))
-    if not has_candidate_filters:
+    if not has_candidate_filters and not status and not business_unit:
         return None
 
     employee_ids = get_matching_timesheet_employee_ids(
@@ -407,7 +409,14 @@ def get_team_candidate_employee_ids(
     if not employee_ids:
         return []
 
-    _, filtered_count = filter_employees(page_length=1, start=0, reports_to=reports_to, ids=employee_ids)
+    _, filtered_count = filter_employees(
+        page_length=1,
+        start=0,
+        reports_to=reports_to,
+        ids=employee_ids,
+        status=status,
+        business_unit=business_unit,
+    )
     if not filtered_count:
         return []
 
@@ -716,6 +725,8 @@ def paginate_qualifying_employee_payloads(
     start: int,
     page_length: int,
     builder,
+    status=None,
+    business_unit=None,
 ):
     selected = []
     total_count = 0
@@ -727,6 +738,8 @@ def paginate_qualifying_employee_payloads(
             start=employee_start,
             reports_to=reports_to,
             ids=employee_ids,
+            status=status,
+            business_unit=business_unit,
         )
         if not chunk:
             break
