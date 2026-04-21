@@ -37,7 +37,11 @@ Consolidated, ordered rules for writing code in the next-pms frontend. Each rule
 
 **NEVER** add a code comment without running the "could git blame / PR body / named identifiers tell a reviewer this?" test. If any answer is yes, delete. Three review rounds have flagged over-narrative comments.
 
-**NEVER** use a `Record<variant, className>` map, an enum-to-class lookup, or a switch in a cell component that has variants. The project convention is `class-variance-authority` (cva). Grep `rg "cva\("` first.
+**NEVER** use a `Record<variant, className>` map, an enum-to-class lookup, or a switch in a cell component that has variants. The project convention is `class-variance-authority` (cva), **co-located with the component that consumes it** — not in a shared `constants.ts`. Grep `rg "cva\("` first.
+
+**NEVER** put cva variants in `constants.ts`. `constants.ts` is for pure-data constants (labels, option arrays, enum-derived arrays). Variants are component behavior and live in the component's file.
+
+**NEVER** leave more than ~6 cell-like component files flat in a feature folder. Once the count accumulates, group them into a subdirectory (e.g. `pages/<feature>/cells/` with the dispatch as `cells/index.tsx`).
 
 **NEVER** use `<a href>` + `onClick={preventDefault; navigate}` for an inside-SPA click target when `<Button variant="ghost">` from `@rtcamp/frappe-ui-react` is the project convention. Anchors are for genuine outside-SPA links only.
 
@@ -62,27 +66,30 @@ Run before writing code for any new component, cell, helper, or styling override
 
 2. **Component variants via cva**: does the component have variants?
    - Variants = any prop that switches classNames (risk, phase, tier, size, theme, status, state, intent).
-   - Run `rg "cva\(" frontend/packages/` for patterns.
-   - Use `class-variance-authority` to expose variants as a typed prop:
+   - Run `rg "cva\(" frontend/packages/` for patterns. Note the context: patterns in `design-system/src/components/<name>/constants.ts` export variants for library reuse — that's a **library** shape. At the **app/feature** level (`app/src/pages/<feature>/`), variants co-locate with their component.
+   - Use `class-variance-authority` to expose variants as a typed prop, **defined in the component's own file** (NOT in `constants.ts`):
      ```tsx
+     // dot.tsx
      import { cva, type VariantProps } from "class-variance-authority";
 
-     const dotVariants = cva("inline-block h-2 w-2 shrink-0 rounded-full", {
+     const dotVariants = cva("size-2 shrink-0", {
        variants: {
          risk: {
-           "at-risk": "bg-ink-red-3",
-           caution: "bg-ink-amber-3",
-           "on-track": "bg-ink-green-3",
+           "at-risk": "text-ink-red-3",
+           caution: "text-ink-amber-3",
+           "on-track": "text-ink-green-3",
          },
        },
      });
 
      type DotProps = VariantProps<typeof dotVariants>;
      export function Dot({ risk }: DotProps) {
-       return <span aria-hidden className={dotVariants({ risk })} />;
+       return <svg aria-hidden className={dotVariants({ risk })} viewBox="0 0 8 8" fill="currentColor"><circle cx="4" cy="4" r="4" /></svg>;
      }
      ```
-   - **Failure mode (PR #1220 round 3, `cells.tsx:1`)**: `RISK_DOT_CLASS`, `PHASE_INDICATOR_CLASS`, `BUDGET_TIER_CLASSES` were all `Record<variant, string>` maps. Ayush: *"For any cells which have variants or there internal have variant use Cva to expose those variants. Do not use variant-className map or variant-color maps."*
+   - `constants.ts` stays for pure-data constants (e.g. `PHASE_LABELS: Record<Phase, string>`, `VIEWS` arrays, option lists).
+   - **Failure mode (PR #1220 round 3, `cells.tsx:1`)**: `RISK_DOT_CLASS`, `PHASE_INDICATOR_CLASS`, `BUDGET_TIER_CLASSES` were all `Record<variant, string>` maps. Ayush: *"For any cells which have variants or there internal have variant use Cva to expose those variants."*
+   - **Failure mode (PR #1220 round 4, `constants.ts:51` + `budget-progress-cell.tsx:14`)**: After migrating to cva in round 3, I put all three `cva()` definitions into a shared `constants.ts` based on the design-system library pattern. Ayush: *"Variants are exempt from the rule of constants being in the constant file. Variants should be in the same file as components."* The design-system's `task-status/constants.ts` exports `statusIconVariants` because it's a library primitive; at the feature level I should have co-located.
 
 3. **Design-system primitives over HTML elements**: what's the interactive target?
    - Buttons / chips / link-like targets inside the SPA → `Button` from `@rtcamp/frappe-ui-react` with the appropriate variant (`variant="ghost" | "subtle" | "solid" | "outline"`).
@@ -100,12 +107,30 @@ Run before writing code for any new component, cell, helper, or styling override
      ```
    - **Failure mode (PR #1220 round 3, `cells.tsx:59`)**: I wrote a custom `StagesIcon` SVG without checking for an upstream icon PR. Ayush pointed at `frappe-ui-react#248`.
 
-5. **One reusable component per file**:
+5. **One reusable component per file + subfolder grouping**:
    - Each reusable React component gets its own file, named after the component in kebab-case (e.g. `dot.tsx`, `stages-icon.tsx`, `project-name-cell.tsx`, `budget-progress-cell.tsx`).
    - Do not bag several components into one `cells.tsx`.
    - Exception: a tiny helper component used only inside its parent and not extracted/reused can stay inline. The moment it's extracted, split it out.
-   - A feature folder ending up with ~8–12 small files is the intended shape.
+   - **Subfolder grouping**: once a feature folder accumulates ~7 or more cell-like component files, group them into a `cells/` subdirectory. The dispatch component (the `switch(column.key)` that picks which cell renders) moves into the folder as `cells/index.tsx`, individual cell components are siblings inside. Keeps the feature-folder top level readable.
+     ```
+     pages/projects/list/
+     ├── index.tsx           (ListView wiring)
+     ├── columns.tsx
+     ├── constants.ts        (PHASE_LABELS — pure data only)
+     ├── types.ts
+     ├── fake-data.ts
+     └── cells/
+         ├── index.tsx       (ProjectListCell dispatch)
+         ├── dot.tsx
+         ├── stages-icon.tsx
+         ├── date-cell.tsx
+         ├── project-name-cell.tsx
+         ├── phase-cell.tsx
+         ├── budget-progress-cell.tsx
+         └── employee-cell.tsx
+     ```
    - **Failure mode (PR #1220 round 3, `cells.tsx:37` and `cells.tsx:59`)**: `Dot` and `StagesIcon` were left inside `cells.tsx` alongside `ProjectNameCell`, `PhaseCell`, etc. Ayush: *"Add this in a component file."*
+   - **Failure mode (PR #1220 round 4, `cell.tsx:1`)**: Even after splitting to one-file-per-component, I left 8 cell files flat in `list/`. Ayush: *"Make a folder for all cells. This file will be the index file for the cells dir."*
 
 6. **Route completeness**:
    - Does your change introduce a navigation target (a new `href`, a new `navigate()` call)?
@@ -156,10 +181,11 @@ Same anti-pattern six times across two rounds. The fix is not "write shorter com
 ## Page file layout
 
 - **Folder name follows the URL segment.** `/projects` → `pages/projects/` (plural). Don't mirror a neighbouring singular default. (PR #1208 correction: `pages/project/` → `pages/projects/`.)
-- **Each `pages/<feature>/` has its own `constants.ts` + `types.ts`**, separately. The rule recurses into sub-folders: `pages/<feature>/<sub>/` also gets its own `constants.ts` + `types.ts`.
+- **Each `pages/<feature>/` has its own `constants.ts` + `types.ts`**, separately. The rule recurses into sub-folders: `pages/<feature>/<sub>/` also gets its own `constants.ts` + `types.ts`. **`constants.ts` is for pure-data constants** (labels, option arrays, enum-derived arrays) — **never for cva variants**. Variants are component behavior and co-locate with the component that consumes them.
 - **Main page component is `index.tsx`**, exporting a component named after the feature (`Projects`, `Timesheet`). `layout.tsx` only for actual React-Router `<Outlet />` layouts (see `allocations/layout.tsx`); a route with a query-param switcher is NOT a layout.
 - **Placeholder / child-view components sit next to `index.tsx`** (`list/`, `kanban/` — folders or files depending on scale). No ad-hoc `components/` subdir unless a maintainer explicitly asks.
-- **Per-cell rendering lives in its own file**, not a `switch(column.key)` inside `index.tsx`. Dispatch component → `cell.tsx` (singular). Individual visual components → one per file (`dot.tsx`, `stages-icon.tsx`, `date-cell.tsx`, `project-name-cell.tsx`, etc.).
+- **Per-cell rendering lives in its own file**, not a `switch(column.key)` inside `index.tsx`. Dispatch component + individual visual components split per file.
+- **Group cell files under a `cells/` subfolder** once the feature folder accumulates ~7 or more. The dispatch `switch` becomes `cells/index.tsx`; individual components are siblings inside. (PR #1220 round 4 correction.)
 
 ---
 
@@ -168,7 +194,7 @@ Same anti-pattern six times across two rounds. The fix is not "write shorter com
 - **Icon identifiers verified against Figma metadata or a design-system story, never eyeballed from a thumbnail.** `AlignLeft` vs `List` vs `TextAlignStart` look similar at thumbnail size. Even a reviewer's suggested name can be wrong — verify against the fix commit / component name. (PR #1208 correction: `List` → `AlignLeft`.)
 - **Phase indicators are donut SVGs, not solid dots.** Figma component: `icon/solid/stages`. More generally, a small visual that *looks* like a solid dot in a low-resolution frame screenshot is often a themed icon instance — drill into the Figma leaf node's `<instance>` reference before rendering a `div.rounded-full`. (PR #1220 round 2 correction: dot → donut; round 3: use upstream `frappe-ui-react#248` icon when available.)
 - **Prefer design-system Tailwind tokens.** Scales exposed: `ink-*` (gray-4/5/7/8, red-3, amber-3, green-3, cyan-3, blue-3, violet-3), `surface-*` (gray-2/7, red-1..7, green-1..3+5, amber-1..3+5, blue-1..3, cyan-1..2, violet-1..2, etc.). Where a scale stop is missing (e.g. `surface-green-5`, `surface-amber-5` until PR #1220), **extend `global.css`'s `@theme` block** — don't sidestep with arbitrary `bg-[#hex]` or inline `style={{ backgroundColor: ... }}`.
-- **Variants via `cva`, not variant maps.** See Pre-implementation scan step 2.
+- **Variants via `cva`, co-located with the component (not in `constants.ts`).** See Pre-implementation scan step 2.
 
 ---
 
@@ -272,13 +298,19 @@ Mostly a doc PR. Established:
 - Check `app/lib/utils.ts` before creating `format.ts`.
 - Remove the `surface-*-5` explanation comment from `global.css`.
 
+**Round 4 (Ayush, 2026-04-21 — 4 hours after round 3):** 3 more corrections —
+- Variants (cva) co-locate with their component; don't put them in a shared `constants.ts`. (Design-system library pattern ≠ app feature-folder pattern.)
+- Once a feature folder has ~7+ cell files, group them under a `cells/` subfolder; the dispatch becomes `cells/index.tsx`.
+- Meta: even the first version of *this* skill had the wrong rule ("variants live in constants.ts") — I had used the design-system's `task-status/constants.ts` as the template. That pattern holds for library primitives exported for reuse, not for app-level feature components.
+
 **Recurring anti-patterns across rounds:**
 1. Over-narrative comments (flagged 6 times across rounds 2–3).
 2. Not adopting a project convention I hadn't searched for (cva, date-fns, types-file-per-folder, `surface-*` scale, `lib/utils.ts`).
-3. Aggregating components into a single file when the convention is one-per-file.
+3. Aggregating components into a single file when the convention is one-per-file — *and* not stepping up a level to "and should these be in a subfolder?" (round 4).
 4. Shipping "it works in my scope" instead of the adjacent complete path (missing destination route).
+5. **Applying a pattern from the adjacent layer without checking it's the right layer**: `design-system/src/components/<name>/constants.ts` is a library shape (variants exported for reuse); `app/src/pages/<feature>/` is a feature shape (variants co-located with their single consumer). When grepping for a pattern, verify the match comes from the same layer as the code I'm writing. (Rounds 3 + 4.)
 
-The Pre-implementation scan + Comment discipline sections above are written specifically to short-circuit these four.
+The Pre-implementation scan + Comment discipline sections above are written specifically to short-circuit these five.
 
 ---
 
