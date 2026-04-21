@@ -1,9 +1,10 @@
 /**
  * Internal dependencies.
  */
-import { PHASE_LABELS } from "./constants";
+import { PHASE_LABELS } from "../constants";
+import type { Phase } from "../types";
+
 import { StagesIcon } from "./stages-icon";
-import type { Phase } from "./types";
 
 export function PhaseCell({ phase }: { phase: Phase }) {
   return (

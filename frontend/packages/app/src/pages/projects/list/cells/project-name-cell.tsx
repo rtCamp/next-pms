@@ -9,8 +9,9 @@ import { useNavigate } from "react-router-dom";
  */
 import { ROUTES } from "@/lib/constant";
 
+import type { RiskLevel } from "../types";
+
 import { Dot } from "./dot";
-import type { RiskLevel } from "./types";
 
 export function ProjectNameCell({
   id,

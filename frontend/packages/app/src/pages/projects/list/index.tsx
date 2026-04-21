@@ -6,7 +6,7 @@ import { ListView } from "@rtcamp/frappe-ui-react";
 /**
  * Internal dependencies.
  */
-import { ProjectListCell } from "./cell";
+import { ProjectListCell } from "./cells";
 import { PROJECT_LIST_COLUMNS } from "./columns";
 import { FAKE_PROJECTS } from "./fake-data";
 
