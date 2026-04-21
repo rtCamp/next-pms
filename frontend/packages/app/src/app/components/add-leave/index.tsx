@@ -55,20 +55,38 @@ const AddLeave = ({ employee, employeeName, open = false, onOpenChange, onSucces
   const [leaveType, setLeaveType] = useState<Array<string>>([]);
   const postingDate = getTodayDate();
 
-  const { data: leaveDetails } = useFrappeGetCall(
+  const { data: leaveDetails, error: leaveError } = useFrappeGetCall(
     "hrms.hr.doctype.leave_application.leave_application.get_leave_details",
     {
       employee: selectedEmployee,
       date: postingDate,
+    },
+    undefined,
+    {
+      revalidateOnFocus: false,
+      revalidateIfStale: false,
+      revalidateOnReconnect: false,
+      errorRetryCount: 0,
+      shouldRetryOnError: false,
     }
   );
 
   useEffect(() => {
-    if (!leaveDetails) return;
-    const leaveType = Object.keys(leaveDetails?.message?.leave_allocation);
-    const types = leaveType.concat(leaveDetails?.message?.lwps);
+    if (!leaveDetails?.message) return;
+    const leaveType = Object.keys(leaveDetails?.message?.leave_allocation || {});
+    const types = leaveType.concat(leaveDetails?.message?.lwps || []);
     setLeaveType(types);
-  }, [leaveDetails]);
+  }, [leaveDetails?.message]);
+
+  useEffect(() => {
+    if (leaveError) {
+      const error = parseFrappeErrorMsg(leaveError);
+      toast({
+        description: error,
+        variant: "destructive",
+      });
+    }
+  }, [leaveError]);
 
   const form = useForm<z.infer<typeof LeaveSchema>>({
     resolver: zodResolver(LeaveSchema),
