@@ -17,18 +17,15 @@ export const PHASE_LABELS: Record<Phase, string> = {
   "close-out": "Close-out",
 };
 
-export const riskDotVariants = cva(
-  "inline-block h-2 w-2 shrink-0 rounded-full",
-  {
-    variants: {
-      risk: {
-        "at-risk": "bg-ink-red-3",
-        caution: "bg-ink-amber-3",
-        "on-track": "bg-ink-green-3",
-      },
+export const riskDotVariants = cva("size-2 shrink-0", {
+  variants: {
+    risk: {
+      "at-risk": "text-ink-red-3",
+      caution: "text-ink-amber-3",
+      "on-track": "text-ink-green-3",
     },
   },
-);
+});
 
 export const phaseIconVariants = cva("size-4 shrink-0", {
   variants: {
