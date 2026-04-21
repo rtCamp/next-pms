@@ -135,19 +135,46 @@ Everything outside that table still goes through the normal PR-caused-vs-pre-exi
 
 ### Project conventions learned from reviews
 
-Apply these pre-emptively rather than re-learning them in review. Each rule here comes from an actual correction a maintainer made on a past PR.
+Apply these pre-emptively rather than re-learning them in review. Each rule here comes from an actual correction a maintainer made on a past PR. The first two subsections (Pre-implementation scan, Comment discipline) matter most — skipping them has produced every round of review feedback so far.
+
+**Pre-implementation scan (≈ 2 minutes before writing any code)**
+
+Run this *every* time you're about to write a new component, cell, helper, or utility. Each step maps to a review comment that has already been made — running the scan up-front is the cheapest way to avoid another round.
+
+1. **Utilities**: before creating `format.ts` / `helpers.ts` / similar, scan `frontend/packages/app/src/lib/utils.ts` (and the design-system utils at `frontend/packages/design-system/src/utils/`). If the helper exists, reuse it. If it's generally useful and missing, add it to `lib/utils.ts`, not a feature-local file. Feature-local helpers only if the logic is truly feature-specific. (PR #1220 round-3 miss: I created `list/format.ts` for `formatProjectDate` without checking `lib/utils.ts`.)
+2. **Component variants**: if the component you're about to write has variants (risk, phase, tier, size, theme, status, state, etc.), search `rg "cva\("` first. Use `class-variance-authority` (`cva`) to expose the variant as a typed prop on the component. **Do not** build a `Record<variant, className>` map, an enum-to-class lookup, or a switch. (PR #1220 round-3 miss: `RISK_DOT_CLASS` / `PHASE_INDICATOR_CLASS` / `BUDGET_TIER_CLASSES` were all maps that should have been `cva`.)
+3. **Design-system primitives**: for any interactive element (link, button, chip, badge), reach for `frappe-ui-react` first — `Button variant="ghost" | "subtle" | "solid" | "outline"`, `Badge`, `Link`, etc. — before writing `<a href>` or `<button>` with hand-rolled styling. Anchors are for genuine outside-SPA links (e.g. `/desk/<user>`); inside-SPA interactions use the design-system primitive. (PR #1220 round-3 miss: `ProjectNameCell` used `<a onClick={preventDefault; navigate}>` when `<Button variant="ghost">` was the expected pattern.)
+4. **Upstream work in flight**: before inlining a workaround (custom SVG, reimplemented primitive, copied helper), run `gh pr list -R rtCamp/frappe-ui-react --state open --search <keyword>` and glance at recent commits on the submodule. If an upstream PR is close, leave a `@todo` pointing at it (e.g. `// TODO: use Stages icon from frappe-ui-react when PR #248 lands`) and use a minimal interim. (PR #1220 round-3 miss: the `icon/solid/stages` component had an open upstream PR `frappe-ui-react#248` that I didn't check before writing a custom SVG.)
+5. **One reusable component per file**: each reusable component goes in its own file named after the component (e.g. `dot.tsx`, `stages-icon.tsx`, `project-name-cell.tsx`). Don't aggregate several components in one `cells.tsx`. A tiny helper used only inside its parent may stay inline — the moment it's extracted or reused, split it out. A feature folder with ten small files is the intended shape. (PR #1220 round-3 miss: `Dot` and `StagesIcon` were left inside `cells.tsx`.)
+6. **Route completeness**: if your change adds a navigation target (a new `href` / `navigate` call), plan to land the destination route in the same PR. A placeholder route (e.g. `<UnderConstruction />`) rendered under the app's sidebar layout is fine. Don't ship a link that 404s. (PR #1220 round-3 miss: `ProjectNameCell` pointed at `/next-pms/projects/<id>` with no matching route; the plan's "detail page is a separate issue" rationale wasn't the bar.)
+
+**Comment discipline**
+
+Default: **zero comments**. Before adding one, run the test:
+
+> *Could a reviewer get this from `git blame` (the commit message), the PR body, or the named identifiers in the code alone?*
+
+If the answer is yes — even once — delete the comment. Rationale about tradeoffs, "I chose X over Y because...", "this is a Figma override because...", "the token scale is inconsistent...", "this wrapper is flex not inline-flex because..." — all of that belongs in the commit message or PR body, **not the file**. Git history carries rationale; file comments rot.
+
+Only two kinds of comment survive the test:
+
+- A one-line note documenting a **load-bearing constraint** that's non-obvious and would cause a correctness bug if ignored (e.g. `// base-ui requires a single child that forwards ref`).
+- A `@todo` pointing at tracked follow-up work (a GH issue, upstream PR, memory entry). `@todo` without a target isn't a follow-up, it's narration — still delete.
+
+This rule has been corrected by the maintainer three review rounds in a row. The fix is not "write shorter comments", it's *"don't write comments"*. Default to deleting.
 
 **Page file layout**
 - **Folder name follows the URL segment, not the repo's singular default.** If the route is `/projects`, the directory is `pages/projects/` (plural). Don't default to singular just because sibling folders happen to be (`task/`, `report/`, etc.) — look at the route. (PR #1208 correction: `pages/project/` → `pages/projects/`.)
 - **Each `pages/<feature>/` has a dedicated `constants.ts` and a dedicated `types.ts`.** `constants.ts` holds feature data constants (e.g. a `VIEWS` array); `types.ts` holds shared types derived from or referenced alongside them (e.g. `ViewKey`). Don't co-locate types with constants in a single file, and don't inline either in the component. **The rule recurses into sub-folders**: `pages/<feature>/<sub>/` also gets its own `constants.ts` + `types.ts`, not a flat everything-in-`index.tsx`. (PR #1220 correction: `pages/projects/list/` needed its own `constants.ts` for label + color maps and a `types.ts` entry for `ListViewColumn`.)
 - **Main page component is `index.tsx`, exporting a component named after the feature.** E.g. `pages/projects/index.tsx` exporting `Projects`. Only call a file `layout.tsx` when it is an actual React-Router route layout wrapping `<Outlet />` children (the `allocations/layout.tsx` pattern). A route that conditionally renders children based on a query param is **not** a layout — don't mechanically mirror the Allocations file structure if the routing shape is different.
 - **Placeholder/child view components stay next to `index.tsx`** (e.g. `list.tsx`, `kanban.tsx` alongside `index.tsx`) unless a maintainer explicitly asks for a `components/` subdirectory. Review feedback sometimes mentions a `components/` directory in passing — only create it if the reviewer's *fix commit* actually uses it.
-- **Per-cell rendering lives in its own file**, not a giant `switch(column.key)` block inside `index.tsx`. For a ListView-driven page, put the dispatch component (e.g. `ProjectListCell`) in `cell.tsx` and the individual visual components (e.g. `DateCell`, `BudgetProgressCell`) in `cells.tsx`.
+- **Per-cell rendering lives in its own file**, not a giant `switch(column.key)` block inside `index.tsx`. Dispatch component (e.g. `ProjectListCell`) → `cell.tsx` (singular). Individual visual components → **one per file** (`dot.tsx`, `stages-icon.tsx`, `date-cell.tsx`, `project-name-cell.tsx`, etc.) — don't aggregate into a single `cells.tsx`. (PR #1220 round-3 correction: `Dot` and `StagesIcon` had to be split out of `cells.tsx`.)
 
 **UI details**
 - **Icon identifiers must be verified against Figma metadata or a design-system story — never inferred by eyeballing a thumbnail.** `AlignLeft` vs `List` vs `TextAlignStart` look similar enough to confuse, and even a reviewer's suggested name can be wrong. When the exact lucide icon isn't obvious from Figma, ask the maintainer instead of guessing. (PR #1208 correction: `List` → `AlignLeft`.)
 - **Phase indicators in this codebase are donut SVGs (Figma component `icon/solid/stages`), not solid dots.** More generally: a small visual that *looks* like a dot in a low-resolution screenshot is often a themed icon instance. Before rendering a `<div className="rounded-full">`, drill into the Figma node for the phase/status cell and check whether it's a shape fill or an `<instance>` reference to a component. (PR #1220 correction: solid dots → `icon/solid/stages` donut.)
-- **Prefer design-system Tailwind tokens over inline `style={{ backgroundColor }}` or arbitrary `bg-[#hex]`.** The `ink/*` scale (`ink-red-3`, `ink-amber-3`, `ink-green-3`, `ink-cyan-3`, `ink-blue-3`, `ink-violet-3`, `ink-gray-4/5/7/8`) and most of `surface/*` are exposed as Tailwind classes. Where a scale stop is missing (e.g. `surface-green-5`, `surface-amber-5`), **extend `index.css` to add the token** — don't sidestep with arbitrary values or hex literals. (PR #1220 correction: `!bg-[#c3f9d3]` → extend `surface-green-5`.)
+- **Prefer design-system Tailwind tokens over inline `style={{ backgroundColor }}` or arbitrary `bg-[#hex]`.** The `ink/*` scale (`ink-red-3`, `ink-amber-3`, `ink-green-3`, `ink-cyan-3`, `ink-blue-3`, `ink-violet-3`, `ink-gray-4/5/7/8`) and most of `surface/*` are exposed as Tailwind classes. Where a scale stop is missing (e.g. `surface-green-5`, `surface-amber-5`), **extend `global.css`'s `@theme` block to add the token** — don't sidestep with arbitrary values or hex literals. (PR #1220 correction: `!bg-[#c3f9d3]` → extend `surface-green-5`.)
+- **Variants use `class-variance-authority` (`cva`), not `Record<variant, className>` maps.** For any component that switches classNames by a prop (risk, phase, tier, size, theme, state), `rg "cva\(" frontend/packages/` for the project's existing patterns and expose the variant as a typed prop via cva. (PR #1220 round-3 correction: `RISK_DOT_CLASS`, `PHASE_INDICATOR_CLASS`, `BUDGET_TIER_CLASSES` all needed to migrate from maps to cva.)
 
 **Reading Figma — drill to the leaf node**
 
@@ -159,16 +186,20 @@ The `mcp__figma__*` tools return different data depending on which node you call
 - For **typography** (font size, weight, leading, tracking): read the specific text node's token, not the frame's palette.
 - The rule is recursive with the existing "verify before inferring" rule — that rule says look up canonical identifiers in metadata; this one adds that metadata calls are *themselves* scoped to the node you pass, so you have to pass the right one.
 
-**Formatting helpers**
+**Formatting helpers + utility reuse**
 - **Use `date-fns`** for all date/time management. Don't hand-roll `Intl.DateTimeFormat` formatters or parsers. (PR #1220 correction.)
-- **Don't build formatter infrastructure for fake/placeholder data.** Currency in fake data renders as inline `` `$${amount}` `` at the call site — no helper function, no `Intl.NumberFormat`. Real currency wiring (locale + fraction digits + global default) is BE-integration work that lives in a separate issue.
+- **Check `frontend/packages/app/src/lib/utils.ts` (and `design-system/src/utils/`) before creating a feature-local helper.** If the helper is generally useful, add it to `lib/utils.ts` — not a feature-local `format.ts`. Feature-local only for feature-specific business logic. (PR #1220 round-3 correction: `list/format.ts` should have lived in `lib/utils.ts`.)
+- **Don't build formatter infrastructure for fake/placeholder data.** Currency in fake data renders as inline `` `$${amount.toLocaleString("en-US")}` `` at the call site — no helper function, no `Intl.NumberFormat`. Percent → `` `${n}%` ``. Real currency wiring (locale + fraction digits + global default) is BE-integration work that lives in a separate issue.
 
 **Interaction patterns**
 - **Per-cell click handlers, not `onRowClick`** when only some cells should navigate. A ListView `onRowClick` conflates row-select, name-click, and employee-click into one target; attach the `onClick` to the specific cell component (e.g. `ProjectNameCell`, `EmployeeCell`) so each column controls its own behavior.
+- **Use `Button variant="ghost"` from `@rtcamp/frappe-ui-react` for inside-SPA click targets**, not `<a href>` with `onClick preventDefault + navigate`. Anchors are for genuine outside-SPA links only (e.g. `/desk/user/<email>`). (PR #1220 round-3 correction: `ProjectNameCell` anchor → ghost Button.)
 - **Employee/user cells navigate to `<base>/desk/user/<user_email>`.** Any cell that represents a person needs the email in its data contract (not just name + initials) so the click target resolves.
+- **Complete the adjacent path.** If your change adds a navigation target, land the destination route in the same PR. A placeholder route (`<UnderConstruction />` under the sidebar layout) is the minimum — don't ship a link that 404s. (PR #1220 round-3 correction: `/projects/<id>` had no destination.)
 
 **Workaround discipline**
 - **If a workaround for a library gap starts feeling load-bearing, ping the maintainer before committing cycles to it.** Signs a workaround is getting expensive: defensive selector specificity, mirroring library internals, a growing code comment explaining *why* the workaround exists, or multiple iterations patching side-effects of the workaround. Ask whether the AC might flex — cheaper than a rollback later. (PR #1220 lesson: the sticky-column `overflow-y-*` override saga went through two iterations of overflow-neutralising before Ayush dropped the sticky requirement from the AC entirely.)
+- **Check for in-flight upstream PRs before inlining a workaround.** Run `gh pr list -R rtCamp/frappe-ui-react --state open --search <keyword>` before reimplementing a primitive (custom SVG, hand-rolled component, copied helper). If an upstream PR is close, use a minimal interim + leave a `@todo` pointing at the PR. (PR #1220 round-3 lesson: I wrote an inline `StagesIcon` without checking for `frappe-ui-react#248` which was already in flight.)
 
 ### Reading review comments
 - **Path anchor vs body text** — GitHub shows each inline comment against a file path. When the anchor says `pages/projects/index.tsx` but the body text mentions `pages/project/...`, the anchor is the intent; treat the body path as a typo.
@@ -178,6 +209,7 @@ The `mcp__figma__*` tools return different data depending on which node you call
 
 These are loaded automatically. Invoke them at the listed workflow points:
 
+- **`next-pms-conventions`** — **load FIRST at the start of any coding task in this repo.** Project-tailored reference built from three rounds of maintainer review on PR #1208 / #1212 / #1220. Contains the full Pre-implementation scan, comment discipline, cva/lib-utils/design-system-primitive rules, Figma drilling, review-round retrospectives, and anti-patterns to avoid. The summary in §"Project conventions learned from reviews" above is the quick version — the skill is the deep reference.
 - **`react-agents-review`** — run before closing any FE section (step 4). Structured pass for Rules of Hooks, stale closures, missing deps, a11y, TypeScript safety. Its output feeds the "is this section done?" gate.
 - **`advanced-react-patterns`** — consult whenever a section adds `useMemo`/`useCallback`/`React.memo` or introduces global state. Enforces composition-over-memoization, moving state down, and measuring before optimizing (step 4).
 - **`webapp-testing`** — **scoped to our Playwright e2e suite in `tests/e2e/`**, not the live step-2 browser-check (which uses Claude-in-Chrome MCP). Use it when writing/updating Playwright scripts or running deterministic headless regressions.
