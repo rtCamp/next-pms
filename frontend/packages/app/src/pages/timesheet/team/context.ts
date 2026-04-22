@@ -39,6 +39,7 @@ export interface TeamTimesheetContextProps {
   state: {
     hasMore: boolean;
     isLoadingTeamData: boolean;
+    isFilterRequest: boolean;
     weekGroups: WeekGroup[];
     filters: TimesheetFilters;
     searchInput: string;
@@ -57,6 +58,7 @@ export const TeamTimesheetContext = createContext<TeamTimesheetContextProps>({
   state: {
     hasMore: false,
     isLoadingTeamData: false,
+    isFilterRequest: false,
     weekGroups: [],
     filters: {
       search: "",

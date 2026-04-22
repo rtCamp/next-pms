@@ -64,13 +64,14 @@ export const TeamTimesheetProvider: FC<PropsWithChildren> = ({ children }) => {
     });
 
   useEffect(() => {
+    if (isLoadingTeamData) return;
     dispatch({ type: "DATA_LOADED", payload: weekGroups });
 
     if (error) {
       toast.error(parseFrappeErrorMsg(error as FrappeError));
     }
     /* eslint-disable-next-line react-hooks/exhaustive-deps */
-  }, [weekGroups, error]);
+  }, [weekGroups, error, isLoadingTeamData]);
 
   useFrappeEventListener("timesheet_info", (payload) => {
     dispatch({ type: "REALTIME_UPDATE", payload: payload.message });
@@ -106,6 +107,7 @@ export const TeamTimesheetProvider: FC<PropsWithChildren> = ({ children }) => {
       state: {
         hasMore,
         isLoadingTeamData,
+        isFilterRequest: state.isFilterRequest,
         weekGroups: state.weekGroups,
         filters: effectiveFilters,
         searchInput: state.searchInput,
@@ -122,6 +124,7 @@ export const TeamTimesheetProvider: FC<PropsWithChildren> = ({ children }) => {
     [
       hasMore,
       isLoadingTeamData,
+      state.isFilterRequest,
       loadMore,
       state.weekGroups,
       effectiveFilters,
