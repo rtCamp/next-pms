@@ -40,17 +40,12 @@ export interface TeamTimesheetContextProps {
     hasMore: boolean;
     isLoadingTeamData: boolean;
     weekGroups: WeekGroup[];
-    isWeeklyApprovalOpen: boolean;
-    employee: string;
-    startDate: string;
     filters: TimesheetFilters;
     searchInput: string;
     compositeFilters: FilterCondition[];
   };
   actions: {
     loadMore: () => void;
-    openWeeklyApproval: (employeeId: string, date: string) => void;
-    setIsWeeklyApprovalOpen: (state: boolean) => void;
     handleSearchChange: (value: string) => void;
     handleApprovalStatusChange: (value?: ApprovalStatusType | null) => void;
     handleReportsToChange: (value: string | null) => void;
@@ -63,9 +58,6 @@ export const TeamTimesheetContext = createContext<TeamTimesheetContextProps>({
     hasMore: false,
     isLoadingTeamData: false,
     weekGroups: [],
-    isWeeklyApprovalOpen: false,
-    employee: "",
-    startDate: "",
     filters: {
       search: "",
       approvalStatus: undefined,
@@ -76,8 +68,6 @@ export const TeamTimesheetContext = createContext<TeamTimesheetContextProps>({
   },
   actions: {
     loadMore: () => null,
-    openWeeklyApproval: () => null,
-    setIsWeeklyApprovalOpen: () => null,
     handleSearchChange: () => null,
     handleApprovalStatusChange: () => null,
     handleReportsToChange: () => null,

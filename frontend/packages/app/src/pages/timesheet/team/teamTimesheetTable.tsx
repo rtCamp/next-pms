@@ -22,20 +22,17 @@ import { sampleFields } from "../constants";
 
 export const TeamTimesheetTable = () => {
   const [selectedTask, setSelectedTask] = useState<string | null>(null);
+  const [weeklyApproval, setWeeklyApproval] = useState<{
+    employee: string;
+    startDate: string;
+  } | null>(null);
+
   const hasMore = useTeamTimesheet(({ state }) => state.hasMore);
   const isLoadingTeamData = useTeamTimesheet(
     ({ state }) => state.isLoadingTeamData,
   );
   const weekGroups = useTeamTimesheet(({ state }) => state.weekGroups);
   const loadMore = useTeamTimesheet(({ actions }) => actions.loadMore);
-  const isWeeklyApprovalOpen = useTeamTimesheet(
-    ({ state }) => state.isWeeklyApprovalOpen,
-  );
-  const employee = useTeamTimesheet(({ state }) => state.employee);
-  const startDate = useTeamTimesheet(({ state }) => state.startDate);
-  const setIsWeeklyApprovalOpen = useTeamTimesheet(
-    ({ actions }) => actions.setIsWeeklyApprovalOpen,
-  );
   const filters = useTeamTimesheet(({ state }) => state.filters);
   const searchInput = useTeamTimesheet(({ state }) => state.searchInput);
   const compositeFilters = useTeamTimesheet(
@@ -57,10 +54,12 @@ export const TeamTimesheetTable = () => {
   return (
     <div className="w-full flex-1 min-h-0 py-3.5 px-3">
       <WeeklyApproval
-        employee={employee}
-        startDate={startDate}
-        open={isWeeklyApprovalOpen}
-        onOpenChange={setIsWeeklyApprovalOpen}
+        employee={weeklyApproval?.employee ?? ""}
+        startDate={weeklyApproval?.startDate ?? ""}
+        open={!!weeklyApproval}
+        onOpenChange={(open) => {
+          if (!open) setWeeklyApproval(null);
+        }}
       />
       {selectedTask && (
         <TeamTaskLog
@@ -146,6 +145,9 @@ export const TeamTimesheetTable = () => {
                       firstWeek={index === 0}
                       approvalPendingCount={week.approvalPendingCount}
                       setSelectedTask={setSelectedTask}
+                      openWeeklyApproval={(employee, date) =>
+                        setWeeklyApproval({ employee, startDate: date })
+                      }
                       teamMembers={week.members.map((member) => ({
                         label: member.employee.employee_name,
                         employee: member.employee.name,
