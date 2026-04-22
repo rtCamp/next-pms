@@ -1,18 +1,25 @@
 import { useId } from "react";
+import { cva, type VariantProps } from "class-variance-authority";
 
-type CrosshatchVariant = "under" | "full" | "over" | "timeoff" | "project";
+const crosshatchVariants = cva(
+  "pointer-events-none absolute inset-0 h-full w-full",
+  {
+    variants: {
+      variant: {
+        under: "[--hatch-color:var(--color-ink-amber-3,#B45309)]",
+        full: "[--hatch-color:var(--color-ink-green-3,#15803D)]",
+        over: "[--hatch-color:var(--color-ink-violet-1,#7C3AED)]",
+        timeoff: "[--hatch-color:var(--color-ink-gray-6,#616161)]",
+        project: "[--hatch-color:var(--color-ink-gray-5,#3D3D3D)]",
+      },
+    },
+    defaultVariants: {
+      variant: "project",
+    },
+  },
+);
 
-const hatchColorByVariant: Record<CrosshatchVariant, string> = {
-  under: "var(--color-ink-amber-3, #B45309)",
-  full: "var(--color-ink-green-3, #15803D)",
-  over: "var(--color-ink-violet-1, #7C3AED)",
-  timeoff: "var(--color-ink-gray-6, #616161)",
-  project: "var(--color-ink-gray-5, #3D3D3D)",
-};
-
-interface CrosshatchLayerProps {
-  variant?: CrosshatchVariant;
-}
+type CrosshatchLayerProps = VariantProps<typeof crosshatchVariants>;
 
 export const CrosshatchLayer = ({ variant }: CrosshatchLayerProps) => {
   // Many bars render this component at once. IDs must be unique, otherwise one bar can accidentally use another bar's pattern/mask.
@@ -20,17 +27,14 @@ export const CrosshatchLayer = ({ variant }: CrosshatchLayerProps) => {
   const hatchPatternId = `gantt-hatch-${uniqueId}`;
   const hatchFadeId = `gantt-hatch-fade-${uniqueId}`;
   const hatchMaskId = `gantt-hatch-mask-${uniqueId}`;
-  const color = variant
-    ? hatchColorByVariant[variant]
-    : hatchColorByVariant.project;
 
   return (
     <svg
       aria-hidden="true"
-      className="pointer-events-none absolute inset-0 h-full w-full"
+      className={crosshatchVariants({ variant })}
       preserveAspectRatio="none"
       style={{
-        color,
+        color: "var(--hatch-color)",
         mixBlendMode: "multiply",
         opacity: 0.5,
       }}
