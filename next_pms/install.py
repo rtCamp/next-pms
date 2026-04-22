@@ -86,10 +86,6 @@ def create_roles():
 def create_default_project_phases():
     import frappe
 
-    # Sanity check: if ANY phase exists, skip entirely
-    if frappe.db.count("Project Phase") > 0:
-        return
-
     phases = [
         {"doctype": "Project Phase", "phase": "Delivery Prep", "position": 1, "color": "gray"},
         {"doctype": "Project Phase", "phase": "Kick Off", "position": 2, "color": "blue"},
@@ -99,4 +95,6 @@ def create_default_project_phases():
         {"doctype": "Project Phase", "phase": "Close Out", "position": 6, "color": "purple"},
     ]
 
-    create_docs(phases)
+    for phase_data in phases:
+        if not frappe.db.exists("Project Phase", {"phase": phase_data["phase"]}):
+            frappe.get_doc(phase_data).insert(ignore_permissions=True, ignore_mandatory=True)
