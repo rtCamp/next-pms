@@ -15,11 +15,13 @@ import { useUser } from "./providers/user";
 const Home = lazy(() => import("@/pages/home"));
 const Task = lazy(() => import("@/pages/task"));
 const Projects = lazy(() => import("@/pages/projects"));
-const TimesheetLayout = lazy(() => import("@/pages/timesheet/layout"));
 const PersonalTimesheetLayout = lazy(
   () => import("@/pages/timesheet/personal/layout"),
 );
 const TeamTimesheetLayout = lazy(() => import("@/pages/timesheet/team/layout"));
+const ProjectTimesheetLayout = lazy(
+  () => import("@/pages/timesheet/project/layout"),
+);
 const TimesheetPersonal = lazy(() => import("@/pages/timesheet/personal"));
 const TimesheetTeam = lazy(() => import("@/pages/timesheet/team"));
 const TimesheetProject = lazy(() => import("./pages/timesheet/project"));
@@ -50,7 +52,7 @@ export function Router() {
               element={<TimesheetTeam />}
             />
           </Route>
-          <Route element={<TimesheetLayout />}>
+          <Route element={<ProjectTimesheetLayout />}>
             <Route
               path={ROUTES["timesheet-project"]}
               element={<TimesheetProject />}
