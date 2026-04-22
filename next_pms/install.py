@@ -7,6 +7,7 @@ def after_install():
     create_roles()
     add_project_manager_perm()
     setup_email_template()
+    create_default_project_phases()
 
 
 def add_project_manager_perm():
@@ -80,3 +81,20 @@ def create_roles():
     for role in roles:
         role = frappe.get_doc({"doctype": "Role", "role_name": role, "is_custom": 1})
         role.insert(ignore_permissions=True, ignore_if_duplicate=True)
+
+
+def create_default_project_phases():
+    import frappe
+
+    phases = [
+        {"doctype": "Project Phase", "phase": "Delivery Prep", "position": 1, "color": "gray"},
+        {"doctype": "Project Phase", "phase": "Kick Off", "position": 2, "color": "blue"},
+        {"doctype": "Project Phase", "phase": "Discovery", "position": 3, "color": "orange"},
+        {"doctype": "Project Phase", "phase": "Development", "position": 4, "color": "cyan"},
+        {"doctype": "Project Phase", "phase": "Launch", "position": 5, "color": "green"},
+        {"doctype": "Project Phase", "phase": "Close Out", "position": 6, "color": "purple"},
+    ]
+
+    for phase_data in phases:
+        if not frappe.db.exists("Project Phase", {"phase": phase_data["phase"]}):
+            frappe.get_doc(phase_data).insert(ignore_permissions=True, ignore_mandatory=True)
