@@ -98,6 +98,12 @@ export function useTeamTimesheetData({
     }
   }, [filters, compositeFilters, resetData]);
 
+  const hasActiveFilter =
+    !!filters.reportsTo ||
+    !!filters.search ||
+    !!filters.approvalStatus ||
+    compositeFilters.length > 0;
+
   const {
     data: teamData,
     error: teamDataError,
@@ -113,6 +119,7 @@ export function useTeamTimesheetData({
       ? JSON.stringify([ApprovalStatusLabelMap[filters.approvalStatus]])
       : null,
     filters: frappeFilters.length > 0 ? JSON.stringify(frappeFilters) : null,
+    skip_empty_weeks: hasActiveFilter || null,
   });
 
   useEffect(() => {
@@ -125,12 +132,10 @@ export function useTeamTimesheetData({
   // All transformation lives here. Because this is pure data derivation (no side effects).
   const { hasMoreWeeks, hasMoreEmployees, hasMore, weekGroups } =
     useMemo(() => {
-      const hasMoreWeeks = true;
+      const oneYearAgo = addDays(new Date(getTodayDate()), -365 * 2);
+      const hasMoreWeeks = new Date(weekDate) > oneYearAgo;
       const hasMoreEmployees =
         pages.length > 0 ? (pages[pages.length - 1].has_more ?? false) : true;
-
-      // Collapse all pages into a weeks map and a per-employee map.
-      const weeksMap: Record<string, WeekEntry> = {};
 
       type EmployeeState = {
         member: EmployeeRecord;
@@ -143,13 +148,17 @@ export function useTeamTimesheetData({
       const employeeMap: Record<string, EmployeeState> = {};
 
       pages.forEach((payload) => {
-        (payload.dates ?? []).forEach((week) => {
-          weeksMap[week.start_date] = week;
-        });
-
         Object.values(payload.data ?? {})
           .filter((emp) => emp.name)
           .forEach((emp) => {
+            // Eliminate "Not Submitted" weeks at the source so all downstream
+            // logic can assume every timesheet entry is worth displaying.
+            const submittedTimesheets = Object.fromEntries(
+              Object.entries(emp.timesheet_details ?? {}).filter(
+                ([, week]) => week.status !== "Not Submitted",
+              ),
+            );
+
             if (!employeeMap[emp.name]) {
               employeeMap[emp.name] = {
                 member: {
@@ -159,7 +168,7 @@ export function useTeamTimesheetData({
                 },
                 working_hour: emp.working_hour,
                 working_frequency: emp.working_frequency,
-                timesheetDetails: emp.timesheet_details ?? {},
+                timesheetDetails: submittedTimesheets,
                 leaves: emp.leaves ?? [],
                 holidays: emp.holidays ?? [],
               };
@@ -177,7 +186,7 @@ export function useTeamTimesheetData({
                 ...existing,
                 timesheetDetails: {
                   ...existing.timesheetDetails,
-                  ...(emp.timesheet_details ?? {}),
+                  ...submittedTimesheets,
                 },
                 leaves: [
                   ...existing.leaves,
@@ -196,19 +205,7 @@ export function useTeamTimesheetData({
           });
       });
 
-      const weekMap = new Map<string, WeekGroup>(
-        Object.values(weeksMap).map((week) => [
-          week.start_date,
-          {
-            key: week.key,
-            start_date: week.start_date,
-            end_date: week.end_date,
-            dates: week.dates,
-            members: [],
-            approvalPendingCount: 0,
-          } as WeekGroup,
-        ]),
-      );
+      const weekMap = new Map<string, WeekGroup>();
 
       Object.values(employeeMap).forEach(
         ({
@@ -220,9 +217,6 @@ export function useTeamTimesheetData({
           holidays,
         }) => {
           Object.values(timesheetDetails).forEach((week) => {
-            if (week.status === "Not Submitted") {
-              return;
-            }
             const weekId = week.start_date;
             if (!weekMap.has(weekId)) {
               weekMap.set(weekId, {
@@ -261,7 +255,30 @@ export function useTeamTimesheetData({
       const hasMore = hasMoreEmployees || hasMoreWeeks;
 
       return { hasMoreWeeks, hasMoreEmployees, hasMore, weekGroups };
-    }, [pages]);
+    }, [pages, weekDate]);
+
+  // Auto-advance the week window when a fully-loaded window yields no visible
+  // weeks (all employees have "Not Submitted" timesheets for that range).
+  // This prevents a "No Data" screen when data exists in older date ranges,
+  // which happens frequently when skip_empty_weeks is active with a filter.
+  useEffect(() => {
+    if (isLoadingTeamApiData) return;
+    if (pages.length === 0) return;
+    if (hasMoreEmployees) return; // current window not fully loaded yet
+    if (weekGroups.length > 0) return; // we have visible data
+    if (!hasMoreWeeks) return;
+
+    setWeekDate((prev) =>
+      getFormatedDate(addDays(prev, -(NUMBER_OF_WEEKS_TO_FETCH * 7))),
+    );
+    setEmployeeStart(0);
+  }, [
+    isLoadingTeamApiData,
+    hasMoreEmployees,
+    hasMoreWeeks,
+    weekGroups.length,
+    pages.length,
+  ]);
 
   // Unified loadMore: prioritizes employee pagination, then week pagination.
   const loadMore = useCallback(() => {
@@ -273,13 +290,16 @@ export function useTeamTimesheetData({
       return;
     }
 
-    // Priority 2: Load more weeks (with employee pagination reset)
-    if (hasMoreWeeks && weekGroups.length > 0) {
-      const oldestWeek = weekGroups[weekGroups.length - 1];
-      setWeekDate(getFormatedDate(addDays(oldestWeek.start_date, -1)));
+    // Priority 2: Load more weeks (with employee pagination reset).
+    // Advance by the fixed batch window from the current weekDate so we always
+    // produce a new date value.
+    if (hasMoreWeeks) {
+      setWeekDate((prev) =>
+        getFormatedDate(addDays(prev, -(NUMBER_OF_WEEKS_TO_FETCH * 7))),
+      );
       setEmployeeStart(0);
     }
-  }, [hasMoreEmployees, hasMoreWeeks, isLoadingTeamApiData, weekGroups]);
+  }, [hasMoreEmployees, hasMoreWeeks, isLoadingTeamApiData]);
 
   return {
     hasMore,
