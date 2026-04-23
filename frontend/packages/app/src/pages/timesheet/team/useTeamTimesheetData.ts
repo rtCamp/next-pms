@@ -12,6 +12,7 @@ import { useFrappeGetCall } from "frappe-react-sdk";
 /**
  * Internal dependencies.
  */
+import type { TeamMember } from "@/components/timesheet-row/teamTimesheetRow";
 import { NUMBER_OF_WEEKS_TO_FETCH } from "@/lib/constant";
 import { buildCompositeFilters } from "@/lib/utils";
 import type { DataProp, TimesheetFilters } from "@/types/timesheet";
@@ -238,13 +239,16 @@ export function useTeamTimesheetData({
               targetWeek.approvalPendingCount += 1;
             }
             targetWeek.members.push({
-              employee: member,
-              week,
-              holidays,
+              label: member.employee_name,
+              employee: member.name,
+              avatarUrl: member.image ?? undefined,
+              tasks: week.tasks,
               leaves,
-              working_hour,
-              working_frequency,
-            });
+              holidays,
+              workingHour: working_hour,
+              workingFrequency: working_frequency,
+              status: week.status,
+            } satisfies TeamMember);
           });
         },
       );

@@ -162,17 +162,7 @@ export const TeamTimesheetTable = () => {
                       openWeeklyApproval={(employee, date) =>
                         setWeeklyApproval({ employee, startDate: date })
                       }
-                      teamMembers={week.members.map((member) => ({
-                        label: member.employee.employee_name,
-                        employee: member.employee.name,
-                        avatarUrl: member.employee.image ?? undefined,
-                        tasks: member.week.tasks,
-                        leaves: member.leaves,
-                        holidays: member.holidays,
-                        workingHour: member.working_hour,
-                        workingFrequency: member.working_frequency,
-                        status: member.week.status,
-                      }))}
+                      teamMembers={week.members}
                     />
                   </div>
                 </Fragment>

@@ -8,8 +8,8 @@ import { createContext, useContextSelector } from "use-context-selector";
 /**
  * Internal dependencies.
  */
-import type { WorkingFrequency } from "@/types";
-import type { DataProp, TimesheetFilters, timesheet } from "@/types/timesheet";
+import type { TeamMember } from "@/components/timesheet-row/teamTimesheetRow";
+import type { TimesheetFilters } from "@/types/timesheet";
 
 export type EmployeeRecord = {
   name: string;
@@ -17,21 +17,12 @@ export type EmployeeRecord = {
   employee_name: string;
 };
 
-export type WeekEmployeeData = {
-  employee: EmployeeRecord;
-  week: timesheet;
-  holidays: DataProp["holidays"];
-  leaves: DataProp["leaves"];
-  working_hour: number;
-  working_frequency: WorkingFrequency;
-};
-
 export type WeekGroup = {
   key: string;
   start_date: string;
   end_date: string;
   dates: string[];
-  members: WeekEmployeeData[];
+  members: TeamMember[];
   approvalPendingCount: number;
 };
 
