@@ -2,7 +2,7 @@ export const ROUTES = {
   base: "/next-pms",
   home: "/",
   task: "/task",
-  project: "/project",
+  project: "/projects",
   "timesheet-personal": "/timesheet",
   "timesheet-team": "/timesheet/team",
   "timesheet-project": "/timesheet/project",
@@ -13,7 +13,7 @@ export const ROUTES = {
   desk: "/desk",
   apps: "/apps",
 };
-export const LIKED_TASK_KEY = "next_pms_liked_task";
+export const IMPORTED_TASKS_STORAGE_KEY = "next-pms:importedTasks";
 // user roles for timesheet
 export const ROLES = [
   "Projects Manager",

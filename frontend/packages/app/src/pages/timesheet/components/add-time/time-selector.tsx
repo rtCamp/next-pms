@@ -28,13 +28,14 @@ interface TimeSelectorProps {
 }
 const TimeSelector = ({ onClick }: TimeSelectorProps) => {
   const [shouldOpen, setShouldOpen] = useState(false);
-  const time = [...(getLocalStorage("customTime") || []), ...CustomTime].sort(
-    (a, b) => {
-      const timeA = a.split(":").map(Number);
-      const timeB = b.split(":").map(Number);
-      return timeA[0] * 60 + timeA[1] - (timeB[0] * 60 + timeB[1]);
-    },
-  );
+  const time = [
+    ...getLocalStorage<string[]>("customTime", []),
+    ...CustomTime,
+  ].sort((a, b) => {
+    const timeA = a.split(":").map(Number);
+    const timeB = b.split(":").map(Number);
+    return timeA[0] * 60 + timeA[1] - (timeB[0] * 60 + timeB[1]);
+  });
   return (
     <>
       <AddCustomTime setOpen={setShouldOpen} isOpen={shouldOpen} />
@@ -42,17 +43,17 @@ const TimeSelector = ({ onClick }: TimeSelectorProps) => {
         <DropdownMenuTrigger asChild>
           <Button
             variant="ghost"
-            className=" border-0 hover:bg-transparent group"
+            className="border-0  hover:bg-transparent group"
           >
             <Clock3 className="stroke-slate-400 group-hover:stroke-primary" />
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent className="p-0 z-[1001]  w-fit min-w-0">
-          <div className="max-h-40 overflow-y-auto">
+          <div className="overflow-y-auto max-h-40">
             {time.map((time) => (
               <DropdownMenuItem
                 key={time}
-                className="cursor-pointer w-fit px-2 hover:bg-accent"
+                className="px-2 cursor-pointer w-fit hover:bg-accent"
                 onClick={() => onClick?.(time)}
               >
                 {time}
@@ -64,7 +65,7 @@ const TimeSelector = ({ onClick }: TimeSelectorProps) => {
             onClick={() => {
               setShouldOpen(true);
             }}
-            className="cursor-pointer flex items-center justify-center px-2 hover:bg-accent border-t rounded-none"
+            className="flex justify-center items-center px-2 rounded-none border-t cursor-pointer hover:bg-accent"
           >
             <PlusCircle />
           </DropdownMenuItem>
@@ -81,7 +82,7 @@ const AddCustomTime = ({
   isOpen: boolean;
   setOpen: (value: React.SetStateAction<boolean>) => void;
 }) => {
-  const customTime = getLocalStorage("customTime") || [];
+  const customTime = getLocalStorage<string[]>("customTime", []);
   const handleAddCustomTime = (
     event: React.KeyboardEvent<HTMLInputElement>,
   ) => {
@@ -99,7 +100,7 @@ const AddCustomTime = ({
   };
   return (
     <Dialog open={isOpen} onOpenChange={setOpen}>
-      <DialogContent className="z-1001 ">
+      <DialogContent className="z-1001">
         <DialogHeader>
           <DialogTitle>Add Custom Time</DialogTitle>
         </DialogHeader>

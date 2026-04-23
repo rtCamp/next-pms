@@ -36,7 +36,7 @@ export const UserProvider: FC<PropsWithChildren> = ({ children }) => {
 
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState<
     UserContextProps["state"]["isSidebarCollapsed"]
-  >(getLocalStorage("next-pms:isSidebarCollapsed") || false);
+  >(getLocalStorage("next-pms:isSidebarCollapsed", false));
   const [roles, setRoles] = useState<UserContextProps["state"]["roles"]>(
     window.frappe?.boot?.user?.roles || [],
   );

@@ -51,6 +51,9 @@ export const TaskRow = ({
   const likedTaskData = usePersonalTimesheet(
     ({ state }) => state.likedTaskData,
   );
+  const refetchLikedTasks = usePersonalTimesheet(
+    ({ actions }) => actions.refetchLikedTasks,
+  );
   const { call: toggleLikeCall } = useFrappePostCall(
     "frappe.desk.like.toggle_like",
   );
@@ -112,6 +115,8 @@ export const TaskRow = ({
     setTaskLiked((prev) => !prev);
     try {
       await toggleLikeCall(data);
+      // Refetch liked tasks to update the context
+      refetchLikedTasks();
     } catch (err) {
       const error = parseFrappeErrorMsg(
         err as Parameters<typeof parseFrappeErrorMsg>[0],
