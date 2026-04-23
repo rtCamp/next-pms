@@ -1,21 +1,20 @@
-import type {
-  AllocationEmployeeOption,
-  AllocationProjectOption,
-} from "./types";
+import { getTodayDate } from "@next-pms/design-system/date";
 
-export const ALLOCATION_RECURRENCE_LABELS = {
+export const allocationRecurrenceLabels = {
   "one-time": "One Time",
   recurring: "Recurring",
 } as const;
 
-export const EMPLOYEE_OPTIONS: AllocationEmployeeOption[] = [
-  { value: "emp-david", label: "David Liu" },
-  { value: "emp-grace", label: "Grace Park" },
-  { value: "emp-noah", label: "Noah Adeyemi" },
-];
-
-export const PROJECT_OPTIONS: AllocationProjectOption[] = [
-  { value: "proj-atlas", label: "Atlas UI Stabilisation" },
-  { value: "proj-portal", label: "Client Portal" },
-  { value: "proj-api", label: "API Gateway" },
-];
+export const addAllocationDefaultValues = {
+  employeeId: "",
+  projectId: "",
+  recurrence: "one-time",
+  includeWeekends: true,
+  fromDate: getTodayDate(),
+  toDate: getTodayDate(),
+  hoursPerDay: 0,
+  repeatFor: 0,
+  isBillable: true,
+  isTentative: false,
+  note: "",
+} as const;

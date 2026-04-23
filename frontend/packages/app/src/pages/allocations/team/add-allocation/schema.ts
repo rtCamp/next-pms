@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { ALLOCATION_RECURRENCE_LABELS } from "./constants";
+import { allocationRecurrenceLabels } from "./constants";
 
 export const addAllocationFormSchema = z
   .object({
@@ -20,7 +20,7 @@ export const addAllocationFormSchema = z
         required_error: "Please select recurrence.",
       })
       .refine(
-        (value) => Object.keys(ALLOCATION_RECURRENCE_LABELS).includes(value),
+        (value) => Object.keys(allocationRecurrenceLabels).includes(value),
         {
           message: "Please select recurrence.",
         },
@@ -41,17 +41,17 @@ export const addAllocationFormSchema = z
     hoursPerDay: z.number({
       required_error: "Please enter hours per day.",
     }),
-    repeatFor: z.number().int().min(1).optional(),
+    repeatFor: z.number().int().nonnegative(),
     isBillable: z.boolean(),
     isTentative: z.boolean(),
-    note: z.string().trim().optional(),
+    note: z.string().trim(),
   })
   .superRefine((value, ctx) => {
-    if (value.recurrence === "recurring" && !value.repeatFor) {
+    if (value.recurrence === "recurring" && value.repeatFor < 1) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         path: ["repeatFor"],
-        message: "Please enter repeat for.",
+        message: "Repeat for must be at least 1.",
       });
     }
   });
