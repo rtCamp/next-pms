@@ -1,15 +1,23 @@
 import { createContext, useContext } from "react";
-import { startOfWeek } from "date-fns";
+import { addDays, startOfWeek } from "date-fns";
 import { createStore, useStore } from "zustand";
 import { useShallow } from "zustand/react/shallow";
 import { ROW_HEADER_WIDTH } from "./constants";
-import type { Member } from "./types";
+import type { Member as BaseMember } from "./types";
+import { prepareMemberBars } from "./utils";
+import type { Member } from "./utils";
+export type {
+  Member,
+  MemberAllocationBar,
+  ProjectAllocationBar,
+} from "./utils";
 
 interface GanttProps {
-  members: Member[];
+  members: BaseMember[];
   showWeekend: boolean;
   startDate: Date;
   weekCount: number;
+  hasRoleAccess: boolean;
 }
 
 interface GanttState extends GanttProps {
@@ -19,6 +27,8 @@ interface GanttState extends GanttProps {
   weekStart: Date;
   weeks: number[];
   columns: number[];
+  weekendColumns: number[];
+  members: Member[];
   // ui state
   expandedRows: Set<number>;
   headerWidth: number;
@@ -40,6 +50,19 @@ export const createGanttStore = (initProps: GanttProps) => {
   });
   const weeks = Array.from({ length: initProps.weekCount }, (_, i) => i);
   const columns = Array.from({ length: columnCount }, (_, i) => i);
+  const weekendColumns = initProps.showWeekend
+    ? columns.filter((colIndex) => {
+        const day = addDays(weekStart, colIndex);
+        const dayOfWeek = day.getDay();
+        return dayOfWeek === 0 || dayOfWeek === 6;
+      })
+    : [];
+  const members = prepareMemberBars(
+    initProps.members,
+    weekStart,
+    columnCount,
+    initProps.showWeekend,
+  );
 
   return createStore<GanttState>()((set, get) => ({
     ...initProps,
@@ -48,6 +71,8 @@ export const createGanttStore = (initProps: GanttProps) => {
     weekStart,
     weeks,
     columns,
+    weekendColumns,
+    members,
     expandedRows: new Set(),
     headerWidth: ROW_HEADER_WIDTH,
     resizeHandleActive: false,
@@ -71,16 +96,20 @@ export const createGanttStore = (initProps: GanttProps) => {
       const startWidth = get().headerWidth;
       set({ resizeHandleActive: true });
 
-      const onMouseMove = (e: MouseEvent) => {
+      const onPointerMove = (e: PointerEvent) => {
         get().setHeaderWidth(Math.max(120, startWidth + (e.clientX - startX)));
       };
-      const onMouseUp = () => {
+
+      const stopResize = () => {
         set({ resizeHandleActive: false });
-        document.removeEventListener("mousemove", onMouseMove);
-        document.removeEventListener("mouseup", onMouseUp);
+        document.removeEventListener("pointermove", onPointerMove);
+        document.removeEventListener("pointerup", stopResize);
+        document.removeEventListener("pointercancel", stopResize);
       };
-      document.addEventListener("mousemove", onMouseMove);
-      document.addEventListener("mouseup", onMouseUp);
+
+      document.addEventListener("pointermove", onPointerMove);
+      document.addEventListener("pointerup", stopResize);
+      document.addEventListener("pointercancel", stopResize);
     },
   }));
 };

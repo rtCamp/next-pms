@@ -5,6 +5,21 @@ export interface Allocation {
   startDate: Date;
   /** Last day of the allocation (inclusive). */
   endDate: Date;
+  /** Whether the allocation is billable. */
+  billable?: boolean;
+  /** Whether the allocation is tentative. */
+  tentative?: boolean;
+}
+
+export interface MemberBarAllocation extends Allocation {
+  type?: "default" | "timeoff";
+}
+
+export interface LeaveAllocation {
+  /** First day of leave. */
+  startDate: Date;
+  /** Last day of leave (inclusive). */
+  endDate: Date;
 }
 
 export interface Project {
@@ -21,6 +36,7 @@ export interface Member {
   image?: string;
   badge?: string;
   projects?: Project[];
+  leaves?: LeaveAllocation[];
 }
 
 export interface GanttGridProps {
@@ -32,4 +48,6 @@ export interface GanttGridProps {
   members: Member[];
   /** Whether to include Saturday and Sunday columns. When false, week boundary is every 5th column. */
   showWeekend?: boolean;
+  /** Whether current user can manage member projects. */
+  hasRoleAccess?: boolean;
 }
