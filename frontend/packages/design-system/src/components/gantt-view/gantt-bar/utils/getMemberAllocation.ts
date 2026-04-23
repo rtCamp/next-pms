@@ -1,9 +1,9 @@
 import { addDays, eachDayOfInterval, isSameDay, startOfDay } from "date-fns";
-import type { Allocation, LeaveAllocation, Project } from "../../types";
-
-interface MemberBarAllocation extends Allocation {
-  type?: "default" | "timeoff";
-}
+import type {
+  LeaveAllocation,
+  MemberBarAllocation,
+  Project,
+} from "../../types";
 
 /**
  * Derives a member's total allocation per calendar day by summing hours across

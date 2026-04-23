@@ -1,49 +1,22 @@
 import { differenceInCalendarDays } from "date-fns";
 import { FULL_DAY_HOURS } from "../constants";
 import { useGanttStore } from "../ganttStore";
-import type { Allocation } from "../types";
+import type { MemberAllocationBar } from "../ganttStore";
 import { GanttBar } from "./ganttBar";
-import { getClampedBarLayout } from "./utilities/getClampedBarLayout";
-import { getNumDays } from "./utilities/getNumDays";
 
-export type MemberBarAllocation = Allocation & {
-  type?: "default" | "timeoff";
-};
+export type MemberBarAllocation = MemberAllocationBar;
 
 interface GanttMemberBarProps {
-  allocation: MemberBarAllocation;
+  allocation: MemberAllocationBar;
 }
 
 export function GanttMemberBar({ allocation }: GanttMemberBarProps) {
-  const { weekStart, showWeekend, headerWidth, columnCount } = useGanttStore(
-    (s) => ({
-      weekStart: s.weekStart,
-      headerWidth: s.headerWidth,
-      showWeekend: s.showWeekend,
-      columnCount: s.columnCount,
-    }),
-  );
+  const { headerWidth } = useGanttStore((s) => ({
+    headerWidth: s.headerWidth,
+  }));
 
-  const allocationStartCol = getNumDays(
-    allocation.startDate,
-    weekStart,
-    showWeekend,
-  );
-  const allocationEndCol = getNumDays(
-    allocation.endDate,
-    weekStart,
-    showWeekend,
-  );
-  const layout = getClampedBarLayout({
-    allocationStartCol,
-    allocationEndCol,
-    columnCount,
-    headerWidth,
-  });
-
-  if (!layout) {
-    return null;
-  }
+  const left = allocation.barOffset + headerWidth;
+  const { width } = allocation;
 
   if (allocation.type === "timeoff") {
     const leaveDays =
@@ -54,8 +27,8 @@ export function GanttMemberBar({ allocation }: GanttMemberBarProps) {
       <GanttBar
         variant="timeoff"
         label={leaveLabel}
-        left={layout.left}
-        width={layout.width}
+        left={left}
+        width={width}
       />
     );
   }
@@ -77,8 +50,8 @@ export function GanttMemberBar({ allocation }: GanttMemberBarProps) {
       variant={variant}
       theme={allocation.tentative ? "crosshatch" : "default"}
       label={label}
-      left={layout.left}
-      width={layout.width}
+      left={left}
+      width={width}
       billable={allocation.billable}
     />
   );

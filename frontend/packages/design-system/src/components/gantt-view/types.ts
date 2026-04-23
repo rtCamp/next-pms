@@ -11,6 +11,10 @@ export interface Allocation {
   tentative?: boolean;
 }
 
+export interface MemberBarAllocation extends Allocation {
+  type?: "default" | "timeoff";
+}
+
 export interface LeaveAllocation {
   /** First day of leave. */
   startDate: Date;

@@ -8,12 +8,12 @@ import {
 } from "./constants";
 import { GanttMemberBar } from "./gantt-bar/memberBar";
 import { GanttProjectBar } from "./gantt-bar/projectBar";
-import { getMemberAllocation } from "./gantt-bar/utilities/getMemberAllocation";
 import { GanttMemberItem } from "./ganttMemberItem";
 import { GanttProjectItem } from "./ganttProjectItem";
 import { createGanttStore, GanttContext, useGanttStore } from "./ganttStore";
+import type { Member } from "./ganttStore";
 import { GanttWeekHeader } from "./ganttWeekHeader";
-import type { GanttGridProps, Member } from "./types";
+import type { GanttGridProps } from "./types";
 import { mergeClassNames as cn } from "../../utils";
 
 const GanttGridInner: React.FC = () => {
@@ -95,10 +95,6 @@ const GanttGridInner: React.FC = () => {
             const isExpanded = expandedRows.has(rowIndex);
             const animatedRowHeight = isExpanded ? CELL_HEIGHT : 0;
             const addProjectRowHeight = isExpanded ? ADD_PROJECT_ROW_HEIGHT : 0;
-            const memberAlloc = getMemberAllocation(
-              member.projects || [],
-              member.leaves || [],
-            );
 
             return (
               <React.Fragment key={rowIndex}>
@@ -122,7 +118,7 @@ const GanttGridInner: React.FC = () => {
                     className="p-0 border-0 w-0 min-w-0 max-w-0"
                     style={{ width: 0 }}
                   >
-                    {memberAlloc.map((alloc, idx) => (
+                    {member.memberAllocations.map((alloc, idx) => (
                       <GanttMemberBar key={idx} allocation={alloc} />
                     ))}
                   </td>
