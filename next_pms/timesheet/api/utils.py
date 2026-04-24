@@ -556,7 +556,7 @@ def build_chunk_context(employees: list, dates: list, parsed_filters: dict, sear
     for timesheet in all_timesheets:
         timesheet_map[timesheet.employee].append(timesheet)
         emp_ts_by_start[timesheet.employee][timesheet.start_date].append(timesheet.name)
-        week_status_map[(timesheet.employee, timesheet.start_date)] = (
+        week_status_map[(timesheet.employee, get_first_day_of_week(timesheet.start_date))] = (
             timesheet.get("custom_weekly_approval_status") or "Not Submitted"
         )
         all_timesheet_names.append(timesheet.name)

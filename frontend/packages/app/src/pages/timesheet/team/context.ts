@@ -8,8 +8,8 @@ import { createContext, useContextSelector } from "use-context-selector";
 /**
  * Internal dependencies.
  */
-import type { WorkingFrequency } from "@/types";
-import type { DataProp, TimesheetFilters, timesheet } from "@/types/timesheet";
+import type { TeamMember } from "@/components/timesheet-row/teamTimesheetRow";
+import type { TimesheetFilters } from "@/types/timesheet";
 
 export type EmployeeRecord = {
   name: string;
@@ -17,21 +17,12 @@ export type EmployeeRecord = {
   employee_name: string;
 };
 
-export type WeekEmployeeData = {
-  employee: EmployeeRecord;
-  week: timesheet;
-  holidays: DataProp["holidays"];
-  leaves: DataProp["leaves"];
-  working_hour: number;
-  working_frequency: WorkingFrequency;
-};
-
 export type WeekGroup = {
   key: string;
   start_date: string;
   end_date: string;
   dates: string[];
-  members: WeekEmployeeData[];
+  members: TeamMember[];
   approvalPendingCount: number;
 };
 
@@ -39,18 +30,14 @@ export interface TeamTimesheetContextProps {
   state: {
     hasMore: boolean;
     isLoadingTeamData: boolean;
+    isFilterRequest: boolean;
     weekGroups: WeekGroup[];
-    isWeeklyApprovalOpen: boolean;
-    employee: string;
-    startDate: string;
     filters: TimesheetFilters;
     searchInput: string;
     compositeFilters: FilterCondition[];
   };
   actions: {
     loadMore: () => void;
-    openWeeklyApproval: (employeeId: string, date: string) => void;
-    setIsWeeklyApprovalOpen: (state: boolean) => void;
     handleSearchChange: (value: string) => void;
     handleApprovalStatusChange: (value?: ApprovalStatusType | null) => void;
     handleReportsToChange: (value: string | null) => void;
@@ -62,10 +49,8 @@ export const TeamTimesheetContext = createContext<TeamTimesheetContextProps>({
   state: {
     hasMore: false,
     isLoadingTeamData: false,
+    isFilterRequest: false,
     weekGroups: [],
-    isWeeklyApprovalOpen: false,
-    employee: "",
-    startDate: "",
     filters: {
       search: "",
       approvalStatus: undefined,
@@ -76,8 +61,6 @@ export const TeamTimesheetContext = createContext<TeamTimesheetContextProps>({
   },
   actions: {
     loadMore: () => null,
-    openWeeklyApproval: () => null,
-    setIsWeeklyApprovalOpen: () => null,
     handleSearchChange: () => null,
     handleApprovalStatusChange: () => null,
     handleReportsToChange: () => null,

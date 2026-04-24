@@ -346,7 +346,7 @@ def get_project_timesheet_data(
 
     if project_context["candidate_employee_ids"] == []:
         return {
-            "week_groups": [],
+            "week_groups": _build_project_week_groups(project_context["response_dates"], {}),
             "total_count": 0,
             "has_more": False,
         }

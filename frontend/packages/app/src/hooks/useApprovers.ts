@@ -1,23 +1,12 @@
 import { useFrappeGetCall } from "frappe-react-sdk";
 import type { Employee } from "@/types";
 
-type UseApproversOptions = {
-  role?: string[];
-};
-
-const useApprovers = ({ role }: UseApproversOptions = {}) => {
-  if (!role || role.length === 0) {
-    role = ["Projects Manager", "Projects User"];
-  }
-
+const useApprovers = () => {
   const { data } = useFrappeGetCall(
-    "next_pms.timesheet.api.employee.get_employee_list",
-    {
-      role,
-    },
+    "next_pms.timesheet.api.get_approver_details",
   );
 
-  const approvers = ((data?.message?.data ?? []) as Employee[]).map((emp) => ({
+  const approvers = ((data?.message ?? []) as Employee[]).map((emp) => ({
     label: emp.employee_name,
     value: emp.name,
     image: emp.image,
