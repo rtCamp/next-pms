@@ -1,11 +1,11 @@
 /**
  * Internal dependencies.
  */
-import { BudgetProgressCell } from "./budget-progress-cell";
-import { DateCell } from "./date-cell";
-import { EmployeeCell } from "./employee-cell";
-import { PhaseCell } from "./phase-cell";
-import { ProjectNameCell } from "./project-name-cell";
+import { BudgetProgressCell } from "./budgetProgressCell";
+import { DateCell } from "./dateCell";
+import { EmployeeCell } from "./employeeCell";
+import { PhaseCell } from "./phaseCell";
+import { ProjectNameCell } from "./projectNameCell";
 import type { ListViewColumn, Project } from "../types";
 
 export function ProjectListCell({
@@ -30,11 +30,17 @@ export function ProjectListCell({
       return <PhaseCell phase={row.phase} />;
     case "burnRatePerWeek":
     case "totalBudget":
-      return <span>{`$${(item as number).toLocaleString("en-US")}`}</span>;
+      return (
+        <span className="block truncate text-ink-gray-7 text-base">
+          {`$${(item as number).toLocaleString("en-US")}`}
+        </span>
+      );
     case "costBurnPercent":
       return <BudgetProgressCell percent={item as number} />;
     case "profitMargin":
-      return <span>{`${item}%`}</span>;
+      return (
+        <span className="block truncate text-ink-gray-7 text-base">{`${item}%`}</span>
+      );
     case "startDate":
     case "nextMilestone":
     case "endDate":
@@ -46,7 +52,11 @@ export function ProjectListCell({
       return <EmployeeCell employee={row.leadEngineer} />;
     case "type":
     case "clientName":
-      return <span>{item as string}</span>;
+      return (
+        <span className="block truncate text-ink-gray-7 text-base">
+          {item as string}
+        </span>
+      );
     default:
       return null;
   }
