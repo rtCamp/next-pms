@@ -108,29 +108,31 @@ Run before writing code for any new component, cell, helper, or styling override
    - **Failure mode (PR #1220 round 3, `cells.tsx:59`)**: I wrote a custom `StagesIcon` SVG without checking for an upstream icon PR. Ayush pointed at `frappe-ui-react#248`.
 
 5. **One reusable component per file + subfolder grouping**:
-   - Each reusable React component gets its own file, named after the component in kebab-case (e.g. `dot.tsx`, `stages-icon.tsx`, `project-name-cell.tsx`, `budget-progress-cell.tsx`).
+   - Each reusable React component gets its own file, named after the component. **File names are `camelCase` (e.g. `dot.tsx`, `stagesIcon.tsx`, `projectNameCell.tsx`, `budgetProgressCell.tsx`). Folder names stay `kebab-case` (e.g. `cells/`, `list/`).**
+   - Extension tracks content: `.ts` when there's no JSX (column definitions, constants, types, utilities), `.tsx` only for files with JSX/React components.
    - Do not bag several components into one `cells.tsx`.
    - Exception: a tiny helper component used only inside its parent and not extracted/reused can stay inline. The moment it's extracted, split it out.
    - **Subfolder grouping**: once a feature folder accumulates ~7 or more cell-like component files, group them into a `cells/` subdirectory. The dispatch component (the `switch(column.key)` that picks which cell renders) moves into the folder as `cells/index.tsx`, individual cell components are siblings inside. Keeps the feature-folder top level readable.
      ```
      pages/projects/list/
-     ├── index.tsx           (ListView wiring)
-     ├── columns.tsx
-     ├── constants.ts        (PHASE_LABELS — pure data only)
+     ├── index.tsx            (ListView wiring)
+     ├── columns.ts           (no JSX → .ts)
+     ├── constants.ts         (PHASE_LABELS — pure data only)
      ├── types.ts
      ├── fake-data.ts
      └── cells/
-         ├── index.tsx       (ProjectListCell dispatch)
+         ├── index.tsx        (ProjectListCell dispatch)
          ├── dot.tsx
-         ├── stages-icon.tsx
-         ├── date-cell.tsx
-         ├── project-name-cell.tsx
-         ├── phase-cell.tsx
-         ├── budget-progress-cell.tsx
-         └── employee-cell.tsx
+         ├── stagesIcon.tsx
+         ├── dateCell.tsx
+         ├── projectNameCell.tsx
+         ├── phaseCell.tsx
+         ├── budgetProgressCell.tsx
+         └── employeeCell.tsx
      ```
    - **Failure mode (PR #1220 round 3, `cells.tsx:37` and `cells.tsx:59`)**: `Dot` and `StagesIcon` were left inside `cells.tsx` alongside `ProjectNameCell`, `PhaseCell`, etc. Ayush: *"Add this in a component file."*
    - **Failure mode (PR #1220 round 4, `cell.tsx:1`)**: Even after splitting to one-file-per-component, I left 8 cell files flat in `list/`. Ayush: *"Make a folder for all cells. This file will be the index file for the cells dir."*
+   - **Failure mode (PR #1220 round 5)**: cell files were kebab-case (`date-cell.tsx`, `project-name-cell.tsx`) and `columns.tsx` was `.tsx` despite having no JSX. Ayush: *"file names should be always camelCase only folder names should be kebab-case"* and *"files that do not contain any React-related code... should use the .ts file extension."*
 
 6. **Route completeness**:
    - Does your change introduce a navigation target (a new `href`, a new `navigate()` call)?
@@ -195,6 +197,10 @@ Same anti-pattern six times across two rounds. The fix is not "write shorter com
 - **Phase indicators are donut SVGs, not solid dots.** Figma component: `icon/solid/stages`. More generally, a small visual that *looks* like a solid dot in a low-resolution frame screenshot is often a themed icon instance — drill into the Figma leaf node's `<instance>` reference before rendering a `div.rounded-full`. (PR #1220 round 2 correction: dot → donut; round 3: use upstream `frappe-ui-react#248` icon when available.)
 - **Prefer design-system Tailwind tokens.** Scales exposed: `ink-*` (gray-4/5/7/8, red-3, amber-3, green-3, cyan-3, blue-3, violet-3), `surface-*` (gray-2/7, red-1..7, green-1..3+5, amber-1..3+5, blue-1..3, cyan-1..2, violet-1..2, etc.). Where a scale stop is missing (e.g. `surface-green-5`, `surface-amber-5` until PR #1220), **extend `global.css`'s `@theme` block** — don't sidestep with arbitrary `bg-[#hex]` or inline `style={{ backgroundColor: ... }}`.
 - **Variants via `cva`, co-located with the component (not in `constants.ts`).** See Pre-implementation scan step 2.
+- **Tailwind v4 important modifier goes at the END of the class.** v3: `!bg-red-500` / `hover:!bg-red-500` / `[&>div]:!bg-red-500`. v4: `bg-red-500!` / `hover:bg-red-500!` / `[&>div]:bg-red-500!`. Variants still prefix. Ref: https://tailwindcss.com/docs/upgrade-guide#the-important-modifier. (PR #1220 round 5 correction.)
+- **Cell/value text is 14px → `text-base`.** The frappe-ui-react theme maps `--text-base-size: 14px`. Every text-bearing cell element (primary value, labels beside icons, spans next to avatars) applies `text-base`. (PR #1220 round 5 correction.)
+- **`truncate` on every cell text span.** ListView columns are resizable — unwrapped text line-breaks on narrow columns. `truncate` = `overflow-hidden text-ellipsis whitespace-nowrap`. (PR #1220 round 5 correction.)
+- **Check `@rtcamp/frappe-ui-react/icons` before hand-rolling an SVG.** `SolidDotLg` = 16px solid dot (risk indicator); `SolidStatus` = status donut (project phase indicator). Both landed via `frappe-ui-react#248`. The full list is in `frappe-ui-react/packages/frappe-ui-react/src/icons/solid/index.ts`. (PR #1220 round 5 correction.)
 
 ---
 
