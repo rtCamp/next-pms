@@ -106,6 +106,7 @@ Hard rules. Never open a PR that violates any of these:
 4. **Always add `ayushnirwal` as a reviewer** on `gh pr create` (`--reviewer ayushnirwal`).
 5. **If the base advances mid-flight, rebase — don't merge.** Run `git rebase upstream/feat/redesign` and `git push --force-with-lease`. Never merge `feat/redesign` back into the PR branch; that pollutes the diff.
 6. **Before running `gh pr create`**: confirm `git diff --stat upstream/feat/redesign..HEAD` shows only the files this PR is supposed to touch. If a stale base has padded the diff, rebase first.
+7. **Stacked PRs are allowed when a new feature depends on another feature's in-flight branch** — and **only** in that case. Rule #3 still holds (don't split one feature across stacked PRs). If feature A needs a placeholder/component that lives on feature B's not-yet-merged branch, base A on `claude/feat/<B-trunk>` instead of `feat/redesign` so A's diff stays scoped to its own files. Document the stacking in the PR body, and **rebase A onto `feat/redesign` the moment B merges** (`git rebase upstream/feat/redesign && git push --force-with-lease`). Example: PR #1264 (project-detail-skeleton) was stacked on `claude/feat/projects-list` (PR #1220) so the detail-page diff didn't include PR #1220's list files.
 
 ### 6. After creating a PR — wait for AI review + CI, then triage
 
@@ -180,6 +181,7 @@ This rule has been corrected by the maintainer three review rounds in a row. The
 - **Cell/value text is 14px → use `text-base`.** The `frappe-ui-react` theme maps `--text-base-size: 14px`. For every text-bearing cell element — primary value, labels rendered beside icons, span siblings of avatars — apply `text-base`. (PR #1220 round-5 correction.)
 - **Every cell text span gets `truncate`.** ListView columns are resizable, so text without `truncate` wraps onto a second line when the column narrows. `truncate` is Tailwind's shorthand for `overflow-hidden text-ellipsis whitespace-nowrap`. (PR #1220 round-5 correction.)
 - **Use icons from `@rtcamp/frappe-ui-react/icons` before hand-rolling SVGs.** `SolidDotLg` (the 16px solid dot used for risk indicators) and `SolidStatus` (the status "donut" used for project phase) are available as of `frappe-ui-react#248`. Check `frappe-ui-react/packages/frappe-ui-react/src/icons/solid/index.ts` for the full list before writing a custom SVG. (PR #1220 round-5 correction.)
+- **`frappe-ui-react` `<Button>` icon props take a `ComponentType`, not a rendered element.** `icon` / `iconLeft` / `iconRight` are typed `string | React.ComponentType<unknown>`. Pass `iconLeft={Pencil}` (the import itself), **not** `iconLeft={<Pencil className="size-4" />}`. Sizing + color propagate from the Button's theme/size tokens — you don't get to pass a `className` on the icon this way. A rendered element here surfaces as React error #130 (`element type invalid, got: object`). (PR #1265 discovery.)
 
 **Reading Figma — drill to the leaf node**
 
@@ -340,6 +342,8 @@ fm restart pms-temp.frappe.rt.gw
 ```
 
 Top-level `package.json` `build` script = `git submodule update --init --recursive && pnpm (frappe-ui-react) install + build && npm (frontend) install + build`. Per README: "If using frappe-manager, you might require `fm restart` to provision the worker queues."
+
+**When you bump the `frappe-ui-react` submodule SHA**, also run `pnpm --filter @rtcamp/frappe-ui-react build` (or `cd apps/next_pms && npm run build` for the full chain) before trusting `npm run build:app`. `build:app` consumes `frappe-ui-react/packages/frappe-ui-react/dist/` as-is — if your local `dist/` is stale from a previous bump, the app build can pass locally while CI (which rebuilds ui-react from source) fails. Symptom: CI errors like `"<Name>" is not exported by .../frappe-ui-react/dist/index.js` when the source clearly has the export. Fix: fresh `pnpm build` in the submodule package, then re-run the app build, then push. (PR #1264 lesson: cost a bump → revert → re-bump cycle.)
 
 ## Figma design source
 

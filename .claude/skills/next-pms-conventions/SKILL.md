@@ -201,6 +201,7 @@ Same anti-pattern six times across two rounds. The fix is not "write shorter com
 - **Cell/value text is 14px → `text-base`.** The frappe-ui-react theme maps `--text-base-size: 14px`. Every text-bearing cell element (primary value, labels beside icons, spans next to avatars) applies `text-base`. (PR #1220 round 5 correction.)
 - **`truncate` on every cell text span.** ListView columns are resizable — unwrapped text line-breaks on narrow columns. `truncate` = `overflow-hidden text-ellipsis whitespace-nowrap`. (PR #1220 round 5 correction.)
 - **Check `@rtcamp/frappe-ui-react/icons` before hand-rolling an SVG.** `SolidDotLg` = 16px solid dot (risk indicator); `SolidStatus` = status donut (project phase indicator). Both landed via `frappe-ui-react#248`. The full list is in `frappe-ui-react/packages/frappe-ui-react/src/icons/solid/index.ts`. (PR #1220 round 5 correction.)
+- **`frappe-ui-react` `<Button>` icon props take a `ComponentType`, not a rendered element.** Typed `string | React.ComponentType<unknown>` — pass the import (`iconLeft={Pencil}`), not `iconLeft={<Pencil className="size-4" />}`. Sizing + color propagate from the Button's theme/size. A rendered element crashes with React #130 (*element type invalid, got: object*). Same rule for `icon` and `iconRight`. (PR #1265 discovery while implementing the Overview sub-header.)
 
 ---
 
