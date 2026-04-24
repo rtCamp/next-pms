@@ -3,8 +3,8 @@
  */
 import { UnderConstruction } from "@/components/under-construction";
 
-function ProjectList() {
+function ProjectDetail() {
   return <UnderConstruction />;
 }
 
-export default ProjectList;
+export default ProjectDetail;
