@@ -81,9 +81,12 @@ export function useTeamTimesheetData({
 
   const resetData = useCallback(() => {
     setPages([]);
-    setWeekDate(getTodayDate());
+    // When a date-range filter is active, start the sliding window at the
+    // filter's end date (startDate) so week pagination walks backward through
+    // the filtered range instead of from today.
+    setWeekDate(startDate ?? getTodayDate());
     setEmployeeStart(0);
-  }, []);
+  }, [startDate]);
 
   // Reset pagination when filters change
   useEffect(() => {
@@ -110,9 +113,9 @@ export function useTeamTimesheetData({
     error: teamDataError,
     isLoading: isLoadingTeamApiData,
   } = useFrappeGetCall("next_pms.timesheet.api.team.get_team_timesheet_data", {
-    date: startDate ?? weekDate,
+    date: weekDate,
     reports_to: filters.reportsTo || null,
-    max_week: maxWeek,
+    max_week: NUMBER_OF_WEEKS_TO_FETCH,
     page_length: EMPLOYEE_PAGE_LENGTH,
     start: employeeStart,
     search: filters.search || null,
@@ -133,8 +136,13 @@ export function useTeamTimesheetData({
   // All transformation lives here. Because this is pure data derivation (no side effects).
   const { hasMoreWeeks, hasMoreEmployees, hasMore, weekGroups } =
     useMemo(() => {
-      const oneYearAgo = addDays(new Date(getTodayDate()), -365 * 2);
-      const hasMoreWeeks = new Date(weekDate) > oneYearAgo;
+      const oneYearAgo = addDays(new Date(getTodayDate()), -365);
+      // When a date-range filter is active, limit week pagination to the actual
+      // filter range (startDate − maxWeek weeks). Without a filter, fall back
+      // to the 1-year rolling limit.
+      const hasMoreWeeks = startDate
+        ? new Date(weekDate) > addDays(new Date(startDate), -(maxWeek * 7))
+        : new Date(weekDate) > oneYearAgo;
       const hasMoreEmployees =
         pages.length > 0 ? (pages[pages.length - 1].has_more ?? false) : true;
 
@@ -256,7 +264,7 @@ export function useTeamTimesheetData({
       const hasMore = hasMoreEmployees || hasMoreWeeks;
 
       return { hasMoreWeeks, hasMoreEmployees, hasMore, weekGroups };
-    }, [pages, weekDate]);
+    }, [pages, weekDate, startDate, maxWeek]);
 
   // Auto-advance the week window when a fully-loaded window yields no visible
   // weeks (all employees have "Not Submitted" timesheets for that range).
@@ -315,6 +323,7 @@ export function useTeamTimesheetData({
         const nextData = { ...page.data };
         for (const [empName, updatedEmp] of Object.entries(payload.data!)) {
           if (!nextData[empName]) continue;
+          if (!updatedEmp.timesheet_details) continue;
           const mergedDetails = {
             ...nextData[empName].timesheet_details,
             ...updatedEmp.timesheet_details,
