@@ -1,7 +1,7 @@
 /**
  * External dependencies.
  */
-import { SolidStatus } from "@rtcamp/frappe-ui-react/icons";
+import { SolidStages } from "@rtcamp/frappe-ui-react/icons";
 import { cva, type VariantProps } from "class-variance-authority";
 
 const stagesIconVariants = cva("size-4 shrink-0", {
@@ -20,5 +20,5 @@ const stagesIconVariants = cva("size-4 shrink-0", {
 type StagesIconProps = VariantProps<typeof stagesIconVariants>;
 
 export function StagesIcon({ phase }: StagesIconProps) {
-  return <SolidStatus className={stagesIconVariants({ phase })} />;
+  return <SolidStages className={stagesIconVariants({ phase })} />;
 }
