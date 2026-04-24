@@ -15,8 +15,8 @@ import type { ProjectMemberData, WeekGroup } from "./context";
 import {
   createInitialProjectTimesheetState,
   projectTimesheetReducer,
-  type ApiPayload,
 } from "./reducer";
+import type { ProjectTimesheetApiResponse } from "./types";
 
 type UseProjectTimesheetDataResult = {
   hasMoreWeeks: boolean;
@@ -39,7 +39,7 @@ export function useProjectTimesheetData(): UseProjectTimesheetDataResult {
     data: projectTimesheetData,
     error: projectTimesheetError,
     isLoading: isLoadingProjectData,
-  } = useFrappeGetCall(
+  } = useFrappeGetCall<ProjectTimesheetApiResponse>(
     "next_pms.timesheet.api.project.get_project_timesheet_data",
     {
       date: state.weekDate,
@@ -55,7 +55,7 @@ export function useProjectTimesheetData(): UseProjectTimesheetDataResult {
     }
     dispatch({
       type: "APPEND_PAGE",
-      payload: projectTimesheetData.message as ApiPayload,
+      payload: projectTimesheetData.message,
     });
   }, [projectTimesheetData]);
 
@@ -110,7 +110,7 @@ export function useProjectTimesheetData(): UseProjectTimesheetDataResult {
             }
 
             memberSet.add(member.employee);
-            targetProject.members.push({
+            const mappedMember: ProjectMemberData = {
               label: member.label,
               employee: member.employee,
               avatarUrl: member.avatar_url,
@@ -120,7 +120,9 @@ export function useProjectTimesheetData(): UseProjectTimesheetDataResult {
               workingHour: member.working_hour,
               workingFrequency: member.working_frequency,
               status: member.status,
-            } as ProjectMemberData);
+            };
+
+            targetProject.members.push(mappedMember);
           });
         });
       });
