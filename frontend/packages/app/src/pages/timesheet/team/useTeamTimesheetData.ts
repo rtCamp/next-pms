@@ -47,6 +47,7 @@ type UseTeamTimesheetDataResult = {
   isLoadingTeamData: boolean;
   weekGroups: WeekGroup[];
   loadMore: () => void;
+  handleRealtimeUpdate: (payload: ApiPayload) => void;
   error: FrappeError | undefined;
   resetData: () => void;
 };
@@ -56,7 +57,7 @@ type UseTeamTimesheetOptions = {
   compositeFilters: FilterCondition[];
 };
 
-const EMPLOYEE_PAGE_LENGTH = 10;
+const EMPLOYEE_PAGE_LENGTH = 20;
 
 export function useTeamTimesheetData({
   filters,
@@ -73,7 +74,7 @@ export function useTeamTimesheetData({
   const prevFiltersRef = useRef({ filters, compositeFilters });
 
   // Build Frappe-compatible filters from composite filters
-  const { frappeFilters } = useMemo(
+  const { startDate, maxWeek, frappeFilters } = useMemo(
     () => buildCompositeFilters(compositeFilters),
     [compositeFilters],
   );
@@ -109,9 +110,9 @@ export function useTeamTimesheetData({
     error: teamDataError,
     isLoading: isLoadingTeamApiData,
   } = useFrappeGetCall("next_pms.timesheet.api.team.get_team_timesheet_data", {
-    date: weekDate,
+    date: startDate ?? weekDate,
     reports_to: filters.reportsTo || null,
-    max_week: NUMBER_OF_WEEKS_TO_FETCH,
+    max_week: maxWeek,
     page_length: EMPLOYEE_PAGE_LENGTH,
     start: employeeStart,
     search: filters.search || null,
@@ -301,11 +302,40 @@ export function useTeamTimesheetData({
     }
   }, [hasMoreEmployees, hasMoreWeeks, isLoadingTeamApiData]);
 
+  // Merge a realtime-pushed payload into the existing pages.
+  // For each employee in the incoming payload, update their record in whichever
+  // pages already contain them, replacing only the weeks that are present in
+  // the update so that pages covering other date ranges are left untouched.
+  const handleRealtimeUpdate = useCallback((payload: ApiPayload) => {
+    if (!payload.data) return;
+    setPages((prev) =>
+      prev.map((page) => {
+        if (!page.data) return page;
+        let changed = false;
+        const nextData = { ...page.data };
+        for (const [empName, updatedEmp] of Object.entries(payload.data!)) {
+          if (!nextData[empName]) continue;
+          const mergedDetails = {
+            ...nextData[empName].timesheet_details,
+            ...updatedEmp.timesheet_details,
+          };
+          nextData[empName] = {
+            ...nextData[empName],
+            timesheet_details: mergedDetails,
+          };
+          changed = true;
+        }
+        return changed ? { ...page, data: nextData } : page;
+      }),
+    );
+  }, []);
+
   return {
     hasMore,
     isLoadingTeamData: isLoadingTeamApiData,
     weekGroups,
     loadMore,
+    handleRealtimeUpdate,
     error: teamDataError,
     resetData,
   };
