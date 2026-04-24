@@ -19,7 +19,7 @@ import { TeamTimesheetRow } from "@/components/timesheet-row/teamTimesheetRow";
 import { NUMBER_OF_WEEKS_TO_FETCH } from "@/lib/constant";
 import { useTeamTimesheet } from "./context";
 import WeeklyApproval from "./weekly-approval";
-import { sampleFields } from "../constants";
+import { teamTimesheetFilters } from "../constants";
 
 export const TeamTimesheetTable = () => {
   const [selectedTask, setSelectedTask] = useState<string | null>(null);
@@ -99,7 +99,8 @@ export const TeamTimesheetTable = () => {
         </div>
         <div className="flex gap-2">
           <Filter
-            fields={sampleFields}
+            align="end"
+            fields={teamTimesheetFilters}
             value={compositeFilters}
             onChange={handleCompositeFilterChange}
           />
