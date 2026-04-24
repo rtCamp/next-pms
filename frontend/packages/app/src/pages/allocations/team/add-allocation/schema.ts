@@ -15,16 +15,9 @@ export const addAllocationFormSchema = z
       })
       .trim()
       .min(1, { message: "Please select a project." }),
-    recurrence: z
-      .string({
-        required_error: "Please select recurrence.",
-      })
-      .refine(
-        (value) => Object.keys(allocationRecurrenceLabels).includes(value),
-        {
-          message: "Please select recurrence.",
-        },
-      ),
+    recurrence: z.enum(
+      Object.keys(allocationRecurrenceLabels) as ["one-time", "recurring"],
+    ),
     includeWeekends: z.boolean(),
     fromDate: z
       .string({
@@ -38,20 +31,30 @@ export const addAllocationFormSchema = z
       })
       .trim()
       .min(1, { message: "Please select to date." }),
-    hoursPerDay: z.number({
-      required_error: "Please enter hours per day.",
-    }),
+    hoursPerDay: z
+      .number({
+        required_error: "Please enter hours per day.",
+      })
+      .positive({ message: "Must be greater than 0." }),
     repeatFor: z.number().int().nonnegative(),
     isBillable: z.boolean(),
     isTentative: z.boolean(),
     note: z.string().trim(),
   })
   .superRefine((value, ctx) => {
+    if (value.fromDate > value.toDate) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["toDate"],
+        message: "End date must be on or after start date.",
+      });
+    }
+
     if (value.recurrence === "recurring" && value.repeatFor < 1) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         path: ["repeatFor"],
-        message: "Repeat for must be at least 1.",
+        message: "Must be at least 1.",
       });
     }
   });

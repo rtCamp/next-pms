@@ -1,7 +1,7 @@
 /**
  * External dependencies.
  */
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { DurationInput } from "@next-pms/design-system/components";
 import { formatDateRange } from "@next-pms/design-system/date";
 import {
@@ -34,7 +34,7 @@ import {
 } from "./constants";
 import { addAllocationFormSchema } from "./schema";
 import { ComboboxOption, type AddAllocationModalProps } from "./types";
-import { getRangeDayCount } from "./utils";
+import { getComputedTotalHours, getRangeDayCount } from "./utils";
 
 function AddAllocationModal({
   variant = "add",
@@ -109,34 +109,27 @@ function AddAllocationModal({
 
   const form = useForm({
     defaultValues: mergedDefaultValues,
+    validators: {
+      onSubmit: addAllocationFormSchema,
+    },
     onSubmit: async ({ value }) => {
-      const parsed = addAllocationFormSchema.safeParse(value);
-      if (!parsed.success) {
-        const firstError = parsed.error.issues[0]?.message;
-        if (firstError) {
-          toast.error(firstError);
-        }
+      const selectedProject = projectOptions.find(
+        (project) => project.value === value.projectId,
+      );
+
+      if (!selectedProject?.customer) {
+        toast.error("Selected project must have a customer before allocation.");
         return;
       }
 
       setSubmitting(true);
 
-      const repeatTillWeekCount =
-        variant === "edit" || value.recurrence === "one-time"
-          ? 0
-          : value.repeatFor;
-
-      const selectedProject = projectOptions.find(
-        (project) => project.value === value.projectId,
-      );
-      const customer = selectedProject?.customer;
-
       const rangeDays = getRangeDayCount(value.fromDate, value.toDate);
-      const totalAllocatedHours = Math.round(
-        value.hoursPerDay *
-          (value.recurrence === "recurring"
-            ? Math.max(1, value.repeatFor ?? 1)
-            : Math.max(1, rangeDays)),
+      const totalAllocatedHours = getComputedTotalHours(
+        value.hoursPerDay,
+        value.recurrence === "recurring"
+          ? Math.max(1, value.repeatFor ?? 1)
+          : Math.max(1, rangeDays),
       );
 
       try {
@@ -149,7 +142,7 @@ function AddAllocationModal({
               : {}),
             employee: value.employeeId,
             project: value.projectId,
-            ...(customer ? { customer } : {}),
+            customer: selectedProject?.customer,
             allocation_start_date: value.fromDate,
             allocation_end_date: value.toDate,
             hours_allocated_per_day: value.hoursPerDay,
@@ -158,7 +151,11 @@ function AddAllocationModal({
             status: value.isTentative ? "Tentative" : "Confirmed",
             note: value.note ?? "",
           },
-          repeat_till_week_count: repeatTillWeekCount,
+          // Repeat weeks are only applied when creating a recurring allocation.
+          repeat_till_week_count:
+            variant === "edit" || value.recurrence === "one-time"
+              ? 0
+              : value.repeatFor,
         });
 
         toast.success(
@@ -171,10 +168,15 @@ function AddAllocationModal({
         toast.error(error);
       } finally {
         setSubmitting(false);
-        onOpenChange(false);
+        closeModal();
       }
     },
   });
+
+  const closeModal = useCallback(() => {
+    onOpenChange(false);
+    form.reset(mergedDefaultValues);
+  }, [form, mergedDefaultValues, onOpenChange]);
 
   useEffect(() => {
     if (!open || variant !== "edit") {
@@ -193,21 +195,23 @@ function AddAllocationModal({
   const fromDate = useStore(form.store, (state) => state.values.fromDate);
   const toDate = useStore(form.store, (state) => state.values.toDate);
 
-  const totalHours = Math.round(
-    hoursPerDay *
-      (recurrence === "recurring"
-        ? Math.max(1, repeatFor)
-        : Math.max(1, getRangeDayCount(fromDate, toDate))),
+  const totalHours = getComputedTotalHours(
+    hoursPerDay,
+    recurrence === "recurring"
+      ? Math.max(1, repeatFor)
+      : Math.max(1, getRangeDayCount(fromDate, toDate)),
   );
 
   return (
     <Dialog
       open={open}
       onOpenChange={(next) => {
-        onOpenChange(next);
-        if (!next) {
-          form.reset(mergedDefaultValues);
+        if (next) {
+          onOpenChange(true);
+          return;
         }
+
+        closeModal();
       }}
       options={{
         title: () => (
@@ -231,11 +235,7 @@ function AddAllocationModal({
             )}
           />
           <div className="flex items-center justify-end w-full gap-2">
-            <Button
-              variant="ghost"
-              label="Cancel"
-              onClick={() => onOpenChange(false)}
-            />
+            <Button variant="ghost" label="Cancel" onClick={closeModal} />
             <Button
               variant="solid"
               label={variant === "add" ? "Allocate" : "Save Changes"}
@@ -264,9 +264,7 @@ function AddAllocationModal({
                 openOnFocus
               />
               {!field.state.meta.isValid && (
-                <ErrorMessage
-                  message={String(field.state.meta.errors[0] ?? "")}
-                />
+                <ErrorMessage message={field.state.meta.errors[0]?.message} />
               )}
             </>
           )}
@@ -288,9 +286,7 @@ function AddAllocationModal({
                 openOnFocus
               />
               {!field.state.meta.isValid && (
-                <ErrorMessage
-                  message={String(field.state.meta.errors[0] ?? "")}
-                />
+                <ErrorMessage message={field.state.meta.errors[0]?.message} />
               )}
             </>
           )}
@@ -313,9 +309,7 @@ function AddAllocationModal({
                 )}
               />
               {!field.state.meta.isValid && (
-                <ErrorMessage
-                  message={String(field.state.meta.errors[0] ?? "")}
-                />
+                <ErrorMessage message={field.state.meta.errors[0]?.message} />
               )}
             </>
           )}
@@ -357,8 +351,12 @@ function AddAllocationModal({
                   <DateRangePicker
                     value={[fromField.state.value, toField.state.value]}
                     onChange={(value) => {
-                      const nextFrom = value?.[0] ?? "";
-                      const nextTo = value?.[1] ?? "";
+                      const rawFrom = value?.[0] ?? "";
+                      const rawTo = value?.[1] ?? "";
+                      const shouldSwap = rawFrom && rawTo && rawFrom > rawTo;
+                      const nextFrom = shouldSwap ? rawTo : rawFrom;
+                      const nextTo = shouldSwap ? rawFrom : rawTo;
+
                       fromField.handleChange(nextFrom);
                       toField.handleChange(nextTo);
                     }}
@@ -378,6 +376,15 @@ function AddAllocationModal({
                       </div>
                     )}
                   </DateRangePicker>
+                  {(!fromField.state.meta.isValid ||
+                    !toField.state.meta.isValid) && (
+                    <ErrorMessage
+                      message={
+                        fromField.state.meta.errors[0]?.message ??
+                        toField.state.meta.errors[0]?.message
+                      }
+                    />
+                  )}
                 </div>
               )}
             />
@@ -398,9 +405,7 @@ function AddAllocationModal({
                   variant="compact"
                 />
                 {!field.state.meta.isValid && (
-                  <ErrorMessage
-                    message={String(field.state.meta.errors[0] ?? "")}
-                  />
+                  <ErrorMessage message={field.state.meta.errors[0]?.message} />
                 )}
               </div>
             )}
@@ -423,7 +428,7 @@ function AddAllocationModal({
                   />
                   {!field.state.meta.isValid && (
                     <ErrorMessage
-                      message={String(field.state.meta.errors[0] ?? "")}
+                      message={field.state.meta.errors[0]?.message}
                     />
                   )}
                 </div>
@@ -466,6 +471,7 @@ function AddAllocationModal({
               <Textarea
                 value={field.state.value ?? ""}
                 onChange={(e) => field.handleChange(e.target.value)}
+                placeholder="Add a note"
                 className="bg-white border-outline-gray-2"
               />
             </div>
