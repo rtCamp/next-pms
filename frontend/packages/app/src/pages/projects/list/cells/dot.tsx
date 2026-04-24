@@ -1,9 +1,10 @@
 /**
  * External dependencies.
  */
+import { SolidDotLg } from "@rtcamp/frappe-ui-react/icons";
 import { cva, type VariantProps } from "class-variance-authority";
 
-const dotVariants = cva("size-2 shrink-0", {
+const dotVariants = cva("size-4 shrink-0", {
   variants: {
     risk: {
       "at-risk": "text-ink-red-3",
@@ -16,14 +17,5 @@ const dotVariants = cva("size-2 shrink-0", {
 type DotProps = VariantProps<typeof dotVariants>;
 
 export function Dot({ risk }: DotProps) {
-  return (
-    <svg
-      aria-hidden="true"
-      viewBox="0 0 8 8"
-      fill="currentColor"
-      className={dotVariants({ risk })}
-    >
-      <circle cx="4" cy="4" r="4" />
-    </svg>
-  );
+  return <SolidDotLg className={dotVariants({ risk })} />;
 }

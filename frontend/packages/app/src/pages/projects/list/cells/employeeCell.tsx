@@ -21,7 +21,7 @@ export function EmployeeCell({ employee }: { employee: EmployeeRef }) {
           image={employee.avatar}
           label={employee.initials}
         />
-        <span className="truncate text-ink-gray-7">{employee.name}</span>
+        <span className="truncate text-ink-gray-7 text-base">{employee.name}</span>
       </a>
     </Tooltip>
   );

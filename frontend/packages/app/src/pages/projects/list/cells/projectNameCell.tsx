@@ -30,7 +30,7 @@ export function ProjectNameCell({
         theme="gray"
         size="sm"
         onClick={() => navigate(`${ROUTES.project}/${id}`)}
-        className="w-full justify-start font-medium"
+        className="w-full justify-start font-medium text-base"
       >
         <Dot risk={riskLevel} />
         <span className="ml-2 truncate">{name}</span>

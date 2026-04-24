@@ -7,9 +7,9 @@ import { cva, type VariantProps } from "class-variance-authority";
 const budgetProgressVariants = cva("", {
   variants: {
     tier: {
-      healthy: "!bg-surface-green-2 [&>div]:!bg-surface-green-5",
-      moderate: "!bg-surface-amber-2 [&>div]:!bg-surface-amber-5",
-      over: "!bg-surface-red-3 [&>div]:!bg-surface-red-5",
+      healthy: "bg-surface-green-2! [&>div]:bg-surface-green-5!",
+      moderate: "bg-surface-amber-2! [&>div]:bg-surface-amber-5!",
+      over: "bg-surface-red-3! [&>div]:bg-surface-red-5!",
     },
   },
 });

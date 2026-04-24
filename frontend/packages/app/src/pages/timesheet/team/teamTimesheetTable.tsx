@@ -2,6 +2,7 @@
  * External dependencies.
  */
 import { Fragment, useState } from "react";
+import { mergeClassNames as cn } from "@next-pms/design-system";
 import { Spinner, Typography } from "@next-pms/design-system/components";
 import { Button, Filter, TextInput } from "@rtcamp/frappe-ui-react";
 import { Ellipsis } from "lucide-react";
@@ -22,20 +23,20 @@ import { sampleFields } from "../constants";
 
 export const TeamTimesheetTable = () => {
   const [selectedTask, setSelectedTask] = useState<string | null>(null);
+  const [weeklyApproval, setWeeklyApproval] = useState<{
+    employee: string;
+    startDate: string;
+  } | null>(null);
+
   const hasMore = useTeamTimesheet(({ state }) => state.hasMore);
   const isLoadingTeamData = useTeamTimesheet(
     ({ state }) => state.isLoadingTeamData,
   );
+  const isFilterRequest = useTeamTimesheet(
+    ({ state }) => state.isFilterRequest,
+  );
   const weekGroups = useTeamTimesheet(({ state }) => state.weekGroups);
   const loadMore = useTeamTimesheet(({ actions }) => actions.loadMore);
-  const isWeeklyApprovalOpen = useTeamTimesheet(
-    ({ state }) => state.isWeeklyApprovalOpen,
-  );
-  const employee = useTeamTimesheet(({ state }) => state.employee);
-  const startDate = useTeamTimesheet(({ state }) => state.startDate);
-  const setIsWeeklyApprovalOpen = useTeamTimesheet(
-    ({ actions }) => actions.setIsWeeklyApprovalOpen,
-  );
   const filters = useTeamTimesheet(({ state }) => state.filters);
   const searchInput = useTeamTimesheet(({ state }) => state.searchInput);
   const compositeFilters = useTeamTimesheet(
@@ -54,14 +55,20 @@ export const TeamTimesheetTable = () => {
     ({ actions }) => actions.handleCompositeFilterChange,
   );
 
+  const isFilteredDataLoading = isFilterRequest && isLoadingTeamData;
+
   return (
-    <div className="w-full flex-1 min-h-0 py-3.5 px-3">
-      <WeeklyApproval
-        employee={employee}
-        startDate={startDate}
-        open={isWeeklyApprovalOpen}
-        onOpenChange={setIsWeeklyApprovalOpen}
-      />
+    <div className="w-full flex-1 min-h-0 py-3.5 px-3 relative">
+      {weeklyApproval && (
+        <WeeklyApproval
+          employee={weeklyApproval.employee}
+          startDate={weeklyApproval.startDate}
+          open={!!weeklyApproval}
+          onOpenChange={(open) => {
+            if (!open) setWeeklyApproval(null);
+          }}
+        />
+      )}
       {selectedTask && (
         <TeamTaskLog
           task={selectedTask}
@@ -111,7 +118,13 @@ export const TeamTimesheetTable = () => {
           isLoading={isLoadingTeamData}
           hasMore={hasMore}
           verticalLodMore={loadMore}
-          className="w-full h-[calc(100%-var(--spacing)*7)] overflow-auto scrollbar [scrollbar-gutter:stable]"
+          className={cn(
+            "w-full h-[calc(100%-var(--spacing)*7)] overflow-auto scrollbar [scrollbar-gutter:stable] opacity-100",
+            {
+              "opacity-50 transition-opacity duration-150":
+                isFilteredDataLoading,
+            },
+          )}
           count={NUMBER_OF_WEEKS_TO_FETCH}
         >
           <div className="min-w-225">
@@ -146,17 +159,10 @@ export const TeamTimesheetTable = () => {
                       firstWeek={index === 0}
                       approvalPendingCount={week.approvalPendingCount}
                       setSelectedTask={setSelectedTask}
-                      teamMembers={week.members.map((member) => ({
-                        label: member.employee.employee_name,
-                        employee: member.employee.name,
-                        avatarUrl: member.employee.image ?? undefined,
-                        tasks: member.week.tasks,
-                        leaves: member.leaves,
-                        holidays: member.holidays,
-                        workingHour: member.working_hour,
-                        workingFrequency: member.working_frequency,
-                        status: member.week.status,
-                      }))}
+                      openWeeklyApproval={(employee, date) =>
+                        setWeeklyApproval({ employee, startDate: date })
+                      }
+                      teamMembers={week.members}
                     />
                   </div>
                 </Fragment>
@@ -165,6 +171,13 @@ export const TeamTimesheetTable = () => {
           </div>
         </InfiniteScroll>
       )}
+
+      {isFilteredDataLoading ? (
+        <Spinner
+          isFull
+          className="absolute top-0 left-0 w-full h-full cursor-wait"
+        />
+      ) : null}
     </div>
   );
 };
