@@ -2,6 +2,28 @@ import type { Member, Project } from "@next-pms/design-system/components";
 import type { TeamAllocationResponse } from "./type";
 
 /**
+ * Merges two Member arrays, ensuring uniqueness based on member name.
+ */
+export function mergeUniqueMembers(
+  current: Member[],
+  incoming: Member[],
+): Member[] {
+  const seen = new Set(current.map((member) => member.name));
+  const next = [...current];
+
+  for (const member of incoming) {
+    if (seen.has(member.name)) {
+      continue;
+    }
+
+    seen.add(member.name);
+    next.push(member);
+  }
+
+  return next;
+}
+
+/**
  * Converts a TeamAllocationResponse from the API into a Member[] array
  * suitable for the GanttGrid component.
  */

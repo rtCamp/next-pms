@@ -52,4 +52,10 @@ export interface GanttGridProps {
   hasRoleAccess?: boolean;
   /** Optional custom classes for the root wrapper. */
   className?: string;
+  /** Show an additional footer row with a load more action. */
+  showLoadMoreRow?: boolean;
+  /** Load more callback for footer row action. */
+  onLoadMore?: () => void;
+  /** Disable load more action. */
+  isLoadMoreDisabled?: boolean;
 }

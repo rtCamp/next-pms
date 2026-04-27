@@ -16,7 +16,12 @@ import { GanttWeekHeader } from "./ganttWeekHeader";
 import type { GanttGridProps } from "./types";
 import { mergeClassNames as cn } from "../../utils";
 
-const GanttGridInner: React.FC<{ className?: string }> = ({ className }) => {
+const GanttGridInner: React.FC<{
+  className?: string;
+  showLoadMoreRow?: boolean;
+  onLoadMore?: () => void;
+  isLoadMoreDisabled?: boolean;
+}> = ({ className, showLoadMoreRow, onLoadMore, isLoadMoreDisabled }) => {
   const {
     members,
     expandedRows,
@@ -232,6 +237,45 @@ const GanttGridInner: React.FC<{ className?: string }> = ({ className }) => {
               </React.Fragment>
             );
           })}
+
+          {showLoadMoreRow ? (
+            <tr className="relative border-t border-outline-gray-1">
+              <th
+                className="sticky left-0 z-10 bg-surface-white border-b border-r border-outline-gray-1 pl-8 pr-3 font-normal text-left align-middle"
+                style={{
+                  width: headerWidth,
+                  minWidth: headerWidth,
+                  height: ADD_PROJECT_ROW_HEIGHT,
+                }}
+              >
+                <button
+                  type="button"
+                  onClick={() => onLoadMore?.()}
+                  disabled={isLoadMoreDisabled}
+                  className={cn(
+                    "w-full h-full flex items-center gap-2 text-base font-medium text-ink-gray-9 overflow-hidden disabled:opacity-50 disabled:cursor-not-allowed",
+                  )}
+                >
+                  <span className="truncate">Load more</span>
+                </button>
+              </th>
+
+              {weeks.map((_, i) => (
+                <td
+                  key={`load-more-${i}`}
+                  colSpan={daysPerWeek}
+                  className="border-r border-outline-gray-1"
+                  style={{ height: ADD_PROJECT_ROW_HEIGHT }}
+                />
+              ))}
+
+              <td
+                aria-hidden="true"
+                className="p-0 border-0 w-0 min-w-0 max-w-0"
+                style={{ width: 0 }}
+              />
+            </tr>
+          ) : null}
         </tbody>
       </table>
 
@@ -281,7 +325,12 @@ export const GanttGrid: React.FC<GanttGridProps> = (props) => {
 
   return (
     <GanttContext.Provider value={store}>
-      <GanttGridInner className={props.className} />
+      <GanttGridInner
+        className={props.className}
+        showLoadMoreRow={props.showLoadMoreRow}
+        onLoadMore={props.onLoadMore}
+        isLoadMoreDisabled={props.isLoadMoreDisabled}
+      />
     </GanttContext.Provider>
   );
 };

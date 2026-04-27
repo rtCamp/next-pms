@@ -35,15 +35,28 @@ export function AllocationsTeamProvider({
 
   const debouncedSearch = useDebounce(state.searchInput, 400);
 
-  const { members, isLoading, error, refresh } = useAllocationsTeamData({
-    anchorDate: state.anchorDate,
-    weekCount: state.weekCount,
-    search: debouncedSearch,
-  });
+  const { members, hasMore, totalCount, isLoading, error, refresh } =
+    useAllocationsTeamData({
+      anchorDate: state.anchorDate,
+      weekCount: state.weekCount,
+      search: debouncedSearch,
+      start: state.start,
+      pageLength: state.pageLength,
+    });
 
   useEffect(() => {
-    if (isLoading) {
+    if (!state.isLoading && !isLoading) {
+      return;
+    }
+
+    // Hook started loading while reducer hasn't been flagged yet.
+    if (!state.isLoading) {
       dispatch({ type: "DATA_LOADING" });
+      return;
+    }
+
+    // Reducer is in loading mode and hook is still fetching.
+    if (isLoading) {
       return;
     }
 
@@ -53,8 +66,11 @@ export function AllocationsTeamProvider({
       return;
     }
 
-    dispatch({ type: "DATA_LOADED", payload: members });
-  }, [error, isLoading, members, toast]);
+    dispatch({
+      type: "DATA_LOADED",
+      payload: { members, hasMore, totalCount },
+    });
+  }, [error, isLoading, members, hasMore, totalCount, state.isLoading, toast]);
 
   const setSearch = useCallback((value: string) => {
     dispatch({ type: "SEARCH_CHANGED", payload: value });
@@ -62,6 +78,10 @@ export function AllocationsTeamProvider({
 
   const setDuration = useCallback((value: AllocationsDuration) => {
     dispatch({ type: "DURATION_CHANGED", payload: value });
+  }, []);
+
+  const loadMore = useCallback(() => {
+    dispatch({ type: "LOAD_MORE" });
   }, []);
 
   const handlePrevious = useCallback(() => {
@@ -85,6 +105,7 @@ export function AllocationsTeamProvider({
       actions: {
         setSearch,
         setDuration,
+        loadMore,
         handlePrevious,
         handleNext,
         handleToday,
@@ -95,6 +116,7 @@ export function AllocationsTeamProvider({
       state,
       setSearch,
       setDuration,
+      loadMore,
       handlePrevious,
       handleNext,
       handleToday,

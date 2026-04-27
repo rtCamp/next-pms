@@ -15,6 +15,8 @@ export interface AllocationsTeamContextProps {
     members: Member[];
     filteredMembers: Member[];
     isLoading: boolean;
+    hasMore: boolean;
+    totalCount: number;
     searchInput: string;
     duration: AllocationsDuration;
     weekCount: number;
@@ -23,6 +25,7 @@ export interface AllocationsTeamContextProps {
   actions: {
     setSearch: (value: string) => void;
     setDuration: (value: AllocationsDuration) => void;
+    loadMore: () => void;
     handlePrevious: () => void;
     handleNext: () => void;
     handleToday: () => void;
@@ -36,6 +39,8 @@ export const AllocationsTeamContext =
       members: [],
       filteredMembers: [],
       isLoading: false,
+      hasMore: true,
+      totalCount: 0,
       searchInput: "",
       duration: "this-quarter",
       weekCount: 13,
@@ -44,6 +49,7 @@ export const AllocationsTeamContext =
     actions: {
       setSearch: () => null,
       setDuration: () => null,
+      loadMore: () => null,
       handlePrevious: () => null,
       handleNext: () => null,
       handleToday: () => null,

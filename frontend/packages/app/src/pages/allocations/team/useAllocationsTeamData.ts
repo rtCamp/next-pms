@@ -17,10 +17,14 @@ type UseAllocationsTeamDataOptions = {
   anchorDate: Date;
   weekCount: number;
   search: string;
+  start: number;
+  pageLength: number;
 };
 
 type UseAllocationsTeamDataResult = {
   members: Member[];
+  hasMore: boolean;
+  totalCount: number;
   isLoading: boolean;
   error: FrappeError | undefined;
   refresh: () => Promise<void>;
@@ -30,12 +34,16 @@ export function useAllocationsTeamData({
   anchorDate,
   weekCount,
   search,
+  start,
+  pageLength,
 }: UseAllocationsTeamDataOptions): UseAllocationsTeamDataResult {
   const { call: fetchTeamViewData } = useFrappePostCall(
     "next_pms.resource_management.api.team.get_resource_management_team_view_data",
   );
 
   const [members, setMembers] = useState<Member[]>([]);
+  const [hasMore, setHasMore] = useState(true);
+  const [totalCount, setTotalCount] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<FrappeError>();
 
@@ -48,19 +56,21 @@ export function useAllocationsTeamData({
         date: format(anchorDate, "yyyy-MM-dd"),
         max_week: weekCount,
         employee_name: search || null,
-        start: 0,
-        page_length: 100,
+        start,
+        page_length: pageLength,
         need_hours_summary: false,
       });
 
-      const payload = response.message as TeamAllocationResponse;
+      const payload = (response?.message ?? {}) as TeamAllocationResponse;
       setMembers(mapTeamAllocationToMembers(payload));
+      setHasMore(Boolean(payload.has_more));
+      setTotalCount(payload.total_count ?? 0);
     } catch (err) {
       setError(err as FrappeError);
     } finally {
       setIsLoading(false);
     }
-  }, [fetchTeamViewData, anchorDate, weekCount, search]);
+  }, [fetchTeamViewData, anchorDate, weekCount, search, start, pageLength]);
 
   useEffect(() => {
     void refresh();
@@ -68,6 +78,8 @@ export function useAllocationsTeamData({
 
   return {
     members,
+    hasMore,
+    totalCount,
     isLoading,
     error,
     refresh,

@@ -3,7 +3,11 @@
  */
 import { useState } from "react";
 import { mergeClassNames as cn } from "@next-pms/design-system";
-import { GanttGrid, Spinner } from "@next-pms/design-system/components";
+import {
+  GanttGrid,
+  Spinner,
+  Typography,
+} from "@next-pms/design-system/components";
 import {
   Button,
   Filter,
@@ -46,6 +50,7 @@ function AllocationsTeamContent() {
   const duration = useAllocationsTeam(({ state }) => state.duration);
   const weekCount = useAllocationsTeam(({ state }) => state.weekCount);
   const isLoading = useAllocationsTeam(({ state }) => state.isLoading);
+  const hasMore = useAllocationsTeam(({ state }) => state.hasMore);
   const filteredMembers = useAllocationsTeam(
     ({ state }) => state.filteredMembers,
   );
@@ -57,6 +62,7 @@ function AllocationsTeamContent() {
 
   const setSearch = useAllocationsTeam(({ actions }) => actions.setSearch);
   const setDuration = useAllocationsTeam(({ actions }) => actions.setDuration);
+  const loadMore = useAllocationsTeam(({ actions }) => actions.loadMore);
   const handlePrevious = useAllocationsTeam(
     ({ actions }) => actions.handlePrevious,
   );
@@ -68,14 +74,15 @@ function AllocationsTeamContent() {
   }));
 
   const isAllTime = duration === "all-time";
+  const hasMembers = filteredMembers.length > 0;
 
   return (
     <div className="flex flex-wrap gap-3.5 justify-between py-3.5">
-      <div className="w-full flex flex-wrap gap-2 justify-start px-5">
+      <div className="w-full flex flex-wrap gap-2 justify-between px-5">
         <div className="flex flex-wrap gap-2">
           <TextInput
             className="w-xs"
-            placeholder="Search Members or designation"
+            placeholder="Search members or designation"
             onChange={(e) => setSearch(e.target.value)}
             value={searchInput}
           />
@@ -143,15 +150,27 @@ function AllocationsTeamContent() {
       </div>
       {/* 112px is the height of header and filters section */}
       <div className="relative overflow-auto no-scrollbar w-full h-[calc(100vh-112px)]">
-        <GanttGrid
-          className={cn("transition-opacity duration-150", {
-            "opacity-50 pointer-events-none": isLoading,
-          })}
-          startDate={anchorDate}
-          members={filteredMembers}
-          weekCount={weekCount}
-          hasRoleAccess={hasRoleAccess}
-        />
+        {hasMembers ? (
+          <GanttGrid
+            className={cn("transition-opacity duration-150", {
+              "opacity-50 pointer-events-none": isLoading,
+            })}
+            startDate={anchorDate}
+            members={filteredMembers}
+            weekCount={weekCount}
+            hasRoleAccess={hasRoleAccess}
+            showLoadMoreRow={hasMore && hasMembers}
+            onLoadMore={loadMore}
+            isLoadMoreDisabled={isLoading}
+          />
+        ) : null}
+
+        {!isLoading && !hasMembers ? (
+          <Typography className="flex h-full items-center justify-center">
+            No Data
+          </Typography>
+        ) : null}
+
         {isLoading ? (
           <div className="absolute inset-0 z-20 flex items-center justify-center cursor-wait pointer-events-auto">
             <Spinner />
