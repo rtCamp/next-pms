@@ -21,7 +21,9 @@ import { ChevronLeft, ChevronRight, Ellipsis } from "lucide-react";
 /**
  * Internal dependencies.
  */
+import { InfiniteScroll } from "@/components/infiniteScroll";
 import { useUser } from "@/providers/user";
+import { EMPLOYEES_PER_PAGE } from "./constants";
 import { useAllocationsTeam } from "./context";
 import { AllocationsTeamProvider } from "./provider";
 
@@ -50,6 +52,9 @@ function AllocationsTeamContent() {
   const duration = useAllocationsTeam(({ state }) => state.duration);
   const weekCount = useAllocationsTeam(({ state }) => state.weekCount);
   const isLoading = useAllocationsTeam(({ state }) => state.isLoading);
+  const isFilterRequest = useAllocationsTeam(
+    ({ state }) => state.isFilterRequest,
+  );
   const hasMore = useAllocationsTeam(({ state }) => state.hasMore);
   const filteredMembers = useAllocationsTeam(
     ({ state }) => state.filteredMembers,
@@ -75,6 +80,8 @@ function AllocationsTeamContent() {
 
   const isAllTime = duration === "all-time";
   const hasMembers = filteredMembers.length > 0;
+  const isFilteredDataLoading = isLoading && isFilterRequest;
+  const showOverlay = isFilteredDataLoading || (isLoading && !hasMembers);
 
   return (
     <div className="flex flex-wrap gap-3.5 justify-between py-3.5">
@@ -149,20 +156,26 @@ function AllocationsTeamContent() {
         </div>
       </div>
       {/* 112px is the height of header and filters section */}
-      <div className="relative overflow-auto no-scrollbar w-full h-[calc(100vh-112px)]">
+      <div className="relative w-full h-[calc(100vh-112px)]">
         {hasMembers ? (
-          <GanttGrid
-            className={cn("transition-opacity duration-150", {
-              "opacity-50 pointer-events-none": isLoading,
+          <InfiniteScroll
+            isLoading={isLoading}
+            hasMore={hasMore}
+            verticalLodMore={loadMore}
+            className={cn("w-full h-full overflow-auto no-scrollbar", {
+              "opacity-50 transition-opacity duration-150 pointer-events-none":
+                isFilteredDataLoading,
             })}
-            startDate={anchorDate}
-            members={filteredMembers}
-            weekCount={weekCount}
-            hasRoleAccess={hasRoleAccess}
-            showLoadMoreRow={hasMore && hasMembers}
-            onLoadMore={loadMore}
-            isLoadMoreDisabled={isLoading}
-          />
+            skeletonClassName="h-15"
+            count={EMPLOYEES_PER_PAGE}
+          >
+            <GanttGrid
+              startDate={anchorDate}
+              members={filteredMembers}
+              weekCount={weekCount}
+              hasRoleAccess={hasRoleAccess}
+            />
+          </InfiniteScroll>
         ) : null}
 
         {!isLoading && !hasMembers ? (
@@ -171,7 +184,7 @@ function AllocationsTeamContent() {
           </Typography>
         ) : null}
 
-        {isLoading ? (
+        {showOverlay ? (
           <div className="absolute inset-0 z-20 flex items-center justify-center cursor-wait pointer-events-auto">
             <Spinner />
           </div>

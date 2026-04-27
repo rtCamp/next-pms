@@ -7,6 +7,7 @@ import { addMonths, addWeeks } from "date-fns";
 /**
  * Internal dependencies.
  */
+import { EMPLOYEES_PER_PAGE } from "./constants";
 import type { AllocationsDuration } from "./context";
 import { mergeUniqueMembers } from "./utils";
 
@@ -16,8 +17,6 @@ const DURATION_WEEK_COUNT: Record<AllocationsDuration, number> = {
   "this-quarter": 13,
   "all-time": 100,
 };
-
-const EMPLOYEES_PER_PAGE = 10;
 
 export interface AllocationsTeamState {
   members: Member[];

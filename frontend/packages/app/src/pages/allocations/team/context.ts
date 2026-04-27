@@ -15,6 +15,7 @@ export interface AllocationsTeamContextProps {
     members: Member[];
     filteredMembers: Member[];
     isLoading: boolean;
+    isFilterRequest: boolean;
     hasMore: boolean;
     totalCount: number;
     searchInput: string;
@@ -39,6 +40,7 @@ export const AllocationsTeamContext =
       members: [],
       filteredMembers: [],
       isLoading: false,
+      isFilterRequest: false,
       hasMore: true,
       totalCount: 0,
       searchInput: "",
