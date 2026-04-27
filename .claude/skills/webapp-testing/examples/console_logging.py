@@ -28,7 +28,7 @@ with sync_playwright() as p:
     browser.close()
 
 # Save console logs to file
-with open('/mnt/user-data/outputs/console.log', 'w') as f:
+with open('/mnt/user-data/outputs/console.log', 'w') as f:  # nosemgrep - fixed output path in example script
     f.write('\n'.join(console_logs))
 
 print(f"\nCaptured {len(console_logs)} console messages")
