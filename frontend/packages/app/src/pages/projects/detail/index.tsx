@@ -1,9 +1,9 @@
 /**
  * External dependencies.
  */
-import { Tabs } from "@rtcamp/frappe-ui-react";
 import { useState } from "react";
 import { useParams } from "react-router-dom";
+import { Tabs } from "@rtcamp/frappe-ui-react";
 
 /**
  * Internal dependencies.
@@ -11,9 +11,9 @@ import { useParams } from "react-router-dom";
 import { UnderConstruction } from "@/components/under-construction";
 import { FAKE_PROJECTS } from "@/pages/projects/list/fake-data";
 
-import { TABS } from "./constants";
 import { ProjectDetailHeader } from "./header";
 import { AboutThisProject } from "./summary";
+import { TABS } from "./tabs";
 
 function ProjectDetail() {
   const { projectId = "" } = useParams<{ projectId: string }>();
@@ -23,22 +23,18 @@ function ProjectDetail() {
   const [activeTab, setActiveTab] = useState(0);
 
   return (
-    <>
+    <div>
       <ProjectDetailHeader projectName={projectName} />
       <div className="flex">
         <div className="flex min-w-0 flex-1 flex-col">
-          <Tabs
-            tabs={TABS.map((t) => ({ label: t.label }))}
-            tabIndex={activeTab}
-            onTabChange={setActiveTab}
-          />
+          <Tabs tabs={TABS} tabIndex={activeTab} onTabChange={setActiveTab} />
           <UnderConstruction />
         </div>
         <aside className="w-[352px] shrink-0">
           <AboutThisProject />
         </aside>
       </div>
-    </>
+    </div>
   );
 }
 
