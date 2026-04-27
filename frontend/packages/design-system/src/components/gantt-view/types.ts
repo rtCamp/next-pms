@@ -36,6 +36,11 @@ export interface Member {
   role?: string;
   image?: string;
   badge?: string;
+  designation?: string;
+  department?: string;
+  rate?: string;
+  capacity?: string;
+  manager?: string;
   projects?: Project[];
   leaves?: LeaveAllocation[];
 }
