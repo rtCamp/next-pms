@@ -5,14 +5,13 @@ import { Fragment, useEffect, useRef, useState } from "react";
 import { mergeClassNames as cn } from "@next-pms/design-system";
 import { Spinner, Typography } from "@next-pms/design-system/components";
 import { useQueryParam } from "@next-pms/hooks";
-import { Button, TextInput } from "@rtcamp/frappe-ui-react";
+import { Button, Filter, TextInput } from "@rtcamp/frappe-ui-react";
 import { isEmpty } from "lodash";
 import { Ellipsis } from "lucide-react";
 
 /**
  * Internal dependencies.
  */
-import CompositeFilter from "@/components/filters/compositeFilter";
 import PersonalTaskLog from "@/components/task-log/personalTaskLog";
 import { NUMBER_OF_WEEKS_TO_FETCH } from "@/lib/constant";
 import { isDateInRange } from "@/lib/utils";
@@ -23,6 +22,7 @@ import ApprovalStatusFilter from "../../../components/filters/approvalStatusFilt
 import { InfiniteScroll } from "../../../components/infiniteScroll";
 import { HeaderRow } from "../../../components/timesheet-row/components/row/headerRow";
 import { PersonalTimesheetRow } from "../../../components/timesheet-row/personalTimesheetRow";
+import { personalTimesheetFilters } from "../constants";
 import { useTimesheetOutletContext } from "../outletContext";
 
 export const PersonalTimesheetTable = () => {
@@ -101,9 +101,11 @@ export const PersonalTimesheetTable = () => {
           />
         </div>
         <div className="flex gap-2">
-          <CompositeFilter
-            filter={compositeFilters}
-            handleFilterChange={handleCompositeFilterChange}
+          <Filter
+            align="end"
+            fields={personalTimesheetFilters}
+            value={compositeFilters}
+            onChange={handleCompositeFilterChange}
           />
           <Button icon={() => <Ellipsis size={16} />} />
         </div>

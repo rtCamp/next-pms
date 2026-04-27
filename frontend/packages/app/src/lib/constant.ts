@@ -41,3 +41,6 @@ export const CustomTime = [
 ];
 
 export const NUMBER_OF_WEEKS_TO_FETCH = 4;
+
+/** Operators that carry no value. */
+export const NO_VALUE_OPERATORS: string[] = ["is_empty", "is_not_empty"];

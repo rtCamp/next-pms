@@ -8,6 +8,7 @@ import {
   useEffect,
   useMemo,
   useReducer,
+  useRef,
 } from "react";
 import { type ApprovalStatusType } from "@next-pms/design-system/components";
 import { type FilterCondition } from "@rtcamp/frappe-ui-react";
@@ -19,7 +20,7 @@ import { useToasts } from "@rtcamp/frappe-ui-react";
 import type { Error as FrappeError } from "frappe-js-sdk/lib/frappe_app/types";
 import { useFrappeEventListener } from "frappe-react-sdk";
 import { useDebounce } from "@/hooks/useDebounce";
-import { parseFrappeErrorMsg } from "@/lib/utils";
+import { parseFrappeErrorMsg, isCompleteFilterCondition } from "@/lib/utils";
 import { useUser } from "@/providers/user";
 import {
   TeamTimesheetContext,
@@ -57,24 +58,49 @@ export const TeamTimesheetProvider: FC<PropsWithChildren> = ({ children }) => {
     [state.filters, debouncedSearch, employeeId],
   );
 
-  const { hasMore, isLoadingTeamData, weekGroups, loadMore, error } =
-    useTeamTimesheetData({
-      filters: effectiveFilters,
-      compositeFilters: state.compositeFilters,
-    });
+  // Only pass complete filter conditions to the data hook so that selecting a
+  // field (without an operator/value) does not trigger a reset + network request.
+  const effectiveCompositeFilters = useMemo(
+    () => state.compositeFilters.filter(isCompleteFilterCondition),
+    [state.compositeFilters],
+  );
+
+  const {
+    hasMore,
+    isLoadingTeamData,
+    weekGroups: freshWeekGroups,
+    loadMore,
+    handleRealtimeUpdate,
+    error,
+  } = useTeamTimesheetData({
+    filters: effectiveFilters,
+    compositeFilters: effectiveCompositeFilters,
+  });
+
+  // Keep the last non-empty result so that during a filter-triggered reload the
+  // table stays visible (faded) instead of blinking through an empty state and
+  // triggering the full-page spinner.
+  const staleWeekGroupsRef = useRef(freshWeekGroups);
+  if (freshWeekGroups.length > 0) {
+    staleWeekGroupsRef.current = freshWeekGroups;
+  }
+  const weekGroups =
+    freshWeekGroups.length > 0 || !isLoadingTeamData
+      ? freshWeekGroups
+      : staleWeekGroupsRef.current;
 
   useEffect(() => {
     if (isLoadingTeamData) return;
-    dispatch({ type: "DATA_LOADED", payload: weekGroups });
+    dispatch({ type: "FILTER_REQUEST_COMPLETE" });
 
     if (error) {
       toast.error(parseFrappeErrorMsg(error as FrappeError));
     }
-    /* eslint-disable-next-line react-hooks/exhaustive-deps */
-  }, [weekGroups, error, isLoadingTeamData]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isLoadingTeamData, error]);
 
   useFrappeEventListener("timesheet_info", (payload) => {
-    dispatch({ type: "REALTIME_UPDATE", payload: payload.message });
+    handleRealtimeUpdate(payload.message);
   });
 
   const handleSearchChange = useCallback((value: string) => {
@@ -108,7 +134,7 @@ export const TeamTimesheetProvider: FC<PropsWithChildren> = ({ children }) => {
         hasMore,
         isLoadingTeamData,
         isFilterRequest: state.isFilterRequest,
-        weekGroups: state.weekGroups,
+        weekGroups,
         filters: effectiveFilters,
         searchInput: state.searchInput,
         compositeFilters: state.compositeFilters,
@@ -126,7 +152,7 @@ export const TeamTimesheetProvider: FC<PropsWithChildren> = ({ children }) => {
       isLoadingTeamData,
       state.isFilterRequest,
       loadMore,
-      state.weekGroups,
+      weekGroups,
       effectiveFilters,
       state.searchInput,
       state.compositeFilters,
