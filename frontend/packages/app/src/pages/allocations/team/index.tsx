@@ -2,7 +2,8 @@
  * External dependencies.
  */
 import { useState } from "react";
-import { GanttGrid } from "@next-pms/design-system/components";
+import { mergeClassNames as cn } from "@next-pms/design-system";
+import { GanttGrid, Spinner } from "@next-pms/design-system/components";
 import {
   Button,
   Filter,
@@ -44,6 +45,7 @@ function AllocationsTeamContent() {
   const searchInput = useAllocationsTeam(({ state }) => state.searchInput);
   const duration = useAllocationsTeam(({ state }) => state.duration);
   const weekCount = useAllocationsTeam(({ state }) => state.weekCount);
+  const isLoading = useAllocationsTeam(({ state }) => state.isLoading);
   const filteredMembers = useAllocationsTeam(
     ({ state }) => state.filteredMembers,
   );
@@ -69,7 +71,7 @@ function AllocationsTeamContent() {
 
   return (
     <div className="flex flex-wrap gap-3.5 justify-between py-3.5">
-      <div className="w-full flex flex-wrap gap-2 justify-between px-5">
+      <div className="w-full flex flex-wrap gap-2 justify-start px-5">
         <div className="flex flex-wrap gap-2">
           <TextInput
             className="w-xs"
@@ -140,14 +142,21 @@ function AllocationsTeamContent() {
         </div>
       </div>
       {/* 112px is the height of header and filters section */}
-      <div className="overflow-auto no-scrollbar w-full h-[calc(100vh-112px)]">
+      <div className="relative overflow-auto no-scrollbar w-full h-[calc(100vh-112px)]">
         <GanttGrid
-          key={`${weekCount}-${anchorDate.toISOString()}`}
+          className={cn("transition-opacity duration-150", {
+            "opacity-50 pointer-events-none": isLoading,
+          })}
           startDate={anchorDate}
           members={filteredMembers}
           weekCount={weekCount}
           hasRoleAccess={hasRoleAccess}
         />
+        {isLoading ? (
+          <div className="absolute inset-0 z-20 flex items-center justify-center cursor-wait pointer-events-auto">
+            <Spinner />
+          </div>
+        ) : null}
       </div>
     </div>
   );

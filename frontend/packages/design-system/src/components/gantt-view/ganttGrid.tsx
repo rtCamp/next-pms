@@ -16,7 +16,7 @@ import { GanttWeekHeader } from "./ganttWeekHeader";
 import type { GanttGridProps } from "./types";
 import { mergeClassNames as cn } from "../../utils";
 
-const GanttGridInner: React.FC = () => {
+const GanttGridInner: React.FC<{ className?: string }> = ({ className }) => {
   const {
     members,
     expandedRows,
@@ -50,7 +50,7 @@ const GanttGridInner: React.FC = () => {
 
   return (
     <div
-      className="relative"
+      className={cn("relative", className)}
       style={{ width: headerWidth + columnCount * CELL_WIDTH }}
     >
       {weekendColumns.length > 0 && (
@@ -281,7 +281,7 @@ export const GanttGrid: React.FC<GanttGridProps> = (props) => {
 
   return (
     <GanttContext.Provider value={store}>
-      <GanttGridInner />
+      <GanttGridInner className={props.className} />
     </GanttContext.Provider>
   );
 };

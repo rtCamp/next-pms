@@ -50,4 +50,6 @@ export interface GanttGridProps {
   showWeekend?: boolean;
   /** Whether current user can manage member projects. */
   hasRoleAccess?: boolean;
+  /** Optional custom classes for the root wrapper. */
+  className?: string;
 }
