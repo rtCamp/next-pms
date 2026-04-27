@@ -69,8 +69,8 @@ def send_reminder_mail_for_project(project: str):
         "project": project,
     }
 
-    message = frappe.render_template(email_message, args)
-    subject = frappe.render_template(email_subject, args)
+    message = frappe.render_template(email_message, args)  # nosemgrep - trusted Email Template from DB
+    subject = frappe.render_template(email_subject, args)  # nosemgrep - trusted Email Template from DB
 
     frappe.sendmail(recipients=recipients, subject=subject, message=message)
 
