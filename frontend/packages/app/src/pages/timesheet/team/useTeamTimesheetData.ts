@@ -266,6 +266,17 @@ export function useTeamTimesheetData({
       return { hasMoreWeeks, hasMoreEmployees, hasMore, weekGroups };
     }, [pages, weekDate, startDate, maxWeek]);
 
+  // When the current window is fully loaded but yields no visible weeks, we are
+  // about to auto-advance. Expose this as "still loading" to prevent a flicker
+  // where the consumer briefly sees an empty / "No Data" state before the next
+  // fetch starts.
+  const isAutoAdvancing =
+    !isLoadingTeamApiData &&
+    pages.length > 0 &&
+    !hasMoreEmployees &&
+    weekGroups.length === 0 &&
+    hasMoreWeeks;
+
   // Auto-advance the week window when a fully-loaded window yields no visible
   // weeks (all employees have "Not Submitted" timesheets for that range).
   // This prevents a "No Data" screen when data exists in older date ranges,
@@ -341,7 +352,8 @@ export function useTeamTimesheetData({
 
   return {
     hasMore,
-    isLoadingTeamData: isLoadingTeamApiData,
+    isLoadingTeamData:
+      isLoadingTeamApiData || isAutoAdvancing || pages.length === 0,
     weekGroups,
     loadMore,
     handleRealtimeUpdate,
