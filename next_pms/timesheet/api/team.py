@@ -186,7 +186,7 @@ def _get_team_timesheet_data(
     max_week: int = 2,
     page_length=10,
     start=0,
-    status_filter=None,
+    status_filter: str | list[str] | None = None,
     reports_to: str | None = None,
     by_pass_access_check=False,
     search: str | None = None,
@@ -218,7 +218,7 @@ def _get_team_timesheet_data(
         elif field == "custom_business_unit":
             employee_business_unit = [value] if isinstance(value, str) else value
 
-    has_filters = bool(search or any(parsed_filters.values()))
+    has_filters = bool(search or status_filter or any(parsed_filters.values()))
     dates, _ = build_aggregate_dates(date=date, max_week=max_week, has_filters=has_filters)
     response_dates = dates[-max_week:] if has_filters and len(dates) > max_week else dates
     res = {"dates": response_dates}
@@ -240,6 +240,7 @@ def _get_team_timesheet_data(
         return res
 
     def build_team_employee_payload(employee, context):
+        """Builds the response payload for a single employee from the chunk context."""
         working_hours = context["working_hours_map"].get(
             employee.name, {"working_hour": 0, "working_frequency": "Per Day"}
         )
@@ -300,6 +301,7 @@ def _get_team_timesheet_data(
             context=context,
             has_filters=has_filters,
             skip_empty_weeks=skip_empty_weeks,
+            approval_status=status_filter,
         )
 
         if has_filters and len(timesheet_details) > max_week:
@@ -345,7 +347,7 @@ def get_team_timesheet_data(
     max_week: int = 2,
     page_length: int = 10,
     start: int = 0,
-    status_filter: str | list | None = None,
+    status_filter: str | list[str] | None = None,
     reports_to: str | None = None,
     search: str | None = None,
     filters: str | list | None = None,
