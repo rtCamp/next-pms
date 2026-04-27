@@ -42,7 +42,7 @@ def send_mail(employee: str, reporting_manager: str, start_date: str, end_date: 
         "reporting_manager": reporting_manager,
         "notes": notes,
     }
-    message = frappe.render_template(email_message, args)
-    subject = frappe.render_template(email_subject, args)
+    message = frappe.render_template(email_message, args)  # nosemgrep - trusted Email Template from DB
+    subject = frappe.render_template(email_subject, args)  # nosemgrep - trusted Email Template from DB
 
     frappe.sendmail(recipients=recipients, subject=subject, message=message)

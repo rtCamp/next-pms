@@ -42,17 +42,17 @@ from .utils import (
 def get_compact_view_data(
     date: str,
     max_week: int = 2,
-    employee_name=None,
+    employee_name: str | None = None,
     employee_ids: list[str] | str | None = None,
-    department=None,
-    project=None,
-    user_group=None,
-    page_length=10,
-    start=0,
-    status_filter=None,
-    status=None,
+    department: str | None = None,
+    project: str | None = None,
+    user_group: str | None = None,
+    page_length: int = 10,
+    start: int = 0,
+    status_filter: list | str | None = None,
+    status: list | str | None = None,
     reports_to: str | None = None,
-    by_pass_access_check=False,
+    by_pass_access_check: bool = False,
 ):
     """API to get the timesheet data in compact view format, it will return the timesheet data for the employees based on the filters provided. It will return the data in a format which can be used to render the compact view of the timesheet. If no filters are provided, it will return the timesheet data for all the employees for the current week and previous weeks based on the max_week parameter."""
     ## TODO: Deprecated ; can be removed after the redesign is completed
@@ -590,6 +590,6 @@ def trigger_notification_for_approved_or_rejected_timesheet(
         "dates": dates,
         "updated_by": get_value("User", frappe.session.user, "full_name"),
     }
-    message = frappe.render_template(email_message, args)
-    subject = frappe.render_template(email_subject, args)
+    message = frappe.render_template(email_message, args)  # nosemgrep - trusted Email Template from DB
+    subject = frappe.render_template(email_subject, args)  # nosemgrep - trusted Email Template from DB
     frappe.sendmail(recipients=employee.user_id, subject=subject, message=message)
