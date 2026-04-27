@@ -1,9 +1,8 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Plus } from "lucide-react";
 import {
   ADD_PROJECT_ROW_HEIGHT,
   CELL_HEIGHT,
-  CELL_WIDTH,
   HEADER_HEIGHT,
 } from "./constants";
 import { GanttMemberBar } from "./gantt-bar/memberBar";
@@ -17,16 +16,24 @@ import type { GanttGridProps } from "./types";
 import { mergeClassNames as cn } from "../../utils";
 
 const GanttGridInner: React.FC<{
+  rootRef?: React.RefObject<HTMLDivElement | null>;
   className?: string;
   showLoadMoreRow?: boolean;
   onLoadMore?: () => void;
   isLoadMoreDisabled?: boolean;
-}> = ({ className, showLoadMoreRow, onLoadMore, isLoadMoreDisabled }) => {
+}> = ({
+  rootRef,
+  className,
+  showLoadMoreRow,
+  onLoadMore,
+  isLoadMoreDisabled,
+}) => {
   const {
     members,
     expandedRows,
     headerWidth,
     daysPerWeek,
+    columnWidth,
     weekendColumns,
     resizeHandleActive,
     setResizeHandleActive,
@@ -39,6 +46,7 @@ const GanttGridInner: React.FC<{
     expandedRows: s.expandedRows,
     headerWidth: s.headerWidth,
     daysPerWeek: s.daysPerWeek,
+    columnWidth: s.columnWidth,
     weekendColumns: s.weekendColumns,
     resizeHandleActive: s.resizeHandleActive,
     setResizeHandleActive: s.setResizeHandleActive,
@@ -55,8 +63,9 @@ const GanttGridInner: React.FC<{
 
   return (
     <div
+      ref={rootRef}
       className={cn("relative", className)}
-      style={{ width: headerWidth + columnCount * CELL_WIDTH }}
+      style={{ width: headerWidth + columnCount * columnWidth }}
     >
       {weekendColumns.length > 0 && (
         <div className="pointer-events-none absolute inset-0 z-0">
@@ -66,8 +75,8 @@ const GanttGridInner: React.FC<{
               className="absolute bottom-0 bg-surface-gray-3/20"
               style={{
                 top: HEADER_HEIGHT,
-                left: headerWidth + columnIndex * CELL_WIDTH,
-                width: CELL_WIDTH,
+                left: headerWidth + columnIndex * columnWidth,
+                width: columnWidth,
               }}
             />
           ))}
@@ -76,7 +85,7 @@ const GanttGridInner: React.FC<{
 
       <table
         className="relative z-10 border-separate border-spacing-0"
-        style={{ width: headerWidth + columnCount * CELL_WIDTH }}
+        style={{ width: headerWidth + columnCount * columnWidth }}
       >
         <thead className="sticky top-0 z-20">
           {/* Row 1: corner + week range labels */}
@@ -300,6 +309,8 @@ const GanttGridInner: React.FC<{
 };
 
 export const GanttGrid: React.FC<GanttGridProps> = (props) => {
+  const rootRef = useRef<HTMLDivElement>(null);
+
   const resolvedProps = useMemo(
     () => ({
       members: props.members,
@@ -323,9 +334,33 @@ export const GanttGrid: React.FC<GanttGridProps> = (props) => {
     store.getState().syncProps(resolvedProps);
   }, [resolvedProps, store]);
 
+  // Set up ResizeObserver to watch for container width changes.
+  useEffect(() => {
+    const container = rootRef.current?.parentElement;
+    let observer: ResizeObserver | null = null;
+
+    if (container) {
+      store.getState().setContainerWidth(container.clientWidth);
+
+      observer = new ResizeObserver((entries) => {
+        const width = entries[0]?.contentRect.width;
+        if (width === undefined) {
+          return;
+        }
+
+        store.getState().setContainerWidth(width);
+      });
+
+      observer.observe(container);
+    }
+
+    return () => observer?.disconnect();
+  }, [store]);
+
   return (
     <GanttContext.Provider value={store}>
       <GanttGridInner
+        rootRef={rootRef}
         className={props.className}
         showLoadMoreRow={props.showLoadMoreRow}
         onLoadMore={props.onLoadMore}
