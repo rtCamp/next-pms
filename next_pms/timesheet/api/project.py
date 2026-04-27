@@ -37,7 +37,7 @@ def get_projects(
         filters = json.loads(filters)
 
     if not fields:
-        fields = meta.default_fields
+        fields = list(meta.default_fields)  # Copy to avoid mutating class attribute
 
     if "custom_currency" not in fields:
         fields.append("custom_currency")
