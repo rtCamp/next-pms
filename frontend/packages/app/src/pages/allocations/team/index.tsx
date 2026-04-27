@@ -1,7 +1,7 @@
 /**
- * Internal dependencies.
+ * External dependencies.
  */
-import { useEffect } from "react";
+import { useState } from "react";
 import { GanttGrid } from "@next-pms/design-system/components";
 import {
   Button,
@@ -12,9 +12,13 @@ import {
   TextInput,
 } from "@rtcamp/frappe-ui-react";
 import { ChevronLeft, ChevronRight, Ellipsis } from "lucide-react";
+
+/**
+ * Internal dependencies.
+ */
 import { useUser } from "@/providers/user";
-import { GANTT_START_DATE } from "./constants";
-import { useAllocationsTeamShallow } from "./store";
+import { useAllocationsTeam } from "./context";
+import { AllocationsTeamProvider } from "./provider";
 
 const FILTER_FIELDS: FilterField[] = [
   {
@@ -36,40 +40,32 @@ const FILTER_FIELDS: FilterField[] = [
   },
 ];
 
-function AllocationsTeam() {
-  const {
-    search,
-    setSearch,
-    allocationsType,
-    setAllocationsType,
-    duration,
-    setDuration,
-    compositeFilters,
-    setCompositeFilters,
-    weekCount,
-    filteredMembers,
-    fetchData,
-  } = useAllocationsTeamShallow((s) => ({
-    search: s.search,
-    setSearch: s.setSearch,
-    allocationsType: s.allocationsType,
-    setAllocationsType: s.setAllocationsType,
-    duration: s.duration,
-    setDuration: s.setDuration,
-    compositeFilters: s.compositeFilters,
-    setCompositeFilters: s.setCompositeFilters,
-    weekCount: s.weekCount,
-    filteredMembers: s.filteredMembers,
-    fetchData: s.fetchData,
-  }));
+function AllocationsTeamContent() {
+  const searchInput = useAllocationsTeam(({ state }) => state.searchInput);
+  const duration = useAllocationsTeam(({ state }) => state.duration);
+  const weekCount = useAllocationsTeam(({ state }) => state.weekCount);
+  const filteredMembers = useAllocationsTeam(
+    ({ state }) => state.filteredMembers,
+  );
+  const anchorDate = useAllocationsTeam(({ state }) => state.anchorDate);
+  const [allocationsType, setAllocationsType] = useState("all");
+  const [compositeFilters, setCompositeFilters] = useState<FilterCondition[]>(
+    [],
+  );
+
+  const setSearch = useAllocationsTeam(({ actions }) => actions.setSearch);
+  const setDuration = useAllocationsTeam(({ actions }) => actions.setDuration);
+  const handlePrevious = useAllocationsTeam(
+    ({ actions }) => actions.handlePrevious,
+  );
+  const handleToday = useAllocationsTeam(({ actions }) => actions.handleToday);
+  const handleNext = useAllocationsTeam(({ actions }) => actions.handleNext);
 
   const { hasRoleAccess } = useUser(({ state }) => ({
     hasRoleAccess: state.hasRoleAccess,
   }));
 
-  useEffect(() => {
-    fetchData();
-  }, [fetchData]);
+  const isAllTime = duration === "all-time";
 
   return (
     <div className="flex flex-wrap gap-3.5 justify-between py-3.5">
@@ -78,9 +74,8 @@ function AllocationsTeam() {
           <TextInput
             className="w-xs"
             placeholder="Search Members or designation"
-            debounce={200}
             onChange={(e) => setSearch(e.target.value)}
-            value={search}
+            value={searchInput}
           />
           <Select
             placeholder="Duration"
@@ -92,7 +87,9 @@ function AllocationsTeam() {
               { label: "All time", value: "all-time" },
             ]}
             value={duration}
-            onChange={(value) => setDuration(value || "this-quarter")}
+            onChange={(value) =>
+              setDuration((value || "this-quarter") as typeof duration)
+            }
           />
           <Select
             placeholder="Allocations Type"
@@ -105,7 +102,7 @@ function AllocationsTeam() {
               { label: "Non-billable only", value: "non-billable" },
             ]}
             value={allocationsType}
-            onChange={(value) => setAllocationsType(value)}
+            onChange={(value) => setAllocationsType(value ?? "all")}
           />
         </div>
         <div className="flex gap-2">
@@ -113,15 +110,22 @@ function AllocationsTeam() {
             <Button
               variant="ghost"
               icon={() => <ChevronLeft size={16} />}
-              onClick={() => {}}
+              onClick={handlePrevious}
               aria-label="Previous week"
+              disabled={isAllTime}
             />
-            <Button variant="ghost" label="Today" onClick={() => {}} />
+            <Button
+              variant="ghost"
+              label="Today"
+              onClick={handleToday}
+              disabled={isAllTime}
+            />
             <Button
               variant="ghost"
               icon={() => <ChevronRight size={16} />}
-              onClick={() => {}}
+              onClick={handleNext}
               aria-label="Next week"
+              disabled={isAllTime}
             />
           </div>
           <Filter
@@ -138,14 +142,22 @@ function AllocationsTeam() {
       {/* 112px is the height of header and filters section */}
       <div className="overflow-auto no-scrollbar w-full h-[calc(100vh-112px)]">
         <GanttGrid
-          key={weekCount + search}
-          startDate={GANTT_START_DATE}
+          key={`${weekCount}-${anchorDate.toISOString()}`}
+          startDate={anchorDate}
           members={filteredMembers}
           weekCount={weekCount}
           hasRoleAccess={hasRoleAccess}
         />
       </div>
     </div>
+  );
+}
+
+function AllocationsTeam() {
+  return (
+    <AllocationsTeamProvider>
+      <AllocationsTeamContent />
+    </AllocationsTeamProvider>
   );
 }
 

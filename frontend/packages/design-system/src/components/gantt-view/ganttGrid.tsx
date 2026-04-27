@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Plus } from "lucide-react";
 import {
   ADD_PROJECT_ROW_HEIGHT,
@@ -256,15 +256,29 @@ const GanttGridInner: React.FC = () => {
 };
 
 export const GanttGrid: React.FC<GanttGridProps> = (props) => {
-  const [store] = useState(() =>
-    createGanttStore({
+  const resolvedProps = useMemo(
+    () => ({
       members: props.members,
       showWeekend: props.showWeekend ?? true,
       startDate: props.startDate,
       weekCount: props.weekCount ?? 3,
       hasRoleAccess: props.hasRoleAccess ?? false,
     }),
+    [
+      props.hasRoleAccess,
+      props.members,
+      props.showWeekend,
+      props.startDate,
+      props.weekCount,
+    ],
   );
+
+  const [store] = useState(() => createGanttStore(resolvedProps));
+
+  useEffect(() => {
+    store.getState().syncProps(resolvedProps);
+  }, [resolvedProps, store]);
+
   return (
     <GanttContext.Provider value={store}>
       <GanttGridInner />

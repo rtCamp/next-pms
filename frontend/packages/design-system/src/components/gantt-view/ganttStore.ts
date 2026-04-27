@@ -38,19 +38,20 @@ interface GanttState extends GanttProps {
   setHeaderWidth: (width: number) => void;
   setResizeHandleActive: (active: boolean) => void;
   startResize: (startX: number) => void;
+  syncProps: (nextProps: GanttProps) => void;
 }
 
 export type GanttStore = ReturnType<typeof createGanttStore>;
 
-export const createGanttStore = (initProps: GanttProps) => {
-  const daysPerWeek = initProps.showWeekend ? 7 : 5;
-  const columnCount = initProps.weekCount * daysPerWeek;
-  const weekStart = startOfWeek(initProps.startDate, {
+function buildDerivedState(props: GanttProps) {
+  const daysPerWeek = props.showWeekend ? 7 : 5;
+  const columnCount = props.weekCount * daysPerWeek;
+  const weekStart = startOfWeek(props.startDate, {
     weekStartsOn: 1,
   });
-  const weeks = Array.from({ length: initProps.weekCount }, (_, i) => i);
+  const weeks = Array.from({ length: props.weekCount }, (_, i) => i);
   const columns = Array.from({ length: columnCount }, (_, i) => i);
-  const weekendColumns = initProps.showWeekend
+  const weekendColumns = props.showWeekend
     ? columns.filter((colIndex) => {
         const day = addDays(weekStart, colIndex);
         const dayOfWeek = day.getDay();
@@ -58,14 +59,13 @@ export const createGanttStore = (initProps: GanttProps) => {
       })
     : [];
   const members = prepareMemberBars(
-    initProps.members,
+    props.members,
     weekStart,
     columnCount,
-    initProps.showWeekend,
+    props.showWeekend,
   );
 
-  return createStore<GanttState>()((set, get) => ({
-    ...initProps,
+  return {
     daysPerWeek,
     columnCount,
     weekStart,
@@ -73,6 +73,15 @@ export const createGanttStore = (initProps: GanttProps) => {
     columns,
     weekendColumns,
     members,
+  };
+}
+
+export const createGanttStore = (initProps: GanttProps) => {
+  const derivedState = buildDerivedState(initProps);
+
+  return createStore<GanttState>()((set, get) => ({
+    ...initProps,
+    ...derivedState,
     expandedRows: new Set(),
     headerWidth: ROW_HEADER_WIDTH,
     resizeHandleActive: false,
@@ -110,6 +119,14 @@ export const createGanttStore = (initProps: GanttProps) => {
       document.addEventListener("pointermove", onPointerMove);
       document.addEventListener("pointerup", stopResize);
       document.addEventListener("pointercancel", stopResize);
+    },
+
+    syncProps: (nextProps) => {
+      set({
+        ...nextProps,
+        ...buildDerivedState(nextProps),
+        expandedRows: new Set(),
+      });
     },
   }));
 };
