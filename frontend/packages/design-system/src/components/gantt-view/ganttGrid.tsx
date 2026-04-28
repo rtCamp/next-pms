@@ -12,6 +12,7 @@ import { GanttProjectItem } from "./ganttProjectItem";
 import { createGanttStore, GanttContext, useGanttStore } from "./ganttStore";
 import type { Member } from "./ganttStore";
 import { GanttWeekHeader } from "./ganttWeekHeader";
+import { useContainerResize } from "./hooks/useContainerResize";
 import type { GanttGridProps } from "./types";
 import { mergeClassNames as cn } from "../../utils";
 
@@ -286,28 +287,12 @@ export const GanttGrid: React.FC<GanttGridProps> = (props) => {
     store.getState().syncProps(resolvedProps);
   }, [resolvedProps, store]);
 
-  // Set up ResizeObserver to watch for container width changes.
-  useEffect(() => {
-    const container = rootRef.current?.parentElement;
-    let observer: ResizeObserver | null = null;
-
-    if (container) {
-      store.getState().setContainerWidth(container.clientWidth);
-
-      observer = new ResizeObserver((entries) => {
-        const width = entries[0]?.contentRect.width;
-        if (width === undefined) {
-          return;
-        }
-
-        store.getState().setContainerWidth(width);
-      });
-
-      observer.observe(container);
-    }
-
-    return () => observer?.disconnect();
-  }, [store]);
+  useContainerResize({
+    rootRef,
+    onWidthChange: (width) => {
+      store.getState().setContainerWidth(width);
+    },
+  });
 
   return (
     <GanttContext.Provider value={store}>
