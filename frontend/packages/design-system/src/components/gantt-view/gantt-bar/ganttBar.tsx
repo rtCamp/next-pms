@@ -54,13 +54,14 @@ export const GanttBar = React.forwardRef<HTMLDivElement, GanttBarProps>(
       <div
         ref={ref}
         className={cn(ganttBarVariants({ variant }), className)}
+        {...divProps}
         style={{
+          ...divProps.style,
           left,
           width: Math.max(width - 2, 0), // Account for margin
           height: BAR_HEIGHT,
           top: (CELL_HEIGHT - BAR_HEIGHT) / 2,
         }}
-        {...divProps}
       >
         {!isTimeoff && isCrosshatch && (
           <CrosshatchLayer variant={variant ?? "project"} />
