@@ -52,7 +52,9 @@ function AllocationItem({ entry, hasRoleAccess }: AllocationItemProps) {
       <div className="flex flex-col gap-2.5 relative">
         <div className="flex gap-2 items-center">
           <Calendar className="size-4 text-ink-gray-5 shrink-0" />
-          <span className="text-sm text-ink-gray-6">{entry.dateRange}</span>
+          <span className="text-sm text-ink-gray-6 truncate">
+            {entry.dateRange}
+          </span>
         </div>
 
         <div className="flex gap-2 items-center">
@@ -91,7 +93,7 @@ function AllocationItem({ entry, hasRoleAccess }: AllocationItemProps) {
                 />
               </div>
             )}
-            <span className="text-sm truncate text-ink-gray-6">
+            <span className="text-sm truncate text-ink-gray-6 mr-10">
               {entry.updatedOn &&
               entry.createdOn &&
               entry.updatedOn.getTime() !== entry.createdOn.getTime()
