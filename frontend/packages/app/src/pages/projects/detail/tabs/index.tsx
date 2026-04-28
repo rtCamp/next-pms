@@ -12,4 +12,4 @@ export const TABS: ComponentProps<typeof Tabs>["tabs"] = [
   { label: "Email", content: <UnderConstruction /> },
   { label: "To-do", content: <UnderConstruction /> },
   { label: "Feedback", content: <UnderConstruction /> },
-];
+] as const;
