@@ -125,7 +125,11 @@ const GanttGridInner: React.FC<{
                     style={{ width: 0 }}
                   >
                     {member.memberAllocations.map((alloc, idx) => (
-                      <GanttMemberBar key={idx} allocation={alloc} />
+                      <GanttMemberBar
+                        key={idx}
+                        allocation={alloc}
+                        memberInd={rowIndex}
+                      />
                     ))}
                   </td>
                 </tr>
@@ -271,6 +275,9 @@ export const GanttGrid: React.FC<GanttGridProps> = (props) => {
       startDate: props.startDate,
       weekCount: props.weekCount ?? 3,
       hasRoleAccess: props.hasRoleAccess ?? false,
+      onAddAllocation: props.onAddAllocation,
+      onEditAllocation: props.onEditAllocation,
+      onDeleteAllocation: props.onDeleteAllocation,
     }),
     [
       props.hasRoleAccess,

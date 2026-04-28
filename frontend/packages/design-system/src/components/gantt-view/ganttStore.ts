@@ -18,6 +18,9 @@ interface GanttProps {
   startDate: Date;
   weekCount: number;
   hasRoleAccess: boolean;
+  onAddAllocation?: () => void;
+  onEditAllocation?: () => void;
+  onDeleteAllocation?: () => void;
 }
 
 interface GanttState extends GanttProps {

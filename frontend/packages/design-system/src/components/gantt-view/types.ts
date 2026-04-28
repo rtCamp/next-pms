@@ -9,6 +9,16 @@ export interface Allocation {
   billable?: boolean;
   /** Whether the allocation is tentative. */
   tentative?: boolean;
+  /** Created on date. */
+  createdOn?: Date;
+  /** Updated on date. */
+  updatedOn?: Date;
+  /** Updated by user. */
+  updatedBy?: {
+    employeeId: string;
+    name: string;
+    image?: string;
+  };
 }
 
 export interface MemberBarAllocation extends Allocation {
@@ -58,4 +68,10 @@ export interface GanttGridProps {
   hasRoleAccess?: boolean;
   /** Optional custom classes for the root wrapper. */
   className?: string;
+  /** Called when "Add" is clicked in an allocation popup. */
+  onAddAllocation?: () => void;
+  /** Called when the edit icon is clicked on an allocation entry. */
+  onEditAllocation?: () => void;
+  /** Called when the delete icon is clicked on an allocation entry. */
+  onDeleteAllocation?: () => void;
 }
