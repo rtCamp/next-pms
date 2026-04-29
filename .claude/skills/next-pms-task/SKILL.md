@@ -5,11 +5,13 @@ description: >
   or task URL (e.g. /next-pms-task https://github.com/rtCamp/next-pms/issues/1023).
   The skill drives the full next-pms task pipeline — fetch the issue, write the
   plan, post it as a Slack thread in #bots-ai-workflow-next-pms (channel
-  C0AUXBY5WMB), poll the thread for the maintainer's decisions and the RESOLVED
-  gating keyword, execute the implementation section-by-section gated on RESOLVED,
-  open the PR with the project's stacked-PR + reviewer rules, then extract durable
-  learnings from maintainer feedback to continuously improve project conventions.
-  Loads and consults next-pms-conventions as part of its workflow. Trigger phrases:
+  C0AUXBY5WMB) using a webhook so messages appear under the
+  Next-PMS-Task-AI-Bot identity (and notify the human reviewer), poll the thread
+  via Slack MCP for the maintainer's decisions and the RESOLVED gating keyword,
+  execute the implementation section-by-section gated on RESOLVED, open the PR
+  with the project's stacked-PR + reviewer rules, then extract durable learnings
+  from maintainer feedback to continuously improve project conventions. Loads
+  and consults next-pms-conventions as part of its workflow. Trigger phrases:
   /next-pms-task, "run next-pms-task on", "kick off the task workflow for". This
   skill is project-scoped to apps/next_pms — do not use for other repos.
 ---
@@ -30,10 +32,71 @@ The argument must be a valid GitHub issue/task URL. Extract `<owner>`, `<repo>`,
 
 1. **Working directory** is `apps/next_pms` (or a child) — abort and tell the user otherwise.
 2. **gh CLI authenticated** for `rtCamp/next-pms` — `gh auth status`. If not, ask the user to run `gh auth login`.
-3. **Slack MCP available** — at minimum `mcp__claude_ai_Slack__slack_send_message` and `mcp__claude_ai_Slack__slack_read_thread`. Load via ToolSearch if deferred.
-4. **Browser MCP available** — at minimum `mcp__claude-in-chrome__tabs_context_mcp`, `..._navigate`, `..._read_page`, `..._read_console_messages`, `..._javascript_tool`. The maintainer's tab on `https://pms-temp.frappe.rt.gw/next-pms/...` should be reachable; if not, ask the maintainer to authenticate manually. Never attempt to enter credentials.
+3. **`SLACK_WEBHOOK_URL` env var present** — webhook drives all outbound posts so they appear under the `Next-PMS-Task-AI-Bot` identity (separate from the user the MCP is signed into, which is the human reviewer). Verify: `bash -ic '[ -n "$SLACK_WEBHOOK_URL" ] && echo OK'`. The variable lives in `~/.bashrc`; never echo, log, or commit its value. If unset, ask the user to export it and stop.
+4. **Slack MCP available** — at minimum `mcp__claude_ai_Slack__slack_read_thread` (polling) and `mcp__claude_ai_Slack__slack_read_channel` (grabbing parent ts after a webhook post). Sends do NOT go through MCP; if `slack_send_message` is loaded, ignore it. Load via ToolSearch if deferred.
+5. **Browser MCP available** — at minimum `mcp__claude-in-chrome__tabs_context_mcp`, `..._navigate`, `..._read_page`, `..._read_console_messages`, `..._javascript_tool`. The maintainer's tab on `https://pms-temp.frappe.rt.gw/next-pms/...` should be reachable; if not, ask the maintainer to authenticate manually. Never attempt to enter credentials.
 
 If any precondition fails, stop and surface the gap. Do **not** silently proceed.
+
+## Slack delivery: webhook for sends, MCP for reads
+
+Architecture: outbound posts go through `$SLACK_WEBHOOK_URL` so they land under a bot identity (`Next-PMS-Task-AI-Bot` with `:robot_face:`), which generates a Slack notification for the human reviewer (whose own user account is what the MCP is signed into — self-posts via MCP wouldn't notify them). Inbound polling stays on MCP because webhooks are send-only.
+
+**Outbound — always use the helper script `scripts/slack_post.py`** in this skill folder. It hard-codes channel, username, and icon, takes care of JSON escaping, and fails loudly if `SLACK_WEBHOOK_URL` is not exported. Do **not** hand-roll a curl `--data` payload — the script exists to prevent forgetting `"channel": "#bots-ai-workflow-next-pms"`, which would silently route posts to the webhook's default `#test` channel.
+
+```bash
+# Top-level post (creates a new thread)
+bash -ic 'export SLACK_WEBHOOK_URL && .claude/skills/next-pms-task/scripts/slack_post.py --text "📋 Plan for issue #<n> — <title> — replies in this thread."'
+
+# Thread reply (most common — every plan chunk + status update goes here)
+bash -ic 'export SLACK_WEBHOOK_URL && .claude/skills/next-pms-task/scripts/slack_post.py --thread-ts <parent_ts> --text "<message body>"'
+
+# Long body via stdin (avoids shell-quoting the body)
+bash -ic 'export SLACK_WEBHOOK_URL && .claude/skills/next-pms-task/scripts/slack_post.py --thread-ts <parent_ts>' <<'EOF'
+1/7 — Issue summary
+
+...
+EOF
+```
+
+Notes:
+- **Always wrap calls in `bash -ic 'export SLACK_WEBHOOK_URL && ...'`.** `~/.bashrc` defines `SLACK_WEBHOOK_URL` as a shell variable (no `export`), so a child Python process otherwise sees no env var. The `export` makes it inheritable.
+- Script exit codes: `0` success (Slack returned `ok`), `1` Slack-side failure, `2` bad input or missing env. Treat non-zero as a halt — surface the stderr to the user.
+- Webhook returns body `ok` on success — no `ts` returned. Capturing the parent ts uses MCP, see "Acquiring parent_ts" below.
+- Never embed `$SLACK_WEBHOOK_URL`'s literal value in committed code, comments, or message content. The script reads from env at call time and never logs the URL.
+
+**Inbound — polling only:**
+
+```python
+slack_read_thread(channel_id="C0AUXBY5WMB", message_ts=parent_ts)  # every 15 min
+slack_read_channel(channel_id="C0AUXBY5WMB", limit=5)              # to find parent_ts after a fresh webhook post
+```
+
+Bot-identity for posts is `Next-PMS-Task-AI-Bot` (`bot_id=BF6973Y7N`). The "RESOLVED detection" bot-filter in this skill catches it via the generic `bot_id` rule, so no algorithm change is needed.
+
+### Acquiring `parent_ts`
+
+Two paths, in order of preference:
+
+1. **Reuse an existing maintainer-started thread.** Many tasks begin with the maintainer posting a top-level message in `C0AUXBY5WMB` linking the issue (e.g. `New workload -> Epic 8 #1227`). Search for it before posting anything:
+
+   ```python
+   slack_search_public(query=f"#{n} in:#bots-ai-workflow-next-pms", include_bots=False, limit=5)
+   ```
+
+   Or `slack_read_channel(channel_id="C0AUXBY5WMB", limit=20)` and scan for a top-level message containing the issue URL. If found, take its `ts` as `parent_ts` and skip the fresh top-level post — go straight to threaded replies. This is the most common case in practice and keeps the maintainer in their own thread.
+
+2. **Post a fresh top-level message via the helper script**, then immediately read the channel back to find it:
+
+   ```bash
+   # 1) Top-level webhook post (no --thread-ts)
+   bash -ic 'export SLACK_WEBHOOK_URL && .claude/skills/next-pms-task/scripts/slack_post.py --text "📋 Plan for issue #<n> — <title> — replies in this thread."'
+
+   # 2) read_channel and capture the latest message authored by Next-PMS-Task-AI-Bot (it will be the newest entry)
+   slack_read_channel(channel_id="C0AUXBY5WMB", limit=5)
+   ```
+
+   The just-posted bot message will be the newest entry; capture its `Message TS` and persist as `parent_ts` for the rest of the workflow.
 
 ## End-to-end workflow
 
@@ -49,12 +112,14 @@ If any precondition fails, stop and surface the gap. Do **not** silently proceed
 
 ### 3. Slack thread
 
-Channel: **`C0AUXBY5WMB`** (`#bots-ai-workflow-next-pms`).
+Channel: **`C0AUXBY5WMB`** (`#bots-ai-workflow-next-pms`). All posts via the webhook template in "Slack delivery" above.
 
-**Top-level message** — one liner that names the keyword convention. Use exactly this template, substituting `<n>` and `<title>`:
+**Resolve `parent_ts` first** — follow the two paths in "Acquiring `parent_ts`": prefer reusing the maintainer's existing top-level message for the issue (search the channel for the issue number), otherwise post a fresh one via webhook and capture the ts via `slack_read_channel`.
+
+**Top-level message** (only if a fresh one is needed) — one liner that names the keyword convention. Use exactly this template, substituting `<n>` and `<title>`:
 
 ```
-📋 Plan for issue #<n> — <title> — below in this thread.
+📋 Plan for issue #<n> — <title> — replies in this thread.
 
 Keywords (reply in-thread, plain text, case-insensitive):
 • `RESOLVED` — gate has passed; I move on. I require this on the plan itself, after each decision-answer round, and after each implementation section.
@@ -64,9 +129,11 @@ Keywords (reply in-thread, plain text, case-insensitive):
 I poll this thread every 15 min and only act on replies from non-bot users. Defaults are listed in square brackets; if you reply only `RESOLVED`, I take the defaults and proceed.
 ```
 
-**Thread replies** — split the plan across multiple messages (Slack truncates above ~5 KB per message). Use the breakdown from existing precedent (issue summary + scope; figma recon; component inventory + file structure; section breakdown; open decisions; final next-steps note). Keep each message under ~3 KB. Always prefix with `<i>/<total>` so the maintainer can scroll.
+If reusing a maintainer-started thread, send the keyword-convention block as the **first thread reply** instead — the maintainer's own top-level message already names the issue.
 
-Save the top-level message's `message_ts` and the channel ID — every poll/reply uses these.
+**Thread replies** — split the plan across multiple messages (Slack truncates above ~5 KB per message). Use the breakdown from existing precedent (issue summary + scope; figma recon; component inventory + file structure; section breakdown; open decisions; final next-steps note). Keep each message under ~3 KB. Always prefix with `<i>/<total>` so the maintainer can scroll. Each reply is a webhook POST with `thread_ts: <parent_ts>`.
+
+Persist `parent_ts` and `channel_id="C0AUXBY5WMB"` in your working memory — every subsequent webhook POST and every MCP poll reuses them.
 
 ### 4. Plan-approval gate
 
@@ -210,6 +277,9 @@ Only `RESOLVED` in the latest human message advances. `BLOCK` in the latest huma
 - **Do not** invoke this skill in a non-`apps/next_pms` working directory.
 - **Do not** skip the plan file or the Slack thread, even for "small" changes.
 - **Do not** force-push or destructive-git unless rebasing onto an advanced base.
+- **Do not** post via Slack MCP `slack_send_message` — outbound goes through the webhook so messages appear under the bot identity (notifies the human reviewer). MCP is read-only for this skill.
+- **Do not** omit `"channel": "#bots-ai-workflow-next-pms"` from the webhook payload — the webhook's default channel is `#test`, so a missing channel field silently sends posts to the wrong place.
+- **Do not** echo or commit `$SLACK_WEBHOOK_URL`'s value (don't print it in shell debug, don't paste it in messages, don't write it to the skill / CLAUDE.md / memory). Always reference it as `$SLACK_WEBHOOK_URL` and source via `bash -ic` so `~/.bashrc` is loaded.
 - The skill assumes the `next-pms-conventions` skill is loaded; it does not duplicate those rules.
 - **Do not** add more than 5 rules per learning extraction pass — prioritize by impact (most likely to prevent future correction rounds). Quantity of rule additions is not a quality signal.
 - **Do not** add rules that are already documented (even paraphrased). Deduplication is mandatory — grep before adding.
@@ -229,11 +299,11 @@ User: `/next-pms-task https://github.com/rtCamp/next-pms/issues/1023`
 1. `gh issue view 1023 --repo rtCamp/next-pms --json title,body,...` → "Static text based sections" + 7 Figma frame links.
 2. Subagent runs Figma recon on the 7 nodes.
 3. Plan written to `plan_issue_1023.md` with S1…S8 + 12 numbered decisions (each `[default: …]`).
-4. Slack top-level posted in `C0AUXBY5WMB` with the keyword block; 7 thread messages with the plan body.
-5. 15-min poll → maintainer reply: `2: iconLeft, 3: TextEditor editable=false, 7: plain field, 9: lucide, 10: 24px. RESOLVED`. → locked-in + ack + start S1.
-6. After S1: rebuild, browser-check on `/next-pms/projects/<slug>`, post status, wait. Maintainer replies `RESOLVED` → S2. … repeat through S8.
-7. After S8 RESOLVED: open PR (base `claude/feat/<parent-trunk>` if stacking, else `feat/redesign`), reviewer = `ayushnirwal`. 10-min triage. Reply with PR link in thread + DM Ayush.
-8. Re-read thread. Extract 3 durable rules (e.g. "always truncate cell text", "cva in component file not constants.ts", "import icons from /icons subpath"). Add to CLAUDE.md + conventions skill + memory. Commit as `doc(next-pms): record learnings from issue #1023`. Reply in thread: "🧠 3 learnings extracted."
+4. **Resolve `parent_ts`.** Search `C0AUXBY5WMB` for `#1023`; find Ayush's "New workload -> #1023" top-level message → reuse its ts as `parent_ts` (no fresh top-level post needed). Webhook the keyword-convention block as the first thread reply, then post 7 plan-body chunks as further thread replies. All posts via `bash -ic 'curl ... "$SLACK_WEBHOOK_URL"'` with `username=Next-PMS-Task-AI-Bot`, `icon_emoji=:robot_face:`, `thread_ts=<parent_ts>`.
+5. 15-min poll via `slack_read_thread` → maintainer reply: `2: iconLeft, 3: TextEditor editable=false, 7: plain field, 9: lucide, 10: 24px. RESOLVED`. → locked-in + ack (webhook reply) + start S1.
+6. After S1: rebuild, browser-check on `/next-pms/projects/<slug>`, webhook status reply, wait. Maintainer replies `RESOLVED` → S2. … repeat through S8.
+7. After S8 RESOLVED: open PR (base `claude/feat/<parent-trunk>` if stacking, else `feat/redesign`), reviewer = `ayushnirwal`. 10-min triage. Webhook a final status (PR link, CI summary) into the thread + DM Ayush.
+8. Re-read thread. Extract 3 durable rules (e.g. "always truncate cell text", "cva in component file not constants.ts", "import icons from /icons subpath"). Add to CLAUDE.md + conventions skill + memory. Commit as `doc(next-pms): record learnings from issue #1023`. Webhook a `🧠 3 learnings extracted` reply in the thread.
 
 ## Tuning
 
