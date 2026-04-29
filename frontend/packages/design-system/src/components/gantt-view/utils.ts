@@ -1,4 +1,3 @@
-import { CELL_WIDTH } from "./constants";
 import { getMemberAllocation } from "./gantt-bar/utils/getMemberAllocation";
 import { getNumDays } from "./gantt-bar/utils/getNumDays";
 import type {
@@ -38,6 +37,7 @@ const getBarMetrics = (
   startCol: number,
   endCol: number,
   columnCount: number,
+  columnWidth: number,
 ): { barOffset: number; width: number } | null => {
   const visibleStartCol = 0;
   const visibleEndCol = columnCount - 1;
@@ -52,9 +52,9 @@ const getBarMetrics = (
   const numDays = endColInView - startColInView + 1;
 
   return {
-    barOffset: startColInView * CELL_WIDTH,
+    barOffset: startColInView * columnWidth,
     width: Math.max(
-      numDays * CELL_WIDTH - (isRightTrimmed ? RIGHT_TRIM_WIDTH_REDUCTION : 0),
+      numDays * columnWidth - (isRightTrimmed ? RIGHT_TRIM_WIDTH_REDUCTION : 0),
       0,
     ),
   };
@@ -68,6 +68,7 @@ export const prepareMemberBars = (
   weekStart: Date,
   columnCount: number,
   showWeekend: boolean,
+  columnWidth: number,
 ): Member[] => {
   return members.map((member) => {
     const projects: Member["projects"] = (member.projects ?? []).map(
@@ -77,7 +78,12 @@ export const prepareMemberBars = (
         ).reduce<ProjectAllocationBar[]>((acc, alloc) => {
           const startCol = getNumDays(alloc.startDate, weekStart, showWeekend);
           const endCol = getNumDays(alloc.endDate, weekStart, showWeekend);
-          const metrics = getBarMetrics(startCol, endCol, columnCount);
+          const metrics = getBarMetrics(
+            startCol,
+            endCol,
+            columnCount,
+            columnWidth,
+          );
 
           if (!metrics) {
             return acc;
@@ -106,7 +112,12 @@ export const prepareMemberBars = (
       rawMemberAllocations.reduce<MemberAllocationBar[]>((acc, alloc) => {
         const startCol = getNumDays(alloc.startDate, weekStart, showWeekend);
         const endCol = getNumDays(alloc.endDate, weekStart, showWeekend);
-        const metrics = getBarMetrics(startCol, endCol, columnCount);
+        const metrics = getBarMetrics(
+          startCol,
+          endCol,
+          columnCount,
+          columnWidth,
+        );
 
         if (!metrics) {
           return acc;
