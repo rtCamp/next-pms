@@ -54,6 +54,9 @@ export function mapTeamAllocationToMembers(
           endDate: Date;
           billable: boolean;
           tentative: boolean;
+          createdOn?: Date;
+          updatedOn?: Date;
+          updatedBy?: { name: string; image?: string };
         }[];
       }
     >
@@ -95,6 +98,14 @@ export function mapTeamAllocationToMembers(
       endDate: parseISO(alloc.allocation_end_date),
       billable: Boolean(alloc.is_billable),
       tentative: alloc.status === "Tentative",
+      createdOn: alloc.creation ? parseISO(alloc.creation) : undefined,
+      updatedOn: alloc.modified ? parseISO(alloc.modified) : undefined,
+      updatedBy: alloc.modified_by
+        ? {
+            name: alloc.modified_by,
+            image: alloc.modified_by_avatar || undefined,
+          }
+        : undefined,
     });
   }
 

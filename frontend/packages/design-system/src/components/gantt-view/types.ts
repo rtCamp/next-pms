@@ -15,7 +15,6 @@ export interface Allocation {
   updatedOn?: Date;
   /** Updated by user. */
   updatedBy?: {
-    employeeId: string;
     name: string;
     image?: string;
   };
