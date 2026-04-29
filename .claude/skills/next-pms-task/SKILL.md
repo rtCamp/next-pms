@@ -1,11 +1,11 @@
 ---
 name: next-pms-task
-description: Use this skill whenever the user invokes /next-pms-task with a GitHub issue or task URL (e.g. /next-pms-task https://github.com/rtCamp/next-pms/issues/1023). The skill drives the full next-pms task pipeline — fetch the issue, write the plan, post it as a Slack thread in #bots-ai-workflow-next-pms (channel C0AUXBY5WMB), poll the thread for the maintainer's decisions and the RESOLVED gating keyword, execute the implementation section-by-section gated on RESOLVED, then open the PR with the project's stacked-PR + reviewer rules. Trigger phrases: /next-pms-task, "run next-pms-task on", "kick off the task workflow for". This skill is project-scoped to apps/next_pms — do not use for other repos.
+description: Use this skill whenever the user invokes /next-pms-task with a GitHub issue or task URL (e.g. /next-pms-task https://github.com/rtCamp/next-pms/issues/1023). The skill drives the full next-pms task pipeline — fetch the issue, write the plan, post it as a Slack thread in #bots-ai-workflow-next-pms (channel C0AUXBY5WMB), poll the thread for the maintainer's decisions and the RESOLVED gating keyword, execute the implementation section-by-section gated on RESOLVED, open the PR with the project's stacked-PR + reviewer rules, then extract durable learnings from maintainer feedback to continuously improve project conventions. Trigger phrases: /next-pms-task, "run next-pms-task on", "kick off the task workflow for". This skill is project-scoped to apps/next_pms — do not use for other repos.
 ---
 
 # next-pms-task
 
-End-to-end automation for next-pms task tickets. Wraps the existing `apps/next_pms/CLAUDE.md` workflow (§1 plan → §2 section-by-section → §5 PR → §6 triage) and adds a Slack-thread feedback loop so the maintainer can steer the work asynchronously.
+End-to-end automation for next-pms task tickets. Wraps the existing `apps/next_pms/CLAUDE.md` workflow (§1 plan → §2 section-by-section → §5 PR → §6 triage) and adds a Slack-thread feedback loop so the maintainer can steer the work asynchronously. After PR triage, automatically harvests durable conventions from maintainer replies and propagates them into CLAUDE.md, `next-pms-conventions`, and memory — creating a self-improving loop that reduces review corrections over time.
 
 ## Slash invocation
 
@@ -91,7 +91,77 @@ Once the last section is `RESOLVED`:
 6. Post in the same Slack thread: `PR up: <url>. CI: <green|red+notes>. AI review: <state>.`
 7. Final maintainer DM to Ayush (`U026K7B5VAA`, channel `D026S1T8ML2`) with a short summary + the PR link.
 
-### 7. Cleanup
+### 7. Continuous learning from thread feedback
+
+Run this step after PR triage is complete (step 6 fully done — AI comments addressed, CI green). Goal: harvest durable project conventions from maintainer replies so future tasks need fewer correction rounds.
+
+**7a. Re-read the full thread**
+
+`slack_read_thread(channel=C0AUXBY5WMB, thread_ts=<saved_ts>)` — read all messages, apply the same bot-filter as the RESOLVED algorithm (skip messages from U0AGR5HU010 / "Claude" / `*Sent using* @Claude`).
+
+**7b. Scan for durable-rule signals**
+
+For each non-bot reply, identify sentences that match these patterns — these are candidates for rules, not task decisions:
+
+| Signal pattern | Examples |
+|---|---|
+| Correction / preference | "use X not Y", "should be X", "prefer X over Y", "always X", "never X" |
+| Structural directive | "put X in ...", "rename to ...", "extract to ...", "files should ..." |
+| Import / API fix | "import from X not Y", "component takes X not Y" |
+| Implicit override | maintainer pushed a fix commit contradicting my implementation choice |
+| Repeated `BLOCK` + explanation | reason reveals a convention gap |
+
+**Skip task-specific decisions** — numbered answers like `2: iconLeft` or "use blue for this section" are scoped to this issue only.
+
+**7c. Classify and deduplicate**
+
+For each candidate rule, determine:
+
+1. **Is it durable?** Would it apply to any future task in this repo? If yes, keep. If it only makes sense for this particular issue's data/design, skip.
+2. **Is it already documented?** Grep CLAUDE.md and `next-pms-conventions` SKILL.md for key phrases. Check MEMORY.md index. If already captured, skip — do not add duplicates.
+3. **Best target:**
+   - Concrete code convention (style, file structure, component API, import path) → `CLAUDE.md` "Project conventions learned from reviews" section + `next-pms-conventions` SKILL.md
+   - Behavioral / workflow feedback about how I should approach work → `feedback_<topic>.md` memory entry
+   - Project state that shapes future planning → `project_<topic>.md` memory entry
+
+**7d. Apply additions**
+
+Edit each target file with the Edit tool. Guidelines:
+
+- **CLAUDE.md**: add to the most relevant bullet group under "Project conventions learned from reviews". One bullet per rule, max 2 sentences. No commentary about which issue it came from — file rationale belongs in the git commit message, not the file.
+- **next-pms-conventions SKILL.md**: mirror the same addition in the relevant section so the skill stays synchronized with CLAUDE.md.
+- **Memory file**: create `feedback_<topic>.md` (or `project_<topic>.md`) with the standard frontmatter + rule body (`**Why:**` + `**How to apply:**` lines). Add a pointer to MEMORY.md.
+
+Do not add more than 5 new rules per task — if more candidates exist, pick the top 5 by impact (most likely to prevent a future correction round).
+
+**7e. Commit doc updates**
+
+Stage only doc/memory files:
+
+```bash
+git add CLAUDE.md \
+        .claude/skills/next-pms-conventions/SKILL.md \
+        .claude/skills/next-pms-task/SKILL.md
+git commit -m "doc(next-pms): record learnings from issue #<n>"
+```
+
+Memory files live outside the repo at `/home/frappe/.claude/projects/.../memory/` — they are saved via the Write tool and do not need to be staged.
+
+Push the doc commit to the same feature branch so the maintainer can review the extracted rules alongside the implementation changes.
+
+**7f. Report in thread**
+
+Reply in the Slack thread (not a new top-level message):
+
+```
+🧠 Learnings extracted from this thread: <N> new rules added.
+Updated: <list of files or "none — all rules already documented">.
+These will reduce feedback on future tasks.
+```
+
+If zero durable rules were found, still post the reply with `N=0` — it confirms the step ran.
+
+### 8. Cleanup
 
 - Mark all tasks completed (TaskUpdate).
 - Do not commit `plan_issue_<n>.md` (gitignore covers it; verify with `git status` before any commit).
@@ -120,6 +190,9 @@ Only `RESOLVED` advances. `BLOCK` halts. Decision answers update state but do no
 - **Do not** skip the plan file or the Slack thread, even for "small" changes.
 - **Do not** force-push or destructive-git unless rebasing onto an advanced base.
 - The skill assumes the `next-pms-conventions` skill is loaded; it does not duplicate those rules.
+- **Do not** add more than 5 rules per learning extraction pass — prioritize by impact (most likely to prevent future correction rounds). Quantity of rule additions is not a quality signal.
+- **Do not** add rules that are already documented (even paraphrased). Deduplication is mandatory — grep before adding.
+- **Do not** treat task-specific decisions (numbered answers, one-off design choices) as durable rules. If unsure, default to skipping.
 
 ## Companion skills + memory
 
@@ -139,6 +212,7 @@ User: `/next-pms-task https://github.com/rtCamp/next-pms/issues/1023`
 5. 15-min poll → maintainer reply: `2: iconLeft, 3: TextEditor editable=false, 7: plain field, 9: lucide, 10: 24px. RESOLVED`. → locked-in + ack + start S1.
 6. After S1: rebuild, browser-check on `/next-pms/projects/<slug>`, post status, wait. Maintainer replies `RESOLVED` → S2. … repeat through S8.
 7. After S8 RESOLVED: open PR (base `claude/feat/<parent-trunk>` if stacking, else `feat/redesign`), reviewer = `ayushnirwal`. 10-min triage. Reply with PR link in thread + DM Ayush.
+8. Re-read thread. Extract 3 durable rules (e.g. "always truncate cell text", "cva in component file not constants.ts", "import icons from /icons subpath"). Add to CLAUDE.md + conventions skill + memory. Commit as `doc(next-pms): record learnings from issue #1023`. Reply in thread: "🧠 3 learnings extracted."
 
 ## Tuning
 
