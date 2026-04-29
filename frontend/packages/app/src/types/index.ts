@@ -60,6 +60,10 @@ declare global {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         global_filters: { [key: string]: Array<any> };
       };
+      realtime?: {
+        on: (event: string, handler: (data: any) => void) => void;
+        off: (event: string, handler: (data: any) => void) => void;
+      };
     };
   }
 }
