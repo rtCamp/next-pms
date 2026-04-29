@@ -394,5 +394,4 @@ All commits must follow **Conventional Commits**. Format: `<type>[scope]: <descr
 
 - **Scope** (optional): noun in parentheses describing the affected area, e.g. `feat(projects):`.
 - **Breaking change**: append `!` after type/scope and/or add a `BREAKING CHANGE:` footer.
-- **Never** add a `Co-Authored-By` trailer — do not credit AI agents in commit messages.
 - **Always sign commits**: `git commit -S` (GPG). Configure once with `git config commit.gpgsign true`.

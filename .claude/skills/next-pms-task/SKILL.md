@@ -45,7 +45,7 @@ If any precondition fails, stop and surface the gap. Do **not** silently proceed
 
 ### 2. Plan (filesystem)
 
-- Save the plan as `apps/next_pms/plan_issue_<n>.md` (already gitignored — never commit). The plan must contain everything CLAUDE.md §1 requires: issue summary, scope/out-of-scope, section breakdown (S1…Sn), routes/nav/store changes, component inventory (REUSE / NEW), data/API dependencies, AC mapping, test plan, and an explicit numbered list of **open decisions** with `[default: ...]` annotations for each so execution can proceed even without answers.
+- Save the plan as `plan_issue_<n>.md` in the working directory (`apps/next_pms/`) — already gitignored, never commit. The plan must contain everything CLAUDE.md §1 requires: issue summary, scope/out-of-scope, section breakdown (S1…Sn), routes/nav/store changes, component inventory (REUSE / NEW), data/API dependencies, AC mapping, test plan, and an explicit numbered list of **open decisions** with `[default: ...]` annotations for each so execution can proceed even without answers.
 
 ### 3. Slack thread
 
