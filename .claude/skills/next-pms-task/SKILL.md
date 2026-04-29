@@ -1,6 +1,17 @@
 ---
 name: next-pms-task
-description: Use this skill whenever the user invokes /next-pms-task with a GitHub issue or task URL (e.g. /next-pms-task https://github.com/rtCamp/next-pms/issues/1023). The skill drives the full next-pms task pipeline — fetch the issue, write the plan, post it as a Slack thread in #bots-ai-workflow-next-pms (channel C0AUXBY5WMB), poll the thread for the maintainer's decisions and the RESOLVED gating keyword, execute the implementation section-by-section gated on RESOLVED, open the PR with the project's stacked-PR + reviewer rules, then extract durable learnings from maintainer feedback to continuously improve project conventions. Trigger phrases: /next-pms-task, "run next-pms-task on", "kick off the task workflow for". This skill is project-scoped to apps/next_pms — do not use for other repos.
+description: >
+  Use this skill whenever the user invokes /next-pms-task with a GitHub issue
+  or task URL (e.g. /next-pms-task https://github.com/rtCamp/next-pms/issues/1023).
+  The skill drives the full next-pms task pipeline — fetch the issue, write the
+  plan, post it as a Slack thread in #bots-ai-workflow-next-pms (channel
+  C0AUXBY5WMB), poll the thread for the maintainer's decisions and the RESOLVED
+  gating keyword, execute the implementation section-by-section gated on RESOLVED,
+  open the PR with the project's stacked-PR + reviewer rules, then extract durable
+  learnings from maintainer feedback to continuously improve project conventions.
+  Loads and consults next-pms-conventions as part of its workflow. Trigger phrases:
+  /next-pms-task, "run next-pms-task on", "kick off the task workflow for". This
+  skill is project-scoped to apps/next_pms — do not use for other repos.
 ---
 
 # next-pms-task
@@ -59,11 +70,7 @@ Save the top-level message's `message_ts` and the channel ID — every poll/repl
 
 ### 4. Plan-approval gate
 
-Poll the thread every **15 minutes** using `slack_read_thread`. Extraction logic:
-
-- Skip messages where `username == "Claude"` or where the body ends with `*Sent using* @Claude` (those are mine).
-- Look for the latest non-bot reply with the literal token `RESOLVED` (word-boundary match, case-insensitive). `BLOCK` overrides — if the latest non-bot reply contains `BLOCK`, stop and surface to the user.
-- Parse decision-answer messages (e.g. `2: ...`, `3: ...`) and merge into a `locked_decisions` map.
+Poll the thread every **15 minutes** using `slack_read_thread`. Apply the canonical bot-filter and RESOLVED/BLOCK/decision-answer extraction defined in the "RESOLVED detection — exact algorithm" section below. Do not re-implement a separate filter here.
 
 When `RESOLVED` is detected at the plan-approval gate, ack in-thread (`Acknowledged. Locked-in decisions: ... Starting S1.`) and proceed to step 5.
 
@@ -170,17 +177,31 @@ If zero durable rules were found, still post the reply with `N=0` — it confirm
 ## RESOLVED detection — exact algorithm
 
 ```
-Read thread → filter out bot messages (those whose author is U0AGR5HU010 / "Claude"
-              or U8N2T92TE / the current logged-in bot user, or whose text ends with
-              "*Sent using* @Claude").
-For each remaining message, newest-first:
+Step 1 — filter bot messages.
+  A message is bot-authored if ANY of these are true:
+    • message.subtype == "bot_message"
+    • message.bot_id is present and non-empty
+    • message.bot_profile is present
+    • message.text ends with "*Sent using* @Claude"
+  Discard all bot-authored messages. Work only with the remaining human messages.
+
+Step 2 — accumulate decision answers (all human messages, newest-first).
+  For each human message:
+    if regex matches a numbered-decision pattern (^\d+:) → merge into locked_decisions
+
+Step 3 — find the gate signal from the LATEST human message only.
+  Take the single most-recent human message.
   if regex \bBLOCK\b matches (case-insensitive) → return "BLOCK"
   if regex \bRESOLVED\b matches (case-insensitive) → return "RESOLVED"
-  if regex matches a numbered-decision pattern (e.g. ^\d+:) → merge into locked_decisions
-fall through → return "WAITING"
+  fall through → return "WAITING"
 ```
 
-Only `RESOLVED` advances. `BLOCK` halts. Decision answers update state but do not advance.
+Key invariants:
+- `RESOLVED` must appear in the **latest** human message. An older `RESOLVED` buried under a newer decision answer does not advance the gate — the maintainer must re-send `RESOLVED` after answering decisions.
+- Decision answers are accumulated from all human messages (not just the latest), so the maintainer can spread answers across multiple replies.
+- `BLOCK` anywhere in the latest human message halts, even if it also contains `RESOLVED`.
+
+Only `RESOLVED` in the latest human message advances. `BLOCK` in the latest human message halts. Decision answers update state but do not advance.
 
 ## Constraints + non-goals
 
