@@ -51,7 +51,8 @@ def generate_pm_report(project, from_date=None, to_date=None, previous_doc_url=N
         "github_metadata": get_github_metadata(project_doc),
         "slack_metadata": {
             "channel_slug": project_doc.get("custom_slack_channel_slug") or ""
-        }
+        },
+        "hours_breakdown":     get_hours_breakdown(project, from_date, to_date),
     }
 
     response = None
@@ -237,3 +238,73 @@ def get_github_metadata(project_doc):
         "owner_name":    owner_name,
         "project_board": project_doc.get("project_name") or ""
     }
+
+def get_hours_breakdown(project, from_date, to_date):
+    """
+    Fetch timesheet hours grouped by task for the report period.
+    """
+    try:
+        # Fetch all timesheet details for this project in date range
+        timesheet_details = frappe.db.get_all(
+            "Timesheet Detail",
+            filters={
+                "project":   project,
+                "from_time": ["between", [
+                    f"{from_date} 00:00:00",
+                    f"{to_date} 23:59:59"
+                ]]
+            },
+            fields=["task", "hours"],
+        )
+
+        if not timesheet_details:
+            return []
+
+        # Get unique task IDs
+        task_ids = list(set(entry.get("task") for entry in timesheet_details if entry.get("task")))
+        
+        # Fetch expected_time for all tasks in a single query
+        task_estimates = {}
+        if task_ids:
+            task_data = frappe.db.get_all(
+                "Task",
+                filters={"name": ["in", task_ids]},
+                fields=["name", "subject", "expected_time"]
+            )
+            task_estimates = {t["name"]: t for t in task_data}
+
+        # Group by task - sum hours_consumed
+        task_map = {}
+        for entry in timesheet_details:
+            task = entry.get("task") or "No Task"
+            if task not in task_map:
+                task_map[task] = {
+                    "hours_consumed":  0.0,
+                    "estimated_hours": 0.0
+                }
+            task_map[task]["hours_consumed"] += entry.get("hours") or 0
+
+        # Now add expected_time ONCE per task (after grouping)
+        for task_id in task_map:
+            if task_id != "No Task" and task_id in task_estimates:
+                task_map[task_id]["estimated_hours"] = task_estimates[task_id].get("expected_time") or 0.0
+
+        # Build result with task title
+        breakdown = []
+        for task_id, data in task_map.items():
+            if task_id == "No Task":
+                task_title = "No Task"
+            else:
+                task_title = task_estimates.get(task_id, {}).get("subject") or task_id
+
+            breakdown.append({
+                "task_title":       task_title,
+                "estimated_hours":  round(data["estimated_hours"], 2),
+                "hours_consumed":   round(data["hours_consumed"], 2)
+            })
+
+        return breakdown
+
+    except Exception:
+        frappe.log_error(frappe.get_traceback(), "PM Report — Hours Breakdown Error")
+        return []
