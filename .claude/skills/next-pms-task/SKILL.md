@@ -84,7 +84,7 @@ For each section S1…Sn from the plan:
 2. **Rebuild** — `fm shell pms-temp.frappe.rt.gw <<'EOF'` / `cd apps/next_pms/frontend && npm run build:app` / `EOF`. If the submodule SHA changed, run `pnpm --filter @rtcamp/frappe-ui-react build` first.
 3. **Browser quality-gate** — navigate the existing authenticated tab to the relevant route, reload, run a JS assertion script that captures structural + style facts (heading text, classNames, computed sizes, presence of expected SVGs/icons), and read console messages with `onlyErrors=true`. Heavier or multi-route checks: spawn a `general-purpose` subagent.
 4. **Post status to thread** — short reply with: section name, what changed (1–2 lines per file), build result, browser-gate result, and the verbatim line: `Reply RESOLVED to proceed to S<i+1>.` (or `… to open the PR.` for the last section).
-5. **Wait for RESOLVED on this section** — poll every 15 min, same extraction logic as step 4. `BLOCK` pauses; new feedback (e.g. "fix X first") is treated as scope; address it, post an updated status, then re-wait. Do **not** advance to the next section without an explicit `RESOLVED` from a non-bot user. The 1-hour single-nudge rule applies per gate.
+5. **Wait for RESOLVED on this section** — poll every 15 min, applying the canonical RESOLVED-detection algorithm. `BLOCK` pauses; new feedback (e.g. "fix X first") is treated as scope; address it, post an updated status, then re-wait. Do **not** advance to the next section without an explicit `RESOLVED` from a non-bot user. The 1-hour single-nudge rule applies per gate.
 
 ### 6. PR + post-PR triage
 
@@ -104,7 +104,7 @@ Run this step after PR triage is complete (step 6 fully done — AI comments add
 
 **7a. Re-read the full thread**
 
-`slack_read_thread(channel=C0AUXBY5WMB, thread_ts=<saved_ts>)` — read all messages, apply the same bot-filter as the RESOLVED algorithm (skip messages from U0AGR5HU010 / "Claude" / `*Sent using* @Claude`).
+`slack_read_thread(channel=C0AUXBY5WMB, thread_ts=<saved_ts>)` — read all messages and apply the canonical bot-filter from the "RESOLVED detection — exact algorithm" section. Work only with the remaining human messages.
 
 **7b. Scan for durable-rule signals**
 
