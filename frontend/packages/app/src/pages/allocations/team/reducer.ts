@@ -15,7 +15,6 @@ const DURATION_WEEK_COUNT: Record<AllocationsDuration, number> = {
   "this-week": 1,
   "this-month": 4,
   "this-quarter": 13,
-  "all-time": 100,
 };
 
 export interface AllocationsTeamState {
