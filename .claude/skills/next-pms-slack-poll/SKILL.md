@@ -65,16 +65,21 @@ If a precondition fails, stop and surface the gap. Do **not** silently proceed.
 
    ```
    Gate: WAITING | RESOLVED | BLOCK
-   Latest human reply: <author> @ <hh:mm IST> — <first 160 chars or "(none)">
-   Locked decisions: 1: ..., 2: ..., ...   (or "(none)")
+   Latest human reply: <one of two literal forms — see below>
+   Locked decisions: 1: ..., 2: ..., ...   (or the literal token "(none)")
    Bot replies in thread: <count>
    Human replies in thread: <count>
    ```
 
-6. **On terminal state** (`RESOLVED` or `BLOCK`), cancel the cron driving this poll loop:
-   - `CronList()` → find the job whose `prompt` starts with `/next-pms-slack-poll <thread_ts>` (substring match).
-   - `CronDelete(<id>)` for each match.
-   - Append a single line to the report: `Cron cancelled: <id>` (or `Cron cancellation skipped: no matching job` if there's nothing to delete — that's fine, the user may have used a different cadence mechanism).
+   The `Latest human reply` line takes one of exactly two forms — the parent's parser only needs to handle these two:
+   - When ≥1 human reply is found: `Latest human reply: <author> @ <hh:mm IST> — "<first 160 chars of latest human message text>"`
+   - When 0 human replies are found: `Latest human reply: (none)` (the entire value is the literal `(none)` — no `<author>` placeholder, no `—`, no quotes).
+
+6. **On terminal state** (`RESOLVED` or `BLOCK`), cancel the cron(s) driving this poll loop:
+   - `CronList()` → match every job whose `prompt` field, after stripping leading whitespace, **starts with** the literal string `/next-pms-slack-poll <thread_ts>` (prefix match — the optional `[channel_id]` arg may follow). Substring matching is *not* used; if a future caller embeds the thread_ts elsewhere in a different prompt, it should not be cancelled.
+   - For each matching job, call `CronDelete(<id>)`.
+   - Append one line per cancelled job to the report: `Cron cancelled: <id>` (one line per id, in the order returned by CronList).
+   - If no jobs matched, append exactly one line: `Cron cancellation skipped: no matching job` (the user may have used a different cadence mechanism — that's fine).
 
 7. **On `WAITING`**, do nothing else. The cron will fire this skill again at its next tick.
 
@@ -146,5 +151,7 @@ Cron cancelled: 254d4fdc
 
 ## Companion files
 
-- Parent skill: `apps/next_pms/.claude/skills/next-pms-task/SKILL.md` — the canonical RESOLVED-detection algorithm and the architecture this skill plugs into.
-- Helper for sends (NOT used here, listed for context): `apps/next_pms/.claude/skills/next-pms-task/scripts/slack_post.py`.
+Paths are repo-relative (the `apps/next_pms` working directory the skill runs from is the repo root for these paths):
+
+- Parent skill: `.claude/skills/next-pms-task/SKILL.md` — the canonical RESOLVED-detection algorithm and the architecture this skill plugs into.
+- Helper for sends (NOT used here, listed for context): `.claude/skills/next-pms-task/scripts/slack_post.py`.
