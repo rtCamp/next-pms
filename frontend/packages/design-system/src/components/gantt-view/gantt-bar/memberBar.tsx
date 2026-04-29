@@ -11,8 +11,9 @@ interface GanttMemberBarProps {
 }
 
 export function GanttMemberBar({ allocation }: GanttMemberBarProps) {
-  const { headerWidth } = useGanttStore((s) => ({
+  const { headerWidth, columnWidth } = useGanttStore((s) => ({
     headerWidth: s.headerWidth,
+    columnWidth: s.columnWidth,
   }));
 
   const left = allocation.barOffset + headerWidth;
@@ -29,6 +30,7 @@ export function GanttMemberBar({ allocation }: GanttMemberBarProps) {
         label={leaveLabel}
         left={left}
         width={width}
+        snapUnitPx={columnWidth}
       />
     );
   }
@@ -53,6 +55,8 @@ export function GanttMemberBar({ allocation }: GanttMemberBarProps) {
       left={left}
       width={width}
       billable={allocation.billable}
+      resizable={true}
+      snapUnitPx={columnWidth}
     />
   );
 }

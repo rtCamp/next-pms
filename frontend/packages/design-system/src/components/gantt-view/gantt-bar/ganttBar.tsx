@@ -3,9 +3,13 @@ import { CalendarX2 } from "lucide-react";
 import { mergeClassNames as cn } from "../../../utils";
 import { BAR_HEIGHT, CELL_HEIGHT } from "../constants";
 import { CrosshatchLayer } from "./crosshatchLayer";
+import { useGanttBarResize } from "../hooks/useGanttBarResize";
+
+// Keep a small gap so bars don't visually touch neighboring columns/bars
+const BAR_MARGIN = 2;
 
 const ganttBarVariants = cva(
-  "absolute shrink-0 flex items-center gap-1.5 rounded-[9px] mx-0.5 px-2.5 py-2 overflow-hidden whitespace-nowrap",
+  "group absolute shrink-0 flex items-center gap-1.5 rounded-[9px] mx-0.5 px-2.5 py-2 overflow-hidden whitespace-nowrap",
   {
     variants: {
       variant: {
@@ -27,6 +31,9 @@ interface GanttBarProps extends VariantProps<typeof ganttBarVariants> {
   theme?: "default" | "crosshatch";
   billable?: boolean;
   className?: string;
+  resizable?: boolean;
+  snapUnitPx?: number;
+  onResizeEnd?: (nextWidth: number) => void;
 }
 
 export function GanttBar({
@@ -37,16 +44,25 @@ export function GanttBar({
   theme = "default",
   billable,
   className,
+  resizable = false,
+  snapUnitPx,
+  onResizeEnd,
 }: GanttBarProps) {
   const isTimeoff = variant === "timeoff";
   const isCrosshatch = theme === "crosshatch";
+  const { liveWidth, handlePointerDown, handlePointerMove, endResize } =
+    useGanttBarResize({
+      width,
+      snapUnitPx: resizable ? snapUnitPx : undefined,
+      onResizeEnd: resizable ? onResizeEnd : undefined,
+    });
 
   return (
     <div
       className={cn(ganttBarVariants({ variant }), className)}
       style={{
         left,
-        width: Math.max(width - 2, 0), // Account for margin
+        width: Math.max(liveWidth - BAR_MARGIN, 0),
         height: BAR_HEIGHT,
         top: (CELL_HEIGHT - BAR_HEIGHT) / 2,
       }}
@@ -70,6 +86,15 @@ export function GanttBar({
           </span>
           {billable === false ? (
             <span className="block ml-1 w-1 h-1 rounded-full bg-surface-amber-3"></span>
+          ) : null}
+          {resizable ? (
+            <span
+              className="opacity-0 group-hover:opacity-100 cursor-ew-resize transition-opacity block absolute right-2 w-0.5 h-4 bg-surface-gray-4 rounded-2xl touch-none"
+              onPointerDown={handlePointerDown}
+              onPointerMove={handlePointerMove}
+              onPointerUp={endResize}
+              onPointerCancel={endResize}
+            />
           ) : null}
         </>
       )}

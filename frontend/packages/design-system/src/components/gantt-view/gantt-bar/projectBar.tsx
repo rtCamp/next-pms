@@ -7,8 +7,9 @@ interface GanttProjectBarProps {
 }
 
 export function GanttProjectBar({ allocation }: GanttProjectBarProps) {
-  const { headerWidth } = useGanttStore((s) => ({
+  const { headerWidth, columnWidth } = useGanttStore((s) => ({
     headerWidth: s.headerWidth,
+    columnWidth: s.columnWidth,
   }));
 
   const left = allocation.barOffset + headerWidth;
@@ -24,6 +25,8 @@ export function GanttProjectBar({ allocation }: GanttProjectBarProps) {
       left={left}
       width={width}
       billable={allocation.billable}
+      resizable={true}
+      snapUnitPx={columnWidth}
     />
   );
 }
