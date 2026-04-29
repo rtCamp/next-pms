@@ -42,6 +42,8 @@ const PMReport = ({ projectId }: PMReportProps) => {
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [isEditingSlack, setIsEditingSlack]  = useState(false);
 
+  const [includePreviousReport, setIncludePreviousReport] = useState(false);
+
   const timeoutRef       = useRef<NodeJS.Timeout | null>(null);
   const prevCountRef     = useRef(0);
   const mutateRef        = useRef(mutate);
@@ -139,13 +141,27 @@ const PMReport = ({ projectId }: PMReportProps) => {
         custom_slack_channel_slug: slackSlug,
       });
 
-      await call({ project: projectId });
+      await call({
+        project: projectId,
+        from_date: fromDate,
+        to_date: toDate,
+        ...(includePreviousReport && lastReportLink
+          ? { previous_doc_url: lastReportLink }
+          : {}
+        ),
+      });
 
-      toast({ variant: "success", description: "Project Report is being generated. You'll be notified when ready 🔔" });
+      toast({ 
+        variant: "success", 
+        description: includePreviousReport 
+          ? "PM Report is being generated with previous report as reference. You'll be notified when ready 🔔" 
+          : "Project Report is being generated. You'll be notified when ready 🔔"
+      });
 
       setDuration("");
       setFromDate("");
       setToDate("");
+      setIncludePreviousReport(false);
 
       timeoutRef.current = setTimeout(() => {
         setIsGenerating(false);
@@ -160,6 +176,7 @@ const PMReport = ({ projectId }: PMReportProps) => {
   };
 
   const reports  = (projectData?.custom_project_reports ?? []) as PMReportRow[];
+  const lastReportLink = reports.length > 0 ? reports[reports.length - 1].report_link : null;
   const isCustom = duration === "Custom";
   const isBusy   = isGenerating || saving;
 
@@ -302,6 +319,22 @@ const PMReport = ({ projectId }: PMReportProps) => {
               placeholder="https://drive.google.com/..."
             />
           </div>
+
+          {lastReportLink && (
+            <div className="flex items-center gap-2 col-span-2">
+              <input
+                type="checkbox"
+                id="includePreviousReport"
+                checked={includePreviousReport}
+                onChange={(e) => setIncludePreviousReport(e.target.checked)}
+                disabled={isBusy}
+                className="h-4 w-4 cursor-pointer"
+              />
+              <label htmlFor="includePreviousReport" className="text-sm text-muted-foreground cursor-pointer">
+                Include previous report as reference
+              </label>
+            </div>
+        )}
 
         </div>
 
