@@ -1,14 +1,11 @@
 /**
  * External dependencies.
  */
-import { FC, PropsWithChildren, useEffect, useMemo } from "react";
-import { useToasts } from "@rtcamp/frappe-ui-react";
-import type { Error as FrappeError } from "frappe-js-sdk/lib/frappe_app/types";
+import { FC, PropsWithChildren, useMemo } from "react";
 
 /**
  * Internal dependencies.
  */
-import { parseFrappeErrorMsg } from "@/lib/utils";
 import {
   ProjectTimesheetContext,
   type ProjectTimesheetContextProps,
@@ -18,17 +15,8 @@ import { useProjectTimesheetData } from "./useProjectTimesheetData";
 export const ProjectTimesheetProvider: FC<PropsWithChildren> = ({
   children,
 }) => {
-  const toast = useToasts();
-
-  const { hasMoreWeeks, isLoadingProjectData, weekGroups, loadData, error } =
+  const { hasMoreWeeks, isLoadingProjectData, weekGroups, loadData } =
     useProjectTimesheetData();
-
-  useEffect(() => {
-    if (!error) return;
-
-    const message = parseFrappeErrorMsg(error as FrappeError);
-    toast.error(message || "Failed to load project timesheets.");
-  }, [error, toast]);
 
   const value: ProjectTimesheetContextProps = useMemo(
     () => ({

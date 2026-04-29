@@ -3,14 +3,15 @@
  */
 import { useCallback, useEffect, useMemo, useReducer } from "react";
 import { getFormatedDate } from "@next-pms/design-system/date";
+import { useToasts } from "@rtcamp/frappe-ui-react";
 import { addDays } from "date-fns";
-import type { Error as FrappeError } from "frappe-js-sdk/lib/frappe_app/types";
-import { useFrappeGetCall } from "frappe-react-sdk";
+import { useFrappeGetCall, type FrappeError } from "frappe-react-sdk";
 
 /**
  * Internal dependencies.
  */
 import { NUMBER_OF_WEEKS_TO_FETCH } from "@/lib/constant";
+import { parseFrappeErrorMsg } from "@/lib/utils";
 import type { ProjectMemberData, WeekGroup } from "./context";
 import {
   createInitialProjectTimesheetState,
@@ -23,12 +24,13 @@ type UseProjectTimesheetDataResult = {
   isLoadingProjectData: boolean;
   weekGroups: WeekGroup[];
   loadData: () => void;
-  error: FrappeError | undefined;
 };
 
 const EMPLOYEE_PAGE_LENGTH = 10;
 
 export function useProjectTimesheetData(): UseProjectTimesheetDataResult {
+  const toast = useToasts();
+
   const [state, dispatch] = useReducer(
     projectTimesheetReducer,
     undefined,
@@ -58,6 +60,15 @@ export function useProjectTimesheetData(): UseProjectTimesheetDataResult {
       payload: projectTimesheetData.message,
     });
   }, [projectTimesheetData]);
+
+  useEffect(() => {
+    if (!projectTimesheetError) {
+      return;
+    }
+
+    const message = parseFrappeErrorMsg(projectTimesheetError as FrappeError);
+    toast.error(message || "Failed to load project timesheets.");
+  }, [projectTimesheetError, toast]);
 
   const { hasMoreEmployees, hasMoreWeeks, weekGroups } = useMemo(() => {
     const hasMoreEmployees =
@@ -174,6 +185,5 @@ export function useProjectTimesheetData(): UseProjectTimesheetDataResult {
     isLoadingProjectData,
     weekGroups,
     loadData,
-    error: projectTimesheetError,
   };
 }
