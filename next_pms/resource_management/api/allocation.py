@@ -129,18 +129,51 @@ def add_allocation(allocation: AllocationPayload, repeat_till_week_count: int = 
 
     if not allocation.include_weekends:
         chunks = get_weekday_chunks(allocation.allocation_start_date, allocation.allocation_end_date)
+        if not chunks:
+            frappe.throw(
+                frappe._(
+                    "The selected date range contains no weekdays. Please choose a range that includes at least one weekday."
+                ),
+                exc=frappe.ValidationError,
+            )
+        if repeat_till_week_count and len(chunks) > 1:
+            frappe.throw(
+                frappe._(
+                    "Repeat is only supported for single-week allocations. The selected date range spans multiple weeks."
+                ),
+                exc=frappe.ValidationError,
+            )
         first_doc = None
-        for chunk_start, chunk_end in chunks:
-            doc = frappe.get_doc({**doc_data, "allocation_start_date": chunk_start, "allocation_end_date": chunk_end})
-            doc.save()
-            if first_doc is None:
-                first_doc = doc
+        for week_offset in range(repeat_till_week_count + 1):
+            week_delta = timedelta(days=7 * week_offset)
+            for chunk_start, chunk_end in chunks:
+                weekday_count = (chunk_end - chunk_start).days + 1
+                doc = frappe.get_doc(
+                    {
+                        **doc_data,
+                        "allocation_start_date": chunk_start + week_delta,
+                        "allocation_end_date": chunk_end + week_delta,
+                        "total_allocated_hours": weekday_count * allocation.hours_allocated_per_day,
+                    }
+                )
+                doc.save()
+                if first_doc is None:
+                    first_doc = doc
         return first_doc
 
     new_allocation = frappe.get_doc(doc_data)
     new_allocation.save()
 
     if repeat_till_week_count:
+        start = getdate(allocation.allocation_start_date)
+        end = getdate(allocation.allocation_end_date)
+        if (end - start).days >= 7:  # monday to sunday inclusive is considered as a single week
+            frappe.throw(
+                frappe._(
+                    "Repeat is only supported for single-week allocations. The selected date range spans multiple weeks."
+                ),
+                exc=frappe.ValidationError,
+            )
         for _ in range(repeat_till_week_count):
             doc_data["allocation_start_date"] = add_days(doc_data["allocation_start_date"], 7)
             doc_data["allocation_end_date"] = add_days(doc_data["allocation_end_date"], 7)
@@ -165,13 +198,29 @@ def update_allocation(allocation: AllocationPayload):
 
         # shrink the existing allocation to the first chunk's date range
         first_start, first_end = chunks[0]
-        allocation_doc.update({**doc_data, "allocation_start_date": first_start, "allocation_end_date": first_end})
+        first_weekday_count = (first_end - first_start).days + 1
+        allocation_doc.update(
+            {
+                **doc_data,
+                "allocation_start_date": first_start,
+                "allocation_end_date": first_end,
+                "total_allocated_hours": first_weekday_count * allocation.hours_allocated_per_day,
+            }
+        )
         allocation_doc.save()
 
         # create fresh allocations for the remaining weekly chunks
         base = {k: v for k, v in doc_data.items() if k != "name"}
         for chunk_start, chunk_end in chunks[1:]:
-            doc = frappe.get_doc({**base, "allocation_start_date": chunk_start, "allocation_end_date": chunk_end})
+            weekday_count = (chunk_end - chunk_start).days + 1
+            doc = frappe.get_doc(
+                {
+                    **base,
+                    "allocation_start_date": chunk_start,
+                    "allocation_end_date": chunk_end,
+                    "total_allocated_hours": weekday_count * allocation.hours_allocated_per_day,
+                }
+            )
             doc.save()
 
         return allocation_doc
