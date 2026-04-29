@@ -4,12 +4,7 @@
 import type { Member } from "@next-pms/design-system/components";
 import { createContext, useContextSelector } from "use-context-selector";
 
-export type AllocationsDuration =
-  | "this-week"
-  | "this-month"
-  | "this-quarter"
-  | "all-time";
-
+export type AllocationsDuration = "this-week" | "this-month" | "this-quarter";
 export interface AllocationsTeamContextProps {
   state: {
     members: Member[];

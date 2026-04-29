@@ -24,7 +24,7 @@ import { ChevronLeft, ChevronRight, Ellipsis } from "lucide-react";
 import { InfiniteScroll } from "@/components/infiniteScroll";
 import { useUser } from "@/providers/user";
 import { EMPLOYEES_PER_PAGE } from "./constants";
-import { useAllocationsTeam } from "./context";
+import { AllocationsDuration, useAllocationsTeam } from "./context";
 
 const FILTER_FIELDS: FilterField[] = [
   {
@@ -45,6 +45,22 @@ const FILTER_FIELDS: FilterField[] = [
     type: "daterange",
   },
 ];
+
+const buttonAriaLabels: Record<
+  "next" | "previous",
+  Record<AllocationsDuration, string>
+> = {
+  next: {
+    "this-week": "Next Week",
+    "this-month": "Next Month",
+    "this-quarter": "Next Quarter",
+  },
+  previous: {
+    "this-week": "Previous Week",
+    "this-month": "Previous Month",
+    "this-quarter": "Previous Quarter",
+  },
+};
 
 export const AllocationsTeamTable = () => {
   const searchInput = useAllocationsTeam(({ state }) => state.searchInput);
@@ -77,7 +93,6 @@ export const AllocationsTeamTable = () => {
     hasRoleAccess: state.hasRoleAccess,
   }));
 
-  const isAllTime = duration === "all-time";
   const hasMembers = filteredMembers.length > 0;
   const isFilteredDataLoading = isLoading && isFilterRequest;
   const showOverlay = isFilteredDataLoading || (isLoading && !hasMembers);
@@ -99,7 +114,6 @@ export const AllocationsTeamTable = () => {
               { label: "This week", value: "this-week" },
               { label: "This month", value: "this-month" },
               { label: "This quarter", value: "this-quarter" },
-              { label: "All time", value: "all-time" },
             ]}
             value={duration}
             onChange={(value) =>
@@ -126,21 +140,14 @@ export const AllocationsTeamTable = () => {
               variant="ghost"
               icon={() => <ChevronLeft size={16} />}
               onClick={handlePrevious}
-              aria-label="Previous week"
-              disabled={isAllTime}
+              aria-label={buttonAriaLabels["previous"][duration]}
             />
-            <Button
-              variant="ghost"
-              label="Today"
-              onClick={handleToday}
-              disabled={isAllTime}
-            />
+            <Button variant="ghost" label="Today" onClick={handleToday} />
             <Button
               variant="ghost"
               icon={() => <ChevronRight size={16} />}
               onClick={handleNext}
-              aria-label="Next week"
-              disabled={isAllTime}
+              aria-label={buttonAriaLabels["next"][duration]}
             />
           </div>
           <Filter

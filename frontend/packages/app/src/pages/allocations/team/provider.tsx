@@ -85,19 +85,16 @@ export function AllocationsTeamProvider({
   }, []);
 
   const handlePrevious = useCallback(() => {
-    if (state.duration === "all-time") return;
     dispatch({ type: "MOVE_PREVIOUS" });
-  }, [state.duration]);
+  }, []);
 
   const handleNext = useCallback(() => {
-    if (state.duration === "all-time") return;
     dispatch({ type: "MOVE_NEXT" });
-  }, [state.duration]);
+  }, []);
 
   const handleToday = useCallback(() => {
-    if (state.duration === "all-time") return;
     dispatch({ type: "MOVE_TODAY" });
-  }, [state.duration]);
+  }, []);
 
   const value = useMemo<AllocationsTeamContextProps>(
     () => ({
