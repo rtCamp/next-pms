@@ -1,11 +1,9 @@
 import { PreviewCard } from "@base-ui/react/preview-card";
 import { useGanttStore } from "../ganttStore";
 import type { ProjectAllocationBar } from "../ganttStore";
-import {
-  allocationBarToEntry,
-  GanttAllocationPopover,
-} from "./allocationPopover";
+import { GanttAllocationPopover } from "./allocationPopover";
 import { GanttBar } from "./ganttBar";
+import { allocationBarToEntry } from "./utils/allocationBarToEntry";
 
 interface GanttProjectBarProps {
   allocation: ProjectAllocationBar;
