@@ -18,21 +18,17 @@ def get_api_key():
 
 
 @frappe.whitelist()
-def generate_pm_report(project):
+def generate_pm_report(project, from_date=None, to_date=None, previous_doc_url=None):
     project_doc = frappe.get_doc("Project", project)
 
     # Validations
-    if not project_doc.get("custom_report_duration"):
-        frappe.throw("Please select a Report Duration before generating.")
     if not project_doc.get("custom_slack_channel_slug"):
         frappe.throw("Please add a Slack Channel Slug before generating.")
 
-    from_date = str(project_doc.get("custom_report_from_date") or "")
-    to_date = str(project_doc.get("custom_report_to_date") or "")
-    drive_link = project_doc.get("custom_project_drive_link") or ""
-
     if not from_date or not to_date:
         frappe.throw("Report dates are missing. Please select a Report Duration.")
+
+    drive_link = project_doc.get("custom_project_drive_link") or ""
     if not drive_link or len(drive_link) < 8:
         frappe.throw("Please add a valid Report Drive Link before generating.")
 
@@ -45,6 +41,7 @@ def generate_pm_report(project):
             "project_name": project_doc.get("project_name") or "",
             "drive_link": drive_link,
         },
+        **({"previous_doc_url": previous_doc_url} if previous_doc_url else {}),
         "user_metadata": {"user_name": frappe.session.user, "user_email": frappe.session.user},
         "github_metadata": get_github_metadata(project_doc),
         "slack_metadata": {"channel_slug": project_doc.get("custom_slack_channel_slug") or ""},
