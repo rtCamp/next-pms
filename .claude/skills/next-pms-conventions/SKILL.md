@@ -325,7 +325,7 @@ The Pre-implementation scan + Comment discipline sections above are written spec
 
 - Project guide: `apps/next_pms/CLAUDE.md`
 - This skill: `apps/next_pms/.claude/skills/next-pms-conventions/SKILL.md`
-- Auto-memory index: `/home/frappe/.claude/projects/.../memory/MEMORY.md`
+- Auto-memory index: `~/.claude/projects/<project-slug>/memory/MEMORY.md` (Claude Code resolves the slug from the working directory)
 - Design tokens: `apps/next_pms/frontend/packages/app/src/global.css` (`@theme` block) + `apps/next_pms/frappe-ui-react/packages/frappe-ui-react/src/themeV3.css`
 - Utilities (check first!): `apps/next_pms/frontend/packages/app/src/lib/utils.ts`, `apps/next_pms/frontend/packages/design-system/src/utils/`
 - Existing cva usage: `rg "cva\(" apps/next_pms/frontend`
