@@ -152,7 +152,7 @@ git add .claude/skills/next-pms-conventions/SKILL.md \
 git commit -m "doc(next-pms): record learnings from issue #<n>"
 ```
 
-Memory files live outside the repo at `/home/frappe/.claude/projects/.../memory/` — they are saved via the Write tool and do not need to be staged.
+Memory files live outside the repo at `~/.claude/projects/<project-slug>/memory/` (Claude Code resolves the slug from the working directory) — they are saved via the Write tool and do not need to be staged.
 
 Push the doc commit to the same feature branch so the maintainer can review the extracted rules alongside the implementation changes.
 
@@ -220,7 +220,7 @@ Only `RESOLVED` in the latest human message advances. `BLOCK` in the latest huma
 - `next-pms-conventions` — project conventions (camelCase files, cva co-location, Tailwind v4 `!`, etc.). Loaded automatically.
 - `react-agents-review` — checklist for closing FE sections.
 - `advanced-react-patterns` — composition-over-memoization, etc.
-- Auto-memory at `/home/frappe/.claude/projects/-home-frappe-frappe-sites-pms-temp-frappe-rt-gw-workspace-frappe-bench-apps-next-pms/memory/MEMORY.md` is read on every task — apply user/feedback/project entries before drafting the plan.
+- Auto-memory at `~/.claude/projects/<project-slug>/memory/MEMORY.md` (Claude Code resolves the slug from the working directory) is read on every task — apply user/feedback/project entries before drafting the plan.
 
 ## Worked example (abbreviated)
 

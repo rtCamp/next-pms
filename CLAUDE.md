@@ -149,7 +149,7 @@ Every code-level convention lives in `.claude/skills/next-pms-conventions/SKILL.
 - **Reading review comments** — path anchor wins over body text; reviewer fix commits trump earlier comments (always `git fetch` before a round of fixes).
 - **Review-round retrospectives** for PR #1208, #1212, #1220.
 
-The auto-memory index at `/home/frappe/.claude/projects/.../memory/MEMORY.md` (i.e. `~/.claude/projects/.../memory/MEMORY.md` for the `frappe` user) mirrors the highest-leverage rules as standalone entries.
+The auto-memory index at `~/.claude/projects/<project-slug>/memory/MEMORY.md` mirrors the highest-leverage rules as standalone entries. The `<project-slug>` is the working-directory path with slashes turned into dashes — Claude Code resolves it automatically; no need to hardcode it.
 
 ### Project-local skills (in `.claude/skills/`)
 
