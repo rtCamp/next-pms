@@ -15,6 +15,7 @@ import { FieldConfigType } from "@/app/components/form-view/types";
 import { Main } from "@/app/layout/root";
 import { getCurrencySymbol, parseFrappeErrorMsg } from "@/lib/utils";
 import { ProjectDetailHeader } from "./components/header";
+import PMReport from "./components/pm-report";
 import ProjectUpdates from "./components/project-updates";
 import ProjectSidebar from "./components/sidebar";
 
@@ -89,6 +90,10 @@ const ProjectDetail = () => {
     () => ({
       "Project Updates": {
         component: <ProjectUpdates projectId={projectId} />,
+        isCustom: true,
+      },
+      "Project Report": {
+        component: <PMReport projectId={projectId} />,
         isCustom: true,
       },
     }),
@@ -177,6 +182,10 @@ const ProjectDetail = () => {
                     users: { hidden: true },
                     monitor_progress: { hidden: true },
                     collect_progress: { hidden: true },
+                    custom_pm_report_drive_link: { hidden: true },
+                    custom_slack_channel_slug: { hidden: true },
+                    custom_pm_reports: { hidden: true },
+                    custom_project_drive_link: { hidden: true },
                   } as FieldConfigType
                 }
                 mutateData={mutate}
