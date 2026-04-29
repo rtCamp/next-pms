@@ -78,13 +78,15 @@ Bot-identity for posts is `Next-PMS-Task-AI-Bot` (`bot_id=BF6973Y7N`). The "RESO
 
 Two paths, in order of preference:
 
-1. **Reuse an existing maintainer-started thread.** Many tasks begin with the maintainer posting a top-level message in `C0AUXBY5WMB` linking the issue (e.g. `New workload -> Epic 8 #1227`). Search for it before posting anything:
+1. **Reuse an existing maintainer-started thread.** Many tasks begin with the maintainer posting a top-level message in `C0AUXBY5WMB` linking the issue (e.g. `New workload -> Epic 8 #1227`). Look for it before posting anything.
+
+   The guaranteed path uses only the required Slack MCP tools — `slack_read_channel(channel_id="C0AUXBY5WMB", limit=20)` and scan the returned messages for a top-level entry containing the issue URL. If `slack_search_public` happens to be loaded, you may use it as a faster alternative:
 
    ```python
    slack_search_public(query=f"#{n} in:#bots-ai-workflow-next-pms", include_bots=False, limit=5)
    ```
 
-   Or `slack_read_channel(channel_id="C0AUXBY5WMB", limit=20)` and scan for a top-level message containing the issue URL. If found, take its `ts` as `parent_ts` and skip the fresh top-level post — go straight to threaded replies. This is the most common case in practice and keeps the maintainer in their own thread.
+   It is not in the preconditions list, so do not block on it — fall back to `slack_read_channel` if missing or zero-result. If found, take its `ts` as `parent_ts` and skip the fresh top-level post — go straight to threaded replies. This is the most common case in practice and keeps the maintainer in their own thread.
 
 2. **Post a fresh top-level message via the helper script**, then immediately read the channel back to find it:
 
@@ -299,11 +301,11 @@ User: `/next-pms-task https://github.com/rtCamp/next-pms/issues/1023`
 1. `gh issue view 1023 --repo rtCamp/next-pms --json title,body,...` → "Static text based sections" + 7 Figma frame links.
 2. Subagent runs Figma recon on the 7 nodes.
 3. Plan written to `plan_issue_1023.md` with S1…S8 + 12 numbered decisions (each `[default: …]`).
-4. **Resolve `parent_ts`.** Search `C0AUXBY5WMB` for `#1023`; find Ayush's "New workload -> #1023" top-level message → reuse its ts as `parent_ts` (no fresh top-level post needed). Webhook the keyword-convention block as the first thread reply, then post 7 plan-body chunks as further thread replies. All posts via `bash -ic 'curl ... "$SLACK_WEBHOOK_URL"'` with `username=Next-PMS-Task-AI-Bot`, `icon_emoji=:robot_face:`, `thread_ts=<parent_ts>`.
-5. 15-min poll via `slack_read_thread` → maintainer reply: `2: iconLeft, 3: TextEditor editable=false, 7: plain field, 9: lucide, 10: 24px. RESOLVED`. → locked-in + ack (webhook reply) + start S1.
-6. After S1: rebuild, browser-check on `/next-pms/projects/<slug>`, webhook status reply, wait. Maintainer replies `RESOLVED` → S2. … repeat through S8.
-7. After S8 RESOLVED: open PR (base `claude/feat/<parent-trunk>` if stacking, else `feat/redesign`), reviewer = `ayushnirwal`. 10-min triage. Webhook a final status (PR link, CI summary) into the thread + DM Ayush.
-8. Re-read thread. Extract 3 durable rules (e.g. "always truncate cell text", "cva in component file not constants.ts", "import icons from /icons subpath"). Add to CLAUDE.md + conventions skill + memory. Commit as `doc(next-pms): record learnings from issue #1023`. Webhook a `🧠 3 learnings extracted` reply in the thread.
+4. **Resolve `parent_ts`.** `slack_read_channel(C0AUXBY5WMB, limit=20)` → find Ayush's "New workload -> #1023" top-level message → reuse its ts as `parent_ts` (no fresh top-level post needed). Post the keyword-convention block as the first thread reply, then post 7 plan-body chunks as further thread replies. Every post goes through `bash -ic 'export SLACK_WEBHOOK_URL && .claude/skills/next-pms-task/scripts/slack_post.py --thread-ts <parent_ts> ...'`; do not hand-roll a curl payload.
+5. 15-min poll via `slack_read_thread` → maintainer reply: `2: iconLeft, 3: TextEditor editable=false, 7: plain field, 9: lucide, 10: 24px. RESOLVED`. → locked-in + ack via `slack_post.py --thread-ts <parent_ts>` + start S1.
+6. After S1: rebuild, browser-check on `/next-pms/projects/<slug>`, post status via `slack_post.py --thread-ts <parent_ts>`, wait. Maintainer replies `RESOLVED` → S2. … repeat through S8.
+7. After S8 RESOLVED: open PR (base `claude/feat/<parent-trunk>` if stacking, else `feat/redesign`), reviewer = `ayushnirwal`. 10-min triage. Post a final status (PR link, CI summary) into the thread via `slack_post.py --thread-ts <parent_ts>` + DM Ayush.
+8. Re-read thread. Extract 3 durable rules (e.g. "always truncate cell text", "cva in component file not constants.ts", "import icons from /icons subpath"). Add to CLAUDE.md + conventions skill + memory. Commit as `doc(next-pms): record learnings from issue #1023`. Post a `🧠 3 learnings extracted` reply via `slack_post.py --thread-ts <parent_ts>`.
 
 ## Tuning
 

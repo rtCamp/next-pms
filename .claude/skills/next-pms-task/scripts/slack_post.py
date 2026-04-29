@@ -7,10 +7,10 @@ Next-PMS-Task-AI-Bot identity with the :robot_face: icon — this is what
 makes posts notify the human reviewer (whose own user is what the Slack
 MCP is signed into).
 
-Usage:
-    scripts/slack_post.py --text "hello"
-    scripts/slack_post.py --thread-ts 1777457794.335439 --text "reply"
-    echo "long body" | scripts/slack_post.py --thread-ts <parent_ts>
+Usage (run from the apps/next_pms working directory):
+    .claude/skills/next-pms-task/scripts/slack_post.py --text "hello"
+    .claude/skills/next-pms-task/scripts/slack_post.py --thread-ts 1777457794.335439 --text "reply"
+    echo "long body" | .claude/skills/next-pms-task/scripts/slack_post.py --thread-ts <parent_ts>
 
 Exit code:
     0  Slack returned "ok"
@@ -44,8 +44,9 @@ def main() -> int:
     if not url:
         print(
             "slack_post: SLACK_WEBHOOK_URL is not exported.\n"
-            "  Either add `export SLACK_WEBHOOK_URL=...` to ~/.bashrc, or invoke as:\n"
-            "    bash -ic 'export SLACK_WEBHOOK_URL && scripts/slack_post.py ...'",
+            "  Either add `export SLACK_WEBHOOK_URL=...` to ~/.bashrc, or invoke from\n"
+            "  the apps/next_pms working directory as:\n"
+            "    bash -ic 'export SLACK_WEBHOOK_URL && .claude/skills/next-pms-task/scripts/slack_post.py ...'",
             file=sys.stderr,
         )
         return 2
