@@ -4,6 +4,9 @@ export interface Employee {
   employee_name: string;
   department: string | null;
   designation: string | null;
+  rate?: string | null;
+  capacity?: string | null;
+  reportingManager?: string | null;
 }
 
 export interface Leave {

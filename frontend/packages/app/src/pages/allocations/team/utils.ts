@@ -116,7 +116,11 @@ export function mapTeamAllocationToMembers(
     return {
       id: employee.name,
       name: employee.employee_name,
-      role: employee.designation ?? undefined,
+      designation: employee.designation ?? undefined,
+      department: employee.department ?? undefined,
+      rate: employee.rate ?? undefined,
+      capacity: employee.capacity ?? undefined,
+      manager: employee.reportingManager ?? undefined,
       image: employee.image ?? undefined,
       projects,
       leaves: memberLeaves,

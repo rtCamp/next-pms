@@ -1,6 +1,6 @@
+import { PreviewCard } from "@base-ui/react/preview-card";
 import { Avatar, Badge } from "@rtcamp/frappe-ui-react";
 import { ChevronRight } from "lucide-react";
-import { PreviewCard } from "@base-ui/react/preview-card";
 import { CELL_HEIGHT } from "./constants";
 import GanttMemberHoverCard from "./ganttMemberHoverCard";
 import { useGanttStore } from "./ganttStore";
@@ -79,9 +79,9 @@ export function GanttMemberItem({ memberInd }: GanttMemberItemProps) {
               )}
             </div>
             <div className="flex overflow-hidden flex-1 items-center pl-11 w-full min-w-0">
-              {member.role && (
+              {member.designation && (
                 <span className="text-xs leading-tight truncate text-ink-gray-6">
-                  {member.role}
+                  {member.designation}
                 </span>
               )}
             </div>
@@ -89,7 +89,12 @@ export function GanttMemberItem({ memberInd }: GanttMemberItemProps) {
         </button>
       </PreviewCard.Trigger>
       <PreviewCard.Portal>
-        <PreviewCard.Positioner side="right" align="center" alignOffset={20} sideOffset={-42}>
+        <PreviewCard.Positioner
+          side="right"
+          align="center"
+          alignOffset={20}
+          sideOffset={-42}
+        >
           <PreviewCard.Popup className="outline-none">
             <GanttMemberHoverCard member={member} />
           </PreviewCard.Popup>

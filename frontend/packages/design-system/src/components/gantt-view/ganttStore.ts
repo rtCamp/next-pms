@@ -85,7 +85,8 @@ function getColumnWidth(
  */
 function getMemberStableKey(member: BaseMember) {
   return (
-    member.id ?? `${member.name}::${member.role ?? ""}::${member.image ?? ""}`
+    member.id ??
+    `${member.name}::${member.designation ?? ""}::${member.image ?? ""}`
   );
 }
 
