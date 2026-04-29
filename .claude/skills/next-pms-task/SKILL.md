@@ -125,9 +125,9 @@ For each non-bot reply, identify sentences that match these patterns — these a
 For each candidate rule, determine:
 
 1. **Is it durable?** Would it apply to any future task in this repo? If yes, keep. If it only makes sense for this particular issue's data/design, skip.
-2. **Is it already documented?** Grep CLAUDE.md and `next-pms-conventions` SKILL.md for key phrases. Check MEMORY.md index. If already captured, skip — do not add duplicates.
+2. **Is it already documented?** Grep `next-pms-conventions` SKILL.md for key phrases and check MEMORY.md index. If already captured, skip — do not add duplicates. CLAUDE.md no longer carries conventions inline (it points at this skill), so don't grep it for convention text.
 3. **Best target:**
-   - Concrete code convention (style, file structure, component API, import path) → `CLAUDE.md` "Project conventions learned from reviews" section + `next-pms-conventions` SKILL.md
+   - Concrete code convention (style, file structure, component API, import path) → `next-pms-conventions` SKILL.md (single source of truth)
    - Behavioral / workflow feedback about how I should approach work → `feedback_<topic>.md` memory entry
    - Project state that shapes future planning → `project_<topic>.md` memory entry
 
@@ -135,20 +135,20 @@ For each candidate rule, determine:
 
 Edit each target file with the Edit tool. Guidelines:
 
-- **CLAUDE.md**: add to the most relevant bullet group under "Project conventions learned from reviews". One bullet per rule, max 2 sentences. No commentary about which issue it came from — file rationale belongs in the git commit message, not the file.
-- **next-pms-conventions SKILL.md**: mirror the same addition in the relevant section so the skill stays synchronized with CLAUDE.md.
+- **next-pms-conventions SKILL.md**: add to the most relevant section. One bullet per rule, max 2 sentences. No commentary about which issue it came from — file rationale belongs in the git commit message, not the file. This file is the canonical home for code conventions; do not also edit CLAUDE.md (CLAUDE.md is a pointer to this skill, not a parallel copy).
 - **Memory file**: create `feedback_<topic>.md` (or `project_<topic>.md`) with the standard frontmatter + rule body (`**Why:**` + `**How to apply:**` lines). Add a pointer to MEMORY.md.
+- **CLAUDE.md's pointer index**: only update CLAUDE.md if the new rule introduces an entirely new top-level *category* not yet listed in the bullet index under "Project conventions — see the `next-pms-conventions` skill". Adding a rule inside an existing category (Pre-implementation scan, Comment discipline, UI details, etc.) does **not** require a CLAUDE.md edit.
 
 Do not add more than 5 new rules per task — if more candidates exist, pick the top 5 by impact (most likely to prevent a future correction round).
 
 **7e. Commit doc updates**
 
-Stage only doc/memory files:
+Stage only doc/memory files (CLAUDE.md is rarely touched here — see 7d):
 
 ```bash
-git add CLAUDE.md \
-        .claude/skills/next-pms-conventions/SKILL.md \
+git add .claude/skills/next-pms-conventions/SKILL.md \
         .claude/skills/next-pms-task/SKILL.md
+# Add CLAUDE.md only if 7d required a new top-level category in its pointer index.
 git commit -m "doc(next-pms): record learnings from issue #<n>"
 ```
 
