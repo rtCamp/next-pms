@@ -3,11 +3,10 @@ import { differenceInCalendarDays } from "date-fns";
 import { FULL_DAY_HOURS } from "../constants";
 import { useGanttStore } from "../ganttStore";
 import type { MemberAllocationBar } from "../ganttStore";
-import {
-  allocationBarToEntry,
-  GanttAllocationPopover,
-} from "./allocationPopover";
+import { GanttAllocationPopover } from "./allocationPopover";
 import { GanttBar } from "./ganttBar";
+import { allocationBarToEntry } from "./utils/allocationBarToEntry";
+import { getOverlappingAllocations } from "./utils/getOverlappingAllocations";
 
 export type MemberBarAllocation = MemberAllocationBar;
 
@@ -65,14 +64,11 @@ export function GanttMemberBar({ allocation, memberInd }: GanttMemberBarProps) {
 
   // Collect all project allocations overlapping this member bar's date range
   const member = members[memberInd];
-  const overlapping =
-    member?.projects?.flatMap((project) =>
-      (project.allocations ?? []).filter(
-        (alloc) =>
-          alloc.startDate <= allocation.endDate &&
-          alloc.endDate >= allocation.startDate,
-      ),
-    ) ?? [];
+  const overlapping = getOverlappingAllocations(
+    member,
+    allocation.startDate,
+    allocation.endDate,
+  );
 
   const entries = overlapping.map((alloc) =>
     allocationBarToEntry(alloc, onEditAllocation, onDeleteAllocation),

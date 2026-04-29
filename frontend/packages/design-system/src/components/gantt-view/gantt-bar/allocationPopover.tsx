@@ -1,6 +1,3 @@
-/**
- * Internal popup card shown when hovering over a Gantt allocation bar.
- */
 import { Avatar, Button } from "@rtcamp/frappe-ui-react";
 import {
   AddMd,
@@ -14,7 +11,6 @@ import {
 } from "@rtcamp/frappe-ui-react/icons";
 import { format } from "date-fns";
 import { mergeClassNames as cn } from "../../../utils";
-export { allocationBarToEntry } from "./utils/allocationBarToEntry";
 
 export interface AllocationEntry {
   projectName: string;
@@ -35,6 +31,9 @@ interface AllocationItemProps {
   hasRoleAccess: boolean;
 }
 
+/**
+ * Internal popup card shown when hovering over a Gantt allocation bar.
+ */
 function AllocationItem({ entry, hasRoleAccess }: AllocationItemProps) {
   const StatusIcon = entry.status === "confirmed" ? Check : CalendarDeadline;
 
