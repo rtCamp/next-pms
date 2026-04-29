@@ -148,7 +148,7 @@ fixtures = [
             [
                 "module",
                 "in",
-                ["Next PMS", "Project Currency", "Timesheet", "Resource Management"],
+                ["Next PMS", "Project Currency", "Timesheet", "Resource Management", "Next Projects"],
             ]
         ],
     },
@@ -158,7 +158,7 @@ fixtures = [
             [
                 "module",
                 "in",
-                ["Next PMS", "Project Currency", "Timesheet", "Resource Management"],
+                ["Next PMS", "Project Currency", "Timesheet", "Resource Management", "Next Projects"],
             ]
         ],
     },
