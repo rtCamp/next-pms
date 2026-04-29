@@ -76,3 +76,4 @@ export {
 export * from "./timesheet";
 export * from "./gantt-view";
 export { default as GlobalSearch } from "./globalSearch";
+export * from "./date-chip";
