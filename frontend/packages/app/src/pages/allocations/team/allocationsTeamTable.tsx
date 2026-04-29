@@ -25,7 +25,6 @@ import { InfiniteScroll } from "@/components/infiniteScroll";
 import { useUser } from "@/providers/user";
 import { EMPLOYEES_PER_PAGE } from "./constants";
 import { useAllocationsTeam } from "./context";
-import { AllocationsTeamProvider } from "./provider";
 
 const FILTER_FIELDS: FilterField[] = [
   {
@@ -47,7 +46,7 @@ const FILTER_FIELDS: FilterField[] = [
   },
 ];
 
-function AllocationsTeamContent() {
+export const AllocationsTeamTable = () => {
   const searchInput = useAllocationsTeam(({ state }) => state.searchInput);
   const duration = useAllocationsTeam(({ state }) => state.duration);
   const weekCount = useAllocationsTeam(({ state }) => state.weekCount);
@@ -192,14 +191,4 @@ function AllocationsTeamContent() {
       </div>
     </div>
   );
-}
-
-function AllocationsTeam() {
-  return (
-    <AllocationsTeamProvider>
-      <AllocationsTeamContent />
-    </AllocationsTeamProvider>
-  );
-}
-
-export default AllocationsTeam;
+};
