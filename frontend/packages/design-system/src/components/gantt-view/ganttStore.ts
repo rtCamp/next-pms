@@ -2,7 +2,7 @@ import { createContext, useContext } from "react";
 import { addDays, startOfWeek } from "date-fns";
 import { createStore, useStore } from "zustand";
 import { useShallow } from "zustand/react/shallow";
-import { ROW_HEADER_WIDTH } from "./constants";
+import { CELL_WIDTH, ROW_HEADER_WIDTH } from "./constants";
 import type { Member as BaseMember } from "./types";
 import { prepareMemberBars } from "./utils";
 import type { Member } from "./utils";
@@ -21,9 +21,11 @@ interface GanttProps {
 }
 
 interface GanttState extends GanttProps {
+  sourceMembers: BaseMember[];
   // derived
   daysPerWeek: number;
   columnCount: number;
+  columnWidth: number;
   weekStart: Date;
   weeks: number[];
   columns: number[];
@@ -32,25 +34,137 @@ interface GanttState extends GanttProps {
   // ui state
   expandedRows: Set<number>;
   headerWidth: number;
+  containerWidth: number;
   resizeHandleActive: boolean;
 
   toggleRow: (index: number) => void;
   setHeaderWidth: (width: number) => void;
+  setContainerWidth: (width: number) => void;
   setResizeHandleActive: (active: boolean) => void;
   startResize: (startX: number) => void;
+  syncProps: (nextProps: GanttProps) => void;
 }
 
 export type GanttStore = ReturnType<typeof createGanttStore>;
 
-export const createGanttStore = (initProps: GanttProps) => {
-  const daysPerWeek = initProps.showWeekend ? 7 : 5;
-  const columnCount = initProps.weekCount * daysPerWeek;
-  const weekStart = startOfWeek(initProps.startDate, {
+/**
+ * Rounds a width and clamps it to a minimum value.
+ */
+function normalizeWidth(width: number, minWidth: number) {
+  return Math.max(minWidth, Math.round(width));
+}
+
+/**
+ * Calculates the effective width of each timeline column.
+ */
+function getColumnWidth(
+  weekCount: number,
+  daysPerWeek: number,
+  headerWidth: number,
+  containerWidth: number,
+) {
+  const columnCount = weekCount * daysPerWeek;
+  const shouldExpandColumns = weekCount <= 4;
+  const availableTimelineWidth = Math.max(containerWidth - headerWidth, 0);
+
+  if (!shouldExpandColumns) {
+    return CELL_WIDTH;
+  }
+
+  return Math.max(
+    CELL_WIDTH,
+    columnCount > 0 ? Math.floor(availableTimelineWidth / columnCount) : 0,
+  );
+}
+
+/**
+ * Returns a stable key for a member row.
+ */
+function getMemberStableKey(member: BaseMember) {
+  return (
+    member.id ?? `${member.name}::${member.role ?? ""}::${member.image ?? ""}`
+  );
+}
+
+/**
+ * Applies header/container sizing updates and derived-state recomputation.
+ */
+function resolveSizingUpdate(
+  state: GanttState,
+  next: {
+    headerWidth?: number;
+    containerWidth?: number;
+  },
+): GanttState | Partial<GanttState> {
+  const nextHeaderWidth =
+    next.headerWidth === undefined
+      ? state.headerWidth
+      : normalizeWidth(next.headerWidth, 120);
+  const nextContainerWidth =
+    next.containerWidth === undefined
+      ? state.containerWidth
+      : normalizeWidth(next.containerWidth, 0);
+
+  const hasHeaderChange = nextHeaderWidth !== state.headerWidth;
+  const hasContainerChange = nextContainerWidth !== state.containerWidth;
+
+  if (!hasHeaderChange && !hasContainerChange) {
+    return state;
+  }
+
+  const nextColumnWidth = getColumnWidth(
+    state.weekCount,
+    state.daysPerWeek,
+    nextHeaderWidth,
+    nextContainerWidth,
+  );
+
+  if (nextColumnWidth === state.columnWidth) {
+    return {
+      ...(hasHeaderChange ? { headerWidth: nextHeaderWidth } : {}),
+      ...(hasContainerChange ? { containerWidth: nextContainerWidth } : {}),
+    };
+  }
+
+  return {
+    ...(hasHeaderChange ? { headerWidth: nextHeaderWidth } : {}),
+    ...(hasContainerChange ? { containerWidth: nextContainerWidth } : {}),
+    ...buildDerivedState(
+      state.sourceMembers,
+      state.showWeekend,
+      state.startDate,
+      state.weekCount,
+      nextHeaderWidth,
+      nextContainerWidth,
+    ),
+  };
+}
+
+/**
+ * Builds derived grid state from source members and view settings.
+ */
+function buildDerivedState(
+  sourceMembers: BaseMember[],
+  showWeekend: boolean,
+  startDate: Date,
+  weekCount: number,
+  headerWidth: number,
+  containerWidth: number,
+) {
+  const daysPerWeek = showWeekend ? 7 : 5;
+  const columnCount = weekCount * daysPerWeek;
+  const columnWidth = getColumnWidth(
+    weekCount,
+    daysPerWeek,
+    headerWidth,
+    containerWidth,
+  );
+  const weekStart = startOfWeek(startDate, {
     weekStartsOn: 1,
   });
-  const weeks = Array.from({ length: initProps.weekCount }, (_, i) => i);
+  const weeks = Array.from({ length: weekCount }, (_, i) => i);
   const columns = Array.from({ length: columnCount }, (_, i) => i);
-  const weekendColumns = initProps.showWeekend
+  const weekendColumns = showWeekend
     ? columns.filter((colIndex) => {
         const day = addDays(weekStart, colIndex);
         const dayOfWeek = day.getDay();
@@ -58,23 +172,44 @@ export const createGanttStore = (initProps: GanttProps) => {
       })
     : [];
   const members = prepareMemberBars(
-    initProps.members,
+    sourceMembers,
     weekStart,
     columnCount,
-    initProps.showWeekend,
+    showWeekend,
+    columnWidth,
   );
 
-  return createStore<GanttState>()((set, get) => ({
-    ...initProps,
+  return {
     daysPerWeek,
     columnCount,
+    columnWidth,
     weekStart,
     weeks,
     columns,
     weekendColumns,
     members,
+  };
+}
+
+export const createGanttStore = (initProps: GanttProps) => {
+  const headerWidth = ROW_HEADER_WIDTH;
+  const containerWidth = 0;
+  const derivedState = buildDerivedState(
+    initProps.members,
+    initProps.showWeekend,
+    initProps.startDate,
+    initProps.weekCount,
+    headerWidth,
+    containerWidth,
+  );
+
+  return createStore<GanttState>()((set, get) => ({
+    ...initProps,
+    sourceMembers: initProps.members,
+    ...derivedState,
     expandedRows: new Set(),
-    headerWidth: ROW_HEADER_WIDTH,
+    headerWidth,
+    containerWidth,
     resizeHandleActive: false,
 
     toggleRow: (index) =>
@@ -88,7 +223,11 @@ export const createGanttStore = (initProps: GanttProps) => {
         return { expandedRows: next };
       }),
 
-    setHeaderWidth: (width) => set({ headerWidth: width }),
+    setHeaderWidth: (width) =>
+      set((state) => resolveSizingUpdate(state, { headerWidth: width })),
+
+    setContainerWidth: (width) =>
+      set((state) => resolveSizingUpdate(state, { containerWidth: width })),
 
     setResizeHandleActive: (active) => set({ resizeHandleActive: active }),
 
@@ -97,7 +236,7 @@ export const createGanttStore = (initProps: GanttProps) => {
       set({ resizeHandleActive: true });
 
       const onPointerMove = (e: PointerEvent) => {
-        get().setHeaderWidth(Math.max(120, startWidth + (e.clientX - startX)));
+        get().setHeaderWidth(startWidth + (e.clientX - startX));
       };
 
       const stopResize = () => {
@@ -110,6 +249,46 @@ export const createGanttStore = (initProps: GanttProps) => {
       document.addEventListener("pointermove", onPointerMove);
       document.addEventListener("pointerup", stopResize);
       document.addEventListener("pointercancel", stopResize);
+    },
+
+    syncProps: (nextProps) => {
+      set((state) => {
+        const nextMemberIndexByKey = new Map<string, number>();
+        nextProps.members.forEach((member, index) => {
+          const memberKey = getMemberStableKey(member);
+          if (!nextMemberIndexByKey.has(memberKey)) {
+            nextMemberIndexByKey.set(memberKey, index);
+          }
+        });
+
+        const nextExpandedRows = new Set<number>();
+        state.sourceMembers.forEach((member, previousIndex) => {
+          if (!state.expandedRows.has(previousIndex)) {
+            return;
+          }
+
+          const nextIndex = nextMemberIndexByKey.get(
+            getMemberStableKey(member),
+          );
+          if (nextIndex !== undefined) {
+            nextExpandedRows.add(nextIndex);
+          }
+        });
+
+        return {
+          ...nextProps,
+          sourceMembers: nextProps.members,
+          ...buildDerivedState(
+            nextProps.members,
+            nextProps.showWeekend,
+            nextProps.startDate,
+            nextProps.weekCount,
+            state.headerWidth,
+            state.containerWidth,
+          ),
+          expandedRows: nextExpandedRows,
+        };
+      });
     },
   }));
 };

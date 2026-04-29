@@ -1,5 +1,31 @@
 import type { Member, Project } from "@next-pms/design-system/components";
+import { parseISO } from "date-fns";
 import type { TeamAllocationResponse } from "./type";
+
+/**
+ * Merges two Member arrays, ensuring uniqueness based on stable member identity.
+ */
+export function mergeUniqueMembers(
+  current: Member[],
+  incoming: Member[],
+): Member[] {
+  const getMemberKey = (member: Member) => member.id ?? member.name;
+  const seen = new Set(current.map(getMemberKey));
+  const next = [...current];
+
+  for (const member of incoming) {
+    const memberKey = getMemberKey(member);
+
+    if (seen.has(memberKey)) {
+      continue;
+    }
+
+    seen.add(memberKey);
+    next.push(member);
+  }
+
+  return next;
+}
 
 /**
  * Converts a TeamAllocationResponse from the API into a Member[] array
@@ -8,10 +34,11 @@ import type { TeamAllocationResponse } from "./type";
 export function mapTeamAllocationToMembers(
   response: TeamAllocationResponse,
 ): Member[] {
-  const { employees, resource_allocations, customer } = response;
+  const { employees, resource_allocations, customer, leaves } = response;
 
   const employeeList = employees ?? [];
   const allocationList = resource_allocations ?? [];
+  const leaveList = leaves ?? [];
 
   // Group allocations by employee, then by project
   const allocationsByEmployee = new Map<
@@ -21,10 +48,30 @@ export function mapTeamAllocationToMembers(
       {
         projectName: string;
         customerName: string;
-        allocations: { hours: number; startDate: Date; endDate: Date }[];
+        allocations: {
+          hours: number;
+          startDate: Date;
+          endDate: Date;
+          billable: boolean;
+          tentative: boolean;
+        }[];
       }
     >
   >();
+
+  const leavesByEmployee = new Map<
+    string,
+    { startDate: Date; endDate: Date }[]
+  >();
+
+  for (const leave of leaveList) {
+    const employeeLeaves = leavesByEmployee.get(leave.employee) ?? [];
+    employeeLeaves.push({
+      startDate: parseISO(leave.from_date),
+      endDate: parseISO(leave.to_date),
+    });
+    leavesByEmployee.set(leave.employee, employeeLeaves);
+  }
 
   for (const alloc of allocationList) {
     if (!allocationsByEmployee.has(alloc.employee)) {
@@ -44,8 +91,10 @@ export function mapTeamAllocationToMembers(
 
     projectMap.get(alloc.project)!.allocations.push({
       hours: alloc.hours_allocated_per_day,
-      startDate: new Date(alloc.allocation_start_date),
-      endDate: new Date(alloc.allocation_end_date),
+      startDate: parseISO(alloc.allocation_start_date),
+      endDate: parseISO(alloc.allocation_end_date),
+      billable: Boolean(alloc.is_billable),
+      tentative: alloc.status === "Tentative",
     });
   }
 
@@ -62,11 +111,15 @@ export function mapTeamAllocationToMembers(
         )
       : [];
 
+    const memberLeaves = leavesByEmployee.get(employee.name) ?? [];
+
     return {
+      id: employee.name,
       name: employee.employee_name,
       role: employee.designation ?? undefined,
       image: employee.image ?? undefined,
       projects,
+      leaves: memberLeaves,
     };
   });
 }

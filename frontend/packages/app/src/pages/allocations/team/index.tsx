@@ -1,8 +1,13 @@
 /**
- * Internal dependencies.
+ * External dependencies.
  */
-import { useEffect } from "react";
-import { GanttGrid } from "@next-pms/design-system/components";
+import { useState } from "react";
+import { mergeClassNames as cn } from "@next-pms/design-system";
+import {
+  GanttGrid,
+  Spinner,
+  Typography,
+} from "@next-pms/design-system/components";
 import {
   Button,
   Filter,
@@ -12,9 +17,15 @@ import {
   TextInput,
 } from "@rtcamp/frappe-ui-react";
 import { ChevronLeft, ChevronRight, Ellipsis } from "lucide-react";
+
+/**
+ * Internal dependencies.
+ */
+import { InfiniteScroll } from "@/components/infiniteScroll";
 import { useUser } from "@/providers/user";
-import { GANTT_START_DATE } from "./constants";
-import { useAllocationsTeamShallow } from "./store";
+import { EMPLOYEES_PER_PAGE } from "./constants";
+import { useAllocationsTeam } from "./context";
+import { AllocationsTeamProvider } from "./provider";
 
 const FILTER_FIELDS: FilterField[] = [
   {
@@ -36,40 +47,41 @@ const FILTER_FIELDS: FilterField[] = [
   },
 ];
 
-function AllocationsTeam() {
-  const {
-    search,
-    setSearch,
-    allocationsType,
-    setAllocationsType,
-    duration,
-    setDuration,
-    compositeFilters,
-    setCompositeFilters,
-    weekCount,
-    filteredMembers,
-    fetchData,
-  } = useAllocationsTeamShallow((s) => ({
-    search: s.search,
-    setSearch: s.setSearch,
-    allocationsType: s.allocationsType,
-    setAllocationsType: s.setAllocationsType,
-    duration: s.duration,
-    setDuration: s.setDuration,
-    compositeFilters: s.compositeFilters,
-    setCompositeFilters: s.setCompositeFilters,
-    weekCount: s.weekCount,
-    filteredMembers: s.filteredMembers,
-    fetchData: s.fetchData,
-  }));
+function AllocationsTeamContent() {
+  const searchInput = useAllocationsTeam(({ state }) => state.searchInput);
+  const duration = useAllocationsTeam(({ state }) => state.duration);
+  const weekCount = useAllocationsTeam(({ state }) => state.weekCount);
+  const isLoading = useAllocationsTeam(({ state }) => state.isLoading);
+  const isFilterRequest = useAllocationsTeam(
+    ({ state }) => state.isFilterRequest,
+  );
+  const hasMore = useAllocationsTeam(({ state }) => state.hasMore);
+  const filteredMembers = useAllocationsTeam(
+    ({ state }) => state.filteredMembers,
+  );
+  const anchorDate = useAllocationsTeam(({ state }) => state.anchorDate);
+  const [allocationsType, setAllocationsType] = useState("all");
+  const [compositeFilters, setCompositeFilters] = useState<FilterCondition[]>(
+    [],
+  );
+
+  const setSearch = useAllocationsTeam(({ actions }) => actions.setSearch);
+  const setDuration = useAllocationsTeam(({ actions }) => actions.setDuration);
+  const loadMore = useAllocationsTeam(({ actions }) => actions.loadMore);
+  const handlePrevious = useAllocationsTeam(
+    ({ actions }) => actions.handlePrevious,
+  );
+  const handleToday = useAllocationsTeam(({ actions }) => actions.handleToday);
+  const handleNext = useAllocationsTeam(({ actions }) => actions.handleNext);
 
   const { hasRoleAccess } = useUser(({ state }) => ({
     hasRoleAccess: state.hasRoleAccess,
   }));
 
-  useEffect(() => {
-    fetchData();
-  }, [fetchData]);
+  const isAllTime = duration === "all-time";
+  const hasMembers = filteredMembers.length > 0;
+  const isFilteredDataLoading = isLoading && isFilterRequest;
+  const showOverlay = isFilteredDataLoading || (isLoading && !hasMembers);
 
   return (
     <div className="flex flex-wrap gap-3.5 justify-between py-3.5">
@@ -77,10 +89,9 @@ function AllocationsTeam() {
         <div className="flex flex-wrap gap-2">
           <TextInput
             className="w-xs"
-            placeholder="Search Members or designation"
-            debounce={200}
+            placeholder="Search members or designation"
             onChange={(e) => setSearch(e.target.value)}
-            value={search}
+            value={searchInput}
           />
           <Select
             placeholder="Duration"
@@ -92,7 +103,9 @@ function AllocationsTeam() {
               { label: "All time", value: "all-time" },
             ]}
             value={duration}
-            onChange={(value) => setDuration(value || "this-quarter")}
+            onChange={(value) =>
+              setDuration((value || "this-quarter") as typeof duration)
+            }
           />
           <Select
             placeholder="Allocations Type"
@@ -105,7 +118,7 @@ function AllocationsTeam() {
               { label: "Non-billable only", value: "non-billable" },
             ]}
             value={allocationsType}
-            onChange={(value) => setAllocationsType(value)}
+            onChange={(value) => setAllocationsType(value ?? "all")}
           />
         </div>
         <div className="flex gap-2">
@@ -113,15 +126,22 @@ function AllocationsTeam() {
             <Button
               variant="ghost"
               icon={() => <ChevronLeft size={16} />}
-              onClick={() => {}}
+              onClick={handlePrevious}
               aria-label="Previous week"
+              disabled={isAllTime}
             />
-            <Button variant="ghost" label="Today" onClick={() => {}} />
+            <Button
+              variant="ghost"
+              label="Today"
+              onClick={handleToday}
+              disabled={isAllTime}
+            />
             <Button
               variant="ghost"
               icon={() => <ChevronRight size={16} />}
-              onClick={() => {}}
+              onClick={handleNext}
               aria-label="Next week"
+              disabled={isAllTime}
             />
           </div>
           <Filter
@@ -136,16 +156,49 @@ function AllocationsTeam() {
         </div>
       </div>
       {/* 112px is the height of header and filters section */}
-      <div className="overflow-auto no-scrollbar w-full h-[calc(100vh-112px)]">
-        <GanttGrid
-          key={weekCount + search}
-          startDate={GANTT_START_DATE}
-          members={filteredMembers}
-          weekCount={weekCount}
-          hasRoleAccess={hasRoleAccess}
-        />
+      <div className="relative w-full h-[calc(100vh-112px)]">
+        {hasMembers ? (
+          <InfiniteScroll
+            isLoading={isLoading}
+            hasMore={hasMore}
+            verticalLodMore={loadMore}
+            className={cn("w-full h-full overflow-auto no-scrollbar", {
+              "opacity-50 transition-opacity duration-150 pointer-events-none":
+                isFilteredDataLoading,
+            })}
+            skeletonClassName="h-15"
+            count={EMPLOYEES_PER_PAGE}
+          >
+            <GanttGrid
+              startDate={anchorDate}
+              members={filteredMembers}
+              weekCount={weekCount}
+              hasRoleAccess={hasRoleAccess}
+            />
+          </InfiniteScroll>
+        ) : null}
+
+        {!isLoading && !hasMembers ? (
+          <Typography className="flex h-full items-center justify-center">
+            No Data
+          </Typography>
+        ) : null}
+
+        {showOverlay ? (
+          <div className="absolute inset-0 z-20 flex items-center justify-center cursor-wait pointer-events-auto">
+            <Spinner />
+          </div>
+        ) : null}
       </div>
     </div>
+  );
+}
+
+function AllocationsTeam() {
+  return (
+    <AllocationsTeamProvider>
+      <AllocationsTeamContent />
+    </AllocationsTeamProvider>
   );
 }
 

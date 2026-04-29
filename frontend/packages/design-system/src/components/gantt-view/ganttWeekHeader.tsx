@@ -8,10 +8,10 @@ interface GanttWeekProps {
 }
 
 export function GanttWeekHeader({ weekIndex }: GanttWeekProps) {
-  const { weekStart, daysPerWeek } = useGanttStore((s) => ({
+  const { weekStart, daysPerWeek, columnWidth } = useGanttStore((s) => ({
     weekStart: s.weekStart,
     daysPerWeek: s.daysPerWeek,
-    showWeekend: s.showWeekend,
+    columnWidth: s.columnWidth,
   }));
 
   const weekStartDay = addDays(weekStart, weekIndex * 7);
@@ -26,8 +26,8 @@ export function GanttWeekHeader({ weekIndex }: GanttWeekProps) {
       colSpan={daysPerWeek}
       className="border border-l-0 border-outline-gray-1 font-normal p-0 bg-surface-white"
       style={{
-        width: daysPerWeek * CELL_WIDTH,
-        maxWidth: daysPerWeek * CELL_WIDTH,
+        width: daysPerWeek * columnWidth,
+        maxWidth: daysPerWeek * columnWidth,
       }}
     >
       {/* Week label row */}
@@ -63,7 +63,7 @@ export function GanttWeekHeader({ weekIndex }: GanttWeekProps) {
                 },
               )}
               style={{
-                width: CELL_WIDTH,
+                width: columnWidth,
                 height: CELL_WIDTH,
               }}
             >

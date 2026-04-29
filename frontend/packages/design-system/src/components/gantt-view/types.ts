@@ -31,6 +31,7 @@ export interface Project {
 }
 
 export interface Member {
+  id?: string;
   name: string;
   role?: string;
   image?: string;
@@ -50,4 +51,6 @@ export interface GanttGridProps {
   showWeekend?: boolean;
   /** Whether current user can manage member projects. */
   hasRoleAccess?: boolean;
+  /** Optional custom classes for the root wrapper. */
+  className?: string;
 }
