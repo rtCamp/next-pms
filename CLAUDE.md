@@ -216,7 +216,8 @@ The `mcp__figma__*` tools return different data depending on which node you call
 
 These are loaded automatically. Invoke them at the listed workflow points:
 
-- **`next-pms-conventions`** — **load FIRST at the start of any coding task in this repo.** Project-tailored reference built from three rounds of maintainer review on PR #1208 / #1212 / #1220. Contains the full Pre-implementation scan, comment discipline, cva/lib-utils/design-system-primitive rules, Figma drilling, review-round retrospectives, and anti-patterns to avoid. The summary in §"Project conventions learned from reviews" above is the quick version — the skill is the deep reference.
+- **`next-pms-task`** — invoked via `/next-pms-task <github-issue-url>`. End-to-end task pipeline: fetch the issue, write the plan, post it as a Slack thread in `#bots-ai-workflow-next-pms` (channel `C0AUXBY5WMB`), poll for the maintainer's `RESOLVED` keyword between sections, then open the PR with the project's stacked-PR + reviewer rules. **Loads and consults `next-pms-conventions` before implementation starts** — you do not need to invoke it separately. Wraps everything in §1–§6 above and adds the async Slack-thread feedback loop. **Start here whenever the user shares a task link — don't hand-roll the workflow.**
+- **`next-pms-conventions`** — **load FIRST at the start of any manual coding task in this repo** (i.e. tasks not entered via `/next-pms-task`, which handles this automatically). Project-tailored reference built from three rounds of maintainer review on PR #1208 / #1212 / #1220. Contains the full Pre-implementation scan, comment discipline, cva/lib-utils/design-system-primitive rules, Figma drilling, review-round retrospectives, and anti-patterns to avoid. The summary in §"Project conventions learned from reviews" above is the quick version — the skill is the deep reference.
 - **`react-agents-review`** — run before closing any FE section (step 4). Structured pass for Rules of Hooks, stale closures, missing deps, a11y, TypeScript safety. Its output feeds the "is this section done?" gate.
 - **`advanced-react-patterns`** — consult whenever a section adds `useMemo`/`useCallback`/`React.memo` or introduces global state. Enforces composition-over-memoization, moving state down, and measuring before optimizing (step 4).
 - **`webapp-testing`** — **scoped to our Playwright e2e suite in `tests/e2e/`**, not the live step-2 browser-check (which uses Claude-in-Chrome MCP). Use it when writing/updating Playwright scripts or running deterministic headless regressions.
@@ -373,3 +374,24 @@ Top-level `package.json` `build` script = `git submodule update --init --recursi
 
 - The app uses npm workspaces at the top level and pnpm inside the `frappe-ui-react` submodule. A stray `yarn.lock` at the repo root is not part of the build — don't commit one if it appears.
 - Always `git status` at the start of a task and run `git fetch upstream` before cutting a new feature trunk so the branch is off the latest `feat/redesign`.
+
+### Commit message rules (mandatory)
+
+All commits must follow **Conventional Commits**. Format: `<type>[scope]: <description>` with an optional body and footers.
+
+| Type | When |
+|---|---|
+| `feat` | new feature |
+| `fix` | bug fix |
+| `docs` | documentation only |
+| `refactor` | restructuring without behaviour change |
+| `style` | whitespace / formatting |
+| `perf` | performance improvement |
+| `test` | adding / updating tests |
+| `build` | build system or dependency changes |
+| `ci` | CI/CD config |
+| `chore` | other maintenance |
+
+- **Scope** (optional): noun in parentheses describing the affected area, e.g. `feat(projects):`.
+- **Breaking change**: append `!` after type/scope and/or add a `BREAKING CHANGE:` footer.
+- **Always sign commits**: `git commit -S` (GPG). Configure once with `git config commit.gpgsign true`.
