@@ -4,9 +4,13 @@ import { GanttBar } from "./ganttBar";
 
 interface GanttProjectBarProps {
   allocation: ProjectAllocationBar;
+  resizable: boolean;
 }
 
-export function GanttProjectBar({ allocation }: GanttProjectBarProps) {
+export function GanttProjectBar({
+  allocation,
+  resizable,
+}: GanttProjectBarProps) {
   const { headerWidth, columnWidth } = useGanttStore((s) => ({
     headerWidth: s.headerWidth,
     columnWidth: s.columnWidth,
@@ -25,7 +29,7 @@ export function GanttProjectBar({ allocation }: GanttProjectBarProps) {
       left={left}
       width={width}
       billable={allocation.billable}
-      resizable={true}
+      resizable={resizable}
       snapUnitPx={columnWidth}
     />
   );

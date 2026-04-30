@@ -8,9 +8,10 @@ export type MemberBarAllocation = MemberAllocationBar;
 
 interface GanttMemberBarProps {
   allocation: MemberAllocationBar;
+  resizable: boolean;
 }
 
-export function GanttMemberBar({ allocation }: GanttMemberBarProps) {
+export function GanttMemberBar({ allocation, resizable }: GanttMemberBarProps) {
   const { headerWidth, columnWidth } = useGanttStore((s) => ({
     headerWidth: s.headerWidth,
     columnWidth: s.columnWidth,
@@ -55,7 +56,7 @@ export function GanttMemberBar({ allocation }: GanttMemberBarProps) {
       left={left}
       width={width}
       billable={allocation.billable}
-      resizable={true}
+      resizable={resizable}
       snapUnitPx={columnWidth}
     />
   );
