@@ -201,6 +201,20 @@ Once the last section is `RESOLVED`:
    ```
 
    This is the same `/next-pms-slack-poll` skill from §3 / §5 but armed for the *final* gate — the developer reviews the PR and may post more feedback in the thread. The polling skill self-cancels its cron on `RESOLVED` (task complete) or `BLOCK` (pause). Free-form maintainer replies (PR-level review notes routed back into the thread, "fix X please", etc.) come through as `Latest human reply` in the report — treat them as new scope: act on them, post an updated status with the fix, leave the cron running.
+
+   **Slack signals that mean "go check the PR".** The maintainer typically reviews on GitHub, then drops a short note in the Slack thread like `feedback added`, `review posted`, `comments on PR`, or just `take a look`. That note is the *trigger* — the actual content lives on the PR. When the polling skill surfaces such a free-form reply, run the standard CLAUDE.md §6 triage cycle without waiting:
+
+   ```bash
+   gh pr view <pr> --json reviews,comments,statusCheckRollup
+   gh api repos/:owner/:repo/pulls/:num/comments --paginate    # inline review comments
+   gh pr checks <pr>
+   ```
+
+   For each inline review thread:
+   - Valid → fix locally, commit on the same branch, push. Reply on the thread with `Fixed in <sha> — <one-line>`.
+   - Not valid → reply on the thread with the rationale (link to AC / Figma frame / convention). Do not silently ignore.
+
+   After the round of fixes, post a single Slack update summarizing what was addressed, what was declined and why, and reaffirm the wait template (`⏳ Waiting on maintainer review + final RESOLVED — re-review when ready.`). The polling cron stays armed; the same loop runs again on the next round of feedback or terminates on `RESOLVED` / `BLOCK`.
 8. Final maintainer DM to Ayush (`U026K7B5VAA`, channel `D026S1T8ML2`) with a short summary + the PR link.
 
 **Do not declare the task done before final `RESOLVED`** lands in the thread. The PR being open + status posted is not closure — closure is the maintainer's explicit sign-off captured by the polling cron.
