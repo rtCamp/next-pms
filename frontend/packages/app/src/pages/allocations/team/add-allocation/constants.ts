@@ -9,7 +9,7 @@ export const addAllocationDefaultValues = {
   employeeId: "",
   projectId: "",
   recurrence: "one-time",
-  includeWeekends: false,
+  includeWeekends: true,
   fromDate: getTodayDate(),
   toDate: getTodayDate(),
   hoursPerDay: 0,

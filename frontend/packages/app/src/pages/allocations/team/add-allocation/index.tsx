@@ -27,7 +27,7 @@ import { Calendar } from "lucide-react";
 /**
  * Internal dependencies.
  */
-import { parseFrappeErrorMsg } from "@/lib/utils";
+import { isWeekendEntryAllowed, parseFrappeErrorMsg } from "@/lib/utils";
 import {
   addAllocationDefaultValues,
   allocationRecurrenceLabels,
@@ -44,6 +44,7 @@ function AddAllocationModal({
   initialValues,
 }: AddAllocationModalProps) {
   const toast = useToasts();
+  const includesWeekends: boolean = isWeekendEntryAllowed();
   const [submitting, setSubmitting] = useState(false);
 
   const { call: handleAllocation } = useFrappePostCall(
@@ -150,6 +151,7 @@ function AddAllocationModal({
             is_billable: Number(value.isBillable),
             status: value.isTentative ? "Tentative" : "Confirmed",
             note: value.note ?? "",
+            include_weekends: includesWeekends ? value.includeWeekends : false,
           },
           // Repeat weeks are only applied when creating a recurring allocation.
           repeat_till_week_count:
@@ -315,18 +317,20 @@ function AddAllocationModal({
           )}
         />
 
-        <form.Field
-          name="includeWeekends"
-          children={(field) => (
-            <label className="inline-flex items-center gap-2 text-base text-ink-gray-8">
-              <Checkbox
-                value={field.state.value}
-                onChange={(checked) => field.handleChange(Boolean(checked))}
-              />
-              Include weekends
-            </label>
-          )}
-        />
+        {includesWeekends ? (
+          <form.Field
+            name="includeWeekends"
+            children={(field) => (
+              <label className="inline-flex items-center gap-2 text-base text-ink-gray-8">
+                <Checkbox
+                  value={field.state.value}
+                  onChange={(checked) => field.handleChange(Boolean(checked))}
+                />
+                Include weekends
+              </label>
+            )}
+          />
+        ) : null}
 
         <form.Field
           name="fromDate"
