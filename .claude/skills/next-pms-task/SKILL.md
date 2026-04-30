@@ -74,31 +74,45 @@ slack_read_channel(channel_id="C0AUXBY5WMB", limit=5)              # to find par
 
 Bot-identity for posts is `Next-PMS-Task-AI-Bot` (`bot_id=BF6973Y7N`). The "RESOLVED detection" bot-filter in this skill catches it via the generic `bot_id` rule, so no algorithm change is needed.
 
-### Acquiring `parent_ts`
+### Acquiring `parent_ts` — always start a fresh top-level thread
 
-Two paths, in order of preference:
+**Always post a fresh top-level message for the task. Do not reuse a maintainer-started thread, even if one already exists for the same issue.** The maintainer prefers one bot-led thread per task — it keeps the keyword-convention block, plan chunks, section-status updates, and final PR ping in a clean linear conversation that's easy to scroll. Reusing an older thread (e.g. one Ayush started to assign the workload) buries the structured plan under unrelated chatter and confuses the cadence.
 
-1. **Reuse an existing maintainer-started thread.** Many tasks begin with the maintainer posting a top-level message in `C0AUXBY5WMB` linking the issue (e.g. `New workload -> Epic 8 #1227`). Look for it before posting anything.
+Step-by-step:
 
-   The guaranteed path uses only the required Slack MCP tools — `slack_read_channel(channel_id="C0AUXBY5WMB", limit=20)` and scan the returned messages for a top-level entry containing the issue URL. If `slack_search_public` happens to be loaded, you may use it as a faster alternative:
+```bash
+# 1) Top-level webhook post (no --thread-ts) — keyword-convention block + "Plan in N messages below ⤵"
+bash -ic 'export SLACK_WEBHOOK_URL && .claude/skills/next-pms-task/scripts/slack_post.py --text "📋 Plan for issue #<n> — <title> — replies in this thread."'
 
-   ```python
-   slack_search_public(query=f"#{n} in:#bots-ai-workflow-next-pms", include_bots=False, limit=5)
-   ```
+# 2) read_channel, capture the latest message authored by Next-PMS-Task-AI-Bot (the just-posted one is newest)
+slack_read_channel(channel_id="C0AUXBY5WMB", limit=5)
+```
 
-   It is not in the preconditions list, so do not block on it — fall back to `slack_read_channel` if missing or zero-result. If found, take its `ts` as `parent_ts` and skip the fresh top-level post — go straight to threaded replies. This is the most common case in practice and keeps the maintainer in their own thread.
+Persist that `Message TS` as `parent_ts` for the rest of the workflow. If a maintainer-started thread for the same issue already exists, optionally post a one-liner there pointing at the new top-level (`↪︎ Moving the plan to a fresh thread — continuing there.`) so the maintainer knows where to look.
 
-2. **Post a fresh top-level message via the helper script**, then immediately read the channel back to find it:
+### Cron-driven gate polling — the `/next-pms-slack-poll` companion
 
-   ```bash
-   # 1) Top-level webhook post (no --thread-ts)
-   bash -ic 'export SLACK_WEBHOOK_URL && .claude/skills/next-pms-task/scripts/slack_post.py --text "📋 Plan for issue #<n> — <title> — replies in this thread."'
+Once `parent_ts` is captured (and at the start of every later approval gate), set up a recurring cron that fires `/next-pms-slack-poll <parent_ts> C0AUXBY5WMB` so the gate-poll cadence runs without re-entering this skill. The polling skill (project-scoped, lives at `.claude/skills/next-pms-slack-poll/SKILL.md`) is read-only — it reports gate state and self-cancels its cron on RESOLVED / BLOCK.
 
-   # 2) read_channel and capture the latest message authored by Next-PMS-Task-AI-Bot (it will be the newest entry)
-   slack_read_channel(channel_id="C0AUXBY5WMB", limit=5)
-   ```
+```python
+CronCreate(
+    cron="*/15 * * * *",
+    prompt=f"/next-pms-slack-poll {parent_ts} C0AUXBY5WMB",
+    recurring=True,
+)
+```
 
-   The just-posted bot message will be the newest entry; capture its `Message TS` and persist as `parent_ts` for the rest of the workflow.
+**Never wire the cron to fire `/next-pms-task <url>` itself.** That re-runs recon → plan → Slack on every tick, replans `plan_issue_<n>.md`, and dumps duplicate plan chunks into the thread. The polling skill exists specifically to avoid that footgun.
+
+When the maintainer replies `RESOLVED`, the polling skill cancels its own cron and returns the locked decisions in its report. Resume from the current section directly — no re-entry of the parent skill is required (the conversation context already has the plan loaded).
+
+### Batch mode is the default — per-section gates are opt-in
+
+**After the plan-approval gate clears, default to batch mode.** Run S1..Sn sequentially (implement → rebuild → browser-check → next section) without re-arming the polling cron between sections, and post a single consolidated status to the thread once the PR is up and post-PR triage is done. Maintainer prefers this — fewer round-trips, less Slack noise, faster wall-clock.
+
+Per-section RESOLVED gating is opt-in: if the maintainer's plan-approval reply explicitly asks for it (e.g. `RESOLVED. gate every section`, or any phrasing that signals they want to review each section), follow §5 step 5 verbatim instead. When in doubt, ask once in-thread before flipping modes.
+
+When entering batch mode (the default), acknowledge in-thread once at the start: `Acknowledged ✅ — running S1..Sn in batch mode (default). Will ping here once the full feature is green and the PR is up.` That single ack tells the maintainer the gate cleared and what cadence to expect.
 
 ## End-to-end workflow
 
@@ -116,9 +130,9 @@ Two paths, in order of preference:
 
 Channel: **`C0AUXBY5WMB`** (`#bots-ai-workflow-next-pms`). All posts via the webhook template in "Slack delivery" above.
 
-**Resolve `parent_ts` first** — follow the two paths in "Acquiring `parent_ts`": prefer reusing the maintainer's existing top-level message for the issue (search the channel for the issue number), otherwise post a fresh one via webhook and capture the ts via `slack_read_channel`.
+**Resolve `parent_ts` first** — always post a fresh top-level message for the task per "Acquiring `parent_ts`" above (do not reuse a maintainer-started thread). Capture its ts via `slack_read_channel`. Then arm the polling cron per "Cron-driven gate polling" so the plan-approval gate runs without re-entering this skill.
 
-**Top-level message** (only if a fresh one is needed) — one liner that names the keyword convention. Use exactly this template, substituting `<n>` and `<title>`:
+**Top-level message** — one liner that names the keyword convention. Use exactly this template, substituting `<n>` and `<title>`:
 
 ```
 📋 Plan for issue #<n> — <title> — replies in this thread.
@@ -131,11 +145,9 @@ Keywords (reply in-thread, plain text, case-insensitive):
 I poll this thread every 15 min and only act on replies from non-bot users. Defaults are listed in square brackets; if you reply only `RESOLVED`, I take the defaults and proceed.
 ```
 
-If reusing a maintainer-started thread, send the keyword-convention block as the **first thread reply** instead — the maintainer's own top-level message already names the issue.
-
 **Thread replies** — split the plan across multiple messages (Slack truncates above ~5 KB per message). Use the breakdown from existing precedent (issue summary + scope; figma recon; component inventory + file structure; section breakdown; open decisions; final next-steps note). Keep each message under ~3 KB. Always prefix with `<i>/<total>` so the maintainer can scroll. Each reply is a webhook POST with `thread_ts: <parent_ts>`.
 
-Persist `parent_ts` and `channel_id="C0AUXBY5WMB"` in your working memory — every subsequent webhook POST and every MCP poll reuses them.
+Persist `parent_ts` and `channel_id="C0AUXBY5WMB"` in your working memory — every subsequent webhook POST, every MCP poll, and the cron prompt all reuse them.
 
 ### 4. Plan-approval gate
 
@@ -153,7 +165,7 @@ For each section S1…Sn from the plan:
 2. **Rebuild** — `fm shell pms-temp.frappe.rt.gw <<'EOF'` / `cd apps/next_pms/frontend && npm run build:app` / `EOF`. If the submodule SHA changed, run `pnpm --filter @rtcamp/frappe-ui-react build` first.
 3. **Browser quality-gate** — navigate the existing authenticated tab to the relevant route, reload, run a JS assertion script that captures structural + style facts (heading text, classNames, computed sizes, presence of expected SVGs/icons), and read console messages with `onlyErrors=true`. Heavier or multi-route checks: spawn a `general-purpose` subagent.
 4. **Post status to thread** — short reply with: section name, what changed (1–2 lines per file), build result, browser-gate result, and the verbatim line: `Reply RESOLVED to proceed to S<i+1>.` (or `… to open the PR.` for the last section).
-5. **Wait for RESOLVED on this section** — poll every 15 min, applying the canonical RESOLVED-detection algorithm. `BLOCK` pauses; new feedback (e.g. "fix X first") is treated as scope; address it, post an updated status, then re-wait. Do **not** advance to the next section without an explicit `RESOLVED` from a non-bot user. The 1-hour single-nudge rule applies per gate.
+5. **Wait for RESOLVED on this section** — *only when the maintainer has explicitly opted into per-section gating* at the plan-approval gate (see "Batch mode is the default" above). In that case re-arm the polling cron (`CronCreate(*/15 * * * *, /next-pms-slack-poll <parent_ts> C0AUXBY5WMB)`); the polling skill applies the canonical RESOLVED-detection algorithm and self-cancels its own cron on terminal state. `BLOCK` pauses; new feedback (e.g. "fix X first") is treated as scope; address it, post an updated status, re-arm the cron, then re-wait. Do **not** advance to the next section without an explicit `RESOLVED` from a non-bot user. The 1-hour single-nudge rule applies per gate. **In the default batch mode, skip steps 4–5 between sections entirely** — proceed straight from one section's browser-gate to the next section's implementation, and only post once at the end (consolidated status + PR link).
 
 ### 6. PR + post-PR triage
 
