@@ -275,7 +275,7 @@ def get_task_log(task: str, start_date: str = None, end_date: str = None, employ
     return log_entries
 
 
-@frappe.whitelist(methods=["GET"])
+@frappe.whitelist(methods=["POST"])
 def get_liked_tasks():
     """API to get the list of tasks that the user has liked, along with the project name."""
     from next_pms.timesheet.api.app import get_liked_documents
