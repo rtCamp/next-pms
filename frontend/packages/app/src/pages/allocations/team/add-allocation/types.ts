@@ -19,6 +19,7 @@ export interface AddAllocationModalProps {
   variant?: "add" | "edit";
   onEditScheduleClick?: () => void;
   initialValues?: AddAllocationInitialValues;
+  onSuccess?: () => void;
 }
 
 export type ComboboxOption = {

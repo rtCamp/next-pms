@@ -1,4 +1,10 @@
 export interface Allocation {
+  /** Unique identifier for the allocation. */
+  id?: string;
+  /** Employee identifier this allocation belongs to. */
+  employeeId?: string;
+  /** Project identifier this allocation belongs to. */
+  projectId?: string;
   /** Hours per day. */
   hours: number;
   /** First day of the allocation. */
@@ -9,6 +15,8 @@ export interface Allocation {
   billable?: boolean;
   /** Whether the allocation is tentative. */
   tentative?: boolean;
+  /** Note for the allocation. */
+  note?: string;
   /** Created on date. */
   createdOn?: Date;
   /** Updated on date. */
@@ -53,6 +61,29 @@ export interface Member {
   leaves?: LeaveAllocation[];
 }
 
+export interface AllocationCallbackData {
+  /** Allocation identifier. */
+  allocationId?: string;
+  /** Employee identifier. */
+  employeeId?: string;
+  /** Project identifier. */
+  projectId?: string;
+  /** Project name. */
+  projectName?: string;
+  /** Allocation start date. */
+  startDate?: Date;
+  /** Allocation end date. */
+  endDate?: Date;
+  /** Hours per day. */
+  hoursPerDay?: number;
+  /** Whether the allocation is billable. */
+  billable?: boolean;
+  /** Whether the allocation is tentative. */
+  tentative?: boolean;
+  /** Note for the allocation. */
+  note?: string;
+}
+
 export interface GanttGridProps {
   /** Any date within the first week to display. */
   startDate: Date;
@@ -66,10 +97,10 @@ export interface GanttGridProps {
   hasRoleAccess?: boolean;
   /** Optional custom classes for the root wrapper. */
   className?: string;
-  /** Called when "Add" is clicked in an allocation popup. */
-  onAddAllocation?: () => void;
-  /** Called when the edit icon is clicked on an allocation entry. */
-  onEditAllocation?: () => void;
-  /** Called when the delete icon is clicked on an allocation entry. */
-  onDeleteAllocation?: () => void;
+  /** Called when "Add" is clicked in an allocation popup. Receives employee data. */
+  onAddAllocation?: (data: AllocationCallbackData) => void;
+  /** Called when the edit icon is clicked on an allocation entry. Receives allocation data. */
+  onEditAllocation?: (data: AllocationCallbackData) => void;
+  /** Called when the delete icon is clicked on an allocation entry. Receives allocation id. */
+  onDeleteAllocation?: (data: AllocationCallbackData) => void;
 }

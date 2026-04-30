@@ -36,7 +36,7 @@ export interface ResourceAllocation {
   modified: string;
   creation: string;
   status: string;
-  modified_by_avatar: string;
+  modified_by_avatar: string | null;
 }
 
 export interface Customer {

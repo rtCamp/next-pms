@@ -1,7 +1,6 @@
 /**
  * External dependencies.
  */
-import { useCallback, useState } from "react";
 import { Outlet } from "react-router-dom";
 import { Button } from "@rtcamp/frappe-ui-react";
 import { Plus } from "lucide-react";
@@ -12,22 +11,10 @@ import { Plus } from "lucide-react";
 import { Header } from "@/layout/header";
 import { AllocationsBreadcrumbs } from "@/pages/allocations/components/allocationsBreadcrumbs";
 import AddAllocationModal from "@/pages/allocations/team/add-allocation";
-import type { AllocationsTeamOutletContext } from "./outletContext";
+import { useAllocationModal } from "./useAllocationModal";
 
 function TeamTimesheetLayout() {
-  const [isAddAllocationOpen, setIsAddAllocationOpen] = useState(false);
-
-  const handleAddAllocation = useCallback(() => {
-    setIsAddAllocationOpen(true);
-  }, []);
-
-  const handleEditAllocation = useCallback(() => {
-    // TODO: wire up edit modal
-  }, []);
-
-  const handleDeleteAllocation = useCallback(() => {
-    // TODO: wire up delete modal
-  }, []);
+  const { openAddDialog, outletContext, modalProps } = useAllocationModal();
 
   return (
     <>
@@ -36,26 +23,15 @@ function TeamTimesheetLayout() {
 
         <Button
           variant="solid"
-          onClick={handleAddAllocation}
+          onClick={() => openAddDialog({})}
           label="Add allocation"
           iconLeft={() => <Plus />}
         />
       </Header>
 
-      <Outlet
-        context={
-          {
-            openAddAllocationDialog: handleAddAllocation,
-            openEditAllocationDialog: handleEditAllocation,
-            openDeleteAllocationDialog: handleDeleteAllocation,
-          } satisfies AllocationsTeamOutletContext
-        }
-      />
+      <Outlet context={outletContext} />
 
-      <AddAllocationModal
-        open={isAddAllocationOpen}
-        onOpenChange={setIsAddAllocationOpen}
-      />
+      <AddAllocationModal {...modalProps} />
     </>
   );
 }

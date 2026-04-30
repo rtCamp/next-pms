@@ -1,13 +1,27 @@
 import { format } from "date-fns";
+import type { AllocationCallbackData } from "../../types";
 import type { ProjectAllocationBar } from "../../utils";
 import type { AllocationEntry } from "../allocationPopover";
 
 /** Convert a ProjectAllocationBar to a display-ready AllocationEntry. */
 export function allocationBarToEntry(
   alloc: ProjectAllocationBar,
-  onEdit?: () => void,
-  onDelete?: () => void,
+  onEdit?: (data: AllocationCallbackData) => void,
+  onDelete?: (data: AllocationCallbackData) => void,
 ): AllocationEntry {
+  const callbackData: AllocationCallbackData = {
+    allocationId: alloc.id,
+    employeeId: alloc.employeeId,
+    projectId: alloc.projectId,
+    projectName: alloc.projectName,
+    startDate: alloc.startDate,
+    endDate: alloc.endDate,
+    hoursPerDay: alloc.hours,
+    billable: alloc.billable,
+    tentative: alloc.tentative,
+    note: alloc.note,
+  };
+
   return {
     projectName: alloc.projectName,
     dateRange: `${format(alloc.startDate, "MMM d, yyyy")} – ${format(alloc.endDate, "MMM d, yyyy")}`,
@@ -16,8 +30,8 @@ export function allocationBarToEntry(
     billable: alloc.billable ?? true,
     updatedByName: alloc.updatedBy?.name,
     updatedByImage: alloc.updatedBy?.image,
-    onEdit,
-    onDelete,
+    onEdit: onEdit ? () => onEdit(callbackData) : undefined,
+    onDelete: onDelete ? () => onDelete(callbackData) : undefined,
     createdOn: alloc.createdOn,
     updatedOn: alloc.updatedOn,
   };

@@ -47,13 +47,18 @@ export function mapTeamAllocationToMembers(
       string,
       {
         projectName: string;
+        projectId: string;
         customerName: string;
         allocations: {
+          id: string;
+          employeeId: string;
+          projectId: string;
           hours: number;
           startDate: Date;
           endDate: Date;
           billable: boolean;
           tentative: boolean;
+          note?: string;
           createdOn?: Date;
           updatedOn?: Date;
           updatedBy?: { name: string; image?: string };
@@ -87,17 +92,22 @@ export function mapTeamAllocationToMembers(
         customer[alloc.customer]?.name ?? alloc.customer ?? "";
       projectMap.set(alloc.project, {
         projectName: alloc.project_name || alloc.project,
+        projectId: alloc.project,
         customerName,
         allocations: [],
       });
     }
 
     projectMap.get(alloc.project)!.allocations.push({
+      id: alloc.name,
+      employeeId: alloc.employee,
+      projectId: alloc.project,
       hours: alloc.hours_allocated_per_day,
       startDate: parseISO(alloc.allocation_start_date),
       endDate: parseISO(alloc.allocation_end_date),
       billable: Boolean(alloc.is_billable),
       tentative: alloc.status === "Tentative",
+      note: alloc.note ?? undefined,
       createdOn: alloc.creation ? parseISO(alloc.creation) : undefined,
       updatedOn: alloc.modified ? parseISO(alloc.modified) : undefined,
       updatedBy: alloc.modified_by

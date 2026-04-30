@@ -282,6 +282,9 @@ export const GanttGrid: React.FC<GanttGridProps> = (props) => {
     [
       props.hasRoleAccess,
       props.members,
+      props.onAddAllocation,
+      props.onDeleteAllocation,
+      props.onEditAllocation,
       props.showWeekend,
       props.startDate,
       props.weekCount,

@@ -74,6 +74,10 @@ export function GanttMemberBar({ allocation, memberInd }: GanttMemberBarProps) {
     allocationBarToEntry(alloc, onEditAllocation, onDeleteAllocation),
   );
 
+  const handleAdd = onAddAllocation
+    ? () => onAddAllocation({ employeeId: member.id })
+    : undefined;
+
   return (
     <PreviewCard.Root>
       <PreviewCard.Trigger
@@ -95,7 +99,7 @@ export function GanttMemberBar({ allocation, memberInd }: GanttMemberBarProps) {
           <PreviewCard.Popup className="z-50 outline-none">
             <GanttAllocationPopover
               entries={entries}
-              onAdd={onAddAllocation}
+              onAdd={handleAdd}
               hasRoleAccess={hasRoleAccess}
             />
           </PreviewCard.Popup>

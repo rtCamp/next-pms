@@ -3,7 +3,7 @@ import { addDays, startOfWeek } from "date-fns";
 import { createStore, useStore } from "zustand";
 import { useShallow } from "zustand/react/shallow";
 import { CELL_WIDTH, ROW_HEADER_WIDTH } from "./constants";
-import type { Member as BaseMember } from "./types";
+import type { AllocationCallbackData, Member as BaseMember } from "./types";
 import { prepareMemberBars } from "./utils";
 import type { Member } from "./utils";
 export type {
@@ -18,9 +18,9 @@ interface GanttProps {
   startDate: Date;
   weekCount: number;
   hasRoleAccess: boolean;
-  onAddAllocation?: () => void;
-  onEditAllocation?: () => void;
-  onDeleteAllocation?: () => void;
+  onAddAllocation?: (data: AllocationCallbackData) => void;
+  onEditAllocation?: (data: AllocationCallbackData) => void;
+  onDeleteAllocation?: (data: AllocationCallbackData) => void;
 }
 
 interface GanttState extends GanttProps {
