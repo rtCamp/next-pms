@@ -104,24 +104,28 @@ function AllocationItem({ entry, hasRoleAccess }: AllocationItemProps) {
           </div>
         )}
 
-        {hasRoleAccess && (
+        {hasRoleAccess && (entry.onEdit || entry.onDelete) && (
           <div className="flex gap-2 items-center shrink-0 absolute bottom-0 right-0 mb-1">
-            <button
-              type="button"
-              onClick={entry.onEdit}
-              className="transition-colors text-ink-gray-5 hover:text-ink-gray-7"
-              aria-label="Edit allocation"
-            >
-              <EditAlt className="size-4" />
-            </button>
-            <button
-              type="button"
-              onClick={entry.onDelete}
-              className="transition-colors text-ink-gray-5 hover:text-ink-gray-7"
-              aria-label="Delete allocation"
-            >
-              <DeleteAlt className="size-4" />
-            </button>
+            {entry.onEdit && (
+              <button
+                type="button"
+                onClick={entry.onEdit}
+                className="transition-colors text-ink-gray-5 hover:text-ink-gray-7"
+                aria-label="Edit allocation"
+              >
+                <EditAlt className="size-4" />
+              </button>
+            )}
+            {entry.onDelete && (
+              <button
+                type="button"
+                onClick={entry.onDelete}
+                className="transition-colors text-ink-gray-5 hover:text-ink-gray-7"
+                aria-label="Delete allocation"
+              >
+                <DeleteAlt className="size-4" />
+              </button>
+            )}
           </div>
         )}
       </div>
