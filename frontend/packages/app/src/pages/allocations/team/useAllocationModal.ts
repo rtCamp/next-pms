@@ -29,6 +29,10 @@ export function useAllocationModal() {
     setVariant("add");
     setInitialValues({
       employeeId: data.employeeId,
+      fromDate: data.startDate
+        ? format(data.startDate, "yyyy-MM-dd")
+        : undefined,
+      toDate: data.endDate ? format(data.endDate, "yyyy-MM-dd") : undefined,
     });
     setIsOpen(true);
   }, []);

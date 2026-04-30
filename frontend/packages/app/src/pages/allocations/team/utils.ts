@@ -3,6 +3,14 @@ import { parseISO } from "date-fns";
 import type { TeamAllocationResponse } from "./type";
 
 /**
+ * Parses a Frappe datetime string (YYYY-MM-DD HH:mm:ss.ssssss) into a Date.
+ * Converts the space separator to 'T' for ISO compatibility.
+ */
+function parseFrappeDatetime(datetime: string): Date {
+  return parseISO(datetime.replace(" ", "T"));
+}
+
+/**
  * Merges two Member arrays, ensuring uniqueness based on stable member identity.
  */
 export function mergeUniqueMembers(
@@ -108,8 +116,12 @@ export function mapTeamAllocationToMembers(
       billable: Boolean(alloc.is_billable),
       tentative: alloc.status === "Tentative",
       note: alloc.note ?? undefined,
-      createdOn: alloc.creation ? parseISO(alloc.creation) : undefined,
-      updatedOn: alloc.modified ? parseISO(alloc.modified) : undefined,
+      createdOn: alloc.creation
+        ? parseFrappeDatetime(alloc.creation)
+        : undefined,
+      updatedOn: alloc.modified
+        ? parseFrappeDatetime(alloc.modified)
+        : undefined,
       updatedBy: alloc.modified_by
         ? {
             name: alloc.modified_by,
