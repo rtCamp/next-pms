@@ -298,31 +298,44 @@ If zero durable rules were found, still post the reply with `N=0` — it confirm
 ## RESOLVED detection — exact algorithm
 
 ```
-Step 1 — filter bot messages.
+Step 1 — find the gate boundary.
+  Scan all messages (parent + replies) for the latest bot-authored one.
   A message is bot-authored if ANY of these are true:
     • message.subtype == "bot_message"
     • message.bot_id is present and non-empty
     • message.bot_profile is present
     • message.text ends with "*Sent using* @Claude"
+  Let gate_boundary_ts = ts of that latest bot post (the bot's last status / waiting / ack).
+  If no bot post exists at all, set gate_boundary_ts = "0".
+
+Step 2 — filter bot messages.
   Discard all bot-authored messages. Work only with the remaining human messages.
 
-Step 2 — accumulate decision answers (all human messages, newest-first).
-  For each human message:
+Step 3 — scope by gate boundary.
+  Drop every human message whose ts <= gate_boundary_ts.
+  Keep only human messages strictly newer than the boundary — those are replies to the *current* gate.
+
+Step 4 — accumulate decision answers (in-scope human messages, newest-first).
+  For each in-scope human message:
     if regex matches a numbered-decision pattern (^\d+:) → merge into locked_decisions
 
-Step 3 — find the gate signal from the LATEST human message only.
-  Take the single most-recent human message.
+Step 5 — find the gate signal from the LATEST in-scope human message only.
+  Take the single most-recent in-scope human message.
   if regex \bBLOCK\b matches (case-insensitive) → return "BLOCK"
   if regex \bRESOLVED\b matches (case-insensitive) → return "RESOLVED"
   fall through → return "WAITING"
+
+  If there are no in-scope human messages at all, return "WAITING".
 ```
 
-Key invariants:
-- `RESOLVED` must appear in the **latest** human message. An older `RESOLVED` buried under a newer decision answer does not advance the gate — the maintainer must re-send `RESOLVED` after answering decisions.
-- Decision answers are accumulated from all human messages (not just the latest), so the maintainer can spread answers across multiple replies.
-- `BLOCK` anywhere in the latest human message halts, even if it also contains `RESOLVED`.
+Why the gate boundary? `/next-pms-task` runs through multiple gates per task (plan-approval, optional per-section, final review). Each new gate is announced by a fresh bot status / waiting / ack post. A `RESOLVED` from yesterday's plan-approval gate would otherwise re-fire when today's final-gate cron tick reads the thread, silently ending the task without the maintainer ever signing off on the PR. The boundary makes the algorithm scope-aware: only signals posted *after* the bot's most recent status count.
 
-Only `RESOLVED` in the latest human message advances. `BLOCK` in the latest human message halts. Decision answers update state but do not advance.
+Key invariants:
+- `RESOLVED` must appear in the **latest in-scope** human message — i.e. one strictly newer than the latest bot post. An older `RESOLVED` from a previous gate does not advance the current gate.
+- Decision answers are accumulated from all *in-scope* human messages, so the maintainer can spread answers across multiple replies within the current gate.
+- `BLOCK` anywhere in the latest in-scope human message halts, even if it also contains `RESOLVED`.
+
+Only `RESOLVED` in the latest in-scope human message advances. `BLOCK` in the latest in-scope human message halts. Decision answers update state but do not advance.
 
 ## Constraints + non-goals
 

@@ -45,7 +45,14 @@ If a precondition fails, stop and surface the gap. Do **not** silently proceed.
    slack_read_thread(channel_id=channel_id, message_ts=thread_ts)
    ```
 
-2. **Apply the canonical bot-filter** (verbatim from the `/next-pms-task` SKILL.md "RESOLVED detection — exact algorithm" section):
+2. **Find the gate boundary — the most recent bot post.**
+   - Scan all messages in the thread (parent + replies) for the latest one whose author is bot-authored (`bot_id` non-empty, or `subtype == "bot_message"`, or `bot_profile` present, or text ends with `*Sent using* @Claude`).
+   - Call its `ts` `gate_boundary_ts`. This is the most recent moment a gate was "armed" — the bot's last status / waiting / acknowledgment post.
+   - If no bot post is found at all (e.g. a brand-new thread with only the human parent), set `gate_boundary_ts = "0"` so every human message counts.
+
+   *Why this matters:* `/next-pms-task` runs through multiple gates per task (plan-approval, optional per-section, final review). A `RESOLVED` from an earlier gate is stale once a later gate is armed — a fresh status post by the bot. Without this boundary, the algorithm would re-trigger `RESOLVED` from yesterday's plan-approval message every time the final-gate cron fires.
+
+3. **Apply the canonical bot-filter** (verbatim from the `/next-pms-task` SKILL.md "RESOLVED detection — exact algorithm" section):
    - A message is bot-authored if ANY of these are true:
      - `message.subtype == "bot_message"`
      - `message.bot_id` is present and non-empty
@@ -53,15 +60,19 @@ If a precondition fails, stop and surface the gap. Do **not** silently proceed.
      - `message.text` ends with `*Sent using* @Claude`
    - Discard all bot-authored messages. Work only with the remaining human messages.
 
-3. **Accumulate decision answers** across all human messages, newest-first:
-   - For each human message, regex-match `^\d+:` at line starts; merge matched lines into `locked_decisions` (later-message keys overwrite earlier-message keys for the same number).
+4. **Scope by gate boundary.** Drop every human message whose `ts <= gate_boundary_ts`. Keep only human messages strictly newer than the boundary — those are replies to the *current* gate.
 
-4. **Determine the gate signal** from the LATEST human message only:
+5. **Accumulate decision answers** across the in-scope human messages, newest-first:
+   - For each in-scope human message, regex-match `^\d+:` at line starts; merge matched lines into `locked_decisions` (later-message keys overwrite earlier-message keys for the same number).
+
+6. **Determine the gate signal** from the LATEST in-scope human message only:
    - `\bBLOCK\b` (case-insensitive) → return `BLOCK`.
    - `\bRESOLVED\b` (case-insensitive) → return `RESOLVED`.
    - Otherwise → return `WAITING`.
 
-5. **Report.** Output a tight summary in this exact shape so the parent task's main agent (or the user) can act on it:
+   If there are no in-scope human messages at all (the maintainer hasn't replied since the last bot post), return `WAITING`.
+
+7. **Report.** Output a tight summary in this exact shape so the parent task's main agent (or the user) can act on it:
 
    ```
    Gate: WAITING | RESOLVED | BLOCK
@@ -75,13 +86,13 @@ If a precondition fails, stop and surface the gap. Do **not** silently proceed.
    - When ≥1 human reply is found: `Latest human reply: <author> @ <hh:mm IST> — "<first 160 chars of latest human message text>"`
    - When 0 human replies are found: `Latest human reply: (none)` (the entire value is the literal `(none)` — no `<author>` placeholder, no `—`, no quotes).
 
-6. **On terminal state** (`RESOLVED` or `BLOCK`), cancel the cron(s) driving this poll loop:
+8. **On terminal state** (`RESOLVED` or `BLOCK`), cancel the cron(s) driving this poll loop:
    - `CronList()` → match every job whose `prompt` field, after stripping leading whitespace, **starts with** the literal string `/next-pms-slack-poll <thread_ts>` (prefix match — the optional `[channel_id]` arg may follow). Substring matching is *not* used; if a future caller embeds the thread_ts elsewhere in a different prompt, it should not be cancelled.
    - For each matching job, call `CronDelete(<id>)`.
    - Append one line per cancelled job to the report: `Cron cancelled: <id>` (one line per id, in the order returned by CronList).
    - If no jobs matched, append exactly one line: `Cron cancellation skipped: no matching job` (the user may have used a different cadence mechanism — that's fine).
 
-7. **On `WAITING`**, do nothing else. The cron will fire this skill again at its next tick.
+9. **On `WAITING`**, do nothing else. The cron will fire this skill again at its next tick.
 
 ## Output discipline
 
