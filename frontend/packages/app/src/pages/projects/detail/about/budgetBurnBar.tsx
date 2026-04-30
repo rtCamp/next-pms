@@ -5,19 +5,23 @@ import type { ProjectBudgetBurn } from "./types";
 
 export function BudgetBurnBar({ budget }: { budget: ProjectBudgetBurn }) {
   const { current, total, projected } = budget;
-  const safeTotal = total > 0 ? total : 1;
-  const currentPct = Math.min(100, Math.max(0, (current / safeTotal) * 100));
+  const hasValidTotal = total > 0;
+  const currentPct = hasValidTotal
+    ? Math.min(100, Math.max(0, (current / total) * 100))
+    : 0;
   const projectedPct =
-    projected !== undefined
-      ? Math.min(100 - currentPct, Math.max(0, (projected / safeTotal) * 100))
+    hasValidTotal && projected !== undefined
+      ? Math.min(100 - currentPct, Math.max(0, (projected / total) * 100))
       : 0;
+  const ariaValueMax = Math.max(0, total);
+  const ariaValueNow = Math.min(ariaValueMax, Math.max(0, current));
 
   return (
     <div
       role="progressbar"
       aria-valuemin={0}
-      aria-valuemax={total}
-      aria-valuenow={current}
+      aria-valuemax={ariaValueMax}
+      aria-valuenow={ariaValueNow}
       className="relative h-2 w-full overflow-hidden rounded-full bg-surface-gray-2"
     >
       <span

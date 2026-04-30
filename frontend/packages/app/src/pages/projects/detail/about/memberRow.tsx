@@ -17,7 +17,12 @@ export function MemberRow({ member }: { member: AboutMember }) {
   return (
     <HoverCard>
       <HoverCardTrigger asChild>
-        <div className="flex items-center gap-2 py-1.5 cursor-default">
+        <div
+          tabIndex={0}
+          role="button"
+          aria-label={`${member.name}, ${member.designation}`}
+          className="flex cursor-default items-center gap-2 rounded-sm py-1.5 outline-none focus-visible:ring focus-visible:ring-outline-gray-3"
+        >
           <ColorAvatar
             initials={member.initials}
             color={member.avatarColor}

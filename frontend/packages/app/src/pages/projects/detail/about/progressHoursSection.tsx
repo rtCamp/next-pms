@@ -10,8 +10,12 @@ export function ProgressHoursSection({
   progress: ProjectProgressHours;
 }) {
   const { consumed, total } = progress;
-  const safeTotal = total > 0 ? total : 1;
-  const pct = Math.min(100, Math.max(0, (consumed / safeTotal) * 100));
+  const hasValidTotal = total > 0;
+  const pct = hasValidTotal
+    ? Math.min(100, Math.max(0, (consumed / total) * 100))
+    : 0;
+  const ariaValueMax = Math.max(0, total);
+  const ariaValueNow = Math.min(ariaValueMax, Math.max(0, consumed));
 
   return (
     <AboutSection value="progress" title="Progress (hours)">
@@ -27,8 +31,8 @@ export function ProgressHoursSection({
         <div
           role="progressbar"
           aria-valuemin={0}
-          aria-valuemax={total}
-          aria-valuenow={consumed}
+          aria-valuemax={ariaValueMax}
+          aria-valuenow={ariaValueNow}
           className="relative h-2 w-full overflow-hidden rounded-full bg-surface-gray-2"
         >
           <span

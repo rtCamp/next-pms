@@ -27,7 +27,12 @@ export function CustomerRow({ customer }: { customer: AboutCustomer }) {
   return (
     <HoverCard>
       <HoverCardTrigger asChild>
-        <div className="flex items-center gap-3 py-1.5">
+        <div
+          tabIndex={0}
+          role="group"
+          aria-label={`${customer.name}, ${customer.company}`}
+          className="flex items-center gap-3 rounded-sm py-1.5 outline-none focus-visible:ring focus-visible:ring-outline-gray-3"
+        >
           <div className="flex min-w-0 flex-1 items-center gap-2">
             <ColorAvatar
               initials={customer.initials}
