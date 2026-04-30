@@ -2,6 +2,7 @@ import json
 import re
 
 import frappe
+from frappe.utils import cint
 
 from next_pms.timesheet.api.app import has_bu_field, has_industry_field
 from next_pms.timesheet.api.project import get_project_filter_for_contractor
@@ -35,6 +36,9 @@ def get_context(context):
     boot["has_industry"] = has_industry_field()
     boot["is_calendar_setup"] = is_google_calendar_enabled()
     boot["global_filters"] = get_global_filters()
+    boot["allow_weekend_entries"] = bool(
+        cint(frappe.db.get_single_value("Timesheet Settings", "allow_weekend_entries"))
+    )
     boot_json = frappe.as_json(boot, indent=None, separators=(",", ":"))
     boot_json = re.sub(
         r"<script\b[^>]*>.*?</script\s*>",
@@ -74,6 +78,9 @@ def get_boot():
     boot["is_calendar_setup"] = is_google_calendar_enabled()
     boot["app_name"] = "Next PMS"
     boot["global_filters"] = get_global_filters()
+    boot["allow_weekend_entries"] = bool(
+        cint(frappe.db.get_single_value("Timesheet Settings", "allow_weekend_entries"))
+    )
     boot_json = frappe.as_json(boot, indent=None, separators=(",", ":"))
     boot_json = re.sub(
         r"<script\b[^>]*>.*?</script\s*>",
