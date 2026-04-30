@@ -75,7 +75,12 @@ export function GanttMemberBar({ allocation, memberInd }: GanttMemberBarProps) {
   );
 
   const handleAdd = onAddAllocation
-    ? () => onAddAllocation({ employeeId: member.id })
+    ? () =>
+        onAddAllocation({
+          employeeId: member.id,
+          startDate: allocation.startDate,
+          endDate: allocation.endDate,
+        })
     : undefined;
 
   return (
