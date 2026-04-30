@@ -101,6 +101,6 @@ export interface GanttGridProps {
   onAddAllocation?: (data: AllocationCallbackData) => void;
   /** Called when the edit icon is clicked on an allocation entry. Receives allocation data. */
   onEditAllocation?: (data: AllocationCallbackData) => void;
-  /** Called when the delete icon is clicked on an allocation entry. Receives allocation id. */
+  /** Called when the delete icon is clicked on an allocation entry. Receives allocation data. */
   onDeleteAllocation?: (data: AllocationCallbackData) => void;
 }
