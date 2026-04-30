@@ -1,4 +1,4 @@
-import { getDayDiff } from "@next-pms/design-system/date";
+import { getDayDiff, getUTCDateTime } from "@next-pms/design-system/date";
 
 /**
  * Returns inclusive day count for a YYYY-MM-DD range.
@@ -18,9 +18,9 @@ export const getRangeDayCount = (
   }
 
   let count = 0;
-  const end = new Date(toDate);
+  const end = getUTCDateTime(toDate);
 
-  for (let d = new Date(fromDate); d <= end; d.setDate(d.getDate() + 1)) {
+  for (let d = getUTCDateTime(fromDate); d <= end; d.setDate(d.getDate() + 1)) {
     const day = d.getDay();
     if (day !== 0 && day !== 6) {
       count++;
@@ -50,8 +50,11 @@ export const computeTotalHours = ({
 }): number => {
   const dayCount =
     recurrence === "recurring"
-      ? Math.max(1, repeatFor) * (includeWeekends ? 7 : 5)
-      : Math.max(1, getRangeDayCount(fromDate, toDate, includeWeekends));
+      ? Math.max(1, repeatFor) *
+        getRangeDayCount(fromDate, toDate, includeWeekends)
+      : includeWeekends
+        ? Math.max(1, getRangeDayCount(fromDate, toDate, true))
+        : getRangeDayCount(fromDate, toDate, false);
 
   return Number((hoursPerDay * dayCount).toFixed(2));
 };

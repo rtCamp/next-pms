@@ -44,7 +44,7 @@ function AddAllocationModal({
   initialValues,
 }: AddAllocationModalProps) {
   const toast = useToasts();
-  const includesWeekends: boolean = isWeekendEntryAllowed();
+  const weekendEntriesAllowed: boolean = isWeekendEntryAllowed();
   const [submitting, setSubmitting] = useState(false);
 
   const { call: handleAllocation } = useFrappePostCall(
@@ -131,7 +131,7 @@ function AddAllocationModal({
         fromDate: value.fromDate,
         toDate: value.toDate,
         repeatFor: value.repeatFor ?? 0,
-        includeWeekends: includesWeekends && value.includeWeekends,
+        includeWeekends: weekendEntriesAllowed && value.includeWeekends,
       });
 
       try {
@@ -152,7 +152,9 @@ function AddAllocationModal({
             is_billable: Number(value.isBillable),
             status: value.isTentative ? "Tentative" : "Confirmed",
             note: value.note ?? "",
-            include_weekends: includesWeekends ? value.includeWeekends : false,
+            include_weekends: weekendEntriesAllowed
+              ? value.includeWeekends
+              : false,
           },
           // Repeat weeks are only applied when creating a recurring allocation.
           repeat_till_week_count:
@@ -208,7 +210,7 @@ function AddAllocationModal({
     fromDate,
     toDate,
     repeatFor,
-    includeWeekends: includesWeekends && includeWeekendsValue,
+    includeWeekends: weekendEntriesAllowed && includeWeekendsValue,
   });
 
   return (
@@ -324,7 +326,7 @@ function AddAllocationModal({
           )}
         />
 
-        {includesWeekends ? (
+        {weekendEntriesAllowed ? (
           <form.Field
             name="includeWeekends"
             children={(field) => (
