@@ -3,7 +3,7 @@ from datetime import date, timedelta
 
 import frappe
 from frappe.automation.doctype.auto_repeat.auto_repeat import add_days
-from frappe.utils import getdate
+from frappe.utils import cint, getdate
 
 from next_pms.resource_management.api.utils.helpers import resource_api_permissions_check
 
@@ -116,6 +116,16 @@ def handle_allocation(allocation: AllocationPayload, repeat_till_week_count: int
     if not permission["write"]:
         return frappe.throw(frappe._("You are not allowed to perform this action."), exc=frappe.PermissionError)
 
+    if allocation.include_weekends and not cint(
+        frappe.db.get_single_value("Timesheet Settings", "allow_weekend_entries")
+    ):
+        frappe.throw(
+            frappe._(
+                "Weekend allocations are not allowed. Enable 'Allow Weekend Entries' in Timesheet Settings to use this option."
+            ),
+            exc=frappe.ValidationError,
+        )
+
     if allocation.name:
         return update_allocation(allocation)
 
@@ -167,7 +177,7 @@ def add_allocation(allocation: AllocationPayload, repeat_till_week_count: int = 
     if repeat_till_week_count:
         start = getdate(allocation.allocation_start_date)
         end = getdate(allocation.allocation_end_date)
-        if (end - start).days >= 7:  # monday to sunday inclusive is considered as a single week
+        if (end - start).days >= 7:  # ranges shorter than 7 days never overlap when shifted by exactly 7 days
             frappe.throw(
                 frappe._(
                     "Repeat is only supported for single-week allocations. The selected date range spans multiple weeks."
@@ -191,10 +201,13 @@ def update_allocation(allocation: AllocationPayload):
     if not allocation.include_weekends:
         chunks = get_weekday_chunks(allocation.allocation_start_date, allocation.allocation_end_date)
 
-        if not chunks:  # entire range falls on weekends, no weekday chunks available
-            allocation_doc.update(doc_data)
-            allocation_doc.save()
-            return allocation_doc
+        if not chunks:
+            frappe.throw(
+                frappe._(
+                    "The selected date range contains no weekdays. Please choose a range that includes at least one weekday."
+                ),
+                exc=frappe.ValidationError,
+            )
 
         # shrink the existing allocation to the first chunk's date range
         first_start, first_end = chunks[0]
