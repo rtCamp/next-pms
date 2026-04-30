@@ -176,7 +176,20 @@ Once the last section is `RESOLVED`:
 3. **Base** per CLAUDE.md §5: default `feat/redesign`. If the issue genuinely depends on another in-flight PR's branch, base on that branch and add a "Stacking note" paragraph to the PR body (rule #7).
 4. `gh pr create --reviewer ayushnirwal` with the body template from existing precedent (Summary / Stacking note if applicable / Verification / Test plan).
 5. Sleep 10 min; pull `gh pr view <pr> --json reviews,comments,statusCheckRollup`, `gh api repos/.../pulls/<pr>/comments`, `gh pr checks <pr>`. Triage per CLAUDE.md §6.
-6. Post in the same Slack thread: `PR up: <url>. CI: <green|red+notes>. AI review: <state>.`
+6. Post in the same Slack thread a single combined status that **explicitly states the task is waiting on the maintainer's review and final `RESOLVED`**, and names the three reply paths the maintainer can use. Use this template:
+
+   ```
+   ⏳ Waiting on maintainer review + final `RESOLVED` to close this task.
+
+   Polling cron armed (*/15 * * * * → /next-pms-slack-poll) on this thread. Reply here with:
+   • Free-form feedback / review notes — I will pick them up on the next tick, act, and post an updated status.
+   • `RESOLVED` — gate closes, cron self-cancels, task is done.
+   • `BLOCK` — pauses the loop until you message again.
+
+   PR: <url> · CI: <green|red+notes> · AI review: <state>.
+   ```
+
+   Do not skip this. "PR up + status posted" is not closure — the developer reviews the PR and may post more feedback. Without the explicit waiting message, the thread looks finished and the maintainer doesn't know the bot is still listening.
 7. **Arm the final-gate polling cron** for the maintainer's sign-off:
 
    ```python
