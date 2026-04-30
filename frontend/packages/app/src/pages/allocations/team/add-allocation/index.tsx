@@ -34,7 +34,7 @@ import {
 } from "./constants";
 import { addAllocationFormSchema } from "./schema";
 import { ComboboxOption, type AddAllocationModalProps } from "./types";
-import { getComputedTotalHours, getRangeDayCount } from "./utils";
+import { computeTotalHours } from "./utils";
 
 function AddAllocationModal({
   variant = "add",
@@ -125,13 +125,14 @@ function AddAllocationModal({
 
       setSubmitting(true);
 
-      const rangeDays = getRangeDayCount(value.fromDate, value.toDate);
-      const totalAllocatedHours = getComputedTotalHours(
-        value.hoursPerDay,
-        value.recurrence === "recurring"
-          ? Math.max(1, value.repeatFor ?? 1)
-          : Math.max(1, rangeDays),
-      );
+      const totalAllocatedHours = computeTotalHours({
+        hoursPerDay: value.hoursPerDay,
+        recurrence: value.recurrence,
+        fromDate: value.fromDate,
+        toDate: value.toDate,
+        repeatFor: value.repeatFor ?? 0,
+        includeWeekends: includesWeekends && value.includeWeekends,
+      });
 
       try {
         await handleAllocation({
@@ -196,13 +197,19 @@ function AddAllocationModal({
   );
   const fromDate = useStore(form.store, (state) => state.values.fromDate);
   const toDate = useStore(form.store, (state) => state.values.toDate);
-
-  const totalHours = getComputedTotalHours(
-    hoursPerDay,
-    recurrence === "recurring"
-      ? Math.max(1, repeatFor)
-      : Math.max(1, getRangeDayCount(fromDate, toDate)),
+  const includeWeekendsValue = useStore(
+    form.store,
+    (state) => state.values.includeWeekends,
   );
+
+  const totalHours = computeTotalHours({
+    hoursPerDay,
+    recurrence,
+    fromDate,
+    toDate,
+    repeatFor,
+    includeWeekends: includesWeekends && includeWeekendsValue,
+  });
 
   return (
     <Dialog
@@ -428,7 +435,9 @@ function AddAllocationModal({
                     size="md"
                     variant="outline"
                     value={field.state.value ?? ""}
-                    onChange={(e) => field.handleChange(Number(e.target.value))}
+                    onChange={(e) =>
+                      field.handleChange(Math.max(1, Number(e.target.value)))
+                    }
                   />
                   {!field.state.meta.isValid && (
                     <ErrorMessage

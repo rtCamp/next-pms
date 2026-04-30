@@ -13,7 +13,7 @@ export const addAllocationDefaultValues = {
   fromDate: getTodayDate(),
   toDate: getTodayDate(),
   hoursPerDay: 0,
-  repeatFor: 0,
+  repeatFor: 1,
   isBillable: true,
   isTentative: false,
   note: "",
