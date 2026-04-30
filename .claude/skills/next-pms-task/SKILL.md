@@ -177,7 +177,20 @@ Once the last section is `RESOLVED`:
 4. `gh pr create --reviewer ayushnirwal` with the body template from existing precedent (Summary / Stacking note if applicable / Verification / Test plan).
 5. Sleep 10 min; pull `gh pr view <pr> --json reviews,comments,statusCheckRollup`, `gh api repos/.../pulls/<pr>/comments`, `gh pr checks <pr>`. Triage per CLAUDE.md §6.
 6. Post in the same Slack thread: `PR up: <url>. CI: <green|red+notes>. AI review: <state>.`
-7. Final maintainer DM to Ayush (`U026K7B5VAA`, channel `D026S1T8ML2`) with a short summary + the PR link.
+7. **Arm the final-gate polling cron** for the maintainer's sign-off:
+
+   ```python
+   CronCreate(
+       cron="*/15 * * * *",
+       prompt=f"/next-pms-slack-poll {parent_ts} C0AUXBY5WMB",
+       recurring=True,
+   )
+   ```
+
+   This is the same `/next-pms-slack-poll` skill from §3 / §5 but armed for the *final* gate — the developer reviews the PR and may post more feedback in the thread. The polling skill self-cancels its cron on `RESOLVED` (task complete) or `BLOCK` (pause). Free-form maintainer replies (PR-level review notes routed back into the thread, "fix X please", etc.) come through as `Latest human reply` in the report — treat them as new scope: act on them, post an updated status with the fix, leave the cron running.
+8. Final maintainer DM to Ayush (`U026K7B5VAA`, channel `D026S1T8ML2`) with a short summary + the PR link.
+
+**Do not declare the task done before final `RESOLVED`** lands in the thread. The PR being open + status posted is not closure — closure is the maintainer's explicit sign-off captured by the polling cron.
 
 ### 7. Continuous learning from thread feedback
 
