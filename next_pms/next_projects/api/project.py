@@ -74,11 +74,11 @@ def get_profit_margin(total_budget: float, cost_accrued: float, cost_forecasted:
 
 def get_end_date(project: dict) -> str | None:
     """
-    Use delivery_date (actual) if project is closed, otherwise expected_end_date.
+    Use actual_end_date if project is closed, otherwise expected_end_date.
     """
     status = project.get("status")
     if status in ["Completed", "Cancelled"]:
-        return project.get("delivery_date") or project.get("expected_end_date")
+        return project.get("actual_end_date") or project.get("expected_end_date")
     return project.get("expected_end_date")
 
 
