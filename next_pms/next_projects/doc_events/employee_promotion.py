@@ -23,12 +23,11 @@ def on_submit(doc, method):
     employee = doc.employee
     promotion_date = getdate(doc.promotion_date)
     new_ctc = flt(doc.revised_ctc)
+    old_ctc = flt(doc.current_ctc)
     new_salary_currency = doc.salary_currency
 
     if not new_ctc:
         return
-
-    old_ctc = frappe.db.get_value("Employee", employee, "ctc")
 
     allocations = frappe.get_all(
         "Resource Allocation",
