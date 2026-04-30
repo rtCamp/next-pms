@@ -63,5 +63,3 @@ def on_update(doc, method):
             {"total_cost": total_cost},
             update_modified=False,
         )
-
-    frappe.db.commit()

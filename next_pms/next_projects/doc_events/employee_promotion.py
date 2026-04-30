@@ -109,5 +109,3 @@ def on_submit(doc, method):
             {"hourly_cost_rate": hourly_rate, "total_cost": total_cost},
             update_modified=False,
         )
-
-    frappe.db.commit()
