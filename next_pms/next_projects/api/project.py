@@ -120,6 +120,7 @@ def enrich_project_with_calculated_fields(project: dict) -> dict:
         "rag_status": project.get("custom_project_rag_status"),
         "phase": project.get("custom_project_phase"),
         "billing_type": project.get("custom_billing_type"),
+        "currency": project.get("custom_currency"),
         "project_type": project.get("project_type"),
         # Calculated financial fields
         "burn_rate_per_week": get_burn_rate_per_week(project),
