@@ -53,6 +53,9 @@ def on_submit(doc, method):
         hours_per_day = flt(alloc.hours_allocated_per_day)
         target_currency = alloc.currency
 
+        if not target_currency:
+            continue
+
         leave_holiday_data = get_employee_leaves_and_holidays(employee, alloc_start, alloc_end)
         holidays = leave_holiday_data.get("holidays", [])
         leaves = leave_holiday_data.get("leaves", [])

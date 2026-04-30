@@ -24,6 +24,9 @@ def count_working_days(start_date, end_date, daily_working_hours, holidays, leav
     if getdate(start_date) > getdate(end_date):
         return 0
 
+    if daily_working_hours <= 0:
+        return 0
+
     working_days = 0
     current_date = getdate(start_date)
     end_date = getdate(end_date)

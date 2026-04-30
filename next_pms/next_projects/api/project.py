@@ -40,6 +40,32 @@ def get_cost_forecasted(project_name: str) -> float:
     return flt(result[0].total) if result else 0
 
 
+def get_cost_forecasted_map(project_names: list[str]) -> dict[str, float]:
+    """Fetch forecasted costs for multiple projects in a single grouped query."""
+    if not project_names:
+        return {}
+    ResourceAllocation = frappe.qb.DocType("Resource Allocation")
+    rows = (
+        frappe.qb.from_(ResourceAllocation)
+        .select(
+            ResourceAllocation.project,
+            Coalesce(Sum(ResourceAllocation.total_cost), 0).as_("total"),
+        )
+        .where(ResourceAllocation.project.isin(project_names))
+        .groupby(ResourceAllocation.project)
+        .run(as_dict=True)
+    )
+    return {row.project: flt(row.total) for row in rows}
+
+
+def get_user_image_map(users: list[str]) -> dict[str, str | None]:
+    """Fetch user_image for multiple users in a single query."""
+    if not users:
+        return {}
+    rows = frappe.get_all("User", filters={"name": ["in", users]}, fields=["name", "user_image"])
+    return {row.name: row.user_image for row in rows}
+
+
 def get_burn_rate_per_week(project: dict) -> float | None:
     """
     Average budget consumed per week based on charge-out rate X hours worked.
@@ -89,25 +115,38 @@ def get_user_image(user: str) -> str | None:
     return frappe.db.get_value("User", user, "user_image")
 
 
-def build_person_data(user: str, full_name: str) -> dict | None:
+def build_person_data(
+    user: str,
+    full_name: str,
+    user_image_map: dict[str, str | None] | None = None,
+) -> dict | None:
     """Build person data object with user, full_name, and image."""
     if not user:
         return None
+    image = user_image_map.get(user) if user_image_map is not None else get_user_image(user)
     return {
         "user": user,
         "full_name": full_name or "",
-        "image": get_user_image(user),
+        "image": image,
     }
 
 
-def enrich_project_with_calculated_fields(project: dict) -> dict:
+def enrich_project_with_calculated_fields(
+    project: dict,
+    cost_forecasted_map: dict[str, float] | None = None,
+    user_image_map: dict[str, str | None] | None = None,
+) -> dict:
     """Add calculated fields to a project dict for list view."""
     project_name = project.get("name")
 
     # Basic calculated values
     total_budget = get_total_budget(project)
     cost_accrued = flt(project.get("total_costing_amount"))
-    cost_forecasted = get_cost_forecasted(project_name)
+    cost_forecasted = (
+        cost_forecasted_map.get(project_name, 0)
+        if cost_forecasted_map is not None
+        else get_cost_forecasted(project_name)
+    )
     target_cost = flt(project.get("custom_target_cost"))
 
     # Build response object
@@ -141,10 +180,12 @@ def enrich_project_with_calculated_fields(project: dict) -> dict:
         "project_manager": build_person_data(
             project.get("custom_project_manager"),
             project.get("custom_project_manager_name"),
+            user_image_map,
         ),
         "engineering_manager": build_person_data(
             project.get("custom_engineering_manager"),
             project.get("custom_engineering_manager_name"),
+            user_image_map,
         ),
     }
 
@@ -191,7 +232,7 @@ LIST_VIEW_FIELDS = [
     "project_type",
     "expected_start_date",
     "expected_end_date",
-    "delivery_date",
+    "actual_end_date",
     "total_sales_amount",
     "estimated_costing",
     "total_costing_amount",
@@ -215,7 +256,7 @@ KANBAN_VIEW_FIELDS = [
     "status",
     "expected_start_date",
     "expected_end_date",
-    "delivery_date",
+    "actual_end_date",
     "custom_project_rag_status",
     "custom_project_phase",
     "custom_billing_type",
@@ -290,8 +331,18 @@ def get_projects_view(
     has_more = cint(start) + cint(limit) < total_count
 
     if view == "list":
-        # Enrich each project with calculated fields
-        enriched_projects = [enrich_project_with_calculated_fields(p) for p in projects]
+        # Prefetch forecasted costs and user images in bulk to avoid N+1 queries
+        project_names = [p.get("name") for p in projects if p.get("name")]
+        cost_forecasted_map = get_cost_forecasted_map(project_names)
+
+        users = list(
+            {u for p in projects for u in [p.get("custom_project_manager"), p.get("custom_engineering_manager")] if u}
+        )
+        user_image_map = get_user_image_map(users)
+
+        enriched_projects = [
+            enrich_project_with_calculated_fields(p, cost_forecasted_map, user_image_map) for p in projects
+        ]
 
         return {
             "data": enriched_projects,
