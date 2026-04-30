@@ -456,6 +456,7 @@ def iter_employee_chunks(employees: list, chunk_size: int = EMPLOYEE_SCAN_CHUNK_
 
 
 def build_chunk_context(employees: list, dates: list, parsed_filters: dict, search: str | None = None):
+    """Runs the filters to build the context for the list of employees passed."""
     employee_names = [employee.name for employee in employees]
     if not employee_names:
         return {

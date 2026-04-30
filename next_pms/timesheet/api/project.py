@@ -21,13 +21,13 @@ from .utils import (
 
 @whitelist(methods=["GET"])
 def get_projects(
-    limit=20,
-    currency=None,
-    fields=None,
-    filters=None,
-    or_filters=None,
-    start=0,
-    order_by="modified desc",
+    limit: int = 20,
+    currency: str | None = None,
+    fields: list | str | None = None,
+    filters: list | str | None = None,
+    or_filters: list | str | None = None,
+    start: int = 0,
+    order_by: str = "modified desc",
 ):
     """Returns list of projects based on filters and fields provided. If currency is provided, it converts the currency fields to the provided currency based on the exchange rate as of today."""
     meta = get_meta("Project")
@@ -37,7 +37,7 @@ def get_projects(
         filters = json.loads(filters)
 
     if not fields:
-        fields = meta.default_fields
+        fields = list(meta.default_fields)  # Copy to avoid mutating class attribute
 
     if "custom_currency" not in fields:
         fields.append("custom_currency")
@@ -317,8 +317,8 @@ def get_project_timesheet_data(
     date: str,
     max_week: int = 2,
     reports_to: str | None = None,
-    page_length=10,
-    start=0,
+    page_length: int = 10,
+    start: int = 0,
     filters: str | list | None = None,
     search: str | None = None,
     approval_status: str | list | None = None,
