@@ -1,8 +1,21 @@
 /**
+ * External dependencies.
+ */
+import { useParams } from "react-router-dom";
+
+/**
  * Internal dependencies.
  */
+import { FAKE_PROJECTS } from "@/pages/projects/list/fake-data";
 import { Accordion } from "./accordion";
-import { AboutSection } from "./aboutSection";
+import { BudgetBurnSection } from "./budgetBurnSection";
+import { CustomersSection } from "./customersSection";
+import { getProjectAboutData } from "./fake-data";
+import { LinksSection } from "./linksSection";
+import { MembersSection } from "./membersSection";
+import { ProgressHoursSection } from "./progressHoursSection";
+import { ProjectDetailsSection } from "./projectDetailsSection";
+import { SummarySection } from "./summarySection";
 
 const SECTION_IDS = [
   "summary",
@@ -14,17 +27,11 @@ const SECTION_IDS = [
   "customers",
 ] as const;
 
-const SECTIONS: { id: (typeof SECTION_IDS)[number]; title: string }[] = [
-  { id: "summary", title: "Summary" },
-  { id: "details", title: "Project details" },
-  { id: "links", title: "Links" },
-  { id: "budget", title: "Budget burn" },
-  { id: "progress", title: "Progress (hours)" },
-  { id: "members", title: "Members" },
-  { id: "customers", title: "Customers" },
-];
-
 export function AboutThisProject() {
+  const { projectId = "" } = useParams<{ projectId: string }>();
+  const project = FAKE_PROJECTS.find((p) => p.id === projectId);
+  const about = getProjectAboutData(projectId);
+
   return (
     <section className="flex h-full flex-col">
       <header className="border-b border-outline-gray-1 px-5 py-3">
@@ -36,9 +43,13 @@ export function AboutThisProject() {
         defaultValue={[...SECTION_IDS]}
         className="flex flex-col"
       >
-        {SECTIONS.map((section) => (
-          <AboutSection key={section.id} value={section.id} title={section.title} />
-        ))}
+        <SummarySection summary={about.summary} />
+        {project ? <ProjectDetailsSection project={project} /> : null}
+        <LinksSection links={about.links} />
+        <BudgetBurnSection budget={about.budget} />
+        <ProgressHoursSection progress={about.progress} />
+        <MembersSection members={about.members} />
+        <CustomersSection customers={about.customers} />
       </Accordion.Root>
     </section>
   );
