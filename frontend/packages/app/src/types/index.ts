@@ -50,6 +50,7 @@ declare global {
         user?: {
           roles?: string[];
           can_create: string[];
+          can_write?: string[];
         };
         currencies?: string[];
         has_business_unit?: boolean;
@@ -61,8 +62,8 @@ declare global {
         global_filters: { [key: string]: Array<any> };
       };
       realtime?: {
-        on: (event: string, handler: (data: any) => void) => void;
-        off: (event: string, handler: (data: any) => void) => void;
+        on: (event: string, handler: (data: unknown) => void) => void;
+        off: (event: string, handler: (data: unknown) => void) => void;
       };
     };
   }

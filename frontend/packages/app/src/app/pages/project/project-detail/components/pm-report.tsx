@@ -1,18 +1,26 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
+  Button,
+  ComboBox,
+  Spinner,
+  useToast,
+} from "@next-pms/design-system/components";
+import {
   FrappeError,
   useFrappeGetDoc,
   useFrappeGetDocList,
   useFrappePostCall,
   useFrappeUpdateDoc,
 } from "frappe-react-sdk";
-import { Button, ComboBox, Spinner, useToast } from "@next-pms/design-system/components";
 
 const formatDate = (datetime: string) => {
   if (!datetime) return "";
   return new Date(datetime).toLocaleDateString("en-GB", {
-    day: "2-digit", month: "short", year: "numeric",
-    hour: "2-digit", minute: "2-digit",
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
   });
 };
 
@@ -26,32 +34,42 @@ interface PMReportProps {
   projectId: string | undefined;
 }
 
+interface PMReportEvent {
+  project: string;
+  doc_link?: string;
+  error?: string;
+}
+
 const PMReport = ({ projectId }: PMReportProps) => {
   const { toast } = useToast();
   const { data: projectData, mutate } = useFrappeGetDoc("Project", projectId);
 
   const [isGenerating, setIsGenerating] = useState(false);
-  const [driveLink, setDriveLink]       = useState("");
-  const [slackSlug, setSlackSlug]       = useState("");
+  const [driveLink, setDriveLink] = useState("");
+  const [slackSlug, setSlackSlug] = useState("");
 
   const [duration, setDuration] = useState("");
   const [fromDate, setFromDate] = useState("");
-  const [toDate, setToDate]     = useState("");
+  const [toDate, setToDate] = useState("");
 
-  const [slackSearch, setSlackSearch]       = useState("");
+  const [slackSearch, setSlackSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
-  const [isEditingSlack, setIsEditingSlack]  = useState(false);
+  const [isEditingSlack, setIsEditingSlack] = useState(false);
 
   const [includePreviousReport, setIncludePreviousReport] = useState(false);
 
-  const timeoutRef       = useRef<NodeJS.Timeout | null>(null);
-  const prevCountRef     = useRef(0);
-  const mutateRef        = useRef(mutate);
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const prevCountRef = useRef(0);
+  const mutateRef = useRef(mutate);
   const isInitializedRef = useRef(false);
-  const slackSlugRef     = useRef(slackSlug);
+  const slackSlugRef = useRef(slackSlug);
 
-  useEffect(() => { mutateRef.current = mutate; }, [mutate]);
-  useEffect(() => { slackSlugRef.current = slackSlug; }, [slackSlug]);
+  useEffect(() => {
+    mutateRef.current = mutate;
+  }, [mutate]);
+  useEffect(() => {
+    slackSlugRef.current = slackSlug;
+  }, [slackSlug]);
 
   useEffect(() => {
     const timer = setTimeout(() => setDebouncedSearch(slackSearch), 300);
@@ -60,7 +78,9 @@ const PMReport = ({ projectId }: PMReportProps) => {
 
   const { data: channelList } = useFrappeGetDocList("Slack Channel", {
     fields: ["name", "channel_name"],
-    filters: debouncedSearch ? [["channel_name", "like", `%${debouncedSearch}%`]] : [],
+    filters: debouncedSearch
+      ? [["channel_name", "like", `%${debouncedSearch}%`]]
+      : [],
     orderBy: { field: "channel_name", order: "asc" },
     limit: 20,
   });
@@ -73,16 +93,19 @@ const PMReport = ({ projectId }: PMReportProps) => {
   }, [projectData]);
 
   useEffect(() => {
-    return () => { if (timeoutRef.current) clearTimeout(timeoutRef.current); };
+    return () => {
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    };
   }, []);
 
   useEffect(() => {
-    const handler = (data: any) => {
-      if (data.project !== projectId) return;
-      if (data.error) {
+    const handler = (data: unknown) => {
+      const event = data as PMReportEvent;
+      if (event.project !== projectId) return;
+      if (event.error) {
         if (timeoutRef.current) clearTimeout(timeoutRef.current);
         setIsGenerating(false);
-        toast({ variant: "destructive", description: data.error });
+        toast({ variant: "destructive", description: event.error });
         return;
       }
       mutateRef.current();
@@ -90,7 +113,7 @@ const PMReport = ({ projectId }: PMReportProps) => {
 
     window.frappe?.realtime?.on("pm_report_ready", handler);
     return () => window.frappe?.realtime?.off("pm_report_ready", handler);
-  }, [projectId]);
+  }, [projectId, toast]);
 
   useEffect(() => {
     if (!isGenerating) return;
@@ -100,17 +123,25 @@ const PMReport = ({ projectId }: PMReportProps) => {
       setIsGenerating(false);
       toast({ variant: "success", description: "Project Report is Ready! ✅" });
     }
-  }, [projectData?.custom_project_reports?.length, isGenerating]);
+  }, [projectData?.custom_project_reports?.length, isGenerating, toast]);
 
   const { updateDoc, loading: saving } = useFrappeUpdateDoc();
-  const { call } = useFrappePostCall("next_pms.api.generate_pm_report.generate_pm_report");
+  const { call } = useFrappePostCall(
+    "next_pms.api.generate_pm_report.generate_pm_report",
+  );
 
   const handleDurationChange = useCallback((value: string) => {
     setDuration(value);
-    if (value === "Custom") { setFromDate(""); setToDate(""); return; }
+    if (value === "Custom") {
+      setFromDate("");
+      setToDate("");
+      return;
+    }
     const today = new Date().toISOString().split("T")[0];
     const daysMap: Record<string, number> = {
-      "Last Week": 7, "Last 15 Days": 15, "Last Month": 30,
+      "Last Week": 7,
+      "Last 15 Days": 15,
+      "Last Month": 30,
     };
     const days = daysMap[value];
     if (days) {
@@ -123,13 +154,25 @@ const PMReport = ({ projectId }: PMReportProps) => {
 
   const handleSaveAndGenerate = async () => {
     if (!duration) {
-      toast({ variant: "destructive", description: "Please select a Report Duration." }); return;
+      toast({
+        variant: "destructive",
+        description: "Please select a Report Duration.",
+      });
+      return;
     }
     if (!slackSlug) {
-      toast({ variant: "destructive", description: "Please add a Slack Channel." }); return;
+      toast({
+        variant: "destructive",
+        description: "Please add a Slack Channel.",
+      });
+      return;
     }
     if (duration === "Custom" && (!fromDate || !toDate)) {
-      toast({ variant: "destructive", description: "Please set From Date and To Date for Custom duration." }); return;
+      toast({
+        variant: "destructive",
+        description: "Please set From Date and To Date for Custom duration.",
+      });
+      return;
     }
 
     prevCountRef.current = projectData?.custom_project_reports?.length ?? 0;
@@ -147,15 +190,14 @@ const PMReport = ({ projectId }: PMReportProps) => {
         to_date: toDate,
         ...(includePreviousReport && lastReportLink
           ? { previous_doc_url: lastReportLink }
-          : {}
-        ),
+          : {}),
       });
 
-      toast({ 
-        variant: "success", 
-        description: includePreviousReport 
-          ? "PM Report is being generated with previous report as reference. You'll be notified when ready 🔔" 
-          : "Project Report is being generated. You'll be notified when ready 🔔"
+      toast({
+        variant: "success",
+        description: includePreviousReport
+          ? "PM Report is being generated with previous report as reference. You'll be notified when ready 🔔"
+          : "Project Report is being generated. You'll be notified when ready 🔔",
       });
 
       setDuration("");
@@ -165,32 +207,40 @@ const PMReport = ({ projectId }: PMReportProps) => {
 
       timeoutRef.current = setTimeout(() => {
         setIsGenerating(false);
-        toast({ variant: "destructive", description: "Report generation timed out. Please try again." });
+        toast({
+          variant: "destructive",
+          description: "Report generation timed out. Please try again.",
+        });
       }, 600000);
-
     } catch (error) {
       setIsGenerating(false);
       const err = error as FrappeError;
-      toast({ variant: "destructive", description: err?.message || "Failed to generate Project Report. Please try again." });
+      toast({
+        variant: "destructive",
+        description:
+          err?.message ||
+          "Failed to generate Project Report. Please try again.",
+      });
     }
   };
 
-  const reports  = (projectData?.custom_project_reports ?? []) as PMReportRow[];
-  const lastReportLink = reports.length > 0 ? reports[reports.length - 1].report_link : null;
+  const reports = (projectData?.custom_project_reports ?? []) as PMReportRow[];
+  const lastReportLink =
+    reports.length > 0 ? reports[reports.length - 1].report_link : null;
   const isCustom = duration === "Custom";
-  const isBusy   = isGenerating || saving;
+  const isBusy = isGenerating || saving;
 
   return (
     <div className="flex flex-col gap-6 p-4">
-
       <div className="flex flex-col gap-4">
         <h2 className="text-base font-semibold">Report Configuration</h2>
 
         <div className="grid grid-cols-2 gap-4">
-
           {/* Duration */}
           <div className="flex flex-col gap-1">
-            <label className="text-sm text-muted-foreground">Report Duration</label>
+            <label className="text-sm text-muted-foreground">
+              Report Duration
+            </label>
             <select
               className="border rounded px-3 py-2 text-sm"
               value={duration}
@@ -207,7 +257,9 @@ const PMReport = ({ projectId }: PMReportProps) => {
 
           {/* Slack Channel */}
           <div className="flex flex-col gap-1">
-            <label className="text-sm text-muted-foreground">Slack Channel</label>
+            <label className="text-sm text-muted-foreground">
+              Slack Channel
+            </label>
             <div className="flex gap-2 items-center">
               {isEditingSlack ? (
                 <>
@@ -219,7 +271,9 @@ const PMReport = ({ projectId }: PMReportProps) => {
                         value: ch.name,
                       }))}
                       onSelect={(value) => {
-                        const selected = Array.isArray(value) ? value[0] : value;
+                        const selected = Array.isArray(value)
+                          ? value[0]
+                          : value;
                         slackSlugRef.current = selected;
                         setSlackSlug(selected);
                       }}
@@ -235,7 +289,10 @@ const PMReport = ({ projectId }: PMReportProps) => {
                     onClick={async () => {
                       const slugToSave = slackSlugRef.current;
                       if (!slugToSave) {
-                        toast({ variant: "destructive", description: "Please select a Slack channel." });
+                        toast({
+                          variant: "destructive",
+                          description: "Please select a Slack channel.",
+                        });
                         return;
                       }
                       await updateDoc("Project", projectId as string, {
@@ -245,7 +302,10 @@ const PMReport = ({ projectId }: PMReportProps) => {
                       setSlackSearch("");
                       setDebouncedSearch("");
                       setIsEditingSlack(false);
-                      toast({ variant: "success", description: "Slack channel saved." });
+                      toast({
+                        variant: "success",
+                        description: "Slack channel saved.",
+                      });
                     }}
                   >
                     ✅
@@ -253,7 +313,8 @@ const PMReport = ({ projectId }: PMReportProps) => {
                   <button
                     className="p-2 rounded hover:bg-muted text-muted-foreground"
                     onClick={() => {
-                      const original = projectData?.custom_slack_channel_slug || "";
+                      const original =
+                        projectData?.custom_slack_channel_slug || "";
                       slackSlugRef.current = original;
                       setSlackSlug(original);
                       setSlackSearch("");
@@ -286,31 +347,41 @@ const PMReport = ({ projectId }: PMReportProps) => {
 
           {/* From Date */}
           <div className="flex flex-col gap-1">
-            <label className="text-sm text-muted-foreground">Report From Date</label>
+            <label className="text-sm text-muted-foreground">
+              Report From Date
+            </label>
             <input
               type="date"
               className={`border rounded px-3 py-2 text-sm ${!isCustom ? "bg-muted text-muted-foreground cursor-not-allowed" : ""}`}
               value={fromDate}
-              onChange={(e) => { if (isCustom) setFromDate(e.target.value); }}
+              onChange={(e) => {
+                if (isCustom) setFromDate(e.target.value);
+              }}
               disabled={isBusy}
             />
           </div>
 
           {/* To Date */}
           <div className="flex flex-col gap-1">
-            <label className="text-sm text-muted-foreground">Report To Date</label>
+            <label className="text-sm text-muted-foreground">
+              Report To Date
+            </label>
             <input
               type="date"
               className={`border rounded px-3 py-2 text-sm ${!isCustom ? "bg-muted text-muted-foreground cursor-not-allowed" : ""}`}
               value={toDate}
-              onChange={(e) => { if (isCustom) setToDate(e.target.value); }}
+              onChange={(e) => {
+                if (isCustom) setToDate(e.target.value);
+              }}
               disabled={isBusy}
             />
           </div>
 
           {/* Drive Link — readonly */}
           <div className="flex flex-col gap-1 col-span-2">
-            <label className="text-sm text-muted-foreground">Report Drive Link</label>
+            <label className="text-sm text-muted-foreground">
+              Report Drive Link
+            </label>
             <input
               type="url"
               className="border rounded px-3 py-2 text-sm bg-muted text-muted-foreground cursor-not-allowed"
@@ -330,17 +401,26 @@ const PMReport = ({ projectId }: PMReportProps) => {
                 disabled={isBusy}
                 className="h-4 w-4 cursor-pointer"
               />
-              <label htmlFor="includePreviousReport" className="text-sm text-muted-foreground cursor-pointer">
+              <label
+                htmlFor="includePreviousReport"
+                className="text-sm text-muted-foreground cursor-pointer"
+              >
                 Include previous report as reference
               </label>
             </div>
-        )}
-
+          )}
         </div>
 
         <div className="flex flex-col items-end gap-2 mt-2">
           <Button onClick={handleSaveAndGenerate} disabled={isBusy}>
-            {isBusy ? <><Spinner className="mr-2" />Generating...</> : "Generate Project Report"}
+            {isBusy ? (
+              <>
+                <Spinner className="mr-2" />
+                Generating...
+              </>
+            ) : (
+              "Generate Project Report"
+            )}
           </Button>
           {isGenerating && (
             <p className="text-sm text-muted-foreground">
@@ -354,7 +434,9 @@ const PMReport = ({ projectId }: PMReportProps) => {
       <div className="flex flex-col gap-3">
         <h2 className="text-base font-semibold">Project Reports</h2>
         {reports.length === 0 ? (
-          <p className="text-sm text-muted-foreground">No reports generated yet.</p>
+          <p className="text-sm text-muted-foreground">
+            No reports generated yet.
+          </p>
         ) : (
           <div className="border rounded overflow-hidden">
             <table className="w-full text-sm">
@@ -374,12 +456,19 @@ const PMReport = ({ projectId }: PMReportProps) => {
                   >
                     <td className="px-4 py-2">{index + 1}</td>
                     <td className="px-4 py-2">
-                      <a href={report.report_link} target="_blank" rel="noopener noreferrer" className="text-primary underline">
+                      <a
+                        href={report.report_link}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-primary underline"
+                      >
                         View Report
                       </a>
                     </td>
                     <td className="px-4 py-2">{report.date_range}</td>
-                    <td className="px-4 py-2">{formatDate(report.generated_on)}</td>
+                    <td className="px-4 py-2">
+                      {formatDate(report.generated_on)}
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -387,7 +476,6 @@ const PMReport = ({ projectId }: PMReportProps) => {
           </div>
         )}
       </div>
-
     </div>
   );
 };
