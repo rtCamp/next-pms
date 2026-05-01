@@ -44,9 +44,37 @@ If a precondition fails, stop and surface — do not silently proceed.
    ```
 
 2. **Filter to unaddressed inline comments by the maintainer (`ayushnirwal`).**
-   - Comment is in scope if: `user.login == "ayushnirwal"` AND comment is not `outdated` (line still exists at the comment's line) AND I haven't replied to it yet.
-   - Comments by `copilot-pull-request-reviewer` are addressed via the existing CLAUDE.md §6 Copilot triage path — out of scope for this skill.
-   - Comments by `rtBot` (myself) are skipped.
+
+   GitHub anchors review threads at a single **thread head** — the first comment in the thread. Subsequent comments (replies) carry `in_reply_to_id = <head_id>`. When you `POST .../comments/<comment_id>/replies`, GitHub stores the new comment with `in_reply_to_id = thread_head_id`, regardless of which comment id you posted against. So "have I replied to this comment?" must be evaluated per-thread, not per-comment.
+
+   Algorithm:
+   ```python
+   by_id = {c["id"]: c for c in all_comments}
+
+   def thread_head(c):
+       while c.get("in_reply_to_id") in by_id:
+           c = by_id[c["in_reply_to_id"]]
+       return c
+
+   thread_replied_by_bot = set()  # head ids
+   for c in all_comments:
+       if c["user"]["login"] == "rtBot":
+           thread_replied_by_bot.add(thread_head(c)["id"])
+
+   unaddressed = []
+   for c in all_comments:
+       if c["user"]["login"] != "ayushnirwal":
+           continue
+       if c.get("position") is None:                    # outdated — line gone
+           continue
+       if thread_head(c)["id"] in thread_replied_by_bot:
+           continue
+       unaddressed.append(c)
+   ```
+
+   - Skip comments by `copilot-pull-request-reviewer` — those are handled via the CLAUDE.md §6 Copilot triage path, not here.
+   - Skip comments by `rtBot` (the bot's own posts).
+   - `position is None` is GitHub's "this line no longer exists in the diff" signal — ignore those (already addressed by the rewrite that removed the line).
 
 3. **If zero unaddressed comments:**
    - Check whether the parent Slack thread has reached a terminal state. Run `/next-pms-slack-poll <thread_ts>` (or read the thread directly with `slack_read_thread` + the canonical bot-filter from `/next-pms-task` SKILL.md "RESOLVED detection").
