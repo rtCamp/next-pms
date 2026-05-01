@@ -190,7 +190,9 @@ Once the last section is `RESOLVED`:
    ```
 
    Do not skip this. "PR up + status posted" is not closure — the developer reviews the PR and may post more feedback. Without the explicit waiting message, the thread looks finished and the maintainer doesn't know the bot is still listening.
-7. **Arm the final-gate polling cron** for the maintainer's sign-off:
+7. **Arm BOTH polling crons in parallel** for the maintainer's sign-off — one watches the Slack thread, one watches the PR for inline review comments. Cadence: 15 min for both. Both self-cancel on terminal states.
+
+   **7a. Slack thread cron (existing):**
 
    ```python
    CronCreate(
@@ -200,21 +202,50 @@ Once the last section is `RESOLVED`:
    )
    ```
 
-   This is the same `/next-pms-slack-poll` skill from §3 / §5 but armed for the *final* gate — the developer reviews the PR and may post more feedback in the thread. The polling skill self-cancels its cron on `RESOLVED` (task complete) or `BLOCK` (pause). Free-form maintainer replies (PR-level review notes routed back into the thread, "fix X please", etc.) come through as `Latest human reply` in the report — treat them as new scope: act on them, post an updated status with the fix, leave the cron running.
+   `/next-pms-slack-poll` is read-only; reports the gate state (`WAITING` / `RESOLVED` / `BLOCK`) plus any free-form human reply (e.g. *"feedback added"*, *"review posted"*). On `RESOLVED` or `BLOCK` the polling skill cancels its own cron.
 
-   **Slack signals that mean "go check the PR".** The maintainer typically reviews on GitHub, then drops a short note in the Slack thread like `feedback added`, `review posted`, `comments on PR`, or just `take a look`. That note is the *trigger* — the actual content lives on the PR. When the polling skill surfaces such a free-form reply, run the standard CLAUDE.md §6 triage cycle without waiting:
+   **7b. GitHub PR cron (added 2026-05-01):**
+
+   ```python
+   CronCreate(
+       cron="*/15 * * * *",
+       prompt=f"/next-pms-pr-poll {pr_number} {parent_ts}",
+       recurring=True,
+   )
+   ```
+
+   GitHub-side polling is needed because maintainers don't always ping Slack after reviewing — they may leave inline comments on the PR and assume the bot will see them. The Slack-only loop misses that. The GH-poll skill checks `gh api repos/:owner/:repo/pulls/<pr>/comments` for unaddressed inline comments since the last bot push, and triggers the fix-and-notify cycle when any are found.
+
+   **What "unaddressed" means:** an inline comment is unaddressed when the comment's `commit_id` is older than the latest push on the PR branch *and* the bot hasn't replied to it yet. Comments resolved on outdated lines (i.e. the line was rewritten by a later push) are ignored.
+
+   **The auto-fix-and-notify cycle** (driven by either the Slack `feedback added` signal or the GH-poll detection):
 
    ```bash
    gh pr view <pr> --json reviews,comments,statusCheckRollup
-   gh api repos/:owner/:repo/pulls/:num/comments --paginate    # inline review comments
+   gh api repos/:owner/:repo/pulls/<pr>/comments --paginate
    gh pr checks <pr>
    ```
 
    For each inline review thread:
-   - Valid → fix locally, commit on the same branch, push. Reply on the thread with `Fixed in <sha> — <one-line>`.
-   - Not valid → reply on the thread with the rationale (link to AC / Figma frame / convention). Do not silently ignore.
+   - **Valid** → fix locally, commit on the same branch, push. Reply on the thread with `Fixed in <sha> — <one-line>`.
+   - **Not valid** → reply on the thread with the rationale (link to AC / Figma frame / locked decision answer / convention). Do not silently ignore.
 
-   After the round of fixes, post a single Slack update summarizing what was addressed, what was declined and why, and reaffirm the wait template (`⏳ Waiting on maintainer review + final RESOLVED — re-review when ready.`). The polling cron stays armed; the same loop runs again on the next round of feedback or terminates on `RESOLVED` / `BLOCK`.
+   After the round of fixes, post a single Slack update in the existing thread using **this template**:
+
+   ```
+   ✅ Picked up GH review comments → fixed → pushed.
+
+   Commit `<sha>` on `<branch>` addresses <N> inline review threads on PR <url>:
+   • <one-line per fix>
+   …
+   • <declined> — <one-line rationale>
+
+   Browser-verified on <route>: <key checks green>.
+
+   Reply `RESOLVED` to close, or post more feedback (Slack or GitHub) and I'll pick it up on the next 15-min poll.
+   ```
+
+   The polling crons stay armed; the same loop runs again on the next round of feedback or terminates on `RESOLVED` / `BLOCK`.
 8. Final maintainer DM to Ayush (`U026K7B5VAA`, channel `D026S1T8ML2`) with a short summary + the PR link.
 
 **Do not declare the task done before final `RESOLVED`** lands in the thread. The PR being open + status posted is not closure — closure is the maintainer's explicit sign-off captured by the polling cron.
@@ -355,6 +386,8 @@ Only `RESOLVED` in the latest in-scope human message advances. `BLOCK` in the la
 ## Companion skills + memory
 
 - `next-pms-conventions` — project conventions (camelCase files, cva co-location, Tailwind v4 `!`, etc.). Loaded automatically.
+- `next-pms-slack-poll` — read-only Slack thread poll. Armed by step 6.7a after the PR is opened.
+- `next-pms-pr-poll` — write-capable GitHub PR poll. Armed by step 6.7b in parallel with the Slack poll. Drives the auto-fix-and-notify cycle when unaddressed inline review comments are detected.
 - `react-agents-review` — checklist for closing FE sections.
 - `advanced-react-patterns` — composition-over-memoization, etc.
 - Auto-memory at `~/.claude/projects/<project-slug>/memory/MEMORY.md` (Claude Code resolves the slug from the working directory) is read on every task — apply user/feedback/project entries before drafting the plan.

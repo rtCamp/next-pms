@@ -165,4 +165,5 @@ Cron cancelled: 254d4fdc
 Paths are repo-relative (the `apps/next_pms` working directory the skill runs from is the repo root for these paths):
 
 - Parent skill: `.claude/skills/next-pms-task/SKILL.md` — the canonical RESOLVED-detection algorithm and the architecture this skill plugs into.
+- **Sibling poll skill:** `.claude/skills/next-pms-pr-poll/SKILL.md` — GitHub-side companion that polls PR inline comments every 15 min and drives the auto-fix-and-notify cycle. The Slack-poll skill (this file) and the PR-poll skill run in parallel after `/next-pms-task` step 6.7. They share the terminal-state check: when this skill flips the gate to `RESOLVED` or `BLOCK`, the PR-poll skill's next firing detects the terminal Slack state and cancels both crons.
 - Helper for sends (NOT used here, listed for context): `.claude/skills/next-pms-task/scripts/slack_post.py`.
