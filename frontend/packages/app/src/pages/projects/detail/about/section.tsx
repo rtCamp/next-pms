@@ -2,26 +2,17 @@
  * External dependencies.
  */
 import type { ReactNode } from "react";
+import { Accordion } from "@base-ui/react/accordion";
 import { SmallDown } from "@rtcamp/frappe-ui-react/icons";
 
-/**
- * Internal dependencies.
- */
-import { Accordion } from "./accordion";
-
-interface AboutSectionProps {
+interface SectionProps {
   value: string;
   title: string;
   suffix?: ReactNode;
   children?: ReactNode;
 }
 
-export function AboutSection({
-  value,
-  title,
-  suffix,
-  children,
-}: AboutSectionProps) {
+export function Section({ value, title, suffix, children }: SectionProps) {
   return (
     <Accordion.Item
       value={value}
@@ -41,7 +32,7 @@ export function AboutSection({
           {suffix}
         </div>
       </Accordion.Header>
-      <Accordion.Panel>{children}</Accordion.Panel>
+      <Accordion.Panel className="accordion-panel">{children}</Accordion.Panel>
     </Accordion.Item>
   );
 }

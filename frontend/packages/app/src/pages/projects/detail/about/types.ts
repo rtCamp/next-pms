@@ -25,7 +25,6 @@ export type ProjectLink = {
 export type AboutMember = EmployeeRef & {
   designation: string;
   phone?: string;
-  avatarColor: string;
 };
 
 export type AboutCustomer = {
@@ -33,8 +32,6 @@ export type AboutCustomer = {
   email: string;
   company: string;
   href?: string;
-  initials: string;
-  avatarColor: string;
 };
 
 export type ProjectBudgetBurn = {

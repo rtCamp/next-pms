@@ -1,7 +1,7 @@
 /**
  * Internal dependencies.
  */
-import { AboutSection } from "./aboutSection";
+import { Section } from "./section";
 import { BudgetBurnBar } from "./budgetBurnBar";
 import type { ProjectBudgetBurn } from "./types";
 
@@ -11,7 +11,7 @@ function formatUsd(value: number): string {
 
 export function BudgetBurnSection({ budget }: { budget: ProjectBudgetBurn }) {
   return (
-    <AboutSection value="budget" title="Budget burn">
+    <Section value="budget" title="Budget burn">
       <div className="flex flex-col gap-2.5 px-5 pb-3">
         <div className="flex items-center justify-between">
           <span className="text-base font-medium text-ink-gray-7">
@@ -23,6 +23,6 @@ export function BudgetBurnSection({ budget }: { budget: ProjectBudgetBurn }) {
         </div>
         <BudgetBurnBar budget={budget} />
       </div>
-    </AboutSection>
+    </Section>
   );
 }

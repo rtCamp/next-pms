@@ -7,11 +7,11 @@ import {
   SolidExternalLink,
   SolidFolderAlt,
 } from "@rtcamp/frappe-ui-react/icons";
+import { Github } from "@next-pms/design-system/components";
 
 /**
  * Internal dependencies.
  */
-import { GithubIcon } from "./githubIcon";
 import type { ProjectAboutData, ProjectLink } from "./types";
 
 const SAMPLE_LINKS: ProjectLink[] = [
@@ -31,7 +31,7 @@ const SAMPLE_LINKS: ProjectLink[] = [
     key: "github",
     label: "GitHub",
     href: "https://github.com/example/repo",
-    icon: GithubIcon,
+    icon: Github,
   },
   {
     key: "people",

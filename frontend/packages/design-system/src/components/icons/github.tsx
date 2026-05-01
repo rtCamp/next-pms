@@ -1,12 +1,6 @@
-/**
- * External dependencies.
- */
 import type { SVGProps } from "react";
 
-// @todo: replace with `Github` from `@rtcamp/frappe-ui-react/icons`
-//        once an icon-mark exists upstream — currently absent from
-//        both line/ and solid/ icon sets.
-export function GithubIcon(props: SVGProps<SVGSVGElement>) {
+export function Github(props: SVGProps<SVGSVGElement>) {
   return (
     <svg
       aria-hidden

@@ -1,13 +1,13 @@
 /**
  * External dependencies.
  */
+import { Accordion } from "@base-ui/react/accordion";
 import { useParams } from "react-router-dom";
 
 /**
  * Internal dependencies.
  */
 import { FAKE_PROJECTS } from "@/pages/projects/list/fake-data";
-import { Accordion } from "./accordion";
 import { BudgetBurnSection } from "./budgetBurnSection";
 import { CustomersSection } from "./customersSection";
 import { getProjectAboutData } from "./fake-data";
@@ -17,19 +17,9 @@ import { ProgressHoursSection } from "./progressHoursSection";
 import { ProjectDetailsSection } from "./projectDetailsSection";
 import { SummarySection } from "./summarySection";
 
-const SECTION_IDS = [
-  "summary",
-  "details",
-  "links",
-  "budget",
-  "progress",
-  "members",
-  "customers",
-] as const;
-
 export function AboutThisProject() {
   const { projectId = "" } = useParams<{ projectId: string }>();
-  const project = FAKE_PROJECTS.find((p) => p.id === projectId);
+  const project = FAKE_PROJECTS.find((p) => p.id === projectId)!;
   const about = getProjectAboutData(projectId);
 
   return (
@@ -40,11 +30,20 @@ export function AboutThisProject() {
         </h2>
       </header>
       <Accordion.Root
-        defaultValue={[...SECTION_IDS]}
+        multiple
+        defaultValue={[
+          "summary",
+          "details",
+          "links",
+          "budget",
+          "progress",
+          "members",
+          "customers",
+        ]}
         className="flex flex-col"
       >
         <SummarySection summary={about.summary} />
-        {project ? <ProjectDetailsSection project={project} /> : null}
+        <ProjectDetailsSection project={project} />
         <LinksSection links={about.links} />
         <BudgetBurnSection budget={about.budget} />
         <ProgressHoursSection progress={about.progress} />

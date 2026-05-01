@@ -7,7 +7,7 @@ import { AddSm } from "@rtcamp/frappe-ui-react/icons";
 /**
  * Internal dependencies.
  */
-import { AboutSection } from "./aboutSection";
+import { Section } from "./section";
 import { CustomerRow } from "./customerRow";
 import type { AboutCustomer } from "./types";
 
@@ -22,7 +22,7 @@ export function CustomersSection({
   const remaining = Math.max(0, customers.length - VISIBLE_CUSTOMERS);
 
   return (
-    <AboutSection
+    <Section
       value="customers"
       title="Customers"
       suffix={
@@ -45,6 +45,6 @@ export function CustomersSection({
           </div>
         ) : null}
       </div>
-    </AboutSection>
+    </Section>
   );
 }
