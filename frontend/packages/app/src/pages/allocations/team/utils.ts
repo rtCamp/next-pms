@@ -3,6 +3,14 @@ import { parseISO } from "date-fns";
 import type { TeamAllocationResponse } from "./type";
 
 /**
+ * Parses a Frappe datetime string (YYYY-MM-DD HH:mm:ss.ssssss) into a Date.
+ * Converts the space separator to 'T' for ISO compatibility.
+ */
+function parseFrappeDatetime(datetime: string): Date {
+  return parseISO(datetime.replace(" ", "T"));
+}
+
+/**
  * Merges two Member arrays, ensuring uniqueness based on stable member identity.
  */
 export function mergeUniqueMembers(
@@ -47,13 +55,21 @@ export function mapTeamAllocationToMembers(
       string,
       {
         projectName: string;
+        projectId: string;
         customerName: string;
         allocations: {
+          id: string;
+          employeeId: string;
+          projectId: string;
           hours: number;
           startDate: Date;
           endDate: Date;
           billable: boolean;
           tentative: boolean;
+          note?: string;
+          createdOn?: Date;
+          updatedOn?: Date;
+          updatedBy?: { name: string; image?: string };
         }[];
       }
     >
@@ -84,17 +100,34 @@ export function mapTeamAllocationToMembers(
         customer[alloc.customer]?.name ?? alloc.customer ?? "";
       projectMap.set(alloc.project, {
         projectName: alloc.project_name || alloc.project,
+        projectId: alloc.project,
         customerName,
         allocations: [],
       });
     }
 
     projectMap.get(alloc.project)!.allocations.push({
+      id: alloc.name,
+      employeeId: alloc.employee,
+      projectId: alloc.project,
       hours: alloc.hours_allocated_per_day,
       startDate: parseISO(alloc.allocation_start_date),
       endDate: parseISO(alloc.allocation_end_date),
       billable: Boolean(alloc.is_billable),
       tentative: alloc.status === "Tentative",
+      note: alloc.note ?? undefined,
+      createdOn: alloc.creation
+        ? parseFrappeDatetime(alloc.creation)
+        : undefined,
+      updatedOn: alloc.modified
+        ? parseFrappeDatetime(alloc.modified)
+        : undefined,
+      updatedBy: alloc.modified_by
+        ? {
+            name: alloc.modified_by,
+            image: alloc.modified_by_avatar || undefined,
+          }
+        : undefined,
     });
   }
 
@@ -116,7 +149,11 @@ export function mapTeamAllocationToMembers(
     return {
       id: employee.name,
       name: employee.employee_name,
-      role: employee.designation ?? undefined,
+      designation: employee.designation ?? undefined,
+      department: employee.department ?? undefined,
+      rate: employee.rate ?? undefined,
+      capacity: employee.capacity ?? undefined,
+      manager: employee.reportingManager ?? undefined,
       image: employee.image ?? undefined,
       projects,
       leaves: memberLeaves,

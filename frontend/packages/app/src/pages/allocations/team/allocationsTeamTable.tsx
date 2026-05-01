@@ -26,6 +26,7 @@ import { isWeekendEntryAllowed } from "@/lib/utils";
 import { useUser } from "@/providers/user";
 import { EMPLOYEES_PER_PAGE } from "./constants";
 import { AllocationsDuration, useAllocationsTeam } from "./context";
+import { useAllocationsTeamOutletContext } from "./outletContext";
 
 const FILTER_FIELDS: FilterField[] = [
   {
@@ -93,6 +94,12 @@ export const AllocationsTeamTable = () => {
   const { hasRoleAccess } = useUser(({ state }) => ({
     hasRoleAccess: state.hasRoleAccess,
   }));
+
+  const {
+    openAddAllocationDialog,
+    openEditAllocationDialog,
+    openDeleteAllocationDialog,
+  } = useAllocationsTeamOutletContext();
 
   const showWeekend = isWeekendEntryAllowed();
   const hasMembers = filteredMembers.length > 0;
@@ -183,6 +190,9 @@ export const AllocationsTeamTable = () => {
               weekCount={weekCount}
               hasRoleAccess={hasRoleAccess}
               showWeekend={showWeekend}
+              onAddAllocation={openAddAllocationDialog}
+              onEditAllocation={openEditAllocationDialog}
+              onDeleteAllocation={openDeleteAllocationDialog}
             />
           </InfiniteScroll>
         ) : null}

@@ -42,6 +42,7 @@ function AddAllocationModal({
   onOpenChange,
   onEditScheduleClick,
   initialValues,
+  onSuccess,
 }: AddAllocationModalProps) {
   const toast = useToasts();
   const weekendEntriesAllowed: boolean = isWeekendEntryAllowed();
@@ -168,12 +169,14 @@ function AddAllocationModal({
             ? "Allocation updated successfully"
             : "Allocation created successfully",
         );
+
+        closeModal();
+        onSuccess?.();
       } catch (err) {
         const error = parseFrappeErrorMsg(err as FrappeError);
         toast.error(error);
       } finally {
         setSubmitting(false);
-        closeModal();
       }
     },
   });
@@ -184,12 +187,12 @@ function AddAllocationModal({
   }, [form, mergedDefaultValues, onOpenChange]);
 
   useEffect(() => {
-    if (!open || variant !== "edit") {
+    if (!open) {
       return;
     }
 
     form.reset(mergedDefaultValues);
-  }, [form, mergedDefaultValues, open, variant]);
+  }, [form, mergedDefaultValues, open]);
 
   const recurrence = useStore(form.store, (state) => state.values.recurrence);
   const hoursPerDay = useStore(form.store, (state) => state.values.hoursPerDay);

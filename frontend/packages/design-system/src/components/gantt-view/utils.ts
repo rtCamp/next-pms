@@ -10,6 +10,7 @@ import type {
 const RIGHT_TRIM_WIDTH_REDUCTION = 3;
 
 export interface ProjectAllocationBar extends Allocation {
+  projectName: string;
   barOffset: number;
   width: number;
   fullNumDays: number;
@@ -92,6 +93,7 @@ export const prepareMemberBars = (
           acc.push({
             ...alloc,
             ...metrics,
+            projectName: project.name,
             fullNumDays:
               getNumDays(alloc.endDate, alloc.startDate, showWeekend) + 1,
           });

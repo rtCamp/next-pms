@@ -1,3 +1,4 @@
+import React from "react";
 import { cva, type VariantProps } from "class-variance-authority";
 import { CalendarX2 } from "lucide-react";
 import { mergeClassNames as cn } from "../../../utils";
@@ -20,7 +21,10 @@ const ganttBarVariants = cva(
   },
 );
 
-interface GanttBarProps extends VariantProps<typeof ganttBarVariants> {
+interface GanttBarProps
+  extends
+    VariantProps<typeof ganttBarVariants>,
+    React.HTMLAttributes<HTMLDivElement> {
   label: string;
   left: number;
   width: number;
@@ -29,52 +33,61 @@ interface GanttBarProps extends VariantProps<typeof ganttBarVariants> {
   className?: string;
 }
 
-export function GanttBar({
-  variant,
-  label,
-  left,
-  width,
-  theme = "default",
-  billable,
-  className,
-}: GanttBarProps) {
-  const isTimeoff = variant === "timeoff";
-  const isCrosshatch = theme === "crosshatch";
+export const GanttBar = React.forwardRef<HTMLDivElement, GanttBarProps>(
+  function GanttBar(
+    {
+      variant,
+      label,
+      left,
+      width,
+      theme = "default",
+      billable,
+      className,
+      ...divProps
+    },
+    ref,
+  ) {
+    const isTimeoff = variant === "timeoff";
+    const isCrosshatch = theme === "crosshatch";
 
-  return (
-    <div
-      className={cn(ganttBarVariants({ variant }), className)}
-      style={{
-        left,
-        width: Math.max(width - 2, 0), // Account for margin
-        height: BAR_HEIGHT,
-        top: (CELL_HEIGHT - BAR_HEIGHT) / 2,
-      }}
-    >
-      {!isTimeoff && isCrosshatch && (
-        <CrosshatchLayer variant={variant ?? "project"} />
-      )}
-      {isTimeoff ? (
-        <>
-          <CalendarX2 className="shrink-0" size={16} strokeWidth={1.5} />
-          {label ? (
+    return (
+      <div
+        ref={ref}
+        className={cn(ganttBarVariants({ variant }), className)}
+        {...divProps}
+        style={{
+          ...divProps.style,
+          left,
+          width: Math.max(width - 2, 0), // Account for margin
+          height: BAR_HEIGHT,
+          top: (CELL_HEIGHT - BAR_HEIGHT) / 2,
+        }}
+      >
+        {!isTimeoff && isCrosshatch && (
+          <CrosshatchLayer variant={variant ?? "project"} />
+        )}
+        {isTimeoff ? (
+          <>
+            <CalendarX2 className="shrink-0" size={16} strokeWidth={1.5} />
+            {label ? (
+              <span className="text-[13px] font-medium tracking-[0.02em] truncate">
+                {label}
+              </span>
+            ) : null}
+          </>
+        ) : (
+          <>
             <span className="text-[13px] font-medium tracking-[0.02em] truncate">
               {label}
             </span>
-          ) : null}
-        </>
-      ) : (
-        <>
-          <span className="text-[13px] font-medium tracking-[0.02em] truncate">
-            {label}
-          </span>
-          {billable === false ? (
-            <span className="block ml-1 w-1 h-1 rounded-full bg-surface-amber-3"></span>
-          ) : null}
-        </>
-      )}
-    </div>
-  );
-}
+            {billable === false ? (
+              <span className="block ml-1 w-1 h-1 rounded-full bg-surface-amber-3"></span>
+            ) : null}
+          </>
+        )}
+      </div>
+    );
+  },
+);
 
 GanttBar.displayName = "GanttBar";

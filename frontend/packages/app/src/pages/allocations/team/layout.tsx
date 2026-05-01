@@ -1,7 +1,6 @@
 /**
  * External dependencies.
  */
-import { useState } from "react";
 import { Outlet } from "react-router-dom";
 import { Button } from "@rtcamp/frappe-ui-react";
 import { Plus } from "lucide-react";
@@ -12,9 +11,10 @@ import { Plus } from "lucide-react";
 import { Header } from "@/layout/header";
 import { AllocationsBreadcrumbs } from "@/pages/allocations/components/allocationsBreadcrumbs";
 import AddAllocationModal from "@/pages/allocations/team/add-allocation";
+import { useAllocationModal } from "./useAllocationModal";
 
 function TeamTimesheetLayout() {
-  const [isAddAllocationOpen, setIsAddAllocationOpen] = useState(false);
+  const { openAddDialog, outletContext, modalProps } = useAllocationModal();
 
   return (
     <>
@@ -23,18 +23,15 @@ function TeamTimesheetLayout() {
 
         <Button
           variant="solid"
-          onClick={() => setIsAddAllocationOpen(true)}
+          onClick={() => openAddDialog({})}
           label="Add allocation"
           iconLeft={() => <Plus />}
         />
       </Header>
 
-      <Outlet />
+      <Outlet context={outletContext} />
 
-      <AddAllocationModal
-        open={isAddAllocationOpen}
-        onOpenChange={setIsAddAllocationOpen}
-      />
+      <AddAllocationModal {...modalProps} />
     </>
   );
 }
