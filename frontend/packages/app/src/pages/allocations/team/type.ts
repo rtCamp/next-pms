@@ -4,6 +4,9 @@ export interface Employee {
   employee_name: string;
   department: string | null;
   designation: string | null;
+  rate?: string | null;
+  capacity?: string | null;
+  reportingManager?: string | null;
 }
 
 export interface Leave {
@@ -33,7 +36,7 @@ export interface ResourceAllocation {
   modified: string;
   creation: string;
   status: string;
-  modified_by_avatar: string;
+  modified_by_avatar: string | null;
 }
 
 export interface Customer {

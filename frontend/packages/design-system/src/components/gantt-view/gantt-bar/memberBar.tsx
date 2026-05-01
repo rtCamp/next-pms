@@ -1,18 +1,35 @@
+import { PreviewCard } from "@base-ui/react/preview-card";
 import { differenceInCalendarDays } from "date-fns";
 import { FULL_DAY_HOURS } from "../constants";
 import { useGanttStore } from "../ganttStore";
 import type { MemberAllocationBar } from "../ganttStore";
+import { GanttAllocationPopover } from "./allocationPopover";
 import { GanttBar } from "./ganttBar";
+import { allocationBarToEntry } from "./utils/allocationBarToEntry";
+import { getOverlappingAllocations } from "./utils/getOverlappingAllocations";
 
 export type MemberBarAllocation = MemberAllocationBar;
 
 interface GanttMemberBarProps {
   allocation: MemberAllocationBar;
+  memberInd: number;
 }
 
-export function GanttMemberBar({ allocation }: GanttMemberBarProps) {
-  const { headerWidth } = useGanttStore((s) => ({
+export function GanttMemberBar({ allocation, memberInd }: GanttMemberBarProps) {
+  const {
+    headerWidth,
+    members,
+    hasRoleAccess,
+    onAddAllocation,
+    onEditAllocation,
+    onDeleteAllocation,
+  } = useGanttStore((s) => ({
     headerWidth: s.headerWidth,
+    members: s.members,
+    hasRoleAccess: s.hasRoleAccess,
+    onAddAllocation: s.onAddAllocation,
+    onEditAllocation: s.onEditAllocation,
+    onDeleteAllocation: s.onDeleteAllocation,
   }));
 
   const left = allocation.barOffset + headerWidth;
@@ -45,15 +62,55 @@ export function GanttMemberBar({ allocation }: GanttMemberBarProps) {
       ? `${diff}h over`
       : `${Math.abs(diff)}h free`;
 
+  // Collect all project allocations overlapping this member bar's date range
+  const member = members[memberInd];
+  const overlapping = getOverlappingAllocations(
+    member,
+    allocation.startDate,
+    allocation.endDate,
+  );
+
+  const entries = overlapping.map((alloc) =>
+    allocationBarToEntry(alloc, onEditAllocation, onDeleteAllocation),
+  );
+
+  const handleAdd = onAddAllocation
+    ? () =>
+        onAddAllocation({
+          employeeId: member.id,
+          startDate: allocation.startDate,
+          endDate: allocation.endDate,
+        })
+    : undefined;
+
   return (
-    <GanttBar
-      variant={variant}
-      theme={allocation.tentative ? "crosshatch" : "default"}
-      label={label}
-      left={left}
-      width={width}
-      billable={allocation.billable}
-    />
+    <PreviewCard.Root>
+      <PreviewCard.Trigger
+        delay={400}
+        closeDelay={150}
+        render={
+          <GanttBar
+            variant={variant}
+            theme={allocation.tentative ? "crosshatch" : "default"}
+            label={label}
+            left={left}
+            width={width}
+            billable={allocation.billable}
+          />
+        }
+      />
+      <PreviewCard.Portal>
+        <PreviewCard.Positioner side="bottom" align="start" sideOffset={4}>
+          <PreviewCard.Popup className="z-50 outline-none">
+            <GanttAllocationPopover
+              entries={entries}
+              onAdd={handleAdd}
+              hasRoleAccess={hasRoleAccess}
+            />
+          </PreviewCard.Popup>
+        </PreviewCard.Positioner>
+      </PreviewCard.Portal>
+    </PreviewCard.Root>
   );
 }
 

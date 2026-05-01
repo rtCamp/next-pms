@@ -25,6 +25,7 @@ import { InfiniteScroll } from "@/components/infiniteScroll";
 import { useUser } from "@/providers/user";
 import { EMPLOYEES_PER_PAGE } from "./constants";
 import { AllocationsDuration, useAllocationsTeam } from "./context";
+import { useAllocationsTeamOutletContext } from "./outletContext";
 
 const FILTER_FIELDS: FilterField[] = [
   {
@@ -92,6 +93,12 @@ export const AllocationsTeamTable = () => {
   const { hasRoleAccess } = useUser(({ state }) => ({
     hasRoleAccess: state.hasRoleAccess,
   }));
+
+  const {
+    openAddAllocationDialog,
+    openEditAllocationDialog,
+    openDeleteAllocationDialog,
+  } = useAllocationsTeamOutletContext();
 
   const hasMembers = filteredMembers.length > 0;
   const isFilteredDataLoading = isLoading && isFilterRequest;
@@ -180,6 +187,9 @@ export const AllocationsTeamTable = () => {
               members={filteredMembers}
               weekCount={weekCount}
               hasRoleAccess={hasRoleAccess}
+              onAddAllocation={openAddAllocationDialog}
+              onEditAllocation={openEditAllocationDialog}
+              onDeleteAllocation={openDeleteAllocationDialog}
             />
           </InfiniteScroll>
         ) : null}
