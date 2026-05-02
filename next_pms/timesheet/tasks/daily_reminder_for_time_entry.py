@@ -59,8 +59,8 @@ def send_reminder(start=INITIAL_OFFSET, limit=BATCH_SIZE):
             "hour": hour,
             "daily_norm": daily_norm,
         }
-        message = frappe.render_template(email_message, args)
-        subject = frappe.render_template(email_subject, args)
+        message = frappe.render_template(email_message, args)  # nosemgrep - trusted Email Template from DB
+        subject = frappe.render_template(email_subject, args)  # nosemgrep - trusted Email Template from DB
         send_mail(user, subject, message)
 
     frappe.enqueue(

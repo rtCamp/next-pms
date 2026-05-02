@@ -11,6 +11,7 @@
   "ignored_role",
   "column_break_cypz",
   "allow_future_entries",
+  "allow_weekend_entries",
   "reminder_setting_section",
   "send_daily_reminder",
   "daily_reminder_template",
@@ -208,12 +209,18 @@
    "fieldtype": "Table MultiSelect",
    "label": "Ignored Role",
    "options": "Timesheet Role"
+  },
+  {
+   "default": "1",
+   "fieldname": "allow_weekend_entries",
+   "fieldtype": "Check",
+   "label": "Allow Weekend Entries"
   }
  ],
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2025-10-27 17:38:39.008638",
+ "modified": "2026-04-29 19:10:48.300804",
  "modified_by": "Administrator",
  "module": "Timesheet",
  "name": "Timesheet Settings",

@@ -96,19 +96,17 @@ Every change must hold up to this checklist before you call a section done:
 
 Only report a task complete when every section's acceptance criteria are green **and** the subagent's final full-page check passes.
 
-### 5. Before creating a PR — base, feature trunk, size, reviewers
+### 5. Before creating a PR — base, feature trunk, reviewers
 
 Hard rules. Never open a PR that violates any of these:
 
 1. **Base branch is always `feat/redesign`.** Never open PRs against `main` for this work. The redesign lands on `main` in larger drops; individual task PRs go to `feat/redesign`.
-2. **Head branch is a feature trunk named `claude/feat/<trunk-name>`.** One trunk per feature/task (e.g. `claude/feat/projects-page`, `claude/feat/timesheet-filters`). Cut the trunk off the latest `upstream/feat/redesign`. Do not pile unrelated work onto a catch-all branch like `claude/redesign`. Reuse the same trunk for follow-up sequential PRs within the same feature.
-3. **Size cap: ≤ 15 files AND ≤ 1000 LOC changed per PR.** If the planned diff will exceed either threshold, split into **sequential stacked PRs** before implementing:
-   - Phase the work in the plan file (`plan_issue_<n>.md`) so each phase is its own independently-reviewable PR with a clear boundary (e.g. "Phase 1: routing + placeholders", "Phase 2: list table", "Phase 3: kanban board").
-   - PR #1 bases on `feat/redesign`. PR #2 bases on the head of PR #1 (stacked). Each PR in the chain targets `feat/redesign` as its merge target but may be chained off the previous PR's branch so the diff stays minimal.
-   - Do not open a single monster PR and "promise to split later" — split first.
+2. **Head branch is a feature trunk named `claude/feat/<trunk-name>`.** One trunk per feature/task (e.g. `claude/feat/projects-page`, `claude/feat/timesheet-filters`). Cut the trunk off the latest `upstream/feat/redesign`. Do not pile unrelated work onto a catch-all branch like `claude/redesign`.
+3. **One PR per feature — do not split into stacked/sequential PRs.** Deliver the complete feature in a single PR on its trunk branch. Plan phases (`plan_issue_<n>.md` sections S1, S2, …) are for implementation ordering and section-by-section browser checks, **not** for PR boundaries. If work remains after an initial push, add commits to the same branch and the same PR — update the PR title/description if the scope shifts.
 4. **Always add `ayushnirwal` as a reviewer** on `gh pr create` (`--reviewer ayushnirwal`).
 5. **If the base advances mid-flight, rebase — don't merge.** Run `git rebase upstream/feat/redesign` and `git push --force-with-lease`. Never merge `feat/redesign` back into the PR branch; that pollutes the diff.
-6. **Before running `gh pr create`**: confirm `git diff --stat upstream/feat/redesign..HEAD` shows only the files this PR is supposed to touch and the file/line counts fall under the size cap. If a stale base has padded the diff, rebase first.
+6. **Before running `gh pr create`**: confirm `git diff --stat upstream/feat/redesign..HEAD` shows only the files this PR is supposed to touch. If a stale base has padded the diff, rebase first.
+7. **Stacked PRs are allowed when a new feature depends on another feature's in-flight branch** — and **only** in that case. Rule #3 still holds (don't split one feature across stacked PRs). If feature A needs a placeholder/component that lives on feature B's not-yet-merged branch, base A on `claude/feat/<B-trunk>` instead of `feat/redesign` so A's diff stays scoped to its own files. Document the stacking in the PR body, and **rebase A onto `feat/redesign` the moment B merges** (`git rebase upstream/feat/redesign && git push --force-with-lease`). Example: PR #1264 (project-detail-skeleton) was stacked on `claude/feat/projects-list` (PR #1220) so the detail-page diff didn't include PR #1220's list files.
 
 ### 6. After creating a PR — wait for AI review + CI, then triage
 
@@ -136,30 +134,30 @@ The repo has AI review bots (e.g. CodeRabbit) plus GitHub Actions CI. Both post 
 
 Everything outside that table still goes through the normal PR-caused-vs-pre-existing triage in step 3 (e.g. Frontend Build Test, Bench-Build-Test, CodeQL, Vulnerable Dependency Check, WIP).
 
-### Project conventions learned from reviews
+### Project conventions — see the `next-pms-conventions` skill
 
-Apply these pre-emptively rather than re-learning them in review. Each rule here comes from an actual correction a maintainer made on a past PR.
+Every code-level convention lives in `.claude/skills/next-pms-conventions/SKILL.md` (≈28 KB, auto-loaded by description match for any code work in this repo, and loaded explicitly by `/next-pms-task`). That skill is the single source of truth — do **not** maintain a parallel copy here. It contains:
 
-**Page file layout**
-- **Folder name follows the URL segment, not the repo's singular default.** If the route is `/projects`, the directory is `pages/projects/` (plural). Don't default to singular just because sibling folders happen to be (`task/`, `report/`, etc.) — look at the route. (PR #1208 correction: `pages/project/` → `pages/projects/`.)
-- **Each `pages/<feature>/` has a dedicated `constants.ts` and a dedicated `types.ts`.** `constants.ts` holds feature data constants (e.g. a `VIEWS` array); `types.ts` holds shared types derived from or referenced alongside them (e.g. `ViewKey`). Don't co-locate types with constants in a single file, and don't inline either in the component.
-- **Main page component is `index.tsx`, exporting a component named after the feature.** E.g. `pages/projects/index.tsx` exporting `Projects`. Only call a file `layout.tsx` when it is an actual React-Router route layout wrapping `<Outlet />` children (the `allocations/layout.tsx` pattern). A route that conditionally renders children based on a query param is **not** a layout — don't mechanically mirror the Allocations file structure if the routing shape is different.
-- **Placeholder/child view components stay next to `index.tsx`** (e.g. `list.tsx`, `kanban.tsx` alongside `index.tsx`) unless a maintainer explicitly asks for a `components/` subdirectory. Review feedback sometimes mentions a `components/` directory in passing — only create it if the reviewer's *fix commit* actually uses it.
+- **Pre-implementation scan** (≈2 min, mandatory before writing any new component / cell / helper / styling override) — utilities check against `lib/utils.ts`, cva variants, design-system primitives, in-flight upstream PRs, one-component-per-file + `cells/` subfolder rule, file-extension rule, route completeness.
+- **Comment discipline** — default to zero comments; rationale belongs in commit messages and PR bodies, not files.
+- **Page file layout** — folder follows URL segment; per-folder `constants.ts` + `types.ts`; `index.tsx` for main component; per-cell files; camelCase file names, kebab-case folder names; `.ts` for no-JSX files.
+- **UI details** — design-system Tailwind tokens (extend `global.css` `@theme` block when a stop is missing); cva co-located with its component; Tailwind v4 trailing `!` modifier; `text-base` + `truncate` on cell text; `@rtcamp/frappe-ui-react/icons` (`SolidDotLg`, `SolidStatus`) before hand-rolling SVGs; `<Button>` icon props take a `ComponentType`, not a rendered element.
+- **Reading Figma** — drill to the leaf node; never call metadata on file root `0:1`; substitute the rtBot-accessible Copy fileKey `h1EnhdK8swe6FCyxUW1XHx`.
+- **Formatting + utility reuse** — `date-fns` for dates; check `lib/utils.ts` first; no helper infra for fake/placeholder data.
+- **Interaction patterns** — per-cell click handlers (not `onRowClick`); `Button variant="ghost"` for inside-SPA targets; `<base>/desk/user/<email>` for employee cells; complete the adjacent route in the same PR.
+- **Workaround discipline** — ping the maintainer before a workaround grows defensive; check upstream PRs first.
+- **Reading review comments** — path anchor wins over body text; reviewer fix commits trump earlier comments (always `git fetch` before a round of fixes).
+- **Review-round retrospectives** for PR #1208, #1212, #1220.
 
-**UI details**
-- **Icon identifiers must be verified against Figma metadata or a design-system story — never inferred by eyeballing a thumbnail.** `AlignLeft` vs `List` vs `TextAlignStart` look similar enough to confuse, and even a reviewer's suggested name can be wrong. When the exact lucide icon isn't obvious from Figma, ask the maintainer instead of guessing. (PR #1208 correction: `List` → `AlignLeft`.)
-
-### Reading review comments
-- **Path anchor vs body text** — GitHub shows each inline comment against a file path. When the anchor says `pages/projects/index.tsx` but the body text mentions `pages/project/...`, the anchor is the intent; treat the body path as a typo.
-- **Fix commits trump earlier comments.** If a reviewer's comment says "do X" but their own follow-up commit on the branch doesn't include X, the commit wins — pull their actual changes rather than retrofitting the comment literally. Always `git fetch` before starting a round of fixes, and check whether the reviewer already pushed commits addressing their own feedback.
+The auto-memory index at `~/.claude/projects/<project-slug>/memory/MEMORY.md` mirrors the highest-leverage rules as standalone entries. The `<project-slug>` is the working-directory path with slashes turned into dashes — Claude Code resolves it automatically; no need to hardcode it.
 
 ### Project-local skills (in `.claude/skills/`)
 
-These are loaded automatically. Invoke them at the listed workflow points:
-
-- **`react-agents-review`** — run before closing any FE section (step 4). Structured pass for Rules of Hooks, stale closures, missing deps, a11y, TypeScript safety. Its output feeds the "is this section done?" gate.
-- **`advanced-react-patterns`** — consult whenever a section adds `useMemo`/`useCallback`/`React.memo` or introduces global state. Enforces composition-over-memoization, moving state down, and measuring before optimizing (step 4).
-- **`webapp-testing`** — **scoped to our Playwright e2e suite in `tests/e2e/`**, not the live step-2 browser-check (which uses Claude-in-Chrome MCP). Use it when writing/updating Playwright scripts or running deterministic headless regressions.
+- **`next-pms-task`** — `/next-pms-task <github-issue-url>`. End-to-end pipeline: fetch issue, write plan, post Slack thread in `#bots-ai-workflow-next-pms` (channel `C0AUXBY5WMB`), gate sections on `RESOLVED`, open PR per §5–§6. Loads `next-pms-conventions` automatically. **Start here for any task link** — don't hand-roll the workflow.
+- **`next-pms-conventions`** — **load FIRST for any manual coding task** (tasks not entered via `/next-pms-task`, which handles this automatically). The full reference described above.
+- **`react-agents-review`** — run before closing any FE section (step 4). Rules of Hooks, stale closures, missing deps, a11y, TypeScript safety.
+- **`advanced-react-patterns`** — consult when a section adds `useMemo`/`useCallback`/`React.memo` or global state.
+- **`webapp-testing`** — Playwright e2e suite in `tests/e2e/` (NOT the step-2 live browser-check, which uses Claude-in-Chrome MCP).
 
 Provenance and refresh instructions: `.claude/skills/README.md`.
 
@@ -283,6 +281,8 @@ fm restart pms-temp.frappe.rt.gw
 
 Top-level `package.json` `build` script = `git submodule update --init --recursive && pnpm (frappe-ui-react) install + build && npm (frontend) install + build`. Per README: "If using frappe-manager, you might require `fm restart` to provision the worker queues."
 
+**When you bump the `frappe-ui-react` submodule SHA**, also run `pnpm --filter @rtcamp/frappe-ui-react build` (or `cd apps/next_pms && npm run build` for the full chain) before trusting `npm run build:app`. `build:app` consumes `frappe-ui-react/packages/frappe-ui-react/dist/` as-is — if your local `dist/` is stale from a previous bump, the app build can pass locally while CI (which rebuilds ui-react from source) fails. Symptom: CI errors like `"<Name>" is not exported by .../frappe-ui-react/dist/index.js` when the source clearly has the export. Fix: fresh `pnpm build` in the submodule package, then re-run the app build, then push. (PR #1264 lesson: cost a bump → revert → re-bump cycle.)
+
 ## Figma design source
 
 - **Canonical file** (`rtBot` has access): `h1EnhdK8swe6FCyxUW1XHx` — "Frappe-PMS--Copy-"
@@ -311,3 +311,24 @@ Top-level `package.json` `build` script = `git submodule update --init --recursi
 
 - The app uses npm workspaces at the top level and pnpm inside the `frappe-ui-react` submodule. A stray `yarn.lock` at the repo root is not part of the build — don't commit one if it appears.
 - Always `git status` at the start of a task and run `git fetch upstream` before cutting a new feature trunk so the branch is off the latest `feat/redesign`.
+
+### Commit message rules (mandatory)
+
+All commits must follow **Conventional Commits**. Format: `<type>[scope]: <description>` with an optional body and footers.
+
+| Type | When |
+|---|---|
+| `feat` | new feature |
+| `fix` | bug fix |
+| `docs` | documentation only |
+| `refactor` | restructuring without behaviour change |
+| `style` | whitespace / formatting |
+| `perf` | performance improvement |
+| `test` | adding / updating tests |
+| `build` | build system or dependency changes |
+| `ci` | CI/CD config |
+| `chore` | other maintenance |
+
+- **Scope** (optional): noun in parentheses describing the affected area, e.g. `feat(projects):`.
+- **Breaking change**: append `!` after type/scope and/or add a `BREAKING CHANGE:` footer.
+- **Always sign commits**: `git commit -S` (GPG). Configure once with `git config commit.gpgsign true`.

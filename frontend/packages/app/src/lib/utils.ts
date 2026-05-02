@@ -10,10 +10,12 @@ import {
 import { FilterCondition } from "@rtcamp/frappe-ui-react";
 import { type ClassValue, clsx } from "clsx";
 import {
+  format,
   getISOWeek,
   getISOWeekYear,
   getISOWeeksInYear,
   isToday,
+  parse,
   parseISO,
 } from "date-fns";
 import { Error as FrappeError } from "frappe-js-sdk/lib/frappe_app/types";
@@ -25,7 +27,7 @@ import { twMerge } from "tailwind-merge";
 import { timeStringToFloat } from "@/schema/timesheet";
 import { WorkingFrequency } from "@/types";
 import { HolidayProp, LeaveProps, TaskProps } from "@/types/timesheet";
-import { NUMBER_OF_WEEKS_TO_FETCH } from "./constant";
+import { NO_VALUE_OPERATORS, NUMBER_OF_WEEKS_TO_FETCH } from "./constant";
 
 export const NO_VALUE_FIELDS = [
   "Section Break",
@@ -42,6 +44,15 @@ export const NO_VALUE_FIELDS = [
 
 export function mergeClassNames(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
+}
+
+export function formatProjectDate(isoDate: string): string {
+  const date = parse(isoDate, "yyyy-MM-dd", new Date());
+  const pattern =
+    date.getFullYear() === new Date().getFullYear()
+      ? "MMM d"
+      : "MMM d, yyyy";
+  return format(date, pattern);
 }
 
 export function stripTags(html: string): string {
@@ -473,6 +484,26 @@ export const calculateLeaveHours = (
   }, 0);
 };
 
+/** Returns true when the operator does not require a value. */
+export const isNoValueOperator = (operator: string): boolean =>
+  NO_VALUE_OPERATORS.includes(operator);
+
+/**
+ * Returns true when a FilterCondition is fully specified and ready to be sent
+ * to the API — i.e. it has a field, an operator, and either a non-empty value
+ * or an operator that requires no value.
+ */
+export const isCompleteFilterCondition = (f: FilterCondition): boolean => {
+  if (!f.field || !f.operator) return false;
+  if (isNoValueOperator(f.operator)) return true;
+  return (
+    f.value !== null &&
+    f.value !== undefined &&
+    !(typeof f.value === "string" && f.value.trim() === "") &&
+    !(Array.isArray(f.value) && f.value.length === 0)
+  );
+};
+
 /**
  * Builds native Frappe filters from the given composite filters.
  *
@@ -480,28 +511,16 @@ export const calculateLeaveHours = (
  * @returns Array of Frappe filters in the format [[fieldCategory, field, operator, value]].
  */
 export const buildFrappeFilters = (compositeFilters: FilterCondition[]) => {
-  const f = compositeFilters.filter((filter) => filter.fieldCategory);
-
-  return f
-    .map((filter) => {
-      if (
-        !filter.fieldCategory ||
-        !filter.field ||
-        !filter.operator ||
-        filter.value === null ||
-        filter.value === undefined ||
-        (typeof filter.value === "string" && filter.value.trim() === "")
-      ) {
-        return null;
-      }
-      return [
-        filter.fieldCategory,
-        filter.field,
-        filter.operator,
-        filter.value,
-      ];
-    })
-    .filter(Boolean);
+  return compositeFilters
+    .filter(
+      (filter) => filter.fieldCategory && isCompleteFilterCondition(filter),
+    )
+    .map((filter) => [
+      filter.fieldCategory,
+      filter.field,
+      filter.operator,
+      isNoValueOperator(filter.operator) ? null : filter.value,
+    ]);
 };
 
 /**

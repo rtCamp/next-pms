@@ -54,6 +54,7 @@ def filter_employees(
     ignore_default_filters=False,
     ignore_permissions=False,
 ):
+    """Apply Employee-level filters and return a paged list of matching employee doctypes and the total count."""
     import json
 
     user_roles = get_roles()
