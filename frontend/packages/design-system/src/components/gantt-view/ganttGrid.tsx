@@ -35,6 +35,7 @@ const GanttGridInner: React.FC<{
     columnCount,
     weeks,
     hasRoleAccess,
+    onAddAllocation,
   } = useGanttStore((s) => ({
     members: s.members,
     expandedRows: s.expandedRows,
@@ -48,9 +49,10 @@ const GanttGridInner: React.FC<{
     columnCount: s.columnCount,
     weeks: s.weeks,
     hasRoleAccess: s.hasRoleAccess,
+    onAddAllocation: s.onAddAllocation,
   }));
 
-  const [ghostBar, setGhostBar] = useState<{
+  const [hoverAddBlock, setHoverAddBlock] = useState<{
     rowKey: string;
     left: number;
   } | null>(null);
@@ -59,10 +61,13 @@ const GanttGridInner: React.FC<{
     Array<{ rowKey: string; left: number }>
   >([]);
 
+  const hasDraftForRow = (rowKey: string) => {
+    return draftBars.some((draft) => draft.rowKey === rowKey);
+  };
+
   const handleAddBlock = (rowKey: string, left: number) => {
-    setGhostBar(null);
+    setHoverAddBlock(null);
     setDraftBars((prev) => {
-      // Replace any existing draft in the same row
       const filtered = prev.filter((d) => d.rowKey !== rowKey);
       return [...filtered, { rowKey, left }];
     });
@@ -91,6 +96,11 @@ const GanttGridInner: React.FC<{
     rowKey: string,
     allocations: Array<{ barOffset: number; width: number }>,
   ) => {
+    if (hasDraftForRow(rowKey)) {
+      setHoverAddBlock(null);
+      return;
+    }
+
     const rect = e.currentTarget.getBoundingClientRect();
     const relativeX = e.clientX - rect.left - headerWidth;
     const dayIndex = Math.floor(relativeX / columnWidth);
@@ -100,12 +110,12 @@ const GanttGridInner: React.FC<{
       dayIndex >= columnCount ||
       isColumnOccupied(allocations, dayIndex)
     ) {
-      setGhostBar(null);
+      setHoverAddBlock(null);
       return;
     }
 
     const snappedLeft = headerWidth + dayIndex * columnWidth;
-    setGhostBar((prev) =>
+    setHoverAddBlock((prev) =>
       prev?.rowKey === rowKey && prev.left === snappedLeft
         ? prev
         : { rowKey, left: snappedLeft },
@@ -182,7 +192,7 @@ const GanttGridInner: React.FC<{
                       : undefined
                   }
                   onMouseLeave={
-                    hasRoleAccess ? () => setGhostBar(null) : undefined
+                    hasRoleAccess ? () => setHoverAddBlock(null) : undefined
                   }
                 >
                   <GanttMemberItem memberInd={rowIndex} />
@@ -220,15 +230,16 @@ const GanttGridInner: React.FC<{
                         />
                       ))}
                     {hasRoleAccess &&
-                      ghostBar?.rowKey === `member-${rowIndex}` &&
-                      !draftBars.some(
-                        (d) => d.rowKey === `member-${rowIndex}`,
-                      ) && (
+                      hoverAddBlock?.rowKey === `member-${rowIndex}` &&
+                      !hasDraftForRow(`member-${rowIndex}`) && (
                         <AddBlock
-                          left={ghostBar.left}
+                          left={hoverAddBlock.left}
                           width={columnWidth}
                           onClick={() =>
-                            handleAddBlock(`member-${rowIndex}`, ghostBar.left)
+                            handleAddBlock(
+                              `member-${rowIndex}`,
+                              hoverAddBlock.left,
+                            )
                           }
                         />
                       )}
@@ -256,7 +267,7 @@ const GanttGridInner: React.FC<{
                       }
                       onMouseLeave={
                         hasRoleAccess && isExpanded
-                          ? () => setGhostBar(null)
+                          ? () => setHoverAddBlock(null)
                           : undefined
                       }
                     >
@@ -317,20 +328,18 @@ const GanttGridInner: React.FC<{
                             ))}
                         {hasRoleAccess &&
                           isExpanded &&
-                          ghostBar?.rowKey ===
+                          hoverAddBlock?.rowKey ===
                             `project-${rowIndex}-${projectIndex}` &&
-                          !draftBars.some(
-                            (d) =>
-                              d.rowKey ===
-                              `project-${rowIndex}-${projectIndex}`,
+                          !hasDraftForRow(
+                            `project-${rowIndex}-${projectIndex}`,
                           ) && (
                             <AddBlock
-                              left={ghostBar.left}
+                              left={hoverAddBlock.left}
                               width={columnWidth}
                               onClick={() =>
                                 handleAddBlock(
                                   `project-${rowIndex}-${projectIndex}`,
-                                  ghostBar.left,
+                                  hoverAddBlock.left,
                                 )
                               }
                             />
@@ -360,7 +369,9 @@ const GanttGridInner: React.FC<{
                     >
                       <button
                         type="button"
-                        onClick={() => {}}
+                        onClick={() =>
+                          onAddAllocation?.({ employeeId: member.id })
+                        }
                         className="w-full h-full flex items-center gap-2 text-base font-medium text-ink-gray-9 overflow-hidden"
                       >
                         <Plus size={16} className="shrink-0" />

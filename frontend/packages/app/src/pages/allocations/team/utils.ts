@@ -136,7 +136,11 @@ export function mapTeamAllocationToMembers(
 
     const projects: Project[] = projectMap
       ? Array.from(projectMap.entries()).map(
-          ([, { projectName, customerName, allocations }]): Project => ({
+          ([
+            projectId,
+            { projectName, customerName, allocations },
+          ]): Project => ({
+            id: projectId,
             name: projectName,
             client: customerName || undefined,
             allocations,
