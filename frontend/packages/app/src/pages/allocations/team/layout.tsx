@@ -11,9 +11,10 @@ import { Plus } from "lucide-react";
 import { Header } from "@/layout/header";
 import { AllocationsBreadcrumbs } from "@/pages/allocations/components/allocationsBreadcrumbs";
 import AddAllocationModal from "@/pages/allocations/team/add-allocation";
+import { AllocationsTeamProvider } from "@/pages/allocations/team/provider";
 import { useAllocationModal } from "./useAllocationModal";
 
-function TeamTimesheetLayout() {
+function TeamTimesheetLayoutContent() {
   const { openAddDialog, outletContext, modalProps } = useAllocationModal();
 
   return (
@@ -33,6 +34,14 @@ function TeamTimesheetLayout() {
 
       <AddAllocationModal {...modalProps} />
     </>
+  );
+}
+
+function TeamTimesheetLayout() {
+  return (
+    <AllocationsTeamProvider>
+      <TeamTimesheetLayoutContent />
+    </AllocationsTeamProvider>
   );
 }
 

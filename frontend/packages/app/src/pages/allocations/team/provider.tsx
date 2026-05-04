@@ -96,6 +96,10 @@ export function AllocationsTeamProvider({
     dispatch({ type: "MOVE_TODAY" });
   }, []);
 
+  const handleRefresh = useCallback(async () => {
+    await refresh();
+  }, [refresh]);
+
   const value = useMemo<AllocationsTeamContextProps>(
     () => ({
       state,
@@ -106,7 +110,7 @@ export function AllocationsTeamProvider({
         handlePrevious,
         handleNext,
         handleToday,
-        refresh,
+        refresh: handleRefresh,
       },
     }),
     [
@@ -117,7 +121,7 @@ export function AllocationsTeamProvider({
       handlePrevious,
       handleNext,
       handleToday,
-      refresh,
+      handleRefresh,
     ],
   );
 
