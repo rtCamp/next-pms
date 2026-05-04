@@ -27,14 +27,14 @@ import { Calendar } from "lucide-react";
 /**
  * Internal dependencies.
  */
-import { parseFrappeErrorMsg } from "@/lib/utils";
+import { isWeekendEntryAllowed, parseFrappeErrorMsg } from "@/lib/utils";
 import {
   addAllocationDefaultValues,
   allocationRecurrenceLabels,
 } from "./constants";
 import { addAllocationFormSchema } from "./schema";
 import { ComboboxOption, type AddAllocationModalProps } from "./types";
-import { getComputedTotalHours, getRangeDayCount } from "./utils";
+import { computeTotalHours } from "./utils";
 
 function AddAllocationModal({
   variant = "add",
@@ -45,6 +45,7 @@ function AddAllocationModal({
   onSuccess,
 }: AddAllocationModalProps) {
   const toast = useToasts();
+  const weekendEntriesAllowed: boolean = isWeekendEntryAllowed();
   const [submitting, setSubmitting] = useState(false);
 
   const { call: handleAllocation } = useFrappePostCall(
@@ -125,13 +126,14 @@ function AddAllocationModal({
 
       setSubmitting(true);
 
-      const rangeDays = getRangeDayCount(value.fromDate, value.toDate);
-      const totalAllocatedHours = getComputedTotalHours(
-        value.hoursPerDay,
-        value.recurrence === "recurring"
-          ? Math.max(1, value.repeatFor ?? 1)
-          : Math.max(1, rangeDays),
-      );
+      const totalAllocatedHours = computeTotalHours({
+        hoursPerDay: value.hoursPerDay,
+        recurrence: value.recurrence,
+        fromDate: value.fromDate,
+        toDate: value.toDate,
+        repeatFor: value.repeatFor ?? 0,
+        includeWeekends: weekendEntriesAllowed && value.includeWeekends,
+      });
 
       try {
         await handleAllocation({
@@ -151,6 +153,9 @@ function AddAllocationModal({
             is_billable: Number(value.isBillable),
             status: value.isTentative ? "Tentative" : "Confirmed",
             note: value.note ?? "",
+            include_weekends: weekendEntriesAllowed
+              ? value.includeWeekends
+              : false,
           },
           // Repeat weeks are only applied when creating a recurring allocation.
           repeat_till_week_count:
@@ -197,13 +202,19 @@ function AddAllocationModal({
   );
   const fromDate = useStore(form.store, (state) => state.values.fromDate);
   const toDate = useStore(form.store, (state) => state.values.toDate);
-
-  const totalHours = getComputedTotalHours(
-    hoursPerDay,
-    recurrence === "recurring"
-      ? Math.max(1, repeatFor)
-      : Math.max(1, getRangeDayCount(fromDate, toDate)),
+  const includeWeekendsValue = useStore(
+    form.store,
+    (state) => state.values.includeWeekends,
   );
+
+  const totalHours = computeTotalHours({
+    hoursPerDay,
+    recurrence,
+    fromDate,
+    toDate,
+    repeatFor,
+    includeWeekends: weekendEntriesAllowed && includeWeekendsValue,
+  });
 
   return (
     <Dialog
@@ -318,18 +329,20 @@ function AddAllocationModal({
           )}
         />
 
-        <form.Field
-          name="includeWeekends"
-          children={(field) => (
-            <label className="inline-flex items-center gap-2 text-base text-ink-gray-8">
-              <Checkbox
-                value={field.state.value}
-                onChange={(checked) => field.handleChange(Boolean(checked))}
-              />
-              Include weekends
-            </label>
-          )}
-        />
+        {weekendEntriesAllowed ? (
+          <form.Field
+            name="includeWeekends"
+            children={(field) => (
+              <label className="inline-flex items-center gap-2 text-base text-ink-gray-8">
+                <Checkbox
+                  value={field.state.value}
+                  onChange={(checked) => field.handleChange(Boolean(checked))}
+                />
+                Include weekends
+              </label>
+            )}
+          />
+        ) : null}
 
         <form.Field
           name="fromDate"
@@ -427,7 +440,9 @@ function AddAllocationModal({
                     size="md"
                     variant="outline"
                     value={field.state.value ?? ""}
-                    onChange={(e) => field.handleChange(Number(e.target.value))}
+                    onChange={(e) =>
+                      field.handleChange(Math.max(1, Number(e.target.value)))
+                    }
                   />
                   {!field.state.meta.isValid && (
                     <ErrorMessage
