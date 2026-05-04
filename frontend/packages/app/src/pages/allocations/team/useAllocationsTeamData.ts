@@ -58,12 +58,14 @@ export function useAllocationsTeamData({
     setError(undefined);
 
     try {
+      const loadedMemberCount = Math.max(pageLength, start + pageLength);
+
       const response = await fetchTeamViewData({
         date: format(anchorDate, "yyyy-MM-dd"),
         max_week: weekCount,
         employee_name: search || null,
-        start,
-        page_length: pageLength,
+        start: 0,
+        page_length: loadedMemberCount,
         need_hours_summary: false,
       });
 

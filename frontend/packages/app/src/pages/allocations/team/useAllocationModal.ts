@@ -64,8 +64,8 @@ export function useAllocationModal() {
 
       try {
         await deleteDoc("Resource Allocation", data.allocationId);
+        await refresh();
         toast.success("The allocation has been deleted successfully");
-        void refresh();
       } catch {
         toast.error("Failed to delete the allocation");
       }
@@ -81,11 +81,11 @@ export function useAllocationModal() {
     }
   }, []);
 
-  const handleSuccess = useCallback(() => {
+  const handleSuccess = useCallback(async () => {
+    await refresh();
     setIsOpen(false);
     setInitialValues(undefined);
     setVariant("add");
-    void refresh();
   }, [refresh]);
 
   const outletContext: AllocationsTeamOutletContext = {
