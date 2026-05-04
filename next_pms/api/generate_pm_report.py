@@ -4,18 +4,24 @@ import time
 import frappe
 import requests
 from frappe import _
+from frappe.utils import getdate
 
 LLM_SUMMARIZE_URL = "https://rt-report-automation.rt.gw/api/llm/summarize"
 LLM_STATUS_URL = "https://rt-report-automation.rt.gw/api/inngest/runs"
 
 INITIAL_DELAY = 30
 POLL_INTERVAL = 15
-MAX_POLL_DURATION = 600
+MAX_POLL_DURATION = 840
 MAX_OUTPUT_RETRIES = 3
 
 
-def get_api_key():
-    return frappe.conf.get("pm_report_api_key") or ""
+def get_api_key() -> str:
+    api_key = frappe.conf.get("pm_report_api_key")
+    if isinstance(api_key, str):
+        api_key = api_key.strip()
+    if not api_key:
+        frappe.throw(_("PM Report API key is not configured. Please set `pm_report_api_key` in site config."))
+    return api_key
 
 
 @frappe.whitelist()
@@ -25,6 +31,8 @@ def generate_pm_report(
     to_date: str | None = None,
     previous_doc_url: str | None = None,
 ) -> dict:
+    frappe.has_permission("Project", doc=project, ptype="write", throw=True)
+
     project_doc = frappe.get_doc("Project", project)
 
     # Validations
@@ -32,6 +40,9 @@ def generate_pm_report(
         frappe.throw(_("Please add a Slack Channel Slug before generating."))
     if not from_date or not to_date:
         frappe.throw(_("Report dates are missing. Please select a Report Duration."))
+
+    if getdate(from_date) > getdate(to_date):
+        frappe.throw(_("From Date cannot be after To Date."))
 
     drive_link = project_doc.get("custom_project_drive_link") or ""
     if not drive_link or len(drive_link) < 8:
@@ -79,7 +90,7 @@ def generate_pm_report(
             from_date=from_date,
             to_date=to_date,
             queue="long",
-            timeout=700,
+            timeout=900,
         )
 
         return {"status": "triggered"}
@@ -188,6 +199,10 @@ def _notify(project, user, doc_link=None, error=None):
 def _send_bell_notification(project, user, document_url):
     """Send Frappe bell notification"""
     try:
+        if not _is_valid_document_url(document_url):
+            frappe.log_error(f"Invalid or untrusted document_url: {document_url}", "PM Report — Invalid Document URL")
+            return
+
         frappe.get_doc(
             {
                 "doctype": "Notification Log",
@@ -225,7 +240,11 @@ def get_hours_breakdown(project, from_date, to_date):
         # Fetch all timesheet details for this project in date range
         timesheet_details = frappe.db.get_all(
             "Timesheet Detail",
-            filters={"project": project, "from_time": ["between", [f"{from_date} 00:00:00", f"{to_date} 23:59:59"]]},
+            filters={
+                "project": project,
+                "from_time": ["between", [f"{from_date} 00:00:00", f"{to_date} 23:59:59"]],
+                "docstatus": ["in", [0, 1]],
+            },
             fields=["task", "hours"],
         )
 
@@ -277,3 +296,24 @@ def get_hours_breakdown(project, from_date, to_date):
     except Exception:
         frappe.log_error(frappe.get_traceback(), "PM Report — Hours Breakdown Error")
         return []
+
+
+def _is_valid_document_url(url: str) -> bool:
+    """
+    Validate that the document URL is from an expected domain
+    """
+    from urllib.parse import urlparse
+
+    if not url:
+        return False
+
+    try:
+        parsed = urlparse(url)
+        allowed_domains = [
+            "docs.google.com",
+        ]
+        return parsed.scheme in ("https",) and any(
+            parsed.netloc == domain or parsed.netloc.endswith(f".{domain}") for domain in allowed_domains
+        )
+    except Exception:
+        return False

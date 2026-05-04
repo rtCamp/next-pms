@@ -168,7 +168,7 @@ const ProjectDetail = () => {
                     (window?.frappe?.boot?.user?.can_write?.includes(
                       "Project",
                     ) ??
-                      true) &&
+                      false) &&
                     form_data
                   ) {
                     setHideSaveChanges(false);
@@ -192,7 +192,7 @@ const ProjectDetail = () => {
                   !(
                     window?.frappe?.boot?.user?.can_write?.includes(
                       "Project",
-                    ) ?? true
+                    ) ?? false
                   )
                 }
                 fieldConfig={
@@ -217,9 +217,8 @@ const ProjectDetail = () => {
                     users: { hidden: true },
                     monitor_progress: { hidden: true },
                     collect_progress: { hidden: true },
-                    custom_pm_report_drive_link: { hidden: true },
                     custom_slack_channel_slug: { hidden: true },
-                    custom_pm_reports: { hidden: true },
+                    custom_project_reports: { hidden: true },
                     custom_project_drive_link: { hidden: true },
                   } as FieldConfigType
                 }

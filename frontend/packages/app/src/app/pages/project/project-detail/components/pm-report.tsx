@@ -15,13 +15,20 @@ import {
 
 const formatDate = (datetime: string) => {
   if (!datetime) return "";
-  return new Date(datetime).toLocaleDateString("en-GB", {
+  return new Date(datetime.replace(" ", "T")).toLocaleDateString("en-GB", {
     day: "2-digit",
     month: "short",
     year: "numeric",
     hour: "2-digit",
     minute: "2-digit",
   });
+};
+
+const toLocalDateString = (date: Date): string => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
 };
 
 interface PMReportRow {
@@ -137,7 +144,7 @@ const PMReport = ({ projectId }: PMReportProps) => {
       setToDate("");
       return;
     }
-    const today = new Date().toISOString().split("T")[0];
+    const today = toLocalDateString(new Date());
     const daysMap: Record<string, number> = {
       "Last Week": 7,
       "Last 15 Days": 15,
@@ -147,7 +154,7 @@ const PMReport = ({ projectId }: PMReportProps) => {
     if (days) {
       const from = new Date();
       from.setDate(from.getDate() - days);
-      setFromDate(from.toISOString().split("T")[0]);
+      setFromDate(toLocalDateString(from));
       setToDate(today);
     }
   }, []);
@@ -180,7 +187,6 @@ const PMReport = ({ projectId }: PMReportProps) => {
 
     try {
       await updateDoc("Project", projectId as string, {
-        custom_project_drive_link: driveLink,
         custom_slack_channel_slug: slackSlug,
       });
 
@@ -284,8 +290,9 @@ const PMReport = ({ projectId }: PMReportProps) => {
                       showSelected={true}
                     />
                   </div>
-                  <button
-                    className="p-2 rounded hover:bg-muted"
+                  <Button
+                    variant="default"
+                    size="sm"
                     onClick={async () => {
                       const slugToSave = slackSlugRef.current;
                       if (!slugToSave) {
@@ -295,23 +302,34 @@ const PMReport = ({ projectId }: PMReportProps) => {
                         });
                         return;
                       }
-                      await updateDoc("Project", projectId as string, {
-                        custom_slack_channel_slug: slugToSave,
-                      });
-                      setSlackSlug(slugToSave);
-                      setSlackSearch("");
-                      setDebouncedSearch("");
-                      setIsEditingSlack(false);
-                      toast({
-                        variant: "success",
-                        description: "Slack channel saved.",
-                      });
+                      try {
+                        await updateDoc("Project", projectId as string, {
+                          custom_slack_channel_slug: slugToSave,
+                        });
+                        setSlackSlug(slugToSave);
+                        setSlackSearch("");
+                        setDebouncedSearch("");
+                        setIsEditingSlack(false);
+                        toast({
+                          variant: "success",
+                          description: "Slack channel saved.",
+                        });
+                      } catch (error) {
+                        const err = error as FrappeError;
+                        toast({
+                          variant: "destructive",
+                          description:
+                            err?.message ||
+                            "Failed to save Slack channel. Please try again.",
+                        });
+                      }
                     }}
                   >
-                    ✅
-                  </button>
-                  <button
-                    className="p-2 rounded hover:bg-muted text-muted-foreground"
+                    Save
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
                     onClick={() => {
                       const original =
                         projectData?.custom_slack_channel_slug || "";
@@ -322,8 +340,8 @@ const PMReport = ({ projectId }: PMReportProps) => {
                       setIsEditingSlack(false);
                     }}
                   >
-                    ✕
-                  </button>
+                    Cancel
+                  </Button>
                 </>
               ) : (
                 <>
@@ -333,13 +351,14 @@ const PMReport = ({ projectId }: PMReportProps) => {
                     value={slackSlug || "Not set"}
                     readOnly
                   />
-                  <button
-                    className="p-2 rounded hover:bg-muted"
+                  <Button
+                    variant="ghost"
+                    size="sm"
                     onClick={() => setIsEditingSlack(true)}
                     disabled={isBusy}
                   >
-                    ✏️
-                  </button>
+                    Edit
+                  </Button>
                 </>
               )}
             </div>
