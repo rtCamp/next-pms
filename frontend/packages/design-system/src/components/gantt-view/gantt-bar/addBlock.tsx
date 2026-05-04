@@ -7,6 +7,7 @@ import { AddMd } from "@rtcamp/frappe-ui-react/icons";
 /**
  * Internal dependencies.
  */
+import { mergeClassNames as cn } from "../../../utils";
 import { BAR_HEIGHT, BAR_MARGIN, CELL_HEIGHT } from "../constants";
 
 interface AddBlockProps {
@@ -26,7 +27,10 @@ export function AddBlock({ left, width, onClick }: AddBlockProps) {
     <Button
       type="button"
       variant="subtle"
-      className="absolute"
+      className={cn(
+        "absolute opacity-100 scale-100 transition-all duration-100 ease-out motion-reduce:transition-none",
+        "starting:opacity-0 starting:scale-95",
+      )}
       style={{
         left: Math.max(left - BAR_MARGIN / 2, 0),
         width: Math.max(width - BAR_MARGIN, 0),

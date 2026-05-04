@@ -1,3 +1,5 @@
+import { addDays } from "date-fns";
+import { FULL_DAY_HOURS } from "./constants";
 import { getMemberAllocation } from "./gantt-bar/utils/getMemberAllocation";
 import { getNumDays } from "./gantt-bar/utils/getNumDays";
 import type {
@@ -29,6 +31,42 @@ export interface Member extends SourceMember {
   projects: Project[];
   memberAllocations: MemberAllocationBar[];
 }
+
+export type DraftBarEntry = {
+  rowKey: string;
+  left: number;
+  width: number;
+  startDate: Date;
+  endDate: Date;
+  hoursPerDay: number;
+  employeeId?: string;
+  projectId?: string;
+  projectName?: string;
+};
+
+export type DraftBarSeed = {
+  rowKey: string;
+  left: number;
+  width: number;
+  employeeId?: string;
+  projectId?: string;
+  projectName?: string;
+};
+
+export type DraftMetaInput = {
+  left: number;
+  width: number;
+  headerWidth: number;
+  columnWidth: number;
+  columnCount: number;
+  weekStart: Date;
+  showWeekend: boolean;
+};
+
+export type OccupyingAllocation = {
+  barOffset: number;
+  width: number;
+};
 
 /**
  * Calculate bar offset and width for a date span within visible columns.
@@ -139,4 +177,80 @@ export const prepareMemberBars = (
       memberAllocations,
     };
   });
+};
+
+/**
+ * Converts a visible column index into a calendar date.
+ */
+export const getDateAtColumnIndex = (
+  index: number,
+  weekStart: Date,
+  showWeekend: boolean,
+): Date => {
+  if (showWeekend) {
+    return addDays(weekStart, index);
+  }
+
+  let date = weekStart;
+  let visibleIndex = 0;
+
+  while (visibleIndex < index) {
+    date = addDays(date, 1);
+    const day = date.getDay();
+    if (day !== 0 && day !== 6) {
+      visibleIndex += 1;
+    }
+  }
+
+  return date;
+};
+
+/**
+ * Derives draft bar dates and hours from layout geometry.
+ */
+export const getDraftMeta = ({
+  left,
+  width,
+  headerWidth,
+  columnWidth,
+  columnCount,
+  weekStart,
+  showWeekend,
+}: DraftMetaInput): Pick<
+  DraftBarEntry,
+  "startDate" | "endDate" | "hoursPerDay"
+> => {
+  const startIndex = Math.max(
+    0,
+    Math.round((left - headerWidth) / columnWidth),
+  );
+  const numDays = Math.max(1, Math.round(width / columnWidth));
+  const endIndex = Math.min(columnCount - 1, startIndex + numDays - 1);
+
+  return {
+    startDate: getDateAtColumnIndex(startIndex, weekStart, showWeekend),
+    endDate: getDateAtColumnIndex(endIndex, weekStart, showWeekend),
+    hoursPerDay: Math.max(
+      Math.round((width / columnWidth) * FULL_DAY_HOURS),
+      1,
+    ),
+  };
+};
+
+/**
+ * Returns whether a visible day column overlaps any existing bar.
+ */
+export const isColumnOccupied = (
+  allocations: OccupyingAllocation[],
+  dayIndex: number,
+  columnWidth: number,
+): boolean => {
+  const colStart = dayIndex * columnWidth;
+  const colEnd = (dayIndex + 1) * columnWidth;
+
+  return allocations.some(
+    (allocation) =>
+      allocation.barOffset < colEnd &&
+      allocation.barOffset + allocation.width > colStart,
+  );
 };

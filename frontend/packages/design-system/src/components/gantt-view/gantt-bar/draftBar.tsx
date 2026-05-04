@@ -13,12 +13,18 @@ import { GanttBar } from "./ganttBar";
 interface DraftBarProps {
   /** Absolute left position including headerWidth offset */
   left: number;
+  /** Width in px for the draft span */
+  width: number;
+  /** Triggered after resize snap completes */
+  onResizeEnd?: (nextWidth: number) => void;
+  /** Triggered when clicking the draft body */
+  onClick?: () => void;
 }
 
 /**
  * A newly placed allocation bar that the user can immediately resize before committing.
  */
-export function DraftBar({ left }: DraftBarProps) {
+export function DraftBar({ left, width, onResizeEnd, onClick }: DraftBarProps) {
   const { columnWidth } = useGanttStore((s) => ({
     columnWidth: s.columnWidth,
   }));
@@ -43,9 +49,11 @@ export function DraftBar({ left }: DraftBarProps) {
       label={`${FULL_DAY_HOURS}h`}
       labelFn={labelFn}
       left={left}
-      width={columnWidth}
+      width={width}
       resizable
       snapUnitPx={columnWidth}
+      onResizeEnd={onResizeEnd}
+      onClick={onClick}
     />
   );
 }

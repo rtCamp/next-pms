@@ -41,6 +41,9 @@ export function useGanttBarResize({
     };
   }, []);
 
+  /**
+   * Starts a resize drag from the handle.
+   */
   const handlePointerDown: PointerEventHandler<HTMLSpanElement> = (event) => {
     event.preventDefault();
     event.stopPropagation();
@@ -53,11 +56,16 @@ export function useGanttBarResize({
     event.currentTarget.setPointerCapture(event.pointerId);
   };
 
+  /**
+   * Updates the live width while the resize handle is dragged.
+   */
   const handlePointerMove: PointerEventHandler<HTMLSpanElement> = (event) => {
     const dragState = dragStateRef.current;
     if (!dragState || dragState.pointerId !== event.pointerId) {
       return;
     }
+
+    event.stopPropagation();
 
     const rawWidth = Math.max(
       dragState.startWidth + (event.clientX - dragState.startX),
@@ -67,11 +75,16 @@ export function useGanttBarResize({
     setLiveWidth(rawWidth);
   };
 
+  /**
+   * Finalizes the resize interaction and emits the snapped width.
+   */
   const endResize: PointerEventHandler<HTMLSpanElement> = (event) => {
     const dragState = dragStateRef.current;
     if (!dragState || dragState.pointerId !== event.pointerId) {
       return;
     }
+
+    event.stopPropagation();
 
     event.currentTarget.releasePointerCapture(event.pointerId);
     dragStateRef.current = null;

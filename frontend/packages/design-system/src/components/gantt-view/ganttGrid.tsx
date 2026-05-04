@@ -15,6 +15,7 @@ import { createGanttStore, GanttContext, useGanttStore } from "./ganttStore";
 import type { Member } from "./ganttStore";
 import { GanttWeekHeader } from "./ganttWeekHeader";
 import { useContainerResize } from "./hooks/useContainerResize";
+import { useGanttDraftBars } from "./hooks/useGanttDraftBars";
 import type { GanttGridProps } from "./types";
 import { mergeClassNames as cn } from "../../utils";
 
@@ -28,6 +29,8 @@ const GanttGridInner: React.FC<{
     headerWidth,
     daysPerWeek,
     columnWidth,
+    weekStart,
+    showWeekend,
     weekendColumns,
     resizeHandleActive,
     setResizeHandleActive,
@@ -42,6 +45,8 @@ const GanttGridInner: React.FC<{
     headerWidth: s.headerWidth,
     daysPerWeek: s.daysPerWeek,
     columnWidth: s.columnWidth,
+    weekStart: s.weekStart,
+    showWeekend: s.showWeekend,
     weekendColumns: s.weekendColumns,
     resizeHandleActive: s.resizeHandleActive,
     setResizeHandleActive: s.setResizeHandleActive,
@@ -52,75 +57,23 @@ const GanttGridInner: React.FC<{
     onAddAllocation: s.onAddAllocation,
   }));
 
-  const [hoverAddBlock, setHoverAddBlock] = useState<{
-    rowKey: string;
-    left: number;
-  } | null>(null);
-
-  const [draftBars, setDraftBars] = useState<
-    Array<{ rowKey: string; left: number }>
-  >([]);
-
-  const hasDraftForRow = (rowKey: string) => {
-    return draftBars.some((draft) => draft.rowKey === rowKey);
-  };
-
-  const handleAddBlock = (rowKey: string, left: number) => {
-    setHoverAddBlock(null);
-    setDraftBars((prev) => {
-      const filtered = prev.filter((d) => d.rowKey !== rowKey);
-      return [...filtered, { rowKey, left }];
-    });
-  };
-
-  /**
-   * Checks if the given day column (0-indexed) overlaps with any existing allocation bars.
-   */
-  const isColumnOccupied = (
-    allocations: Array<{ barOffset: number; width: number }>,
-    dayIndex: number,
-  ): boolean => {
-    const colStart = dayIndex * columnWidth;
-    const colEnd = (dayIndex + 1) * columnWidth;
-    return allocations.some(
-      (a) => a.barOffset < colEnd && a.barOffset + a.width > colStart,
-    );
-  };
-
-  /**
-   * Called on mousemove over a member/project row. Snaps the cursor to the
-   * nearest day column and shows the ghost add-bar only if that column is empty.
-   */
-  const handleRowMouseMove = (
-    e: React.MouseEvent<HTMLTableRowElement>,
-    rowKey: string,
-    allocations: Array<{ barOffset: number; width: number }>,
-  ) => {
-    if (hasDraftForRow(rowKey)) {
-      setHoverAddBlock(null);
-      return;
-    }
-
-    const rect = e.currentTarget.getBoundingClientRect();
-    const relativeX = e.clientX - rect.left - headerWidth;
-    const dayIndex = Math.floor(relativeX / columnWidth);
-
-    if (
-      dayIndex < 0 ||
-      dayIndex >= columnCount ||
-      isColumnOccupied(allocations, dayIndex)
-    ) {
-      setHoverAddBlock(null);
-      return;
-    }
-
-    const snappedLeft = headerWidth + dayIndex * columnWidth;
-    setHoverAddBlock((prev) =>
-      prev?.rowKey === rowKey && prev.left === snappedLeft
-        ? prev
-        : { rowKey, left: snappedLeft },
-    );
-  };
+  const {
+    hoverAddBlock,
+    hasDraftForRow,
+    getDraftsForRow,
+    clearHoverAddBlock,
+    addDraftBar,
+    resizeDraftBar,
+    openDraftBar,
+    handleRowMouseMove,
+  } = useGanttDraftBars({
+    headerWidth,
+    columnWidth,
+    columnCount,
+    weekStart,
+    showWeekend,
+    onAddAllocation,
+  });
 
   const onResizePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
     e.preventDefault();
@@ -191,9 +144,7 @@ const GanttGridInner: React.FC<{
                           )
                       : undefined
                   }
-                  onMouseLeave={
-                    hasRoleAccess ? () => setHoverAddBlock(null) : undefined
-                  }
+                  onMouseLeave={hasRoleAccess ? clearHoverAddBlock : undefined}
                 >
                   <GanttMemberItem memberInd={rowIndex} />
                   {weeks.map((_, i) => {
@@ -221,14 +172,17 @@ const GanttGridInner: React.FC<{
                         resizable={true}
                       />
                     ))}
-                    {draftBars
-                      .filter((d) => d.rowKey === `member-${rowIndex}`)
-                      .map((d) => (
-                        <DraftBar
-                          key={`draft-member-${rowIndex}`}
-                          left={d.left}
-                        />
-                      ))}
+                    {getDraftsForRow(`member-${rowIndex}`).map((draft) => (
+                      <DraftBar
+                        key={`draft-member-${rowIndex}`}
+                        left={draft.left}
+                        width={draft.width}
+                        onResizeEnd={(nextWidth) =>
+                          resizeDraftBar(draft.rowKey, nextWidth)
+                        }
+                        onClick={() => openDraftBar(draft)}
+                      />
+                    ))}
                     {hasRoleAccess &&
                       hoverAddBlock?.rowKey === `member-${rowIndex}` &&
                       !hasDraftForRow(`member-${rowIndex}`) && (
@@ -236,10 +190,12 @@ const GanttGridInner: React.FC<{
                           left={hoverAddBlock.left}
                           width={columnWidth}
                           onClick={() =>
-                            handleAddBlock(
-                              `member-${rowIndex}`,
-                              hoverAddBlock.left,
-                            )
+                            addDraftBar({
+                              rowKey: `member-${rowIndex}`,
+                              left: hoverAddBlock.left,
+                              width: columnWidth,
+                              employeeId: member.id,
+                            })
                           }
                         />
                       )}
@@ -267,7 +223,7 @@ const GanttGridInner: React.FC<{
                       }
                       onMouseLeave={
                         hasRoleAccess && isExpanded
-                          ? () => setHoverAddBlock(null)
+                          ? clearHoverAddBlock
                           : undefined
                       }
                     >
@@ -314,18 +270,19 @@ const GanttGridInner: React.FC<{
                             );
                           })}
                         {isExpanded &&
-                          draftBars
-                            .filter(
-                              (d) =>
-                                d.rowKey ===
-                                `project-${rowIndex}-${projectIndex}`,
-                            )
-                            .map((d) => (
-                              <DraftBar
-                                key={`draft-project-${rowIndex}-${projectIndex}`}
-                                left={d.left}
-                              />
-                            ))}
+                          getDraftsForRow(
+                            `project-${rowIndex}-${projectIndex}`,
+                          ).map((draft) => (
+                            <DraftBar
+                              key={`draft-project-${rowIndex}-${projectIndex}`}
+                              left={draft.left}
+                              width={draft.width}
+                              onResizeEnd={(nextWidth) =>
+                                resizeDraftBar(draft.rowKey, nextWidth)
+                              }
+                              onClick={() => openDraftBar(draft)}
+                            />
+                          ))}
                         {hasRoleAccess &&
                           isExpanded &&
                           hoverAddBlock?.rowKey ===
@@ -337,10 +294,14 @@ const GanttGridInner: React.FC<{
                               left={hoverAddBlock.left}
                               width={columnWidth}
                               onClick={() =>
-                                handleAddBlock(
-                                  `project-${rowIndex}-${projectIndex}`,
-                                  hoverAddBlock.left,
-                                )
+                                addDraftBar({
+                                  rowKey: `project-${rowIndex}-${projectIndex}`,
+                                  left: hoverAddBlock.left,
+                                  width: columnWidth,
+                                  employeeId: member.id,
+                                  projectId: project.id,
+                                  projectName: project.name,
+                                })
                               }
                             />
                           )}

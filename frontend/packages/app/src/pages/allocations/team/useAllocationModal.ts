@@ -29,10 +29,12 @@ export function useAllocationModal() {
     setVariant("add");
     setInitialValues({
       employeeId: data.employeeId,
+      projectId: data.projectId,
       fromDate: data.startDate
         ? format(data.startDate, "yyyy-MM-dd")
         : undefined,
       toDate: data.endDate ? format(data.endDate, "yyyy-MM-dd") : undefined,
+      hoursPerDay: data.hoursPerDay,
     });
     setIsOpen(true);
   }, []);

@@ -106,6 +106,7 @@ export const GanttBar = React.forwardRef<HTMLDivElement, GanttBarProps>(
                 onPointerMove={handlePointerMove}
                 onPointerUp={endResize}
                 onPointerCancel={endResize}
+                onClick={(event) => event.stopPropagation()}
               />
             ) : null}
           </>
