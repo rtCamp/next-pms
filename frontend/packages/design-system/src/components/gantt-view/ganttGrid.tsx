@@ -68,9 +68,8 @@ const GanttGridInner: React.FC<{
     hasDraftForRow,
     getDraftsForRow,
     clearHoverAddBlock,
-    addDraftBar,
-    resizeDraftBar,
-    openDraftBar,
+    handleAddDraftBar,
+    handleResizeEnd,
     handleRowMouseMove,
   } = useGanttDraftBars({
     headerWidth,
@@ -187,9 +186,8 @@ const GanttGridInner: React.FC<{
                         left={draft.left}
                         width={draft.width}
                         onResizeEnd={(nextWidth) =>
-                          resizeDraftBar(draft.rowKey, nextWidth)
+                          handleResizeEnd(draft.rowKey, nextWidth)
                         }
-                        onClick={() => openDraftBar(draft)}
                       />
                     ))}
                     {hasRoleAccess &&
@@ -199,7 +197,7 @@ const GanttGridInner: React.FC<{
                           left={hoverAddBlock.left}
                           width={columnWidth}
                           onClick={() =>
-                            addDraftBar({
+                            handleAddDraftBar({
                               rowKey: `member-${rowIndex}`,
                               left: hoverAddBlock.left,
                               width: columnWidth,
@@ -287,9 +285,8 @@ const GanttGridInner: React.FC<{
                               left={draft.left}
                               width={draft.width}
                               onResizeEnd={(nextWidth) =>
-                                resizeDraftBar(draft.rowKey, nextWidth)
+                                handleResizeEnd(draft.rowKey, nextWidth)
                               }
-                              onClick={() => openDraftBar(draft)}
                             />
                           ))}
                         {hasRoleAccess &&
@@ -303,7 +300,7 @@ const GanttGridInner: React.FC<{
                               left={hoverAddBlock.left}
                               width={columnWidth}
                               onClick={() =>
-                                addDraftBar({
+                                handleAddDraftBar({
                                   rowKey: `project-${rowIndex}-${projectIndex}`,
                                   left: hoverAddBlock.left,
                                   width: columnWidth,

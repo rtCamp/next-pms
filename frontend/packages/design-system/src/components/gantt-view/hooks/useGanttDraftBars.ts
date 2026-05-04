@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useState } from "react";
 import type { AllocationCallbackData } from "../types";
 import {
   getDraftMeta,
@@ -37,7 +37,6 @@ export function useGanttDraftBars({
     null,
   );
   const [draftBars, setDraftBars] = useState<DraftBarEntry[]>([]);
-  const lastResizeAtRef = useRef<Record<string, number>>({});
 
   const clearHoverAddBlock = useCallback(() => {
     setHoverAddBlock(null);
@@ -60,7 +59,7 @@ export function useGanttDraftBars({
   /**
    * Creates or replaces the draft bar for a row.
    */
-  const addDraftBar = useCallback(
+  const handleAddDraftBar = useCallback(
     (draft: DraftBarSeed) => {
       setHoverAddBlock(null);
       setDraftBars((prev) => {
@@ -85,57 +84,48 @@ export function useGanttDraftBars({
     [columnCount, columnWidth, headerWidth, showWeekend, weekStart],
   );
 
-  /**
-   * Updates draft width and recomputes its derived metadata.
-   */
-  const resizeDraftBar = useCallback(
+  const handleResizeEnd = useCallback(
     (rowKey: string, nextWidth: number) => {
-      lastResizeAtRef.current[rowKey] = Date.now();
-      setDraftBars((prev) =>
-        prev.map((draft) =>
-          draft.rowKey === rowKey
-            ? {
-                ...draft,
-                width: nextWidth,
-                ...getDraftMeta({
-                  left: draft.left,
-                  width: nextWidth,
-                  headerWidth,
-                  columnWidth,
-                  columnCount,
-                  weekStart,
-                  showWeekend,
-                }),
-              }
-            : draft,
-        ),
-      );
-    },
-    [columnCount, columnWidth, headerWidth, showWeekend, weekStart],
-  );
-
-  const openDraftBar = useCallback(
-    (draft: DraftBarEntry) => {
-      const lastResizeAt = lastResizeAtRef.current[draft.rowKey] ?? 0;
-      if (Date.now() - lastResizeAt < 250) {
+      const draft = draftBars.find((entry) => entry.rowKey === rowKey);
+      if (!draft) {
         return;
       }
 
-      onAddAllocation?.({
-        employeeId: draft.employeeId,
-        projectId: draft.projectId,
-        projectName: draft.projectName,
-        startDate: draft.startDate,
-        endDate: draft.endDate,
-        hoursPerDay: draft.hoursPerDay,
-      });
+      const nextDraft = {
+        ...draft,
+        width: nextWidth,
+        ...getDraftMeta({
+          left: draft.left,
+          width: nextWidth,
+          headerWidth,
+          columnWidth,
+          columnCount,
+          weekStart,
+          showWeekend,
+        }),
+      };
 
-      setDraftBars((prev) =>
-        prev.filter((entry) => entry.rowKey !== draft.rowKey),
-      );
+      setDraftBars((prev) => prev.filter((entry) => entry.rowKey !== rowKey));
       setHoverAddBlock(null);
+
+      onAddAllocation?.({
+        employeeId: nextDraft.employeeId,
+        projectId: nextDraft.projectId,
+        projectName: nextDraft.projectName,
+        startDate: nextDraft.startDate,
+        endDate: nextDraft.endDate,
+        hoursPerDay: nextDraft.hoursPerDay,
+      });
     },
-    [onAddAllocation],
+    [
+      columnCount,
+      columnWidth,
+      draftBars,
+      headerWidth,
+      onAddAllocation,
+      showWeekend,
+      weekStart,
+    ],
   );
 
   /**
@@ -180,9 +170,8 @@ export function useGanttDraftBars({
     hasDraftForRow,
     getDraftsForRow,
     clearHoverAddBlock,
-    addDraftBar,
-    resizeDraftBar,
-    openDraftBar,
+    handleAddDraftBar,
+    handleResizeEnd,
     handleRowMouseMove,
   };
 }

@@ -7,7 +7,7 @@ import { CrosshatchLayer } from "./crosshatchLayer";
 import { useGanttBarResize } from "../hooks/useGanttBarResize";
 
 const ganttBarVariants = cva(
-  "group absolute shrink-0 flex items-center gap-1.5 rounded-[9px] mx-0.5 px-2.5 py-2 overflow-hidden whitespace-nowrap",
+  "group absolute shrink-0 flex items-center gap-1.5 rounded-[9px] mx-0.5 px-2.5 py-2 whitespace-nowrap",
   {
     variants: {
       variant: {
@@ -37,7 +37,8 @@ interface GanttBarProps
   snapUnitPx?: number;
   onResizeEnd?: (nextWidth: number) => void;
   resetWidthOnResizeEnd?: boolean;
-  labelFn?: (liveWidth: number) => string;
+  renderLabel?: (liveWidth: number) => React.ReactNode;
+  renderFloatingLabel?: (liveWidth: number) => React.ReactNode;
 }
 
 export const GanttBar = React.forwardRef<HTMLDivElement, GanttBarProps>(
@@ -54,7 +55,8 @@ export const GanttBar = React.forwardRef<HTMLDivElement, GanttBarProps>(
       snapUnitPx,
       onResizeEnd,
       resetWidthOnResizeEnd = false,
-      labelFn,
+      renderLabel,
+      renderFloatingLabel,
       ...divProps
     },
     ref,
@@ -103,7 +105,7 @@ export const GanttBar = React.forwardRef<HTMLDivElement, GanttBarProps>(
         ) : (
           <>
             <span className="text-[13px] font-medium tracking-[0.02em] truncate">
-              {labelFn ? labelFn(liveWidth) : label}
+              {renderLabel ? renderLabel(liveWidth) : label}
             </span>
             {billable === false ? (
               <span className="block ml-1 w-1 h-1 rounded-full bg-surface-amber-3"></span>
@@ -118,6 +120,11 @@ export const GanttBar = React.forwardRef<HTMLDivElement, GanttBarProps>(
                 onClick={(event) => event.stopPropagation()}
               >
                 <span className="pointer-events-none block h-4 w-0.5 rounded-2xl bg-surface-gray-4 opacity-0 transition-opacity group-hover:opacity-100" />
+              </span>
+            ) : null}
+            {renderFloatingLabel ? (
+              <span className="pointer-events-none absolute right-0 top-full mt-1 pr-2 whitespace-nowrap text-[13px] font-medium text-ink-gray-6">
+                {renderFloatingLabel(liveWidth)}
               </span>
             ) : null}
           </>
