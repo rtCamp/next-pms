@@ -1,4 +1,10 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { Plus } from "lucide-react";
 import {
   ADD_PROJECT_ROW_HEIGHT,
@@ -75,10 +81,13 @@ const GanttGridInner: React.FC<{
     onAddAllocation,
   });
 
-  const onResizePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    startResize(e.clientX);
-  };
+  const onResizePointerDown = useCallback(
+    (e: React.PointerEvent<HTMLDivElement>) => {
+      e.preventDefault();
+      startResize(e.clientX);
+    },
+    [startResize],
+  );
 
   return (
     <div
@@ -169,7 +178,7 @@ const GanttGridInner: React.FC<{
                         key={idx}
                         allocation={alloc}
                         memberInd={rowIndex}
-                        resizable={true}
+                        resizable={false}
                       />
                     ))}
                     {getDraftsForRow(`member-${rowIndex}`).map((draft) => (

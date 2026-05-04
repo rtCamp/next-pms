@@ -36,6 +36,7 @@ interface GanttBarProps
   resizable?: boolean;
   snapUnitPx?: number;
   onResizeEnd?: (nextWidth: number) => void;
+  resetWidthOnResizeEnd?: boolean;
   labelFn?: (liveWidth: number) => string;
 }
 
@@ -52,6 +53,7 @@ export const GanttBar = React.forwardRef<HTMLDivElement, GanttBarProps>(
       resizable = false,
       snapUnitPx,
       onResizeEnd,
+      resetWidthOnResizeEnd = false,
       labelFn,
       ...divProps
     },
@@ -61,11 +63,12 @@ export const GanttBar = React.forwardRef<HTMLDivElement, GanttBarProps>(
     const isCrosshatch = theme === "crosshatch";
     const isClickableDraft =
       variant === "draft" && typeof divProps.onClick === "function";
-    const { liveWidth, handlePointerDown, handlePointerMove, endResize } =
+    const { liveWidth, handlePointerDown, handlePointerMove, handleEndResize } =
       useGanttBarResize({
         width,
         snapUnitPx: resizable ? snapUnitPx : undefined,
         onResizeEnd: resizable ? onResizeEnd : undefined,
+        resetWidthOnResizeEnd,
       });
 
     return (
@@ -110,8 +113,8 @@ export const GanttBar = React.forwardRef<HTMLDivElement, GanttBarProps>(
                 className="absolute inset-y-0 right-0 flex w-3.5 cursor-ew-resize items-center justify-end pr-2 touch-none"
                 onPointerDown={handlePointerDown}
                 onPointerMove={handlePointerMove}
-                onPointerUp={endResize}
-                onPointerCancel={endResize}
+                onPointerUp={handleEndResize}
+                onPointerCancel={handleEndResize}
                 onClick={(event) => event.stopPropagation()}
               >
                 <span className="pointer-events-none block h-4 w-0.5 rounded-2xl bg-surface-gray-4 opacity-0 transition-opacity group-hover:opacity-100" />

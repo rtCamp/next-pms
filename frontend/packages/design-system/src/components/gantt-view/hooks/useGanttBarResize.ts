@@ -1,4 +1,10 @@
-import { useEffect, useRef, useState, type PointerEventHandler } from "react";
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type PointerEventHandler,
+} from "react";
 
 const MIN_BAR_WIDTH = 12;
 
@@ -14,12 +20,14 @@ type UseGanttBarResizeOptions = {
   width: number;
   snapUnitPx?: number;
   onResizeEnd?: (nextWidth: number) => void;
+  resetWidthOnResizeEnd?: boolean;
 };
 
 export function useGanttBarResize({
   width,
   snapUnitPx,
   onResizeEnd,
+  resetWidthOnResizeEnd = false,
 }: UseGanttBarResizeOptions) {
   const [liveWidth, setLiveWidth] = useState(width);
   const liveWidthRef = useRef(width);
@@ -44,61 +52,70 @@ export function useGanttBarResize({
   /**
    * Starts a resize drag from the handle.
    */
-  const handlePointerDown: PointerEventHandler<HTMLSpanElement> = (event) => {
-    event.preventDefault();
-    event.stopPropagation();
-    dragStateRef.current = {
-      pointerId: event.pointerId,
-      startX: event.clientX,
-      startWidth: liveWidth,
-    };
-    document.body.style.userSelect = "none";
-    event.currentTarget.setPointerCapture(event.pointerId);
-  };
+  const handlePointerDown: PointerEventHandler<HTMLSpanElement> = useCallback(
+    (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      dragStateRef.current = {
+        pointerId: event.pointerId,
+        startX: event.clientX,
+        startWidth: liveWidth,
+      };
+      document.body.style.userSelect = "none";
+      event.currentTarget.setPointerCapture(event.pointerId);
+    },
+    [liveWidth],
+  );
 
   /**
    * Updates the live width while the resize handle is dragged.
    */
-  const handlePointerMove: PointerEventHandler<HTMLSpanElement> = (event) => {
-    const dragState = dragStateRef.current;
-    if (!dragState || dragState.pointerId !== event.pointerId) {
-      return;
-    }
+  const handlePointerMove: PointerEventHandler<HTMLSpanElement> = useCallback(
+    (event) => {
+      const dragState = dragStateRef.current;
+      if (!dragState || dragState.pointerId !== event.pointerId) {
+        return;
+      }
 
-    event.stopPropagation();
+      event.stopPropagation();
 
-    const rawWidth = Math.max(
-      dragState.startWidth + (event.clientX - dragState.startX),
-      MIN_BAR_WIDTH,
-    );
-    liveWidthRef.current = rawWidth;
-    setLiveWidth(rawWidth);
-  };
+      const rawWidth = Math.max(
+        dragState.startWidth + (event.clientX - dragState.startX),
+        MIN_BAR_WIDTH,
+      );
+      liveWidthRef.current = rawWidth;
+      setLiveWidth(rawWidth);
+    },
+    [],
+  );
 
   /**
    * Finalizes the resize interaction and emits the snapped width.
    */
-  const endResize: PointerEventHandler<HTMLSpanElement> = (event) => {
-    const dragState = dragStateRef.current;
-    if (!dragState || dragState.pointerId !== event.pointerId) {
-      return;
-    }
+  const handleEndResize: PointerEventHandler<HTMLSpanElement> = useCallback(
+    (event) => {
+      const dragState = dragStateRef.current;
+      if (!dragState || dragState.pointerId !== event.pointerId) {
+        return;
+      }
 
-    event.stopPropagation();
+      event.stopPropagation();
 
-    event.currentTarget.releasePointerCapture(event.pointerId);
-    dragStateRef.current = null;
-    document.body.style.userSelect = "";
+      event.currentTarget.releasePointerCapture(event.pointerId);
+      dragStateRef.current = null;
+      document.body.style.userSelect = "";
 
-    const snappedWidth = snapWidth(liveWidthRef.current, snapUnitPx);
-    setLiveWidth(snappedWidth);
-    onResizeEnd?.(snappedWidth);
-  };
+      const snappedWidth = snapWidth(liveWidthRef.current, snapUnitPx);
+      onResizeEnd?.(snappedWidth);
+      setLiveWidth(resetWidthOnResizeEnd ? width : snappedWidth);
+    },
+    [onResizeEnd, snapUnitPx, resetWidthOnResizeEnd, width],
+  );
 
   return {
     liveWidth,
     handlePointerDown,
     handlePointerMove,
-    endResize,
+    handleEndResize,
   };
 }
