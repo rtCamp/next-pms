@@ -22,6 +22,7 @@ import { ChevronLeft, ChevronRight, Ellipsis } from "lucide-react";
  * Internal dependencies.
  */
 import { InfiniteScroll } from "@/components/infiniteScroll";
+import { isWeekendEntryAllowed } from "@/lib/utils";
 import { useUser } from "@/providers/user";
 import { EMPLOYEES_PER_PAGE } from "./constants";
 import { AllocationsDuration, useAllocationsTeam } from "./context";
@@ -100,6 +101,7 @@ export const AllocationsTeamTable = () => {
     openDeleteAllocationDialog,
   } = useAllocationsTeamOutletContext();
 
+  const showWeekend = isWeekendEntryAllowed();
   const hasMembers = filteredMembers.length > 0;
   const isFilteredDataLoading = isLoading && isFilterRequest;
   const showOverlay = isFilteredDataLoading || (isLoading && !hasMembers);
@@ -187,6 +189,7 @@ export const AllocationsTeamTable = () => {
               members={filteredMembers}
               weekCount={weekCount}
               hasRoleAccess={hasRoleAccess}
+              showWeekend={showWeekend}
               onAddAllocation={openAddAllocationDialog}
               onEditAllocation={openEditAllocationDialog}
               onDeleteAllocation={openDeleteAllocationDialog}

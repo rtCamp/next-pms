@@ -49,9 +49,7 @@ export function mergeClassNames(...inputs: ClassValue[]) {
 export function formatProjectDate(isoDate: string): string {
   const date = parse(isoDate, "yyyy-MM-dd", new Date());
   const pattern =
-    date.getFullYear() === new Date().getFullYear()
-      ? "MMM d"
-      : "MMM d, yyyy";
+    date.getFullYear() === new Date().getFullYear() ? "MMM d" : "MMM d, yyyy";
   return format(date, pattern);
 }
 
@@ -76,6 +74,10 @@ export const getSiteName = () => {
   // eslint-disable-next-line
   // @ts-expect-error
   return window.frappe?.boot?.sitename ?? import.meta.env.VITE_SITE_NAME;
+};
+
+export const isWeekendEntryAllowed = (): boolean => {
+  return window.frappe?.boot?.allow_weekend_entries ?? false;
 };
 
 export function parseFrappeErrorMsg(error: FrappeError) {
