@@ -230,10 +230,7 @@ export const getDraftMeta = ({
   return {
     startDate: getDateAtColumnIndex(startIndex, weekStart, showWeekend),
     endDate: getDateAtColumnIndex(endIndex, weekStart, showWeekend),
-    hoursPerDay: Math.max(
-      Math.round((width / columnWidth) * FULL_DAY_HOURS),
-      1,
-    ),
+    hoursPerDay: FULL_DAY_HOURS,
   };
 };
 

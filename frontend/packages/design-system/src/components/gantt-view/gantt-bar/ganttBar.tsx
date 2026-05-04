@@ -59,6 +59,8 @@ export const GanttBar = React.forwardRef<HTMLDivElement, GanttBarProps>(
   ) {
     const isTimeoff = variant === "timeoff";
     const isCrosshatch = theme === "crosshatch";
+    const isClickableDraft =
+      variant === "draft" && typeof divProps.onClick === "function";
     const { liveWidth, handlePointerDown, handlePointerMove, endResize } =
       useGanttBarResize({
         width,
@@ -69,7 +71,11 @@ export const GanttBar = React.forwardRef<HTMLDivElement, GanttBarProps>(
     return (
       <div
         ref={ref}
-        className={cn(ganttBarVariants({ variant }), className)}
+        className={cn(
+          ganttBarVariants({ variant }),
+          isClickableDraft && "cursor-pointer",
+          className,
+        )}
         {...divProps}
         style={{
           ...divProps.style,
@@ -101,13 +107,15 @@ export const GanttBar = React.forwardRef<HTMLDivElement, GanttBarProps>(
             ) : null}
             {resizable ? (
               <span
-                className="opacity-0 group-hover:opacity-100 cursor-ew-resize transition-opacity block absolute right-2 w-0.5 h-4 bg-surface-gray-4 rounded-2xl touch-none"
+                className="absolute inset-y-0 right-0 flex w-3.5 cursor-ew-resize items-center justify-end pr-2 touch-none"
                 onPointerDown={handlePointerDown}
                 onPointerMove={handlePointerMove}
                 onPointerUp={endResize}
                 onPointerCancel={endResize}
                 onClick={(event) => event.stopPropagation()}
-              />
+              >
+                <span className="pointer-events-none block h-4 w-0.5 rounded-2xl bg-surface-gray-4 opacity-0 transition-opacity group-hover:opacity-100" />
+              </span>
             ) : null}
           </>
         )}
