@@ -11,6 +11,48 @@ function parseFrappeDatetime(datetime: string): Date {
 }
 
 /**
+ * Gets a unique key for a member based on their ID or name.
+ */
+function getMemberKey(member: Member) {
+  return member.id ?? member.name;
+}
+
+/**
+ * Appends new members to the current list, avoiding duplicates based on member ID or name.
+ */
+export function appendMembers(current: Member[], incoming: Member[]) {
+  const seen = new Set(current.map(getMemberKey));
+  const next = [...current];
+
+  for (const member of incoming) {
+    const memberKey = getMemberKey(member);
+
+    if (seen.has(memberKey)) {
+      continue;
+    }
+
+    seen.add(memberKey);
+    next.push(member);
+  }
+
+  return next;
+}
+
+/**
+ * Replaces existing members with incoming members based on member ID or name.
+ */
+export function replaceMembers(current: Member[], incoming: Member[]) {
+  const incomingById = new Map(
+    incoming.map((member) => [getMemberKey(member), member]),
+  );
+
+  return current.map((member) => {
+    const memberKey = getMemberKey(member);
+    return incomingById.get(memberKey) ?? member;
+  });
+}
+
+/**
  * Converts a TeamAllocationResponse from the API into a Member[] array
  * suitable for the GanttGrid component.
  */

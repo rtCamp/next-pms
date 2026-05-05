@@ -67,9 +67,12 @@ export function AllocationsTeamProvider({
     dispatch({ type: "MOVE_TODAY" });
   }, []);
 
-  const handleRefresh = useCallback(async () => {
-    await refresh();
-  }, [refresh]);
+  const handleRefresh = useCallback(
+    async (employeeIds?: string[]) => {
+      await refresh(employeeIds);
+    },
+    [refresh],
+  );
 
   const value = useMemo<AllocationsTeamContextProps>(
     () => ({

@@ -13,7 +13,11 @@ import { useFrappePostCall } from "frappe-react-sdk";
  */
 import { parseFrappeErrorMsg } from "@/lib/utils";
 import type { TeamAllocationResponse } from "./type";
-import { mapTeamAllocationToMembers } from "./utils";
+import {
+  appendMembers,
+  mapTeamAllocationToMembers,
+  replaceMembers,
+} from "./utils";
 
 type UseAllocationsTeamDataOptions = {
   anchorDate: Date;
@@ -27,7 +31,7 @@ type UseAllocationsTeamDataResult = {
   members: Member[];
   hasMore: boolean;
   isLoading: boolean;
-  refresh: () => Promise<void>;
+  refresh: (employeeIds?: string[]) => Promise<void>;
 };
 
 type AllocationsTeamDataState = Omit<UseAllocationsTeamDataResult, "refresh">;
@@ -50,60 +54,105 @@ export function useAllocationsTeamData({
     isLoading: false,
   });
   const latestRequestIdRef = useRef(0);
-
-  const refresh = useCallback<
-    UseAllocationsTeamDataResult["refresh"]
-  >(async () => {
-    const requestId = latestRequestIdRef.current + 1;
-    latestRequestIdRef.current = requestId;
-
-    setData((current) => ({
-      ...current,
-      isLoading: true,
-    }));
-
-    try {
-      const loadedMemberCount = Math.max(pageLength, start + pageLength);
-
-      const response = await fetchTeamViewData({
-        date: format(anchorDate, "yyyy-MM-dd"),
-        max_week: weekCount,
-        employee_name: search || null,
-        start: 0,
-        page_length: loadedMemberCount,
-        need_hours_summary: false,
-      });
-
-      if (requestId === latestRequestIdRef.current) {
-        const payload = (response?.message ?? {}) as TeamAllocationResponse;
-        setData({
-          members: mapTeamAllocationToMembers(payload),
-          hasMore: Boolean(payload.has_more),
-          isLoading: false,
-        });
-      }
-    } catch (err) {
-      if (requestId === latestRequestIdRef.current) {
-        setData((current) => ({
-          ...current,
-          isLoading: false,
-        }));
-        toast.error(parseFrappeErrorMsg(err as FrappeError));
-      }
-    }
-  }, [
-    fetchTeamViewData,
-    anchorDate,
-    weekCount,
-    search,
-    start,
-    pageLength,
-    toast,
-  ]);
+  const fetchTeamViewDataRef = useRef(fetchTeamViewData);
+  const toastRef = useRef(toast);
 
   useEffect(() => {
-    void refresh();
-  }, [refresh]);
+    fetchTeamViewDataRef.current = fetchTeamViewData;
+  }, [fetchTeamViewData]);
+
+  useEffect(() => {
+    toastRef.current = toast;
+  }, [toast]);
+
+  const fetchMembers = useCallback(
+    async ({
+      requestStart,
+      requestPageLength,
+      employeeIds,
+    }: {
+      requestStart: number;
+      requestPageLength: number;
+      employeeIds?: string[];
+    }) => {
+      const requestId = latestRequestIdRef.current + 1;
+      latestRequestIdRef.current = requestId;
+      const requestDate = format(anchorDate, "yyyy-MM-dd");
+
+      setData((current) => ({
+        ...current,
+        isLoading: true,
+      }));
+
+      try {
+        const response = await fetchTeamViewDataRef.current({
+          date: requestDate,
+          max_week: weekCount,
+          employee_name: search || null,
+          start: requestStart,
+          page_length: requestPageLength,
+          need_hours_summary: false,
+          ...(employeeIds?.length
+            ? { employee_id: JSON.stringify(employeeIds) }
+            : {}),
+        });
+
+        if (requestId !== latestRequestIdRef.current) {
+          return;
+        }
+
+        const payload = (response?.message ?? {}) as TeamAllocationResponse;
+        const incomingMembers = mapTeamAllocationToMembers(payload);
+
+        setData((current) => ({
+          members: employeeIds?.length
+            ? replaceMembers(current.members, incomingMembers)
+            : requestStart > 0
+              ? appendMembers(current.members, incomingMembers)
+              : incomingMembers,
+          hasMore: employeeIds?.length
+            ? current.hasMore
+            : Boolean(payload.has_more),
+          isLoading: false,
+        }));
+      } catch (err) {
+        if (requestId === latestRequestIdRef.current) {
+          setData((current) => ({
+            ...current,
+            isLoading: false,
+          }));
+          toastRef.current.error(parseFrappeErrorMsg(err as FrappeError));
+        }
+      }
+    },
+    [anchorDate, weekCount, search],
+  );
+
+  const refresh = useCallback<UseAllocationsTeamDataResult["refresh"]>(
+    async (employeeIds) => {
+      const targetEmployeeIds = [...new Set(employeeIds ?? [])].filter(
+        (employeeId): employeeId is string => Boolean(employeeId),
+      );
+
+      if (targetEmployeeIds.length === 0) {
+        return;
+      }
+
+      await fetchMembers({
+        requestStart: 0,
+        requestPageLength: targetEmployeeIds.length,
+        employeeIds: targetEmployeeIds,
+      });
+    },
+    [fetchMembers],
+  );
+
+  useEffect(() => {
+    void fetchMembers({
+      requestStart: start,
+      requestPageLength: pageLength,
+    });
+  }, [anchorDate, fetchMembers, pageLength, search, start, weekCount]);
 
   return {
     ...data,
