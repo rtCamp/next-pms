@@ -12,7 +12,8 @@ LLM_STATUS_URL = "https://rt-report-automation.rt.gw/api/inngest/runs"
 INITIAL_DELAY = 30
 POLL_INTERVAL = 15
 MAX_POLL_DURATION = 840
-MAX_OUTPUT_RETRIES = 3
+MAX_OUTPUT_RETRIES = 10
+COMPLETION_POLL_INTERVAL = 30
 
 
 def get_api_key() -> str:
@@ -159,6 +160,8 @@ def check_and_save_report(project, run_id, user, from_date, to_date):
                     if output_retry_count >= MAX_OUTPUT_RETRIES:
                         _notify(project, user, error="Process completed but no document was generated.")
                         return
+                    time.sleep(COMPLETION_POLL_INTERVAL)
+                    continue
 
             elif status in ("Failed", "Cancelled"):
                 frappe.log_error(f"run_id: {run_id} | status: {status}", "PM Report — Failed/Cancelled")
@@ -251,42 +254,26 @@ def get_hours_breakdown(project, from_date, to_date):
         if not timesheet_details:
             return []
 
-        # Get unique task IDs
-        task_ids = list(set(entry.get("task") for entry in timesheet_details if entry.get("task")))
-
-        # Fetch expected_time for all tasks in a single query
-        task_estimates = {}
-        if task_ids:
-            task_data = frappe.db.get_all(
-                "Task", filters={"name": ["in", task_ids]}, fields=["name", "subject", "expected_time"]
-            )
-            task_estimates = {t["name"]: t for t in task_data}
-
         # Group by task - sum hours_consumed
         task_map = {}
         for entry in timesheet_details:
             task = entry.get("task") or "No Task"
             if task not in task_map:
-                task_map[task] = {"hours_consumed": 0.0, "estimated_hours": 0.0}
+                task_map[task] = {"hours_consumed": 0.0}
             task_map[task]["hours_consumed"] += entry.get("hours") or 0
 
-        # Now add expected_time ONCE per task (after grouping)
-        for task_id in task_map:
-            if task_id != "No Task" and task_id in task_estimates:
-                task_map[task_id]["estimated_hours"] = task_estimates[task_id].get("expected_time") or 0.0
+        task_ids = list(set(t for t in task_map if t != "No Task"))
+        task_titles = {}
+        if task_ids:
+            task_data = frappe.db.get_all("Task", filters={"name": ["in", task_ids]}, fields=["name", "subject"])
+            task_titles = {t["name"]: t["subject"] for t in task_data}
 
-        # Build result with task title
         breakdown = []
         for task_id, data in task_map.items():
-            if task_id == "No Task":
-                task_title = "No Task"
-            else:
-                task_title = task_estimates.get(task_id, {}).get("subject") or task_id
-
+            task_title = "No Task" if task_id == "No Task" else (task_titles.get(task_id) or task_id)
             breakdown.append(
                 {
                     "task_title": task_title,
-                    "estimated_hours": round(data["estimated_hours"], 2),
                     "hours_consumed": round(data["hours_consumed"], 2),
                 }
             )
