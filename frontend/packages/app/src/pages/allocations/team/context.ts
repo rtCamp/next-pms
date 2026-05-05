@@ -23,7 +23,7 @@ export interface AllocationsTeamContextProps {
     handlePrevious: () => void;
     handleNext: () => void;
     handleToday: () => void;
-    refresh: () => Promise<void>;
+    refresh: (employeeIds?: string[]) => Promise<void>;
   };
 }
 
