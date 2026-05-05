@@ -58,6 +58,7 @@ declare global {
         is_calendar_setup: boolean;
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         global_filters: { [key: string]: Array<any> };
+        allow_weekend_entries?: boolean;
       };
     };
   }

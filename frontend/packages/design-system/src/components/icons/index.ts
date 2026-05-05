@@ -1,1 +1,1 @@
-export { Github } from "./github";
+export { default as Github } from "./github.svg?react";

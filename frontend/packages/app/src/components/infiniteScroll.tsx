@@ -2,6 +2,7 @@
  * External dependencies.
  */
 
+import { mergeClassNames as cn } from "@next-pms/design-system";
 import { useInfiniteScroll } from "@next-pms/hooks";
 import { Skeleton } from "@rtcamp/frappe-ui-react";
 
@@ -16,6 +17,7 @@ const InfiniteScroll = ({
   hasMore,
   verticalLodMore,
   className,
+  skeletonClassName,
   count = 1,
 }: InfiniteScrollProps) => {
   const verticalLoderRef = useInfiniteScroll({
@@ -35,7 +37,10 @@ const InfiniteScroll = ({
           {Array.from({ length: count }).map((_, index) => (
             <Skeleton
               key={index}
-              className="h-11.25 shrink-0 w-full rounded-none"
+              className={cn(
+                "h-11.25 shrink-0 w-full rounded-none",
+                skeletonClassName,
+              )}
             />
           ))}
         </div>

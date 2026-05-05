@@ -7,7 +7,7 @@ import { ArrowUpRight } from "@rtcamp/frappe-ui-react/icons";
 /**
  * Internal dependencies.
  */
-import type { AboutCustomer } from "./types";
+import type { AboutCustomer } from "../types";
 
 function handleLinkClick(
   event: React.MouseEvent<HTMLAnchorElement>,

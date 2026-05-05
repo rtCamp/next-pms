@@ -32,9 +32,7 @@ function ProjectDetail() {
           tabIndex={activeTab}
           onTabChange={setActiveTab}
         />
-        <aside className="w-1/4">
-          <AboutThisProject />
-        </aside>
+        <AboutThisProject className="w-88" />
       </div>
     </div>
   );

@@ -19,7 +19,7 @@ export function ProgressHoursSection({
 
   return (
     <Section value="progress" title="Progress (hours)">
-      <div className="flex flex-col gap-2.5 px-5 pb-3">
+      <div className="flex flex-col gap-2.5">
         <div className="flex items-center justify-between">
           <span className="text-base font-medium text-ink-gray-7">
             {consumed} hours
