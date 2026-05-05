@@ -73,9 +73,7 @@ export const AllocationsTeamTable = () => {
     ({ state }) => state.isFilterRequest,
   );
   const hasMore = useAllocationsTeam(({ state }) => state.hasMore);
-  const filteredMembers = useAllocationsTeam(
-    ({ state }) => state.filteredMembers,
-  );
+  const members = useAllocationsTeam(({ state }) => state.members);
   const anchorDate = useAllocationsTeam(({ state }) => state.anchorDate);
   const [allocationsType, setAllocationsType] = useState("all");
   const [compositeFilters, setCompositeFilters] = useState<FilterCondition[]>(
@@ -102,7 +100,7 @@ export const AllocationsTeamTable = () => {
   } = useAllocationsTeamOutletContext();
 
   const showWeekend = isWeekendEntryAllowed();
-  const hasMembers = filteredMembers.length > 0;
+  const hasMembers = members.length > 0;
   const isFilteredDataLoading = isLoading && isFilterRequest;
   const showOverlay = isFilteredDataLoading || (isLoading && !hasMembers);
 
@@ -186,7 +184,7 @@ export const AllocationsTeamTable = () => {
           >
             <GanttGrid
               startDate={anchorDate}
-              members={filteredMembers}
+              members={members}
               weekCount={weekCount}
               hasRoleAccess={hasRoleAccess}
               showWeekend={showWeekend}

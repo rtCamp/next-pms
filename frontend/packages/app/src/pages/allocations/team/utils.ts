@@ -11,31 +11,6 @@ function parseFrappeDatetime(datetime: string): Date {
 }
 
 /**
- * Merges two Member arrays, ensuring uniqueness based on stable member identity.
- */
-export function mergeUniqueMembers(
-  current: Member[],
-  incoming: Member[],
-): Member[] {
-  const getMemberKey = (member: Member) => member.id ?? member.name;
-  const seen = new Set(current.map(getMemberKey));
-  const next = [...current];
-
-  for (const member of incoming) {
-    const memberKey = getMemberKey(member);
-
-    if (seen.has(memberKey)) {
-      continue;
-    }
-
-    seen.add(memberKey);
-    next.push(member);
-  }
-
-  return next;
-}
-
-/**
  * Converts a TeamAllocationResponse from the API into a Member[] array
  * suitable for the GanttGrid component.
  */
