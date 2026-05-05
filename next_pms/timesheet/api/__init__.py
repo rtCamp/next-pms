@@ -53,6 +53,7 @@ def filter_employees(
     roles: list[str] | None = None,
     ignore_default_filters=False,
     ignore_permissions=False,
+    extra_fields: list[str] | None = None,
 ):
     """Apply Employee-level filters and return a paged list of matching employee doctypes and the total count."""
     import json
@@ -63,6 +64,8 @@ def filter_employees(
         ignore_permissions = set(user_roles).intersection(["Timesheet User", "Timesheet Manager"])
 
     fields = ["name", "image", "employee_name", "department", "designation"]
+    if extra_fields:
+        fields.extend(extra_fields)
     employee_ids = []
     filters = {"status": ["in", ["Active"]]}
     or_filters = {}
