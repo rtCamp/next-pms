@@ -1,0 +1,51 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2026-04-24 18:41:09.270693",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "report_link",
+  "date_range",
+  "generated_on"
+ ],
+ "fields": [
+  {
+   "fieldname": "report_link",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Report Link",
+   "options": "URL"
+  },
+  {
+   "fieldname": "date_range",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Date Range"
+  },
+  {
+   "fieldname": "generated_on",
+   "fieldtype": "Datetime",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Generated On"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2026-05-03 17:50:08.448243",
+ "modified_by": "Administrator",
+ "module": "Next PMS",
+ "name": "Project Report",
+ "owner": "Administrator",
+ "permissions": [],
+ "row_format": "Dynamic",
+ "rows_threshold_for_grid_search": 20,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}
