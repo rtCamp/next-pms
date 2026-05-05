@@ -3,6 +3,7 @@
  */
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { Member } from "@next-pms/design-system/components";
+import { useToasts } from "@rtcamp/frappe-ui-react";
 import { format } from "date-fns";
 import type { Error as FrappeError } from "frappe-js-sdk/lib/frappe_app/types";
 import { useFrappePostCall } from "frappe-react-sdk";
@@ -10,6 +11,7 @@ import { useFrappePostCall } from "frappe-react-sdk";
 /**
  * Internal dependencies.
  */
+import { parseFrappeErrorMsg } from "@/lib/utils";
 import type { TeamAllocationResponse } from "./type";
 import { mapTeamAllocationToMembers } from "./utils";
 
@@ -24,11 +26,11 @@ type UseAllocationsTeamDataOptions = {
 type UseAllocationsTeamDataResult = {
   members: Member[];
   hasMore: boolean;
-  totalCount: number;
   isLoading: boolean;
-  error: FrappeError | undefined;
   refresh: () => Promise<void>;
 };
+
+type AllocationsTeamDataState = Omit<UseAllocationsTeamDataResult, "refresh">;
 
 export function useAllocationsTeamData({
   anchorDate,
@@ -37,15 +39,16 @@ export function useAllocationsTeamData({
   start,
   pageLength,
 }: UseAllocationsTeamDataOptions): UseAllocationsTeamDataResult {
+  const toast = useToasts();
   const { call: fetchTeamViewData } = useFrappePostCall(
     "next_pms.resource_management.api.team.get_resource_management_team_view_data",
   );
 
-  const [members, setMembers] = useState<Member[]>([]);
-  const [hasMore, setHasMore] = useState(true);
-  const [totalCount, setTotalCount] = useState(0);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<FrappeError>();
+  const [data, setData] = useState<AllocationsTeamDataState>({
+    members: [],
+    hasMore: true,
+    isLoading: false,
+  });
   const latestRequestIdRef = useRef(0);
 
   const refresh = useCallback<
@@ -54,8 +57,10 @@ export function useAllocationsTeamData({
     const requestId = latestRequestIdRef.current + 1;
     latestRequestIdRef.current = requestId;
 
-    setIsLoading(true);
-    setError(undefined);
+    setData((current) => ({
+      ...current,
+      isLoading: true,
+    }));
 
     try {
       const loadedMemberCount = Math.max(pageLength, start + pageLength);
@@ -71,31 +76,37 @@ export function useAllocationsTeamData({
 
       if (requestId === latestRequestIdRef.current) {
         const payload = (response?.message ?? {}) as TeamAllocationResponse;
-        setMembers(mapTeamAllocationToMembers(payload));
-        setHasMore(Boolean(payload.has_more));
-        setTotalCount(payload.total_count ?? 0);
+        setData({
+          members: mapTeamAllocationToMembers(payload),
+          hasMore: Boolean(payload.has_more),
+          isLoading: false,
+        });
       }
     } catch (err) {
       if (requestId === latestRequestIdRef.current) {
-        setError(err as FrappeError);
-      }
-    } finally {
-      if (requestId === latestRequestIdRef.current) {
-        setIsLoading(false);
+        setData((current) => ({
+          ...current,
+          isLoading: false,
+        }));
+        toast.error(parseFrappeErrorMsg(err as FrappeError));
       }
     }
-  }, [fetchTeamViewData, anchorDate, weekCount, search, start, pageLength]);
+  }, [
+    fetchTeamViewData,
+    anchorDate,
+    weekCount,
+    search,
+    start,
+    pageLength,
+    toast,
+  ]);
 
   useEffect(() => {
     void refresh();
   }, [refresh]);
 
   return {
-    members,
-    hasMore,
-    totalCount,
-    isLoading,
-    error,
+    ...data,
     refresh,
   };
 }

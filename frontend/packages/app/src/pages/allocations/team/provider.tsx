@@ -1,15 +1,12 @@
 /**
  * External dependencies.
  */
-import { useCallback, useEffect, useMemo, useReducer } from "react";
-import { useToasts } from "@rtcamp/frappe-ui-react";
-import type { Error as FrappeError } from "frappe-js-sdk/lib/frappe_app/types";
+import { useCallback, useMemo, useReducer } from "react";
 
 /**
  * Internal dependencies.
  */
 import { useDebounce } from "@/hooks/useDebounce";
-import { parseFrappeErrorMsg } from "@/lib/utils";
 import {
   AllocationsTeamContext,
   type AllocationsDuration,
@@ -26,7 +23,6 @@ export function AllocationsTeamProvider({
 }: {
   children: React.ReactNode;
 }) {
-  const toast = useToasts();
   const [state, dispatch] = useReducer(
     allocationsTeamReducer,
     undefined,
@@ -35,42 +31,13 @@ export function AllocationsTeamProvider({
 
   const debouncedSearch = useDebounce(state.searchInput, 400);
 
-  const { members, hasMore, totalCount, isLoading, error, refresh } =
-    useAllocationsTeamData({
-      anchorDate: state.anchorDate,
-      weekCount: state.weekCount,
-      search: debouncedSearch,
-      start: state.start,
-      pageLength: state.pageLength,
-    });
-
-  useEffect(() => {
-    if (!state.isLoading && !isLoading) {
-      return;
-    }
-
-    // Hook started loading while reducer hasn't been flagged yet.
-    if (!state.isLoading) {
-      dispatch({ type: "DATA_LOADING" });
-      return;
-    }
-
-    // Reducer is in loading mode and hook is still fetching.
-    if (isLoading) {
-      return;
-    }
-
-    if (error) {
-      dispatch({ type: "DATA_LOAD_FAILED" });
-      toast.error(parseFrappeErrorMsg(error as FrappeError));
-      return;
-    }
-
-    dispatch({
-      type: "DATA_LOADED",
-      payload: { members, hasMore, totalCount },
-    });
-  }, [error, isLoading, members, hasMore, totalCount, state.isLoading, toast]);
+  const { members, hasMore, isLoading, refresh } = useAllocationsTeamData({
+    anchorDate: state.anchorDate,
+    weekCount: state.weekCount,
+    search: debouncedSearch,
+    start: state.start,
+    pageLength: state.pageLength,
+  });
 
   const setSearch = useCallback((value: string) => {
     dispatch({ type: "SEARCH_CHANGED", payload: value });
@@ -81,8 +48,12 @@ export function AllocationsTeamProvider({
   }, []);
 
   const loadMore = useCallback(() => {
+    if (isLoading || !hasMore) {
+      return;
+    }
+
     dispatch({ type: "LOAD_MORE" });
-  }, []);
+  }, [hasMore, isLoading]);
 
   const handlePrevious = useCallback(() => {
     dispatch({ type: "MOVE_PREVIOUS" });
@@ -102,7 +73,16 @@ export function AllocationsTeamProvider({
 
   const value = useMemo<AllocationsTeamContextProps>(
     () => ({
-      state,
+      state: {
+        members,
+        isLoading,
+        isFilterRequest: state.start === 0,
+        hasMore,
+        searchInput: state.searchInput,
+        duration: state.duration,
+        weekCount: state.weekCount,
+        anchorDate: state.anchorDate,
+      },
       actions: {
         setSearch,
         setDuration,
@@ -114,7 +94,14 @@ export function AllocationsTeamProvider({
       },
     }),
     [
-      state,
+      members,
+      isLoading,
+      hasMore,
+      state.start,
+      state.searchInput,
+      state.duration,
+      state.weekCount,
+      state.anchorDate,
       setSearch,
       setDuration,
       loadMore,

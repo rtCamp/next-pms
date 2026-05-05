@@ -8,11 +8,9 @@ export type AllocationsDuration = "this-week" | "this-month" | "this-quarter";
 export interface AllocationsTeamContextProps {
   state: {
     members: Member[];
-    filteredMembers: Member[];
     isLoading: boolean;
     isFilterRequest: boolean;
     hasMore: boolean;
-    totalCount: number;
     searchInput: string;
     duration: AllocationsDuration;
     weekCount: number;
@@ -33,11 +31,9 @@ export const AllocationsTeamContext =
   createContext<AllocationsTeamContextProps>({
     state: {
       members: [],
-      filteredMembers: [],
       isLoading: false,
       isFilterRequest: false,
       hasMore: true,
-      totalCount: 0,
       searchInput: "",
       duration: "this-quarter",
       weekCount: 13,
