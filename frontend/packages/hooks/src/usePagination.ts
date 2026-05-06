@@ -4,11 +4,12 @@
  */
 import { useContext } from "react";
 import { FrappeContext, FrappeConfig } from "frappe-react-sdk";
-import { StrictTupleKey } from "swr/_internal";
 import useSWRInfinite, {
-    SWRInfiniteConfiguration,
-    SWRInfiniteResponse,
+  SWRInfiniteConfiguration,
+  SWRInfiniteResponse,
 } from "swr/infinite";
+
+export type PaginationKey = readonly [cacheKey: string, pageIndex: number];
 
 /**
  *  Hook to make a GET request to the server with useSWRInfinite support.
@@ -21,28 +22,27 @@ import useSWRInfinite, {
  * @returns an object (SWRResponse) with the following properties: data (number), error, isValidating, and mutate
  */
 export const usePagination = <T = any>(
-    method: string,
-    getKey: (index: number, previousPageData: T | null) => StrictTupleKey,
-    params: Record<string, any> = {},
-    options?: SWRInfiniteConfiguration
+  method: string,
+  getKey: (index: number, previousPageData: T | null) => PaginationKey | null,
+  params: Record<string, any> = {},
+  options?: SWRInfiniteConfiguration,
 ): SWRInfiniteResponse<T, Error> => {
-    const { call } = useContext(FrappeContext) as FrappeConfig;
+  const { call } = useContext(FrappeContext) as FrappeConfig;
 
-    const swrResult = useSWRInfinite<T, Error>(
-        getKey,
-        (url: string) => {
-            const page = new URLSearchParams(url.split("?")[1]).get("page");
-            return call.get<T>(method, {
-                ...params,
-                start: (page ? parseInt(page, 10) : 0) * params.page_length,
-            });
-        },
-        {
-            ...options
-        }
-    );
+  const swrResult = useSWRInfinite<T, Error>(
+    getKey,
+    ([, pageIndex]: PaginationKey) => {
+      return call.get<T>(method, {
+        ...params,
+        start: pageIndex * params.page_length,
+      });
+    },
+    {
+      ...options,
+    },
+  );
 
-    return {
-        ...swrResult,
-    };
+  return {
+    ...swrResult,
+  };
 };
