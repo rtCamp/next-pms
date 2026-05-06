@@ -88,6 +88,8 @@ const GanttGridInner: React.FC<{
     [startResize],
   );
 
+  const canManageAllocations = hasRoleAccess && Boolean(onAddAllocation);
+
   return (
     <div
       ref={rootRef}
@@ -143,7 +145,7 @@ const GanttGridInner: React.FC<{
                 <tr
                   className="relative last:border-b border-outline-gray-1"
                   onMouseMove={
-                    hasRoleAccess
+                    canManageAllocations
                       ? (e) =>
                           handleRowMouseMove(
                             e,
@@ -152,7 +154,9 @@ const GanttGridInner: React.FC<{
                           )
                       : undefined
                   }
-                  onMouseLeave={hasRoleAccess ? clearHoverAddBlock : undefined}
+                  onMouseLeave={
+                    canManageAllocations ? clearHoverAddBlock : undefined
+                  }
                 >
                   <GanttMemberItem memberInd={rowIndex} />
                   {weeks.map((_, i) => {
@@ -190,7 +194,7 @@ const GanttGridInner: React.FC<{
                         }
                       />
                     ))}
-                    {hasRoleAccess &&
+                    {canManageAllocations &&
                       hoverAddBlock?.rowKey === `member-${rowIndex}` &&
                       !hasDraftForRow(`member-${rowIndex}`) && (
                         <AddBlock
@@ -219,7 +223,7 @@ const GanttGridInner: React.FC<{
                       })}
                       aria-hidden={!isExpanded}
                       onMouseMove={
-                        hasRoleAccess && isExpanded
+                        canManageAllocations && isExpanded
                           ? (e) =>
                               handleRowMouseMove(
                                 e,
@@ -229,7 +233,7 @@ const GanttGridInner: React.FC<{
                           : undefined
                       }
                       onMouseLeave={
-                        hasRoleAccess && isExpanded
+                        canManageAllocations && isExpanded
                           ? clearHoverAddBlock
                           : undefined
                       }
@@ -272,7 +276,7 @@ const GanttGridInner: React.FC<{
                               <GanttProjectBar
                                 key={allocIndex}
                                 allocation={alloc}
-                                resizable
+                                resizable={hasRoleAccess}
                               />
                             );
                           })}
@@ -289,7 +293,7 @@ const GanttGridInner: React.FC<{
                               }
                             />
                           ))}
-                        {hasRoleAccess &&
+                        {canManageAllocations &&
                           isExpanded &&
                           hoverAddBlock?.rowKey ===
                             `project-${rowIndex}-${projectIndex}` &&

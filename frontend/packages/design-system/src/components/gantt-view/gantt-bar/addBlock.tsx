@@ -27,6 +27,7 @@ export function AddBlock({ left, width, onClick }: AddBlockProps) {
     <Button
       type="button"
       variant="subtle"
+      aria-label="Add allocation"
       className={cn(
         "absolute opacity-100 scale-100 transition-all duration-100 ease-out motion-reduce:transition-none",
         "starting:opacity-0 starting:scale-95",

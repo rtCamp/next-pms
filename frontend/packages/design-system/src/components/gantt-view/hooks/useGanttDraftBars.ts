@@ -61,6 +61,10 @@ export function useGanttDraftBars({
    */
   const handleAddDraftBar = useCallback(
     (draft: DraftBarSeed) => {
+      if (!onAddAllocation) {
+        return;
+      }
+
       setHoverAddBlock(null);
       setDraftBars((prev) => {
         const filtered = prev.filter((entry) => entry.rowKey !== draft.rowKey);
@@ -81,13 +85,20 @@ export function useGanttDraftBars({
         ];
       });
     },
-    [columnCount, columnWidth, headerWidth, showWeekend, weekStart],
+    [
+      columnCount,
+      columnWidth,
+      headerWidth,
+      onAddAllocation,
+      showWeekend,
+      weekStart,
+    ],
   );
 
   const handleResizeEnd = useCallback(
     (rowKey: string, nextWidth: number) => {
       const draft = draftBars.find((entry) => entry.rowKey === rowKey);
-      if (!draft) {
+      if (!draft || !onAddAllocation) {
         return;
       }
 
@@ -108,7 +119,7 @@ export function useGanttDraftBars({
       setDraftBars((prev) => prev.filter((entry) => entry.rowKey !== rowKey));
       setHoverAddBlock(null);
 
-      onAddAllocation?.({
+      onAddAllocation({
         employeeId: nextDraft.employeeId,
         projectId: nextDraft.projectId,
         projectName: nextDraft.projectName,
