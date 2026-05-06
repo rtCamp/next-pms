@@ -126,13 +126,13 @@ def get_project_status_update(name: str) -> dict[str, Any]:
 
 @frappe.whitelist(methods=["GET"])
 @error_logger
-def get_project_status_updates_by_project(project: str, author: str = None) -> list[dict[str, Any]]:
+def get_project_status_updates_by_project(project: str, author: str | None = None) -> list[dict[str, Any]]:
     """
     Get all Project Status Updates for a specific project
 
     Args:
         project (str): Project ID
-        author (str, optional): Filter by owner (user email)
+        author (str, optional): Filter by owner (User.name)
 
     Returns:
         List[Dict[str, Any]]: List of Project Status Updates
