@@ -19,7 +19,7 @@ const LayoutWithSidebar = () => {
   }));
 
   const canRenderOutlet =
-    Boolean(employeeId) || (userId == "Administrator" && !hasError);
+    (Boolean(employeeId) && !hasError) || userId === "Administrator";
 
   return (
     <ErrorFallback>

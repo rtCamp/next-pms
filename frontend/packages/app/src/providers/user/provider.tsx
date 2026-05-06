@@ -51,13 +51,13 @@ export const UserProvider: FC<PropsWithChildren> = ({ children }) => {
   >(window.frappe?.boot?.has_industry || false);
   const hasRoleAccess = roles.some((role) => ROLES.includes(role));
 
-  const isAdministrator = userId == "Administrator";
-
   const { logout, isLoading: isAuthLoading, currentUser } = useFrappeAuth();
 
-  const { isLoading: isAppDataLoading, data: appData } = useFrappeGetCall(
-    "next_pms.timesheet.api.app.get_data",
-  );
+  const {
+    isLoading: isAppDataLoading,
+    data: appData,
+    error: appDataError,
+  } = useFrappeGetCall("next_pms.timesheet.api.app.get_data");
 
   useEffect(() => {
     setRoles(appData?.message?.roles || []);
@@ -66,15 +66,16 @@ export const UserProvider: FC<PropsWithChildren> = ({ children }) => {
     setHasIndustryField(appData?.message?.has_industry || false);
   }, [appData]);
 
-  const { isLoading: isEmployeeDataLoading, data: employeeData } =
-    useFrappeGetCall("next_pms.timesheet.api.employee.get_data");
+  const {
+    isLoading: isEmployeeDataLoading,
+    data: employeeData,
+    error: employeeDataError,
+  } = useFrappeGetCall("next_pms.timesheet.api.employee.get_data");
 
-  // Determine if there is an error in fetching necessary data for the user context.
   const hasError =
-    (!isAppDataLoading && !appData) ||
-    (!isAdministrator &&
-      !isEmployeeDataLoading &&
-      !employeeData?.message?.employee);
+    Boolean(appDataError || employeeDataError) ||
+    (!isAppDataLoading && !appData?.message) ||
+    (!isEmployeeDataLoading && !employeeData?.message?.employee);
 
   useEffect(() => {
     setEmployeeId(employeeData?.message?.employee ?? "");
