@@ -12,10 +12,14 @@ import Sidebar from "@/layout/sidebar";
 import { useUser } from "@/providers/user";
 
 const LayoutWithSidebar = () => {
-  const { employeeId, userId } = useUser(({ state }) => ({
+  const { employeeId, hasError, userId } = useUser(({ state }) => ({
     employeeId: state.employeeId,
+    hasError: state.hasError,
     userId: state.userId,
   }));
+
+  const canRenderOutlet =
+    (Boolean(employeeId) && !hasError) || userId === "Administrator";
 
   return (
     <ErrorFallback>
@@ -24,7 +28,7 @@ const LayoutWithSidebar = () => {
           <Sidebar />
         </ErrorFallback>
         <div className="w-full overflow-hidden flex flex-col">
-          {(employeeId || userId == "Administrator") && (
+          {canRenderOutlet && (
             <>
               <Suspense fallback={<></>}>
                 <ErrorFallback>
@@ -32,6 +36,11 @@ const LayoutWithSidebar = () => {
                 </ErrorFallback>
               </Suspense>
             </>
+          )}
+          {!canRenderOutlet && hasError && (
+            <div className="flex h-full items-center justify-center px-6">
+              <p className="text-base text-ink-gray-6">Something went wrong.</p>
+            </div>
           )}
         </div>
       </div>
