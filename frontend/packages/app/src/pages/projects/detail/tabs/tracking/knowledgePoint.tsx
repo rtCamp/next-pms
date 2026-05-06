@@ -9,7 +9,7 @@ export function KnowledgePoint({ title, value }: KnowledgePointProps) {
       <span className="truncate text-base font-normal text-ink-gray-5">
         {title}
       </span>
-      <span className="truncate text-lg font-medium text-ink-gray-8">
+      <span className="truncate text-xl font-medium text-ink-gray-8">
         {value}
       </span>
     </div>
