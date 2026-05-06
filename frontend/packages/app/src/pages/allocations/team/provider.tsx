@@ -1,7 +1,7 @@
 /**
  * External dependencies.
  */
-import { useCallback, useMemo, useReducer } from "react";
+import { useCallback, useMemo, useState } from "react";
 
 /**
  * Internal dependencies.
@@ -13,51 +13,52 @@ import {
   type AllocationsDuration,
   type AllocationsTeamContextProps,
 } from "./context";
-import {
-  allocationsTeamReducer,
-  createInitialAllocationsTeamState,
-} from "./reducer";
 import { useAllocationsTeamData } from "./useAllocationsTeamData";
+import { getWeekCountForDuration, moveDateByDuration } from "./utils";
 
 export function AllocationsTeamProvider({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const [state, dispatch] = useReducer(
-    allocationsTeamReducer,
-    undefined,
-    createInitialAllocationsTeamState,
-  );
+  const [searchInput, setSearchInput] = useState("");
+  const [duration, setDurationState] =
+    useState<AllocationsDuration>("this-quarter");
+  const [anchorDate, setAnchorDate] = useState(() => new Date());
+  const weekCount = getWeekCountForDuration(duration);
 
-  const debouncedSearch = useDebounce(state.searchInput, 400);
+  const debouncedSearch = useDebounce(searchInput, 400);
 
   const { members, hasMore, isLoading, isLoadingMore, loadMore, refresh } =
     useAllocationsTeamData({
-      anchorDate: state.anchorDate,
-      weekCount: state.weekCount,
+      anchorDate,
+      weekCount,
       search: debouncedSearch,
       pageLength: EMPLOYEES_PER_PAGE,
     });
 
   const setSearch = useCallback((value: string) => {
-    dispatch({ type: "SEARCH_CHANGED", payload: value });
+    setSearchInput(value);
   }, []);
 
   const setDuration = useCallback((value: AllocationsDuration) => {
-    dispatch({ type: "DURATION_CHANGED", payload: value });
+    setDurationState(value);
   }, []);
 
   const handlePrevious = useCallback(() => {
-    dispatch({ type: "MOVE_PREVIOUS" });
-  }, []);
+    setAnchorDate((currentAnchorDate) =>
+      moveDateByDuration(currentAnchorDate, duration, false),
+    );
+  }, [duration]);
 
   const handleNext = useCallback(() => {
-    dispatch({ type: "MOVE_NEXT" });
-  }, []);
+    setAnchorDate((currentAnchorDate) =>
+      moveDateByDuration(currentAnchorDate, duration, true),
+    );
+  }, [duration]);
 
   const handleToday = useCallback(() => {
-    dispatch({ type: "MOVE_TODAY" });
+    setAnchorDate(new Date());
   }, []);
 
   const handleRefresh = useCallback(
@@ -74,10 +75,10 @@ export function AllocationsTeamProvider({
         isLoading,
         isFilterRequest: isLoading && !isLoadingMore,
         hasMore,
-        searchInput: state.searchInput,
-        duration: state.duration,
-        weekCount: state.weekCount,
-        anchorDate: state.anchorDate,
+        searchInput,
+        duration,
+        weekCount,
+        anchorDate,
       },
       actions: {
         setSearch,
@@ -94,10 +95,10 @@ export function AllocationsTeamProvider({
       isLoading,
       isLoadingMore,
       hasMore,
-      state.searchInput,
-      state.duration,
-      state.weekCount,
-      state.anchorDate,
+      searchInput,
+      duration,
+      weekCount,
+      anchorDate,
       setSearch,
       setDuration,
       loadMore,

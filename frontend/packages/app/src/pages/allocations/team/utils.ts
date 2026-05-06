@@ -1,6 +1,13 @@
 import type { Member, Project } from "@next-pms/design-system/components";
-import { parseISO } from "date-fns";
+import { addMonths, addWeeks, parseISO } from "date-fns";
+import type { AllocationsDuration } from "./context";
 import type { TeamAllocationResponse } from "./type";
+
+const DURATION_WEEK_COUNT: Record<AllocationsDuration, number> = {
+  "this-week": 1,
+  "this-month": 4,
+  "this-quarter": 13,
+};
 
 /**
  * Parses a Frappe datetime string (YYYY-MM-DD HH:mm:ss.ssssss) into a Date.
@@ -15,6 +22,38 @@ function parseFrappeDatetime(datetime: string): Date {
  */
 function getMemberKey(member: Member) {
   return member.id ?? member.name;
+}
+
+/**
+ * Returns the number of weeks corresponding to a given duration type.
+ */
+export function getWeekCountForDuration(duration: AllocationsDuration) {
+  return DURATION_WEEK_COUNT[duration];
+}
+
+/**
+ * Moves the given date forward or backward based on the specified duration type.
+ */
+export function moveDateByDuration(
+  anchorDate: Date,
+  duration: AllocationsDuration,
+  next: boolean,
+): Date {
+  const delta = next ? 1 : -1;
+
+  if (duration === "this-week") {
+    return addWeeks(anchorDate, delta);
+  }
+
+  if (duration === "this-month") {
+    return addMonths(anchorDate, delta);
+  }
+
+  if (duration === "this-quarter") {
+    return addMonths(anchorDate, 3 * delta);
+  }
+
+  return anchorDate;
 }
 
 /**
