@@ -6,7 +6,6 @@ import { addMonths, addWeeks } from "date-fns";
 /**
  * Internal dependencies.
  */
-import { EMPLOYEES_PER_PAGE } from "./constants";
 import type { AllocationsDuration } from "./context";
 
 const DURATION_WEEK_COUNT: Record<AllocationsDuration, number> = {
@@ -20,14 +19,11 @@ export interface AllocationsTeamState {
   duration: AllocationsDuration;
   weekCount: number;
   anchorDate: Date;
-  start: number;
-  pageLength: number;
 }
 
 export type AllocationsTeamAction =
   | { type: "SEARCH_CHANGED"; payload: string }
   | { type: "DURATION_CHANGED"; payload: AllocationsDuration }
-  | { type: "LOAD_MORE" }
   | { type: "MOVE_PREVIOUS" }
   | { type: "MOVE_NEXT" }
   | { type: "MOVE_TODAY" };
@@ -60,8 +56,6 @@ export function createInitialAllocationsTeamState(): AllocationsTeamState {
     duration: "this-quarter",
     weekCount: DURATION_WEEK_COUNT["this-quarter"],
     anchorDate: new Date(),
-    start: 0,
-    pageLength: EMPLOYEES_PER_PAGE,
   };
 }
 
@@ -74,7 +68,6 @@ export function allocationsTeamReducer(
       return {
         ...state,
         searchInput: action.payload,
-        start: 0,
       };
 
     case "DURATION_CHANGED":
@@ -82,34 +75,24 @@ export function allocationsTeamReducer(
         ...state,
         duration: action.payload,
         weekCount: DURATION_WEEK_COUNT[action.payload],
-        start: 0,
-      };
-
-    case "LOAD_MORE":
-      return {
-        ...state,
-        start: state.start + state.pageLength,
       };
 
     case "MOVE_PREVIOUS":
       return {
         ...state,
         anchorDate: moveDate(state.anchorDate, state.duration, false),
-        start: 0,
       };
 
     case "MOVE_NEXT":
       return {
         ...state,
         anchorDate: moveDate(state.anchorDate, state.duration, true),
-        start: 0,
       };
 
     case "MOVE_TODAY":
       return {
         ...state,
         anchorDate: new Date(),
-        start: 0,
       };
 
     default:

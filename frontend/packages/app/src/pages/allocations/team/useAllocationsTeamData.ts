@@ -23,7 +23,6 @@ type UseAllocationsTeamDataOptions = {
   anchorDate: Date;
   weekCount: number;
   search: string;
-  start: number;
   pageLength: number;
 };
 
@@ -31,16 +30,23 @@ type UseAllocationsTeamDataResult = {
   members: Member[];
   hasMore: boolean;
   isLoading: boolean;
+  isLoadingMore: boolean;
+  loadMore: () => void;
   refresh: (employeeIds?: string[]) => Promise<void>;
 };
 
-type AllocationsTeamDataState = Omit<UseAllocationsTeamDataResult, "refresh">;
+type AllocationsTeamDataState = {
+  members: Member[];
+  hasMore: boolean;
+  isLoading: boolean;
+  isLoadingMore: boolean;
+  loadedCount: number;
+};
 
 export function useAllocationsTeamData({
   anchorDate,
   weekCount,
   search,
-  start,
   pageLength,
 }: UseAllocationsTeamDataOptions): UseAllocationsTeamDataResult {
   const toast = useToasts();
@@ -52,6 +58,8 @@ export function useAllocationsTeamData({
     members: [],
     hasMore: true,
     isLoading: false,
+    isLoadingMore: false,
+    loadedCount: 0,
   });
   const latestRequestIdRef = useRef(0);
   const fetchTeamViewDataRef = useRef(fetchTeamViewData);
@@ -78,10 +86,13 @@ export function useAllocationsTeamData({
       const requestId = latestRequestIdRef.current + 1;
       latestRequestIdRef.current = requestId;
       const requestDate = format(anchorDate, "yyyy-MM-dd");
+      const isTargetedRefresh = Boolean(employeeIds?.length);
+      const isLoadMoreRequest = !isTargetedRefresh && requestStart > 0;
 
       setData((current) => ({
         ...current,
         isLoading: true,
+        isLoadingMore: isLoadMoreRequest,
       }));
 
       try {
@@ -105,21 +116,28 @@ export function useAllocationsTeamData({
         const incomingMembers = mapTeamAllocationToMembers(payload);
 
         setData((current) => ({
-          members: employeeIds?.length
+          members: isTargetedRefresh
             ? replaceMembers(current.members, incomingMembers)
             : requestStart > 0
               ? appendMembers(current.members, incomingMembers)
               : incomingMembers,
-          hasMore: employeeIds?.length
+          hasMore: isTargetedRefresh
             ? current.hasMore
             : Boolean(payload.has_more),
           isLoading: false,
+          isLoadingMore: false,
+          loadedCount: isTargetedRefresh
+            ? current.loadedCount
+            : requestStart > 0
+              ? current.loadedCount + incomingMembers.length
+              : incomingMembers.length,
         }));
       } catch (err) {
         if (requestId === latestRequestIdRef.current) {
           setData((current) => ({
             ...current,
             isLoading: false,
+            isLoadingMore: false,
           }));
           toastRef.current.error(parseFrappeErrorMsg(err as FrappeError));
         }
@@ -134,28 +152,53 @@ export function useAllocationsTeamData({
         (employeeId): employeeId is string => Boolean(employeeId),
       );
 
-      if (targetEmployeeIds.length === 0) {
+      if (targetEmployeeIds.length > 0) {
+        await fetchMembers({
+          requestStart: 0,
+          requestPageLength: targetEmployeeIds.length,
+          employeeIds: targetEmployeeIds,
+        });
         return;
       }
 
       await fetchMembers({
         requestStart: 0,
-        requestPageLength: targetEmployeeIds.length,
-        employeeIds: targetEmployeeIds,
+        requestPageLength: Math.max(pageLength, data.loadedCount),
       });
     },
-    [fetchMembers],
+    [data.loadedCount, fetchMembers, pageLength],
   );
+
+  const loadMore = useCallback(() => {
+    if (data.isLoading || !data.hasMore) {
+      return;
+    }
+
+    void fetchMembers({
+      requestStart: data.loadedCount,
+      requestPageLength: pageLength,
+    });
+  }, [
+    data.hasMore,
+    data.isLoading,
+    data.loadedCount,
+    fetchMembers,
+    pageLength,
+  ]);
 
   useEffect(() => {
     void fetchMembers({
-      requestStart: start,
+      requestStart: 0,
       requestPageLength: pageLength,
     });
-  }, [anchorDate, fetchMembers, pageLength, search, start, weekCount]);
+  }, [anchorDate, fetchMembers, pageLength, search, weekCount]);
 
   return {
-    ...data,
+    members: data.members,
+    hasMore: data.hasMore,
+    isLoading: data.isLoading,
+    isLoadingMore: data.isLoadingMore,
+    loadMore,
     refresh,
   };
 }

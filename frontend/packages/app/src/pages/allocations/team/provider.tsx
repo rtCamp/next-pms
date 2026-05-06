@@ -7,6 +7,7 @@ import { useCallback, useMemo, useReducer } from "react";
  * Internal dependencies.
  */
 import { useDebounce } from "@/hooks/useDebounce";
+import { EMPLOYEES_PER_PAGE } from "./constants";
 import {
   AllocationsTeamContext,
   type AllocationsDuration,
@@ -31,13 +32,13 @@ export function AllocationsTeamProvider({
 
   const debouncedSearch = useDebounce(state.searchInput, 400);
 
-  const { members, hasMore, isLoading, refresh } = useAllocationsTeamData({
-    anchorDate: state.anchorDate,
-    weekCount: state.weekCount,
-    search: debouncedSearch,
-    start: state.start,
-    pageLength: state.pageLength,
-  });
+  const { members, hasMore, isLoading, isLoadingMore, loadMore, refresh } =
+    useAllocationsTeamData({
+      anchorDate: state.anchorDate,
+      weekCount: state.weekCount,
+      search: debouncedSearch,
+      pageLength: EMPLOYEES_PER_PAGE,
+    });
 
   const setSearch = useCallback((value: string) => {
     dispatch({ type: "SEARCH_CHANGED", payload: value });
@@ -46,14 +47,6 @@ export function AllocationsTeamProvider({
   const setDuration = useCallback((value: AllocationsDuration) => {
     dispatch({ type: "DURATION_CHANGED", payload: value });
   }, []);
-
-  const loadMore = useCallback(() => {
-    if (isLoading || !hasMore) {
-      return;
-    }
-
-    dispatch({ type: "LOAD_MORE" });
-  }, [hasMore, isLoading]);
 
   const handlePrevious = useCallback(() => {
     dispatch({ type: "MOVE_PREVIOUS" });
@@ -79,7 +72,7 @@ export function AllocationsTeamProvider({
       state: {
         members,
         isLoading,
-        isFilterRequest: state.start === 0,
+        isFilterRequest: isLoading && !isLoadingMore,
         hasMore,
         searchInput: state.searchInput,
         duration: state.duration,
@@ -99,8 +92,8 @@ export function AllocationsTeamProvider({
     [
       members,
       isLoading,
+      isLoadingMore,
       hasMore,
-      state.start,
       state.searchInput,
       state.duration,
       state.weekCount,

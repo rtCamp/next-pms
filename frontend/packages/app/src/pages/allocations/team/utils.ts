@@ -39,17 +39,19 @@ export function appendMembers(current: Member[], incoming: Member[]) {
 }
 
 /**
- * Replaces existing members with incoming members based on member ID or name.
+ * Replaces existing members with incoming members and appends any new members.
  */
 export function replaceMembers(current: Member[], incoming: Member[]) {
   const incomingById = new Map(
     incoming.map((member) => [getMemberKey(member), member]),
   );
 
-  return current.map((member) => {
+  const updatedMembers = current.map((member) => {
     const memberKey = getMemberKey(member);
     return incomingById.get(memberKey) ?? member;
   });
+
+  return appendMembers(updatedMembers, incoming);
 }
 
 /**
