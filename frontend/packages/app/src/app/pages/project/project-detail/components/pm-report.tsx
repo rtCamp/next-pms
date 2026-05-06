@@ -63,6 +63,8 @@ const PMReport = ({ projectId }: PMReportProps) => {
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [isEditingSlack, setIsEditingSlack] = useState(false);
 
+  const [selectedRepo, setSelectedRepo] = useState("");
+
   const [includePreviousReport, setIncludePreviousReport] = useState(false);
 
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -97,6 +99,10 @@ const PMReport = ({ projectId }: PMReportProps) => {
     isInitializedRef.current = true;
     setDriveLink(projectData.custom_project_drive_link || "");
     setSlackSlug(projectData.custom_slack_channel_slug || "");
+    const repos = projectData.custom_project_repository_connections || [];
+    if (repos.length > 0) {
+      setSelectedRepo(repos[0].github_repository || "");
+    }
   }, [projectData]);
 
   useEffect(() => {
@@ -194,6 +200,7 @@ const PMReport = ({ projectId }: PMReportProps) => {
         project: projectId,
         from_date: fromDate,
         to_date: toDate,
+        selected_repo: selectedRepo,
         ...(includePreviousReport && lastReportLink
           ? { previous_doc_url: lastReportLink }
           : {}),
@@ -210,6 +217,10 @@ const PMReport = ({ projectId }: PMReportProps) => {
       setFromDate("");
       setToDate("");
       setIncludePreviousReport(false);
+      setSelectedRepo(
+        projectData?.custom_project_repository_connections?.[0]
+          ?.github_repository || "",
+      );
 
       timeoutRef.current = setTimeout(() => {
         setIsGenerating(false);
@@ -395,6 +406,40 @@ const PMReport = ({ projectId }: PMReportProps) => {
               disabled={isBusy}
             />
           </div>
+
+          {/* Repository */}
+          {(projectData?.custom_project_repository_connections ?? []).length >
+            0 && (
+            <div className="flex flex-col gap-1 col-span-2">
+              <label className="text-sm text-muted-foreground">
+                Github Repository
+              </label>
+              <select
+                className="border rounded px-3 py-2 text-sm"
+                value={selectedRepo}
+                onChange={(e) => setSelectedRepo(e.target.value)}
+                disabled={isBusy}
+              >
+                {(projectData?.custom_project_repository_connections ?? []).map(
+                  (repo: { github_repository: string }) => {
+                    const repoName =
+                      (repo.github_repository || "")
+                        .replace(/\/$/, "")
+                        .split("/")
+                        .pop() || repo.github_repository;
+                    return (
+                      <option
+                        key={repo.github_repository}
+                        value={repo.github_repository}
+                      >
+                        {repoName}
+                      </option>
+                    );
+                  },
+                )}
+              </select>
+            </div>
+          )}
 
           {/* Drive Link — readonly */}
           <div className="flex flex-col gap-1 col-span-2">
