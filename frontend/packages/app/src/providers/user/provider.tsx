@@ -51,6 +51,8 @@ export const UserProvider: FC<PropsWithChildren> = ({ children }) => {
   >(window.frappe?.boot?.has_industry || false);
   const hasRoleAccess = roles.some((role) => ROLES.includes(role));
 
+  const isAdministrator = userId == "Administrator";
+
   const { logout, isLoading: isAuthLoading, currentUser } = useFrappeAuth();
 
   const { isLoading: isAppDataLoading, data: appData } = useFrappeGetCall(
@@ -66,6 +68,13 @@ export const UserProvider: FC<PropsWithChildren> = ({ children }) => {
 
   const { isLoading: isEmployeeDataLoading, data: employeeData } =
     useFrappeGetCall("next_pms.timesheet.api.employee.get_data");
+
+  // Determine if there is an error in fetching necessary data for the user context.
+  const hasError =
+    (!isAppDataLoading && !appData) ||
+    (!isAdministrator &&
+      !isEmployeeDataLoading &&
+      !employeeData?.message?.employee);
 
   useEffect(() => {
     setEmployeeId(employeeData?.message?.employee ?? "");
@@ -103,7 +112,8 @@ export const UserProvider: FC<PropsWithChildren> = ({ children }) => {
     <UserContext.Provider
       value={{
         state: {
-          isLoading: isAuthLoading || isAppDataLoading || isEmployeeDataLoading,
+          isLoading: isAuthLoading,
+          hasError,
           employeeId,
           employeeName,
           workingHours,
