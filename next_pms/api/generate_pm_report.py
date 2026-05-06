@@ -18,7 +18,14 @@ def get_api_key():
 
 
 @frappe.whitelist()
-def generate_pm_report(project, from_date=None, to_date=None, previous_doc_url=None):
+def generate_pm_report(
+    project: str,
+    from_date: str | None = None,
+    to_date: str | None = None,
+    previous_doc_url: str | None = None,
+    selected_repo: str | None = None,
+) -> dict:
+    frappe.has_permission("Project", doc=project, ptype="write", throw=True)
     project_doc = frappe.get_doc("Project", project)
 
     # Validations
@@ -43,7 +50,7 @@ def generate_pm_report(project, from_date=None, to_date=None, previous_doc_url=N
         },
         **({"previous_doc_url": previous_doc_url} if previous_doc_url else {}),
         "user_metadata": {"user_name": frappe.session.user, "user_email": frappe.session.user},
-        "github_metadata": get_github_metadata(project_doc),
+        "github_metadata": get_github_metadata(project_doc, selected_repo=selected_repo),
         "slack_metadata": {"channel_slug": project_doc.get("custom_slack_channel_slug") or ""},
         "hours_breakdown": get_hours_breakdown(project, from_date, to_date),
     }
@@ -198,10 +205,16 @@ def _send_bell_notification(project, user, document_url):
         frappe.log_error(frappe.get_traceback(), "PM Report — Bell Notification Error")
 
 
-def get_github_metadata(project_doc):
+def get_github_metadata(project_doc, selected_repo: str | None = None):
     repos = project_doc.get("custom_project_repository_connections") or []
-    if repos:
+    if selected_repo:
+        repo_url = selected_repo
+    elif repos:
         repo_url = repos[0].get("github_repository") or ""
+    else:
+        repo_url = ""
+
+    if repo_url:
         parts = repo_url.rstrip("/").split("/")
         repo_name = parts[-1] if len(parts) >= 1 else project_doc.get("project_name")
         owner_name = parts[-2] if len(parts) >= 2 else "rtCamp"
