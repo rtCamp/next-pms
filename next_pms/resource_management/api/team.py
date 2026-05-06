@@ -22,7 +22,7 @@ from next_pms.timesheet.api.employee import get_employee_working_hours
 from next_pms.timesheet.api.team import get_holidays
 
 
-@frappe.whitelist(methods=["POST", "GET"])
+@frappe.whitelist(methods=["GET", "POST"])
 @redis_cache()
 def get_resource_management_team_view_data(
     date: str,
