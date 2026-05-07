@@ -27,7 +27,7 @@ export function ExpandableList<T>({
     <div className="flex flex-col gap-1">
       <div
         className={mergeClassNames("flex flex-col", {
-          "max-h-32 overflow-y-auto scroll pr-1": expanded,
+          "max-h-32 overflow-y-auto scroll pr-1 scrollbar-thin": expanded,
         })}
       >
         {shown.map((item) => (

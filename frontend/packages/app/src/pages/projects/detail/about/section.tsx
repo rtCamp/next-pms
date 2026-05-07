@@ -22,7 +22,7 @@ export function Section({ value, title, suffix, children }: SectionProps) {
         <Accordion.Trigger className="w-full flex items-center gap-3 group flex-1">
           <SmallDown
             aria-hidden
-            className="size-4 shrink-0 text-ink-gray-7 transition-transform group-data-panel-open:rotate-180"
+            className="size-4 shrink-0 text-ink-gray-7 transition-transform -rotate-90 group-data-panel-open:rotate-0"
           />
           <span className="truncate font-medium text-base text-ink-gray-8">
             {title}
@@ -30,8 +30,8 @@ export function Section({ value, title, suffix, children }: SectionProps) {
         </Accordion.Trigger>
         {suffix}
       </Accordion.Header>
-      <Accordion.Panel className="accordion-panel px-5 pb-4">
-        {children}
+      <Accordion.Panel className="accordion-panel">
+        <div className="px-5 pb-4">{children}</div>
       </Accordion.Panel>
     </Accordion.Item>
   );
