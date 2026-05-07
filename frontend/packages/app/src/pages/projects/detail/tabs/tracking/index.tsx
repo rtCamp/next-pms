@@ -6,8 +6,12 @@ import { useParams } from "react-router-dom";
 /**
  * Internal dependencies.
  */
+import { CostBurnCard } from "./costBurnCard";
 import { getTrackingData } from "./fake-data";
+import { HoursUsageCard } from "./hoursUsageCard";
+import { InvoiceBurnCard } from "./invoiceBurnCard";
 import { KnowledgePoint } from "./knowledgePoint";
+import { TaskCompletionCard } from "./taskCompletionCard";
 
 export function Tracking() {
   const { projectId = "" } = useParams<{ projectId: string }>();
@@ -15,6 +19,12 @@ export function Tracking() {
 
   return (
     <div className="flex flex-col gap-3">
+      <div className="flex gap-3">
+        <HoursUsageCard data={data.hoursUsage} />
+        <TaskCompletionCard data={data.taskCompletion} />
+        <CostBurnCard data={data.costBurn} />
+        <InvoiceBurnCard data={data.invoiceBurn} />
+      </div>
       <div className="flex gap-3">
         <KnowledgePoint title="Company" value={data.company} />
         <KnowledgePoint
