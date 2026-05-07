@@ -61,6 +61,7 @@ export function mapTeamAllocationToMembers(
           id: string;
           employeeId: string;
           projectId: string;
+          customerName: string;
           hours: number;
           startDate: Date;
           endDate: Date;
@@ -95,9 +96,8 @@ export function mapTeamAllocationToMembers(
     }
     const projectMap = allocationsByEmployee.get(alloc.employee)!;
 
+    const customerName = customer[alloc.customer]?.name ?? alloc.customer ?? "";
     if (!projectMap.has(alloc.project)) {
-      const customerName =
-        customer[alloc.customer]?.name ?? alloc.customer ?? "";
       projectMap.set(alloc.project, {
         projectName: alloc.project_name || alloc.project,
         projectId: alloc.project,
@@ -110,6 +110,7 @@ export function mapTeamAllocationToMembers(
       id: alloc.name,
       employeeId: alloc.employee,
       projectId: alloc.project,
+      customerName,
       hours: alloc.hours_allocated_per_day,
       startDate: parseISO(alloc.allocation_start_date),
       endDate: parseISO(alloc.allocation_end_date),

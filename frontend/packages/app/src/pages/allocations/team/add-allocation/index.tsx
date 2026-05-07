@@ -65,6 +65,12 @@ function AddAllocationModal({
     limit_page_length: "null",
   });
 
+  const { data: customersData } = useFrappeGetCall("frappe.client.get_list", {
+    doctype: "Customer",
+    fields: ["name", "customer_name"],
+    limit_page_length: "null",
+  });
+
   const employeeOptions = useMemo(() => {
     const fromApi = (
       (employeesData?.message ?? []) as {
@@ -94,6 +100,20 @@ function AddAllocationModal({
 
     return fromApi as ComboboxOption[];
   }, [projectsData?.message]);
+
+  const customerOptions = useMemo(() => {
+    const fromApi = (
+      (customersData?.message ?? []) as {
+        name: string;
+        customer_name: string;
+      }[]
+    ).map((customer) => ({
+      label: customer.customer_name,
+      value: customer.name,
+    }));
+
+    return fromApi as ComboboxOption[];
+  }, [customersData?.message]);
 
   const allocationName = initialValues?.allocationName;
   const mergedDefaultValues = useMemo(() => {
@@ -145,7 +165,7 @@ function AddAllocationModal({
               : {}),
             employee: value.employeeId,
             project: value.projectId,
-            customer: selectedProject?.customer,
+            customer: value.customerName,
             allocation_start_date: value.fromDate,
             allocation_end_date: value.toDate,
             hours_allocated_per_day: value.hoursPerDay,
@@ -295,6 +315,28 @@ function AddAllocationModal({
                 inputClassName="bg-white h-8 border-outline-gray-2"
                 options={projectOptions}
                 placeholder="Select Project"
+                value={field.state.value}
+                onChange={(value) => field.handleChange(value as string)}
+                openOnFocus
+              />
+              {!field.state.meta.isValid && (
+                <ErrorMessage message={field.state.meta.errors[0]?.message} />
+              )}
+            </>
+          )}
+        />
+
+        <form.Field
+          name="customerName"
+          children={(field) => (
+            <>
+              <label className="block text-base text-ink-gray-5 mb-1.5">
+                Customer
+              </label>
+              <Combobox
+                inputClassName="bg-white h-8 border-outline-gray-2"
+                options={customerOptions}
+                placeholder="Select Customer"
                 value={field.state.value}
                 onChange={(value) => field.handleChange(value as string)}
                 openOnFocus

@@ -43,6 +43,7 @@ export function useAllocationModal() {
       allocationName: data.allocationId,
       employeeId: data.employeeId,
       projectId: data.projectId,
+      customerName: data.customerName,
       fromDate: data.startDate
         ? format(data.startDate, "yyyy-MM-dd")
         : undefined,
