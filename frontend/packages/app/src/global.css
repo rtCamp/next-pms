@@ -148,9 +148,12 @@ html,
 @theme {
   --animate-fade-left: fade-left 0.2s ease;
   --animate-fade-in: fade-in 0.2s ease;
+  --color-surface-green-3: #c3f9d3;
   --color-surface-green-5: var(--color-green-600);
   --color-surface-amber-5: var(--color-amber-600);
   --color-surface-blue-4: var(--color-blue-300);
+  --color-surface-blue-5: #007be0;
+  --color-surface-violet-5: #664ecc;
   --color-ink-cyan-3: #3bbde5;
   --color-ink-violet-3: #7757ee;
 }
