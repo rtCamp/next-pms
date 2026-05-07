@@ -2,11 +2,12 @@ import { ComponentProps } from "react";
 import { Tabs } from "@rtcamp/frappe-ui-react";
 import { UnderConstruction } from "@/components/under-construction";
 import { Overview } from "./overview";
+import { Tracking } from "./tracking";
 
 export const TABS: ComponentProps<typeof Tabs>["tabs"] = [
   { label: "Overview", content: <Overview /> },
   { label: "Calendar", content: <UnderConstruction /> },
-  { label: "Tracking", content: <UnderConstruction /> },
+  { label: "Tracking", content: <Tracking /> },
   { label: "Risks", content: <UnderConstruction /> },
   { label: "Notes", content: <UnderConstruction /> },
   { label: "Email", content: <UnderConstruction /> },
