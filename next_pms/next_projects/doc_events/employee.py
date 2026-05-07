@@ -8,7 +8,24 @@ from next_pms.next_projects.utils import count_working_days
 from next_pms.utils.employee import get_employee_leaves_and_holidays
 
 
-def on_update(doc, method):
+def on_update(doc):
+    enqueue_calc(doc)
+
+
+def enqueue_calc(doc):
+    if not doc.has_value_changed("relieving_date") or not doc.relieving_date:
+        return
+
+    frappe.enqueue(
+        recalculate_allocations_on_relieving,
+        employee=doc.name,
+        relieving_date=str(doc.relieving_date),
+        queue="long",
+        now=frappe.flags.in_test,
+    )
+
+
+def recalculate_allocations_on_relieving(employee: str, relieving_date: str):
     """
     When an employee's relieving_date is set/changed, recalculate total_cost
     for Resource Allocations that extend beyond the relieving date.
@@ -16,18 +33,12 @@ def on_update(doc, method):
     The total_cost is recalculated to only count working days until the relieving_date,
     excluding holidays and approved/open leaves.
     """
-    if not doc.has_value_changed("relieving_date"):
-        return
-
-    if not doc.relieving_date:
-        return
-
-    relieving_date = getdate(doc.relieving_date)
+    relieving_date = getdate(relieving_date)
 
     allocations = frappe.get_all(
         "Resource Allocation",
         filters={
-            "employee": doc.name,
+            "employee": employee,
             "allocation_end_date": [">", relieving_date],
         },
         fields=[
@@ -50,7 +61,7 @@ def on_update(doc, method):
         if alloc_start > relieving_date:
             total_cost = 0
         else:
-            leave_holiday_data = get_employee_leaves_and_holidays(doc.name, alloc_start, relieving_date)
+            leave_holiday_data = get_employee_leaves_and_holidays(employee, alloc_start, relieving_date)
             holidays = leave_holiday_data.get("holidays", [])
             leaves = leave_holiday_data.get("leaves", [])
 

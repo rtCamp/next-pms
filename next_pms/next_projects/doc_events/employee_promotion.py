@@ -8,7 +8,33 @@ from next_pms.next_projects.utils import count_working_days
 from next_pms.utils.employee import get_employee_leaves_and_holidays, get_employee_salary
 
 
-def on_submit(doc, method):
+def on_submit(doc):
+    enqueue_calc(doc)
+
+
+def enqueue_calc(doc):
+    if not flt(doc.revised_ctc):
+        return
+
+    frappe.enqueue(
+        recalculate_allocations_on_promotion,
+        employee=doc.employee,
+        promotion_date=str(doc.promotion_date),
+        new_ctc=flt(doc.revised_ctc),
+        old_ctc=flt(doc.current_ctc),
+        salary_currency=doc.salary_currency,
+        queue="long",
+        now=frappe.flags.in_test,
+    )
+
+
+def recalculate_allocations_on_promotion(
+    employee: str,
+    promotion_date: str,
+    new_ctc: float,
+    old_ctc: float,
+    salary_currency: str,
+):
     """
     Recalculate total_cost for Resource Allocations affected by employee promotion.
 
@@ -20,14 +46,7 @@ def on_submit(doc, method):
 
     Working days exclude holidays and approved/open leaves.
     """
-    employee = doc.employee
-    promotion_date = getdate(doc.promotion_date)
-    new_ctc = flt(doc.revised_ctc)
-    old_ctc = flt(doc.current_ctc)
-    new_salary_currency = doc.salary_currency
-
-    if not new_ctc:
-        return
+    promotion_date = getdate(promotion_date)
 
     allocations = frappe.get_all(
         "Resource Allocation",
@@ -65,7 +84,7 @@ def on_submit(doc, method):
                 employee=employee,
                 to_currency=target_currency,
                 ctc=new_ctc,
-                salary_currency=new_salary_currency,
+                salary_currency=salary_currency,
                 throw=False,
             )
             if not new_salary_info:
@@ -79,14 +98,14 @@ def on_submit(doc, method):
                 employee=employee,
                 to_currency=target_currency,
                 ctc=old_ctc,
-                salary_currency=new_salary_currency,
+                salary_currency=salary_currency,
                 throw=False,
             )
             new_salary_info = get_employee_salary(
                 employee=employee,
                 to_currency=target_currency,
                 ctc=new_ctc,
-                salary_currency=new_salary_currency,
+                salary_currency=salary_currency,
                 throw=False,
             )
 
