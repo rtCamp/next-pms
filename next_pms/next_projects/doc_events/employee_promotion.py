@@ -8,7 +8,7 @@ from next_pms.next_projects.utils import count_working_days
 from next_pms.utils.employee import get_employee_leaves_and_holidays, get_employee_salary
 
 
-def on_submit(doc):
+def on_submit(doc, method=None):
     enqueue_calc(doc)
 
 

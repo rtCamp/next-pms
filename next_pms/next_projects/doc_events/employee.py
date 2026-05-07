@@ -8,7 +8,7 @@ from next_pms.next_projects.utils import count_working_days
 from next_pms.utils.employee import get_employee_leaves_and_holidays
 
 
-def on_update(doc):
+def on_update(doc, method=None):
     enqueue_calc(doc)
 
 
