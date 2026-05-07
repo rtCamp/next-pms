@@ -10,6 +10,9 @@ import useSWRInfinite, {
 } from "swr/infinite";
 
 export type PaginationKey = readonly [cacheKey: string, pageIndex: number];
+type PaginationParams = Record<string, unknown> & {
+  page_length: number;
+};
 
 /**
  *  Hook to make a GET request to the server with useSWRInfinite support.
@@ -21,10 +24,13 @@ export type PaginationKey = readonly [cacheKey: string, pageIndex: number];
  * @typeParam T - Type of the data returned by the method
  * @returns an object (SWRResponse) with the following properties: data (number), error, isValidating, and mutate
  */
-export const usePagination = <T = any>(
+export const usePagination = <
+  T = any,
+  P extends PaginationParams = PaginationParams,
+>(
   method: string,
   getKey: (index: number, previousPageData: T | null) => PaginationKey | null,
-  params: Record<string, any> = {},
+  params: P,
   options?: SWRInfiniteConfiguration,
 ): SWRInfiniteResponse<T, Error> => {
   const { call } = useContext(FrappeContext) as FrappeConfig;

@@ -29,13 +29,19 @@ export function AllocationsTeamProvider({
 
   const debouncedSearch = useDebounce(searchInput, 400);
 
-  const { members, hasMore, isLoading, isLoadingMore, loadMore, refresh } =
-    useAllocationsTeamData({
-      anchorDate,
-      weekCount,
-      search: debouncedSearch,
-      pageLength: EMPLOYEES_PER_PAGE,
-    });
+  const {
+    members,
+    hasMore,
+    isQueryLoading,
+    isNextPageLoading,
+    loadMore,
+    refresh,
+  } = useAllocationsTeamData({
+    anchorDate,
+    weekCount,
+    search: debouncedSearch,
+    pageLength: EMPLOYEES_PER_PAGE,
+  });
 
   const setSearch = useCallback((value: string) => {
     setSearchInput(value);
@@ -72,8 +78,8 @@ export function AllocationsTeamProvider({
     () => ({
       state: {
         members,
-        isLoading,
-        isFilterRequest: isLoading && !isLoadingMore,
+        isQueryLoading,
+        isNextPageLoading,
         hasMore,
         searchInput,
         duration,
@@ -92,8 +98,8 @@ export function AllocationsTeamProvider({
     }),
     [
       members,
-      isLoading,
-      isLoadingMore,
+      isNextPageLoading,
+      isQueryLoading,
       hasMore,
       searchInput,
       duration,

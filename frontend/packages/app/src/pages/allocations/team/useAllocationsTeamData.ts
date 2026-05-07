@@ -25,8 +25,8 @@ type UseAllocationsTeamDataOptions = {
 type UseAllocationsTeamDataResult = {
   members: Member[];
   hasMore: boolean;
-  isLoading: boolean;
-  isLoadingMore: boolean;
+  isQueryLoading: boolean;
+  isNextPageLoading: boolean;
   loadMore: () => void;
   refresh: (employeeIds?: string[]) => Promise<void>;
 };
@@ -120,7 +120,8 @@ export function useAllocationsTeamData({
 
   const lastPayload = payloads.at(-1);
   const hasMore = lastPayload ? Boolean(lastPayload.has_more) : false;
-  const isLoadingMore = !isLoading && isValidating && size > pages.length;
+  const isQueryLoading = isLoading;
+  const isNextPageLoading = !isLoading && isValidating && size > pages.length;
 
   const refresh = useCallback<UseAllocationsTeamDataResult["refresh"]>(
     async (employeeIds) => {
@@ -168,18 +169,18 @@ export function useAllocationsTeamData({
   );
 
   const loadMore = useCallback(() => {
-    if (isLoading || isLoadingMore || !hasMore) {
+    if (isQueryLoading || isNextPageLoading || !hasMore) {
       return;
     }
 
     void setSize(size + 1);
-  }, [hasMore, isLoading, isLoadingMore, setSize, size]);
+  }, [hasMore, isNextPageLoading, isQueryLoading, setSize, size]);
 
   return {
     members,
     hasMore,
-    isLoading,
-    isLoadingMore,
+    isQueryLoading,
+    isNextPageLoading,
     loadMore,
     refresh,
   };
