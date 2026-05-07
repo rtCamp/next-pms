@@ -12,7 +12,7 @@ LLM_STATUS_URL = "https://rt-report-automation.rt.gw/api/inngest/runs"
 INITIAL_DELAY = 30
 POLL_INTERVAL = 15
 MAX_POLL_DURATION = 840
-MAX_OUTPUT_RETRIES = 10
+MAX_OUTPUT_RETRIES = 4
 COMPLETION_POLL_INTERVAL = 30
 
 
@@ -84,6 +84,12 @@ def generate_pm_report(
 
         run_id = run_ids[0]
 
+        save_report_to_child_table(
+            project=project,
+            run_id=run_id,
+            date_range=f"{from_date} to {to_date}",
+        )
+
         frappe.enqueue(
             "next_pms.api.generate_pm_report.check_and_save_report",
             project=project,
@@ -125,6 +131,7 @@ def check_and_save_report(project, run_id, user, from_date, to_date):
         # Timeout check
         if elapsed >= MAX_POLL_DURATION:
             frappe.log_error(f"run_id: {run_id} | project: {project}", "PM Report — Poll Timeout")
+            update_report_row(project, run_id, status="Failed", generated_on=frappe.utils.now())
             _notify(project, user, error="Polling timed out after 10 minutes.")
             return
 
@@ -144,21 +151,28 @@ def check_and_save_report(project, run_id, user, from_date, to_date):
 
             if status == "Completed":
                 document_url = output.get("document_url") if output else None
-
                 if document_url:
-                    save_report_to_child_table(
+                    # Update row with actual URL and datetime
+                    update_report_row(
                         project=project,
+                        run_id=run_id,
                         report_link=document_url,
-                        date_range=f"{from_date} to {to_date}",
                         generated_on=frappe.utils.now(),
+                        status="Done",
                     )
                     _notify(project, user, doc_link=document_url)
                     _send_bell_notification(project, user, document_url)
                     return
-
                 else:
                     output_retry_count += 1
                     if output_retry_count >= MAX_OUTPUT_RETRIES:
+                        # Completed but no doc_url — keep run_id for resync
+                        update_report_row(
+                            project=project,
+                            run_id=run_id,
+                            status="Completed",
+                            generated_on=frappe.utils.now(),
+                        )
                         _notify(project, user, error="Process completed but no document was generated.")
                         return
                     time.sleep(COMPLETION_POLL_INTERVAL)
@@ -166,6 +180,7 @@ def check_and_save_report(project, run_id, user, from_date, to_date):
 
             elif status in ("Failed", "Cancelled"):
                 frappe.log_error(f"run_id: {run_id} | status: {status}", "PM Report — Failed/Cancelled")
+                update_report_row(project=project, run_id=run_id, status="Failed", generated_on=frappe.utils.now())
                 _notify(project, user, error=f"Report generation {status.lower()}.")
                 return
 
@@ -177,17 +192,107 @@ def check_and_save_report(project, run_id, user, from_date, to_date):
         time.sleep(POLL_INTERVAL)
 
 
-def save_report_to_child_table(project, report_link, date_range, generated_on):
+# save_report_to_child_table — clean, no status hacks
+def save_report_to_child_table(project, run_id, date_range):
     try:
         project_doc = frappe.get_doc("Project", project)
         project_doc.append(
             "custom_project_reports",
-            {"report_link": report_link, "date_range": date_range, "generated_on": generated_on},
+            {
+                "run_id": run_id,
+                "date_range": date_range,
+                "status": "Generating",
+            },
         )
         project_doc.save(ignore_permissions=True)
         frappe.db.commit()
     except Exception:
         frappe.log_error(frappe.get_traceback(), "PM Report — Save Error")
+
+
+# update_report_row — match by run_id field now
+def update_report_row(project, run_id, report_link=None, generated_on=None, status=None):
+    try:
+        project_doc = frappe.get_doc("Project", project)
+        for row in project_doc.custom_project_reports:
+            if row.run_id == run_id:
+                if report_link is not None:
+                    row.report_link = report_link
+                if generated_on is not None:
+                    row.generated_on = generated_on
+                if status is not None:
+                    row.status = status
+                break
+        project_doc.save(ignore_permissions=True)
+        frappe.db.commit()
+    except Exception:
+        frappe.log_error(frappe.get_traceback(), "PM Report — Update Row Error")
+
+
+@frappe.whitelist()
+def resync_report(project: str, run_id: str) -> dict:
+    """Poll for document_url for a completed run"""
+    frappe.has_permission("Project", doc=project, ptype="write", throw=True)
+
+    RESYNC_POLL_INTERVAL = 10
+    RESYNC_MAX_DURATION = 120  # 2 minutes max
+
+    poll_start = time.time()
+
+    try:
+        while True:
+            elapsed = time.time() - poll_start
+
+            if elapsed >= RESYNC_MAX_DURATION:
+                return {"status": "timeout"}
+
+            response = requests.get(
+                f"{LLM_STATUS_URL}/{run_id}",
+                headers={"x-api-key": get_api_key()},
+                timeout=30,
+            )
+            response.raise_for_status()
+            data = response.json()
+
+            if not data or not data.get("data"):
+                time.sleep(RESYNC_POLL_INTERVAL)
+                continue
+
+            run = data["data"][0]
+            status = run.get("status")
+            output = run.get("output")
+
+            if status == "Completed":
+                document_url = output.get("document_url") if output else None
+                if document_url:
+                    update_report_row(
+                        project=project,
+                        run_id=run_id,
+                        report_link=document_url,
+                        generated_on=frappe.utils.now(),
+                        status="Done",
+                    )
+                    return {"status": "success", "document_url": document_url}
+
+                # Not ready yet — keep polling
+                time.sleep(RESYNC_POLL_INTERVAL)
+                continue
+
+            # If Failed/Cancelled during resync
+            if status in ("Failed", "Cancelled"):
+                update_report_row(
+                    project=project,
+                    run_id=run_id,
+                    status="Failed",
+                    generated_on=frappe.utils.now(),
+                )
+                return {"status": "failed"}
+
+            time.sleep(RESYNC_POLL_INTERVAL)
+
+    except Exception:
+        frappe.log_error(frappe.get_traceback(), "PM Report — Resync Error")
+        frappe.throw(_("Failed to resync report. Please try again."))
 
 
 def _notify(project, user, doc_link=None, error=None):

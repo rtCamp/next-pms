@@ -8,7 +8,10 @@
  "field_order": [
   "report_link",
   "date_range",
-  "generated_on"
+  "generated_on",
+  "column_break_mrrs",
+  "run_id",
+  "status"
  ],
  "fields": [
   {
@@ -31,13 +34,29 @@
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Generated On"
+  },
+  {
+   "fieldname": "run_id",
+   "fieldtype": "Data",
+   "label": "Run ID"
+  },
+  {
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Status",
+   "options": "Generating\nCompleted\nFailed\nDone"
+  },
+  {
+   "fieldname": "column_break_mrrs",
+   "fieldtype": "Column Break"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2026-05-03 17:50:08.448243",
+ "modified": "2026-05-07 15:31:17.346801",
  "modified_by": "Administrator",
  "module": "Next PMS",
  "name": "Project Report",
