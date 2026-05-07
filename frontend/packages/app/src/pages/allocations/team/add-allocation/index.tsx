@@ -135,15 +135,6 @@ function AddAllocationModal({
       onSubmit: addAllocationFormSchema,
     },
     onSubmit: async ({ value }) => {
-      const selectedProject = projectOptions.find(
-        (project) => project.value === value.projectId,
-      );
-
-      if (!selectedProject?.customer) {
-        toast.error("Selected project must have a customer before allocation.");
-        return;
-      }
-
       setSubmitting(true);
 
       const totalAllocatedHours = computeTotalHours({
@@ -165,7 +156,7 @@ function AddAllocationModal({
               : {}),
             employee: value.employeeId,
             project: value.projectId,
-            customer: value.customerName,
+            customer: value.customer,
             allocation_start_date: value.fromDate,
             allocation_end_date: value.toDate,
             hours_allocated_per_day: value.hoursPerDay,
@@ -235,6 +226,22 @@ function AddAllocationModal({
     repeatFor,
     includeWeekends: weekendEntriesAllowed && includeWeekendsValue,
   });
+
+  const handleProjectChange = useCallback(
+    (value: string | null) => {
+      const nextProjectId = value ?? "";
+      const selectedProject = projectOptions.find(
+        (project) => project.value === nextProjectId,
+      );
+
+      form.setFieldValue("projectId", nextProjectId);
+
+      if (selectedProject?.customer) {
+        form.setFieldValue("customer", selectedProject.customer);
+      }
+    },
+    [form, projectOptions],
+  );
 
   return (
     <Dialog
@@ -316,7 +323,7 @@ function AddAllocationModal({
                 options={projectOptions}
                 placeholder="Select Project"
                 value={field.state.value}
-                onChange={(value) => field.handleChange(value as string)}
+                onChange={handleProjectChange}
                 openOnFocus
               />
               {!field.state.meta.isValid && (
@@ -327,7 +334,7 @@ function AddAllocationModal({
         />
 
         <form.Field
-          name="customerName"
+          name="customer"
           children={(field) => (
             <>
               <label className="block text-base text-ink-gray-5 mb-1.5">

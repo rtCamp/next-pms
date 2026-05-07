@@ -15,7 +15,7 @@ export const addAllocationFormSchema = z
       })
       .trim()
       .min(1, { message: "Please select a project." }),
-    customerName: z
+    customer: z
       .string({
         required_error: "Please select a customer.",
       })

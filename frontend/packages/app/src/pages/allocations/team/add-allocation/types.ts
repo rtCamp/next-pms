@@ -2,7 +2,7 @@ export interface AddAllocationInitialValues {
   allocationName?: string;
   employeeId?: string;
   projectId?: string;
-  customerName?: string;
+  customer?: string;
   recurrence?: "one-time" | "recurring";
   includeWeekends?: boolean;
   fromDate?: string;
