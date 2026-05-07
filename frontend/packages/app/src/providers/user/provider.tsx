@@ -53,9 +53,11 @@ export const UserProvider: FC<PropsWithChildren> = ({ children }) => {
 
   const { logout, isLoading: isAuthLoading, currentUser } = useFrappeAuth();
 
-  const { isLoading: isAppDataLoading, data: appData } = useFrappeGetCall(
-    "next_pms.timesheet.api.app.get_data",
-  );
+  const {
+    isLoading: isAppDataLoading,
+    data: appData,
+    error: appDataError,
+  } = useFrappeGetCall("next_pms.timesheet.api.app.get_data");
 
   useEffect(() => {
     setRoles(appData?.message?.roles || []);
@@ -64,8 +66,16 @@ export const UserProvider: FC<PropsWithChildren> = ({ children }) => {
     setHasIndustryField(appData?.message?.has_industry || false);
   }, [appData]);
 
-  const { isLoading: isEmployeeDataLoading, data: employeeData } =
-    useFrappeGetCall("next_pms.timesheet.api.employee.get_data");
+  const {
+    isLoading: isEmployeeDataLoading,
+    data: employeeData,
+    error: employeeDataError,
+  } = useFrappeGetCall("next_pms.timesheet.api.employee.get_data");
+
+  const hasError =
+    Boolean(appDataError || employeeDataError) ||
+    (!isAppDataLoading && !appData?.message) ||
+    (!isEmployeeDataLoading && !employeeData?.message?.employee);
 
   useEffect(() => {
     setEmployeeId(employeeData?.message?.employee ?? "");
@@ -103,7 +113,8 @@ export const UserProvider: FC<PropsWithChildren> = ({ children }) => {
     <UserContext.Provider
       value={{
         state: {
-          isLoading: isAuthLoading || isAppDataLoading || isEmployeeDataLoading,
+          isLoading: isAuthLoading,
+          hasError,
           employeeId,
           employeeName,
           workingHours,

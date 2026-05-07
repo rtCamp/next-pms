@@ -74,31 +74,45 @@ slack_read_channel(channel_id="C0AUXBY5WMB", limit=5)              # to find par
 
 Bot-identity for posts is `Next-PMS-Task-AI-Bot` (`bot_id=BF6973Y7N`). The "RESOLVED detection" bot-filter in this skill catches it via the generic `bot_id` rule, so no algorithm change is needed.
 
-### Acquiring `parent_ts`
+### Acquiring `parent_ts` — always start a fresh top-level thread
 
-Two paths, in order of preference:
+**Always post a fresh top-level message for the task. Do not reuse a maintainer-started thread, even if one already exists for the same issue.** The maintainer prefers one bot-led thread per task — it keeps the keyword-convention block, plan chunks, section-status updates, and final PR ping in a clean linear conversation that's easy to scroll. Reusing an older thread (e.g. one Ayush started to assign the workload) buries the structured plan under unrelated chatter and confuses the cadence.
 
-1. **Reuse an existing maintainer-started thread.** Many tasks begin with the maintainer posting a top-level message in `C0AUXBY5WMB` linking the issue (e.g. `New workload -> Epic 8 #1227`). Look for it before posting anything.
+Step-by-step:
 
-   The guaranteed path uses only the required Slack MCP tools — `slack_read_channel(channel_id="C0AUXBY5WMB", limit=20)` and scan the returned messages for a top-level entry containing the issue URL. If `slack_search_public` happens to be loaded, you may use it as a faster alternative:
+```bash
+# 1) Top-level webhook post (no --thread-ts) — keyword-convention block + "Plan in N messages below ⤵"
+bash -ic 'export SLACK_WEBHOOK_URL && .claude/skills/next-pms-task/scripts/slack_post.py --text "📋 Plan for issue #<n> — <title> — replies in this thread."'
 
-   ```python
-   slack_search_public(query=f"#{n} in:#bots-ai-workflow-next-pms", include_bots=False, limit=5)
-   ```
+# 2) read_channel, capture the latest message authored by Next-PMS-Task-AI-Bot (the just-posted one is newest)
+slack_read_channel(channel_id="C0AUXBY5WMB", limit=5)
+```
 
-   It is not in the preconditions list, so do not block on it — fall back to `slack_read_channel` if missing or zero-result. If found, take its `ts` as `parent_ts` and skip the fresh top-level post — go straight to threaded replies. This is the most common case in practice and keeps the maintainer in their own thread.
+Persist that `Message TS` as `parent_ts` for the rest of the workflow. If a maintainer-started thread for the same issue already exists, optionally post a one-liner there pointing at the new top-level (`↪︎ Moving the plan to a fresh thread — continuing there.`) so the maintainer knows where to look.
 
-2. **Post a fresh top-level message via the helper script**, then immediately read the channel back to find it:
+### Cron-driven gate polling — the `/next-pms-slack-poll` companion
 
-   ```bash
-   # 1) Top-level webhook post (no --thread-ts)
-   bash -ic 'export SLACK_WEBHOOK_URL && .claude/skills/next-pms-task/scripts/slack_post.py --text "📋 Plan for issue #<n> — <title> — replies in this thread."'
+Once `parent_ts` is captured (and at the start of every later approval gate), set up a recurring cron that fires `/next-pms-slack-poll <parent_ts> C0AUXBY5WMB` so the gate-poll cadence runs without re-entering this skill. The polling skill (project-scoped, lives at `.claude/skills/next-pms-slack-poll/SKILL.md`) is read-only — it reports gate state and self-cancels its cron on RESOLVED / BLOCK.
 
-   # 2) read_channel and capture the latest message authored by Next-PMS-Task-AI-Bot (it will be the newest entry)
-   slack_read_channel(channel_id="C0AUXBY5WMB", limit=5)
-   ```
+```python
+CronCreate(
+    cron="*/15 * * * *",
+    prompt=f"/next-pms-slack-poll {parent_ts} C0AUXBY5WMB",
+    recurring=True,
+)
+```
 
-   The just-posted bot message will be the newest entry; capture its `Message TS` and persist as `parent_ts` for the rest of the workflow.
+**Never wire the cron to fire `/next-pms-task <url>` itself.** That re-runs recon → plan → Slack on every tick, replans `plan_issue_<n>.md`, and dumps duplicate plan chunks into the thread. The polling skill exists specifically to avoid that footgun.
+
+When the maintainer replies `RESOLVED`, the polling skill cancels its own cron and returns the locked decisions in its report. Resume from the current section directly — no re-entry of the parent skill is required (the conversation context already has the plan loaded).
+
+### Batch mode is the default — per-section gates are opt-in
+
+**After the plan-approval gate clears, default to batch mode.** Run S1..Sn sequentially (implement → rebuild → browser-check → next section) without re-arming the polling cron between sections, and post a single consolidated status to the thread once the PR is up and post-PR triage is done. Maintainer prefers this — fewer round-trips, less Slack noise, faster wall-clock.
+
+Per-section RESOLVED gating is opt-in: if the maintainer's plan-approval reply explicitly asks for it (e.g. `RESOLVED. gate every section`, or any phrasing that signals they want to review each section), follow §5 step 5 verbatim instead. When in doubt, ask once in-thread before flipping modes.
+
+When entering batch mode (the default), acknowledge in-thread once at the start: `Acknowledged ✅ — running S1..Sn in batch mode (default). Will ping here once the full feature is green and the PR is up.` That single ack tells the maintainer the gate cleared and what cadence to expect.
 
 ## End-to-end workflow
 
@@ -116,9 +130,9 @@ Two paths, in order of preference:
 
 Channel: **`C0AUXBY5WMB`** (`#bots-ai-workflow-next-pms`). All posts via the webhook template in "Slack delivery" above.
 
-**Resolve `parent_ts` first** — follow the two paths in "Acquiring `parent_ts`": prefer reusing the maintainer's existing top-level message for the issue (search the channel for the issue number), otherwise post a fresh one via webhook and capture the ts via `slack_read_channel`.
+**Resolve `parent_ts` first** — always post a fresh top-level message for the task per "Acquiring `parent_ts`" above (do not reuse a maintainer-started thread). Capture its ts via `slack_read_channel`. Then arm the polling cron per "Cron-driven gate polling" so the plan-approval gate runs without re-entering this skill.
 
-**Top-level message** (only if a fresh one is needed) — one liner that names the keyword convention. Use exactly this template, substituting `<n>` and `<title>`:
+**Top-level message** — one liner that names the keyword convention. Use exactly this template, substituting `<n>` and `<title>`:
 
 ```
 📋 Plan for issue #<n> — <title> — replies in this thread.
@@ -131,11 +145,9 @@ Keywords (reply in-thread, plain text, case-insensitive):
 I poll this thread every 15 min and only act on replies from non-bot users. Defaults are listed in square brackets; if you reply only `RESOLVED`, I take the defaults and proceed.
 ```
 
-If reusing a maintainer-started thread, send the keyword-convention block as the **first thread reply** instead — the maintainer's own top-level message already names the issue.
-
 **Thread replies** — split the plan across multiple messages (Slack truncates above ~5 KB per message). Use the breakdown from existing precedent (issue summary + scope; figma recon; component inventory + file structure; section breakdown; open decisions; final next-steps note). Keep each message under ~3 KB. Always prefix with `<i>/<total>` so the maintainer can scroll. Each reply is a webhook POST with `thread_ts: <parent_ts>`.
 
-Persist `parent_ts` and `channel_id="C0AUXBY5WMB"` in your working memory — every subsequent webhook POST and every MCP poll reuses them.
+Persist `parent_ts` and `channel_id="C0AUXBY5WMB"` in your working memory — every subsequent webhook POST, every MCP poll, and the cron prompt all reuse them.
 
 ### 4. Plan-approval gate
 
@@ -153,7 +165,7 @@ For each section S1…Sn from the plan:
 2. **Rebuild** — `fm shell pms-temp.frappe.rt.gw <<'EOF'` / `cd apps/next_pms/frontend && npm run build:app` / `EOF`. If the submodule SHA changed, run `pnpm --filter @rtcamp/frappe-ui-react build` first.
 3. **Browser quality-gate** — navigate the existing authenticated tab to the relevant route, reload, run a JS assertion script that captures structural + style facts (heading text, classNames, computed sizes, presence of expected SVGs/icons), and read console messages with `onlyErrors=true`. Heavier or multi-route checks: spawn a `general-purpose` subagent.
 4. **Post status to thread** — short reply with: section name, what changed (1–2 lines per file), build result, browser-gate result, and the verbatim line: `Reply RESOLVED to proceed to S<i+1>.` (or `… to open the PR.` for the last section).
-5. **Wait for RESOLVED on this section** — poll every 15 min, applying the canonical RESOLVED-detection algorithm. `BLOCK` pauses; new feedback (e.g. "fix X first") is treated as scope; address it, post an updated status, then re-wait. Do **not** advance to the next section without an explicit `RESOLVED` from a non-bot user. The 1-hour single-nudge rule applies per gate.
+5. **Wait for RESOLVED on this section** — *only when the maintainer has explicitly opted into per-section gating* at the plan-approval gate (see "Batch mode is the default" above). In that case re-arm the polling cron (`CronCreate(*/15 * * * *, /next-pms-slack-poll <parent_ts> C0AUXBY5WMB)`); the polling skill applies the canonical RESOLVED-detection algorithm and self-cancels its own cron on terminal state. `BLOCK` pauses; new feedback (e.g. "fix X first") is treated as scope; address it, post an updated status, re-arm the cron, then re-wait. Do **not** advance to the next section without an explicit `RESOLVED` from a non-bot user. The 1-hour single-nudge rule applies per gate. **In the default batch mode, skip steps 4–5 between sections entirely** — proceed straight from one section's browser-gate to the next section's implementation, and only post once at the end (consolidated status + PR link).
 
 ### 6. PR + post-PR triage
 
@@ -164,8 +176,79 @@ Once the last section is `RESOLVED`:
 3. **Base** per CLAUDE.md §5: default `feat/redesign`. If the issue genuinely depends on another in-flight PR's branch, base on that branch and add a "Stacking note" paragraph to the PR body (rule #7).
 4. `gh pr create --reviewer ayushnirwal` with the body template from existing precedent (Summary / Stacking note if applicable / Verification / Test plan).
 5. Sleep 10 min; pull `gh pr view <pr> --json reviews,comments,statusCheckRollup`, `gh api repos/.../pulls/<pr>/comments`, `gh pr checks <pr>`. Triage per CLAUDE.md §6.
-6. Post in the same Slack thread: `PR up: <url>. CI: <green|red+notes>. AI review: <state>.`
-7. Final maintainer DM to Ayush (`U026K7B5VAA`, channel `D026S1T8ML2`) with a short summary + the PR link.
+6. Post in the same Slack thread a single combined status that **explicitly states the task is waiting on the maintainer's review and final `RESOLVED`**, and names the three reply paths the maintainer can use. Use this template:
+
+   ```
+   ⏳ Waiting on maintainer review + final `RESOLVED` to close this task.
+
+   Polling cron armed (*/15 * * * * → /next-pms-slack-poll) on this thread. Reply here with:
+   • Free-form feedback / review notes — I will pick them up on the next tick, act, and post an updated status.
+   • `RESOLVED` — gate closes, cron self-cancels, task is done.
+   • `BLOCK` — pauses the loop until you message again.
+
+   PR: <url> · CI: <green|red+notes> · AI review: <state>.
+   ```
+
+   Do not skip this. "PR up + status posted" is not closure — the developer reviews the PR and may post more feedback. Without the explicit waiting message, the thread looks finished and the maintainer doesn't know the bot is still listening.
+7. **Arm BOTH polling crons in parallel** for the maintainer's sign-off — one watches the Slack thread, one watches the PR for inline review comments. Cadence: 15 min for both. Both self-cancel on terminal states.
+
+   **7a. Slack thread cron (existing):**
+
+   ```python
+   CronCreate(
+       cron="*/15 * * * *",
+       prompt=f"/next-pms-slack-poll {parent_ts} C0AUXBY5WMB",
+       recurring=True,
+   )
+   ```
+
+   `/next-pms-slack-poll` is read-only; reports the gate state (`WAITING` / `RESOLVED` / `BLOCK`) plus any free-form human reply (e.g. *"feedback added"*, *"review posted"*). On `RESOLVED` or `BLOCK` the polling skill cancels its own cron.
+
+   **7b. GitHub PR cron (added 2026-05-01):**
+
+   ```python
+   CronCreate(
+       cron="*/15 * * * *",
+       prompt=f"/next-pms-pr-poll {pr_number} {parent_ts}",
+       recurring=True,
+   )
+   ```
+
+   GitHub-side polling is needed because maintainers don't always ping Slack after reviewing — they may leave inline comments on the PR and assume the bot will see them. The Slack-only loop misses that. The GH-poll skill checks `gh api repos/:owner/:repo/pulls/<pr>/comments` for unaddressed inline comments since the last bot push, and triggers the fix-and-notify cycle when any are found.
+
+   **What "unaddressed" means:** an inline comment is unaddressed when the comment's `commit_id` is older than the latest push on the PR branch *and* the bot hasn't replied to it yet. Comments resolved on outdated lines (i.e. the line was rewritten by a later push) are ignored.
+
+   **The auto-fix-and-notify cycle** (driven by either the Slack `feedback added` signal or the GH-poll detection):
+
+   ```bash
+   gh pr view <pr> --json reviews,comments,statusCheckRollup
+   gh api repos/:owner/:repo/pulls/<pr>/comments --paginate
+   gh pr checks <pr>
+   ```
+
+   For each inline review thread:
+   - **Valid** → fix locally, commit on the same branch, push. Reply on the thread with `Fixed in <sha> — <one-line>`.
+   - **Not valid** → reply on the thread with the rationale (link to AC / Figma frame / locked decision answer / convention). Do not silently ignore.
+
+   After the round of fixes, post a single Slack update in the existing thread using **this template**:
+
+   ```
+   ✅ Picked up GH review comments → fixed → pushed.
+
+   Commit `<sha>` on `<branch>` addresses <N> inline review threads on PR <url>:
+   • <one-line per fix>
+   …
+   • <declined> — <one-line rationale>
+
+   Browser-verified on <route>: <key checks green>.
+
+   Reply `RESOLVED` to close, or post more feedback (Slack or GitHub) and I'll pick it up on the next 15-min poll.
+   ```
+
+   The polling crons stay armed; the same loop runs again on the next round of feedback or terminates on `RESOLVED` / `BLOCK`.
+8. Final maintainer DM to Ayush (`U026K7B5VAA`, channel `D026S1T8ML2`) with a short summary + the PR link.
+
+**Do not declare the task done before final `RESOLVED`** lands in the thread. The PR being open + status posted is not closure — closure is the maintainer's explicit sign-off captured by the polling cron.
 
 ### 7. Continuous learning from thread feedback
 
@@ -246,31 +329,44 @@ If zero durable rules were found, still post the reply with `N=0` — it confirm
 ## RESOLVED detection — exact algorithm
 
 ```
-Step 1 — filter bot messages.
+Step 1 — find the gate boundary.
+  Scan all messages (parent + replies) for the latest bot-authored one.
   A message is bot-authored if ANY of these are true:
     • message.subtype == "bot_message"
     • message.bot_id is present and non-empty
     • message.bot_profile is present
     • message.text ends with "*Sent using* @Claude"
+  Let gate_boundary_ts = ts of that latest bot post (the bot's last status / waiting / ack).
+  If no bot post exists at all, set gate_boundary_ts = "0".
+
+Step 2 — filter bot messages.
   Discard all bot-authored messages. Work only with the remaining human messages.
 
-Step 2 — accumulate decision answers (all human messages, newest-first).
-  For each human message:
+Step 3 — scope by gate boundary.
+  Drop every human message whose ts <= gate_boundary_ts.
+  Keep only human messages strictly newer than the boundary — those are replies to the *current* gate.
+
+Step 4 — accumulate decision answers (in-scope human messages, newest-first).
+  For each in-scope human message:
     if regex matches a numbered-decision pattern (^\d+:) → merge into locked_decisions
 
-Step 3 — find the gate signal from the LATEST human message only.
-  Take the single most-recent human message.
+Step 5 — find the gate signal from the LATEST in-scope human message only.
+  Take the single most-recent in-scope human message.
   if regex \bBLOCK\b matches (case-insensitive) → return "BLOCK"
   if regex \bRESOLVED\b matches (case-insensitive) → return "RESOLVED"
   fall through → return "WAITING"
+
+  If there are no in-scope human messages at all, return "WAITING".
 ```
 
-Key invariants:
-- `RESOLVED` must appear in the **latest** human message. An older `RESOLVED` buried under a newer decision answer does not advance the gate — the maintainer must re-send `RESOLVED` after answering decisions.
-- Decision answers are accumulated from all human messages (not just the latest), so the maintainer can spread answers across multiple replies.
-- `BLOCK` anywhere in the latest human message halts, even if it also contains `RESOLVED`.
+Why the gate boundary? `/next-pms-task` runs through multiple gates per task (plan-approval, optional per-section, final review). Each new gate is announced by a fresh bot status / waiting / ack post. A `RESOLVED` from yesterday's plan-approval gate would otherwise re-fire when today's final-gate cron tick reads the thread, silently ending the task without the maintainer ever signing off on the PR. The boundary makes the algorithm scope-aware: only signals posted *after* the bot's most recent status count.
 
-Only `RESOLVED` in the latest human message advances. `BLOCK` in the latest human message halts. Decision answers update state but do not advance.
+Key invariants:
+- `RESOLVED` must appear in the **latest in-scope** human message — i.e. one strictly newer than the latest bot post. An older `RESOLVED` from a previous gate does not advance the current gate.
+- Decision answers are accumulated from all *in-scope* human messages, so the maintainer can spread answers across multiple replies within the current gate.
+- `BLOCK` anywhere in the latest in-scope human message halts, even if it also contains `RESOLVED`.
+
+Only `RESOLVED` in the latest in-scope human message advances. `BLOCK` in the latest in-scope human message halts. Decision answers update state but do not advance.
 
 ## Constraints + non-goals
 
@@ -290,6 +386,8 @@ Only `RESOLVED` in the latest human message advances. `BLOCK` in the latest huma
 ## Companion skills + memory
 
 - `next-pms-conventions` — project conventions (camelCase files, cva co-location, Tailwind v4 `!`, etc.). Loaded automatically.
+- `next-pms-slack-poll` — read-only Slack thread poll. Armed by step 6.7a after the PR is opened.
+- `next-pms-pr-poll` — write-capable GitHub PR poll. Armed by step 6.7b in parallel with the Slack poll. Drives the auto-fix-and-notify cycle when unaddressed inline review comments are detected.
 - `react-agents-review` — checklist for closing FE sections.
 - `advanced-react-patterns` — composition-over-memoization, etc.
 - Auto-memory at `~/.claude/projects/<project-slug>/memory/MEMORY.md` (Claude Code resolves the slug from the working directory) is read on every task — apply user/feedback/project entries before drafting the plan.

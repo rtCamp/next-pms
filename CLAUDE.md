@@ -155,6 +155,8 @@ The auto-memory index at `~/.claude/projects/<project-slug>/memory/MEMORY.md` mi
 
 - **`next-pms-task`** — `/next-pms-task <github-issue-url>`. End-to-end pipeline: fetch issue, write plan, post Slack thread in `#bots-ai-workflow-next-pms` (channel `C0AUXBY5WMB`), gate sections on `RESOLVED`, open PR per §5–§6. Loads `next-pms-conventions` automatically. **Start here for any task link** — don't hand-roll the workflow.
 - **`next-pms-conventions`** — **load FIRST for any manual coding task** (tasks not entered via `/next-pms-task`, which handles this automatically). The full reference described above.
+- **`next-pms-slack-poll`** — `/next-pms-slack-poll <thread_ts>`. Read-only 15-min poll of the task's Slack thread; surfaces gate state (`WAITING` / `RESOLVED` / `BLOCK`) and free-form maintainer replies. Armed by `/next-pms-task` step 6.7a.
+- **`next-pms-pr-poll`** — `/next-pms-pr-poll <pr_number> <thread_ts>`. Write-capable 15-min poll of PR inline comments; runs the auto-fix-and-notify-Slack cycle when unaddressed comments exist. Armed by `/next-pms-task` step 6.7b in parallel with the slack-poll cron. Both crons self-cancel on terminal Slack state.
 - **`react-agents-review`** — run before closing any FE section (step 4). Rules of Hooks, stale closures, missing deps, a11y, TypeScript safety.
 - **`advanced-react-patterns`** — consult when a section adds `useMemo`/`useCallback`/`React.memo` or global state.
 - **`webapp-testing`** — Playwright e2e suite in `tests/e2e/` (NOT the step-2 live browser-check, which uses Claude-in-Chrome MCP).

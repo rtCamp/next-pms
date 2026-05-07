@@ -10,8 +10,8 @@ import { Tabs } from "@rtcamp/frappe-ui-react";
  */
 import { FAKE_PROJECTS } from "@/pages/projects/list/fake-data";
 
+import { AboutThisProject } from "./about";
 import { ProjectDetailHeader } from "./header";
-import { AboutThisProject } from "./summary";
 import { TABS } from "./tabs";
 
 function ProjectDetail() {
@@ -32,9 +32,7 @@ function ProjectDetail() {
           tabIndex={activeTab}
           onTabChange={setActiveTab}
         />
-        <aside className="w-1/4">
-          <AboutThisProject />
-        </aside>
+        <AboutThisProject className="w-88" />
       </div>
     </div>
   );

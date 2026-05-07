@@ -150,6 +150,7 @@ html,
   --animate-fade-in: fade-in 0.2s ease;
   --color-surface-green-5: var(--color-green-600);
   --color-surface-amber-5: var(--color-amber-600);
+  --color-surface-blue-4: var(--color-blue-300);
   --color-ink-cyan-3: #3bbde5;
   --color-ink-violet-3: #7757ee;
 }
