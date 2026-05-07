@@ -74,5 +74,6 @@ export {
 } from "./table";
 
 export * from "./timesheet";
+export * from "./icons";
 export * from "./gantt-view";
 export { default as GlobalSearch } from "./globalSearch";
