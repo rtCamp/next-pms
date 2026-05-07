@@ -12,14 +12,13 @@ import Sidebar from "@/layout/sidebar";
 import { useUser } from "@/providers/user";
 
 const LayoutWithSidebar = () => {
-  const { employeeId, hasError, userId } = useUser(({ state }) => ({
+  const { employeeId, hasError } = useUser(({ state }) => ({
     employeeId: state.employeeId,
     hasError: state.hasError,
     userId: state.userId,
   }));
 
-  const canRenderOutlet =
-    (Boolean(employeeId) && !hasError) || userId === "Administrator";
+  const canRenderOutlet = Boolean(employeeId) && !hasError;
 
   return (
     <ErrorFallback>

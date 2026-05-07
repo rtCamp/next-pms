@@ -16,6 +16,7 @@ const FrappeProvider = ({ children }: { children: ReactNode }) => {
       socketPort={import.meta.env.VITE_SOCKET_PORT}
       enableSocket={enableSocket()}
       siteName={getSiteName()}
+      swrConfig={{ errorRetryCount: 1, revalidateOnFocus: false }}
     >
       <VersionUpdate>{children}</VersionUpdate>
     </_FrappeProvider>
