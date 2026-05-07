@@ -6,7 +6,6 @@ import { ArrowUpRight } from "@rtcamp/frappe-ui-react/icons";
 /**
  * Internal dependencies.
  */
-import { formatCompactUSD } from "./format";
 import type { InvoiceBurnData } from "./types";
 
 export function InvoiceBurnCard({ data }: { data: InvoiceBurnData }) {
@@ -53,7 +52,7 @@ export function InvoiceBurnCard({ data }: { data: InvoiceBurnData }) {
             <span className="truncate">Invoiced and paid</span>
           </span>
           <span className="shrink-0 text-base font-medium text-ink-gray-7">
-            {formatCompactUSD(paid)}
+            ${paid}
           </span>
         </div>
         <div className="flex items-center justify-between gap-2">
@@ -62,7 +61,7 @@ export function InvoiceBurnCard({ data }: { data: InvoiceBurnData }) {
             <span className="truncate">Invoiced but not paid</span>
           </span>
           <span className="shrink-0 text-base font-medium text-ink-gray-7">
-            {formatCompactUSD(unpaid)}
+            ${unpaid}
           </span>
         </div>
         <div className="flex items-center justify-between gap-2">
@@ -71,7 +70,7 @@ export function InvoiceBurnCard({ data }: { data: InvoiceBurnData }) {
             <span className="truncate">Total project amount</span>
           </span>
           <span className="shrink-0 text-base font-medium text-ink-gray-7">
-            {formatCompactUSD(total)}
+            ${total}
           </span>
         </div>
       </div>

@@ -6,7 +6,6 @@ import { ArrowUpRight } from "@rtcamp/frappe-ui-react/icons";
 /**
  * Internal dependencies.
  */
-import { formatCompactUSD } from "./format";
 import type { CostBurnData } from "./types";
 
 export function CostBurnCard({ data }: { data: CostBurnData }) {
@@ -56,7 +55,7 @@ export function CostBurnCard({ data }: { data: CostBurnData }) {
             <span className="truncate">Actual cost incurred</span>
           </span>
           <span className="shrink-0 text-base font-medium text-ink-gray-7">
-            {formatCompactUSD(actual)}
+            ${actual}
           </span>
         </div>
         <div className="flex items-center justify-between gap-2">
@@ -65,7 +64,7 @@ export function CostBurnCard({ data }: { data: CostBurnData }) {
             <span className="truncate">Forecasted cost to completion</span>
           </span>
           <span className="shrink-0 text-base font-medium text-ink-gray-7">
-            {formatCompactUSD(forecasted)}
+            ${forecasted}
           </span>
         </div>
         <div className="flex items-center justify-between gap-2">
@@ -74,7 +73,7 @@ export function CostBurnCard({ data }: { data: CostBurnData }) {
             <span className="truncate">Expected total cost</span>
           </span>
           <span className="shrink-0 text-base font-medium text-ink-gray-7">
-            {formatCompactUSD(total)}
+            ${total}
           </span>
         </div>
       </div>
