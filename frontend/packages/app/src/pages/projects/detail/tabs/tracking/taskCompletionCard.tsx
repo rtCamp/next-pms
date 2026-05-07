@@ -12,10 +12,10 @@ const ARC_LENGTH = CIRCUMFERENCE * ARC_SPAN;
 
 export function TaskCompletionCard({ data }: { data: TaskCompletionData }) {
   const { totalIssues, openIssues, completedIssues } = data;
-  const percent =
-    totalIssues > 0 ? Math.round((completedIssues / totalIssues) * 100) : 0;
-  const safe = Math.min(100, Math.max(0, percent));
-  const fillLength = ARC_LENGTH * (safe / 100);
+  const ratio = totalIssues > 0 ? completedIssues / totalIssues : 0;
+  const safeRatio = Math.min(1, Math.max(0, ratio));
+  const percent = Math.round(safeRatio * 100);
+  const fillLength = ARC_LENGTH * safeRatio;
 
   return (
     <div className="flex flex-1 min-w-0 flex-col gap-3 rounded-xl border border-outline-gray-1 bg-surface-cards p-3">
@@ -23,8 +23,18 @@ export function TaskCompletionCard({ data }: { data: TaskCompletionData }) {
         Task completion
       </h3>
       <div className="flex items-center gap-4">
-        <div className="relative size-[140px] shrink-0">
-          <svg viewBox="0 0 100 100" className="size-full" aria-hidden>
+        <div className="relative aspect-square w-[140px] min-w-0">
+          <svg
+            viewBox="0 0 100 100"
+            className="size-full"
+            role="progressbar"
+            aria-valuemin={0}
+            aria-valuemax={Math.max(0, totalIssues)}
+            aria-valuenow={Math.min(
+              Math.max(0, totalIssues),
+              Math.max(0, completedIssues),
+            )}
+          >
             <g transform="rotate(135 50 50)">
               <circle
                 cx="50"

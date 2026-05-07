@@ -6,22 +6,16 @@ import { ArrowUpRight } from "@rtcamp/frappe-ui-react/icons";
 /**
  * Internal dependencies.
  */
+import { formatCompactUSD } from "./format";
 import type { InvoiceBurnData } from "./types";
-
-const compactUSD = new Intl.NumberFormat("en-US", {
-  style: "currency",
-  currency: "USD",
-  notation: "compact",
-  maximumFractionDigits: 0,
-});
-
-const fmt = (value: number) => compactUSD.format(value).toLowerCase();
 
 export function InvoiceBurnCard({ data }: { data: InvoiceBurnData }) {
   const { paid, unpaid, total } = data;
   const cap = Math.max(total, paid + unpaid);
   const paidPct = cap > 0 ? Math.min(100, (paid / cap) * 100) : 0;
   const unpaidPct = cap > 0 ? Math.min(100, (unpaid / cap) * 100) : 0;
+  const ariaValueMax = Math.max(0, cap);
+  const ariaValueNow = Math.min(ariaValueMax, Math.max(0, paid + unpaid));
 
   return (
     <div className="flex flex-1 min-w-0 flex-col gap-3 rounded-xl border border-outline-gray-1 bg-surface-cards p-3">
@@ -34,12 +28,20 @@ export function InvoiceBurnCard({ data }: { data: InvoiceBurnData }) {
           <ArrowUpRight aria-hidden className="size-4" />
         </span>
       </div>
-      <div className="flex h-2 w-full overflow-hidden rounded-full bg-surface-gray-3">
+      <div
+        role="progressbar"
+        aria-valuemin={0}
+        aria-valuemax={ariaValueMax}
+        aria-valuenow={ariaValueNow}
+        className="flex h-2 w-full overflow-hidden rounded-full bg-surface-gray-3"
+      >
         <div
+          aria-hidden
           className="h-full bg-surface-violet-5"
           style={{ width: `${paidPct}%` }}
         />
         <div
+          aria-hidden
           className="h-full bg-surface-blue-5"
           style={{ width: `${unpaidPct}%` }}
         />
@@ -51,7 +53,7 @@ export function InvoiceBurnCard({ data }: { data: InvoiceBurnData }) {
             <span className="truncate">Invoiced and paid</span>
           </span>
           <span className="shrink-0 text-base font-medium text-ink-gray-7">
-            {fmt(paid)}
+            {formatCompactUSD(paid)}
           </span>
         </div>
         <div className="flex items-center justify-between gap-2">
@@ -60,7 +62,7 @@ export function InvoiceBurnCard({ data }: { data: InvoiceBurnData }) {
             <span className="truncate">Invoiced but not paid</span>
           </span>
           <span className="shrink-0 text-base font-medium text-ink-gray-7">
-            {fmt(unpaid)}
+            {formatCompactUSD(unpaid)}
           </span>
         </div>
         <div className="flex items-center justify-between gap-2">
@@ -69,7 +71,7 @@ export function InvoiceBurnCard({ data }: { data: InvoiceBurnData }) {
             <span className="truncate">Total project amount</span>
           </span>
           <span className="shrink-0 text-base font-medium text-ink-gray-7">
-            {fmt(total)}
+            {formatCompactUSD(total)}
           </span>
         </div>
       </div>

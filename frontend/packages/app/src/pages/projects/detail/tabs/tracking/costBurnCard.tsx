@@ -6,22 +6,19 @@ import { ArrowUpRight } from "@rtcamp/frappe-ui-react/icons";
 /**
  * Internal dependencies.
  */
+import { formatCompactUSD } from "./format";
 import type { CostBurnData } from "./types";
-
-const compactUSD = new Intl.NumberFormat("en-US", {
-  style: "currency",
-  currency: "USD",
-  notation: "compact",
-  maximumFractionDigits: 0,
-});
-
-const fmt = (value: number) => compactUSD.format(value).toLowerCase();
 
 export function CostBurnCard({ data }: { data: CostBurnData }) {
   const { actual, forecasted, total } = data;
   const cap = Math.max(total, actual + forecasted);
   const actualPct = cap > 0 ? Math.min(100, (actual / cap) * 100) : 0;
   const forecastedPct = cap > 0 ? Math.min(100, (forecasted / cap) * 100) : 0;
+  const ariaValueMax = Math.max(0, cap);
+  const ariaValueNow = Math.min(
+    ariaValueMax,
+    Math.max(0, actual + forecasted),
+  );
 
   return (
     <div className="flex flex-1 min-w-0 flex-col gap-3 rounded-xl border border-outline-gray-1 bg-surface-cards p-3">
@@ -34,12 +31,20 @@ export function CostBurnCard({ data }: { data: CostBurnData }) {
           <ArrowUpRight aria-hidden className="size-4" />
         </span>
       </div>
-      <div className="flex h-2 w-full overflow-hidden rounded-full bg-surface-gray-3">
+      <div
+        role="progressbar"
+        aria-valuemin={0}
+        aria-valuemax={ariaValueMax}
+        aria-valuenow={ariaValueNow}
+        className="flex h-2 w-full overflow-hidden rounded-full bg-surface-gray-3"
+      >
         <div
+          aria-hidden
           className="h-full bg-surface-green-5"
           style={{ width: `${actualPct}%` }}
         />
         <div
+          aria-hidden
           className="h-full bg-surface-green-3"
           style={{ width: `${forecastedPct}%` }}
         />
@@ -51,7 +56,7 @@ export function CostBurnCard({ data }: { data: CostBurnData }) {
             <span className="truncate">Actual cost incurred</span>
           </span>
           <span className="shrink-0 text-base font-medium text-ink-gray-7">
-            {fmt(actual)}
+            {formatCompactUSD(actual)}
           </span>
         </div>
         <div className="flex items-center justify-between gap-2">
@@ -60,7 +65,7 @@ export function CostBurnCard({ data }: { data: CostBurnData }) {
             <span className="truncate">Forecasted cost to completion</span>
           </span>
           <span className="shrink-0 text-base font-medium text-ink-gray-7">
-            {fmt(forecasted)}
+            {formatCompactUSD(forecasted)}
           </span>
         </div>
         <div className="flex items-center justify-between gap-2">
@@ -69,7 +74,7 @@ export function CostBurnCard({ data }: { data: CostBurnData }) {
             <span className="truncate">Expected total cost</span>
           </span>
           <span className="shrink-0 text-base font-medium text-ink-gray-7">
-            {fmt(total)}
+            {formatCompactUSD(total)}
           </span>
         </div>
       </div>
