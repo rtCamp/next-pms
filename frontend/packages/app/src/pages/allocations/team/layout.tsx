@@ -14,7 +14,7 @@ import AddAllocationModal from "@/pages/allocations/team/add-allocation";
 import { AllocationsTeamProvider } from "@/pages/allocations/team/provider";
 import { useAllocationModal } from "./useAllocationModal";
 
-function TeamTimesheetLayoutContent() {
+function AllocationsTeamLayoutContent() {
   const { openAddDialog, outletContext, modalProps } = useAllocationModal();
 
   return (
@@ -37,12 +37,12 @@ function TeamTimesheetLayoutContent() {
   );
 }
 
-function TeamTimesheetLayout() {
+function AllocationsTeamLayout() {
   return (
     <AllocationsTeamProvider>
-      <TeamTimesheetLayoutContent />
+      <AllocationsTeamLayoutContent />
     </AllocationsTeamProvider>
   );
 }
 
-export default TeamTimesheetLayout;
+export default AllocationsTeamLayout;

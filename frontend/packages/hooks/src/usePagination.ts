@@ -18,11 +18,13 @@ type PaginationParams = Record<string, unknown> & {
  *  Hook to make a GET request to the server with useSWRInfinite support.
  *
  * @param method - name of the method to call (will be dotted path e.g. "frappe.client.get_list")
- * @param getKey - A function that accepts the index and the previous page data, returns the key of a page
- * @param options [Optional] SWRConfiguration options for fetching data
+ * @param getKey - A function that accepts the index and previous page data, and returns the key for that page
+ * @param params - Request params for every page. Must include `page_length` so the hook can derive the `start` offset.
+ * @param options - Optional useSWRInfinite configuration
  *
  * @typeParam T - Type of the data returned by the method
- * @returns an object (SWRResponse) with the following properties: data (number), error, isValidating, and mutate
+ * @typeParam P - Type of the request params. Must extend `PaginationParams`.
+ * @returns The `useSWRInfinite` response for the paginated request. `data` is an array of page responses.
  */
 export const usePagination = <
   T = any,

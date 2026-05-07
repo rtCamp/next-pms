@@ -121,7 +121,8 @@ export function useAllocationsTeamData({
   const lastPayload = payloads.at(-1);
   const hasMore = lastPayload ? Boolean(lastPayload.has_more) : false;
   const isQueryLoading = isLoading;
-  const isNextPageLoading = !isLoading && isValidating && size > pages.length;
+  const isNextPageLoading =
+    !isLoading && isValidating && typeof pages[size - 1] === "undefined";
 
   const refresh = useCallback<UseAllocationsTeamDataResult["refresh"]>(
     async (employeeIds) => {
@@ -173,8 +174,8 @@ export function useAllocationsTeamData({
       return;
     }
 
-    void setSize(size + 1);
-  }, [hasMore, isNextPageLoading, isQueryLoading, setSize, size]);
+    void setSize((current) => current + 1);
+  }, [hasMore, isNextPageLoading, isQueryLoading, setSize]);
 
   return {
     members,
