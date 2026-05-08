@@ -8,7 +8,10 @@
  "field_order": [
   "report_link",
   "date_range",
-  "generated_on"
+  "generated_on",
+  "column_break_mrrs",
+  "run_id",
+  "status"
  ],
  "fields": [
   {
@@ -16,28 +19,49 @@
    "fieldtype": "Data",
    "in_list_view": 1,
    "label": "Report Link",
-   "options": "URL"
+   "options": "URL",
+   "read_only": 1
   },
   {
    "fieldname": "date_range",
    "fieldtype": "Data",
    "in_list_view": 1,
    "in_standard_filter": 1,
-   "label": "Date Range"
+   "label": "Date Range",
+   "read_only": 1
   },
   {
    "fieldname": "generated_on",
    "fieldtype": "Datetime",
    "in_list_view": 1,
    "in_standard_filter": 1,
-   "label": "Generated On"
+   "label": "Generated On",
+   "read_only": 1
+  },
+  {
+   "fieldname": "run_id",
+   "fieldtype": "Data",
+   "label": "Run ID",
+   "read_only": 1
+  },
+  {
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Status",
+   "options": "Generating\nCompleted\nFailed\nDone",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_mrrs",
+   "fieldtype": "Column Break"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2026-05-03 17:50:08.448243",
+ "modified": "2026-05-08 14:57:39.599881",
  "modified_by": "Administrator",
  "module": "Next PMS",
  "name": "Project Report",

@@ -32,9 +32,11 @@ const toLocalDateString = (date: Date): string => {
 };
 
 interface PMReportRow {
-  report_link: string;
+  run_id: string;
+  report_link?: string;
   date_range: string;
-  generated_on: string;
+  generated_on?: string;
+  status: "Generating" | "Completed" | "Failed" | "Done" | "";
 }
 
 interface PMReportProps {
@@ -63,13 +65,17 @@ const PMReport = ({ projectId }: PMReportProps) => {
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [isEditingSlack, setIsEditingSlack] = useState(false);
 
+  const [selectedRepo, setSelectedRepo] = useState("");
+
   const [includePreviousReport, setIncludePreviousReport] = useState(false);
 
+  const [resyncingRunId, setResyncingRunId] = useState<string | null>(null);
+
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const prevCountRef = useRef(0);
   const mutateRef = useRef(mutate);
   const isInitializedRef = useRef(false);
   const slackSlugRef = useRef(slackSlug);
+  const prevReportsRef = useRef<PMReportRow[]>([]);
 
   useEffect(() => {
     mutateRef.current = mutate;
@@ -97,6 +103,10 @@ const PMReport = ({ projectId }: PMReportProps) => {
     isInitializedRef.current = true;
     setDriveLink(projectData.custom_project_drive_link || "");
     setSlackSlug(projectData.custom_slack_channel_slug || "");
+    const repos = projectData.custom_project_repository_connections || [];
+    if (repos.length > 0) {
+      setSelectedRepo(repos[0].github_repository || "");
+    }
   }, [projectData]);
 
   useEffect(() => {
@@ -109,32 +119,75 @@ const PMReport = ({ projectId }: PMReportProps) => {
     const handler = (data: unknown) => {
       const event = data as PMReportEvent;
       if (event.project !== projectId) return;
-      if (event.error) {
-        if (timeoutRef.current) clearTimeout(timeoutRef.current);
-        setIsGenerating(false);
-        toast({ variant: "destructive", description: event.error });
-        return;
-      }
       mutateRef.current();
     };
 
     window.frappe?.realtime?.on("pm_report_ready", handler);
     return () => window.frappe?.realtime?.off("pm_report_ready", handler);
-  }, [projectId, toast]);
-
-  useEffect(() => {
-    if (!isGenerating) return;
-    const currentCount = projectData?.custom_project_reports?.length ?? 0;
-    if (currentCount > prevCountRef.current) {
-      if (timeoutRef.current) clearTimeout(timeoutRef.current);
-      setIsGenerating(false);
-      toast({ variant: "success", description: "Project Report is Ready! ✅" });
-    }
-  }, [projectData?.custom_project_reports?.length, isGenerating, toast]);
+  }, [projectId]);
 
   const { updateDoc, loading: saving } = useFrappeUpdateDoc();
   const { call } = useFrappePostCall(
     "next_pms.api.generate_pm_report.generate_pm_report",
+  );
+
+  const reports = (projectData?.custom_project_reports ?? []) as PMReportRow[];
+  const completedReports = reports.filter(
+    (r) => r.status === "Done" && !!r.report_link,
+  );
+  const lastReportLink =
+    completedReports.length > 0
+      ? (completedReports[completedReports.length - 1].report_link ?? null)
+      : null;
+  const isCustom = duration === "Custom";
+  const isAnyGenerating = reports.some((r) => r.status === "Generating");
+  const isBusy = saving || isAnyGenerating;
+
+  useEffect(() => {
+    const prev = prevReportsRef.current;
+
+    reports.forEach((r) => {
+      const prevRow = prev.find((p) => p.run_id === r.run_id);
+
+      if (prevRow?.status === "Generating" && r.status === "Done") {
+        if (timeoutRef.current) clearTimeout(timeoutRef.current);
+        setIsGenerating(false);
+        toast({
+          variant: "success",
+          description: "Project Report is Ready! ✅",
+        });
+      }
+
+      if (prevRow?.status === "Generating" && r.status === "Failed") {
+        if (timeoutRef.current) clearTimeout(timeoutRef.current);
+        setIsGenerating(false);
+        toast({
+          variant: "destructive",
+          description: "Report generation failed.",
+        });
+      }
+
+      if (prevRow?.status === "Generating" && r.status === "Completed") {
+        if (timeoutRef.current) clearTimeout(timeoutRef.current);
+        setIsGenerating(false);
+        toast({
+          variant: "destructive",
+          description: "Report completed but no document found. Click Resync.",
+        });
+      }
+    });
+
+    prevReportsRef.current = reports;
+  }, [reports, toast]);
+
+  useEffect(() => {
+    if (!isAnyGenerating) return;
+    const interval = setInterval(() => mutateRef.current(), 5000);
+    return () => clearInterval(interval);
+  }, [isAnyGenerating]);
+
+  const { call: resyncCall } = useFrappePostCall(
+    "next_pms.api.generate_pm_report.resync_report",
   );
 
   const handleDurationChange = useCallback((value: string) => {
@@ -182,7 +235,6 @@ const PMReport = ({ projectId }: PMReportProps) => {
       return;
     }
 
-    prevCountRef.current = projectData?.custom_project_reports?.length ?? 0;
     setIsGenerating(true);
 
     try {
@@ -194,10 +246,12 @@ const PMReport = ({ projectId }: PMReportProps) => {
         project: projectId,
         from_date: fromDate,
         to_date: toDate,
+        selected_repo: selectedRepo,
         ...(includePreviousReport && lastReportLink
           ? { previous_doc_url: lastReportLink }
           : {}),
       });
+      mutateRef.current();
 
       toast({
         variant: "success",
@@ -210,6 +264,10 @@ const PMReport = ({ projectId }: PMReportProps) => {
       setFromDate("");
       setToDate("");
       setIncludePreviousReport(false);
+      setSelectedRepo(
+        projectData?.custom_project_repository_connections?.[0]
+          ?.github_repository || "",
+      );
 
       timeoutRef.current = setTimeout(() => {
         setIsGenerating(false);
@@ -230,11 +288,47 @@ const PMReport = ({ projectId }: PMReportProps) => {
     }
   };
 
-  const reports = (projectData?.custom_project_reports ?? []) as PMReportRow[];
-  const lastReportLink =
-    reports.length > 0 ? reports[reports.length - 1].report_link : null;
-  const isCustom = duration === "Custom";
-  const isBusy = isGenerating || saving;
+  const handleResync = async (runId: string) => {
+    setResyncingRunId(runId);
+    try {
+      const result = await resyncCall({ project: projectId, run_id: runId });
+      const status = result?.message?.status;
+
+      if (status === "success") {
+        toast({ variant: "success", description: "Report document found! ✅" });
+        mutateRef.current();
+      } else if (status === "timeout") {
+        toast({
+          variant: "destructive",
+          description: "Document still not available. Try resyncing later.",
+        });
+      } else if (status === "failed") {
+        toast({
+          variant: "destructive",
+          description: "Report failed during resync.",
+        });
+        mutateRef.current();
+      } else {
+        toast({
+          variant: "destructive",
+          description: "Document not available yet. Try again later.",
+        });
+      }
+    } catch (error) {
+      const err = error as FrappeError;
+      toast({
+        variant: "destructive",
+        description: err?.message || "Resync failed.",
+      });
+    } finally {
+      setResyncingRunId(null);
+    }
+  };
+
+  const isGeneratingRow = (r: PMReportRow) => r.status === "Generating";
+  const isFailedRow = (r: PMReportRow) => r.status === "Failed";
+  const isResyncableRow = (r: PMReportRow) => r.status === "Completed";
+  const getRowRunId = (r: PMReportRow) => r.run_id || null;
 
   return (
     <div className="flex flex-col gap-6 p-4">
@@ -396,6 +490,44 @@ const PMReport = ({ projectId }: PMReportProps) => {
             />
           </div>
 
+          {/* Repository */}
+          {(projectData?.custom_project_repository_connections ?? []).length >
+            0 && (
+            <div className="flex flex-col gap-1 col-span-2">
+              <label
+                htmlFor="github-repo"
+                className="text-sm text-muted-foreground"
+              >
+                GitHub Repository
+              </label>
+              <select
+                id="github-repo"
+                className="border rounded px-3 py-2 text-sm"
+                value={selectedRepo}
+                onChange={(e) => setSelectedRepo(e.target.value)}
+                disabled={isBusy}
+              >
+                {(projectData?.custom_project_repository_connections ?? []).map(
+                  (repo: { github_repository: string }) => {
+                    const repoName =
+                      (repo.github_repository || "")
+                        .replace(/\/$/, "")
+                        .split("/")
+                        .pop() || repo.github_repository;
+                    return (
+                      <option
+                        key={repo.github_repository}
+                        value={repo.github_repository}
+                      >
+                        {repoName}
+                      </option>
+                    );
+                  },
+                )}
+              </select>
+            </div>
+          )}
+
           {/* Drive Link — readonly */}
           <div className="flex flex-col gap-1 col-span-2">
             <label className="text-sm text-muted-foreground">
@@ -468,28 +600,84 @@ const PMReport = ({ projectId }: PMReportProps) => {
                 </tr>
               </thead>
               <tbody>
-                {reports.map((report, index) => (
-                  <tr
-                    key={`${report.report_link}-${index}`}
-                    className={`border-t hover:bg-muted/50 ${index === reports.length - 1 ? "bg-primary/5 font-medium" : ""}`}
-                  >
-                    <td className="px-4 py-2">{index + 1}</td>
-                    <td className="px-4 py-2">
-                      <a
-                        href={report.report_link}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-primary underline"
-                      >
-                        View Report
-                      </a>
-                    </td>
-                    <td className="px-4 py-2">{report.date_range}</td>
-                    <td className="px-4 py-2">
-                      {formatDate(report.generated_on)}
-                    </td>
-                  </tr>
-                ))}
+                {reports.map((report, index) => {
+                  const generating = isGeneratingRow(report);
+                  const failed = isFailedRow(report);
+                  const resyncable = isResyncableRow(report);
+                  const runId = getRowRunId(report);
+
+                  return (
+                    <tr
+                      key={report.run_id || `report-${index}`}
+                      className={`border-t hover:bg-muted/50 ${
+                        generating
+                          ? "bg-yellow-50"
+                          : failed || resyncable
+                            ? "bg-red-50"
+                            : ""
+                      }`}
+                    >
+                      <td className="px-4 py-2">{index + 1}</td>
+
+                      <td className="px-4 py-2">
+                        {generating && (
+                          <span className="text-yellow-600 text-sm flex items-center gap-2">
+                            <Spinner className="w-3 h-3" /> Generating...
+                          </span>
+                        )}
+                        {failed && (
+                          <span className="text-red-600 text-sm">
+                            ❌ Failed
+                          </span>
+                        )}
+                        {resyncable && runId && (
+                          <div className="flex items-center gap-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleResync(runId)}
+                              disabled={resyncingRunId === runId}
+                            >
+                              {resyncingRunId === runId ? (
+                                <>
+                                  <Spinner className="mr-1 w-3 h-3" />{" "}
+                                  Resyncing...
+                                </>
+                              ) : (
+                                "🔄 Resync"
+                              )}
+                            </Button>
+                            <span className="text-xs text-muted-foreground">
+                              Report completed but document not found. Click
+                              Resync to check again.
+                            </span>
+                          </div>
+                        )}
+                        {!generating && !failed && !resyncable && (
+                          <a
+                            href={report.report_link}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-primary underline"
+                          >
+                            View Report
+                          </a>
+                        )}
+                      </td>
+
+                      <td className="px-4 py-2">{report.date_range}</td>
+
+                      <td className="px-4 py-2">
+                        {/* Always show timestamp if available */}
+                        <span>
+                          {report.generated_on
+                            ? formatDate(report.generated_on)
+                            : ""}
+                        </span>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
