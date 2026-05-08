@@ -8,8 +8,9 @@ from frappe.utils.password import get_decrypted_password
 
 INITIAL_DELAY = 30
 POLL_INTERVAL = 15
-MAX_POLL_DURATION = 600
-MAX_OUTPUT_RETRIES = 3
+MAX_POLL_DURATION = 840
+MAX_OUTPUT_RETRIES = 5
+COMPLETION_POLL_INTERVAL = 30
 
 
 def get_llm_urls() -> tuple[str, str] | None:
@@ -257,7 +258,6 @@ def resync_report(project: str, run_id: str) -> dict:
     if not urls:
         frappe.throw(_("PM Report is not configured. Please contact your system administrator."))
     LLM_STATUS_URL = urls[1]
-
     project_doc = frappe.get_doc("Project", project)
     matching_row = next(
         (row for row in project_doc.custom_project_reports if row.run_id == run_id and row.status == "Completed"), None
@@ -356,7 +356,10 @@ def _send_bell_notification(project, user, document_url):
 
 def get_github_metadata(project_doc, selected_repo: str | None = None, selected_board: str | None = None):
     repos = project_doc.get("custom_project_repository_connections") or []
+    allowed_repos = [r.get("github_repository") for r in repos]
     if selected_repo:
+        if selected_repo not in allowed_repos:
+            frappe.throw(_("Selected repository is not linked to this project."))
         repo_url = selected_repo
     elif repos:
         repo_url = repos[0].get("github_repository") or ""
