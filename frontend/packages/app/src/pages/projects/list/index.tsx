@@ -53,7 +53,7 @@ function ProjectList() {
       }}
     >
       <ListHeader className="mb-0 rounded-none bg-transparent border-b border-outline-gray-1 p-2 gap-2">
-        {PROJECT_LIST_COLUMNS.map((column, index) => (
+        {PROJECT_LIST_COLUMNS.map((column) => (
           <ListHeaderItem key={column.key} item={column}>
             <div className="flex h-7 items-center py-1.5">
               <span className="truncate">{column.label}</span>
