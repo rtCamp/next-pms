@@ -12,7 +12,7 @@ LLM_STATUS_URL = "https://rt-report-automation.rt.gw/api/inngest/runs"
 INITIAL_DELAY = 30
 POLL_INTERVAL = 15
 MAX_POLL_DURATION = 840
-MAX_OUTPUT_RETRIES = 4
+MAX_OUTPUT_RETRIES = 5
 COMPLETION_POLL_INTERVAL = 30
 
 
@@ -192,7 +192,6 @@ def check_and_save_report(project, run_id, user, from_date, to_date):
         time.sleep(POLL_INTERVAL)
 
 
-# save_report_to_child_table — clean, no status hacks
 def save_report_to_child_table(project, run_id, date_range):
     try:
         project_doc = frappe.get_doc("Project", project)
@@ -208,9 +207,10 @@ def save_report_to_child_table(project, run_id, date_range):
         frappe.db.commit()
     except Exception:
         frappe.log_error(frappe.get_traceback(), "PM Report — Save Error")
+        raise
 
 
-# update_report_row — match by run_id field now
+# update_report_row — match by run_id field
 def update_report_row(project, run_id, report_link=None, generated_on=None, status=None):
     try:
         project_doc = frappe.get_doc("Project", project)
@@ -233,6 +233,13 @@ def update_report_row(project, run_id, report_link=None, generated_on=None, stat
 def resync_report(project: str, run_id: str) -> dict:
     """Poll for document_url for a completed run"""
     frappe.has_permission("Project", doc=project, ptype="write", throw=True)
+
+    project_doc = frappe.get_doc("Project", project)
+    matching_row = next(
+        (row for row in project_doc.custom_project_reports if row.run_id == run_id and row.status == "Completed"), None
+    )
+    if not matching_row:
+        frappe.throw(_("Invalid run ID or report is not in a resyncable state."))
 
     RESYNC_POLL_INTERVAL = 10
     RESYNC_MAX_DURATION = 120  # 2 minutes max
@@ -329,7 +336,10 @@ def _send_bell_notification(project, user, document_url):
 
 def get_github_metadata(project_doc, selected_repo: str | None = None):
     repos = project_doc.get("custom_project_repository_connections") or []
+    allowed_repos = [r.get("github_repository") for r in repos]
     if selected_repo:
+        if selected_repo not in allowed_repos:
+            frappe.throw(_("Selected repository is not linked to this project."))
         repo_url = selected_repo
     elif repos:
         repo_url = repos[0].get("github_repository") or ""

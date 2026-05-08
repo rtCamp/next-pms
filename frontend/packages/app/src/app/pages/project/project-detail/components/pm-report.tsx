@@ -33,9 +33,9 @@ const toLocalDateString = (date: Date): string => {
 
 interface PMReportRow {
   run_id: string;
-  report_link: string;
+  report_link?: string;
   date_range: string;
-  generated_on: string;
+  generated_on?: string;
   status: "Generating" | "Completed" | "Failed" | "Done" | "";
 }
 
@@ -132,10 +132,12 @@ const PMReport = ({ projectId }: PMReportProps) => {
   );
 
   const reports = (projectData?.custom_project_reports ?? []) as PMReportRow[];
-  const completedReports = reports.filter((r) => r.status === "Done");
+  const completedReports = reports.filter(
+    (r) => r.status === "Done" && !!r.report_link,
+  );
   const lastReportLink =
     completedReports.length > 0
-      ? completedReports[completedReports.length - 1].report_link
+      ? (completedReports[completedReports.length - 1].report_link ?? null)
       : null;
   const isCustom = duration === "Custom";
   const isAnyGenerating = reports.some((r) => r.status === "Generating");
@@ -492,10 +494,14 @@ const PMReport = ({ projectId }: PMReportProps) => {
           {(projectData?.custom_project_repository_connections ?? []).length >
             0 && (
             <div className="flex flex-col gap-1 col-span-2">
-              <label className="text-sm text-muted-foreground">
-                Github Repository
+              <label
+                htmlFor="github-repo"
+                className="text-sm text-muted-foreground"
+              >
+                GitHub Repository
               </label>
               <select
+                id="github-repo"
                 className="border rounded px-3 py-2 text-sm"
                 value={selectedRepo}
                 onChange={(e) => setSelectedRepo(e.target.value)}
@@ -663,7 +669,11 @@ const PMReport = ({ projectId }: PMReportProps) => {
 
                       <td className="px-4 py-2">
                         {/* Always show timestamp if available */}
-                        <span>{formatDate(report.generated_on)}</span>
+                        <span>
+                          {report.generated_on
+                            ? formatDate(report.generated_on)
+                            : ""}
+                        </span>
                       </td>
                     </tr>
                   );
