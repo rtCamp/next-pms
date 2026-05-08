@@ -7,3 +7,4 @@ export { usePagination } from "./usePagination";
 export { useInfiniteScroll } from "./useInfiniteScroll";
 export { useQueryParam } from "./useQueryParam";
 export { useFrappeVersionUpdate } from "./useFrappeVersionUpdate";
+export { useProjectPhase } from "./useProjectPhase";

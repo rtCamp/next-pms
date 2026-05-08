@@ -1,12 +1,14 @@
 /**
  * External dependencies.
  */
+import { useProjectPhase } from "@next-pms/hooks";
 import { Button, Select, TextInput, Filter } from "@rtcamp/frappe-ui-react";
 import { DotHorizontal } from "@rtcamp/frappe-ui-react/icons";
 
 const noop = () => {};
 
 export function ProjectListSubHeader() {
+  const { phases } = useProjectPhase();
   return (
     <div className="flex flex-wrap gap-2 justify-between px-5 py-3.5">
       <div className="flex gap-2">
@@ -23,11 +25,10 @@ export function ProjectListSubHeader() {
         <Select
           placeholder="Phases"
           className="w-fit"
-          options={[
-            { label: "Red", value: "red" },
-            { label: "Amber", value: "amber" },
-            { label: "Green", value: "green" },
-          ]}
+          options={phases.map((phase) => ({
+            label: phase,
+            value: phase,
+          }))}
         />
         <Select
           placeholder="Active"

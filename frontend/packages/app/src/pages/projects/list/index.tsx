@@ -1,12 +1,10 @@
 /**
  * External dependencies.
  */
-import { useState } from "react";
 import {
   ListHeader,
   ListHeaderItem,
   ListRow,
-  ListRowItem,
   ListRows,
   ListView,
 } from "@rtcamp/frappe-ui-react";
@@ -14,17 +12,34 @@ import {
 /**
  * Internal dependencies.
  */
+import { useFrappeGetDocList } from "frappe-react-sdk";
 import { ProjectListCell } from "./cells";
 import { PROJECT_LIST_COLUMNS } from "./columns";
-import { FAKE_PROJECTS } from "./fake-data";
+import { ResponseProject } from "./types";
 
 function ProjectList() {
-  const [columns, setColumns] = useState(PROJECT_LIST_COLUMNS);
+  const { data, error, isLoading } = useFrappeGetDocList<ResponseProject>(
+    "Project",
+    { fields: ["*"] },
+  );
+
+  if (isLoading) {
+    return;
+  }
+
+  if (!data) {
+    return;
+  }
+
+  if (error) {
+    return;
+  }
+
   return (
     <ListView
       className="px-5 py-0 scrollbar-thin"
-      columns={columns}
-      rows={FAKE_PROJECTS}
+      columns={PROJECT_LIST_COLUMNS}
+      rows={data}
       rowKey="id"
       options={{
         options: {
@@ -38,21 +53,8 @@ function ProjectList() {
       }}
     >
       <ListHeader className="mb-0 rounded-none bg-transparent border-b border-outline-gray-1 p-2 gap-2">
-        {columns.map((column, index) => (
-          <ListHeaderItem
-            key={column.key}
-            item={column}
-            onColumnWidthUpdated={(width) => {
-              setColumns((prevColumns) => {
-                const newColumns = [...prevColumns];
-                newColumns[index] = {
-                  ...newColumns[index],
-                  width: `${width}px`,
-                };
-                return newColumns;
-              });
-            }}
-          >
+        {PROJECT_LIST_COLUMNS.map((column, index) => (
+          <ListHeaderItem key={column.key} item={column}>
             <div className="flex h-7 items-center py-1.5">
               <span className="truncate">{column.label}</span>
             </div>
@@ -60,12 +62,10 @@ function ProjectList() {
         ))}
       </ListHeader>
       <ListRows>
-        {FAKE_PROJECTS.map((row) => (
-          <ListRow key={row.id} row={row}>
-            {columns.map((column) => {
-              //@ts-expect-error item type
-              const item = row[column.key];
-              return <ProjectListCell row={row} column={column} item={item} />;
+        {data.map((row) => (
+          <ListRow key={row.name} row={row}>
+            {PROJECT_LIST_COLUMNS.map((column) => {
+              return <ProjectListCell row={row} column={column} />;
             })}
           </ListRow>
         ))}

@@ -8,10 +8,7 @@ import { Button, Tooltip } from "@rtcamp/frappe-ui-react";
  * Internal dependencies.
  */
 import { ROUTES } from "@/lib/constant";
-
-import type { RiskLevel } from "../types";
-
-import { Dot } from "./dot";
+import { Dot, DotProps } from "./dot";
 
 export function ProjectNameCell({
   id,
@@ -20,9 +17,15 @@ export function ProjectNameCell({
 }: {
   id: string;
   name: string;
-  riskLevel: RiskLevel;
+  riskLevel?: string;
 }) {
   const navigate = useNavigate();
+
+  const risk: DotProps["risk"] =
+    riskLevel === "Red" || riskLevel === "Amber" || riskLevel === "Green"
+      ? riskLevel
+      : undefined;
+
   return (
     <Tooltip text={name}>
       <Button
@@ -32,7 +35,7 @@ export function ProjectNameCell({
         onClick={() => navigate(`${ROUTES.project}/${id}`)}
         className="w-full justify-start font-medium text-base px-0"
       >
-        <Dot risk={riskLevel} />
+        {risk && <Dot risk={risk} />}
         <span className="ml-2 truncate">{name}</span>
       </Button>
     </Tooltip>
