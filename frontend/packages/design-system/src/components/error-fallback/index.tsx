@@ -17,6 +17,10 @@ type ErrorFallbackState = {
   error: Error | null;
 };
 
+/**
+ * React still requires a class component for a true error boundary.
+ * Function components cannot implement getDerivedStateFromError or componentDidCatch.
+ */
 class ErrorFallback extends Component<ErrorFallbackProp, ErrorFallbackState> {
   state: ErrorFallbackState = {
     hasError: false,
