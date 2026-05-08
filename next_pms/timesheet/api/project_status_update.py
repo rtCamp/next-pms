@@ -126,12 +126,13 @@ def get_project_status_update(name: str) -> dict[str, Any]:
 
 @frappe.whitelist(methods=["GET"])
 @error_logger
-def get_project_status_updates_by_project(project: str) -> list[dict[str, Any]]:
+def get_project_status_updates_by_project(project: str, author: str | None = None) -> list[dict[str, Any]]:
     """
     Get all Project Status Updates for a specific project
 
     Args:
         project (str): Project ID
+        author (str, optional): Filter by owner (User.name)
 
     Returns:
         List[Dict[str, Any]]: List of Project Status Updates
@@ -140,9 +141,13 @@ def get_project_status_updates_by_project(project: str) -> list[dict[str, Any]]:
     if not frappe.db.exists("Project", project):
         frappe.throw(_("Project '{project}' does not exist"))
 
+    filters: dict[str, str] = {"project": project}
+    if author:
+        filters["owner"] = author
+
     updates = frappe.get_all(
         "Project Status Update",
-        filters={"project": project},
+        filters=filters,
         fields=[
             "name",
             "title",
@@ -154,7 +159,7 @@ def get_project_status_updates_by_project(project: str) -> list[dict[str, Any]]:
             "owner",
             "modified_by",
         ],
-        order_by="creation desc",
+        order_by="modified desc",
     )
 
     detailed_updates = []
