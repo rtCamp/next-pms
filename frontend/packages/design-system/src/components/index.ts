@@ -16,6 +16,11 @@ export {
   type TaskProgressProps,
 } from "./task-progress";
 export {
+  default as ProgressBar,
+  type ProgressBarProps,
+  type ProgressBarSize,
+} from "./progress-bar";
+export {
   Tooltip,
   TooltipTrigger,
   TooltipContent,

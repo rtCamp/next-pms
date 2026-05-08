@@ -36,7 +36,12 @@ export function ProjectListCell({
         </span>
       );
     case "costBurnPercent":
-      return <BudgetProgressCell percent={item as number} />;
+      return (
+        <BudgetProgressCell
+          percent={item as number}
+          secondaryPercent={row.secondaryCostBurnPercentage}
+        />
+      );
     case "profitMargin":
       return (
         <span className="block truncate text-ink-gray-7 text-base">{`${item}%`}</span>

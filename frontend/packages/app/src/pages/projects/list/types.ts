@@ -26,6 +26,7 @@ export type Project = {
   phase: Phase;
   burnRatePerWeek: number;
   costBurnPercent: number;
+  secondaryCostBurnPercentage: number;
   totalBudget: number;
   profitMargin: number;
   startDate: string;
