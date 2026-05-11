@@ -14,7 +14,6 @@ import { useUser } from "@/providers/user";
 const LayoutWithSidebar = () => {
   const { employeeId } = useUser(({ state }) => ({
     employeeId: state.employeeId,
-    userId: state.userId,
   }));
 
   return (

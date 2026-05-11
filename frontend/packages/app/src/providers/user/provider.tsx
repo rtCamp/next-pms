@@ -69,17 +69,11 @@ export const UserProvider: FC<PropsWithChildren> = ({ children }) => {
   );
 
   if (appDataError) {
-    throw new Error(
-      appDataError ? parseFrappeErrorMsg(appDataError) : "There was an error.",
-    );
+    throw new Error(parseFrappeErrorMsg(appDataError));
   }
 
   if (employeeDataError) {
-    throw new Error(
-      employeeDataError
-        ? parseFrappeErrorMsg(employeeDataError)
-        : "There was an error.",
-    );
+    throw new Error(parseFrappeErrorMsg(employeeDataError));
   }
 
   useEffect(() => {
