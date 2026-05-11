@@ -1,0 +1,141 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "RISK-.#####",
+ "creation": "2026-05-09 00:59:19.854051",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "details_section",
+  "project",
+  "status",
+  "column_break_twxk",
+  "risk_owner",
+  "risk_category",
+  "risk_level",
+  "section_break_mfsy",
+  "summary",
+  "mitigation_plan",
+  "tab_break_euol",
+  "risk_update_log_section",
+  "risk_update_log"
+ ],
+ "fields": [
+  {
+   "fieldname": "project",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_preview": 1,
+   "in_standard_filter": 1,
+   "label": "Project",
+   "options": "Project",
+   "reqd": 1
+  },
+  {
+   "fieldname": "risk_category",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_preview": 1,
+   "in_standard_filter": 1,
+   "label": "Risk Category",
+   "options": "Internal Team\nClient\nDesign\nTechnical\nTimeline/Budget"
+  },
+  {
+   "fieldname": "risk_level",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_preview": 1,
+   "in_standard_filter": 1,
+   "label": "Risk Level",
+   "options": "Low\nMedium\nHigh"
+  },
+  {
+   "default": "__user",
+   "fieldname": "risk_owner",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_preview": 1,
+   "in_standard_filter": 1,
+   "label": "Risk Owner",
+   "options": "User"
+  },
+  {
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_preview": 1,
+   "in_standard_filter": 1,
+   "label": "Status",
+   "options": "Todo\nIn Progress\nEscalated\nBlocked\nMitigated"
+  },
+  {
+   "fieldname": "column_break_twxk",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "section_break_mfsy",
+   "fieldtype": "Section Break",
+   "label": "Summary & Mitigation Plan"
+  },
+  {
+   "fieldname": "summary",
+   "fieldtype": "Text Editor",
+   "label": "Summary"
+  },
+  {
+   "fieldname": "mitigation_plan",
+   "fieldtype": "Text Editor",
+   "label": "Mitigation Plan"
+  },
+  {
+   "fieldname": "details_section",
+   "fieldtype": "Section Break",
+   "label": "Details"
+  },
+  {
+   "fieldname": "risk_update_log_section",
+   "fieldtype": "Section Break",
+   "label": "Risk Update Log"
+  },
+  {
+   "description": "The bottom row of Risk Update Log is the latest update.",
+   "fieldname": "risk_update_log",
+   "fieldtype": "Table",
+   "label": "Risk Update Log",
+   "options": "Risk Update"
+  },
+  {
+   "fieldname": "tab_break_euol",
+   "fieldtype": "Tab Break",
+   "label": "Risk Update Log"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-05-11 12:37:48.162882",
+ "modified_by": "Administrator",
+ "module": "Next PMS",
+ "name": "Risk",
+ "naming_rule": "Expression",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "rows_threshold_for_grid_search": 20,
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": []
+}
