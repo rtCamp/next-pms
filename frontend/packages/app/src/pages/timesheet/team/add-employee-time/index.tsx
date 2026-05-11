@@ -1,7 +1,7 @@
 /**
  * External Dependencies
  */
-import { useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import { DurationInput } from "@next-pms/design-system/components";
 import {
   DatePicker,
@@ -13,19 +13,18 @@ import {
   useToasts,
 } from "@rtcamp/frappe-ui-react";
 import { useForm, useStore } from "@tanstack/react-form";
-import {
-  FrappeError,
-  useFrappeGetCall,
-  useFrappePostCall,
-} from "frappe-react-sdk";
+import { FrappeError, useFrappePostCall } from "frappe-react-sdk";
 import { Calendar } from "lucide-react";
 
 /**
  * Internal Dependencies
  */
+import { useEmployeeLookup } from "@/hooks/useEmployeeLookup";
+import { useProjectLookup } from "@/hooks/useProjectLookup";
+import { useTaskLookup } from "@/hooks/useTaskLookup";
 import { parseFrappeErrorMsg } from "@/lib/utils";
 import { addTimeFormSchema } from "./schema";
-import type { AddTeamTimeProps, ProjectData, TaskItem } from "./type";
+import type { AddTeamTimeProps } from "./type";
 
 const AddEmployeeTime = ({
   initialDate,
@@ -36,9 +35,25 @@ const AddEmployeeTime = ({
   employeeId = "",
 }: AddTeamTimeProps) => {
   const toast = useToasts();
+  const [employeeSearch, setEmployeeSearch] = useState("");
+  const [projectSearch, setProjectSearch] = useState("");
+  const [taskSearch, setTaskSearch] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const { call: saveTime } = useFrappePostCall(
     "next_pms.timesheet.api.timesheet.save",
+  );
+
+  const handleOpenChange = useCallback(
+    (nextOpen: boolean) => {
+      if (!nextOpen) {
+        setEmployeeSearch("");
+        setProjectSearch("");
+        setTaskSearch("");
+      }
+
+      onOpenChange(nextOpen);
+    },
+    [onOpenChange],
   );
 
   const form = useForm({
@@ -63,14 +78,13 @@ const AddEmployeeTime = ({
           hours: value.duration,
           employee: value.employeeId,
         });
-        setSubmitting(false);
         toast.success("Time Entry submitted successfully");
       } catch (err) {
         const error = parseFrappeErrorMsg(err as FrappeError);
         toast.error(error);
       } finally {
         setSubmitting(false);
-        onOpenChange(false);
+        handleOpenChange(false);
         form.reset();
       }
     },
@@ -78,56 +92,32 @@ const AddEmployeeTime = ({
 
   const selectedProject = useStore(form.store, (state) => state.values.project);
 
-  const { data: employeesData } = useFrappeGetCall("frappe.client.get_list", {
-    doctype: "Employee",
-    fields: ["name", "employee_name"],
-  });
+  const { options: employeeOptions, isLoading: isEmployeeLookupLoading } =
+    useEmployeeLookup({
+      shouldFetch: open,
+      pageSize: 20,
+      query: employeeSearch,
+    });
 
-  const employeeOptions = (
-    (employeesData?.message ?? []) as { name: string; employee_name: string }[]
-  ).map((employee) => ({
-    label: employee.employee_name,
-    value: employee.name,
-  }));
+  const { options: projectOptions, isLoading: isProjectLookupLoading } =
+    useProjectLookup({
+      shouldFetch: open,
+      pageSize: 20,
+      query: projectSearch,
+    });
 
-  const { data: projectsData } = useFrappeGetCall("frappe.client.get_list", {
-    doctype: "Project",
-    fields: ["name", "project_name"],
-  });
-
-  const projectOptions = ((projectsData?.message ?? []) as ProjectData[]).map(
-    (project) => ({
-      label: project.project_name,
-      value: project.name,
-    }),
-  );
-
-  const { data: tasksData, mutate: mutateTasksData } = useFrappeGetCall(
-    "next_pms.timesheet.api.task.get_task_list",
-    {
-      search: task,
-      projects: selectedProject ? [selectedProject] : [],
-      page_length: 100,
-      filter_recent: true,
-    },
-  );
-
-  useEffect(() => {
-    mutateTasksData();
-  }, [project, task, mutateTasksData]);
-
-  const tasksOptions = ((tasksData?.message?.task ?? []) as TaskItem[]).map(
-    (task) => ({
-      label: task.subject,
-      value: task.name,
-      projectName: task.project,
-    }),
-  );
+  const { options: taskOptions, isLoading: isTaskLookupLoading } =
+    useTaskLookup({
+      shouldFetch: open,
+      pageSize: 20,
+      projectId: selectedProject || undefined,
+      query: taskSearch,
+    });
 
   return (
     <Dialog
       open={open}
-      onOpenChange={onOpenChange}
+      onOpenChange={handleOpenChange}
       actions={
         <Button
           className="w-full"
@@ -153,10 +143,13 @@ const AddEmployeeTime = ({
                 </label>
                 <Combobox
                   inputClassName="bg-white h-8 border-outline-gray-2"
+                  loading={isEmployeeLookupLoading}
                   options={employeeOptions}
+                  searchValue={employeeSearch}
                   placeholder="Select Employee"
                   value={field.state.value}
                   openOnFocus
+                  onSearchChange={setEmployeeSearch}
                   onChange={(val) => {
                     field.handleChange(val as string);
                   }}
@@ -178,10 +171,13 @@ const AddEmployeeTime = ({
                 </label>
                 <Combobox
                   inputClassName="bg-white h-8 border-outline-gray-2"
+                  loading={isProjectLookupLoading}
                   options={projectOptions}
+                  searchValue={projectSearch}
                   placeholder="Select Project"
                   value={field.state.value}
                   openOnFocus
+                  onSearchChange={setProjectSearch}
                   onChange={(val) => {
                     field.handleChange(val as string);
                   }}
@@ -203,17 +199,20 @@ const AddEmployeeTime = ({
                 </label>
                 <Combobox
                   inputClassName="bg-white h-8 border-outline-gray-2"
-                  options={tasksOptions}
+                  loading={isTaskLookupLoading}
+                  options={taskOptions}
+                  searchValue={taskSearch}
                   placeholder="Select Task"
                   value={field.state.value}
                   openOnFocus
+                  onSearchChange={setTaskSearch}
                   onChange={(val) => {
                     field.handleChange(val as string);
-                    const selectedTask = tasksOptions.find(
+                    const selectedTask = taskOptions.find(
                       (task) => task.value === val,
                     );
-                    if (selectedTask?.projectName) {
-                      form.setFieldValue("project", selectedTask.projectName);
+                    if (selectedTask?.projectId) {
+                      form.setFieldValue("project", selectedTask.projectId);
                     }
                   }}
                 />

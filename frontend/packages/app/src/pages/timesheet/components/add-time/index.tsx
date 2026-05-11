@@ -1,7 +1,7 @@
 /**
  * External Dependencies
  */
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import { DurationInput } from "@next-pms/design-system/components";
 import {
   DatePicker,
@@ -13,27 +13,25 @@ import {
   TextEditor,
 } from "@rtcamp/frappe-ui-react";
 import { useForm, useStore } from "@tanstack/react-form";
-import {
-  FrappeError,
-  useFrappeGetCall,
-  useFrappePostCall,
-} from "frappe-react-sdk";
+import { FrappeError, useFrappePostCall } from "frappe-react-sdk";
 import { Calendar } from "lucide-react";
 
 /**
  * Internal Dependencies
  */
+import { useProjectLookup } from "@/hooks/useProjectLookup";
+import { useTaskLookup } from "@/hooks/useTaskLookup";
 import { parseFrappeErrorMsg } from "@/lib/utils";
 import { useUser } from "@/providers/user";
 import CalendarEvents from "./calendarEvents";
 import { addTimeFormSchema } from "./schema";
-import type { AddTimeProps, ProjectData, TaskItem } from "./type";
+import type { AddTimeProps } from "./type";
 
 /**
  * Add Time Component
  * @description This component is used to show dialog to the user to add time
- * entry for the timesheet. User can select the  date, time, project, task and
- * and description for the timesheet entry.
+ * entry for the timesheet. User can select the date, time, project, task and
+ * description for the timesheet entry.
  * @param initialDate - Initial date for the timesheet, this select the date in date picker.
  * @param employee - Employee for the timesheet entry(In case of employee role they can select their employee only).
  * @param open - Boolean value to open the dialog.
@@ -53,9 +51,23 @@ const AddTime = ({
   }));
 
   const toast = useToasts();
+  const [projectSearch, setProjectSearch] = useState("");
+  const [taskSearch, setTaskSearch] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const { call: saveTime } = useFrappePostCall(
     "next_pms.timesheet.api.timesheet.save",
+  );
+
+  const handleOpenChange = useCallback(
+    (nextOpen: boolean) => {
+      if (!nextOpen) {
+        setProjectSearch("");
+        setTaskSearch("");
+      }
+
+      onOpenChange(nextOpen);
+    },
+    [onOpenChange],
   );
 
   const form = useForm({
@@ -79,14 +91,13 @@ const AddTime = ({
           hours: value.duration,
           employee: employeeId,
         });
-        setSubmitting(false);
         toast.success("Time Entry submitted successfully");
       } catch (err) {
         const error = parseFrappeErrorMsg(err as FrappeError);
         toast.error(error);
       } finally {
         setSubmitting(false);
-        onOpenChange(false);
+        handleOpenChange(false);
         form.reset();
       }
     },
@@ -95,33 +106,21 @@ const AddTime = ({
   const selectedProject = useStore(form.store, (state) => state.values.project);
   const selectedDate = useStore(form.store, (state) => state.values.date);
 
-  const { data: projectsData } = useFrappeGetCall("frappe.client.get_list", {
-    doctype: "Project",
-    fields: ["name", "project_name"],
-    filters: window.frappe?.boot?.global_filters.project,
-    limit_page_length: "null",
-  });
+  const { options: projectOptions, isLoading: isProjectLookupLoading } =
+    useProjectLookup({
+      shouldFetch: open,
+      extraFilters: window.frappe?.boot?.global_filters.project,
+      pageSize: 20,
+      query: projectSearch,
+    });
 
-  const projectOptions = ((projectsData?.message ?? []) as ProjectData[]).map(
-    (project) => ({
-      label: project.project_name,
-      value: project.name,
-    }),
-  );
-
-  const { data: tasksData, mutate: mutateTasksData } = useFrappeGetCall(
-    "next_pms.timesheet.api.task.get_task_list",
-    {
-      search: task,
-      projects: selectedProject ? [selectedProject] : [],
-      page_length: 100,
-      filter_recent: true,
-    },
-  );
-
-  useEffect(() => {
-    mutateTasksData();
-  }, [project, task, mutateTasksData]);
+  const { options: taskOptions, isLoading: isTaskLookupLoading } =
+    useTaskLookup({
+      shouldFetch: open,
+      pageSize: 20,
+      projectId: selectedProject || undefined,
+      query: taskSearch,
+    });
 
   const handleCalendarSelectionChange = useCallback(
     (selectedLabels: string[], allEventSubjects: string[]) => {
@@ -150,18 +149,10 @@ const AddTime = ({
     [form],
   );
 
-  const tasksOptions = ((tasksData?.message?.task ?? []) as TaskItem[]).map(
-    (task) => ({
-      label: task.subject,
-      value: task.name,
-      projectName: task.project,
-    }),
-  );
-
   return (
     <Dialog
       open={open}
-      onOpenChange={onOpenChange}
+      onOpenChange={handleOpenChange}
       actions={
         <Button
           className="w-full"
@@ -187,10 +178,13 @@ const AddTime = ({
                 </label>
                 <Combobox
                   inputClassName="bg-white h-8 border-outline-gray-2"
+                  loading={isProjectLookupLoading}
                   options={projectOptions}
+                  searchValue={projectSearch}
                   placeholder="Select Project"
                   value={field.state.value}
                   openOnFocus
+                  onSearchChange={setProjectSearch}
                   onChange={(val) => {
                     field.handleChange(val as string);
                   }}
@@ -212,17 +206,20 @@ const AddTime = ({
                 </label>
                 <Combobox
                   inputClassName="bg-white h-8 border-outline-gray-2"
-                  options={tasksOptions}
+                  loading={isTaskLookupLoading}
+                  options={taskOptions}
+                  searchValue={taskSearch}
                   placeholder="Select Task"
                   value={field.state.value}
                   openOnFocus
+                  onSearchChange={setTaskSearch}
                   onChange={(val) => {
                     field.handleChange(val as string);
-                    const selectedTask = tasksOptions.find(
+                    const selectedTask = taskOptions.find(
                       (task) => task.value === val,
                     );
-                    if (selectedTask?.projectName) {
-                      form.setFieldValue("project", selectedTask.projectName);
+                    if (selectedTask?.projectId) {
+                      form.setFieldValue("project", selectedTask.projectId);
                     }
                   }}
                 />
