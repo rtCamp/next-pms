@@ -4,6 +4,12 @@ import {
   ComboBox,
   Spinner,
   useToast,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+  Input,
 } from "@next-pms/design-system/components";
 import {
   FrappeError,
@@ -234,7 +240,13 @@ const PMReport = ({ projectId }: PMReportProps) => {
       });
       return;
     }
-
+    if (fromDate && toDate && fromDate > toDate) {
+      toast({
+        variant: "destructive",
+        description: "From Date cannot be after To Date.",
+      });
+      return;
+    }
     setIsGenerating(true);
 
     try {
@@ -341,18 +353,21 @@ const PMReport = ({ projectId }: PMReportProps) => {
             <label className="text-sm text-muted-foreground">
               Report Duration
             </label>
-            <select
-              className="border rounded px-3 py-2 text-sm"
+            <Select
               value={duration}
-              onChange={(e) => handleDurationChange(e.target.value)}
+              onValueChange={(value) => handleDurationChange(value)}
               disabled={isBusy}
             >
-              <option value="">Select...</option>
-              <option value="Last Week">Last Week</option>
-              <option value="Last 15 Days">Last 15 Days</option>
-              <option value="Last Month">Last Month</option>
-              <option value="Custom">Custom</option>
-            </select>
+              <SelectTrigger>
+                <SelectValue placeholder="Select..." />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Last Week">Last Week</SelectItem>
+                <SelectItem value="Last 15 Days">Last 15 Days</SelectItem>
+                <SelectItem value="Last Month">Last Month</SelectItem>
+                <SelectItem value="Custom">Custom</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
           {/* Slack Channel */}
@@ -439,9 +454,9 @@ const PMReport = ({ projectId }: PMReportProps) => {
                 </>
               ) : (
                 <>
-                  <input
+                  <Input
                     type="text"
-                    className="border rounded px-3 py-2 text-sm flex-1 bg-muted text-muted-foreground cursor-not-allowed"
+                    className="flex-1 bg-muted text-muted-foreground cursor-not-allowed"
                     value={slackSlug || "Not set"}
                     readOnly
                   />
@@ -463,9 +478,9 @@ const PMReport = ({ projectId }: PMReportProps) => {
             <label className="text-sm text-muted-foreground">
               Report From Date
             </label>
-            <input
+            <Input
               type="date"
-              className={`border rounded px-3 py-2 text-sm ${!isCustom ? "bg-muted text-muted-foreground cursor-not-allowed" : ""}`}
+              className={`${!isCustom ? "bg-muted text-muted-foreground cursor-not-allowed" : ""}`}
               value={fromDate}
               onChange={(e) => {
                 if (isCustom) setFromDate(e.target.value);
@@ -479,9 +494,9 @@ const PMReport = ({ projectId }: PMReportProps) => {
             <label className="text-sm text-muted-foreground">
               Report To Date
             </label>
-            <input
+            <Input
               type="date"
-              className={`border rounded px-3 py-2 text-sm ${!isCustom ? "bg-muted text-muted-foreground cursor-not-allowed" : ""}`}
+              className={`${!isCustom ? "bg-muted text-muted-foreground cursor-not-allowed" : ""}`}
               value={toDate}
               onChange={(e) => {
                 if (isCustom) setToDate(e.target.value);
@@ -494,37 +509,37 @@ const PMReport = ({ projectId }: PMReportProps) => {
           {(projectData?.custom_project_repository_connections ?? []).length >
             0 && (
             <div className="flex flex-col gap-1 col-span-2">
-              <label
-                htmlFor="github-repo"
-                className="text-sm text-muted-foreground"
-              >
+              <label className="text-sm text-muted-foreground">
                 GitHub Repository
               </label>
-              <select
-                id="github-repo"
-                className="border rounded px-3 py-2 text-sm"
+              <Select
                 value={selectedRepo}
-                onChange={(e) => setSelectedRepo(e.target.value)}
+                onValueChange={(value) => setSelectedRepo(value)}
                 disabled={isBusy}
               >
-                {(projectData?.custom_project_repository_connections ?? []).map(
-                  (repo: { github_repository: string }) => {
+                <SelectTrigger>
+                  <SelectValue placeholder="Select repository..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {(
+                    projectData?.custom_project_repository_connections ?? []
+                  ).map((repo: { github_repository: string }) => {
                     const repoName =
                       (repo.github_repository || "")
                         .replace(/\/$/, "")
                         .split("/")
                         .pop() || repo.github_repository;
                     return (
-                      <option
+                      <SelectItem
                         key={repo.github_repository}
                         value={repo.github_repository}
                       >
                         {repoName}
-                      </option>
+                      </SelectItem>
                     );
-                  },
-                )}
-              </select>
+                  })}
+                </SelectContent>
+              </Select>
             </div>
           )}
 
@@ -533,9 +548,9 @@ const PMReport = ({ projectId }: PMReportProps) => {
             <label className="text-sm text-muted-foreground">
               Report Drive Link
             </label>
-            <input
+            <Input
               type="url"
-              className="border rounded px-3 py-2 text-sm bg-muted text-muted-foreground cursor-not-allowed"
+              className="bg-muted text-muted-foreground cursor-not-allowed"
               value={driveLink}
               readOnly
               placeholder="https://drive.google.com/..."
