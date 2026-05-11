@@ -14,6 +14,7 @@ export function allocationBarToEntry(
     employeeId: alloc.employeeId,
     projectId: alloc.projectId,
     projectName: alloc.projectName,
+    customerName: alloc.customerName,
     startDate: alloc.startDate,
     endDate: alloc.endDate,
     hoursPerDay: alloc.hours,
