@@ -10,24 +10,43 @@ interface GanttProjectBarProps {
 }
 
 export function GanttProjectBar({ allocation }: GanttProjectBarProps) {
-  const { headerWidth, hasRoleAccess, onEditAllocation, onDeleteAllocation } =
-    useGanttStore((s) => ({
-      headerWidth: s.headerWidth,
-      hasRoleAccess: s.hasRoleAccess,
-      onEditAllocation: s.onEditAllocation,
-      onDeleteAllocation: s.onDeleteAllocation,
-    }));
+  const {
+    headerWidth,
+    hasRoleAccess,
+    onEditAllocation,
+    onDeleteAllocation,
+    setPendingDeleteEntry,
+  } = useGanttStore((s) => ({
+    headerWidth: s.headerWidth,
+    hasRoleAccess: s.hasRoleAccess,
+    onEditAllocation: s.onEditAllocation,
+    onDeleteAllocation: s.onDeleteAllocation,
+    setPendingDeleteEntry: s.setPendingDeleteEntry,
+  }));
 
   const left = allocation.barOffset + headerWidth;
   const { width, fullNumDays } = allocation;
 
   const label = `${allocation.hours}h/day for ${fullNumDays} day${fullNumDays !== 1 ? "s" : ""}`;
 
-  const entry = allocationBarToEntry(
+  const rawEntry = allocationBarToEntry(
     allocation,
     onEditAllocation,
     onDeleteAllocation,
   );
+
+  const entry = {
+    ...rawEntry,
+    onDelete: rawEntry.onDelete
+      ? () =>
+          setPendingDeleteEntry({
+            projectName: rawEntry.projectName,
+            dateRange: rawEntry.dateRange,
+            hoursPerDay: rawEntry.hoursPerDay,
+            onDelete: rawEntry.onDelete!,
+          })
+      : undefined,
+  };
 
   return (
     <PreviewCard.Root>

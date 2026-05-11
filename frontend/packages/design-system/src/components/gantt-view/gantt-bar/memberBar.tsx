@@ -23,6 +23,7 @@ export function GanttMemberBar({ allocation, memberInd }: GanttMemberBarProps) {
     onAddAllocation,
     onEditAllocation,
     onDeleteAllocation,
+    setPendingDeleteEntry,
   } = useGanttStore((s) => ({
     headerWidth: s.headerWidth,
     members: s.members,
@@ -30,6 +31,7 @@ export function GanttMemberBar({ allocation, memberInd }: GanttMemberBarProps) {
     onAddAllocation: s.onAddAllocation,
     onEditAllocation: s.onEditAllocation,
     onDeleteAllocation: s.onDeleteAllocation,
+    setPendingDeleteEntry: s.setPendingDeleteEntry,
   }));
 
   const left = allocation.barOffset + headerWidth;
@@ -70,9 +72,25 @@ export function GanttMemberBar({ allocation, memberInd }: GanttMemberBarProps) {
     allocation.endDate,
   );
 
-  const entries = overlapping.map((alloc) =>
-    allocationBarToEntry(alloc, onEditAllocation, onDeleteAllocation),
-  );
+  const entries = overlapping.map((alloc) => {
+    const entry = allocationBarToEntry(
+      alloc,
+      onEditAllocation,
+      onDeleteAllocation,
+    );
+    return {
+      ...entry,
+      onDelete: entry.onDelete
+        ? () =>
+            setPendingDeleteEntry({
+              projectName: entry.projectName,
+              dateRange: entry.dateRange,
+              hoursPerDay: entry.hoursPerDay,
+              onDelete: entry.onDelete!,
+            })
+        : undefined,
+    };
+  });
 
   const handleAdd = onAddAllocation
     ? () =>

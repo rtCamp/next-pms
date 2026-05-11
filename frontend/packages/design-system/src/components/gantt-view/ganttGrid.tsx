@@ -5,6 +5,7 @@ import {
   CELL_HEIGHT,
   HEADER_HEIGHT,
 } from "./constants";
+import { DeleteAllocationDialog } from "./gantt-bar/deleteAllocationDialog";
 import { GanttMemberBar } from "./gantt-bar/memberBar";
 import { GanttProjectBar } from "./gantt-bar/projectBar";
 import { GanttMemberItem } from "./ganttMemberItem";
@@ -33,6 +34,8 @@ const GanttGridInner: React.FC<{
     columnCount,
     weeks,
     hasRoleAccess,
+    pendingDeleteEntry,
+    clearPendingDeleteEntry,
   } = useGanttStore((s) => ({
     members: s.members,
     expandedRows: s.expandedRows,
@@ -46,6 +49,8 @@ const GanttGridInner: React.FC<{
     columnCount: s.columnCount,
     weeks: s.weeks,
     hasRoleAccess: s.hasRoleAccess,
+    pendingDeleteEntry: s.pendingDeleteEntry,
+    clearPendingDeleteEntry: s.clearPendingDeleteEntry,
   }));
 
   const onResizePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
@@ -261,6 +266,20 @@ const GanttGridInner: React.FC<{
           />
         </div>
       </div>
+
+      <DeleteAllocationDialog
+        open={pendingDeleteEntry !== null}
+        onOpenChange={(open) => {
+          if (!open) clearPendingDeleteEntry();
+        }}
+        projectName={pendingDeleteEntry?.projectName ?? ""}
+        dateRange={pendingDeleteEntry?.dateRange ?? ""}
+        hoursPerDay={pendingDeleteEntry?.hoursPerDay ?? ""}
+        onConfirm={() => {
+          pendingDeleteEntry?.onDelete();
+          clearPendingDeleteEntry();
+        }}
+      />
     </div>
   );
 };
