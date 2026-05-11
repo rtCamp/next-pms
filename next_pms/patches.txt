@@ -21,3 +21,4 @@ next_pms.timesheet.patches.add_index
 next_pms.timesheet.patches.remove_custom_fields
 next_pms.resource_management.patches.update_resource_allocation_status
 next_pms.next_projects.patches.create_default_project_phase
+next_pms.next_projects.patches.add_customer_permissions_for_projects_manager
