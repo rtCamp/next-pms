@@ -182,7 +182,7 @@ const PMReport = ({ projectId }: PMReportProps) => {
 
   useEffect(() => {
     if (!isAnyGenerating) return;
-    const interval = setInterval(() => mutateRef.current(), 5000);
+    const interval = setInterval(() => mutateRef.current(), 30000);
     return () => clearInterval(interval);
   }, [isAnyGenerating]);
 
