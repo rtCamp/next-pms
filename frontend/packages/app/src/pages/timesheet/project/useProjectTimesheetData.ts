@@ -1,53 +1,97 @@
 /**
  * External dependencies.
  */
-import { useCallback, useEffect, useMemo, useReducer } from "react";
-import { getFormatedDate } from "@next-pms/design-system/date";
-import { useToasts } from "@rtcamp/frappe-ui-react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { getFormatedDate, getTodayDate } from "@next-pms/design-system/date";
+import type { FilterCondition } from "@rtcamp/frappe-ui-react";
 import { addDays } from "date-fns";
-import { useFrappeGetCall, type FrappeError } from "frappe-react-sdk";
+import type { Error as FrappeError } from "frappe-js-sdk/lib/frappe_app/types";
+import { useFrappeGetCall } from "frappe-react-sdk";
 
 /**
  * Internal dependencies.
  */
 import { NUMBER_OF_WEEKS_TO_FETCH } from "@/lib/constant";
-import { parseFrappeErrorMsg } from "@/lib/utils";
+import { buildCompositeFilters } from "@/lib/utils";
 import type { ProjectMemberData, WeekGroup } from "./context";
-import {
-  createInitialProjectTimesheetState,
-  projectTimesheetReducer,
-} from "./reducer";
-import type { ProjectTimesheetApiResponse } from "./types";
+import type { ApiPayload, ProjectTimesheetApiResponse } from "./types";
 
 type UseProjectTimesheetDataResult = {
-  hasMoreWeeks: boolean;
+  hasMore: boolean;
   isLoadingProjectData: boolean;
   weekGroups: WeekGroup[];
   loadData: () => void;
+  error: FrappeError | undefined;
+  resetData: () => void;
+};
+
+type UseProjectTimesheetOptions = {
+  search: string;
+  compositeFilters: FilterCondition[];
 };
 
 const EMPLOYEE_PAGE_LENGTH = 10;
 
-export function useProjectTimesheetData(): UseProjectTimesheetDataResult {
-  const toast = useToasts();
+export function useProjectTimesheetData({
+  search,
+  compositeFilters,
+}: UseProjectTimesheetOptions): UseProjectTimesheetDataResult {
+  const [weekDate, setWeekDate] = useState(getTodayDate());
+  const [employeeStart, setEmployeeStart] = useState(0);
 
-  const [state, dispatch] = useReducer(
-    projectTimesheetReducer,
-    undefined,
-    createInitialProjectTimesheetState,
+  // Each entry represents one paginated fetch.
+  // All derived data (weeks, projects, members) is computed from this.
+  const [pages, setPages] = useState<ApiPayload[]>([]);
+
+  // Track filter changes to reset pagination
+  const prevFiltersRef = useRef({ search, compositeFilters });
+
+  // Build Frappe-compatible filters from composite filters
+  const { startDate, maxWeek, frappeFilters } = useMemo(
+    () => buildCompositeFilters(compositeFilters),
+    [compositeFilters],
   );
+
+  const resetData = useCallback(() => {
+    setPages([]);
+    // When a date-range filter is active, start the sliding window at the
+    // filter's end date (startDate) so week pagination walks backward through
+    // the filtered range instead of from today.
+    setWeekDate(startDate ?? getTodayDate());
+    setEmployeeStart(0);
+  }, [startDate]);
+
+  // Reset pagination when filters change
+  useEffect(() => {
+    const filtersChanged =
+      JSON.stringify(prevFiltersRef.current.search) !==
+        JSON.stringify(search) ||
+      JSON.stringify(prevFiltersRef.current.compositeFilters) !==
+        JSON.stringify(compositeFilters);
+
+    if (filtersChanged) {
+      resetData();
+      prevFiltersRef.current = { search, compositeFilters };
+    }
+  }, [search, compositeFilters, resetData]);
+
+  const hasActiveFilter = !!search || compositeFilters.length > 0;
+  console.log(hasActiveFilter, search, compositeFilters);
 
   const {
     data: projectTimesheetData,
     error: projectTimesheetError,
-    isLoading: isLoadingProjectData,
+    isLoading: isLoadingProjectApiData,
   } = useFrappeGetCall<ProjectTimesheetApiResponse>(
     "next_pms.timesheet.api.project.get_project_timesheet_data",
     {
-      date: state.weekDate,
-      max_week: String(NUMBER_OF_WEEKS_TO_FETCH),
-      page_length: String(EMPLOYEE_PAGE_LENGTH),
-      start: String(state.employeeStart),
+      date: weekDate,
+      max_week: maxWeek,
+      page_length: EMPLOYEE_PAGE_LENGTH,
+      start: employeeStart,
+      search: search || null,
+      filters: frappeFilters.length > 0 ? JSON.stringify(frappeFilters) : null,
+      skip_empty_weeks: hasActiveFilter || null,
     },
   );
 
@@ -55,135 +99,165 @@ export function useProjectTimesheetData(): UseProjectTimesheetDataResult {
     if (!projectTimesheetData?.message) {
       return;
     }
-    dispatch({
-      type: "APPEND_PAGE",
-      payload: projectTimesheetData.message,
-    });
+    setPages((prev) => [...prev, projectTimesheetData.message as ApiPayload]);
   }, [projectTimesheetData]);
 
-  useEffect(() => {
-    if (!projectTimesheetError) {
-      return;
-    }
+  // All transformation lives here. Because this is pure data derivation (no side effects).
+  const { hasMoreEmployees, hasMoreWeeks, hasMore, weekGroups } =
+    useMemo(() => {
+      const oneYearAgo = addDays(new Date(getTodayDate()), -365);
+      // When a date-range filter is active, limit week pagination to the actual
+      // filter range (startDate − maxWeek weeks). Without a filter, fall back
+      // to the 1-year rolling limit.
+      const hasMoreWeeks = startDate
+        ? new Date(weekDate) > addDays(new Date(startDate), -(maxWeek * 7))
+        : new Date(weekDate) > oneYearAgo;
 
-    const message = parseFrappeErrorMsg(projectTimesheetError as FrappeError);
-    toast.error(message || "Failed to load project timesheets.");
-  }, [projectTimesheetError, toast]);
+      const hasMoreEmployees =
+        pages.length > 0 ? (pages[pages.length - 1].has_more ?? false) : true;
 
-  const { hasMoreEmployees, hasMoreWeeks, weekGroups } = useMemo(() => {
-    const hasMoreEmployees =
-      state.pages.length > 0
-        ? (state.pages[state.pages.length - 1].has_more ?? false)
-        : true;
+      const weekMap = new Map<string, WeekGroup>();
+      const projectMemberDedup = new Map<string, Set<string>>();
 
-    const hasMoreWeeks = true;
-
-    const weekMap = new Map<string, WeekGroup>();
-    const projectMemberDedup = new Map<string, Set<string>>();
-
-    state.pages.forEach((page) => {
-      (page.week_groups ?? []).forEach((week) => {
-        if (!weekMap.has(week.start_date)) {
-          weekMap.set(week.start_date, {
-            key: week.key,
-            start_date: week.start_date,
-            end_date: week.end_date,
-            dates: week.dates,
-            projects: [],
-          });
-        }
-
-        const targetWeek = weekMap.get(week.start_date)!;
-
-        week.projects.forEach((project) => {
-          let targetProject = targetWeek.projects.find(
-            (weekProject) => weekProject.project === project.project,
-          );
-
-          if (!targetProject) {
-            targetProject = {
-              project: project.project,
-              projectName: project.project_name,
-              members: [],
-            };
-            targetWeek.projects.push(targetProject);
+      pages.forEach((page) => {
+        (page.week_groups ?? []).forEach((week) => {
+          if (!weekMap.has(week.start_date)) {
+            weekMap.set(week.start_date, {
+              key: week.key,
+              start_date: week.start_date,
+              end_date: week.end_date,
+              dates: week.dates,
+              projects: [],
+            });
           }
 
-          const dedupKey = `${week.start_date}::${project.project}`;
-          if (!projectMemberDedup.has(dedupKey)) {
-            projectMemberDedup.set(dedupKey, new Set());
-          }
+          const targetWeek = weekMap.get(week.start_date)!;
 
-          const memberSet = projectMemberDedup.get(dedupKey)!;
-          project.members.forEach((member) => {
-            if (memberSet.has(member.employee)) {
-              return;
+          week.projects.forEach((project) => {
+            let targetProject = targetWeek.projects.find(
+              (weekProject) => weekProject.project === project.project,
+            );
+
+            if (!targetProject) {
+              targetProject = {
+                project: project.project,
+                projectName: project.project_name,
+                members: [],
+              };
+              targetWeek.projects.push(targetProject);
             }
 
-            memberSet.add(member.employee);
-            const mappedMember: ProjectMemberData = {
-              label: member.label,
-              employee: member.employee,
-              avatarUrl: member.avatar_url,
-              tasks: member.tasks,
-              holidays: member.holidays,
-              leaves: member.leaves,
-              workingHour: member.working_hour,
-              workingFrequency: member.working_frequency,
-              status: member.status,
-            };
+            const dedupKey = `${week.start_date}::${project.project}`;
+            if (!projectMemberDedup.has(dedupKey)) {
+              projectMemberDedup.set(dedupKey, new Set());
+            }
 
-            targetProject.members.push(mappedMember);
+            const memberSet = projectMemberDedup.get(dedupKey)!;
+            project.members.forEach((member) => {
+              if (memberSet.has(member.employee)) {
+                return;
+              }
+
+              memberSet.add(member.employee);
+              const mappedMember: ProjectMemberData = {
+                label: member.label,
+                employee: member.employee,
+                avatarUrl: member.avatar_url,
+                tasks: member.tasks,
+                holidays: member.holidays,
+                leaves: member.leaves,
+                workingHour: member.working_hour,
+                workingFrequency: member.working_frequency,
+                status: member.status,
+              };
+
+              targetProject.members.push(mappedMember);
+            });
           });
         });
       });
-    });
 
-    const weekGroups = Array.from(weekMap.values())
-      .sort(
-        (a, b) =>
-          new Date(b.start_date).getTime() - new Date(a.start_date).getTime(),
-      )
-      .map((week) => ({
-        ...week,
-        projects: week.projects.sort((a, b) =>
-          (a.projectName || a.project).localeCompare(
-            b.projectName || b.project,
+      const weekGroups = Array.from(weekMap.values())
+        .sort(
+          (a, b) =>
+            new Date(b.start_date).getTime() - new Date(a.start_date).getTime(),
+        )
+        .map((week) => ({
+          ...week,
+          projects: week.projects.sort((a, b) =>
+            (a.projectName || a.project).localeCompare(
+              b.projectName || b.project,
+            ),
           ),
-        ),
-      }));
+        }));
 
-    return { hasMoreEmployees, hasMoreWeeks, weekGroups };
-  }, [state.pages]);
+      const hasMore = hasMoreEmployees || hasMoreWeeks;
 
+      return { hasMoreEmployees, hasMoreWeeks, hasMore, weekGroups };
+    }, [pages, weekDate, startDate, maxWeek]);
+
+  // When the current window is fully loaded but yields no visible weeks, we are
+  // about to auto-advance. Expose this as "still loading" to prevent a flicker
+  // where the consumer briefly sees an empty / "No Data" state before the next
+  // fetch starts.
+  const isAutoAdvancing =
+    !isLoadingProjectApiData &&
+    pages.length > 0 &&
+    !hasMoreEmployees &&
+    weekGroups.length === 0 &&
+    hasMoreWeeks;
+
+  // Auto-advance the week window when a fully-loaded window yields no visible
+  // weeks (all employees have "Not Submitted" timesheets for that range).
+  // This prevents a "No Data" screen when data exists in older date ranges,
+  // which happens frequently when skip_empty_weeks is active with a filter.
+  useEffect(() => {
+    if (isLoadingProjectApiData) return;
+    if (pages.length === 0) return;
+    if (hasMoreEmployees) return; // current window not fully loaded yet
+    if (weekGroups.length > 0) return; // we have visible data
+    if (!hasMoreWeeks) return;
+
+    setWeekDate((prev) =>
+      getFormatedDate(addDays(prev, -(NUMBER_OF_WEEKS_TO_FETCH * 7))),
+    );
+    setEmployeeStart(0);
+  }, [
+    isLoadingProjectApiData,
+    hasMoreEmployees,
+    hasMoreWeeks,
+    weekGroups.length,
+    pages.length,
+  ]);
+
+  // Unified loadData: prioritizes employee pagination, then week pagination.
   const loadData = useCallback(() => {
-    if (isLoadingProjectData) {
-      return;
-    }
+    if (isLoadingProjectApiData) return;
 
+    // Priority 1: Load more employees for current date range
     if (hasMoreEmployees) {
-      dispatch({
-        type: "LOAD_MORE_EMPLOYEES",
-        payload: { pageLength: EMPLOYEE_PAGE_LENGTH },
-      });
+      setEmployeeStart((prev) => prev + EMPLOYEE_PAGE_LENGTH);
       return;
     }
 
-    if (!hasMoreWeeks || weekGroups.length === 0) {
-      return;
+    // Priority 2: Load more weeks (with employee pagination reset).
+    // Advance by the fixed batch window from the current weekDate so we always
+    // produce a new date value.
+    if (hasMoreWeeks) {
+      setWeekDate((prev) =>
+        getFormatedDate(addDays(prev, -(NUMBER_OF_WEEKS_TO_FETCH * 7))),
+      );
+      setEmployeeStart(0);
     }
-
-    const oldestWeek = weekGroups[weekGroups.length - 1];
-    dispatch({
-      type: "SET_WEEK_DATE",
-      payload: getFormatedDate(addDays(oldestWeek.start_date, -1)),
-    });
-  }, [hasMoreEmployees, hasMoreWeeks, isLoadingProjectData, weekGroups]);
+  }, [hasMoreEmployees, hasMoreWeeks, isLoadingProjectApiData]);
 
   return {
-    hasMoreWeeks,
-    isLoadingProjectData,
+    hasMore,
+    isLoadingProjectData:
+      isLoadingProjectApiData || isAutoAdvancing || pages.length === 0,
     weekGroups,
     loadData,
+    error: projectTimesheetError,
+    resetData,
   };
 }

@@ -1,14 +1,9 @@
 /**
  * External dependencies.
  */
-import { Fragment, useCallback, useState } from "react";
+import { Fragment } from "react";
 import { Spinner, Typography } from "@next-pms/design-system/components";
-import {
-  Button,
-  Filter,
-  FilterCondition,
-  TextInput,
-} from "@rtcamp/frappe-ui-react";
+import { Button, Filter, TextInput } from "@rtcamp/frappe-ui-react";
 import { Ellipsis } from "lucide-react";
 
 /**
@@ -18,29 +13,29 @@ import { InfiniteScroll } from "@/components/infiniteScroll";
 import { ProjectTimesheetRow } from "@/components/timesheet-row";
 import { HeaderRow } from "@/components/timesheet-row/components/row/headerRow";
 import { NUMBER_OF_WEEKS_TO_FETCH } from "@/lib/constant";
-import { TimesheetFilters } from "@/types/timesheet";
 import { useProjectTimesheet } from "./context";
-import { sampleFields } from "../constants";
+import { projectTimesheetFilters } from "../constants";
 
 export const ProjectTimesheetTable = () => {
-  const hasMoreWeeks = useProjectTimesheet(({ state }) => state.hasMoreWeeks);
+  const hasMore = useProjectTimesheet(({ state }) => state.hasMore);
   const isLoadingProjectData = useProjectTimesheet(
     ({ state }) => state.isLoadingProjectData,
   );
-  const weekGroups = useProjectTimesheet(({ state }) => state.weekGroups);
-  const loadData = useProjectTimesheet(({ actions }) => actions.loadData);
-
-  const [compositeFilters, setCompositeFilters] = useState<FilterCondition[]>(
-    [],
+  const isFilterRequest = useProjectTimesheet(
+    ({ state }) => state.isFilterRequest,
   );
-  const [filters, setFilters] = useState<TimesheetFilters>({
-    search: "",
-    reportsTo: undefined,
-  });
-
-  const handleSearchChange = useCallback((value: string) => {
-    setFilters((prev) => ({ ...prev, search: value }));
-  }, []);
+  const weekGroups = useProjectTimesheet(({ state }) => state.weekGroups);
+  const searchInput = useProjectTimesheet(({ state }) => state.searchInput);
+  const compositeFilters = useProjectTimesheet(
+    ({ state }) => state.compositeFilters,
+  );
+  const loadData = useProjectTimesheet(({ actions }) => actions.loadData);
+  const handleSearchChange = useProjectTimesheet(
+    ({ actions }) => actions.handleSearchChange,
+  );
+  const handleCompositeFilterChange = useProjectTimesheet(
+    ({ actions }) => actions.handleCompositeFilterChange,
+  );
 
   return (
     <div className="w-full h-full py-3.5 px-3">
@@ -48,17 +43,15 @@ export const ProjectTimesheetTable = () => {
         <div className="flex gap-2">
           <TextInput
             placeholder="Search Tasks"
-            value={filters.search}
+            value={searchInput}
             onChange={(e) => handleSearchChange(e.target.value)}
           />
         </div>
         <div className="flex gap-2">
           <Filter
-            fields={sampleFields}
+            fields={projectTimesheetFilters}
             value={compositeFilters}
-            onChange={(newFilters) => {
-              setCompositeFilters(newFilters);
-            }}
+            onChange={handleCompositeFilterChange}
           />
           <Button icon={() => <Ellipsis size={16} />} />
         </div>
@@ -72,8 +65,8 @@ export const ProjectTimesheetTable = () => {
         </Typography>
       ) : (
         <InfiniteScroll
-          isLoading={isLoadingProjectData}
-          hasMore={hasMoreWeeks}
+          isLoading={isLoadingProjectData || isFilterRequest}
+          hasMore={hasMore}
           verticalLodMore={loadData}
           className="w-full h-full overflow-auto scrollbar [scrollbar-gutter:stable]"
           count={NUMBER_OF_WEEKS_TO_FETCH}

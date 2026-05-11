@@ -1,29 +1,24 @@
 /**
  * External dependencies.
  */
-import { getTodayDate } from "@next-pms/design-system/date";
-
-/**
- * Internal dependencies.
- */
-import type { ApiPayload } from "./types";
+import type { FilterCondition } from "@rtcamp/frappe-ui-react";
 
 export type ProjectTimesheetState = {
-  weekDate: string;
-  employeeStart: number;
-  pages: ApiPayload[];
+  searchInput: string;
+  compositeFilters: FilterCondition[];
+  isFilterRequest: boolean;
 };
 
 export type ProjectTimesheetAction =
-  | { type: "APPEND_PAGE"; payload: ApiPayload }
-  | { type: "SET_WEEK_DATE"; payload: string }
-  | { type: "LOAD_MORE_EMPLOYEES"; payload: { pageLength: number } };
+  | { type: "SEARCH_CHANGED"; payload: string }
+  | { type: "COMPOSITE_FILTERS_CHANGED"; payload: FilterCondition[] }
+  | { type: "FILTER_REQUEST_COMPLETE" };
 
 export const createInitialProjectTimesheetState =
   (): ProjectTimesheetState => ({
-    weekDate: getTodayDate(),
-    employeeStart: 0,
-    pages: [],
+    searchInput: "",
+    compositeFilters: [],
+    isFilterRequest: false,
   });
 
 export function projectTimesheetReducer(
@@ -31,24 +26,18 @@ export function projectTimesheetReducer(
   action: ProjectTimesheetAction,
 ): ProjectTimesheetState {
   switch (action.type) {
-    case "APPEND_PAGE":
+    case "SEARCH_CHANGED":
+      return { ...state, searchInput: action.payload, isFilterRequest: true };
+
+    case "COMPOSITE_FILTERS_CHANGED":
       return {
         ...state,
-        pages: [...state.pages, action.payload],
+        compositeFilters: action.payload,
+        isFilterRequest: true,
       };
 
-    case "SET_WEEK_DATE":
-      return {
-        ...state,
-        weekDate: action.payload,
-        employeeStart: 0,
-      };
-
-    case "LOAD_MORE_EMPLOYEES":
-      return {
-        ...state,
-        employeeStart: state.employeeStart + action.payload.pageLength,
-      };
+    case "FILTER_REQUEST_COMPLETE":
+      return { ...state, isFilterRequest: false };
 
     default:
       return state;
