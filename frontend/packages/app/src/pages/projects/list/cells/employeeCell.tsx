@@ -6,7 +6,7 @@ import { Avatar, Tooltip } from "@rtcamp/frappe-ui-react";
 /**
  * Internal dependencies.
  */
-import type { EmployeeRef } from "../types";
+import type { EmployeeRef } from "../../types";
 
 export function EmployeeCell({ employee }: { employee: EmployeeRef }) {
   return (
@@ -21,7 +21,9 @@ export function EmployeeCell({ employee }: { employee: EmployeeRef }) {
           image={employee.avatar}
           label={employee.initials}
         />
-        <span className="truncate text-ink-gray-7 text-base">{employee.name}</span>
+        <span className="truncate text-ink-gray-7 text-base">
+          {employee.name}
+        </span>
       </a>
     </Tooltip>
   );

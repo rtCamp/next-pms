@@ -1,7 +1,7 @@
 /**
  * Internal dependencies.
  */
-import type { Phase } from "./types";
+import type { Phase } from "../types";
 
 export const PHASE_LABELS: Record<Phase, string> = {
   "delivery-prep": "Delivery Prep",

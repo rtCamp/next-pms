@@ -25,6 +25,9 @@
   },
   "dependencies": {
     "@base-ui/react": "^1.2.0",
+    "@dnd-kit/abstract": "^0.4.0",
+    "@dnd-kit/helpers": "^0.4.0",
+    "@dnd-kit/react": "^0.4.0",
     "@radix-ui/react-avatar": "^1.1.0",
     "@radix-ui/react-checkbox": "^1.1.1",
     "@radix-ui/react-dialog": "^1.1.1",

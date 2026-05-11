@@ -1,8 +1,8 @@
 /**
  * Internal dependencies.
  */
+import type { Phase } from "../../types";
 import { PHASE_LABELS } from "../constants";
-import type { Phase } from "../types";
 
 import { StagesIcon } from "./stagesIcon";
 

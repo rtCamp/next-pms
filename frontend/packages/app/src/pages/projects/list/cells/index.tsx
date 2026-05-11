@@ -6,7 +6,7 @@ import { DateCell } from "./dateCell";
 import { EmployeeCell } from "./employeeCell";
 import { PhaseCell } from "./phaseCell";
 import { ProjectNameCell } from "./projectNameCell";
-import type { ListViewColumn, Project } from "../types";
+import type { ListViewColumn, Project } from "../../types";
 
 export function ProjectListCell({
   row,

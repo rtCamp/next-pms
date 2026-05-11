@@ -8,7 +8,7 @@ import { ListView } from "@rtcamp/frappe-ui-react";
  */
 import { ProjectListCell } from "./cells";
 import { PROJECT_LIST_COLUMNS } from "./columns";
-import { FAKE_PROJECTS } from "./fake-data";
+import { FAKE_PROJECTS } from "../fake-data";
 
 function ProjectList() {
   return (

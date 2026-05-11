@@ -73,6 +73,7 @@ export {
   TableCaption,
 } from "./table";
 
+export * from "./dnd";
 export * from "./timesheet";
 export * from "./icons";
 export * from "./gantt-view";

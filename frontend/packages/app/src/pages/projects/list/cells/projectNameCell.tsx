@@ -1,17 +1,16 @@
 /**
  * External dependencies.
  */
-import { Button, Tooltip } from "@rtcamp/frappe-ui-react";
 import { useNavigate } from "react-router-dom";
+import { Button, Tooltip } from "@rtcamp/frappe-ui-react";
 
 /**
  * Internal dependencies.
  */
 import { ROUTES } from "@/lib/constant";
 
-import type { RiskLevel } from "../types";
-
 import { Dot } from "./dot";
+import type { RiskLevel } from "../../types";
 
 export function ProjectNameCell({
   id,
