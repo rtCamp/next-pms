@@ -1,5 +1,6 @@
 import type { Member, Project } from "@next-pms/design-system/components";
 import { addMonths, addWeeks, parseISO } from "date-fns";
+import { DEFAULT_HOURS_PER_WEEK } from "./constants";
 import type { AllocationsDuration } from "./context";
 import type { TeamAllocationResponse } from "./type";
 
@@ -166,12 +167,45 @@ export function mapTeamAllocationToMembers(
       name: employee.employee_name,
       designation: employee.designation ?? undefined,
       department: employee.department ?? undefined,
-      rate: employee.rate ?? undefined,
-      capacity: employee.capacity ?? undefined,
-      manager: employee.reportingManager ?? undefined,
+      rate:
+        calculateHourlyRate(
+          employee.ctc,
+          employee.custom_working_hours,
+          employee.salary_currency,
+        ) || undefined,
+      capacity: formatCapacity(employee.custom_working_hours) || undefined,
+      manager: employee.reports_to ? employee.reports_to : undefined,
       image: employee.image ?? undefined,
       projects,
       leaves: memberLeaves,
     };
   });
+}
+
+/**
+ * Calculates hourly rate from CTC and working hours.
+ */
+function calculateHourlyRate(
+  ctc: number,
+  hoursPerWeek: number,
+  currency: string,
+): string {
+  if (!ctc) return "";
+  const hours = hoursPerWeek > 0 ? hoursPerWeek : DEFAULT_HOURS_PER_WEEK;
+  const monthlySalary = ctc / 12;
+  const hourlyRate = monthlySalary / (hours * 4);
+  return (
+    new Intl.NumberFormat("en-IN", {
+      style: "currency",
+      currency,
+      maximumFractionDigits: 0,
+    }).format(hourlyRate) + "/hr"
+  );
+}
+
+/**
+ * Formats working hours as a capacity string.
+ */
+function formatCapacity(hours: number): string {
+  return hours > 0 ? `${hours} hrs/week` : "";
 }

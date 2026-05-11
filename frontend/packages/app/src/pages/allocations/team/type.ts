@@ -4,9 +4,11 @@ export interface Employee {
   employee_name: string;
   department: string | null;
   designation: string | null;
-  rate?: string | null;
-  capacity?: string | null;
-  reportingManager?: string | null;
+  custom_work_schedule: string;
+  custom_working_hours: number;
+  reports_to: string | null;
+  ctc: number;
+  salary_currency: string;
 }
 
 export interface Leave {
