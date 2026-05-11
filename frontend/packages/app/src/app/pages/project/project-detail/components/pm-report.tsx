@@ -19,6 +19,8 @@ import {
   useFrappeUpdateDoc,
 } from "frappe-react-sdk";
 
+import { mergeClassNames } from "@/lib/utils";
+
 const formatDate = (datetime: string) => {
   if (!datetime) return "";
   return new Date(datetime.replace(" ", "T")).toLocaleDateString("en-GB", {
@@ -480,7 +482,10 @@ const PMReport = ({ projectId }: PMReportProps) => {
             </label>
             <Input
               type="date"
-              className={`${!isCustom ? "bg-muted text-muted-foreground cursor-not-allowed" : ""}`}
+              className={mergeClassNames(
+                !isCustom &&
+                  "bg-muted text-muted-foreground cursor-not-allowed",
+              )}
               value={fromDate}
               onChange={(e) => {
                 if (isCustom) setFromDate(e.target.value);
@@ -496,7 +501,10 @@ const PMReport = ({ projectId }: PMReportProps) => {
             </label>
             <Input
               type="date"
-              className={`${!isCustom ? "bg-muted text-muted-foreground cursor-not-allowed" : ""}`}
+              className={mergeClassNames(
+                !isCustom &&
+                  "bg-muted text-muted-foreground cursor-not-allowed",
+              )}
               value={toDate}
               onChange={(e) => {
                 if (isCustom) setToDate(e.target.value);
@@ -624,13 +632,11 @@ const PMReport = ({ projectId }: PMReportProps) => {
                   return (
                     <tr
                       key={report.run_id || `report-${index}`}
-                      className={`border-t hover:bg-muted/50 ${
-                        generating
-                          ? "bg-yellow-50"
-                          : failed || resyncable
-                            ? "bg-red-50"
-                            : ""
-                      }`}
+                      className={mergeClassNames(
+                        "border-t hover:bg-muted/50",
+                        generating && "bg-yellow-50",
+                        (failed || resyncable) && "bg-red-50",
+                      )}
                     >
                       <td className="px-4 py-2">{index + 1}</td>
 
