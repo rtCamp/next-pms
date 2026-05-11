@@ -76,7 +76,6 @@ export function useProjectTimesheetData({
   }, [search, compositeFilters, resetData]);
 
   const hasActiveFilter = !!search || compositeFilters.length > 0;
-  console.log(hasActiveFilter, search, compositeFilters);
 
   const {
     data: projectTimesheetData,
