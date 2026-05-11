@@ -5,7 +5,7 @@ import {
   CELL_HEIGHT,
   HEADER_HEIGHT,
 } from "./constants";
-import { DeleteAllocationDialog } from "./gantt-bar/deleteAllocationDialog";
+import { DeleteAllocationDialog } from "./deleteAllocationDialog";
 import { GanttMemberBar } from "./gantt-bar/memberBar";
 import { GanttProjectBar } from "./gantt-bar/projectBar";
 import { GanttMemberItem } from "./ganttMemberItem";
