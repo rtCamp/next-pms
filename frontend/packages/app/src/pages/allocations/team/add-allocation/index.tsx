@@ -17,23 +17,22 @@ import {
   useToasts,
 } from "@rtcamp/frappe-ui-react";
 import { useForm, useStore } from "@tanstack/react-form";
-import {
-  FrappeError,
-  useFrappeGetCall,
-  useFrappePostCall,
-} from "frappe-react-sdk";
+import { FrappeError, useFrappePostCall } from "frappe-react-sdk";
 import { Calendar } from "lucide-react";
 
 /**
  * Internal dependencies.
  */
+import { useCustomerLookup } from "@/hooks/useCustomerLookup";
+import { useEmployeeLookup } from "@/hooks/useEmployeeLookup";
+import { useProjectLookup } from "@/hooks/useProjectLookup";
 import { isWeekendEntryAllowed, parseFrappeErrorMsg } from "@/lib/utils";
 import {
   addAllocationDefaultValues,
   allocationRecurrenceLabels,
 } from "./constants";
 import { addAllocationFormSchema } from "./schema";
-import { ComboboxOption, type AddAllocationModalProps } from "./types";
+import type { AddAllocationModalProps } from "./types";
 import { computeTotalHours } from "./utils";
 
 function AddAllocationModal({
@@ -46,74 +45,48 @@ function AddAllocationModal({
 }: AddAllocationModalProps) {
   const toast = useToasts();
   const weekendEntriesAllowed: boolean = isWeekendEntryAllowed();
+  const [employeeSearch, setEmployeeSearch] = useState("");
+  const [projectSearch, setProjectSearch] = useState("");
+  const [customerSearch, setCustomerSearch] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
   const { call: handleAllocation } = useFrappePostCall(
     "next_pms.resource_management.api.allocation.handle_allocation",
   );
 
-  const { data: employeesData } = useFrappeGetCall("frappe.client.get_list", {
-    doctype: "Employee",
-    fields: ["name", "employee_name"],
-    limit_page_length: "null",
-  });
+  const handleOpenChange = useCallback(
+    (nextOpen: boolean) => {
+      if (!nextOpen) {
+        setEmployeeSearch("");
+        setProjectSearch("");
+        setCustomerSearch("");
+      }
 
-  const { data: projectsData } = useFrappeGetCall("frappe.client.get_list", {
-    doctype: "Project",
-    fields: ["name", "project_name", "customer"],
-    filters: window.frappe?.boot?.global_filters.project,
-    limit_page_length: "null",
-  });
+      onOpenChange(nextOpen);
+    },
+    [onOpenChange],
+  );
 
-  const { data: customersData } = useFrappeGetCall("frappe.client.get_list", {
-    doctype: "Customer",
-    fields: ["name", "customer_name"],
-    limit_page_length: "null",
-  });
+  const { options: employeeOptions, isLoading: isEmployeeLookupLoading } =
+    useEmployeeLookup({
+      shouldFetch: open,
+      pageSize: 20,
+      query: employeeSearch,
+    });
 
-  const employeeOptions = useMemo(() => {
-    const fromApi = (
-      (employeesData?.message ?? []) as {
-        name: string;
-        employee_name: string;
-      }[]
-    ).map((employee) => ({
-      label: employee.employee_name,
-      value: employee.name,
-    }));
+  const { options: projectOptions, isLoading: isProjectLookupLoading } =
+    useProjectLookup({
+      shouldFetch: open,
+      pageSize: 20,
+      query: projectSearch,
+    });
 
-    return fromApi as ComboboxOption[];
-  }, [employeesData?.message]);
-
-  const projectOptions = useMemo(() => {
-    const fromApi = (
-      (projectsData?.message ?? []) as {
-        name: string;
-        project_name: string;
-        customer?: string;
-      }[]
-    ).map((project) => ({
-      label: project.project_name,
-      value: project.name,
-      customer: project.customer,
-    }));
-
-    return fromApi as ComboboxOption[];
-  }, [projectsData?.message]);
-
-  const customerOptions = useMemo(() => {
-    const fromApi = (
-      (customersData?.message ?? []) as {
-        name: string;
-        customer_name: string;
-      }[]
-    ).map((customer) => ({
-      label: customer.customer_name,
-      value: customer.name,
-    }));
-
-    return fromApi as ComboboxOption[];
-  }, [customersData?.message]);
+  const { options: customerOptions, isLoading: isCustomerLookupLoading } =
+    useCustomerLookup({
+      shouldFetch: open,
+      pageSize: 20,
+      query: customerSearch,
+    });
 
   const allocationName = initialValues?.allocationName;
   const mergedDefaultValues = useMemo(() => {
@@ -197,14 +170,6 @@ function AddAllocationModal({
     form.reset(mergedDefaultValues);
   }, [form, mergedDefaultValues, onOpenChange]);
 
-  useEffect(() => {
-    if (!open) {
-      return;
-    }
-
-    form.reset(mergedDefaultValues);
-  }, [form, mergedDefaultValues, open]);
-
   const recurrence = useStore(form.store, (state) => state.values.recurrence);
   const hoursPerDay = useStore(form.store, (state) => state.values.hoursPerDay);
   const repeatFor = useStore(
@@ -217,6 +182,20 @@ function AddAllocationModal({
     form.store,
     (state) => state.values.includeWeekends,
   );
+
+  useEffect(() => {
+    if (!open) {
+      return;
+    }
+
+    form.reset(mergedDefaultValues);
+  }, [form, mergedDefaultValues, open]);
+
+  useEffect(() => {
+    setEmployeeSearch("");
+    setProjectSearch("");
+    setCustomerSearch("");
+  }, [open]);
 
   const totalHours = computeTotalHours({
     hoursPerDay,
@@ -235,9 +214,11 @@ function AddAllocationModal({
       );
 
       form.setFieldValue("projectId", nextProjectId);
+      setProjectSearch("");
 
       if (selectedProject?.customer) {
         form.setFieldValue("customer", selectedProject.customer);
+        setCustomerSearch("");
       }
     },
     [form, projectOptions],
@@ -246,14 +227,7 @@ function AddAllocationModal({
   return (
     <Dialog
       open={open}
-      onOpenChange={(next) => {
-        if (next) {
-          onOpenChange(true);
-          return;
-        }
-
-        closeModal();
-      }}
+      onOpenChange={handleOpenChange}
       options={{
         title: () => (
           <span className="text-lg font-medium">
@@ -298,10 +272,13 @@ function AddAllocationModal({
               </label>
               <Combobox
                 inputClassName="bg-white h-8 border-outline-gray-2"
+                loading={isEmployeeLookupLoading}
                 options={employeeOptions}
+                searchValue={employeeSearch}
                 placeholder="Select Employee"
                 value={field.state.value}
                 onChange={(value) => field.handleChange(value as string)}
+                onSearchChange={setEmployeeSearch}
                 openOnFocus
               />
               {!field.state.meta.isValid && (
@@ -320,10 +297,13 @@ function AddAllocationModal({
               </label>
               <Combobox
                 inputClassName="bg-white h-8 border-outline-gray-2"
+                loading={isProjectLookupLoading}
                 options={projectOptions}
+                searchValue={projectSearch}
                 placeholder="Select Project"
                 value={field.state.value}
                 onChange={handleProjectChange}
+                onSearchChange={setProjectSearch}
                 openOnFocus
               />
               {!field.state.meta.isValid && (
@@ -342,10 +322,16 @@ function AddAllocationModal({
               </label>
               <Combobox
                 inputClassName="bg-white h-8 border-outline-gray-2"
+                loading={isCustomerLookupLoading}
                 options={customerOptions}
+                searchValue={customerSearch}
                 placeholder="Select Customer"
                 value={field.state.value}
-                onChange={(value) => field.handleChange(value as string)}
+                onChange={(value) => {
+                  field.handleChange(value as string);
+                  setCustomerSearch("");
+                }}
+                onSearchChange={setCustomerSearch}
                 openOnFocus
               />
               {!field.state.meta.isValid && (

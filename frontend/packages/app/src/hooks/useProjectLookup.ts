@@ -5,10 +5,15 @@ type ProjectFilters = Record<string, unknown> | unknown[] | null | undefined;
 type ProjectLookupItem = {
   name: string;
   project_name: string;
+  customer?: string;
 };
 
 type ProjectLookupResult = {
   data: ProjectLookupItem[];
+};
+
+export type ProjectLookupOption = LookupOption & {
+  customer?: string;
 };
 
 interface UseProjectLookupOptions {
@@ -21,7 +26,7 @@ interface UseProjectLookupOptions {
   /** Filters projects through backend or_filters on id and project name. */
   query: string;
   /** Keeps the current selection visible when it is not in the latest results. */
-  selectedOption?: LookupOption | null;
+  selectedOption?: ProjectLookupOption | null;
 }
 
 /**
@@ -34,13 +39,17 @@ export const useProjectLookup = ({
   query,
   selectedOption,
 }: UseProjectLookupOptions) => {
-  return useRemoteLookup<ProjectLookupResult, ProjectLookupItem, LookupOption>({
+  return useRemoteLookup<
+    ProjectLookupResult,
+    ProjectLookupItem,
+    ProjectLookupOption
+  >({
     shouldFetch,
     query,
     pageSize,
     method: "next_pms.timesheet.api.project.get_projects",
     params: ({ query: searchQuery, pageSize }) => ({
-      fields: ["name", "project_name"],
+      fields: ["name", "project_name", "customer"],
       filters: extraFilters ?? undefined,
       limit: pageSize,
       or_filters: searchQuery
@@ -55,6 +64,7 @@ export const useProjectLookup = ({
     mapOption: (project) => ({
       label: project.project_name,
       value: project.name,
+      customer: project.customer,
     }),
     selectedOption,
   });
