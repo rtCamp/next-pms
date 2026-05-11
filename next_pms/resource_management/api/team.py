@@ -86,6 +86,7 @@ def get_resource_management_team_view_data(
                 res["permissions"] = permissions
                 return res
 
+    privileged_fields = ["ctc", "salary_currency"] if permissions["write"] else []
     employees, total_count = filter_employees(
         employee_name,
         business_unit=business_unit,
@@ -96,6 +97,7 @@ def get_resource_management_team_view_data(
         status=["Active"],
         ids=ids,
         ignore_permissions=True,
+        extra_fields=["custom_work_schedule", "custom_working_hours", "reports_to", *privileged_fields],
     )
 
     resource_allocation_data = get_allocation_list_for_employee_for_given_range(
