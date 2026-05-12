@@ -11,7 +11,7 @@ import { cva } from "class-variance-authority";
 /**
  * Internal dependencies.
  */
-import { FAKE_PROJECTS } from "@/pages/projects/list/fake-data";
+import { FAKE_PROJECTS } from "@/pages/projects/fake-data";
 import { BudgetBurnBar } from "./components/budgetBurnBar";
 import { CustomerRow } from "./components/customerRow";
 import { ExpandableList } from "./components/expandableList";
