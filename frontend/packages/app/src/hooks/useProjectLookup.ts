@@ -10,9 +10,7 @@ type ProjectLookupItem = {
   customer?: string;
 };
 
-type ProjectLookupResult = {
-  data: ProjectLookupItem[];
-};
+type ProjectLookupResult = ProjectLookupItem[];
 
 export type ProjectLookupOption = LookupOption & {
   customer?: string;
@@ -32,7 +30,7 @@ interface UseProjectLookupOptions {
 }
 
 /**
- * Fetches project combobox options using the backend's filters and or_filters contract.
+ * Fetches project records for lookup fields.
  */
 export const useProjectLookup = ({
   shouldFetch,
@@ -49,11 +47,12 @@ export const useProjectLookup = ({
     shouldFetch,
     query,
     pageSize,
-    method: "next_pms.timesheet.api.project.get_projects",
+    method: "frappe.client.get_list",
     params: ({ query: searchQuery, pageSize }) => ({
+      doctype: "Project",
       fields: ["name", "project_name", "customer"],
       filters: extraFilters ?? undefined,
-      limit: pageSize,
+      limit_page_length: pageSize,
       or_filters: searchQuery
         ? [
             ["Project", "name", "like", `%${searchQuery}%`],
@@ -62,7 +61,7 @@ export const useProjectLookup = ({
         : undefined,
       start: 0,
     }),
-    getItems: (message) => message?.data ?? [],
+    getItems: (message) => message ?? [],
     mapOption: (project) => ({
       label: project.project_name,
       value: project.name,

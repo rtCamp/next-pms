@@ -22,7 +22,7 @@ interface UseCustomerLookupOptions {
 }
 
 /**
- * Fetches customer combobox options through frappe.client.get_list.
+ * Fetches customer records for lookup fields.
  */
 export const useCustomerLookup = ({
   shouldFetch,

@@ -31,7 +31,7 @@ interface UseEmployeeLookupOptions {
 }
 
 /**
- * Fetches employee combobox options and leaves visual decoration to the consumer.
+ * Fetches employee records for lookup fields.
  */
 export const useEmployeeLookup = ({
   shouldFetch,

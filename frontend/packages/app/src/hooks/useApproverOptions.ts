@@ -23,7 +23,7 @@ export type ApproverOption = LookupOption & {
 };
 
 /**
- * Fetches the static approver list used by filters that do not need remote search.
+ * Fetches approver records for filter fields.
  */
 const useApproverOptions = () => {
   const { data } = useFrappeGetCall<ApproverResponse>(

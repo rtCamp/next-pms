@@ -50,7 +50,7 @@ interface UseRemoteLookupOptions<
 }
 
 /**
- * Runs a debounced GET lookup and keeps the selected option visible across queries.
+ * Runs the shared remote lookup request for lookup hooks.
  */
 export const useRemoteLookup = <TMessage, TItem, TOption extends LookupOption>({
   shouldFetch,
