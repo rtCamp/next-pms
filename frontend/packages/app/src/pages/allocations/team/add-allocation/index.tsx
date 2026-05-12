@@ -182,7 +182,11 @@ function AddAllocationModal({
         );
 
         closeModal();
-        onSuccess?.();
+        await onSuccess?.([
+          ...new Set(
+            [initialValues?.employeeId, value.employeeId].filter(Boolean),
+          ),
+        ] as string[]);
       } catch (err) {
         const error = parseFrappeErrorMsg(err as FrappeError);
         toast.error(error);
@@ -297,6 +301,7 @@ function AddAllocationModal({
                 Employee
               </label>
               <Combobox
+                key={employeeOptions.length > 0 ? "emp-loaded" : "emp-loading"}
                 inputClassName="bg-white h-8 border-outline-gray-2"
                 options={employeeOptions}
                 placeholder="Select Employee"
@@ -319,6 +324,7 @@ function AddAllocationModal({
                 Project
               </label>
               <Combobox
+                key={projectOptions.length > 0 ? "proj-loaded" : "proj-loading"}
                 inputClassName="bg-white h-8 border-outline-gray-2"
                 options={projectOptions}
                 placeholder="Select Project"
