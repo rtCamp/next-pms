@@ -275,9 +275,12 @@ const GanttGridInner: React.FC<{
         projectName={pendingDeleteEntry?.projectName ?? ""}
         dateRange={pendingDeleteEntry?.dateRange ?? ""}
         hoursPerDay={pendingDeleteEntry?.hoursPerDay ?? ""}
-        onConfirm={() => {
-          pendingDeleteEntry?.onDelete();
-          clearPendingDeleteEntry();
+        onConfirm={async () => {
+          try {
+            await pendingDeleteEntry?.onDelete();
+          } finally {
+            clearPendingDeleteEntry();
+          }
         }}
       />
     </div>
