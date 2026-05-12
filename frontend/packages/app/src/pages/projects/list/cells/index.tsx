@@ -6,13 +6,14 @@ import { DateCell } from "./dateCell";
 import { EmployeeCell } from "./employeeCell";
 import { PhaseCell } from "./phaseCell";
 import { ProjectNameCell } from "./projectNameCell";
-import type { ListViewColumn, ResponseProject } from "../types";
+import type { ListViewColumn, ProjectListItem } from "../types";
+import { TextCell } from "./TextCell";
 
 export function ProjectListCell({
   row,
   column,
 }: {
-  row: ResponseProject;
+  row: ProjectListItem;
   column: ListViewColumn;
 }) {
   switch (column.key) {
@@ -21,52 +22,32 @@ export function ProjectListCell({
         <ProjectNameCell
           id={row.name}
           name={row.project_name}
-          riskLevel={row.custom_project_rag_status}
+          riskLevel={row.rag_status}
         />
       );
     case "phase":
-      return <PhaseCell phase={"delivery-prep"} />;
-    case "burnRatePerWeek":
-    case "totalBudget":
+      return <PhaseCell phase={row[column.key]} />;
+    case "burn_rate_per_week":
+    case "total_budget":
+    case "profit_margin":
+    case "project_type":
+    case "customer_name":
+      return <TextCell text={row[column.key]} />;
+    case "cost_burn_percent":
       return (
-        <span className="block truncate text-ink-gray-7 text-base">{`$${1000}`}</span>
-      );
-    case "costBurnPercent":
-      return <BudgetProgressCell percent={50} secondaryPercent={70} />;
-    case "profitMargin":
-      return (
-        <span className="block truncate text-ink-gray-7 text-base">10%</span>
-      );
-    case "startDate":
-    case "nextMilestone":
-    case "endDate":
-    case "contractEndDate":
-      return <DateCell isoDate={"2025-11-23"} />;
-    case "projectManager":
-      return (
-        <EmployeeCell
-          employee={{
-            name: row.custom_engineering_manager_name,
-            email: row.custom_engineering_manager,
-          }}
+        <BudgetProgressCell
+          percent={row.cost_burn.cost_accrued}
+          secondaryPercent={row.cost_burn.cost_forecasted}
         />
       );
-    case "leadEngineer":
-      return (
-        <EmployeeCell
-          employee={{
-            name: row.custom_engineering_manager_name,
-            email: row.custom_engineering_manager,
-          }}
-        />
-      );
-    case "type":
-    case "clientName":
-      return (
-        <span className="block truncate text-ink-gray-7 text-base">
-          Client{" "}
-        </span>
-      );
+    case "start_date":
+    case "next_milestone":
+    case "end_date":
+    case "contract_end_date":
+      return <DateCell isoDate={row[column.key]} />;
+    case "project_manager":
+    case "engineering_manager":
+      return <EmployeeCell employee={row[column.key]} />;
     default:
       return null;
   }

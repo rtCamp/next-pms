@@ -6,44 +6,48 @@ import { Avatar, Tooltip } from "@rtcamp/frappe-ui-react";
 /**
  * Internal dependencies.
  */
-import type { EmployeeRef } from "../types";
+import type { Employee } from "../types";
+import { TextCell } from "./TextCell";
 
-export function EmployeeCell({ employee }: { employee: EmployeeRef }) {
-  if (employee.email) {
+export function EmployeeCell({ employee }: { employee: Employee | null }) {
+  if (!employee) {
+    return <TextCell text="N/A" />;
+  }
+  if (employee.user) {
     return (
-      <Tooltip text={employee.name || ""}>
+      <Tooltip text={employee.user || ""}>
         <a
-          href={`/desk/user/${encodeURIComponent(employee.email)}`}
+          href={`/desk/user/${encodeURIComponent(employee.user)}`}
           className="flex gap-2 w-fit"
         >
-          {employee.avatar && (
+          {employee.image && (
             <Avatar
               size="md"
               shape="circle"
-              image={employee.avatar}
-              label={employee.name || ""}
+              image={employee.image}
+              label={employee.full_name || ""}
             />
           )}
           <span className="truncate text-ink-gray-7 text-base">
-            {employee.name}
+            {employee.full_name}
           </span>
         </a>
       </Tooltip>
     );
   }
   return (
-    <Tooltip text={employee.name || ""}>
+    <Tooltip text={employee.full_name || ""}>
       <div className="flex gap-2 w-fit">
-        {employee.avatar && (
+        {employee.image && (
           <Avatar
             size="md"
             shape="circle"
-            image={employee.avatar}
-            label={employee.name || ""}
+            image={employee.image}
+            label={employee.full_name || ""}
           />
         )}
         <span className="truncate text-ink-gray-7 text-base">
-          {employee.name}
+          {employee.full_name}
         </span>
       </div>
     </Tooltip>
