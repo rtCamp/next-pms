@@ -1,6 +1,12 @@
 import type { Member, Project } from "@next-pms/design-system/components";
 import { addMonths, addWeeks, parseISO } from "date-fns";
-import { DEFAULT_HOURS_PER_WEEK } from "./constants";
+import { currencyFormat } from "@/lib/utils";
+import {
+  DEFAULT_CURRENCY,
+  DEFAULT_HOURS_PER_WEEK,
+  WEEKS_PER_MONTH,
+  WORKING_DAYS_PER_MONTH,
+} from "./constants";
 import type { AllocationsDuration } from "./context";
 import type { ManagerNameMap, TeamAllocationResponse } from "./type";
 
@@ -175,9 +181,14 @@ export function mapTeamAllocationToMembers(
         calculateHourlyRate(
           employee.ctc,
           employee.custom_working_hours,
+          employee.custom_work_schedule,
           employee.salary_currency,
         ) || undefined,
-      capacity: formatCapacity(employee.custom_working_hours) || undefined,
+      capacity:
+        formatCapacity(
+          employee.custom_working_hours,
+          employee.custom_work_schedule,
+        ) || undefined,
       manager: employee.reports_to
         ? managerNameMap?.get(employee.reports_to)
         : undefined,
@@ -189,29 +200,37 @@ export function mapTeamAllocationToMembers(
 }
 
 /**
- * Calculates hourly rate from CTC and working hours.
+ * Calculates hourly rate from CTC, working hours, work schedule, and currency.
+ * For "Per Day" schedules, monthly hours = daily hours * 20 working days.
+ * For weekly schedules, monthly hours = weekly hours * 4.
  */
 function calculateHourlyRate(
-  ctc: number,
-  hoursPerWeek: number,
-  currency: string,
+  ctc: number | undefined | null,
+  workingHours: number | undefined | null,
+  workSchedule: string | undefined | null,
+  currency: string | undefined | null,
 ): string {
   if (!ctc) return "";
-  const hours = hoursPerWeek > 0 ? hoursPerWeek : DEFAULT_HOURS_PER_WEEK;
-  const monthlySalary = ctc / 12;
-  const hourlyRate = monthlySalary / (hours * 4);
-  return (
-    new Intl.NumberFormat("en-IN", {
-      style: "currency",
-      currency,
-      maximumFractionDigits: 0,
-    }).format(hourlyRate) + "/hr"
-  );
+  const effectiveHours =
+    workingHours && workingHours > 0 ? workingHours : DEFAULT_HOURS_PER_WEEK;
+  const isPerDay = workSchedule === "Per Day";
+  const monthlyHours = isPerDay
+    ? effectiveHours * WORKING_DAYS_PER_MONTH
+    : effectiveHours * WEEKS_PER_MONTH;
+  const hourlyRate = ctc / 12 / monthlyHours;
+  const resolvedCurrency = currency || DEFAULT_CURRENCY;
+  return currencyFormat(resolvedCurrency).format(hourlyRate) + "/hr";
 }
 
 /**
- * Formats working hours as a capacity string.
+ * Formats working hours as a weekly capacity string.
+ * Converts daily hours to weekly (daily * 5) for "Per Day" schedules.
  */
-function formatCapacity(hours: number): string {
-  return hours > 0 ? `${hours} hrs/week` : "";
+function formatCapacity(
+  hours: number | undefined | null,
+  workSchedule: string | undefined | null,
+): string {
+  if (!hours || hours <= 0) return "";
+  const weeklyHours = workSchedule === "Per Day" ? hours * 5 : hours;
+  return `${weeklyHours} hrs/week`;
 }

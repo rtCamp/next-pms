@@ -4,11 +4,11 @@ export interface Employee {
   employee_name: string;
   department: string | null;
   designation: string | null;
-  custom_work_schedule: string;
-  custom_working_hours: number;
+  custom_work_schedule?: string | null;
+  custom_working_hours?: number | null;
   reports_to: string | null;
-  ctc: number;
-  salary_currency: string;
+  ctc?: number | null;
+  salary_currency?: string | null;
 }
 
 export interface Leave {
