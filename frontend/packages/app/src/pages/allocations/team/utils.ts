@@ -2,7 +2,7 @@ import type { Member, Project } from "@next-pms/design-system/components";
 import { addMonths, addWeeks, parseISO } from "date-fns";
 import { DEFAULT_HOURS_PER_WEEK } from "./constants";
 import type { AllocationsDuration } from "./context";
-import type { TeamAllocationResponse } from "./type";
+import type { ManagerNameMap, TeamAllocationResponse } from "./type";
 
 const DURATION_WEEK_COUNT: Record<AllocationsDuration, number> = {
   "this-week": 1,
@@ -53,9 +53,13 @@ export function moveDateByDuration(
 /**
  * Converts a TeamAllocationResponse from the API into a Member[] array
  * suitable for the GanttGrid component.
+ *
+ * @param response - The API response containing employee and allocation data
+ * @param managerNameMap - Optional map to resolve manager names from employee IDs
  */
 export function mapTeamAllocationToMembers(
   response: TeamAllocationResponse,
+  managerNameMap?: ManagerNameMap,
 ): Member[] {
   const { employees, resource_allocations, customer, leaves } = response;
 
@@ -174,7 +178,9 @@ export function mapTeamAllocationToMembers(
           employee.salary_currency,
         ) || undefined,
       capacity: formatCapacity(employee.custom_working_hours) || undefined,
-      manager: employee.reports_to ? employee.reports_to : undefined,
+      manager: employee.reports_to
+        ? managerNameMap?.get(employee.reports_to)
+        : undefined,
       image: employee.image ?? undefined,
       projects,
       leaves: memberLeaves,

@@ -62,3 +62,5 @@ export interface TeamAllocationResponse {
   has_more: boolean;
   permissions: Permissions;
 }
+
+export type ManagerNameMap = Map<string, string>;
