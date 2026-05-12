@@ -12,37 +12,26 @@ import Sidebar from "@/layout/sidebar";
 import { useUser } from "@/providers/user";
 
 const LayoutWithSidebar = () => {
-  const { employeeId, hasError } = useUser(({ state }) => ({
+  const { employeeId } = useUser(({ state }) => ({
     employeeId: state.employeeId,
-    hasError: state.hasError,
-    userId: state.userId,
   }));
-
-  const canRenderOutlet = Boolean(employeeId) && !hasError;
 
   return (
     <ErrorFallback>
-      <div className="flex flex-row h-screen w-full">
-        <ErrorFallback>
-          <Sidebar />
-        </ErrorFallback>
-        <div className="w-full overflow-hidden flex flex-col">
-          {canRenderOutlet && (
-            <>
-              <Suspense fallback={<></>}>
-                <ErrorFallback>
-                  <Outlet />
-                </ErrorFallback>
-              </Suspense>
-            </>
-          )}
-          {!canRenderOutlet && hasError && (
-            <div className="flex h-full items-center justify-center px-6">
-              <p className="text-base text-ink-gray-6">Something went wrong.</p>
-            </div>
-          )}
+      {Boolean(employeeId) && (
+        <div className="flex flex-row h-screen w-full">
+          <ErrorFallback>
+            <Sidebar />
+          </ErrorFallback>
+          <div className="w-full overflow-hidden flex flex-col">
+            <Suspense fallback={<></>}>
+              <ErrorFallback>
+                <Outlet />
+              </ErrorFallback>
+            </Suspense>
+          </div>
         </div>
-      </div>
+      )}
     </ErrorFallback>
   );
 };
