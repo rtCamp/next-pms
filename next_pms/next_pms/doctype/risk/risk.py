@@ -27,9 +27,13 @@ class Risk(Document):
     # end: auto-generated types
 
     def before_save(self):
-        if self.risk_update_log:
-            latest = self.risk_update_log[-1]
-            if latest.status:
-                self.status = latest.status
-            if latest.risk_level:
-                self.risk_level = latest.risk_level
+        self._sync_fields_from_latest_update()
+
+    def _sync_fields_from_latest_update(self):
+        if not self.risk_update_log:
+            return
+        latest = self.risk_update_log[-1]
+        if latest.status:
+            self.status = latest.status
+        if latest.risk_level:
+            self.risk_level = latest.risk_level
