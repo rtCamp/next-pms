@@ -11,6 +11,7 @@ const RIGHT_TRIM_WIDTH_REDUCTION = 3;
 
 export interface ProjectAllocationBar extends Allocation {
   projectName: string;
+  customerName?: string;
   barOffset: number;
   width: number;
   fullNumDays: number;
