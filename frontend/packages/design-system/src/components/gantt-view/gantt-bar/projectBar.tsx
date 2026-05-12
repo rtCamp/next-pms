@@ -4,6 +4,7 @@ import type { ProjectAllocationBar } from "../ganttStore";
 import { GanttAllocationPopover } from "./allocationPopover";
 import { GanttBar } from "./ganttBar";
 import { allocationBarToEntry } from "./utils/allocationBarToEntry";
+import { withPendingDeleteEntry } from "./utils/withPendingDeleteEntry";
 
 interface GanttProjectBarProps {
   allocation: ProjectAllocationBar;
@@ -29,24 +30,10 @@ export function GanttProjectBar({ allocation }: GanttProjectBarProps) {
 
   const label = `${allocation.hours}h/day for ${fullNumDays} day${fullNumDays !== 1 ? "s" : ""}`;
 
-  const rawEntry = allocationBarToEntry(
-    allocation,
-    onEditAllocation,
-    onDeleteAllocation,
+  const entry = withPendingDeleteEntry(
+    allocationBarToEntry(allocation, onEditAllocation, onDeleteAllocation),
+    setPendingDeleteEntry,
   );
-
-  const entry = {
-    ...rawEntry,
-    onDelete: rawEntry.onDelete
-      ? () =>
-          setPendingDeleteEntry({
-            projectName: rawEntry.projectName,
-            dateRange: rawEntry.dateRange,
-            hoursPerDay: rawEntry.hoursPerDay,
-            onDelete: rawEntry.onDelete!,
-          })
-      : undefined,
-  };
 
   return (
     <PreviewCard.Root>

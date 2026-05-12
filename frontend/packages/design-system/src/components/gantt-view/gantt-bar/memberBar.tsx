@@ -7,6 +7,7 @@ import { GanttAllocationPopover } from "./allocationPopover";
 import { GanttBar } from "./ganttBar";
 import { allocationBarToEntry } from "./utils/allocationBarToEntry";
 import { getOverlappingAllocations } from "./utils/getOverlappingAllocations";
+import { withPendingDeleteEntry } from "./utils/withPendingDeleteEntry";
 
 export type MemberBarAllocation = MemberAllocationBar;
 
@@ -72,25 +73,12 @@ export function GanttMemberBar({ allocation, memberInd }: GanttMemberBarProps) {
     allocation.endDate,
   );
 
-  const entries = overlapping.map((alloc) => {
-    const entry = allocationBarToEntry(
-      alloc,
-      onEditAllocation,
-      onDeleteAllocation,
-    );
-    return {
-      ...entry,
-      onDelete: entry.onDelete
-        ? () =>
-            setPendingDeleteEntry({
-              projectName: entry.projectName,
-              dateRange: entry.dateRange,
-              hoursPerDay: entry.hoursPerDay,
-              onDelete: entry.onDelete!,
-            })
-        : undefined,
-    };
-  });
+  const entries = overlapping.map((alloc) =>
+    withPendingDeleteEntry(
+      allocationBarToEntry(alloc, onEditAllocation, onDeleteAllocation),
+      setPendingDeleteEntry,
+    ),
+  );
 
   const handleAdd = onAddAllocation
     ? () =>
