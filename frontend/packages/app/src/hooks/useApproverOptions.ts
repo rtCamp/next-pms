@@ -1,5 +1,11 @@
+/**
+ * External Dependencies.
+ */
 import { useFrappeGetCall } from "frappe-react-sdk";
 
+/**
+ * Internal Dependencies.
+ */
 import type { LookupOption } from "@/hooks/useRemoteLookup";
 
 type ApproverRecord = {

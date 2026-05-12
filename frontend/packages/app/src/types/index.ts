@@ -1,5 +1,14 @@
 import type { TaskStatusType } from "@next-pms/design-system/components";
 
+export type GlobalFilterCondition =
+  | [field: string, operator: string, value: unknown]
+  | [doctype: string, field: string, operator: string, value: unknown];
+
+export type GlobalFilters = {
+  project?: GlobalFilterCondition[];
+  [key: string]: GlobalFilterCondition[] | undefined;
+};
+
 export type Employee = {
   name: string;
   image: string;
@@ -56,8 +65,7 @@ declare global {
         has_industry?: boolean;
         desk_theme?: string;
         is_calendar_setup: boolean;
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        global_filters: { [key: string]: Array<any> };
+        global_filters: GlobalFilters;
         allow_weekend_entries?: boolean;
       };
     };

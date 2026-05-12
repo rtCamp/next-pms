@@ -1,6 +1,8 @@
+/**
+ * Internal Dependencies.
+ */
 import { useRemoteLookup, type LookupOption } from "@/hooks/useRemoteLookup";
-
-type ProjectFilters = Record<string, unknown> | unknown[] | null | undefined;
+import type { GlobalFilterCondition } from "@/types";
 
 type ProjectLookupItem = {
   name: string;
@@ -20,7 +22,7 @@ interface UseProjectLookupOptions {
   /** Controls whether the project lookup should fetch for the current UI state. */
   shouldFetch: boolean;
   /** Adds fixed backend filters alongside the search filters. */
-  extraFilters?: ProjectFilters;
+  extraFilters?: GlobalFilterCondition[] | string | null;
   /** Caps the number of project rows fetched per request. */
   pageSize?: number;
   /** Filters projects through backend or_filters on id and project name. */

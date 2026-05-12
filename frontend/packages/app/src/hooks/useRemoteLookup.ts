@@ -1,7 +1,13 @@
+/**
+ * External Dependencies.
+ */
 import type { ReactNode } from "react";
 import { useMemo } from "react";
 import { useFrappeGetCall } from "frappe-react-sdk";
 
+/**
+ * Internal Dependencies.
+ */
 import { useDebounce } from "@/hooks/useDebounce";
 
 type FrappeResponse<T> = {

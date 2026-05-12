@@ -1,3 +1,6 @@
+/**
+ * Internal Dependencies.
+ */
 import { useRemoteLookup, type LookupOption } from "@/hooks/useRemoteLookup";
 
 type EmployeeLookupItem = {

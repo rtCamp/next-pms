@@ -54,19 +54,6 @@ function AddAllocationModal({
     "next_pms.resource_management.api.allocation.handle_allocation",
   );
 
-  const handleOpenChange = useCallback(
-    (nextOpen: boolean) => {
-      if (!nextOpen) {
-        setEmployeeSearch("");
-        setProjectSearch("");
-        setCustomerSearch("");
-      }
-
-      onOpenChange(nextOpen);
-    },
-    [onOpenChange],
-  );
-
   const { options: employeeOptions, isLoading: isEmployeeLookupLoading } =
     useEmployeeLookup({
       shouldFetch: open,
@@ -169,6 +156,18 @@ function AddAllocationModal({
     onOpenChange(false);
     form.reset(mergedDefaultValues);
   }, [form, mergedDefaultValues, onOpenChange]);
+
+  const handleOpenChange = useCallback(
+    (nextOpen: boolean) => {
+      if (nextOpen) {
+        onOpenChange(true);
+        return;
+      }
+
+      closeModal();
+    },
+    [closeModal, onOpenChange],
+  );
 
   const recurrence = useStore(form.store, (state) => state.values.recurrence);
   const hoursPerDay = useStore(form.store, (state) => state.values.hoursPerDay);

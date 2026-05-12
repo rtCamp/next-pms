@@ -58,18 +58,6 @@ const AddTime = ({
     "next_pms.timesheet.api.timesheet.save",
   );
 
-  const handleOpenChange = useCallback(
-    (nextOpen: boolean) => {
-      if (!nextOpen) {
-        setProjectSearch("");
-        setTaskSearch("");
-      }
-
-      onOpenChange(nextOpen);
-    },
-    [onOpenChange],
-  );
-
   const form = useForm({
     defaultValues: {
       project: project,
@@ -97,11 +85,29 @@ const AddTime = ({
         toast.error(error);
       } finally {
         setSubmitting(false);
-        handleOpenChange(false);
-        form.reset();
+        closeModal();
       }
     },
   });
+
+  const closeModal = useCallback(() => {
+    setProjectSearch("");
+    setTaskSearch("");
+    onOpenChange(false);
+    form.reset();
+  }, [form, onOpenChange]);
+
+  const handleOpenChange = useCallback(
+    (nextOpen: boolean) => {
+      if (nextOpen) {
+        onOpenChange(true);
+        return;
+      }
+
+      closeModal();
+    },
+    [closeModal, onOpenChange],
+  );
 
   const selectedProject = useStore(form.store, (state) => state.values.project);
   const selectedDate = useStore(form.store, (state) => state.values.date);

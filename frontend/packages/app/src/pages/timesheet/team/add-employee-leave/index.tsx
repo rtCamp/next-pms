@@ -37,6 +37,21 @@ const AddEmployeeLeave = ({
 }: EmployeeLeaveTimeProps) => {
   const [employeeSearch, setEmployeeSearch] = useState("");
 
+  const closeModal = () => {
+    setEmployeeSearch("");
+    onOpenChange(false);
+    form.reset();
+  };
+
+  const handleOpenChange = (nextOpen: boolean) => {
+    if (nextOpen) {
+      onOpenChange(true);
+      return;
+    }
+
+    closeModal();
+  };
+
   const form = useForm({
     defaultValues: {
       employeeId: employeeId,
@@ -79,7 +94,7 @@ const AddEmployeeLeave = ({
         const error = parseFrappeErrorMsg(err as FrappeError);
         toast.error(error);
       } finally {
-        onOpenChange(false);
+        closeModal();
       }
     },
   });
@@ -121,7 +136,7 @@ const AddEmployeeLeave = ({
   return (
     <Dialog
       open={open}
-      onOpenChange={onOpenChange}
+      onOpenChange={handleOpenChange}
       actions={
         <Button
           className="w-full"
