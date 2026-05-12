@@ -12,25 +12,16 @@ import {
 /**
  * Internal dependencies.
  */
-import { useFrappeGetCall } from "frappe-react-sdk";
 import { ProjectListCell } from "./cells";
 import { PROJECT_LIST_COLUMNS } from "./columns";
-import { ResponseProject } from "./types";
+import { useProjectList } from "./context";
 
 function ProjectList() {
-  const { data, error, isLoading } = useFrappeGetCall<ResponseProject>(
-    "next_pms.next_projects.api.project.get_projects_view",
-  );
+  const data = useProjectList((c) => c.state.data);
+  const isLoading = useProjectList((c) => c.state.isLoading);
+  const error = useProjectList((c) => c.state.error);
 
-  if (isLoading) {
-    return;
-  }
-
-  if (!data) {
-    return;
-  }
-
-  if (error) {
+  if (isLoading || !data || error) {
     return;
   }
 
@@ -38,8 +29,8 @@ function ProjectList() {
     <ListView
       className="px-5 py-0 scrollbar-thin"
       columns={PROJECT_LIST_COLUMNS}
-      rows={data.message.data}
-      rowKey="id"
+      rows={data}
+      rowKey="name"
       options={{
         options: {
           selectable: true,
@@ -61,7 +52,7 @@ function ProjectList() {
         ))}
       </ListHeader>
       <ListRows>
-        {data.message.data.map((row) => (
+        {data.map((row) => (
           <ListRow key={row.name} row={row}>
             {PROJECT_LIST_COLUMNS.map((column) => {
               return <ProjectListCell row={row} column={column} />;

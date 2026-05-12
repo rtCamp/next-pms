@@ -7,7 +7,7 @@ import { EmployeeCell } from "./employeeCell";
 import { PhaseCell } from "./phaseCell";
 import { ProjectNameCell } from "./projectNameCell";
 import type { ListViewColumn, ProjectListItem } from "../types";
-import { TextCell } from "./TextCell";
+import { TextCell } from "./textCell";
 
 export function ProjectListCell({
   row,

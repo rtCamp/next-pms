@@ -7,7 +7,7 @@ import { Calendar } from "lucide-react";
  * Internal dependencies.
  */
 import { formatProjectDate } from "@/lib/utils";
-import { TextCell } from "./TextCell";
+import { TextCell } from "./textCell";
 
 export function DateCell({ isoDate }: { isoDate: string | null }) {
   if (!isoDate) {

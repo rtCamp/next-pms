@@ -7,7 +7,7 @@ import { Avatar, Tooltip } from "@rtcamp/frappe-ui-react";
  * Internal dependencies.
  */
 import type { Employee } from "../types";
-import { TextCell } from "./TextCell";
+import { TextCell } from "./textCell";
 
 export function EmployeeCell({ employee }: { employee: Employee | null }) {
   if (!employee) {

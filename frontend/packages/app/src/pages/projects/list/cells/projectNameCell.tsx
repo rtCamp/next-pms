@@ -1,8 +1,9 @@
 /**
  * External dependencies.
  */
-import { useNavigate } from "react-router-dom";
-import { Button, Tooltip } from "@rtcamp/frappe-ui-react";
+import { Link } from "react-router-dom";
+import { mergeClassNames } from "@next-pms/design-system";
+import { Tooltip } from "@rtcamp/frappe-ui-react";
 
 /**
  * Internal dependencies.
@@ -19,8 +20,6 @@ export function ProjectNameCell({
   name: string;
   riskLevel?: string;
 }) {
-  const navigate = useNavigate();
-
   const risk: DotProps["risk"] =
     riskLevel === "Red" || riskLevel === "Amber" || riskLevel === "Green"
       ? riskLevel
@@ -28,16 +27,18 @@ export function ProjectNameCell({
 
   return (
     <Tooltip text={name}>
-      <Button
-        variant="ghost"
-        theme="gray"
-        size="sm"
-        onClick={() => navigate(`${ROUTES.project}/${id}`)}
-        className="w-full justify-start font-medium text-base px-0"
+      <Link
+        to={`${ROUTES.project}/${id}`}
+        className={mergeClassNames(
+          "inline-flex items-center justify-start w-full h-7 px-0 rounded text-base font-medium ",
+          "text-ink-gray-8 bg-transparent hover:bg-surface-gray-3 active:bg-surface-gray-4 ",
+          "focus:outline-none focus-visible:ring focus-visible:ring-outline-gray-3 transition-colors",
+        )}
+        onClick={(e) => e.stopPropagation()}
       >
         {risk && <Dot risk={risk} />}
         <span className="ml-2 truncate">{name}</span>
-      </Button>
+      </Link>
     </Tooltip>
   );
 }
