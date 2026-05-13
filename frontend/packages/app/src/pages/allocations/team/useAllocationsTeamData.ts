@@ -1,15 +1,17 @@
 /**
  * External dependencies.
  */
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useMemo } from "react";
 import type { Member } from "@next-pms/design-system/components";
+import { type PaginationKey, usePagination } from "@next-pms/hooks";
+import { useToasts } from "@rtcamp/frappe-ui-react";
 import { format } from "date-fns";
-import type { Error as FrappeError } from "frappe-js-sdk/lib/frappe_app/types";
-import { useFrappePostCall } from "frappe-react-sdk";
+import type { FrappeError } from "frappe-react-sdk";
 
 /**
  * Internal dependencies.
  */
+import { parseFrappeErrorMsg } from "@/lib/utils";
 import type { TeamAllocationResponse } from "./type";
 import { mapTeamAllocationToMembers } from "./utils";
 
@@ -17,83 +19,170 @@ type UseAllocationsTeamDataOptions = {
   anchorDate: Date;
   weekCount: number;
   search: string;
-  start: number;
   pageLength: number;
 };
 
 type UseAllocationsTeamDataResult = {
   members: Member[];
   hasMore: boolean;
-  totalCount: number;
-  isLoading: boolean;
-  error: FrappeError | undefined;
-  refresh: () => Promise<void>;
+  isQueryLoading: boolean;
+  isNextPageLoading: boolean;
+  loadMore: () => void;
+  refresh: (employeeIds?: string[]) => Promise<void>;
+};
+
+type TeamAllocationCallResponse = {
+  message?: TeamAllocationResponse;
 };
 
 export function useAllocationsTeamData({
   anchorDate,
   weekCount,
   search,
-  start,
   pageLength,
 }: UseAllocationsTeamDataOptions): UseAllocationsTeamDataResult {
-  const { call: fetchTeamViewData } = useFrappePostCall(
-    "next_pms.resource_management.api.team.get_resource_management_team_view_data",
+  const toast = useToasts();
+
+  const requestDate = useMemo(
+    () => format(anchorDate, "yyyy-MM-dd"),
+    [anchorDate],
+  );
+  const querySignature = `${requestDate}:${weekCount}:${search}`;
+
+  const baseParams = useMemo(
+    () => ({
+      date: requestDate,
+      max_week: weekCount,
+      employee_name: search || null,
+      need_hours_summary: false,
+    }),
+    [requestDate, search, weekCount],
   );
 
-  const [members, setMembers] = useState<Member[]>([]);
-  const [hasMore, setHasMore] = useState(true);
-  const [totalCount, setTotalCount] = useState(0);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<FrappeError>();
-  const latestRequestIdRef = useRef(0);
-
-  const refresh = useCallback<
-    UseAllocationsTeamDataResult["refresh"]
-  >(async () => {
-    const requestId = latestRequestIdRef.current + 1;
-    latestRequestIdRef.current = requestId;
-
-    setIsLoading(true);
-    setError(undefined);
-
-    try {
-      const response = await fetchTeamViewData({
-        date: format(anchorDate, "yyyy-MM-dd"),
-        max_week: weekCount,
-        employee_name: search || null,
-        start,
-        page_length: pageLength,
-        need_hours_summary: false,
-      });
-
-      if (requestId === latestRequestIdRef.current) {
-        const payload = (response?.message ?? {}) as TeamAllocationResponse;
-        setMembers(mapTeamAllocationToMembers(payload));
-        setHasMore(Boolean(payload.has_more));
-        setTotalCount(payload.total_count ?? 0);
+  const getKey = useCallback(
+    (
+      pageIndex: number,
+      previousPageData: TeamAllocationCallResponse | null,
+    ): PaginationKey | null => {
+      if (previousPageData?.message && !previousPageData.message.has_more) {
+        return null;
       }
-    } catch (err) {
-      if (requestId === latestRequestIdRef.current) {
-        setError(err as FrappeError);
+
+      return [querySignature, pageIndex] as const;
+    },
+    [querySignature],
+  );
+
+  const {
+    data: paginatedData,
+    isLoading,
+    isValidating,
+    size,
+    setSize,
+    mutate,
+  } = usePagination<TeamAllocationCallResponse>(
+    "next_pms.resource_management.api.team.get_resource_management_team_view_data",
+    getKey,
+    {
+      ...baseParams,
+      page_length: pageLength,
+    },
+    {
+      revalidateOnFocus: false,
+      revalidateAll: false,
+      revalidateFirstPage: false,
+      keepPreviousData: true,
+      persistSize: false,
+      shouldRetryOnError: false,
+      errorRetryCount: 0,
+      onError: (error) => {
+        toast.error(parseFrappeErrorMsg(error as FrappeError));
+      },
+    },
+  );
+
+  const pages = useMemo(() => paginatedData ?? [], [paginatedData]);
+
+  const payloads = useMemo(
+    () =>
+      pages
+        .map((page) => page.message)
+        .filter((payload): payload is TeamAllocationResponse =>
+          Boolean(payload),
+        ),
+    [pages],
+  );
+
+  const members = useMemo(
+    () => payloads.flatMap((payload) => mapTeamAllocationToMembers(payload)),
+    [payloads],
+  );
+
+  const lastPayload = payloads.at(-1);
+  const hasMore = lastPayload ? Boolean(lastPayload.has_more) : false;
+  const isQueryLoading = isLoading;
+  const isNextPageLoading =
+    !isLoading && isValidating && typeof pages[size - 1] === "undefined";
+
+  const refresh = useCallback<UseAllocationsTeamDataResult["refresh"]>(
+    async (employeeIds) => {
+      try {
+        // Fall back to the default SWR refresh when no page targeting is possible.
+        if (!employeeIds?.length || !paginatedData?.length) {
+          await mutate();
+          return;
+        }
+
+        // Revalidate only loaded pages that contain the updated employees.
+        const targetEmployeeIds = new Set(employeeIds);
+        const pagesToRevalidate = new Set<number>();
+
+        paginatedData.forEach((page, index) => {
+          const employees = page.message?.employees ?? [];
+
+          if (
+            employees.some((employee) => targetEmployeeIds.has(employee.name))
+          ) {
+            pagesToRevalidate.add(index);
+          }
+        });
+
+        if (!pagesToRevalidate.size) {
+          // Nothing visible matches these employees.
+          return;
+        }
+
+        await mutate(paginatedData, {
+          revalidate: (_pageData, pageKey) => {
+            return (
+              Array.isArray(pageKey) &&
+              typeof pageKey[1] === "number" &&
+              pagesToRevalidate.has(pageKey[1])
+            );
+          },
+        });
+      } catch {
+        // SWR onError already handles the visible failure state.
+        return;
       }
-    } finally {
-      if (requestId === latestRequestIdRef.current) {
-        setIsLoading(false);
-      }
+    },
+    [mutate, paginatedData],
+  );
+
+  const loadMore = useCallback(() => {
+    if (isQueryLoading || isNextPageLoading || !hasMore) {
+      return;
     }
-  }, [fetchTeamViewData, anchorDate, weekCount, search, start, pageLength]);
 
-  useEffect(() => {
-    void refresh();
-  }, [refresh]);
+    void setSize((current) => current + 1);
+  }, [hasMore, isNextPageLoading, isQueryLoading, setSize]);
 
   return {
     members,
     hasMore,
-    totalCount,
-    isLoading,
-    error,
+    isQueryLoading,
+    isNextPageLoading,
+    loadMore,
     refresh,
   };
 }

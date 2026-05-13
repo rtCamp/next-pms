@@ -9,7 +9,7 @@ import { useFrappeAuth, useFrappeGetCall } from "frappe-react-sdk";
  */
 import { ROLES } from "@/lib/constant";
 import { getLocalStorage, setLocalStorage } from "@/lib/storage";
-import { getCookie } from "@/lib/utils";
+import { getCookie, parseFrappeErrorMsg } from "@/lib/utils";
 import { UserContext, type UserContextProps } from ".";
 
 export const UserProvider: FC<PropsWithChildren> = ({ children }) => {
@@ -53,11 +53,9 @@ export const UserProvider: FC<PropsWithChildren> = ({ children }) => {
 
   const { logout, isLoading: isAuthLoading, currentUser } = useFrappeAuth();
 
-  const {
-    isLoading: isAppDataLoading,
-    data: appData,
-    error: appDataError,
-  } = useFrappeGetCall("next_pms.timesheet.api.app.get_data");
+  const { data: appData, error: appDataError } = useFrappeGetCall(
+    "next_pms.timesheet.api.app.get_data",
+  );
 
   useEffect(() => {
     setRoles(appData?.message?.roles || []);
@@ -66,16 +64,17 @@ export const UserProvider: FC<PropsWithChildren> = ({ children }) => {
     setHasIndustryField(appData?.message?.has_industry || false);
   }, [appData]);
 
-  const {
-    isLoading: isEmployeeDataLoading,
-    data: employeeData,
-    error: employeeDataError,
-  } = useFrappeGetCall("next_pms.timesheet.api.employee.get_data");
+  const { data: employeeData, error: employeeDataError } = useFrappeGetCall(
+    "next_pms.timesheet.api.employee.get_data",
+  );
 
-  const hasError =
-    Boolean(appDataError || employeeDataError) ||
-    (!isAppDataLoading && !appData?.message) ||
-    (!isEmployeeDataLoading && !employeeData?.message?.employee);
+  if (appDataError) {
+    throw new Error(parseFrappeErrorMsg(appDataError));
+  }
+
+  if (employeeDataError) {
+    throw new Error(parseFrappeErrorMsg(employeeDataError));
+  }
 
   useEffect(() => {
     setEmployeeId(employeeData?.message?.employee ?? "");
@@ -114,7 +113,6 @@ export const UserProvider: FC<PropsWithChildren> = ({ children }) => {
       value={{
         state: {
           isLoading: isAuthLoading,
-          hasError,
           employeeId,
           employeeName,
           workingHours,

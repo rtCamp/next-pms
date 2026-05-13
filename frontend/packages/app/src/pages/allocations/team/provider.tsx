@@ -1,104 +1,91 @@
 /**
  * External dependencies.
  */
-import { useCallback, useEffect, useMemo, useReducer } from "react";
-import { useToasts } from "@rtcamp/frappe-ui-react";
-import type { Error as FrappeError } from "frappe-js-sdk/lib/frappe_app/types";
+import { useCallback, useMemo, useState } from "react";
 
 /**
  * Internal dependencies.
  */
 import { useDebounce } from "@/hooks/useDebounce";
-import { parseFrappeErrorMsg } from "@/lib/utils";
+import { EMPLOYEES_PER_PAGE } from "./constants";
 import {
   AllocationsTeamContext,
   type AllocationsDuration,
   type AllocationsTeamContextProps,
 } from "./context";
-import {
-  allocationsTeamReducer,
-  createInitialAllocationsTeamState,
-} from "./reducer";
 import { useAllocationsTeamData } from "./useAllocationsTeamData";
+import { getWeekCountForDuration, moveDateByDuration } from "./utils";
 
 export function AllocationsTeamProvider({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const toast = useToasts();
-  const [state, dispatch] = useReducer(
-    allocationsTeamReducer,
-    undefined,
-    createInitialAllocationsTeamState,
-  );
+  const [searchInput, setSearchInput] = useState("");
+  const [duration, setDurationState] =
+    useState<AllocationsDuration>("this-quarter");
+  const [anchorDate, setAnchorDate] = useState(() => new Date());
+  const weekCount = getWeekCountForDuration(duration);
 
-  const debouncedSearch = useDebounce(state.searchInput, 400);
+  const debouncedSearch = useDebounce(searchInput, 400);
 
-  const { members, hasMore, totalCount, isLoading, error, refresh } =
-    useAllocationsTeamData({
-      anchorDate: state.anchorDate,
-      weekCount: state.weekCount,
-      search: debouncedSearch,
-      start: state.start,
-      pageLength: state.pageLength,
-    });
-
-  useEffect(() => {
-    if (!state.isLoading && !isLoading) {
-      return;
-    }
-
-    // Hook started loading while reducer hasn't been flagged yet.
-    if (!state.isLoading) {
-      dispatch({ type: "DATA_LOADING" });
-      return;
-    }
-
-    // Reducer is in loading mode and hook is still fetching.
-    if (isLoading) {
-      return;
-    }
-
-    if (error) {
-      dispatch({ type: "DATA_LOAD_FAILED" });
-      toast.error(parseFrappeErrorMsg(error as FrappeError));
-      return;
-    }
-
-    dispatch({
-      type: "DATA_LOADED",
-      payload: { members, hasMore, totalCount },
-    });
-  }, [error, isLoading, members, hasMore, totalCount, state.isLoading, toast]);
+  const {
+    members,
+    hasMore,
+    isQueryLoading,
+    isNextPageLoading,
+    loadMore,
+    refresh,
+  } = useAllocationsTeamData({
+    anchorDate,
+    weekCount,
+    search: debouncedSearch,
+    pageLength: EMPLOYEES_PER_PAGE,
+  });
 
   const setSearch = useCallback((value: string) => {
-    dispatch({ type: "SEARCH_CHANGED", payload: value });
+    setSearchInput(value);
   }, []);
 
   const setDuration = useCallback((value: AllocationsDuration) => {
-    dispatch({ type: "DURATION_CHANGED", payload: value });
-  }, []);
-
-  const loadMore = useCallback(() => {
-    dispatch({ type: "LOAD_MORE" });
+    setDurationState(value);
   }, []);
 
   const handlePrevious = useCallback(() => {
-    dispatch({ type: "MOVE_PREVIOUS" });
-  }, []);
+    setAnchorDate((currentAnchorDate) =>
+      moveDateByDuration(currentAnchorDate, duration, false),
+    );
+  }, [duration]);
 
   const handleNext = useCallback(() => {
-    dispatch({ type: "MOVE_NEXT" });
-  }, []);
+    setAnchorDate((currentAnchorDate) =>
+      moveDateByDuration(currentAnchorDate, duration, true),
+    );
+  }, [duration]);
 
   const handleToday = useCallback(() => {
-    dispatch({ type: "MOVE_TODAY" });
+    setAnchorDate(new Date());
   }, []);
+
+  const handleRefresh = useCallback(
+    async (employeeIds?: string[]) => {
+      await refresh(employeeIds);
+    },
+    [refresh],
+  );
 
   const value = useMemo<AllocationsTeamContextProps>(
     () => ({
-      state,
+      state: {
+        members,
+        isQueryLoading,
+        isNextPageLoading,
+        hasMore,
+        searchInput,
+        duration,
+        weekCount,
+        anchorDate,
+      },
       actions: {
         setSearch,
         setDuration,
@@ -106,18 +93,25 @@ export function AllocationsTeamProvider({
         handlePrevious,
         handleNext,
         handleToday,
-        refresh,
+        refresh: handleRefresh,
       },
     }),
     [
-      state,
+      members,
+      isNextPageLoading,
+      isQueryLoading,
+      hasMore,
+      searchInput,
+      duration,
+      weekCount,
+      anchorDate,
       setSearch,
       setDuration,
       loadMore,
       handlePrevious,
       handleNext,
       handleToday,
-      refresh,
+      handleRefresh,
     ],
   );
 
