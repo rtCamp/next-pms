@@ -8,8 +8,8 @@ from frappe import only_for, whitelist
 from frappe.utils import cint, getdate, today
 
 from next_pms.api.utils import error_logger
-from next_pms.next_projects.api.constant import TIMELINE_ITEM_FIELDS
-from next_pms.next_projects.api.utils import ALLOWED_ROLES, get_user_image_map
+from next_pms.next_projects.api.constant import ALLOWED_ROLES, TIMELINE_ITEM_FIELDS
+from next_pms.next_projects.api.utils import get_user_image_map
 from next_pms.timesheet.api import get_count
 
 

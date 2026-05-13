@@ -10,8 +10,8 @@ from frappe.query_builder.functions import Coalesce, Sum
 from frappe.utils import cint, flt, getdate, today
 
 from next_pms.api.utils import error_logger
-from next_pms.next_projects.api.constant import KANBAN_VIEW_FIELDS, LIST_VIEW_FIELDS
-from next_pms.next_projects.api.utils import ALLOWED_ROLES, build_person_data, get_user_image_map
+from next_pms.next_projects.api.constant import ALLOWED_ROLES, KANBAN_VIEW_FIELDS, LIST_VIEW_FIELDS
+from next_pms.next_projects.api.utils import build_person_data, get_user_image_map
 from next_pms.timesheet.api import get_count
 
 
