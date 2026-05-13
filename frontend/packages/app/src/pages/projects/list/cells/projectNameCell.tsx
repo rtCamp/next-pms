@@ -9,7 +9,10 @@ import { Tooltip } from "@rtcamp/frappe-ui-react";
  * Internal dependencies.
  */
 import { ROUTES } from "@/lib/constant";
-import { Dot, DotProps } from "./dot";
+import { pickAllowed } from "@/lib/utils";
+import { Dot } from "./dot";
+import { RAG_STATUS } from "../constants";
+import { RagStatus } from "../types";
 
 export function ProjectNameCell({
   id,
@@ -20,10 +23,7 @@ export function ProjectNameCell({
   name: string;
   riskLevel?: string;
 }) {
-  const risk: DotProps["risk"] =
-    riskLevel === "Red" || riskLevel === "Amber" || riskLevel === "Green"
-      ? riskLevel
-      : undefined;
+  const risk = pickAllowed<RagStatus>(riskLevel, RAG_STATUS);
 
   return (
     <Tooltip text={name}>
@@ -34,7 +34,6 @@ export function ProjectNameCell({
           "text-ink-gray-8 bg-transparent hover:bg-surface-gray-3 active:bg-surface-gray-4 ",
           "focus:outline-none focus-visible:ring focus-visible:ring-outline-gray-3 transition-colors",
         )}
-        onClick={(e) => e.stopPropagation()}
       >
         {risk && <Dot risk={risk} />}
         <span className="ml-2 truncate">{name}</span>

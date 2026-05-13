@@ -1,16 +1,10 @@
-import type { RiskLevel } from "./cells/dot";
+import { PHASES, RAG_STATUS } from "./constants";
 
 export type ListViewColumn = { key: string; label: string; width?: string };
 
-export type Phase =
-  | "Delivery Prep"
-  | "Kick Off"
-  | "Discovery"
-  | "Development"
-  | "Launch"
-  | "Close Out";
+export type Phase = (typeof PHASES)[number];
 
-export type ProjectType = "Fixed cost" | "Retainer" | "External";
+export type RagStatus = (typeof RAG_STATUS)[number];
 
 export type Employee = {
   user: string;
@@ -31,11 +25,11 @@ export type ProjectListItem = {
   customer: string | null;
   customer_name: string | null;
   status: string;
-  rag_status: RiskLevel;
-  phase: Phase;
+  rag_status: string;
+  phase: string;
   billing_type: string;
   currency: string;
-  project_type: ProjectType | null;
+  project_type: string | null;
   burn_rate_per_week: number | null;
   cost_burn: CostBurn;
   total_budget: number;

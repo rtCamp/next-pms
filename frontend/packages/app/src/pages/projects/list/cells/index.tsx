@@ -1,6 +1,7 @@
 /**
  * Internal dependencies.
  */
+import { toKebabCase } from "@/lib/utils";
 import { BudgetProgressCell } from "./budgetProgressCell";
 import { DateCell } from "./dateCell";
 import { EmployeeCell } from "./employeeCell";
@@ -22,11 +23,11 @@ export function ProjectListCell({
         <ProjectNameCell
           id={row.name}
           name={row.project_name}
-          riskLevel={row.rag_status}
+          riskLevel={toKebabCase(row.rag_status)}
         />
       );
     case "phase":
-      return <PhaseCell phase={row[column.key]} />;
+      return <PhaseCell phase={toKebabCase(row[column.key])} />;
     case "burn_rate_per_week":
     case "total_budget":
     case "profit_margin":
