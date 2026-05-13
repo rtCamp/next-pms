@@ -11,6 +11,7 @@ import type { FrappeError } from "frappe-react-sdk";
 /**
  * Internal dependencies.
  */
+import useApprovers from "@/hooks/useApprovers";
 import { parseFrappeErrorMsg } from "@/lib/utils";
 import type { TeamAllocationResponse } from "./type";
 import { mapTeamAllocationToMembers } from "./utils";
@@ -113,9 +114,19 @@ export function useAllocationsTeamData({
     [pages],
   );
 
+  const approvers = useApprovers();
+
+  const managerNameMap = useMemo(
+    () => new Map(approvers.map((a) => [a.value, a.label])),
+    [approvers],
+  );
+
   const members = useMemo(
-    () => payloads.flatMap((payload) => mapTeamAllocationToMembers(payload)),
-    [payloads],
+    () =>
+      payloads.flatMap((payload) =>
+        mapTeamAllocationToMembers(payload, managerNameMap),
+      ),
+    [payloads, managerNameMap],
   );
 
   const lastPayload = payloads.at(-1);
