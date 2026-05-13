@@ -48,7 +48,7 @@ function GanttMemberHoverCard({ member }: GanttMemberHoverCardProps) {
           </div>
         </div>
         <a
-          href="#"
+          href={member.id ? `/desk/employee/${member.id}` : "#"}
           target="_blank"
           rel="noreferrer"
           className="ml-2 shrink-0 text-ink-gray-6 hover:text-ink-gray-9"
