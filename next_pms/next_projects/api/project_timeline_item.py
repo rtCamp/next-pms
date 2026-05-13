@@ -81,7 +81,6 @@ def enrich_timeline_item(
         ),
         "owner": {
             "user": owner_user,
-            "full_name": frappe.db.get_value("Contact", owner_user, "full_name") or owner_user,
             "image": user_image_map.get(owner_user),
         }
         if owner_user
@@ -147,6 +146,67 @@ def get_project_timeline_items(
         "data": data,
         "total_count": total_count,
         "has_more": has_more,
+    }
+
+
+@whitelist(methods=["POST"])
+@error_logger
+def create_project_timeline_item(
+    project: str,
+    type: Literal["Milestone", "Touchpoint"],
+    title: str,
+    item_owner: str,
+    start_date: str | None = None,
+    planned_end_date: str | None = None,
+):
+    """
+    Create a new Project Timeline Item (Milestone or Touchpoint).
+
+    Milestone fields: title, project, item_owner, start_date, planned_end_date (completion date)
+    Touchpoint fields: title, project, item_owner, start_date (scheduled date)
+
+    Args:
+        project: Project name to link
+        type: "Milestone" or "Touchpoint"
+        title: Name of the milestone / touchpoint
+        item_owner: Contact name (owner)
+        start_date: Start date (Milestone) or Scheduled date (Touchpoint)
+        planned_end_date: Completion date — Milestone only; ignored for Touchpoint
+
+    Returns:
+        The created item's name, title, type, and dates.
+    """
+    only_for(ALLOWED_ROLES, message=True)
+
+    if not project:
+        frappe.throw(frappe._("project is required"))
+    if not title:
+        frappe.throw(frappe._("title is required"))
+    if not item_owner:
+        frappe.throw(frappe._("item_owner is required"))
+    if type not in ("Milestone", "Touchpoint"):
+        frappe.throw(frappe._("type must be Milestone or Touchpoint"))
+
+    doc = frappe.new_doc("Project Timeline Item")
+    doc.project = project
+    doc.type = type
+    doc.title = title
+    doc.item_owner = item_owner
+    doc.start_date = start_date or None
+    # planned_end_date is only relevant for Milestones
+    doc.planned_end_date = planned_end_date or None if type == "Milestone" else None
+    doc.is_complete = 0
+    doc.insert(ignore_permissions=False)
+
+    return {
+        "name": doc.name,
+        "title": doc.title,
+        "project": doc.project,
+        "type": doc.type,
+        "item_owner": doc.item_owner,
+        "start_date": doc.start_date,
+        "planned_end_date": doc.planned_end_date,
+        "is_complete": cint(doc.is_complete),
     }
 
 

@@ -24,9 +24,8 @@
    "fieldtype": "Data",
    "in_list_view": 1,
    "label": "Title",
-   "reqd": 1,
-   "unique": 1
-  },
+    "reqd": 1
+   },
   {
    "fieldname": "project",
    "fieldtype": "Link",
@@ -89,7 +88,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-05-13 11:51:10.588951",
+ "modified": "2026-05-13 13:25:08.810568",
  "modified_by": "Administrator",
  "module": "Next Projects",
  "name": "Project Timeline Item",
@@ -138,6 +137,5 @@
  "sort_field": "creation",
  "sort_order": "DESC",
  "states": [],
- "title_field": "title",
  "track_changes": 1
 }
