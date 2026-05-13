@@ -13,6 +13,7 @@ const RIGHT_TRIM_WIDTH_REDUCTION = 3;
 
 export interface ProjectAllocationBar extends Allocation {
   projectName: string;
+  customerName?: string;
   barOffset: number;
   width: number;
   fullNumDays: number;
@@ -42,6 +43,7 @@ export type DraftBarEntry = {
   employeeId?: string;
   projectId?: string;
   projectName?: string;
+  customerName?: string;
 };
 
 export type DraftBarSeed = {
@@ -51,6 +53,7 @@ export type DraftBarSeed = {
   employeeId?: string;
   projectId?: string;
   projectName?: string;
+  customerName?: string;
 };
 
 export type DraftMetaInput = {

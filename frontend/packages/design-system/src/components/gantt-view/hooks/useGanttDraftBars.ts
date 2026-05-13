@@ -123,6 +123,7 @@ export function useGanttDraftBars({
         employeeId: nextDraft.employeeId,
         projectId: nextDraft.projectId,
         projectName: nextDraft.projectName,
+        customerName: nextDraft.customerName,
         startDate: nextDraft.startDate,
         endDate: nextDraft.endDate,
         hoursPerDay: nextDraft.hoursPerDay,

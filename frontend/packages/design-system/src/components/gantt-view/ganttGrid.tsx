@@ -11,6 +11,7 @@ import {
   CELL_HEIGHT,
   HEADER_HEIGHT,
 } from "./constants";
+import { DeleteAllocationDialog } from "./deleteAllocationDialog";
 import { AddBlock } from "./gantt-bar/addBlock";
 import { DraftBar } from "./gantt-bar/draftBar";
 import { GanttMemberBar } from "./gantt-bar/memberBar";
@@ -45,6 +46,8 @@ const GanttGridInner: React.FC<{
     weeks,
     hasRoleAccess,
     onAddAllocation,
+    pendingDeleteEntry,
+    clearPendingDeleteEntry,
   } = useGanttStore((s) => ({
     members: s.members,
     expandedRows: s.expandedRows,
@@ -61,6 +64,8 @@ const GanttGridInner: React.FC<{
     weeks: s.weeks,
     hasRoleAccess: s.hasRoleAccess,
     onAddAllocation: s.onAddAllocation,
+    pendingDeleteEntry: s.pendingDeleteEntry,
+    clearPendingDeleteEntry: s.clearPendingDeleteEntry,
   }));
 
   const {
@@ -311,6 +316,7 @@ const GanttGridInner: React.FC<{
                                   employeeId: member.id,
                                   projectId: project.id,
                                   projectName: project.name,
+                                  customerName: project.client,
                                 })
                               }
                             />
@@ -393,6 +399,24 @@ const GanttGridInner: React.FC<{
           />
         </div>
       </div>
+
+      <DeleteAllocationDialog
+        open={pendingDeleteEntry !== null}
+        onOpenChange={(open) => {
+          if (!open) clearPendingDeleteEntry();
+        }}
+        projectName={pendingDeleteEntry?.projectName ?? ""}
+        dateRange={pendingDeleteEntry?.dateRange ?? ""}
+        hoursPerDay={pendingDeleteEntry?.hoursPerDay ?? ""}
+        totalHours={pendingDeleteEntry?.totalHours ?? ""}
+        onConfirm={async () => {
+          try {
+            pendingDeleteEntry?.onDelete();
+          } finally {
+            clearPendingDeleteEntry();
+          }
+        }}
+      />
     </div>
   );
 };

@@ -9,7 +9,7 @@ import { useFrappeAuth, useFrappeGetCall } from "frappe-react-sdk";
  */
 import { ROLES } from "@/lib/constant";
 import { getLocalStorage, setLocalStorage } from "@/lib/storage";
-import { getCookie } from "@/lib/utils";
+import { getCookie, parseFrappeErrorMsg } from "@/lib/utils";
 import { UserContext, type UserContextProps } from ".";
 
 export const UserProvider: FC<PropsWithChildren> = ({ children }) => {
@@ -53,7 +53,7 @@ export const UserProvider: FC<PropsWithChildren> = ({ children }) => {
 
   const { logout, isLoading: isAuthLoading, currentUser } = useFrappeAuth();
 
-  const { isLoading: isAppDataLoading, data: appData } = useFrappeGetCall(
+  const { data: appData, error: appDataError } = useFrappeGetCall(
     "next_pms.timesheet.api.app.get_data",
   );
 
@@ -64,8 +64,17 @@ export const UserProvider: FC<PropsWithChildren> = ({ children }) => {
     setHasIndustryField(appData?.message?.has_industry || false);
   }, [appData]);
 
-  const { isLoading: isEmployeeDataLoading, data: employeeData } =
-    useFrappeGetCall("next_pms.timesheet.api.employee.get_data");
+  const { data: employeeData, error: employeeDataError } = useFrappeGetCall(
+    "next_pms.timesheet.api.employee.get_data",
+  );
+
+  if (appDataError) {
+    throw new Error(parseFrappeErrorMsg(appDataError));
+  }
+
+  if (employeeDataError) {
+    throw new Error(parseFrappeErrorMsg(employeeDataError));
+  }
 
   useEffect(() => {
     setEmployeeId(employeeData?.message?.employee ?? "");
@@ -103,7 +112,7 @@ export const UserProvider: FC<PropsWithChildren> = ({ children }) => {
     <UserContext.Provider
       value={{
         state: {
-          isLoading: isAuthLoading || isAppDataLoading || isEmployeeDataLoading,
+          isLoading: isAuthLoading,
           employeeId,
           employeeName,
           workingHours,

@@ -95,7 +95,14 @@ Run before writing code for any new component, cell, helper, or styling override
    - Buttons / chips / link-like targets inside the SPA → `Button` from `@rtcamp/frappe-ui-react` with the appropriate variant (`variant="ghost" | "subtle" | "solid" | "outline"`).
    - Badges → `Badge`. Text inputs → `TextInput`. Select → `Select`. Etc.
    - Anchors (`<a href>`) only for genuine outside-SPA links (e.g. `/desk/user/<email>`, `/api/*`, external URLs).
+   - **Library-export sweep before writing any new primitive.** Before forging a new `Avatar`, `HoverCard`, `Dialog`, `Popover`, `Progress`, `Tooltip`, `Card`, etc.:
+     1. `rg "export.*<Name>" frontend/packages/design-system/src/components/index.ts` and grep the frappe-ui-react `dist/index.d.ts` for the same name.
+     2. If found → import. Don't roll your own.
+     3. If you need an animation or open/close behavior, also check whether the underlying base-ui (or radix) primitive ships a utility class like `accordion-panel`, `popover-content` etc. before reaching for hand-rolled `transition-*` Tailwind utilities.
+   - **No re-export wrappers.** A local file whose only job is `export { X, Y } from "library/x"` adds a dead indirection. Import from the library at the call site instead.
    - **Failure mode (PR #1220 round 3, `cells.tsx:84`)**: `ProjectNameCell` used `<a href onClick={preventDefault + navigate}>` inside the SPA. Ayush: *"A ghost button would be better here."*
+   - **Failure mode (PR #1284, `colorAvatar.tsx`)**: I wrote a 20-line `ColorAvatar` instead of using `Avatar` from frappe-ui-react. Ayush: *"Use the avatar from frappe-ui-react"*.
+   - **Failure mode (PR #1284, `accordion.tsx`)**: re-export wrapper around `@base-ui/react/accordion`. Ayush: *"What's the point of reexporting just import from `@base-ui/react/accordion` where ever its internals are needed."* Same PR also missed base-ui's `accordion-panel` class for animations.
 
 4. **Upstream / in-flight work**: is someone already building this?
    - Run `gh pr list -R rtCamp/frappe-ui-react --state open --search <keyword>` (and `--state merged` for recent wins).
@@ -111,7 +118,12 @@ Run before writing code for any new component, cell, helper, or styling override
    - Each reusable React component gets its own file, named after the component. **File names are `camelCase` (e.g. `dot.tsx`, `stagesIcon.tsx`, `projectNameCell.tsx`, `budgetProgressCell.tsx`). Folder names stay `kebab-case` (e.g. `cells/`, `list/`).**
    - Extension tracks content: `.ts` when there's no JSX (column definitions, constants, types, utilities), `.tsx` only for files with JSX/React components.
    - Do not bag several components into one `cells.tsx`.
+   - **Don't extract trivial single-use components.** Before creating a new file ask: (a) is it used in more than one place? If yes → own file. (b) If single-use, is it non-trivial (≥ 1 piece of behavior beyond presentational JSX — state, effects, formatting, conditional branches)? If yes → own file. (c) Otherwise → inline. A 5–15-line styled-`<a>` wrapper or a per-section row used N× in one parent doesn't earn a file. For row primitives used N× in one parent, a `grid-cols-[auto_1fr]` layout in the parent often replaces the row component cleanly.
+   - **File name is contextual to folder.** Don't repeat the folder name in the file. `about/aboutSection.tsx` is redundant when the folder is `about/`; just `section.tsx`.
    - Exception: a tiny helper component used only inside its parent and not extracted/reused can stay inline. The moment it's extracted, split it out.
+   - **Failure mode (PR #1284, `linkButton.tsx`)**: a 25-line `<a>` wrapper used only in `LinksSection`. Ayush: *"Too small to justify being a different component with its own file. Just inline it"*.
+   - **Failure mode (PR #1284, `projectDetailsSection.tsx`)**: a `DetailsRow` helper used 4× inside the same file. Ayush: *"Implement Inline."* — the parent's `grid-cols-[auto_1fr]` handles alignment; rows became 2 children each (label, value).
+   - **Failure mode (PR #1284, `aboutSection.tsx`)**: file under `about/` named `aboutSection.tsx` exporting `AboutSection`. Ayush: *"Just name this section. The place in the directory tells me its gonna be a section in about"*.
    - **Subfolder grouping**: once a feature folder accumulates ~7 or more cell-like component files, group them into a `cells/` subdirectory. The dispatch component (the `switch(column.key)` that picks which cell renders) moves into the folder as `cells/index.tsx`, individual cell components are siblings inside. Keeps the feature-folder top level readable.
      ```
      pages/projects/list/
@@ -199,9 +211,12 @@ Same anti-pattern six times across two rounds. The fix is not "write shorter com
 - **Variants via `cva`, co-located with the component (not in `constants.ts`).** See Pre-implementation scan step 2.
 - **Tailwind v4 important modifier goes at the END of the class.** v3: `!bg-red-500` / `hover:!bg-red-500` / `[&>div]:!bg-red-500`. v4: `bg-red-500!` / `hover:bg-red-500!` / `[&>div]:bg-red-500!`. Variants still prefix. Ref: https://tailwindcss.com/docs/upgrade-guide#the-important-modifier. (PR #1220 round 5 correction.)
 - **Cell/value text is 14px → `text-base`.** The frappe-ui-react theme maps `--text-base-size: 14px`. Every text-bearing cell element (primary value, labels beside icons, spans next to avatars) applies `text-base`. (PR #1220 round 5 correction.)
+- **The whole text-size scale is shifted down 2px from Tailwind's default** in this theme: `text-xs`=12px, `text-sm`=13px, `text-base`=14px, `text-lg`=16px, `text-xl`=18px, `text-2xl`=20px, `text-3xl`=24px (see `frappe-ui-react/src/themeV3.css` `--text-*-size` vars). Map a Figma px value to its Tailwind token via this table — using `text-lg` for an 18px Figma value lands at 16px and is wrong; the 18px token is `text-xl`. (PR #1289 self-catch on the Tracking-tab `KnowledgePoint` value text.)
 - **`truncate` on every cell text span.** ListView columns are resizable — unwrapped text line-breaks on narrow columns. `truncate` = `overflow-hidden text-ellipsis whitespace-nowrap`. (PR #1220 round 5 correction.)
 - **Check `@rtcamp/frappe-ui-react/icons` before hand-rolling an SVG.** `SolidDotLg` = 16px solid dot (risk indicator); `SolidStatus` = status donut (project phase indicator). Both landed via `frappe-ui-react#248`. The full list is in `frappe-ui-react/packages/frappe-ui-react/src/icons/solid/index.ts`. (PR #1220 round 5 correction.)
 - **`frappe-ui-react` `<Button>` icon props take a `ComponentType`, not a rendered element.** Typed `string | React.ComponentType<unknown>` — pass the import (`iconLeft={Pencil}`), not `iconLeft={<Pencil className="size-4" />}`. Sizing + color propagate from the Button's theme/size. A rendered element crashes with React #130 (*element type invalid, got: object*). Same rule for `icon` and `iconRight`. (PR #1265 discovery while implementing the Overview sub-header.)
+- **Missing icons → `@next-pms/design-system`, not consumer fallback.** When an icon Figma uses isn't in `@rtcamp/frappe-ui-react/icons`: add it to `frontend/packages/design-system/src/components/icons/<name>.tsx` (single component, `viewBox`, `fill="currentColor"`, spreads `SVGProps<SVGSVGElement>`), re-export from `components/icons/index.ts`, import via `@next-pms/design-system/components`. Don't ship `pages/.../iconName.tsx` inline-fallback in the consumer page. Open a frappe-ui-react PR to upstream the icon. (PR #1284 correction — `Github` mark moved from inline `pages/projects/detail/about/githubIcon.tsx` to `components/icons/github.tsx`.)
+- **`base-ui` `Accordion.Root` `multiple` prop** must be set to allow more than one section open at once. Default is `false` (single-open). With `defaultValue={[...]}` alone, all items mount expanded but the first user click collapses everything except the most recent. (PR #1284 round 2 fix — `openMultiple` is **not** the prop name; it's `multiple`.)
 
 ---
 
@@ -217,6 +232,10 @@ Same anti-pattern six times across two rounds. The fix is not "write shorter com
 Ephemeral-asset caveat: Figma MCP serves images as 7-day-expiring PNG URLs. Don't commit the URL. Either pull the SVG via the component's `get_design_context`, use the upstream component (if in-flight), or render a minimal inline equivalent with a `@todo` pointing at the upstream PR.
 
 File access note: rtBot has access to the **Copy** file (`h1EnhdK8swe6FCyxUW1XHx`, "Frappe-PMS--Copy-"). Issue bodies sometimes link the original `HGoZEoIH64xUwnqO5Y3zqx` — substitute the fileKey. Node IDs typically resolve across both files. Never call `get_metadata` / `get_design_context` on the file root `0:1` — returns ~5.8 MB.
+
+**Build only from explicit AC — Figma is the visual spec, AC is the behavioral spec.** Visual elements in a Figma frame (avatars, badges, icons, popover surfaces) describe what the static page looks like; they do not commit you to behavioral features. Hover popups, click handlers, modal surfaces, toast notifications are **behavior** — they need an AC bullet (or an explicit decision answer in the plan-approval thread) before you implement them. If Figma shows an interaction state (a hover card, an open popover, an expanded menu) but AC doesn't mention it, raise it as a numbered decision in the plan and wait for a yes. Do not infer "user wants details on hover" from an avatar+name row.
+
+- **Failure mode (PR #1284, `memberRow.tsx` + `customerRow.tsx`)**: I added `<HoverCard>` popups on Members and Customers because Figma showed avatar+name+designation rows and I assumed the maintainer wanted hover details. Ayush: *"Where did you see the requirement for adding an hover card."* and *"Same case as member row. Where is this hover card requirement coming from?"* — AC said nothing about HoverCards. The popups got removed in the review-fix round.
 
 ---
 

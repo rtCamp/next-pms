@@ -12,29 +12,26 @@ import Sidebar from "@/layout/sidebar";
 import { useUser } from "@/providers/user";
 
 const LayoutWithSidebar = () => {
-  const { employeeId, userId } = useUser(({ state }) => ({
+  const { employeeId } = useUser(({ state }) => ({
     employeeId: state.employeeId,
-    userId: state.userId,
   }));
 
   return (
     <ErrorFallback>
-      <div className="flex flex-row h-screen w-full">
-        <ErrorFallback>
-          <Sidebar />
-        </ErrorFallback>
-        <div className="w-full overflow-hidden flex flex-col">
-          {(employeeId || userId == "Administrator") && (
-            <>
-              <Suspense fallback={<></>}>
-                <ErrorFallback>
-                  <Outlet />
-                </ErrorFallback>
-              </Suspense>
-            </>
-          )}
+      {Boolean(employeeId) && (
+        <div className="flex flex-row h-screen w-full">
+          <ErrorFallback>
+            <Sidebar />
+          </ErrorFallback>
+          <div className="w-full overflow-hidden flex flex-col">
+            <Suspense fallback={<></>}>
+              <ErrorFallback>
+                <Outlet />
+              </ErrorFallback>
+            </Suspense>
+          </div>
         </div>
-      </div>
+      )}
     </ErrorFallback>
   );
 };

@@ -4,12 +4,15 @@
 import type { Member } from "@next-pms/design-system/components";
 import { createContext, useContextSelector } from "use-context-selector";
 
+/**
+ * Internal dependencies.
+ */
 export type AllocationsDuration = "this-week" | "this-month" | "this-quarter";
 export interface AllocationsTeamContextProps {
   state: {
     members: Member[];
-    isLoading: boolean;
-    isFilterRequest: boolean;
+    isQueryLoading: boolean;
+    isNextPageLoading: boolean;
     hasMore: boolean;
     searchInput: string;
     duration: AllocationsDuration;
@@ -31,8 +34,8 @@ export const AllocationsTeamContext =
   createContext<AllocationsTeamContextProps>({
     state: {
       members: [],
-      isLoading: false,
-      isFilterRequest: false,
+      isQueryLoading: false,
+      isNextPageLoading: false,
       hasMore: true,
       searchInput: "",
       duration: "this-quarter",

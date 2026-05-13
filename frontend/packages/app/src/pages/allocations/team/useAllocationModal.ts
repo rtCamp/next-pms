@@ -28,13 +28,14 @@ export function useAllocationModal() {
   const openAddDialog = useCallback((data: AllocationCallbackData) => {
     setVariant("add");
     setInitialValues({
-      employeeId: data.employeeId,
+      ...(data.employeeId ? { employeeId: data.employeeId } : {}),
       projectId: data.projectId,
-      fromDate: data.startDate
-        ? format(data.startDate, "yyyy-MM-dd")
-        : undefined,
-      toDate: data.endDate ? format(data.endDate, "yyyy-MM-dd") : undefined,
+      ...(data.startDate
+        ? { fromDate: format(data.startDate, "yyyy-MM-dd") }
+        : {}),
+      ...(data.endDate ? { toDate: format(data.endDate, "yyyy-MM-dd") } : {}),
       hoursPerDay: data.hoursPerDay,
+      customer: data.customerName,
     });
     setIsOpen(true);
   }, []);
@@ -45,6 +46,7 @@ export function useAllocationModal() {
       allocationName: data.allocationId,
       employeeId: data.employeeId,
       projectId: data.projectId,
+      customer: data.customerName,
       fromDate: data.startDate
         ? format(data.startDate, "yyyy-MM-dd")
         : undefined,

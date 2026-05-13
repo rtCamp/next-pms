@@ -6,6 +6,7 @@ import { getDateAtColumnIndex } from "../utils";
 import { GanttAllocationPopover } from "./allocationPopover";
 import { GanttBar } from "./ganttBar";
 import { allocationBarToEntry } from "./utils/allocationBarToEntry";
+import { withPendingDeleteEntry } from "./utils/withPendingDeleteEntry";
 
 interface GanttProjectBarProps {
   allocation: ProjectAllocationBar;
@@ -25,6 +26,7 @@ export function GanttProjectBar({
     hasRoleAccess,
     onEditAllocation,
     onDeleteAllocation,
+    setPendingDeleteEntry,
   } = useGanttStore((s) => ({
     headerWidth: s.headerWidth,
     columnWidth: s.columnWidth,
@@ -34,6 +36,7 @@ export function GanttProjectBar({
     hasRoleAccess: s.hasRoleAccess,
     onEditAllocation: s.onEditAllocation,
     onDeleteAllocation: s.onDeleteAllocation,
+    setPendingDeleteEntry: s.setPendingDeleteEntry,
   }));
 
   const left = allocation.barOffset + headerWidth;
@@ -41,10 +44,9 @@ export function GanttProjectBar({
 
   const label = `${allocation.hours}h/day for ${fullNumDays} day${fullNumDays !== 1 ? "s" : ""}`;
 
-  const entry = allocationBarToEntry(
-    allocation,
-    onEditAllocation,
-    onDeleteAllocation,
+  const entry = withPendingDeleteEntry(
+    allocationBarToEntry(allocation, onEditAllocation, onDeleteAllocation),
+    setPendingDeleteEntry,
   );
 
   const handleResizeEnd = useCallback(

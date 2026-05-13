@@ -15,7 +15,7 @@ import { AllocationsTeamProvider } from "@/pages/allocations/team/provider";
 import { useUser } from "@/providers/user";
 import { useAllocationModal } from "./useAllocationModal";
 
-function TeamTimesheetLayoutContent() {
+function AllocationsTeamLayoutContent() {
   const { openAddDialog, outletContext, modalProps } = useAllocationModal();
   const { hasRoleAccess } = useUser(({ state }) => ({
     hasRoleAccess: state.hasRoleAccess,
@@ -43,12 +43,12 @@ function TeamTimesheetLayoutContent() {
   );
 }
 
-function TeamTimesheetLayout() {
+function AllocationsTeamLayout() {
   return (
     <AllocationsTeamProvider>
-      <TeamTimesheetLayoutContent />
+      <AllocationsTeamLayoutContent />
     </AllocationsTeamProvider>
   );
 }
 
-export default TeamTimesheetLayout;
+export default AllocationsTeamLayout;

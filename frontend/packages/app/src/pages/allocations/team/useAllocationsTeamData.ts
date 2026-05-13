@@ -1,161 +1,199 @@
 /**
  * External dependencies.
  */
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useMemo } from "react";
 import type { Member } from "@next-pms/design-system/components";
+import { type PaginationKey, usePagination } from "@next-pms/hooks";
 import { useToasts } from "@rtcamp/frappe-ui-react";
 import { format } from "date-fns";
-import type { Error as FrappeError } from "frappe-js-sdk/lib/frappe_app/types";
-import { useFrappePostCall } from "frappe-react-sdk";
+import type { FrappeError } from "frappe-react-sdk";
 
 /**
  * Internal dependencies.
  */
+import useApprovers from "@/hooks/useApprovers";
 import { parseFrappeErrorMsg } from "@/lib/utils";
 import type { TeamAllocationResponse } from "./type";
-import {
-  appendMembers,
-  mapTeamAllocationToMembers,
-  replaceMembers,
-} from "./utils";
+import { mapTeamAllocationToMembers } from "./utils";
 
 type UseAllocationsTeamDataOptions = {
   anchorDate: Date;
   weekCount: number;
   search: string;
-  start: number;
   pageLength: number;
 };
 
 type UseAllocationsTeamDataResult = {
   members: Member[];
   hasMore: boolean;
-  isLoading: boolean;
+  isQueryLoading: boolean;
+  isNextPageLoading: boolean;
+  loadMore: () => void;
   refresh: (employeeIds?: string[]) => Promise<void>;
 };
 
-type AllocationsTeamDataState = Omit<UseAllocationsTeamDataResult, "refresh">;
+type TeamAllocationCallResponse = {
+  message?: TeamAllocationResponse;
+};
 
 export function useAllocationsTeamData({
   anchorDate,
   weekCount,
   search,
-  start,
   pageLength,
 }: UseAllocationsTeamDataOptions): UseAllocationsTeamDataResult {
   const toast = useToasts();
-  const { call: fetchTeamViewData } = useFrappePostCall(
-    "next_pms.resource_management.api.team.get_resource_management_team_view_data",
+
+  const requestDate = useMemo(
+    () => format(anchorDate, "yyyy-MM-dd"),
+    [anchorDate],
+  );
+  const querySignature = `${requestDate}:${weekCount}:${search}`;
+
+  const baseParams = useMemo(
+    () => ({
+      date: requestDate,
+      max_week: weekCount,
+      employee_name: search || null,
+      need_hours_summary: false,
+    }),
+    [requestDate, search, weekCount],
   );
 
-  const [data, setData] = useState<AllocationsTeamDataState>({
-    members: [],
-    hasMore: true,
-    isLoading: false,
-  });
-  const latestRequestIdRef = useRef(0);
-  const fetchTeamViewDataRef = useRef(fetchTeamViewData);
-  const toastRef = useRef(toast);
-
-  useEffect(() => {
-    fetchTeamViewDataRef.current = fetchTeamViewData;
-  }, [fetchTeamViewData]);
-
-  useEffect(() => {
-    toastRef.current = toast;
-  }, [toast]);
-
-  const fetchMembers = useCallback(
-    async ({
-      requestStart,
-      requestPageLength,
-      employeeIds,
-    }: {
-      requestStart: number;
-      requestPageLength: number;
-      employeeIds?: string[];
-    }) => {
-      const requestId = latestRequestIdRef.current + 1;
-      latestRequestIdRef.current = requestId;
-      const requestDate = format(anchorDate, "yyyy-MM-dd");
-
-      setData((current) => ({
-        ...current,
-        isLoading: true,
-      }));
-
-      try {
-        const response = await fetchTeamViewDataRef.current({
-          date: requestDate,
-          max_week: weekCount,
-          employee_name: search || null,
-          start: requestStart,
-          page_length: requestPageLength,
-          need_hours_summary: false,
-          ...(employeeIds?.length
-            ? { employee_id: JSON.stringify(employeeIds) }
-            : {}),
-        });
-
-        if (requestId !== latestRequestIdRef.current) {
-          return;
-        }
-
-        const payload = (response?.message ?? {}) as TeamAllocationResponse;
-        const incomingMembers = mapTeamAllocationToMembers(payload);
-
-        setData((current) => ({
-          members: employeeIds?.length
-            ? replaceMembers(current.members, incomingMembers)
-            : requestStart > 0
-              ? appendMembers(current.members, incomingMembers)
-              : incomingMembers,
-          hasMore: employeeIds?.length
-            ? current.hasMore
-            : Boolean(payload.has_more),
-          isLoading: false,
-        }));
-      } catch (err) {
-        if (requestId === latestRequestIdRef.current) {
-          setData((current) => ({
-            ...current,
-            isLoading: false,
-          }));
-          toastRef.current.error(parseFrappeErrorMsg(err as FrappeError));
-        }
+  const getKey = useCallback(
+    (
+      pageIndex: number,
+      previousPageData: TeamAllocationCallResponse | null,
+    ): PaginationKey | null => {
+      if (previousPageData?.message && !previousPageData.message.has_more) {
+        return null;
       }
+
+      return [querySignature, pageIndex] as const;
     },
-    [anchorDate, weekCount, search],
+    [querySignature],
   );
+
+  const {
+    data: paginatedData,
+    isLoading,
+    isValidating,
+    size,
+    setSize,
+    mutate,
+  } = usePagination<TeamAllocationCallResponse>(
+    "next_pms.resource_management.api.team.get_resource_management_team_view_data",
+    getKey,
+    {
+      ...baseParams,
+      page_length: pageLength,
+    },
+    {
+      revalidateOnFocus: false,
+      revalidateAll: false,
+      revalidateFirstPage: false,
+      keepPreviousData: true,
+      persistSize: false,
+      shouldRetryOnError: false,
+      errorRetryCount: 0,
+      onError: (error) => {
+        toast.error(parseFrappeErrorMsg(error as FrappeError));
+      },
+    },
+  );
+
+  const pages = useMemo(() => paginatedData ?? [], [paginatedData]);
+
+  const payloads = useMemo(
+    () =>
+      pages
+        .map((page) => page.message)
+        .filter((payload): payload is TeamAllocationResponse =>
+          Boolean(payload),
+        ),
+    [pages],
+  );
+
+  const approvers = useApprovers();
+
+  const managerNameMap = useMemo(
+    () => new Map(approvers.map((a) => [a.value, a.label])),
+    [approvers],
+  );
+
+  const members = useMemo(
+    () =>
+      payloads.flatMap((payload) =>
+        mapTeamAllocationToMembers(payload, managerNameMap),
+      ),
+    [payloads, managerNameMap],
+  );
+
+  const lastPayload = payloads.at(-1);
+  const hasMore = lastPayload ? Boolean(lastPayload.has_more) : false;
+  const isQueryLoading = isLoading;
+  const isNextPageLoading =
+    !isLoading && isValidating && typeof pages[size - 1] === "undefined";
 
   const refresh = useCallback<UseAllocationsTeamDataResult["refresh"]>(
     async (employeeIds) => {
-      const targetEmployeeIds = [...new Set(employeeIds ?? [])].filter(
-        (employeeId): employeeId is string => Boolean(employeeId),
-      );
+      try {
+        // Fall back to the default SWR refresh when no page targeting is possible.
+        if (!employeeIds?.length || !paginatedData?.length) {
+          await mutate();
+          return;
+        }
 
-      if (targetEmployeeIds.length === 0) {
+        // Revalidate only loaded pages that contain the updated employees.
+        const targetEmployeeIds = new Set(employeeIds);
+        const pagesToRevalidate = new Set<number>();
+
+        paginatedData.forEach((page, index) => {
+          const employees = page.message?.employees ?? [];
+
+          if (
+            employees.some((employee) => targetEmployeeIds.has(employee.name))
+          ) {
+            pagesToRevalidate.add(index);
+          }
+        });
+
+        if (!pagesToRevalidate.size) {
+          // Nothing visible matches these employees.
+          return;
+        }
+
+        await mutate(paginatedData, {
+          revalidate: (_pageData, pageKey) => {
+            return (
+              Array.isArray(pageKey) &&
+              typeof pageKey[1] === "number" &&
+              pagesToRevalidate.has(pageKey[1])
+            );
+          },
+        });
+      } catch {
+        // SWR onError already handles the visible failure state.
         return;
       }
-
-      await fetchMembers({
-        requestStart: 0,
-        requestPageLength: targetEmployeeIds.length,
-        employeeIds: targetEmployeeIds,
-      });
     },
-    [fetchMembers],
+    [mutate, paginatedData],
   );
 
-  useEffect(() => {
-    void fetchMembers({
-      requestStart: start,
-      requestPageLength: pageLength,
-    });
-  }, [anchorDate, fetchMembers, pageLength, search, start, weekCount]);
+  const loadMore = useCallback(() => {
+    if (isQueryLoading || isNextPageLoading || !hasMore) {
+      return;
+    }
+
+    void setSize((current) => current + 1);
+  }, [hasMore, isNextPageLoading, isQueryLoading, setSize]);
 
   return {
-    ...data,
+    members,
+    hasMore,
+    isQueryLoading,
+    isNextPageLoading,
+    loadMore,
     refresh,
   };
 }

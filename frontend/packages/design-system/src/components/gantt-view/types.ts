@@ -71,6 +71,8 @@ export interface AllocationCallbackData {
   projectId?: string;
   /** Project name. */
   projectName?: string;
+  /** Customer name. */
+  customerName?: string;
   /** Allocation start date. */
   startDate?: Date;
   /** Allocation end date. */
