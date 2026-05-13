@@ -8,7 +8,7 @@ import { format, parseISO } from "date-fns";
 
 export interface OverAllocatedDay {
   date: string;
-  excess_hours: number;
+  excessHours: number;
 }
 
 interface OverAllocationWarningProps {
@@ -31,7 +31,7 @@ export function OverAllocationWarning({
 
   const dayCount = overAllocatedDays.length;
   const totalExcess = overAllocatedDays.reduce(
-    (sum, d) => sum + d.excess_hours,
+    (sum, d) => sum + d.excessHours,
     0,
   );
 
@@ -61,7 +61,7 @@ export function OverAllocationWarning({
                   "text-xs font-medium px-1.5 py-0.5 rounded-md",
                 )}
               >
-                {formatHours(day.excess_hours)} over
+                {formatHours(day.excessHours)} over
               </span>
             </div>
           ))}

@@ -125,7 +125,7 @@ export function useOverAllocation({
         if (total > STANDARD_WORKING_HOURS) {
           result.push({
             date: dateStr,
-            excess_hours:
+            excessHours:
               Math.round((total - STANDARD_WORKING_HOURS) * 100) / 100,
           });
         }
