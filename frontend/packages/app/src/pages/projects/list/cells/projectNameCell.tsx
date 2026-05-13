@@ -1,17 +1,18 @@
 /**
  * External dependencies.
  */
-import { Button, Tooltip } from "@rtcamp/frappe-ui-react";
-import { useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
+import { mergeClassNames } from "@next-pms/design-system";
+import { Tooltip } from "@rtcamp/frappe-ui-react";
 
 /**
  * Internal dependencies.
  */
 import { ROUTES } from "@/lib/constant";
-
-import type { RiskLevel } from "../types";
-
+import { pickAllowed } from "@/lib/utils";
 import { Dot } from "./dot";
+import { RAG_STATUS } from "../constants";
+import { RagStatus } from "../types";
 
 export function ProjectNameCell({
   id,
@@ -20,21 +21,23 @@ export function ProjectNameCell({
 }: {
   id: string;
   name: string;
-  riskLevel: RiskLevel;
+  riskLevel?: string;
 }) {
-  const navigate = useNavigate();
+  const risk = pickAllowed<RagStatus>(riskLevel, RAG_STATUS);
+
   return (
     <Tooltip text={name}>
-      <Button
-        variant="ghost"
-        theme="gray"
-        size="sm"
-        onClick={() => navigate(`${ROUTES.project}/${id}`)}
-        className="w-full justify-start font-medium text-base"
+      <Link
+        to={`${ROUTES.project}/${id}`}
+        className={mergeClassNames(
+          "inline-flex items-center justify-start w-full h-7 px-0 rounded text-base font-medium ",
+          "text-ink-gray-8 bg-transparent hover:bg-surface-gray-3 active:bg-surface-gray-4 ",
+          "focus:outline-none focus-visible:ring focus-visible:ring-outline-gray-3 transition-colors",
+        )}
       >
-        <Dot risk={riskLevel} />
+        {risk && <Dot risk={risk} />}
         <span className="ml-2 truncate">{name}</span>
-      </Button>
+      </Link>
     </Tooltip>
   );
 }
