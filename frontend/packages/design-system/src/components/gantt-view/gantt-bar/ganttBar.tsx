@@ -4,7 +4,12 @@ import { CalendarX2 } from "lucide-react";
 import { mergeClassNames as cn } from "../../../utils";
 import { BAR_HEIGHT, BAR_MARGIN, CELL_HEIGHT } from "../constants";
 import { CrosshatchLayer } from "./crosshatchLayer";
-import { useGanttBarResize } from "../hooks/useGanttBarResize";
+import { useGanttBarInteraction } from "../hooks/useGanttBarInteraction";
+
+export interface GanttBarRenderState {
+  liveLeft: number;
+  liveWidth: number;
+}
 
 const ganttBarVariants = cva(
   "group absolute shrink-0 flex items-center gap-1.5 rounded-[9px] mx-0.5 px-2.5 py-2 whitespace-nowrap",
@@ -33,12 +38,17 @@ interface GanttBarProps
   theme?: "default" | "crosshatch";
   billable?: boolean;
   className?: string;
+  movable?: boolean;
   resizable?: boolean;
   snapUnitPx?: number;
+  minLeft?: number;
+  maxRight?: number;
+  onMoveEnd?: (nextLeft: number) => void;
   onResizeEnd?: (nextWidth: number) => void;
+  resetLeftOnMoveEnd?: boolean;
   resetWidthOnResizeEnd?: boolean;
-  renderLabel?: (liveWidth: number) => React.ReactNode;
-  renderFloatingLabel?: (liveWidth: number) => React.ReactNode;
+  renderLabel?: (state: GanttBarRenderState) => React.ReactNode;
+  renderFloatingLabel?: (state: GanttBarRenderState) => React.ReactNode;
 }
 
 export const GanttBar = React.forwardRef<HTMLDivElement, GanttBarProps>(
@@ -51,43 +61,87 @@ export const GanttBar = React.forwardRef<HTMLDivElement, GanttBarProps>(
       theme = "default",
       billable,
       className,
+      movable = false,
       resizable = false,
       snapUnitPx,
+      minLeft,
+      maxRight,
+      onMoveEnd,
       onResizeEnd,
+      resetLeftOnMoveEnd = false,
       resetWidthOnResizeEnd = false,
       renderLabel,
       renderFloatingLabel,
-      ...divProps
+      onClick,
+      onPointerDown,
+      onPointerMove,
+      onPointerUp,
+      onPointerCancel,
+      style,
+      ...htmlProps
     },
     ref,
   ) {
     const isTimeoff = variant === "timeoff";
     const isCrosshatch = theme === "crosshatch";
-    const isClickableDraft =
-      variant === "draft" && typeof divProps.onClick === "function";
-    const { liveWidth, handlePointerDown, handlePointerMove, handleEndResize } =
-      useGanttBarResize({
-        width,
-        snapUnitPx: resizable ? snapUnitPx : undefined,
-        onResizeEnd: resizable ? onResizeEnd : undefined,
-        resetWidthOnResizeEnd,
-      });
+    const isInteractive = movable || resizable || typeof onClick === "function";
+    const showPointerCursor = typeof onClick === "function" && !movable;
+    const {
+      isInteracting,
+      liveLeft,
+      liveWidth,
+      handleClick,
+      handleRootPointerDown,
+      handleRootPointerMove,
+      handleRootPointerUp,
+      handleRootPointerCancel,
+      handleResizePointerDown,
+      handleResizePointerMove,
+      handleResizePointerUp,
+      handleResizePointerCancel,
+    } = useGanttBarInteraction({
+      left,
+      width,
+      movable,
+      snapUnitPx,
+      minLeft,
+      maxRight,
+      onMoveEnd: movable ? onMoveEnd : undefined,
+      onResizeEnd: resizable ? onResizeEnd : undefined,
+      onClick,
+      onPointerDown,
+      onPointerMove,
+      onPointerUp,
+      onPointerCancel,
+      resetLeftOnMoveEnd,
+      resetWidthOnResizeEnd,
+    });
 
     return (
       <div
         ref={ref}
+        data-gantt-bar="true"
         className={cn(
           ganttBarVariants({ variant }),
-          isClickableDraft && "cursor-pointer",
+          movable && "cursor-grab active:cursor-grabbing touch-none",
+          showPointerCursor && "cursor-pointer",
           className,
         )}
-        {...divProps}
+        {...htmlProps}
+        onClick={isInteractive ? handleClick : onClick}
+        onPointerDown={isInteractive ? handleRootPointerDown : onPointerDown}
+        onPointerMove={isInteractive ? handleRootPointerMove : onPointerMove}
+        onPointerUp={isInteractive ? handleRootPointerUp : onPointerUp}
+        onPointerCancel={
+          isInteractive ? handleRootPointerCancel : onPointerCancel
+        }
         style={{
-          ...divProps.style,
-          left: Math.max(left - BAR_MARGIN / 2, 0),
+          ...style,
+          left: Math.max(liveLeft - BAR_MARGIN / 2, 0),
           width: Math.max(liveWidth - BAR_MARGIN, 0),
           height: BAR_HEIGHT,
           top: (CELL_HEIGHT - BAR_HEIGHT) / 2,
+          zIndex: isInteracting ? 5 : style?.zIndex,
         }}
       >
         {!isTimeoff && variant !== "draft" && isCrosshatch && (
@@ -105,7 +159,7 @@ export const GanttBar = React.forwardRef<HTMLDivElement, GanttBarProps>(
         ) : (
           <>
             <span className="text-[13px] font-medium tracking-[0.02em] truncate">
-              {renderLabel ? renderLabel(liveWidth) : label}
+              {renderLabel ? renderLabel({ liveLeft, liveWidth }) : label}
             </span>
             {billable === false ? (
               <span className="block ml-1 w-1 h-1 rounded-full bg-surface-amber-3"></span>
@@ -113,10 +167,10 @@ export const GanttBar = React.forwardRef<HTMLDivElement, GanttBarProps>(
             {resizable ? (
               <span
                 className="absolute inset-y-0 right-0 flex w-3.5 cursor-ew-resize items-center justify-end pr-2 touch-none"
-                onPointerDown={handlePointerDown}
-                onPointerMove={handlePointerMove}
-                onPointerUp={handleEndResize}
-                onPointerCancel={handleEndResize}
+                onPointerDown={handleResizePointerDown}
+                onPointerMove={handleResizePointerMove}
+                onPointerUp={handleResizePointerUp}
+                onPointerCancel={handleResizePointerCancel}
                 onClick={(event) => event.stopPropagation()}
               >
                 <span className="pointer-events-none block h-4 w-0.5 rounded-2xl bg-surface-gray-4 opacity-0 transition-opacity group-hover:opacity-100" />
@@ -124,7 +178,7 @@ export const GanttBar = React.forwardRef<HTMLDivElement, GanttBarProps>(
             ) : null}
             {renderFloatingLabel ? (
               <span className="pointer-events-none absolute right-0 top-full mt-1 pr-2 whitespace-nowrap text-[13px] font-medium text-ink-gray-6">
-                {renderFloatingLabel(liveWidth)}
+                {renderFloatingLabel({ liveLeft, liveWidth })}
               </span>
             ) : null}
           </>

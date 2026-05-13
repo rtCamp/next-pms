@@ -1,8 +1,8 @@
-import { useCallback } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { PreviewCard } from "@base-ui/react/preview-card";
 import { useGanttStore } from "../ganttStore";
 import type { ProjectAllocationBar } from "../ganttStore";
-import { getDateAtColumnIndex } from "../utils";
+import { getBarDateRange, getBarDaySpan, getBarTimelineBounds } from "../utils";
 import { GanttAllocationPopover } from "./allocationPopover";
 import { GanttBar } from "./ganttBar";
 import { allocationBarToEntry } from "./utils/allocationBarToEntry";
@@ -17,6 +17,7 @@ export function GanttProjectBar({
   allocation,
   resizable,
 }: GanttProjectBarProps) {
+  const projectBarRef = useRef<HTMLDivElement>(null);
   const {
     headerWidth,
     columnWidth,
@@ -41,34 +42,93 @@ export function GanttProjectBar({
 
   const left = allocation.barOffset + headerWidth;
   const { width, fullNumDays } = allocation;
+  const [previewGeometry, setPreviewGeometry] = useState({ left, width });
+
+  useEffect(() => {
+    setPreviewGeometry({ left, width });
+  }, [left, width]);
+
+  const currentDates = useMemo(
+    () =>
+      getBarDateRange({
+        left: previewGeometry.left,
+        width: previewGeometry.width,
+        headerWidth,
+        columnWidth,
+        columnCount,
+        weekStart,
+        showWeekend,
+      }),
+    [
+      previewGeometry.left,
+      previewGeometry.width,
+      headerWidth,
+      columnWidth,
+      columnCount,
+      weekStart,
+      showWeekend,
+    ],
+  );
+
+  const currentDayCount = getBarDaySpan(previewGeometry.width, columnWidth);
+
+  const bounds = useMemo(
+    () =>
+      getBarTimelineBounds({
+        headerWidth,
+        columnWidth,
+        columnCount,
+      }),
+    [columnCount, columnWidth, headerWidth],
+  );
 
   const label = `${allocation.hours}h/day for ${fullNumDays} day${fullNumDays !== 1 ? "s" : ""}`;
 
+  const renderLabel = useCallback(
+    ({ liveWidth }: { liveWidth: number }) => {
+      const dayCount = getBarDaySpan(liveWidth, columnWidth);
+      return `${allocation.hours}h/day for ${dayCount} day${dayCount !== 1 ? "s" : ""}`;
+    },
+    [allocation.hours, columnWidth],
+  );
+
   const entry = withPendingDeleteEntry(
-    allocationBarToEntry(allocation, onEditAllocation, onDeleteAllocation),
+    allocationBarToEntry(
+      {
+        ...allocation,
+        startDate: currentDates.startDate,
+        endDate: currentDates.endDate,
+        fullNumDays: currentDayCount,
+      },
+      onEditAllocation,
+      onDeleteAllocation,
+    ),
     setPendingDeleteEntry,
   );
 
-  const handleResizeEnd = useCallback(
-    (nextWidth: number) => {
+  const openEditAllocation = useCallback(
+    (nextLeft: number, nextWidth: number) => {
       if (!onEditAllocation) {
         return;
       }
 
-      const startIndex = Math.max(
-        0,
-        Math.round(allocation.barOffset / columnWidth),
-      );
-      const nextDayCount = Math.max(1, Math.round(nextWidth / columnWidth));
-      const endIndex = Math.min(columnCount - 1, startIndex + nextDayCount - 1);
+      const { startDate, endDate } = getBarDateRange({
+        left: nextLeft,
+        width: nextWidth,
+        headerWidth,
+        columnWidth,
+        columnCount,
+        weekStart,
+        showWeekend,
+      });
 
       onEditAllocation({
         allocationId: allocation.id,
         employeeId: allocation.employeeId,
         projectId: allocation.projectId,
         projectName: allocation.projectName,
-        startDate: allocation.startDate,
-        endDate: getDateAtColumnIndex(endIndex, weekStart, showWeekend),
+        startDate,
+        endDate,
         hoursPerDay: allocation.hours,
         billable: allocation.billable,
         tentative: allocation.tentative,
@@ -77,13 +137,48 @@ export function GanttProjectBar({
     },
     [
       allocation,
-      columnWidth,
       columnCount,
+      columnWidth,
+      headerWidth,
       weekStart,
       showWeekend,
       onEditAllocation,
     ],
   );
+
+  const handleMoveEnd = useCallback((nextLeft: number) => {
+    setPreviewGeometry((prev) => ({ ...prev, left: nextLeft }));
+    projectBarRef.current?.focus();
+  }, []);
+
+  const handleResizeEnd = useCallback((nextWidth: number) => {
+    setPreviewGeometry((prev) => ({ ...prev, width: nextWidth }));
+    projectBarRef.current?.focus();
+  }, []);
+
+  const handleKeyDown = useCallback(
+    (event: React.KeyboardEvent<HTMLDivElement>) => {
+      if (event.key !== "Escape") {
+        return;
+      }
+
+      event.preventDefault();
+      event.stopPropagation();
+      setPreviewGeometry({ left, width });
+    },
+    [left, width],
+  );
+
+  const handleClick = useCallback(() => {
+    openEditAllocation(previewGeometry.left, previewGeometry.width);
+    setPreviewGeometry({ left, width });
+  }, [
+    left,
+    openEditAllocation,
+    previewGeometry.left,
+    previewGeometry.width,
+    width,
+  ]);
 
   return (
     <PreviewCard.Root>
@@ -92,16 +187,25 @@ export function GanttProjectBar({
         closeDelay={150}
         render={
           <GanttBar
+            ref={projectBarRef}
             variant="project"
             theme={allocation.tentative ? "crosshatch" : "default"}
             label={label}
-            left={left}
-            width={width}
+            renderLabel={renderLabel}
+            left={previewGeometry.left}
+            width={previewGeometry.width}
+            className="outline-none"
             billable={allocation.billable}
+            movable={resizable}
             resizable={resizable}
             snapUnitPx={columnWidth}
+            tabIndex={0}
+            minLeft={bounds.minLeft}
+            maxRight={bounds.maxRight}
+            onClick={handleClick}
+            onKeyDown={handleKeyDown}
+            onMoveEnd={handleMoveEnd}
             onResizeEnd={handleResizeEnd}
-            resetWidthOnResizeEnd={true}
           />
         }
       />
