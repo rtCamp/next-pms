@@ -2,7 +2,13 @@
  * External dependencies.
  */
 import { useMemo } from "react";
-import { eachDayOfInterval, format, isWeekend, parseISO } from "date-fns";
+import {
+  addDays,
+  eachDayOfInterval,
+  format,
+  isWeekend,
+  parseISO,
+} from "date-fns";
 import { useFrappeGetCall } from "frappe-react-sdk";
 
 /**
@@ -19,7 +25,12 @@ interface UseOverAllocationOptions {
   toDate: string;
   hoursPerDay: number;
   includeWeekends: boolean;
-  /** Name of the allocation being edited - excluded from the existing-hours sum. */
+  /**
+   * Number of additional weekly copies that will be created on save.
+   * Pass 0 for one-time or edit.
+   */
+  repeatWeeks: number;
+  /** Name of the allocation being edited — excluded from the existing-hours sum. */
   allocationName?: string;
 }
 
@@ -36,11 +47,13 @@ export function useOverAllocation({
   toDate,
   hoursPerDay,
   includeWeekends,
+  repeatWeeks,
   allocationName,
 }: UseOverAllocationOptions): OverAllocatedDay[] {
   const debouncedHoursPerDay = useDebounce(hoursPerDay, 500);
   const debouncedFromDate = useDebounce(fromDate, 500);
   const debouncedToDate = useDebounce(toDate, 500);
+  const debouncedRepeatWeeks = useDebounce(repeatWeeks, 500);
 
   const enabled =
     Boolean(employeeId) &&
@@ -48,6 +61,15 @@ export function useOverAllocation({
     Boolean(debouncedToDate) &&
     debouncedFromDate <= debouncedToDate &&
     debouncedHoursPerDay > 0;
+
+  // Extend the fetch range to cover all recurring copies.
+  const fetchEndDate = useMemo(() => {
+    if (!debouncedToDate || debouncedRepeatWeeks <= 0) return debouncedToDate;
+    return format(
+      addDays(parseISO(debouncedToDate), debouncedRepeatWeeks * 7),
+      "yyyy-MM-dd",
+    );
+  }, [debouncedToDate, debouncedRepeatWeeks]);
 
   const { data } = useFrappeGetCall(
     "frappe.client.get_list",
@@ -61,7 +83,7 @@ export function useOverAllocation({
       ],
       filters: JSON.stringify([
         ["employee", "=", employeeId],
-        ["allocation_start_date", "<=", debouncedToDate],
+        ["allocation_start_date", "<=", fetchEndDate],
         ["allocation_end_date", ">=", debouncedFromDate],
       ]),
       limit_page_length: "null",
@@ -77,32 +99,36 @@ export function useOverAllocation({
     );
 
     const result: OverAllocatedDay[] = [];
-    const days = eachDayOfInterval({
-      start: parseISO(debouncedFromDate),
-      end: parseISO(debouncedToDate),
-    });
+    const baseStart = parseISO(debouncedFromDate);
+    const baseEnd = parseISO(debouncedToDate);
 
-    for (const d of days) {
-      if (!includeWeekends && isWeekend(d)) {
-        continue;
-      }
+    // Iterate each weekly copy (week 0 = base range, week 1..N = recurring copies).
+    for (let week = 0; week <= debouncedRepeatWeeks; week++) {
+      const weekStart = addDays(baseStart, week * 7);
+      const weekEnd = addDays(baseEnd, week * 7);
 
-      const dateStr = format(d, "yyyy-MM-dd");
-      const existingHours = existing
-        .filter(
-          (a) =>
-            a.allocation_start_date <= dateStr &&
-            a.allocation_end_date >= dateStr,
-        )
-        .reduce((sum, a) => sum + (a.hours_allocated_per_day ?? 0), 0);
+      for (const d of eachDayOfInterval({ start: weekStart, end: weekEnd })) {
+        if (!includeWeekends && isWeekend(d)) {
+          continue;
+        }
 
-      const total = existingHours + debouncedHoursPerDay;
-      if (total > STANDARD_WORKING_HOURS) {
-        result.push({
-          date: dateStr,
-          excess_hours:
-            Math.round((total - STANDARD_WORKING_HOURS) * 100) / 100,
-        });
+        const dateStr = format(d, "yyyy-MM-dd");
+        const existingHours = existing
+          .filter(
+            (a) =>
+              a.allocation_start_date <= dateStr &&
+              a.allocation_end_date >= dateStr,
+          )
+          .reduce((sum, a) => sum + (a.hours_allocated_per_day ?? 0), 0);
+
+        const total = existingHours + debouncedHoursPerDay;
+        if (total > STANDARD_WORKING_HOURS) {
+          result.push({
+            date: dateStr,
+            excess_hours:
+              Math.round((total - STANDARD_WORKING_HOURS) * 100) / 100,
+          });
+        }
       }
     }
 
@@ -113,6 +139,7 @@ export function useOverAllocation({
     allocationName,
     debouncedFromDate,
     debouncedToDate,
+    debouncedRepeatWeeks,
     debouncedHoursPerDay,
     includeWeekends,
   ]);

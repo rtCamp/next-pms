@@ -195,6 +195,7 @@ function AddAllocationModal({
     toDate,
     hoursPerDay,
     includeWeekends: weekendEntriesAllowed && includeWeekendsValue,
+    repeatWeeks: recurrence === "recurring" ? repeatFor : 0,
     allocationName,
   });
 

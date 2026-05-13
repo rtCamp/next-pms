@@ -49,7 +49,7 @@ export function OverAllocationWarning({
             <SmallDown className="size-4 shrink-0 text-ink-gray-7 transition-transform duration-200 group-data-panel-open:rotate-180" />
           </Accordion.Trigger>
         </Accordion.Header>
-        <Accordion.Panel className="flex flex-col gap-1.5 px-2.5 pb-2 pl-8">
+        <Accordion.Panel className="flex flex-col gap-1.5 px-2.5 pb-2 pl-8 max-h-24 overflow-y-scroll scrollbar-thin">
           {overAllocatedDays.map((day) => (
             <div key={day.date} className="flex items-center gap-2">
               <span className="text-xs text-ink-gray-7">
