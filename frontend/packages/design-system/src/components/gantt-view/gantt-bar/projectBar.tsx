@@ -4,7 +4,11 @@ import { useGanttStore } from "../ganttStore";
 import type { ProjectAllocationBar } from "../ganttStore";
 import { getBarDateRange, getBarDaySpan, getBarTimelineBounds } from "../utils";
 import { GanttAllocationPopover } from "./allocationPopover";
-import { GanttBar, type GanttBarGeometry } from "./ganttBar";
+import {
+  GanttBar,
+  type GanttBarGeometry,
+  type GanttBarRenderState,
+} from "./ganttBar";
 import { allocationBarToEntry } from "./utils/allocationBarToEntry";
 import { withPendingDeleteEntry } from "./utils/withPendingDeleteEntry";
 
@@ -73,6 +77,13 @@ export function GanttProjectBar({
   );
 
   const currentDayCount = getBarDaySpan(previewGeometry.width, columnWidth);
+  const resolvedDayCount = isModified ? currentDayCount : fullNumDays;
+  const resolvedDates = isModified
+    ? currentDates
+    : {
+        startDate: allocation.startDate,
+        endDate: allocation.endDate,
+      };
 
   const bounds = useMemo(
     () =>
@@ -84,23 +95,32 @@ export function GanttProjectBar({
     [columnCount, columnWidth, headerWidth],
   );
 
-  const label = `${allocation.hours}h/day for ${fullNumDays} day${fullNumDays !== 1 ? "s" : ""}`;
+  const formatDayCountLabel = useCallback(
+    (dayCount: number) =>
+      `${allocation.hours}h/day for ${dayCount} day${dayCount !== 1 ? "s" : ""}`,
+    [allocation.hours],
+  );
+
+  const label = formatDayCountLabel(resolvedDayCount);
 
   const renderLabel = useCallback(
-    ({ liveWidth }: { liveWidth: number }) => {
-      const dayCount = getBarDaySpan(liveWidth, columnWidth);
-      return `${allocation.hours}h/day for ${dayCount} day${dayCount !== 1 ? "s" : ""}`;
+    ({ isInteracting, liveWidth }: GanttBarRenderState) => {
+      const dayCount = isInteracting
+        ? getBarDaySpan(liveWidth, columnWidth)
+        : resolvedDayCount;
+
+      return formatDayCountLabel(dayCount);
     },
-    [allocation.hours, columnWidth],
+    [columnWidth, formatDayCountLabel, resolvedDayCount],
   );
 
   const entry = withPendingDeleteEntry(
     allocationBarToEntry(
       {
         ...allocation,
-        startDate: currentDates.startDate,
-        endDate: currentDates.endDate,
-        fullNumDays: currentDayCount,
+        startDate: resolvedDates.startDate,
+        endDate: resolvedDates.endDate,
+        fullNumDays: resolvedDayCount,
       },
       onEditAllocation,
       onDeleteAllocation,

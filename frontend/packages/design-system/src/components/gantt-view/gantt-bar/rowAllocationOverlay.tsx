@@ -20,7 +20,12 @@ import { isColumnOccupied, type DraftBarSeed } from "../utils";
 import type { OccupyingAllocation } from "../utils";
 
 export interface RowAllocationOverlayHandle {
-  handleRowMouseMove: (event: React.MouseEvent<HTMLTableRowElement>) => void;
+  handleRowPointerDown: (
+    event: React.PointerEvent<HTMLTableRowElement>,
+  ) => void;
+  handleRowPointerMove: (
+    event: React.PointerEvent<HTMLTableRowElement>,
+  ) => void;
   clearHoveredSlot: () => void;
 }
 
@@ -78,8 +83,8 @@ export const RowAllocationOverlay = forwardRef<
     }
   }, [enabled, hasDraft]);
 
-  const handleRowMouseMove = useCallback(
-    (event: React.MouseEvent<HTMLTableRowElement>) => {
+  const updateHoveredSlotFromPointer = useCallback(
+    (event: React.PointerEvent<HTMLTableRowElement>) => {
       if (!enabled || hasDraft) {
         setHoveredSlotLeft(null);
         return;
@@ -122,13 +127,30 @@ export const RowAllocationOverlay = forwardRef<
     [allocations, columnCount, columnWidth, enabled, hasDraft, headerWidth],
   );
 
+  const handleRowPointerDown = useCallback(
+    (event: React.PointerEvent<HTMLTableRowElement>) => {
+      if (event.pointerType === "touch" || event.pointerType === "pen") {
+        updateHoveredSlotFromPointer(event);
+      }
+    },
+    [updateHoveredSlotFromPointer],
+  );
+
+  const handleRowPointerMove = useCallback(
+    (event: React.PointerEvent<HTMLTableRowElement>) => {
+      updateHoveredSlotFromPointer(event);
+    },
+    [updateHoveredSlotFromPointer],
+  );
+
   useImperativeHandle(
     ref,
     () => ({
-      handleRowMouseMove,
+      handleRowPointerDown,
+      handleRowPointerMove,
       clearHoveredSlot,
     }),
-    [clearHoveredSlot, handleRowMouseMove],
+    [clearHoveredSlot, handleRowPointerDown, handleRowPointerMove],
   );
 
   return (

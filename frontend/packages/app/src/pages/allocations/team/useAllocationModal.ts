@@ -29,7 +29,7 @@ export function useAllocationModal() {
     setVariant("add");
     setInitialValues({
       ...(data.employeeId ? { employeeId: data.employeeId } : {}),
-      projectId: data.projectId,
+      ...(data.projectId ? { projectId: data.projectId } : {}),
       ...(data.startDate
         ? { fromDate: format(data.startDate, "yyyy-MM-dd") }
         : {}),
@@ -45,7 +45,7 @@ export function useAllocationModal() {
     setInitialValues({
       allocationName: data.allocationId,
       employeeId: data.employeeId,
-      projectId: data.projectId,
+      ...(data.projectId ? { projectId: data.projectId } : {}),
       customer: data.customerName,
       fromDate: data.startDate
         ? format(data.startDate, "yyyy-MM-dd")

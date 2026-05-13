@@ -11,7 +11,11 @@ import { FULL_DAY_HOURS } from "../constants";
 import { useGanttStore } from "../ganttStore";
 import type { AllocationCallbackData } from "../types";
 import { getBarDateRange, getBarDaySpan, getBarTimelineBounds } from "../utils";
-import { GanttBar, type GanttBarGeometry } from "./ganttBar";
+import {
+  GanttBar,
+  type GanttBarGeometry,
+  type GanttBarRenderState,
+} from "./ganttBar";
 
 interface DraftBarProps {
   rowKey: string;
@@ -75,12 +79,18 @@ export function DraftBar({
    * Label function that calculates hours based on the live width of the bar as it's being resized.
    */
   const renderLabel = useCallback(
-    ({ liveWidth }: { liveWidth: number }) => {
+    ({ liveWidth }: GanttBarRenderState) => {
       const hours = Math.max(
         getBarDaySpan(liveWidth, columnWidth) * FULL_DAY_HOURS,
         1,
       );
-      return `${hours}h`;
+
+      return (
+        <span className="flex min-w-0 items-center overflow-hidden">
+          <span className="min-w-0 flex-1 truncate">Add allocation</span>
+          <span className="shrink-0">{hours}h</span>
+        </span>
+      );
     },
     [columnWidth],
   );
@@ -148,7 +158,7 @@ export function DraftBar({
    * Floating label that shows the end date based on the live width of the bar as it's being resized.
    */
   const renderFloatingLabel = useCallback(
-    ({ liveLeft, liveWidth }: { liveLeft: number; liveWidth: number }) =>
+    ({ liveLeft, liveWidth }: GanttBarRenderState) =>
       format(
         getBarDateRange({
           left: liveLeft,

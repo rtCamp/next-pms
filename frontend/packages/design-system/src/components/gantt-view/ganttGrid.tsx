@@ -45,6 +45,7 @@ const GanttGridInner: React.FC<{
     weeks,
     hasRoleAccess,
     onAddAllocation,
+    onEditAllocation,
     pendingDeleteEntry,
     clearPendingDeleteEntry,
   } = useGanttStore((s) => ({
@@ -61,6 +62,7 @@ const GanttGridInner: React.FC<{
     weeks: s.weeks,
     hasRoleAccess: s.hasRoleAccess,
     onAddAllocation: s.onAddAllocation,
+    onEditAllocation: s.onEditAllocation,
     pendingDeleteEntry: s.pendingDeleteEntry,
     clearPendingDeleteEntry: s.clearPendingDeleteEntry,
   }));
@@ -74,6 +76,7 @@ const GanttGridInner: React.FC<{
   );
 
   const canManageAllocations = hasRoleAccess && Boolean(onAddAllocation);
+  const canEditAllocations = hasRoleAccess && Boolean(onEditAllocation);
   const memberRowOverlayRefs = useRef<
     Record<string, RowAllocationOverlayHandle | null>
   >({});
@@ -159,15 +162,23 @@ const GanttGridInner: React.FC<{
               <React.Fragment key={rowIndex}>
                 <tr
                   className="relative last:border-b border-outline-gray-1"
-                  onMouseMove={
+                  onPointerDown={
                     canManageAllocations
                       ? (event) =>
                           memberRowOverlayRefs.current[
                             memberRowKey
-                          ]?.handleRowMouseMove(event)
+                          ]?.handleRowPointerDown(event)
                       : undefined
                   }
-                  onMouseLeave={
+                  onPointerMove={
+                    canManageAllocations
+                      ? (event) =>
+                          memberRowOverlayRefs.current[
+                            memberRowKey
+                          ]?.handleRowPointerMove(event)
+                      : undefined
+                  }
+                  onPointerLeave={
                     canManageAllocations
                       ? () =>
                           memberRowOverlayRefs.current[
@@ -186,7 +197,6 @@ const GanttGridInner: React.FC<{
                     />
                   ))}
                   <td
-                    aria-hidden="true"
                     className="p-0 border-0 w-0 min-w-0 max-w-0"
                     style={{ width: 0 }}
                   >
@@ -239,15 +249,23 @@ const GanttGridInner: React.FC<{
                         "pointer-events-none": !isExpanded,
                       })}
                       aria-hidden={!isExpanded}
-                      onMouseMove={
+                      onPointerDown={
                         canManageAllocations && isExpanded
                           ? (event) =>
                               projectRowOverlayRefs.current[
                                 projectRowKey
-                              ]?.handleRowMouseMove(event)
+                              ]?.handleRowPointerDown(event)
                           : undefined
                       }
-                      onMouseLeave={
+                      onPointerMove={
+                        canManageAllocations && isExpanded
+                          ? (event) =>
+                              projectRowOverlayRefs.current[
+                                projectRowKey
+                              ]?.handleRowPointerMove(event)
+                          : undefined
+                      }
+                      onPointerLeave={
                         canManageAllocations && isExpanded
                           ? () =>
                               projectRowOverlayRefs.current[
@@ -282,7 +300,6 @@ const GanttGridInner: React.FC<{
                         />
                       ))}
                       <td
-                        aria-hidden="true"
                         className="p-0 border-0 w-0 min-w-0 max-w-0"
                         style={{ width: 0 }}
                       >
@@ -292,7 +309,7 @@ const GanttGridInner: React.FC<{
                               <GanttProjectBar
                                 key={allocIndex}
                                 allocation={alloc}
-                                resizable={hasRoleAccess}
+                                resizable={canEditAllocations}
                               />
                             ),
                           )}
@@ -336,7 +353,7 @@ const GanttGridInner: React.FC<{
                 })}
 
                 {/* Add project row */}
-                {hasRoleAccess && (
+                {canManageAllocations && (
                   <tr
                     className={cn("relative", {
                       "pointer-events-none": !isExpanded,
@@ -403,8 +420,8 @@ const GanttGridInner: React.FC<{
             )}
             style={{ left: headerWidth - 2 }}
             onPointerDown={onResizePointerDown}
-            onMouseEnter={() => setResizeHandleActive(true)}
-            onMouseLeave={() => setResizeHandleActive(false)}
+            onPointerEnter={() => setResizeHandleActive(true)}
+            onPointerLeave={() => setResizeHandleActive(false)}
           />
         </div>
       </div>

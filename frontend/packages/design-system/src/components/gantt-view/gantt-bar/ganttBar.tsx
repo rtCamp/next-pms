@@ -12,6 +12,7 @@ export interface GanttBarGeometry {
 }
 
 export interface GanttBarRenderState {
+  isInteracting: boolean;
   liveLeft: number;
   liveWidth: number;
 }
@@ -27,7 +28,7 @@ const ganttBarVariants = cva(
         timeoff: "bg-surface-gray-2 text-ink-gray-6 justify-center",
         project:
           "bg-surface-white text-ink-gray-5 shadow-[0px_0px_1px_0px_rgba(0,0,0,0.14),0px_1px_3px_0px_rgba(0,0,0,0.14)]",
-        draft: "bg-surface-gray-3 text-ink-gray-5",
+        draft: "bg-surface-gray-2 text-ink-gray-5",
       },
     },
   },
@@ -131,8 +132,12 @@ export const GanttBar = React.forwardRef<HTMLDivElement, GanttBarProps>(
           </>
         ) : (
           <>
-            <span className="text-[13px] font-medium tracking-[0.02em] truncate">
-              {renderLabel ? renderLabel({ liveLeft, liveWidth }) : label}
+            <span className="min-w-0 flex-1 overflow-hidden text-[13px] font-medium tracking-[0.02em]">
+              {renderLabel ? (
+                renderLabel({ isInteracting, liveLeft, liveWidth })
+              ) : (
+                <span className="block truncate">{label}</span>
+              )}
             </span>
             {billable === false ? (
               <span className="block ml-1 w-1 h-1 rounded-full bg-surface-amber-3"></span>
@@ -140,7 +145,7 @@ export const GanttBar = React.forwardRef<HTMLDivElement, GanttBarProps>(
             {resizable ? (
               <>
                 <span
-                  className="absolute inset-y-0 left-0 flex w-3.5 cursor-ew-resize items-center justify-start pl-2 touch-none"
+                  className="absolute inset-y-0 left-0 w-2.5 pl-1 flex cursor-ew-resize items-center justify-start touch-none"
                   onPointerDown={handleStartResizePointerDown}
                   onPointerMove={handleResizePointerMove}
                   onPointerUp={handleResizePointerUp}
@@ -150,7 +155,7 @@ export const GanttBar = React.forwardRef<HTMLDivElement, GanttBarProps>(
                   <span className="pointer-events-none block h-4 w-0.5 rounded-2xl bg-surface-gray-4 opacity-0 transition-opacity group-hover:opacity-100" />
                 </span>
                 <span
-                  className="absolute inset-y-0 right-0 flex w-3.5 cursor-ew-resize items-center justify-end pr-2 touch-none"
+                  className="absolute inset-y-0 right-0 w-2.5 pr-1 flex cursor-ew-resize items-center justify-end touch-none"
                   onPointerDown={handleEndResizePointerDown}
                   onPointerMove={handleResizePointerMove}
                   onPointerUp={handleResizePointerUp}
@@ -163,7 +168,11 @@ export const GanttBar = React.forwardRef<HTMLDivElement, GanttBarProps>(
             ) : null}
             {renderFloatingLabel ? (
               <span className="pointer-events-none absolute right-0 top-full mt-1 pr-2 whitespace-nowrap text-[13px] font-medium text-ink-gray-6">
-                {renderFloatingLabel({ liveLeft, liveWidth })}
+                {renderFloatingLabel({
+                  isInteracting,
+                  liveLeft,
+                  liveWidth,
+                })}
               </span>
             ) : null}
           </>
