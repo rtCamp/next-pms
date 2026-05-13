@@ -93,7 +93,7 @@ def enrich_timeline_item(
 @error_logger
 def get_project_timeline_items(
     project: str,
-    type: Literal["Milestone", "Touchpoint"] = "Milestone",
+    type: Literal["Milestone", "Touchpoint"] | None = None,
     start: int = 0,
     limit: int = 20,
 ):
@@ -102,7 +102,7 @@ def get_project_timeline_items(
 
     Args:
         project: Project name to filter by
-        type: "Milestone" or "Touchpoint"
+        type: "Milestone" or "Touchpoint" — omit to fetch both
         start: Pagination offset
         limit: Page size
 
@@ -116,9 +116,11 @@ def get_project_timeline_items(
 
     filters = {
         "project": project,
-        "type": type,
         "is_complete": 0,
     }
+
+    if type:
+        filters["type"] = type
 
     items = frappe.get_all(
         "Project Timeline Item",
@@ -162,16 +164,14 @@ def create_project_timeline_item(
     """
     Create a new Project Timeline Item (Milestone or Touchpoint).
 
-    Milestone fields: title, project, item_owner, start_date, planned_end_date (completion date)
-    Touchpoint fields: title, project, item_owner, start_date (scheduled date)
 
     Args:
         project: Project name to link
         type: "Milestone" or "Touchpoint"
         title: Name of the milestone / touchpoint
         item_owner: User name (email) of the owner
-        start_date: Start date (Milestone) or Scheduled date (Touchpoint)
-        planned_end_date: Completion date — Milestone only; ignored for Touchpoint
+        start_date: Start date — optional; if not set, the item will be considered active immediately
+        planned_end_date: Completion date
 
     Returns:
         The created item's name, title, type, and dates.
