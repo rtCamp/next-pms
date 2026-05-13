@@ -20,6 +20,7 @@ export function withPendingDeleteEntry(
         projectName: entry.projectName,
         dateRange: entry.dateRange,
         hoursPerDay: entry.hoursPerDay,
+        totalHours: entry.totalHours,
         onDelete,
       }),
   };

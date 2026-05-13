@@ -16,6 +16,7 @@ export interface AllocationEntry {
   projectName: string;
   dateRange: string;
   hoursPerDay: string;
+  totalHours: string;
   status: "confirmed" | "tentative";
   billable: boolean;
   updatedByName?: string;
@@ -58,7 +59,9 @@ function AllocationItem({ entry, hasRoleAccess }: AllocationItemProps) {
 
         <div className="flex gap-2 items-center">
           <Time className="size-4 text-ink-gray-5 shrink-0" />
-          <span className="text-sm text-ink-gray-6">{entry.hoursPerDay}</span>
+          <span className="text-sm text-ink-gray-6">
+            {entry.hoursPerDay} ({entry.totalHours})
+          </span>
         </div>
 
         <div className="flex gap-2 items-center">

@@ -16,6 +16,7 @@ export interface PendingDeleteEntry {
   projectName: string;
   dateRange: string;
   hoursPerDay: string;
+  totalHours: string;
   onDelete: () => void;
 }
 

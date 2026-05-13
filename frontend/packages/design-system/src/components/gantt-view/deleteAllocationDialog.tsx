@@ -6,6 +6,7 @@ export interface DeleteAllocationDialogProps {
   projectName: string;
   dateRange: string;
   hoursPerDay: string;
+  totalHours: string;
   onConfirm: () => void;
 }
 
@@ -15,6 +16,7 @@ export function DeleteAllocationDialog({
   projectName,
   dateRange,
   hoursPerDay,
+  totalHours,
   onConfirm,
 }: DeleteAllocationDialogProps) {
   return (
@@ -44,10 +46,7 @@ export function DeleteAllocationDialog({
       <p className="text-sm text-ink-gray-7 leading-normal">
         Are you sure you want to delete{" "}
         <strong className="font-semibold text-ink-gray-8">
-          &ldquo;{projectName}&rdquo;
-        </strong>{" "}
-        <strong className="font-semibold text-ink-gray-8">
-          ({dateRange}, {hoursPerDay})
+          {`"${projectName}" (${dateRange}, ${hoursPerDay}, ${totalHours})`}
         </strong>
         ? This cannot be undone.
       </p>
