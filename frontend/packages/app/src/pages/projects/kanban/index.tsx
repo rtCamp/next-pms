@@ -39,7 +39,7 @@ const KanbanView = () => {
         setItems((current) => move(current, event));
       }}
     >
-      <div className="flex gap-10 px-7 pt-5.5 overflow-auto scrollbar-thin">
+      <div className="flex gap-4 px-7 pt-5.5 overflow-auto scrollbar-thin">
         {KANBAN_PHASE_ORDER.map((phase) => (
           <Droppable
             key={phase}
