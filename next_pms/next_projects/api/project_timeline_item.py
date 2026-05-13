@@ -63,8 +63,7 @@ def enrich_timeline_item(
     item_name = item.get("name")
     owner_user = item.get("item_owner") or ""
 
-    # Resolve item_owner (Link → Contact) to name + image.
-    # Contact.name is an email in Frappe; the linked User record shares the same email.
+    # item_owner is a Link → User; full_name is fetched via fetch_from on the doctype
     return {
         "name": item_name,
         "title": item.get("title"),
@@ -81,6 +80,7 @@ def enrich_timeline_item(
         ),
         "owner": {
             "user": owner_user,
+            "full_name": item.get("item_owner_name") or "",
             "image": user_image_map.get(owner_user),
         }
         if owner_user
@@ -134,7 +134,7 @@ def get_project_timeline_items(
 
     item_names = [item.get("name") for item in items if item.get("name")]
 
-    # Bulk-fetch owner user images; item_owner is a Contact (email = User name)
+    # Bulk-fetch owner images; item_owner is a Link → User
     owner_users = list({item.get("item_owner") for item in items if item.get("item_owner")})
     user_image_map = get_user_image_map(owner_users)
 
@@ -169,7 +169,7 @@ def create_project_timeline_item(
         project: Project name to link
         type: "Milestone" or "Touchpoint"
         title: Name of the milestone / touchpoint
-        item_owner: Contact name (owner)
+        item_owner: User name (email) of the owner
         start_date: Start date (Milestone) or Scheduled date (Touchpoint)
         planned_end_date: Completion date — Milestone only; ignored for Touchpoint
 
@@ -193,8 +193,7 @@ def create_project_timeline_item(
     doc.title = title
     doc.item_owner = item_owner
     doc.start_date = start_date or None
-    # planned_end_date is only relevant for Milestones
-    doc.planned_end_date = planned_end_date or None if type == "Milestone" else None
+    doc.planned_end_date = planned_end_date or None
     doc.is_complete = 0
     doc.insert(ignore_permissions=False)
 

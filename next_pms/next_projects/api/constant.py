@@ -7,6 +7,7 @@ TIMELINE_ITEM_FIELDS = [
     "title",
     "project",
     "item_owner",
+    "item_owner_name",
     "type",
     "is_complete",
     "start_date",

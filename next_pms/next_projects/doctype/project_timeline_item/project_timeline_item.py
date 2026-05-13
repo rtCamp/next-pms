@@ -17,6 +17,7 @@ class ProjectTimelineItem(Document):
         actual_end_date: DF.Date | None
         is_complete: DF.Check
         item_owner: DF.Link
+        item_owner_name: DF.Data | None
         planned_end_date: DF.Date | None
         project: DF.Link
         start_date: DF.Date | None
