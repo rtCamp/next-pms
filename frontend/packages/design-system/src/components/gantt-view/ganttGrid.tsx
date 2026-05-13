@@ -34,6 +34,7 @@ const GanttGridInner: React.FC<{
     columnCount,
     weeks,
     hasRoleAccess,
+    onEditAllocation,
     pendingDeleteEntry,
     clearPendingDeleteEntry,
   } = useGanttStore((s) => ({
@@ -49,9 +50,12 @@ const GanttGridInner: React.FC<{
     columnCount: s.columnCount,
     weeks: s.weeks,
     hasRoleAccess: s.hasRoleAccess,
+    onEditAllocation: s.onEditAllocation,
     pendingDeleteEntry: s.pendingDeleteEntry,
     clearPendingDeleteEntry: s.clearPendingDeleteEntry,
   }));
+
+  const canEditAllocations = hasRoleAccess && Boolean(onEditAllocation);
 
   const onResizePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
     e.preventDefault();
@@ -187,6 +191,7 @@ const GanttGridInner: React.FC<{
                               <GanttProjectBar
                                 key={allocIndex}
                                 allocation={alloc}
+                                resizable={canEditAllocations}
                               />
                             );
                           })}

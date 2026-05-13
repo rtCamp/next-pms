@@ -2,11 +2,23 @@ import React from "react";
 import { cva, type VariantProps } from "class-variance-authority";
 import { CalendarX2 } from "lucide-react";
 import { mergeClassNames as cn } from "../../../utils";
-import { BAR_HEIGHT, CELL_HEIGHT } from "../constants";
+import { BAR_HEIGHT, BAR_MARGIN, CELL_HEIGHT } from "../constants";
 import { CrosshatchLayer } from "./crosshatchLayer";
+import { useGanttBarInteraction } from "../hooks/useGanttBarInteraction";
+
+export interface GanttBarGeometry {
+  left: number;
+  width: number;
+}
+
+export interface GanttBarRenderState {
+  isInteracting: boolean;
+  liveLeft: number;
+  liveWidth: number;
+}
 
 const ganttBarVariants = cva(
-  "absolute shrink-0 flex items-center gap-1.5 rounded-[9px] mx-0.5 px-2.5 py-2 overflow-hidden whitespace-nowrap",
+  "group absolute shrink-0 flex items-center gap-1.5 rounded-[9px] mx-0.5 px-2.5 py-2 overflow-hidden whitespace-nowrap",
   {
     variants: {
       variant: {
@@ -31,6 +43,12 @@ interface GanttBarProps
   theme?: "default" | "crosshatch";
   billable?: boolean;
   className?: string;
+  resizable?: boolean;
+  snapUnitPx?: number;
+  minLeft?: number;
+  maxRight?: number;
+  onResizeEnd?: (geometry: GanttBarGeometry) => void;
+  renderLabel?: (state: GanttBarRenderState) => React.ReactNode;
 }
 
 export const GanttBar = React.forwardRef<HTMLDivElement, GanttBarProps>(
@@ -43,24 +61,57 @@ export const GanttBar = React.forwardRef<HTMLDivElement, GanttBarProps>(
       theme = "default",
       billable,
       className,
-      ...divProps
+      resizable = false,
+      snapUnitPx,
+      minLeft,
+      maxRight,
+      onResizeEnd,
+      renderLabel,
+      onClick,
+      style,
+      ...htmlProps
     },
     ref,
   ) {
     const isTimeoff = variant === "timeoff";
     const isCrosshatch = theme === "crosshatch";
+    const isInteractive = resizable || typeof onClick === "function";
+    const showPointerCursor = typeof onClick === "function";
+    const {
+      isInteracting,
+      liveLeft,
+      liveWidth,
+      handleStartResizePointerDown,
+      handleEndResizePointerDown,
+      handleResizePointerMove,
+      handleResizePointerUp,
+      handleResizePointerCancel,
+    } = useGanttBarInteraction({
+      left,
+      width,
+      snapUnitPx,
+      minLeft,
+      maxRight,
+      onResizeEnd: resizable ? onResizeEnd : undefined,
+    });
 
     return (
       <div
         ref={ref}
-        className={cn(ganttBarVariants({ variant }), className)}
-        {...divProps}
+        className={cn(
+          ganttBarVariants({ variant }),
+          showPointerCursor && "cursor-pointer",
+          className,
+        )}
+        {...htmlProps}
+        onClick={isInteractive ? onClick : undefined}
         style={{
-          ...divProps.style,
-          left,
-          width: Math.max(width - 2, 0), // Account for margin
+          ...style,
+          left: Math.max(liveLeft - BAR_MARGIN / 2, 0),
+          width: Math.max(liveWidth - BAR_MARGIN, 0),
           height: BAR_HEIGHT,
           top: (CELL_HEIGHT - BAR_HEIGHT) / 2,
+          zIndex: isInteracting ? 5 : style?.zIndex,
         }}
       >
         {!isTimeoff && isCrosshatch && (
@@ -77,11 +128,39 @@ export const GanttBar = React.forwardRef<HTMLDivElement, GanttBarProps>(
           </>
         ) : (
           <>
-            <span className="text-[13px] font-medium tracking-[0.02em] truncate">
-              {label}
+            <span className="min-w-0 flex-1 overflow-hidden text-[13px] font-medium tracking-[0.02em]">
+              {renderLabel ? (
+                renderLabel({ isInteracting, liveLeft, liveWidth })
+              ) : (
+                <span className="block truncate">{label}</span>
+              )}
             </span>
             {billable === false ? (
               <span className="block ml-1 w-1 h-1 rounded-full bg-surface-amber-3"></span>
+            ) : null}
+            {resizable ? (
+              <>
+                <span
+                  className="absolute inset-y-0 left-0 w-2.5 pl-1 flex cursor-ew-resize items-center justify-start touch-none"
+                  onPointerDown={handleStartResizePointerDown}
+                  onPointerMove={handleResizePointerMove}
+                  onPointerUp={handleResizePointerUp}
+                  onPointerCancel={handleResizePointerCancel}
+                  onClick={(event) => event.stopPropagation()}
+                >
+                  <span className="pointer-events-none block h-4 w-0.5 rounded-2xl bg-surface-gray-4 opacity-0 transition-opacity group-hover:opacity-100" />
+                </span>
+                <span
+                  className="absolute inset-y-0 right-0 w-2.5 pr-1 flex cursor-ew-resize items-center justify-end touch-none"
+                  onPointerDown={handleEndResizePointerDown}
+                  onPointerMove={handleResizePointerMove}
+                  onPointerUp={handleResizePointerUp}
+                  onPointerCancel={handleResizePointerCancel}
+                  onClick={(event) => event.stopPropagation()}
+                >
+                  <span className="pointer-events-none block h-4 w-0.5 rounded-2xl bg-surface-gray-4 opacity-0 transition-opacity group-hover:opacity-100" />
+                </span>
+              </>
             ) : null}
           </>
         )}
