@@ -115,7 +115,7 @@ const AddTime = ({
   const { options: projectOptions, isLoading: isProjectLookupLoading } =
     useProjectLookup({
       shouldFetch: open,
-      extraFilters: window.frappe?.boot?.global_filters.project,
+      filters: window.frappe?.boot?.global_filters.project,
       pageSize: 20,
       query: projectSearch,
     });

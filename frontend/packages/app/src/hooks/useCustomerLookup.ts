@@ -17,6 +17,8 @@ interface UseCustomerLookupOptions {
   pageSize?: number;
   /** Filters customers by customer name or id. */
   query: string;
+  /** Revalidates the lookup when the window regains focus. */
+  revalidateOnFocus?: boolean;
   /** Keeps the current selection visible when it is not in the latest results. */
   selectedOption?: LookupOption | null;
 }
@@ -28,6 +30,7 @@ export const useCustomerLookup = ({
   shouldFetch,
   pageSize = 20,
   query,
+  revalidateOnFocus,
   selectedOption,
 }: UseCustomerLookupOptions) => {
   return useRemoteLookup<
@@ -38,7 +41,7 @@ export const useCustomerLookup = ({
     shouldFetch,
     query,
     pageSize,
-    method: "frappe.client.get_list",
+    revalidateOnFocus,
     params: ({ query: searchQuery, pageSize }) => ({
       doctype: "Customer",
       fields: ["name", "customer_name"],

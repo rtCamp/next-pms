@@ -27,15 +27,17 @@ interface UseRemoteLookupOptions<
   TOption extends LookupOption,
 > {
   /** Controls whether the remote lookup request should run for the current UI state. */
-  shouldFetch: boolean;
+  shouldFetch?: boolean;
   /** Raw user search text before debounce is applied. */
-  query: string;
+  query?: string;
   /** Wait time before firing a new request for the latest query. */
   debounceMs?: number;
   /** Max number of rows requested from the backend. */
   pageSize?: number;
   /** Fully qualified Frappe method used for the lookup request. */
-  method: string;
+  method?: string;
+  /** Revalidates the lookup when the window regains focus. */
+  revalidateOnFocus?: boolean;
   /** Builds backend params from the debounced query and page size. */
   params: (args: {
     query: string;
@@ -53,11 +55,12 @@ interface UseRemoteLookupOptions<
  * Runs the shared remote lookup request for lookup hooks.
  */
 export const useRemoteLookup = <TMessage, TItem, TOption extends LookupOption>({
-  shouldFetch,
-  query,
+  shouldFetch = true,
+  query = "",
   debounceMs = 300,
   pageSize = 20,
-  method,
+  method = "frappe.client.get_list",
+  revalidateOnFocus = false,
   params,
   getItems,
   mapOption,
@@ -69,7 +72,7 @@ export const useRemoteLookup = <TMessage, TItem, TOption extends LookupOption>({
     params({ query: debouncedQuery, pageSize }),
     shouldFetch ? undefined : null,
     {
-      revalidateOnFocus: false,
+      revalidateOnFocus,
     },
   );
 

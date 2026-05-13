@@ -20,11 +20,13 @@ interface UseProjectLookupOptions {
   /** Controls whether the project lookup should fetch for the current UI state. */
   shouldFetch: boolean;
   /** Adds fixed backend filters alongside the search filters. */
-  extraFilters?: GlobalFilterCondition[] | string | null;
+  filters?: GlobalFilterCondition[] | string | null;
   /** Caps the number of project rows fetched per request. */
   pageSize?: number;
   /** Filters projects through backend or_filters on id and project name. */
   query: string;
+  /** Revalidates the lookup when the window regains focus. */
+  revalidateOnFocus?: boolean;
   /** Keeps the current selection visible when it is not in the latest results. */
   selectedOption?: ProjectLookupOption | null;
 }
@@ -34,9 +36,10 @@ interface UseProjectLookupOptions {
  */
 export const useProjectLookup = ({
   shouldFetch,
-  extraFilters,
+  filters,
   pageSize = 20,
   query,
+  revalidateOnFocus,
   selectedOption,
 }: UseProjectLookupOptions) => {
   return useRemoteLookup<
@@ -47,11 +50,11 @@ export const useProjectLookup = ({
     shouldFetch,
     query,
     pageSize,
-    method: "frappe.client.get_list",
+    revalidateOnFocus,
     params: ({ query: searchQuery, pageSize }) => ({
       doctype: "Project",
       fields: ["name", "project_name", "customer"],
-      filters: extraFilters ?? undefined,
+      filters: filters ?? undefined,
       limit_page_length: pageSize,
       or_filters: searchQuery
         ? [

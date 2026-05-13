@@ -24,6 +24,8 @@ interface UseEmployeeLookupOptions {
   pageSize?: number;
   /** Filters employees by partial employee name on the backend. */
   query: string;
+  /** Revalidates the lookup when the window regains focus. */
+  revalidateOnFocus?: boolean;
   /** Restricts results to employees who have any of these roles. */
   roles?: string[];
   /** Keeps the current selection visible when it is not in the latest results. */
@@ -37,6 +39,7 @@ export const useEmployeeLookup = ({
   shouldFetch,
   pageSize = 20,
   query,
+  revalidateOnFocus,
   roles,
   selectedOption,
 }: UseEmployeeLookupOptions) => {
@@ -48,6 +51,7 @@ export const useEmployeeLookup = ({
     shouldFetch,
     query,
     pageSize,
+    revalidateOnFocus,
     method: "next_pms.timesheet.api.employee.get_employee_list",
     params: ({ query: searchQuery, pageSize }) => ({
       employee_name: searchQuery || undefined,
