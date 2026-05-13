@@ -6,6 +6,11 @@ import { BAR_HEIGHT, BAR_MARGIN, CELL_HEIGHT } from "../constants";
 import { CrosshatchLayer } from "./crosshatchLayer";
 import { useGanttBarInteraction } from "../hooks/useGanttBarInteraction";
 
+export interface GanttBarGeometry {
+  left: number;
+  width: number;
+}
+
 export interface GanttBarRenderState {
   liveLeft: number;
   liveWidth: number;
@@ -38,15 +43,11 @@ interface GanttBarProps
   theme?: "default" | "crosshatch";
   billable?: boolean;
   className?: string;
-  movable?: boolean;
   resizable?: boolean;
   snapUnitPx?: number;
   minLeft?: number;
   maxRight?: number;
-  onMoveEnd?: (nextLeft: number) => void;
-  onResizeEnd?: (nextWidth: number) => void;
-  resetLeftOnMoveEnd?: boolean;
-  resetWidthOnResizeEnd?: boolean;
+  onResizeEnd?: (geometry: GanttBarGeometry) => void;
   renderLabel?: (state: GanttBarRenderState) => React.ReactNode;
   renderFloatingLabel?: (state: GanttBarRenderState) => React.ReactNode;
 }
@@ -61,22 +62,14 @@ export const GanttBar = React.forwardRef<HTMLDivElement, GanttBarProps>(
       theme = "default",
       billable,
       className,
-      movable = false,
       resizable = false,
       snapUnitPx,
       minLeft,
       maxRight,
-      onMoveEnd,
       onResizeEnd,
-      resetLeftOnMoveEnd = false,
-      resetWidthOnResizeEnd = false,
       renderLabel,
       renderFloatingLabel,
       onClick,
-      onPointerDown,
-      onPointerMove,
-      onPointerUp,
-      onPointerCancel,
       style,
       ...htmlProps
     },
@@ -84,37 +77,24 @@ export const GanttBar = React.forwardRef<HTMLDivElement, GanttBarProps>(
   ) {
     const isTimeoff = variant === "timeoff";
     const isCrosshatch = theme === "crosshatch";
-    const isInteractive = movable || resizable || typeof onClick === "function";
-    const showPointerCursor = typeof onClick === "function" && !movable;
+    const isInteractive = resizable || typeof onClick === "function";
+    const showPointerCursor = typeof onClick === "function";
     const {
       isInteracting,
       liveLeft,
       liveWidth,
-      handleClick,
-      handleRootPointerDown,
-      handleRootPointerMove,
-      handleRootPointerUp,
-      handleRootPointerCancel,
-      handleResizePointerDown,
+      handleStartResizePointerDown,
+      handleEndResizePointerDown,
       handleResizePointerMove,
       handleResizePointerUp,
       handleResizePointerCancel,
     } = useGanttBarInteraction({
       left,
       width,
-      movable,
       snapUnitPx,
       minLeft,
       maxRight,
-      onMoveEnd: movable ? onMoveEnd : undefined,
       onResizeEnd: resizable ? onResizeEnd : undefined,
-      onClick,
-      onPointerDown,
-      onPointerMove,
-      onPointerUp,
-      onPointerCancel,
-      resetLeftOnMoveEnd,
-      resetWidthOnResizeEnd,
     });
 
     return (
@@ -123,18 +103,11 @@ export const GanttBar = React.forwardRef<HTMLDivElement, GanttBarProps>(
         data-gantt-bar="true"
         className={cn(
           ganttBarVariants({ variant }),
-          movable && "cursor-grab active:cursor-grabbing touch-none",
           showPointerCursor && "cursor-pointer",
           className,
         )}
         {...htmlProps}
-        onClick={isInteractive ? handleClick : onClick}
-        onPointerDown={isInteractive ? handleRootPointerDown : onPointerDown}
-        onPointerMove={isInteractive ? handleRootPointerMove : onPointerMove}
-        onPointerUp={isInteractive ? handleRootPointerUp : onPointerUp}
-        onPointerCancel={
-          isInteractive ? handleRootPointerCancel : onPointerCancel
-        }
+        onClick={isInteractive ? onClick : undefined}
         style={{
           ...style,
           left: Math.max(liveLeft - BAR_MARGIN / 2, 0),
@@ -165,16 +138,28 @@ export const GanttBar = React.forwardRef<HTMLDivElement, GanttBarProps>(
               <span className="block ml-1 w-1 h-1 rounded-full bg-surface-amber-3"></span>
             ) : null}
             {resizable ? (
-              <span
-                className="absolute inset-y-0 right-0 flex w-3.5 cursor-ew-resize items-center justify-end pr-2 touch-none"
-                onPointerDown={handleResizePointerDown}
-                onPointerMove={handleResizePointerMove}
-                onPointerUp={handleResizePointerUp}
-                onPointerCancel={handleResizePointerCancel}
-                onClick={(event) => event.stopPropagation()}
-              >
-                <span className="pointer-events-none block h-4 w-0.5 rounded-2xl bg-surface-gray-4 opacity-0 transition-opacity group-hover:opacity-100" />
-              </span>
+              <>
+                <span
+                  className="absolute inset-y-0 left-0 flex w-3.5 cursor-ew-resize items-center justify-start pl-2 touch-none"
+                  onPointerDown={handleStartResizePointerDown}
+                  onPointerMove={handleResizePointerMove}
+                  onPointerUp={handleResizePointerUp}
+                  onPointerCancel={handleResizePointerCancel}
+                  onClick={(event) => event.stopPropagation()}
+                >
+                  <span className="pointer-events-none block h-4 w-0.5 rounded-2xl bg-surface-gray-4 opacity-0 transition-opacity group-hover:opacity-100" />
+                </span>
+                <span
+                  className="absolute inset-y-0 right-0 flex w-3.5 cursor-ew-resize items-center justify-end pr-2 touch-none"
+                  onPointerDown={handleEndResizePointerDown}
+                  onPointerMove={handleResizePointerMove}
+                  onPointerUp={handleResizePointerUp}
+                  onPointerCancel={handleResizePointerCancel}
+                  onClick={(event) => event.stopPropagation()}
+                >
+                  <span className="pointer-events-none block h-4 w-0.5 rounded-2xl bg-surface-gray-4 opacity-0 transition-opacity group-hover:opacity-100" />
+                </span>
+              </>
             ) : null}
             {renderFloatingLabel ? (
               <span className="pointer-events-none absolute right-0 top-full mt-1 pr-2 whitespace-nowrap text-[13px] font-medium text-ink-gray-6">

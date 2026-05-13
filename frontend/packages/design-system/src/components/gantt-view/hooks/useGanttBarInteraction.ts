@@ -1,17 +1,10 @@
-/**
- * External dependencies.
- */
 import {
   useCallback,
   useEffect,
   useRef,
   useState,
-  type MouseEventHandler,
   type PointerEventHandler,
 } from "react";
-
-const MIN_BAR_WIDTH = 12;
-const INTERACTION_THRESHOLD = 3;
 
 /**
  * Clamps a value between a min and max ensuring the min is not greater than the max.
@@ -33,51 +26,35 @@ function snapValue(rawValue: number, unit: number | undefined, origin = 0) {
 }
 
 type ActiveInteraction = {
-  type: "move" | "resize";
+  edge: "start" | "end";
   pointerId: number;
   startX: number;
   startLeft: number;
   startWidth: number;
-  currentTarget: HTMLDivElement | HTMLSpanElement;
+  currentTarget: HTMLSpanElement;
+};
+
+type ResizeGeometry = {
+  left: number;
+  width: number;
 };
 
 type UseGanttBarInteractionOptions = {
   left: number;
   width: number;
-  movable?: boolean;
   snapUnitPx?: number;
   minLeft?: number;
   maxRight?: number;
-  onMoveEnd?: (nextLeft: number) => void;
-  onResizeEnd?: (nextWidth: number) => void;
-  onClick?: MouseEventHandler<HTMLDivElement>;
-  onPointerDown?: PointerEventHandler<HTMLDivElement>;
-  onPointerMove?: PointerEventHandler<HTMLDivElement>;
-  onPointerUp?: PointerEventHandler<HTMLDivElement>;
-  onPointerCancel?: PointerEventHandler<HTMLDivElement>;
-  resetLeftOnMoveEnd?: boolean;
-  resetWidthOnResizeEnd?: boolean;
+  onResizeEnd?: (geometry: ResizeGeometry) => void;
 };
 
-/**
- * Owns the move / resize pointer lifecycle for gantt bars.
- */
 export function useGanttBarInteraction({
   left,
   width,
-  movable = false,
   snapUnitPx,
   minLeft,
   maxRight,
-  onMoveEnd,
   onResizeEnd,
-  onClick,
-  onPointerDown,
-  onPointerMove,
-  onPointerUp,
-  onPointerCancel,
-  resetLeftOnMoveEnd = false,
-  resetWidthOnResizeEnd = false,
 }: UseGanttBarInteractionOptions) {
   const [liveLeft, setLiveLeft] = useState(left);
   const [liveWidth, setLiveWidth] = useState(width);
@@ -85,45 +62,26 @@ export function useGanttBarInteraction({
   const liveLeftRef = useRef(left);
   const liveWidthRef = useRef(width);
   const activeInteractionRef = useRef<ActiveInteraction | null>(null);
-  const interactionMovedRef = useRef(false);
-  const suppressClickRef = useRef(false);
-
-  const clampLeft = useCallback(
-    (nextLeft: number, nextWidth = liveWidthRef.current) => {
-      const resolvedMinLeft = minLeft ?? Number.NEGATIVE_INFINITY;
-      const resolvedMaxLeft =
-        maxRight === undefined
-          ? Number.POSITIVE_INFINITY
-          : maxRight - nextWidth;
-
-      return clamp(nextLeft, resolvedMinLeft, resolvedMaxLeft);
-    },
-    [maxRight, minLeft],
-  );
+  const minWidth = snapUnitPx && snapUnitPx > 0 ? snapUnitPx : 1;
 
   const clampWidth = useCallback(
     (nextWidth: number, nextLeft = liveLeftRef.current) => {
       const resolvedMaxWidth =
         maxRight === undefined ? Number.POSITIVE_INFINITY : maxRight - nextLeft;
 
-      return clamp(nextWidth, MIN_BAR_WIDTH, resolvedMaxWidth);
+      return clamp(nextWidth, minWidth, resolvedMaxWidth);
     },
-    [maxRight],
+    [maxRight, minWidth],
   );
 
   useEffect(() => {
     if (!activeInteractionRef.current) {
+      setLiveWidth(width);
       setLiveLeft(left);
       liveLeftRef.current = left;
-    }
-  }, [left]);
-
-  useEffect(() => {
-    if (!activeInteractionRef.current) {
-      setLiveWidth(width);
       liveWidthRef.current = width;
     }
-  }, [width]);
+  }, [left, width]);
 
   useEffect(() => {
     return () => {
@@ -131,22 +89,12 @@ export function useGanttBarInteraction({
     };
   }, []);
 
-  /**
-   * Resets transient interaction state once a move or resize completes.
-   */
   const finishInteraction = useCallback(() => {
     activeInteractionRef.current = null;
     setIsInteracting(false);
     document.body.style.userSelect = "";
-
-    if (interactionMovedRef.current) {
-      suppressClickRef.current = true;
-    }
   }, []);
 
-  /**
-   * Cancels the currently active pointer interaction and restores the last committed geometry.
-   */
   const cancelActiveInteraction = useCallback(() => {
     const activeInteraction = activeInteractionRef.current;
     if (!activeInteraction) {
@@ -163,25 +111,16 @@ export function useGanttBarInteraction({
       );
     }
 
-    if (activeInteraction.type === "move") {
-      liveLeftRef.current = left;
-      setLiveLeft(left);
-    }
-
-    if (activeInteraction.type === "resize") {
-      liveWidthRef.current = width;
-      setLiveWidth(width);
-    }
+    liveLeftRef.current = left;
+    liveWidthRef.current = width;
+    setLiveLeft(left);
+    setLiveWidth(width);
 
     activeInteractionRef.current = null;
     setIsInteracting(false);
     document.body.style.userSelect = "";
-    interactionMovedRef.current = false;
   }, [left, width]);
 
-  /**
-   * Listens for Escape while a drag or resize is active so in-progress pointer interactions can be cancelled.
-   */
   useEffect(() => {
     if (!isInteracting) {
       return;
@@ -204,162 +143,52 @@ export function useGanttBarInteraction({
     };
   }, [cancelActiveInteraction, isInteracting]);
 
-  /**
-   * Starts dragging the full bar body when move interactions are enabled.
-   */
-  const handleBarPointerDown: PointerEventHandler<HTMLDivElement> = useCallback(
-    (event) => {
-      event.preventDefault();
-      activeInteractionRef.current = {
-        type: "move",
-        pointerId: event.pointerId,
-        startX: event.clientX,
-        startLeft: liveLeftRef.current,
-        startWidth: liveWidthRef.current,
-        currentTarget: event.currentTarget,
-      };
-      interactionMovedRef.current = false;
-      setIsInteracting(true);
-      document.body.style.userSelect = "none";
-      event.currentTarget.setPointerCapture(event.pointerId);
-    },
+  const handleResizePointerDown = useCallback(
+    (edge: "start" | "end"): PointerEventHandler<HTMLSpanElement> =>
+      (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        activeInteractionRef.current = {
+          edge,
+          pointerId: event.pointerId,
+          startX: event.clientX,
+          startLeft: liveLeftRef.current,
+          startWidth: liveWidthRef.current,
+          currentTarget: event.currentTarget,
+        };
+        setIsInteracting(true);
+        document.body.style.userSelect = "none";
+        event.currentTarget.setPointerCapture(event.pointerId);
+      },
     [],
   );
 
-  /**
-   * Updates the live preview position while the bar body is being dragged.
-   */
-  const handleBarPointerMove: PointerEventHandler<HTMLDivElement> = useCallback(
-    (event) => {
-      const interaction = activeInteractionRef.current;
-      if (
-        !interaction ||
-        interaction.type !== "move" ||
-        interaction.pointerId !== event.pointerId
-      ) {
-        return;
-      }
-
-      event.stopPropagation();
-
-      const deltaX = event.clientX - interaction.startX;
-      if (Math.abs(deltaX) > INTERACTION_THRESHOLD) {
-        interactionMovedRef.current = true;
-      }
-
-      const nextLeft = clampLeft(
-        interaction.startLeft + deltaX,
-        liveWidthRef.current,
-      );
-      liveLeftRef.current = nextLeft;
-      setLiveLeft(nextLeft);
-    },
-    [clampLeft],
-  );
-
-  /**
-   * Commits the snapped preview position when body dragging ends.
-   */
-  const handleBarPointerUp: PointerEventHandler<HTMLDivElement> = useCallback(
-    (event) => {
-      const interaction = activeInteractionRef.current;
-      if (
-        !interaction ||
-        interaction.type !== "move" ||
-        interaction.pointerId !== event.pointerId
-      ) {
-        return;
-      }
-
-      event.stopPropagation();
-      event.currentTarget.releasePointerCapture(event.pointerId);
-
-      const snappedLeft = clampLeft(
-        snapValue(liveLeftRef.current, snapUnitPx, minLeft ?? 0),
-        liveWidthRef.current,
-      );
-
-      onMoveEnd?.(snappedLeft);
-      liveLeftRef.current = resetLeftOnMoveEnd ? left : snappedLeft;
-      setLiveLeft(liveLeftRef.current);
-      finishInteraction();
-    },
-    [
-      clampLeft,
-      finishInteraction,
-      left,
-      minLeft,
-      onMoveEnd,
-      resetLeftOnMoveEnd,
-      snapUnitPx,
-    ],
-  );
-
-  /**
-   * Restores the previous position when body dragging is cancelled.
-   */
-  const handleBarPointerCancel: PointerEventHandler<HTMLDivElement> =
-    useCallback(
-      (event) => {
-        const interaction = activeInteractionRef.current;
-        if (
-          !interaction ||
-          interaction.type !== "move" ||
-          interaction.pointerId !== event.pointerId
-        ) {
-          return;
-        }
-
-        event.stopPropagation();
-        event.currentTarget.releasePointerCapture(event.pointerId);
-        liveLeftRef.current = left;
-        setLiveLeft(left);
-        finishInteraction();
-      },
-      [finishInteraction, left],
-    );
-
-  /**
-   * Starts resizing from the handle at the bar edge.
-   */
-  const handleResizePointerDown: PointerEventHandler<HTMLSpanElement> =
-    useCallback((event) => {
-      event.preventDefault();
-      event.stopPropagation();
-      activeInteractionRef.current = {
-        type: "resize",
-        pointerId: event.pointerId,
-        startX: event.clientX,
-        startLeft: liveLeftRef.current,
-        startWidth: liveWidthRef.current,
-        currentTarget: event.currentTarget,
-      };
-      interactionMovedRef.current = false;
-      setIsInteracting(true);
-      document.body.style.userSelect = "none";
-      event.currentTarget.setPointerCapture(event.pointerId);
-    }, []);
-
-  /**
-   * Updates the live preview width while the resize handle is dragged.
-   */
   const handleResizePointerMove: PointerEventHandler<HTMLSpanElement> =
     useCallback(
       (event) => {
         const interaction = activeInteractionRef.current;
-        if (
-          !interaction ||
-          interaction.type !== "resize" ||
-          interaction.pointerId !== event.pointerId
-        ) {
+        if (!interaction || interaction.pointerId !== event.pointerId) {
           return;
         }
 
         event.stopPropagation();
 
         const deltaX = event.clientX - interaction.startX;
-        if (Math.abs(deltaX) > INTERACTION_THRESHOLD) {
-          interactionMovedRef.current = true;
+
+        if (interaction.edge === "start") {
+          const fixedRight = interaction.startLeft + interaction.startWidth;
+          const nextLeft = clamp(
+            interaction.startLeft + deltaX,
+            minLeft ?? Number.NEGATIVE_INFINITY,
+            fixedRight - minWidth,
+          );
+          const nextWidth = clampWidth(fixedRight - nextLeft, nextLeft);
+
+          liveLeftRef.current = nextLeft;
+          liveWidthRef.current = nextWidth;
+          setLiveLeft(nextLeft);
+          setLiveWidth(nextWidth);
+          return;
         }
 
         const nextWidth = clampWidth(
@@ -369,155 +198,80 @@ export function useGanttBarInteraction({
         liveWidthRef.current = nextWidth;
         setLiveWidth(nextWidth);
       },
-      [clampWidth],
+      [clampWidth, minLeft, minWidth],
     );
 
-  /**
-   * Commits the snapped preview width when resizing ends.
-   */
   const handleResizePointerUp: PointerEventHandler<HTMLSpanElement> =
     useCallback(
       (event) => {
         const interaction = activeInteractionRef.current;
-        if (
-          !interaction ||
-          interaction.type !== "resize" ||
-          interaction.pointerId !== event.pointerId
-        ) {
+        if (!interaction || interaction.pointerId !== event.pointerId) {
           return;
         }
 
         event.stopPropagation();
         event.currentTarget.releasePointerCapture(event.pointerId);
 
-        const snappedWidth = clampWidth(
-          snapValue(liveWidthRef.current, snapUnitPx),
-          liveLeftRef.current,
-        );
+        let snappedLeft = liveLeftRef.current;
+        let snappedWidth = liveWidthRef.current;
 
-        onResizeEnd?.(snappedWidth);
-        liveWidthRef.current = resetWidthOnResizeEnd ? width : snappedWidth;
-        setLiveWidth(liveWidthRef.current);
+        if (interaction.edge === "start") {
+          const fixedRight = interaction.startLeft + interaction.startWidth;
+          snappedLeft = clamp(
+            snapValue(liveLeftRef.current, snapUnitPx, minLeft ?? 0),
+            minLeft ?? Number.NEGATIVE_INFINITY,
+            fixedRight - minWidth,
+          );
+          snappedWidth = clampWidth(fixedRight - snappedLeft, snappedLeft);
+        } else {
+          snappedWidth = clampWidth(
+            snapValue(liveWidthRef.current, snapUnitPx),
+            liveLeftRef.current,
+          );
+        }
+
+        liveLeftRef.current = snappedLeft;
+        liveWidthRef.current = snappedWidth;
+        setLiveLeft(snappedLeft);
+        setLiveWidth(snappedWidth);
+        onResizeEnd?.({ left: snappedLeft, width: snappedWidth });
         finishInteraction();
       },
       [
         clampWidth,
         finishInteraction,
+        minLeft,
+        minWidth,
         onResizeEnd,
-        resetWidthOnResizeEnd,
         snapUnitPx,
-        width,
       ],
     );
 
-  /**
-   * Restores the previous width when resizing is cancelled.
-   */
   const handleResizePointerCancel: PointerEventHandler<HTMLSpanElement> =
     useCallback(
       (event) => {
         const interaction = activeInteractionRef.current;
-        if (
-          !interaction ||
-          interaction.type !== "resize" ||
-          interaction.pointerId !== event.pointerId
-        ) {
+        if (!interaction || interaction.pointerId !== event.pointerId) {
           return;
         }
 
         event.stopPropagation();
         event.currentTarget.releasePointerCapture(event.pointerId);
+        liveLeftRef.current = left;
         liveWidthRef.current = width;
+        setLiveLeft(left);
         setLiveWidth(width);
         finishInteraction();
       },
-      [finishInteraction, width],
-    );
-
-  const consumeClickSuppression = useCallback(() => {
-    if (!suppressClickRef.current) {
-      return false;
-    }
-
-    suppressClickRef.current = false;
-    return true;
-  }, []);
-
-  /**
-   * Applies click suppression after a drag and forwards a genuine click to the consumer.
-   */
-  const handleClick: MouseEventHandler<HTMLDivElement> = useCallback(
-    (event) => {
-      if (consumeClickSuppression()) {
-        event.preventDefault();
-        event.stopPropagation();
-        return;
-      }
-
-      onClick?.(event);
-    },
-    [consumeClickSuppression, onClick],
-  );
-
-  /**
-   * Forwards pointer events to consumers while keeping the interaction lifecycle local to this hook.
-   */
-  const handleRootPointerDown: PointerEventHandler<HTMLDivElement> =
-    useCallback(
-      (event) => {
-        onPointerDown?.(event);
-        if (!event.defaultPrevented && movable) {
-          handleBarPointerDown(event);
-        }
-      },
-      [handleBarPointerDown, movable, onPointerDown],
-    );
-
-  /**
-   * Forwards pointer move events to consumers.
-   */
-  const handleRootPointerMove: PointerEventHandler<HTMLDivElement> =
-    useCallback(
-      (event) => {
-        onPointerMove?.(event);
-        handleBarPointerMove(event);
-      },
-      [handleBarPointerMove, onPointerMove],
-    );
-
-  /**
-   * Forwards pointer up events to consumers and ends move interactions.
-   */
-  const handleRootPointerUp: PointerEventHandler<HTMLDivElement> = useCallback(
-    (event) => {
-      onPointerUp?.(event);
-      handleBarPointerUp(event);
-    },
-    [handleBarPointerUp, onPointerUp],
-  );
-
-  /**
-   * Forwards pointer cancel events to consumers and cancels move interactions.
-   */
-  const handleRootPointerCancel: PointerEventHandler<HTMLDivElement> =
-    useCallback(
-      (event) => {
-        onPointerCancel?.(event);
-        handleBarPointerCancel(event);
-      },
-      [handleBarPointerCancel, onPointerCancel],
+      [finishInteraction, left, width],
     );
 
   return {
     isInteracting,
     liveLeft,
     liveWidth,
-    handleClick,
-    handleRootPointerDown,
-    handleRootPointerMove,
-    handleRootPointerUp,
-    handleRootPointerCancel,
-    handleResizePointerDown,
+    handleStartResizePointerDown: handleResizePointerDown("start"),
+    handleEndResizePointerDown: handleResizePointerDown("end"),
     handleResizePointerMove,
     handleResizePointerUp,
     handleResizePointerCancel,

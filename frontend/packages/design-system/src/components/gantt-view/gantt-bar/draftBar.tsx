@@ -11,7 +11,7 @@ import { FULL_DAY_HOURS } from "../constants";
 import { useGanttStore } from "../ganttStore";
 import type { AllocationCallbackData } from "../types";
 import { getBarDateRange, getBarDaySpan, getBarTimelineBounds } from "../utils";
-import { GanttBar } from "./ganttBar";
+import { GanttBar, type GanttBarGeometry } from "./ganttBar";
 
 interface DraftBarProps {
   rowKey: string;
@@ -85,12 +85,8 @@ export function DraftBar({
     [columnWidth],
   );
 
-  const handleMoveEnd = useCallback((nextLeft: number) => {
-    setPreviewGeometry((prev) => ({ ...prev, left: nextLeft }));
-  }, []);
-
-  const handleResizeEnd = useCallback((nextWidth: number) => {
-    setPreviewGeometry((prev) => ({ ...prev, width: nextWidth }));
+  const handleResizeEnd = useCallback((geometry: GanttBarGeometry) => {
+    setPreviewGeometry(geometry);
   }, []);
 
   const handleClick = useCallback(() => {
@@ -180,13 +176,11 @@ export function DraftBar({
       className="outline-none"
       minLeft={bounds.minLeft}
       maxRight={bounds.maxRight}
-      movable={Boolean(onOpenAllocation)}
       resizable={Boolean(onOpenAllocation)}
       snapUnitPx={columnWidth}
       tabIndex={0}
       onClick={handleClick}
       onKeyDown={handleKeyDown}
-      onMoveEnd={handleMoveEnd}
       onResizeEnd={handleResizeEnd}
     />
   );

@@ -4,7 +4,7 @@ import { useGanttStore } from "../ganttStore";
 import type { ProjectAllocationBar } from "../ganttStore";
 import { getBarDateRange, getBarDaySpan, getBarTimelineBounds } from "../utils";
 import { GanttAllocationPopover } from "./allocationPopover";
-import { GanttBar } from "./ganttBar";
+import { GanttBar, type GanttBarGeometry } from "./ganttBar";
 import { allocationBarToEntry } from "./utils/allocationBarToEntry";
 import { withPendingDeleteEntry } from "./utils/withPendingDeleteEntry";
 
@@ -43,6 +43,8 @@ export function GanttProjectBar({
   const left = allocation.barOffset + headerWidth;
   const { width, fullNumDays } = allocation;
   const [previewGeometry, setPreviewGeometry] = useState({ left, width });
+  const isModified =
+    previewGeometry.left !== left || previewGeometry.width !== width;
 
   useEffect(() => {
     setPreviewGeometry({ left, width });
@@ -146,13 +148,8 @@ export function GanttProjectBar({
     ],
   );
 
-  const handleMoveEnd = useCallback((nextLeft: number) => {
-    setPreviewGeometry((prev) => ({ ...prev, left: nextLeft }));
-    projectBarRef.current?.focus();
-  }, []);
-
-  const handleResizeEnd = useCallback((nextWidth: number) => {
-    setPreviewGeometry((prev) => ({ ...prev, width: nextWidth }));
+  const handleResizeEnd = useCallback((geometry: GanttBarGeometry) => {
+    setPreviewGeometry(geometry);
     projectBarRef.current?.focus();
   }, []);
 
@@ -170,9 +167,14 @@ export function GanttProjectBar({
   );
 
   const handleClick = useCallback(() => {
+    if (!isModified) {
+      return;
+    }
+
     openEditAllocation(previewGeometry.left, previewGeometry.width);
     setPreviewGeometry({ left, width });
   }, [
+    isModified,
     left,
     openEditAllocation,
     previewGeometry.left,
@@ -196,15 +198,13 @@ export function GanttProjectBar({
             width={previewGeometry.width}
             className="outline-none"
             billable={allocation.billable}
-            movable={resizable}
             resizable={resizable}
             snapUnitPx={columnWidth}
             tabIndex={0}
             minLeft={bounds.minLeft}
             maxRight={bounds.maxRight}
-            onClick={handleClick}
+            onClick={isModified ? handleClick : undefined}
             onKeyDown={handleKeyDown}
-            onMoveEnd={handleMoveEnd}
             onResizeEnd={handleResizeEnd}
           />
         }

@@ -98,8 +98,8 @@ export function AllocationsTeamProvider({
     }),
     [
       members,
-      isQueryLoading,
       isNextPageLoading,
+      isQueryLoading,
       hasMore,
       searchInput,
       duration,

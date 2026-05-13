@@ -12,8 +12,15 @@ import {
   HEADER_HEIGHT,
 } from "./constants";
 import { DeleteAllocationDialog } from "./deleteAllocationDialog";
-import { GanttMemberRow } from "./ganttMemberRow";
-import { GanttProjectRow } from "./ganttProjectRow";
+import { DraftBar } from "./gantt-bar/draftBar";
+import { GanttMemberBar } from "./gantt-bar/memberBar";
+import { GanttProjectBar } from "./gantt-bar/projectBar";
+import {
+  RowAllocationOverlay,
+  type RowAllocationOverlayHandle,
+} from "./gantt-bar/rowAllocationOverlay";
+import { GanttMemberItem } from "./ganttMemberItem";
+import { GanttProjectItem } from "./ganttProjectItem";
 import { createGanttStore, GanttContext, useGanttStore } from "./ganttStore";
 import { GanttWeekHeader } from "./ganttWeekHeader";
 import { useContainerResize } from "./hooks/useContainerResize";
@@ -67,6 +74,36 @@ const GanttGridInner: React.FC<{
   );
 
   const canManageAllocations = hasRoleAccess && Boolean(onAddAllocation);
+  const memberRowOverlayRefs = useRef<
+    Record<string, RowAllocationOverlayHandle | null>
+  >({});
+  const projectRowOverlayRefs = useRef<
+    Record<string, RowAllocationOverlayHandle | null>
+  >({});
+
+  const setMemberRowOverlayRef = useCallback(
+    (rowKey: string, handle: RowAllocationOverlayHandle | null) => {
+      if (handle) {
+        memberRowOverlayRefs.current[rowKey] = handle;
+        return;
+      }
+
+      delete memberRowOverlayRefs.current[rowKey];
+    },
+    [],
+  );
+
+  const setProjectRowOverlayRef = useCallback(
+    (rowKey: string, handle: RowAllocationOverlayHandle | null) => {
+      if (handle) {
+        projectRowOverlayRefs.current[rowKey] = handle;
+        return;
+      }
+
+      delete projectRowOverlayRefs.current[rowKey];
+    },
+    [],
+  );
 
   return (
     <div
@@ -112,45 +149,189 @@ const GanttGridInner: React.FC<{
         </thead>
 
         <tbody>
-          {members.map((member: Member, rowIndex: number) => {
+          {members.map((member, rowIndex) => {
             const isExpanded = expandedRows.has(rowIndex);
             const animatedRowHeight = isExpanded ? CELL_HEIGHT : 0;
             const addProjectRowHeight = isExpanded ? ADD_PROJECT_ROW_HEIGHT : 0;
+            const memberRowKey = `member-${rowIndex}`;
 
             return (
               <React.Fragment key={rowIndex}>
-                <GanttMemberRow
-                  rowIndex={rowIndex}
-                  member={member}
-                  weeks={weeks}
-                  daysPerWeek={daysPerWeek}
-                  headerWidth={headerWidth}
-                  columnWidth={columnWidth}
-                  columnCount={columnCount}
-                  canManageAllocations={canManageAllocations}
-                  onAddAllocation={onAddAllocation}
-                />
-
-                {/* Project child rows */}
-                {member.projects?.map((project, projectIndex) => {
-                  return (
-                    <GanttProjectRow
-                      key={`${rowIndex}-project-${projectIndex}`}
-                      rowIndex={rowIndex}
-                      projectIndex={projectIndex}
-                      project={project}
-                      memberId={member.id}
-                      isExpanded={isExpanded}
-                      animatedRowHeight={animatedRowHeight}
-                      weeks={weeks}
-                      daysPerWeek={daysPerWeek}
+                <tr
+                  className="relative last:border-b border-outline-gray-1"
+                  onMouseMove={
+                    canManageAllocations
+                      ? (event) =>
+                          memberRowOverlayRefs.current[
+                            memberRowKey
+                          ]?.handleRowMouseMove(event)
+                      : undefined
+                  }
+                  onMouseLeave={
+                    canManageAllocations
+                      ? () =>
+                          memberRowOverlayRefs.current[
+                            memberRowKey
+                          ]?.clearHoveredSlot()
+                      : undefined
+                  }
+                >
+                  <GanttMemberItem memberInd={rowIndex} />
+                  {weeks.map((weekIndex) => (
+                    <td
+                      key={weekIndex}
+                      colSpan={daysPerWeek}
+                      className="border-r border-outline-gray-1"
+                      style={{ height: CELL_HEIGHT }}
+                    />
+                  ))}
+                  <td
+                    aria-hidden="true"
+                    className="p-0 border-0 w-0 min-w-0 max-w-0"
+                    style={{ width: 0 }}
+                  >
+                    {member.memberAllocations.map((alloc, idx) => (
+                      <GanttMemberBar
+                        key={idx}
+                        allocation={alloc}
+                        memberInd={rowIndex}
+                      />
+                    ))}
+                    <RowAllocationOverlay
+                      ref={(handle) =>
+                        setMemberRowOverlayRef(memberRowKey, handle)
+                      }
+                      enabled={canManageAllocations}
+                      rowKey={memberRowKey}
                       headerWidth={headerWidth}
                       columnWidth={columnWidth}
                       columnCount={columnCount}
-                      canManageAllocations={canManageAllocations}
-                      hasRoleAccess={hasRoleAccess}
-                      onAddAllocation={onAddAllocation}
+                      allocations={member.memberAllocations}
+                      createDraftBar={(left) => ({
+                        rowKey: memberRowKey,
+                        left,
+                        width: columnWidth,
+                        employeeId: member.id,
+                      })}
+                      renderDraft={(draft, removeDraft) => (
+                        <DraftBar
+                          key={`draft-member-${rowIndex}`}
+                          rowKey={draft.rowKey}
+                          left={draft.left}
+                          width={draft.width}
+                          employeeId={draft.employeeId}
+                          onOpenAllocation={onAddAllocation}
+                          onRemove={removeDraft}
+                        />
+                      )}
                     />
+                  </td>
+                </tr>
+
+                {/* Project child rows */}
+                {member.projects?.map((project, projectIndex) => {
+                  const projectRowKey = `project-${rowIndex}-${projectIndex}`;
+
+                  return (
+                    <tr
+                      key={`${rowIndex}-project-${projectIndex}`}
+                      className={cn("relative", {
+                        "pointer-events-none": !isExpanded,
+                      })}
+                      aria-hidden={!isExpanded}
+                      onMouseMove={
+                        canManageAllocations && isExpanded
+                          ? (event) =>
+                              projectRowOverlayRefs.current[
+                                projectRowKey
+                              ]?.handleRowMouseMove(event)
+                          : undefined
+                      }
+                      onMouseLeave={
+                        canManageAllocations && isExpanded
+                          ? () =>
+                              projectRowOverlayRefs.current[
+                                projectRowKey
+                              ]?.clearHoveredSlot()
+                          : undefined
+                      }
+                    >
+                      <GanttProjectItem
+                        {...project}
+                        style={{
+                          height: animatedRowHeight,
+                          width: headerWidth,
+                          minWidth: headerWidth,
+                          borderBottomWidth: isExpanded ? undefined : 0,
+                          borderRightWidth: isExpanded ? undefined : 0,
+                        }}
+                      />
+                      {weeks.map((weekIndex) => (
+                        <td
+                          key={weekIndex}
+                          colSpan={daysPerWeek}
+                          className={cn(
+                            "overflow-hidden transition-[height] duration-200 ease-in-out",
+                            {
+                              "border-r border-outline-gray-1": isExpanded,
+                            },
+                          )}
+                          style={{
+                            height: animatedRowHeight,
+                          }}
+                        />
+                      ))}
+                      <td
+                        aria-hidden="true"
+                        className="p-0 border-0 w-0 min-w-0 max-w-0"
+                        style={{ width: 0 }}
+                      >
+                        {isExpanded &&
+                          (project.allocations ?? []).map(
+                            (alloc, allocIndex) => (
+                              <GanttProjectBar
+                                key={allocIndex}
+                                allocation={alloc}
+                                resizable={hasRoleAccess}
+                              />
+                            ),
+                          )}
+                        <RowAllocationOverlay
+                          ref={(handle) =>
+                            setProjectRowOverlayRef(projectRowKey, handle)
+                          }
+                          enabled={canManageAllocations && isExpanded}
+                          rowKey={projectRowKey}
+                          headerWidth={headerWidth}
+                          columnWidth={columnWidth}
+                          columnCount={columnCount}
+                          allocations={project.allocations ?? []}
+                          createDraftBar={(left) => ({
+                            rowKey: projectRowKey,
+                            left,
+                            width: columnWidth,
+                            employeeId: member.id,
+                            projectId: project.id,
+                            projectName: project.name,
+                            customerName: project.client,
+                          })}
+                          renderDraft={(draft, removeDraft) => (
+                            <DraftBar
+                              key={`draft-project-${rowIndex}-${projectIndex}`}
+                              rowKey={draft.rowKey}
+                              left={draft.left}
+                              width={draft.width}
+                              employeeId={draft.employeeId}
+                              projectId={draft.projectId}
+                              projectName={draft.projectName}
+                              customerName={draft.customerName}
+                              onOpenAllocation={onAddAllocation}
+                              onRemove={removeDraft}
+                            />
+                          )}
+                        />
+                      </td>
+                    </tr>
                   );
                 })}
 
