@@ -294,11 +294,12 @@ const PMReport = ({ projectId }: PMReportProps) => {
       }, 600000);
     } catch (error) {
       setIsGenerating(false);
-      const message = parseFrappeErrorMsg(error as FrappeError);
+      const message =
+        parseFrappeErrorMsg(error as FrappeError) ||
+        "Failed to generate Project Report. Please try again.";
       toast({
         variant: "destructive",
-        description:
-          message || "Failed to generate Project Report. Please try again.",
+        description: message,
       });
     }
   };
@@ -330,10 +331,11 @@ const PMReport = ({ projectId }: PMReportProps) => {
         });
       }
     } catch (error) {
-      const message = parseFrappeErrorMsg(error as FrappeError);
+      const message =
+        parseFrappeErrorMsg(error as FrappeError) || "Resync failed.";
       toast({
         variant: "destructive",
-        description: message || "Resync failed.",
+        description: message,
       });
     } finally {
       setResyncingRunId(null);
@@ -587,8 +589,11 @@ const PMReport = ({ projectId }: PMReportProps) => {
         </div>
 
         <div className="flex flex-col items-end gap-2 mt-2">
-          <Button onClick={handleSaveAndGenerate} disabled={isBusy}>
-            {isBusy ? (
+          <Button
+            onClick={handleSaveAndGenerate}
+            disabled={isBusy || isGenerating}
+          >
+            {isBusy || isGenerating ? (
               <>
                 <Spinner className="mr-2" />
                 Generating...
