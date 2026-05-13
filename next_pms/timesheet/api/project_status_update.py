@@ -58,6 +58,7 @@ def save_project_status_update(
                     comment_row = doc.append("comments", {})
                     comment_row.user = comment.get("user", frappe.session.user)
                     comment_row.comment = comment.get("comment", "")
+                    comment_row.reply_to = comment.get("reply_to")
             doc.save()
 
             if status == "Publish" and not was_publish:
@@ -74,6 +75,7 @@ def save_project_status_update(
                     comment_row = doc.append("comments", {})
                     comment_row.user = comment.get("user", frappe.session.user)
                     comment_row.comment = comment.get("comment", "")
+                    comment_row.reply_to = comment.get("reply_to")
             doc.insert()
             if status == "Publish":
                 should_enqueue_publish_notification = True
@@ -206,14 +208,17 @@ def update_project_status_update(
 
 @frappe.whitelist(methods=["POST"])
 @error_logger
-def add_comment_to_project_status_update(name: str, comment: str, user: str = None) -> dict[str, Any]:
+def add_comment_to_project_status_update(
+    name: str, comment: str, user: str | None = None, reply_to: str | None = None
+) -> dict[str, Any]:
     """
-    Add a comment to a Project Status Update
+    Add a comment or reply to a Project Status Update
 
     Args:
         name (str): Project Status Update document name
         comment (str): Comment text
         user (str, optional): User ID. Defaults to current user
+        reply_to (str, optional): Name of the parent comment row when posting a reply
 
     Returns:
         Dict[str, Any]: Updated document data
@@ -224,9 +229,15 @@ def add_comment_to_project_status_update(name: str, comment: str, user: str = No
 
     doc = frappe.get_doc("Project Status Update", name)
 
+    if reply_to:
+        existing_names = {row.name for row in doc.comments}
+        if reply_to not in existing_names:
+            frappe.throw(_("Parent comment '{0}' not found").format(reply_to))
+
     comment_row = doc.append("comments", {})
     comment_row.user = user or frappe.session.user
     comment_row.comment = comment
+    comment_row.reply_to = reply_to or None
     current_time = now()
     comment_row.created_at = current_time
     comment_row.modified_at = current_time
@@ -298,6 +309,37 @@ def update_comment_in_project_status_update(
     return get_project_status_update_details(doc.name)
 
 
+def _comment_descendant_row_names_in_removal_order(parent_name: str, rows: list) -> list[str]:
+    """Collect descendant child row names in post-order (deepest first) for safe ``doc.remove``.
+
+    Args:
+        parent_name (str): Comment row ``name`` to treat as the subtree root (not included
+            in the returned list; callers remove it separately after descendants).
+        rows (list): Snapshot of child rows, e.g. ``list(doc.comments)`` — must not change
+            during this call.
+
+    Returns:
+        list[str]: Row names under ``parent_name`` only; each branch is post-ordered so a
+            row appears only after all of its ``reply_to`` descendants.
+
+    Example thread (``reply_to`` chain: ``A`` is root, each node replies to its left neighbour):
+
+        A -> B -> C -> D
+
+        _comment_descendant_row_names_in_removal_order("A", rows)  # -> ["D", "C", "B"]
+
+    Deleting **B** (B, C, D are all removed; A stays):
+
+        _comment_descendant_row_names_in_removal_order("B", rows)  # -> ["D", "C"]
+    """
+    ordered: list[str] = []
+    for row in rows:
+        if row.reply_to == parent_name:
+            ordered.extend(_comment_descendant_row_names_in_removal_order(row.name, rows))
+            ordered.append(row.name)
+    return ordered
+
+
 @frappe.whitelist(methods=["POST"])
 @error_logger
 def delete_comment_from_project_status_update(name: str, comment_name: str) -> dict[str, Any]:
@@ -329,10 +371,97 @@ def delete_comment_from_project_status_update(name: str, comment_name: str) -> d
     if not target_row:
         frappe.throw(_("Comment with name '{0}' not found").format(comment_name))
 
+    row_snapshot = list(doc.comments)
+    row_by_name = {row.name: row for row in row_snapshot}
+    # remove the descendants of the comment before the comment itself
+    for row_name in _comment_descendant_row_names_in_removal_order(comment_name, row_snapshot):
+        doc.remove(row_by_name[row_name])
+
+    # remove the comment itself
     doc.remove(target_row)
     doc.save()
 
     return get_project_status_update_details(doc.name)
+
+
+def _serialize_comment(comment, user_map: dict[str, tuple]) -> dict[str, Any]:
+    """Return one Project Comments child row as dict (flat, no thread tree).
+
+    Example return shape::
+
+        {
+            "name": "a1b2c3d4e",
+            "user": "jane@example.com",
+            "user_full_name": "Jane Doe",
+            "user_image": "/files/jane.png",
+            "comment": "<p>Status looks good.</p>",
+            "reply_to": "parent_comment_row_name",
+            "created_at": "2025-05-14 10:00:00.000000",
+            "modified_at": "2025-05-14 12:30:00.000000",
+            "owner": "jane@example.com",
+            "modified_by": "jane@example.com",
+        }
+    """
+    user_details = user_map.get(comment.user)
+    return {
+        "name": comment.name,
+        "user": comment.user,
+        "user_full_name": user_details[0] if user_details else comment.user,
+        "user_image": user_details[1] if user_details else None,
+        "comment": comment.comment,
+        "reply_to": comment.reply_to,
+        "created_at": comment.created_at,
+        "modified_at": comment.modified_at,
+        "owner": comment.owner,
+        "modified_by": comment.modified_by,
+    }
+
+
+def _serialize_comment_with_replies(
+    comment, user_map: dict[str, tuple], replies_by_parent_name: dict[str, list]
+) -> dict[str, Any]:
+    """Return the same keys as ``_serialize_comment``, plus nested ``replies`` and ``reply_count``.
+
+    Each reply element repeats this structure recursively (depth matches the ``reply_to`` chain).
+
+    Example return shape::
+
+        {
+            "name": "root_row",
+            "user": "owner@example.com",
+            "user_full_name": "Owner",
+            "user_image": "/files/owner.png",
+            "comment": "<p>Weekly update.</p>",
+            "reply_to": None,
+            "created_at": "2025-05-14 09:00:00.000000",
+            "modified_at": "2025-05-14 09:00:00.000000",
+            "owner": "owner@example.com",
+            "modified_by": "owner@example.com",
+            "reply_count": 1,
+            "replies": [
+                {
+                    "name": "reply_row",
+                    "user": "peer@example.com",
+                    "user_full_name": "Peer",
+                    "user_image": None,
+                    "comment": "<p>Thanks!</p>",
+                    "reply_to": "root_row",
+                    "created_at": "2025-05-14 10:00:00.000000",
+                    "modified_at": "2025-05-14 10:00:00.000000",
+                    "owner": "peer@example.com",
+                    "modified_by": "peer@example.com",
+                    "reply_count": 0,
+                    "replies": [],
+                }
+            ],
+        }
+    """
+    data = _serialize_comment(comment, user_map)
+    children = replies_by_parent_name.get(comment.name, [])
+    # this recursively serializes the replies (comment of a comment)
+    data["replies"] = [_serialize_comment_with_replies(child, user_map, replies_by_parent_name) for child in children]
+    data["reply_count"] = len(data["replies"])
+    return data
 
 
 def get_project_status_update_details(name: str) -> dict[str, Any]:
@@ -347,24 +476,38 @@ def get_project_status_update_details(name: str) -> dict[str, Any]:
     """
     doc = frappe.get_doc("Project Status Update", name)
 
-    comments_with_details = []
-    for comment in doc.comments:
-        user_data = frappe.db.get_value("User", comment.user, ["full_name", "user_image"]) if comment.user else None
+    # make a list of all user ids part of this document
+    all_user_ids = [c.user for c in doc.comments if c.user] + [doc.owner]
 
-        comment_data = {
-            "name": comment.name,
-            "user": comment.user,
-            "user_full_name": user_data[0] if user_data else comment.user,
-            "user_image": user_data[1] if user_data else None,
-            "comment": comment.comment,
-            "created_at": comment.created_at,
-            "modified_at": comment.modified_at,
-            "owner": comment.owner,
-            "modified_by": comment.modified_by,
-        }
-        comments_with_details.append(comment_data)
+    # get the user map for all users part of this document
+    user_map: dict[str, tuple] = {}
+    if all_user_ids:
+        rows = frappe.get_all(
+            "User",
+            filters={"name": ["in", all_user_ids]},
+            fields=["name", "full_name", "user_image"],
+        )
+        user_map = {r.name: (r.full_name, r.user_image) for r in rows}
 
-    owner_data = frappe.db.get_value("User", doc.owner, ["full_name", "user_image"]) if doc.owner else None
+    # map of comment name to list of reply comments
+    replies_by_parent_name: dict[str, list] = {}
+    # list of root comments
+    root_comments = []
+
+    # loop through all project comments
+    for c in doc.comments:
+        # if the comment has a reply_to, it is a reply to another comment
+        if c.reply_to:
+            replies_by_parent_name.setdefault(c.reply_to, []).append(c)
+        else:
+            root_comments.append(c)
+
+    # serialize the root comments and their replies
+    comments_with_details = [
+        _serialize_comment_with_replies(c, user_map, replies_by_parent_name) for c in root_comments
+    ]
+
+    owner_details = user_map.get(doc.owner)
 
     return {
         "name": doc.name,
@@ -372,8 +515,8 @@ def get_project_status_update_details(name: str) -> dict[str, Any]:
         "description": doc.description,
         "status": doc.status,
         "project": doc.project,
-        "owner_full_name": owner_data[0] if owner_data else doc.owner,
-        "owner_image": owner_data[1] if owner_data and owner_data[1] else "",
+        "owner_full_name": owner_details[0] if owner_details else doc.owner,
+        "owner_image": owner_details[1] if owner_details and owner_details[1] else "",
         "comments": comments_with_details,
         "creation": doc.creation,
         "modified": doc.modified,
