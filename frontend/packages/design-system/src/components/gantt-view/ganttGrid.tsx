@@ -1,4 +1,10 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { Plus } from "lucide-react";
 import {
   ADD_PROJECT_ROW_HEIGHT,
@@ -8,6 +14,10 @@ import {
 import { DeleteAllocationDialog } from "./deleteAllocationDialog";
 import { GanttMemberBar } from "./gantt-bar/memberBar";
 import { GanttProjectBar } from "./gantt-bar/projectBar";
+import {
+  RowAllocationOverlay,
+  type RowAllocationOverlayHandle,
+} from "./gantt-bar/rowAllocationOverlay";
 import { GanttMemberItem } from "./ganttMemberItem";
 import { GanttProjectItem } from "./ganttProjectItem";
 import { createGanttStore, GanttContext, useGanttStore } from "./ganttStore";
@@ -16,6 +26,10 @@ import { GanttWeekHeader } from "./ganttWeekHeader";
 import { useContainerResize } from "./hooks/useContainerResize";
 import type { GanttGridProps } from "./types";
 import { mergeClassNames as cn } from "../../utils";
+
+type OverlayRefMap = React.RefObject<
+  Record<string, RowAllocationOverlayHandle | null>
+>;
 
 const GanttGridInner: React.FC<{
   rootRef?: React.RefObject<HTMLDivElement | null>;
@@ -34,6 +48,7 @@ const GanttGridInner: React.FC<{
     columnCount,
     weeks,
     hasRoleAccess,
+    onAddAllocation,
     onEditAllocation,
     pendingDeleteEntry,
     clearPendingDeleteEntry,
@@ -50,17 +65,103 @@ const GanttGridInner: React.FC<{
     columnCount: s.columnCount,
     weeks: s.weeks,
     hasRoleAccess: s.hasRoleAccess,
+    onAddAllocation: s.onAddAllocation,
     onEditAllocation: s.onEditAllocation,
     pendingDeleteEntry: s.pendingDeleteEntry,
     clearPendingDeleteEntry: s.clearPendingDeleteEntry,
   }));
 
-  const canEditAllocations = hasRoleAccess && Boolean(onEditAllocation);
+  const onResizePointerDown = useCallback(
+    (e: React.PointerEvent<HTMLDivElement>) => {
+      e.preventDefault();
+      startResize(e.clientX);
+    },
+    [startResize],
+  );
 
-  const onResizePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    startResize(e.clientX);
-  };
+  const canManageAllocations = hasRoleAccess && Boolean(onAddAllocation);
+  const canEditAllocations = hasRoleAccess && Boolean(onEditAllocation);
+  const memberRowOverlayRefs = useRef<
+    Record<string, RowAllocationOverlayHandle | null>
+  >({});
+  const projectRowOverlayRefs = useRef<
+    Record<string, RowAllocationOverlayHandle | null>
+  >({});
+
+  const setMemberRowOverlayRef = useCallback(
+    (rowKey: string, handle: RowAllocationOverlayHandle | null) => {
+      if (handle) {
+        memberRowOverlayRefs.current[rowKey] = handle;
+        return;
+      }
+
+      delete memberRowOverlayRefs.current[rowKey];
+    },
+    [],
+  );
+
+  const setProjectRowOverlayRef = useCallback(
+    (rowKey: string, handle: RowAllocationOverlayHandle | null) => {
+      if (handle) {
+        projectRowOverlayRefs.current[rowKey] = handle;
+        return;
+      }
+
+      delete projectRowOverlayRefs.current[rowKey];
+    },
+    [],
+  );
+
+  const getOverlayPointerDownHandler = useCallback(
+    (
+      overlayRefs: OverlayRefMap,
+      rowKey: string,
+      enabled: boolean,
+    ): React.PointerEventHandler<HTMLTableRowElement> | undefined => {
+      if (!enabled) {
+        return undefined;
+      }
+
+      return (event) => {
+        overlayRefs.current[rowKey]?.handleRowPointerDown(event);
+      };
+    },
+    [],
+  );
+
+  const getOverlayPointerMoveHandler = useCallback(
+    (
+      overlayRefs: OverlayRefMap,
+      rowKey: string,
+      enabled: boolean,
+    ): React.PointerEventHandler<HTMLTableRowElement> | undefined => {
+      if (!enabled) {
+        return undefined;
+      }
+
+      return (event) => {
+        overlayRefs.current[rowKey]?.handleRowPointerMove(event);
+      };
+    },
+    [],
+  );
+
+  const getOverlayPointerLeaveHandler = useCallback(
+    (
+      overlayRefs: OverlayRefMap,
+      rowKey: string,
+      enabled: boolean,
+    ): React.PointerEventHandler<HTMLTableRowElement> | undefined => {
+      if (!enabled) {
+        return undefined;
+      }
+
+      return () => {
+        overlayRefs.current[rowKey]?.clearHoveredSlot();
+      };
+    },
+    [],
+  );
 
   return (
     <div
@@ -110,11 +211,29 @@ const GanttGridInner: React.FC<{
             const isExpanded = expandedRows.has(rowIndex);
             const animatedRowHeight = isExpanded ? CELL_HEIGHT : 0;
             const addProjectRowHeight = isExpanded ? ADD_PROJECT_ROW_HEIGHT : 0;
+            const memberRowKey = `member-${rowIndex}`;
 
             return (
               <React.Fragment key={rowIndex}>
                 {/* Member row */}
-                <tr className="relative last:border-b border-outline-gray-1">
+                <tr
+                  className="relative last:border-b border-outline-gray-1"
+                  onPointerDown={getOverlayPointerDownHandler(
+                    memberRowOverlayRefs,
+                    memberRowKey,
+                    canManageAllocations,
+                  )}
+                  onPointerMove={getOverlayPointerMoveHandler(
+                    memberRowOverlayRefs,
+                    memberRowKey,
+                    canManageAllocations,
+                  )}
+                  onPointerLeave={getOverlayPointerLeaveHandler(
+                    memberRowOverlayRefs,
+                    memberRowKey,
+                    canManageAllocations,
+                  )}
+                >
                   <GanttMemberItem memberInd={rowIndex} />
                   {weeks.map((_, i) => {
                     return (
@@ -140,11 +259,31 @@ const GanttGridInner: React.FC<{
                         memberInd={rowIndex}
                       />
                     ))}
+                    <RowAllocationOverlay
+                      ref={(handle) =>
+                        setMemberRowOverlayRef(memberRowKey, handle)
+                      }
+                      enabled={canManageAllocations}
+                      rowKey={memberRowKey}
+                      headerWidth={headerWidth}
+                      columnWidth={columnWidth}
+                      columnCount={columnCount}
+                      allocations={member.memberAllocations}
+                      createDraftBar={(left) => ({
+                        rowKey: memberRowKey,
+                        left,
+                        width: columnWidth,
+                        employeeId: member.id,
+                      })}
+                      onOpenAllocation={onAddAllocation}
+                    />
                   </td>
                 </tr>
 
                 {/* Project child rows */}
                 {member.projects?.map((project, projectIndex) => {
+                  const projectRowKey = `project-${rowIndex}-${projectIndex}`;
+
                   return (
                     <tr
                       key={`${rowIndex}-project-${projectIndex}`}
@@ -152,6 +291,21 @@ const GanttGridInner: React.FC<{
                         "pointer-events-none": !isExpanded,
                       })}
                       aria-hidden={!isExpanded}
+                      onPointerDown={getOverlayPointerDownHandler(
+                        projectRowOverlayRefs,
+                        projectRowKey,
+                        canManageAllocations && isExpanded,
+                      )}
+                      onPointerMove={getOverlayPointerMoveHandler(
+                        projectRowOverlayRefs,
+                        projectRowKey,
+                        canManageAllocations && isExpanded,
+                      )}
+                      onPointerLeave={getOverlayPointerLeaveHandler(
+                        projectRowOverlayRefs,
+                        projectRowKey,
+                        canManageAllocations && isExpanded,
+                      )}
                     >
                       <GanttProjectItem
                         {...project}
@@ -195,13 +349,34 @@ const GanttGridInner: React.FC<{
                               />
                             );
                           })}
+                        <RowAllocationOverlay
+                          ref={(handle) =>
+                            setProjectRowOverlayRef(projectRowKey, handle)
+                          }
+                          enabled={canManageAllocations && isExpanded}
+                          rowKey={projectRowKey}
+                          headerWidth={headerWidth}
+                          columnWidth={columnWidth}
+                          columnCount={columnCount}
+                          allocations={project.allocations ?? []}
+                          createDraftBar={(left) => ({
+                            rowKey: projectRowKey,
+                            left,
+                            width: columnWidth,
+                            employeeId: member.id,
+                            projectId: project.id,
+                            projectName: project.name,
+                            customerName: project.client,
+                          })}
+                          onOpenAllocation={onAddAllocation}
+                        />
                       </td>
                     </tr>
                   );
                 })}
 
                 {/* Add project row */}
-                {hasRoleAccess && (
+                {canManageAllocations && (
                   <tr
                     className={cn("relative", {
                       "pointer-events-none": !isExpanded,
@@ -220,7 +395,9 @@ const GanttGridInner: React.FC<{
                     >
                       <button
                         type="button"
-                        onClick={() => {}}
+                        onClick={() =>
+                          onAddAllocation?.({ employeeId: member.id })
+                        }
                         className="w-full h-full flex items-center gap-2 text-base font-medium text-ink-gray-9 overflow-hidden"
                       >
                         <Plus size={16} className="shrink-0" />
@@ -266,8 +443,8 @@ const GanttGridInner: React.FC<{
             )}
             style={{ left: headerWidth - 2 }}
             onPointerDown={onResizePointerDown}
-            onMouseEnter={() => setResizeHandleActive(true)}
-            onMouseLeave={() => setResizeHandleActive(false)}
+            onPointerEnter={() => setResizeHandleActive(true)}
+            onPointerLeave={() => setResizeHandleActive(false)}
           />
         </div>
       </div>
