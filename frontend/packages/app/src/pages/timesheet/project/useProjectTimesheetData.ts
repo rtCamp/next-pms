@@ -4,7 +4,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { getFormatedDate, getTodayDate } from "@next-pms/design-system/date";
 import type { FilterCondition } from "@rtcamp/frappe-ui-react";
-import { addDays } from "date-fns";
+import { addDays, parseISO } from "date-fns";
 import type { Error as FrappeError } from "frappe-js-sdk/lib/frappe_app/types";
 import { useFrappeGetCall } from "frappe-react-sdk";
 
@@ -123,13 +123,13 @@ export function useProjectTimesheetData({
 
   // All transformation lives here. Because this is pure data derivation (no side effects).
   const { hasMoreProjects, hasMoreWeeks, hasMore, weekGroups } = useMemo(() => {
-    const oneYearAgo = addDays(new Date(getTodayDate()), -365);
+    const oneYearAgo = addDays(parseISO(getTodayDate()), -365);
     // When a date-range filter is active, limit week pagination to the actual
     // filter range (startDate − maxWeek weeks). Without a filter, fall back
     // to the 1-year rolling limit.
     const hasMoreWeeks = startDate
-      ? new Date(weekDate) > addDays(new Date(startDate), -(maxWeek * 7))
-      : new Date(weekDate) > oneYearAgo;
+      ? parseISO(weekDate) > addDays(parseISO(startDate), -(maxWeek * 7))
+      : parseISO(weekDate) > oneYearAgo;
 
     const hasMoreProjects =
       pages.length > 0 ? (pages[pages.length - 1].has_more ?? false) : true;
@@ -197,7 +197,7 @@ export function useProjectTimesheetData({
 
     const weekGroups = Array.from(weekMap.values()).sort(
       (a, b) =>
-        new Date(b.start_date).getTime() - new Date(a.start_date).getTime(),
+        parseISO(b.start_date).getTime() - parseISO(a.start_date).getTime(),
     );
 
     const hasMore = hasMoreProjects || hasMoreWeeks;
