@@ -172,18 +172,18 @@ export const RowAllocationOverlay = forwardRef<
           variant="subtle"
           aria-label="Add allocation"
           className={cn(
-            "absolute opacity-100 scale-100 transition-all duration-100 ease-out motion-reduce:transition-none",
-            "starting:opacity-0 starting:scale-95",
+            "absolute opacity-100 transition-opacity duration-100 ease-out motion-reduce:transition-none",
+            "starting:opacity-0",
           )}
           style={{
-            left: Math.max(hoveredSlotLeft - BAR_MARGIN / 2, 0),
+            left: Math.max(hoveredSlotLeft + BAR_MARGIN / 2, 0),
             width: Math.max(columnWidth - BAR_MARGIN, 0),
             height: BAR_HEIGHT,
             top: (CELL_HEIGHT - BAR_HEIGHT) / 2,
           }}
           onClick={() => setDraft(createDraftBar(hoveredSlotLeft))}
           icon={() => <AddMd className="size-4" />}
-          key={`${rowKey}-${hoveredSlotLeft}`}
+          key={rowKey}
         />
       )}
     </>
