@@ -28,6 +28,7 @@ export const GanttMemberRows: React.FC<GanttMemberRowsProps> = ({
   const {
     member,
     isExpanded,
+    isNextExpanded,
     weeks,
     daysPerWeek,
     columnWidth,
@@ -39,6 +40,8 @@ export const GanttMemberRows: React.FC<GanttMemberRowsProps> = ({
   } = useGanttStore((s) => ({
     member: s.members[memberInd],
     isExpanded: s.expandedRows.has(memberInd),
+    isNextExpanded:
+      !s.expandedRows.has(memberInd) && s.expandedRows.has(memberInd + 1),
     weeks: s.weeks,
     daysPerWeek: s.daysPerWeek,
     columnWidth: s.columnWidth,
@@ -73,7 +76,7 @@ export const GanttMemberRows: React.FC<GanttMemberRowsProps> = ({
             key={i}
             colSpan={daysPerWeek}
             className={cn("border-r border-outline-gray-1", {
-              "border-t": isExpanded,
+              "border-b": isNextExpanded,
             })}
             style={{ height: CELL_HEIGHT }}
           />
