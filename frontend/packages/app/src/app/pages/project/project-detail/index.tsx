@@ -4,7 +4,11 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
 import { Button, Spinner, useToast } from "@next-pms/design-system/components";
-import { useFrappeGetCall, useFrappeGetDoc, useFrappeUpdateDoc } from "frappe-react-sdk";
+import {
+  useFrappeGetCall,
+  useFrappeGetDoc,
+  useFrappeUpdateDoc,
+} from "frappe-react-sdk";
 import { Menu } from "lucide-react";
 
 /**
@@ -15,15 +19,22 @@ import { FieldConfigType } from "@/app/components/form-view/types";
 import { Main } from "@/app/layout/root";
 import { getCurrencySymbol, parseFrappeErrorMsg } from "@/lib/utils";
 import { ProjectDetailHeader } from "./components/header";
+import PMReport from "./components/pm-report";
 import ProjectUpdates from "./components/project-updates";
 import ProjectSidebar from "./components/sidebar";
 
 const ProjectDetail = () => {
   const { projectId } = useParams();
-  const { data: projectData, error: projectError, mutate: mutateProjectData } = useFrappeGetDoc("Project", projectId);
+  const {
+    data: projectData,
+    error: projectError,
+    mutate: mutateProjectData,
+  } = useFrappeGetDoc("Project", projectId);
   const formRef = useRef<{ submitForm: () => void }>(null);
   const [hideSaveChanges, setHideSaveChanges] = useState<boolean>(true);
-  const [formData, setFormData] = useState<Record<string, string | number | null>>({});
+  const [formData, setFormData] = useState<
+    Record<string, string | number | null>
+  >({});
   const [projectName, setProjectName] = useState<string>("");
   const [sidebarDrawerOpen, setSidebarDrawerOpen] = useState(false);
 
@@ -38,7 +49,7 @@ const ProjectDetail = () => {
       revalidateOnFocus: false,
       revalidateOnReconnect: false,
       revalidateIfStale: false,
-    }
+    },
   );
 
   const { toast } = useToast();
@@ -63,7 +74,12 @@ const ProjectDetail = () => {
     }
   }, [error, mutate, toast]);
 
-  const { updateDoc, loading, error: updateError, isCompleted } = useFrappeUpdateDoc();
+  const {
+    updateDoc,
+    loading,
+    error: updateError,
+    isCompleted,
+  } = useFrappeUpdateDoc();
 
   useEffect(() => {
     if (isCompleted) {
@@ -91,21 +107,44 @@ const ProjectDetail = () => {
         component: <ProjectUpdates projectId={projectId} />,
         isCustom: true,
       },
+      ...(projectData?.custom_enable_project_report_generation === 1 && {
+        "Project Report": {
+          component: <PMReport projectId={projectId} />,
+          isCustom: true,
+        },
+      }),
     }),
-    [projectId]
+    [projectId, projectData?.custom_enable_project_report_generation],
   );
 
-  const Tabs = useMemo(
-    () => ({
-      ...(data?.message?.tabs || {}),
-      ...Object.keys(customTabs).reduce((acc, key) => {
-        acc[key] = [];
-        return acc;
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      }, {} as Record<string, any[]>),
-    }),
-    [data?.message?.tabs, customTabs]
-  );
+  const Tabs = useMemo(() => {
+    const serverTabs = data?.message?.tabs || {};
+    const filteredServerTabs = Object.fromEntries(
+      Object.entries(serverTabs).filter(([key]) => {
+        if (
+          key === "Project Report" &&
+          !projectData?.custom_enable_project_report_generation
+        )
+          return false;
+        return true;
+      }),
+    );
+
+    return {
+      ...filteredServerTabs,
+      ...Object.keys(customTabs).reduce(
+        (acc, key) => {
+          acc[key] = [];
+          return acc;
+        },
+        {} as Record<string, unknown[]>,
+      ),
+    };
+  }, [
+    data?.message?.tabs,
+    customTabs,
+    projectData?.custom_enable_project_report_generation,
+  ]);
 
   return (
     <>
@@ -137,10 +176,18 @@ const ProjectDetail = () => {
                 doctype={"Project"}
                 tabs={Tabs}
                 customTabs={customTabs}
-                currencySymbol={getCurrencySymbol(projectData?.custom_currency) || ""}
+                currencySymbol={
+                  getCurrencySymbol(projectData?.custom_currency) || ""
+                }
                 tabHeaderClassName="w-full"
                 onChange={(form_data) => {
-                  if ((window?.frappe?.boot?.user?.can_write?.includes("Project") ?? true) && form_data) {
+                  if (
+                    (window?.frappe?.boot?.user?.can_write?.includes(
+                      "Project",
+                    ) ??
+                      false) &&
+                    form_data
+                  ) {
                     setHideSaveChanges(false);
                     setFormData(form_data);
                   } else {
@@ -149,12 +196,22 @@ const ProjectDetail = () => {
                 }}
                 onSubmit={async (data) => {
                   const sanitizedFormData = Object.fromEntries(
-                    Object.entries(data).filter(([, value]) => value !== "")
+                    Object.entries(data).filter(([, value]) => value !== ""),
                   );
-                  await updateDoc("Project", projectId as string, sanitizedFormData);
+                  await updateDoc(
+                    "Project",
+                    projectId as string,
+                    sanitizedFormData,
+                  );
                 }}
                 formRef={formRef}
-                readOnly={!(window?.frappe?.boot?.user?.can_write?.includes("Project") ?? true)}
+                readOnly={
+                  !(
+                    window?.frappe?.boot?.user?.can_write?.includes(
+                      "Project",
+                    ) ?? false
+                  )
+                }
                 fieldConfig={
                   {
                     naming_series: { hidden: true },
@@ -177,6 +234,9 @@ const ProjectDetail = () => {
                     users: { hidden: true },
                     monitor_progress: { hidden: true },
                     collect_progress: { hidden: true },
+                    custom_slack_channel_slug: { hidden: true },
+                    custom_project_reports: { hidden: true },
+                    custom_project_drive_link: { hidden: true },
                   } as FieldConfigType
                 }
                 mutateData={mutate}
