@@ -141,24 +141,24 @@ export const GanttBar = React.forwardRef<HTMLDivElement, GanttBarProps>(
             {resizable ? (
               <>
                 <span
-                  className="absolute inset-y-0 left-0 w-2.5 pl-1 flex cursor-ew-resize items-center justify-start touch-none"
+                  className="absolute shrink-0 inset-y-0 left-0 w-2.5 pl-1 flex cursor-ew-resize items-center justify-start touch-none"
                   onPointerDown={handleStartResizePointerDown}
                   onPointerMove={handleResizePointerMove}
                   onPointerUp={handleResizePointerUp}
                   onPointerCancel={handleResizePointerCancel}
                   onClick={(event) => event.stopPropagation()}
                 >
-                  <span className="pointer-events-none block h-4 w-0.5 rounded-2xl bg-surface-gray-4 opacity-0 transition-opacity group-hover:opacity-100" />
+                  <span className="pointer-events-none shrink-0 block h-4 w-0.5 rounded-2xl bg-surface-gray-4 opacity-0 transition-opacity group-hover:opacity-100" />
                 </span>
                 <span
-                  className="absolute inset-y-0 right-0 w-2.5 pr-1 flex cursor-ew-resize items-center justify-end touch-none"
+                  className="absolute shrink-0 inset-y-0 right-0 w-2.5 pr-1 flex cursor-ew-resize items-center justify-end touch-none"
                   onPointerDown={handleEndResizePointerDown}
                   onPointerMove={handleResizePointerMove}
                   onPointerUp={handleResizePointerUp}
                   onPointerCancel={handleResizePointerCancel}
                   onClick={(event) => event.stopPropagation()}
                 >
-                  <span className="pointer-events-none block h-4 w-0.5 rounded-2xl bg-surface-gray-4 opacity-0 transition-opacity group-hover:opacity-100" />
+                  <span className="pointer-events-none shrink-0 block h-4 w-0.5 rounded-2xl bg-surface-gray-4 opacity-0 transition-opacity group-hover:opacity-100" />
                 </span>
               </>
             ) : null}

@@ -11,6 +11,7 @@ import {
 } from "./ganttBar";
 import { allocationBarToEntry } from "./utils/allocationBarToEntry";
 import { withPendingDeleteEntry } from "./utils/withPendingDeleteEntry";
+import { mergeClassNames as cn } from "../../../utils";
 
 interface GanttProjectBarProps {
   allocation: ProjectAllocationBar;
@@ -149,6 +150,7 @@ export function GanttProjectBar({
         employeeId: allocation.employeeId,
         projectId: allocation.projectId,
         projectName: allocation.projectName,
+        customerName: allocation.customerName,
         startDate,
         endDate,
         hoursPerDay: allocation.hours,
@@ -192,14 +194,11 @@ export function GanttProjectBar({
     }
 
     openEditAllocation(previewGeometry.left, previewGeometry.width);
-    setPreviewGeometry({ left, width });
   }, [
     isModified,
-    left,
     openEditAllocation,
     previewGeometry.left,
     previewGeometry.width,
-    width,
   ]);
 
   return (
@@ -216,7 +215,10 @@ export function GanttProjectBar({
             renderLabel={renderLabel}
             left={previewGeometry.left}
             width={previewGeometry.width}
-            className="outline-none"
+            className={cn(
+              "outline-none",
+              isModified && "ring-1 ring-inset ring-surface-amber-3",
+            )}
             billable={allocation.billable}
             resizable={resizable}
             snapUnitPx={columnWidth}

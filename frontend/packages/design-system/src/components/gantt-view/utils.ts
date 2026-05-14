@@ -175,18 +175,8 @@ export const getDateAtColumnIndex = (
     return addDays(weekStart, index);
   }
 
-  let date = weekStart;
-  let visibleIndex = 0;
-
-  while (visibleIndex < index) {
-    date = addDays(date, 1);
-    const day = date.getDay();
-    if (day !== 0 && day !== 6) {
-      visibleIndex += 1;
-    }
-  }
-
-  return date;
+  // Map weekday-only column indexes back to calendar days by skipping weekend offsets.
+  return addDays(weekStart, Math.floor(index / 5) * 7 + (index % 5));
 };
 
 /**
