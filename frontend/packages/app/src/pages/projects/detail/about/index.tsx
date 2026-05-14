@@ -22,7 +22,7 @@ import { Dot } from "../../list/cells/dot";
 
 export function AboutThisProject({ className }: { className: string }) {
   const { projectId = "" } = useParams<{ projectId: string }>();
-  const project = FAKE_PROJECTS.find((p) => p.id === projectId)!;
+  const project = FAKE_PROJECTS[0];
   const about = getProjectAboutData(projectId);
 
   return (

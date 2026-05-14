@@ -11,7 +11,7 @@ import type { FrappeError } from "frappe-react-sdk";
 /**
  * Internal dependencies.
  */
-import useApprovers from "@/hooks/useApprovers";
+import useApproverOptions from "@/hooks/useApproverOptions";
 import { parseFrappeErrorMsg } from "@/lib/utils";
 import type { TeamAllocationResponse } from "./type";
 import { mapTeamAllocationToMembers } from "./utils";
@@ -114,7 +114,7 @@ export function useAllocationsTeamData({
     [pages],
   );
 
-  const approvers = useApprovers();
+  const approvers = useApproverOptions();
 
   const managerNameMap = useMemo(
     () => new Map(approvers.map((a) => [a.value, a.label])),

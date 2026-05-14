@@ -23,7 +23,7 @@ export function ProjectListCell({
         <ProjectNameCell
           id={row.name}
           name={row.project_name}
-          riskLevel={toKebabCase(row.rag_status)}
+          riskLevel={row.rag_status ? toKebabCase(row.rag_status) : undefined}
         />
       );
     case "phase":

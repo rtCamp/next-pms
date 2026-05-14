@@ -27,7 +27,7 @@ export type ProjectListItem = {
   customer: string | null;
   customer_name: string | null;
   status: string;
-  rag_status: string;
+  rag_status?: string | null;
   phase: string;
   billing_type: string;
   currency: string;
