@@ -19,7 +19,7 @@ import {
   useFrappeUpdateDoc,
 } from "frappe-react-sdk";
 
-import { mergeClassNames } from "@/lib/utils";
+import { mergeClassNames, parseFrappeErrorMsg } from "@/lib/utils";
 
 const formatDate = (datetime: string) => {
   if (!datetime) return "";
@@ -252,9 +252,11 @@ const PMReport = ({ projectId }: PMReportProps) => {
     setIsGenerating(true);
 
     try {
-      await updateDoc("Project", projectId as string, {
-        custom_slack_channel_slug: slackSlug,
-      });
+      if (projectData?.custom_slack_channel_slug !== slackSlug) {
+        await updateDoc("Project", projectId as string, {
+          custom_slack_channel_slug: slackSlug,
+        });
+      }
 
       await call({
         project: projectId,
@@ -292,12 +294,12 @@ const PMReport = ({ projectId }: PMReportProps) => {
       }, 600000);
     } catch (error) {
       setIsGenerating(false);
-      const err = error as FrappeError;
+      const message =
+        parseFrappeErrorMsg(error as FrappeError) ||
+        "Failed to generate Project Report. Please try again.";
       toast({
         variant: "destructive",
-        description:
-          err?.message ||
-          "Failed to generate Project Report. Please try again.",
+        description: message,
       });
     }
   };
@@ -329,10 +331,11 @@ const PMReport = ({ projectId }: PMReportProps) => {
         });
       }
     } catch (error) {
-      const err = error as FrappeError;
+      const message =
+        parseFrappeErrorMsg(error as FrappeError) || "Resync failed.";
       toast({
         variant: "destructive",
-        description: err?.message || "Resync failed.",
+        description: message,
       });
     } finally {
       setResyncingRunId(null);
@@ -586,8 +589,11 @@ const PMReport = ({ projectId }: PMReportProps) => {
         </div>
 
         <div className="flex flex-col items-end gap-2 mt-2">
-          <Button onClick={handleSaveAndGenerate} disabled={isBusy}>
-            {isBusy ? (
+          <Button
+            onClick={handleSaveAndGenerate}
+            disabled={isBusy || isGenerating}
+          >
+            {isBusy || isGenerating ? (
               <>
                 <Spinner className="mr-2" />
                 Generating...
