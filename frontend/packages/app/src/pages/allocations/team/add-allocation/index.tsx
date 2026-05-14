@@ -31,8 +31,10 @@ import {
   addAllocationDefaultValues,
   allocationRecurrenceLabels,
 } from "./constants";
+import { OverAllocationWarning } from "./overAllocationWarning";
 import { addAllocationFormSchema } from "./schema";
 import type { AddAllocationModalProps } from "./types";
+import { useOverAllocation } from "./useOverAllocation";
 import { computeTotalHours } from "./utils";
 
 function AddAllocationModal({
@@ -185,6 +187,17 @@ function AddAllocationModal({
     form.store,
     (state) => state.values.includeWeekends,
   );
+  const employeeId = useStore(form.store, (state) => state.values.employeeId);
+
+  const overAllocatedDays = useOverAllocation({
+    employeeId,
+    fromDate,
+    toDate,
+    hoursPerDay,
+    includeWeekends: weekendEntriesAllowed && includeWeekendsValue,
+    repeatWeeks: recurrence === "recurring" ? repeatFor : 0,
+    allocationName,
+  });
 
   useEffect(() => {
     if (!open) {
@@ -432,13 +445,13 @@ function AddAllocationModal({
                   </DateRangePicker>
                   {(!fromField.state.meta.isValid ||
                     !toField.state.meta.isValid) && (
-                    <ErrorMessage
-                      message={
-                        fromField.state.meta.errors[0]?.message ??
-                        toField.state.meta.errors[0]?.message
-                      }
-                    />
-                  )}
+                      <ErrorMessage
+                        message={
+                          fromField.state.meta.errors[0]?.message ??
+                          toField.state.meta.errors[0]?.message
+                        }
+                      />
+                    )}
                 </div>
               )}
             />
@@ -504,6 +517,8 @@ function AddAllocationModal({
             />
           </div>
         </div>
+
+        <OverAllocationWarning overAllocatedDays={overAllocatedDays} />
 
         <form.Field
           name="isBillable"
