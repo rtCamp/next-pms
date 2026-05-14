@@ -144,12 +144,6 @@ export const projectTimesheetFilters: FilterField[] = [
     type: "string",
   },
   {
-    fieldCategory: "Task",
-    name: "subject",
-    label: "Task",
-    type: "string",
-  },
-  {
     name: "date",
     label: "Date",
     type: "daterange",
@@ -158,24 +152,6 @@ export const projectTimesheetFilters: FilterField[] = [
     fieldCategory: "Timesheet",
     name: "employee_name",
     label: "Member",
-    type: "string",
-  },
-  {
-    fieldCategory: "Employee",
-    name: "status",
-    label: "Member Status",
-    options: [
-      { label: "Active", value: "Active" },
-      { label: "Inactive", value: "Inactive" },
-      { label: "Suspended", value: "Suspended" },
-      { label: "Left", value: "Left" },
-    ],
-    type: "select",
-  },
-  {
-    fieldCategory: "Employee",
-    name: "custom_business_unit",
-    label: "Business Unit",
     type: "string",
   },
 ];

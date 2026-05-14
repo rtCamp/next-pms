@@ -30,18 +30,23 @@ type UseProjectTimesheetOptions = {
   compositeFilters: FilterCondition[];
 };
 
-const EMPLOYEE_PAGE_LENGTH = 10;
+const PROJECT_PAGE_LENGTH = 10;
 
 export function useProjectTimesheetData({
   search,
   compositeFilters,
 }: UseProjectTimesheetOptions): UseProjectTimesheetDataResult {
   const [weekDate, setWeekDate] = useState(getTodayDate());
-  const [employeeStart, setEmployeeStart] = useState(0);
+  const [projectStart, setProjectStart] = useState(0);
 
   // Each entry represents one paginated fetch.
   // All derived data (weeks, projects, members) is computed from this.
   const [pages, setPages] = useState<ApiPayload[]>([]);
+
+  // Incremented on every reset. Included in the SWR cache key so each reset
+  // is treated as a brand-new cache entry, forcing a fresh network request
+  // even when the params are identical to a previous session.
+  const [resetCount, setResetCount] = useState(0);
 
   // Track filter changes to reset pagination
   const prevFiltersRef = useRef({ search, compositeFilters });
@@ -58,7 +63,8 @@ export function useProjectTimesheetData({
     // filter's end date (startDate) so week pagination walks backward through
     // the filtered range instead of from today.
     setWeekDate(startDate ?? getTodayDate());
-    setEmployeeStart(0);
+    setProjectStart(0);
+    setResetCount((prev) => prev + 1);
   }, [startDate]);
 
   // Reset pagination when filters change
@@ -86,12 +92,27 @@ export function useProjectTimesheetData({
     {
       date: weekDate,
       max_week: maxWeek,
-      page_length: EMPLOYEE_PAGE_LENGTH,
-      start: employeeStart,
+      page_length: PROJECT_PAGE_LENGTH,
+      start: projectStart,
       search: search || null,
       filters: frappeFilters.length > 0 ? JSON.stringify(frappeFilters) : null,
       skip_empty_weeks: hasActiveFilter || null,
     },
+    // Include resetCount so every reset produces a unique SWR key, bypassing
+    // the cache for that session and guaranteeing a fresh fetch. Without this,
+    // re-applying the same filter returns the same cached object reference and
+    // the pages-appending effect never re-fires.
+    [
+      "next_pms.timesheet.api.project.get_project_timesheet_data",
+      resetCount,
+      weekDate,
+      maxWeek,
+      PROJECT_PAGE_LENGTH,
+      projectStart,
+      search || null,
+      frappeFilters.length > 0 ? JSON.stringify(frappeFilters) : null,
+      hasActiveFilter || null,
+    ],
   );
 
   useEffect(() => {
@@ -102,98 +123,88 @@ export function useProjectTimesheetData({
   }, [projectTimesheetData]);
 
   // All transformation lives here. Because this is pure data derivation (no side effects).
-  const { hasMoreEmployees, hasMoreWeeks, hasMore, weekGroups } =
-    useMemo(() => {
-      const oneYearAgo = addDays(new Date(getTodayDate()), -365);
-      // When a date-range filter is active, limit week pagination to the actual
-      // filter range (startDate − maxWeek weeks). Without a filter, fall back
-      // to the 1-year rolling limit.
-      const hasMoreWeeks = startDate
-        ? new Date(weekDate) > addDays(new Date(startDate), -(maxWeek * 7))
-        : new Date(weekDate) > oneYearAgo;
+  const { hasMoreProjects, hasMoreWeeks, hasMore, weekGroups } = useMemo(() => {
+    const oneYearAgo = addDays(new Date(getTodayDate()), -365);
+    // When a date-range filter is active, limit week pagination to the actual
+    // filter range (startDate − maxWeek weeks). Without a filter, fall back
+    // to the 1-year rolling limit.
+    const hasMoreWeeks = startDate
+      ? new Date(weekDate) > addDays(new Date(startDate), -(maxWeek * 7))
+      : new Date(weekDate) > oneYearAgo;
 
-      const hasMoreEmployees =
-        pages.length > 0 ? (pages[pages.length - 1].has_more ?? false) : true;
+    const hasMoreProjects =
+      pages.length > 0 ? (pages[pages.length - 1].has_more ?? false) : true;
 
-      const weekMap = new Map<string, WeekGroup>();
-      const projectMemberDedup = new Map<string, Set<string>>();
+    const weekMap = new Map<string, WeekGroup>();
+    const projectMemberDedup = new Map<string, Set<string>>();
 
-      pages.forEach((page) => {
-        (page.week_groups ?? []).forEach((week) => {
-          if (!weekMap.has(week.start_date)) {
-            weekMap.set(week.start_date, {
-              key: week.key,
-              start_date: week.start_date,
-              end_date: week.end_date,
-              dates: week.dates,
-              projects: [],
-            });
+    pages.forEach((page) => {
+      (page.week_groups ?? []).forEach((week) => {
+        if (!weekMap.has(week.start_date)) {
+          weekMap.set(week.start_date, {
+            key: week.key,
+            start_date: week.start_date,
+            end_date: week.end_date,
+            dates: week.dates,
+            projects: [],
+          });
+        }
+
+        const targetWeek = weekMap.get(week.start_date)!;
+
+        week.projects.forEach((project) => {
+          let targetProject = targetWeek.projects.find(
+            (weekProject) => weekProject.project === project.project,
+          );
+
+          if (!targetProject) {
+            targetProject = {
+              project: project.project,
+              projectName: project.project_name,
+              members: [],
+            };
+            targetWeek.projects.push(targetProject);
           }
 
-          const targetWeek = weekMap.get(week.start_date)!;
+          const dedupKey = `${week.start_date}::${project.project}`;
+          if (!projectMemberDedup.has(dedupKey)) {
+            projectMemberDedup.set(dedupKey, new Set());
+          }
 
-          week.projects.forEach((project) => {
-            let targetProject = targetWeek.projects.find(
-              (weekProject) => weekProject.project === project.project,
-            );
-
-            if (!targetProject) {
-              targetProject = {
-                project: project.project,
-                projectName: project.project_name,
-                members: [],
-              };
-              targetWeek.projects.push(targetProject);
+          const memberSet = projectMemberDedup.get(dedupKey)!;
+          project.members.forEach((member) => {
+            if (memberSet.has(member.employee)) {
+              return;
             }
 
-            const dedupKey = `${week.start_date}::${project.project}`;
-            if (!projectMemberDedup.has(dedupKey)) {
-              projectMemberDedup.set(dedupKey, new Set());
-            }
+            memberSet.add(member.employee);
+            const mappedMember: ProjectMemberData = {
+              label: member.label,
+              employee: member.employee,
+              avatarUrl: member.avatar_url,
+              tasks: member.tasks,
+              holidays: member.holidays,
+              leaves: member.leaves,
+              workingHour: member.working_hour,
+              workingFrequency: member.working_frequency,
+              status: member.status,
+            };
 
-            const memberSet = projectMemberDedup.get(dedupKey)!;
-            project.members.forEach((member) => {
-              if (memberSet.has(member.employee)) {
-                return;
-              }
-
-              memberSet.add(member.employee);
-              const mappedMember: ProjectMemberData = {
-                label: member.label,
-                employee: member.employee,
-                avatarUrl: member.avatar_url,
-                tasks: member.tasks,
-                holidays: member.holidays,
-                leaves: member.leaves,
-                workingHour: member.working_hour,
-                workingFrequency: member.working_frequency,
-                status: member.status,
-              };
-
-              targetProject.members.push(mappedMember);
-            });
+            targetProject.members.push(mappedMember);
           });
         });
       });
+    });
 
-      const weekGroups = Array.from(weekMap.values())
-        .sort(
-          (a, b) =>
-            new Date(b.start_date).getTime() - new Date(a.start_date).getTime(),
-        )
-        .map((week) => ({
-          ...week,
-          projects: week.projects.sort((a, b) =>
-            (a.projectName || a.project).localeCompare(
-              b.projectName || b.project,
-            ),
-          ),
-        }));
+    const weekGroups = Array.from(weekMap.values()).sort(
+      (a, b) =>
+        new Date(b.start_date).getTime() - new Date(a.start_date).getTime(),
+    );
 
-      const hasMore = hasMoreEmployees || hasMoreWeeks;
+    const hasMore = hasMoreProjects || hasMoreWeeks;
 
-      return { hasMoreEmployees, hasMoreWeeks, hasMore, weekGroups };
-    }, [pages, weekDate, startDate, maxWeek]);
+    return { hasMoreProjects, hasMoreWeeks, hasMore, weekGroups };
+  }, [pages, weekDate, startDate, maxWeek]);
 
   // When the current window is fully loaded but yields no visible weeks, we are
   // about to auto-advance. Expose this as "still loading" to prevent a flicker
@@ -202,7 +213,7 @@ export function useProjectTimesheetData({
   const isAutoAdvancing =
     !isLoadingProjectApiData &&
     pages.length > 0 &&
-    !hasMoreEmployees &&
+    !hasMoreProjects &&
     weekGroups.length === 0 &&
     hasMoreWeeks;
 
@@ -213,42 +224,43 @@ export function useProjectTimesheetData({
   useEffect(() => {
     if (isLoadingProjectApiData) return;
     if (pages.length === 0) return;
-    if (hasMoreEmployees) return; // current window not fully loaded yet
+    if (hasMoreProjects) return; // current window not fully loaded yet
     if (weekGroups.length > 0) return; // we have visible data
     if (!hasMoreWeeks) return;
 
     setWeekDate((prev) =>
       getFormatedDate(addDays(prev, -(NUMBER_OF_WEEKS_TO_FETCH * 7))),
     );
-    setEmployeeStart(0);
+    setProjectStart(0);
   }, [
     isLoadingProjectApiData,
-    hasMoreEmployees,
+    hasMoreProjects,
     hasMoreWeeks,
     weekGroups.length,
     pages.length,
   ]);
 
-  // Unified loadData: prioritizes employee pagination, then week pagination.
+  // Unified loadData: prioritizes project pagination, then week pagination.
   const loadData = useCallback(() => {
+    console.log("loadData called");
     if (isLoadingProjectApiData) return;
 
-    // Priority 1: Load more employees for current date range
-    if (hasMoreEmployees) {
-      setEmployeeStart((prev) => prev + EMPLOYEE_PAGE_LENGTH);
+    // Priority 1: Load more projects for current date range
+    if (hasMoreProjects) {
+      setProjectStart((prev) => prev + PROJECT_PAGE_LENGTH);
       return;
     }
 
-    // Priority 2: Load more weeks (with employee pagination reset).
+    // Priority 2: Load more weeks (with project pagination reset).
     // Advance by the fixed batch window from the current weekDate so we always
     // produce a new date value.
     if (hasMoreWeeks) {
       setWeekDate((prev) =>
         getFormatedDate(addDays(prev, -(NUMBER_OF_WEEKS_TO_FETCH * 7))),
       );
-      setEmployeeStart(0);
+      setProjectStart(0);
     }
-  }, [hasMoreEmployees, hasMoreWeeks, isLoadingProjectApiData]);
+  }, [hasMoreProjects, hasMoreWeeks, isLoadingProjectApiData]);
 
   return {
     hasMore,
