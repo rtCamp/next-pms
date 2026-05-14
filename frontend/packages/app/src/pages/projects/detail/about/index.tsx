@@ -19,7 +19,6 @@ import { MemberRow } from "./components/memberRow";
 import { getProjectAboutData } from "./fake-data";
 import { ProgressHoursSection } from "./progressHoursSection";
 import { Section } from "./section";
-import { PHASE_LABELS } from "../../list/constants";
 
 const ragVariants = cva("size-4 shrink-0", {
   variants: {
@@ -33,7 +32,7 @@ const ragVariants = cva("size-4 shrink-0", {
 
 export function AboutThisProject({ className }: { className: string }) {
   const { projectId = "" } = useParams<{ projectId: string }>();
-  const project = FAKE_PROJECTS.find((p) => p.id === projectId)!;
+  const project = FAKE_PROJECTS[0];
   const about = getProjectAboutData(projectId);
 
   return (
@@ -82,9 +81,7 @@ export function AboutThisProject({ className }: { className: string }) {
             <span className="truncate text-ink-gray-7">Active</span>
 
             <span>Current phase</span>
-            <span className="truncate text-ink-gray-7">
-              {PHASE_LABELS[project.phase]}
-            </span>
+            <span className="truncate text-ink-gray-7">{project.phase}</span>
           </div>
         </Section>
 
