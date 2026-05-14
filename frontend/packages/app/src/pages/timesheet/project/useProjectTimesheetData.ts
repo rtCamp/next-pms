@@ -195,10 +195,17 @@ export function useProjectTimesheetData({
       });
     });
 
-    const weekGroups = Array.from(weekMap.values()).sort(
-      (a, b) =>
-        parseISO(b.start_date).getTime() - parseISO(a.start_date).getTime(),
-    );
+    const weekGroups = Array.from(weekMap.values())
+      .sort(
+        (a, b) =>
+          new Date(b.start_date).getTime() - new Date(a.start_date).getTime(),
+      )
+      .map((week) => ({
+        ...week,
+        projects: [...week.projects].sort((a, b) =>
+          (a.projectName ?? "").localeCompare(b.projectName ?? ""),
+        ),
+      }));
 
     const hasMore = hasMoreProjects || hasMoreWeeks;
 
