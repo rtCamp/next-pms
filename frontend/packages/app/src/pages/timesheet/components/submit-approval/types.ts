@@ -5,9 +5,3 @@ export type SubmitApprovalProps = {
   endDate: string;
   totalHours: number;
 };
-
-export type EmployeeRecord = {
-  employee_name: string;
-  name: string;
-  image?: string;
-};

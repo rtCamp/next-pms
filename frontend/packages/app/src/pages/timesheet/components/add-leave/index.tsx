@@ -95,15 +95,29 @@ const AddLeave = ({ open = false, onOpenChange }: LeaveTimeProps) => {
         const error = parseFrappeErrorMsg(err as FrappeError);
         toast.error(error);
       } finally {
-        onOpenChange(false);
+        closeModal();
       }
     },
   });
 
+  const closeModal = () => {
+    onOpenChange(false);
+    form.reset();
+  };
+
+  const handleOpenChange = (nextOpen: boolean) => {
+    if (nextOpen) {
+      onOpenChange(true);
+      return;
+    }
+
+    closeModal();
+  };
+
   return (
     <Dialog
       open={open}
-      onOpenChange={onOpenChange}
+      onOpenChange={handleOpenChange}
       actions={
         <Button
           className="w-full"
