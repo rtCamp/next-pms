@@ -51,6 +51,10 @@ const KanbanView = () => {
   const isLoading = useProjectList((c) => c.state.isLoading);
   const error = useProjectList((c) => c.state.error);
 
+  const updateProjectPhase = useProjectList(
+    (c) => c.actions.updateProjectPhase,
+  );
+
   const [items, setItems] = useState<ProjectIdsByPhase>(emptyGroups);
 
   const byId = useMemo(() => new Map(data.map((p) => [p.name, p])), [data]);
@@ -68,7 +72,7 @@ const KanbanView = () => {
       onDragOver={(event) => {
         setItems((current) => move(current, event));
       }}
-      onDragEnd={(operation) => {
+      onDragEnd={async (operation) => {
         const projectId = operation.operation.source?.id;
         const targetGroup = operation.operation.target?.group;
         const newPhase =
@@ -77,7 +81,11 @@ const KanbanView = () => {
             : undefined;
         if (typeof projectId !== "string" || !newPhase) return;
 
-        //@todo update project status
+        try {
+          await updateProjectPhase(projectId, newPhase);
+        } catch {
+          setItems(groupIdsByPhase(data));
+        }
       }}
     >
       <div className="flex gap-4 px-7 pt-5.5 overflow-auto scrollbar-thin">

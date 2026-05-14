@@ -9,6 +9,11 @@ import { createContext, useContextSelector } from "use-context-selector";
  */
 import type { Phase, ProjectListItem } from "./types";
 
+export type UpdateProjectPhase = (
+  projectId: string,
+  phase: Phase,
+) => Promise<void>;
+
 export type RagStatus = "red" | "amber" | "green";
 export type ProjectStatus = "Open" | "Completed" | "Cancelled";
 
@@ -44,6 +49,7 @@ export interface ProjectListContextProps {
     setStatus: (status: ProjectStatus | undefined) => void;
     setAdvanced: (advanced: FilterCondition[]) => void;
     resetFilters: () => void;
+    updateProjectPhase: UpdateProjectPhase;
   };
 }
 
@@ -65,6 +71,7 @@ export const ProjectListContext = createContext<ProjectListContextProps>({
     setStatus: noop,
     setAdvanced: noop,
     resetFilters: noop,
+    updateProjectPhase: async () => {},
   },
 });
 
