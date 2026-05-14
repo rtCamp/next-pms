@@ -72,7 +72,9 @@ export const GanttMemberRows: React.FC<GanttMemberRowsProps> = ({
           <td
             key={i}
             colSpan={daysPerWeek}
-            className={cn("border-r border-outline-gray-1")}
+            className={cn("border-r border-outline-gray-1", {
+              "border-t": isExpanded,
+            })}
             style={{ height: CELL_HEIGHT }}
           />
         ))}
@@ -152,7 +154,7 @@ export const GanttMemberRows: React.FC<GanttMemberRowsProps> = ({
               colSpan={daysPerWeek}
               className={cn(
                 "overflow-hidden transition-[height] duration-200 ease-in-out",
-                { "border-r border-outline-gray-1": isExpanded },
+                { "border-r border-b border-outline-gray-1": isExpanded },
               )}
               style={{ height: addProjectRowHeight }}
             />
