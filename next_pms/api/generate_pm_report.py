@@ -38,6 +38,8 @@ def generate_pm_report(
     project_doc = frappe.get_doc("Project", project)
 
     # Validations
+    if not project_doc.get("custom_enable_project_report_generation"):
+        frappe.throw(_("Report generation is not enabled for this project."))
     if not project_doc.get("custom_slack_channel_slug"):
         frappe.throw(_("Please add a Slack Channel Slug before generating."))
     if not from_date or not to_date:

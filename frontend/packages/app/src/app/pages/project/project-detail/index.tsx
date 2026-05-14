@@ -107,17 +107,31 @@ const ProjectDetail = () => {
         component: <ProjectUpdates projectId={projectId} />,
         isCustom: true,
       },
-      "Project Report": {
-        component: <PMReport projectId={projectId} />,
-        isCustom: true,
-      },
+      ...(projectData?.custom_enable_project_report_generation === 1 && {
+        "Project Report": {
+          component: <PMReport projectId={projectId} />,
+          isCustom: true,
+        },
+      }),
     }),
-    [projectId],
+    [projectId, projectData?.custom_enable_project_report_generation],
   );
 
-  const Tabs = useMemo(
-    () => ({
-      ...(data?.message?.tabs || {}),
+  const Tabs = useMemo(() => {
+    const serverTabs = data?.message?.tabs || {};
+    const filteredServerTabs = Object.fromEntries(
+      Object.entries(serverTabs).filter(([key]) => {
+        if (
+          key === "Project Report" &&
+          !projectData?.custom_enable_project_report_generation
+        )
+          return false;
+        return true;
+      }),
+    );
+
+    return {
+      ...filteredServerTabs,
       ...Object.keys(customTabs).reduce(
         (acc, key) => {
           acc[key] = [];
@@ -125,9 +139,12 @@ const ProjectDetail = () => {
         },
         {} as Record<string, unknown[]>,
       ),
-    }),
-    [data?.message?.tabs, customTabs],
-  );
+    };
+  }, [
+    data?.message?.tabs,
+    customTabs,
+    projectData?.custom_enable_project_report_generation,
+  ]);
 
   return (
     <>
