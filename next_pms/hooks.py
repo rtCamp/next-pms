@@ -148,7 +148,7 @@ fixtures = [
             [
                 "module",
                 "in",
-                ["Next PMS", "Project Currency", "Timesheet", "Resource Management"],
+                ["Next PMS", "Project Currency", "Timesheet", "Resource Management", "Next Projects"],
             ]
         ],
     },
@@ -158,7 +158,7 @@ fixtures = [
             [
                 "module",
                 "in",
-                ["Next PMS", "Project Currency", "Timesheet", "Resource Management"],
+                ["Next PMS", "Project Currency", "Timesheet", "Resource Management", "Next Projects"],
             ]
         ],
     },
@@ -265,7 +265,15 @@ doc_events = {
         "on_trash": ["next_pms.resource_management.doctype.resource_allocation.resource_allocation.clear_cache"],
     },
     "Customer": {"validate": "next_pms.resource_management.doc_events.customer.validate_abbr"},
-    "Employee": {"on_update": "next_pms.timesheet.doc_events.employee.on_update"},
+    "Employee": {
+        "on_update": [
+            "next_pms.timesheet.doc_events.employee.on_update",
+            "next_pms.next_projects.doc_events.employee.on_update",
+        ]
+    },
+    "Employee Promotion": {
+        "on_submit": "next_pms.next_projects.doc_events.employee_promotion.on_submit",
+    },
     "Holiday List": {
         "validate": "next_pms.timesheet.doc_events.holiday_list.validate",
     },
@@ -329,7 +337,7 @@ doc_events = {
 # ]
 
 # Automatically update python controller files with type annotations for this app.
-# export_python_type_annotations = True
+export_python_type_annotations = True
 
 # default_log_clearing_doctypes = {
 # 	"Logging DocType Name": 30  # days to retain logs

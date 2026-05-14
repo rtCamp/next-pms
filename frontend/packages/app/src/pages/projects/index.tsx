@@ -12,6 +12,8 @@ import { Header } from "@/layout/header";
 import { VIEWS } from "./constants";
 import ProjectKanban from "./kanban";
 import ProjectList from "./list";
+import { ProjectListProvider } from "./list/provider";
+import { ProjectListSubHeader } from "./list/sub-header";
 import { ViewKey } from "./types";
 
 function Projects() {
@@ -65,7 +67,10 @@ function Projects() {
           onClick={() => {}}
         />
       </Header>
-      {view === "kanban" ? <ProjectKanban /> : <ProjectList />}
+      <ProjectListProvider>
+        <ProjectListSubHeader />
+        {view === "kanban" ? <ProjectKanban /> : <ProjectList />}
+      </ProjectListProvider>
     </>
   );
 }

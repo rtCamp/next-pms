@@ -4,29 +4,35 @@ import type { ProjectAllocationBar } from "../ganttStore";
 import { GanttAllocationPopover } from "./allocationPopover";
 import { GanttBar } from "./ganttBar";
 import { allocationBarToEntry } from "./utils/allocationBarToEntry";
+import { withPendingDeleteEntry } from "./utils/withPendingDeleteEntry";
 
 interface GanttProjectBarProps {
   allocation: ProjectAllocationBar;
 }
 
 export function GanttProjectBar({ allocation }: GanttProjectBarProps) {
-  const { headerWidth, hasRoleAccess, onEditAllocation, onDeleteAllocation } =
-    useGanttStore((s) => ({
-      headerWidth: s.headerWidth,
-      hasRoleAccess: s.hasRoleAccess,
-      onEditAllocation: s.onEditAllocation,
-      onDeleteAllocation: s.onDeleteAllocation,
-    }));
+  const {
+    headerWidth,
+    hasRoleAccess,
+    onEditAllocation,
+    onDeleteAllocation,
+    setPendingDeleteEntry,
+  } = useGanttStore((s) => ({
+    headerWidth: s.headerWidth,
+    hasRoleAccess: s.hasRoleAccess,
+    onEditAllocation: s.onEditAllocation,
+    onDeleteAllocation: s.onDeleteAllocation,
+    setPendingDeleteEntry: s.setPendingDeleteEntry,
+  }));
 
   const left = allocation.barOffset + headerWidth;
   const { width, fullNumDays } = allocation;
 
   const label = `${allocation.hours}h/day for ${fullNumDays} day${fullNumDays !== 1 ? "s" : ""}`;
 
-  const entry = allocationBarToEntry(
-    allocation,
-    onEditAllocation,
-    onDeleteAllocation,
+  const entry = withPendingDeleteEntry(
+    allocationBarToEntry(allocation, onEditAllocation, onDeleteAllocation),
+    setPendingDeleteEntry,
   );
 
   return (
