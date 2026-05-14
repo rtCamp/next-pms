@@ -45,7 +45,6 @@ export function ProjectListProvider({ children }: PropsWithChildren) {
   const { data, error, isLoading } = useFrappeGetCall<ResponseProject>(
     "next_pms.next_projects.api.project.get_projects_view",
     {
-      view: "list",
       search: filters.search,
       filters: frappeFilters,
     },

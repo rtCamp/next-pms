@@ -8,9 +8,8 @@ import { DotHorizontal } from "@rtcamp/frappe-ui-react/icons";
 /**
  * Internal dependencies.
  */
-import { useProjectList, type ProjectStatus, type RagStatus } from "./context";
-import type { Phase } from "./types";
-
+import { useProjectList, type ProjectStatus, type RagStatus } from "../context";
+import { Phase } from "../types";
 const noop = () => {};
 
 const RAG_OPTIONS = [

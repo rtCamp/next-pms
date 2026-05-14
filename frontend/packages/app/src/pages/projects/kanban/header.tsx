@@ -7,8 +7,8 @@ import { AddSm } from "@rtcamp/frappe-ui-react/icons";
 /**
  * Internal dependencies.
  */
+import { PHASE_LABELS } from "../constants";
 import { StagesIcon } from "../list/cells/stagesIcon";
-import { PHASE_LABELS } from "../list/constants";
 import type { Phase } from "../types";
 
 export function Header({ phase }: { phase: Phase }) {

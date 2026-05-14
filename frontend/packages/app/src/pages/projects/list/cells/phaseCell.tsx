@@ -3,9 +3,9 @@
  */
 import { pickAllowed } from "@/lib/utils";
 import { StagesIcon } from "./stagesIcon";
-import { PHASE_LABELS, PHASES } from "../constants";
-import { Phase } from "../types";
 import { TextCell } from "./textCell";
+import { PHASE_LABELS, PHASES } from "../../constants";
+import { Phase } from "../../types";
 
 export function PhaseCell({ phase }: { phase?: string }) {
   const _phase = pickAllowed<Phase>(phase, PHASES);

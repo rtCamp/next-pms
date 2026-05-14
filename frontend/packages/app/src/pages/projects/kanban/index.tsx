@@ -1,7 +1,11 @@
 /**
  * External dependencies.
  */
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import type {
+  SortableDraggable,
+  SortableDroppable,
+} from "@dnd-kit/dom/sortable";
 import { move } from "@dnd-kit/helpers";
 import { DragDropProvider } from "@dnd-kit/react";
 import { Draggable, Droppable } from "@next-pms/design-system/components";
@@ -9,55 +13,96 @@ import { Draggable, Droppable } from "@next-pms/design-system/components";
 /**
  * Internal dependencies.
  */
-import { FAKE_PROJECTS } from "../fake-data";
-import type { Phase, Project } from "../types";
+import { pickAllowed, toKebabCase } from "@/lib/utils";
 
-import { KANBAN_COLUMN_WIDTH, KANBAN_PHASE_ORDER } from "./constants";
+import { useProjectList } from "../context";
+import type { Phase, ProjectListItem } from "../types";
+
+import { KANBAN_COLUMN_WIDTH } from "./constants";
 import { Header } from "./header";
 import { ProjectCard } from "./projectCard";
+import { PHASES } from "../constants";
 
-type ProjectsByPhase = Record<Phase, Project[]>;
+type ProjectIdsByPhase = Record<Phase, string[]>;
 
-function groupByPhase(projects: Project[]): ProjectsByPhase {
-  const grouped = Object.fromEntries(
-    KANBAN_PHASE_ORDER.map((phase) => [phase, [] as Project[]]),
-  ) as ProjectsByPhase;
+type ProjectDragData = { column: Phase };
+type ProjectDraggable = SortableDraggable<ProjectDragData>;
+type ProjectDroppable = SortableDroppable<ProjectDragData>;
+
+const emptyGroups = () => {
+  return Object.fromEntries(
+    PHASES.map((phase) => [phase, [] as string[]]),
+  ) as ProjectIdsByPhase;
+};
+
+function groupIdsByPhase(projects: ProjectListItem[]): ProjectIdsByPhase {
+  const grouped = emptyGroups();
   for (const project of projects) {
-    grouped[project.phase].push(project);
+    const _phase = pickAllowed<Phase>(toKebabCase(project.phase), PHASES);
+    if (_phase && _phase in grouped) {
+      grouped[_phase].push(project.name);
+    }
   }
   return grouped;
 }
 
 const KanbanView = () => {
-  const [items, setItems] = useState<ProjectsByPhase>(() =>
-    groupByPhase(FAKE_PROJECTS),
-  );
+  const data = useProjectList((c) => c.state.data);
+  const isLoading = useProjectList((c) => c.state.isLoading);
+  const error = useProjectList((c) => c.state.error);
+
+  const [items, setItems] = useState<ProjectIdsByPhase>(emptyGroups);
+
+  const byId = useMemo(() => new Map(data.map((p) => [p.name, p])), [data]);
+
+  useEffect(() => {
+    setItems(groupIdsByPhase(data));
+  }, [data]);
+
+  if (isLoading || error) {
+    return null;
+  }
 
   return (
-    <DragDropProvider
+    <DragDropProvider<ProjectDragData, ProjectDraggable, ProjectDroppable>
       onDragOver={(event) => {
         setItems((current) => move(current, event));
       }}
+      onDragEnd={(operation) => {
+        const projectId = operation.operation.source?.id;
+        const targetGroup = operation.operation.target?.group;
+        const newPhase =
+          typeof targetGroup === "string"
+            ? pickAllowed<Phase>(targetGroup, PHASES)
+            : undefined;
+        if (typeof projectId !== "string" || !newPhase) return;
+
+        //@todo update project status
+      }}
     >
       <div className="flex gap-4 px-7 pt-5.5 overflow-auto scrollbar-thin">
-        {KANBAN_PHASE_ORDER.map((phase) => (
+        {PHASES.map((phase) => (
           <Droppable
             key={phase}
             id={phase}
             header={<Header phase={phase} />}
             style={{ width: KANBAN_COLUMN_WIDTH }}
           >
-            {items[phase].map((project, index) => (
-              <Draggable
-                key={project.id}
-                id={project.id}
-                index={index}
-                column={phase}
-                className="rounded-2xl"
-              >
-                <ProjectCard project={project} />
-              </Draggable>
-            ))}
+            {items[phase].map((id, index) => {
+              const project = byId.get(id);
+              if (!project) return null;
+              return (
+                <Draggable
+                  key={id}
+                  id={project.name}
+                  index={index}
+                  column={phase}
+                  className="rounded-2xl"
+                >
+                  <ProjectCard project={project} />
+                </Draggable>
+              );
+            })}
           </Droppable>
         ))}
       </div>

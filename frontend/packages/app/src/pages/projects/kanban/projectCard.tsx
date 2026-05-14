@@ -7,33 +7,37 @@ import { AgentAlt, Apps, Calendar, Code } from "@rtcamp/frappe-ui-react/icons";
 /**
  * Internal dependencies.
  */
-import { formatProjectDate } from "@/lib/utils";
+import { formatProjectDate, toKebabCase } from "@/lib/utils";
 
 import { Dot } from "../list/cells/dot";
-import type { EmployeeRef, Project } from "../types";
+import type { Employee, ProjectListItem, RagStatus } from "../types";
 
-export function ProjectCard({ project }: { project: Project }) {
+export function ProjectCard({ project }: { project: ProjectListItem }) {
+  const dateRange = [project.start_date, project.end_date]
+    .map((d) => (d ? formatProjectDate(d) : null))
+    .filter(Boolean)
+    .join(" - ");
+
   return (
     <div className="flex w-full cursor-pointer flex-col gap-2.5 rounded-2xl border border-outline-gray-modals bg-surface-white pb-3 shadow-sm">
       <div className="flex w-full items-center gap-2 rounded-t-2xl border-b border-outline-gray-1 px-3.5 py-3">
-        <Dot risk={project.riskLevel} />
+        <Dot risk={toKebabCase(project.rag_status) as RagStatus} />
         <span className="min-w-0 flex-1 truncate text-base font-medium text-ink-gray-7">
-          {project.name}
+          {project.project_name}
         </span>
       </div>
       <div className="flex w-full flex-col gap-3.5 px-4">
         <Row icon={<Calendar className="size-4 shrink-0 text-ink-gray-6" />}>
-          {formatProjectDate(project.startDate)} -{" "}
-          {formatProjectDate(project.endDate)}
+          {dateRange || "N/A"}
         </Row>
         <Row icon={<AgentAlt className="size-4 shrink-0 text-ink-gray-6" />}>
-          <EmployeeInline employee={project.projectManager} />
+          <EmployeeInline employee={project.project_manager} />
         </Row>
         <Row icon={<Code className="size-4 shrink-0 text-ink-gray-6" />}>
-          <EmployeeInline employee={project.leadEngineer} />
+          <EmployeeInline employee={project.engineering_manager} />
         </Row>
         <Row icon={<Apps className="size-4 shrink-0 text-ink-gray-6" />}>
-          {project.type}
+          {project.project_type ?? "N/A"}
         </Row>
       </div>
     </div>
@@ -57,16 +61,19 @@ function Row({
   );
 }
 
-function EmployeeInline({ employee }: { employee: EmployeeRef }) {
+function EmployeeInline({ employee }: { employee: Employee | null }) {
+  if (!employee) {
+    return <span className="truncate">N/A</span>;
+  }
   return (
     <>
       <Avatar
         size="xs"
         shape="circle"
-        image={employee.avatar}
-        label={employee.initials}
+        image={employee.image ?? undefined}
+        label={employee.full_name}
       />
-      <span className="truncate">{employee.name}</span>
+      <span className="truncate">{employee.full_name}</span>
     </>
   );
 }
