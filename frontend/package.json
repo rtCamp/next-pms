@@ -55,7 +55,7 @@
     "vite": "^6.4.2"
   },
   "overrides": {
-    "axios": "^1.15.0",
+    "axios": "^1.16.1",
     "follow-redirects": "^1.15.12"
   }
 }
