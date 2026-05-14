@@ -242,7 +242,6 @@ export function useProjectTimesheetData({
 
   // Unified loadData: prioritizes project pagination, then week pagination.
   const loadData = useCallback(() => {
-    console.log("loadData called");
     if (isLoadingProjectApiData) return;
 
     // Priority 1: Load more projects for current date range
