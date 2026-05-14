@@ -9,6 +9,7 @@ import type {
 import { move } from "@dnd-kit/helpers";
 import { DragDropProvider } from "@dnd-kit/react";
 import { Draggable, Droppable } from "@next-pms/design-system/components";
+import { useToasts } from "@rtcamp/frappe-ui-react";
 
 /**
  * Internal dependencies.
@@ -55,6 +56,8 @@ const KanbanView = () => {
     (c) => c.actions.updateProjectPhase,
   );
 
+  const toast = useToasts();
+
   const [items, setItems] = useState<ProjectIdsByPhase>(emptyGroups);
 
   const byId = useMemo(() => new Map(data.map((p) => [p.name, p])), [data]);
@@ -85,6 +88,10 @@ const KanbanView = () => {
           await updateProjectPhase(projectId, newPhase);
         } catch {
           setItems(groupIdsByPhase(data));
+          const project = byId.get(projectId);
+          toast.error(
+            `Error updating the phase for ${project?.project_name ?? projectId}`,
+          );
         }
       }}
     >
