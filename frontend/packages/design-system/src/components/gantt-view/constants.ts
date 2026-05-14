@@ -1,7 +1,8 @@
-export const CELL_WIDTH = 30;
 export const CELL_HEIGHT = 60;
 export const WEEK_LABEL_HEIGHT = 30;
-export const HEADER_HEIGHT = WEEK_LABEL_HEIGHT + CELL_WIDTH;
+export const DAY_HEADER_HEIGHT = 30;
+export const CELL_WIDTH = 38;
+export const HEADER_HEIGHT = WEEK_LABEL_HEIGHT + DAY_HEADER_HEIGHT;
 export const BAR_HEIGHT = 32;
 export const ROW_HEADER_WIDTH = 240;
 export const FULL_DAY_HOURS = 8;

@@ -1,5 +1,5 @@
 import { addDays, format, isToday } from "date-fns";
-import { CELL_WIDTH, WEEK_LABEL_HEIGHT } from "./constants";
+import { DAY_HEADER_HEIGHT, WEEK_LABEL_HEIGHT } from "./constants";
 import { useGanttStore } from "./ganttStore";
 import { mergeClassNames as cn } from "../../utils";
 
@@ -64,7 +64,7 @@ export function GanttWeekHeader({ weekIndex }: GanttWeekProps) {
               )}
               style={{
                 width: columnWidth,
-                height: CELL_WIDTH,
+                height: DAY_HEADER_HEIGHT,
               }}
             >
               <span
