@@ -67,6 +67,14 @@ export function toKebabCase(value: string): string {
     .toLowerCase();
 }
 
+export function kebabToTitleCase(value: string): string {
+  return value
+    .split("-")
+    .filter(Boolean)
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join(" ");
+}
+
 export function stripTags(html: string): string {
   return html.replace(/<[^>]*>/g, "");
 }

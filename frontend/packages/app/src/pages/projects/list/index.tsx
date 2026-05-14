@@ -14,7 +14,7 @@ import {
  */
 import { ProjectListCell } from "./cells";
 import { PROJECT_LIST_COLUMNS } from "./columns";
-import { useProjectList } from "./context";
+import { useProjectList } from "../context";
 
 function ProjectList() {
   const data = useProjectList((c) => c.state.data);

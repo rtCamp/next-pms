@@ -11,8 +11,8 @@ import { Tooltip } from "@rtcamp/frappe-ui-react";
 import { ROUTES } from "@/lib/constant";
 import { pickAllowed } from "@/lib/utils";
 import { Dot } from "./dot";
-import { RAG_STATUS } from "../constants";
-import { RagStatus } from "../types";
+import { RAG_STATUS } from "../../constants";
+import { RagStatus } from "../../types";
 
 export function ProjectNameCell({
   id,

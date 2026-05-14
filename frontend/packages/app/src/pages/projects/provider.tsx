@@ -3,11 +3,13 @@
  */
 import { useCallback, useMemo, useState, type PropsWithChildren } from "react";
 import type { FilterCondition } from "@rtcamp/frappe-ui-react";
-import { useFrappeGetCall } from "frappe-react-sdk";
+import { useFrappeGetCall, useFrappeUpdateDoc } from "frappe-react-sdk";
 
 /**
  * Internal dependencies.
  */
+import { kebabToTitleCase } from "@/lib/utils";
+
 import {
   ProjectListContext,
   initialProjectListFilters,
@@ -42,10 +44,9 @@ export function ProjectListProvider({ children }: PropsWithChildren) {
     [filters],
   );
 
-  const { data, error, isLoading } = useFrappeGetCall<ResponseProject>(
+  const { data, error, isLoading, mutate } = useFrappeGetCall<ResponseProject>(
     "next_pms.next_projects.api.project.get_projects_view",
     {
-      view: "list",
       search: filters.search,
       filters: frappeFilters,
     },
@@ -78,6 +79,17 @@ export function ProjectListProvider({ children }: PropsWithChildren) {
     [],
   );
 
+  const { updateDoc } = useFrappeUpdateDoc();
+  const updateProjectPhase = useCallback(
+    async (projectId: string, phase: Phase) => {
+      await updateDoc("Project", projectId, {
+        custom_project_phase: kebabToTitleCase(phase),
+      });
+      mutate();
+    },
+    [updateDoc],
+  );
+
   const value: ProjectListContextProps = useMemo(
     () => ({
       state: {
@@ -95,6 +107,7 @@ export function ProjectListProvider({ children }: PropsWithChildren) {
         setStatus,
         setAdvanced,
         resetFilters,
+        updateProjectPhase,
       },
     }),
     [
@@ -108,6 +121,7 @@ export function ProjectListProvider({ children }: PropsWithChildren) {
       setStatus,
       setAdvanced,
       resetFilters,
+      updateProjectPhase,
     ],
   );
 
