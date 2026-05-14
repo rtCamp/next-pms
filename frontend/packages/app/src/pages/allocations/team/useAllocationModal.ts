@@ -34,8 +34,12 @@ export function useAllocationModal() {
         ? { fromDate: format(data.startDate, "yyyy-MM-dd") }
         : {}),
       ...(data.endDate ? { toDate: format(data.endDate, "yyyy-MM-dd") } : {}),
-      hoursPerDay: data.hoursPerDay,
-      customer: data.customerName,
+      ...(data.hoursPerDay !== undefined
+        ? { hoursPerDay: data.hoursPerDay }
+        : {}),
+      ...(data.customerName !== undefined
+        ? { customer: data.customerName }
+        : {}),
     });
     setIsOpen(true);
   }, []);

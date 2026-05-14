@@ -2,7 +2,7 @@
  * External dependencies.
  */
 import React, { useRef } from "react";
-import { Plus } from "lucide-react";
+import { AddMd } from "@rtcamp/frappe-ui-react/icons";
 
 /**
  * Internal dependencies.
@@ -139,9 +139,10 @@ export const GanttMemberRows: React.FC<GanttMemberRowsProps> = ({
             <button
               type="button"
               onClick={() => onAddAllocation?.({ employeeId: member.id })}
+              tabIndex={isExpanded ? undefined : -1}
               className="w-full h-full flex items-center gap-2 text-base font-medium text-ink-gray-9 overflow-hidden"
             >
-              <Plus size={16} className="shrink-0" />
+              <AddMd className="size-4 shrink-0" />
               <span className="truncate">Add project</span>
             </button>
           </th>

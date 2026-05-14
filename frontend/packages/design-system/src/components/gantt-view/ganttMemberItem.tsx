@@ -1,6 +1,6 @@
 import { PreviewCard } from "@base-ui/react/preview-card";
 import { Avatar, Badge } from "@rtcamp/frappe-ui-react";
-import { ChevronRight } from "lucide-react";
+import { RightChevron } from "@rtcamp/frappe-ui-react/icons";
 import { CELL_HEIGHT } from "./constants";
 import GanttMemberHoverCard from "./ganttMemberHoverCard";
 import { useGanttStore } from "./ganttStore";
@@ -50,13 +50,12 @@ export function GanttMemberItem({ memberInd }: GanttMemberItemProps) {
           <div className="flex flex-col gap-1 w-full min-w-0">
             <div className="flex gap-1 justify-between items-center w-full">
               <div className="flex overflow-hidden flex-1 items-center w-full min-w-0">
-                <ChevronRight
+                <RightChevron
                   className={cn(
-                    "mr-1 transition-transform duration-150 shrink-0 text-ink-gray-9",
+                    "size-4 mr-1 transition-transform duration-150 shrink-0 text-ink-gray-9",
                     { "opacity-0 pointer-events-none": !canExpand },
                     { "rotate-90": isExpanded },
                   )}
-                  size={16}
                 />
                 <Avatar
                   size="xs"

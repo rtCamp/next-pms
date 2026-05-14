@@ -55,6 +55,8 @@ export const computeTotalHours = ({
   const safeFromDate = fromDate ?? "";
   const safeToDate = toDate ?? "";
 
+  if (!safeFromDate || !safeToDate) return 0;
+
   const dayCount =
     recurrence === "recurring"
       ? Math.max(1, safeRepeatFor) *
