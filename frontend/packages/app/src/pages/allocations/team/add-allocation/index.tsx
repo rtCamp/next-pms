@@ -274,7 +274,6 @@ function AddAllocationModal({
                 Employee
               </label>
               <Combobox
-                key={employeeOptions.length > 0 ? "emp-loaded" : "emp-loading"}
                 inputClassName="bg-white h-8 border-outline-gray-2"
                 loading={isEmployeeLookupLoading}
                 options={employeeOptions}
@@ -300,7 +299,6 @@ function AddAllocationModal({
                 Project
               </label>
               <Combobox
-                key={projectOptions.length > 0 ? "proj-loaded" : "proj-loading"}
                 inputClassName="bg-white h-8 border-outline-gray-2"
                 loading={isProjectLookupLoading}
                 options={projectOptions}
