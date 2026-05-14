@@ -70,8 +70,7 @@ export function useProjectTimesheetData({
   // Reset pagination when filters change
   useEffect(() => {
     const filtersChanged =
-      JSON.stringify(prevFiltersRef.current.search) !==
-        JSON.stringify(search) ||
+      prevFiltersRef.current.search !== search ||
       JSON.stringify(prevFiltersRef.current.compositeFilters) !==
         JSON.stringify(compositeFilters);
 
