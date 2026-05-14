@@ -35,6 +35,11 @@ interface RowAllocationOverlayProps {
   onOpenAllocation?: (data: AllocationCallbackData) => void;
 }
 
+/**
+ * forwardRef exposes an imperative handle so the parent component can forward
+ * pointer events here without owning hover/draft state, keeping pointermove
+ * re-renders scoped to this component instead of the whole row.
+ */
 export const RowAllocationOverlay = forwardRef<
   RowAllocationOverlayHandle,
   RowAllocationOverlayProps
