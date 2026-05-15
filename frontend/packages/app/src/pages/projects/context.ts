@@ -49,6 +49,7 @@ export interface ProjectListContextProps {
     setStatus: (status: ProjectStatus | undefined) => void;
     setAdvanced: (advanced: FilterCondition[]) => void;
     resetFilters: () => void;
+    loadMore: () => void;
     updateProjectPhase: UpdateProjectPhase;
   };
 }
@@ -71,6 +72,7 @@ export const ProjectListContext = createContext<ProjectListContextProps>({
     setStatus: noop,
     setAdvanced: noop,
     resetFilters: noop,
+    loadMore: noop,
     updateProjectPhase: async () => {},
   },
 });

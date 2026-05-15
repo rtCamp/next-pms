@@ -1,7 +1,14 @@
 /**
  * External dependencies.
  */
-import { useCallback, useMemo, useState, type PropsWithChildren } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type PropsWithChildren,
+} from "react";
 import type { FilterCondition } from "@rtcamp/frappe-ui-react";
 import { useFrappeGetCall, useFrappeUpdateDoc } from "frappe-react-sdk";
 
@@ -10,6 +17,7 @@ import { useFrappeGetCall, useFrappeUpdateDoc } from "frappe-react-sdk";
  */
 import { kebabToTitleCase } from "@/lib/utils";
 
+import { PROJECT_LIST_PAGE_SIZE } from "./constants";
 import {
   ProjectListContext,
   initialProjectListFilters,
@@ -18,7 +26,7 @@ import {
   type ProjectStatus,
   type RagStatus,
 } from "./context";
-import type { Phase, ResponseProject } from "./types";
+import type { Phase, ProjectListItem, ResponseProject } from "./types";
 
 const buildListFrappeFilters = (filters: ProjectListFilters) => {
   const out: unknown[] = [];
@@ -38,6 +46,12 @@ export function ProjectListProvider({ children }: PropsWithChildren) {
   const [filters, setFilters] = useState<ProjectListFilters>(
     initialProjectListFilters,
   );
+  const [start, setStart] = useState(0);
+  const [pageMap, setPageMap] = useState<Map<number, ProjectListItem[]>>(
+    () => new Map(),
+  );
+  const [hasMore, setHasMore] = useState(false);
+  const [totalCount, setTotalCount] = useState(0);
 
   const frappeFilters = useMemo(
     () => buildListFrappeFilters(filters),
@@ -49,35 +63,76 @@ export function ProjectListProvider({ children }: PropsWithChildren) {
     {
       search: filters.search,
       filters: frappeFilters,
+      start,
+      limit: PROJECT_LIST_PAGE_SIZE,
     },
   );
 
+  const lastDataRef = useRef<typeof data>(undefined);
+  useEffect(() => {
+    if (!data?.message || data === lastDataRef.current) return;
+    lastDataRef.current = data;
+    const page = data.message.data;
+    setPageMap((prev) => {
+      const next = new Map(prev);
+      next.set(start, page);
+      return next;
+    });
+    setHasMore(data.message.has_more);
+    setTotalCount(data.message.total_count);
+  }, [data, start]);
+
+  const resetPagination = useCallback(() => {
+    lastDataRef.current = undefined;
+    setStart(0);
+    setPageMap(new Map());
+    setHasMore(false);
+  }, []);
+
   const setSearch = useCallback(
-    (search: string) => setFilters((f) => ({ ...f, search })),
-    [],
+    (search: string) => {
+      resetPagination();
+      setFilters((f) => ({ ...f, search }));
+    },
+    [resetPagination],
   );
   const setRagStatus = useCallback(
-    (ragStatus: RagStatus | undefined) =>
-      setFilters((f) => ({ ...f, ragStatus })),
-    [],
+    (ragStatus: RagStatus | undefined) => {
+      resetPagination();
+      setFilters((f) => ({ ...f, ragStatus }));
+    },
+    [resetPagination],
   );
   const setPhase = useCallback(
-    (phase: Phase | undefined) => setFilters((f) => ({ ...f, phase })),
-    [],
+    (phase: Phase | undefined) => {
+      resetPagination();
+      setFilters((f) => ({ ...f, phase }));
+    },
+    [resetPagination],
   );
   const setStatus = useCallback(
-    (status: ProjectStatus | undefined) =>
-      setFilters((f) => ({ ...f, status })),
-    [],
+    (status: ProjectStatus | undefined) => {
+      resetPagination();
+      setFilters((f) => ({ ...f, status }));
+    },
+    [resetPagination],
   );
   const setAdvanced = useCallback(
-    (advanced: FilterCondition[]) => setFilters((f) => ({ ...f, advanced })),
-    [],
+    (advanced: FilterCondition[]) => {
+      resetPagination();
+      setFilters((f) => ({ ...f, advanced }));
+    },
+    [resetPagination],
   );
-  const resetFilters = useCallback(
-    () => setFilters(initialProjectListFilters),
-    [],
-  );
+  const resetFilters = useCallback(() => {
+    resetPagination();
+    setFilters(initialProjectListFilters);
+  }, [resetPagination]);
+
+  const loadMore = useCallback(() => {
+    if (isLoading || !hasMore) return;
+    setStart((s) => s + PROJECT_LIST_PAGE_SIZE);
+  }, [isLoading, hasMore]);
 
   const { updateDoc } = useFrappeUpdateDoc();
   const updateProjectPhase = useCallback(
@@ -85,18 +140,24 @@ export function ProjectListProvider({ children }: PropsWithChildren) {
       await updateDoc("Project", projectId, {
         custom_project_phase: kebabToTitleCase(phase),
       });
+      resetPagination();
       mutate();
     },
-    [updateDoc],
+    [updateDoc, resetPagination, mutate],
   );
+
+  const flatData = useMemo(() => {
+    const offsets = Array.from(pageMap.keys()).sort((a, b) => a - b);
+    return offsets.flatMap((k) => pageMap.get(k)!);
+  }, [pageMap]);
 
   const value: ProjectListContextProps = useMemo(
     () => ({
       state: {
         filters,
-        data: data?.message.data ?? [],
-        totalCount: data?.message.total_count ?? 0,
-        hasMore: data?.message.has_more ?? false,
+        data: flatData,
+        totalCount,
+        hasMore,
         isLoading,
         error,
       },
@@ -107,12 +168,15 @@ export function ProjectListProvider({ children }: PropsWithChildren) {
         setStatus,
         setAdvanced,
         resetFilters,
+        loadMore,
         updateProjectPhase,
       },
     }),
     [
       filters,
-      data,
+      flatData,
+      totalCount,
+      hasMore,
       isLoading,
       error,
       setSearch,
@@ -121,6 +185,7 @@ export function ProjectListProvider({ children }: PropsWithChildren) {
       setStatus,
       setAdvanced,
       resetFilters,
+      loadMore,
       updateProjectPhase,
     ],
   );

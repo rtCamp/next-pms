@@ -26,6 +26,8 @@ export const RAG_STATUS = ["red", "amber", "green"] as const;
 
 export const PROJECT_TYPES = ["fixed-cost", "retainer", "external"] as const;
 
+export const PROJECT_LIST_PAGE_SIZE = 20;
+
 export const PHASE_LABELS: Record<Phase, string> = {
   "delivery-prep": "Delivery Prep",
   "kick-off": "Kick-off",
