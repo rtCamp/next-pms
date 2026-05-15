@@ -7,7 +7,8 @@ import { createContext, useContextSelector } from "use-context-selector";
 /**
  * Internal dependencies.
  */
-export type AllocationsDuration = "this-week" | "this-month" | "this-quarter";
+import type { AllocationsDuration } from "../types";
+
 export interface AllocationsTeamContextProps {
   state: {
     members: Member[];

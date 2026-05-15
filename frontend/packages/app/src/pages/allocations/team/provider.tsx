@@ -10,11 +10,11 @@ import { useDebounce } from "@/hooks/useDebounce";
 import { EMPLOYEES_PER_PAGE } from "./constants";
 import {
   AllocationsTeamContext,
-  type AllocationsDuration,
   type AllocationsTeamContextProps,
 } from "./context";
 import { useAllocationsTeamData } from "./useAllocationsTeamData";
 import { getWeekCountForDuration, moveDateByDuration } from "./utils";
+import { AllocationsDuration } from "../types";
 
 export function AllocationsTeamProvider({
   children,
