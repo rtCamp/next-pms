@@ -11,9 +11,11 @@ import { ChevronDown, Plus } from "lucide-react";
 import { Header } from "@/layout/header";
 import { VIEWS } from "./constants";
 import ProjectKanban from "./kanban";
+import { ProjectKanbanProvider } from "./kanban/provider";
 import ProjectList from "./list";
-import { ProjectListSubHeader } from "./list/sub-header";
-import { ProjectListProvider } from "./provider";
+import { ProjectListProvider } from "./list/provider";
+import { ProjectFilterProvider } from "./provider";
+import { ProjectListSubHeader } from "./sub-header";
 
 function Projects() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -66,10 +68,18 @@ function Projects() {
           onClick={() => {}}
         />
       </Header>
-      <ProjectListProvider>
+      <ProjectFilterProvider>
         <ProjectListSubHeader />
-        {view === "kanban" ? <ProjectKanban /> : <ProjectList />}
-      </ProjectListProvider>
+        {view === "kanban" ? (
+          <ProjectKanbanProvider>
+            <ProjectKanban />
+          </ProjectKanbanProvider>
+        ) : (
+          <ProjectListProvider>
+            <ProjectList />
+          </ProjectListProvider>
+        )}
+      </ProjectFilterProvider>
     </>
   );
 }

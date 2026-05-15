@@ -6,7 +6,7 @@ import { Kanban, AlignLeft } from "@rtcamp/frappe-ui-react/icons";
 /**
  * Internal dependencies.
  */
-import type { Phase } from "./types";
+import { kebabToTitleCase } from "@/lib/utils";
 
 export const VIEWS = [
   { key: "list", label: "List view", icon: AlignLeft },
@@ -26,13 +26,26 @@ export const RAG_STATUS = ["red", "amber", "green"] as const;
 
 export const PROJECT_TYPES = ["fixed-cost", "retainer", "external"] as const;
 
-export const PROJECT_LIST_PAGE_SIZE = 20;
+export const PROJECT_LIST_PAGE_SIZE = 4;
 
-export const PHASE_LABELS: Record<Phase, string> = {
-  "delivery-prep": "Delivery Prep",
-  "kick-off": "Kick-off",
-  discovery: "Discovery",
-  development: "Development",
-  launch: "Launch",
-  "close-out": "Close-out",
-};
+export const RAG_OPTIONS = [
+  { label: "Red", value: "red" },
+  { label: "Amber", value: "amber" },
+  { label: "Green", value: "green" },
+  { label: "All", value: "" },
+];
+
+export const STATUS_OPTIONS = [
+  { label: "Open", value: "Open" },
+  { label: "Completed", value: "Completed" },
+  { label: "Cancelled", value: "Cancelled" },
+  { label: "All", value: "" },
+];
+
+export const PHASE_OPTIONS = [
+  ...PHASES.map((phase) => ({
+    label: kebabToTitleCase(phase),
+    value: kebabToTitleCase(phase),
+  })),
+  { label: "All", value: "" },
+];

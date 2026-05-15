@@ -10,9 +10,10 @@ import { AgentAlt, Apps, Calendar, Code } from "@rtcamp/frappe-ui-react/icons";
 import { formatProjectDate, toKebabCase } from "@/lib/utils";
 
 import { Dot } from "../list/cells/dot";
-import type { Employee, ProjectListItem, RagStatus } from "../types";
+import type { RagStatus } from "../types";
+import type { Employee, KanbanProjectItem } from "./types";
 
-export function ProjectCard({ project }: { project: ProjectListItem }) {
+export function ProjectCard({ project }: { project: KanbanProjectItem }) {
   const dateRange = [project.start_date, project.end_date]
     .map((d) => (d ? formatProjectDate(d) : null))
     .filter(Boolean)
@@ -37,7 +38,7 @@ export function ProjectCard({ project }: { project: ProjectListItem }) {
           <EmployeeInline employee={project.engineering_manager} />
         </Row>
         <Row icon={<Apps className="size-4 shrink-0 text-ink-gray-6" />}>
-          {project.project_type ?? "N/A"}
+          {project.billing_type ?? "N/A"}
         </Row>
       </div>
     </div>

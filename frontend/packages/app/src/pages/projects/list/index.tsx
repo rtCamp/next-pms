@@ -16,18 +16,13 @@ import { InfiniteScroll } from "@/components/infiniteScroll";
 import { ProjectListCell } from "./cells";
 import { PROJECT_LIST_COLUMNS } from "./columns";
 import { PROJECT_LIST_PAGE_SIZE } from "../constants";
-import { useProjectList } from "../context";
+import { useProjectList } from "./context";
 
 function ProjectList() {
   const data = useProjectList((c) => c.state.data);
   const isLoading = useProjectList((c) => c.state.isLoading);
   const hasMore = useProjectList((c) => c.state.hasMore);
-  const error = useProjectList((c) => c.state.error);
   const loadMore = useProjectList((c) => c.actions.loadMore);
-
-  if (error || (isLoading && data.length === 0)) {
-    return;
-  }
 
   return (
     <ListView
