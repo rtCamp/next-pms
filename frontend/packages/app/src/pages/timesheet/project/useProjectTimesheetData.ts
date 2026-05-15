@@ -177,12 +177,14 @@ export function useProjectTimesheetData({
     const weekGroups = Array.from(weekMap.values())
       .sort(
         (a, b) =>
-          new Date(b.start_date).getTime() - new Date(a.start_date).getTime(),
+          parseISO(b.start_date).getTime() - parseISO(a.start_date).getTime(),
       )
       .map((week) => ({
         ...week,
         projects: [...week.projects].sort((a, b) =>
-          (a.projectName ?? "").localeCompare(b.projectName ?? ""),
+          (a.projectName || a.project).localeCompare(
+            b.projectName || b.project,
+          ),
         ),
       }));
 
@@ -214,7 +216,7 @@ export function useProjectTimesheetData({
     if (!hasMoreWeeks) return;
 
     setWeekDate((prev) =>
-      getFormatedDate(addDays(prev, -(NUMBER_OF_WEEKS_TO_FETCH * 7))),
+      getFormatedDate(addDays(parseISO(prev), -(NUMBER_OF_WEEKS_TO_FETCH * 7))),
     );
     setProjectStart(0);
   }, [
@@ -240,7 +242,9 @@ export function useProjectTimesheetData({
     // produce a new date value.
     if (hasMoreWeeks) {
       setWeekDate((prev) =>
-        getFormatedDate(addDays(prev, -(NUMBER_OF_WEEKS_TO_FETCH * 7))),
+        getFormatedDate(
+          addDays(parseISO(prev), -(NUMBER_OF_WEEKS_TO_FETCH * 7)),
+        ),
       );
       setProjectStart(0);
     }
