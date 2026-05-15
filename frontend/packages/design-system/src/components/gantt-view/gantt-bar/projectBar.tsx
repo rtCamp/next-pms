@@ -208,7 +208,7 @@ export function GanttProjectBar({
         delay={400}
         closeDelay={150}
         render={
-          <Tooltip text="Click to save changes" disabled={!isModified}>
+          <Tooltip text="Click to save the allocation" disabled={!isModified}>
             <GanttBar
               ref={projectBarRef}
               variant="project"

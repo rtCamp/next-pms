@@ -169,7 +169,7 @@ export function DraftBar({
   );
 
   return (
-    <Tooltip text="Click to Add allocation" disabled={!onOpenAllocation}>
+    <Tooltip text="Click to save the allocation" disabled={!onOpenAllocation}>
       <GanttBar
         ref={draftBarRef}
         variant="draft"
