@@ -156,16 +156,16 @@ export const RowAllocationOverlay = forwardRef<
 
   return (
     <>
-      {drafts.map((d) => (
+      {drafts.map((draft) => (
         <DraftBar
-          key={`${d.rowKey}-${d.left}`}
-          rowKey={d.rowKey}
-          left={d.left}
-          width={d.width}
-          employeeId={d.employeeId}
-          projectId={d.projectId}
-          projectName={d.projectName}
-          customerName={d.customerName}
+          key={`${draft.rowKey}-${draft.left}`}
+          rowKey={draft.rowKey}
+          left={draft.left}
+          width={draft.width}
+          employeeId={draft.employeeId}
+          projectId={draft.projectId}
+          projectName={draft.projectName}
+          customerName={draft.customerName}
           onOpenAllocation={onOpenAllocation}
           onRemove={removeDraft}
         />
