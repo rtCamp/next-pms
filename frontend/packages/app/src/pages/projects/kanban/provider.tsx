@@ -9,7 +9,6 @@ import { useFrappeGetCall, useFrappeUpdateDoc } from "frappe-react-sdk";
  */
 import { kebabToTitleCase } from "@/lib/utils";
 
-import { PROJECT_LIST_PAGE_SIZE } from "../constants";
 import { buildListFrappeFilters, useProjectFilter } from "../context";
 import type { Phase } from "../types";
 import {
@@ -33,8 +32,6 @@ export function ProjectKanbanProvider({ children }: PropsWithChildren) {
         view: "kanban",
         search: filters.search,
         filters: frappeFilters,
-        start: 0,
-        limit: PROJECT_LIST_PAGE_SIZE,
       },
     );
 
