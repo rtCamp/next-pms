@@ -60,7 +60,10 @@ export function formatProjectDate(isoDate: string): string {
   return format(date, pattern);
 }
 
-export function toKebabCase(value: string): string {
+export function toKebabCase(value?: string | null): string | undefined {
+  if (!value) {
+    return undefined;
+  }
   return value
     .replace(/([a-z0-9])([A-Z])/g, "$1-$2")
     .replace(/[\s_]+/g, "-")

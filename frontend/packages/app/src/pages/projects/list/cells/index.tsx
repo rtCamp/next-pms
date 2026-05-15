@@ -7,8 +7,8 @@ import { DateCell } from "./dateCell";
 import { EmployeeCell } from "./employeeCell";
 import { PhaseCell } from "./phaseCell";
 import { ProjectNameCell } from "./projectNameCell";
-import type { ListViewColumn, ProjectListItem } from "../types";
 import { TextCell } from "./textCell";
+import type { ListViewColumn, ProjectListItem } from "../../types";
 
 export function ProjectListCell({
   row,
@@ -23,7 +23,7 @@ export function ProjectListCell({
         <ProjectNameCell
           id={row.name}
           name={row.project_name}
-          riskLevel={row.rag_status ? toKebabCase(row.rag_status) : undefined}
+          riskLevel={toKebabCase(row.rag_status)}
         />
       );
     case "phase":
