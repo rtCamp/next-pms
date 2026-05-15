@@ -26,10 +26,10 @@ import {
  */
 import { InfiniteScroll } from "@/components/infiniteScroll";
 import { isWeekendEntryAllowed } from "@/lib/utils";
+import { useAllocationOutletContext } from "@/pages/allocations/allocationOutletContext";
 import { useUser } from "@/providers/user";
 import { EMPLOYEES_PER_PAGE } from "./constants";
 import { useAllocationsTeam } from "./context";
-import { useAllocationsTeamOutletContext } from "./outletContext";
 import {
   allocationsFilters,
   allocationsTypeOptions,
@@ -72,7 +72,7 @@ export const AllocationsTeamTable = () => {
     openAddAllocationDialog,
     openEditAllocationDialog,
     openDeleteAllocationDialog,
-  } = useAllocationsTeamOutletContext();
+  } = useAllocationOutletContext();
 
   const showWeekend = isWeekendEntryAllowed();
   const hasMembers = members.length > 0;
@@ -135,6 +135,7 @@ export const AllocationsTeamTable = () => {
             }}
           />
           <Button
+            aria-label="More options"
             icon={() => <DotHorizontal className="size-4 text-ink-gray-9" />}
           />
         </div>

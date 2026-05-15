@@ -7,7 +7,7 @@ import { createContext, useContextSelector } from "use-context-selector";
 /**
  * Internal dependencies.
  */
-import { AllocationsDuration } from "../types";
+import type { AllocationsDuration } from "../types";
 
 export interface AllocationsTeamContextProps {
   state: {

@@ -32,6 +32,7 @@ export const AllocationsProjectTable = () => {
     [],
   );
 
+  // TODO: Replace with actual data and handlers from context
   const [searchInput, setSearch] = useState("");
   const [duration, setDuration] = useState<AllocationsDuration>("this-quarter");
   const [allocationsType, setAllocationsType] = useState("all");
@@ -95,6 +96,7 @@ export const AllocationsProjectTable = () => {
             }}
           />
           <Button
+            aria-label="More options"
             icon={() => <DotHorizontal className="size-4 text-ink-gray-9" />}
           />
         </div>

@@ -11,10 +11,12 @@ import { Plus } from "lucide-react";
 import { Header } from "@/layout/header";
 import { AllocationsBreadcrumbs } from "@/pages/allocations/components/allocationsBreadcrumbs";
 import AddAllocationModal from "@/pages/allocations/team/add-allocation";
-import { useAllocationModal } from "@/pages/allocations/team/useAllocationModal";
+import { useAllocationModal } from "@/pages/allocations/useAllocationModal";
 
 function ProjectAllocationsLayout() {
-  const { openAddDialog, outletContext, modalProps } = useAllocationModal();
+  const refresh = () => Promise.resolve(); // TODO: Replace with actual refresh function from context
+  const { openAddDialog, outletContext, modalProps } =
+    useAllocationModal(refresh);
 
   return (
     <>
