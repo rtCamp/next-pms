@@ -37,14 +37,15 @@
    "fieldname": "reply_to",
    "fieldtype": "Link",
    "label": "Reply To",
-   "options": "Project Comments"
+   "options": "Project Comments",
+   "read_only": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2026-05-12 17:02:14.071689",
+ "modified": "2026-05-15 23:06:14.064570",
  "modified_by": "Administrator",
  "module": "Next PMS",
  "name": "Project Comments",
