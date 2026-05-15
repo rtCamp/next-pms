@@ -260,6 +260,7 @@ export interface ResourceTeamFilters {
   businessUnit?: string[];
   reportingManager?: string;
   designation?: string[];
+  projectType?: string[];
   weekDate: string;
   employeeWeekDate: string;
   allocationType?: string[];
@@ -274,6 +275,7 @@ export interface OptionalResourceTeamFilters {
   businessUnit?: string[];
   reportingManager?: string;
   designation?: string[];
+  projectType?: string[];
   weekDate?: string;
   employeeWeekDate?: string;
   allocationType?: string[];

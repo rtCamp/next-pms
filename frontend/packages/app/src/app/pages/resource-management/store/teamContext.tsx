@@ -42,6 +42,7 @@ const defaultFilters: ResourceTeamFilters = {
   allocationType: [],
   designation: [],
   businessUnit: [],
+  projectType: [],
   maxWeek: 5,
   skillSearch: [],
 };
@@ -109,16 +110,16 @@ const TeamContextProvider = ({ children }: ContextProviderProps) => {
           total_count: updatedTeamData.total_count,
           has_more: updatedTeamData.has_more,
         };
-      } else {
-        return {
-          ...prev,
-          data: [...prev.data, ...updatedTeamData.data],
-          dates: updatedTeamData.dates ? updatedTeamData.dates : prev.dates,
-          customer: { ...prev.customer, ...updatedTeamData.customer },
-          total_count: updatedTeamData.total_count,
-          has_more: updatedTeamData.has_more,
-        };
       }
+
+      return {
+        ...prev,
+        data: [...prev.data, ...updatedTeamData.data],
+        dates: updatedTeamData.dates ? updatedTeamData.dates : prev.dates,
+        customer: { ...prev.customer, ...updatedTeamData.customer },
+        total_count: updatedTeamData.total_count,
+        has_more: updatedTeamData.has_more,
+      };
     });
 
     setApiController((prev) => ({
@@ -136,9 +137,11 @@ const TeamContextProvider = ({ children }: ContextProviderProps) => {
   }) => {
     setTeamData((prev) => {
       const updatedData = [...prev.data];
+
       for (let i = 0; i < horizontalData.data.length; i++) {
         const idx = horizontalData.start + i;
         if (idx >= updatedData.length) break;
+
         updatedData[idx] = {
           ...updatedData[idx],
           all_dates_data: {
@@ -159,6 +162,7 @@ const TeamContextProvider = ({ children }: ContextProviderProps) => {
           },
         };
       }
+
       return {
         ...prev,
         data: updatedData,

@@ -10,6 +10,7 @@ export const createFilter = (timelineState: TimeLineContextState) => {
     businessUnit: timelineState?.filters?.businessUnit ?? [],
     reportingManager: timelineState?.filters?.reportingManager ?? "",
     designation: timelineState?.filters?.designation ?? [],
+    projectType: timelineState?.filters?.projectType ?? [],
     allocationType: timelineState?.filters?.allocationType ?? [],
     skillSearch: timelineState?.filters?.skillSearch ?? [],
     isShowMonth: timelineState?.filters?.isShowMonth ?? false,

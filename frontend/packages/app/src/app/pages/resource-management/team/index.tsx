@@ -105,6 +105,7 @@ const ResourceTeamViewComponent = ({
           business_unit: JSON.stringify(filters.businessUnit),
           reports_to: filters.reportingManager,
           designation: JSON.stringify(filters.designation),
+          project_type: JSON.stringify(filters.projectType),
           is_billable: getIsBillableValue(filters.allocationType as string[]),
           skills:
             filters?.skillSearch?.length && filters?.skillSearch?.length > 0
@@ -254,6 +255,7 @@ const ResourceTeamViewComponent = ({
         date: filters.weekDate,
         max_week: filters.maxWeek,
         employee_id: JSON.stringify([oldData.employee, newData.employee]),
+        project_type: JSON.stringify(filters.projectType),
         is_billable: getIsBillableValue(filters.allocationType as string[]),
         need_hours_summary: true,
       }).then((res) => {
@@ -280,6 +282,7 @@ const ResourceTeamViewComponent = ({
       fetchData,
       filters.allocationType,
       filters.maxWeek,
+      filters.projectType,
       filters.weekDate,
       teamData,
       updateTeamData,

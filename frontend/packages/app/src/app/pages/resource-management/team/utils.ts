@@ -10,6 +10,7 @@ export const createFilter = (teamContextState: ResourceTeam) => {
     businessUnit: teamContextState?.filters?.businessUnit ?? [],
     reportingManager: teamContextState?.filters?.reportingManager ?? "",
     designation: teamContextState?.filters?.designation ?? [],
+    projectType: teamContextState?.filters?.projectType ?? [],
     allocationType: teamContextState?.filters?.allocationType ?? [],
     skillSearch: teamContextState?.filters?.skillSearch ?? [],
     view: teamContextState?.tableView?.view ?? "planned-vs-capacity",

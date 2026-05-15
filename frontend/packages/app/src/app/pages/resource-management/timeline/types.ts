@@ -30,6 +30,7 @@ interface ResourceAllocationTimeLineFilterProps {
   businessUnit?: string[];
   reportingManager?: string;
   designation?: string[];
+  projectType?: string[];
   allocationType?: string[];
   skillSearch?: Skill[];
   start?: number;
@@ -71,7 +72,7 @@ interface ResourceAllocationTimeLineProps extends ResourceAllocationProps {
   isShowMonth?: boolean;
   onDelete?: (
     oldData: AllocationDataProps,
-    newData: AllocationDataProps
+    newData: AllocationDataProps,
   ) => void;
   type: "allocation" | "leave";
 }
@@ -92,6 +93,7 @@ interface ResourceTeamAPIBodyProps {
   business_unit?: string;
   reports_to?: string;
   designation?: string;
+  project_type?: string;
   is_billable?: string;
   skills?: string;
   need_hours_summary?: boolean;
@@ -111,7 +113,7 @@ interface ResourceTimeLineItemProps {
   item: ResourceAllocationTimeLineProps;
   itemContext: ItemContext;
   getItemProps: (
-    itemProps: ResourceAllocationItemProps
+    itemProps: ResourceAllocationItemProps,
   ) => ResourceAllocationItemProps;
   getResizeProps: () => { left: object; right: object };
 }
@@ -119,7 +121,7 @@ interface ResourceTimeLineItemProps {
 interface ResourceTimeLineProps {
   handleFormSubmit: (
     oldData: ResourceAllocationTimeLineProps,
-    newData: ResourceAllocationTimeLineProps
+    newData: ResourceAllocationTimeLineProps,
   ) => void;
 }
 
