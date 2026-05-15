@@ -84,7 +84,7 @@ export function useProjectTimesheetData({
     "next_pms.timesheet.api.project.get_project_timesheet_data",
     {
       date: weekDate,
-      max_week: maxWeek,
+      max_week: NUMBER_OF_WEEKS_TO_FETCH,
       page_length: PROJECT_PAGE_LENGTH,
       start: projectStart,
       search: search || null,
