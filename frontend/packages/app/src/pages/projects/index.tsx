@@ -12,11 +12,12 @@ import { Header } from "@/layout/header";
 import { VIEWS } from "./constants";
 import ProjectKanban from "./kanban";
 import ProjectList from "./list";
-import { ViewKey } from "./types";
+import { ProjectListSubHeader } from "./list/sub-header";
+import { ProjectListProvider } from "./provider";
 
 function Projects() {
   const [searchParams, setSearchParams] = useSearchParams();
-  const view: ViewKey =
+  const view: "kanban" | "list" =
     searchParams.get("view") === "kanban" ? "kanban" : "list";
   const activeView = VIEWS.find((v) => v.key === view) ?? VIEWS[0];
 
@@ -65,7 +66,10 @@ function Projects() {
           onClick={() => {}}
         />
       </Header>
-      {view === "kanban" ? <ProjectKanban /> : <ProjectList />}
+      <ProjectListProvider>
+        <ProjectListSubHeader />
+        {view === "kanban" ? <ProjectKanban /> : <ProjectList />}
+      </ProjectListProvider>
     </>
   );
 }

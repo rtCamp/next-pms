@@ -6,7 +6,7 @@ import type { ComponentType, SVGProps } from "react";
 /**
  * Internal dependencies.
  */
-import type { EmployeeRef } from "@/pages/projects/list/types";
+import type { EmployeeRef } from "@/pages/projects/types";
 
 export type ProjectLinkKey =
   | "website"

@@ -46,11 +46,36 @@ export function mergeClassNames(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
+export function pickAllowed<T extends string>(
+  value: string | undefined | null,
+  allowed: readonly T[],
+): T | undefined {
+  return allowed.includes(value as T) ? (value as T) : undefined;
+}
+
 export function formatProjectDate(isoDate: string): string {
   const date = parse(isoDate, "yyyy-MM-dd", new Date());
   const pattern =
     date.getFullYear() === new Date().getFullYear() ? "MMM d" : "MMM d, yyyy";
   return format(date, pattern);
+}
+
+export function toKebabCase(value?: string | null): string | undefined {
+  if (!value) {
+    return undefined;
+  }
+  return value
+    .replace(/([a-z0-9])([A-Z])/g, "$1-$2")
+    .replace(/[\s_]+/g, "-")
+    .toLowerCase();
+}
+
+export function kebabToTitleCase(value: string): string {
+  return value
+    .split("-")
+    .filter(Boolean)
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join(" ");
 }
 
 export function stripTags(html: string): string {

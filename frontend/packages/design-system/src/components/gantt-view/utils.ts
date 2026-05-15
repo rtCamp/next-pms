@@ -1,3 +1,4 @@
+import { addDays } from "date-fns";
 import { getMemberAllocation } from "./gantt-bar/utils/getMemberAllocation";
 import { getNumDays } from "./gantt-bar/utils/getNumDays";
 import type {
@@ -30,6 +31,41 @@ export interface Member extends SourceMember {
   projects: Project[];
   memberAllocations: MemberAllocationBar[];
 }
+
+export type DraftBarSeed = {
+  rowKey: string;
+  left: number;
+  width: number;
+  employeeId?: string;
+  projectId?: string;
+  projectName?: string;
+  customerName?: string;
+};
+
+export type OccupyingAllocation = {
+  barOffset: number;
+  width: number;
+};
+
+export type BarDateRangeInput = {
+  left: number;
+  width: number;
+  headerWidth: number;
+  columnWidth: number;
+  columnCount: number;
+  weekStart: Date;
+  showWeekend: boolean;
+};
+
+export type BarInteractionBounds = {
+  minLeft: number;
+  maxRight: number;
+};
+
+export type BarDateRange = {
+  startDate: Date;
+  endDate: Date;
+};
 
 /**
  * Calculate bar offset and width for a date span within visible columns.
@@ -140,4 +176,85 @@ export const prepareMemberBars = (
       memberAllocations,
     };
   });
+};
+
+/**
+ * Converts a visible column index into a calendar date.
+ */
+export const getDateAtColumnIndex = (
+  index: number,
+  weekStart: Date,
+  showWeekend: boolean,
+): Date => {
+  if (showWeekend) {
+    return addDays(weekStart, index);
+  }
+
+  // Map weekday-only column indexes back to calendar days by skipping weekend offsets.
+  return addDays(weekStart, Math.floor(index / 5) * 7 + (index % 5));
+};
+
+/**
+ * Returns the number of visible days covered by a bar width.
+ */
+export const getBarDaySpan = (width: number, columnWidth: number) => {
+  return Math.max(1, Math.round(width / columnWidth));
+};
+
+/**
+ * Derives the visible start and end dates for a bar from its geometry.
+ */
+export const getBarDateRange = ({
+  left,
+  width,
+  headerWidth,
+  columnWidth,
+  columnCount,
+  weekStart,
+  showWeekend,
+}: BarDateRangeInput): BarDateRange => {
+  const startIndex = Math.max(
+    0,
+    Math.round((left - headerWidth) / columnWidth),
+  );
+  const numDays = getBarDaySpan(width, columnWidth);
+  const endIndex = Math.min(columnCount - 1, startIndex + numDays - 1);
+
+  return {
+    startDate: getDateAtColumnIndex(startIndex, weekStart, showWeekend),
+    endDate: getDateAtColumnIndex(endIndex, weekStart, showWeekend),
+  };
+};
+
+/**
+ * Returns the row bounds for an editable bar.
+ */
+export const getBarTimelineBounds = ({
+  headerWidth,
+  columnWidth,
+  columnCount,
+}: {
+  headerWidth: number;
+  columnWidth: number;
+  columnCount: number;
+}): BarInteractionBounds => {
+  return {
+    minLeft: headerWidth,
+    maxRight: headerWidth + columnWidth * columnCount,
+  };
+};
+
+export const isColumnOccupied = (
+  allocations: OccupyingAllocation[],
+  dayIndex: number,
+  columnWidth: number,
+): boolean => {
+  const colStart = dayIndex * columnWidth;
+  const colEnd = (dayIndex + 1) * columnWidth;
+
+  return allocations.some(
+    (allocation) =>
+      allocation.barOffset < colEnd &&
+      allocation.barOffset + allocation.width > colStart,
+  );
 };

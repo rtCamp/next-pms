@@ -1,16 +1,21 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
-import { Plus } from "lucide-react";
-import {
-  ADD_PROJECT_ROW_HEIGHT,
-  CELL_HEIGHT,
-  HEADER_HEIGHT,
-} from "./constants";
-import { GanttMemberBar } from "./gantt-bar/memberBar";
-import { GanttProjectBar } from "./gantt-bar/projectBar";
-import { GanttMemberItem } from "./ganttMemberItem";
-import { GanttProjectItem } from "./ganttProjectItem";
+/**
+ * External dependencies.
+ */
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+
+/**
+ * Internal dependencies.
+ */
+import { HEADER_HEIGHT } from "./constants";
+import { DeleteAllocationDialog } from "./deleteAllocationDialog";
+import { GanttMemberRows } from "./ganttMemberRows";
 import { createGanttStore, GanttContext, useGanttStore } from "./ganttStore";
-import type { Member } from "./ganttStore";
 import { GanttWeekHeader } from "./ganttWeekHeader";
 import { useContainerResize } from "./hooks/useContainerResize";
 import type { GanttGridProps } from "./types";
@@ -22,9 +27,7 @@ const GanttGridInner: React.FC<{
 }> = ({ rootRef, className }) => {
   const {
     members,
-    expandedRows,
     headerWidth,
-    daysPerWeek,
     columnWidth,
     weekendColumns,
     resizeHandleActive,
@@ -32,12 +35,11 @@ const GanttGridInner: React.FC<{
     startResize,
     columnCount,
     weeks,
-    hasRoleAccess,
+    pendingDeleteEntry,
+    clearPendingDeleteEntry,
   } = useGanttStore((s) => ({
     members: s.members,
-    expandedRows: s.expandedRows,
     headerWidth: s.headerWidth,
-    daysPerWeek: s.daysPerWeek,
     columnWidth: s.columnWidth,
     weekendColumns: s.weekendColumns,
     resizeHandleActive: s.resizeHandleActive,
@@ -45,13 +47,17 @@ const GanttGridInner: React.FC<{
     startResize: s.startResize,
     columnCount: s.columnCount,
     weeks: s.weeks,
-    hasRoleAccess: s.hasRoleAccess,
+    pendingDeleteEntry: s.pendingDeleteEntry,
+    clearPendingDeleteEntry: s.clearPendingDeleteEntry,
   }));
 
-  const onResizePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    startResize(e.clientX);
-  };
+  const onResizePointerDown = useCallback(
+    (e: React.PointerEvent<HTMLDivElement>) => {
+      e.preventDefault();
+      startResize(e.clientX);
+    },
+    [startResize],
+  );
 
   return (
     <div
@@ -97,151 +103,9 @@ const GanttGridInner: React.FC<{
         </thead>
 
         <tbody>
-          {members.map((member: Member, rowIndex: number) => {
-            const isExpanded = expandedRows.has(rowIndex);
-            const animatedRowHeight = isExpanded ? CELL_HEIGHT : 0;
-            const addProjectRowHeight = isExpanded ? ADD_PROJECT_ROW_HEIGHT : 0;
-
-            return (
-              <React.Fragment key={rowIndex}>
-                {/* Member row */}
-                <tr className="relative last:border-b border-outline-gray-1">
-                  <GanttMemberItem memberInd={rowIndex} />
-                  {weeks.map((_, i) => {
-                    return (
-                      <td
-                        key={i}
-                        colSpan={daysPerWeek}
-                        className={cn("border-r border-outline-gray-1")}
-                        style={{
-                          height: CELL_HEIGHT,
-                        }}
-                      />
-                    );
-                  })}
-                  <td
-                    aria-hidden="true"
-                    className="p-0 border-0 w-0 min-w-0 max-w-0"
-                    style={{ width: 0 }}
-                  >
-                    {member.memberAllocations.map((alloc, idx) => (
-                      <GanttMemberBar
-                        key={idx}
-                        allocation={alloc}
-                        memberInd={rowIndex}
-                      />
-                    ))}
-                  </td>
-                </tr>
-
-                {/* Project child rows */}
-                {member.projects?.map((project, projectIndex) => {
-                  return (
-                    <tr
-                      key={`${rowIndex}-project-${projectIndex}`}
-                      className={cn("relative", {
-                        "pointer-events-none": !isExpanded,
-                      })}
-                      aria-hidden={!isExpanded}
-                    >
-                      <GanttProjectItem
-                        {...project}
-                        style={{
-                          height: animatedRowHeight,
-                          width: headerWidth,
-                          minWidth: headerWidth,
-                          borderBottomWidth: isExpanded ? undefined : 0,
-                          borderRightWidth: isExpanded ? undefined : 0,
-                        }}
-                      />
-                      {weeks.map((_, i) => {
-                        return (
-                          <td
-                            key={i}
-                            colSpan={daysPerWeek}
-                            className={cn(
-                              "overflow-hidden transition-[height] duration-200 ease-in-out",
-                              {
-                                "border-r border-outline-gray-1": isExpanded,
-                              },
-                            )}
-                            style={{
-                              height: animatedRowHeight,
-                            }}
-                          />
-                        );
-                      })}
-                      <td
-                        aria-hidden="true"
-                        className="p-0 border-0 w-0 min-w-0 max-w-0"
-                        style={{ width: 0 }}
-                      >
-                        {isExpanded &&
-                          project.allocations?.map((alloc, allocIndex) => {
-                            return (
-                              <GanttProjectBar
-                                key={allocIndex}
-                                allocation={alloc}
-                              />
-                            );
-                          })}
-                      </td>
-                    </tr>
-                  );
-                })}
-
-                {/* Add project row */}
-                {hasRoleAccess && (
-                  <tr
-                    className={cn("relative", {
-                      "pointer-events-none": !isExpanded,
-                    })}
-                    aria-hidden={!isExpanded}
-                  >
-                    <th
-                      className="sticky left-0 z-10 bg-surface-white border-b border-r border-outline-gray-1 pl-8 pr-3 font-normal text-left align-middle flex items-center gap-2 w-full overflow-hidden transition-[height] duration-200 ease-in-out"
-                      style={{
-                        width: headerWidth,
-                        minWidth: headerWidth,
-                        height: addProjectRowHeight,
-                        borderBottomWidth: isExpanded ? undefined : 0,
-                        borderRightWidth: isExpanded ? undefined : 0,
-                      }}
-                    >
-                      <button
-                        type="button"
-                        onClick={() => {}}
-                        className="w-full h-full flex items-center gap-2 text-base font-medium text-ink-gray-9 overflow-hidden"
-                      >
-                        <Plus size={16} className="shrink-0" />
-                        <span className="truncate">Add project</span>
-                      </button>
-                    </th>
-                    {weeks.map((_, i) => {
-                      return (
-                        <td
-                          key={i}
-                          colSpan={daysPerWeek}
-                          className={cn(
-                            "overflow-hidden transition-[height] duration-200 ease-in-out",
-                            {
-                              "border-r border-outline-gray-1": isExpanded,
-                            },
-                          )}
-                          style={{ height: addProjectRowHeight }}
-                        />
-                      );
-                    })}
-                    <td
-                      aria-hidden="true"
-                      className="p-0 border-0 w-0 min-w-0 max-w-0"
-                      style={{ width: 0 }}
-                    />
-                  </tr>
-                )}
-              </React.Fragment>
-            );
-          })}
+          {members.map((_, rowIndex) => (
+            <GanttMemberRows key={rowIndex} memberInd={rowIndex} />
+          ))}
         </tbody>
       </table>
 
@@ -256,11 +120,29 @@ const GanttGridInner: React.FC<{
             )}
             style={{ left: headerWidth - 2 }}
             onPointerDown={onResizePointerDown}
-            onMouseEnter={() => setResizeHandleActive(true)}
-            onMouseLeave={() => setResizeHandleActive(false)}
+            onPointerEnter={() => setResizeHandleActive(true)}
+            onPointerLeave={() => setResizeHandleActive(false)}
           />
         </div>
       </div>
+
+      <DeleteAllocationDialog
+        open={pendingDeleteEntry !== null}
+        onOpenChange={(open) => {
+          if (!open) clearPendingDeleteEntry();
+        }}
+        projectName={pendingDeleteEntry?.projectName ?? ""}
+        dateRange={pendingDeleteEntry?.dateRange ?? ""}
+        hoursPerDay={pendingDeleteEntry?.hoursPerDay ?? ""}
+        totalHours={pendingDeleteEntry?.totalHours ?? ""}
+        onConfirm={async () => {
+          try {
+            pendingDeleteEntry?.onDelete();
+          } finally {
+            clearPendingDeleteEntry();
+          }
+        }}
+      />
     </div>
   );
 };

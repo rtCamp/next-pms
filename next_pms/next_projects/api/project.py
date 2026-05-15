@@ -190,7 +190,7 @@ def get_project_phases() -> list[dict]:
     return phases
 
 
-@whitelist(methods=["POST"])
+@whitelist(methods=["GET"])
 @error_logger
 def get_projects_view(
     view: Literal["list", "kanban"] = "list",

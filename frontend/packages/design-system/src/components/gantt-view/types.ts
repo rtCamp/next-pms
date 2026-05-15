@@ -40,6 +40,7 @@ export interface LeaveAllocation {
 }
 
 export interface Project {
+  id?: string;
   name: string;
   dateRange?: string;
   client?: string;

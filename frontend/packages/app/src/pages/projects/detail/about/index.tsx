@@ -5,13 +5,12 @@ import { useParams } from "react-router-dom";
 import { Accordion } from "@base-ui/react/accordion";
 import { mergeClassNames } from "@next-pms/design-system";
 import { Button } from "@rtcamp/frappe-ui-react";
-import { AddSm, SolidDotLg } from "@rtcamp/frappe-ui-react/icons";
-import { cva } from "class-variance-authority";
+import { AddSm } from "@rtcamp/frappe-ui-react/icons";
 
 /**
  * Internal dependencies.
  */
-import { FAKE_PROJECTS } from "@/pages/projects/list/fake-data";
+import { FAKE_PROJECTS } from "@/pages/projects/fake-data";
 import { BudgetBurnBar } from "./components/budgetBurnBar";
 import { CustomerRow } from "./components/customerRow";
 import { ExpandableList } from "./components/expandableList";
@@ -19,21 +18,11 @@ import { MemberRow } from "./components/memberRow";
 import { getProjectAboutData } from "./fake-data";
 import { ProgressHoursSection } from "./progressHoursSection";
 import { Section } from "./section";
-import { PHASE_LABELS } from "../../list/constants";
-
-const ragVariants = cva("size-4 shrink-0", {
-  variants: {
-    risk: {
-      "at-risk": "text-ink-red-3",
-      caution: "text-ink-amber-3",
-      "on-track": "text-ink-green-3",
-    },
-  },
-});
+import { Dot } from "../../list/cells/dot";
 
 export function AboutThisProject({ className }: { className: string }) {
   const { projectId = "" } = useParams<{ projectId: string }>();
-  const project = FAKE_PROJECTS.find((p) => p.id === projectId)!;
+  const project = FAKE_PROJECTS[0];
   const about = getProjectAboutData(projectId);
 
   return (
@@ -67,10 +56,7 @@ export function AboutThisProject({ className }: { className: string }) {
               <span className="flex-1 truncate text-ink-gray-7">
                 {project.name}
               </span>
-              <SolidDotLg
-                aria-label={`Risk: ${project.riskLevel}`}
-                className={ragVariants({ risk: project.riskLevel })}
-              />
+              <Dot risk={project.riskLevel} />
             </div>
 
             <span>Customer</span>
@@ -82,9 +68,7 @@ export function AboutThisProject({ className }: { className: string }) {
             <span className="truncate text-ink-gray-7">Active</span>
 
             <span>Current phase</span>
-            <span className="truncate text-ink-gray-7">
-              {PHASE_LABELS[project.phase]}
-            </span>
+            <span className="truncate text-ink-gray-7">{project.phase}</span>
           </div>
         </Section>
 

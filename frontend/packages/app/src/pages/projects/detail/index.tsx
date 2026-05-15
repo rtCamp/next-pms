@@ -8,7 +8,7 @@ import { Tabs } from "@rtcamp/frappe-ui-react";
 /**
  * Internal dependencies.
  */
-import { FAKE_PROJECTS } from "@/pages/projects/list/fake-data";
+import { FAKE_PROJECTS } from "@/pages/projects/fake-data";
 
 import { AboutThisProject } from "./about";
 import { ProjectDetailHeader } from "./header";
