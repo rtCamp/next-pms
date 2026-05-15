@@ -32,6 +32,21 @@ export interface Member extends SourceMember {
   memberAllocations: MemberAllocationBar[];
 }
 
+export type DraftBarSeed = {
+  rowKey: string;
+  left: number;
+  width: number;
+  employeeId?: string;
+  projectId?: string;
+  projectName?: string;
+  customerName?: string;
+};
+
+export type OccupyingAllocation = {
+  barOffset: number;
+  width: number;
+};
+
 export type BarDateRangeInput = {
   left: number;
   width: number;
@@ -227,4 +242,19 @@ export const getBarTimelineBounds = ({
     minLeft: headerWidth,
     maxRight: headerWidth + columnWidth * columnCount,
   };
+};
+
+export const isColumnOccupied = (
+  allocations: OccupyingAllocation[],
+  dayIndex: number,
+  columnWidth: number,
+): boolean => {
+  const colStart = dayIndex * columnWidth;
+  const colEnd = (dayIndex + 1) * columnWidth;
+
+  return allocations.some(
+    (allocation) =>
+      allocation.barOffset < colEnd &&
+      allocation.barOffset + allocation.width > colStart,
+  );
 };

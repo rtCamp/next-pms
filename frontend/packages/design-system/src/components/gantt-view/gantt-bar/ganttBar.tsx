@@ -18,7 +18,7 @@ export interface GanttBarRenderState {
 }
 
 const ganttBarVariants = cva(
-  "group absolute shrink-0 flex items-center gap-1.5 rounded-[9px] mx-0.5 px-2.5 py-2 overflow-hidden whitespace-nowrap",
+  "group absolute shrink-0 flex items-center gap-1.5 rounded-[9px] mx-0.5 px-2.5 py-2 whitespace-nowrap",
   {
     variants: {
       variant: {
@@ -28,6 +28,7 @@ const ganttBarVariants = cva(
         timeoff: "bg-surface-gray-2 text-ink-gray-6 justify-center",
         project:
           "bg-surface-white text-ink-gray-5 shadow-[0px_0px_1px_0px_rgba(0,0,0,0.14),0px_1px_3px_0px_rgba(0,0,0,0.14)]",
+        draft: "bg-surface-gray-2 text-ink-gray-5",
       },
     },
   },
@@ -49,6 +50,7 @@ interface GanttBarProps
   maxRight?: number;
   onResizeEnd?: (geometry: GanttBarGeometry) => void;
   renderLabel?: (state: GanttBarRenderState) => React.ReactNode;
+  renderFloatingLabel?: (state: GanttBarRenderState) => React.ReactNode;
 }
 
 export const GanttBar = React.forwardRef<HTMLDivElement, GanttBarProps>(
@@ -67,6 +69,7 @@ export const GanttBar = React.forwardRef<HTMLDivElement, GanttBarProps>(
       maxRight,
       onResizeEnd,
       renderLabel,
+      renderFloatingLabel,
       onClick,
       style,
       ...htmlProps
@@ -98,6 +101,7 @@ export const GanttBar = React.forwardRef<HTMLDivElement, GanttBarProps>(
     return (
       <div
         ref={ref}
+        data-gantt-bar="true"
         className={cn(
           ganttBarVariants({ variant }),
           showPointerCursor && "cursor-pointer",
@@ -114,7 +118,7 @@ export const GanttBar = React.forwardRef<HTMLDivElement, GanttBarProps>(
           zIndex: isInteracting ? 5 : style?.zIndex,
         }}
       >
-        {!isTimeoff && isCrosshatch && (
+        {!isTimeoff && variant !== "draft" && isCrosshatch && (
           <CrosshatchLayer variant={variant ?? "project"} />
         )}
         {isTimeoff ? (
@@ -161,6 +165,15 @@ export const GanttBar = React.forwardRef<HTMLDivElement, GanttBarProps>(
                   <span className="pointer-events-none shrink-0 block h-4 w-0.5 rounded-2xl bg-surface-gray-4 opacity-0 transition-opacity group-hover:opacity-100" />
                 </span>
               </>
+            ) : null}
+            {renderFloatingLabel ? (
+              <span className="pointer-events-none absolute right-0 top-full mt-1 pr-2 whitespace-nowrap text-[13px] font-medium text-ink-gray-6">
+                {renderFloatingLabel({
+                  isInteracting,
+                  liveLeft,
+                  liveWidth,
+                })}
+              </span>
             ) : null}
           </>
         )}

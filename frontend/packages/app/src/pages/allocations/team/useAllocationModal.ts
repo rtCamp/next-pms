@@ -29,10 +29,17 @@ export function useAllocationModal() {
     setVariant("add");
     setInitialValues({
       ...(data.employeeId ? { employeeId: data.employeeId } : {}),
+      ...(data.projectId ? { projectId: data.projectId } : {}),
       ...(data.startDate
         ? { fromDate: format(data.startDate, "yyyy-MM-dd") }
         : {}),
       ...(data.endDate ? { toDate: format(data.endDate, "yyyy-MM-dd") } : {}),
+      ...(data.hoursPerDay !== undefined
+        ? { hoursPerDay: data.hoursPerDay }
+        : {}),
+      ...(data.customerName !== undefined
+        ? { customer: data.customerName }
+        : {}),
     });
     setIsOpen(true);
   }, []);
@@ -42,7 +49,7 @@ export function useAllocationModal() {
     setInitialValues({
       allocationName: data.allocationId,
       employeeId: data.employeeId,
-      projectId: data.projectId,
+      ...(data.projectId ? { projectId: data.projectId } : {}),
       customer: data.customerName,
       fromDate: data.startDate
         ? format(data.startDate, "yyyy-MM-dd")

@@ -1,6 +1,6 @@
 import type { CSSProperties } from "react";
 import { Badge } from "@rtcamp/frappe-ui-react";
-import { Folder } from "lucide-react";
+import { Folder } from "@rtcamp/frappe-ui-react/icons";
 import type { Project } from "./types";
 
 export interface GanttProjectItemProps extends Project {
@@ -23,7 +23,7 @@ export function GanttProjectItem({
       <div className="w-full flex flex-col gap-1 min-w-0">
         <div className="flex items-center justify-between gap-1 w-full">
           <div className="flex items-center w-full min-w-0 overflow-hidden">
-            <Folder size={16} className="shrink-0" />
+            <Folder className="size-4 shrink-0" />
             <span className="ml-2 text-base font-medium leading-tight truncate text-ink-gray-9">
               {name}
             </span>
