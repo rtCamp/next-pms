@@ -16,69 +16,39 @@ ROLES = {
 
 @frappe.whitelist(methods=["POST"])
 @error_logger
-def save_project_status_update(
+def create_project_status_update(
     project: str,
     title: str,
     description: str = None,
     status: str = "Draft",
-    name: str = None,
-    comments: list[dict] = None,
 ) -> dict[str, Any]:
     """
-    Create a new Project Status Update or update an existing one
+    Create a new Project Status Update
 
     Args:
         project (str): Project ID
         title (str): Title of the update
         description (str, optional): Description of the update
         status (str, optional): Status (Draft/Review/Publish). Defaults to "Draft"
-        name (str, optional): Document name for updates. If provided, updates existing doc
-        comments (List[Dict], optional): List of comments
 
     Returns:
-        Dict[str, Any]: Created/Updated document data
+        Dict[str, Any]: Created document data
     """
     try:
         should_enqueue_publish_notification = False
         if not frappe.db.exists("Project", project):
             frappe.throw(_("Project '{project}' does not exist"))
 
-        if name and frappe.db.exists("Project Status Update", name):
-            doc = frappe.get_doc("Project Status Update", name)
-            was_publish = doc.status == "Publish"
-            doc.title = title
-            doc.description = description or ""
-            doc.status = status
-            doc.last_edited_at = now()
-            doc.last_edited_by = frappe.session.user
+        doc = frappe.new_doc("Project Status Update")
+        doc.project = project
+        doc.title = title
+        doc.description = description or ""
+        doc.status = status
+        doc.insert()
 
-            if comments is not None:
-                doc.comments = []
-                for comment in comments:
-                    comment_row = doc.append("comments", {})
-                    comment_row.user = comment.get("user", frappe.session.user)
-                    comment_row.comment = comment.get("comment", "")
-                    comment_row.reply_to = comment.get("reply_to")
-            doc.save()
+        if status == "Publish":
+            should_enqueue_publish_notification = True
 
-            if status == "Publish" and not was_publish:
-                should_enqueue_publish_notification = True
-        else:
-            doc = frappe.new_doc("Project Status Update")
-            doc.project = project
-            doc.title = title
-            doc.description = description or ""
-            doc.status = status
-
-            if comments:
-                for comment in comments:
-                    comment_row = doc.append("comments", {})
-                    comment_row.user = comment.get("user", frappe.session.user)
-                    comment_row.comment = comment.get("comment", "")
-                    comment_row.reply_to = comment.get("reply_to")
-            doc.insert()
-            if status == "Publish":
-                should_enqueue_publish_notification = True
         if should_enqueue_publish_notification:
             enqueue(
                 send_publish_notifications,
@@ -93,19 +63,8 @@ def save_project_status_update(
         return get_project_status_update_details(doc.name)
 
     except Exception:
-        frappe.log_error(_("Error saving project status update: {e!s}"))
-        frappe.throw(_("Failed to save project status update: {e!s}"))
-
-
-@frappe.whitelist(methods=["POST"])
-@error_logger
-def create_project_status_update(
-    project: str, title: str, description: str = None, status: str = "Draft", comments: list[dict] = None
-) -> dict[str, Any]:
-    """
-    Create a new Project Status Update (backward compatibility)
-    """
-    return save_project_status_update(project, title, description, status, None, comments)
+        frappe.log_error(_("Error creating project status update: {e!s}"))
+        frappe.throw(_("Failed to create project status update: {e!s}"))
 
 
 @frappe.whitelist(methods=["GET"])
