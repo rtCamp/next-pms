@@ -56,33 +56,28 @@ export const RowAllocationOverlay = forwardRef<
   },
   ref,
 ) {
-  const [draft, setDraft] = useState<DraftBarSeed | null>(null);
+  const [drafts, setDrafts] = useState<DraftBarSeed[]>([]);
   const [hoveredSlotLeft, setHoveredSlotLeft] = useState<number | null>(null);
-  const hasDraft = Boolean(draft);
 
   const clearHoveredSlot = useCallback(() => {
     setHoveredSlotLeft(null);
   }, []);
 
-  const removeDraft = useCallback((nextRowKey: string) => {
-    setDraft((currentDraft) => {
-      if (!currentDraft || currentDraft.rowKey !== nextRowKey) {
-        return currentDraft;
-      }
-
-      return null;
-    });
+  const removeDraft = useCallback((nextRowKey: string, seedLeft: number) => {
+    setDrafts((prev) =>
+      prev.filter((d) => !(d.rowKey === nextRowKey && d.left === seedLeft)),
+    );
   }, []);
 
   useEffect(() => {
-    if (!enabled || hasDraft) {
+    if (!enabled) {
       setHoveredSlotLeft(null);
     }
-  }, [enabled, hasDraft]);
+  }, [enabled]);
 
   const updateHoveredSlotFromPointer = useCallback(
     (event: React.PointerEvent<HTMLTableRowElement>) => {
-      if (!enabled || hasDraft) {
+      if (!enabled) {
         setHoveredSlotLeft(null);
         return;
       }
@@ -109,10 +104,19 @@ export const RowAllocationOverlay = forwardRef<
       const relativeX = event.clientX - rect.left - headerWidth;
       const dayIndex = Math.floor(relativeX / columnWidth);
 
+      const draftOccupancies = drafts.map((d) => ({
+        barOffset: d.left - headerWidth,
+        width: d.width,
+      }));
+
       if (
         dayIndex < 0 ||
         dayIndex >= columnCount ||
-        isColumnOccupied(allocations, dayIndex, columnWidth)
+        isColumnOccupied(
+          [...allocations, ...draftOccupancies],
+          dayIndex,
+          columnWidth,
+        )
       ) {
         setHoveredSlotLeft(null);
         return;
@@ -121,7 +125,7 @@ export const RowAllocationOverlay = forwardRef<
       const snappedLeft = headerWidth + dayIndex * columnWidth;
       setHoveredSlotLeft((prev) => (prev === snappedLeft ? prev : snappedLeft));
     },
-    [allocations, columnCount, columnWidth, enabled, hasDraft, headerWidth],
+    [allocations, columnCount, columnWidth, drafts, enabled, headerWidth],
   );
 
   const handleRowPointerDown = useCallback(
@@ -152,21 +156,21 @@ export const RowAllocationOverlay = forwardRef<
 
   return (
     <>
-      {draft ? (
+      {drafts.map((d) => (
         <DraftBar
-          key={draft.rowKey}
-          rowKey={draft.rowKey}
-          left={draft.left}
-          width={draft.width}
-          employeeId={draft.employeeId}
-          projectId={draft.projectId}
-          projectName={draft.projectName}
-          customerName={draft.customerName}
+          key={`${d.rowKey}-${d.left}`}
+          rowKey={d.rowKey}
+          left={d.left}
+          width={d.width}
+          employeeId={d.employeeId}
+          projectId={d.projectId}
+          projectName={d.projectName}
+          customerName={d.customerName}
           onOpenAllocation={onOpenAllocation}
           onRemove={removeDraft}
         />
-      ) : null}
-      {!enabled || hasDraft || hoveredSlotLeft === null ? null : (
+      ))}
+      {!enabled || hoveredSlotLeft === null ? null : (
         <Button
           type="button"
           variant="subtle"
@@ -181,7 +185,9 @@ export const RowAllocationOverlay = forwardRef<
             height: BAR_HEIGHT,
             top: (CELL_HEIGHT - BAR_HEIGHT) / 2,
           }}
-          onClick={() => setDraft(createDraftBar(hoveredSlotLeft))}
+          onClick={() =>
+            setDrafts((prev) => [...prev, createDraftBar(hoveredSlotLeft)])
+          }
           icon={() => <AddMd className="size-4" />}
           key={rowKey}
         />

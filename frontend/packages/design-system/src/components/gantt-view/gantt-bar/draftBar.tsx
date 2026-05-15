@@ -2,6 +2,7 @@
  * External dependencies.
  */
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Tooltip } from "@rtcamp/frappe-ui-react";
 import { format } from "date-fns";
 
 /**
@@ -26,7 +27,7 @@ interface DraftBarProps {
   projectName?: string;
   customerName?: string;
   onOpenAllocation?: (data: AllocationCallbackData) => void;
-  onRemove?: (rowKey: string) => void;
+  onRemove?: (rowKey: string, seedLeft: number) => void;
 }
 
 export function DraftBar({
@@ -126,7 +127,7 @@ export function DraftBar({
       showWeekend,
     });
 
-    onRemove?.(rowKey);
+    onRemove?.(rowKey, left);
     onOpenAllocation({
       employeeId,
       projectId,
@@ -142,6 +143,7 @@ export function DraftBar({
     customerName,
     employeeId,
     headerWidth,
+    left,
     onOpenAllocation,
     onRemove,
     previewGeometry.left,
@@ -161,30 +163,32 @@ export function DraftBar({
 
       event.preventDefault();
       event.stopPropagation();
-      onRemove?.(rowKey);
+      onRemove?.(rowKey, left);
     },
-    [onRemove, rowKey],
+    [onRemove, rowKey, left],
   );
 
   return (
-    <GanttBar
-      ref={draftBarRef}
-      variant="draft"
-      label={`${FULL_DAY_HOURS}h`}
-      renderLabel={renderLabel}
-      renderFloatingLabel={renderFloatingLabel}
-      left={previewGeometry.left}
-      width={previewGeometry.width}
-      className="outline-none"
-      minLeft={bounds.minLeft}
-      maxRight={bounds.maxRight}
-      resizable={Boolean(onOpenAllocation)}
-      snapUnitPx={columnWidth}
-      tabIndex={0}
-      onClick={handleClick}
-      onKeyDown={handleKeyDown}
-      onResizeEnd={handleResizeEnd}
-    />
+    <Tooltip text="Click to Add allocation" disabled={!onOpenAllocation}>
+      <GanttBar
+        ref={draftBarRef}
+        variant="draft"
+        label={`${FULL_DAY_HOURS}h`}
+        renderLabel={renderLabel}
+        renderFloatingLabel={renderFloatingLabel}
+        left={previewGeometry.left}
+        width={previewGeometry.width}
+        className="outline-none"
+        minLeft={bounds.minLeft}
+        maxRight={bounds.maxRight}
+        resizable={Boolean(onOpenAllocation)}
+        snapUnitPx={columnWidth}
+        tabIndex={0}
+        onClick={handleClick}
+        onKeyDown={handleKeyDown}
+        onResizeEnd={handleResizeEnd}
+      />
+    </Tooltip>
   );
 }
 

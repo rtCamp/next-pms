@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { PreviewCard } from "@base-ui/react/preview-card";
+import { Tooltip } from "@rtcamp/frappe-ui-react";
 import { useGanttStore } from "../ganttStore";
 import type { ProjectAllocationBar } from "../ganttStore";
 import { getBarDateRange, getBarDaySpan, getBarTimelineBounds } from "../utils";
@@ -207,28 +208,30 @@ export function GanttProjectBar({
         delay={400}
         closeDelay={150}
         render={
-          <GanttBar
-            ref={projectBarRef}
-            variant="project"
-            theme={allocation.tentative ? "crosshatch" : "default"}
-            label={label}
-            renderLabel={renderLabel}
-            left={previewGeometry.left}
-            width={previewGeometry.width}
-            className={cn(
-              "outline-none",
-              isModified && "ring-1 ring-inset ring-surface-amber-3",
-            )}
-            billable={allocation.billable}
-            resizable={resizable}
-            snapUnitPx={columnWidth}
-            tabIndex={0}
-            minLeft={bounds.minLeft}
-            maxRight={bounds.maxRight}
-            onClick={isModified ? handleClick : undefined}
-            onKeyDown={handleKeyDown}
-            onResizeEnd={handleResizeEnd}
-          />
+          <Tooltip text="Click to save changes" disabled={!isModified}>
+            <GanttBar
+              ref={projectBarRef}
+              variant="project"
+              theme={allocation.tentative ? "crosshatch" : "default"}
+              label={label}
+              renderLabel={renderLabel}
+              left={previewGeometry.left}
+              width={previewGeometry.width}
+              className={cn(
+                "outline-none",
+                isModified && "ring-1 ring-inset ring-surface-amber-3",
+              )}
+              billable={allocation.billable}
+              resizable={resizable}
+              snapUnitPx={columnWidth}
+              tabIndex={0}
+              minLeft={bounds.minLeft}
+              maxRight={bounds.maxRight}
+              onClick={isModified ? handleClick : undefined}
+              onKeyDown={handleKeyDown}
+              onResizeEnd={handleResizeEnd}
+            />
+          </Tooltip>
         }
       />
       <PreviewCard.Portal>
