@@ -7,62 +7,60 @@ import { createContext, useContextSelector } from "use-context-selector";
 /**
  * Internal dependencies.
  */
-import type { Phase, ProjectListItem } from "./types";
-
-export type UpdateProjectPhase = (
-  projectId: string,
-  phase: Phase,
-) => Promise<void>;
+import type { Phase } from "./types";
 
 export type RagStatus = "red" | "amber" | "green";
 export type ProjectStatus = "Open" | "Completed" | "Cancelled";
 
 export interface ProjectListFilters {
   search: string;
-  ragStatus: RagStatus | undefined;
-  phase: Phase | undefined;
-  status: ProjectStatus | undefined;
+  ragStatus: RagStatus | "";
+  phase: Phase | "";
+  status: ProjectStatus | "";
   advanced: FilterCondition[];
 }
 
 export const initialProjectListFilters: ProjectListFilters = {
   search: "",
-  ragStatus: undefined,
-  phase: undefined,
-  status: undefined,
+  ragStatus: "",
+  phase: "",
+  status: "",
   advanced: [],
 };
 
-export interface ProjectListContextProps {
+export const buildListFrappeFilters = (filters: ProjectListFilters) => {
+  const out: unknown[] = [];
+  if (filters.ragStatus) {
+    out.push(["custom_project_rag_status", "=", filters.ragStatus]);
+  }
+  if (filters.phase) {
+    out.push(["custom_project_phase", "=", filters.phase]);
+  }
+  if (filters.status) {
+    out.push(["status", "=", filters.status]);
+  }
+  return out;
+};
+
+export interface ProjectFilterContextProps {
   state: {
     filters: ProjectListFilters;
-    data: ProjectListItem[];
-    totalCount: number;
-    hasMore: boolean;
-    isLoading: boolean;
-    error: unknown;
   };
   actions: {
     setSearch: (search: string) => void;
-    setRagStatus: (ragStatus: RagStatus | undefined) => void;
-    setPhase: (phase: Phase | undefined) => void;
-    setStatus: (status: ProjectStatus | undefined) => void;
+    setRagStatus: (ragStatus: RagStatus | "") => void;
+    setPhase: (phase: Phase | "") => void;
+    setStatus: (status: ProjectStatus | "") => void;
     setAdvanced: (advanced: FilterCondition[]) => void;
     resetFilters: () => void;
-    updateProjectPhase: UpdateProjectPhase;
   };
 }
 
 const noop = () => {};
 
-export const ProjectListContext = createContext<ProjectListContextProps>({
+export const ProjectFilterContext = createContext<ProjectFilterContextProps>({
   state: {
     filters: initialProjectListFilters,
-    data: [],
-    totalCount: 0,
-    hasMore: false,
-    isLoading: false,
-    error: null,
   },
   actions: {
     setSearch: noop,
@@ -71,10 +69,9 @@ export const ProjectListContext = createContext<ProjectListContextProps>({
     setStatus: noop,
     setAdvanced: noop,
     resetFilters: noop,
-    updateProjectPhase: async () => {},
   },
 });
 
-export const useProjectList = <T>(
-  selector: (state: ProjectListContextProps) => T,
-) => useContextSelector(ProjectListContext, selector);
+export const useProjectFilter = <T>(
+  selector: (state: ProjectFilterContextProps) => T,
+) => useContextSelector(ProjectFilterContext, selector);

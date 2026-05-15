@@ -16,12 +16,13 @@ import { useToasts } from "@rtcamp/frappe-ui-react";
  */
 import { pickAllowed, toKebabCase } from "@/lib/utils";
 
-import { useProjectList } from "../context";
-import type { Phase, ProjectListItem } from "../types";
+import { useProjectKanban } from "./context";
+import type { Phase } from "../types";
 
 import { KANBAN_COLUMN_WIDTH } from "./constants";
 import { Header } from "./header";
 import { ProjectCard } from "./projectCard";
+import type { KanbanProjectItem } from "./types";
 import { PHASES } from "../constants";
 
 type ProjectIdsByPhase = Record<Phase, string[]>;
@@ -36,23 +37,26 @@ const emptyGroups = () => {
   ) as ProjectIdsByPhase;
 };
 
-function groupIdsByPhase(projects: ProjectListItem[]): ProjectIdsByPhase {
-  const grouped = emptyGroups();
-  for (const project of projects) {
-    const _phase = pickAllowed<Phase>(toKebabCase(project.phase), PHASES);
-    if (_phase && _phase in grouped) {
-      grouped[_phase].push(project.name);
+function groupIdsByPhase(
+  grouped: Record<string, KanbanProjectItem[]>,
+): ProjectIdsByPhase {
+  const out = emptyGroups();
+  for (const [columnKey, projects] of Object.entries(grouped)) {
+    const phase = pickAllowed<Phase>(toKebabCase(columnKey), PHASES);
+    if (!phase) continue;
+    for (const project of projects) {
+      out[phase].push(project.name);
     }
   }
-  return grouped;
+  return out;
 }
 
 const KanbanView = () => {
-  const data = useProjectList((c) => c.state.data);
-  const isLoading = useProjectList((c) => c.state.isLoading);
-  const error = useProjectList((c) => c.state.error);
+  const data = useProjectKanban((c) => c.state.data);
+  const isLoading = useProjectKanban((c) => c.state.isLoading);
+  const error = useProjectKanban((c) => c.state.error);
 
-  const updateProjectPhase = useProjectList(
+  const updateProjectPhase = useProjectKanban(
     (c) => c.actions.updateProjectPhase,
   );
 
@@ -60,10 +64,18 @@ const KanbanView = () => {
 
   const [items, setItems] = useState<ProjectIdsByPhase>(emptyGroups);
 
-  const byId = useMemo(() => new Map(data.map((p) => [p.name, p])), [data]);
+  const byId = useMemo(() => {
+    const map = new Map<string, KanbanProjectItem>();
+    for (const projects of Object.values(data.data)) {
+      for (const project of projects) {
+        map.set(project.name, project);
+      }
+    }
+    return map;
+  }, [data]);
 
   useEffect(() => {
-    setItems(groupIdsByPhase(data));
+    setItems(groupIdsByPhase(data.data));
   }, [data]);
 
   if (isLoading || error) {
@@ -87,7 +99,7 @@ const KanbanView = () => {
         try {
           await updateProjectPhase(projectId, newPhase);
         } catch {
-          setItems(groupIdsByPhase(data));
+          setItems(groupIdsByPhase(data.data));
           const project = byId.get(projectId);
           toast.error(
             `Error updating the phase for ${project?.project_name ?? projectId}`,
