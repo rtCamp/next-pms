@@ -148,7 +148,7 @@ export function GanttAllocationPopover({
   hasRoleAccess = false,
 }: GanttAllocationPopoverProps) {
   return (
-    <div className="flex flex-col gap-4 p-3 rounded-xl shadow-2xl w-70 bg-surface-modal">
+    <div className="flex flex-col gap-4 p-3 rounded-xl shadow-2xl w-70 bg-surface-modal animate-fade-in max-h-[min(550px,90dvh)] overflow-y-auto scrollbar-thin">
       <div className="flex flex-col">
         {entries.map((entry, index) => (
           <div key={index}>
@@ -164,10 +164,11 @@ export function GanttAllocationPopover({
         <Button
           variant="solid"
           theme="gray"
-          className="justify-center w-full"
+          className="justify-center w-full h-7 shrink-0"
           iconLeft={() => <AddMd className="size-4" />}
           label="Add"
           onClick={onAdd}
+          size="sm"
         />
       )}
     </div>
