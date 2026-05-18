@@ -3,12 +3,20 @@ import { addDays, startOfWeek } from "date-fns";
 import { createStore, useStore } from "zustand";
 import { useShallow } from "zustand/react/shallow";
 import { CELL_WIDTH, ROW_HEADER_WIDTH } from "./constants";
-import type { AllocationCallbackData, Member as BaseMember } from "./types";
-import { prepareMemberBars } from "./utils";
-import type { Member } from "./utils";
+import type {
+  AllocationCallbackData,
+  GanttGridVariant,
+  Member as BaseMember,
+  ProjectGroup as BaseProjectGroup,
+} from "./types";
+import { prepareMemberBars, prepareProjectBars } from "./utils";
+import type { Member, ProjectGroup } from "./utils";
 export type {
   Member,
   MemberAllocationBar,
+  ProjectGroup,
+  ProjectMember,
+  ProjectMemberAllocationBar,
   ProjectAllocationBar,
 } from "./utils";
 
@@ -21,7 +29,9 @@ export interface PendingDeleteEntry {
 }
 
 interface GanttProps {
-  members: BaseMember[];
+  variant: GanttGridVariant;
+  members?: BaseMember[];
+  projects?: BaseProjectGroup[];
   rowHeaderLabel: string;
   showWeekend: boolean;
   startDate: Date;
@@ -34,6 +44,7 @@ interface GanttProps {
 
 interface GanttState extends GanttProps {
   sourceMembers: BaseMember[];
+  sourceProjects: BaseProjectGroup[];
   // derived
   daysPerWeek: number;
   columnCount: number;
@@ -43,6 +54,7 @@ interface GanttState extends GanttProps {
   columns: number[];
   weekendColumns: number[];
   members: Member[];
+  projects: ProjectGroup[];
   // ui state
   expandedRows: Set<number>;
   headerWidth: number;
@@ -61,6 +73,20 @@ interface GanttState extends GanttProps {
 }
 
 export type GanttStore = ReturnType<typeof createGanttStore>;
+
+/**
+ * Extracts source members from props based on the current variant.
+ */
+function getSourceMembers(props: GanttProps) {
+  return props.variant === "team" ? (props.members ?? []) : [];
+}
+
+/**
+ * Extracts source projects from props based on the current variant.
+ */
+function getSourceProjects(props: GanttProps) {
+  return props.variant === "project" ? (props.projects ?? []) : [];
+}
 
 /**
  * Rounds a width and clamps it to a minimum value.
@@ -100,6 +126,13 @@ function getMemberStableKey(member: BaseMember) {
     member.id ??
     `${member.name}::${member.designation ?? ""}::${member.image ?? ""}`
   );
+}
+
+/**
+ * Returns a stable key for a project row.
+ */
+function getProjectStableKey(project: BaseProjectGroup) {
+  return project.id ?? `${project.name}::${project.client ?? ""}`;
 }
 
 /**
@@ -146,7 +179,9 @@ function resolveSizingUpdate(
     ...(hasHeaderChange ? { headerWidth: nextHeaderWidth } : {}),
     ...(hasContainerChange ? { containerWidth: nextContainerWidth } : {}),
     ...buildDerivedState(
+      state.variant,
       state.sourceMembers,
+      state.sourceProjects,
       state.showWeekend,
       state.startDate,
       state.weekCount,
@@ -160,7 +195,9 @@ function resolveSizingUpdate(
  * Builds derived grid state from source members and view settings.
  */
 function buildDerivedState(
+  variant: GanttGridVariant,
   sourceMembers: BaseMember[],
+  sourceProjects: BaseProjectGroup[],
   showWeekend: boolean,
   startDate: Date,
   weekCount: number,
@@ -187,13 +224,26 @@ function buildDerivedState(
         return dayOfWeek === 0 || dayOfWeek === 6;
       })
     : [];
-  const members = prepareMemberBars(
-    sourceMembers,
-    weekStart,
-    columnCount,
-    showWeekend,
-    columnWidth,
-  );
+  const members =
+    variant === "team"
+      ? prepareMemberBars(
+          sourceMembers,
+          weekStart,
+          columnCount,
+          showWeekend,
+          columnWidth,
+        )
+      : [];
+  const projects =
+    variant === "project"
+      ? prepareProjectBars(
+          sourceProjects,
+          weekStart,
+          columnCount,
+          showWeekend,
+          columnWidth,
+        )
+      : [];
 
   return {
     daysPerWeek,
@@ -204,14 +254,19 @@ function buildDerivedState(
     columns,
     weekendColumns,
     members,
+    projects,
   };
 }
 
 export const createGanttStore = (initProps: GanttProps) => {
   const headerWidth = ROW_HEADER_WIDTH;
   const containerWidth = 0;
+  const sourceMembers = getSourceMembers(initProps);
+  const sourceProjects = getSourceProjects(initProps);
   const derivedState = buildDerivedState(
-    initProps.members,
+    initProps.variant,
+    sourceMembers,
+    sourceProjects,
     initProps.showWeekend,
     initProps.startDate,
     initProps.weekCount,
@@ -221,7 +276,8 @@ export const createGanttStore = (initProps: GanttProps) => {
 
   return createStore<GanttState>()((set, get) => ({
     ...initProps,
-    sourceMembers: initProps.members,
+    sourceMembers,
+    sourceProjects,
     ...derivedState,
     expandedRows: new Set(),
     headerWidth,
@@ -273,23 +329,35 @@ export const createGanttStore = (initProps: GanttProps) => {
 
     syncProps: (nextProps) => {
       set((state) => {
-        const nextMemberIndexByKey = new Map<string, number>();
-        nextProps.members.forEach((member, index) => {
-          const memberKey = getMemberStableKey(member);
-          if (!nextMemberIndexByKey.has(memberKey)) {
-            nextMemberIndexByKey.set(memberKey, index);
+        const nextSourceMembers = getSourceMembers(nextProps);
+        const nextSourceProjects = getSourceProjects(nextProps);
+        const nextRowIndexByKey = new Map<string, number>();
+        const nextSourceRows =
+          nextProps.variant === "team" ? nextSourceMembers : nextSourceProjects;
+        const currentSourceRows =
+          state.variant === "team" ? state.sourceMembers : state.sourceProjects;
+
+        nextSourceRows.forEach((row, index) => {
+          const rowKey =
+            nextProps.variant === "team"
+              ? getMemberStableKey(row)
+              : getProjectStableKey(row);
+          if (!nextRowIndexByKey.has(rowKey)) {
+            nextRowIndexByKey.set(rowKey, index);
           }
         });
 
         const nextExpandedRows = new Set<number>();
-        state.sourceMembers.forEach((member, previousIndex) => {
+        currentSourceRows.forEach((row, previousIndex) => {
           if (!state.expandedRows.has(previousIndex)) {
             return;
           }
 
-          const nextIndex = nextMemberIndexByKey.get(
-            getMemberStableKey(member),
-          );
+          const rowKey =
+            state.variant === "team"
+              ? getMemberStableKey(row)
+              : getProjectStableKey(row);
+          const nextIndex = nextRowIndexByKey.get(rowKey);
           if (nextIndex !== undefined) {
             nextExpandedRows.add(nextIndex);
           }
@@ -297,9 +365,12 @@ export const createGanttStore = (initProps: GanttProps) => {
 
         return {
           ...nextProps,
-          sourceMembers: nextProps.members,
+          sourceMembers: nextSourceMembers,
+          sourceProjects: nextSourceProjects,
           ...buildDerivedState(
-            nextProps.members,
+            nextProps.variant,
+            nextSourceMembers,
+            nextSourceProjects,
             nextProps.showWeekend,
             nextProps.startDate,
             nextProps.weekCount,

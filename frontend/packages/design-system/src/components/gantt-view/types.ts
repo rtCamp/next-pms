@@ -62,6 +62,16 @@ export interface Member {
   leaves?: LeaveAllocation[];
 }
 
+export interface ProjectMember extends Omit<Member, "projects"> {
+  allocations?: Allocation[];
+}
+
+export interface ProjectGroup extends Omit<Project, "allocations"> {
+  members?: ProjectMember[];
+}
+
+export type GanttGridVariant = "team" | "project";
+
 export interface AllocationCallbackData {
   /** Allocation identifier. */
   allocationId?: string;
@@ -92,10 +102,10 @@ export interface GanttGridProps {
   startDate: Date;
   /** Number of weeks to display. */
   weekCount?: number;
-  /** Member row data. */
-  members: Member[];
   /** Label shown in the sticky row header cell. */
   rowHeaderLabel: string;
+  /** Layout and transformation mode for the grid. */
+  variant: GanttGridVariant;
   /** Whether to include Saturday and Sunday columns. When false, week boundary is every 5th column. */
   showWeekend?: boolean;
   /** Whether current user can manage member projects. */
@@ -108,4 +118,8 @@ export interface GanttGridProps {
   onEditAllocation?: (data: AllocationCallbackData) => void;
   /** Called when the delete icon is clicked on an allocation entry. Receives allocation data. */
   onDeleteAllocation?: (data: AllocationCallbackData) => void;
+  /** Member row data. */
+  members?: Member[];
+  /** Project row data. */
+  projects?: ProjectGroup[];
 }

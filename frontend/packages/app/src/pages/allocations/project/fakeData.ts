@@ -1,6 +1,6 @@
 // TODO: Delete this file and replace usages with real data.
-import type { Member } from "@next-pms/design-system/components";
-import { addMonths, addWeeks, startOfWeek } from "date-fns";
+import type { ProjectGroup } from "@next-pms/design-system/components";
+import { addDays, addMonths, addWeeks, startOfWeek } from "date-fns";
 import type { AllocationsDuration } from "../types";
 
 const shellBaseDate = new Date(2026, 4, 18);
@@ -12,6 +12,41 @@ const weekCountByDuration: Record<AllocationsDuration, number> = {
 };
 
 export const projectAllocationShellMembers: Member[] = [];
+export const projectAllocationShellProjects: ProjectGroup[] = [
+  {
+    id: "project-atlas",
+    name: "Project Atlas",
+    client: "Acme Corp",
+    members: [
+      {
+        id: "member-ada",
+        name: "Ada Lovelace",
+        designation: "Product Designer",
+        allocations: [
+          {
+            hours: 6,
+            startDate: addDays(shellBaseDate, 1),
+            endDate: addDays(shellBaseDate, 3),
+            billable: true,
+          },
+        ],
+      },
+      {
+        id: "member-grace",
+        name: "Grace Hopper",
+        designation: "Frontend Engineer",
+        allocations: [
+          {
+            hours: 4,
+            startDate: addDays(shellBaseDate, 4),
+            endDate: addDays(shellBaseDate, 8),
+            billable: true,
+          },
+        ],
+      },
+    ],
+  },
+];
 
 export function getProjectAllocationShellStartDate() {
   return startOfWeek(shellBaseDate, { weekStartsOn: 1 });

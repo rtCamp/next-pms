@@ -26,7 +26,7 @@ import {
   getProjectAllocationShellStartDate,
   getProjectAllocationWeekCount,
   moveProjectAllocationShellDate,
-  projectAllocationShellMembers,
+  projectAllocationShellProjects,
 } from "./fakeData";
 
 export const AllocationsProjectTable = () => {
@@ -122,8 +122,9 @@ export const AllocationsProjectTable = () => {
       </div>
       <div className="relative w-full h-[calc(100vh-112px)] overflow-auto no-scrollbar">
         <GanttGrid
+          variant="project"
           startDate={anchorDate}
-          members={projectAllocationShellMembers}
+          projects={projectAllocationShellProjects}
           weekCount={weekCount}
           showWeekend={showWeekend}
           rowHeaderLabel="Projects"

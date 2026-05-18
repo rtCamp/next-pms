@@ -155,6 +155,7 @@ export const AllocationsTeamTable = () => {
             count={EMPLOYEES_PER_PAGE}
           >
             <GanttGrid
+              variant="team"
               startDate={anchorDate}
               members={members}
               rowHeaderLabel="Members"

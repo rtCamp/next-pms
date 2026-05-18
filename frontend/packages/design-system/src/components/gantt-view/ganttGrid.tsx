@@ -26,6 +26,7 @@ const GanttGridInner: React.FC<{
   className?: string;
 }> = ({ rootRef, className }) => {
   const {
+    variant,
     members,
     rowHeaderLabel,
     headerWidth,
@@ -39,6 +40,7 @@ const GanttGridInner: React.FC<{
     pendingDeleteEntry,
     clearPendingDeleteEntry,
   } = useGanttStore((s) => ({
+    variant: s.variant,
     members: s.members,
     rowHeaderLabel: s.rowHeaderLabel,
     headerWidth: s.headerWidth,
@@ -105,9 +107,11 @@ const GanttGridInner: React.FC<{
         </thead>
 
         <tbody>
-          {members.map((_, rowIndex) => (
-            <GanttMemberRows key={rowIndex} memberInd={rowIndex} />
-          ))}
+          {variant === "team"
+            ? members.map((_, rowIndex) => (
+                <GanttMemberRows key={rowIndex} memberInd={rowIndex} />
+              ))
+            : null}
         </tbody>
       </table>
 
@@ -154,7 +158,9 @@ export const GanttGrid: React.FC<GanttGridProps> = (props) => {
 
   const resolvedProps = useMemo(
     () => ({
+      variant: props.variant,
       members: props.members,
+      projects: props.projects,
       rowHeaderLabel: props.rowHeaderLabel,
       showWeekend: props.showWeekend ?? true,
       startDate: props.startDate,
@@ -166,13 +172,15 @@ export const GanttGrid: React.FC<GanttGridProps> = (props) => {
     }),
     [
       props.hasRoleAccess,
-      props.members,
       props.onAddAllocation,
       props.onDeleteAllocation,
       props.onEditAllocation,
+      props.members,
+      props.projects,
       props.rowHeaderLabel,
       props.showWeekend,
       props.startDate,
+      props.variant,
       props.weekCount,
     ],
   );

@@ -1,21 +1,20 @@
 import { addDays, eachDayOfInterval, isSameDay, startOfDay } from "date-fns";
 import type {
+  Allocation,
   LeaveAllocation,
   MemberBarAllocation,
   Project,
 } from "../../types";
 
 /**
- * Derives a member's total allocation per calendar day by summing hours across
- * all project allocations. Returns an array of `Allocation` segments where
- * contiguous days with the same total hours are merged into a single entry.
+ * Builds merged day-level allocation summary segments from a flat allocation
+ * list and optional leave ranges.
  */
-export function getMemberAllocation(
-  projects: Project[],
+export function getAllocationSummary(
+  allocations: Allocation[],
   leaves: LeaveAllocation[] = [],
 ): MemberBarAllocation[] {
-  const allAllocs = projects.flatMap((p) => p.allocations ?? []);
-  if (allAllocs.length === 0 && leaves.length === 0) return [];
+  if (allocations.length === 0 && leaves.length === 0) return [];
 
   // Use local-midnight timestamps as keys to avoid UTC-offset date shifts
   // (toISOString() would produce the wrong date in UTC+ timezones)
@@ -24,7 +23,8 @@ export function getMemberAllocation(
   const dayHasTentative = new Map<number, boolean>();
   const dayIsTimeoff = new Map<number, boolean>();
   const dayKeys = new Set<number>();
-  for (const alloc of allAllocs) {
+
+  for (const alloc of allocations) {
     for (const day of eachDayOfInterval({
       start: alloc.startDate,
       end: alloc.endDate,
@@ -88,5 +88,18 @@ export function getMemberAllocation(
       });
     }
   }
+
   return merged;
+}
+
+/**
+ * Builds member-level summary segments by flattening allocations across the
+ * member's projects and delegating to `getAllocationSummary`.
+ */
+export function getMemberAllocation(
+  projects: Project[],
+  leaves: LeaveAllocation[] = [],
+): MemberBarAllocation[] {
+  const allAllocs = projects.flatMap((p) => p.allocations ?? []);
+  return getAllocationSummary(allAllocs, leaves);
 }
