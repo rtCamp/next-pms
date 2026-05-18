@@ -11,15 +11,18 @@ const weekCountByDuration: Record<AllocationsDuration, number> = {
   "this-quarter": 13,
 };
 
-export const projectAllocationShellProjects: ProjectGroup[] = [
+const PROJECT_SHELL_COUNT = 10;
+
+const projectAllocationShellTemplates: ProjectGroup[] = [
   {
-    id: "project-atlas",
-    name: "Project Atlas",
-    client: "Acme Corp",
+    id: "atlas-mobile-app-checkout-flow-stabilisation",
+    name: "Atlas Mobile App Checkout Flow Stabilisation",
+    dateRange: "Jan 11 - Jan 31",
+    client: "Atlas Corporation",
     members: [
       {
-        id: "member-ada",
-        name: "Ada Lovelace",
+        id: "member-samantha",
+        name: "Samantha Robbins",
         designation: "Product Designer",
         allocations: [
           {
@@ -31,9 +34,82 @@ export const projectAllocationShellProjects: ProjectGroup[] = [
         ],
       },
       {
-        id: "member-grace",
-        name: "Grace Hopper",
+        id: "member-julian",
+        name: "Julian Andrews",
         designation: "Frontend Engineer",
+        allocations: [
+          {
+            hours: 4,
+            startDate: addDays(shellBaseDate, 4),
+            endDate: addDays(shellBaseDate, 8),
+            billable: true,
+          },
+        ],
+      },
+      {
+        id: "member-christina",
+        name: "Christina Chung",
+        designation: "QA Engineer",
+        allocations: [
+          {
+            hours: 5,
+            startDate: addDays(shellBaseDate, 2),
+            endDate: addDays(shellBaseDate, 6),
+            billable: true,
+          },
+        ],
+      },
+      {
+        id: "member-ananya",
+        name: "Ananya Bharadwaj",
+        designation: "Project Manager",
+        allocations: [
+          {
+            hours: 3,
+            startDate: addDays(shellBaseDate, 1),
+            endDate: addDays(shellBaseDate, 5),
+            billable: true,
+          },
+        ],
+      },
+    ],
+  },
+  {
+    id: "northstar-onboarding-portal-refresh",
+    name: "Northstar Onboarding Portal Refresh",
+    dateRange: "Feb 03 - Mar 14",
+    client: "Northstar Health",
+    members: [
+      {
+        id: "member-maya",
+        name: "Maya Rodriguez",
+        designation: "Design Lead",
+        allocations: [
+          {
+            hours: 5,
+            startDate: addDays(shellBaseDate, 2),
+            endDate: addDays(shellBaseDate, 7),
+            billable: true,
+          },
+        ],
+      },
+      {
+        id: "member-nikhil",
+        name: "Nikhil Sharma",
+        designation: "Backend Engineer",
+        allocations: [
+          {
+            hours: 6,
+            startDate: addDays(shellBaseDate, 6),
+            endDate: addDays(shellBaseDate, 10),
+            billable: true,
+          },
+        ],
+      },
+      {
+        id: "member-priya",
+        name: "Priya Nair",
+        designation: "QA Engineer",
         allocations: [
           {
             hours: 4,
@@ -45,7 +121,62 @@ export const projectAllocationShellProjects: ProjectGroup[] = [
       },
     ],
   },
+  {
+    id: "atlas-ui-stabilisation",
+    name: "Atlas UI Stabilisation",
+    dateRange: "Nov 23 - Feb 28",
+    client: "Atlas Corporation",
+    members: [
+      {
+        id: "member-ali",
+        name: "Ali Smith",
+        designation: "Project Manager",
+        allocations: [
+          {
+            hours: 4,
+            startDate: addDays(shellBaseDate, 3),
+            endDate: addDays(shellBaseDate, 9),
+            billable: true,
+          },
+        ],
+      },
+      {
+        id: "member-evelyn",
+        name: "Evelyn Carter",
+        designation: "Design Lead",
+        allocations: [
+          {
+            hours: 5,
+            startDate: addDays(shellBaseDate, 5),
+            endDate: addDays(shellBaseDate, 10),
+            billable: true,
+          },
+        ],
+      },
+    ],
+  },
 ];
+
+export const projectAllocationShellProjects: ProjectGroup[] = Array.from(
+  { length: PROJECT_SHELL_COUNT },
+  (_, index) => {
+    const template =
+      projectAllocationShellTemplates[
+        index % projectAllocationShellTemplates.length
+      ];
+    const projectNumber = index + 1;
+
+    return {
+      ...template,
+      id: `${template.id}-${projectNumber}`,
+      name: `${template.name} ${projectNumber}`,
+      members: template.members?.map((member) => ({
+        ...member,
+        id: member.id ? `${member.id}-${projectNumber}` : undefined,
+      })),
+    };
+  },
+);
 
 export function getProjectAllocationShellStartDate() {
   return startOfWeek(shellBaseDate, { weekStartsOn: 1 });

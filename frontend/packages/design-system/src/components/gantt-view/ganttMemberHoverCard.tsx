@@ -13,10 +13,10 @@ import {
 /**
  * Internal dependencies.
  */
-import type { Member } from "./types";
+import type { Member, ProjectMember } from "./types";
 
 interface GanttMemberHoverCardProps {
-  member: Member;
+  member: Member | ProjectMember;
 }
 
 function GanttMemberHoverCard({ member }: GanttMemberHoverCardProps) {
