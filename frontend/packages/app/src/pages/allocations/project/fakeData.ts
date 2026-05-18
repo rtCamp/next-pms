@@ -165,12 +165,13 @@ export const projectAllocationShellProjects: ProjectGroup[] = Array.from(
         index % projectAllocationShellTemplates.length
       ];
     const projectNumber = index + 1;
+    const project = structuredClone(template);
 
     return {
-      ...template,
-      id: `${template.id}-${projectNumber}`,
-      name: `${template.name} ${projectNumber}`,
-      members: template.members?.map((member) => ({
+      ...project,
+      id: `${project.id}-${projectNumber}`,
+      name: `${project.name} ${projectNumber}`,
+      members: project.members?.map((member) => ({
         ...member,
         id: member.id ? `${member.id}-${projectNumber}` : undefined,
       })),

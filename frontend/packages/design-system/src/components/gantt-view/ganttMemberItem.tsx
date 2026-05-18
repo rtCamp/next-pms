@@ -59,7 +59,7 @@ export function GanttMemberItem({
         render={
           <th
             className={cn(
-              "sticky left-0 z-10 bg-surface-white border-b border-r border-outline-gray-1 pl-3 pr-3 font-normal text-left align-middle flex items-center gap-2 w-full overflow-hidden transition-[height] duration-200 ease-in-out cursor-pointer hover:bg-surface-gray-1",
+              "sticky left-0 z-10 bg-surface-white border-b border-r border-outline-gray-1 pl-3 pr-3 font-normal text-left align-middle flex items-center gap-2 w-full overflow-hidden transition-[height,background-color] cursor-pointer hover:bg-surface-gray-1",
               className,
             )}
             style={{
@@ -71,12 +71,13 @@ export function GanttMemberItem({
         }
       >
         <button
+          type="button"
           disabled={!canExpand}
           onClick={() => handleToggle?.()}
           className={cn("flex items-center w-full shrink-0", {
             "cursor-default!": !canExpand,
           })}
-          aria-label={isExpanded ? "Collapse" : "Expand"}
+          aria-expanded={canExpand ? isExpanded : undefined}
         >
           <div className="flex flex-col gap-1 w-full min-w-0">
             <div className="flex gap-1 justify-between items-center w-full">
