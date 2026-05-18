@@ -150,7 +150,9 @@ function prepareAllocationBars<T extends Allocation>(
 }
 
 /**
- * Derives a member's total allocation per calendar day by summing hours across
+ * Precompute bar geometry for already summarized allocation segments.
+ * This attaches rendering metrics only and does not perform any day-level
+ * allocation aggregation itself.
  */
 function prepareSummaryBars(
   allocations: MemberBarAllocation[],

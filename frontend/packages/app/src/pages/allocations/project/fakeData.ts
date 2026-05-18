@@ -3,7 +3,7 @@ import type { ProjectGroup } from "@next-pms/design-system/components";
 import { addDays, addMonths, addWeeks, startOfWeek } from "date-fns";
 import type { AllocationsDuration } from "../types";
 
-const shellBaseDate = new Date(2026, 4, 18);
+const shellBaseDate = new Date();
 
 const weekCountByDuration: Record<AllocationsDuration, number> = {
   "this-week": 1,
@@ -11,7 +11,6 @@ const weekCountByDuration: Record<AllocationsDuration, number> = {
   "this-quarter": 13,
 };
 
-export const projectAllocationShellMembers: Member[] = [];
 export const projectAllocationShellProjects: ProjectGroup[] = [
   {
     id: "project-atlas",
