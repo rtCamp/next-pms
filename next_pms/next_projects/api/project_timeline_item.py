@@ -179,13 +179,13 @@ def create_project_timeline_item(
     only_for(ALLOWED_ROLES, message=True)
 
     if not project:
-        frappe.throw(frappe._("project is required"))
+        frappe.throw(frappe._("Project is required"))
     if not title:
-        frappe.throw(frappe._("title is required"))
+        frappe.throw(frappe._("Title is required"))
     if not item_owner:
-        frappe.throw(frappe._("item_owner is required"))
+        frappe.throw(frappe._("Item Owner is required"))
     if type not in ("Milestone", "Touchpoint"):
-        frappe.throw(frappe._("type must be Milestone or Touchpoint"))
+        frappe.throw(frappe._("Type must be Milestone or Touchpoint"))
 
     doc = frappe.new_doc("Project Timeline Item")
     doc.project = project
@@ -195,7 +195,7 @@ def create_project_timeline_item(
     doc.start_date = start_date or None
     doc.planned_end_date = planned_end_date or None
     doc.is_complete = 0
-    doc.insert(ignore_permissions=False)
+    doc.insert()
 
     return {
         "name": doc.name,
@@ -225,7 +225,7 @@ def mark_timeline_item_complete(name: str, is_complete: int = 1):
     only_for(ALLOWED_ROLES, message=True)
 
     if not name:
-        frappe.throw(frappe._("name is required"))
+        frappe.throw(frappe._("Name is required"))
 
     doc = frappe.get_doc("Project Timeline Item", name)
     doc.is_complete = cint(is_complete)
