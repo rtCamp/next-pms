@@ -27,6 +27,7 @@ const GanttGridInner: React.FC<{
 }> = ({ rootRef, className }) => {
   const {
     members,
+    rowHeaderLabel,
     headerWidth,
     columnWidth,
     weekendColumns,
@@ -39,6 +40,7 @@ const GanttGridInner: React.FC<{
     clearPendingDeleteEntry,
   } = useGanttStore((s) => ({
     members: s.members,
+    rowHeaderLabel: s.rowHeaderLabel,
     headerWidth: s.headerWidth,
     columnWidth: s.columnWidth,
     weekendColumns: s.weekendColumns,
@@ -93,7 +95,7 @@ const GanttGridInner: React.FC<{
               className="sticky left-0 z-20 bg-surface-white text-ink-gray-8 border border-l-0 border-outline-gray-1 font-medium text-start p-3 pl-4.25"
               style={{ width: headerWidth, height: HEADER_HEIGHT }}
             >
-              Members
+              {rowHeaderLabel}
             </th>
 
             {weeks.map((weekIndex) => (
@@ -153,6 +155,7 @@ export const GanttGrid: React.FC<GanttGridProps> = (props) => {
   const resolvedProps = useMemo(
     () => ({
       members: props.members,
+      rowHeaderLabel: props.rowHeaderLabel,
       showWeekend: props.showWeekend ?? true,
       startDate: props.startDate,
       weekCount: props.weekCount ?? 3,
@@ -167,6 +170,7 @@ export const GanttGrid: React.FC<GanttGridProps> = (props) => {
       props.onAddAllocation,
       props.onDeleteAllocation,
       props.onEditAllocation,
+      props.rowHeaderLabel,
       props.showWeekend,
       props.startDate,
       props.weekCount,

@@ -22,6 +22,7 @@ export interface PendingDeleteEntry {
 
 interface GanttProps {
   members: BaseMember[];
+  rowHeaderLabel: string;
   showWeekend: boolean;
   startDate: Date;
   weekCount: number;

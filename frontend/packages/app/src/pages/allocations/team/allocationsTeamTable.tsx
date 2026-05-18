@@ -157,6 +157,7 @@ export const AllocationsTeamTable = () => {
             <GanttGrid
               startDate={anchorDate}
               members={members}
+              rowHeaderLabel="Members"
               weekCount={weekCount}
               hasRoleAccess={hasRoleAccess}
               showWeekend={showWeekend}

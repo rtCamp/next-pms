@@ -94,6 +94,8 @@ export interface GanttGridProps {
   weekCount?: number;
   /** Member row data. */
   members: Member[];
+  /** Label shown in the sticky row header cell. */
+  rowHeaderLabel: string;
   /** Whether to include Saturday and Sunday columns. When false, week boundary is every 5th column. */
   showWeekend?: boolean;
   /** Whether current user can manage member projects. */
