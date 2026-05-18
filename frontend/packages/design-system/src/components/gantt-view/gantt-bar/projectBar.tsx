@@ -204,11 +204,11 @@ export function GanttProjectBar({
 
   return (
     <PreviewCard.Root>
-      <PreviewCard.Trigger
-        delay={400}
-        closeDelay={150}
-        render={
-          <Tooltip text="Click to save the allocation" disabled={!isModified}>
+      <Tooltip text="Click to save the allocation" disabled={!isModified}>
+        <PreviewCard.Trigger
+          delay={400}
+          closeDelay={150}
+          render={
             <GanttBar
               ref={projectBarRef}
               variant="project"
@@ -231,9 +231,9 @@ export function GanttProjectBar({
               onKeyDown={handleKeyDown}
               onResizeEnd={handleResizeEnd}
             />
-          </Tooltip>
-        }
-      />
+          }
+        />
+      </Tooltip>
       <PreviewCard.Portal>
         <PreviewCard.Positioner side="bottom" align="start" sideOffset={4}>
           <PreviewCard.Popup className="z-50 outline-none">
