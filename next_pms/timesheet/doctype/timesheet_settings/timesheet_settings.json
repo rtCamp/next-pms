@@ -24,6 +24,8 @@
   "day_to_send_reminder",
   "weekly_approval_reminder_template",
   "allowed_departments",
+  "report_configuration_section",
+  "pm_report_api_key",
   "tab_break_34k6",
   "notifications_section",
   "send_missing_allocation_reminder",
@@ -210,11 +212,20 @@
    "label": "Ignored Role",
    "options": "Timesheet Role"
   },
-  {
    "default": "1",
    "fieldname": "allow_weekend_entries",
    "fieldtype": "Check",
    "label": "Allow Weekend Entries"
+  },
+  {
+   "fieldname": "report_configuration_section",
+   "fieldtype": "Section Break",
+   "label": "Report Configuration"
+  },
+  {
+   "fieldname": "pm_report_api_key",
+   "fieldtype": "Password",
+   "label": "PM Report API Key"
   }
  ],
  "index_web_pages_for_search": 1,

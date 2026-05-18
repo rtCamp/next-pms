@@ -3,6 +3,8 @@ import time
 
 import frappe
 import requests
+from frappe import _
+from frappe.utils.password import get_decrypted_password
 
 LLM_SUMMARIZE_URL = "https://rt-report-automation.rt.gw/api/llm/summarize"
 LLM_STATUS_URL = "https://rt-report-automation.rt.gw/api/inngest/runs"
@@ -13,8 +15,13 @@ MAX_POLL_DURATION = 600
 MAX_OUTPUT_RETRIES = 3
 
 
-def get_api_key():
-    return frappe.conf.get("pm_report_api_key") or ""
+def get_api_key() -> str:
+    api_key = get_decrypted_password("Timesheet Settings", "Timesheet Settings", "pm_report_api_key")
+    if isinstance(api_key, str):
+        api_key = api_key.strip()
+    if not api_key:
+        frappe.throw(_("PM Report API key is not configured. Please set it in Timesheet Settings."))
+    return api_key
 
 
 @frappe.whitelist()
