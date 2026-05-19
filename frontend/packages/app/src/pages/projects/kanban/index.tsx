@@ -1,10 +1,10 @@
 /**
  * Internal dependencies.
  */
-import ProjectsHeader from "../components/header";
-import { ProjectListSubHeader } from "../sub-header";
 import { ProjectKanbanProvider } from "./provider";
 import ProjectKanbanView from "./view";
+import ProjectsHeader from "../components/header";
+import { ProjectListSubHeader } from "../components/sub-header";
 
 function ProjectKanbanPage() {
   return (

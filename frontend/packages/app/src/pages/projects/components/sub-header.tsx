@@ -1,17 +1,14 @@
 /**
  * External dependencies.
  */
-import { Button, Select, TextInput, Filter } from "@rtcamp/frappe-ui-react";
-import { DotHorizontal } from "@rtcamp/frappe-ui-react/icons";
+import { Select, TextInput, Filter } from "@rtcamp/frappe-ui-react";
 
 /**
  * Internal dependencies.
  */
-import { PHASE_OPTIONS, RAG_OPTIONS, STATUS_OPTIONS } from "./constants";
-import { type ProjectStatus, type RagStatus } from "./context";
-import { useProjectFilters } from "./hooks/useProjectFilters";
-import { Phase } from "./types";
-const noop = () => {};
+import { PHASE_OPTIONS, RAG_OPTIONS, STATUS_OPTIONS } from "../constants";
+import { useProjectFilters } from "../hooks/useProjectFilters";
+import { Phase, type ProjectStatus, type RagStatus } from "../types";
 
 export function ProjectListSubHeader() {
   const {
@@ -67,7 +64,6 @@ export function ProjectListSubHeader() {
             },
           ]}
         />
-        <Button size="sm" icon={DotHorizontal} onClick={noop} />
       </div>
     </div>
   );

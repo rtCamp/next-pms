@@ -9,9 +9,9 @@ import { useFrappeGetCall, useFrappeUpdateDoc } from "frappe-react-sdk";
  */
 import { kebabToTitleCase } from "@/lib/utils";
 
-import { buildListFrappeFilters } from "../context";
 import { useProjectFilters } from "../hooks/useProjectFilters";
 import type { Phase } from "../types";
+import { buildListFrappeFilters } from "../utils";
 import {
   ProjectKanbanContext,
   type ProjectKanbanContextProps,

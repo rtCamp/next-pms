@@ -8,7 +8,7 @@ import { type PaginationKey, usePagination } from "@next-pms/hooks";
  * Internal dependencies.
  */
 import { PROJECT_LIST_PAGE_SIZE } from "../constants";
-import { buildListFrappeFilters } from "../context";
+import { buildListFrappeFilters } from "../utils";
 import { ProjectListContext, type ProjectListContextProps } from "./context";
 import type { ResponseProjectList } from "./types";
 import { useProjectFilters } from "../hooks/useProjectFilters";

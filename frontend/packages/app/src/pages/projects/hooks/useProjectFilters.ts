@@ -8,8 +8,12 @@ import type { FilterCondition } from "@rtcamp/frappe-ui-react";
 /**
  * Internal dependencies.
  */
-import type { ProjectListFilters, ProjectStatus, RagStatus } from "../context";
-import type { Phase } from "../types";
+import type {
+  Phase,
+  ProjectListFilters,
+  ProjectStatus,
+  RagStatus,
+} from "../types";
 
 const FILTER_PARAM_KEYS = [
   "search",
