@@ -68,14 +68,14 @@ export const AllocationsTeamTable = () => {
   const searchInput = useAllocationsTeam(({ state }) => state.searchInput);
   const duration = useAllocationsTeam(({ state }) => state.duration);
   const weekCount = useAllocationsTeam(({ state }) => state.weekCount);
-  const isLoading = useAllocationsTeam(({ state }) => state.isLoading);
-  const isFilterRequest = useAllocationsTeam(
-    ({ state }) => state.isFilterRequest,
+  const isQueryLoading = useAllocationsTeam(
+    ({ state }) => state.isQueryLoading,
+  );
+  const isNextPageLoading = useAllocationsTeam(
+    ({ state }) => state.isNextPageLoading,
   );
   const hasMore = useAllocationsTeam(({ state }) => state.hasMore);
-  const filteredMembers = useAllocationsTeam(
-    ({ state }) => state.filteredMembers,
-  );
+  const members = useAllocationsTeam(({ state }) => state.members);
   const anchorDate = useAllocationsTeam(({ state }) => state.anchorDate);
   const [allocationsType, setAllocationsType] = useState("all");
   const [compositeFilters, setCompositeFilters] = useState<FilterCondition[]>(
@@ -102,9 +102,9 @@ export const AllocationsTeamTable = () => {
   } = useAllocationsTeamOutletContext();
 
   const showWeekend = isWeekendEntryAllowed();
-  const hasMembers = filteredMembers.length > 0;
-  const isFilteredDataLoading = isLoading && isFilterRequest;
-  const showOverlay = isFilteredDataLoading || (isLoading && !hasMembers);
+  const hasMembers = members.length > 0;
+  const isRefreshingVisibleGrid = isQueryLoading && hasMembers;
+  const showOverlay = isQueryLoading;
 
   return (
     <div className="flex flex-wrap gap-3.5 justify-between py-3.5">
@@ -174,19 +174,19 @@ export const AllocationsTeamTable = () => {
       <div className="relative w-full h-[calc(100vh-112px)]">
         {hasMembers ? (
           <InfiniteScroll
-            isLoading={isLoading}
+            isLoading={isQueryLoading || isNextPageLoading}
             hasMore={hasMore}
             verticalLodMore={loadMore}
             className={cn("w-full h-full overflow-auto no-scrollbar", {
               "opacity-50 transition-opacity duration-150 pointer-events-none":
-                isFilteredDataLoading,
+                isRefreshingVisibleGrid,
             })}
             skeletonClassName="h-15"
             count={EMPLOYEES_PER_PAGE}
           >
             <GanttGrid
               startDate={anchorDate}
-              members={filteredMembers}
+              members={members}
               weekCount={weekCount}
               hasRoleAccess={hasRoleAccess}
               showWeekend={showWeekend}
@@ -197,7 +197,7 @@ export const AllocationsTeamTable = () => {
           </InfiniteScroll>
         ) : null}
 
-        {!isLoading && !hasMembers ? (
+        {!isQueryLoading && !hasMembers ? (
           <Typography className="flex h-full items-center justify-center">
             No Data
           </Typography>

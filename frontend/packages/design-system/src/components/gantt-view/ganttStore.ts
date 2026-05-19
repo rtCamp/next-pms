@@ -12,6 +12,14 @@ export type {
   ProjectAllocationBar,
 } from "./utils";
 
+export interface PendingDeleteEntry {
+  projectName: string;
+  dateRange: string;
+  hoursPerDay: string;
+  totalHours: string;
+  onDelete: () => void;
+}
+
 interface GanttProps {
   members: BaseMember[];
   showWeekend: boolean;
@@ -39,8 +47,11 @@ interface GanttState extends GanttProps {
   headerWidth: number;
   containerWidth: number;
   resizeHandleActive: boolean;
+  pendingDeleteEntry: PendingDeleteEntry | null;
 
   toggleRow: (index: number) => void;
+  setPendingDeleteEntry: (entry: PendingDeleteEntry) => void;
+  clearPendingDeleteEntry: () => void;
   setHeaderWidth: (width: number) => void;
   setContainerWidth: (width: number) => void;
   setResizeHandleActive: (active: boolean) => void;
@@ -215,6 +226,7 @@ export const createGanttStore = (initProps: GanttProps) => {
     headerWidth,
     containerWidth,
     resizeHandleActive: false,
+    pendingDeleteEntry: null,
 
     toggleRow: (index) =>
       set((state) => {
@@ -234,6 +246,9 @@ export const createGanttStore = (initProps: GanttProps) => {
       set((state) => resolveSizingUpdate(state, { containerWidth: width })),
 
     setResizeHandleActive: (active) => set({ resizeHandleActive: active }),
+
+    setPendingDeleteEntry: (entry) => set({ pendingDeleteEntry: entry }),
+    clearPendingDeleteEntry: () => set({ pendingDeleteEntry: null }),
 
     startResize: (startX) => {
       const startWidth = get().headerWidth;

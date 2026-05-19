@@ -17,6 +17,10 @@ type ErrorFallbackState = {
   error: Error | null;
 };
 
+/**
+ * React still requires a class component for a true error boundary.
+ * Function components cannot implement getDerivedStateFromError or componentDidCatch.
+ */
 class ErrorFallback extends Component<ErrorFallbackProp, ErrorFallbackState> {
   state: ErrorFallbackState = {
     hasError: false,
@@ -32,15 +36,23 @@ class ErrorFallback extends Component<ErrorFallbackProp, ErrorFallbackState> {
   }
 
   render() {
-    const { hasError } = this.state;
+    const { hasError, error } = this.state;
     const { children, fallback } = this.props;
 
     return hasError
       ? fallback || (
-          <div className="w-full h-full flex justify-center items-center">
-            <Typography variant="p" className="text-slate-600 font-medium">
+          <div className="w-full h-full flex flex-col gap-1 justify-center items-center">
+            <Typography variant="p" className="text-ink-gray-7 font-medium">
               Something went wrong
             </Typography>
+            {error?.message ? (
+              <Typography
+                variant="p"
+                className="wrap-break-word text-sm text-ink-gray-5"
+              >
+                {error.message}
+              </Typography>
+            ) : null}
           </div>
         )
       : children;

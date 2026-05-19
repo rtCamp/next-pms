@@ -4,9 +4,11 @@ export interface Employee {
   employee_name: string;
   department: string | null;
   designation: string | null;
-  rate?: string | null;
-  capacity?: string | null;
-  reportingManager?: string | null;
+  custom_work_schedule?: string | null;
+  custom_working_hours?: number | null;
+  reports_to: string | null;
+  ctc?: number | null;
+  salary_currency?: string | null;
 }
 
 export interface Leave {
@@ -60,3 +62,5 @@ export interface TeamAllocationResponse {
   has_more: boolean;
   permissions: Permissions;
 }
+
+export type ManagerNameMap = Map<string, string>;

@@ -2,7 +2,7 @@ import { useId } from "react";
 import { cva, type VariantProps } from "class-variance-authority";
 
 const crosshatchVariants = cva(
-  "pointer-events-none absolute inset-0 h-full w-full",
+  "pointer-events-none absolute inset-0 h-full w-full rounded-[9px] overflow-hidden",
   {
     variants: {
       variant: {

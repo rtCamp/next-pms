@@ -2,6 +2,7 @@ export interface AddAllocationInitialValues {
   allocationName?: string;
   employeeId?: string;
   projectId?: string;
+  customer?: string;
   recurrence?: "one-time" | "recurring";
   includeWeekends?: boolean;
   fromDate?: string;
@@ -19,7 +20,7 @@ export interface AddAllocationModalProps {
   variant?: "add" | "edit";
   onEditScheduleClick?: () => void;
   initialValues?: AddAllocationInitialValues;
-  onSuccess?: () => void;
+  onSuccess?: (employeeIds?: string[]) => void | Promise<void>;
 }
 
 export type ComboboxOption = {

@@ -40,6 +40,7 @@ export interface LeaveAllocation {
 }
 
 export interface Project {
+  id?: string;
   name: string;
   dateRange?: string;
   client?: string;
@@ -70,6 +71,8 @@ export interface AllocationCallbackData {
   projectId?: string;
   /** Project name. */
   projectName?: string;
+  /** Customer name. */
+  customerName?: string;
   /** Allocation start date. */
   startDate?: Date;
   /** Allocation end date. */

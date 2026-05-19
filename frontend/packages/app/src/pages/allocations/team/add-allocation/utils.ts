@@ -41,20 +41,29 @@ export const computeTotalHours = ({
   repeatFor = 0,
   includeWeekends = true,
 }: {
-  hoursPerDay: number;
+  hoursPerDay?: number;
   recurrence: "one-time" | "recurring";
-  fromDate: string;
-  toDate: string;
+  fromDate?: string;
+  toDate?: string;
   repeatFor?: number;
   includeWeekends?: boolean;
 }): number => {
+  const safeHoursPerDay = Number.isFinite(hoursPerDay)
+    ? Number(hoursPerDay)
+    : 0;
+  const safeRepeatFor = Number.isFinite(repeatFor) ? Number(repeatFor) : 0;
+  const safeFromDate = fromDate ?? "";
+  const safeToDate = toDate ?? "";
+
+  if (!safeFromDate || !safeToDate) return 0;
+
   const dayCount =
     recurrence === "recurring"
-      ? Math.max(1, repeatFor) *
-        getRangeDayCount(fromDate, toDate, includeWeekends)
+      ? Math.max(1, safeRepeatFor) *
+        getRangeDayCount(safeFromDate, safeToDate, includeWeekends)
       : includeWeekends
-        ? Math.max(1, getRangeDayCount(fromDate, toDate, true))
-        : getRangeDayCount(fromDate, toDate, false);
+        ? Math.max(1, getRangeDayCount(safeFromDate, safeToDate, true))
+        : getRangeDayCount(safeFromDate, safeToDate, false);
 
-  return Number((hoursPerDay * dayCount).toFixed(2));
+  return Number((safeHoursPerDay * dayCount).toFixed(2));
 };

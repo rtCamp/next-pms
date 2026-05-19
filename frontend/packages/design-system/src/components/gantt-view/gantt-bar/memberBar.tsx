@@ -7,6 +7,7 @@ import { GanttAllocationPopover } from "./allocationPopover";
 import { GanttBar } from "./ganttBar";
 import { allocationBarToEntry } from "./utils/allocationBarToEntry";
 import { getOverlappingAllocations } from "./utils/getOverlappingAllocations";
+import { withPendingDeleteEntry } from "./utils/withPendingDeleteEntry";
 
 export type MemberBarAllocation = MemberAllocationBar;
 
@@ -23,6 +24,7 @@ export function GanttMemberBar({ allocation, memberInd }: GanttMemberBarProps) {
     onAddAllocation,
     onEditAllocation,
     onDeleteAllocation,
+    setPendingDeleteEntry,
   } = useGanttStore((s) => ({
     headerWidth: s.headerWidth,
     members: s.members,
@@ -30,6 +32,7 @@ export function GanttMemberBar({ allocation, memberInd }: GanttMemberBarProps) {
     onAddAllocation: s.onAddAllocation,
     onEditAllocation: s.onEditAllocation,
     onDeleteAllocation: s.onDeleteAllocation,
+    setPendingDeleteEntry: s.setPendingDeleteEntry,
   }));
 
   const left = allocation.barOffset + headerWidth;
@@ -71,7 +74,10 @@ export function GanttMemberBar({ allocation, memberInd }: GanttMemberBarProps) {
   );
 
   const entries = overlapping.map((alloc) =>
-    allocationBarToEntry(alloc, onEditAllocation, onDeleteAllocation),
+    withPendingDeleteEntry(
+      allocationBarToEntry(alloc, onEditAllocation, onDeleteAllocation),
+      setPendingDeleteEntry,
+    ),
   );
 
   const handleAdd = onAddAllocation

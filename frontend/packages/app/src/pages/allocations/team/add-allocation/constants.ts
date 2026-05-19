@@ -8,6 +8,7 @@ export const allocationRecurrenceLabels = {
 export const addAllocationDefaultValues = {
   employeeId: "",
   projectId: "",
+  customer: "",
   recurrence: "one-time",
   includeWeekends: false,
   fromDate: getTodayDate(),

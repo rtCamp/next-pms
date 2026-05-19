@@ -1,6 +1,7 @@
 /**
  * External Dependencies
  */
+import { useState } from "react";
 import { getTodayDate } from "@next-pms/design-system/date";
 import {
   DatePicker,
@@ -24,6 +25,7 @@ import { Calendar, CalendarX2 } from "lucide-react";
 /**
  * Internal Dependencies
  */
+import { useEmployeeLookup } from "@/hooks/useEmployeeLookup";
 import { parseFrappeErrorMsg } from "@/lib/utils";
 import { addLeaveFormSchema } from "./schema";
 import { type EmployeeLeaveTimeProps, LEAVE_DURATION } from "./types";
@@ -33,6 +35,23 @@ const AddEmployeeLeave = ({
   onOpenChange,
   employeeId = "",
 }: EmployeeLeaveTimeProps) => {
+  const [employeeSearch, setEmployeeSearch] = useState("");
+
+  const closeModal = () => {
+    setEmployeeSearch("");
+    onOpenChange(false);
+    form.reset();
+  };
+
+  const handleOpenChange = (nextOpen: boolean) => {
+    if (nextOpen) {
+      onOpenChange(true);
+      return;
+    }
+
+    closeModal();
+  };
+
   const form = useForm({
     defaultValues: {
       employeeId: employeeId,
@@ -75,7 +94,7 @@ const AddEmployeeLeave = ({
         const error = parseFrappeErrorMsg(err as FrappeError);
         toast.error(error);
       } finally {
-        onOpenChange(false);
+        closeModal();
       }
     },
   });
@@ -87,17 +106,12 @@ const AddEmployeeLeave = ({
     (state) => state.values.employeeId,
   );
 
-  const { data: employeesData } = useFrappeGetCall("frappe.client.get_list", {
-    doctype: "Employee",
-    fields: ["name", "employee_name"],
-  });
-
-  const employeeOptions = (
-    (employeesData?.message ?? []) as { name: string; employee_name: string }[]
-  ).map((employee) => ({
-    label: employee.employee_name,
-    value: employee.name,
-  }));
+  const { options: employeeOptions, isLoading: isEmployeeLookupLoading } =
+    useEmployeeLookup({
+      shouldFetch: open,
+      pageSize: 20,
+      query: employeeSearch,
+    });
 
   const { data: leaveDetails } = useFrappeGetCall(
     "hrms.hr.doctype.leave_application.leave_application.get_leave_details",
@@ -114,6 +128,7 @@ const AddEmployeeLeave = ({
     label: val,
     value: val,
   }));
+
   const allocatedLeaveOptions = Object.keys(
     (leaveDetails?.message?.leave_allocation as Record<string, unknown>) || {},
   ).map((val) => ({ label: val, value: val }));
@@ -121,7 +136,7 @@ const AddEmployeeLeave = ({
   return (
     <Dialog
       open={open}
-      onOpenChange={onOpenChange}
+      onOpenChange={handleOpenChange}
       actions={
         <Button
           className="w-full"
@@ -149,10 +164,13 @@ const AddEmployeeLeave = ({
                 </label>
                 <Combobox
                   inputClassName="bg-white h-8 border-outline-gray-2"
+                  loading={isEmployeeLookupLoading}
                   options={employeeOptions}
+                  searchValue={employeeSearch}
                   placeholder="Select Employee"
                   value={field.state.value}
                   openOnFocus
+                  onSearchChange={setEmployeeSearch}
                   onChange={(val) => {
                     field.handleChange(val as string);
                   }}
@@ -179,9 +197,7 @@ const AddEmployeeLeave = ({
                   >
                     {({ displayValue }) => {
                       return (
-                        <div
-                          className={`flex relative items-center py-1 w-full rounded-lg border border-outline-gray-2 px-[10px]`}
-                        >
+                        <div className="flex relative items-center py-1 w-full rounded-lg border border-outline-gray-2 px-2.5">
                           <input
                             readOnly
                             type="text"
@@ -217,9 +233,7 @@ const AddEmployeeLeave = ({
                   >
                     {({ displayValue }) => {
                       return (
-                        <div
-                          className={`flex relative items-center py-1 w-full rounded-lg border border-outline-gray-2 px-[10px]`}
-                        >
+                        <div className="flex relative items-center py-1 w-full rounded-lg border border-outline-gray-2 px-2.5">
                           <input
                             readOnly
                             type="text"

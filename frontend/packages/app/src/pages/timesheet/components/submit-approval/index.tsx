@@ -1,7 +1,7 @@
 /**
  * External Dependencies
  */
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { floatToTime } from "@next-pms/design-system";
 import {
   Dialog,
@@ -14,19 +14,18 @@ import {
 } from "@rtcamp/frappe-ui-react";
 import { useForm } from "@tanstack/react-form";
 import { format, parseISO } from "date-fns";
-import {
-  FrappeError,
-  useFrappeGetCall,
-  useFrappePostCall,
-} from "frappe-react-sdk";
+import { FrappeError, useFrappePostCall } from "frappe-react-sdk";
 
 /**
  * Internal Dependencies
  */
+import useApproverOptions, {
+  type ApproverOption,
+} from "@/hooks/useApproverOptions";
 import { parseFrappeErrorMsg } from "@/lib/utils";
 import { useUser } from "@/providers/user";
 import { submitApprovalSchema } from "./schema";
-import type { SubmitApprovalProps, EmployeeRecord } from "./types";
+import type { SubmitApprovalProps } from "./types";
 
 const formatWeekLabel = (startDate: string, endDate: string) => {
   try {
@@ -37,6 +36,11 @@ const formatWeekLabel = (startDate: string, endDate: string) => {
     return `Week of ${startDate} - ${endDate}`;
   }
 };
+
+const withApproverAvatar = (option: ApproverOption): ApproverOption => ({
+  ...option,
+  icon: <Avatar size="xs" image={option.image} label={option.label} />,
+});
 
 const SubmitApproval = ({
   open,
@@ -54,20 +58,11 @@ const SubmitApproval = ({
   const { call: submitForApproval } = useFrappePostCall(
     "next_pms.timesheet.api.timesheet.submit_for_approval",
   );
+  const approverOptions = useApproverOptions();
 
-  const { data } = useFrappeGetCall(
-    "next_pms.timesheet.api.employee.get_employee_list",
-    {
-      roles: ["Projects Manager", "Projects User"],
-    },
-  );
-
-  const approvers = ((data?.message?.data ?? []) as EmployeeRecord[]).map(
-    (emp) => ({
-      label: emp.employee_name,
-      value: emp.name,
-      icon: <Avatar size="xs" image={emp.image} label={emp.employee_name} />,
-    }),
+  const approverComboboxOptions = useMemo(
+    () => approverOptions.map(withApproverAvatar),
+    [approverOptions],
   );
 
   const weekLabel = formatWeekLabel(startDate, endDate);
@@ -151,12 +146,12 @@ const SubmitApproval = ({
             <div className="space-y-1.5">
               <label className="block text-xs text-ink-gray-5">Send to</label>
               <Combobox
+                inputClassName="bg-white h-8 border-outline-gray-2"
                 value={field.state.value}
                 placeholder="Select Approver"
                 onChange={(val) => field.handleChange(val as string)}
-                options={approvers}
+                options={approverComboboxOptions}
                 openOnFocus
-                inputClassName="bg-white h-8 border-outline-gray-2"
               />
               {!field.state.meta.isValid && (
                 <ErrorMessage message={field.state.meta.errors[0]?.message} />

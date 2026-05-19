@@ -15,8 +15,6 @@ export interface UserContextProps {
   state: {
     /** Indicates whether user/auth data is still being resolved. */
     isLoading: boolean;
-    /** Indicates whether bootstrap data required for the app failed to load. */
-    hasError: boolean;
     /** Employee record ID linked to the current user. */
     employeeId: string;
     /** Display name of the current employee. */
@@ -59,7 +57,6 @@ export interface UserContextProps {
 export const UserContext = createContext<UserContextProps>({
   state: {
     isLoading: false,
-    hasError: false,
     employeeId: "",
     employeeName: "",
     workingHours: 0,

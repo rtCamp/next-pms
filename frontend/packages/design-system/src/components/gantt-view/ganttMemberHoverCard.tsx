@@ -47,15 +47,17 @@ function GanttMemberHoverCard({ member }: GanttMemberHoverCardProps) {
             )}
           </div>
         </div>
-        <a
-          href="#"
-          target="_blank"
-          rel="noreferrer"
-          className="ml-2 shrink-0 text-ink-gray-6 hover:text-ink-gray-9"
-          onClick={(e) => e.stopPropagation()}
-        >
-          <ArrowUpRight className="size-4" />
-        </a>
+        {member.id && (
+          <a
+            href={`/desk/employee/${member.id}`}
+            target="_blank"
+            rel="noreferrer"
+            className="ml-2 shrink-0 text-ink-gray-6 hover:text-ink-gray-9"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <ArrowUpRight className="size-4" />
+          </a>
+        )}
       </div>
 
       {/* Divider */}

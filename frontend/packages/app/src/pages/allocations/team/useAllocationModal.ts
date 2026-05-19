@@ -28,11 +28,18 @@ export function useAllocationModal() {
   const openAddDialog = useCallback((data: AllocationCallbackData) => {
     setVariant("add");
     setInitialValues({
-      employeeId: data.employeeId,
-      fromDate: data.startDate
-        ? format(data.startDate, "yyyy-MM-dd")
-        : undefined,
-      toDate: data.endDate ? format(data.endDate, "yyyy-MM-dd") : undefined,
+      ...(data.employeeId ? { employeeId: data.employeeId } : {}),
+      ...(data.projectId ? { projectId: data.projectId } : {}),
+      ...(data.startDate
+        ? { fromDate: format(data.startDate, "yyyy-MM-dd") }
+        : {}),
+      ...(data.endDate ? { toDate: format(data.endDate, "yyyy-MM-dd") } : {}),
+      ...(data.hoursPerDay !== undefined
+        ? { hoursPerDay: data.hoursPerDay }
+        : {}),
+      ...(data.customerName !== undefined
+        ? { customer: data.customerName }
+        : {}),
     });
     setIsOpen(true);
   }, []);
@@ -42,7 +49,8 @@ export function useAllocationModal() {
     setInitialValues({
       allocationName: data.allocationId,
       employeeId: data.employeeId,
-      projectId: data.projectId,
+      ...(data.projectId ? { projectId: data.projectId } : {}),
+      customer: data.customerName,
       fromDate: data.startDate
         ? format(data.startDate, "yyyy-MM-dd")
         : undefined,
@@ -64,8 +72,8 @@ export function useAllocationModal() {
 
       try {
         await deleteDoc("Resource Allocation", data.allocationId);
+        await refresh(data.employeeId ? [data.employeeId] : undefined);
         toast.success("The allocation has been deleted successfully");
-        void refresh();
       } catch {
         toast.error("Failed to delete the allocation");
       }
@@ -81,12 +89,15 @@ export function useAllocationModal() {
     }
   }, []);
 
-  const handleSuccess = useCallback(() => {
-    setIsOpen(false);
-    setInitialValues(undefined);
-    setVariant("add");
-    void refresh();
-  }, [refresh]);
+  const handleSuccess = useCallback(
+    async (employeeIds?: string[]) => {
+      await refresh(employeeIds);
+      setIsOpen(false);
+      setInitialValues(undefined);
+      setVariant("add");
+    },
+    [refresh],
+  );
 
   const outletContext: AllocationsTeamOutletContext = {
     openAddAllocationDialog: openAddDialog,

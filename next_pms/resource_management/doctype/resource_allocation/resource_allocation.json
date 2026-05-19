@@ -21,6 +21,11 @@
   "column_break_wppz",
   "allocation_start_date",
   "allocation_end_date",
+  "section_break_hoeq",
+  "hourly_cost_rate",
+  "currency",
+  "column_break_zhca",
+  "total_cost",
   "section_break_dysk",
   "note"
  ],
@@ -126,12 +131,46 @@
    "fieldname": "project_name",
    "fieldtype": "Data",
    "label": "Project Name"
+  },
+  {
+   "fieldname": "section_break_hoeq",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "hourly_cost_rate",
+   "fieldtype": "Currency",
+   "label": "Hourly Cost Rate",
+   "options": "currency",
+   "permlevel": 2,
+   "read_only": 1
+  },
+  {
+   "fetch_from": "project.custom_currency",
+   "fetch_if_empty": 1,
+   "fieldname": "currency",
+   "fieldtype": "Link",
+   "label": "Currency",
+   "options": "Currency",
+   "permlevel": 2,
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_zhca",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "total_cost",
+   "fieldtype": "Currency",
+   "label": "Total Cost",
+   "options": "currency",
+   "permlevel": 2,
+   "read_only": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-06-23 17:56:31.066756",
+ "modified": "2026-04-29 15:07:08.787165",
  "modified_by": "Administrator",
  "module": "Resource Management",
  "name": "Resource Allocation",
@@ -179,6 +218,30 @@
   {
    "read": 1,
    "role": "Employee"
+  },
+  {
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "permlevel": 2,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Projects Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "permlevel": 2,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
   }
  ],
  "row_format": "Dynamic",

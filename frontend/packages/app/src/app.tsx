@@ -30,23 +30,25 @@ const App = () => {
   });
 
   return (
-    <ToastProvider>
-      <FrappeProvider>
-        <ThemeProvider>
-          <UserProvider>
-            <Provider store={store}>
-              <TooltipProvider>
-                <Suspense fallback={<></>}>
-                  <ErrorFallback>
-                    <RouterProvider router={router} />
-                  </ErrorFallback>
-                </Suspense>
-              </TooltipProvider>
-            </Provider>
-          </UserProvider>
-        </ThemeProvider>
-      </FrappeProvider>
-    </ToastProvider>
+    <ErrorFallback>
+      <ToastProvider>
+        <FrappeProvider>
+          <ThemeProvider>
+            <UserProvider>
+              <Provider store={store}>
+                <TooltipProvider>
+                  <Suspense fallback={<></>}>
+                    <ErrorFallback>
+                      <RouterProvider router={router} />
+                    </ErrorFallback>
+                  </Suspense>
+                </TooltipProvider>
+              </Provider>
+            </UserProvider>
+          </ThemeProvider>
+        </FrappeProvider>
+      </ToastProvider>
+    </ErrorFallback>
   );
 };
 

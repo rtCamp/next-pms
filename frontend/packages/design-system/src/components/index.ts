@@ -16,6 +16,11 @@ export {
   type TaskProgressProps,
 } from "./task-progress";
 export {
+  default as ProgressBar,
+  type ProgressBarProps,
+  type ProgressBarSize,
+} from "./progress-bar";
+export {
   Tooltip,
   TooltipTrigger,
   TooltipContent,
@@ -73,6 +78,7 @@ export {
   TableCaption,
 } from "./table";
 
+export * from "./dnd";
 export * from "./timesheet";
 export * from "./icons";
 export * from "./gantt-view";
