@@ -2,7 +2,6 @@
  * External dependencies.
  */
 import type { FilterCondition } from "@rtcamp/frappe-ui-react";
-import { createContext, useContextSelector } from "use-context-selector";
 
 /**
  * Internal dependencies.
@@ -20,14 +19,6 @@ export interface ProjectListFilters {
   advanced: FilterCondition[];
 }
 
-export const initialProjectListFilters: ProjectListFilters = {
-  search: "",
-  ragStatus: "",
-  phase: "",
-  status: "",
-  advanced: [],
-};
-
 export const buildListFrappeFilters = (filters: ProjectListFilters) => {
   const out: unknown[] = [];
   if (filters.ragStatus) {
@@ -41,37 +32,3 @@ export const buildListFrappeFilters = (filters: ProjectListFilters) => {
   }
   return out;
 };
-
-export interface ProjectFilterContextProps {
-  state: {
-    filters: ProjectListFilters;
-  };
-  actions: {
-    setSearch: (search: string) => void;
-    setRagStatus: (ragStatus: RagStatus | "") => void;
-    setPhase: (phase: Phase | "") => void;
-    setStatus: (status: ProjectStatus | "") => void;
-    setAdvanced: (advanced: FilterCondition[]) => void;
-    resetFilters: () => void;
-  };
-}
-
-const noop = () => {};
-
-export const ProjectFilterContext = createContext<ProjectFilterContextProps>({
-  state: {
-    filters: initialProjectListFilters,
-  },
-  actions: {
-    setSearch: noop,
-    setRagStatus: noop,
-    setPhase: noop,
-    setStatus: noop,
-    setAdvanced: noop,
-    resetFilters: noop,
-  },
-});
-
-export const useProjectFilter = <T>(
-  selector: (state: ProjectFilterContextProps) => T,
-) => useContextSelector(ProjectFilterContext, selector);

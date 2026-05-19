@@ -8,26 +8,20 @@ import { DotHorizontal } from "@rtcamp/frappe-ui-react/icons";
  * Internal dependencies.
  */
 import { PHASE_OPTIONS, RAG_OPTIONS, STATUS_OPTIONS } from "./constants";
-import {
-  useProjectFilter,
-  type ProjectStatus,
-  type RagStatus,
-} from "./context";
+import { type ProjectStatus, type RagStatus } from "./context";
+import { useProjectFilters } from "./hooks/useProjectFilters";
 import { Phase } from "./types";
 const noop = () => {};
 
 export function ProjectListSubHeader() {
-  const search = useProjectFilter((c) => c.state.filters.search);
-  const ragStatus = useProjectFilter((c) => c.state.filters.ragStatus);
-  const phase = useProjectFilter((c) => c.state.filters.phase);
-  const status = useProjectFilter((c) => c.state.filters.status);
-  const advanced = useProjectFilter((c) => c.state.filters.advanced);
-
-  const setSearch = useProjectFilter((c) => c.actions.setSearch);
-  const setRagStatus = useProjectFilter((c) => c.actions.setRagStatus);
-  const setPhase = useProjectFilter((c) => c.actions.setPhase);
-  const setStatus = useProjectFilter((c) => c.actions.setStatus);
-  const setAdvanced = useProjectFilter((c) => c.actions.setAdvanced);
+  const {
+    filters: { search, ragStatus, phase, status, advanced },
+    setSearch,
+    setRagStatus,
+    setPhase,
+    setStatus,
+    setAdvanced,
+  } = useProjectFilters();
 
   return (
     <div className="flex flex-wrap gap-2 justify-between px-5 py-3.5">

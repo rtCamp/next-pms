@@ -8,12 +8,13 @@ import { type PaginationKey, usePagination } from "@next-pms/hooks";
  * Internal dependencies.
  */
 import { PROJECT_LIST_PAGE_SIZE } from "../constants";
-import { buildListFrappeFilters, useProjectFilter } from "../context";
+import { buildListFrappeFilters } from "../context";
 import { ProjectListContext, type ProjectListContextProps } from "./context";
 import type { ResponseProjectList } from "./types";
+import { useProjectFilters } from "../hooks/useProjectFilters";
 
 export function ProjectListProvider({ children }: PropsWithChildren) {
-  const filters = useProjectFilter((c) => c.state.filters);
+  const { filters } = useProjectFilters();
   const frappeFilters = useMemo(
     () => buildListFrappeFilters(filters),
     [filters],

@@ -14,7 +14,8 @@ import { useUser } from "./providers/user";
  */
 const Home = lazy(() => import("@/pages/home"));
 const Task = lazy(() => import("@/pages/task"));
-const Projects = lazy(() => import("@/pages/projects"));
+const ProjectList = lazy(() => import("@/pages/projects/list"));
+const ProjectKanban = lazy(() => import("@/pages/projects/kanban"));
 const ProjectDetail = lazy(() => import("@/pages/project-details"));
 const PersonalTimesheetLayout = lazy(
   () => import("@/pages/timesheet/personal/layout"),
@@ -43,7 +44,8 @@ export function Router() {
         <Route element={<LayoutWithSidebar />}>
           <Route path={ROUTES.home} element={<Home />} />
           <Route path={ROUTES.task} element={<Task />} />
-          <Route path={ROUTES.project} element={<Projects />} />
+          <Route path={ROUTES.project} element={<ProjectList />} />
+          <Route path={ROUTES["project-kanban"]} element={<ProjectKanban />} />
           <Route
             path={`${ROUTES.project}/:projectId`}
             element={<ProjectDetail />}
