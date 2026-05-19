@@ -240,9 +240,11 @@ def mark_timeline_item_complete(name: str, is_complete: int = 1):
 
     doc = frappe.get_doc("Project Timeline Item", name)
     doc.is_complete = cint(is_complete)
+    doc.actual_end_date = getdate() if cint(is_complete) else None
     doc.save(ignore_permissions=False)
 
     return {
         "name": doc.name,
         "is_complete": cint(doc.is_complete),
+        "actual_end_date": doc.actual_end_date,
     }
