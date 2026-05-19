@@ -100,7 +100,10 @@ def get_project_timeline_items(
     is_calendar: bool = False,
 ):
     """
-    Get active (not completed) Project Timeline Items for a project.
+    Get all Project Timeline Items (complete and incomplete) for a project.
+
+    Touchpoints do not have a start_date, so ordering and range filtering use
+    planned_end_date as the authoritative date field.
 
     Args:
         project: Project name to filter by
@@ -108,8 +111,12 @@ def get_project_timeline_items(
         start: Pagination offset
         limit: Page size
         start_date: ISO date string (e.g. "2026-05-05"); used as the range start
+            for planned_end_date filtering
         max_week: Number of weeks from start_date to use as the range end
-        is_calendar: When True, skips fetching owner images and watchers
+        is_calendar: Pass "1"/1/True to skip the bulk-fetch of owner images and
+            watchers (e.g. for calendar views where those fields are not rendered).
+            Accepts "0"/"1" string values from HTTP query params — coerced via
+            cint() before use so "0" is correctly treated as falsy.
 
     Returns:
         {"data": [...], "total_count": int, "has_more": bool}
@@ -118,6 +125,8 @@ def get_project_timeline_items(
 
     if not project:
         frappe.throw(frappe._("project is required"))
+
+    is_calendar = bool(cint(is_calendar))
 
     filters = {
         "project": project,
@@ -226,12 +235,16 @@ def mark_timeline_item_complete(name: str, is_complete: int = 1):
     """
     Mark a Project Timeline Item as complete or incomplete.
 
+    Setting is_complete=1 also records today's date as actual_end_date.
+    Reverting (is_complete=0) clears actual_end_date back to None.
+
     Args:
         name: Document name of the Project Timeline Item
-        is_complete: 1 to mark complete, 0 to revert
+        is_complete: 1 to mark complete, 0 to revert — accepts "0"/"1" string
+            values from HTTP form params (coerced via cint())
 
     Returns:
-        {"name": str, "is_complete": int}
+        {"name": str, "is_complete": int, "actual_end_date": str | None}
     """
     only_for(ALLOWED_ROLES, message=True)
 
