@@ -1,15 +1,15 @@
 /**
  * External dependencies.
  */
+import { useNavigate } from "react-router-dom";
 import { Breadcrumbs } from "@rtcamp/frappe-ui-react";
 import { Folder } from "@rtcamp/frappe-ui-react/icons";
-import { useNavigate } from "react-router-dom";
 
 /**
  * Internal dependencies.
  */
-import { ROUTES } from "@/lib/constant";
 import { Header } from "@/layout/header";
+import { ROUTES } from "@/lib/constant";
 
 export function ProjectDetailHeader({ projectName }: { projectName: string }) {
   const navigate = useNavigate();

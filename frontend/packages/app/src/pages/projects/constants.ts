@@ -6,11 +6,17 @@ import { Kanban, AlignLeft } from "@rtcamp/frappe-ui-react/icons";
 /**
  * Internal dependencies.
  */
+import { ROUTES } from "@/lib/constant";
 import { kebabToTitleCase } from "@/lib/utils";
 
 export const VIEWS = [
-  { key: "list", label: "List view", icon: AlignLeft },
-  { key: "kanban", label: "Kanban view", icon: Kanban },
+  { key: "list", label: "List view", icon: AlignLeft, path: ROUTES.project },
+  {
+    key: "kanban",
+    label: "Kanban view",
+    icon: Kanban,
+    path: ROUTES["project-kanban"],
+  },
 ] as const;
 
 export const PHASES = [

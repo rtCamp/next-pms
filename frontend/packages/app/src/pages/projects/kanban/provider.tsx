@@ -9,8 +9,9 @@ import { useFrappeGetCall, useFrappeUpdateDoc } from "frappe-react-sdk";
  */
 import { kebabToTitleCase } from "@/lib/utils";
 
-import { buildListFrappeFilters, useProjectFilter } from "../context";
+import { useProjectFilters } from "../hooks/useProjectFilters";
 import type { Phase } from "../types";
+import { buildListFrappeFilters } from "../utils";
 import {
   ProjectKanbanContext,
   type ProjectKanbanContextProps,
@@ -18,7 +19,7 @@ import {
 import type { ResponseProjectKanban } from "./types";
 
 export function ProjectKanbanProvider({ children }: PropsWithChildren) {
-  const filters = useProjectFilter((c) => c.state.filters);
+  const { filters } = useProjectFilters();
 
   const frappeFilters = useMemo(
     () => buildListFrappeFilters(filters),

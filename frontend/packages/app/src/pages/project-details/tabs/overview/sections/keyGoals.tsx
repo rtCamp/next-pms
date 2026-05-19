@@ -6,7 +6,7 @@ import { TextEditor } from "@rtcamp/frappe-ui-react";
 /**
  * Internal dependencies.
  */
-import { OverviewSection } from "../components/overview-section";
+import { OverviewSection } from "../components/overviewSection";
 
 export function KeyGoals({ html }: { html: string }) {
   return (

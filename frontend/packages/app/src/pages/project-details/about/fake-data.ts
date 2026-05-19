@@ -1,13 +1,13 @@
 /**
  * External dependencies.
  */
+import { Github } from "@next-pms/design-system/components";
 import {
   Globe,
   People,
   SolidExternalLink,
   SolidFolderAlt,
 } from "@rtcamp/frappe-ui-react/icons";
-import { Github } from "@next-pms/design-system/components";
 
 /**
  * Internal dependencies.
