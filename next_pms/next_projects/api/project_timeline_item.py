@@ -96,7 +96,7 @@ def get_project_timeline_items(
     start: int = 0,
     limit: int = 20,
     start_date: str | None = None,
-    max_week: int = 0,
+    max_week: int = 4,
     is_calendar: bool = False,
 ):
     """
@@ -128,7 +128,7 @@ def get_project_timeline_items(
 
     if start_date and max_week:
         end_date = add_to_date(getdate(start_date), weeks=cint(max_week))
-        filters["start_date"] = ["between", [getdate(start_date), end_date]]
+        filters["planned_end_date"] = ["between", [getdate(start_date), end_date]]
 
     items = frappe.get_all(
         "Project Timeline Item",
