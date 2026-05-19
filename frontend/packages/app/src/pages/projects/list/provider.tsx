@@ -1,12 +1,13 @@
 /**
  * External dependencies.
  */
-import { useCallback, useMemo, type PropsWithChildren } from "react";
+import { useCallback, useMemo, useState, type PropsWithChildren } from "react";
 import { type PaginationKey, usePagination } from "@next-pms/hooks";
 
 /**
  * Internal dependencies.
  */
+import AddProjectModal from "../components/add-project";
 import { PROJECT_LIST_PAGE_SIZE } from "../constants";
 import { buildListFrappeFilters } from "../utils";
 import { ProjectListContext, type ProjectListContextProps } from "./context";
@@ -15,6 +16,9 @@ import { useProjectFilters } from "../hooks/useProjectFilters";
 
 export function ProjectListProvider({ children }: PropsWithChildren) {
   const { filters } = useProjectFilters();
+  const [addProjectOpen, setAddProjectOpen] = useState(false);
+  const openAddProjectModal = useCallback(() => setAddProjectOpen(true), []);
+  const closeAddProjectModal = useCallback(() => setAddProjectOpen(false), []);
   const frappeFilters = useMemo(
     () => buildListFrappeFilters(filters),
     [filters],
@@ -43,7 +47,7 @@ export function ProjectListProvider({ children }: PropsWithChildren) {
     [querySignature],
   );
 
-  const { data, error, isLoading, isValidating, size, setSize } =
+  const { data, error, isLoading, isValidating, size, setSize, mutate } =
     usePagination<ResponseProjectList>(
       "next_pms.next_projects.api.project.get_projects_view",
       getKey,
@@ -83,17 +87,34 @@ export function ProjectListProvider({ children }: PropsWithChildren) {
         hasMore,
         isLoading,
         error,
+        addProjectOpen,
       },
       actions: {
         loadMore,
+        openAddProjectModal,
+        closeAddProjectModal,
       },
     }),
-    [projects, hasMore, isLoading, error, loadMore],
+    [
+      projects,
+      hasMore,
+      isLoading,
+      error,
+      loadMore,
+      addProjectOpen,
+      openAddProjectModal,
+      closeAddProjectModal,
+    ],
   );
 
   return (
     <ProjectListContext.Provider value={value}>
       {children}
+      <AddProjectModal
+        open={addProjectOpen}
+        onOpenChange={setAddProjectOpen}
+        onSuccess={() => mutate()}
+      />
     </ProjectListContext.Provider>
   );
 }

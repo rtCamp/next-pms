@@ -7,6 +7,7 @@ import { createContext, useContextSelector } from "use-context-selector";
  * Internal dependencies.
  */
 import type { KanbanColumn, KanbanProjectItem } from "./types";
+import type { AddProjectFormValues } from "../components/add-project/schema";
 import { Phase } from "../types";
 
 export type UpdateProjectPhase = (
@@ -23,11 +24,16 @@ export interface ProjectKanbanContextProps {
     };
     isLoading: boolean;
     error: unknown;
+    addProjectOpen: boolean;
   };
   actions: {
     updateProjectPhase: UpdateProjectPhase;
+    openAddProjectModal: (prefill?: Partial<AddProjectFormValues>) => void;
+    closeAddProjectModal: () => void;
   };
 }
+
+const noop = () => {};
 
 export const ProjectKanbanContext = createContext<ProjectKanbanContextProps>({
   state: {
@@ -38,9 +44,12 @@ export const ProjectKanbanContext = createContext<ProjectKanbanContextProps>({
     },
     isLoading: false,
     error: null,
+    addProjectOpen: false,
   },
   actions: {
     updateProjectPhase: async () => {},
+    openAddProjectModal: noop,
+    closeAddProjectModal: noop,
   },
 });
 
