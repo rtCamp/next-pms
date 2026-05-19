@@ -12,11 +12,14 @@ import { Header } from "@/layout/header";
 import { AllocationsBreadcrumbs } from "@/pages/allocations/components/allocationsBreadcrumbs";
 import AddAllocationModal from "@/pages/allocations/team/add-allocation";
 import { AllocationsTeamProvider } from "@/pages/allocations/team/provider";
+import { useAllocationModal } from "@/pages/allocations/useAllocationModal";
 import { useUser } from "@/providers/user";
-import { useAllocationModal } from "./useAllocationModal";
+import { useAllocationsTeam } from "./context";
 
 function AllocationsTeamLayoutContent() {
-  const { openAddDialog, outletContext, modalProps } = useAllocationModal();
+  const refresh = useAllocationsTeam(({ actions }) => actions.refresh);
+  const { openAddDialog, outletContext, modalProps } =
+    useAllocationModal(refresh);
   const { hasRoleAccess } = useUser(({ state }) => ({
     hasRoleAccess: state.hasRoleAccess,
   }));

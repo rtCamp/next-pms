@@ -12,57 +12,30 @@ import {
   Button,
   Filter,
   FilterCondition,
-  FilterField,
   Select,
   TextInput,
 } from "@rtcamp/frappe-ui-react";
-import { ChevronLeft, ChevronRight, Ellipsis } from "lucide-react";
+import {
+  DotHorizontal,
+  SmallLeftChevron,
+  SmallRightChevron,
+} from "@rtcamp/frappe-ui-react/icons";
 
 /**
  * Internal dependencies.
  */
 import { InfiniteScroll } from "@/components/infiniteScroll";
 import { isWeekendEntryAllowed } from "@/lib/utils";
+import { useAllocationOutletContext } from "@/pages/allocations/allocationOutletContext";
 import { useUser } from "@/providers/user";
 import { EMPLOYEES_PER_PAGE } from "./constants";
-import { AllocationsDuration, useAllocationsTeam } from "./context";
-import { useAllocationsTeamOutletContext } from "./outletContext";
-
-const FILTER_FIELDS: FilterField[] = [
-  {
-    fieldCategory: "Timesheet Detail",
-    name: "project_name",
-    label: "Project",
-    type: "string",
-  },
-  {
-    fieldCategory: "Task",
-    name: "subject",
-    label: "Task",
-    type: "string",
-  },
-  {
-    name: "date",
-    label: "Date",
-    type: "daterange",
-  },
-];
-
-const buttonAriaLabels: Record<
-  "next" | "previous",
-  Record<AllocationsDuration, string>
-> = {
-  next: {
-    "this-week": "Next Week",
-    "this-month": "Next Month",
-    "this-quarter": "Next Quarter",
-  },
-  previous: {
-    "this-week": "Previous Week",
-    "this-month": "Previous Month",
-    "this-quarter": "Previous Quarter",
-  },
-};
+import { useAllocationsTeam } from "./context";
+import {
+  allocationsFilters,
+  allocationsTypeOptions,
+  durationOptions,
+  navigationButtonAriaLabels,
+} from "../constants";
 
 export const AllocationsTeamTable = () => {
   const searchInput = useAllocationsTeam(({ state }) => state.searchInput);
@@ -99,7 +72,7 @@ export const AllocationsTeamTable = () => {
     openAddAllocationDialog,
     openEditAllocationDialog,
     openDeleteAllocationDialog,
-  } = useAllocationsTeamOutletContext();
+  } = useAllocationOutletContext();
 
   const showWeekend = isWeekendEntryAllowed();
   const hasMembers = members.length > 0;
@@ -119,11 +92,7 @@ export const AllocationsTeamTable = () => {
           <Select
             placeholder="Duration"
             className="w-fit"
-            options={[
-              { label: "This week", value: "this-week" },
-              { label: "This month", value: "this-month" },
-              { label: "This quarter", value: "this-quarter" },
-            ]}
+            options={durationOptions}
             value={duration}
             onChange={(value) =>
               setDuration((value || "this-quarter") as typeof duration)
@@ -132,13 +101,7 @@ export const AllocationsTeamTable = () => {
           <Select
             placeholder="Allocations Type"
             className="w-fit"
-            options={[
-              { label: "All", value: "all" },
-              { label: "Confirmed only", value: "confirmed" },
-              { label: "Tentative only", value: "tentative" },
-              { label: "Billable only", value: "billable" },
-              { label: "Non-billable only", value: "non-billable" },
-            ]}
+            options={allocationsTypeOptions}
             value={allocationsType}
             onChange={(value) => setAllocationsType(value ?? "all")}
           />
@@ -147,27 +110,34 @@ export const AllocationsTeamTable = () => {
           <div className="flex items-center gap-1">
             <Button
               variant="ghost"
-              icon={() => <ChevronLeft size={16} />}
+              icon={() => (
+                <SmallLeftChevron className="size-4 text-ink-gray-9" />
+              )}
               onClick={handlePrevious}
-              aria-label={buttonAriaLabels["previous"][duration]}
+              aria-label={navigationButtonAriaLabels["previous"][duration]}
             />
             <Button variant="ghost" label="Today" onClick={handleToday} />
             <Button
               variant="ghost"
-              icon={() => <ChevronRight size={16} />}
+              icon={() => (
+                <SmallRightChevron className="size-4 text-ink-gray-9" />
+              )}
               onClick={handleNext}
-              aria-label={buttonAriaLabels["next"][duration]}
+              aria-label={navigationButtonAriaLabels["next"][duration]}
             />
           </div>
           <Filter
             align="end"
-            fields={FILTER_FIELDS}
+            fields={allocationsFilters}
             value={compositeFilters}
             onChange={(newFilters: FilterCondition[]) => {
               setCompositeFilters(newFilters);
             }}
           />
-          <Button icon={() => <Ellipsis size={16} />} />
+          <Button
+            aria-label="More options"
+            icon={() => <DotHorizontal className="size-4 text-ink-gray-9" />}
+          />
         </div>
       </div>
       {/* 112px is the height of header and filters section */}

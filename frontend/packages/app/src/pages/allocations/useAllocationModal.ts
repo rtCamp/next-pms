@@ -1,7 +1,7 @@
 /**
  * External dependencies.
  */
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import type { AllocationCallbackData } from "@next-pms/design-system/components";
 import { useToasts } from "@rtcamp/frappe-ui-react";
 import { format } from "date-fns";
@@ -11,17 +11,17 @@ import { useFrappeDeleteDoc } from "frappe-react-sdk";
  * Internal dependencies.
  */
 import type { AddAllocationInitialValues } from "@/pages/allocations/team/add-allocation/types";
-import { useAllocationsTeam } from "./context";
-import type { AllocationsTeamOutletContext } from "./outletContext";
+import type { AllocationOutletContext } from "./allocationOutletContext";
 
-export function useAllocationModal() {
+type RefreshAllocations = (employeeIds?: string[]) => Promise<void>;
+
+export function useAllocationModal(refresh: RefreshAllocations) {
   const [isOpen, setIsOpen] = useState(false);
   const [variant, setVariant] = useState<"add" | "edit">("add");
   const [initialValues, setInitialValues] = useState<
     AddAllocationInitialValues | undefined
   >(undefined);
 
-  const refresh = useAllocationsTeam(({ actions }) => actions.refresh);
   const toast = useToasts();
   const { deleteDoc } = useFrappeDeleteDoc();
 
@@ -99,19 +99,25 @@ export function useAllocationModal() {
     [refresh],
   );
 
-  const outletContext: AllocationsTeamOutletContext = {
-    openAddAllocationDialog: openAddDialog,
-    openEditAllocationDialog: openEditDialog,
-    openDeleteAllocationDialog: handleDelete,
-  };
+  const outletContext = useMemo<AllocationOutletContext>(
+    () => ({
+      openAddAllocationDialog: openAddDialog,
+      openEditAllocationDialog: openEditDialog,
+      openDeleteAllocationDialog: handleDelete,
+    }),
+    [openAddDialog, openEditDialog, handleDelete],
+  );
 
-  const modalProps = {
-    variant,
-    open: isOpen,
-    onOpenChange: handleOpenChange,
-    initialValues,
-    onSuccess: handleSuccess,
-  };
+  const modalProps = useMemo(
+    () => ({
+      variant,
+      open: isOpen,
+      onOpenChange: handleOpenChange,
+      initialValues,
+      onSuccess: handleSuccess,
+    }),
+    [variant, isOpen, handleOpenChange, initialValues, handleSuccess],
+  );
 
   return {
     openAddDialog,
