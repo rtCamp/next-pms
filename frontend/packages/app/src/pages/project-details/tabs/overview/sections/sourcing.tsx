@@ -6,8 +6,8 @@ import { MapPin, Search, Tag } from "lucide-react";
 /**
  * Internal dependencies.
  */
-import { OverviewField } from "../components/overview-field";
-import { OverviewSection } from "../components/overview-section";
+import { OverviewField } from "../components/overviewField";
+import { OverviewSection } from "../components/overviewSection";
 import type { OverviewSourcing } from "../types";
 
 export function Sourcing({ data }: { data: OverviewSourcing }) {

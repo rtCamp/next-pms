@@ -194,6 +194,7 @@ Same anti-pattern six times across two rounds. The fix is not "write shorter com
 
 ## Page file layout
 
+- **File names are `camelCase`.** Always. Folder names stay `kebab-case`. Applies to every file under `frontend/packages/**` — components (`projectNameCell.tsx`), helpers (`formatDuration.ts`), constants (`constants.ts`), types (`types.ts`). No kebab-case file names, no PascalCase, no snake_case. (PR #1220 round 5: `date-cell.tsx` → `dateCell.tsx`.)
 - **Folder name follows the URL segment.** `/projects` → `pages/projects/` (plural). Don't mirror a neighbouring singular default. (PR #1208 correction: `pages/project/` → `pages/projects/`.)
 - **Each `pages/<feature>/` has its own `constants.ts` + `types.ts`**, separately. The rule recurses into sub-folders: `pages/<feature>/<sub>/` also gets its own `constants.ts` + `types.ts`. **`constants.ts` is for pure-data constants** (labels, option arrays, enum-derived arrays) — **never for cva variants**. Variants are component behavior and co-locate with the component that consumes them.
 - **Main page component is `index.tsx`**, exporting a component named after the feature (`Projects`, `Timesheet`). `layout.tsx` only for actual React-Router `<Outlet />` layouts (see `allocations/layout.tsx`); a route with a query-param switcher is NOT a layout.
