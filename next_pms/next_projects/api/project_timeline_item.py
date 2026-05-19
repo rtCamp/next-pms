@@ -97,6 +97,7 @@ def get_project_timeline_items(
     limit: int = 20,
     start_date: str | None = None,
     max_week: int = 0,
+    is_calendar: bool = False,
 ):
     """
     Get active (not completed) Project Timeline Items for a project.
@@ -108,6 +109,7 @@ def get_project_timeline_items(
         limit: Page size
         start_date: ISO date string (e.g. "2026-05-05"); used as the range start
         max_week: Number of weeks from start_date to use as the range end
+        is_calendar: When True, skips fetching owner images and watchers
 
     Returns:
         {"data": [...], "total_count": int, "has_more": bool}
@@ -143,11 +145,14 @@ def get_project_timeline_items(
 
     item_names = [item.get("name") for item in items if item.get("name")]
 
-    # Bulk-fetch owner images; item_owner is a Link → User
-    owner_users = list({item.get("item_owner") for item in items if item.get("item_owner")})
-    user_image_map = get_user_image_map(owner_users)
-
-    watchers_map = get_watchers_map(item_names)
+    if is_calendar:
+        user_image_map = {}
+        watchers_map = {}
+    else:
+        # Bulk-fetch owner images; item_owner is a Link → User
+        owner_users = list({item.get("item_owner") for item in items if item.get("item_owner")})
+        user_image_map = get_user_image_map(owner_users)
+        watchers_map = get_watchers_map(item_names)
 
     data = [enrich_timeline_item(item, user_image_map, watchers_map) for item in items]
 
