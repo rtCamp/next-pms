@@ -5,7 +5,7 @@
 from frappe.model.document import Document
 
 
-class RiskUpdate(Document):
+class RiskCategory(Document):
     # begin: auto-generated types
     # This code is auto-generated. Do not modify anything in this block.
 
@@ -14,13 +14,6 @@ class RiskUpdate(Document):
     if TYPE_CHECKING:
         from frappe.types import DF
 
-        note: DF.TextEditor | None
-        parent: DF.Data
-        parentfield: DF.Data
-        parenttype: DF.Data
-        risk_level: DF.Link | None
-        status: DF.Link | None
-        updated_at: DF.Datetime | None
     # end: auto-generated types
 
     pass

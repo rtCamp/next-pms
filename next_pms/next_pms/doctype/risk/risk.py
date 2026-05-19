@@ -18,11 +18,10 @@ class Risk(Document):
 
         mitigation_plan: DF.TextEditor | None
         project: DF.Link
-        risk_category: DF.Literal["Internal Team", "Client", "Design", "Technical", "Timeline/Budget"]
-        risk_level: DF.Literal["Low", "Medium", "High"]
-        risk_owner: DF.Link | None
+        risk_category: DF.Link | None
+        risk_level: DF.Link | None
         risk_update_log: DF.Table[RiskUpdate]
-        status: DF.Literal["Todo", "In Progress", "Escalated", "Blocked", "Mitigated"]
+        status: DF.Link | None
         summary: DF.TextEditor | None
     # end: auto-generated types
 

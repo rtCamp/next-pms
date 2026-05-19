@@ -8,6 +8,7 @@ def after_install():
     add_project_manager_perm()
     setup_email_template()
     create_default_project_phases()
+    create_default_risk_masters()
 
 
 def add_project_manager_perm():
@@ -98,3 +99,22 @@ def create_default_project_phases():
     for phase_data in phases:
         if not frappe.db.exists("Project Phase", {"phase": phase_data["phase"]}):
             frappe.get_doc(phase_data).insert(ignore_permissions=True, ignore_mandatory=True)
+
+
+def create_default_risk_masters():
+    import frappe
+
+    risk_categories = ("Internal Team", "Client", "Design", "Technical", "Timeline/Budget")
+    risk_levels = ("Low", "Medium", "High")
+    risk_statuses = ("To-do", "In Progress", "Escalated", "Blocked", "Mitigated")
+
+    for doctype, names in (
+        ("Risk Category", risk_categories),
+        ("Risk Level", risk_levels),
+        ("Risk Status", risk_statuses),
+    ):
+        for name in names:
+            if frappe.db.exists(doctype, name):
+                continue
+
+            frappe.get_doc({"doctype": doctype, "name": name}).insert(ignore_permissions=True)
