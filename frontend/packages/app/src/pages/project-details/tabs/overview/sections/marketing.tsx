@@ -6,9 +6,9 @@ import { Contact, EyeOff, FileText, Quote } from "lucide-react";
 /**
  * Internal dependencies.
  */
-import type { OverviewMarketing } from "../types";
 import { OverviewField } from "../components/overview-field";
 import { OverviewSection } from "../components/overview-section";
+import type { OverviewMarketing } from "../types";
 
 function yesNo(value: boolean) {
   return value ? "Yes" : "No";

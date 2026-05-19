@@ -6,9 +6,9 @@ import { CalendarClock, Contact } from "lucide-react";
 /**
  * Internal dependencies.
  */
-import type { OverviewCommunication } from "../types";
 import { OverviewField } from "../components/overview-field";
 import { OverviewSection } from "../components/overview-section";
+import type { OverviewCommunication } from "../types";
 
 export function Communication({ data }: { data: OverviewCommunication }) {
   return (

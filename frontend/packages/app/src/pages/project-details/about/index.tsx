@@ -10,7 +10,8 @@ import { AddSm } from "@rtcamp/frappe-ui-react/icons";
 /**
  * Internal dependencies.
  */
-import { FAKE_PROJECTS } from "@/pages/projects/fake-data";
+import { FAKE_PROJECTS } from "@/pages/project-details/fake-data";
+import { Dot } from "@/pages/projects/list/cells/dot";
 import { BudgetBurnBar } from "./components/budgetBurnBar";
 import { CustomerRow } from "./components/customerRow";
 import { ExpandableList } from "./components/expandableList";
@@ -18,7 +19,6 @@ import { MemberRow } from "./components/memberRow";
 import { getProjectAboutData } from "./fake-data";
 import { ProgressHoursSection } from "./progressHoursSection";
 import { Section } from "./section";
-import { Dot } from "../../list/cells/dot";
 
 export function AboutThisProject({ className }: { className: string }) {
   const { projectId = "" } = useParams<{ projectId: string }>();
