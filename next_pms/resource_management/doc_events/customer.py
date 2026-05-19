@@ -1,3 +1,5 @@
+import re
+
 import frappe
 
 
@@ -15,6 +17,7 @@ def validate_abbr(doc, method=None):
         frappe.throw(frappe._("Abbreviation already used for another customer"))
 
 
+@frappe.whitelist()
 def _generate_unique_abbr(customer_name, exclude_name=None):
     """Build a unique custom_abbr from customer_name initials.
 
@@ -32,11 +35,28 @@ def _generate_unique_abbr(customer_name, exclude_name=None):
     if not words:
         frappe.throw(frappe._("Abbreviation is mandatory"))
 
-    shape_pattern = "%".join(w[0] for w in words).upper() + "%"
-    filters = {"custom_abbr": ["like", shape_pattern]}
-    if exclude_name:
-        filters["name"] = ["!=", exclude_name]
-    taken = set(frappe.get_all("Customer", filters=filters, pluck="custom_abbr"))
+    # Strip SQL LIKE wildcards (and other non-alphanumerics) from the leading
+    # char of each word so a customer name like "%Foo Bar" can't leak `%`/`_`
+    # into the prefetch pattern. The inner loop below still uses the raw
+    # word chars for the generated abbr itself — only the prefetch shape is
+    # sanitized.
+    shape_chars = [re.sub(r"[^A-Za-z0-9]", "", w[:1]) for w in words]
+    shape_chars = [c for c in shape_chars if c]
+
+    if not shape_chars:
+        # Customer name has no usable alphanumeric leading chars — fall back
+        # to no prefetch; the in-memory collision check will just see an
+        # empty set and the first candidate abbr will be returned.
+        taken = set()
+    else:
+        shape_pattern = "%".join(shape_chars).upper() + "%"
+        filters = {"custom_abbr": ["like", shape_pattern]}
+        if exclude_name:
+            filters["name"] = ["!=", exclude_name]
+        # Case-normalize: DB collation may be case-insensitive and return
+        # lowercase values like "awc" for the pattern "A%W%C%". Our generated
+        # candidate is uppercase, so we upper-case the taken set too.
+        taken = {v.upper() for v in frappe.get_all("Customer", filters=filters, pluck="custom_abbr")}
 
     slice_lens = [1] * len(words)
     while True:

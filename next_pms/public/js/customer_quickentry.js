@@ -9,17 +9,16 @@ class CustomerQuickEntryForm extends frappe.ui.form.CustomerQuickEntryForm {
     };
   }
 
-  set_abbr() {
+  async set_abbr() {
     const name = this.dialog.doc.customer_name || "";
+    if (!name) return;
 
-    const abbr = name
-      .split(" ")
-      .filter(Boolean)
-      .map((w) => w[0])
-      .join("")
-      .toUpperCase();
-
-    this.dialog.set_value("custom_abbr", abbr);
+    const { message } = await frappe.call({
+      method:
+        "next_pms.resource_management.doc_events.customer._generate_unique_abbr",
+      args: { customer_name: name },
+    });
+    if (message) this.dialog.set_value("custom_abbr", message);
   }
 }
 frappe.ui.form.CustomerQuickEntryForm = CustomerQuickEntryForm;
