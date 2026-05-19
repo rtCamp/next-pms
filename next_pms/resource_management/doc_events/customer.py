@@ -18,7 +18,7 @@ def validate_abbr(doc, method=None):
 
 
 @frappe.whitelist()
-def _generate_unique_abbr(customer_name, exclude_name=None):
+def _generate_unique_abbr(customer_name: str, exclude_name: str | None = None) -> str:
     """Build a unique custom_abbr from customer_name initials.
 
     On collision, extend the abbr by pulling the next character from the
