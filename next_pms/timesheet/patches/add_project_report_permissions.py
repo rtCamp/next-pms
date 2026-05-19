@@ -22,5 +22,3 @@ def execute():
         add_permission("Project", "Projects Manager", 3)
     for perm_key, perm_val in {"read": 1, "write": 0, "export": 1}.items():
         update_permission_property("Project", "Projects Manager", 3, perm_key, perm_val)
-
-    frappe.db.commit()
