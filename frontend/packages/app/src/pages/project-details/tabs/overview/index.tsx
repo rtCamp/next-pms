@@ -8,7 +8,7 @@ import { useParams } from "react-router-dom";
  */
 import { getOverviewData } from "./fake-data";
 import { Communication } from "./sections/communication";
-import { KeyGoals } from "./sections/key-goals";
+import { KeyGoals } from "./sections/keyGoals";
 import { Marketing } from "./sections/marketing";
 import { Sourcing } from "./sections/sourcing";
 import { Specifics } from "./sections/specifics";

@@ -5,7 +5,7 @@ import { useProjectList } from "./context";
 import { ProjectListProvider } from "./provider";
 import ProjectListView from "./view";
 import ProjectsHeader from "../components/header";
-import { ProjectListSubHeader } from "../components/sub-header";
+import { ProjectListSubHeader } from "../components/subHeader";
 
 function ProjectListPage() {
   return (

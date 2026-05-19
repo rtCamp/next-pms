@@ -5,7 +5,7 @@ import { useProjectKanban } from "./context";
 import { ProjectKanbanProvider } from "./provider";
 import ProjectKanbanView from "./view";
 import ProjectsHeader from "../components/header";
-import { ProjectListSubHeader } from "../components/sub-header";
+import { ProjectListSubHeader } from "../components/subHeader";
 
 function ProjectKanbanPage() {
   return (
