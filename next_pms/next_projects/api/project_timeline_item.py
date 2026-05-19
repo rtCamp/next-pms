@@ -5,12 +5,11 @@ from typing import Literal
 
 import frappe
 from frappe import only_for, whitelist
-from frappe.utils import cint, getdate, today
+from frappe.utils import add_to_date, cint, getdate, today
 
 from next_pms.api.utils import error_logger
 from next_pms.next_projects.api.constant import ALLOWED_ROLES, TIMELINE_ITEM_FIELDS
 from next_pms.next_projects.api.utils import get_user_image_map
-from next_pms.timesheet.api import get_count
 
 
 def get_watchers_map(item_names: list[str]) -> dict[str, list[dict]]:
@@ -96,6 +95,8 @@ def get_project_timeline_items(
     type: Literal["Milestone", "Touchpoint"] | None = None,
     start: int = 0,
     limit: int = 20,
+    start_date: str | None = None,
+    max_week: int = 0,
 ):
     """
     Get active (not completed) Project Timeline Items for a project.
@@ -105,6 +106,8 @@ def get_project_timeline_items(
         type: "Milestone" or "Touchpoint" — omit to fetch both
         start: Pagination offset
         limit: Page size
+        start_date: ISO date string (e.g. "2026-05-05"); used as the range start
+        max_week: Number of weeks from start_date to use as the range end
 
     Returns:
         {"data": [...], "total_count": int, "has_more": bool}
@@ -122,6 +125,10 @@ def get_project_timeline_items(
     if type:
         filters["type"] = type
 
+    if start_date and max_week:
+        end_date = add_to_date(getdate(start_date), weeks=cint(max_week))
+        filters["start_date"] = ["between", [getdate(start_date), end_date]]
+
     items = frappe.get_all(
         "Project Timeline Item",
         filters=filters,
@@ -131,7 +138,7 @@ def get_project_timeline_items(
         order_by="start_date asc, planned_end_date asc",
     )
 
-    total_count = get_count("Project Timeline Item", filters=filters)
+    total_count = frappe.db.count("Project Timeline Item", filters=filters)
     has_more = cint(start) + cint(limit) < total_count
 
     item_names = [item.get("name") for item in items if item.get("name")]
