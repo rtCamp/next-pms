@@ -121,7 +121,6 @@ def get_project_timeline_items(
 
     filters = {
         "project": project,
-        "is_complete": 0,
     }
 
     if type:
