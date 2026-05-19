@@ -66,10 +66,11 @@ function AddProjectModal({
     },
   });
 
-  const { options: companyOptions } = useCompanyLookup({
-    shouldFetch: open,
-    query: companySearch,
-  });
+  const { options: companyOptions, isLoading: isCompanyLoading } =
+    useCompanyLookup({
+      shouldFetch: open,
+      query: companySearch,
+    });
 
   const closeModal = useCallback(() => {
     setTemplateSearch("");
@@ -161,6 +162,7 @@ function AddProjectModal({
                 Template
               </label>
               <Combobox
+                loading={isCompanyLoading}
                 inputClassName="bg-white h-8 border-outline-gray-2"
                 options={[]}
                 placeholder="Select project template"
