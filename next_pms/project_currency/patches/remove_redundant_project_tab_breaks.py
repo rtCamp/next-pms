@@ -18,6 +18,5 @@ def execute():
         removed.append(fieldname)
     if not removed:
         return
-    frappe.db.commit()
     frappe.clear_cache(doctype="Project")
     print(f"Removed {len(removed)} redundant Project Tab Break(s): {', '.join(removed)}")
