@@ -1,7 +1,7 @@
 /**
  * External dependencies.
  */
-import { MapPin, Search, Tag } from "lucide-react";
+import { Location, SearchAlt, Tag1 } from "@rtcamp/frappe-ui-react/icons";
 
 /**
  * Internal dependencies.
@@ -27,17 +27,17 @@ export function Sourcing() {
     <OverviewSection title="Sourcing">
       <div className="flex w-[828px] max-w-full flex-wrap gap-4">
         <OverviewField
-          icon={<Search className="size-[18px]" />}
+          icon={<SearchAlt className="size-[18px]" />}
           label="Source"
           value={source}
         />
         <OverviewField
-          icon={<MapPin className="size-[18px]" />}
+          icon={<Location className="size-[18px]" />}
           label="Primary location"
           value={primaryLocation}
         />
         <OverviewField
-          icon={<Tag className="size-[18px]" />}
+          icon={<Tag1 className="size-[18px]" />}
           label="Previous CMS"
           value={previousCms}
         />

@@ -24,7 +24,7 @@ export function KeyGoals() {
         content={html}
         editable={false}
         fixedMenu={false}
-        editorClass="text-sm text-ink-gray-7"
+        editorClass="text-sm text-ink-gray-7 w-full max-w-full"
       />
     </OverviewSection>
   );

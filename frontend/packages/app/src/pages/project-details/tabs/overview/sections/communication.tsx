@@ -1,7 +1,7 @@
 /**
  * External dependencies.
  */
-import { CalendarClock, Contact } from "lucide-react";
+import { CalendarDeadline, Contact } from "@rtcamp/frappe-ui-react/icons";
 
 /**
  * Internal dependencies.
@@ -29,7 +29,7 @@ export function Communication() {
           value={pointOfContact}
         />
         <OverviewField
-          icon={<CalendarClock className="size-[18px]" />}
+          icon={<CalendarDeadline className="size-[18px]" />}
           label="Time report frequency"
           value={timeReportFrequency}
         />

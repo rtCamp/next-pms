@@ -1,7 +1,11 @@
 /**
  * External dependencies.
  */
-import { ChartNoAxesColumn, GitBranch, UserCheck } from "lucide-react";
+import {
+  AuthenticatedUserAlt,
+  Branch,
+  SolidPriorityHigh,
+} from "@rtcamp/frappe-ui-react/icons";
 
 /**
  * Internal dependencies.
@@ -27,17 +31,17 @@ export function Specifics() {
     <OverviewSection title="Specifics">
       <div className="flex w-[828px] max-w-full flex-wrap gap-4">
         <OverviewField
-          icon={<ChartNoAxesColumn className="size-[18px]" />}
+          icon={<SolidPriorityHigh className="size-[18px]" />}
           label="Priority"
           value={priority}
         />
         <OverviewField
-          icon={<GitBranch className="size-[18px]" />}
+          icon={<Branch className="size-[18px]" />}
           label="Complexity"
           value={complexity}
         />
         <OverviewField
-          icon={<UserCheck className="size-[18px]" />}
+          icon={<AuthenticatedUserAlt className="size-[18px]" />}
           label="Key account"
           value={keyAccount}
         />

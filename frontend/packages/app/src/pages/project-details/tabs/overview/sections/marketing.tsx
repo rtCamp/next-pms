@@ -1,7 +1,12 @@
 /**
  * External dependencies.
  */
-import { Contact, EyeOff, FileText, Quote } from "lucide-react";
+import {
+  Article,
+  Contact,
+  PreviewOff,
+  Quote,
+} from "@rtcamp/frappe-ui-react/icons";
 
 /**
  * Internal dependencies.
@@ -21,12 +26,12 @@ export function Marketing() {
     <OverviewSection title="Marketing">
       <div className="flex w-207 max-w-full flex-wrap gap-4">
         <OverviewField
-          icon={<EyeOff className="size-[18px]" />}
+          icon={<PreviewOff className="size-[18px]" />}
           label="NDA signed"
           value={EMPTY}
         />
         <OverviewField
-          icon={<FileText className="size-[18px]" />}
+          icon={<Article className="size-[18px]" />}
           label="Case study approved"
           value={EMPTY}
         />
