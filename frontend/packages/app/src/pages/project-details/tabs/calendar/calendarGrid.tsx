@@ -1,62 +1,15 @@
 /**
  * External dependencies.
  */
-import {
-  eachDayOfInterval,
-  eachWeekOfInterval,
-  endOfMonth,
-  endOfWeek,
-  format,
-  isSameDay,
-  isSameMonth,
-  isToday,
-  startOfMonth,
-  startOfWeek,
-} from "date-fns";
+import { format, isSameDay, isSameMonth, isToday } from "date-fns";
 /**
  * Internal dependencies.
  */
 import { mergeClassNames } from "@/lib/utils";
+import { DAY_HEADERS } from "./constants";
 import { EventPill } from "./eventPill";
 import type { ProjectTimelineItem } from "./types";
-
-const DAY_HEADERS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
-
-function getCalendarWeeks(year: number, month: number): Date[][] {
-  const firstDay = startOfMonth(new Date(year, month, 1));
-  const lastDay = endOfMonth(firstDay);
-
-  const weekStarts = eachWeekOfInterval(
-    { start: firstDay, end: lastDay },
-    { weekStartsOn: 1 },
-  );
-
-  return weekStarts.map((weekStart) =>
-    eachDayOfInterval({
-      start: startOfWeek(weekStart, { weekStartsOn: 1 }),
-      end: endOfWeek(weekStart, { weekStartsOn: 1 }),
-    }),
-  );
-}
-
-function getItemDateKey(item: ProjectTimelineItem): string {
-  if (item.type === "Milestone") {
-    return item.startDate ?? item.plannedEndDate;
-  }
-  return item.plannedEndDate;
-}
-
-function groupByDate(
-  items: ProjectTimelineItem[],
-): Map<string, ProjectTimelineItem[]> {
-  const map = new Map<string, ProjectTimelineItem[]>();
-  for (const item of items) {
-    const key = getItemDateKey(item);
-    if (!map.has(key)) map.set(key, []);
-    map.get(key)!.push(item);
-  }
-  return map;
-}
+import { getCalendarWeeks, groupByDate } from "./utils";
 
 type CalendarGridProps = {
   year: number;

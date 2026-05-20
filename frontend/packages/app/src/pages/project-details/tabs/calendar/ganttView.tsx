@@ -2,147 +2,31 @@
  * External dependencies.
  */
 import {
-  eachDayOfInterval,
-  endOfISOWeek,
-  endOfMonth,
   format,
   getDay,
   isSameMonth,
   isToday,
   parseISO,
-  startOfISOWeek,
   startOfMonth,
 } from "date-fns";
 /**
  * Internal dependencies.
  */
 import { mergeClassNames as cn } from "@/lib/utils";
+import {
+  COLUMN_WIDTH,
+  DAY_HEADER_HEIGHT,
+  ROW_HEIGHT,
+  WEEK_LABEL_HEIGHT,
+} from "./constants";
 import { GanttBar } from "./ganttBar";
 import type { ProjectTimelineItem } from "./types";
-
-// Layout constants
-const COLUMN_WIDTH = 38; // px per day column
-const WEEK_LABEL_HEIGHT = 30; // px – week range row
-const DAY_HEADER_HEIGHT = 30; // px – day numbers row
-const ROW_HEIGHT = 60; // px – each item row
-const MIN_CARD_DAYS = 1; // minimum card width in days
-
-/**
- * Build the visible day column list:
- * - Extends to full ISO weeks (Mon–Sun) at both ends of the month.
- * - Filters out Sat/Sun when showWeekend is false.
- */
-function buildDayColumns(
-  year: number,
-  month: number,
-  showWeekend: boolean,
-): Date[] {
-  const monthStart = startOfMonth(new Date(year, month, 1));
-  const monthEnd = endOfMonth(monthStart);
-  const viewStart = startOfISOWeek(monthStart); // Monday ≤ monthStart
-  const viewEnd = endOfISOWeek(monthEnd); // Sunday ≥ monthEnd
-  const all = eachDayOfInterval({ start: viewStart, end: viewEnd });
-  if (showWeekend) return all;
-  return all.filter((d) => {
-    const dow = getDay(d);
-    return dow !== 0 && dow !== 6;
-  });
-}
-
-/** Split a flat day array into Monday-anchored week groups. */
-function groupIntoWeeks(days: Date[]): Date[][] {
-  const groups: Date[][] = [];
-  let current: Date[] = [];
-  for (const day of days) {
-    if (current.length > 0 && getDay(day) === 1) {
-      groups.push(current);
-      current = [];
-    }
-    current.push(day);
-  }
-  if (current.length > 0) groups.push(current);
-  return groups;
-}
-
-/** Build a date-string → column-index lookup map. */
-function buildColIndexMap(days: Date[]): Map<string, number> {
-  const map = new Map<string, number>();
-  for (let i = 0; i < days.length; i++) {
-    map.set(format(days[i], "yyyy-MM-dd"), i);
-  }
-  return map;
-}
-
-/**
- * Find the column index for a date, snapping to the nearest visible column
- * when the exact date is hidden (e.g. a weekend when showWeekend is false).
- */
-function nearestColIndex(
-  date: Date,
-  colIndexMap: Map<string, number>,
-  dayColumns: Date[],
-  snapForward: boolean,
-): number {
-  const key = format(date, "yyyy-MM-dd");
-  const exact = colIndexMap.get(key);
-  if (exact !== undefined) return exact;
-  // Snap to nearest visible day
-  if (snapForward) {
-    for (let i = 0; i < dayColumns.length; i++) {
-      if (dayColumns[i] > date) return i;
-    }
-    return dayColumns.length - 1;
-  } else {
-    for (let i = dayColumns.length - 1; i >= 0; i--) {
-      if (dayColumns[i] < date) return i;
-    }
-    return 0;
-  }
-}
-
-type ItemPosition = { left: number; width: number };
-
-function resolvePosition(
-  item: ProjectTimelineItem,
-  dayColumns: Date[],
-  colIndexMap: Map<string, number>,
-): ItemPosition | null {
-  const plannedEnd = parseISO(item.plannedEndDate);
-  const viewStart = dayColumns[0];
-  const viewEnd = dayColumns[dayColumns.length - 1];
-
-  const isInView =
-    plannedEnd >= viewStart &&
-    (item.startDate
-      ? parseISO(item.startDate) <= viewEnd
-      : plannedEnd <= viewEnd);
-  if (!isInView) return null;
-
-  const lastIdx = dayColumns.length - 1;
-
-  if (item.startDate) {
-    const rawStart = parseISO(item.startDate);
-    const startIdx = Math.max(
-      0,
-      nearestColIndex(rawStart, colIndexMap, dayColumns, true),
-    );
-    const endIdx = Math.min(
-      lastIdx,
-      nearestColIndex(plannedEnd, colIndexMap, dayColumns, false),
-    );
-    if (startIdx > endIdx) return null;
-    const spanCols = Math.max(MIN_CARD_DAYS, endIdx - startIdx + 1);
-    return { left: startIdx * COLUMN_WIDTH, width: spanCols * COLUMN_WIDTH };
-  }
-
-  // Touchpoint or milestone without startDate: fixed-width card at plannedEndDate
-  const endIdx = Math.min(
-    lastIdx,
-    nearestColIndex(plannedEnd, colIndexMap, dayColumns, false),
-  );
-  const startIdx = Math.max(0, endIdx - MIN_CARD_DAYS + 1);
-  return { left: startIdx * COLUMN_WIDTH, width: MIN_CARD_DAYS * COLUMN_WIDTH };
-}
+import {
+  buildColIndexMap,
+  buildDayColumns,
+  groupIntoWeeks,
+  resolvePosition,
+} from "./utils";
 
 export type GanttViewProps = {
   year: number;
