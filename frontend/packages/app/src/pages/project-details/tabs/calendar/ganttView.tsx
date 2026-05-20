@@ -174,7 +174,7 @@ export function GanttView({
           })}
 
           {visibleItems.length === 0 && (
-            <div className="py-10 text-center text-sm text-ink-gray-4">
+            <div className="py-10 text-center text-sm text-ink-gray-4 relative z-10">
               No items for this period
             </div>
           )}
