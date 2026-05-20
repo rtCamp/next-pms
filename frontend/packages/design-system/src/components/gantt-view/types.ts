@@ -57,6 +57,7 @@ export interface Member {
   department?: string;
   rate?: string;
   capacity?: string;
+  capacityHoursPerDay?: number;
   manager?: string;
   projects?: Project[];
   leaves?: LeaveAllocation[];

@@ -1,6 +1,13 @@
+/**
+ * External dependencies.
+ */
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { PreviewCard } from "@base-ui/react/preview-card";
 import { Tooltip } from "@rtcamp/frappe-ui-react";
+
+/**
+ * Internal dependencies.
+ */
 import { useGanttStore } from "../ganttStore";
 import type { ProjectAllocationBar } from "../ganttStore";
 import { getBarDateRange, getBarDaySpan, getBarTimelineBounds } from "../utils";
@@ -11,19 +18,24 @@ import {
   type GanttBarRenderState,
 } from "./ganttBar";
 import { allocationBarToEntry } from "./utils/allocationBarToEntry";
+import { getCapacityStatus } from "./utils/getCapacityStatus";
 import { withPendingDeleteEntry } from "./utils/withPendingDeleteEntry";
 import { mergeClassNames as cn } from "../../../utils";
 
-interface GanttProjectBarProps {
+interface GanttAllocationBarProps {
   allocation: ProjectAllocationBar;
   resizable: boolean;
+  capacityHoursPerDay?: number;
+  showCapacityStatus?: boolean;
 }
 
-export function GanttProjectBar({
+export function GanttAllocationBar({
   allocation,
   resizable,
-}: GanttProjectBarProps) {
-  const projectBarRef = useRef<HTMLDivElement>(null);
+  capacityHoursPerDay,
+  showCapacityStatus = false,
+}: GanttAllocationBarProps) {
+  const allocationBarRef = useRef<HTMLDivElement>(null);
   const {
     headerWidth,
     columnWidth,
@@ -103,7 +115,11 @@ export function GanttProjectBar({
     [allocation.hours],
   );
 
-  const label = formatDayCountLabel(resolvedDayCount);
+  const dayCountLabel = formatDayCountLabel(resolvedDayCount);
+  const capacityStatus = getCapacityStatus(
+    allocation.hours,
+    capacityHoursPerDay,
+  );
 
   const renderLabel = useCallback(
     ({ isInteracting, liveWidth }: GanttBarRenderState) => {
@@ -173,7 +189,7 @@ export function GanttProjectBar({
 
   const handleResizeEnd = useCallback((geometry: GanttBarGeometry) => {
     setPreviewGeometry(geometry);
-    projectBarRef.current?.focus();
+    allocationBarRef.current?.focus();
   }, []);
 
   const handleKeyDown = useCallback(
@@ -210,11 +226,19 @@ export function GanttProjectBar({
         render={
           <Tooltip text="Click to save the allocation" disabled={!isModified}>
             <GanttBar
-              ref={projectBarRef}
-              variant="project"
+              ref={allocationBarRef}
+              variant="allocation"
               theme={allocation.tentative ? "crosshatch" : "default"}
-              label={label}
+              label={dayCountLabel}
               renderLabel={renderLabel}
+              trailingLabel={
+                showCapacityStatus ? capacityStatus.trailingLabel : undefined
+              }
+              trailingLabelVariant={
+                showCapacityStatus
+                  ? capacityStatus.trailingLabelVariant
+                  : undefined
+              }
               left={previewGeometry.left}
               width={previewGeometry.width}
               className={cn(
@@ -248,4 +272,4 @@ export function GanttProjectBar({
   );
 }
 
-GanttProjectBar.displayName = "GanttProjectBar";
+GanttAllocationBar.displayName = "GanttAllocationBar";

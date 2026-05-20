@@ -1,5 +1,11 @@
-import { addDays } from "date-fns";
-import { getAllocationSummary } from "./gantt-bar/utils/getMemberAllocation";
+/**
+ * External dependencies.
+ */
+import { addDays, eachDayOfInterval, isSameDay, startOfDay } from "date-fns";
+
+/**
+ * Internal dependencies.
+ */
 import { getMemberAllocation } from "./gantt-bar/utils/getMemberAllocation";
 import { getNumDays } from "./gantt-bar/utils/getNumDays";
 import type {
@@ -21,9 +27,16 @@ export interface ProjectAllocationBar extends Allocation {
   fullNumDays: number;
 }
 
-export interface MemberAllocationBar extends MemberBarAllocation {
+export interface MemberSummaryBar extends MemberBarAllocation {
   barOffset: number;
   width: number;
+}
+
+export interface ProjectSummaryBar {
+  hours: number;
+  barOffset: number;
+  width: number;
+  tentative: boolean;
 }
 
 export interface MemberProject extends SourceProject {
@@ -32,14 +45,10 @@ export interface MemberProject extends SourceProject {
 
 export interface Member extends SourceMember {
   projects: MemberProject[];
-  memberAllocations: MemberAllocationBar[];
+  memberSummaryBars: MemberSummaryBar[];
 }
 
-export interface ProjectMemberAllocationBar extends Allocation {
-  barOffset: number;
-  width: number;
-  fullNumDays: number;
-}
+export type ProjectMemberAllocationBar = ProjectAllocationBar;
 
 export interface ProjectMember extends SourceProjectMember {
   allocations: ProjectMemberAllocationBar[];
@@ -47,7 +56,7 @@ export interface ProjectMember extends SourceProjectMember {
 
 export interface ProjectGroup extends SourceProjectGroup {
   members: ProjectMember[];
-  projectAllocations: MemberAllocationBar[];
+  projectSummaryBars: ProjectSummaryBar[];
 }
 
 export type DraftBarSeed = {
@@ -150,18 +159,16 @@ function prepareAllocationBars<T extends Allocation>(
 }
 
 /**
- * Precompute bar geometry for already summarized allocation segments.
- * This attaches rendering metrics only and does not perform any day-level
- * allocation aggregation itself.
+ * Precompute bar geometry for member summary bars, which aggregate all allocations for a member.
  */
-function prepareSummaryBars(
+function prepareMemberSummaryBars(
   allocations: MemberBarAllocation[],
   weekStart: Date,
   columnCount: number,
   showWeekend: boolean,
   columnWidth: number,
 ) {
-  return allocations.reduce<MemberAllocationBar[]>((acc, alloc) => {
+  return allocations.reduce<MemberSummaryBar[]>((acc, alloc) => {
     const startCol = getNumDays(alloc.startDate, weekStart, showWeekend);
     const endCol = getNumDays(alloc.endDate, weekStart, showWeekend);
     const metrics = getBarMetrics(startCol, endCol, columnCount, columnWidth);
@@ -177,6 +184,95 @@ function prepareSummaryBars(
 
     return acc;
   }, []);
+}
+
+/**
+ * Precompute bar geometry for project summary bars, which aggregate all member allocations for a project.
+ * Bars are merged across contiguous date ranges with the same total hours to minimize the number of bars rendered.
+ */
+function prepareProjectSummaryBars(
+  allocations: Allocation[],
+  weekStart: Date,
+  columnCount: number,
+  showWeekend: boolean,
+  columnWidth: number,
+) {
+  const dayTotals = new Map<number, { hours: number; tentative: boolean }>();
+
+  for (const allocation of allocations) {
+    for (const day of eachDayOfInterval({
+      start: allocation.startDate,
+      end: allocation.endDate,
+    })) {
+      const dayOfWeek = day.getDay();
+
+      if (dayOfWeek === 0 || dayOfWeek === 6) {
+        continue;
+      }
+
+      const key = startOfDay(day).getTime();
+      const previousDay = dayTotals.get(key);
+      dayTotals.set(key, {
+        hours: (previousDay?.hours ?? 0) + allocation.hours,
+        tentative: Boolean(previousDay?.tentative || allocation.tentative),
+      });
+    }
+  }
+
+  const sortedDays = [...dayTotals.entries()]
+    .sort(([leftTs], [rightTs]) => leftTs - rightTs)
+    .map(([timestamp, { hours, tentative }]) => ({
+      date: new Date(timestamp),
+      hours,
+      tentative,
+    }));
+
+  const segments: Array<{
+    startDate: Date;
+    endDate: Date;
+    hours: number;
+    tentative: boolean;
+  }> = [];
+
+  for (const { date, hours, tentative } of sortedDays) {
+    const lastSegment = segments[segments.length - 1];
+
+    if (
+      lastSegment &&
+      lastSegment.hours /
+        (getNumDays(lastSegment.endDate, lastSegment.startDate, true) + 1) ===
+        hours &&
+      lastSegment.tentative === tentative &&
+      isSameDay(addDays(lastSegment.endDate, 1), date)
+    ) {
+      lastSegment.endDate = date;
+      lastSegment.hours += hours;
+      continue;
+    }
+
+    segments.push({
+      startDate: date,
+      endDate: date,
+      hours,
+      tentative,
+    });
+  }
+
+  return segments.flatMap((segment) => {
+    const startCol = getNumDays(segment.startDate, weekStart, showWeekend);
+    const endCol = getNumDays(segment.endDate, weekStart, showWeekend);
+    const metrics = getBarMetrics(startCol, endCol, columnCount, columnWidth);
+
+    if (!metrics) {
+      return [];
+    }
+
+    return {
+      hours: segment.hours,
+      tentative: segment.tentative,
+      ...metrics,
+    };
+  });
 }
 
 /**
@@ -208,13 +304,13 @@ export const prepareMemberBars = (
       },
     );
 
-    const rawMemberAllocations = getMemberAllocation(
+    const rawMemberSummaryAllocations = getMemberAllocation(
       member.projects ?? [],
       member.leaves ?? [],
     );
 
-    const memberAllocations = prepareSummaryBars(
-      rawMemberAllocations,
+    const memberSummaryBars = prepareMemberSummaryBars(
+      rawMemberSummaryAllocations,
       weekStart,
       columnCount,
       showWeekend,
@@ -224,7 +320,7 @@ export const prepareMemberBars = (
     return {
       ...member,
       projects,
-      memberAllocations,
+      memberSummaryBars,
     };
   });
 };
@@ -240,6 +336,10 @@ export const prepareProjectBars = (
   columnWidth: number,
 ): ProjectGroup[] => {
   return projects.map((project) => {
+    const rawProjectAllocations = (project.members ?? []).flatMap(
+      (member) => member.allocations ?? [],
+    );
+
     const members: ProjectGroup["members"] = (project.members ?? []).map(
       (member) => ({
         ...member,
@@ -249,15 +349,16 @@ export const prepareProjectBars = (
           columnCount,
           showWeekend,
           columnWidth,
-        ),
+        ).map((allocation) => ({
+          ...allocation,
+          projectName: project.name,
+          customerName: project.client,
+        })),
       }),
     );
 
-    const projectAllocations = prepareSummaryBars(
-      getAllocationSummary(
-        (project.members ?? []).flatMap((member) => member.allocations ?? []),
-        (project.members ?? []).flatMap((member) => member.leaves ?? []),
-      ),
+    const projectSummaryBars = prepareProjectSummaryBars(
+      rawProjectAllocations,
       weekStart,
       columnCount,
       showWeekend,
@@ -267,9 +368,18 @@ export const prepareProjectBars = (
     return {
       ...project,
       members,
-      projectAllocations,
+      projectSummaryBars,
     };
   });
+};
+
+/**
+ * Format hours to a string with up to 2 decimal places, trimming unnecessary zeros.
+ */
+export const formatHours = (hours: number) => {
+  const roundedHours = Number(hours.toFixed(2));
+
+  return String(roundedHours);
 };
 
 /**

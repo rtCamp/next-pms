@@ -1,22 +1,30 @@
+/**
+ * External dependencies.
+ */
 import { PreviewCard } from "@base-ui/react/preview-card";
 import { differenceInCalendarDays } from "date-fns";
-import { FULL_DAY_HOURS } from "../constants";
+
+/**
+ * Internal dependencies.
+ */
 import { useGanttStore } from "../ganttStore";
-import type { MemberAllocationBar } from "../ganttStore";
+import type { MemberSummaryBar } from "../ganttStore";
 import { GanttAllocationPopover } from "./allocationPopover";
 import { GanttBar } from "./ganttBar";
 import { allocationBarToEntry } from "./utils/allocationBarToEntry";
+import { getCapacityStatus } from "./utils/getCapacityStatus";
 import { getOverlappingAllocations } from "./utils/getOverlappingAllocations";
 import { withPendingDeleteEntry } from "./utils/withPendingDeleteEntry";
 
-export type MemberBarAllocation = MemberAllocationBar;
-
-interface GanttMemberBarProps {
-  allocation: MemberAllocationBar;
+interface GanttMemberSummaryBarProps {
+  summary: MemberSummaryBar;
   memberInd: number;
 }
 
-export function GanttMemberBar({ allocation, memberInd }: GanttMemberBarProps) {
+export function GanttMemberSummaryBar({
+  summary,
+  memberInd,
+}: GanttMemberSummaryBarProps) {
   const {
     headerWidth,
     members,
@@ -35,12 +43,12 @@ export function GanttMemberBar({ allocation, memberInd }: GanttMemberBarProps) {
     setPendingDeleteEntry: s.setPendingDeleteEntry,
   }));
 
-  const left = allocation.barOffset + headerWidth;
-  const { width } = allocation;
+  const left = summary.barOffset + headerWidth;
+  const { width } = summary;
 
-  if (allocation.type === "timeoff") {
+  if (summary.type === "timeoff") {
     const leaveDays =
-      differenceInCalendarDays(allocation.endDate, allocation.startDate) + 1;
+      differenceInCalendarDays(summary.endDate, summary.startDate) + 1;
     const leaveLabel = leaveDays > 2 ? `${leaveDays} days` : "";
 
     return (
@@ -53,24 +61,15 @@ export function GanttMemberBar({ allocation, memberInd }: GanttMemberBarProps) {
     );
   }
 
-  const { hours } = allocation;
-  const diff = hours - FULL_DAY_HOURS;
-  const isFull = diff === 0;
-  const isOver = diff > 0;
-
-  const variant = isFull ? "full" : isOver ? "over" : "under";
-  const label = isFull
-    ? "Full"
-    : isOver
-      ? `${diff}h over`
-      : `${Math.abs(diff)}h free`;
-
-  // Collect all project allocations overlapping this member bar's date range
   const member = members[memberInd];
+  const capacityStatus = getCapacityStatus(
+    summary.hours,
+    member.capacityHoursPerDay,
+  );
   const overlapping = getOverlappingAllocations(
     member,
-    allocation.startDate,
-    allocation.endDate,
+    summary.startDate,
+    summary.endDate,
   );
 
   const entries = overlapping.map((alloc) =>
@@ -84,8 +83,8 @@ export function GanttMemberBar({ allocation, memberInd }: GanttMemberBarProps) {
     ? () =>
         onAddAllocation({
           employeeId: member.id,
-          startDate: allocation.startDate,
-          endDate: allocation.endDate,
+          startDate: summary.startDate,
+          endDate: summary.endDate,
         })
     : undefined;
 
@@ -96,12 +95,12 @@ export function GanttMemberBar({ allocation, memberInd }: GanttMemberBarProps) {
         closeDelay={150}
         render={
           <GanttBar
-            variant={variant}
-            theme={allocation.tentative ? "crosshatch" : "default"}
-            label={label}
+            variant={capacityStatus.variant}
+            theme={summary.tentative ? "crosshatch" : "default"}
+            label={capacityStatus.label}
             left={left}
             width={width}
-            billable={allocation.billable}
+            billable={summary.billable}
           />
         }
       />
@@ -120,4 +119,4 @@ export function GanttMemberBar({ allocation, memberInd }: GanttMemberBarProps) {
   );
 }
 
-GanttMemberBar.displayName = "GanttMemberBar";
+GanttMemberSummaryBar.displayName = "GanttMemberSummaryBar";

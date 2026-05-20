@@ -7,7 +7,7 @@ import React, { useRef } from "react";
  * Internal dependencies.
  */
 import { CELL_HEIGHT } from "./constants";
-import { GanttProjectBar } from "./gantt-bar/projectBar";
+import { GanttAllocationBar } from "./gantt-bar/allocationBar";
 import {
   RowAllocationOverlay,
   type RowAllocationOverlayHandle,
@@ -97,9 +97,10 @@ export const GanttProjectRow: React.FC<GanttProjectRowProps> = ({
       >
         {isExpanded &&
           project.allocations?.map((alloc, allocIndex) => (
-            <GanttProjectBar
+            <GanttAllocationBar
               key={allocIndex}
               allocation={alloc}
+              capacityHoursPerDay={member.capacityHoursPerDay}
               resizable={canEditAllocations}
             />
           ))}
