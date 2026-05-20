@@ -23,20 +23,21 @@ export function getCapacityStatus(
 ): CapacityStatus {
   const resolvedCapacityHoursPerDay = capacityHoursPerDay ?? FULL_DAY_HOURS;
   const difference = hours - resolvedCapacityHoursPerDay;
+  const normalizedDifference = Number(formatHours(difference));
 
-  if (difference === 0) {
+  if (normalizedDifference === 0) {
     return {
       variant: "full",
       label: "Full",
     };
   }
 
-  const label = `${formatHours(Math.abs(difference))}h ${difference > 0 ? "over" : "free"}`;
+  const label = `${formatHours(Math.abs(normalizedDifference))}h ${normalizedDifference > 0 ? "over" : "free"}`;
 
   return {
-    variant: difference > 0 ? "over" : "under",
+    variant: normalizedDifference > 0 ? "over" : "under",
     label,
     trailingLabel: label,
-    trailingLabelVariant: difference > 0 ? "violet" : "amber",
+    trailingLabelVariant: normalizedDifference > 0 ? "violet" : "amber",
   };
 }

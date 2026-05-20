@@ -33,7 +33,7 @@ const ganttBarVariants = cva(
         under: "bg-surface-amber-2 text-ink-amber-4",
         over: "bg-surface-violet-1 text-ink-violet-1",
         timeoff: "bg-surface-gray-2 text-ink-gray-6 justify-center",
-        projectSummary: "bg-surface-blue-1 text-ink-blue-3",
+        projectSummary: "bg-surface-blue-2 text-ink-blue-3",
         allocation:
           "bg-surface-white text-ink-gray-5 shadow-[0px_0px_1px_0px_rgba(0,0,0,0.14),0px_1px_3px_0px_rgba(0,0,0,0.14)]",
         draft: "bg-surface-gray-2 text-ink-gray-5",
@@ -43,7 +43,7 @@ const ganttBarVariants = cva(
 );
 
 const trailingLabelVariants = cva(
-  "shrink-0 text-[13px] font-medium tracking-[0.02em]",
+  "min-w-0 flex-1 shrink-0 text-[13px] font-medium tracking-[0.02em] truncate",
   {
     variants: {
       variant: {
@@ -147,13 +147,7 @@ export const GanttBar = React.forwardRef<HTMLDivElement, GanttBarProps>(
         }}
       >
         {!isTimeoff && variant !== "draft" && isCrosshatch && (
-          <CrosshatchLayer
-            variant={
-              variant === "projectSummary"
-                ? "allocation"
-                : (variant ?? "allocation")
-            }
-          />
+          <CrosshatchLayer variant={variant ?? "allocation"} />
         )}
         {isTimeoff ? (
           <>

@@ -206,6 +206,7 @@ function prepareProjectSummaryBars(
     })) {
       const dayOfWeek = day.getDay();
 
+      // Project summary bars stay weekday-only
       if (dayOfWeek === 0 || dayOfWeek === 6) {
         continue;
       }
@@ -239,6 +240,7 @@ function prepareProjectSummaryBars(
 
     if (
       lastSegment &&
+      // Keep the comparison weekday-only as well so summary bars break at weekends.
       lastSegment.hours /
         (getNumDays(lastSegment.endDate, lastSegment.startDate, true) + 1) ===
         hours &&
