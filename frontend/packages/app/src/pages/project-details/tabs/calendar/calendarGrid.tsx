@@ -39,12 +39,19 @@ function getCalendarWeeks(year: number, month: number): Date[][] {
   );
 }
 
+function getItemDateKey(item: ProjectTimelineItem): string {
+  if (item.type === "Milestone") {
+    return item.startDate ?? item.plannedEndDate;
+  }
+  return item.plannedEndDate;
+}
+
 function groupByDate(
   items: ProjectTimelineItem[],
 ): Map<string, ProjectTimelineItem[]> {
   const map = new Map<string, ProjectTimelineItem[]>();
   for (const item of items) {
-    const key = item.plannedEndDate;
+    const key = getItemDateKey(item);
     if (!map.has(key)) map.set(key, []);
     map.get(key)!.push(item);
   }
