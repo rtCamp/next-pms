@@ -23,6 +23,7 @@ function ProjectDetail() {
         <ProjectDetailHeader />
         <div className="flex flex-1 min-h-0">
           <Tabs
+            tabListClassName="h-10"
             tabPanelClassName="overflow-auto pb-50 scrollbar"
             className="w-3/4 border-0 rounded-none border-r"
             tabs={TABS}
