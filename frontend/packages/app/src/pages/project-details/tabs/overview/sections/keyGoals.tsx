@@ -20,7 +20,12 @@ export function KeyGoals() {
 
   return (
     <OverviewSection title="Key goals of the project">
-      <TextEditor content={html} editable={false} fixedMenu={false} />
+      <TextEditor
+        content={html}
+        editable={false}
+        fixedMenu={false}
+        editorClass="text-sm text-ink-gray-7"
+      />
     </OverviewSection>
   );
 }
