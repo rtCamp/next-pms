@@ -8,6 +8,8 @@ import { FilterField, SelectOption } from "@rtcamp/frappe-ui-react";
  */
 import { AllocationsDuration } from "./types";
 
+export const ALLOCATIONS_PAGE_SIZE = 10;
+
 export const durationOptions: SelectOption[] = [
   { label: "This week", value: "this-week" },
   { label: "This month", value: "this-month" },

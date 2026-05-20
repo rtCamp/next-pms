@@ -144,11 +144,24 @@ function AddAllocationModal({
         );
 
         closeModal();
-        await onSuccess?.([
+        const employeeIds = [
           ...new Set(
             [initialValues?.employeeId, value.employeeId].filter(Boolean),
           ),
-        ] as string[]);
+        ] as string[];
+        const projectIds = [
+          ...new Set(
+            [initialValues?.projectId, value.projectId].filter(Boolean),
+          ),
+        ] as string[];
+        const refreshTargets = {
+          ...(employeeIds.length > 0 ? { employeeIds } : {}),
+          ...(projectIds.length > 0 ? { projectIds } : {}),
+        };
+
+        await onSuccess?.(
+          Object.keys(refreshTargets).length > 0 ? refreshTargets : undefined,
+        );
       } catch (err) {
         const error = parseFrappeErrorMsg(err as FrappeError);
         toast.error(error);
@@ -445,13 +458,13 @@ function AddAllocationModal({
                   </DateRangePicker>
                   {(!fromField.state.meta.isValid ||
                     !toField.state.meta.isValid) && (
-                      <ErrorMessage
-                        message={
-                          fromField.state.meta.errors[0]?.message ??
-                          toField.state.meta.errors[0]?.message
-                        }
-                      />
-                    )}
+                    <ErrorMessage
+                      message={
+                        fromField.state.meta.errors[0]?.message ??
+                        toField.state.meta.errors[0]?.message
+                      }
+                    />
+                  )}
                 </div>
               )}
             />

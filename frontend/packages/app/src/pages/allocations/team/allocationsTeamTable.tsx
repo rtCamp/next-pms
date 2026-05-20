@@ -28,9 +28,9 @@ import { InfiniteScroll } from "@/components/infiniteScroll";
 import { isWeekendEntryAllowed } from "@/lib/utils";
 import { useAllocationOutletContext } from "@/pages/allocations/allocationOutletContext";
 import { useUser } from "@/providers/user";
-import { EMPLOYEES_PER_PAGE } from "./constants";
 import { useAllocationsTeam } from "./context";
 import {
+  ALLOCATIONS_PAGE_SIZE,
   allocationsFilters,
   allocationsTypeOptions,
   durationOptions,
@@ -152,7 +152,7 @@ export const AllocationsTeamTable = () => {
                 isRefreshingVisibleGrid,
             })}
             skeletonClassName="h-15"
-            count={EMPLOYEES_PER_PAGE}
+            count={ALLOCATIONS_PAGE_SIZE}
           >
             <GanttGrid
               variant="team"

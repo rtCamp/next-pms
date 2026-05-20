@@ -29,6 +29,8 @@ export const GanttProjectRows: React.FC<GanttProjectRowsProps> = ({
     weeks,
     daysPerWeek,
     headerWidth,
+    hasRoleAccess,
+    onAddAllocation,
     toggleRow,
   } = useGanttStore((s) => ({
     project: s.projects[projectInd],
@@ -38,12 +40,16 @@ export const GanttProjectRows: React.FC<GanttProjectRowsProps> = ({
     weeks: s.weeks,
     daysPerWeek: s.daysPerWeek,
     headerWidth: s.headerWidth,
+    hasRoleAccess: s.hasRoleAccess,
+    onAddAllocation: s.onAddAllocation,
     toggleRow: s.toggleRow,
   }));
 
   if (!project) return null;
 
   const hasMembers = Boolean(project.members?.length);
+  const canManageAllocations = hasRoleAccess && Boolean(onAddAllocation);
+  const canExpand = hasMembers || canManageAllocations;
   const addMemberRowHeight = isExpanded ? ADD_PROJECT_ROW_HEIGHT : 0;
 
   return (
@@ -51,11 +57,11 @@ export const GanttProjectRows: React.FC<GanttProjectRowsProps> = ({
       <tr className="relative last:border-b border-outline-gray-1">
         <GanttProjectItem
           {...project}
-          canExpand={hasMembers}
+          canExpand={canExpand}
           isExpanded={isExpanded}
           showChevron={true}
           onToggle={() => {
-            if (hasMembers) {
+            if (canExpand) {
               toggleRow(projectInd);
             }
           }}
@@ -139,47 +145,55 @@ export const GanttProjectRows: React.FC<GanttProjectRowsProps> = ({
         </tr>
       ))}
 
-      <tr
-        className={cn("relative", { "pointer-events-none": !isExpanded })}
-        aria-hidden={!isExpanded}
-      >
-        <th
-          className="sticky left-0 z-10 bg-surface-white border-b border-r border-outline-gray-1 pl-8 pr-3 font-normal text-left align-middle flex items-center gap-2 w-full overflow-hidden transition-[height,background-color] cursor-pointer hover:bg-surface-gray-1"
-          style={{
-            width: headerWidth,
-            minWidth: headerWidth,
-            height: addMemberRowHeight,
-            borderBottomWidth: isExpanded ? undefined : 0,
-            borderRightWidth: isExpanded ? undefined : 0,
-          }}
+      {canManageAllocations && (
+        <tr
+          className={cn("relative", { "pointer-events-none": !isExpanded })}
+          aria-hidden={!isExpanded}
         >
-          <button
-            type="button"
-            onClick={() => {}}
-            tabIndex={isExpanded ? undefined : -1}
-            className="w-full h-full flex items-center gap-2 text-base font-medium text-ink-gray-9 overflow-hidden"
+          <th
+            className="sticky left-0 z-10 bg-surface-white border-b border-r border-outline-gray-1 pl-8 pr-3 font-normal text-left align-middle flex items-center gap-2 w-full overflow-hidden transition-[height,background-color] cursor-pointer hover:bg-surface-gray-1"
+            style={{
+              width: headerWidth,
+              minWidth: headerWidth,
+              height: addMemberRowHeight,
+              borderBottomWidth: isExpanded ? undefined : 0,
+              borderRightWidth: isExpanded ? undefined : 0,
+            }}
           >
-            <AddMd className="size-4 shrink-0" />
-            <span className="truncate">Add member</span>
-          </button>
-        </th>
-        {weeks.map((week, index) => (
+            <button
+              type="button"
+              onClick={() =>
+                onAddAllocation?.({
+                  projectId: project.id,
+                  projectName: project.name,
+                  customerName: project.client,
+                })
+              }
+              tabIndex={isExpanded ? undefined : -1}
+              className="w-full h-full flex items-center gap-2 text-base font-medium text-ink-gray-9 overflow-hidden"
+            >
+              <AddMd className="size-4 shrink-0" />
+              <span className="truncate">Add member</span>
+            </button>
+          </th>
+          {weeks.map((week, index) => (
+            <td
+              key={`${week}-${index}`}
+              colSpan={daysPerWeek}
+              className={cn(
+                "overflow-hidden transition-[height] duration-200 ease-in-out",
+                { "border-r border-b border-outline-gray-1": isExpanded },
+              )}
+              style={{ height: addMemberRowHeight }}
+            />
+          ))}
           <td
-            key={`${week}-${index}`}
-            colSpan={daysPerWeek}
-            className={cn(
-              "overflow-hidden transition-[height] duration-200 ease-in-out",
-              { "border-r border-b border-outline-gray-1": isExpanded },
-            )}
-            style={{ height: addMemberRowHeight }}
+            aria-hidden="true"
+            className="p-0 border-0 w-0 min-w-0 max-w-0"
+            style={{ width: 0 }}
           />
-        ))}
-        <td
-          aria-hidden="true"
-          className="p-0 border-0 w-0 min-w-0 max-w-0"
-          style={{ width: 0 }}
-        />
-      </tr>
+        </tr>
+      )}
     </React.Fragment>
   );
 };

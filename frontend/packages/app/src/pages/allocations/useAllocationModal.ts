@@ -12,8 +12,9 @@ import { useFrappeDeleteDoc } from "frappe-react-sdk";
  */
 import type { AddAllocationInitialValues } from "@/pages/allocations/team/add-allocation/types";
 import type { AllocationOutletContext } from "./allocationOutletContext";
+import type { AllocationRefreshTargets } from "./types";
 
-type RefreshAllocations = (employeeIds?: string[]) => Promise<void>;
+type RefreshAllocations = (targets?: AllocationRefreshTargets) => Promise<void>;
 
 export function useAllocationModal(refresh: RefreshAllocations) {
   const [isOpen, setIsOpen] = useState(false);
@@ -72,7 +73,14 @@ export function useAllocationModal(refresh: RefreshAllocations) {
 
       try {
         await deleteDoc("Resource Allocation", data.allocationId);
-        await refresh(data.employeeId ? [data.employeeId] : undefined);
+        const refreshTargets = {
+          ...(data.employeeId ? { employeeIds: [data.employeeId] } : {}),
+          ...(data.projectId ? { projectIds: [data.projectId] } : {}),
+        };
+
+        await refresh(
+          Object.keys(refreshTargets).length > 0 ? refreshTargets : undefined,
+        );
         toast.success("The allocation has been deleted successfully");
       } catch {
         toast.error("Failed to delete the allocation");
@@ -90,8 +98,8 @@ export function useAllocationModal(refresh: RefreshAllocations) {
   }, []);
 
   const handleSuccess = useCallback(
-    async (employeeIds?: string[]) => {
-      await refresh(employeeIds);
+    async (targets?: AllocationRefreshTargets) => {
+      await refresh(targets);
       setIsOpen(false);
       setInitialValues(undefined);
       setVariant("add");

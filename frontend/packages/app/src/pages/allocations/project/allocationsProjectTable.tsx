@@ -2,9 +2,19 @@
  * External dependencies.
  */
 import { useState } from "react";
-import { GanttGrid } from "@next-pms/design-system/components";
-import type { FilterCondition } from "@rtcamp/frappe-ui-react";
-import { Button, Filter, Select, TextInput } from "@rtcamp/frappe-ui-react";
+import { mergeClassNames as cn } from "@next-pms/design-system";
+import {
+  GanttGrid,
+  Spinner,
+  Typography,
+} from "@next-pms/design-system/components";
+import {
+  Button,
+  Filter,
+  FilterCondition,
+  Select,
+  TextInput,
+} from "@rtcamp/frappe-ui-react";
 import {
   DotHorizontal,
   SmallLeftChevron,
@@ -14,50 +24,64 @@ import {
 /**
  * Internal dependencies.
  */
+import { InfiniteScroll } from "@/components/infiniteScroll";
 import { isWeekendEntryAllowed } from "@/lib/utils";
+import { useAllocationOutletContext } from "@/pages/allocations/allocationOutletContext";
+import { useUser } from "@/providers/user";
+import { useAllocationsProject } from "./context";
 import {
+  ALLOCATIONS_PAGE_SIZE,
   allocationsFilters,
   allocationsTypeOptions,
   durationOptions,
   navigationButtonAriaLabels,
 } from "../constants";
-import type { AllocationsDuration } from "../types";
-import {
-  getProjectAllocationShellStartDate,
-  getProjectAllocationWeekCount,
-  moveProjectAllocationShellDate,
-  projectAllocationShellProjects,
-} from "./fakeData";
 
 export const AllocationsProjectTable = () => {
-  const [searchInput, setSearch] = useState("");
-  const [duration, setDuration] = useState<AllocationsDuration>("this-quarter");
+  const searchInput = useAllocationsProject(({ state }) => state.searchInput);
+  const duration = useAllocationsProject(({ state }) => state.duration);
+  const weekCount = useAllocationsProject(({ state }) => state.weekCount);
+  const isQueryLoading = useAllocationsProject(
+    ({ state }) => state.isQueryLoading,
+  );
+  const isNextPageLoading = useAllocationsProject(
+    ({ state }) => state.isNextPageLoading,
+  );
+  const hasMore = useAllocationsProject(({ state }) => state.hasMore);
+  const projects = useAllocationsProject(({ state }) => state.projects);
+  const anchorDate = useAllocationsProject(({ state }) => state.anchorDate);
   const [allocationsType, setAllocationsType] = useState("all");
   const [compositeFilters, setCompositeFilters] = useState<FilterCondition[]>(
     [],
   );
-  const [anchorDate, setAnchorDate] = useState(() =>
-    getProjectAllocationShellStartDate(),
+
+  const setSearch = useAllocationsProject(({ actions }) => actions.setSearch);
+  const setDuration = useAllocationsProject(
+    ({ actions }) => actions.setDuration,
   );
+  const loadMore = useAllocationsProject(({ actions }) => actions.loadMore);
+  const handlePrevious = useAllocationsProject(
+    ({ actions }) => actions.handlePrevious,
+  );
+  const handleToday = useAllocationsProject(
+    ({ actions }) => actions.handleToday,
+  );
+  const handleNext = useAllocationsProject(({ actions }) => actions.handleNext);
 
-  const weekCount = getProjectAllocationWeekCount(duration);
+  const { hasRoleAccess } = useUser(({ state }) => ({
+    hasRoleAccess: state.hasRoleAccess,
+  }));
+
+  const {
+    openAddAllocationDialog,
+    openEditAllocationDialog,
+    openDeleteAllocationDialog,
+  } = useAllocationOutletContext();
+
   const showWeekend = isWeekendEntryAllowed();
-
-  const handlePrevious = () => {
-    setAnchorDate((currentDate) =>
-      moveProjectAllocationShellDate(currentDate, duration, "previous"),
-    );
-  };
-
-  const handleToday = () => {
-    setAnchorDate(getProjectAllocationShellStartDate());
-  };
-
-  const handleNext = () => {
-    setAnchorDate((currentDate) =>
-      moveProjectAllocationShellDate(currentDate, duration, "next"),
-    );
-  };
+  const hasProjects = projects.length > 0;
+  const isRefreshingVisibleGrid = isQueryLoading && hasProjects;
+  const showOverlay = isQueryLoading;
 
   return (
     <div className="flex flex-wrap gap-3.5 justify-between py-3.5">
@@ -65,7 +89,7 @@ export const AllocationsProjectTable = () => {
         <div className="flex flex-wrap gap-2">
           <TextInput
             className="w-xs"
-            placeholder="Search project or member"
+            placeholder="Search project"
             onChange={(e) => setSearch(e.target.value)}
             value={searchInput}
           />
@@ -74,9 +98,7 @@ export const AllocationsProjectTable = () => {
             className="w-fit"
             options={durationOptions}
             value={duration}
-            onChange={(value) =>
-              setDuration((value || "this-quarter") as AllocationsDuration)
-            }
+            onChange={(value) => setDuration(value || "this-quarter")}
           />
           <Select
             placeholder="Allocations Type"
@@ -94,7 +116,7 @@ export const AllocationsProjectTable = () => {
                 <SmallLeftChevron className="size-4 text-ink-gray-9" />
               )}
               onClick={handlePrevious}
-              aria-label={navigationButtonAriaLabels.previous[duration]}
+              aria-label={navigationButtonAriaLabels["previous"][duration]}
             />
             <Button variant="ghost" label="Today" onClick={handleToday} />
             <Button
@@ -103,7 +125,7 @@ export const AllocationsProjectTable = () => {
                 <SmallRightChevron className="size-4 text-ink-gray-9" />
               )}
               onClick={handleNext}
-              aria-label={navigationButtonAriaLabels.next[duration]}
+              aria-label={navigationButtonAriaLabels["next"][duration]}
             />
           </div>
           <Filter
@@ -120,15 +142,45 @@ export const AllocationsProjectTable = () => {
           />
         </div>
       </div>
-      <div className="relative w-full h-[calc(100vh-112px)] overflow-auto no-scrollbar">
-        <GanttGrid
-          variant="project"
-          startDate={anchorDate}
-          projects={projectAllocationShellProjects}
-          weekCount={weekCount}
-          showWeekend={showWeekend}
-          rowHeaderLabel="Projects"
-        />
+      <div className="relative w-full h-[calc(100vh-112px)]">
+        {hasProjects ? (
+          <InfiniteScroll
+            isLoading={isQueryLoading || isNextPageLoading}
+            hasMore={hasMore}
+            verticalLodMore={loadMore}
+            className={cn("w-full h-full overflow-auto no-scrollbar", {
+              "opacity-50 transition-opacity duration-150 pointer-events-none":
+                isRefreshingVisibleGrid,
+            })}
+            skeletonClassName="h-15"
+            count={ALLOCATIONS_PAGE_SIZE}
+          >
+            <GanttGrid
+              variant="project"
+              startDate={anchorDate}
+              projects={projects}
+              rowHeaderLabel="Projects"
+              weekCount={weekCount}
+              hasRoleAccess={hasRoleAccess}
+              showWeekend={showWeekend}
+              onAddAllocation={openAddAllocationDialog}
+              onEditAllocation={openEditAllocationDialog}
+              onDeleteAllocation={openDeleteAllocationDialog}
+            />
+          </InfiniteScroll>
+        ) : null}
+
+        {!isQueryLoading && !hasProjects ? (
+          <Typography className="flex h-full items-center justify-center">
+            No Data
+          </Typography>
+        ) : null}
+
+        {showOverlay ? (
+          <div className="absolute inset-0 z-20 flex items-center justify-center cursor-wait pointer-events-auto">
+            <Spinner />
+          </div>
+        ) : null}
       </div>
     </div>
   );

@@ -10,14 +10,14 @@ import { useDebounce } from "@/hooks/useDebounce";
 import { ALLOCATIONS_PAGE_SIZE } from "../constants";
 import type { AllocationRefreshTargets } from "../types";
 import { AllocationsDuration } from "../types";
-import {
-  AllocationsTeamContext,
-  type AllocationsTeamContextProps,
-} from "./context";
-import { useAllocationsTeamData } from "./useAllocationsTeamData";
 import { getWeekCountForDuration, moveDateByDuration } from "../utils";
+import {
+  AllocationsProjectContext,
+  type AllocationsProjectContextProps,
+} from "./context";
+import { useAllocationsProjectData } from "./useAllocationsProjectData";
 
-export function AllocationsTeamProvider({
+export function AllocationsProjectProvider({
   children,
 }: {
   children: React.ReactNode;
@@ -31,13 +31,13 @@ export function AllocationsTeamProvider({
   const debouncedSearch = useDebounce(searchInput, 400);
 
   const {
-    members,
+    projects,
     hasMore,
     isQueryLoading,
     isNextPageLoading,
     loadMore,
     refresh,
-  } = useAllocationsTeamData({
+  } = useAllocationsProjectData({
     anchorDate,
     weekCount,
     search: debouncedSearch,
@@ -70,15 +70,15 @@ export function AllocationsTeamProvider({
 
   const handleRefresh = useCallback(
     async (targets?: AllocationRefreshTargets) => {
-      await refresh(targets?.employeeIds);
+      await refresh(targets?.projectIds);
     },
     [refresh],
   );
 
-  const value = useMemo<AllocationsTeamContextProps>(
+  const value = useMemo<AllocationsProjectContextProps>(
     () => ({
       state: {
-        members,
+        projects,
         isQueryLoading,
         isNextPageLoading,
         hasMore,
@@ -98,9 +98,9 @@ export function AllocationsTeamProvider({
       },
     }),
     [
-      members,
-      isNextPageLoading,
+      projects,
       isQueryLoading,
+      isNextPageLoading,
       hasMore,
       searchInput,
       duration,
@@ -117,8 +117,8 @@ export function AllocationsTeamProvider({
   );
 
   return (
-    <AllocationsTeamContext.Provider value={value}>
+    <AllocationsProjectContext.Provider value={value}>
       {children}
-    </AllocationsTeamContext.Provider>
+    </AllocationsProjectContext.Provider>
   );
 }
