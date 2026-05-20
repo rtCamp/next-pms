@@ -31,7 +31,6 @@ function AddProjectModal({
   prefill,
   onSuccess,
 }: AddProjectModalProps) {
-  const [templateSearch, setTemplateSearch] = useState("");
   const [companySearch, setCompanySearch] = useState("");
 
   const toast = useToasts();
@@ -41,7 +40,6 @@ function AddProjectModal({
     defaultValues: {
       projectName: prefill?.projectName ?? "",
       phase: prefill?.phase ?? "Delivery Prep",
-      template: prefill?.template ?? "",
       company: prefill?.company ?? "",
     },
     validators: {
@@ -53,7 +51,6 @@ function AddProjectModal({
           naming_series: "PROJ-.####",
           project_name: value.projectName,
           custom_project_phase: value.phase,
-          project_template: value.template || undefined,
           company: value.company || undefined,
         });
         toast.success("Project created successfully");
@@ -73,7 +70,6 @@ function AddProjectModal({
     });
 
   const closeModal = useCallback(() => {
-    setTemplateSearch("");
     setCompanySearch("");
     onOpenChange(false);
     form.reset();
@@ -155,28 +151,6 @@ function AddProjectModal({
         />
 
         <form.Field
-          name="template"
-          children={(field) => (
-            <div>
-              <label className="block text-base text-ink-gray-5 mb-1.5">
-                Template
-              </label>
-              <Combobox
-                loading={isCompanyLoading}
-                inputClassName="bg-white h-8 border-outline-gray-2"
-                options={[]}
-                placeholder="Select project template"
-                searchValue={templateSearch}
-                onSearchChange={setTemplateSearch}
-                value={field.state.value || null}
-                onChange={(value) => field.handleChange(value ?? "")}
-                openOnFocus
-              />
-            </div>
-          )}
-        />
-
-        <form.Field
           name="company"
           children={(field) => (
             <div>
@@ -185,6 +159,7 @@ function AddProjectModal({
               </label>
               <Combobox
                 inputClassName="bg-white h-8 border-outline-gray-2"
+                loading={isCompanyLoading}
                 options={companyOptions}
                 placeholder="Select company"
                 searchValue={companySearch}

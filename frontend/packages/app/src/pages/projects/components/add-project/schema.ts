@@ -9,7 +9,6 @@ export const addProjectFormSchema = z.object({
     .string({ required_error: "Select Phase" })
     .trim()
     .min(1, { message: "Select Phase" }),
-  template: z.string().trim(),
   company: z
     .string({ required_error: "Select Company" })
     .trim()
