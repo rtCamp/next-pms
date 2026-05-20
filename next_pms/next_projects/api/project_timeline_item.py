@@ -5,12 +5,11 @@ from typing import Literal
 
 import frappe
 from frappe import only_for, whitelist
-from frappe.utils import cint, getdate, today
+from frappe.utils import add_to_date, cint, getdate, today
 
 from next_pms.api.utils import error_logger
 from next_pms.next_projects.api.constant import ALLOWED_ROLES, TIMELINE_ITEM_FIELDS
 from next_pms.next_projects.api.utils import get_user_image_map
-from next_pms.timesheet.api import get_count
 
 
 def get_watchers_map(item_names: list[str]) -> dict[str, list[dict]]:
@@ -96,15 +95,28 @@ def get_project_timeline_items(
     type: Literal["Milestone", "Touchpoint"] | None = None,
     start: int = 0,
     limit: int = 20,
+    start_date: str | None = None,
+    max_week: int = 4,
+    is_calendar: bool = False,
 ):
     """
-    Get active (not completed) Project Timeline Items for a project.
+    Get all Project Timeline Items (complete and incomplete) for a project.
+
+    Touchpoints do not have a start_date, so ordering and range filtering use
+    planned_end_date as the authoritative date field.
 
     Args:
         project: Project name to filter by
         type: "Milestone" or "Touchpoint" — omit to fetch both
         start: Pagination offset
         limit: Page size
+        start_date: ISO date string (e.g. "2026-05-05"); used as the range start
+            for planned_end_date filtering
+        max_week: Number of weeks from start_date to use as the range end
+        is_calendar: Pass "1"/1/True to skip the bulk-fetch of owner images and
+            watchers (e.g. for calendar views where those fields are not rendered).
+            Accepts "0"/"1" string values from HTTP query params — coerced via
+            cint() before use so "0" is correctly treated as falsy.
 
     Returns:
         {"data": [...], "total_count": int, "has_more": bool}
@@ -114,13 +126,18 @@ def get_project_timeline_items(
     if not project:
         frappe.throw(frappe._("project is required"))
 
+    is_calendar = bool(cint(is_calendar))
+
     filters = {
         "project": project,
-        "is_complete": 0,
     }
 
     if type:
         filters["type"] = type
+
+    if start_date and max_week:
+        end_date = add_to_date(getdate(start_date), weeks=cint(max_week))
+        filters["planned_end_date"] = ["between", [getdate(start_date), end_date]]
 
     items = frappe.get_all(
         "Project Timeline Item",
@@ -131,16 +148,19 @@ def get_project_timeline_items(
         order_by="start_date asc, planned_end_date asc",
     )
 
-    total_count = get_count("Project Timeline Item", filters=filters)
+    total_count = frappe.db.count("Project Timeline Item", filters=filters)
     has_more = cint(start) + cint(limit) < total_count
 
     item_names = [item.get("name") for item in items if item.get("name")]
 
-    # Bulk-fetch owner images; item_owner is a Link → User
-    owner_users = list({item.get("item_owner") for item in items if item.get("item_owner")})
-    user_image_map = get_user_image_map(owner_users)
-
-    watchers_map = get_watchers_map(item_names)
+    if is_calendar:
+        user_image_map = {}
+        watchers_map = {}
+    else:
+        # Bulk-fetch owner images; item_owner is a Link → User
+        owner_users = list({item.get("item_owner") for item in items if item.get("item_owner")})
+        user_image_map = get_user_image_map(owner_users)
+        watchers_map = get_watchers_map(item_names)
 
     data = [enrich_timeline_item(item, user_image_map, watchers_map) for item in items]
 
@@ -215,12 +235,16 @@ def mark_timeline_item_complete(name: str, is_complete: int = 1):
     """
     Mark a Project Timeline Item as complete or incomplete.
 
+    Setting is_complete=1 also records today's date as actual_end_date.
+    Reverting (is_complete=0) clears actual_end_date back to None.
+
     Args:
         name: Document name of the Project Timeline Item
-        is_complete: 1 to mark complete, 0 to revert
+        is_complete: 1 to mark complete, 0 to revert — accepts "0"/"1" string
+            values from HTTP form params (coerced via cint())
 
     Returns:
-        {"name": str, "is_complete": int}
+        {"name": str, "is_complete": int, "actual_end_date": str | None}
     """
     only_for(ALLOWED_ROLES, message=True)
 
@@ -229,9 +253,11 @@ def mark_timeline_item_complete(name: str, is_complete: int = 1):
 
     doc = frappe.get_doc("Project Timeline Item", name)
     doc.is_complete = cint(is_complete)
+    doc.actual_end_date = getdate() if cint(is_complete) else None
     doc.save(ignore_permissions=False)
 
     return {
         "name": doc.name,
         "is_complete": cint(doc.is_complete),
+        "actual_end_date": doc.actual_end_date,
     }
