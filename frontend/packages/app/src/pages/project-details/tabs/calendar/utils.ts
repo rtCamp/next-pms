@@ -9,7 +9,9 @@ import {
   endOfWeek,
   format,
   getDay,
+  isBefore,
   parseISO,
+  startOfDay,
   startOfISOWeek,
   startOfMonth,
   startOfWeek,
@@ -93,6 +95,11 @@ export function nearestColIndex(
     }
     return 0;
   }
+}
+
+/** Returns true when a date string represents a date strictly before today (day granularity). */
+export function isDateOverdue(dateStr: string): boolean {
+  return isBefore(parseISO(dateStr), startOfDay(new Date()));
 }
 
 export type ItemPosition = { left: number; width: number };

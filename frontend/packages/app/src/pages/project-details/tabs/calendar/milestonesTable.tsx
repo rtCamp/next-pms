@@ -1,25 +1,9 @@
 /**
- * External dependencies.
- */
-import { Avatar, Dropdown } from "@rtcamp/frappe-ui-react";
-import {
-  Check,
-  EditAlt,
-  NotificationBell,
-} from "@rtcamp/frappe-ui-react/icons";
-import { parseISO } from "date-fns";
-import { Diamond, Ellipsis } from "lucide-react";
-
-/**
  * Internal dependencies.
  */
-import { formatProjectDate, mergeClassNames } from "@/lib/utils";
-import { AvatarStack } from "./avatarStack";
+import { TimelineCell } from "./table/cells";
+import { MILESTONE_COLUMNS } from "./table/columns";
 import type { ProjectTimelineItem } from "./types";
-
-function isDateOverdue(dateStr: string): boolean {
-  return parseISO(dateStr) < new Date();
-}
 
 type MilestonesTableProps = {
   items: ProjectTimelineItem[];
@@ -46,111 +30,37 @@ export function MilestonesTable({
 
   return (
     <table className="w-full text-sm whitespace-nowrap">
-      <thead className="">
+      <thead>
         <tr className="border-b border-outline-gray-1 text-ink-gray-5 text-left">
-          <th className="p-2 text-sm">Title</th>
-          <th className="w-28 p-2 text-sm">Start date</th>
-          <th className="w-28 p-2 text-sm">Planned end</th>
-          <th className="w-28 p-2 text-sm">Actual end</th>
-          <th className="w-28 p-2 text-sm">Owners</th>
-          <th className="w-28 p-2 text-sm">Watchers</th>
+          {MILESTONE_COLUMNS.map((column) => (
+            <th
+              key={column.key}
+              className={`p-2 text-sm${column.width ? ` ${column.width}` : ""}`}
+            >
+              {column.label}
+            </th>
+          ))}
         </tr>
       </thead>
-
       <tbody>
-        {milestones.map((item) => {
-          const overdue =
-            !item.isComplete && isDateOverdue(item.plannedEndDate);
-          return (
-            <tr
-              key={item.id}
-              className="border-b border-outline-gray-1 last:border-b-0 hover:bg-surface-gray-1 transition-colors text-base text-ink-gray-6"
-            >
-              {/* Title */}
-              <td className="p-2">
-                <div className="flex items-center gap-2 text-ink-gray-9 ">
-                  <Diamond className="size-3.5 shrink-0" />
-                  <span className="font-medium truncate max-w-56">
-                    {item.title}
-                  </span>
-                </div>
-              </td>
-
-              {/* Start date */}
-              <td className="p-2">
-                {item.startDate ? formatProjectDate(item.startDate) : "—"}
-              </td>
-
-              {/* Planned end */}
-              <td className="p-2">
-                <span
-                  className={mergeClassNames(
-                    overdue ? "text-red-500" : "text-ink-gray-6",
-                  )}
-                >
-                  {formatProjectDate(item.plannedEndDate)}
-                </span>
-              </td>
-
-              {/* Actual end */}
-              <td className="p-2">
-                {item.actualEndDate
-                  ? formatProjectDate(item.actualEndDate)
-                  : "—"}
-              </td>
-
-              {/* Owner */}
-              <td className="p-2">
-                <div className="flex items-center gap-1.5">
-                  <Avatar
-                    size="xs"
-                    shape="circle"
-                    label={item.owner.fullName}
-                    image={item.owner.avatar}
-                  />
-                  <span>{item.owner.fullName}</span>
-                </div>
-              </td>
-
-              {/* Watchers */}
-              <td className="p-2">
-                <AvatarStack users={item.watchers} />
-              </td>
-
-              {/* Kebab */}
-              <td className="p-2">
-                <Dropdown
-                  dropdownClassName="border-none"
-                  placement="right"
-                  button={{
-                    variant: "ghost",
-                    icon: () => <Ellipsis size={16} />,
-                  }}
-                  options={[
-                    {
-                      label: "Edit",
-                      key: "edit",
-                      icon: <EditAlt className="size-4 mr-2" />,
-                      onClick: () => onEdit?.(item),
-                    },
-                    {
-                      label: "Mark as completed",
-                      key: "mark-as-completed",
-                      icon: <Check className="size-4 mr-2" />,
-                      onClick: () => onMarkAsCompleted?.(item),
-                    },
-                    {
-                      label: "Follow Document",
-                      key: "follow-document",
-                      icon: <NotificationBell className="size-4 mr-2" />,
-                      onClick: () => onFollowDocument?.(item),
-                    },
-                  ]}
+        {milestones.map((item) => (
+          <tr
+            key={item.id}
+            className="border-b border-outline-gray-1 last:border-b-0 hover:bg-surface-gray-1 transition-colors text-base text-ink-gray-6"
+          >
+            {MILESTONE_COLUMNS.map((column) => (
+              <td key={column.key} className="p-2">
+                <TimelineCell
+                  item={item}
+                  column={column}
+                  onEdit={onEdit}
+                  onMarkAsCompleted={onMarkAsCompleted}
+                  onFollowDocument={onFollowDocument}
                 />
               </td>
-            </tr>
-          );
-        })}
+            ))}
+          </tr>
+        ))}
       </tbody>
     </table>
   );
