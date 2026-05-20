@@ -2,22 +2,40 @@
  * External dependencies.
  */
 import { useState } from "react";
+import { useParams } from "react-router-dom";
 import { format, parseISO } from "date-fns";
 
 /**
  * Internal dependencies.
  */
+import { CalendarGrid } from "./calendarGrid";
 import { CalendarToolbar, type CalendarView } from "./calendarToolbar";
+import { getTimelineItems } from "./fake-data";
+import { GanttView } from "./ganttView";
 
 export function CalendarTab() {
+  const { projectId = "" } = useParams<{ projectId: string }>();
+  const items = getTimelineItems(projectId);
+
   const [currentDate, setCurrentDate] = useState(() => {
     const n = new Date();
     return new Date(n.getFullYear(), n.getMonth(), 1);
   });
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [activeView, setActiveView] = useState<CalendarView>("calendar");
   const [filterType, setFilterType] = useState("all");
+
+  const year = currentDate.getFullYear();
+  const month = currentDate.getMonth();
+
+  const filteredItems =
+    filterType === "all"
+      ? items
+      : items.filter((item) =>
+          filterType === "milestones"
+            ? item.type === "Milestone"
+            : item.type === "Touchpoint",
+        );
 
   function handlePeriodChange(isoVal: string) {
     const d = parseISO(isoVal);
@@ -56,6 +74,20 @@ export function CalendarTab() {
           filterValue={filterType}
           onFilterChange={setFilterType}
         />
+      </div>
+
+      {/* Calendar or Gantt view */}
+      <div className="border-b border-gray-100 -mx-5">
+        {activeView === "calendar" ? (
+          <CalendarGrid
+            year={year}
+            month={month}
+            items={filteredItems}
+            selectedDate={selectedDate}
+          />
+        ) : (
+          <GanttView year={year} month={month} items={filteredItems} />
+        )}
       </div>
     </div>
   );
