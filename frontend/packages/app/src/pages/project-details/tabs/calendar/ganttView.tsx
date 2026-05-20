@@ -13,12 +13,11 @@ import {
   startOfISOWeek,
   startOfMonth,
 } from "date-fns";
-import { Diamond, Zap } from "lucide-react";
-
 /**
  * Internal dependencies.
  */
 import { mergeClassNames as cn } from "@/lib/utils";
+import { GanttBar } from "./ganttBar";
 import type { ProjectTimelineItem } from "./types";
 
 // Layout constants
@@ -26,7 +25,7 @@ const COLUMN_WIDTH = 38; // px per day column
 const WEEK_LABEL_HEIGHT = 30; // px – week range row
 const DAY_HEADER_HEIGHT = 30; // px – day numbers row
 const ROW_HEIGHT = 60; // px – each item row
-const MIN_CARD_DAYS = 2; // minimum card width in days
+const MIN_CARD_DAYS = 1; // minimum card width in days
 
 /**
  * Build the visible day column list:
@@ -279,31 +278,13 @@ export function GanttView({
           {visibleItems.map((item) => {
             const pos = resolvePosition(item, dayColumns, colIndexMap);
             if (!pos) return null;
-            const isMilestone = item.type === "Milestone";
             return (
               <div
                 key={item.id}
                 className="relative"
                 style={{ height: ROW_HEIGHT }}
               >
-                <div
-                  className={cn(
-                    "absolute top-1/2 -translate-y-1/2 z-1",
-                    "flex items-center gap-1.5 px-2.5 rounded-md overflow-hidden mx-0.5",
-                    isMilestone
-                      ? "bg-surface-blue-2 text-blue-700"
-                      : "bg-surface-violet-1 text-violet-700",
-                  )}
-                  style={{ left: pos.left, width: pos.width, height: 32 }}
-                  title={item.title}
-                >
-                  {isMilestone ? (
-                    <Diamond className="size-3.5 shrink-0" />
-                  ) : (
-                    <Zap className="size-3.5 shrink-0" />
-                  )}
-                  <span className="truncate text-sm">{item.title}</span>
-                </div>
+                <GanttBar item={item} pos={pos} totalWidth={totalWidth} />
               </div>
             );
           })}

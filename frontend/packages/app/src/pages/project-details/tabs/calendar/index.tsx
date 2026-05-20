@@ -8,10 +8,10 @@ import { format, parseISO } from "date-fns";
 /**
  * Internal dependencies.
  */
-import { CalendarGrid } from "./calendar-grid";
+import { CalendarGrid } from "./calendarGrid";
 import { CalendarToolbar, type CalendarView } from "./calendarToolbar";
 import { getTimelineItems } from "./fake-data";
-import { GanttView } from "./gantt-view";
+import { GanttView } from "./ganttView";
 
 export function CalendarTab() {
   const { projectId = "" } = useParams<{ projectId: string }>();

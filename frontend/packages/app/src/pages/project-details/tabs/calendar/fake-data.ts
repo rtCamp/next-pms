@@ -456,7 +456,7 @@ const DEFAULT_ITEMS: ProjectTimelineItem[] = [
     project: "backend-api-overhaul",
     type: "Touchpoint",
     isComplete: false,
-    plannedEndDate: "2026-05-22",
+    plannedEndDate: "2026-05-30",
     owner: OWNERS.raj,
     watchers: WATCHERS.slice(1, 4),
   },
