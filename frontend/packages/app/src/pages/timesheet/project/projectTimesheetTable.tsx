@@ -1,14 +1,10 @@
 /**
  * External dependencies.
  */
-import { Fragment, useCallback, useState } from "react";
+import { Fragment } from "react";
+import { mergeClassNames as cn } from "@next-pms/design-system";
 import { Spinner, Typography } from "@next-pms/design-system/components";
-import {
-  Button,
-  Filter,
-  FilterCondition,
-  TextInput,
-} from "@rtcamp/frappe-ui-react";
+import { Button, Filter, TextInput } from "@rtcamp/frappe-ui-react";
 import { Ellipsis } from "lucide-react";
 
 /**
@@ -18,47 +14,47 @@ import { InfiniteScroll } from "@/components/infiniteScroll";
 import { ProjectTimesheetRow } from "@/components/timesheet-row";
 import { HeaderRow } from "@/components/timesheet-row/components/row/headerRow";
 import { NUMBER_OF_WEEKS_TO_FETCH } from "@/lib/constant";
-import { TimesheetFilters } from "@/types/timesheet";
 import { useProjectTimesheet } from "./context";
-import { sampleFields } from "../constants";
+import { projectTimesheetFilters } from "../constants";
 
 export const ProjectTimesheetTable = () => {
-  const hasMoreWeeks = useProjectTimesheet(({ state }) => state.hasMoreWeeks);
+  const hasMore = useProjectTimesheet(({ state }) => state.hasMore);
   const isLoadingProjectData = useProjectTimesheet(
     ({ state }) => state.isLoadingProjectData,
   );
-  const weekGroups = useProjectTimesheet(({ state }) => state.weekGroups);
-  const loadData = useProjectTimesheet(({ actions }) => actions.loadData);
-
-  const [compositeFilters, setCompositeFilters] = useState<FilterCondition[]>(
-    [],
+  const isFilterRequest = useProjectTimesheet(
+    ({ state }) => state.isFilterRequest,
   );
-  const [filters, setFilters] = useState<TimesheetFilters>({
-    search: "",
-    reportsTo: undefined,
-  });
+  const weekGroups = useProjectTimesheet(({ state }) => state.weekGroups);
+  const searchInput = useProjectTimesheet(({ state }) => state.searchInput);
+  const compositeFilters = useProjectTimesheet(
+    ({ state }) => state.compositeFilters,
+  );
+  const loadData = useProjectTimesheet(({ actions }) => actions.loadData);
+  const handleSearchChange = useProjectTimesheet(
+    ({ actions }) => actions.handleSearchChange,
+  );
+  const handleCompositeFilterChange = useProjectTimesheet(
+    ({ actions }) => actions.handleCompositeFilterChange,
+  );
 
-  const handleSearchChange = useCallback((value: string) => {
-    setFilters((prev) => ({ ...prev, search: value }));
-  }, []);
+  const isFilteredDataLoading = isFilterRequest && isLoadingProjectData;
 
   return (
-    <div className="w-full h-full py-3.5 px-3">
+    <div className="w-full flex-1 min-h-0 py-3.5 px-3 relative">
       <div className="flex flex-wrap gap-2 justify-between mb-3.5">
         <div className="flex gap-2">
           <TextInput
             placeholder="Search Tasks"
-            value={filters.search}
+            value={searchInput}
             onChange={(e) => handleSearchChange(e.target.value)}
           />
         </div>
         <div className="flex gap-2">
           <Filter
-            fields={sampleFields}
+            fields={projectTimesheetFilters}
             value={compositeFilters}
-            onChange={(newFilters) => {
-              setCompositeFilters(newFilters);
-            }}
+            onChange={handleCompositeFilterChange}
           />
           <Button icon={() => <Ellipsis size={16} />} />
         </div>
@@ -73,9 +69,15 @@ export const ProjectTimesheetTable = () => {
       ) : (
         <InfiniteScroll
           isLoading={isLoadingProjectData}
-          hasMore={hasMoreWeeks}
+          hasMore={hasMore}
           verticalLodMore={loadData}
-          className="w-full h-full overflow-auto scrollbar [scrollbar-gutter:stable]"
+          className={cn(
+            "w-full h-[calc(100%-var(--spacing)*7)] overflow-auto scrollbar [scrollbar-gutter:stable] opacity-100",
+            {
+              "opacity-50 transition-opacity duration-150":
+                isFilteredDataLoading,
+            },
+          )}
           count={NUMBER_OF_WEEKS_TO_FETCH}
         >
           <div className="min-w-225">
@@ -117,6 +119,13 @@ export const ProjectTimesheetTable = () => {
           </div>
         </InfiniteScroll>
       )}
+
+      {isFilteredDataLoading ? (
+        <Spinner
+          isFull
+          className="absolute top-0 left-0 w-full h-full cursor-wait"
+        />
+      ) : null}
     </div>
   );
 };

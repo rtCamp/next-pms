@@ -2,6 +2,7 @@
  * External dependencies.
  */
 import type { ApprovalStatusLabelType } from "@next-pms/design-system/components";
+import type { FilterCondition } from "@rtcamp/frappe-ui-react";
 import { createContext, useContextSelector } from "use-context-selector";
 
 /**
@@ -44,24 +45,34 @@ export type WeekGroup = {
 
 export interface ProjectTimesheetContextProps {
   state: {
-    hasMoreWeeks: boolean;
+    hasMore: boolean;
     isLoadingProjectData: boolean;
+    isFilterRequest: boolean;
     weekGroups: WeekGroup[];
+    searchInput: string;
+    compositeFilters: FilterCondition[];
   };
   actions: {
     loadData: () => void;
+    handleSearchChange: (value: string) => void;
+    handleCompositeFilterChange: (value: FilterCondition[]) => void;
   };
 }
 
 export const ProjectTimesheetContext =
   createContext<ProjectTimesheetContextProps>({
     state: {
-      hasMoreWeeks: false,
+      hasMore: false,
       isLoadingProjectData: false,
+      isFilterRequest: false,
       weekGroups: [],
+      searchInput: "",
+      compositeFilters: [],
     },
     actions: {
       loadData: () => null,
+      handleSearchChange: () => null,
+      handleCompositeFilterChange: () => null,
     },
   });
 
