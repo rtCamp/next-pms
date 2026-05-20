@@ -43,7 +43,7 @@ const ganttBarVariants = cva(
 );
 
 const trailingLabelVariants = cva(
-  "min-w-0 flex-1 shrink-0 text-[13px] font-medium tracking-[0.02em] truncate",
+  "min-w-0 flex-1 shrink-0 text-end text-[13px] font-medium tracking-[0.02em] truncate",
   {
     variants: {
       variant: {

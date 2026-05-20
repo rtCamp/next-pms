@@ -104,7 +104,7 @@ const projectAllocationShellTemplates: ProjectGroup[] = [
         capacity: "20 hrs/week",
         capacityHoursPerDay: 4,
         allocations: [
-          createShellAllocation(6, 1, 3, 1, 4, {
+          createShellAllocation(6, 1, 4, 2, 1, {
             billable: false,
             tentative: true,
           }),
