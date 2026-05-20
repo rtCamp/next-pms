@@ -154,7 +154,7 @@ export function GanttView({
             <div
               key={x}
               className="absolute top-0 bottom-0 w-px bg-outline-gray-1 pointer-events-none"
-              style={{ left: x }}
+              style={{ left: x - 1 }}
             />
           ))}
 
