@@ -411,6 +411,12 @@ def get_project_sidebar(project: str):
     """
     only_for(ALLOWED_ROLES, message=True)
 
+    if not project:
+        frappe.throw("Project is required", frappe.MandatoryError)
+
+    if not frappe.db.exists("Project", project):
+        frappe.throw(f"Project '{project}' does not exist", frappe.DoesNotExistError)
+
     project_doc = frappe.get_doc("Project", project)
     doc_dict = project_doc.as_dict()
 
