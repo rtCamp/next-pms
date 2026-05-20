@@ -26,7 +26,7 @@ function ProjectDetail() {
       <ProjectDetailHeader projectName={projectName} />
       <div className="flex flex-1 min-h-0">
         <Tabs
-          tabPanelClassName="overflow-auto pb-50 scrollbar"
+          tabPanelClassName="overflow-y-auto pb-50 scrollbar-thin"
           className="w-3/4 border-0 rounded-none border-r"
           tabs={TABS}
           tabIndex={activeTab}
