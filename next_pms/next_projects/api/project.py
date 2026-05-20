@@ -326,7 +326,7 @@ def _get_opportunity_link(project_doc) -> dict | None:
     if "next_crm" in frappe.get_installed_apps():
         url = f"{site_url}/next-crm/opportunities/{opportunity}"
     else:
-        url = f"{site_url}/desk#Form/Opportunity/{opportunity}"
+        url = frappe.utils.get_url_to_form("Opportunity", opportunity)
 
     return {"name": opportunity, "url": url}
 
@@ -418,9 +418,8 @@ def get_project_sidebar(project: str):
         frappe.throw(frappe._("Project '{0}' does not exist").format(project), frappe.DoesNotExistError)
 
     project_doc = frappe.get_doc("Project", project)
-    doc_dict = project_doc.as_dict()
 
-    total_budget = get_total_budget(doc_dict)
+    total_budget = get_total_budget(project_doc)
     cost_accrued = flt(project_doc.total_costing_amount)
     cost_forecasted = get_cost_forecasted(project)
 
