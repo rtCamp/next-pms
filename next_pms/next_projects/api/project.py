@@ -422,10 +422,9 @@ def get_project_sidebar(project: str):
         "summary": project_doc.get("custom_short_summary"),
         "details": {
             "project_name": project_doc.project_name,
-            "phase": project_doc.get("custom_project_phase"),
+            "phase": project_doc.custom_project_phase,
             "status": project_doc.status,
             "customer": project_doc.customer,
-            "customer_name": project_doc.customer_name,
         },
         "links": {
             "slack": project_doc.get("custom_internal_slack_channel"),
