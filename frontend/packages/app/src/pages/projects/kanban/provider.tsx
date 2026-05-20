@@ -1,7 +1,7 @@
 /**
  * External dependencies.
  */
-import { useCallback, useMemo, type PropsWithChildren } from "react";
+import { useCallback, useMemo, useState, type PropsWithChildren } from "react";
 import { useFrappeGetCall, useFrappeUpdateDoc } from "frappe-react-sdk";
 
 /**
@@ -9,6 +9,8 @@ import { useFrappeGetCall, useFrappeUpdateDoc } from "frappe-react-sdk";
  */
 import { kebabToTitleCase } from "@/lib/utils";
 
+import AddProjectModal from "../components/add-project";
+import type { AddProjectFormValues } from "../components/add-project/schema";
 import { useProjectFilters } from "../hooks/useProjectFilters";
 import type { Phase } from "../types";
 import { buildListFrappeFilters } from "../utils";
@@ -20,6 +22,21 @@ import type { ResponseProjectKanban } from "./types";
 
 export function ProjectKanbanProvider({ children }: PropsWithChildren) {
   const { filters } = useProjectFilters();
+  const [addProjectOpen, setAddProjectOpen] = useState(false);
+  const [addProjectPrefill, setAddProjectPrefill] = useState<
+    Partial<AddProjectFormValues> | undefined
+  >(undefined);
+  const openAddProjectModal = useCallback(
+    (prefill?: Partial<AddProjectFormValues>) => {
+      setAddProjectPrefill(prefill);
+      setAddProjectOpen(true);
+    },
+    [],
+  );
+  const closeAddProjectModal = useCallback(() => {
+    setAddProjectOpen(false);
+    setAddProjectPrefill(undefined);
+  }, []);
 
   const frappeFilters = useMemo(
     () => buildListFrappeFilters(filters),
@@ -58,17 +75,40 @@ export function ProjectKanbanProvider({ children }: PropsWithChildren) {
         data: message,
         isLoading,
         error,
+        addProjectOpen,
       },
       actions: {
         updateProjectPhase,
+        openAddProjectModal,
+        closeAddProjectModal,
       },
     }),
-    [message, isLoading, error, updateProjectPhase],
+    [
+      message,
+      isLoading,
+      error,
+      updateProjectPhase,
+      addProjectOpen,
+      openAddProjectModal,
+      closeAddProjectModal,
+    ],
   );
 
   return (
     <ProjectKanbanContext.Provider value={value}>
       {children}
+      <AddProjectModal
+        open={addProjectOpen}
+        onOpenChange={(next) => {
+          if (next) {
+            setAddProjectOpen(true);
+          } else {
+            closeAddProjectModal();
+          }
+        }}
+        prefill={addProjectPrefill}
+        onSuccess={() => mutate()}
+      />
     </ProjectKanbanContext.Provider>
   );
 }

@@ -1,53 +1,95 @@
 /**
  * External dependencies.
  */
-import { useCallback, useEffect, useMemo, useReducer } from "react";
-import { getFormatedDate } from "@next-pms/design-system/date";
-import { useToasts } from "@rtcamp/frappe-ui-react";
-import { addDays } from "date-fns";
-import { useFrappeGetCall, type FrappeError } from "frappe-react-sdk";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { getFormatedDate, getTodayDate } from "@next-pms/design-system/date";
+import type { FilterCondition } from "@rtcamp/frappe-ui-react";
+import { addDays, parseISO } from "date-fns";
+import type { Error as FrappeError } from "frappe-js-sdk/lib/frappe_app/types";
+import { useFrappeGetCall } from "frappe-react-sdk";
 
 /**
  * Internal dependencies.
  */
 import { NUMBER_OF_WEEKS_TO_FETCH } from "@/lib/constant";
-import { parseFrappeErrorMsg } from "@/lib/utils";
+import { buildCompositeFilters } from "@/lib/utils";
 import type { ProjectMemberData, WeekGroup } from "./context";
-import {
-  createInitialProjectTimesheetState,
-  projectTimesheetReducer,
-} from "./reducer";
-import type { ProjectTimesheetApiResponse } from "./types";
+import type { ApiPayload, ProjectTimesheetApiResponse } from "./types";
 
 type UseProjectTimesheetDataResult = {
-  hasMoreWeeks: boolean;
+  hasMore: boolean;
   isLoadingProjectData: boolean;
   weekGroups: WeekGroup[];
   loadData: () => void;
+  error: FrappeError | undefined;
+  resetData: () => void;
 };
 
-const EMPLOYEE_PAGE_LENGTH = 10;
+type UseProjectTimesheetOptions = {
+  search: string;
+  compositeFilters: FilterCondition[];
+};
 
-export function useProjectTimesheetData(): UseProjectTimesheetDataResult {
-  const toast = useToasts();
+const PROJECT_PAGE_LENGTH = 10;
 
-  const [state, dispatch] = useReducer(
-    projectTimesheetReducer,
-    undefined,
-    createInitialProjectTimesheetState,
+export function useProjectTimesheetData({
+  search,
+  compositeFilters,
+}: UseProjectTimesheetOptions): UseProjectTimesheetDataResult {
+  const [weekDate, setWeekDate] = useState(getTodayDate());
+  const [projectStart, setProjectStart] = useState(0);
+
+  // Each entry represents one paginated fetch.
+  // All derived data (weeks, projects, members) is computed from this.
+  const [pages, setPages] = useState<ApiPayload[]>([]);
+
+  // Track filter changes to reset pagination
+  const prevFiltersRef = useRef({ search, compositeFilters });
+
+  // Build Frappe-compatible filters from composite filters
+  const { startDate, maxWeek, frappeFilters } = useMemo(
+    () => buildCompositeFilters(compositeFilters),
+    [compositeFilters],
   );
+
+  const resetData = useCallback(() => {
+    setPages([]);
+    // When a date-range filter is active, start the sliding window at the
+    // filter's end date (startDate) so week pagination walks backward through
+    // the filtered range instead of from today.
+    setWeekDate(startDate ?? getTodayDate());
+    setProjectStart(0);
+  }, [startDate]);
+
+  // Reset pagination when filters change
+  useEffect(() => {
+    const filtersChanged =
+      prevFiltersRef.current.search !== search ||
+      JSON.stringify(prevFiltersRef.current.compositeFilters) !==
+        JSON.stringify(compositeFilters);
+
+    if (filtersChanged) {
+      resetData();
+      prevFiltersRef.current = { search, compositeFilters };
+    }
+  }, [search, compositeFilters, resetData]);
+
+  const hasActiveFilter = !!search || compositeFilters.length > 0;
 
   const {
     data: projectTimesheetData,
     error: projectTimesheetError,
-    isLoading: isLoadingProjectData,
+    isLoading: isLoadingProjectApiData,
   } = useFrappeGetCall<ProjectTimesheetApiResponse>(
     "next_pms.timesheet.api.project.get_project_timesheet_data",
     {
-      date: state.weekDate,
-      max_week: String(NUMBER_OF_WEEKS_TO_FETCH),
-      page_length: String(EMPLOYEE_PAGE_LENGTH),
-      start: String(state.employeeStart),
+      date: weekDate,
+      max_week: NUMBER_OF_WEEKS_TO_FETCH,
+      page_length: PROJECT_PAGE_LENGTH,
+      start: projectStart,
+      search: search || null,
+      filters: frappeFilters.length > 0 ? JSON.stringify(frappeFilters) : null,
+      skip_empty_weeks: hasActiveFilter || null,
     },
   );
 
@@ -55,33 +97,26 @@ export function useProjectTimesheetData(): UseProjectTimesheetDataResult {
     if (!projectTimesheetData?.message) {
       return;
     }
-    dispatch({
-      type: "APPEND_PAGE",
-      payload: projectTimesheetData.message,
-    });
+    setPages((prev) => [...prev, projectTimesheetData.message as ApiPayload]);
   }, [projectTimesheetData]);
 
-  useEffect(() => {
-    if (!projectTimesheetError) {
-      return;
-    }
+  // All transformation lives here. Because this is pure data derivation (no side effects).
+  const { hasMoreProjects, hasMoreWeeks, hasMore, weekGroups } = useMemo(() => {
+    const oneYearAgo = addDays(parseISO(getTodayDate()), -365);
+    // When a date-range filter is active, limit week pagination to the actual
+    // filter range (startDate − maxWeek weeks). Without a filter, fall back
+    // to the 1-year rolling limit.
+    const hasMoreWeeks = startDate
+      ? parseISO(weekDate) > addDays(parseISO(startDate), -(maxWeek * 7))
+      : parseISO(weekDate) > oneYearAgo;
 
-    const message = parseFrappeErrorMsg(projectTimesheetError as FrappeError);
-    toast.error(message || "Failed to load project timesheets.");
-  }, [projectTimesheetError, toast]);
-
-  const { hasMoreEmployees, hasMoreWeeks, weekGroups } = useMemo(() => {
-    const hasMoreEmployees =
-      state.pages.length > 0
-        ? (state.pages[state.pages.length - 1].has_more ?? false)
-        : true;
-
-    const hasMoreWeeks = true;
+    const hasMoreProjects =
+      pages.length > 0 ? (pages[pages.length - 1].has_more ?? false) : true;
 
     const weekMap = new Map<string, WeekGroup>();
     const projectMemberDedup = new Map<string, Set<string>>();
 
-    state.pages.forEach((page) => {
+    pages.forEach((page) => {
       (page.week_groups ?? []).forEach((week) => {
         if (!weekMap.has(week.start_date)) {
           weekMap.set(week.start_date, {
@@ -142,48 +177,86 @@ export function useProjectTimesheetData(): UseProjectTimesheetDataResult {
     const weekGroups = Array.from(weekMap.values())
       .sort(
         (a, b) =>
-          new Date(b.start_date).getTime() - new Date(a.start_date).getTime(),
+          parseISO(b.start_date).getTime() - parseISO(a.start_date).getTime(),
       )
       .map((week) => ({
         ...week,
-        projects: week.projects.sort((a, b) =>
+        projects: [...week.projects].sort((a, b) =>
           (a.projectName || a.project).localeCompare(
             b.projectName || b.project,
           ),
         ),
       }));
 
-    return { hasMoreEmployees, hasMoreWeeks, weekGroups };
-  }, [state.pages]);
+    const hasMore = hasMoreProjects || hasMoreWeeks;
 
+    return { hasMoreProjects, hasMoreWeeks, hasMore, weekGroups };
+  }, [pages, weekDate, startDate, maxWeek]);
+
+  // When the current window is fully loaded but yields no visible weeks, we are
+  // about to auto-advance. Expose this as "still loading" to prevent a flicker
+  // where the consumer briefly sees an empty / "No Data" state before the next
+  // fetch starts.
+  const isAutoAdvancing =
+    !isLoadingProjectApiData &&
+    pages.length > 0 &&
+    !hasMoreProjects &&
+    weekGroups.length === 0 &&
+    hasMoreWeeks;
+
+  // Auto-advance the week window when a fully-loaded window yields no visible
+  // weeks (all employees have "Not Submitted" timesheets for that range).
+  // This prevents a "No Data" screen when data exists in older date ranges,
+  // which happens frequently when skip_empty_weeks is active with a filter.
+  useEffect(() => {
+    if (isLoadingProjectApiData) return;
+    if (pages.length === 0) return;
+    if (hasMoreProjects) return; // current window not fully loaded yet
+    if (weekGroups.length > 0) return; // we have visible data
+    if (!hasMoreWeeks) return;
+
+    setWeekDate((prev) =>
+      getFormatedDate(addDays(parseISO(prev), -(NUMBER_OF_WEEKS_TO_FETCH * 7))),
+    );
+    setProjectStart(0);
+  }, [
+    isLoadingProjectApiData,
+    hasMoreProjects,
+    hasMoreWeeks,
+    weekGroups.length,
+    pages.length,
+  ]);
+
+  // Unified loadData: prioritizes project pagination, then week pagination.
   const loadData = useCallback(() => {
-    if (isLoadingProjectData) {
+    if (isLoadingProjectApiData) return;
+
+    // Priority 1: Load more projects for current date range
+    if (hasMoreProjects) {
+      setProjectStart((prev) => prev + PROJECT_PAGE_LENGTH);
       return;
     }
 
-    if (hasMoreEmployees) {
-      dispatch({
-        type: "LOAD_MORE_EMPLOYEES",
-        payload: { pageLength: EMPLOYEE_PAGE_LENGTH },
-      });
-      return;
+    // Priority 2: Load more weeks (with project pagination reset).
+    // Advance by the fixed batch window from the current weekDate so we always
+    // produce a new date value.
+    if (hasMoreWeeks) {
+      setWeekDate((prev) =>
+        getFormatedDate(
+          addDays(parseISO(prev), -(NUMBER_OF_WEEKS_TO_FETCH * 7)),
+        ),
+      );
+      setProjectStart(0);
     }
-
-    if (!hasMoreWeeks || weekGroups.length === 0) {
-      return;
-    }
-
-    const oldestWeek = weekGroups[weekGroups.length - 1];
-    dispatch({
-      type: "SET_WEEK_DATE",
-      payload: getFormatedDate(addDays(oldestWeek.start_date, -1)),
-    });
-  }, [hasMoreEmployees, hasMoreWeeks, isLoadingProjectData, weekGroups]);
+  }, [hasMoreProjects, hasMoreWeeks, isLoadingProjectApiData]);
 
   return {
-    hasMoreWeeks,
-    isLoadingProjectData,
+    hasMore,
+    isLoadingProjectData:
+      isLoadingProjectApiData || isAutoAdvancing || pages.length === 0,
     weekGroups,
     loadData,
+    error: projectTimesheetError,
+    resetData,
   };
 }
