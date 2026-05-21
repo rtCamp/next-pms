@@ -28,7 +28,6 @@ interface UseUserLookupOptions {
 
 /**
  * Fetches Frappe User records for lookup fields that expect a User email (name).
- * Uses frappe.client.get_list to query the User doctype directly.
  */
 export const useUserLookup = ({
   shouldFetch = true,
@@ -46,9 +45,11 @@ export const useUserLookup = ({
     params: ({ query: searchQuery, pageSize: limit }) => ({
       doctype: "User",
       fields: ["name", "full_name", "user_image"],
-      filters: searchQuery
-        ? [["full_name", "like", `%${searchQuery}%`]]
-        : [["user_type", "=", "System User"]],
+      filters: [
+        ["user_type", "=", "System User"],
+        ["enabled", "=", 1],
+        ...(searchQuery ? [["full_name", "like", `%${searchQuery}%`]] : []),
+      ],
       limit,
     }),
     getItems: (message) => message ?? [],
