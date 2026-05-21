@@ -26,7 +26,9 @@ const GanttGridInner: React.FC<{
   className?: string;
 }> = ({ rootRef, className }) => {
   const {
+    variant,
     members,
+    rowHeaderLabel,
     headerWidth,
     columnWidth,
     weekendColumns,
@@ -38,7 +40,9 @@ const GanttGridInner: React.FC<{
     pendingDeleteEntry,
     clearPendingDeleteEntry,
   } = useGanttStore((s) => ({
+    variant: s.variant,
     members: s.members,
+    rowHeaderLabel: s.rowHeaderLabel,
     headerWidth: s.headerWidth,
     columnWidth: s.columnWidth,
     weekendColumns: s.weekendColumns,
@@ -93,7 +97,7 @@ const GanttGridInner: React.FC<{
               className="sticky left-0 z-20 bg-surface-white text-ink-gray-8 border border-l-0 border-outline-gray-1 font-medium text-start p-3 pl-4.25"
               style={{ width: headerWidth, height: HEADER_HEIGHT }}
             >
-              Members
+              {rowHeaderLabel}
             </th>
 
             {weeks.map((weekIndex) => (
@@ -103,9 +107,11 @@ const GanttGridInner: React.FC<{
         </thead>
 
         <tbody>
-          {members.map((_, rowIndex) => (
-            <GanttMemberRows key={rowIndex} memberInd={rowIndex} />
-          ))}
+          {variant === "team"
+            ? members.map((_, rowIndex) => (
+                <GanttMemberRows key={rowIndex} memberInd={rowIndex} />
+              ))
+            : null}
         </tbody>
       </table>
 
@@ -152,7 +158,10 @@ export const GanttGrid: React.FC<GanttGridProps> = (props) => {
 
   const resolvedProps = useMemo(
     () => ({
+      variant: props.variant,
       members: props.members,
+      projects: props.projects,
+      rowHeaderLabel: props.rowHeaderLabel,
       showWeekend: props.showWeekend ?? true,
       startDate: props.startDate,
       weekCount: props.weekCount ?? 3,
@@ -163,12 +172,15 @@ export const GanttGrid: React.FC<GanttGridProps> = (props) => {
     }),
     [
       props.hasRoleAccess,
-      props.members,
       props.onAddAllocation,
       props.onDeleteAllocation,
       props.onEditAllocation,
+      props.members,
+      props.projects,
+      props.rowHeaderLabel,
       props.showWeekend,
       props.startDate,
+      props.variant,
       props.weekCount,
     ],
   );

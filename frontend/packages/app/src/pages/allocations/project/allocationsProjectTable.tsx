@@ -2,14 +2,9 @@
  * External dependencies.
  */
 import { useState } from "react";
-import { Typography } from "@next-pms/design-system/components";
-import {
-  Button,
-  Filter,
-  FilterCondition,
-  Select,
-  TextInput,
-} from "@rtcamp/frappe-ui-react";
+import { GanttGrid } from "@next-pms/design-system/components";
+import type { FilterCondition } from "@rtcamp/frappe-ui-react";
+import { Button, Filter, Select, TextInput } from "@rtcamp/frappe-ui-react";
 import {
   DotHorizontal,
   SmallLeftChevron,
@@ -19,26 +14,50 @@ import {
 /**
  * Internal dependencies.
  */
+import { isWeekendEntryAllowed } from "@/lib/utils";
 import {
   allocationsFilters,
   allocationsTypeOptions,
   durationOptions,
   navigationButtonAriaLabels,
 } from "../constants";
-import { AllocationsDuration } from "../types";
+import type { AllocationsDuration } from "../types";
+import {
+  getProjectAllocationShellStartDate,
+  getProjectAllocationWeekCount,
+  moveProjectAllocationShellDate,
+  projectAllocationShellProjects,
+} from "./fakeData";
 
 export const AllocationsProjectTable = () => {
-  const [compositeFilters, setCompositeFilters] = useState<FilterCondition[]>(
-    [],
-  );
-
-  // TODO: Replace with actual data and handlers from context
   const [searchInput, setSearch] = useState("");
   const [duration, setDuration] = useState<AllocationsDuration>("this-quarter");
   const [allocationsType, setAllocationsType] = useState("all");
-  const handlePrevious = () => {};
-  const handleToday = () => {};
-  const handleNext = () => {};
+  const [compositeFilters, setCompositeFilters] = useState<FilterCondition[]>(
+    [],
+  );
+  const [anchorDate, setAnchorDate] = useState(() =>
+    getProjectAllocationShellStartDate(),
+  );
+
+  const weekCount = getProjectAllocationWeekCount(duration);
+  const showWeekend = isWeekendEntryAllowed();
+
+  const handlePrevious = () => {
+    setAnchorDate((currentDate) =>
+      moveProjectAllocationShellDate(currentDate, duration, "previous"),
+    );
+  };
+
+  const handleToday = () => {
+    setAnchorDate(getProjectAllocationShellStartDate());
+  };
+
+  const handleNext = () => {
+    setAnchorDate((currentDate) =>
+      moveProjectAllocationShellDate(currentDate, duration, "next"),
+    );
+  };
 
   return (
     <div className="flex flex-wrap gap-3.5 justify-between py-3.5">
@@ -102,9 +121,14 @@ export const AllocationsProjectTable = () => {
         </div>
       </div>
       <div className="relative w-full h-[calc(100vh-112px)] overflow-auto no-scrollbar">
-        <Typography className="flex h-full items-center justify-center">
-          No Data
-        </Typography>
+        <GanttGrid
+          variant="project"
+          startDate={anchorDate}
+          projects={projectAllocationShellProjects}
+          weekCount={weekCount}
+          showWeekend={showWeekend}
+          rowHeaderLabel="Projects"
+        />
       </div>
     </div>
   );

@@ -1,4 +1,5 @@
 import { addDays } from "date-fns";
+import { getAllocationSummary } from "./gantt-bar/utils/getMemberAllocation";
 import { getMemberAllocation } from "./gantt-bar/utils/getMemberAllocation";
 import { getNumDays } from "./gantt-bar/utils/getNumDays";
 import type {
@@ -6,6 +7,8 @@ import type {
   Member as SourceMember,
   MemberBarAllocation,
   Project as SourceProject,
+  ProjectGroup as SourceProjectGroup,
+  ProjectMember as SourceProjectMember,
 } from "./types";
 
 const RIGHT_TRIM_WIDTH_REDUCTION = 3;
@@ -23,13 +26,28 @@ export interface MemberAllocationBar extends MemberBarAllocation {
   width: number;
 }
 
-export interface Project extends SourceProject {
+export interface MemberProject extends SourceProject {
   allocations: ProjectAllocationBar[];
 }
 
 export interface Member extends SourceMember {
-  projects: Project[];
+  projects: MemberProject[];
   memberAllocations: MemberAllocationBar[];
+}
+
+export interface ProjectMemberAllocationBar extends Allocation {
+  barOffset: number;
+  width: number;
+  fullNumDays: number;
+}
+
+export interface ProjectMember extends SourceProjectMember {
+  allocations: ProjectMemberAllocationBar[];
+}
+
+export interface ProjectGroup extends SourceProjectGroup {
+  members: ProjectMember[];
+  projectAllocations: MemberAllocationBar[];
 }
 
 export type DraftBarSeed = {
@@ -99,6 +117,69 @@ const getBarMetrics = (
 };
 
 /**
+ * Precompute bar geometry for project allocations and member allocation summaries.
+ * This allows bars to be rendered with simple absolute positioning without needing
+ * to calculate date intersections on the fly.
+ */
+function prepareAllocationBars<T extends Allocation>(
+  allocations: T[],
+  weekStart: Date,
+  columnCount: number,
+  showWeekend: boolean,
+  columnWidth: number,
+) {
+  return allocations.reduce<
+    Array<T & { barOffset: number; width: number; fullNumDays: number }>
+  >((acc, alloc) => {
+    const startCol = getNumDays(alloc.startDate, weekStart, showWeekend);
+    const endCol = getNumDays(alloc.endDate, weekStart, showWeekend);
+    const metrics = getBarMetrics(startCol, endCol, columnCount, columnWidth);
+
+    if (!metrics) {
+      return acc;
+    }
+
+    acc.push({
+      ...alloc,
+      ...metrics,
+      fullNumDays: getNumDays(alloc.endDate, alloc.startDate, showWeekend) + 1,
+    });
+
+    return acc;
+  }, []);
+}
+
+/**
+ * Precompute bar geometry for already summarized allocation segments.
+ * This attaches rendering metrics only and does not perform any day-level
+ * allocation aggregation itself.
+ */
+function prepareSummaryBars(
+  allocations: MemberBarAllocation[],
+  weekStart: Date,
+  columnCount: number,
+  showWeekend: boolean,
+  columnWidth: number,
+) {
+  return allocations.reduce<MemberAllocationBar[]>((acc, alloc) => {
+    const startCol = getNumDays(alloc.startDate, weekStart, showWeekend);
+    const endCol = getNumDays(alloc.endDate, weekStart, showWeekend);
+    const metrics = getBarMetrics(startCol, endCol, columnCount, columnWidth);
+
+    if (!metrics) {
+      return acc;
+    }
+
+    acc.push({
+      ...alloc,
+      ...metrics,
+    });
+
+    return acc;
+  }, []);
+}
+
+/**
  * Build member rows with precomputed bar metrics for projects and member summaries.
  */
 export const prepareMemberBars = (
@@ -111,32 +192,17 @@ export const prepareMemberBars = (
   return members.map((member) => {
     const projects: Member["projects"] = (member.projects ?? []).map(
       (project) => {
-        const allocationsWithBars: ProjectAllocationBar[] = (
-          project.allocations ?? []
-        ).reduce<ProjectAllocationBar[]>((acc, alloc) => {
-          const startCol = getNumDays(alloc.startDate, weekStart, showWeekend);
-          const endCol = getNumDays(alloc.endDate, weekStart, showWeekend);
-          const metrics = getBarMetrics(
-            startCol,
-            endCol,
+        const allocationsWithBars: ProjectAllocationBar[] =
+          prepareAllocationBars(
+            project.allocations ?? [],
+            weekStart,
             columnCount,
+            showWeekend,
             columnWidth,
-          );
-
-          if (!metrics) {
-            return acc;
-          }
-
-          acc.push({
+          ).map((alloc) => ({
             ...alloc,
-            ...metrics,
             projectName: project.name,
-            fullNumDays:
-              getNumDays(alloc.endDate, alloc.startDate, showWeekend) + 1,
-          });
-
-          return acc;
-        }, []);
+          }));
 
         return { ...project, allocations: allocationsWithBars };
       },
@@ -147,33 +213,61 @@ export const prepareMemberBars = (
       member.leaves ?? [],
     );
 
-    const memberAllocations: MemberAllocationBar[] =
-      rawMemberAllocations.reduce<MemberAllocationBar[]>((acc, alloc) => {
-        const startCol = getNumDays(alloc.startDate, weekStart, showWeekend);
-        const endCol = getNumDays(alloc.endDate, weekStart, showWeekend);
-        const metrics = getBarMetrics(
-          startCol,
-          endCol,
-          columnCount,
-          columnWidth,
-        );
-
-        if (!metrics) {
-          return acc;
-        }
-
-        acc.push({
-          ...alloc,
-          ...metrics,
-        });
-
-        return acc;
-      }, []);
+    const memberAllocations = prepareSummaryBars(
+      rawMemberAllocations,
+      weekStart,
+      columnCount,
+      showWeekend,
+      columnWidth,
+    );
 
     return {
       ...member,
       projects,
       memberAllocations,
+    };
+  });
+};
+
+/**
+ * Build project rows with precomputed bar metrics for member allocations and project summaries.
+ */
+export const prepareProjectBars = (
+  projects: SourceProjectGroup[],
+  weekStart: Date,
+  columnCount: number,
+  showWeekend: boolean,
+  columnWidth: number,
+): ProjectGroup[] => {
+  return projects.map((project) => {
+    const members: ProjectGroup["members"] = (project.members ?? []).map(
+      (member) => ({
+        ...member,
+        allocations: prepareAllocationBars(
+          member.allocations ?? [],
+          weekStart,
+          columnCount,
+          showWeekend,
+          columnWidth,
+        ),
+      }),
+    );
+
+    const projectAllocations = prepareSummaryBars(
+      getAllocationSummary(
+        (project.members ?? []).flatMap((member) => member.allocations ?? []),
+        (project.members ?? []).flatMap((member) => member.leaves ?? []),
+      ),
+      weekStart,
+      columnCount,
+      showWeekend,
+      columnWidth,
+    );
+
+    return {
+      ...project,
+      members,
+      projectAllocations,
     };
   });
 };
