@@ -98,7 +98,9 @@ export const AllocationsProjectTable = () => {
             className="w-fit"
             options={durationOptions}
             value={duration}
-            onChange={(value) => setDuration(value || "this-quarter")}
+            onChange={(value) =>
+              setDuration((value || "this-quarter") as typeof duration)
+            }
           />
           <Select
             placeholder="Allocations Type"

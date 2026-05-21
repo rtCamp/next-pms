@@ -43,21 +43,7 @@ export function mapTeamAllocationToMembers(
         projectName: string;
         projectId: string;
         customerName: string;
-        allocations: {
-          id: string;
-          employeeId: string;
-          projectId: string;
-          customerName: string;
-          hours: number;
-          startDate: Date;
-          endDate: Date;
-          billable: boolean;
-          tentative: boolean;
-          note?: string;
-          createdOn?: Date;
-          updatedOn?: Date;
-          updatedBy?: { name: string; image?: string };
-        }[];
+        allocations: ReturnType<typeof mapResourceAllocation>[];
       }
     >
   >();

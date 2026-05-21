@@ -36,6 +36,8 @@ type TeamAllocationCallResponse = {
   message?: TeamAllocationResponse;
 };
 
+const KEY_PREFIX = "team-allocations";
+
 export function useAllocationsTeamData({
   anchorDate,
   weekCount,
@@ -48,7 +50,7 @@ export function useAllocationsTeamData({
     () => format(anchorDate, "yyyy-MM-dd"),
     [anchorDate],
   );
-  const querySignature = `${requestDate}:${weekCount}:${search}`;
+  const querySignature = `${KEY_PREFIX}:${requestDate}:${weekCount}:${search}`;
 
   const baseParams = useMemo(
     () => ({
@@ -109,7 +111,7 @@ export function useAllocationsTeamData({
       pages
         .map((page) => page.message)
         .filter((payload): payload is TeamAllocationResponse =>
-          Boolean(payload),
+          Boolean(payload && Array.isArray(payload.employees)),
         ),
     [pages],
   );

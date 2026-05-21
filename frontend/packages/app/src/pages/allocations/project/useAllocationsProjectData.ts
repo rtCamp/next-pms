@@ -35,6 +35,8 @@ type ProjectAllocationCallResponse = {
   message?: ProjectAllocationResponse;
 };
 
+const KEY_PREFIX = "project-allocations";
+
 export function useAllocationsProjectData({
   anchorDate,
   weekCount,
@@ -47,7 +49,7 @@ export function useAllocationsProjectData({
     () => format(anchorDate, "yyyy-MM-dd"),
     [anchorDate],
   );
-  const querySignature = `${requestDate}:${weekCount}:${search}`;
+  const querySignature = `${KEY_PREFIX}:${requestDate}:${weekCount}:${search}`;
 
   const baseParams = useMemo(
     () => ({
@@ -107,7 +109,7 @@ export function useAllocationsProjectData({
       pages
         .map((page) => page.message)
         .filter((payload): payload is ProjectAllocationResponse =>
-          Boolean(payload),
+          Boolean(payload && Array.isArray(payload.data)),
         ),
     [pages],
   );
