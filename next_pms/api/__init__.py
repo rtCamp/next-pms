@@ -70,7 +70,7 @@ def get_user_calendar_events(start_date: datetime, end_date: datetime):
         frappe.throw(_("Could not fetch events from Google Calendar"), exc=GoogleBadRequest)
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["GET"])
 def get_doc_with_meta(doctype: str, docname: str):
     """Fetch all fields (excluding non-data fields) and their values categorized under respective tabs."""
 
