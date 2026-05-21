@@ -295,3 +295,158 @@ def get_projects_view(
             "data": phase_groups,
             "total_count": total_count,
         }
+
+
+# ---------------------------------------------------------------------------
+# Project sidebar helpers
+# ---------------------------------------------------------------------------
+
+
+def _get_github_url(project_doc) -> str | None:
+    """Return repository_url of the first GitHub repository connection."""
+    connections = project_doc.get("custom_project_repository_connections") or []
+    if not connections:
+        return None
+    repo_link = connections[0].get("github_repository")
+    if not repo_link:
+        return None
+    return frappe.db.get_value("GitHub Repository", repo_link, "repository_url")
+
+
+def _get_opportunity_link(project_doc) -> dict | None:
+    """
+    Return opportunity name + URL.
+    Uses Next CRM URL when the app is installed, else falls back to desk.
+    """
+    opportunity = project_doc.get("custom_opportunity")
+    if not opportunity:
+        return None
+
+    site_url = frappe.utils.get_url()
+    if "next_crm" in frappe.get_installed_apps():
+        url = f"{site_url}/next-crm/opportunities/{opportunity}"
+    else:
+        url = frappe.utils.get_url_to_form("Opportunity", opportunity)
+
+    return {"name": opportunity, "url": url}
+
+
+def _get_project_members(project_name: str) -> list[dict]:
+    """Return users shared with the project, with full_name, image, and designation."""
+    shares = frappe.get_all(
+        "DocShare",
+        filters={"share_doctype": "Project", "share_name": project_name, "everyone": 0},
+        fields=["user"],
+    )
+    if not shares:
+        return []
+
+    user_ids = [s.user for s in shares]
+
+    users = frappe.get_all(
+        "User",
+        filters={"name": ["in", user_ids]},
+        fields=["name", "full_name", "user_image"],
+    )
+    user_map = {u.name: u for u in users}
+
+    employees = frappe.get_all(
+        "Employee",
+        filters={"user_id": ["in", user_ids], "status": "Active"},
+        fields=["user_id", "designation"],
+    )
+    designation_map = {e.user_id: e.designation for e in employees}
+
+    return [
+        {
+            "user": uid,
+            "full_name": user_map[uid].full_name or "",
+            "image": user_map[uid].user_image,
+            "designation": designation_map.get(uid),
+        }
+        for uid in user_ids
+        if uid in user_map
+    ]
+
+
+def _get_project_customers(project_doc) -> list[dict]:
+    """Return contact details from custom_customer_contacts child table."""
+    rows = project_doc.get("custom_customer_contacts") or []
+    contact_names = [r.get("contact") for r in rows if r.get("contact")]
+    if not contact_names:
+        return []
+
+    contacts = frappe.get_all(
+        "Contact",
+        filters={"name": ["in", contact_names]},
+        fields=["name", "full_name", "image"],
+    )
+    contact_map = {c.name: c for c in contacts}
+
+    return [
+        {
+            "contact": name,
+            "full_name": contact_map[name].full_name or "",
+            "image": contact_map[name].image,
+        }
+        for name in contact_names
+        if name in contact_map
+    ]
+
+
+@whitelist(methods=["GET"])
+@error_logger
+def get_project_sidebar(project: str):
+    """
+    Return all data needed to render the project sidebar panel.
+
+    Response shape:
+        summary       - short summary text
+        details       - project name, phase, status, customer
+        links         - slack, google_drive, website, github, opportunity
+        burn          - total_budget, cost_accrued, cost_forecasted
+        progress      - actual_time, total_hours_purchased
+        members       - users the project has been shared with
+        customers     - contacts from custom_customer_contacts
+    """
+    only_for(ALLOWED_ROLES, message=True)
+
+    if not project:
+        frappe.throw(frappe._("Project is required"), frappe.MandatoryError)
+
+    if not frappe.db.exists("Project", project):
+        frappe.throw(frappe._("Project '{0}' does not exist").format(project), frappe.DoesNotExistError)
+
+    project_doc = frappe.get_doc("Project", project)
+
+    total_budget = get_total_budget(project_doc)
+    cost_accrued = flt(project_doc.total_costing_amount)
+    cost_forecasted = get_cost_forecasted(project)
+
+    return {
+        "summary": project_doc.get("custom_short_summary"),
+        "details": {
+            "project_name": project_doc.project_name,
+            "phase": project_doc.custom_project_phase,
+            "status": project_doc.status,
+            "customer": project_doc.customer,
+        },
+        "links": {
+            "slack": project_doc.get("custom_internal_slack_channel"),
+            "google_drive": project_doc.get("custom_google_drive_folder"),
+            "website": project_doc.get("custom_website"),
+            "github": _get_github_url(project_doc),
+            "opportunity": _get_opportunity_link(project_doc),
+        },
+        "burn": {
+            "total_budget": total_budget,
+            "cost_accrued": cost_accrued,
+            "cost_forecasted": cost_forecasted,
+        },
+        "progress": {
+            "actual_time": flt(project_doc.actual_time),
+            "total_hours_purchased": flt(project_doc.get("custom_total_hours_purchased")),
+        },
+        "members": _get_project_members(project),
+        "customers": _get_project_customers(project_doc),
+    }
