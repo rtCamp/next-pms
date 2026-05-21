@@ -13,8 +13,9 @@ import { prepareMemberBars, prepareProjectBars } from "./utils";
 import type { Member, ProjectGroup } from "./utils";
 export type {
   Member,
-  MemberAllocationBar,
+  MemberSummaryBar,
   ProjectGroup,
+  ProjectSummaryBar,
   ProjectMember,
   ProjectMemberAllocationBar,
   ProjectAllocationBar,

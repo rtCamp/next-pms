@@ -8,7 +8,7 @@ import { AddMd } from "@rtcamp/frappe-ui-react/icons";
  * Internal dependencies.
  */
 import { ADD_PROJECT_ROW_HEIGHT, CELL_HEIGHT } from "./constants";
-import { GanttMemberBar } from "./gantt-bar/memberBar";
+import { GanttMemberSummaryBar } from "./gantt-bar/memberSummaryBar";
 import {
   RowAllocationOverlay,
   type RowAllocationOverlayHandle,
@@ -86,10 +86,10 @@ export const GanttMemberRows: React.FC<GanttMemberRowsProps> = ({
           className="p-0 border-0 w-0 min-w-0 max-w-0"
           style={{ width: 0 }}
         >
-          {member.memberAllocations.map((alloc, idx) => (
-            <GanttMemberBar
+          {member.memberSummaryBars.map((summary, idx) => (
+            <GanttMemberSummaryBar
               key={idx}
-              allocation={alloc}
+              summary={summary}
               memberInd={memberInd}
             />
           ))}
@@ -100,7 +100,7 @@ export const GanttMemberRows: React.FC<GanttMemberRowsProps> = ({
             headerWidth={headerWidth}
             columnWidth={columnWidth}
             columnCount={columnCount}
-            allocations={member.memberAllocations}
+            allocations={member.memberSummaryBars}
             createDraftBar={(left) => ({
               rowKey: memberRowKey,
               left,

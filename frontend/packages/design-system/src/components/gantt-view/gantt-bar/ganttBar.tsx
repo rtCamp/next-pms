@@ -1,6 +1,13 @@
+/**
+ * External dependencies.
+ */
 import React from "react";
 import { cva, type VariantProps } from "class-variance-authority";
 import { CalendarX2 } from "lucide-react";
+
+/**
+ * Internal dependencies.
+ */
 import { mergeClassNames as cn } from "../../../utils";
 import { BAR_HEIGHT, BAR_MARGIN, CELL_HEIGHT } from "../constants";
 import { CrosshatchLayer } from "./crosshatchLayer";
@@ -26,13 +33,30 @@ const ganttBarVariants = cva(
         under: "bg-surface-amber-2 text-ink-amber-4",
         over: "bg-surface-violet-1 text-ink-violet-1",
         timeoff: "bg-surface-gray-2 text-ink-gray-6 justify-center",
-        project:
+        projectSummary: "bg-surface-blue-2 text-ink-blue-3",
+        allocation:
           "bg-surface-white text-ink-gray-5 shadow-[0px_0px_1px_0px_rgba(0,0,0,0.14),0px_1px_3px_0px_rgba(0,0,0,0.14)]",
         draft: "bg-surface-gray-2 text-ink-gray-5",
       },
     },
   },
 );
+
+const trailingLabelVariants = cva(
+  "min-w-0 flex-1 shrink-0 text-end text-[13px] font-medium tracking-[0.02em] truncate",
+  {
+    variants: {
+      variant: {
+        amber: "text-ink-amber-4",
+        violet: "text-ink-violet-1",
+      },
+    },
+  },
+);
+
+type GanttBarTrailingLabelVariant = NonNullable<
+  VariantProps<typeof trailingLabelVariants>["variant"]
+>;
 
 interface GanttBarProps
   extends
@@ -51,6 +75,8 @@ interface GanttBarProps
   onResizeEnd?: (geometry: GanttBarGeometry) => void;
   renderLabel?: (state: GanttBarRenderState) => React.ReactNode;
   renderFloatingLabel?: (state: GanttBarRenderState) => React.ReactNode;
+  trailingLabel?: React.ReactNode;
+  trailingLabelVariant?: GanttBarTrailingLabelVariant;
 }
 
 export const GanttBar = React.forwardRef<HTMLDivElement, GanttBarProps>(
@@ -70,6 +96,8 @@ export const GanttBar = React.forwardRef<HTMLDivElement, GanttBarProps>(
       onResizeEnd,
       renderLabel,
       renderFloatingLabel,
+      trailingLabel,
+      trailingLabelVariant,
       onClick,
       style,
       ...htmlProps
@@ -119,7 +147,7 @@ export const GanttBar = React.forwardRef<HTMLDivElement, GanttBarProps>(
         }}
       >
         {!isTimeoff && variant !== "draft" && isCrosshatch && (
-          <CrosshatchLayer variant={variant ?? "project"} />
+          <CrosshatchLayer variant={variant ?? "allocation"} />
         )}
         {isTimeoff ? (
           <>
@@ -132,13 +160,22 @@ export const GanttBar = React.forwardRef<HTMLDivElement, GanttBarProps>(
           </>
         ) : (
           <>
-            <span className="min-w-0 flex-1 overflow-hidden text-[13px] font-medium tracking-[0.02em]">
+            <span className="min-w-0 flex-1 overflow-hidden text-[13px] font-medium tracking-[0.02em] truncate">
               {renderLabel ? (
                 renderLabel({ isInteracting, liveLeft, liveWidth })
               ) : (
                 <span className="block truncate">{label}</span>
               )}
             </span>
+            {trailingLabel ? (
+              <span
+                className={trailingLabelVariants({
+                  variant: trailingLabelVariant,
+                })}
+              >
+                {trailingLabel}
+              </span>
+            ) : null}
             {billable === false ? (
               <span className="block ml-1 w-1 h-1 rounded-full bg-surface-amber-3"></span>
             ) : null}

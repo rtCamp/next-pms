@@ -8,6 +8,8 @@ import { AddMd } from "@rtcamp/frappe-ui-react/icons";
  * Internal dependencies.
  */
 import { ADD_PROJECT_ROW_HEIGHT, CELL_HEIGHT } from "./constants";
+import { GanttAllocationBar } from "./gantt-bar/allocationBar";
+import { GanttProjectSummaryBar } from "./gantt-bar/projectSummaryBar";
 import { GanttMemberItem } from "./ganttMemberItem";
 import { GanttProjectItem } from "./ganttProjectItem";
 import { useGanttStore } from "./ganttStore";
@@ -77,7 +79,14 @@ export const GanttProjectRows: React.FC<GanttProjectRowsProps> = ({
           aria-hidden="true"
           className="p-0 border-0 w-0 min-w-0 max-w-0"
           style={{ width: 0 }}
-        />
+        >
+          {project.projectSummaryBars.map((summary, summaryIndex) => (
+            <GanttProjectSummaryBar
+              key={`${project.id ?? project.name}-summary-${summaryIndex}`}
+              summary={summary}
+            />
+          ))}
+        </td>
       </tr>
 
       {project.members?.map((member) => (
@@ -115,7 +124,18 @@ export const GanttProjectRows: React.FC<GanttProjectRowsProps> = ({
             aria-hidden="true"
             className="p-0 border-0 w-0 min-w-0 max-w-0"
             style={{ width: 0 }}
-          />
+          >
+            {isExpanded &&
+              member.allocations?.map((allocation, allocationIndex) => (
+                <GanttAllocationBar
+                  key={allocation.id ?? allocationIndex}
+                  allocation={allocation}
+                  capacityHoursPerDay={member.capacityHoursPerDay}
+                  showCapacityStatus
+                  resizable={false}
+                />
+              ))}
+          </td>
         </tr>
       ))}
 

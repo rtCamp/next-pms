@@ -10,11 +10,12 @@ const crosshatchVariants = cva(
         full: "[--hatch-color:var(--color-ink-green-3,#15803D)]",
         over: "[--hatch-color:var(--color-ink-violet-1,#7C3AED)]",
         timeoff: "[--hatch-color:var(--color-ink-gray-6,#616161)]",
-        project: "[--hatch-color:var(--color-ink-gray-5,#3D3D3D)]",
+        allocation: "[--hatch-color:var(--color-ink-gray-5,#3D3D3D)]",
+        projectSummary: "[--hatch-color:var(--color-ink-blue-3,#0070CC)]",
       },
     },
     defaultVariants: {
-      variant: "project",
+      variant: "allocation",
     },
   },
 );

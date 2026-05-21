@@ -4,12 +4,39 @@ import { addDays, addMonths, addWeeks, startOfWeek } from "date-fns";
 import type { AllocationsDuration } from "../types";
 
 const shellBaseDate = new Date();
+const shellWeekStart = startOfWeek(shellBaseDate, { weekStartsOn: 1 });
 
 const weekCountByDuration: Record<AllocationsDuration, number> = {
   "this-week": 1,
   "this-month": 4,
   "this-quarter": 13,
 };
+
+function getShellDate(weekOffset: number, dayOffset: number) {
+  return addDays(shellWeekStart, weekOffset * 7 + dayOffset);
+}
+
+function createShellAllocation(
+  hours: number,
+  startWeekOffset: number,
+  startDayOffset: number,
+  endWeekOffset: number,
+  endDayOffset: number,
+  options?: {
+    billable?: boolean;
+    tentative?: boolean;
+  },
+) {
+  const { billable = true, tentative = false } = options ?? {};
+
+  return {
+    hours,
+    startDate: getShellDate(startWeekOffset, startDayOffset),
+    endDate: getShellDate(endWeekOffset, endDayOffset),
+    billable,
+    tentative,
+  };
+}
 
 const PROJECT_SHELL_COUNT = 10;
 
@@ -24,53 +51,35 @@ const projectAllocationShellTemplates: ProjectGroup[] = [
         id: "member-samantha",
         name: "Samantha Robbins",
         designation: "Product Designer",
-        allocations: [
-          {
-            hours: 6,
-            startDate: addDays(shellBaseDate, 1),
-            endDate: addDays(shellBaseDate, 3),
-            billable: true,
-          },
-        ],
+        capacity: "20 hrs/week",
+        capacityHoursPerDay: 4,
+        allocations: [createShellAllocation(4, 0, 0, 0, 4)],
       },
       {
         id: "member-julian",
         name: "Julian Andrews",
         designation: "Frontend Engineer",
-        allocations: [
-          {
-            hours: 4,
-            startDate: addDays(shellBaseDate, 4),
-            endDate: addDays(shellBaseDate, 8),
-            billable: true,
-          },
-        ],
+        capacity: "20 hrs/week",
+        capacityHoursPerDay: 4,
+        allocations: [createShellAllocation(4, 0, 0, 0, 4)],
       },
       {
         id: "member-christina",
         name: "Christina Chung",
         designation: "QA Engineer",
+        capacity: "15 hrs/week",
+        capacityHoursPerDay: 3,
         allocations: [
-          {
-            hours: 5,
-            startDate: addDays(shellBaseDate, 2),
-            endDate: addDays(shellBaseDate, 6),
-            billable: true,
-          },
+          createShellAllocation(5, 0, 0, 0, 4, { billable: false }),
         ],
       },
       {
         id: "member-ananya",
         name: "Ananya Bharadwaj",
         designation: "Project Manager",
-        allocations: [
-          {
-            hours: 3,
-            startDate: addDays(shellBaseDate, 1),
-            endDate: addDays(shellBaseDate, 5),
-            billable: true,
-          },
-        ],
+        capacity: "25 hrs/week",
+        capacityHoursPerDay: 5,
+        allocations: [createShellAllocation(3, 0, 0, 0, 4)],
       },
     ],
   },
@@ -84,39 +93,32 @@ const projectAllocationShellTemplates: ProjectGroup[] = [
         id: "member-maya",
         name: "Maya Rodriguez",
         designation: "Design Lead",
-        allocations: [
-          {
-            hours: 5,
-            startDate: addDays(shellBaseDate, 2),
-            endDate: addDays(shellBaseDate, 7),
-            billable: true,
-          },
-        ],
+        capacity: "25 hrs/week",
+        capacityHoursPerDay: 5,
+        allocations: [createShellAllocation(5, 1, 0, 1, 2)],
       },
       {
         id: "member-nikhil",
         name: "Nikhil Sharma",
         designation: "Backend Engineer",
+        capacity: "20 hrs/week",
+        capacityHoursPerDay: 4,
         allocations: [
-          {
-            hours: 6,
-            startDate: addDays(shellBaseDate, 6),
-            endDate: addDays(shellBaseDate, 10),
-            billable: true,
-          },
+          createShellAllocation(6, 1, 4, 2, 1, {
+            billable: false,
+            tentative: true,
+          }),
         ],
       },
       {
         id: "member-priya",
         name: "Priya Nair",
         designation: "QA Engineer",
+        capacity: "30 hrs/week",
+        capacityHoursPerDay: 6,
         allocations: [
-          {
-            hours: 4,
-            startDate: addDays(shellBaseDate, 4),
-            endDate: addDays(shellBaseDate, 8),
-            billable: true,
-          },
+          createShellAllocation(4, 1, 3, 1, 4),
+          createShellAllocation(4, 2, 0, 2, 1, { billable: false }),
         ],
       },
     ],
@@ -131,27 +133,20 @@ const projectAllocationShellTemplates: ProjectGroup[] = [
         id: "member-ali",
         name: "Ali Smith",
         designation: "Project Manager",
+        capacity: "20 hrs/week",
+        capacityHoursPerDay: 4,
         allocations: [
-          {
-            hours: 4,
-            startDate: addDays(shellBaseDate, 3),
-            endDate: addDays(shellBaseDate, 9),
-            billable: true,
-          },
+          createShellAllocation(4, 0, 2, 0, 4),
+          createShellAllocation(4, 1, 0, 1, 1, { tentative: true }),
         ],
       },
       {
         id: "member-evelyn",
         name: "Evelyn Carter",
         designation: "Design Lead",
-        allocations: [
-          {
-            hours: 5,
-            startDate: addDays(shellBaseDate, 5),
-            endDate: addDays(shellBaseDate, 10),
-            billable: true,
-          },
-        ],
+        capacity: "35 hrs/week",
+        capacityHoursPerDay: 7,
+        allocations: [createShellAllocation(5, 1, 0, 1, 2)],
       },
     ],
   },
@@ -180,7 +175,7 @@ export const projectAllocationShellProjects: ProjectGroup[] = Array.from(
 );
 
 export function getProjectAllocationShellStartDate() {
-  return startOfWeek(shellBaseDate, { weekStartsOn: 1 });
+  return shellWeekStart;
 }
 
 export function getProjectAllocationWeekCount(duration: AllocationsDuration) {
