@@ -12,24 +12,22 @@ import {
   RowAllocationOverlay,
   type RowAllocationOverlayHandle,
 } from "./gantt-bar/rowAllocationOverlay";
-import { GanttProjectItem } from "./ganttProjectItem";
+import { GanttMemberItem } from "./ganttMemberItem";
 import { useGanttStore } from "./ganttStore";
-import type { Member } from "./ganttStore";
+import type { ProjectGroup, ProjectMember } from "./ganttStore";
 import { mergeClassNames as cn } from "../../utils";
 
-interface GanttProjectRowProps {
-  member: Member;
-  memberInd: number;
-  projectInd: number;
+interface GanttMemberRowProps {
+  project: ProjectGroup;
+  member: ProjectMember;
   isExpanded: boolean;
   canManageAllocations: boolean;
   canEditAllocations: boolean;
 }
 
-export const GanttProjectRow: React.FC<GanttProjectRowProps> = ({
+export const GanttMemberRow: React.FC<GanttMemberRowProps> = ({
+  project,
   member,
-  memberInd,
-  projectInd,
   isExpanded,
   canManageAllocations,
   canEditAllocations,
@@ -51,11 +49,7 @@ export const GanttProjectRow: React.FC<GanttProjectRowProps> = ({
   }));
 
   const overlayRef = useRef<RowAllocationOverlayHandle | null>(null);
-  const project = member.projects?.[projectInd];
-
-  if (!project) return null;
-
-  const projectRowKey = `project-${memberInd}-${projectInd}`;
+  const memberRowKey = `project-member-${project.id ?? project.name}-${member.id ?? member.name}`;
   const animatedRowHeight = isExpanded ? CELL_HEIGHT : 0;
 
   return (
@@ -66,11 +60,12 @@ export const GanttProjectRow: React.FC<GanttProjectRowProps> = ({
       onPointerMove={(e) => overlayRef.current?.handleRowPointerMove(e)}
       onPointerLeave={() => overlayRef.current?.clearHoveredSlot()}
     >
-      <GanttProjectItem
-        {...project}
+      <GanttMemberItem
+        member={member}
         isExpanded={false}
         canExpand={false}
         showChevron={false}
+        className="pl-8 pr-3"
         style={{
           height: animatedRowHeight,
           width: headerWidth,
@@ -79,12 +74,12 @@ export const GanttProjectRow: React.FC<GanttProjectRowProps> = ({
           borderRightWidth: isExpanded ? undefined : 0,
         }}
       />
-      {weeks.map((_, i) => (
+      {weeks.map((week, index) => (
         <td
-          key={i}
+          key={`${week}-${index}`}
           colSpan={daysPerWeek}
           className={cn(
-            "dd overflow-hidden transition-[height] duration-200 ease-in-out",
+            "overflow-hidden transition-[height] duration-200 ease-in-out",
             { "border-r border-outline-gray-1": isExpanded },
           )}
           style={{ height: animatedRowHeight }}
@@ -92,24 +87,25 @@ export const GanttProjectRow: React.FC<GanttProjectRowProps> = ({
       ))}
       <td className="p-0 border-0 w-0 min-w-0 max-w-0" style={{ width: 0 }}>
         {isExpanded &&
-          project.allocations?.map((alloc, allocIndex) => (
+          member.allocations?.map((allocation, allocationIndex) => (
             <GanttAllocationBar
-              key={allocIndex}
-              allocation={alloc}
+              key={allocation.id ?? allocationIndex}
+              allocation={allocation}
               capacityHoursPerDay={member.capacityHoursPerDay}
+              showCapacityStatus
               resizable={canEditAllocations}
             />
           ))}
         <RowAllocationOverlay
           ref={overlayRef}
           enabled={canManageAllocations && isExpanded}
-          rowKey={projectRowKey}
+          rowKey={memberRowKey}
           headerWidth={headerWidth}
           columnWidth={columnWidth}
           columnCount={columnCount}
-          allocations={project.allocations ?? []}
+          allocations={member.allocations ?? []}
           createDraftBar={(left) => ({
-            rowKey: projectRowKey,
+            rowKey: memberRowKey,
             left,
             width: columnWidth,
             employeeId: member.id,
