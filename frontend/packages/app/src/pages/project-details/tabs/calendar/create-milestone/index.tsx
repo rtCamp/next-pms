@@ -128,16 +128,14 @@ export function CreateMilestoneModal({
       onOpenChange={handleOpenChange}
       options={{ title: "Create milestone" }}
       actions={
-        <div className="flex w-full justify-end gap-2">
-          <Button variant="ghost" label="Cancel" onClick={closeModal} />
-          <Button
-            variant="solid"
-            label="Create"
-            onClick={() => form.handleSubmit()}
-            disabled={submitting}
-            loading={submitting}
-          />
-        </div>
+        <Button
+          className="w-full h-7"
+          variant="solid"
+          label="Create"
+          onClick={() => form.handleSubmit()}
+          disabled={submitting}
+          loading={submitting}
+        />
       }
     >
       <div className="-mt-2 space-y-4">
