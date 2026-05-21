@@ -135,3 +135,23 @@ export const teamTimesheetFilters: FilterField[] = [
     type: "string",
   },
 ];
+
+export const projectTimesheetFilters: FilterField[] = [
+  {
+    fieldCategory: "Timesheet Detail",
+    name: "project_name",
+    label: "Project",
+    type: "string",
+  },
+  {
+    name: "date",
+    label: "Date",
+    type: "daterange",
+  },
+  {
+    fieldCategory: "Timesheet",
+    name: "employee_name",
+    label: "Member",
+    type: "string",
+  },
+];

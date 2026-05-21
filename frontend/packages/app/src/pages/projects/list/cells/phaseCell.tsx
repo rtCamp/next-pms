@@ -1,10 +1,10 @@
 /**
  * Internal dependencies.
  */
-import { pickAllowed } from "@/lib/utils";
+import { kebabToTitleCase, pickAllowed } from "@/lib/utils";
 import { StagesIcon } from "./stagesIcon";
 import { TextCell } from "./textCell";
-import { PHASE_LABELS, PHASES } from "../../constants";
+import { PHASES } from "../../constants";
 import { Phase } from "../../types";
 
 export function PhaseCell({ phase }: { phase?: string }) {
@@ -16,7 +16,7 @@ export function PhaseCell({ phase }: { phase?: string }) {
   return (
     <div className="flex min-w-0 items-center gap-2 text-ink-gray-7 text-base">
       <StagesIcon phase={_phase} />
-      <span className="truncate">{PHASE_LABELS[_phase]}</span>
+      <span className="truncate">{kebabToTitleCase(_phase)}</span>
     </div>
   );
 }

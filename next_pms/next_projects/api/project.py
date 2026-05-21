@@ -10,10 +10,9 @@ from frappe.query_builder.functions import Coalesce, Sum
 from frappe.utils import cint, flt, getdate, today
 
 from next_pms.api.utils import error_logger
+from next_pms.next_projects.api.constant import ALLOWED_ROLES, KANBAN_VIEW_FIELDS, LIST_VIEW_FIELDS
+from next_pms.next_projects.api.utils import build_person_data, get_user_image_map
 from next_pms.timesheet.api import get_count
-
-# Permission helpers
-ALLOWED_ROLES = ["Projects Manager", "Projects User", "Timesheet Manager"]
 
 
 # Calculated field helpers
@@ -58,14 +57,6 @@ def get_cost_forecasted_map(project_names: list[str]) -> dict[str, float]:
     return {row.project: flt(row.total) for row in rows}
 
 
-def get_user_image_map(users: list[str]) -> dict[str, str | None]:
-    """Fetch user_image for multiple users in a single query."""
-    if not users:
-        return {}
-    rows = frappe.get_all("User", filters={"name": ["in", users]}, fields=["name", "user_image"])
-    return {row.name: row.user_image for row in rows}
-
-
 def get_burn_rate_per_week(project: dict) -> float | None:
     """
     Average budget consumed per week based on charge-out rate X hours worked.
@@ -106,29 +97,6 @@ def get_end_date(project: dict) -> str | None:
     if status in ["Completed", "Cancelled"]:
         return project.get("actual_end_date") or project.get("expected_end_date")
     return project.get("expected_end_date")
-
-
-def get_user_image(user: str) -> str | None:
-    """Get user's avatar image URL."""
-    if not user:
-        return None
-    return frappe.db.get_value("User", user, "user_image")
-
-
-def build_person_data(
-    user: str,
-    full_name: str,
-    user_image_map: dict[str, str | None] | None = None,
-) -> dict | None:
-    """Build person data object with user, full_name, and image."""
-    if not user:
-        return None
-    image = user_image_map.get(user) if user_image_map is not None else get_user_image(user)
-    return {
-        "user": user,
-        "full_name": full_name or "",
-        "image": image,
-    }
 
 
 def enrich_project_with_calculated_fields(
@@ -220,51 +188,6 @@ def get_project_phases() -> list[dict]:
         order_by="position asc",
     )
     return phases
-
-
-# Fields to fetch from Project doctype
-LIST_VIEW_FIELDS = [
-    "name",
-    "project_name",
-    "customer",
-    "customer_name",
-    "status",
-    "project_type",
-    "expected_start_date",
-    "expected_end_date",
-    "actual_end_date",
-    "total_sales_amount",
-    "estimated_costing",
-    "total_costing_amount",
-    "total_billable_amount",
-    "custom_project_rag_status",
-    "custom_project_phase",
-    "custom_billing_type",
-    "custom_currency",
-    "custom_target_cost",
-    "custom_default_hourly_billing_rate",
-    "custom_next_milestone",
-    "custom_project_manager",
-    "custom_project_manager_name",
-    "custom_engineering_manager",
-    "custom_engineering_manager_name",
-]
-
-KANBAN_VIEW_FIELDS = [
-    "name",
-    "project_name",
-    "status",
-    "expected_start_date",
-    "expected_end_date",
-    "actual_end_date",
-    "custom_project_rag_status",
-    "custom_project_phase",
-    "custom_billing_type",
-    "custom_project_manager",
-    "custom_project_manager_name",
-    "custom_engineering_manager",
-    "custom_engineering_manager_name",
-]
 
 
 @whitelist(methods=["GET"])
