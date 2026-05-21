@@ -6,8 +6,9 @@ import frappe
 from next_pms.timesheet.utils.constant import EMP_WOKING_DETAILS
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["GET"])
 def get_data():
+    """returns employee, employee_name, employee_working_detail and employee_report_to for the current user"""
     employee = get_employee_from_user()
     doc = frappe.get_cached_doc("Employee", employee)
     working_hour = doc.custom_working_hours
@@ -37,8 +38,9 @@ def get_user_from_employee(employee: str):
     return frappe.get_value("Employee", employee, "user_id")
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["GET"])
 def get_employee_working_hours(employee: str = None):
+    """returns the working hours and working frequency for the given employee or current user's employee if employee is not provided"""
     if not employee:
         employee = get_employee_from_user()
     if not employee:
@@ -91,7 +93,7 @@ def get_employee(filters: dict | str | None = None, fieldname: list | str | None
     return frappe.db.get_value("Employee", filters=filters, fieldname=fieldname, as_dict=True)
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["GET"])
 def get_employee_list(
     employee_name: str | None = None,
     department: str | None = None,
@@ -102,9 +104,18 @@ def get_employee_list(
     user_group: str | None = None,
     reports_to: str | None = None,
     ignore_default_filters: bool = False,
+    roles: str | list[str] | None = None,
 ):
+    """Get a paginated list of employees for the employee dropdown in the timesheet entry form, respecting user permissions."""
+    import json
+
     from . import filter_employees
 
+    if roles and isinstance(roles, str):
+        try:
+            roles = json.loads(roles)
+        except json.JSONDecodeError:
+            roles = None  ## useFrappeGetCall will  pass string as JSON-String if string received its better to set it to None and handle it in filter_employees function
     employees, count = filter_employees(
         employee_name=employee_name,
         department=department,
@@ -114,6 +125,7 @@ def get_employee_list(
         status=status,
         user_group=user_group,
         reports_to=reports_to,
+        roles=roles,
         ignore_permissions=status is not None,
         ignore_default_filters=ignore_default_filters,
     )

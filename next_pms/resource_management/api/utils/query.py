@@ -122,6 +122,7 @@ def get_employee_leaves(employee: str | tuple, start_date: str, end_date: str):
         .join(LeaveType)
         .on(LeaveApplication.leave_type == LeaveType.name)
         .select(
+            LeaveApplication.employee,
             LeaveApplication.from_date,
             LeaveApplication.to_date,
             LeaveApplication.half_day,

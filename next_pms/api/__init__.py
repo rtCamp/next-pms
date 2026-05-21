@@ -27,7 +27,7 @@ class GoogleBadRequest(Exception):
     pass
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["GET"])
 def get_user_calendar_events(start_date: datetime, end_date: datetime):
     """
     Fetch all calendar events for the current user.
