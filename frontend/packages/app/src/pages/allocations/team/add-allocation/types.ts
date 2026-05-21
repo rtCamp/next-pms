@@ -1,3 +1,5 @@
+import type { AllocationRefreshTargets } from "../../types";
+
 export interface AddAllocationInitialValues {
   allocationName?: string;
   employeeId?: string;
@@ -20,7 +22,7 @@ export interface AddAllocationModalProps {
   variant?: "add" | "edit";
   onEditScheduleClick?: () => void;
   initialValues?: AddAllocationInitialValues;
-  onSuccess?: (employeeIds?: string[]) => void | Promise<void>;
+  onSuccess?: (targets?: AllocationRefreshTargets) => void | Promise<void>;
 }
 
 export type ComboboxOption = {

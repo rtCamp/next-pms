@@ -2,7 +2,7 @@
  * External dependencies.
  */
 import { useCallback, useMemo } from "react";
-import type { Member } from "@next-pms/design-system/components";
+import type { ProjectGroup } from "@next-pms/design-system/components";
 import { type PaginationKey, usePagination } from "@next-pms/hooks";
 import { useToasts } from "@rtcamp/frappe-ui-react";
 import { format } from "date-fns";
@@ -11,39 +11,38 @@ import type { FrappeError } from "frappe-react-sdk";
 /**
  * Internal dependencies.
  */
-import useApproverOptions from "@/hooks/useApproverOptions";
 import { parseFrappeErrorMsg } from "@/lib/utils";
-import type { TeamAllocationResponse } from "./type";
-import { mapTeamAllocationToMembers } from "./utils";
+import type { ProjectAllocationResponse } from "./type";
+import { mapProjectAllocationToProjects } from "./utils";
 
-type UseAllocationsTeamDataOptions = {
+type UseAllocationsProjectDataOptions = {
   anchorDate: Date;
   weekCount: number;
   search: string;
   pageLength: number;
 };
 
-type UseAllocationsTeamDataResult = {
-  members: Member[];
+type UseAllocationsProjectDataResult = {
+  projects: ProjectGroup[];
   hasMore: boolean;
   isQueryLoading: boolean;
   isNextPageLoading: boolean;
   loadMore: () => void;
-  refresh: (employeeIds?: string[]) => Promise<void>;
+  refresh: (projectIds?: string[]) => Promise<void>;
 };
 
-type TeamAllocationCallResponse = {
-  message?: TeamAllocationResponse;
+type ProjectAllocationCallResponse = {
+  message?: ProjectAllocationResponse;
 };
 
-const KEY_PREFIX = "team-allocations";
+const KEY_PREFIX = "project-allocations";
 
-export function useAllocationsTeamData({
+export function useAllocationsProjectData({
   anchorDate,
   weekCount,
   search,
   pageLength,
-}: UseAllocationsTeamDataOptions): UseAllocationsTeamDataResult {
+}: UseAllocationsProjectDataOptions): UseAllocationsProjectDataResult {
   const toast = useToasts();
 
   const requestDate = useMemo(
@@ -56,8 +55,7 @@ export function useAllocationsTeamData({
     () => ({
       date: requestDate,
       max_week: weekCount,
-      employee_name: search || null,
-      need_hours_summary: false,
+      project_name: search || null,
     }),
     [requestDate, search, weekCount],
   );
@@ -65,7 +63,7 @@ export function useAllocationsTeamData({
   const getKey = useCallback(
     (
       pageIndex: number,
-      previousPageData: TeamAllocationCallResponse | null,
+      previousPageData: ProjectAllocationCallResponse | null,
     ): PaginationKey | null => {
       if (previousPageData?.message && !previousPageData.message.has_more) {
         return null;
@@ -83,8 +81,8 @@ export function useAllocationsTeamData({
     size,
     setSize,
     mutate,
-  } = usePagination<TeamAllocationCallResponse>(
-    "next_pms.resource_management.api.team.get_resource_management_team_view_data",
+  } = usePagination<ProjectAllocationCallResponse>(
+    "next_pms.resource_management.api.project.get_resource_management_project_view_data",
     getKey,
     {
       ...baseParams,
@@ -110,25 +108,16 @@ export function useAllocationsTeamData({
     () =>
       pages
         .map((page) => page.message)
-        .filter((payload): payload is TeamAllocationResponse =>
-          Boolean(payload && Array.isArray(payload.employees)),
+        .filter((payload): payload is ProjectAllocationResponse =>
+          Boolean(payload && Array.isArray(payload.data)),
         ),
     [pages],
   );
 
-  const approvers = useApproverOptions();
-
-  const managerNameMap = useMemo(
-    () => new Map(approvers.map((a) => [a.value, a.label])),
-    [approvers],
-  );
-
-  const members = useMemo(
+  const projects = useMemo(
     () =>
-      payloads.flatMap((payload) =>
-        mapTeamAllocationToMembers(payload, managerNameMap),
-      ),
-    [payloads, managerNameMap],
+      payloads.flatMap((payload) => mapProjectAllocationToProjects(payload)),
+    [payloads],
   );
 
   const lastPayload = payloads.at(-1);
@@ -137,31 +126,29 @@ export function useAllocationsTeamData({
   const isNextPageLoading =
     !isLoading && isValidating && typeof pages[size - 1] === "undefined";
 
-  const refresh = useCallback<UseAllocationsTeamDataResult["refresh"]>(
-    async (employeeIds) => {
+  const refresh = useCallback<UseAllocationsProjectDataResult["refresh"]>(
+    async (projectIds) => {
       try {
         // Fall back to the default SWR refresh when no page targeting is possible.
-        if (!employeeIds?.length || !paginatedData?.length) {
+        if (!projectIds?.length || !paginatedData?.length) {
           await mutate();
           return;
         }
 
-        // Revalidate only loaded pages that contain the updated employees.
-        const targetEmployeeIds = new Set(employeeIds);
+        // Revalidate only loaded pages that contain the updated projects.
+        const targetProjectIds = new Set(projectIds);
         const pagesToRevalidate = new Set<number>();
 
         paginatedData.forEach((page, index) => {
-          const employees = page.message?.employees ?? [];
+          const projects = page.message?.data ?? [];
 
-          if (
-            employees.some((employee) => targetEmployeeIds.has(employee.name))
-          ) {
+          if (projects.some((project) => targetProjectIds.has(project.name))) {
             pagesToRevalidate.add(index);
           }
         });
 
         if (!pagesToRevalidate.size) {
-          // Nothing visible matches these employees.
+          // Nothing visible matches these projects.
           return;
         }
 
@@ -191,7 +178,7 @@ export function useAllocationsTeamData({
   }, [hasMore, isNextPageLoading, isQueryLoading, setSize]);
 
   return {
-    members,
+    projects,
     hasMore,
     isQueryLoading,
     isNextPageLoading,

@@ -12,29 +12,45 @@ import { Header } from "@/layout/header";
 import { AllocationsBreadcrumbs } from "@/pages/allocations/components/allocationsBreadcrumbs";
 import AddAllocationModal from "@/pages/allocations/team/add-allocation";
 import { useAllocationModal } from "@/pages/allocations/useAllocationModal";
+import { useUser } from "@/providers/user";
+import { useAllocationsProject } from "./context";
+import { AllocationsProjectProvider } from "./provider";
 
-function ProjectAllocationsLayout() {
-  const refresh = () => Promise.resolve(); // TODO: Replace with actual refresh function from context
+function ProjectAllocationsLayoutContent() {
+  const refresh = useAllocationsProject(({ actions }) => actions.refresh);
   const { openAddDialog, outletContext, modalProps } =
     useAllocationModal(refresh);
+  const { hasRoleAccess } = useUser(({ state }) => ({
+    hasRoleAccess: state.hasRoleAccess,
+  }));
 
   return (
     <>
       <Header className="justify-between">
         <AllocationsBreadcrumbs />
 
-        <Button
-          variant="solid"
-          onClick={() => openAddDialog({})}
-          label="Add allocation"
-          iconLeft={() => <Plus />}
-        />
+        {hasRoleAccess ? (
+          <Button
+            variant="solid"
+            onClick={() => openAddDialog({})}
+            label="Add allocation"
+            iconLeft={() => <Plus />}
+          />
+        ) : null}
       </Header>
 
       <Outlet context={outletContext} />
 
       <AddAllocationModal {...modalProps} />
     </>
+  );
+}
+
+function ProjectAllocationsLayout() {
+  return (
+    <AllocationsProjectProvider>
+      <ProjectAllocationsLayoutContent />
+    </AllocationsProjectProvider>
   );
 }
 

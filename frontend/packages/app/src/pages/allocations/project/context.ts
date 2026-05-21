@@ -1,7 +1,7 @@
 /**
  * External dependencies.
  */
-import type { Member } from "@next-pms/design-system/components";
+import type { ProjectGroup } from "@next-pms/design-system/components";
 import { createContext, useContextSelector } from "use-context-selector";
 
 /**
@@ -9,9 +9,9 @@ import { createContext, useContextSelector } from "use-context-selector";
  */
 import type { AllocationRefreshTargets, AllocationsDuration } from "../types";
 
-export interface AllocationsTeamContextProps {
+export interface AllocationsProjectContextProps {
   state: {
-    members: Member[];
+    projects: ProjectGroup[];
     isQueryLoading: boolean;
     isNextPageLoading: boolean;
     hasMore: boolean;
@@ -31,10 +31,10 @@ export interface AllocationsTeamContextProps {
   };
 }
 
-export const AllocationsTeamContext =
-  createContext<AllocationsTeamContextProps>({
+export const AllocationsProjectContext =
+  createContext<AllocationsProjectContextProps>({
     state: {
-      members: [],
+      projects: [],
       isQueryLoading: false,
       isNextPageLoading: false,
       hasMore: true,
@@ -54,8 +54,8 @@ export const AllocationsTeamContext =
     },
   });
 
-export function useAllocationsTeam<T>(
-  selector: (value: AllocationsTeamContextProps) => T,
+export function useAllocationsProject<T>(
+  selector: (value: AllocationsProjectContextProps) => T,
 ): T {
-  return useContextSelector(AllocationsTeamContext, selector);
+  return useContextSelector(AllocationsProjectContext, selector);
 }

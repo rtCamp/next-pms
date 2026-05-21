@@ -1,5 +1,5 @@
 import type { Member, Project } from "@next-pms/design-system/components";
-import { addMonths, addWeeks, parseISO } from "date-fns";
+import { parseISO } from "date-fns";
 import {
   calculateWeeklyHour,
   currencyFormat,
@@ -7,61 +7,15 @@ import {
   pickAllowed,
 } from "@/lib/utils";
 import type { WorkingFrequency } from "@/types";
+import { mapResourceAllocation } from "../utils";
 import {
   DEFAULT_CURRENCY,
   DEFAULT_HOURS_PER_WEEK,
   WEEKS_PER_MONTH,
 } from "./constants";
-import type { AllocationsDuration } from "../types";
 import type { ManagerNameMap, TeamAllocationResponse } from "./type";
 
-const DURATION_WEEK_COUNT: Record<AllocationsDuration, number> = {
-  "this-week": 1,
-  "this-month": 4,
-  "this-quarter": 13,
-};
-
 const WORKING_FREQUENCIES = ["Per Day", "Per Week"] as const;
-
-/**
- * Parses a Frappe datetime string (YYYY-MM-DD HH:mm:ss.ssssss) into a Date.
- * Converts the space separator to 'T' for ISO compatibility.
- */
-function parseFrappeDatetime(datetime: string): Date {
-  return parseISO(datetime.replace(" ", "T"));
-}
-
-/**
- * Returns the number of weeks corresponding to a given duration type.
- */
-export function getWeekCountForDuration(duration: AllocationsDuration) {
-  return DURATION_WEEK_COUNT[duration];
-}
-
-/**
- * Moves the given date forward or backward based on the specified duration type.
- */
-export function moveDateByDuration(
-  anchorDate: Date,
-  duration: AllocationsDuration,
-  next: boolean,
-): Date {
-  const delta = next ? 1 : -1;
-
-  if (duration === "this-week") {
-    return addWeeks(anchorDate, delta);
-  }
-
-  if (duration === "this-month") {
-    return addMonths(anchorDate, delta);
-  }
-
-  if (duration === "this-quarter") {
-    return addMonths(anchorDate, 3 * delta);
-  }
-
-  return anchorDate;
-}
 
 /**
  * Converts a TeamAllocationResponse from the API into a Member[] array
@@ -89,21 +43,7 @@ export function mapTeamAllocationToMembers(
         projectName: string;
         projectId: string;
         customerName: string;
-        allocations: {
-          id: string;
-          employeeId: string;
-          projectId: string;
-          customerName: string;
-          hours: number;
-          startDate: Date;
-          endDate: Date;
-          billable: boolean;
-          tentative: boolean;
-          note?: string;
-          createdOn?: Date;
-          updatedOn?: Date;
-          updatedBy?: { name: string; image?: string };
-        }[];
+        allocations: ReturnType<typeof mapResourceAllocation>[];
       }
     >
   >();
@@ -138,30 +78,9 @@ export function mapTeamAllocationToMembers(
       });
     }
 
-    projectMap.get(alloc.project)!.allocations.push({
-      id: alloc.name,
-      employeeId: alloc.employee,
-      projectId: alloc.project,
-      customerName,
-      hours: alloc.hours_allocated_per_day,
-      startDate: parseISO(alloc.allocation_start_date),
-      endDate: parseISO(alloc.allocation_end_date),
-      billable: Boolean(alloc.is_billable),
-      tentative: alloc.status === "Tentative",
-      note: alloc.note ?? undefined,
-      createdOn: alloc.creation
-        ? parseFrappeDatetime(alloc.creation)
-        : undefined,
-      updatedOn: alloc.modified
-        ? parseFrappeDatetime(alloc.modified)
-        : undefined,
-      updatedBy: alloc.modified_by
-        ? {
-            name: alloc.modified_by,
-            image: alloc.modified_by_avatar || undefined,
-          }
-        : undefined,
-    });
+    projectMap
+      .get(alloc.project)!
+      .allocations.push(mapResourceAllocation(alloc, customerName));
   }
 
   return employeeList.map((employee): Member => {
