@@ -15,6 +15,7 @@ import React, {
 import { HEADER_HEIGHT } from "./constants";
 import { DeleteAllocationDialog } from "./deleteAllocationDialog";
 import { GanttMemberRows } from "./ganttMemberRows";
+import { GanttProjectRows } from "./ganttProjectRows";
 import { createGanttStore, GanttContext, useGanttStore } from "./ganttStore";
 import { GanttWeekHeader } from "./ganttWeekHeader";
 import { useContainerResize } from "./hooks/useContainerResize";
@@ -28,6 +29,7 @@ const GanttGridInner: React.FC<{
   const {
     variant,
     members,
+    projects,
     rowHeaderLabel,
     headerWidth,
     columnWidth,
@@ -42,6 +44,7 @@ const GanttGridInner: React.FC<{
   } = useGanttStore((s) => ({
     variant: s.variant,
     members: s.members,
+    projects: s.projects,
     rowHeaderLabel: s.rowHeaderLabel,
     headerWidth: s.headerWidth,
     columnWidth: s.columnWidth,
@@ -111,7 +114,9 @@ const GanttGridInner: React.FC<{
             ? members.map((_, rowIndex) => (
                 <GanttMemberRows key={rowIndex} memberInd={rowIndex} />
               ))
-            : null}
+            : projects.map((_, rowIndex) => (
+                <GanttProjectRows key={rowIndex} projectInd={rowIndex} />
+              ))}
         </tbody>
       </table>
 

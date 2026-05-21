@@ -102,6 +102,10 @@ export interface GanttGridProps {
   startDate: Date;
   /** Number of weeks to display. */
   weekCount?: number;
+  /** Member row data. */
+  members?: Member[];
+  /** Project row data. */
+  projects?: ProjectGroup[];
   /** Label shown in the sticky row header cell. */
   rowHeaderLabel: string;
   /** Layout and transformation mode for the grid. */
@@ -118,8 +122,4 @@ export interface GanttGridProps {
   onEditAllocation?: (data: AllocationCallbackData) => void;
   /** Called when the delete icon is clicked on an allocation entry. Receives allocation data. */
   onDeleteAllocation?: (data: AllocationCallbackData) => void;
-  /** Member row data. */
-  members?: Member[];
-  /** Project row data. */
-  projects?: ProjectGroup[];
 }
