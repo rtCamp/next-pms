@@ -133,11 +133,10 @@ export const GanttProjectRows: React.FC<GanttProjectRowsProps> = ({
           >
             {isExpanded &&
               member.allocations?.map((allocation, allocationIndex) => (
+                // TODO: Restore project allocation capacity labels when this view consumes backend-computed employee capacity summaries.
                 <GanttAllocationBar
                   key={allocation.id ?? allocationIndex}
                   allocation={allocation}
-                  capacityHoursPerDay={member.capacityHoursPerDay}
-                  showCapacityStatus
                   resizable={false}
                 />
               ))}
