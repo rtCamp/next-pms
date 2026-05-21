@@ -7,6 +7,7 @@ import type { ProjectTimelineItem } from "./types";
 
 type MilestonesTableProps = {
   items: ProjectTimelineItem[];
+  userId?: string;
   onEdit?: (item: ProjectTimelineItem) => void;
   onMarkAsCompleted?: (item: ProjectTimelineItem) => void;
   onFollowDocument?: (item: ProjectTimelineItem) => void;
@@ -14,6 +15,7 @@ type MilestonesTableProps = {
 
 export function MilestonesTable({
   items,
+  userId,
   onEdit,
   onMarkAsCompleted,
   onFollowDocument,
@@ -53,6 +55,7 @@ export function MilestonesTable({
                 <TimelineCell
                   item={item}
                   column={column}
+                  userId={userId}
                   onEdit={onEdit}
                   onMarkAsCompleted={onMarkAsCompleted}
                   onFollowDocument={onFollowDocument}

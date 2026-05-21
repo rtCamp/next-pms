@@ -3,27 +3,40 @@
  */
 import { useState } from "react";
 import { useParams } from "react-router-dom";
-import { Button, TabButtons } from "@rtcamp/frappe-ui-react";
+import { Button, TabButtons, useToasts } from "@rtcamp/frappe-ui-react";
 import { format, parseISO } from "date-fns";
+import { FrappeError, useFrappePostCall } from "frappe-react-sdk";
 import { Plus } from "lucide-react";
 
 /**
  * Internal dependencies.
  */
+import { parseFrappeErrorMsg } from "@/lib/utils";
+import { useUser } from "@/providers/user";
 import { CalendarGrid } from "./calendarGrid";
 import { CalendarToolbar, type CalendarView } from "./calendarToolbar";
 import { CreateMilestoneModal } from "./create-milestone";
 import { CreateTouchpointModal } from "./create-touchpoint";
-import { getTimelineItems } from "./fake-data";
 import { GanttView } from "./ganttView";
 import { MilestonesTable } from "./milestonesTable";
 import { TouchpointsTable } from "./touchpointsTable";
+import type { ProjectTimelineItem } from "./types";
+import { useProjectTimelineItems } from "./useProjectTimelineItems";
 
 type TableTab = "milestones" | "touchpoints";
 
 export function CalendarTab() {
   const { projectId = "" } = useParams<{ projectId: string }>();
-  const items = getTimelineItems(projectId);
+  const toast = useToasts();
+  const { userId } = useUser(({ state }) => ({ userId: state.userId }));
+
+  const { call: markComplete } = useFrappePostCall(
+    "next_pms.next_projects.api.project_timeline_item.mark_timeline_item_complete",
+  );
+
+  const { call: updateFollow } = useFrappePostCall(
+    "frappe.desk.form.document_follow.update_follow",
+  );
 
   const [currentDate, setCurrentDate] = useState(() => {
     const n = new Date();
@@ -38,6 +51,8 @@ export function CalendarTab() {
 
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth();
+
+  const { items, mutate } = useProjectTimelineItems(projectId, year, month);
 
   const filteredItems =
     filterType === "all"
@@ -68,6 +83,36 @@ export function CalendarTab() {
     const n = new Date();
     setCurrentDate(new Date(n.getFullYear(), n.getMonth(), 1));
     setSelectedDate(null);
+  }
+
+  async function handleMarkAsCompleted(item: ProjectTimelineItem) {
+    try {
+      await markComplete({
+        name: item.id,
+        is_complete: item.isComplete ? 0 : 1,
+      });
+      toast.success(
+        item.isComplete ? "Marked as incomplete" : "Marked as completed",
+      );
+      void mutate();
+    } catch (err) {
+      toast.error(parseFrappeErrorMsg(err as FrappeError));
+    }
+  }
+
+  async function handleFollowDocument(item: ProjectTimelineItem) {
+    const isFollowing = item.watchers.some((w) => w.name === userId);
+    try {
+      await updateFollow({
+        doctype: "Project Timeline Item",
+        doc_name: item.id,
+        following: !isFollowing,
+      });
+      toast.success(isFollowing ? "Unfollowed document" : "Following document");
+      void mutate();
+    } catch (err) {
+      toast.error(parseFrappeErrorMsg(err as FrappeError));
+    }
   }
 
   return (
@@ -130,9 +175,19 @@ export function CalendarTab() {
         {/* Table */}
         <div className="overflow-x-auto">
           {tableTab === "milestones" ? (
-            <MilestonesTable items={items} />
+            <MilestonesTable
+              items={items}
+              userId={userId}
+              onMarkAsCompleted={handleMarkAsCompleted}
+              onFollowDocument={handleFollowDocument}
+            />
           ) : (
-            <TouchpointsTable items={items} />
+            <TouchpointsTable
+              items={items}
+              userId={userId}
+              onMarkAsCompleted={handleMarkAsCompleted}
+              onFollowDocument={handleFollowDocument}
+            />
           )}
         </div>
       </div>
@@ -141,12 +196,18 @@ export function CalendarTab() {
         open={createMilestoneOpen}
         onOpenChange={setCreateMilestoneOpen}
         projectId={projectId}
+        onSuccess={() => {
+          void mutate();
+        }}
       />
 
       <CreateTouchpointModal
         open={createTouchpointOpen}
         onOpenChange={setCreateTouchpointOpen}
         projectId={projectId}
+        onSuccess={() => {
+          void mutate();
+        }}
       />
     </div>
   );

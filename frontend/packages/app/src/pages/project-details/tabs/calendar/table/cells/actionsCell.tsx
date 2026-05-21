@@ -6,8 +6,9 @@ import {
   Check,
   EditAlt,
   NotificationBell,
+  NotificationOff,
 } from "@rtcamp/frappe-ui-react/icons";
-import { Ellipsis } from "lucide-react";
+import { Ellipsis, RotateCcw } from "lucide-react";
 
 /**
  * Internal dependencies.
@@ -16,6 +17,7 @@ import type { ProjectTimelineItem } from "../../types";
 
 type ActionsCellProps = {
   item: ProjectTimelineItem;
+  userId?: string;
   onEdit?: (item: ProjectTimelineItem) => void;
   onMarkAsCompleted?: (item: ProjectTimelineItem) => void;
   onFollowDocument?: (item: ProjectTimelineItem) => void;
@@ -23,10 +25,15 @@ type ActionsCellProps = {
 
 export function ActionsCell({
   item,
+  userId,
   onEdit,
   onMarkAsCompleted,
   onFollowDocument,
 }: ActionsCellProps) {
+  const isFollowing = userId
+    ? item.watchers.some((w) => w.name === userId)
+    : false;
+
   return (
     <Dropdown
       dropdownClassName="border-none"
@@ -43,15 +50,23 @@ export function ActionsCell({
           onClick: () => onEdit?.(item),
         },
         {
-          label: "Mark as completed",
+          label: item.isComplete ? "Mark as incomplete" : "Mark as completed",
           key: "mark-as-completed",
-          icon: <Check className="size-4 mr-2" />,
+          icon: item.isComplete ? (
+            <RotateCcw className="size-4 mr-2" />
+          ) : (
+            <Check className="size-4 mr-2" />
+          ),
           onClick: () => onMarkAsCompleted?.(item),
         },
         {
-          label: "Follow Document",
+          label: isFollowing ? "Unfollow Document" : "Follow Document",
           key: "follow-document",
-          icon: <NotificationBell className="size-4 mr-2" />,
+          icon: isFollowing ? (
+            <NotificationOff className="size-4 mr-2" />
+          ) : (
+            <NotificationBell className="size-4 mr-2" />
+          ),
           onClick: () => onFollowDocument?.(item),
         },
       ]}

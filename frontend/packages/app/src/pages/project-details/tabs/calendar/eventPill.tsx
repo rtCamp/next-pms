@@ -34,6 +34,7 @@ export function EventPill({ item, truncate = false }: EventPillProps) {
         className={mergeClassNames(
           "min-w-0 leading-tight",
           truncate ? "truncate" : "wrap-break-word",
+          item.isComplete && "line-through opacity-60",
         )}
       >
         {item.title}
