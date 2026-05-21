@@ -66,7 +66,7 @@ export function GanttAllocationBar({
 
   useEffect(() => {
     setPreviewGeometry({ left, width });
-  }, [left, width]);
+  }, [allocation, left, width]);
 
   const currentDates = useMemo(
     () =>
