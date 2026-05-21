@@ -28,7 +28,7 @@ interface ApiTimelineItem {
   type: "Milestone" | "Touchpoint";
   is_complete: 0 | 1;
   start_date: string | null;
-  planned_end_date: string;
+  planned_end_date: string | null;
   actual_end_date: string | null;
   owner: ApiUserRef | null;
   watchers: ApiUserRef[];
@@ -56,7 +56,7 @@ function mapItem(raw: ApiTimelineItem): ProjectTimelineItem {
     type: raw.type,
     isComplete: Boolean(raw.is_complete),
     startDate: raw.start_date ?? undefined,
-    plannedEndDate: raw.planned_end_date,
+    plannedEndDate: raw.planned_end_date as string,
     actualEndDate: raw.actual_end_date ?? undefined,
     owner: raw.owner ? mapUserRef(raw.owner) : { name: "", fullName: "" },
     watchers: (raw.watchers ?? []).map(mapUserRef),
@@ -68,9 +68,13 @@ export function useProjectTimelineItems(
   year: number,
   month: number,
 ) {
-  // Extend to the ISO week boundary so Gantt's extended view is covered
+  // Fetch window: start at the ISO week containing the 1st (covers grid overflow days)
   const viewStart = startOfISOWeek(new Date(year, month, 1));
   const startDate = format(viewStart, "yyyy-MM-dd");
+
+  // Month boundaries used to scope the table view
+  const monthStart = format(new Date(year, month, 1), "yyyy-MM-dd");
+  const monthEnd = format(new Date(year, month + 1, 0), "yyyy-MM-dd");
 
   const { data, isLoading, error, mutate } = useFrappeGetCall<{
     message: ApiResponse;
@@ -90,12 +94,18 @@ export function useProjectTimelineItems(
     },
   );
 
-  // console.log({ timelineItemsData: data, timelineItemsError: error });
+  const { items, monthItems } = useMemo(() => {
+    const allItems = (data?.message?.data ?? [])
+      .filter((item) => item.planned_end_date !== null)
+      .map(mapItem);
 
-  const items = useMemo<ProjectTimelineItem[]>(
-    () => (data?.message?.data ?? []).map(mapItem),
-    [data],
-  );
+    const monthOnlyItems = allItems.filter(
+      (item) =>
+        item.plannedEndDate >= monthStart && item.plannedEndDate <= monthEnd,
+    );
 
-  return { items, isLoading, error, mutate };
+    return { items: allItems, monthItems: monthOnlyItems };
+  }, [data, monthStart, monthEnd]);
+
+  return { items, monthItems, isLoading, error, mutate };
 }
