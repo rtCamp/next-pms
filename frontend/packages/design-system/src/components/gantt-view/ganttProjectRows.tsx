@@ -1,16 +1,19 @@
 /**
  * External dependencies.
  */
-import React from "react";
+import React, { useRef } from "react";
 import { AddMd } from "@rtcamp/frappe-ui-react/icons";
 
 /**
  * Internal dependencies.
  */
 import { ADD_PROJECT_ROW_HEIGHT, CELL_HEIGHT } from "./constants";
-import { GanttAllocationBar } from "./gantt-bar/allocationBar";
 import { GanttProjectSummaryBar } from "./gantt-bar/projectSummaryBar";
-import { GanttMemberItem } from "./ganttMemberItem";
+import {
+  RowAllocationOverlay,
+  type RowAllocationOverlayHandle,
+} from "./gantt-bar/rowAllocationOverlay";
+import { GanttMemberRow } from "./ganttMemberRow";
 import { GanttProjectItem } from "./ganttProjectItem";
 import { useGanttStore } from "./ganttStore";
 import { mergeClassNames as cn } from "../../utils";
@@ -28,7 +31,9 @@ export const GanttProjectRows: React.FC<GanttProjectRowsProps> = ({
     isNextExpanded,
     weeks,
     daysPerWeek,
+    columnWidth,
     headerWidth,
+    columnCount,
     hasRoleAccess,
     onAddAllocation,
     onEditAllocation,
@@ -40,12 +45,16 @@ export const GanttProjectRows: React.FC<GanttProjectRowsProps> = ({
       !s.expandedRows.has(projectInd) && s.expandedRows.has(projectInd + 1),
     weeks: s.weeks,
     daysPerWeek: s.daysPerWeek,
+    columnWidth: s.columnWidth,
     headerWidth: s.headerWidth,
+    columnCount: s.columnCount,
     hasRoleAccess: s.hasRoleAccess,
     onAddAllocation: s.onAddAllocation,
     onEditAllocation: s.onEditAllocation,
     toggleRow: s.toggleRow,
   }));
+
+  const overlayRef = useRef<RowAllocationOverlayHandle | null>(null);
 
   if (!project) return null;
 
@@ -54,10 +63,16 @@ export const GanttProjectRows: React.FC<GanttProjectRowsProps> = ({
   const canEditAllocations = hasRoleAccess && Boolean(onEditAllocation);
   const canExpand = hasMembers || canManageAllocations;
   const addMemberRowHeight = isExpanded ? ADD_PROJECT_ROW_HEIGHT : 0;
+  const projectSummaryRowKey = `project-summary-${project.id ?? project.name}`;
 
   return (
     <React.Fragment>
-      <tr className="relative last:border-b border-outline-gray-1">
+      <tr
+        className="relative last:border-b border-outline-gray-1"
+        onPointerDown={(e) => overlayRef.current?.handleRowPointerDown(e)}
+        onPointerMove={(e) => overlayRef.current?.handleRowPointerMove(e)}
+        onPointerLeave={() => overlayRef.current?.clearHoveredSlot()}
+      >
         <GanttProjectItem
           {...project}
           canExpand={canExpand}
@@ -95,58 +110,39 @@ export const GanttProjectRows: React.FC<GanttProjectRowsProps> = ({
               summary={summary}
             />
           ))}
+          <RowAllocationOverlay
+            ref={overlayRef}
+            enabled={canManageAllocations}
+            rowKey={projectSummaryRowKey}
+            headerWidth={headerWidth}
+            columnWidth={columnWidth}
+            columnCount={columnCount}
+            allocations={project.projectSummaryBars}
+            createDraftBar={(left) => ({
+              rowKey: projectSummaryRowKey,
+              left,
+              width: columnWidth,
+              projectId: project.id,
+              projectName: project.name,
+              customerName: project.client,
+            })}
+            onOpenAllocation={onAddAllocation}
+          />
         </td>
       </tr>
 
-      {project.members?.map((member) => (
-        <tr
-          key={member.id ?? member.name}
-          className={cn("relative", { "pointer-events-none": !isExpanded })}
-          aria-hidden={!isExpanded}
-        >
-          <GanttMemberItem
+      {project.members?.map((member) => {
+        return (
+          <GanttMemberRow
+            key={member.id ?? member.name}
+            project={project}
             member={member}
-            isExpanded={false}
-            canExpand={false}
-            showChevron={false}
-            className="pl-8 pr-3"
-            style={{
-              height: isExpanded ? CELL_HEIGHT : 0,
-              width: headerWidth,
-              minWidth: headerWidth,
-              borderBottomWidth: isExpanded ? undefined : 0,
-              borderRightWidth: isExpanded ? undefined : 0,
-            }}
+            isExpanded={isExpanded}
+            canManageAllocations={canManageAllocations}
+            canEditAllocations={canEditAllocations}
           />
-          {weeks.map((week, index) => (
-            <td
-              key={`${week}-${index}`}
-              colSpan={daysPerWeek}
-              className={cn(
-                "overflow-hidden transition-[height] duration-200 ease-in-out",
-                { "border-r border-outline-gray-1": isExpanded },
-              )}
-              style={{ height: isExpanded ? CELL_HEIGHT : 0 }}
-            />
-          ))}
-          <td
-            aria-hidden="true"
-            className="p-0 border-0 w-0 min-w-0 max-w-0"
-            style={{ width: 0 }}
-          >
-            {isExpanded &&
-              member.allocations?.map((allocation, allocationIndex) => (
-                <GanttAllocationBar
-                  key={allocation.id ?? allocationIndex}
-                  allocation={allocation}
-                  capacityHoursPerDay={member.capacityHoursPerDay}
-                  showCapacityStatus
-                  resizable={canEditAllocations}
-                />
-              ))}
-          </td>
-        </tr>
-      ))}
+        );
+      })}
 
       {canManageAllocations && (
         <tr
