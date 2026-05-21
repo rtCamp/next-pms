@@ -31,6 +31,7 @@ export const GanttProjectRows: React.FC<GanttProjectRowsProps> = ({
     headerWidth,
     hasRoleAccess,
     onAddAllocation,
+    onEditAllocation,
     toggleRow,
   } = useGanttStore((s) => ({
     project: s.projects[projectInd],
@@ -42,6 +43,7 @@ export const GanttProjectRows: React.FC<GanttProjectRowsProps> = ({
     headerWidth: s.headerWidth,
     hasRoleAccess: s.hasRoleAccess,
     onAddAllocation: s.onAddAllocation,
+    onEditAllocation: s.onEditAllocation,
     toggleRow: s.toggleRow,
   }));
 
@@ -49,6 +51,7 @@ export const GanttProjectRows: React.FC<GanttProjectRowsProps> = ({
 
   const hasMembers = Boolean(project.members?.length);
   const canManageAllocations = hasRoleAccess && Boolean(onAddAllocation);
+  const canEditAllocations = hasRoleAccess && Boolean(onEditAllocation);
   const canExpand = hasMembers || canManageAllocations;
   const addMemberRowHeight = isExpanded ? ADD_PROJECT_ROW_HEIGHT : 0;
 
@@ -138,7 +141,7 @@ export const GanttProjectRows: React.FC<GanttProjectRowsProps> = ({
                   allocation={allocation}
                   capacityHoursPerDay={member.capacityHoursPerDay}
                   showCapacityStatus
-                  resizable={false}
+                  resizable={canEditAllocations}
                 />
               ))}
           </td>
