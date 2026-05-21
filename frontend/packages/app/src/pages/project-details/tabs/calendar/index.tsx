@@ -3,7 +3,9 @@
  */
 import { useState } from "react";
 import { useParams } from "react-router-dom";
+import { Button, TabButtons } from "@rtcamp/frappe-ui-react";
 import { format, parseISO } from "date-fns";
+import { Plus } from "lucide-react";
 
 /**
  * Internal dependencies.
@@ -12,6 +14,10 @@ import { CalendarGrid } from "./calendarGrid";
 import { CalendarToolbar, type CalendarView } from "./calendarToolbar";
 import { getTimelineItems } from "./fake-data";
 import { GanttView } from "./ganttView";
+import { MilestonesTable } from "./milestonesTable";
+import { TouchpointsTable } from "./touchpointsTable";
+
+type TableTab = "milestones" | "touchpoints";
 
 export function CalendarTab() {
   const { projectId = "" } = useParams<{ projectId: string }>();
@@ -24,6 +30,7 @@ export function CalendarTab() {
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [activeView, setActiveView] = useState<CalendarView>("calendar");
   const [filterType, setFilterType] = useState("all");
+  const [tableTab, setTableTab] = useState<TableTab>("milestones");
 
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth();
@@ -88,6 +95,36 @@ export function CalendarTab() {
         ) : (
           <GanttView year={year} month={month} items={filteredItems} />
         )}
+      </div>
+
+      {/* Table section */}
+      <div className="mt-4">
+        <div className="flex items-center justify-between px-1 mb-3">
+          <TabButtons
+            value={tableTab}
+            onChange={(val) => setTableTab(val as TableTab)}
+            buttons={[
+              { label: "Milestones", value: "milestones" },
+              { label: "Touchpoints", value: "touchpoints" },
+            ]}
+          />
+
+          <Button
+            variant="solid"
+            label="Create"
+            iconLeft={() => <Plus className="size-3.5" />}
+            onClick={() => {}}
+          />
+        </div>
+
+        {/* Table */}
+        <div className="overflow-x-auto">
+          {tableTab === "milestones" ? (
+            <MilestonesTable items={items} />
+          ) : (
+            <TouchpointsTable items={items} />
+          )}
+        </div>
       </div>
     </div>
   );
