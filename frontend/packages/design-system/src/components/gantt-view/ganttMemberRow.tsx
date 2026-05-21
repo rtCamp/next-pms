@@ -85,11 +85,7 @@ export const GanttMemberRow: React.FC<GanttMemberRowProps> = ({
           style={{ height: animatedRowHeight }}
         />
       ))}
-      <td
-        aria-hidden="true"
-        className="p-0 border-0 w-0 min-w-0 max-w-0"
-        style={{ width: 0 }}
-      >
+      <td className="p-0 border-0 w-0 min-w-0 max-w-0" style={{ width: 0 }}>
         {isExpanded &&
           member.allocations?.map((allocation, allocationIndex) => (
             <GanttAllocationBar
