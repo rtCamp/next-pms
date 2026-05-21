@@ -12,6 +12,8 @@ import { Plus } from "lucide-react";
  */
 import { CalendarGrid } from "./calendarGrid";
 import { CalendarToolbar, type CalendarView } from "./calendarToolbar";
+import { CreateMilestoneModal } from "./create-milestone";
+import { CreateTouchpointModal } from "./create-touchpoint";
 import { getTimelineItems } from "./fake-data";
 import { GanttView } from "./ganttView";
 import { MilestonesTable } from "./milestonesTable";
@@ -31,6 +33,8 @@ export function CalendarTab() {
   const [activeView, setActiveView] = useState<CalendarView>("calendar");
   const [filterType, setFilterType] = useState("all");
   const [tableTab, setTableTab] = useState<TableTab>("milestones");
+  const [createMilestoneOpen, setCreateMilestoneOpen] = useState(false);
+  const [createTouchpointOpen, setCreateTouchpointOpen] = useState(false);
 
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth();
@@ -113,7 +117,13 @@ export function CalendarTab() {
             variant="solid"
             label="Create"
             iconLeft={() => <Plus className="size-3.5" />}
-            onClick={() => {}}
+            onClick={() => {
+              if (tableTab === "milestones") {
+                setCreateMilestoneOpen(true);
+              } else {
+                setCreateTouchpointOpen(true);
+              }
+            }}
           />
         </div>
 
@@ -126,6 +136,18 @@ export function CalendarTab() {
           )}
         </div>
       </div>
+
+      <CreateMilestoneModal
+        open={createMilestoneOpen}
+        onOpenChange={setCreateMilestoneOpen}
+        projectId={projectId}
+      />
+
+      <CreateTouchpointModal
+        open={createTouchpointOpen}
+        onOpenChange={setCreateTouchpointOpen}
+        projectId={projectId}
+      />
     </div>
   );
 }
