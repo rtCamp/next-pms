@@ -16,6 +16,7 @@ import { useFrappeGetCall } from "frappe-react-sdk";
  */
 import { useDebounce } from "@/hooks/useDebounce";
 import { expectatedHours } from "@/lib/utils";
+import { FALLBACK_DAILY_WORKING_HOURS } from "./constants";
 import { OverAllocatedDay } from "./overAllocationWarning";
 
 interface UseOverAllocationOptions {
@@ -108,21 +109,23 @@ export function useOverAllocation({
 
   const dailyWorkingHours = useMemo(() => {
     const workingHour = workingHoursData?.message?.working_hour;
-
-    if (!workingHour || workingHour <= 0) {
-      return undefined;
-    }
+    const resolvedWorkingHour =
+      workingHour && workingHour > 0
+        ? workingHour
+        : FALLBACK_DAILY_WORKING_HOURS;
 
     const workingFrequency =
       workingHoursData?.message?.working_frequency === "Per Week"
         ? "Per Week"
         : "Per Day";
 
-    return Number(expectatedHours(workingHour, workingFrequency).toFixed(2));
+    return Number(
+      expectatedHours(resolvedWorkingHour, workingFrequency).toFixed(2),
+    );
   }, [workingHoursData]);
 
   return useMemo(() => {
-    if (!enabled || !data?.message || !dailyWorkingHours) return [];
+    if (!enabled || !data?.message) return [];
 
     const existing = (data.message as ExistingAllocation[]).filter(
       (a) => a.name !== allocationName,
