@@ -13,6 +13,7 @@ import { isDateOverdue } from "../../utils";
 type TimelineCellProps = {
   item: ProjectTimelineItem;
   column: TableColumn;
+  userId?: string;
   onEdit?: (item: ProjectTimelineItem) => void;
   onMarkAsCompleted?: (item: ProjectTimelineItem) => void;
   onFollowDocument?: (item: ProjectTimelineItem) => void;
@@ -21,6 +22,7 @@ type TimelineCellProps = {
 export function TimelineCell({
   item,
   column,
+  userId,
   onEdit,
   onMarkAsCompleted,
   onFollowDocument,
@@ -47,6 +49,7 @@ export function TimelineCell({
       return (
         <ActionsCell
           item={item}
+          userId={userId}
           onEdit={onEdit}
           onMarkAsCompleted={onMarkAsCompleted}
           onFollowDocument={onFollowDocument}

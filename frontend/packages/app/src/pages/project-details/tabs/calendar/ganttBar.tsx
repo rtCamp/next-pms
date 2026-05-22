@@ -25,7 +25,11 @@ export function GanttBar({ item, pos, totalWidth }: GanttBarProps) {
         title={item.title}
       >
         <Diamond className="size-3.5 shrink-0" />
-        <span className="truncate text-sm">{item.title}</span>
+        <span
+          className={`truncate text-sm${item.isComplete ? " line-through opacity-60" : ""}`}
+        >
+          {item.title}
+        </span>
       </div>
     );
   }
@@ -53,7 +57,9 @@ export function GanttBar({ item, pos, totalWidth }: GanttBarProps) {
       >
         <Zap className="size-3.5" />
       </div>
-      <span className="text-sm text-violet-700 whitespace-nowrap">
+      <span
+        className={`text-sm text-violet-700 whitespace-nowrap${item.isComplete ? " line-through opacity-60" : ""}`}
+      >
         {item.title}
       </span>
     </div>

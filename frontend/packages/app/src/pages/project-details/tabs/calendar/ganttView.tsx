@@ -1,6 +1,7 @@
 /**
  * External dependencies.
  */
+import { useEffect, useRef, useState } from "react";
 import {
   format,
   getDay,
@@ -9,9 +10,11 @@ import {
   parseISO,
   startOfMonth,
 } from "date-fns";
+import { ArrowDown } from "lucide-react";
 /**
  * Internal dependencies.
  */
+import { useThrottledCallback } from "@/hooks/useThrottledCallback";
 import { mergeClassNames as cn } from "@/lib/utils";
 import {
   COLUMN_WIDTH,
@@ -41,6 +44,29 @@ export function GanttView({
   items,
   showWeekend = true,
 }: GanttViewProps) {
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [hasMoreBelow, setHasMoreBelow] = useState(false);
+
+  const checkScroll = useThrottledCallback(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const atBottom = el.scrollTop + el.clientHeight >= el.scrollHeight - 2;
+    setHasMoreBelow(!atBottom && el.scrollHeight > el.clientHeight);
+  });
+
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    checkScroll();
+    el.addEventListener("scroll", checkScroll);
+    const ro = new ResizeObserver(checkScroll);
+    ro.observe(el);
+    return () => {
+      el.removeEventListener("scroll", checkScroll);
+      ro.disconnect();
+    };
+  }, [checkScroll, items]);
+
   const monthStart = startOfMonth(new Date(year, month, 1));
   const dayColumns = buildDayColumns(year, month, showWeekend);
   const colIndexMap = buildColIndexMap(dayColumns);
@@ -69,117 +95,129 @@ export function GanttView({
   }
 
   return (
-    <div className="overflow-auto no-scrollbar max-h-112.5">
-      <div style={{ minWidth: totalWidth }}>
-        {/* Week range labels */}
-        <div
-          className="sticky z-20 flex bg-surface-white border-t border-outline-gray-1"
-          style={{ top: 0, height: WEEK_LABEL_HEIGHT }}
-        >
-          {weekGroups.map((group, i) => {
-            const start = group[0];
-            const end = group[group.length - 1];
-            const endFmt = end.getMonth() !== start.getMonth() ? "MMM d" : "d";
-            const label = `${format(start, "MMM d")} - ${format(end, endFmt)}`;
-            return (
-              <div
-                key={i}
-                className={cn(
-                  "flex items-center justify-center px-2 text-xs text-ink-gray-4",
-                  i < weekGroups.length - 1 && "border-r border-outline-gray-1",
-                )}
-                style={{ width: group.length * COLUMN_WIDTH }}
-              >
-                <span className="truncate">{label}</span>
-              </div>
-            );
-          })}
-        </div>
-
-        {/* Day numbers */}
-        <div
-          className="sticky z-20 flex bg-surface-white border-b border-outline-gray-1"
-          style={{ top: WEEK_LABEL_HEIGHT, height: DAY_HEADER_HEIGHT }}
-        >
-          {dayColumns.map((day, i) => {
-            const todayDay = isToday(day);
-            const dow = getDay(day); // 0 Sun … 6 Sat
-            const isWeekend = dow === 0 || dow === 6;
-            // Mark last column of each week (Sun when showing weekends, Fri when not)
-            const isLastInWeek = showWeekend ? dow === 0 : dow === 5;
-            const isOutsideMonth = !isSameMonth(day, monthStart);
-            return (
-              <div
-                key={i}
-                className={cn(
-                  "relative flex items-center justify-center shrink-0",
-                  isWeekend && showWeekend && "bg-surface-gray-1/50",
-                  isLastInWeek && "border-r border-outline-gray-1",
-                )}
-                style={{ width: COLUMN_WIDTH, height: DAY_HEADER_HEIGHT }}
-              >
-                <span
-                  className={cn(
-                    "text-xs px-1.5 py-0.5",
-                    isOutsideMonth ? "text-ink-gray-3" : "text-ink-gray-4",
-                    todayDay &&
-                      "bg-surface-gray-7 text-ink-white rounded-[6px]",
-                  )}
-                >
-                  {format(day, "d")}
-                </span>
-              </div>
-            );
-          })}
-        </div>
-
-        {/* Timeline body */}
-        <div className="relative">
-          {/* Weekend column backgrounds */}
-          {showWeekend &&
-            dayColumns.map((day, i) => {
-              const dow = getDay(day);
-              const isWeekend = dow === 0 || dow === 6;
-              return isWeekend ? (
+    <div className="relative">
+      <div ref={scrollRef} className="overflow-auto no-scrollbar max-h-112.5">
+        <div style={{ minWidth: totalWidth }}>
+          {/* Week range labels */}
+          <div
+            className="sticky z-20 flex bg-surface-white border-t border-outline-gray-1"
+            style={{ top: 0, height: WEEK_LABEL_HEIGHT }}
+          >
+            {weekGroups.map((group, i) => {
+              const start = group[0];
+              const end = group[group.length - 1];
+              const endFmt =
+                end.getMonth() !== start.getMonth() ? "MMM d" : "d";
+              const label = `${format(start, "MMM d")} - ${format(end, endFmt)}`;
+              return (
                 <div
                   key={i}
-                  className="absolute top-0 bottom-0 bg-surface-gray-1/50 pointer-events-none"
-                  style={{ left: i * COLUMN_WIDTH, width: COLUMN_WIDTH }}
-                />
-              ) : null;
+                  className={cn(
+                    "flex items-center justify-center px-2 text-xs text-ink-gray-4",
+                    i < weekGroups.length - 1 &&
+                      "border-r border-outline-gray-1",
+                  )}
+                  style={{ width: group.length * COLUMN_WIDTH }}
+                >
+                  <span className="truncate">{label}</span>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Day numbers */}
+          <div
+            className="sticky z-20 flex bg-surface-white border-b border-outline-gray-1"
+            style={{ top: WEEK_LABEL_HEIGHT, height: DAY_HEADER_HEIGHT }}
+          >
+            {dayColumns.map((day, i) => {
+              const todayDay = isToday(day);
+              const dow = getDay(day); // 0 Sun … 6 Sat
+              const isWeekend = dow === 0 || dow === 6;
+              // Mark last column of each week (Sun when showing weekends, Fri when not)
+              const isLastInWeek = showWeekend ? dow === 0 : dow === 5;
+              const isOutsideMonth = !isSameMonth(day, monthStart);
+              return (
+                <div
+                  key={i}
+                  className={cn(
+                    "relative flex items-center justify-center shrink-0",
+                    isWeekend && showWeekend && "bg-surface-gray-1/50",
+                    isLastInWeek && "border-r border-outline-gray-1",
+                  )}
+                  style={{ width: COLUMN_WIDTH, height: DAY_HEADER_HEIGHT }}
+                >
+                  <span
+                    className={cn(
+                      "text-xs px-1.5 py-0.5",
+                      isOutsideMonth ? "text-ink-gray-3" : "text-ink-gray-4",
+                      todayDay &&
+                        "bg-surface-gray-7 text-ink-white rounded-[6px]",
+                    )}
+                  >
+                    {format(day, "d")}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Timeline body */}
+          <div className="relative">
+            {/* Weekend column backgrounds */}
+            {showWeekend &&
+              dayColumns.map((day, i) => {
+                const dow = getDay(day);
+                const isWeekend = dow === 0 || dow === 6;
+                return isWeekend ? (
+                  <div
+                    key={i}
+                    className="absolute top-0 bottom-0 bg-surface-gray-1/50 pointer-events-none"
+                    style={{ left: i * COLUMN_WIDTH, width: COLUMN_WIDTH }}
+                  />
+                ) : null;
+              })}
+
+            {/* Week separator lines */}
+            {separatorXs.map((x) => (
+              <div
+                key={x}
+                className="absolute top-0 bottom-0 w-px bg-outline-gray-1 pointer-events-none"
+                style={{ left: x - 1 }}
+              />
+            ))}
+
+            {/* Item rows */}
+            {visibleItems.map((item) => {
+              const pos = resolvePosition(item, dayColumns, colIndexMap);
+              if (!pos) return null;
+              return (
+                <div
+                  key={item.id}
+                  className="relative"
+                  style={{ height: ROW_HEIGHT }}
+                >
+                  <GanttBar item={item} pos={pos} totalWidth={totalWidth} />
+                </div>
+              );
             })}
 
-          {/* Week separator lines */}
-          {separatorXs.map((x) => (
-            <div
-              key={x}
-              className="absolute top-0 bottom-0 w-px bg-outline-gray-1 pointer-events-none"
-              style={{ left: x - 1 }}
-            />
-          ))}
-
-          {/* Item rows */}
-          {visibleItems.map((item) => {
-            const pos = resolvePosition(item, dayColumns, colIndexMap);
-            if (!pos) return null;
-            return (
-              <div
-                key={item.id}
-                className="relative"
-                style={{ height: ROW_HEIGHT }}
-              >
-                <GanttBar item={item} pos={pos} totalWidth={totalWidth} />
+            {visibleItems.length === 0 && (
+              <div className="py-10 text-center text-sm text-ink-gray-4 relative z-10">
+                No items for this period
               </div>
-            );
-          })}
-
-          {visibleItems.length === 0 && (
-            <div className="py-10 text-center text-sm text-ink-gray-4 relative z-10">
-              No items for this period
-            </div>
-          )}
+            )}
+          </div>
         </div>
       </div>
+      {hasMoreBelow && (
+        <div className="pointer-events-none absolute bottom-0 left-0 right-0 flex justify-center pb-2 pt-6 bg-linear-to-t from-surface-white to-transparent z-10">
+          <span className="flex items-center gap-1 text-base text-ink-gray-4">
+            <ArrowDown className="size-4" />
+            More
+          </span>
+        </div>
+      )}
     </div>
   );
 }
