@@ -1,24 +1,25 @@
 /**
  * External dependencies.
  */
-import { useCallback, useMemo, useState } from "react";
-import { Button, Dialog, TextInput } from "@rtcamp/frappe-ui-react";
-import {
-  Search,
-  SolidBranch,
-  WebLink,
-} from "@rtcamp/frappe-ui-react/icons";
+import { useCallback, useState } from "react";
+import { Button, Combobox, Dialog } from "@rtcamp/frappe-ui-react";
+import { WebLink } from "@rtcamp/frappe-ui-react/icons";
 
 /**
  * Internal dependencies.
  */
-import { AVAILABLE_REPOS } from "../fake-data";
-import type { AvailableRepo } from "../types";
+import { useRepositoryLookup } from "@/hooks/useRepositoryLookup";
+
+type ConnectedRepo = {
+  id: string;
+  name: string;
+  githubUrl: string;
+};
 
 type AddRepoDialogProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onConnect: (repo: AvailableRepo) => void;
+  onConnect: (repo: ConnectedRepo) => void;
   connectedIds: Set<string>;
 };
 
@@ -28,31 +29,34 @@ export function AddRepoDialog({
   onConnect,
   connectedIds,
 }: AddRepoDialogProps) {
-  const [search, setSearch] = useState("");
+  const [query, setQuery] = useState("");
 
-  const filtered = useMemo(() => {
-    const q = search.trim().toLowerCase();
-    return AVAILABLE_REPOS.filter((r) => !connectedIds.has(r.id)).filter(
-      (r) =>
-        q === "" ||
-        r.name.toLowerCase().includes(q) ||
-        r.fullPath.toLowerCase().includes(q),
-    );
-  }, [search, connectedIds]);
+  const { options, isLoading } = useRepositoryLookup({
+    shouldFetch: open,
+    query,
+    excludeIds: connectedIds,
+  });
 
-  const handleConnect = useCallback(
-    (repo: AvailableRepo) => {
-      onConnect(repo);
-      setSearch("");
+  const handlePick = useCallback(
+    (value: string | null) => {
+      if (!value) return;
+      const opt = options.find((o) => o.value === value);
+      if (!opt) return;
+      onConnect({
+        id: opt.value,
+        name: opt.label,
+        githubUrl: opt.githubUrl,
+      });
+      setQuery("");
       onOpenChange(false);
     },
-    [onConnect, onOpenChange],
+    [options, onConnect, onOpenChange],
   );
 
   const handleOpenChange = useCallback(
     (next: boolean) => {
       if (!next) {
-        setSearch("");
+        setQuery("");
       }
       onOpenChange(next);
     },
@@ -80,53 +84,16 @@ export function AddRepoDialog({
         </div>
       }
     >
-      <div className="flex flex-col gap-3">
-        <TextInput
-          size="md"
-          variant="outline"
-          placeholder="Search repositories"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          prefix={() => <Search className="size-4 text-ink-gray-4" />}
-        />
-        <div className="border border-outline-gray-2 rounded-lg max-h-[220px] overflow-y-auto px-[10px] py-[8px]">
-          {filtered.length === 0 ? (
-            <div className="py-6 text-center text-sm text-ink-gray-4">
-              No matching repositories
-            </div>
-          ) : (
-            <div className="flex flex-col">
-              {filtered.map((repo, i) => (
-                <div key={repo.id}>
-                  {i > 0 && (
-                    <div className="border-b border-outline-gray-1 my-2" />
-                  )}
-                  <div className="flex items-center gap-1">
-                    <div className="flex flex-1 flex-col gap-1 min-w-0">
-                      <div className="flex items-center gap-2">
-                        <SolidBranch className="size-4 shrink-0 text-ink-gray-7" />
-                        <span className="text-base font-medium text-ink-gray-7 truncate">
-                          {repo.name}
-                        </span>
-                      </div>
-                      <div className="pl-[22px]">
-                        <span className="text-sm text-ink-gray-5">
-                          {repo.fullPath}
-                        </span>
-                      </div>
-                    </div>
-                    <Button
-                      variant="subtle"
-                      label="Connect"
-                      onClick={() => handleConnect(repo)}
-                    />
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      </div>
+      <Combobox
+        options={options}
+        searchValue={query}
+        onSearchChange={setQuery}
+        onChange={handlePick}
+        placeholder="Search repositories"
+        loading={isLoading}
+        emptyMessage="No matching repositories"
+        openOnFocus
+      />
     </Dialog>
   );
 }

@@ -21,7 +21,7 @@ import { RepoCell } from "./cells";
 import { REPO_COLUMNS } from "./columns";
 import { AddRepoDialog } from "./components/addRepoDialog";
 import { INITIAL_REPOS } from "./fake-data";
-import type { AvailableRepo, RepoConnection } from "./types";
+import type { RepoConnection } from "./types";
 
 export function RepositoryConnections() {
   const [repos, setRepos] = useState<RepoConnection[]>(INITIAL_REPOS);
@@ -32,17 +32,20 @@ export function RepositoryConnections() {
     [repos],
   );
 
-  const handleConnect = useCallback((repo: AvailableRepo) => {
-    setRepos((prev) => [
-      ...prev,
-      {
-        id: repo.id,
-        name: repo.name,
-        createdOn: format(new Date(), "yyyy-MM-dd"),
-        githubUrl: repo.githubUrl,
-      },
-    ]);
-  }, []);
+  const handleConnect = useCallback(
+    (repo: { id: string; name: string; githubUrl: string }) => {
+      setRepos((prev) => [
+        ...prev,
+        {
+          id: repo.id,
+          name: repo.name,
+          createdOn: format(new Date(), "yyyy-MM-dd"),
+          githubUrl: repo.githubUrl,
+        },
+      ]);
+    },
+    [],
+  );
 
   const handleUnlink = useCallback((id: string) => {
     setRepos((prev) => prev.filter((r) => r.id !== id));
