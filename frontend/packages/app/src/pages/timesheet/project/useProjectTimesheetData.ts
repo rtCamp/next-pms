@@ -47,7 +47,7 @@ export function useProjectTimesheetData({
   const prevFiltersRef = useRef({ search, compositeFilters });
 
   // Build Frappe-compatible filters from composite filters
-  const { startDate, endDate, maxWeek, frappeFilters } = useMemo(
+  const { startDate, endDate, frappeFilters } = useMemo(
     () => buildCompositeFilters(compositeFilters),
     [compositeFilters],
   );
@@ -195,7 +195,7 @@ export function useProjectTimesheetData({
     const hasMore = hasMoreProjects || hasMoreWeeks;
 
     return { hasMoreProjects, hasMoreWeeks, hasMore, weekGroups };
-  }, [pages, weekDate, startDate, endDate, maxWeek]);
+  }, [pages, weekDate, startDate, endDate]);
 
   // When the current window is fully loaded but yields no visible weeks, we are
   // about to auto-advance. Expose this as "still loading" to prevent a flicker

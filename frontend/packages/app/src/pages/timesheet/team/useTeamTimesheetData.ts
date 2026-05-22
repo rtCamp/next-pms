@@ -74,7 +74,7 @@ export function useTeamTimesheetData({
   const prevFiltersRef = useRef({ filters, compositeFilters });
 
   // Build Frappe-compatible filters from composite filters
-  const { startDate, endDate, maxWeek, frappeFilters } = useMemo(
+  const { startDate, endDate, frappeFilters } = useMemo(
     () => buildCompositeFilters(compositeFilters),
     [compositeFilters],
   );
@@ -139,7 +139,7 @@ export function useTeamTimesheetData({
     useMemo(() => {
       const oneYearAgo = addDays(new Date(getTodayDate()), -365);
       // When a date-range filter is active, limit week pagination to the actual
-      // filter range (startDate − maxWeek weeks). Without a filter, fall back
+      // filter range. Without a filter, fall back
       // to the 1-year rolling limit.
       const hasMoreWeeks =
         startDate && endDate
@@ -285,7 +285,7 @@ export function useTeamTimesheetData({
       const hasMore = hasMoreEmployees || hasMoreWeeks;
 
       return { hasMoreWeeks, hasMoreEmployees, hasMore, weekGroups };
-    }, [pages, weekDate, startDate, endDate, maxWeek]);
+    }, [pages, weekDate, startDate, endDate]);
 
   // When the current window is fully loaded but yields no visible weeks, we are
   // about to auto-advance. Expose this as "still loading" to prevent a flicker
