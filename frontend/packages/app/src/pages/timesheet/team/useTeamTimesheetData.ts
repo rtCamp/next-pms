@@ -5,7 +5,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ApprovalStatusLabelMap } from "@next-pms/design-system/components";
 import { getFormatedDate, getTodayDate } from "@next-pms/design-system/date";
 import type { FilterCondition } from "@rtcamp/frappe-ui-react";
-import { addDays } from "date-fns";
+import { addDays, parseISO } from "date-fns";
 import type { Error as FrappeError } from "frappe-js-sdk/lib/frappe_app/types";
 import { useFrappeGetCall } from "frappe-react-sdk";
 
@@ -74,7 +74,7 @@ export function useTeamTimesheetData({
   const prevFiltersRef = useRef({ filters, compositeFilters });
 
   // Build Frappe-compatible filters from composite filters
-  const { startDate, maxWeek, frappeFilters } = useMemo(
+  const { startDate, endDate, maxWeek, frappeFilters } = useMemo(
     () => buildCompositeFilters(compositeFilters),
     [compositeFilters],
   );
@@ -102,6 +102,7 @@ export function useTeamTimesheetData({
     }
   }, [filters, compositeFilters, resetData]);
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- will eventually use filters in the API call, just not yet.
   const hasActiveFilter =
     !!filters.reportsTo ||
     !!filters.search ||
@@ -123,7 +124,7 @@ export function useTeamTimesheetData({
       ? JSON.stringify([ApprovalStatusLabelMap[filters.approvalStatus]])
       : null,
     filters: frappeFilters.length > 0 ? JSON.stringify(frappeFilters) : null,
-    skip_empty_weeks: hasActiveFilter || null,
+    // skip_empty_weeks: hasActiveFilter || null,
   });
 
   useEffect(() => {
@@ -140,9 +141,11 @@ export function useTeamTimesheetData({
       // When a date-range filter is active, limit week pagination to the actual
       // filter range (startDate − maxWeek weeks). Without a filter, fall back
       // to the 1-year rolling limit.
-      const hasMoreWeeks = startDate
-        ? new Date(weekDate) > addDays(new Date(startDate), -(maxWeek * 7))
-        : new Date(weekDate) > oneYearAgo;
+      const hasMoreWeeks =
+        startDate && endDate
+          ? addDays(parseISO(weekDate), -(NUMBER_OF_WEEKS_TO_FETCH * 7)) >
+            parseISO(endDate)
+          : parseISO(weekDate) > oneYearAgo;
       const hasMoreEmployees =
         pages.length > 0 ? (pages[pages.length - 1].has_more ?? false) : true;
 
@@ -216,6 +219,24 @@ export function useTeamTimesheetData({
 
       const weekMap = new Map<string, WeekGroup>();
 
+      // Seed week skeletons from the API-declared date ranges so that weeks
+      // are always present in the output even when every employee's timesheet
+      // for that week has status "Not Submitted" (and was filtered above).
+      pages.forEach((payload) => {
+        (payload.dates ?? []).forEach((weekEntry) => {
+          if (!weekMap.has(weekEntry.start_date)) {
+            weekMap.set(weekEntry.start_date, {
+              key: weekEntry.key,
+              start_date: weekEntry.start_date,
+              end_date: weekEntry.end_date,
+              dates: weekEntry.dates,
+              members: [],
+              approvalPendingCount: 0,
+            });
+          }
+        });
+      });
+
       Object.values(employeeMap).forEach(
         ({
           member,
@@ -264,7 +285,7 @@ export function useTeamTimesheetData({
       const hasMore = hasMoreEmployees || hasMoreWeeks;
 
       return { hasMoreWeeks, hasMoreEmployees, hasMore, weekGroups };
-    }, [pages, weekDate, startDate, maxWeek]);
+    }, [pages, weekDate, startDate, endDate, maxWeek]);
 
   // When the current window is fully loaded but yields no visible weeks, we are
   // about to auto-advance. Expose this as "still loading" to prevent a flicker

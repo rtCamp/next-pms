@@ -47,7 +47,7 @@ export function useProjectTimesheetData({
   const prevFiltersRef = useRef({ search, compositeFilters });
 
   // Build Frappe-compatible filters from composite filters
-  const { startDate, maxWeek, frappeFilters } = useMemo(
+  const { startDate, endDate, maxWeek, frappeFilters } = useMemo(
     () => buildCompositeFilters(compositeFilters),
     [compositeFilters],
   );
@@ -74,6 +74,7 @@ export function useProjectTimesheetData({
     }
   }, [search, compositeFilters, resetData]);
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- will eventually use filters in the API call, just not yet.
   const hasActiveFilter = !!search || compositeFilters.length > 0;
 
   const {
@@ -89,7 +90,8 @@ export function useProjectTimesheetData({
       start: projectStart,
       search: search || null,
       filters: frappeFilters.length > 0 ? JSON.stringify(frappeFilters) : null,
-      skip_empty_weeks: hasActiveFilter || null,
+      // skip_empty_weeks: hasActiveFilter || null,
+      // TODO: Re-enable skip_empty_weeks once the API properly supports it.
     },
   );
 
@@ -104,11 +106,13 @@ export function useProjectTimesheetData({
   const { hasMoreProjects, hasMoreWeeks, hasMore, weekGroups } = useMemo(() => {
     const oneYearAgo = addDays(parseISO(getTodayDate()), -365);
     // When a date-range filter is active, limit week pagination to the actual
-    // filter range (startDate − maxWeek weeks). Without a filter, fall back
+    // filter range. Without a filter, fall back
     // to the 1-year rolling limit.
-    const hasMoreWeeks = startDate
-      ? parseISO(weekDate) > addDays(parseISO(startDate), -(maxWeek * 7))
-      : parseISO(weekDate) > oneYearAgo;
+    const hasMoreWeeks =
+      startDate && endDate
+        ? addDays(parseISO(weekDate), -(NUMBER_OF_WEEKS_TO_FETCH * 7)) >
+          parseISO(endDate)
+        : parseISO(weekDate) > oneYearAgo;
 
     const hasMoreProjects =
       pages.length > 0 ? (pages[pages.length - 1].has_more ?? false) : true;
@@ -191,7 +195,7 @@ export function useProjectTimesheetData({
     const hasMore = hasMoreProjects || hasMoreWeeks;
 
     return { hasMoreProjects, hasMoreWeeks, hasMore, weekGroups };
-  }, [pages, weekDate, startDate, maxWeek]);
+  }, [pages, weekDate, startDate, endDate, maxWeek]);
 
   // When the current window is fully loaded but yields no visible weeks, we are
   // about to auto-advance. Expose this as "still loading" to prevent a flicker

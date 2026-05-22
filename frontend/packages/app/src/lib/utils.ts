@@ -620,6 +620,7 @@ export const buildCompositeFilters = (compositeFilters: FilterCondition[]) => {
   // Note: We are return end date as start date because API expects end date and fetches backwards from there.
   return {
     startDate: endDate,
+    endDate: startDate,
     maxWeek: maxWeek,
     frappeFilters,
   };
