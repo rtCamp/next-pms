@@ -1,26 +1,26 @@
 /**
  * Internal dependencies.
  */
+import { ActionsCell } from "../components/actionsCell";
 import type { TableColumn } from "../columns";
 import type { RepoConnection } from "../types";
-import { ActionsCell } from "./actionsCell";
 import { DateCell } from "./dateCell";
 import { RepoNameCell } from "./repoNameCell";
 
 type RepoCellProps = {
-  repo: RepoConnection;
+  row: RepoConnection;
   column: TableColumn;
   onUnlink: (id: string) => void;
 };
 
-export function RepoCell({ repo, column, onUnlink }: RepoCellProps) {
+export function RepoCell({ row, column, onUnlink }: RepoCellProps) {
   switch (column.key) {
     case "repoName":
-      return <RepoNameCell repo={repo} />;
+      return <RepoNameCell repo={row} />;
     case "createdOn":
-      return <DateCell date={repo.createdOn} />;
+      return <DateCell date={row.createdOn} />;
     case "actions":
-      return <ActionsCell repo={repo} onUnlink={onUnlink} />;
+      return <ActionsCell repo={row} onUnlink={onUnlink} />;
     default:
       return null;
   }

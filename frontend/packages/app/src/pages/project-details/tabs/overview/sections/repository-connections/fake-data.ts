@@ -1,7 +1,7 @@
 /**
  * Internal dependencies.
  */
-import type { RepoConnection } from "./types";
+import type { AvailableRepo, RepoConnection } from "./types";
 
 export const INITIAL_REPOS: RepoConnection[] = [
   {
@@ -33,5 +33,38 @@ export const INITIAL_REPOS: RepoConnection[] = [
     name: "atlas-ui-maintenance",
     createdOn: "2025-11-18",
     githubUrl: "https://github.com/rtCamp/atlas-ui-maintenance",
+  },
+];
+
+export const AVAILABLE_REPOS: AvailableRepo[] = [
+  {
+    id: "atlas-design-system",
+    name: "atlas-design-system",
+    fullPath: "frappe/atlas-design-system",
+    githubUrl: "https://github.com/frappe/atlas-design-system",
+  },
+  {
+    id: "atlas-cms-migration",
+    name: "atlas-cms-migration",
+    fullPath: "frappe/atlas-cms-migration",
+    githubUrl: "https://github.com/frappe/atlas-cms-migration",
+  },
+  {
+    id: "atlas-search",
+    name: "atlas-search",
+    fullPath: "frappe/atlas-search",
+    githubUrl: "https://github.com/frappe/atlas-search",
+  },
+  {
+    id: "atlas-wcag-checker",
+    name: "atlas-wcag-checker",
+    fullPath: "frappe/atlas-wcag-checker",
+    githubUrl: "https://github.com/frappe/atlas-wcag-checker",
+  },
+  {
+    id: "atlas-program-finder",
+    name: "atlas-program-finder",
+    fullPath: "frappe/atlas-program-finder",
+    githubUrl: "https://github.com/frappe/atlas-program-finder",
   },
 ];

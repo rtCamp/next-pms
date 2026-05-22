@@ -1,7 +1,7 @@
 /**
  * External dependencies.
  */
-import { Branch } from "@rtcamp/frappe-ui-react/icons";
+import { SolidBranch } from "@rtcamp/frappe-ui-react/icons";
 
 /**
  * Internal dependencies.
@@ -11,7 +11,7 @@ import type { RepoConnection } from "../types";
 export function RepoNameCell({ repo }: { repo: RepoConnection }) {
   return (
     <div className="flex items-center gap-2 min-w-0">
-      <Branch className="size-4 shrink-0 text-ink-gray-6" />
+      <SolidBranch className="size-4 shrink-0 text-ink-gray-6" />
       <a
         href={repo.githubUrl}
         target="_blank"

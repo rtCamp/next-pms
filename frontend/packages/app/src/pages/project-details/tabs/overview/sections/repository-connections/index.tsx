@@ -1,8 +1,15 @@
 /**
  * External dependencies.
  */
-import { useCallback, useState } from "react";
-import { Button } from "@rtcamp/frappe-ui-react";
+import { useCallback, useMemo, useState } from "react";
+import {
+  Button,
+  ListHeader,
+  ListHeaderItem,
+  ListRow,
+  ListRows,
+  ListView,
+} from "@rtcamp/frappe-ui-react";
 import { AddSm } from "@rtcamp/frappe-ui-react/icons";
 import { format } from "date-fns";
 
@@ -10,39 +17,29 @@ import { format } from "date-fns";
  * Internal dependencies.
  */
 import { OverviewSection } from "../../components/overviewSection";
-import { AddRepoDialog } from "./addRepoDialog";
 import { RepoCell } from "./cells";
 import { REPO_COLUMNS } from "./columns";
+import { AddRepoDialog } from "./components/addRepoDialog";
 import { INITIAL_REPOS } from "./fake-data";
-import type { RepoConnection } from "./types";
+import type { AvailableRepo, RepoConnection } from "./types";
 
 export function RepositoryConnections() {
   const [repos, setRepos] = useState<RepoConnection[]>(INITIAL_REPOS);
   const [dialogOpen, setDialogOpen] = useState(false);
 
-  const handleAdd = useCallback((url: string) => {
-    const trimmed = url.trim().replace(/\/$/, "");
-    // Reject javascript: / data: / other non-http(s) schemes — these would
-    // XSS via the row's <a href> in repoNameCell.
-    let parsed: URL;
-    try {
-      parsed = new URL(trimmed);
-    } catch {
-      return;
-    }
-    if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
-      return;
-    }
-    const segments = trimmed.split("/");
-    const name = segments[segments.length - 1] || trimmed;
-    const id = `${name}-${Date.now()}`;
+  const connectedIds = useMemo(
+    () => new Set(repos.map((r) => r.id)),
+    [repos],
+  );
+
+  const handleConnect = useCallback((repo: AvailableRepo) => {
     setRepos((prev) => [
       ...prev,
       {
-        id,
-        name,
+        id: repo.id,
+        name: repo.name,
         createdOn: format(new Date(), "yyyy-MM-dd"),
-        githubUrl: trimmed,
+        githubUrl: repo.githubUrl,
       },
     ]);
   }, []);
@@ -54,7 +51,7 @@ export function RepositoryConnections() {
   return (
     <OverviewSection
       title="Project repository connections"
-      action={
+      actions={
         <Button
           variant="ghost"
           icon={AddSm}
@@ -63,52 +60,57 @@ export function RepositoryConnections() {
         />
       }
     >
-      {repos.length === 0 ? (
-        <div className="py-10 text-center text-sm text-ink-gray-4">
-          No repositories connected
-        </div>
-      ) : (
-        <table className="w-full text-sm whitespace-nowrap">
-          <thead>
-            <tr className="border-b border-outline-gray-1 text-ink-gray-5 text-left">
-              {REPO_COLUMNS.map((column) => (
-                <th
-                  key={column.key}
-                  className={`p-2 text-sm${column.width ? ` ${column.width}` : ""}`}
-                >
-                  {column.srOnly ? (
-                    <span className="sr-only">{column.label}</span>
-                  ) : (
-                    column.label
-                  )}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {repos.map((repo) => (
-              <tr
-                key={repo.id}
-                className="border-b border-outline-gray-1 last:border-b-0 hover:bg-surface-gray-1 transition-colors text-base text-ink-gray-6"
-              >
+      <ListView
+        columns={REPO_COLUMNS}
+        rows={repos}
+        rowKey="id"
+        options={{
+          options: {
+            selectable: false,
+            showTooltip: false,
+            resizeColumn: false,
+          },
+        }}
+      >
+        <ListHeader className="mb-0 rounded-none bg-transparent border-b border-outline-gray-1 p-2 gap-2">
+          {REPO_COLUMNS.map((column) => (
+            <ListHeaderItem key={column.key} item={column}>
+              <div className="flex h-7 items-center py-1.5">
+                {column.srOnly ? (
+                  <span className="sr-only">{column.label}</span>
+                ) : (
+                  <span className="truncate">{column.label}</span>
+                )}
+              </div>
+            </ListHeaderItem>
+          ))}
+        </ListHeader>
+        <ListRows>
+          {repos.length === 0 ? (
+            <div className="py-10 text-center text-sm text-ink-gray-4">
+              No repositories connected
+            </div>
+          ) : (
+            repos.map((repo) => (
+              <ListRow key={repo.id} row={repo}>
                 {REPO_COLUMNS.map((column) => (
-                  <td key={column.key} className="p-2">
-                    <RepoCell
-                      repo={repo}
-                      column={column}
-                      onUnlink={handleUnlink}
-                    />
-                  </td>
+                  <RepoCell
+                    key={column.key}
+                    row={repo}
+                    column={column}
+                    onUnlink={handleUnlink}
+                  />
                 ))}
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      )}
+              </ListRow>
+            ))
+          )}
+        </ListRows>
+      </ListView>
       <AddRepoDialog
         open={dialogOpen}
         onOpenChange={setDialogOpen}
-        onAdd={handleAdd}
+        onConnect={handleConnect}
+        connectedIds={connectedIds}
       />
     </OverviewSection>
   );
