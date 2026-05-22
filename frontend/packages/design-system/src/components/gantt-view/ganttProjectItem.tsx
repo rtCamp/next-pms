@@ -29,7 +29,8 @@ export function GanttProjectItem({
   const subtext = [dateRange, client].filter(Boolean).join(" · ");
 
   return (
-    <PreviewCard.Root>
+    // TODO: enable after project hover card implementation.
+    <PreviewCard.Root open={false}>
       <PreviewCard.Trigger
         delay={300}
         closeDelay={150}
