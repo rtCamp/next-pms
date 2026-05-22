@@ -61,7 +61,7 @@ export function ProjectListProvider({ children }: PropsWithChildren) {
         revalidateOnFocus: false,
         revalidateAll: false,
         revalidateFirstPage: false,
-        keepPreviousData: true,
+        keepPreviousData: false,
       },
     );
 

@@ -32,7 +32,7 @@ export const RAG_STATUS = ["red", "amber", "green"] as const;
 
 export const PROJECT_TYPES = ["fixed-cost", "retainer", "external"] as const;
 
-export const PROJECT_LIST_PAGE_SIZE = 10;
+export const PROJECT_LIST_PAGE_SIZE = 20;
 
 export const RAG_OPTIONS = [
   { label: "Red", value: "red" },
