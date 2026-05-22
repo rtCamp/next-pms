@@ -41,7 +41,7 @@ function ProjectAllocationsLayoutContent() {
 
       <Outlet context={outletContext} />
 
-      <AddAllocationModal {...modalProps} />
+      <AddAllocationModal {...modalProps} layoutVariant="project" />
     </>
   );
 }
