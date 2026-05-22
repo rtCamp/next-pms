@@ -198,6 +198,9 @@ def create_project_timeline_item(
     """
     only_for(ALLOWED_ROLES, message=True)
 
+    title = (title or "").strip()
+    item_owner = (item_owner or "").strip()
+
     if not project:
         frappe.throw(frappe._("Project is required"))
     if not title:
@@ -206,14 +209,24 @@ def create_project_timeline_item(
         frappe.throw(frappe._("Item Owner is required"))
     if type not in ("Milestone", "Touchpoint"):
         frappe.throw(frappe._("Type must be Milestone or Touchpoint"))
+    if not frappe.db.exists("User", item_owner):
+        frappe.throw(frappe._("User {0} does not exist").format(item_owner))
+    if type == "Touchpoint" and start_date:
+        frappe.throw(frappe._("start_date cannot be set for a Touchpoint"))
+
+    start_date_val = getdate(start_date) if start_date else None
+    planned_end_date_val = getdate(planned_end_date) if planned_end_date else None
+
+    if start_date_val and planned_end_date_val and start_date_val > planned_end_date_val:
+        frappe.throw(frappe._("start_date must not be later than planned_end_date"))
 
     doc = frappe.new_doc("Project Timeline Item")
     doc.project = project
     doc.type = type
     doc.title = title
     doc.item_owner = item_owner
-    doc.start_date = start_date or None
-    doc.planned_end_date = planned_end_date or None
+    doc.start_date = start_date_val
+    doc.planned_end_date = planned_end_date_val
     doc.is_complete = 0
     doc.insert()
 
@@ -255,19 +268,24 @@ def edit_project_timeline_item(
 
     if not name:
         frappe.throw(frappe._("Name is required"))
+
     doc = frappe.get_doc("Project Timeline Item", name)
 
     if start_date is not None and doc.type == "Touchpoint":
         frappe.throw(frappe._("start_date cannot be set for a Touchpoint"))
 
     if title is not None:
+        title = title.strip()
         if not title:
             frappe.throw(frappe._("Title cannot be empty"))
         doc.title = title
 
     if item_owner is not None:
-        if not item_owner:  ##guarad against empty string
+        item_owner = item_owner.strip()
+        if not item_owner:
             frappe.throw(frappe._("Item Owner cannot be empty"))
+        if not frappe.db.exists("User", item_owner):
+            frappe.throw(frappe._("User {0} does not exist").format(item_owner))
         doc.item_owner = item_owner
 
     if start_date is not None:
@@ -276,7 +294,12 @@ def edit_project_timeline_item(
     if planned_end_date is not None:
         doc.planned_end_date = getdate(planned_end_date) if planned_end_date else None
 
-    doc.save()
+    effective_start = doc.start_date
+    effective_end = doc.planned_end_date
+    if effective_start and effective_end and getdate(effective_start) > getdate(effective_end):
+        frappe.throw(frappe._("start_date must not be later than planned_end_date"))
+
+    doc.save(ignore_permissions=False)
 
     return {
         "name": doc.name,

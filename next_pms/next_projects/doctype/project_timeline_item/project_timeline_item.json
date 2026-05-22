@@ -60,6 +60,7 @@
    "fieldtype": "Section Break"
   },
   {
+   "depends_on": "eval:doc.type==\"Milestone\"",
    "fieldname": "start_date",
    "fieldtype": "Date",
    "label": "Start Date"
@@ -97,7 +98,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-05-18 18:42:03.761148",
+ "modified": "2026-05-22 13:18:17.086117",
  "modified_by": "Administrator",
  "module": "Next Projects",
  "name": "Project Timeline Item",
