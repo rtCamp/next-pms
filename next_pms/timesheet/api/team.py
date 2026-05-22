@@ -25,26 +25,37 @@ from next_pms.timesheet.doc_events.timesheet import flush_cache, publish_timeshe
 from . import filter_employees
 from .employee import get_employee_daily_working_norm, get_employee_working_hours
 from .timesheet import get_timesheet_state
-from .utils import employee_has_higher_access, get_holidays, get_week_dates
+from .utils import (
+    build_aggregate_dates,
+    build_employee_week_details,
+    employee_has_higher_access,
+    get_holidays,
+    get_team_candidate_employee_ids,
+    get_week_dates,
+    paginate_qualifying_employee_payloads,
+    parse_filters,
+)
 
 
-@whitelist()
+@whitelist(methods=["GET"])
 @error_logger
 def get_compact_view_data(
     date: str,
     max_week: int = 2,
-    employee_name=None,
+    employee_name: str | None = None,
     employee_ids: list[str] | str | None = None,
-    department=None,
-    project=None,
-    user_group=None,
-    page_length=10,
-    start=0,
-    status_filter=None,
-    status=None,
+    department: str | None = None,
+    project: str | None = None,
+    user_group: str | None = None,
+    page_length: int = 10,
+    start: int = 0,
+    status_filter: list | str | None = None,
+    status: list | str | None = None,
     reports_to: str | None = None,
-    by_pass_access_check=False,
+    by_pass_access_check: bool = False,
 ):
+    """API to get the timesheet data in compact view format, it will return the timesheet data for the employees based on the filters provided. It will return the data in a format which can be used to render the compact view of the timesheet. If no filters are provided, it will return the timesheet data for all the employees for the current week and previous weeks based on the max_week parameter."""
+    ## TODO: Deprecated ; can be removed after the redesign is completed
     if not by_pass_access_check:
         only_for(["Timesheet Manager", "Timesheet User", "Projects Manager"], message=True)
 
@@ -170,9 +181,197 @@ def get_compact_view_data(
     return res
 
 
+def _get_team_timesheet_data(
+    date: str,
+    max_week: int = 2,
+    page_length=10,
+    start=0,
+    status_filter=None,
+    reports_to: str | None = None,
+    by_pass_access_check=False,
+    search: str | None = None,
+    filters: str | list | None = None,
+    skip_empty_weeks: bool = False,
+):
+    if not by_pass_access_check:
+        only_for(["Timesheet Manager", "Timesheet User", "Projects Manager"], message=True)
+
+    start = int(start)
+    page_length = int(page_length)
+    max_week = int(max_week)
+
+    if isinstance(skip_empty_weeks, str):
+        skip_empty_weeks = skip_empty_weeks.lower() in ("true", "1")
+
+    if status_filter and isinstance(status_filter, str):
+        status_filter = json.loads(status_filter)
+
+    parsed_filters = parse_filters(filters)
+
+    # get the employee status and business unit from the filters (drop down ui in frontend)
+    # this will be passed to the global employee filter so the pool of employees is narrowed down.
+    employee_status = None
+    employee_business_unit = None
+    for field, _operator, value in parsed_filters.get("Employee", []):
+        if field == "status":
+            employee_status = [value] if isinstance(value, str) else value
+        elif field == "custom_business_unit":
+            employee_business_unit = [value] if isinstance(value, str) else value
+
+    has_filters = bool(search or any(parsed_filters.values()))
+    dates, _ = build_aggregate_dates(date=date, max_week=max_week, has_filters=has_filters)
+    response_dates = dates[-max_week:] if has_filters and len(dates) > max_week else dates
+    res = {"dates": response_dates}
+
+    candidate_employee_ids = get_team_candidate_employee_ids(
+        reports_to=reports_to,
+        dates=dates,
+        parsed_filters=parsed_filters,
+        search=search,
+        timesheet_status=status_filter,
+        status=employee_status,
+        business_unit=employee_business_unit,
+    )
+
+    if candidate_employee_ids == []:
+        res["data"] = {}
+        res["total_count"] = 0
+        res["has_more"] = False
+        return res
+
+    def build_team_employee_payload(employee, context):
+        working_hours = context["working_hours_map"].get(
+            employee.name, {"working_hour": 0, "working_frequency": "Per Day"}
+        )
+        daily_working_hours = context["daily_norm_map"].get(employee.name, 0)
+        employee_timesheets = context["timesheet_map"].get(employee.name, [])
+        leaves = list(context["leaves_by_employee"].get(employee.name, []))
+        holidays = list(context["holidays_by_employee"].get(employee.name, []))
+
+        local_data = {**employee, **working_hours}
+        local_data["status"] = context["overall_status_map"].get(employee.name, "Not Submitted")
+        local_data["leaves"] = leaves
+        local_data["holidays"] = holidays
+        local_data["data"] = []
+
+        hours_by_date = {}
+        notes_by_date = {}
+        for ts in employee_timesheets:
+            if ts.start_date != ts.end_date:
+                continue
+            hours_by_date[ts.start_date] = hours_by_date.get(ts.start_date, 0) + (ts.get("total_hours") or 0)
+            notes_by_date[ts.start_date] = notes_by_date.get(ts.start_date, "") + (ts.get("note") or "")
+
+        holidays_by_date = {holiday.holiday_date: holiday for holiday in holidays}
+        for date_info in dates:
+            for current_date in date_info.get("dates"):
+                hour = 0
+                on_leave = False
+
+                for leave in leaves:
+                    if leave["from_date"] <= current_date <= leave["to_date"]:
+                        if leave.get("half_day") and leave.get("half_day_date") == current_date:
+                            hour += daily_working_hours / 2
+                        else:
+                            hour += daily_working_hours
+                        on_leave = True
+
+                holiday = holidays_by_date.get(current_date)
+                if holiday:
+                    if not holiday.weekly_off:
+                        hour = daily_working_hours
+                    else:
+                        hour = 0
+                    on_leave = False
+
+                hour += hours_by_date.get(current_date, 0)
+                local_data["data"].append(
+                    {
+                        "date": current_date,
+                        "hour": hour,
+                        "is_leave": on_leave,
+                        "note": notes_by_date.get(current_date, "").replace("<br>", "\n"),
+                    }
+                )
+
+        timesheet_details = build_employee_week_details(
+            employee_name=employee.name,
+            dates=dates,
+            context=context,
+            has_filters=has_filters,
+            skip_empty_weeks=skip_empty_weeks,
+        )
+
+        if has_filters and len(timesheet_details) > max_week:
+            sorted_keys = list(timesheet_details.keys())
+            timesheet_details = {key: timesheet_details[key] for key in sorted_keys[-max_week:]}
+
+        if not timesheet_details:
+            return None
+
+        if has_filters:
+            kept_week_dates = set()
+            for week in timesheet_details.values():
+                kept_week_dates.update(week.get("dates", []))
+            local_data["data"] = [row for row in local_data["data"] if row["date"] in kept_week_dates]
+
+        local_data["timesheet_details"] = timesheet_details
+        return employee.name, local_data
+
+    selected_employees, total_count, has_more = paginate_qualifying_employee_payloads(
+        reports_to=reports_to,
+        employee_ids=candidate_employee_ids,
+        dates=dates,
+        parsed_filters=parsed_filters,
+        search=search,
+        start=start,
+        page_length=page_length,
+        builder=build_team_employee_payload,
+        status=employee_status,
+        business_unit=employee_business_unit,
+    )
+
+    res["data"] = {employee_name: payload for employee_name, payload in selected_employees}
+    res["total_count"] = total_count
+    res["has_more"] = has_more
+
+    return res
+
+
+@whitelist(methods=["GET", "POST"])
+@error_logger
+def get_team_timesheet_data(
+    date: str,
+    max_week: int = 2,
+    page_length: int = 10,
+    start: int = 0,
+    status_filter: str | list | None = None,
+    reports_to: str | None = None,
+    search: str | None = None,
+    filters: str | list | None = None,
+    skip_empty_weeks: bool = False,
+):
+    """API to get team timesheet data with task-level detail in a single request.
+    Combines the compact view (daily hours per employee) with detailed timesheet
+    entries (tasks, hours per day) to avoid N+1 API calls from the frontend."""
+    return _get_team_timesheet_data(
+        date=date,
+        max_week=max_week,
+        page_length=page_length,
+        start=start,
+        status_filter=status_filter,
+        reports_to=reports_to,
+        by_pass_access_check=False,
+        search=search,
+        filters=filters,
+        skip_empty_weeks=skip_empty_weeks,
+    )
+
+
 @whitelist(methods=["POST"])
 @error_logger
 def approve_or_reject_timesheet(employee: str, status: str, dates: list[str] | None = None, note: str = ""):
+    """API to approve or reject the timesheet for the given employee and date range. It will update the custom_approval_status and custom_weekly_approval_status field of the timesheet to "Processing Timesheet" and then enqueue a background job to approve or reject the timesheet. The background job will update the status of the timesheet to "Approved" or "Rejected" based on the status parameter passed in the API and then trigger a notification to the employee about the approval or rejection of the timesheet."""
     only_for(["Timesheet Manager", "Timesheet User", "Projects Manager"], message=True)
     if not dates:
         return throw(_("Please select the dates to approve or reject the timesheet."))
@@ -389,6 +588,6 @@ def trigger_notification_for_approved_or_rejected_timesheet(
         "dates": dates,
         "updated_by": get_value("User", frappe.session.user, "full_name"),
     }
-    message = frappe.render_template(email_message, args)
-    subject = frappe.render_template(email_subject, args)
+    message = frappe.render_template(email_message, args)  # nosemgrep - trusted Email Template from DB
+    subject = frappe.render_template(email_subject, args)  # nosemgrep - trusted Email Template from DB
     frappe.sendmail(recipients=employee.user_id, subject=subject, message=message)

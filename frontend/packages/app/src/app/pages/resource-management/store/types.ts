@@ -164,7 +164,7 @@ export interface ProjectContextProps extends ResourceProjectState {
     updateFilter: (updatedFilters: OptionalResourceProjectFilters) => void;
     updateProjectData: (
       updatedProjectData: ResourceProjectDataProps,
-      type?: "SET" | "UPDATE"
+      type?: "SET" | "UPDATE",
     ) => void;
     getHasMore: () => boolean;
     setMaxWeek: (maxWeek: number) => void;
@@ -303,8 +303,14 @@ export interface TeamContextProps extends ResourceTeamState {
     updateFilter: (updatedFilters: OptionalResourceTeamFilters) => void;
     updateTeamData: (
       updatedTeamData: ResourceTeamDataProps,
-      type?: "SET" | "UPDATE"
+      type?: "SET" | "UPDATE",
     ) => void;
+    mergeHorizontalData: (horizontalData: {
+      start: number;
+      data: EmployeeDataProps[];
+      customer: ResourceCustomerObjectProps;
+      dates?: DateProps[];
+    }) => void;
     getHasMore: () => boolean;
     setMaxWeek: (maxWeek: number) => void;
     setDates: (dates: DateProps[]) => void;
@@ -332,11 +338,11 @@ export interface TimeLineContextProps {
   actions: {
     setEmployeesData: (
       value: ResourceAllocationEmployeeProps[],
-      hasMore: boolean
+      hasMore: boolean,
     ) => void;
     setAllocationsData: (
       value: ResourceAllocationTimeLineProps[],
-      type?: "Set" | "Update"
+      type?: "Set" | "Update",
     ) => void;
     setCustomerData: (value: ResourceAllocationCustomerProps) => void;
     getLastTimeLineItem: () => string;
@@ -344,15 +350,15 @@ export interface TimeLineContextProps {
     updateFilters: (filters: ResourceAllocationTimeLineFilterProps) => void;
     updateApiControler: (apiControler: APIControlerProps) => void;
     getAllocationWithID: (
-      id: string
+      id: string,
     ) => ResourceAllocationTimeLineProps | undefined;
     getEmployeeWithID: (id: string) => ResourceAllocationEmployeeProps;
     updateAllocation: (
       updatedAllocation: ResourceAllocationTimeLineProps,
-      type?: "Append" | "Update"
+      type?: "Append" | "Update",
     ) => ResourceAllocationTimeLineProps;
     getEmployeeWithIndex: (
-      index: number
+      index: number,
     ) => ResourceAllocationEmployeeProps | -1;
     isEmployeeExits: (name: string) => boolean | undefined;
     setAllocationData: (value: {

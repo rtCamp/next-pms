@@ -12,6 +12,7 @@ import type {
   APIController,
   ContextProviderProps,
   DateProps,
+  EmployeeDataProps,
   EmployeeResourceProps,
   OptionalResourceTeamFilters,
   ResourceTeamDataProps,
@@ -75,6 +76,7 @@ const defaulTeamState: TeamContextProps = {
     setReFetchData: () => {},
     updateFilter: () => {},
     updateTeamData: () => {},
+    mergeHorizontalData: () => {},
     getHasMore: () => false,
     setMaxWeek: () => {},
     setDates: () => {},
@@ -87,44 +89,103 @@ const defaulTeamState: TeamContextProps = {
 const TeamContext = createContext<TeamContextProps>(defaulTeamState);
 
 const TeamContextProvider = ({ children }: ContextProviderProps) => {
-  const [teamData, setTeanData] = useState<ResourceTeamDataProps>(defaultData);
+  const [teamData, setTeamData] = useState<ResourceTeamDataProps>(defaultData);
   const [filters, setFilters] = useState<ResourceTeamFilters>(defaultFilters);
   const [tableView, setTableView] = useState<TableViewProps>(defaultTableView);
-  const [apiController, setApiController] = useState<APIController>(defaultApiController);
+  const [apiController, setApiController] =
+    useState<APIController>(defaultApiController);
 
-  const updateTeamData = (updatedTeamData: ResourceTeamDataProps, type: "SET" | "UPDATE" = "SET") => {
-    if (type === "SET") {
-      setTeanData({
-        ...teamData,
-        data: updatedTeamData.data,
-        dates: updatedTeamData.dates ? updatedTeamData.dates : teamData.dates,
-        customer: updatedTeamData.customer,
-        total_count: updatedTeamData.total_count,
-        has_more: updatedTeamData.has_more,
-      });
-    } else {
-      setTeanData({
-        ...teamData,
-        data: [...teamData.data, ...updatedTeamData.data],
-        dates: updatedTeamData.dates ? updatedTeamData.dates : teamData.dates,
-        customer: { ...updatedTeamData.customer, ...updatedTeamData.customer },
-        total_count: updatedTeamData.total_count,
-        has_more: updatedTeamData.has_more,
-      });
-    }
+  const updateTeamData = (
+    updatedTeamData: ResourceTeamDataProps,
+    type: "SET" | "UPDATE" = "SET",
+  ) => {
+    setTeamData((prev) => {
+      if (type === "SET") {
+        return {
+          ...prev,
+          data: updatedTeamData.data,
+          dates: updatedTeamData.dates ? updatedTeamData.dates : prev.dates,
+          customer: updatedTeamData.customer,
+          total_count: updatedTeamData.total_count,
+          has_more: updatedTeamData.has_more,
+        };
+      } else {
+        return {
+          ...prev,
+          data: [...prev.data, ...updatedTeamData.data],
+          dates: updatedTeamData.dates ? updatedTeamData.dates : prev.dates,
+          customer: { ...prev.customer, ...updatedTeamData.customer },
+          total_count: updatedTeamData.total_count,
+          has_more: updatedTeamData.has_more,
+        };
+      }
+    });
 
-    setApiController({ ...apiController, isNeedToFetchDataAfterUpdate: false, isLoading: false });
+    setApiController((prev) => ({
+      ...prev,
+      isNeedToFetchDataAfterUpdate: false,
+      isLoading: false,
+    }));
+  };
+
+  const mergeHorizontalData = (horizontalData: {
+    start: number;
+    data: EmployeeDataProps[];
+    customer: ResourceTeamDataProps["customer"];
+    dates?: DateProps[];
+  }) => {
+    setTeamData((prev) => {
+      const updatedData = [...prev.data];
+      for (let i = 0; i < horizontalData.data.length; i++) {
+        const idx = horizontalData.start + i;
+        if (idx >= updatedData.length) break;
+        updatedData[idx] = {
+          ...updatedData[idx],
+          all_dates_data: {
+            ...updatedData[idx].all_dates_data,
+            ...horizontalData.data[i].all_dates_data,
+          },
+          all_leave_data: {
+            ...updatedData[idx].all_leave_data,
+            ...horizontalData.data[i].all_leave_data,
+          },
+          all_week_data: {
+            ...updatedData[idx].all_week_data,
+            ...horizontalData.data[i].all_week_data,
+          },
+          employee_allocations: {
+            ...updatedData[idx].employee_allocations,
+            ...horizontalData.data[i].employee_allocations,
+          },
+        };
+      }
+      return {
+        ...prev,
+        data: updatedData,
+        customer: { ...prev.customer, ...horizontalData.customer },
+        dates: horizontalData.dates ?? prev.dates,
+      };
+    });
   };
 
   const setStart = (start: number) => {
-    setFilters({ ...filters, start });
-    setApiController({ ...apiController, isLoading: true });
+    setFilters((prev) => ({ ...prev, start }));
+    setApiController((prev) => ({ ...prev, isLoading: true }));
   };
 
   const updateFilter = (updatedFilters: OptionalResourceTeamFilters) => {
-    setFilters((prev) => ({ ...prev, ...updatedFilters, start: 0, maxWeek: defaultFilters.maxWeek }));
-    setTeanData(defaultData);
-    setApiController({ ...apiController, isLoading: true, isNeedToFetchDataAfterUpdate: true });
+    setFilters((prev) => ({
+      ...prev,
+      ...updatedFilters,
+      start: 0,
+      maxWeek: defaultFilters.maxWeek,
+    }));
+    setTeamData(defaultData);
+    setApiController((prev) => ({
+      ...prev,
+      isLoading: true,
+      isNeedToFetchDataAfterUpdate: true,
+    }));
   };
 
   const updateTableView = (updatedTableView: TableViewProps) => {
@@ -132,39 +193,48 @@ const TeamContextProvider = ({ children }: ContextProviderProps) => {
   };
 
   const setReFetchData = (value: boolean) => {
-    setApiController({ ...apiController, isNeedToFetchDataAfterUpdate: value });
+    setApiController((prev) => ({
+      ...prev,
+      isNeedToFetchDataAfterUpdate: value,
+    }));
   };
 
   const setMaxWeek = (maxWeek: number) => {
-    if (maxWeek === filters.maxWeek) return;
-    setFilters({ ...filters, maxWeek });
+    setFilters((prev) => {
+      if (maxWeek === prev.maxWeek) return prev;
+      return { ...prev, maxWeek };
+    });
   };
 
   const setDates = (dates: DateProps[]) => {
-    setTeanData({ ...teamData, dates });
+    setTeamData((prev) => ({ ...prev, dates }));
   };
 
   const setWeekDate = (value: string) => {
-    setFilters({
-      ...filters,
+    setFilters((prev) => ({
+      ...prev,
       weekDate: value,
       start: 0,
       pageLength: defaultFilters.pageLength,
       maxWeek: defaultFilters.maxWeek,
-    });
-    setApiController({ ...apiController, isLoading: true, isNeedToFetchDataAfterUpdate: true });
-    setTeanData({ ...defaultData, dates: getDatesArrays(value, 10) });
+    }));
+    setApiController((prev) => ({
+      ...prev,
+      isLoading: true,
+      isNeedToFetchDataAfterUpdate: true,
+    }));
+    setTeamData({ ...defaultData, dates: getDatesArrays(value, 10) });
   };
 
   const resetState = () => {
-    setTeanData(defaultData);
+    setTeamData(defaultData);
     setFilters(defaultFilters);
     setTableView(defaultTableView);
     setApiController(defaultApiController);
   };
 
   const setCombineWeekHours = (value: boolean) => {
-    setTableView({ ...tableView, combineWeekHours: value });
+    setTableView((prev) => ({ ...prev, combineWeekHours: value }));
   };
 
   const getHasMore = () => {
@@ -190,6 +260,7 @@ const TeamContextProvider = ({ children }: ContextProviderProps) => {
           setReFetchData: setReFetchData,
           updateFilter: updateFilter,
           updateTeamData: updateTeamData,
+          mergeHorizontalData: mergeHorizontalData,
           getHasMore: getHasMore,
           setMaxWeek: setMaxWeek,
           setDates: setDates,

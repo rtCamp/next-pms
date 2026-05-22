@@ -14,7 +14,7 @@ ROLES = {
 }
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])
 @error_logger
 def save_project_status_update(
     project: str,
@@ -95,7 +95,7 @@ def save_project_status_update(
         frappe.throw(_("Failed to save project status update: {e!s}"))
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])
 @error_logger
 def create_project_status_update(
     project: str, title: str, description: str = None, status: str = "Draft", comments: list[dict] = None
@@ -106,7 +106,7 @@ def create_project_status_update(
     return save_project_status_update(project, title, description, status, None, comments)
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["GET"])
 @error_logger
 def get_project_status_update(name: str) -> dict[str, Any]:
     """
@@ -124,7 +124,7 @@ def get_project_status_update(name: str) -> dict[str, Any]:
     return get_project_status_update_details(name)
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["GET"])
 @error_logger
 def get_project_status_updates_by_project(project: str) -> list[dict[str, Any]]:
     """
@@ -165,7 +165,7 @@ def get_project_status_updates_by_project(project: str) -> list[dict[str, Any]]:
     return detailed_updates
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])
 @error_logger
 def update_project_status_update(
     name: str, title: str = None, description: str = None, status: str = None
@@ -199,7 +199,7 @@ def update_project_status_update(
     return get_project_status_update_details(doc.name)
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])
 @error_logger
 def add_comment_to_project_status_update(name: str, comment: str, user: str = None) -> dict[str, Any]:
     """
@@ -242,7 +242,7 @@ def add_comment_to_project_status_update(name: str, comment: str, user: str = No
     return get_project_status_update_details(doc.name)
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])
 @error_logger
 def update_comment_in_project_status_update(
     name: str,
@@ -293,7 +293,7 @@ def update_comment_in_project_status_update(
     return get_project_status_update_details(doc.name)
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])
 @error_logger
 def delete_comment_from_project_status_update(name: str, comment_name: str) -> dict[str, Any]:
     """
@@ -414,7 +414,8 @@ def notify_mentions(
         status_update_doc = frappe.get_doc("Project Status Update", project_status_update)
         project_name = status_update_doc.project
         update_title = status_update_doc.title
-        notification_context = f"project status update '{update_title}'"
+        project_title = frappe.db.get_value("Project", project_name, "project_name")
+        notification_context = f"project status '{update_title}' for project '{project_title}'"
     else:
         return {"message": "No project status update found"}
 
@@ -435,7 +436,8 @@ def notify_mentions(
                 "document_type": doc_type,
                 "document_name": doc_name,
                 "from_user": current_user,
-                "email_content": frappe.render_template(
+                "link": project_url,
+                "email_content": frappe.render_template(  # nosemgrep - trusted template file
                     "next_pms/timesheet/templates/project_status_update/mention_notification.html",
                     {
                         "current_user_name": current_user_name,
@@ -475,7 +477,7 @@ def send_project_publish_email(user, title, project_name, project_url):
 
     subject = f"Project Status Update '{title}' has been published"
 
-    message = frappe.render_template(
+    message = frappe.render_template(  # nosemgrep - trusted template file
         "next_pms/timesheet/templates/project_status_update/publish_notification.html",
         {
             "user_doc": user_doc,
