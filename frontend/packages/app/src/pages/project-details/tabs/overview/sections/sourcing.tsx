@@ -20,7 +20,7 @@ export function Sourcing() {
     (state) => state.project?.custom_host ?? EMPTY,
   );
   const previousCms = useProjectDetail(
-    (state) => state.project?.custom_3rd_parties ?? EMPTY,
+    (state) => state.project?.custom_previous_cms ?? EMPTY,
   );
 
   return (

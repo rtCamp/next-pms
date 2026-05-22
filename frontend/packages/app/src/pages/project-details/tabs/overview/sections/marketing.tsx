@@ -17,7 +17,19 @@ import { OverviewSection } from "../components/overviewSection";
 
 const EMPTY = "—";
 
+const toYesNo = (value: 0 | 1 | undefined) =>
+  value === 1 ? "Yes" : value === 0 ? "No" : EMPTY;
+
 export function Marketing() {
+  const ndaSigned = useProjectDetail((state) =>
+    toYesNo(state.project?.custom_restricted_under_nda),
+  );
+  const caseStudyApproved = useProjectDetail((state) =>
+    toYesNo(state.project?.custom_permission_for_case_study),
+  );
+  const testimonialApproval = useProjectDetail((state) =>
+    toYesNo(state.project?.custom_permission_for_testimonial),
+  );
   const testimonialContact = useProjectDetail(
     (state) => state.project?.custom_testimonial_contact ?? EMPTY,
   );
@@ -28,17 +40,17 @@ export function Marketing() {
         <OverviewField
           icon={<PreviewOff className="size-[18px]" />}
           label="NDA signed"
-          value={EMPTY}
+          value={ndaSigned}
         />
         <OverviewField
           icon={<Article className="size-[18px]" />}
           label="Case study approved"
-          value={EMPTY}
+          value={caseStudyApproved}
         />
         <OverviewField
           icon={<Quote className="size-[18px]" />}
           label="Testimonial approval"
-          value={EMPTY}
+          value={testimonialApproval}
         />
         <OverviewField
           icon={<Contact className="size-[18px]" />}

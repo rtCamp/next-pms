@@ -1,5 +1,24 @@
 export interface ProjectContact {
+  name: string;
+  owner: string;
+  creation: string;
+  modified: string;
+  modified_by: string;
+  docstatus: 0 | 1 | 2;
+  idx: number;
   contact: string;
+  parent: string;
+  parentfield: string;
+  parenttype: string;
+  doctype: "Project Contact";
+}
+
+export interface ProjectRepositoryConnection {
+  name: string;
+  parent: string;
+  parentfield: string;
+  parenttype: string;
+  doctype: string;
 }
 
 export interface ProjectUser {
@@ -32,6 +51,13 @@ export interface ProjectBudget {
 
 export interface ProjectDoc {
   name: string;
+  owner: string;
+  creation: string;
+  modified: string;
+  modified_by: string;
+  docstatus: 0 | 1 | 2;
+  idx: number;
+  doctype: "Project";
   naming_series: "PROJ-.####";
   project_name: string;
   project_type?: string;
@@ -52,6 +78,11 @@ export interface ProjectDoc {
   custom_customer_contacts?: ProjectContact[];
   custom_client_point_of_contact?: string;
   sales_order?: string;
+  custom_restricted_under_nda?: 0 | 1;
+  custom_source?: string;
+  custom_previous_cms?: string;
+  custom_permission_for_testimonial?: 0 | 1;
+  custom_permission_for_case_study?: 0 | 1;
   custom_testimonial_contact?: string;
   custom_project_rag_status?: "" | "Red" | "Amber" | "Green";
   custom_next_milestone?: string;
@@ -127,4 +158,5 @@ export interface ProjectDoc {
   custom_internal_slack_channel?: string;
   custom_google_drive_folder?: string;
   custom_website?: string;
+  custom_project_repository_connections?: ProjectRepositoryConnection[];
 }
