@@ -39,6 +39,7 @@ import { computeTotalHours } from "./utils";
 
 function AddAllocationModal({
   variant = "add",
+  layoutVariant = "team",
   open,
   onOpenChange,
   onEditScheduleClick,
@@ -253,6 +254,90 @@ function AddAllocationModal({
     [form, projectOptions],
   );
 
+  const employeeField = (
+    <form.Field
+      name="employeeId"
+      children={(field) => (
+        <>
+          <label className="block text-base text-ink-gray-5 mb-1.5">
+            Employee
+          </label>
+          <Combobox
+            inputClassName="bg-white h-8 border-outline-gray-2"
+            loading={isEmployeeLookupLoading}
+            options={employeeOptions}
+            searchValue={employeeSearch}
+            placeholder="Select Employee"
+            value={field.state.value}
+            onChange={(value) => field.handleChange(value as string)}
+            onSearchChange={setEmployeeSearch}
+            openOnFocus
+          />
+          {!field.state.meta.isValid && (
+            <ErrorMessage message={field.state.meta.errors[0]?.message} />
+          )}
+        </>
+      )}
+    />
+  );
+
+  const projectField = (
+    <form.Field
+      name="projectId"
+      children={(field) => (
+        <>
+          <label className="block text-base text-ink-gray-5 mb-1.5">
+            Project
+          </label>
+          <Combobox
+            inputClassName="bg-white h-8 border-outline-gray-2"
+            loading={isProjectLookupLoading}
+            options={projectOptions}
+            searchValue={projectSearch}
+            placeholder="Select Project"
+            value={field.state.value}
+            onChange={handleProjectChange}
+            onSearchChange={setProjectSearch}
+            openOnFocus
+          />
+          {!field.state.meta.isValid && (
+            <ErrorMessage message={field.state.meta.errors[0]?.message} />
+          )}
+        </>
+      )}
+    />
+  );
+
+  const customerField = (
+    <form.Field
+      name="customer"
+      children={(field) => (
+        <>
+          <label className="block text-base text-ink-gray-5 mb-1.5">
+            Customer
+          </label>
+          <Combobox
+            inputClassName="bg-white h-8 border-outline-gray-2"
+            loading={isCustomerLookupLoading}
+            options={customerOptions}
+            searchValue={customerSearch}
+            placeholder="Select Customer"
+            value={field.state.value}
+            onChange={(value) => {
+              field.handleChange(value as string);
+              setCustomerSearch("");
+            }}
+            onSearchChange={setCustomerSearch}
+            openOnFocus
+          />
+          {!field.state.meta.isValid && (
+            <ErrorMessage message={field.state.meta.errors[0]?.message} />
+          )}
+        </>
+      )}
+    />
+  );
+
   return (
     <Dialog
       open={open}
@@ -292,83 +377,19 @@ function AddAllocationModal({
       }
     >
       <div className="-mt-2 space-y-4">
-        <form.Field
-          name="employeeId"
-          children={(field) => (
-            <>
-              <label className="block text-base text-ink-gray-5 mb-1.5">
-                Employee
-              </label>
-              <Combobox
-                inputClassName="bg-white h-8 border-outline-gray-2"
-                loading={isEmployeeLookupLoading}
-                options={employeeOptions}
-                searchValue={employeeSearch}
-                placeholder="Select Employee"
-                value={field.state.value}
-                onChange={(value) => field.handleChange(value as string)}
-                onSearchChange={setEmployeeSearch}
-                openOnFocus
-              />
-              {!field.state.meta.isValid && (
-                <ErrorMessage message={field.state.meta.errors[0]?.message} />
-              )}
-            </>
-          )}
-        />
-
-        <form.Field
-          name="projectId"
-          children={(field) => (
-            <>
-              <label className="block text-base text-ink-gray-5 mb-1.5">
-                Project
-              </label>
-              <Combobox
-                inputClassName="bg-white h-8 border-outline-gray-2"
-                loading={isProjectLookupLoading}
-                options={projectOptions}
-                searchValue={projectSearch}
-                placeholder="Select Project"
-                value={field.state.value}
-                onChange={handleProjectChange}
-                onSearchChange={setProjectSearch}
-                openOnFocus
-              />
-              {!field.state.meta.isValid && (
-                <ErrorMessage message={field.state.meta.errors[0]?.message} />
-              )}
-            </>
-          )}
-        />
-
-        <form.Field
-          name="customer"
-          children={(field) => (
-            <>
-              <label className="block text-base text-ink-gray-5 mb-1.5">
-                Customer
-              </label>
-              <Combobox
-                inputClassName="bg-white h-8 border-outline-gray-2"
-                loading={isCustomerLookupLoading}
-                options={customerOptions}
-                searchValue={customerSearch}
-                placeholder="Select Customer"
-                value={field.state.value}
-                onChange={(value) => {
-                  field.handleChange(value as string);
-                  setCustomerSearch("");
-                }}
-                onSearchChange={setCustomerSearch}
-                openOnFocus
-              />
-              {!field.state.meta.isValid && (
-                <ErrorMessage message={field.state.meta.errors[0]?.message} />
-              )}
-            </>
-          )}
-        />
+        {layoutVariant === "project" ? (
+          <>
+            {projectField}
+            {customerField}
+            {employeeField}
+          </>
+        ) : (
+          <>
+            {employeeField}
+            {projectField}
+            {customerField}
+          </>
+        )}
 
         <form.Field
           name="recurrence"
