@@ -1,8 +1,7 @@
 /**
  * External dependencies.
  */
-import { useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useSearchParams } from "react-router-dom";
 import { Tabs } from "@rtcamp/frappe-ui-react";
 
 /**
@@ -11,11 +10,28 @@ import { Tabs } from "@rtcamp/frappe-ui-react";
 import { AboutThisProject } from "./about";
 import { ProjectDetailHeader } from "./header";
 import { ProjectDetailProvider } from "./provider";
-import { TABS } from "./tabs";
+import { TAB_KEYS, TABS, type TabKey } from "./tabs";
+
+const TAB_PARAM = "tab";
+const DEFAULT_TAB: TabKey = TAB_KEYS[0];
 
 function ProjectDetail() {
   const { projectId = "" } = useParams<{ projectId: string }>();
-  const [activeTab, setActiveTab] = useState(0);
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  const paramTab = searchParams.get(TAB_PARAM) as TabKey | null;
+  const activeKey: TabKey =
+    paramTab && TAB_KEYS.includes(paramTab) ? paramTab : DEFAULT_TAB;
+  const activeTab = TAB_KEYS.indexOf(activeKey);
+
+  const handleTabChange = (index: number) => {
+    const key = TAB_KEYS[index];
+    setSearchParams((prev) => {
+      if (!key || key === DEFAULT_TAB) prev.delete(TAB_PARAM);
+      else prev.set(TAB_PARAM, key);
+      return prev;
+    });
+  };
 
   return (
     <ProjectDetailProvider projectId={projectId}>
@@ -28,7 +44,7 @@ function ProjectDetail() {
             className="w-3/4 border-0 rounded-none border-r"
             tabs={TABS}
             tabIndex={activeTab}
-            onTabChange={setActiveTab}
+            onTabChange={handleTabChange}
           />
           <AboutThisProject className="w-88" />
         </div>
