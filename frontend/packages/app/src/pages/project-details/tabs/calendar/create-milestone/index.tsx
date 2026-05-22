@@ -37,13 +37,19 @@ export function CreateMilestoneModal({
   onOpenChange,
   projectId,
   onSuccess,
+  item,
 }: CreateMilestoneModalProps) {
   const toast = useToasts();
   const [ownerSearch, setOwnerSearch] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const isEditMode = Boolean(item);
 
   const { call: createMilestone } = useFrappePostCall(
     "next_pms.next_projects.api.project_timeline_item.create_project_timeline_item",
+  );
+
+  const { call: editMilestone } = useFrappePostCall(
+    "next_pms.next_projects.api.project_timeline_item.edit_project_timeline_item",
   );
 
   const { options: ownerOptions, isLoading: isOwnerLookupLoading } =
@@ -77,15 +83,26 @@ export function CreateMilestoneModal({
     onSubmit: async ({ value }) => {
       setSubmitting(true);
       try {
-        await createMilestone({
-          project: projectId,
-          type: "Milestone",
-          title: value.title,
-          item_owner: value.owner,
-          start_date: value.startDate,
-          planned_end_date: value.completionDate,
-        });
-        toast.success("Milestone created successfully");
+        if (isEditMode && item) {
+          await editMilestone({
+            name: item.id,
+            title: value.title,
+            item_owner: value.owner,
+            start_date: value.startDate,
+            planned_end_date: value.completionDate,
+          });
+          toast.success("Milestone updated successfully");
+        } else {
+          await createMilestone({
+            project: projectId,
+            type: "Milestone",
+            title: value.title,
+            item_owner: value.owner,
+            start_date: value.startDate,
+            planned_end_date: value.completionDate,
+          });
+          toast.success("Milestone created successfully");
+        }
         closeModal();
         await onSuccess?.();
       } catch (err) {
@@ -99,7 +116,7 @@ export function CreateMilestoneModal({
 
   const closeModal = useCallback(() => {
     onOpenChange(false);
-    form.reset(defaultValues);
+    form.reset();
   }, [form, onOpenChange]);
 
   const handleOpenChange = useCallback(
@@ -115,23 +132,29 @@ export function CreateMilestoneModal({
 
   useEffect(() => {
     if (!open) return;
-    form.reset(defaultValues);
-  }, [form, open]);
-
-  useEffect(() => {
-    setOwnerSearch("");
-  }, [open]);
+    if (isEditMode && item) {
+      form.setFieldValue("title", item.title);
+      form.setFieldValue("startDate", item.startDate ?? getTodayDate());
+      form.setFieldValue(
+        "completionDate",
+        item.plannedEndDate ?? getTodayDate(),
+      );
+      form.setFieldValue("owner", item.owner?.name ?? "");
+    } else {
+      form.reset();
+    }
+  }, [form, open, isEditMode, item]);
 
   return (
     <Dialog
       open={open}
       onOpenChange={handleOpenChange}
-      options={{ title: "Create milestone" }}
+      options={{ title: isEditMode ? "Edit milestone" : "Create milestone" }}
       actions={
         <Button
           className="w-full h-7"
           variant="solid"
-          label="Create"
+          label={isEditMode ? "Save" : "Create"}
           onClick={() => form.handleSubmit()}
           disabled={submitting}
           loading={submitting}

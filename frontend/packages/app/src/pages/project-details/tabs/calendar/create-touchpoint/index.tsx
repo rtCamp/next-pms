@@ -36,13 +36,19 @@ export function CreateTouchpointModal({
   onOpenChange,
   projectId,
   onSuccess,
+  item,
 }: CreateTouchpointModalProps) {
   const toast = useToasts();
   const [ownerSearch, setOwnerSearch] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const isEditMode = Boolean(item);
 
   const { call: createTouchpoint } = useFrappePostCall(
     "next_pms.next_projects.api.project_timeline_item.create_project_timeline_item",
+  );
+
+  const { call: editTouchpoint } = useFrappePostCall(
+    "next_pms.next_projects.api.project_timeline_item.edit_project_timeline_item",
   );
 
   const { options: ownerOptions, isLoading: isOwnerLookupLoading } =
@@ -76,14 +82,24 @@ export function CreateTouchpointModal({
     onSubmit: async ({ value }) => {
       setSubmitting(true);
       try {
-        await createTouchpoint({
-          project: projectId,
-          type: "Touchpoint",
-          title: value.title,
-          item_owner: value.owner,
-          planned_end_date: value.scheduledDate,
-        });
-        toast.success("Touchpoint created successfully");
+        if (isEditMode && item) {
+          await editTouchpoint({
+            name: item.id,
+            title: value.title,
+            item_owner: value.owner,
+            planned_end_date: value.scheduledDate,
+          });
+          toast.success("Touchpoint updated successfully");
+        } else {
+          await createTouchpoint({
+            project: projectId,
+            type: "Touchpoint",
+            title: value.title,
+            item_owner: value.owner,
+            planned_end_date: value.scheduledDate,
+          });
+          toast.success("Touchpoint created successfully");
+        }
         closeModal();
         await onSuccess?.();
       } catch (err) {
@@ -97,7 +113,7 @@ export function CreateTouchpointModal({
 
   const closeModal = useCallback(() => {
     onOpenChange(false);
-    form.reset(defaultValues);
+    form.reset();
   }, [form, onOpenChange]);
 
   const handleOpenChange = useCallback(
@@ -113,23 +129,32 @@ export function CreateTouchpointModal({
 
   useEffect(() => {
     if (!open) return;
-    form.reset(defaultValues);
-  }, [form, open]);
+    if (isEditMode && item) {
+      form.setFieldValue("title", item.title);
+      form.setFieldValue(
+        "scheduledDate",
+        item.plannedEndDate ?? getTodayDate(),
+      );
+      form.setFieldValue("owner", item.owner?.name ?? "");
+    } else {
+      form.reset();
+    }
+  }, [form, open, isEditMode, item]);
 
   useEffect(() => {
-    setOwnerSearch("");
+    setOwnerSearch(isEditMode && item ? (item.owner?.fullName ?? "") : "");
   }, [open]);
 
   return (
     <Dialog
       open={open}
       onOpenChange={handleOpenChange}
-      options={{ title: "Create touchpoint" }}
+      options={{ title: isEditMode ? "Edit touchpoint" : "Create touchpoint" }}
       actions={
         <Button
           className="w-full h-7"
           variant="solid"
-          label="Create"
+          label={isEditMode ? "Save" : "Create"}
           onClick={() => form.handleSubmit()}
           disabled={submitting}
           loading={submitting}
