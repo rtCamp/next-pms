@@ -154,7 +154,7 @@ def _compute_has_more(
 @error_logger
 def get_timesheet_data(
     employee: str,
-    start_date=None,
+    start_date: str | None = None,
     max_week: int = 4,
     search: str | None = None,
     approval_status: str | list | None = None,
