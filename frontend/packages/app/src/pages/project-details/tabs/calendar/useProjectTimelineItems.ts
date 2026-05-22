@@ -56,7 +56,7 @@ function mapItem(raw: ApiTimelineItem): ProjectTimelineItem {
     type: raw.type,
     isComplete: Boolean(raw.is_complete),
     startDate: raw.start_date ?? undefined,
-    plannedEndDate: raw.planned_end_date as string,
+    plannedEndDate: raw.planned_end_date ?? undefined,
     actualEndDate: raw.actual_end_date ?? undefined,
     owner: raw.owner ? mapUserRef(raw.owner) : { name: "", fullName: "" },
     watchers: (raw.watchers ?? []).map(mapUserRef),
@@ -97,11 +97,17 @@ export function useProjectTimelineItems(
   const { items, monthItems } = useMemo(() => {
     const allItems = (data?.message?.data ?? [])
       .filter((item) => item.planned_end_date !== null)
+      .filter((item) => item.type !== "Milestone" || item.start_date !== null)
       .map(mapItem);
 
     const monthOnlyItems = allItems.filter(
       (item) =>
-        item.plannedEndDate >= monthStart && item.plannedEndDate <= monthEnd,
+        (item.plannedEndDate !== undefined &&
+          item.plannedEndDate >= monthStart &&
+          item.plannedEndDate <= monthEnd) ||
+        (item.startDate !== undefined &&
+          item.startDate >= monthStart &&
+          item.startDate <= monthEnd),
     );
 
     return { items: allItems, monthItems: monthOnlyItems };

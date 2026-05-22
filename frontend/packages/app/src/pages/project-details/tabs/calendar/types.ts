@@ -13,7 +13,7 @@ export type ProjectTimelineItem = {
   type: TimelineItemType;
   isComplete: boolean;
   startDate?: string;
-  plannedEndDate: string;
+  plannedEndDate?: string;
   actualEndDate?: string;
   owner: UserRef;
   watchers: UserRef[];
