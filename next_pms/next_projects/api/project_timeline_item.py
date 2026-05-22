@@ -231,6 +231,67 @@ def create_project_timeline_item(
 
 @whitelist(methods=["POST"])
 @error_logger
+def edit_project_timeline_item(
+    name: str,
+    title: str | None = None,
+    item_owner: str | None = None,
+    start_date: str | None = None,
+    planned_end_date: str | None = None,
+):
+    """
+    Edit an existing Project Timeline Item.
+
+    Args:
+        name: Document name of the Project Timeline Item
+        title: New title — must be non-empty if provided
+        item_owner: New owner (User email) — must be non-empty if provided
+        start_date: New start date (Milestone only); "" to clear
+        planned_end_date: New planned end date; "" to clear
+
+    Returns:
+        Dict : The updated item's key fields.
+    """
+    only_for(ALLOWED_ROLES, message=True)
+
+    if not name:
+        frappe.throw(frappe._("Name is required"))
+    doc = frappe.get_doc("Project Timeline Item", name)
+
+    if start_date is not None and doc.type == "Touchpoint":
+        frappe.throw(frappe._("start_date cannot be set for a Touchpoint"))
+
+    if title is not None:
+        if not title:
+            frappe.throw(frappe._("Title cannot be empty"))
+        doc.title = title
+
+    if item_owner is not None:
+        if not item_owner:  ##guarad against empty string
+            frappe.throw(frappe._("Item Owner cannot be empty"))
+        doc.item_owner = item_owner
+
+    if start_date is not None:
+        doc.start_date = getdate(start_date) if start_date else None
+
+    if planned_end_date is not None:
+        doc.planned_end_date = getdate(planned_end_date) if planned_end_date else None
+
+    doc.save()
+
+    return {
+        "name": doc.name,
+        "title": doc.title,
+        "project": doc.project,
+        "type": doc.type,
+        "item_owner": doc.item_owner,
+        "start_date": doc.start_date,
+        "planned_end_date": doc.planned_end_date,
+        "is_complete": cint(doc.is_complete),
+    }
+
+
+@whitelist(methods=["POST"])
+@error_logger
 def mark_timeline_item_complete(name: str, is_complete: int = 1):
     """
     Mark a Project Timeline Item as complete or incomplete.
