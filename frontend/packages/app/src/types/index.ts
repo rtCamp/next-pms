@@ -50,6 +50,7 @@ declare global {
         user?: {
           roles?: string[];
           can_create: string[];
+          can_write?: string[];
         };
         currencies?: string[];
         has_business_unit?: boolean;
@@ -59,6 +60,10 @@ declare global {
         is_calendar_setup: boolean;
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         global_filters: { [key: string]: Array<any> };
+      };
+      realtime?: {
+        on: (event: string, handler: (data: unknown) => void) => void;
+        off: (event: string, handler: (data: unknown) => void) => void;
       };
     };
   }

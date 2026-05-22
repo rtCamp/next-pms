@@ -49,7 +49,7 @@ def send_reminder():
 
     email_subject = reminder_template.subject
 
-    message = frappe.render_template(email_message)
-    subject = frappe.render_template(email_subject)
+    message = frappe.render_template(email_message)  # nosemgrep - trusted Email Template from DB
+    subject = frappe.render_template(email_subject)  # nosemgrep - trusted Email Template from DB
 
     frappe.sendmail(recipients=users, subject=subject, message=message)

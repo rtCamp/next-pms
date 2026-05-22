@@ -43,7 +43,7 @@ def get_views():
 
 
 @frappe.whitelist(methods=["POST"])
-def create_view(view):
+def create_view(view: dict):
     """Endpoint to create a new view. It accepts view object as parameter and creates a new view for the user."""
     import json
 
@@ -73,7 +73,7 @@ def create_view(view):
 
 
 @frappe.whitelist(methods=["POST"])
-def update_view(view):
+def update_view(view: dict):
     """Endpoint to update an existing view. It accepts view object as parameter and updates the view for the user."""
     import json
 

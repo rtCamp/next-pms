@@ -1,0 +1,13 @@
+<p>
+    <p class="text-color">{{ body_content }}</p>
+</p>
+{% if description %}
+<blockquote>
+    {{ description | markdown }}
+</blockquote>
+{% endif %}
+{% if doc_link and "tab=Project+Updates" not in doc_link %}
+<div class="more-info">
+    <a href="{{ doc_link }}">{{ _("Open Document") }}</a>
+</div>
+{% endif %}

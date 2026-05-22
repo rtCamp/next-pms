@@ -25,7 +25,7 @@ def get_data():
 
 
 @frappe.whitelist(methods=["GET"])
-def get_employee_from_user(user=None, throw_exception=False):
+def get_employee_from_user(user: str | None = None, throw_exception: bool = False):
     """returns the employee id for the current user"""
     user = frappe.session.user
     employee = frappe.db.get_value("Employee", {"user_id": user})
@@ -77,7 +77,7 @@ def get_employee_weekly_working_norm(employee: str) -> int:
 
 
 @frappe.whitelist(methods=["GET"])
-def get_employee(filters=None, fieldname=None):
+def get_employee(filters: dict | str | None = None, fieldname: list | str | None = None):
     """returns the employee's information for the given filters"""
     import json
 
@@ -95,16 +95,16 @@ def get_employee(filters=None, fieldname=None):
 
 @frappe.whitelist(methods=["GET"])
 def get_employee_list(
-    employee_name=None,
-    department=None,
-    project=None,
-    page_length=None,
-    start=0,
-    status=None,
-    user_group=None,
+    employee_name: str | None = None,
+    department: str | None = None,
+    project: str | None = None,
+    page_length: int | None = None,
+    start: int = 0,
+    status: list | str | None = None,
+    user_group: str | None = None,
     reports_to: str | None = None,
     roles: str | list[str] | None = None,
-    ignore_default_filters=False,
+    ignore_default_filters: bool = False,
 ):
     """Get a paginated list of employees for the employee dropdown in the timesheet entry form, respecting user permissions."""
     import json
