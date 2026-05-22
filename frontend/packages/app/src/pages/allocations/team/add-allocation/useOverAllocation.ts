@@ -15,9 +15,9 @@ import { useFrappeGetCall } from "frappe-react-sdk";
  * Internal dependencies.
  */
 import { useDebounce } from "@/hooks/useDebounce";
+import { expectatedHours } from "@/lib/utils";
+import { FALLBACK_DAILY_WORKING_HOURS } from "./constants";
 import { OverAllocatedDay } from "./overAllocationWarning";
-
-const STANDARD_WORKING_HOURS = 8;
 
 interface UseOverAllocationOptions {
   employeeId: string;
@@ -39,6 +39,13 @@ interface ExistingAllocation {
   allocation_start_date: string;
   allocation_end_date: string;
   hours_allocated_per_day: number;
+}
+
+interface EmployeeWorkingHoursResponse {
+  message?: {
+    working_hour?: number;
+    working_frequency?: string;
+  };
 }
 
 export function useOverAllocation({
@@ -91,6 +98,32 @@ export function useOverAllocation({
     enabled ? undefined : false,
   );
 
+  const { data: workingHoursData } =
+    useFrappeGetCall<EmployeeWorkingHoursResponse>(
+      "next_pms.timesheet.api.employee.get_employee_working_hours",
+      {
+        employee: employeeId,
+      },
+      employeeId ? undefined : false,
+    );
+
+  const dailyWorkingHours = useMemo(() => {
+    const workingHour = workingHoursData?.message?.working_hour;
+    const resolvedWorkingHour =
+      workingHour && workingHour > 0
+        ? workingHour
+        : FALLBACK_DAILY_WORKING_HOURS;
+
+    const workingFrequency =
+      workingHoursData?.message?.working_frequency === "Per Week"
+        ? "Per Week"
+        : "Per Day";
+
+    return Number(
+      expectatedHours(resolvedWorkingHour, workingFrequency).toFixed(2),
+    );
+  }, [workingHoursData]);
+
   return useMemo(() => {
     if (!enabled || !data?.message) return [];
 
@@ -122,11 +155,10 @@ export function useOverAllocation({
           .reduce((sum, a) => sum + (a.hours_allocated_per_day ?? 0), 0);
 
         const total = existingHours + debouncedHoursPerDay;
-        if (total > STANDARD_WORKING_HOURS) {
+        if (total > dailyWorkingHours) {
           result.push({
             date: dateStr,
-            excessHours:
-              Math.round((total - STANDARD_WORKING_HOURS) * 100) / 100,
+            excessHours: Math.round((total - dailyWorkingHours) * 100) / 100,
           });
         }
       }
@@ -141,6 +173,7 @@ export function useOverAllocation({
     debouncedToDate,
     debouncedRepeatWeeks,
     debouncedHoursPerDay,
+    dailyWorkingHours,
     includeWeekends,
   ]);
 }
