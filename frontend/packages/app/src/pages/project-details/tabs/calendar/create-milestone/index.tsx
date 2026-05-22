@@ -145,10 +145,6 @@ export function CreateMilestoneModal({
     }
   }, [form, open, isEditMode, item]);
 
-  useEffect(() => {
-    setOwnerSearch(isEditMode && item ? (item.owner?.fullName ?? "") : "");
-  }, [open]);
-
   return (
     <Dialog
       open={open}

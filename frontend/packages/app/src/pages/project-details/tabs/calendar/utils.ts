@@ -109,7 +109,7 @@ export function resolvePosition(
   dayColumns: Date[],
   colIndexMap: Map<string, number>,
 ): ItemPosition | null {
-  const plannedEnd = parseISO(item.plannedEndDate ?? "");
+  const plannedEnd = parseISO(item.plannedEndDate);
   const viewStart = dayColumns[0];
   const viewEnd = dayColumns[dayColumns.length - 1];
 
@@ -167,9 +167,9 @@ export function getCalendarWeeks(year: number, month: number): Date[][] {
 
 export function getItemDateKey(item: ProjectTimelineItem): string {
   if (item.type === "Milestone") {
-    return item.startDate ?? item.plannedEndDate ?? "";
+    return item.startDate ?? item.plannedEndDate;
   }
-  return item.plannedEndDate ?? "";
+  return item.plannedEndDate;
 }
 
 export function groupByDate(

@@ -60,7 +60,7 @@ function mapItem(raw: ApiTimelineItem): ProjectTimelineItem {
     type: raw.type,
     isComplete: Boolean(raw.is_complete),
     startDate: raw.start_date ?? undefined,
-    plannedEndDate: raw.planned_end_date ?? undefined,
+    plannedEndDate: raw.planned_end_date as string,
     actualEndDate: raw.actual_end_date ?? undefined,
     owner: raw.owner ? mapUserRef(raw.owner) : { name: "", fullName: "" },
     watchers: (raw.watchers ?? []).map(mapUserRef),
