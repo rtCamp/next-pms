@@ -1,11 +1,13 @@
 /**
  * External dependencies.
  */
+import { useEffect, useState } from "react";
 import { Select, TextInput, Filter } from "@rtcamp/frappe-ui-react";
 
 /**
  * Internal dependencies.
  */
+import { useDebounce } from "@/hooks/useDebounce";
 import { PHASE_OPTIONS, RAG_OPTIONS, STATUS_OPTIONS } from "../constants";
 import { useProjectFilters } from "../hooks/useProjectFilters";
 import { Phase, type ProjectStatus, type RagStatus } from "../types";
@@ -20,14 +22,25 @@ export function ProjectListSubHeader() {
     setAdvanced,
   } = useProjectFilters();
 
+  const [searchInput, setSearchInput] = useState(search);
+  const debouncedSearch = useDebounce(searchInput, 400);
+
+  useEffect(() => {
+    if (debouncedSearch !== search) setSearch(debouncedSearch);
+  }, [debouncedSearch]);
+
+  useEffect(() => {
+    setSearchInput(search);
+  }, [search]);
+
   return (
     <div className="flex flex-wrap gap-2 justify-between px-5 py-3.5">
       <div className="flex gap-2">
         <TextInput
           size="sm"
           placeholder="Search project"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
+          value={searchInput}
+          onChange={(e) => setSearchInput(e.target.value)}
         />
         <Select
           placeholder="RAG Status"
