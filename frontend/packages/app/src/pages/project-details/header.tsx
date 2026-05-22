@@ -10,9 +10,15 @@ import { Folder } from "@rtcamp/frappe-ui-react/icons";
  */
 import { Header } from "@/layout/header";
 import { ROUTES } from "@/lib/constant";
+import { useProjectDetail } from "./context";
 
-export function ProjectDetailHeader({ projectName }: { projectName: string }) {
+export function ProjectDetailHeader() {
   const navigate = useNavigate();
+  const projectId = useProjectDetail((s) => s.projectId);
+  const projectName = useProjectDetail(
+    (s) => s.project?.project_name ?? s.projectId,
+  );
+
   return (
     <Header>
       <Breadcrumbs
@@ -24,7 +30,7 @@ export function ProjectDetailHeader({ projectName }: { projectName: string }) {
           },
           {
             id: "project",
-            label: projectName,
+            label: projectName || projectId,
             prefixIcon: <Folder className="size-4" />,
           },
         ]}

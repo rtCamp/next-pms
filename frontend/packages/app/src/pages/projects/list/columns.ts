@@ -11,6 +11,6 @@ export const PROJECT_LIST_COLUMNS = [
   { key: "project_manager", label: "Project manager", width: "200px" },
   { key: "engineering_manager", label: "Lead engineer", width: "200px" },
   { key: "project_type", label: "Project type", width: "120px" },
-  { key: "customer_name", label: "Client name", width: "180px" },
+  { key: "customer", label: "Client name", width: "180px" },
   { key: "contract_end_date", label: "Contract end date", width: "160px" },
 ];

@@ -5,13 +5,20 @@ import { useParams } from "react-router-dom";
 import { Accordion } from "@base-ui/react/accordion";
 import { mergeClassNames } from "@next-pms/design-system";
 import { Button } from "@rtcamp/frappe-ui-react";
-import { AddSm } from "@rtcamp/frappe-ui-react/icons";
+import {
+  AddSm,
+  Hashtag,
+  SolidExternalLink,
+  SolidSharedFolder,
+} from "@rtcamp/frappe-ui-react/icons";
 
 /**
  * Internal dependencies.
  */
-import { FAKE_PROJECTS } from "@/pages/project-details/fake-data";
+import { pickAllowed, toKebabCase } from "@/lib/utils";
+import { RAG_STATUS } from "@/pages/projects/constants";
 import { Dot } from "@/pages/projects/list/cells/dot";
+import { RagStatus } from "@/pages/projects/types";
 import { BudgetBurnBar } from "./components/budgetBurnBar";
 import { CustomerRow } from "./components/customerRow";
 import { ExpandableList } from "./components/expandableList";
@@ -19,15 +26,50 @@ import { MemberRow } from "./components/memberRow";
 import { getProjectAboutData } from "./fake-data";
 import { ProgressHoursSection } from "./progressHoursSection";
 import { Section } from "./section";
+import { useProjectDetail } from "../context";
 
 export function AboutThisProject({ className }: { className: string }) {
   const { projectId = "" } = useParams<{ projectId: string }>();
-  const project = FAKE_PROJECTS[0];
   const about = getProjectAboutData(projectId);
+
+  const summary = useProjectDetail(
+    (state) => state.project?.custom_short_summary ?? "",
+  );
+
+  const projectName = useProjectDetail(
+    (state) => state.project?.project_name ?? "",
+  );
+
+  const customer = useProjectDetail((state) => state.project?.customer ?? "");
+
+  const risk = useProjectDetail((state) =>
+    pickAllowed<RagStatus>(
+      toKebabCase(state.project?.custom_project_rag_status),
+      RAG_STATUS,
+    ),
+  );
+
+  const status = useProjectDetail((state) => state.project?.status ?? "");
+
+  const phase = useProjectDetail(
+    (state) => state.project?.custom_project_phase ?? "",
+  );
+
+  const projectWebsite = useProjectDetail(
+    (state) => state.project?.custom_website,
+  );
+
+  const projectDriveFolder = useProjectDetail(
+    (state) => state.project?.custom_google_drive_folder,
+  );
+
+  const slackChannel = useProjectDetail(
+    (state) => state.project?.custom_internal_slack_channel,
+  );
 
   return (
     <section className={mergeClassNames("flex h-full flex-col", className)}>
-      <h2 className="border-b border-outline-gray-1 px-5 py-3 text-lg font-medium text-ink-gray-9">
+      <h2 className="h-10 border-b border-outline-gray-1 px-5 py-3 text-lg font-medium text-ink-gray-9">
         About this project
       </h2>
       <Accordion.Root
@@ -44,9 +86,7 @@ export function AboutThisProject({ className }: { className: string }) {
         className="flex flex-col"
       >
         <Section value="summary" title="Summary">
-          <p className="text-base font-normal text-ink-gray-7">
-            {about.summary}
-          </p>
+          <p className="text-base font-normal text-ink-gray-7">{summary}</p>
         </Section>
 
         <Section value="details" title="Project details">
@@ -54,39 +94,57 @@ export function AboutThisProject({ className }: { className: string }) {
             <span>Project name</span>
             <div className="flex min-w-0 items-center gap-2">
               <span className="flex-1 truncate text-ink-gray-7">
-                {project.name}
+                {projectName}
               </span>
-              <Dot risk={project.riskLevel} />
+              {risk && <Dot risk={risk} />}
             </div>
 
             <span>Customer</span>
-            <span className="truncate text-ink-gray-7">
-              {project.clientName}
-            </span>
+            <span className="truncate text-ink-gray-7">{customer}</span>
 
             <span>Project status</span>
-            <span className="truncate text-ink-gray-7">Active</span>
+            <span className="truncate text-ink-gray-7">{status}</span>
 
             <span>Current phase</span>
-            <span className="truncate text-ink-gray-7">{project.phase}</span>
+            <span className="truncate text-ink-gray-7">{phase}</span>
           </div>
         </Section>
 
         <Section value="links" title="Links">
           <div className="flex items-center gap-2">
-            {about.links.map(({ key, label, href, icon: Icon }) => (
+            {projectWebsite && (
               <a
-                key={key}
-                href={href}
+                href={projectWebsite}
                 target="_blank"
-                rel="noreferrer noopener"
-                aria-label={label}
-                title={label}
-                className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-surface-gray-2 text-ink-gray-7 transition-colors hover:bg-surface-gray-3"
+                rel="noreferrer"
+                aria-label="Project website"
+                className="flex h-7 w-7 items-center justify-center rounded text-ink-gray-7 bg-surface-gray-2 hover:bg-surface-gray-4"
               >
-                <Icon aria-hidden className="size-[18px]" />
+                <SolidExternalLink className="h-4 w-4" />
               </a>
-            ))}
+            )}
+            {projectDriveFolder && (
+              <a
+                href={projectDriveFolder}
+                target="_blank"
+                rel="noreferrer"
+                aria-label="Drive folder"
+                className="flex h-7 w-7 items-center justify-center rounded text-ink-gray-7 bg-surface-gray-2 hover:bg-surface-gray-4"
+              >
+                <SolidSharedFolder className="h-4 w-4" />
+              </a>
+            )}
+            {slackChannel && (
+              <a
+                href={slackChannel}
+                target="_blank"
+                rel="noreferrer"
+                aria-label="Slack channel"
+                className="flex h-7 w-7 items-center justify-center rounded text-ink-gray-7 bg-surface-gray-2 hover:bg-surface-gray-4"
+              >
+                <Hashtag className="h-4 w-4" />
+              </a>
+            )}
           </div>
         </Section>
 

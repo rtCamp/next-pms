@@ -8,33 +8,32 @@ import { Tabs } from "@rtcamp/frappe-ui-react";
 /**
  * Internal dependencies.
  */
-import { FAKE_PROJECTS } from "@/pages/project-details/fake-data";
-
 import { AboutThisProject } from "./about";
 import { ProjectDetailHeader } from "./header";
+import { ProjectDetailProvider } from "./provider";
 import { TABS } from "./tabs";
 
 function ProjectDetail() {
   const { projectId = "" } = useParams<{ projectId: string }>();
-  const project = FAKE_PROJECTS.find((p) => p.id === projectId);
-  const projectName = project?.name ?? projectId;
-
   const [activeTab, setActiveTab] = useState(0);
 
   return (
-    <div className="h-full flex flex-col">
-      <ProjectDetailHeader projectName={projectName} />
-      <div className="flex flex-1 min-h-0">
-        <Tabs
-          tabPanelClassName="overflow-y-auto pb-50 scrollbar-thin"
-          className="w-3/4 border-0 rounded-none border-r"
-          tabs={TABS}
-          tabIndex={activeTab}
-          onTabChange={setActiveTab}
-        />
-        <AboutThisProject className="w-88" />
+    <ProjectDetailProvider projectId={projectId}>
+      <div className="h-full flex flex-col">
+        <ProjectDetailHeader />
+        <div className="flex flex-1 min-h-0">
+          <Tabs
+            tabListClassName="h-10"
+            tabPanelClassName="overflow-auto scrollbar-thin"
+            className="w-3/4 border-0 rounded-none border-r"
+            tabs={TABS}
+            tabIndex={activeTab}
+            onTabChange={setActiveTab}
+          />
+          <AboutThisProject className="w-88" />
+        </div>
       </div>
-    </div>
+    </ProjectDetailProvider>
   );
 }
 
