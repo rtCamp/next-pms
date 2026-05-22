@@ -48,6 +48,7 @@ export function CalendarTab() {
   const [tableTab, setTableTab] = useState<TableTab>("milestones");
   const [createMilestoneOpen, setCreateMilestoneOpen] = useState(false);
   const [createTouchpointOpen, setCreateTouchpointOpen] = useState(false);
+  const [editItem, setEditItem] = useState<ProjectTimelineItem | null>(null);
 
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth();
@@ -102,6 +103,10 @@ export function CalendarTab() {
     } catch (err) {
       toast.error(parseFrappeErrorMsg(err as FrappeError));
     }
+  }
+
+  function handleEdit(item: ProjectTimelineItem) {
+    setEditItem(item);
   }
 
   async function handleFollowDocument(item: ProjectTimelineItem) {
@@ -182,6 +187,7 @@ export function CalendarTab() {
             <MilestonesTable
               items={monthItems}
               userId={userId}
+              onEdit={handleEdit}
               onMarkAsCompleted={handleMarkAsCompleted}
               onFollowDocument={handleFollowDocument}
             />
@@ -189,6 +195,7 @@ export function CalendarTab() {
             <TouchpointsTable
               items={monthItems}
               userId={userId}
+              onEdit={handleEdit}
               onMarkAsCompleted={handleMarkAsCompleted}
               onFollowDocument={handleFollowDocument}
             />
@@ -210,6 +217,33 @@ export function CalendarTab() {
         onOpenChange={setCreateTouchpointOpen}
         projectId={projectId}
         onSuccess={() => {
+          void mutate();
+        }}
+      />
+
+      {/* Edit modals — reuse create modals with item pre-filled */}
+      <CreateMilestoneModal
+        open={editItem?.type === "Milestone"}
+        onOpenChange={(open) => {
+          if (!open) setEditItem(null);
+        }}
+        projectId={projectId}
+        item={editItem?.type === "Milestone" ? editItem : undefined}
+        onSuccess={() => {
+          setEditItem(null);
+          void mutate();
+        }}
+      />
+
+      <CreateTouchpointModal
+        open={editItem?.type === "Touchpoint"}
+        onOpenChange={(open) => {
+          if (!open) setEditItem(null);
+        }}
+        projectId={projectId}
+        item={editItem?.type === "Touchpoint" ? editItem : undefined}
+        onSuccess={() => {
+          setEditItem(null);
           void mutate();
         }}
       />
