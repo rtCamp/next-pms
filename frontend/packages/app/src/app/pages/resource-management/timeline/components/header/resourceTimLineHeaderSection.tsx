@@ -191,12 +191,7 @@ const ResourceTimLineHeaderSection = ({ viewData }: { viewData: ViewData }) => {
       isMultiComboBox: true,
       hide: !resourceAllocationPermission.write,
       apiCall: {
-        url: "frappe.client.get_list",
-        filters: {
-          doctype: "Business Unit",
-          fields: ["name"],
-          limit_page_length: 0,
-        },
+        url: "next_pms.resource_management.api.filters.get_business_units",
         options: {
           revalidateOnFocus: false,
           revalidateIfStale: false,
@@ -219,13 +214,7 @@ const ResourceTimLineHeaderSection = ({ viewData }: { viewData: ViewData }) => {
       label: "Designation",
       hide: !resourceAllocationPermission.write,
       apiCall: {
-        url: "frappe.client.get_list",
-        filters: {
-          doctype: "Designation",
-          filter: { custom_enabled: true },
-          fields: ["name"],
-          limit_page_length: 0,
-        },
+        url: "next_pms.resource_management.api.filters.get_designations",
         options: {
           revalidateOnFocus: false,
           revalidateIfStale: false,
