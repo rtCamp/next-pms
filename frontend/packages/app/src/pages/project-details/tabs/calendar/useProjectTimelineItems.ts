@@ -2,7 +2,13 @@
  * External dependencies.
  */
 import { useMemo } from "react";
-import { format, startOfISOWeek } from "date-fns";
+import {
+  differenceInDays,
+  endOfISOWeek,
+  endOfMonth,
+  format,
+  startOfISOWeek,
+} from "date-fns";
 import { useFrappeGetCall } from "frappe-react-sdk";
 
 /**
@@ -10,8 +16,6 @@ import { useFrappeGetCall } from "frappe-react-sdk";
  */
 import type { ProjectTimelineItem, UserRef } from "./types";
 
-// 6 ISO weeks always covers any calendar month's full view range
-const WEEKS_PER_FETCH = 6;
 // Generous upper limit - avoids multiple round-trips for a single month
 const ITEMS_LIMIT = 200;
 
@@ -68,13 +72,12 @@ export function useProjectTimelineItems(
   year: number,
   month: number,
 ) {
-  // Fetch window: start at the ISO week containing the 1st (covers grid overflow days)
+  // Fetch window: ISO week containing the 1st → ISO week containing the last day of the month
   const viewStart = startOfISOWeek(new Date(year, month, 1));
+  const viewEnd = endOfISOWeek(endOfMonth(new Date(year, month, 1)));
+  const weeksCount = Math.round((differenceInDays(viewEnd, viewStart) + 1) / 7);
   const startDate = format(viewStart, "yyyy-MM-dd");
-
-  // Month boundaries used to scope the table view
-  const monthStart = format(new Date(year, month, 1), "yyyy-MM-dd");
-  const monthEnd = format(new Date(year, month + 1, 0), "yyyy-MM-dd");
+  const endDate = format(viewEnd, "yyyy-MM-dd");
 
   const { data, isLoading, error, mutate } = useFrappeGetCall<{
     message: ApiResponse;
@@ -83,7 +86,7 @@ export function useProjectTimelineItems(
     {
       project: projectId,
       start_date: startDate,
-      max_week: WEEKS_PER_FETCH,
+      max_week: weeksCount,
       limit: ITEMS_LIMIT,
       start: 0,
     },
@@ -96,22 +99,26 @@ export function useProjectTimelineItems(
 
   const { items, monthItems } = useMemo(() => {
     const allItems = (data?.message?.data ?? [])
-      .filter((item) => item.planned_end_date !== null)
-      .filter((item) => item.type !== "Milestone" || item.start_date !== null)
+      .filter((item) =>
+        item.type === "Milestone"
+          ? item.start_date !== null
+          : item.planned_end_date !== null,
+      )
       .map(mapItem);
 
-    const monthOnlyItems = allItems.filter(
-      (item) =>
-        (item.plannedEndDate !== undefined &&
-          item.plannedEndDate >= monthStart &&
-          item.plannedEndDate <= monthEnd) ||
-        (item.startDate !== undefined &&
-          item.startDate >= monthStart &&
-          item.startDate <= monthEnd),
+    // Milestones are positioned by start_date; touchpoints by planned_end_date.
+    const viewItems = allItems.filter((item) =>
+      item.type === "Milestone"
+        ? item.startDate !== undefined &&
+          item.startDate >= startDate &&
+          item.startDate <= endDate
+        : item.plannedEndDate !== undefined &&
+          item.plannedEndDate >= startDate &&
+          item.plannedEndDate <= endDate,
     );
 
-    return { items: allItems, monthItems: monthOnlyItems };
-  }, [data, monthStart, monthEnd]);
+    return { items: viewItems, monthItems: viewItems };
+  }, [data, startDate, endDate]);
 
   return { items, monthItems, isLoading, error, mutate };
 }
