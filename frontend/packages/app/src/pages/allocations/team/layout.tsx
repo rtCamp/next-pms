@@ -41,7 +41,7 @@ function AllocationsTeamLayoutContent() {
 
       <Outlet context={outletContext} />
 
-      <AddAllocationModal {...modalProps} />
+      <AddAllocationModal {...modalProps} layoutVariant="team" />
     </>
   );
 }

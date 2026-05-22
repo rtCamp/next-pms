@@ -1,5 +1,7 @@
 import type { AllocationRefreshTargets } from "../../types";
 
+export type AddAllocationLayoutVariant = "team" | "project";
+
 export interface AddAllocationInitialValues {
   allocationName?: string;
   employeeId?: string;
@@ -20,6 +22,7 @@ export interface AddAllocationModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   variant?: "add" | "edit";
+  layoutVariant?: AddAllocationLayoutVariant;
   onEditScheduleClick?: () => void;
   initialValues?: AddAllocationInitialValues;
   onSuccess?: (targets?: AllocationRefreshTargets) => void | Promise<void>;
