@@ -20,6 +20,16 @@ export function AddRepoDialog({
   const handleSubmit = useCallback(() => {
     const trimmed = url.trim();
     if (!trimmed) return;
+    // Reject schemes other than http/https before forwarding — the parent
+    // also validates, this gates the dialog so it doesn't close on bad input.
+    try {
+      const parsed = new URL(trimmed);
+      if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
+        return;
+      }
+    } catch {
+      return;
+    }
     onAdd(trimmed);
     setUrl("");
     onOpenChange(false);

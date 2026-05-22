@@ -4,6 +4,7 @@
 import { useCallback, useState } from "react";
 import { Button } from "@rtcamp/frappe-ui-react";
 import { AddSm } from "@rtcamp/frappe-ui-react/icons";
+import { format } from "date-fns";
 
 /**
  * Internal dependencies.
@@ -21,6 +22,17 @@ export function RepositoryConnections() {
 
   const handleAdd = useCallback((url: string) => {
     const trimmed = url.trim().replace(/\/$/, "");
+    // Reject javascript: / data: / other non-http(s) schemes — these would
+    // XSS via the row's <a href> in repoNameCell.
+    let parsed: URL;
+    try {
+      parsed = new URL(trimmed);
+    } catch {
+      return;
+    }
+    if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
+      return;
+    }
     const segments = trimmed.split("/");
     const name = segments[segments.length - 1] || trimmed;
     const id = `${name}-${Date.now()}`;
@@ -29,7 +41,7 @@ export function RepositoryConnections() {
       {
         id,
         name,
-        createdOn: new Date().toISOString().slice(0, 10),
+        createdOn: format(new Date(), "yyyy-MM-dd"),
         githubUrl: trimmed,
       },
     ]);
@@ -46,6 +58,7 @@ export function RepositoryConnections() {
         <Button
           variant="ghost"
           icon={AddSm}
+          aria-label="Connect repository"
           onClick={() => setDialogOpen(true)}
         />
       }
@@ -63,7 +76,11 @@ export function RepositoryConnections() {
                   key={column.key}
                   className={`p-2 text-sm${column.width ? ` ${column.width}` : ""}`}
                 >
-                  {column.label}
+                  {column.srOnly ? (
+                    <span className="sr-only">{column.label}</span>
+                  ) : (
+                    column.label
+                  )}
                 </th>
               ))}
             </tr>
