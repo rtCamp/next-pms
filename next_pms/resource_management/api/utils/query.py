@@ -1,28 +1,70 @@
+import datetime
+
 import frappe
 from frappe.query_builder.functions import Sum
 from frappe.utils.caching import redis_cache
 
 
 def get_allocation_list_for_employee_for_given_range(
-    columns: list,
+    columns: list[str],
     value_key: str,
-    values: list,
-    start_date,
-    end_date,
-    is_billable=-1,
-    is_need_fetch_all_weeks=False,
-):
-    """
-    Returns a list of resource allocations for the given list for given key, within the given date range.
+    values: list[str],
+    start_date: str | datetime.date,
+    end_date: str | datetime.date,
+    is_billable: list | int | None = None,
+    allocation_status: list | None = None,
+    is_need_fetch_all_weeks: bool = False,
+) -> list[dict]:
+    """Return Resource Allocation records for a list of employees or projects.
+
+    Supports two fetching strategies controlled by `is_need_fetch_all_weeks`:
+
+    - is_need_fetch_all_weeks=True: fetches ALL allocations for the given employees/
+      projects with no date filter. `start_date` and `end_date` are ignored.
+
+    - is_need_fetch_all_weeks=False (default): fetches only allocations that overlap
+      the [start_date, end_date] window.
 
     Args:
-        list_keys (str): The key in the resource allocation table that corresponds to the employee list.
-        list (list): The employee list.
-        start_date (str): The start date for the allocation range.
-        end_date (str): The end date for the allocation range.
+        columns (list[str]): Fields to SELECT from the Resource Allocation doctype.
+        value_key (str): Either "employee" or "project" — the filter column to match
+            `values` against.
+        values (list): List of employee IDs or project names to filter by.
+            Returns [] immediately if empty.
+        start_date (str | datetime.date): Range start. Ignored when
+            `is_need_fetch_all_weeks` is True.
+        end_date (str | datetime.date): Range end. Ignored when
+            `is_need_fetch_all_weeks` is True.
+        is_billable (list | int | None): Billable filter. Use ``[0]``, ``[1]``, or ``[0, 1]``.
+            Legacy callers may pass ``0`` or ``1``; ``-1`` means no filter. ``None`` or
+            ``[]`` also skips the filter. Defaults to None.
+        allocation_status (list | None): Status values to match, e.g. ``["Active", "Tentative"]``.
+            ``None`` or ``[]`` skips the filter. Defaults to None.
+        is_need_fetch_all_weeks (bool): When True, skips the date range filter and
+            returns all allocations for the given employees/projects. Defaults to False.
 
     Returns:
-        list: A list of resource allocation dictionaries.
+        ```py
+        >>> get_allocation_list_for_employee_for_given_range(
+        ...     columns=["name", "employee", "allocation_start_date", "allocation_end_date", "is_billable", "status"],
+        ...     value_key="employee",
+        ...     values=["HR-EMP-00001"],
+        ...     start_date="2026-05-18",
+        ...     end_date="2026-05-24",
+        ...     is_billable=[1],
+        ...     allocation_status=["Active"],
+        ... )
+        [
+            {
+                "name": "RA-00001",
+                "employee": "HR-EMP-00001",
+                "allocation_start_date": datetime.date(2026, 5, 1),
+                "allocation_end_date": datetime.date(2026, 6, 30),
+                "is_billable": 1,
+                "status": "Active",
+            },
+        ]
+        ```
     """
     if not values:
         return []
@@ -35,8 +77,11 @@ def get_allocation_list_for_employee_for_given_range(
         else:
             filters["project"] = ["in", values]
 
-        if is_billable == "0" or is_billable == "1":
-            filters["is_billable"] = is_billable
+        billable_values = _normalize_is_billable_filter(is_billable)
+        if billable_values:
+            filters["is_billable"] = ["in", billable_values]
+        if allocation_status:
+            filters["status"] = ["in", allocation_status]
 
         return frappe.db.get_all(
             "Resource Allocation",
@@ -47,34 +92,70 @@ def get_allocation_list_for_employee_for_given_range(
 
     # Only ways was to write sql for this, normal frappe methods are not working, also try with query build but looks like it dont have support of nesting condition.
     # nosemgrep
+    sql_params = {
+        "list_key": value_key,
+        "names": values,
+        "start_date": start_date,
+        "end_date": end_date,
+    }
+    status_condition = ""
+    if allocation_status:
+        sql_params["allocation_status"] = allocation_status
+        status_condition = "AND status IN %(allocation_status)s"
+
     return frappe.db.sql(
         f"""
         SELECT {", ".join(columns)} FROM `tabResource Allocation`
             WHERE {"employee" if value_key == "employee" else "project"} IN %(names)s
             {get_is_billable_condition(is_billable)}
-            AND (
-                (allocation_start_date <= %(start_date)s AND allocation_end_date >= %(start_date)s)
-                OR (allocation_start_date >= %(start_date)s AND allocation_end_date <= %(end_date)s)
-                OR (allocation_start_date <= %(end_date)s AND allocation_end_date >= %(end_date)s)
-                OR (allocation_start_date <= %(start_date)s AND allocation_end_date >= %(end_date)s)
-            )
+            {status_condition}
+            AND allocation_start_date <= %(end_date)s
+            AND allocation_end_date >= %(start_date)s
             ORDER BY employee_name, allocation_start_date, allocation_end_date;
     """,
-        {
-            "list_key": value_key,
-            "names": values,
-            "start_date": start_date,
-            "end_date": end_date,
-        },
+        sql_params,
         as_dict=True,
     )  # nosemgrep
 
 
-def get_is_billable_condition(is_billable):
-    if is_billable == "0" or is_billable == "1":
-        return f"AND (is_billable = {is_billable})"
+def _normalize_is_billable_filter(is_billable: list | int | None) -> list[int]:
+    """Normalise the ``is_billable`` argument into a clean list of integers.
 
-    return "AND (1=1)"
+    Handles the three call-site conventions that exist in this codebase:
+
+    - ``None`` or ``[]`` — no filter requested; returns ``[]``.
+    - ``-1`` (legacy) — no filter; returns ``[]``.
+    - ``0`` or ``1`` (plain int) — single-value filter; returns ``[0]`` or ``[1]``.
+    - ``[0]``, ``[1]``, or ``[0, 1]`` (list) — already the canonical form; values are
+      cast to ``int`` and returned as-is.
+
+    Returns:
+        list[int]: Values to use in an ``IN (...)`` clause, or ``[]`` when no
+        billable filter should be applied.
+    """
+    if is_billable is None:
+        return []
+    if isinstance(is_billable, int):
+        return [] if is_billable < 0 else [is_billable]
+    return [int(v) for v in is_billable]
+
+
+def get_is_billable_condition(is_billable: list | int | None) -> str:
+    """Return a raw SQL fragment for the ``is_billable`` filter, or an empty string.
+    Args:
+        is_billable (list | int | None): Accepts the same forms as
+            ``_normalize_is_billable_filter``.
+
+    Returns:
+        str: ``"AND (is_billable IN (0, 1))"`` (or a subset), or ``""`` when no
+        filter is needed. The fragment is safe to interpolate directly into the
+        query because it only contains integer literals — no user-supplied strings.
+    """
+    billable_values = _normalize_is_billable_filter(is_billable)
+    if not billable_values:
+        return ""
+    in_clause = ", ".join(str(v) for v in billable_values)
+    return f"AND (is_billable IN ({in_clause}))"
 
 
 def get_allocation_worked_hours_for_given_projects(project: str, start_date: str, end_date: str):

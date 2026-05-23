@@ -1,3 +1,4 @@
+import datetime
 import json
 from collections import defaultdict
 
@@ -26,19 +27,75 @@ def has_write_access():
 
 
 @redis_cache()
-def get_week_dates(date, ignore_weekend=False):
-    """Returns the dates map with dates and other details.
-    example:
+def get_week_dates(date: str | datetime.date | datetime.datetime, ignore_weekend: bool = False) -> dict:
+    """Return week boundaries and day list for the week containing ``date``.
+
+    Args:
+        date (str | datetime.date | datetime.datetime): Any day within the target week.
+        ignore_weekend (bool): If True, ``dates`` lists weekdays only (no Sat/Sun).
+            Week bounds (``start_date`` / ``end_date``) stay the same. Defaults to False.
+
+    Returns:
+        When ``ignore_weekend`` is False (default):
+
+        ```py
         {
-            "start_date": "2021-08-01",
-            "end_date": "2021-08-07",
-            "key": "Aug 01 - Aug 07",
+            "start_date": datetime.date(2026, 5, 18),
+            "end_date": datetime.date(2026, 5, 24),
+            "key": "This Week",
             "dates": [
-                "2021-08-01",
-                "2021-08-02",
-                ...
-            ]
+                datetime.date(2026, 5, 18),
+                datetime.date(2026, 5, 19),
+                datetime.date(2026, 5, 20),
+                datetime.date(2026, 5, 21),
+                datetime.date(2026, 5, 22),
+                datetime.date(2026, 5, 23),
+                datetime.date(2026, 5, 24),
+            ],
         }
+
+        # start_date / end_date: first/last day of week (Frappe System Settings).
+        # dates: every day from start_date through end_date (7 days when week is Mon-Sun).
+        # key: "This Week" if today falls in range, else "Mon DD - Sun DD" (last day = end_date).
+        ```
+
+        When ``ignore_weekend`` is True:
+
+        ```py
+        {
+            "start_date": datetime.date(2026, 5, 18),
+            "end_date": datetime.date(2026, 5, 24),
+            "key": "This Week",
+            "dates": [
+                datetime.date(2026, 5, 18),
+                datetime.date(2026, 5, 19),
+                datetime.date(2026, 5, 20),
+                datetime.date(2026, 5, 21),
+                datetime.date(2026, 5, 22),
+            ],
+        }
+
+        # start_date / end_date: same full week range as above (not shortened).
+        # dates: only Mon-Fri when the configured week is Mon-Sun (Sat/Sun skipped).
+        # key: "This Week" if today is in range, else "Mon DD - Fri DD" (end_date - 2 days).
+        ```
+
+        Non-current week with ``ignore_weekend`` True (same ``dates`` shape, different ``key``):
+
+        ```py
+        {
+            "start_date": datetime.date(2026, 5, 18),
+            "end_date": datetime.date(2026, 5, 24),
+            "key": "May 18 - May 22",
+            "dates": [
+                datetime.date(2026, 5, 18),
+                datetime.date(2026, 5, 19),
+                datetime.date(2026, 5, 20),
+                datetime.date(2026, 5, 21),
+                datetime.date(2026, 5, 22),
+            ],
+        }
+        ```
     """
 
     dates = []

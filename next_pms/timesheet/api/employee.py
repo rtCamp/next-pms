@@ -39,8 +39,30 @@ def get_user_from_employee(employee: str):
 
 
 @frappe.whitelist(methods=["GET"])
-def get_employee_working_hours(employee: str = None):
-    """returns the working hours and working frequency for the given employee or current user's employee if employee is not provided"""
+def get_employee_working_hours(employee: str | None = None) -> dict:
+    """returns the working hours and working frequency for the given employee or current user's employee if employee is not provided.
+
+    Falls back in order:
+      1. Employee.custom_working_hours + Employee.custom_work_schedule
+      2. HR Settings.standard_working_hours (if custom_working_hours is unset)
+      3. 8 hours / "Per Day" (if both above are unset)
+
+    Args:
+        employee (str | None): Employee document name (e.g. "HR-EMP-00001").
+            If None or not provided, resolves to the current user's linked Employee.
+            Returns {"working_hour": 0, "working_frequency": "Per Day"} if no
+            employee can be resolved.
+
+    Returns:
+        ```py
+        >>> get_employee_working_hours("HR-EMP-00001")
+        {"working_hour": 8.0, "working_frequency": "Per Day"}
+
+        >>> get_employee_working_hours("HR-EMP-00002")
+        {"working_hour": 40.0, "working_frequency": "Per Week"}
+        # daily hours = 40.0 / 5 = 8.0
+        ```
+    """
     if not employee:
         employee = get_employee_from_user()
     if not employee:
