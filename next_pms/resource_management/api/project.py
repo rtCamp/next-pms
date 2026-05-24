@@ -27,6 +27,9 @@ def get_resource_management_project_view_data(
     project_name: str | None = None,
     customer: str | None = None,
     billing_type: str | None = None,
+    project_type: str | None = None,
+    project_manager: str | None = None,
+    tag: str | None = None,
     is_billable: int = -1,
     page_length: int = 10,
     start: int = 0,
@@ -40,6 +43,9 @@ def get_resource_management_project_view_data(
         customer = None
         project_id = None
         billing_type = None
+        project_type = None
+        project_manager = None
+        tag = None
 
     ids = None
 
@@ -49,7 +55,15 @@ def get_resource_management_project_view_data(
         ids = project_id
 
     projects, total_count = filter_project_list(
-        project_name, page_length=page_length, start=start, customer=customer, billing_type=billing_type, ids=ids
+        project_name,
+        page_length=page_length,
+        start=start,
+        customer=customer,
+        billing_type=billing_type,
+        project_type=project_type,
+        project_manager=project_manager,
+        tag=tag,
+        ids=ids,
     )
 
     data = []
