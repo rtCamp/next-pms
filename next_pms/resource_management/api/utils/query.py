@@ -186,14 +186,80 @@ def get_allocation_worked_hours_for_given_projects(project: str, start_date: str
 
 @redis_cache
 def get_employee_leaves(employee: str | tuple, start_date: str, end_date: str):
-    """Get the total leave days for given employee for given time range.
+    """Return Leave Application records that overlap a date range for one or more employees.
+
+    Fetches approved or open leave applications whose ``from_date``/``to_date`` window
+    overlaps ``[start_date, end_date]``. Joins ``Leave Type`` to include ``is_lwp`` (is leave without pay).
+
+    Pass a single employee ID for one person, or a ``tuple`` of IDs to batch-fetch
+    leaves for multiple employees in one query.
+
+    Only rows with ``docstatus`` in ``(0, 1)`` and ``status`` in
+    ``("Approved", "Open")`` are returned. Results are ordered by ``from_date``,
+    then ``to_date``.
+
     Args:
-        employee (str | tuple): employee name or tuple of employee names
-        start_date (str): start date
-        end_date (str): end date
+        employee (str | tuple): Employee ID, or a tuple of employee IDs for a
+            multi-employee ``IN`` filter.
+        start_date (str): Range start (``"YYYY-MM-DD"``). Any leave overlapping this
+            date is included.
+        end_date (str): Range end (``"YYYY-MM-DD"``).
+
     Returns:
-        list: list of leave applications
+        ```py
+        >>> get_employee_leaves(
+        ...     employee="HR-EMP-00001",
+        ...     start_date="2026-05-18",
+        ...     end_date="2026-05-24",
+        ... )
+        [
+            {
+                "employee": "HR-EMP-00001",
+                "from_date": datetime.date(2026, 5, 20),
+                "to_date": datetime.date(2026, 5, 22),
+                "half_day": 0,
+                "half_day_date": None,
+                "total_leave_days": 3.0,
+                "name": "HR-LAP-00001",
+                "leave_type": "Casual Leave",
+                "is_lwp": 0,
+            },
+        ]
+
+        >>> get_employee_leaves(
+        ...     employee=("HR-EMP-00001", "HR-EMP-00002"),
+        ...     start_date="2026-05-18",
+        ...     end_date="2026-05-24",
+        ... )
+        [
+            {
+                "employee": "HR-EMP-00001",
+                "from_date": datetime.date(2026, 5, 20),
+                "to_date": datetime.date(2026, 5, 22),
+                "half_day": 0,
+                "half_day_date": None,
+                "total_leave_days": 3.0,
+                "name": "HR-LAP-00001",
+                "leave_type": "Casual Leave",
+                "is_lwp": 0,
+            },
+            {
+                "employee": "HR-EMP-00002",
+                "from_date": datetime.date(2026, 5, 19),
+                "to_date": datetime.date(2026, 5, 19),
+                "half_day": 1,
+                "half_day_date": datetime.date(2026, 5, 19),
+                "total_leave_days": 0.5,
+                "name": "HR-LAP-00002",
+                "leave_type": "Sick Leave",
+                "is_lwp": 0,
+            },
+        ]
+        ```
     """
+
+    if isinstance(employee, tuple) and not employee:
+        return []
 
     LeaveApplication = frappe.qb.DocType("Leave Application")
     LeaveType = frappe.qb.DocType("Leave Type")
@@ -219,12 +285,8 @@ def get_employee_leaves(employee: str | tuple, start_date: str, end_date: str):
     else:
         query = query.where(LeaveApplication.employee == employee)
     query = (
-        query.where(
-            ((LeaveApplication.from_date <= start_date) & (LeaveApplication.to_date >= start_date))
-            | ((LeaveApplication.from_date >= start_date) & (LeaveApplication.to_date <= end_date))
-            | ((LeaveApplication.from_date <= end_date) & (LeaveApplication.to_date >= end_date))
-            | ((LeaveApplication.from_date <= start_date) & (LeaveApplication.to_date >= end_date))
-        )
+        query.where(LeaveApplication.from_date <= end_date)
+        .where(LeaveApplication.to_date >= start_date)
         .where((LeaveApplication.docstatus == 1) | (LeaveApplication.docstatus == 0))
         .where((LeaveApplication.status == "Approved") | (LeaveApplication.status == "Open"))
         .orderby(LeaveApplication.from_date)

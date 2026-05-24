@@ -1,8 +1,9 @@
 import json
 
 import frappe
+from erpnext.setup.doctype.employee.employee import get_holiday_list_for_employee
 from frappe.core.doctype.recorder.recorder import redis_cache
-from frappe.utils import DATE_FORMAT, get_gravatar
+from frappe.utils import DATE_FORMAT, get_gravatar, getdate
 
 from next_pms.resource_management.api.utils.helpers import (
     add_customer_data_if_not_exists,
@@ -19,7 +20,6 @@ from next_pms.resource_management.api.utils.query import (
 )
 from next_pms.timesheet.api import filter_employees
 from next_pms.timesheet.api.employee import get_employee_working_hours
-from next_pms.timesheet.api.team import get_holidays
 
 
 @frappe.whitelist(methods=["GET", "POST"])
@@ -278,6 +278,19 @@ def get_resource_management_team_view_data(
         extra_fields=["custom_work_schedule", "custom_working_hours", "reports_to", *privileged_fields],
     )
 
+    if not employees:
+        if need_hours_summary:
+            res["data"] = []
+        else:
+            res["employees"] = []
+            res["resource_allocations"] = []
+            res["leaves"] = []
+        res["customer"] = customer
+        res["total_count"] = total_count
+        res["has_more"] = False
+        res["permissions"] = permissions
+        return res
+
     resource_allocation_data = get_allocation_list_for_employee_for_given_range(
         [
             "name",
@@ -351,6 +364,52 @@ def get_resource_management_team_view_data(
         res["permissions"] = permissions
         return res
 
+    employee_ids = [employee.name for employee in employees]
+    range_start = dates[0].get("start_date")
+    range_end = dates[-1].get("end_date")
+
+    # Batch timesheets — one query for all employees instead of one per employee
+    all_timesheets = frappe.get_all(
+        "Timesheet",
+        filters={
+            "employee": ["in", employee_ids],
+            "start_date": [">=", range_start],
+            "end_date": ["<=", range_end],
+        },
+        fields=["employee", "start_date", "end_date", "total_hours", "parent_project", "customer"],
+    )
+    timesheet_map = {}
+    for t in all_timesheets:
+        timesheet_map.setdefault(t.employee, []).append(t)
+
+    # Batch leaves — get_employee_leaves accepts a tuple of employee IDs
+    all_leaves = get_employee_leaves(
+        employee=tuple(employee_ids),
+        start_date=range_start,
+        end_date=range_end,
+    )
+    leaves_map = {}
+    for leave in all_leaves:
+        leaves_map.setdefault(leave.employee, []).append(leave)
+
+    # Batch holidays — fetch once per unique holiday list instead of once per employee
+    holiday_list_per_employee = {
+        emp.name: get_holiday_list_for_employee(emp.name, raise_exception=False) for emp in employees
+    }
+    unique_holiday_lists = {hl for hl in holiday_list_per_employee.values() if hl}
+    holidays_by_list = {
+        hl: frappe.get_all(
+            "Holiday",
+            filters={
+                "parent": hl,
+                "holiday_date": ["between", (getdate(range_start), getdate(range_end))],
+            },
+            fields=["holiday_date", "description", "weekly_off"],
+        )
+        for hl in unique_holiday_lists
+    }
+    holidays_map = {emp.name: holidays_by_list.get(holiday_list_per_employee.get(emp.name), []) for emp in employees}
+
     for employee in employees:
         employee_resource_allocation = resource_allocation_map.get(employee.name, [])
 
@@ -363,23 +422,9 @@ def get_resource_management_team_view_data(
             else working_hours.get("working_hour") / 5
         )
 
-        timesheet_data = frappe.get_all(
-            "Timesheet",
-            filters={
-                "employee": ["=", employee.name],
-                "start_date": [">=", dates[0].get("start_date")],
-                "end_date": ["<=", dates[-1].get("end_date")],
-            },
-            fields=["employee", "start_date", "end_date", "total_hours", "parent_project", "customer"],
-        )
-
-        leaves = get_employee_leaves(
-            employee=employee.name,
-            start_date=dates[0].get("start_date"),
-            end_date=dates[-1].get("end_date"),
-        )
-
-        holidays = get_holidays(employee.name, dates[0].get("start_date"), dates[-1].get("end_date"))
+        timesheet_data = timesheet_map.get(employee.name, [])
+        leaves = leaves_map.get(employee.name, [])
+        holidays = holidays_map.get(employee.name, [])
 
         all_dates_data, all_week_data, all_leave_data = {}, {}, {}
         max_allocation_count_for_single_date = 0
