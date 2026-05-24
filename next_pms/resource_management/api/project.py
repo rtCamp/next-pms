@@ -30,7 +30,7 @@ def get_resource_management_project_view_data(
     project_type: str | None = None,
     project_manager: str | None = None,
     tag: str | None = None,
-    is_billable: int = -1,
+    is_billable: str | None = None,
     page_length: int = 10,
     start: int = 0,
     project_id: str | list | None = None,
@@ -39,13 +39,16 @@ def get_resource_management_project_view_data(
     permissions = resource_api_permissions_check()
 
     if not permissions["write"]:
-        is_billable = -1
+        is_billable = None
         customer = None
         project_id = None
         billing_type = None
         project_type = None
         project_manager = None
         tag = None
+
+    if isinstance(is_billable, str):
+        is_billable = json.loads(is_billable)
 
     ids = None
 
