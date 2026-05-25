@@ -1,7 +1,7 @@
 /**
  * External dependencies.
  */
-import { Avatar, Button, Dropdown } from "@rtcamp/frappe-ui-react";
+import { Avatar, Dropdown } from "@rtcamp/frappe-ui-react";
 import { DotHorizontal } from "@rtcamp/frappe-ui-react/icons";
 import { formatDistanceToNow, parseISO } from "date-fns";
 import { Trash2 } from "lucide-react";
@@ -9,7 +9,6 @@ import { Trash2 } from "lucide-react";
 /**
  * Internal dependencies.
  */
-import { getSiteName } from "@/lib/utils";
 import type { Note } from "./types";
 
 type NoteCardProps = {
@@ -21,7 +20,7 @@ export function NoteCard({ note, onDelete }: NoteCardProps) {
   const relativeDate = formatDistanceToNow(parseISO(note.createdAt), {
     addSuffix: true,
   });
-  const authorHref = `/${getSiteName()}/desk/user/${note.author.email}`;
+  const authorHref = `/desk/user/${encodeURIComponent(note.author.email)}`;
 
   return (
     <div className="flex h-64 flex-col rounded-[12px] border border-outline-gray-1 bg-surface-white overflow-clip">

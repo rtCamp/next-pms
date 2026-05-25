@@ -3,7 +3,7 @@
  */
 import { useNavigate, useParams } from "react-router-dom";
 import type { FilterCondition } from "@rtcamp/frappe-ui-react";
-import { Button, Dropdown, Filter } from "@rtcamp/frappe-ui-react";
+import { Dropdown, Filter } from "@rtcamp/frappe-ui-react";
 import { AddSm, SmallDown } from "@rtcamp/frappe-ui-react/icons";
 
 /**
