@@ -90,32 +90,27 @@ def get_allocation_list_for_employee_for_given_range(
             order_by="employee_name, allocation_start_date, allocation_end_date",
         )
 
-    # Only ways was to write sql for this, normal frappe methods are not working, also try with query build but looks like it dont have support of nesting condition.
-    # nosemgrep
-    sql_params = {
-        "list_key": value_key,
-        "names": values,
-        "start_date": start_date,
-        "end_date": end_date,
-    }
-    status_condition = ""
-    if allocation_status:
-        sql_params["allocation_status"] = allocation_status
-        status_condition = "AND status IN %(allocation_status)s"
+    ResourceAllocation = frappe.qb.DocType("Resource Allocation")
+    filter_column = ResourceAllocation.employee if value_key == "employee" else ResourceAllocation.project
 
-    return frappe.db.sql(
-        f"""
-        SELECT {", ".join(columns)} FROM `tabResource Allocation`
-            WHERE {"employee" if value_key == "employee" else "project"} IN %(names)s
-            {get_is_billable_condition(is_billable)}
-            {status_condition}
-            AND allocation_start_date <= %(end_date)s
-            AND allocation_end_date >= %(start_date)s
-            ORDER BY employee_name, allocation_start_date, allocation_end_date;
-    """,
-        sql_params,
-        as_dict=True,
-    )  # nosemgrep
+    query = (
+        frappe.qb.from_(ResourceAllocation)
+        .select(*(getattr(ResourceAllocation, column) for column in columns))
+        .where(filter_column.isin(values))
+        .where(ResourceAllocation.allocation_start_date <= end_date)
+        .where(ResourceAllocation.allocation_end_date >= start_date)
+        .orderby(ResourceAllocation.employee_name)
+        .orderby(ResourceAllocation.allocation_start_date)
+        .orderby(ResourceAllocation.allocation_end_date)
+    )
+
+    billable_values = _normalize_is_billable_filter(is_billable)
+    if billable_values:
+        query = query.where(ResourceAllocation.is_billable.isin(billable_values))
+    if allocation_status:
+        query = query.where(ResourceAllocation.status.isin(allocation_status))
+
+    return query.run(as_dict=True)
 
 
 def _normalize_is_billable_filter(is_billable: list | int | None) -> list[int]:
@@ -138,24 +133,6 @@ def _normalize_is_billable_filter(is_billable: list | int | None) -> list[int]:
     if isinstance(is_billable, int):
         return [] if is_billable < 0 else [is_billable]
     return [int(v) for v in is_billable]
-
-
-def get_is_billable_condition(is_billable: list | int | None) -> str:
-    """Return a raw SQL fragment for the ``is_billable`` filter, or an empty string.
-    Args:
-        is_billable (list | int | None): Accepts the same forms as
-            ``_normalize_is_billable_filter``.
-
-    Returns:
-        str: ``"AND (is_billable IN (0, 1))"`` (or a subset), or ``""`` when no
-        filter is needed. The fragment is safe to interpolate directly into the
-        query because it only contains integer literals — no user-supplied strings.
-    """
-    billable_values = _normalize_is_billable_filter(is_billable)
-    if not billable_values:
-        return ""
-    in_clause = ", ".join(str(v) for v in billable_values)
-    return f"AND (is_billable IN ({in_clause}))"
 
 
 def get_allocation_worked_hours_for_given_projects(project: str, start_date: str, end_date: str):
