@@ -52,10 +52,15 @@ export function useAllocationsTeamData({
     () => format(anchorDate, "yyyy-MM-dd"),
     [anchorDate],
   );
-  const designationParam = useMemo(
-    () => (designation.length ? JSON.stringify(designation) : null),
-    [designation],
-  );
+  const designationParam = useMemo(() => {
+    const normalizedDesignation = Array.from(new Set(designation)).sort(
+      (left, right) => left.localeCompare(right),
+    );
+
+    return normalizedDesignation.length
+      ? JSON.stringify(normalizedDesignation)
+      : null;
+  }, [designation]);
   const querySignature = `${KEY_PREFIX}:${requestDate}:${weekCount}:${search}:${designationParam ?? ""}`;
 
   const baseParams = useMemo(

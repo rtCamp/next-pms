@@ -82,6 +82,7 @@ export const AllocationsTeamTable = () => {
   } = useAllocationOutletContext();
 
   const [designationQuery, setDesignationQuery] = useState("");
+  const [isDesignationOpen, setIsDesignationOpen] = useState(false);
 
   const selectedDesignationOptions = useMemo(
     () =>
@@ -121,8 +122,10 @@ export const AllocationsTeamTable = () => {
             options={designationOptions}
             multiple
             value={designation}
+            open={isDesignationOpen}
             searchValue={designationQuery}
             loading={isDesignationLookupLoading}
+            onOpenChange={setIsDesignationOpen}
             onSearchChange={setDesignationQuery}
             onChange={(value) => {
               setDesignation(Array.isArray(value) ? value.map(String) : []);
@@ -131,6 +134,8 @@ export const AllocationsTeamTable = () => {
               const hasSelectedDesignation = Array.isArray(selectedOption)
                 ? selectedOption.length > 0
                 : Boolean(selectedOption);
+              const hasActiveDesignationFilter =
+                hasSelectedDesignation || Boolean(designationQuery);
 
               return (
                 <div className="flex items-center justify-end gap-2">
@@ -138,10 +143,11 @@ export const AllocationsTeamTable = () => {
                     variant="subtle"
                     label="Clear"
                     className="justify-start"
-                    disabled={!hasSelectedDesignation}
+                    disabled={!hasActiveDesignationFilter}
                     onClick={() => {
                       clearAll();
                       setDesignationQuery("");
+                      setIsDesignationOpen(false);
                     }}
                   />
                 </div>

@@ -14,7 +14,7 @@ interface UseDesignationLookupOptions {
   shouldFetch: boolean;
   /** Caps the number of designation rows fetched per request. */
   pageSize?: number;
-  /** Filters designations by designation name or id. */
+  /** Filters designations by designation name. */
   query: string;
   /** Revalidates the lookup when the window regains focus. */
   revalidateOnFocus?: boolean;
