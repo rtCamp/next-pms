@@ -48,7 +48,7 @@ interface UseRemoteLookupOptions<
   /** Maps each backend item into a combobox option shape. */
   mapOption: (item: TItem) => TOption;
   /** Preserves the current selection when it is missing from the latest page. */
-  selectedOption?: TOption | null;
+  selectedOption?: TOption | TOption[] | null;
 }
 
 /**
@@ -78,16 +78,28 @@ export const useRemoteLookup = <TMessage, TItem, TOption extends LookupOption>({
 
   const options = useMemo(() => {
     const nextOptions = getItems(data?.message).map(mapOption);
+    const selectedOptions = Array.isArray(selectedOption)
+      ? selectedOption
+      : selectedOption
+        ? [selectedOption]
+        : [];
 
-    if (!selectedOption) {
+    if (!selectedOptions.length) {
       return nextOptions;
     }
 
-    if (nextOptions.some((option) => option.value === selectedOption.value)) {
+    const missingSelectedOptions = selectedOptions.filter(
+      (selectedLookupOption) =>
+        !nextOptions.some(
+          (option) => option.value === selectedLookupOption.value,
+        ),
+    );
+
+    if (!missingSelectedOptions.length) {
       return nextOptions;
     }
 
-    return [selectedOption, ...nextOptions];
+    return [...missingSelectedOptions, ...nextOptions];
   }, [data?.message, getItems, mapOption, selectedOption]);
 
   return {

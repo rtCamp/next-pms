@@ -20,6 +20,7 @@ type UseAllocationsTeamDataOptions = {
   anchorDate: Date;
   weekCount: number;
   search: string;
+  designation: string[];
   pageLength: number;
 };
 
@@ -42,6 +43,7 @@ export function useAllocationsTeamData({
   anchorDate,
   weekCount,
   search,
+  designation,
   pageLength,
 }: UseAllocationsTeamDataOptions): UseAllocationsTeamDataResult {
   const toast = useToasts();
@@ -50,16 +52,21 @@ export function useAllocationsTeamData({
     () => format(anchorDate, "yyyy-MM-dd"),
     [anchorDate],
   );
-  const querySignature = `${KEY_PREFIX}:${requestDate}:${weekCount}:${search}`;
+  const designationParam = useMemo(
+    () => (designation.length ? JSON.stringify(designation) : null),
+    [designation],
+  );
+  const querySignature = `${KEY_PREFIX}:${requestDate}:${weekCount}:${search}:${designationParam ?? ""}`;
 
   const baseParams = useMemo(
     () => ({
       date: requestDate,
       max_week: weekCount,
       employee_name: search || null,
+      designation: designationParam,
       need_hours_summary: false,
     }),
-    [requestDate, search, weekCount],
+    [designationParam, requestDate, search, weekCount],
   );
 
   const getKey = useCallback(
