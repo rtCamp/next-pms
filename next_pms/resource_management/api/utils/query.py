@@ -38,7 +38,7 @@ def get_allocation_list_for_employee_for_given_range(
         is_billable (list | int | None): Billable filter. Use ``[0]``, ``[1]``, or ``[0, 1]``.
             Legacy callers may pass ``0`` or ``1``; ``-1`` means no filter. ``None`` or
             ``[]`` also skips the filter. Defaults to None.
-        allocation_status (list | None): Status values to match, e.g. ``["Active", "Tentative"]``.
+        allocation_status (list | None): Status values to match, e.g. ``["Confirmed", "Tentative"]``.
             ``None`` or ``[]`` skips the filter. Defaults to None.
         is_need_fetch_all_weeks (bool): When True, skips the date range filter and
             returns all allocations for the given employees/projects. Defaults to False.
@@ -52,7 +52,7 @@ def get_allocation_list_for_employee_for_given_range(
         ...     start_date="2026-05-18",
         ...     end_date="2026-05-24",
         ...     is_billable=[1],
-        ...     allocation_status=["Active"],
+        ...     allocation_status=["Confirmed"],
         ... )
         [
             {
@@ -61,7 +61,7 @@ def get_allocation_list_for_employee_for_given_range(
                 "allocation_start_date": datetime.date(2026, 5, 1),
                 "allocation_end_date": datetime.date(2026, 6, 30),
                 "is_billable": 1,
-                "status": "Active",
+                "status": "Confirmed",
             },
         ]
         ```
