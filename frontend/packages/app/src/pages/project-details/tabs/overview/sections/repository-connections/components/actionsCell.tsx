@@ -8,13 +8,12 @@ import { DotHorizontal } from "@rtcamp/frappe-ui-react/icons";
  * Internal dependencies.
  */
 import { useProjectDetail } from "../../../../../context";
-import type { RepoConnection } from "../types";
 
 type ActionsCellProps = {
-  repo: RepoConnection;
+  repoId: string;
 };
 
-export function ActionsCell({ repo }: ActionsCellProps) {
+export function ActionsCell({ repoId }: ActionsCellProps) {
   const connections = useProjectDetail(
     (s) => s.project?.custom_project_repository_connections,
   );
@@ -22,7 +21,7 @@ export function ActionsCell({ repo }: ActionsCellProps) {
 
   const handleUnlink = () => {
     const next = (connections ?? [])
-      .filter((c) => c.name !== repo.id)
+      .filter((c) => c.name !== repoId)
       .map((c) => ({
         name: c.name,
         github_repository: c.github_repository ?? "",

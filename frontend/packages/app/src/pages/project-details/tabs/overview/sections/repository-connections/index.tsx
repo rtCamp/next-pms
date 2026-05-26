@@ -11,7 +11,6 @@ import {
   ListView,
 } from "@rtcamp/frappe-ui-react";
 import { AddSm } from "@rtcamp/frappe-ui-react/icons";
-import { format } from "date-fns";
 
 /**
  * Internal dependencies.
@@ -19,7 +18,6 @@ import { format } from "date-fns";
 import { RepoCell } from "./cells";
 import { REPO_COLUMNS } from "./columns";
 import { AddRepoDialog } from "./components/addRepoDialog";
-import type { RepoConnection } from "./types";
 import { useProjectDetail } from "../../../../context";
 import { OverviewSection } from "../../components/overviewSection";
 
@@ -27,20 +25,7 @@ export function RepositoryConnections() {
   const [dialogOpen, setDialogOpen] = useState(false);
 
   const connections = useProjectDetail(
-    (s) => s.project?.custom_project_repository_connections,
-  );
-
-  const repos = useMemo<RepoConnection[]>(
-    () =>
-      (connections ?? [])
-        .filter((c) => c.github_repository)
-        .map((c) => ({
-          id: c.name,
-          name: c.github_repository as string,
-          createdOn: format(new Date(c.creation), "yyyy-MM-dd"),
-          githubUrl: `https://github.com/${c.github_repository}`,
-        })),
-    [connections],
+    (s) => s.project?.custom_project_repository_connections || [],
   );
 
   const connectedIds = useMemo(
@@ -67,7 +52,7 @@ export function RepositoryConnections() {
     >
       <ListView
         columns={REPO_COLUMNS}
-        rows={repos}
+        rows={connections}
         rowKey="id"
         options={{
           options: {
@@ -91,15 +76,15 @@ export function RepositoryConnections() {
           ))}
         </ListHeader>
         <ListRows>
-          {repos.length === 0 ? (
+          {connections.length === 0 ? (
             <div className="py-10 text-center text-sm text-ink-gray-4">
               No repositories connected
             </div>
           ) : (
-            repos.map((repo) => (
-              <ListRow key={repo.id} row={repo}>
+            connections.map((connection) => (
+              <ListRow key={connection.name} row={connection}>
                 {REPO_COLUMNS.map((column) => (
-                  <RepoCell key={column.key} row={repo} column={column} />
+                  <RepoCell key={column.key} row={connection} column={column} />
                 ))}
               </ListRow>
             ))
