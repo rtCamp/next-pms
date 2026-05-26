@@ -68,7 +68,8 @@
   {
    "fieldname": "planned_end_date",
    "fieldtype": "Date",
-   "label": "Planned End Date"
+   "label": "Planned End Date",
+   "reqd": 1
   },
   {
    "fieldname": "actual_end_date",
@@ -98,7 +99,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-05-22 13:18:17.086117",
+ "modified": "2026-05-26 08:46:49.740907",
  "modified_by": "Administrator",
  "module": "Next Projects",
  "name": "Project Timeline Item",

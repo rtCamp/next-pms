@@ -1,7 +1,6 @@
 # Copyright (c) 2026, rtCamp and contributors
 # For license information, please see license.txt
 
-# import frappe
 from frappe.model.document import Document
 
 
@@ -18,11 +17,13 @@ class ProjectTimelineItem(Document):
         is_complete: DF.Check
         item_owner: DF.Link
         item_owner_name: DF.Data | None
-        planned_end_date: DF.Date | None
+        planned_end_date: DF.Date
         project: DF.Link
         start_date: DF.Date | None
         title: DF.Data
         type: DF.Literal["Milestone", "Touchpoint"]
     # end: auto-generated types
 
-    pass
+    def validate(self):
+        if self.type == "Touchpoint":
+            self.start_date = self.planned_end_date
