@@ -25,5 +25,5 @@ class ProjectTimelineItem(Document):
     # end: auto-generated types
 
     def validate(self):
-        if self.type == "Touchpoint":
+        if self.type == "Touchpoint" and not self.start_date:
             self.start_date = self.planned_end_date

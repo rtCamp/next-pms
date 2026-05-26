@@ -102,9 +102,6 @@ def get_project_timeline_items(
     """
     Get all Project Timeline Items (complete and incomplete) for a project.
 
-    Touchpoints do not have a start_date, so ordering and range filtering use
-    planned_end_date as the authoritative date field.
-
     Args:
         project: Project name to filter by
         type: "Milestone" or "Touchpoint" — omit to fetch both
