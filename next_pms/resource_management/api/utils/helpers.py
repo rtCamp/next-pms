@@ -117,7 +117,16 @@ def filter_project_list(project_name=None, customer=None, billing_type=None, pag
 
     filters = {}
 
-    fields = ["name", "project_name", "status"]
+    fields = [
+        "name",
+        "project_name",
+        "status",
+        "customer",
+        "expected_start_date",
+        "expected_end_date",
+        "custom_project_manager",
+        "custom_project_manager_name",
+    ]
 
     if ids:
         filters["name"] = ["in", ids]

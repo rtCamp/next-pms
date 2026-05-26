@@ -4,7 +4,7 @@ import frappe
 from frappe.automation.doctype.auto_repeat.auto_repeat import getdate
 from frappe.core.doctype.recorder.recorder import redis_cache
 from frappe.email.doctype.auto_email_report.auto_email_report import DATE_FORMAT
-from frappe.utils import add_days
+from frappe.utils import add_days, get_gravatar
 
 from next_pms.resource_management.api.utils.helpers import (
     add_customer_data_if_not_exists,
@@ -70,6 +70,10 @@ def get_resource_management_project_view_data(
             "customer",
             "is_billable",
             "note",
+            "status",
+            "modified_by",
+            "modified",
+            "creation",
         ],
         "project",
         [project.name for project in projects],
@@ -79,14 +83,43 @@ def get_resource_management_project_view_data(
     )
 
     resource_allocation_map = {}
+    user_info_cache = {}
+    employees = {}
+    privileged_emp_fields = ["ctc", "salary_currency"] if permissions["write"] else []
+    emp_fields = [
+        "employee_name",
+        "name",
+        "image",
+        "department",
+        "designation",
+        "reports_to",
+        "custom_work_schedule",
+        "custom_working_hours",
+        *privileged_emp_fields,
+    ]
     for resource_allocation in resource_allocation_data:
+        modified_by = resource_allocation.get("modified_by")
+        if modified_by:
+            if modified_by not in user_info_cache:
+                user_info_cache[modified_by] = {
+                    "avatar": get_gravatar(modified_by),
+                    "full_name": frappe.db.get_value("User", modified_by, "full_name"),
+                }
+            resource_allocation["modified_by_avatar"] = user_info_cache[modified_by]["avatar"]
+            resource_allocation["modified_by"] = user_info_cache[modified_by]["full_name"]
+
+        emp_id = resource_allocation.employee
+        if emp_id not in employees:
+            employees[emp_id] = frappe.db.get_value("Employee", emp_id, emp_fields, as_dict=1)
+
         if resource_allocation.project not in resource_allocation_map:
             resource_allocation_map[resource_allocation.project] = {}
         resource_allocation_map[resource_allocation.project][resource_allocation.name] = resource_allocation
 
     for project in projects:
         all_week_data, all_dates_data = [], {}
-        project_resource_allocation = resource_allocation_map.get(project.name, [])
+        project_resource_allocation = resource_allocation_map.get(project.name, {})
+        weekly_capacity = sum(alloc.hours_allocated_per_day * 5 for alloc in project_resource_allocation.values())
 
         for week in weeks:
             total_allocated_hours_for_given_week = 0
@@ -151,11 +184,13 @@ def get_resource_management_project_view_data(
                 "all_week_data": all_week_data,
                 "all_dates_data": all_dates_data,
                 "project_allocations": project_resource_allocation,
+                "weekly_capacity": weekly_capacity,
             }
         )
 
     res["data"] = data
     res["customer"] = customer
+    res["employees"] = employees
     res["total_count"] = total_count
     res["has_more"] = int(start) + int(page_length) < total_count
     res["permissions"] = permissions
@@ -186,6 +221,10 @@ def get_employees_resrouce_data_for_given_project(project: str, start_date: str,
             "customer",
             "is_billable",
             "note",
+            "status",
+            "modified_by",
+            "modified",
+            "creation",
         ],
         "project",
         [project],
@@ -195,7 +234,17 @@ def get_employees_resrouce_data_for_given_project(project: str, start_date: str,
     )
 
     resource_allocation_map = {}
+    user_info_cache = {}
     for resource_allocation in resource_allocation_data:
+        modified_by = resource_allocation.get("modified_by")
+        if modified_by:
+            if modified_by not in user_info_cache:
+                user_info_cache[modified_by] = {
+                    "avatar": get_gravatar(modified_by),
+                    "full_name": frappe.db.get_value("User", modified_by, "full_name"),
+                }
+            resource_allocation["modified_by_avatar"] = user_info_cache[modified_by]["avatar"]
+            resource_allocation["modified_by"] = user_info_cache[modified_by]["full_name"]
         if resource_allocation.employee not in resource_allocation_map:
             resource_allocation_map[resource_allocation.employee] = {}
         resource_allocation_map[resource_allocation.employee][resource_allocation.name] = resource_allocation
@@ -206,12 +255,23 @@ def get_employees_resrouce_data_for_given_project(project: str, start_date: str,
     start_date = getdate(start_date)
     end_date = getdate(end_date)
 
+    privileged_emp_fields = ["ctc", "salary_currency"] if permissions["write"] else []
+    emp_fields = [
+        "employee_name",
+        "name",
+        "image",
+        "department",
+        "designation",
+        "reports_to",
+        "custom_work_schedule",
+        "custom_working_hours",
+        *privileged_emp_fields,
+    ]
+
     for employee in resource_allocation_map:
         employee_resource_allocation = resource_allocation_map.get(employee, [])
 
-        employee = frappe.db.get_value(
-            "Employee", employee, ["employee_name", "name", "image", "reports_to"], as_dict=1
-        )
+        employee = frappe.db.get_value("Employee", employee, emp_fields, as_dict=1)
 
         current_date = start_date
 
