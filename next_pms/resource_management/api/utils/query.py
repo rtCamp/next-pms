@@ -9,7 +9,7 @@ def get_allocation_list_for_employee_for_given_range(
     values: list,
     start_date,
     end_date,
-    is_billable=-1,
+    is_billable: str = "-1",
     is_need_fetch_all_weeks=False,
 ):
     """

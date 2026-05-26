@@ -31,7 +31,7 @@ def get_resource_management_team_view_data(
     business_unit: str | None = None,
     designation: str | None = None,
     reports_to: str | None = None,
-    is_billable: int = -1,
+    is_billable: str = "-1",
     page_length: int = 10,
     start: int = 0,
     skills: list | str | None = None,
