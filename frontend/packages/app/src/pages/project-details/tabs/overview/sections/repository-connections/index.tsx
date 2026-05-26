@@ -1,7 +1,7 @@
 /**
  * External dependencies.
  */
-import { useCallback, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import {
   Button,
   ListHeader,
@@ -16,40 +16,42 @@ import { format } from "date-fns";
 /**
  * Internal dependencies.
  */
-import { OverviewSection } from "../../components/overviewSection";
 import { RepoCell } from "./cells";
 import { REPO_COLUMNS } from "./columns";
 import { AddRepoDialog } from "./components/addRepoDialog";
-import { INITIAL_REPOS } from "./fake-data";
 import type { RepoConnection } from "./types";
+import { useProjectDetail } from "../../../../context";
+import { OverviewSection } from "../../components/overviewSection";
 
 export function RepositoryConnections() {
-  const [repos, setRepos] = useState<RepoConnection[]>(INITIAL_REPOS);
   const [dialogOpen, setDialogOpen] = useState(false);
 
+  const connections = useProjectDetail(
+    (s) => s.project?.custom_project_repository_connections,
+  );
+
+  const repos = useMemo<RepoConnection[]>(
+    () =>
+      (connections ?? [])
+        .filter((c) => c.github_repository)
+        .map((c) => ({
+          id: c.name,
+          name: c.github_repository as string,
+          createdOn: format(new Date(c.creation), "yyyy-MM-dd"),
+          githubUrl: `https://github.com/${c.github_repository}`,
+        })),
+    [connections],
+  );
+
   const connectedIds = useMemo(
-    () => new Set(repos.map((r) => r.id)),
-    [repos],
+    () =>
+      new Set(
+        (connections ?? [])
+          .map((c) => c.github_repository)
+          .filter((id): id is string => Boolean(id)),
+      ),
+    [connections],
   );
-
-  const handleConnect = useCallback(
-    (repo: { id: string; name: string; githubUrl: string }) => {
-      setRepos((prev) => [
-        ...prev,
-        {
-          id: repo.id,
-          name: repo.name,
-          createdOn: format(new Date(), "yyyy-MM-dd"),
-          githubUrl: repo.githubUrl,
-        },
-      ]);
-    },
-    [],
-  );
-
-  const handleUnlink = useCallback((id: string) => {
-    setRepos((prev) => prev.filter((r) => r.id !== id));
-  }, []);
 
   return (
     <OverviewSection
@@ -97,12 +99,7 @@ export function RepositoryConnections() {
             repos.map((repo) => (
               <ListRow key={repo.id} row={repo}>
                 {REPO_COLUMNS.map((column) => (
-                  <RepoCell
-                    key={column.key}
-                    row={repo}
-                    column={column}
-                    onUnlink={handleUnlink}
-                  />
+                  <RepoCell key={column.key} row={repo} column={column} />
                 ))}
               </ListRow>
             ))
@@ -112,7 +109,6 @@ export function RepositoryConnections() {
       <AddRepoDialog
         open={dialogOpen}
         onOpenChange={setDialogOpen}
-        onConnect={handleConnect}
         connectedIds={connectedIds}
       />
     </OverviewSection>
