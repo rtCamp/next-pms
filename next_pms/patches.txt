@@ -24,3 +24,4 @@ next_pms.next_projects.patches.create_default_project_phase
 next_pms.next_projects.patches.add_customer_permissions_for_projects_manager
 next_pms.resource_management.patches.populate_resource_allocation_cost
 next_pms.next_projects.patches.create_default_risk_masters
+next_pms.next_projects.patches.add_designation_permissions_for_pm
