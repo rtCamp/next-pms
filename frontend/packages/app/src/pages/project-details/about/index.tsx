@@ -83,7 +83,7 @@ export function AboutThisProject({ className }: { className: string }) {
           "members",
           "customers",
         ]}
-        className="flex flex-col"
+        className="flex flex-col overflow-scroll scrollbar-thin"
       >
         <Section value="summary" title="Summary">
           <p className="text-base font-normal text-ink-gray-7">{summary}</p>

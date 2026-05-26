@@ -74,15 +74,23 @@ export function GanttView({
   const totalWidth = dayColumns.length * COLUMN_WIDTH;
 
   const viewEnd = dayColumns[dayColumns.length - 1];
-  const visibleItems = items.filter((item) => {
-    const plannedEnd = parseISO(item.plannedEndDate);
-    return (
-      plannedEnd >= dayColumns[0] &&
-      (item.startDate
-        ? parseISO(item.startDate) <= viewEnd
-        : plannedEnd <= viewEnd)
-    );
-  });
+  const visibleItems = items
+    .filter((item) => {
+      if (!item.plannedEndDate) return false;
+      const plannedEnd = parseISO(item.plannedEndDate);
+      return (
+        plannedEnd >= dayColumns[0] &&
+        (item.startDate
+          ? parseISO(item.startDate) <= viewEnd
+          : plannedEnd <= viewEnd)
+      );
+    })
+    .sort((a, b) => {
+      // Sort key: startDate (milestones) > plannedEndDate (touchpoints / milestones without start)
+      const dateA = a.startDate ?? a.plannedEndDate ?? "";
+      const dateB = b.startDate ?? b.plannedEndDate ?? "";
+      return dateA < dateB ? -1 : dateA > dateB ? 1 : 0;
+    });
 
   // Week separator line positions (right edge of each week except last)
   const separatorXs: number[] = [];

@@ -5,6 +5,19 @@ import { CalendarTab } from "./calendar";
 import { Overview } from "./overview";
 import { Tracking } from "./tracking";
 
+export const TAB_KEYS = [
+  "overview",
+  "calendar",
+  "tracking",
+  "risks",
+  "notes",
+  "email",
+  "to-do",
+  "feedback",
+] as const;
+
+export type TabKey = (typeof TAB_KEYS)[number];
+
 export const TABS: ComponentProps<typeof Tabs>["tabs"] = [
   { label: "Overview", content: <Overview /> },
   { label: "Calendar", content: <CalendarTab /> },

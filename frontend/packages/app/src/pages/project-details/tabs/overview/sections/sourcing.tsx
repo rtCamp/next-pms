@@ -14,7 +14,7 @@ const EMPTY = "—";
 
 export function Sourcing() {
   const source = useProjectDetail(
-    (state) => state.project?.project_type ?? EMPTY,
+    (state) => state.project?.custom_source ?? EMPTY,
   );
   const primaryLocation = useProjectDetail(
     (state) => state.project?.custom_host ?? EMPTY,

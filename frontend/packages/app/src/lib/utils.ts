@@ -556,7 +556,7 @@ export const buildFrappeFilters = (compositeFilters: FilterCondition[]) => {
  * and native Frappe filters.
  *
  * @param compositeFilters Array of FilterCondition objects.
- * @returns Object containing startDate, maxWeek, and frappeFilters derived from the composite filters.
+ * @returns Object containing startDate, endDate, maxWeek, and frappeFilters derived from the composite filters.
  */
 export const buildCompositeFilters = (compositeFilters: FilterCondition[]) => {
   if (compositeFilters.length === 0) {
@@ -617,9 +617,10 @@ export const buildCompositeFilters = (compositeFilters: FilterCondition[]) => {
     }
   }
 
-  // Note: We are return end date as start date because API expects end date and fetches backwards from there.
+  // Note: We are returning end date as start date because API expects end date and fetches backwards from there.
   return {
     startDate: endDate,
+    endDate: startDate,
     maxWeek: maxWeek,
     frappeFilters,
   };
