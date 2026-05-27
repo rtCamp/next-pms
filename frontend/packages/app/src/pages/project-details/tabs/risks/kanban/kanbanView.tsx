@@ -63,6 +63,9 @@ export function RisksKanbanView() {
 
         if (typeof riskId !== "string" || !newStatus) return;
 
+        const currentStatus = byId.get(riskId)?.status ?? "To-do";
+        if (currentStatus === newStatus) return;
+
         try {
           await updateRiskStatus(riskId, newStatus);
         } catch {
