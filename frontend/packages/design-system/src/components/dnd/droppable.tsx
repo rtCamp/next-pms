@@ -33,7 +33,10 @@ export function Droppable({
 
   return (
     <div
-      className={mergeClassNames("flex shrink-0 flex-col gap-3", className)}
+      className={mergeClassNames(
+        "flex shrink-0 flex-col gap-3 min-h-screen",
+        className,
+      )}
       style={style}
     >
       {header}
