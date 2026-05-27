@@ -7,7 +7,7 @@ from frappe.utils import flt
 from hrms.overrides.employee_project import EmployeeProject
 
 
-class ProjectOverwrite(EmployeeProject):
+class ProjectOverride(EmployeeProject):
     def validate(self):
         super().validate()
         self.update_project_currency()
