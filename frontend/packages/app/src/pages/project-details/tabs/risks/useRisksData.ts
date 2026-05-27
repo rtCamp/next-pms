@@ -69,7 +69,7 @@ export function useRisksData() {
     );
     return data.map((risk) => ({
       ...risk,
-      owner_details: risk.owner ? (userMap[risk.owner] ?? null) : null,
+      owner_details: userMap[risk.owner],
     }));
   }, [data, usersData]);
 
