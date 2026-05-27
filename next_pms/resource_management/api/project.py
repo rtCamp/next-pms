@@ -84,7 +84,6 @@ def get_resource_management_project_view_data(
 
     resource_allocation_map = {}
     user_info_cache = {}
-    employees = {}
     privileged_emp_fields = ["ctc", "salary_currency"] if permissions["write"] else []
     emp_fields = [
         "employee_name",
@@ -97,6 +96,7 @@ def get_resource_management_project_view_data(
         "custom_working_hours",
         *privileged_emp_fields,
     ]
+    emp_ids = set()
     for resource_allocation in resource_allocation_data:
         modified_by = resource_allocation.get("modified_by")
         if modified_by:
@@ -106,20 +106,30 @@ def get_resource_management_project_view_data(
                     "full_name": frappe.db.get_value("User", modified_by, "full_name"),
                 }
             resource_allocation["modified_by_avatar"] = user_info_cache[modified_by]["avatar"]
-            resource_allocation["modified_by"] = user_info_cache[modified_by]["full_name"]
+            resource_allocation["modified_by_full_name"] = user_info_cache[modified_by]["full_name"]
 
-        emp_id = resource_allocation.employee
-        if emp_id not in employees:
-            employees[emp_id] = frappe.db.get_value("Employee", emp_id, emp_fields, as_dict=1)
+        emp_ids.add(resource_allocation.employee)
 
         if resource_allocation.project not in resource_allocation_map:
             resource_allocation_map[resource_allocation.project] = {}
         resource_allocation_map[resource_allocation.project][resource_allocation.name] = resource_allocation
 
+    employees = (
+        {e.name: e for e in frappe.get_all("Employee", filters={"name": ["in", list(emp_ids)]}, fields=emp_fields)}
+        if emp_ids
+        else {}
+    )
+
     for project in projects:
         all_week_data, all_dates_data = [], {}
         project_resource_allocation = resource_allocation_map.get(project.name, {})
-        weekly_capacity = sum(alloc.hours_allocated_per_day * 5 for alloc in project_resource_allocation.values())
+        weekly_capacity = sum(
+            alloc.hours_allocated_per_day
+            for week in weeks
+            for date in week.get("dates")
+            for alloc in project_resource_allocation.values()
+            if alloc.allocation_start_date <= date <= alloc.allocation_end_date
+        )
 
         for week in weeks:
             total_allocated_hours_for_given_week = 0
@@ -268,10 +278,19 @@ def get_employees_resrouce_data_for_given_project(project: str, start_date: str,
         *privileged_emp_fields,
     ]
 
-    for employee in resource_allocation_map:
-        employee_resource_allocation = resource_allocation_map.get(employee, [])
+    all_employees = {
+        e.name: e
+        for e in frappe.get_all(
+            "Employee", filters={"name": ["in", list(resource_allocation_map.keys())]}, fields=emp_fields
+        )
+    }
 
-        employee = frappe.db.get_value("Employee", employee, emp_fields, as_dict=1)
+    for emp_id in resource_allocation_map:
+        employee_resource_allocation = resource_allocation_map.get(emp_id, [])
+
+        employee = all_employees.get(emp_id)
+        if not employee:
+            continue
 
         current_date = start_date
 
