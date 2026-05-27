@@ -44,7 +44,20 @@ export function RisksKanbanView() {
   }, [data]);
 
   useEffect(() => {
-    setItems(groupIdsByStatus(data));
+    setItems((current) => {
+      const fromServer = groupIdsByStatus(data);
+      const merged = {} as RiskIdsByStatus;
+      for (const status of RISK_STATUSES) {
+        const serverSet = new Set(fromServer[status]);
+        // Preserve existing drag-and-drop order; drop items that moved away
+        const kept = current[status].filter((id) => serverSet.has(id));
+        const keptSet = new Set(kept);
+        // Append any items newly added on the server side
+        const added = fromServer[status].filter((id) => !keptSet.has(id));
+        merged[status as RiskStatus] = [...kept, ...added];
+      }
+      return merged;
+    });
   }, [data]);
 
   return (
