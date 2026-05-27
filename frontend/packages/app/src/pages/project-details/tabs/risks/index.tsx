@@ -6,11 +6,11 @@ import { useSearchParams } from "react-router-dom";
 /**
  * Internal dependencies.
  */
-import { UnderConstruction } from "@/components/under-construction";
 import { RISK_VIEW_PARAM } from "./constants";
 import type { RiskViewKey } from "./constants";
 import { RisksHeader } from "./header";
 import { RisksKanbanView } from "./kanban/kanbanView";
+import { RisksListView } from "./list/listView";
 import { RisksProvider } from "./provider";
 
 function RisksContent() {
@@ -21,7 +21,7 @@ function RisksContent() {
   return (
     <div className="flex flex-col h-full">
       <RisksHeader />
-      {activeView === "kanban" ? <RisksKanbanView /> : <UnderConstruction />}
+      {activeView === "kanban" ? <RisksKanbanView /> : <RisksListView />}
     </div>
   );
 }
