@@ -238,7 +238,11 @@ export function GanttAllocationBar({
   const renderFloatingLabel = useCallback(() => {
     return (
       <div className="pointer-events-none absolute inset-x-0 top-full mt-1 flex cursor-default">
-        <div className="pointer-events-auto ml-auto flex w-max gap-1 items-center whitespace-nowrap text-[13px] font-medium text-ink-gray-6">
+        <div
+          className="pointer-events-auto ml-auto flex w-max gap-1 items-center whitespace-nowrap text-[13px] font-medium text-ink-gray-6"
+          onPointerDown={(event) => event.stopPropagation()}
+          onClick={(event) => event.stopPropagation()}
+        >
           <Button onClick={handleResetPreview} variant="ghost">
             Cancel
           </Button>

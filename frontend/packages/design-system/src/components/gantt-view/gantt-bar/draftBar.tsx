@@ -2,7 +2,8 @@
  * External dependencies.
  */
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Tooltip } from "@rtcamp/frappe-ui-react";
+import { Button, Tooltip } from "@rtcamp/frappe-ui-react";
+import { Close } from "@rtcamp/frappe-ui-react/icons";
 import { format } from "date-fns";
 
 /**
@@ -107,31 +108,13 @@ export function DraftBar({
     [columnWidth],
   );
 
-  const renderFloatingLabel = useCallback(
-    ({ liveLeft, liveWidth }: GanttBarRenderState) => (
-      <span className="pointer-events-none absolute inset-x-0 top-full mt-1 flex">
-        <span className="ml-auto w-max whitespace-nowrap pr-2 text-[13px] font-medium text-ink-gray-6">
-          {format(
-            getBarDateRange({
-              left: liveLeft,
-              width: liveWidth,
-              headerWidth,
-              columnWidth,
-              columnCount,
-              weekStart,
-              showWeekend,
-            }).endDate,
-            "MMM d",
-          )}
-        </span>
-      </span>
-    ),
-    [headerWidth, columnWidth, columnCount, weekStart, showWeekend],
-  );
-
   const handleResizeEnd = useCallback((geometry: GanttBarGeometry) => {
     setPreviewGeometry(geometry);
   }, []);
+
+  const handleResetDraft = useCallback(() => {
+    onRemove?.(rowKey, left);
+  }, [left, onRemove, rowKey]);
 
   const handleClick = useCallback(() => {
     if (!onOpenAllocation) {
@@ -176,6 +159,48 @@ export function DraftBar({
     weekStart,
   ]);
 
+  const renderFloatingLabel = useCallback(
+    ({ liveLeft, liveWidth }: GanttBarRenderState) => (
+      <span className="pointer-events-none absolute inset-x-0 top-full mt-1 flex cursor-default">
+        <span
+          className="pointer-events-auto ml-auto flex w-max items-center gap-2 whitespace-nowrap pr-2 text-[13px] font-medium text-ink-gray-6"
+          onPointerDown={(event) => event.stopPropagation()}
+          onClick={(event) => event.stopPropagation()}
+        >
+          <span className="flex items-center gap-1">
+            <Button
+              onClick={handleResetDraft}
+              variant="ghost"
+              icon={() => <Close className="size-4" />}
+            />
+            <span>
+              {format(
+                getBarDateRange({
+                  left: liveLeft,
+                  width: liveWidth,
+                  headerWidth,
+                  columnWidth,
+                  columnCount,
+                  weekStart,
+                  showWeekend,
+                }).endDate,
+                "MMM d",
+              )}
+            </span>
+          </span>
+        </span>
+      </span>
+    ),
+    [
+      columnCount,
+      columnWidth,
+      handleResetDraft,
+      headerWidth,
+      showWeekend,
+      weekStart,
+    ],
+  );
+
   const handleKeyDown = useCallback(
     (event: React.KeyboardEvent<HTMLDivElement>) => {
       if (event.key !== "Escape") {
@@ -184,9 +209,9 @@ export function DraftBar({
 
       event.preventDefault();
       event.stopPropagation();
-      onRemove?.(rowKey, left);
+      handleResetDraft();
     },
-    [onRemove, rowKey, left],
+    [handleResetDraft],
   );
 
   return (
