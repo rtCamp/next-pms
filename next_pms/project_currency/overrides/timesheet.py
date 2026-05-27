@@ -1,29 +1,15 @@
 import frappe
 from erpnext import get_company_currency
-from hrms.overrides.employee_timesheet import EmployeeTimesheet
 from erpnext.setup.utils import get_exchange_rate
 from frappe.utils.data import flt, nowdate
+from hrms.overrides.employee_timesheet import EmployeeTimesheet
 
 from next_pms.utils.employee import get_employee_salary
 
 
+# Inheritance: erpnext.Timesheet -> hrms.EmployeeTimesheet -> TimesheetOverride
+# It inherits from HRMS EmployeeTimesheet to support custom project billing and costing.
 class TimesheetOverride(EmployeeTimesheet):
-    """
-    TimesheetOverride customizes the Timesheet controller for the Next PMS app.
-
-    Inheritance Hierarchy:
-        erpnext.projects.doctype.timesheet.timesheet.Timesheet (Core)
-        └── hrms.overrides.employee_timesheet.EmployeeTimesheet (HRMS status & payroll mappings)
-            └── next_pms.project_currency.overrides.timesheet.TimesheetOverride (This Class)
-
-    Purpose of Override:
-        - Implements custom project-currency conversion rules for time log costing.
-        - Calculates activity costing rates based on historical employee CTC / promotion records.
-        - Calculates custom project billing team and material hourly billing rates.
-        - Adds specific validation checks for billing hours and mandatory field inputs.
-        - Overrides `calculate_hours` to bypass standard datetime duration calculations, 
-          preserving custom client-side daily log entries.
-    """
     ignore_backdated_validation = False
 
     def calculate_hours(self):
