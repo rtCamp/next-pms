@@ -34,7 +34,7 @@ export function RiskGroup({ value, label, risks }: RiskGroupProps) {
             className="size-4 shrink-0 text-ink-gray-5 transition-transform -rotate-90 group-data-panel-open:rotate-0"
           />
           <span>{label}</span>
-          <span className="text-xs text-ink-gray-6 rounded-full bg-surface-gray-2 px-1 py-0.5">
+          <span className="text-xs text-ink-gray-6 rounded-full bg-surface-gray-2 px-1.5 py-0.5">
             {risks.length}
           </span>
         </Accordion.Trigger>
