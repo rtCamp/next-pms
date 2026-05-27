@@ -1,8 +1,9 @@
 /**
  * External dependencies.
  */
+import { Avatar } from "@rtcamp/frappe-ui-react";
 import { Fire } from "@rtcamp/frappe-ui-react/icons";
-import { Tag, User, AlignLeft } from "lucide-react";
+import { Tag, AlignLeft } from "lucide-react";
 
 /**
  * Internal dependencies.
@@ -20,7 +21,7 @@ export function RiskCard({ risk }: RiskCardProps) {
       {/* Risk level header */}
       <div className="px-3.5 py-3 flex items-center gap-2 text-ink-gray-8 text-base border-b border-outline-gray-1">
         <Fire className="size-4 shrink-0" />
-        <span className="font-medium">
+        <span className="font-medium underline underline-offset-2">
           {risk.risk_level ? `${risk.risk_level} risk` : "Unknown risk level"}
         </span>
       </div>
@@ -38,7 +39,12 @@ export function RiskCard({ risk }: RiskCardProps) {
         {/* Owner */}
         {risk.owner && (
           <div className="flex items-center gap-2 mb-2">
-            <User className="size-4 shrink-0" />
+            <Avatar
+              size="xs"
+              shape="circle"
+              image={risk.user_image ?? undefined}
+              label={risk.owner}
+            />
             <span className="truncate">{risk.owner}</span>
           </div>
         )}

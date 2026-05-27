@@ -2,15 +2,15 @@
  * External dependencies.
  */
 import { useCallback, useMemo, useState, type PropsWithChildren } from "react";
-import { useFrappeGetDocList, useFrappeUpdateDoc } from "frappe-react-sdk";
+import { useFrappeUpdateDoc } from "frappe-react-sdk";
 
 /**
  * Internal dependencies.
  */
-import { useProjectDetail } from "@/pages/project-details/context";
 import { RISK_STATUSES, type RiskStatus } from "./constants";
 import { RisksContext, type RisksContextProps } from "./context";
-import type { RiskFilters, RiskItem, RiskVisibleColumns } from "./types";
+import type { RiskFilters, RiskVisibleColumns } from "./types";
+import { useRisksData } from "./useRisksData";
 
 const defaultFilters: RiskFilters = {
   owner: "",
@@ -24,34 +24,12 @@ const defaultVisibleColumns: RiskVisibleColumns = Object.fromEntries(
 ) as unknown as RiskVisibleColumns;
 
 export function RisksProvider({ children }: PropsWithChildren) {
-  const projectId = useProjectDetail((s) => s.projectId);
   const [filters, setFiltersState] = useState<RiskFilters>(defaultFilters);
   const [visibleColumns, setVisibleColumnsState] = useState<RiskVisibleColumns>(
     defaultVisibleColumns,
   );
 
-  const frappeFilters = useMemo(() => {
-    const base: unknown[] = [["project", "=", projectId]];
-    // TODO: Add more filters
-    return base;
-  }, [projectId]);
-
-  const { data, isLoading, error, mutate } = useFrappeGetDocList<RiskItem>(
-    "Risk",
-    {
-      fields: [
-        "name",
-        "project",
-        "risk_category",
-        "risk_level",
-        "status",
-        "summary",
-        "owner",
-      ],
-      filters: frappeFilters as never,
-      limit: 500,
-    },
-  );
+  const { data, isLoading, error, mutate } = useRisksData();
 
   const { updateDoc } = useFrappeUpdateDoc();
 

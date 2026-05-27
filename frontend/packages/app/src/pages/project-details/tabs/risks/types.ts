@@ -9,6 +9,7 @@ export interface RiskItem {
   status: RiskStatus | null;
   summary: string | null;
   owner: string | null;
+  user_image: string | null;
 }
 
 export interface RiskFilters {
@@ -24,4 +25,9 @@ export interface RiskVisibleColumns {
   Escalated: boolean;
   Blocked: boolean;
   Mitigated: boolean;
+}
+
+export interface UserDetails {
+  name: string;
+  user_image: string | null;
 }
