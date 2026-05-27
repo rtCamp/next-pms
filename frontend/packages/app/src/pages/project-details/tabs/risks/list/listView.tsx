@@ -6,18 +6,14 @@ import { Accordion } from "@base-ui/react/accordion";
 /**
  * Internal dependencies.
  */
-import { OPEN_STATUSES, RISK_LIST_COLUMNS } from "../constants";
+import { RISK_LIST_COLUMNS } from "../constants";
 import { useRisks } from "../context";
 import { RiskGroup } from "./listViewGroup";
 
 export function RisksListView() {
   const data = useRisks((c) => c.state.data);
 
-  const openRisks = data.filter(
-    (r) =>
-      !r.status ||
-      OPEN_STATUSES.includes(r.status as (typeof OPEN_STATUSES)[number]),
-  );
+  const openRisks = data.filter((r) => !r.status || r.status !== "Mitigated");
   const mitigatedRisks = data.filter((r) => r.status === "Mitigated");
 
   return (
