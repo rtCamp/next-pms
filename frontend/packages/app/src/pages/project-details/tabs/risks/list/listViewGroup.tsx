@@ -41,7 +41,7 @@ export function RiskGroup({ value, label, risks }: RiskGroupProps) {
       </Accordion.Header>
 
       {/* Rows */}
-      <Accordion.Panel>
+      <Accordion.Panel className="accordion-panel">
         {risks.map((risk) => (
           <div
             key={risk.name}
