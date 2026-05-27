@@ -1,8 +1,9 @@
 /**
  * External dependencies.
  */
+import { useCallback } from "react";
 import type { PropsWithChildren } from "react";
-import { useFrappeGetDoc } from "frappe-react-sdk";
+import { useFrappeGetDoc, useFrappeUpdateDoc } from "frappe-react-sdk";
 
 /**
  * Internal dependencies.
@@ -10,6 +11,7 @@ import { useFrappeGetDoc } from "frappe-react-sdk";
 import {
   ProjectDetailContext,
   type ProjectDetailContextProps,
+  type RepositoryInput,
 } from "./context";
 import type { ProjectDoc } from "./types";
 
@@ -26,12 +28,25 @@ export function ProjectDetailProvider({
     projectId,
   );
 
+  const { updateDoc } = useFrappeUpdateDoc();
+
+  const updateRepositories = useCallback(
+    async (repositories: RepositoryInput[]) => {
+      await updateDoc("Project", projectId, {
+        custom_project_repository_connections: repositories,
+      });
+      mutate();
+    },
+    [updateDoc, projectId, mutate],
+  );
+
   const value: ProjectDetailContextProps = {
     projectId,
     project: data,
     isLoading,
     error: error ?? null,
     mutate,
+    updateRepositories,
   };
 
   return (
