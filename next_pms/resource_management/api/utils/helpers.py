@@ -126,6 +126,7 @@ def filter_project_list(project_name=None, customer=None, billing_type=None, pag
         "expected_end_date",
         "custom_project_manager",
         "custom_project_manager_name",
+        "custom_total_hours_remaining",
     ]
 
     if ids:
