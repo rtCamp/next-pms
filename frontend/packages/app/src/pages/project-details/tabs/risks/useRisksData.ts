@@ -7,6 +7,7 @@ import { useFrappeGetDocList } from "frappe-react-sdk";
 /**
  * Internal dependencies.
  */
+import { hashString } from "@/lib/utils";
 import { useProjectDetail } from "@/pages/project-details/context";
 import type { RiskItem, UserDetails } from "./types";
 
@@ -44,15 +45,15 @@ export function useRisksData() {
 
   // Build a stable SWR key so the user list re-fetches only when the set of owners changes.
   // Pass null when there are no owners to skip the request entirely.
-  const usersSwrKey =
-    ownerEmails.length > 0
-      ? `risks-users-${ownerEmails.slice().sort().join(",")}`
-      : null;
+  const usersSwrKey = useMemo(() => {
+    if (!ownerEmails.length) return null;
+    return `risks-users-${hashString(ownerEmails.slice().sort().join(","))}`;
+  }, [ownerEmails]);
 
   const { data: usersData } = useFrappeGetDocList<UserDetails>(
     "User",
     {
-      fields: ["name", "user_image"],
+      fields: ["name", "full_name", "user_image"],
       filters: ownerEmails.length
         ? ([["name", "in", ownerEmails]] as never)
         : ([] as never),
@@ -63,12 +64,12 @@ export function useRisksData() {
 
   const enrichedData = useMemo(() => {
     if (!data?.length) return [];
-    const imageMap = Object.fromEntries(
-      (usersData ?? []).map((u) => [u.name, u.user_image]),
+    const userMap = Object.fromEntries(
+      (usersData ?? []).map((u) => [u.name, u]),
     );
     return data.map((risk) => ({
       ...risk,
-      user_image: risk.owner ? (imageMap[risk.owner] ?? null) : null,
+      owner_details: risk.owner ? (userMap[risk.owner] ?? null) : null,
     }));
   }, [data, usersData]);
 

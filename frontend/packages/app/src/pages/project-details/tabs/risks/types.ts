@@ -1,7 +1,7 @@
 import type { FilterCondition } from "@rtcamp/frappe-ui-react";
 import type { RiskStatus } from "./constants";
 
-export interface RiskItem {
+export interface ApiRiskItem {
   name: string;
   project: string;
   risk_category: string | null;
@@ -9,7 +9,10 @@ export interface RiskItem {
   status: RiskStatus | null;
   summary: string | null;
   owner: string | null;
-  user_image: string | null;
+}
+
+export interface RiskItem extends ApiRiskItem {
+  owner_details?: UserDetails | null;
 }
 
 export interface RiskFilters {
@@ -29,5 +32,6 @@ export interface RiskVisibleColumns {
 
 export interface UserDetails {
   name: string;
+  full_name: string;
   user_image: string | null;
 }

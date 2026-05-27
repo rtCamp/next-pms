@@ -8,8 +8,8 @@ import { Tag, AlignLeft } from "lucide-react";
 /**
  * Internal dependencies.
  */
+import { stripTags } from "@/lib/utils";
 import type { RiskItem } from "../types";
-import { stripHtml } from "../utils";
 
 interface RiskCardProps {
   risk: RiskItem;
@@ -42,10 +42,12 @@ export function RiskCard({ risk }: RiskCardProps) {
             <Avatar
               size="xs"
               shape="circle"
-              image={risk.user_image ?? undefined}
-              label={risk.owner}
+              image={risk.owner_details?.user_image ?? undefined}
+              label={risk.owner_details?.full_name ?? risk.owner}
             />
-            <span className="truncate">{risk.owner}</span>
+            <span className="truncate">
+              {risk.owner_details?.full_name ?? risk.owner}
+            </span>
           </div>
         )}
 
@@ -53,7 +55,7 @@ export function RiskCard({ risk }: RiskCardProps) {
         {risk.summary && (
           <div className="flex items-start gap-2">
             <AlignLeft className="size-4 shrink-0 mt-0.5" />
-            <span className="line-clamp-2">{stripHtml(risk.summary)}</span>
+            <span className="line-clamp-2">{stripTags(risk.summary)}</span>
           </div>
         )}
       </div>

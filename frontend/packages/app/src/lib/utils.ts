@@ -625,3 +625,15 @@ export const buildCompositeFilters = (compositeFilters: FilterCondition[]) => {
     frappeFilters,
   };
 };
+
+/**
+ * Returns a short, stable base-36 hash of the given string (djb2 variant).
+ * Useful for building cache keys from arbitrarily long inputs.
+ */
+export function hashString(str: string): string {
+  let h = 5381;
+  for (let i = 0; i < str.length; i++) {
+    h = (Math.imul(31, h) + str.charCodeAt(i)) | 0;
+  }
+  return (h >>> 0).toString(36);
+}
