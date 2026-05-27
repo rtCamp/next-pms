@@ -3,7 +3,7 @@
  */
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { PreviewCard } from "@base-ui/react/preview-card";
-import { Tooltip } from "@rtcamp/frappe-ui-react";
+import { Button } from "@rtcamp/frappe-ui-react";
 
 /**
  * Internal dependencies.
@@ -46,6 +46,7 @@ export function GanttAllocationBar({
     onEditAllocation,
     onDeleteAllocation,
     setPendingDeleteEntry,
+    setHasActiveAllocationEdit,
   } = useGanttStore((s) => ({
     headerWidth: s.headerWidth,
     columnWidth: s.columnWidth,
@@ -56,17 +57,27 @@ export function GanttAllocationBar({
     onEditAllocation: s.onEditAllocation,
     onDeleteAllocation: s.onDeleteAllocation,
     setPendingDeleteEntry: s.setPendingDeleteEntry,
+    setHasActiveAllocationEdit: s.setHasActiveAllocationEdit,
   }));
 
   const left = allocation.barOffset + headerWidth;
   const { width, fullNumDays } = allocation;
   const [previewGeometry, setPreviewGeometry] = useState({ left, width });
+  const [previewOpen, setPreviewOpen] = useState(false);
   const isModified =
     previewGeometry.left !== left || previewGeometry.width !== width;
 
   useEffect(() => {
     setPreviewGeometry({ left, width });
   }, [allocation, left, width]);
+
+  useEffect(() => {
+    setHasActiveAllocationEdit(isModified);
+
+    return () => {
+      setHasActiveAllocationEdit(false);
+    };
+  }, [isModified, setHasActiveAllocationEdit]);
 
   const currentDates = useMemo(
     () =>
@@ -192,6 +203,12 @@ export function GanttAllocationBar({
     allocationBarRef.current?.focus();
   }, []);
 
+  const handleResetPreview = useCallback(() => {
+    setPreviewGeometry({ left, width });
+    setPreviewOpen(false);
+    allocationBarRef.current?.focus();
+  }, [left, width]);
+
   const handleKeyDown = useCallback(
     (event: React.KeyboardEvent<HTMLDivElement>) => {
       if (event.key !== "Escape") {
@@ -200,9 +217,9 @@ export function GanttAllocationBar({
 
       event.preventDefault();
       event.stopPropagation();
-      setPreviewGeometry({ left, width });
+      handleResetPreview();
     },
-    [left, width],
+    [handleResetPreview],
   );
 
   const handleClick = useCallback(() => {
@@ -218,46 +235,60 @@ export function GanttAllocationBar({
     previewGeometry.width,
   ]);
 
+  const renderFloatingLabel = useCallback(() => {
+    return (
+      <div className="pointer-events-none absolute inset-x-0 top-full mt-1 flex cursor-default">
+        <div className="pointer-events-auto ml-auto flex w-max gap-1 items-center whitespace-nowrap text-[13px] font-medium text-ink-gray-6">
+          <Button onClick={handleResetPreview} variant="ghost">
+            Cancel
+          </Button>
+          <Button onClick={handleClick} variant="solid">
+            Save
+          </Button>
+        </div>
+      </div>
+    );
+  }, [handleClick, handleResetPreview]);
+
   return (
-    <PreviewCard.Root>
-      <Tooltip text="Click to save the allocation" disabled={!isModified}>
-        <PreviewCard.Trigger
-          delay={400}
-          closeDelay={150}
-          render={
-            <GanttBar
-              ref={allocationBarRef}
-              variant="allocation"
-              theme={allocation.tentative ? "crosshatch" : "default"}
-              label={dayCountLabel}
-              renderLabel={renderLabel}
-              trailingLabel={
-                showCapacityStatus ? capacityStatus.trailingLabel : undefined
-              }
-              trailingLabelVariant={
-                showCapacityStatus
-                  ? capacityStatus.trailingLabelVariant
-                  : undefined
-              }
-              left={previewGeometry.left}
-              width={previewGeometry.width}
-              className={cn(
-                "outline-none",
-                isModified && "ring-1 ring-inset ring-surface-amber-3",
-              )}
-              billable={allocation.billable}
-              resizable={resizable}
-              snapUnitPx={columnWidth}
-              tabIndex={0}
-              minLeft={bounds.minLeft}
-              maxRight={bounds.maxRight}
-              onClick={isModified ? handleClick : undefined}
-              onKeyDown={handleKeyDown}
-              onResizeEnd={handleResizeEnd}
-            />
-          }
-        />
-      </Tooltip>
+    <PreviewCard.Root
+      open={isModified ? false : previewOpen}
+      onOpenChange={setPreviewOpen}
+    >
+      <PreviewCard.Trigger
+        delay={400}
+        closeDelay={150}
+        render={
+          <GanttBar
+            ref={allocationBarRef}
+            variant="allocation"
+            theme={allocation.tentative ? "crosshatch" : "default"}
+            label={dayCountLabel}
+            renderLabel={renderLabel}
+            trailingLabel={
+              showCapacityStatus ? capacityStatus.trailingLabel : undefined
+            }
+            trailingLabelVariant={
+              showCapacityStatus
+                ? capacityStatus.trailingLabelVariant
+                : undefined
+            }
+            left={previewGeometry.left}
+            width={previewGeometry.width}
+            className={cn("outline-none", isModified && "z-20")}
+            billable={allocation.billable}
+            showOutline={isModified}
+            renderFloatingLabel={isModified ? renderFloatingLabel : undefined}
+            resizable={resizable}
+            snapUnitPx={columnWidth}
+            tabIndex={0}
+            minLeft={bounds.minLeft}
+            maxRight={bounds.maxRight}
+            onKeyDown={handleKeyDown}
+            onResizeEnd={handleResizeEnd}
+          />
+        }
+      />
       <PreviewCard.Portal>
         <PreviewCard.Positioner side="bottom" align="start" sideOffset={4}>
           <PreviewCard.Popup className="z-50 outline-none">

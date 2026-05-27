@@ -8,6 +8,7 @@ import { format } from "date-fns";
 /**
  * Internal dependencies.
  */
+import { mergeClassNames as cn } from "../../../utils";
 import { FULL_DAY_HOURS } from "../constants";
 import { useGanttStore } from "../ganttStore";
 import type { AllocationCallbackData } from "../types";
@@ -42,14 +43,21 @@ export function DraftBar({
   onRemove,
 }: DraftBarProps) {
   const draftBarRef = useRef<HTMLDivElement>(null);
-  const { headerWidth, columnWidth, columnCount, weekStart, showWeekend } =
-    useGanttStore((s) => ({
-      headerWidth: s.headerWidth,
-      columnWidth: s.columnWidth,
-      columnCount: s.columnCount,
-      weekStart: s.weekStart,
-      showWeekend: s.showWeekend,
-    }));
+  const {
+    headerWidth,
+    columnWidth,
+    columnCount,
+    weekStart,
+    showWeekend,
+    setHasActiveAllocationEdit,
+  } = useGanttStore((s) => ({
+    headerWidth: s.headerWidth,
+    columnWidth: s.columnWidth,
+    columnCount: s.columnCount,
+    weekStart: s.weekStart,
+    showWeekend: s.showWeekend,
+    setHasActiveAllocationEdit: s.setHasActiveAllocationEdit,
+  }));
 
   const [previewGeometry, setPreviewGeometry] = useState({ left, width });
 
@@ -60,6 +68,14 @@ export function DraftBar({
   useEffect(() => {
     draftBarRef.current?.focus();
   }, [rowKey]);
+
+  useEffect(() => {
+    setHasActiveAllocationEdit(true);
+
+    return () => {
+      setHasActiveAllocationEdit(false);
+    };
+  }, [setHasActiveAllocationEdit]);
 
   const bounds = useMemo(
     () =>
@@ -92,19 +108,24 @@ export function DraftBar({
   );
 
   const renderFloatingLabel = useCallback(
-    ({ liveLeft, liveWidth }: GanttBarRenderState) =>
-      format(
-        getBarDateRange({
-          left: liveLeft,
-          width: liveWidth,
-          headerWidth,
-          columnWidth,
-          columnCount,
-          weekStart,
-          showWeekend,
-        }).endDate,
-        "MMM d",
-      ),
+    ({ liveLeft, liveWidth }: GanttBarRenderState) => (
+      <span className="pointer-events-none absolute inset-x-0 top-full mt-1 flex">
+        <span className="ml-auto w-max whitespace-nowrap pr-2 text-[13px] font-medium text-ink-gray-6">
+          {format(
+            getBarDateRange({
+              left: liveLeft,
+              width: liveWidth,
+              headerWidth,
+              columnWidth,
+              columnCount,
+              weekStart,
+              showWeekend,
+            }).endDate,
+            "MMM d",
+          )}
+        </span>
+      </span>
+    ),
     [headerWidth, columnWidth, columnCount, weekStart, showWeekend],
   );
 
@@ -178,7 +199,7 @@ export function DraftBar({
         renderFloatingLabel={renderFloatingLabel}
         left={previewGeometry.left}
         width={previewGeometry.width}
-        className="outline-none"
+        className={cn("outline-none", "z-20")}
         minLeft={bounds.minLeft}
         maxRight={bounds.maxRight}
         resizable={Boolean(onOpenAllocation)}

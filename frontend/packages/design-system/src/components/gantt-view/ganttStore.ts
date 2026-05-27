@@ -62,10 +62,12 @@ interface GanttState extends GanttProps {
   containerWidth: number;
   resizeHandleActive: boolean;
   pendingDeleteEntry: PendingDeleteEntry | null;
+  hasActiveAllocationEdit: boolean;
 
   toggleRow: (index: number) => void;
   setPendingDeleteEntry: (entry: PendingDeleteEntry) => void;
   clearPendingDeleteEntry: () => void;
+  setHasActiveAllocationEdit: (active: boolean) => void;
   setHeaderWidth: (width: number) => void;
   setContainerWidth: (width: number) => void;
   setResizeHandleActive: (active: boolean) => void;
@@ -285,6 +287,7 @@ export const createGanttStore = (initProps: GanttProps) => {
     containerWidth,
     resizeHandleActive: false,
     pendingDeleteEntry: null,
+    hasActiveAllocationEdit: false,
 
     toggleRow: (index) =>
       set((state) => {
@@ -307,6 +310,13 @@ export const createGanttStore = (initProps: GanttProps) => {
 
     setPendingDeleteEntry: (entry) => set({ pendingDeleteEntry: entry }),
     clearPendingDeleteEntry: () => set({ pendingDeleteEntry: null }),
+
+    setHasActiveAllocationEdit: (active) =>
+      set((state) =>
+        state.hasActiveAllocationEdit === active
+          ? state
+          : { hasActiveAllocationEdit: active },
+      ),
 
     startResize: (startX) => {
       const startWidth = get().headerWidth;
