@@ -22,17 +22,6 @@ export const RISK_STATUSES = [
 
 export type RiskStatus = (typeof RISK_STATUSES)[number];
 
-export const STATUS_DOT_COLORS: Record<RiskStatus, string> = {
-  "To-do": "bg-gray-500",
-  "In Progress": "bg-amber-500",
-  Escalated: "bg-blue-500",
-  Blocked: "bg-red-500",
-  Mitigated: "bg-green-500",
-};
-
-/** Statuses considered "open" (not yet mitigated). */
-export const OPEN_STATUSES = RISK_STATUSES.filter((s) => s !== "Mitigated");
-
 export const RISK_LIST_COLUMNS = [
   { key: "risk_category", label: "Risk category", width: "128px", flex: 1 },
   { key: "summary", label: "Risk Summary", width: "264px", flex: 4 },

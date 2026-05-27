@@ -8,7 +8,7 @@ export interface ApiRiskItem {
   risk_level: string | null;
   status: RiskStatus | null;
   summary: string | null;
-  owner: string | null;
+  owner: string;
 }
 
 export interface RiskItem extends ApiRiskItem {
