@@ -97,7 +97,7 @@ export const AllocationsProjectTable = () => {
           <TextInput
             className="w-xs"
             placeholder="Search project"
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={(e) => guard(() => setSearch(e.target.value))}
             value={searchInput}
           />
           <Select

@@ -93,7 +93,7 @@ export const AllocationsTeamTable = () => {
           <TextInput
             className="w-xs"
             placeholder="Search members or designation"
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={(e) => guard(() => setSearch(e.target.value))}
             value={searchInput}
           />
           <Select
