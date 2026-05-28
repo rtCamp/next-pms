@@ -184,9 +184,31 @@ def find_worked_hours(timesheet_data: list, date: str, project: str = None):
     return total_hours
 
 
-def filter_project_list(project_name=None, customer=None, billing_type=None, page_length=10, start=0, ids=None):
-    import json
+def _parse_multi_select_filter(value: str | list | None) -> list | None:
+    if not value:
+        return None
+    if isinstance(value, str):
+        try:
+            parsed = frappe.parse_json(value)
+            value = parsed if isinstance(parsed, list) else [parsed]
+        except (ValueError, TypeError):
+            value = [value]
+    if isinstance(value, list) and len(value) > 0:
+        return value
+    return None
 
+
+def filter_project_list(
+    project_name=None,
+    customer=None,
+    billing_type=None,
+    project_type=None,
+    project_manager=None,
+    tag=None,
+    page_length=10,
+    start=0,
+    ids=None,
+):
     from next_pms.timesheet.api import get_count
 
     start = int(start)
@@ -203,19 +225,39 @@ def filter_project_list(project_name=None, customer=None, billing_type=None, pag
         if project_name:
             filters["project_name"] = ["like", f"%{project_name}%"]
 
-        if customer:
-            if isinstance(customer, str):
-                customer = json.loads(customer)
-            if customer and len(customer) > 0:
-                filters["customer"] = ["in", customer]
+        customer_values = _parse_multi_select_filter(customer)
+        if customer_values:
+            filters["customer"] = ["in", customer_values]
 
-        if billing_type:
-            if isinstance(billing_type, str):
-                billing_type = json.loads(billing_type)
-            if billing_type and len(billing_type) > 0:
-                filters["custom_billing_type"] = ["in", billing_type]
+        billing_type_values = _parse_multi_select_filter(billing_type)
+        if billing_type_values:
+            filters["custom_billing_type"] = ["in", billing_type_values]
 
-    projects = frappe.get_list("Project", filters=filters, fields=fields, start=start, page_length=page_length)
+        project_type_values = _parse_multi_select_filter(project_type)
+        if project_type_values:
+            filters["project_type"] = ["in", project_type_values]
+
+        project_manager_values = _parse_multi_select_filter(project_manager)
+        if project_manager_values:
+            filters["custom_project_manager"] = ["in", project_manager_values]
+
+        tag_values = _parse_multi_select_filter(tag)
+        if tag_values:
+            tagged_projects = frappe.get_all(
+                "Tag Link",
+                filters={"document_type": "Project", "tag": ["in", tag_values]},
+                pluck="document_name",
+                distinct=True,
+            )
+            filters["name"] = ["in", tagged_projects or []]
+
+    projects = frappe.get_list(
+        "Project",
+        filters=filters,
+        fields=fields,
+        offset=start,
+        limit=page_length,
+    )
 
     total_count = get_count("Project", filters=filters)
 
