@@ -3,6 +3,7 @@
  */
 import { Accordion } from "@base-ui/react/accordion";
 import { Avatar } from "@rtcamp/frappe-ui-react";
+import { Button } from "@rtcamp/frappe-ui-react";
 import { SmallDown } from "@rtcamp/frappe-ui-react/icons";
 import { MoreHorizontal } from "lucide-react";
 
@@ -23,6 +24,7 @@ export interface RiskGroupProps {
 
 export function RiskGroup({ value, label, risks }: RiskGroupProps) {
   const openRowActions = useRisks((c) => c.actions.openRowActions);
+  const openRiskDetail = useRisks((c) => c.actions.openRiskDetail);
 
   return (
     <Accordion.Item value={value}>
@@ -45,7 +47,8 @@ export function RiskGroup({ value, label, risks }: RiskGroupProps) {
         {risks.map((risk) => (
           <div
             key={risk.name}
-            className="flex items-center gap-2 px-2 py-1 border-b border-outline-gray-1 hover:bg-surface-gray-1 text-base"
+            className="flex items-center gap-2 px-2 py-1 border-b border-outline-gray-1 hover:bg-surface-gray-1 text-base cursor-pointer"
+            onClick={() => openRiskDetail(risk.name)}
           >
             {/* Risk category */}
             <div
@@ -114,13 +117,15 @@ export function RiskGroup({ value, label, risks }: RiskGroupProps) {
 
             {/* Row actions */}
             <div className="w-8 shrink-0 flex justify-end">
-              <button
+              <Button
                 type="button"
-                className="p-1 rounded text-ink-gray-5 hover:bg-surface-gray-2"
-                onClick={() => openRowActions(risk.name)}
-              >
-                <MoreHorizontal className="size-4" />
-              </button>
+                variant="ghost"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  openRowActions(risk.name);
+                }}
+                iconLeft={() => <MoreHorizontal />}
+              />
             </div>
           </div>
         ))}

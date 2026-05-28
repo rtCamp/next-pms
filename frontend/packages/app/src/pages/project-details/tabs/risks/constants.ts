@@ -11,6 +11,7 @@ export const RISK_VIEWS = [
 export type RiskViewKey = (typeof RISK_VIEWS)[number]["key"];
 
 export const RISK_VIEW_PARAM = "view";
+export const RISK_DETAIL_PARAM = "risk";
 
 export const RISK_STATUSES = [
   "To-do",
