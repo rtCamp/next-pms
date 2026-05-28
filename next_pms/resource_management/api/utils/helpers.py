@@ -1,3 +1,5 @@
+import datetime
+
 import frappe
 from frappe.utils import flt
 from frappe.utils.data import add_days, getdate
@@ -5,15 +7,26 @@ from frappe.utils.data import add_days, getdate
 from next_pms.timesheet.api.team import get_week_dates
 
 
-def add_customer_data_if_not_exists(customer, customer_name):
+def add_customer_data_if_not_exists(customer: dict, customer_name: str | None) -> dict:
     """If customer is not present in the customer dictionary then add it with name, image and abbr information.
 
     Args:
-        customer (object): customer object
-        customer_name (string): name of customer
+        customer (dict): Running lookup dict keyed by customer name. Mutated in place.
+        customer_name (str | None): The customer field value from a Resource Allocation
+            record.
 
     Returns:
-        customer (object): customer object
+        ```py
+        >>> customer = {}
+        >>> add_customer_data_if_not_exists(customer, "ACME Corp")
+        {"ACME Corp": {"name": "ACME Corp", "abbr": "AC", "image": "/files/acme.png"}}
+
+        >>> add_customer_data_if_not_exists(customer, "Stark Industries")
+        {
+            "ACME Corp": {"name": "ACME Corp", "abbr": "AC", "image": "/files/acme.png"},
+            "Stark Industries": {"name": "Stark Industries", "abbr": "SI", "image": None},
+        }
+        ```
     """
     if not customer_name:
         return customer
@@ -49,7 +62,42 @@ def get_allocation_objects(employee_resource_allocation: list[object]) -> object
     return resource_object
 
 
-def is_on_leave(date, daily_working_hours, leaves, holidays):
+def is_on_leave(date: datetime.date, daily_working_hours: float, leaves: list[dict], holidays: list) -> dict:
+    """Determine whether an employee is on leave or a holiday on a given date,
+    and calculate how many working hours they have on that day.
+
+    Checks leave applications first, then public/employee holidays.
+    A full-day leave or holiday results in 0 working hours.
+    A half-day leave on the exact `date` results in half the normal daily hours.
+    If neither applies, `leave_work_hours` equals `daily_working_hours` (unchanged).
+
+    Note: `leave_work_hours` represents the hours the employee IS available to work
+    on that day — not the hours taken as leave. It is 0 for a full day off and
+    daily_working_hours / 2 for a half day.
+
+    Args:
+        date (datetime.date): The specific day to check.
+        daily_working_hours (float): The employee's normal working hours per day
+            (already converted from weekly if needed).
+        leaves (list[dict]): Leave Application records for the employee, each
+            containing at minimum: from_date, to_date, half_day, half_day_date.
+        holidays (list): Holiday records for the employee, each containing
+            holiday_date.
+
+    Returns:
+        ```py
+        >>> is_on_leave(
+        ...     datetime.date(2026, 5, 20), 8.0,
+        ...     [{"from_date": datetime.date(2026, 5, 20), "to_date": datetime.date(2026, 5, 22),
+        ...       "half_day": 0, "half_day_date": None}],
+        ...     [],
+        ... )
+        {"on_leave": True, "leave_work_hours": 0.0}
+
+        >>> is_on_leave(datetime.date(2026, 5, 21), 8.0, [], [])
+        {"on_leave": False, "leave_work_hours": 8.0}
+        ```
+    """
     leave_work_hours = daily_working_hours
     on_leave = False
     for leave in leaves:
@@ -68,15 +116,44 @@ def is_on_leave(date, daily_working_hours, leaves, holidays):
     return {"on_leave": on_leave, "leave_work_hours": leave_work_hours}
 
 
-def get_dates_date(max_week: int, date: str):
-    """Get the dates for the given week count.
+def get_dates_date(max_week: int, date: str) -> list[dict]:
+    """Return a list of week descriptors starting from the week that contains `date`.
 
     Args:
-        max_week (number): Number of weeks
-        date (string): Date string
+        max_week (int): Number of consecutive weeks to generate.
+        date (str): Anchor date string ("YYYY-MM-DD"). Any day within the desired
+            starting week is acceptable — the function resolves to that week's Monday.
 
     Returns:
-        object: date objects
+        ```py
+        >>> get_dates_date(max_week=2, date="2026-05-21")
+        [
+            {
+                "start_date": datetime.date(2026, 5, 18),
+                "end_date": datetime.date(2026, 5, 24),
+                "key": "This Week",
+                "dates": [
+                    datetime.date(2026, 5, 18), # Monday
+                    datetime.date(2026, 5, 19),
+                    datetime.date(2026, 5, 20),
+                    datetime.date(2026, 5, 21),
+                    datetime.date(2026, 5, 22), # Friday
+                ],
+            },
+            {
+                "start_date": datetime.date(2026, 5, 25),
+                "end_date": datetime.date(2026, 5, 31),
+                "key": "May 25 - May 29",
+                "dates": [
+                    datetime.date(2026, 5, 25),
+                    datetime.date(2026, 5, 26),
+                    datetime.date(2026, 5, 27),
+                    datetime.date(2026, 5, 28),
+                    datetime.date(2026, 5, 29),
+                ],
+            },
+        ]
+        ```
     """
 
     next_dates = []
@@ -107,9 +184,31 @@ def find_worked_hours(timesheet_data: list, date: str, project: str = None):
     return total_hours
 
 
-def filter_project_list(project_name=None, customer=None, billing_type=None, page_length=10, start=0, ids=None):
-    import json
+def _parse_multi_select_filter(value: str | list | None) -> list | None:
+    if not value:
+        return None
+    if isinstance(value, str):
+        try:
+            parsed = frappe.parse_json(value)
+            value = parsed if isinstance(parsed, list) else [parsed]
+        except (ValueError, TypeError):
+            value = [value]
+    if isinstance(value, list) and len(value) > 0:
+        return value
+    return None
 
+
+def filter_project_list(
+    project_name=None,
+    customer=None,
+    billing_type=None,
+    project_type=None,
+    project_manager=None,
+    tag=None,
+    page_length=10,
+    start=0,
+    ids=None,
+):
     from next_pms.timesheet.api import get_count
 
     start = int(start)
@@ -126,19 +225,39 @@ def filter_project_list(project_name=None, customer=None, billing_type=None, pag
         if project_name:
             filters["project_name"] = ["like", f"%{project_name}%"]
 
-        if customer:
-            if isinstance(customer, str):
-                customer = json.loads(customer)
-            if customer and len(customer) > 0:
-                filters["customer"] = ["in", customer]
+        customer_values = _parse_multi_select_filter(customer)
+        if customer_values:
+            filters["customer"] = ["in", customer_values]
 
-        if billing_type:
-            if isinstance(billing_type, str):
-                billing_type = json.loads(billing_type)
-            if billing_type and len(billing_type) > 0:
-                filters["custom_billing_type"] = ["in", billing_type]
+        billing_type_values = _parse_multi_select_filter(billing_type)
+        if billing_type_values:
+            filters["custom_billing_type"] = ["in", billing_type_values]
 
-    projects = frappe.get_list("Project", filters=filters, fields=fields, start=start, page_length=page_length)
+        project_type_values = _parse_multi_select_filter(project_type)
+        if project_type_values:
+            filters["project_type"] = ["in", project_type_values]
+
+        project_manager_values = _parse_multi_select_filter(project_manager)
+        if project_manager_values:
+            filters["custom_project_manager"] = ["in", project_manager_values]
+
+        tag_values = _parse_multi_select_filter(tag)
+        if tag_values:
+            tagged_projects = frappe.get_all(
+                "Tag Link",
+                filters={"document_type": "Project", "tag": ["in", tag_values]},
+                pluck="document_name",
+                distinct=True,
+            )
+            filters["name"] = ["in", tagged_projects or []]
+
+    projects = frappe.get_list(
+        "Project",
+        filters=filters,
+        fields=fields,
+        offset=start,
+        limit=page_length,
+    )
 
     total_count = get_count("Project", filters=filters)
 
