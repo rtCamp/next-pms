@@ -1,13 +1,13 @@
 /**
  * External dependencies.
  */
-import { Avatar, Button, TextEditor } from "@rtcamp/frappe-ui-react";
+import { Avatar, Button } from "@rtcamp/frappe-ui-react";
 import { MoreHorizontal } from "lucide-react";
 
 /**
  * Internal dependencies.
  */
-import { formatRelativeTime } from "@/lib/utils";
+import { formatRelativeTime, stripTags } from "@/lib/utils";
 import { RiskStatusBadge } from "../riskStatusBadge";
 import type { EnrichedRiskUpdateEntry } from "../types";
 import { RiskLevelBadge } from "./riskLevelBadge";
@@ -66,13 +66,9 @@ export function UpdateEntry({ entry }: UpdateEntryProps) {
 
           {/* Note text */}
           {entry.note && (
-            <TextEditor
-              editable={false}
-              content={entry.note}
-              fixedMenu={false}
-              placeholder="Comment"
-              editorClass="text-sm leading-relaxed w-full max-w-full"
-            />
+            <p className="text-base leading-relaxed text-ink-gray-8">
+              {stripTags(entry.note)}
+            </p>
           )}
         </div>
       </div>

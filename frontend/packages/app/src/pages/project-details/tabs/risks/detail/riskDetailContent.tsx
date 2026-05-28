@@ -1,12 +1,13 @@
 /**
  * External dependencies.
  */
-import { TextEditor, Button } from "@rtcamp/frappe-ui-react";
+import { Button } from "@rtcamp/frappe-ui-react";
 import { Plus } from "lucide-react";
 
 /**
  * Internal dependencies.
  */
+import { stripTags } from "@/lib/utils";
 import type { RiskDetail, FileAttachment } from "../types";
 import { FileCard } from "./fileCard";
 import { UpdateEntry } from "./updateEntry";
@@ -25,13 +26,9 @@ export function RiskDetailContent({
       {/* Summary */}
       {risk.summary && (
         <section className="mb-6">
-          <TextEditor
-            editable={false}
-            content={risk.summary}
-            fixedMenu={false}
-            placeholder="Comment"
-            editorClass="text-base w-full max-w-full leading-relaxed"
-          />
+          <p className="text-base leading-relaxed text-ink-gray-8">
+            {stripTags(risk.summary)}
+          </p>
         </section>
       )}
 
@@ -41,13 +38,9 @@ export function RiskDetailContent({
           <h3 className="mb-2 text-lg font-medium text-ink-gray-8">
             Mitigation plan
           </h3>
-          <TextEditor
-            editable={false}
-            content={risk.mitigation_plan}
-            fixedMenu={false}
-            placeholder="Comment"
-            editorClass="text-base w-full max-w-full leading-relaxed"
-          />
+          <p className="text-base leading-relaxed text-ink-gray-8">
+            {stripTags(risk.mitigation_plan)}
+          </p>
         </section>
       )}
 
