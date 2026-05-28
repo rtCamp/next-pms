@@ -11,16 +11,13 @@ import { useFrappeGetCall } from "frappe-react-sdk";
 import { useProjectDetail } from "@/pages/project-details/context";
 import type { Note } from "./types";
 
-const hasSupportedAuthorOperator = (condition: FilterCondition): boolean => {
-  const operator = String(condition.operator ?? "").toLowerCase();
-  return !operator || operator === "is" || operator === "equals";
-};
-
-const extractAuthor = (advanced: FilterCondition[]): string | undefined => {
-  const cond = advanced.find(
-    (f) => f.field === "author" && f.value && hasSupportedAuthorOperator(f),
-  );
-  if (!cond?.value) return undefined;
+const extractServerAuthor = (
+  advanced: FilterCondition[],
+): string | undefined => {
+  const cond = advanced.find((f) => f.field === "author" && f.value);
+  if (!cond) return undefined;
+  const op = String(cond.operator ?? "").toLowerCase();
+  if (op && op !== "is" && op !== "equals") return undefined;
   return Array.isArray(cond.value) ? cond.value[0] : String(cond.value);
 };
 
@@ -37,9 +34,9 @@ const applyAuthorFilter = (
     : String(cond.value ?? "");
 
   switch (op) {
+    case "":
     case "is":
     case "equals":
-      // already handled server-side
       return notes;
     case "is_not":
       return notes.filter((n) => n.owner !== val);
@@ -55,7 +52,7 @@ const applyAuthorFilter = (
 export function useNotesData(advanced: FilterCondition[]) {
   const projectId = useProjectDetail((s) => s.projectId);
 
-  const author = useMemo(() => extractAuthor(advanced), [advanced]);
+  const author = useMemo(() => extractServerAuthor(advanced), [advanced]);
 
   const params = useMemo(
     () => ({ project: projectId, ...(author ? { author } : {}) }),

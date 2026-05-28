@@ -25,6 +25,7 @@ export function NoteCard({ note }: NoteCardProps) {
         <h3 className="flex-1 truncate text-lg font-medium text-ink-gray-8">
           {note.title}
         </h3>
+        {/* TODO: Add actions after requirement clarification */}
         <DotHorizontal
           aria-hidden
           className="size-4 shrink-0 text-ink-gray-5"

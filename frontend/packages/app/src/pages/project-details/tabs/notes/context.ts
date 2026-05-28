@@ -19,6 +19,7 @@ export interface NotesContextProps {
   };
   actions: {
     setAdvanced: (advanced: NotesFilters["advanced"]) => void;
+    refresh: () => Promise<unknown>;
   };
 }
 
@@ -34,6 +35,7 @@ export const NotesContext = createContext<NotesContextProps>({
   },
   actions: {
     setAdvanced: noop,
+    refresh: async () => undefined,
   },
 });
 
