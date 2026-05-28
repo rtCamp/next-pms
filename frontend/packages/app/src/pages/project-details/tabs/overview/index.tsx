@@ -2,7 +2,12 @@
  * External dependencies.
  */
 import { useCallback, useState } from "react";
-import { Button, TextEditor, useToasts } from "@rtcamp/frappe-ui-react";
+import {
+  Button,
+  Skeleton,
+  TextEditor,
+  useToasts,
+} from "@rtcamp/frappe-ui-react";
 import { useForm } from "@tanstack/react-form";
 import { FrappeError, useFrappeUpdateDoc } from "frappe-react-sdk";
 import { Pencil } from "lucide-react";
@@ -37,6 +42,29 @@ const useOverviewForm = (
 export type OverviewFormApi = ReturnType<typeof useOverviewForm>;
 
 export function Overview() {
+  const { project, isLoading } = useProjectDetail((state) => state);
+
+  if (isLoading || !project) {
+    return (
+      <div className="flex flex-col gap-6">
+        <div className="flex items-center justify-between">
+          <Skeleton className="h-6 w-24" />
+          <Skeleton className="h-9 w-20" />
+        </div>
+        {Array.from({ length: 5 }).map((_, i) => (
+          <section key={i} className="flex flex-col gap-3">
+            <Skeleton className="h-5 w-40" />
+            <Skeleton className="h-20 w-full" />
+          </section>
+        ))}
+      </div>
+    );
+  }
+
+  return <OverviewForm />;
+}
+
+function OverviewForm() {
   const { project, projectId, mutate } = useProjectDetail((state) => state);
 
   const defaultValues: OverviewFormValues = {
@@ -159,9 +187,6 @@ export function Overview() {
 
       <form.Field name="keyGoals">
         {(field) => {
-          if (!isEditing && !field.state.value) {
-            return null;
-          }
           return (
             <OverviewSection title="Key goals of the project">
               <TextEditor
