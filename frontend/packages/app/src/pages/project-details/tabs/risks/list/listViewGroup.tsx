@@ -23,6 +23,7 @@ export interface RiskGroupProps {
 
 export function RiskGroup({ value, label, risks }: RiskGroupProps) {
   const openRowActions = useRisks((c) => c.actions.openRowActions);
+  const openRiskDetail = useRisks((c) => c.actions.openRiskDetail);
 
   return (
     <Accordion.Item value={value}>
@@ -45,7 +46,8 @@ export function RiskGroup({ value, label, risks }: RiskGroupProps) {
         {risks.map((risk) => (
           <div
             key={risk.name}
-            className="flex items-center gap-2 px-2 py-1 border-b border-outline-gray-1 hover:bg-surface-gray-1 text-base"
+            className="flex items-center gap-2 px-2 py-1 border-b border-outline-gray-1 hover:bg-surface-gray-1 text-base cursor-pointer"
+            onClick={() => openRiskDetail(risk.name)}
           >
             {/* Risk category */}
             <div
@@ -117,7 +119,10 @@ export function RiskGroup({ value, label, risks }: RiskGroupProps) {
               <button
                 type="button"
                 className="p-1 rounded text-ink-gray-5 hover:bg-surface-gray-2"
-                onClick={() => openRowActions(risk.name)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  openRowActions(risk.name);
+                }}
               >
                 <MoreHorizontal className="size-4" />
               </button>

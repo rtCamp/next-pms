@@ -17,6 +17,7 @@ import {
   differenceInWeeks,
   differenceInYears,
   format,
+  formatDistanceToNow,
   getISOWeek,
   getISOWeekYear,
   getISOWeeksInYear,
@@ -678,4 +679,40 @@ export function hashString(str: string): string {
     h = (Math.imul(31, h) + str.charCodeAt(i)) | 0;
   }
   return (h >>> 0).toString(36);
+}
+
+/**
+ * Formats file size in bytes to a human-readable string.
+ * @param bytes - File size in bytes
+ * @returns Formatted file size string (e.g., "1 KB", "2 MB")
+ */
+export function formatFileSize(bytes: number): string {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${Math.round(bytes / 1024)} KB`;
+  return `${Math.round(bytes / (1024 * 1024))} MB`;
+}
+
+/**
+ * Gets the file extension from a file name.
+ * @param fileName - The name of the file
+ * @returns The file extension in uppercase (e.g., "PDF", "TXT")
+ */
+export function getFileExtension(fileName: string): string {
+  return fileName.split(".").pop()?.toUpperCase() ?? "FILE";
+}
+
+/**
+ * Formats a date string into a relative time string (e.g., "3 days ago").
+ * @param dateStr - The date string to format
+ * @returns The formatted relative time string
+ */
+export function formatRelativeTime(dateStr: string): string {
+  try {
+    // Frappe dates: "2026-05-11 16:39:03.432619" — replace space with T for ISO parse
+    return formatDistanceToNow(parseISO(dateStr.replace(" ", "T")), {
+      addSuffix: true,
+    });
+  } catch {
+    return dateStr;
+  }
 }

@@ -9,6 +9,7 @@ import { Tag, AlignLeft } from "lucide-react";
  * Internal dependencies.
  */
 import { stripTags } from "@/lib/utils";
+import { useRisks } from "../context";
 import type { RiskItem } from "../types";
 
 interface RiskCardProps {
@@ -16,8 +17,13 @@ interface RiskCardProps {
 }
 
 export function RiskCard({ risk }: RiskCardProps) {
+  const openRiskDetail = useRisks((c) => c.actions.openRiskDetail);
+
   return (
-    <div className="flex w-full cursor-grab active:cursor-grabbing flex-col gap-2.5 rounded-xl border border-outline-gray-1 bg-surface-white shadow-sm hover:bg-surface-gray-1">
+    <div
+      className="flex w-full cursor-pointer flex-col gap-2.5 rounded-xl border border-outline-gray-1 bg-surface-white shadow-sm hover:bg-surface-gray-1"
+      onClick={() => openRiskDetail(risk.name)}
+    >
       {/* Risk level header */}
       <div className="px-3.5 py-3 flex items-center gap-2 text-ink-gray-8 text-base border-b border-outline-gray-1">
         <Fire className="size-4 shrink-0" />

@@ -2,12 +2,13 @@
  * External dependencies.
  */
 import { useCallback, useMemo, useState, type PropsWithChildren } from "react";
+import { useSearchParams } from "react-router-dom";
 import { useFrappeUpdateDoc } from "frappe-react-sdk";
 
 /**
  * Internal dependencies.
  */
-import { RISK_STATUSES, type RiskStatus } from "./constants";
+import { RISK_DETAIL_PARAM, RISK_STATUSES, type RiskStatus } from "./constants";
 import { RisksContext, type RisksContextProps } from "./context";
 import type { RiskFilters, RiskVisibleColumns } from "./types";
 import { useRisksData } from "./useRisksData";
@@ -28,6 +29,7 @@ export function RisksProvider({ children }: PropsWithChildren) {
   const [visibleColumns, setVisibleColumnsState] = useState<RiskVisibleColumns>(
     defaultVisibleColumns,
   );
+  const [, setSearchParams] = useSearchParams();
 
   const { data, isLoading, error, mutate } = useRisksData();
 
@@ -61,6 +63,16 @@ export function RisksProvider({ children }: PropsWithChildren) {
     // TODO: implement row actions
   }, []);
 
+  const openRiskDetail = useCallback(
+    (name: string) => {
+      setSearchParams((prev) => {
+        prev.set(RISK_DETAIL_PARAM, name);
+        return prev;
+      });
+    },
+    [setSearchParams],
+  );
+
   const value = useMemo<RisksContextProps>(
     () => ({
       state: {
@@ -76,6 +88,7 @@ export function RisksProvider({ children }: PropsWithChildren) {
         updateRiskStatus,
         openCreateRisk,
         openRowActions,
+        openRiskDetail,
       },
     }),
     [
@@ -89,6 +102,7 @@ export function RisksProvider({ children }: PropsWithChildren) {
       updateRiskStatus,
       openCreateRisk,
       openRowActions,
+      openRiskDetail,
     ],
   );
 
