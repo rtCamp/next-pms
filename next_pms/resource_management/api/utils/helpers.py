@@ -1,5 +1,4 @@
 import datetime
-import json
 
 import frappe
 from frappe.utils import flt
@@ -190,9 +189,9 @@ def _parse_multi_select_filter(value: str | list | None) -> list | None:
         return None
     if isinstance(value, str):
         try:
-            parsed = json.loads(value)
+            parsed = frappe.parse_json(value)
             value = parsed if isinstance(parsed, list) else [parsed]
-        except json.JSONDecodeError:
+        except (ValueError, TypeError):
             value = [value]
     if isinstance(value, list) and len(value) > 0:
         return value
@@ -256,8 +255,8 @@ def filter_project_list(
         "Project",
         filters=filters,
         fields=fields,
-        start=start,
-        page_length=page_length,
+        offset=start,
+        limit=page_length,
     )
 
     total_count = get_count("Project", filters=filters)
