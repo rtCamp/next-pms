@@ -60,14 +60,33 @@ function resolveCustomerName(
  * Derives the client label shown for a project row from its allocations.
  */
 function getProjectClient(
+  project: ProjectRecord,
   projectAllocations: ProjectResourceAllocation[],
   customerLookup: Record<string, Customer>,
 ) {
-  const customerId = projectAllocations.find(
-    (allocation) => allocation.customer,
-  )?.customer;
+  const customerId =
+    project.customer ??
+    projectAllocations.find((allocation) => allocation.customer)?.customer;
 
   return resolveCustomerName(customerId, customerLookup);
+}
+
+/**
+ * Gets the hover date range for a project based on its expected start and end dates.
+ */
+function getProjectHoverDateRange(project: ProjectRecord) {
+  const startDate = project.expected_start_date;
+  const endDate = project.expected_end_date;
+
+  if (!startDate && !endDate) {
+    return undefined;
+  }
+
+  if (!startDate || !endDate || startDate === endDate) {
+    return formatDateRange(startDate || endDate || "", "", "MMM d");
+  }
+
+  return formatDateRange(startDate, endDate, "MMM d");
 }
 
 /**
@@ -168,6 +187,7 @@ function mapProjectRecord(
   managerNameMap?: ManagerNameMap,
 ): ProjectGroup {
   const projectAllocations = getAllocationList(project.project_allocations);
+  const allocationDateRange = getProjectDateRange(projectAllocations);
   const members = getProjectMembers(
     projectAllocations,
     customerLookup,
@@ -178,8 +198,11 @@ function mapProjectRecord(
   return {
     id: project.name,
     name: project.project_name || project.name,
-    client: getProjectClient(projectAllocations, customerLookup),
-    dateRange: getProjectDateRange(projectAllocations),
+    client: getProjectClient(project, projectAllocations, customerLookup),
+    dateRange: allocationDateRange,
+    projectDateRange: getProjectHoverDateRange(project) ?? allocationDateRange,
+    projectManager: project.custom_project_manager_name ?? undefined,
+    weeklyCapacity: project.weekly_capacity ?? undefined,
     members,
   };
 }

@@ -49,13 +49,13 @@ function GanttMemberHoverCard({ member }: GanttMemberHoverCardProps) {
         </div>
         {member.id && (
           <a
-            href={`/desk/employee/${member.id}`}
+            href={`/desk/employee/${encodeURIComponent(member.id)}`}
             target="_blank"
             rel="noreferrer"
-            className="ml-2 shrink-0 text-ink-gray-6 hover:text-ink-gray-9"
+            className="ml-2 shrink-0 text-ink-gray-8 hover:text-ink-gray-9"
             onClick={(e) => e.stopPropagation()}
           >
-            <ArrowUpRight className="size-4 text-ink-gray-6 shrink-0" />
+            <ArrowUpRight className="size-4 text-ink-gray-8 shrink-0" />
           </a>
         )}
       </div>

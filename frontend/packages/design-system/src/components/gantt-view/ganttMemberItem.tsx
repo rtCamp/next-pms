@@ -1,7 +1,14 @@
+/**
+ * External dependencies.
+ */
 import type { CSSProperties } from "react";
 import { PreviewCard } from "@base-ui/react/preview-card";
 import { Avatar, Badge } from "@rtcamp/frappe-ui-react";
 import { RightChevron } from "@rtcamp/frappe-ui-react/icons";
+
+/**
+ * Internal dependencies.
+ */
 import { CELL_HEIGHT } from "./constants";
 import GanttMemberHoverCard from "./ganttMemberHoverCard";
 import { useGanttStore } from "./ganttStore";

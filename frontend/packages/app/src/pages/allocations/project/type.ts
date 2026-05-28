@@ -59,6 +59,13 @@ export interface ProjectRecord {
   name: string;
   project_name: string;
   status?: string;
+  customer?: string | null;
+  expected_start_date?: string | null;
+  expected_end_date?: string | null;
+  custom_project_manager?: string | null;
+  custom_project_manager_name?: string | null;
+  custom_total_hours_remaining?: number | null;
+  weekly_capacity?: number;
   all_week_data: ProjectWeekData[];
   all_dates_data: Record<string, ProjectDateData>;
   project_allocations:

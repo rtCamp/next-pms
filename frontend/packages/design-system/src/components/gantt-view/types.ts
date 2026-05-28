@@ -43,7 +43,10 @@ export interface Project {
   id?: string;
   name: string;
   dateRange?: string;
+  projectDateRange?: string;
   client?: string;
+  projectManager?: string;
+  weeklyCapacity?: number;
   badge?: string;
   allocations?: Allocation[];
 }
