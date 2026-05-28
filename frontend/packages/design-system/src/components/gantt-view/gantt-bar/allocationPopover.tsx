@@ -53,14 +53,14 @@ function AllocationItem({ entry, hasRoleAccess }: AllocationItemProps) {
               label={entry.memberName}
             />
           </div>
-          <span className="flex-1 min-w-0 truncate text-base font-medium truncate text-ink-gray-8">
+          <span className="flex-1 min-w-0 text-base font-medium truncate text-ink-gray-8">
             {entry.memberName}
           </span>
         </div>
       ) : (
         /* Project name */
         <div className="flex gap-2 items-start">
-          <Folder className="mt-px size-4 text-ink-gray-5 shrink-0" />
+          <Folder className="mt-px size-4 text-ink-gray-8 shrink-0" />
           <span className="flex-1 min-w-0 text-base font-medium truncate text-ink-gray-8">
             {entry.projectName}
           </span>
@@ -70,21 +70,21 @@ function AllocationItem({ entry, hasRoleAccess }: AllocationItemProps) {
       {/* Details */}
       <div className="flex flex-col gap-2.5 relative">
         <div className="flex gap-2 items-center">
-          <Calendar className="size-4 text-ink-gray-5 shrink-0" />
+          <Calendar className="size-4 text-ink-gray-6 shrink-0" />
           <span className="text-sm text-ink-gray-6 truncate">
             {entry.dateRange}
           </span>
         </div>
 
         <div className="flex gap-2 items-center">
-          <Time className="size-4 text-ink-gray-5 shrink-0" />
+          <Time className="size-4 text-ink-gray-6 shrink-0" />
           <span className="text-sm text-ink-gray-6">
             {entry.hoursPerDay} ({entry.totalHours})
           </span>
         </div>
 
         <div className="flex gap-2 items-center">
-          <StatusIcon className="size-4 text-ink-gray-5 shrink-0" />
+          <StatusIcon className="size-4 text-ink-gray-6 shrink-0" />
           <span className="text-sm text-ink-gray-6">
             {entry.status === "confirmed" ? "Confirmed" : "Tentative"}
           </span>
@@ -132,20 +132,20 @@ function AllocationItem({ entry, hasRoleAccess }: AllocationItemProps) {
               <button
                 type="button"
                 onClick={entry.onEdit}
-                className="transition-colors text-ink-gray-5 hover:text-ink-gray-7"
+                className="transition-colors text-ink-gray-6 hover:text-ink-gray-7"
                 aria-label="Edit allocation"
               >
-                <EditAlt className="size-4" />
+                <EditAlt className="size-4 text-ink-gray-6" />
               </button>
             )}
             {entry.onDelete && (
               <button
                 type="button"
                 onClick={entry.onDelete}
-                className="transition-colors text-ink-gray-5 hover:text-ink-gray-7"
+                className="transition-colors text-ink-gray-6 hover:text-ink-gray-7"
                 aria-label="Delete allocation"
               >
-                <DeleteAlt className="size-4" />
+                <DeleteAlt className="size-4 text-ink-gray-6" />
               </button>
             )}
           </div>

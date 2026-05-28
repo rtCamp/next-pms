@@ -11,6 +11,7 @@ import type { FrappeError } from "frappe-react-sdk";
 /**
  * Internal dependencies.
  */
+import useApproverOptions from "@/hooks/useApproverOptions";
 import { parseFrappeErrorMsg } from "@/lib/utils";
 import type { ProjectAllocationResponse } from "./type";
 import { mapProjectAllocationToProjects } from "./utils";
@@ -114,10 +115,20 @@ export function useAllocationsProjectData({
     [pages],
   );
 
+  const approvers = useApproverOptions();
+
+  const managerNameMap = useMemo(
+    () =>
+      new Map(approvers.map((approver) => [approver.value, approver.label])),
+    [approvers],
+  );
+
   const projects = useMemo(
     () =>
-      payloads.flatMap((payload) => mapProjectAllocationToProjects(payload)),
-    [payloads],
+      payloads.flatMap((payload) =>
+        mapProjectAllocationToProjects(payload, managerNameMap),
+      ),
+    [payloads, managerNameMap],
   );
 
   const lastPayload = payloads.at(-1);

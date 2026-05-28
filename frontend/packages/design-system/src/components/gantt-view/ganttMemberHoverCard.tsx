@@ -55,7 +55,7 @@ function GanttMemberHoverCard({ member }: GanttMemberHoverCardProps) {
             className="ml-2 shrink-0 text-ink-gray-6 hover:text-ink-gray-9"
             onClick={(e) => e.stopPropagation()}
           >
-            <ArrowUpRight className="size-4" />
+            <ArrowUpRight className="size-4 text-ink-gray-6 shrink-0" />
           </a>
         )}
       </div>
@@ -68,7 +68,7 @@ function GanttMemberHoverCard({ member }: GanttMemberHoverCardProps) {
         <div className="flex flex-col gap-2.5">
           {member.department && (
             <div className="flex gap-2 items-center">
-              <People className="size-4 text-ink-gray-5 shrink-0" />
+              <People className="size-4 text-ink-gray-6 shrink-0" />
               <span className="text-sm text-ink-gray-6 truncate">
                 {member.department}
               </span>
@@ -76,7 +76,7 @@ function GanttMemberHoverCard({ member }: GanttMemberHoverCardProps) {
           )}
           {member.rate && (
             <div className="flex gap-2 items-center">
-              <Payments className="size-4 text-ink-gray-5 shrink-0" />
+              <Payments className="size-4 text-ink-gray-6 shrink-0" />
               <span className="text-sm text-ink-gray-6 truncate">
                 {member.rate}
               </span>
@@ -84,7 +84,7 @@ function GanttMemberHoverCard({ member }: GanttMemberHoverCardProps) {
           )}
           {member.capacity && (
             <div className="flex gap-2 items-center">
-              <Time className="size-4 text-ink-gray-5 shrink-0" />
+              <Time className="size-4 text-ink-gray-6 shrink-0" />
               <span className="text-sm text-ink-gray-6 truncate">
                 {member.capacity}
               </span>
@@ -92,8 +92,8 @@ function GanttMemberHoverCard({ member }: GanttMemberHoverCardProps) {
           )}
           {member.manager && (
             <div className="flex gap-2 items-center">
-              <User className="size-4 text-ink-gray-5 shrink-0" />
-              <span className="text-sm text-ink-gray-6 truncate">
+              <User className="size-4 text-ink-gray-6 shrink-0" />
+              <span className="text-sm text-ink-gray-6 truncate leading-tight">
                 {member.manager}
               </span>
             </div>

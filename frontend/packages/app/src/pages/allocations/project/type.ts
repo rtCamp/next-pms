@@ -1,5 +1,18 @@
 import type { AllocationApiRecord } from "../utils";
 
+export interface ProjectEmployee {
+  name: string;
+  image: string | null;
+  employee_name: string;
+  department: string | null;
+  designation: string | null;
+  custom_work_schedule?: string | null;
+  custom_working_hours?: number | null;
+  reports_to: string | null;
+  ctc?: number | null;
+  salary_currency?: string | null;
+}
+
 export interface Customer {
   name: string;
   abbr: string;
@@ -57,7 +70,10 @@ export interface ProjectAllocationResponse {
   dates: ProjectWeek[];
   data: ProjectRecord[];
   customer: Record<string, Customer>;
+  employees: Record<string, ProjectEmployee>;
   total_count: number;
   has_more: boolean;
   permissions: Permissions;
 }
+
+export type ManagerNameMap = Map<string, string>;

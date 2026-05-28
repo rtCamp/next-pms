@@ -1,21 +1,12 @@
 import type { Member, Project } from "@next-pms/design-system/components";
 import { parseISO } from "date-fns";
 import {
-  calculateWeeklyHour,
-  currencyFormat,
-  expectatedHours,
-  pickAllowed,
-} from "@/lib/utils";
-import type { WorkingFrequency } from "@/types";
-import { mapResourceAllocation } from "../utils";
-import {
-  DEFAULT_CURRENCY,
-  DEFAULT_HOURS_PER_WEEK,
-  WEEKS_PER_MONTH,
-} from "./constants";
+  calculateAllocationHourlyRate,
+  formatAllocationCapacity,
+  getAllocationCapacityHoursPerDay,
+  mapResourceAllocation,
+} from "../utils";
 import type { ManagerNameMap, TeamAllocationResponse } from "./type";
-
-const WORKING_FREQUENCIES = ["Per Day", "Per Week"] as const;
 
 /**
  * Converts a TeamAllocationResponse from the API into a Member[] array
@@ -108,18 +99,18 @@ export function mapTeamAllocationToMembers(
       designation: employee.designation ?? undefined,
       department: employee.department ?? undefined,
       rate:
-        calculateHourlyRate(
+        calculateAllocationHourlyRate(
           employee.ctc,
           employee.custom_working_hours,
           employee.custom_work_schedule,
           employee.salary_currency,
         ) || undefined,
       capacity:
-        formatCapacity(
+        formatAllocationCapacity(
           employee.custom_working_hours,
           employee.custom_work_schedule,
         ) || undefined,
-      capacityHoursPerDay: getCapacityHoursPerDay(
+      capacityHoursPerDay: getAllocationCapacityHoursPerDay(
         employee.custom_working_hours,
         employee.custom_work_schedule,
       ),
@@ -131,72 +122,4 @@ export function mapTeamAllocationToMembers(
       leaves: memberLeaves,
     };
   });
-}
-
-/**
- * Calculates hourly rate from CTC, working hours, work schedule, and currency.
- * For "Per Day" schedules, monthly hours = daily hours * 20 working days.
- * For weekly schedules, monthly hours = weekly hours * 4.
- */
-function calculateHourlyRate(
-  ctc: number | undefined | null,
-  workingHours: number | undefined | null,
-  workSchedule: string | undefined | null,
-  currency: string | undefined | null,
-): string {
-  if (!ctc) return "";
-  const effectiveHours =
-    workingHours && workingHours > 0 ? workingHours : DEFAULT_HOURS_PER_WEEK;
-  const workingFrequency = resolveWorkingFrequency(workSchedule);
-  const monthlyHours =
-    calculateWeeklyHour(effectiveHours, workingFrequency) * WEEKS_PER_MONTH;
-  const hourlyRate = ctc / 12 / monthlyHours;
-  const resolvedCurrency = currency || DEFAULT_CURRENCY;
-  return currencyFormat(resolvedCurrency).format(hourlyRate) + "/hr";
-}
-
-/**
- * Converts weekly or daily hours into a consistent daily hours value for capacity calculations.
- * For "Per Day" schedules, returns hours as-is. For weekly schedules, divides hours by 5.
- * Returns undefined if hours is not provided or invalid.
- */
-function getCapacityHoursPerDay(
-  hours: number | undefined | null,
-  workSchedule: string | undefined | null,
-): number | undefined {
-  if (!hours || hours <= 0) {
-    return undefined;
-  }
-
-  const dailyHours = expectatedHours(
-    hours,
-    resolveWorkingFrequency(workSchedule),
-  );
-
-  return Number(dailyHours.toFixed(2));
-}
-
-/**
- * Formats working hours as a weekly capacity string.
- * Converts daily hours to weekly (daily * 5) for "Per Day" schedules.
- */
-function formatCapacity(
-  hours: number | undefined | null,
-  workSchedule: string | undefined | null,
-): string {
-  if (!hours || hours <= 0) return "";
-  const weeklyHours = calculateWeeklyHour(
-    hours,
-    resolveWorkingFrequency(workSchedule),
-  );
-  return `${weeklyHours} hrs/week`;
-}
-
-/**
- * Resolves the working frequency ("Per Day" or "Per Week") from the employee's work schedule string.
- */
-function resolveWorkingFrequency(
-  workSchedule: string | undefined | null,
-): WorkingFrequency {
-  return pickAllowed(workSchedule, WORKING_FREQUENCIES) ?? "Per Week";
 }
