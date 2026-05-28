@@ -7,6 +7,7 @@ import { useFrappeGetDoc, useFrappeGetDocList } from "frappe-react-sdk";
 /**
  * Internal dependencies.
  */
+import { hashString } from "@/lib/utils";
 import type {
   ApiRiskDetail,
   EnrichedRiskUpdateEntry,
@@ -33,13 +34,20 @@ export function useRiskDetail(riskId: string) {
     return [...new Set(emails)];
   }, [risk]);
 
-  const { data: usersData } = useFrappeGetDocList<UserDetails>("User", {
-    fields: ["name", "full_name", "user_image"],
-    filters: userEmails.length
-      ? ([["name", "in", userEmails]] as never)
-      : ([] as never),
-    limit: userEmails.length || 1,
-  });
+  const usersSwrKey = useMemo(() => {
+    if (!userEmails.length) return null;
+    return `risk-detail-users-${hashString(userEmails.slice().sort().join(","))}`;
+  }, [userEmails]);
+
+  const { data: usersData } = useFrappeGetDocList<UserDetails>(
+    "User",
+    {
+      fields: ["name", "full_name", "user_image"],
+      filters: [["name", "in", userEmails]] as never,
+      limit: userEmails.length,
+    },
+    usersSwrKey,
+  );
 
   const { data: attachments } = useFrappeGetDocList<FileAttachment>("File", {
     fields: ["name", "file_name", "file_url", "file_size"],
