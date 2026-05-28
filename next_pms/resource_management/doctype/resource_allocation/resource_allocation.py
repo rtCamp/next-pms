@@ -14,6 +14,38 @@ from next_pms.resource_management.api.team import get_resource_management_team_v
 
 
 class ResourceAllocation(Document):
+    # begin: auto-generated types
+    # This code is auto-generated. Do not modify anything in this block.
+
+    from typing import TYPE_CHECKING
+
+    if TYPE_CHECKING:
+        from frappe.types import DF
+
+        from next_pms.resource_management.doctype.resource_allocation_extra_entry.resource_allocation_extra_entry import (
+            ResourceAllocationExtraEntry,
+        )
+
+        allocation_end_date: DF.Date
+        allocation_start_date: DF.Date
+        currency: DF.Link | None
+        customer: DF.Link
+        employee: DF.Link
+        employee_name: DF.Data | None
+        hourly_cost_rate: DF.Currency
+        hours_allocated_per_day: DF.Float
+        is_billable: DF.Check
+        naming_series: DF.Literal["RA-.{employee}.-.YYYY.-.####."]
+        note: DF.Text | None
+        override: DF.Table[ResourceAllocationExtraEntry]
+        project: DF.Link | None
+        project_name: DF.Data | None
+        reccurence_id: DF.Data | None
+        status: DF.Literal["Tentative", "Confirmed"]
+        total_allocated_hours: DF.Float
+        total_cost: DF.Currency
+    # end: auto-generated types
+
     def validate(self):
         if self.allocation_end_date < self.allocation_start_date:
             frappe.throw(frappe._("End date should be greater than or equal to start date"))
