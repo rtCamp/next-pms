@@ -24,7 +24,6 @@ export const useUtmSourceLookup = ({
     shouldFetch,
     query,
     pageSize,
-    method: "frappe.client.get_list",
     params: ({ query: searchQuery, pageSize: limit }) => ({
       doctype: "UTM Source",
       fields: ["name"],

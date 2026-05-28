@@ -27,13 +27,12 @@ export const useCustomerContactLookup = ({
     shouldFetch: shouldFetch && Boolean(customer),
     query,
     pageSize,
-    method: "frappe.client.get_list",
     params: ({ query: searchQuery, pageSize: limit }) => ({
       doctype: "Contact",
       fields: ["name", "full_name"],
       filters: [
-        ["Contact", "link_doctype", "=", "Customer"],
-        ["Contact", "link_name", "=", customer],
+        ["Dynamic Link", "link_doctype", "=", "Customer"],
+        ["Dynamic Link", "link_name", "=", customer],
         ...(searchQuery ? [["full_name", "like", `%${searchQuery}%`]] : []),
       ],
       limit,
