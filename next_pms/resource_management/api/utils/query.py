@@ -135,6 +135,39 @@ def _normalize_is_billable_filter(is_billable: list | int | None) -> list[int]:
     return [int(v) for v in is_billable]
 
 
+def attach_extra_entries(allocations: list[dict]) -> list[dict]:
+    """Batch-fetch all Resource Allocation Extra Entry rows for a list of allocations and attach them in-place.
+
+    Issues one query regardless of how many allocations are on the page, avoiding N+1.
+
+    Args:
+        allocations: List of Resource Allocation dicts — each must have a ``"name"`` key.
+
+    Returns:
+        The same list, each dict now containing an ``"override"`` key with a
+        (possibly empty) list of extra entry row dicts.
+    """
+    if not allocations:
+        return allocations
+
+    parent_names = [a["name"] for a in allocations]
+    rows = frappe.db.get_all(
+        "Resource Allocation Extra Entry",
+        filters={"parent": ["in", parent_names], "parenttype": "Resource Allocation"},
+        fields=["name", "parent", "date", "hours", "cancelled"],
+        order_by="parent, date",
+    )
+
+    by_parent: dict[str, list] = {}
+    for row in rows:
+        by_parent.setdefault(row["parent"], []).append(row)
+
+    for alloc in allocations:
+        alloc["override"] = by_parent.get(alloc["name"], [])
+
+    return allocations
+
+
 def get_allocation_worked_hours_for_given_projects(project: str, start_date: str, end_date: str):
     """Get the total hours spend for given projects for given time range.
 

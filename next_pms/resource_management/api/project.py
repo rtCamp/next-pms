@@ -13,6 +13,7 @@ from next_pms.resource_management.api.utils.helpers import (
     resource_api_permissions_check,
 )
 from next_pms.resource_management.api.utils.query import (
+    attach_extra_entries,
     get_allocation_list_for_employee_for_given_range,
     get_allocation_worked_hours_for_given_employee,
     get_allocation_worked_hours_for_given_projects,
@@ -91,6 +92,7 @@ def get_resource_management_project_view_data(
             "modified_by",
             "modified",
             "creation",
+            "recurrence_id",
         ],
         "project",
         [project.name for project in projects],
@@ -98,6 +100,7 @@ def get_resource_management_project_view_data(
         weeks[-1].get("end_date"),
         is_billable,
     )
+    resource_allocation_data = attach_extra_entries(resource_allocation_data)
 
     resource_allocation_map = {}
     user_info_cache = {}
@@ -252,6 +255,7 @@ def get_employees_resrouce_data_for_given_project(project: str, start_date: str,
             "modified_by",
             "modified",
             "creation",
+            "recurrence_id",
         ],
         "project",
         [project],
@@ -259,6 +263,7 @@ def get_employees_resrouce_data_for_given_project(project: str, start_date: str,
         end_date,
         is_billable,
     )
+    resource_allocation_data = attach_extra_entries(resource_allocation_data)
 
     resource_allocation_map = {}
     user_info_cache = {}
