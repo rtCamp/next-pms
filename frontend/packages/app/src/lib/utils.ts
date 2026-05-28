@@ -698,7 +698,13 @@ export function formatFileSize(bytes: number): string {
  * @returns The file extension in uppercase (e.g., "PDF", "TXT")
  */
 export function getFileExtension(fileName: string): string {
-  return fileName.split(".").pop()?.toUpperCase() ?? "FILE";
+  const lastDotIndex = fileName.lastIndexOf(".");
+
+  if (lastDotIndex === -1 || lastDotIndex === fileName.length - 1) {
+    return "FILE";
+  }
+
+  return fileName.slice(lastDotIndex + 1).toUpperCase();
 }
 
 /**
