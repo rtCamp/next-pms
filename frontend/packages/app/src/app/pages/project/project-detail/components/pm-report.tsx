@@ -140,6 +140,7 @@ const PMReport = ({ projectId }: PMReportProps) => {
   );
 
   const reports = (projectData?.custom_project_reports ?? []) as PMReportRow[];
+  const sortedReports = [...reports].reverse();
   const completedReports = reports.filter(
     (r) => r.status === "Done" && !!r.report_link,
   );
@@ -640,7 +641,7 @@ const PMReport = ({ projectId }: PMReportProps) => {
                 </tr>
               </thead>
               <tbody>
-                {reports.map((report, index) => {
+                {sortedReports.map((report, index) => {
                   const generating = isGeneratingRow(report);
                   const failed = isFailedRow(report);
                   const resyncable = isResyncableRow(report);
@@ -655,7 +656,7 @@ const PMReport = ({ projectId }: PMReportProps) => {
                         (failed || resyncable) && "bg-red-50",
                       )}
                     >
-                      <td className="px-4 py-2">{index + 1}</td>
+                      <td className="px-4 py-2">{reports.length - index}</td>
 
                       <td className="px-4 py-2">
                         {generating && (
