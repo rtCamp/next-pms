@@ -13,6 +13,7 @@ import {
 } from "@next-pms/design-system/components";
 import {
   FrappeError,
+  useFrappeGetCall,
   useFrappeGetDoc,
   useFrappeGetDocList,
   useFrappePostCall,
@@ -78,6 +79,25 @@ const PMReport = ({ projectId }: PMReportProps) => {
   const [includePreviousReport, setIncludePreviousReport] = useState(false);
 
   const [resyncingRunId, setResyncingRunId] = useState<string | null>(null);
+
+  const [selectedBoard, setSelectedBoard] = useState("");
+
+  const { data: boardsData } = useFrappeGetCall(
+    "next_pms.api.generate_pm_report.get_repository_project_boards",
+    selectedRepo ? { repository: selectedRepo } : null,
+  );
+
+  const boards = boardsData?.message || [];
+
+  useEffect(() => {
+    if (boards.length > 0) {
+      if (!boards.includes(selectedBoard)) {
+        setSelectedBoard(boards[0]);
+      }
+    } else {
+      setSelectedBoard("");
+    }
+  }, [boards, selectedBoard]);
 
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const mutateRef = useRef(mutate);
@@ -263,6 +283,7 @@ const PMReport = ({ projectId }: PMReportProps) => {
         from_date: fromDate,
         to_date: toDate,
         selected_repo: selectedRepo,
+        selected_board: selectedBoard,
         ...(includePreviousReport && lastReportLink
           ? { previous_doc_url: lastReportLink }
           : {}),
@@ -295,6 +316,7 @@ const PMReport = ({ projectId }: PMReportProps) => {
         projectData?.custom_project_repository_connections?.[0]
           ?.github_repository || "",
       );
+      setSelectedBoard("");
 
       timeoutRef.current = setTimeout(() => {
         setIsGenerating(false);
@@ -560,6 +582,31 @@ const PMReport = ({ projectId }: PMReportProps) => {
                       </SelectItem>
                     );
                   })}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+
+          {/* Project Board */}
+          {boards.length > 0 && (
+            <div className="flex flex-col gap-1 col-span-2">
+              <label className="text-sm text-muted-foreground">
+                Project Board
+              </label>
+              <Select
+                value={selectedBoard}
+                onValueChange={(value) => setSelectedBoard(value)}
+                disabled={isBusy}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select project board..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {boards.map((board) => (
+                    <SelectItem key={board} value={board}>
+                      {board}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
