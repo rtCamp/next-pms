@@ -6,6 +6,7 @@ import { Route, Outlet } from "react-router-dom";
 /**
  * Internal dependencies.
  */
+import { UnderConstruction } from "@/components/under-construction";
 import { ROUTES } from "@/lib/constant";
 import LayoutWithSidebar from "./layout";
 import { useUser } from "./providers/user";
@@ -51,6 +52,10 @@ export function Router() {
           <Route
             path={`${ROUTES.project}/:projectId`}
             element={<ProjectDetail />}
+          />
+          <Route
+            path={`${ROUTES.project}/:projectId/notes/new`}
+            element={<UnderConstruction />}
           />
           <Route element={<PersonalTimesheetLayout />}>
             <Route

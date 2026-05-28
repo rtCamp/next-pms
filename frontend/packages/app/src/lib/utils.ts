@@ -10,6 +10,12 @@ import {
 import { FilterCondition } from "@rtcamp/frappe-ui-react";
 import { type ClassValue, clsx } from "clsx";
 import {
+  differenceInDays,
+  differenceInHours,
+  differenceInMinutes,
+  differenceInMonths,
+  differenceInWeeks,
+  differenceInYears,
   format,
   getISOWeek,
   getISOWeekYear,
@@ -58,6 +64,42 @@ export function formatProjectDate(isoDate: string): string {
   const pattern =
     date.getFullYear() === new Date().getFullYear() ? "MMM d" : "MMM d, yyyy";
   return format(date, pattern);
+}
+
+export function formatRelativeTimeShort(
+  value: string | Date,
+  now = new Date(),
+) {
+  const date = typeof value === "string" ? parseISO(value) : value;
+  const minutes = Math.max(differenceInMinutes(now, date), 0);
+
+  if (minutes < 1) {
+    return "now";
+  }
+
+  if (minutes < 60) {
+    return `${minutes}min ago`;
+  }
+
+  const hours = differenceInHours(now, date);
+  if (hours < 24) {
+    return `${hours}h ago`;
+  }
+
+  const days = differenceInDays(now, date);
+  if (days < 7) {
+    return `${days}d ago`;
+  }
+
+  if (days < 30) {
+    return `${differenceInWeeks(now, date)}w ago`;
+  }
+
+  if (days < 365) {
+    return `${Math.max(differenceInMonths(now, date), 1)}m ago`;
+  }
+
+  return `${Math.max(differenceInYears(now, date), 1)}y ago`;
 }
 
 export function toKebabCase(value?: string | null): string | undefined {
@@ -556,7 +598,7 @@ export const buildFrappeFilters = (compositeFilters: FilterCondition[]) => {
  * and native Frappe filters.
  *
  * @param compositeFilters Array of FilterCondition objects.
- * @returns Object containing startDate, maxWeek, and frappeFilters derived from the composite filters.
+ * @returns Object containing startDate, endDate, maxWeek, and frappeFilters derived from the composite filters.
  */
 export const buildCompositeFilters = (compositeFilters: FilterCondition[]) => {
   if (compositeFilters.length === 0) {
@@ -617,10 +659,23 @@ export const buildCompositeFilters = (compositeFilters: FilterCondition[]) => {
     }
   }
 
-  // Note: We are return end date as start date because API expects end date and fetches backwards from there.
+  // Note: We are returning end date as start date because API expects end date and fetches backwards from there.
   return {
     startDate: endDate,
+    endDate: startDate,
     maxWeek: maxWeek,
     frappeFilters,
   };
 };
+
+/**
+ * Returns a short, stable base-36 hash of the given string (djb2 variant).
+ * Useful for building cache keys from arbitrarily long inputs.
+ */
+export function hashString(str: string): string {
+  let h = 5381;
+  for (let i = 0; i < str.length; i++) {
+    h = (Math.imul(31, h) + str.charCodeAt(i)) | 0;
+  }
+  return (h >>> 0).toString(36);
+}
