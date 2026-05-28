@@ -9,7 +9,6 @@ import { format } from "date-fns";
 /**
  * Internal dependencies.
  */
-import { mergeClassNames as cn } from "../../../utils";
 import { FULL_DAY_HOURS } from "../constants";
 import { useGanttStore } from "../ganttStore";
 import type { AllocationCallbackData } from "../types";
@@ -227,7 +226,7 @@ export function DraftBar({
         renderFloatingLabel={renderFloatingLabel}
         left={previewGeometry.left}
         width={previewGeometry.width}
-        className={cn("outline-none", "z-20")}
+        className="outline-none z-20"
         minLeft={bounds.minLeft}
         maxRight={bounds.maxRight}
         resizable={Boolean(onOpenAllocation)}
