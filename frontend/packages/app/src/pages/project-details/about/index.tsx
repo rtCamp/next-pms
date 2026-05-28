@@ -18,7 +18,7 @@ import { useFrappeGetCall } from "frappe-react-sdk";
 /**
  * Internal dependencies.
  */
-import { pickAllowed, toKebabCase } from "@/lib/utils";
+import { currencyFormat, pickAllowed, toKebabCase } from "@/lib/utils";
 import { RAG_STATUS } from "@/pages/projects/constants";
 import { Dot } from "@/pages/projects/list/cells/dot";
 import { RagStatus } from "@/pages/projects/types";
@@ -28,50 +28,13 @@ import { ExpandableList } from "./components/expandableList";
 import { MemberRow } from "./components/memberRow";
 import { ProgressHoursSection } from "./progressHoursSection";
 import { Section } from "./section";
-import type { AboutCustomer, AboutMember } from "./types";
+import type {
+  AboutCustomer,
+  AboutMember,
+  ProjectSidebar,
+  ProjectSidebarResponse,
+} from "./types";
 import { useProjectDetail } from "../context";
-
-type ProjectSidebar = {
-  summary: string | null;
-  details: {
-    project_name: string;
-    phase: string | null;
-    status: string;
-    customer: string | null;
-  };
-  links: {
-    slack: string | null;
-    google_drive: string | null;
-    website: string | null;
-    github: string | null;
-    opportunity: { name: string; url: string } | null;
-  };
-  burn: {
-    total_budget: number;
-    cost_accrued: number;
-    cost_forecasted: number;
-  };
-  progress: {
-    actual_time: number;
-    total_hours_purchased: number;
-  };
-  members: Array<{
-    user: string;
-    full_name: string;
-    image: string | null;
-    designation: string | null;
-    cell_number: string | null;
-    company_email: string | null;
-    hourly_rate: number | null;
-  }>;
-  customers: Array<{
-    contact: string;
-    full_name: string;
-    image: string | null;
-  }>;
-};
-
-type ProjectSidebarResponse = { message: ProjectSidebar };
 
 const DEFAULT_SIDEBAR: ProjectSidebar = {
   summary: "",
@@ -114,10 +77,13 @@ export function AboutThisProject({ className }: { className: string }) {
         name: m.full_name,
         email: m.user,
         designation: m.designation ?? "",
+        department: m.department ?? undefined,
         image: m.image ?? undefined,
         phone: m.cell_number ?? undefined,
         rate: m.hourly_rate ?? undefined,
+        currency: m.currency ?? undefined,
         companyEmail: m.company_email ?? undefined,
+        linkedin: m.linkedin_url ?? undefined,
       })),
     [sidebar.members],
   );
@@ -126,9 +92,12 @@ export function AboutThisProject({ className }: { className: string }) {
     () =>
       sidebar.customers.map((c) => ({
         name: c.full_name,
-        email: c.contact,
-        company: "",
+        email: c.email_id ?? undefined,
+        designation: c.designation ?? undefined,
+        company: c.company_name ?? undefined,
         image: c.image ?? undefined,
+        phone: c.phone ?? undefined,
+        linkedin: c.linkedin_url ?? undefined,
       })),
     [sidebar.customers],
   );
@@ -237,10 +206,10 @@ export function AboutThisProject({ className }: { className: string }) {
           <div className="flex flex-col gap-2.5">
             <div className="flex items-center justify-between">
               <span className="text-base font-medium text-ink-gray-7">
-                {sidebar.burn.cost_accrued}
+                {currencyFormat().format(sidebar.burn.cost_accrued)}
               </span>
               <span className="text-base font-light text-ink-gray-5">
-                {sidebar.burn.total_budget}
+                {currencyFormat().format(sidebar.burn.total_budget)}
               </span>
             </div>
             <BudgetBurnBar
@@ -297,7 +266,7 @@ export function AboutThisProject({ className }: { className: string }) {
           <ExpandableList
             items={customers}
             itemLabel="customers"
-            getKey={(customer) => customer.email}
+            getKey={(customer) => customer.email ?? customer.name ?? ""}
             renderItem={(customer) => <CustomerRow customer={customer} />}
           />
         </Section>

@@ -63,7 +63,7 @@ export function MemberHoverCard({ member }: { member: AboutMember }) {
         {member.rate !== undefined && (
           <div className="flex items-center gap-2">
             <Payments className="size-4 shrink-0 text-ink-gray-5" />
-            <CurrencyCell value={member.rate} />
+            <CurrencyCell value={member.rate} currency={member.currency} />
           </div>
         )}
         {email && (

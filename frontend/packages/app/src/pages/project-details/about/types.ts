@@ -25,10 +25,13 @@ export type AboutMember = {
   name: string;
   email: string;
   designation: string;
+  department?: string;
   image?: string;
   phone?: string;
   rate?: number;
+  currency?: string;
   companyEmail?: string;
+  linkedin?: string;
 };
 
 export type AboutCustomer = {
@@ -39,6 +42,7 @@ export type AboutCustomer = {
   href?: string;
   image?: string;
   phone?: string;
+  linkedin?: string;
 };
 
 export type ProjectBudgetBurn = {
@@ -61,3 +65,53 @@ export type ProjectAboutData = {
   members: AboutMember[];
   customers: AboutCustomer[];
 };
+
+export type ProjectSidebar = {
+  summary: string | null;
+  details: {
+    project_name: string;
+    phase: string | null;
+    status: string;
+    customer: string | null;
+  };
+  links: {
+    slack: string | null;
+    google_drive: string | null;
+    website: string | null;
+    github: string | null;
+    opportunity: { name: string; url: string } | null;
+  };
+  burn: {
+    total_budget: number;
+    cost_accrued: number;
+    cost_forecasted: number;
+  };
+  progress: {
+    actual_time: number;
+    total_hours_purchased: number;
+  };
+  members: Array<{
+    user: string;
+    full_name: string;
+    image: string | null;
+    designation: string | null;
+    department: string | null;
+    cell_number: string | null;
+    company_email: string | null;
+    linkedin_url: string | null;
+    hourly_rate: number | null;
+    currency: string | null;
+  }>;
+  customers: Array<{
+    contact: string;
+    full_name: string;
+    image: string | null;
+    designation: string | null;
+    company_name: string | null;
+    email_id: string | null;
+    phone: string | null;
+    linkedin_url: string | null;
+  }>;
+};
+
+export type ProjectSidebarResponse = { message: ProjectSidebar };
