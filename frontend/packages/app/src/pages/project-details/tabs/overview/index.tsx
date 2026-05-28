@@ -15,7 +15,7 @@ import { Pencil } from "lucide-react";
 /**
  * Internal dependencies.
  */
-import { parseFrappeErrorMsg } from "@/lib/utils";
+import { mergeClassNames, parseFrappeErrorMsg } from "@/lib/utils";
 import { useProjectDetail } from "../../context";
 import { OverviewSection } from "./components/overviewSection";
 import { overviewSchema, type OverviewFormValues } from "./schema";
@@ -175,11 +175,10 @@ function OverviewForm() {
               content={field.state.value}
               onChange={(value) => field.handleChange(value)}
               fixedMenu={false}
-              editorClass={
-                isEditing
-                  ? "text-sm text-ink-gray-7 w-full max-w-full rounded-md p-2 ring-1 ring-outline-gray-2"
-                  : "text-sm text-ink-gray-7 w-full max-w-full p-2"
-              }
+              editorClass={mergeClassNames(
+                "text-sm text-ink-gray-7 w-full max-w-full p-2",
+                isEditing && "rounded-md ring-1 ring-outline-gray-2",
+              )}
             />
           </OverviewSection>
         )}

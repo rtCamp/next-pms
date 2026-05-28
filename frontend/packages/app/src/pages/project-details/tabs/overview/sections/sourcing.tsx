@@ -11,7 +11,6 @@ import { Location, SearchAlt, Tag1 } from "@rtcamp/frappe-ui-react/icons";
 import { useUtmSourceLookup } from "@/hooks/useUtmSourceLookup";
 import { useProjectDetail } from "../../../context";
 import { EditableField } from "../components/editableField";
-import { OverviewField } from "../components/overviewField";
 import { OverviewSection } from "../components/overviewSection";
 import type { OverviewFormApi } from "../index";
 
@@ -61,7 +60,7 @@ export function Sourcing({ form, isEditing, submitting }: SourcingProps) {
           )}
         </form.Field>
 
-        <OverviewField
+        <EditableField
           icon={<Location className="size-[18px]" />}
           label="Primary location"
           value={primaryLocation}
