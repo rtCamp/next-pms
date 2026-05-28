@@ -40,7 +40,7 @@ class ResourceAllocation(Document):
         override: DF.Table[ResourceAllocationExtraEntry]
         project: DF.Link | None
         project_name: DF.Data | None
-        reccurence_id: DF.Data | None
+        recurrence_id: DF.Data | None
         status: DF.Literal["Tentative", "Confirmed"]
         total_allocated_hours: DF.Float
         total_cost: DF.Currency

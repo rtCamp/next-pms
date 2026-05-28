@@ -10,7 +10,7 @@
   "employee_name",
   "status",
   "is_billable",
-  "reccurence_id",
+  "recurrence_id",
   "column_break_wngn",
   "project",
   "project_name",
@@ -170,13 +170,6 @@
    "read_only": 1
   },
   {
-   "fieldname": "reccurence_id",
-   "fieldtype": "Data",
-   "hidden": 1,
-   "label": "Reccurence ID",
-   "search_index": 1
-  },
-  {
    "fieldname": "section_break_muzg",
    "fieldtype": "Section Break"
   },
@@ -185,12 +178,19 @@
    "fieldtype": "Table",
    "label": "Override",
    "options": "Resource Allocation Extra Entry"
+  },
+  {
+   "fieldname": "recurrence_id",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Recurrence ID",
+   "search_index": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-05-28 16:06:07.436328",
+ "modified": "2026-05-28 16:18:35.637846",
  "modified_by": "Administrator",
  "module": "Resource Management",
  "name": "Resource Allocation",
