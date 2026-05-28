@@ -55,9 +55,8 @@ export function RiskDetailContent({
             variant="ghost"
             onClick={() => {}}
             aria-label="Add document"
-          >
-            <Plus className="size-4" />
-          </Button>
+            iconLeft={() => <Plus />}
+          />
         </div>
 
         {attachments.length > 0 ? (
@@ -80,9 +79,8 @@ export function RiskDetailContent({
             variant="ghost"
             onClick={() => {}}
             aria-label="Add update"
-          >
-            <Plus className="size-4" />
-          </Button>
+            iconLeft={() => <Plus />}
+          />
         </div>
 
         {risk.risk_update_log?.length > 0 ? (

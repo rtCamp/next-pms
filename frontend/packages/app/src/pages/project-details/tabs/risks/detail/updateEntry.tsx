@@ -7,7 +7,7 @@ import { MoreHorizontal } from "lucide-react";
 /**
  * Internal dependencies.
  */
-import { formatRelativeTime, stripTags } from "@/lib/utils";
+import { formatRelativeTimeShort, stripTags } from "@/lib/utils";
 import { RiskStatusBadge } from "../riskStatusBadge";
 import type { EnrichedRiskUpdateEntry } from "../types";
 import { RiskLevelBadge } from "./riskLevelBadge";
@@ -35,7 +35,7 @@ export function UpdateEntry({ entry }: UpdateEntryProps) {
         </span>
         <span className="text-sm text-ink-gray-5">posted an update.</span>
         <span className="ml-auto text-xs text-ink-gray-5">
-          {formatRelativeTime(entry.updated_at)}
+          {formatRelativeTimeShort(entry.updated_at)}
         </span>
       </div>
 
@@ -58,9 +58,8 @@ export function UpdateEntry({ entry }: UpdateEntryProps) {
                 className="ml-auto"
                 onClick={() => {}}
                 aria-label="Entry options"
-              >
-                <MoreHorizontal className="size-4" />
-              </Button>
+                iconLeft={() => <MoreHorizontal />}
+              />
             </div>
           )}
 

@@ -45,9 +45,8 @@ export function RiskDetailHeader({
           type="button"
           onClick={handleBack}
           className="p-0 hover:bg-transparent focus-visible:bg-transparent"
-        >
-          <ArrowLeft className="size-4" />
-        </Button>
+          iconLeft={() => <ArrowLeft />}
+        />
 
         <h2 className="text-xl font-semibold text-ink-gray-8 truncate max-w-125">
           {displayTitle}
@@ -76,9 +75,12 @@ export function RiskDetailHeader({
 
         <FollowersBadge followers={followers} />
 
-        <Button variant="ghost" type="button" onClick={() => {}}>
-          <MoreHorizontal className="size-4" />
-        </Button>
+        <Button
+          variant="ghost"
+          type="button"
+          onClick={() => {}}
+          iconLeft={() => <MoreHorizontal />}
+        />
       </div>
     </div>
   );

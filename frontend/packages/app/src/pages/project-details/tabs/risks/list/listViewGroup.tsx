@@ -124,9 +124,8 @@ export function RiskGroup({ value, label, risks }: RiskGroupProps) {
                   e.stopPropagation();
                   openRowActions(risk.name);
                 }}
-              >
-                <MoreHorizontal className="size-4" />
-              </Button>
+                iconLeft={() => <MoreHorizontal />}
+              />
             </div>
           </div>
         ))}

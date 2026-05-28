@@ -17,7 +17,6 @@ import {
   differenceInWeeks,
   differenceInYears,
   format,
-  formatDistanceToNow,
   getISOWeek,
   getISOWeekYear,
   getISOWeeksInYear,
@@ -67,6 +66,12 @@ export function formatProjectDate(isoDate: string): string {
   return format(date, pattern);
 }
 
+/**
+ * Formats a given date value into a short relative time string (e.g., "now", "5min ago", "2h ago").
+ * @param value - The date value to format
+ * @param now - The current date and time (optional, defaults to now)
+ * @returns The formatted relative time string
+ */
 export function formatRelativeTimeShort(
   value: string | Date,
   now = new Date(),
@@ -705,20 +710,4 @@ export function getFileExtension(fileName: string): string {
   }
 
   return fileName.slice(lastDotIndex + 1).toUpperCase();
-}
-
-/**
- * Formats a date string into a relative time string (e.g., "3 days ago").
- * @param dateStr - The date string to format
- * @returns The formatted relative time string
- */
-export function formatRelativeTime(dateStr: string): string {
-  try {
-    // Frappe dates: "2026-05-11 16:39:03.432619" — replace space with T for ISO parse
-    return formatDistanceToNow(parseISO(dateStr.replace(" ", "T")), {
-      addSuffix: true,
-    });
-  } catch {
-    return dateStr;
-  }
 }
