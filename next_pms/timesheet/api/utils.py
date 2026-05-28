@@ -1,5 +1,4 @@
 import datetime
-import json
 from collections import defaultdict
 
 import frappe
@@ -275,8 +274,8 @@ def normalize_status_filter(status_filter, coerce_non_list: bool = False):
             return None
 
         try:
-            status_filter = json.loads(status_filter)
-        except (json.JSONDecodeError, ValueError):
+            status_filter = frappe.parse_json(status_filter)
+        except (ValueError, TypeError):
             return [status_filter]
 
     if status_filter == "":
@@ -300,8 +299,8 @@ def parse_filters(raw_filters):
 
     if isinstance(raw_filters, str):
         try:
-            raw_filters = json.loads(raw_filters)
-        except (json.JSONDecodeError, ValueError):
+            raw_filters = frappe.parse_json(raw_filters)
+        except (ValueError, TypeError):
             frappe.throw(frappe._("Invalid filters format. Expected a JSON array."))
 
     if not isinstance(raw_filters, list):

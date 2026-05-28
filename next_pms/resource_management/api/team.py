@@ -1,5 +1,3 @@
-import json
-
 import frappe
 from erpnext.setup.doctype.employee.employee import get_holiday_list_for_employee
 from frappe.core.doctype.recorder.recorder import redis_cache
@@ -192,20 +190,20 @@ def get_resource_management_team_view_data(
     ids = None
 
     if isinstance(is_billable, str):
-        is_billable = json.loads(is_billable)
+        is_billable = frappe.parse_json(is_billable)
     if isinstance(allocation_status, str):
-        allocation_status = json.loads(allocation_status)
+        allocation_status = frappe.parse_json(allocation_status)
 
     if employee_id:
         if isinstance(employee_id, str):
-            employee_id = json.loads(employee_id)
+            employee_id = frappe.parse_json(employee_id)
         ids = employee_id
 
     if not employee_id:
         if not skills:
             skills = []
         if isinstance(skills, str):
-            skills = json.loads(skills)
+            skills = frappe.parse_json(skills)
         if skills:
             ids = get_employees_by_skills(skills)
             if len(ids) == 0:

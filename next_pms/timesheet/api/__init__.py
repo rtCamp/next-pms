@@ -212,8 +212,8 @@ def filter_employees(
         fields=fields,
         or_filters=or_filters,
         filters=filters,
-        page_length=page_length,
-        start=start,
+        limit=page_length,
+        offset=start,
         ignore_permissions=ignore_permissions,
         order_by="employee_name asc",
     )
