@@ -6,7 +6,6 @@ import type { ComponentType, SVGProps } from "react";
 /**
  * Internal dependencies.
  */
-import type { EmployeeRef } from "@/pages/projects/types";
 
 export type ProjectLinkKey =
   | "website"
@@ -22,16 +21,24 @@ export type ProjectLink = {
   icon: ComponentType<SVGProps<SVGSVGElement>>;
 };
 
-export type AboutMember = EmployeeRef & {
+export type AboutMember = {
+  name: string;
+  email: string;
   designation: string;
+  image?: string;
   phone?: string;
+  rate?: number;
+  companyEmail?: string;
 };
 
 export type AboutCustomer = {
-  name: string;
-  email: string;
-  company: string;
+  name?: string;
+  designation?: string;
+  company?: string;
+  email?: string;
   href?: string;
+  image?: string;
+  phone?: string;
 };
 
 export type ProjectBudgetBurn = {
