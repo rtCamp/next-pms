@@ -1,7 +1,7 @@
 /**
  * External dependencies.
  */
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { mergeClassNames as cn } from "@next-pms/design-system";
 import {
   GanttGrid,
@@ -9,6 +9,7 @@ import {
   Typography,
 } from "@next-pms/design-system/components";
 import {
+  Autocomplete,
   Button,
   Filter,
   FilterCondition,
@@ -17,6 +18,7 @@ import {
 } from "@rtcamp/frappe-ui-react";
 import {
   DotHorizontal,
+  SmallDown,
   SmallLeftChevron,
   SmallRightChevron,
 } from "@rtcamp/frappe-ui-react/icons";
@@ -25,6 +27,7 @@ import {
  * Internal dependencies.
  */
 import { InfiniteScroll } from "@/components/infiniteScroll";
+import { useDesignationLookup } from "@/hooks/useDesignationLookup";
 import { isWeekendEntryAllowed } from "@/lib/utils";
 import { useAllocationOutletContext } from "@/pages/allocations/allocationOutletContext";
 import {
@@ -44,6 +47,7 @@ import {
 export const AllocationsTeamTable = () => {
   const searchInput = useAllocationsTeam(({ state }) => state.searchInput);
   const duration = useAllocationsTeam(({ state }) => state.duration);
+  const designation = useAllocationsTeam(({ state }) => state.designation);
   const weekCount = useAllocationsTeam(({ state }) => state.weekCount);
   const isQueryLoading = useAllocationsTeam(
     ({ state }) => state.isQueryLoading,
@@ -61,6 +65,9 @@ export const AllocationsTeamTable = () => {
 
   const setSearch = useAllocationsTeam(({ actions }) => actions.setSearch);
   const setDuration = useAllocationsTeam(({ actions }) => actions.setDuration);
+  const setDesignation = useAllocationsTeam(
+    ({ actions }) => actions.setDesignation,
+  );
   const loadMore = useAllocationsTeam(({ actions }) => actions.loadMore);
   const handlePrevious = useAllocationsTeam(
     ({ actions }) => actions.handlePrevious,
@@ -81,6 +88,25 @@ export const AllocationsTeamTable = () => {
     openDeleteAllocationDialog,
   } = useAllocationOutletContext();
 
+  const [designationQuery, setDesignationQuery] = useState("");
+  const [isDesignationOpen, setIsDesignationOpen] = useState(false);
+
+  const selectedDesignationOptions = useMemo(
+    () =>
+      designation.map((selectedDesignation) => ({
+        label: selectedDesignation,
+        value: selectedDesignation,
+      })),
+    [designation],
+  );
+
+  const { options: designationOptions, isLoading: isDesignationLookupLoading } =
+    useDesignationLookup({
+      shouldFetch: true,
+      query: designationQuery,
+      selectedOption: selectedDesignationOptions,
+    });
+
   const showWeekend = isWeekendEntryAllowed();
   const hasMembers = members.length > 0;
   const isRefreshingVisibleGrid = isQueryLoading && hasMembers;
@@ -88,14 +114,69 @@ export const AllocationsTeamTable = () => {
 
   return (
     <div className="flex flex-wrap gap-3.5 justify-between py-3.5">
-      <div className="w-full flex flex-wrap gap-2 justify-between px-5">
+      <div className="flex flex-wrap justify-between w-full gap-2 px-5">
         <div className="flex flex-wrap gap-2">
           <TextInput
-            className="w-xs"
-            placeholder="Search members or designation"
+            placeholder="Search members"
             onChange={(e) => guard(() => setSearch(e.target.value))}
             value={searchInput}
           />
+          <Autocomplete
+            className="w-40"
+            bodyClasses="w-64"
+            listClassName="scrollbar-thin"
+            placeholder="Designation"
+            options={designationOptions}
+            multiple
+            value={designation}
+            open={isDesignationOpen}
+            searchValue={designationQuery}
+            loading={isDesignationLookupLoading}
+            onOpenChange={(value) => guard(() => setIsDesignationOpen(value))}
+            onSearchChange={setDesignationQuery}
+            onChange={(value) =>
+              guard(() =>
+                setDesignation(Array.isArray(value) ? value.map(String) : []),
+              )
+            }
+            renderFooter={({ clearAll, selectedOption }) => {
+              const hasSelectedDesignation = Array.isArray(selectedOption)
+                ? selectedOption.length > 0
+                : Boolean(selectedOption);
+              const hasActiveDesignationFilter =
+                hasSelectedDesignation || Boolean(designationQuery);
+
+              return (
+                <div className="flex items-center justify-end gap-2">
+                  <Button
+                    variant="subtle"
+                    label="Clear"
+                    className="justify-start"
+                    disabled={!hasActiveDesignationFilter}
+                    onClick={() => {
+                      clearAll();
+                      setDesignationQuery("");
+                      setIsDesignationOpen(false);
+                    }}
+                  />
+                </div>
+              );
+            }}
+          >
+            {({ displayValue }) => (
+              <Button
+                variant="subtle"
+                className="justify-between w-full"
+                iconRight={() => (
+                  <SmallDown className="size-4 shrink-0 text-ink-gray-9" />
+                )}
+              >
+                <span className="truncate">
+                  {displayValue || "Designation"}
+                </span>
+              </Button>
+            )}
+          </Autocomplete>
           <Select
             placeholder="Duration"
             className="w-fit"
@@ -184,7 +265,7 @@ export const AllocationsTeamTable = () => {
         ) : null}
 
         {!isQueryLoading && !hasMembers ? (
-          <Typography className="flex h-full items-center justify-center">
+          <Typography className="flex items-center justify-center h-full">
             No Data
           </Typography>
         ) : null}

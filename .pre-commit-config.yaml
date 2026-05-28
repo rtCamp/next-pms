@@ -18,7 +18,7 @@ repos:
       - id: debug-statements
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.14.5
+    rev: v0.15.14
     hooks:
       - id: ruff
         args: ["--fix"]
@@ -41,7 +41,7 @@ repos:
         always_run: true
 
   - repo: https://github.com/semgrep/pre-commit
-    rev: 'v1.142.2'
+    rev: 'v1.163.0'
     hooks:
       - id: semgrep-ci
         name: "Sempgrep: frappe"

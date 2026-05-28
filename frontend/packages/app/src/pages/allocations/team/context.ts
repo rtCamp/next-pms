@@ -15,6 +15,7 @@ export interface AllocationsTeamContextProps {
     isQueryLoading: boolean;
     isNextPageLoading: boolean;
     hasMore: boolean;
+    designation: string[];
     searchInput: string;
     duration: AllocationsDuration;
     weekCount: number;
@@ -23,6 +24,7 @@ export interface AllocationsTeamContextProps {
   actions: {
     setSearch: (value: string) => void;
     setDuration: (value: AllocationsDuration) => void;
+    setDesignation: (value: string[]) => void;
     loadMore: () => void;
     handlePrevious: () => void;
     handleNext: () => void;
@@ -40,12 +42,14 @@ export const AllocationsTeamContext =
       hasMore: true,
       searchInput: "",
       duration: "this-quarter",
+      designation: [],
       weekCount: 13,
       anchorDate: new Date(),
     },
     actions: {
       setSearch: () => null,
       setDuration: () => null,
+      setDesignation: () => null,
       loadMore: () => null,
       handlePrevious: () => null,
       handleNext: () => null,
