@@ -356,7 +356,7 @@ def _get_project_members(project_name: str, currency: str) -> list[dict]:
     employees = frappe.get_all(
         "Employee",
         filters={"user_id": ["in", user_ids], "status": "Active"},
-        fields=["name", "user_id", "designation", "department", "cell_number", "company_email"],
+        fields=["name", "user_id", "designation", "department", "cell_number", "company_email", "custom_linkedin"],
     )
     employee_map = {e.user_id: e for e in employees}
 
@@ -374,10 +374,12 @@ def _get_project_members(project_name: str, currency: str) -> list[dict]:
             "user": uid,
             "full_name": user_map[uid].full_name or "",
             "image": user_map[uid].user_image,
-            "designation": employee_map.get(uid).designation if employee_map.get(uid) else None,
-            "cell_number": employee_map.get(uid).cell_number if employee_map.get(uid) else None,
-            "company_email": employee_map.get(uid).company_email if employee_map.get(uid) else None,
-            "hourly_rate": _hourly_rate(employee_map.get(uid).name if employee_map.get(uid) else None),
+            "designation": emp.designation if (emp := employee_map.get(uid)) else None,
+            "department": emp.department if emp else None,
+            "cell_number": emp.cell_number if emp else None,
+            "company_email": emp.company_email if emp else None,
+            "linkedin_url": emp.custom_linkedin if emp else None,
+            "hourly_rate": _hourly_rate(emp.name if emp else None),
         }
         for uid in user_ids
         if uid in user_map
@@ -394,18 +396,33 @@ def _get_project_customers(project_doc) -> list[dict]:
     contacts = frappe.get_all(
         "Contact",
         filters={"name": ["in", contact_names]},
-        fields=["name", "full_name", "image"],
+        fields=[
+            "name",
+            "full_name",
+            "image",
+            "designation",
+            "company_name",
+            "email_id",
+            "phone",
+            "mobile_no",
+            "custom_linkedin_url",
+        ],
     )
     contact_map = {c.name: c for c in contacts}
 
     return [
         {
             "contact": name,
-            "full_name": contact_map[name].full_name or "",
-            "image": contact_map[name].image,
+            "full_name": c.full_name or "",
+            "image": c.image,
+            "designation": c.designation,
+            "company_name": c.company_name,
+            "email_id": c.email_id,
+            "phone": c.phone or c.mobile_no,
+            "linkedin_url": c.custom_linkedin_url,
         }
         for name in contact_names
-        if name in contact_map
+        if (c := contact_map.get(name))
     ]
 
 
