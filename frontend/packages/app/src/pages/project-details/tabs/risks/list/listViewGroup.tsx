@@ -3,6 +3,7 @@
  */
 import { Accordion } from "@base-ui/react/accordion";
 import { Avatar } from "@rtcamp/frappe-ui-react";
+import { Button } from "@rtcamp/frappe-ui-react";
 import { SmallDown } from "@rtcamp/frappe-ui-react/icons";
 import { MoreHorizontal } from "lucide-react";
 
@@ -116,16 +117,16 @@ export function RiskGroup({ value, label, risks }: RiskGroupProps) {
 
             {/* Row actions */}
             <div className="w-8 shrink-0 flex justify-end">
-              <button
+              <Button
                 type="button"
-                className="p-1 rounded text-ink-gray-5 hover:bg-surface-gray-2"
+                variant="ghost"
                 onClick={(e) => {
                   e.stopPropagation();
                   openRowActions(risk.name);
                 }}
               >
                 <MoreHorizontal className="size-4" />
-              </button>
+              </Button>
             </div>
           </div>
         ))}
