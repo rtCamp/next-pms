@@ -10,6 +10,12 @@ import {
 import { FilterCondition } from "@rtcamp/frappe-ui-react";
 import { type ClassValue, clsx } from "clsx";
 import {
+  differenceInDays,
+  differenceInHours,
+  differenceInMinutes,
+  differenceInMonths,
+  differenceInWeeks,
+  differenceInYears,
   format,
   getISOWeek,
   getISOWeekYear,
@@ -58,6 +64,42 @@ export function formatProjectDate(isoDate: string): string {
   const pattern =
     date.getFullYear() === new Date().getFullYear() ? "MMM d" : "MMM d, yyyy";
   return format(date, pattern);
+}
+
+export function formatRelativeTimeShort(
+  value: string | Date,
+  now = new Date(),
+) {
+  const date = typeof value === "string" ? parseISO(value) : value;
+  const minutes = Math.max(differenceInMinutes(now, date), 0);
+
+  if (minutes < 1) {
+    return "now";
+  }
+
+  if (minutes < 60) {
+    return `${minutes}min ago`;
+  }
+
+  const hours = differenceInHours(now, date);
+  if (hours < 24) {
+    return `${hours}h ago`;
+  }
+
+  const days = differenceInDays(now, date);
+  if (days < 7) {
+    return `${days}d ago`;
+  }
+
+  if (days < 30) {
+    return `${differenceInWeeks(now, date)}w ago`;
+  }
+
+  if (days < 365) {
+    return `${Math.max(differenceInMonths(now, date), 1)}m ago`;
+  }
+
+  return `${Math.max(differenceInYears(now, date), 1)}y ago`;
 }
 
 export function toKebabCase(value?: string | null): string | undefined {
