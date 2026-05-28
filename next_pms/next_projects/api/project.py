@@ -8,6 +8,7 @@ import frappe
 from frappe import get_list, only_for, whitelist
 from frappe.query_builder.functions import Coalesce, Count, Sum
 from frappe.utils import cint, flt, getdate, today
+from frappe.utils.caching import redis_cache
 
 from next_pms.api.utils import error_logger
 from next_pms.next_projects.api.constant import (
@@ -494,6 +495,7 @@ def _get_task_counts(project_name: str) -> dict:
 
 @whitelist(methods=["GET"])
 @error_logger
+@redis_cache()
 def get_project_tracking(project: str):
     """
     Return tracking data for a project.
@@ -521,6 +523,18 @@ def get_project_tracking(project: str):
         invoice_burn : dict
             currency (company default), invoiced_and_paid, invoiced_but_not_paid,
             total_project_amount. Omitted for Non-Billable projects.
+        total_project_value : float
+            Total budget/value for the project.
+        project_profit : float
+            Total project value minus actual and forecasted costs.
+        projected_profit_margin : float
+            Projected profit as a percentage of total project value.
+        actual_cost_incurred : float
+            Actual cost incurred from Timesheet Detail costing amounts.
+        forecasted_cost_to_completion : float
+            Remaining forecast cost from Resource Allocation total cost minus actual cost.
+        expected_total_cost : float
+            Static target/expected cost from the Project.
         contracts : list of dict or None
             Project Budget rows. None for Non-Billable and T&M.
         project_rates : list of dict or None
@@ -543,6 +557,9 @@ def get_project_tracking(project: str):
 
     invoice_burn = _get_invoice_burn(project) if is_billable else None
     task_counts = _get_task_counts(project)
+    actual_cost_incurred = flt(project_doc.total_costing_amount)
+    total_forecasted_cost = get_cost_forecasted(project)
+    forecasted_cost_to_completion = max(0, total_forecasted_cost - actual_cost_incurred)
 
     contracts = None
     if has_hours_pool:
@@ -575,6 +592,12 @@ def get_project_tracking(project: str):
         "company": project_doc.company,
         "billing_type": billing_type,
         "currency": project_doc.get("custom_currency"),
+        "total_project_value": flt(project_doc.total_sales_amount) if is_billable else None,
+        "project_profit": flt(project_doc.get("custom_estimated_profit")) if is_billable else None,
+        "projected_profit_margin": flt(project_doc.get("custom_percentage_estimated_profit")) if is_billable else None,
+        "actual_cost_incurred": actual_cost_incurred,
+        "forecasted_cost_to_completion": forecasted_cost_to_completion,
+        "expected_total_cost": flt(project_doc.get("custom_target_cost")),
         "hours_utilised": flt(project_doc.actual_time),
         "hours_remaining": flt(project_doc.get("custom_total_hours_remaining")) if has_hours_pool else None,
         "tasks": task_counts,
