@@ -46,7 +46,8 @@ export function GanttAllocationBar({
     onEditAllocation,
     onDeleteAllocation,
     setPendingDeleteEntry,
-    setHasActiveAllocationEdit,
+    setActiveEdit,
+    clearActiveEdit,
   } = useGanttStore((s) => ({
     headerWidth: s.headerWidth,
     columnWidth: s.columnWidth,
@@ -57,7 +58,8 @@ export function GanttAllocationBar({
     onEditAllocation: s.onEditAllocation,
     onDeleteAllocation: s.onDeleteAllocation,
     setPendingDeleteEntry: s.setPendingDeleteEntry,
-    setHasActiveAllocationEdit: s.setHasActiveAllocationEdit,
+    setActiveEdit: s.setActiveEdit,
+    clearActiveEdit: s.clearActiveEdit,
   }));
 
   const left = allocation.barOffset + headerWidth;
@@ -69,15 +71,7 @@ export function GanttAllocationBar({
 
   useEffect(() => {
     setPreviewGeometry({ left, width });
-  }, [allocation, left, width]);
-
-  useEffect(() => {
-    setHasActiveAllocationEdit(isModified);
-
-    return () => {
-      setHasActiveAllocationEdit(false);
-    };
-  }, [isModified, setHasActiveAllocationEdit]);
+  }, [left, width]);
 
   const currentDates = useMemo(
     () =>
@@ -233,6 +227,25 @@ export function GanttAllocationBar({
     openEditAllocation,
     previewGeometry.left,
     previewGeometry.width,
+  ]);
+
+  useEffect(() => {
+    if (!isModified) {
+      return;
+    }
+
+    const actions = { save: handleClick, discard: handleResetPreview };
+    setActiveEdit(actions);
+
+    return () => {
+      clearActiveEdit(actions);
+    };
+  }, [
+    isModified,
+    handleClick,
+    handleResetPreview,
+    setActiveEdit,
+    clearActiveEdit,
   ]);
 
   const renderFloatingLabel = useCallback(() => {

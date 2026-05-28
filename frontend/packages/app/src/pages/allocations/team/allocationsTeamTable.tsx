@@ -27,6 +27,10 @@ import {
 import { InfiniteScroll } from "@/components/infiniteScroll";
 import { isWeekendEntryAllowed } from "@/lib/utils";
 import { useAllocationOutletContext } from "@/pages/allocations/allocationOutletContext";
+import {
+  useGuardedAction,
+  useUnsavedChangesSource,
+} from "@/pages/allocations/unsavedChanges/useUnsavedChanges";
 import { useUser } from "@/providers/user";
 import { useAllocationsTeam } from "./context";
 import {
@@ -64,6 +68,9 @@ export const AllocationsTeamTable = () => {
   const handleToday = useAllocationsTeam(({ actions }) => actions.handleToday);
   const handleNext = useAllocationsTeam(({ actions }) => actions.handleNext);
 
+  const guard = useGuardedAction();
+  const ganttRef = useUnsavedChangesSource();
+
   const { hasRoleAccess } = useUser(({ state }) => ({
     hasRoleAccess: state.hasRoleAccess,
   }));
@@ -95,7 +102,9 @@ export const AllocationsTeamTable = () => {
             options={durationOptions}
             value={duration}
             onChange={(value) =>
-              setDuration((value || "this-quarter") as typeof duration)
+              guard(() =>
+                setDuration((value || "this-quarter") as typeof duration),
+              )
             }
           />
           <Select
@@ -113,16 +122,20 @@ export const AllocationsTeamTable = () => {
               icon={() => (
                 <SmallLeftChevron className="size-4 text-ink-gray-9" />
               )}
-              onClick={handlePrevious}
+              onClick={() => guard(handlePrevious)}
               aria-label={navigationButtonAriaLabels["previous"][duration]}
             />
-            <Button variant="ghost" label="Today" onClick={handleToday} />
+            <Button
+              variant="ghost"
+              label="Today"
+              onClick={() => guard(handleToday)}
+            />
             <Button
               variant="ghost"
               icon={() => (
                 <SmallRightChevron className="size-4 text-ink-gray-9" />
               )}
-              onClick={handleNext}
+              onClick={() => guard(handleNext)}
               aria-label={navigationButtonAriaLabels["next"][duration]}
             />
           </div>
@@ -155,6 +168,7 @@ export const AllocationsTeamTable = () => {
             count={ALLOCATIONS_PAGE_SIZE}
           >
             <GanttGrid
+              ref={ganttRef}
               variant="team"
               startDate={anchorDate}
               members={members}

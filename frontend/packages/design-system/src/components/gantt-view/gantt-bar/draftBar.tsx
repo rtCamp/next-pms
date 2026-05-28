@@ -50,14 +50,16 @@ export function DraftBar({
     columnCount,
     weekStart,
     showWeekend,
-    setHasActiveAllocationEdit,
+    setActiveEdit,
+    clearActiveEdit,
   } = useGanttStore((s) => ({
     headerWidth: s.headerWidth,
     columnWidth: s.columnWidth,
     columnCount: s.columnCount,
     weekStart: s.weekStart,
     showWeekend: s.showWeekend,
-    setHasActiveAllocationEdit: s.setHasActiveAllocationEdit,
+    setActiveEdit: s.setActiveEdit,
+    clearActiveEdit: s.clearActiveEdit,
   }));
 
   const [previewGeometry, setPreviewGeometry] = useState({ left, width });
@@ -69,14 +71,6 @@ export function DraftBar({
   useEffect(() => {
     draftBarRef.current?.focus();
   }, [rowKey]);
-
-  useEffect(() => {
-    setHasActiveAllocationEdit(true);
-
-    return () => {
-      setHasActiveAllocationEdit(false);
-    };
-  }, [setHasActiveAllocationEdit]);
 
   const bounds = useMemo(
     () =>
@@ -158,6 +152,15 @@ export function DraftBar({
     showWeekend,
     weekStart,
   ]);
+
+  useEffect(() => {
+    const actions = { save: handleClick, discard: handleResetDraft };
+    setActiveEdit(actions);
+
+    return () => {
+      clearActiveEdit(actions);
+    };
+  }, [handleClick, handleResetDraft, setActiveEdit, clearActiveEdit]);
 
   const renderFloatingLabel = useCallback(
     ({ liveLeft, liveWidth }: GanttBarRenderState) => (

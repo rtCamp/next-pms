@@ -11,6 +11,7 @@ import { Plus } from "lucide-react";
 import { Header } from "@/layout/header";
 import { AllocationsBreadcrumbs } from "@/pages/allocations/components/allocationsBreadcrumbs";
 import AddAllocationModal from "@/pages/allocations/team/add-allocation";
+import { UnsavedChangesProvider } from "@/pages/allocations/unsavedChanges/UnsavedChangesProvider";
 import { useAllocationModal } from "@/pages/allocations/useAllocationModal";
 import { useUser } from "@/providers/user";
 import { useAllocationsProject } from "./context";
@@ -48,9 +49,11 @@ function ProjectAllocationsLayoutContent() {
 
 function ProjectAllocationsLayout() {
   return (
-    <AllocationsProjectProvider>
-      <ProjectAllocationsLayoutContent />
-    </AllocationsProjectProvider>
+    <UnsavedChangesProvider>
+      <AllocationsProjectProvider>
+        <ProjectAllocationsLayoutContent />
+      </AllocationsProjectProvider>
+    </UnsavedChangesProvider>
   );
 }
 

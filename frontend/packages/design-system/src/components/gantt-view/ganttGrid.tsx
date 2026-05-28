@@ -2,8 +2,10 @@
  * External dependencies.
  */
 import React, {
+  forwardRef,
   useCallback,
   useEffect,
+  useImperativeHandle,
   useMemo,
   useRef,
   useState,
@@ -20,7 +22,7 @@ import { GanttProjectRows } from "./ganttProjectRows";
 import { createGanttStore, GanttContext, useGanttStore } from "./ganttStore";
 import { GanttWeekHeader } from "./ganttWeekHeader";
 import { useContainerResize } from "./hooks/useContainerResize";
-import type { GanttGridProps } from "./types";
+import type { GanttGridHandle, GanttGridProps } from "./types";
 import { mergeClassNames as cn } from "../../utils";
 
 const GanttGridInner: React.FC<{
@@ -161,56 +163,68 @@ const GanttGridInner: React.FC<{
   );
 };
 
-export const GanttGrid: React.FC<GanttGridProps> = (props) => {
-  const rootRef = useRef<HTMLDivElement>(null);
+export const GanttGrid = forwardRef<GanttGridHandle, GanttGridProps>(
+  function GanttGrid(props, ref) {
+    const rootRef = useRef<HTMLDivElement>(null);
 
-  const resolvedProps = useMemo(
-    () => ({
-      variant: props.variant,
-      members: props.members,
-      projects: props.projects,
-      rowHeaderLabel: props.rowHeaderLabel,
-      showWeekend: props.showWeekend ?? true,
-      startDate: props.startDate,
-      weekCount: props.weekCount ?? 3,
-      hasRoleAccess: props.hasRoleAccess ?? false,
-      onAddAllocation: props.onAddAllocation,
-      onEditAllocation: props.onEditAllocation,
-      onDeleteAllocation: props.onDeleteAllocation,
-    }),
-    [
-      props.hasRoleAccess,
-      props.onAddAllocation,
-      props.onDeleteAllocation,
-      props.onEditAllocation,
-      props.members,
-      props.projects,
-      props.rowHeaderLabel,
-      props.showWeekend,
-      props.startDate,
-      props.variant,
-      props.weekCount,
-    ],
-  );
+    const resolvedProps = useMemo(
+      () => ({
+        variant: props.variant,
+        members: props.members,
+        projects: props.projects,
+        rowHeaderLabel: props.rowHeaderLabel,
+        showWeekend: props.showWeekend ?? true,
+        startDate: props.startDate,
+        weekCount: props.weekCount ?? 3,
+        hasRoleAccess: props.hasRoleAccess ?? false,
+        onAddAllocation: props.onAddAllocation,
+        onEditAllocation: props.onEditAllocation,
+        onDeleteAllocation: props.onDeleteAllocation,
+      }),
+      [
+        props.hasRoleAccess,
+        props.onAddAllocation,
+        props.onDeleteAllocation,
+        props.onEditAllocation,
+        props.members,
+        props.projects,
+        props.rowHeaderLabel,
+        props.showWeekend,
+        props.startDate,
+        props.variant,
+        props.weekCount,
+      ],
+    );
 
-  const [store] = useState(() => createGanttStore(resolvedProps));
+    const [store] = useState(() => createGanttStore(resolvedProps));
 
-  useEffect(() => {
-    store.getState().syncProps(resolvedProps);
-  }, [resolvedProps, store]);
+    useEffect(() => {
+      store.getState().syncProps(resolvedProps);
+    }, [resolvedProps, store]);
 
-  useContainerResize({
-    rootRef,
-    onWidthChange: (width) => {
-      store.getState().setContainerWidth(width);
-    },
-  });
+    useContainerResize({
+      rootRef,
+      onWidthChange: (width) => {
+        store.getState().setContainerWidth(width);
+      },
+    });
 
-  return (
-    <GanttContext.Provider value={store}>
-      <GanttGridInner rootRef={rootRef} className={props.className} />
-    </GanttContext.Provider>
-  );
-};
+    useImperativeHandle(
+      ref,
+      () => ({
+        hasUnsavedChanges: () => store.getState().activeEdit !== null,
+        saveChanges: () => store.getState().activeEdit?.save(),
+        discardChanges: () => store.getState().activeEdit?.discard(),
+      }),
+      [store],
+    );
+
+    return (
+      <GanttContext.Provider value={store}>
+        <GanttGridInner rootRef={rootRef} className={props.className} />
+      </GanttContext.Provider>
+    );
+  },
+);
 
 GanttGrid.displayName = "GanttGrid";

@@ -6,8 +6,8 @@ import { useGanttStore } from "./ganttStore";
 import { mergeClassNames as cn } from "../../utils";
 
 export function GanttEditingOverlay() {
-  const { hasActiveAllocationEdit, headerWidth } = useGanttStore((s) => ({
-    hasActiveAllocationEdit: s.hasActiveAllocationEdit,
+  const { hasActiveEdit, headerWidth } = useGanttStore((s) => ({
+    hasActiveEdit: s.activeEdit !== null,
     headerWidth: s.headerWidth,
   }));
 
@@ -16,7 +16,7 @@ export function GanttEditingOverlay() {
       aria-hidden="true"
       className={cn(
         "absolute right-0 bottom-0 z-15 bg-surface-white/50 transition-opacity duration-150 ease-out",
-        hasActiveAllocationEdit
+        hasActiveEdit
           ? "pointer-events-auto opacity-100"
           : "pointer-events-none opacity-0",
       )}
