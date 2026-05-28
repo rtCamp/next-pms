@@ -20,7 +20,7 @@ export type Note = {
   project: string;
   owner: string;
   owner_full_name: string;
-  owner_image: string;
+  owner_image: string | null;
   creation: string;
   modified: string;
   last_edited_at: string | null;

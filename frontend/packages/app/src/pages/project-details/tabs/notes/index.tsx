@@ -1,10 +1,17 @@
-import { Spinner } from "@next-pms/design-system/components";
+/**
+ * External dependencies.
+ */
+import { ErrorFallback, Spinner } from "@next-pms/design-system/components";
 
+/**
+ * Internal dependencies.
+ */
 import { useNotes } from "./context";
 import { NoteCard } from "./noteCard";
-import { NotesSubHeader } from "./sub-header";
+import { NotesProvider } from "./provider";
+import { NotesSubHeader } from "./subHeader";
 
-export function Notes() {
+function NotesContent() {
   const notes = useNotes((s) => s.state.notes);
   const isLoading = useNotes((s) => s.state.isLoading);
   const error = useNotes((s) => s.state.error);
@@ -34,5 +41,15 @@ export function Notes() {
         </div>
       )}
     </div>
+  );
+}
+
+export function Notes() {
+  return (
+    <ErrorFallback>
+      <NotesProvider>
+        <NotesContent />
+      </NotesProvider>
+    </ErrorFallback>
   );
 }

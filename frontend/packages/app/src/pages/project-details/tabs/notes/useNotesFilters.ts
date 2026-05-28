@@ -1,7 +1,13 @@
+/**
+ * External dependencies.
+ */
 import { useCallback, useMemo } from "react";
 import { useSearchParams } from "react-router-dom";
 import type { FilterCondition } from "@rtcamp/frappe-ui-react";
 
+/**
+ * Internal dependencies.
+ */
 import type { NotesFilters } from "./types";
 
 const parseAdvanced = (raw: string | null): FilterCondition[] => {

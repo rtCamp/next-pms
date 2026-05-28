@@ -1,5 +1,11 @@
+/**
+ * External dependencies.
+ */
 import { useMemo, type PropsWithChildren } from "react";
 
+/**
+ * Internal dependencies.
+ */
 import { NotesContext, type NotesContextProps } from "./context";
 import { useNotesData } from "./useNotesData";
 import { useNotesFilters } from "./useNotesFilters";
@@ -7,14 +13,16 @@ import { useNotesFilters } from "./useNotesFilters";
 export function NotesProvider({ children }: PropsWithChildren) {
   const { filters, setAdvanced } = useNotesFilters();
 
-  const { notes, isLoading, error } = useNotesData(filters.advanced);
+  const { notes, filterFields, isLoading, error } = useNotesData(
+    filters.advanced,
+  );
 
   const value = useMemo<NotesContextProps>(
     () => ({
-      state: { notes, isLoading, error, filters },
+      state: { notes, filterFields, isLoading, error, filters },
       actions: { setAdvanced },
     }),
-    [notes, isLoading, error, filters, setAdvanced],
+    [notes, filterFields, isLoading, error, filters, setAdvanced],
   );
 
   return (
