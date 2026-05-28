@@ -14,6 +14,8 @@ import { mergeClassNames as cn } from "../../../utils";
 
 export interface AllocationEntry {
   projectName: string;
+  memberName?: string;
+  memberImage?: string;
   dateRange: string;
   hoursPerDay: string;
   totalHours: string;
@@ -40,13 +42,30 @@ function AllocationItem({ entry, hasRoleAccess }: AllocationItemProps) {
 
   return (
     <div className="flex flex-col gap-3">
-      {/* Project name */}
-      <div className="flex gap-2 items-start">
-        <Folder className="mt-px size-4 text-ink-gray-5 shrink-0" />
-        <span className="flex-1 min-w-0 text-base font-medium truncate text-ink-gray-8">
-          {entry.projectName}
-        </span>
-      </div>
+      {entry.memberName ? (
+        /* Member details */
+        <div className="flex gap-2 items-center min-w-0">
+          <div className="shrink-0 flex items-center">
+            <Avatar
+              size="xs"
+              shape="circle"
+              image={entry.memberImage}
+              label={entry.memberName}
+            />
+          </div>
+          <span className="flex-1 min-w-0 truncate text-base font-medium truncate text-ink-gray-8">
+            {entry.memberName}
+          </span>
+        </div>
+      ) : (
+        /* Project name */
+        <div className="flex gap-2 items-start">
+          <Folder className="mt-px size-4 text-ink-gray-5 shrink-0" />
+          <span className="flex-1 min-w-0 text-base font-medium truncate text-ink-gray-8">
+            {entry.projectName}
+          </span>
+        </div>
+      )}
 
       {/* Details */}
       <div className="flex flex-col gap-2.5 relative">
