@@ -216,7 +216,17 @@ def filter_project_list(
 
     filters = {}
 
-    fields = ["name", "project_name", "status"]
+    fields = [
+        "name",
+        "project_name",
+        "status",
+        "customer",
+        "expected_start_date",
+        "expected_end_date",
+        "custom_project_manager",
+        "custom_project_manager_name",
+        "custom_total_hours_remaining",
+    ]
 
     if ids:
         filters["name"] = ["in", ids]
