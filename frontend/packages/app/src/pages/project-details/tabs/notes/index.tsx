@@ -60,7 +60,7 @@ export function Notes() {
           No notes match the current filters
         </div>
       ) : (
-        <div className="grid grid-cols-3 gap-5">
+        <div className="flex flex-wrap gap-5">
           {visible.map((note) => (
             <NoteCard key={note.id} note={note} onDelete={handleDelete} />
           ))}

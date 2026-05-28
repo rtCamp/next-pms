@@ -21,7 +21,7 @@ export function NoteCard({ note, onDelete }: NoteCardProps) {
   const authorHref = `/desk/user/${encodeURIComponent(note.author.email)}`;
 
   return (
-    <div className="flex h-64 flex-col rounded-[12px] border border-outline-gray-1 bg-surface-white overflow-clip">
+    <div className="flex h-64 min-w-[263px] max-w-[526px] flex-1 flex-col rounded-[12px] border border-outline-gray-1 bg-surface-white overflow-clip">
       <div className="flex items-center gap-3 px-3.5 pt-3.5">
         <h3 className="flex-1 truncate text-lg font-medium text-ink-gray-8">
           {note.title}
