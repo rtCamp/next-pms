@@ -15,6 +15,8 @@ export interface ProjectContact {
 
 export interface ProjectRepositoryConnection {
   name: string;
+  creation: string;
+  github_repository?: string;
   parent: string;
   parentfield: string;
   parenttype: string;

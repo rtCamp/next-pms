@@ -114,6 +114,32 @@ Per-section RESOLVED gating is opt-in: if the maintainer's plan-approval reply e
 
 When entering batch mode (the default), acknowledge in-thread once at the start: `Acknowledged ✅ — running S1..Sn in batch mode (default). Will ping here once the full feature is green and the PR is up.` That single ack tells the maintainer the gate cleared and what cadence to expect.
 
+## Blocker reporting
+
+When **any** step hits a blocker that prevents forward progress — auth/session expired in the dev-site Chrome, MCP tool unreachable, Figma frame inaccessible against the Copy file, container restart cleared state, an `npm` / `bench` / `gh` command fails for reasons outside the diff, a dependency that doesn't resolve, missing permissions on the file tree, anything that requires the maintainer's intervention — post a single message in the **active task thread** before stopping or surfacing the issue to the local-CLI user.
+
+Use this template (substitute the specifics):
+
+```
+🚧 Blocker — <one-line summary>
+
+What was running: <step / section / browser-check / build / PR step>
+What happened: <terse cause; include the exact error / log line if useful>
+What I need from you: <specific action — login URL, frame to duplicate, package to install, permission to grant>
+What's done so far: <S1..S<n−1> complete; current step paused>
+```
+
+Rules:
+
+- Always post to the persisted `parent_ts` (the plan-approval thread). Never start a new top-level message for a blocker — it splits context.
+- Post **before** surfacing the blocker to the local-CLI user. The maintainer needs equal visibility; "told the user, didn't post" leaves them in the dark.
+- Post **once per blocker**. If a polling cron tick re-detects the same blocker, do not re-post — let it sit until the maintainer responds.
+- After the maintainer resolves it, post a one-line follow-up so the thread keeps a complete history: `✅ Unblocked — <what changed>. Resuming <step>.`
+- A blocker post is **not** a status update. Status updates happen at section / PR / final gates per §5 step 5 and §6.6. Blockers interrupt those — keep them distinct visually (the 🚧 prefix vs ✅ / ⏳ for status).
+- Free-form maintainer replies that resolve a blocker (`"I logged in"`, `"frame is in the Copy file now"`) are treated as new feedback — resume immediately. The `RESOLVED` keyword stays reserved for the canonical gate signals (plan-approval, optional per-section, final review).
+
+Why this rule exists: silent blockers cost real time. A 30-second login fix the bot doesn't surface costs the maintainer minutes of confusion when they next look at the thread and see no progress. Surface blockers in the same channel where the task lives — and surface them fast.
+
 ## End-to-end workflow
 
 ### 1. Recon (no Slack yet)

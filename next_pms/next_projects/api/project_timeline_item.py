@@ -5,7 +5,8 @@ from typing import Literal
 
 import frappe
 from frappe import only_for, whitelist
-from frappe.utils import add_to_date, cint, getdate, today
+from frappe.query_builder.functions import Count
+from frappe.utils import cint, getdate, today
 
 from next_pms.api.utils import error_logger
 from next_pms.next_projects.api.constant import ALLOWED_ROLES, TIMELINE_ITEM_FIELDS
@@ -96,27 +97,32 @@ def get_project_timeline_items(
     start: int = 0,
     limit: int = 20,
     start_date: str | None = None,
-    max_week: int = 4,
+    end_date: str | None = None,
     is_calendar: bool = False,
 ):
     """
     Get all Project Timeline Items (complete and incomplete) for a project.
 
-    Touchpoints do not have a start_date, so ordering and range filtering use
-    planned_end_date as the authoritative date field.
+    When start_date and end_date are provided, items are filtered using interval
+    overlap so that any item whose date range intersects [start_date, end_date)
+    is returned:
+
+        item.start_date < end_date AND item.planned_end_date > start_date
+
+    This ensures items spanning multiple months appear in every month/week view
+    they overlap — not only the view that contains their start or end date.
 
     Args:
         project: Project name to filter by
         type: "Milestone" or "Touchpoint" — omit to fetch both
         start: Pagination offset
         limit: Page size
-        start_date: ISO date string (e.g. "2026-05-05"); used as the range start
-            for planned_end_date filtering
-        max_week: Number of weeks from start_date to use as the range end
-        is_calendar: Pass "1"/1/True to skip the bulk-fetch of owner images and
-            watchers (e.g. for calendar views where those fields are not rendered).
-            Accepts "0"/"1" string values from HTTP query params — coerced via
-            cint() before use so "0" is correctly treated as falsy.
+        start_date: ISO date string (e.g. "2026-01-01"); range start for
+            interval-overlap date filtering
+        end_date: ISO date string (e.g. "2026-02-01"); range end for
+            interval-overlap date filtering
+        is_calendar: Pass "1"/1/True to skip owner images and watchers (used for
+            calendar/gantt views). Accepts "0"/"1" strings — coerced via cint().
 
     Returns:
         {"data": [...], "total_count": int, "has_more": bool}
@@ -128,27 +134,28 @@ def get_project_timeline_items(
 
     is_calendar = bool(cint(is_calendar))
 
-    filters = {
-        "project": project,
-    }
+    PTI = frappe.qb.DocType("Project Timeline Item")
+    query_base = frappe.qb.from_(PTI).where(PTI.project == project)
 
     if type:
-        filters["type"] = type
+        query_base = query_base.where(PTI.type == type)
 
-    if start_date and max_week:
-        end_date = add_to_date(getdate(start_date), weeks=cint(max_week))
-        filters["planned_end_date"] = ["between", [getdate(start_date), end_date]]
+    if start_date and end_date:
+        range_start = getdate(start_date)
+        range_end = getdate(end_date)
+        # Interval overlap: item overlaps with [range_start, range_end) when
+        # start_date < range_end AND planned_end_date > range_start
+        query_base = query_base.where((PTI.start_date < range_end) & (PTI.planned_end_date > range_start))
 
-    items = frappe.get_all(
-        "Project Timeline Item",
-        filters=filters,
-        fields=TIMELINE_ITEM_FIELDS,
-        limit_start=cint(start),
-        limit_page_length=cint(limit),
-        order_by="start_date asc, planned_end_date asc",
-    )
+    items = (
+        query_base.select(*[PTI[field] for field in TIMELINE_ITEM_FIELDS])
+        .orderby(PTI.start_date)
+        .orderby(PTI.planned_end_date)
+        .offset(cint(start))
+        .limit(cint(limit))
+    ).run(as_dict=True)
 
-    total_count = frappe.db.count("Project Timeline Item", filters=filters)
+    total_count = (query_base.select(Count("*"))).run()[0][0]
     has_more = cint(start) + cint(limit) < total_count
 
     item_names = [item.get("name") for item in items if item.get("name")]

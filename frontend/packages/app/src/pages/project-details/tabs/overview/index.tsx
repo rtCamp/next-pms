@@ -4,6 +4,7 @@
 import { Communication } from "./sections/communication";
 import { KeyGoals } from "./sections/keyGoals";
 import { Marketing } from "./sections/marketing";
+import { RepositoryConnections } from "./sections/repository-connections";
 import { Sourcing } from "./sections/sourcing";
 import { Specifics } from "./sections/specifics";
 import { Summary } from "./sections/summary";
@@ -19,6 +20,7 @@ export function Overview() {
       <Sourcing />
       <Communication />
       <Marketing />
+      <RepositoryConnections />
     </div>
   );
 }
