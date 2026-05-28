@@ -29,6 +29,11 @@ export interface PendingDeleteEntry {
   onDelete: () => void;
 }
 
+export interface GanttActiveEdit {
+  save: () => void;
+  discard: () => void;
+}
+
 interface GanttProps {
   variant: GanttGridVariant;
   members?: BaseMember[];
@@ -62,10 +67,13 @@ interface GanttState extends GanttProps {
   containerWidth: number;
   resizeHandleActive: boolean;
   pendingDeleteEntry: PendingDeleteEntry | null;
+  activeEdit: GanttActiveEdit | null;
 
   toggleRow: (index: number) => void;
   setPendingDeleteEntry: (entry: PendingDeleteEntry) => void;
   clearPendingDeleteEntry: () => void;
+  setActiveEdit: (actions: GanttActiveEdit) => void;
+  clearActiveEdit: (actions: GanttActiveEdit) => void;
   setHeaderWidth: (width: number) => void;
   setContainerWidth: (width: number) => void;
   setResizeHandleActive: (active: boolean) => void;
@@ -285,6 +293,7 @@ export const createGanttStore = (initProps: GanttProps) => {
     containerWidth,
     resizeHandleActive: false,
     pendingDeleteEntry: null,
+    activeEdit: null,
 
     toggleRow: (index) =>
       set((state) => {
@@ -307,6 +316,16 @@ export const createGanttStore = (initProps: GanttProps) => {
 
     setPendingDeleteEntry: (entry) => set({ pendingDeleteEntry: entry }),
     clearPendingDeleteEntry: () => set({ pendingDeleteEntry: null }),
+
+    setActiveEdit: (actions) =>
+      set((state) =>
+        state.activeEdit === actions ? state : { activeEdit: actions },
+      ),
+
+    clearActiveEdit: (actions) =>
+      set((state) =>
+        state.activeEdit === actions ? { activeEdit: null } : state,
+      ),
 
     startResize: (startX) => {
       const startWidth = get().headerWidth;

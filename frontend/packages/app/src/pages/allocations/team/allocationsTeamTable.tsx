@@ -30,6 +30,10 @@ import { InfiniteScroll } from "@/components/infiniteScroll";
 import { useDesignationLookup } from "@/hooks/useDesignationLookup";
 import { isWeekendEntryAllowed } from "@/lib/utils";
 import { useAllocationOutletContext } from "@/pages/allocations/allocationOutletContext";
+import {
+  useGuardedAction,
+  useUnsavedChangesSource,
+} from "@/pages/allocations/unsavedChanges/useUnsavedChanges";
 import { useUser } from "@/providers/user";
 import { useAllocationsTeam } from "./context";
 import {
@@ -71,6 +75,9 @@ export const AllocationsTeamTable = () => {
   const handleToday = useAllocationsTeam(({ actions }) => actions.handleToday);
   const handleNext = useAllocationsTeam(({ actions }) => actions.handleNext);
 
+  const guard = useGuardedAction();
+  const ganttRef = useUnsavedChangesSource();
+
   const { hasRoleAccess } = useUser(({ state }) => ({
     hasRoleAccess: state.hasRoleAccess,
   }));
@@ -111,7 +118,7 @@ export const AllocationsTeamTable = () => {
         <div className="flex flex-wrap gap-2">
           <TextInput
             placeholder="Search members"
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={(e) => guard(() => setSearch(e.target.value))}
             value={searchInput}
           />
           <Autocomplete
@@ -125,11 +132,13 @@ export const AllocationsTeamTable = () => {
             open={isDesignationOpen}
             searchValue={designationQuery}
             loading={isDesignationLookupLoading}
-            onOpenChange={setIsDesignationOpen}
+            onOpenChange={(value) => guard(() => setIsDesignationOpen(value))}
             onSearchChange={setDesignationQuery}
-            onChange={(value) => {
-              setDesignation(Array.isArray(value) ? value.map(String) : []);
-            }}
+            onChange={(value) =>
+              guard(() =>
+                setDesignation(Array.isArray(value) ? value.map(String) : []),
+              )
+            }
             renderFooter={({ clearAll, selectedOption }) => {
               const hasSelectedDesignation = Array.isArray(selectedOption)
                 ? selectedOption.length > 0
@@ -174,7 +183,9 @@ export const AllocationsTeamTable = () => {
             options={durationOptions}
             value={duration}
             onChange={(value) =>
-              setDuration((value || "this-quarter") as typeof duration)
+              guard(() =>
+                setDuration((value || "this-quarter") as typeof duration),
+              )
             }
           />
           <Select
@@ -192,16 +203,20 @@ export const AllocationsTeamTable = () => {
               icon={() => (
                 <SmallLeftChevron className="size-4 text-ink-gray-9" />
               )}
-              onClick={handlePrevious}
+              onClick={() => guard(handlePrevious)}
               aria-label={navigationButtonAriaLabels["previous"][duration]}
             />
-            <Button variant="ghost" label="Today" onClick={handleToday} />
+            <Button
+              variant="ghost"
+              label="Today"
+              onClick={() => guard(handleToday)}
+            />
             <Button
               variant="ghost"
               icon={() => (
                 <SmallRightChevron className="size-4 text-ink-gray-9" />
               )}
-              onClick={handleNext}
+              onClick={() => guard(handleNext)}
               aria-label={navigationButtonAriaLabels["next"][duration]}
             />
           </div>
@@ -234,6 +249,7 @@ export const AllocationsTeamTable = () => {
             count={ALLOCATIONS_PAGE_SIZE}
           >
             <GanttGrid
+              ref={ganttRef}
               variant="team"
               startDate={anchorDate}
               members={members}

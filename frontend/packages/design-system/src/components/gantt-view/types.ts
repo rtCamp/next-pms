@@ -98,6 +98,15 @@ export interface AllocationCallbackData {
   note?: string;
 }
 
+export interface GanttGridHandle {
+  /** True when there is an in-progress, unsaved allocation edit or draft bar. */
+  hasUnsavedChanges: () => boolean;
+  /** Trigger the currently-active edit's save path. */
+  saveChanges: () => void;
+  /** Trigger the currently-active edit's discard path. */
+  discardChanges: () => void;
+}
+
 export interface GanttGridProps {
   /** Any date within the first week to display. */
   startDate: Date;
