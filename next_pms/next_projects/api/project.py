@@ -380,6 +380,7 @@ def _get_project_members(project_name: str, currency: str) -> list[dict]:
             "company_email": emp.company_email if emp else None,
             "linkedin_url": emp.custom_linkedin if emp else None,
             "hourly_rate": _hourly_rate(emp.name if emp else None),
+            "currency": currency if emp else None,
         }
         for uid in user_ids
         if uid in user_map
