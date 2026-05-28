@@ -52,6 +52,7 @@ function GanttMemberHoverCard({ member }: GanttMemberHoverCardProps) {
             href={`/desk/employee/${encodeURIComponent(member.id)}`}
             target="_blank"
             rel="noreferrer"
+            aria-label="Open employee"
             className="ml-2 shrink-0 text-ink-gray-8 hover:text-ink-gray-9"
             onClick={(e) => e.stopPropagation()}
           >

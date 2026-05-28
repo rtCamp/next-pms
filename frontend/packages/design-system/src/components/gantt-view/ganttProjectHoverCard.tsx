@@ -46,6 +46,7 @@ function GanttProjectHoverCard({ project }: GanttProjectHoverCardProps) {
             href={`/next-pms/projects/${encodeURIComponent(project.id)}`}
             target="_blank"
             rel="noreferrer"
+            aria-label="Open project"
             className="shrink-0 text-ink-gray-6 hover:text-ink-gray-9"
             onClick={(event) => event.stopPropagation()}
           >
