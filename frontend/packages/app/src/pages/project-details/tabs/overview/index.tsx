@@ -135,6 +135,7 @@ function OverviewForm() {
               variant="subtle"
               onClick={() => {
                 resetForm();
+                setIsEditing(false);
               }}
               disabled={submitting}
             >
