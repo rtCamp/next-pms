@@ -1,8 +1,10 @@
 /**
  * External dependencies.
  */
+import { useMemo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import type { FilterCondition } from "@rtcamp/frappe-ui-react";
+import { useFrappeGetDocList } from "frappe-react-sdk";
+import type { FilterCondition, FilterField } from "@rtcamp/frappe-ui-react";
 import { Dropdown, Filter } from "@rtcamp/frappe-ui-react";
 import { AddSm, SmallDown } from "@rtcamp/frappe-ui-react/icons";
 
@@ -10,7 +12,12 @@ import { AddSm, SmallDown } from "@rtcamp/frappe-ui-react/icons";
  * Internal dependencies.
  */
 import { ROUTES } from "@/lib/constant";
-import { CREATE_OPTIONS, FILTER_FIELDS } from "./constants";
+import { CREATE_OPTIONS } from "./constants";
+
+type UserOption = {
+  name: string;
+  full_name: string;
+};
 
 type NotesSubHeaderProps = {
   advanced: FilterCondition[];
@@ -24,6 +31,26 @@ export function NotesSubHeader({
   const { projectId = "" } = useParams<{ projectId: string }>();
   const navigate = useNavigate();
 
+  const { data: users } = useFrappeGetDocList<UserOption>("User", {
+    fields: ["name", "full_name"],
+    limit: 0,
+  });
+
+  const fields = useMemo<FilterField[]>(
+    () => [
+      {
+        name: "author",
+        label: "Author",
+        type: "select",
+        options: (users ?? []).map((u) => ({
+          label: u.full_name || u.name,
+          value: u.name,
+        })),
+      },
+    ],
+    [users],
+  );
+
   return (
     <div className="flex items-center justify-between gap-8">
       <h2 className="text-xl font-semibold text-ink-gray-7">Notes</h2>
@@ -32,7 +59,7 @@ export function NotesSubHeader({
           align="end"
           value={advanced}
           onChange={onAdvancedChange}
-          fields={FILTER_FIELDS}
+          fields={fields}
         />
         <Dropdown
           placement="right"
