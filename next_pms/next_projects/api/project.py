@@ -6,11 +6,18 @@ from typing import Literal
 
 import frappe
 from frappe import get_list, only_for, whitelist
-from frappe.query_builder.functions import Coalesce, Sum
+from frappe.query_builder.functions import Coalesce, Count, Sum
 from frappe.utils import cint, flt, getdate, today
 
 from next_pms.api.utils import error_logger
-from next_pms.next_projects.api.constant import ALLOWED_ROLES, KANBAN_VIEW_FIELDS, LIST_VIEW_FIELDS
+from next_pms.next_projects.api.constant import (
+    ALLOWED_ROLES,
+    KANBAN_VIEW_FIELDS,
+    LIST_VIEW_FIELDS,
+    TASK_TRACKING_COMPLETED_STATUS,
+    TASK_TRACKING_OPEN_STATUSES,
+    TASK_TRACKING_TOTAL_STATUSES,
+)
 from next_pms.next_projects.api.utils import build_person_data, get_user_image_map
 from next_pms.timesheet.api import get_count
 
@@ -392,6 +399,192 @@ def _get_project_customers(project_doc) -> list[dict]:
         for name in contact_names
         if name in contact_map
     ]
+
+
+def _get_invoice_burn(project_name: str) -> dict:
+    """
+    Aggregate paid and unpaid amounts from submitted Sales Invoices in company currency.
+
+    Parameters
+    ----------
+    project_name : str
+        The name of the Project document.
+
+    Returns
+    -------
+    dict
+        currency : str or None
+            Company default currency for the project. None when the project has no company.
+        invoiced_and_paid : float
+            Sum of (base_grand_total - outstanding in base) across submitted invoices.
+        invoiced_but_not_paid : float
+            Sum of outstanding_amount * conversion_rate across submitted invoices.
+    """
+    company = frappe.db.get_value("Project", project_name, "company")
+    currency = frappe.db.get_value("Company", company, "default_currency") if company else None
+
+    SalesInvoice = frappe.qb.DocType("Sales Invoice")
+    base_outstanding = (
+        SalesInvoice.outstanding_amount * SalesInvoice.conversion_rate
+    )  # since base_outstanding may not be in company currency
+    rows = (
+        frappe.qb.from_(SalesInvoice)
+        .select(
+            Coalesce(Sum(SalesInvoice.base_grand_total - base_outstanding), 0).as_("paid"),
+            Coalesce(Sum(base_outstanding), 0).as_("unpaid"),
+        )
+        .where(SalesInvoice.project == project_name)
+        .where(SalesInvoice.docstatus == 1)
+        .run(as_dict=True)
+    )
+
+    row = rows[0] if rows else {}
+    return {
+        "currency": currency,
+        "invoiced_and_paid": flt(row.get("paid")),
+        "invoiced_but_not_paid": flt(row.get("unpaid")),
+    }
+
+
+def _get_task_counts(project_name: str) -> dict:
+    """
+    Count tasks for a project by tracking-relevant statuses.
+
+    Parameters
+    ----------
+    project_name : str
+        The name of the Project document.
+
+    Returns
+    -------
+    dict
+        total : int
+            Open, Working, Pending Review, Overdue, and Completed tasks.
+        open : int
+            Open, Working, Pending Review, and Overdue tasks.
+        completed : int
+            Completed tasks only. Template and Cancelled are excluded from all counts.
+    """
+    Task = frappe.qb.DocType("Task")
+    rows = (
+        frappe.qb.from_(Task)
+        .select(Task.status, Count("*").as_("count"))
+        .where(Task.project == project_name)
+        .where(Task.status.isin(TASK_TRACKING_TOTAL_STATUSES))
+        .groupby(Task.status)
+        .run(as_dict=True)
+    )
+
+    total = 0
+    open_count = 0
+    completed = 0
+    for row in rows:
+        total += row.count
+        if row.status == TASK_TRACKING_COMPLETED_STATUS:
+            completed += row.count
+        elif row.status in TASK_TRACKING_OPEN_STATUSES:
+            open_count += row.count
+
+    return {
+        "total": total,
+        "open": open_count,
+        "completed": completed,
+    }
+
+
+@whitelist(methods=["GET"])
+@error_logger
+def get_project_tracking(project: str):
+    """
+    Return tracking data for a project.
+
+    Parameters
+    ----------
+    project : str
+        The name of the Project document.
+
+    Returns
+    -------
+    dict
+        company : str
+            Company linked to the project.
+        billing_type : str
+            One of Non-Billable, Fixed Cost, Retainer, Time and Material.
+        currency : str
+            Project currency code.
+        hours_utilised : float
+            Total hours logged via Timesheets.
+        hours_remaining : float or None
+            Remaining hours from Project Budget pool. None for Non-Billable and T&M.
+        tasks : dict
+            total, open, completed task counts.
+        invoice_burn : dict
+            currency (company default), invoiced_and_paid, invoiced_but_not_paid,
+            total_project_amount. Omitted for Non-Billable projects.
+        contracts : list of dict or None
+            Project Budget rows. None for Non-Billable and T&M.
+        project_rates : list of dict or None
+            Project Billing Team rows. None unless T&M.
+    """
+    only_for(ALLOWED_ROLES, message=True)
+
+    if not project:
+        frappe.throw(frappe._("Project is required"), frappe.MandatoryError)
+
+    if not frappe.db.exists("Project", project):
+        frappe.throw(frappe._("Project '{0}' does not exist").format(project), frappe.DoesNotExistError)
+
+    project_doc = frappe.get_doc("Project", project)
+    billing_type = project_doc.get("custom_billing_type")
+
+    is_billable = billing_type != "Non-Billable"
+    has_hours_pool = billing_type in ("Fixed Cost", "Retainer")
+    is_time_and_material = billing_type == "Time and Material"
+
+    invoice_burn = _get_invoice_burn(project) if is_billable else None
+    task_counts = _get_task_counts(project)
+
+    contracts = None
+    if has_hours_pool:
+        contracts = [
+            {
+                "start_date": row.start_date,
+                "end_date": row.end_date,
+                "hours_purchased": flt(row.hours_purchased),
+                "consumed_hours": flt(row.consumed_hours),
+                "remaining_hours": flt(row.remaining_hours),
+                "sales_order": row.sales_order,
+                "sales_invoice": row.sales_invoice,
+            }
+            for row in (project_doc.get("custom_project_budget_hours") or [])
+        ]
+
+    project_rates = None
+    if is_time_and_material:
+        project_rates = [
+            {
+                "employee": row.employee,
+                "employee_name": row.user_name,
+                "hourly_billing_rate": flt(row.hourly_billing_rate),
+                "valid_from": row.valid_from,
+            }
+            for row in (project_doc.get("custom_project_billing_team") or [])
+        ]
+
+    return {
+        "company": project_doc.company,
+        "billing_type": billing_type,
+        "currency": project_doc.get("custom_currency"),
+        "hours_utilised": flt(project_doc.actual_time),
+        "hours_remaining": flt(project_doc.get("custom_total_hours_remaining")) if has_hours_pool else None,
+        "tasks": task_counts,
+        "invoice_burn": {
+            **(invoice_burn or {}),
+            "total_project_amount": flt(project_doc.total_sales_amount) if is_billable else None,
+        },
+        "contracts": contracts,
+        "project_rates": project_rates,
+    }
 
 
 @whitelist(methods=["GET"])
