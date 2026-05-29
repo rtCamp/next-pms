@@ -1,4 +1,3 @@
-import type { ReactFormExtendedApi } from "@tanstack/react-form";
 import { z } from "zod";
 
 export const overviewSchema = z.object({
@@ -18,18 +17,3 @@ export const overviewSchema = z.object({
 });
 
 export type OverviewFormValues = z.infer<typeof overviewSchema>;
-
-export type OverviewFormApi = ReactFormExtendedApi<
-  OverviewFormValues,
-  undefined,
-  undefined,
-  undefined,
-  undefined,
-  undefined,
-  typeof overviewSchema,
-  undefined,
-  undefined,
-  undefined,
-  undefined,
-  unknown
->;

@@ -27,7 +27,12 @@ import { Specifics } from "./sections/specifics";
 
 export type { OverviewFormValues };
 
-const toBoolStr = (value: 0 | 1 | undefined) => (value === 1 ? "1" : "0");
+const toBoolStr = (value: 0 | 1 | undefined) => {
+  if (value === undefined) {
+    return "";
+  }
+  return value === 1 ? "1" : "0";
+};
 
 const useOverviewForm = (
   defaultValues: OverviewFormValues,
@@ -123,7 +128,7 @@ function OverviewForm() {
 
   const resetForm = useCallback(() => {
     form.reset(defaultValues);
-  }, [defaultValues]);
+  }, [form, defaultValues]);
 
   return (
     <div className="flex flex-col gap-6">

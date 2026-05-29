@@ -24,14 +24,14 @@ const PRIORITY_OPTIONS = [
 ];
 
 const COMPLEXITY_OPTIONS = [
-  { label: "EMPTY", value: "" },
+  { label: EMPTY, value: "" },
   { label: "C1", value: "C1" },
   { label: "C2", value: "C2" },
   { label: "C3", value: "C3" },
 ];
 
 const KEY_ACCOUNT_OPTIONS = [
-  { label: "EMPTY", value: "" },
+  { label: EMPTY, value: "" },
   { label: "Yes", value: "Yes" },
   { label: "No", value: "No" },
 ];
