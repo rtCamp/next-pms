@@ -372,6 +372,7 @@ def _get_project_members(project_name: str, currency: str) -> list[dict]:
     return [
         {
             "user": uid,
+            "employee": employee_map[uid].name,
             "full_name": user_map[uid].full_name or "",
             "image": user_map[uid].user_image,
             "designation": emp.designation if (emp := employee_map.get(uid)) else None,

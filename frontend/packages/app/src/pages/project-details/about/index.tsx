@@ -1,7 +1,7 @@
 /**
  * External dependencies.
  */
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
 import { Accordion } from "@base-ui/react/accordion";
 import { mergeClassNames } from "@next-pms/design-system";
@@ -22,6 +22,8 @@ import { currencyFormat, pickAllowed, toKebabCase } from "@/lib/utils";
 import { RAG_STATUS } from "@/pages/projects/constants";
 import { Dot } from "@/pages/projects/list/cells/dot";
 import { RagStatus } from "@/pages/projects/types";
+import { AddCustomerModal } from "./components/addCustomerModal";
+import { AddMemberModal } from "./components/addMemberModal";
 import { BudgetBurnBar } from "./components/budgetBurnBar";
 import { CustomerRow } from "./components/customerRow";
 import { ExpandableList } from "./components/expandableList";
@@ -54,13 +56,16 @@ const DEFAULT_SIDEBAR: ProjectSidebar = {
 
 export function AboutThisProject({ className }: { className: string }) {
   const { projectId = "" } = useParams<{ projectId: string }>();
+  const [addMemberOpen, setAddMemberOpen] = useState(false);
+  const [addCustomerOpen, setAddCustomerOpen] = useState(false);
 
-  const { data } = useFrappeGetCall<ProjectSidebarResponse>(
-    "next_pms.next_projects.api.project.get_project_sidebar",
-    {
-      project: projectId,
-    },
-  );
+  const { data, mutate: mutateSidebar } =
+    useFrappeGetCall<ProjectSidebarResponse>(
+      "next_pms.next_projects.api.project.get_project_sidebar",
+      {
+        project: projectId,
+      },
+    );
 
   const sidebar = data?.message || DEFAULT_SIDEBAR;
 
@@ -71,10 +76,47 @@ export function AboutThisProject({ className }: { className: string }) {
     ),
   );
 
+  const updateContacts = useProjectDetail((state) => state.updateContacts);
+  const addMember = useProjectDetail((state) => state.addMember);
+  const removeMember = useProjectDetail((state) => state.removeMember);
+
+  const currentMemberUserIds = useMemo(
+    () => sidebar.members.map((m) => m.user),
+    [sidebar.members],
+  );
+
+  const handleAddMember = async (userId: string) => {
+    if (currentMemberUserIds.includes(userId)) return;
+    await addMember(userId);
+    mutateSidebar();
+  };
+
+  const handleRemoveMember = async (userId: string) => {
+    await removeMember(userId);
+    mutateSidebar();
+  };
+
+  const currentContactIds = useMemo(
+    () => sidebar.customers.map((c) => c.contact),
+    [sidebar.customers],
+  );
+
+  const handleAddCustomer = async (contactId: string) => {
+    if (currentContactIds.includes(contactId)) return;
+    await updateContacts([...currentContactIds, contactId]);
+    mutateSidebar();
+  };
+
+  const handleRemoveCustomer = async (contactId: string) => {
+    await updateContacts(currentContactIds.filter((id) => id !== contactId));
+    mutateSidebar();
+  };
+
   const members = useMemo<AboutMember[]>(
     () =>
       sidebar.members.map((m) => ({
         name: m.full_name,
+        employee: m.employee,
         email: m.user,
         designation: m.designation ?? "",
         department: m.department ?? undefined,
@@ -236,9 +278,7 @@ export function AboutThisProject({ className }: { className: string }) {
             <Button
               icon={AddSm}
               aria-label="Add member"
-              onClick={() => {
-                // @todo: open the Add member flow once that's wired (Issue #1227 AC: TBD).
-              }}
+              onClick={() => setAddMemberOpen(true)}
             />
           }
         >
@@ -257,9 +297,7 @@ export function AboutThisProject({ className }: { className: string }) {
             <Button
               icon={AddSm}
               aria-label="Add customer"
-              onClick={() => {
-                // @todo: open the Add customer flow once that's wired (Issue #1227 AC: TBD).
-              }}
+              onClick={() => setAddCustomerOpen(true)}
             />
           }
         >
@@ -271,6 +309,21 @@ export function AboutThisProject({ className }: { className: string }) {
           />
         </Section>
       </Accordion.Root>
+      <AddMemberModal
+        open={addMemberOpen}
+        onOpenChange={setAddMemberOpen}
+        currentMemberIds={currentMemberUserIds}
+        onAdd={handleAddMember}
+        onRemove={handleRemoveMember}
+      />
+      <AddCustomerModal
+        open={addCustomerOpen}
+        onOpenChange={setAddCustomerOpen}
+        customer={sidebar.details.customer ?? ""}
+        currentCustomerIds={currentContactIds}
+        onAdd={handleAddCustomer}
+        onRemove={handleRemoveCustomer}
+      />
     </section>
   );
 }

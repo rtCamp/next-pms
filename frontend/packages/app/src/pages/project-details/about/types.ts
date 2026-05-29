@@ -23,6 +23,7 @@ export type ProjectLink = {
 
 export type AboutMember = {
   name: string;
+  employee: string;
   email: string;
   designation: string;
   department?: string;
@@ -92,6 +93,7 @@ export type ProjectSidebar = {
   };
   members: Array<{
     user: string;
+    employee: string;
     full_name: string;
     image: string | null;
     designation: string | null;
