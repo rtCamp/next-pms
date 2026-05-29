@@ -1,14 +1,7 @@
 /**
  * External dependencies.
  */
-import { useMemo } from "react";
-import {
-  differenceInDays,
-  endOfISOWeek,
-  endOfMonth,
-  format,
-  startOfISOWeek,
-} from "date-fns";
+import { endOfISOWeek, endOfMonth, format, startOfISOWeek } from "date-fns";
 import { useFrappeGetCall } from "frappe-react-sdk";
 
 /**
@@ -75,7 +68,6 @@ export function useProjectTimelineItems(
   // Fetch window: ISO week containing the 1st → ISO week containing the last day of the month
   const viewStart = startOfISOWeek(new Date(year, month, 1));
   const viewEnd = endOfISOWeek(endOfMonth(new Date(year, month, 1)));
-  const weeksCount = Math.round((differenceInDays(viewEnd, viewStart) + 1) / 7);
   const startDate = format(viewStart, "yyyy-MM-dd");
   const endDate = format(viewEnd, "yyyy-MM-dd");
 
@@ -86,7 +78,7 @@ export function useProjectTimelineItems(
     {
       project: projectId,
       start_date: startDate,
-      max_week: weeksCount,
+      end_date: endDate,
       limit: ITEMS_LIMIT,
       start: 0,
     },
@@ -97,28 +89,11 @@ export function useProjectTimelineItems(
     },
   );
 
-  const { items, monthItems } = useMemo(() => {
-    const allItems = (data?.message?.data ?? [])
-      .filter((item) =>
-        item.type === "Milestone"
-          ? item.start_date !== null
-          : item.planned_end_date !== null,
-      )
-      .map(mapItem);
+  const allItems = (data?.message?.data ?? [])
+    .filter(
+      (item) => item.start_date !== null && item.planned_end_date !== null,
+    )
+    .map(mapItem);
 
-    // Milestones are positioned by start_date; touchpoints by planned_end_date.
-    const viewItems = allItems.filter((item) =>
-      item.type === "Milestone"
-        ? item.startDate !== undefined &&
-          item.startDate >= startDate &&
-          item.startDate <= endDate
-        : item.plannedEndDate !== undefined &&
-          item.plannedEndDate >= startDate &&
-          item.plannedEndDate <= endDate,
-    );
-
-    return { items: viewItems, monthItems: viewItems };
-  }, [data, startDate, endDate]);
-
-  return { items, monthItems, isLoading, error, mutate };
+  return { items: allItems, isLoading, error, mutate };
 }
