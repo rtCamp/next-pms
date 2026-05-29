@@ -53,11 +53,7 @@ export function CalendarTab() {
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth();
 
-  const { items, monthItems, mutate } = useProjectTimelineItems(
-    projectId,
-    year,
-    month,
-  );
+  const { items, mutate } = useProjectTimelineItems(projectId, year, month);
 
   const filteredItems =
     filterType === "all"
@@ -185,7 +181,7 @@ export function CalendarTab() {
         <div className="overflow-x-auto">
           {tableTab === "milestones" ? (
             <MilestonesTable
-              items={monthItems}
+              items={items}
               userId={userId}
               onEdit={handleEdit}
               onMarkAsCompleted={handleMarkAsCompleted}
@@ -193,7 +189,7 @@ export function CalendarTab() {
             />
           ) : (
             <TouchpointsTable
-              items={monthItems}
+              items={items}
               userId={userId}
               onEdit={handleEdit}
               onMarkAsCompleted={handleMarkAsCompleted}
