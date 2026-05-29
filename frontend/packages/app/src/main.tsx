@@ -20,6 +20,7 @@ if (import.meta.env.DEV) {
       const v = JSON.parse(values.message);
       if (!window.frappe) window.frappe = {};
       window.frappe.boot = v;
+      console.log(window.frappe.boot);
     })
     .finally(() => {
       ReactDOM.createRoot(document.getElementById("root")!).render(
