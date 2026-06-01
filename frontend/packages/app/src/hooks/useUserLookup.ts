@@ -41,7 +41,6 @@ export const useUserLookup = ({
     query,
     pageSize,
     revalidateOnFocus,
-    method: "frappe.client.get_list",
     params: ({ query: searchQuery, pageSize: limit }) => ({
       doctype: "User",
       fields: ["name", "full_name", "user_image"],
