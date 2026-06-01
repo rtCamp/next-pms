@@ -12,10 +12,12 @@ import {
 /**
  * Internal dependencies.
  */
-import { CurrencyCell } from "@/pages/projects/list/cells/currencyCell";
+import { currencyFormat } from "@/lib/utils";
 import type { AboutMember } from "../types";
 
 export function MemberHoverCard({ member }: { member: AboutMember }) {
+  console.log(member);
+
   const userPath = member.email
     ? `/desk/user/${encodeURIComponent(member.email)}`
     : undefined;
@@ -60,10 +62,22 @@ export function MemberHoverCard({ member }: { member: AboutMember }) {
 
       <div className="h-px w-full bg-outline-gray-1" />
       <div className="flex flex-col gap-2.5">
+        {member.department !== undefined && (
+          <div className="flex items-center gap-2">
+            <Payments className="size-4 shrink-0 text-ink-gray-5" />
+
+            <span className="block truncate text-ink-gray-7 text-base">
+              {member.department}
+            </span>
+          </div>
+        )}
         {member.rate !== undefined && (
           <div className="flex items-center gap-2">
             <Payments className="size-4 shrink-0 text-ink-gray-5" />
-            <CurrencyCell value={member.rate} currency={member.currency} />
+
+            <span className="block truncate text-ink-gray-7 text-base">
+              {currencyFormat(member.currency).format(member.rate)}/hour
+            </span>
           </div>
         )}
         {email && (
