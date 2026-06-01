@@ -6,7 +6,6 @@ import {
   AgentAlt,
   Call,
   Email,
-  Link,
   RightChevron,
 } from "@rtcamp/frappe-ui-react/icons";
 
@@ -20,7 +19,6 @@ export function CustomerHoverCard({ customer }: { customer: AboutCustomer }) {
     { icon: AgentAlt, value: customer.company },
     { icon: Email, value: customer.email },
     { icon: Call, value: customer.phone },
-    { icon: Link, value: customer.linkedin },
   ];
 
   const hasDetails = detailRows.some((row) => row.value);
