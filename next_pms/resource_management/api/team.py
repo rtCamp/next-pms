@@ -13,6 +13,7 @@ from next_pms.resource_management.api.utils.helpers import (
     resource_api_permissions_check,
 )
 from next_pms.resource_management.api.utils.query import (
+    attach_extra_entries,
     get_allocation_list_for_employee_for_given_range,
     get_employee_leaves,
 )
@@ -306,6 +307,7 @@ def get_resource_management_team_view_data(
             "modified",
             "creation",
             "status",
+            "recurrence_id",
         ],
         "employee",
         [employee.name for employee in employees],
@@ -315,6 +317,7 @@ def get_resource_management_team_view_data(
         allocation_status=allocation_status,
         is_need_fetch_all_weeks=not need_hours_summary,
     )
+    resource_allocation_data = attach_extra_entries(resource_allocation_data)
 
     # Make the map of resource allocation data for given employee
     resource_allocation_map = {}

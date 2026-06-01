@@ -1,3 +1,4 @@
+import uuid
 from dataclasses import asdict, dataclass
 from datetime import date, timedelta
 
@@ -6,6 +7,10 @@ from frappe.automation.doctype.auto_repeat.auto_repeat import add_days
 from frappe.utils import cint, getdate
 
 from next_pms.resource_management.api.utils.helpers import resource_api_permissions_check
+from next_pms.resource_management.doctype.resource_allocation.resource_allocation import clear_cache
+
+NON_DATE_FIELDS = frozenset({"project", "customer", "is_billable", "status", "note", "hours_allocated_per_day"})
+VALID_DELETE_MODES = frozenset({"only_this", "this_and_future", "all_in_series"})
 
 
 @dataclass
@@ -116,6 +121,12 @@ def handle_allocation(allocation: AllocationPayload, repeat_till_week_count: int
     if not permission["write"]:
         return frappe.throw(frappe._("You are not allowed to perform this action."), exc=frappe.PermissionError)
 
+    if allocation.name:
+        frappe.throw(
+            frappe._("Use edit_allocation to update an existing allocation."),
+            exc=frappe.ValidationError,
+        )
+
     if allocation.include_weekends and not cint(
         frappe.db.get_single_value("Timesheet Settings", "allow_weekend_entries")
     ):
@@ -126,9 +137,6 @@ def handle_allocation(allocation: AllocationPayload, repeat_till_week_count: int
             exc=frappe.ValidationError,
         )
 
-    if allocation.name:
-        return update_allocation(allocation)
-
     return add_allocation(allocation, repeat_till_week_count)
 
 
@@ -136,6 +144,7 @@ def add_allocation(allocation: AllocationPayload, repeat_till_week_count: int = 
     """Create a new resource allocation document."""
 
     doc_data = _to_doc_dict(allocation, include_name=False)
+    recurrence_id = str(uuid.uuid4()) if repeat_till_week_count else None
 
     if not allocation.include_weekends:
         chunks = get_weekday_chunks(allocation.allocation_start_date, allocation.allocation_end_date)
@@ -164,6 +173,7 @@ def add_allocation(allocation: AllocationPayload, repeat_till_week_count: int = 
                         "allocation_start_date": chunk_start + week_delta,
                         "allocation_end_date": chunk_end + week_delta,
                         "total_allocated_hours": weekday_count * allocation.hours_allocated_per_day,
+                        **({"recurrence_id": recurrence_id} if recurrence_id else {}),
                     }
                 )
                 doc.save()
@@ -171,7 +181,7 @@ def add_allocation(allocation: AllocationPayload, repeat_till_week_count: int = 
                     first_doc = doc
         return first_doc
 
-    new_allocation = frappe.get_doc(doc_data)
+    new_allocation = frappe.get_doc({**doc_data, **({"recurrence_id": recurrence_id} if recurrence_id else {})})
     new_allocation.save()
 
     if repeat_till_week_count:
@@ -187,7 +197,7 @@ def add_allocation(allocation: AllocationPayload, repeat_till_week_count: int = 
         for _ in range(repeat_till_week_count):
             doc_data["allocation_start_date"] = add_days(doc_data["allocation_start_date"], 7)
             doc_data["allocation_end_date"] = add_days(doc_data["allocation_end_date"], 7)
-            frappe.get_doc(dict(doc_data)).save()
+            frappe.get_doc({**doc_data, "recurrence_id": recurrence_id}).save()
 
     return new_allocation
 
@@ -241,3 +251,157 @@ def update_allocation(allocation: AllocationPayload):
     allocation_doc.update(doc_data)
     allocation_doc.save()
     return allocation_doc
+
+
+def upsert_day_override(doc_name: str, override_date: str, override_fields: dict):
+    """Add or update a single day override row on a Resource Allocation doc.
+
+    If a row already exists for the given date it is updated in-place; otherwise
+    a new row is appended and the parent doc is saved.
+
+    Args:
+        doc_name (str): Name of the Resource Allocation document.
+        override_date (str): The specific date to override (``"YYYY-MM-DD"``).
+        override_fields (dict): Fields to set on the row, e.g. ``{"cancelled": 1}``
+                                or ``{"hours": 4.0}``.
+    """
+    existing_row = frappe.db.get_value(
+        "Resource Allocation Extra Entry",
+        {"parent": doc_name, "parenttype": "Resource Allocation", "date": override_date},
+        "name",
+    )
+    if existing_row:
+        frappe.db.set_value("Resource Allocation Extra Entry", existing_row, override_fields)
+        clear_cache()  # set_value bypasses on_update, so invalidate manually
+    else:
+        doc = frappe.get_doc("Resource Allocation", doc_name)
+        doc.append("override", {"date": override_date, **override_fields})
+        doc.save()
+
+
+@frappe.whitelist(methods=["POST"])
+def edit_allocation(name: str, edit_mode: str, allocation: AllocationPayload, day_override: dict | None = None):
+    """Edit a Resource Allocation, optionally propagating changes to all docs in the series.
+
+    Args:
+        name (str): Name of the allocation being edited.
+        edit_mode (str): ``"only_this"`` — update just this doc.
+                         ``"whole_series"`` — update all docs sharing the same ``recurrence_id``.
+                         ``"this_and_future"`` — used with ``day_override`` to apply a per-day
+                         change to this doc and all later docs in the series.
+        allocation (AllocationPayload): New field values (ignored when ``day_override`` is provided).
+        day_override (dict | None): Optional per-day override, e.g. ``{"date": "2025-06-05", "cancelled": 1}``
+                                    or ``{"date": "2025-06-05", "hours": 4.0}``.
+                                    When provided, ``edit_mode`` controls scope:
+                                    ``"only_this"`` — apply to this doc only.
+                                    ``"this_and_future"`` — apply to this and all later docs in the series,
+                                    targeting the same weekday in each doc's range.
+    """
+    permission = resource_api_permissions_check()
+    if not permission["write"]:
+        frappe.throw(frappe._("You are not allowed to perform this action."), exc=frappe.PermissionError)
+
+    if day_override:
+        override_date = getdate(day_override.get("date"))
+        override_fields = {k: v for k, v in day_override.items() if k != "date"}
+
+        if edit_mode == "this_and_future":
+            recurrence_id, this_start = frappe.db.get_value(
+                "Resource Allocation", name, ["recurrence_id", "allocation_start_date"]
+            )
+            if recurrence_id:
+                series = frappe.get_all(
+                    "Resource Allocation",
+                    filters={"recurrence_id": recurrence_id, "allocation_start_date": [">=", this_start]},
+                    fields=["name", "allocation_start_date", "allocation_end_date"],
+                )
+                target_weekday = override_date.weekday()
+                for series_doc in series:
+                    doc_start = getdate(series_doc.allocation_start_date)
+                    doc_end = getdate(series_doc.allocation_end_date)
+                    offset = (target_weekday - doc_start.weekday()) % 7
+                    target_date = doc_start + timedelta(days=offset)
+                    if target_date <= doc_end:
+                        upsert_day_override(series_doc.name, str(target_date), override_fields)
+                return {"success": True}
+
+        upsert_day_override(name, str(override_date), override_fields)
+        return {"success": True}
+
+    allocation.name = name
+
+    if edit_mode == "whole_series":
+        recurrence_id = frappe.db.get_value("Resource Allocation", name, "recurrence_id")
+        if recurrence_id:
+            series = frappe.get_all(
+                "Resource Allocation",
+                filters={"recurrence_id": recurrence_id},
+                fields=["name", "allocation_start_date", "allocation_end_date"],
+            )
+            update_fields = {k: v for k, v in asdict(allocation).items() if k in NON_DATE_FIELDS and v is not None}
+            for series_doc_meta in series:
+                series_doc = frappe.get_doc("Resource Allocation", series_doc_meta.name)
+                day_count = (
+                    getdate(series_doc_meta.allocation_end_date) - getdate(series_doc_meta.allocation_start_date)
+                ).days + 1
+                series_doc.update(
+                    {
+                        **update_fields,
+                        "total_allocated_hours": update_fields.get(
+                            "hours_allocated_per_day", series_doc.hours_allocated_per_day
+                        )
+                        * day_count,
+                    }
+                )
+                series_doc.save()
+            return frappe.get_doc("Resource Allocation", name)
+
+    return update_allocation(allocation)
+
+
+@frappe.whitelist(methods=["POST"])
+def delete_allocation(name: str, delete_mode: str):
+    """Delete a Resource Allocation, optionally deleting all or future docs in the series.
+
+    Args:
+        name (str): Name of the allocation to delete.
+        delete_mode (str): ``"only_this"`` — delete just this doc.
+                           ``"this_and_future"`` — delete this doc and all later docs in the series.
+                           ``"all_in_series"`` — delete every doc sharing the same ``recurrence_id``.
+    """
+    permission = resource_api_permissions_check()
+    if not permission["write"]:
+        frappe.throw(frappe._("You are not allowed to perform this action."), exc=frappe.PermissionError)
+
+    if delete_mode not in VALID_DELETE_MODES:
+        frappe.throw(
+            frappe._("Invalid delete_mode '{0}'. Allowed values: {1}.").format(
+                delete_mode, ", ".join(sorted(VALID_DELETE_MODES))
+            ),
+            exc=frappe.ValidationError,
+        )
+
+    if not frappe.db.exists("Resource Allocation", name):
+        frappe.throw(
+            frappe._("Resource Allocation {0} does not exist.").format(name),
+            exc=frappe.DoesNotExistError,
+        )
+
+    if delete_mode == "only_this":
+        frappe.delete_doc("Resource Allocation", name)
+        return {"success": True}
+
+    recurrence_id = frappe.db.get_value("Resource Allocation", name, "recurrence_id")
+    if not recurrence_id:
+        frappe.delete_doc("Resource Allocation", name)
+        return {"success": True}
+
+    filters = {"recurrence_id": recurrence_id}
+    if delete_mode == "this_and_future":
+        this_start = frappe.db.get_value("Resource Allocation", name, "allocation_start_date")
+        filters["allocation_start_date"] = [">=", this_start]
+
+    names = frappe.db.get_all("Resource Allocation", filters=filters, pluck="name")
+    for doc_name in names:
+        frappe.delete_doc("Resource Allocation", doc_name)
+    return {"success": True}
