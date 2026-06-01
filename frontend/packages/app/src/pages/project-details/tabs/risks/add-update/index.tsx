@@ -15,6 +15,7 @@ import { FrappeError, useFrappeUpdateDoc } from "frappe-react-sdk";
 /**
  * Internal dependencies.
  */
+import { stripTags } from "@/lib/utils";
 import { RISK_LEVELS, RISK_STATUSES } from "../constants";
 import { RiskStatusBadge } from "../riskStatusBadge";
 import { addUpdateSchema } from "./schema";
@@ -123,7 +124,7 @@ export function AddUpdateModal({
         "risk_level",
         (editEntry.risk_level as string | null) ?? null,
       );
-      form.setFieldValue("note", editEntry.note ?? "");
+      form.setFieldValue("note", stripTags(editEntry.note ?? ""));
     } else {
       form.setFieldValue("status", (risk.status as string | null) ?? null);
       form.setFieldValue(
