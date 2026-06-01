@@ -46,7 +46,7 @@ function ProjectDetail() {
             tabIndex={activeTab}
             onTabChange={handleTabChange}
           />
-          <AboutThisProject className="w-88" />
+          <AboutThisProject className="w-1/4" />
         </div>
       </div>
     </ProjectDetailProvider>
