@@ -43,14 +43,14 @@ export function AddMemberModal({
     (id: string) => {
       onAdd?.(id);
     },
-    [currentMemberIds, onAdd],
+    [onAdd],
   );
 
   const handleRemove = useCallback(
     (id: string) => {
       onRemove?.(id);
     },
-    [currentMemberIds, onRemove],
+    [onRemove],
   );
 
   return (
