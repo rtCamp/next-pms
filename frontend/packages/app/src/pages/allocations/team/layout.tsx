@@ -12,6 +12,7 @@ import { Header } from "@/layout/header";
 import { AllocationsBreadcrumbs } from "@/pages/allocations/components/allocationsBreadcrumbs";
 import AddAllocationModal from "@/pages/allocations/team/add-allocation";
 import { AllocationsTeamProvider } from "@/pages/allocations/team/provider";
+import { UnsavedChangesProvider } from "@/pages/allocations/unsavedChanges/UnsavedChangesProvider";
 import { useAllocationModal } from "@/pages/allocations/useAllocationModal";
 import { useUser } from "@/providers/user";
 import { useAllocationsTeam } from "./context";
@@ -48,9 +49,11 @@ function AllocationsTeamLayoutContent() {
 
 function AllocationsTeamLayout() {
   return (
-    <AllocationsTeamProvider>
-      <AllocationsTeamLayoutContent />
-    </AllocationsTeamProvider>
+    <UnsavedChangesProvider>
+      <AllocationsTeamProvider>
+        <AllocationsTeamLayoutContent />
+      </AllocationsTeamProvider>
+    </UnsavedChangesProvider>
   );
 }
 

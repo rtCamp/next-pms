@@ -23,6 +23,7 @@ export interface RisksContextProps {
     updateRiskStatus: (name: string, status: RiskStatus) => Promise<void>;
     openCreateRisk: () => void;
     openRowActions: (name: string) => void;
+    openRiskDetail: (name: string) => void;
   };
 }
 
@@ -51,6 +52,7 @@ export const RisksContext = createContext<RisksContextProps>({
     updateRiskStatus: async () => {},
     openCreateRisk: noop,
     openRowActions: noop,
+    openRiskDetail: noop,
   },
 });
 

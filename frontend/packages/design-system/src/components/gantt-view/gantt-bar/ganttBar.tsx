@@ -68,6 +68,7 @@ interface GanttBarProps
   theme?: "default" | "crosshatch";
   billable?: boolean;
   className?: string;
+  showOutline?: boolean;
   resizable?: boolean;
   snapUnitPx?: number;
   minLeft?: number;
@@ -89,6 +90,7 @@ export const GanttBar = React.forwardRef<HTMLDivElement, GanttBarProps>(
       theme = "default",
       billable,
       className,
+      showOutline = false,
       resizable = false,
       snapUnitPx,
       minLeft,
@@ -132,6 +134,7 @@ export const GanttBar = React.forwardRef<HTMLDivElement, GanttBarProps>(
         data-gantt-bar="true"
         className={cn(
           ganttBarVariants({ variant }),
+          isInteracting && "z-5",
           showPointerCursor && "cursor-pointer",
           className,
         )}
@@ -143,7 +146,6 @@ export const GanttBar = React.forwardRef<HTMLDivElement, GanttBarProps>(
           width: Math.max(liveWidth - BAR_MARGIN, 0),
           height: BAR_HEIGHT,
           top: (CELL_HEIGHT - BAR_HEIGHT) / 2,
-          zIndex: isInteracting ? 5 : style?.zIndex,
         }}
       >
         {!isTimeoff && variant !== "draft" && isCrosshatch && (
@@ -203,17 +205,18 @@ export const GanttBar = React.forwardRef<HTMLDivElement, GanttBarProps>(
                 </span>
               </>
             ) : null}
-            {renderFloatingLabel ? (
-              <span className="pointer-events-none absolute right-0 top-full mt-1 pr-2 whitespace-nowrap text-[13px] font-medium text-ink-gray-6">
-                {renderFloatingLabel({
+            {renderFloatingLabel
+              ? renderFloatingLabel({
                   isInteracting,
                   liveLeft,
                   liveWidth,
-                })}
-              </span>
-            ) : null}
+                })
+              : null}
           </>
         )}
+        {showOutline ? (
+          <span className="inline-flex pointer-events-none absolute inset-0 rounded-[9px] border border-dashed border-surface-amber-3"></span>
+        ) : null}
       </div>
     );
   },
