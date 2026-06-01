@@ -43,7 +43,7 @@ export function useRiskDetail(riskId: string) {
     "User",
     {
       fields: ["name", "full_name", "user_image"],
-      filters: [["name", "in", userEmails]] as never,
+      filters: [["name", "in", userEmails]],
       limit: userEmails.length,
     },
     usersSwrKey,
@@ -55,7 +55,7 @@ export function useRiskDetail(riskId: string) {
       filters: [
         ["attached_to_doctype", "=", "Risk"],
         ["attached_to_name", "=", riskId],
-      ] as never,
+      ],
       limit: 50,
     });
 
@@ -72,7 +72,7 @@ export function useRiskDetail(riskId: string) {
     filters: [
       ["ref_doctype", "=", "Risk"],
       ["ref_docname", "=", riskId],
-    ] as never,
+    ],
     limit: 50,
   });
 
