@@ -146,7 +146,7 @@ export const GanttProjectRows: React.FC<GanttProjectRowsProps> = ({
           aria-hidden={!isExpanded}
         >
           <th
-            className="sticky left-0 z-10 bg-surface-white border-b border-r border-outline-gray-1 pl-8 pr-3 font-normal text-left align-middle flex items-center gap-2 w-full overflow-hidden transition-[height,background-color] cursor-pointer hover:bg-surface-gray-1"
+            className="sticky left-0 z-25 bg-surface-white border-b border-r border-outline-gray-1 pl-8 pr-3 font-normal text-left align-middle flex items-center gap-2 w-full overflow-hidden transition-[height,background-color] cursor-pointer hover:bg-surface-gray-1"
             style={{
               width: headerWidth,
               minWidth: headerWidth,

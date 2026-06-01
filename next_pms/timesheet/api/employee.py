@@ -39,8 +39,30 @@ def get_user_from_employee(employee: str):
 
 
 @frappe.whitelist(methods=["GET"])
-def get_employee_working_hours(employee: str = None):
-    """returns the working hours and working frequency for the given employee or current user's employee if employee is not provided"""
+def get_employee_working_hours(employee: str | None = None) -> dict:
+    """returns the working hours and working frequency for the given employee or current user's employee if employee is not provided.
+
+    Falls back in order:
+      1. Employee.custom_working_hours + Employee.custom_work_schedule
+      2. HR Settings.standard_working_hours (if custom_working_hours is unset)
+      3. 8 hours / "Per Day" (if both above are unset)
+
+    Args:
+        employee (str | None): Employee document name (e.g. "HR-EMP-00001").
+            If None or not provided, resolves to the current user's linked Employee.
+            Returns {"working_hour": 0, "working_frequency": "Per Day"} if no
+            employee can be resolved.
+
+    Returns:
+        ```py
+        >>> get_employee_working_hours("HR-EMP-00001")
+        {"working_hour": 8.0, "working_frequency": "Per Day"}
+
+        >>> get_employee_working_hours("HR-EMP-00002")
+        {"working_hour": 40.0, "working_frequency": "Per Week"}
+        # daily hours = 40.0 / 5 = 8.0
+        ```
+    """
     if not employee:
         employee = get_employee_from_user()
     if not employee:
@@ -79,16 +101,14 @@ def get_employee_weekly_working_norm(employee: str) -> int:
 @frappe.whitelist(methods=["GET"])
 def get_employee(filters: dict | str | None = None, fieldname: list | str | None = None):
     """returns the employee's information for the given filters"""
-    import json
-
     if not fieldname:
         fieldname = ["name", "employee_name", "image"]
 
     if fieldname and isinstance(fieldname, str):
-        fieldname = json.loads(fieldname)
+        fieldname = frappe.parse_json(fieldname)
 
     if filters and isinstance(filters, str):
-        filters = json.loads(filters)
+        filters = frappe.parse_json(filters)
 
     return frappe.db.get_value("Employee", filters=filters, fieldname=fieldname, as_dict=True)
 
@@ -107,14 +127,12 @@ def get_employee_list(
     ignore_default_filters: bool = False,
 ):
     """Get a paginated list of employees for the employee dropdown in the timesheet entry form, respecting user permissions."""
-    import json
-
     from . import filter_employees
 
     if roles and isinstance(roles, str):
         try:
-            roles = json.loads(roles)
-        except json.JSONDecodeError:
+            roles = frappe.parse_json(roles)
+        except (ValueError, TypeError):
             roles = None  ## useFrappeGetCall will  pass string as JSON-String if string received its better to set it to None and handle it in filter_employees function
     employees, count = filter_employees(
         employee_name=employee_name,

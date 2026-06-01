@@ -66,6 +66,12 @@ export function formatProjectDate(isoDate: string): string {
   return format(date, pattern);
 }
 
+/**
+ * Formats a given date value into a short relative time string (e.g., "now", "5min ago", "2h ago").
+ * @param value - The date value to format
+ * @param now - The current date and time (optional, defaults to now)
+ * @returns The formatted relative time string
+ */
 export function formatRelativeTimeShort(
   value: string | Date,
   now = new Date(),
@@ -678,4 +684,30 @@ export function hashString(str: string): string {
     h = (Math.imul(31, h) + str.charCodeAt(i)) | 0;
   }
   return (h >>> 0).toString(36);
+}
+
+/**
+ * Formats file size in bytes to a human-readable string.
+ * @param bytes - File size in bytes
+ * @returns Formatted file size string (e.g., "1 KB", "2 MB")
+ */
+export function formatFileSize(bytes: number): string {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${Math.round(bytes / 1024)} KB`;
+  return `${Math.round(bytes / (1024 * 1024))} MB`;
+}
+
+/**
+ * Gets the file extension from a file name.
+ * @param fileName - The name of the file
+ * @returns The file extension in uppercase (e.g., "PDF", "TXT")
+ */
+export function getFileExtension(fileName: string): string {
+  const lastDotIndex = fileName.lastIndexOf(".");
+
+  if (lastDotIndex === -1 || lastDotIndex === fileName.length - 1) {
+    return "FILE";
+  }
+
+  return fileName.slice(lastDotIndex + 1).toUpperCase();
 }

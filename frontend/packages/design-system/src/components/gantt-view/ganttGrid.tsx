@@ -2,8 +2,10 @@
  * External dependencies.
  */
 import React, {
+  forwardRef,
   useCallback,
   useEffect,
+  useImperativeHandle,
   useMemo,
   useRef,
   useState,
@@ -14,12 +16,13 @@ import React, {
  */
 import { HEADER_HEIGHT } from "./constants";
 import { DeleteAllocationDialog } from "./deleteAllocationDialog";
+import { GanttEditingOverlay } from "./ganttEditingOverlay";
 import { GanttMemberRows } from "./ganttMemberRows";
 import { GanttProjectRows } from "./ganttProjectRows";
 import { createGanttStore, GanttContext, useGanttStore } from "./ganttStore";
 import { GanttWeekHeader } from "./ganttWeekHeader";
 import { useContainerResize } from "./hooks/useContainerResize";
-import type { GanttGridProps } from "./types";
+import type { GanttGridHandle, GanttGridProps } from "./types";
 import { mergeClassNames as cn } from "../../utils";
 
 const GanttGridInner: React.FC<{
@@ -89,15 +92,15 @@ const GanttGridInner: React.FC<{
       )}
 
       <table
-        className="relative z-10 border-separate border-spacing-0"
+        className="relative border-separate border-spacing-0"
         style={{ width: headerWidth + columnCount * columnWidth }}
       >
-        <thead className="sticky top-0 z-20">
+        <thead className="sticky top-0 z-30">
           {/* Row 1: corner + week range labels */}
           <tr>
             <th
               rowSpan={2}
-              className="sticky left-0 z-20 bg-surface-white text-ink-gray-8 border border-l-0 border-outline-gray-1 font-medium text-start p-3 pl-4.25"
+              className="sticky left-0 z-35 bg-surface-white text-ink-gray-8 border border-l-0 border-outline-gray-1 font-medium text-start p-3 pl-4.25"
               style={{ width: headerWidth, height: HEADER_HEIGHT }}
             >
               {rowHeaderLabel}
@@ -120,7 +123,9 @@ const GanttGridInner: React.FC<{
         </tbody>
       </table>
 
-      <div className="pointer-events-none absolute inset-0 z-30">
+      <GanttEditingOverlay />
+
+      <div className="pointer-events-none absolute inset-0 z-40">
         <div className="sticky left-0 top-0 h-full w-0">
           <div
             className={cn(
@@ -158,56 +163,68 @@ const GanttGridInner: React.FC<{
   );
 };
 
-export const GanttGrid: React.FC<GanttGridProps> = (props) => {
-  const rootRef = useRef<HTMLDivElement>(null);
+export const GanttGrid = forwardRef<GanttGridHandle, GanttGridProps>(
+  function GanttGrid(props, ref) {
+    const rootRef = useRef<HTMLDivElement>(null);
 
-  const resolvedProps = useMemo(
-    () => ({
-      variant: props.variant,
-      members: props.members,
-      projects: props.projects,
-      rowHeaderLabel: props.rowHeaderLabel,
-      showWeekend: props.showWeekend ?? true,
-      startDate: props.startDate,
-      weekCount: props.weekCount ?? 3,
-      hasRoleAccess: props.hasRoleAccess ?? false,
-      onAddAllocation: props.onAddAllocation,
-      onEditAllocation: props.onEditAllocation,
-      onDeleteAllocation: props.onDeleteAllocation,
-    }),
-    [
-      props.hasRoleAccess,
-      props.onAddAllocation,
-      props.onDeleteAllocation,
-      props.onEditAllocation,
-      props.members,
-      props.projects,
-      props.rowHeaderLabel,
-      props.showWeekend,
-      props.startDate,
-      props.variant,
-      props.weekCount,
-    ],
-  );
+    const resolvedProps = useMemo(
+      () => ({
+        variant: props.variant,
+        members: props.members,
+        projects: props.projects,
+        rowHeaderLabel: props.rowHeaderLabel,
+        showWeekend: props.showWeekend ?? true,
+        startDate: props.startDate,
+        weekCount: props.weekCount ?? 3,
+        hasRoleAccess: props.hasRoleAccess ?? false,
+        onAddAllocation: props.onAddAllocation,
+        onEditAllocation: props.onEditAllocation,
+        onDeleteAllocation: props.onDeleteAllocation,
+      }),
+      [
+        props.hasRoleAccess,
+        props.onAddAllocation,
+        props.onDeleteAllocation,
+        props.onEditAllocation,
+        props.members,
+        props.projects,
+        props.rowHeaderLabel,
+        props.showWeekend,
+        props.startDate,
+        props.variant,
+        props.weekCount,
+      ],
+    );
 
-  const [store] = useState(() => createGanttStore(resolvedProps));
+    const [store] = useState(() => createGanttStore(resolvedProps));
 
-  useEffect(() => {
-    store.getState().syncProps(resolvedProps);
-  }, [resolvedProps, store]);
+    useEffect(() => {
+      store.getState().syncProps(resolvedProps);
+    }, [resolvedProps, store]);
 
-  useContainerResize({
-    rootRef,
-    onWidthChange: (width) => {
-      store.getState().setContainerWidth(width);
-    },
-  });
+    useContainerResize({
+      rootRef,
+      onWidthChange: (width) => {
+        store.getState().setContainerWidth(width);
+      },
+    });
 
-  return (
-    <GanttContext.Provider value={store}>
-      <GanttGridInner rootRef={rootRef} className={props.className} />
-    </GanttContext.Provider>
-  );
-};
+    useImperativeHandle(
+      ref,
+      () => ({
+        hasUnsavedChanges: () => store.getState().activeEdit !== null,
+        saveChanges: () => store.getState().activeEdit?.save(),
+        discardChanges: () => store.getState().activeEdit?.discard(),
+      }),
+      [store],
+    );
+
+    return (
+      <GanttContext.Provider value={store}>
+        <GanttGridInner rootRef={rootRef} className={props.className} />
+      </GanttContext.Provider>
+    );
+  },
+);
 
 GanttGrid.displayName = "GanttGrid";
