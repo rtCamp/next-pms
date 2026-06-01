@@ -16,8 +16,6 @@ import { currencyFormat } from "@/lib/utils";
 import type { AboutMember } from "../types";
 
 export function MemberHoverCard({ member }: { member: AboutMember }) {
-  console.log(member);
-
   const userPath = member.email
     ? `/desk/user/${encodeURIComponent(member.email)}`
     : undefined;
@@ -93,6 +91,14 @@ export function MemberHoverCard({ member }: { member: AboutMember }) {
             <Call className="size-4 shrink-0 text-ink-gray-5" />
             <span className="truncate text-sm font-light text-ink-gray-6">
               {member.phone}
+            </span>
+          </div>
+        )}
+        {member.linkedin && (
+          <div className="flex items-center gap-2">
+            <Call className="size-4 shrink-0 text-ink-gray-5" />
+            <span className="truncate text-sm font-light text-ink-gray-6">
+              {member.linkedin}
             </span>
           </div>
         )}

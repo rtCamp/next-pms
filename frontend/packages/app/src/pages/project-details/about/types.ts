@@ -32,6 +32,7 @@ export type AboutMember = {
   rate?: number;
   currency?: string;
   companyEmail?: string;
+  linkedin?: string;
 };
 
 export type AboutCustomer = {
@@ -42,6 +43,7 @@ export type AboutCustomer = {
   href?: string;
   image?: string;
   phone?: string;
+  linkedin?: string;
 };
 
 export type ProjectBudgetBurn = {
@@ -100,6 +102,7 @@ export type ProjectSidebar = {
     company_email: string | null;
     hourly_rate: number | null;
     currency: string | null;
+    linkedin_url?: string | null;
   }>;
   customers: Array<{
     contact: string;
@@ -109,6 +112,7 @@ export type ProjectSidebar = {
     company_name: string | null;
     email_id: string | null;
     phone: string | null;
+    linkedin_url?: string | null;
   }>;
 };
 

@@ -125,6 +125,7 @@ export function AboutThisProject({ className }: { className: string }) {
         rate: m.hourly_rate ?? undefined,
         currency: m.currency ?? undefined,
         companyEmail: m.company_email ?? undefined,
+        linkedin: m.linkedin_url ?? undefined,
       })),
     [sidebar.members],
   );
@@ -139,6 +140,7 @@ export function AboutThisProject({ className }: { className: string }) {
         image: c.image ?? undefined,
         phone: c.phone ?? undefined,
         href: `/desk/contact/${encodeURIComponent(c.contact)}`,
+        linkedin: c.linkedin_url ?? undefined,
       })),
     [sidebar.customers],
   );
