@@ -58,7 +58,7 @@ export function UpdateEntry({ entry }: UpdateEntryProps) {
                 className="ml-auto"
                 onClick={() => {}}
                 aria-label="Entry options"
-                iconLeft={() => <MoreHorizontal />}
+                icon={() => <MoreHorizontal />}
               />
             </div>
           )}

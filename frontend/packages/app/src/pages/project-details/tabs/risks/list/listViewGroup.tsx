@@ -80,7 +80,7 @@ export function RiskGroup({ value, label, risks }: RiskGroupProps) {
               }}
               className="truncate text-ink-gray-7 px-2 py-1.5"
             >
-              <div className="flex items-center gap-2 mb-2">
+              <div className="flex items-center gap-2">
                 <Avatar
                   size="xs"
                   shape="circle"
@@ -124,7 +124,7 @@ export function RiskGroup({ value, label, risks }: RiskGroupProps) {
                   e.stopPropagation();
                   openRowActions(risk.name);
                 }}
-                iconLeft={() => <MoreHorizontal />}
+                icon={() => <MoreHorizontal />}
               />
             </div>
           </div>
