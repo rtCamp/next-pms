@@ -167,7 +167,7 @@ export function AddUpdateModal({
                 placeholder="Select status"
               />
               {field.state.meta.errors.length > 0 && (
-                <ErrorMessage message={String(field.state.meta.errors[0])} />
+                <ErrorMessage message={field.state.meta.errors[0]?.message} />
               )}
             </div>
           )}
@@ -188,8 +188,7 @@ export function AddUpdateModal({
                 placeholder="Select risk level"
               />
               {field.state.meta.errors.length > 0 && (
-                <ErrorMessage message={String(field.state.meta.errors[0])} />
-              )}
+                <ErrorMessage message={field.state.meta.errors[0]?.message} />
             </div>
           )}
         />
