@@ -14,8 +14,7 @@ class CustomerQuickEntryForm extends frappe.ui.form.CustomerQuickEntryForm {
     if (!name) return;
 
     const { message } = await frappe.call({
-      method:
-        "next_pms.resource_management.doc_events.customer._generate_unique_abbr",
+      method: "next_pms.api.customer.generate_unique_abbr",
       args: { customer_name: name },
     });
     if (message) this.dialog.set_value("custom_abbr", message);

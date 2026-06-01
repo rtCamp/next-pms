@@ -1,5 +1,3 @@
-import unittest
-
 import frappe
 from frappe.tests import IntegrationTestCase
 
@@ -97,7 +95,3 @@ class TestCustomerAbbr(IntegrationTestCase):
         # collation). With the fix it should disambiguate to APWC.
         self.assertNotEqual(c2.custom_abbr, "AWC")
         self.assertEqual(c2.custom_abbr, "APWC")
-
-
-if __name__ == "__main__":
-    unittest.main()
