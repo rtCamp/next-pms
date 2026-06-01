@@ -146,6 +146,7 @@ def get_employee_list(
         roles=roles,
         ignore_permissions=status is not None,
         ignore_default_filters=ignore_default_filters,
+        extra_fields=["user_id"],
     )
     return {"data": employees, "count": count}
 

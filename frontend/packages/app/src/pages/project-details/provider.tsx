@@ -3,7 +3,11 @@
  */
 import { useCallback } from "react";
 import type { PropsWithChildren } from "react";
-import { useFrappeGetDoc, useFrappeUpdateDoc } from "frappe-react-sdk";
+import {
+  useFrappeGetDoc,
+  useFrappePostCall,
+  useFrappeUpdateDoc,
+} from "frappe-react-sdk";
 
 /**
  * Internal dependencies.
@@ -29,11 +33,57 @@ export function ProjectDetailProvider({
   );
 
   const { updateDoc } = useFrappeUpdateDoc();
+  const { call: shareAdd } = useFrappePostCall("frappe.share.add");
+  const { call: shareSetPermission } = useFrappePostCall(
+    "frappe.share.set_permission",
+  );
 
   const updateRepositories = useCallback(
     async (repositories: RepositoryInput[]) => {
       await updateDoc("Project", projectId, {
         custom_project_repository_connections: repositories,
+      });
+      mutate();
+    },
+    [updateDoc, projectId, mutate],
+  );
+
+  const addMember = useCallback(
+    async (userId: string) => {
+      await shareAdd({
+        doctype: "Project",
+        name: projectId,
+        user: userId,
+        notify: 1,
+        read: 1,
+        write: 0,
+        submit: 0,
+        share: 0,
+      });
+      mutate();
+    },
+    [shareAdd, projectId, mutate],
+  );
+
+  const removeMember = useCallback(
+    async (userId: string) => {
+      await shareSetPermission({
+        doctype: "Project",
+        name: projectId,
+        user: userId,
+        permission_to: "read",
+        value: 0,
+        everyone: 0,
+      });
+      mutate();
+    },
+    [shareSetPermission, projectId, mutate],
+  );
+
+  const updateContacts = useCallback(
+    async (contactIds: string[]) => {
+      await updateDoc("Project", projectId, {
+        custom_customer_contacts: contactIds.map((contact) => ({ contact })),
       });
       mutate();
     },
@@ -47,6 +97,9 @@ export function ProjectDetailProvider({
     error: error ?? null,
     mutate,
     updateRepositories,
+    addMember,
+    removeMember,
+    updateContacts,
   };
 
   return (

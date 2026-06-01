@@ -1,9 +1,11 @@
 /**
  * External dependencies.
  */
+import { useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
 import { Accordion } from "@base-ui/react/accordion";
 import { mergeClassNames } from "@next-pms/design-system";
+import { Github } from "@next-pms/design-system/components";
 import { Button } from "@rtcamp/frappe-ui-react";
 import {
   AddSm,
@@ -11,36 +13,61 @@ import {
   SolidExternalLink,
   SolidSharedFolder,
 } from "@rtcamp/frappe-ui-react/icons";
+import { useFrappeGetCall } from "frappe-react-sdk";
 
 /**
  * Internal dependencies.
  */
-import { pickAllowed, toKebabCase } from "@/lib/utils";
+import { currencyFormat, pickAllowed, toKebabCase } from "@/lib/utils";
 import { RAG_STATUS } from "@/pages/projects/constants";
 import { Dot } from "@/pages/projects/list/cells/dot";
 import { RagStatus } from "@/pages/projects/types";
+import { AddCustomerModal } from "./components/addCustomerModal";
+import { AddMemberModal } from "./components/addMemberModal";
 import { BudgetBurnBar } from "./components/budgetBurnBar";
 import { CustomerRow } from "./components/customerRow";
 import { ExpandableList } from "./components/expandableList";
 import { MemberRow } from "./components/memberRow";
-import { getProjectAboutData } from "./fake-data";
 import { ProgressHoursSection } from "./progressHoursSection";
 import { Section } from "./section";
+import type {
+  AboutCustomer,
+  AboutMember,
+  ProjectSidebar,
+  ProjectSidebarResponse,
+} from "./types";
 import { useProjectDetail } from "../context";
+
+const DEFAULT_SIDEBAR: ProjectSidebar = {
+  summary: "",
+  details: { project_name: "", phase: "", status: "", customer: "" },
+  links: {
+    slack: null,
+    google_drive: null,
+    website: null,
+    github: null,
+    opportunity: null,
+  },
+  burn: { total_budget: 0, cost_accrued: 0, cost_forecasted: 0 },
+  progress: { actual_time: 0, total_hours_purchased: 0 },
+  members: [],
+  customers: [],
+};
 
 export function AboutThisProject({ className }: { className: string }) {
   const { projectId = "" } = useParams<{ projectId: string }>();
-  const about = getProjectAboutData(projectId);
+  const [addMemberOpen, setAddMemberOpen] = useState(false);
+  const [addCustomerOpen, setAddCustomerOpen] = useState(false);
 
-  const summary = useProjectDetail(
-    (state) => state.project?.custom_short_summary ?? "",
-  );
+  const { data, mutate: mutateSidebar } =
+    useFrappeGetCall<ProjectSidebarResponse>(
+      "next_pms.next_projects.api.project.get_project_sidebar",
+      {
+        project: projectId,
+      },
+    );
 
-  const projectName = useProjectDetail(
-    (state) => state.project?.project_name ?? "",
-  );
-
-  const customer = useProjectDetail((state) => state.project?.customer ?? "");
+  const sidebar = data?.message || DEFAULT_SIDEBAR;
 
   const risk = useProjectDetail((state) =>
     pickAllowed<RagStatus>(
@@ -49,22 +76,73 @@ export function AboutThisProject({ className }: { className: string }) {
     ),
   );
 
-  const status = useProjectDetail((state) => state.project?.status ?? "");
+  const updateContacts = useProjectDetail((state) => state.updateContacts);
+  const addMember = useProjectDetail((state) => state.addMember);
+  const removeMember = useProjectDetail((state) => state.removeMember);
 
-  const phase = useProjectDetail(
-    (state) => state.project?.custom_project_phase ?? "",
+  const currentMemberUserIds = useMemo(
+    () => sidebar.members.map((m) => m.user),
+    [sidebar.members],
   );
 
-  const projectWebsite = useProjectDetail(
-    (state) => state.project?.custom_website,
+  const handleAddMember = async (userId: string) => {
+    if (currentMemberUserIds.includes(userId)) return;
+    await addMember(userId);
+    mutateSidebar();
+  };
+
+  const handleRemoveMember = async (userId: string) => {
+    await removeMember(userId);
+    mutateSidebar();
+  };
+
+  const currentContactIds = useMemo(
+    () => sidebar.customers.map((c) => c.contact),
+    [sidebar.customers],
   );
 
-  const projectDriveFolder = useProjectDetail(
-    (state) => state.project?.custom_google_drive_folder,
+  const handleAddCustomer = async (contactId: string) => {
+    if (currentContactIds.includes(contactId)) return;
+    await updateContacts([...currentContactIds, contactId]);
+    mutateSidebar();
+  };
+
+  const handleRemoveCustomer = async (contactId: string) => {
+    await updateContacts(currentContactIds.filter((id) => id !== contactId));
+    mutateSidebar();
+  };
+
+  const members = useMemo<AboutMember[]>(
+    () =>
+      sidebar.members.map((m) => ({
+        name: m.full_name,
+        employee: m.employee,
+        email: m.user,
+        designation: m.designation ?? "",
+        department: m.department ?? undefined,
+        image: m.image ?? undefined,
+        phone: m.cell_number ?? undefined,
+        rate: m.hourly_rate ?? undefined,
+        currency: m.currency ?? undefined,
+        companyEmail: m.company_email ?? undefined,
+        linkedin: m.linkedin_url ?? undefined,
+      })),
+    [sidebar.members],
   );
 
-  const slackChannel = useProjectDetail(
-    (state) => state.project?.custom_internal_slack_channel,
+  const customers = useMemo<AboutCustomer[]>(
+    () =>
+      sidebar.customers.map((c) => ({
+        name: c.full_name,
+        email: c.email_id ?? undefined,
+        designation: c.designation ?? undefined,
+        company: c.company_name ?? undefined,
+        image: c.image ?? undefined,
+        phone: c.phone ?? undefined,
+        href: `/desk/contact/${encodeURIComponent(c.contact)}`,
+        linkedin: c.linkedin_url ?? undefined,
+      })),
+    [sidebar.customers],
   );
 
   return (
@@ -86,7 +164,9 @@ export function AboutThisProject({ className }: { className: string }) {
         className="flex flex-col overflow-scroll scrollbar-thin"
       >
         <Section value="summary" title="Summary">
-          <p className="text-base font-normal text-ink-gray-7">{summary}</p>
+          <p className="text-base font-normal text-ink-gray-7">
+            {sidebar.summary}
+          </p>
         </Section>
 
         <Section value="details" title="Project details">
@@ -94,27 +174,33 @@ export function AboutThisProject({ className }: { className: string }) {
             <span>Project name</span>
             <div className="flex min-w-0 items-center gap-2">
               <span className="flex-1 truncate text-ink-gray-7">
-                {projectName}
+                {sidebar.details.project_name}
               </span>
               {risk && <Dot risk={risk} />}
             </div>
 
             <span>Customer</span>
-            <span className="truncate text-ink-gray-7">{customer}</span>
+            <span className="truncate text-ink-gray-7">
+              {sidebar.details.customer}
+            </span>
 
             <span>Project status</span>
-            <span className="truncate text-ink-gray-7">{status}</span>
+            <span className="truncate text-ink-gray-7">
+              {sidebar.details.status}
+            </span>
 
             <span>Current phase</span>
-            <span className="truncate text-ink-gray-7">{phase}</span>
+            <span className="truncate text-ink-gray-7">
+              {sidebar.details.phase}
+            </span>
           </div>
         </Section>
 
         <Section value="links" title="Links">
           <div className="flex items-center gap-2">
-            {projectWebsite && (
+            {sidebar.links.website && (
               <a
-                href={projectWebsite}
+                href={sidebar.links.website}
                 target="_blank"
                 rel="noreferrer"
                 aria-label="Project website"
@@ -123,9 +209,9 @@ export function AboutThisProject({ className }: { className: string }) {
                 <SolidExternalLink className="h-4 w-4" />
               </a>
             )}
-            {projectDriveFolder && (
+            {sidebar.links.google_drive && (
               <a
-                href={projectDriveFolder}
+                href={sidebar.links.google_drive}
                 target="_blank"
                 rel="noreferrer"
                 aria-label="Drive folder"
@@ -134,15 +220,26 @@ export function AboutThisProject({ className }: { className: string }) {
                 <SolidSharedFolder className="h-4 w-4" />
               </a>
             )}
-            {slackChannel && (
+            {sidebar.links.slack && (
               <a
-                href={slackChannel}
+                href={sidebar.links.slack}
                 target="_blank"
                 rel="noreferrer"
                 aria-label="Slack channel"
                 className="flex h-7 w-7 items-center justify-center rounded text-ink-gray-7 bg-surface-gray-2 hover:bg-surface-gray-4"
               >
                 <Hashtag className="h-4 w-4" />
+              </a>
+            )}
+            {sidebar.links.github && (
+              <a
+                href={sidebar.links.github}
+                target="_blank"
+                rel="noreferrer"
+                aria-label="GitHub repository"
+                className="flex h-7 w-7 items-center justify-center rounded text-ink-gray-7 bg-surface-gray-2 hover:bg-surface-gray-4"
+              >
+                <Github className="h-4 w-4" />
               </a>
             )}
           </div>
@@ -152,17 +249,28 @@ export function AboutThisProject({ className }: { className: string }) {
           <div className="flex flex-col gap-2.5">
             <div className="flex items-center justify-between">
               <span className="text-base font-medium text-ink-gray-7">
-                {about.budget.current}
+                {currencyFormat().format(sidebar.burn.cost_accrued)}
               </span>
               <span className="text-base font-light text-ink-gray-5">
-                {about.budget.total}
+                {currencyFormat().format(sidebar.burn.total_budget)}
               </span>
             </div>
-            <BudgetBurnBar budget={about.budget} />
+            <BudgetBurnBar
+              budget={{
+                current: sidebar.burn.cost_accrued,
+                total: sidebar.burn.total_budget,
+                projected: sidebar.burn.cost_forecasted,
+              }}
+            />
           </div>
         </Section>
 
-        <ProgressHoursSection progress={about.progress} />
+        <ProgressHoursSection
+          progress={{
+            consumed: sidebar.progress.actual_time,
+            total: sidebar.progress.total_hours_purchased,
+          }}
+        />
 
         <Section
           value="members"
@@ -171,14 +279,12 @@ export function AboutThisProject({ className }: { className: string }) {
             <Button
               icon={AddSm}
               aria-label="Add member"
-              onClick={() => {
-                // @todo: open the Add member flow once that's wired (Issue #1227 AC: TBD).
-              }}
+              onClick={() => setAddMemberOpen(true)}
             />
           }
         >
           <ExpandableList
-            items={about.members}
+            items={members}
             itemLabel="members"
             getKey={(member) => member.email}
             renderItem={(member) => <MemberRow member={member} />}
@@ -192,20 +298,33 @@ export function AboutThisProject({ className }: { className: string }) {
             <Button
               icon={AddSm}
               aria-label="Add customer"
-              onClick={() => {
-                // @todo: open the Add customer flow once that's wired (Issue #1227 AC: TBD).
-              }}
+              onClick={() => setAddCustomerOpen(true)}
             />
           }
         >
           <ExpandableList
-            items={about.customers}
+            items={customers}
             itemLabel="customers"
-            getKey={(customer) => customer.email}
+            getKey={(customer) => customer.email ?? customer.name ?? ""}
             renderItem={(customer) => <CustomerRow customer={customer} />}
           />
         </Section>
       </Accordion.Root>
+      <AddMemberModal
+        open={addMemberOpen}
+        onOpenChange={setAddMemberOpen}
+        currentMemberIds={currentMemberUserIds}
+        onAdd={handleAddMember}
+        onRemove={handleRemoveMember}
+      />
+      <AddCustomerModal
+        open={addCustomerOpen}
+        onOpenChange={setAddCustomerOpen}
+        customer={sidebar.details.customer ?? ""}
+        currentCustomerIds={currentContactIds}
+        onAdd={handleAddCustomer}
+        onRemove={handleRemoveCustomer}
+      />
     </section>
   );
 }
