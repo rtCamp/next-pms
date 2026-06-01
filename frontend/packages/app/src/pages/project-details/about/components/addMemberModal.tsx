@@ -2,13 +2,8 @@
  * External dependencies.
  */
 import { Fragment, useCallback, useEffect, useState } from "react";
-import {
-  Avatar,
-  Button,
-  Dialog,
-  Spinner,
-  TextInput,
-} from "@rtcamp/frappe-ui-react";
+import { Spinner } from "@next-pms/design-system/components";
+import { Avatar, Button, Dialog, TextInput } from "@rtcamp/frappe-ui-react";
 import { Search } from "@rtcamp/frappe-ui-react/icons";
 
 /**
