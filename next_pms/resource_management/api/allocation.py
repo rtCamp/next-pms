@@ -7,8 +7,10 @@ from frappe.automation.doctype.auto_repeat.auto_repeat import add_days
 from frappe.utils import cint, getdate
 
 from next_pms.resource_management.api.utils.helpers import resource_api_permissions_check
+from next_pms.resource_management.doctype.resource_allocation.resource_allocation import clear_cache
 
 NON_DATE_FIELDS = frozenset({"project", "customer", "is_billable", "status", "note", "hours_allocated_per_day"})
+VALID_DELETE_MODES = frozenset({"only_this", "this_and_future", "all_in_series"})
 
 
 @dataclass
@@ -270,6 +272,7 @@ def upsert_day_override(doc_name: str, override_date: str, override_fields: dict
     )
     if existing_row:
         frappe.db.set_value("Resource Allocation Extra Entry", existing_row, override_fields)
+        clear_cache()  # set_value bypasses on_update, so invalidate manually
     else:
         doc = frappe.get_doc("Resource Allocation", doc_name)
         doc.append("override", {"date": override_date, **override_fields})
@@ -369,6 +372,14 @@ def delete_allocation(name: str, delete_mode: str):
     permission = resource_api_permissions_check()
     if not permission["write"]:
         frappe.throw(frappe._("You are not allowed to perform this action."), exc=frappe.PermissionError)
+
+    if delete_mode not in VALID_DELETE_MODES:
+        frappe.throw(
+            frappe._("Invalid delete_mode '{0}'. Allowed values: {1}.").format(
+                delete_mode, ", ".join(sorted(VALID_DELETE_MODES))
+            ),
+            exc=frappe.ValidationError,
+        )
 
     if not frappe.db.exists("Resource Allocation", name):
         frappe.throw(
