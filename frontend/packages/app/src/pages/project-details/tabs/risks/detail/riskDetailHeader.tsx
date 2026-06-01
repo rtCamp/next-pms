@@ -45,7 +45,7 @@ export function RiskDetailHeader({
           type="button"
           onClick={handleBack}
           className="p-0 hover:bg-transparent focus-visible:bg-transparent"
-          iconLeft={() => <ArrowLeft />}
+          icon={() => <ArrowLeft />}
         />
 
         <h2 className="text-xl font-semibold text-ink-gray-8 truncate max-w-125">
@@ -79,7 +79,7 @@ export function RiskDetailHeader({
           variant="ghost"
           type="button"
           onClick={() => {}}
-          iconLeft={() => <MoreHorizontal />}
+          icon={() => <MoreHorizontal />}
         />
       </div>
     </div>
