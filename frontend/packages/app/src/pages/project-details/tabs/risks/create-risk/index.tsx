@@ -10,6 +10,7 @@ import {
   ErrorMessage,
   Select,
   Textarea,
+  useToasts,
 } from "@rtcamp/frappe-ui-react";
 import { useForm } from "@tanstack/react-form";
 import {
@@ -23,7 +24,7 @@ import {
 /**
  * Internal dependencies.
  */
-import { stripTags } from "@/lib/utils";
+import { parseFrappeErrorMsg, stripTags } from "@/lib/utils";
 import { useProjectDetail } from "@/pages/project-details/context";
 import { RISK_STATUSES } from "../constants";
 import { useRisks } from "../context";
@@ -57,6 +58,7 @@ export function CreateRiskModal({
   const projectId = useProjectDetail((s) => s.projectId);
   const refreshRisks = useRisks((c) => c.actions.refreshRisks);
   const [submitting, setSubmitting] = useState(false);
+  const toast = useToasts();
 
   const isEditMode = Boolean(riskName);
 
@@ -137,7 +139,7 @@ export function CreateRiskModal({
         refreshRisks();
         closeModal();
       } catch (err) {
-        throw err as FrappeError;
+        toast.error(parseFrappeErrorMsg(err as FrappeError));
       } finally {
         setSubmitting(false);
       }

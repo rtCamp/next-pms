@@ -8,6 +8,7 @@ import {
   ErrorMessage,
   Select,
   Textarea,
+  useToasts,
 } from "@rtcamp/frappe-ui-react";
 import { useForm } from "@tanstack/react-form";
 import { FrappeError, useFrappeUpdateDoc } from "frappe-react-sdk";
@@ -15,7 +16,7 @@ import { FrappeError, useFrappeUpdateDoc } from "frappe-react-sdk";
 /**
  * Internal dependencies.
  */
-import { stripTags } from "@/lib/utils";
+import { parseFrappeErrorMsg, stripTags } from "@/lib/utils";
 import { RISK_LEVELS, RISK_STATUSES } from "../constants";
 import { RiskStatusBadge } from "../riskStatusBadge";
 import { addUpdateSchema } from "./schema";
@@ -32,6 +33,7 @@ export function AddUpdateModal({
   const [submitting, setSubmitting] = useState(false);
   const { updateDoc } = useFrappeUpdateDoc();
   const isEditing = !!editEntry;
+  const toast = useToasts();
 
   const riskLevelOptions = RISK_LEVELS.map((l) => ({
     label: (
@@ -96,7 +98,7 @@ export function AddUpdateModal({
         onSuccess();
         closeModal();
       } catch (err) {
-        throw err as FrappeError;
+        toast.error(parseFrappeErrorMsg(err as FrappeError));
       } finally {
         setSubmitting(false);
       }
@@ -189,6 +191,7 @@ export function AddUpdateModal({
               />
               {field.state.meta.errors.length > 0 && (
                 <ErrorMessage message={field.state.meta.errors[0]?.message} />
+              )}
             </div>
           )}
         />
