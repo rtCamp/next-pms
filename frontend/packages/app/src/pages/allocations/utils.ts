@@ -1,5 +1,25 @@
+/**
+ * External dependencies.
+ */
 import type { Allocation } from "@next-pms/design-system/components";
 import { addMonths, addWeeks, parseISO } from "date-fns";
+
+/**
+ * Internal dependencies.
+ */
+import {
+  calculateWeeklyHour,
+  currencyFormat,
+  expectatedHours,
+  pickAllowed,
+} from "@/lib/utils";
+import type { WorkingFrequency } from "@/types";
+import {
+  ALLOCATION_WORKING_FREQUENCIES,
+  DEFAULT_CURRENCY,
+  DEFAULT_HOURS_PER_WEEK,
+  WEEKS_PER_MONTH,
+} from "./constants";
 import type { AllocationsDuration } from "./types";
 
 const DURATION_WEEK_COUNT: Record<AllocationsDuration, number> = {
@@ -62,6 +82,73 @@ export function moveDateByDuration(
 }
 
 /**
+ * Calculates hourly rate from CTC, working hours, work schedule, and currency.
+ * For "Per Day" schedules, monthly hours = daily hours * 20 working days.
+ * For weekly schedules, monthly hours = weekly hours * 4.
+ */
+export function calculateAllocationHourlyRate(
+  ctc: number | undefined | null,
+  workingHours: number | undefined | null,
+  workSchedule: string | undefined | null,
+  currency: string | undefined | null,
+): string {
+  if (!ctc) {
+    return "";
+  }
+
+  const effectiveHours =
+    workingHours && workingHours > 0 ? workingHours : DEFAULT_HOURS_PER_WEEK;
+  const workingFrequency = resolveWorkingFrequency(workSchedule);
+  const monthlyHours =
+    calculateWeeklyHour(effectiveHours, workingFrequency) * WEEKS_PER_MONTH;
+  const hourlyRate = ctc / 12 / monthlyHours;
+  const resolvedCurrency = currency || DEFAULT_CURRENCY;
+
+  return `${currencyFormat(resolvedCurrency).format(hourlyRate)}/hr`;
+}
+
+/**
+ * Converts weekly or daily hours into a consistent daily hours value for capacity calculations.
+ * For "Per Day" schedules, returns hours as-is. For weekly schedules, divides hours by 5.
+ * Returns undefined if hours is not provided or invalid.
+ */
+export function getAllocationCapacityHoursPerDay(
+  hours: number | undefined | null,
+  workSchedule: string | undefined | null,
+): number | undefined {
+  if (!hours || hours <= 0) {
+    return undefined;
+  }
+
+  const dailyHours = expectatedHours(
+    hours,
+    resolveWorkingFrequency(workSchedule),
+  );
+
+  return Number(dailyHours.toFixed(2));
+}
+
+/**
+ * Formats working hours as a weekly capacity string.
+ * Converts daily hours to weekly (daily * 5) for "Per Day" schedules.
+ */
+export function formatAllocationCapacity(
+  hours: number | undefined | null,
+  workSchedule: string | undefined | null,
+): string {
+  if (!hours || hours <= 0) {
+    return "";
+  }
+
+  const weeklyHours = calculateWeeklyHour(
+    hours,
+    resolveWorkingFrequency(workSchedule),
+  );
+
+  return `${weeklyHours} hrs/week`;
+}
+
+/**
  * Maps an allocation record from the API to the internal Allocation type used in the
  * application, including parsing dates and handling optional fields.
  */
@@ -93,4 +180,15 @@ export function mapResourceAllocation<T extends AllocationApiRecord>(
         }
       : undefined,
   };
+}
+
+/**
+ * Resolves the working frequency ("Per Day" or "Per Week") from the employee's work schedule string.
+ */
+function resolveWorkingFrequency(
+  workSchedule: string | undefined | null,
+): WorkingFrequency {
+  return (
+    pickAllowed(workSchedule, ALLOCATION_WORKING_FREQUENCIES) ?? "Per Week"
+  );
 }

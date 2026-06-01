@@ -27,6 +27,8 @@ interface GanttAllocationBarProps {
   resizable: boolean;
   capacityHoursPerDay?: number;
   showCapacityStatus?: boolean;
+  memberName?: string;
+  memberImage?: string;
 }
 
 export function GanttAllocationBar({
@@ -34,6 +36,8 @@ export function GanttAllocationBar({
   resizable,
   capacityHoursPerDay,
   showCapacityStatus = false,
+  memberName,
+  memberImage,
 }: GanttAllocationBarProps) {
   const allocationBarRef = useRef<HTMLDivElement>(null);
   const {
@@ -138,16 +142,20 @@ export function GanttAllocationBar({
   );
 
   const entry = withPendingDeleteEntry(
-    allocationBarToEntry(
-      {
-        ...allocation,
-        startDate: resolvedDates.startDate,
-        endDate: resolvedDates.endDate,
-        fullNumDays: resolvedDayCount,
-      },
-      onEditAllocation,
-      onDeleteAllocation,
-    ),
+    {
+      ...allocationBarToEntry(
+        {
+          ...allocation,
+          startDate: resolvedDates.startDate,
+          endDate: resolvedDates.endDate,
+          fullNumDays: resolvedDayCount,
+        },
+        onEditAllocation,
+        onDeleteAllocation,
+      ),
+      memberName,
+      memberImage,
+    },
     setPendingDeleteEntry,
   );
 

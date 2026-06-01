@@ -1,7 +1,15 @@
+/**
+ * External dependencies.
+ */
 import type { CSSProperties } from "react";
 import { PreviewCard } from "@base-ui/react/preview-card";
 import { Badge } from "@rtcamp/frappe-ui-react";
 import { Folder, RightChevron } from "@rtcamp/frappe-ui-react/icons";
+
+/**
+ * Internal dependencies.
+ */
+import GanttProjectHoverCard from "./ganttProjectHoverCard";
 import type { Project } from "./types";
 import { mergeClassNames as cn } from "../../utils";
 
@@ -9,19 +17,25 @@ export interface GanttProjectItemProps extends Project {
   isExpanded?: boolean;
   canExpand?: boolean;
   showChevron?: boolean;
+  showHoverCard?: boolean;
   onToggle?: () => void;
   className?: string;
   style?: CSSProperties;
 }
 
 export function GanttProjectItem({
+  id,
   name,
   dateRange,
+  projectDateRange,
   client,
+  projectManager,
+  weeklyCapacity,
   badge,
   isExpanded = false,
   canExpand = false,
   showChevron = true,
+  showHoverCard = true,
   onToggle,
   className,
   style,
@@ -29,8 +43,7 @@ export function GanttProjectItem({
   const subtext = [dateRange, client].filter(Boolean).join(" · ");
 
   return (
-    // TODO: enable after project hover card implementation.
-    <PreviewCard.Root open={false}>
+    <PreviewCard.Root open={showHoverCard ? undefined : false}>
       <PreviewCard.Trigger
         delay={300}
         closeDelay={150}
@@ -98,9 +111,17 @@ export function GanttProjectItem({
           sideOffset={-42}
         >
           <PreviewCard.Popup className="outline-none">
-            <div className="w-60 rounded-xl bg-surface-modal p-3 text-sm text-ink-gray-6 shadow-2xl">
-              Project hover card placeholder
-            </div>
+            <GanttProjectHoverCard
+              project={{
+                id,
+                name,
+                client,
+                dateRange,
+                projectDateRange,
+                projectManager,
+                weeklyCapacity,
+              }}
+            />
           </PreviewCard.Popup>
         </PreviewCard.Positioner>
       </PreviewCard.Portal>

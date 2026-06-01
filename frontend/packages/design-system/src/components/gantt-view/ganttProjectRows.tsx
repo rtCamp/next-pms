@@ -103,6 +103,7 @@ export const GanttProjectRows: React.FC<GanttProjectRowsProps> = ({
           {project.projectSummaryBars.map((summary, summaryIndex) => (
             <GanttProjectSummaryBar
               key={`${project.id ?? project.name}-summary-${summaryIndex}`}
+              project={project}
               summary={summary}
             />
           ))}
