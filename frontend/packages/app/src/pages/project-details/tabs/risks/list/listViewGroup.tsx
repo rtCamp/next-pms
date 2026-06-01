@@ -3,9 +3,7 @@
  */
 import { Accordion } from "@base-ui/react/accordion";
 import { Avatar } from "@rtcamp/frappe-ui-react";
-import { Button } from "@rtcamp/frappe-ui-react";
 import { SmallDown } from "@rtcamp/frappe-ui-react/icons";
-import { MoreHorizontal } from "lucide-react";
 
 /**
  * Internal dependencies.
@@ -13,6 +11,7 @@ import { MoreHorizontal } from "lucide-react";
 import { stripTags } from "@/lib/utils";
 import { RISK_LIST_COLUMNS } from "../constants";
 import { useRisks } from "../context";
+import { RiskRowActions } from "../riskRowActions";
 import { RiskStatusBadge } from "../riskStatusBadge";
 import type { RiskItem } from "../types";
 
@@ -23,7 +22,6 @@ export interface RiskGroupProps {
 }
 
 export function RiskGroup({ value, label, risks }: RiskGroupProps) {
-  const openRowActions = useRisks((c) => c.actions.openRowActions);
   const openRiskDetail = useRisks((c) => c.actions.openRiskDetail);
 
   return (
@@ -116,16 +114,11 @@ export function RiskGroup({ value, label, risks }: RiskGroupProps) {
             </div>
 
             {/* Row actions */}
-            <div className="w-8 shrink-0 flex justify-end">
-              <Button
-                type="button"
-                variant="ghost"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  openRowActions(risk.name);
-                }}
-                icon={() => <MoreHorizontal />}
-              />
+            <div
+              className="w-8 shrink-0 flex justify-end"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <RiskRowActions riskName={risk.name} showFollow={false} />
             </div>
           </div>
         ))}

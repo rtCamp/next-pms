@@ -30,7 +30,9 @@ export function RisksKanbanView() {
   const data = useRisks((c) => c.state.data);
   const visibleColumns = useRisks((c) => c.state.visibleColumns);
   const updateRiskStatus = useRisks((c) => c.actions.updateRiskStatus);
-  const openCreateRisk = useRisks((c) => c.actions.openCreateRisk);
+  const openCreateRiskWithStatus = useRisks(
+    (c) => c.actions.openCreateRiskWithStatus,
+  );
   const toast = useToasts();
 
   const [items, setItems] = useState<RiskIdsByStatus>(emptyGroups);
@@ -96,7 +98,10 @@ export function RisksKanbanView() {
             key={status}
             id={status}
             header={
-              <KanbanColumnHeader status={status} onAdd={openCreateRisk} />
+              <KanbanColumnHeader
+                status={status}
+                onAdd={() => openCreateRiskWithStatus(status)}
+              />
             }
             style={{ width: KANBAN_COLUMN_WIDTH }}
           >

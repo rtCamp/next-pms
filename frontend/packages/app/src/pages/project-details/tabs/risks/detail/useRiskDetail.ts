@@ -49,16 +49,17 @@ export function useRiskDetail(riskId: string) {
     usersSwrKey,
   );
 
-  const { data: attachments } = useFrappeGetDocList<FileAttachment>("File", {
-    fields: ["name", "file_name", "file_url", "file_size"],
-    filters: [
-      ["attached_to_doctype", "=", "Risk"],
-      ["attached_to_name", "=", riskId],
-    ] as never,
-    limit: 50,
-  });
+  const { data: attachments, mutate: mutateAttachments } =
+    useFrappeGetDocList<FileAttachment>("File", {
+      fields: ["name", "file_name", "file_url", "file_size"],
+      filters: [
+        ["attached_to_doctype", "=", "Risk"],
+        ["attached_to_name", "=", riskId],
+      ] as never,
+      limit: 50,
+    });
 
-  const { data: followersData } = useFrappeGetDocList<{
+  const { data: followersData, mutate: mutateFollowers } = useFrappeGetDocList<{
     user: string;
     full_name: string | null;
     user_image: string | null;
@@ -106,5 +107,7 @@ export function useRiskDetail(riskId: string) {
     isLoading,
     error,
     mutate,
+    mutateAttachments,
+    mutateFollowers,
   };
 }

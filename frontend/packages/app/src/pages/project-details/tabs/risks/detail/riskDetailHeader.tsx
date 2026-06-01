@@ -4,27 +4,32 @@
 import { useSearchParams } from "react-router-dom";
 import { Avatar } from "@rtcamp/frappe-ui-react";
 import { Button } from "@rtcamp/frappe-ui-react";
-import { ArrowLeft, MoreHorizontal } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 
 /**
  * Internal dependencies.
  */
+import { useUser } from "@/providers/user";
 import { RISK_DETAIL_PARAM } from "../constants";
 import { FollowersBadge } from "./followersBadge";
-import { RiskLevelBadge } from "./riskLevelBadge";
+import { RiskLevelBadge } from "../riskLevelBadge";
+import { RiskRowActions } from "../riskRowActions";
 import { RiskStatusBadge } from "../riskStatusBadge";
 import type { RiskDetail, Follower } from "../types";
 
 interface RiskDetailHeaderProps {
   risk: RiskDetail;
   followers?: Follower[];
+  onAfterFollow?: () => void;
 }
 
 export function RiskDetailHeader({
   risk,
   followers = [],
+  onAfterFollow,
 }: RiskDetailHeaderProps) {
   const [, setSearchParams] = useSearchParams();
+  const { userId } = useUser(({ state }) => ({ userId: state.userId }));
 
   const handleBack = () => {
     setSearchParams((prev) => {
@@ -36,6 +41,8 @@ export function RiskDetailHeader({
   const displayTitle = risk.risk_category
     ? `${risk.risk_category} Risk`
     : risk.name;
+
+  const isFollowing = followers.some((f) => f.user === userId);
 
   return (
     <div className="flex justify-between items-center flex-wrap mb-3.5">
@@ -75,11 +82,10 @@ export function RiskDetailHeader({
 
         <FollowersBadge followers={followers} />
 
-        <Button
-          variant="ghost"
-          type="button"
-          onClick={() => {}}
-          icon={() => <MoreHorizontal />}
+        <RiskRowActions
+          riskName={risk.name}
+          isFollowing={isFollowing}
+          onAfterFollow={onAfterFollow}
         />
       </div>
     </div>
