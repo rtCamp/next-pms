@@ -2,7 +2,7 @@
  * External dependencies.
  */
 import { Dropdown } from "@rtcamp/frappe-ui-react";
-import { DotHorizontal } from "@rtcamp/frappe-ui-react/icons";
+import { DotHorizontal, Unlink } from "@rtcamp/frappe-ui-react/icons";
 
 /**
  * Internal dependencies.
@@ -41,6 +41,7 @@ export function ActionsCell({ repoId }: ActionsCellProps) {
           label: "Unlink repository",
           key: "unlink",
           theme: "red",
+          icon: <Unlink className="size-4 mr-2" />,
           onClick: handleUnlink,
         },
       ]}
