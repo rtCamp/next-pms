@@ -122,7 +122,7 @@ export const AllocationsTeamTable = () => {
             value={searchInput}
           />
           <Autocomplete
-            className="w-40"
+            className="w-42"
             bodyClasses="w-64"
             listClassName="scrollbar-thin"
             placeholder="Designation"
@@ -171,8 +171,13 @@ export const AllocationsTeamTable = () => {
                   <SmallDown className="size-4 shrink-0 text-ink-gray-9" />
                 )}
               >
-                <span className="truncate">
-                  {displayValue || "Designation"}
+                <span
+                  className={cn(
+                    "truncate",
+                    displayValue ? "text-ink-gray-9" : "text-ink-gray-5",
+                  )}
+                >
+                  {displayValue || "Select designation"}
                 </span>
               </Button>
             )}

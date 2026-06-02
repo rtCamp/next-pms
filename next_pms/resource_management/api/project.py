@@ -4,7 +4,7 @@ import frappe
 from frappe.automation.doctype.auto_repeat.auto_repeat import getdate
 from frappe.core.doctype.recorder.recorder import redis_cache
 from frappe.email.doctype.auto_email_report.auto_email_report import DATE_FORMAT
-from frappe.utils import add_days, get_gravatar
+from frappe.utils import add_days
 
 from next_pms.resource_management.api.utils.helpers import (
     add_customer_data_if_not_exists,
@@ -121,9 +121,10 @@ def get_resource_management_project_view_data(
         modified_by = resource_allocation.get("modified_by")
         if modified_by:
             if modified_by not in user_info_cache:
+                user_data = frappe.db.get_value("User", modified_by, ["full_name", "user_image"], as_dict=True)
                 user_info_cache[modified_by] = {
-                    "avatar": get_gravatar(modified_by),
-                    "full_name": frappe.db.get_value("User", modified_by, "full_name"),
+                    "avatar": user_data.user_image if user_data else None,
+                    "full_name": user_data.full_name if user_data else None,
                 }
             resource_allocation["modified_by_avatar"] = user_info_cache[modified_by]["avatar"]
             resource_allocation["modified_by_full_name"] = user_info_cache[modified_by]["full_name"]
@@ -271,9 +272,10 @@ def get_employees_resrouce_data_for_given_project(project: str, start_date: str,
         modified_by = resource_allocation.get("modified_by")
         if modified_by:
             if modified_by not in user_info_cache:
+                user_data = frappe.db.get_value("User", modified_by, ["full_name", "user_image"], as_dict=True)
                 user_info_cache[modified_by] = {
-                    "avatar": get_gravatar(modified_by),
-                    "full_name": frappe.db.get_value("User", modified_by, "full_name"),
+                    "avatar": user_data.user_image if user_data else None,
+                    "full_name": user_data.full_name if user_data else None,
                 }
             resource_allocation["modified_by_avatar"] = user_info_cache[modified_by]["avatar"]
             resource_allocation["modified_by"] = user_info_cache[modified_by]["full_name"]

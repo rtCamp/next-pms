@@ -102,54 +102,56 @@ function AllocationItem({ entry, hasRoleAccess }: AllocationItemProps) {
         </div>
 
         {/* Created / Last edited row with avatar and edit/delete actions */}
-        {(entry.createdOn || entry.updatedOn) && (
-          <div className="flex flex-1 gap-2 items-center">
-            {entry.updatedByName && (
-              <div className="shrink-0">
-                <Avatar
-                  size="xs"
-                  shape="circle"
-                  image={entry.updatedByImage}
-                  label={entry.updatedByName}
-                />
-              </div>
-            )}
-            <span className="text-sm truncate text-ink-gray-6 mr-10">
-              {entry.updatedOn &&
-              entry.createdOn &&
-              entry.updatedOn.getTime() !== entry.createdOn.getTime()
-                ? `Last edited on ${format(entry.updatedOn, "MMM d")}`
-                : entry.createdOn
-                  ? `Created on ${format(entry.createdOn, "MMM d")}`
-                  : null}
-            </span>
-          </div>
-        )}
+        <div className="flex gap-2 justify-between items-center">
+          {(entry.createdOn || entry.updatedOn) && (
+            <div className="flex flex-1 gap-2 items-center">
+              {entry.updatedByName && (
+                <div className="shrink-0 flex items-center">
+                  <Avatar
+                    size="xs"
+                    shape="circle"
+                    image={entry.updatedByImage}
+                    label={entry.updatedByName}
+                  />
+                </div>
+              )}
+              <span className="text-sm truncate text-ink-gray-6 mr-10">
+                {entry.updatedOn &&
+                entry.createdOn &&
+                entry.updatedOn.getTime() !== entry.createdOn.getTime()
+                  ? `Last edited on ${format(entry.updatedOn, "MMM d")}`
+                  : entry.createdOn
+                    ? `Created on ${format(entry.createdOn, "MMM d")}`
+                    : null}
+              </span>
+            </div>
+          )}
 
-        {hasRoleAccess && (entry.onEdit || entry.onDelete) && (
-          <div className="flex gap-2 items-center shrink-0 absolute bottom-0 right-0 mb-1">
-            {entry.onEdit && (
-              <button
-                type="button"
-                onClick={entry.onEdit}
-                className="transition-colors text-ink-gray-6 hover:text-ink-gray-7"
-                aria-label="Edit allocation"
-              >
-                <EditAlt className="size-4 text-ink-gray-6" />
-              </button>
-            )}
-            {entry.onDelete && (
-              <button
-                type="button"
-                onClick={entry.onDelete}
-                className="transition-colors text-ink-gray-6 hover:text-ink-gray-7"
-                aria-label="Delete allocation"
-              >
-                <DeleteAlt className="size-4 text-ink-gray-6" />
-              </button>
-            )}
-          </div>
-        )}
+          {hasRoleAccess && (entry.onEdit || entry.onDelete) && (
+            <div className="flex gap-2 items-center shrink-0">
+              {entry.onEdit && (
+                <button
+                  type="button"
+                  onClick={entry.onEdit}
+                  className="transition-colors text-ink-gray-6 hover:text-ink-gray-7"
+                  aria-label="Edit allocation"
+                >
+                  <EditAlt className="size-4 text-ink-gray-6" />
+                </button>
+              )}
+              {entry.onDelete && (
+                <button
+                  type="button"
+                  onClick={entry.onDelete}
+                  className="transition-colors text-ink-gray-6 hover:text-ink-gray-7"
+                  aria-label="Delete allocation"
+                >
+                  <DeleteAlt className="size-4 text-ink-gray-6" />
+                </button>
+              )}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
