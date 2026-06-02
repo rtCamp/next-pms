@@ -5,7 +5,9 @@ import { Avatar } from "@rtcamp/frappe-ui-react";
 import {
   Call,
   Email,
+  Link,
   Payments,
+  People,
   RightChevron,
 } from "@rtcamp/frappe-ui-react/icons";
 
@@ -62,9 +64,9 @@ export function MemberHoverCard({ member }: { member: AboutMember }) {
       <div className="flex flex-col gap-2.5">
         {member.department !== undefined && (
           <div className="flex items-center gap-2">
-            <Payments className="size-4 shrink-0 text-ink-gray-5" />
+            <People className="size-4 shrink-0 text-ink-gray-5" />
 
-            <span className="block truncate text-ink-gray-7 text-base">
+            <span className="truncate text-sm font-light text-ink-gray-6">
               {member.department}
             </span>
           </div>
@@ -73,7 +75,7 @@ export function MemberHoverCard({ member }: { member: AboutMember }) {
           <div className="flex items-center gap-2">
             <Payments className="size-4 shrink-0 text-ink-gray-5" />
 
-            <span className="block truncate text-ink-gray-7 text-base">
+            <span className="truncate text-sm font-light text-ink-gray-6">
               {currencyFormat(member.currency).format(member.rate)}/hour
             </span>
           </div>
@@ -96,7 +98,7 @@ export function MemberHoverCard({ member }: { member: AboutMember }) {
         )}
         {member.linkedin && (
           <div className="flex items-center gap-2">
-            <Call className="size-4 shrink-0 text-ink-gray-5" />
+            <Link className="size-4 shrink-0 text-ink-gray-5" />
             <span className="truncate text-sm font-light text-ink-gray-6">
               {member.linkedin}
             </span>
