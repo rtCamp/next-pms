@@ -13,6 +13,7 @@ import {
 } from "@next-pms/design-system/components";
 import {
   FrappeError,
+  useFrappeGetCall,
   useFrappeGetDoc,
   useFrappeGetDocList,
   useFrappePostCall,
@@ -79,6 +80,25 @@ const PMReport = ({ projectId }: PMReportProps) => {
 
   const [resyncingRunId, setResyncingRunId] = useState<string | null>(null);
 
+  const [selectedBoard, setSelectedBoard] = useState("");
+
+  const { data: boardsData } = useFrappeGetCall(
+    "next_pms.api.generate_pm_report.get_repository_project_boards",
+    selectedRepo ? { repository: selectedRepo } : null,
+  );
+
+  const boards = boardsData?.message || [];
+
+  useEffect(() => {
+    if (boards.length > 0) {
+      if (!boards.includes(selectedBoard)) {
+        setSelectedBoard(boards[0]);
+      }
+    } else {
+      setSelectedBoard("");
+    }
+  }, [boards, selectedBoard]);
+
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const mutateRef = useRef(mutate);
   const isInitializedRef = useRef(false);
@@ -140,6 +160,7 @@ const PMReport = ({ projectId }: PMReportProps) => {
   );
 
   const reports = (projectData?.custom_project_reports ?? []) as PMReportRow[];
+  const sortedReports = [...reports].reverse();
   const completedReports = reports.filter(
     (r) => r.status === "Done" && !!r.report_link,
   );
@@ -263,6 +284,7 @@ const PMReport = ({ projectId }: PMReportProps) => {
         from_date: fromDate,
         to_date: toDate,
         selected_repo: selectedRepo,
+        selected_board: selectedBoard,
         ...(includePreviousReport && lastReportLink
           ? { previous_doc_url: lastReportLink }
           : {}),
@@ -295,6 +317,7 @@ const PMReport = ({ projectId }: PMReportProps) => {
         projectData?.custom_project_repository_connections?.[0]
           ?.github_repository || "",
       );
+      setSelectedBoard("");
 
       timeoutRef.current = setTimeout(() => {
         setIsGenerating(false);
@@ -565,6 +588,31 @@ const PMReport = ({ projectId }: PMReportProps) => {
             </div>
           )}
 
+          {/* Project Board */}
+          {boards.length > 0 && (
+            <div className="flex flex-col gap-1 col-span-2">
+              <label className="text-sm text-muted-foreground">
+                Project Board
+              </label>
+              <Select
+                value={selectedBoard}
+                onValueChange={(value) => setSelectedBoard(value)}
+                disabled={isBusy}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select project board..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {boards.map((board) => (
+                    <SelectItem key={board} value={board}>
+                      {board}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+
           {/* Drive Link — readonly */}
           <div className="flex flex-col gap-1 col-span-2">
             <label className="text-sm text-muted-foreground">
@@ -640,7 +688,7 @@ const PMReport = ({ projectId }: PMReportProps) => {
                 </tr>
               </thead>
               <tbody>
-                {reports.map((report, index) => {
+                {sortedReports.map((report, index) => {
                   const generating = isGeneratingRow(report);
                   const failed = isFailedRow(report);
                   const resyncable = isResyncableRow(report);
@@ -655,7 +703,7 @@ const PMReport = ({ projectId }: PMReportProps) => {
                         (failed || resyncable) && "bg-red-50",
                       )}
                     >
-                      <td className="px-4 py-2">{index + 1}</td>
+                      <td className="px-4 py-2">{reports.length - index}</td>
 
                       <td className="px-4 py-2">
                         {generating && (
