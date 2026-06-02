@@ -24,18 +24,18 @@ export function BudgetBurnBar({ budget }: { budget: ProjectBudgetBurn }) {
       aria-valuenow={ariaValueNow}
       className="relative h-2 w-full overflow-hidden rounded-full bg-surface-gray-2"
     >
-      <span
-        aria-hidden
-        className="absolute left-0 top-0 h-full bg-surface-green-5"
-        style={{ width: `${currentPct}%` }}
-      />
       {projectedPct > 0 ? (
         <span
           aria-hidden
-          className="absolute top-0 h-full bg-surface-green-3"
-          style={{ left: `${currentPct}%`, width: `${projectedPct}%` }}
+          className="absolute top-0 h-full bg-[#C3F9D3]"
+          style={{ width: `${projectedPct}%` }}
         />
       ) : null}
+      <span
+        aria-hidden
+        className="absolute left-0 top-0 h-full bg-[#278F5E]"
+        style={{ width: `${currentPct}%` }}
+      />
     </div>
   );
 }

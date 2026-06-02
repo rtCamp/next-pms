@@ -9,10 +9,17 @@ interface SectionProps {
   value: string;
   title: string;
   suffix?: ReactNode;
+  empty?: boolean;
   children?: ReactNode;
 }
 
-export function Section({ value, title, suffix, children }: SectionProps) {
+export function Section({
+  value,
+  title,
+  suffix,
+  empty = false,
+  children,
+}: SectionProps) {
   return (
     <Accordion.Item
       value={value}
@@ -31,7 +38,7 @@ export function Section({ value, title, suffix, children }: SectionProps) {
         {suffix}
       </Accordion.Header>
       <Accordion.Panel className="accordion-panel">
-        <div className="px-5 pb-4">{children}</div>
+        {empty ? null : <div className="px-5 pb-4">{children}</div>}
       </Accordion.Panel>
     </Accordion.Item>
   );
