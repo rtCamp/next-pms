@@ -506,6 +506,111 @@ def get_project_candidate_employee_ids(
     return employee_ids
 
 
+def get_qualifying_project_ids(
+    dates: list,
+    parsed_filters: dict | None = None,
+    search: str | None = None,
+    approval_status: list[str] | None = None,
+    reports_to: str | None = None,
+) -> list[str]:
+    """Return a sorted list of distinct project IDs that have timesheet entries in the date range.
+
+    Query chain: Timesheet → (Employee for reports_to) → Timesheet Detail → Task → distinct projects.
+    All intermediate empty results short-circuit to [].
+    """
+    if not dates:
+        return []
+
+    parsed_filters = parsed_filters or {dt: [] for dt in ALLOWED_FILTER_FIELDS}
+
+    base_ts_filters = {
+        "start_date": [">=", dates[0].get("start_date")],
+        "end_date": ["<=", dates[-1].get("end_date")],
+        "docstatus": ["!=", 2],
+    }
+    if approval_status:
+        base_ts_filters["custom_weekly_approval_status"] = ["in", approval_status]
+
+    ts_filters = build_filters(base_ts_filters, parsed_filters.get("Timesheet", []))
+    timesheets = get_all("Timesheet", filters=ts_filters, fields=["name", "employee"])
+    if not timesheets:
+        return []
+
+    if reports_to:
+        report_employee_names = set(get_all("Employee", filters={"reports_to": reports_to}, pluck="name"))
+        timesheets = [ts for ts in timesheets if ts.employee in report_employee_names]
+    if not timesheets:
+        return []
+
+    ts_names = [ts.name for ts in timesheets]
+    base_detail_filters = {"parent": ["in", ts_names]}
+    detail_filters = build_filters(base_detail_filters, parsed_filters.get("Timesheet Detail", []))
+    details = get_all("Timesheet Detail", filters=detail_filters, fields=["task"])
+    task_ids = list({d.task for d in details if d.task})
+    if not task_ids:
+        return []
+
+    base_task_filters = {"name": ["in", task_ids], "project": ["!=", ""]}
+    task_filters = build_filters(base_task_filters, parsed_filters.get("Task", []))
+    tasks = get_all("Task", filters=task_filters, fields=TASK_FIELDS)
+
+    if search:
+        search_lower = search.lower()
+        tasks = [
+            t
+            for t in tasks
+            if search_lower in (t.get("subject") or "").lower()
+            or search_lower in (t.get("name") or "").lower()
+            or search_lower in (t.get("project_name") or "").lower()
+        ]
+
+    project_ids = sorted({t.project for t in tasks if t.get("project")})
+    return project_ids
+
+
+def get_employees_for_projects(
+    project_ids: list[str],
+    dates: list,
+    parsed_filters: dict | None = None,
+    approval_status: list[str] | None = None,
+) -> list[str]:
+    """Return distinct employee IDs who logged time to any of the given projects in the date range.
+
+    Query chain: Task (project IN project_ids) → Timesheet Detail → Timesheet → distinct employees.
+    """
+    if not project_ids or not dates:
+        return []
+
+    parsed_filters = parsed_filters or {dt: [] for dt in ALLOWED_FILTER_FIELDS}
+
+    task_ids = get_all("Task", filters={"project": ["in", project_ids]}, pluck="name")
+    if not task_ids:
+        return []
+
+    ts_names_from_details = list(
+        {
+            d.parent
+            for d in get_all("Timesheet Detail", filters={"task": ["in", task_ids]}, fields=["parent"])
+            if d.parent
+        }
+    )
+    if not ts_names_from_details:
+        return []
+
+    base_ts_filters = {
+        "name": ["in", ts_names_from_details],
+        "start_date": [">=", dates[0].get("start_date")],
+        "end_date": ["<=", dates[-1].get("end_date")],
+        "docstatus": ["!=", 2],
+    }
+    if approval_status:
+        base_ts_filters["custom_weekly_approval_status"] = ["in", approval_status]
+
+    ts_filters = build_filters(base_ts_filters, parsed_filters.get("Timesheet", []))
+    timesheets = get_all("Timesheet", filters=ts_filters, pluck="employee")
+    return list(set(timesheets))
+
+
 def iter_employee_chunks(employees: list, chunk_size: int = EMPLOYEE_SCAN_CHUNK_SIZE):
     for index in range(0, len(employees), chunk_size):
         yield employees[index : index + chunk_size]

@@ -1,5 +1,4 @@
 import json
-from functools import partial
 
 import frappe
 from erpnext.accounts.report.utils import get_rate_as_at
@@ -8,13 +7,14 @@ from frappe.utils import flt, getdate
 
 from next_pms.api.utils import error_logger
 
-from . import get_count
+from . import filter_employees, get_count
 from .utils import (
     build_aggregate_dates,
+    build_chunk_context,
     build_employee_week_details,
-    get_project_candidate_employee_ids,
+    get_employees_for_projects,
+    get_qualifying_project_ids,
     normalize_status_filter,
-    paginate_qualifying_employee_payloads,
     parse_filters,
 )
 
@@ -157,12 +157,12 @@ def _prepare_project_timesheet_context(
         "has_filters": has_filters,
         "dates": dates,
         "response_dates": _get_project_response_dates(dates, max_week, has_filters),
-        "candidate_employee_ids": get_project_candidate_employee_ids(
-            reports_to=reports_to,
+        "candidate_project_ids": get_qualifying_project_ids(
             dates=dates,
             parsed_filters=parsed_filters,
             search=search,
             approval_status=approval_statuses,
+            reports_to=reports_to,
         ),
     }
 
@@ -344,39 +344,113 @@ def get_project_timesheet_data(
         approval_statuses=approval_statuses,
     )
 
-    if project_context["candidate_employee_ids"] == []:
+    all_project_ids = project_context["candidate_project_ids"]
+    if not all_project_ids:
         return {
             "week_groups": _build_project_week_groups(project_context["response_dates"], {}),
             "total_count": 0,
             "has_more": False,
         }
 
-    selected_employees, total_count, has_more = paginate_qualifying_employee_payloads(
-        reports_to=reports_to,
-        employee_ids=project_context["candidate_employee_ids"],
+    # Paginate project IDs directly — no DB round-trip needed.
+    total_count = len(all_project_ids)
+    selected_project_ids = all_project_ids[start : start + page_length]
+    has_more = start + page_length < total_count
+
+    # Get the employees who logged time to this page's projects.
+    employee_ids = get_employees_for_projects(
+        project_ids=selected_project_ids,
+        dates=project_context["dates"],
+        parsed_filters=project_context["parsed_filters"],
+        approval_status=approval_statuses,
+    )
+    if not employee_ids:
+        return {
+            "week_groups": _build_project_week_groups(project_context["response_dates"], {}),
+            "total_count": total_count,
+            "has_more": has_more,
+        }
+
+    employees, _ = filter_employees(page_length=len(employee_ids), start=0, ids=employee_ids)
+    context = build_chunk_context(
+        employees=employees,
         dates=project_context["dates"],
         parsed_filters=project_context["parsed_filters"],
         search=search,
-        start=start,
-        page_length=page_length,
-        builder=partial(
-            _build_project_employee_payload,
+    )
+
+    employee_data_map = {}
+    for employee in employees:
+        payload = _build_project_employee_payload(
+            employee=employee,
+            context=context,
             dates=project_context["dates"],
             response_dates=project_context["response_dates"],
             has_filters=project_context["has_filters"],
             skip_empty_weeks=skip_empty_weeks,
             approval_statuses=approval_statuses,
-        ),
-    )
+        )
+        if payload:
+            emp_name, emp_data = payload
+            employee_data_map[emp_name] = emp_data
 
-    employee_data_map = {employee_name: payload for employee_name, payload in selected_employees}
     week_groups = _build_project_week_groups(project_context["response_dates"], employee_data_map)
 
     if project_context["has_filters"] and skip_empty_weeks:
         week_groups = [week_group for week_group in week_groups if week_group.get("projects")]
+
+    # Restrict each week to only the selected projects — employees may have
+    # logged to other projects that should appear on a different page.
+    selected_project_set = set(selected_project_ids)
+    for week_group in week_groups:
+        week_group["projects"] = [p for p in week_group["projects"] if p["project"] in selected_project_set]
 
     return {
         "week_groups": week_groups,
         "total_count": total_count,
         "has_more": has_more,
     }
+
+
+@whitelist(methods=["GET"])
+@error_logger
+def get_project_timesheet_pending_count(
+    date: str,
+    max_week: int = 2,
+    reports_to: str | None = None,
+):
+    """Return the count of employees with at least one 'Approval Pending' week for project tasks."""
+    only_for(["Timesheet Manager", "Timesheet User", "Projects Manager"], message=True)
+
+    dates, _ = build_aggregate_dates(date=date, max_week=int(max_week), has_filters=False)
+    if not dates:
+        return {"count": 0}
+
+    ts_filters = {
+        "start_date": [">=", dates[0]["start_date"]],
+        "end_date": ["<=", dates[-1]["end_date"]],
+        "docstatus": ["!=", 2],
+        "custom_weekly_approval_status": "Approval Pending",
+    }
+    timesheets = frappe.get_all("Timesheet", filters=ts_filters, fields=["name", "employee"])
+    if not timesheets:
+        return {"count": 0}
+
+    if reports_to:
+        report_employees = set(frappe.get_all("Employee", filters={"reports_to": reports_to}, pluck="name"))
+        timesheets = [ts for ts in timesheets if ts.employee in report_employees]
+    if not timesheets:
+        return {"count": 0}
+
+    ts_names = [ts.name for ts in timesheets]
+    matched_parents = {
+        d.parent
+        for d in frappe.get_all(
+            "Timesheet Detail", filters={"parent": ["in", ts_names], "task": ["!=", ""]}, fields=["parent"]
+        )
+    }
+    if not matched_parents:
+        return {"count": 0}
+
+    count = len({ts.employee for ts in timesheets if ts.name in matched_parents})
+    return {"count": count}
