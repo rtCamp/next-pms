@@ -55,7 +55,7 @@ export function RiskDetailContent({
             variant="ghost"
             onClick={() => {}}
             aria-label="Add document"
-            iconLeft={() => <Plus />}
+            icon={() => <Plus />}
           />
         </div>
 
@@ -79,7 +79,7 @@ export function RiskDetailContent({
             variant="ghost"
             onClick={() => {}}
             aria-label="Add update"
-            iconLeft={() => <Plus />}
+            icon={() => <Plus />}
           />
         </div>
 

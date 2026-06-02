@@ -20,7 +20,12 @@ export function KanbanColumnHeader({ status, onAdd }: KanbanColumnHeaderProps) {
     <div className="flex items-center justify-between px-1.5">
       <RiskStatusBadge status={status} className="text-base" />
 
-      <Button variant="ghost" type="button" onClick={onAdd} iconLeft={Plus} />
+      <Button
+        variant="ghost"
+        type="button"
+        onClick={onAdd}
+        icon={() => <Plus />}
+      />
     </div>
   );
 }
