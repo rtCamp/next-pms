@@ -7,6 +7,7 @@ export const overviewSchema = z.object({
   complexity: z.string(),
   keyAccount: z.string(),
   source: z.string(),
+  primaryLocation: z.string(),
   previousCms: z.string(),
   pointOfContact: z.string(),
   frequency: z.string(),

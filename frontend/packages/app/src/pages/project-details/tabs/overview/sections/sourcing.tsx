@@ -8,8 +8,8 @@ import { Location, SearchAlt, Tag1 } from "@rtcamp/frappe-ui-react/icons";
 /**
  * Internal dependencies.
  */
+import { useTerritoryLookup } from "@/hooks/useTerritoryLookup";
 import { useUtmSourceLookup } from "@/hooks/useUtmSourceLookup";
-import { useProjectDetail } from "../../../context";
 import { EditableField } from "../components/editableField";
 import { OverviewSection } from "../components/overviewSection";
 import type { OverviewFormApi } from "../index";
@@ -23,15 +23,18 @@ type SourcingProps = {
 };
 
 export function Sourcing({ form, isEditing, submitting }: SourcingProps) {
-  const primaryLocation = useProjectDetail(
-    (state) => state.project?.custom_host ?? EMPTY,
-  );
-
   const [sourceSearch, setSourceSearch] = useState("");
   const { options: sourceOptions, isLoading: isSourceLoading } =
     useUtmSourceLookup({
       shouldFetch: isEditing,
       query: sourceSearch,
+    });
+
+  const [territorySearch, setTerritorySearch] = useState("");
+  const { options: territoryOptions, isLoading: isTerritoryLoading } =
+    useTerritoryLookup({
+      shouldFetch: isEditing,
+      query: territorySearch,
     });
 
   return (
@@ -60,11 +63,28 @@ export function Sourcing({ form, isEditing, submitting }: SourcingProps) {
           )}
         </form.Field>
 
-        <EditableField
-          icon={<Location className="size-[18px]" />}
-          label="Primary location"
-          value={primaryLocation}
-        />
+        <form.Field name="primaryLocation">
+          {(field) => (
+            <EditableField
+              icon={<Location className="size-[18px]" />}
+              label="Primary location"
+              value={field.state.value || EMPTY}
+              isEditing={isEditing}
+            >
+              <Combobox
+                loading={isTerritoryLoading}
+                options={territoryOptions}
+                placeholder="Select primary location"
+                searchValue={territorySearch}
+                onSearchChange={setTerritorySearch}
+                value={field.state.value || null}
+                onChange={(v) => field.handleChange(v ?? "")}
+                disabled={submitting}
+                openOnFocus
+              />
+            </EditableField>
+          )}
+        </form.Field>
 
         <form.Field name="previousCms">
           {(field) => (
