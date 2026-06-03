@@ -24,8 +24,11 @@ export const TABS: ComponentProps<typeof Tabs>["tabs"] = [
   { label: "Overview", content: <Overview /> },
   { label: "Calendar", content: <CalendarTab /> },
   { label: "Tracking", content: <Tracking /> },
-  { label: "Notes", content: <Notes /> },
   { label: "Risks", content: <RisksTab /> },
+  {
+    label: "Notes",
+    content: <Notes />,
+  },
   { label: "Email", content: <UnderConstruction /> },
   { label: "To-do", content: <UnderConstruction /> },
   { label: "Feedback", content: <UnderConstruction /> },
