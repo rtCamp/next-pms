@@ -91,7 +91,7 @@ export function RisksToolbar() {
           fields={[
             { name: "risk_category", label: "Risk category", type: "string" },
             { name: "summary", label: "Summary", type: "string" },
-            { name: "risk_owner", label: "Owner", type: "string" },
+            { name: "owner", label: "Owner", type: "string" },
           ]}
         />
         <SortButton />

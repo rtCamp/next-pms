@@ -28,7 +28,7 @@ export function SortButton() {
   const setSort = useRisks((c) => c.actions.setSort);
 
   const sortFields = isKanban
-    ? SORT_FIELDS.filter((f) => f.field !== "risk_category")
+    ? SORT_FIELDS.filter((f) => f.field !== "status")
     : SORT_FIELDS;
 
   const handleFieldClick = (field: string) => {

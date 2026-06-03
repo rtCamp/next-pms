@@ -1,7 +1,7 @@
 /**
  * External dependencies.
  */
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { move } from "@dnd-kit/helpers";
 import { DragDropProvider } from "@dnd-kit/react";
 import { Draggable, Droppable } from "@next-pms/design-system/components";
@@ -45,7 +45,7 @@ export function RisksKanbanView() {
     return map;
   }, [data]);
 
-  useMemo(() => {
+  useEffect(() => {
     if (!data) return;
     setItems(groupIdsByStatus(data));
   }, [data]);
