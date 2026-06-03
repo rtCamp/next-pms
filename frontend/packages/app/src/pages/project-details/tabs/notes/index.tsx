@@ -1,17 +1,21 @@
 /**
  * External dependencies.
  */
+import { useSearchParams } from "react-router-dom";
 import { ErrorFallback, Spinner } from "@next-pms/design-system/components";
 
 /**
  * Internal dependencies.
  */
+import { UnderConstruction } from "@/components/under-construction";
+import { NOTE_ID, NOTE_MODE } from "./constants";
 import { useNotes } from "./context";
+import { NoteEditor } from "./editor";
 import { NoteCard } from "./noteCard";
 import { NotesProvider } from "./provider";
 import { NotesSubHeader } from "./subHeader";
 
-function NotesContent() {
+function NotesGrid() {
   const notes = useNotes((s) => s.state.notes);
   const isLoading = useNotes((s) => s.state.isLoading);
   const error = useNotes((s) => s.state.error);
@@ -42,6 +46,33 @@ function NotesContent() {
       )}
     </div>
   );
+}
+
+function NotesContent() {
+  const [searchParams] = useSearchParams();
+  const noteId = searchParams.get(NOTE_ID);
+  const noteMode = searchParams.get(NOTE_MODE);
+
+  const activeView =
+    noteId && noteMode === "edit"
+      ? "edit"
+      : noteMode === "new"
+        ? "new"
+        : noteId
+          ? "details"
+          : "list";
+
+  switch (activeView) {
+    case "new":
+    case "edit":
+      return <NoteEditor noteId={noteId} mode={activeView} />;
+
+    case "details":
+      return <UnderConstruction />;
+
+    default:
+      return <NotesGrid />;
+  }
 }
 
 export function Notes() {

@@ -1,15 +1,15 @@
 /**
  * External dependencies.
  */
-import { useNavigate, useParams } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
 import { Avatar, Dropdown } from "@rtcamp/frappe-ui-react";
-import { DotHorizontal, Edit } from "@rtcamp/frappe-ui-react/icons";
+import { DotHorizontal, Edit1 } from "@rtcamp/frappe-ui-react/icons";
 
 /**
  * Internal dependencies.
  */
 import { formatRelativeTimeShort, stripTags } from "@/lib/utils";
-import { buildEditPath } from "@/pages/project-details/note-editor/constants";
+import { NOTE_ID, NOTE_MODE } from "./constants";
 import type { Note } from "./types";
 
 type NoteCardProps = {
@@ -17,8 +17,7 @@ type NoteCardProps = {
 };
 
 export function NoteCard({ note }: NoteCardProps) {
-  const navigate = useNavigate();
-  const { projectId = "" } = useParams<{ projectId: string }>();
+  const [, setSearchParams] = useSearchParams();
   const excerpt = stripTags(note.description);
   const relativeDate = formatRelativeTimeShort(note.creation);
   const authorHref = `/desk/user/${encodeURIComponent(note.owner)}`;
@@ -31,23 +30,24 @@ export function NoteCard({ note }: NoteCardProps) {
         </h3>
         <Dropdown
           placement="right"
+          button={{
+            variant: "ghost",
+            icon: DotHorizontal,
+          }}
           options={[
             {
               label: "Edit",
               key: "edit",
-              icon: <Edit className="size-4" />,
-              onClick: () => navigate(buildEditPath(projectId, note.name)),
+              icon: <Edit1 className="size-4 mr-2" />,
+              onClick: () =>
+                setSearchParams((prev) => {
+                  prev.set(NOTE_ID, note.name);
+                  prev.set(NOTE_MODE, "edit");
+                  return prev;
+                }),
             },
           ]}
-        >
-          <button
-            type="button"
-            aria-label="Note actions"
-            className="shrink-0 inline-flex items-center justify-center text-ink-gray-5 hover:text-ink-gray-7"
-          >
-            <DotHorizontal aria-hidden className="size-4" />
-          </button>
-        </Dropdown>
+        />
       </div>
       <p className="flex-1 line-clamp-7 whitespace-pre-wrap px-3.5 pt-2 text-base leading-6 text-ink-gray-5">
         {excerpt}

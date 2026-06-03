@@ -1,7 +1,7 @@
 /**
  * External dependencies.
  */
-import { useNavigate, useParams } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
 import type { FilterCondition } from "@rtcamp/frappe-ui-react";
 import { Dropdown, Filter } from "@rtcamp/frappe-ui-react";
 import { AddSm, SmallDown } from "@rtcamp/frappe-ui-react/icons";
@@ -9,8 +9,7 @@ import { AddSm, SmallDown } from "@rtcamp/frappe-ui-react/icons";
 /**
  * Internal dependencies.
  */
-import { ROUTES } from "@/lib/constant";
-import { CREATE_OPTIONS } from "./constants";
+import { CREATE_OPTIONS, NOTE_MODE } from "./constants";
 
 type NotesSubHeaderProps = {
   filters: FilterCondition[];
@@ -21,8 +20,7 @@ export function NotesSubHeader({
   filters,
   onFiltersChange,
 }: NotesSubHeaderProps) {
-  const { projectId = "" } = useParams<{ projectId: string }>();
-  const navigate = useNavigate();
+  const [, setSearchParams] = useSearchParams();
 
   return (
     <div className="flex items-center justify-between gap-8">
@@ -60,7 +58,10 @@ export function NotesSubHeader({
               label: "New blank note",
               key: CREATE_OPTIONS.newBlankNote,
               onClick: () =>
-                navigate(`${ROUTES.project}/${projectId}/notes/new`),
+                setSearchParams((prev) => {
+                  prev.set(NOTE_MODE, "new");
+                  return prev;
+                }),
             },
           ]}
         />
