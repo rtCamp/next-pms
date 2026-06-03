@@ -270,14 +270,18 @@ def upsert_day_override(doc_name: str, override_date: str, override_fields: dict
                                 or ``{"hours": 4.0}``.
     """
     fields = dict(override_fields)
-    if fields.get("cancelled") and fields.get("hours"):
+    is_cancelled = cint(fields.get("cancelled")) == 1
+    has_hours = fields.get("hours") is not None
+
+    if is_cancelled and has_hours:
         frappe.throw(
             frappe._("A day override cannot set both 'hours' and 'cancelled'. Use one or the other."),
             exc=frappe.ValidationError,
         )
-    if fields.get("cancelled"):
+    if is_cancelled:
+        fields["cancelled"] = 1
         fields["hours"] = 0
-    elif fields.get("hours") is not None:
+    elif has_hours:
         fields["cancelled"] = 0
 
     existing_row = frappe.db.get_value(
