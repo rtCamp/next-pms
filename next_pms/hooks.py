@@ -99,6 +99,7 @@ doctype_js = {
 
 # before_install = "next_pms.install.before_install"
 after_install = "next_pms.install.after_install"
+after_migrate = "next_pms.install.after_migrate"
 
 # Uninstallation
 # ------------

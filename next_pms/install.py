@@ -9,6 +9,46 @@ def after_install():
     setup_email_template()
     create_default_project_phases()
     create_default_risk_masters()
+    setup_project_custom_fields()
+
+
+def after_migrate():
+    setup_project_custom_fields()
+
+
+def setup_project_custom_fields():
+    from frappe.custom.doctype.custom_field.custom_field import create_custom_fields
+
+    create_custom_fields(
+        {
+            "Project": [
+                {
+                    "fieldname": "custom_lifetime_value_to_date",
+                    "fieldtype": "Currency",
+                    "label": "Lifetime Value To Date",
+                    "insert_after": "gross_margin",
+                    "permlevel": 2,
+                    "read_only": 0,
+                },
+                {
+                    "fieldname": "custom_expected_lifetime_value",
+                    "fieldtype": "Currency",
+                    "label": "Expected Lifetime Value",
+                    "insert_after": "custom_lifetime_value_to_date",
+                    "permlevel": 2,
+                    "read_only": 0,
+                },
+                {
+                    "fieldname": "custom_lifetime_value_vs_billed_amount",
+                    "fieldtype": "Currency",
+                    "label": "Lifetime Value vs Billed Amount",
+                    "insert_after": "custom_expected_lifetime_value",
+                    "permlevel": 2,
+                    "read_only": 0,
+                },
+            ]
+        }
+    )
 
 
 def add_project_manager_perm():
