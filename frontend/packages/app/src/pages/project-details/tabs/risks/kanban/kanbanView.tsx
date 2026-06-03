@@ -34,21 +34,27 @@ export function RisksKanbanView() {
     (c) => c.actions.openCreateRiskWithStatus,
   );
   const toast = useToasts();
+  const [localData, setLocalData] = useState<RiskItem[]>(data);
+
+  useEffect(() => {
+    if (!data || data.length === 0) return;
+    setLocalData(data);
+  }, [data]);
 
   const [items, setItems] = useState<RiskIdsByStatus>(emptyGroups);
 
   const byId = useMemo(() => {
     const map = new Map<string, RiskItem>();
-    for (const risk of data) {
+    for (const risk of localData) {
       map.set(risk.name, risk);
     }
     return map;
-  }, [data]);
+  }, [localData]);
 
   useEffect(() => {
-    if (!data) return;
-    setItems(groupIdsByStatus(data));
-  }, [data]);
+    if (!localData) return;
+    setItems(groupIdsByStatus(localData));
+  }, [localData]);
 
   return (
     <DragDropProvider<RiskDragData, RiskDraggable, RiskDroppable>
@@ -72,7 +78,7 @@ export function RisksKanbanView() {
         try {
           await updateRiskStatus(riskId, newStatus);
         } catch {
-          setItems(groupIdsByStatus(data));
+          setItems(groupIdsByStatus(localData));
           const risk = byId.get(riskId);
           toast.error(
             `Error updating status for ${risk?.risk_category ?? riskId}`,

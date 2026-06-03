@@ -120,7 +120,7 @@ export function useRisksData(filters: RiskFilters, sort: RiskSort | null) {
     () =>
       Object.fromEntries(
         allOwners.map((email) => [email, userMap[email]]),
-      ) as Record<string, UserDetails>,
+      ) as Record<string, UserDetails | undefined>,
     [allOwners, userMap],
   );
 

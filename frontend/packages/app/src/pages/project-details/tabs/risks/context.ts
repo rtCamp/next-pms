@@ -27,7 +27,7 @@ export interface RisksContextProps {
     editRiskName: string | null;
     createRiskInitialStatus: RiskStatus | "";
     deleteRiskName: string | null;
-    allOwnersWithDetails: Record<string, UserDetails>;
+    allOwnersWithDetails: Record<string, UserDetails | undefined>;
   };
   actions: {
     setFilters: (filters: Partial<RiskFilters>) => void;
