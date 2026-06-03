@@ -1,7 +1,7 @@
 /**
  * External dependencies.
  */
-import { useCallback, useEffect } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { ButtonProps, useToast } from "@next-pms/design-system/components";
 import { getFormatedDate } from "@next-pms/design-system/date";
@@ -43,6 +43,7 @@ const ResourceTeamHeaderSection = ({ viewData }: { viewData: ViewData }) => {
     viewData.filters.combineWeekHours || false
   );
   const [skillSearchParam, setSkillSearchParam] = useQueryParam<Skill[]>("skill-search", []);
+  const [tagSearch, setTagSearch] = useState<string>("");
   const { toast } = useToast();
 
   const { teamData, filters, tableView, hasViewUpdated } = useContextSelector(TeamContext, (value) => value.state);
@@ -236,17 +237,20 @@ const ResourceTeamHeaderSection = ({ viewData }: { viewData: ViewData }) => {
       type: "select-search",
       value: filters.tags,
       label: "Tag",
-      shouldFilterComboBox: true,
+      shouldFilterComboBox: false,
       isMultiComboBox: true,
       hide: !resourceAllocationPermission.write,
+      onComboSearch: (searchTerm: string) => {
+        setTagSearch(searchTerm);
+      },
       apiCall: {
         url: "frappe.client.get_list",
         filters: {
           doctype: "Tag Link",
-          filters: { document_type: "Employee" },
+          filters: { document_type: "Employee", tag: ["like", `%${tagSearch}%`] },
           fields: ["tag as name"],
           group_by: "tag",
-          limit_page_length: 0,
+          limit_page_length: 20,
         },
         options: {
           revalidateOnFocus: false,
