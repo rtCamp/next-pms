@@ -48,7 +48,7 @@ def get_leadership_kpis(
             Example: {
             "revenue": {"current": 1000, "previous": 900, "change_pct": 10, "trend": "up"},
             "cost": {"current": 800, "previous": 700, "change_pct": 10, "trend": "up"},
-            "profit_margin": {"current": 20, "previous": 10, "change_pct": 10, "trend": "up"}
+            "profit_margin": {"current": 20, "previous": 10, "change_pct": 100, "trend": "up"}
             }
     """
     only_for(ALLOWED_ROLES, message=True)
@@ -57,6 +57,13 @@ def get_leadership_kpis(
     cur_end = getdate(cur_end)
     prev_start = getdate(prev_start)
     prev_end = getdate(prev_end)
+
+    if cur_start > cur_end:
+        frappe.throw(frappe._("cur_start must be on or before cur_end"))
+    if prev_start > prev_end:
+        frappe.throw(frappe._("prev_start must be on or before prev_end"))
+    if prev_end >= cur_start:
+        frappe.throw(frappe._("prev_end must be before cur_start"))
 
     cur_revenue, prev_revenue = get_revenue(cur_start, cur_end, prev_start, prev_end, client, project)
     cur_cost, prev_cost = get_cost(cur_start, cur_end, prev_start, prev_end, client, project)
@@ -88,9 +95,9 @@ def build_kpi(current: float, previous: float) -> dict:
     """
     change_pct = ((current - previous) / previous * 100) if previous else None
     return {
-        "current": current,
-        "previous": previous,
-        "change_pct": change_pct,
+        "current": flt(current, 2),
+        "previous": flt(previous, 2),
+        "change_pct": flt(change_pct, 2) if change_pct is not None else None,
         "trend": "up" if current >= previous else "down",
     }
 
@@ -220,7 +227,7 @@ def _sum_to_usd(rows: list, cur_key: str, prev_key: str) -> tuple[float, float]:
     current = 0.0
     previous = 0.0
     for row in rows:
-        rate = 1
+        rate = 1.0
         if row.currency != CURRENCY:
             rate = get_exchange_rate(row.currency, CURRENCY, row.transaction_date) or 1
         current += flt(row[cur_key]) * rate
