@@ -10,6 +10,7 @@ from next_pms.resource_management.api.utils.helpers import (
     get_allocation_objects,
     get_dates_date,
     get_employees_by_skills,
+    get_employees_by_tags,
     is_on_leave,
     resource_api_permissions_check,
 )
@@ -35,6 +36,7 @@ def get_resource_management_team_view_data(
     page_length: int = 10,
     start: int = 0,
     skills: list | str | None = None,
+    tags: list | str | None = None,
     employee_id: list | str | None = None,
     need_hours_summary: bool = False,
 ):
@@ -62,12 +64,20 @@ def get_resource_management_team_view_data(
         ids = employee_id
 
     if not employee_id:
-        if not skills:
-            skills = []
         if isinstance(skills, str):
-            skills = json.loads(skills)
+            skills = json.loads(skills) if skills else []
+        if isinstance(tags, str):
+            tags = json.loads(tags) if tags else []
+
+        matched_ids: set[str] | None = None
         if skills:
-            ids = get_employees_by_skills(skills)
+            matched_ids = set(get_employees_by_skills(skills))
+        if tags:
+            tag_ids = set(get_employees_by_tags(tags))
+            matched_ids = tag_ids if matched_ids is None else matched_ids & tag_ids
+
+        if matched_ids is not None:
+            ids = list(matched_ids)
             if len(ids) == 0:
                 if not need_hours_summary:
                     res["employees"] = []
@@ -337,3 +347,15 @@ def get_leave_information(employee: str, start_date: str, end_date: str):
     frappe.only_for(["Timesheet Manager", "Timesheet User", "Projects Manager"], message=True)
 
     return get_workable_days_for_employee(employee, start_date, end_date)
+
+
+@frappe.whitelist(methods=["GET"])
+def get_employee_tags():
+    """
+    Return the distinct tags assigned to Employee profiles, used to populate the tag filter on the resource management team view.
+    """
+    resource_api_permissions_check()
+
+    tags = frappe.get_all("Tag Link", filters={"document_type": "Employee"}, pluck="tag")
+
+    return [{"name": tag} for tag in sorted(set(tags))]

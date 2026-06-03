@@ -35,6 +35,7 @@ const ResourceTeamHeaderSection = ({ viewData }: { viewData: ViewData }) => {
   const [reportingNameParam] = useQueryParam<string>("reports-to", "");
   const [allocationTypeParam] = useQueryParam<string[]>("allocation-type", []);
   const [designationParam] = useQueryParam<string[]>("designation", []);
+  const [tagsParam] = useQueryParam<string[]>("tags", []);
   const [viewParam, setViewParam] = useQueryParam<string>("view-type", viewData.filters.view || "");
   const user = useSelector((state: RootState) => state.user);
   const [combineWeekHoursParam, setCombineWeekHoursParam] = useQueryParam<boolean>(
@@ -95,6 +96,7 @@ const ResourceTeamHeaderSection = ({ viewData }: { viewData: ViewData }) => {
       allocationType:
         allocationTypeParam && allocationTypeParam.length > 0 ? allocationTypeParam : viewData.filters.allocationType,
       skillSearch: skillSearchParam && skillSearchParam.length > 0 ? skillSearchParam : viewData.filters.skillSearch,
+      tags: tagsParam && tagsParam.length > 0 ? tagsParam : viewData.filters.tags,
     });
 
     updateTableView({ ...tableView, view: CurrentViewParam, combineWeekHours: combineWeekHoursParam });
@@ -222,6 +224,30 @@ const ResourceTeamHeaderSection = ({ viewData }: { viewData: ViewData }) => {
           skillSearch={filters?.skillSearch || []}
         />
       ),
+    },
+    {
+      queryParameterName: "tags",
+      handleChange: (value: string | string[]) => {
+        updateFilter({ tags: value as string[] });
+      },
+      handleDelete: (value: string[] | undefined) => {
+        updateFilter({ tags: value });
+      },
+      type: "select-search",
+      value: filters.tags,
+      label: "Tag",
+      shouldFilterComboBox: true,
+      isMultiComboBox: true,
+      hide: !resourceAllocationPermission.write,
+      apiCall: {
+        url: "next_pms.resource_management.api.team.get_employee_tags",
+        filters: {},
+        options: {
+          revalidateOnFocus: false,
+          revalidateIfStale: false,
+        },
+      },
+      queryParameterDefault: filters.tags,
     },
     {
       queryParameterName: "business-unit",

@@ -44,6 +44,7 @@ const defaultFilters: ResourceTeamFilters = {
   businessUnit: [],
   maxWeek: 5,
   skillSearch: [],
+  tags: [],
 };
 const defaultData: ResourceTeamDataProps = {
   data: [],

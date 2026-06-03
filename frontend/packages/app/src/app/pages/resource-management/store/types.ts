@@ -267,6 +267,7 @@ export interface ResourceTeamFilters {
   pageLength: number;
   maxWeek: number;
   skillSearch?: Skill[];
+  tags?: string[];
 }
 
 export interface OptionalResourceTeamFilters {
@@ -281,6 +282,7 @@ export interface OptionalResourceTeamFilters {
   pageLength?: number;
   maxWeek?: number;
   skillSearch?: Skill[];
+  tags?: string[];
 }
 
 export interface ResourceTeam {

@@ -12,6 +12,7 @@ export const createFilter = (teamContextState: ResourceTeam) => {
     designation: teamContextState?.filters?.designation ?? [],
     allocationType: teamContextState?.filters?.allocationType ?? [],
     skillSearch: teamContextState?.filters?.skillSearch ?? [],
+    tags: teamContextState?.filters?.tags ?? [],
     view: teamContextState?.tableView?.view ?? "planned-vs-capacity",
     combineWeekHours: teamContextState?.tableView?.combineWeekHours ?? false,
   };
