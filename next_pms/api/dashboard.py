@@ -4,6 +4,7 @@
 import frappe
 from erpnext.setup.utils import get_exchange_rate
 from frappe import only_for, whitelist
+from frappe.core.doctype.recorder.recorder import redis_cache
 from frappe.query_builder import DocType
 from frappe.query_builder.functions import Sum
 from frappe.utils import flt, getdate
@@ -65,6 +66,11 @@ def get_leadership_kpis(
     if prev_end >= cur_start:
         frappe.throw(frappe._("prev_end must be before cur_start"))
 
+    return get_cached_leadership_kpis(cur_start, cur_end, prev_start, prev_end, client, project)
+
+
+@redis_cache()
+def get_cached_leadership_kpis(cur_start, cur_end, prev_start, prev_end, client, project) -> dict:
     cur_revenue, prev_revenue = get_revenue(cur_start, cur_end, prev_start, prev_end, client, project)
     cur_cost, prev_cost = get_cost(cur_start, cur_end, prev_start, prev_end, client, project)
 
