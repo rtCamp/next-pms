@@ -240,8 +240,14 @@ const ResourceTeamHeaderSection = ({ viewData }: { viewData: ViewData }) => {
       isMultiComboBox: true,
       hide: !resourceAllocationPermission.write,
       apiCall: {
-        url: "next_pms.resource_management.api.team.get_employee_tags",
-        filters: {},
+        url: "frappe.client.get_list",
+        filters: {
+          doctype: "Tag Link",
+          filters: { document_type: "Employee" },
+          fields: ["tag as name"],
+          group_by: "tag",
+          limit_page_length: 0,
+        },
         options: {
           revalidateOnFocus: false,
           revalidateIfStale: false,

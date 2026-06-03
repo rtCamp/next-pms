@@ -347,15 +347,3 @@ def get_leave_information(employee: str, start_date: str, end_date: str):
     frappe.only_for(["Timesheet Manager", "Timesheet User", "Projects Manager"], message=True)
 
     return get_workable_days_for_employee(employee, start_date, end_date)
-
-
-@frappe.whitelist(methods=["GET"])
-def get_employee_tags():
-    """
-    Return the distinct tags assigned to Employee profiles, used to populate the tag filter on the resource management team view.
-    """
-    resource_api_permissions_check()
-
-    tags = frappe.get_all("Tag Link", filters={"document_type": "Employee"}, pluck="tag")
-
-    return [{"name": tag} for tag in sorted(set(tags))]
