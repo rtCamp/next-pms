@@ -1,13 +1,15 @@
 /**
  * External dependencies.
  */
-import { Avatar } from "@rtcamp/frappe-ui-react";
-import { DotHorizontal } from "@rtcamp/frappe-ui-react/icons";
+import { useNavigate, useParams } from "react-router-dom";
+import { Avatar, Dropdown } from "@rtcamp/frappe-ui-react";
+import { DotHorizontal, Edit } from "@rtcamp/frappe-ui-react/icons";
 
 /**
  * Internal dependencies.
  */
 import { formatRelativeTimeShort, stripTags } from "@/lib/utils";
+import { buildEditPath } from "@/pages/project-details/note-editor/constants";
 import type { Note } from "./types";
 
 type NoteCardProps = {
@@ -15,6 +17,8 @@ type NoteCardProps = {
 };
 
 export function NoteCard({ note }: NoteCardProps) {
+  const navigate = useNavigate();
+  const { projectId = "" } = useParams<{ projectId: string }>();
   const excerpt = stripTags(note.description);
   const relativeDate = formatRelativeTimeShort(note.creation);
   const authorHref = `/desk/user/${encodeURIComponent(note.owner)}`;
@@ -25,11 +29,25 @@ export function NoteCard({ note }: NoteCardProps) {
         <h3 className="flex-1 truncate text-lg font-medium text-ink-gray-8">
           {note.title}
         </h3>
-        {/* TODO: Add actions after requirement clarification */}
-        <DotHorizontal
-          aria-hidden
-          className="size-4 shrink-0 text-ink-gray-5"
-        />
+        <Dropdown
+          placement="right"
+          options={[
+            {
+              label: "Edit",
+              key: "edit",
+              icon: <Edit className="size-4" />,
+              onClick: () => navigate(buildEditPath(projectId, note.name)),
+            },
+          ]}
+        >
+          <button
+            type="button"
+            aria-label="Note actions"
+            className="shrink-0 inline-flex items-center justify-center text-ink-gray-5 hover:text-ink-gray-7"
+          >
+            <DotHorizontal aria-hidden className="size-4" />
+          </button>
+        </Dropdown>
       </div>
       <p className="flex-1 line-clamp-7 whitespace-pre-wrap px-3.5 pt-2 text-base leading-6 text-ink-gray-5">
         {excerpt}
