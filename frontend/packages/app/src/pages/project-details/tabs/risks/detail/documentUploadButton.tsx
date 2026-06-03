@@ -20,8 +20,8 @@ export function DocumentUploadButton({
     <FileUploader
       uploadArgs={{ doctype: "Risk", docname: riskName }}
       onSuccess={onSuccess}
-      onFailure={(err) => {
-        toast.error(err);
+      onFailure={(_, errorMessage) => {
+        toast.error(errorMessage ?? "Failed to upload document");
       }}
     >
       {({ uploading, openFileSelector }) => (
