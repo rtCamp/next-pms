@@ -4,7 +4,7 @@
 import { useSearchParams } from "react-router-dom";
 import { Avatar } from "@rtcamp/frappe-ui-react";
 import { Button } from "@rtcamp/frappe-ui-react";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft } from "@rtcamp/frappe-ui-react/icons";
 
 /**
  * Internal dependencies.
