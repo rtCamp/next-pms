@@ -2,7 +2,7 @@
  * External dependencies.
  */
 import { useMemo } from "react";
-import type { FilterCondition, FilterField } from "@rtcamp/frappe-ui-react";
+import type { FilterCondition } from "@rtcamp/frappe-ui-react";
 import { useFrappeGetCall } from "frappe-react-sdk";
 
 /**
@@ -11,68 +11,26 @@ import { useFrappeGetCall } from "frappe-react-sdk";
 import { useProjectDetail } from "@/pages/project-details/context";
 import type { Note } from "./types";
 
-const extractServerAuthor = (
-  advanced: FilterCondition[],
-): string | undefined => {
-  const cond = advanced.find((f) => f.field === "author" && f.value);
-  if (!cond) return undefined;
-  const op = String(cond.operator ?? "").toLowerCase();
-  if (op && op !== "is" && op !== "equals") return undefined;
-  return Array.isArray(cond.value) ? cond.value[0] : String(cond.value);
-};
-
-const applyAuthorFilter = (
-  notes: Note[],
-  advanced: FilterCondition[],
-): Note[] => {
-  const cond = advanced.find((f) => f.field === "author");
-  if (!cond) return notes;
-
-  const op = String(cond.operator ?? "").toLowerCase();
-  const val = Array.isArray(cond.value)
-    ? cond.value[0]
-    : String(cond.value ?? "");
-
-  switch (op) {
-    case "":
-    case "is":
-    case "equals":
-      return notes;
-    case "is_not":
-      return notes.filter((n) => n.owner !== val);
-    case "is_empty":
-      return notes.filter((n) => !n.owner);
-    case "is_not_empty":
-      return notes.filter((n) => Boolean(n.owner));
-    default:
-      return notes;
-  }
-};
-
-export function useNotesData(advanced: FilterCondition[]) {
+export function useNotesData({ filters }: { filters: FilterCondition[] }) {
   const projectId = useProjectDetail((s) => s.projectId);
-
-  const author = useMemo(() => extractServerAuthor(advanced), [advanced]);
-
-  const params = useMemo(
-    () => ({ project: projectId, ...(author ? { author } : {}) }),
-    [projectId, author],
-  );
-
-  const swrKey = useMemo(
-    () => (projectId ? `notes-${projectId}-${author ?? ""}` : null),
-    [projectId, author],
-  );
 
   const { data, isLoading, error, mutate } = useFrappeGetCall<{
     message: Note[];
   }>(
     "next_pms.timesheet.api.project_status_update.get_project_status_updates_by_project",
-    params,
-    swrKey,
+    {
+      project: projectId,
+      filters: JSON.stringify(
+        filters.map((f) =>
+          Array.isArray(f.value)
+            ? [f.field, f.operator, ...f.value]
+            : [f.field, f.operator, f.value],
+        ),
+      ),
+    },
   );
 
-  const allNotes = useMemo(() => {
+  const notes = useMemo(() => {
     const raw = data?.message;
     if (!Array.isArray(raw)) return [];
     return [...raw]
@@ -80,29 +38,5 @@ export function useNotesData(advanced: FilterCondition[]) {
       .sort((a, b) => b.creation.localeCompare(a.creation));
   }, [data]);
 
-  const notes = useMemo(
-    () => applyAuthorFilter(allNotes, advanced),
-    [allNotes, advanced],
-  );
-
-  const filterFields = useMemo<FilterField[]>(() => {
-    const seen = new Set<string>();
-    const authorOptions = allNotes
-      .filter((n) => {
-        if (seen.has(n.owner)) return false;
-        seen.add(n.owner);
-        return true;
-      })
-      .map((n) => ({ label: n.owner_full_name || n.owner, value: n.owner }));
-    return [
-      {
-        name: "author",
-        label: "Author",
-        type: "select",
-        options: authorOptions,
-      },
-    ];
-  }, [allNotes]);
-
-  return { notes, filterFields, isLoading, error, mutate };
+  return { notes, isLoading, error, mutate };
 }

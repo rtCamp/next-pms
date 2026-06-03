@@ -1,5 +1,3 @@
-import type { FilterCondition } from "@rtcamp/frappe-ui-react";
-
 export type NoteComment = {
   name: string;
   user: string;
@@ -28,8 +26,4 @@ export type Note = {
   modified_by: string;
   docstatus: number;
   comments: NoteComment[];
-};
-
-export type NotesFilters = {
-  advanced: FilterCondition[];
 };

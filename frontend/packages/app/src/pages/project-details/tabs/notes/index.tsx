@@ -15,16 +15,16 @@ function NotesContent() {
   const notes = useNotes((s) => s.state.notes);
   const isLoading = useNotes((s) => s.state.isLoading);
   const error = useNotes((s) => s.state.error);
-  const advanced = useNotes((s) => s.state.filters.advanced);
-  const setAdvanced = useNotes((s) => s.actions.setAdvanced);
+  const filters = useNotes((s) => s.state.filters);
+  const setFilters = useNotes((s) => s.actions.setFilters);
 
   if (error) throw error;
 
-  const hasFilter = advanced.length > 0;
+  const hasFilter = filters.length > 0;
 
   return (
     <div className="flex flex-col gap-3">
-      <NotesSubHeader advanced={advanced} onAdvancedChange={setAdvanced} />
+      <NotesSubHeader filters={filters} onFiltersChange={setFilters} />
       {isLoading ? (
         <Spinner className="py-10" />
       ) : notes.length === 0 ? (

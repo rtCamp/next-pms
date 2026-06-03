@@ -1,24 +1,24 @@
 /**
  * External dependencies.
  */
-import type { FilterField } from "@rtcamp/frappe-ui-react";
+import { Dispatch, SetStateAction } from "react";
+import type { FilterCondition } from "@rtcamp/frappe-ui-react";
 import { createContext, useContextSelector } from "use-context-selector";
 
 /**
  * Internal dependencies.
  */
-import type { Note, NotesFilters } from "./types";
+import type { Note } from "./types";
 
 export interface NotesContextProps {
   state: {
     notes: Note[];
-    filterFields: FilterField[];
     isLoading: boolean;
     error: unknown;
-    filters: NotesFilters;
+    filters: FilterCondition[];
   };
   actions: {
-    setAdvanced: (advanced: NotesFilters["advanced"]) => void;
+    setFilters: Dispatch<SetStateAction<FilterCondition[]>>;
     refresh: () => Promise<unknown>;
   };
 }
@@ -28,13 +28,12 @@ const noop = () => {};
 export const NotesContext = createContext<NotesContextProps>({
   state: {
     notes: [],
-    filterFields: [],
     isLoading: false,
     error: null,
-    filters: { advanced: [] },
+    filters: [],
   },
   actions: {
-    setAdvanced: noop,
+    setFilters: noop,
     refresh: async () => undefined,
   },
 });
