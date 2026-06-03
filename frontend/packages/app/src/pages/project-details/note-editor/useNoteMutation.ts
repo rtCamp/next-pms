@@ -2,7 +2,7 @@ import { useCallback } from "react";
 import { useFrappePostCall } from "frappe-react-sdk";
 
 import type { Note } from "@/pages/project-details/tabs/notes/types";
-import type { NoteDraft, NoteEditorMode } from "./types";
+import type { NoteDraft } from "./types";
 
 const CREATE_API =
   "next_pms.timesheet.api.project_status_update.create_project_status_update";

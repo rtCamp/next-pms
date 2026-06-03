@@ -57,6 +57,7 @@ export function NoteEditorWorkspace({
         onChange={onDescriptionChange}
         placeholder="Type / to format and insert"
         editable
+        fixedMenu={false}
         editorClass="prose prose-sm max-w-none min-h-[400px] text-ink-gray-8 focus:outline-none"
       />
     </div>
