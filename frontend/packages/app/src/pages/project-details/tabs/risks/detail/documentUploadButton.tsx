@@ -21,37 +21,7 @@ export function DocumentUploadButton({
       uploadArgs={{ doctype: "Risk", docname: riskName }}
       onSuccess={onSuccess}
       onFailure={(err) => {
-        let message = "Failed to upload document.";
-        if (
-          err &&
-          typeof err === "object" &&
-          err !== null &&
-          "_server_messages" in err
-        ) {
-          try {
-            message = JSON.parse(
-              JSON.parse(
-                (err as { _server_messages: string })._server_messages,
-              )[0],
-            ).message;
-          } catch {
-            // ignore
-          }
-        } else if (
-          err &&
-          typeof err === "object" &&
-          err !== null &&
-          "exc" in err
-        ) {
-          try {
-            message = JSON.parse((err as { exc: string }).exc)[0]
-              .split("\n")
-              .slice(-2, -1)[0];
-          } catch {
-            // ignore
-          }
-        }
-        toast.error(message);
+        toast.error(err);
       }}
     >
       {({ uploading, openFileSelector }) => (
