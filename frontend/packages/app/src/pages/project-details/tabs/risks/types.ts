@@ -76,3 +76,8 @@ export interface RiskVisibleColumns {
   Blocked: boolean;
   Mitigated: boolean;
 }
+
+export interface RiskSort {
+  field: string;
+  order: "asc" | "desc";
+}

@@ -1,7 +1,7 @@
 /**
  * External dependencies.
  */
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { move } from "@dnd-kit/helpers";
 import { DragDropProvider } from "@dnd-kit/react";
 import { Draggable, Droppable } from "@next-pms/design-system/components";
@@ -45,21 +45,9 @@ export function RisksKanbanView() {
     return map;
   }, [data]);
 
-  useEffect(() => {
-    setItems((current) => {
-      const fromServer = groupIdsByStatus(data);
-      const merged = {} as RiskIdsByStatus;
-      for (const status of RISK_STATUSES) {
-        const serverSet = new Set(fromServer[status]);
-        // Preserve existing drag-and-drop order; drop items that moved away
-        const kept = current[status].filter((id) => serverSet.has(id));
-        const keptSet = new Set(kept);
-        // Append any items newly added on the server side
-        const added = fromServer[status].filter((id) => !keptSet.has(id));
-        merged[status as RiskStatus] = [...kept, ...added];
-      }
-      return merged;
-    });
+  useMemo(() => {
+    if (!data) return;
+    setItems(groupIdsByStatus(data));
   }, [data]);
 
   return (

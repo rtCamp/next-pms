@@ -10,7 +10,7 @@ import { useFrappeUpdateDoc } from "frappe-react-sdk";
  */
 import { RISK_DETAIL_PARAM, RISK_STATUSES, type RiskStatus } from "./constants";
 import { RisksContext, type RisksContextProps } from "./context";
-import type { RiskFilters, RiskVisibleColumns } from "./types";
+import type { RiskFilters, RiskSort, RiskVisibleColumns } from "./types";
 import { useRisksData } from "./useRisksData";
 
 const defaultFilters: RiskFilters = {
@@ -35,9 +35,16 @@ export function RisksProvider({ children }: PropsWithChildren) {
     RiskStatus | ""
   >("");
   const [deleteRiskName, setDeleteRiskName] = useState<string | null>(null);
+  const [sort, setSortState] = useState<RiskSort | null>(null);
   const [, setSearchParams] = useSearchParams();
 
-  const { data, isLoading, error, mutate: refreshRiskList } = useRisksData();
+  const {
+    data,
+    isLoading,
+    error,
+    mutate: refreshRiskList,
+    allOwnersWithDetails,
+  } = useRisksData(filters, sort);
 
   const { updateDoc } = useFrappeUpdateDoc();
 
@@ -51,6 +58,10 @@ export function RisksProvider({ children }: PropsWithChildren) {
     },
     [],
   );
+
+  const setSort = useCallback((s: RiskSort | null) => {
+    setSortState(s);
+  }, []);
 
   const updateRiskStatus = useCallback(
     async (name: string, status: RiskStatus) => {
@@ -114,14 +125,17 @@ export function RisksProvider({ children }: PropsWithChildren) {
         error,
         filters,
         visibleColumns,
+        sort,
         isCreateRiskOpen,
         editRiskName,
         createRiskInitialStatus,
         deleteRiskName,
+        allOwnersWithDetails,
       },
       actions: {
         setFilters,
         setVisibleColumns,
+        setSort,
         updateRiskStatus,
         openCreateRisk,
         closeCreateRisk,
@@ -139,12 +153,15 @@ export function RisksProvider({ children }: PropsWithChildren) {
       error,
       filters,
       visibleColumns,
+      sort,
       isCreateRiskOpen,
       editRiskName,
       createRiskInitialStatus,
       deleteRiskName,
+      allOwnersWithDetails,
       setFilters,
       setVisibleColumns,
+      setSort,
       updateRiskStatus,
       openCreateRisk,
       closeCreateRisk,
