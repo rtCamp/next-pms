@@ -92,6 +92,8 @@ export const GanttMemberRow: React.FC<GanttMemberRowProps> = ({
             <GanttAllocationBar
               key={allocation.id ?? allocationIndex}
               allocation={allocation}
+              memberName={member.name}
+              memberImage={member.image}
               resizable={canEditAllocations}
             />
           ))}

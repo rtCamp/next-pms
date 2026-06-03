@@ -23,12 +23,14 @@ export function AllocationsTeamProvider({
   children: React.ReactNode;
 }) {
   const [searchInput, setSearchInput] = useState("");
+  const [designation, setDesignation] = useState<string[]>([]);
   const [duration, setDurationState] =
     useState<AllocationsDuration>("this-quarter");
   const [anchorDate, setAnchorDate] = useState(() => new Date());
   const weekCount = getWeekCountForDuration(duration);
 
   const debouncedSearch = useDebounce(searchInput, 400);
+  const debouncedDesignation = useDebounce(designation, 400);
 
   const {
     members,
@@ -41,6 +43,7 @@ export function AllocationsTeamProvider({
     anchorDate,
     weekCount,
     search: debouncedSearch,
+    designation: debouncedDesignation,
     pageLength: ALLOCATIONS_PAGE_SIZE,
   });
 
@@ -83,6 +86,7 @@ export function AllocationsTeamProvider({
         isNextPageLoading,
         hasMore,
         searchInput,
+        designation,
         duration,
         weekCount,
         anchorDate,
@@ -90,6 +94,7 @@ export function AllocationsTeamProvider({
       actions: {
         setSearch,
         setDuration,
+        setDesignation,
         loadMore,
         handlePrevious,
         handleNext,
@@ -104,10 +109,12 @@ export function AllocationsTeamProvider({
       hasMore,
       searchInput,
       duration,
+      designation,
       weekCount,
       anchorDate,
       setSearch,
       setDuration,
+      setDesignation,
       loadMore,
       handlePrevious,
       handleNext,

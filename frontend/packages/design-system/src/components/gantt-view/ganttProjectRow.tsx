@@ -71,6 +71,7 @@ export const GanttProjectRow: React.FC<GanttProjectRowProps> = ({
         isExpanded={false}
         canExpand={false}
         showChevron={false}
+        showHoverCard={false}
         style={{
           height: animatedRowHeight,
           width: headerWidth,

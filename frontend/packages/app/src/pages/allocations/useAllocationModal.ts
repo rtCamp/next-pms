@@ -5,7 +5,7 @@ import { useCallback, useMemo, useState } from "react";
 import type { AllocationCallbackData } from "@next-pms/design-system/components";
 import { useToasts } from "@rtcamp/frappe-ui-react";
 import { format } from "date-fns";
-import { useFrappeDeleteDoc } from "frappe-react-sdk";
+import { useFrappePostCall } from "frappe-react-sdk";
 
 /**
  * Internal dependencies.
@@ -24,7 +24,9 @@ export function useAllocationModal(refresh: RefreshAllocations) {
   >(undefined);
 
   const toast = useToasts();
-  const { deleteDoc } = useFrappeDeleteDoc();
+  const { call: deleteAllocation } = useFrappePostCall(
+    "next_pms.resource_management.api.allocation.delete_allocation",
+  );
 
   const openAddDialog = useCallback((data: AllocationCallbackData) => {
     setVariant("add");
@@ -72,7 +74,10 @@ export function useAllocationModal(refresh: RefreshAllocations) {
       }
 
       try {
-        await deleteDoc("Resource Allocation", data.allocationId);
+        await deleteAllocation({
+          name: data.allocationId,
+          delete_mode: "only_this",
+        });
         const refreshTargets = {
           ...(data.employeeId ? { employeeIds: [data.employeeId] } : {}),
           ...(data.projectId ? { projectIds: [data.projectId] } : {}),
@@ -86,7 +91,7 @@ export function useAllocationModal(refresh: RefreshAllocations) {
         toast.error("Failed to delete the allocation");
       }
     },
-    [deleteDoc, toast, refresh],
+    [deleteAllocation, toast, refresh],
   );
 
   const handleOpenChange = useCallback((open: boolean) => {

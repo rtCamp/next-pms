@@ -1,8 +1,7 @@
-import json
-
 import frappe
+from erpnext.setup.doctype.employee.employee import get_holiday_list_for_employee
 from frappe.core.doctype.recorder.recorder import redis_cache
-from frappe.utils import DATE_FORMAT, get_gravatar
+from frappe.utils import DATE_FORMAT, getdate
 
 from next_pms.resource_management.api.utils.helpers import (
     add_customer_data_if_not_exists,
@@ -14,12 +13,12 @@ from next_pms.resource_management.api.utils.helpers import (
     resource_api_permissions_check,
 )
 from next_pms.resource_management.api.utils.query import (
+    attach_extra_entries,
     get_allocation_list_for_employee_for_given_range,
     get_employee_leaves,
 )
 from next_pms.timesheet.api import filter_employees
 from next_pms.timesheet.api.employee import get_employee_working_hours
-from next_pms.timesheet.api.team import get_holidays
 
 
 @frappe.whitelist(methods=["GET", "POST"])
@@ -30,19 +29,154 @@ def get_resource_management_team_view_data(
     employee_name: str | None = None,
     business_unit: str | None = None,
     designation: str | None = None,
-    reports_to: str | None = None,
-    is_billable: int = -1,
+    reports_to: list | str | None = None,
+    is_billable: list | str | None = None,
+    allocation_status: list | str | None = None,
     page_length: int = 10,
     start: int = 0,
     skills: list | str | None = None,
     employee_id: list | str | None = None,
     need_hours_summary: bool = False,
 ):
-    """Get the resource management team view data for given filters."""
+    """Get resource management team view data for the given filters and date range.
+
+    Args:
+        date (str): Anchor date string ("YYYY-MM-DD"). Determines the starting week.
+        max_week (int): Number of consecutive weeks to include starting from the week
+            containing `date`. Defaults to 2.
+        employee_name (str | None): Partial name filter (LIKE match). Defaults to None.
+        business_unit (str | None): JSON-encoded list of business units to filter by.
+            Ignored when the caller lacks write permission. Defaults to None.
+        designation (str | None): JSON-encoded list of designations to filter by.
+            Ignored when the caller lacks write permission. Defaults to None.
+        reports_to (list | str | None): Employee ID or JSON-encoded list of IDs;
+            restricts results to direct reports of any of the given managers.
+            Ignored when the caller lacks write permission. Defaults to None.
+        is_billable (list | str | None): Billable filter passed to allocation query.
+            Defaults to None (no filter).
+        allocation_status (list | str | None): Allocation status filter. Defaults to None.
+        page_length (int): Number of employees per page. Defaults to 10.
+        start (int): Pagination offset. Defaults to 0.
+        skills (list | str | None): JSON-encoded list of skill names. When provided and
+            `employee_id` is absent, only employees possessing all listed skills are
+            returned. Defaults to None.
+        employee_id (list | str | None): JSON-encoded list of employee IDs. Takes
+            priority over `skills` when both are provided. Defaults to None.
+        need_hours_summary (bool): Switches the response shape.
+            False → flat grid response (raw employees, allocations, leaves).
+            True  → per-employee per-day hours breakdown. Defaults to False.
+
+    Returns:
+        When ``need_hours_summary`` is False:
+
+        ```py
+        {
+            "employees": [
+                {
+                    "name": "HR-EMP-00001",
+                    "employee_name": "John Doe",
+                    "department": "Engineering",
+                    "designation": "Software Engineer",
+                    "image": "/files/photo.jpg",
+                    "custom_work_schedule": "Mon-Fri",
+                    "custom_working_hours": 8.0,
+                    "reports_to": "HR-EMP-00002",
+                    # write permission only:
+                    "ctc": "120000",
+                    "salary_currency": "INR",
+                },
+            ],
+            "leaves": [
+                {
+                    "employee": "HR-EMP-00001",
+                    "from_date": datetime.date(2026, 5, 20),
+                    "to_date": datetime.date(2026, 5, 22),
+                    "name": "HR-LAP-00001",
+                },
+            ],
+            "resource_allocations": [
+                {
+                    "name": "RA-00001",
+                    "employee": "HR-EMP-00001",
+                    "project": "PROJ-001",
+                    "hours_allocated_per_day": 4.0,
+                },
+            ],
+            "customer": {
+                "ACME Corp": {"name": "ACME Corp", "abbr": "AC", "image": None},
+            },
+            "total_count": 45,
+            "has_more": True,
+            "permissions": {"read": True, "write": True},
+        }
+
+        # total_count: all Active employees matching filters (ignores pagination).
+        # has_more: True when start + page_length < total_count.
+        ```
+
+        When ``need_hours_summary`` is True:
+
+        ```py
+        {
+            "data": [
+                {
+                    "name": "HR-EMP-00001",
+                    "employee_name": "John Doe",
+                    "working_hour": 8.0,
+                    "working_frequency": "Per Day",
+                    "employee_daily_working_hours": 8.0,
+                    "max_allocation_count_for_single_date": 2,
+                    # write permission only:
+                    "ctc": "120000",
+                    "salary_currency": "INR",
+                    # sparse — only days with allocations or leave are included
+                    "all_dates_data": {
+                        "2026-05-21": {
+                            "date": "2026-05-21",
+                            "total_allocated_hours": 8.0,
+                            "total_working_hours": 8.0,
+                            "total_worked_hours": 6.0,  # write permission only
+                            "total_allocation_count": 2,
+                            "is_on_leave": False,
+                            "total_leave_hours": 0.0,
+                            "employee_resource_allocation_for_given_date": [
+                                {
+                                    "name": "RA-00001",
+                                    "date": datetime.date(2026, 5, 21),
+                                    "total_worked_hours_resource_allocation": 6.0,
+                                    "is_tentative": False,
+                                },
+                            ],
+                        },
+                    },
+                    "all_week_data": {
+                        "This Week": {
+                            "total_allocated_hours": 40.0,
+                            "total_working_hours": 40.0,
+                            "total_worked_hours": 32.0,  # write permission only
+                        },
+                    },
+                    "all_leave_data": {"2026-05-20": 8.0},
+                    "employee_allocations": [],
+                },
+            ],
+            "customer": {
+                "ACME Corp": {"name": "ACME Corp", "abbr": "AC", "image": None},
+            },
+            "total_count": 45,
+            "has_more": True,
+            "permissions": {"read": True, "write": True},
+        }
+
+        # total_count: all Active employees matching filters (ignores pagination).
+        # has_more: True when start + page_length < total_count.
+        ```
+    """
     permissions = resource_api_permissions_check()
 
     if not permissions["write"]:
-        is_billable = -1
+        is_billable = None
+        allocation_status = None
         business_unit = None
         designation = None
         reports_to = None
@@ -56,16 +190,21 @@ def get_resource_management_team_view_data(
 
     ids = None
 
+    if isinstance(is_billable, str):
+        is_billable = frappe.parse_json(is_billable)
+    if isinstance(allocation_status, str):
+        allocation_status = frappe.parse_json(allocation_status)
+
     if employee_id:
         if isinstance(employee_id, str):
-            employee_id = json.loads(employee_id)
+            employee_id = frappe.parse_json(employee_id)
         ids = employee_id
 
     if not employee_id:
         if not skills:
             skills = []
         if isinstance(skills, str):
-            skills = json.loads(skills)
+            skills = frappe.parse_json(skills)
         if skills:
             ids = get_employees_by_skills(skills)
             if len(ids) == 0:
@@ -86,6 +225,44 @@ def get_resource_management_team_view_data(
                 res["permissions"] = permissions
                 return res
 
+    if is_billable or allocation_status:
+        # narrow `ids` to employees with matching allocations in the window before
+        # paginating. Without this, the billable/status filter is applied after
+        # pagination and page 1 can come back blank when the first N employees
+        # have no matching allocations.
+        allocation_filters = {
+            "allocation_start_date": ["<=", dates[-1].get("end_date")],
+            "allocation_end_date": [">=", dates[0].get("start_date")],
+        }
+        if is_billable:
+            allocation_filters["is_billable"] = ["in", is_billable]
+        if allocation_status:
+            allocation_filters["status"] = ["in", allocation_status]
+        if ids:
+            allocation_filters["employee"] = ["in", ids]
+
+        matching_emp_ids = frappe.db.get_all(
+            "Resource Allocation",
+            filters=allocation_filters,
+            pluck="employee",
+            distinct=True,
+        )
+
+        if not matching_emp_ids:
+            if need_hours_summary:
+                res["data"] = []
+            else:
+                res["employees"] = []
+                res["resource_allocations"] = []
+                res["leaves"] = []
+            res["customer"] = customer
+            res["total_count"] = 0
+            res["has_more"] = False
+            res["permissions"] = permissions
+            return res
+
+        ids = matching_emp_ids
+
     privileged_fields = ["ctc", "salary_currency"] if permissions["write"] else []
     employees, total_count = filter_employees(
         employee_name,
@@ -99,6 +276,19 @@ def get_resource_management_team_view_data(
         ignore_permissions=True,
         extra_fields=["custom_work_schedule", "custom_working_hours", "reports_to", *privileged_fields],
     )
+
+    if not employees:
+        if need_hours_summary:
+            res["data"] = []
+        else:
+            res["employees"] = []
+            res["resource_allocations"] = []
+            res["leaves"] = []
+        res["customer"] = customer
+        res["total_count"] = total_count
+        res["has_more"] = False
+        res["permissions"] = permissions
+        return res
 
     resource_allocation_data = get_allocation_list_for_employee_for_given_range(
         [
@@ -117,14 +307,17 @@ def get_resource_management_team_view_data(
             "modified",
             "creation",
             "status",
+            "recurrence_id",
         ],
         "employee",
         [employee.name for employee in employees],
         dates[0].get("start_date"),
         dates[-1].get("end_date"),
-        is_billable,
+        is_billable=is_billable,
+        allocation_status=allocation_status,
         is_need_fetch_all_weeks=not need_hours_summary,
     )
+    resource_allocation_data = attach_extra_entries(resource_allocation_data)
 
     # Make the map of resource allocation data for given employee
     resource_allocation_map = {}
@@ -133,12 +326,13 @@ def get_resource_management_team_view_data(
         modified_by = resource_allocation.get("modified_by") or resource_allocation.get("created_by")
         if modified_by:
             if modified_by not in user_info_cache:
+                user_data = frappe.db.get_value("User", modified_by, ["full_name", "user_image"], as_dict=True)
                 user_info_cache[modified_by] = {
-                    "avatar": get_gravatar(modified_by),
-                    "full_name": frappe.db.get_value("User", modified_by, "full_name"),
+                    "avatar": user_data.user_image if user_data else None,
+                    "full_name": user_data.full_name if user_data else None,
                 }
             resource_allocation["modified_by_avatar"] = user_info_cache[modified_by]["avatar"]
-            resource_allocation["modified_by"] = user_info_cache[modified_by]["full_name"]
+            resource_allocation["modified_by_full_name"] = user_info_cache[modified_by]["full_name"]
         if resource_allocation.employee not in resource_allocation_map:
             resource_allocation_map[resource_allocation.employee] = []
         customer = add_customer_data_if_not_exists(customer, resource_allocation.customer)
@@ -172,6 +366,52 @@ def get_resource_management_team_view_data(
         res["permissions"] = permissions
         return res
 
+    employee_ids = [employee.name for employee in employees]
+    range_start = dates[0].get("start_date")
+    range_end = dates[-1].get("end_date")
+
+    # Batch timesheets — one query for all employees instead of one per employee
+    all_timesheets = frappe.get_all(
+        "Timesheet",
+        filters={
+            "employee": ["in", employee_ids],
+            "start_date": [">=", range_start],
+            "end_date": ["<=", range_end],
+        },
+        fields=["employee", "start_date", "end_date", "total_hours", "parent_project", "customer"],
+    )
+    timesheet_map = {}
+    for t in all_timesheets:
+        timesheet_map.setdefault(t.employee, []).append(t)
+
+    # Batch leaves — get_employee_leaves accepts a tuple of employee IDs
+    all_leaves = get_employee_leaves(
+        employee=tuple(employee_ids),
+        start_date=range_start,
+        end_date=range_end,
+    )
+    leaves_map = {}
+    for leave in all_leaves:
+        leaves_map.setdefault(leave.employee, []).append(leave)
+
+    # Batch holidays — fetch once per unique holiday list instead of once per employee
+    holiday_list_per_employee = {
+        emp.name: get_holiday_list_for_employee(emp.name, raise_exception=False) for emp in employees
+    }
+    unique_holiday_lists = {hl for hl in holiday_list_per_employee.values() if hl}
+    holidays_by_list = {
+        hl: frappe.get_all(
+            "Holiday",
+            filters={
+                "parent": hl,
+                "holiday_date": ["between", (getdate(range_start), getdate(range_end))],
+            },
+            fields=["holiday_date", "description", "weekly_off"],
+        )
+        for hl in unique_holiday_lists
+    }
+    holidays_map = {emp.name: holidays_by_list.get(holiday_list_per_employee.get(emp.name), []) for emp in employees}
+
     for employee in employees:
         employee_resource_allocation = resource_allocation_map.get(employee.name, [])
 
@@ -184,23 +424,9 @@ def get_resource_management_team_view_data(
             else working_hours.get("working_hour") / 5
         )
 
-        timesheet_data = frappe.get_all(
-            "Timesheet",
-            filters={
-                "employee": ["=", employee.name],
-                "start_date": [">=", dates[0].get("start_date")],
-                "end_date": ["<=", dates[-1].get("end_date")],
-            },
-            fields=["employee", "start_date", "end_date", "total_hours", "parent_project", "customer"],
-        )
-
-        leaves = get_employee_leaves(
-            employee=employee.name,
-            start_date=dates[0].get("start_date"),
-            end_date=dates[-1].get("end_date"),
-        )
-
-        holidays = get_holidays(employee.name, dates[0].get("start_date"), dates[-1].get("end_date"))
+        timesheet_data = timesheet_map.get(employee.name, [])
+        leaves = leaves_map.get(employee.name, [])
+        holidays = holidays_map.get(employee.name, [])
 
         all_dates_data, all_week_data, all_leave_data = {}, {}, {}
         max_allocation_count_for_single_date = 0

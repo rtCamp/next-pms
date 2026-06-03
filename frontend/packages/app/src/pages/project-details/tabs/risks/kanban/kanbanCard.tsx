@@ -1,6 +1,7 @@
 /**
  * External dependencies.
  */
+import { useRef } from "react";
 import { Avatar } from "@rtcamp/frappe-ui-react";
 import { Fire } from "@rtcamp/frappe-ui-react/icons";
 import { Tag, AlignLeft } from "lucide-react";
@@ -9,15 +10,45 @@ import { Tag, AlignLeft } from "lucide-react";
  * Internal dependencies.
  */
 import { stripTags } from "@/lib/utils";
+import { useRisks } from "../context";
 import type { RiskItem } from "../types";
+import { CLICK_DRAG_THRESHOLD_PX } from "./constants";
 
 interface RiskCardProps {
   risk: RiskItem;
 }
 
 export function RiskCard({ risk }: RiskCardProps) {
+  const openRiskDetail = useRisks((c) => c.actions.openRiskDetail);
+  const pointerStart = useRef<{ x: number; y: number } | null>(null);
+
+  const handleActivate = () => openRiskDetail(risk.name);
+
   return (
-    <div className="flex w-full cursor-grab active:cursor-grabbing flex-col gap-2.5 rounded-xl border border-outline-gray-1 bg-surface-white shadow-sm hover:bg-surface-gray-1">
+    <div
+      role="button"
+      tabIndex={0}
+      onPointerDown={(e) => {
+        pointerStart.current = { x: e.clientX, y: e.clientY };
+      }}
+      onPointerUp={(e) => {
+        const start = pointerStart.current;
+        pointerStart.current = null;
+        if (!start) return;
+        const dx = e.clientX - start.x;
+        const dy = e.clientY - start.y;
+        if (Math.hypot(dx, dy) <= CLICK_DRAG_THRESHOLD_PX) {
+          handleActivate();
+        }
+      }}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          handleActivate();
+        }
+      }}
+      className="flex w-full cursor-pointer flex-col gap-2.5 rounded-xl border border-outline-gray-1 bg-surface-white shadow-sm hover:bg-surface-gray-1 focus:outline-none focus-visible:ring focus-visible:ring-outline-gray-3"
+    >
       {/* Risk level header */}
       <div className="px-3.5 py-3 flex items-center gap-2 text-ink-gray-8 text-base border-b border-outline-gray-1">
         <Fire className="size-4 shrink-0" />

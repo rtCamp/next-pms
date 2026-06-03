@@ -13,6 +13,9 @@ from next_pms.api.utils import error_logger
 from next_pms.next_projects.api.constant import ALLOWED_ROLES, KANBAN_VIEW_FIELDS, LIST_VIEW_FIELDS
 from next_pms.next_projects.api.utils import build_person_data, get_user_image_map
 from next_pms.timesheet.api import get_count
+from next_pms.utils.employee import (
+    get_employee_salary,
+)
 
 
 # Calculated field helpers
@@ -331,7 +334,7 @@ def _get_opportunity_link(project_doc) -> dict | None:
     return {"name": opportunity, "url": url}
 
 
-def _get_project_members(project_name: str) -> list[dict]:
+def _get_project_members(project_name: str, currency: str) -> list[dict]:
     """Return users shared with the project, with full_name, image, and designation."""
     shares = frappe.get_all(
         "DocShare",
@@ -353,16 +356,32 @@ def _get_project_members(project_name: str) -> list[dict]:
     employees = frappe.get_all(
         "Employee",
         filters={"user_id": ["in", user_ids], "status": "Active"},
-        fields=["user_id", "designation"],
+        fields=["name", "user_id", "designation", "department", "cell_number", "company_email", "custom_linkedin"],
     )
-    designation_map = {e.user_id: e.designation for e in employees}
+    employee_map = {e.user_id: e for e in employees}
+
+    def _hourly_rate(employee_name: str | None) -> float | None:
+        if not employee_name or not currency:
+            return None
+        try:
+            salary = get_employee_salary(employee_name, currency, throw=False)
+        except Exception:
+            return None
+        return flt(salary.get("hourly_salary")) if salary else None
 
     return [
         {
             "user": uid,
+            "employee": employee_map[uid].name,
             "full_name": user_map[uid].full_name or "",
             "image": user_map[uid].user_image,
-            "designation": designation_map.get(uid),
+            "designation": emp.designation if (emp := employee_map.get(uid)) else None,
+            "department": emp.department if emp else None,
+            "cell_number": emp.cell_number if emp else None,
+            "company_email": emp.company_email if emp else None,
+            "linkedin_url": emp.custom_linkedin if emp else None,
+            "hourly_rate": _hourly_rate(emp.name if emp else None),
+            "currency": currency if emp else None,
         }
         for uid in user_ids
         if uid in user_map
@@ -379,18 +398,33 @@ def _get_project_customers(project_doc) -> list[dict]:
     contacts = frappe.get_all(
         "Contact",
         filters={"name": ["in", contact_names]},
-        fields=["name", "full_name", "image"],
+        fields=[
+            "name",
+            "full_name",
+            "image",
+            "designation",
+            "company_name",
+            "email_id",
+            "phone",
+            "mobile_no",
+            "custom_linkedin_url",
+        ],
     )
     contact_map = {c.name: c for c in contacts}
 
     return [
         {
             "contact": name,
-            "full_name": contact_map[name].full_name or "",
-            "image": contact_map[name].image,
+            "full_name": c.full_name or "",
+            "image": c.image,
+            "designation": c.designation,
+            "company_name": c.company_name,
+            "email_id": c.email_id,
+            "phone": c.phone or c.mobile_no,
+            "linkedin_url": c.custom_linkedin_url,
         }
         for name in contact_names
-        if name in contact_map
+        if (c := contact_map.get(name))
     ]
 
 
@@ -447,6 +481,9 @@ def get_project_sidebar(project: str):
             "actual_time": flt(project_doc.actual_time),
             "total_hours_purchased": flt(project_doc.get("custom_total_hours_purchased")),
         },
-        "members": _get_project_members(project),
+        "members": _get_project_members(
+            project,
+            project_doc.get("custom_currency") or frappe.defaults.get_global_default("currency"),
+        ),
         "customers": _get_project_customers(project_doc),
     }

@@ -1,7 +1,15 @@
+/**
+ * External dependencies.
+ */
 import type { CSSProperties } from "react";
 import { PreviewCard } from "@base-ui/react/preview-card";
 import { Badge } from "@rtcamp/frappe-ui-react";
 import { Folder, RightChevron } from "@rtcamp/frappe-ui-react/icons";
+
+/**
+ * Internal dependencies.
+ */
+import GanttProjectHoverCard from "./ganttProjectHoverCard";
 import type { Project } from "./types";
 import { mergeClassNames as cn } from "../../utils";
 
@@ -9,19 +17,25 @@ export interface GanttProjectItemProps extends Project {
   isExpanded?: boolean;
   canExpand?: boolean;
   showChevron?: boolean;
+  showHoverCard?: boolean;
   onToggle?: () => void;
   className?: string;
   style?: CSSProperties;
 }
 
 export function GanttProjectItem({
+  id,
   name,
   dateRange,
+  projectDateRange,
   client,
+  projectManager,
+  weeklyCapacity,
   badge,
   isExpanded = false,
   canExpand = false,
   showChevron = true,
+  showHoverCard = true,
   onToggle,
   className,
   style,
@@ -29,15 +43,14 @@ export function GanttProjectItem({
   const subtext = [dateRange, client].filter(Boolean).join(" · ");
 
   return (
-    // TODO: enable after project hover card implementation.
-    <PreviewCard.Root open={false}>
+    <PreviewCard.Root open={showHoverCard ? undefined : false}>
       <PreviewCard.Trigger
         delay={300}
         closeDelay={150}
         render={
           <th
             className={cn(
-              "sticky left-0 z-10 bg-surface-white border-b border-r border-outline-gray-1 pr-3 font-normal text-left align-middle flex items-center gap-2 w-full overflow-hidden transition-[height,background-color] cursor-pointer hover:bg-surface-gray-1",
+              "sticky left-0 z-25 bg-surface-white border-b border-r border-outline-gray-1 pr-3 font-normal text-left align-middle flex items-center gap-2 w-full overflow-hidden transition-[height,background-color] cursor-pointer hover:bg-surface-gray-1",
               showChevron ? "pl-3" : "pl-8",
               className,
             )}
@@ -98,9 +111,17 @@ export function GanttProjectItem({
           sideOffset={-42}
         >
           <PreviewCard.Popup className="outline-none">
-            <div className="w-60 rounded-xl bg-surface-modal p-3 text-sm text-ink-gray-6 shadow-2xl">
-              Project hover card placeholder
-            </div>
+            <GanttProjectHoverCard
+              project={{
+                id,
+                name,
+                client,
+                dateRange,
+                projectDateRange,
+                projectManager,
+                weeklyCapacity,
+              }}
+            />
           </PreviewCard.Popup>
         </PreviewCard.Positioner>
       </PreviewCard.Portal>

@@ -57,6 +57,10 @@ function AddAllocationModal({
     "next_pms.resource_management.api.allocation.handle_allocation",
   );
 
+  const { call: editAllocation } = useFrappePostCall(
+    "next_pms.resource_management.api.allocation.edit_allocation",
+  );
+
   const { options: employeeOptions, isLoading: isEmployeeLookupLoading } =
     useEmployeeLookup({
       shouldFetch: open,
@@ -110,13 +114,9 @@ function AddAllocationModal({
       });
 
       try {
-        await handleAllocation({
+        const payload = {
           allocation: {
             doctype: "Resource Allocation",
-            // For edit, we need to send the name to update existing record.
-            ...(variant === "edit" && allocationName
-              ? { name: allocationName }
-              : {}),
             employee: value.employeeId,
             project: value.projectId,
             customer: value.customer,
@@ -136,7 +136,17 @@ function AddAllocationModal({
             variant === "edit" || value.recurrence === "one-time"
               ? 0
               : value.repeatFor,
-        });
+        };
+
+        if (variant === "edit" && allocationName) {
+          await editAllocation({
+            name: allocationName,
+            edit_mode: "only_this",
+            ...payload,
+          });
+        } else {
+          await handleAllocation(payload);
+        }
 
         toast.success(
           variant === "edit"

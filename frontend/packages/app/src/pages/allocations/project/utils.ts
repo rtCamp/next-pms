@@ -11,10 +11,17 @@ import { parseISO } from "date-fns";
 /**
  * Internal dependencies.
  */
-import { mapResourceAllocation } from "../utils";
+import {
+  calculateAllocationHourlyRate,
+  formatAllocationCapacity,
+  getAllocationCapacityHoursPerDay,
+  mapResourceAllocation,
+} from "../utils";
 import type {
   Customer,
+  ManagerNameMap,
   ProjectAllocationResponse,
+  ProjectEmployee,
   ProjectRecord,
   ProjectResourceAllocation,
 } from "./type";
@@ -53,14 +60,33 @@ function resolveCustomerName(
  * Derives the client label shown for a project row from its allocations.
  */
 function getProjectClient(
+  project: ProjectRecord,
   projectAllocations: ProjectResourceAllocation[],
   customerLookup: Record<string, Customer>,
 ) {
-  const customerId = projectAllocations.find(
-    (allocation) => allocation.customer,
-  )?.customer;
+  const customerId =
+    project.customer ??
+    projectAllocations.find((allocation) => allocation.customer)?.customer;
 
   return resolveCustomerName(customerId, customerLookup);
+}
+
+/**
+ * Gets the hover date range for a project based on its expected start and end dates.
+ */
+function getProjectHoverDateRange(project: ProjectRecord) {
+  const startDate = project.expected_start_date;
+  const endDate = project.expected_end_date;
+
+  if (!startDate && !endDate) {
+    return undefined;
+  }
+
+  if (!startDate || !endDate || startDate === endDate) {
+    return formatDateRange(startDate || endDate || "", "", "MMM d");
+  }
+
+  return formatDateRange(startDate, endDate, "MMM d");
 }
 
 /**
@@ -96,14 +122,15 @@ function getProjectDateRange(projectAllocations: ProjectResourceAllocation[]) {
 function getProjectMembers(
   projectAllocations: ProjectResourceAllocation[],
   customerLookup: Record<string, Customer>,
+  employees: Record<string, ProjectEmployee>,
+  managerNameMap?: ManagerNameMap,
 ): ProjectMember[] {
   const membersById = new Map<string, ProjectMember>();
 
   for (const allocation of projectAllocations) {
     const memberId = allocation.employee;
     const member = membersById.get(memberId);
-    // TODO: Populate tentative and allocation when the project resource API starts
-    // returning status/creation/modified/modified_by/modified_by_avatar fields.
+    const employee = employees[memberId];
     const mappedAllocation = mapResourceAllocation(
       allocation,
       resolveCustomerName(allocation.customer, customerLookup),
@@ -118,9 +145,31 @@ function getProjectMembers(
 
     membersById.set(memberId, {
       id: memberId,
-      name: allocation.employee_name || memberId,
-      // TODO: Replace this partial project member data with backend fields when
-      // the project resource API exposes image/designation.
+      name: employee?.employee_name ?? allocation.employee_name ?? memberId,
+      designation: employee?.designation ?? undefined,
+      department: employee?.department ?? undefined,
+      rate:
+        calculateAllocationHourlyRate(
+          employee?.ctc,
+          employee?.custom_working_hours,
+          employee?.custom_work_schedule,
+          employee?.salary_currency,
+        ) || undefined,
+      capacity:
+        formatAllocationCapacity(
+          employee?.custom_working_hours,
+          employee?.custom_work_schedule,
+        ) || undefined,
+      capacityHoursPerDay: getAllocationCapacityHoursPerDay(
+        employee?.custom_working_hours,
+        employee?.custom_work_schedule,
+      ),
+      manager: employee?.reports_to
+        ? (managerNameMap?.get(employee.reports_to) ??
+          employees[employee.reports_to]?.employee_name ??
+          undefined)
+        : undefined,
+      image: employee?.image ?? undefined,
       allocations: [mappedAllocation],
     });
   }
@@ -134,15 +183,26 @@ function getProjectMembers(
 function mapProjectRecord(
   project: ProjectRecord,
   customerLookup: Record<string, Customer>,
+  employees: Record<string, ProjectEmployee>,
+  managerNameMap?: ManagerNameMap,
 ): ProjectGroup {
   const projectAllocations = getAllocationList(project.project_allocations);
-  const members = getProjectMembers(projectAllocations, customerLookup);
+  const allocationDateRange = getProjectDateRange(projectAllocations);
+  const members = getProjectMembers(
+    projectAllocations,
+    customerLookup,
+    employees,
+    managerNameMap,
+  );
 
   return {
     id: project.name,
     name: project.project_name || project.name,
-    client: getProjectClient(projectAllocations, customerLookup),
-    dateRange: getProjectDateRange(projectAllocations),
+    client: getProjectClient(project, projectAllocations, customerLookup),
+    dateRange: allocationDateRange,
+    projectDateRange: getProjectHoverDateRange(project) ?? allocationDateRange,
+    projectManager: project.custom_project_manager_name ?? undefined,
+    weeklyCapacity: project.weekly_capacity ?? undefined,
     members,
   };
 }
@@ -152,8 +212,11 @@ function mapProjectRecord(
  */
 export function mapProjectAllocationToProjects(
   response: ProjectAllocationResponse,
+  managerNameMap?: ManagerNameMap,
 ): ProjectGroup[] {
+  const employees = response.employees ?? {};
+
   return response.data.map((project) =>
-    mapProjectRecord(project, response.customer),
+    mapProjectRecord(project, response.customer, employees, managerNameMap),
   );
 }

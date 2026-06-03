@@ -7,6 +7,7 @@ type EmployeeLookupItem = {
   employee_name: string;
   image?: string;
   name: string;
+  user_id?: string;
 };
 
 type EmployeeLookupResult = {
@@ -15,6 +16,7 @@ type EmployeeLookupResult = {
 
 export type EmployeeLookupOption = LookupOption & {
   image?: string;
+  userId?: string;
 };
 
 interface UseEmployeeLookupOptions {
@@ -64,6 +66,7 @@ export const useEmployeeLookup = ({
       label: employee.employee_name,
       value: employee.name,
       image: employee.image,
+      userId: employee.user_id,
     }),
     selectedOption,
   });

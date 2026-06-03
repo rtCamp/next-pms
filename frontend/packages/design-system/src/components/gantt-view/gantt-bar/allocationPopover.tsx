@@ -14,6 +14,8 @@ import { mergeClassNames as cn } from "../../../utils";
 
 export interface AllocationEntry {
   projectName: string;
+  memberName?: string;
+  memberImage?: string;
   dateRange: string;
   hoursPerDay: string;
   totalHours: string;
@@ -40,32 +42,49 @@ function AllocationItem({ entry, hasRoleAccess }: AllocationItemProps) {
 
   return (
     <div className="flex flex-col gap-3">
-      {/* Project name */}
-      <div className="flex gap-2 items-start">
-        <Folder className="mt-px size-4 text-ink-gray-5 shrink-0" />
-        <span className="flex-1 min-w-0 text-base font-medium truncate text-ink-gray-8">
-          {entry.projectName}
-        </span>
-      </div>
+      {entry.memberName ? (
+        /* Member details */
+        <div className="flex gap-2 items-center min-w-0">
+          <div className="shrink-0 flex items-center">
+            <Avatar
+              size="xs"
+              shape="circle"
+              image={entry.memberImage}
+              label={entry.memberName}
+            />
+          </div>
+          <span className="flex-1 min-w-0 text-base font-medium truncate text-ink-gray-8">
+            {entry.memberName}
+          </span>
+        </div>
+      ) : (
+        /* Project name */
+        <div className="flex gap-2 items-start">
+          <Folder className="mt-px size-4 text-ink-gray-8 shrink-0" />
+          <span className="flex-1 min-w-0 text-base font-medium truncate text-ink-gray-8">
+            {entry.projectName}
+          </span>
+        </div>
+      )}
 
       {/* Details */}
       <div className="flex flex-col gap-2.5 relative">
         <div className="flex gap-2 items-center">
-          <Calendar className="size-4 text-ink-gray-5 shrink-0" />
+          <Calendar className="size-4 text-ink-gray-6 shrink-0" />
           <span className="text-sm text-ink-gray-6 truncate">
             {entry.dateRange}
           </span>
         </div>
 
         <div className="flex gap-2 items-center">
-          <Time className="size-4 text-ink-gray-5 shrink-0" />
+          <Time className="size-4 text-ink-gray-6 shrink-0" />
           <span className="text-sm text-ink-gray-6">
             {entry.hoursPerDay} ({entry.totalHours})
           </span>
         </div>
 
         <div className="flex gap-2 items-center">
-          <StatusIcon className="size-4 text-ink-gray-5 shrink-0" />
+          <StatusIcon className="size-4 text-ink-gray-6 shrink-0" />
           <span className="text-sm text-ink-gray-6">
             {entry.status === "confirmed" ? "Confirmed" : "Tentative"}
           </span>
@@ -83,54 +102,56 @@ function AllocationItem({ entry, hasRoleAccess }: AllocationItemProps) {
         </div>
 
         {/* Created / Last edited row with avatar and edit/delete actions */}
-        {(entry.createdOn || entry.updatedOn) && (
-          <div className="flex flex-1 gap-2 items-center">
-            {entry.updatedByName && (
-              <div className="shrink-0">
-                <Avatar
-                  size="xs"
-                  shape="circle"
-                  image={entry.updatedByImage}
-                  label={entry.updatedByName}
-                />
-              </div>
-            )}
-            <span className="text-sm truncate text-ink-gray-6 mr-10">
-              {entry.updatedOn &&
-              entry.createdOn &&
-              entry.updatedOn.getTime() !== entry.createdOn.getTime()
-                ? `Last edited on ${format(entry.updatedOn, "MMM d")}`
-                : entry.createdOn
-                  ? `Created on ${format(entry.createdOn, "MMM d")}`
-                  : null}
-            </span>
-          </div>
-        )}
+        <div className="flex gap-2 justify-between items-center">
+          {(entry.createdOn || entry.updatedOn) && (
+            <div className="flex flex-1 gap-2 items-center">
+              {entry.updatedByName && (
+                <div className="shrink-0 flex items-center">
+                  <Avatar
+                    size="xs"
+                    shape="circle"
+                    image={entry.updatedByImage}
+                    label={entry.updatedByName}
+                  />
+                </div>
+              )}
+              <span className="text-sm truncate text-ink-gray-6 mr-10">
+                {entry.updatedOn &&
+                entry.createdOn &&
+                entry.updatedOn.getTime() !== entry.createdOn.getTime()
+                  ? `Last edited on ${format(entry.updatedOn, "MMM d")}`
+                  : entry.createdOn
+                    ? `Created on ${format(entry.createdOn, "MMM d")}`
+                    : null}
+              </span>
+            </div>
+          )}
 
-        {hasRoleAccess && (entry.onEdit || entry.onDelete) && (
-          <div className="flex gap-2 items-center shrink-0 absolute bottom-0 right-0 mb-1">
-            {entry.onEdit && (
-              <button
-                type="button"
-                onClick={entry.onEdit}
-                className="transition-colors text-ink-gray-5 hover:text-ink-gray-7"
-                aria-label="Edit allocation"
-              >
-                <EditAlt className="size-4" />
-              </button>
-            )}
-            {entry.onDelete && (
-              <button
-                type="button"
-                onClick={entry.onDelete}
-                className="transition-colors text-ink-gray-5 hover:text-ink-gray-7"
-                aria-label="Delete allocation"
-              >
-                <DeleteAlt className="size-4" />
-              </button>
-            )}
-          </div>
-        )}
+          {hasRoleAccess && (entry.onEdit || entry.onDelete) && (
+            <div className="flex gap-2 items-center shrink-0">
+              {entry.onEdit && (
+                <button
+                  type="button"
+                  onClick={entry.onEdit}
+                  className="transition-colors text-ink-gray-6 hover:text-ink-gray-7"
+                  aria-label="Edit allocation"
+                >
+                  <EditAlt className="size-4 text-ink-gray-6" />
+                </button>
+              )}
+              {entry.onDelete && (
+                <button
+                  type="button"
+                  onClick={entry.onDelete}
+                  className="transition-colors text-ink-gray-6 hover:text-ink-gray-7"
+                  aria-label="Delete allocation"
+                >
+                  <DeleteAlt className="size-4 text-ink-gray-6" />
+                </button>
+              )}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

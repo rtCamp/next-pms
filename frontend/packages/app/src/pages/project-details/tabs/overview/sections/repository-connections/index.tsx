@@ -2,14 +2,7 @@
  * External dependencies.
  */
 import { useMemo, useState } from "react";
-import {
-  Button,
-  ListHeader,
-  ListHeaderItem,
-  ListRow,
-  ListRows,
-  ListView,
-} from "@rtcamp/frappe-ui-react";
+import { Button } from "@rtcamp/frappe-ui-react";
 import { AddSm } from "@rtcamp/frappe-ui-react/icons";
 
 /**
@@ -20,6 +13,10 @@ import { REPO_COLUMNS } from "./columns";
 import { AddRepoDialog } from "./components/addRepoDialog";
 import { useProjectDetail } from "../../../../context";
 import { OverviewSection } from "../../components/overviewSection";
+
+const gridTemplateColumns = REPO_COLUMNS.map((c) =>
+  typeof c.width === "number" ? `${c.width}fr` : c.width,
+).join(" ");
 
 export function RepositoryConnections() {
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -50,47 +47,39 @@ export function RepositoryConnections() {
         />
       }
     >
-      <ListView
-        columns={REPO_COLUMNS}
-        rows={connections}
-        rowKey="id"
-        options={{
-          options: {
-            selectable: false,
-            showTooltip: false,
-            resizeColumn: false,
-          },
-        }}
-      >
-        <ListHeader className="mb-0 rounded-none bg-transparent border-b border-outline-gray-1 p-2 gap-2">
+      <div className="rounded-md">
+        <div
+          className="grid items-center gap-2 border-b border-outline-gray-1 px-2 py-1.5 text-sm text-ink-gray-5"
+          style={{ gridTemplateColumns }}
+        >
           {REPO_COLUMNS.map((column) => (
-            <ListHeaderItem key={column.key} item={column}>
-              <div className="flex h-7 items-center py-1.5">
-                {column.srOnly ? (
-                  <span className="sr-only">{column.label}</span>
-                ) : (
-                  <span className="truncate">{column.label}</span>
-                )}
-              </div>
-            </ListHeaderItem>
-          ))}
-        </ListHeader>
-        <ListRows>
-          {connections.length === 0 ? (
-            <div className="py-10 text-center text-sm text-ink-gray-4">
-              No repositories connected
+            <div key={column.key} className="flex h-7 items-center">
+              {column.srOnly ? (
+                <span className="sr-only">{column.label}</span>
+              ) : (
+                <span className="truncate">{column.label}</span>
+              )}
             </div>
-          ) : (
-            connections.map((connection) => (
-              <ListRow key={connection.name} row={connection}>
-                {REPO_COLUMNS.map((column) => (
-                  <RepoCell key={column.key} row={connection} column={column} />
-                ))}
-              </ListRow>
-            ))
-          )}
-        </ListRows>
-      </ListView>
+          ))}
+        </div>
+        {connections.length === 0 ? (
+          <div className="py-10 text-center text-sm text-ink-gray-4">
+            No repositories connected
+          </div>
+        ) : (
+          connections.map((connection) => (
+            <div
+              key={connection.name}
+              className="grid items-center gap-2 px-2 py-2 text-ink-gray-7 border-b border-outline-gray-1 last:border-b-0"
+              style={{ gridTemplateColumns }}
+            >
+              {REPO_COLUMNS.map((column) => (
+                <RepoCell key={column.key} row={connection} column={column} />
+              ))}
+            </div>
+          ))
+        )}
+      </div>
       <AddRepoDialog
         open={dialogOpen}
         onOpenChange={setDialogOpen}

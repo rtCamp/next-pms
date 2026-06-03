@@ -70,6 +70,7 @@ export interface ProjectDoc {
   is_active?: "Yes" | "No";
   status?: "Open" | "Completed" | "Cancelled";
   custom_project_phase: string;
+  custom_territory?: string | null;
   custom_key_account?: "" | "Yes" | "No";
   actual_start_date?: string;
   actual_end_date?: string;

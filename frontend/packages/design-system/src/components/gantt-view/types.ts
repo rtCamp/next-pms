@@ -43,7 +43,10 @@ export interface Project {
   id?: string;
   name: string;
   dateRange?: string;
+  projectDateRange?: string;
   client?: string;
+  projectManager?: string;
+  weeklyCapacity?: number;
   badge?: string;
   allocations?: Allocation[];
 }
@@ -96,6 +99,15 @@ export interface AllocationCallbackData {
   tentative?: boolean;
   /** Note for the allocation. */
   note?: string;
+}
+
+export interface GanttGridHandle {
+  /** True when there is an in-progress, unsaved allocation edit or draft bar. */
+  hasUnsavedChanges: () => boolean;
+  /** Trigger the currently-active edit's save path. */
+  saveChanges: () => void;
+  /** Trigger the currently-active edit's discard path. */
+  discardChanges: () => void;
 }
 
 export interface GanttGridProps {

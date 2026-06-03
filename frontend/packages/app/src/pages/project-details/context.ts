@@ -22,6 +22,9 @@ export interface ProjectDetailContextProps {
   error: FrappeError | null;
   mutate: () => void;
   updateRepositories: (repositories: RepositoryInput[]) => Promise<void>;
+  addMember: (userId: string) => Promise<void>;
+  removeMember: (userId: string) => Promise<void>;
+  updateContacts: (contactIds: string[]) => Promise<void>;
 }
 
 const noop = () => {};
@@ -34,6 +37,9 @@ export const ProjectDetailContext = createContext<ProjectDetailContextProps>({
   error: null,
   mutate: noop,
   updateRepositories: asyncNoop,
+  addMember: asyncNoop,
+  removeMember: asyncNoop,
+  updateContacts: asyncNoop,
 });
 
 export const useProjectDetail = <T>(

@@ -33,6 +33,8 @@ export interface MemberSummaryBar extends MemberBarAllocation {
 }
 
 export interface ProjectSummaryBar {
+  startDate: Date;
+  endDate: Date;
   hours: number;
   barOffset: number;
   width: number;
@@ -270,6 +272,8 @@ function prepareProjectSummaryBars(
     }
 
     return {
+      startDate: segment.startDate,
+      endDate: segment.endDate,
       hours: segment.hours,
       tentative: segment.tentative,
       ...metrics,

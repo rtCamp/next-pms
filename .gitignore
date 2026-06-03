@@ -49,3 +49,5 @@ plan_issue_*.md
 
 # Stray yarn.lock at repo root — not part of the build (npm workspaces)
 /yarn.lock
+
+tsconfig.tsbuildinfo
