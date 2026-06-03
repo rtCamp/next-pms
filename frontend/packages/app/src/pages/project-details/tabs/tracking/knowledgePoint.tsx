@@ -6,9 +6,11 @@ type KnowledgePointProps = {
 export function KnowledgePoint({ title, value }: KnowledgePointProps) {
   return (
     <div className="flex h-20 flex-1 min-w-0 flex-col justify-between rounded-xl border border-outline-gray-1 bg-surface-cards p-3">
-      <span className="truncate text-base font-normal text-ink-gray-5">
-        {title}
-      </span>
+      <div className="flex min-w-0 items-center justify-between gap-2">
+        <span className="truncate text-base font-normal text-ink-gray-5">
+          {title}
+        </span>
+      </div>
       <span className="truncate text-xl font-medium text-ink-gray-8">
         {value}
       </span>
