@@ -86,7 +86,10 @@ def generate_pm_report(
             "drive_link": drive_link,
         },
         **({"previous_doc_url": previous_doc_url} if previous_doc_url else {}),
-        "user_metadata": {"user_name": frappe.session.user, "user_email": frappe.session.user},
+        "user_metadata": {
+            "user_name": frappe.utils.get_fullname(frappe.session.user),
+            "user_email": frappe.session.user,
+        },
         "github_metadata": get_github_metadata(project_doc, selected_repo=selected_repo, selected_board=selected_board),
         "slack_metadata": {"channel_slug": project_doc.get("custom_slack_channel_slug") or ""},
         "hours_breakdown": get_hours_breakdown(project, from_date, to_date),
@@ -492,7 +495,9 @@ def _is_valid_document_url(url: str) -> bool:
 
 
 @frappe.whitelist()
-def get_repository_project_boards(repository: str) -> list[str]:
+def get_repository_project_boards(repository: str | None = None) -> list[str]:
+    if not repository:
+        return []
     try:
         repo_doc = frappe.get_doc("GitHub Repository", repository)
         return [b.board_name for b in repo_doc.get("project_boards") or [] if b.board_name]
