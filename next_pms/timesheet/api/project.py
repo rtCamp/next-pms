@@ -143,7 +143,6 @@ def _get_project_response_dates(dates: list, max_week: int, has_filters: bool):
 def _prepare_project_timesheet_context(
     date: str,
     max_week: int,
-    reports_to: str | None,
     filters: str | list | None,
     search: str | None,
     approval_statuses: list[str] | None,
@@ -162,7 +161,6 @@ def _prepare_project_timesheet_context(
             parsed_filters=parsed_filters,
             search=search,
             approval_status=approval_statuses,
-            reports_to=reports_to,
         ),
     }
 
@@ -316,7 +314,6 @@ def _build_project_week_groups(response_dates: list, employee_data_map: dict):
 def get_project_timesheet_data(
     date: str,
     max_week: int = 2,
-    reports_to: str | None = None,
     page_length: int = 10,
     start: int = 0,
     filters: str | list | None = None,
@@ -338,7 +335,6 @@ def get_project_timesheet_data(
     project_context = _prepare_project_timesheet_context(
         date=date,
         max_week=max_week,
-        reports_to=reports_to,
         filters=filters,
         search=search,
         approval_statuses=approval_statuses,
@@ -417,7 +413,6 @@ def get_project_timesheet_data(
 def get_project_timesheet_pending_count(
     date: str,
     max_week: int = 2,
-    reports_to: str | None = None,
 ):
     """Return the count of employees with at least one 'Approval Pending' week for project tasks."""
     only_for(["Timesheet Manager", "Timesheet User", "Projects Manager"], message=True)
@@ -433,12 +428,6 @@ def get_project_timesheet_pending_count(
         "custom_weekly_approval_status": "Approval Pending",
     }
     timesheets = frappe.get_all("Timesheet", filters=ts_filters, fields=["name", "employee"])
-    if not timesheets:
-        return {"count": 0}
-
-    if reports_to:
-        report_employees = set(frappe.get_all("Employee", filters={"reports_to": reports_to}, pluck="name"))
-        timesheets = [ts for ts in timesheets if ts.employee in report_employees]
     if not timesheets:
         return {"count": 0}
 
