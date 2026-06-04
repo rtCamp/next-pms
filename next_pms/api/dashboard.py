@@ -7,12 +7,63 @@ from frappe import only_for, whitelist
 from frappe.core.doctype.recorder.recorder import redis_cache
 from frappe.query_builder import DocType
 from frappe.query_builder.functions import Sum
-from frappe.utils import flt, getdate
+from frappe.utils import add_days, flt, getdate, today
 from pypika import Case
 from pypika.functions import Date
 
 CURRENCY = "USD"
 ALLOWED_ROLES = ["Projects Manager", "Projects User"]
+
+
+@whitelist(methods=["GET"])
+def get_time_utilisation(days: int = 30) -> dict:
+    """Return total billable and non-billable hours logged across all timesheets in the given window.
+
+    Parameters
+    ----------
+    days : int, optional
+        Look-back window in days from today. Defaults to 30.
+
+    Returns
+    -------
+    dict
+        billable_hours : float
+        non_billable_hours : float
+        total_hours : float
+    """
+    only_for(["Projects Manager", "Projects User", "System Manager"], message=True)
+    return _get_time_utilisation(days)
+
+
+@redis_cache()
+def _get_time_utilisation(days: int) -> dict:
+    TimesheetDetail = DocType("Timesheet Detail")
+    since = add_days(today(), -days)
+
+    rows = (
+        frappe.qb.from_(TimesheetDetail)
+        .select(
+            TimesheetDetail.is_billable,
+            Sum(TimesheetDetail.hours).as_("total_hours"),
+        )
+        .where(Date(TimesheetDetail.from_time) >= since)
+        .groupby(TimesheetDetail.is_billable)
+        .run(as_dict=True)
+    )
+
+    billable = 0.0
+    non_billable = 0.0
+    for row in rows:
+        if row.is_billable:
+            billable = flt(row.total_hours)
+        else:
+            non_billable = flt(row.total_hours)
+
+    return {
+        "billable_hours": billable,
+        "non_billable_hours": non_billable,
+        "total_hours": billable + non_billable,
+    }
 
 
 @whitelist(methods=["GET"])
