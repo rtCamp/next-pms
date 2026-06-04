@@ -14,7 +14,12 @@ export type Response = {
   };
 };
 
-export type Tracking = Response["message"];
+export type Tracking = Response["message"] & {
+  company: string;
+  currency: string;
+  projectProfit: number;
+  projectedProfitMargin: number;
+};
 
 export interface TrackingContextProps {
   tracking: Tracking;
@@ -23,6 +28,10 @@ export interface TrackingContextProps {
 export const DEFAULT_TRACKING: Tracking = {
   burn: { total_budget: 0, cost_accrued: 0, cost_forecasted: 0 },
   progress: { actual_time: 0, total_hours_purchased: 0 },
+  company: "",
+  currency: "INR",
+  projectProfit: 0,
+  projectedProfitMargin: 0,
 };
 
 export const TrackingContext = createContext<TrackingContextProps>({
