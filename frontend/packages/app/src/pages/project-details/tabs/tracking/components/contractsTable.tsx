@@ -11,14 +11,12 @@ type ContractsTableProps = {
   rows: ContractRow[];
   onEdit: (id: string) => void;
   onDelete: (id: string) => void;
-  onAdd?: () => void;
 };
 
 export function ContractsTable({
   rows,
   onEdit,
   onDelete,
-  onAdd,
 }: ContractsTableProps) {
   return (
     <div className="flex flex-1 min-w-0 flex-col gap-3 rounded-xl border border-outline-gray-1 bg-surface-cards p-3">
@@ -26,7 +24,13 @@ export function ContractsTable({
         <span className="text-base font-semibold text-ink-gray-8">
           Contracts
         </span>
-        <Button icon={AddSm} variant="subtle" onClick={onAdd} />
+        <a
+          href="/desk/contract/new-contract"
+          target="_blank"
+          rel="noreferrer noopener"
+        >
+          <Button icon={AddSm} variant="subtle" />
+        </a>
       </div>
       <div className="flex flex-col">
         <div
