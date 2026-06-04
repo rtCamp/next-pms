@@ -16,6 +16,67 @@ ALLOWED_ROLES = ["Projects Manager", "Projects User"]
 
 
 @whitelist(methods=["GET"])
+def get_employees_on_leave() -> list:
+    """Return direct reports of the current user who are on leave today or upcoming.
+
+    Returns
+    -------
+    list of dict
+        employee, employee_name, from_date, to_date,
+        half_day, custom_first_halfsecond_half, user_image.
+        Empty list if the user has no employee record or no direct reports.
+        Ordered by from_date ascending.
+    """
+    only_for(["Projects Manager", "Projects User", "System Manager"], message=True)
+
+    from next_pms.timesheet.api.employee import get_employee_from_user
+
+    manager_employee = get_employee_from_user()
+    if not manager_employee:
+        return []
+
+    return _get_employees_on_leave(manager_employee)
+
+
+@redis_cache(user=True)
+def _get_employees_on_leave(manager_employee: str) -> list:
+    reportee_ids = frappe.get_all(
+        "Employee",
+        filters={"reports_to": manager_employee, "status": "Active"},
+        pluck="name",
+    )
+    if not reportee_ids:
+        return []
+
+    LeaveApplication = DocType("Leave Application")
+    Employee = DocType("Employee")
+    User = DocType("User")
+
+    return (
+        frappe.qb.from_(LeaveApplication)
+        .join(Employee)
+        .on(Employee.name == LeaveApplication.employee)
+        .left_join(User)
+        .on(User.name == Employee.user_id)
+        .select(
+            LeaveApplication.employee,
+            LeaveApplication.employee_name,
+            LeaveApplication.from_date,
+            LeaveApplication.to_date,
+            LeaveApplication.half_day,
+            LeaveApplication.custom_first_halfsecond_half,
+            User.user_image,
+        )
+        .where(LeaveApplication.docstatus == 1)
+        .where(LeaveApplication.status == "Approved")
+        .where(LeaveApplication.to_date >= frappe.utils.today())
+        .where(LeaveApplication.employee.isin(reportee_ids))
+        .orderby(LeaveApplication.from_date)
+        .run(as_dict=True)
+    )
+
+
+@whitelist(methods=["GET"])
 def get_leadership_kpis(
     cur_start: str,
     cur_end: str,
