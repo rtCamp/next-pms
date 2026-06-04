@@ -69,6 +69,7 @@ export function Tracking() {
 
       <ProjectRatesTable
         rows={data.rates}
+        flatRate={data.flatRate}
         onEdit={() => {}}
         onDelete={() => {}}
       />

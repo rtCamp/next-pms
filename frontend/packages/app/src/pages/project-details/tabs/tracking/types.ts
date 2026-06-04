@@ -31,8 +31,9 @@ export type ContractRow = {
   endDate: string;
   hoursBought: string;
   hoursUsed: string;
-  saleValue: string;
-  saleValueUsed: string;
+  hoursLeft: string;
+  salesOrder: string;
+  salesInvoice: string;
 };
 
 export type RateRow = {
@@ -57,5 +58,6 @@ export type TrackingData = {
   invoicing: Invoicing;
   costBurn: CostBurn;
   contracts: ContractRow[];
+  flatRate: { amount: string; date: string };
   rates: RateRow[];
 };

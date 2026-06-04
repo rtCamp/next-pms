@@ -1,3 +1,5 @@
+import { Button } from "@rtcamp/frappe-ui-react";
+import { AddSm } from "@rtcamp/frappe-ui-react/icons";
 import { mergeClassNames } from "@/lib/utils";
 import { CONTRACT_COLUMNS } from "../constants";
 import type { ContractRow } from "../types";
@@ -9,28 +11,33 @@ type ContractsTableProps = {
   rows: ContractRow[];
   onEdit: (id: string) => void;
   onDelete: (id: string) => void;
+  onAdd?: () => void;
 };
 
 export function ContractsTable({
   rows,
   onEdit,
   onDelete,
+  onAdd,
 }: ContractsTableProps) {
   return (
-    <div className="flex flex-1 min-w-0 flex-col gap-4 rounded-xl border border-outline-gray-1 bg-surface-cards p-3">
+    <div className="flex flex-1 min-w-0 flex-col gap-3 rounded-xl border border-outline-gray-1 bg-surface-cards p-3">
       <div className="flex items-center justify-between">
-        <span className="text-base text-ink-gray-8 font-medium">Contracts</span>
+        <span className="text-base font-semibold text-ink-gray-8">
+          Contracts
+        </span>
+        <Button icon={AddSm} variant="subtle" onClick={onAdd} />
       </div>
-      <div className="rounded-md">
+      <div className="flex flex-col">
         <div
-          className="grid items-center gap-2 border-b border-outline-gray-1 px-2 py-1.5 text-sm text-ink-gray-5"
+          className="grid items-center border-b border-outline-gray-1 px-1 py-0.5 text-sm text-ink-gray-5"
           style={{ gridTemplateColumns }}
         >
           {CONTRACT_COLUMNS.map((column) => (
             <div
               key={column.key}
               className={mergeClassNames(
-                "flex h-7 items-center",
+                "flex h-7 items-center px-2",
                 column.align === "right" && "justify-end",
               )}
             >
@@ -50,23 +57,22 @@ export function ContractsTable({
           rows.map((row) => (
             <div
               key={row.id}
-              className="grid items-center gap-2 border-b border-outline-gray-1 px-2 py-2 text-base text-ink-gray-7 last:border-b-0"
+              className="grid h-10 items-center border-b border-outline-gray-1 px-1 py-2 text-base text-ink-gray-6 last:border-b-0"
               style={{ gridTemplateColumns }}
             >
-              <div className="truncate">{row.startDate}</div>
-              <div className="truncate">{row.endDate}</div>
-              <div className="truncate text-right tabular-nums">
+              <div className="truncate px-2">{row.startDate}</div>
+              <div className="truncate px-2">{row.endDate}</div>
+              <div className="truncate px-2 text-right tabular-nums">
                 {row.hoursBought}
               </div>
-              <div className="truncate text-right tabular-nums">
+              <div className="truncate px-2 text-right tabular-nums">
                 {row.hoursUsed}
               </div>
-              <div className="truncate text-right tabular-nums">
-                {row.saleValue}
+              <div className="truncate px-2 text-right tabular-nums">
+                {row.hoursLeft}
               </div>
-              <div className="truncate text-right tabular-nums">
-                {row.saleValueUsed}
-              </div>
+              <div className="truncate px-2">{row.salesOrder}</div>
+              <div className="truncate px-2">{row.salesInvoice}</div>
               <div className="flex justify-end">
                 <ActionsCell
                   onEdit={() => onEdit(row.id)}
