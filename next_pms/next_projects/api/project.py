@@ -563,16 +563,37 @@ def get_project_tracking(project: str):
 
 @redis_cache()
 def _get_project_tracking(project: str):
-    project_doc = frappe.get_doc("Project", project)
-    billing_type = project_doc.get("custom_billing_type")
+    p = frappe.db.get_value(
+        "Project",
+        project,
+        [
+            "company",
+            "custom_billing_type",
+            "total_costing_amount",
+            "total_sales_amount",
+            "actual_time",
+            "custom_currency",
+            "custom_estimated_profit",
+            "custom_percentage_estimated_profit",
+            "custom_target_cost",
+            "custom_total_hours_remaining",
+            "actual_start_date",
+            "custom_default_hourly_billing_rate",
+            "custom_lifetime_value_to_date",
+            "custom_expected_lifetime_value",
+            "custom_lifetime_value_vs_billed_amount",
+        ],
+        as_dict=True,
+    )
 
+    billing_type = p.custom_billing_type
     is_billable = billing_type != "Non-Billable"
     has_hours_pool = billing_type in ("Fixed Cost", "Retainer")
     is_time_and_material = billing_type == "Time and Material"
 
     invoice_burn = _get_invoice_burn(project) if is_billable else None
     task_counts = _get_task_counts(project)
-    actual_cost_incurred = flt(project_doc.total_costing_amount)
+    actual_cost_incurred = flt(p.total_costing_amount)
     total_forecasted_cost = get_cost_forecasted(project)
     forecasted_cost_to_completion = max(0, total_forecasted_cost - actual_cost_incurred)
 
@@ -588,13 +609,26 @@ def _get_project_tracking(project: str):
                 "sales_order": row.sales_order,
                 "sales_invoice": row.sales_invoice,
             }
-            for row in (project_doc.get("custom_project_budget_hours") or [])
+            for row in frappe.get_all(
+                "Project Budget",
+                filters={"parent": project, "parentfield": "custom_project_budget_hours"},
+                fields=[
+                    "start_date",
+                    "end_date",
+                    "hours_purchased",
+                    "consumed_hours",
+                    "remaining_hours",
+                    "sales_order",
+                    "sales_invoice",
+                ],
+                order_by="idx asc",
+            )
         ]
 
     project_rates = None
     if is_time_and_material:
-        flat_rate_hourly = flt(project_doc.get("custom_default_hourly_billing_rate")) or None
-        flat_rate_valid_from = project_doc.get("actual_start_date")
+        flat_rate_hourly = flt(p.custom_default_hourly_billing_rate) or None
+        flat_rate_valid_from = p.actual_start_date
 
         project_rates = [
             {
@@ -608,40 +642,41 @@ def _get_project_tracking(project: str):
                     "hourly_billing_rate": flt(row.hourly_billing_rate) or flat_rate_hourly,
                     "valid_from": row.valid_from or flat_rate_valid_from,
                 }
-                for row in (project_doc.get("custom_project_billing_team") or [])
+                for row in frappe.get_all(
+                    "Project Billing Team",
+                    filters={"parent": project},
+                    fields=["employee", "user_name", "hourly_billing_rate", "valid_from"],
+                    order_by="idx asc",
+                )
             ],
         ]
 
     lifetime_values = None
     if is_billable:
         lifetime_values = {
-            "lifetime_value_to_date": flt(v)
-            if (v := project_doc.get("custom_lifetime_value_to_date")) not in (None, "")
-            else None,
-            "expected_lifetime_value": flt(v)
-            if (v := project_doc.get("custom_expected_lifetime_value")) not in (None, "")
-            else None,
+            "lifetime_value_to_date": flt(v) if (v := p.custom_lifetime_value_to_date) not in (None, "") else None,
+            "expected_lifetime_value": flt(v) if (v := p.custom_expected_lifetime_value) not in (None, "") else None,
             "lifetime_value_vs_billed_amount": flt(v)
-            if (v := project_doc.get("custom_lifetime_value_vs_billed_amount")) not in (None, "")
+            if (v := p.custom_lifetime_value_vs_billed_amount) not in (None, "")
             else None,
         }
 
     return {
-        "company": project_doc.company,
+        "company": p.company,
         "billing_type": billing_type,
-        "currency": project_doc.get("custom_currency"),
-        "total_project_value": flt(project_doc.total_sales_amount) if is_billable else None,
-        "project_profit": flt(project_doc.get("custom_estimated_profit")) if is_billable else None,
-        "projected_profit_margin": flt(project_doc.get("custom_percentage_estimated_profit")) if is_billable else None,
+        "currency": p.custom_currency,
+        "total_project_value": flt(p.total_sales_amount) if is_billable else None,
+        "project_profit": flt(p.custom_estimated_profit) if is_billable else None,
+        "projected_profit_margin": flt(p.custom_percentage_estimated_profit) if is_billable else None,
         "actual_cost_incurred": actual_cost_incurred,
         "forecasted_cost_to_completion": forecasted_cost_to_completion,
-        "expected_total_cost": flt(project_doc.get("custom_target_cost")),
-        "hours_utilised": flt(project_doc.actual_time),
-        "hours_remaining": flt(project_doc.get("custom_total_hours_remaining")) if has_hours_pool else None,
+        "expected_total_cost": flt(p.custom_target_cost),
+        "hours_utilised": flt(p.actual_time),
+        "hours_remaining": flt(p.custom_total_hours_remaining) if has_hours_pool else None,
         "tasks": task_counts,
         "invoice_burn": {
             **(invoice_burn or {}),
-            "total_project_amount": flt(project_doc.total_sales_amount) if is_billable else None,
+            "total_project_amount": flt(p.total_sales_amount) if is_billable else None,
         },
         "contracts": contracts,
         "project_rates": project_rates,
