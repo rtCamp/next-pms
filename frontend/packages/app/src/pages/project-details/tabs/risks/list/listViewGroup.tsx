@@ -57,6 +57,12 @@ export function RiskGroup({ value, label, risks }: RiskGroupProps) {
           <div className="w-8 shrink-0" />
         </div>
 
+        {risks.length === 0 && (
+          <div className="py-6 text-center text-sm text-ink-gray-5">
+            No risks found
+          </div>
+        )}
+
         {risks.map((risk) => (
           <div
             key={risk.name}
