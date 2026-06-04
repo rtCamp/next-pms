@@ -3,11 +3,17 @@
 
 
 import frappe
-from frappe import _
+from frappe import _, only_for
 from frappe.query_builder import DocType, Order
 from frappe.utils import cint, getdate
 
-from next_pms.next_projects.api.constant import DEFAULT_STAR_MAX, RATING_FIELDS, RESOURCE_RATING_FIELDS, TEXT_FIELDS
+from next_pms.next_projects.api.constant import (
+    ALLOWED_ROLES,
+    DEFAULT_STAR_MAX,
+    RATING_FIELDS,
+    RESOURCE_RATING_FIELDS,
+    TEXT_FIELDS,
+)
 
 
 def is_customer_feedback_available() -> bool:
@@ -40,6 +46,7 @@ def get_customer_feedback_availability():
     Returns:
         dict: ``{ available: bool }`` — ``True`` when the rtcamp app is installed.
     """
+    only_for(ALLOWED_ROLES, message=True)
     return {"available": is_customer_feedback_available()}
 
 
@@ -63,9 +70,12 @@ def get_project_feedback_timeline(
         where ``score`` is an int 0-100 (or ``None`` when pending) and ``feedback_id`` is
         the Customer Feedback name to pass to ``get_project_feedback_breakdown``.
     """
+    only_for(ALLOWED_ROLES, message=True)
     ensure_customer_feedback_available()
     if not project:
         frappe.throw(_("Project is required"))
+    if not frappe.db.exists("Project", project):
+        frappe.throw(_("Project {0} not found").format(project), frappe.DoesNotExistError)
 
     CFS = DocType("Customer Feedback Schedule")
     CFP = DocType("Customer Feedback Project")
@@ -125,6 +135,7 @@ def get_project_feedback_breakdown(feedback_name: str):
         where ``ratings`` is a list of ``{ fieldname, label, value, percent, stars,
         star_max }`` and ``responses`` a list of ``{ fieldname, label, answer }``.
     """
+    only_for(ALLOWED_ROLES, message=True)
     ensure_customer_feedback_available()
 
     rating_fields = RATING_FIELDS["Project"]
@@ -144,14 +155,14 @@ def get_project_feedback_breakdown(feedback_name: str):
     ratings = []
     for fieldname in rating_fields:
         field = meta.get_field(fieldname)
-        value = data.get(fieldname) or 0
+        value = data.get(fieldname)
         ratings.append(
             {
                 "fieldname": fieldname,
                 "label": field.label,
                 "value": value,
-                "percent": round(value * 100),
-                "stars": round(value * DEFAULT_STAR_MAX),
+                "percent": round(value * 100) if value is not None else None,
+                "stars": round(value * DEFAULT_STAR_MAX) if value is not None else None,
                 "star_max": DEFAULT_STAR_MAX,
             }
         )
@@ -192,14 +203,20 @@ def get_team_feedback_list(project: str, limit_start: int = 0, limit_page_length
         average, stars, star_max }``. ``average`` is on the star scale (e.g. 2.8 of 4); the
         raw rating columns are not exposed.
     """
+    only_for(ALLOWED_ROLES, message=True)
     ensure_customer_feedback_available()
     if not project:
         frappe.throw(_("Project is required"))
+    if not frappe.db.exists("Project", project):
+        frappe.throw(_("Project {0} not found").format(project), frappe.DoesNotExistError)
 
     limit_start = cint(limit_start)
     limit_page_length = cint(limit_page_length)
 
     customer = frappe.db.get_value("Project", project, "customer")
+    if not customer:
+        return {"data": [], "total": 0, "has_more": False}
+
     filters = {"docstatus": 1, "evaluation_type": ["!=", "Project"], "customer": customer}
 
     CF = DocType("Customer Feedback")
@@ -272,6 +289,7 @@ def get_team_feedback_breakdown(feedback_name: str):
         where ``ratings`` is a list of ``{ fieldname, label, fieldtype, value, stars,
         star_max, percent }``.
     """
+    only_for(ALLOWED_ROLES, message=True)
     ensure_customer_feedback_available()
 
     evaluation_type = frappe.db.get_value("Customer Feedback", feedback_name, "evaluation_type")
@@ -299,15 +317,15 @@ def get_team_feedback_breakdown(feedback_name: str):
     ratings = []
     for fieldname in rating_fields:
         field = meta.get_field(fieldname)
-        value = data.get(fieldname) or 0
+        value = data.get(fieldname)
         ratings.append(
             {
                 "fieldname": fieldname,
                 "label": field.label,
                 "fieldtype": field.fieldtype,
                 "value": value,
-                "percent": round(value * 100),
-                "stars": round(value * DEFAULT_STAR_MAX),
+                "percent": round(value * 100) if value is not None else None,
+                "stars": round(value * DEFAULT_STAR_MAX) if value is not None else None,
                 "star_max": DEFAULT_STAR_MAX,
             }
         )
