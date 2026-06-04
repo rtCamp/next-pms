@@ -16,14 +16,23 @@ export interface RisksContextProps {
     error: unknown;
     filters: RiskFilters;
     visibleColumns: RiskVisibleColumns;
+    isCreateRiskOpen: boolean;
+    editRiskName: string | null;
+    createRiskInitialStatus: RiskStatus | "";
+    deleteRiskName: string | null;
   };
   actions: {
     setFilters: (filters: Partial<RiskFilters>) => void;
     setVisibleColumns: (cols: Partial<RiskVisibleColumns>) => void;
     updateRiskStatus: (name: string, status: RiskStatus) => Promise<void>;
     openCreateRisk: () => void;
-    openRowActions: (name: string) => void;
+    closeCreateRisk: () => void;
+    refreshRisks: () => void;
     openRiskDetail: (name: string) => void;
+    openEditRisk: (name: string) => void;
+    openCreateRiskWithStatus: (status: RiskStatus) => void;
+    openDeleteRisk: (name: string) => void;
+    closeDeleteRisk: () => void;
   };
 }
 
@@ -45,14 +54,23 @@ export const RisksContext = createContext<RisksContextProps>({
       advanced: [],
     },
     visibleColumns: defaultVisibleColumns,
+    isCreateRiskOpen: false,
+    editRiskName: null,
+    createRiskInitialStatus: "",
+    deleteRiskName: null,
   },
   actions: {
     setFilters: noop,
     setVisibleColumns: noop,
     updateRiskStatus: async () => {},
     openCreateRisk: noop,
-    openRowActions: noop,
+    closeCreateRisk: noop,
+    refreshRisks: noop,
     openRiskDetail: noop,
+    openEditRisk: noop,
+    openCreateRiskWithStatus: noop,
+    openDeleteRisk: noop,
+    closeDeleteRisk: noop,
   },
 });
 
