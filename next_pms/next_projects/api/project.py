@@ -495,7 +495,6 @@ def _get_task_counts(project_name: str) -> dict:
 
 @whitelist(methods=["GET"])
 @error_logger
-@redis_cache()
 def get_project_tracking(project: str):
     """
     Return tracking data for a project.
@@ -537,12 +536,10 @@ def get_project_tracking(project: str):
             Static target/expected cost from the Project.
         contracts : list of dict or None
             Project Budget rows. None for Non-Billable and T&M.
-        lifetime_value_to_date : float or None
-            Cumulative lifetime value earned to date.
-        expected_lifetime_value : float or None
-            Expected total lifetime value for the project.
-        lifetime_value_vs_billed_amount : float or None
-            Lifetime value compared against total billed amount.
+        lifetime_values : dict or None
+            Billable-only lifetime value metrics (None for Non-Billable):
+            lifetime_value_to_date, expected_lifetime_value,
+            lifetime_value_vs_billed_amount (each float or None).
         project_rates : list of dict or None
             Project Billing Team rows. None unless T&M.
             First element is always the flat-rate entry:
@@ -559,6 +556,13 @@ def get_project_tracking(project: str):
     if not frappe.db.exists("Project", project):
         frappe.throw(frappe._("Project '{0}' does not exist").format(project), frappe.DoesNotExistError)
 
+    frappe.has_permission(doctype="Project", doc=project, throw=True)
+
+    return _get_project_tracking(project)
+
+
+@redis_cache()
+def _get_project_tracking(project: str):
     project_doc = frappe.get_doc("Project", project)
     billing_type = project_doc.get("custom_billing_type")
 
@@ -608,6 +612,20 @@ def get_project_tracking(project: str):
             ],
         ]
 
+    lifetime_values = None
+    if is_billable:
+        lifetime_values = {
+            "lifetime_value_to_date": flt(v)
+            if (v := project_doc.get("custom_lifetime_value_to_date")) not in (None, "")
+            else None,
+            "expected_lifetime_value": flt(v)
+            if (v := project_doc.get("custom_expected_lifetime_value")) not in (None, "")
+            else None,
+            "lifetime_value_vs_billed_amount": flt(v)
+            if (v := project_doc.get("custom_lifetime_value_vs_billed_amount")) not in (None, "")
+            else None,
+        }
+
     return {
         "company": project_doc.company,
         "billing_type": billing_type,
@@ -627,9 +645,7 @@ def get_project_tracking(project: str):
         },
         "contracts": contracts,
         "project_rates": project_rates,
-        "lifetime_value_to_date": flt(project_doc.get("custom_lifetime_value_to_date")) or None,
-        "expected_lifetime_value": flt(project_doc.get("custom_expected_lifetime_value")) or None,
-        "lifetime_value_vs_billed_amount": flt(project_doc.get("custom_lifetime_value_vs_billed_amount")) or None,
+        "lifetime_values": lifetime_values,
     }
 
 
