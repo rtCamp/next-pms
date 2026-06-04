@@ -12,10 +12,6 @@ def after_install():
     setup_project_custom_fields()
 
 
-def after_migrate():
-    setup_project_custom_fields()
-
-
 def setup_project_custom_fields():
     from frappe.custom.doctype.custom_field.custom_field import create_custom_fields
 
