@@ -2,7 +2,7 @@
  * External dependencies.
  */
 import { useEffect, useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { Spinner } from "@next-pms/design-system/components";
 import {
   Avatar,
@@ -21,20 +21,20 @@ import {
 /**
  * Internal dependencies.
  */
+import { ROUTES } from "@/lib/constant";
 import { parseFrappeErrorMsg } from "@/lib/utils";
 import { useProjectDetail } from "@/pages/project-details/context";
 import { useUser } from "@/providers/user";
 import { noteFormSchema } from "./schema";
-import { NOTE_ID, NOTE_MODE } from "../constants";
 import { useNotes } from "../context";
 
-export type NoteEditorProps = {
-  noteId?: string | null;
-  mode: "edit" | "new";
-};
-
-export function NoteEditor({ noteId, mode }: NoteEditorProps) {
-  const [, setSearchParams] = useSearchParams();
+export function NoteEditor() {
+  const navigate = useNavigate();
+  const { projectId: routeProjectId = "", noteId } = useParams<{
+    projectId: string;
+    noteId?: string;
+  }>();
+  const mode: "edit" | "new" = noteId ? "edit" : "new";
   const userName = useUser((s) => s.state.userName);
   const userImage = useUser((s) => s.state.image);
   const projectId = useProjectDetail((s) => s.projectId);
@@ -84,13 +84,9 @@ export function NoteEditor({ noteId, mode }: NoteEditorProps) {
           });
         }
 
-        toast.success("Note created successfully");
-        setSearchParams((prev) => {
-          prev.delete(NOTE_ID);
-          prev.delete(NOTE_MODE);
-          return prev;
-        });
+        toast.success("Note saved");
         await refresh();
+        navigate(`${ROUTES.project}/${routeProjectId}?tab=notes`);
       } catch (err) {
         const error = parseFrappeErrorMsg(err as FrappeError);
         toast.error(error);

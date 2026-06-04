@@ -1,7 +1,7 @@
 /**
  * External dependencies.
  */
-import { useSearchParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { Avatar, Dropdown } from "@rtcamp/frappe-ui-react";
 import { DotHorizontal, Edit1 } from "@rtcamp/frappe-ui-react/icons";
 
@@ -9,7 +9,7 @@ import { DotHorizontal, Edit1 } from "@rtcamp/frappe-ui-react/icons";
  * Internal dependencies.
  */
 import { formatRelativeTimeShort, stripTags } from "@/lib/utils";
-import { NOTE_ID, NOTE_MODE } from "./constants";
+import { ROUTES } from "@/lib/constant";
 import type { Note } from "./types";
 
 type NoteCardProps = {
@@ -17,7 +17,8 @@ type NoteCardProps = {
 };
 
 export function NoteCard({ note }: NoteCardProps) {
-  const [, setSearchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const { projectId = "" } = useParams<{ projectId: string }>();
   const excerpt = stripTags(note.description);
   const relativeDate = formatRelativeTimeShort(note.creation);
   const authorHref = `/desk/user/${encodeURIComponent(note.owner)}`;
@@ -40,11 +41,9 @@ export function NoteCard({ note }: NoteCardProps) {
               key: "edit",
               icon: <Edit1 className="size-4 mr-2" />,
               onClick: () =>
-                setSearchParams((prev) => {
-                  prev.set(NOTE_ID, note.name);
-                  prev.set(NOTE_MODE, "edit");
-                  return prev;
-                }),
+                navigate(
+                  `${ROUTES.project}/${projectId}/notes/${note.name}/edit`,
+                ),
             },
           ]}
         />

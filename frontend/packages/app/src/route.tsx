@@ -17,6 +17,11 @@ const Task = lazy(() => import("@/pages/task"));
 const ProjectList = lazy(() => import("@/pages/projects/list"));
 const ProjectKanban = lazy(() => import("@/pages/projects/kanban"));
 const ProjectDetail = lazy(() => import("@/pages/project-details"));
+const NoteEditor = lazy(() =>
+  import("@/pages/project-details/tabs/notes/editor").then((m) => ({
+    default: m.NoteEditor,
+  })),
+);
 const PersonalTimesheetLayout = lazy(
   () => import("@/pages/timesheet/personal/layout"),
 );
@@ -51,7 +56,10 @@ export function Router() {
           <Route
             path={`${ROUTES.project}/:projectId`}
             element={<ProjectDetail />}
-          />
+          >
+            <Route path="notes/new" element={<NoteEditor />} />
+            <Route path="notes/:noteId/edit" element={<NoteEditor />} />
+          </Route>
           <Route element={<PersonalTimesheetLayout />}>
             <Route
               path={ROUTES["timesheet-personal"]}
