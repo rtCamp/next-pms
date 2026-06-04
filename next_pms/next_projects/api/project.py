@@ -537,8 +537,19 @@ def get_project_tracking(project: str):
             Static target/expected cost from the Project.
         contracts : list of dict or None
             Project Budget rows. None for Non-Billable and T&M.
+        lifetime_value_to_date : float or None
+            Cumulative lifetime value earned to date.
+        expected_lifetime_value : float or None
+            Expected total lifetime value for the project.
+        lifetime_value_vs_billed_amount : float or None
+            Lifetime value compared against total billed amount.
         project_rates : list of dict or None
             Project Billing Team rows. None unless T&M.
+            First element is always the flat-rate entry:
+              flat_rate_hourly - custom_default_hourly_billing_rate (None if unset)
+              flat_rate_valid_from - actual_start_date (None if unset)
+            Subsequent elements are per-member rows. hourly_billing_rate and
+            valid_from fall back to the flat-rate values when blank.
     """
     only_for(ALLOWED_ROLES, message=True)
 
@@ -578,14 +589,23 @@ def get_project_tracking(project: str):
 
     project_rates = None
     if is_time_and_material:
+        flat_rate_hourly = flt(project_doc.get("custom_default_hourly_billing_rate")) or None
+        flat_rate_valid_from = project_doc.get("actual_start_date")
+
         project_rates = [
             {
-                "employee": row.employee,
-                "employee_name": row.user_name,
-                "hourly_billing_rate": flt(row.hourly_billing_rate),
-                "valid_from": row.valid_from,
-            }
-            for row in (project_doc.get("custom_project_billing_team") or [])
+                "flat_rate_hourly": flat_rate_hourly,
+                "flat_rate_valid_from": flat_rate_valid_from,
+            },
+            *[
+                {
+                    "employee": row.employee,
+                    "employee_name": row.user_name,
+                    "hourly_billing_rate": flt(row.hourly_billing_rate) or flat_rate_hourly,
+                    "valid_from": row.valid_from or flat_rate_valid_from,
+                }
+                for row in (project_doc.get("custom_project_billing_team") or [])
+            ],
         ]
 
     return {
@@ -607,6 +627,9 @@ def get_project_tracking(project: str):
         },
         "contracts": contracts,
         "project_rates": project_rates,
+        "lifetime_value_to_date": flt(project_doc.get("custom_lifetime_value_to_date")) or None,
+        "expected_lifetime_value": flt(project_doc.get("custom_expected_lifetime_value")) or None,
+        "lifetime_value_vs_billed_amount": flt(project_doc.get("custom_lifetime_value_vs_billed_amount")) or None,
     }
 
 
