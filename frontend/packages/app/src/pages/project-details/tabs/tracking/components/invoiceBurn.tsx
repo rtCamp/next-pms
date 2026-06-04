@@ -1,13 +1,23 @@
 import { ProgressBar } from "@next-pms/design-system/components";
+import { ArrowUpRight } from "@rtcamp/frappe-ui-react/icons";
 import { Invoicing } from "../types";
 
 export function InvoiceBurnCell({ data }: { data: Invoicing }) {
   return (
     <div className="flex flex-1 flex-col gap-4 rounded-xl border border-outline-gray-1 bg-surface-cards p-3">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-2">
         <span className="text-base text-ink-gray-8 font-medium">
           Invoice Burn (to date)
         </span>
+        <a
+          href="/desk/sales-invoice"
+          target="_blank"
+          rel="noreferrer noopener"
+          className="flex items-center gap-2 text-base text-ink-gray-6 hover:text-ink-gray-8"
+        >
+          All invoices
+          <ArrowUpRight aria-hidden className="size-4" />
+        </a>
       </div>
       <ProgressBar
         value={data.invoicedPaid}
