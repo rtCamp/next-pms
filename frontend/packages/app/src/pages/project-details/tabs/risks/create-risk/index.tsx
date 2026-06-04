@@ -157,7 +157,7 @@ export function CreateRiskModal({
         mitigation_plan: stripTags(existingRisk.mitigation_plan ?? ""),
       });
     }
-  }, [open, isEditMode, existingRisk]);
+  }, [open, isEditMode, existingRisk, toast]);
 
   const closeModal = useCallback(() => {
     onClose();
