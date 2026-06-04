@@ -15,7 +15,15 @@ interface RiskDetailViewProps {
 }
 
 export function RiskDetailView({ riskId }: RiskDetailViewProps) {
-  const { risk, attachments, followers, isLoading } = useRiskDetail(riskId);
+  const {
+    risk,
+    attachments,
+    followers,
+    isLoading,
+    mutate,
+    mutateAttachments,
+    mutateFollowers,
+  } = useRiskDetail(riskId);
 
   if (isLoading) {
     return (
@@ -35,8 +43,17 @@ export function RiskDetailView({ riskId }: RiskDetailViewProps) {
 
   return (
     <div className="flex flex-col h-full">
-      <RiskDetailHeader risk={risk} followers={followers} />
-      <RiskDetailContent risk={risk} attachments={attachments} />
+      <RiskDetailHeader
+        risk={risk}
+        followers={followers}
+        onAfterFollow={() => void mutateFollowers()}
+      />
+      <RiskDetailContent
+        risk={risk}
+        attachments={attachments}
+        mutate={mutate}
+        mutateAttachments={mutateAttachments}
+      />
     </div>
   );
 }

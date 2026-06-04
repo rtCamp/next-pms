@@ -21,6 +21,8 @@ export const RISK_STATUSES = [
   "Mitigated",
 ] as const;
 
+export const RISK_LEVELS = ["Low", "Medium", "High"] as const;
+
 export type RiskStatus = (typeof RISK_STATUSES)[number];
 
 export const RISK_LIST_COLUMNS = [

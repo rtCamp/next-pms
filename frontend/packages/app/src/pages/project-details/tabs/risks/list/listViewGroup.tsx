@@ -3,9 +3,7 @@
  */
 import { Accordion } from "@base-ui/react/accordion";
 import { Avatar } from "@rtcamp/frappe-ui-react";
-import { Button } from "@rtcamp/frappe-ui-react";
 import { SmallDown } from "@rtcamp/frappe-ui-react/icons";
-import { MoreHorizontal } from "lucide-react";
 
 /**
  * Internal dependencies.
@@ -13,6 +11,7 @@ import { MoreHorizontal } from "lucide-react";
 import { stripTags } from "@/lib/utils";
 import { RISK_LIST_COLUMNS } from "../constants";
 import { useRisks } from "../context";
+import { RiskRowActions } from "../riskRowActions";
 import { RiskStatusBadge } from "../riskStatusBadge";
 import type { RiskItem } from "../types";
 
@@ -23,14 +22,13 @@ export interface RiskGroupProps {
 }
 
 export function RiskGroup({ value, label, risks }: RiskGroupProps) {
-  const openRowActions = useRisks((c) => c.actions.openRowActions);
   const openRiskDetail = useRisks((c) => c.actions.openRiskDetail);
 
   return (
     <Accordion.Item value={value}>
       {/* Group header */}
       <Accordion.Header className="w-full">
-        <Accordion.Trigger className="flex items-center gap-2 w-full px-2 py-3 mb-2 text-base font-medium text-ink-gray-9 border-b border-outline-gray-1 group">
+        <Accordion.Trigger className="flex items-center gap-2 w-full px-2 py-3 mb-2 text-base font-semibold text-ink-gray-9 border-b border-outline-gray-1 group">
           <SmallDown
             aria-hidden
             className="size-4 shrink-0 text-ink-gray-5 transition-transform -rotate-90 group-data-panel-open:rotate-0"
@@ -44,6 +42,27 @@ export function RiskGroup({ value, label, risks }: RiskGroupProps) {
 
       {/* Rows */}
       <Accordion.Panel className="accordion-panel">
+        {/* Column header */}
+        <div className="flex items-center gap-2 px-1 py-0.5 border-b border-outline-gray-1 text-sm text-ink-gray-5 mb-2">
+          {RISK_LIST_COLUMNS.map((col) => (
+            <div
+              key={col.key}
+              style={{ minWidth: col.width, flex: col.flex }}
+              className="truncate px-2 py-1.5"
+            >
+              {col.label}
+            </div>
+          ))}
+          {/* spacer for actions column */}
+          <div className="w-8 shrink-0" />
+        </div>
+
+        {risks.length === 0 && (
+          <div className="py-6 text-center text-sm text-ink-gray-5">
+            No risks found
+          </div>
+        )}
+
         {risks.map((risk) => (
           <div
             key={risk.name}
@@ -116,16 +135,11 @@ export function RiskGroup({ value, label, risks }: RiskGroupProps) {
             </div>
 
             {/* Row actions */}
-            <div className="w-8 shrink-0 flex justify-end">
-              <Button
-                type="button"
-                variant="ghost"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  openRowActions(risk.name);
-                }}
-                icon={() => <MoreHorizontal />}
-              />
+            <div
+              className="w-8 shrink-0 flex justify-end"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <RiskRowActions riskName={risk.name} showFollow={false} />
             </div>
           </div>
         ))}

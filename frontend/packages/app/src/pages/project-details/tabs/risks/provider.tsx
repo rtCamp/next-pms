@@ -29,9 +29,15 @@ export function RisksProvider({ children }: PropsWithChildren) {
   const [visibleColumns, setVisibleColumnsState] = useState<RiskVisibleColumns>(
     defaultVisibleColumns,
   );
+  const [isCreateRiskOpen, setIsCreateRiskOpen] = useState(false);
+  const [editRiskName, setEditRiskName] = useState<string | null>(null);
+  const [createRiskInitialStatus, setCreateRiskInitialStatus] = useState<
+    RiskStatus | ""
+  >("");
+  const [deleteRiskName, setDeleteRiskName] = useState<string | null>(null);
   const [, setSearchParams] = useSearchParams();
 
-  const { data, isLoading, error, mutate } = useRisksData();
+  const { data, isLoading, error, mutate: refreshRiskList } = useRisksData();
 
   const { updateDoc } = useFrappeUpdateDoc();
 
@@ -49,19 +55,46 @@ export function RisksProvider({ children }: PropsWithChildren) {
   const updateRiskStatus = useCallback(
     async (name: string, status: RiskStatus) => {
       await updateDoc("Risk", name, { status });
-      void mutate();
+      void refreshRiskList();
     },
-    [updateDoc, mutate],
+    [updateDoc, refreshRiskList],
   );
 
   const openCreateRisk = useCallback(() => {
-    // TODO: implement create risk modal
+    setEditRiskName(null);
+    setCreateRiskInitialStatus("");
+    setIsCreateRiskOpen(true);
   }, []);
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- will be used when implementing row actions
-  const openRowActions = useCallback((_name: string) => {
-    // TODO: implement row actions
+  const closeCreateRisk = useCallback(() => {
+    setIsCreateRiskOpen(false);
+    setEditRiskName(null);
+    setCreateRiskInitialStatus("");
   }, []);
+
+  const openEditRisk = useCallback((name: string) => {
+    setEditRiskName(name);
+    setCreateRiskInitialStatus("");
+    setIsCreateRiskOpen(true);
+  }, []);
+
+  const openCreateRiskWithStatus = useCallback((status: RiskStatus) => {
+    setEditRiskName(null);
+    setCreateRiskInitialStatus(status);
+    setIsCreateRiskOpen(true);
+  }, []);
+
+  const openDeleteRisk = useCallback((name: string) => {
+    setDeleteRiskName(name);
+  }, []);
+
+  const closeDeleteRisk = useCallback(() => {
+    setDeleteRiskName(null);
+  }, []);
+
+  const refreshRisks = useCallback(() => {
+    void refreshRiskList();
+  }, [refreshRiskList]);
 
   const openRiskDetail = useCallback(
     (name: string) => {
@@ -81,14 +114,23 @@ export function RisksProvider({ children }: PropsWithChildren) {
         error,
         filters,
         visibleColumns,
+        isCreateRiskOpen,
+        editRiskName,
+        createRiskInitialStatus,
+        deleteRiskName,
       },
       actions: {
         setFilters,
         setVisibleColumns,
         updateRiskStatus,
         openCreateRisk,
-        openRowActions,
+        closeCreateRisk,
+        refreshRisks,
         openRiskDetail,
+        openEditRisk,
+        openCreateRiskWithStatus,
+        openDeleteRisk,
+        closeDeleteRisk,
       },
     }),
     [
@@ -97,12 +139,21 @@ export function RisksProvider({ children }: PropsWithChildren) {
       error,
       filters,
       visibleColumns,
+      isCreateRiskOpen,
+      editRiskName,
+      createRiskInitialStatus,
+      deleteRiskName,
       setFilters,
       setVisibleColumns,
       updateRiskStatus,
       openCreateRisk,
-      openRowActions,
+      closeCreateRisk,
+      refreshRisks,
       openRiskDetail,
+      openEditRisk,
+      openCreateRiskWithStatus,
+      openDeleteRisk,
+      closeDeleteRisk,
     ],
   );
 

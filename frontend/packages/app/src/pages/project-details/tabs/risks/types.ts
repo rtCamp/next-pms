@@ -50,6 +50,7 @@ export interface EnrichedRiskUpdateEntry extends RiskUpdateEntry {
 }
 
 export interface ApiRiskDetail extends ApiRiskItem {
+  modified: string;
   mitigation_plan: string | null;
   risk_update_log: RiskUpdateEntry[];
 }
