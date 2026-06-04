@@ -260,6 +260,33 @@ export function useGanttBarInteraction({
       [finishInteraction, releasePointerCapture, resetLiveGeometry],
     );
 
+  const startResizeProgrammatic = useCallback(
+    (
+      edge: "start" | "end",
+      pointerId: number,
+      startX: number,
+      handleEl: HTMLSpanElement,
+    ) => {
+      if (activeInteractionRef.current) return;
+      activeInteractionRef.current = {
+        edge,
+        pointerId,
+        startX,
+        startLeft: liveLeftRef.current,
+        startWidth: liveWidthRef.current,
+        currentTarget: handleEl,
+      };
+      setIsInteracting(true);
+      document.body.style.userSelect = "none";
+      try {
+        handleEl.setPointerCapture(pointerId);
+      } catch {
+        // pointer capture can fail if the pointer was already released.
+      }
+    },
+    [],
+  );
+
   return {
     isInteracting,
     liveLeft,
@@ -269,5 +296,6 @@ export function useGanttBarInteraction({
     handleResizePointerMove,
     handleResizePointerUp,
     handleResizePointerCancel,
+    startResizeProgrammatic,
   };
 }
