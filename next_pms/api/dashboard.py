@@ -16,7 +16,7 @@ ALLOWED_ROLES = ["Projects Manager", "Projects User"]
 
 
 @whitelist(methods=["GET"])
-def get_my_projects_summary(days: int = 7) -> list:
+def get_my_projects_summary(days: int = 7, customer: str | None = None) -> list:
     """Return hour breakdowns for projects where the current user is the project manager.
 
     Parameters
@@ -24,28 +24,41 @@ def get_my_projects_summary(days: int = 7) -> list:
     days : int, optional
         Look-back window in days from today for the billable/non-billable sums.
         Defaults to 7.
+    customer : str, optional
+        Filter projects by customer name. Defaults to None (all customers).
 
     Returns
     -------
     list of dict
         One entry per project with keys:
-            name, project_name,
+            name, project_name, customer,
             total_hours_purchased, actual_time, total_hours_remaining,
             billable_hours, non_billable_hours  (both summed over the window).
         Empty list if the user manages no projects.
     """
     only_for(["Projects Manager", "Projects User", "System Manager"], message=True)
-    return _get_my_projects_summary(frappe.session.user, days)
+    return _get_my_projects_summary(frappe.session.user, days, customer)
 
 
 @redis_cache(user=True)
-def _get_my_projects_summary(user: str, days: int) -> list:
+def _get_my_projects_summary(user: str, days: int, customer: str | None) -> list:
     since = add_days(today(), -days)
+
+    filters = {"custom_project_manager": user}
+    if customer:
+        filters["customer"] = customer
 
     projects = frappe.get_all(
         "Project",
-        filters={"custom_project_manager": user},
-        fields=["name", "project_name", "custom_total_hours_purchased", "actual_time", "custom_total_hours_remaining"],
+        filters=filters,
+        fields=[
+            "name",
+            "project_name",
+            "customer",
+            "custom_total_hours_purchased",
+            "actual_time",
+            "custom_total_hours_remaining",
+        ],
     )
     if not projects:
         return []
@@ -79,6 +92,7 @@ def _get_my_projects_summary(user: str, days: int) -> list:
         {
             "name": p.name,
             "project_name": p.project_name,
+            "customer": p.customer,
             "total_hours_purchased": flt(p.custom_total_hours_purchased),
             "actual_time": flt(p.actual_time),
             "total_hours_remaining": flt(p.custom_total_hours_remaining),
