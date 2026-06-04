@@ -7,12 +7,113 @@ from frappe import only_for, whitelist
 from frappe.core.doctype.recorder.recorder import redis_cache
 from frappe.query_builder import DocType
 from frappe.query_builder.functions import Sum
-from frappe.utils import flt, getdate
+from frappe.utils import add_days, flt, getdate, today
 from pypika import Case
 from pypika.functions import Date
 
 CURRENCY = "USD"
 ALLOWED_ROLES = ["Projects Manager", "Projects User"]
+
+
+@whitelist(methods=["GET"])
+def get_active_projects_count() -> int:
+    only_for(["System Manager"], message=True)
+
+    return frappe.db.count("Project", filters={"is_active": "Yes"})
+
+
+@whitelist(methods=["GET"])
+def get_at_risk_projects_count() -> int:
+    only_for(["Projects Manager", "Projects User", "System Manager"], message=True)
+
+    return frappe.db.count(
+        "Project",
+        filters={
+            "is_active": "Yes",
+            "custom_project_rag_status": ["in", ["Amber", "Green"]],
+        },
+    )
+
+
+@whitelist(methods=["GET"])
+def get_timesheets_to_review(days: int = 7) -> list:
+    """Return timesheets pending approval from direct reports of the current user.
+
+    Parameters
+    ----------
+    days : int, optional
+        Look-back window in days from today. Defaults to 7.
+
+    Returns
+    -------
+    list of dict
+        Each item has: name, employee, employee_name, start_date, end_date,
+        custom_approval_status.
+        Empty list if the user has no employee record or no direct reports.
+    """
+    only_for(["Projects Manager", "Projects User", "System Manager"], message=True)
+
+    from next_pms.timesheet.api.employee import get_employee_from_user
+
+    manager_employee = get_employee_from_user()
+    if not manager_employee:
+        return []
+
+    since = add_days(today(), -days)
+
+    reportee_ids = frappe.get_all(
+        "Employee",
+        filters={"reports_to": manager_employee, "status": "Active"},
+        pluck="name",
+    )
+    if not reportee_ids:
+        return []
+
+    return frappe.get_all(
+        "Timesheet",
+        filters={
+            "employee": ["in", reportee_ids],
+            "start_date": [">=", since],
+            "custom_approval_status": "Approval Pending",
+        },
+        fields=["name", "employee", "employee_name", "start_date", "end_date", "custom_approval_status"],
+        order_by="start_date desc",
+    )
+
+
+@whitelist(methods=["GET"])
+def get_non_billable_hours(days: int = 30) -> float:
+    """Return total non-billable hours logged across all timesheets in the given window.
+
+    Parameters
+    ----------
+    days : int, optional
+        Look-back window in days from today. Defaults to 30.
+
+    Returns
+    -------
+    float
+        Sum of hours from Timesheet Detail rows where is_billable = 0
+        within the window.
+    """
+    only_for(["Projects Manager", "Projects User", "System Manager"], message=True)
+    return _get_non_billable_hours(days)
+
+
+@redis_cache()
+def _get_non_billable_hours(days: int) -> float:
+    TimesheetDetail = DocType("Timesheet Detail")
+    since = add_days(today(), -days)
+
+    result = (
+        frappe.qb.from_(TimesheetDetail)
+        .select(Sum(TimesheetDetail.hours).as_("total"))
+        .where(TimesheetDetail.is_billable == 0)
+        .where(Date(TimesheetDetail.from_time) >= since)
+        .run(as_dict=True)
+    )
+
+    return flt(result[0].total) if result else 0.0
 
 
 @whitelist(methods=["GET"])
