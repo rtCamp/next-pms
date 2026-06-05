@@ -125,19 +125,27 @@ def _normalize_project_timesheet_inputs(
     skip_empty_weeks: bool | str,
 ):
     return (
-        int(start),
-        int(page_length),
+        max(0, int(start)),
+        max(0, int(page_length)),
         int(max_week),
         normalize_status_filter(approval_status, coerce_non_list=True),
         _coerce_project_skip_empty_weeks(skip_empty_weeks),
     )
 
 
-def _get_project_response_dates(dates: list, max_week: int, has_filters: bool):
-    if has_filters and len(dates) > max_week:
-        return dates[-max_week:]
+def _apply_employee_filters(parsed_filters: dict):
+    """Translate Employee-level filters into a Timesheet ``employee IN (...)`` constraint.
 
-    return dates
+    The qualifying-project, employee-selection and render queries all read
+    ``parsed_filters["Timesheet"]``, so resolving Employee filters to employee IDs here
+    applies them consistently everywhere instead of being silently dropped.
+    """
+    employee_filters = parsed_filters.get("Employee")
+    if not employee_filters:
+        return
+
+    employee_names = frappe.get_all("Employee", filters=employee_filters, pluck="name")
+    parsed_filters["Timesheet"] = [*parsed_filters.get("Timesheet", []), ["employee", "in", employee_names]]
 
 
 def _prepare_project_timesheet_context(
@@ -149,13 +157,17 @@ def _prepare_project_timesheet_context(
 ):
     parsed_filters = parse_filters(filters)
     has_filters = bool(search or approval_statuses or any(parsed_filters.values()))
+    _apply_employee_filters(parsed_filters)
     dates, _ = build_aggregate_dates(date=date, max_week=max_week, has_filters=has_filters)
 
     return {
         "parsed_filters": parsed_filters,
         "has_filters": has_filters,
         "dates": dates,
-        "response_dates": _get_project_response_dates(dates, max_week, has_filters),
+        # Under filters, `dates` spans the full (up to 12-week) lookback used to locate
+        # matching data and empty weeks are dropped downstream — render that whole span so
+        # data in older weeks is not hidden by trimming to the most recent `max_week`.
+        "response_dates": dates,
         "candidate_project_ids": get_qualifying_project_ids(
             dates=dates,
             parsed_filters=parsed_filters,
@@ -348,10 +360,12 @@ def get_project_timesheet_data(
             "has_more": False,
         }
 
-    # Paginate project IDs directly — no DB round-trip needed.
+    # Paginate project IDs directly — no DB round-trip needed. `start`/`page_length` are
+    # already clamped to >= 0, so an empty/zero page can never report `has_more`.
     total_count = len(all_project_ids)
-    selected_project_ids = all_project_ids[start : start + page_length]
-    has_more = start + page_length < total_count
+    end = start + page_length
+    selected_project_ids = all_project_ids[start:end]
+    has_more = page_length > 0 and end < total_count
 
     # Get the employees who logged time to this page's projects.
     employee_ids = get_employees_for_projects(
@@ -392,14 +406,17 @@ def get_project_timesheet_data(
 
     week_groups = _build_project_week_groups(project_context["response_dates"], employee_data_map)
 
-    if project_context["has_filters"] and skip_empty_weeks:
-        week_groups = [week_group for week_group in week_groups if week_group.get("projects")]
-
     # Restrict each week to only the selected projects — employees may have
     # logged to other projects that should appear on a different page.
     selected_project_set = set(selected_project_ids)
     for week_group in week_groups:
         week_group["projects"] = [p for p in week_group["projects"] if p["project"] in selected_project_set]
+
+    # Under filters the render span is the full lookback, so collapse it to the weeks that
+    # actually hold matching data — otherwise older empty weeks would pad the response.
+    # Runs after the project restriction so weeks emptied by it are dropped too.
+    if project_context["has_filters"]:
+        week_groups = [week_group for week_group in week_groups if week_group.get("projects")]
 
     return {
         "week_groups": week_groups,
@@ -432,12 +449,19 @@ def get_project_timesheet_pending_count(
         return {"count": 0}
 
     ts_names = [ts.name for ts in timesheets]
-    matched_parents = {
-        d.parent
-        for d in frappe.get_all(
-            "Timesheet Detail", filters={"parent": ["in", ts_names], "task": ["!=", ""]}, fields=["parent"]
-        )
-    }
+    details = frappe.get_all(
+        "Timesheet Detail", filters={"parent": ["in", ts_names], "task": ["!=", ""]}, fields=["parent", "task"]
+    )
+    task_ids = list({d.task for d in details if d.task})
+    if not task_ids:
+        return {"count": 0}
+
+    # Only count tasks that belong to a project, matching the project-timesheet view's
+    # qualification (a task with no project never appears there).
+    project_task_ids = set(
+        frappe.get_all("Task", filters={"name": ["in", task_ids], "project": ["!=", ""]}, pluck="name")
+    )
+    matched_parents = {d.parent for d in details if d.task in project_task_ids}
     if not matched_parents:
         return {"count": 0}
 
