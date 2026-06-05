@@ -1,8 +1,8 @@
 /**
  * Internal dependencies.
  */
-import StarRating from "./starRating";
-import type { BreakdownMetric } from "./types";
+import StarRating from "../starRating";
+import type { BreakdownMetric } from "../types";
 
 interface FeedbackBreakdownProps {
   metrics: BreakdownMetric[];

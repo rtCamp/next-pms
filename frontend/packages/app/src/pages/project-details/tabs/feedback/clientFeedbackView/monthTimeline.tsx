@@ -6,8 +6,8 @@ import { mergeClassNames as cn } from "@next-pms/design-system";
 /**
  * Internal dependencies.
  */
-import { MOCK_MONTHS } from "./mock-data";
-import type { MonthEntry } from "./types";
+import { MOCK_MONTHS } from "../mock-data";
+import type { MonthEntry } from "../types";
 
 interface MonthTimelineProps {
   selectedMonth: string;

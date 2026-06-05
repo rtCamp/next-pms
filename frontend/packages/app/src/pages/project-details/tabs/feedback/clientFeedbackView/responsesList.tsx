@@ -1,7 +1,7 @@
 /**
  * Internal dependencies.
  */
-import type { ResponseItem } from "./types";
+import type { ResponseItem } from "../types";
 
 interface ResponsesListProps {
   responses: ResponseItem[];

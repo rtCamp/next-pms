@@ -17,3 +17,17 @@ export interface ResponseItem {
   question: string;
   answer: string;
 }
+
+export interface TeamFeedbackPerson {
+  name: string;
+  image?: string;
+}
+
+export interface TeamFeedbackRow {
+  id: string;
+  from: string;
+  to: string;
+  member: TeamFeedbackPerson;
+  customer: TeamFeedbackPerson;
+  avgRating: number;
+}
