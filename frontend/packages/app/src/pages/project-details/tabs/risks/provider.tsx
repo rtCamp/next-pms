@@ -61,6 +61,7 @@ export function RisksProvider({ children }: PropsWithChildren) {
 
   const setSort = useCallback((s: RiskSort | null) => {
     setSortState(s);
+    void refreshRiskList();
   }, []);
 
   const updateRiskStatus = useCallback(

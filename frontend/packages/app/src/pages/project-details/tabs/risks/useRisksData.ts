@@ -51,6 +51,12 @@ export function useRisksData(filters: RiskFilters, sort: RiskSort | null) {
     [sort],
   );
 
+  // We are explicitly not including the sort in the key because including it causes data to be cached separately for each sort option, which then when we move an item from one category to another in kanban view and call mutate to refresh the list, it doesn't update the other cached sort options, causing stale data to be shown when user switches sort or view.
+  const risksSwrKey = useMemo(
+    () => `risks-list-${hashString(JSON.stringify(frappeFilters))}`,
+    [frappeFilters],
+  );
+
   const { data, isLoading, error, mutate } = useFrappeGetDocList<RiskItem>(
     "Risk",
     {
@@ -67,6 +73,7 @@ export function useRisksData(filters: RiskFilters, sort: RiskSort | null) {
       orderBy,
       limit: 500,
     },
+    risksSwrKey,
   );
 
   const { data: allOwnersData } = useFrappeGetDocList<{ owner: string }>(
