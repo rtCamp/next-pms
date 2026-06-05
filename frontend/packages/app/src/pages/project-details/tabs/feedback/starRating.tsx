@@ -1,9 +1,12 @@
+import { useId } from "react";
+
 type DecimalStarProps = {
   index: number;
   rating: number;
   activeColor: string;
   inactiveColor: string;
   size: number;
+  instanceId: string;
 };
 
 type StarRatingProps = {
@@ -21,6 +24,7 @@ export default function StarRating({
   inactiveColor = "#E2E2E2",
   size = 24,
 }: StarRatingProps) {
+  const instanceId = useId();
   // Ensure rating falls within the total boundaries
   const validatedRating = Math.max(0, Math.min(rating, totalStars));
 
@@ -34,6 +38,7 @@ export default function StarRating({
           activeColor={activeColor}
           inactiveColor={inactiveColor}
           size={size}
+          instanceId={instanceId}
         />
       ))}
     </div>
@@ -49,8 +54,9 @@ const DecimalStar = ({
   activeColor,
   inactiveColor,
   size,
+  instanceId,
 }: DecimalStarProps) => {
-  const fillId = `star-fill-${index}`;
+  const fillId = `star-fill-${instanceId}-${index}`;
 
   // Calculate fill percentage for the specific star
   let fillPercentage = 0;

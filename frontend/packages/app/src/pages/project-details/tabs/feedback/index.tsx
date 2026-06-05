@@ -37,7 +37,7 @@ export function Feedback() {
       {feedbackType === "client" &&
         (() => {
           const entry = MOCK_MONTHS.find((m) => m.key === selectedMonth);
-          const hasData = entry?.score !== null;
+          const hasData = entry?.score != null;
           const breakdown = MOCK_BREAKDOWNS[selectedMonth] ?? [];
           const responses = MOCK_RESPONSES[selectedMonth] ?? [];
 

@@ -4,9 +4,14 @@
 import { Button, Dropdown } from "@rtcamp/frappe-ui-react";
 import { SmallDown } from "@rtcamp/frappe-ui-react/icons";
 
+/**
+ * Internal dependencies.
+ */
+import type { FeedbackType } from "./types";
+
 type FeedbackToolbarProps = {
-  feedbackType: "client" | "team";
-  setFeedbackType: (type: "client" | "team") => void;
+  feedbackType: FeedbackType;
+  setFeedbackType: (type: FeedbackType) => void;
 };
 
 export function FeedbackToolbar({
