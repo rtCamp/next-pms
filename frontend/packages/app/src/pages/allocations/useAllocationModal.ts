@@ -17,56 +17,65 @@ import type { AllocationRefreshTargets } from "./types";
 type RefreshAllocations = (targets?: AllocationRefreshTargets) => Promise<void>;
 
 export function useAllocationModal(refresh: RefreshAllocations) {
-  const [isOpen, setIsOpen] = useState(false);
+  const [isAddAllocationOpen, setIsAddAllocationOpen] = useState(false);
+  const [isEditScheduleOpen, setIsEditScheduleOpen] = useState(false);
   const [variant, setVariant] = useState<"add" | "edit">("add");
-  const [initialValues, setInitialValues] = useState<
+  const [addAllocationInitialValues, setAddAllocationInitialValues] = useState<
     AddAllocationInitialValues | undefined
   >(undefined);
+  const [editScheduleInitialValues, setEditScheduleInitialValues] =
+    useState(undefined);
 
   const toast = useToasts();
   const { call: deleteAllocation } = useFrappePostCall(
     "next_pms.resource_management.api.allocation.delete_allocation",
   );
 
-  const openAddDialog = useCallback((data: AllocationCallbackData) => {
-    setVariant("add");
-    setInitialValues({
-      ...(data.employeeId ? { employeeId: data.employeeId } : {}),
-      ...(data.projectId ? { projectId: data.projectId } : {}),
-      ...(data.startDate
-        ? { fromDate: format(data.startDate, "yyyy-MM-dd") }
-        : {}),
-      ...(data.endDate ? { toDate: format(data.endDate, "yyyy-MM-dd") } : {}),
-      ...(data.hoursPerDay !== undefined
-        ? { hoursPerDay: data.hoursPerDay }
-        : {}),
-      ...(data.customerName !== undefined
-        ? { customer: data.customerName }
-        : {}),
-    });
-    setIsOpen(true);
-  }, []);
+  const openAddAllocationDialog = useCallback(
+    (data: AllocationCallbackData) => {
+      setVariant("add");
+      setAddAllocationInitialValues({
+        ...(data.employeeId ? { employeeId: data.employeeId } : {}),
+        ...(data.projectId ? { projectId: data.projectId } : {}),
+        ...(data.startDate
+          ? { fromDate: format(data.startDate, "yyyy-MM-dd") }
+          : {}),
+        ...(data.endDate ? { toDate: format(data.endDate, "yyyy-MM-dd") } : {}),
+        ...(data.hoursPerDay !== undefined
+          ? { hoursPerDay: data.hoursPerDay }
+          : {}),
+        ...(data.customerName !== undefined
+          ? { customer: data.customerName }
+          : {}),
+      });
+      setIsAddAllocationOpen(true);
+    },
+    [],
+  );
 
-  const openEditDialog = useCallback((data: AllocationCallbackData) => {
-    setVariant("edit");
-    setInitialValues({
-      allocationName: data.allocationId,
-      employeeId: data.employeeId,
-      ...(data.projectId ? { projectId: data.projectId } : {}),
-      customer: data.customerName,
-      fromDate: data.startDate
-        ? format(data.startDate, "yyyy-MM-dd")
-        : undefined,
-      toDate: data.endDate ? format(data.endDate, "yyyy-MM-dd") : undefined,
-      hoursPerDay: data.hoursPerDay,
-      isBillable: data.billable,
-      isTentative: data.tentative,
-      note: data.note,
-    });
-    setIsOpen(true);
-  }, []);
+  const openEditAllocationDialog = useCallback(
+    (data: AllocationCallbackData) => {
+      setVariant("edit");
+      setAddAllocationInitialValues({
+        allocationName: data.allocationId,
+        employeeId: data.employeeId,
+        ...(data.projectId ? { projectId: data.projectId } : {}),
+        customer: data.customerName,
+        fromDate: data.startDate
+          ? format(data.startDate, "yyyy-MM-dd")
+          : undefined,
+        toDate: data.endDate ? format(data.endDate, "yyyy-MM-dd") : undefined,
+        hoursPerDay: data.hoursPerDay,
+        isBillable: data.billable,
+        isTentative: data.tentative,
+        note: data.note,
+      });
+      setIsAddAllocationOpen(true);
+    },
+    [],
+  );
 
-  const handleDelete = useCallback(
+  const handleDeleteAllocation = useCallback(
     async (data: AllocationCallbackData) => {
       if (!data.allocationId) {
         toast.error("Allocation ID not found");
@@ -94,19 +103,19 @@ export function useAllocationModal(refresh: RefreshAllocations) {
     [deleteAllocation, toast, refresh],
   );
 
-  const handleOpenChange = useCallback((open: boolean) => {
-    setIsOpen(open);
+  const handleAddAllocationOpenChange = useCallback((open: boolean) => {
+    setIsAddAllocationOpen(open);
     if (!open) {
-      setInitialValues(undefined);
+      setAddAllocationInitialValues(undefined);
       setVariant("add");
     }
   }, []);
 
-  const handleSuccess = useCallback(
+  const handleAddAllocationSuccess = useCallback(
     async (targets?: AllocationRefreshTargets) => {
       await refresh(targets);
-      setIsOpen(false);
-      setInitialValues(undefined);
+      setIsAddAllocationOpen(false);
+      setAddAllocationInitialValues(undefined);
       setVariant("add");
     },
     [refresh],
@@ -114,27 +123,60 @@ export function useAllocationModal(refresh: RefreshAllocations) {
 
   const outletContext = useMemo<AllocationOutletContext>(
     () => ({
-      openAddAllocationDialog: openAddDialog,
-      openEditAllocationDialog: openEditDialog,
-      openDeleteAllocationDialog: handleDelete,
+      openAddAllocationDialog: openAddAllocationDialog,
+      openEditAllocationDialog: openEditAllocationDialog,
+      openDeleteAllocationDialog: handleDeleteAllocation,
     }),
-    [openAddDialog, openEditDialog, handleDelete],
+    [openAddAllocationDialog, openEditAllocationDialog, handleDeleteAllocation],
   );
 
-  const modalProps = useMemo(
+  const addAllocationModalProps = useMemo(
     () => ({
       variant,
-      open: isOpen,
-      onOpenChange: handleOpenChange,
-      initialValues,
-      onSuccess: handleSuccess,
+      open: isAddAllocationOpen,
+      onOpenChange: handleAddAllocationOpenChange,
+      initialValues: addAllocationInitialValues,
+      onSuccess: handleAddAllocationSuccess,
+      onEditScheduleClick: () => {
+        setIsAddAllocationOpen(false);
+        setEditScheduleInitialValues({
+          mode: addAllocationInitialValues?.recurrence || "one-time",
+          rangeStart: addAllocationInitialValues?.fromDate || "",
+          rangeEnd: addAllocationInitialValues?.toDate || "",
+          defaultHoursPerDay: addAllocationInitialValues?.hoursPerDay,
+        });
+        setIsEditScheduleOpen(true);
+      },
     }),
-    [variant, isOpen, handleOpenChange, initialValues, handleSuccess],
+    [
+      variant,
+      isAddAllocationOpen,
+      handleAddAllocationOpenChange,
+      addAllocationInitialValues,
+      handleAddAllocationSuccess,
+    ],
+  );
+
+  const editScheduleModalProps = useMemo(
+    () => ({
+      open: isEditScheduleOpen,
+      onOpenChange: (open: boolean) => {
+        setIsEditScheduleOpen(open);
+      },
+      initialValues: editScheduleInitialValues,
+      onSuccess: (targets?: AllocationRefreshTargets) => {
+        refresh(targets);
+        setIsEditScheduleOpen(false);
+        setEditScheduleInitialValues(undefined);
+      },
+    }),
+    [isEditScheduleOpen, editScheduleInitialValues, refresh],
   );
 
   return {
-    openAddDialog,
+    openAddAllocationDialog,
     outletContext,
-    modalProps,
+    addAllocationModalProps,
+    editScheduleModalProps,
   };
 }
