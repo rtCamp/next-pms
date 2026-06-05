@@ -1,23 +1,26 @@
 /**
  * External dependencies.
  */
-import { Avatar, Button } from "@rtcamp/frappe-ui-react";
-import { MoreHorizontal } from "lucide-react";
+import { Avatar, Dropdown } from "@rtcamp/frappe-ui-react";
+import { DotHorizontal } from "@rtcamp/frappe-ui-react/icons";
 
 /**
  * Internal dependencies.
  */
 import { formatRelativeTimeShort, stripTags } from "@/lib/utils";
+import { RiskLevelBadge } from "../riskLevelBadge";
 import { RiskStatusBadge } from "../riskStatusBadge";
 import type { EnrichedRiskUpdateEntry } from "../types";
-import { RiskLevelBadge } from "./riskLevelBadge";
 
 interface UpdateEntryProps {
   entry: EnrichedRiskUpdateEntry;
+  onEdit: () => void;
+  onDelete: () => void;
 }
 
-export function UpdateEntry({ entry }: UpdateEntryProps) {
+export function UpdateEntry({ entry, onEdit, onDelete }: UpdateEntryProps) {
   const userDetails = entry.owner_details;
+  const filteredNote = entry.note ? stripTags(entry.note) : "";
 
   return (
     <>
@@ -41,32 +44,43 @@ export function UpdateEntry({ entry }: UpdateEntryProps) {
 
       <div className="pb-4 pl-4 ml-2 border-l border-outline-gray-1 last:border-transparent">
         <div className="p-4 rounded border border-outline-gray-1">
-          {/* Status + level badges */}
-          {(entry.status || entry.risk_level) && (
-            <div className="flex gap-1 items-center mb-2">
-              {entry.status && (
-                <RiskStatusBadge
-                  status={entry.status}
-                  className="px-2 py-1 text-sm rounded-full bg-surface-gray-2 text-ink-gray-7"
-                />
-              )}
-              {entry.risk_level && <RiskLevelBadge level={entry.risk_level} />}
-
-              <Button
-                type="button"
-                variant="ghost"
-                className="ml-auto"
-                onClick={() => {}}
-                aria-label="Entry options"
-                icon={() => <MoreHorizontal />}
+          {/* Status + level badges + actions */}
+          <div className="flex gap-1 items-center not-last:mb-2">
+            {entry.status && (
+              <RiskStatusBadge
+                status={entry.status}
+                className="px-2 py-1 text-sm rounded-full bg-surface-gray-2 text-ink-gray-7"
               />
-            </div>
-          )}
+            )}
+            {entry.risk_level && <RiskLevelBadge level={entry.risk_level} />}
+
+            <Dropdown
+              placement="center"
+              button={{
+                variant: "ghost",
+                icon: DotHorizontal,
+                className: "ml-auto",
+              }}
+              options={[
+                {
+                  key: "edit",
+                  label: "Edit",
+                  onClick: onEdit,
+                },
+                {
+                  key: "delete",
+                  label: "Delete",
+                  theme: "red",
+                  onClick: onDelete,
+                },
+              ]}
+            />
+          </div>
 
           {/* Note text */}
-          {entry.note && (
+          {filteredNote && (
             <p className="text-base leading-relaxed text-ink-gray-8">
-              {stripTags(entry.note)}
+              {filteredNote}
             </p>
           )}
         </div>
