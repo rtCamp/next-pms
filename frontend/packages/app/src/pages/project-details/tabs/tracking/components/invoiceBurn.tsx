@@ -1,8 +1,13 @@
 import { ProgressBar } from "@next-pms/design-system/components";
 import { ArrowUpRight } from "@rtcamp/frappe-ui-react/icons";
-import { Invoicing } from "../types";
+import { useTracking } from "../context";
 
-export function InvoiceBurnCell({ data }: { data: Invoicing }) {
+export function InvoiceBurnCell() {
+  const invoiceBurn = useTracking((state) => state.tracking.invoice_burn);
+  const invoicedPaid = invoiceBurn.invoiced_and_paid;
+  const invoicedUnpaid = invoiceBurn.invoiced_but_not_paid;
+  const totalAmount = invoiceBurn.total_project_amount;
+
   return (
     <div className="flex flex-1 flex-col gap-4 rounded-xl border border-outline-gray-1 bg-surface-cards p-3">
       <div className="flex items-center justify-between gap-2">
@@ -20,9 +25,9 @@ export function InvoiceBurnCell({ data }: { data: Invoicing }) {
         </a>
       </div>
       <ProgressBar
-        value={data.invoicedPaid}
-        secondaryValue={data.invoicedPaid + data.invoicedUnpaid}
-        maxValue={data.totalAmount}
+        value={invoicedPaid}
+        secondaryValue={invoicedPaid + invoicedUnpaid}
+        maxValue={totalAmount}
         indicatorClassName="bg-surface-violet-4"
         secondaryIndicatorClassName="bg-surface-blue-5"
       />
@@ -30,17 +35,17 @@ export function InvoiceBurnCell({ data }: { data: Invoicing }) {
         <div className="flex items-center gap-2">
           <span className="size-4 rounded-full bg-surface-violet-4" />
           <span className="min-w-0 flex-1 truncate">Invoiced and paid</span>
-          <span>${data.invoicedPaid}</span>
+          <span>${invoicedPaid}</span>
         </div>
         <div className="flex items-center gap-2">
           <span className="size-4 rounded-full bg-surface-blue-5" />
           <span className="min-w-0 flex-1 truncate">Invoiced and unpaid</span>
-          <span>${data.invoicedUnpaid}</span>
+          <span>${invoicedUnpaid}</span>
         </div>
         <div className="flex items-center gap-2">
           <span className="size-4 rounded-full bg-surface-gray-3" />
           <span className="min-w-0 flex-1 truncate">Total Project Amount</span>
-          <span>${data.totalAmount}</span>
+          <span>${totalAmount}</span>
         </div>
       </div>
     </div>

@@ -1,13 +1,16 @@
-import type { TaskCompletion } from "../types";
+import { useTracking } from "../context";
 
 const ARC_RADIUS = 75;
 const ARC_LENGTH = Math.PI * ARC_RADIUS;
 
-export function TaskCompletionCell({ data }: { data: TaskCompletion }) {
+export function TaskCompletionCell() {
+  const tasks = useTracking((state) => state.tracking.tasks);
+  const totalIssuesCreated = tasks.total;
+  const issuesOpen = tasks.open;
+  const issuesClosed = tasks.completed;
+
   const ratio =
-    data.totalIssuesCreated > 0
-      ? Math.min(1, data.issuesClosed / data.totalIssuesCreated)
-      : 0;
+    totalIssuesCreated > 0 ? Math.min(1, issuesClosed / totalIssuesCreated) : 0;
   const percent = Math.round(ratio * 100);
 
   return (
@@ -52,15 +55,15 @@ export function TaskCompletionCell({ data }: { data: TaskCompletion }) {
             <span className="min-w-0 flex-1 truncate">
               Total issues created
             </span>
-            <span>{data.totalIssuesCreated}</span>
+            <span>{totalIssuesCreated}</span>
           </div>
           <div className="flex items-center gap-2">
             <span className="min-w-0 flex-1 truncate">Open issues</span>
-            <span>{data.issuesOpen}</span>
+            <span>{issuesOpen}</span>
           </div>
           <div className="flex items-center gap-2">
             <span className="min-w-0 flex-1 truncate">Completed issues</span>
-            <span>{data.issuesClosed}</span>
+            <span>{issuesClosed}</span>
           </div>
         </div>
       </div>

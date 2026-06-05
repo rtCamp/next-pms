@@ -1,5 +1,7 @@
 import { useMemo, type PropsWithChildren } from "react";
+import { useParams } from "react-router-dom";
 import { useFrappeGetCall } from "frappe-react-sdk";
+import { currencyFormat } from "@/lib/utils";
 import {
   DEFAULT_TRACKING,
   TrackingContext,
@@ -7,35 +9,60 @@ import {
   type Tracking,
   type TrackingContextProps,
 } from "./context";
-import { useProjectDetail } from "../../context";
+import type { ContractRow, RateRow } from "./types";
 
-interface TrackingProviderProps extends PropsWithChildren {
-  projectId: string;
-}
+export function TrackingProvider({ children }: PropsWithChildren) {
+  const { projectId = "" } = useParams<{ projectId: string }>();
 
-export function TrackingProvider({
-  projectId,
-  children,
-}: TrackingProviderProps) {
   const { data } = useFrappeGetCall<Response>(
-    "next_pms.next_projects.api.project.get_project_sidebar",
-    { project: projectId },
+    "next_pms.next_projects.api.project.get_project_tracking",
+    {
+      project: projectId,
+    },
   );
-  const project = useProjectDetail((state) => state.project);
 
-  const tracking = useMemo<Tracking>(() => {
-    const message = data?.message;
-    return {
-      burn: message?.burn ?? DEFAULT_TRACKING.burn,
-      progress: message?.progress ?? DEFAULT_TRACKING.progress,
-      company: project?.company ?? "",
-      currency: project?.custom_currency ?? "INR",
-      projectProfit: project?.custom_estimated_profit ?? 0,
-      projectedProfitMargin: project?.custom_percentage_estimated_profit ?? 0,
-    };
-  }, [data, project]);
+  const tracking = useMemo<Tracking>(
+    () => data?.message ?? DEFAULT_TRACKING,
+    [data],
+  );
 
-  const value: TrackingContextProps = { tracking };
+  const value = useMemo<TrackingContextProps>(() => {
+    const formatter = currencyFormat(tracking.currency);
+
+    const contracts: ContractRow[] | null = tracking.contracts
+      ? tracking.contracts.map((c, i) => ({
+          id: c.sales_order || c.sales_invoice || `${i}`,
+          startDate: c.start_date,
+          endDate: c.end_date,
+          hoursBought: `${c.hours_purchased}`,
+          hoursUsed: `${c.consumed_hours}`,
+          hoursLeft: `${c.remaining_hours}`,
+          salesOrder: c.sales_order,
+          salesInvoice: c.sales_invoice,
+        }))
+      : null;
+
+    const [flatRateEntry, ...rateEntries] = tracking.project_rates ?? [];
+
+    const rates: RateRow[] | null = tracking.project_rates
+      ? rateEntries.map((rate) => ({
+          id: rate.employee ?? "",
+          name: rate.employee_name ?? rate.employee ?? "",
+          rateLabel: "Hourly rate",
+          amount: `${formatter.format(rate.hourly_billing_rate ?? 0)}/h`,
+          date: rate.valid_from ?? "",
+        }))
+      : null;
+
+    const flatRate = flatRateEntry
+      ? {
+          amount: `${formatter.format(flatRateEntry.flat_rate_hourly ?? 0)}/h`,
+          date: flatRateEntry.flat_rate_valid_from ?? "",
+        }
+      : undefined;
+
+    return { tracking, contracts, rates, flatRate };
+  }, [tracking]);
 
   return (
     <TrackingContext.Provider value={value}>
