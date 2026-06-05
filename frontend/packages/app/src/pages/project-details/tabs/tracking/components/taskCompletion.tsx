@@ -15,7 +15,7 @@ export function TaskCompletionCell() {
 
   return (
     <div className="flex flex-1 flex-col gap-3 rounded-xl border border-outline-gray-1 bg-surface-cards p-3">
-      <span className="text-base text-ink-gray-8 font-medium">
+      <span className="text-base font-medium text-ink-gray-8">
         Task completion
       </span>
       <div className="flex items-center gap-6">
@@ -44,26 +44,24 @@ export function TaskCompletionCell() {
             />
           </svg>
           <div className="absolute inset-x-0 bottom-1 flex flex-col items-center">
-            <span className="text-base font-semibold text-ink-gray-8">
+            <span className="text-lg font-semibold text-ink-gray-8">
               {percent}%
             </span>
             <span className="text-xs text-ink-gray-6">completed</span>
           </div>
         </div>
-        <div className="flex flex-1 flex-col gap-2">
-          <div className="flex items-center gap-2">
-            <span className="min-w-0 flex-1 truncate">
-              Total issues created
-            </span>
-            <span>{totalIssuesCreated}</span>
+        <div className="flex flex-1 flex-col gap-2 text-base text-ink-gray-6">
+          <div className="flex items-center justify-between gap-2">
+            <span className="min-w-0 truncate">Total issues created</span>
+            <span className="font-medium">{totalIssuesCreated}</span>
           </div>
-          <div className="flex items-center gap-2">
-            <span className="min-w-0 flex-1 truncate">Open issues</span>
-            <span>{issuesOpen}</span>
+          <div className="flex items-center justify-between gap-2">
+            <span className="min-w-0 truncate">Open issues</span>
+            <span className="font-medium">{issuesOpen}</span>
           </div>
-          <div className="flex items-center gap-2">
-            <span className="min-w-0 flex-1 truncate">Completed issues</span>
-            <span>{issuesClosed}</span>
+          <div className="flex items-center justify-between gap-2">
+            <span className="min-w-0 truncate">Completed issues</span>
+            <span className="font-medium">{issuesClosed}</span>
           </div>
         </div>
       </div>

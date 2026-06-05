@@ -6,10 +6,10 @@ import { ContractsTable } from "./components/contractsTable";
 import { CostBurnCell } from "./components/costBurn";
 import { HoursUsageCell } from "./components/hoursUsage";
 import { InvoiceBurnCell } from "./components/invoiceBurn";
+import { KnowledgePoint } from "./components/knowledgePoint";
 import { ProjectRatesTable } from "./components/projectRatesTable";
 import { TaskCompletionCell } from "./components/taskCompletion";
 import { useTracking } from "./context";
-import { KnowledgePoint } from "./knowledgePoint";
 import { TrackingProvider } from "./provider";
 
 export function Tracking() {
