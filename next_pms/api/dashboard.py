@@ -66,9 +66,12 @@ def _get_my_projects_summary(user: str, days: int, customer: str | None) -> list
     project_names = [p.name for p in projects]
 
     TimesheetDetail = DocType("Timesheet Detail")
+    Timesheet = DocType("Timesheet")
 
     hours_rows = (
         frappe.qb.from_(TimesheetDetail)
+        .join(Timesheet)
+        .on(TimesheetDetail.parent == Timesheet.name)
         .select(
             TimesheetDetail.project,
             TimesheetDetail.is_billable,
@@ -76,12 +79,15 @@ def _get_my_projects_summary(user: str, days: int, customer: str | None) -> list
         )
         .where(TimesheetDetail.project.isin(project_names))
         .where(Date(TimesheetDetail.from_time) >= since)
+        .where(Date(TimesheetDetail.from_time) <= today())
+        .where(Timesheet.docstatus.isin([0, 1]))
         .groupby(TimesheetDetail.project, TimesheetDetail.is_billable)
         .run(as_dict=True)
     )
 
     billable_map = {}
     non_billable_map = {}
+
     for row in hours_rows:
         if row.is_billable:
             billable_map[row.project] = flt(row.total_hours)
