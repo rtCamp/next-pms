@@ -198,3 +198,34 @@ def get_employees_by_skills(skill_criteria):
     except Exception as e:
         frappe.log_error(f"Error fetching employees by skills: {e}")
         return []
+
+
+def get_employees_by_tags(tags):
+    """
+    Retrieve employee IDs that have all the given tags assigned on their profile.
+
+    Tags are stored as `Tag Link` records pointing at the Employee document. This acts as an "and" filter: an employee is returned only when every tag in `tags` is present on their profile.
+
+    Args:
+        tags (list[str]): Tag names to match.
+
+    Returns:
+        list: Employee IDs carrying all of the given tags.
+    """
+    if not tags:
+        return []
+
+    tag_links = frappe.get_all(
+        "Tag Link",
+        filters={"document_type": "Employee", "tag": ["in", tags]},
+        fields=["document_name", "tag"],
+    )
+
+    tags_by_employee = {}
+    for link in tag_links:
+        tags_by_employee.setdefault(link.document_name, set()).add(link.tag)  # create sets of tags for each emp
+
+    required_tags = set(tags)
+    return [
+        employee for employee, assigned_tags in tags_by_employee.items() if required_tags.issubset(assigned_tags)
+    ]  # match the tags using subset operator (AND logic)

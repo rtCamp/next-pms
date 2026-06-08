@@ -1,7 +1,7 @@
 /**
  * External dependencies.
  */
-import { useCallback, useEffect } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { ButtonProps, useToast } from "@next-pms/design-system/components";
 import { getFormatedDate } from "@next-pms/design-system/date";
@@ -35,6 +35,7 @@ const ResourceTeamHeaderSection = ({ viewData }: { viewData: ViewData }) => {
   const [reportingNameParam] = useQueryParam<string>("reports-to", "");
   const [allocationTypeParam] = useQueryParam<string[]>("allocation-type", []);
   const [designationParam] = useQueryParam<string[]>("designation", []);
+  const [tagsParam] = useQueryParam<string[]>("tags", []);
   const [viewParam, setViewParam] = useQueryParam<string>("view-type", viewData.filters.view || "");
   const user = useSelector((state: RootState) => state.user);
   const [combineWeekHoursParam, setCombineWeekHoursParam] = useQueryParam<boolean>(
@@ -42,6 +43,7 @@ const ResourceTeamHeaderSection = ({ viewData }: { viewData: ViewData }) => {
     viewData.filters.combineWeekHours || false
   );
   const [skillSearchParam, setSkillSearchParam] = useQueryParam<Skill[]>("skill-search", []);
+  const [tagSearch, setTagSearch] = useState<string>("");
   const { toast } = useToast();
 
   const { teamData, filters, tableView, hasViewUpdated } = useContextSelector(TeamContext, (value) => value.state);
@@ -95,6 +97,7 @@ const ResourceTeamHeaderSection = ({ viewData }: { viewData: ViewData }) => {
       allocationType:
         allocationTypeParam && allocationTypeParam.length > 0 ? allocationTypeParam : viewData.filters.allocationType,
       skillSearch: skillSearchParam && skillSearchParam.length > 0 ? skillSearchParam : viewData.filters.skillSearch,
+      tags: tagsParam && tagsParam.length > 0 ? tagsParam : viewData.filters.tags,
     });
 
     updateTableView({ ...tableView, view: CurrentViewParam, combineWeekHours: combineWeekHoursParam });
@@ -222,6 +225,39 @@ const ResourceTeamHeaderSection = ({ viewData }: { viewData: ViewData }) => {
           skillSearch={filters?.skillSearch || []}
         />
       ),
+    },
+    {
+      queryParameterName: "tags",
+      handleChange: (value: string | string[]) => {
+        updateFilter({ tags: value as string[] });
+      },
+      handleDelete: (value: string[] | undefined) => {
+        updateFilter({ tags: value });
+      },
+      type: "select-search",
+      value: filters.tags,
+      label: "Tag",
+      shouldFilterComboBox: false,
+      isMultiComboBox: true,
+      hide: !resourceAllocationPermission.write,
+      onComboSearch: (searchTerm: string) => {
+        setTagSearch(searchTerm);
+      },
+      apiCall: {
+        url: "frappe.client.get_list",
+        filters: {
+          doctype: "Tag Link",
+          filters: { document_type: "Employee", tag: ["like", `%${tagSearch}%`] },
+          fields: ["tag as name"],
+          group_by: "tag",
+          limit_page_length: 20,
+        },
+        options: {
+          revalidateOnFocus: false,
+          revalidateIfStale: false,
+        },
+      },
+      queryParameterDefault: filters.tags,
     },
     {
       queryParameterName: "business-unit",
