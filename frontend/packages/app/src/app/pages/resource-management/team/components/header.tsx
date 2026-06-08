@@ -235,7 +235,7 @@ const ResourceTeamHeaderSection = ({ viewData }: { viewData: ViewData }) => {
         updateFilter({ tags: value });
       },
       type: "select-search",
-      value: filters.tags,
+      value: filters.tags ?? [],
       label: "Tag",
       shouldFilterComboBox: false,
       isMultiComboBox: true,
