@@ -34,21 +34,14 @@ export const GanttProjectRow: React.FC<GanttProjectRowProps> = ({
   canManageAllocations,
   canEditAllocations,
 }) => {
-  const {
-    weeks,
-    daysPerWeek,
-    columnWidth,
-    headerWidth,
-    columnCount,
-    onAddAllocation,
-  } = useGanttStore((s) => ({
-    weeks: s.weeks,
-    daysPerWeek: s.daysPerWeek,
-    columnWidth: s.columnWidth,
-    headerWidth: s.headerWidth,
-    columnCount: s.columnCount,
-    onAddAllocation: s.onAddAllocation,
-  }));
+  const { weeks, daysPerWeek, columnWidth, headerWidth, onAddAllocation } =
+    useGanttStore((s) => ({
+      weeks: s.weeks,
+      daysPerWeek: s.daysPerWeek,
+      columnWidth: s.columnWidth,
+      headerWidth: s.headerWidth,
+      onAddAllocation: s.onAddAllocation,
+    }));
 
   const overlayRef = useRef<RowAllocationOverlayHandle | null>(null);
   const project = member.projects?.[projectInd];
@@ -105,9 +98,6 @@ export const GanttProjectRow: React.FC<GanttProjectRowProps> = ({
           ref={overlayRef}
           enabled={canManageAllocations && isExpanded}
           rowKey={projectRowKey}
-          headerWidth={headerWidth}
-          columnWidth={columnWidth}
-          columnCount={columnCount}
           allocations={project.allocations ?? []}
           createDraftBar={(left) => ({
             rowKey: projectRowKey,

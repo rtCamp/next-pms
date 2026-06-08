@@ -33,7 +33,6 @@ export const GanttMemberRows: React.FC<GanttMemberRowsProps> = ({
     daysPerWeek,
     columnWidth,
     headerWidth,
-    columnCount,
     hasRoleAccess,
     onAddAllocation,
     onEditAllocation,
@@ -46,7 +45,6 @@ export const GanttMemberRows: React.FC<GanttMemberRowsProps> = ({
     daysPerWeek: s.daysPerWeek,
     columnWidth: s.columnWidth,
     headerWidth: s.headerWidth,
-    columnCount: s.columnCount,
     hasRoleAccess: s.hasRoleAccess,
     onAddAllocation: s.onAddAllocation,
     onEditAllocation: s.onEditAllocation,
@@ -93,9 +91,6 @@ export const GanttMemberRows: React.FC<GanttMemberRowsProps> = ({
             ref={overlayRef}
             enabled={canManageAllocations}
             rowKey={memberRowKey}
-            headerWidth={headerWidth}
-            columnWidth={columnWidth}
-            columnCount={columnCount}
             allocations={member.memberSummaryBars}
             createDraftBar={(left) => ({
               rowKey: memberRowKey,

@@ -1,7 +1,7 @@
 /**
  * External dependencies.
  */
-import React, { useImperativeHandle, useRef } from "react";
+import React from "react";
 import { cva, type VariantProps } from "class-variance-authority";
 import { CalendarX2 } from "lucide-react";
 
@@ -22,11 +22,6 @@ export interface GanttBarRenderState {
   isInteracting: boolean;
   liveLeft: number;
   liveWidth: number;
-}
-
-export interface GanttBarHandle {
-  focus: () => void;
-  startEndResize: (pointerId: number, startX: number) => void;
 }
 
 const ganttBarVariants = cva(
@@ -78,7 +73,6 @@ interface GanttBarProps
   snapUnitPx?: number;
   minLeft?: number;
   maxRight?: number;
-  handleRef?: React.Ref<GanttBarHandle>;
   onResizeEnd?: (geometry: GanttBarGeometry) => void;
   renderLabel?: (state: GanttBarRenderState) => React.ReactNode;
   renderFloatingLabel?: (state: GanttBarRenderState) => React.ReactNode;
@@ -101,7 +95,6 @@ export const GanttBar = React.forwardRef<HTMLDivElement, GanttBarProps>(
       snapUnitPx,
       minLeft,
       maxRight,
-      handleRef,
       onResizeEnd,
       renderLabel,
       renderFloatingLabel,
@@ -113,11 +106,6 @@ export const GanttBar = React.forwardRef<HTMLDivElement, GanttBarProps>(
     },
     ref,
   ) {
-    const ganttBarRef = useRef<HTMLDivElement | null>(null);
-    const endHandleRef = useRef<HTMLSpanElement>(null);
-
-    useImperativeHandle(ref, () => ganttBarRef.current!);
-
     const isTimeoff = variant === "timeoff";
     const isCrosshatch = theme === "crosshatch";
     const isInteractive = resizable || typeof onClick === "function";
@@ -131,7 +119,6 @@ export const GanttBar = React.forwardRef<HTMLDivElement, GanttBarProps>(
       handleResizePointerMove,
       handleResizePointerUp,
       handleResizePointerCancel,
-      startResizeProgrammatic,
     } = useGanttBarInteraction({
       left,
       width,
@@ -141,22 +128,9 @@ export const GanttBar = React.forwardRef<HTMLDivElement, GanttBarProps>(
       onResizeEnd: resizable ? onResizeEnd : undefined,
     });
 
-    useImperativeHandle(
-      handleRef,
-      () => ({
-        focus: () => ganttBarRef.current?.focus(),
-        startEndResize: (pointerId: number, startX: number) => {
-          const handleEl = endHandleRef.current;
-          if (handleEl)
-            startResizeProgrammatic("end", pointerId, startX, handleEl);
-        },
-      }),
-      [startResizeProgrammatic],
-    );
-
     return (
       <div
-        ref={ganttBarRef}
+        ref={ref}
         data-gantt-bar="true"
         className={cn(
           ganttBarVariants({ variant }),
@@ -220,7 +194,6 @@ export const GanttBar = React.forwardRef<HTMLDivElement, GanttBarProps>(
                   <span className="pointer-events-none shrink-0 block h-4 w-0.5 rounded-2xl bg-surface-gray-4 opacity-0 transition-opacity group-hover:opacity-100" />
                 </span>
                 <span
-                  ref={endHandleRef}
                   className="absolute shrink-0 inset-y-0 right-0 w-2.5 pr-1 flex cursor-ew-resize items-center justify-end touch-none"
                   onPointerDown={handleEndResizePointerDown}
                   onPointerMove={handleResizePointerMove}

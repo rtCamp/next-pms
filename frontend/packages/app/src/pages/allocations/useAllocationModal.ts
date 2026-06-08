@@ -1,7 +1,7 @@
 /**
  * External dependencies.
  */
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import type { AllocationCallbackData } from "@next-pms/design-system/components";
 import { useToasts } from "@rtcamp/frappe-ui-react";
 import { format } from "date-fns";
@@ -22,7 +22,8 @@ export function useAllocationModal(refresh: RefreshAllocations) {
   const [initialValues, setInitialValues] = useState<
     AddAllocationInitialValues | undefined
   >(undefined);
-  const draftOnSuccessRef = useRef<(() => void) | undefined>(undefined);
+  const [onSuccess, setOnSuccess] =
+    useState<AllocationCallbackData["onSuccess"]>(undefined);
 
   const toast = useToasts();
   const { call: deleteAllocation } = useFrappePostCall(
@@ -30,7 +31,7 @@ export function useAllocationModal(refresh: RefreshAllocations) {
   );
 
   const openAddDialog = useCallback((data: AllocationCallbackData) => {
-    draftOnSuccessRef.current = data.onSuccess;
+    setOnSuccess(() => data.onSuccess);
     setVariant("add");
     setInitialValues({
       ...(data.employeeId ? { employeeId: data.employeeId } : {}),
@@ -50,6 +51,7 @@ export function useAllocationModal(refresh: RefreshAllocations) {
   }, []);
 
   const openEditDialog = useCallback((data: AllocationCallbackData) => {
+    setOnSuccess(undefined);
     setVariant("edit");
     setInitialValues({
       allocationName: data.allocationId,
@@ -101,6 +103,7 @@ export function useAllocationModal(refresh: RefreshAllocations) {
     if (!open) {
       setInitialValues(undefined);
       setVariant("add");
+      setOnSuccess(undefined);
     }
   }, []);
 
@@ -110,10 +113,10 @@ export function useAllocationModal(refresh: RefreshAllocations) {
       setIsOpen(false);
       setInitialValues(undefined);
       setVariant("add");
-      draftOnSuccessRef.current?.();
-      draftOnSuccessRef.current = undefined;
+      onSuccess?.();
+      setOnSuccess(undefined);
     },
-    [refresh],
+    [onSuccess, refresh],
   );
 
   const outletContext = useMemo<AllocationOutletContext>(
