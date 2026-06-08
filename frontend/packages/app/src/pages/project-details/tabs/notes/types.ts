@@ -10,11 +10,14 @@ export type NoteComment = {
   modified_by: string;
 };
 
+export const NOTE_STATUS = ["Draft", "Review", "Publish"] as const;
+export type NoteStatus = (typeof NOTE_STATUS)[number];
+
 export type Note = {
   name: string;
   title: string;
   description: string;
-  status: string;
+  status: NoteStatus;
   project: string;
   owner: string;
   owner_full_name: string;

@@ -115,6 +115,99 @@ def _get_non_billable_hours(days: int) -> float:
 
     return flt(result[0].total) if result else 0.0
 
+@whitelist(methods=["GET"])
+def get_my_projects_summary(days: int = 7, customer: str | None = None) -> list:
+    """Return hour breakdowns for projects where the current user is the project manager.
+
+    Parameters
+    ----------
+    days : int, optional
+        Look-back window in days from today for the billable/non-billable sums.
+        Defaults to 7.
+    customer : str, optional
+        Filter projects by customer name. Defaults to None (all customers).
+
+    Returns
+    -------
+    list of dict
+        One entry per project with keys:
+            name, project_name, customer,
+            total_hours_purchased, actual_time, total_hours_remaining,
+            billable_hours, non_billable_hours  (both summed over the window).
+        Empty list if the user manages no projects.
+    """
+    only_for(["Projects Manager", "Projects User", "System Manager"], message=True)
+    return _get_my_projects_summary(frappe.session.user, days, customer)
+
+
+@redis_cache(user=True, ttl=21600)
+def _get_my_projects_summary(user: str, days: int, customer: str | None) -> list:
+    since = add_days(today(), -days)
+
+    filters = {"custom_project_manager": user, "status": "Open"}
+    if customer:
+        filters["customer"] = customer
+
+    projects = frappe.get_all(
+        "Project",
+        filters=filters,
+        fields=[
+            "name",
+            "project_name",
+            "customer",
+            "custom_total_hours_purchased",
+            "actual_time",
+            "custom_total_hours_remaining",
+        ],
+    )
+    if not projects:
+        return []
+
+    project_names = [p.name for p in projects]
+
+    TimesheetDetail = DocType("Timesheet Detail")
+    Timesheet = DocType("Timesheet")
+
+    hours_rows = (
+        frappe.qb.from_(TimesheetDetail)
+        .join(Timesheet)
+        .on(TimesheetDetail.parent == Timesheet.name)
+        .select(
+            TimesheetDetail.project,
+            TimesheetDetail.is_billable,
+            Sum(TimesheetDetail.hours).as_("total_hours"),
+        )
+        .where(TimesheetDetail.project.isin(project_names))
+        .where(TimesheetDetail.from_time >= since)
+        .where(TimesheetDetail.from_time < add_days(today(), 1))
+        .where(Timesheet.docstatus.isin([0, 1]))
+        .groupby(TimesheetDetail.project, TimesheetDetail.is_billable)
+        .run(as_dict=True)
+    )
+
+    billable_map = {}
+    non_billable_map = {}
+
+    for row in hours_rows:
+        if row.is_billable:
+            billable_map[row.project] = flt(row.total_hours)
+        else:
+            non_billable_map[row.project] = flt(row.total_hours)
+
+    return [
+        {
+            "name": p.name,
+            "project_name": p.project_name,
+            "customer": p.customer,
+            "total_hours_purchased": flt(p.custom_total_hours_purchased),
+            "actual_time": flt(p.actual_time),
+            "total_hours_remaining": flt(p.custom_total_hours_remaining),
+            "billable_hours": billable_map.get(p.name, 0.0),
+            "non_billable_hours": non_billable_map.get(p.name, 0.0),
+        }
+        for p in projects
+    ]
+
 
 @whitelist(methods=["GET"])
 def get_leadership_kpis(

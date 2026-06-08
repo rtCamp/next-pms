@@ -2,7 +2,7 @@
  * External dependencies.
  */
 import { useMemo, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useMatch, useParams } from "react-router-dom";
 import { Accordion } from "@base-ui/react/accordion";
 import { mergeClassNames } from "@next-pms/design-system";
 import { Github } from "@next-pms/design-system/components";
@@ -18,6 +18,7 @@ import { useFrappeGetCall } from "frappe-react-sdk";
 /**
  * Internal dependencies.
  */
+import { ROUTES } from "@/lib/constant";
 import { currencyFormat, pickAllowed, toKebabCase } from "@/lib/utils";
 import { RAG_STATUS } from "@/pages/projects/constants";
 import { Dot } from "@/pages/projects/list/cells/dot";
@@ -54,7 +55,13 @@ const DEFAULT_SIDEBAR: ProjectSidebar = {
   customers: [],
 };
 
-export function AboutThisProject({ className }: { className: string }) {
+export function AboutThisProject(props: { className: string }) {
+  const editorMatch = useMatch(`${ROUTES.project}/:projectId/notes/*`);
+  if (editorMatch) return null;
+  return <AboutThisProjectContent {...props} />;
+}
+
+function AboutThisProjectContent({ className }: { className: string }) {
   const { projectId = "" } = useParams<{ projectId: string }>();
   const [addMemberOpen, setAddMemberOpen] = useState(false);
   const [addCustomerOpen, setAddCustomerOpen] = useState(false);

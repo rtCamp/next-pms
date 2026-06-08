@@ -3,14 +3,14 @@
  */
 import { useCallback, useMemo, useState, type PropsWithChildren } from "react";
 import { useSearchParams } from "react-router-dom";
-import { useFrappeUpdateDoc } from "frappe-react-sdk";
+import { useFrappeUpdateDoc, useSWRConfig } from "frappe-react-sdk";
 
 /**
  * Internal dependencies.
  */
 import { RISK_DETAIL_PARAM, RISK_STATUSES, type RiskStatus } from "./constants";
 import { RisksContext, type RisksContextProps } from "./context";
-import type { RiskFilters, RiskVisibleColumns } from "./types";
+import type { RiskFilters, RiskSort, RiskVisibleColumns } from "./types";
 import { useRisksData } from "./useRisksData";
 
 const defaultFilters: RiskFilters = {
@@ -29,9 +29,23 @@ export function RisksProvider({ children }: PropsWithChildren) {
   const [visibleColumns, setVisibleColumnsState] = useState<RiskVisibleColumns>(
     defaultVisibleColumns,
   );
+  const [isCreateRiskOpen, setIsCreateRiskOpen] = useState(false);
+  const [editRiskName, setEditRiskName] = useState<string | null>(null);
+  const [createRiskInitialStatus, setCreateRiskInitialStatus] = useState<
+    RiskStatus | ""
+  >("");
+  const [deleteRiskName, setDeleteRiskName] = useState<string | null>(null);
+  const [sort, setSortState] = useState<RiskSort | null>(null);
   const [, setSearchParams] = useSearchParams();
+  const { mutate } = useSWRConfig();
 
-  const { data, isLoading, error, mutate } = useRisksData();
+  const {
+    data,
+    isLoading,
+    error,
+    mutate: refreshRiskList,
+    allOwnersWithDetails,
+  } = useRisksData(filters, sort);
 
   const { updateDoc } = useFrappeUpdateDoc();
 
@@ -46,22 +60,61 @@ export function RisksProvider({ children }: PropsWithChildren) {
     [],
   );
 
+  const setSort = useCallback((s: RiskSort | null) => {
+    setSortState(s);
+    mutate(
+      (key) =>
+        typeof key === "string" &&
+        key.includes("/api/resource/Risk?") &&
+        key.includes("order_by="),
+      undefined,
+      { revalidate: true },
+    );
+  }, []);
+
   const updateRiskStatus = useCallback(
     async (name: string, status: RiskStatus) => {
       await updateDoc("Risk", name, { status });
-      void mutate();
+      void refreshRiskList();
     },
-    [updateDoc, mutate],
+    [updateDoc, refreshRiskList],
   );
 
   const openCreateRisk = useCallback(() => {
-    // TODO: implement create risk modal
+    setEditRiskName(null);
+    setCreateRiskInitialStatus("");
+    setIsCreateRiskOpen(true);
   }, []);
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- will be used when implementing row actions
-  const openRowActions = useCallback((_name: string) => {
-    // TODO: implement row actions
+  const closeCreateRisk = useCallback(() => {
+    setIsCreateRiskOpen(false);
+    setEditRiskName(null);
+    setCreateRiskInitialStatus("");
   }, []);
+
+  const openEditRisk = useCallback((name: string) => {
+    setEditRiskName(name);
+    setCreateRiskInitialStatus("");
+    setIsCreateRiskOpen(true);
+  }, []);
+
+  const openCreateRiskWithStatus = useCallback((status: RiskStatus) => {
+    setEditRiskName(null);
+    setCreateRiskInitialStatus(status);
+    setIsCreateRiskOpen(true);
+  }, []);
+
+  const openDeleteRisk = useCallback((name: string) => {
+    setDeleteRiskName(name);
+  }, []);
+
+  const closeDeleteRisk = useCallback(() => {
+    setDeleteRiskName(null);
+  }, []);
+
+  const refreshRisks = useCallback(() => {
+    void refreshRiskList();
+  }, [refreshRiskList]);
 
   const openRiskDetail = useCallback(
     (name: string) => {
@@ -81,14 +134,26 @@ export function RisksProvider({ children }: PropsWithChildren) {
         error,
         filters,
         visibleColumns,
+        sort,
+        isCreateRiskOpen,
+        editRiskName,
+        createRiskInitialStatus,
+        deleteRiskName,
+        allOwnersWithDetails,
       },
       actions: {
         setFilters,
         setVisibleColumns,
+        setSort,
         updateRiskStatus,
         openCreateRisk,
-        openRowActions,
+        closeCreateRisk,
+        refreshRisks,
         openRiskDetail,
+        openEditRisk,
+        openCreateRiskWithStatus,
+        openDeleteRisk,
+        closeDeleteRisk,
       },
     }),
     [
@@ -97,12 +162,24 @@ export function RisksProvider({ children }: PropsWithChildren) {
       error,
       filters,
       visibleColumns,
+      sort,
+      isCreateRiskOpen,
+      editRiskName,
+      createRiskInitialStatus,
+      deleteRiskName,
+      allOwnersWithDetails,
       setFilters,
       setVisibleColumns,
+      setSort,
       updateRiskStatus,
       openCreateRisk,
-      openRowActions,
+      closeCreateRisk,
+      refreshRisks,
       openRiskDetail,
+      openEditRisk,
+      openCreateRiskWithStatus,
+      openDeleteRisk,
+      closeDeleteRisk,
     ],
   );
 

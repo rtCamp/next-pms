@@ -50,6 +50,8 @@ export function ProjectDetailHeader() {
             id: "project",
             label: projectName || projectId,
             prefixIcon: <Folder className="size-4" />,
+            onClick: () =>
+              navigate(`${ROUTES.project}/${encodeURIComponent(projectId)}`),
           },
           ...(isRisksTab
             ? [

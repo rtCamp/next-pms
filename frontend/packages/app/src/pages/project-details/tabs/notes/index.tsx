@@ -8,10 +8,9 @@ import { ErrorFallback, Spinner } from "@next-pms/design-system/components";
  */
 import { useNotes } from "./context";
 import { NoteCard } from "./noteCard";
-import { NotesProvider } from "./provider";
 import { NotesSubHeader } from "./subHeader";
 
-function NotesContent() {
+function NotesGrid() {
   const notes = useNotes((s) => s.state.notes);
   const isLoading = useNotes((s) => s.state.isLoading);
   const error = useNotes((s) => s.state.error);
@@ -47,9 +46,7 @@ function NotesContent() {
 export function Notes() {
   return (
     <ErrorFallback>
-      <NotesProvider>
-        <NotesContent />
-      </NotesProvider>
+      <NotesGrid />
     </ErrorFallback>
   );
 }

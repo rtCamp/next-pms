@@ -83,3 +83,10 @@ export * from "./timesheet";
 export * from "./icons";
 export * from "./gantt-view";
 export { default as GlobalSearch } from "./globalSearch";
+export {
+  SortButton,
+  type SortButtonProps,
+  type SortField,
+  type SortState,
+  type SortOrder,
+} from "./sort-button";
