@@ -10,16 +10,16 @@ import { AddSm, SmallDown } from "@rtcamp/frappe-ui-react/icons";
  * Internal dependencies.
  */
 import { ROUTES } from "@/lib/constant";
-import { CREATE_OPTIONS, FILTER_FIELDS } from "./constants";
+import { CREATE_OPTIONS } from "./constants";
 
 type NotesSubHeaderProps = {
-  advanced: FilterCondition[];
-  onAdvancedChange: (v: FilterCondition[]) => void;
+  filters: FilterCondition[];
+  onFiltersChange: (v: FilterCondition[]) => void;
 };
 
 export function NotesSubHeader({
-  advanced,
-  onAdvancedChange,
+  filters,
+  onFiltersChange,
 }: NotesSubHeaderProps) {
   const { projectId = "" } = useParams<{ projectId: string }>();
   const navigate = useNavigate();
@@ -30,9 +30,15 @@ export function NotesSubHeader({
       <div className="flex items-center gap-2">
         <Filter
           align="end"
-          value={advanced}
-          onChange={onAdvancedChange}
-          fields={FILTER_FIELDS}
+          value={filters}
+          onChange={onFiltersChange}
+          fields={[
+            {
+              name: "creation",
+              label: "Creation Date",
+              type: "daterange",
+            },
+          ]}
         />
         <Dropdown
           placement="right"

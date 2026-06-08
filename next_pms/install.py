@@ -9,6 +9,48 @@ def after_install():
     setup_email_template()
     create_default_project_phases()
     create_default_risk_masters()
+    setup_project_custom_fields()
+
+
+def setup_project_custom_fields():
+    from frappe.custom.doctype.custom_field.custom_field import create_custom_fields
+
+    create_custom_fields(
+        {
+            "Project": [
+                {
+                    "fieldname": "custom_lifetime_value_to_date",
+                    "fieldtype": "Currency",
+                    "label": "Lifetime Value To Date",
+                    "insert_after": "gross_margin",
+                    "depends_on": 'eval:doc.custom_billing_type=="Fixed Cost" || doc.custom_billing_type=="Retainer" || doc.custom_billing_type=="Time and Material"',
+                    "options": "custom_currency",
+                    "permlevel": 2,
+                    "read_only": 0,
+                },
+                {
+                    "fieldname": "custom_expected_lifetime_value",
+                    "fieldtype": "Currency",
+                    "label": "Expected Lifetime Value",
+                    "insert_after": "custom_lifetime_value_to_date",
+                    "depends_on": 'eval:doc.custom_billing_type=="Fixed Cost" || doc.custom_billing_type=="Retainer" || doc.custom_billing_type=="Time and Material"',
+                    "options": "custom_currency",
+                    "permlevel": 2,
+                    "read_only": 0,
+                },
+                {
+                    "fieldname": "custom_lifetime_value_vs_billed_amount",
+                    "fieldtype": "Currency",
+                    "label": "Lifetime Value vs Billed Amount",
+                    "insert_after": "custom_expected_lifetime_value",
+                    "depends_on": 'eval:doc.custom_billing_type=="Fixed Cost" || doc.custom_billing_type=="Retainer" || doc.custom_billing_type=="Time and Material"',
+                    "options": "custom_currency",
+                    "permlevel": 2,
+                    "read_only": 0,
+                },
+            ]
+        }
+    )
 
 
 def add_project_manager_perm():
