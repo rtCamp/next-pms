@@ -48,7 +48,9 @@ class Risk(Document):
         for row in existing_rows:
             if row["name"] not in submitted_names and row["owner"] != frappe.session.user:
                 frappe.throw(
-                    f"You can only delete rows you created. Row created by {row['owner']} cannot be removed.",
+                    frappe._("You can only delete rows you created. Row created by {0} cannot be removed.").format(
+                        row["owner"]
+                    ),
                     frappe.PermissionError,
                 )
 
