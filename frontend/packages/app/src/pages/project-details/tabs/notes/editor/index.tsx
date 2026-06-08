@@ -97,6 +97,8 @@ function NoteEditor() {
   useEffect(() => {
     if (mode === "edit" && noteData?.message) {
       setIsFormInitialized(true);
+    } else if (mode === "new") {
+      setIsFormInitialized(true);
     }
   }, [noteData, mode, form, projectId]);
 
