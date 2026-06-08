@@ -1,9 +1,13 @@
 import { ProgressBar } from "@next-pms/design-system/components";
 import { ArrowUpRight } from "@rtcamp/frappe-ui-react/icons";
+import { currencyFormat } from "@/lib/utils";
 import { useTracking } from "../context";
+import { LegendItem } from "./legendItem";
 
 export function InvoiceBurnCell() {
   const invoiceBurn = useTracking((state) => state.tracking.invoice_burn);
+  const tracking = useTracking((state) => state.tracking);
+  const formatter = currencyFormat(tracking.currency);
   const invoicedPaid = invoiceBurn.invoiced_and_paid;
   const invoicedUnpaid = invoiceBurn.invoiced_but_not_paid;
   const totalAmount = invoiceBurn.total_project_amount;
@@ -32,21 +36,21 @@ export function InvoiceBurnCell() {
         secondaryIndicatorClassName="bg-surface-blue-5"
       />
       <div className="flex flex-col gap-2 text-base text-ink-gray-7">
-        <div className="flex items-center gap-2">
-          <span className="size-4 rounded-full bg-surface-violet-4" />
-          <span className="min-w-0 flex-1 truncate">Invoiced and paid</span>
-          <span>${invoicedPaid}</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="size-4 rounded-full bg-surface-blue-5" />
-          <span className="min-w-0 flex-1 truncate">Invoiced and unpaid</span>
-          <span>${invoicedUnpaid}</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="size-4 rounded-full bg-surface-gray-3" />
-          <span className="min-w-0 flex-1 truncate">Total Project Amount</span>
-          <span>${totalAmount}</span>
-        </div>
+        <LegendItem
+          className="bg-surface-violet-4"
+          label="Invoiced and paid"
+          value={formatter.format(invoicedPaid)}
+        />
+        <LegendItem
+          className="bg-surface-blue-5"
+          label="Invoiced and unpaid"
+          value={formatter.format(invoicedUnpaid)}
+        />
+        <LegendItem
+          className="bg-surface-gray-3"
+          label="Total Project Amount"
+          value={formatter.format(totalAmount)}
+        />
       </div>
     </div>
   );

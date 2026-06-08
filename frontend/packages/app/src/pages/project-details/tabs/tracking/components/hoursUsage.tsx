@@ -1,5 +1,6 @@
 import { ProgressBar } from "@next-pms/design-system/components";
 import { useTracking } from "../context";
+import { LegendItem } from "./legendItem";
 
 export function HoursUsageCell() {
   const utilised = useTracking((state) => state.tracking.hours_utilised);
@@ -21,16 +22,16 @@ export function HoursUsageCell() {
         indicatorClassName="bg-surface-blue-4"
       />
       <div className="flex flex-col gap-2 text-base text-ink-gray-7">
-        <div className="flex items-center gap-2">
-          <span className="size-4 rounded-full bg-surface-blue-4" />
-          <span className="min-w-0 flex-1 truncate">Hours Utilized</span>
-          <span>{utilised} h</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="size-4 rounded-full bg-surface-gray-3" />
-          <span className="min-w-0 flex-1 truncate">Hours Remaining</span>
-          <span>{remaining} h</span>
-        </div>
+        <LegendItem
+          className="bg-surface-blue-4"
+          label="Hours Utilized"
+          value={`${utilised} h`}
+        />
+        <LegendItem
+          className="bg-surface-gray-3"
+          label="Hours Remaining"
+          value={`${remaining} h`}
+        />
       </div>
     </div>
   );

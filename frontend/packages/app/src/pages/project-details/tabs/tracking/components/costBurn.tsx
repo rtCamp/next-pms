@@ -2,6 +2,7 @@ import { ProgressBar } from "@next-pms/design-system/components";
 import { ArrowUpRight } from "@rtcamp/frappe-ui-react/icons";
 import { currencyFormat } from "@/lib/utils";
 import { useTracking } from "../context";
+import { LegendItem } from "./legendItem";
 
 export function CostBurnCell() {
   const tracking = useTracking((state) => state.tracking);
@@ -34,21 +35,21 @@ export function CostBurnCell() {
         secondaryIndicatorClassName="bg-surface-green-3"
       />
       <div className="flex flex-col gap-2 text-base text-ink-gray-7">
-        <div className="flex items-center gap-2">
-          <span className="size-4 rounded-full bg-surface-green-5" />
-          <span className="min-w-0 flex-1 truncate">Cost incurred</span>
-          <span>{formatter.format(incurred)}</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="size-4 rounded-full bg-surface-green-3" />
-          <span className="min-w-0 flex-1 truncate">Cost forecasted</span>
-          <span>{formatter.format(forecasted)}</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="size-4 rounded-full bg-surface-gray-3" />
-          <span className="min-w-0 flex-1 truncate">Total Cost</span>
-          <span>{formatter.format(total)}</span>
-        </div>
+        <LegendItem
+          className="bg-surface-green-5"
+          label="Cost incurred"
+          value={formatter.format(incurred)}
+        />
+        <LegendItem
+          className="bg-surface-green-3"
+          label="Cost forecasted"
+          value={formatter.format(forecasted)}
+        />
+        <LegendItem
+          className="bg-surface-gray-3"
+          label="Total Cost"
+          value={formatter.format(total)}
+        />
       </div>
     </div>
   );

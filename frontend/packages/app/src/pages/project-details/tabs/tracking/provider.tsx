@@ -1,5 +1,4 @@
 import { useMemo, type PropsWithChildren } from "react";
-import { useParams } from "react-router-dom";
 import { useFrappeGetCall } from "frappe-react-sdk";
 import { currencyFormat } from "@/lib/utils";
 import {
@@ -10,9 +9,10 @@ import {
   type TrackingContextProps,
 } from "./context";
 import type { ContractRow, RateRow } from "./types";
+import { useProjectDetail } from "../../context";
 
 export function TrackingProvider({ children }: PropsWithChildren) {
-  const { projectId = "" } = useParams<{ projectId: string }>();
+  const projectId = useProjectDetail((s) => s.projectId);
 
   const { data } = useFrappeGetCall<Response>(
     "next_pms.next_projects.api.project.get_project_tracking",
