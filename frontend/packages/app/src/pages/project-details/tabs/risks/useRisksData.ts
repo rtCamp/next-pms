@@ -25,14 +25,14 @@ export function useRisksData(filters: RiskFilters, sort: RiskSort | null) {
     if (filters.status) base.push(["status", "=", filters.status]);
     if (filters.riskLevel) base.push(["risk_level", "=", filters.riskLevel]);
 
-    for (const f of filters.advanced) {
-      if (!isCompleteFilterCondition(f)) continue;
+    filters.advanced.forEach((f) => {
+      if (!isCompleteFilterCondition(f)) return;
       base.push([
         f.field,
         f.operator,
         isNoValueOperator(f.operator) ? null : f.value,
       ]);
-    }
+    });
 
     return base;
   }, [
@@ -66,6 +66,10 @@ export function useRisksData(filters: RiskFilters, sort: RiskSort | null) {
       filters: frappeFilters as never,
       orderBy,
       limit: 500,
+    },
+    undefined,
+    {
+      keepPreviousData: true,
     },
   );
 
