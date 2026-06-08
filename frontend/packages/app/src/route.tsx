@@ -6,7 +6,6 @@ import { Route, Outlet } from "react-router-dom";
 /**
  * Internal dependencies.
  */
-import { UnderConstruction } from "@/components/under-construction";
 import { ROUTES } from "@/lib/constant";
 import LayoutWithSidebar from "./layout";
 import { useUser } from "./providers/user";
@@ -18,6 +17,9 @@ const Task = lazy(() => import("@/pages/task"));
 const ProjectList = lazy(() => import("@/pages/projects/list"));
 const ProjectKanban = lazy(() => import("@/pages/projects/kanban"));
 const ProjectDetail = lazy(() => import("@/pages/project-details"));
+const NoteEditor = lazy(
+  () => import("@/pages/project-details/tabs/notes/editor"),
+);
 const PersonalTimesheetLayout = lazy(
   () => import("@/pages/timesheet/personal/layout"),
 );
@@ -52,11 +54,10 @@ export function Router() {
           <Route
             path={`${ROUTES.project}/:projectId`}
             element={<ProjectDetail />}
-          />
-          <Route
-            path={`${ROUTES.project}/:projectId/notes/new`}
-            element={<UnderConstruction />}
-          />
+          >
+            <Route path="notes/new" element={<NoteEditor />} />
+            <Route path="notes/:noteId/edit" element={<NoteEditor />} />
+          </Route>
           <Route element={<PersonalTimesheetLayout />}>
             <Route
               path={ROUTES["timesheet-personal"]}
