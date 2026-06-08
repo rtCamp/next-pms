@@ -28,7 +28,7 @@ import { useUser } from "@/providers/user";
 import { noteFormSchema } from "./schema";
 import { useNotes } from "../context";
 
-export function NoteEditor() {
+function NoteEditor() {
   const navigate = useNavigate();
   const { projectId: routeProjectId = "", noteId } = useParams<{
     projectId: string;
@@ -57,8 +57,8 @@ export function NoteEditor() {
   const form = useForm({
     defaultValues: {
       project: projectId,
-      title: "",
-      description: "",
+      title: noteData?.message.title || "",
+      description: noteData?.message.description || "",
       status: "Publish",
     },
     validators: {
@@ -96,16 +96,6 @@ export function NoteEditor() {
 
   useEffect(() => {
     if (mode === "edit" && noteData?.message) {
-      form.setFieldValue("title", noteData.message.title);
-      form.setFieldValue("description", noteData.message.description);
-      setIsFormInitialized(true);
-    } else if (mode === "new") {
-      form.reset({
-        project: projectId,
-        title: "",
-        description: "",
-        status: "Publish",
-      });
       setIsFormInitialized(true);
     }
   }, [noteData, mode, form, projectId]);
@@ -196,3 +186,5 @@ export function NoteEditor() {
     </div>
   );
 }
+
+export default NoteEditor;

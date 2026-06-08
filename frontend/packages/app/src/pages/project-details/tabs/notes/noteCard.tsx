@@ -1,21 +1,15 @@
 /**
  * External dependencies.
  */
-import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { Avatar, Dropdown, useToasts } from "@rtcamp/frappe-ui-react";
+import { Avatar, Dropdown } from "@rtcamp/frappe-ui-react";
 import { DotHorizontal } from "@rtcamp/frappe-ui-react/icons";
-import { FrappeError, useFrappeDeleteDoc } from "frappe-react-sdk";
 
 /**
  * Internal dependencies.
  */
 import { ROUTES } from "@/lib/constant";
-import {
-  formatRelativeTimeShort,
-  parseFrappeErrorMsg,
-  stripTags,
-} from "@/lib/utils";
+import { formatRelativeTimeShort, stripTags } from "@/lib/utils";
 import { useNotes } from "./context";
 import type { Note } from "./types";
 
@@ -25,27 +19,12 @@ type NoteCardProps = {
 
 export function NoteCard({ note }: NoteCardProps) {
   const navigate = useNavigate();
-  const { deleteDoc } = useFrappeDeleteDoc();
-  const [deleting, setDeleting] = useState(false);
-  const { refresh } = useNotes((s) => s.actions);
+  const { deleteNote } = useNotes((s) => s.actions);
+  const isDeleting = useNotes((s) => s.state.isDeleting);
   const { projectId = "" } = useParams<{ projectId: string }>();
   const excerpt = stripTags(note.description);
   const relativeDate = formatRelativeTimeShort(note.creation, new Date(), true);
   const authorHref = `/desk/user/${encodeURIComponent(note.owner)}`;
-  const toast = useToasts();
-
-  const handleDelete = async () => {
-    setDeleting(true);
-    try {
-      await deleteDoc("Project Status Update", note.name);
-      toast.success("Note deleted");
-      await refresh();
-    } catch (err) {
-      toast.error(parseFrappeErrorMsg(err as FrappeError));
-    } finally {
-      setDeleting(false);
-    }
-  };
 
   return (
     <div className="flex h-64 min-w-65.75 max-w-131.5 flex-1 flex-col rounded-[12px] border border-outline-gray-2 bg-surface-white overflow-clip shadow-xl">
@@ -63,7 +42,7 @@ export function NoteCard({ note }: NoteCardProps) {
             {
               label: "Edit",
               key: "edit",
-              disabled: deleting,
+              disabled: isDeleting,
               onClick: () =>
                 navigate(
                   `${ROUTES.project}/${projectId}/notes/${note.name}/edit`,
@@ -73,8 +52,8 @@ export function NoteCard({ note }: NoteCardProps) {
               label: "Delete",
               key: "delete",
               theme: "red",
-              disabled: deleting,
-              onClick: handleDelete,
+              disabled: isDeleting,
+              onClick: () => deleteNote(note.name),
             },
           ]}
         />
