@@ -40,11 +40,11 @@ def get_my_projects_summary(days: int = 7, customer: str | None = None) -> list:
     return _get_my_projects_summary(frappe.session.user, days, customer)
 
 
-@redis_cache(user=True)
+@redis_cache(user=True, ttl=21600)
 def _get_my_projects_summary(user: str, days: int, customer: str | None) -> list:
     since = add_days(today(), -days)
 
-    filters = {"custom_project_manager": user}
+    filters = {"custom_project_manager": user, "status": "Open"}
     if customer:
         filters["customer"] = customer
 
@@ -78,8 +78,8 @@ def _get_my_projects_summary(user: str, days: int, customer: str | None) -> list
             Sum(TimesheetDetail.hours).as_("total_hours"),
         )
         .where(TimesheetDetail.project.isin(project_names))
-        .where(Date(TimesheetDetail.from_time) >= since)
-        .where(Date(TimesheetDetail.from_time) <= today())
+        .where(TimesheetDetail.from_time >= since)
+        .where(TimesheetDetail.from_time < add_days(today(), 1))
         .where(Timesheet.docstatus.isin([0, 1]))
         .groupby(TimesheetDetail.project, TimesheetDetail.is_billable)
         .run(as_dict=True)
