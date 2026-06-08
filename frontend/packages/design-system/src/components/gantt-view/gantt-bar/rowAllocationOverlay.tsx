@@ -102,9 +102,9 @@ export const RowAllocationOverlay = forwardRef<
 
   const [draft, setDraft] = useState<DraftBarSeed | null>(null);
   const [hoveredSlotLeft, setHoveredSlotLeft] = useState<number | null>(null);
-  const [isCreateDragging, setIsCreateDragging] = useState(false);
 
   const createInteractionRef = useRef<CreateInteraction | null>(null);
+  const removeCreateListenersRef = useRef<(() => void) | null>(null);
 
   const canAdd = enabled && draft === null;
 
@@ -119,7 +119,7 @@ export const RowAllocationOverlay = forwardRef<
   }, [enabled]);
 
   /**
-   * Calculates the left position for a potential new allocation based on pointer
+   * Calculates the left position for a potential new allocation based on pointer position.
    */
   const getSlotLeft = useCallback(
     (event: React.PointerEvent<HTMLTableRowElement>): number | null => {
@@ -216,8 +216,9 @@ export const RowAllocationOverlay = forwardRef<
   );
 
   const stopCreateInteraction = useCallback(() => {
+    removeCreateListenersRef.current?.();
+    removeCreateListenersRef.current = null;
     createInteractionRef.current = null;
-    setIsCreateDragging(false);
     document.body.style.userSelect = "";
   }, []);
 
@@ -234,13 +235,34 @@ export const RowAllocationOverlay = forwardRef<
     [columnWidth],
   );
 
-  const handleWindowPointerCancel = useCallback(() => {
-    if (!createInteractionRef.current) {
-      return;
-    }
+  const handleWindowPointerCancel = useCallback(
+    (event: PointerEvent) => {
+      const interaction = createInteractionRef.current;
+      if (!interaction || interaction.pointerId !== event.pointerId) {
+        return;
+      }
 
-    stopCreateInteraction();
-  }, [stopCreateInteraction]);
+      stopCreateInteraction();
+    },
+    [stopCreateInteraction],
+  );
+
+  useEffect(() => {
+    return () => {
+      removeCreateListenersRef.current?.();
+      document.body.style.userSelect = "";
+    };
+  }, []);
+
+  const createDraftAtSlot = useCallback(
+    (slotLeft: number) => {
+      const nextDraft = createDraftBar(slotLeft);
+      setHoveredSlotLeft(null);
+      setDraft(nextDraft);
+      return nextDraft;
+    },
+    [createDraftBar],
+  );
 
   const handleWindowPointerUp = useCallback(
     (event: PointerEvent) => {
@@ -263,38 +285,6 @@ export const RowAllocationOverlay = forwardRef<
     [columnWidth, openDraftAllocation, stopCreateInteraction],
   );
 
-  useEffect(() => {
-    if (!isCreateDragging) {
-      return;
-    }
-
-    window.addEventListener("pointermove", handleWindowPointerMove);
-    window.addEventListener("pointerup", handleWindowPointerUp);
-    window.addEventListener("pointercancel", handleWindowPointerCancel);
-
-    return () => {
-      window.removeEventListener("pointermove", handleWindowPointerMove);
-      window.removeEventListener("pointerup", handleWindowPointerUp);
-      window.removeEventListener("pointercancel", handleWindowPointerCancel);
-      document.body.style.userSelect = "";
-    };
-  }, [
-    handleWindowPointerCancel,
-    handleWindowPointerMove,
-    handleWindowPointerUp,
-    isCreateDragging,
-  ]);
-
-  const createDraftAtSlot = useCallback(
-    (slotLeft: number) => {
-      const nextDraft = createDraftBar(slotLeft);
-      setHoveredSlotLeft(null);
-      setDraft(nextDraft);
-      return nextDraft;
-    },
-    [createDraftBar],
-  );
-
   const startCreateInteraction = useCallback(
     (slotLeft: number, pointerId: number, clientX: number) => {
       const nextDraft = createDraftAtSlot(slotLeft);
@@ -304,10 +294,29 @@ export const RowAllocationOverlay = forwardRef<
         maxWidth: headerWidth + columnWidth * columnCount - nextDraft.left,
         draft: nextDraft,
       };
-      setIsCreateDragging(true);
+
+      removeCreateListenersRef.current?.();
+
+      window.addEventListener("pointermove", handleWindowPointerMove);
+      window.addEventListener("pointerup", handleWindowPointerUp);
+      window.addEventListener("pointercancel", handleWindowPointerCancel);
+      removeCreateListenersRef.current = () => {
+        window.removeEventListener("pointermove", handleWindowPointerMove);
+        window.removeEventListener("pointerup", handleWindowPointerUp);
+        window.removeEventListener("pointercancel", handleWindowPointerCancel);
+      };
+
       document.body.style.userSelect = "none";
     },
-    [columnCount, columnWidth, createDraftAtSlot, headerWidth],
+    [
+      columnCount,
+      columnWidth,
+      createDraftAtSlot,
+      handleWindowPointerCancel,
+      handleWindowPointerMove,
+      handleWindowPointerUp,
+      headerWidth,
+    ],
   );
 
   const handleRowPointerDown = useCallback(
