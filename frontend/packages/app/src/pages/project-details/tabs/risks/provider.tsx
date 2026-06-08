@@ -3,7 +3,7 @@
  */
 import { useCallback, useMemo, useState, type PropsWithChildren } from "react";
 import { useSearchParams } from "react-router-dom";
-import { useFrappeUpdateDoc } from "frappe-react-sdk";
+import { useFrappeUpdateDoc, useSWRConfig } from "frappe-react-sdk";
 
 /**
  * Internal dependencies.
@@ -37,6 +37,7 @@ export function RisksProvider({ children }: PropsWithChildren) {
   const [deleteRiskName, setDeleteRiskName] = useState<string | null>(null);
   const [sort, setSortState] = useState<RiskSort | null>(null);
   const [, setSearchParams] = useSearchParams();
+  const { mutate } = useSWRConfig();
 
   const {
     data,
@@ -61,7 +62,14 @@ export function RisksProvider({ children }: PropsWithChildren) {
 
   const setSort = useCallback((s: RiskSort | null) => {
     setSortState(s);
-    void refreshRiskList();
+    mutate(
+      (key) =>
+        typeof key === "string" &&
+        key.includes("/api/resource/Risk?") &&
+        key.includes("order_by="),
+      undefined,
+      { revalidate: true },
+    );
   }, []);
 
   const updateRiskStatus = useCallback(
