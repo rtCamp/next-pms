@@ -26,7 +26,7 @@ export const MOCK_MONTHS: MonthEntry[] = [
   { key: "2027-08", month: "Aug", year: 2027, score: 34 },
   { key: "2027-09", month: "Sep", year: 2027, score: 73 },
   { key: "2027-10", month: "Oct", year: 2027, score: 27 },
-  { key: "2027-11", month: "Nov", year: 2027, score: 18 },
+  { key: "2027-11", month: "Nov", year: 2027, score: null },
   { key: "2027-12", month: "Dec", year: 2027, score: 89 },
 ];
 
