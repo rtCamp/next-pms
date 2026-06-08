@@ -208,15 +208,6 @@ export const RowAllocationOverlay = forwardRef<
     ],
   );
 
-  const handleRowPointerDown = useCallback(
-    (event: React.PointerEvent<HTMLTableRowElement>) => {
-      if (event.pointerType === "touch" || event.pointerType === "pen") {
-        updateHoveredSlotFromPointer(event);
-      }
-    },
-    [updateHoveredSlotFromPointer],
-  );
-
   const handleRowPointerMove = useCallback(
     (event: React.PointerEvent<HTMLTableRowElement>) => {
       updateHoveredSlotFromPointer(event);
@@ -304,6 +295,42 @@ export const RowAllocationOverlay = forwardRef<
     [createDraftBar],
   );
 
+  const startCreateInteraction = useCallback(
+    (slotLeft: number, pointerId: number, clientX: number) => {
+      const nextDraft = createDraftAtSlot(slotLeft);
+      createInteractionRef.current = {
+        pointerId,
+        startX: clientX,
+        maxWidth: headerWidth + columnWidth * columnCount - nextDraft.left,
+        draft: nextDraft,
+      };
+      setIsCreateDragging(true);
+      document.body.style.userSelect = "none";
+    },
+    [columnCount, columnWidth, createDraftAtSlot, headerWidth],
+  );
+
+  const handleRowPointerDown = useCallback(
+    (event: React.PointerEvent<HTMLTableRowElement>) => {
+      if (event.pointerType !== "touch" && event.pointerType !== "pen") {
+        return;
+      }
+
+      if (!canAdd) {
+        return;
+      }
+
+      const slotLeft = getSlotLeft(event);
+      if (slotLeft === null) {
+        return;
+      }
+
+      event.preventDefault();
+      startCreateInteraction(slotLeft, event.pointerId, event.clientX);
+    },
+    [canAdd, getSlotLeft, startCreateInteraction],
+  );
+
   const handleAddButtonPointerDown = useCallback(
     (event: React.PointerEvent<HTMLButtonElement>) => {
       if (!event.isPrimary) {
@@ -320,18 +347,9 @@ export const RowAllocationOverlay = forwardRef<
 
       event.preventDefault();
       event.stopPropagation();
-
-      const nextDraft = createDraftAtSlot(hoveredSlotLeft);
-      createInteractionRef.current = {
-        pointerId: event.pointerId,
-        startX: event.clientX,
-        maxWidth: headerWidth + columnWidth * columnCount - nextDraft.left,
-        draft: nextDraft,
-      };
-      setIsCreateDragging(true);
-      document.body.style.userSelect = "none";
+      startCreateInteraction(hoveredSlotLeft, event.pointerId, event.clientX);
     },
-    [columnCount, columnWidth, createDraftAtSlot, headerWidth, hoveredSlotLeft],
+    [hoveredSlotLeft, startCreateInteraction],
   );
 
   const handleAddButtonClick = useCallback(

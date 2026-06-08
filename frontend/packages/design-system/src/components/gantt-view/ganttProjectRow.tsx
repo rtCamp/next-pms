@@ -53,7 +53,9 @@ export const GanttProjectRow: React.FC<GanttProjectRowProps> = ({
 
   return (
     <tr
-      className={cn("relative", { "pointer-events-none": !isExpanded })}
+      className={cn("relative touch-pan-y", {
+        "pointer-events-none": !isExpanded,
+      })}
       aria-hidden={!isExpanded}
       onPointerDown={(e) => overlayRef.current?.handleRowPointerDown(e)}
       onPointerMove={(e) => overlayRef.current?.handleRowPointerMove(e)}

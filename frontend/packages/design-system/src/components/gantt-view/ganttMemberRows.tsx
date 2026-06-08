@@ -63,7 +63,7 @@ export const GanttMemberRows: React.FC<GanttMemberRowsProps> = ({
     <React.Fragment>
       {/* Member row */}
       <tr
-        className="relative last:border-b border-outline-gray-1 animate-fade-in"
+        className="relative touch-pan-y last:border-b border-outline-gray-1 animate-fade-in"
         onPointerDown={(e) => overlayRef.current?.handleRowPointerDown(e)}
         onPointerMove={(e) => overlayRef.current?.handleRowPointerMove(e)}
         onPointerLeave={() => overlayRef.current?.clearHoveredSlot()}
