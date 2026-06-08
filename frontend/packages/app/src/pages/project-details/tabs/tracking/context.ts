@@ -1,4 +1,11 @@
+/**
+ * External dependencies.
+ */
 import { createContext, useContextSelector } from "use-context-selector";
+
+/**
+ * Internal dependencies.
+ */
 import type { ContractRow, RateRow } from "./types";
 
 export type ProjectFlatRate = {

@@ -1,3 +1,6 @@
+/**
+ * External dependencies.
+ */
 import { Dropdown } from "@rtcamp/frappe-ui-react";
 import { Delete, DotHorizontal, Edit } from "@rtcamp/frappe-ui-react/icons";
 

@@ -1,3 +1,6 @@
+/**
+ * Internal dependencies.
+ */
 import { mergeClassNames } from "@/lib/utils";
 
 type LegendItemProps = {

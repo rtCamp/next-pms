@@ -1,3 +1,6 @@
+/**
+ * Internal dependencies.
+ */
 import { useTracking } from "../context";
 
 const ARC_RADIUS = 75;

@@ -1,4 +1,11 @@
+/**
+ * External dependencies.
+ */
 import { cva } from "class-variance-authority";
+
+/**
+ * Internal dependencies.
+ */
 import { mergeClassNames } from "@/lib/utils";
 
 const swatch = cva("inline-block size-2 rounded-full shrink-0", {

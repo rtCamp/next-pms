@@ -1,3 +1,6 @@
+/**
+ * External dependencies.
+ */
 import {
   Avatar,
   Button,
@@ -8,6 +11,10 @@ import {
   ListView,
 } from "@rtcamp/frappe-ui-react";
 import { AddSm } from "@rtcamp/frappe-ui-react/icons";
+
+/**
+ * Internal dependencies.
+ */
 import { RATE_COLUMNS } from "../constants";
 import { useTracking } from "../context";
 import { ActionsCell } from "./actionsCell";

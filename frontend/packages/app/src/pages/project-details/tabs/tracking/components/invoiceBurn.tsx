@@ -1,5 +1,12 @@
+/**
+ * External dependencies.
+ */
 import { ProgressBar } from "@next-pms/design-system/components";
 import { ArrowUpRight } from "@rtcamp/frappe-ui-react/icons";
+
+/**
+ * Internal dependencies.
+ */
 import { currencyFormat } from "@/lib/utils";
 import { useTracking } from "../context";
 import { LegendItem } from "./legendItem";

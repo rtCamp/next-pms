@@ -1,4 +1,11 @@
+/**
+ * External dependencies.
+ */
 import { ProgressBar } from "@next-pms/design-system/components";
+
+/**
+ * Internal dependencies.
+ */
 import { useTracking } from "../context";
 import { LegendItem } from "./legendItem";
 

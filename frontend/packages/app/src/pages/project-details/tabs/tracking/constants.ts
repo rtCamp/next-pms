@@ -1,3 +1,6 @@
+/**
+ * Internal dependencies.
+ */
 import type { ContractRow, RateRow } from "./types";
 
 export type ColumnDef<K extends string = string> = {

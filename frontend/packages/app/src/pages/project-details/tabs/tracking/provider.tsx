@@ -1,5 +1,12 @@
+/**
+ * External dependencies.
+ */
 import { useMemo, type PropsWithChildren } from "react";
 import { useFrappeGetCall } from "frappe-react-sdk";
+
+/**
+ * Internal dependencies.
+ */
 import { currencyFormat } from "@/lib/utils";
 import {
   DEFAULT_TRACKING,
