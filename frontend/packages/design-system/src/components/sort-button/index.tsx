@@ -63,38 +63,42 @@ export function SortButton({
       <Popover.Portal>
         <Popover.Positioner side="bottom" align="end" sideOffset={4}>
           <Popover.Popup className="min-w-44 rounded-lg border border-outline-gray-2 bg-surface-white shadow-lg py-1 z-50">
-            {fields.map(({ field, label }) => {
-              const isSelected = sort?.field === field;
-              return (
-                <button
-                  key={field}
-                  type="button"
-                  className="flex w-full items-center justify-between gap-3 px-3 py-1.5 text-sm text-ink-gray-8 hover:bg-surface-gray-2"
-                  onClick={() => handleFieldClick(field)}
-                >
-                  <span>{label}</span>
-                  {isSelected &&
-                    (sort.order === "asc" ? (
-                      <ArrowUp className="size-4" />
-                    ) : (
-                      <ArrowDown className="size-4" />
-                    ))}
-                </button>
-              );
-            })}
+            <div className="flex flex-col px-1">
+              {fields.map(({ field, label }) => {
+                const isSelected = sort?.field === field;
+                return (
+                  <button
+                    key={field}
+                    type="button"
+                    className="flex w-full items-center justify-between gap-3 px-3 py-1.5 rounded text-sm text-ink-gray-8 hover:bg-surface-gray-2"
+                    onClick={() => handleFieldClick(field)}
+                  >
+                    <span>{label}</span>
+                    {isSelected &&
+                      (sort.order === "asc" ? (
+                        <ArrowUp className="size-4" />
+                      ) : (
+                        <ArrowDown className="size-4" />
+                      ))}
+                  </button>
+                );
+              })}
+            </div>
             {isActive && (
               <>
                 <div className="my-1 border-t border-outline-gray-2" />
-                <button
-                  type="button"
-                  className="flex w-full items-center px-3 py-1.5 text-sm text-ink-red-3 hover:bg-surface-gray-2"
-                  onClick={() => {
-                    onSortChange(null);
-                    setOpen(false);
-                  }}
-                >
-                  Clear sort
-                </button>
+                <div className="px-1">
+                  <button
+                    type="button"
+                    className="flex w-full items-center px-3 py-1.5 rounded text-sm text-ink-red-3 hover:bg-surface-gray-2"
+                    onClick={() => {
+                      onSortChange(null);
+                      setOpen(false);
+                    }}
+                  >
+                    Clear sort
+                  </button>
+                </div>
               </>
             )}
           </Popover.Popup>
