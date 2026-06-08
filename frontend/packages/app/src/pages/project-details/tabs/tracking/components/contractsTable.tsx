@@ -14,6 +14,7 @@ import { AddSm } from "@rtcamp/frappe-ui-react/icons";
 /**
  * Internal dependencies.
  */
+import { mergeClassNames } from "@/lib/utils";
 import { CONTRACT_COLUMNS } from "../constants";
 import { useTracking } from "../context";
 import { ActionsCell } from "./actionsCell";
@@ -37,7 +38,7 @@ export function ContractsTable() {
         rowKey="id"
         options={{ options: { selectable: false, resizeColumn: false } }}
       >
-        <ListHeader className="mb-0 rounded-none border-b border-outline-gray-1 bg-transparent p-1 px-2 gap-2">
+        <ListHeader className="mb-0 rounded-none border-b border-outline-gray-1 bg-transparent p-1 px-2 gap-4">
           {CONTRACT_COLUMNS.map((column) => (
             <ListHeaderItem key={column.key} item={column}>
               {column.label}
@@ -51,7 +52,7 @@ export function ContractsTable() {
             </div>
           ) : (
             rows.map((row) => (
-              <ListRow key={row.id} row={row}>
+              <ListRow key={row.id} row={row} className="gap-4">
                 {CONTRACT_COLUMNS.map((column) =>
                   column.key === "actions" ? (
                     <div
@@ -63,7 +64,12 @@ export function ContractsTable() {
                   ) : (
                     <div
                       key={column.key}
-                      className="flex items-center text-base text-ink-gray-6"
+                      className={mergeClassNames(
+                        "flex items-center text-base text-ink-gray-6",
+                        {
+                          "justify-end": column.align === "right",
+                        },
+                      )}
                     >
                       <span className="truncate">{row[column.key]}</span>
                     </div>
