@@ -34,18 +34,24 @@ export function ContractsTable() {
           ))}
         </ListHeader>
         <ListRows>
-          {rows.map((row) => (
-            <ListRow key={row.id} row={row}>
-              {CONTRACT_COLUMNS.map((column) => (
-                <div
-                  key={column.key}
-                  className={`flex items-center text-base text-ink-gray-6`}
-                >
-                  <span className="truncate">{row[column.key]}</span>
-                </div>
-              ))}
-            </ListRow>
-          ))}
+          {rows.length === 0 ? (
+            <div className="py-10 text-center text-sm text-ink-gray-4">
+              No contracts yet
+            </div>
+          ) : (
+            rows.map((row) => (
+              <ListRow key={row.id} row={row}>
+                {CONTRACT_COLUMNS.map((column) => (
+                  <div
+                    key={column.key}
+                    className={`flex items-center text-base text-ink-gray-6`}
+                  >
+                    <span className="truncate">{row[column.key]}</span>
+                  </div>
+                ))}
+              </ListRow>
+            ))
+          )}
         </ListRows>
       </ListView>
     </div>
