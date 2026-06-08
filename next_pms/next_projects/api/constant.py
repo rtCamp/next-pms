@@ -1,6 +1,22 @@
 # Permission helpers
 ALLOWED_ROLES = ["Projects Manager", "Projects User", "Timesheet Manager"]
 
+# Task.status values counted in get_project_tracking task totals (excludes Template, Cancelled)
+TASK_TRACKING_TOTAL_STATUSES = (
+    "Open",
+    "Working",
+    "Pending Review",
+    "Overdue",
+    "Completed",
+)
+TASK_TRACKING_OPEN_STATUSES = (
+    "Open",
+    "Working",
+    "Pending Review",
+    "Overdue",
+)
+TASK_TRACKING_COMPLETED_STATUS = "Completed"
+
 # project timeline item fields to fetch in list view and API
 TIMELINE_ITEM_FIELDS = [
     "name",
