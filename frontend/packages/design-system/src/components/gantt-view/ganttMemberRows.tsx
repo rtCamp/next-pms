@@ -90,7 +90,6 @@ export const GanttMemberRows: React.FC<GanttMemberRowsProps> = ({
           <RowAllocationOverlay
             ref={overlayRef}
             enabled={canManageAllocations}
-            rowKey={memberRowKey}
             allocations={member.memberSummaryBars}
             createDraftBar={(left) => ({
               rowKey: memberRowKey,

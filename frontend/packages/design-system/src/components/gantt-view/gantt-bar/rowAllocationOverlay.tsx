@@ -1,3 +1,6 @@
+/**
+ * External dependencies.
+ */
 import React, {
   forwardRef,
   useCallback,
@@ -8,6 +11,10 @@ import React, {
 } from "react";
 import { Button } from "@rtcamp/frappe-ui-react";
 import { AddMd } from "@rtcamp/frappe-ui-react/icons";
+
+/**
+ * Internal dependencies.
+ */
 import { mergeClassNames as cn } from "../../../utils";
 import {
   BAR_HEIGHT,
@@ -17,7 +24,13 @@ import {
 } from "../constants";
 import { useGanttStore } from "../ganttStore";
 import type { AllocationCallbackData } from "../types";
-import { getBarDateRange, isColumnOccupied, type DraftBarSeed } from "../utils";
+import {
+  clamp,
+  getBarDateRange,
+  isColumnOccupied,
+  snapValue,
+  type DraftBarSeed,
+} from "../utils";
 import type { OccupyingAllocation } from "../utils";
 import { DraftBar } from "./draftBar";
 
@@ -33,7 +46,6 @@ export interface RowAllocationOverlayHandle {
 
 interface RowAllocationOverlayProps {
   enabled: boolean;
-  rowKey: string;
   allocations: OccupyingAllocation[];
   createDraftBar: (left: number) => DraftBarSeed;
   onOpenAllocation?: (data: AllocationCallbackData) => void;
@@ -42,19 +54,29 @@ interface RowAllocationOverlayProps {
 type CreateInteraction = {
   pointerId: number;
   startX: number;
+  maxWidth: number;
   draft: DraftBarSeed;
 };
 
-function clamp(value: number, min: number, max: number) {
-  if (max < min) {
-    return min;
-  }
+/**
+ * Resolves the width of the draft allocation bar during drag-to-create, ensuring
+ * it stays within bounds and optionally snapping to the grid.
+ */
+function resolveCreateWidth(
+  interaction: CreateInteraction,
+  clientX: number,
+  columnWidth: number,
+  snap = false,
+) {
+  const width = clamp(
+    interaction.draft.width + (clientX - interaction.startX),
+    columnWidth,
+    interaction.maxWidth,
+  );
 
-  return Math.min(Math.max(value, min), max);
-}
-
-function snapValue(rawValue: number, unit: number) {
-  return Math.round(rawValue / unit) * unit;
+  return snap
+    ? clamp(snapValue(width, columnWidth), columnWidth, interaction.maxWidth)
+    : width;
 }
 
 /**
@@ -66,7 +88,7 @@ export const RowAllocationOverlay = forwardRef<
   RowAllocationOverlayHandle,
   RowAllocationOverlayProps
 >(function RowAllocationOverlay(
-  { enabled, rowKey, allocations, createDraftBar, onOpenAllocation },
+  { enabled, allocations, createDraftBar, onOpenAllocation },
   ref,
 ) {
   const { headerWidth, columnWidth, columnCount, weekStart, showWeekend } =
@@ -215,17 +237,10 @@ export const RowAllocationOverlay = forwardRef<
         return;
       }
 
-      const maxWidth =
-        headerWidth + columnWidth * columnCount - interaction.draft.left;
-      const nextWidth = clamp(
-        interaction.draft.width + (event.clientX - interaction.startX),
-        columnWidth,
-        maxWidth,
-      );
-
-      setDraft((prev) => (prev ? { ...prev, width: nextWidth } : prev));
+      const width = resolveCreateWidth(interaction, event.clientX, columnWidth);
+      setDraft((prev) => (prev ? { ...prev, width } : prev));
     },
-    [columnCount, columnWidth, headerWidth],
+    [columnWidth],
   );
 
   const handleWindowPointerCancel = useCallback(() => {
@@ -243,30 +258,18 @@ export const RowAllocationOverlay = forwardRef<
         return;
       }
 
-      const maxWidth =
-        headerWidth + columnWidth * columnCount - interaction.draft.left;
-      const liveWidth = clamp(
-        interaction.draft.width + (event.clientX - interaction.startX),
+      const snappedWidth = resolveCreateWidth(
+        interaction,
+        event.clientX,
         columnWidth,
-        maxWidth,
-      );
-      const snappedWidth = clamp(
-        snapValue(liveWidth, columnWidth),
-        columnWidth,
-        maxWidth,
+        true,
       );
 
       setDraft((prev) => (prev ? { ...prev, width: snappedWidth } : prev));
       stopCreateInteraction();
       openDraftAllocation(interaction.draft, snappedWidth);
     },
-    [
-      columnCount,
-      columnWidth,
-      headerWidth,
-      openDraftAllocation,
-      stopCreateInteraction,
-    ],
+    [columnWidth, openDraftAllocation, stopCreateInteraction],
   );
 
   useEffect(() => {
@@ -322,12 +325,13 @@ export const RowAllocationOverlay = forwardRef<
       createInteractionRef.current = {
         pointerId: event.pointerId,
         startX: event.clientX,
+        maxWidth: headerWidth + columnWidth * columnCount - nextDraft.left,
         draft: nextDraft,
       };
       setIsCreateDragging(true);
       document.body.style.userSelect = "none";
     },
-    [createDraftAtSlot, hoveredSlotLeft],
+    [columnCount, columnWidth, createDraftAtSlot, headerWidth, hoveredSlotLeft],
   );
 
   const handleAddButtonClick = useCallback(
@@ -383,7 +387,6 @@ export const RowAllocationOverlay = forwardRef<
           onPointerDown={handleAddButtonPointerDown}
           onClick={handleAddButtonClick}
           icon={() => <AddMd className="size-4" />}
-          key={rowKey}
         />
       )}
     </>

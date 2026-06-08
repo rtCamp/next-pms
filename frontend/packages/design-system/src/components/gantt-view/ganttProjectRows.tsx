@@ -108,7 +108,6 @@ export const GanttProjectRows: React.FC<GanttProjectRowsProps> = ({
           <RowAllocationOverlay
             ref={overlayRef}
             enabled={canManageAllocations}
-            rowKey={projectSummaryRowKey}
             allocations={project.projectSummaryBars}
             createDraftBar={(left) => ({
               rowKey: projectSummaryRowKey,
