@@ -33,15 +33,17 @@ export function TaskCompletionCell() {
               strokeLinecap="round"
               className="text-surface-gray-2"
             />
-            <path
-              d="M 15 100 A 75 75 0 0 1 185 100"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth={22}
-              strokeLinecap="round"
-              strokeDasharray={`${ratio * ARC_LENGTH} ${ARC_LENGTH}`}
-              className="text-surface-green-5"
-            />
+            {ratio > 0 && (
+              <path
+                d="M 15 100 A 75 75 0 0 1 185 100"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth={22}
+                strokeLinecap="round"
+                strokeDasharray={`${ratio * ARC_LENGTH} ${ARC_LENGTH}`}
+                className="text-surface-green-5"
+              />
+            )}
           </svg>
           <div className="absolute inset-x-0 bottom-1 flex flex-col items-center">
             <span className="text-lg font-semibold text-ink-gray-8">
