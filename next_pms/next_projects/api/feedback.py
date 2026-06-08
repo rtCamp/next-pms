@@ -185,7 +185,7 @@ def get_project_feedback_breakdown(feedback_name: str):
 
 @frappe.whitelist(methods=["GET"])
 @frappe.read_only()
-def get_team_feedback_list(project: str, limit_start: int = 0, limit_page_length: int = 20):
+def get_team_feedback_list(project: str, start: int = 0, limit: int = 20):
     """Paginated list of resource (team member) evaluations for a project's customer.
 
     Resolves the project's customer and returns every non-Project Customer Feedback for
@@ -193,8 +193,8 @@ def get_team_feedback_list(project: str, limit_start: int = 0, limit_page_length
 
     Params:
         project: Project name; its customer scopes the feedback (required).
-        limit_start: pagination offset (default 0).
-        limit_page_length: page size (default 20).
+        start: pagination offset (default 0).
+        limit: page size (default 20).
 
     Returns:
         dict: ``{ data, total, has_more }`` where ``has_more`` is ``True`` when rows remain
@@ -210,8 +210,8 @@ def get_team_feedback_list(project: str, limit_start: int = 0, limit_page_length
     if not frappe.db.exists("Project", project):
         frappe.throw(_("Project {0} not found").format(project), frappe.DoesNotExistError)
 
-    limit_start = cint(limit_start)
-    limit_page_length = cint(limit_page_length)
+    start = cint(start)
+    limit = cint(limit)
 
     customer = frappe.db.get_value("Project", project, "customer")
     if not customer:
@@ -219,29 +219,25 @@ def get_team_feedback_list(project: str, limit_start: int = 0, limit_page_length
 
     filters = {"docstatus": 1, "evaluation_type": ["!=", "Project"], "customer": customer}
 
-    CF = DocType("Customer Feedback")
-    query = (
-        frappe.qb.from_(CF)
-        .where((CF.docstatus == 1) & (CF.evaluation_type != "Project") & (CF.customer == customer))
-        .select(
-            CF.name,
-            CF.feedback_from_date,
-            CF.feedback_to_date,
-            CF.feedback_for,
-            CF.feedback_for_name,
-            CF.customer,
-            CF.feedback_by,
-            CF.contact_email,
-            CF.evaluation_type,
-            *[getattr(CF, field) for field in RESOURCE_RATING_FIELDS],
-        )
-        .orderby(CF.feedback_to_date, order=Order.desc)
-        .orderby(CF.name, order=Order.desc)
-        .limit(limit_page_length)
-        .offset(limit_start)
+    rows = frappe.get_all(
+        "Customer Feedback",
+        filters=filters,
+        fields=[
+            "name",
+            "feedback_from_date",
+            "feedback_to_date",
+            "feedback_for",
+            "feedback_for_name",
+            "customer",
+            "feedback_by",
+            "contact_email",
+            "evaluation_type",
+            *RESOURCE_RATING_FIELDS,
+        ],
+        order_by="feedback_to_date desc, name desc",
+        limit_start=start,
+        limit_page_length=limit,
     )
-
-    rows = query.run(as_dict=True)
     data = []
     for row in rows:
         rating_fields = RATING_FIELDS.get(row.evaluation_type, [])
@@ -268,7 +264,7 @@ def get_team_feedback_list(project: str, limit_start: int = 0, limit_page_length
     return {
         "data": data,
         "total": total,
-        "has_more": limit_start + len(data) < total,
+        "has_more": start + len(data) < total,
     }
 
 
