@@ -1,12 +1,15 @@
 import {
+  Button,
   ListHeader,
   ListHeaderItem,
   ListRow,
   ListRows,
   ListView,
 } from "@rtcamp/frappe-ui-react";
+import { AddSm } from "@rtcamp/frappe-ui-react/icons";
 import { CONTRACT_COLUMNS } from "../constants";
 import { useTracking } from "../context";
+import { ActionsCell } from "./actionsCell";
 
 export function ContractsTable() {
   const rows = useTracking((state) => state.contracts);
@@ -19,6 +22,7 @@ export function ContractsTable() {
         <span className="text-base font-semibold text-ink-gray-8">
           Contracts
         </span>
+        <Button icon={AddSm} variant="subtle" />
       </div>
       <ListView
         columns={CONTRACT_COLUMNS}
@@ -41,14 +45,23 @@ export function ContractsTable() {
           ) : (
             rows.map((row) => (
               <ListRow key={row.id} row={row}>
-                {CONTRACT_COLUMNS.map((column) => (
-                  <div
-                    key={column.key}
-                    className={`flex items-center text-base text-ink-gray-6`}
-                  >
-                    <span className="truncate">{row[column.key]}</span>
-                  </div>
-                ))}
+                {CONTRACT_COLUMNS.map((column) =>
+                  column.key === "actions" ? (
+                    <div
+                      key={column.key}
+                      className="flex items-center justify-end"
+                    >
+                      <ActionsCell onEdit={() => {}} onDelete={() => {}} />
+                    </div>
+                  ) : (
+                    <div
+                      key={column.key}
+                      className="flex items-center text-base text-ink-gray-6"
+                    >
+                      <span className="truncate">{row[column.key]}</span>
+                    </div>
+                  ),
+                )}
               </ListRow>
             ))
           )}

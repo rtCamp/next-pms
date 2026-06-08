@@ -10,6 +10,7 @@ import {
 import { AddSm } from "@rtcamp/frappe-ui-react/icons";
 import { RATE_COLUMNS } from "../constants";
 import { useTracking } from "../context";
+import { ActionsCell } from "./actionsCell";
 
 const gridTemplateColumns = RATE_COLUMNS.map((c) => c.width).join(" ");
 
@@ -57,6 +58,9 @@ export function ProjectRatesTable() {
               <div className="truncate text-base text-ink-gray-6 tabular-nums">
                 {flatRate.date}
               </div>
+              <div className="flex items-center justify-end">
+                <ActionsCell onEdit={() => {}} onDelete={() => {}} />
+              </div>
             </div>
           )}
           {rows.length === 0 && !flatRate ? (
@@ -77,6 +81,9 @@ export function ProjectRatesTable() {
                 </div>
                 <div className="truncate text-base text-ink-gray-6 tabular-nums">
                   {row.date}
+                </div>
+                <div className="flex items-center justify-end">
+                  <ActionsCell onEdit={() => {}} onDelete={() => {}} />
                 </div>
               </ListRow>
             ))
