@@ -187,6 +187,7 @@ export function GanttAllocationBar({
         billable: allocation.billable,
         tentative: allocation.tentative,
         note: allocation.note,
+        override: allocation.override,
       });
     },
     [

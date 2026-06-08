@@ -2,7 +2,7 @@
  * External dependencies.
  */
 import type { Allocation } from "@next-pms/design-system/components";
-import { addMonths, addWeeks, parseISO } from "date-fns";
+import { addDays, addMonths, addWeeks, format, parseISO } from "date-fns";
 
 /**
  * Internal dependencies.
@@ -43,6 +43,13 @@ export type AllocationApiRecord = {
   modified?: string | null;
   modified_by?: string | null;
   modified_by_avatar?: string | null;
+  override?: AllocationOverrideEntry[];
+};
+
+export type AllocationOverrideEntry = {
+  date: string;
+  hours?: number | null;
+  cancelled?: number | null;
 };
 
 /**
@@ -167,6 +174,7 @@ export function mapResourceAllocation<T extends AllocationApiRecord>(
     billable: Boolean(allocation.is_billable),
     tentative: allocation.status === "Tentative",
     note: allocation.note ?? undefined,
+    override: allocation.override,
     createdOn: allocation.creation
       ? parseFrappeDatetime(allocation.creation)
       : undefined,
@@ -180,6 +188,80 @@ export function mapResourceAllocation<T extends AllocationApiRecord>(
         }
       : undefined,
   };
+}
+
+/**
+ * Splits an allocation into visible contiguous segments after applying per-day overrides.
+ * Each segment is treated as its own visible allocation entry while still pointing at
+ * the same underlying allocation document id.
+ */
+export function mapResourceAllocationSegments<T extends AllocationApiRecord>(
+  allocation: T,
+  customerName?: string,
+): Array<Allocation & { customerName?: string }> {
+  const baseAllocation = mapResourceAllocation(allocation, customerName);
+  const overrideByDate = new Map(
+    (allocation.override ?? []).map((entry) => [entry.date, entry]),
+  );
+
+  if (!overrideByDate.size) {
+    return [baseAllocation];
+  }
+
+  const segments: Array<Allocation & { customerName?: string }> = [];
+
+  let currentDate = baseAllocation.startDate;
+  let segmentStart: Date | null = null;
+  let segmentEnd: Date | null = null;
+  let segmentHours: number | null = null;
+
+  const pushSegment = () => {
+    if (!segmentStart || !segmentEnd || segmentHours === null) {
+      return;
+    }
+
+    segments.push({
+      ...baseAllocation,
+      startDate: segmentStart,
+      endDate: segmentEnd,
+      hours: segmentHours,
+      override: allocation.override,
+    });
+  };
+
+  while (currentDate <= baseAllocation.endDate) {
+    const dateKey = format(currentDate, "yyyy-MM-dd");
+    const dayOverride = overrideByDate.get(dateKey);
+    const dayHours =
+      dayOverride?.cancelled === 1
+        ? 0
+        : (dayOverride?.hours ?? baseAllocation.hours);
+
+    if (dayHours <= 0) {
+      pushSegment();
+      segmentStart = null;
+      segmentEnd = null;
+      segmentHours = null;
+      currentDate = addDays(currentDate, 1);
+      continue;
+    }
+
+    if (segmentStart && segmentHours === dayHours) {
+      segmentEnd = currentDate;
+      currentDate = addDays(currentDate, 1);
+      continue;
+    }
+
+    pushSegment();
+    segmentStart = currentDate;
+    segmentEnd = currentDate;
+    segmentHours = dayHours;
+    currentDate = addDays(currentDate, 1);
+  }
+
+  pushSegment();
+
+  return segments;
 }
 
 /**

@@ -11,6 +11,7 @@ import { useFrappePostCall } from "frappe-react-sdk";
  * Internal dependencies.
  */
 import type { AddAllocationInitialValues } from "@/pages/allocations/team/add-allocation/types";
+import type { EditScheduleInitialValues } from "@/pages/allocations/team/edit-schedule/types";
 import type { AllocationOutletContext } from "./allocationOutletContext";
 import type { AllocationRefreshTargets } from "./types";
 
@@ -23,8 +24,9 @@ export function useAllocationModal(refresh: RefreshAllocations) {
   const [addAllocationInitialValues, setAddAllocationInitialValues] = useState<
     AddAllocationInitialValues | undefined
   >(undefined);
-  const [editScheduleInitialValues, setEditScheduleInitialValues] =
-    useState(undefined);
+  const [editScheduleInitialValues, setEditScheduleInitialValues] = useState<
+    EditScheduleInitialValues | undefined
+  >(undefined);
 
   const toast = useToasts();
   const { call: deleteAllocation } = useFrappePostCall(
@@ -69,6 +71,7 @@ export function useAllocationModal(refresh: RefreshAllocations) {
         isBillable: data.billable,
         isTentative: data.tentative,
         note: data.note,
+        override: data.override,
       });
       setIsAddAllocationOpen(true);
     },
@@ -121,6 +124,15 @@ export function useAllocationModal(refresh: RefreshAllocations) {
     [refresh],
   );
 
+  const handleEditScheduleSuccess = useCallback(
+    async (targets?: AllocationRefreshTargets) => {
+      await refresh(targets);
+      setIsEditScheduleOpen(false);
+      setEditScheduleInitialValues(undefined);
+    },
+    [refresh],
+  );
+
   const outletContext = useMemo<AllocationOutletContext>(
     () => ({
       openAddAllocationDialog: openAddAllocationDialog,
@@ -140,10 +152,17 @@ export function useAllocationModal(refresh: RefreshAllocations) {
       onEditScheduleClick: () => {
         setIsAddAllocationOpen(false);
         setEditScheduleInitialValues({
-          mode: addAllocationInitialValues?.recurrence || "one-time",
+          allocationName: addAllocationInitialValues?.allocationName ?? "",
+          employeeId: addAllocationInitialValues?.employeeId,
+          projectId: addAllocationInitialValues?.projectId,
+          customer: addAllocationInitialValues?.customer,
           rangeStart: addAllocationInitialValues?.fromDate || "",
           rangeEnd: addAllocationInitialValues?.toDate || "",
-          defaultHoursPerDay: addAllocationInitialValues?.hoursPerDay,
+          defaultHoursPerDay: addAllocationInitialValues?.hoursPerDay ?? 0,
+          isBillable: addAllocationInitialValues?.isBillable,
+          isTentative: addAllocationInitialValues?.isTentative,
+          note: addAllocationInitialValues?.note,
+          override: addAllocationInitialValues?.override,
         });
         setIsEditScheduleOpen(true);
       },
@@ -162,15 +181,14 @@ export function useAllocationModal(refresh: RefreshAllocations) {
       open: isEditScheduleOpen,
       onOpenChange: (open: boolean) => {
         setIsEditScheduleOpen(open);
+        if (!open) {
+          setEditScheduleInitialValues(undefined);
+        }
       },
       initialValues: editScheduleInitialValues,
-      onSuccess: (targets?: AllocationRefreshTargets) => {
-        refresh(targets);
-        setIsEditScheduleOpen(false);
-        setEditScheduleInitialValues(undefined);
-      },
+      onSuccess: handleEditScheduleSuccess,
     }),
-    [isEditScheduleOpen, editScheduleInitialValues, refresh],
+    [handleEditScheduleSuccess, isEditScheduleOpen, editScheduleInitialValues],
   );
 
   return {

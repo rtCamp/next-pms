@@ -4,6 +4,7 @@
 import {
   addDays,
   differenceInCalendarDays,
+  eachDayOfInterval,
   format,
   isSameMonth,
   parseISO,
@@ -12,6 +13,7 @@ import {
 /**
  * Internal dependencies.
  */
+import type { AllocationOverrideEntry } from "@/pages/allocations/utils";
 import type { DayItem, PreviewRow } from "./types";
 
 /**
@@ -101,3 +103,86 @@ export const getTotalHoursForRows = (rows: PreviewRow[]): number =>
       sum + getRangeHours(row.startDate, row.endDate, row.hoursPerDay),
     0,
   );
+
+/**
+ * Expands a selected range into day-level override payloads.
+ */
+export const buildDayOverrides = (
+  startDate: string,
+  endDate: string,
+  hoursPerDay: number,
+) =>
+  eachDayOfInterval({
+    start: parseISO(startDate),
+    end: parseISO(endDate),
+  }).map((date) => ({
+    date: format(date, "yyyy-MM-dd"),
+    hours: hoursPerDay,
+  }));
+
+/**
+ * Builds preview rows for the schedule summary, applying stored overrides first and
+ * then layering the current in-modal selection on top.
+ */
+export const buildPreviewRows = ({
+  rangeStart,
+  rangeEnd,
+  defaultHoursPerDay,
+  override = [],
+  selection,
+}: {
+  rangeStart: string;
+  rangeEnd: string;
+  defaultHoursPerDay: number;
+  override?: AllocationOverrideEntry[];
+  selection?: {
+    startDate: string;
+    endDate: string;
+    hoursPerDay: number;
+  } | null;
+}): PreviewRow[] => {
+  const rows: PreviewRow[] = [];
+  const overrideByDate = new Map(override.map((entry) => [entry.date, entry]));
+
+  let currentRow: PreviewRow | null = null;
+
+  for (const currentDate of eachDayOfInterval({
+    start: parseISO(rangeStart),
+    end: parseISO(rangeEnd),
+  })) {
+    const dateKey = format(currentDate, "yyyy-MM-dd");
+    const dayOverride = overrideByDate.get(dateKey);
+    const inSelection =
+      selection !== null &&
+      selection !== undefined &&
+      dateKey >= selection.startDate &&
+      dateKey <= selection.endDate;
+    const hoursPerDay = inSelection
+      ? selection.hoursPerDay
+      : dayOverride?.cancelled === 1
+        ? 0
+        : (dayOverride?.hours ?? defaultHoursPerDay);
+
+    if (
+      currentRow &&
+      currentRow.hoursPerDay === hoursPerDay &&
+      currentRow.isSelected === inSelection
+    ) {
+      currentRow.endDate = dateKey;
+      currentRow.isModified =
+        currentRow.isSelected && currentRow.hoursPerDay !== defaultHoursPerDay;
+      continue;
+    }
+
+    currentRow = {
+      startDate: dateKey,
+      endDate: dateKey,
+      hoursPerDay,
+      isSelected: inSelection,
+      isModified: inSelection && hoursPerDay !== defaultHoursPerDay,
+    };
+    rows.push(currentRow);
+  }
+
+  return rows;
+};

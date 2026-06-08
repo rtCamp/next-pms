@@ -1,4 +1,5 @@
 import type { AllocationRefreshTargets } from "../../types";
+import type { AllocationOverrideEntry } from "../../utils";
 
 export type AddAllocationLayoutVariant = "team" | "project";
 
@@ -16,6 +17,7 @@ export interface AddAllocationInitialValues {
   isBillable?: boolean;
   isTentative?: boolean;
   note?: string;
+  override?: AllocationOverrideEntry[];
 }
 
 export interface AddAllocationModalProps {

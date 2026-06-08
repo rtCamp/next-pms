@@ -26,6 +26,12 @@ export interface Allocation {
     name: string;
     image?: string;
   };
+  /** Existing day-level overrides attached to the allocation. */
+  override?: {
+    date: string;
+    hours?: number | null;
+    cancelled?: number | null;
+  }[];
 }
 
 export interface MemberBarAllocation extends Allocation {
@@ -99,6 +105,12 @@ export interface AllocationCallbackData {
   tentative?: boolean;
   /** Note for the allocation. */
   note?: string;
+  /** Existing day-level overrides attached to the allocation. */
+  override?: {
+    date: string;
+    hours?: number | null;
+    cancelled?: number | null;
+  }[];
 }
 
 export interface GanttGridHandle {

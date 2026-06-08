@@ -21,6 +21,7 @@ export function allocationBarToEntry(
     billable: alloc.billable,
     tentative: alloc.tentative,
     note: alloc.note,
+    override: alloc.override,
   };
 
   return {

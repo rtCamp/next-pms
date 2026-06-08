@@ -1,3 +1,6 @@
+import type { AllocationOverrideEntry } from "@/pages/allocations/utils";
+import type { AllocationRefreshTargets } from "../../types";
+
 export type DayItem = {
   date: string;
   dayLabel: string;
@@ -21,27 +24,23 @@ export type SelectedRange = {
   endDate: string | null;
 };
 
-export interface EditScheduleSeedBand {
-  startDate: string;
-  endDate: string;
-  hoursPerDay: number;
-  repeatForwardCount?: number;
-}
-
 export interface EditScheduleInitialValues {
+  allocationName: string;
+  employeeId?: string;
+  projectId?: string;
+  customer?: string;
   rangeStart: string;
   rangeEnd: string;
-  defaultHoursPerDay?: number;
-}
-
-export interface EditSchedulePayload {
-  totalHours: number;
-  bands: EditScheduleSeedBand[];
+  defaultHoursPerDay: number;
+  isBillable?: boolean;
+  isTentative?: boolean;
+  note?: string;
+  override?: AllocationOverrideEntry[];
 }
 
 export interface EditScheduleModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   initialValues?: EditScheduleInitialValues;
-  onSave?: (payload: EditSchedulePayload) => void | Promise<void>;
+  onSuccess?: (targets?: AllocationRefreshTargets) => void | Promise<void>;
 }
