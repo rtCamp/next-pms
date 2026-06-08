@@ -74,3 +74,53 @@ KANBAN_VIEW_FIELDS = [
     "custom_engineering_manager",
     "custom_engineering_manager_name",
 ]
+
+# evaluation_type -> ordered list of its Rating fieldnames.
+RATING_FIELDS = {
+    "Project": [
+        "p_overall_satisfaction",
+        "p_communication_responsiveness",
+        "p_delivery_quality",
+        "p_confidence_engagement",
+    ],
+    "Engineer": [
+        "e_ability_to_provide_soln",
+        "e_ability_to_meet_deadlines",
+        "e_responsiveness",
+        "e_proactiveness",
+    ],
+    "Project Manager": [
+        "pm_overall_outcome",
+        "pm_ability_to_meet_goals",
+        "pm_planning_documenting",
+        "pm_contribute_ideas",
+        "pm_effective_communication",
+    ],
+    "Project Coordinator": [
+        "pc_assigning_and_monitoring",
+        "pc_sharing_frequent_updates",
+        "pc_able_to_provide_clear",
+        "pc_ability_to_foster_collab",
+    ],
+    "Quality Engineer": [
+        "qe_able_to_identify_bugs",
+        "qe_follows_coding_standards",
+        "qe_clear_and_descriptive_information",
+    ],
+}
+
+# evaluation_type -> ordered list of free-text answer fieldnames.
+TEXT_FIELDS = {
+    "Project": ["p_suggestion", "p_reccomendation", "additional_comments__feedback"],
+    "Engineer": ["additional_comments__feedback"],
+    "Project Manager": ["additional_comments__feedback"],
+    "Project Coordinator": ["additional_comments__feedback"],
+    "Quality Engineer": ["additional_comments__feedback"],
+}
+
+# Every rating column across the resource (non-Project) evaluation types.
+RESOURCE_RATING_FIELDS = [
+    field for evaluation_type, fields in RATING_FIELDS.items() if evaluation_type != "Project" for field in fields
+]
+
+DEFAULT_STAR_MAX = 4
