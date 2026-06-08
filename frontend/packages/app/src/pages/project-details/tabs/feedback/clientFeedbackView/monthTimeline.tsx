@@ -57,7 +57,7 @@ export function MonthTimeline({
                 >
                   {entry.month}
                 </span>
-                <span className={cn("text-base", scoreClass)}>
+                <span className={cn("text-base font-medium", scoreClass)}>
                   {entry.score !== null ? entry.score : "-"}
                 </span>
                 {entry.month === "Jan" && (

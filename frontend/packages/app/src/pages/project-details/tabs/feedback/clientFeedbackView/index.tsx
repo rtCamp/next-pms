@@ -33,13 +33,13 @@ export function ClientFeedbackView({
       ) : (
         <div className="grid grid-cols-[240px_1fr] gap-6">
           <div>
-            <h3 className="text-lg text-ink-gray-7 font-semibold mb-3.5">
+            <h3 className="text-lg text-ink-gray-8 font-medium mb-3.5">
               {getMonthName(selectedMonth)} Feedback Breakdown
             </h3>
             <FeedbackBreakdown metrics={breakdown} />
           </div>
           <div>
-            <h3 className="text-lg text-ink-gray-7 font-semibold mb-3.5">
+            <h3 className="text-lg text-ink-gray-8 font-medium mb-3.5">
               Responses
             </h3>
             <ResponsesList responses={responses} />

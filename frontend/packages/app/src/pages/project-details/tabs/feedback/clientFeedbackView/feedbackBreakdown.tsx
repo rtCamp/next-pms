@@ -30,7 +30,7 @@ export function FeedbackBreakdown({ metrics }: FeedbackBreakdownProps) {
               activeColor="var(--color-amber-600)"
               inactiveColor="var(--color-gray-300)"
             />
-            <span className="text-base text-ink-gray-7">
+            <span className="text-base text-ink-gray-8">
               {metric.percentage}%
             </span>
           </div>
