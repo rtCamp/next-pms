@@ -74,12 +74,14 @@ export function FeedbackDetailDialog({
             </div>
 
             {/* Comments */}
-            {detail.comments.length > 0 && (
-              <div className="flex flex-col gap-3">
-                <h3 className="text-xl font-semibold text-ink-gray-8">
-                  Comments
-                </h3>
-                {detail.comments.map((comment, i) => (
+            <div className="flex flex-col gap-3">
+              <h3 className="text-xl font-semibold text-ink-gray-8">
+                Comments
+              </h3>
+              {detail.comments.length === 0 ? (
+                <p className="text-base text-ink-gray-5">No comments yet.</p>
+              ) : (
+                detail.comments.map((comment, i) => (
                   <div key={i} className="flex flex-col gap-1">
                     <div className="flex items-center gap-2 py-1">
                       <Avatar
@@ -100,9 +102,9 @@ export function FeedbackDetailDialog({
                       </p>
                     </div>
                   </div>
-                ))}
-              </div>
-            )}
+                ))
+              )}
+            </div>
           </div>
 
           {/* Comment input */}
