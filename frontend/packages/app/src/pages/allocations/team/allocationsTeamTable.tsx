@@ -1,7 +1,7 @@
 /**
  * External dependencies.
  */
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { mergeClassNames as cn } from "@next-pms/design-system";
 import {
   GanttGrid,
@@ -91,20 +91,10 @@ export const AllocationsTeamTable = () => {
   const [designationQuery, setDesignationQuery] = useState("");
   const [isDesignationOpen, setIsDesignationOpen] = useState(false);
 
-  const selectedDesignationOptions = useMemo(
-    () =>
-      designation.map((selectedDesignation) => ({
-        label: selectedDesignation,
-        value: selectedDesignation,
-      })),
-    [designation],
-  );
-
   const { options: designationOptions, isLoading: isDesignationLookupLoading } =
     useDesignationLookup({
       shouldFetch: true,
       query: designationQuery,
-      selectedOption: selectedDesignationOptions,
     });
 
   const showWeekend = isWeekendEntryAllowed();
@@ -131,6 +121,7 @@ export const AllocationsTeamTable = () => {
             value={designation}
             open={isDesignationOpen}
             searchValue={designationQuery}
+            keepSelectedVisible
             loading={isDesignationLookupLoading}
             onOpenChange={(value) => guard(() => setIsDesignationOpen(value))}
             onSearchChange={setDesignationQuery}
