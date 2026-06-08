@@ -2,6 +2,8 @@
  * External dependencies.
  */
 import { useSearchParams } from "react-router-dom";
+import { mergeClassNames as cn } from "@next-pms/design-system";
+import { Spinner } from "@next-pms/design-system/components";
 
 /**
  * Internal dependencies.
@@ -31,6 +33,7 @@ function RisksContent() {
   const deleteRiskName = useRisks((c) => c.state.deleteRiskName);
   const closeCreateRisk = useRisks((c) => c.actions.closeCreateRisk);
   const closeDeleteRisk = useRisks((c) => c.actions.closeDeleteRisk);
+  const isLoading = useRisks((c) => c.state.isLoading);
 
   return (
     <>
@@ -46,9 +49,21 @@ function RisksContent() {
       {riskId ? (
         <RiskDetailView riskId={riskId} />
       ) : (
-        <div className="flex flex-col h-full">
+        <div className="relative flex flex-col h-full">
           <RisksHeader />
-          {activeView === "kanban" ? <RisksKanbanView /> : <RisksListView />}
+          <div
+            className={cn("flex flex-col flex-1 min-h-0", {
+              "opacity-50 transition-opacity duration-150": isLoading,
+            })}
+          >
+            {activeView === "kanban" ? <RisksKanbanView /> : <RisksListView />}
+          </div>
+          {isLoading && (
+            <Spinner
+              isFull
+              className="absolute top-0 left-0 w-full h-full cursor-wait"
+            />
+          )}
         </div>
       )}
     </>
