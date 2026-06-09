@@ -1,13 +1,15 @@
 # Copyright (c) 2026, rtCamp and contributors
 # For license information, please see license.txt
 
+from datetime import timedelta
+
 import frappe
 from erpnext.setup.utils import get_exchange_rate
 from frappe import only_for, whitelist
 from frappe.core.doctype.recorder.recorder import redis_cache
 from frappe.query_builder import DocType
 from frappe.query_builder.functions import Sum
-from frappe.utils import add_days, flt, getdate, today
+from frappe.utils import add_days, cint, flt, getdate, today
 from pypika import Case
 from pypika.functions import Date
 
@@ -100,7 +102,7 @@ def get_non_billable_hours(days: int = 30) -> float:
     return _get_non_billable_hours(days)
 
 
-@redis_cache()
+@redis_cache(ttl=21600)
 def _get_non_billable_hours(days: int) -> float:
     TimesheetDetail = DocType("Timesheet Detail")
     since = add_days(today(), -days)
@@ -114,6 +116,173 @@ def _get_non_billable_hours(days: int) -> float:
     )
 
     return flt(result[0].total) if result else 0.0
+
+
+@whitelist(methods=["GET"])
+def get_members_without_allocation(days: int = 7) -> dict:
+    """Return active employees who are under-allocated on at least one working day.
+
+    A working day is any calendar day in the look-back window. Weekends are
+    included only when Allow Weekend Entries is enabled in Timesheet Settings.
+
+    An employee is counted when their total confirmed allocation hours for a day
+    are less than their expected daily working hours (from Employee custom fields,
+    falling back to HR Settings standard_working_hours).
+
+    Args:
+        days: Inclusive look-back window length ending today. Must be at least 1.
+            For example, days=7 on 9 Jun covers 3 Jun through 9 Jun inclusive.
+
+    Returns:
+        A dict with count (unique under-allocated employees), days (requested
+        window length), start_date, end_date, and members. Each member entry
+        includes employee, employee_name, daily_working_hours, and gap_dates.
+        Each gap_dates item has date, allocated_hours, and missing_hours.
+
+    Raises:
+        frappe.PermissionError: If the caller lacks Projects Manager, Projects User,
+            or System Manager role.
+        frappe.ValidationError: If days is less than 1.
+    """
+    only_for(["Projects Manager", "Projects User", "System Manager"], message=True)
+
+    if days < 1:
+        frappe.throw(frappe._("days must be at least 1"))
+
+    return _get_members_without_allocation(days)
+
+
+@redis_cache(ttl=21600)
+def _get_members_without_allocation(days: int) -> dict:
+    from next_pms.resource_management.api.utils.query import attach_extra_entries
+
+    end_date = getdate(today())
+    start_date = end_date - timedelta(days=days - 1)
+    allow_weekend_entries = cint(frappe.db.get_single_value("Timesheet Settings", "allow_weekend_entries"))
+    working_dates = []
+    for offset in range(days):
+        date = start_date + timedelta(days=offset)
+        if allow_weekend_entries or date.weekday() < 5:
+            working_dates.append(date)
+
+    employees = frappe.get_all(
+        "Employee",
+        filters={"status": "Active"},
+        fields=["name", "employee_name", "custom_working_hours", "custom_work_schedule"],
+    )
+
+    if not employees or not working_dates:
+        return {
+            "count": 0,
+            "days": days,
+            "start_date": start_date,
+            "end_date": end_date,
+            "members": [],
+        }
+
+    default_daily_hours = flt(frappe.db.get_single_value("HR Settings", "standard_working_hours") or 8)
+    employee_names = [employee.name for employee in employees]
+
+    ResourceAllocation = DocType("Resource Allocation")
+    allocations = (
+        frappe.qb.from_(ResourceAllocation)
+        .select(
+            ResourceAllocation.name,
+            ResourceAllocation.employee,
+            ResourceAllocation.employee_name,
+            ResourceAllocation.allocation_start_date,
+            ResourceAllocation.allocation_end_date,
+            ResourceAllocation.hours_allocated_per_day,
+            ResourceAllocation.status,
+        )
+        .where(ResourceAllocation.employee.isin(employee_names))
+        .where(ResourceAllocation.allocation_start_date <= end_date)
+        .where(ResourceAllocation.allocation_end_date >= start_date)
+        .where(ResourceAllocation.status == "Confirmed")
+        .run(as_dict=True)
+    )
+    allocations = attach_extra_entries(allocations)
+
+    allocations_by_employee = {}
+    for allocation in allocations:
+        allocations_by_employee.setdefault(allocation.employee, []).append(allocation)
+
+    members = []
+    for employee in employees:
+        working_hours = flt(employee.custom_working_hours) or default_daily_hours
+        daily_working_hours = working_hours / 5 if employee.custom_work_schedule == "Per Week" else working_hours
+        daily_working_hours = flt(daily_working_hours)
+        gap_dates = []
+
+        for date in working_dates:
+            allocated_hours = _get_employee_allocated_hours_for_date(
+                allocations_by_employee.get(employee.name, []),
+                date,
+            )
+            if allocated_hours < daily_working_hours:
+                gap_dates.append(
+                    {
+                        "date": date,
+                        "allocated_hours": flt(allocated_hours, 2),
+                        "missing_hours": flt(daily_working_hours - allocated_hours, 2),
+                    }
+                )
+
+        if gap_dates:
+            members.append(
+                {
+                    "employee": employee.name,
+                    "employee_name": employee.employee_name,
+                    "daily_working_hours": daily_working_hours,
+                    "gap_dates": gap_dates,
+                }
+            )
+
+    return {
+        "count": len(members),
+        "days": days,
+        "start_date": start_date,
+        "end_date": end_date,
+        "members": members,
+    }
+
+
+def _get_employee_allocated_hours_for_date(allocations: list, date) -> float:
+    """Sum confirmed allocation hours for one employee on a single date.
+
+    Iterates the employee's allocations that overlap the given date. For each
+    allocation, skips it when the date is outside the allocation range or when a
+    per-day override marks that date as cancelled. Uses override hours when set,
+    otherwise hours_allocated_per_day.
+
+    Args:
+        allocations: Confirmed Resource Allocation dicts for one employee, each
+            optionally containing an override list from attach_extra_entries.
+        date: The calendar date to evaluate.
+
+    Returns:
+        Total allocated hours across all matching allocations for the date.
+    """
+    allocated_hours = 0.0
+    for allocation in allocations:
+        if not (allocation.allocation_start_date <= date <= allocation.allocation_end_date):
+            continue
+
+        override = None
+        for row in allocation.get("override", []):
+            if getdate(row.date) == date:
+                override = row
+                break
+
+        if override and override.cancelled:
+            continue
+
+        allocated_hours += (
+            flt(override.hours) if override and override.hours is not None else flt(allocation.hours_allocated_per_day)
+        )
+
+    return allocated_hours
+
 
 @whitelist(methods=["GET"])
 def get_my_projects_summary(days: int = 7, customer: str | None = None) -> list:
