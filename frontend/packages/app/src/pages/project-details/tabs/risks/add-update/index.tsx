@@ -66,6 +66,7 @@ export function AddUpdateModal({
           risk_level: e.risk_level,
           note: e.note,
           updated_at: e.updated_at,
+          updated_by: e.updated_by,
         }));
 
         if (isEditing && editEntry) {
