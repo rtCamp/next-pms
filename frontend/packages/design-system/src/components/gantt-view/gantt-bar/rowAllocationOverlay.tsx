@@ -6,7 +6,6 @@ import React, {
   useCallback,
   useEffect,
   useImperativeHandle,
-  useRef,
   useState,
 } from "react";
 import { Button } from "@rtcamp/frappe-ui-react";
@@ -16,21 +15,11 @@ import { AddMd } from "@rtcamp/frappe-ui-react/icons";
  * Internal dependencies.
  */
 import { mergeClassNames as cn } from "../../../utils";
-import {
-  BAR_HEIGHT,
-  BAR_MARGIN,
-  CELL_HEIGHT,
-  FULL_DAY_HOURS,
-} from "../constants";
+import { BAR_HEIGHT, BAR_MARGIN, CELL_HEIGHT } from "../constants";
 import { useGanttStore } from "../ganttStore";
+import { useRowAllocationDraft } from "../hooks/useRowAllocationDraft";
 import type { AllocationCallbackData } from "../types";
-import {
-  clamp,
-  getBarDateRange,
-  isColumnOccupied,
-  snapValue,
-  type DraftBarSeed,
-} from "../utils";
+import { isColumnOccupied, type DraftBarSeed } from "../utils";
 import type { OccupyingAllocation } from "../utils";
 import { DraftBar } from "./draftBar";
 
@@ -50,35 +39,6 @@ interface RowAllocationOverlayProps {
   createDraftBar: (left: number) => DraftBarSeed;
   onOpenAllocation?: (data: AllocationCallbackData) => void;
 }
-
-type CreateInteraction = {
-  pointerId: number;
-  startX: number;
-  maxWidth: number;
-  draft: DraftBarSeed;
-};
-
-/**
- * Resolves the width of the draft allocation bar during drag-to-create, ensuring
- * it stays within bounds and optionally snapping to the grid.
- */
-function resolveCreateWidth(
-  interaction: CreateInteraction,
-  clientX: number,
-  columnWidth: number,
-  snap = false,
-) {
-  const width = clamp(
-    interaction.draft.width + (clientX - interaction.startX),
-    columnWidth,
-    interaction.maxWidth,
-  );
-
-  return snap
-    ? clamp(snapValue(width, columnWidth), columnWidth, interaction.maxWidth)
-    : width;
-}
-
 /**
  * forwardRef exposes an imperative handle so the parent component can forward
  * pointer events here without owning hover/draft state, keeping pointermove
@@ -100,17 +60,24 @@ export const RowAllocationOverlay = forwardRef<
       showWeekend: s.showWeekend,
     }));
 
-  const [draft, setDraft] = useState<DraftBarSeed | null>(null);
   const [hoveredSlotLeft, setHoveredSlotLeft] = useState<number | null>(null);
 
-  const createInteractionRef = useRef<CreateInteraction | null>(null);
-  const removeCreateListenersRef = useRef<(() => void) | null>(null);
+  const { draft, removeDraft, openDraftAtSlot, startCreateInteraction } =
+    useRowAllocationDraft({
+      createDraftBar,
+      headerWidth,
+      columnWidth,
+      columnCount,
+      maxRight: headerWidth + columnWidth * columnCount,
+      weekStart,
+      showWeekend,
+      onOpenAllocation,
+      onDraftCreated: () => {
+        setHoveredSlotLeft(null);
+      },
+    });
 
   const canAdd = enabled && draft === null;
-
-  const removeDraft = useCallback(() => {
-    setDraft(null);
-  }, []);
 
   useEffect(() => {
     if (!enabled) {
@@ -170,153 +137,11 @@ export const RowAllocationOverlay = forwardRef<
     setHoveredSlotLeft(null);
   }, []);
 
-  const openDraftAllocation = useCallback(
-    (nextDraft: DraftBarSeed, width: number) => {
-      if (!onOpenAllocation) {
-        return;
-      }
-
-      const { startDate, endDate } = getBarDateRange({
-        left: nextDraft.left,
-        width,
-        headerWidth,
-        columnWidth,
-        columnCount,
-        weekStart,
-        showWeekend,
-      });
-
-      onOpenAllocation({
-        employeeId: nextDraft.employeeId,
-        projectId: nextDraft.projectId,
-        projectName: nextDraft.projectName,
-        customerName: nextDraft.customerName,
-        startDate,
-        endDate,
-        hoursPerDay: FULL_DAY_HOURS,
-        onSuccess: removeDraft,
-      });
-    },
-    [
-      columnCount,
-      columnWidth,
-      headerWidth,
-      onOpenAllocation,
-      removeDraft,
-      showWeekend,
-      weekStart,
-    ],
-  );
-
   const handleRowPointerMove = useCallback(
     (event: React.PointerEvent<HTMLTableRowElement>) => {
       updateHoveredSlotFromPointer(event);
     },
     [updateHoveredSlotFromPointer],
-  );
-
-  const stopCreateInteraction = useCallback(() => {
-    removeCreateListenersRef.current?.();
-    removeCreateListenersRef.current = null;
-    createInteractionRef.current = null;
-    document.body.style.userSelect = "";
-  }, []);
-
-  const handleWindowPointerMove = useCallback(
-    (event: PointerEvent) => {
-      const interaction = createInteractionRef.current;
-      if (!interaction || interaction.pointerId !== event.pointerId) {
-        return;
-      }
-
-      const width = resolveCreateWidth(interaction, event.clientX, columnWidth);
-      setDraft((prev) => (prev ? { ...prev, width } : prev));
-    },
-    [columnWidth],
-  );
-
-  const handleWindowPointerCancel = useCallback(
-    (event: PointerEvent) => {
-      const interaction = createInteractionRef.current;
-      if (!interaction || interaction.pointerId !== event.pointerId) {
-        return;
-      }
-
-      stopCreateInteraction();
-    },
-    [stopCreateInteraction],
-  );
-
-  useEffect(() => {
-    return () => {
-      removeCreateListenersRef.current?.();
-      document.body.style.userSelect = "";
-    };
-  }, []);
-
-  const createDraftAtSlot = useCallback(
-    (slotLeft: number) => {
-      const nextDraft = createDraftBar(slotLeft);
-      setHoveredSlotLeft(null);
-      setDraft(nextDraft);
-      return nextDraft;
-    },
-    [createDraftBar],
-  );
-
-  const handleWindowPointerUp = useCallback(
-    (event: PointerEvent) => {
-      const interaction = createInteractionRef.current;
-      if (!interaction || interaction.pointerId !== event.pointerId) {
-        return;
-      }
-
-      const snappedWidth = resolveCreateWidth(
-        interaction,
-        event.clientX,
-        columnWidth,
-        true,
-      );
-
-      setDraft((prev) => (prev ? { ...prev, width: snappedWidth } : prev));
-      stopCreateInteraction();
-      openDraftAllocation(interaction.draft, snappedWidth);
-    },
-    [columnWidth, openDraftAllocation, stopCreateInteraction],
-  );
-
-  const startCreateInteraction = useCallback(
-    (slotLeft: number, pointerId: number, clientX: number) => {
-      const nextDraft = createDraftAtSlot(slotLeft);
-      createInteractionRef.current = {
-        pointerId,
-        startX: clientX,
-        maxWidth: headerWidth + columnWidth * columnCount - nextDraft.left,
-        draft: nextDraft,
-      };
-
-      removeCreateListenersRef.current?.();
-
-      window.addEventListener("pointermove", handleWindowPointerMove);
-      window.addEventListener("pointerup", handleWindowPointerUp);
-      window.addEventListener("pointercancel", handleWindowPointerCancel);
-      removeCreateListenersRef.current = () => {
-        window.removeEventListener("pointermove", handleWindowPointerMove);
-        window.removeEventListener("pointerup", handleWindowPointerUp);
-        window.removeEventListener("pointercancel", handleWindowPointerCancel);
-      };
-
-      document.body.style.userSelect = "none";
-    },
-    [
-      columnCount,
-      columnWidth,
-      createDraftAtSlot,
-      handleWindowPointerCancel,
-      handleWindowPointerMove,
-      handleWindowPointerUp,
-      headerWidth,
-    ],
   );
 
   const handleRowPointerDown = useCallback(
@@ -367,10 +192,9 @@ export const RowAllocationOverlay = forwardRef<
         return;
       }
 
-      const nextDraft = createDraftAtSlot(hoveredSlotLeft);
-      openDraftAllocation(nextDraft, nextDraft.width);
+      openDraftAtSlot(hoveredSlotLeft);
     },
-    [createDraftAtSlot, hoveredSlotLeft, openDraftAllocation],
+    [hoveredSlotLeft, openDraftAtSlot],
   );
 
   useImperativeHandle(
