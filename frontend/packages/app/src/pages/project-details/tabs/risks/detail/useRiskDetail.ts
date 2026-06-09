@@ -29,7 +29,7 @@ export function useRiskDetail(riskId: string) {
     if (!risk) return [];
     const emails = [
       risk.owner,
-      ...(risk.risk_update_log?.map((e) => e.owner) ?? []),
+      ...(risk.risk_update_log?.map((e) => e.updated_by) ?? []),
     ].filter(Boolean) as string[];
     return [...new Set(emails)];
   }, [risk]);
@@ -85,7 +85,7 @@ export function useRiskDetail(riskId: string) {
     const enrichedLog: EnrichedRiskUpdateEntry[] = (risk.risk_update_log ?? [])
       .map((entry) => ({
         ...entry,
-        owner_details: usersMap[entry.owner] ?? null,
+        updated_by_details: usersMap[entry.updated_by] ?? null,
       }))
       .sort((a, b) => b.updated_at.localeCompare(a.updated_at));
     return {
