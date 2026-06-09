@@ -479,33 +479,6 @@ def get_team_candidate_employee_ids(
     return employee_ids
 
 
-def get_project_candidate_employee_ids(
-    reports_to: str | None = None,
-    dates: list | None = None,
-    parsed_filters: dict | None = None,
-    search: str | None = None,
-    approval_status: list[str] | None = None,
-):
-    if not dates:
-        return []
-
-    employee_ids = get_matching_timesheet_employee_ids(
-        dates=dates,
-        parsed_filters=parsed_filters or {dt: [] for dt in ALLOWED_FILTER_FIELDS},
-        search=search,
-        approval_status=approval_status,
-        require_project_tasks=True,
-    )
-    if not employee_ids:
-        return []
-
-    _, filtered_count = filter_employees(page_length=1, start=0, reports_to=reports_to, ids=employee_ids)
-    if not filtered_count:
-        return []
-
-    return employee_ids
-
-
 def get_qualifying_project_ids(
     dates: list,
     parsed_filters: dict | None = None,
