@@ -484,11 +484,10 @@ def get_qualifying_project_ids(
     parsed_filters: dict | None = None,
     search: str | None = None,
     approval_status: list[str] | None = None,
-    reports_to: str | None = None,
 ) -> list[str]:
     """Return a sorted list of distinct project IDs that have timesheet entries in the date range.
 
-    Query chain: Timesheet → (Employee for reports_to) → Timesheet Detail → Task → distinct projects.
+    Query chain: Timesheet → Timesheet Detail → Task → distinct projects.
     All intermediate empty results short-circuit to [].
     """
     if not dates:
@@ -505,13 +504,7 @@ def get_qualifying_project_ids(
         base_ts_filters["custom_weekly_approval_status"] = ["in", approval_status]
 
     ts_filters = build_filters(base_ts_filters, parsed_filters.get("Timesheet", []))
-    timesheets = get_all("Timesheet", filters=ts_filters, fields=["name", "employee"])
-    if not timesheets:
-        return []
-
-    if reports_to:
-        report_employee_names = set(get_all("Employee", filters={"reports_to": reports_to}, pluck="name"))
-        timesheets = [ts for ts in timesheets if ts.employee in report_employee_names]
+    timesheets = get_all("Timesheet", filters=ts_filters, fields=["name"])
     if not timesheets:
         return []
 
@@ -549,7 +542,8 @@ def get_employees_for_projects(
 ) -> list[str]:
     """Return distinct employee IDs who logged time to any of the given projects in the date range.
 
-    Query chain: Task (project IN project_ids) → Timesheet Detail → Timesheet → distinct employees.
+    Query chain: Task (project IN project_ids) → Timesheet (date range) → Timesheet Detail
+    (bounded by in-range parents AND task IDs) → distinct employees.
     """
     if not project_ids or not dates:
         return []
@@ -560,18 +554,10 @@ def get_employees_for_projects(
     if not task_ids:
         return []
 
-    ts_names_from_details = list(
-        {
-            d.parent
-            for d in get_all("Timesheet Detail", filters={"task": ["in", task_ids]}, fields=["parent"])
-            if d.parent
-        }
-    )
-    if not ts_names_from_details:
-        return []
-
+    # Resolve the in-range timesheets first so the (much larger) Timesheet Detail scan can be
+    # bounded by both parent IN <in-range timesheets> and task IN <task_ids>, instead of pulling
+    # every detail row that has ever referenced these projects' tasks.
     base_ts_filters = {
-        "name": ["in", ts_names_from_details],
         "start_date": [">=", dates[0].get("start_date")],
         "end_date": ["<=", dates[-1].get("end_date")],
         "docstatus": ["!=", 2],
@@ -580,8 +566,19 @@ def get_employees_for_projects(
         base_ts_filters["custom_weekly_approval_status"] = ["in", approval_status]
 
     ts_filters = build_filters(base_ts_filters, parsed_filters.get("Timesheet", []))
-    timesheets = get_all("Timesheet", filters=ts_filters, pluck="employee")
-    return list(set(timesheets))
+    timesheets = get_all("Timesheet", filters=ts_filters, fields=["name", "employee"])
+    if not timesheets:
+        return []
+
+    employee_by_ts = {ts.name: ts.employee for ts in timesheets}
+    detail_filters = build_filters(
+        {"parent": ["in", list(employee_by_ts)], "task": ["in", task_ids]},
+        parsed_filters.get("Timesheet Detail", []),
+    )
+    matched_parents = {
+        d.parent for d in get_all("Timesheet Detail", filters=detail_filters, fields=["parent"]) if d.parent
+    }
+    return list({employee_by_ts[parent] for parent in matched_parents if parent in employee_by_ts})
 
 
 def iter_employee_chunks(employees: list, chunk_size: int = EMPLOYEE_SCAN_CHUNK_SIZE):
