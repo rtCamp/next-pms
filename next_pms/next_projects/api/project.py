@@ -368,6 +368,8 @@ def _get_project_members(project_name: str, currency: str) -> list[dict]:
     )
     employee_map = {e.user_id: e for e in employees}
 
+    logged_hours_map = _get_member_logged_hours(project_name, [e.name for e in employees])
+
     def _hourly_rate(employee_name: str | None) -> float | None:
         if not employee_name or not currency:
             return None
@@ -390,10 +392,32 @@ def _get_project_members(project_name: str, currency: str) -> list[dict]:
             "linkedin_url": emp.custom_linkedin if emp else None,
             "hourly_rate": _hourly_rate(emp.name if emp else None),
             "currency": currency if emp else None,
+            "logged_hours": logged_hours_map.get(emp.name, 0.0) if emp else 0.0,
         }
         for uid in user_ids
         if uid in user_map
     ]
+
+
+def _get_member_logged_hours(project_name: str, employee_names: list[str]) -> dict:
+    """Return {employee: total hours logged to the project} in a single grouped query."""
+    if not employee_names:
+        return {}
+
+    Timesheet = frappe.qb.DocType("Timesheet")
+    TimesheetDetail = frappe.qb.DocType("Timesheet Detail")
+    rows = (
+        frappe.qb.from_(TimesheetDetail)
+        .join(Timesheet)
+        .on(TimesheetDetail.parent == Timesheet.name)
+        .select(Timesheet.employee, Sum(TimesheetDetail.hours).as_("hours"))
+        .where(TimesheetDetail.project == project_name)
+        .where(TimesheetDetail.docstatus.isin([0, 1]))
+        .where(Timesheet.employee.isin(employee_names))
+        .groupby(Timesheet.employee)
+        .run(as_dict=True)
+    )
+    return {row.employee: flt(row.hours) for row in rows}
 
 
 def _get_project_customers(project_doc) -> list[dict]:
