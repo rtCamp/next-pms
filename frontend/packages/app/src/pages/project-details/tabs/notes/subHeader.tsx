@@ -21,8 +21,8 @@ export function NotesSubHeader({
   filters,
   onFiltersChange,
 }: NotesSubHeaderProps) {
-  const { projectId = "" } = useParams<{ projectId: string }>();
   const navigate = useNavigate();
+  const { projectId = "" } = useParams<{ projectId: string }>();
 
   return (
     <div className="flex items-center justify-between gap-8">

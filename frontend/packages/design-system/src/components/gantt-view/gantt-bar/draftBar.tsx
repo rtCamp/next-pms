@@ -101,56 +101,65 @@ export function DraftBar({
     [columnWidth],
   );
 
-  const handleResizeEnd = useCallback((geometry: GanttBarGeometry) => {
-    setPreviewGeometry(geometry);
-  }, []);
+  const openAllocationModal = useCallback(
+    (modalLeft: number, modalWidth: number) => {
+      if (!onOpenAllocation) {
+        return;
+      }
+
+      const { startDate, endDate } = getBarDateRange({
+        left: modalLeft,
+        width: modalWidth,
+        headerWidth,
+        columnWidth,
+        columnCount,
+        weekStart,
+        showWeekend,
+      });
+
+      onOpenAllocation({
+        employeeId,
+        projectId,
+        projectName,
+        customerName,
+        startDate,
+        endDate,
+        hoursPerDay: FULL_DAY_HOURS,
+        onSuccess: () => onRemove?.(rowKey, left),
+      });
+    },
+    [
+      columnCount,
+      columnWidth,
+      customerName,
+      employeeId,
+      headerWidth,
+      left,
+      onOpenAllocation,
+      onRemove,
+      projectId,
+      projectName,
+      rowKey,
+      showWeekend,
+      weekStart,
+    ],
+  );
+
+  const handleResizeEnd = useCallback(
+    (geometry: GanttBarGeometry) => {
+      setPreviewGeometry(geometry);
+      openAllocationModal(geometry.left, geometry.width);
+    },
+    [openAllocationModal],
+  );
 
   const handleResetDraft = useCallback(() => {
     onRemove?.(rowKey, left);
   }, [left, onRemove, rowKey]);
 
   const handleClick = useCallback(() => {
-    if (!onOpenAllocation) {
-      return;
-    }
-
-    const { startDate, endDate } = getBarDateRange({
-      left: previewGeometry.left,
-      width: previewGeometry.width,
-      headerWidth,
-      columnWidth,
-      columnCount,
-      weekStart,
-      showWeekend,
-    });
-
-    onRemove?.(rowKey, left);
-    onOpenAllocation({
-      employeeId,
-      projectId,
-      projectName,
-      customerName,
-      startDate,
-      endDate,
-      hoursPerDay: FULL_DAY_HOURS,
-    });
-  }, [
-    columnCount,
-    columnWidth,
-    customerName,
-    employeeId,
-    headerWidth,
-    left,
-    onOpenAllocation,
-    onRemove,
-    previewGeometry.left,
-    previewGeometry.width,
-    projectId,
-    projectName,
-    rowKey,
-    showWeekend,
-    weekStart,
-  ]);
+    openAllocationModal(previewGeometry.left, previewGeometry.width);
+  }, [openAllocationModal, previewGeometry.left, previewGeometry.width]);
 
   useEffect(() => {
     const actions = { save: handleClick, discard: handleResetDraft };
@@ -217,7 +226,7 @@ export function DraftBar({
   );
 
   return (
-    <Tooltip text="Click to save the allocation" disabled={!onOpenAllocation}>
+    <Tooltip text="Click to add allocation" disabled={!onOpenAllocation}>
       <GanttBar
         ref={draftBarRef}
         variant="draft"

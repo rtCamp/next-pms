@@ -16,10 +16,12 @@ export interface NotesContextProps {
     isLoading: boolean;
     error: unknown;
     filters: FilterCondition[];
+    isDeleting: boolean;
   };
   actions: {
     setFilters: Dispatch<SetStateAction<FilterCondition[]>>;
     refresh: () => Promise<unknown>;
+    deleteNote: (name: string) => Promise<void>;
   };
 }
 
@@ -31,10 +33,12 @@ export const NotesContext = createContext<NotesContextProps>({
     isLoading: false,
     error: null,
     filters: [],
+    isDeleting: false,
   },
   actions: {
     setFilters: noop,
     refresh: async () => undefined,
+    deleteNote: async () => undefined,
   },
 });
 

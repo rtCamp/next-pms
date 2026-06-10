@@ -36,7 +36,7 @@ export interface RiskItem extends ApiRiskItem {
 
 export interface RiskUpdateEntry {
   name: string;
-  owner: string;
+  updated_by: string;
   updated_at: string;
   risk_level: string | null;
   status: string | null;
@@ -46,7 +46,7 @@ export interface RiskUpdateEntry {
 }
 
 export interface EnrichedRiskUpdateEntry extends RiskUpdateEntry {
-  owner_details?: UserDetails | null;
+  updated_by_details?: UserDetails | null;
 }
 
 export interface ApiRiskDetail extends ApiRiskItem {
@@ -75,4 +75,9 @@ export interface RiskVisibleColumns {
   Escalated: boolean;
   Blocked: boolean;
   Mitigated: boolean;
+}
+
+export interface RiskSort {
+  field: string;
+  order: "asc" | "desc";
 }

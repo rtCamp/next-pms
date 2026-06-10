@@ -2,6 +2,7 @@ import { ComponentProps } from "react";
 import { Tabs } from "@rtcamp/frappe-ui-react";
 import { UnderConstruction } from "@/components/under-construction";
 import { CalendarTab } from "./calendar";
+import { Feedback } from "./feedback";
 import { Notes } from "./notes";
 import { Overview } from "./overview";
 import { RisksTab } from "./risks";
@@ -11,8 +12,8 @@ export const TAB_KEYS = [
   "overview",
   "calendar",
   "tracking",
-  "notes",
   "risks",
+  "notes",
   "email",
   "to-do",
   "feedback",
@@ -25,11 +26,8 @@ export const TABS: ComponentProps<typeof Tabs>["tabs"] = [
   { label: "Calendar", content: <CalendarTab /> },
   { label: "Tracking", content: <Tracking /> },
   { label: "Risks", content: <RisksTab /> },
-  {
-    label: "Notes",
-    content: <Notes />,
-  },
+  { label: "Notes", content: <Notes /> },
   { label: "Email", content: <UnderConstruction /> },
   { label: "To-do", content: <UnderConstruction /> },
-  { label: "Feedback", content: <UnderConstruction /> },
+  { label: "Feedback", content: <Feedback /> },
 ] as const;

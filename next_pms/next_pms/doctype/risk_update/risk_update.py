@@ -21,6 +21,7 @@ class RiskUpdate(Document):
         risk_level: DF.Link | None
         status: DF.Link | None
         updated_at: DF.Datetime | None
+        updated_by: DF.Link | None
     # end: auto-generated types
 
     pass

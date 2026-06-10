@@ -22,6 +22,8 @@ export function useAllocationModal(refresh: RefreshAllocations) {
   const [initialValues, setInitialValues] = useState<
     AddAllocationInitialValues | undefined
   >(undefined);
+  const [onSuccess, setOnSuccess] =
+    useState<AllocationCallbackData["onSuccess"]>(undefined);
 
   const toast = useToasts();
   const { call: deleteAllocation } = useFrappePostCall(
@@ -29,6 +31,7 @@ export function useAllocationModal(refresh: RefreshAllocations) {
   );
 
   const openAddDialog = useCallback((data: AllocationCallbackData) => {
+    setOnSuccess(() => data.onSuccess);
     setVariant("add");
     setInitialValues({
       ...(data.employeeId ? { employeeId: data.employeeId } : {}),
@@ -48,6 +51,7 @@ export function useAllocationModal(refresh: RefreshAllocations) {
   }, []);
 
   const openEditDialog = useCallback((data: AllocationCallbackData) => {
+    setOnSuccess(undefined);
     setVariant("edit");
     setInitialValues({
       allocationName: data.allocationId,
@@ -99,6 +103,7 @@ export function useAllocationModal(refresh: RefreshAllocations) {
     if (!open) {
       setInitialValues(undefined);
       setVariant("add");
+      setOnSuccess(undefined);
     }
   }, []);
 
@@ -108,8 +113,10 @@ export function useAllocationModal(refresh: RefreshAllocations) {
       setIsOpen(false);
       setInitialValues(undefined);
       setVariant("add");
+      onSuccess?.();
+      setOnSuccess(undefined);
     },
-    [refresh],
+    [onSuccess, refresh],
   );
 
   const outletContext = useMemo<AllocationOutletContext>(
