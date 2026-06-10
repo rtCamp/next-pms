@@ -9,11 +9,9 @@ import {
   useMemo,
   useReducer,
   useRef,
-  useState,
 } from "react";
 import { ApprovalStatusLabelMap } from "@next-pms/design-system/components";
 import { getFormatedDate } from "@next-pms/design-system/date";
-import { useQueryParam } from "@next-pms/hooks";
 import { useToasts } from "@rtcamp/frappe-ui-react";
 import { addDays } from "date-fns";
 import { useFrappeEventListener, useFrappeGetCall } from "frappe-react-sdk";
@@ -38,7 +36,6 @@ import {
   createInitialTimesheetState,
   timesheetReducer,
 } from "./reducer";
-import { validateDate } from "./utils";
 import { useTimesheetFilters } from "../hooks/useTimesheetFilters";
 
 export const PersonalTimesheetProvider: FC<PropsWithChildren> = ({
@@ -51,14 +48,11 @@ export const PersonalTimesheetProvider: FC<PropsWithChildren> = ({
   );
 
   const toast = useToasts();
-  const [startDateParam, setStartDateParam] = useQueryParam<string>("date", "");
   const { filters, setSearch, setApprovalStatus, setCompositeFilters } =
     useTimesheetFilters({
       includeApprovalStatus: true,
-      clearKeysOnChange: ["date"],
     });
-  const [searchInput, setSearchInput] = useState(filters.search);
-  const debouncedSearch = useDebounce(searchInput, 400);
+  const debouncedSearch = useDebounce(filters.search, 400);
 
   const { employeeId } = useUser(({ state }) => ({
     employeeId: state.employeeId,
@@ -69,19 +63,9 @@ export const PersonalTimesheetProvider: FC<PropsWithChildren> = ({
     [filters.compositeFilters],
   );
 
-  useEffect(() => {
-    if (debouncedSearch !== filters.search) {
-      setSearch(debouncedSearch);
-    }
-  }, [debouncedSearch, filters.search, setSearch]);
-
-  useEffect(() => {
-    setSearchInput(filters.search);
-  }, [filters.search]);
-
   const hasActiveFilters = computeHasActiveFilters(
     {
-      search: filters.search,
+      search: debouncedSearch,
       approvalStatus: filters.approvalStatus,
     },
     effectiveCompositeFilters,
@@ -95,11 +79,11 @@ export const PersonalTimesheetProvider: FC<PropsWithChildren> = ({
   const filterSignature = useMemo(
     () =>
       JSON.stringify({
-        search: filters.search,
+        search: debouncedSearch,
         approvalStatus: filters.approvalStatus ?? "",
         compositeFilters: effectiveCompositeFilters,
       }),
-    [filters.search, filters.approvalStatus, effectiveCompositeFilters],
+    [debouncedSearch, filters.approvalStatus, effectiveCompositeFilters],
   );
   const previousFilterSignatureRef = useRef(filterSignature);
 
@@ -118,7 +102,7 @@ export const PersonalTimesheetProvider: FC<PropsWithChildren> = ({
       employee: employeeId,
       start_date: startDate ?? state.weekDate,
       max_week: maxWeek ?? NUMBER_OF_WEEKS_TO_FETCH,
-      search: filters.search,
+      search: debouncedSearch,
       approval_status: filters.approvalStatus
         ? ApprovalStatusLabelMap[filters.approvalStatus]
         : null,
@@ -140,21 +124,6 @@ export const PersonalTimesheetProvider: FC<PropsWithChildren> = ({
     }
   }, [data, error, hasActiveFilters, toast]);
 
-  useEffect(() => {
-    if (Object.keys(state.timesheetData.data).length === 0) return;
-
-    if (!validateDate(startDateParam, state.timesheetData)) {
-      const lastKey = Object.keys(state.timesheetData.data).pop();
-      if (!lastKey) return;
-
-      const week = state.timesheetData.data[lastKey];
-      dispatch({
-        type: "SET_WEEK_DATE",
-        payload: getFormatedDate(addDays(week.start_date, -1)),
-      });
-    }
-  }, [startDateParam, state.timesheetData]);
-
   useFrappeEventListener(`timesheet_update::${employeeId}`, (payload) => {
     const updatedData = payload.message;
     const key = Object.keys(updatedData.data)[0];
@@ -169,10 +138,6 @@ export const PersonalTimesheetProvider: FC<PropsWithChildren> = ({
   const { data: likedTasksResponse, mutate: refetchLikedTasks } =
     useFrappeGetCall("next_pms.timesheet.api.task.get_liked_tasks");
 
-  const handleSearchChange = useCallback((value: string) => {
-    setSearchInput(value);
-  }, []);
-
   const loadData = useCallback(() => {
     if (!state.hasMoreWeeks || isLoading) return;
 
@@ -182,17 +147,11 @@ export const PersonalTimesheetProvider: FC<PropsWithChildren> = ({
     const lastKey = Object.keys(weeks).pop();
     if (!lastKey) return;
 
-    setStartDateParam("");
     dispatch({
       type: "SET_WEEK_DATE",
       payload: getFormatedDate(addDays(weeks[lastKey].start_date, -1)),
     });
-  }, [
-    state.hasMoreWeeks,
-    isLoading,
-    state.timesheetData.data,
-    setStartDateParam,
-  ]);
+  }, [state.hasMoreWeeks, isLoading, state.timesheetData.data]);
 
   const value: PersonalTimesheetContextProps = useMemo(
     () => ({
@@ -206,13 +165,12 @@ export const PersonalTimesheetProvider: FC<PropsWithChildren> = ({
           search: filters.search,
           approvalStatus: filters.approvalStatus,
         },
-        searchInput,
         compositeFilters: filters.compositeFilters,
         likedTaskData: likedTasksResponse?.message ?? [],
       },
       actions: {
         loadData,
-        handleSearchChange,
+        handleSearchChange: setSearch,
         handleApprovalStatusChange: setApprovalStatus,
         handleCompositeFilterChange: setCompositeFilters,
         refetchLikedTasks,
@@ -229,8 +187,7 @@ export const PersonalTimesheetProvider: FC<PropsWithChildren> = ({
       filters.search,
       filters.approvalStatus,
       filters.compositeFilters,
-      searchInput,
-      handleSearchChange,
+      setSearch,
       setApprovalStatus,
       setCompositeFilters,
       refetchLikedTasks,

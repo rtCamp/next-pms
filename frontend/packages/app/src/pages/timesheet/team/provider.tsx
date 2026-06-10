@@ -4,7 +4,6 @@
 import {
   FC,
   PropsWithChildren,
-  useCallback,
   useEffect,
   useMemo,
   useRef,
@@ -40,8 +39,7 @@ export const TeamTimesheetProvider: FC<PropsWithChildren> = ({ children }) => {
     includeApprovalStatus: true,
     includeReportsTo: true,
   });
-  const [searchInput, setSearchInput] = useState(filters.search);
-  const debouncedSearch = useDebounce(searchInput, 400);
+  const debouncedSearch = useDebounce(filters.search, 400);
 
   const { employeeId } = useUser(({ state }) => ({
     employeeId: state.employeeId,
@@ -55,23 +53,22 @@ export const TeamTimesheetProvider: FC<PropsWithChildren> = ({ children }) => {
     setReportsTo(employeeId);
   }, [employeeId, filters.reportsTo, setReportsTo]);
 
-  useEffect(() => {
-    if (debouncedSearch !== filters.search) {
-      setSearch(debouncedSearch);
-    }
-  }, [debouncedSearch, filters.search, setSearch]);
-
-  useEffect(() => {
-    setSearchInput(filters.search);
-  }, [filters.search]);
-
-  const effectiveFilters = useMemo(
+  const uiFilters = useMemo(
     () => ({
       search: filters.search,
       approvalStatus: filters.approvalStatus,
       reportsTo: (filters.reportsTo ?? employeeId) || undefined,
     }),
-    [employeeId, filters],
+    [employeeId, filters.search, filters.approvalStatus, filters.reportsTo],
+  );
+
+  const effectiveFilters = useMemo(
+    () => ({
+      search: debouncedSearch,
+      approvalStatus: filters.approvalStatus,
+      reportsTo: (filters.reportsTo ?? employeeId) || undefined,
+    }),
+    [debouncedSearch, employeeId, filters.reportsTo, filters.approvalStatus],
   );
 
   // Only pass complete filter conditions to the data hook so that selecting a
@@ -137,10 +134,6 @@ export const TeamTimesheetProvider: FC<PropsWithChildren> = ({ children }) => {
     handleRealtimeUpdate(payload.message);
   });
 
-  const handleSearchChange = useCallback((value: string) => {
-    setSearchInput(value);
-  }, []);
-
   const value: TeamTimesheetContextProps = useMemo(
     () => ({
       state: {
@@ -148,13 +141,12 @@ export const TeamTimesheetProvider: FC<PropsWithChildren> = ({ children }) => {
         isLoadingTeamData,
         isFilterRequest,
         weekGroups,
-        filters: effectiveFilters,
-        searchInput,
+        filters: uiFilters,
         compositeFilters: filters.compositeFilters,
       },
       actions: {
         loadMore,
-        handleSearchChange,
+        handleSearchChange: setSearch,
         handleApprovalStatusChange: setApprovalStatus,
         handleReportsToChange: setReportsTo,
         handleCompositeFilterChange: setCompositeFilters,
@@ -166,10 +158,9 @@ export const TeamTimesheetProvider: FC<PropsWithChildren> = ({ children }) => {
       isFilterRequest,
       loadMore,
       weekGroups,
-      effectiveFilters,
-      searchInput,
+      uiFilters,
       filters.compositeFilters,
-      handleSearchChange,
+      setSearch,
       setApprovalStatus,
       setReportsTo,
       setCompositeFilters,

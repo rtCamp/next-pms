@@ -21,7 +21,6 @@ export interface PersonalTimesheetContextProps {
       search: string;
       approvalStatus?: ApprovalStatusType;
     };
-    searchInput: string;
     compositeFilters: FilterCondition[];
     likedTaskData: TaskDataProps[];
   };
@@ -54,7 +53,6 @@ export const PersonalTimesheetContext =
         search: "",
         approvalStatus: undefined,
       },
-      searchInput: "",
       compositeFilters: [],
       likedTaskData: [],
     },

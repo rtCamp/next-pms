@@ -52,7 +52,6 @@ export interface ProjectTimesheetContextProps {
     filters: {
       search: string;
     };
-    searchInput: string;
     compositeFilters: FilterCondition[];
   };
   actions: {
@@ -72,7 +71,6 @@ export const ProjectTimesheetContext =
       filters: {
         search: "",
       },
-      searchInput: "",
       compositeFilters: [],
     },
     actions: {

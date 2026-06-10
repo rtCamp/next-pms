@@ -38,7 +38,6 @@ export const TeamTimesheetTable = () => {
   const weekGroups = useTeamTimesheet(({ state }) => state.weekGroups);
   const loadMore = useTeamTimesheet(({ actions }) => actions.loadMore);
   const filters = useTeamTimesheet(({ state }) => state.filters);
-  const searchInput = useTeamTimesheet(({ state }) => state.searchInput);
   const compositeFilters = useTeamTimesheet(
     ({ state }) => state.compositeFilters,
   );
@@ -84,7 +83,7 @@ export const TeamTimesheetTable = () => {
         <div className="flex gap-2">
           <TextInput
             placeholder="Search Tasks"
-            value={searchInput}
+            value={filters.search}
             onChange={(e) => handleSearchChange(e.target.value)}
           />
           <ReportsToFilter

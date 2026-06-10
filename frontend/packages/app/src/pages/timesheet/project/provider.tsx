@@ -4,7 +4,6 @@
 import {
   FC,
   PropsWithChildren,
-  useCallback,
   useEffect,
   useMemo,
   useRef,
@@ -31,18 +30,7 @@ export const ProjectTimesheetProvider: FC<PropsWithChildren> = ({
   const toast = useToasts();
   const [isFilterRequest, setIsFilterRequest] = useState(false);
   const { filters, setSearch, setCompositeFilters } = useTimesheetFilters();
-  const [searchInput, setSearchInput] = useState(filters.search);
-  const debouncedSearch = useDebounce(searchInput, 400);
-
-  useEffect(() => {
-    if (debouncedSearch !== filters.search) {
-      setSearch(debouncedSearch);
-    }
-  }, [debouncedSearch, filters.search, setSearch]);
-
-  useEffect(() => {
-    setSearchInput(filters.search);
-  }, [filters.search]);
+  const debouncedSearch = useDebounce(filters.search, 400);
 
   // Only pass complete filter conditions to the data hook so that selecting a
   // field (without an operator/value) does not trigger a reset + network request.
@@ -53,10 +41,10 @@ export const ProjectTimesheetProvider: FC<PropsWithChildren> = ({
   const filterSignature = useMemo(
     () =>
       JSON.stringify({
-        search: filters.search,
+        search: debouncedSearch,
         compositeFilters: effectiveCompositeFilters,
       }),
-    [effectiveCompositeFilters, filters.search],
+    [debouncedSearch, effectiveCompositeFilters],
   );
   const previousFilterSignatureRef = useRef(filterSignature);
 
@@ -76,7 +64,7 @@ export const ProjectTimesheetProvider: FC<PropsWithChildren> = ({
     loadData,
     error,
   } = useProjectTimesheetData({
-    search: filters.search,
+    search: debouncedSearch,
     compositeFilters: effectiveCompositeFilters,
   });
 
@@ -102,10 +90,6 @@ export const ProjectTimesheetProvider: FC<PropsWithChildren> = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isLoadingProjectData, error]);
 
-  const handleSearchChange = useCallback((value: string) => {
-    setSearchInput(value);
-  }, []);
-
   const value: ProjectTimesheetContextProps = useMemo(
     () => ({
       state: {
@@ -116,12 +100,11 @@ export const ProjectTimesheetProvider: FC<PropsWithChildren> = ({
         filters: {
           search: filters.search,
         },
-        searchInput,
         compositeFilters: filters.compositeFilters,
       },
       actions: {
         loadData,
-        handleSearchChange,
+        handleSearchChange: setSearch,
         handleCompositeFilterChange: setCompositeFilters,
       },
     }),
@@ -133,8 +116,7 @@ export const ProjectTimesheetProvider: FC<PropsWithChildren> = ({
       weekGroups,
       filters.search,
       filters.compositeFilters,
-      searchInput,
-      handleSearchChange,
+      setSearch,
       setCompositeFilters,
     ],
   );

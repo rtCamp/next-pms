@@ -26,7 +26,7 @@ export const ProjectTimesheetTable = () => {
     ({ state }) => state.isFilterRequest,
   );
   const weekGroups = useProjectTimesheet(({ state }) => state.weekGroups);
-  const searchInput = useProjectTimesheet(({ state }) => state.searchInput);
+  const filters = useProjectTimesheet(({ state }) => state.filters);
   const compositeFilters = useProjectTimesheet(
     ({ state }) => state.compositeFilters,
   );
@@ -46,7 +46,7 @@ export const ProjectTimesheetTable = () => {
         <div className="flex gap-2">
           <TextInput
             placeholder="Search Tasks"
-            value={searchInput}
+            value={filters.search}
             onChange={(e) => handleSearchChange(e.target.value)}
           />
         </div>
