@@ -5,6 +5,7 @@ import type {
   BreakdownMetric,
   MonthEntry,
   ResponseItem,
+  TeamFeedbackDetail,
   TeamFeedbackRow,
 } from "./types";
 
@@ -310,3 +311,49 @@ export const MOCK_TEAM_FEEDBACK: TeamFeedbackRow[] = [
     avgRating: 5.0,
   },
 ];
+
+export const MOCK_TEAM_FEEDBACK_DETAILS: Record<string, TeamFeedbackDetail> = {
+  "oct-anita": {
+    ratingCategories: [
+      { label: "Technical problem-solving", rating: 4 },
+      { label: "Responsiveness and availability", rating: 4 },
+      { label: "Adherence to deadlines", rating: 4 },
+      { label: "Ownership and initiative", rating: 4 },
+    ],
+    areasOfImprovement:
+      "Overall, we're happy with the quality of work delivered, especially the design execution. However, there were a few instances where timelines slipped without prior communication. More proactive updates - especially when dependencies or risks arise - would help us plan better on our end.",
+    comments: [
+      {
+        author: { name: "Eric Gallagher" },
+        timestamp: "36m ago",
+        text: "This is fair feedback. The timeline slips were mostly due to late inputs, but we didn't communicate that early enough. We should flag risks sooner, even if we're still working through dependencies.",
+      },
+      {
+        author: { name: "Anita Kumar" },
+        timestamp: "36m ago",
+        text: 'Agree. On the documentation point, we can add a short "design rationale" section with each major delivery. It shouldn\'t add much overhead but will help the client during reviews.',
+      },
+      {
+        author: { name: "Valien Eric" },
+        timestamp: "2d ago",
+        text: "This is fair feedback. The timeline slips were mostly due to late inputs, but we didn't communicate that early enough. We should flag risks sooner, even if we're still working through dependencies.",
+      },
+      {
+        author: { name: "Nita William" },
+        timestamp: "3d ago",
+        text: 'Agree. On the documentation point, we can add a short "design rationale" section with each major delivery. It shouldn\'t add much overhead but will help the client during reviews.',
+      },
+    ],
+  },
+  "oct-mark": {
+    ratingCategories: [
+      { label: "Technical problem-solving", rating: 5 },
+      { label: "Responsiveness and availability", rating: 5 },
+      { label: "Adherence to deadlines", rating: 5 },
+      { label: "Ownership and initiative", rating: 5 },
+    ],
+    areasOfImprovement:
+      "Excellent work across the board. Mark consistently delivered on time and exceeded expectations on both technical quality and communication.",
+    comments: [],
+  },
+};
