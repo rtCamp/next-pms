@@ -28,7 +28,6 @@ import { useTimesheetFilters } from "../hooks/useTimesheetFilters";
 
 export const TeamTimesheetProvider: FC<PropsWithChildren> = ({ children }) => {
   const toast = useToasts();
-  const [isFilterRequest, setIsFilterRequest] = useState(false);
   const {
     filters,
     setSearch,
@@ -77,7 +76,7 @@ export const TeamTimesheetProvider: FC<PropsWithChildren> = ({ children }) => {
     () => filters.compositeFilters.filter(isCompleteFilterCondition),
     [filters.compositeFilters],
   );
-  const filterSignature = useMemo(
+  const activeFilterKey = useMemo(
     () =>
       JSON.stringify({
         filters: effectiveFilters,
@@ -85,16 +84,8 @@ export const TeamTimesheetProvider: FC<PropsWithChildren> = ({ children }) => {
       }),
     [effectiveCompositeFilters, effectiveFilters],
   );
-  const previousFilterSignatureRef = useRef(filterSignature);
-
-  useEffect(() => {
-    if (previousFilterSignatureRef.current === filterSignature) {
-      return;
-    }
-
-    setIsFilterRequest(true);
-    previousFilterSignatureRef.current = filterSignature;
-  }, [filterSignature]);
+  const [resolvedFilterKey, setResolvedFilterKey] = useState(activeFilterKey);
+  const isFilterRequest = activeFilterKey !== resolvedFilterKey;
 
   const {
     hasMore,
@@ -104,6 +95,7 @@ export const TeamTimesheetProvider: FC<PropsWithChildren> = ({ children }) => {
     handleRealtimeUpdate,
     error,
   } = useTeamTimesheetData({
+    requestKey: activeFilterKey,
     filters: effectiveFilters,
     compositeFilters: effectiveCompositeFilters,
   });
@@ -122,13 +114,13 @@ export const TeamTimesheetProvider: FC<PropsWithChildren> = ({ children }) => {
 
   useEffect(() => {
     if (isLoadingTeamData) return;
-    setIsFilterRequest(false);
+    setResolvedFilterKey(activeFilterKey);
 
     if (error) {
       toast.error(parseFrappeErrorMsg(error as FrappeError));
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isLoadingTeamData, error]);
+  }, [activeFilterKey, isLoadingTeamData, error]);
 
   useFrappeEventListener("timesheet_info", (payload) => {
     handleRealtimeUpdate(payload.message);

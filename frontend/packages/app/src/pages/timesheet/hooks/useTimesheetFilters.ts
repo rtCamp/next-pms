@@ -82,23 +82,21 @@ export function useTimesheetFilters({
       ? (searchParams.get(REPORTS_TO_PARAM_KEY) ?? undefined)
       : undefined;
 
-  const setParamValues = useCallback(
+  const updateSearchParams = useCallback(
     (updates: Record<string, string | undefined>) =>
       setSearchParams(
         (prev) => {
           const next = new URLSearchParams(prev);
 
-          for (const key of clearKeysOnChange) {
-            next.delete(key);
-          }
-
-          for (const [key, value] of Object.entries(updates)) {
-            if (value) {
-              next.set(key, value);
-            } else {
+          clearKeysOnChange.forEach((key) => next.delete(key));
+          Object.entries(updates).forEach(([key, value]) => {
+            if (value === undefined || value === "") {
               next.delete(key);
+              return;
             }
-          }
+
+            next.set(key, value);
+          });
 
           return next;
         },
@@ -108,32 +106,32 @@ export function useTimesheetFilters({
   );
 
   const setSearch = useCallback(
-    (value: string) => setParamValues({ [SEARCH_PARAM_KEY]: value }),
-    [setParamValues],
+    (value: string) => updateSearchParams({ [SEARCH_PARAM_KEY]: value }),
+    [updateSearchParams],
   );
 
   const setApprovalStatus = useCallback(
     (value?: ApprovalStatusType | null) =>
-      setParamValues({
+      updateSearchParams({
         [APPROVAL_PARAM_KEY]: value && value !== "none" ? value : undefined,
       }),
-    [setParamValues],
+    [updateSearchParams],
   );
 
   const setReportsTo = useCallback(
     (value: string | null) =>
-      setParamValues({ [REPORTS_TO_PARAM_KEY]: value || undefined }),
-    [setParamValues],
+      updateSearchParams({ [REPORTS_TO_PARAM_KEY]: value || undefined }),
+    [updateSearchParams],
   );
 
   const setCompositeFilters = useCallback(
     (value: FilterCondition[]) =>
-      setParamValues({
+      updateSearchParams({
         [COMPOSITE_FILTERS_PARAM_KEY]: value.length
           ? JSON.stringify(value)
           : undefined,
       }),
-    [setParamValues],
+    [updateSearchParams],
   );
 
   return {

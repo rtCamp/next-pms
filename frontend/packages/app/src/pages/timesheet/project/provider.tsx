@@ -28,7 +28,6 @@ export const ProjectTimesheetProvider: FC<PropsWithChildren> = ({
   children,
 }) => {
   const toast = useToasts();
-  const [isFilterRequest, setIsFilterRequest] = useState(false);
   const { filters, setSearch, setCompositeFilters } = useTimesheetFilters();
   const debouncedSearch = useDebounce(filters.search, 400);
 
@@ -38,7 +37,7 @@ export const ProjectTimesheetProvider: FC<PropsWithChildren> = ({
     () => filters.compositeFilters.filter(isCompleteFilterCondition),
     [filters.compositeFilters],
   );
-  const filterSignature = useMemo(
+  const activeFilterKey = useMemo(
     () =>
       JSON.stringify({
         search: debouncedSearch,
@@ -46,16 +45,8 @@ export const ProjectTimesheetProvider: FC<PropsWithChildren> = ({
       }),
     [debouncedSearch, effectiveCompositeFilters],
   );
-  const previousFilterSignatureRef = useRef(filterSignature);
-
-  useEffect(() => {
-    if (previousFilterSignatureRef.current === filterSignature) {
-      return;
-    }
-
-    setIsFilterRequest(true);
-    previousFilterSignatureRef.current = filterSignature;
-  }, [filterSignature]);
+  const [resolvedFilterKey, setResolvedFilterKey] = useState(activeFilterKey);
+  const isFilterRequest = activeFilterKey !== resolvedFilterKey;
 
   const {
     hasMore,
@@ -64,6 +55,7 @@ export const ProjectTimesheetProvider: FC<PropsWithChildren> = ({
     loadData,
     error,
   } = useProjectTimesheetData({
+    requestKey: activeFilterKey,
     search: debouncedSearch,
     compositeFilters: effectiveCompositeFilters,
   });
@@ -82,13 +74,13 @@ export const ProjectTimesheetProvider: FC<PropsWithChildren> = ({
 
   useEffect(() => {
     if (isLoadingProjectData) return;
-    setIsFilterRequest(false);
+    setResolvedFilterKey(activeFilterKey);
 
     if (error) {
       toast.error(parseFrappeErrorMsg(error as FrappeError));
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isLoadingProjectData, error]);
+  }, [activeFilterKey, isLoadingProjectData, error]);
 
   const value: ProjectTimesheetContextProps = useMemo(
     () => ({

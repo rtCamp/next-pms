@@ -8,10 +8,10 @@ import {
   useEffect,
   useMemo,
   useReducer,
-  useRef,
+  useState,
 } from "react";
 import { ApprovalStatusLabelMap } from "@next-pms/design-system/components";
-import { getFormatedDate } from "@next-pms/design-system/date";
+import { getFormatedDate, getTodayDate } from "@next-pms/design-system/date";
 import { useToasts } from "@rtcamp/frappe-ui-react";
 import { addDays } from "date-fns";
 import { useFrappeEventListener, useFrappeGetCall } from "frappe-react-sdk";
@@ -76,7 +76,7 @@ export const PersonalTimesheetProvider: FC<PropsWithChildren> = ({
     [effectiveCompositeFilters],
   );
 
-  const filterSignature = useMemo(
+  const activeFilterKey = useMemo(
     () =>
       JSON.stringify({
         search: debouncedSearch,
@@ -85,22 +85,23 @@ export const PersonalTimesheetProvider: FC<PropsWithChildren> = ({
       }),
     [debouncedSearch, filters.approvalStatus, effectiveCompositeFilters],
   );
-  const previousFilterSignatureRef = useRef(filterSignature);
+  const [resolvedFilterKey, setResolvedFilterKey] = useState(activeFilterKey);
+  const isFilterRequest = activeFilterKey !== resolvedFilterKey;
 
   useEffect(() => {
-    if (previousFilterSignatureRef.current === filterSignature) {
+    if (!isFilterRequest || state.isFilterRequest) {
       return;
     }
 
-    dispatch({ type: "FILTER_REQUEST_STARTED" });
-    previousFilterSignatureRef.current = filterSignature;
-  }, [filterSignature]);
+    dispatch({ type: "FILTER_REFRESH_STARTED" });
+  }, [isFilterRequest, state.isFilterRequest]);
 
   const { data, isLoading, error } = useFrappeGetCall(
     "next_pms.timesheet.api.timesheet.get_timesheet_data",
     {
       employee: employeeId,
-      start_date: startDate ?? state.weekDate,
+      start_date:
+        startDate ?? (isFilterRequest ? getTodayDate() : state.weekDate),
       max_week: maxWeek ?? NUMBER_OF_WEEKS_TO_FETCH,
       search: debouncedSearch,
       approval_status: filters.approvalStatus
@@ -115,14 +116,25 @@ export const PersonalTimesheetProvider: FC<PropsWithChildren> = ({
     if (data) {
       dispatch({
         type: "DATA_LOADED",
-        payload: { message: data.message, hasActiveFilters },
+        payload: {
+          message: data.message,
+          hasActiveFilters,
+          replaceData: isFilterRequest,
+        },
       });
+      setResolvedFilterKey(activeFilterKey);
     }
+
     if (error) {
+      if (isFilterRequest) {
+        dispatch({ type: "FILTER_REFRESH_FINISHED" });
+        setResolvedFilterKey(activeFilterKey);
+      }
+
       const err = parseFrappeErrorMsg(error);
       toast.error(err || "Failed to load personal timesheet.");
     }
-  }, [data, error, hasActiveFilters, toast]);
+  }, [activeFilterKey, data, error, hasActiveFilters, isFilterRequest, toast]);
 
   useFrappeEventListener(`timesheet_update::${employeeId}`, (payload) => {
     const updatedData = payload.message;
@@ -159,7 +171,7 @@ export const PersonalTimesheetProvider: FC<PropsWithChildren> = ({
         hasMoreWeeks: state.hasMoreWeeks,
         isLoadingPersonalData: isLoading,
         isInitialLoad: state.isInitialLoad,
-        isFilterRequest: state.isFilterRequest,
+        isFilterRequest,
         timesheetData: state.timesheetData,
         filters: {
           search: filters.search,
@@ -179,9 +191,9 @@ export const PersonalTimesheetProvider: FC<PropsWithChildren> = ({
     [
       state.hasMoreWeeks,
       state.isInitialLoad,
-      state.isFilterRequest,
       state.timesheetData,
       isLoading,
+      isFilterRequest,
       likedTasksResponse,
       loadData,
       filters.search,

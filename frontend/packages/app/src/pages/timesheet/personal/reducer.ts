@@ -20,12 +20,14 @@ export interface TimesheetState {
 }
 
 export type TimesheetAction =
-  | { type: "FILTER_REQUEST_STARTED" }
+  | { type: "FILTER_REFRESH_STARTED" }
+  | { type: "FILTER_REFRESH_FINISHED" }
   | {
       type: "DATA_LOADED";
       payload: {
         message: DataProp & { has_more?: boolean };
         hasActiveFilters: boolean;
+        replaceData: boolean;
       };
     }
   | { type: "SET_WEEK_DATE"; payload: string }
@@ -52,7 +54,7 @@ export function timesheetReducer(
   action: TimesheetAction,
 ): TimesheetState {
   switch (action.type) {
-    case "FILTER_REQUEST_STARTED":
+    case "FILTER_REFRESH_STARTED":
       return {
         ...state,
         isFilterRequest: true,
@@ -60,12 +62,17 @@ export function timesheetReducer(
         weekDate: getTodayDate(),
       };
 
+    case "FILTER_REFRESH_FINISHED":
+      return {
+        ...state,
+        isFilterRequest: false,
+      };
+
     case "DATA_LOADED": {
-      const { message, hasActiveFilters } = action.payload;
+      const { message, hasActiveFilters, replaceData } = action.payload;
 
       let timesheetData: DataProp;
-      // If it's a filter request replace the data.
-      if (state.isFilterRequest) {
+      if (replaceData) {
         timesheetData = message;
       } else if (Object.keys(state.timesheetData.data).length > 0) {
         // Merge for pagination or real-time updates.
