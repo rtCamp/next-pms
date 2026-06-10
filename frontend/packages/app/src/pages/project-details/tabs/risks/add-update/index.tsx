@@ -11,6 +11,7 @@ import {
   useToasts,
 } from "@rtcamp/frappe-ui-react";
 import { useForm } from "@tanstack/react-form";
+import { compareAsc, parseISO } from "date-fns";
 import { FrappeError, useFrappeUpdateDoc } from "frappe-react-sdk";
 
 /**
@@ -80,6 +81,12 @@ export function AddUpdateModal({
                 }
               : e,
           );
+
+          // Sort by updated_at desc to ensure the latest entry is at the top
+          updatedEntries.sort((a, b) =>
+            compareAsc(parseISO(a.updated_at), parseISO(b.updated_at)),
+          );
+
           await updateDoc("Risk", risk.name, {
             modified: risk.modified,
             risk_update_log: updatedEntries,
