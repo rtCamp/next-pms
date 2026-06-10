@@ -855,6 +855,10 @@ def get_time_utilisation(days: int = 30, role: str | None = None) -> dict:
         total_hours : float
     """
     only_for(["Projects Manager", "Projects User", "System Manager"], message=True)
+
+    if days < 1:
+        frappe.throw(frappe._("days must be at least 1"))
+
     return _get_time_utilisation(days, role)
 
 
@@ -870,6 +874,7 @@ def _get_time_utilisation(days: int, role: str | None) -> dict:
             Sum(TimesheetDetail.hours).as_("total_hours"),
         )
         .where(Date(TimesheetDetail.from_time) >= since)
+        .where(Date(TimesheetDetail.from_time) <= today())
     )
 
     if role:
