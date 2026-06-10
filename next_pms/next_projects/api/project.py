@@ -342,17 +342,42 @@ def _get_opportunity_link(project_doc) -> dict | None:
     return {"name": opportunity, "url": url}
 
 
-def _get_project_members(project_name: str, currency: str) -> list[dict]:
-    """Return users shared with the project, with full_name, image, and designation."""
+def _get_project_members(
+    project_name: str,
+    currency: str,
+    project_manager: str | None = None,
+    engineering_manager: str | None = None,
+) -> list[dict]:
+    """
+    Return the project's people, with full_name, image, designation, and logged hours.
+
+    The project manager and engineering manager are listed first (in that order),
+    followed by the users the project has been shared with. Each user appears once,
+    even when a manager is also a shared member.
+    """
     shares = frappe.get_all(
         "DocShare",
         filters={"share_doctype": "Project", "share_name": project_name, "everyone": 0},
         fields=["user"],
     )
-    if not shares:
-        return []
 
-    user_ids = [s.user for s in shares]
+    role_map: dict[str, str] = {}
+    user_ids: list[str] = []
+
+    def _add(uid: str | None, role: str | None = None) -> None:
+        if not uid:
+            return
+        if uid not in role_map:
+            role_map[uid] = role
+            user_ids.append(uid)
+
+    _add(project_manager, "Project Manager")
+    _add(engineering_manager, "Engineering Manager")
+    for share in shares:
+        _add(share.user)
+
+    if not user_ids:
+        return []
 
     users = frappe.get_all(
         "User",
@@ -372,6 +397,8 @@ def _get_project_members(project_name: str, currency: str) -> list[dict]:
     )
     employee_map = {e.user_id: e for e in employees}
 
+    logged_hours_map = _get_member_logged_hours(project_name, [e.name for e in employees])
+
     def _hourly_rate(employee_name: str | None) -> float | None:
         if not employee_name or not currency:
             return None
@@ -384,7 +411,7 @@ def _get_project_members(project_name: str, currency: str) -> list[dict]:
     return [
         {
             "user": uid,
-            "employee": employee_map[uid].name,
+            "employee": employee_map[uid].name if uid in employee_map else None,
             "full_name": user_map[uid].full_name or "",
             "image": user_map[uid].user_image,
             "designation": emp.designation if (emp := employee_map.get(uid)) else None,
@@ -394,10 +421,33 @@ def _get_project_members(project_name: str, currency: str) -> list[dict]:
             "linkedin_url": emp.get("custom_linkedin") if emp else None,
             "hourly_rate": _hourly_rate(emp.name if emp else None),
             "currency": currency if emp else None,
+            "logged_hours": logged_hours_map.get(emp.name, 0.0) if emp else 0.0,
+            "project_role": role_map.get(uid),
         }
         for uid in user_ids
         if uid in user_map
     ]
+
+
+def _get_member_logged_hours(project_name: str, employee_names: list[str]) -> dict:
+    """Return {employee: total hours logged to the project} in a single grouped query."""
+    if not employee_names:
+        return {}
+
+    Timesheet = frappe.qb.DocType("Timesheet")
+    TimesheetDetail = frappe.qb.DocType("Timesheet Detail")
+    rows = (
+        frappe.qb.from_(TimesheetDetail)
+        .join(Timesheet)
+        .on(TimesheetDetail.parent == Timesheet.name)
+        .select(Timesheet.employee, Sum(TimesheetDetail.hours).as_("hours"))
+        .where(TimesheetDetail.project == project_name)
+        .where(TimesheetDetail.docstatus.isin([0, 1]))
+        .where(Timesheet.employee.isin(employee_names))
+        .groupby(Timesheet.employee)
+        .run(as_dict=True)
+    )
+    return {row.employee: flt(row.hours) for row in rows}
 
 
 def _get_project_customers(project_doc) -> list[dict]:
@@ -781,6 +831,8 @@ def get_project_sidebar(project: str):
         "members": _get_project_members(
             project,
             project_doc.get("custom_currency") or frappe.defaults.get_global_default("currency"),
+            project_doc.get("custom_project_manager"),
+            project_doc.get("custom_engineering_manager"),
         ),
         "customers": _get_project_customers(project_doc),
     }
