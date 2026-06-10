@@ -1,7 +1,6 @@
 /**
  * External dependencies.
  */
-import type { ApprovalStatusType } from "@next-pms/design-system/components";
 import { getTodayDate } from "@next-pms/design-system/date";
 import type { FilterCondition } from "@rtcamp/frappe-ui-react";
 
@@ -16,19 +15,18 @@ export interface TimesheetState {
   weekDate: string;
   timesheetData: DataProp;
   hasMoreWeeks: boolean;
-  compositeFilters: FilterCondition[];
-  filters: TimesheetFilters;
   isFilterRequest: boolean;
   isInitialLoad: boolean;
 }
 
 export type TimesheetAction =
-  | { type: "SEARCH_CHANGED"; payload: string }
-  | { type: "APPROVAL_STATUS_CHANGED"; payload: ApprovalStatusType | undefined }
-  | { type: "COMPOSITE_FILTERS_CHANGED"; payload: FilterCondition[] }
+  | { type: "FILTER_REQUEST_STARTED" }
   | {
       type: "DATA_LOADED";
-      payload: { message: DataProp & { has_more?: boolean } };
+      payload: {
+        message: DataProp & { has_more?: boolean };
+        hasActiveFilters: boolean;
+      };
     }
   | { type: "SET_WEEK_DATE"; payload: string }
   | { type: "REALTIME_UPDATE"; payload: DataProp };
@@ -45,8 +43,6 @@ export const createInitialTimesheetState = (): TimesheetState => ({
   weekDate: getTodayDate(),
   timesheetData: initialTimesheetData,
   hasMoreWeeks: true,
-  compositeFilters: [],
-  filters: { search: "", approvalStatus: undefined },
   isFilterRequest: false,
   isInitialLoad: true,
 });
@@ -56,43 +52,16 @@ export function timesheetReducer(
   action: TimesheetAction,
 ): TimesheetState {
   switch (action.type) {
-    case "SEARCH_CHANGED":
-      if (state.filters.search === action.payload) {
-        return state;
-      }
-
+    case "FILTER_REQUEST_STARTED":
       return {
         ...state,
-        filters: { ...state.filters, search: action.payload },
-        isFilterRequest: true,
-        hasMoreWeeks: true,
-        weekDate: getTodayDate(),
-      };
-
-    case "APPROVAL_STATUS_CHANGED":
-      return {
-        ...state,
-        filters: { ...state.filters, approvalStatus: action.payload },
-        isFilterRequest: true,
-        hasMoreWeeks: true,
-        weekDate: getTodayDate(),
-      };
-
-    case "COMPOSITE_FILTERS_CHANGED":
-      return {
-        ...state,
-        compositeFilters: action.payload,
         isFilterRequest: true,
         hasMoreWeeks: true,
         weekDate: getTodayDate(),
       };
 
     case "DATA_LOADED": {
-      const { message } = action.payload;
-      const hasActiveFilters = computeHasActiveFilters(
-        state.filters,
-        state.compositeFilters,
-      );
+      const { message, hasActiveFilters } = action.payload;
 
       let timesheetData: DataProp;
       // If it's a filter request replace the data.

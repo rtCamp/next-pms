@@ -7,10 +7,10 @@ import {
   useCallback,
   useEffect,
   useMemo,
-  useReducer,
   useRef,
+  useState,
 } from "react";
-import { type FilterCondition, useToasts } from "@rtcamp/frappe-ui-react";
+import { useToasts } from "@rtcamp/frappe-ui-react";
 import type { Error as FrappeError } from "frappe-js-sdk/lib/frappe_app/types";
 
 /**
@@ -22,31 +22,52 @@ import {
   ProjectTimesheetContext,
   type ProjectTimesheetContextProps,
 } from "./context";
-import {
-  createInitialProjectTimesheetState,
-  projectTimesheetReducer,
-} from "./reducer";
 import { useProjectTimesheetData } from "./useProjectTimesheetData";
+import { useTimesheetFilters } from "../hooks/useTimesheetFilters";
 
 export const ProjectTimesheetProvider: FC<PropsWithChildren> = ({
   children,
 }) => {
   const toast = useToasts();
+  const [isFilterRequest, setIsFilterRequest] = useState(false);
+  const { filters, setSearch, setCompositeFilters } = useTimesheetFilters();
+  const [searchInput, setSearchInput] = useState(filters.search);
+  const debouncedSearch = useDebounce(searchInput, 400);
 
-  const [state, dispatch] = useReducer(
-    projectTimesheetReducer,
-    undefined,
-    createInitialProjectTimesheetState,
-  );
+  useEffect(() => {
+    if (debouncedSearch !== filters.search) {
+      setSearch(debouncedSearch);
+    }
+  }, [debouncedSearch, filters.search, setSearch]);
 
-  const debouncedSearch = useDebounce(state.searchInput, 400);
+  useEffect(() => {
+    setSearchInput(filters.search);
+  }, [filters.search]);
 
   // Only pass complete filter conditions to the data hook so that selecting a
   // field (without an operator/value) does not trigger a reset + network request.
   const effectiveCompositeFilters = useMemo(
-    () => state.compositeFilters.filter(isCompleteFilterCondition),
-    [state.compositeFilters],
+    () => filters.compositeFilters.filter(isCompleteFilterCondition),
+    [filters.compositeFilters],
   );
+  const filterSignature = useMemo(
+    () =>
+      JSON.stringify({
+        search: filters.search,
+        compositeFilters: effectiveCompositeFilters,
+      }),
+    [effectiveCompositeFilters, filters.search],
+  );
+  const previousFilterSignatureRef = useRef(filterSignature);
+
+  useEffect(() => {
+    if (previousFilterSignatureRef.current === filterSignature) {
+      return;
+    }
+
+    setIsFilterRequest(true);
+    previousFilterSignatureRef.current = filterSignature;
+  }, [filterSignature]);
 
   const {
     hasMore,
@@ -55,7 +76,7 @@ export const ProjectTimesheetProvider: FC<PropsWithChildren> = ({
     loadData,
     error,
   } = useProjectTimesheetData({
-    search: debouncedSearch,
+    search: filters.search,
     compositeFilters: effectiveCompositeFilters,
   });
 
@@ -73,7 +94,7 @@ export const ProjectTimesheetProvider: FC<PropsWithChildren> = ({
 
   useEffect(() => {
     if (isLoadingProjectData) return;
-    dispatch({ type: "FILTER_REQUEST_COMPLETE" });
+    setIsFilterRequest(false);
 
     if (error) {
       toast.error(parseFrappeErrorMsg(error as FrappeError));
@@ -82,42 +103,39 @@ export const ProjectTimesheetProvider: FC<PropsWithChildren> = ({
   }, [isLoadingProjectData, error]);
 
   const handleSearchChange = useCallback((value: string) => {
-    dispatch({ type: "SEARCH_CHANGED", payload: value });
+    setSearchInput(value);
   }, []);
-
-  const handleCompositeFilterChange = useCallback(
-    (value: FilterCondition[]) => {
-      dispatch({ type: "COMPOSITE_FILTERS_CHANGED", payload: value });
-    },
-    [],
-  );
 
   const value: ProjectTimesheetContextProps = useMemo(
     () => ({
       state: {
         hasMore,
         isLoadingProjectData,
-        isFilterRequest: state.isFilterRequest,
+        isFilterRequest,
         weekGroups,
-        searchInput: state.searchInput,
-        compositeFilters: state.compositeFilters,
+        filters: {
+          search: filters.search,
+        },
+        searchInput,
+        compositeFilters: filters.compositeFilters,
       },
       actions: {
         loadData,
         handleSearchChange,
-        handleCompositeFilterChange,
+        handleCompositeFilterChange: setCompositeFilters,
       },
     }),
     [
       hasMore,
       isLoadingProjectData,
-      state.isFilterRequest,
+      isFilterRequest,
       loadData,
       weekGroups,
-      state.searchInput,
-      state.compositeFilters,
+      filters.search,
+      filters.compositeFilters,
+      searchInput,
       handleSearchChange,
-      handleCompositeFilterChange,
+      setCompositeFilters,
     ],
   );
 
