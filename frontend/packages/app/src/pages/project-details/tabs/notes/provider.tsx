@@ -2,23 +2,43 @@
  * External dependencies.
  */
 import { useCallback, useMemo, useState, type PropsWithChildren } from "react";
-import { useToasts, type FilterCondition } from "@rtcamp/frappe-ui-react";
+import { useToasts } from "@rtcamp/frappe-ui-react";
 import { FrappeError, useFrappeDeleteDoc } from "frappe-react-sdk";
 
 /**
  * Internal dependencies.
  */
+import { useDebounce } from "@/hooks/useDebounce";
 import { parseFrappeErrorMsg } from "@/lib/utils";
 import { NotesContext, type NotesContextProps } from "./context";
 import { useNotesData } from "./useNotesData";
 
 export function NotesProvider({ children }: PropsWithChildren) {
-  const [filters, setFilters] = useState<FilterCondition[]>([]);
+  const [titleInput, setTitleInput] = useState("");
+  const [descriptionInput, setDescriptionInput] = useState("");
   const [isDeleting, setIsDeleting] = useState(false);
   const { deleteDoc } = useFrappeDeleteDoc();
   const toast = useToasts();
+  const debouncedTitleInput = useDebounce(titleInput, 400);
+  const debouncedDescriptionInput = useDebounce(descriptionInput, 400);
 
-  const { notes, isLoading, error, mutate } = useNotesData({ filters });
+  const filters = useMemo(
+    () => ({
+      title: debouncedTitleInput,
+      description: debouncedDescriptionInput,
+    }),
+    [debouncedTitleInput, debouncedDescriptionInput],
+  );
+
+  const { notes, isLoading, error, mutate } = useNotesData(filters);
+
+  const handleTitleInputChange = useCallback((value: string) => {
+    setTitleInput(value);
+  }, []);
+
+  const handleDescriptionInputChange = useCallback((value: string) => {
+    setDescriptionInput(value);
+  }, []);
 
   const deleteNote = useCallback(
     async (name: string) => {
@@ -38,16 +58,32 @@ export function NotesProvider({ children }: PropsWithChildren) {
 
   const value = useMemo<NotesContextProps>(
     () => ({
-      state: { notes, isLoading, error, filters, isDeleting },
-      actions: { setFilters, refresh: mutate, deleteNote },
+      state: {
+        notes,
+        isLoading,
+        error,
+        filters: {
+          title: titleInput,
+          description: descriptionInput,
+        },
+        isDeleting,
+      },
+      actions: {
+        setTitleInput: handleTitleInputChange,
+        setDescriptionInput: handleDescriptionInputChange,
+        refresh: mutate,
+        deleteNote,
+      },
     }),
     [
       notes,
       isLoading,
       error,
-      filters,
+      titleInput,
+      descriptionInput,
       isDeleting,
-      setFilters,
+      handleTitleInputChange,
+      handleDescriptionInputChange,
       mutate,
       deleteNote,
     ],
