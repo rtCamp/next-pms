@@ -16,6 +16,7 @@ import { useNotesData } from "./useNotesData";
 export function NotesProvider({ children }: PropsWithChildren) {
   const [titleInput, setTitleInput] = useState("");
   const [descriptionInput, setDescriptionInput] = useState("");
+  const [author, setAuthor] = useState("");
   const [isDeleting, setIsDeleting] = useState(false);
   const { deleteDoc } = useFrappeDeleteDoc();
   const toast = useToasts();
@@ -26,11 +27,13 @@ export function NotesProvider({ children }: PropsWithChildren) {
     () => ({
       title: debouncedTitleInput,
       description: debouncedDescriptionInput,
+      author,
     }),
-    [debouncedTitleInput, debouncedDescriptionInput],
+    [debouncedTitleInput, debouncedDescriptionInput, author],
   );
 
-  const { notes, isLoading, error, mutate } = useNotesData(filters);
+  const { notes, isLoading, error, mutate, authorOptions } =
+    useNotesData(filters);
 
   const handleTitleInputChange = useCallback((value: string) => {
     setTitleInput(value);
@@ -38,6 +41,10 @@ export function NotesProvider({ children }: PropsWithChildren) {
 
   const handleDescriptionInputChange = useCallback((value: string) => {
     setDescriptionInput(value);
+  }, []);
+
+  const handleAuthorChange = useCallback((value: string) => {
+    setAuthor(value);
   }, []);
 
   const deleteNote = useCallback(
@@ -65,12 +72,15 @@ export function NotesProvider({ children }: PropsWithChildren) {
         filters: {
           title: titleInput,
           description: descriptionInput,
+          author,
         },
         isDeleting,
+        authorOptions,
       },
       actions: {
         setTitleInput: handleTitleInputChange,
         setDescriptionInput: handleDescriptionInputChange,
+        setAuthor: handleAuthorChange,
         refresh: mutate,
         deleteNote,
       },
@@ -81,9 +91,12 @@ export function NotesProvider({ children }: PropsWithChildren) {
       error,
       titleInput,
       descriptionInput,
+      author,
       isDeleting,
+      authorOptions,
       handleTitleInputChange,
       handleDescriptionInputChange,
+      handleAuthorChange,
       mutate,
       deleteNote,
     ],

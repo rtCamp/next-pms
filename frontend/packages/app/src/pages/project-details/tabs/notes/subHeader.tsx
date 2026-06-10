@@ -2,7 +2,7 @@
  * External dependencies.
  */
 import { useNavigate, useParams } from "react-router-dom";
-import { Dropdown, TextInput } from "@rtcamp/frappe-ui-react";
+import { Dropdown, Select, TextInput } from "@rtcamp/frappe-ui-react";
 import { AddSm, SmallDown } from "@rtcamp/frappe-ui-react/icons";
 
 /**
@@ -10,19 +10,26 @@ import { AddSm, SmallDown } from "@rtcamp/frappe-ui-react/icons";
  */
 import { ROUTES } from "@/lib/constant";
 import { CREATE_OPTIONS } from "./constants";
+import type { NoteAuthorOption } from "./types";
 
 type NotesSubHeaderProps = {
   titleInput: string;
   descriptionInput: string;
+  author: string;
+  authorOptions: NoteAuthorOption[];
   onTitleInputChange: (value: string) => void;
   onDescriptionInputChange: (value: string) => void;
+  onAuthorChange: (value: string) => void;
 };
 
 export function NotesSubHeader({
   titleInput,
   descriptionInput,
+  author,
+  authorOptions,
   onTitleInputChange,
   onDescriptionInputChange,
+  onAuthorChange,
 }: NotesSubHeaderProps) {
   const navigate = useNavigate();
   const { projectId = "" } = useParams<{ projectId: string }>();
@@ -56,18 +63,28 @@ export function NotesSubHeader({
           ]}
         />
       </div>
-      <div className="flex flex-wrap items-center gap-2">
-        <TextInput
-          value={titleInput}
-          onChange={(e) => onTitleInputChange(e.target.value)}
-          placeholder="Search title"
-          className="w-full max-w-64"
-        />
-        <TextInput
-          value={descriptionInput}
-          onChange={(e) => onDescriptionInputChange(e.target.value)}
-          placeholder="Search description"
-          className="w-full max-w-64"
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div className="flex flex-1 gap-2">
+          <TextInput
+            value={titleInput}
+            onChange={(e) => onTitleInputChange(e.target.value)}
+            placeholder="Search title"
+            className="w-full max-w-64"
+          />
+          <TextInput
+            value={descriptionInput}
+            onChange={(e) => onDescriptionInputChange(e.target.value)}
+            placeholder="Search description"
+            className="w-full max-w-64"
+          />
+        </div>
+        <Select
+          size="sm"
+          placeholder="Select Author"
+          className="w-fit"
+          value={author}
+          onChange={(value) => onAuthorChange((value ?? "") as string)}
+          options={authorOptions}
         />
       </div>
     </div>

@@ -9,7 +9,12 @@ import { useFrappeGetDocList } from "frappe-react-sdk";
  */
 import { hashString } from "@/lib/utils";
 import { useProjectDetail } from "@/pages/project-details/context";
-import type { Note, NoteFilters, NoteUserDetails } from "./types";
+import type {
+  Note,
+  NoteAuthorOption,
+  NoteFilters,
+  NoteUserDetails,
+} from "./types";
 
 export function useNotesData(filters: NoteFilters) {
   const projectId = useProjectDetail((s) => s.projectId);
@@ -23,13 +28,14 @@ export function useNotesData(filters: NoteFilters) {
     const title = filters.title.trim();
     const description = filters.description.trim();
 
+    if (filters.author) base.push(["owner", "=", filters.author]);
     if (title) base.push(["title", "like", `%${title}%`]);
     if (description) {
       base.push(["description", "like", `%${description}%`]);
     }
 
     return base;
-  }, [projectId, filters.title, filters.description]);
+  }, [projectId, filters.author, filters.title, filters.description]);
 
   const { data, isLoading, error, mutate } = useFrappeGetDocList<Note>(
     "Project Status Update",
@@ -60,22 +66,37 @@ export function useNotesData(filters: NoteFilters) {
     },
   );
 
-  const allOwners = useMemo(() => {
-    if (!data?.length) return [];
-    return [...new Set(data.map((note) => note.owner).filter(Boolean))];
-  }, [data]);
+  const { data: allAuthorsData } = useFrappeGetDocList<{ owner: string }>(
+    "Project Status Update",
+    {
+      fields: ["owner"],
+      filters: [
+        ["project", "=", projectId],
+        ["status", "=", "Publish"],
+      ] as never,
+      limit: 500,
+    },
+  );
+
+  const allAuthors = useMemo(() => {
+    if (!allAuthorsData?.length) return [];
+    const emails = allAuthorsData
+      .map((row) => row.owner)
+      .filter(Boolean) as string[];
+    return [...new Set(emails)];
+  }, [allAuthorsData]);
 
   const usersSwrKey = useMemo(() => {
-    if (!allOwners.length) return null;
-    return `notes-users-${hashString(allOwners.slice().sort().join(","))}`;
-  }, [allOwners]);
+    if (!allAuthors.length) return null;
+    return `notes-users-${hashString(allAuthors.slice().sort().join(","))}`;
+  }, [allAuthors]);
 
   const { data: usersData } = useFrappeGetDocList<NoteUserDetails>(
     "User",
     {
       fields: ["name", "full_name", "user_image"],
-      filters: allOwners.length ? [["name", "in", allOwners]] : [],
-      limit: allOwners.length || 1,
+      filters: allAuthors.length ? [["name", "in", allAuthors]] : [],
+      limit: allAuthors.length || 1,
     },
     usersSwrKey,
   );
@@ -90,15 +111,26 @@ export function useNotesData(filters: NoteFilters) {
     if (!data?.length) return [];
 
     return data.map((note) => {
-      const ownerDetails = userMap[note.owner];
+      const authorDetails = userMap[note.owner];
 
       return {
         ...note,
-        owner_full_name: ownerDetails?.full_name || note.owner,
-        owner_image: ownerDetails?.user_image ?? null,
+        owner_full_name: authorDetails?.full_name || note.owner,
+        owner_image: authorDetails?.user_image ?? null,
       };
     });
   }, [data, userMap]);
 
-  return { notes, isLoading, error, mutate };
+  const authorOptions = useMemo<NoteAuthorOption[]>(
+    () => [
+      { label: "All", value: "" },
+      ...allAuthors.map((email) => ({
+        label: userMap[email]?.full_name ?? email,
+        value: email,
+      })),
+    ],
+    [allAuthors, userMap],
+  );
+
+  return { notes, isLoading, error, mutate, authorOptions };
 }

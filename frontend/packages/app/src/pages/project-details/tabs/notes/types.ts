@@ -19,9 +19,15 @@ export type NoteUserDetails = {
   user_image: string | null;
 };
 
+export type NoteAuthorOption = {
+  label: string;
+  value: string;
+};
+
 export type NoteFilters = {
   title: string;
   description: string;
+  author: string;
 };
 
 export type Note = {

@@ -6,7 +6,7 @@ import { createContext, useContextSelector } from "use-context-selector";
 /**
  * Internal dependencies.
  */
-import type { Note, NoteFilters } from "./types";
+import type { Note, NoteAuthorOption, NoteFilters } from "./types";
 
 export interface NotesContextProps {
   state: {
@@ -15,10 +15,12 @@ export interface NotesContextProps {
     error: unknown;
     filters: NoteFilters;
     isDeleting: boolean;
+    authorOptions: NoteAuthorOption[];
   };
   actions: {
     setTitleInput: (value: string) => void;
     setDescriptionInput: (value: string) => void;
+    setAuthor: (value: string) => void;
     refresh: () => Promise<unknown>;
     deleteNote: (name: string) => Promise<void>;
   };
@@ -34,12 +36,15 @@ export const NotesContext = createContext<NotesContextProps>({
     filters: {
       title: "",
       description: "",
+      author: "",
     },
     isDeleting: false,
+    authorOptions: [],
   },
   actions: {
     setTitleInput: noop,
     setDescriptionInput: noop,
+    setAuthor: noop,
     refresh: async () => undefined,
     deleteNote: async () => undefined,
   },

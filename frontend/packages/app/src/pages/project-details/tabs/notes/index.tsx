@@ -16,20 +16,27 @@ function NotesGrid() {
   const isLoading = useNotes((s) => s.state.isLoading);
   const error = useNotes((s) => s.state.error);
   const filters = useNotes((s) => s.state.filters);
+  const authorOptions = useNotes((s) => s.state.authorOptions);
   const setTitleInput = useNotes((s) => s.actions.setTitleInput);
   const setDescriptionInput = useNotes((s) => s.actions.setDescriptionInput);
+  const setAuthor = useNotes((s) => s.actions.setAuthor);
 
   if (error) throw error;
 
-  const hasFilter = Boolean(filters.title.trim() || filters.description.trim());
+  const hasFilter = Boolean(
+    filters.title.trim() || filters.description.trim() || filters.author,
+  );
 
   return (
     <div className="relative flex h-full flex-col gap-4">
       <NotesSubHeader
         titleInput={filters.title}
         descriptionInput={filters.description}
+        author={filters.author}
+        authorOptions={authorOptions}
         onTitleInputChange={setTitleInput}
         onDescriptionInputChange={setDescriptionInput}
+        onAuthorChange={setAuthor}
       />
       <div
         className={cn("flex flex-col", {
