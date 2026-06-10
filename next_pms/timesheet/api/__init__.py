@@ -169,7 +169,7 @@ def filter_employees(
     if designation and len(designation) > 0:
         filters["designation"] = ["in", designation]
 
-    if business_unit and len(business_unit) > 0:
+    if business_unit and len(business_unit) > 0 and frappe.get_meta("Employee").has_field("custom_business_unit"):
         filters["custom_business_unit"] = ["in", business_unit]
 
     if ids:

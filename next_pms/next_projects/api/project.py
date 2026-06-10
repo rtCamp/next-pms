@@ -361,10 +361,14 @@ def _get_project_members(project_name: str, currency: str) -> list[dict]:
     )
     user_map = {u.name: u for u in users}
 
+    employee_fields = ["name", "user_id", "designation", "department", "cell_number", "company_email"]
+    if frappe.get_meta("Employee").has_field("custom_linkedin"):
+        employee_fields.append("custom_linkedin")
+
     employees = frappe.get_all(
         "Employee",
         filters={"user_id": ["in", user_ids], "status": "Active"},
-        fields=["name", "user_id", "designation", "department", "cell_number", "company_email", "custom_linkedin"],
+        fields=employee_fields,
     )
     employee_map = {e.user_id: e for e in employees}
 
@@ -387,7 +391,7 @@ def _get_project_members(project_name: str, currency: str) -> list[dict]:
             "department": emp.department if emp else None,
             "cell_number": emp.cell_number if emp else None,
             "company_email": emp.company_email if emp else None,
-            "linkedin_url": emp.custom_linkedin if emp else None,
+            "linkedin_url": emp.get("custom_linkedin") if emp else None,
             "hourly_rate": _hourly_rate(emp.name if emp else None),
             "currency": currency if emp else None,
         }
@@ -403,20 +407,23 @@ def _get_project_customers(project_doc) -> list[dict]:
     if not contact_names:
         return []
 
+    contact_fields = [
+        "name",
+        "full_name",
+        "image",
+        "designation",
+        "company_name",
+        "email_id",
+        "phone",
+        "mobile_no",
+    ]
+    if frappe.get_meta("Contact").has_field("custom_linkedin_url"):
+        contact_fields.append("custom_linkedin_url")
+
     contacts = frappe.get_all(
         "Contact",
         filters={"name": ["in", contact_names]},
-        fields=[
-            "name",
-            "full_name",
-            "image",
-            "designation",
-            "company_name",
-            "email_id",
-            "phone",
-            "mobile_no",
-            "custom_linkedin_url",
-        ],
+        fields=contact_fields,
     )
     contact_map = {c.name: c for c in contacts}
 
@@ -429,7 +436,7 @@ def _get_project_customers(project_doc) -> list[dict]:
             "company_name": c.company_name,
             "email_id": c.email_id,
             "phone": c.phone or c.mobile_no,
-            "linkedin_url": c.custom_linkedin_url,
+            "linkedin_url": c.get("custom_linkedin_url"),
         }
         for name in contact_names
         if (c := contact_map.get(name))
