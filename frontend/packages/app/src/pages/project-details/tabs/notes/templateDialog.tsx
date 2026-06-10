@@ -77,7 +77,12 @@ export function TemplateDialog({
           placeholder="Search template"
           prefix={() => <Search className="size-4 text-ink-gray-5" />}
           value={query}
-          onChange={(e) => setQuery(e.target.value)}
+          onChange={(e) => {
+            setQuery(e.target.value);
+            // Clear the selection so "Use template" can't navigate with a
+            // template that the new query may have filtered out of the list.
+            setSelected(null);
+          }}
         />
         <div className="flex flex-col gap-1">
           <span className="text-sm text-ink-gray-5">Templates</span>

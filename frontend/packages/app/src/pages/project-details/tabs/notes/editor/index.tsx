@@ -1,7 +1,7 @@
 /**
  * External dependencies.
  */
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { Spinner } from "@next-pms/design-system/components";
 import {
@@ -45,6 +45,7 @@ function NoteEditor() {
   const refresh = useNotes((s) => s.actions.refresh);
   const toast = useToasts();
   const [isFormInitialized, setIsFormInitialized] = useState(false);
+  const didInitForm = useRef(false);
 
   const { call: createNote, loading: isCreating } = useFrappePostCall(
     "next_pms.timesheet.api.project_status_update.create_project_status_update",
@@ -57,10 +58,15 @@ function NoteEditor() {
     { name: noteId },
     mode === "edit" && noteId ? undefined : null,
   );
-  const { data: templateData, isLoading: isTemplateLoading } = useFrappeGetCall(
+  const {
+    data: templateData,
+    isLoading: isTemplateLoading,
+    error: templateError,
+  } = useFrappeGetCall(
     "frappe.client.get",
     { doctype: "Project Status Update Template", name: templateName },
     templateName ? undefined : null,
+    { shouldRetryOnError: false },
   );
 
   const form = useForm({
@@ -107,14 +113,20 @@ function NoteEditor() {
   });
 
   useEffect(() => {
-    if (mode === "edit" && noteData?.message) {
+    if (didInitForm.current) return;
+    // Initialise the form exactly once, after the data it seeds from has
+    // settled: the note (edit), the template (new + template), or immediately
+    // (new, no template). A failed template falls back to a blank note rather
+    // than hanging on the spinner.
+    const ready =
+      (mode === "edit" && !!noteData?.message) ||
+      (mode === "new" &&
+        (!templateName || !!templateData?.message || !!templateError));
+    if (ready) {
+      didInitForm.current = true;
       setIsFormInitialized(true);
-    } else if (mode === "new") {
-      if (!templateName || templateData?.message) {
-        setIsFormInitialized(true);
-      }
     }
-  }, [noteData, templateData, templateName, mode, form, projectId]);
+  }, [noteData, templateData, templateError, templateName, mode]);
 
   const isInputDisabled =
     isCreating || isUpdating || isNoteLoading || isTemplateLoading;
