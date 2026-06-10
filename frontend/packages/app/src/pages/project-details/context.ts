@@ -22,6 +22,14 @@ export type CreateRateInput = {
   validFrom: string;
 };
 
+export type CreateContractInput = {
+  startDate: string;
+  endDate: string;
+  hoursBought: number;
+  salesOrder?: string;
+  salesInvoice?: string;
+};
+
 export interface ProjectDetailContextProps {
   projectId: string;
   project: FrappeDoc<ProjectDoc> | undefined;
@@ -34,6 +42,7 @@ export interface ProjectDetailContextProps {
   updateContacts: (contactIds: string[]) => Promise<void>;
   deleteRate: (name: string) => Promise<void>;
   createRate: (input: CreateRateInput) => Promise<void>;
+  createContract: (input: CreateContractInput) => Promise<void>;
 }
 
 const noop = () => {};
@@ -51,6 +60,7 @@ export const ProjectDetailContext = createContext<ProjectDetailContextProps>({
   updateContacts: asyncNoop,
   deleteRate: asyncNoop,
   createRate: asyncNoop,
+  createContract: asyncNoop,
 });
 
 export const useProjectDetail = <T>(

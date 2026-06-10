@@ -15,12 +15,22 @@ import { AddSm } from "@rtcamp/frappe-ui-react/icons";
  * Internal dependencies.
  */
 import { mergeClassNames } from "@/lib/utils";
+import { useProjectDetail } from "../../../context";
 import { CONTRACT_COLUMNS } from "../constants";
 import { useTracking } from "../context";
 import { ActionsCell } from "./actionsCell";
+import { AddContractModal } from "./addContractModal";
 
 export function ContractsTable() {
   const rows = useTracking((state) => state.contracts);
+  const createContract = useTracking((state) => state.createContract);
+  const addContractModalOpen = useTracking(
+    (state) => state.addContractModalOpen,
+  );
+  const setAddContractModalOpen = useTracking(
+    (state) => state.setAddContractModalOpen,
+  );
+  const projectId = useProjectDetail((state) => state.projectId);
 
   if (!rows) return null;
 
@@ -30,7 +40,11 @@ export function ContractsTable() {
         <span className="text-base font-semibold text-ink-gray-8">
           Contracts
         </span>
-        <Button icon={AddSm} variant="subtle" />
+        <Button
+          icon={AddSm}
+          variant="subtle"
+          onClick={() => setAddContractModalOpen(true)}
+        />
       </div>
       <ListView
         columns={CONTRACT_COLUMNS}
@@ -80,6 +94,12 @@ export function ContractsTable() {
           )}
         </ListRows>
       </ListView>
+      <AddContractModal
+        open={addContractModalOpen}
+        onOpenChange={setAddContractModalOpen}
+        onSubmit={createContract}
+        projectId={projectId}
+      />
     </div>
   );
 }

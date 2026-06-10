@@ -7,7 +7,7 @@ import { createContext, useContextSelector } from "use-context-selector";
  * Internal dependencies.
  */
 import type { ContractRow, RateRow } from "./types";
-import type { CreateRateInput } from "../../context";
+import type { CreateContractInput, CreateRateInput } from "../../context";
 
 export type ProjectFlatRate = {
   flat_rate_hourly?: number;
@@ -79,6 +79,9 @@ export interface TrackingContextProps {
   createRate: (input: CreateRateInput) => Promise<void>;
   addRateModalOpen: boolean;
   setAddRateModalOpen: (open: boolean) => void;
+  createContract: (input: CreateContractInput) => Promise<void>;
+  addContractModalOpen: boolean;
+  setAddContractModalOpen: (open: boolean) => void;
 }
 
 export const DEFAULT_TRACKING: Tracking = {
@@ -116,6 +119,9 @@ export const TrackingContext = createContext<TrackingContextProps>({
   createRate: async () => {},
   addRateModalOpen: false,
   setAddRateModalOpen: () => {},
+  createContract: async () => {},
+  addContractModalOpen: false,
+  setAddContractModalOpen: () => {},
 });
 
 export const useTracking = <T>(selector: (state: TrackingContextProps) => T) =>

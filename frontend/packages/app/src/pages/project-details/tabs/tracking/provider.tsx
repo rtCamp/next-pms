@@ -16,13 +16,19 @@ import {
   type TrackingContextProps,
 } from "./context";
 import type { ContractRow, RateRow } from "./types";
-import { useProjectDetail, type CreateRateInput } from "../../context";
+import {
+  useProjectDetail,
+  type CreateContractInput,
+  type CreateRateInput,
+} from "../../context";
 
 export function TrackingProvider({ children }: PropsWithChildren) {
   const projectId = useProjectDetail((s) => s.projectId);
   const deletedRateDoc = useProjectDetail((s) => s.deleteRate);
   const createRateDoc = useProjectDetail((s) => s.createRate);
+  const createContractDoc = useProjectDetail((s) => s.createContract);
   const [addRateModalOpen, setAddRateModalOpen] = useState(false);
+  const [addContractModalOpen, setAddContractModalOpen] = useState(false);
 
   const { data, mutate } = useFrappeGetCall<Response>(
     "next_pms.next_projects.api.project.get_project_tracking",
@@ -50,6 +56,14 @@ export function TrackingProvider({ children }: PropsWithChildren) {
       await mutate();
     },
     [createRateDoc, mutate],
+  );
+
+  const createContract = useCallback(
+    async (input: CreateContractInput) => {
+      await createContractDoc(input);
+      await mutate();
+    },
+    [createContractDoc, mutate],
   );
 
   const value = useMemo<TrackingContextProps>(() => {
@@ -97,8 +111,18 @@ export function TrackingProvider({ children }: PropsWithChildren) {
       createRate,
       addRateModalOpen,
       setAddRateModalOpen,
+      createContract,
+      addContractModalOpen,
+      setAddContractModalOpen,
     };
-  }, [tracking, deleteRate, createRate, addRateModalOpen]);
+  }, [
+    tracking,
+    deleteRate,
+    createRate,
+    createContract,
+    addRateModalOpen,
+    addContractModalOpen,
+  ]);
 
   return (
     <TrackingContext.Provider value={value}>

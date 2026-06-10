@@ -14,6 +14,7 @@ import {
  */
 import {
   ProjectDetailContext,
+  type CreateContractInput,
   type CreateRateInput,
   type ProjectDetailContextProps,
   type RepositoryInput,
@@ -132,6 +133,32 @@ export function ProjectDetailProvider({
     [updateDoc, projectId, mutate, data],
   );
 
+  const createContract = useCallback(
+    async ({
+      startDate,
+      endDate,
+      hoursBought,
+      salesOrder,
+      salesInvoice,
+    }: CreateContractInput) => {
+      const current = data?.custom_project_budget_hours ?? [];
+      await updateDoc("Project", projectId, {
+        custom_project_budget_hours: [
+          ...current,
+          {
+            start_date: startDate,
+            end_date: endDate,
+            hours_purchased: hoursBought,
+            sales_order: salesOrder ?? "",
+            sales_invoice: salesInvoice ?? "",
+          },
+        ],
+      });
+      mutate();
+    },
+    [updateDoc, projectId, mutate, data],
+  );
+
   const value: ProjectDetailContextProps = {
     projectId,
     project: data,
@@ -144,6 +171,7 @@ export function ProjectDetailProvider({
     updateContacts,
     deleteRate,
     createRate,
+    createContract,
   };
 
   return (
