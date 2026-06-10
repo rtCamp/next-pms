@@ -15,6 +15,13 @@ export type RepositoryInput = Pick<
 > &
   Partial<Pick<ProjectRepositoryConnection, "name">>;
 
+export type CreateRateInput = {
+  isFlatRate: boolean;
+  employee?: string;
+  hourlyRate: number;
+  validFrom: string;
+};
+
 export interface ProjectDetailContextProps {
   projectId: string;
   project: FrappeDoc<ProjectDoc> | undefined;
@@ -26,6 +33,7 @@ export interface ProjectDetailContextProps {
   removeMember: (userId: string) => Promise<void>;
   updateContacts: (contactIds: string[]) => Promise<void>;
   deleteRate: (name: string) => Promise<void>;
+  createRate: (input: CreateRateInput) => Promise<void>;
 }
 
 const noop = () => {};
@@ -42,6 +50,7 @@ export const ProjectDetailContext = createContext<ProjectDetailContextProps>({
   removeMember: asyncNoop,
   updateContacts: asyncNoop,
   deleteRate: asyncNoop,
+  createRate: asyncNoop,
 });
 
 export const useProjectDetail = <T>(

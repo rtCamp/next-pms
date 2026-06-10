@@ -14,6 +14,7 @@ import {
  */
 import {
   ProjectDetailContext,
+  type CreateRateInput,
   type ProjectDetailContextProps,
   type RepositoryInput,
 } from "./context";
@@ -101,6 +102,36 @@ export function ProjectDetailProvider({
     [updateDoc, projectId, mutate, data],
   );
 
+  const createRate = useCallback(
+    async ({
+      isFlatRate,
+      employee,
+      hourlyRate,
+      validFrom,
+    }: CreateRateInput) => {
+      if (isFlatRate) {
+        await updateDoc("Project", projectId, {
+          custom_default_hourly_billing_rate: hourlyRate,
+          actual_start_date: validFrom,
+        });
+      } else {
+        const current = data?.custom_project_billing_team ?? [];
+        await updateDoc("Project", projectId, {
+          custom_project_billing_team: [
+            ...current,
+            {
+              employee: employee ?? "",
+              hourly_billing_rate: hourlyRate,
+              valid_from: validFrom,
+            },
+          ],
+        });
+      }
+      mutate();
+    },
+    [updateDoc, projectId, mutate, data],
+  );
+
   const value: ProjectDetailContextProps = {
     projectId,
     project: data,
@@ -112,6 +143,7 @@ export function ProjectDetailProvider({
     removeMember,
     updateContacts,
     deleteRate,
+    createRate,
   };
 
   return (

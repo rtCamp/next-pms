@@ -18,6 +18,7 @@ import { AddSm } from "@rtcamp/frappe-ui-react/icons";
 import { RATE_COLUMNS } from "../constants";
 import { useTracking } from "../context";
 import { ActionsCell } from "./actionsCell";
+import { AddProjectRateModal } from "./addProjectRateModal";
 
 const gridTemplateColumns = RATE_COLUMNS.map((c) => c.width).join(" ");
 
@@ -25,6 +26,9 @@ export function ProjectRatesTable() {
   const rows = useTracking((state) => state.rates);
   const flatRate = useTracking((state) => state.flatRate);
   const deleteRate = useTracking((state) => state.deleteRate);
+  const createRate = useTracking((state) => state.createRate);
+  const addRateModalOpen = useTracking((state) => state.addRateModalOpen);
+  const setAddRateModalOpen = useTracking((state) => state.setAddRateModalOpen);
 
   if (!rows) return null;
 
@@ -34,7 +38,11 @@ export function ProjectRatesTable() {
         <span className="text-base font-semibold text-ink-gray-8">
           Project rates
         </span>
-        <Button icon={AddSm} variant="subtle" />
+        <Button
+          icon={AddSm}
+          variant="subtle"
+          onClick={() => setAddRateModalOpen(true)}
+        />
       </div>
       <ListView
         columns={RATE_COLUMNS}
@@ -105,6 +113,11 @@ export function ProjectRatesTable() {
           )}
         </ListRows>
       </ListView>
+      <AddProjectRateModal
+        open={addRateModalOpen}
+        onOpenChange={setAddRateModalOpen}
+        onSubmit={createRate}
+      />
     </div>
   );
 }
