@@ -14,34 +14,46 @@ from frappe.utils import add_days, cint, flt, getdate, today
 from pypika import Case
 from pypika.functions import Date
 
-from next_pms.resource_management.api.utils.query import get_employee_leaves
+from next_pms.resource_management.api.utils.query import attach_extra_entries, get_employee_leaves
+from next_pms.timesheet.api.employee import get_employee_from_user
 
 CURRENCY = "USD"
 ALLOWED_ROLES = ["Projects Manager", "Projects User"]
 
 
 @whitelist(methods=["GET"])
-def get_active_projects_count() -> int:
+def get_active_projects_count(client: str | None = None, project: str | None = None) -> int:
     only_for(["System Manager"], message=True)
 
-    return frappe.db.count("Project", filters={"is_active": "Yes"})
+    filters = {"is_active": "Yes"}
+    if client:
+        filters["customer"] = client
+    if project:
+        filters["name"] = project
+    return frappe.db.count("Project", filters=filters)
 
 
 @whitelist(methods=["GET"])
-def get_at_risk_projects_count() -> int:
+def get_at_risk_projects_count(client: str | None = None, project: str | None = None) -> int:
     only_for(["Projects Manager", "Projects User", "System Manager"], message=True)
 
-    return frappe.db.count(
-        "Project",
-        filters={
-            "is_active": "Yes",
-            "custom_project_rag_status": ["in", ["Amber", "Green"]],
-        },
-    )
+    filters = {
+        "is_active": "Yes",
+        "custom_project_rag_status": ["in", ["Red", "Amber"]],
+    }
+    if client:
+        filters["customer"] = client
+    if project:
+        filters["name"] = project
+    return frappe.db.count("Project", filters=filters)
 
 
 @whitelist(methods=["GET"])
-def get_timesheets_to_review(days: int = 7) -> list:
+def get_timesheets_to_review(
+    days: int = 7,
+    client: str | None = None,
+    project: str | None = None,
+) -> list:
     """Return timesheets pending approval from direct reports of the current user.
 
     Parameters
@@ -58,8 +70,6 @@ def get_timesheets_to_review(days: int = 7) -> list:
     """
     only_for(["Projects Manager", "Projects User", "System Manager"], message=True)
 
-    from next_pms.timesheet.api.employee import get_employee_from_user
-
     manager_employee = get_employee_from_user()
     if not manager_employee:
         return []
@@ -74,20 +84,31 @@ def get_timesheets_to_review(days: int = 7) -> list:
     if not reportee_ids:
         return []
 
-    return frappe.get_all(
+    filters = {
+        "employee": ["in", reportee_ids],
+        "start_date": [">=", since],
+        "custom_approval_status": "Approval Pending",
+    }
+    if client:
+        filters["customer"] = client
+    if project:
+        filters["parent_project"] = project
+
+    timesheets = frappe.get_all(
         "Timesheet",
-        filters={
-            "employee": ["in", reportee_ids],
-            "start_date": [">=", since],
-            "custom_approval_status": "Approval Pending",
-        },
+        filters=filters,
         fields=["name", "employee", "employee_name", "start_date", "end_date", "custom_approval_status"],
         order_by="start_date desc",
     )
+    return timesheets
 
 
 @whitelist(methods=["GET"])
-def get_non_billable_hours(days: int = 30) -> float:
+def get_non_billable_hours(
+    days: int = 30,
+    client: str | None = None,
+    project: str | None = None,
+) -> float:
     """Return total non-billable hours logged across all timesheets in the given window.
 
     Parameters
@@ -102,21 +123,26 @@ def get_non_billable_hours(days: int = 30) -> float:
         within the window.
     """
     only_for(["Projects Manager", "Projects User", "System Manager"], message=True)
-    return _get_non_billable_hours(days)
+    return _get_non_billable_hours(days, client, project)
 
 
 @redis_cache(ttl=21600)
-def _get_non_billable_hours(days: int) -> float:
+def _get_non_billable_hours(days: int, client: str | None, project: str | None) -> float:
     TimesheetDetail = DocType("Timesheet Detail")
     since = add_days(today(), -days)
 
-    result = (
+    query = (
         frappe.qb.from_(TimesheetDetail)
         .select(Sum(TimesheetDetail.hours).as_("total"))
         .where(TimesheetDetail.is_billable == 0)
         .where(Date(TimesheetDetail.from_time) >= since)
-        .run(as_dict=True)
     )
+    if client:
+        Project = DocType("Project")
+        query = query.join(Project).on(TimesheetDetail.project == Project.name).where(Project.customer == client)
+    if project:
+        query = query.where(TimesheetDetail.project == project)
+    result = query.run(as_dict=True)
 
     return flt(result[0].total) if result else 0.0
 
@@ -157,8 +183,6 @@ def get_members_without_allocation(days: int = 7) -> dict:
 
 @redis_cache(ttl=21600)
 def _get_members_without_allocation(days: int) -> dict:
-    from next_pms.resource_management.api.utils.query import attach_extra_entries
-
     end_date = getdate(today())
     start_date = end_date - timedelta(days=days - 1)
     allow_weekend_entries = cint(frappe.db.get_single_value("Timesheet Settings", "allow_weekend_entries"))
@@ -187,7 +211,7 @@ def _get_members_without_allocation(days: int) -> dict:
     employee_names = [employee.name for employee in employees]
 
     ResourceAllocation = DocType("Resource Allocation")
-    allocations = (
+    allocations_query = (
         frappe.qb.from_(ResourceAllocation)
         .select(
             ResourceAllocation.name,
@@ -202,8 +226,8 @@ def _get_members_without_allocation(days: int) -> dict:
         .where(ResourceAllocation.allocation_start_date <= end_date)
         .where(ResourceAllocation.allocation_end_date >= start_date)
         .where(ResourceAllocation.status == "Confirmed")
-        .run(as_dict=True)
     )
+    allocations = allocations_query.run(as_dict=True)
     allocations = attach_extra_entries(allocations)
 
     allocations_by_employee = {}
@@ -316,7 +340,11 @@ def _is_holiday(date, holidays: list) -> bool:
 
 
 @whitelist(methods=["GET"])
-def get_outstanding_timesheets(days: int = 7) -> dict:
+def get_outstanding_timesheets(
+    days: int = 7,
+    client: str | None = None,
+    project: str | None = None,
+) -> dict:
     """Return direct reports missing timesheets on one or more past working days.
 
     Only active employees who report to the current user's Employee record are
@@ -349,11 +377,11 @@ def get_outstanding_timesheets(days: int = 7) -> dict:
     if days < 1:
         frappe.throw(frappe._("days must be at least 1"))
 
-    return _get_outstanding_timesheets(frappe.session.user, days)
+    return _get_outstanding_timesheets(frappe.session.user, days, client, project)
 
 
 @redis_cache(user=True, ttl=21600)
-def _get_outstanding_timesheets(user: str, days: int) -> dict:
+def _get_outstanding_timesheets(user: str, days: int, client: str | None, project: str | None) -> dict:
     end_date = getdate(add_days(today(), -1))
     start_date = end_date - timedelta(days=days - 1)
     allow_weekend_entries = cint(frappe.db.get_single_value("Timesheet Settings", "allow_weekend_entries"))
@@ -381,6 +409,28 @@ def _get_outstanding_timesheets(user: str, days: int) -> dict:
         return empty_response
 
     employee_names = [employee.name for employee in employees]
+    Timesheet = DocType("Timesheet")
+    if client or project:
+        ResourceAllocation = DocType("Resource Allocation")
+        allocation_query = (
+            frappe.qb.from_(ResourceAllocation)
+            .select(ResourceAllocation.employee)
+            .where(ResourceAllocation.employee.isin(employee_names))
+            .where(ResourceAllocation.allocation_start_date <= end_date)
+            .where(ResourceAllocation.allocation_end_date >= start_date)
+            .where(ResourceAllocation.status == "Confirmed")
+        )
+        if client:
+            allocation_query = allocation_query.where(ResourceAllocation.customer == client)
+        if project:
+            allocation_query = allocation_query.where(ResourceAllocation.project == project)
+        allocation_rows = allocation_query.run(as_dict=True)
+        allocation_employee_names = {row.employee for row in allocation_rows if row.employee}
+
+        employees = [employee for employee in employees if employee.name in allocation_employee_names]
+        if not employees:
+            return empty_response
+        employee_names = [employee.name for employee in employees]
 
     leaves_by_employee = {}
     for leave in get_employee_leaves(tuple(employee_names), start_date, end_date):
@@ -407,15 +457,18 @@ def _get_outstanding_timesheets(user: str, days: int) -> dict:
         holiday_list = holiday_list_by_employee.get(employee.name)
         holidays_by_employee[employee.name] = holidays_by_list.get(holiday_list, [])
 
-    Timesheet = DocType("Timesheet")
-    timesheet_rows = (
+    timesheet_query = (
         frappe.qb.from_(Timesheet)
         .select(Timesheet.employee, Timesheet.start_date)
         .where(Timesheet.employee.isin(employee_names))
         .where(Timesheet.start_date >= start_date)
         .where(Timesheet.start_date <= end_date)
-        .run(as_dict=True)
     )
+    if client:
+        timesheet_query = timesheet_query.where(Timesheet.customer == client)
+    if project:
+        timesheet_query = timesheet_query.where(Timesheet.parent_project == project)
+    timesheet_rows = timesheet_query.run(as_dict=True)
 
     timesheet_days_by_employee = {}
     for row in timesheet_rows:
