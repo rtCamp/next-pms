@@ -33,7 +33,6 @@ export const GanttMemberRows: React.FC<GanttMemberRowsProps> = ({
     daysPerWeek,
     columnWidth,
     headerWidth,
-    columnCount,
     hasRoleAccess,
     onAddAllocation,
     onEditAllocation,
@@ -46,7 +45,6 @@ export const GanttMemberRows: React.FC<GanttMemberRowsProps> = ({
     daysPerWeek: s.daysPerWeek,
     columnWidth: s.columnWidth,
     headerWidth: s.headerWidth,
-    columnCount: s.columnCount,
     hasRoleAccess: s.hasRoleAccess,
     onAddAllocation: s.onAddAllocation,
     onEditAllocation: s.onEditAllocation,
@@ -65,7 +63,7 @@ export const GanttMemberRows: React.FC<GanttMemberRowsProps> = ({
     <React.Fragment>
       {/* Member row */}
       <tr
-        className="relative last:border-b border-outline-gray-1 animate-fade-in"
+        className="relative touch-pan-y last:border-b border-outline-gray-1 animate-fade-in"
         onPointerDown={(e) => overlayRef.current?.handleRowPointerDown(e)}
         onPointerMove={(e) => overlayRef.current?.handleRowPointerMove(e)}
         onPointerLeave={() => overlayRef.current?.clearHoveredSlot()}
@@ -92,10 +90,6 @@ export const GanttMemberRows: React.FC<GanttMemberRowsProps> = ({
           <RowAllocationOverlay
             ref={overlayRef}
             enabled={canManageAllocations}
-            rowKey={memberRowKey}
-            headerWidth={headerWidth}
-            columnWidth={columnWidth}
-            columnCount={columnCount}
             allocations={member.memberSummaryBars}
             createDraftBar={(left) => ({
               rowKey: memberRowKey,

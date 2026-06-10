@@ -1,3 +1,6 @@
+/**
+ * External dependencies.
+ */
 import React, {
   forwardRef,
   useCallback,
@@ -7,8 +10,14 @@ import React, {
 } from "react";
 import { Button } from "@rtcamp/frappe-ui-react";
 import { AddMd } from "@rtcamp/frappe-ui-react/icons";
+
+/**
+ * Internal dependencies.
+ */
 import { mergeClassNames as cn } from "../../../utils";
 import { BAR_HEIGHT, BAR_MARGIN, CELL_HEIGHT } from "../constants";
+import { useGanttStore } from "../ganttStore";
+import { useRowAllocationDraft } from "../hooks/useRowAllocationDraft";
 import type { AllocationCallbackData } from "../types";
 import { isColumnOccupied, type DraftBarSeed } from "../utils";
 import type { OccupyingAllocation } from "../utils";
@@ -26,15 +35,10 @@ export interface RowAllocationOverlayHandle {
 
 interface RowAllocationOverlayProps {
   enabled: boolean;
-  rowKey: string;
-  headerWidth: number;
-  columnWidth: number;
-  columnCount: number;
   allocations: OccupyingAllocation[];
   createDraftBar: (left: number) => DraftBarSeed;
   onOpenAllocation?: (data: AllocationCallbackData) => void;
 }
-
 /**
  * forwardRef exposes an imperative handle so the parent component can forward
  * pointer events here without owning hover/draft state, keeping pointermove
@@ -44,30 +48,36 @@ export const RowAllocationOverlay = forwardRef<
   RowAllocationOverlayHandle,
   RowAllocationOverlayProps
 >(function RowAllocationOverlay(
-  {
-    enabled,
-    rowKey,
-    headerWidth,
-    columnWidth,
-    columnCount,
-    allocations,
-    createDraftBar,
-    onOpenAllocation,
-  },
+  { enabled, allocations, createDraftBar, onOpenAllocation },
   ref,
 ) {
-  const [drafts, setDrafts] = useState<DraftBarSeed[]>([]);
+  const { headerWidth, columnWidth, columnCount, weekStart, showWeekend } =
+    useGanttStore((s) => ({
+      headerWidth: s.headerWidth,
+      columnWidth: s.columnWidth,
+      columnCount: s.columnCount,
+      weekStart: s.weekStart,
+      showWeekend: s.showWeekend,
+    }));
+
   const [hoveredSlotLeft, setHoveredSlotLeft] = useState<number | null>(null);
 
-  const clearHoveredSlot = useCallback(() => {
-    setHoveredSlotLeft(null);
-  }, []);
+  const { draft, removeDraft, openDraftAtSlot, startCreateInteraction } =
+    useRowAllocationDraft({
+      createDraftBar,
+      headerWidth,
+      columnWidth,
+      columnCount,
+      maxRight: headerWidth + columnWidth * columnCount,
+      weekStart,
+      showWeekend,
+      onOpenAllocation,
+      onDraftCreated: () => {
+        setHoveredSlotLeft(null);
+      },
+    });
 
-  const removeDraft = useCallback((nextRowKey: string, seedLeft: number) => {
-    setDrafts((prev) =>
-      prev.filter((d) => !(d.rowKey === nextRowKey && d.left === seedLeft)),
-    );
-  }, []);
+  const canAdd = enabled && draft === null;
 
   useEffect(() => {
     if (!enabled) {
@@ -75,67 +85,57 @@ export const RowAllocationOverlay = forwardRef<
     }
   }, [enabled]);
 
-  const updateHoveredSlotFromPointer = useCallback(
-    (event: React.PointerEvent<HTMLTableRowElement>) => {
-      if (!enabled) {
-        setHoveredSlotLeft(null);
-        return;
-      }
-
+  /**
+   * Calculates the left position for a potential new allocation based on pointer position.
+   */
+  const getSlotLeft = useCallback(
+    (event: React.PointerEvent<HTMLTableRowElement>): number | null => {
       const target = event.target;
       if (
         target instanceof Element &&
         target.closest('[data-gantt-bar="true"]')
       ) {
-        setHoveredSlotLeft(null);
-        return;
+        return null;
       }
 
+      // Calculate the hovered day index based on pointer position, and
+      // ignore if it's outside the row or over an existing allocation.
       const rect = event.currentTarget.getBoundingClientRect();
       const relativeY = event.clientY - rect.top;
       const barTop = Math.max((rect.height - BAR_HEIGHT) / 2, 0);
       const barBottom = barTop + Math.min(BAR_HEIGHT, rect.height);
-
-      if (relativeY < barTop || relativeY > barBottom) {
-        setHoveredSlotLeft(null);
-        return;
-      }
+      if (relativeY < barTop || relativeY > barBottom) return null;
 
       const relativeX = event.clientX - rect.left - headerWidth;
       const dayIndex = Math.floor(relativeX / columnWidth);
+      if (dayIndex < 0 || dayIndex >= columnCount) return null;
 
-      const draftOccupancies = drafts.map((d) => ({
-        barOffset: d.left - headerWidth,
-        width: d.width,
-      }));
-
-      if (
-        dayIndex < 0 ||
-        dayIndex >= columnCount ||
-        isColumnOccupied(
-          [...allocations, ...draftOccupancies],
-          dayIndex,
-          columnWidth,
-        )
-      ) {
-        setHoveredSlotLeft(null);
-        return;
+      if (isColumnOccupied(allocations, dayIndex, columnWidth)) {
+        return null;
       }
 
-      const snappedLeft = headerWidth + dayIndex * columnWidth;
-      setHoveredSlotLeft((prev) => (prev === snappedLeft ? prev : snappedLeft));
+      return headerWidth + dayIndex * columnWidth;
     },
-    [allocations, columnCount, columnWidth, drafts, enabled, headerWidth],
+    [allocations, columnCount, columnWidth, headerWidth],
   );
 
-  const handleRowPointerDown = useCallback(
+  /**
+   * Updates the hovered slot for a potential new allocation based on pointer events.
+   * The add button is positioned from this hovered slot and drag-to-create starts from there.
+   */
+  const updateHoveredSlotFromPointer = useCallback(
     (event: React.PointerEvent<HTMLTableRowElement>) => {
-      if (event.pointerType === "touch" || event.pointerType === "pen") {
-        updateHoveredSlotFromPointer(event);
-      }
+      if (!canAdd) return;
+
+      const slotLeft = getSlotLeft(event);
+      setHoveredSlotLeft((prev) => (prev === slotLeft ? prev : slotLeft));
     },
-    [updateHoveredSlotFromPointer],
+    [canAdd, getSlotLeft],
   );
+
+  const clearHoveredSlot = useCallback(() => {
+    setHoveredSlotLeft(null);
+  }, []);
 
   const handleRowPointerMove = useCallback(
     (event: React.PointerEvent<HTMLTableRowElement>) => {
@@ -144,19 +144,68 @@ export const RowAllocationOverlay = forwardRef<
     [updateHoveredSlotFromPointer],
   );
 
+  const handleRowPointerDown = useCallback(
+    (event: React.PointerEvent<HTMLTableRowElement>) => {
+      if (event.pointerType !== "touch" && event.pointerType !== "pen") {
+        return;
+      }
+
+      if (!canAdd) {
+        return;
+      }
+
+      const slotLeft = getSlotLeft(event);
+      if (slotLeft === null) {
+        return;
+      }
+
+      event.preventDefault();
+      startCreateInteraction(slotLeft, event.pointerId, event.clientX);
+    },
+    [canAdd, getSlotLeft, startCreateInteraction],
+  );
+
+  const handleAddButtonPointerDown = useCallback(
+    (event: React.PointerEvent<HTMLButtonElement>) => {
+      if (!event.isPrimary) {
+        return;
+      }
+
+      if (event.pointerType === "mouse" && event.button !== 0) {
+        return;
+      }
+
+      if (hoveredSlotLeft === null) {
+        return;
+      }
+
+      event.preventDefault();
+      event.stopPropagation();
+      startCreateInteraction(hoveredSlotLeft, event.pointerId, event.clientX);
+    },
+    [hoveredSlotLeft, startCreateInteraction],
+  );
+
+  const handleAddButtonClick = useCallback(
+    (event: React.MouseEvent<HTMLButtonElement>) => {
+      if (event.detail !== 0 || hoveredSlotLeft === null) {
+        return;
+      }
+
+      openDraftAtSlot(hoveredSlotLeft);
+    },
+    [hoveredSlotLeft, openDraftAtSlot],
+  );
+
   useImperativeHandle(
     ref,
-    () => ({
-      handleRowPointerDown,
-      handleRowPointerMove,
-      clearHoveredSlot,
-    }),
+    () => ({ handleRowPointerDown, handleRowPointerMove, clearHoveredSlot }),
     [clearHoveredSlot, handleRowPointerDown, handleRowPointerMove],
   );
 
   return (
     <>
-      {drafts.map((draft) => (
+      {draft !== null && (
         <DraftBar
           key={`${draft.rowKey}-${draft.left}`}
           rowKey={draft.rowKey}
@@ -169,8 +218,9 @@ export const RowAllocationOverlay = forwardRef<
           onOpenAllocation={onOpenAllocation}
           onRemove={removeDraft}
         />
-      ))}
-      {!enabled || hoveredSlotLeft === null ? null : (
+      )}
+
+      {!canAdd || hoveredSlotLeft === null ? null : (
         <Button
           type="button"
           variant="subtle"
@@ -185,11 +235,9 @@ export const RowAllocationOverlay = forwardRef<
             height: BAR_HEIGHT,
             top: (CELL_HEIGHT - BAR_HEIGHT) / 2,
           }}
-          onClick={() =>
-            setDrafts((prev) => [...prev, createDraftBar(hoveredSlotLeft)])
-          }
+          onPointerDown={handleAddButtonPointerDown}
+          onClick={handleAddButtonClick}
           icon={() => <AddMd className="size-4" />}
-          key={rowKey}
         />
       )}
     </>
