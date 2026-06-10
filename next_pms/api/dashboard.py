@@ -275,7 +275,7 @@ def _get_members_without_allocation(days: int) -> dict:
 
 
 def _get_employee_allocated_hours_for_date(allocations: list, date) -> float:
-    """Sum confirmed allocation hours for one employee on a single date.
+    """Sum allocation hours for one employee on a single date.
 
     Iterates the employee's allocations that overlap the given date. For each
     allocation, skips it when the date is outside the allocation range or when a
@@ -283,7 +283,7 @@ def _get_employee_allocated_hours_for_date(allocations: list, date) -> float:
     otherwise hours_allocated_per_day.
 
     Args:
-        allocations: Confirmed Resource Allocation dicts for one employee, each
+        allocations: Resource Allocation dicts for one employee, each
             optionally containing an override list from attach_extra_entries.
         date: The calendar date to evaluate.
 
@@ -835,13 +835,17 @@ def _sum_to_usd(rows: list, cur_key: str, prev_key: str) -> tuple[float, float]:
 
 
 @whitelist(methods=["GET"])
-def get_time_utilisation(days: int = 30) -> dict:
+def get_time_utilisation(days: int = 30, role: str | None = None) -> dict:
     """Return total billable and non-billable hours logged across all timesheets in the given window.
 
     Parameters
     ----------
     days : int, optional
-        Look-back window in days from today. Defaults to 30.
+        Inclusive look-back window of calendar days ending today.
+        For example, days=30 on 10 Jun covers 12 May through 10 Jun.
+        Defaults to 30.
+    role : str, optional
+        Filter by the timesheet employee's designation. Defaults to None (all roles).
 
     Returns
     -------
@@ -851,24 +855,35 @@ def get_time_utilisation(days: int = 30) -> dict:
         total_hours : float
     """
     only_for(["Projects Manager", "Projects User", "System Manager"], message=True)
-    return _get_time_utilisation(days)
+    return _get_time_utilisation(days, role)
 
 
-@redis_cache()
-def _get_time_utilisation(days: int) -> dict:
+@redis_cache(ttl=21600)
+def _get_time_utilisation(days: int, role: str | None) -> dict:
     TimesheetDetail = DocType("Timesheet Detail")
-    since = add_days(today(), -days)
+    since = add_days(today(), -(days - 1))
 
-    rows = (
+    query = (
         frappe.qb.from_(TimesheetDetail)
         .select(
             TimesheetDetail.is_billable,
             Sum(TimesheetDetail.hours).as_("total_hours"),
         )
         .where(Date(TimesheetDetail.from_time) >= since)
-        .groupby(TimesheetDetail.is_billable)
-        .run(as_dict=True)
     )
+
+    if role:
+        Timesheet = DocType("Timesheet")
+        Employee = DocType("Employee")
+        query = (
+            query.join(Timesheet)
+            .on(TimesheetDetail.parent == Timesheet.name)
+            .join(Employee)
+            .on(Timesheet.employee == Employee.name)
+            .where(Employee.designation == role)
+        )
+
+    rows = query.groupby(TimesheetDetail.is_billable).run(as_dict=True)
 
     billable = 0.0
     non_billable = 0.0
@@ -882,4 +897,140 @@ def _get_time_utilisation(days: int) -> dict:
         "billable_hours": billable,
         "non_billable_hours": non_billable,
         "total_hours": billable + non_billable,
+    }
+
+
+@whitelist(methods=["GET"])
+def get_forecast_breakdown(days: int = 7, role: str | None = None) -> dict:
+    """Return forward-looking allocation capacity totals for the next window.
+
+    Looks at active employees and their Resource Allocations over an inclusive
+    window starting today. For each working day (weekends and the employee's
+    holidays are skipped; leaves are not), the employee's daily working hours are
+    treated as their capacity, and confirmed and tentative allocation hours are
+    summed against it. Any remaining capacity is counted as unallocated.
+
+    Args:
+        days: Inclusive forecast window length starting today. Must be at least 1.
+            For example, days=7 on 10 Jun covers 10 Jun through 16 Jun inclusive.
+        role: Filter by the employee's designation. Defaults to None (all roles).
+
+    Returns:
+        A dict with days, start_date, end_date, allocated_hours (confirmed),
+        tentative_hours, and unallocated_hours, each summed across all matching
+        employees and working days.
+
+    Raises:
+        frappe.PermissionError: If the caller lacks Projects Manager, Projects User,
+            or System Manager role.
+        frappe.ValidationError: If days is less than 1.
+    """
+    only_for(["Projects Manager", "Projects User", "System Manager"], message=True)
+
+    if days < 1:
+        frappe.throw(frappe._("days must be at least 1"))
+
+    return _get_forecast_breakdown(days, role)
+
+
+@redis_cache(ttl=21600)
+def _get_forecast_breakdown(days: int, role: str | None) -> dict:
+    start_date = getdate(today())
+    end_date = start_date + timedelta(days=days - 1)
+    allow_weekend_entries = cint(frappe.db.get_single_value("Timesheet Settings", "allow_weekend_entries"))
+    working_dates = _get_working_dates_for_range(start_date, end_date, allow_weekend_entries)
+
+    empty_response = {
+        "days": days,
+        "start_date": start_date,
+        "end_date": end_date,
+        "allocated_hours": 0.0,
+        "tentative_hours": 0.0,
+        "unallocated_hours": 0.0,
+    }
+
+    employee_filters = {"status": "Active"}
+    if role:
+        employee_filters["designation"] = role
+
+    employees = frappe.get_all(
+        "Employee",
+        filters=employee_filters,
+        fields=["name", "custom_working_hours", "custom_work_schedule"],
+    )
+
+    if not employees or not working_dates:
+        return empty_response
+
+    default_daily_hours = flt(frappe.db.get_single_value("HR Settings", "standard_working_hours") or 8)
+    employee_names = [employee.name for employee in employees]
+
+    holiday_list_by_employee = {}
+    for employee in employees:
+        holiday_list_by_employee[employee.name] = get_holiday_list_for_employee(employee.name, raise_exception=False)
+
+    unique_holiday_lists = {holiday_list for holiday_list in holiday_list_by_employee.values() if holiday_list}
+    holidays_by_list = {}
+    for holiday_list in unique_holiday_lists:
+        holidays_by_list[holiday_list] = frappe.get_all(
+            "Holiday",
+            filters={
+                "parent": holiday_list,
+                "holiday_date": ["between", (start_date, end_date)],
+            },
+            fields=["holiday_date"],
+        )
+
+    ResourceAllocation = DocType("Resource Allocation")
+    allocations = (
+        frappe.qb.from_(ResourceAllocation)
+        .select(
+            ResourceAllocation.name,
+            ResourceAllocation.employee,
+            ResourceAllocation.allocation_start_date,
+            ResourceAllocation.allocation_end_date,
+            ResourceAllocation.hours_allocated_per_day,
+            ResourceAllocation.status,
+        )
+        .where(ResourceAllocation.employee.isin(employee_names))
+        .where(ResourceAllocation.allocation_start_date <= end_date)
+        .where(ResourceAllocation.allocation_end_date >= start_date)
+        .where(ResourceAllocation.status.isin(["Confirmed", "Tentative"]))
+        .run(as_dict=True)
+    )
+    allocations = attach_extra_entries(allocations)
+
+    confirmed_by_employee = {}
+    tentative_by_employee = {}
+    for allocation in allocations:
+        bucket = tentative_by_employee if allocation.status == "Tentative" else confirmed_by_employee
+        bucket.setdefault(allocation.employee, []).append(allocation)
+
+    total_allocated = 0.0
+    total_tentative = 0.0
+    total_unallocated = 0.0
+
+    for employee in employees:
+        working_hours = flt(employee.custom_working_hours) or default_daily_hours
+        daily_working_hours = working_hours / 5 if employee.custom_work_schedule == "Per Week" else working_hours
+        daily_working_hours = flt(daily_working_hours)
+
+        employee_holidays = holidays_by_list.get(holiday_list_by_employee.get(employee.name), [])
+
+        for date in working_dates:
+            if _is_holiday(date, employee_holidays):
+                continue
+            confirmed = _get_employee_allocated_hours_for_date(confirmed_by_employee.get(employee.name, []), date)
+            tentative = _get_employee_allocated_hours_for_date(tentative_by_employee.get(employee.name, []), date)
+            total_allocated += confirmed
+            total_tentative += tentative
+            total_unallocated += max(0.0, daily_working_hours - confirmed - tentative)
+
+    return {
+        "days": days,
+        "start_date": start_date,
+        "end_date": end_date,
+        "allocated_hours": flt(total_allocated, 2),
+        "tentative_hours": flt(total_tentative, 2),
+        "unallocated_hours": flt(total_unallocated, 2),
     }
