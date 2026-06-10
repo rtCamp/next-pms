@@ -30,11 +30,9 @@ export function NoteDetail({ noteId }: NoteDetailProps) {
   const note = data.message;
 
   return (
-    <div className="flex justify-center">
-      <div className="max-w-200 w-full p-4">
-        <NoteDetailHeader note={note} />
-        <NoteDetailContent note={note} />
-      </div>
+    <div className="w-full p-4">
+      <NoteDetailHeader note={note} />
+      <NoteDetailContent note={note} />
     </div>
   );
 }
