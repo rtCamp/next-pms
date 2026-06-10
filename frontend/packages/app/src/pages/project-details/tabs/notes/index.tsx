@@ -28,7 +28,8 @@ function NotesGrid() {
   );
 
   return (
-    <div className="relative flex h-full flex-col gap-4">
+    // The height is calculated by subtracting the height of the header.
+    <div className="relative flex h-full min-h-[calc(100dvh-var(--spacing)*24)]  flex-col gap-4">
       <NotesSubHeader
         titleInput={filters.title}
         descriptionInput={filters.description}
@@ -60,7 +61,7 @@ function NotesGrid() {
       {isLoading && (
         <Spinner
           isFull
-          className="absolute top-0 left-0 h-screen w-full cursor-wait"
+          className="absolute top-0 left-0 h-[calc(100dvh-var(--spacing)*24)]  w-full cursor-wait z-10"
         />
       )}
     </div>
