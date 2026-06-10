@@ -2,7 +2,7 @@
  * External dependencies.
  */
 import { useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { Spinner } from "@next-pms/design-system/components";
 import {
   Avatar,
@@ -26,6 +26,7 @@ import { parseFrappeErrorMsg } from "@/lib/utils";
 import { useProjectDetail } from "@/pages/project-details/context";
 import { useUser } from "@/providers/user";
 import { noteFormSchema } from "./schema";
+import { TEMPLATE_PARAM } from "../constants";
 import { useNotes } from "../context";
 
 function NoteEditor() {
@@ -35,6 +36,9 @@ function NoteEditor() {
     noteId?: string;
   }>();
   const mode: "edit" | "new" = noteId ? "edit" : "new";
+  const [searchParams] = useSearchParams();
+  const templateName =
+    mode === "new" ? searchParams.get(TEMPLATE_PARAM) : null;
   const userName = useUser((s) => s.state.userName);
   const userImage = useUser((s) => s.state.image);
   const projectId = useProjectDetail((s) => s.projectId);
@@ -53,12 +57,20 @@ function NoteEditor() {
     { name: noteId },
     mode === "edit" && noteId ? undefined : null,
   );
+  const { data: templateData, isLoading: isTemplateLoading } = useFrappeGetCall(
+    "frappe.client.get",
+    { doctype: "Project Status Update Template", name: templateName },
+    templateName ? undefined : null,
+  );
 
   const form = useForm({
     defaultValues: {
       project: projectId,
-      title: noteData?.message.title || "",
-      description: noteData?.message.description || "",
+      title: noteData?.message.title || templateData?.message?.title || "",
+      description:
+        noteData?.message.description ||
+        templateData?.message?.description ||
+        "",
       status: "Publish",
     },
     validators: {
@@ -98,15 +110,18 @@ function NoteEditor() {
     if (mode === "edit" && noteData?.message) {
       setIsFormInitialized(true);
     } else if (mode === "new") {
-      setIsFormInitialized(true);
+      if (!templateName || templateData?.message) {
+        setIsFormInitialized(true);
+      }
     }
-  }, [noteData, mode, form, projectId]);
+  }, [noteData, templateData, templateName, mode, form, projectId]);
 
-  const isInputDisabled = isCreating || isUpdating || isNoteLoading;
+  const isInputDisabled =
+    isCreating || isUpdating || isNoteLoading || isTemplateLoading;
 
   return (
     <div className="flex justify-center">
-      {isNoteLoading || !isFormInitialized ? (
+      {isNoteLoading || isTemplateLoading || !isFormInitialized ? (
         <Spinner className="py-10" />
       ) : (
         <div className="max-w-200 w-full p-4">

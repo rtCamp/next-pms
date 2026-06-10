@@ -1,6 +1,7 @@
 /**
  * External dependencies.
  */
+import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import type { FilterCondition } from "@rtcamp/frappe-ui-react";
 import { Dropdown, Filter } from "@rtcamp/frappe-ui-react";
@@ -11,6 +12,7 @@ import { AddSm, SmallDown } from "@rtcamp/frappe-ui-react/icons";
  */
 import { ROUTES } from "@/lib/constant";
 import { CREATE_OPTIONS } from "./constants";
+import { TemplateDialog } from "./templateDialog";
 
 type NotesSubHeaderProps = {
   filters: FilterCondition[];
@@ -23,6 +25,7 @@ export function NotesSubHeader({
 }: NotesSubHeaderProps) {
   const navigate = useNavigate();
   const { projectId = "" } = useParams<{ projectId: string }>();
+  const [isTemplateDialogOpen, setIsTemplateDialogOpen] = useState(false);
 
   return (
     <div className="flex items-center justify-between gap-8">
@@ -53,8 +56,7 @@ export function NotesSubHeader({
             {
               label: "New from template",
               key: CREATE_OPTIONS.newFromTemplate,
-              onClick: () =>
-                console.info("[notes] New from template — coming soon"),
+              onClick: () => setIsTemplateDialogOpen(true),
             },
             {
               label: "New blank note",
@@ -65,6 +67,11 @@ export function NotesSubHeader({
           ]}
         />
       </div>
+      <TemplateDialog
+        open={isTemplateDialogOpen}
+        onOpenChange={setIsTemplateDialogOpen}
+        projectId={projectId}
+      />
     </div>
   );
 }
