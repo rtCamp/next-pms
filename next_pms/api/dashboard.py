@@ -4,6 +4,7 @@
 from datetime import timedelta
 
 import frappe
+from erpnext.setup.doctype.employee.employee import get_holiday_list_for_employee
 from erpnext.setup.utils import get_exchange_rate
 from frappe import only_for, whitelist
 from frappe.core.doctype.recorder.recorder import redis_cache
@@ -12,6 +13,8 @@ from frappe.query_builder.functions import Sum
 from frappe.utils import add_days, cint, flt, getdate, today
 from pypika import Case
 from pypika.functions import Date
+
+from next_pms.resource_management.api.utils.query import get_employee_leaves
 
 CURRENCY = "USD"
 ALLOWED_ROLES = ["Projects Manager", "Projects User"]
@@ -282,6 +285,180 @@ def _get_employee_allocated_hours_for_date(allocations: list, date) -> float:
         )
 
     return allocated_hours
+
+
+def _get_working_dates_for_range(start_date, end_date, allow_weekend_entries: int) -> set:
+    working_dates = set()
+    date = getdate(start_date)
+    end = getdate(end_date)
+    while date <= end:
+        if allow_weekend_entries or date.weekday() < 5:
+            working_dates.add(date)
+        date += timedelta(days=1)
+    return working_dates
+
+
+def _is_full_day_leave(date, leaves: list) -> bool:
+    for leave in leaves:
+        if not (leave.from_date <= date <= leave.to_date):
+            continue
+        if leave.half_day:
+            continue
+        return True
+    return False
+
+
+def _is_holiday(date, holidays: list) -> bool:
+    for holiday in holidays:
+        if holiday.holiday_date == date:
+            return True
+    return False
+
+
+@whitelist(methods=["GET"])
+def get_outstanding_timesheets(days: int = 7) -> dict:
+    """Return direct reports missing timesheets on one or more past working days.
+
+    Only active employees who report to the current user's Employee record are
+    checked. The look-back window is the past days calendar days ending yesterday
+    (today is excluded). Weekends count as working days only when Allow Weekend
+    Entries is enabled in Timesheet Settings. Full-day approved or open leave
+    and holidays exempt a day from the check; half-day leave still requires a
+    timesheet. An employee is flagged when distinct timesheet days in the window
+    are fewer than required days; any day in the window counts toward the total.
+
+    Args:
+        days: Inclusive look-back length ending yesterday. Must be at least 1.
+            For example, days=7 on 10 Mar covers 3 Mar through 9 Mar.
+
+    Returns:
+        A dict with count (flagged employees), days, start_date, end_date,
+        and members. Each member has employee, employee_name, timesheet_count,
+        expected_count (required days after excluding full-day leave and holidays),
+        missing_count, and missing_dates. Returns an empty
+        members list when the user has no linked Employee record or no active
+        direct reports.
+
+    Raises:
+        frappe.PermissionError: If the caller lacks Projects Manager, Projects User,
+            or System Manager role.
+        frappe.ValidationError: If days is less than 1.
+    """
+    only_for(["Projects Manager", "Projects User", "System Manager"], message=True)
+
+    if days < 1:
+        frappe.throw(frappe._("days must be at least 1"))
+
+    return _get_outstanding_timesheets(frappe.session.user, days)
+
+
+@redis_cache(user=True, ttl=21600)
+def _get_outstanding_timesheets(user: str, days: int) -> dict:
+    end_date = getdate(add_days(today(), -1))
+    start_date = end_date - timedelta(days=days - 1)
+    allow_weekend_entries = cint(frappe.db.get_single_value("Timesheet Settings", "allow_weekend_entries"))
+    working_dates = _get_working_dates_for_range(start_date, end_date, allow_weekend_entries)
+
+    empty_response = {
+        "count": 0,
+        "days": days,
+        "start_date": start_date,
+        "end_date": end_date,
+        "members": [],
+    }
+
+    manager_employee = frappe.db.get_value("Employee", {"user_id": user})
+    if not manager_employee or not working_dates:
+        return empty_response
+
+    employees = frappe.get_all(
+        "Employee",
+        filters={"reports_to": manager_employee, "status": "Active"},
+        fields=["name", "employee_name"],
+    )
+
+    if not employees:
+        return empty_response
+
+    employee_names = [employee.name for employee in employees]
+
+    leaves_by_employee = {}
+    for leave in get_employee_leaves(tuple(employee_names), start_date, end_date):
+        leaves_by_employee.setdefault(leave.employee, []).append(leave)
+
+    holiday_list_by_employee = {}
+    for employee in employees:
+        holiday_list_by_employee[employee.name] = get_holiday_list_for_employee(employee.name, raise_exception=False)
+
+    unique_holiday_lists = {holiday_list for holiday_list in holiday_list_by_employee.values() if holiday_list}
+    holidays_by_list = {}
+    for holiday_list in unique_holiday_lists:
+        holidays_by_list[holiday_list] = frappe.get_all(
+            "Holiday",
+            filters={
+                "parent": holiday_list,
+                "holiday_date": ["between", (start_date, end_date)],
+            },
+            fields=["holiday_date"],
+        )
+
+    holidays_by_employee = {}
+    for employee in employees:
+        holiday_list = holiday_list_by_employee.get(employee.name)
+        holidays_by_employee[employee.name] = holidays_by_list.get(holiday_list, [])
+
+    Timesheet = DocType("Timesheet")
+    timesheet_rows = (
+        frappe.qb.from_(Timesheet)
+        .select(Timesheet.employee, Timesheet.start_date)
+        .where(Timesheet.employee.isin(employee_names))
+        .where(Timesheet.start_date >= start_date)
+        .where(Timesheet.start_date <= end_date)
+        .run(as_dict=True)
+    )
+
+    timesheet_days_by_employee = {}
+    for row in timesheet_rows:
+        timesheet_date = getdate(row.start_date)
+        timesheet_days_by_employee.setdefault(row.employee, set()).add(timesheet_date)
+
+    members = []
+    for employee in employees:
+        covered_dates = timesheet_days_by_employee.get(employee.name, set())
+        employee_leaves = leaves_by_employee.get(employee.name, [])
+        employee_holidays = holidays_by_employee.get(employee.name, [])
+        missing_dates = []
+        required_count = 0
+
+        for date in sorted(working_dates):
+            if _is_full_day_leave(date, employee_leaves) or _is_holiday(date, employee_holidays):
+                continue
+            required_count += 1
+            if date not in covered_dates:
+                missing_dates.append(date)
+
+        timesheet_count = len(covered_dates)
+        if timesheet_count >= required_count:
+            continue
+
+        members.append(
+            {
+                "employee": employee.name,
+                "employee_name": employee.employee_name,
+                "timesheet_count": timesheet_count,
+                "expected_count": required_count,
+                "missing_count": required_count - timesheet_count,
+                "missing_dates": missing_dates,
+            }
+        )
+
+    return {
+        "count": len(members),
+        "days": days,
+        "start_date": start_date,
+        "end_date": end_date,
+        "members": members,
+    }
 
 
 @whitelist(methods=["GET"])
