@@ -24,6 +24,7 @@ const gridTemplateColumns = RATE_COLUMNS.map((c) => c.width).join(" ");
 export function ProjectRatesTable() {
   const rows = useTracking((state) => state.rates);
   const flatRate = useTracking((state) => state.flatRate);
+  const deleteRate = useTracking((state) => state.deleteRate);
 
   if (!rows) return null;
 
@@ -78,9 +79,13 @@ export function ProjectRatesTable() {
             rows.map((row, i) => (
               <ListRow key={row.id} row={row} isLastRow={i === rows.length - 1}>
                 <div className="flex min-w-0 items-center gap-2">
-                  <Avatar size="xs" label={row.name} image={row.image ?? ""} />
+                  <Avatar
+                    size="xs"
+                    label={row.employeeName}
+                    image={row.image ?? ""}
+                  />
                   <span className="truncate text-base font-medium text-ink-gray-7">
-                    {row.name}
+                    {row.employeeName}
                   </span>
                 </div>
                 <div className="truncate text-right text-base text-ink-gray-6 tabular-nums">
@@ -90,7 +95,10 @@ export function ProjectRatesTable() {
                   {row.date}
                 </div>
                 <div className="flex items-center justify-end">
-                  <ActionsCell onEdit={() => {}} onDelete={() => {}} />
+                  <ActionsCell
+                    onEdit={() => {}}
+                    onDelete={() => deleteRate(row.name)}
+                  />
                 </div>
               </ListRow>
             ))

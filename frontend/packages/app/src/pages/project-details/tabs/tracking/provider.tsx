@@ -1,7 +1,7 @@
 /**
  * External dependencies.
  */
-import { useMemo, type PropsWithChildren } from "react";
+import { useCallback, useMemo, type PropsWithChildren } from "react";
 import { useFrappeGetCall } from "frappe-react-sdk";
 
 /**
@@ -20,8 +20,9 @@ import { useProjectDetail } from "../../context";
 
 export function TrackingProvider({ children }: PropsWithChildren) {
   const projectId = useProjectDetail((s) => s.projectId);
+  const deletedRateDoc = useProjectDetail((s) => s.deleteRate);
 
-  const { data } = useFrappeGetCall<Response>(
+  const { data, mutate } = useFrappeGetCall<Response>(
     "next_pms.next_projects.api.project.get_project_tracking",
     {
       project: projectId,
@@ -31,6 +32,14 @@ export function TrackingProvider({ children }: PropsWithChildren) {
   const tracking = useMemo<Tracking>(
     () => data?.message ?? DEFAULT_TRACKING,
     [data],
+  );
+
+  const deleteRate = useCallback(
+    async (name: string) => {
+      await deletedRateDoc(name);
+      await mutate();
+    },
+    [deletedRateDoc, mutate],
   );
 
   const value = useMemo<TrackingContextProps>(() => {
@@ -54,7 +63,8 @@ export function TrackingProvider({ children }: PropsWithChildren) {
     const rates: RateRow[] | null = tracking.project_rates
       ? rateEntries.map((rate) => ({
           id: rate.employee ?? "",
-          name: rate.employee_name ?? rate.employee ?? "",
+          name: rate.name,
+          employeeName: rate.employee_name ?? rate.employee ?? "",
           rateLabel: "Hourly rate",
           amount: `${formatter.format(rate.hourly_billing_rate ?? 0)}/h`,
           date: rate.valid_from ?? "",
@@ -68,8 +78,8 @@ export function TrackingProvider({ children }: PropsWithChildren) {
         }
       : undefined;
 
-    return { tracking, contracts, rates, flatRate };
-  }, [tracking]);
+    return { tracking, contracts, rates, flatRate, deleteRate };
+  }, [tracking, deleteRate]);
 
   return (
     <TrackingContext.Provider value={value}>

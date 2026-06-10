@@ -635,6 +635,7 @@ def _get_project_tracking(project: str):
     if has_hours_pool:
         contracts = [
             {
+                "name": row.name,
                 "start_date": row.start_date,
                 "end_date": row.end_date,
                 "hours_purchased": flt(row.hours_purchased),
@@ -647,6 +648,7 @@ def _get_project_tracking(project: str):
                 "Project Budget",
                 filters={"parent": project, "parentfield": "custom_project_budget_hours"},
                 fields=[
+                    "name",
                     "start_date",
                     "end_date",
                     "hours_purchased",

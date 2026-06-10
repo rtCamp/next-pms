@@ -42,6 +42,7 @@ export interface ProjectBillingTeam {
 }
 
 export interface ProjectBudget {
+  name: string;
   start_date: string;
   end_date: string;
   hours_purchased: number;

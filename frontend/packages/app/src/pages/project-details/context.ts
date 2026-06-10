@@ -25,6 +25,7 @@ export interface ProjectDetailContextProps {
   addMember: (userId: string) => Promise<void>;
   removeMember: (userId: string) => Promise<void>;
   updateContacts: (contactIds: string[]) => Promise<void>;
+  deleteRate: (name: string) => Promise<void>;
 }
 
 const noop = () => {};
@@ -40,6 +41,7 @@ export const ProjectDetailContext = createContext<ProjectDetailContextProps>({
   addMember: asyncNoop,
   removeMember: asyncNoop,
   updateContacts: asyncNoop,
+  deleteRate: asyncNoop,
 });
 
 export const useProjectDetail = <T>(

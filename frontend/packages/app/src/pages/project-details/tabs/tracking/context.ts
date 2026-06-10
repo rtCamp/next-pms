@@ -14,6 +14,7 @@ export type ProjectFlatRate = {
 };
 
 export type ProjectRate = {
+  name: string;
   employee?: string;
   employee_name?: string;
   hourly_billing_rate?: number;
@@ -73,6 +74,7 @@ export interface TrackingContextProps {
   contracts: ContractRow[] | null;
   rates: RateRow[] | null;
   flatRate: { amount: string; date: string } | undefined;
+  deleteRate: (name: string) => Promise<void>;
 }
 
 export const DEFAULT_TRACKING: Tracking = {
@@ -106,6 +108,7 @@ export const TrackingContext = createContext<TrackingContextProps>({
   contracts: [],
   rates: [],
   flatRate: undefined,
+  deleteRate: async () => {},
 });
 
 export const useTracking = <T>(selector: (state: TrackingContextProps) => T) =>
