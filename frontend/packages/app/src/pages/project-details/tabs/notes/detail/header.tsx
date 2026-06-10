@@ -31,7 +31,9 @@ function exportNote(note: Note) {
   anchor.href = url;
   anchor.download = filename;
   anchor.click();
-  URL.revokeObjectURL(url);
+  // Defer revoke so the browser has started reading the blob; revoking
+  // synchronously after click() can abort the download in some browsers.
+  setTimeout(() => URL.revokeObjectURL(url), 0);
 }
 
 type NoteDetailHeaderProps = {
