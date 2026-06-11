@@ -20,6 +20,7 @@ import {
   useProjectDetail,
   type CreateContractInput,
   type CreateRateInput,
+  type EditContractInput,
   type EditRateInput,
 } from "../../context";
 
@@ -29,9 +30,14 @@ export function TrackingProvider({ children }: PropsWithChildren) {
   const createRateDoc = useProjectDetail((s) => s.createRate);
   const editRateDoc = useProjectDetail((s) => s.editRate);
   const createContractDoc = useProjectDetail((s) => s.createContract);
+  const editContractDoc = useProjectDetail((s) => s.editContract);
+  const deleteContractDoc = useProjectDetail((s) => s.deleteContract);
   const [addRateModalOpen, setAddRateModalOpen] = useState(false);
   const [editingRate, setEditingRate] = useState<RateRow | null>(null);
   const [addContractModalOpen, setAddContractModalOpen] = useState(false);
+  const [editingContract, setEditingContract] = useState<ContractRow | null>(
+    null,
+  );
 
   const { data, mutate } = useFrappeGetCall<Response>(
     "next_pms.next_projects.api.project.get_project_tracking",
@@ -77,15 +83,33 @@ export function TrackingProvider({ children }: PropsWithChildren) {
     [createContractDoc, mutate],
   );
 
+  const editContract = useCallback(
+    async (input: EditContractInput) => {
+      await editContractDoc(input);
+      await mutate();
+    },
+    [editContractDoc, mutate],
+  );
+
+  const deleteContract = useCallback(
+    async (name: string) => {
+      await deleteContractDoc(name);
+      await mutate();
+    },
+    [deleteContractDoc, mutate],
+  );
+
   const value = useMemo<TrackingContextProps>(() => {
     const formatter = currencyFormat(tracking.currency);
 
     const contracts: ContractRow[] | null = tracking.contracts
       ? tracking.contracts.map((c, i) => ({
-          id: c.sales_order || c.sales_invoice || `${i}`,
+          id: c.name || c.sales_order || c.sales_invoice || `${i}`,
+          name: c.name,
           startDate: c.start_date,
           endDate: c.end_date,
           hoursBought: `${c.hours_purchased}`,
+          hoursBoughtRaw: c.hours_purchased,
           hoursUsed: `${c.consumed_hours}`,
           hoursLeft: `${c.remaining_hours}`,
           salesOrder: c.sales_order,
@@ -128,6 +152,10 @@ export function TrackingProvider({ children }: PropsWithChildren) {
       addRateModalOpen,
       setAddRateModalOpen,
       createContract,
+      editContract,
+      deleteContract,
+      editingContract,
+      setEditingContract,
       addContractModalOpen,
       setAddContractModalOpen,
     };
@@ -138,6 +166,9 @@ export function TrackingProvider({ children }: PropsWithChildren) {
     editRate,
     editingRate,
     createContract,
+    editContract,
+    deleteContract,
+    editingContract,
     addRateModalOpen,
     addContractModalOpen,
   ]);

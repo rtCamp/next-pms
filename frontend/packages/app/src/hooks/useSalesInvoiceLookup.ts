@@ -2,9 +2,14 @@
  * Internal Dependencies.
  */
 import { useRemoteLookup, type LookupOption } from "@/hooks/useRemoteLookup";
+import { currencyFormat } from "@/lib/utils";
 
 type SalesInvoiceLookupItem = {
   name: string;
+  customer_name?: string;
+  status?: string;
+  grand_total?: number;
+  currency?: string;
   posting_date?: string;
 };
 
@@ -47,7 +52,14 @@ export const useSalesInvoiceLookup = ({
     revalidateOnFocus,
     params: ({ query: searchQuery, pageSize }) => ({
       doctype: "Sales Invoice",
-      fields: ["name", "posting_date"],
+      fields: [
+        "name",
+        "customer_name",
+        "status",
+        "grand_total",
+        "currency",
+        "posting_date",
+      ],
       limit_page_length: pageSize,
       filters: projectId ? { project: projectId } : undefined,
       or_filters: searchQuery
@@ -55,10 +67,22 @@ export const useSalesInvoiceLookup = ({
         : undefined,
     }),
     getItems: (message) => message ?? [],
-    mapOption: (salesInvoice) => ({
-      label: salesInvoice.name,
-      value: salesInvoice.name,
-    }),
+    mapOption: (salesInvoice) => {
+      const parts = [
+        salesInvoice.customer_name,
+        salesInvoice.status,
+        salesInvoice.grand_total != null
+          ? currencyFormat(salesInvoice.currency).format(
+              salesInvoice.grand_total,
+            )
+          : undefined,
+      ].filter(Boolean);
+      return {
+        label: salesInvoice.name,
+        value: salesInvoice.name,
+        description: parts.length ? parts.join(", ") : undefined,
+      };
+    },
     selectedOption,
   });
 };

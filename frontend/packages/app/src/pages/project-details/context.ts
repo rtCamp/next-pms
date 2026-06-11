@@ -36,6 +36,15 @@ export type CreateContractInput = {
   salesInvoice?: string;
 };
 
+export type EditContractInput = {
+  name: string;
+  startDate: string;
+  endDate: string;
+  hoursBought: number;
+  salesOrder?: string;
+  salesInvoice?: string;
+};
+
 export interface ProjectDetailContextProps {
   projectId: string;
   project: FrappeDoc<ProjectDoc> | undefined;
@@ -50,6 +59,8 @@ export interface ProjectDetailContextProps {
   createRate: (input: CreateRateInput) => Promise<void>;
   editRate: (input: EditRateInput) => Promise<void>;
   createContract: (input: CreateContractInput) => Promise<void>;
+  editContract: (input: EditContractInput) => Promise<void>;
+  deleteContract: (name: string) => Promise<void>;
 }
 
 const noop = () => {};
@@ -69,6 +80,8 @@ export const ProjectDetailContext = createContext<ProjectDetailContextProps>({
   createRate: asyncNoop,
   editRate: asyncNoop,
   createContract: asyncNoop,
+  editContract: asyncNoop,
+  deleteContract: asyncNoop,
 });
 
 export const useProjectDetail = <T>(

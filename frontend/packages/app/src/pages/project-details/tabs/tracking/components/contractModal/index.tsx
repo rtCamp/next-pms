@@ -1,7 +1,7 @@
 /**
  * External dependencies.
  */
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { getTodayDate } from "@next-pms/design-system/date";
 import {
   Button,
@@ -10,10 +10,8 @@ import {
   Dialog,
   ErrorMessage,
   TextInput,
-  useToasts,
 } from "@rtcamp/frappe-ui-react";
 import { useForm } from "@tanstack/react-form";
-import { FrappeError } from "frappe-react-sdk";
 import { Calendar } from "lucide-react";
 
 /**
@@ -21,11 +19,10 @@ import { Calendar } from "lucide-react";
  */
 import { useSalesInvoiceLookup } from "@/hooks/useSalesInvoiceLookup";
 import { useSalesOrderLookup } from "@/hooks/useSalesOrderLookup";
-import { parseFrappeErrorMsg } from "@/lib/utils";
 import { addContractSchema } from "./schema";
-import type { AddContractFormValues, AddContractModalProps } from "./types";
+import type { ContractFormValues, ContractModalProps } from "./types";
 
-const defaultValues: AddContractFormValues = {
+const FALLBACK_DEFAULTS: ContractFormValues = {
   startDate: getTodayDate(),
   endDate: getTodayDate(),
   hoursBought: "",
@@ -33,16 +30,25 @@ const defaultValues: AddContractFormValues = {
   salesInvoice: "",
 };
 
-export function AddContractModal({
+export function ContractModal({
   open,
   onOpenChange,
   onSubmit,
-  projectId,
-}: AddContractModalProps) {
-  const toast = useToasts();
+  mode = "add",
+  initialValues,
+}: ContractModalProps) {
   const [salesOrderSearch, setSalesOrderSearch] = useState("");
   const [salesInvoiceSearch, setSalesInvoiceSearch] = useState("");
   const [submitting, setSubmitting] = useState(false);
+
+  const isEdit = mode === "edit";
+  const title = isEdit ? "Edit contract" : "Add contract";
+  const submitLabel = isEdit ? "Save changes" : "Add contract";
+
+  const defaultValues = useMemo<ContractFormValues>(
+    () => ({ ...FALLBACK_DEFAULTS, ...initialValues }),
+    [initialValues],
+  );
 
   const form = useForm({
     defaultValues,
@@ -51,22 +57,16 @@ export function AddContractModal({
     },
     onSubmit: async ({ value }) => {
       setSubmitting(true);
-      try {
-        await onSubmit({
-          startDate: value.startDate,
-          endDate: value.endDate,
-          hoursBought: Number(value.hoursBought),
-          salesOrder: value.salesOrder || undefined,
-          salesInvoice: value.salesInvoice || undefined,
-        });
-        toast.success("Contract added successfully");
-        onOpenChange(false);
-        form.reset();
-      } catch (err) {
-        toast.error(parseFrappeErrorMsg(err as FrappeError));
-      } finally {
-        setSubmitting(false);
-      }
+      await onSubmit({
+        startDate: value.startDate,
+        endDate: value.endDate,
+        hoursBought: Number(value.hoursBought),
+        salesOrder: value.salesOrder || undefined,
+        salesInvoice: value.salesInvoice || undefined,
+      });
+      onOpenChange(false);
+      form.reset();
+      setSubmitting(false);
     },
   });
 
@@ -75,7 +75,6 @@ export function AddContractModal({
       shouldFetch: open,
       pageSize: 20,
       query: salesOrderSearch,
-      projectId,
     });
 
   const {
@@ -85,16 +84,17 @@ export function AddContractModal({
     shouldFetch: open,
     pageSize: 20,
     query: salesInvoiceSearch,
-    projectId,
   });
 
   useEffect(() => {
-    if (!open) {
+    if (open) {
+      form.reset(defaultValues);
+    } else {
       form.reset();
       setSalesOrderSearch("");
       setSalesInvoiceSearch("");
     }
-  }, [open, form]);
+  }, [open, form, defaultValues]);
 
   const handleOpenChange = useCallback(
     (next: boolean) => {
@@ -107,12 +107,12 @@ export function AddContractModal({
     <Dialog
       open={open}
       onOpenChange={handleOpenChange}
-      options={{ title: "Add contract", size: "sm" }}
+      options={{ title, size: "sm" }}
       actions={
         <Button
           className="w-full h-7"
           variant="solid"
-          label="Add contract"
+          label={submitLabel}
           onClick={() => form.handleSubmit()}
           disabled={submitting}
           loading={submitting}
@@ -268,4 +268,4 @@ export function AddContractModal({
   );
 }
 
-export default AddContractModal;
+export default ContractModal;

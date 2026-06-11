@@ -10,6 +10,7 @@ import type { ContractRow, RateRow } from "./types";
 import type {
   CreateContractInput,
   CreateRateInput,
+  EditContractInput,
   EditRateInput,
 } from "../../context";
 
@@ -40,6 +41,7 @@ export type TrackingInvoiceBurn = {
 };
 
 export type TrackingContract = {
+  name: string;
   start_date: string;
   end_date: string;
   hours_purchased: number;
@@ -87,6 +89,10 @@ export interface TrackingContextProps {
   addRateModalOpen: boolean;
   setAddRateModalOpen: (open: boolean) => void;
   createContract: (input: CreateContractInput) => Promise<void>;
+  editContract: (input: EditContractInput) => Promise<void>;
+  deleteContract: (name: string) => Promise<void>;
+  editingContract: ContractRow | null;
+  setEditingContract: (row: ContractRow | null) => void;
   addContractModalOpen: boolean;
   setAddContractModalOpen: (open: boolean) => void;
 }
@@ -130,6 +136,10 @@ export const TrackingContext = createContext<TrackingContextProps>({
   addRateModalOpen: false,
   setAddRateModalOpen: () => {},
   createContract: async () => {},
+  editContract: async () => {},
+  deleteContract: async () => {},
+  editingContract: null,
+  setEditingContract: () => {},
   addContractModalOpen: false,
   setAddContractModalOpen: () => {},
 });

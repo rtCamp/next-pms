@@ -1,13 +1,16 @@
 import type { CreateContractInput } from "../../../../context";
 
-export interface AddContractModalProps {
+export type ContractModalMode = "add" | "edit";
+
+export interface ContractModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSubmit: (input: CreateContractInput) => Promise<void>;
-  projectId: string;
+  mode?: ContractModalMode;
+  initialValues?: Partial<ContractFormValues>;
 }
 
-export type AddContractFormValues = {
+export type ContractFormValues = {
   startDate: string;
   endDate: string;
   hoursBought: string;

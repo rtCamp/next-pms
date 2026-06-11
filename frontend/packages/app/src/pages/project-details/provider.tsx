@@ -19,6 +19,7 @@ import {
   ProjectDetailContext,
   type CreateContractInput,
   type CreateRateInput,
+  type EditContractInput,
   type EditRateInput,
   type ProjectDetailContextProps,
   type RepositoryInput,
@@ -167,21 +168,78 @@ export function ProjectDetailProvider({
       salesInvoice,
     }: CreateContractInput) => {
       const current = data?.custom_project_budget_hours ?? [];
-      await updateDoc("Project", projectId, {
-        custom_project_budget_hours: [
-          ...current,
-          {
-            start_date: startDate,
-            end_date: endDate,
-            hours_purchased: hoursBought,
-            sales_order: salesOrder ?? "",
-            sales_invoice: salesInvoice ?? "",
-          },
-        ],
-      });
-      mutate();
+      try {
+        await updateDoc("Project", projectId, {
+          custom_project_budget_hours: [
+            ...current,
+            {
+              start_date: startDate,
+              end_date: endDate,
+              hours_purchased: hoursBought,
+              sales_order: salesOrder ?? "",
+              sales_invoice: salesInvoice ?? "",
+            },
+          ],
+        });
+        mutate();
+        toast.success("Contract added");
+      } catch (err) {
+        toast.error(parseFrappeErrorMsg(err as FrappeError));
+      }
     },
-    [updateDoc, projectId, mutate, data],
+    [updateDoc, projectId, mutate, data, toast],
+  );
+
+  const editContract = useCallback(
+    async ({
+      name,
+      startDate,
+      endDate,
+      hoursBought,
+      salesOrder,
+      salesInvoice,
+    }: EditContractInput) => {
+      const current = data?.custom_project_budget_hours ?? [];
+      try {
+        await updateDoc("Project", projectId, {
+          custom_project_budget_hours: current.map((row) =>
+            row.name === name
+              ? {
+                  ...row,
+                  start_date: startDate,
+                  end_date: endDate,
+                  hours_purchased: hoursBought,
+                  sales_order: salesOrder ?? "",
+                  sales_invoice: salesInvoice ?? "",
+                }
+              : row,
+          ),
+        });
+        mutate();
+        toast.success("Contract updated");
+      } catch (err) {
+        toast.error(parseFrappeErrorMsg(err as FrappeError));
+      }
+    },
+    [updateDoc, projectId, mutate, data, toast],
+  );
+
+  const deleteContract = useCallback(
+    async (name: string) => {
+      const current = data?.custom_project_budget_hours ?? [];
+      try {
+        await updateDoc("Project", projectId, {
+          custom_project_budget_hours: current.filter(
+            (row) => row.name !== name,
+          ),
+        });
+        mutate();
+        toast.success("Contract deleted");
+      } catch (err) {
+        toast.error(parseFrappeErrorMsg(err as FrappeError));
+      }
+    },
+    [updateDoc, projectId, mutate, data, toast],
   );
 
   const value: ProjectDetailContextProps = {
@@ -198,6 +256,8 @@ export function ProjectDetailProvider({
     createRate,
     editRate,
     createContract,
+    editContract,
+    deleteContract,
   };
 
   return (

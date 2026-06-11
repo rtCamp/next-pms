@@ -17,6 +17,7 @@ type FrappeResponse<T> = {
 export type LookupOption = {
   label: string;
   value: string;
+  description?: string;
   icon?: ReactNode;
   disabled?: boolean;
 };

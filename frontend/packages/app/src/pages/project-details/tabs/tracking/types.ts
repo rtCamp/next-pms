@@ -27,9 +27,11 @@ export type CostBurn = {
 
 export type ContractRow = {
   id: string;
+  name: string;
   startDate: string;
   endDate: string;
   hoursBought: string;
+  hoursBoughtRaw: number;
   hoursUsed: string;
   hoursLeft: string;
   salesOrder: string;
