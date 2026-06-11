@@ -35,6 +35,7 @@ export interface ProjectUser {
 }
 
 export interface ProjectBillingTeam {
+  name: string;
   employee: string;
   user_name?: string;
   hourly_billing_rate?: number;

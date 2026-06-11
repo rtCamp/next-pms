@@ -730,6 +730,7 @@ def _get_project_tracking(project: str):
             },
             *[
                 {
+                    "name": row.name,
                     "employee": row.employee,
                     "employee_name": row.user_name,
                     "hourly_billing_rate": flt(row.hourly_billing_rate) or flat_rate_hourly,
@@ -738,7 +739,7 @@ def _get_project_tracking(project: str):
                 for row in frappe.get_all(
                     "Project Billing Team",
                     filters={"parent": project},
-                    fields=["employee", "user_name", "hourly_billing_rate", "valid_from"],
+                    fields=["name", "employee", "user_name", "hourly_billing_rate", "valid_from"],
                     order_by="idx asc",
                 )
             ],

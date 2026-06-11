@@ -74,9 +74,6 @@ export function ProjectRatesTable() {
               <div className="truncate text-base text-ink-gray-6 tabular-nums">
                 {flatRate.date}
               </div>
-              <div className="flex items-center justify-end">
-                <ActionsCell onEdit={() => {}} onDelete={() => {}} />
-              </div>
             </div>
           )}
           {rows.length === 0 && !flatRate ? (

@@ -87,7 +87,7 @@ export function TrackingProvider({ children }: PropsWithChildren) {
     const rates: RateRow[] | null = tracking.project_rates
       ? rateEntries.map((rate) => ({
           id: rate.employee ?? "",
-          name: rate.name,
+          name: rate.name ?? "",
           employeeName: rate.employee_name ?? rate.employee ?? "",
           rateLabel: "Hourly rate",
           amount: `${formatter.format(rate.hourly_billing_rate ?? 0)}/h`,

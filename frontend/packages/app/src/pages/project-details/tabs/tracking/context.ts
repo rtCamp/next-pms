@@ -15,7 +15,7 @@ export type ProjectFlatRate = {
 };
 
 export type ProjectRate = {
-  name: string;
+  name?: string | null;
   employee?: string;
   employee_name?: string;
   hourly_billing_rate?: number;

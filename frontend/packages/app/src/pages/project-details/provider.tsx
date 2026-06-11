@@ -3,7 +3,9 @@
  */
 import { useCallback } from "react";
 import type { PropsWithChildren } from "react";
+import { useToasts } from "@rtcamp/frappe-ui-react";
 import {
+  FrappeError,
   useFrappeGetDoc,
   useFrappePostCall,
   useFrappeUpdateDoc,
@@ -12,6 +14,7 @@ import {
 /**
  * Internal dependencies.
  */
+import { parseFrappeErrorMsg } from "@/lib/utils";
 import {
   ProjectDetailContext,
   type CreateContractInput,
@@ -39,6 +42,7 @@ export function ProjectDetailProvider({
   const { call: shareSetPermission } = useFrappePostCall(
     "frappe.share.set_permission",
   );
+  const toast = useToasts();
 
   const updateRepositories = useCallback(
     async (repositories: RepositoryInput[]) => {
@@ -94,13 +98,20 @@ export function ProjectDetailProvider({
 
   const deleteRate = useCallback(
     async (name: string) => {
-      const current = data?.custom_project_budget_hours ?? [];
-      await updateDoc("Project", projectId, {
-        custom_project_billing_team: current.filter((row) => row.name !== name),
-      });
-      mutate();
+      const current = data?.custom_project_billing_team ?? [];
+      try {
+        await updateDoc("Project", projectId, {
+          custom_project_billing_team: current.filter(
+            (row) => row.name !== name,
+          ),
+        });
+        mutate();
+        toast.success("Rate deleted");
+      } catch (err) {
+        toast.error(parseFrappeErrorMsg(err as FrappeError));
+      }
     },
-    [updateDoc, projectId, mutate, data],
+    [updateDoc, projectId, mutate, data, toast],
   );
 
   const createRate = useCallback(
