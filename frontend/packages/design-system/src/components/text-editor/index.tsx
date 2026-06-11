@@ -1,7 +1,7 @@
 /**
  * External dependencies.
  */
-import { useEffect, useState, useRef, useCallback } from "react";
+import { useEffect, useState, useRef, useCallback, useMemo } from "react";
 import ReactQuill, { Quill } from "react-quill";
 import { DeltaStatic, Sources } from "quill";
 import "react-quill/dist/quill.snow.css";
@@ -32,6 +32,7 @@ class MentionBlot extends Inline {
   }) {
     const node = super.create() as HTMLElement;
     node.setAttribute("data-mention", "true");
+    node.setAttribute("contenteditable", "false");
     if (value?.id) node.setAttribute("data-id", String(value.id));
     if (value?.value) node.setAttribute("data-value", String(value.value));
     if (value?.label) node.setAttribute("data-label", String(value.label));
@@ -96,6 +97,17 @@ const TextEditor = ({
   const quillRef = useRef<ReactQuill>(null);
   const mentionStartIndex = useRef<number>(-1);
   const mentionEndIndex = useRef<number>(-1);
+  const mentionContextId = useRef(0);
+  const latestMentionRequestId = useRef(0);
+
+  const closeMentions = useCallback(() => {
+    setShowMentions(false);
+    setMentionUsers([]);
+    setSelectedMentionIndex(0);
+    mentionStartIndex.current = -1;
+    mentionEndIndex.current = -1;
+    mentionContextId.current += 1;
+  }, []);
 
   useEffect(() => {
     if (Props?.value !== undefined) {
@@ -135,19 +147,37 @@ const TextEditor = ({
     };
   }
 
-  const debouncedFetchUsers = useCallback(
-    deBounce(async (searchTerm: string) => {
-      if (!onFetchUsers) return;
-      try {
-        const users = await onFetchUsers(searchTerm);
-        setMentionUsers(users);
-        setSelectedMentionIndex(0);
-        setShowMentions(true);
-      } catch (error) {
-        console.error("Error fetching users:", error);
-        setShowMentions(false);
-      }
-    }, 300),
+  const debouncedFetchUsers = useMemo(
+    () =>
+      deBounce(
+        async (searchTerm: string, requestId: number, contextId: number) => {
+          if (!onFetchUsers) return;
+          try {
+            const users = await onFetchUsers(searchTerm);
+
+            const hasValidMentionRange =
+              mentionStartIndex.current !== -1 &&
+              mentionEndIndex.current !== -1;
+            const isStaleRequest = requestId !== latestMentionRequestId.current;
+            const isStaleContext = contextId !== mentionContextId.current;
+
+            if (isStaleRequest || isStaleContext || !hasValidMentionRange) {
+              return;
+            }
+
+            setMentionUsers(users);
+            setSelectedMentionIndex(0);
+            setShowMentions(users.length > 0);
+          } catch (error) {
+            console.error("Error fetching users:", error);
+            if (requestId !== latestMentionRequestId.current) return;
+            if (contextId !== mentionContextId.current) return;
+            setMentionUsers([]);
+            setShowMentions(false);
+          }
+        },
+        300,
+      ),
     [onFetchUsers],
   );
 
@@ -173,18 +203,14 @@ const TextEditor = ({
       }
 
       if (atIndex === -1) {
-        setShowMentions(false);
-        mentionStartIndex.current = -1;
-        mentionEndIndex.current = -1;
+        closeMentions();
         return;
       }
 
       const searchTerm = text.slice(atIndex + 1, cursorPosition);
 
       if (!/^[a-zA-Z0-9\s]*$/.test(searchTerm)) {
-        setShowMentions(false);
-        mentionStartIndex.current = -1;
-        mentionEndIndex.current = -1;
+        closeMentions();
         return;
       }
 
@@ -202,9 +228,10 @@ const TextEditor = ({
         });
       }
 
-      debouncedFetchUsers(searchTerm);
+      const requestId = ++latestMentionRequestId.current;
+      debouncedFetchUsers(searchTerm, requestId, mentionContextId.current);
     },
-    [enableMentions, debouncedFetchUsers, onFetchUsers],
+    [enableMentions, closeMentions, debouncedFetchUsers, onFetchUsers],
   );
 
   const selectMention = useCallback(
@@ -231,57 +258,36 @@ const TextEditor = ({
         const mentionText = `${user.value}`;
         editor.insertText(startIndex, mentionText + " ", "user");
 
-        setTimeout(() => {
-          try {
-            const currentHtml = editor.root.innerHTML;
-            const mentionHtml = `<span class="mention ${mentionClassName}" data-type="mention" data-id="${user.id}" data-value="${user.value}" data-label="${user.value}" data-mention="true">${mentionText}</span>`;
-            const updatedHtml = currentHtml.replace(
-              new RegExp(
-                mentionText.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"),
-                "g",
-              ),
-              mentionHtml,
-            );
-            editor.root.innerHTML = updatedHtml;
-            const event = new Event("input", { bubbles: true });
-            editor.root.dispatchEvent(event);
-            const newContent = editor.root.innerHTML;
-            onChange(newContent);
-            const mentionElements = editor.root.querySelectorAll(
-              'span.mention, span[data-mention="true"]',
-            );
-            mentionElements.forEach((span) => {
-              const htmlSpan = span as HTMLElement;
-              htmlSpan.className = `mention ${mentionClassName}`;
-              if (!htmlSpan.getAttribute("data-mention")) {
-                htmlSpan.setAttribute("data-mention", "true");
-              }
-            });
+        editor.formatText(
+          startIndex,
+          mentionText.length,
+          {
+            mention: {
+              id: user.id,
+              value: user.value,
+              label: user.value,
+              className: mentionClassName,
+            },
+          },
+          "user",
+        );
 
-            const newCursorPosition = startIndex + mentionText.length + 1;
-            editor.setSelection(newCursorPosition, 0);
-            editor.focus();
-          } catch (error) {
-            console.error("Error applying mention styling:", error);
-          }
-        }, 50);
+        const newCursorPosition = startIndex + mentionText.length + 1;
+        editor.setSelection(newCursorPosition, 0);
+        editor.focus();
       } catch (error) {
         console.error("Error inserting mention:", error);
         editor.deleteText(startIndex, replaceLength);
         const fallbackText = `@${user.value} `;
         editor.insertText(startIndex, fallbackText, "user");
         const fallbackCursorPosition = startIndex + fallbackText.length;
-        setTimeout(() => {
-          editor.setSelection(fallbackCursorPosition, 0);
-          editor.focus();
-        }, 10);
+        editor.setSelection(fallbackCursorPosition, 0);
+        editor.focus();
       }
 
-      setShowMentions(false);
-      mentionStartIndex.current = -1;
-      mentionEndIndex.current = -1;
+      closeMentions();
     },
-    [mentionClassName, onChange],
+    [closeMentions, mentionClassName],
   );
 
   const handleMentionDeletion = useCallback(() => {
@@ -382,11 +388,17 @@ const TextEditor = ({
           break;
         case "Escape":
           event.preventDefault();
-          setShowMentions(false);
+          closeMentions();
           break;
       }
     },
-    [showMentions, mentionUsers, selectedMentionIndex, selectMention],
+    [
+      showMentions,
+      mentionUsers,
+      selectedMentionIndex,
+      selectMention,
+      closeMentions,
+    ],
   );
 
   const handleBackspace = useCallback(
@@ -450,6 +462,7 @@ const TextEditor = ({
         "allowfullscreen",
         "alt",
         "class",
+        "contenteditable",
         "data-id",
         "data-label",
         "data-mention",
@@ -653,6 +666,7 @@ const TextEditor = ({
         el.className = `mention ${mentionClassName}`;
         if (!el.getAttribute("data-mention"))
           el.setAttribute("data-mention", "true");
+        el.setAttribute("contenteditable", "false");
       });
     } catch (error) {
       console.error("Error in mention styling:", error);
@@ -692,6 +706,7 @@ const TextEditor = ({
             if (!htmlSpan.getAttribute("data-mention")) {
               htmlSpan.setAttribute("data-mention", "true");
             }
+            htmlSpan.setAttribute("contenteditable", "false");
           }
         });
       }
