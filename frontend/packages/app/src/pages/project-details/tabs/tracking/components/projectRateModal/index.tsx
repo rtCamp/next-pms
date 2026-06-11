@@ -6,44 +6,46 @@ import { getTodayDate } from "@next-pms/design-system/date";
 import {
   Avatar,
   Button,
-  Checkbox,
   Combobox,
   DatePicker,
   Dialog,
   ErrorMessage,
   TextInput,
-  useToasts,
 } from "@rtcamp/frappe-ui-react";
-import { useForm, useStore } from "@tanstack/react-form";
-import { FrappeError } from "frappe-react-sdk";
+import { useForm } from "@tanstack/react-form";
 import { Calendar } from "lucide-react";
 
 /**
  * Internal dependencies.
  */
 import { useEmployeeLookup } from "@/hooks/useEmployeeLookup";
-import { parseFrappeErrorMsg } from "@/lib/utils";
 import { addProjectRateSchema } from "./schema";
-import type {
-  AddProjectRateFormValues,
-  AddProjectRateModalProps,
-} from "./types";
+import type { ProjectRateFormValues, ProjectRateModalProps } from "./types";
 
-const defaultValues: AddProjectRateFormValues = {
-  isFlatRate: false,
+const FALLBACK_DEFAULTS: ProjectRateFormValues = {
   employee: "",
   hourlyRate: "",
   validFrom: getTodayDate(),
 };
 
-export function AddProjectRateModal({
+export function ProjectRateModal({
   open,
   onOpenChange,
   onSubmit,
-}: AddProjectRateModalProps) {
-  const toast = useToasts();
+  mode = "add",
+  initialValues,
+}: ProjectRateModalProps) {
   const [employeeSearch, setEmployeeSearch] = useState("");
   const [submitting, setSubmitting] = useState(false);
+
+  const isEdit = mode === "edit";
+  const title = isEdit ? "Edit project rate" : "Add project rate";
+  const submitLabel = isEdit ? "Save changes" : "Add rate";
+
+  const defaultValues = useMemo<ProjectRateFormValues>(
+    () => ({ ...FALLBACK_DEFAULTS, ...initialValues }),
+    [initialValues],
+  );
 
   const form = useForm({
     defaultValues,
@@ -52,29 +54,20 @@ export function AddProjectRateModal({
     },
     onSubmit: async ({ value }) => {
       setSubmitting(true);
-      try {
-        await onSubmit({
-          isFlatRate: value.isFlatRate,
-          employee: value.isFlatRate ? undefined : value.employee,
-          hourlyRate: Number(value.hourlyRate),
-          validFrom: value.validFrom,
-        });
-        toast.success("Project rate added successfully");
-        onOpenChange(false);
-        form.reset();
-      } catch (err) {
-        toast.error(parseFrappeErrorMsg(err as FrappeError));
-      } finally {
-        setSubmitting(false);
-      }
+      await onSubmit({
+        employee: value.employee,
+        hourlyRate: Number(value.hourlyRate),
+        validFrom: value.validFrom,
+      });
+      onOpenChange(false);
+      form.reset();
+      setSubmitting(false);
     },
   });
 
-  const isFlatRate = useStore(form.store, (s) => s.values.isFlatRate);
-
   const { options: employeeOptions, isLoading: isEmployeeLookupLoading } =
     useEmployeeLookup({
-      shouldFetch: open && !isFlatRate,
+      shouldFetch: open,
       pageSize: 20,
       query: employeeSearch,
     });
@@ -96,11 +89,13 @@ export function AddProjectRateModal({
   );
 
   useEffect(() => {
-    if (!open) {
+    if (open) {
+      form.reset(defaultValues);
+    } else {
       form.reset();
       setEmployeeSearch("");
     }
-  }, [open, form]);
+  }, [open, form, defaultValues]);
 
   const handleOpenChange = useCallback(
     (next: boolean) => {
@@ -113,12 +108,12 @@ export function AddProjectRateModal({
     <Dialog
       open={open}
       onOpenChange={handleOpenChange}
-      options={{ title: "Add project rate", size: "sm" }}
+      options={{ title, size: "sm" }}
       actions={
         <Button
           className="w-full h-7"
           variant="solid"
-          label="Add rate"
+          label={submitLabel}
           onClick={() => form.handleSubmit()}
           disabled={submitting}
           loading={submitting}
@@ -126,47 +121,26 @@ export function AddProjectRateModal({
       }
     >
       <div className="-mt-2 space-y-4">
-        {!isFlatRate && (
-          <form.Field
-            name="employee"
-            children={(field) => (
-              <div className="flex flex-col gap-1.5">
-                <label className="block text-base text-ink-gray-5">
-                  Member
-                </label>
-                <Combobox
-                  inputClassName="bg-white h-8 border-outline-gray-2"
-                  loading={isEmployeeLookupLoading}
-                  options={employeeOptionsWithAvatars}
-                  searchValue={employeeSearch}
-                  placeholder="Select member"
-                  value={field.state.value}
-                  onChange={(value) => field.handleChange(value as string)}
-                  onSearchChange={setEmployeeSearch}
-                  openOnFocus
-                />
-                {!field.state.meta.isValid && (
-                  <ErrorMessage message={field.state.meta.errors[0]?.message} />
-                )}
-              </div>
-            )}
-          />
-        )}
-
         <form.Field
-          name="isFlatRate"
+          name="employee"
           children={(field) => (
-            <Checkbox
-              size="sm"
-              label="Mark as flat rate"
-              checked={field.state.value}
-              onChange={(val) => {
-                field.handleChange(val);
-                if (val) {
-                  form.setFieldValue("employee", "");
-                }
-              }}
-            />
+            <div className="flex flex-col gap-1.5">
+              <label className="block text-base text-ink-gray-5">Member</label>
+              <Combobox
+                inputClassName="bg-white h-8 border-outline-gray-2"
+                loading={isEmployeeLookupLoading}
+                options={employeeOptionsWithAvatars}
+                searchValue={employeeSearch}
+                placeholder="Select member"
+                value={field.state.value}
+                onChange={(value) => field.handleChange(value as string)}
+                onSearchChange={setEmployeeSearch}
+                openOnFocus
+              />
+              {!field.state.meta.isValid && (
+                <ErrorMessage message={field.state.meta.errors[0]?.message} />
+              )}
+            </div>
           )}
         />
 
@@ -232,4 +206,4 @@ export function AddProjectRateModal({
   );
 }
 
-export default AddProjectRateModal;
+export default ProjectRateModal;

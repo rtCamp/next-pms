@@ -39,10 +39,12 @@ export type ContractRow = {
 export type RateRow = {
   id: string;
   name: string;
+  employee: string;
   employeeName: string;
   image?: string;
   rateLabel: string;
   amount: string;
+  hourlyRate: number;
   date: string;
 };
 

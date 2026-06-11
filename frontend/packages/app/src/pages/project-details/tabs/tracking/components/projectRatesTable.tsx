@@ -18,7 +18,7 @@ import { AddSm } from "@rtcamp/frappe-ui-react/icons";
 import { RATE_COLUMNS } from "../constants";
 import { useTracking } from "../context";
 import { ActionsCell } from "./actionsCell";
-import { AddProjectRateModal } from "./addProjectRateModal";
+import { ProjectRateModal } from "./projectRateModal";
 
 const gridTemplateColumns = RATE_COLUMNS.map((c) => c.width).join(" ");
 
@@ -27,6 +27,9 @@ export function ProjectRatesTable() {
   const flatRate = useTracking((state) => state.flatRate);
   const deleteRate = useTracking((state) => state.deleteRate);
   const createRate = useTracking((state) => state.createRate);
+  const editRate = useTracking((state) => state.editRate);
+  const editingRate = useTracking((state) => state.editingRate);
+  const setEditingRate = useTracking((state) => state.setEditingRate);
   const addRateModalOpen = useTracking((state) => state.addRateModalOpen);
   const setAddRateModalOpen = useTracking((state) => state.setAddRateModalOpen);
 
@@ -101,7 +104,7 @@ export function ProjectRatesTable() {
                 </div>
                 <div className="flex items-center justify-end">
                   <ActionsCell
-                    onEdit={() => {}}
+                    onEdit={() => setEditingRate(row)}
                     onDelete={() => deleteRate(row.name)}
                   />
                 </div>
@@ -110,10 +113,36 @@ export function ProjectRatesTable() {
           )}
         </ListRows>
       </ListView>
-      <AddProjectRateModal
+      <ProjectRateModal
         open={addRateModalOpen}
         onOpenChange={setAddRateModalOpen}
         onSubmit={createRate}
+      />
+      <ProjectRateModal
+        mode="edit"
+        open={!!editingRate}
+        onOpenChange={(next) => {
+          if (!next) setEditingRate(null);
+        }}
+        initialValues={
+          editingRate
+            ? {
+                employee: editingRate.employee,
+                hourlyRate: String(editingRate.hourlyRate),
+                validFrom: editingRate.date,
+              }
+            : undefined
+        }
+        onSubmit={async (input) => {
+          if (!editingRate) return;
+          await editRate({
+            name: editingRate.name,
+            employee: input.employee ?? "",
+            hourlyRate: input.hourlyRate,
+            validFrom: input.validFrom,
+          });
+          setEditingRate(null);
+        }}
       />
     </div>
   );

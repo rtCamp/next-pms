@@ -16,8 +16,14 @@ export type RepositoryInput = Pick<
   Partial<Pick<ProjectRepositoryConnection, "name">>;
 
 export type CreateRateInput = {
-  isFlatRate: boolean;
   employee?: string;
+  hourlyRate: number;
+  validFrom: string;
+};
+
+export type EditRateInput = {
+  name: string;
+  employee: string;
   hourlyRate: number;
   validFrom: string;
 };
@@ -42,6 +48,7 @@ export interface ProjectDetailContextProps {
   updateContacts: (contactIds: string[]) => Promise<void>;
   deleteRate: (name: string) => Promise<void>;
   createRate: (input: CreateRateInput) => Promise<void>;
+  editRate: (input: EditRateInput) => Promise<void>;
   createContract: (input: CreateContractInput) => Promise<void>;
 }
 
@@ -60,6 +67,7 @@ export const ProjectDetailContext = createContext<ProjectDetailContextProps>({
   updateContacts: asyncNoop,
   deleteRate: asyncNoop,
   createRate: asyncNoop,
+  editRate: asyncNoop,
   createContract: asyncNoop,
 });
 

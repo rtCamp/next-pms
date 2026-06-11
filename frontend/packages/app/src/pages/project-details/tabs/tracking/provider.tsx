@@ -20,14 +20,17 @@ import {
   useProjectDetail,
   type CreateContractInput,
   type CreateRateInput,
+  type EditRateInput,
 } from "../../context";
 
 export function TrackingProvider({ children }: PropsWithChildren) {
   const projectId = useProjectDetail((s) => s.projectId);
   const deletedRateDoc = useProjectDetail((s) => s.deleteRate);
   const createRateDoc = useProjectDetail((s) => s.createRate);
+  const editRateDoc = useProjectDetail((s) => s.editRate);
   const createContractDoc = useProjectDetail((s) => s.createContract);
   const [addRateModalOpen, setAddRateModalOpen] = useState(false);
+  const [editingRate, setEditingRate] = useState<RateRow | null>(null);
   const [addContractModalOpen, setAddContractModalOpen] = useState(false);
 
   const { data, mutate } = useFrappeGetCall<Response>(
@@ -56,6 +59,14 @@ export function TrackingProvider({ children }: PropsWithChildren) {
       await mutate();
     },
     [createRateDoc, mutate],
+  );
+
+  const editRate = useCallback(
+    async (input: EditRateInput) => {
+      await editRateDoc(input);
+      await mutate();
+    },
+    [editRateDoc, mutate],
   );
 
   const createContract = useCallback(
@@ -88,9 +99,11 @@ export function TrackingProvider({ children }: PropsWithChildren) {
       ? rateEntries.map((rate) => ({
           id: rate.employee ?? "",
           name: rate.name ?? "",
+          employee: rate.employee ?? "",
           employeeName: rate.employee_name ?? rate.employee ?? "",
           rateLabel: "Hourly rate",
           amount: `${formatter.format(rate.hourly_billing_rate ?? 0)}/h`,
+          hourlyRate: rate.hourly_billing_rate ?? 0,
           date: rate.valid_from ?? "",
         }))
       : null;
@@ -109,6 +122,9 @@ export function TrackingProvider({ children }: PropsWithChildren) {
       flatRate,
       deleteRate,
       createRate,
+      editRate,
+      editingRate,
+      setEditingRate,
       addRateModalOpen,
       setAddRateModalOpen,
       createContract,
@@ -119,6 +135,8 @@ export function TrackingProvider({ children }: PropsWithChildren) {
     tracking,
     deleteRate,
     createRate,
+    editRate,
+    editingRate,
     createContract,
     addRateModalOpen,
     addContractModalOpen,

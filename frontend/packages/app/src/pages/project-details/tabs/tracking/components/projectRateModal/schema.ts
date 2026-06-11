@@ -1,7 +1,6 @@
 import { z } from "zod";
 
 export const addProjectRateSchema = z.object({
-  isFlatRate: z.boolean(),
   employee: z.string().trim().min(1, { message: "Plese select an employee" }),
   hourlyRate: z
     .string()

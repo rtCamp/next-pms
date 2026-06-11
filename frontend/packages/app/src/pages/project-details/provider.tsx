@@ -19,6 +19,7 @@ import {
   ProjectDetailContext,
   type CreateContractInput,
   type CreateRateInput,
+  type EditRateInput,
   type ProjectDetailContextProps,
   type RepositoryInput,
 } from "./context";
@@ -114,31 +115,44 @@ export function ProjectDetailProvider({
     [updateDoc, projectId, mutate, data, toast],
   );
 
-  const createRate = useCallback(
-    async ({
-      isFlatRate,
-      employee,
-      hourlyRate,
-      validFrom,
-    }: CreateRateInput) => {
-      if (isFlatRate) {
+  const editRate = useCallback(
+    async ({ name, employee, hourlyRate, validFrom }: EditRateInput) => {
+      const current = data?.custom_project_billing_team ?? [];
+      try {
         await updateDoc("Project", projectId, {
-          custom_default_hourly_billing_rate: hourlyRate,
-          actual_start_date: validFrom,
+          custom_project_billing_team: current.map((row) =>
+            row.name === name
+              ? {
+                  ...row,
+                  employee,
+                  hourly_billing_rate: hourlyRate,
+                  valid_from: validFrom,
+                }
+              : row,
+          ),
         });
-      } else {
-        const current = data?.custom_project_billing_team ?? [];
-        await updateDoc("Project", projectId, {
-          custom_project_billing_team: [
-            ...current,
-            {
-              employee: employee ?? "",
-              hourly_billing_rate: hourlyRate,
-              valid_from: validFrom,
-            },
-          ],
-        });
+        mutate();
+        toast.success("Rate updated");
+      } catch (err) {
+        toast.error(parseFrappeErrorMsg(err as FrappeError));
       }
+    },
+    [updateDoc, projectId, mutate, data, toast],
+  );
+
+  const createRate = useCallback(
+    async ({ employee, hourlyRate, validFrom }: CreateRateInput) => {
+      const current = data?.custom_project_billing_team ?? [];
+      await updateDoc("Project", projectId, {
+        custom_project_billing_team: [
+          ...current,
+          {
+            employee: employee ?? "",
+            hourly_billing_rate: hourlyRate,
+            valid_from: validFrom,
+          },
+        ],
+      });
       mutate();
     },
     [updateDoc, projectId, mutate, data],
@@ -182,6 +196,7 @@ export function ProjectDetailProvider({
     updateContacts,
     deleteRate,
     createRate,
+    editRate,
     createContract,
   };
 
