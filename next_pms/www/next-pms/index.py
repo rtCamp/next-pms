@@ -104,7 +104,7 @@ def is_google_calendar_enabled():
 
 
 def has_todo_custom_fields():
-    """Returns true if the title, from_time and to_time custom fields are present in the ToDo doctype.
+    """Returns true if the custom_title, custom_from_time and custom_to_time custom fields are present in the ToDo doctype.
 
     These are custom fields not shipped by Next PMS, so the frontend must check for them before use.
     """
