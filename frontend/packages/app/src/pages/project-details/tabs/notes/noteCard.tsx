@@ -1,6 +1,7 @@
 /**
  * External dependencies.
  */
+import { useCallback } from "react";
 import { useSearchParams } from "react-router-dom";
 import { Avatar } from "@rtcamp/frappe-ui-react";
 
@@ -23,11 +24,12 @@ export function NoteCard({ note }: NoteCardProps) {
   const authorHref = `/desk/user/${encodeURIComponent(note.owner)}`;
   const authorName = note.owner_full_name || note.owner;
 
-  const openDetail = () =>
+  const openDetail = useCallback(() => {
     setSearchParams((prev) => {
       prev.set(NOTE_PARAM, note.name);
       return prev;
     });
+  }, [note.name, setSearchParams]);
 
   return (
     <div

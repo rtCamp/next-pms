@@ -11,9 +11,7 @@ import type { Note } from "../types";
 const FILENAME_TITLE_CAP = 50;
 
 /**
- * Download the note as a .txt file. The body is written as raw HTML (per the
- * dev-team decision — no tag stripping); the filename is the length-capped,
- * sanitised title plus a timestamp.
+ * Exports the note content as a text file.
  */
 export function exportNote(note: Note) {
   const safeTitle =
@@ -30,7 +28,5 @@ export function exportNote(note: Note) {
   anchor.href = url;
   anchor.download = filename;
   anchor.click();
-  // Defer revoke so the browser has started reading the blob; revoking
-  // synchronously after click() can abort the download in some browsers.
   setTimeout(() => URL.revokeObjectURL(url), 0);
 }

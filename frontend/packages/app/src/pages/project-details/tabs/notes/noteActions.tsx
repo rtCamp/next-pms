@@ -3,7 +3,12 @@
  */
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Dropdown } from "@rtcamp/frappe-ui-react";
-import { Delete, DotHorizontal, Edit1, Export } from "@rtcamp/frappe-ui-react/icons";
+import {
+  Delete,
+  DotHorizontal,
+  Edit1,
+  Export,
+} from "@rtcamp/frappe-ui-react/icons";
 
 /**
  * Internal dependencies.
@@ -15,17 +20,10 @@ import { useNotes } from "./context";
 import { exportNote } from "./detail/utils";
 import type { Note } from "./types";
 
-const ICON_CLASS = "size-4 mr-2";
-
 type NoteActionsProps = {
   note: Note;
 };
 
-/**
- * Shared 3-dot actions dropdown rendered on both the note card and the note
- * detail header. Stops click propagation so the dropdown works inside the
- * clickable card.
- */
 export function NoteActions({ note }: NoteActionsProps) {
   const navigate = useNavigate();
   const [, setSearchParams] = useSearchParams();
@@ -50,22 +48,24 @@ export function NoteActions({ note }: NoteActionsProps) {
           {
             key: "edit",
             label: "Edit",
-            icon: <Edit1 className={ICON_CLASS} />,
+            icon: <Edit1 className="size-4 mr-2" />,
             disabled: isDeleting,
             onClick: () =>
-              navigate(`${ROUTES.project}/${projectId}/notes/${note.name}/edit`),
+              navigate(
+                `${ROUTES.project}/${projectId}/notes/${note.name}/edit`,
+              ),
           },
           {
             key: "export",
             label: "Export note",
-            icon: <Export className={ICON_CLASS} />,
+            icon: <Export className="size-4 mr-2" />,
             onClick: () => exportNote(note),
           },
           {
             key: "delete",
             label: "Delete",
             theme: "red",
-            icon: <Delete className={ICON_CLASS} />,
+            icon: <Delete className="size-4 mr-2" />,
             disabled: isDeleting,
             onClick: () => void handleDelete(),
           },

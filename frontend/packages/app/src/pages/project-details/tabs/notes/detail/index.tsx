@@ -2,12 +2,11 @@
  * External dependencies.
  */
 import { Spinner } from "@next-pms/design-system/components";
-import { useFrappeGetCall } from "frappe-react-sdk";
 
 /**
  * Internal dependencies.
  */
-import type { Note } from "../types";
+import { useNotes } from "../context";
 import { NoteDetailContent } from "./content";
 import { NoteDetailHeader } from "./header";
 
@@ -16,21 +15,25 @@ type NoteDetailProps = {
 };
 
 export function NoteDetail({ noteId }: NoteDetailProps) {
-  const { data, isLoading, error } = useFrappeGetCall<{ message: Note }>(
-    "next_pms.timesheet.api.project_status_update.get_project_status_update",
-    { name: noteId },
-  );
+  const isLoading = useNotes((s) => s.state.isLoading);
+  const notes = useNotes((s) => s.state.notes);
+  const noteFromList = notes.find((note) => note.name === noteId);
+  const note = noteFromList ?? null;
 
-  if (error) throw error;
-
-  if (isLoading || !data) {
+  if (isLoading && !note) {
     return <Spinner className="py-10" />;
   }
 
-  const note = data.message;
+  if (!note) {
+    return (
+      <div className="py-10 text-center text-sm text-ink-gray-4">
+        Note not found
+      </div>
+    );
+  }
 
   return (
-    <div className="w-full p-4">
+    <div className="w-full">
       <NoteDetailHeader note={note} />
       <NoteDetailContent note={note} />
     </div>

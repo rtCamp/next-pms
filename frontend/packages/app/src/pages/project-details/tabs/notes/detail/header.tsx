@@ -40,7 +40,7 @@ export function NoteDetailHeader({ note }: NoteDetailHeaderProps) {
           variant="ghost"
           type="button"
           onClick={handleBack}
-          className="p-0 hover:bg-transparent focus-visible:bg-transparent"
+          className="p-0"
           icon={() => <ArrowLeft />}
         />
         <a href={authorHref} className="shrink-0 flex items-center">
@@ -51,7 +51,7 @@ export function NoteDetailHeader({ note }: NoteDetailHeaderProps) {
             image={note.owner_image || undefined}
           />
         </a>
-        <span className="truncate text-base font-medium text-ink-gray-7">
+        <span className="truncate text-base font-medium text-ink-gray-8">
           {note.owner_full_name}
         </span>
         <span className="shrink-0 text-ink-gray-5">·</span>
