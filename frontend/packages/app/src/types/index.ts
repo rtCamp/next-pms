@@ -63,6 +63,8 @@ declare global {
         currencies?: string[];
         has_business_unit?: boolean;
         has_industry?: boolean;
+        has_repository_connections?: boolean;
+        has_customer_feedback?: boolean;
         desk_theme?: string;
         is_calendar_setup: boolean;
         global_filters: GlobalFilters;

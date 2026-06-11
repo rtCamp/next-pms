@@ -99,6 +99,8 @@ export interface AllocationCallbackData {
   tentative?: boolean;
   /** Note for the allocation. */
   note?: string;
+  /** Called after the allocation is successfully saved. */
+  onSuccess?: () => void;
 }
 
 export interface GanttGridHandle {

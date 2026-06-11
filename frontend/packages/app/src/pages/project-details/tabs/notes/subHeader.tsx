@@ -2,8 +2,7 @@
  * External dependencies.
  */
 import { useNavigate, useParams } from "react-router-dom";
-import type { FilterCondition } from "@rtcamp/frappe-ui-react";
-import { Dropdown, Filter } from "@rtcamp/frappe-ui-react";
+import { Dropdown, Select, TextInput } from "@rtcamp/frappe-ui-react";
 import { AddSm, SmallDown } from "@rtcamp/frappe-ui-react/icons";
 
 /**
@@ -11,35 +10,34 @@ import { AddSm, SmallDown } from "@rtcamp/frappe-ui-react/icons";
  */
 import { ROUTES } from "@/lib/constant";
 import { CREATE_OPTIONS } from "./constants";
+import type { NoteAuthorOption } from "./types";
 
 type NotesSubHeaderProps = {
-  filters: FilterCondition[];
-  onFiltersChange: (v: FilterCondition[]) => void;
+  titleInput: string;
+  descriptionInput: string;
+  author: string;
+  authorOptions: NoteAuthorOption[];
+  onTitleInputChange: (value: string) => void;
+  onDescriptionInputChange: (value: string) => void;
+  onAuthorChange: (value: string) => void;
 };
 
 export function NotesSubHeader({
-  filters,
-  onFiltersChange,
+  titleInput,
+  descriptionInput,
+  author,
+  authorOptions,
+  onTitleInputChange,
+  onDescriptionInputChange,
+  onAuthorChange,
 }: NotesSubHeaderProps) {
-  const { projectId = "" } = useParams<{ projectId: string }>();
   const navigate = useNavigate();
+  const { projectId = "" } = useParams<{ projectId: string }>();
 
   return (
-    <div className="flex items-center justify-between gap-8">
-      <h2 className="text-xl font-semibold text-ink-gray-7">Notes</h2>
-      <div className="flex items-center gap-2">
-        <Filter
-          align="end"
-          value={filters}
-          onChange={onFiltersChange}
-          fields={[
-            {
-              name: "creation",
-              label: "Creation Date",
-              type: "daterange",
-            },
-          ]}
-        />
+    <div className="flex flex-col gap-4">
+      <div className="flex flex-1 flex-wrap items-center justify-between gap-2">
+        <h2 className="text-xl font-semibold text-ink-gray-7">Notes</h2>
         <Dropdown
           placement="right"
           button={{
@@ -63,6 +61,30 @@ export function NotesSubHeader({
                 navigate(`${ROUTES.project}/${projectId}/notes/new`),
             },
           ]}
+        />
+      </div>
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div className="flex flex-1 gap-2">
+          <TextInput
+            value={titleInput}
+            onChange={(e) => onTitleInputChange(e.target.value)}
+            placeholder="Search title"
+            className="w-full max-w-64"
+          />
+          <TextInput
+            value={descriptionInput}
+            onChange={(e) => onDescriptionInputChange(e.target.value)}
+            placeholder="Search description"
+            className="w-full max-w-64"
+          />
+        </div>
+        <Select
+          size="sm"
+          placeholder="Select Author"
+          className="w-fit"
+          value={author}
+          onChange={(value) => onAuthorChange((value ?? "") as string)}
+          options={authorOptions}
         />
       </div>
     </div>
