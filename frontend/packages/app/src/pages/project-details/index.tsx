@@ -7,6 +7,7 @@ import { Tabs } from "@rtcamp/frappe-ui-react";
 /**
  * Internal dependencies.
  */
+import { useFeedbackAvailability } from "@/hooks/useFeedbackAvailability";
 import { ROUTES } from "@/lib/constant";
 import { AboutThisProject } from "./about";
 import { ProjectDetailHeader } from "./header";
@@ -21,6 +22,8 @@ function ProjectDetail() {
   const { projectId = "" } = useParams<{ projectId: string }>();
   const [searchParams, setSearchParams] = useSearchParams();
   const editorMatch = useMatch(`${ROUTES.project}/:projectId/notes/*`);
+  const { available, isLoading: isAvailabilityLoading } =
+    useFeedbackAvailability();
 
   const paramTab = searchParams.get(TAB_PARAM) as TabKey | null;
   const activeKey: TabKey =
@@ -35,6 +38,11 @@ function ProjectDetail() {
       return prev;
     });
   };
+
+  let finalTabs = TABS;
+  if (isAvailabilityLoading || !available) {
+    finalTabs = TABS.filter((tab) => tab.label !== "Feedback");
+  }
 
   return (
     <ProjectDetailProvider projectId={projectId}>
@@ -51,7 +59,7 @@ function ProjectDetail() {
                 tabListClassName="h-10"
                 tabPanelClassName="overflow-auto scrollbar-thin"
                 className="w-3/4 border-0 rounded-none border-r"
-                tabs={TABS}
+                tabs={finalTabs}
                 tabIndex={activeTab}
                 onTabChange={handleTabChange}
               />

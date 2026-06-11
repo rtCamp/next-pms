@@ -1,40 +1,54 @@
 /**
+ * External dependencies.
+ */
+import { Spinner } from "@next-pms/design-system/components";
+import { format } from "date-fns";
+
+/**
  * Internal dependencies.
  */
-import { MOCK_BREAKDOWNS, MOCK_MONTHS, MOCK_RESPONSES } from "../mock-data";
+import { useClientFeedbackBreakdown } from "../useClientFeedbackBreakdown";
+import { FeedbackBreakdown } from "./feedbackBreakdown";
 import { MonthTimeline } from "./monthTimeline";
 import { ResponsesList } from "./responsesList";
-import { getMonthName } from "../utils";
-import { FeedbackBreakdown } from "./feedbackBreakdown";
+import { useFeedbackContext } from "../context";
 
-export function ClientFeedbackView({
-  selectedMonth,
-  onSelectMonth,
-}: {
-  selectedMonth: string;
-  onSelectMonth: (month: string) => void;
-}) {
-  const entry = MOCK_MONTHS.find((m) => m.key === selectedMonth);
-  const hasData = entry?.score != null;
-  const breakdown = MOCK_BREAKDOWNS[selectedMonth] ?? [];
-  const responses = MOCK_RESPONSES[selectedMonth] ?? [];
+export function ClientFeedbackView() {
+  const {
+    selectedClientFeedbackId,
+    handleClientFeedbackIdChange,
+    selectedClientMonth,
+    handleSelectedMonthChange,
+  } = useFeedbackContext((c) => c);
+  const {
+    breakdown,
+    responses,
+    isLoading: isBreakdownLoading,
+  } = useClientFeedbackBreakdown(selectedClientFeedbackId);
 
   return (
     <>
       <MonthTimeline
-        selectedMonth={selectedMonth}
-        onSelectMonth={onSelectMonth}
+        setSelectedFeedbackId={handleClientFeedbackIdChange}
+        selectedMonth={selectedClientMonth}
+        setSelectedMonth={handleSelectedMonthChange}
       />
 
-      {!hasData ? (
-        <p className="text-base text-ink-gray-5">
+      {!selectedClientFeedbackId || !selectedClientMonth ? (
+        <p className="text-base text-ink-gray-5 text-center p-4">
           No feedback submitted for this month.
         </p>
+      ) : isBreakdownLoading ? (
+        <Spinner className="pt-16" />
       ) : (
         <div className="grid grid-cols-[240px_1fr] gap-6">
           <div>
             <h3 className="text-lg text-ink-gray-8 font-medium mb-3.5">
-              {getMonthName(selectedMonth)} Feedback Breakdown
+              {format(
+                new Date(selectedClientMonth.year, selectedClientMonth.month),
+                "MMMM",
+              )}{" "}
+              Feedback Breakdown
             </h3>
             <FeedbackBreakdown metrics={breakdown} />
           </div>

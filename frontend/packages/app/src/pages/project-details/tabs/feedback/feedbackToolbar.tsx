@@ -45,7 +45,13 @@ export function FeedbackToolbar({
           iconRight={() => <SmallDown className="size-4" />}
         />
       </Dropdown>
-      <Button label="Schedule feedback" variant="solid" onClick={() => {}} />
+      <Button
+        variant="solid"
+        label="Schedule Feedback"
+        className="text-sm"
+        link="/desk/customer-feedback/"
+        rel="noopener noreferrer"
+      />
     </div>
   );
 }
