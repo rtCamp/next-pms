@@ -116,7 +116,9 @@ export function CommentItem({
                 theme: "red",
                 icon: <Delete className="size-4 mr-2" />,
                 disabled: isMutating,
-                onClick: () => void onDelete(comment.name),
+                // The hook toasts on failure; swallow the rejection so this
+                // fire-and-forget call doesn't raise an unhandled rejection.
+                onClick: () => void onDelete(comment.name).catch(() => {}),
               },
             ]}
           />

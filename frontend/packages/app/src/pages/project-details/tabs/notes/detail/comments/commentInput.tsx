@@ -41,7 +41,14 @@ export function CommentInput({
 
   const handleSubmit = async () => {
     if (isEmpty || isSubmitting) return;
-    await onSubmit(draft);
+    try {
+      await onSubmit(draft);
+    } catch {
+      // The hook already surfaces the error via a toast; keep the draft so the
+      // user can retry, and swallow the rejection so the void caller below
+      // doesn't raise an unhandled promise rejection.
+      return;
+    }
     if (resetOnSubmit) {
       setDraft("");
       setEditorKey((k) => k + 1);
