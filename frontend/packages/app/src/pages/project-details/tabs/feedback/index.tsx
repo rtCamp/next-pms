@@ -8,7 +8,6 @@ import { useState } from "react";
  */
 import { ClientFeedbackView } from "./clientFeedbackView";
 import { FeedbackToolbar } from "./feedbackToolbar";
-import { MOCK_TEAM_FEEDBACK } from "./mock-data";
 import { FeedbackProvider } from "./provider";
 import { TeamFeedbackView } from "./teamFeedbackView";
 import type { FeedbackType } from "./types";
@@ -25,10 +24,7 @@ export function Feedback() {
         />
 
         {feedbackType === "client" && <ClientFeedbackView />}
-
-        {feedbackType === "team" && (
-          <TeamFeedbackView rows={MOCK_TEAM_FEEDBACK} />
-        )}
+        {feedbackType === "team" && <TeamFeedbackView />}
       </div>
     </FeedbackProvider>
   );

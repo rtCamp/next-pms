@@ -1,37 +1,18 @@
 /**
  * External dependencies.
  */
-import { useState } from "react";
-import { Button } from "@rtcamp/frappe-ui-react";
-import { DotHorizontal } from "@rtcamp/frappe-ui-react/icons";
+import { Spinner } from "@next-pms/design-system/components";
 
 /**
  * Internal dependencies.
  */
 import { FEEDBACK_LIST_COLUMNS } from "../constants";
-import { MOCK_TEAM_FEEDBACK_DETAILS } from "../mock-data";
 import StarRating from "../starRating";
-import type { TeamFeedbackRow } from "../types";
-import { FeedbackDetailDialog } from "./feedbackDetailDialog";
 import { PersonCell } from "./personCell";
+import { useTeamFeedbackList } from "../useTeamFeedbackList";
 
-interface TeamFeedbackListProps {
-  rows: TeamFeedbackRow[];
-  onRowAction?: (id: string) => void;
-}
-
-export function TeamFeedbackView({ rows, onRowAction }: TeamFeedbackListProps) {
-  const [selectedRowId, setSelectedRowId] = useState<string | null>(null);
-
-  const selectedRow = rows.find((r) => r.id === selectedRowId) ?? null;
-  const selectedDetail = selectedRowId
-    ? (MOCK_TEAM_FEEDBACK_DETAILS[selectedRowId] ?? null)
-    : null;
-
-  function handleRowAction(id: string) {
-    setSelectedRowId(id);
-    onRowAction?.(id);
-  }
+export function TeamFeedbackView() {
+  const { rows: feedbackRows, isLoading, error } = useTeamFeedbackList();
 
   return (
     <>
@@ -48,16 +29,30 @@ export function TeamFeedbackView({ rows, onRowAction }: TeamFeedbackListProps) {
                 <span className="text-sm text-ink-gray-5">{col.label}</span>
               </div>
             ))}
-            {/* Actions column – intentionally empty header */}
-            <div className="w-8 shrink-0" />
           </div>
 
+          {isLoading ? (
+            <Spinner className="py-12" />
+          ) : error ? (
+            <div className="flex items-center justify-center py-4">
+              <span className="text-sm text-ink-gray-5">
+                Failed to load feedback.
+              </span>
+            </div>
+          ) : feedbackRows.length === 0 ? (
+            <div className="flex items-center justify-center py-4">
+              <span className="text-sm text-ink-gray-5">
+                No feedback available.
+              </span>
+            </div>
+          ) : null}
+
           {/* Data rows */}
-          {rows.map((row) => (
+          {feedbackRows.map((row) => (
             <div
               key={row.id}
               className="flex items-center border-b border-outline-gray-1 px-1 py-2 cursor-pointer hover:bg-surface-gray-1"
-              onClick={() => handleRowAction(row.id)}
+              onClick={() => {}}
             >
               <div
                 style={{
@@ -113,29 +108,10 @@ export function TeamFeedbackView({ rows, onRowAction }: TeamFeedbackListProps) {
                   {row.avgRating.toFixed(1)}
                 </span>
               </div>
-              <div
-                className="w-8 shrink-0 flex justify-end"
-                onClick={(e) => e.stopPropagation()}
-              >
-                <Button
-                  type="button"
-                  variant="ghost"
-                  icon={() => <DotHorizontal className="size-4" />}
-                />
-              </div>
             </div>
           ))}
         </div>
       </div>
-
-      <FeedbackDetailDialog
-        open={selectedRowId !== null}
-        onOpenChange={(open) => {
-          if (!open) setSelectedRowId(null);
-        }}
-        row={selectedRow}
-        detail={selectedDetail}
-      />
     </>
   );
 }
