@@ -25,6 +25,7 @@ export function NoteCard({ note }: NoteCardProps) {
   const excerpt = stripTags(note.description);
   const relativeDate = formatRelativeTimeShort(note.creation, new Date(), true);
   const authorHref = `/desk/user/${encodeURIComponent(note.owner)}`;
+  const authorName = note.owner_full_name || note.owner;
 
   return (
     <div className="flex h-64 min-w-65.75 max-w-131.5 flex-1 flex-col rounded-[12px] border border-outline-gray-2 bg-surface-white overflow-clip shadow-xl">
@@ -65,12 +66,12 @@ export function NoteCard({ note }: NoteCardProps) {
         <a href={authorHref} className="shrink-0 flex items-center">
           <Avatar
             size="xs"
-            label={note.owner_full_name}
+            label={authorName}
             image={note.owner_image || undefined}
           />
         </a>
         <span className="flex-1 truncate leading-tight text-sm text-ink-gray-5">
-          {note.owner_full_name}
+          {authorName}
         </span>
         <span className="shrink-0 text-base text-ink-gray-5">
           {relativeDate}
