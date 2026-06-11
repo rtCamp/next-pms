@@ -134,9 +134,17 @@ function AboutThisProjectContent({ className }: { className: string }) {
         companyEmail: m.company_email ?? undefined,
         linkedin: m.linkedin_url ?? undefined,
         loggedHours: m.logged_hours ?? undefined,
+        projectRole: m.project_role ?? undefined,
         totalHoursPurchased: sidebar.progress.total_hours_purchased,
       })),
     [sidebar.members, sidebar.progress.total_hours_purchased],
+  );
+
+  const projectManager = members.find(
+    (m) => m.projectRole === "Project Manager",
+  );
+  const engineeringManager = members.find(
+    (m) => m.projectRole === "Engineering Manager",
   );
 
   const customers = useMemo<AboutCustomer[]>(
@@ -301,8 +309,36 @@ function AboutThisProjectContent({ className }: { className: string }) {
             />
           }
         >
+          {(projectManager || engineeringManager) && (
+            <div className="grid grid-cols-[auto_1fr] items-center gap-x-3 gap-y-4.5 text-base font-light text-ink-gray-5 mb-4">
+              {projectManager && (
+                <>
+                  <span>Project Manager</span>
+                  <span className="truncate font-medium text-ink-gray-7">
+                    {projectManager.name}
+                  </span>
+                </>
+              )}
+              {engineeringManager && (
+                <>
+                  <span>Lead Engineer</span>
+                  <span className="truncate font-medium text-ink-gray-7">
+                    {engineeringManager.name}
+                  </span>
+                </>
+              )}
+            </div>
+          )}
+
+          <h3 className="mb-2 text-base font-medium text-ink-gray-8">
+            Team members
+          </h3>
           <ExpandableList
-            items={members}
+            items={members.filter(
+              (m) =>
+                m.projectRole !== "Project Manager" &&
+                m.projectRole !== "Engineering Manager",
+            )}
             itemLabel="members"
             getKey={(member) => member.email}
             renderItem={(member) => <MemberRow member={member} />}

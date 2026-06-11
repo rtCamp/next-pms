@@ -35,6 +35,7 @@ export type AboutMember = {
   linkedin?: string;
   loggedHours?: number;
   totalHoursPurchased?: number;
+  projectRole?: string;
 };
 
 export type AboutCustomer = {
