@@ -4,3 +4,5 @@ export const CREATE_OPTIONS = {
 } as const;
 
 export const TEMPLATE_PARAM = "template";
+
+export const NOTE_PARAM = "note";

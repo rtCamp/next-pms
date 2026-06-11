@@ -1,13 +1,16 @@
 /**
  * External dependencies.
  */
+import { useSearchParams } from "react-router-dom";
 import { mergeClassNames as cn } from "@next-pms/design-system";
 import { ErrorFallback, Spinner } from "@next-pms/design-system/components";
 
 /**
  * Internal dependencies.
  */
+import { NOTE_PARAM } from "./constants";
 import { useNotes } from "./context";
+import { NoteDetail } from "./detail";
 import { NoteCard } from "./noteCard";
 import { NotesSubHeader } from "./subHeader";
 
@@ -69,9 +72,12 @@ function NotesGrid() {
 }
 
 export function Notes() {
+  const [searchParams] = useSearchParams();
+  const noteId = searchParams.get(NOTE_PARAM);
+
   return (
-    <ErrorFallback>
-      <NotesGrid />
+    <ErrorFallback key={noteId ?? "grid"}>
+      {noteId ? <NoteDetail noteId={noteId} /> : <NotesGrid />}
     </ErrorFallback>
   );
 }
