@@ -1,9 +1,10 @@
 from typing import Any
 
 import frappe
-from frappe import _, enqueue
+from frappe import _, enqueue, only_for
 from frappe.desk.notifications import extract_mentions
-from frappe.utils import now
+from frappe.types import DF
+from frappe.utils import cint, now
 from frappe.utils.user import get_user_fullname
 
 from next_pms.api.utils import error_logger
@@ -21,6 +22,7 @@ def create_project_status_update(
     title: str,
     description: str = None,
     status: str = "Draft",
+    pinned: DF.Check | None = None,
 ) -> dict[str, Any]:
     """
     Create a new Project Status Update
@@ -30,10 +32,13 @@ def create_project_status_update(
         title (str): Title of the update
         description (str, optional): Description of the update
         status (str, optional): Status (Draft/Review/Publish). Defaults to "Draft"
+        pinned (DF.Check, optional): Whether the update is pinned
 
     Returns:
         Dict[str, Any]: Created document data
     """
+    only_for(ROLES, message=True)
+
     try:
         should_enqueue_publish_notification = False
         if not frappe.db.exists("Project", project):
@@ -44,6 +49,8 @@ def create_project_status_update(
         doc.title = title
         doc.description = description or ""
         doc.status = status
+        if pinned is not None:
+            doc.pinned = cint(pinned)
         doc.insert()
 
         if status == "Publish":
@@ -79,6 +86,8 @@ def get_project_status_update(name: str) -> dict[str, Any]:
     Returns:
         Dict[str, Any]: Project Status Update data with comments
     """
+    only_for(ROLES, message=True)
+
     if not frappe.db.exists("Project Status Update", name):
         frappe.throw(_("Project Status Update '{name}' does not exist"))
 
@@ -98,6 +107,7 @@ def get_project_status_updates_by_project(project: str, author: str | None = Non
     Returns:
         List[Dict[str, Any]]: List of Project Status Updates
     """
+    only_for(ROLES, message=True)
 
     if not frappe.db.exists("Project", project):
         frappe.throw(_("Project '{project}' does not exist"))
@@ -115,6 +125,7 @@ def get_project_status_updates_by_project(project: str, author: str | None = Non
             "description",
             "status",
             "project",
+            "pinned",
             "creation",
             "modified",
             "owner",
@@ -134,7 +145,11 @@ def get_project_status_updates_by_project(project: str, author: str | None = Non
 @frappe.whitelist(methods=["POST"])
 @error_logger
 def update_project_status_update(
-    name: str, title: str = None, description: str = None, status: str = None
+    name: str,
+    title: str = None,
+    description: str = None,
+    status: str = None,
+    pinned: DF.Check | None = None,
 ) -> dict[str, Any]:
     """
     Update an existing Project Status Update
@@ -144,10 +159,13 @@ def update_project_status_update(
         title (str, optional): New title
         description (str, optional): New description
         status (str, optional): New status
+        pinned (DF.Check, optional): New pinned state
 
     Returns:
         Dict[str, Any]: Updated document data
     """
+    only_for(ROLES, message=True)
+
     if not frappe.db.exists("Project Status Update", name):
         frappe.throw(_("Project Status Update '{name}' does not exist"))
 
@@ -159,6 +177,8 @@ def update_project_status_update(
         doc.description = description
     if status is not None:
         doc.status = status
+    if pinned is not None:
+        doc.pinned = cint(pinned)
 
     doc.save()
 
@@ -182,6 +202,7 @@ def add_comment_to_project_status_update(
     Returns:
         Dict[str, Any]: Updated document data
     """
+    only_for(ROLES, message=True)
 
     if not frappe.db.exists("Project Status Update", name):
         frappe.throw(_("Project Status Update '{name}' does not exist"))
@@ -235,6 +256,7 @@ def update_comment_in_project_status_update(
     Returns:
         Dict[str, Any]: Updated document data
     """
+    only_for(ROLES, message=True)
 
     if not comment_name:
         frappe.throw(_("Comment name is required"))
@@ -312,6 +334,7 @@ def delete_comment_from_project_status_update(name: str, comment_name: str) -> d
     Returns:
         Dict[str, Any]: Updated document data
     """
+    only_for(ROLES, message=True)
 
     if not comment_name:
         frappe.throw(_("Comment name is required"))
@@ -474,6 +497,7 @@ def get_project_status_update_details(name: str) -> dict[str, Any]:
         "description": doc.description,
         "status": doc.status,
         "project": doc.project,
+        "pinned": cint(doc.pinned),
         "owner_full_name": owner_details[0] if owner_details else doc.owner,
         "owner_image": owner_details[1] if owner_details and owner_details[1] else "",
         "comments": comments_with_details,
