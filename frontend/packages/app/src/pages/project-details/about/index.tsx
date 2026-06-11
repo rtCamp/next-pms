@@ -133,8 +133,10 @@ function AboutThisProjectContent({ className }: { className: string }) {
         currency: m.currency ?? undefined,
         companyEmail: m.company_email ?? undefined,
         linkedin: m.linkedin_url ?? undefined,
+        loggedHours: m.logged_hours ?? undefined,
+        totalHoursPurchased: sidebar.progress.total_hours_purchased,
       })),
-    [sidebar.members],
+    [sidebar.members, sidebar.progress.total_hours_purchased],
   );
 
   const customers = useMemo<AboutCustomer[]>(
