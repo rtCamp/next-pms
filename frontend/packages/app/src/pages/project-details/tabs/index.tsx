@@ -6,6 +6,7 @@ import { Feedback } from "./feedback";
 import { Notes } from "./notes";
 import { Overview } from "./overview";
 import { RisksTab } from "./risks";
+import { Todo } from "./to-do";
 import { Tracking } from "./tracking";
 
 export const TAB_KEYS = [
@@ -28,6 +29,6 @@ export const TABS: ComponentProps<typeof Tabs>["tabs"] = [
   { label: "Risks", content: <RisksTab /> },
   { label: "Notes", content: <Notes /> },
   { label: "Email", content: <UnderConstruction /> },
-  { label: "To-do", content: <UnderConstruction /> },
+  { label: "To-do", content: <Todo /> },
   { label: "Feedback", content: <Feedback /> },
 ] as const;
