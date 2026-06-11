@@ -18,6 +18,10 @@ export interface TodosContextProps {
   };
   actions: {
     createTodo: (input: CreateTodoInput) => Promise<TodoDoc | undefined>;
+    updateTodo: (
+      name: string,
+      input: CreateTodoInput,
+    ) => Promise<TodoDoc | undefined>;
     updateTodoStatus: (name: string, status: TodoStatus) => Promise<void>;
     deleteTodo: (name: string) => Promise<void>;
     refresh: () => Promise<unknown>;
@@ -33,6 +37,7 @@ export const TodosContext = createContext<TodosContextProps>({
   },
   actions: {
     createTodo: async () => undefined,
+    updateTodo: async () => undefined,
     updateTodoStatus: async () => undefined,
     deleteTodo: async () => undefined,
     refresh: async () => undefined,

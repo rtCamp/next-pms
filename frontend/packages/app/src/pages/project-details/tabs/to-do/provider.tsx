@@ -57,6 +57,32 @@ export function TodosProvider({ children }: PropsWithChildren) {
     [createDoc, projectId, toast, mutate],
   );
 
+  const updateTodo = useCallback(
+    async (name: string, input: CreateTodoInput) => {
+      setPending(true);
+      try {
+        const doc = (await updateDoc("ToDo", name, {
+          custom_title: input.title,
+          description: input.description,
+          status: input.status,
+          allocated_to: input.assignee,
+          custom_from_time: input.startAt,
+          custom_to_time: input.endAt,
+          priority: input.priority,
+        })) as TodoDoc;
+        toast.success("To-do updated");
+        await mutate();
+        return doc;
+      } catch (err) {
+        toast.error(parseFrappeErrorMsg(err as FrappeError));
+        return undefined;
+      } finally {
+        setPending(false);
+      }
+    },
+    [updateDoc, mutate, toast],
+  );
+
   const updateTodoStatus = useCallback(
     async (name: string, status: TodoStatus) => {
       try {
@@ -92,6 +118,7 @@ export function TodosProvider({ children }: PropsWithChildren) {
       },
       actions: {
         createTodo,
+        updateTodo,
         updateTodoStatus,
         deleteTodo,
         refresh: mutate,
@@ -104,6 +131,7 @@ export function TodosProvider({ children }: PropsWithChildren) {
       isCreating,
       pending,
       createTodo,
+      updateTodo,
       updateTodoStatus,
       deleteTodo,
       mutate,

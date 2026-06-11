@@ -1,7 +1,7 @@
 /**
  * External dependencies.
  */
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   Avatar,
   Button,
@@ -44,11 +44,14 @@ const PriorityDot = ({ priority }: { priority: TodoPriority }) => (
   />
 );
 
-export function CreateTodoModal({ open, onClose }: CreateTodoModalProps) {
+export function CreateTodoModal({ open, onClose, todo }: CreateTodoModalProps) {
   const userId = useUser((state) => state.state.userId);
   const createTodo = useTodos((c) => c.actions.createTodo);
+  const updateTodo = useTodos((c) => c.actions.updateTodo);
   const isCreating = useTodos((c) => c.state.isCreating);
   const [assigneeSearch, setAssigneeSearch] = useState("");
+
+  const isEditMode = Boolean(todo);
 
   const emptyValues: CreateTodoValues = useMemo(
     () => ({
@@ -63,14 +66,34 @@ export function CreateTodoModal({ open, onClose }: CreateTodoModalProps) {
     [userId],
   );
 
+  const initialValues: CreateTodoValues = useMemo(() => {
+    if (!todo) return emptyValues;
+    return {
+      title: todo.custom_title ?? "",
+      description: todo.description ?? "",
+      status: todo.status,
+      assignee: todo.allocated_to ?? "",
+      startAt: todo.custom_from_time ?? "",
+      endAt: todo.custom_to_time ?? "",
+      priority: todo.priority,
+    };
+  }, [todo, emptyValues]);
+
   const form = useForm({
-    defaultValues: emptyValues,
+    defaultValues: initialValues,
     validators: { onSubmit: createTodoSchema },
     onSubmit: async ({ value }) => {
-      const doc = await createTodo(value);
+      const doc =
+        isEditMode && todo
+          ? await updateTodo(todo.name, value)
+          : await createTodo(value);
       if (doc) closeModal();
     },
   });
+
+  useEffect(() => {
+    if (open) form.reset(initialValues);
+  }, [open, initialValues]);
 
   const closeModal = useCallback(() => {
     onClose();
@@ -111,12 +134,12 @@ export function CreateTodoModal({ open, onClose }: CreateTodoModalProps) {
     <Dialog
       open={open}
       onOpenChange={handleOpenChange}
-      options={{ title: "Add to-do", size: "lg" }}
+      options={{ title: isEditMode ? "Edit to-do" : "Add to-do", size: "lg" }}
       actions={
         <Button
           className="w-full h-7"
           variant="solid"
-          label="Create"
+          label={isEditMode ? "Save" : "Create"}
           loading={isCreating}
           disabled={isCreating}
           onClick={() => form.handleSubmit()}

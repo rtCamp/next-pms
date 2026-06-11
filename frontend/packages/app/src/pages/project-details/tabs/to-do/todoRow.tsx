@@ -31,9 +31,10 @@ function formatDateTime(value: string | null | undefined) {
 
 type TodoRowProps = {
   todo: Todo;
+  onEdit: (todo: Todo) => void;
 };
 
-export function TodoRow({ todo }: TodoRowProps) {
+export function TodoRow({ todo, onEdit }: TodoRowProps) {
   const updateTodoStatus = useTodos((c) => c.actions.updateTodoStatus);
   const deleteTodo = useTodos((c) => c.actions.deleteTodo);
 
@@ -97,6 +98,11 @@ export function TodoRow({ todo }: TodoRowProps) {
         placement="right"
         button={{ variant: "ghost", icon: DotHorizontal }}
         options={[
+          {
+            label: "Edit",
+            key: "edit",
+            onClick: () => onEdit(todo),
+          },
           {
             label: "Delete",
             key: "delete",
