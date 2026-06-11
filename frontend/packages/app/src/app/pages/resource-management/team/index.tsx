@@ -110,6 +110,10 @@ const ResourceTeamViewComponent = ({
             filters?.skillSearch?.length && filters?.skillSearch?.length > 0
               ? JSON.stringify(filters.skillSearch)
               : "[]",
+          tags:
+            filters?.tags?.length && filters?.tags?.length > 0
+              ? JSON.stringify(filters.tags)
+              : "[]",
           need_hours_summary: true,
         };
         return newReqBody;

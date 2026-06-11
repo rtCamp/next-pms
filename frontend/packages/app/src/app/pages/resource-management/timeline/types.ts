@@ -94,6 +94,7 @@ interface ResourceTeamAPIBodyProps {
   designation?: string;
   is_billable?: string;
   skills?: string;
+  tags?: string;
   need_hours_summary?: boolean;
 }
 
