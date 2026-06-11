@@ -1,7 +1,7 @@
 /**
  * External dependencies.
  */
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { format, parseISO } from "date-fns";
 import { useFrappeGetCall } from "frappe-react-sdk";
 
@@ -35,12 +35,22 @@ interface TeamFeedbackAPIResult {
 
 export function useTeamFeedbackList() {
   const projectId = useProjectDetail((s) => s.projectId);
+  const [page, setPage] = useState(1);
 
   const { data, isLoading, error } = useFrappeGetCall<{
     message: TeamFeedbackAPIResult;
   }>("next_pms.next_projects.api.feedback.get_team_feedback_list", {
     project: projectId,
+    page,
+    limit: 20,
   });
+
+  const hasMore = data?.message.has_more ?? false;
+  const loadMore = () => {
+    if (hasMore) {
+      setPage((prev) => prev + 1);
+    }
+  };
 
   const rows = useMemo((): TeamFeedbackRow[] => {
     return (data?.message?.data ?? []).map((row) => ({
@@ -53,5 +63,5 @@ export function useTeamFeedbackList() {
     }));
   }, [data]);
 
-  return { rows, isLoading, error };
+  return { rows, isLoading, error, hasMore, loadMore };
 }
