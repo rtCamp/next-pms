@@ -1,7 +1,13 @@
 /**
  * Internal dependencies.
  */
-import type { BreakdownMetric, MonthEntry, ResponseItem } from "./types";
+import type {
+  BreakdownMetric,
+  MonthEntry,
+  ResponseItem,
+  TeamFeedbackDetail,
+  TeamFeedbackRow,
+} from "./types";
 
 export const MOCK_MONTHS: MonthEntry[] = [
   { key: "2026-01", month: "Jan", year: 2026, score: 100 },
@@ -26,7 +32,7 @@ export const MOCK_MONTHS: MonthEntry[] = [
   { key: "2027-08", month: "Aug", year: 2027, score: 34 },
   { key: "2027-09", month: "Sep", year: 2027, score: 73 },
   { key: "2027-10", month: "Oct", year: 2027, score: 27 },
-  { key: "2027-11", month: "Nov", year: 2027, score: null },
+  { key: "2027-11", month: "Nov", year: 2027, score: 18 },
   { key: "2027-12", month: "Dec", year: 2027, score: 89 },
 ];
 
@@ -154,4 +160,200 @@ export const MOCK_RESPONSES: Record<string, ResponseItem[]> = {
         "We have some concerns about the stability of the latest release and are awaiting a patch before full rollout.",
     },
   ],
+};
+
+export const MOCK_TEAM_FEEDBACK: TeamFeedbackRow[] = [
+  // Oct 1 – Dec 31
+  {
+    id: "oct-anita",
+    from: "Oct 1",
+    to: "Dec 31",
+    member: { name: "Anita Kumar" },
+    customer: { name: "Amy Charlton" },
+    avgRating: 2.8,
+  },
+  {
+    id: "oct-mark",
+    from: "Oct 1",
+    to: "Dec 31",
+    member: { name: "Mark Thompson" },
+    customer: { name: "Amy Charlton" },
+    avgRating: 5.0,
+  },
+  {
+    id: "oct-priya",
+    from: "Oct 1",
+    to: "Dec 31",
+    member: { name: "Priya Singh" },
+    customer: { name: "Amy Charlton" },
+    avgRating: 5.0,
+  },
+  {
+    id: "oct-lucas",
+    from: "Oct 1",
+    to: "Dec 31",
+    member: { name: "Lucas Wong" },
+    customer: { name: "Amy Charlton" },
+    avgRating: 3.8,
+  },
+  {
+    id: "oct-nina",
+    from: "Oct 1",
+    to: "Dec 31",
+    member: { name: "Nina Patel" },
+    customer: { name: "Amy Charlton" },
+    avgRating: 3.0,
+  },
+  {
+    id: "oct-omar",
+    from: "Oct 1",
+    to: "Dec 31",
+    member: { name: "Omar Khan" },
+    customer: { name: "Amy Charlton" },
+    avgRating: 2.0,
+  },
+  // Jul 1 – Sep 30
+  {
+    id: "jul-anita",
+    from: "Jul 1",
+    to: "Sep 30",
+    member: { name: "Anita Kumar" },
+    customer: { name: "Amy Charlton" },
+    avgRating: 4.0,
+  },
+  {
+    id: "jul-mark",
+    from: "Jul 1",
+    to: "Sep 30",
+    member: { name: "Mark Thompson" },
+    customer: { name: "Amy Charlton" },
+    avgRating: 5.0,
+  },
+  {
+    id: "jul-priya",
+    from: "Jul 1",
+    to: "Sep 30",
+    member: { name: "Priya Singh" },
+    customer: { name: "Amy Charlton" },
+    avgRating: 4.0,
+  },
+  {
+    id: "jul-lucas",
+    from: "Jul 1",
+    to: "Sep 30",
+    member: { name: "Lucas Wong" },
+    customer: { name: "Amy Charlton" },
+    avgRating: 3.0,
+  },
+  {
+    id: "jul-nina",
+    from: "Jul 1",
+    to: "Sep 30",
+    member: { name: "Nina Patel" },
+    customer: { name: "Amy Charlton" },
+    avgRating: 5.0,
+  },
+  {
+    id: "jul-omar",
+    from: "Jul 1",
+    to: "Sep 30",
+    member: { name: "Omar Khan" },
+    customer: { name: "Amy Charlton" },
+    avgRating: 4.0,
+  },
+  // Apr 1 – Jun 30
+  {
+    id: "apr-anita",
+    from: "Apr 1",
+    to: "Jun 30",
+    member: { name: "Anita Kumar" },
+    customer: { name: "Amy Charlton" },
+    avgRating: 4.0,
+  },
+  {
+    id: "apr-mark",
+    from: "Apr 1",
+    to: "Jun 30",
+    member: { name: "Mark Thompson" },
+    customer: { name: "Amy Charlton" },
+    avgRating: 3.0,
+  },
+  {
+    id: "apr-priya",
+    from: "Apr 1",
+    to: "Jun 30",
+    member: { name: "Priya Singh" },
+    customer: { name: "Amy Charlton" },
+    avgRating: 4.0,
+  },
+  {
+    id: "apr-lucas",
+    from: "Apr 1",
+    to: "Jun 30",
+    member: { name: "Lucas Wong" },
+    customer: { name: "Amy Charlton" },
+    avgRating: 3.0,
+  },
+  {
+    id: "apr-nina",
+    from: "Apr 1",
+    to: "Jun 30",
+    member: { name: "Nina Patel" },
+    customer: { name: "Amy Charlton" },
+    avgRating: 2.5,
+  },
+  {
+    id: "apr-omar",
+    from: "Apr 1",
+    to: "Jun 30",
+    member: { name: "Omar Khan" },
+    customer: { name: "Amy Charlton" },
+    avgRating: 5.0,
+  },
+];
+
+export const MOCK_TEAM_FEEDBACK_DETAILS: Record<string, TeamFeedbackDetail> = {
+  "oct-anita": {
+    ratingCategories: [
+      { label: "Technical problem-solving", rating: 4 },
+      { label: "Responsiveness and availability", rating: 4 },
+      { label: "Adherence to deadlines", rating: 4 },
+      { label: "Ownership and initiative", rating: 4 },
+    ],
+    areasOfImprovement:
+      "Overall, we're happy with the quality of work delivered, especially the design execution. However, there were a few instances where timelines slipped without prior communication. More proactive updates - especially when dependencies or risks arise - would help us plan better on our end.",
+    comments: [
+      {
+        author: { name: "Eric Gallagher" },
+        timestamp: "36m ago",
+        text: "This is fair feedback. The timeline slips were mostly due to late inputs, but we didn't communicate that early enough. We should flag risks sooner, even if we're still working through dependencies.",
+      },
+      {
+        author: { name: "Anita Kumar" },
+        timestamp: "36m ago",
+        text: 'Agree. On the documentation point, we can add a short "design rationale" section with each major delivery. It shouldn\'t add much overhead but will help the client during reviews.',
+      },
+      {
+        author: { name: "Valien Eric" },
+        timestamp: "2d ago",
+        text: "This is fair feedback. The timeline slips were mostly due to late inputs, but we didn't communicate that early enough. We should flag risks sooner, even if we're still working through dependencies.",
+      },
+      {
+        author: { name: "Nita William" },
+        timestamp: "3d ago",
+        text: 'Agree. On the documentation point, we can add a short "design rationale" section with each major delivery. It shouldn\'t add much overhead but will help the client during reviews.',
+      },
+    ],
+  },
+  "oct-mark": {
+    ratingCategories: [
+      { label: "Technical problem-solving", rating: 5 },
+      { label: "Responsiveness and availability", rating: 5 },
+      { label: "Adherence to deadlines", rating: 5 },
+      { label: "Ownership and initiative", rating: 5 },
+    ],
+    areasOfImprovement:
+      "Excellent work across the board. Mark consistently delivered on time and exceeded expectations on both technical quality and communication.",
+    comments: [],
+  },
 };

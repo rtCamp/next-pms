@@ -31,3 +31,20 @@ export interface TeamFeedbackRow {
   customer: TeamFeedbackPerson;
   avgRating: number;
 }
+
+export interface FeedbackRatingCategory {
+  label: string;
+  rating: number;
+}
+
+export interface FeedbackComment {
+  author: TeamFeedbackPerson;
+  timestamp: string;
+  text: string;
+}
+
+export interface TeamFeedbackDetail {
+  ratingCategories: FeedbackRatingCategory[];
+  areasOfImprovement: string;
+  comments: FeedbackComment[];
+}
