@@ -8,6 +8,8 @@ import { useState } from "react";
  */
 import { ClientFeedbackView } from "./clientFeedbackView";
 import { FeedbackToolbar } from "./feedbackToolbar";
+import { MOCK_TEAM_FEEDBACK } from "./mock-data";
+import { TeamFeedbackView } from "./teamFeedbackView";
 import type { FeedbackType } from "./types";
 
 export function Feedback() {
@@ -26,6 +28,10 @@ export function Feedback() {
           selectedMonth={selectedMonth}
           onSelectMonth={setSelectedMonth}
         />
+      )}
+
+      {feedbackType === "team" && (
+        <TeamFeedbackView rows={MOCK_TEAM_FEEDBACK} />
       )}
     </div>
   );

@@ -5,25 +5,7 @@ import {
   useState,
   type PointerEventHandler,
 } from "react";
-
-/**
- * Clamps a value between a min and max ensuring the min is not greater than the max.
- */
-function clamp(value: number, min: number, max: number) {
-  if (max < min) {
-    return min;
-  }
-
-  return Math.min(Math.max(value, min), max);
-}
-
-/**
- * Snaps a raw value to the nearest multiple of the unit from the origin ensuring the unit is positive and non-zero.
- */
-function snapValue(rawValue: number, unit: number | undefined, origin = 0) {
-  const safeUnit = unit && unit > 0 ? unit : 1;
-  return origin + Math.round((rawValue - origin) / safeUnit) * safeUnit;
-}
+import { clamp, snapValue } from "../utils";
 
 type ActiveInteraction = {
   edge: "start" | "end";

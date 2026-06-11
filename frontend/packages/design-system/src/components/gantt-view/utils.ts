@@ -468,3 +468,26 @@ export const isColumnOccupied = (
       allocation.barOffset + allocation.width > colStart,
   );
 };
+
+/**
+ * Clamps a value between a min and max ensuring the min is not greater than the max.
+ */
+export function clamp(value: number, min: number, max: number) {
+  if (max < min) {
+    return min;
+  }
+
+  return Math.min(Math.max(value, min), max);
+}
+
+/**
+ * Snaps a raw value to the nearest multiple of the unit from the origin ensuring the unit is positive and non-zero.
+ */
+export function snapValue(
+  rawValue: number,
+  unit: number | undefined,
+  origin = 0,
+) {
+  const safeUnit = unit && unit > 0 ? unit : 1;
+  return origin + Math.round((rawValue - origin) / safeUnit) * safeUnit;
+}

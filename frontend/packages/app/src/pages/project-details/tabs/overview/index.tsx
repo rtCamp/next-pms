@@ -220,7 +220,9 @@ function OverviewForm() {
         submitting={submitting}
       />
       <Marketing form={form} isEditing={isEditing} submitting={submitting} />
-      <RepositoryConnections />
+      {window.frappe?.boot?.has_repository_connections && (
+        <RepositoryConnections />
+      )}
     </div>
   );
 }

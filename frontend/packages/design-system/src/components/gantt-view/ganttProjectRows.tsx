@@ -33,7 +33,6 @@ export const GanttProjectRows: React.FC<GanttProjectRowsProps> = ({
     daysPerWeek,
     columnWidth,
     headerWidth,
-    columnCount,
     hasRoleAccess,
     onAddAllocation,
     onEditAllocation,
@@ -47,7 +46,6 @@ export const GanttProjectRows: React.FC<GanttProjectRowsProps> = ({
     daysPerWeek: s.daysPerWeek,
     columnWidth: s.columnWidth,
     headerWidth: s.headerWidth,
-    columnCount: s.columnCount,
     hasRoleAccess: s.hasRoleAccess,
     onAddAllocation: s.onAddAllocation,
     onEditAllocation: s.onEditAllocation,
@@ -68,7 +66,7 @@ export const GanttProjectRows: React.FC<GanttProjectRowsProps> = ({
   return (
     <React.Fragment>
       <tr
-        className="relative last:border-b border-outline-gray-1 animate-fade-in"
+        className="relative touch-pan-y last:border-b border-outline-gray-1 animate-fade-in"
         onPointerDown={(e) => overlayRef.current?.handleRowPointerDown(e)}
         onPointerMove={(e) => overlayRef.current?.handleRowPointerMove(e)}
         onPointerLeave={() => overlayRef.current?.clearHoveredSlot()}
@@ -110,10 +108,6 @@ export const GanttProjectRows: React.FC<GanttProjectRowsProps> = ({
           <RowAllocationOverlay
             ref={overlayRef}
             enabled={canManageAllocations}
-            rowKey={projectSummaryRowKey}
-            headerWidth={headerWidth}
-            columnWidth={columnWidth}
-            columnCount={columnCount}
             allocations={project.projectSummaryBars}
             createDraftBar={(left) => ({
               rowKey: projectSummaryRowKey,

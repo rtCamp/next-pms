@@ -21,6 +21,7 @@ export function NoteCard({ note }: NoteCardProps) {
   const excerpt = stripTags(note.description);
   const relativeDate = formatRelativeTimeShort(note.creation, new Date(), true);
   const authorHref = `/desk/user/${encodeURIComponent(note.owner)}`;
+  const authorName = note.owner_full_name || note.owner;
 
   const openDetail = () =>
     setSearchParams((prev) => {
@@ -61,12 +62,12 @@ export function NoteCard({ note }: NoteCardProps) {
         >
           <Avatar
             size="xs"
-            label={note.owner_full_name}
+            label={authorName}
             image={note.owner_image || undefined}
           />
         </a>
         <span className="flex-1 truncate leading-tight text-sm text-ink-gray-5">
-          {note.owner_full_name}
+          {authorName}
         </span>
         <span className="shrink-0 text-base text-ink-gray-5">
           {relativeDate}
