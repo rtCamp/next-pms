@@ -3,8 +3,6 @@
  */
 import { useRemoteLookup, type LookupOption } from "@/hooks/useRemoteLookup";
 
-const DOCTYPE = "Project Status Update Template";
-
 type NoteTemplateItem = {
   name: string;
   template_name: string;
@@ -26,6 +24,8 @@ interface UseNoteTemplateLookupOptions {
   pageSize?: number;
   /** Revalidates the lookup when the window regains focus. */
   revalidateOnFocus?: boolean;
+  /** Preserves the current list of templates while loading new data. */
+  keepPreviousData?: boolean;
 }
 
 /**
@@ -36,32 +36,46 @@ export const useNoteTemplateLookup = ({
   query,
   pageSize = 20,
   revalidateOnFocus,
+  keepPreviousData,
 }: UseNoteTemplateLookupOptions) => {
-  return useRemoteLookup<NoteTemplateItem[], NoteTemplateItem, NoteTemplateOption>(
-    {
-      shouldFetch,
-      query,
-      pageSize,
-      revalidateOnFocus,
-      params: ({ query: searchQuery, pageSize }) => ({
-        doctype: DOCTYPE,
-        fields: ["name", "template_name", "title", "description"],
-        limit_page_length: pageSize,
-        or_filters: searchQuery
-          ? [
-              [DOCTYPE, "template_name", "like", `%${searchQuery}%`],
-              [DOCTYPE, "title", "like", `%${searchQuery}%`],
-            ]
-          : undefined,
-        start: 0,
-      }),
-      getItems: (message) => message ?? [],
-      mapOption: (template) => ({
-        label: template.template_name,
-        value: template.name,
-        title: template.title,
-        description: template.description,
-      }),
-    },
-  );
+  return useRemoteLookup<
+    NoteTemplateItem[],
+    NoteTemplateItem,
+    NoteTemplateOption
+  >({
+    shouldFetch,
+    query,
+    pageSize,
+    revalidateOnFocus,
+    keepPreviousData,
+    params: ({ query: searchQuery, pageSize }) => ({
+      doctype: "Project Status Update Template",
+      fields: ["name", "template_name", "title", "description"],
+      limit_page_length: pageSize,
+      or_filters: searchQuery
+        ? [
+            [
+              "Project Status Update Template",
+              "template_name",
+              "like",
+              `%${searchQuery}%`,
+            ],
+            [
+              "Project Status Update Template",
+              "title",
+              "like",
+              `%${searchQuery}%`,
+            ],
+          ]
+        : undefined,
+      start: 0,
+    }),
+    getItems: (message) => message ?? [],
+    mapOption: (template) => ({
+      label: template.template_name,
+      value: template.name,
+      title: template.title,
+      description: template.description,
+    }),
+  });
 };

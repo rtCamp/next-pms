@@ -2,7 +2,7 @@
  * External dependencies.
  */
 import { useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { Dropdown, Select, TextInput } from "@rtcamp/frappe-ui-react";
 import { AddSm, SmallDown } from "@rtcamp/frappe-ui-react/icons";
 
@@ -13,6 +13,7 @@ import { ROUTES } from "@/lib/constant";
 import { CREATE_OPTIONS } from "./constants";
 import { TemplateDialog } from "./templateDialog";
 import type { NoteAuthorOption } from "./types";
+import { useProjectDetail } from "../../context";
 
 type NotesSubHeaderProps = {
   titleInput: string;
@@ -34,7 +35,7 @@ export function NotesSubHeader({
   onAuthorChange,
 }: NotesSubHeaderProps) {
   const navigate = useNavigate();
-  const { projectId = "" } = useParams<{ projectId: string }>();
+  const projectId = useProjectDetail((s) => s.projectId);
   const [isTemplateDialogOpen, setIsTemplateDialogOpen] = useState(false);
 
   return (
@@ -65,11 +66,6 @@ export function NotesSubHeader({
           ]}
         />
       </div>
-      <TemplateDialog
-        open={isTemplateDialogOpen}
-        onOpenChange={setIsTemplateDialogOpen}
-        projectId={projectId}
-      />
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div className="flex flex-1 gap-2">
           <TextInput
@@ -94,6 +90,11 @@ export function NotesSubHeader({
           options={authorOptions}
         />
       </div>
+      <TemplateDialog
+        open={isTemplateDialogOpen}
+        onOpenChange={setIsTemplateDialogOpen}
+        projectId={projectId}
+      />
     </div>
   );
 }

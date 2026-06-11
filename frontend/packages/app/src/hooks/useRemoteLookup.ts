@@ -38,6 +38,8 @@ interface UseRemoteLookupOptions<
   method?: string;
   /** Revalidates the lookup when the window regains focus. */
   revalidateOnFocus?: boolean;
+  /** Preserves the previous list of options while loading new data. */
+  keepPreviousData?: boolean;
   /** Builds backend params from the debounced query and page size. */
   params: (args: {
     query: string;
@@ -61,6 +63,7 @@ export const useRemoteLookup = <TMessage, TItem, TOption extends LookupOption>({
   pageSize = 20,
   method = "frappe.client.get_list",
   revalidateOnFocus = false,
+  keepPreviousData = false,
   params,
   getItems,
   mapOption,
@@ -73,6 +76,7 @@ export const useRemoteLookup = <TMessage, TItem, TOption extends LookupOption>({
     shouldFetch ? undefined : null,
     {
       revalidateOnFocus,
+      keepPreviousData,
     },
   );
 

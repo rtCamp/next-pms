@@ -31,21 +31,19 @@ import { useNotes } from "../context";
 
 function NoteEditor() {
   const navigate = useNavigate();
-  const { projectId: routeProjectId = "", noteId } = useParams<{
-    projectId: string;
+  const { noteId } = useParams<{
     noteId?: string;
   }>();
   const mode: "edit" | "new" = noteId ? "edit" : "new";
   const [searchParams] = useSearchParams();
-  const templateName =
-    mode === "new" ? searchParams.get(TEMPLATE_PARAM) : null;
+  const templateName = mode === "new" ? searchParams.get(TEMPLATE_PARAM) : null;
   const userName = useUser((s) => s.state.userName);
   const userImage = useUser((s) => s.state.image);
   const projectId = useProjectDetail((s) => s.projectId);
   const refresh = useNotes((s) => s.actions.refresh);
   const toast = useToasts();
   const [isFormInitialized, setIsFormInitialized] = useState(false);
-  const didInitForm = useRef(false);
+  const titleRef = useRef<HTMLInputElement>(null);
 
   const { call: createNote, loading: isCreating } = useFrappePostCall(
     "next_pms.timesheet.api.project_status_update.create_project_status_update",
@@ -104,7 +102,7 @@ function NoteEditor() {
 
         toast.success("Note saved");
         await refresh();
-        navigate(`${ROUTES.project}/${routeProjectId}?tab=notes`);
+        navigate(`${ROUTES.project}/${projectId}?tab=notes`);
       } catch (err) {
         const error = parseFrappeErrorMsg(err as FrappeError);
         toast.error(error);
@@ -113,23 +111,23 @@ function NoteEditor() {
   });
 
   useEffect(() => {
-    if (didInitForm.current) return;
-    // Initialise the form exactly once, after the data it seeds from has
-    // settled: the note (edit), the template (new + template), or immediately
-    // (new, no template). A failed template falls back to a blank note rather
-    // than hanging on the spinner.
     const ready =
       (mode === "edit" && !!noteData?.message) ||
       (mode === "new" &&
         (!templateName || !!templateData?.message || !!templateError));
     if (ready) {
-      didInitForm.current = true;
       setIsFormInitialized(true);
     }
   }, [noteData, templateData, templateError, templateName, mode]);
 
   const isInputDisabled =
     isCreating || isUpdating || isNoteLoading || isTemplateLoading;
+
+  useEffect(() => {
+    if (isFormInitialized && titleRef.current) {
+      titleRef.current.focus();
+    }
+  }, [isFormInitialized]);
 
   return (
     <div className="flex justify-center">
@@ -170,6 +168,7 @@ function NoteEditor() {
                 return (
                   <>
                     <input
+                      ref={titleRef}
                       value={field.state.value}
                       onChange={(e) => field.handleChange(e.target.value)}
                       disabled={isInputDisabled}
