@@ -28,6 +28,7 @@ import { AddMemberModal } from "./components/addMemberModal";
 import { BudgetBurnBar } from "./components/budgetBurnBar";
 import { CustomerRow } from "./components/customerRow";
 import { ExpandableList } from "./components/expandableList";
+import { MemberRoleRow } from "./components/memberRoleRow";
 import { MemberRow } from "./components/memberRow";
 import { ProgressHoursSection } from "./progressHoursSection";
 import { Section } from "./section";
@@ -146,6 +147,14 @@ function AboutThisProjectContent({ className }: { className: string }) {
   const engineeringManager = members.find(
     (m) => m.projectRole === "Engineering Manager",
   );
+
+  const memberRoleByUserId = useMemo(() => {
+    const map: Record<string, string> = {};
+    for (const m of members) {
+      if (m.projectRole) map[m.email] = m.projectRole;
+    }
+    return map;
+  }, [members]);
 
   const customers = useMemo<AboutCustomer[]>(
     () =>
@@ -312,20 +321,16 @@ function AboutThisProjectContent({ className }: { className: string }) {
           {(projectManager || engineeringManager) && (
             <div className="grid grid-cols-[auto_1fr] items-center gap-x-3 gap-y-4.5 text-base font-light text-ink-gray-5 mb-4">
               {projectManager && (
-                <>
-                  <span>Project Manager</span>
-                  <span className="truncate font-medium text-ink-gray-7">
-                    {projectManager.name}
-                  </span>
-                </>
+                <MemberRoleRow
+                  label="Project Manager"
+                  member={projectManager}
+                />
               )}
               {engineeringManager && (
-                <>
-                  <span>Lead Engineer</span>
-                  <span className="truncate font-medium text-ink-gray-7">
-                    {engineeringManager.name}
-                  </span>
-                </>
+                <MemberRoleRow
+                  label="Lead Engineer"
+                  member={engineeringManager}
+                />
               )}
             </div>
           )}
@@ -368,6 +373,7 @@ function AboutThisProjectContent({ className }: { className: string }) {
         open={addMemberOpen}
         onOpenChange={setAddMemberOpen}
         currentMemberIds={currentMemberUserIds}
+        memberRoleByUserId={memberRoleByUserId}
         onAdd={handleAddMember}
         onRemove={handleRemoveMember}
       />

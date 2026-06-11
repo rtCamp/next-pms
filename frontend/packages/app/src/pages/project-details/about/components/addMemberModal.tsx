@@ -3,7 +3,13 @@
  */
 import { Fragment, useCallback, useEffect, useState } from "react";
 import { Spinner } from "@next-pms/design-system/components";
-import { Avatar, Button, Dialog, TextInput } from "@rtcamp/frappe-ui-react";
+import {
+  Avatar,
+  Badge,
+  Button,
+  Dialog,
+  TextInput,
+} from "@rtcamp/frappe-ui-react";
 import { Search } from "@rtcamp/frappe-ui-react/icons";
 
 /**
@@ -15,14 +21,21 @@ export type AddMemberModalProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   currentMemberIds: string[];
+  memberRoleByUserId?: Record<string, string>;
   onAdd?: (userId: string) => void;
   onRemove?: (userId: string) => void;
+};
+
+const ROLE_TAG_LABEL: Record<string, string> = {
+  "Project Manager": "Project Manager",
+  "Engineering Manager": "Lead Engineer",
 };
 
 export function AddMemberModal({
   open,
   onOpenChange,
   currentMemberIds,
+  memberRoleByUserId,
   onAdd,
   onRemove,
 }: AddMemberModalProps) {
@@ -82,6 +95,10 @@ export function AddMemberModal({
                 const memberId = employee.userId ?? "";
                 const isMember =
                   !!memberId && currentMemberIds.includes(memberId);
+                const role = memberId
+                  ? memberRoleByUserId?.[memberId]
+                  : undefined;
+                const roleLabel = role ? ROLE_TAG_LABEL[role] : undefined;
                 return (
                   <Fragment key={employee.value}>
                     {index > 0 && (
@@ -107,6 +124,14 @@ export function AddMemberModal({
                           </span>
                         </div>
                       </div>
+                      {roleLabel && (
+                        <Badge
+                          size="sm"
+                          variant="subtle"
+                          theme="gray"
+                          label={roleLabel}
+                        />
+                      )}
                       {isMember ? (
                         <Button
                           variant="subtle"
