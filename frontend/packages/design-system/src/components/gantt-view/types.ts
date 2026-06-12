@@ -111,6 +111,8 @@ export interface AllocationCallbackData {
     hours?: number | null;
     cancelled?: number | null;
   }[];
+  /** Called after the allocation is successfully saved. */
+  onSuccess?: () => void;
 }
 
 export interface GanttGridHandle {

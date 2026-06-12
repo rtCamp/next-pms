@@ -32,21 +32,14 @@ export const GanttMemberRow: React.FC<GanttMemberRowProps> = ({
   canManageAllocations,
   canEditAllocations,
 }) => {
-  const {
-    weeks,
-    daysPerWeek,
-    columnWidth,
-    headerWidth,
-    columnCount,
-    onAddAllocation,
-  } = useGanttStore((s) => ({
-    weeks: s.weeks,
-    daysPerWeek: s.daysPerWeek,
-    columnWidth: s.columnWidth,
-    headerWidth: s.headerWidth,
-    columnCount: s.columnCount,
-    onAddAllocation: s.onAddAllocation,
-  }));
+  const { weeks, daysPerWeek, columnWidth, headerWidth, onAddAllocation } =
+    useGanttStore((s) => ({
+      weeks: s.weeks,
+      daysPerWeek: s.daysPerWeek,
+      columnWidth: s.columnWidth,
+      headerWidth: s.headerWidth,
+      onAddAllocation: s.onAddAllocation,
+    }));
 
   const overlayRef = useRef<RowAllocationOverlayHandle | null>(null);
   const memberRowKey = `project-member-${project.id ?? project.name}-${member.id ?? member.name}`;
@@ -54,7 +47,9 @@ export const GanttMemberRow: React.FC<GanttMemberRowProps> = ({
 
   return (
     <tr
-      className={cn("relative", { "pointer-events-none": !isExpanded })}
+      className={cn("relative touch-pan-y", {
+        "pointer-events-none": !isExpanded,
+      })}
       aria-hidden={!isExpanded}
       onPointerDown={(e) => overlayRef.current?.handleRowPointerDown(e)}
       onPointerMove={(e) => overlayRef.current?.handleRowPointerMove(e)}
@@ -100,10 +95,6 @@ export const GanttMemberRow: React.FC<GanttMemberRowProps> = ({
         <RowAllocationOverlay
           ref={overlayRef}
           enabled={canManageAllocations && isExpanded}
-          rowKey={memberRowKey}
-          headerWidth={headerWidth}
-          columnWidth={columnWidth}
-          columnCount={columnCount}
           allocations={member.allocations ?? []}
           createDraftBar={(left) => ({
             rowKey: memberRowKey,

@@ -27,6 +27,8 @@ export function useAllocationModal(refresh: RefreshAllocations) {
   const [editScheduleInitialValues, setEditScheduleInitialValues] = useState<
     EditScheduleInitialValues | undefined
   >(undefined);
+  const [onSuccess, setOnSuccess] =
+    useState<AllocationCallbackData["onSuccess"]>(undefined);
 
   const toast = useToasts();
   const { call: deleteAllocation } = useFrappePostCall(
@@ -35,6 +37,7 @@ export function useAllocationModal(refresh: RefreshAllocations) {
 
   const openAddAllocationDialog = useCallback(
     (data: AllocationCallbackData) => {
+      setOnSuccess(() => data.onSuccess);
       setVariant("add");
       setAddAllocationInitialValues({
         ...(data.employeeId ? { employeeId: data.employeeId } : {}),
@@ -57,6 +60,7 @@ export function useAllocationModal(refresh: RefreshAllocations) {
 
   const openEditAllocationDialog = useCallback(
     (data: AllocationCallbackData) => {
+      setOnSuccess(undefined);
       setVariant("edit");
       setAddAllocationInitialValues({
         allocationName: data.allocationId,
@@ -111,6 +115,7 @@ export function useAllocationModal(refresh: RefreshAllocations) {
     if (!open) {
       setAddAllocationInitialValues(undefined);
       setVariant("add");
+      setOnSuccess(undefined);
     }
   }, []);
 
@@ -120,8 +125,10 @@ export function useAllocationModal(refresh: RefreshAllocations) {
       setIsAddAllocationOpen(false);
       setAddAllocationInitialValues(undefined);
       setVariant("add");
+      onSuccess?.();
+      setOnSuccess(undefined);
     },
-    [refresh],
+    [onSuccess, refresh],
   );
 
   const handleEditScheduleSuccess = useCallback(

@@ -1,6 +1,7 @@
 /**
  * Internal dependencies.
  */
+import { isCompleteFilterCondition } from "@/lib/utils";
 import type { ProjectListFilters } from "./types";
 
 export const buildListFrappeFilters = (filters: ProjectListFilters) => {
@@ -13,6 +14,13 @@ export const buildListFrappeFilters = (filters: ProjectListFilters) => {
   }
   if (filters.status) {
     out.push(["status", "=", filters.status]);
+  }
+  if (filters.advanced) {
+    filters.advanced.forEach((filter) => {
+      if (isCompleteFilterCondition(filter)) {
+        out.push([filter.field, filter.operator, filter.value]);
+      }
+    });
   }
   return out;
 };
