@@ -8,13 +8,8 @@ import { PersonCell } from "./personCell";
 import { useTeamFeedbackList } from "../useTeamFeedbackList";
 
 export function TeamFeedbackView() {
-  const {
-    rows: feedbackRows,
-    isLoading,
-    error,
-    hasMore,
-    loadMore,
-  } = useTeamFeedbackList();
+  const { feedbackList, isLoading, error, hasMore, loadMore } =
+    useTeamFeedbackList();
 
   return (
     <>
@@ -39,7 +34,7 @@ export function TeamFeedbackView() {
                 Failed to load feedback.
               </span>
             </div>
-          ) : feedbackRows.length === 0 ? (
+          ) : feedbackList.length === 0 && !isLoading ? (
             <div className="flex items-center justify-center py-4">
               <span className="text-sm text-ink-gray-5">
                 No feedback available.
@@ -51,10 +46,10 @@ export function TeamFeedbackView() {
             isLoading={isLoading}
             hasMore={hasMore}
             verticalLodMore={loadMore}
-            count={10}
+            count={3}
           >
             {/* Data rows */}
-            {feedbackRows.map((row) => (
+            {feedbackList.map((row) => (
               <div
                 key={row.id}
                 className="flex items-center border-b border-outline-gray-1 px-1 py-2 cursor-pointer hover:bg-surface-gray-1"

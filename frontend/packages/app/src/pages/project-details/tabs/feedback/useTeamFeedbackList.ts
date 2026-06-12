@@ -1,7 +1,7 @@
 /**
  * External dependencies.
  */
-import { useMemo, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { format, parseISO } from "date-fns";
 import { useFrappeGetCall } from "frappe-react-sdk";
 
@@ -33,27 +33,29 @@ interface TeamFeedbackAPIResult {
   has_more: boolean;
 }
 
+const FEEDBACK_PAGE_SIZE = 20;
+
 export function useTeamFeedbackList() {
   const projectId = useProjectDetail((s) => s.projectId);
-  const [page, setPage] = useState(1);
+  const [page, setPage] = useState(0);
+  const [feedbackList, setFeedbackList] = useState<TeamFeedbackRow[]>([]);
+
+  // Track the last page offset we already appended into feedbackList
+  const appendedPageRef = useRef<number | null>(null);
 
   const { data, isLoading, error } = useFrappeGetCall<{
     message: TeamFeedbackAPIResult;
   }>("next_pms.next_projects.api.feedback.get_team_feedback_list", {
     project: projectId,
-    page,
-    limit: 20,
+    start: page,
+    limit: FEEDBACK_PAGE_SIZE,
   });
 
-  const hasMore = data?.message.has_more ?? false;
-  const loadMore = () => {
-    if (hasMore) {
-      setPage((prev) => prev + 1);
-    }
-  };
+  useEffect(() => {
+    // only append if we have data AND haven't already appended this page
+    if (!data?.message?.data || appendedPageRef.current === page) return;
 
-  const rows = useMemo((): TeamFeedbackRow[] => {
-    return (data?.message?.data ?? []).map((row) => ({
+    const newRows: TeamFeedbackRow[] = data.message.data.map((row) => ({
       id: row.name,
       from: format(parseISO(row.period_from), "MMM d"),
       to: format(parseISO(row.period_to), "MMM d"),
@@ -61,7 +63,19 @@ export function useTeamFeedbackList() {
       customer: { name: row.customer, image: "" },
       avgRating: row.average ?? 0,
     }));
-  }, [data]);
 
-  return { rows, isLoading, error, hasMore, loadMore };
+    setFeedbackList((prev) => [...prev, ...newRows]);
+
+    // Mark this page as appended
+    appendedPageRef.current = page;
+  }, [data, page]);
+
+  const hasMore = data?.message.has_more ?? false;
+  const loadMore = () => {
+    if (hasMore) {
+      setPage((prev) => prev + FEEDBACK_PAGE_SIZE);
+    }
+  };
+
+  return { feedbackList, isLoading, error, hasMore, loadMore };
 }
