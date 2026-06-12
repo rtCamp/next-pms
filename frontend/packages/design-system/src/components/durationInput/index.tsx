@@ -38,6 +38,7 @@ export interface DurationInputProps {
   maxDurationInHours?: number;
   hoursLeft?: number;
   value?: number;
+  disabled?: boolean;
   variant?: "default" | "compact";
   onChange?: (value: number) => void;
 }
@@ -47,6 +48,7 @@ const DurationInput = ({
   maxDurationInHours = 8,
   hoursLeft = maxDurationInHours,
   value = 0,
+  disabled = false,
   variant = "default",
   onChange,
 }: DurationInputProps) => {
@@ -125,6 +127,7 @@ const DurationInput = ({
           min={0}
           max={totalMinutes}
           step={SLIDER_STEP_MINUTES}
+          disabled={disabled}
           value={sliderValue}
           onValueChange={handleSliderChange}
         >
@@ -136,7 +139,8 @@ const DurationInput = ({
         </Slider.Root>
         <input
           type="text"
-          className="absolute -translate-y-1/2 top-1/2 right-0 w-12"
+          className="absolute -translate-y-1/2 top-1/2 right-0 w-12 disabled:cursor-not-allowed disabled:opacity-50"
+          disabled={disabled}
           placeholder="00:00"
           value={inputValue}
           onChange={(e) => handleInputChange(e.target.value)}

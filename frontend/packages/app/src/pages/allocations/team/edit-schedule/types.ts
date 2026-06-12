@@ -19,9 +19,26 @@ export type PreviewRow = {
   isModified: boolean;
 };
 
+export type NormalizedSelection = {
+  startDate: string;
+  endDate: string;
+};
+
 export type SelectedRange = {
   startDate: string | null;
   endDate: string | null;
+};
+
+export type EditScheduleValueMode = "hoursPerDay" | "totalHours";
+
+export type EditScheduleDraft = {
+  selection: NormalizedSelection | null;
+  hasSelection: boolean;
+  hoursPerDay: number;
+  totalHours: number;
+  previewRows: PreviewRow[];
+  headerRangeLabel: string;
+  hasMeaningfulChange: boolean;
 };
 
 export interface EditScheduleInitialValues {

@@ -14,13 +14,38 @@ import {
  * Internal dependencies.
  */
 import type { AllocationOverrideEntry } from "@/pages/allocations/utils";
-import type { DayItem, PreviewRow } from "./types";
+import type {
+  DayItem,
+  EditScheduleDraft,
+  EditScheduleValueMode,
+  PreviewRow,
+} from "./types";
 
 /**
  * Formats a number to a string with up to 2 decimal places, removing trailing zeros.
  */
 export const toDisplayHours = (value: number): string =>
   String(Number(value.toFixed(2)));
+
+/**
+ * Normalizes TanStack field errors into a displayable message string.
+ */
+export const getErrorMessage = (error: unknown): string | undefined => {
+  if (typeof error === "string") {
+    return error;
+  }
+
+  if (
+    typeof error === "object" &&
+    error !== null &&
+    "message" in error &&
+    typeof error.message === "string"
+  ) {
+    return error.message;
+  }
+
+  return undefined;
+};
 
 /**
  * Normalizes a date range to ensure the start date is less than or equal to the end date.
@@ -49,6 +74,15 @@ export const getRangeHours = (
   endDate: string,
   hoursPerDay: number,
 ): number => getDayCount(startDate, endDate) * hoursPerDay;
+
+/**
+ * Calculates hours per day from a total hours value for a date range.
+ */
+export const getHoursPerDayFromTotalHours = (
+  startDate: string,
+  endDate: string,
+  totalHours: number,
+): number => totalHours / getDayCount(startDate, endDate);
 
 /**
  * Formats a date range into a human-readable string.
@@ -185,4 +219,80 @@ export const buildPreviewRows = ({
   }
 
   return rows;
+};
+
+/**
+ * Builds the full derived schedule state for the edit modal from the current form values.
+ */
+export const buildScheduleDraft = ({
+  rangeStart,
+  rangeEnd,
+  defaultHoursPerDay,
+  override = [],
+  schedule,
+}: {
+  rangeStart: string;
+  rangeEnd: string;
+  defaultHoursPerDay: number;
+  override?: AllocationOverrideEntry[];
+  schedule: {
+    selection: {
+      startDate: string;
+      endDate: string;
+    };
+    input: {
+      value: number;
+      mode: EditScheduleValueMode;
+    };
+  };
+}): EditScheduleDraft => {
+  const hasSelection = Boolean(
+    schedule.selection.startDate && schedule.selection.endDate,
+  );
+  const selection = hasSelection
+    ? normalizeRange(schedule.selection.startDate, schedule.selection.endDate)
+    : null;
+  const hoursPerDay = selection
+    ? schedule.input.mode === "totalHours"
+      ? getHoursPerDayFromTotalHours(
+          selection.startDate,
+          selection.endDate,
+          schedule.input.value,
+        )
+      : schedule.input.value
+    : defaultHoursPerDay;
+  const totalHours = selection
+    ? schedule.input.mode === "totalHours"
+      ? schedule.input.value
+      : getRangeHours(
+          selection.startDate,
+          selection.endDate,
+          schedule.input.value,
+        )
+    : getRangeHours(rangeStart, rangeEnd, defaultHoursPerDay);
+  const previewRows = buildPreviewRows({
+    rangeStart,
+    rangeEnd,
+    defaultHoursPerDay,
+    override,
+    selection: selection
+      ? {
+          startDate: selection.startDate,
+          endDate: selection.endDate,
+          hoursPerDay,
+        }
+      : null,
+  });
+
+  return {
+    selection,
+    hasSelection,
+    hoursPerDay,
+    totalHours,
+    previewRows,
+    headerRangeLabel: selection
+      ? formatRange(selection.startDate, selection.endDate)
+      : formatRange(rangeStart, rangeEnd),
+    hasMeaningfulChange: previewRows.some((row) => row.isModified),
+  };
 };
