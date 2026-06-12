@@ -53,7 +53,7 @@ export function RepositoryConnections() {
           style={{ gridTemplateColumns }}
         >
           {REPO_COLUMNS.map((column) => (
-            <div key={column.key} className="flex h-7 items-center">
+            <div key={column.key} className="relative flex h-7 items-center">
               {column.srOnly ? (
                 <span className="sr-only">{column.label}</span>
               ) : (
