@@ -46,10 +46,11 @@ export function NoteActions({ note }: NoteActionsProps) {
     <span className="flex items-center" onClick={(e) => e.stopPropagation()}>
       {note.pinned ? (
         <Button
-          onClick={() => togglePin(note.name)}
+          onClick={() => void togglePin(note.name)}
           variant="ghost"
           icon={() => <Unpin className="size-4" />}
           disabled={isUpdating}
+          aria-label="Unpin note"
         />
       ) : null}
       <Dropdown
