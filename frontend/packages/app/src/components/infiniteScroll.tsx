@@ -29,7 +29,7 @@ const InfiniteScroll = ({
   return (
     <div className={className}>
       {children}
-      {hasMore && (
+      {(isLoading || hasMore) && (
         <div
           ref={verticalLoderRef}
           className="flex flex-col items-start w-full sticky left-0 h-30 gap-px"
