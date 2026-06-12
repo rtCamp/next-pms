@@ -49,7 +49,7 @@ export function FeedbackToolbar({
         variant="solid"
         label="Schedule Feedback"
         className="text-sm"
-        link="/desk/customer-feedback/"
+        link="/desk/customer-feedback-schedule/"
         rel="noopener noreferrer"
       />
     </div>
