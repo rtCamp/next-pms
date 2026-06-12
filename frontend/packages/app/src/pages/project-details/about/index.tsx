@@ -338,16 +338,26 @@ function AboutThisProjectContent({ className }: { className: string }) {
           <h3 className="mb-2 text-base font-medium text-ink-gray-8">
             Team members
           </h3>
-          <ExpandableList
-            items={members.filter(
-              (m) =>
-                m.projectRole !== "Project Manager" &&
-                m.projectRole !== "Engineering Manager",
-            )}
-            itemLabel="members"
-            getKey={(member) => member.email}
-            renderItem={(member) => <MemberRow member={member} />}
-          />
+          {members.filter(
+            (m) =>
+              m.projectRole !== "Project Manager" &&
+              m.projectRole !== "Engineering Manager",
+          ).length === 0 ? (
+            <p className="py-4 text-center text-sm text-ink-gray-4">
+              No Members
+            </p>
+          ) : (
+            <ExpandableList
+              items={members.filter(
+                (m) =>
+                  m.projectRole !== "Project Manager" &&
+                  m.projectRole !== "Engineering Manager",
+              )}
+              itemLabel="members"
+              getKey={(member) => member.email}
+              renderItem={(member) => <MemberRow member={member} />}
+            />
+          )}
         </Section>
 
         <Section

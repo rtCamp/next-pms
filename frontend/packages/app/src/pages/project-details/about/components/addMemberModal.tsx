@@ -99,6 +99,7 @@ export function AddMemberModal({
                   ? memberRoleByUserId?.[memberId]
                   : undefined;
                 const roleLabel = role ? ROLE_TAG_LABEL[role] : undefined;
+
                 return (
                   <Fragment key={employee.value}>
                     {index > 0 && (
@@ -137,6 +138,7 @@ export function AddMemberModal({
                           variant="subtle"
                           theme="red"
                           label="Remove"
+                          disabled={!!role}
                           onClick={() => handleRemove(memberId)}
                         />
                       ) : (
