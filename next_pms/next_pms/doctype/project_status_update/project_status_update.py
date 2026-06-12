@@ -20,6 +20,7 @@ class ProjectStatusUpdate(Document):
         description: DF.TextEditor | None
         last_edited_at: DF.Datetime | None
         last_edited_by: DF.Link | None
+        pinned: DF.Check
         project: DF.Link | None
         status: DF.Literal["Draft", "Review", "Publish"]
         title: DF.Data | None
