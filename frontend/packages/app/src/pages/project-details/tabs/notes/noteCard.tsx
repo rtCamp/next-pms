@@ -47,7 +47,7 @@ export function NoteCard({ note }: NoteCardProps) {
       }}
       className="flex h-64 min-w-65.75 max-w-131.5 flex-1 cursor-pointer flex-col rounded-[12px] border border-outline-gray-2 bg-surface-white overflow-clip shadow-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink-gray-4"
     >
-      <div className="flex items-center gap-3 px-3.5 pt-3.5">
+      <div className="flex justify-between items-center gap-2 px-3.5 pt-3.5">
         <h3 className="flex-1 truncate text-lg font-medium text-ink-gray-8">
           {note.title}
         </h3>
