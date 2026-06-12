@@ -8,7 +8,6 @@ import frappe
 from frappe import get_list, only_for, whitelist
 from frappe.query_builder.functions import Coalesce, Count, Sum
 from frappe.utils import cint, flt, getdate, today
-from frappe.utils.caching import redis_cache
 
 from next_pms.api.utils import error_logger
 from next_pms.next_projects.api.constant import (
@@ -652,8 +651,25 @@ def get_project_tracking(project: str):
     return _get_project_tracking(project)
 
 
-@redis_cache()
+_PROJECT_TRACKING_CACHE_TTL = 3600
+
+
+def _project_tracking_cache_key(project: str) -> str:
+    return f"next_pms:project_tracking::{project}"
+
+
+def clear_project_tracking_cache(project: str) -> None:
+    frappe.cache().delete_value(_project_tracking_cache_key(project))
+
+
 def _get_project_tracking(project: str):
+    cache_key = _project_tracking_cache_key(project)
+    cached_val = frappe.cache().get_value(cache_key)
+    if cached_val is not None:
+        return cached_val
+    if frappe.cache().exists(cache_key):
+        return None
+
     p = frappe.db.get_value(
         "Project",
         project,
@@ -752,7 +768,7 @@ def _get_project_tracking(project: str):
             else None,
         }
 
-    return {
+    result = {
         "company": p.company,
         "billing_type": billing_type,
         "currency": p.custom_currency,
@@ -773,6 +789,8 @@ def _get_project_tracking(project: str):
         "project_rates": project_rates,
         "lifetime_values": lifetime_values,
     }
+    frappe.cache().set_value(cache_key, result, expires_in_sec=_PROJECT_TRACKING_CACHE_TTL)
+    return result
 
 
 @whitelist(methods=["GET"])
