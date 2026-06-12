@@ -19,6 +19,23 @@ def get_user_image(user: str) -> str | None:
     return frappe.db.get_value("User", user, "user_image")
 
 
+def get_employee_image_map(employees: list[str]) -> dict[str, str | None]:
+    """Map each employee to their linked User's avatar image, in two bulk queries."""
+    if not employees:
+        return {}
+    emp_rows = frappe.get_all("Employee", filters={"name": ["in", employees]}, fields=["name", "user_id"])
+    user_image_map = get_user_image_map([row.user_id for row in emp_rows if row.user_id])
+    return {row.name: user_image_map.get(row.user_id) for row in emp_rows}
+
+
+def get_employee_image(employee: str) -> str | None:
+    """Get an employee's avatar image from their linked User."""
+    if not employee:
+        return None
+    user_id = frappe.db.get_value("Employee", employee, "user_id")
+    return get_user_image(user_id)
+
+
 def build_person_data(
     user: str,
     full_name: str,

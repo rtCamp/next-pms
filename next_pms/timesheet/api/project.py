@@ -1,5 +1,4 @@
 import json
-from functools import partial
 
 import frappe
 from erpnext.accounts.report.utils import get_rate_as_at
@@ -8,13 +7,14 @@ from frappe.utils import flt, getdate
 
 from next_pms.api.utils import error_logger
 
-from . import get_count
+from . import filter_employees, get_count
 from .utils import (
     build_aggregate_dates,
+    build_chunk_context,
     build_employee_week_details,
-    get_project_candidate_employee_ids,
+    get_employees_for_projects,
+    get_qualifying_project_ids,
     normalize_status_filter,
-    paginate_qualifying_employee_payloads,
     parse_filters,
 )
 
@@ -125,40 +125,50 @@ def _normalize_project_timesheet_inputs(
     skip_empty_weeks: bool | str,
 ):
     return (
-        int(start),
-        int(page_length),
+        max(0, int(start)),
+        max(0, int(page_length)),
         int(max_week),
         normalize_status_filter(approval_status, coerce_non_list=True),
         _coerce_project_skip_empty_weeks(skip_empty_weeks),
     )
 
 
-def _get_project_response_dates(dates: list, max_week: int, has_filters: bool):
-    if has_filters and len(dates) > max_week:
-        return dates[-max_week:]
+def _apply_employee_filters(parsed_filters: dict):
+    """Translate Employee-level filters into a Timesheet ``employee IN (...)`` constraint.
 
-    return dates
+    The qualifying-project, employee-selection and render queries all read
+    ``parsed_filters["Timesheet"]``, so resolving Employee filters to employee IDs here
+    applies them consistently everywhere instead of being silently dropped.
+    """
+    employee_filters = parsed_filters.get("Employee")
+    if not employee_filters:
+        return
+
+    employee_names = frappe.get_all("Employee", filters=employee_filters, pluck="name")
+    parsed_filters["Timesheet"] = [*parsed_filters.get("Timesheet", []), ["employee", "in", employee_names]]
 
 
 def _prepare_project_timesheet_context(
     date: str,
     max_week: int,
-    reports_to: str | None,
     filters: str | list | None,
     search: str | None,
     approval_statuses: list[str] | None,
 ):
     parsed_filters = parse_filters(filters)
     has_filters = bool(search or approval_statuses or any(parsed_filters.values()))
+    _apply_employee_filters(parsed_filters)
     dates, _ = build_aggregate_dates(date=date, max_week=max_week, has_filters=has_filters)
 
     return {
         "parsed_filters": parsed_filters,
         "has_filters": has_filters,
         "dates": dates,
-        "response_dates": _get_project_response_dates(dates, max_week, has_filters),
-        "candidate_employee_ids": get_project_candidate_employee_ids(
-            reports_to=reports_to,
+        # Under filters, `dates` spans the full (up to 12-week) lookback used to locate
+        # matching data and empty weeks are dropped downstream — render that whole span so
+        # data in older weeks is not hidden by trimming to the most recent `max_week`.
+        "response_dates": dates,
+        "candidate_project_ids": get_qualifying_project_ids(
             dates=dates,
             parsed_filters=parsed_filters,
             search=search,
@@ -316,7 +326,6 @@ def _build_project_week_groups(response_dates: list, employee_data_map: dict):
 def get_project_timesheet_data(
     date: str,
     max_week: int = 2,
-    reports_to: str | None = None,
     page_length: int = 10,
     start: int = 0,
     filters: str | list | None = None,
@@ -338,41 +347,75 @@ def get_project_timesheet_data(
     project_context = _prepare_project_timesheet_context(
         date=date,
         max_week=max_week,
-        reports_to=reports_to,
         filters=filters,
         search=search,
         approval_statuses=approval_statuses,
     )
 
-    if project_context["candidate_employee_ids"] == []:
+    all_project_ids = project_context["candidate_project_ids"]
+    if not all_project_ids:
         return {
             "week_groups": _build_project_week_groups(project_context["response_dates"], {}),
             "total_count": 0,
             "has_more": False,
         }
 
-    selected_employees, total_count, has_more = paginate_qualifying_employee_payloads(
-        reports_to=reports_to,
-        employee_ids=project_context["candidate_employee_ids"],
+    # Paginate project IDs directly — no DB round-trip needed. `start`/`page_length` are
+    # already clamped to >= 0, so an empty/zero page can never report `has_more`.
+    total_count = len(all_project_ids)
+    end = start + page_length
+    selected_project_ids = all_project_ids[start:end]
+    has_more = page_length > 0 and end < total_count
+
+    # Get the employees who logged time to this page's projects.
+    employee_ids = get_employees_for_projects(
+        project_ids=selected_project_ids,
+        dates=project_context["dates"],
+        parsed_filters=project_context["parsed_filters"],
+        approval_status=approval_statuses,
+    )
+    if not employee_ids:
+        return {
+            "week_groups": _build_project_week_groups(project_context["response_dates"], {}),
+            "total_count": total_count,
+            "has_more": has_more,
+        }
+
+    employees, _ = filter_employees(page_length=len(employee_ids), start=0, ids=employee_ids)
+    context = build_chunk_context(
+        employees=employees,
         dates=project_context["dates"],
         parsed_filters=project_context["parsed_filters"],
         search=search,
-        start=start,
-        page_length=page_length,
-        builder=partial(
-            _build_project_employee_payload,
+    )
+
+    employee_data_map = {}
+    for employee in employees:
+        payload = _build_project_employee_payload(
+            employee=employee,
+            context=context,
             dates=project_context["dates"],
             response_dates=project_context["response_dates"],
             has_filters=project_context["has_filters"],
             skip_empty_weeks=skip_empty_weeks,
             approval_statuses=approval_statuses,
-        ),
-    )
+        )
+        if payload:
+            emp_name, emp_data = payload
+            employee_data_map[emp_name] = emp_data
 
-    employee_data_map = {employee_name: payload for employee_name, payload in selected_employees}
     week_groups = _build_project_week_groups(project_context["response_dates"], employee_data_map)
 
-    if project_context["has_filters"] and skip_empty_weeks:
+    # Restrict each week to only the selected projects — employees may have
+    # logged to other projects that should appear on a different page.
+    selected_project_set = set(selected_project_ids)
+    for week_group in week_groups:
+        week_group["projects"] = [p for p in week_group["projects"] if p["project"] in selected_project_set]
+
+    # Under filters the render span is the full lookback, so collapse it to the weeks that
+    # actually hold matching data — otherwise older empty weeks would pad the response.
+    # Runs after the project restriction so weeks emptied by it are dropped too.
+    if project_context["has_filters"]:
         week_groups = [week_group for week_group in week_groups if week_group.get("projects")]
 
     return {
