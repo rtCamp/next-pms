@@ -42,7 +42,7 @@ def create_project_status_update(
     try:
         should_enqueue_publish_notification = False
         if not frappe.db.exists("Project", project):
-            frappe.throw(_("Project '{project}' does not exist"))
+            frappe.throw(_("Project '{project}' does not exist").format(project=project))
 
         doc = frappe.new_doc("Project Status Update")
         doc.project = project
@@ -89,7 +89,7 @@ def get_project_status_update(name: str) -> dict[str, Any]:
     only_for(ROLES, message=True)
 
     if not frappe.db.exists("Project Status Update", name):
-        frappe.throw(_("Project Status Update '{name}' does not exist"))
+        frappe.throw(_("Project Status Update '{name}' does not exist").format(name=name))
 
     return get_project_status_update_details(name)
 
@@ -110,7 +110,7 @@ def get_project_status_updates_by_project(project: str, author: str | None = Non
     only_for(ROLES, message=True)
 
     if not frappe.db.exists("Project", project):
-        frappe.throw(_("Project '{project}' does not exist"))
+        frappe.throw(_("Project '{project}' does not exist").format(project=project))
 
     filters: dict[str, str] = {"project": project}
     if author:
@@ -167,7 +167,7 @@ def update_project_status_update(
     only_for(ROLES, message=True)
 
     if not frappe.db.exists("Project Status Update", name):
-        frappe.throw(_("Project Status Update '{name}' does not exist"))
+        frappe.throw(_("Project Status Update '{name}' does not exist").format(name=name))
 
     doc = frappe.get_doc("Project Status Update", name)
 
@@ -205,7 +205,7 @@ def add_comment_to_project_status_update(
     only_for(ROLES, message=True)
 
     if not frappe.db.exists("Project Status Update", name):
-        frappe.throw(_("Project Status Update '{name}' does not exist"))
+        frappe.throw(_("Project Status Update '{name}' does not exist").format(name=name))
 
     doc = frappe.get_doc("Project Status Update", name)
 
@@ -262,7 +262,7 @@ def update_comment_in_project_status_update(
         frappe.throw(_("Comment name is required"))
 
     if not frappe.db.exists("Project Status Update", name):
-        frappe.throw(_("Project Status Update '{name}' does not exist"))
+        frappe.throw(_("Project Status Update '{name}' does not exist").format(name=name))
 
     doc = frappe.get_doc("Project Status Update", name)
 
@@ -340,7 +340,7 @@ def delete_comment_from_project_status_update(name: str, comment_name: str) -> d
         frappe.throw(_("Comment name is required"))
 
     if not frappe.db.exists("Project Status Update", name):
-        frappe.throw(_("Project Status Update '{name}' does not exist"))
+        frappe.throw(_("Project Status Update '{name}' does not exist").format(name=name))
 
     doc = frappe.get_doc("Project Status Update", name)
 
