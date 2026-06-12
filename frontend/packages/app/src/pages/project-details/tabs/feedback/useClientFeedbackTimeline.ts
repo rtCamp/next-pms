@@ -2,6 +2,7 @@
  * External dependencies.
  */
 import { useMemo } from "react";
+import { format } from "date-fns";
 import { useFrappeGetCall } from "frappe-react-sdk";
 
 /**
@@ -35,13 +36,13 @@ export function useClientFeedbackTimeline({
     message: TimelineAPIEntry[];
   }>("next_pms.next_projects.api.feedback.get_project_feedback_timeline", {
     project: projectId,
-    from: startDate,
-    to: endDate,
+    from: format(startDate, "yyyy-MM-dd"),
+    to: format(endDate, "yyyy-MM-dd"),
   });
 
   const months = useMemo((): MonthEntry[] => {
     return (data?.message ?? []).map((entry) => ({
-      month: entry.month,
+      month: entry.month - 1,
       year: entry.year,
       score: entry.score,
       feedback_id: entry.feedback_id,

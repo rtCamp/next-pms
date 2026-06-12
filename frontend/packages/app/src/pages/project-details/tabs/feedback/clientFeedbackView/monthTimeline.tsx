@@ -48,14 +48,10 @@ export function MonthTimeline({
   const beginTimelineRef = useRef<HTMLDivElement | null>(null);
   const endTimelineRef = useRef<HTMLDivElement | null>(null);
   const activeMonthRef = useRef<HTMLButtonElement | null>(null);
-  const {
-    clientTimelineStartDate: startDate,
-    setClientTimelineStartDate: setStartDate,
-  } = useFeedbackContext((c) => c);
-  const {
-    clientTimelineEndDate: endDate,
-    setClientTimelineEndDate: setEndDate,
-  } = useFeedbackContext((c) => c);
+  const startDate = useFeedbackContext((c) => c.clientTimelineStartDate);
+  const setStartDate = useFeedbackContext((c) => c.setClientTimelineStartDate);
+  const endDate = useFeedbackContext((c) => c.clientTimelineEndDate);
+  const setEndDate = useFeedbackContext((c) => c.setClientTimelineEndDate);
   const toast = useToasts();
   const {
     months: monthwiseData,
@@ -84,7 +80,7 @@ export function MonthTimeline({
     if (error) {
       toast.error("Failed to load feedback timeline");
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- toast.error modifies the hooks state so if we add it to deps it causes infinite loop, error is the actual dep we want to listen to.
   }, [error]);
 
   useEffect(() => {
