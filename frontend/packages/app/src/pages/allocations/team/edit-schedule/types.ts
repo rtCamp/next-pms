@@ -49,6 +49,9 @@ export interface EditScheduleInitialValues {
   rangeStart: string;
   rangeEnd: string;
   defaultHoursPerDay: number;
+  allocationStartDate?: string;
+  allocationEndDate?: string;
+  allocationHoursPerDay?: number;
   isBillable?: boolean;
   isTentative?: boolean;
   note?: string;

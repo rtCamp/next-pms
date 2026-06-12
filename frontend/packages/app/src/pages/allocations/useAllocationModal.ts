@@ -72,6 +72,24 @@ export function useAllocationModal(refresh: RefreshAllocations) {
           : undefined,
         toDate: data.endDate ? format(data.endDate, "yyyy-MM-dd") : undefined,
         hoursPerDay: data.hoursPerDay,
+        allocationStartDate: data.allocationStartDate
+          ? format(data.allocationStartDate, "yyyy-MM-dd")
+          : undefined,
+        allocationEndDate: data.allocationEndDate
+          ? format(data.allocationEndDate, "yyyy-MM-dd")
+          : undefined,
+        allocationHoursPerDay: data.allocationHoursPerDay,
+        segmentStartDate: data.segmentStartDate
+          ? format(data.segmentStartDate, "yyyy-MM-dd")
+          : data.startDate
+            ? format(data.startDate, "yyyy-MM-dd")
+            : undefined,
+        segmentEndDate: data.segmentEndDate
+          ? format(data.segmentEndDate, "yyyy-MM-dd")
+          : data.endDate
+            ? format(data.endDate, "yyyy-MM-dd")
+            : undefined,
+        segmentHoursPerDay: data.segmentHoursPerDay ?? data.hoursPerDay,
         isBillable: data.billable,
         isTentative: data.tentative,
         note: data.note,
@@ -166,6 +184,10 @@ export function useAllocationModal(refresh: RefreshAllocations) {
           rangeStart: addAllocationInitialValues?.fromDate || "",
           rangeEnd: addAllocationInitialValues?.toDate || "",
           defaultHoursPerDay: addAllocationInitialValues?.hoursPerDay ?? 0,
+          allocationStartDate: addAllocationInitialValues?.allocationStartDate,
+          allocationEndDate: addAllocationInitialValues?.allocationEndDate,
+          allocationHoursPerDay:
+            addAllocationInitialValues?.allocationHoursPerDay,
           isBillable: addAllocationInitialValues?.isBillable,
           isTentative: addAllocationInitialValues?.isTentative,
           note: addAllocationInitialValues?.note,

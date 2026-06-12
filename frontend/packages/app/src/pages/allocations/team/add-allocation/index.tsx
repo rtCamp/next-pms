@@ -28,6 +28,11 @@ import { useEmployeeLookup } from "@/hooks/useEmployeeLookup";
 import { useProjectLookup } from "@/hooks/useProjectLookup";
 import { isWeekendEntryAllowed, parseFrappeErrorMsg } from "@/lib/utils";
 import {
+  buildSegmentEditDayOverrides,
+  extendAllocationRange,
+  shouldUseOverrideAwareAllocationEdit,
+} from "@/pages/allocations/overrideEdit";
+import {
   addAllocationDefaultValues,
   allocationRecurrenceLabels,
 } from "./constants";
@@ -102,8 +107,6 @@ function AddAllocationModal({
       onSubmit: addAllocationFormSchema,
     },
     onSubmit: async ({ value }) => {
-      setSubmitting(true);
-
       const totalAllocatedHours = computeTotalHours({
         hoursPerDay: value.hoursPerDay,
         recurrence: value.recurrence,
@@ -112,6 +115,52 @@ function AddAllocationModal({
         repeatFor: value.repeatFor ?? 0,
         includeWeekends: weekendEntriesAllowed && value.includeWeekends,
       });
+      const overrideAwareAllocation =
+        initialValues?.allocationStartDate &&
+        initialValues?.allocationEndDate &&
+        initialValues?.allocationHoursPerDay !== undefined
+          ? {
+              allocationStartDate: initialValues.allocationStartDate,
+              allocationEndDate: initialValues.allocationEndDate,
+              allocationHoursPerDay: initialValues.allocationHoursPerDay,
+              override: initialValues.override,
+            }
+          : null;
+      const shouldUseOverrideAwareEdit =
+        variant === "edit" &&
+        Boolean(allocationName) &&
+        Boolean(
+          overrideAwareAllocation &&
+          initialValues?.segmentStartDate &&
+          initialValues?.segmentEndDate &&
+          shouldUseOverrideAwareAllocationEdit({
+            ...overrideAwareAllocation,
+            startDate: value.fromDate,
+            endDate: value.toDate,
+            hoursPerDay: value.hoursPerDay,
+          }),
+        );
+      const extendedAllocation =
+        shouldUseOverrideAwareEdit && overrideAwareAllocation
+          ? extendAllocationRange(overrideAwareAllocation, {
+              startDate: value.fromDate,
+              endDate: value.toDate,
+            })
+          : null;
+      const allocationTotalAllocatedHours =
+        shouldUseOverrideAwareEdit && extendedAllocation
+          ? computeTotalHours({
+              hoursPerDay: extendedAllocation.allocationHoursPerDay,
+              recurrence: "one-time",
+              fromDate: extendedAllocation.allocationStartDate,
+              toDate: extendedAllocation.allocationEndDate,
+              repeatFor: 0,
+              includeWeekends:
+                weekendEntriesAllowed && Boolean(value.includeWeekends),
+            })
+          : totalAllocatedHours;
+
+      setSubmitting(true);
 
       try {
         const payload = {
@@ -120,10 +169,19 @@ function AddAllocationModal({
             employee: value.employeeId,
             project: value.projectId,
             customer: value.customer,
-            allocation_start_date: value.fromDate,
-            allocation_end_date: value.toDate,
-            hours_allocated_per_day: value.hoursPerDay,
-            total_allocated_hours: totalAllocatedHours,
+            allocation_start_date:
+              shouldUseOverrideAwareEdit && extendedAllocation
+                ? extendedAllocation.allocationStartDate
+                : value.fromDate,
+            allocation_end_date:
+              shouldUseOverrideAwareEdit && extendedAllocation
+                ? extendedAllocation.allocationEndDate
+                : value.toDate,
+            hours_allocated_per_day:
+              shouldUseOverrideAwareEdit && extendedAllocation
+                ? extendedAllocation.allocationHoursPerDay
+                : value.hoursPerDay,
+            total_allocated_hours: allocationTotalAllocatedHours,
             is_billable: Number(value.isBillable),
             status: value.isTentative ? "Tentative" : "Confirmed",
             note: value.note ?? "",
@@ -139,11 +197,41 @@ function AddAllocationModal({
         };
 
         if (variant === "edit" && allocationName) {
-          await editAllocation({
-            name: allocationName,
-            edit_mode: "only_this",
-            ...payload,
-          });
+          if (
+            shouldUseOverrideAwareEdit &&
+            extendedAllocation &&
+            initialValues?.segmentStartDate &&
+            initialValues?.segmentEndDate
+          ) {
+            await editAllocation({
+              name: allocationName,
+              edit_mode: "only_this",
+              allocation: payload.allocation,
+            });
+            await editAllocation({
+              name: allocationName,
+              edit_mode: "only_this",
+              allocation: payload.allocation,
+              day_overrides: buildSegmentEditDayOverrides({
+                allocation: extendedAllocation,
+                segment: {
+                  segmentStartDate: initialValues.segmentStartDate,
+                  segmentEndDate: initialValues.segmentEndDate,
+                },
+                next: {
+                  startDate: value.fromDate,
+                  endDate: value.toDate,
+                  hoursPerDay: value.hoursPerDay,
+                },
+              }),
+            });
+          } else {
+            await editAllocation({
+              name: allocationName,
+              edit_mode: "only_this",
+              ...payload,
+            });
+          }
         } else {
           await handleAllocation(payload);
         }

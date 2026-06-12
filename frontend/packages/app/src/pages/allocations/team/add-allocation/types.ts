@@ -13,6 +13,12 @@ export interface AddAllocationInitialValues {
   fromDate?: string;
   toDate?: string;
   hoursPerDay?: number;
+  allocationStartDate?: string;
+  allocationEndDate?: string;
+  allocationHoursPerDay?: number;
+  segmentStartDate?: string;
+  segmentEndDate?: string;
+  segmentHoursPerDay?: number;
   repeatFor?: number;
   isBillable?: boolean;
   isTentative?: boolean;

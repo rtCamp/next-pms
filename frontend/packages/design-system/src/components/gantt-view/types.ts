@@ -32,6 +32,12 @@ export interface Allocation {
     hours?: number | null;
     cancelled?: number | null;
   }[];
+  /** Underlying allocation document start date. */
+  allocationStartDate?: Date;
+  /** Underlying allocation document end date. */
+  allocationEndDate?: Date;
+  /** Underlying allocation document default hours per day. */
+  allocationHoursPerDay?: number;
 }
 
 export interface MemberBarAllocation extends Allocation {
@@ -111,6 +117,18 @@ export interface AllocationCallbackData {
     hours?: number | null;
     cancelled?: number | null;
   }[];
+  /** Underlying allocation document start date. */
+  allocationStartDate?: Date;
+  /** Underlying allocation document end date. */
+  allocationEndDate?: Date;
+  /** Underlying allocation document default hours per day. */
+  allocationHoursPerDay?: number;
+  /** Visible segment start date before the current edit. */
+  segmentStartDate?: Date;
+  /** Visible segment end date before the current edit. */
+  segmentEndDate?: Date;
+  /** Visible segment hours per day before the current edit. */
+  segmentHoursPerDay?: number;
   /** Called after the allocation is successfully saved. */
   onSuccess?: () => void;
 }

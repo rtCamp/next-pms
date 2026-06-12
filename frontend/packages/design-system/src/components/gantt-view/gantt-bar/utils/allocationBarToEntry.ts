@@ -22,6 +22,12 @@ export function allocationBarToEntry(
     tentative: alloc.tentative,
     note: alloc.note,
     override: alloc.override,
+    allocationStartDate: alloc.allocationStartDate,
+    allocationEndDate: alloc.allocationEndDate,
+    allocationHoursPerDay: alloc.allocationHoursPerDay,
+    segmentStartDate: alloc.startDate,
+    segmentEndDate: alloc.endDate,
+    segmentHoursPerDay: alloc.hours,
   };
 
   return {

@@ -11,6 +11,7 @@ import { FrappeError, useFrappePostCall } from "frappe-react-sdk";
  * Internal dependencies.
  */
 import { parseFrappeErrorMsg } from "@/lib/utils";
+import { buildScheduleSelectionDayOverrides } from "@/pages/allocations/overrideEdit";
 import ScheduleDateSelectionField from "./components/scheduleDateSelectionField";
 import ScheduleHoursPerDayField from "./components/scheduleHoursPerDayField";
 import ScheduleSummaryTable from "./components/scheduleSummaryTable";
@@ -18,12 +19,7 @@ import ScheduleTotalHoursField from "./components/scheduleTotalHoursField";
 import { useScheduleFieldGroup } from "./scheduleFieldGroup";
 import { editScheduleFormSchema, type EditScheduleFormValues } from "./schema";
 import type { EditScheduleModalProps } from "./types";
-import {
-  buildDayOverrides,
-  buildDays,
-  buildScheduleDraft,
-  normalizeRange,
-} from "./utils";
+import { buildDays, buildScheduleDraft, normalizeRange } from "./utils";
 
 function EditScheduleModal({
   open,
@@ -86,6 +82,16 @@ function EditScheduleModal({
       if (!initialValues?.allocationName) {
         return;
       }
+      const allocationContext = {
+        allocationStartDate:
+          initialValues.allocationStartDate ?? initialValues.rangeStart,
+        allocationEndDate:
+          initialValues.allocationEndDate ?? initialValues.rangeEnd,
+        allocationHoursPerDay:
+          initialValues.allocationHoursPerDay ??
+          initialValues.defaultHoursPerDay,
+        override: initialValues.override,
+      };
       const scheduleDraft = buildScheduleDraft({
         rangeStart: fullRange.startDate,
         rangeEnd: fullRange.endDate,
@@ -93,11 +99,16 @@ function EditScheduleModal({
         override: safeValues.override,
         schedule: value.schedule,
       });
-      const dayOverrides = buildDayOverrides(
-        scheduleDraft.selection!.startDate,
-        scheduleDraft.selection!.endDate,
-        scheduleDraft.hoursPerDay,
-      );
+      const dayOverrides = scheduleDraft.selection
+        ? buildScheduleSelectionDayOverrides({
+            allocation: allocationContext,
+            next: {
+              startDate: scheduleDraft.selection.startDate,
+              endDate: scheduleDraft.selection.endDate,
+              hoursPerDay: scheduleDraft.hoursPerDay,
+            },
+          })
+        : [];
 
       try {
         setSubmitting(true);
@@ -109,9 +120,9 @@ function EditScheduleModal({
             employee: initialValues.employeeId ?? "",
             project: initialValues.projectId ?? null,
             customer: initialValues.customer ?? "",
-            allocation_start_date: initialValues.rangeStart,
-            allocation_end_date: initialValues.rangeEnd,
-            hours_allocated_per_day: initialValues.defaultHoursPerDay,
+            allocation_start_date: allocationContext.allocationStartDate,
+            allocation_end_date: allocationContext.allocationEndDate,
+            hours_allocated_per_day: allocationContext.allocationHoursPerDay,
             include_weekends: true,
             is_billable: Number(initialValues.isBillable ?? true),
             status: initialValues.isTentative ? "Tentative" : "Confirmed",
