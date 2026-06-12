@@ -10,6 +10,7 @@
   "project",
   "last_edited_at",
   "last_edited_by",
+  "pinned",
   "comments"
  ],
  "fields": [
@@ -51,12 +52,18 @@
    "fieldtype": "Link",
    "label": "Last Edited By",
    "options": "User"
+  },
+  {
+   "default": "0",
+   "fieldname": "pinned",
+   "fieldtype": "Check",
+   "label": "Pinned"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-05-14 03:35:23.914901",
+ "modified": "2026-06-11 20:45:23.893484",
  "modified_by": "Administrator",
  "module": "Next PMS",
  "name": "Project Status Update",
