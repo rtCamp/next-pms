@@ -25,24 +25,26 @@ function ProjectDetail() {
   const { available, isLoading: isAvailabilityLoading } =
     useFeedbackAvailability();
 
+  let finalTabs = TABS;
+  let finalTabKeys = [...TAB_KEYS];
+  if (isAvailabilityLoading || !available) {
+    finalTabs = finalTabs.filter((tab) => tab.label !== "Feedback");
+    finalTabKeys = finalTabKeys.filter((key) => key !== "feedback");
+  }
+
   const paramTab = searchParams.get(TAB_PARAM) as TabKey | null;
   const activeKey: TabKey =
-    paramTab && TAB_KEYS.includes(paramTab) ? paramTab : DEFAULT_TAB;
-  const activeTab = TAB_KEYS.indexOf(activeKey);
+    paramTab && finalTabKeys.includes(paramTab) ? paramTab : DEFAULT_TAB;
+  const activeTab = finalTabKeys.indexOf(activeKey);
 
   const handleTabChange = (index: number) => {
-    const key = TAB_KEYS[index];
+    const key = finalTabKeys[index];
     setSearchParams((prev) => {
       if (!key || key === DEFAULT_TAB) prev.delete(TAB_PARAM);
       else prev.set(TAB_PARAM, key);
       return prev;
     });
   };
-
-  let finalTabs = TABS;
-  if (isAvailabilityLoading || !available) {
-    finalTabs = TABS.filter((tab) => tab.label !== "Feedback");
-  }
 
   return (
     <ProjectDetailProvider projectId={projectId}>
