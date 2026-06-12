@@ -1,7 +1,7 @@
 /**
  * External dependencies.
  */
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useState } from "react";
 import { getTodayDate } from "@next-pms/design-system/date";
 import {
   Button,
@@ -45,13 +45,11 @@ export function ContractModal({
   const title = isEdit ? "Edit contract" : "Add contract";
   const submitLabel = isEdit ? "Save changes" : "Add contract";
 
-  const defaultValues = useMemo<ContractFormValues>(
-    () => ({ ...FALLBACK_DEFAULTS, ...initialValues }),
-    [initialValues],
-  );
-
   const form = useForm({
-    defaultValues,
+    defaultValues: {
+      ...FALLBACK_DEFAULTS,
+      ...initialValues,
+    },
     validators: {
       onSubmit: addContractSchema,
     },
@@ -86,18 +84,18 @@ export function ContractModal({
     query: salesInvoiceSearch,
   });
 
-  useEffect(() => {
-    if (open) {
-      form.reset(defaultValues);
-    } else {
-      form.reset();
-      setSalesOrderSearch("");
-      setSalesInvoiceSearch("");
-    }
-  }, [open, form, defaultValues]);
-
   const handleOpenChange = useCallback(
     (next: boolean) => {
+      if (next) {
+        form.reset({
+          ...FALLBACK_DEFAULTS,
+          ...initialValues,
+        });
+      } else {
+        form.reset();
+        setSalesOrderSearch("");
+        setSalesInvoiceSearch("");
+      }
       onOpenChange(next);
     },
     [onOpenChange],

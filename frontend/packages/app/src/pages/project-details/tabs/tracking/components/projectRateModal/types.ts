@@ -1,4 +1,4 @@
-import type { CreateRateInput } from "../../../../context";
+import type { CreateRateInput } from "../../context";
 
 export type ProjectRateModalMode = "add" | "edit";
 

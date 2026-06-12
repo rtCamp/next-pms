@@ -1,4 +1,4 @@
-import type { CreateContractInput } from "../../../../context";
+import type { CreateContractInput } from "../../context";
 
 export type ContractModalMode = "add" | "edit";
 
