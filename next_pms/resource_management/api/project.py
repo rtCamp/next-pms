@@ -103,8 +103,7 @@ def get_resource_management_project_view_data(
     """
     permissions = resource_api_permissions_check()
     return _get_resource_management_project_view_data(
-        frappe.session.user,
-        permissions,
+        json.dumps(permissions),
         date,
         max_week,
         project_name,
@@ -121,10 +120,9 @@ def get_resource_management_project_view_data(
     )
 
 
-@redis_cache(user=True)
+@redis_cache()
 def _get_resource_management_project_view_data(
-    user: str,
-    permissions: dict,
+    permissions: str,
     date: str,
     max_week: int = 2,
     project_name: str | None = None,
@@ -139,6 +137,7 @@ def _get_resource_management_project_view_data(
     project_id: str | list | None = None,
     filters: str | list | None = None,
 ):
+    permissions = json.loads(permissions)
     if not permissions["write"]:
         is_billable = None
         customer = None
