@@ -651,19 +651,8 @@ def get_project_tracking(project: str):
     return _get_project_tracking(project)
 
 
-_PROJECT_TRACKING_CACHE_TTL = 3600
-
-
-def _project_tracking_cache_key(project: str) -> str:
-    return f"next_pms:project_tracking::{project}"
-
-
-def clear_project_tracking_cache(project: str) -> None:
-    frappe.cache().delete_value(_project_tracking_cache_key(project))
-
-
 def _get_project_tracking(project: str):
-    cache_key = _project_tracking_cache_key(project)
+    cache_key = f"next_pms:project_tracking::{project}"
     cached_val = frappe.cache().get_value(cache_key)
     if cached_val is not None:
         return cached_val
@@ -789,7 +778,7 @@ def _get_project_tracking(project: str):
         "project_rates": project_rates,
         "lifetime_values": lifetime_values,
     }
-    frappe.cache().set_value(cache_key, result, expires_in_sec=_PROJECT_TRACKING_CACHE_TTL)
+    frappe.cache().set_value(cache_key, result, expires_in_sec=3600)
     return result
 
 
