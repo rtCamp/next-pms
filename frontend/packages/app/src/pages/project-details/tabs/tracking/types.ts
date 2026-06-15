@@ -29,16 +29,16 @@ export type EditContractInput = {
 };
 
 export type ProjectFlatRate = {
-  flat_rate_hourly?: number;
-  flat_rate_valid_from?: string;
+  flat_rate_hourly: number | null;
+  flat_rate_valid_from: string | null;
 };
 
 export type ProjectRate = {
-  name?: string | null;
-  employee?: string;
-  employee_name?: string;
-  hourly_billing_rate?: number;
-  valid_from?: string;
+  name: string;
+  employee: string;
+  employee_name: string | null;
+  hourly_billing_rate: number | null;
+  valid_from: string | null;
 };
 
 export type TrackingTasks = {
@@ -48,10 +48,10 @@ export type TrackingTasks = {
 };
 
 export type TrackingInvoiceBurn = {
-  currency: string;
-  invoiced_and_paid: number;
-  invoiced_but_not_paid: number;
-  total_project_amount: number;
+  currency?: string | null;
+  invoiced_and_paid?: number;
+  invoiced_but_not_paid?: number;
+  total_project_amount: number | null;
 };
 
 export type TrackingContract = {
@@ -61,17 +61,23 @@ export type TrackingContract = {
   hours_purchased: number;
   consumed_hours: number;
   remaining_hours: number;
-  sales_order: string;
-  sales_invoice: string;
+  sales_order: string | null;
+  sales_invoice: string | null;
+};
+
+export type TrackingLifetimeValues = {
+  lifetime_value_to_date: number | null;
+  expected_lifetime_value: number | null;
+  lifetime_value_vs_billed_amount: number | null;
 };
 
 export type TrackingMessage = {
   company: string;
   billing_type: string;
-  currency: string;
-  total_project_value: number;
-  project_profit: number;
-  projected_profit_margin: number;
+  currency: string | null;
+  total_project_value: number | null;
+  project_profit: number | null;
+  projected_profit_margin: number | null;
   actual_cost_incurred: number;
   forecasted_cost_to_completion: number;
   expected_total_cost: number;
@@ -81,9 +87,7 @@ export type TrackingMessage = {
   invoice_burn: TrackingInvoiceBurn;
   contracts: TrackingContract[] | null;
   project_rates: [ProjectFlatRate, ...ProjectRate[]] | null;
-  lifetime_value_to_date: number;
-  expected_lifetime_value: number;
-  lifetime_value_vs_billed_amount: number;
+  lifetime_values: TrackingLifetimeValues | null;
 };
 
 export type Response = { message: TrackingMessage };

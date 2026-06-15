@@ -58,9 +58,7 @@ export const DEFAULT_TRACKING: Tracking = {
   },
   contracts: null,
   project_rates: null,
-  lifetime_value_to_date: 0,
-  expected_lifetime_value: 0,
-  lifetime_value_vs_billed_amount: 0,
+  lifetime_values: null,
 };
 
 export const TrackingContext = createContext<TrackingContextProps>({

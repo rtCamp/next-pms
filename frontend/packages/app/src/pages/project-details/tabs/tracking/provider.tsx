@@ -209,7 +209,7 @@ export function TrackingProvider({ children }: PropsWithChildren) {
   );
 
   const value = useMemo<TrackingContextProps>(() => {
-    const formatter = currencyFormat(tracking.currency);
+    const formatter = currencyFormat(tracking.currency ?? undefined);
 
     const contracts: ContractRow[] | null = tracking.contracts
       ? tracking.contracts.map((c, i) => ({
@@ -221,8 +221,8 @@ export function TrackingProvider({ children }: PropsWithChildren) {
           hoursBoughtRaw: c.hours_purchased,
           hoursUsed: `${c.consumed_hours}`,
           hoursLeft: `${c.remaining_hours}`,
-          salesOrder: c.sales_order,
-          salesInvoice: c.sales_invoice,
+          salesOrder: c.sales_order ?? "",
+          salesInvoice: c.sales_invoice ?? "",
         }))
       : null;
 
