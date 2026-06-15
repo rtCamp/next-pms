@@ -275,6 +275,81 @@ def normalize_project_view_filters(filters, allow_privileged: bool = True):
     return project_conditions, tag_conditions, is_billable_value
 
 
+def normalize_team_view_filters(
+    filters: str | list | None,
+    allow_privileged: bool = False,
+) -> tuple[list[list], list[list], int | None]:
+    """Validate a [field, operator, value] filter list for the team view.
+
+    Args:
+        filters: A JSON string or list of [field, operator, value] triplets. The
+            operator must be one of =, !=, like, not like. is_billable accepts only
+            = or != with a value of 0 or 1.
+        allow_privileged: When False (caller has no write permission) every condition
+            except employee_name is dropped.
+
+    Returns:
+        A tuple of:
+            - employee_conditions: [db_column, operator, value] for direct Employee columns.
+            - skill_conditions: [operator, value] to resolve against the Employee Skill doctype.
+            - is_billable_value: 0, 1, or None when no is_billable condition was requested.
+    """
+    field_map = {
+        "employee_name": "employee_name",
+        "business_unit": "custom_business_unit",
+        "designation": "designation",
+        "reports_to": "reports_to",
+        "employee_id": "name",
+    }
+    allowed_operators = ("=", "!=", "like", "not like")
+
+    employee_conditions = []
+    skill_conditions = []
+    is_billable_value = None
+
+    if not filters:
+        return employee_conditions, skill_conditions, is_billable_value
+
+    if isinstance(filters, str):
+        try:
+            filters = frappe.parse_json(filters)
+        except (ValueError, TypeError):
+            frappe.throw(frappe._("Invalid filters format. Expected a JSON list of [field, operator, value]."))
+
+    if not isinstance(filters, list):
+        frappe.throw(frappe._("Invalid filters format. Expected a list of [field, operator, value] conditions."))
+
+    for condition in filters:
+        if not isinstance(condition, list | tuple) or len(condition) != 3:
+            frappe.throw(frappe._("Each filter must be a [field, operator, value] triplet."))
+
+        field, operator, value = condition
+
+        if operator not in allowed_operators:
+            frappe.throw(frappe._("Unsupported filter operator: {0}").format(operator))
+
+        if field not in field_map and field not in ("skills", "is_billable"):
+            frappe.throw(frappe._("Filtering on field {0} is not supported.").format(field))
+
+        if not allow_privileged and field != "employee_name":
+            continue
+
+        if field == "is_billable":
+            if operator not in ("=", "!="):
+                frappe.throw(frappe._("Operator {0} is not supported for is_billable.").format(operator))
+            if value not in (0, 1):
+                frappe.throw(frappe._("is_billable accepts only 0 or 1, got: {0}").format(value))
+            is_billable_value = value if operator == "=" else 1 - value
+        elif field == "skills":
+            skill_conditions.append([operator, value])
+        else:
+            if operator in ("like", "not like"):
+                value = f"%{value}%"
+            employee_conditions.append([field_map[field], operator, value])
+
+    return employee_conditions, skill_conditions, is_billable_value
+
+
 def filter_project_list(
     project_name=None,
     customer=None,
