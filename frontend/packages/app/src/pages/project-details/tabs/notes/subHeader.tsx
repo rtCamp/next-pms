@@ -11,32 +11,23 @@ import { AddSm, SmallDown } from "@rtcamp/frappe-ui-react/icons";
  */
 import { ROUTES } from "@/lib/constant";
 import { CREATE_OPTIONS } from "./constants";
+import { useNotes } from "./context";
 import { TemplateDialog } from "./templateDialog";
-import type { NoteAuthorOption } from "./types";
 import { useProjectDetail } from "../../context";
 
-type NotesSubHeaderProps = {
-  titleInput: string;
-  descriptionInput: string;
-  author: string;
-  authorOptions: NoteAuthorOption[];
-  onTitleInputChange: (value: string) => void;
-  onDescriptionInputChange: (value: string) => void;
-  onAuthorChange: (value: string) => void;
-};
-
-export function NotesSubHeader({
-  titleInput,
-  descriptionInput,
-  author,
-  authorOptions,
-  onTitleInputChange,
-  onDescriptionInputChange,
-  onAuthorChange,
-}: NotesSubHeaderProps) {
+export function NotesSubHeader() {
   const navigate = useNavigate();
   const projectId = useProjectDetail((s) => s.projectId);
   const [isTemplateDialogOpen, setIsTemplateDialogOpen] = useState(false);
+  const titleInput = useNotes((s) => s.state.filters.title);
+  const descriptionInput = useNotes((s) => s.state.filters.description);
+  const author = useNotes((s) => s.state.filters.author);
+  const authorOptions = useNotes((s) => s.state.authorOptions);
+  const onTitleInputChange = useNotes((s) => s.actions.setTitleInput);
+  const onDescriptionInputChange = useNotes(
+    (s) => s.actions.setDescriptionInput,
+  );
+  const onAuthorChange = useNotes((s) => s.actions.setAuthor);
 
   return (
     <div className="flex flex-col gap-4">
