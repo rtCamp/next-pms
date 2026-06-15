@@ -16,9 +16,9 @@ import {
 import { parseFrappeErrorMsg } from "@/lib/utils";
 import { useProjectDetail } from "@/pages/project-details/context";
 import { TodosContext, type TodosContextProps } from "./context";
-import type { TodoStatus } from "./create-todo/schema";
-import type { CreateTodoInput, TodoDoc } from "./types";
-import { useTodosData } from "./useTodosData";
+import { TodoStatus } from "../create-todo/schema";
+import { CreateTodoInput, TodoDoc } from "../types";
+import { useTodosData } from "../useTodosData";
 
 export function TodosProvider({ children }: PropsWithChildren) {
   const projectId = useProjectDetail((s) => s.projectId);
