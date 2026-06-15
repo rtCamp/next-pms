@@ -1,14 +1,13 @@
 /**
  * External dependencies.
  */
-import { useState } from "react";
-import { Avatar, Button, TextEditor } from "@rtcamp/frappe-ui-react";
-import { Send } from "@rtcamp/frappe-ui-react/icons";
+import { useEffect, useState } from "react";
+import { Button, TextEditor } from "@rtcamp/frappe-ui-react";
 
 /**
  * Internal dependencies.
  */
-import { mergeClassNames as cn, stripTags } from "@/lib/utils";
+import { stripTags } from "@/lib/utils";
 
 type CommentInputProps = {
   onSubmit: (comment: string) => Promise<void>;
@@ -19,7 +18,9 @@ type CommentInputProps = {
   /** Clears the editor after a successful submit (bottom new-comment bar). */
   resetOnSubmit?: boolean;
   onCancel?: () => void;
-  avatar?: { label: string; image?: string | null };
+  submitLabel?: string;
+  collapsible?: boolean;
+  showToolbar?: boolean;
 };
 
 export function CommentInput({
@@ -30,14 +31,27 @@ export function CommentInput({
   autoFocus = false,
   resetOnSubmit = false,
   onCancel,
-  avatar,
+  submitLabel = "Post",
+  collapsible = false,
 }: CommentInputProps) {
   const [draft, setDraft] = useState(initialValue);
+  const [isExpanded, setIsExpanded] = useState(
+    !collapsible || autoFocus || stripTags(initialValue).trim().length > 0,
+  );
   // Remounting the editor is the reliable way to reset TipTap content, since
   // the `content` prop is only read on mount.
   const [editorKey, setEditorKey] = useState(0);
 
+  useEffect(() => {
+    setDraft(initialValue);
+  }, [initialValue]);
+
   const isEmpty = stripTags(draft).trim().length === 0;
+
+  const resetEditor = () => {
+    setDraft(initialValue);
+    setEditorKey((key) => key + 1);
+  };
 
   const handleSubmit = async () => {
     if (isEmpty || isSubmitting) return;
@@ -49,42 +63,53 @@ export function CommentInput({
       // doesn't raise an unhandled promise rejection.
       return;
     }
-    if (resetOnSubmit) {
+    if (resetOnSubmit || collapsible) {
       setDraft("");
-      setEditorKey((k) => k + 1);
+      setEditorKey((key) => key + 1);
+    }
+    if (collapsible) {
+      setIsExpanded(false);
     }
   };
 
+  const handleCancel = () => {
+    resetEditor();
+    if (collapsible) {
+      setIsExpanded(false);
+    }
+    onCancel?.();
+  };
+
+  if (!isExpanded) {
+    return (
+      <input
+        className="transition-colors w-full min-h-8 outline-none appearance-none text-base rounded h-7 border border-outline-gray-2 bg-surface-white placeholder-ink-gray-4 hover:border-outline-gray-3 hover:shadow-sm focus:bg-surface-white focus:border-outline-gray-4 focus:shadow-sm focus:ring-0 focus-visible:ring-2 focus-visible:ring-outline-gray-3 pl-2 pr-2 py-1.5"
+        onFocus={() => setIsExpanded(true)}
+        placeholder={placeholder}
+      />
+    );
+  }
+
   return (
-    <div className="flex items-start gap-2">
-      {avatar && (
-        <Avatar
-          size="sm"
-          shape="circle"
-          label={avatar.label}
-          image={avatar.image || undefined}
-        />
-      )}
-      <div className="flex w-full flex-col gap-2 rounded-md border border-outline-gray-2 p-2">
+    <div className="flex w-full flex-col gap-2">
+      <div className="flex w-full flex-col gap-2">
         <TextEditor
           key={editorKey}
           content={initialValue}
           editable={!isSubmitting}
-          autofocus={autoFocus}
+          autofocus={autoFocus || collapsible}
           fixedMenu={false}
           placeholder={placeholder}
           onChange={setDraft}
-          editorClass={cn(
-            "prose prose-sm max-w-none min-h-[2.5rem] text-ink-gray-8 focus:outline-none",
-          )}
+          editorClass="min-h-11 w-full max-w-full rounded-lg border border-outline-gray-2 bg-surface-white px-2 text-ink-gray-8 prose-sm prose-p:my-0 focus:outline-none"
         />
         <div className="flex items-center justify-end gap-2">
-          {onCancel && (
+          {(onCancel || collapsible) && (
             <Button
               variant="ghost"
               size="sm"
               label="Cancel"
-              onClick={onCancel}
+              onClick={handleCancel}
               disabled={isSubmitting}
             />
           )}
@@ -92,8 +117,7 @@ export function CommentInput({
             variant="solid"
             theme="gray"
             size="sm"
-            label="Send"
-            iconLeft={Send}
+            label={submitLabel}
             loading={isSubmitting}
             disabled={isEmpty || isSubmitting}
             onClick={() => void handleSubmit()}

@@ -85,6 +85,6 @@ export function useNoteComments(noteId: string) {
     addComment,
     updateComment,
     deleteComment,
-    isMutating: isAdding || isUpdating || isDeleting,
+    isUpdating: isAdding || isUpdating || isDeleting,
   };
 }

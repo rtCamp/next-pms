@@ -2,20 +2,19 @@
  * External dependencies.
  */
 import { useState } from "react";
-import { Avatar, Button, Dropdown, TextEditor } from "@rtcamp/frappe-ui-react";
-import { Delete, DotHorizontal, Edit1, Reply } from "@rtcamp/frappe-ui-react/icons";
+import { Avatar } from "@rtcamp/frappe-ui-react";
 
 /**
  * Internal dependencies.
  */
-import { formatRelativeTimeShort } from "@/lib/utils";
-import type { NoteComment } from "../../types";
+import { formatRelativeTimeShort, stripTags } from "@/lib/utils";
 import { CommentInput } from "./commentInput";
+import { ComponentActions } from "./componentActions";
 import type { CommentActions } from "./types";
+import type { NoteComment } from "../../types";
 
 type CommentItemProps = {
   comment: NoteComment;
-  /** Replies are capped at one level, so only root comments can be replied to. */
   canReply: boolean;
 } & CommentActions;
 
@@ -25,7 +24,7 @@ export function CommentItem({
   onReply,
   onEdit,
   onDelete,
-  isMutating,
+  isUpdating,
 }: CommentItemProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [isReplying, setIsReplying] = useState(false);
@@ -50,8 +49,8 @@ export function CommentItem({
   return (
     <div className="flex flex-col gap-2">
       <div className="flex items-center justify-between gap-4">
-        <div className="flex min-w-0 items-center gap-2">
-          <a href={authorHref} className="shrink-0">
+        <div className="flex flex-1 min-w-0 items-center gap-2">
+          <a href={authorHref} className="shrink-0 flex items-center">
             <Avatar
               size="sm"
               shape="circle"
@@ -59,7 +58,7 @@ export function CommentItem({
               image={comment.user_image || undefined}
             />
           </a>
-          <span className="truncate text-base font-medium text-ink-gray-8">
+          <span className="truncate text-base font-medium text-ink-gray-7">
             {comment.user_full_name}
           </span>
           <span className="shrink-0 text-base text-ink-gray-5">
@@ -72,64 +71,41 @@ export function CommentItem({
       {isEditing ? (
         <CommentInput
           initialValue={comment.comment}
-          placeholder="Edit comment..."
+          placeholder="Edit comment"
           autoFocus
-          isSubmitting={isMutating}
+          isSubmitting={isUpdating}
+          showToolbar
+          submitLabel="Save"
           onSubmit={handleEdit}
           onCancel={() => setIsEditing(false)}
         />
       ) : (
-        <TextEditor
-          content={comment.comment}
-          editable={false}
-          fixedMenu={false}
-          editorClass="prose prose-sm max-w-none text-ink-gray-8"
-        />
+        <div className="rounded-lg bg-surface-gray-1">
+          <p className="px-3 py-2.5 text-sm text-ink-gray-8">
+            {stripTags(comment.comment)}
+          </p>
+        </div>
       )}
 
       {!isEditing && (
-        <div className="flex items-center gap-1">
-          {canReply && (
-            <Button
-              variant="ghost"
-              size="sm"
-              label="Reply"
-              iconLeft={Reply}
-              disabled={isMutating}
-              onClick={() => setIsReplying((v) => !v)}
-            />
-          )}
-          <Dropdown
-            placement="right"
-            button={{ variant: "ghost", size: "sm", icon: DotHorizontal }}
-            options={[
-              {
-                key: "edit",
-                label: "Edit",
-                icon: <Edit1 className="size-4 mr-2" />,
-                disabled: isMutating,
-                onClick: () => setIsEditing(true),
-              },
-              {
-                key: "delete",
-                label: "Delete",
-                theme: "red",
-                icon: <Delete className="size-4 mr-2" />,
-                disabled: isMutating,
-                // The hook toasts on failure; swallow the rejection so this
-                // fire-and-forget call doesn't raise an unhandled rejection.
-                onClick: () => void onDelete(comment.name).catch(() => {}),
-              },
-            ]}
-          />
-        </div>
+        <ComponentActions
+          canReply={canReply}
+          onReply={() => setIsReplying((value) => !value)}
+          onEdit={() => setIsEditing(true)}
+          onDelete={() => {
+            void onDelete(comment.name).catch(() => {});
+          }}
+          isUpdating={isUpdating}
+        />
       )}
 
       {isReplying && (
         <CommentInput
-          placeholder="Reply..."
+          placeholder="Type a reply"
           autoFocus
-          isSubmitting={isMutating}
+          isSubmitting={isUpdating}
+          showToolbar
+          submitLabel="Post"
           onSubmit={handleReply}
           onCancel={() => setIsReplying(false)}
         />

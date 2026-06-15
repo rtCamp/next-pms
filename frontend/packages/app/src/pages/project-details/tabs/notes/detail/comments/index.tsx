@@ -3,12 +3,8 @@
  */
 import { Spinner } from "@next-pms/design-system/components";
 
-/**
- * Internal dependencies.
- */
-import { useUser } from "@/providers/user";
-import { CommentThread } from "./commentThread";
 import { CommentInput } from "./commentInput";
+import { CommentThread } from "./commentThread";
 import { useNoteComments } from "./useNoteComments";
 
 type NoteCommentsProps = {
@@ -16,8 +12,6 @@ type NoteCommentsProps = {
 };
 
 export function NoteComments({ noteId }: NoteCommentsProps) {
-  const userName = useUser((s) => s.state.userName);
-  const userImage = useUser((s) => s.state.image);
   const {
     comments,
     isLoading,
@@ -25,7 +19,7 @@ export function NoteComments({ noteId }: NoteCommentsProps) {
     addComment,
     updateComment,
     deleteComment,
-    isMutating,
+    isUpdating,
   } = useNoteComments(noteId);
 
   if (error) throw error;
@@ -35,26 +29,29 @@ export function NoteComments({ noteId }: NoteCommentsProps) {
       addComment(comment, parentName),
     onEdit: updateComment,
     onDelete: deleteComment,
-    isMutating,
+    isUpdating,
   };
 
   return (
-    <div className="mt-6 flex flex-col gap-4 border-t border-outline-gray-2 pt-6">
-      <h2 className="text-xl font-semibold text-ink-gray-8">Comments</h2>
+    <div className="mt-6 flex flex-col gap-5 border-t border-outline-gray-2 pt-6">
+      <h2 className="text-lg font-medium text-ink-gray-8">Comments</h2>
 
       {isLoading ? (
         <Spinner className="py-6" />
-      ) : (
-        comments.map((comment) => (
-          <CommentThread key={comment.name} comment={comment} {...actions} />
-        ))
-      )}
+      ) : comments?.length ? (
+        <div className="flex flex-col gap-3">
+          {comments.map((comment) => (
+            <CommentThread key={comment.name} comment={comment} {...actions} />
+          ))}
+        </div>
+      ) : null}
 
       <CommentInput
-        placeholder="Add a comment..."
+        placeholder="Type a comment"
+        submitLabel="Post"
+        collapsible
         resetOnSubmit
-        isSubmitting={isMutating}
-        avatar={{ label: userName, image: userImage }}
+        isSubmitting={isUpdating}
         onSubmit={(comment) => addComment(comment)}
       />
     </div>
