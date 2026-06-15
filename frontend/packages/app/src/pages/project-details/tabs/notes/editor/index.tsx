@@ -1,8 +1,8 @@
 /**
  * External dependencies.
  */
-import { useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useEffect, useRef, useState } from "react";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { Spinner } from "@next-pms/design-system/components";
 import {
   Avatar,
@@ -26,21 +26,24 @@ import { parseFrappeErrorMsg } from "@/lib/utils";
 import { useProjectDetail } from "@/pages/project-details/context";
 import { useUser } from "@/providers/user";
 import { noteFormSchema } from "./schema";
+import { TEMPLATE_PARAM } from "../constants";
 import { useNotes } from "../context";
 
 function NoteEditor() {
   const navigate = useNavigate();
-  const { projectId: routeProjectId = "", noteId } = useParams<{
-    projectId: string;
+  const { noteId } = useParams<{
     noteId?: string;
   }>();
   const mode: "edit" | "new" = noteId ? "edit" : "new";
+  const [searchParams] = useSearchParams();
+  const templateName = mode === "new" ? searchParams.get(TEMPLATE_PARAM) : null;
   const userName = useUser((s) => s.state.userName);
   const userImage = useUser((s) => s.state.image);
   const projectId = useProjectDetail((s) => s.projectId);
   const refresh = useNotes((s) => s.actions.refresh);
   const toast = useToasts();
   const [isFormInitialized, setIsFormInitialized] = useState(false);
+  const titleRef = useRef<HTMLInputElement>(null);
 
   const { call: createNote, loading: isCreating } = useFrappePostCall(
     "next_pms.timesheet.api.project_status_update.create_project_status_update",
@@ -53,12 +56,25 @@ function NoteEditor() {
     { name: noteId },
     mode === "edit" && noteId ? undefined : null,
   );
+  const {
+    data: templateData,
+    isLoading: isTemplateLoading,
+    error: templateError,
+  } = useFrappeGetCall(
+    "frappe.client.get",
+    { doctype: "Project Status Update Template", name: templateName },
+    templateName ? undefined : null,
+    { shouldRetryOnError: false },
+  );
 
   const form = useForm({
     defaultValues: {
       project: projectId,
-      title: noteData?.message.title || "",
-      description: noteData?.message.description || "",
+      title: noteData?.message.title || templateData?.message?.title || "",
+      description:
+        noteData?.message.description ||
+        templateData?.message?.description ||
+        "",
       status: "Publish",
     },
     validators: {
@@ -86,7 +102,7 @@ function NoteEditor() {
 
         toast.success("Note saved");
         await refresh();
-        navigate(`${ROUTES.project}/${routeProjectId}?tab=notes`);
+        navigate(`${ROUTES.project}/${projectId}?tab=notes`);
       } catch (err) {
         const error = parseFrappeErrorMsg(err as FrappeError);
         toast.error(error);
@@ -95,18 +111,27 @@ function NoteEditor() {
   });
 
   useEffect(() => {
-    if (mode === "edit" && noteData?.message) {
-      setIsFormInitialized(true);
-    } else if (mode === "new") {
+    const ready =
+      (mode === "edit" && !!noteData?.message) ||
+      (mode === "new" &&
+        (!templateName || !!templateData?.message || !!templateError));
+    if (ready) {
       setIsFormInitialized(true);
     }
-  }, [noteData, mode, form, projectId]);
+  }, [noteData, templateData, templateError, templateName, mode]);
 
-  const isInputDisabled = isCreating || isUpdating || isNoteLoading;
+  const isInputDisabled =
+    isCreating || isUpdating || isNoteLoading || isTemplateLoading;
+
+  useEffect(() => {
+    if (isFormInitialized && titleRef.current) {
+      titleRef.current.focus();
+    }
+  }, [isFormInitialized]);
 
   return (
     <div className="flex justify-center">
-      {isNoteLoading || !isFormInitialized ? (
+      {isNoteLoading || isTemplateLoading || !isFormInitialized ? (
         <Spinner className="py-10" />
       ) : (
         <div className="max-w-200 w-full p-4">
@@ -143,6 +168,7 @@ function NoteEditor() {
                 return (
                   <>
                     <input
+                      ref={titleRef}
                       value={field.state.value}
                       onChange={(e) => field.handleChange(e.target.value)}
                       disabled={isInputDisabled}

@@ -1,7 +1,8 @@
 /**
  * External dependencies.
  */
-import { useNavigate, useParams } from "react-router-dom";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Dropdown, Select, TextInput } from "@rtcamp/frappe-ui-react";
 import { AddSm, SmallDown } from "@rtcamp/frappe-ui-react/icons";
 
@@ -11,10 +12,13 @@ import { AddSm, SmallDown } from "@rtcamp/frappe-ui-react/icons";
 import { ROUTES } from "@/lib/constant";
 import { CREATE_OPTIONS } from "./constants";
 import { useNotes } from "./context";
+import { TemplateDialog } from "./templateDialog";
+import { useProjectDetail } from "../../context";
 
 export function NotesSubHeader() {
   const navigate = useNavigate();
-  const { projectId = "" } = useParams<{ projectId: string }>();
+  const projectId = useProjectDetail((s) => s.projectId);
+  const [isTemplateDialogOpen, setIsTemplateDialogOpen] = useState(false);
   const titleInput = useNotes((s) => s.state.filters.title);
   const descriptionInput = useNotes((s) => s.state.filters.description);
   const author = useNotes((s) => s.state.filters.author);
@@ -42,8 +46,7 @@ export function NotesSubHeader() {
             {
               label: "New from template",
               key: CREATE_OPTIONS.newFromTemplate,
-              onClick: () =>
-                console.info("[notes] New from template — coming soon"),
+              onClick: () => setIsTemplateDialogOpen(true),
             },
             {
               label: "New blank note",
@@ -78,6 +81,11 @@ export function NotesSubHeader() {
           options={authorOptions}
         />
       </div>
+      <TemplateDialog
+        open={isTemplateDialogOpen}
+        onOpenChange={setIsTemplateDialogOpen}
+        projectId={projectId}
+      />
     </div>
   );
 }
