@@ -14,6 +14,7 @@ from next_pms.next_projects.api.constant import (
     ALLOWED_ROLES,
     KANBAN_VIEW_FIELDS,
     LIST_VIEW_FIELDS,
+    PROJECT_TRACKING_CACHE_KEY_PREFIX,
     TASK_TRACKING_COMPLETED_STATUS,
     TASK_TRACKING_OPEN_STATUSES,
     TASK_TRACKING_TOTAL_STATUSES,
@@ -652,7 +653,7 @@ def get_project_tracking(project: str):
 
 
 def _get_project_tracking(project: str):
-    cache_key = f"next_pms:project_tracking::{project}"
+    cache_key = f"{PROJECT_TRACKING_CACHE_KEY_PREFIX}::{project}"
     cached_val = frappe.cache().get_value(cache_key)
     if cached_val is not None:
         return cached_val
