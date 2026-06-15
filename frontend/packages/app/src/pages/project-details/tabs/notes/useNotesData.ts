@@ -2,7 +2,7 @@
  * External dependencies.
  */
 import { useMemo } from "react";
-import { useFrappeGetDocList } from "frappe-react-sdk";
+import { useFrappeGetCall, useFrappeGetDocList } from "frappe-react-sdk";
 
 /**
  * Internal dependencies.
@@ -37,15 +37,19 @@ export function useNotesData(filters: NoteFilters) {
     return base;
   }, [projectId, filters.author, filters.title, filters.description]);
 
-  const { data, isLoading, error, mutate } = useFrappeGetDocList<Note>(
-    "Project Status Update",
+  const { data, isLoading, error, mutate } = useFrappeGetCall<{
+    message: Note[];
+  }>(
+    "frappe.client.get_list",
     {
+      doctype: "Project Status Update",
       fields: [
         "name",
         "title",
         "description",
         "status",
         "project",
+        "pinned",
         "creation",
         "modified",
         "last_edited_at",
@@ -53,14 +57,11 @@ export function useNotesData(filters: NoteFilters) {
         "owner",
         "modified_by",
       ],
-      filters: frappeFilters as never,
-      orderBy: {
-        field: "creation",
-        order: "desc",
-      },
-      limit: 500,
+      filters: frappeFilters,
+      order_by: "pinned desc, creation desc",
+      limit_page_length: 500,
     },
-    undefined,
+    projectId ? undefined : null,
     {
       keepPreviousData: true,
     },
@@ -108,13 +109,14 @@ export function useNotesData(filters: NoteFilters) {
   );
 
   const notes = useMemo<Note[]>(() => {
-    if (!data?.length) return [];
+    if (!data?.message?.length) return [];
 
-    return data.map((note) => {
+    return data.message.map((note) => {
       const authorDetails = userMap[note.owner];
 
       return {
         ...note,
+        pinned: Boolean(note.pinned),
         owner_full_name: authorDetails?.full_name || note.owner,
         owner_image: authorDetails?.user_image ?? null,
       };

@@ -9,6 +9,7 @@ import {
   Payments,
   People,
   RightChevron,
+  Time,
 } from "@rtcamp/frappe-ui-react/icons";
 
 /**
@@ -80,6 +81,16 @@ export function MemberHoverCard({ member }: { member: AboutMember }) {
             </span>
           </div>
         )}
+        {member.loggedHours !== undefined &&
+          member.totalHoursPurchased !== undefined && (
+            <div className="flex items-center gap-2">
+              <Time className="size-4 shrink-0 text-ink-gray-5" />
+              <span className="truncate text-sm font-light text-ink-gray-6">
+                {Math.round(member.loggedHours)}/
+                {Math.round(member.totalHoursPurchased)}h
+              </span>
+            </div>
+          )}
         {email && (
           <div className="flex items-center gap-2">
             <Email className="size-4 shrink-0 text-ink-gray-5" />

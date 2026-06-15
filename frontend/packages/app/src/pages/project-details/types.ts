@@ -35,6 +35,7 @@ export interface ProjectUser {
 }
 
 export interface ProjectBillingTeam {
+  name: string;
   employee: string;
   user_name?: string;
   hourly_billing_rate?: number;
@@ -42,6 +43,7 @@ export interface ProjectBillingTeam {
 }
 
 export interface ProjectBudget {
+  name: string;
   start_date: string;
   end_date: string;
   hours_purchased: number;

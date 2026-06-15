@@ -6,73 +6,35 @@ import { createContext, useContextSelector } from "use-context-selector";
 /**
  * Internal dependencies.
  */
-import type { ContractRow, RateRow } from "./types";
-
-export type ProjectFlatRate = {
-  flat_rate_hourly?: number;
-  flat_rate_valid_from?: string;
-};
-
-export type ProjectRate = {
-  employee?: string;
-  employee_name?: string;
-  hourly_billing_rate?: number;
-  valid_from?: string;
-};
-
-export type TrackingTasks = {
-  total: number;
-  open: number;
-  completed: number;
-};
-
-export type TrackingInvoiceBurn = {
-  currency: string;
-  invoiced_and_paid: number;
-  invoiced_but_not_paid: number;
-  total_project_amount: number;
-};
-
-export type TrackingContract = {
-  start_date: string;
-  end_date: string;
-  hours_purchased: number;
-  consumed_hours: number;
-  remaining_hours: number;
-  sales_order: string;
-  sales_invoice: string;
-};
-
-export type TrackingMessage = {
-  company: string;
-  billing_type: string;
-  currency: string;
-  total_project_value: number;
-  project_profit: number;
-  projected_profit_margin: number;
-  actual_cost_incurred: number;
-  forecasted_cost_to_completion: number;
-  expected_total_cost: number;
-  hours_utilised: number;
-  hours_remaining: number | null;
-  tasks: TrackingTasks;
-  invoice_burn: TrackingInvoiceBurn;
-  contracts: TrackingContract[] | null;
-  project_rates: [ProjectFlatRate, ...ProjectRate[]] | null;
-  lifetime_value_to_date: number;
-  expected_lifetime_value: number;
-  lifetime_value_vs_billed_amount: number;
-};
-
-export type Response = { message: TrackingMessage };
-
-export type Tracking = TrackingMessage;
+import type {
+  ContractRow,
+  RateRow,
+  Tracking,
+  CreateRateInput,
+  EditRateInput,
+  CreateContractInput,
+  EditContractInput,
+} from "./types";
 
 export interface TrackingContextProps {
   tracking: Tracking;
   contracts: ContractRow[] | null;
   rates: RateRow[] | null;
   flatRate: { amount: string; date: string } | undefined;
+  deleteRate: (name: string) => Promise<void>;
+  createRate: (input: CreateRateInput) => Promise<void>;
+  editRate: (input: EditRateInput) => Promise<void>;
+  editingRate: RateRow | null;
+  setEditingRate: (row: RateRow | null) => void;
+  addRateModalOpen: boolean;
+  setAddRateModalOpen: (open: boolean) => void;
+  createContract: (input: CreateContractInput) => Promise<void>;
+  editContract: (input: EditContractInput) => Promise<void>;
+  deleteContract: (name: string) => Promise<void>;
+  editingContract: ContractRow | null;
+  setEditingContract: (row: ContractRow | null) => void;
+  addContractModalOpen: boolean;
+  setAddContractModalOpen: (open: boolean) => void;
 }
 
 export const DEFAULT_TRACKING: Tracking = {
@@ -96,9 +58,7 @@ export const DEFAULT_TRACKING: Tracking = {
   },
   contracts: null,
   project_rates: null,
-  lifetime_value_to_date: 0,
-  expected_lifetime_value: 0,
-  lifetime_value_vs_billed_amount: 0,
+  lifetime_values: null,
 };
 
 export const TrackingContext = createContext<TrackingContextProps>({
@@ -106,6 +66,20 @@ export const TrackingContext = createContext<TrackingContextProps>({
   contracts: [],
   rates: [],
   flatRate: undefined,
+  deleteRate: async () => {},
+  createRate: async () => {},
+  editRate: async () => {},
+  editingRate: null,
+  setEditingRate: () => {},
+  addRateModalOpen: false,
+  setAddRateModalOpen: () => {},
+  createContract: async () => {},
+  editContract: async () => {},
+  deleteContract: async () => {},
+  editingContract: null,
+  setEditingContract: () => {},
+  addContractModalOpen: false,
+  setAddContractModalOpen: () => {},
 });
 
 export const useTracking = <T>(selector: (state: TrackingContextProps) => T) =>

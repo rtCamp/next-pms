@@ -177,7 +177,7 @@ function OverviewForm() {
 
       <form.Field name="summary">
         {(field) => (
-          <OverviewSection title="Summary">
+          <OverviewSection title="Details">
             <TextEditor
               editable={isEditing && !submitting}
               content={field.state.value}

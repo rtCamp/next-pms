@@ -16,9 +16,9 @@ export function InvoiceBurnCell() {
   const projectId = useProjectDetail((state) => state.projectId);
   const invoiceBurn = useTracking((state) => state.tracking.invoice_burn);
   const tracking = useTracking((state) => state.tracking);
-  const formatter = currencyFormat(tracking.currency);
-  const invoicedPaid = invoiceBurn.invoiced_and_paid;
-  const invoicedUnpaid = invoiceBurn.invoiced_but_not_paid;
+  const formatter = currencyFormat(tracking.currency ?? undefined);
+  const invoicedPaid = invoiceBurn.invoiced_and_paid ?? 0;
+  const invoicedUnpaid = invoiceBurn.invoiced_but_not_paid ?? 0;
   const totalAmount = invoiceBurn.total_project_amount;
 
   return (
@@ -58,7 +58,7 @@ export function InvoiceBurnCell() {
         <LegendItem
           className="bg-surface-gray-3"
           label="Total Project Amount"
-          value={formatter.format(totalAmount)}
+          value={formatter.format(totalAmount ?? 0)}
         />
       </div>
     </div>

@@ -260,6 +260,7 @@ doc_events = {
     "Project": {
         "on_update": [
             "next_pms.project_currency.doc_events.project.on_update",
+            "next_pms.next_projects.doc_events.project.clear_cache",
             "next_pms.resource_management.doctype.resource_allocation.resource_allocation.clear_cache",
         ],
         "on_trash": ["next_pms.resource_management.doctype.resource_allocation.resource_allocation.clear_cache"],
