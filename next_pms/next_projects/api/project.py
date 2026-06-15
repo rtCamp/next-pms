@@ -8,13 +8,13 @@ import frappe
 from frappe import get_list, only_for, whitelist
 from frappe.query_builder.functions import Coalesce, Count, Sum
 from frappe.utils import cint, flt, getdate, today
-from frappe.utils.caching import redis_cache
 
 from next_pms.api.utils import error_logger
 from next_pms.next_projects.api.constant import (
     ALLOWED_ROLES,
     KANBAN_VIEW_FIELDS,
     LIST_VIEW_FIELDS,
+    PROJECT_TRACKING_CACHE_KEY_PREFIX,
     TASK_TRACKING_COMPLETED_STATUS,
     TASK_TRACKING_OPEN_STATUSES,
     TASK_TRACKING_TOTAL_STATUSES,
@@ -652,8 +652,12 @@ def get_project_tracking(project: str):
     return _get_project_tracking(project)
 
 
-@redis_cache()
 def _get_project_tracking(project: str):
+    cache_key = f"{PROJECT_TRACKING_CACHE_KEY_PREFIX}::{project}"
+    cached_val = frappe.cache().get_value(cache_key)
+    if cached_val is not None:
+        return cached_val
+
     p = frappe.db.get_value(
         "Project",
         project,
@@ -752,7 +756,7 @@ def _get_project_tracking(project: str):
             else None,
         }
 
-    return {
+    result = {
         "company": p.company,
         "billing_type": billing_type,
         "currency": p.custom_currency,
@@ -773,6 +777,8 @@ def _get_project_tracking(project: str):
         "project_rates": project_rates,
         "lifetime_values": lifetime_values,
     }
+    frappe.cache().set_value(cache_key, result, expires_in_sec=3600)
+    return result
 
 
 @whitelist(methods=["GET"])

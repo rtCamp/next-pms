@@ -1,6 +1,8 @@
 # Permission helpers
 ALLOWED_ROLES = ["Projects Manager", "Projects User", "Timesheet Manager"]
 
+PROJECT_TRACKING_CACHE_KEY_PREFIX = "next_pms:project_tracking"
+
 # Task.status values counted in get_project_tracking task totals (excludes Template, Cancelled)
 TASK_TRACKING_TOTAL_STATUSES = (
     "Open",
