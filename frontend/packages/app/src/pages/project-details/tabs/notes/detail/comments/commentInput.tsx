@@ -15,7 +15,6 @@ type CommentInputProps = {
   initialValue?: string;
   isSubmitting?: boolean;
   autoFocus?: boolean;
-  /** Clears the editor after a successful submit (bottom new-comment bar). */
   resetOnSubmit?: boolean;
   onCancel?: () => void;
   submitLabel?: string;
@@ -38,12 +37,11 @@ export function CommentInput({
   const [isExpanded, setIsExpanded] = useState(
     !collapsible || autoFocus || stripTags(initialValue).trim().length > 0,
   );
-  // Remounting the editor is the reliable way to reset TipTap content, since
-  // the `content` prop is only read on mount.
   const [editorKey, setEditorKey] = useState(0);
 
   useEffect(() => {
     setDraft(initialValue);
+    setEditorKey((key) => key + 1);
   }, [initialValue]);
 
   const isEmpty = stripTags(draft).trim().length === 0;
@@ -80,6 +78,7 @@ export function CommentInput({
     onCancel?.();
   };
 
+  // Dummy input to avoid rendering the heavy TextEditor component.
   if (!isExpanded) {
     return (
       <input
@@ -95,7 +94,7 @@ export function CommentInput({
       <div className="flex w-full flex-col gap-2">
         <TextEditor
           key={editorKey}
-          content={initialValue}
+          content={draft}
           editable={!isSubmitting}
           autofocus={autoFocus || collapsible}
           fixedMenu={false}

@@ -1,7 +1,7 @@
 /**
  * External dependencies.
  */
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { Avatar } from "@rtcamp/frappe-ui-react";
 
 /**
@@ -36,15 +36,21 @@ export function CommentItem({
     true,
   );
 
-  const handleEdit = async (value: string) => {
-    await onEdit(comment.name, value);
-    setIsEditing(false);
-  };
+  const handleEdit = useCallback(
+    async (value: string) => {
+      await onEdit(comment.name, value);
+      setIsEditing(false);
+    },
+    [comment.name, onEdit],
+  );
 
-  const handleReply = async (value: string) => {
-    await onReply(comment.name, value);
-    setIsReplying(false);
-  };
+  const handleReply = useCallback(
+    async (value: string) => {
+      await onReply(comment.name, value);
+      setIsReplying(false);
+    },
+    [comment.name, onReply],
+  );
 
   return (
     <div className="flex flex-col gap-2">
@@ -89,8 +95,9 @@ export function CommentItem({
 
       {!isEditing && (
         <ComponentActions
-          canReply={canReply}
-          onReply={() => setIsReplying((value) => !value)}
+          onReply={
+            canReply ? () => setIsReplying((value) => !value) : undefined
+          }
           onEdit={() => setIsEditing(true)}
           onDelete={() => {
             void onDelete(comment.name).catch(() => {});

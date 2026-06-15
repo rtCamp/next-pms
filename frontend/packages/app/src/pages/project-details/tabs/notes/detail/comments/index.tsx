@@ -3,6 +3,9 @@
  */
 import { Spinner } from "@next-pms/design-system/components";
 
+/**
+ * Internal dependencies.
+ */
 import { CommentInput } from "./commentInput";
 import { CommentThread } from "./commentThread";
 import { useNoteComments } from "./useNoteComments";
