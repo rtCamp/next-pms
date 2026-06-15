@@ -41,7 +41,7 @@ def get_resource_management_project_view_data(
 
     Builds the filtered, paginated list of projects and, for each project, the per-week and per-date resource-allocation breakdown over the requested window.
 
-    All filter arguments are ANDed together. Callers without write permission have every filter except project_name ignored (both the dedicated params and the filters conditions).
+    Callers without write permission have every filter except project_name ignored (both the dedicated params and the filters conditions).
 
     Args:
         date: Anchor date (YYYY-MM-DD) for the allocation window; the window spans
@@ -70,13 +70,14 @@ def get_resource_management_project_view_data(
         page_length: Maximum number of projects to return in this page. Defaults to 10.
         start: Zero-based offset of the first project to return (pagination). Defaults
             to 0.
-        project_id: Project name(s) to restrict the result to, matched against
+        project_id: Project id(s) to restrict the result to, matched against
             Project.name (IN). Accepts a single value or a list/JSON string.
-            Additive with every other filter. Ignored for callers without write
+            When provided, other dedicated project-list filter params are ignored
+            (except composite filters). Ignored for callers without write
             permission.
         filters: A JSON list (or already-parsed list) of [field, operator, value]
-            conditions, ANDed with each other and with the dedicated params above.
-            Allowed operators: =, !=, like, not like. Supported fields:
+            conditions, ANDed with each other and with the dedicated params above
+            (composite filters still apply when project_id is set). Allowed operators: =, !=, like, not like. Supported fields:
             project_name, customer, billing_type, project_type,
             project_manager, project_id, tag, is_billable. tag is
             resolved against the Tag Link doctype; is_billable accepts only
