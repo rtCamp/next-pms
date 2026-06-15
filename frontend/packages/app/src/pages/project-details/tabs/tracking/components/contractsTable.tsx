@@ -15,12 +15,26 @@ import { AddSm } from "@rtcamp/frappe-ui-react/icons";
  * Internal dependencies.
  */
 import { mergeClassNames } from "@/lib/utils";
+import { useProjectDetail } from "../../../context";
 import { CONTRACT_COLUMNS } from "../constants";
 import { useTracking } from "../context";
 import { ActionsCell } from "./actionsCell";
+import { ContractModal } from "./contractModal";
 
 export function ContractsTable() {
   const rows = useTracking((state) => state.contracts);
+  const createContract = useTracking((state) => state.createContract);
+  const editContract = useTracking((state) => state.editContract);
+  const deleteContract = useTracking((state) => state.deleteContract);
+  const editingContract = useTracking((state) => state.editingContract);
+  const setEditingContract = useTracking((state) => state.setEditingContract);
+  const addContractModalOpen = useTracking(
+    (state) => state.addContractModalOpen,
+  );
+  const setAddContractModalOpen = useTracking(
+    (state) => state.setAddContractModalOpen,
+  );
+  const projectId = useProjectDetail((state) => state.projectId);
 
   if (!rows) return null;
 
@@ -30,7 +44,11 @@ export function ContractsTable() {
         <span className="text-base font-semibold text-ink-gray-8">
           Contracts
         </span>
-        <Button icon={AddSm} variant="subtle" />
+        <Button
+          icon={AddSm}
+          variant="subtle"
+          onClick={() => setAddContractModalOpen(true)}
+        />
       </div>
       <ListView
         columns={CONTRACT_COLUMNS}
@@ -59,7 +77,10 @@ export function ContractsTable() {
                       key={column.key}
                       className="flex items-center justify-end"
                     >
-                      <ActionsCell onEdit={() => {}} onDelete={() => {}} />
+                      <ActionsCell
+                        onEdit={() => setEditingContract(row)}
+                        onDelete={() => deleteContract(row.name)}
+                      />
                     </div>
                   ) : (
                     <div
@@ -80,6 +101,43 @@ export function ContractsTable() {
           )}
         </ListRows>
       </ListView>
+      <ContractModal
+        open={addContractModalOpen}
+        onOpenChange={setAddContractModalOpen}
+        onSubmit={createContract}
+        projectId={projectId}
+      />
+      <ContractModal
+        mode="edit"
+        open={!!editingContract}
+        onOpenChange={(next) => {
+          if (!next) setEditingContract(null);
+        }}
+        projectId={projectId}
+        initialValues={
+          editingContract
+            ? {
+                startDate: editingContract.startDate,
+                endDate: editingContract.endDate,
+                hoursBought: String(editingContract.hoursBoughtRaw),
+                salesOrder: editingContract.salesOrder,
+                salesInvoice: editingContract.salesInvoice,
+              }
+            : undefined
+        }
+        onSubmit={async (input) => {
+          if (!editingContract) return;
+          await editContract({
+            name: editingContract.name,
+            startDate: input.startDate,
+            endDate: input.endDate,
+            hoursBought: input.hoursBought,
+            salesOrder: input.salesOrder,
+            salesInvoice: input.salesInvoice,
+          });
+          setEditingContract(null);
+        }}
+      />
     </div>
   );
 }

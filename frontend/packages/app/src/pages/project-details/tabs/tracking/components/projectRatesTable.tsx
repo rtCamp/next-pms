@@ -18,12 +18,20 @@ import { AddSm } from "@rtcamp/frappe-ui-react/icons";
 import { RATE_COLUMNS } from "../constants";
 import { useTracking } from "../context";
 import { ActionsCell } from "./actionsCell";
+import { ProjectRateModal } from "./projectRateModal";
 
 const gridTemplateColumns = RATE_COLUMNS.map((c) => c.width).join(" ");
 
 export function ProjectRatesTable() {
   const rows = useTracking((state) => state.rates);
   const flatRate = useTracking((state) => state.flatRate);
+  const deleteRate = useTracking((state) => state.deleteRate);
+  const createRate = useTracking((state) => state.createRate);
+  const editRate = useTracking((state) => state.editRate);
+  const editingRate = useTracking((state) => state.editingRate);
+  const setEditingRate = useTracking((state) => state.setEditingRate);
+  const addRateModalOpen = useTracking((state) => state.addRateModalOpen);
+  const setAddRateModalOpen = useTracking((state) => state.setAddRateModalOpen);
 
   if (!rows) return null;
 
@@ -33,7 +41,11 @@ export function ProjectRatesTable() {
         <span className="text-base font-semibold text-ink-gray-8">
           Project rates
         </span>
-        <Button icon={AddSm} variant="subtle" />
+        <Button
+          icon={AddSm}
+          variant="subtle"
+          onClick={() => setAddRateModalOpen(true)}
+        />
       </div>
       <ListView
         columns={RATE_COLUMNS}
@@ -65,9 +77,6 @@ export function ProjectRatesTable() {
               <div className="truncate text-base text-ink-gray-6 tabular-nums">
                 {flatRate.date}
               </div>
-              <div className="flex items-center justify-end">
-                <ActionsCell onEdit={() => {}} onDelete={() => {}} />
-              </div>
             </div>
           )}
           {rows.length === 0 && !flatRate ? (
@@ -78,9 +87,13 @@ export function ProjectRatesTable() {
             rows.map((row, i) => (
               <ListRow key={row.id} row={row} isLastRow={i === rows.length - 1}>
                 <div className="flex min-w-0 items-center gap-2">
-                  <Avatar size="xs" label={row.name} image={row.image ?? ""} />
+                  <Avatar
+                    size="xs"
+                    label={row.employeeName}
+                    image={row.image ?? ""}
+                  />
                   <span className="truncate text-base font-medium text-ink-gray-7">
-                    {row.name}
+                    {row.employeeName}
                   </span>
                 </div>
                 <div className="truncate text-right text-base text-ink-gray-6 tabular-nums">
@@ -90,13 +103,47 @@ export function ProjectRatesTable() {
                   {row.date}
                 </div>
                 <div className="flex items-center justify-end">
-                  <ActionsCell onEdit={() => {}} onDelete={() => {}} />
+                  <ActionsCell
+                    onEdit={() => setEditingRate(row)}
+                    onDelete={() => deleteRate(row.name)}
+                  />
                 </div>
               </ListRow>
             ))
           )}
         </ListRows>
       </ListView>
+      <ProjectRateModal
+        open={addRateModalOpen}
+        onOpenChange={setAddRateModalOpen}
+        onSubmit={createRate}
+      />
+      <ProjectRateModal
+        mode="edit"
+        open={!!editingRate}
+        onOpenChange={(next) => {
+          if (!next) setEditingRate(null);
+        }}
+        initialValues={
+          editingRate
+            ? {
+                employee: editingRate.employee,
+                hourlyRate: String(editingRate.hourlyRate),
+                validFrom: editingRate.date,
+              }
+            : undefined
+        }
+        onSubmit={async (input) => {
+          if (!editingRate) return;
+          await editRate({
+            name: editingRate.name,
+            employee: input.employee ?? "",
+            hourlyRate: input.hourlyRate,
+            validFrom: input.validFrom,
+          });
+          setEditingRate(null);
+        }}
+      />
     </div>
   );
 }
