@@ -33,7 +33,7 @@ interface TeamFeedbackAPIResult {
   has_more: boolean;
 }
 
-const FEEDBACK_PAGE_SIZE = 20;
+const FEEDBACK_PAGE_SIZE = 2;
 
 export function useTeamFeedbackList() {
   const projectId = useProjectDetail((s) => s.projectId);
