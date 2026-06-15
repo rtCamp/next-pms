@@ -656,8 +656,6 @@ def _get_project_tracking(project: str):
     cached_val = frappe.cache().get_value(cache_key)
     if cached_val is not None:
         return cached_val
-    if frappe.cache().exists(cache_key):
-        return None
 
     p = frappe.db.get_value(
         "Project",
