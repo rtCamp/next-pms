@@ -9,9 +9,9 @@ import { Plus } from "lucide-react";
 /**
  * Internal dependencies.
  */
-import { useTodos } from "./context";
 import { CreateTodoModal } from "./create-todo";
 import { TodosProvider } from "./provider";
+import { useTodos } from "./provider/context";
 import { TodoRow } from "./todoRow";
 import type { Todo } from "./types";
 
@@ -41,7 +41,7 @@ function TodoContent() {
         <Button
           variant="solid"
           label="New ToDo"
-          iconLeft={Plus}
+          iconLeft={() => <Plus size={16} />}
           onClick={() => setIsCreateOpen(true)}
         />
       </div>

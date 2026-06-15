@@ -21,7 +21,6 @@ import { useForm } from "@tanstack/react-form";
  */
 import { useUserLookup } from "@/hooks/useUserLookup";
 import { useUser } from "@/providers/user";
-import { useTodos } from "../context";
 import {
   PRIORITY_OPTIONS,
   STATUS_OPTIONS,
@@ -30,6 +29,7 @@ import {
   type TodoPriority,
 } from "./schema";
 import type { CreateTodoModalProps } from "./types";
+import { useTodos } from "../provider/context";
 
 const PRIORITY_DOT_CLASS: Record<TodoPriority, string> = {
   Low: "bg-surface-green-5",
@@ -93,7 +93,7 @@ export function CreateTodoModal({ open, onClose, todo }: CreateTodoModalProps) {
 
   useEffect(() => {
     if (open) form.reset(initialValues);
-  }, [open, initialValues]);
+  }, [form, open, initialValues]);
 
   const closeModal = useCallback(() => {
     onClose();

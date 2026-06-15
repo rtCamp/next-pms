@@ -8,8 +8,8 @@ import { format, parseISO } from "date-fns";
 /**
  * Internal dependencies.
  */
-import { useTodos } from "./context";
 import type { TodoPriority } from "./create-todo/schema";
+import { useTodos } from "./provider/context";
 import type { Todo } from "./types";
 
 const PRIORITY_DOT_CLASS: Record<TodoPriority, string> = {
