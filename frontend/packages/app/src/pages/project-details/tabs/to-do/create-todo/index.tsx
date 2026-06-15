@@ -31,7 +31,7 @@ import { useUser } from "@/providers/user";
 import {
   PRIORITY_OPTIONS,
   STATUS_OPTIONS,
-  createTodoSchema,
+  buildCreateTodoSchema,
   type CreateTodoValues,
   type TodoPriority,
   type TodoStatus,
@@ -83,6 +83,9 @@ export function CreateTodoModal({ open, onClose, todo }: CreateTodoModalProps) {
   const isCreating = useTodos((c) => c.state.isCreating);
   const [assigneeSearch, setAssigneeSearch] = useState("");
 
+  const hasTodoCustomFields = Boolean(
+    window.frappe?.boot?.has_todo_custom_fields,
+  );
   const isEditMode = Boolean(todo);
 
   const emptyValues: CreateTodoValues = useMemo(
@@ -111,9 +114,14 @@ export function CreateTodoModal({ open, onClose, todo }: CreateTodoModalProps) {
     };
   }, [todo, emptyValues]);
 
+  const todoSchema = useMemo(
+    () => buildCreateTodoSchema(hasTodoCustomFields),
+    [hasTodoCustomFields],
+  );
+
   const form = useForm({
     defaultValues: initialValues,
-    validators: { onSubmit: createTodoSchema },
+    validators: { onSubmit: todoSchema },
     onSubmit: async ({ value }) => {
       const doc =
         isEditMode && todo
@@ -179,24 +187,26 @@ export function CreateTodoModal({ open, onClose, todo }: CreateTodoModalProps) {
       }
     >
       <div className="-mt-2 space-y-4">
-        <form.Field
-          name="title"
-          children={(field) => (
-            <div className="flex flex-col gap-1.5">
-              <label className="block text-base text-ink-gray-5">Title</label>
-              <TextInput
-                size="md"
-                variant="outline"
-                placeholder="Add a title"
-                value={field.state.value}
-                onChange={(event) => field.handleChange(event.target.value)}
-              />
-              {!field.state.meta.isValid && (
-                <ErrorMessage message={field.state.meta.errors[0]?.message} />
-              )}
-            </div>
-          )}
-        />
+        {hasTodoCustomFields && (
+          <form.Field
+            name="title"
+            children={(field) => (
+              <div className="flex flex-col gap-1.5">
+                <label className="block text-base text-ink-gray-5">Title</label>
+                <TextInput
+                  size="md"
+                  variant="outline"
+                  placeholder="Add a title"
+                  value={field.state.value}
+                  onChange={(event) => field.handleChange(event.target.value)}
+                />
+                {!field.state.meta.isValid && (
+                  <ErrorMessage message={field.state.meta.errors[0]?.message} />
+                )}
+              </div>
+            )}
+          />
+        )}
 
         <form.Field
           name="description"
@@ -266,63 +276,71 @@ export function CreateTodoModal({ open, onClose, todo }: CreateTodoModalProps) {
             )}
           />
 
-          <form.Field
-            name="startAt"
-            children={(field) => (
-              <div className="flex flex-col gap-1">
-                <DateTimePicker
-                  value={field.state.value}
-                  onChange={(val) => field.handleChange(val)}
-                  placeholder="Start"
-                >
-                  {({ displayValue }) => (
-                    <Button
-                      type="button"
-                      variant="subtle"
-                      iconRight={Calendar}
-                      className="gap-2 h-8"
+          {hasTodoCustomFields && (
+            <>
+              <form.Field
+                name="startAt"
+                children={(field) => (
+                  <div className="flex flex-col gap-1">
+                    <DateTimePicker
+                      value={field.state.value}
+                      onChange={(val) => field.handleChange(val)}
+                      placeholder="Start"
                     >
-                      <span className="truncate text-sm text-ink-gray-7">
-                        {displayValue || "Start"}
-                      </span>
-                    </Button>
-                  )}
-                </DateTimePicker>
-                {!field.state.meta.isValid && (
-                  <ErrorMessage message={field.state.meta.errors[0]?.message} />
+                      {({ displayValue }) => (
+                        <Button
+                          type="button"
+                          variant="subtle"
+                          iconRight={Calendar}
+                          className="gap-2 h-8"
+                        >
+                          <span className="truncate text-sm text-ink-gray-7">
+                            {displayValue || "Start"}
+                          </span>
+                        </Button>
+                      )}
+                    </DateTimePicker>
+                    {!field.state.meta.isValid && (
+                      <ErrorMessage
+                        message={field.state.meta.errors[0]?.message}
+                      />
+                    )}
+                  </div>
                 )}
-              </div>
-            )}
-          />
+              />
 
-          <form.Field
-            name="endAt"
-            children={(field) => (
-              <div className="flex flex-col gap-1">
-                <DateTimePicker
-                  value={field.state.value}
-                  onChange={(val) => field.handleChange(val)}
-                  placeholder="End"
-                >
-                  {({ displayValue }) => (
-                    <Button
-                      type="button"
-                      variant="subtle"
-                      iconRight={Calendar}
-                      className="gap-2 h-8"
+              <form.Field
+                name="endAt"
+                children={(field) => (
+                  <div className="flex flex-col gap-1">
+                    <DateTimePicker
+                      value={field.state.value}
+                      onChange={(val) => field.handleChange(val)}
+                      placeholder="End"
                     >
-                      <span className="truncate text-sm text-ink-gray-7">
-                        {displayValue || "End"}
-                      </span>
-                    </Button>
-                  )}
-                </DateTimePicker>
-                {!field.state.meta.isValid && (
-                  <ErrorMessage message={field.state.meta.errors[0]?.message} />
+                      {({ displayValue }) => (
+                        <Button
+                          type="button"
+                          variant="subtle"
+                          iconRight={Calendar}
+                          className="gap-2 h-8"
+                        >
+                          <span className="truncate text-sm text-ink-gray-7">
+                            {displayValue || "End"}
+                          </span>
+                        </Button>
+                      )}
+                    </DateTimePicker>
+                    {!field.state.meta.isValid && (
+                      <ErrorMessage
+                        message={field.state.meta.errors[0]?.message}
+                      />
+                    )}
+                  </div>
                 )}
-              </div>
-            )}
-          />
+              />
+            </>
+          )}
 
           <form.Field
             name="priority"

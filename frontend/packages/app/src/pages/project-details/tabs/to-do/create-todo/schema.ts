@@ -26,22 +26,31 @@ const priorityValues = PRIORITY_OPTIONS.map((o) => o.value) as [
   ...TodoPriority[],
 ];
 
-export const createTodoSchema = z
-  .object({
-    title: z.string().trim().min(1, { message: "Title is required." }),
-    description: z.string(),
-    status: z.enum(statusValues),
-    assignee: z.string().trim().min(1, { message: "Assignee is required." }),
-    startAt: z.string().trim().min(1, { message: "Start is required." }),
-    endAt: z.string().trim().min(1, { message: "End is required." }),
-    priority: z.enum(priorityValues),
-  })
-  .refine(
-    (values) => {
-      if (!values.startAt || !values.endAt) return true;
-      return new Date(values.endAt) >= new Date(values.startAt);
-    },
-    { message: "End must be on or after start.", path: ["endAt"] },
-  );
+export const buildCreateTodoSchema = (hasCustomFields: boolean) =>
+  z
+    .object({
+      title: hasCustomFields
+        ? z.string().trim().min(1, { message: "Title is required." })
+        : z.string(),
+      description: z.string(),
+      status: z.enum(statusValues),
+      assignee: z.string().trim().min(1, { message: "Assignee is required." }),
+      startAt: hasCustomFields
+        ? z.string().trim().min(1, { message: "Start is required." })
+        : z.string(),
+      endAt: hasCustomFields
+        ? z.string().trim().min(1, { message: "End is required." })
+        : z.string(),
+      priority: z.enum(priorityValues),
+    })
+    .refine(
+      (values) => {
+        if (!values.startAt || !values.endAt) return true;
+        return new Date(values.endAt) >= new Date(values.startAt);
+      },
+      { message: "End must be on or after start.", path: ["endAt"] },
+    );
 
-export type CreateTodoValues = z.infer<typeof createTodoSchema>;
+export type CreateTodoValues = z.infer<
+  ReturnType<typeof buildCreateTodoSchema>
+>;

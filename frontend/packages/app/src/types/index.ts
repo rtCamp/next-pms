@@ -66,6 +66,7 @@ declare global {
         has_repository_connections?: boolean;
         has_customer_feedback?: boolean;
         desk_theme?: string;
+        has_todo_custom_fields?: boolean;
         is_calendar_setup: boolean;
         global_filters: GlobalFilters;
         allow_weekend_entries?: boolean;
