@@ -13,7 +13,14 @@ import {
   TextEditor,
   TextInput,
 } from "@rtcamp/frappe-ui-react";
-import { Calendar } from "@rtcamp/frappe-ui-react/icons";
+import {
+  Calendar,
+  StatusBacklog,
+  StatusCancelled,
+  StatusClosed,
+  StatusInProgress,
+  StatusOpen,
+} from "@rtcamp/frappe-ui-react/icons";
 import { useForm } from "@tanstack/react-form";
 
 /**
@@ -27,9 +34,34 @@ import {
   createTodoSchema,
   type CreateTodoValues,
   type TodoPriority,
+  type TodoStatus,
 } from "./schema";
 import type { CreateTodoModalProps } from "./types";
 import { useTodos } from "../provider/context";
+
+const STATUS_ICON: Record<
+  TodoStatus,
+  React.ComponentType<{ className?: string }>
+> = {
+  Open: StatusOpen,
+  Backlog: StatusBacklog,
+  "In Progress": StatusInProgress,
+  Closed: StatusClosed,
+  Cancelled: StatusCancelled,
+};
+
+const STATUS_COLOR: Record<TodoStatus, string> = {
+  Open: "text-ink-gray-5",
+  Backlog: "text-ink-gray-4",
+  "In Progress": "text-ink-blue-4",
+  Closed: "text-ink-gray-8",
+  Cancelled: "text-ink-gray-4",
+};
+
+const StatusIcon = ({ status }: { status: TodoStatus }) => {
+  const Icon = STATUS_ICON[status];
+  return <Icon className={`size-3.5 ${STATUS_COLOR[status]}`} />;
+};
 
 const PRIORITY_DOT_CLASS: Record<TodoPriority, string> = {
   Low: "bg-surface-green-5",
@@ -177,7 +209,6 @@ export function CreateTodoModal({ open, onClose, todo }: CreateTodoModalProps) {
                 content={field.state.value}
                 onChange={(value) => field.handleChange(value)}
                 placeholder="Add a description..."
-                fixedMenu={false}
                 editorClass="prose prose-sm max-w-none min-h-[160px] rounded-md border border-outline-gray-2 p-2 text-ink-gray-8 focus:outline-none"
               />
             </div>
@@ -198,11 +229,12 @@ export function CreateTodoModal({ open, onClose, todo }: CreateTodoModalProps) {
                   value &&
                   field.handleChange(value as CreateTodoValues["status"])
                 }
-                prefix={() => (
-                  <span
-                    aria-hidden
-                    className="inline-block size-3 rounded-full border border-outline-gray-3"
-                  />
+                prefix={() => <StatusIcon status={field.state.value} />}
+                option={({ option }) => (
+                  <div className="flex items-center gap-2">
+                    <StatusIcon status={option.value as TodoStatus} />
+                    <span>{option.label}</span>
+                  </div>
                 )}
               />
             )}

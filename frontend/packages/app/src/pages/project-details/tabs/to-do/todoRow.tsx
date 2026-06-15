@@ -2,15 +2,42 @@
  * External dependencies.
  */
 import { Avatar, Dropdown } from "@rtcamp/frappe-ui-react";
-import { Calendar, DotHorizontal } from "@rtcamp/frappe-ui-react/icons";
+import {
+  Calendar,
+  DotHorizontal,
+  StatusBacklog,
+  StatusCancelled,
+  StatusClosed,
+  StatusInProgress,
+  StatusOpen,
+} from "@rtcamp/frappe-ui-react/icons";
 import { format, parseISO } from "date-fns";
 
 /**
  * Internal dependencies.
  */
-import type { TodoPriority } from "./create-todo/schema";
+import type { TodoPriority, TodoStatus } from "./create-todo/schema";
 import { useTodos } from "./provider/context";
 import type { Todo } from "./types";
+
+const STATUS_ICON: Record<
+  TodoStatus,
+  React.ComponentType<{ className?: string }>
+> = {
+  Open: StatusOpen,
+  Backlog: StatusBacklog,
+  "In Progress": StatusInProgress,
+  Closed: StatusClosed,
+  Cancelled: StatusCancelled,
+};
+
+const STATUS_COLOR: Record<TodoStatus, string> = {
+  Open: "text-ink-gray-5 hover:text-ink-gray-8",
+  Backlog: "text-ink-gray-4 hover:text-ink-gray-7",
+  "In Progress": "text-ink-blue-4 hover:text-ink-blue-6",
+  Closed: "text-ink-gray-8",
+  Cancelled: "text-ink-gray-4",
+};
 
 const PRIORITY_DOT_CLASS: Record<TodoPriority, string> = {
   Low: "bg-surface-green-5",
@@ -38,8 +65,8 @@ export function TodoRow({ todo, onEdit }: TodoRowProps) {
   const updateTodoStatus = useTodos((c) => c.actions.updateTodoStatus);
   const deleteTodo = useTodos((c) => c.actions.deleteTodo);
 
-  const isClosed = todo.status === "Closed";
   const assigneeHref = `/desk/user/${encodeURIComponent(todo.allocated_to)}`;
+  const StatusIcon = STATUS_ICON[todo.status];
 
   return (
     <div className="flex items-center gap-4 border-b border-outline-gray-2 py-4">
@@ -83,16 +110,19 @@ export function TodoRow({ todo, onEdit }: TodoRowProps) {
 
       <button
         type="button"
-        aria-label={isClosed ? "Mark as open" : "Mark as closed"}
-        onClick={() =>
-          updateTodoStatus(todo.name, isClosed ? "Open" : "Closed")
+        aria-label={
+          todo.status === "Closed" ? "Mark as open" : "Mark as closed"
         }
-        className={`size-5 shrink-0 rounded-full border transition-colors ${
-          isClosed
-            ? "border-ink-gray-7 bg-ink-gray-7"
-            : "border-outline-gray-3 hover:border-ink-gray-7"
-        }`}
-      />
+        onClick={() =>
+          updateTodoStatus(
+            todo.name,
+            todo.status === "Closed" ? "Open" : "Closed",
+          )
+        }
+        className={`shrink-0 transition-colors ${STATUS_COLOR[todo.status]}`}
+      >
+        <StatusIcon className="size-5" />
+      </button>
 
       <Dropdown
         placement="right"
