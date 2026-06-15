@@ -23,16 +23,19 @@ function NotesGrid() {
 
   return (
     // The height is calculated by subtracting the height of the header.
-    <div className="relative flex h-full min-h-[calc(100dvh-var(--spacing)*24)]  flex-col gap-4">
+    <div className="relative flex flex-col gap-4">
       <NotesSubHeader />
       <div
-        className={cn("flex flex-col", {
-          "opacity-50 transition-opacity duration-150": isLoading,
-        })}
+        className={cn(
+          "flex flex-col h-[calc(100dvh-var(--spacing)*55)] overflow-y-auto scrollbar-thin",
+          {
+            "opacity-50 transition-opacity duration-150": isLoading,
+          },
+        )}
       >
         {!isLoading && notes.length === 0 ? (
           <div className="py-10 text-center text-sm text-ink-gray-4">
-            No risks found
+            No notes found
           </div>
         ) : notes.length > 0 ? (
           <div className="flex flex-wrap gap-5">
@@ -41,13 +44,13 @@ function NotesGrid() {
             ))}
           </div>
         ) : null}
+        {isLoading && (
+          <Spinner
+            isFull
+            className="absolute top-0 left-0 w-full h-full cursor-wait z-10"
+          />
+        )}
       </div>
-      {isLoading && (
-        <Spinner
-          isFull
-          className="absolute top-0 left-0 h-[calc(100dvh-var(--spacing)*24)]  w-full cursor-wait z-10"
-        />
-      )}
     </div>
   );
 }
