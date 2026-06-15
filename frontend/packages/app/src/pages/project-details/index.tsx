@@ -7,6 +7,7 @@ import { Tabs } from "@rtcamp/frappe-ui-react";
 /**
  * Internal dependencies.
  */
+import { useFeedbackAvailability } from "@/hooks/useFeedbackAvailability";
 import { ROUTES } from "@/lib/constant";
 import { AboutThisProject } from "./about";
 import { ProjectDetailHeader } from "./header";
@@ -21,14 +22,23 @@ function ProjectDetail() {
   const { projectId = "" } = useParams<{ projectId: string }>();
   const [searchParams, setSearchParams] = useSearchParams();
   const editorMatch = useMatch(`${ROUTES.project}/:projectId/notes/*`);
+  const { available, isLoading: isAvailabilityLoading } =
+    useFeedbackAvailability();
+
+  let finalTabs = TABS;
+  let finalTabKeys = [...TAB_KEYS];
+  if (isAvailabilityLoading || !available) {
+    finalTabs = finalTabs.filter((tab) => tab.label !== "Feedback");
+    finalTabKeys = finalTabKeys.filter((key) => key !== "feedback");
+  }
 
   const paramTab = searchParams.get(TAB_PARAM) as TabKey | null;
   const activeKey: TabKey =
-    paramTab && TAB_KEYS.includes(paramTab) ? paramTab : DEFAULT_TAB;
-  const activeTab = TAB_KEYS.indexOf(activeKey);
+    paramTab && finalTabKeys.includes(paramTab) ? paramTab : DEFAULT_TAB;
+  const activeTab = finalTabKeys.indexOf(activeKey);
 
   const handleTabChange = (index: number) => {
-    const key = TAB_KEYS[index];
+    const key = finalTabKeys[index];
     setSearchParams((prev) => {
       if (!key || key === DEFAULT_TAB) prev.delete(TAB_PARAM);
       else prev.set(TAB_PARAM, key);
@@ -51,7 +61,7 @@ function ProjectDetail() {
                 tabListClassName="h-10"
                 tabPanelClassName="overflow-auto scrollbar-thin"
                 className="w-3/4 border-0 rounded-none border-r"
-                tabs={TABS}
+                tabs={finalTabs}
                 tabIndex={activeTab}
                 onTabChange={handleTabChange}
               />

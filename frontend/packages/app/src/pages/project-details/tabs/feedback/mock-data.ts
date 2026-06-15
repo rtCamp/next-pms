@@ -3,38 +3,10 @@
  */
 import type {
   BreakdownMetric,
-  MonthEntry,
   ResponseItem,
   TeamFeedbackDetail,
   TeamFeedbackRow,
 } from "./types";
-
-export const MOCK_MONTHS: MonthEntry[] = [
-  { key: "2026-01", month: "Jan", year: 2026, score: 100 },
-  { key: "2026-02", month: "Feb", year: 2026, score: 90 },
-  { key: "2026-03", month: "Mar", year: 2026, score: 65 },
-  { key: "2026-04", month: "Apr", year: 2026, score: 95 },
-  { key: "2026-05", month: "May", year: 2026, score: 80 },
-  { key: "2026-06", month: "Jun", year: 2026, score: 100 },
-  { key: "2026-07", month: "Jul", year: 2026, score: 100 },
-  { key: "2026-08", month: "Aug", year: 2026, score: 40 },
-  { key: "2026-09", month: "Sep", year: 2026, score: 89 },
-  { key: "2026-10", month: "Oct", year: 2026, score: 100 },
-  { key: "2026-11", month: "Nov", year: 2026, score: 90 },
-  { key: "2026-12", month: "Dec", year: 2026, score: 90 },
-  { key: "2027-01", month: "Jan", year: 2027, score: 60 },
-  { key: "2027-02", month: "Feb", year: 2027, score: 70 },
-  { key: "2027-03", month: "Mar", year: 2027, score: 70 },
-  { key: "2027-04", month: "Apr", year: 2027, score: 81 },
-  { key: "2027-05", month: "May", year: 2027, score: 99 },
-  { key: "2027-06", month: "Jun", year: 2027, score: 79 },
-  { key: "2027-07", month: "Jul", year: 2027, score: 21 },
-  { key: "2027-08", month: "Aug", year: 2027, score: 34 },
-  { key: "2027-09", month: "Sep", year: 2027, score: 73 },
-  { key: "2027-10", month: "Oct", year: 2027, score: 27 },
-  { key: "2027-11", month: "Nov", year: 2027, score: 18 },
-  { key: "2027-12", month: "Dec", year: 2027, score: 89 },
-];
 
 export const MOCK_BREAKDOWNS: Record<string, BreakdownMetric[]> = {
   "2026-01": [
