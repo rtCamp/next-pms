@@ -1150,35 +1150,11 @@ def _get_team_timesheets(manager_employee: str, days: int) -> list:
     return members
 
 
-def _week_start(date):
-    """Return the Monday on or before the given date."""
-    return date - timedelta(days=date.weekday())
-
-
-def _parse_business_units(member: str | list | None) -> tuple | None:
-    """Normalise the member filter into a hashable tuple of business unit values.
-
-    Accepts a single business unit string, a JSON-encoded list, or a list, and
-    returns a tuple (so the value is usable as a redis_cache key) or None.
-    """
-    if not member:
-        return None
-    if isinstance(member, str):
-        try:
-            member = json.loads(member)
-        except (ValueError, TypeError):
-            pass
-    if isinstance(member, str):
-        member = [member]
-    member = [value for value in member if value]
-    return tuple(member) or None
-
-
 @whitelist(methods=["GET"])
 def get_allocation_heatmap(
     from_date: str,
     to_date: str,
-    member: str | None = None,
+    business_unit: str | list | None = None,
 ) -> dict:
     """Return weekly allocation-vs-capacity summaries grouped by designation.
 
@@ -1198,10 +1174,9 @@ def get_allocation_heatmap(
     Args:
         from_date: Inclusive range start (YYYY-MM-DD).
         to_date: Inclusive range end (YYYY-MM-DD).
-        member: Optional business unit filter. A single value or a JSON-encoded
-            list of Business Unit names; employees are restricted to the given
-            business units. Ignored when the Employee doctype has no
-            custom_business_unit field.
+        business_unit: Optional business unit filter as a list or a JSON-encoded
+            list of Business Unit names. Ignored when the Employee doctype has
+            no custom_business_unit field.
 
     Returns:
         A dict with from_date, to_date, weeks (the ordered list of
@@ -1221,14 +1196,18 @@ def get_allocation_heatmap(
     if start_date > end_date:
         frappe.throw(frappe._("from_date must be on or before to_date"))
 
-    return _get_allocation_heatmap(start_date, end_date, _parse_business_units(member))
+    if isinstance(business_unit, str):
+        business_unit = json.loads(business_unit)
+    business_units = tuple(business_unit) if business_unit else None
+
+    return _get_allocation_heatmap(start_date, end_date, business_units)
 
 
 @redis_cache(ttl=86400)
 def _get_allocation_heatmap(start_date, end_date, business_units: tuple | None) -> dict:
     week_starts = []
-    week = _week_start(start_date)
-    last_week = _week_start(end_date)
+    week = start_date - timedelta(days=start_date.weekday())
+    last_week = end_date - timedelta(days=end_date.weekday())
     while week <= last_week:
         week_starts.append(week)
         week += timedelta(days=7)
@@ -1283,7 +1262,9 @@ def _get_allocation_heatmap(start_date, end_date, business_units: tuple | None) 
 
     allocations_by_employee = {}
     for allocation in allocations:
-        allocations_by_employee.setdefault(allocation.employee, []).append(allocation)
+        if allocation.employee not in allocations_by_employee:
+            allocations_by_employee[allocation.employee] = []
+        allocations_by_employee[allocation.employee].append(allocation)
 
     # designation -> week_start -> {"capacity": float, "allocated": float}
     summary = {}
@@ -1297,20 +1278,23 @@ def _get_allocation_heatmap(start_date, end_date, business_units: tuple | None) 
         employee_holidays = holidays_by_employee.get(employee.name, set())
         employee_allocations = allocations_by_employee.get(employee.name, [])
 
-        designation_summary = summary.setdefault(designation, {})
+        if designation not in summary:
+            summary[designation] = {}
         for date in working_dates:
             if date in employee_holidays:
                 continue
-            bucket = designation_summary.setdefault(_week_start(date), {"capacity": 0.0, "allocated": 0.0})
+            week_start = date - timedelta(days=date.weekday())
+            if week_start not in summary[designation]:
+                summary[designation][week_start] = {"capacity": 0.0, "allocated": 0.0}
+            bucket = summary[designation][week_start]
             bucket["capacity"] += daily_working_hours
             bucket["allocated"] += get_employee_allocated_hours_for_date(employee_allocations, date)
 
     roles = []
     for designation in sorted(summary):
-        designation_summary = summary[designation]
         role_weeks = []
         for ws in week_starts:
-            bucket = designation_summary.get(ws, {"capacity": 0.0, "allocated": 0.0})
+            bucket = summary[designation].get(ws, {"capacity": 0.0, "allocated": 0.0})
             role_weeks.append(
                 {
                     "week_start": ws,
