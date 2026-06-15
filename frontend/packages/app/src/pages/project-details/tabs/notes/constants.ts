@@ -3,4 +3,6 @@ export const CREATE_OPTIONS = {
   newBlankNote: "new-blank-note",
 } as const;
 
+export const TEMPLATE_PARAM = "template";
+
 export const NOTE_PARAM = "note";

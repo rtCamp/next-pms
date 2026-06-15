@@ -39,6 +39,7 @@ export type Note = {
   description: string;
   status: NoteStatus;
   project: string;
+  pinned?: boolean;
   owner: string;
   owner_full_name?: string;
   owner_image?: string | null;

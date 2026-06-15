@@ -33,6 +33,9 @@ export type AboutMember = {
   currency?: string;
   companyEmail?: string;
   linkedin?: string;
+  loggedHours?: number;
+  totalHoursPurchased?: number;
+  projectRole?: string;
 };
 
 export type AboutCustomer = {
@@ -101,8 +104,10 @@ export type ProjectSidebar = {
     cell_number: string | null;
     company_email: string | null;
     hourly_rate: number | null;
+    logged_hours?: number | null;
     currency: string | null;
     linkedin_url?: string | null;
+    project_role?: string | null;
   }>;
   customers: Array<{
     contact: string;

@@ -14,7 +14,7 @@ export interface NotesContextProps {
     isLoading: boolean;
     error: unknown;
     filters: NoteFilters;
-    isDeleting: boolean;
+    isUpdating: boolean;
     authorOptions: NoteAuthorOption[];
   };
   actions: {
@@ -23,6 +23,7 @@ export interface NotesContextProps {
     setAuthor: (value: string) => void;
     refresh: () => Promise<unknown>;
     deleteNote: (name: string) => Promise<void>;
+    togglePin: (name: string) => Promise<void>;
   };
 }
 
@@ -38,7 +39,7 @@ export const NotesContext = createContext<NotesContextProps>({
       description: "",
       author: "",
     },
-    isDeleting: false,
+    isUpdating: false,
     authorOptions: [],
   },
   actions: {
@@ -47,6 +48,7 @@ export const NotesContext = createContext<NotesContextProps>({
     setAuthor: noop,
     refresh: async () => undefined,
     deleteNote: async () => undefined,
+    togglePin: async () => undefined,
   },
 });
 
