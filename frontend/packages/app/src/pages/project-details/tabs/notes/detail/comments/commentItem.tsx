@@ -80,7 +80,6 @@ export function CommentItem({
           placeholder="Edit comment"
           autoFocus
           isSubmitting={isUpdating}
-          showToolbar
           submitLabel="Save"
           onSubmit={handleEdit}
           onCancel={() => setIsEditing(false)}
@@ -111,7 +110,6 @@ export function CommentItem({
           placeholder="Type a reply"
           autoFocus
           isSubmitting={isUpdating}
-          showToolbar
           submitLabel="Post"
           onSubmit={handleReply}
           onCancel={() => setIsReplying(false)}

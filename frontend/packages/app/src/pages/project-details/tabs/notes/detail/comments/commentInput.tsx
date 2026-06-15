@@ -19,7 +19,6 @@ type CommentInputProps = {
   onCancel?: () => void;
   submitLabel?: string;
   collapsible?: boolean;
-  showToolbar?: boolean;
 };
 
 export function CommentInput({
@@ -82,6 +81,8 @@ export function CommentInput({
   if (!isExpanded) {
     return (
       <input
+        aria-label={placeholder}
+        type="text"
         className="transition-colors w-full min-h-8 outline-none appearance-none text-base rounded h-7 border border-outline-gray-2 bg-surface-white placeholder-ink-gray-4 hover:border-outline-gray-3 hover:shadow-sm focus:bg-surface-white focus:border-outline-gray-4 focus:shadow-sm focus:ring-0 focus-visible:ring-2 focus-visible:ring-outline-gray-3 pl-2 pr-2 py-1.5"
         onFocus={() => setIsExpanded(true)}
         placeholder={placeholder}
