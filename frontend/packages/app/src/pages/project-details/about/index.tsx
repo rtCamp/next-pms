@@ -28,6 +28,7 @@ import { AddMemberModal } from "./components/addMemberModal";
 import { BudgetBurnBar } from "./components/budgetBurnBar";
 import { CustomerRow } from "./components/customerRow";
 import { ExpandableList } from "./components/expandableList";
+import { MemberRoleRow } from "./components/memberRoleRow";
 import { MemberRow } from "./components/memberRow";
 import { ProgressHoursSection } from "./progressHoursSection";
 import { Section } from "./section";
@@ -133,9 +134,27 @@ function AboutThisProjectContent({ className }: { className: string }) {
         currency: m.currency ?? undefined,
         companyEmail: m.company_email ?? undefined,
         linkedin: m.linkedin_url ?? undefined,
+        loggedHours: m.logged_hours ?? undefined,
+        projectRole: m.project_role ?? undefined,
+        totalHoursPurchased: sidebar.progress.total_hours_purchased,
       })),
-    [sidebar.members],
+    [sidebar.members, sidebar.progress.total_hours_purchased],
   );
+
+  const projectManager = members.find(
+    (m) => m.projectRole === "Project Manager",
+  );
+  const engineeringManager = members.find(
+    (m) => m.projectRole === "Engineering Manager",
+  );
+
+  const memberRoleByUserId = useMemo(() => {
+    const map: Record<string, string> = {};
+    for (const m of members) {
+      if (m.projectRole) map[m.email] = m.projectRole;
+    }
+    return map;
+  }, [members]);
 
   const customers = useMemo<AboutCustomer[]>(
     () =>
@@ -299,12 +318,46 @@ function AboutThisProjectContent({ className }: { className: string }) {
             />
           }
         >
-          <ExpandableList
-            items={members}
-            itemLabel="members"
-            getKey={(member) => member.email}
-            renderItem={(member) => <MemberRow member={member} />}
-          />
+          {(projectManager || engineeringManager) && (
+            <div className="grid grid-cols-[auto_1fr] items-center gap-x-3 gap-y-4.5 text-base font-light text-ink-gray-5 mb-4">
+              {projectManager && (
+                <MemberRoleRow
+                  label="Project Manager"
+                  member={projectManager}
+                />
+              )}
+              {engineeringManager && (
+                <MemberRoleRow
+                  label="Lead Engineer"
+                  member={engineeringManager}
+                />
+              )}
+            </div>
+          )}
+
+          <h3 className="mb-2 text-base font-medium text-ink-gray-8">
+            Team members
+          </h3>
+          {members.filter(
+            (m) =>
+              m.projectRole !== "Project Manager" &&
+              m.projectRole !== "Engineering Manager",
+          ).length === 0 ? (
+            <p className="py-4 text-center text-sm text-ink-gray-4">
+              No Members
+            </p>
+          ) : (
+            <ExpandableList
+              items={members.filter(
+                (m) =>
+                  m.projectRole !== "Project Manager" &&
+                  m.projectRole !== "Engineering Manager",
+              )}
+              itemLabel="members"
+              getKey={(member) => member.email}
+              renderItem={(member) => <MemberRow member={member} />}
+            />
+          )}
         </Section>
 
         <Section
@@ -330,6 +383,7 @@ function AboutThisProjectContent({ className }: { className: string }) {
         open={addMemberOpen}
         onOpenChange={setAddMemberOpen}
         currentMemberIds={currentMemberUserIds}
+        memberRoleByUserId={memberRoleByUserId}
         onAdd={handleAddMember}
         onRemove={handleRemoveMember}
       />
