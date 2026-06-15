@@ -298,57 +298,106 @@ def upsert_day_override(doc_name: str, override_date: str, override_fields: dict
         doc.save()
 
 
+def delete_day_override(doc_name: str, override_date: str):
+    """Remove a single day override row from a Resource Allocation doc.
+
+    Deleting the row (as opposed to setting ``cancelled=1``) reverts the day back to the
+    allocation's default hours. No-op if no row exists for the given date.
+
+    Args:
+        doc_name (str): Name of the Resource Allocation document.
+        override_date (str): The specific date to clear (``"YYYY-MM-DD"``).
+    """
+    existing_row = frappe.db.get_value(
+        "Resource Allocation Extra Entry",
+        {"parent": doc_name, "parenttype": "Resource Allocation", "date": override_date},
+        "name",
+    )
+    if not existing_row:
+        return
+
+    doc = frappe.get_doc("Resource Allocation", doc_name)
+    doc.override = [row for row in doc.override if row.name != existing_row]
+    doc.save()
+
+
+def apply_day_overrides(doc_name: str, day_overrides: list[dict] | None, deleted_day_overrides: list[str] | None):
+    """Apply a batch of add/edit (``day_overrides``) and delete (``deleted_day_overrides``)
+    operations to a single Resource Allocation doc, keyed on the literal override dates."""
+    for override in day_overrides or []:
+        override_fields = {k: v for k, v in override.items() if k != "date"}
+        upsert_day_override(doc_name, str(getdate(override.get("date"))), override_fields)
+
+    for deleted_date in deleted_day_overrides or []:
+        delete_day_override(doc_name, str(getdate(deleted_date)))
+
+
 @frappe.whitelist(methods=["POST"])
-def edit_allocation(name: str, edit_mode: str, allocation: AllocationPayload, day_overrides: list[dict] | None = None):
+def edit_allocation(
+    name: str,
+    edit_mode: str,
+    allocation: AllocationPayload,
+    day_overrides: list[dict] | None = None,
+    deleted_day_overrides: list[str] | None = None,
+):
     """Edit a Resource Allocation, optionally propagating changes to all docs in the series.
 
     Args:
         name (str): Name of the allocation being edited.
-        edit_mode (str): ``"only_this"`` — update just this doc.
-                         ``"whole_series"`` — update all docs sharing the same ``recurrence_id``.
-                         ``"this_and_future"`` — used with ``day_overrides`` to apply per-day
-                         changes to this doc and all later docs in the series.
-        allocation (AllocationPayload): New field values (ignored when ``day_overrides`` is provided).
-        day_overrides (list[dict] | None): Optional list of per-day overrides, each a dict with a
+        edit_mode (str): ``"only_this"`` — update this doc: apply ``allocation`` (duration +
+                         fields) and then any day-override add/edit/delete in a single pass.
+                         ``"whole_series"`` — update all docs sharing the same ``recurrence_id``
+                         with the non-date ``allocation`` fields.
+                         ``"this_and_future"`` — apply the day-override changes to this doc and
+                         all later docs in the series (overrides only, duration unchanged).
+        allocation (AllocationPayload): New field values. Always applied for ``only_this``
+                                        (alongside any overrides); used for the non-date fields
+                                        under ``whole_series``; ignored under ``this_and_future``.
+        day_overrides (list[dict] | None): Per-day overrides to add or edit, each a dict with a
                                            ``"date"`` key plus the fields to set, e.g.
                                            ``[{"date": "2025-06-05", "cancelled": 1}, {"date": "2025-06-06", "hours": 4.0}]``.
-                                           When provided, ``edit_mode`` controls scope:
-                                           ``"only_this"`` — apply to this doc only.
-                                           ``"this_and_future"`` — apply to this and all later docs in the series,
-                                           targeting the same weekday in each doc's range.
+        deleted_day_overrides (list[str] | None): Dates whose override rows should be removed,
+                                           e.g. ``["2025-06-05"]``. Deleting reverts the day to
+                                           the allocation's default hours (unlike ``cancelled=1``).
     """
     permission = resource_api_permissions_check()
     if not permission["write"]:
         frappe.throw(frappe._("You are not allowed to perform this action."), exc=frappe.PermissionError)
 
-    if day_overrides:
-        if edit_mode == "this_and_future":
-            recurrence_id, this_start = frappe.db.get_value(
-                "Resource Allocation", name, ["recurrence_id", "allocation_start_date"]
+    if edit_mode == "this_and_future" and (day_overrides or deleted_day_overrides):
+        recurrence_id, this_start = frappe.db.get_value(
+            "Resource Allocation", name, ["recurrence_id", "allocation_start_date"]
+        )
+        if recurrence_id:
+            series = frappe.get_all(
+                "Resource Allocation",
+                filters={"recurrence_id": recurrence_id, "allocation_start_date": [">=", this_start]},
+                fields=["name", "allocation_start_date", "allocation_end_date"],
             )
-            if recurrence_id:
-                series = frappe.get_all(
-                    "Resource Allocation",
-                    filters={"recurrence_id": recurrence_id, "allocation_start_date": [">=", this_start]},
-                    fields=["name", "allocation_start_date", "allocation_end_date"],
-                )
-                for override in day_overrides:
-                    override_date = getdate(override.get("date"))
-                    override_fields = {k: v for k, v in override.items() if k != "date"}
-                    target_weekday = override_date.weekday()
-                    for series_doc in series:
-                        doc_start = getdate(series_doc.allocation_start_date)
-                        doc_end = getdate(series_doc.allocation_end_date)
-                        offset = (target_weekday - doc_start.weekday()) % 7
-                        target_date = doc_start + timedelta(days=offset)
-                        if target_date <= doc_end:
-                            upsert_day_override(series_doc.name, str(target_date), override_fields)
-                return {"success": True}
 
-        for override in day_overrides:
-            override_date = getdate(override.get("date"))
-            override_fields = {k: v for k, v in override.items() if k != "date"}
-            upsert_day_override(name, str(override_date), override_fields)
+            def each_series_target(source_date):
+                """Yield (series_doc_name, target_date) for the weekday matching source_date."""
+                target_weekday = getdate(source_date).weekday()
+                for series_doc in series:
+                    doc_start = getdate(series_doc.allocation_start_date)
+                    doc_end = getdate(series_doc.allocation_end_date)
+                    offset = (target_weekday - doc_start.weekday()) % 7
+                    target_date = doc_start + timedelta(days=offset)
+                    if target_date <= doc_end:
+                        yield series_doc.name, str(target_date)
+
+            for override in day_overrides or []:
+                override_fields = {k: v for k, v in override.items() if k != "date"}
+                for doc_name, target_date in each_series_target(override.get("date")):
+                    upsert_day_override(doc_name, target_date, override_fields)
+
+            for deleted_date in deleted_day_overrides or []:
+                for doc_name, target_date in each_series_target(deleted_date):
+                    delete_day_override(doc_name, target_date)
+            return {"success": True}
+
+        # No series to propagate to: apply the override diffs to this doc only.
+        apply_day_overrides(name, day_overrides, deleted_day_overrides)
         return {"success": True}
 
     allocation.name = name
@@ -379,7 +428,9 @@ def edit_allocation(name: str, edit_mode: str, allocation: AllocationPayload, da
                 series_doc.save()
             return frappe.get_doc("Resource Allocation", name)
 
-    return update_allocation(allocation)
+    result = update_allocation(allocation)
+    apply_day_overrides(name, day_overrides, deleted_day_overrides)
+    return result
 
 
 @frappe.whitelist()
