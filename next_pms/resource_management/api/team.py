@@ -1,3 +1,5 @@
+import json
+
 import frappe
 from erpnext.setup.doctype.employee.employee import get_holiday_list_for_employee
 from frappe.core.doctype.recorder.recorder import redis_cache
@@ -10,6 +12,7 @@ from next_pms.resource_management.api.utils.helpers import (
     get_dates_date,
     get_employees_by_skills,
     is_on_leave,
+    normalize_team_view_filters,
     resource_api_permissions_check,
 )
 from next_pms.resource_management.api.utils.query import (
@@ -22,7 +25,6 @@ from next_pms.timesheet.api.employee import get_employee_working_hours
 
 
 @frappe.whitelist(methods=["GET", "POST"])
-@redis_cache()
 def get_resource_management_team_view_data(
     date: str,
     max_week: int = 2,
@@ -37,6 +39,7 @@ def get_resource_management_team_view_data(
     skills: list | str | None = None,
     employee_id: list | str | None = None,
     need_hours_summary: bool = False,
+    filters: str | list | None = None,
 ):
     """Get resource management team view data for the given filters and date range.
 
@@ -65,6 +68,13 @@ def get_resource_management_team_view_data(
         need_hours_summary (bool): Switches the response shape.
             False → flat grid response (raw employees, allocations, leaves).
             True  → per-employee per-day hours breakdown. Defaults to False.
+        filters (str | list | None): A JSON list (or already-parsed list) of
+            [field, operator, value] conditions, ANDed with each other and with the
+            dedicated params above. Allowed operators: =, !=, like, not like. Supported
+            fields: employee_name, business_unit, designation, reports_to, employee_id,
+            skills, is_billable. skills is resolved against the Employee Skill doctype;
+            is_billable accepts only = or != with a value of 0 or 1. For callers without
+            write permission only employee_name conditions are honored. Defaults to None.
 
     Returns:
         When ``need_hours_summary`` is False:
@@ -173,6 +183,44 @@ def get_resource_management_team_view_data(
         ```
     """
     permissions = resource_api_permissions_check()
+    return _get_resource_management_team_view_data(
+        json.dumps(permissions),
+        date,
+        max_week,
+        employee_name,
+        business_unit,
+        designation,
+        reports_to,
+        is_billable,
+        allocation_status,
+        page_length,
+        start,
+        skills,
+        employee_id,
+        need_hours_summary,
+        filters,
+    )
+
+
+@redis_cache()
+def _get_resource_management_team_view_data(
+    permissions: str,
+    date: str,
+    max_week: int = 2,
+    employee_name: str | None = None,
+    business_unit: str | None = None,
+    designation: str | None = None,
+    reports_to: list | str | None = None,
+    is_billable: list | str | None = None,
+    allocation_status: list | str | None = None,
+    page_length: int = 10,
+    start: int = 0,
+    skills: list | str | None = None,
+    employee_id: list | str | None = None,
+    need_hours_summary: bool = False,
+    filters: str | list | None = None,
+):
+    permissions = json.loads(permissions)
 
     if not permissions["write"]:
         is_billable = None
@@ -194,6 +242,27 @@ def get_resource_management_team_view_data(
         is_billable = frappe.parse_json(is_billable)
     if isinstance(allocation_status, str):
         allocation_status = frappe.parse_json(allocation_status)
+
+    employee_conditions, skill_conditions, filter_is_billable = normalize_team_view_filters(
+        filters, allow_privileged=permissions["write"]
+    )
+    if filter_is_billable is not None:
+        is_billable = [filter_is_billable]
+
+    extra_conditions = list(employee_conditions)
+    for operator, value in skill_conditions:
+        # Skills live in the Employee Skill doctype, not on Employee, so resolve the
+        # employees holding a matching skill, then keep them (in) or exclude them (not in).
+        skill_op = "like" if operator in ("like", "not like") else "="
+        skill_value = f"%{value}%" if operator in ("like", "not like") else value
+        skilled_employees = frappe.get_all(
+            "Employee Skill",
+            filters={"skill": [skill_op, skill_value]},
+            pluck="parent",
+            distinct=True,
+        )
+        name_op = "in" if operator in ("=", "like") else "not in"
+        extra_conditions.append(["name", name_op, skilled_employees or []])
 
     if employee_id:
         if isinstance(employee_id, str):
@@ -275,6 +344,7 @@ def get_resource_management_team_view_data(
         ids=ids,
         ignore_permissions=True,
         extra_fields=["custom_work_schedule", "custom_working_hours", "reports_to", *privileged_fields],
+        extra_conditions=extra_conditions,
     )
 
     if not employees:
