@@ -52,6 +52,7 @@ export function MonthTimeline({
   const setStartDate = useFeedbackContext((c) => c.setClientTimelineStartDate);
   const endDate = useFeedbackContext((c) => c.clientTimelineEndDate);
   const setEndDate = useFeedbackContext((c) => c.setClientTimelineEndDate);
+  const isInitialLoad = useRef<boolean>(true);
   const toast = useToasts();
   const {
     months: monthwiseData,
@@ -82,6 +83,18 @@ export function MonthTimeline({
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps -- toast.error modifies the hooks state so if we add it to deps it causes infinite loop, error is the actual dep we want to listen to.
   }, [error]);
+
+  useEffect(() => {
+    if (!isInitialLoad.current || monthwiseData.length === 0) return;
+
+    // Pre-select feedback for the month if available, on initial load.
+    const monthData = monthwiseData.find(
+      (m) => m.month === selectedMonth.month && m.year === selectedMonth.year,
+    );
+
+    setSelectedFeedbackId(monthData?.feedback_id ?? null);
+    isInitialLoad.current = false;
+  }, [monthwiseData, selectedMonth, setSelectedFeedbackId]);
 
   useEffect(() => {
     if (!timelineRef.current || !activeMonthRef.current) return;
@@ -163,6 +176,7 @@ export function MonthTimeline({
         endObserver.unobserve(endTimelineEl);
       }
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- We only want to run this effect once on mount to set up the observers, the dependencies are all stable references or refs that we read inside the effect but don't want to trigger it.
   }, []);
 
   const handleMonthClick = (entry: MonthEntry) => {
