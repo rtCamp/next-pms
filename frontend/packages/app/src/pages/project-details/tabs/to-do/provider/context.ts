@@ -6,8 +6,8 @@ import { createContext, useContextSelector } from "use-context-selector";
 /**
  * Internal dependencies.
  */
-import type { TodoStatus } from "./create-todo/schema";
-import type { CreateTodoInput, Todo, TodoDoc } from "./types";
+import type { TodoStatus } from "../create-todo/schema";
+import type { CreateTodoInput, Todo, TodoDoc } from "../types";
 
 export interface TodosContextProps {
   state: {

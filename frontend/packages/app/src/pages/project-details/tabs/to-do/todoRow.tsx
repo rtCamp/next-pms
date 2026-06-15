@@ -48,7 +48,7 @@ const PRIORITY_DOT_CLASS: Record<TodoPriority, string> = {
 function formatDateTime(value: string | null | undefined) {
   if (!value) return "—";
   try {
-    return format(parseISO(value.replace(" ", "T")), "d MMM , hh:mm a")
+    return format(parseISO(value.replace(" ", "T")), "d MMM, hh:mm a")
       .replace("AM", "am")
       .replace("PM", "pm");
   } catch {
