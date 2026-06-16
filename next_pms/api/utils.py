@@ -194,7 +194,11 @@ def get_holidays_by_employee(employee_names: list, start_date, end_date) -> dict
     """
     holiday_list_by_employee = {}
     for employee_name in employee_names:
-        holiday_list_by_employee[employee_name] = get_holiday_list_for_employee(employee_name, raise_exception=False)
+        holiday_list_by_employee[employee_name] = get_holiday_list_for_employee(
+            employee_name,
+            raise_exception=False,
+            as_on=start_date,
+        )
 
     unique_holiday_lists = {holiday_list for holiday_list in holiday_list_by_employee.values() if holiday_list}
     dates_by_list = {}
