@@ -245,7 +245,9 @@ const Sidebar = () => {
         items={[
           { label: "Home", action: () => navigate(ROUTES.home) },
           { label: "Tasks", action: () => navigate(ROUTES.task) },
-          { label: "Projects", action: () => navigate(ROUTES.project) },
+          ...(roles.includes("Project Manager")
+            ? [{ label: "Projects", action: () => navigate(ROUTES.project) }]
+            : []),
           {
             label: "Timesheet - Personal",
             action: () => navigate(ROUTES["timesheet-personal"]),
