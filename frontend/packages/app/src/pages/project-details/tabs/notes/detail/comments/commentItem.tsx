@@ -25,6 +25,7 @@ export function CommentItem({
   onEdit,
   onDelete,
   isUpdating,
+  viewerUserId,
 }: CommentItemProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [isReplying, setIsReplying] = useState(false);
@@ -35,6 +36,9 @@ export function CommentItem({
     new Date(),
     true,
   );
+  const isOwnedByViewer =
+    Boolean(viewerUserId) &&
+    (comment.user === viewerUserId || comment.owner === viewerUserId);
 
   const handleEdit = useCallback(
     async (value: string) => {
@@ -97,10 +101,14 @@ export function CommentItem({
           onReply={
             canReply ? () => setIsReplying((value) => !value) : undefined
           }
-          onEdit={() => setIsEditing(true)}
-          onDelete={() => {
-            void onDelete(comment.name).catch(() => {});
-          }}
+          onEdit={isOwnedByViewer ? () => setIsEditing(true) : undefined}
+          onDelete={
+            isOwnedByViewer
+              ? () => {
+                  void onDelete(comment.name).catch(() => {});
+                }
+              : undefined
+          }
           isUpdating={isUpdating}
         />
       )}

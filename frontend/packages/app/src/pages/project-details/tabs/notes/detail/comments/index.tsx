@@ -6,6 +6,7 @@ import { Spinner } from "@next-pms/design-system/components";
 /**
  * Internal dependencies.
  */
+import { useUser } from "@/providers/user";
 import { CommentInput } from "./commentInput";
 import { CommentThread } from "./commentThread";
 import { useNoteComments } from "./useNoteComments";
@@ -15,6 +16,7 @@ type NoteCommentsProps = {
 };
 
 export function NoteComments({ noteId }: NoteCommentsProps) {
+  const { userId } = useUser(({ state }) => ({ userId: state.userId }));
   const {
     comments,
     isLoading,
@@ -33,6 +35,7 @@ export function NoteComments({ noteId }: NoteCommentsProps) {
     onEdit: updateComment,
     onDelete: deleteComment,
     isUpdating,
+    viewerUserId: userId,
   };
 
   return (

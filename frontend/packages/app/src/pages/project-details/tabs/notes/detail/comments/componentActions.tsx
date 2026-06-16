@@ -29,9 +29,13 @@ export function ComponentActions({
             disabled={isUpdating}
             onClick={onReply}
           />
-          <span className="mx-1 h-4 w-px bg-outline-gray-3" />
         </>
       ) : null}
+
+      {onReply && (onEdit || onDelete) ? (
+        <span className="mx-1 h-4 w-px bg-outline-gray-3" />
+      ) : null}
+
       {onEdit ? (
         <>
           <Button
@@ -42,9 +46,13 @@ export function ComponentActions({
             disabled={isUpdating}
             onClick={onEdit}
           />
-          <span className="mx-1 h-4 w-px bg-outline-gray-3" />
         </>
       ) : null}
+
+      {onEdit && onDelete ? (
+        <span className="mx-1 h-4 w-px bg-outline-gray-3" />
+      ) : null}
+
       {onDelete ? (
         <Button
           variant="ghost"
