@@ -10,11 +10,10 @@ import { Avatar } from "@rtcamp/frappe-ui-react";
 import { formatRelativeTimeShort, stripTags } from "@/lib/utils";
 import { CommentInput } from "./commentInput";
 import { ComponentActions } from "./componentActions";
-import type { CommentActions } from "./types";
-import type { NoteComment } from "../../types";
+import type { CommentActions, CommentNode } from "./types";
 
 type CommentItemProps = {
-  comment: NoteComment;
+  comment: CommentNode;
   canReply: boolean;
 } & CommentActions;
 
@@ -25,35 +24,35 @@ export function CommentItem({
   onEdit,
   onDelete,
   isUpdating,
-  viewerUserId,
+  authorId,
 }: CommentItemProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [isReplying, setIsReplying] = useState(false);
 
-  const authorHref = `/desk/user/${encodeURIComponent(comment.user)}`;
+  const authorHref = `/desk/user/${encodeURIComponent(comment.authorId)}`;
   const timestamp = formatRelativeTimeShort(
-    comment.created_at,
+    comment.createdAt,
     new Date(),
     true,
   );
   const isOwnedByViewer =
-    Boolean(viewerUserId) &&
-    (comment.user === viewerUserId || comment.owner === viewerUserId);
+    Boolean(authorId) &&
+    (comment.authorId === authorId || comment.ownerId === authorId);
 
   const handleEdit = useCallback(
     async (value: string) => {
-      await onEdit(comment.name, value);
+      await onEdit(comment.id, value);
       setIsEditing(false);
     },
-    [comment.name, onEdit],
+    [comment.id, onEdit],
   );
 
   const handleReply = useCallback(
     async (value: string) => {
-      await onReply(comment.name, value);
+      await onReply(comment.id, value);
       setIsReplying(false);
     },
-    [comment.name, onReply],
+    [comment.id, onReply],
   );
 
   return (
@@ -64,12 +63,12 @@ export function CommentItem({
             <Avatar
               size="sm"
               shape="circle"
-              label={comment.user_full_name}
-              image={comment.user_image || undefined}
+              label={comment.authorName}
+              image={comment.authorImage || undefined}
             />
           </a>
           <span className="truncate text-base font-medium text-ink-gray-7">
-            {comment.user_full_name}
+            {comment.authorName}
           </span>
           <span className="shrink-0 text-base text-ink-gray-5">
             added a comment
@@ -80,7 +79,7 @@ export function CommentItem({
 
       {isEditing ? (
         <CommentInput
-          initialValue={comment.comment}
+          initialValue={comment.content}
           placeholder="Edit comment"
           autoFocus
           isSubmitting={isUpdating}
@@ -91,7 +90,7 @@ export function CommentItem({
       ) : (
         <div className="rounded-lg bg-surface-gray-1">
           <p className="px-3 py-2.5 text-sm text-ink-gray-8">
-            {stripTags(comment.comment)}
+            {stripTags(comment.content)}
           </p>
         </div>
       )}
@@ -105,7 +104,7 @@ export function CommentItem({
           onDelete={
             isOwnedByViewer
               ? () => {
-                  void onDelete(comment.name).catch(() => {});
+                  void onDelete(comment.id).catch(() => {});
                 }
               : undefined
           }

@@ -7,9 +7,9 @@ import { Spinner } from "@next-pms/design-system/components";
  * Internal dependencies.
  */
 import { useNotes } from "../context";
-import { NoteComments } from "./comments";
 import { NoteDetailContent } from "./content";
 import { NoteDetailHeader } from "./header";
+import { NoteComments } from "./noteComments";
 
 type NoteDetailProps = {
   noteId: string;

@@ -6,7 +6,9 @@ import { format } from "date-fns";
 /**
  * Internal dependencies.
  */
+import type { CommentNode } from "@/components/comments";
 import type { Note } from "../types";
+import type { NoteComment } from "../types";
 
 const FILENAME_TITLE_CAP = 50;
 
@@ -29,4 +31,17 @@ export function exportNote(note: Note) {
   anchor.download = filename;
   anchor.click();
   setTimeout(() => URL.revokeObjectURL(url), 0);
+}
+
+export function mapNoteComment(comment: NoteComment): CommentNode {
+  return {
+    id: comment.name,
+    authorId: comment.user,
+    authorName: comment.user_full_name,
+    authorImage: comment.user_image,
+    content: comment.comment,
+    createdAt: comment.created_at,
+    ownerId: comment.owner,
+    replies: (comment.replies ?? []).map(mapNoteComment),
+  };
 }
