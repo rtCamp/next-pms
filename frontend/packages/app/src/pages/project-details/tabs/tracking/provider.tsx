@@ -234,6 +234,7 @@ export function TrackingProvider({ children }: PropsWithChildren) {
           name: rate.name ?? "",
           employee: rate.employee ?? "",
           employeeName: rate.employee_name ?? rate.employee ?? "",
+          image: rate.image ?? undefined,
           rateLabel: "Hourly rate",
           amount: `${formatter.format(rate.hourly_billing_rate ?? 0)}/h`,
           hourlyRate: rate.hourly_billing_rate ?? 0,

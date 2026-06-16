@@ -65,7 +65,7 @@ export function ProjectRatesTable() {
         <ListRows>
           {flatRate && (
             <div
-              className="grid h-10 items-center rounded-md bg-surface-gray-2 px-2 gap-2"
+              className="grid h-10 items-center rounded-md bg-surface-gray-2 px-2 gap-2 mt-2"
               style={{ gridTemplateColumns }}
             >
               <div className="truncate text-base font-medium text-ink-gray-7">
