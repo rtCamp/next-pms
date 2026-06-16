@@ -196,7 +196,7 @@ function AboutThisProjectContent({ className }: { className: string }) {
         </Section>
 
         <Section value="details" title="Project details">
-          <div className="grid grid-cols-[auto_1fr] items-center gap-x-3 gap-y-4.5 text-base font-light text-ink-gray-5">
+          <div className="grid grid-cols-[auto_1fr] items-center gap-x-3 gap-y-4.5 text-base text-ink-gray-5">
             <span>Project name</span>
             <div className="flex min-w-0 items-center gap-2">
               <span className="flex-1 truncate font-medium text-ink-gray-7">
@@ -319,7 +319,7 @@ function AboutThisProjectContent({ className }: { className: string }) {
           }
         >
           {(projectManager || engineeringManager) && (
-            <div className="grid grid-cols-[auto_1fr] items-center gap-x-3 gap-y-4.5 text-base font-light text-ink-gray-5 mb-4">
+            <div className="grid grid-cols-[auto_1fr] items-center gap-x-3 gap-y-4.5 text-base text-ink-gray-5 mb-4">
               {projectManager && (
                 <MemberRoleRow
                   label="Project Manager"
