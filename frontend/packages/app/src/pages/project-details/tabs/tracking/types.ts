@@ -37,6 +37,7 @@ export type ProjectRate = {
   name: string;
   employee: string;
   employee_name: string | null;
+  image: string | null;
   hourly_billing_rate: number | null;
   valid_from: string | null;
 };

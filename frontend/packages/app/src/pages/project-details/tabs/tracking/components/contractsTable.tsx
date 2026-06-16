@@ -10,12 +10,12 @@ import {
   ListView,
 } from "@rtcamp/frappe-ui-react";
 import { AddSm } from "@rtcamp/frappe-ui-react/icons";
+import { format, parseISO } from "date-fns";
 
 /**
  * Internal dependencies.
  */
 import { mergeClassNames } from "@/lib/utils";
-import { useProjectDetail } from "../../../context";
 import { CONTRACT_COLUMNS } from "../constants";
 import { useTracking } from "../context";
 import { ActionsCell } from "./actionsCell";
@@ -34,7 +34,6 @@ export function ContractsTable() {
   const setAddContractModalOpen = useTracking(
     (state) => state.setAddContractModalOpen,
   );
-  const projectId = useProjectDetail((state) => state.projectId);
 
   if (!rows) return null;
 
@@ -92,7 +91,13 @@ export function ContractsTable() {
                         },
                       )}
                     >
-                      <span className="truncate">{row[column.key]}</span>
+                      <span className="truncate">
+                        {(column.key === "startDate" ||
+                          column.key === "endDate") &&
+                        row[column.key]
+                          ? format(parseISO(row[column.key]), "MMM d, yyyy")
+                          : row[column.key]}
+                      </span>
                     </div>
                   ),
                 )}
@@ -105,7 +110,6 @@ export function ContractsTable() {
         open={addContractModalOpen}
         onOpenChange={setAddContractModalOpen}
         onSubmit={createContract}
-        projectId={projectId}
       />
       <ContractModal
         mode="edit"
@@ -113,7 +117,6 @@ export function ContractsTable() {
         onOpenChange={(next) => {
           if (!next) setEditingContract(null);
         }}
-        projectId={projectId}
         initialValues={
           editingContract
             ? {
