@@ -1172,8 +1172,10 @@ def get_allocation_heatmap(
     Allocations and respect per-day overrides and cancellations.
 
     Args:
-        from_date: Inclusive range start (YYYY-MM-DD).
-        to_date: Inclusive range end (YYYY-MM-DD).
+        from_date: Inclusive range start (YYYY-MM-DD). Expanded to the Monday of
+            its calendar week in the response.
+        to_date: Inclusive range end (YYYY-MM-DD). Expanded to the Sunday of
+            its calendar week in the response.
         business_unit: Optional business unit filter as a list or a JSON-encoded
             list of Business Unit names. Ignored when the Employee doctype has
             no custom_business_unit field.
@@ -1200,15 +1202,17 @@ def get_allocation_heatmap(
         business_unit = json.loads(business_unit)
     business_units = tuple(business_unit) if business_unit else None
 
-    return _get_allocation_heatmap(start_date, end_date, business_units)
+    range_start = start_date - timedelta(days=start_date.weekday())
+    range_end = end_date + timedelta(days=6 - end_date.weekday())
+
+    return _get_allocation_heatmap(range_start, range_end, business_units)
 
 
 @redis_cache(ttl=86400)
 def _get_allocation_heatmap(start_date, end_date, business_units: tuple | None) -> dict:
     week_starts = []
-    week = start_date - timedelta(days=start_date.weekday())
-    last_week = end_date - timedelta(days=end_date.weekday())
-    while week <= last_week:
+    week = start_date
+    while week + timedelta(days=6) <= end_date:
         week_starts.append(week)
         week += timedelta(days=7)
 
