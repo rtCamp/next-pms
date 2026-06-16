@@ -15,6 +15,7 @@ from pypika import Case
 from pypika.functions import Date
 
 from next_pms.api.utils import (
+    error_logger,
     get_employee_allocated_hours_for_date,
     get_holidays_by_employee,
     get_working_dates_for_range,
@@ -22,6 +23,8 @@ from next_pms.api.utils import (
     is_holiday,
     sum_to_usd,
 )
+from next_pms.next_projects.api.constant import TIMELINE_ITEM_FIELDS
+from next_pms.next_projects.api.project_timeline_item import enrich_timeline_item
 from next_pms.resource_management.api.utils.query import attach_extra_entries, get_employee_leaves
 from next_pms.timesheet.api.employee import get_employee_daily_working_norm, get_employee_from_user
 
@@ -1315,3 +1318,80 @@ def _get_allocation_heatmap(start_date, end_date, business_units: tuple | None) 
         "weeks": weeks,
         "roles": roles,
     }
+
+
+@whitelist(methods=["GET"])
+@error_logger
+def get_calendar_timeline_items(
+    from_date: str,
+    to_date: str,
+    project: str | None = None,
+) -> dict:
+    """Return Project Timeline Items for the dashboard calendar view.
+
+    Items are scoped to the projects the current session.user is allowed to
+    read. Access is enforced through frappe.get_list on Project, which applies
+    the caller's User Permissions; only items belonging to those projects are
+    returned. An item is included when its date range overlaps [from_date, to_date):
+
+        item.start_date < to_date AND item.planned_end_date > from_date
+
+    so items spanning the range boundary still appear.
+
+    Args:
+        from_date: Inclusive range start (YYYY-MM-DD).
+        to_date: Range end (YYYY-MM-DD).
+        project: Optional single-project filter. When omitted, items for every
+            accessible project are returned. An inaccessible project yields an
+            empty result rather than an error.
+
+    Returns:
+        {"data": [...]} — a flat list of enriched timeline items (calendar mode,
+        i.e. without owner images or watchers). Empty when the user can access no
+        matching project.
+
+    Raises:
+        frappe.PermissionError: If the caller lacks an allowed role.
+        frappe.ValidationError: If from_date or to_date is missing, or from_date is
+            after to_date.
+    """
+    only_for(["Projects Manager", "Projects User", "Timesheet Manager"], message=True)
+
+    if not from_date or not to_date:
+        frappe.throw(frappe._("from_date and to_date are required"))
+
+    range_start = getdate(from_date)
+    range_end = getdate(to_date)
+    if range_start > range_end:
+        frappe.throw(frappe._("from_date must be on or before to_date"))
+
+    return _get_calendar_timeline_items(range_start, range_end, project)
+
+
+@redis_cache(user=True, ttl=21600)
+def _get_calendar_timeline_items(range_start, range_end, project: str | None) -> dict:
+    # User Permissions are applied by get_list — this is the access boundary.
+    project_filters = [["name", "=", project]] if project else None
+    accessible_projects = frappe.get_list(
+        "Project",
+        filters=project_filters,
+        pluck="name",
+        limit_page_length=0,
+    )
+    if not accessible_projects:
+        return {"data": []}
+
+    PTI = frappe.qb.DocType("Project Timeline Item")
+    items = (
+        frappe.qb.from_(PTI)
+        .select(*[PTI[field] for field in TIMELINE_ITEM_FIELDS])
+        .where(PTI.project.isin(accessible_projects))
+        .where((PTI.start_date < range_end) & (PTI.planned_end_date > range_start))
+        .orderby(PTI.start_date)
+        .orderby(PTI.planned_end_date)
+        .run(as_dict=True)
+    )
+
+    data = [enrich_timeline_item(item, {}, {}) for item in items]
+
+    return {"data": data}
