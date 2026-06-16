@@ -1,7 +1,7 @@
 /**
  * External dependencies.
  */
-import { useCallback, useState } from "react";
+import { useCallback } from "react";
 import { useToasts } from "@rtcamp/frappe-ui-react";
 import {
   FrappeError,
@@ -20,9 +20,8 @@ import type { NoteComment } from "../../types";
  */
 export function useNoteComments(noteId: string) {
   const toast = useToasts();
-  const [isMutationPending, setIsMutationPending] = useState(false);
 
-  const { data, isLoading, error, mutate } = useFrappeGetCall<{
+  const { data, isLoading, isValidating, error, mutate } = useFrappeGetCall<{
     message: { comments: NoteComment[] };
   }>("next_pms.timesheet.api.project_status_update.get_project_status_update", {
     name: noteId,
@@ -38,60 +37,43 @@ export function useNoteComments(noteId: string) {
     "next_pms.timesheet.api.project_status_update.delete_comment_from_project_status_update",
   );
 
-  const runCommentMutation = useCallback(
-    async (mutation: () => Promise<unknown>) => {
-      setIsMutationPending(true);
-
-      try {
-        await mutation();
-        await mutate();
-      } finally {
-        setIsMutationPending(false);
-      }
-    },
-    [mutate],
-  );
-
   const addComment = useCallback(
     async (comment: string, replyTo?: string) => {
       try {
-        await runCommentMutation(() =>
-          addCall({ name: noteId, comment, reply_to: replyTo }),
-        );
+        await addCall({ name: noteId, comment, reply_to: replyTo });
+        await mutate();
       } catch (err) {
         toast.error(parseFrappeErrorMsg(err as FrappeError));
         throw err;
       }
     },
-    [addCall, noteId, runCommentMutation, toast],
+    [addCall, mutate, noteId, toast],
   );
 
   const updateComment = useCallback(
     async (commentName: string, comment: string) => {
       try {
-        await runCommentMutation(() =>
-          updateCall({ name: noteId, comment, comment_name: commentName }),
-        );
+        await updateCall({ name: noteId, comment, comment_name: commentName });
+        await mutate();
       } catch (err) {
         toast.error(parseFrappeErrorMsg(err as FrappeError));
         throw err;
       }
     },
-    [updateCall, noteId, runCommentMutation, toast],
+    [mutate, noteId, toast, updateCall],
   );
 
   const deleteComment = useCallback(
     async (commentName: string) => {
       try {
-        await runCommentMutation(() =>
-          deleteCall({ name: noteId, comment_name: commentName }),
-        );
+        await deleteCall({ name: noteId, comment_name: commentName });
+        await mutate();
       } catch (err) {
         toast.error(parseFrappeErrorMsg(err as FrappeError));
         throw err;
       }
     },
-    [deleteCall, noteId, runCommentMutation, toast],
+    [deleteCall, mutate, noteId, toast],
   );
 
   return {
@@ -101,7 +83,6 @@ export function useNoteComments(noteId: string) {
     addComment,
     updateComment,
     deleteComment,
-    isUpdating:
-      isAdding || isUpdatingComment || isDeleting || isMutationPending,
+    isUpdating: isAdding || isUpdatingComment || isDeleting || isValidating,
   };
 }

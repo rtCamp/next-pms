@@ -25,6 +25,7 @@ export function CommentItem({
   onDelete,
   isUpdating,
   authorId,
+  canManageAllComments = false,
 }: CommentItemProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [isReplying, setIsReplying] = useState(false);
@@ -38,6 +39,7 @@ export function CommentItem({
   const isOwnedByViewer =
     Boolean(authorId) &&
     (comment.authorId === authorId || comment.ownerId === authorId);
+  const canManageComment = isOwnedByViewer || canManageAllComments;
 
   const handleEdit = useCallback(
     async (value: string) => {
@@ -100,9 +102,9 @@ export function CommentItem({
           onReply={
             canReply ? () => setIsReplying((value) => !value) : undefined
           }
-          onEdit={isOwnedByViewer ? () => setIsEditing(true) : undefined}
+          onEdit={canManageComment ? () => setIsEditing(true) : undefined}
           onDelete={
-            isOwnedByViewer
+            canManageComment
               ? () => {
                   void onDelete(comment.id).catch(() => {});
                 }

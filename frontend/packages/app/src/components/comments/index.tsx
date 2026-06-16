@@ -17,6 +17,7 @@ export function Comments({
   isLoading = false,
   isUpdating = false,
   authorId,
+  canManageAllComments = false,
   title = "Comments",
   inputPlaceholder = "Type a comment",
   inputSubmitLabel = "Post",
@@ -31,6 +32,7 @@ export function Comments({
     onDelete,
     isUpdating,
     authorId,
+    canManageAllComments,
   };
 
   return (

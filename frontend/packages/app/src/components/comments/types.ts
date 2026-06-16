@@ -15,6 +15,7 @@ export type CommentActions = {
   onDelete: (commentId: string) => Promise<void>;
   isUpdating: boolean;
   authorId?: string;
+  canManageAllComments?: boolean;
 };
 
 export type CommentsProps = {
@@ -22,6 +23,7 @@ export type CommentsProps = {
   isLoading?: boolean;
   isUpdating?: boolean;
   authorId?: string;
+  canManageAllComments?: boolean;
   title?: string;
   inputPlaceholder?: string;
   inputSubmitLabel?: string;

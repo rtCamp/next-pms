@@ -7,15 +7,19 @@ import { useUser } from "@/providers/user";
 /**
  * Internal dependencies.
  */
-import { useNoteComments } from "./comments/useNoteComments";
-import { mapNoteComment } from "./utils";
+import { mapNoteComment } from "../utils";
+import { useNoteComments } from "./useNoteComments";
 
 type NoteCommentsProps = {
   noteId: string;
 };
 
 export function NoteComments({ noteId }: NoteCommentsProps) {
-  const { userId } = useUser(({ state }) => ({ userId: state.userId }));
+  const { userId, currentUser } = useUser(({ state }) => ({
+    userId: state.userId,
+    currentUser: state.currentUser,
+  }));
+
   const {
     comments,
     isLoading,
@@ -34,6 +38,7 @@ export function NoteComments({ noteId }: NoteCommentsProps) {
       isLoading={isLoading}
       isUpdating={isUpdating}
       authorId={userId}
+      canManageAllComments={currentUser === "Administrator"}
       title="Comments"
       inputPlaceholder="Type a comment"
       inputSubmitLabel="Post"
