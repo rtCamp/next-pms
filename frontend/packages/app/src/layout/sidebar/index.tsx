@@ -145,7 +145,7 @@ const Sidebar = () => {
                 isActive: pathname === ROUTES.task,
                 onClick: () => navigate(ROUTES.task),
               },
-              ...(roles.includes("Project Manager")
+              ...(roles.includes("Projects Manager")
                 ? [
                     {
                       label: "Projects",
