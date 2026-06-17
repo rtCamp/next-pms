@@ -28,7 +28,7 @@ import { useEmployeeLookup } from "@/hooks/useEmployeeLookup";
 import { useProjectLookup } from "@/hooks/useProjectLookup";
 import { isWeekendEntryAllowed, parseFrappeErrorMsg } from "@/lib/utils";
 import {
-  buildSegmentEditDayOverrides,
+  buildSegmentEditOverridePatch,
   extendAllocationRange,
   shouldUseOverrideAwareAllocationEdit,
 } from "@/pages/allocations/overrideEdit";
@@ -159,6 +159,24 @@ function AddAllocationModal({
                 weekendEntriesAllowed && Boolean(value.includeWeekends),
             })
           : totalAllocatedHours;
+      const segmentEditOverridePatch =
+        shouldUseOverrideAwareEdit &&
+        extendedAllocation &&
+        initialValues?.segmentStartDate &&
+        initialValues?.segmentEndDate
+          ? buildSegmentEditOverridePatch({
+              allocation: extendedAllocation,
+              segment: {
+                segmentStartDate: initialValues.segmentStartDate,
+                segmentEndDate: initialValues.segmentEndDate,
+              },
+              next: {
+                startDate: value.fromDate,
+                endDate: value.toDate,
+                hoursPerDay: value.hoursPerDay,
+              },
+            })
+          : null;
 
       setSubmitting(true);
 
@@ -197,41 +215,18 @@ function AddAllocationModal({
         };
 
         if (variant === "edit" && allocationName) {
-          if (
-            shouldUseOverrideAwareEdit &&
-            extendedAllocation &&
-            initialValues?.segmentStartDate &&
-            initialValues?.segmentEndDate
-          ) {
-            await editAllocation({
-              name: allocationName,
-              edit_mode: "only_this",
-              allocation: payload.allocation,
-            });
-            await editAllocation({
-              name: allocationName,
-              edit_mode: "only_this",
-              allocation: payload.allocation,
-              day_overrides: buildSegmentEditDayOverrides({
-                allocation: extendedAllocation,
-                segment: {
-                  segmentStartDate: initialValues.segmentStartDate,
-                  segmentEndDate: initialValues.segmentEndDate,
-                },
-                next: {
-                  startDate: value.fromDate,
-                  endDate: value.toDate,
-                  hoursPerDay: value.hoursPerDay,
-                },
-              }),
-            });
-          } else {
-            await editAllocation({
-              name: allocationName,
-              edit_mode: "only_this",
-              ...payload,
-            });
-          }
+          await editAllocation({
+            name: allocationName,
+            edit_mode: "only_this",
+            ...payload,
+            ...(segmentEditOverridePatch
+              ? {
+                  day_overrides: segmentEditOverridePatch.dayOverrides,
+                  deleted_day_overrides:
+                    segmentEditOverridePatch.deletedDayOverrides,
+                }
+              : {}),
+          });
         } else {
           await handleAllocation(payload);
         }

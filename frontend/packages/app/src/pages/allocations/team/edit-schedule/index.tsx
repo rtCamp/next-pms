@@ -11,7 +11,7 @@ import { FrappeError, useFrappePostCall } from "frappe-react-sdk";
  * Internal dependencies.
  */
 import { parseFrappeErrorMsg } from "@/lib/utils";
-import { buildScheduleSelectionDayOverrides } from "@/pages/allocations/overrideEdit";
+import { buildScheduleSelectionOverridePatch } from "@/pages/allocations/overrideEdit";
 import ScheduleDateSelectionField from "./components/scheduleDateSelectionField";
 import ScheduleHoursPerDayField from "./components/scheduleHoursPerDayField";
 import ScheduleSummaryTable from "./components/scheduleSummaryTable";
@@ -99,8 +99,8 @@ function EditScheduleModal({
         override: safeValues.override,
         schedule: value.schedule,
       });
-      const dayOverrides = scheduleDraft.selection
-        ? buildScheduleSelectionDayOverrides({
+      const scheduleSelectionOverridePatch = scheduleDraft.selection
+        ? buildScheduleSelectionOverridePatch({
             allocation: allocationContext,
             next: {
               startDate: scheduleDraft.selection.startDate,
@@ -108,7 +108,7 @@ function EditScheduleModal({
               hoursPerDay: scheduleDraft.hoursPerDay,
             },
           })
-        : [];
+        : { dayOverrides: [], deletedDayOverrides: [] };
 
       try {
         setSubmitting(true);
@@ -128,7 +128,9 @@ function EditScheduleModal({
             status: initialValues.isTentative ? "Tentative" : "Confirmed",
             note: initialValues.note ?? "",
           },
-          day_overrides: dayOverrides,
+          day_overrides: scheduleSelectionOverridePatch.dayOverrides,
+          deleted_day_overrides:
+            scheduleSelectionOverridePatch.deletedDayOverrides,
         });
         await onSuccess?.({
           ...(safeValues.employeeId

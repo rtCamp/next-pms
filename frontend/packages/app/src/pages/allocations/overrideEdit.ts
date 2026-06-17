@@ -26,6 +26,11 @@ type DayOverridePayload = {
   cancelled?: number;
 };
 
+type DayOverridePatch = {
+  dayOverrides: DayOverridePayload[];
+  deletedDayOverrides: string[];
+};
+
 const getDateKeysInRange = (startDate: string, endDate: string) =>
   eachDayOfInterval({
     start: parseISO(startDate),
@@ -81,29 +86,46 @@ const buildEffectiveHoursByDate = ({
 const buildDayOverrideDiff = (
   currentHoursByDate: Map<string, number>,
   desiredHoursByDate: Map<string, number>,
-): DayOverridePayload[] =>
-  [...currentHoursByDate.entries()].reduce<DayOverridePayload[]>(
-    (overrides, [date, currentHours]) => {
+  allocation: AllocationScheduleContext,
+): DayOverridePatch => {
+  const overrideByDate = new Map(
+    (allocation.override ?? []).map((entry) => [entry.date, entry]),
+  );
+
+  return [...currentHoursByDate.entries()].reduce<DayOverridePatch>(
+    (patch, [date, currentHours]) => {
       const desiredHours = desiredHoursByDate.get(date);
 
       if (desiredHours === undefined || desiredHours === currentHours) {
-        return overrides;
+        return patch;
+      }
+
+      if (
+        desiredHours === allocation.allocationHoursPerDay &&
+        overrideByDate.has(date)
+      ) {
+        patch.deletedDayOverrides.push(date);
+        return patch;
       }
 
       if (desiredHours <= 0) {
-        overrides.push({ date, cancelled: 1 });
-        return overrides;
+        patch.dayOverrides.push({ date, cancelled: 1 });
+        return patch;
       }
 
-      overrides.push({
+      patch.dayOverrides.push({
         date,
         hours: desiredHours,
       });
 
-      return overrides;
+      return patch;
     },
-    [],
+    {
+      dayOverrides: [],
+      deletedDayOverrides: [],
+    },
   );
+};
 
 export const shouldUseOverrideAwareAllocationEdit = ({
   allocationStartDate,
@@ -119,7 +141,7 @@ export const shouldUseOverrideAwareAllocationEdit = ({
   endDate !== allocationEndDate ||
   hoursPerDay !== allocationHoursPerDay;
 
-export const buildSegmentEditDayOverrides = ({
+export const buildSegmentEditOverridePatch = ({
   allocation,
   segment,
   next,
@@ -127,7 +149,7 @@ export const buildSegmentEditDayOverrides = ({
   allocation: AllocationScheduleContext;
   segment: AllocationSegmentContext;
   next: AllocationEditRange;
-}): DayOverridePayload[] => {
+}): DayOverridePatch => {
   const currentHoursByDate = buildEffectiveHoursByDate(allocation);
   const desiredHoursByDate = new Map(currentHoursByDate);
   const normalizedSegment = normalizeRange(
@@ -150,16 +172,20 @@ export const buildSegmentEditDayOverrides = ({
     desiredHoursByDate.set(date, next.hoursPerDay);
   }
 
-  return buildDayOverrideDiff(currentHoursByDate, desiredHoursByDate);
+  return buildDayOverrideDiff(
+    currentHoursByDate,
+    desiredHoursByDate,
+    allocation,
+  );
 };
 
-export const buildScheduleSelectionDayOverrides = ({
+export const buildScheduleSelectionOverridePatch = ({
   allocation,
   next,
 }: {
   allocation: AllocationScheduleContext;
   next: AllocationEditRange;
-}): DayOverridePayload[] => {
+}): DayOverridePatch => {
   const currentHoursByDate = buildEffectiveHoursByDate(allocation);
   const desiredHoursByDate = new Map(currentHoursByDate);
   const normalizedNextRange = normalizeRange(next.startDate, next.endDate);
@@ -171,5 +197,9 @@ export const buildScheduleSelectionDayOverrides = ({
     desiredHoursByDate.set(date, next.hoursPerDay);
   }
 
-  return buildDayOverrideDiff(currentHoursByDate, desiredHoursByDate);
+  return buildDayOverrideDiff(
+    currentHoursByDate,
+    desiredHoursByDate,
+    allocation,
+  );
 };
