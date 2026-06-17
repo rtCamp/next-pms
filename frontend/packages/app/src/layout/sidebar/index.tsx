@@ -30,7 +30,7 @@ import {
 /**
  * Internal dependencies.
  */
-import { DASHBOARD_ROLES, ROUTES } from "@/lib/constant";
+import { ROUTES } from "@/lib/constant";
 import logo from "@/logo.svg";
 import { useTheme } from "@/providers/theme/hook";
 import { useUser } from "@/providers/user";
@@ -56,9 +56,8 @@ const Sidebar = () => {
     logout: actions.logout,
   }));
 
-  const canSeeDashboard = roles.some((role) =>
-    [...DASHBOARD_ROLES.leadership, ...DASHBOARD_ROLES.manager].includes(role),
-  );
+  const canSeeDashboard =
+    roles.includes("Projects Manager") || roles.includes("Delivery Manager");
 
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
@@ -264,7 +263,7 @@ const Sidebar = () => {
             : []),
           { label: "Home", action: () => navigate(ROUTES.home) },
           { label: "Tasks", action: () => navigate(ROUTES.task) },
-          ...(roles.includes("Project Manager")
+          ...(roles.includes("Projects Manager")
             ? [{ label: "Projects", action: () => navigate(ROUTES.project) }]
             : []),
           {

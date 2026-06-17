@@ -16,19 +16,6 @@ export const ROUTES = {
   apps: "/apps",
 };
 export const IMPORTED_TASKS_STORAGE_KEY = "next-pms:importedTasks";
-// user roles for timesheet
-export const ROLES = [
-  "Projects Manager",
-  "Timesheet Manager",
-  "Timesheet User",
-];
-
-// Frappe roles that grant access to the dashboard, grouped by which view they
-// resolve to. A user with any of these roles sees the Dashboard sidebar entry.
-export const DASHBOARD_ROLES = {
-  leadership: ["Delivery Manager"],
-  manager: ["Projects Manager"],
-};
 
 export const CustomTime = [
   "00:30",

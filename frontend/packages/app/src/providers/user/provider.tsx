@@ -7,7 +7,6 @@ import { useFrappeAuth, useFrappeGetCall } from "frappe-react-sdk";
 /**
  * Internal dependencies.
  */
-import { ROLES } from "@/lib/constant";
 import { getLocalStorage, setLocalStorage } from "@/lib/storage";
 import { getCookie, parseFrappeErrorMsg } from "@/lib/utils";
 import { UserContext, type UserContextProps } from ".";
@@ -49,7 +48,6 @@ export const UserProvider: FC<PropsWithChildren> = ({ children }) => {
   const [hasIndustryField, setHasIndustryField] = useState<
     UserContextProps["state"]["hasIndustryField"]
   >(window.frappe?.boot?.has_industry || false);
-  const hasRoleAccess = roles.some((role) => ROLES.includes(role));
 
   const { logout, isLoading: isAuthLoading, currentUser } = useFrappeAuth();
 
@@ -123,7 +121,6 @@ export const UserProvider: FC<PropsWithChildren> = ({ children }) => {
           image,
           isSidebarCollapsed,
           roles,
-          hasRoleAccess,
           currencies,
           hasBuField,
           hasIndustryField,

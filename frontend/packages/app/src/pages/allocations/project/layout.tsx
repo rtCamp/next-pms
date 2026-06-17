@@ -21,8 +21,8 @@ function ProjectAllocationsLayoutContent() {
   const refresh = useAllocationsProject(({ actions }) => actions.refresh);
   const { openAddDialog, outletContext, modalProps } =
     useAllocationModal(refresh);
-  const { hasRoleAccess } = useUser(({ state }) => ({
-    hasRoleAccess: state.hasRoleAccess,
+  const { roles } = useUser(({ state }) => ({
+    roles: state.roles,
   }));
 
   return (
@@ -30,7 +30,7 @@ function ProjectAllocationsLayoutContent() {
       <Header className="justify-between">
         <AllocationsBreadcrumbs />
 
-        {hasRoleAccess ? (
+        {roles.includes("Projects Manager") ? (
           <Button
             variant="solid"
             onClick={() => openAddDialog({})}

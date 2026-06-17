@@ -14,8 +14,13 @@ import { useUser } from "@/providers/user";
 
 export const TimesheetBreadcrumbs = () => {
   const navigate = useNavigate();
-  const hasRoleAccess = useUser(({ state }) => state.hasRoleAccess);
   const { pathname } = useLocation();
+  const roles = useUser(({ state }) => state.roles);
+
+  const hasRoleAccess =
+    roles.includes("Projects Manager") ||
+    roles.includes("Timesheet User") ||
+    roles.includes("Timesheet Manager");
 
   const timesheetViews = [
     {

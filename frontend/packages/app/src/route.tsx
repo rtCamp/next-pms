@@ -9,6 +9,7 @@ import { Route, Outlet } from "react-router-dom";
 import { ROUTES } from "@/lib/constant";
 import LayoutWithSidebar from "./layout";
 import { useUser } from "./providers/user";
+import { Role } from "./types";
 /**
  * Lazy load components.
  */
@@ -49,7 +50,15 @@ export function Router() {
       <Route element={<AuthenticatedRoute />}>
         <Route element={<LayoutWithSidebar />}>
           <Route path={ROUTES.home} element={<Home />} />
-          <Route path={ROUTES.dashboard} element={<Dashboard />} />
+          <Route
+            element={
+              <RoleProtectedRoute
+                allowedRoles={["Delivery Manager", "Projects Manager"]}
+              />
+            }
+          >
+            <Route path={ROUTES.dashboard} element={<Dashboard />} />
+          </Route>
           <Route path={ROUTES.task} element={<Task />} />
           <Route path={ROUTES.project} element={<ProjectList />} />
           <Route path={ROUTES["project-kanban"]} element={<ProjectKanban />} />
@@ -114,4 +123,19 @@ const AuthenticatedRoute = () => {
   if (!isUserLoading && currentUser && currentUser !== "Guest") {
     return <Outlet />;
   }
+};
+
+const RoleProtectedRoute = ({ allowedRoles }: { allowedRoles: Role[] }) => {
+  const { isLoading, roles } = useUser(({ state }) => ({
+    isLoading: state.isLoading,
+    roles: state.roles,
+  }));
+
+  if (isLoading) {
+    return <></>;
+  }
+
+  const hasAccess = roles.some((role) => allowedRoles.includes(role));
+
+  return hasAccess ? <Outlet /> : <NotFound />;
 };
