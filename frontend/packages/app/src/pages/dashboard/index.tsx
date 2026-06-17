@@ -32,7 +32,7 @@ function Dashboard() {
   }));
 
   const view = resolveDashboardView(roles);
-  const firstName = (employeeName || userName).trim().split(" ")[0];
+  const firstName = (employeeName || userName).trim().split(" ")[0] || "there";
 
   if (!view) {
     return (
