@@ -3,12 +3,7 @@
  */
 import type { Allocation } from "@next-pms/design-system/components";
 import type { FilterCondition } from "@rtcamp/frappe-ui-react";
-import {
-  addMonths,
-  addWeeks,
-  differenceInCalendarWeeks,
-  parseISO,
-} from "date-fns";
+import { addMonths, addWeeks, parseISO } from "date-fns";
 
 /**
  * Internal dependencies.
@@ -108,36 +103,11 @@ export function buildAllocationQueryFilters({
 }): AllocationFiltersResult {
   const filters: AllocationApiFilter[] = [];
 
-  let requestDate = defaultRequestDate;
-  let maxWeek = defaultWeekCount;
+  const requestDate = defaultRequestDate;
+  const maxWeek = defaultWeekCount;
 
   compositeFilters.forEach((filter) => {
     if (!isCompleteFilterCondition(filter)) {
-      return;
-    }
-
-    if (filter.field === "date") {
-      const range = Array.isArray(filter.value) ? filter.value : [];
-      const [firstDate, secondDate] = range;
-
-      if (!firstDate) {
-        return;
-      }
-
-      const [startDate, endDate] =
-        secondDate && secondDate < firstDate
-          ? [secondDate, firstDate]
-          : [firstDate, secondDate];
-
-      requestDate = startDate;
-      maxWeek = endDate
-        ? Math.max(
-            differenceInCalendarWeeks(parseISO(endDate), parseISO(startDate), {
-              weekStartsOn: 1,
-            }) + 1,
-            1,
-          )
-        : 1;
       return;
     }
 

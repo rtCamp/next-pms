@@ -10,35 +10,20 @@ export const teamAllocationsTypeOptions: MultiSelectOption[] = [
   { label: "Non-billable only", value: "non-billable" },
 ];
 
-export const teamBaseAllocationFilters: FilterField[] = [
-  {
-    name: "date",
-    label: "Date",
-    type: "daterange",
-  },
-];
-
-export const teamBusinessUnitFilter: FilterField = {
-  name: "business_unit",
-  label: "Business Unit",
-  type: "string",
-};
-
-export const teamPrivilegedAllocationFilters: FilterField[] = [
-  ...teamBaseAllocationFilters,
-  {
-    name: "reports_to",
-    label: "Reports To",
-    type: "string",
-  },
-  {
-    name: "employee_id",
-    label: "Member ID",
-    type: "string",
-  },
+export const teamAllocationFilters: FilterField[] = [
   {
     name: "skills",
-    label: "Skills",
+    label: "Skill",
+    type: "string",
+  },
+  {
+    name: "business_unit",
+    label: "Business Unit",
+    type: "string",
+  },
+  {
+    name: "reports_to",
+    label: "Reporting Manager",
     type: "string",
   },
 ];

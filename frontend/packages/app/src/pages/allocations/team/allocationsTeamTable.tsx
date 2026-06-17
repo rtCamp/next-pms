@@ -41,12 +41,7 @@ import {
   durationOptions,
   navigationButtonAriaLabels,
 } from "../constants";
-import {
-  teamAllocationsTypeOptions,
-  teamBaseAllocationFilters,
-  teamBusinessUnitFilter,
-  teamPrivilegedAllocationFilters,
-} from "./constants";
+import { teamAllocationFilters, teamAllocationsTypeOptions } from "./constants";
 
 export const AllocationsTeamTable = () => {
   const searchInput = useAllocationsTeam(({ state }) => state.searchInput);
@@ -95,7 +90,7 @@ export const AllocationsTeamTable = () => {
     roles: state.roles,
     hasBuField: state.hasBuField,
   }));
-  const canUsePrivilegedFilters =
+  const showFilters =
     roles.includes("Projects Manager") || roles.includes("Projects User");
 
   const {
@@ -118,12 +113,6 @@ export const AllocationsTeamTable = () => {
   const hasMembers = members.length > 0;
   const isRefreshingVisibleGrid = isQueryLoading && hasMembers;
   const showOverlay = isQueryLoading;
-  const filterFields = canUsePrivilegedFilters
-    ? [
-        ...(hasBuField ? [teamBusinessUnitFilter] : []),
-        ...teamPrivilegedAllocationFilters,
-      ]
-    : teamBaseAllocationFilters;
 
   return (
     <div className="flex flex-wrap gap-3.5 justify-between py-3.5">
@@ -134,7 +123,7 @@ export const AllocationsTeamTable = () => {
             onChange={(e) => guard(() => setSearch(e.target.value))}
             value={searchInput}
           />
-          {canUsePrivilegedFilters ? (
+          {showFilters ? (
             <Autocomplete
               className="w-42"
               bodyClasses="w-64"
@@ -209,7 +198,7 @@ export const AllocationsTeamTable = () => {
               )
             }
           />
-          {canUsePrivilegedFilters ? (
+          {showFilters ? (
             <div className="w-fit max-w-42">
               <MultiSelect
                 options={teamAllocationsTypeOptions}
@@ -263,12 +252,16 @@ export const AllocationsTeamTable = () => {
               aria-label={navigationButtonAriaLabels["next"][duration]}
             />
           </div>
-          <Filter
-            align="end"
-            fields={filterFields}
-            value={compositeFilters}
-            onChange={(value) => guard(() => setCompositeFilters(value))}
-          />
+          {showFilters ? (
+            <Filter
+              align="end"
+              fields={teamAllocationFilters.filter(
+                (filter) => hasBuField || filter.name !== "business_unit",
+              )}
+              value={compositeFilters}
+              onChange={(value) => guard(() => setCompositeFilters(value))}
+            />
+          ) : null}
           <Button
             aria-label="More options"
             icon={() => <DotHorizontal className="size-4 text-ink-gray-9" />}

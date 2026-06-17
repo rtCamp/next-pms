@@ -40,7 +40,6 @@ import {
 } from "../constants";
 import {
   projectAllocationFilters,
-  projectBaseAllocationFilters,
   projectAllocationsTypeOptions,
 } from "./constants";
 
@@ -90,7 +89,7 @@ export const AllocationsProjectTable = () => {
     hasRoleAccess: state.hasRoleAccess,
     roles: state.roles,
   }));
-  const canUsePrivilegedFilters =
+  const showFilters =
     roles.includes("Projects Manager") || roles.includes("Projects User");
 
   const {
@@ -104,9 +103,6 @@ export const AllocationsProjectTable = () => {
   const hasProjects = projects.length > 0;
   const isRefreshingVisibleGrid = isQueryLoading && hasProjects;
   const showOverlay = isQueryLoading;
-  const filterFields = canUsePrivilegedFilters
-    ? projectAllocationFilters
-    : projectBaseAllocationFilters;
 
   return (
     <div className="flex flex-wrap gap-3.5 justify-between py-3.5">
@@ -128,7 +124,7 @@ export const AllocationsProjectTable = () => {
               )
             }
           />
-          {canUsePrivilegedFilters ? (
+          {showFilters ? (
             <div className="w-fit max-w-42">
               <MultiSelect
                 options={projectAllocationsTypeOptions}
@@ -182,12 +178,14 @@ export const AllocationsProjectTable = () => {
               aria-label={navigationButtonAriaLabels["next"][duration]}
             />
           </div>
-          <Filter
-            align="end"
-            fields={filterFields}
-            value={compositeFilters}
-            onChange={(value) => guard(() => setCompositeFilters(value))}
-          />
+          {showFilters ? (
+            <Filter
+              align="end"
+              fields={projectAllocationFilters}
+              value={compositeFilters}
+              onChange={(value) => guard(() => setCompositeFilters(value))}
+            />
+          ) : null}
           <Button
             aria-label="More options"
             icon={() => <DotHorizontal className="size-4 text-ink-gray-9" />}

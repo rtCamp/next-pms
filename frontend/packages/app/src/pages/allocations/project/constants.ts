@@ -8,16 +8,12 @@ export const projectAllocationsTypeOptions: MultiSelectOption[] = [
   { label: "Non-billable only", value: "non-billable" },
 ];
 
-export const projectBaseAllocationFilters: FilterField[] = [
-  {
-    name: "date",
-    label: "Date",
-    type: "daterange",
-  },
-];
-
 export const projectAllocationFilters: FilterField[] = [
-  ...projectBaseAllocationFilters,
+  {
+    name: "tag",
+    label: "Tag",
+    type: "string",
+  },
   {
     name: "customer",
     label: "Customer",
@@ -26,7 +22,17 @@ export const projectAllocationFilters: FilterField[] = [
   {
     name: "billing_type",
     label: "Billing Type",
-    type: "string",
+    type: "select",
+    operators: [
+      { label: "Equals", value: "=" },
+      { label: "Not Equals", value: "!=" },
+    ],
+    options: [
+      { label: "Non-Billable", value: "Non-Billable" },
+      { label: "Fixed Cost", value: "Fixed Cost" },
+      { label: "Retainer", value: "Retainer" },
+      { label: "Time and Material", value: "Time and Material" },
+    ],
   },
   {
     name: "project_type",
@@ -36,16 +42,6 @@ export const projectAllocationFilters: FilterField[] = [
   {
     name: "project_manager",
     label: "Project Manager",
-    type: "string",
-  },
-  {
-    name: "project_id",
-    label: "Project ID",
-    type: "string",
-  },
-  {
-    name: "tag",
-    label: "Tag",
     type: "string",
   },
 ];
