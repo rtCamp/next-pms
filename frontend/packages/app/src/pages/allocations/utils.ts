@@ -247,7 +247,13 @@ export function parseAllocationCompositeFilters(
 
   try {
     const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? (parsed as FilterCondition[]) : [];
+
+    if (!Array.isArray(parsed)) return [];
+
+    return parsed.filter(
+      (value): value is FilterCondition =>
+        Boolean(value) && typeof value === "object" && !Array.isArray(value),
+    );
   } catch {
     return [];
   }

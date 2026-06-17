@@ -119,12 +119,16 @@ export function AllocationsProjectProvider({
   }, []);
 
   useEffect(() => {
-    if (debouncedSearch === searchParam) {
+    setSearchInput(searchParam);
+  }, [searchParam]);
+
+  useEffect(() => {
+    if (debouncedSearch !== searchInput || debouncedSearch === searchParam) {
       return;
     }
 
     updateSearchParams({ [SEARCH_PARAM_KEY]: debouncedSearch });
-  }, [debouncedSearch, searchParam, updateSearchParams]);
+  }, [debouncedSearch, searchInput, searchParam, updateSearchParams]);
 
   const setDuration = useCallback(
     (value: AllocationsDuration) =>
