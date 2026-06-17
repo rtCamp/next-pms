@@ -8,11 +8,7 @@ import { createContext, useContextSelector } from "use-context-selector";
 /**
  * Internal dependencies.
  */
-import type {
-  DataProp,
-  TaskDataProps,
-  TimesheetFilters,
-} from "@/types/timesheet";
+import type { DataProp, TaskDataProps } from "@/types/timesheet";
 
 export interface PersonalTimesheetContextProps {
   state: {
@@ -21,8 +17,10 @@ export interface PersonalTimesheetContextProps {
     isInitialLoad: boolean;
     isFilterRequest: boolean;
     timesheetData: DataProp;
-    filters: TimesheetFilters;
-    searchInput: string;
+    filters: {
+      search: string;
+      approvalStatus?: ApprovalStatusType;
+    };
     compositeFilters: FilterCondition[];
     likedTaskData: TaskDataProps[];
   };
@@ -55,7 +53,6 @@ export const PersonalTimesheetContext =
         search: "",
         approvalStatus: undefined,
       },
-      searchInput: "",
       compositeFilters: [],
       likedTaskData: [],
     },

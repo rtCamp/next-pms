@@ -4,13 +4,12 @@
 import {
   FC,
   PropsWithChildren,
-  useCallback,
   useEffect,
   useMemo,
-  useReducer,
   useRef,
+  useState,
 } from "react";
-import { type FilterCondition, useToasts } from "@rtcamp/frappe-ui-react";
+import { useToasts } from "@rtcamp/frappe-ui-react";
 import type { Error as FrappeError } from "frappe-js-sdk/lib/frappe_app/types";
 
 /**
@@ -22,31 +21,32 @@ import {
   ProjectTimesheetContext,
   type ProjectTimesheetContextProps,
 } from "./context";
-import {
-  createInitialProjectTimesheetState,
-  projectTimesheetReducer,
-} from "./reducer";
 import { useProjectTimesheetData } from "./useProjectTimesheetData";
+import { useTimesheetFilters } from "../hooks/useTimesheetFilters";
 
 export const ProjectTimesheetProvider: FC<PropsWithChildren> = ({
   children,
 }) => {
   const toast = useToasts();
-
-  const [state, dispatch] = useReducer(
-    projectTimesheetReducer,
-    undefined,
-    createInitialProjectTimesheetState,
-  );
-
-  const debouncedSearch = useDebounce(state.searchInput, 400);
+  const { filters, setSearch, setCompositeFilters } = useTimesheetFilters();
+  const debouncedSearch = useDebounce(filters.search, 400);
 
   // Only pass complete filter conditions to the data hook so that selecting a
   // field (without an operator/value) does not trigger a reset + network request.
   const effectiveCompositeFilters = useMemo(
-    () => state.compositeFilters.filter(isCompleteFilterCondition),
-    [state.compositeFilters],
+    () => filters.compositeFilters.filter(isCompleteFilterCondition),
+    [filters.compositeFilters],
   );
+  const activeFilterKey = useMemo(
+    () =>
+      JSON.stringify({
+        search: debouncedSearch,
+        compositeFilters: effectiveCompositeFilters,
+      }),
+    [debouncedSearch, effectiveCompositeFilters],
+  );
+  const [resolvedFilterKey, setResolvedFilterKey] = useState(activeFilterKey);
+  const isFilterRequest = activeFilterKey !== resolvedFilterKey;
 
   const {
     hasMore,
@@ -55,6 +55,7 @@ export const ProjectTimesheetProvider: FC<PropsWithChildren> = ({
     loadData,
     error,
   } = useProjectTimesheetData({
+    requestKey: activeFilterKey,
     search: debouncedSearch,
     compositeFilters: effectiveCompositeFilters,
   });
@@ -73,51 +74,42 @@ export const ProjectTimesheetProvider: FC<PropsWithChildren> = ({
 
   useEffect(() => {
     if (isLoadingProjectData) return;
-    dispatch({ type: "FILTER_REQUEST_COMPLETE" });
+    setResolvedFilterKey(activeFilterKey);
 
     if (error) {
       toast.error(parseFrappeErrorMsg(error as FrappeError));
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isLoadingProjectData, error]);
-
-  const handleSearchChange = useCallback((value: string) => {
-    dispatch({ type: "SEARCH_CHANGED", payload: value });
-  }, []);
-
-  const handleCompositeFilterChange = useCallback(
-    (value: FilterCondition[]) => {
-      dispatch({ type: "COMPOSITE_FILTERS_CHANGED", payload: value });
-    },
-    [],
-  );
+  }, [activeFilterKey, isLoadingProjectData, error]);
 
   const value: ProjectTimesheetContextProps = useMemo(
     () => ({
       state: {
         hasMore,
         isLoadingProjectData,
-        isFilterRequest: state.isFilterRequest,
+        isFilterRequest,
         weekGroups,
-        searchInput: state.searchInput,
-        compositeFilters: state.compositeFilters,
+        filters: {
+          search: filters.search,
+        },
+        compositeFilters: filters.compositeFilters,
       },
       actions: {
         loadData,
-        handleSearchChange,
-        handleCompositeFilterChange,
+        handleSearchChange: setSearch,
+        handleCompositeFilterChange: setCompositeFilters,
       },
     }),
     [
       hasMore,
       isLoadingProjectData,
-      state.isFilterRequest,
+      isFilterRequest,
       loadData,
       weekGroups,
-      state.searchInput,
-      state.compositeFilters,
-      handleSearchChange,
-      handleCompositeFilterChange,
+      filters.search,
+      filters.compositeFilters,
+      setSearch,
+      setCompositeFilters,
     ],
   );
 

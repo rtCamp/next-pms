@@ -1,12 +1,10 @@
 /**
  * External dependencies.
  */
-import { Fragment, useEffect, useRef, useState } from "react";
+import { Fragment, useState } from "react";
 import { mergeClassNames as cn } from "@next-pms/design-system";
 import { Spinner, Typography } from "@next-pms/design-system/components";
-import { useQueryParam } from "@next-pms/hooks";
 import { Button, Filter, TextInput } from "@rtcamp/frappe-ui-react";
-import { isEmpty } from "lodash";
 import { Ellipsis } from "lucide-react";
 
 /**
@@ -14,7 +12,6 @@ import { Ellipsis } from "lucide-react";
  */
 import PersonalTaskLog from "@/components/task-log/personalTaskLog";
 import { NUMBER_OF_WEEKS_TO_FETCH } from "@/lib/constant";
-import { isDateInRange } from "@/lib/utils";
 import { useUser } from "@/providers/user";
 import type { WorkingFrequency } from "@/types";
 import { usePersonalTimesheet } from "./context";
@@ -26,7 +23,6 @@ import { personalTimesheetFilters } from "../constants";
 import { useTimesheetOutletContext } from "../outletContext";
 
 export const PersonalTimesheetTable = () => {
-  const targetRef = useRef<HTMLDivElement>(null);
   const [selectedTask, setSelectedTask] = useState<string | null>(null);
 
   const hasMoreWeeks = usePersonalTimesheet(({ state }) => state.hasMoreWeeks);
@@ -43,7 +39,6 @@ export const PersonalTimesheetTable = () => {
     ({ state }) => state.timesheetData,
   );
   const filters = usePersonalTimesheet(({ state }) => state.filters);
-  const searchInput = usePersonalTimesheet(({ state }) => state.searchInput);
   const compositeFilters = usePersonalTimesheet(
     ({ state }) => state.compositeFilters,
   );
@@ -60,7 +55,6 @@ export const PersonalTimesheetTable = () => {
   const { employeeId } = useUser(({ state }) => ({
     employeeId: state.employeeId,
   }));
-  const [startDateParam] = useQueryParam<string>("date", "");
 
   const { handleApproval } = useTimesheetOutletContext();
 
@@ -72,27 +66,13 @@ export const PersonalTimesheetTable = () => {
       (filter) => filter.fieldCategory === "Task" || filter.field === "subject",
     );
 
-  useEffect(() => {
-    const scrollToElement = () => {
-      if (targetRef.current) {
-        targetRef.current.scrollIntoView({
-          behavior: "smooth",
-          block: "center",
-        });
-      }
-    };
-    const observer = new MutationObserver(scrollToElement);
-    observer.observe(document.body, { childList: true, subtree: true });
-    return () => observer.disconnect();
-  }, []);
-
   return (
     <div className="w-full flex-1 min-h-0 py-3.5 px-3 relative">
       <div className="flex flex-wrap gap-2 justify-between mb-3.5">
         <div className="flex gap-2">
           <TextInput
             placeholder="Search Tasks"
-            value={searchInput}
+            value={filters.search}
             onChange={(e) => handleSearchChange(e.target.value)}
           />
           <ApprovalStatusFilter
@@ -171,19 +151,7 @@ export const PersonalTimesheetTable = () => {
                             />
                           </div>
                         ) : null}
-                        <div
-                          ref={
-                            !isEmpty(startDateParam) &&
-                            isDateInRange(
-                              startDateParam,
-                              value.start_date,
-                              value.end_date,
-                            )
-                              ? targetRef
-                              : null
-                          }
-                          className="animate-fade-in"
-                        >
+                        <div className="animate-fade-in">
                           <PersonalTimesheetRow
                             label={key}
                             employee={employeeId}
