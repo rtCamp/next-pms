@@ -2,13 +2,13 @@
  * External dependencies.
  */
 import { useSearchParams } from "react-router-dom";
+import { formatRelativeTimeShort } from "@next-pms/design-system/utils";
 import { Avatar, Button } from "@rtcamp/frappe-ui-react";
 import { ArrowLeft } from "@rtcamp/frappe-ui-react/icons";
 
 /**
  * Internal dependencies.
  */
-import { formatRelativeTimeShort } from "@/lib/utils";
 import { NOTE_PARAM } from "../constants";
 import { NoteActions } from "../noteActions";
 import type { Note } from "../types";

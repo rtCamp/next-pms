@@ -1,13 +1,16 @@
 /**
  * External dependencies.
  */
+import {
+  formatRelativeTimeShort,
+  stripTags,
+} from "@next-pms/design-system/utils";
 import { Avatar, Dropdown } from "@rtcamp/frappe-ui-react";
 import { DotHorizontal } from "@rtcamp/frappe-ui-react/icons";
 
 /**
  * Internal dependencies.
  */
-import { formatRelativeTimeShort, stripTags } from "@/lib/utils";
 import { RiskLevelBadge } from "../riskLevelBadge";
 import { RiskStatusBadge } from "../riskStatusBadge";
 import type { EnrichedRiskUpdateEntry } from "../types";

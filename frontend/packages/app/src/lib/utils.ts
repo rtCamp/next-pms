@@ -10,19 +10,11 @@ import {
 import { FilterCondition } from "@rtcamp/frappe-ui-react";
 import { type ClassValue, clsx } from "clsx";
 import {
-  differenceInDays,
-  differenceInHours,
-  differenceInMinutes,
-  differenceInMonths,
-  differenceInWeeks,
-  differenceInYears,
   format,
   getISOWeek,
   getISOWeekYear,
   getISOWeeksInYear,
-  isToday,
   parse,
-  parseISO,
 } from "date-fns";
 import { Error as FrappeError } from "frappe-js-sdk/lib/frappe_app/types";
 import { twMerge } from "tailwind-merge";
@@ -66,59 +58,6 @@ export function formatProjectDate(isoDate: string): string {
   return format(date, pattern);
 }
 
-/**
- * Formats a given date value into a relative time string.
- * @param value - The date value to format
- * @param now - The current date and time (optional, defaults to now)
- * @param long - If true, uses full words ("1 week ago"); otherwise short ("1w ago")
- * @returns The formatted relative time string
- */
-export function formatRelativeTimeShort(
-  value: string | Date,
-  now = new Date(),
-  long = false,
-) {
-  const date = typeof value === "string" ? parseISO(value) : value;
-  const minutes = Math.max(differenceInMinutes(now, date), 0);
-
-  if (minutes < 1) {
-    return "now";
-  }
-
-  if (minutes < 60) {
-    if (long) return minutes === 1 ? "1 minute ago" : `${minutes} minutes ago`;
-    return `${minutes}min ago`;
-  }
-
-  const hours = differenceInHours(now, date);
-  if (hours < 24) {
-    if (long) return hours === 1 ? "1 hour ago" : `${hours} hours ago`;
-    return `${hours}h ago`;
-  }
-
-  const days = differenceInDays(now, date);
-  if (days < 7) {
-    if (long) return days === 1 ? "1 day ago" : `${days} days ago`;
-    return `${days}d ago`;
-  }
-
-  if (days < 30) {
-    const weeks = differenceInWeeks(now, date);
-    if (long) return weeks === 1 ? "1 week ago" : `${weeks} weeks ago`;
-    return `${weeks}w ago`;
-  }
-
-  if (days < 365) {
-    const months = Math.max(differenceInMonths(now, date), 1);
-    if (long) return months === 1 ? "1 month ago" : `${months} months ago`;
-    return `${months}m ago`;
-  }
-
-  const years = Math.max(differenceInYears(now, date), 1);
-  if (long) return years === 1 ? "1 year ago" : `${years} years ago`;
-  return `${years}y ago`;
-}
-
 export function toKebabCase(value?: string | null): string | undefined {
   if (!value) {
     return undefined;
@@ -135,10 +74,6 @@ export function kebabToTitleCase(value: string): string {
     .filter(Boolean)
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
     .join(" ");
-}
-
-export function stripTags(html: string): string {
-  return html.replace(/<[^>]*>/g, "");
 }
 
 export function getCookie(name: string) {

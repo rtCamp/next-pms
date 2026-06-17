@@ -7,6 +7,7 @@ import { Spinner } from "@next-pms/design-system/components";
  * Internal dependencies.
  */
 import { useNotes } from "../context";
+import { NoteComments } from "./comments";
 import { NoteDetailContent } from "./content";
 import { NoteDetailHeader } from "./header";
 
@@ -36,6 +37,7 @@ export function NoteDetail({ noteId }: NoteDetailProps) {
     <div className="w-full">
       <NoteDetailHeader note={note} />
       <NoteDetailContent note={note} />
+      <NoteComments noteId={note.name} />
     </div>
   );
 }

@@ -2,13 +2,13 @@
  * External dependencies.
  */
 import { useState } from "react";
+import { stripTags } from "@next-pms/design-system/utils";
 import { Button } from "@rtcamp/frappe-ui-react";
 import { Plus } from "lucide-react";
 
 /**
  * Internal dependencies.
  */
-import { stripTags } from "@/lib/utils";
 import { AddUpdateModal } from "../add-update";
 import type {
   EnrichedRiskUpdateEntry,
