@@ -16,7 +16,7 @@ export interface AllocationsProjectContextProps {
     isQueryLoading: boolean;
     isNextPageLoading: boolean;
     hasMore: boolean;
-    searchInput: string;
+    search: string;
     duration: AllocationsDuration;
     allocationsType: string[];
     compositeFilters: FilterCondition[];
@@ -43,7 +43,7 @@ export const AllocationsProjectContext =
       isQueryLoading: false,
       isNextPageLoading: false,
       hasMore: true,
-      searchInput: "",
+      search: "",
       duration: "this-quarter",
       allocationsType: [],
       compositeFilters: [],

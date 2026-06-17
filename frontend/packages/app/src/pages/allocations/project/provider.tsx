@@ -1,7 +1,7 @@
 /**
  * External dependencies.
  */
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo } from "react";
 import { useSearchParams } from "react-router-dom";
 import type { FilterCondition } from "@rtcamp/frappe-ui-react";
 import { format } from "date-fns";
@@ -9,7 +9,6 @@ import { format } from "date-fns";
 /**
  * Internal dependencies.
  */
-import { useDebounce } from "@/hooks/useDebounce";
 import { pickAllowed } from "@/lib/utils";
 import { ALLOCATIONS_PAGE_SIZE } from "../constants";
 import type { AllocationRefreshTargets, AllocationsDuration } from "../types";
@@ -46,7 +45,6 @@ export function AllocationsProjectProvider({
 }) {
   const [searchParams, setSearchParams] = useSearchParams();
   const searchParam = searchParams.get(SEARCH_PARAM_KEY) ?? "";
-  const [searchInput, setSearchInput] = useState(searchParam);
 
   const allocationTypeValues = useMemo(
     () => projectAllocationsTypeOptions.map((option) => option.value),
@@ -74,7 +72,6 @@ export function AllocationsProjectProvider({
     [searchParams],
   );
   const weekCount = getWeekCountForDuration(duration);
-  const debouncedSearch = useDebounce(searchInput, 400);
 
   const {
     projects,
@@ -86,7 +83,7 @@ export function AllocationsProjectProvider({
   } = useAllocationsProjectData({
     anchorDate,
     weekCount,
-    search: debouncedSearch,
+    search: searchParam,
     allocationsType,
     compositeFilters,
     pageLength: ALLOCATIONS_PAGE_SIZE,
@@ -114,21 +111,10 @@ export function AllocationsProjectProvider({
     [setSearchParams],
   );
 
-  const setSearch = useCallback((value: string) => {
-    setSearchInput(value);
-  }, []);
-
-  useEffect(() => {
-    setSearchInput(searchParam);
-  }, [searchParam]);
-
-  useEffect(() => {
-    if (debouncedSearch !== searchInput || debouncedSearch === searchParam) {
-      return;
-    }
-
-    updateSearchParams({ [SEARCH_PARAM_KEY]: debouncedSearch });
-  }, [debouncedSearch, searchInput, searchParam, updateSearchParams]);
+  const setSearch = useCallback(
+    (value: string) => updateSearchParams({ [SEARCH_PARAM_KEY]: value }),
+    [updateSearchParams],
+  );
 
   const setDuration = useCallback(
     (value: AllocationsDuration) =>
@@ -198,7 +184,7 @@ export function AllocationsProjectProvider({
         isQueryLoading,
         isNextPageLoading,
         hasMore,
-        searchInput,
+        search: searchParam,
         duration,
         allocationsType,
         compositeFilters,
@@ -222,7 +208,7 @@ export function AllocationsProjectProvider({
       isQueryLoading,
       isNextPageLoading,
       hasMore,
-      searchInput,
+      searchParam,
       duration,
       allocationsType,
       compositeFilters,

@@ -1,7 +1,7 @@
 /**
  * External dependencies.
  */
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo } from "react";
 import { useSearchParams } from "react-router-dom";
 import type { FilterCondition } from "@rtcamp/frappe-ui-react";
 import { format } from "date-fns";
@@ -47,7 +47,6 @@ export function AllocationsTeamProvider({
 }) {
   const [searchParams, setSearchParams] = useSearchParams();
   const searchParam = searchParams.get(SEARCH_PARAM_KEY) ?? "";
-  const [searchInput, setSearchInput] = useState(searchParam);
 
   const allocationTypeValues = useMemo(
     () => teamAllocationsTypeOptions.map((option) => option.value),
@@ -80,7 +79,6 @@ export function AllocationsTeamProvider({
   );
   const weekCount = getWeekCountForDuration(duration);
 
-  const debouncedSearch = useDebounce(searchInput, 400);
   const debouncedDesignation = useDebounce(designation, 400);
 
   const {
@@ -93,7 +91,7 @@ export function AllocationsTeamProvider({
   } = useAllocationsTeamData({
     anchorDate,
     weekCount,
-    search: debouncedSearch,
+    search: searchParam,
     designation: debouncedDesignation,
     allocationsType,
     compositeFilters,
@@ -122,21 +120,10 @@ export function AllocationsTeamProvider({
     [setSearchParams],
   );
 
-  const setSearch = useCallback((value: string) => {
-    setSearchInput(value);
-  }, []);
-
-  useEffect(() => {
-    setSearchInput(searchParam);
-  }, [searchParam]);
-
-  useEffect(() => {
-    if (debouncedSearch !== searchInput || debouncedSearch === searchParam) {
-      return;
-    }
-
-    updateSearchParams({ [SEARCH_PARAM_KEY]: debouncedSearch });
-  }, [debouncedSearch, searchInput, searchParam, updateSearchParams]);
+  const setSearch = useCallback(
+    (value: string) => updateSearchParams({ [SEARCH_PARAM_KEY]: value }),
+    [updateSearchParams],
+  );
 
   const setDuration = useCallback(
     (value: AllocationsDuration) =>
@@ -216,7 +203,7 @@ export function AllocationsTeamProvider({
         isQueryLoading,
         isNextPageLoading,
         hasMore,
-        searchInput,
+        search: searchParam,
         designation,
         duration,
         allocationsType,
@@ -242,7 +229,7 @@ export function AllocationsTeamProvider({
       isNextPageLoading,
       isQueryLoading,
       hasMore,
-      searchInput,
+      searchParam,
       duration,
       designation,
       allocationsType,
