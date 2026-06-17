@@ -1332,15 +1332,13 @@ def get_calendar_timeline_items(
     Items are scoped to the projects the current session.user is allowed to
     read. Access is enforced through frappe.get_list on Project, which applies
     the caller's User Permissions; only items belonging to those projects are
-    returned. An item is included when its date range overlaps [from_date, to_date):
+    returned.
 
         item.start_date < to_date AND item.planned_end_date > from_date
 
-    so items spanning the range boundary still appear.
-
     Args:
-        from_date: Inclusive range start (YYYY-MM-DD).
-        to_date: Range end (YYYY-MM-DD).
+        from_date: Lower bound of the overlap window (YYYY-MM-DD).
+        to_date: Upper bound of the overlap window (YYYY-MM-DD).
         project: Optional single-project filter. When omitted, items for every
             accessible project are returned. An inaccessible project yields an
             empty result rather than an error.
