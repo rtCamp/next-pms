@@ -266,3 +266,47 @@ function resolveWorkingFrequency(
     pickAllowed(workSchedule, ALLOCATION_WORKING_FREQUENCIES) ?? "Per Week"
   );
 }
+
+/**
+ * Parses a JSON string representing composite filters into an array of FilterCondition objects.
+ */
+export function parseAllocationCompositeFilters(
+  raw: string | null,
+): FilterCondition[] {
+  if (!raw) return [];
+
+  try {
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? (parsed as FilterCondition[]) : [];
+  } catch {
+    return [];
+  }
+}
+
+/**
+ * Parses a JSON string representing an array of allocation types into a string array.
+ */
+export function parseAllocationStringArray(raw: string | null): string[] {
+  if (!raw) return [];
+
+  try {
+    const parsed = JSON.parse(raw);
+
+    if (!Array.isArray(parsed)) return [];
+
+    return parsed.filter((value): value is string => typeof value === "string");
+  } catch {
+    return [];
+  }
+}
+
+/**
+ * Parses a date string from the URL query parameter into a Date object.
+ */
+export function parseAllocationAnchorDate(raw: string | null): Date {
+  if (!raw) return new Date();
+
+  const parsedDate = parseISO(raw);
+
+  return Number.isNaN(parsedDate.getTime()) ? new Date() : parsedDate;
+}

@@ -113,7 +113,6 @@ export const AllocationsProjectTable = () => {
       <div className="w-full flex flex-wrap gap-2 justify-between px-5">
         <div className="flex flex-wrap gap-2">
           <TextInput
-            className="w-xs"
             placeholder="Search project"
             onChange={(e) => guard(() => setSearch(e.target.value))}
             value={searchInput}

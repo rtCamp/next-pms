@@ -1,39 +1,79 @@
 /**
  * External dependencies.
  */
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import type { FilterCondition } from "@rtcamp/frappe-ui-react";
+import { format } from "date-fns";
 
 /**
  * Internal dependencies.
  */
 import { useDebounce } from "@/hooks/useDebounce";
+import { pickAllowed } from "@/lib/utils";
 import { ALLOCATIONS_PAGE_SIZE } from "../constants";
-import type { AllocationRefreshTargets } from "../types";
-import { AllocationsDuration } from "../types";
+import type { AllocationRefreshTargets, AllocationsDuration } from "../types";
+import {
+  getWeekCountForDuration,
+  moveDateByDuration,
+  parseAllocationAnchorDate,
+  parseAllocationCompositeFilters,
+  parseAllocationStringArray,
+} from "../utils";
 import { projectAllocationsTypeOptions } from "./constants";
-import { getWeekCountForDuration, moveDateByDuration } from "../utils";
 import {
   AllocationsProjectContext,
   type AllocationsProjectContextProps,
 } from "./context";
 import { useAllocationsProjectData } from "./useAllocationsProjectData";
 
+const SEARCH_PARAM_KEY = "search";
+const DATE_PARAM_KEY = "date";
+const DURATION_PARAM_KEY = "duration";
+const ALLOCATION_TYPE_PARAM_KEY = "allocationType";
+const COMPOSITE_FILTERS_PARAM_KEY = "compositeFilters";
+const DEFAULT_DURATION = "this-quarter";
+const DURATION_PARAM_VALUES = [
+  "this-week",
+  "this-month",
+  "this-quarter",
+] as const satisfies readonly AllocationsDuration[];
+
 export function AllocationsProjectProvider({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const [searchInput, setSearchInput] = useState("");
-  const [duration, setDurationState] =
-    useState<AllocationsDuration>("this-quarter");
-  const [allocationsType, setAllocationsType] = useState<string[]>([]);
-  const [compositeFilters, setCompositeFilters] = useState<FilterCondition[]>(
+  const [searchParams, setSearchParams] = useSearchParams();
+  const searchParam = searchParams.get(SEARCH_PARAM_KEY) ?? "";
+  const [searchInput, setSearchInput] = useState(searchParam);
+
+  const allocationTypeValues = useMemo(
+    () => projectAllocationsTypeOptions.map((option) => option.value),
     [],
   );
-  const [anchorDate, setAnchorDate] = useState(() => new Date());
+  const duration =
+    pickAllowed(searchParams.get(DURATION_PARAM_KEY), DURATION_PARAM_VALUES) ??
+    DEFAULT_DURATION;
+  const anchorDate = useMemo(
+    () => parseAllocationAnchorDate(searchParams.get(DATE_PARAM_KEY)),
+    [searchParams],
+  );
+  const allocationsType = useMemo(
+    () =>
+      parseAllocationStringArray(
+        searchParams.get(ALLOCATION_TYPE_PARAM_KEY),
+      ).filter((value) => allocationTypeValues.includes(value)),
+    [allocationTypeValues, searchParams],
+  );
+  const compositeFilters = useMemo(
+    () =>
+      parseAllocationCompositeFilters(
+        searchParams.get(COMPOSITE_FILTERS_PARAM_KEY),
+      ),
+    [searchParams],
+  );
   const weekCount = getWeekCountForDuration(duration);
-
   const debouncedSearch = useDebounce(searchInput, 400);
 
   const {
@@ -52,35 +92,93 @@ export function AllocationsProjectProvider({
     pageLength: ALLOCATIONS_PAGE_SIZE,
   });
 
+  const updateSearchParams = useCallback(
+    (updates: Record<string, string | undefined>) =>
+      setSearchParams(
+        (prev) => {
+          const next = new URLSearchParams(prev);
+
+          Object.entries(updates).forEach(([key, value]) => {
+            if (value === undefined || value === "") {
+              next.delete(key);
+              return;
+            }
+
+            next.set(key, value);
+          });
+
+          return next;
+        },
+        { replace: true },
+      ),
+    [setSearchParams],
+  );
+
   const setSearch = useCallback((value: string) => {
     setSearchInput(value);
   }, []);
 
-  const setDuration = useCallback((value: AllocationsDuration) => {
-    setDurationState(value);
-  }, []);
+  useEffect(() => {
+    if (debouncedSearch === searchParam) {
+      return;
+    }
 
-  const handleAllocationsTypeChange = useCallback((value: string[]) => {
-    setAllocationsType(
-      value.length === projectAllocationsTypeOptions.length ? [] : value,
-    );
-  }, []);
+    updateSearchParams({ [SEARCH_PARAM_KEY]: debouncedSearch });
+  }, [debouncedSearch, searchParam, updateSearchParams]);
+
+  const setDuration = useCallback(
+    (value: AllocationsDuration) =>
+      updateSearchParams({
+        [DURATION_PARAM_KEY]: value === DEFAULT_DURATION ? undefined : value,
+      }),
+    [updateSearchParams],
+  );
+
+  const setAllocationsType = useCallback(
+    (value: string[]) => {
+      const nextValue =
+        value.length === projectAllocationsTypeOptions.length ? [] : value;
+
+      updateSearchParams({
+        [ALLOCATION_TYPE_PARAM_KEY]: nextValue.length
+          ? JSON.stringify(nextValue)
+          : undefined,
+      });
+    },
+    [updateSearchParams],
+  );
+
+  const setCompositeFilters = useCallback(
+    (value: FilterCondition[]) =>
+      updateSearchParams({
+        [COMPOSITE_FILTERS_PARAM_KEY]: value.length
+          ? JSON.stringify(value)
+          : undefined,
+      }),
+    [updateSearchParams],
+  );
 
   const handlePrevious = useCallback(() => {
-    setAnchorDate((currentAnchorDate) =>
-      moveDateByDuration(currentAnchorDate, duration, false),
-    );
-  }, [duration]);
+    updateSearchParams({
+      [DATE_PARAM_KEY]: format(
+        moveDateByDuration(anchorDate, duration, false),
+        "yyyy-MM-dd",
+      ),
+    });
+  }, [anchorDate, duration, updateSearchParams]);
 
   const handleNext = useCallback(() => {
-    setAnchorDate((currentAnchorDate) =>
-      moveDateByDuration(currentAnchorDate, duration, true),
-    );
-  }, [duration]);
+    updateSearchParams({
+      [DATE_PARAM_KEY]: format(
+        moveDateByDuration(anchorDate, duration, true),
+        "yyyy-MM-dd",
+      ),
+    });
+  }, [anchorDate, duration, updateSearchParams]);
 
   const handleToday = useCallback(() => {
-    setAnchorDate(new Date());
-  }, []);
+    updateSearchParams({ [DATE_PARAM_KEY]: undefined });
+  }, [updateSearchParams]);
 
   const handleRefresh = useCallback(
     async (targets?: AllocationRefreshTargets) => {
@@ -106,7 +204,7 @@ export function AllocationsProjectProvider({
       actions: {
         setSearch,
         setDuration,
-        setAllocationsType: handleAllocationsTypeChange,
+        setAllocationsType,
         setCompositeFilters,
         loadMore,
         handlePrevious,
@@ -128,7 +226,7 @@ export function AllocationsProjectProvider({
       anchorDate,
       setSearch,
       setDuration,
-      handleAllocationsTypeChange,
+      setAllocationsType,
       setCompositeFilters,
       loadMore,
       handlePrevious,
