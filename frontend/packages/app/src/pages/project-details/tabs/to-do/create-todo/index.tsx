@@ -1,0 +1,366 @@
+/**
+ * External dependencies.
+ */
+import { useCallback, useEffect, useMemo, useState } from "react";
+import {
+  Avatar,
+  Button,
+  Combobox,
+  DateTimePicker,
+  Dialog,
+  ErrorMessage,
+  Select,
+  TextEditor,
+  TextInput,
+} from "@rtcamp/frappe-ui-react";
+import {
+  Calendar,
+  StatusBacklog,
+  StatusCancelled,
+  StatusClosed,
+  StatusInProgress,
+  StatusOpen,
+} from "@rtcamp/frappe-ui-react/icons";
+import { useForm } from "@tanstack/react-form";
+
+/**
+ * Internal dependencies.
+ */
+import { useUserLookup } from "@/hooks/useUserLookup";
+import { useUser } from "@/providers/user";
+import {
+  PRIORITY_OPTIONS,
+  STATUS_OPTIONS,
+  buildCreateTodoSchema,
+  type CreateTodoValues,
+  type TodoPriority,
+  type TodoStatus,
+} from "./schema";
+import type { CreateTodoModalProps } from "./types";
+import { useTodos } from "../provider/context";
+
+const STATUS_ICON: Record<
+  TodoStatus,
+  React.ComponentType<{ className?: string }>
+> = {
+  Open: StatusOpen,
+  Backlog: StatusBacklog,
+  "In Progress": StatusInProgress,
+  Closed: StatusClosed,
+  Cancelled: StatusCancelled,
+};
+
+const STATUS_COLOR: Record<TodoStatus, string> = {
+  Open: "text-ink-gray-5",
+  Backlog: "text-ink-gray-4",
+  "In Progress": "text-ink-blue-4",
+  Closed: "text-ink-gray-8",
+  Cancelled: "text-ink-gray-4",
+};
+
+const StatusIcon = ({ status }: { status: TodoStatus }) => {
+  const Icon = STATUS_ICON[status];
+  return <Icon className={`size-3.5 ${STATUS_COLOR[status]}`} />;
+};
+
+const PRIORITY_DOT_CLASS: Record<TodoPriority, string> = {
+  Low: "bg-surface-green-5",
+  Medium: "bg-surface-amber-5",
+  High: "bg-surface-red-5",
+};
+
+const PriorityDot = ({ priority }: { priority: TodoPriority }) => (
+  <span
+    aria-hidden
+    className={`inline-block size-2 rounded-full ${PRIORITY_DOT_CLASS[priority]}`}
+  />
+);
+
+export function CreateTodoModal({ open, onClose, todo }: CreateTodoModalProps) {
+  const userId = useUser((state) => state.state.userId);
+  const createTodo = useTodos((c) => c.actions.createTodo);
+  const updateTodo = useTodos((c) => c.actions.updateTodo);
+  const isCreating = useTodos((c) => c.state.isCreating);
+  const [assigneeSearch, setAssigneeSearch] = useState("");
+
+  const hasTodoCustomFields = Boolean(
+    window.frappe?.boot?.has_todo_custom_fields,
+  );
+  const isEditMode = Boolean(todo);
+
+  const emptyValues: CreateTodoValues = useMemo(
+    () => ({
+      title: "",
+      description: "",
+      status: "Open",
+      assignee: userId ?? "",
+      startAt: "",
+      endAt: "",
+      priority: "Medium",
+    }),
+    [userId],
+  );
+
+  const initialValues: CreateTodoValues = useMemo(() => {
+    if (!todo) return emptyValues;
+    return {
+      title: todo.custom_title ?? "",
+      description: todo.description ?? "",
+      status: todo.status,
+      assignee: todo.allocated_to ?? "",
+      startAt: todo.custom_from_time ?? "",
+      endAt: todo.custom_to_time ?? "",
+      priority: todo.priority,
+    };
+  }, [todo, emptyValues]);
+
+  const todoSchema = useMemo(
+    () => buildCreateTodoSchema(hasTodoCustomFields),
+    [hasTodoCustomFields],
+  );
+
+  const form = useForm({
+    defaultValues: initialValues,
+    validators: { onSubmit: todoSchema },
+    onSubmit: async ({ value }) => {
+      const doc =
+        isEditMode && todo
+          ? await updateTodo(todo.name, value)
+          : await createTodo(value);
+      if (doc) closeModal();
+    },
+  });
+
+  useEffect(() => {
+    if (open) form.reset(initialValues);
+  }, [form, open, initialValues]);
+
+  const closeModal = useCallback(() => {
+    onClose();
+    form.reset(emptyValues);
+  }, [form, onClose, emptyValues]);
+
+  const handleOpenChange = useCallback(
+    (nextOpen: boolean) => {
+      if (!nextOpen) closeModal();
+    },
+    [closeModal],
+  );
+
+  const { options: assigneeOptions, isLoading: isAssigneeLookupLoading } =
+    useUserLookup({
+      shouldFetch: open,
+      pageSize: 20,
+      query: assigneeSearch,
+    });
+
+  const assigneeOptionsWithAvatars = useMemo(
+    () =>
+      assigneeOptions.map((opt) => ({
+        ...opt,
+        icon: (
+          <Avatar
+            size="xs"
+            shape="circle"
+            image={opt.image}
+            label={opt.label}
+          />
+        ),
+      })),
+    [assigneeOptions],
+  );
+
+  return (
+    <Dialog
+      open={open}
+      onOpenChange={handleOpenChange}
+      options={{ title: isEditMode ? "Edit to-do" : "Add to-do", size: "lg" }}
+      actions={
+        <Button
+          className="w-full h-7"
+          variant="solid"
+          label={isEditMode ? "Save" : "Create"}
+          loading={isCreating}
+          disabled={isCreating}
+          onClick={() => form.handleSubmit()}
+        />
+      }
+    >
+      <div className="-mt-2 space-y-4">
+        {hasTodoCustomFields && (
+          <form.Field
+            name="title"
+            children={(field) => (
+              <div className="flex flex-col gap-1.5">
+                <label className="block text-base text-ink-gray-5">Title</label>
+                <TextInput
+                  size="md"
+                  variant="outline"
+                  placeholder="Add a title"
+                  value={field.state.value}
+                  onChange={(event) => field.handleChange(event.target.value)}
+                />
+                {!field.state.meta.isValid && (
+                  <ErrorMessage message={field.state.meta.errors[0]?.message} />
+                )}
+              </div>
+            )}
+          />
+        )}
+
+        <form.Field
+          name="description"
+          children={(field) => (
+            <div className="flex flex-col gap-1.5">
+              <label className="block text-base text-ink-gray-5">
+                Description
+              </label>
+              <TextEditor
+                content={field.state.value}
+                onChange={(value) => field.handleChange(value)}
+                placeholder="Add a description..."
+                editorClass="prose prose-sm max-w-none min-h-[160px] rounded-md border border-outline-gray-2 p-2 text-ink-gray-8 focus:outline-none"
+              />
+            </div>
+          )}
+        />
+
+        <div className="flex flex-wrap items-center gap-2">
+          <form.Field
+            name="status"
+            children={(field) => (
+              <Select
+                className="w-fit"
+                size="sm"
+                variant="subtle"
+                value={field.state.value}
+                options={STATUS_OPTIONS.map((o) => ({ ...o }))}
+                onChange={(value) =>
+                  value &&
+                  field.handleChange(value as CreateTodoValues["status"])
+                }
+                prefix={() => <StatusIcon status={field.state.value} />}
+                option={({ option }) => (
+                  <div className="flex items-center gap-2">
+                    <StatusIcon status={option.value as TodoStatus} />
+                    <span>{option.label}</span>
+                  </div>
+                )}
+              />
+            )}
+          />
+
+          <form.Field
+            name="assignee"
+            children={(field) => (
+              <div className="flex flex-col gap-1">
+                <div className="w-56">
+                  <Combobox
+                    inputClassName="bg-surface-gray-2 h-8 border-0"
+                    loading={isAssigneeLookupLoading}
+                    options={assigneeOptionsWithAvatars}
+                    searchValue={assigneeSearch}
+                    placeholder="Assignee"
+                    value={field.state.value || null}
+                    onChange={(value) =>
+                      field.handleChange((value as string) ?? "")
+                    }
+                    onSearchChange={setAssigneeSearch}
+                    openOnFocus
+                  />
+                </div>
+                {!field.state.meta.isValid && (
+                  <ErrorMessage message={field.state.meta.errors[0]?.message} />
+                )}
+              </div>
+            )}
+          />
+
+          {hasTodoCustomFields && (
+            <>
+              <form.Field
+                name="startAt"
+                children={(field) => (
+                  <div className="flex flex-col gap-1">
+                    <DateTimePicker
+                      value={field.state.value}
+                      onChange={(val) => field.handleChange(val)}
+                      placeholder="Start"
+                    >
+                      {({ displayValue }) => (
+                        <Button
+                          type="button"
+                          variant="subtle"
+                          iconRight={Calendar}
+                          className="gap-2 h-8"
+                        >
+                          <span className="truncate text-sm text-ink-gray-7">
+                            {displayValue || "Start"}
+                          </span>
+                        </Button>
+                      )}
+                    </DateTimePicker>
+                    {!field.state.meta.isValid && (
+                      <ErrorMessage
+                        message={field.state.meta.errors[0]?.message}
+                      />
+                    )}
+                  </div>
+                )}
+              />
+
+              <form.Field
+                name="endAt"
+                children={(field) => (
+                  <div className="flex flex-col gap-1">
+                    <DateTimePicker
+                      value={field.state.value}
+                      onChange={(val) => field.handleChange(val)}
+                      placeholder="End"
+                    >
+                      {({ displayValue }) => (
+                        <Button
+                          type="button"
+                          variant="subtle"
+                          iconRight={Calendar}
+                          className="gap-2 h-8"
+                        >
+                          <span className="truncate text-sm text-ink-gray-7">
+                            {displayValue || "End"}
+                          </span>
+                        </Button>
+                      )}
+                    </DateTimePicker>
+                    {!field.state.meta.isValid && (
+                      <ErrorMessage
+                        message={field.state.meta.errors[0]?.message}
+                      />
+                    )}
+                  </div>
+                )}
+              />
+            </>
+          )}
+
+          <form.Field
+            name="priority"
+            children={(field) => (
+              <Select
+                className="w-fit"
+                size="sm"
+                variant="subtle"
+                value={field.state.value}
+                options={PRIORITY_OPTIONS.map((o) => ({ ...o }))}
+                onChange={(value) =>
+                  value &&
+                  field.handleChange(value as CreateTodoValues["priority"])
+                }
+                prefix={() => <PriorityDot priority={field.state.value} />}
+              />
+            )}
+          />
+        </div>
+      </div>
+    </Dialog>
+  );
+}

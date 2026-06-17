@@ -11,6 +11,7 @@ import {
   ListView,
 } from "@rtcamp/frappe-ui-react";
 import { AddSm } from "@rtcamp/frappe-ui-react/icons";
+import { format, parseISO } from "date-fns";
 
 /**
  * Internal dependencies.
@@ -65,7 +66,7 @@ export function ProjectRatesTable() {
         <ListRows>
           {flatRate && (
             <div
-              className="grid h-10 items-center rounded-md bg-surface-gray-2 px-2 gap-2"
+              className="grid h-10 items-center rounded-md bg-surface-gray-2 px-2 gap-2 mt-2"
               style={{ gridTemplateColumns }}
             >
               <div className="truncate text-base font-medium text-ink-gray-7">
@@ -75,7 +76,9 @@ export function ProjectRatesTable() {
                 {flatRate.amount}
               </div>
               <div className="truncate text-base text-ink-gray-6 tabular-nums">
-                {flatRate.date}
+                {flatRate.date
+                  ? format(parseISO(flatRate.date), "MMM d, yyyy")
+                  : ""}
               </div>
             </div>
           )}
@@ -100,7 +103,7 @@ export function ProjectRatesTable() {
                   {row.amount}
                 </div>
                 <div className="truncate text-base text-ink-gray-6 tabular-nums">
-                  {row.date}
+                  {row.date ? format(parseISO(row.date), "MMM d, yyyy") : ""}
                 </div>
                 <div className="flex items-center justify-end">
                   <ActionsCell

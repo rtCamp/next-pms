@@ -4,10 +4,13 @@ export type NoteComment = {
   user_full_name: string;
   user_image: string | null;
   comment: string;
+  reply_to: string | null;
   created_at: string;
   modified_at: string | null;
   owner: string;
   modified_by: string;
+  reply_count: number;
+  replies: NoteComment[];
 };
 
 export const NOTE_STATUS = ["Draft", "Review", "Publish"] as const;

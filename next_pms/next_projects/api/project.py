@@ -19,7 +19,7 @@ from next_pms.next_projects.api.constant import (
     TASK_TRACKING_OPEN_STATUSES,
     TASK_TRACKING_TOTAL_STATUSES,
 )
-from next_pms.next_projects.api.utils import build_person_data, get_user_image_map
+from next_pms.next_projects.api.utils import build_person_data, get_employee_image_map, get_user_image_map
 from next_pms.timesheet.api import get_count
 from next_pms.utils.employee import (
     get_employee_salary,
@@ -727,6 +727,14 @@ def _get_project_tracking(project: str):
         flat_rate_hourly = flt(p.custom_default_hourly_billing_rate) or None
         flat_rate_valid_from = p.actual_start_date
 
+        billing_team_rows = frappe.get_all(
+            "Project Billing Team",
+            filters={"parent": project},
+            fields=["name", "employee", "user_name", "hourly_billing_rate", "valid_from"],
+            order_by="idx asc",
+        )
+        employee_image_map = get_employee_image_map([row.employee for row in billing_team_rows if row.employee])
+
         project_rates = [
             {
                 "flat_rate_hourly": flat_rate_hourly,
@@ -737,15 +745,11 @@ def _get_project_tracking(project: str):
                     "name": row.name,
                     "employee": row.employee,
                     "employee_name": row.user_name,
+                    "image": employee_image_map.get(row.employee),
                     "hourly_billing_rate": flt(row.hourly_billing_rate) or flat_rate_hourly,
                     "valid_from": row.valid_from or flat_rate_valid_from,
                 }
-                for row in frappe.get_all(
-                    "Project Billing Team",
-                    filters={"parent": project},
-                    fields=["name", "employee", "user_name", "hourly_billing_rate", "valid_from"],
-                    order_by="idx asc",
-                )
+                for row in billing_team_rows
             ],
         ]
 

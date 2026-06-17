@@ -4,14 +4,11 @@
 import {
   FC,
   PropsWithChildren,
-  useCallback,
   useEffect,
   useMemo,
-  useReducer,
   useRef,
+  useState,
 } from "react";
-import { type ApprovalStatusType } from "@next-pms/design-system/components";
-import { type FilterCondition } from "@rtcamp/frappe-ui-react";
 import { useToasts } from "@rtcamp/frappe-ui-react";
 
 /**
@@ -20,50 +17,75 @@ import { useToasts } from "@rtcamp/frappe-ui-react";
 import type { Error as FrappeError } from "frappe-js-sdk/lib/frappe_app/types";
 import { useFrappeEventListener } from "frappe-react-sdk";
 import { useDebounce } from "@/hooks/useDebounce";
-import { parseFrappeErrorMsg, isCompleteFilterCondition } from "@/lib/utils";
+import { isCompleteFilterCondition, parseFrappeErrorMsg } from "@/lib/utils";
 import { useUser } from "@/providers/user";
 import {
   TeamTimesheetContext,
   type TeamTimesheetContextProps,
 } from "./context";
-import {
-  createInitialTeamTimesheetState,
-  teamTimesheetReducer,
-} from "./reducer";
 import { useTeamTimesheetData } from "./useTeamTimesheetData";
+import { useTimesheetFilters } from "../hooks/useTimesheetFilters";
 
 export const TeamTimesheetProvider: FC<PropsWithChildren> = ({ children }) => {
   const toast = useToasts();
-
-  const [state, dispatch] = useReducer(
-    teamTimesheetReducer,
-    undefined,
-    createInitialTeamTimesheetState,
-  );
+  const {
+    filters,
+    setSearch,
+    setApprovalStatus,
+    setReportsTo,
+    setCompositeFilters,
+  } = useTimesheetFilters({
+    includeApprovalStatus: true,
+    includeReportsTo: true,
+  });
+  const debouncedSearch = useDebounce(filters.search, 400);
 
   const { employeeId } = useUser(({ state }) => ({
     employeeId: state.employeeId,
   }));
 
-  const debouncedSearch = useDebounce(state.searchInput, 400);
+  useEffect(() => {
+    if (!employeeId || filters.reportsTo) {
+      return;
+    }
 
-  // Compute the full filters object with the debounced search.
-  // Use employeeId as the default for reportsTo until the user changes it.
+    setReportsTo(employeeId);
+  }, [employeeId, filters.reportsTo, setReportsTo]);
+
+  const uiFilters = useMemo(
+    () => ({
+      search: filters.search,
+      approvalStatus: filters.approvalStatus,
+      reportsTo: (filters.reportsTo ?? employeeId) || undefined,
+    }),
+    [employeeId, filters.search, filters.approvalStatus, filters.reportsTo],
+  );
+
   const effectiveFilters = useMemo(
     () => ({
-      ...state.filters,
       search: debouncedSearch,
-      reportsTo: (state.filters.reportsTo ?? employeeId) || undefined,
+      approvalStatus: filters.approvalStatus,
+      reportsTo: (filters.reportsTo ?? employeeId) || undefined,
     }),
-    [state.filters, debouncedSearch, employeeId],
+    [debouncedSearch, employeeId, filters.reportsTo, filters.approvalStatus],
   );
 
   // Only pass complete filter conditions to the data hook so that selecting a
   // field (without an operator/value) does not trigger a reset + network request.
   const effectiveCompositeFilters = useMemo(
-    () => state.compositeFilters.filter(isCompleteFilterCondition),
-    [state.compositeFilters],
+    () => filters.compositeFilters.filter(isCompleteFilterCondition),
+    [filters.compositeFilters],
   );
+  const activeFilterKey = useMemo(
+    () =>
+      JSON.stringify({
+        filters: effectiveFilters,
+        compositeFilters: effectiveCompositeFilters,
+      }),
+    [effectiveCompositeFilters, effectiveFilters],
+  );
+  const [resolvedFilterKey, setResolvedFilterKey] = useState(activeFilterKey);
+  const isFilterRequest = activeFilterKey !== resolvedFilterKey;
 
   const {
     hasMore,
@@ -73,6 +95,7 @@ export const TeamTimesheetProvider: FC<PropsWithChildren> = ({ children }) => {
     handleRealtimeUpdate,
     error,
   } = useTeamTimesheetData({
+    requestKey: activeFilterKey,
     filters: effectiveFilters,
     compositeFilters: effectiveCompositeFilters,
   });
@@ -91,75 +114,48 @@ export const TeamTimesheetProvider: FC<PropsWithChildren> = ({ children }) => {
 
   useEffect(() => {
     if (isLoadingTeamData) return;
-    dispatch({ type: "FILTER_REQUEST_COMPLETE" });
+    setResolvedFilterKey(activeFilterKey);
 
     if (error) {
       toast.error(parseFrappeErrorMsg(error as FrappeError));
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isLoadingTeamData, error]);
+  }, [activeFilterKey, isLoadingTeamData, error]);
 
   useFrappeEventListener("timesheet_info", (payload) => {
     handleRealtimeUpdate(payload.message);
   });
-
-  const handleSearchChange = useCallback((value: string) => {
-    dispatch({ type: "SEARCH_CHANGED", payload: value });
-  }, []);
-
-  const handleApprovalStatusChange = useCallback(
-    (value?: ApprovalStatusType | null) => {
-      dispatch({
-        type: "APPROVAL_STATUS_CHANGED",
-        payload: value ?? undefined,
-      });
-    },
-    [],
-  );
-
-  const handleReportsToChange = useCallback((value: string | null) => {
-    dispatch({ type: "REPORTS_TO_CHANGED", payload: value ?? null });
-  }, []);
-
-  const handleCompositeFilterChange = useCallback(
-    (value: FilterCondition[]) => {
-      dispatch({ type: "COMPOSITE_FILTERS_CHANGED", payload: value });
-    },
-    [],
-  );
 
   const value: TeamTimesheetContextProps = useMemo(
     () => ({
       state: {
         hasMore,
         isLoadingTeamData,
-        isFilterRequest: state.isFilterRequest,
+        isFilterRequest,
         weekGroups,
-        filters: effectiveFilters,
-        searchInput: state.searchInput,
-        compositeFilters: state.compositeFilters,
+        filters: uiFilters,
+        compositeFilters: filters.compositeFilters,
       },
       actions: {
         loadMore,
-        handleSearchChange,
-        handleApprovalStatusChange,
-        handleReportsToChange,
-        handleCompositeFilterChange,
+        handleSearchChange: setSearch,
+        handleApprovalStatusChange: setApprovalStatus,
+        handleReportsToChange: setReportsTo,
+        handleCompositeFilterChange: setCompositeFilters,
       },
     }),
     [
       hasMore,
       isLoadingTeamData,
-      state.isFilterRequest,
+      isFilterRequest,
       loadMore,
       weekGroups,
-      effectiveFilters,
-      state.searchInput,
-      state.compositeFilters,
-      handleSearchChange,
-      handleApprovalStatusChange,
-      handleReportsToChange,
-      handleCompositeFilterChange,
+      uiFilters,
+      filters.compositeFilters,
+      setSearch,
+      setApprovalStatus,
+      setReportsTo,
+      setCompositeFilters,
     ],
   );
 

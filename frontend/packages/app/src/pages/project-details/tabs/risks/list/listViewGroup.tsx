@@ -2,13 +2,13 @@
  * External dependencies.
  */
 import { Accordion } from "@base-ui/react/accordion";
+import { stripTags } from "@next-pms/design-system/utils";
 import { Avatar } from "@rtcamp/frappe-ui-react";
 import { SmallDown } from "@rtcamp/frappe-ui-react/icons";
 
 /**
  * Internal dependencies.
  */
-import { stripTags } from "@/lib/utils";
 import { RISK_LIST_COLUMNS } from "../constants";
 import { useRisks } from "../context";
 import { RiskRowActions } from "../riskRowActions";

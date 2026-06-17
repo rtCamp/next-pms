@@ -1,7 +1,7 @@
 /**
  * External dependencies.
  */
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { ApprovalStatusLabelMap } from "@next-pms/design-system/components";
 import { getFormatedDate, getTodayDate } from "@next-pms/design-system/date";
 import type { FilterCondition } from "@rtcamp/frappe-ui-react";
@@ -53,6 +53,7 @@ type UseTeamTimesheetDataResult = {
 };
 
 type UseTeamTimesheetOptions = {
+  requestKey: string;
   filters: TimesheetFilters;
   compositeFilters: FilterCondition[];
 };
@@ -60,24 +61,28 @@ type UseTeamTimesheetOptions = {
 const EMPLOYEE_PAGE_LENGTH = 20;
 
 export function useTeamTimesheetData({
+  requestKey,
   filters,
   compositeFilters,
 }: UseTeamTimesheetOptions): UseTeamTimesheetDataResult {
   const [weekDate, setWeekDate] = useState(getTodayDate());
   const [employeeStart, setEmployeeStart] = useState(0);
+  const [appliedRequestKey, setAppliedRequestKey] = useState(requestKey);
 
   // Each entry represents one paginated fetch.
   // All derived data (weeks, members, timesheets) is computed from this.
   const [pages, setPages] = useState<ApiPayload[]>([]);
-
-  // Track filter changes to reset pagination
-  const prevFiltersRef = useRef({ filters, compositeFilters });
 
   // Build Frappe-compatible filters from composite filters
   const { startDate, endDate, frappeFilters } = useMemo(
     () => buildCompositeFilters(compositeFilters),
     [compositeFilters],
   );
+  const isApplyingNewFilters = requestKey !== appliedRequestKey;
+  const requestWeekDate = isApplyingNewFilters
+    ? (startDate ?? getTodayDate())
+    : weekDate;
+  const requestEmployeeStart = isApplyingNewFilters ? 0 : employeeStart;
 
   const resetData = useCallback(() => {
     setPages([]);
@@ -88,19 +93,14 @@ export function useTeamTimesheetData({
     setEmployeeStart(0);
   }, [startDate]);
 
-  // Reset pagination when filters change
   useEffect(() => {
-    const filtersChanged =
-      JSON.stringify(prevFiltersRef.current.filters) !==
-        JSON.stringify(filters) ||
-      JSON.stringify(prevFiltersRef.current.compositeFilters) !==
-        JSON.stringify(compositeFilters);
-
-    if (filtersChanged) {
-      resetData();
-      prevFiltersRef.current = { filters, compositeFilters };
+    if (!isApplyingNewFilters) {
+      return;
     }
-  }, [filters, compositeFilters, resetData]);
+
+    resetData();
+    setAppliedRequestKey(requestKey);
+  }, [isApplyingNewFilters, requestKey, resetData]);
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars -- will eventually use filters in the API call, just not yet.
   const hasActiveFilter =
@@ -114,11 +114,11 @@ export function useTeamTimesheetData({
     error: teamDataError,
     isLoading: isLoadingTeamApiData,
   } = useFrappeGetCall("next_pms.timesheet.api.team.get_team_timesheet_data", {
-    date: weekDate,
+    date: requestWeekDate,
     reports_to: filters.reportsTo || null,
     max_week: NUMBER_OF_WEEKS_TO_FETCH,
     page_length: EMPLOYEE_PAGE_LENGTH,
-    start: employeeStart,
+    start: requestEmployeeStart,
     search: filters.search || null,
     status_filter: filters.approvalStatus
       ? JSON.stringify([ApprovalStatusLabelMap[filters.approvalStatus]])
@@ -143,9 +143,11 @@ export function useTeamTimesheetData({
       // to the 1-year rolling limit.
       const hasMoreWeeks =
         startDate && endDate
-          ? addDays(parseISO(weekDate), -(NUMBER_OF_WEEKS_TO_FETCH * 7)) >
-            parseISO(endDate)
-          : parseISO(weekDate) > oneYearAgo;
+          ? addDays(
+              parseISO(requestWeekDate),
+              -(NUMBER_OF_WEEKS_TO_FETCH * 7),
+            ) > parseISO(endDate)
+          : parseISO(requestWeekDate) > oneYearAgo;
       const hasMoreEmployees =
         pages.length > 0 ? (pages[pages.length - 1].has_more ?? false) : true;
 
@@ -285,7 +287,7 @@ export function useTeamTimesheetData({
       const hasMore = hasMoreEmployees || hasMoreWeeks;
 
       return { hasMoreWeeks, hasMoreEmployees, hasMore, weekGroups };
-    }, [pages, weekDate, startDate, endDate]);
+    }, [pages, requestWeekDate, startDate, endDate]);
 
   // When the current window is fully loaded but yields no visible weeks, we are
   // about to auto-advance. Expose this as "still loading" to prevent a flicker

@@ -4,6 +4,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Spinner } from "@next-pms/design-system/components";
+import { stripTags } from "@next-pms/design-system/utils";
 import { Button, Dialog, TextInput } from "@rtcamp/frappe-ui-react";
 import { Search } from "@rtcamp/frappe-ui-react/icons";
 
@@ -15,7 +16,7 @@ import {
   type NoteTemplateOption,
 } from "@/hooks/useNoteTemplateLookup";
 import { ROUTES } from "@/lib/constant";
-import { mergeClassNames as cn, stripTags } from "@/lib/utils";
+import { mergeClassNames as cn } from "@/lib/utils";
 import { TEMPLATE_PARAM } from "./constants";
 
 type TemplateDialogProps = {

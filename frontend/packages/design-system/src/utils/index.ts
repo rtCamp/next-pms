@@ -2,7 +2,16 @@
  * External dependencies.
  */
 import { type ClassValue, clsx } from "clsx";
-import { isToday } from "date-fns";
+import {
+  differenceInDays,
+  differenceInHours,
+  differenceInMinutes,
+  differenceInMonths,
+  differenceInWeeks,
+  differenceInYears,
+  isToday,
+  parseISO,
+} from "date-fns";
 import { twMerge } from "tailwind-merge";
 /**
  * Internal dependencies.
@@ -45,6 +54,63 @@ export function floatToTime(
   const formattedMinutes = String(minutes).padStart(minutePadding, "0");
 
   return `${formattedHours}:${formattedMinutes}`;
+}
+
+/**
+ * Formats a given date value into a relative time string.
+ * @param value - The date value to format
+ * @param now - The current date and time (optional, defaults to now)
+ * @param long - If true, uses full words ("1 week ago"); otherwise short ("1w ago")
+ * @returns The formatted relative time string
+ */
+export function formatRelativeTimeShort(
+  value: string | Date,
+  now = new Date(),
+  long = false,
+) {
+  const date = typeof value === "string" ? parseISO(value) : value;
+  const minutes = Math.max(differenceInMinutes(now, date), 0);
+
+  if (minutes < 1) {
+    return "now";
+  }
+
+  if (minutes < 60) {
+    if (long) return minutes === 1 ? "1 minute ago" : `${minutes} minutes ago`;
+    return `${minutes}min ago`;
+  }
+
+  const hours = differenceInHours(now, date);
+  if (hours < 24) {
+    if (long) return hours === 1 ? "1 hour ago" : `${hours} hours ago`;
+    return `${hours}h ago`;
+  }
+
+  const days = differenceInDays(now, date);
+  if (days < 7) {
+    if (long) return days === 1 ? "1 day ago" : `${days} days ago`;
+    return `${days}d ago`;
+  }
+
+  if (days < 30) {
+    const weeks = differenceInWeeks(now, date);
+    if (long) return weeks === 1 ? "1 week ago" : `${weeks} weeks ago`;
+    return `${weeks}w ago`;
+  }
+
+  if (days < 365) {
+    const months = Math.max(differenceInMonths(now, date), 1);
+    if (long) return months === 1 ? "1 month ago" : `${months} months ago`;
+    return `${months}m ago`;
+  }
+
+  const years = Math.max(differenceInYears(now, date), 1);
+  if (long) return years === 1 ? "1 year ago" : `${years} years ago`;
+  return `${years}y ago`;
+}
+
+export function stripTags(html: string): string {
+  return html.replace(/<[^>]*>/g, "");
 }
 
 export const preProcessLink = (input: string) => {
