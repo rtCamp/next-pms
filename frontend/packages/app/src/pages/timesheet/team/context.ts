@@ -33,7 +33,6 @@ export interface TeamTimesheetContextProps {
     isFilterRequest: boolean;
     weekGroups: WeekGroup[];
     filters: TimesheetFilters;
-    searchInput: string;
     compositeFilters: FilterCondition[];
   };
   actions: {
@@ -56,7 +55,6 @@ export const TeamTimesheetContext = createContext<TeamTimesheetContextProps>({
       approvalStatus: undefined,
       reportsTo: undefined,
     },
-    searchInput: "",
     compositeFilters: [],
   },
   actions: {

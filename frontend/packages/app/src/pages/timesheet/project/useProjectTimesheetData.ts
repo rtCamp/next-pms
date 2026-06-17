@@ -1,7 +1,7 @@
 /**
  * External dependencies.
  */
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { getFormatedDate, getTodayDate } from "@next-pms/design-system/date";
 import type { FilterCondition } from "@rtcamp/frappe-ui-react";
 import { addDays, parseISO } from "date-fns";
@@ -26,6 +26,7 @@ type UseProjectTimesheetDataResult = {
 };
 
 type UseProjectTimesheetOptions = {
+  requestKey: string;
   search: string;
   compositeFilters: FilterCondition[];
 };
@@ -33,24 +34,28 @@ type UseProjectTimesheetOptions = {
 const PROJECT_PAGE_LENGTH = 10;
 
 export function useProjectTimesheetData({
+  requestKey,
   search,
   compositeFilters,
 }: UseProjectTimesheetOptions): UseProjectTimesheetDataResult {
   const [weekDate, setWeekDate] = useState(getTodayDate());
   const [projectStart, setProjectStart] = useState(0);
+  const [appliedRequestKey, setAppliedRequestKey] = useState(requestKey);
 
   // Each entry represents one paginated fetch.
   // All derived data (weeks, projects, members) is computed from this.
   const [pages, setPages] = useState<ApiPayload[]>([]);
-
-  // Track filter changes to reset pagination
-  const prevFiltersRef = useRef({ search, compositeFilters });
 
   // Build Frappe-compatible filters from composite filters
   const { startDate, endDate, frappeFilters } = useMemo(
     () => buildCompositeFilters(compositeFilters),
     [compositeFilters],
   );
+  const isApplyingNewFilters = requestKey !== appliedRequestKey;
+  const requestWeekDate = isApplyingNewFilters
+    ? (startDate ?? getTodayDate())
+    : weekDate;
+  const requestProjectStart = isApplyingNewFilters ? 0 : projectStart;
 
   const resetData = useCallback(() => {
     setPages([]);
@@ -63,16 +68,13 @@ export function useProjectTimesheetData({
 
   // Reset pagination when filters change
   useEffect(() => {
-    const filtersChanged =
-      prevFiltersRef.current.search !== search ||
-      JSON.stringify(prevFiltersRef.current.compositeFilters) !==
-        JSON.stringify(compositeFilters);
-
-    if (filtersChanged) {
-      resetData();
-      prevFiltersRef.current = { search, compositeFilters };
+    if (!isApplyingNewFilters) {
+      return;
     }
-  }, [search, compositeFilters, resetData]);
+
+    resetData();
+    setAppliedRequestKey(requestKey);
+  }, [isApplyingNewFilters, requestKey, resetData]);
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars -- will eventually use filters in the API call, just not yet.
   const hasActiveFilter = !!search || compositeFilters.length > 0;
@@ -84,10 +86,10 @@ export function useProjectTimesheetData({
   } = useFrappeGetCall<ProjectTimesheetApiResponse>(
     "next_pms.timesheet.api.project.get_project_timesheet_data",
     {
-      date: weekDate,
+      date: requestWeekDate,
       max_week: NUMBER_OF_WEEKS_TO_FETCH,
       page_length: PROJECT_PAGE_LENGTH,
-      start: projectStart,
+      start: requestProjectStart,
       search: search || null,
       filters: frappeFilters.length > 0 ? JSON.stringify(frappeFilters) : null,
       // skip_empty_weeks: hasActiveFilter || null,
@@ -110,9 +112,9 @@ export function useProjectTimesheetData({
     // to the 1-year rolling limit.
     const hasMoreWeeks =
       startDate && endDate
-        ? addDays(parseISO(weekDate), -(NUMBER_OF_WEEKS_TO_FETCH * 7)) >
+        ? addDays(parseISO(requestWeekDate), -(NUMBER_OF_WEEKS_TO_FETCH * 7)) >
           parseISO(endDate)
-        : parseISO(weekDate) > oneYearAgo;
+        : parseISO(requestWeekDate) > oneYearAgo;
 
     const hasMoreProjects =
       pages.length > 0 ? (pages[pages.length - 1].has_more ?? false) : true;
@@ -195,7 +197,7 @@ export function useProjectTimesheetData({
     const hasMore = hasMoreProjects || hasMoreWeeks;
 
     return { hasMoreProjects, hasMoreWeeks, hasMore, weekGroups };
-  }, [pages, weekDate, startDate, endDate]);
+  }, [pages, requestWeekDate, startDate, endDate]);
 
   // When the current window is fully loaded but yields no visible weeks, we are
   // about to auto-advance. Expose this as "still loading" to prevent a flicker

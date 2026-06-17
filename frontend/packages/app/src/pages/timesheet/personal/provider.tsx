@@ -1,213 +1,102 @@
 /**
  * External dependencies.
  */
-import {
-  FC,
-  PropsWithChildren,
-  useCallback,
-  useEffect,
-  useMemo,
-  useReducer,
-  useState,
-} from "react";
-import {
-  ApprovalStatusLabelMap,
-  ApprovalStatusType,
-} from "@next-pms/design-system/components";
-import { getFormatedDate } from "@next-pms/design-system/date";
-import { useQueryParam } from "@next-pms/hooks";
-import type { FilterCondition } from "@rtcamp/frappe-ui-react";
-import { useToasts } from "@rtcamp/frappe-ui-react";
-import { addDays } from "date-fns";
-import { useFrappeEventListener, useFrappeGetCall } from "frappe-react-sdk";
+import { FC, PropsWithChildren, useMemo } from "react";
 
 /**
  * Internal dependencies.
  */
 import { useDebounce } from "@/hooks/useDebounce";
-import { NUMBER_OF_WEEKS_TO_FETCH } from "@/lib/constant";
-import { buildCompositeFilters, parseFrappeErrorMsg } from "@/lib/utils";
+import { isCompleteFilterCondition } from "@/lib/utils";
 import { useUser } from "@/providers/user";
 import {
   PersonalTimesheetContext,
   type PersonalTimesheetContextProps,
 } from "./context";
-import {
-  computeHasActiveFilters,
-  createInitialTimesheetState,
-  timesheetReducer,
-} from "./reducer";
-import { validateDate } from "./utils";
+import { usePersonalTimesheetData } from "./usePersonalTimesheetData";
+import { useTimesheetFilters } from "../hooks/useTimesheetFilters";
 
 export const PersonalTimesheetProvider: FC<PropsWithChildren> = ({
   children,
 }) => {
-  const [state, dispatch] = useReducer(
-    timesheetReducer,
-    undefined,
-    createInitialTimesheetState,
-  );
-
-  const toast = useToasts();
-  const [startDateParam, setStartDateParam] = useQueryParam<string>("date", "");
-  const [searchInput, setSearchInput] = useState("");
-  const debouncedSearch = useDebounce(searchInput, 400);
+  const { filters, setSearch, setApprovalStatus, setCompositeFilters } =
+    useTimesheetFilters({
+      includeApprovalStatus: true,
+    });
+  const debouncedSearch = useDebounce(filters.search, 400);
 
   const { employeeId } = useUser(({ state }) => ({
     employeeId: state.employeeId,
   }));
 
-  const hasActiveFilters = computeHasActiveFilters(
-    state.filters,
-    state.compositeFilters,
+  const effectiveCompositeFilters = useMemo(
+    () => filters.compositeFilters.filter(isCompleteFilterCondition),
+    [filters.compositeFilters],
   );
 
-  const { startDate, maxWeek, frappeFilters } = useMemo(
-    () => buildCompositeFilters(state.compositeFilters),
-    [state.compositeFilters],
+  const activeFilterKey = useMemo(
+    () =>
+      JSON.stringify({
+        search: debouncedSearch,
+        approvalStatus: filters.approvalStatus ?? "",
+        compositeFilters: effectiveCompositeFilters,
+      }),
+    [debouncedSearch, filters.approvalStatus, effectiveCompositeFilters],
   );
-
-  const { data, isLoading, error } = useFrappeGetCall(
-    "next_pms.timesheet.api.timesheet.get_timesheet_data",
-    {
-      employee: employeeId,
-      start_date: startDate ?? state.weekDate,
-      max_week: maxWeek ?? NUMBER_OF_WEEKS_TO_FETCH,
-      search: state.filters.search,
-      approval_status: state.filters.approvalStatus
-        ? ApprovalStatusLabelMap[state.filters.approvalStatus]
-        : null,
-      filters: JSON.stringify(frappeFilters),
-      skip_empty_weeks: hasActiveFilters,
-    },
-  );
-
-  useEffect(() => {
-    if (data) {
-      dispatch({ type: "DATA_LOADED", payload: { message: data.message } });
-    }
-    if (error) {
-      const err = parseFrappeErrorMsg(error);
-      toast.error(err || "Failed to load personal timesheet.");
-    }
-  }, [data, error, toast]);
-
-  useEffect(() => {
-    if (Object.keys(state.timesheetData.data).length === 0) return;
-
-    if (!validateDate(startDateParam, state.timesheetData)) {
-      const lastKey = Object.keys(state.timesheetData.data).pop();
-      if (!lastKey) return;
-
-      const week = state.timesheetData.data[lastKey];
-      dispatch({
-        type: "SET_WEEK_DATE",
-        payload: getFormatedDate(addDays(week.start_date, -1)),
-      });
-    }
-  }, [startDateParam, state.timesheetData]);
-
-  useFrappeEventListener(`timesheet_update::${employeeId}`, (payload) => {
-    const updatedData = payload.message;
-    const key = Object.keys(updatedData.data)[0];
-
-    if (!Object.prototype.hasOwnProperty.call(state.timesheetData.data, key)) {
-      return;
-    }
-
-    dispatch({ type: "REALTIME_UPDATE", payload: updatedData });
+  const {
+    hasMoreWeeks,
+    isLoadingPersonalData,
+    isInitialLoad,
+    isFilterRequest,
+    timesheetData,
+    likedTaskData,
+    loadData,
+    refetchLikedTasks,
+  } = usePersonalTimesheetData({
+    employeeId,
+    requestKey: activeFilterKey,
+    search: debouncedSearch,
+    approvalStatus: filters.approvalStatus,
+    compositeFilters: effectiveCompositeFilters,
   });
-
-  const { data: likedTasksResponse, mutate: refetchLikedTasks } =
-    useFrappeGetCall("next_pms.timesheet.api.task.get_liked_tasks");
-
-  useEffect(() => {
-    dispatch({ type: "SEARCH_CHANGED", payload: debouncedSearch });
-  }, [debouncedSearch]);
-
-  const handleSearchChange = useCallback(
-    (value: string) => {
-      setStartDateParam("");
-      setSearchInput(value);
-    },
-    [setStartDateParam],
-  );
-
-  const handleApprovalStatusChange = useCallback(
-    (value?: ApprovalStatusType | null) => {
-      setStartDateParam("");
-      dispatch({
-        type: "APPROVAL_STATUS_CHANGED",
-        payload: value ?? undefined,
-      });
-    },
-    [setStartDateParam],
-  );
-
-  const handleCompositeFilterChange = useCallback(
-    (value: FilterCondition[]) => {
-      setStartDateParam("");
-      dispatch({ type: "COMPOSITE_FILTERS_CHANGED", payload: value });
-    },
-    [setStartDateParam],
-  );
-
-  const loadData = useCallback(() => {
-    if (!state.hasMoreWeeks || isLoading) return;
-
-    const weeks = state.timesheetData.data;
-    if (Object.keys(weeks).length === 0) return;
-
-    const lastKey = Object.keys(weeks).pop();
-    if (!lastKey) return;
-
-    setStartDateParam("");
-    dispatch({
-      type: "SET_WEEK_DATE",
-      payload: getFormatedDate(addDays(weeks[lastKey].start_date, -1)),
-    });
-  }, [
-    state.hasMoreWeeks,
-    isLoading,
-    state.timesheetData.data,
-    setStartDateParam,
-  ]);
 
   const value: PersonalTimesheetContextProps = useMemo(
     () => ({
       state: {
-        hasMoreWeeks: state.hasMoreWeeks,
-        isLoadingPersonalData: isLoading,
-        isInitialLoad: state.isInitialLoad,
-        isFilterRequest: state.isFilterRequest,
-        timesheetData: state.timesheetData,
-        filters: state.filters,
-        searchInput,
-        compositeFilters: state.compositeFilters,
-        likedTaskData: likedTasksResponse?.message ?? [],
+        hasMoreWeeks,
+        isLoadingPersonalData,
+        isInitialLoad,
+        isFilterRequest,
+        timesheetData,
+        filters: {
+          search: filters.search,
+          approvalStatus: filters.approvalStatus,
+        },
+        compositeFilters: filters.compositeFilters,
+        likedTaskData,
       },
       actions: {
         loadData,
-        handleSearchChange,
-        handleApprovalStatusChange,
-        handleCompositeFilterChange,
+        handleSearchChange: setSearch,
+        handleApprovalStatusChange: setApprovalStatus,
+        handleCompositeFilterChange: setCompositeFilters,
         refetchLikedTasks,
       },
     }),
     [
-      state.hasMoreWeeks,
-      state.isInitialLoad,
-      state.isFilterRequest,
-      state.timesheetData,
-      state.filters,
-      searchInput,
-      state.compositeFilters,
-      isLoading,
-      likedTasksResponse,
+      hasMoreWeeks,
+      isLoadingPersonalData,
+      isInitialLoad,
+      isFilterRequest,
+      timesheetData,
+      likedTaskData,
       loadData,
-      handleSearchChange,
-      handleApprovalStatusChange,
-      handleCompositeFilterChange,
+      filters.search,
+      filters.approvalStatus,
+      filters.compositeFilters,
+      setSearch,
+      setApprovalStatus,
+      setCompositeFilters,
       refetchLikedTasks,
     ],
   );
