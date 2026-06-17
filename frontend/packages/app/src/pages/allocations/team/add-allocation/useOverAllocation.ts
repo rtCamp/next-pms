@@ -4,6 +4,7 @@
 import { useMemo } from "react";
 import {
   addDays,
+  differenceInCalendarWeeks,
   eachDayOfInterval,
   format,
   isWeekend,
@@ -16,6 +17,7 @@ import { useFrappeGetCall } from "frappe-react-sdk";
  */
 import { useDebounce } from "@/hooks/useDebounce";
 import { expectatedHours } from "@/lib/utils";
+import type { TeamAllocationResponse } from "../type";
 import { FALLBACK_DAILY_WORKING_HOURS } from "./constants";
 import { OverAllocatedDay } from "./overAllocationWarning";
 
@@ -39,6 +41,11 @@ interface ExistingAllocation {
   allocation_start_date: string;
   allocation_end_date: string;
   hours_allocated_per_day: number;
+  override?: {
+    date: string;
+    hours?: number | null;
+    cancelled?: number | null;
+  }[];
 }
 
 interface EmployeeWorkingHoursResponse {
@@ -77,25 +84,47 @@ export function useOverAllocation({
       "yyyy-MM-dd",
     );
   }, [debouncedToDate, debouncedRepeatWeeks]);
+  const maxWeek = useMemo(() => {
+    if (!enabled) {
+      return 1;
+    }
+
+    return (
+      differenceInCalendarWeeks(
+        parseISO(fetchEndDate),
+        parseISO(debouncedFromDate),
+        {
+          weekStartsOn: 1,
+        },
+      ) + 1
+    );
+  }, [debouncedFromDate, enabled, fetchEndDate]);
 
   const { data } = useFrappeGetCall(
-    "frappe.client.get_list",
+    "next_pms.resource_management.api.team.get_resource_management_team_view_data",
     {
-      doctype: "Resource Allocation",
-      fields: [
-        "name",
-        "allocation_start_date",
-        "allocation_end_date",
-        "hours_allocated_per_day",
-      ],
-      filters: JSON.stringify([
-        ["employee", "=", employeeId],
-        ["allocation_start_date", "<=", fetchEndDate],
-        ["allocation_end_date", ">=", debouncedFromDate],
-      ]),
-      limit_page_length: "null",
+      date: debouncedFromDate,
+      max_week: maxWeek,
+      employee_id: JSON.stringify([employeeId]),
+      page_length: 1,
+      start: 0,
+      need_hours_summary: false,
     },
     enabled ? undefined : false,
+  );
+
+  const fetchedAllocations = useMemo(
+    () =>
+      (data?.message as TeamAllocationResponse | undefined)
+        ?.resource_allocations as ExistingAllocation[] | undefined,
+    [data],
+  );
+  const relevantAllocations = useMemo(
+    () =>
+      (fetchedAllocations ?? []).filter(
+        (allocation) => allocation.name !== allocationName,
+      ),
+    [allocationName, fetchedAllocations],
   );
 
   const { data: workingHoursData } =
@@ -125,11 +154,27 @@ export function useOverAllocation({
   }, [workingHoursData]);
 
   return useMemo(() => {
-    if (!enabled || !data?.message) return [];
+    if (!enabled) return [];
 
-    const existing = (data.message as ExistingAllocation[]).filter(
-      (a) => a.name !== allocationName,
-    );
+    const existingHoursForDate = (dateStr: string) =>
+      relevantAllocations.reduce((sum, allocation) => {
+        if (
+          allocation.allocation_start_date > dateStr ||
+          allocation.allocation_end_date < dateStr
+        ) {
+          return sum;
+        }
+
+        const override = allocation.override?.find(
+          (overrideEntry) => overrideEntry.date === dateStr,
+        );
+        const effectiveHours =
+          override?.cancelled === 1
+            ? 0
+            : (override?.hours ?? allocation.hours_allocated_per_day ?? 0);
+
+        return sum + effectiveHours;
+      }, 0);
 
     const result: OverAllocatedDay[] = [];
     const baseStart = parseISO(debouncedFromDate);
@@ -146,13 +191,7 @@ export function useOverAllocation({
         }
 
         const dateStr = format(d, "yyyy-MM-dd");
-        const existingHours = existing
-          .filter(
-            (a) =>
-              a.allocation_start_date <= dateStr &&
-              a.allocation_end_date >= dateStr,
-          )
-          .reduce((sum, a) => sum + (a.hours_allocated_per_day ?? 0), 0);
+        const existingHours = existingHoursForDate(dateStr);
 
         const total = existingHours + debouncedHoursPerDay;
         if (total > dailyWorkingHours) {
@@ -167,8 +206,7 @@ export function useOverAllocation({
     return result;
   }, [
     enabled,
-    data,
-    allocationName,
+    relevantAllocations,
     debouncedFromDate,
     debouncedToDate,
     debouncedRepeatWeeks,

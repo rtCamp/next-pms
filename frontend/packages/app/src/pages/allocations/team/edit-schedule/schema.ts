@@ -12,7 +12,7 @@ export const editScheduleFormSchema = z
           .number({
             required_error: "Please enter hours.",
           })
-          .positive({ message: "Must be greater than 0." }),
+          .min(0, { message: "Must be greater than or equal to 0." }),
         mode: z.enum(["hoursPerDay", "totalHours"]),
       }),
     }),
