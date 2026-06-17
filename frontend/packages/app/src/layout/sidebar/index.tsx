@@ -20,6 +20,7 @@ import {
   Folder,
   Home,
   Layers,
+  LayoutDashboard,
   LayoutGrid,
   LogOut,
   Moon,
@@ -29,7 +30,7 @@ import {
 /**
  * Internal dependencies.
  */
-import { ROUTES } from "@/lib/constant";
+import { DASHBOARD_ROLES, ROUTES } from "@/lib/constant";
 import logo from "@/logo.svg";
 import { useTheme } from "@/providers/theme/hook";
 import { useUser } from "@/providers/user";
@@ -45,15 +46,21 @@ const Sidebar = () => {
     isSidebarCollapsed,
     employeeName,
     hasRoleAccess,
+    roles,
     updateIsSidebarCollapsed,
     logout,
   } = useUser(({ state, actions }) => ({
     isSidebarCollapsed: state.isSidebarCollapsed,
     employeeName: state.employeeName,
     hasRoleAccess: state.hasRoleAccess,
+    roles: state.roles,
     updateIsSidebarCollapsed: actions.updateIsSidebarCollapsed,
     logout: actions.logout,
   }));
+
+  const canSeeDashboard = roles.some((role) =>
+    [...DASHBOARD_ROLES.leadership, ...DASHBOARD_ROLES.manager].includes(role),
+  );
 
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
@@ -131,6 +138,17 @@ const Sidebar = () => {
           {
             label: "",
             items: [
+              ...(canSeeDashboard
+                ? [
+                    {
+                      label: "Dashboard",
+                      icon: LayoutDashboard,
+                      to: "",
+                      isActive: pathname === ROUTES.dashboard,
+                      onClick: () => navigate(ROUTES.dashboard),
+                    },
+                  ]
+                : []),
               {
                 label: "Home",
                 icon: Home,
@@ -237,6 +255,9 @@ const Sidebar = () => {
         open={isSearchOpen}
         onOpenChange={setIsSearchOpen}
         items={[
+          ...(canSeeDashboard
+            ? [{ label: "Dashboard", action: () => navigate(ROUTES.dashboard) }]
+            : []),
           { label: "Home", action: () => navigate(ROUTES.home) },
           { label: "Tasks", action: () => navigate(ROUTES.task) },
           { label: "Projects", action: () => navigate(ROUTES.project) },

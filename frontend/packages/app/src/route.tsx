@@ -13,6 +13,7 @@ import { useUser } from "./providers/user";
  * Lazy load components.
  */
 const Home = lazy(() => import("@/pages/home"));
+const Dashboard = lazy(() => import("@/pages/dashboard"));
 const Task = lazy(() => import("@/pages/task"));
 const ProjectList = lazy(() => import("@/pages/projects/list"));
 const ProjectKanban = lazy(() => import("@/pages/projects/kanban"));
@@ -48,6 +49,7 @@ export function Router() {
       <Route element={<AuthenticatedRoute />}>
         <Route element={<LayoutWithSidebar />}>
           <Route path={ROUTES.home} element={<Home />} />
+          <Route path={ROUTES.dashboard} element={<Dashboard />} />
           <Route path={ROUTES.task} element={<Task />} />
           <Route path={ROUTES.project} element={<ProjectList />} />
           <Route path={ROUTES["project-kanban"]} element={<ProjectKanban />} />

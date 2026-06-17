@@ -1,6 +1,7 @@
 export const ROUTES = {
   base: "/next-pms",
   home: "/",
+  dashboard: "/dashboard",
   task: "/task",
   project: "/projects",
   "project-kanban": "/projects/kanban",
@@ -21,6 +22,13 @@ export const ROLES = [
   "Timesheet Manager",
   "Timesheet User",
 ];
+
+// Frappe roles that grant access to the dashboard, grouped by which view they
+// resolve to. A user with any of these roles sees the Dashboard sidebar entry.
+export const DASHBOARD_ROLES = {
+  leadership: ["Delivery Manager"],
+  manager: ["Projects Manager"],
+};
 
 export const CustomTime = [
   "00:30",
