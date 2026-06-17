@@ -6,19 +6,12 @@ import type { ComboboxOption } from "@rtcamp/frappe-ui-react";
 /**
  * Internal dependencies.
  */
-import type { DashboardView, DashboardViewMeta } from "./types";
+import type { DashboardView } from "./types";
 
-// Per-view label + placeholder context line. The context copy is a placeholder
-// until the leadership / manager widgets land in sibling issues.
-export const DASHBOARD_VIEWS: Record<DashboardView, DashboardViewMeta> = {
-  leadership: {
-    label: "Leadership View",
-    context: "Profits are looking up 2% from last month with revenues up 4%.",
-  },
-  manager: {
-    label: "Manager View",
-    context: "You have 12 empty allocations this week.",
-  },
+// Placeholder context line per view until the real widgets land (sibling issues).
+export const DASHBOARD_VIEW_CONTEXT: Record<DashboardView, string> = {
+  leadership: "Profits are looking up 2% from last month with revenues up 4%.",
+  manager: "You have 12 empty allocations this week.",
 };
 
 export const ALL_CLIENTS_VALUE = "all-clients";
