@@ -3,6 +3,26 @@
  */
 import type { ComboboxOption } from "@rtcamp/frappe-ui-react";
 
+/**
+ * Internal dependencies.
+ */
+import type { StatCardData } from "./statCard";
+
+// Hard-coded summary stats from the design until real data is wired in a later issue.
+export const LEADERSHIP_STATS: StatCardData[] = [
+  { label: "Active Projects", value: "15" },
+  { label: "At risk projects", value: "4" },
+  { label: "Members without allocation", value: "12", subLabel: "this month" },
+  { label: "Non-billable hours logged", value: "16h", subLabel: "this month" },
+];
+
+export const MANAGER_STATS: StatCardData[] = [
+  { label: "At risk projects", value: "4" },
+  { label: "Members without allocation", value: "12", subLabel: "this week" },
+  { label: "Timesheets to review", value: "24", subLabel: "this week" },
+  { label: "Outstanding timesheets", value: "4" },
+];
+
 export const ALL_CLIENTS_VALUE = "all-clients";
 export const ALL_PROJECTS_VALUE = "all-projects";
 
