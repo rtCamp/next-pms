@@ -14,7 +14,12 @@ from next_pms.next_projects.api.constant import (
     RESOURCE_RATING_FIELDS,
     TEXT_FIELDS,
 )
-from next_pms.next_projects.api.utils import get_employee_image, get_employee_image_map
+from next_pms.next_projects.api.utils import (
+    get_contact_image,
+    get_contact_image_map,
+    get_employee_image,
+    get_employee_image_map,
+)
 
 
 def is_customer_feedback_available() -> bool:
@@ -200,10 +205,11 @@ def get_team_feedback_list(project: str, start: int = 0, limit: int = 20):
     Returns:
         dict: ``{ data, total, has_more }`` where ``has_more`` is ``True`` when rows remain
         beyond this page, and each ``data`` row is ``{ name, period_from, period_to,
-        employee, employee_name, avatar_url, customer, feedback_by, contact_email,
-        evaluation_type, average, stars, star_max }``. ``avatar_url`` is the employee's
-        avatar image. ``average`` is on the star scale (e.g. 2.8 of 4); the raw rating
-        columns are not exposed.
+        employee, employee_name, avatar_url, customer, feedback_by, customer_avatar_url,
+        contact_email, evaluation_type, average, stars, star_max }``. ``avatar_url`` is the
+        employee's avatar image and ``customer_avatar_url`` is the customer contact's
+        (``feedback_by``) avatar image. ``average`` is on the star scale (e.g. 2.8 of 4);
+        the raw rating columns are not exposed.
     """
     only_for(ALLOWED_ROLES, message=True)
     ensure_customer_feedback_available()
@@ -241,6 +247,7 @@ def get_team_feedback_list(project: str, start: int = 0, limit: int = 20):
         limit_page_length=limit,
     )
     employee_image_map = get_employee_image_map([row.feedback_for for row in rows if row.feedback_for])
+    contact_image_map = get_contact_image_map([row.feedback_by for row in rows if row.feedback_by])
     data = []
     for row in rows:
         rating_fields = RATING_FIELDS.get(row.evaluation_type, [])
@@ -255,6 +262,7 @@ def get_team_feedback_list(project: str, start: int = 0, limit: int = 20):
                 "avatar_url": employee_image_map.get(row.feedback_for),
                 "customer": row.customer,
                 "feedback_by": row.feedback_by,
+                "customer_avatar_url": contact_image_map.get(row.feedback_by),
                 "contact_email": row.contact_email,
                 "evaluation_type": row.evaluation_type,
                 "average": round(mean * DEFAULT_STAR_MAX, 1) if mean is not None else None,
@@ -285,10 +293,11 @@ def get_team_feedback_breakdown(feedback_name: str):
 
     Returns:
         dict: ``{ feedback_id, evaluation_type, employee, employee_name, avatar_url,
-        customer, feedback_by, period_from, period_to, average, ratings,
-        areas_for_improvement }`` where ``avatar_url`` is the employee's avatar image and
-        ``ratings`` is a list of ``{ fieldname, label, fieldtype, value, stars, star_max,
-        percent }``.
+        customer, feedback_by, customer_avatar_url, period_from, period_to, average,
+        ratings, areas_for_improvement }`` where ``avatar_url`` is the employee's avatar
+        image, ``customer_avatar_url`` is the customer contact's (``feedback_by``) avatar
+        image, and ``ratings`` is a list of ``{ fieldname, label, fieldtype, value, stars,
+        star_max, percent }``.
     """
     only_for(ALLOWED_ROLES, message=True)
     ensure_customer_feedback_available()
@@ -340,6 +349,7 @@ def get_team_feedback_breakdown(feedback_name: str):
         "avatar_url": get_employee_image(data.feedback_for),
         "customer": data.customer,
         "feedback_by": data.feedback_by,
+        "customer_avatar_url": get_contact_image(data.feedback_by),
         "period_from": data.feedback_from_date,
         "period_to": data.feedback_to_date,
         "average": round(mean * DEFAULT_STAR_MAX, 1) if mean is not None else None,

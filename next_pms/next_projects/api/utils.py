@@ -36,6 +36,21 @@ def get_employee_image(employee: str) -> str | None:
     return get_user_image(user_id)
 
 
+def get_contact_image_map(contacts: list[str]) -> dict[str, str | None]:
+    """Fetch the avatar image for multiple contacts in a single query."""
+    if not contacts:
+        return {}
+    rows = frappe.get_all("Contact", filters={"name": ["in", contacts]}, fields=["name", "image"])
+    return {row.name: row.image for row in rows}
+
+
+def get_contact_image(contact: str) -> str | None:
+    """Get a contact's avatar image URL."""
+    if not contact:
+        return None
+    return frappe.db.get_value("Contact", contact, "image")
+
+
 def build_person_data(
     user: str,
     full_name: str,

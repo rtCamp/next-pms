@@ -45,14 +45,12 @@ const Sidebar = () => {
   const {
     isSidebarCollapsed,
     employeeName,
-    hasRoleAccess,
     roles,
     updateIsSidebarCollapsed,
     logout,
   } = useUser(({ state, actions }) => ({
     isSidebarCollapsed: state.isSidebarCollapsed,
     employeeName: state.employeeName,
-    hasRoleAccess: state.hasRoleAccess,
     roles: state.roles,
     updateIsSidebarCollapsed: actions.updateIsSidebarCollapsed,
     logout: actions.logout,
@@ -163,14 +161,19 @@ const Sidebar = () => {
                 isActive: pathname === ROUTES.task,
                 onClick: () => navigate(ROUTES.task),
               },
-              {
-                label: "Projects",
-                icon: Folder,
-                to: "",
-                isActive: pathname === ROUTES.project,
-                onClick: () => navigate(ROUTES.project),
-              },
-              ...(!hasRoleAccess
+              ...(roles.includes("Projects Manager")
+                ? [
+                    {
+                      label: "Projects",
+                      icon: Folder,
+                      to: "",
+                      isActive: pathname === ROUTES.project,
+                      onClick: () => navigate(ROUTES.project),
+                    },
+                  ]
+                : []),
+              ...(!roles.includes("Timesheet Manager") &&
+              !roles.includes("Timesheet User")
                 ? [
                     {
                       label: "Timesheet",
@@ -183,7 +186,8 @@ const Sidebar = () => {
                 : []),
             ],
           },
-          ...(hasRoleAccess
+          ...(roles.includes("Timesheet Manager") ||
+          roles.includes("Timesheet User")
             ? [
                 {
                   label: "Timesheet",
@@ -260,12 +264,15 @@ const Sidebar = () => {
             : []),
           { label: "Home", action: () => navigate(ROUTES.home) },
           { label: "Tasks", action: () => navigate(ROUTES.task) },
-          { label: "Projects", action: () => navigate(ROUTES.project) },
+          ...(roles.includes("Project Manager")
+            ? [{ label: "Projects", action: () => navigate(ROUTES.project) }]
+            : []),
           {
             label: "Timesheet - Personal",
             action: () => navigate(ROUTES["timesheet-personal"]),
           },
-          ...(hasRoleAccess
+          ...(roles.includes("Timesheet Manager") ||
+          roles.includes("Timesheet User")
             ? [
                 {
                   label: "Timesheet - Team",

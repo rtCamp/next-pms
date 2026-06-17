@@ -1,6 +1,7 @@
 # Copyright (c) 2026, rtCamp and contributors
 # For license information, please see license.txt
 
+import json
 from datetime import timedelta
 
 import frappe
@@ -1147,3 +1148,170 @@ def _get_team_timesheets(manager_employee: str, days: int) -> list:
         )
 
     return members
+
+
+@whitelist(methods=["GET"])
+def get_allocation_heatmap(
+    from_date: str,
+    to_date: str,
+    business_unit: str | list | None = None,
+) -> dict:
+    """Return weekly allocation-vs-capacity summaries grouped by designation.
+
+    Buckets the date range into calendar weeks (Monday-Sunday) and, for every
+    designation among active employees, reports each week's total working
+    capacity and confirmed allocated hours. The frontend uses the
+    allocated/capacity ratio per cell to colour the heatmap and groups weeks
+    into months for column headers.
+
+    Capacity for an employee on a working day is their daily working hours
+    (custom_working_hours, divided by 5 when custom_work_schedule is "Per Week",
+    falling back to HR Settings standard_working_hours). Weekends count only when
+    Allow Weekend Entries is enabled in Timesheet Settings; the employee's
+    holidays are always excluded. Allocated hours come from Confirmed Resource
+    Allocations and respect per-day overrides and cancellations.
+
+    Args:
+        from_date: Inclusive range start (YYYY-MM-DD). Expanded to the Monday of
+            its calendar week in the response.
+        to_date: Inclusive range end (YYYY-MM-DD). Expanded to the Sunday of
+            its calendar week in the response.
+        business_unit: Optional business unit filter as a list or a JSON-encoded
+            list of Business Unit names. Ignored when the Employee doctype has
+            no custom_business_unit field.
+
+    Returns:
+        A dict with from_date, to_date, weeks (the ordered list of
+        {week_start, week_end} column buckets) and roles. Each role has a
+        designation and a weeks list aligned with the top-level weeks, where each
+        entry adds capacity_hours and allocated_hours.
+
+    Raises:
+        frappe.PermissionError: If the caller lacks Projects Manager, Projects
+            User, or System Manager role.
+        frappe.ValidationError: If from_date is after to_date.
+    """
+    only_for(["Projects Manager", "Projects User", "System Manager"], message=True)
+
+    start_date = getdate(from_date)
+    end_date = getdate(to_date)
+    if start_date > end_date:
+        frappe.throw(frappe._("from_date must be on or before to_date"))
+
+    if isinstance(business_unit, str):
+        business_unit = json.loads(business_unit)
+    business_units = tuple(business_unit) if business_unit else None
+
+    range_start = start_date - timedelta(days=start_date.weekday())
+    range_end = end_date + timedelta(days=6 - end_date.weekday())
+
+    return _get_allocation_heatmap(range_start, range_end, business_units)
+
+
+@redis_cache(ttl=86400)
+def _get_allocation_heatmap(start_date, end_date, business_units: tuple | None) -> dict:
+    week_starts = []
+    week = start_date
+    while week + timedelta(days=6) <= end_date:
+        week_starts.append(week)
+        week += timedelta(days=7)
+
+    weeks = [{"week_start": ws, "week_end": ws + timedelta(days=6)} for ws in week_starts]
+    empty_response = {
+        "from_date": start_date,
+        "to_date": end_date,
+        "weeks": weeks,
+        "roles": [],
+    }
+
+    allow_weekend_entries = cint(frappe.db.get_single_value("Timesheet Settings", "allow_weekend_entries"))
+    working_dates = sorted(get_working_dates_for_range(start_date, end_date, allow_weekend_entries))
+    if not working_dates:
+        return empty_response
+
+    employee_filters = {"status": "Active"}
+    if business_units and frappe.get_meta("Employee").has_field("custom_business_unit"):
+        employee_filters["custom_business_unit"] = ["in", list(business_units)]
+
+    employees = frappe.get_all(
+        "Employee",
+        filters=employee_filters,
+        fields=["name", "designation", "custom_working_hours", "custom_work_schedule"],
+    )
+    if not employees:
+        return empty_response
+
+    default_daily_hours = flt(frappe.db.get_single_value("HR Settings", "standard_working_hours") or 8)
+    employee_names = [employee.name for employee in employees]
+    holidays_by_employee = get_holidays_by_employee(employee_names, start_date, end_date)
+
+    ResourceAllocation = DocType("Resource Allocation")
+    allocations = (
+        frappe.qb.from_(ResourceAllocation)
+        .select(
+            ResourceAllocation.name,
+            ResourceAllocation.employee,
+            ResourceAllocation.allocation_start_date,
+            ResourceAllocation.allocation_end_date,
+            ResourceAllocation.hours_allocated_per_day,
+            ResourceAllocation.status,
+        )
+        .where(ResourceAllocation.employee.isin(employee_names))
+        .where(ResourceAllocation.allocation_start_date <= end_date)
+        .where(ResourceAllocation.allocation_end_date >= start_date)
+        .where(ResourceAllocation.status == "Confirmed")
+        .run(as_dict=True)
+    )
+    allocations = attach_extra_entries(allocations)
+
+    allocations_by_employee = {}
+    for allocation in allocations:
+        if allocation.employee not in allocations_by_employee:
+            allocations_by_employee[allocation.employee] = []
+        allocations_by_employee[allocation.employee].append(allocation)
+
+    # designation -> week_start -> {"capacity": float, "allocated": float}
+    summary = {}
+    for employee in employees:
+        designation = employee.designation
+        if not designation:
+            continue
+        working_hours = flt(employee.custom_working_hours) or default_daily_hours
+        daily_working_hours = working_hours / 5 if employee.custom_work_schedule == "Per Week" else working_hours
+        daily_working_hours = flt(daily_working_hours)
+        employee_holidays = holidays_by_employee.get(employee.name, set())
+        employee_allocations = allocations_by_employee.get(employee.name, [])
+
+        if designation not in summary:
+            summary[designation] = {}
+        for date in working_dates:
+            if date in employee_holidays:
+                continue
+            week_start = date - timedelta(days=date.weekday())
+            if week_start not in summary[designation]:
+                summary[designation][week_start] = {"capacity": 0.0, "allocated": 0.0}
+            bucket = summary[designation][week_start]
+            bucket["capacity"] += daily_working_hours
+            bucket["allocated"] += get_employee_allocated_hours_for_date(employee_allocations, date)
+
+    roles = []
+    for designation in sorted(summary):
+        role_weeks = []
+        for ws in week_starts:
+            bucket = summary[designation].get(ws, {"capacity": 0.0, "allocated": 0.0})
+            role_weeks.append(
+                {
+                    "week_start": ws,
+                    "week_end": ws + timedelta(days=6),
+                    "capacity_hours": flt(bucket["capacity"], 2),
+                    "allocated_hours": flt(bucket["allocated"], 2),
+                }
+            )
+        roles.append({"designation": designation, "weeks": role_weeks})
+
+    return {
+        "from_date": start_date,
+        "to_date": end_date,
+        "weeks": weeks,
+        "roles": roles,
+    }

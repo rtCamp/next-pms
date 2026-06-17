@@ -22,7 +22,7 @@ export function Tracking() {
 
 function TrackingContent() {
   const tracking = useTracking((state) => state.tracking);
-  const formatter = currencyFormat(tracking.currency);
+  const formatter = currencyFormat(tracking.currency ?? "USD");
 
   return (
     <div className="flex flex-col gap-6">
@@ -30,15 +30,15 @@ function TrackingContent() {
         <KnowledgePoint title="Company" value={tracking.company} />
         <KnowledgePoint
           title="Total project value"
-          value={formatter.format(tracking.total_project_value)}
+          value={formatter.format(tracking.total_project_value ?? 0)}
         />
         <KnowledgePoint
           title="Project profit"
-          value={formatter.format(tracking.project_profit)}
+          value={formatter.format(tracking.project_profit ?? 0)}
         />
         <KnowledgePoint
           title="Projected profit margin"
-          value={`${tracking.projected_profit_margin.toFixed(2)}%`}
+          value={`${(tracking.projected_profit_margin ?? 0).toFixed(2)}%`}
         />
       </div>
 
@@ -54,16 +54,20 @@ function TrackingContent() {
       <div className="flex gap-3">
         <KnowledgePoint
           title="Lifetime value to date"
-          value={formatter.format(tracking.lifetime_value_to_date || 0)}
+          value={formatter.format(
+            tracking.lifetime_values?.lifetime_value_to_date ?? 0,
+          )}
         />
         <KnowledgePoint
           title="Expected lifetime value"
-          value={formatter.format(tracking.expected_lifetime_value || 0)}
+          value={formatter.format(
+            tracking.lifetime_values?.expected_lifetime_value ?? 0,
+          )}
         />
         <KnowledgePoint
           title="Lifetime value vs billed amount"
           value={formatter.format(
-            tracking.lifetime_value_vs_billed_amount || 0,
+            tracking.lifetime_values?.lifetime_value_vs_billed_amount ?? 0,
           )}
         />
       </div>

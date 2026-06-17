@@ -1,7 +1,7 @@
 /**
  * External dependencies.
  */
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useImperativeHandle, useRef, useState } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { Spinner } from "@next-pms/design-system/components";
 import {
@@ -23,6 +23,8 @@ import {
  */
 import { ROUTES } from "@/lib/constant";
 import { parseFrappeErrorMsg } from "@/lib/utils";
+import { UnsavedChangesProvider } from "@/pages/allocations/unsavedChanges/UnsavedChangesProvider";
+import { useUnsavedChangesSource } from "@/pages/allocations/unsavedChanges/useUnsavedChanges";
 import { useProjectDetail } from "@/pages/project-details/context";
 import { useUser } from "@/providers/user";
 import { noteFormSchema } from "./schema";
@@ -44,6 +46,7 @@ function NoteEditor() {
   const toast = useToasts();
   const [isFormInitialized, setIsFormInitialized] = useState(false);
   const titleRef = useRef<HTMLInputElement>(null);
+  const sourceRef = useUnsavedChangesSource();
 
   const { call: createNote, loading: isCreating } = useFrappePostCall(
     "next_pms.timesheet.api.project_status_update.create_project_status_update",
@@ -102,6 +105,7 @@ function NoteEditor() {
 
         toast.success("Note saved");
         await refresh();
+        form.reset(value);
         navigate(`${ROUTES.project}/${projectId}?tab=notes`);
       } catch (err) {
         const error = parseFrappeErrorMsg(err as FrappeError);
@@ -128,6 +132,18 @@ function NoteEditor() {
       titleRef.current.focus();
     }
   }, [isFormInitialized]);
+
+  useImperativeHandle(
+    sourceRef,
+    () => ({
+      hasUnsavedChanges: () => form.state.isDirty,
+      saveChanges: () => {
+        void form.handleSubmit();
+      },
+      discardChanges: () => form.reset(),
+    }),
+    [form],
+  );
 
   return (
     <div className="flex justify-center">
@@ -215,4 +231,12 @@ function NoteEditor() {
   );
 }
 
-export default NoteEditor;
+function NoteEditorWithUnsavedGuard() {
+  return (
+    <UnsavedChangesProvider>
+      <NoteEditor />
+    </UnsavedChangesProvider>
+  );
+}
+
+export default NoteEditorWithUnsavedGuard;

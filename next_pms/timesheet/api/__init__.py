@@ -54,6 +54,7 @@ def filter_employees(
     ignore_default_filters: bool = False,
     ignore_permissions: bool = False,
     extra_fields: list[str] | None = None,
+    extra_conditions: list | None = None,
 ) -> tuple[list, int]:
     """Apply Employee-level filters and return a paginated list of matching employee doctypes and the total count.
 
@@ -84,6 +85,9 @@ def filter_employees(
         extra_fields (list[str] | None): Additional Employee fields to include beyond
             the default set [name, image, employee_name, department, designation].
             Defaults to None.
+        extra_conditions (list | None): Frappe-style [field, operator, value] conditions
+            ANDed with the other filters. When provided, the dict filters are converted
+            to list form and these are appended. Defaults to None.
 
     Returns:
         ```py
@@ -206,6 +210,16 @@ def filter_employees(
 
     if ignore_default_filters:
         filters.pop("status", None)
+
+    if extra_conditions:
+        list_filters = []
+        for field, value in filters.items():
+            if isinstance(value, list):
+                list_filters.append([field, *value])
+            else:
+                list_filters.append([field, "=", value])
+        filters = list_filters
+        filters.extend(extra_conditions)
 
     employees = get_list(
         "Employee",
