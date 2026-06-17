@@ -49,7 +49,9 @@ export interface ProjectTimesheetContextProps {
     isLoadingProjectData: boolean;
     isFilterRequest: boolean;
     weekGroups: WeekGroup[];
-    searchInput: string;
+    filters: {
+      search: string;
+    };
     compositeFilters: FilterCondition[];
   };
   actions: {
@@ -66,7 +68,9 @@ export const ProjectTimesheetContext =
       isLoadingProjectData: false,
       isFilterRequest: false,
       weekGroups: [],
-      searchInput: "",
+      filters: {
+        search: "",
+      },
       compositeFilters: [],
     },
     actions: {

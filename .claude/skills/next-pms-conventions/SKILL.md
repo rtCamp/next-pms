@@ -51,6 +51,8 @@ Consolidated, ordered rules for writing code in the next-pms frontend. Each rule
 
 **ALWAYS** run `gh pr list -R rtCamp/frappe-ui-react --state open --search <keyword>` before inlining a workaround for a missing upstream primitive. The `icon/solid/stages` SVG had an open upstream PR (`frappe-ui-react#248`) that would have saved an inline-SVG fallback.
 
+**ALWAYS** prettier-format changed JS/TS before committing. There is **no installed `.git/hooks/pre-commit`**, so `git commit` silently skips pre-commit (prettier/eslint/semgrep) — and `npm run build:app` (vite/tsc) does **not** run prettier or eslint, so a green build says nothing about formatting. The **Frappe Linter** CI runs prettier (`JS/TS Formatter`, defaults → 80-col) + eslint on the PR's own changed files and **will fail on unformatted TS**. Before staging, in `fm shell`: `cd apps/next_pms && npx --yes prettier@4.0.0-alpha.8 --write <changed .ts/.tsx/.js/.jsx>`. When triaging a red Frappe Linter, split the log: `JS/TS Formatter` / `ESLint *` failures on files this PR changed are PR-caused → fix; only `Sempgrep: frappe` Python findings are out-of-scope (PR #1520 cost a round on this). See CLAUDE.md §6.
+
 ---
 
 ## Pre-implementation scan (≈ 2 minutes, always)
