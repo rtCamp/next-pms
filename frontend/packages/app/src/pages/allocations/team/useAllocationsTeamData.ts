@@ -4,6 +4,7 @@
 import { useCallback, useMemo } from "react";
 import type { Member } from "@next-pms/design-system/components";
 import { type PaginationKey, usePagination } from "@next-pms/hooks";
+import type { FilterCondition } from "@rtcamp/frappe-ui-react";
 import { useToasts } from "@rtcamp/frappe-ui-react";
 import { format } from "date-fns";
 import type { FrappeError } from "frappe-react-sdk";
@@ -12,7 +13,8 @@ import type { FrappeError } from "frappe-react-sdk";
  * Internal dependencies.
  */
 import useApproverOptions from "@/hooks/useApproverOptions";
-import { parseFrappeErrorMsg } from "@/lib/utils";
+import { hashString, parseFrappeErrorMsg } from "@/lib/utils";
+import { buildAllocationQueryFilters } from "../utils";
 import type { TeamAllocationResponse } from "./type";
 import { mapTeamAllocationToMembers } from "./utils";
 
@@ -21,6 +23,8 @@ type UseAllocationsTeamDataOptions = {
   weekCount: number;
   search: string;
   designation: string[];
+  allocationsType: string[];
+  compositeFilters: FilterCondition[];
   pageLength: number;
 };
 
@@ -37,20 +41,29 @@ type TeamAllocationCallResponse = {
   message?: TeamAllocationResponse;
 };
 
-const KEY_PREFIX = "team-allocations";
-
 export function useAllocationsTeamData({
   anchorDate,
   weekCount,
   search,
   designation,
+  allocationsType,
+  compositeFilters,
   pageLength,
 }: UseAllocationsTeamDataOptions): UseAllocationsTeamDataResult {
   const toast = useToasts();
 
-  const requestDate = useMemo(
+  const defaultRequestDate = useMemo(
     () => format(anchorDate, "yyyy-MM-dd"),
     [anchorDate],
+  );
+  const { requestDate, maxWeek, filters } = useMemo(
+    () =>
+      buildAllocationQueryFilters({
+        compositeFilters,
+        defaultRequestDate,
+        defaultWeekCount: weekCount,
+      }),
+    [compositeFilters, defaultRequestDate, weekCount],
   );
   const designationParam = useMemo(() => {
     const normalizedDesignation = Array.from(new Set(designation)).sort(
@@ -61,17 +74,70 @@ export function useAllocationsTeamData({
       ? JSON.stringify(normalizedDesignation)
       : null;
   }, [designation]);
-  const querySignature = `${KEY_PREFIX}:${requestDate}:${weekCount}:${search}:${designationParam ?? ""}`;
+  const filtersParam = useMemo(
+    () => (filters.length > 0 ? JSON.stringify(filters) : null),
+    [filters],
+  );
+  const hasConfirmed = allocationsType.includes("Confirmed");
+  const hasTentative = allocationsType.includes("Tentative");
+  const hasBillable = allocationsType.includes("billable");
+  const hasNonBillable = allocationsType.includes("non-billable");
+  const allocationStatusParam =
+    hasConfirmed || hasTentative
+      ? JSON.stringify([
+          ...(hasConfirmed ? ["Confirmed"] : []),
+          ...(hasTentative ? ["Tentative"] : []),
+        ])
+      : null;
+  const isBillableParam =
+    hasBillable === hasNonBillable
+      ? null
+      : JSON.stringify(hasBillable ? [1] : [0]);
+  const querySignature = useMemo(
+    () =>
+      hashString(
+        [
+          "team-allocations",
+          requestDate,
+          String(maxWeek),
+          search,
+          designationParam ?? "",
+          allocationStatusParam ?? "",
+          isBillableParam ?? "",
+          filtersParam ?? "",
+        ].join(":"),
+      ),
+    [
+      allocationStatusParam,
+      designationParam,
+      filtersParam,
+      isBillableParam,
+      maxWeek,
+      requestDate,
+      search,
+    ],
+  );
 
   const baseParams = useMemo(
     () => ({
       date: requestDate,
-      max_week: weekCount,
+      max_week: maxWeek,
       employee_name: search || null,
       designation: designationParam,
+      allocation_status: allocationStatusParam,
+      is_billable: isBillableParam,
+      filters: filtersParam,
       need_hours_summary: false,
     }),
-    [designationParam, requestDate, search, weekCount],
+    [
+      allocationStatusParam,
+      designationParam,
+      filtersParam,
+      isBillableParam,
+      maxWeek,
+      requestDate,
+      search,
+    ],
   );
 
   const getKey = useCallback(

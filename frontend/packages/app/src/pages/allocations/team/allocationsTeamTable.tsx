@@ -12,7 +12,7 @@ import {
   Autocomplete,
   Button,
   Filter,
-  FilterCondition,
+  MultiSelect,
   Select,
   TextInput,
 } from "@rtcamp/frappe-ui-react";
@@ -38,11 +38,15 @@ import { useUser } from "@/providers/user";
 import { useAllocationsTeam } from "./context";
 import {
   ALLOCATIONS_PAGE_SIZE,
-  allocationsFilters,
-  allocationsTypeOptions,
   durationOptions,
   navigationButtonAriaLabels,
 } from "../constants";
+import {
+  teamAllocationsTypeOptions,
+  teamBaseAllocationFilters,
+  teamBusinessUnitFilter,
+  teamPrivilegedAllocationFilters,
+} from "./constants";
 
 export const AllocationsTeamTable = () => {
   const searchInput = useAllocationsTeam(({ state }) => state.searchInput);
@@ -58,15 +62,23 @@ export const AllocationsTeamTable = () => {
   const hasMore = useAllocationsTeam(({ state }) => state.hasMore);
   const members = useAllocationsTeam(({ state }) => state.members);
   const anchorDate = useAllocationsTeam(({ state }) => state.anchorDate);
-  const [allocationsType, setAllocationsType] = useState("all");
-  const [compositeFilters, setCompositeFilters] = useState<FilterCondition[]>(
-    [],
+  const allocationsType = useAllocationsTeam(
+    ({ state }) => state.allocationsType,
+  );
+  const compositeFilters = useAllocationsTeam(
+    ({ state }) => state.compositeFilters,
   );
 
   const setSearch = useAllocationsTeam(({ actions }) => actions.setSearch);
   const setDuration = useAllocationsTeam(({ actions }) => actions.setDuration);
   const setDesignation = useAllocationsTeam(
     ({ actions }) => actions.setDesignation,
+  );
+  const setAllocationsType = useAllocationsTeam(
+    ({ actions }) => actions.setAllocationsType,
+  );
+  const setCompositeFilters = useAllocationsTeam(
+    ({ actions }) => actions.setCompositeFilters,
   );
   const loadMore = useAllocationsTeam(({ actions }) => actions.loadMore);
   const handlePrevious = useAllocationsTeam(
@@ -78,9 +90,13 @@ export const AllocationsTeamTable = () => {
   const guard = useGuardedAction();
   const ganttRef = useUnsavedChangesSource();
 
-  const { hasRoleAccess } = useUser(({ state }) => ({
+  const { hasRoleAccess, roles, hasBuField } = useUser(({ state }) => ({
     hasRoleAccess: state.hasRoleAccess,
+    roles: state.roles,
+    hasBuField: state.hasBuField,
   }));
+  const canUsePrivilegedFilters =
+    roles.includes("Projects Manager") || roles.includes("Projects User");
 
   const {
     openAddAllocationDialog,
@@ -90,6 +106,7 @@ export const AllocationsTeamTable = () => {
 
   const [designationQuery, setDesignationQuery] = useState("");
   const [isDesignationOpen, setIsDesignationOpen] = useState(false);
+  const [isAllocationTypeOpen, setIsAllocationTypeOpen] = useState(false);
 
   const { options: designationOptions, isLoading: isDesignationLookupLoading } =
     useDesignationLookup({
@@ -101,6 +118,12 @@ export const AllocationsTeamTable = () => {
   const hasMembers = members.length > 0;
   const isRefreshingVisibleGrid = isQueryLoading && hasMembers;
   const showOverlay = isQueryLoading;
+  const filterFields = canUsePrivilegedFilters
+    ? [
+        ...(hasBuField ? [teamBusinessUnitFilter] : []),
+        ...teamPrivilegedAllocationFilters,
+      ]
+    : teamBaseAllocationFilters;
 
   return (
     <div className="flex flex-wrap gap-3.5 justify-between py-3.5">
@@ -111,68 +134,70 @@ export const AllocationsTeamTable = () => {
             onChange={(e) => guard(() => setSearch(e.target.value))}
             value={searchInput}
           />
-          <Autocomplete
-            className="w-42"
-            bodyClasses="w-64"
-            listClassName="scrollbar-thin"
-            placeholder="Designation"
-            options={designationOptions}
-            multiple
-            value={designation}
-            open={isDesignationOpen}
-            searchValue={designationQuery}
-            keepSelectedVisible
-            loading={isDesignationLookupLoading}
-            onOpenChange={(value) => guard(() => setIsDesignationOpen(value))}
-            onSearchChange={setDesignationQuery}
-            onChange={(value) =>
-              guard(() =>
-                setDesignation(Array.isArray(value) ? value.map(String) : []),
-              )
-            }
-            renderFooter={({ clearAll, selectedOption }) => {
-              const hasSelectedDesignation = Array.isArray(selectedOption)
-                ? selectedOption.length > 0
-                : Boolean(selectedOption);
-              const hasActiveDesignationFilter =
-                hasSelectedDesignation || Boolean(designationQuery);
+          {canUsePrivilegedFilters ? (
+            <Autocomplete
+              className="w-42"
+              bodyClasses="w-64"
+              listClassName="scrollbar-thin"
+              placeholder="Designation"
+              options={designationOptions}
+              multiple
+              value={designation}
+              open={isDesignationOpen}
+              searchValue={designationQuery}
+              keepSelectedVisible
+              loading={isDesignationLookupLoading}
+              onOpenChange={(value) => guard(() => setIsDesignationOpen(value))}
+              onSearchChange={setDesignationQuery}
+              onChange={(value) =>
+                guard(() =>
+                  setDesignation(Array.isArray(value) ? value.map(String) : []),
+                )
+              }
+              renderFooter={({ clearAll, selectedOption }) => {
+                const hasSelectedDesignation = Array.isArray(selectedOption)
+                  ? selectedOption.length > 0
+                  : Boolean(selectedOption);
+                const hasActiveDesignationFilter =
+                  hasSelectedDesignation || Boolean(designationQuery);
 
-              return (
-                <div className="flex items-center justify-end gap-2">
-                  <Button
-                    variant="subtle"
-                    label="Clear"
-                    className="justify-start"
-                    disabled={!hasActiveDesignationFilter}
-                    onClick={() => {
-                      clearAll();
-                      setDesignationQuery("");
-                      setIsDesignationOpen(false);
-                    }}
-                  />
-                </div>
-              );
-            }}
-          >
-            {({ displayValue }) => (
-              <Button
-                variant="subtle"
-                className="justify-between w-full"
-                iconRight={() => (
-                  <SmallDown className="size-4 shrink-0 text-ink-gray-9" />
-                )}
-              >
-                <span
-                  className={cn(
-                    "truncate",
-                    displayValue ? "text-ink-gray-9" : "text-ink-gray-5",
+                return (
+                  <div className="flex items-center justify-end gap-2">
+                    <Button
+                      variant="subtle"
+                      label="Clear"
+                      className="justify-start"
+                      disabled={!hasActiveDesignationFilter}
+                      onClick={() => {
+                        clearAll();
+                        setDesignationQuery("");
+                        setIsDesignationOpen(false);
+                      }}
+                    />
+                  </div>
+                );
+              }}
+            >
+              {({ displayValue }) => (
+                <Button
+                  variant="subtle"
+                  className="justify-between w-full"
+                  iconRight={() => (
+                    <SmallDown className="size-4 shrink-0 text-ink-gray-9" />
                   )}
                 >
-                  {displayValue || "Select designation"}
-                </span>
-              </Button>
-            )}
-          </Autocomplete>
+                  <span
+                    className={cn(
+                      "truncate",
+                      displayValue ? "text-ink-gray-9" : "text-ink-gray-5",
+                    )}
+                  >
+                    {displayValue || "Select designation"}
+                  </span>
+                </Button>
+              )}
+            </Autocomplete>
+          ) : null}
           <Select
             placeholder="Duration"
             className="w-fit"
@@ -184,13 +209,33 @@ export const AllocationsTeamTable = () => {
               )
             }
           />
-          <Select
-            placeholder="Allocations Type"
-            className="w-fit"
-            options={allocationsTypeOptions}
-            value={allocationsType}
-            onChange={(value) => setAllocationsType(value ?? "all")}
-          />
+          {canUsePrivilegedFilters ? (
+            <div className="w-fit max-w-42">
+              <MultiSelect
+                options={teamAllocationsTypeOptions}
+                value={allocationsType}
+                placeholder="Allocation type"
+                onChange={setAllocationsType}
+                open={isAllocationTypeOpen}
+                onOpenChange={setIsAllocationTypeOpen}
+                hideSearch={true}
+                popupClassName="w-48"
+                renderFooter={({ clearAll }) => (
+                  <div className="flex items-center justify-end gap-2">
+                    <Button
+                      variant="subtle"
+                      label="Clear"
+                      className="justify-start"
+                      onClick={() => {
+                        clearAll();
+                        setIsAllocationTypeOpen(false);
+                      }}
+                    />
+                  </div>
+                )}
+              />
+            </div>
+          ) : null}
         </div>
         <div className="flex gap-2">
           <div className="flex items-center gap-1">
@@ -218,11 +263,9 @@ export const AllocationsTeamTable = () => {
           </div>
           <Filter
             align="end"
-            fields={allocationsFilters}
+            fields={filterFields}
             value={compositeFilters}
-            onChange={(newFilters: FilterCondition[]) => {
-              setCompositeFilters(newFilters);
-            }}
+            onChange={setCompositeFilters}
           />
           <Button
             aria-label="More options"

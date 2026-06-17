@@ -11,7 +11,7 @@ import {
 import {
   Button,
   Filter,
-  FilterCondition,
+  MultiSelect,
   Select,
   TextInput,
 } from "@rtcamp/frappe-ui-react";
@@ -35,11 +35,14 @@ import { useUser } from "@/providers/user";
 import { useAllocationsProject } from "./context";
 import {
   ALLOCATIONS_PAGE_SIZE,
-  allocationsFilters,
-  allocationsTypeOptions,
   durationOptions,
   navigationButtonAriaLabels,
 } from "../constants";
+import {
+  projectAllocationFilters,
+  projectBaseAllocationFilters,
+  projectAllocationsTypeOptions,
+} from "./constants";
 
 export const AllocationsProjectTable = () => {
   const searchInput = useAllocationsProject(({ state }) => state.searchInput);
@@ -54,14 +57,22 @@ export const AllocationsProjectTable = () => {
   const hasMore = useAllocationsProject(({ state }) => state.hasMore);
   const projects = useAllocationsProject(({ state }) => state.projects);
   const anchorDate = useAllocationsProject(({ state }) => state.anchorDate);
-  const [allocationsType, setAllocationsType] = useState("all");
-  const [compositeFilters, setCompositeFilters] = useState<FilterCondition[]>(
-    [],
+  const allocationsType = useAllocationsProject(
+    ({ state }) => state.allocationsType,
+  );
+  const compositeFilters = useAllocationsProject(
+    ({ state }) => state.compositeFilters,
   );
 
   const setSearch = useAllocationsProject(({ actions }) => actions.setSearch);
   const setDuration = useAllocationsProject(
     ({ actions }) => actions.setDuration,
+  );
+  const setAllocationsType = useAllocationsProject(
+    ({ actions }) => actions.setAllocationsType,
+  );
+  const setCompositeFilters = useAllocationsProject(
+    ({ actions }) => actions.setCompositeFilters,
   );
   const loadMore = useAllocationsProject(({ actions }) => actions.loadMore);
   const handlePrevious = useAllocationsProject(
@@ -75,20 +86,27 @@ export const AllocationsProjectTable = () => {
   const guard = useGuardedAction();
   const ganttRef = useUnsavedChangesSource();
 
-  const { hasRoleAccess } = useUser(({ state }) => ({
+  const { hasRoleAccess, roles } = useUser(({ state }) => ({
     hasRoleAccess: state.hasRoleAccess,
+    roles: state.roles,
   }));
+  const canUsePrivilegedFilters =
+    roles.includes("Projects Manager") || roles.includes("Projects User");
 
   const {
     openAddAllocationDialog,
     openEditAllocationDialog,
     openDeleteAllocationDialog,
   } = useAllocationOutletContext();
+  const [isAllocationTypeOpen, setIsAllocationTypeOpen] = useState(false);
 
   const showWeekend = isWeekendEntryAllowed();
   const hasProjects = projects.length > 0;
   const isRefreshingVisibleGrid = isQueryLoading && hasProjects;
   const showOverlay = isQueryLoading;
+  const filterFields = canUsePrivilegedFilters
+    ? projectAllocationFilters
+    : projectBaseAllocationFilters;
 
   return (
     <div className="flex flex-wrap gap-3.5 justify-between py-3.5">
@@ -111,13 +129,33 @@ export const AllocationsProjectTable = () => {
               )
             }
           />
-          <Select
-            placeholder="Allocations Type"
-            className="w-fit"
-            options={allocationsTypeOptions}
-            value={allocationsType}
-            onChange={(value) => setAllocationsType(value ?? "all")}
-          />
+          {canUsePrivilegedFilters ? (
+            <div className="w-fit max-w-42">
+              <MultiSelect
+                options={projectAllocationsTypeOptions}
+                value={allocationsType}
+                placeholder="Allocation type"
+                onChange={setAllocationsType}
+                open={isAllocationTypeOpen}
+                onOpenChange={setIsAllocationTypeOpen}
+                hideSearch={true}
+                popupClassName="w-48"
+                renderFooter={({ clearAll }) => (
+                  <div className="flex items-center justify-end gap-2">
+                    <Button
+                      variant="subtle"
+                      label="Clear"
+                      className="justify-start"
+                      onClick={() => {
+                        clearAll();
+                        setIsAllocationTypeOpen(false);
+                      }}
+                    />
+                  </div>
+                )}
+              />
+            </div>
+          ) : null}
         </div>
         <div className="flex gap-2">
           <div className="flex items-center gap-1">
@@ -145,11 +183,9 @@ export const AllocationsProjectTable = () => {
           </div>
           <Filter
             align="end"
-            fields={allocationsFilters}
+            fields={filterFields}
             value={compositeFilters}
-            onChange={(newFilters: FilterCondition[]) => {
-              setCompositeFilters(newFilters);
-            }}
+            onChange={setCompositeFilters}
           />
           <Button
             aria-label="More options"

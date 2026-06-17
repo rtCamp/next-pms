@@ -2,7 +2,13 @@
  * External dependencies.
  */
 import type { Allocation } from "@next-pms/design-system/components";
-import { addMonths, addWeeks, parseISO } from "date-fns";
+import type { FilterCondition } from "@rtcamp/frappe-ui-react";
+import {
+  addMonths,
+  addWeeks,
+  differenceInCalendarWeeks,
+  parseISO,
+} from "date-fns";
 
 /**
  * Internal dependencies.
@@ -11,6 +17,8 @@ import {
   calculateWeeklyHour,
   currencyFormat,
   expectatedHours,
+  isCompleteFilterCondition,
+  isNoValueOperator,
   pickAllowed,
 } from "@/lib/utils";
 import type { WorkingFrequency } from "@/types";
@@ -43,6 +51,14 @@ export type AllocationApiRecord = {
   modified?: string | null;
   modified_by?: string | null;
   modified_by_avatar?: string | null;
+};
+
+type AllocationApiFilter = [string, string, string | string[] | number | null];
+
+type AllocationFiltersResult = {
+  requestDate: string;
+  maxWeek: number;
+  filters: AllocationApiFilter[];
 };
 
 /**
@@ -79,6 +95,64 @@ export function moveDateByDuration(
   }
 
   return addMonths(anchorDate, 3 * delta);
+}
+
+export function buildAllocationQueryFilters({
+  compositeFilters,
+  defaultRequestDate,
+  defaultWeekCount,
+}: {
+  compositeFilters: FilterCondition[];
+  defaultRequestDate: string;
+  defaultWeekCount: number;
+}): AllocationFiltersResult {
+  const filters: AllocationApiFilter[] = [];
+
+  let requestDate = defaultRequestDate;
+  let maxWeek = defaultWeekCount;
+
+  compositeFilters.forEach((filter) => {
+    if (!isCompleteFilterCondition(filter)) {
+      return;
+    }
+
+    if (filter.field === "date") {
+      const range = Array.isArray(filter.value) ? filter.value : [];
+      const [firstDate, secondDate] = range;
+
+      if (!firstDate) {
+        return;
+      }
+
+      const [startDate, endDate] =
+        secondDate && secondDate < firstDate
+          ? [secondDate, firstDate]
+          : [firstDate, secondDate];
+
+      requestDate = startDate;
+      maxWeek = endDate
+        ? Math.max(
+            differenceInCalendarWeeks(parseISO(endDate), parseISO(startDate), {
+              weekStartsOn: 1,
+            }) + 1,
+            1,
+          )
+        : 1;
+      return;
+    }
+
+    filters.push([
+      filter.field,
+      filter.operator,
+      isNoValueOperator(filter.operator) ? null : (filter.value ?? null),
+    ]);
+  });
+
+  return {
+    requestDate,
+    maxWeek,
+    filters,
+  };
 }
 
 /**

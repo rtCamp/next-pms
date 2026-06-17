@@ -2,6 +2,7 @@
  * External dependencies.
  */
 import { useCallback, useMemo, useState } from "react";
+import type { FilterCondition } from "@rtcamp/frappe-ui-react";
 
 /**
  * Internal dependencies.
@@ -10,6 +11,7 @@ import { useDebounce } from "@/hooks/useDebounce";
 import { ALLOCATIONS_PAGE_SIZE } from "../constants";
 import type { AllocationRefreshTargets } from "../types";
 import { AllocationsDuration } from "../types";
+import { projectAllocationsTypeOptions } from "./constants";
 import { getWeekCountForDuration, moveDateByDuration } from "../utils";
 import {
   AllocationsProjectContext,
@@ -25,6 +27,10 @@ export function AllocationsProjectProvider({
   const [searchInput, setSearchInput] = useState("");
   const [duration, setDurationState] =
     useState<AllocationsDuration>("this-quarter");
+  const [allocationsType, setAllocationsType] = useState<string[]>([]);
+  const [compositeFilters, setCompositeFilters] = useState<FilterCondition[]>(
+    [],
+  );
   const [anchorDate, setAnchorDate] = useState(() => new Date());
   const weekCount = getWeekCountForDuration(duration);
 
@@ -41,6 +47,8 @@ export function AllocationsProjectProvider({
     anchorDate,
     weekCount,
     search: debouncedSearch,
+    allocationsType,
+    compositeFilters,
     pageLength: ALLOCATIONS_PAGE_SIZE,
   });
 
@@ -50,6 +58,12 @@ export function AllocationsProjectProvider({
 
   const setDuration = useCallback((value: AllocationsDuration) => {
     setDurationState(value);
+  }, []);
+
+  const handleAllocationsTypeChange = useCallback((value: string[]) => {
+    setAllocationsType(
+      value.length === projectAllocationsTypeOptions.length ? [] : value,
+    );
   }, []);
 
   const handlePrevious = useCallback(() => {
@@ -84,12 +98,16 @@ export function AllocationsProjectProvider({
         hasMore,
         searchInput,
         duration,
+        allocationsType,
+        compositeFilters,
         weekCount,
         anchorDate,
       },
       actions: {
         setSearch,
         setDuration,
+        setAllocationsType: handleAllocationsTypeChange,
+        setCompositeFilters,
         loadMore,
         handlePrevious,
         handleNext,
@@ -104,10 +122,14 @@ export function AllocationsProjectProvider({
       hasMore,
       searchInput,
       duration,
+      allocationsType,
+      compositeFilters,
       weekCount,
       anchorDate,
       setSearch,
       setDuration,
+      handleAllocationsTypeChange,
+      setCompositeFilters,
       loadMore,
       handlePrevious,
       handleNext,

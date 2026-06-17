@@ -4,6 +4,7 @@
 import { useCallback, useMemo } from "react";
 import type { ProjectGroup } from "@next-pms/design-system/components";
 import { type PaginationKey, usePagination } from "@next-pms/hooks";
+import type { FilterCondition } from "@rtcamp/frappe-ui-react";
 import { useToasts } from "@rtcamp/frappe-ui-react";
 import { format } from "date-fns";
 import type { FrappeError } from "frappe-react-sdk";
@@ -12,7 +13,8 @@ import type { FrappeError } from "frappe-react-sdk";
  * Internal dependencies.
  */
 import useApproverOptions from "@/hooks/useApproverOptions";
-import { parseFrappeErrorMsg } from "@/lib/utils";
+import { hashString, parseFrappeErrorMsg } from "@/lib/utils";
+import { buildAllocationQueryFilters } from "../utils";
 import type { ProjectAllocationResponse } from "./type";
 import { mapProjectAllocationToProjects } from "./utils";
 
@@ -20,6 +22,8 @@ type UseAllocationsProjectDataOptions = {
   anchorDate: Date;
   weekCount: number;
   search: string;
+  allocationsType: string[];
+  compositeFilters: FilterCondition[];
   pageLength: number;
 };
 
@@ -36,29 +40,63 @@ type ProjectAllocationCallResponse = {
   message?: ProjectAllocationResponse;
 };
 
-const KEY_PREFIX = "project-allocations";
-
 export function useAllocationsProjectData({
   anchorDate,
   weekCount,
   search,
+  allocationsType,
+  compositeFilters,
   pageLength,
 }: UseAllocationsProjectDataOptions): UseAllocationsProjectDataResult {
   const toast = useToasts();
 
-  const requestDate = useMemo(
+  const defaultRequestDate = useMemo(
     () => format(anchorDate, "yyyy-MM-dd"),
     [anchorDate],
   );
-  const querySignature = `${KEY_PREFIX}:${requestDate}:${weekCount}:${search}`;
+  const { requestDate, maxWeek, filters } = useMemo(
+    () =>
+      buildAllocationQueryFilters({
+        compositeFilters,
+        defaultRequestDate,
+        defaultWeekCount: weekCount,
+      }),
+    [compositeFilters, defaultRequestDate, weekCount],
+  );
+  const isBillable =
+    allocationsType.length === 1
+      ? allocationsType[0] === "billable"
+        ? 1
+        : 0
+      : null;
+  const filtersParam = useMemo(
+    () => (filters.length > 0 ? JSON.stringify(filters) : null),
+    [filters],
+  );
+  const querySignature = useMemo(
+    () =>
+      hashString(
+        [
+          "project-allocations",
+          requestDate,
+          String(maxWeek),
+          search,
+          String(isBillable),
+          filtersParam ?? "",
+        ].join(":"),
+      ),
+    [filtersParam, isBillable, maxWeek, requestDate, search],
+  );
 
   const baseParams = useMemo(
     () => ({
       date: requestDate,
-      max_week: weekCount,
+      max_week: maxWeek,
       project_name: search || null,
+      is_billable: isBillable,
+      filters: filtersParam,
     }),
-    [requestDate, search, weekCount],
+    [filtersParam, isBillable, maxWeek, requestDate, search],
   );
 
   const getKey = useCallback(
