@@ -135,9 +135,11 @@ export const AllocationsProjectTable = () => {
                 options={projectAllocationsTypeOptions}
                 value={allocationsType}
                 placeholder="Allocation type"
-                onChange={setAllocationsType}
+                onChange={(value) => guard(() => setAllocationsType(value))}
                 open={isAllocationTypeOpen}
-                onOpenChange={setIsAllocationTypeOpen}
+                onOpenChange={(open) =>
+                  guard(() => setIsAllocationTypeOpen(open))
+                }
                 hideSearch={true}
                 popupClassName="w-48"
                 renderFooter={({ clearAll }) => (
@@ -185,7 +187,7 @@ export const AllocationsProjectTable = () => {
             align="end"
             fields={filterFields}
             value={compositeFilters}
-            onChange={setCompositeFilters}
+            onChange={(value) => guard(() => setCompositeFilters(value))}
           />
           <Button
             aria-label="More options"
