@@ -7,9 +7,9 @@ import { Button, TextEditor } from "@rtcamp/frappe-ui-react";
 /**
  * Internal dependencies.
  */
-import { stripTags } from "@/lib/utils";
+import { stripTags } from "../../utils";
 
-type CommentInputProps = {
+export type CommentInputProps = {
   onSubmit: (comment: string) => Promise<void>;
   placeholder?: string;
   initialValue?: string;
@@ -52,14 +52,7 @@ export function CommentInput({
 
   const handleSubmit = async () => {
     if (isEmpty || isSubmitting) return;
-    try {
-      await onSubmit(draft);
-    } catch {
-      // The hook already surfaces the error via a toast; keep the draft so the
-      // user can retry, and swallow the rejection so the void caller below
-      // doesn't raise an unhandled promise rejection.
-      return;
-    }
+    await onSubmit(draft);
     if (resetOnSubmit || collapsible) {
       setDraft("");
       setEditorKey((key) => key + 1);

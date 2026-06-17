@@ -8,27 +8,23 @@ import { SmallDown } from "@rtcamp/frappe-ui-react/icons";
  * Internal dependencies.
  */
 import { CommentItem } from "./commentItem";
-import type { CommentActions, CommentNode } from "./types";
+import type { CommentNode } from "./types";
 
 const MAX_COMMENT_DEPTH = 5;
 
 type CommentThreadProps = {
   comment: CommentNode;
   depth?: number;
-} & CommentActions;
+};
 
-export function CommentThread({
-  comment,
-  depth = 0,
-  ...actions
-}: CommentThreadProps) {
+export function CommentThread({ comment, depth = 0 }: CommentThreadProps) {
   const replies = comment.replies ?? [];
   const hasReplies = replies.length > 0;
   const canReply = depth < MAX_COMMENT_DEPTH;
 
   return (
     <div className="flex flex-col gap-3">
-      <CommentItem comment={comment} canReply={canReply} {...actions} />
+      <CommentItem comment={comment} canReply={canReply} />
 
       {hasReplies && (
         <Accordion.Root
@@ -58,7 +54,6 @@ export function CommentThread({
                     key={reply.id}
                     comment={reply}
                     depth={depth + 1}
-                    {...actions}
                   />
                 ))}
               </div>

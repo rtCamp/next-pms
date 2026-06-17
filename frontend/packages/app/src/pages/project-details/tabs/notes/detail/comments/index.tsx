@@ -1,7 +1,7 @@
 /**
  * External dependencies.
  */
-import { Comments } from "@/components/comments";
+import { Comments } from "@next-pms/design-system/components";
 import { useUser } from "@/providers/user";
 
 /**

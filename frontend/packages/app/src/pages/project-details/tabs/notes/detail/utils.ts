@@ -1,12 +1,12 @@
 /**
  * External dependencies.
  */
+import type { CommentNode } from "@next-pms/design-system/components";
 import { format } from "date-fns";
 
 /**
  * Internal dependencies.
  */
-import type { CommentNode } from "@/components/comments";
 import type { Note } from "../types";
 import type { NoteComment } from "../types";
 

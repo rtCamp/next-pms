@@ -7,26 +7,26 @@ import { Avatar } from "@rtcamp/frappe-ui-react";
 /**
  * Internal dependencies.
  */
-import { formatRelativeTimeShort, stripTags } from "@/lib/utils";
 import { CommentInput } from "./commentInput";
 import { ComponentActions } from "./componentActions";
-import type { CommentActions, CommentNode } from "./types";
+import { useCommentsContext } from "./context";
+import type { CommentNode } from "./types";
+import { formatRelativeTimeShort, stripTags } from "../../utils";
 
 type CommentItemProps = {
   comment: CommentNode;
   canReply: boolean;
-} & CommentActions;
+};
 
-export function CommentItem({
-  comment,
-  canReply,
-  onReply,
-  onEdit,
-  onDelete,
-  isUpdating,
-  authorId,
-  canManageAllComments = false,
-}: CommentItemProps) {
+export function CommentItem({ comment, canReply }: CommentItemProps) {
+  const {
+    onReply,
+    onEdit,
+    onDelete,
+    isUpdating,
+    authorId,
+    canManageAllComments = false,
+  } = useCommentsContext();
   const [isEditing, setIsEditing] = useState(false);
   const [isReplying, setIsReplying] = useState(false);
 

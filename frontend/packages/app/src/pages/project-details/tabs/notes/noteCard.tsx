@@ -3,12 +3,15 @@
  */
 import { useCallback } from "react";
 import { useSearchParams } from "react-router-dom";
+import {
+  formatRelativeTimeShort,
+  stripTags,
+} from "@next-pms/design-system/utils";
 import { Avatar } from "@rtcamp/frappe-ui-react";
 
 /**
  * Internal dependencies.
  */
-import { formatRelativeTimeShort, stripTags } from "@/lib/utils";
 import { NOTE_PARAM } from "./constants";
 import { NoteActions } from "./noteActions";
 import type { Note } from "./types";
