@@ -212,6 +212,7 @@
    "label": "Ignored Role",
    "options": "Timesheet Role"
   },
+  {
    "default": "1",
    "fieldname": "allow_weekend_entries",
    "fieldtype": "Check",

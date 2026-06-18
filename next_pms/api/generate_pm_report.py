@@ -61,14 +61,14 @@ def generate_pm_report(
     if not project_doc.get("custom_enable_project_report_generation"):
         frappe.throw(_("Report generation is not enabled for this project."))
     if not project_doc.get("custom_slack_channel_slug"):
-        frappe.throw("Please add a Slack Channel Slug before generating.")
+        frappe.throw(_("Please add a Slack Channel Slug before generating."))
 
     if not from_date or not to_date:
-        frappe.throw("Report dates are missing. Please select a Report Duration.")
+        frappe.throw(_("Report dates are missing. Please select a Report Duration."))
 
     drive_link = project_doc.get("custom_project_drive_link") or ""
     if not drive_link or len(drive_link) < 8:
-        frappe.throw("Please add a valid Report Drive Link before generating.")
+        frappe.throw(_("Please add a valid Report Drive Link before generating."))
 
     payload = {
         "llm_model_overrides": {"provider": "google_genai", "model": "gemini-2.5-flash", "temperature": 0.7},
@@ -76,7 +76,7 @@ def generate_pm_report(
             "start_date": from_date,
             "end_date": to_date,
             "project_status": project_doc.get("custom_project_rag_status") or "Green",
-            "project_name": project_doc.get("project_name") or "",
+            "project_name": (project_doc.get("project_name") or "").strip(),
             "drive_link": drive_link,
         },
         **({"previous_doc_url": previous_doc_url} if previous_doc_url else {}),
@@ -100,7 +100,7 @@ def generate_pm_report(
         run_ids = result.get("run_ids", [])
 
         if not run_ids:
-            frappe.throw("No run ID returned from PM Report API.")
+            frappe.throw(_("No run ID returned from PM Report API."))
 
         run_id = run_ids[0]
 
@@ -118,7 +118,7 @@ def generate_pm_report(
         return {"status": "triggered"}
 
     except requests.exceptions.Timeout:
-        frappe.throw("LLM API timed out. Please try again.")
+        frappe.throw(_("LLM API timed out. Please try again."))
 
     except requests.exceptions.RequestException as e:
         error_detail = ""
@@ -368,6 +368,11 @@ def get_github_metadata(project_doc, selected_repo: str | None = None, selected_
         repo_name = project_doc.get("project_name") or ""
         owner_name = "rtCamp"
 
+    if repo_name:
+        repo_name = repo_name.strip()
+    if owner_name:
+        owner_name = owner_name.strip()
+
     project_board = ""
     if selected_board:
         project_board = selected_board
@@ -382,6 +387,9 @@ def get_github_metadata(project_doc, selected_repo: str | None = None, selected_
 
     if not project_board:
         project_board = project_doc.get("project_name") or ""
+
+    if project_board:
+        project_board = project_board.strip()
 
     return {"repo_name": repo_name, "owner_name": owner_name, "project_board": project_board}
 
