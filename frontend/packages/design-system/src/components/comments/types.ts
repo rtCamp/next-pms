@@ -18,17 +18,28 @@ export type CommentActions = {
   canManageAllComments?: boolean;
 };
 
-export type CommentsProps = {
-  comments: CommentNode[];
-  isLoading?: boolean;
+export type CommentsRootProps = {
+  className?: string;
+  children?: React.ReactNode;
   isUpdating?: boolean;
   authorId?: string;
   canManageAllComments?: boolean;
-  title?: string;
-  inputPlaceholder?: string;
-  inputSubmitLabel?: string;
-  onAddComment: (comment: string) => Promise<void>;
   onReply: (parentId: string, comment: string) => Promise<void>;
   onEdit: (commentId: string, comment: string) => Promise<void>;
   onDelete: (commentId: string) => Promise<void>;
+};
+
+export type CommentInputContextValue = {
+  draft: string;
+  setDraft: (v: string) => void;
+  isExpanded: boolean;
+  setIsExpanded: (v: boolean) => void;
+  editorKey: number;
+  isEmpty: boolean;
+  isSubmitting: boolean;
+  autoFocus: boolean;
+  collapsible: boolean;
+  showCancel: boolean;
+  handleSubmit: () => Promise<void>;
+  handleCancel: () => void;
 };
