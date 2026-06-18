@@ -7,7 +7,9 @@ import type { ComboboxOption, SelectOption } from "@rtcamp/frappe-ui-react";
  * Internal dependencies.
  */
 import type { ForecastData } from "./forecastBreakdownCard";
+import type { HeatmapRow } from "./heatmapCard";
 import type { KpiCardData } from "./kpiCard";
+import type { NotificationItem } from "./notificationsCard";
 import type { StatCardData } from "./statCard";
 import type { UtilisationData } from "./utilisedTimeCard";
 
@@ -76,6 +78,31 @@ export const FORECAST_BY_ROLE: Record<string, ForecastData> = {
   designer: { allocated: 38, tentative: 12, unallocated: 50 },
 };
 
+// Hard-coded notifications from the design until real data is wired in a later issue.
+export const LEADERSHIP_NOTIFICATIONS: NotificationItem[] = [
+  {
+    id: "1",
+    icon: "folder",
+    title: "Project health update",
+    body: "Orion Marketing Automation Revamp is now on track.",
+    timeLabel: "32m",
+  },
+  {
+    id: "2",
+    icon: "fire",
+    title: "Risk update",
+    body: "Gowtham updated the risk status to Mitigated in Atlas UI Stabilisation.",
+    timeLabel: "18h",
+  },
+  {
+    id: "3",
+    icon: "file",
+    title: "Client feedback available",
+    body: "Nov 2025 client feedback received for Nimbus Analytics Enhancement",
+    timeLabel: "2d",
+  },
+];
+
 export const ALL_CLIENTS_VALUE = "all-clients";
 export const ALL_PROJECTS_VALUE = "all-projects";
 
@@ -95,4 +122,137 @@ export const MOCK_PROJECT_OPTIONS: ComboboxOption[] = [
   },
   { label: "Atlas UI Stabilisation", value: "atlas-ui-stabilisation" },
   { label: "Headless CMS Migration", value: "headless-cms-migration" },
+];
+
+export const ALL_MEMBERS_VALUE = "all-members";
+
+export const MEMBER_OPTIONS: SelectOption[] = [
+  { value: ALL_MEMBERS_VALUE, label: "All members" },
+  { value: "active-members", label: "Active members" },
+  { value: "on-leave", label: "On leave" },
+];
+
+export const HEATMAP_MONTHS = ["Jan", "Feb", "Mar"] as const;
+
+// 7 rows x 12 cells transcribed from the Figma heatmap frame (node 3543:327932).
+export const HEATMAP_ROWS: HeatmapRow[] = [
+  {
+    role: "Project Manager",
+    cells: [
+      "full",
+      "full",
+      "full",
+      "partial",
+      "full",
+      "partial",
+      "partial",
+      "full",
+      "full",
+      "full",
+      "full",
+      "none",
+    ],
+  },
+  {
+    role: "Senior Project Manager",
+    cells: [
+      "full",
+      "full",
+      "full",
+      "full",
+      "full",
+      "full",
+      "full",
+      "none",
+      "full",
+      "none",
+      "none",
+      "none",
+    ],
+  },
+  {
+    role: "Frontend Engineer",
+    cells: [
+      "full",
+      "full",
+      "partial",
+      "none",
+      "partial",
+      "partial",
+      "partial",
+      "full",
+      "none",
+      "none",
+      "none",
+      "none",
+    ],
+  },
+  {
+    role: "Senior Frontend Engineer",
+    cells: [
+      "full",
+      "full",
+      "partial",
+      "full",
+      "full",
+      "none",
+      "full",
+      "full",
+      "full",
+      "full",
+      "partial",
+      "none",
+    ],
+  },
+  {
+    role: "Associate Frontend Engineer",
+    cells: [
+      "full",
+      "full",
+      "full",
+      "full",
+      "full",
+      "full",
+      "full",
+      "full",
+      "none",
+      "none",
+      "none",
+      "none",
+    ],
+  },
+  {
+    role: "QA Engineer",
+    cells: [
+      "full",
+      "full",
+      "full",
+      "full",
+      "full",
+      "full",
+      "full",
+      "full",
+      "full",
+      "full",
+      "full",
+      "none",
+    ],
+  },
+  {
+    role: "Lead QA Engineer",
+    cells: [
+      "full",
+      "full",
+      "partial",
+      "full",
+      "full",
+      "full",
+      "full",
+      "full",
+      "full",
+      "none",
+      "none",
+      "none",
+    ],
+  },
 ];

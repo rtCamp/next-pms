@@ -3,7 +3,9 @@
  */
 import { LEADERSHIP_KPIS, LEADERSHIP_STATS } from "./constants";
 import { ForecastBreakdownCard } from "./forecastBreakdownCard";
+import { HeatmapCard } from "./heatmapCard";
 import { KpiCard } from "./kpiCard";
+import { NotificationsCard } from "./notificationsCard";
 import { StatCard } from "./statCard";
 import { UtilisedTimeCard } from "./utilisedTimeCard";
 
@@ -19,6 +21,12 @@ export function LeadershipView() {
         {LEADERSHIP_STATS.map((stat) => (
           <StatCard key={stat.label} {...stat} />
         ))}
+      </div>
+      <div className="grid grid-cols-3 gap-3">
+        <div className="col-span-2">
+          <HeatmapCard />
+        </div>
+        <NotificationsCard />
       </div>
       <div className="grid gap-3 md:grid-cols-2">
         <UtilisedTimeCard />

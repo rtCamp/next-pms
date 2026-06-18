@@ -4,7 +4,7 @@
 @source "../../design-system/src";
 
 #root {
-    isolation: isolate;
+  isolation: isolate;
 }
 
 body {
@@ -153,10 +153,11 @@ html,
   --color-surface-green-5: var(--color-green-600);
   --color-surface-amber-5: var(--color-amber-600);
   --color-surface-blue-4: var(--color-blue-300);
-  --color-surface-blue-5: #007BE0 ;
+  --color-surface-blue-5: #007be0;
   --color-ink-violet-3: #7757ee;
-  --color-surface-violet-4: #664ECC;
+  --color-surface-violet-4: #664ecc;
   --color-ink-cyan-3: #3bbde5;
+  --color-heatmap-red: #e75a5a;
 }
 
 @keyframes fade-left {
