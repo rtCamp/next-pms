@@ -4,44 +4,37 @@
 import { useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { Button, Dialog } from "@rtcamp/frappe-ui-react";
-import { useToasts } from "@rtcamp/frappe-ui-react";
-import { useFrappeDeleteDoc } from "frappe-react-sdk";
-import type { FrappeError } from "frappe-react-sdk";
 
 /**
  * Internal dependencies.
  */
-import { parseFrappeErrorMsg } from "@/lib/utils";
-import { RISK_DETAIL_PARAM } from "./constants";
-import { useRisks } from "./context";
+import { NOTE_PARAM } from "./constants";
+import { useNotes } from "./context";
 
-interface DeleteRiskDialogProps {
-  riskName: string;
+interface DeleteNoteDialogProps {
+  noteName: string;
   onClose: () => void;
 }
 
-export function DeleteRiskDialog({ riskName, onClose }: DeleteRiskDialogProps) {
-  const refreshRisks = useRisks((c) => c.actions.refreshRisks);
+export function DeleteNoteDialog({ noteName, onClose }: DeleteNoteDialogProps) {
   const [, setSearchParams] = useSearchParams();
-  const toast = useToasts();
-  const { deleteDoc } = useFrappeDeleteDoc();
+  const deleteNote = useNotes((s) => s.actions.deleteNote);
   const [deleting, setDeleting] = useState(false);
 
   const handleDelete = async () => {
     setDeleting(true);
-    try {
-      await deleteDoc("Risk", riskName);
-      setSearchParams((prev) => {
-        prev.delete(RISK_DETAIL_PARAM);
-        return prev;
-      });
-      refreshRisks();
-      toast.success("Risk deleted");
-      onClose();
-    } catch (err) {
-      toast.error(parseFrappeErrorMsg(err as FrappeError));
+    const deleted = await deleteNote(noteName);
+
+    if (!deleted) {
       setDeleting(false);
+      return;
     }
+
+    setSearchParams((prev) => {
+      prev.delete(NOTE_PARAM);
+      return prev;
+    });
+    onClose();
   };
 
   return (
@@ -50,7 +43,7 @@ export function DeleteRiskDialog({ riskName, onClose }: DeleteRiskDialogProps) {
       onOpenChange={(open) => {
         if (!open) onClose();
       }}
-      options={{ title: "Delete risk", size: "sm" }}
+      options={{ title: "Delete note", size: "sm" }}
       actions={
         <div className="flex items-center justify-end gap-1">
           <Button
@@ -64,7 +57,6 @@ export function DeleteRiskDialog({ riskName, onClose }: DeleteRiskDialogProps) {
           <Button
             variant="solid"
             theme="red"
-            size="sm"
             label="Delete"
             onClick={() => void handleDelete()}
             disabled={deleting}
@@ -74,7 +66,7 @@ export function DeleteRiskDialog({ riskName, onClose }: DeleteRiskDialogProps) {
       }
     >
       <p className="text-base text-ink-gray-7">
-        Are you sure you want to delete this risk? This action cannot be undone.
+        Are you sure you want to delete this note? This action cannot be undone.
       </p>
     </Dialog>
   );

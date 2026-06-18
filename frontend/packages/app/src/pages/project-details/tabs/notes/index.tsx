@@ -10,6 +10,7 @@ import { ErrorFallback, Spinner } from "@next-pms/design-system/components";
  */
 import { NOTE_PARAM } from "./constants";
 import { useNotes } from "./context";
+import { DeleteNoteDialog } from "./deleteNoteDialog";
 import { NoteDetail } from "./detail";
 import { NoteCard } from "./noteCard";
 import { NotesSubHeader } from "./subHeader";
@@ -57,11 +58,19 @@ function NotesGrid() {
 
 export function Notes() {
   const [searchParams] = useSearchParams();
+  const deleteNoteName = useNotes((s) => s.state.deleteNoteName);
+  const closeDeleteDialog = useNotes((s) => s.actions.closeDeleteDialog);
   const noteId = searchParams.get(NOTE_PARAM);
 
   return (
     <ErrorFallback key={noteId ?? "grid"}>
       {noteId ? <NoteDetail noteId={noteId} /> : <NotesGrid />}
+      {deleteNoteName ? (
+        <DeleteNoteDialog
+          noteName={deleteNoteName}
+          onClose={closeDeleteDialog}
+        />
+      ) : null}
     </ErrorFallback>
   );
 }
