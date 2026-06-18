@@ -2,12 +2,12 @@
  * External dependencies.
  */
 import { Comments, Spinner } from "@next-pms/design-system/components";
+import { format } from "date-fns";
+import { useUser } from "@/providers/user";
 
 /**
  * Internal dependencies.
  */
-import { format } from "date-fns";
-import { useUser } from "@/providers/user";
 import StarRating from "../starRating";
 import { useFeedbackComments } from "../useFeedbackComments";
 import { useTeamFeedbackBreakdown } from "../useTeamFeedbackBreakdown";

@@ -100,7 +100,7 @@ export function useFeedbackComments(feedbackName: string) {
       await addCall({
         reference_doctype: "Customer Feedback",
         reference_name: feedbackName,
-        content: `<p>${comment}</p>`,
+        content: comment,
         comment_email: userId,
         comment_by: userName,
         ...(replyTo && { custom_reply_to: replyTo }),
@@ -141,7 +141,7 @@ export function useFeedbackComments(feedbackName: string) {
           doctype: "Comment",
           name: commentId,
           fieldname: "content",
-          value: `<p>${comment}</p>`,
+          value: comment,
         });
         await mutate();
       } catch (err) {
