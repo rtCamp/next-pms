@@ -42,6 +42,7 @@ export interface ResourceAllocation {
   status: string;
   modified_by_avatar: string | null;
   override?: AllocationOverrideEntry[];
+  recurrence_id?: string | null;
 }
 
 export interface Customer {

@@ -11,11 +11,13 @@ import {
   DateRangePicker,
   Dialog,
   ErrorMessage,
+  Select,
   TabButtons,
   Textarea,
   TextInput,
   useToasts,
 } from "@rtcamp/frappe-ui-react";
+import { AlertTriangle } from "@rtcamp/frappe-ui-react/icons";
 import { useForm, useStore } from "@tanstack/react-form";
 import { FrappeError, useFrappePostCall } from "frappe-react-sdk";
 import { Calendar } from "lucide-react";
@@ -35,12 +37,15 @@ import {
 import {
   addAllocationDefaultValues,
   allocationRecurrenceLabels,
+  propagationModeLabels,
 } from "./constants";
 import { OverAllocationWarning } from "./overAllocationWarning";
 import { addAllocationFormSchema } from "./schema";
 import type { AddAllocationModalProps } from "./types";
 import { useOverAllocation } from "./useOverAllocation";
 import { computeTotalHours } from "./utils";
+
+type RecurringEditMode = "only_this" | "this_and_future" | "whole_series";
 
 function AddAllocationModal({
   variant = "add",
@@ -57,6 +62,11 @@ function AddAllocationModal({
   const [projectSearch, setProjectSearch] = useState("");
   const [customerSearch, setCustomerSearch] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [propagationMode, setPropagationMode] =
+    useState<RecurringEditMode>("only_this");
+
+  const isRecurringEdit =
+    variant === "edit" && Boolean(initialValues?.recurrenceId);
 
   const { call: handleAllocation } = useFrappePostCall(
     "next_pms.resource_management.api.allocation.handle_allocation",
@@ -115,6 +125,7 @@ function AddAllocationModal({
         repeatFor: value.repeatFor ?? 0,
         includeWeekends: weekendEntriesAllowed && value.includeWeekends,
       });
+
       const overrideAwareAllocation =
         initialValues?.allocationStartDate &&
         initialValues?.allocationEndDate &&
@@ -126,8 +137,10 @@ function AddAllocationModal({
               override: initialValues.override,
             }
           : null;
+
       const shouldUseOverrideAwareEdit =
         variant === "edit" &&
+        !isRecurringEdit &&
         Boolean(allocationName) &&
         Boolean(
           overrideAwareAllocation &&
@@ -140,6 +153,7 @@ function AddAllocationModal({
             hoursPerDay: value.hoursPerDay,
           }),
         );
+
       const extendedAllocation =
         shouldUseOverrideAwareEdit && overrideAwareAllocation
           ? extendAllocationRange(overrideAwareAllocation, {
@@ -184,9 +198,15 @@ function AddAllocationModal({
         const payload = {
           allocation: {
             doctype: "Resource Allocation",
-            employee: value.employeeId,
-            project: value.projectId,
-            customer: value.customer,
+            employee: isRecurringEdit
+              ? (initialValues?.employeeId ?? value.employeeId)
+              : value.employeeId,
+            project: isRecurringEdit
+              ? (initialValues?.projectId ?? value.projectId)
+              : value.projectId,
+            customer: isRecurringEdit
+              ? (initialValues?.customer ?? value.customer)
+              : value.customer,
             allocation_start_date:
               shouldUseOverrideAwareEdit && extendedAllocation
                 ? extendedAllocation.allocationStartDate
@@ -215,9 +235,10 @@ function AddAllocationModal({
         };
 
         if (variant === "edit" && allocationName) {
+          const editMode = isRecurringEdit ? propagationMode : "only_this";
           await editAllocation({
             name: allocationName,
-            edit_mode: "only_this",
+            edit_mode: editMode,
             ...payload,
             ...(segmentEditOverridePatch
               ? {
@@ -315,6 +336,12 @@ function AddAllocationModal({
   }, [form, mergedDefaultValues, open]);
 
   useEffect(() => {
+    if (open) {
+      setPropagationMode("only_this");
+    }
+  }, [open]);
+
+  useEffect(() => {
     setEmployeeSearch("");
     setProjectSearch("");
     setCustomerSearch("");
@@ -346,6 +373,28 @@ function AddAllocationModal({
     },
     [form, projectOptions],
   );
+
+  const hasExistingOverrides = (initialValues?.override?.length ?? 0) > 0;
+  const datesChangedFromSegment =
+    fromDate !== (initialValues?.segmentStartDate ?? "") ||
+    toDate !== (initialValues?.segmentEndDate ?? "");
+  const showOverrideScheduleWarning =
+    variant === "edit" &&
+    !isRecurringEdit &&
+    hasExistingOverrides &&
+    datesChangedFromSegment;
+  const initialHoursPerDay =
+    initialValues?.allocationHoursPerDay ?? initialValues?.hoursPerDay ?? 0;
+  const showRecurringHoursResetWarning =
+    isRecurringEdit && hoursPerDay !== initialHoursPerDay;
+  const recurringEditModeOptions = [
+    { value: "only_this", label: propagationModeLabels.only_this },
+    {
+      value: "this_and_future",
+      label: propagationModeLabels.this_and_future,
+    },
+    { value: "whole_series", label: propagationModeLabels.whole_series },
+  ] as const;
 
   const employeeField = (
     <form.Field
@@ -431,6 +480,95 @@ function AddAllocationModal({
     />
   );
 
+  const recurrenceSection =
+    variant === "add" ? (
+      <form.Field
+        name="recurrence"
+        children={(field) => (
+          <>
+            <label className="block text-base text-ink-gray-5 mb-1.5">
+              Recurrence
+            </label>
+            <TabButtons
+              value={field.state.value}
+              onChange={(value) =>
+                field.handleChange(value as "one-time" | "recurring")
+              }
+              buttons={Object.entries(allocationRecurrenceLabels).map(
+                ([value, label]) => ({ value, label }),
+              )}
+            />
+            {!field.state.meta.isValid && (
+              <ErrorMessage message={field.state.meta.errors[0]?.message} />
+            )}
+          </>
+        )}
+      />
+    ) : isRecurringEdit ? (
+      <>
+        <div>
+          <label className="block text-base text-ink-gray-5 mb-1.5">
+            Recurrence
+          </label>
+          <TabButtons
+            value="recurring"
+            onChange={() => {}}
+            buttons={Object.entries(allocationRecurrenceLabels).map(
+              ([value, label]) => ({
+                value,
+                label,
+                disabled: value === "one-time",
+              }),
+            )}
+          />
+        </div>
+        <div>
+          <label className="block text-base text-ink-gray-5 mb-1.5">
+            Apply edits to
+          </label>
+          <Select
+            value={propagationMode}
+            options={recurringEditModeOptions.map(({ value, label }) => ({
+              value,
+              label,
+            }))}
+            onChange={(value) =>
+              value && setPropagationMode(value as RecurringEditMode)
+            }
+            variant="outline"
+            size="md"
+          />
+        </div>
+      </>
+    ) : (
+      <form.Field
+        name="recurrence"
+        children={(field) => (
+          <>
+            <label className="block text-base text-ink-gray-5 mb-1.5">
+              Recurrence
+            </label>
+            <TabButtons
+              value={field.state.value}
+              onChange={(value) =>
+                field.handleChange(value as "one-time" | "recurring")
+              }
+              buttons={Object.entries(allocationRecurrenceLabels).map(
+                ([value, label]) => ({
+                  value,
+                  label,
+                  disabled: value === "recurring",
+                }),
+              )}
+            />
+            {!field.state.meta.isValid && (
+              <ErrorMessage message={field.state.meta.errors[0]?.message} />
+            )}
+          </>
+        )}
+      />
+    );
+
   return (
     <Dialog
       open={open}
@@ -444,18 +582,20 @@ function AddAllocationModal({
       }}
       actions={
         <div className="flex items-center justify-between w-full gap-2 -mt-5">
-          <form.Field
-            name="isTentative"
-            children={(field) => (
-              <label className="inline-flex items-center gap-2 text-base shrink-0 text-ink-gray-6">
-                <Checkbox
-                  value={field.state.value}
-                  onChange={(checked) => field.handleChange(Boolean(checked))}
-                />
-                Mark as tentative
-              </label>
-            )}
-          />
+          <div className="w-full">
+            <form.Field
+              name="isTentative"
+              children={(field) => (
+                <label className="inline-flex items-center gap-2 text-base shrink-0 text-ink-gray-6">
+                  <Checkbox
+                    value={field.state.value}
+                    onChange={(checked) => field.handleChange(Boolean(checked))}
+                  />
+                  Mark as tentative
+                </label>
+              )}
+            />
+          </div>
           <div className="flex items-center justify-end w-full gap-2">
             <Button variant="ghost" label="Cancel" onClick={closeModal} />
             <Button
@@ -470,54 +610,47 @@ function AddAllocationModal({
       }
     >
       <div className="-mt-2 space-y-4">
-        {layoutVariant === "project" ? (
-          <>
-            {projectField}
-            {customerField}
-            {employeeField}
-          </>
-        ) : (
-          <>
-            {employeeField}
-            {projectField}
-            {customerField}
-          </>
-        )}
-
-        <form.Field
-          name="recurrence"
-          children={(field) => (
+        <div
+          className={
+            isRecurringEdit
+              ? "pointer-events-none opacity-50 space-y-4"
+              : "space-y-4"
+          }
+        >
+          {layoutVariant === "project" ? (
             <>
-              <label className="block text-base text-ink-gray-5 mb-1.5">
-                Recurrence
-              </label>
-              <TabButtons
-                value={field.state.value}
-                onChange={(value) =>
-                  field.handleChange(value as "one-time" | "recurring")
-                }
-                buttons={Object.entries(allocationRecurrenceLabels).map(
-                  ([value, label]) => ({ value, label }),
-                )}
-              />
-              {!field.state.meta.isValid && (
-                <ErrorMessage message={field.state.meta.errors[0]?.message} />
-              )}
+              {projectField}
+              {customerField}
+              {employeeField}
+            </>
+          ) : (
+            <>
+              {employeeField}
+              {projectField}
+              {customerField}
             </>
           )}
-        />
+        </div>
+
+        {recurrenceSection}
 
         {weekendEntriesAllowed ? (
           <form.Field
             name="includeWeekends"
             children={(field) => (
-              <label className="inline-flex items-center gap-2 text-base text-ink-gray-8">
-                <Checkbox
-                  value={field.state.value}
-                  onChange={(checked) => field.handleChange(Boolean(checked))}
-                />
-                Include weekends
-              </label>
+              <div
+                className={
+                  isRecurringEdit ? "pointer-events-none opacity-50" : undefined
+                }
+              >
+                <label className="inline-flex items-center gap-2 text-base text-ink-gray-8">
+                  <Checkbox
+                    value={field.state.value}
+                    onChange={(checked) => field.handleChange(Boolean(checked))}
+                  />
+                  Include weekends
+                </label>
+              </div>
             )}
           />
         ) : null}
@@ -542,34 +675,42 @@ function AddAllocationModal({
                       />
                     ) : null}
                   </div>
-                  <DateRangePicker
-                    value={[fromField.state.value, toField.state.value]}
-                    onChange={(value) => {
-                      const rawFrom = value?.[0] ?? "";
-                      const rawTo = value?.[1] ?? "";
-                      const shouldSwap = rawFrom && rawTo && rawFrom > rawTo;
-                      const nextFrom = shouldSwap ? rawTo : rawFrom;
-                      const nextTo = shouldSwap ? rawFrom : rawTo;
-
-                      fromField.handleChange(nextFrom);
-                      toField.handleChange(nextTo);
-                    }}
-                    formatter={formatDateRange}
-                    placeholder="Start Date - End Date"
+                  <div
+                    className={
+                      isRecurringEdit
+                        ? "pointer-events-none opacity-50"
+                        : undefined
+                    }
                   >
-                    {({ displayValue }) => (
-                      <div className="w-full relative flex items-center border border-outline-gray-2 px-2.5 py-1 rounded-lg">
-                        <input
-                          readOnly
-                          type="text"
-                          id="start"
-                          value={displayValue}
-                          className="flex-1"
-                        />
-                        <Calendar className="size-4" />
-                      </div>
-                    )}
-                  </DateRangePicker>
+                    <DateRangePicker
+                      value={[fromField.state.value, toField.state.value]}
+                      onChange={(value) => {
+                        const rawFrom = value?.[0] ?? "";
+                        const rawTo = value?.[1] ?? "";
+                        const shouldSwap = rawFrom && rawTo && rawFrom > rawTo;
+                        const nextFrom = shouldSwap ? rawTo : rawFrom;
+                        const nextTo = shouldSwap ? rawFrom : rawTo;
+
+                        fromField.handleChange(nextFrom);
+                        toField.handleChange(nextTo);
+                      }}
+                      formatter={formatDateRange}
+                      placeholder="Start Date - End Date"
+                    >
+                      {({ displayValue }) => (
+                        <div className="w-full relative flex items-center border border-outline-gray-2 px-2.5 py-1 rounded-lg">
+                          <input
+                            readOnly
+                            type="text"
+                            id="start"
+                            value={displayValue}
+                            className="flex-1"
+                          />
+                          <Calendar className="size-4" />
+                        </div>
+                      )}
+                    </DateRangePicker>
+                  </div>
                   {(!fromField.state.meta.isValid ||
                     !toField.state.meta.isValid) && (
                     <ErrorMessage
@@ -605,11 +746,13 @@ function AddAllocationModal({
             )}
           />
 
-          {recurrence === "recurring" && (
+          {(recurrence === "recurring" || isRecurringEdit) && (
             <form.Field
               name="repeatFor"
               children={(field) => (
-                <div className="shrink-0 flex flex-1 flex-col gap-1.5">
+                <div
+                  className={`shrink-0 flex flex-1 flex-col gap-1.5${variant === "edit" ? " pointer-events-none opacity-50" : ""}`}
+                >
                   <label className="block text-base text-ink-gray-5">
                     Repeat for
                   </label>
@@ -617,6 +760,7 @@ function AddAllocationModal({
                     type="number"
                     size="md"
                     variant="outline"
+                    disabled={variant === "edit"}
                     value={field.state.value ?? ""}
                     onChange={(e) =>
                       field.handleChange(Math.max(1, Number(e.target.value)))
@@ -645,36 +789,58 @@ function AddAllocationModal({
           </div>
         </div>
 
+        {showOverrideScheduleWarning && (
+          <div className="flex items-center gap-2 bg-(--color-violet-50) rounded-lg px-2.5 py-2">
+            <AlertTriangle className="size-4 shrink-0 text-(--color-violet-700)" />
+            <p className="flex-1 min-w-0 text-xs text-ink-gray-9 text-left">
+              This allocation has a custom per-day schedule that will be
+              adjusted to match the new dates.
+            </p>
+          </div>
+        )}
+
+        {showRecurringHoursResetWarning && (
+          <div className="flex items-center gap-2 rounded-lg bg-(--color-amber-50) px-2.5 py-2">
+            <AlertTriangle className="size-4 shrink-0 text-(--color-amber-700)" />
+            <p className="flex-1 min-w-0 text-xs text-ink-gray-9 text-left">
+              Changing hours per day clears custom per-day schedules for the
+              affected recurring allocation entries.
+            </p>
+          </div>
+        )}
+
         <OverAllocationWarning overAllocatedDays={overAllocatedDays} />
 
-        <form.Field
-          name="isBillable"
-          children={(field) => (
-            <label className="inline-flex items-center gap-2 text-base text-ink-gray-6">
-              <Checkbox
-                value={!field.state.value}
-                onChange={(checked) => field.handleChange(!checked)}
-              />
-              Mark as non-billable
-              <span className="inline-block rounded-full size-1 bg-surface-amber-3" />
-            </label>
-          )}
-        />
+        <div className="space-y-4">
+          <form.Field
+            name="isBillable"
+            children={(field) => (
+              <label className="inline-flex items-center gap-2 text-base text-ink-gray-6">
+                <Checkbox
+                  value={!field.state.value}
+                  onChange={(checked) => field.handleChange(!checked)}
+                />
+                Mark as non-billable
+                <span className="inline-block rounded-full size-1 bg-surface-amber-3" />
+              </label>
+            )}
+          />
 
-        <form.Field
-          name="note"
-          children={(field) => (
-            <div className="flex flex-col gap-1.5">
-              <label className="block text-base text-ink-gray-5">Note</label>
-              <Textarea
-                value={field.state.value ?? ""}
-                onChange={(e) => field.handleChange(e.target.value)}
-                placeholder="Add a note"
-                className="bg-white border-outline-gray-2"
-              />
-            </div>
-          )}
-        />
+          <form.Field
+            name="note"
+            children={(field) => (
+              <div className="flex flex-col gap-1.5">
+                <label className="block text-base text-ink-gray-5">Note</label>
+                <Textarea
+                  value={field.state.value ?? ""}
+                  onChange={(e) => field.handleChange(e.target.value)}
+                  placeholder="Add a note"
+                  className="bg-white border-outline-gray-2"
+                />
+              </div>
+            )}
+          />
+        </div>
       </div>
     </Dialog>
   );

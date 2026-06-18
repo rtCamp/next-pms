@@ -44,6 +44,7 @@ export type AllocationApiRecord = {
   modified_by?: string | null;
   modified_by_avatar?: string | null;
   override?: AllocationOverrideEntry[];
+  recurrence_id?: string | null;
 };
 
 export type AllocationOverrideEntry = {
@@ -178,6 +179,7 @@ export function mapResourceAllocation<T extends AllocationApiRecord>(
     tentative: allocation.status === "Tentative",
     note: allocation.note ?? undefined,
     override: allocation.override,
+    recurrenceId: allocation.recurrence_id ?? undefined,
     createdOn: allocation.creation
       ? parseFrappeDatetime(allocation.creation)
       : undefined,

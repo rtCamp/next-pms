@@ -24,6 +24,7 @@ export interface AddAllocationInitialValues {
   isTentative?: boolean;
   note?: string;
   override?: AllocationOverrideEntry[];
+  recurrenceId?: string;
 }
 
 export interface AddAllocationModalProps {

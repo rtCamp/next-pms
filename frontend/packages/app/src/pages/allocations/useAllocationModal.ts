@@ -60,6 +60,16 @@ export function useAllocationModal(refresh: RefreshAllocations) {
 
   const openEditAllocationDialog = useCallback(
     (data: AllocationCallbackData) => {
+      const isRecurringAllocation = Boolean(data.recurrenceId);
+      const formStartDate =
+        isRecurringAllocation && data.allocationStartDate
+          ? data.allocationStartDate
+          : data.startDate;
+      const formEndDate =
+        isRecurringAllocation && data.allocationEndDate
+          ? data.allocationEndDate
+          : data.endDate;
+
       setOnSuccess(undefined);
       setVariant("edit");
       setAddAllocationInitialValues({
@@ -67,11 +77,14 @@ export function useAllocationModal(refresh: RefreshAllocations) {
         employeeId: data.employeeId,
         ...(data.projectId ? { projectId: data.projectId } : {}),
         customer: data.customerName,
-        fromDate: data.startDate
-          ? format(data.startDate, "yyyy-MM-dd")
+        fromDate: formStartDate
+          ? format(formStartDate, "yyyy-MM-dd")
           : undefined,
-        toDate: data.endDate ? format(data.endDate, "yyyy-MM-dd") : undefined,
-        hoursPerDay: data.hoursPerDay,
+        toDate: formEndDate ? format(formEndDate, "yyyy-MM-dd") : undefined,
+        hoursPerDay:
+          isRecurringAllocation && data.allocationHoursPerDay !== undefined
+            ? data.allocationHoursPerDay
+            : data.hoursPerDay,
         allocationStartDate: data.allocationStartDate
           ? format(data.allocationStartDate, "yyyy-MM-dd")
           : undefined,
@@ -94,6 +107,7 @@ export function useAllocationModal(refresh: RefreshAllocations) {
         isTentative: data.tentative,
         note: data.note,
         override: data.override,
+        recurrenceId: data.recurrenceId,
       });
       setIsAddAllocationOpen(true);
     },
@@ -181,9 +195,18 @@ export function useAllocationModal(refresh: RefreshAllocations) {
           employeeId: addAllocationInitialValues?.employeeId,
           projectId: addAllocationInitialValues?.projectId,
           customer: addAllocationInitialValues?.customer,
-          rangeStart: addAllocationInitialValues?.fromDate || "",
-          rangeEnd: addAllocationInitialValues?.toDate || "",
-          defaultHoursPerDay: addAllocationInitialValues?.hoursPerDay ?? 0,
+          rangeStart:
+            addAllocationInitialValues?.segmentStartDate ??
+            addAllocationInitialValues?.fromDate ??
+            "",
+          rangeEnd:
+            addAllocationInitialValues?.segmentEndDate ??
+            addAllocationInitialValues?.toDate ??
+            "",
+          defaultHoursPerDay:
+            addAllocationInitialValues?.segmentHoursPerDay ??
+            addAllocationInitialValues?.hoursPerDay ??
+            0,
           allocationStartDate: addAllocationInitialValues?.allocationStartDate,
           allocationEndDate: addAllocationInitialValues?.allocationEndDate,
           allocationHoursPerDay:

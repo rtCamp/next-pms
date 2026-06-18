@@ -28,6 +28,7 @@ export function allocationBarToEntry(
     segmentStartDate: alloc.startDate,
     segmentEndDate: alloc.endDate,
     segmentHoursPerDay: alloc.hours,
+    recurrenceId: alloc.recurrenceId,
   };
 
   return {

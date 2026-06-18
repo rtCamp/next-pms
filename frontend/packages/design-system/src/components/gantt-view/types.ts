@@ -38,6 +38,8 @@ export interface Allocation {
   allocationEndDate?: Date;
   /** Underlying allocation document default hours per day. */
   allocationHoursPerDay?: number;
+  /** Recurrence group identifier — present only for recurring series allocations. */
+  recurrenceId?: string;
 }
 
 export interface MemberBarAllocation extends Allocation {
@@ -123,6 +125,8 @@ export interface AllocationCallbackData {
   allocationEndDate?: Date;
   /** Underlying allocation document default hours per day. */
   allocationHoursPerDay?: number;
+  /** Recurrence group identifier — present only for recurring series allocations. */
+  recurrenceId?: string;
   /** Visible segment start date before the current edit. */
   segmentStartDate?: Date;
   /** Visible segment end date before the current edit. */

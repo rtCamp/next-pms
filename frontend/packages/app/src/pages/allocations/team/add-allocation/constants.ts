@@ -7,6 +7,12 @@ export const allocationRecurrenceLabels = {
   recurring: "Recurring",
 } as const;
 
+export const propagationModeLabels = {
+  only_this: "This allocation",
+  this_and_future: "This and future",
+  whole_series: "All allocations",
+} as const;
+
 export const addAllocationDefaultValues = {
   employeeId: "",
   projectId: "",
