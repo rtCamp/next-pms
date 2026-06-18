@@ -2,7 +2,7 @@
  * External dependencies.
  */
 import { Comments, Spinner } from "@next-pms/design-system/components";
-import { format } from "date-fns";
+import { format, parseISO } from "date-fns";
 import { useUser } from "@/providers/user";
 
 /**
@@ -102,8 +102,14 @@ export function FeedbackDetailBody({ feedbackId }: { feedbackId: string }) {
 
       {/* Right: metadata sidebar */}
       <div className="w-78 shrink-0 border-l border-outline-gray-1 px-5 py-5 flex flex-col gap-3.5">
-        <MetaRow label="From" value={format(detail.periodFrom, "MMM dd")} />
-        <MetaRow label="To" value={format(detail.periodTo, "MMM dd")} />
+        <MetaRow
+          label="From"
+          value={format(parseISO(detail.periodFrom), "MMM dd")}
+        />
+        <MetaRow
+          label="To"
+          value={format(parseISO(detail.periodTo), "MMM dd")}
+        />
         <MetaRow label="Member" person={detail.employee} />
         <MetaRow label="Customer" person={detail.customer} />
         <div className="flex items-center gap-4 py-1">
