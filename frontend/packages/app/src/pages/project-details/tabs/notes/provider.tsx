@@ -40,7 +40,7 @@ export function NotesProvider({ children }: PropsWithChildren) {
     [debouncedTitleInput, debouncedDescriptionInput, author],
   );
 
-  const { notes, isLoading, error, mutate, authorOptions } =
+  const { notes, isLoading, error, refresh, authorOptions } =
     useNotesData(filters);
 
   const handleTitleInputChange = useCallback((value: string) => {
@@ -61,7 +61,7 @@ export function NotesProvider({ children }: PropsWithChildren) {
       try {
         await deleteDoc("Project Status Update", name);
         toast.success("Note deleted");
-        await mutate();
+        await refresh();
         return true;
       } catch (err) {
         toast.error(parseFrappeErrorMsg(err as FrappeError));
@@ -70,7 +70,7 @@ export function NotesProvider({ children }: PropsWithChildren) {
         setIsUpdating(false);
       }
     },
-    [deleteDoc, mutate, toast],
+    [deleteDoc, refresh, toast],
   );
 
   const togglePin = useCallback(
@@ -85,14 +85,14 @@ export function NotesProvider({ children }: PropsWithChildren) {
           pinned: !note.pinned,
         });
         toast.success(note.pinned ? "Note unpinned" : "Note pinned");
-        await mutate();
+        await refresh();
       } catch (err) {
         toast.error(parseFrappeErrorMsg(err as FrappeError));
       } finally {
         setIsUpdating(false);
       }
     },
-    [mutate, notes, toast, updateNote],
+    [notes, refresh, toast, updateNote],
   );
 
   const openDeleteDialog = useCallback((name: string) => {
@@ -122,7 +122,7 @@ export function NotesProvider({ children }: PropsWithChildren) {
         setTitleInput: handleTitleInputChange,
         setDescriptionInput: handleDescriptionInputChange,
         setAuthor: handleAuthorChange,
-        refresh: mutate,
+        refresh,
         deleteNote,
         togglePin,
         openDeleteDialog,
@@ -142,7 +142,7 @@ export function NotesProvider({ children }: PropsWithChildren) {
       handleTitleInputChange,
       handleDescriptionInputChange,
       handleAuthorChange,
-      mutate,
+      refresh,
       deleteNote,
       togglePin,
       openDeleteDialog,
