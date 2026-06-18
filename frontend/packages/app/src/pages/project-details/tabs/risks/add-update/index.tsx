@@ -2,6 +2,7 @@
  * External dependencies.
  */
 import { useCallback, useEffect, useState } from "react";
+import { stripTags } from "@next-pms/design-system/utils";
 import {
   Button,
   Dialog,
@@ -17,7 +18,7 @@ import { FrappeError, useFrappeUpdateDoc } from "frappe-react-sdk";
 /**
  * Internal dependencies.
  */
-import { parseFrappeErrorMsg, stripTags } from "@/lib/utils";
+import { parseFrappeErrorMsg } from "@/lib/utils";
 import { RISK_LEVELS, RISK_STATUSES } from "../constants";
 import { RiskStatusBadge } from "../riskStatusBadge";
 import { addUpdateSchema } from "./schema";

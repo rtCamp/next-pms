@@ -2,6 +2,7 @@
  * External dependencies.
  */
 import { useRef } from "react";
+import { stripTags } from "@next-pms/design-system/utils";
 import { Avatar } from "@rtcamp/frappe-ui-react";
 import { Fire } from "@rtcamp/frappe-ui-react/icons";
 import { Tag, AlignLeft } from "lucide-react";
@@ -9,7 +10,6 @@ import { Tag, AlignLeft } from "lucide-react";
 /**
  * Internal dependencies.
  */
-import { stripTags } from "@/lib/utils";
 import { useRisks } from "../context";
 import type { RiskItem } from "../types";
 import { CLICK_DRAG_THRESHOLD_PX } from "./constants";
