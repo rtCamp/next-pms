@@ -30,6 +30,15 @@ def get_project_emails(project: str) -> list[dict]:
     return [_to_email(activity) for activity in activities if _is_email(activity)]
 
 
+def has_project_email() -> bool:
+    """Whether the Project doctype exposes the custom_deal field from frappe_crm_xt.
+
+    The email tab is only meaningful when a project can link to a CRM Deal, so the
+    frontend gates the tab on this boot flag.
+    """
+    return frappe.get_meta("Project").has_field("custom_deal")
+
+
 def _is_email(activity: dict) -> bool:
     return activity.get("activity_type") == "communication" and activity.get("communication_type") == "Email"
 
