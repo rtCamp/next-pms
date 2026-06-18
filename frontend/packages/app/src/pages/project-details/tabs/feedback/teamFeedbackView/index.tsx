@@ -121,7 +121,9 @@ export function TeamFeedbackView() {
       {/* Details dialog */}
       <FeedbackDetailDialog
         open={selectedFeedbackId !== null}
-        onOpenChange={() => setSelectedFeedbackId(null)}
+        onOpenChange={(open) => {
+          if (!open) setSelectedFeedbackId(null);
+        }}
         feedbackId={selectedFeedbackId}
       />
     </div>
