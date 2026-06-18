@@ -79,11 +79,11 @@ export function useNotesData(filters: NoteFilters) {
   });
 
   const allAuthors = useMemo(() => {
-    const emails = allAuthorsData
-      ?.map((row) => row.owner)
+    const emails = (allAuthorsData ?? [])
+      .map((row) => row.owner)
       .filter(Boolean) as string[];
 
-    if (!emails?.length) return [];
+    if (!emails.length) return [];
     return [...new Set(emails)];
   }, [allAuthorsData]);
 

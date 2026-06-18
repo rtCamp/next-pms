@@ -57,6 +57,7 @@ export function DeleteNoteDialog({ noteName, onClose }: DeleteNoteDialogProps) {
           <Button
             variant="solid"
             theme="red"
+            size="sm"
             label="Delete"
             onClick={() => void handleDelete()}
             disabled={deleting}
