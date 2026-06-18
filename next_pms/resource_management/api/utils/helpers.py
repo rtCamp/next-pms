@@ -224,6 +224,7 @@ def normalize_project_view_filters(filters, allow_privileged: bool = True):
         "billing_type": "custom_billing_type",
         "project_type": "project_type",
         "project_manager": "custom_project_manager",
+        "project_manager_name": "custom_project_manager_name",
         "project_id": "name",
     }
     allowed_operators = ("=", "!=", "like", "not like")
@@ -299,6 +300,7 @@ def normalize_team_view_filters(
         "business_unit": "custom_business_unit",
         "designation": "designation",
         "reports_to": "reports_to",
+        "reporting_manager": "custom_reporting_manager",
         "employee_id": "name",
     }
     allowed_operators = ("=", "!=", "like", "not like")

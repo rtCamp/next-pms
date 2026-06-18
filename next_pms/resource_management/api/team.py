@@ -71,8 +71,11 @@ def get_resource_management_team_view_data(
         filters (str | list | None): A JSON list (or already-parsed list) of
             [field, operator, value] conditions, ANDed with each other and with the
             dedicated params above. Allowed operators: =, !=, like, not like. Supported
-            fields: employee_name, business_unit, designation, reports_to, employee_id,
-            skills, is_billable. skills is resolved against the Employee Skill doctype;
+            fields: employee_name, business_unit, designation, reports_to,
+            reporting_manager, employee_id, skills, is_billable. reports_to matches the
+            manager's Employee id (Link); reporting_manager matches the manager's name
+            (custom_reporting_manager) and is LIKE-searchable. skills is resolved against
+            the Employee Skill doctype;
             is_billable accepts only = or != with a value of 0 or 1. For callers without
             write permission only employee_name conditions are honored. Defaults to None.
 
