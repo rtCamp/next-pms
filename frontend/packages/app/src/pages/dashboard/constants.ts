@@ -6,8 +6,31 @@ import type { ComboboxOption, SelectOption } from "@rtcamp/frappe-ui-react";
 /**
  * Internal dependencies.
  */
+import type { KpiCardData } from "./kpiCard";
 import type { StatCardData } from "./statCard";
 import type { UtilisationData } from "./utilisedTimeCard";
+
+// Hard-coded financial KPIs from the design until real data is wired in a later issue.
+export const LEADERSHIP_KPIS: KpiCardData[] = [
+  {
+    label: "Last month's revenue",
+    value: "$300,000",
+    trend: { value: "+15%", direction: "up", tone: "positive" },
+    comparison: "vs Dec 2025",
+  },
+  {
+    label: "Last month's cost",
+    value: "$120,000",
+    trend: { value: "-2%", direction: "down", tone: "positive" },
+    comparison: "vs Dec 2025",
+  },
+  {
+    label: "Last month's profit margin",
+    value: "42%",
+    trend: { value: "11%", direction: "down", tone: "negative" },
+    comparison: "vs Dec 2025",
+  },
+];
 
 // Hard-coded summary stats from the design until real data is wired in a later issue.
 export const LEADERSHIP_STATS: StatCardData[] = [
