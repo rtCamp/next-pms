@@ -2,7 +2,6 @@
  * External dependencies.
  */
 import { useCallback } from "react";
-import { stripTags } from "@next-pms/design-system";
 import type { CommentNode } from "@next-pms/design-system/components";
 import { useToasts } from "@rtcamp/frappe-ui-react";
 import {
@@ -35,7 +34,7 @@ function buildCommentTree(items: FeedbackCommentAPIItem[]): CommentNode[] {
       id: item.name,
       authorId: item.comment_email,
       authorName: item.comment_by,
-      content: stripTags(item.content),
+      content: item.content,
       createdAt: item.creation,
       replies: [],
     });
