@@ -3,6 +3,7 @@
  */
 import { useCallback, useEffect, useState } from "react";
 import { Spinner } from "@next-pms/design-system/components";
+import { stripTags } from "@next-pms/design-system/utils";
 import {
   Button,
   Combobox,
@@ -24,7 +25,7 @@ import {
 /**
  * Internal dependencies.
  */
-import { parseFrappeErrorMsg, stripTags } from "@/lib/utils";
+import { parseFrappeErrorMsg } from "@/lib/utils";
 import { useProjectDetail } from "@/pages/project-details/context";
 import { RISK_STATUSES } from "../constants";
 import { useRisks } from "../context";
