@@ -2,6 +2,7 @@
  * External dependencies.
  */
 import { useMemo } from "react";
+import { useState } from "react";
 import {
   ListHeader,
   ListHeaderItem,
@@ -19,9 +20,13 @@ import StarRating from "../starRating";
 import { PersonCell } from "./personCell";
 import { FEEDBACK_LIST_COLUMNS } from "../constants";
 import { useTeamFeedbackList } from "../useTeamFeedbackList";
+import { FeedbackDetailDialog } from "./feedbackDetailDialog";
 
 export function TeamFeedbackView() {
   const { feedbackList, isLoading, hasMore, loadMore } = useTeamFeedbackList();
+  const [selectedFeedbackId, setSelectedFeedbackId] = useState<string | null>(
+    null,
+  );
 
   const rows = useMemo(
     () =>
@@ -60,7 +65,7 @@ export function TeamFeedbackView() {
         }))}
         options={{
           options: {
-            onRowClick: () => {},
+            onRowClick: (row) => setSelectedFeedbackId(row.id),
             resizeColumn: false,
             selectable: false,
             showTooltip: true,
@@ -112,6 +117,13 @@ export function TeamFeedbackView() {
           <ListSelectBanner />
         </>
       </ListView>
+
+      {/* Details dialog */}
+      <FeedbackDetailDialog
+        open={selectedFeedbackId !== null}
+        onOpenChange={() => setSelectedFeedbackId(null)}
+        feedbackId={selectedFeedbackId}
+      />
     </div>
   );
 }
