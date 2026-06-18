@@ -15,8 +15,8 @@ import {
   MOCK_CLIENT_OPTIONS,
   MOCK_PROJECT_OPTIONS,
 } from "./constants";
-import { LeadershipView } from "./leadershipView";
-import { ManagerView } from "./managerView";
+import { LeadershipView } from "./leadership-view";
+import { ManagerView } from "./manager-view";
 
 function Dashboard() {
   const [client, setClient] = useState<string>(ALL_CLIENTS_VALUE);

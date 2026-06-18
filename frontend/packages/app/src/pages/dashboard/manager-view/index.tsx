@@ -1,8 +1,8 @@
 /**
  * Internal dependencies.
  */
-import { MANAGER_STATS } from "./constants";
-import { StatCard } from "./statCard";
+import { MANAGER_STATS } from "../constants";
+import { StatCard } from "../widget/statCard";
 
 export function ManagerView() {
   return (

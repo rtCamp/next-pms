@@ -1,13 +1,13 @@
 /**
  * Internal dependencies.
  */
-import { LEADERSHIP_KPIS, LEADERSHIP_STATS } from "./constants";
-import { ForecastBreakdownCard } from "./forecastBreakdownCard";
-import { HeatmapCard } from "./heatmapCard";
-import { KpiCard } from "./kpiCard";
-import { NotificationsCard } from "./notificationsCard";
-import { StatCard } from "./statCard";
-import { UtilisedTimeCard } from "./utilisedTimeCard";
+import { LEADERSHIP_KPIS, LEADERSHIP_STATS } from "../constants";
+import { ForecastBreakdownCard } from "./widget/forecastBreakdownCard";
+import { HeatmapCard } from "./widget/heatmapCard";
+import { KpiCard } from "./widget/kpiCard";
+import { NotificationsCard } from "./widget/notificationsCard";
+import { UtilisedTimeCard } from "./widget/utilisedTimeCard";
+import { StatCard } from "../widget/statCard";
 
 export function LeadershipView() {
   return (
