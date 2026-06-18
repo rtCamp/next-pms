@@ -10,6 +10,7 @@ from next_pms.resource_management.api.utils.helpers import resource_api_permissi
 from next_pms.resource_management.doctype.resource_allocation.resource_allocation import clear_cache
 
 NON_DATE_FIELDS = frozenset({"project", "customer", "is_billable", "status", "note", "hours_allocated_per_day"})
+RECURRING_IMMUTABLE_FIELDS = ("employee", "project", "customer")
 VALID_DELETE_MODES = frozenset({"only_this", "this_and_future", "all_in_series"})
 
 
@@ -332,6 +333,28 @@ def apply_day_overrides(doc_name: str, day_overrides: list[dict] | None, deleted
         delete_day_override(doc_name, str(getdate(deleted_date)))
 
 
+def _assert_recurring_immutable(allocation: AllocationPayload, stored: dict):
+    """For a recurring allocation, employee/project/customer must not change."""
+    changed = [
+        f
+        for f in RECURRING_IMMUTABLE_FIELDS
+        if getattr(allocation, f) is not None and getattr(allocation, f) != stored.get(f)
+    ]
+    if changed:
+        frappe.throw(
+            frappe._("Cannot change {0} for a recurring allocation.").format(", ".join(changed)),
+            exc=frappe.ValidationError,
+        )
+
+
+def clear_day_overrides(doc_name: str):
+    """Remove all day-override rows from a Resource Allocation doc."""
+    doc = frappe.get_doc("Resource Allocation", doc_name)
+    if doc.override:
+        doc.override = []
+        doc.save()
+
+
 @frappe.whitelist(methods=["POST"])
 def edit_allocation(
     name: str,
@@ -359,6 +382,12 @@ def edit_allocation(
         deleted_day_overrides (list[str] | None): Dates whose override rows should be removed,
                                            e.g. ``["2025-06-05"]``. Deleting reverts the day to
                                            the allocation's default hours (unlike ``cancelled=1``).
+
+    Notes:
+        - For a recurring allocation (one with a ``recurrence_id``), ``employee``, ``project`` and
+          ``customer`` are immutable: a request that changes any of them raises ``ValidationError``.
+        - Changing ``hours_allocated_per_day`` wipes the entire day-override table on every affected
+          doc, since overrides store absolute per-day hours that no longer reflect the new default.
     """
     permission = resource_api_permissions_check()
     if not permission["write"]:
@@ -401,34 +430,49 @@ def edit_allocation(
         return {"success": True}
 
     allocation.name = name
+    stored = frappe.db.get_value(
+        "Resource Allocation",
+        name,
+        ("recurrence_id", "employee", "project", "customer", "hours_allocated_per_day"),
+        as_dict=True,
+    )
 
-    if edit_mode == "whole_series":
-        recurrence_id = frappe.db.get_value("Resource Allocation", name, "recurrence_id")
-        if recurrence_id:
-            series = frappe.get_all(
-                "Resource Allocation",
-                filters={"recurrence_id": recurrence_id},
-                fields=["name", "allocation_start_date", "allocation_end_date"],
+    if stored.recurrence_id:
+        _assert_recurring_immutable(allocation, stored)
+
+    hours_changed = allocation.hours_allocated_per_day is not None and float(
+        allocation.hours_allocated_per_day
+    ) != float(stored.hours_allocated_per_day or 0)
+
+    if edit_mode == "whole_series" and stored.recurrence_id:
+        series = frappe.get_all(
+            "Resource Allocation",
+            filters={"recurrence_id": stored.recurrence_id},
+            fields=["name", "allocation_start_date", "allocation_end_date"],
+        )
+        update_fields = {k: v for k, v in asdict(allocation).items() if k in NON_DATE_FIELDS and v is not None}
+        for series_doc_meta in series:
+            series_doc = frappe.get_doc("Resource Allocation", series_doc_meta.name)
+            day_count = (
+                getdate(series_doc_meta.allocation_end_date) - getdate(series_doc_meta.allocation_start_date)
+            ).days + 1
+            series_doc.update(
+                {
+                    **update_fields,
+                    "total_allocated_hours": update_fields.get(
+                        "hours_allocated_per_day", series_doc.hours_allocated_per_day
+                    )
+                    * day_count,
+                }
             )
-            update_fields = {k: v for k, v in asdict(allocation).items() if k in NON_DATE_FIELDS and v is not None}
-            for series_doc_meta in series:
-                series_doc = frappe.get_doc("Resource Allocation", series_doc_meta.name)
-                day_count = (
-                    getdate(series_doc_meta.allocation_end_date) - getdate(series_doc_meta.allocation_start_date)
-                ).days + 1
-                series_doc.update(
-                    {
-                        **update_fields,
-                        "total_allocated_hours": update_fields.get(
-                            "hours_allocated_per_day", series_doc.hours_allocated_per_day
-                        )
-                        * day_count,
-                    }
-                )
-                series_doc.save()
-            return frappe.get_doc("Resource Allocation", name)
+            if hours_changed:
+                series_doc.override = []
+            series_doc.save()
+        return frappe.get_doc("Resource Allocation", name)
 
     result = update_allocation(allocation)
+    if hours_changed:
+        clear_day_overrides(name)
     apply_day_overrides(name, day_overrides, deleted_day_overrides)
     return result
 
