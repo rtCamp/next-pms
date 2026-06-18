@@ -82,7 +82,7 @@ def generate_pm_report(
             "start_date": from_date,
             "end_date": to_date,
             "project_status": project_doc.get("custom_project_rag_status") or "Green",
-            "project_name": project_doc.get("project_name") or "",
+            "project_name": (project_doc.get("project_name") or "").strip(),
             "drive_link": drive_link,
         },
         **({"previous_doc_url": previous_doc_url} if previous_doc_url else {}),
@@ -405,6 +405,11 @@ def get_github_metadata(project_doc, selected_repo: str | None = None, selected_
         repo_name = project_doc.get("project_name") or ""
         owner_name = "rtCamp"
 
+    if repo_name:
+        repo_name = repo_name.strip()
+    if owner_name:
+        owner_name = owner_name.strip()
+
     project_board = ""
     if selected_board:
         project_board = selected_board
@@ -419,6 +424,9 @@ def get_github_metadata(project_doc, selected_repo: str | None = None, selected_
 
     if not project_board:
         project_board = project_doc.get("project_name") or ""
+
+    if project_board:
+        project_board = project_board.strip()
 
     return {"repo_name": repo_name, "owner_name": owner_name, "project_board": project_board}
 
