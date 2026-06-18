@@ -7,6 +7,7 @@ import type { ComboboxOption } from "@rtcamp/frappe-ui-react";
  * Internal dependencies.
  */
 import type { StatCardData } from "./statCard";
+import type { TimeOffEntry } from "./upcomingTimeOffsCard";
 
 // Hard-coded summary stats from the design until real data is wired in a later issue.
 export const LEADERSHIP_STATS: StatCardData[] = [
@@ -21,6 +22,14 @@ export const MANAGER_STATS: StatCardData[] = [
   { label: "Members without allocation", value: "12", subLabel: "this week" },
   { label: "Timesheets to review", value: "24", subLabel: "this week" },
   { label: "Outstanding timesheets", value: "4" },
+];
+
+// Mock upcoming time-offs from the design until real data is wired in a later issue.
+export const UPCOMING_TIME_OFFS: TimeOffEntry[] = [
+  { date: "Today, First half", members: ["Julian Andrews"] },
+  { date: "Tomorrow, Full day", members: ["Susanna Martin", "Kathy Philips"] },
+  { date: "Jun 20 - 21, Second half", members: ["Anusha Patel"] },
+  { date: "Jun 25, Full day", members: ["Divya Kumar", "Dev Patel"] },
 ];
 
 export const ALL_CLIENTS_VALUE = "all-clients";
