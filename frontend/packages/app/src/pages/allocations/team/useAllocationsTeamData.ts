@@ -83,12 +83,9 @@ export function useAllocationsTeamData({
   const hasBillable = allocationsType.includes("billable");
   const hasNonBillable = allocationsType.includes("non-billable");
   const allocationStatusParam =
-    hasConfirmed || hasTentative
-      ? JSON.stringify([
-          ...(hasConfirmed ? ["Confirmed"] : []),
-          ...(hasTentative ? ["Tentative"] : []),
-        ])
-      : null;
+    hasConfirmed === hasTentative
+      ? null
+      : JSON.stringify([hasConfirmed ? "Confirmed" : "Tentative"]);
   const isBillableParam =
     hasBillable === hasNonBillable
       ? null

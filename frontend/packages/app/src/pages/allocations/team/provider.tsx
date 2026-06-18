@@ -63,13 +63,15 @@ export function AllocationsTeamProvider({
     () => parseAllocationAnchorDate(searchParams.get(DATE_PARAM_KEY)),
     [searchParams],
   );
-  const allocationsType = useMemo(
-    () =>
-      parseAllocationStringArray(
-        searchParams.get(ALLOCATION_TYPE_PARAM_KEY),
-      ).filter((value) => allocationTypeValues.includes(value)),
-    [allocationTypeValues, searchParams],
-  );
+  const allocationsType = useMemo(() => {
+    const raw = searchParams.get(ALLOCATION_TYPE_PARAM_KEY);
+
+    const parsed = parseAllocationStringArray(raw).filter((value) =>
+      allocationTypeValues.includes(value),
+    );
+
+    return parsed;
+  }, [allocationTypeValues, searchParams]);
   const compositeFilters = useMemo(
     () =>
       parseAllocationCompositeFilters(
@@ -145,8 +147,9 @@ export function AllocationsTeamProvider({
 
   const setAllocationsType = useCallback(
     (value: string[]) => {
-      const nextValue =
-        value.length === teamAllocationsTypeOptions.length ? [] : value;
+      const nextValue = value.filter((item) =>
+        allocationTypeValues.includes(item),
+      );
 
       updateSearchParams({
         [ALLOCATION_TYPE_PARAM_KEY]: nextValue.length
@@ -154,7 +157,7 @@ export function AllocationsTeamProvider({
           : undefined,
       });
     },
-    [updateSearchParams],
+    [allocationTypeValues, updateSearchParams],
   );
 
   const setCompositeFilters = useCallback(
