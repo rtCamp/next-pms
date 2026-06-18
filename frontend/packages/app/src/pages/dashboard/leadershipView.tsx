@@ -4,6 +4,7 @@
 import { LEADERSHIP_KPIS, LEADERSHIP_STATS } from "./constants";
 import { KpiCard } from "./kpiCard";
 import { StatCard } from "./statCard";
+import { UtilisedTimeCard } from "./utilisedTimeCard";
 
 export function LeadershipView() {
   return (
@@ -18,6 +19,7 @@ export function LeadershipView() {
           <StatCard key={stat.label} {...stat} />
         ))}
       </div>
+      <UtilisedTimeCard />
     </section>
   );
 }
