@@ -187,16 +187,13 @@ def update_project_status_update(
 
 @frappe.whitelist(methods=["POST"])
 @error_logger
-def add_comment_to_project_status_update(
-    name: str, comment: str, user: str | None = None, reply_to: str | None = None
-) -> dict[str, Any]:
+def add_comment_to_project_status_update(name: str, comment: str, reply_to: str | None = None) -> dict[str, Any]:
     """
     Add a comment or reply to a Project Status Update
 
     Args:
         name (str): Project Status Update document name
         comment (str): Comment text
-        user (str, optional): Ignored; must match the current user if supplied
         reply_to (str, optional): Name of the parent comment row when posting a reply
 
     Returns:
@@ -213,9 +210,6 @@ def add_comment_to_project_status_update(
         existing_names = {row.name for row in doc.comments}
         if reply_to not in existing_names:
             frappe.throw(_("Parent comment '{0}' not found").format(reply_to))
-
-    if user and user != frappe.session.user:
-        frappe.throw(_("You cannot post a comment as another user"), frappe.PermissionError)
 
     comment_row = doc.append("comments", {})
     comment_row.user = frappe.session.user
