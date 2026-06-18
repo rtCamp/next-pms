@@ -2,6 +2,7 @@
  * Internal dependencies.
  */
 import { LEADERSHIP_KPIS, LEADERSHIP_STATS } from "./constants";
+import { ForecastBreakdownCard } from "./forecastBreakdownCard";
 import { KpiCard } from "./kpiCard";
 import { StatCard } from "./statCard";
 import { UtilisedTimeCard } from "./utilisedTimeCard";
@@ -19,7 +20,10 @@ export function LeadershipView() {
           <StatCard key={stat.label} {...stat} />
         ))}
       </div>
-      <UtilisedTimeCard />
+      <div className="grid gap-3 md:grid-cols-2">
+        <UtilisedTimeCard />
+        <ForecastBreakdownCard />
+      </div>
     </section>
   );
 }

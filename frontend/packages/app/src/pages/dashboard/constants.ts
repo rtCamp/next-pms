@@ -6,6 +6,7 @@ import type { ComboboxOption, SelectOption } from "@rtcamp/frappe-ui-react";
 /**
  * Internal dependencies.
  */
+import type { ForecastData } from "./forecastBreakdownCard";
 import type { KpiCardData } from "./kpiCard";
 import type { StatCardData } from "./statCard";
 import type { UtilisationData } from "./utilisedTimeCard";
@@ -64,6 +65,15 @@ export const UTILISATION_BY_ROLE: Record<string, UtilisationData> = {
   "project-manager": { billable: 60, nonBillable: 40 },
   developer: { billable: 80, nonBillable: 20 },
   designer: { billable: 55, nonBillable: 45 },
+};
+
+// Hard-coded forecast splits from the design until real data is wired in a later issue.
+export const FORECAST_BY_ROLE: Record<string, ForecastData> = {
+  [ALL_ROLES_VALUE]: { allocated: 42, tentative: 18, unallocated: 40 },
+  "delivery-manager": { allocated: 55, tentative: 20, unallocated: 25 },
+  "project-manager": { allocated: 48, tentative: 22, unallocated: 30 },
+  developer: { allocated: 65, tentative: 15, unallocated: 20 },
+  designer: { allocated: 38, tentative: 12, unallocated: 50 },
 };
 
 export const ALL_CLIENTS_VALUE = "all-clients";
