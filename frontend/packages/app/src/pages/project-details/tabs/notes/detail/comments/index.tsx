@@ -34,18 +34,24 @@ export function NoteComments({ noteId }: NoteCommentsProps) {
 
   return (
     <Comments
-      comments={comments.map(mapNoteComment)}
-      isLoading={isLoading}
+      className="mt-6 border-t border-outline-gray-2 pt-6"
       isUpdating={isUpdating}
       authorId={userId}
       canManageAllComments={currentUser === "Administrator"}
-      title="Comments"
-      inputPlaceholder="Type a comment"
-      inputSubmitLabel="Post"
-      onAddComment={addComment}
       onReply={(parentId, comment) => addComment(comment, parentId)}
       onEdit={updateComment}
       onDelete={deleteComment}
-    />
+    >
+      <Comments.Title>Comments</Comments.Title>
+      <Comments.List
+        comments={comments.map(mapNoteComment)}
+        isLoading={isLoading}
+      />
+      <Comments.Input
+        placeholder="Type a comment"
+        submitLabel="Post"
+        onSubmit={addComment}
+      />
+    </Comments>
   );
 }
