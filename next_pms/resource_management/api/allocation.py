@@ -355,6 +355,36 @@ def clear_day_overrides(doc_name: str):
         doc.save()
 
 
+def _propagate_day_overrides_to_series(
+    series: list, day_overrides: list[dict] | None, deleted_day_overrides: list[str] | None
+):
+    """Propagate day-override add/edit/delete to each series doc, matching by weekday.
+
+    A source override date is mapped onto the corresponding weekday within each series doc's
+    own date range, so e.g. a Tuesday override applies to every doc's Tuesday.
+    """
+
+    def each_series_target(source_date):
+        """Yield (series_doc_name, target_date) for the weekday matching source_date."""
+        target_weekday = getdate(source_date).weekday()
+        for series_doc in series:
+            doc_start = getdate(series_doc.allocation_start_date)
+            doc_end = getdate(series_doc.allocation_end_date)
+            offset = (target_weekday - doc_start.weekday()) % 7
+            target_date = doc_start + timedelta(days=offset)
+            if target_date <= doc_end:
+                yield series_doc.name, str(target_date)
+
+    for override in day_overrides or []:
+        override_fields = {k: v for k, v in override.items() if k != "date"}
+        for doc_name, target_date in each_series_target(override.get("date")):
+            upsert_day_override(doc_name, target_date, override_fields)
+
+    for deleted_date in deleted_day_overrides or []:
+        for doc_name, target_date in each_series_target(deleted_date):
+            delete_day_override(doc_name, target_date)
+
+
 @frappe.whitelist(methods=["POST"])
 def edit_allocation(
     name: str,
@@ -371,11 +401,13 @@ def edit_allocation(
                          fields) and then any day-override add/edit/delete in a single pass.
                          ``"whole_series"`` — update all docs sharing the same ``recurrence_id``
                          with the non-date ``allocation`` fields.
-                         ``"this_and_future"`` — apply the day-override changes to this doc and
-                         all later docs in the series (overrides only, duration unchanged).
+                         ``"this_and_future"`` — update this doc and all later docs in the series
+                         with the non-date ``allocation`` fields, and propagate the day-override
+                         add/edit/delete to each (matched by weekday). Individual date ranges are
+                         left unchanged.
         allocation (AllocationPayload): New field values. Always applied for ``only_this``
-                                        (alongside any overrides); used for the non-date fields
-                                        under ``whole_series``; ignored under ``this_and_future``.
+                                        (alongside any overrides); the non-date fields are applied
+                                        under ``whole_series`` and ``this_and_future``.
         day_overrides (list[dict] | None): Per-day overrides to add or edit, each a dict with a
                                            ``"date"`` key plus the fields to set, e.g.
                                            ``[{"date": "2025-06-05", "cancelled": 1}, {"date": "2025-06-06", "hours": 4.0}]``.
@@ -393,47 +425,11 @@ def edit_allocation(
     if not permission["write"]:
         frappe.throw(frappe._("You are not allowed to perform this action."), exc=frappe.PermissionError)
 
-    if edit_mode == "this_and_future" and (day_overrides or deleted_day_overrides):
-        recurrence_id, this_start = frappe.db.get_value(
-            "Resource Allocation", name, ["recurrence_id", "allocation_start_date"]
-        )
-        if recurrence_id:
-            series = frappe.get_all(
-                "Resource Allocation",
-                filters={"recurrence_id": recurrence_id, "allocation_start_date": [">=", this_start]},
-                fields=["name", "allocation_start_date", "allocation_end_date"],
-            )
-
-            def each_series_target(source_date):
-                """Yield (series_doc_name, target_date) for the weekday matching source_date."""
-                target_weekday = getdate(source_date).weekday()
-                for series_doc in series:
-                    doc_start = getdate(series_doc.allocation_start_date)
-                    doc_end = getdate(series_doc.allocation_end_date)
-                    offset = (target_weekday - doc_start.weekday()) % 7
-                    target_date = doc_start + timedelta(days=offset)
-                    if target_date <= doc_end:
-                        yield series_doc.name, str(target_date)
-
-            for override in day_overrides or []:
-                override_fields = {k: v for k, v in override.items() if k != "date"}
-                for doc_name, target_date in each_series_target(override.get("date")):
-                    upsert_day_override(doc_name, target_date, override_fields)
-
-            for deleted_date in deleted_day_overrides or []:
-                for doc_name, target_date in each_series_target(deleted_date):
-                    delete_day_override(doc_name, target_date)
-            return {"success": True}
-
-        # No series to propagate to: apply the override diffs to this doc only.
-        apply_day_overrides(name, day_overrides, deleted_day_overrides)
-        return {"success": True}
-
     allocation.name = name
     stored = frappe.db.get_value(
         "Resource Allocation",
         name,
-        ("recurrence_id", "employee", "project", "customer", "hours_allocated_per_day"),
+        ("recurrence_id", "employee", "project", "customer", "hours_allocated_per_day", "allocation_start_date"),
         as_dict=True,
     )
 
@@ -444,10 +440,13 @@ def edit_allocation(
         allocation.hours_allocated_per_day
     ) != float(stored.hours_allocated_per_day or 0)
 
-    if edit_mode == "whole_series" and stored.recurrence_id:
+    if edit_mode in ("whole_series", "this_and_future") and stored.recurrence_id:
+        filters = {"recurrence_id": stored.recurrence_id}
+        if edit_mode == "this_and_future":
+            filters["allocation_start_date"] = [">=", stored.allocation_start_date]
         series = frappe.get_all(
             "Resource Allocation",
-            filters={"recurrence_id": stored.recurrence_id},
+            filters=filters,
             fields=["name", "allocation_start_date", "allocation_end_date"],
         )
         update_fields = {k: v for k, v in asdict(allocation).items() if k in NON_DATE_FIELDS and v is not None}
@@ -468,6 +467,9 @@ def edit_allocation(
             if hours_changed:
                 series_doc.override = []
             series_doc.save()
+
+        if edit_mode == "this_and_future":
+            _propagate_day_overrides_to_series(series, day_overrides, deleted_day_overrides)
         return frappe.get_doc("Resource Allocation", name)
 
     result = update_allocation(allocation)
