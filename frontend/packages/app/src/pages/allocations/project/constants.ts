@@ -4,6 +4,8 @@
 import type { FilterField, MultiSelectOption } from "@rtcamp/frappe-ui-react";
 
 export const projectAllocationsTypeOptions: MultiSelectOption[] = [
+  { label: "Confirmed only", value: "Confirmed" },
+  { label: "Tentative only", value: "Tentative" },
   { label: "Billable only", value: "billable" },
   { label: "Non-billable only", value: "non-billable" },
 ];
@@ -40,7 +42,7 @@ export const projectAllocationFilters: FilterField[] = [
     type: "string",
   },
   {
-    name: "project_manager",
+    name: "project_manager_name",
     label: "Project Manager",
     type: "string",
   },

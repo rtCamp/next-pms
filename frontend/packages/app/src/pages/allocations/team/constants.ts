@@ -22,7 +22,7 @@ export const teamAllocationFilters: FilterField[] = [
     type: "string",
   },
   {
-    name: "reports_to",
+    name: "reporting_manager",
     label: "Reporting Manager",
     type: "string",
   },

@@ -63,16 +63,23 @@ export function useAllocationsProjectData({
       }),
     [compositeFilters, defaultRequestDate, weekCount],
   );
-  const isBillable =
-    allocationsType.length === 1
-      ? allocationsType[0] === "billable"
-        ? 1
-        : 0
-      : null;
   const filtersParam = useMemo(
     () => (filters.length > 0 ? JSON.stringify(filters) : null),
     [filters],
   );
+  const hasConfirmed = allocationsType.includes("Confirmed");
+  const hasTentative = allocationsType.includes("Tentative");
+  const hasBillable = allocationsType.includes("billable");
+  const hasNonBillable = allocationsType.includes("non-billable");
+  const allocationStatusParam =
+    hasConfirmed || hasTentative
+      ? JSON.stringify([
+          ...(hasConfirmed ? ["Confirmed"] : []),
+          ...(hasTentative ? ["Tentative"] : []),
+        ])
+      : null;
+  const isBillableParam =
+    hasBillable === hasNonBillable ? null : JSON.stringify(hasBillable ? 1 : 0);
   const querySignature = useMemo(
     () =>
       hashString(
@@ -81,11 +88,19 @@ export function useAllocationsProjectData({
           requestDate,
           String(maxWeek),
           search,
-          String(isBillable),
+          allocationStatusParam ?? "",
+          isBillableParam ?? "",
           filtersParam ?? "",
         ].join(":"),
       ),
-    [filtersParam, isBillable, maxWeek, requestDate, search],
+    [
+      allocationStatusParam,
+      filtersParam,
+      isBillableParam,
+      maxWeek,
+      requestDate,
+      search,
+    ],
   );
 
   const baseParams = useMemo(
@@ -93,10 +108,18 @@ export function useAllocationsProjectData({
       date: requestDate,
       max_week: maxWeek,
       project_name: search || null,
-      is_billable: isBillable,
+      allocation_status: allocationStatusParam,
+      is_billable: isBillableParam,
       filters: filtersParam,
     }),
-    [filtersParam, isBillable, maxWeek, requestDate, search],
+    [
+      allocationStatusParam,
+      filtersParam,
+      isBillableParam,
+      maxWeek,
+      requestDate,
+      search,
+    ],
   );
 
   const getKey = useCallback(

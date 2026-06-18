@@ -250,10 +250,23 @@ export function parseAllocationCompositeFilters(
 
     if (!Array.isArray(parsed)) return [];
 
-    return parsed.filter(
-      (value): value is FilterCondition =>
-        Boolean(value) && typeof value === "object" && !Array.isArray(value),
-    );
+    return parsed.filter((value): value is FilterCondition => {
+      if (!value || typeof value !== "object" || Array.isArray(value)) {
+        return false;
+      }
+
+      const filter = value as Record<string, unknown>;
+
+      return (
+        typeof filter.id === "string" &&
+        typeof filter.field === "string" &&
+        typeof filter.operator === "string" &&
+        "value" in filter &&
+        (!("fieldCategory" in filter) ||
+          filter.fieldCategory === undefined ||
+          typeof filter.fieldCategory === "string")
+      );
+    });
   } catch {
     return [];
   }
