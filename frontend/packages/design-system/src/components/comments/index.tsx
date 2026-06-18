@@ -14,7 +14,11 @@ import { CommentsProvider } from "./provider";
 import Spinner from "../spinner";
 import type { CommentNode, CommentsRootProps } from "./types";
 
-export type { CommentNode, CommentsRootProps } from "./types";
+export type {
+  CommentNode,
+  CommentsRootProps,
+  CommentsRootProps as CommentsProps,
+} from "./types";
 
 function CommentsRoot({
   className,
