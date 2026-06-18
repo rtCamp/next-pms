@@ -13,6 +13,7 @@ import { useNotes } from "./context";
 import { DeleteNoteDialog } from "./deleteNoteDialog";
 import { NoteDetail } from "./detail";
 import { NoteCard } from "./noteCard";
+import { NotesProvider } from "./provider";
 import { NotesSubHeader } from "./subHeader";
 
 function NotesGrid() {
@@ -56,7 +57,7 @@ function NotesGrid() {
   );
 }
 
-export function Notes() {
+function NotesContent() {
   const [searchParams] = useSearchParams();
   const deleteNoteName = useNotes((s) => s.state.deleteNoteName);
   const closeDeleteDialog = useNotes((s) => s.actions.closeDeleteDialog);
@@ -72,5 +73,13 @@ export function Notes() {
         />
       ) : null}
     </ErrorFallback>
+  );
+}
+
+export function Notes() {
+  return (
+    <NotesProvider>
+      <NotesContent />
+    </NotesProvider>
   );
 }

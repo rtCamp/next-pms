@@ -48,28 +48,28 @@ function ProjectDetail() {
 
   return (
     <ProjectDetailProvider projectId={projectId}>
-      <NotesProvider>
-        <div className="h-full flex flex-col">
-          <ProjectDetailHeader />
-          <div className="flex flex-1 min-h-0">
-            {editorMatch ? (
+      <div className="h-full flex flex-col">
+        <ProjectDetailHeader />
+        <div className="flex flex-1 min-h-0">
+          {editorMatch ? (
+            <NotesProvider>
               <div className="flex-1 overflow-auto scrollbar-thin">
                 <Outlet />
               </div>
-            ) : (
-              <Tabs
-                tabListClassName="h-10"
-                tabPanelClassName="overflow-auto scrollbar-thin"
-                className="w-3/4 border-0 rounded-none border-r"
-                tabs={finalTabs}
-                tabIndex={activeTab}
-                onTabChange={handleTabChange}
-              />
-            )}
-            <AboutThisProject className="w-1/4" />
-          </div>
+            </NotesProvider>
+          ) : (
+            <Tabs
+              tabListClassName="h-10"
+              tabPanelClassName="overflow-auto scrollbar-thin"
+              className="w-3/4 border-0 rounded-none border-r"
+              tabs={finalTabs}
+              tabIndex={activeTab}
+              onTabChange={handleTabChange}
+            />
+          )}
+          <AboutThisProject className="w-1/4" />
         </div>
-      </NotesProvider>
+      </div>
     </ProjectDetailProvider>
   );
 }
