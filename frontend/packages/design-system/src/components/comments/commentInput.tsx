@@ -2,12 +2,12 @@
  * External dependencies.
  */
 import { useEffect, useState } from "react";
-import { Button, TextEditor } from "@rtcamp/frappe-ui-react";
+import { Avatar, Button, TextEditor } from "@rtcamp/frappe-ui-react";
 
 /**
  * Internal dependencies.
  */
-import { stripTags } from "../../utils";
+import { mergeClassNames as cn, stripTags } from "../../utils";
 
 export type CommentInputProps = {
   onSubmit: (comment: string) => Promise<void>;
@@ -19,6 +19,9 @@ export type CommentInputProps = {
   onCancel?: () => void;
   submitLabel?: string;
   collapsible?: boolean;
+  triggerClassName?: string;
+  avatarName?: string;
+  avatarImage?: string | null;
 };
 
 export function CommentInput({
@@ -31,6 +34,9 @@ export function CommentInput({
   onCancel,
   submitLabel = "Post",
   collapsible = false,
+  triggerClassName,
+  avatarName,
+  avatarImage,
 }: CommentInputProps) {
   const [draft, setDraft] = useState(initialValue);
   const [isExpanded, setIsExpanded] = useState(
@@ -73,13 +79,23 @@ export function CommentInput({
   // Dummy input to avoid rendering the heavy TextEditor component.
   if (!isExpanded) {
     return (
-      <input
-        aria-label={placeholder}
-        type="text"
-        className="transition-colors w-full min-h-8 outline-none appearance-none text-base rounded h-7 border border-outline-gray-2 bg-surface-white placeholder-ink-gray-4 hover:border-outline-gray-3 hover:shadow-sm focus:bg-surface-white focus:border-outline-gray-4 focus:shadow-sm focus:ring-0 focus-visible:ring-2 focus-visible:ring-outline-gray-3 pl-2 pr-2 py-1.5"
-        onFocus={() => setIsExpanded(true)}
-        placeholder={placeholder}
-      />
+      <div className={cn("flex items-center gap-3", triggerClassName)}>
+        {(avatarName || avatarImage) && (
+          <Avatar
+            size="lg"
+            label={avatarName}
+            image={avatarImage ?? undefined}
+            shape="circle"
+          />
+        )}
+        <input
+          aria-label={placeholder}
+          type="text"
+          className="transition-colors w-full min-h-8 outline-none appearance-none text-base rounded h-7 border border-outline-gray-2 bg-surface-white placeholder-ink-gray-4 hover:border-outline-gray-3 hover:shadow-sm focus:bg-surface-white focus:border-outline-gray-4 focus:shadow-sm focus:ring-0 focus-visible:ring-2 focus-visible:ring-outline-gray-3 pl-2 pr-2 py-1.5"
+          onFocus={() => setIsExpanded(true)}
+          placeholder={placeholder}
+        />
+      </div>
     );
   }
 
