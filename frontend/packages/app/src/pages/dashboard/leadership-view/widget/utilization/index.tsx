@@ -7,12 +7,12 @@ import { Select } from "@rtcamp/frappe-ui-react";
 /**
  * Internal dependencies.
  */
+import { UtilisationDonut } from "./utilisationDonut";
 import {
   ALL_ROLES_VALUE,
   ROLE_OPTIONS,
   UTILISATION_BY_ROLE,
-} from "./constants";
-import { UtilisationDonut } from "./utilisationDonut";
+} from "../../../constants";
 
 export type UtilisationData = {
   billable: number;
