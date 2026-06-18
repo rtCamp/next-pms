@@ -15,7 +15,7 @@ const RECURRING_DELETE_OPTIONS: Array<{
 }> = [
   { label: "This allocation", value: "only_this" },
   {
-    label: "This and future allocation",
+    label: "This and future allocations",
     value: "this_and_future",
   },
   { label: "Whole series", value: "all_in_series" },
