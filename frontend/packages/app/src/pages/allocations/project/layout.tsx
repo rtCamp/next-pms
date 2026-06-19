@@ -11,6 +11,7 @@ import { Plus } from "lucide-react";
 import { Header } from "@/layout/header";
 import { AllocationsBreadcrumbs } from "@/pages/allocations/components/allocationsBreadcrumbs";
 import AddAllocationModal from "@/pages/allocations/team/add-allocation";
+import EditScheduleModal from "@/pages/allocations/team/edit-schedule";
 import { UnsavedChangesProvider } from "@/pages/allocations/unsavedChanges/UnsavedChangesProvider";
 import { useAllocationModal } from "@/pages/allocations/useAllocationModal";
 import { useUser } from "@/providers/user";
@@ -19,8 +20,12 @@ import { AllocationsProjectProvider } from "./provider";
 
 function ProjectAllocationsLayoutContent() {
   const refresh = useAllocationsProject(({ actions }) => actions.refresh);
-  const { openAddDialog, outletContext, modalProps } =
-    useAllocationModal(refresh);
+  const {
+    openAddAllocationDialog,
+    outletContext,
+    addAllocationModalProps,
+    editScheduleModalProps,
+  } = useAllocationModal(refresh);
   const { hasRoleAccess } = useUser(({ state }) => ({
     hasRoleAccess: state.hasRoleAccess,
   }));
@@ -33,7 +38,7 @@ function ProjectAllocationsLayoutContent() {
         {hasRoleAccess ? (
           <Button
             variant="solid"
-            onClick={() => openAddDialog({})}
+            onClick={() => openAddAllocationDialog({})}
             label="Add allocation"
             iconLeft={() => <Plus />}
           />
@@ -42,7 +47,11 @@ function ProjectAllocationsLayoutContent() {
 
       <Outlet context={outletContext} />
 
-      <AddAllocationModal {...modalProps} layoutVariant="project" />
+      <AddAllocationModal
+        {...addAllocationModalProps}
+        layoutVariant="project"
+      />
+      <EditScheduleModal {...editScheduleModalProps} />
     </>
   );
 }

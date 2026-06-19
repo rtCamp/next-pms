@@ -11,7 +11,6 @@ import {
   DateRangePicker,
   Dialog,
   ErrorMessage,
-  Select,
   TabButtons,
   Textarea,
   TextInput,
@@ -37,15 +36,12 @@ import {
 import {
   addAllocationDefaultValues,
   allocationRecurrenceLabels,
-  propagationModeLabels,
 } from "./constants";
 import { OverAllocationWarning } from "./overAllocationWarning";
 import { addAllocationFormSchema } from "./schema";
 import type { AddAllocationModalProps } from "./types";
 import { useOverAllocation } from "./useOverAllocation";
 import { computeTotalHours } from "./utils";
-
-type RecurringEditMode = "only_this" | "this_and_future" | "whole_series";
 
 function AddAllocationModal({
   variant = "add",
@@ -62,11 +58,12 @@ function AddAllocationModal({
   const [projectSearch, setProjectSearch] = useState("");
   const [customerSearch, setCustomerSearch] = useState("");
   const [submitting, setSubmitting] = useState(false);
-  const [propagationMode, setPropagationMode] =
-    useState<RecurringEditMode>("only_this");
 
   const isRecurringEdit =
     variant === "edit" && Boolean(initialValues?.recurrenceId);
+  const hasExistingOverrides = (initialValues?.override?.length ?? 0) > 0;
+  const isLockedAllocationMetadataEdit =
+    variant === "edit" && (isRecurringEdit || hasExistingOverrides);
 
   const { call: handleAllocation } = useFrappePostCall(
     "next_pms.resource_management.api.allocation.handle_allocation",
@@ -117,11 +114,20 @@ function AddAllocationModal({
       onSubmit: addAllocationFormSchema,
     },
     onSubmit: async ({ value }) => {
+      const effectiveHoursPerDay = isRecurringEdit
+        ? (initialValues?.hoursPerDay ?? value.hoursPerDay)
+        : value.hoursPerDay;
+      const effectiveFromDate = isLockedAllocationMetadataEdit
+        ? (initialValues?.fromDate ?? value.fromDate)
+        : value.fromDate;
+      const effectiveToDate = isLockedAllocationMetadataEdit
+        ? (initialValues?.toDate ?? value.toDate)
+        : value.toDate;
       const totalAllocatedHours = computeTotalHours({
-        hoursPerDay: value.hoursPerDay,
+        hoursPerDay: effectiveHoursPerDay,
         recurrence: value.recurrence,
-        fromDate: value.fromDate,
-        toDate: value.toDate,
+        fromDate: effectiveFromDate,
+        toDate: effectiveToDate,
         repeatFor: value.repeatFor ?? 0,
         includeWeekends: weekendEntriesAllowed && value.includeWeekends,
       });
@@ -141,6 +147,7 @@ function AddAllocationModal({
       const shouldUseOverrideAwareEdit =
         variant === "edit" &&
         !isRecurringEdit &&
+        hasExistingOverrides &&
         Boolean(allocationName) &&
         Boolean(
           overrideAwareAllocation &&
@@ -148,17 +155,17 @@ function AddAllocationModal({
           initialValues?.segmentEndDate &&
           shouldUseOverrideAwareAllocationEdit({
             ...overrideAwareAllocation,
-            startDate: value.fromDate,
-            endDate: value.toDate,
-            hoursPerDay: value.hoursPerDay,
+            startDate: effectiveFromDate,
+            endDate: effectiveToDate,
+            hoursPerDay: effectiveHoursPerDay,
           }),
         );
 
       const extendedAllocation =
         shouldUseOverrideAwareEdit && overrideAwareAllocation
           ? extendAllocationRange(overrideAwareAllocation, {
-              startDate: value.fromDate,
-              endDate: value.toDate,
+              startDate: effectiveFromDate,
+              endDate: effectiveToDate,
             })
           : null;
       const allocationTotalAllocatedHours =
@@ -169,8 +176,7 @@ function AddAllocationModal({
               fromDate: extendedAllocation.allocationStartDate,
               toDate: extendedAllocation.allocationEndDate,
               repeatFor: 0,
-              includeWeekends:
-                weekendEntriesAllowed && Boolean(value.includeWeekends),
+              includeWeekends: weekendEntriesAllowed && value.includeWeekends,
             })
           : totalAllocatedHours;
       const segmentEditOverridePatch =
@@ -185,9 +191,9 @@ function AddAllocationModal({
                 segmentEndDate: initialValues.segmentEndDate,
               },
               next: {
-                startDate: value.fromDate,
-                endDate: value.toDate,
-                hoursPerDay: value.hoursPerDay,
+                startDate: effectiveFromDate,
+                endDate: effectiveToDate,
+                hoursPerDay: effectiveHoursPerDay,
               },
             })
           : null;
@@ -195,33 +201,43 @@ function AddAllocationModal({
       setSubmitting(true);
 
       try {
+        const employeeId = isLockedAllocationMetadataEdit
+          ? (initialValues?.employeeId ?? value.employeeId)
+          : value.employeeId;
+        const projectId = isLockedAllocationMetadataEdit
+          ? (initialValues?.projectId ?? value.projectId)
+          : value.projectId;
+        const customer = isLockedAllocationMetadataEdit
+          ? (initialValues?.customer ?? value.customer)
+          : value.customer;
+        const isBillable = isLockedAllocationMetadataEdit
+          ? (initialValues?.isBillable ?? value.isBillable)
+          : value.isBillable;
+        const isTentative = isLockedAllocationMetadataEdit
+          ? (initialValues?.isTentative ?? value.isTentative)
+          : value.isTentative;
+
         const payload = {
           allocation: {
             doctype: "Resource Allocation",
-            employee: isRecurringEdit
-              ? (initialValues?.employeeId ?? value.employeeId)
-              : value.employeeId,
-            project: isRecurringEdit
-              ? (initialValues?.projectId ?? value.projectId)
-              : value.projectId,
-            customer: isRecurringEdit
-              ? (initialValues?.customer ?? value.customer)
-              : value.customer,
+            employee: employeeId,
+            project: projectId,
+            customer: customer,
             allocation_start_date:
               shouldUseOverrideAwareEdit && extendedAllocation
                 ? extendedAllocation.allocationStartDate
-                : value.fromDate,
+                : effectiveFromDate,
             allocation_end_date:
               shouldUseOverrideAwareEdit && extendedAllocation
                 ? extendedAllocation.allocationEndDate
-                : value.toDate,
+                : effectiveToDate,
             hours_allocated_per_day:
               shouldUseOverrideAwareEdit && extendedAllocation
                 ? extendedAllocation.allocationHoursPerDay
-                : value.hoursPerDay,
+                : effectiveHoursPerDay,
             total_allocated_hours: allocationTotalAllocatedHours,
-            is_billable: Number(value.isBillable),
-            status: value.isTentative ? "Tentative" : "Confirmed",
+            is_billable: Number(isBillable),
+            status: isTentative ? "Tentative" : "Confirmed",
             note: value.note ?? "",
             include_weekends: weekendEntriesAllowed
               ? value.includeWeekends
@@ -235,10 +251,9 @@ function AddAllocationModal({
         };
 
         if (variant === "edit" && allocationName) {
-          const editMode = isRecurringEdit ? propagationMode : "only_this";
           await editAllocation({
             name: allocationName,
-            edit_mode: editMode,
+            edit_mode: "only_this",
             ...payload,
             ...(segmentEditOverridePatch
               ? {
@@ -336,12 +351,6 @@ function AddAllocationModal({
   }, [form, mergedDefaultValues, open]);
 
   useEffect(() => {
-    if (open) {
-      setPropagationMode("only_this");
-    }
-  }, [open]);
-
-  useEffect(() => {
     setEmployeeSearch("");
     setProjectSearch("");
     setCustomerSearch("");
@@ -374,7 +383,6 @@ function AddAllocationModal({
     [form, projectOptions],
   );
 
-  const hasExistingOverrides = (initialValues?.override?.length ?? 0) > 0;
   const datesChangedFromSegment =
     fromDate !== (initialValues?.segmentStartDate ?? "") ||
     toDate !== (initialValues?.segmentEndDate ?? "");
@@ -387,14 +395,6 @@ function AddAllocationModal({
     initialValues?.allocationHoursPerDay ?? initialValues?.hoursPerDay ?? 0;
   const showRecurringHoursResetWarning =
     isRecurringEdit && hoursPerDay !== initialHoursPerDay;
-  const recurringEditModeOptions = [
-    { value: "only_this", label: propagationModeLabels.only_this },
-    {
-      value: "this_and_future",
-      label: propagationModeLabels.this_and_future,
-    },
-    { value: "whole_series", label: propagationModeLabels.whole_series },
-  ] as const;
 
   const employeeField = (
     <form.Field
@@ -505,41 +505,22 @@ function AddAllocationModal({
         )}
       />
     ) : isRecurringEdit ? (
-      <>
-        <div>
-          <label className="block text-base text-ink-gray-5 mb-1.5">
-            Recurrence
-          </label>
-          <TabButtons
-            value="recurring"
-            onChange={() => {}}
-            buttons={Object.entries(allocationRecurrenceLabels).map(
-              ([value, label]) => ({
-                value,
-                label,
-                disabled: value === "one-time",
-              }),
-            )}
-          />
-        </div>
-        <div>
-          <label className="block text-base text-ink-gray-5 mb-1.5">
-            Apply edits to
-          </label>
-          <Select
-            value={propagationMode}
-            options={recurringEditModeOptions.map(({ value, label }) => ({
+      <div>
+        <label className="block text-base text-ink-gray-5 mb-1.5">
+          Recurrence
+        </label>
+        <TabButtons
+          value="recurring"
+          onChange={() => {}}
+          buttons={Object.entries(allocationRecurrenceLabels).map(
+            ([value, label]) => ({
               value,
               label,
-            }))}
-            onChange={(value) =>
-              value && setPropagationMode(value as RecurringEditMode)
-            }
-            variant="outline"
-            size="md"
-          />
-        </div>
-      </>
+              disabled: value === "one-time",
+            }),
+          )}
+        />
+      </div>
     ) : (
       <form.Field
         name="recurrence"
@@ -582,7 +563,13 @@ function AddAllocationModal({
       }}
       actions={
         <div className="flex items-center justify-between w-full gap-2 -mt-5">
-          <div className="w-full">
+          <div
+            className={
+              isLockedAllocationMetadataEdit
+                ? "w-full pointer-events-none opacity-50"
+                : "w-full"
+            }
+          >
             <form.Field
               name="isTentative"
               children={(field) => (
@@ -612,7 +599,7 @@ function AddAllocationModal({
       <div className="-mt-2 space-y-4">
         <div
           className={
-            isRecurringEdit
+            isLockedAllocationMetadataEdit
               ? "pointer-events-none opacity-50 space-y-4"
               : "space-y-4"
           }
@@ -640,7 +627,9 @@ function AddAllocationModal({
             children={(field) => (
               <div
                 className={
-                  isRecurringEdit ? "pointer-events-none opacity-50" : undefined
+                  isRecurringEdit || hasExistingOverrides
+                    ? "pointer-events-none opacity-50"
+                    : undefined
                 }
               >
                 <label className="inline-flex items-center gap-2 text-base text-ink-gray-8">
@@ -677,7 +666,7 @@ function AddAllocationModal({
                   </div>
                   <div
                     className={
-                      isRecurringEdit
+                      isRecurringEdit || hasExistingOverrides
                         ? "pointer-events-none opacity-50"
                         : undefined
                     }
@@ -730,7 +719,13 @@ function AddAllocationModal({
           <form.Field
             name="hoursPerDay"
             children={(field) => (
-              <div className="shrink-0 flex flex-1 flex-col gap-1.5">
+              <div
+                className={
+                  isRecurringEdit
+                    ? "shrink-0 flex flex-1 flex-col gap-1.5 pointer-events-none opacity-50"
+                    : "shrink-0 flex flex-1 flex-col gap-1.5"
+                }
+              >
                 <label className="block text-base text-ink-gray-5">
                   Hours / day
                 </label>
@@ -811,7 +806,13 @@ function AddAllocationModal({
 
         <OverAllocationWarning overAllocatedDays={overAllocatedDays} />
 
-        <div className="space-y-4">
+        <div
+          className={
+            isLockedAllocationMetadataEdit
+              ? "pointer-events-none opacity-50 space-y-4"
+              : "space-y-4"
+          }
+        >
           <form.Field
             name="isBillable"
             children={(field) => (

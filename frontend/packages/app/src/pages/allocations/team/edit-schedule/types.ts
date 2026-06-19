@@ -30,6 +30,10 @@ export type SelectedRange = {
 };
 
 export type EditScheduleValueMode = "hoursPerDay" | "totalHours";
+export type EditScheduleApplyMode =
+  | "only_this"
+  | "this_and_future"
+  | "whole_series";
 
 export type EditScheduleDraft = {
   selection: NormalizedSelection | null;
@@ -56,6 +60,7 @@ export interface EditScheduleInitialValues {
   isTentative?: boolean;
   note?: string;
   override?: AllocationOverrideEntry[];
+  recurrenceId?: string;
 }
 
 export interface EditScheduleModalProps {

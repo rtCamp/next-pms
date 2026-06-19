@@ -215,6 +215,7 @@ export function useAllocationModal(refresh: RefreshAllocations) {
           isTentative: addAllocationInitialValues?.isTentative,
           note: addAllocationInitialValues?.note,
           override: addAllocationInitialValues?.override,
+          recurrenceId: addAllocationInitialValues?.recurrenceId,
         });
         setIsEditScheduleOpen(true);
       },

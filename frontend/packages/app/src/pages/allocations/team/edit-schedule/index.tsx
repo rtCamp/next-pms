@@ -2,7 +2,7 @@
  * External dependencies.
  */
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Button, Dialog, useToasts } from "@rtcamp/frappe-ui-react";
+import { Button, Dialog, Select, useToasts } from "@rtcamp/frappe-ui-react";
 import { useForm, useStore } from "@tanstack/react-form";
 import { format } from "date-fns";
 import { FrappeError, useFrappePostCall } from "frappe-react-sdk";
@@ -12,14 +12,27 @@ import { FrappeError, useFrappePostCall } from "frappe-react-sdk";
  */
 import { parseFrappeErrorMsg } from "@/lib/utils";
 import { buildScheduleSelectionOverridePatch } from "@/pages/allocations/overrideEdit";
+import { propagationModeLabels } from "../add-allocation/constants";
 import ScheduleDateSelectionField from "./components/scheduleDateSelectionField";
 import ScheduleHoursPerDayField from "./components/scheduleHoursPerDayField";
 import ScheduleSummaryTable from "./components/scheduleSummaryTable";
 import ScheduleTotalHoursField from "./components/scheduleTotalHoursField";
 import { useScheduleFieldGroup } from "./scheduleFieldGroup";
 import { editScheduleFormSchema, type EditScheduleFormValues } from "./schema";
-import type { EditScheduleModalProps } from "./types";
+import type { EditScheduleApplyMode, EditScheduleModalProps } from "./types";
 import { buildDays, buildScheduleDraft, normalizeRange } from "./utils";
+
+const EDIT_SCHEDULE_APPLY_MODES = new Set<EditScheduleApplyMode>([
+  "only_this",
+  "this_and_future",
+  "whole_series",
+]);
+
+function isEditScheduleApplyMode(
+  value: string,
+): value is EditScheduleApplyMode {
+  return EDIT_SCHEDULE_APPLY_MODES.has(value as EditScheduleApplyMode);
+}
 
 function EditScheduleModal({
   open,
@@ -34,6 +47,8 @@ function EditScheduleModal({
   const today = useMemo(() => format(new Date(), "yyyy-MM-dd"), []);
   const [selectionAnchor, setSelectionAnchor] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [applyMode, setApplyMode] =
+    useState<EditScheduleApplyMode>("this_and_future");
 
   const safeValues = useMemo(
     () =>
@@ -47,6 +62,7 @@ function EditScheduleModal({
   );
 
   const defaultHoursPerDay = safeValues.defaultHoursPerDay ?? 0;
+  const isRecurringAllocation = Boolean(safeValues.recurrenceId);
   const fullRange = useMemo(
     () => normalizeRange(safeValues.rangeStart, safeValues.rangeEnd),
     [safeValues.rangeEnd, safeValues.rangeStart],
@@ -114,7 +130,7 @@ function EditScheduleModal({
         setSubmitting(true);
         await editAllocation({
           name: initialValues.allocationName,
-          edit_mode: "only_this",
+          edit_mode: isRecurringAllocation ? applyMode : "only_this",
           allocation: {
             doctype: "Resource Allocation",
             employee: initialValues.employeeId ?? "",
@@ -180,12 +196,14 @@ function EditScheduleModal({
 
     form.reset(formDefaultValues);
     setSelectionAnchor(null);
+    setApplyMode("this_and_future");
   }, [form, formDefaultValues, open]);
 
   const closeModal = useCallback(() => {
     onOpenChange(false);
     form.reset(formDefaultValues);
     setSelectionAnchor(null);
+    setApplyMode("this_and_future");
   }, [form, formDefaultValues, onOpenChange]);
 
   return (
@@ -247,6 +265,38 @@ function EditScheduleModal({
             scheduleDraft={scheduleDraft}
           />
         </div>
+
+        {isRecurringAllocation ? (
+          <div className="space-y-1.5">
+            <label className="block text-base text-ink-gray-5">
+              Apply edits to
+            </label>
+            <Select
+              value={applyMode}
+              options={[
+                {
+                  value: "only_this",
+                  label: propagationModeLabels.only_this,
+                },
+                {
+                  value: "this_and_future",
+                  label: propagationModeLabels.this_and_future,
+                },
+                {
+                  value: "whole_series",
+                  label: propagationModeLabels.whole_series,
+                },
+              ]}
+              onChange={(value) => {
+                if (value && isEditScheduleApplyMode(value)) {
+                  setApplyMode(value);
+                }
+              }}
+              variant="outline"
+              size="md"
+            />
+          </div>
+        ) : null}
 
         <div className="space-y-1.5">
           <label className="block text-base text-ink-gray-5">
