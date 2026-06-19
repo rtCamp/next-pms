@@ -2,7 +2,7 @@
 # For license information, please see license.txt
 
 import frappe
-from frappe import only_for
+from frappe import _, only_for
 
 from next_pms.next_projects.api.constant import ALLOWED_ROLES
 
@@ -15,6 +15,11 @@ def get_project_emails(project: str) -> list[dict]:
     project has no linked deal — the email tab simply renders empty.
     """
     only_for(ALLOWED_ROLES, message=True)
+
+    if not project:
+        frappe.throw(_("Project is required"))
+    if not frappe.db.exists("Project", project):
+        frappe.throw(_("Project {0} not found").format(project), frappe.DoesNotExistError)
 
     if "frappe_crm_xt" not in frappe.get_installed_apps():
         return []
@@ -31,11 +36,14 @@ def get_project_emails(project: str) -> list[dict]:
 
 
 def has_project_email() -> bool:
-    """Whether the Project doctype exposes the custom_deal field from frappe_crm_xt.
+    """Whether projects can link to a CRM Deal via frappe_crm_xt's custom_deal field.
 
-    The email tab is only meaningful when a project can link to a CRM Deal, so the
-    frontend gates the tab on this boot flag.
+    The email tab is only meaningful when frappe_crm_xt is installed and the Project
+    doctype exposes the custom_deal field, so the frontend gates the tab on this boot
+    flag.
     """
+    if "frappe_crm_xt" not in frappe.get_installed_apps():
+        return False
     return frappe.get_meta("Project").has_field("custom_deal")
 
 
