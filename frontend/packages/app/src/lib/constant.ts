@@ -2,6 +2,8 @@ export const ROUTES = {
   base: "/next-pms",
   home: "/",
   dashboard: "/dashboard",
+  "dashboard-leadership": "/dashboard/leadership",
+  "dashboard-manager": "/dashboard/manager",
   task: "/task",
   project: "/projects",
   "project-kanban": "/projects/kanban",
