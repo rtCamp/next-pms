@@ -164,6 +164,8 @@ def _get_resource_management_project_view_data(
         is_billable = json.loads(is_billable)
     if isinstance(allocation_status, str):
         allocation_status = json.loads(allocation_status)
+    if allocation_status is not None and not isinstance(allocation_status, list):
+        allocation_status = [allocation_status]
 
     project_conditions, tag_conditions, filter_is_billable = normalize_project_view_filters(
         filters, allow_privileged=permissions["write"]
