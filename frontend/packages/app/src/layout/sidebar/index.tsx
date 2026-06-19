@@ -17,10 +17,11 @@ import {
 } from "@rtcamp/frappe-ui-react/icons";
 import {
   ArrowLeftRight,
+  BarChart2,
+  Briefcase,
   Folder,
   Home,
   Layers,
-  LayoutDashboard,
   LayoutGrid,
   LogOut,
   Moon,
@@ -132,20 +133,42 @@ const Sidebar = () => {
               },
             ],
           },
+          ...(canSeeDashboard
+            ? [
+                {
+                  label: "Dashboard",
+                  collapsible: true,
+                  items: [
+                    ...(roles.includes("Delivery Manager")
+                      ? [
+                          {
+                            label: "Leadership",
+                            icon: BarChart2,
+                            isActive:
+                              pathname === ROUTES["dashboard-leadership"],
+                            onClick: () =>
+                              navigate(ROUTES["dashboard-leadership"]),
+                          },
+                        ]
+                      : []),
+                    ...(roles.includes("Projects Manager")
+                      ? [
+                          {
+                            label: "Manager",
+                            icon: Briefcase,
+                            isActive: pathname === ROUTES["dashboard-manager"],
+                            onClick: () =>
+                              navigate(ROUTES["dashboard-manager"]),
+                          },
+                        ]
+                      : []),
+                  ],
+                },
+              ]
+            : []),
           {
             label: "",
             items: [
-              ...(canSeeDashboard
-                ? [
-                    {
-                      label: "Dashboard",
-                      icon: LayoutDashboard,
-                      to: "",
-                      isActive: pathname === ROUTES.dashboard,
-                      onClick: () => navigate(ROUTES.dashboard),
-                    },
-                  ]
-                : []),
               {
                 label: "Home",
                 icon: Home,
@@ -258,8 +281,21 @@ const Sidebar = () => {
         open={isSearchOpen}
         onOpenChange={setIsSearchOpen}
         items={[
-          ...(canSeeDashboard
-            ? [{ label: "Dashboard", action: () => navigate(ROUTES.dashboard) }]
+          ...(roles.includes("Delivery Manager")
+            ? [
+                {
+                  label: "Dashboard - Leadership",
+                  action: () => navigate(ROUTES["dashboard-leadership"]),
+                },
+              ]
+            : []),
+          ...(roles.includes("Projects Manager")
+            ? [
+                {
+                  label: "Dashboard - Manager",
+                  action: () => navigate(ROUTES["dashboard-manager"]),
+                },
+              ]
             : []),
           { label: "Home", action: () => navigate(ROUTES.home) },
           { label: "Tasks", action: () => navigate(ROUTES.task) },
