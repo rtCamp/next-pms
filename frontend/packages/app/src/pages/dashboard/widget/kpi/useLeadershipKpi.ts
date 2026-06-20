@@ -8,9 +8,7 @@ import { useFrappeGetCall } from "frappe-react-sdk";
 /**
  * Internal dependencies.
  */
-import type { LeadershipKPIResponse } from "../../leadership-view/provider/type";
-import type { KpiCardData } from "../kpiCard";
-import type { LeadershipKpiConfig } from "./types";
+import { LeadershipKPIResponse } from "../../types";
 
 // MonthPicker emits and consumes this format, e.g. "May 2026".
 const MONTH_VALUE_FORMAT = "MMMM yyyy";
@@ -19,10 +17,7 @@ const API_DATE_FORMAT = "yyyy-MM-dd";
 const getDefaultMonth = () =>
   format(startOfMonth(subMonths(new Date(), 1)), MONTH_VALUE_FORMAT);
 
-const formatChange = (changePct: number | null) =>
-  changePct === null ? "—" : `${changePct >= 0 ? "+" : ""}${changePct}%`;
-
-export function useLeadershipKpi(config: LeadershipKpiConfig) {
+export function useLeadershipKpi(key: keyof LeadershipKPIResponse["message"]) {
   const [month, setMonth] = useState(getDefaultMonth);
 
   const args = useMemo(() => {
@@ -41,20 +36,5 @@ export function useLeadershipKpi(config: LeadershipKpiConfig) {
     args,
   );
 
-  const cardData = useMemo<KpiCardData | null>(() => {
-    const metric = data?.message?.[config.metricKey];
-    if (!metric) return null;
-    const oppositeTone = config.upTone === "positive" ? "negative" : "positive";
-    return {
-      label: config.label,
-      value: config.formatValue(metric.current),
-      trend: {
-        value: formatChange(metric.change_pct),
-        direction: metric.trend,
-        tone: metric.trend === "up" ? config.upTone : oppositeTone,
-      },
-    };
-  }, [data, config]);
-
-  return { month, setMonth, cardData, isLoading, error };
+  return { month, setMonth, data: data?.message[key], isLoading, error };
 }
