@@ -15,6 +15,7 @@ import {
   MOCK_CLIENT_OPTIONS,
   MOCK_PROJECT_OPTIONS,
 } from "../constants";
+import CalendarTimelineCard from "../widget/calendar-timeline";
 import ForecastBreakdownCard from "../widget/forcast-breakdown";
 import HeatmapCard from "../widget/heatmap";
 import LeadershipKpiCard from "../widget/kpi-cards";
@@ -90,6 +91,7 @@ export default function LeadershipDashboard() {
             <UtilisedTimeCard />
             <ForecastBreakdownCard />
           </div>
+          <CalendarTimelineCard />
         </section>
       </div>
     </>

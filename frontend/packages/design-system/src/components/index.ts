@@ -82,6 +82,7 @@ export * from "./dnd";
 export * from "./timesheet";
 export * from "./icons";
 export * from "./gantt-view";
+export * from "./calendar-timeline";
 export { Comments, type CommentNode, type CommentsProps } from "./comments";
 export { default as GlobalSearch } from "./globalSearch";
 export {
