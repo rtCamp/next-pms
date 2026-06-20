@@ -17,7 +17,7 @@ import { useFrappeGetCall } from "frappe-react-sdk";
 /**
  * Internal dependencies.
  */
-import { HeatmapCardSkeleton } from "./heatmapCardSkeleton";
+import { HeatmapCardSkeleton } from "./skeleton";
 import type { AllocationHeatmapResponse, RoleAllocationWeek } from "../types";
 
 export type HeatmapCellState = "full" | "partial" | "none";

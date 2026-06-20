@@ -15,8 +15,8 @@ import {
   MOCK_CLIENT_OPTIONS,
   MOCK_PROJECT_OPTIONS,
 } from "../constants";
-import { ForecastBreakdownCard } from "../widget/forecastBreakdownCard";
-import { HeatmapCard } from "../widget/heatmapCard";
+import { ForecastBreakdownCard } from "../widget/forcast-breakdown";
+import { HeatmapCard } from "../widget/heatmap";
 import { LeadershipKpiCard } from "../widget/kpi/leadershipKpiCard";
 import { NotificationsCard } from "../widget/notificationsCard";
 import LiveStatCard from "../widget/stat-cards";
@@ -77,14 +77,14 @@ export default function LeadershipDashboard() {
             <LeadershipKpiCard kpikey={"cost"} />
             <LeadershipKpiCard kpikey={"profit_margin"} />
           </div>
-          <div className="grid grid-cols-4 gap-3">
-            <LiveStatCard />
-          </div>
           <div className="grid grid-cols-3 gap-3">
             <div className="col-span-2">
               <HeatmapCard />
             </div>
             <NotificationsCard />
+          </div>
+          <div className="grid grid-cols-4 gap-3">
+            <LiveStatCard />
           </div>
           <div className="grid gap-3 md:grid-cols-2">
             <UtilisedTimeCard />

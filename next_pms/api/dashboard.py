@@ -823,24 +823,26 @@ def _get_time_utilisation(days: int, role: str | None) -> dict:
 
 
 @whitelist(methods=["GET"])
-def get_forecast_breakdown(days: int = 7, role: str | None = None) -> dict:
-    """Return forward-looking allocation capacity totals for the next window.
+def get_forecast_breakdown(days: int = 7) -> dict:
+    """Return forward-looking allocation capacity totals grouped by designation.
 
     Looks at active employees and their Resource Allocations over an inclusive
     window starting today. For each working day (weekends and the employee's
     holidays are skipped; leaves are not), the employee's daily working hours are
     treated as their capacity, and confirmed and tentative allocation hours are
-    summed against it. Any remaining capacity is counted as unallocated.
+    summed against it. Any remaining capacity is counted as unallocated. Totals
+    are grouped by the employee's designation so callers can filter client-side;
+    employees without a designation are excluded.
 
     Args:
         days: Inclusive forecast window length starting today. Must be at least 1.
             For example, days=7 on 10 Jun covers 10 Jun through 16 Jun inclusive.
-        role: Filter by the employee's designation. Defaults to None (all roles).
 
     Returns:
-        A dict with days, start_date, end_date, allocated_hours (confirmed),
-        tentative_hours, and unallocated_hours, each summed across all matching
-        employees and working days.
+        A dict with days, start_date, end_date, and a roles list, where each entry
+        has a designation and allocated_hours (confirmed), tentative_hours, and
+        unallocated_hours summed across that designation's employees and working
+        days.
 
     Raises:
         frappe.PermissionError: If the caller lacks Projects Manager, Projects User,
@@ -852,11 +854,11 @@ def get_forecast_breakdown(days: int = 7, role: str | None = None) -> dict:
     if days < 1:
         frappe.throw(frappe._("days must be at least 1"))
 
-    return _get_forecast_breakdown(days, role)
+    return _get_forecast_breakdown(days)
 
 
 @redis_cache(ttl=21600)
-def _get_forecast_breakdown(days: int, role: str | None) -> dict:
+def _get_forecast_breakdown(days: int) -> dict:
     start_date = getdate(today())
     end_date = start_date + timedelta(days=days - 1)
     allow_weekend_entries = cint(frappe.db.get_single_value("Timesheet Settings", "allow_weekend_entries"))
@@ -866,19 +868,13 @@ def _get_forecast_breakdown(days: int, role: str | None) -> dict:
         "days": days,
         "start_date": start_date,
         "end_date": end_date,
-        "allocated_hours": 0.0,
-        "tentative_hours": 0.0,
-        "unallocated_hours": 0.0,
+        "roles": [],
     }
-
-    employee_filters = {"status": "Active"}
-    if role:
-        employee_filters["designation"] = role
 
     employees = frappe.get_all(
         "Employee",
-        filters=employee_filters,
-        fields=["name", "custom_working_hours", "custom_work_schedule"],
+        filters={"status": "Active"},
+        fields=["name", "designation", "custom_working_hours", "custom_work_schedule"],
     )
 
     if not employees or not working_dates:
@@ -928,33 +924,45 @@ def _get_forecast_breakdown(days: int, role: str | None) -> dict:
         bucket = tentative_by_employee if allocation.status == "Tentative" else confirmed_by_employee
         bucket.setdefault(allocation.employee, []).append(allocation)
 
-    total_allocated = 0.0
-    total_tentative = 0.0
-    total_unallocated = 0.0
+    # designation -> {"allocated": float, "tentative": float, "unallocated": float}
+    summary = {}
 
     for employee in employees:
+        designation = employee.designation
+        if not designation:
+            continue
+
         working_hours = flt(employee.custom_working_hours) or default_daily_hours
         daily_working_hours = working_hours / 5 if employee.custom_work_schedule == "Per Week" else working_hours
         daily_working_hours = flt(daily_working_hours)
 
         employee_holidays = holidays_by_list.get(holiday_list_by_employee.get(employee.name), [])
+        bucket = summary.setdefault(designation, {"allocated": 0.0, "tentative": 0.0, "unallocated": 0.0})
 
         for date in working_dates:
             if is_holiday(date, employee_holidays):
                 continue
             confirmed = get_employee_allocated_hours_for_date(confirmed_by_employee.get(employee.name, []), date)
             tentative = get_employee_allocated_hours_for_date(tentative_by_employee.get(employee.name, []), date)
-            total_allocated += confirmed
-            total_tentative += tentative
-            total_unallocated += max(0.0, daily_working_hours - confirmed - tentative)
+            bucket["allocated"] += confirmed
+            bucket["tentative"] += tentative
+            bucket["unallocated"] += max(0.0, daily_working_hours - confirmed - tentative)
+
+    roles = [
+        {
+            "designation": designation,
+            "allocated_hours": flt(bucket["allocated"], 2),
+            "tentative_hours": flt(bucket["tentative"], 2),
+            "unallocated_hours": flt(bucket["unallocated"], 2),
+        }
+        for designation, bucket in sorted(summary.items())
+    ]
 
     return {
         "days": days,
         "start_date": start_date,
         "end_date": end_date,
-        "allocated_hours": flt(total_allocated, 2),
-        "tentative_hours": flt(total_tentative, 2),
-        "unallocated_hours": flt(total_unallocated, 2),
+        "roles": roles,
     }
 
 
