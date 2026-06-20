@@ -15,12 +15,12 @@ import {
   MOCK_CLIENT_OPTIONS,
   MOCK_PROJECT_OPTIONS,
 } from "../constants";
-import { ForecastBreakdownCard } from "../widget/forcast-breakdown";
-import { HeatmapCard } from "../widget/heatmap";
-import { LeadershipKpiCard } from "../widget/kpi/leadershipKpiCard";
-import { NotificationsCard } from "../widget/notificationsCard";
+import ForecastBreakdownCard from "../widget/forcast-breakdown";
+import HeatmapCard from "../widget/heatmap";
+import LeadershipKpiCard from "../widget/kpi-cards";
+import NotificationsCard from "../widget/notificationsCard";
 import LiveStatCard from "../widget/stat-cards";
-import { UtilisedTimeCard } from "../widget/utilization";
+import UtilisedTimeCard from "../widget/utilization";
 
 export default function LeadershipDashboard() {
   const [client, setClient] = useState<string>(ALL_CLIENTS_VALUE);

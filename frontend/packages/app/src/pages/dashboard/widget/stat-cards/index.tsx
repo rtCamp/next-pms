@@ -6,14 +6,14 @@ import { useFrappeGetCall } from "frappe-react-sdk";
 /**
  * Internal dependencies.
  */
-import { StatCard } from "../statCard";
-import { StatCardSkeleton } from "./statCardSkeleton";
+import { StatCardSkeleton } from "./skeleton";
+import { StatCard } from "./stat-card";
 import {
   ActiveProjectsCountResponse,
   AtRiskProjectsCountResponse,
   MembersWithoutAllocationResponse,
   NonBillableHoursResponse,
-} from "../../types";
+} from "./types";
 
 export default function StatCards() {
   const { data: activeProjectData, isLoading: isActiveProjectDataLoading } =

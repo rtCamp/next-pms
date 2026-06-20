@@ -26,7 +26,7 @@ const ICONS: Record<
   file: File,
 };
 
-export function NotificationsCard() {
+export default function NotificationsCard() {
   return (
     <div className="flex flex-col gap-3 rounded-lg border border-outline-gray-1 bg-surface-cards p-4">
       <div className="flex items-baseline justify-between gap-4">

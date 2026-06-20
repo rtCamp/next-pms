@@ -6,11 +6,11 @@ import { useFrappeGetCall } from "frappe-react-sdk";
 /**
  * Internal dependencies.
  */
+import type { TimeUtilisationResponse } from "./types";
 import { UtilisationDonut } from "./utilisationDonut";
 import { UtilisedTimeCardSkeleton } from "./utilisedTimeCardSkeleton";
-import type { TimeUtilisationResponse } from "../../types";
 
-export function UtilisedTimeCard() {
+export default function UtilisedTimeCard() {
   const { data, isLoading } = useFrappeGetCall<TimeUtilisationResponse>(
     "next_pms.api.dashboard.get_time_utilisation",
     { days: 30 },

@@ -10,9 +10,9 @@ import { useFrappeGetCall } from "frappe-react-sdk";
  * Internal dependencies.
  */
 import { ForecastBreakdownCardSkeleton } from "./skeleton";
-import type { ForecastBreakdownResponse } from "../../types";
+import type { ForecastBreakdownResponse } from "./types";
 
-export function ForecastBreakdownCard() {
+export default function ForecastBreakdownCard() {
   const [selectedRoles, setSelectedRoles] = useState<string[]>([]);
 
   const { data, isLoading } = useFrappeGetCall<ForecastBreakdownResponse>(

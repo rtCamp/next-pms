@@ -10,9 +10,9 @@ import { ArrowDownLeft, ArrowUpRight } from "@rtcamp/frappe-ui-react/icons";
  * Internal dependencies.
  */
 import { currencyFormat } from "@/lib/utils";
-import { KpiCardSkeleton } from "./kpiCardSkeleton";
+import { KpiCardSkeleton } from "./skeleton";
+import { LeadershipKPIResponse } from "./types";
 import { useLeadershipKpi } from "./useLeadershipKpi";
-import { LeadershipKPIResponse } from "../../types";
 
 const KPI_LABELS: Record<keyof LeadershipKPIResponse["message"], string> = {
   revenue: "Last month’s revenue",
@@ -20,7 +20,7 @@ const KPI_LABELS: Record<keyof LeadershipKPIResponse["message"], string> = {
   profit_margin: "Last month’s profit margin",
 };
 
-export function LeadershipKpiCard({
+export default function LeadershipKpiCard({
   kpikey,
 }: {
   kpikey: keyof LeadershipKPIResponse["message"];

@@ -8,7 +8,7 @@ import { useFrappeGetCall } from "frappe-react-sdk";
 /**
  * Internal dependencies.
  */
-import { LeadershipKPIResponse } from "../../types";
+import { LeadershipKPIResponse } from "./types";
 
 // MonthPicker emits and consumes this format, e.g. "May 2026".
 const MONTH_VALUE_FORMAT = "MMMM yyyy";
