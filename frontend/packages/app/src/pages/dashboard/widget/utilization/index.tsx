@@ -12,7 +12,7 @@ import {
   ALL_ROLES_VALUE,
   ROLE_OPTIONS,
   UTILISATION_BY_ROLE,
-} from "../../../constants";
+} from "../../constants";
 
 export type UtilisationData = {
   billable: number;

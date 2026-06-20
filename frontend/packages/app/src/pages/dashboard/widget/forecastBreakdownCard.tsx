@@ -7,11 +7,7 @@ import { Select } from "@rtcamp/frappe-ui-react";
 /**
  * Internal dependencies.
  */
-import {
-  ALL_ROLES_VALUE,
-  FORECAST_BY_ROLE,
-  ROLE_OPTIONS,
-} from "../../constants";
+import { ALL_ROLES_VALUE, FORECAST_BY_ROLE, ROLE_OPTIONS } from "../constants";
 
 export type ForecastData = {
   allocated: number;

@@ -13,7 +13,7 @@ import {
   HEATMAP_MONTHS,
   HEATMAP_ROWS,
   MEMBER_OPTIONS,
-} from "../../constants";
+} from "../constants";
 
 export type HeatmapCellState = "full" | "partial" | "none";
 

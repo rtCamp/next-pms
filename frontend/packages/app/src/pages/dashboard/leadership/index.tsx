@@ -15,7 +15,7 @@ import {
   MOCK_CLIENT_OPTIONS,
   MOCK_PROJECT_OPTIONS,
 } from "../constants";
-import { LeadershipView } from "../leadershipView";
+import { LeadershipView } from "../leadership-view";
 
 function LeadershipDashboard() {
   const [client, setClient] = useState<string>(ALL_CLIENTS_VALUE);
@@ -37,7 +37,7 @@ function LeadershipDashboard() {
           ]}
         />
       </Header>
-      <div className="flex flex-col gap-6 overflow-y-auto p-5">
+      <div className="flex flex-col gap-6 overflow-y-auto p-5 max-w-[1200px] mx-auto">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="flex min-w-0 flex-col gap-2">
             <h2 className="text-xl font-semibold text-ink-gray-8">

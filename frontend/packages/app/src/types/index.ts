@@ -59,7 +59,8 @@ export type Role =
   | "Delivery Manager"
   | "Employee"
   | "Timesheet Manager"
-  | "Timesheet User";
+  | "Timesheet User"
+  | "System Manager";
 
 declare global {
   interface Window {

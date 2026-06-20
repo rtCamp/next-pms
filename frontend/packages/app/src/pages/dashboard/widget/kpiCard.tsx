@@ -1,11 +1,8 @@
 /**
  * External dependencies.
  */
-import {
-  ArrowDownLeft,
-  ArrowUpRight,
-  SmallDown,
-} from "@rtcamp/frappe-ui-react/icons";
+import type { ReactNode } from "react";
+import { ArrowDownLeft, ArrowUpRight } from "@rtcamp/frappe-ui-react/icons";
 import { cva } from "class-variance-authority";
 
 const trendVariants = cva("flex items-center gap-0.5", {
@@ -25,10 +22,14 @@ export type KpiCardData = {
     direction: "up" | "down";
     tone: "positive" | "negative";
   };
-  comparison: string;
 };
 
-export function KpiCard({ label, value, trend, comparison }: KpiCardData) {
+export function KpiCard({
+  label,
+  value,
+  trend,
+  comparisonSlot,
+}: KpiCardData & { comparisonSlot: ReactNode }) {
   const TrendArrow = trend.direction === "up" ? ArrowUpRight : ArrowDownLeft;
   return (
     <div className="flex flex-col gap-2 rounded-lg border border-outline-gray-1 bg-surface-cards p-3">
@@ -41,10 +42,7 @@ export function KpiCard({ label, value, trend, comparison }: KpiCardData) {
           <TrendArrow className="size-4 shrink-0" />
           {trend.value}
         </span>
-        <span className="flex min-w-0 items-center text-ink-gray-5">
-          <span className="truncate">{comparison}</span>
-          <SmallDown className="size-4 shrink-0" />
-        </span>
+        {comparisonSlot}
       </div>
     </div>
   );

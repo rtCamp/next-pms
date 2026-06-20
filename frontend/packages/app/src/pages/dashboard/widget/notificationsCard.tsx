@@ -7,7 +7,7 @@ import { File, Fire, Folder } from "@rtcamp/frappe-ui-react/icons";
 /**
  * Internal dependencies.
  */
-import { LEADERSHIP_NOTIFICATIONS } from "../../constants";
+import { LEADERSHIP_NOTIFICATIONS } from "../constants";
 
 export type NotificationItem = {
   id: string;

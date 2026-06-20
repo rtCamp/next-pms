@@ -55,14 +55,14 @@ export function Router() {
           <Route
             element={
               <RoleProtectedRoute
-                allowedRoles={["Delivery Manager", "Projects Manager"]}
+                allowedRoles={["System Manager", "Projects Manager"]}
               />
             }
           >
             <Route path={ROUTES.dashboard} element={<Dashboard />} />
           </Route>
           <Route
-            element={<RoleProtectedRoute allowedRoles={["Delivery Manager"]} />}
+            element={<RoleProtectedRoute allowedRoles={["System Manager"]} />}
           >
             <Route
               path={ROUTES["dashboard-leadership"]}

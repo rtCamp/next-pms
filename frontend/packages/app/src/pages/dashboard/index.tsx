@@ -12,7 +12,7 @@ import { useUser } from "@/providers/user";
 function Dashboard() {
   const { roles } = useUser(({ state }) => ({ roles: state.roles }));
 
-  if (roles.includes("Delivery Manager")) {
+  if (roles.includes("System Manager")) {
     return <Navigate to={ROUTES["dashboard-leadership"]} replace />;
   }
   if (roles.includes("Projects Manager")) {

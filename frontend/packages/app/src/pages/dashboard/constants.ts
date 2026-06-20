@@ -6,42 +6,11 @@ import type { ComboboxOption, SelectOption } from "@rtcamp/frappe-ui-react";
 /**
  * Internal dependencies.
  */
-import type { ForecastData } from "./forecastBreakdownCard";
-import type { HeatmapRow } from "./heatmapCard";
-import type { KpiCardData } from "./kpiCard";
-import type { NotificationItem } from "./notificationsCard";
-import type { StatCardData } from "./statCard";
-import type { UtilisationData } from "./utilisedTimeCard";
-
-// Hard-coded financial KPIs from the design until real data is wired in a later issue.
-export const LEADERSHIP_KPIS: KpiCardData[] = [
-  {
-    label: "Last month's revenue",
-    value: "$300,000",
-    trend: { value: "+15%", direction: "up", tone: "positive" },
-    comparison: "vs Dec 2025",
-  },
-  {
-    label: "Last month's cost",
-    value: "$120,000",
-    trend: { value: "-2%", direction: "down", tone: "positive" },
-    comparison: "vs Dec 2025",
-  },
-  {
-    label: "Last month's profit margin",
-    value: "42%",
-    trend: { value: "11%", direction: "down", tone: "negative" },
-    comparison: "vs Dec 2025",
-  },
-];
-
-// Hard-coded summary stats from the design until real data is wired in a later issue.
-export const LEADERSHIP_STATS: StatCardData[] = [
-  { label: "Active Projects", value: "15" },
-  { label: "At risk projects", value: "4" },
-  { label: "Members without allocation", value: "12", subLabel: "this month" },
-  { label: "Non-billable hours logged", value: "16h", subLabel: "this month" },
-];
+import type { ForecastData } from "./widget/forecastBreakdownCard";
+import type { HeatmapRow } from "./widget/heatmapCard";
+import type { NotificationItem } from "./widget/notificationsCard";
+import type { StatCardData } from "./widget/statCard";
+import type { UtilisationData } from "./widget/utilization";
 
 export const MANAGER_STATS: StatCardData[] = [
   { label: "At risk projects", value: "4" },
