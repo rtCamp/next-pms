@@ -1,26 +1,28 @@
 /**
  * External dependencies.
  */
-import { useState } from "react";
-import { Select } from "@rtcamp/frappe-ui-react";
+import { useMemo, useState } from "react";
+import { MultiSelect } from "@rtcamp/frappe-ui-react";
+import type { MultiSelectOption } from "@rtcamp/frappe-ui-react";
 import { cva } from "class-variance-authority";
+import {
+  endOfMonth,
+  format,
+  parseISO,
+  startOfMonth,
+  subMonths,
+} from "date-fns";
+import { useFrappeGetCall } from "frappe-react-sdk";
 
 /**
  * Internal dependencies.
  */
-import {
-  ALL_MEMBERS_VALUE,
-  HEATMAP_MONTHS,
-  HEATMAP_ROWS,
-  MEMBER_OPTIONS,
-} from "../constants";
+import { HeatmapCardSkeleton } from "./heatmapCardSkeleton";
+import type { AllocationHeatmapResponse, RoleAllocationWeek } from "../types";
 
 export type HeatmapCellState = "full" | "partial" | "none";
 
-export type HeatmapRow = {
-  role: string;
-  cells: HeatmapCellState[];
-};
+const API_DATE_FORMAT = "yyyy-MM-dd";
 
 const STATE_BG: Record<HeatmapCellState, string> = {
   full: "bg-surface-gray-3",
@@ -38,63 +40,126 @@ const LEGEND: { label: string; state: HeatmapCellState }[] = [
   { label: "No allocation", state: "none" },
 ];
 
+function getCellState(week: RoleAllocationWeek): HeatmapCellState {
+  if (week.capacity_hours <= 0 || week.allocated_hours <= 0) return "none";
+  if (week.allocated_hours >= week.capacity_hours) return "full";
+  return "partial";
+}
+
 export function HeatmapCard() {
-  const [member, setMember] = useState<string>(ALL_MEMBERS_VALUE);
+  const [selectedRoles, setSelectedRoles] = useState<string[]>([]);
+
+  const args = useMemo(() => {
+    const now = new Date();
+    return {
+      from_date: format(startOfMonth(subMonths(now, 3)), API_DATE_FORMAT),
+      to_date: format(endOfMonth(subMonths(now, 1)), API_DATE_FORMAT),
+    };
+  }, []);
+
+  const { data, isLoading } = useFrappeGetCall<AllocationHeatmapResponse>(
+    "next_pms.api.dashboard.get_allocation_heatmap",
+    args,
+  );
+
+  const roleOptions = useMemo<MultiSelectOption[]>(
+    () =>
+      (data?.message.roles ?? []).map((role) => ({
+        value: role.designation,
+        label: role.designation,
+      })),
+    [data],
+  );
+
+  const monthGroups = useMemo(() => {
+    const groups: { label: string; span: number }[] = [];
+    for (const week of data?.message.weeks ?? []) {
+      const label = format(parseISO(week.week_start), "MMM");
+      const last = groups.at(-1);
+      if (last?.label === label) last.span += 1;
+      else groups.push({ label, span: 1 });
+    }
+    return groups;
+  }, [data]);
+
+  if (isLoading || !data) return <HeatmapCardSkeleton />;
+
+  const { weeks, roles } = data.message;
+  const visibleRoles = selectedRoles.length
+    ? roles.filter((role) => selectedRoles.includes(role.designation))
+    : roles;
+  const allRolesSelected =
+    selectedRoles.length === 0 || selectedRoles.length === roleOptions.length;
 
   return (
     <div className="flex flex-col gap-4 rounded-lg border border-outline-gray-1 bg-surface-cards p-4">
       <div className="flex items-start justify-between gap-4">
         <h3 className="text-lg font-semibold text-ink-gray-8">Heatmap</h3>
-        <Select
-          className="w-fit shrink-0 bg-surface-gray-2 font-bold text-ink-gray-7"
-          options={MEMBER_OPTIONS}
-          value={member}
-          onChange={(value) => setMember(value ?? ALL_MEMBERS_VALUE)}
-        />
+        <div className="w-44 shrink-0">
+          <MultiSelect
+            options={roleOptions}
+            value={selectedRoles}
+            triggerLabel={
+              allRolesSelected
+                ? "All roles"
+                : `${selectedRoles.length} role${selectedRoles.length === 1 ? "" : "s"} selected`
+            }
+            onChange={setSelectedRoles}
+          />
+        </div>
       </div>
-      <table className="w-full table-fixed border-separate border-spacing-x-0.5 border-spacing-y-0">
-        <colgroup>
-          <col className="w-40" />
-          {Array.from({ length: 12 }).map((_, i) => (
-            <col key={i} />
-          ))}
-        </colgroup>
-        <thead>
-          <tr className="h-[25px]">
-            <th />
-            {HEATMAP_MONTHS.map((month) => (
-              <th
-                key={month}
-                colSpan={4}
-                className="p-0 text-left align-middle text-2xs font-normal text-ink-gray-5"
-              >
-                {month}
-              </th>
+      {visibleRoles.length === 0 ? (
+        <p className="py-8 text-center text-sm text-ink-gray-5">
+          No allocation data for this period.
+        </p>
+      ) : (
+        <table className="w-full table-fixed border-separate border-spacing-x-0.5 border-spacing-y-0">
+          <colgroup>
+            <col className="w-40" />
+            {weeks.map((week) => (
+              <col key={week.week_start} />
             ))}
-          </tr>
-        </thead>
-        <tbody>
-          {HEATMAP_ROWS.map((row) => (
-            <tr key={row.role} className="h-[25px]">
-              <th
-                scope="row"
-                className="truncate p-0 pr-2 text-left align-middle text-2xs font-normal text-ink-gray-5"
-                title={row.role}
-              >
-                {row.role}
-              </th>
-              {row.cells.map((state: HeatmapCellState, index: number) => (
-                <td key={index} className="p-0 align-middle">
-                  <span
-                    className={cellVariants({ state })}
-                    aria-label={`${row.role} week ${index + 1}: ${state}`}
-                  />
-                </td>
+          </colgroup>
+          <thead>
+            <tr className="h-[25px]">
+              <th />
+              {monthGroups.map((group) => (
+                <th
+                  key={group.label}
+                  colSpan={group.span}
+                  className="p-0 text-left align-middle text-2xs font-normal text-ink-gray-5"
+                >
+                  {group.label}
+                </th>
               ))}
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {visibleRoles.map((role) => (
+              <tr key={role.designation} className="h-[25px]">
+                <th
+                  scope="row"
+                  className="truncate p-0 pr-2 text-left align-middle text-2xs font-normal text-ink-gray-5"
+                  title={role.designation}
+                >
+                  {role.designation}
+                </th>
+                {role.weeks.map((week) => {
+                  const state = getCellState(week);
+                  return (
+                    <td key={week.week_start} className="p-0 align-middle">
+                      <span
+                        className={cellVariants({ state })}
+                        aria-label={`${role.designation} week of ${week.week_start}: ${state}`}
+                      />
+                    </td>
+                  );
+                })}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
       <div className="flex justify-center gap-8">
         {LEGEND.map((item) => (
           <div key={item.label} className="flex items-center gap-1.5">
