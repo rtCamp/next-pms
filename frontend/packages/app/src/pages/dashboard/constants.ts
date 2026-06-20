@@ -9,7 +9,6 @@ import type { ComboboxOption, SelectOption } from "@rtcamp/frappe-ui-react";
 import type { ForecastData } from "./widget/forecastBreakdownCard";
 import type { NotificationItem } from "./widget/notificationsCard";
 import type { StatCardData } from "./widget/statCard";
-import type { UtilisationData } from "./widget/utilization";
 
 export const MANAGER_STATS: StatCardData[] = [
   { label: "At risk projects", value: "4" },
@@ -20,7 +19,7 @@ export const MANAGER_STATS: StatCardData[] = [
 
 export const ALL_ROLES_VALUE = "all";
 
-// Mock role filter + utilisation splits from the design until real data is wired in a later issue.
+// Mock role filter from the design until real data is wired in a later issue.
 export const ROLE_OPTIONS: SelectOption[] = [
   { value: ALL_ROLES_VALUE, label: "All roles" },
   { value: "delivery-manager", label: "Delivery Manager" },
@@ -28,14 +27,6 @@ export const ROLE_OPTIONS: SelectOption[] = [
   { value: "developer", label: "Developer" },
   { value: "designer", label: "Designer" },
 ];
-
-export const UTILISATION_BY_ROLE: Record<string, UtilisationData> = {
-  [ALL_ROLES_VALUE]: { billable: 65, nonBillable: 35 },
-  "delivery-manager": { billable: 72, nonBillable: 28 },
-  "project-manager": { billable: 60, nonBillable: 40 },
-  developer: { billable: 80, nonBillable: 20 },
-  designer: { billable: 55, nonBillable: 45 },
-};
 
 // Hard-coded forecast splits from the design until real data is wired in a later issue.
 export const FORECAST_BY_ROLE: Record<string, ForecastData> = {

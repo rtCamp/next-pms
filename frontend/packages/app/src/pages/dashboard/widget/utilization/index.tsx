@@ -1,38 +1,38 @@
 /**
  * External dependencies.
  */
-import { useState } from "react";
-import { Select } from "@rtcamp/frappe-ui-react";
+import { useFrappeGetCall } from "frappe-react-sdk";
 
 /**
  * Internal dependencies.
  */
 import { UtilisationDonut } from "./utilisationDonut";
-import {
-  ALL_ROLES_VALUE,
-  ROLE_OPTIONS,
-  UTILISATION_BY_ROLE,
-} from "../../constants";
-
-export type UtilisationData = {
-  billable: number;
-  nonBillable: number;
-};
+import { UtilisedTimeCardSkeleton } from "./utilisedTimeCardSkeleton";
+import type { TimeUtilisationResponse } from "../../types";
 
 export function UtilisedTimeCard() {
-  const [role, setRole] = useState<string>(ALL_ROLES_VALUE);
-  const data =
-    UTILISATION_BY_ROLE[role] ?? UTILISATION_BY_ROLE[ALL_ROLES_VALUE];
+  const { data, isLoading } = useFrappeGetCall<TimeUtilisationResponse>(
+    "next_pms.api.dashboard.get_time_utilisation",
+    { days: 30 },
+  );
+
+  if (isLoading || !data) return <UtilisedTimeCardSkeleton />;
+
+  const { billable_hours, non_billable_hours, total_hours } = data.message;
+  const billablePct =
+    total_hours > 0 ? Math.round((billable_hours / total_hours) * 100) : 0;
+  const nonBillablePct =
+    total_hours > 0 ? Math.round((non_billable_hours / total_hours) * 100) : 0;
 
   const legend = [
     {
       label: "Billable hours",
-      value: data.billable,
+      value: billablePct,
       dotClass: "bg-surface-blue-5",
     },
     {
       label: "Non-billable hours",
-      value: data.nonBillable,
+      value: nonBillablePct,
       dotClass: "bg-surface-blue-4",
     },
   ];
@@ -43,18 +43,12 @@ export function UtilisedTimeCard() {
         <h3 className="text-lg font-semibold text-ink-gray-8">
           Utilised time in the past 30 days
         </h3>
-        <Select
-          className="w-fit shrink-0 bg-surface-gray-2 font-bold text-ink-gray-7"
-          options={ROLE_OPTIONS}
-          value={role}
-          onChange={(value) => setRole(value ?? ALL_ROLES_VALUE)}
-        />
       </div>
       <div className="flex items-center gap-8">
         <UtilisationDonut
           segments={[
-            { value: data.billable, colorClass: "text-surface-blue-5" },
-            { value: data.nonBillable, colorClass: "text-surface-blue-4" },
+            { value: billablePct, colorClass: "text-surface-blue-5" },
+            { value: nonBillablePct, colorClass: "text-surface-blue-4" },
           ]}
         />
         <div className="flex grow flex-col gap-3">

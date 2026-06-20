@@ -19,38 +19,8 @@ import { ForecastBreakdownCard } from "../widget/forecastBreakdownCard";
 import { HeatmapCard } from "../widget/heatmapCard";
 import { LeadershipKpiCard } from "../widget/kpi/leadershipKpiCard";
 import { NotificationsCard } from "../widget/notificationsCard";
-import { LiveStatCard } from "../widget/stat/liveStatCard";
-import type { StatCardConfig } from "../widget/stat/types";
+import LiveStatCard from "../widget/stat-cards";
 import { UtilisedTimeCard } from "../widget/utilization";
-
-const STAT_CONFIGS: StatCardConfig[] = [
-  {
-    endpoint: "next_pms.api.dashboard.get_active_projects_count",
-    label: "Active Projects",
-    format: (message) => String(message),
-  },
-  {
-    endpoint: "next_pms.api.dashboard.get_at_risk_projects_count",
-    label: "At risk projects",
-    format: (message) => String(message),
-  },
-  {
-    endpoint: "next_pms.api.dashboard.get_members_without_allocation",
-    label: "Members without allocation",
-    subLabel: "this month",
-    params: { days: 30 },
-    format: (message) =>
-      String(typeof message === "number" ? message : message.count),
-  },
-  {
-    endpoint: "next_pms.api.dashboard.get_non_billable_hours",
-    label: "Non-billable hours logged",
-    subLabel: "this month",
-    params: { days: 30 },
-    format: (message) =>
-      `${Math.round(typeof message === "number" ? message : 0)}h`,
-  },
-];
 
 export default function LeadershipDashboard() {
   const [client, setClient] = useState<string>(ALL_CLIENTS_VALUE);
@@ -108,9 +78,7 @@ export default function LeadershipDashboard() {
             <LeadershipKpiCard kpikey={"profit_margin"} />
           </div>
           <div className="grid grid-cols-4 gap-3">
-            {STAT_CONFIGS.map((config) => (
-              <LiveStatCard key={config.endpoint} config={config} />
-            ))}
+            <LiveStatCard />
           </div>
           <div className="grid grid-cols-3 gap-3">
             <div className="col-span-2">

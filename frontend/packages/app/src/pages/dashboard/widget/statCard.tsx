@@ -1,6 +1,6 @@
 export type StatCardData = {
   label: string;
-  value: string;
+  value: string | number;
   subLabel?: string;
 };
 
