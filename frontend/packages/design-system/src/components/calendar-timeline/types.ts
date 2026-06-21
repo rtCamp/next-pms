@@ -20,6 +20,11 @@ export interface CalendarTimelineProps {
   today?: Date;
   rangeLabel?: string;
   filterSlot?: ReactNode;
+  /**
+   * Replaces the entire built-in header (range label, navigation, filter).
+   * The host owns the full header layout when this is provided.
+   */
+  headerSlot?: ReactNode;
   onPrev?: () => void;
   onNext?: () => void;
   onToday?: () => void;

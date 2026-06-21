@@ -22,6 +22,7 @@ const CalendarTimeline = ({
   today,
   rangeLabel,
   filterSlot,
+  headerSlot,
   onPrev,
   onNext,
   onToday,
@@ -39,30 +40,34 @@ const CalendarTimeline = ({
   return (
     <div className="flex flex-col gap-3">
       <div className="flex flex-wrap items-center justify-between gap-2 px-4 pt-4">
-        <div className="flex items-center gap-1 text-base font-medium text-ink-gray-8">
-          <span>{label}</span>
-          <ChevronDown className="size-4 text-ink-gray-5" />
-        </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <div className="flex items-center gap-1">
-            <Button
-              variant="ghost"
-              icon={() => <ChevronLeft className="size-4" />}
-              label="Previous range"
-              onClick={onPrev}
-            />
-            <Button variant="outline" onClick={onToday}>
-              Today
-            </Button>
-            <Button
-              variant="ghost"
-              icon={() => <ChevronRight className="size-4" />}
-              label="Next range"
-              onClick={onNext}
-            />
-          </div>
-          {filterSlot}
-        </div>
+        {headerSlot ?? (
+          <>
+            <div className="flex items-center gap-1 text-base font-medium text-ink-gray-8">
+              <span>{label}</span>
+              <ChevronDown className="size-4 text-ink-gray-5" />
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
+              <div className="flex items-center gap-1">
+                <Button
+                  variant="ghost"
+                  icon={() => <ChevronLeft className="size-4" />}
+                  label="Previous range"
+                  onClick={onPrev}
+                />
+                <Button variant="outline" onClick={onToday}>
+                  Today
+                </Button>
+                <Button
+                  variant="ghost"
+                  icon={() => <ChevronRight className="size-4" />}
+                  label="Next range"
+                  onClick={onNext}
+                />
+              </div>
+              {filterSlot}
+            </div>
+          </>
+        )}
       </div>
 
       <div className="overflow-hidden">

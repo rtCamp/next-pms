@@ -11,9 +11,14 @@ import type {
   CalendarEventColor,
   CalendarTimelineEvent,
 } from "@next-pms/design-system/components";
-import { MultiSelect } from "@rtcamp/frappe-ui-react";
+import { Button, DatePicker, MultiSelect } from "@rtcamp/frappe-ui-react";
 import type { MultiSelectOption } from "@rtcamp/frappe-ui-react";
-import { addDays, format } from "date-fns";
+import {
+  SmallDown,
+  SmallLeftChevron,
+  SmallRightChevron,
+} from "@rtcamp/frappe-ui-react/icons";
+import { addDays, format, parseISO } from "date-fns";
 import { useFrappeGetCall } from "frappe-react-sdk";
 
 /**
@@ -79,27 +84,75 @@ export default function CalendarTimelineCard() {
         events={events}
         rangeStart={rangeStart}
         today={new Date()}
-        filterSlot={
-          <div className="w-44 shrink-0">
-            <MultiSelect
-              options={projectOptions}
-              value={selectedProjects}
-              triggerLabel={
-                allProjectsSelected
-                  ? "All projects"
-                  : `${selectedProjects.length} project${selectedProjects.length === 1 ? "" : "s"} selected`
-              }
-              onChange={setSelectedProjects}
-            />
-          </div>
+        headerSlot={
+          <>
+            <DatePicker
+              value={format(rangeStart, "yyyy-MM-dd")}
+              placement="bottom-start"
+              clearable={false}
+              onChange={(val) => {
+                const picked = Array.isArray(val) ? val[0] : val;
+                if (picked) setRangeStart(getWeekStart(parseISO(picked)));
+              }}
+            >
+              {() => (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  className="flex shrink-0 items-center gap-2"
+                >
+                  <span className="whitespace-nowrap text-base font-medium text-ink-gray-8">
+                    {`${format(rangeStart, "MMM d")} – ${format(
+                      addDays(rangeStart, DEFAULT_VISIBLE_DAYS - 1),
+                      "MMM d, yyyy",
+                    )}`}
+                  </span>
+                  <SmallDown className="size-4 shrink-0 text-ink-gray-5" />
+                </Button>
+              )}
+            </DatePicker>
+            <div className="flex flex-wrap items-center gap-2">
+              <div className="flex items-center gap-1">
+                <Button
+                  variant="ghost"
+                  icon={() => <SmallLeftChevron className="size-4" />}
+                  label="Previous range"
+                  onClick={() =>
+                    setRangeStart((prev) =>
+                      addDays(prev, -DEFAULT_VISIBLE_DAYS),
+                    )
+                  }
+                />
+                <Button
+                  variant="ghost"
+                  onClick={() => setRangeStart(getWeekStart(new Date()))}
+                >
+                  Today
+                </Button>
+                <Button
+                  variant="ghost"
+                  icon={() => <SmallRightChevron className="size-4" />}
+                  label="Next range"
+                  onClick={() =>
+                    setRangeStart((prev) => addDays(prev, DEFAULT_VISIBLE_DAYS))
+                  }
+                />
+              </div>
+              <div className="w-44 shrink-0">
+                <MultiSelect
+                  options={projectOptions}
+                  value={selectedProjects}
+                  triggerLabel={
+                    allProjectsSelected
+                      ? "All projects"
+                      : `${selectedProjects.length} project${selectedProjects.length === 1 ? "" : "s"} selected`
+                  }
+                  onChange={setSelectedProjects}
+                />
+              </div>
+            </div>
+          </>
         }
-        onPrev={() =>
-          setRangeStart((prev) => addDays(prev, -DEFAULT_VISIBLE_DAYS))
-        }
-        onNext={() =>
-          setRangeStart((prev) => addDays(prev, DEFAULT_VISIBLE_DAYS))
-        }
-        onToday={() => setRangeStart(getWeekStart(new Date()))}
       />
     </div>
   );
