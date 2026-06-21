@@ -71,7 +71,7 @@ export default function LeadershipDashboard() {
 
         <section
           aria-label="Leadership dashboard"
-          className="flex flex-col gap-3"
+          className="flex flex-col gap-3 overflow-y-auto scrollbar-thin"
         >
           <div className="grid grid-cols-3 gap-3">
             <LeadershipKpiCard kpikey={"revenue"} />
