@@ -57,7 +57,7 @@ export default function CalendarTimelineCard() {
   if (isLoading || !data) return <CalendarTimelineCardSkeleton />;
 
   return (
-    <div className="flex flex-col gap-3 rounded-lg border border-outline-gray-1 bg-surface-cards p-4">
+    <div className="flex flex-col gap-3 rounded-lg border border-outline-gray-1 bg-surface-cards">
       <CalendarTimeline
         events={events}
         rangeStart={rangeStart}
