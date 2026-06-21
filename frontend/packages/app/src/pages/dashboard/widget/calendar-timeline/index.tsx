@@ -11,7 +11,8 @@ import type {
   CalendarEventColor,
   CalendarTimelineEvent,
 } from "@next-pms/design-system/components";
-import { Combobox } from "@rtcamp/frappe-ui-react";
+import { MultiSelect } from "@rtcamp/frappe-ui-react";
+import type { MultiSelectOption } from "@rtcamp/frappe-ui-react";
 import { addDays, format } from "date-fns";
 import { useFrappeGetCall } from "frappe-react-sdk";
 
@@ -19,7 +20,6 @@ import { useFrappeGetCall } from "frappe-react-sdk";
  * Internal dependencies.
  */
 import { CalendarTimelineCardSkeleton } from "./skeleton";
-import { ALL_PROJECTS_VALUE, MOCK_PROJECT_OPTIONS } from "../../constants";
 import type { CalendarTimelineResponse } from "../../types";
 
 const TYPE_COLOR: Record<string, CalendarEventColor> = {
@@ -31,30 +31,47 @@ export default function CalendarTimelineCard() {
   const [rangeStart, setRangeStart] = useState<Date>(() =>
     getWeekStart(new Date()),
   );
-  const [project, setProject] = useState<string>(ALL_PROJECTS_VALUE);
+  const [selectedProjects, setSelectedProjects] = useState<string[]>([]);
 
   const { data, isLoading } = useFrappeGetCall<CalendarTimelineResponse>(
     "next_pms.api.dashboard.get_calendar_timeline_items",
     {
       from_date: format(rangeStart, "yyyy-MM-dd"),
       to_date: format(addDays(rangeStart, DEFAULT_VISIBLE_DAYS), "yyyy-MM-dd"),
-      project: project === ALL_PROJECTS_VALUE ? undefined : project,
     },
   );
 
+  const projectOptions = useMemo<MultiSelectOption[]>(() => {
+    const byName = new Map<string, string>();
+    for (const item of data?.message.data ?? []) {
+      byName.set(item.project, item.project_name ?? item.project);
+    }
+    return Array.from(byName, ([value, label]) => ({ value, label }));
+  }, [data]);
+
   const events = useMemo<CalendarTimelineEvent[]>(
     () =>
-      (data?.message.data ?? []).map((item) => ({
-        id: item.name,
-        title: item.title,
-        subtitle: item.project,
-        date: item.start_date.slice(0, 10),
-        color: TYPE_COLOR[item.type] ?? "blue",
-      })),
-    [data],
+      (data?.message.data ?? [])
+        .filter(
+          (item) =>
+            selectedProjects.length === 0 ||
+            selectedProjects.includes(item.project),
+        )
+        .map((item) => ({
+          id: item.name,
+          title: item.title,
+          subtitle: item.project_name ?? item.project,
+          date: item.start_date.slice(0, 10),
+          color: TYPE_COLOR[item.type] ?? "blue",
+        })),
+    [data, selectedProjects],
   );
 
   if (isLoading || !data) return <CalendarTimelineCardSkeleton />;
+
+  const allProjectsSelected =
+    selectedProjects.length === 0 ||
+    selectedProjects.length === projectOptions.length;
 
   return (
     <div className="flex flex-col gap-3 rounded-lg border border-outline-gray-1 bg-surface-cards">
@@ -63,13 +80,18 @@ export default function CalendarTimelineCard() {
         rangeStart={rangeStart}
         today={new Date()}
         filterSlot={
-          <Combobox
-            className="w-fit rounded-lg border-outline-gray-1 bg-white px-2 py-1.5 text-sm text-ink-gray-7"
-            inputClassName="bg-white"
-            options={MOCK_PROJECT_OPTIONS}
-            value={project}
-            onChange={(value) => setProject(value ?? ALL_PROJECTS_VALUE)}
-          />
+          <div className="w-44 shrink-0">
+            <MultiSelect
+              options={projectOptions}
+              value={selectedProjects}
+              triggerLabel={
+                allProjectsSelected
+                  ? "All projects"
+                  : `${selectedProjects.length} project${selectedProjects.length === 1 ? "" : "s"} selected`
+              }
+              onChange={setSelectedProjects}
+            />
+          </div>
         }
         onPrev={() =>
           setRangeStart((prev) => addDays(prev, -DEFAULT_VISIBLE_DAYS))

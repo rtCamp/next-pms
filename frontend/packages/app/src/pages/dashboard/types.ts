@@ -8,6 +8,7 @@ export interface CalendarItem {
   name: string;
   title: string;
   project: string;
+  project_name: string;
   type: string;
   is_complete: 0 | 1;
   start_date: string;

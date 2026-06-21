@@ -1381,23 +1381,29 @@ def _get_calendar_timeline_items(range_start, range_end, project: str | None) ->
     accessible_projects = frappe.get_list(
         "Project",
         filters=project_filters,
-        pluck="name",
+        fields=["name", "project_name"],
         limit_page_length=0,
     )
     if not accessible_projects:
         return {"data": []}
 
+    project_name_map = {p.name: p.project_name for p in accessible_projects}
+
     PTI = frappe.qb.DocType("Project Timeline Item")
     items = (
         frappe.qb.from_(PTI)
         .select(*[PTI[field] for field in TIMELINE_ITEM_FIELDS])
-        .where(PTI.project.isin(accessible_projects))
+        .where(PTI.project.isin(list(project_name_map)))
         .where((PTI.start_date < range_end) & (PTI.planned_end_date > range_start))
         .orderby(PTI.start_date)
         .orderby(PTI.planned_end_date)
         .run(as_dict=True)
     )
 
-    data = [enrich_timeline_item(item, {}, {}) for item in items]
+    data = []
+    for item in items:
+        enriched = enrich_timeline_item(item, {}, {})
+        enriched["project_name"] = project_name_map.get(item.get("project"))
+        data.append(enriched)
 
     return {"data": data}
