@@ -20,6 +20,7 @@ import CalendarTimelineCard from "../widget/calendar-timeline";
 import HeatmapCard from "../widget/heatmap";
 import NotificationsCard from "../widget/notificationsCard";
 import LiveStatCard from "../widget/stat-cards";
+import Timesheets from "../widget/timesheet-summary";
 
 export default function LeadershipDashboard() {
   const [client, setClient] = useState<string>(ALL_CLIENTS_VALUE);
@@ -82,6 +83,7 @@ export default function LeadershipDashboard() {
           </div>
           <CalendarTimelineCard />
           <AssignedProjects />
+          <Timesheets />
         </section>
       </div>
     </>
