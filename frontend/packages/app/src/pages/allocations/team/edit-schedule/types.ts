@@ -61,6 +61,8 @@ export interface EditScheduleInitialValues {
   note?: string;
   override?: AllocationOverrideEntry[];
   recurrenceId?: string;
+  recurrenceWeekCount?: number;
+  recurrenceSeriesEndDate?: string;
 }
 
 export interface EditScheduleModalProps {

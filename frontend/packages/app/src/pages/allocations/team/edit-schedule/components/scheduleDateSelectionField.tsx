@@ -15,6 +15,7 @@ interface ScheduleDateSelectionFieldProps {
   group: ScheduleFieldGroupApi;
   days: DayItem[];
   headerRangeLabel: string;
+  recurrenceHelperText?: string;
   selection: NormalizedSelection | null;
   selectionAnchor: string | null;
   setSelectionAnchor: (value: string | null) => void;
@@ -24,10 +25,14 @@ function ScheduleDateSelectionField({
   group,
   days,
   headerRangeLabel,
+  recurrenceHelperText,
   selection,
   selectionAnchor,
   setSelectionAnchor,
 }: ScheduleDateSelectionFieldProps) {
+  const showInlineRecurrenceHelper =
+    Boolean(recurrenceHelperText) && days.length <= 3;
+
   return (
     <group.Field
       name="selection.startDate"
@@ -41,8 +46,14 @@ function ScheduleDateSelectionField({
                 <span className="text-right">{headerRangeLabel}</span>
               </div>
 
-              <div className="relative overflow-x-auto overflow-y-visible pb-2 no-scrollbar">
-                <div className="flex min-w-fit items-center gap-1 pr-8">
+              <div
+                className={
+                  showInlineRecurrenceHelper
+                    ? "flex items-center justify-between gap-3 pb-1"
+                    : "pb-1"
+                }
+              >
+                <div className="flex flex-wrap items-start gap-1">
                   {days.map((day) => (
                     <DayChip
                       key={day.date}
@@ -76,7 +87,19 @@ function ScheduleDateSelectionField({
                     />
                   ))}
                 </div>
+
+                {showInlineRecurrenceHelper ? (
+                  <p className="shrink-0 text-sm text-ink-gray-4">
+                    {recurrenceHelperText}
+                  </p>
+                ) : null}
               </div>
+
+              {recurrenceHelperText && !showInlineRecurrenceHelper ? (
+                <p className="pl-0.5 text-sm text-ink-gray-4">
+                  {recurrenceHelperText}
+                </p>
+              ) : null}
 
               {(!startField.state.meta.isValid ||
                 !endField.state.meta.isValid) && (

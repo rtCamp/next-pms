@@ -40,6 +40,10 @@ export interface Allocation {
   allocationHoursPerDay?: number;
   /** Recurrence group identifier — present only for recurring series allocations. */
   recurrenceId?: string;
+  /** Total number of weekly allocations in the recurrence series. */
+  recurrenceWeekCount?: number;
+  /** Last date covered by the recurrence series. */
+  recurrenceSeriesEndDate?: Date;
 }
 
 export interface MemberBarAllocation extends Allocation {
@@ -127,6 +131,10 @@ export interface AllocationCallbackData {
   allocationHoursPerDay?: number;
   /** Recurrence group identifier — present only for recurring series allocations. */
   recurrenceId?: string;
+  /** Total number of weekly allocations in the recurrence series. */
+  recurrenceWeekCount?: number;
+  /** Last date covered by the recurrence series. */
+  recurrenceSeriesEndDate?: Date;
   /** Visible segment start date before the current edit. */
   segmentStartDate?: Date;
   /** Visible segment end date before the current edit. */

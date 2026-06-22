@@ -108,6 +108,10 @@ export function useAllocationModal(refresh: RefreshAllocations) {
         note: data.note,
         override: data.override,
         recurrenceId: data.recurrenceId,
+        recurrenceWeekCount: data.recurrenceWeekCount,
+        recurrenceSeriesEndDate: data.recurrenceSeriesEndDate
+          ? format(data.recurrenceSeriesEndDate, "yyyy-MM-dd")
+          : undefined,
       });
       setIsAddAllocationOpen(true);
     },
@@ -216,6 +220,9 @@ export function useAllocationModal(refresh: RefreshAllocations) {
           note: addAllocationInitialValues?.note,
           override: addAllocationInitialValues?.override,
           recurrenceId: addAllocationInitialValues?.recurrenceId,
+          recurrenceWeekCount: addAllocationInitialValues?.recurrenceWeekCount,
+          recurrenceSeriesEndDate:
+            addAllocationInitialValues?.recurrenceSeriesEndDate,
         });
         setIsEditScheduleOpen(true);
       },

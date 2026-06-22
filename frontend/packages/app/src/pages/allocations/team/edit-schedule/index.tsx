@@ -4,7 +4,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Button, Dialog, Select, useToasts } from "@rtcamp/frappe-ui-react";
 import { useForm, useStore } from "@tanstack/react-form";
-import { format } from "date-fns";
+import { format, parseISO } from "date-fns";
 import { FrappeError, useFrappePostCall } from "frappe-react-sdk";
 
 /**
@@ -67,6 +67,21 @@ function EditScheduleModal({
     () => normalizeRange(safeValues.rangeStart, safeValues.rangeEnd),
     [safeValues.rangeEnd, safeValues.rangeStart],
   );
+  const recurrenceHelperText = useMemo(() => {
+    if (
+      !isRecurringAllocation ||
+      !safeValues.recurrenceWeekCount ||
+      !safeValues.recurrenceSeriesEndDate
+    ) {
+      return undefined;
+    }
+
+    return `Repeats for ${safeValues.recurrenceWeekCount} week${safeValues.recurrenceWeekCount === 1 ? "" : "s"} till ${format(parseISO(safeValues.recurrenceSeriesEndDate), "MMM d")}`;
+  }, [
+    isRecurringAllocation,
+    safeValues.recurrenceSeriesEndDate,
+    safeValues.recurrenceWeekCount,
+  ]);
   const days = useMemo(
     () => buildDays(fullRange.startDate, fullRange.endDate),
     [fullRange.endDate, fullRange.startDate],
@@ -250,6 +265,7 @@ function EditScheduleModal({
           group={scheduleGroup}
           days={days}
           headerRangeLabel={scheduleDraft.headerRangeLabel}
+          recurrenceHelperText={recurrenceHelperText}
           selection={scheduleDraft.selection}
           selectionAnchor={selectionAnchor}
           setSelectionAnchor={setSelectionAnchor}
