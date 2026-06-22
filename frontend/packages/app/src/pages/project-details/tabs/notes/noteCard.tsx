@@ -21,7 +21,7 @@ export function NoteCard({ note }: NoteCardProps) {
   const [, setSearchParams] = useSearchParams();
   const relativeDate = formatRelativeTimeShort(note.creation, new Date(), true);
   const authorHref = `/desk/user/${encodeURIComponent(note.owner)}`;
-  const authorName = note.owner_full_name || note.owner;
+  const authorName = note.owner_full_name?.trim() || "";
 
   const openDetail = useCallback(() => {
     setSearchParams((prev) => {

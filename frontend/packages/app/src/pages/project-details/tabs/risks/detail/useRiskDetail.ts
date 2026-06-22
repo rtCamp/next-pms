@@ -1,13 +1,19 @@
 /**
  * External dependencies.
  */
-import { useMemo } from "react";
-import { useFrappeGetDoc, useFrappeGetDocList } from "frappe-react-sdk";
+import { useCallback, useMemo } from "react";
+import { useToasts } from "@rtcamp/frappe-ui-react";
+import {
+  FrappeError,
+  useFrappeGetDoc,
+  useFrappeGetDocList,
+  useFrappeUpdateDoc,
+} from "frappe-react-sdk";
 
 /**
  * Internal dependencies.
  */
-import { hashString } from "@/lib/utils";
+import { hashString, parseFrappeErrorMsg } from "@/lib/utils";
 import type {
   ApiRiskDetail,
   EnrichedRiskUpdateEntry,
@@ -24,6 +30,9 @@ export function useRiskDetail(riskId: string) {
     error,
     mutate,
   } = useFrappeGetDoc<ApiRiskDetail>("Risk", riskId);
+
+  const { updateDoc } = useFrappeUpdateDoc();
+  const toast = useToasts();
 
   const userEmails = useMemo(() => {
     if (!risk) return [];
@@ -100,6 +109,34 @@ export function useRiskDetail(riskId: string) {
     [followersData],
   );
 
+  const deleteUpdateEntry = useCallback(
+    async (entry: EnrichedRiskUpdateEntry) => {
+      if (!enrichedRisk) return;
+      try {
+        const remainingEntries = (enrichedRisk.risk_update_log ?? [])
+          .filter((e) => e.name !== entry.name)
+          .map((e) => ({
+            name: e.name,
+            status: e.status,
+            risk_level: e.risk_level,
+            note: e.note,
+            updated_at: e.updated_at,
+          }));
+
+        await updateDoc("Risk", enrichedRisk.name, {
+          modified: enrichedRisk.modified,
+          risk_update_log: remainingEntries,
+        });
+
+        toast.success("Update deleted");
+        await mutate();
+      } catch (err) {
+        toast.error(parseFrappeErrorMsg(err as FrappeError));
+      }
+    },
+    [enrichedRisk, updateDoc, toast, mutate],
+  );
+
   return {
     risk: enrichedRisk,
     attachments: attachments ?? [],
@@ -109,5 +146,6 @@ export function useRiskDetail(riskId: string) {
     mutate,
     mutateAttachments,
     mutateFollowers,
+    deleteUpdateEntry,
   };
 }
