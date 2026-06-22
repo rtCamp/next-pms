@@ -2,6 +2,7 @@
  * External dependencies.
  */
 import { useState } from "react";
+import { DeleteActionDialog } from "@next-pms/design-system/components";
 import { stripTags } from "@next-pms/design-system/utils";
 import { Button } from "@rtcamp/frappe-ui-react";
 import { Plus } from "lucide-react";
@@ -15,7 +16,6 @@ import type {
   RiskDetail,
   FileAttachment,
 } from "../types";
-import { DeleteUpdateEntryDialog } from "./deleteUpdateEntryDialog";
 import { DocumentUploadButton } from "./documentUploadButton";
 import { FileCard } from "./fileCard";
 import { UpdateEntry } from "./updateEntry";
@@ -25,6 +25,7 @@ interface RiskDetailContentProps {
   attachments: FileAttachment[];
   mutate: () => void;
   mutateAttachments: () => void;
+  onDeleteUpdateEntry: (entry: EnrichedRiskUpdateEntry) => Promise<void>;
 }
 
 export function RiskDetailContent({
@@ -32,6 +33,7 @@ export function RiskDetailContent({
   attachments,
   mutate,
   mutateAttachments,
+  onDeleteUpdateEntry,
 }: RiskDetailContentProps) {
   const [isAddUpdateOpen, setIsAddUpdateOpen] = useState(false);
   const [editEntry, setEditEntry] = useState<EnrichedRiskUpdateEntry | null>(
@@ -59,11 +61,11 @@ export function RiskDetailContent({
       />
 
       {deleteEntry && (
-        <DeleteUpdateEntryDialog
-          entry={deleteEntry}
-          risk={risk}
+        <DeleteActionDialog
+          title="Delete update"
+          description="Are you sure you want to delete this update? This action cannot be undone."
           onClose={() => setDeleteEntry(null)}
-          onSuccess={mutate}
+          onConfirm={() => onDeleteUpdateEntry(deleteEntry)}
         />
       )}
 

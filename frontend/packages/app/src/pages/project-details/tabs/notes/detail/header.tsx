@@ -25,6 +25,7 @@ export function NoteDetailHeader({ note }: NoteDetailHeaderProps) {
     true,
   );
   const authorHref = `/desk/user/${encodeURIComponent(note.owner)}`;
+  const authorName = note.owner_full_name?.trim() || "";
 
   const handleBack = () => {
     setSearchParams((prev) => {
@@ -47,12 +48,12 @@ export function NoteDetailHeader({ note }: NoteDetailHeaderProps) {
           <Avatar
             size="xs"
             shape="circle"
-            label={note.owner_full_name}
+            label={authorName}
             image={note.owner_image || undefined}
           />
         </a>
         <span className="truncate text-base font-medium text-ink-gray-8">
-          {note.owner_full_name}
+          {authorName}
         </span>
         <span className="shrink-0 text-ink-gray-5">·</span>
         <span className="shrink-0 text-base text-ink-gray-5">
