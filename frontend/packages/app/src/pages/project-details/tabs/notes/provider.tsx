@@ -2,6 +2,7 @@
  * External dependencies.
  */
 import { useCallback, useMemo, useState, type PropsWithChildren } from "react";
+import { useSearchParams } from "react-router-dom";
 import { useToasts } from "@rtcamp/frappe-ui-react";
 import {
   FrappeError,
@@ -14,6 +15,7 @@ import {
  */
 import { useDebounce } from "@/hooks/useDebounce";
 import { parseFrappeErrorMsg } from "@/lib/utils";
+import { NOTE_PARAM } from "./constants";
 import { NotesContext, type NotesContextProps } from "./context";
 import { useNotesData } from "./useNotesData";
 
@@ -23,6 +25,7 @@ export function NotesProvider({ children }: PropsWithChildren) {
   const [author, setAuthor] = useState("");
   const [isUpdating, setIsUpdating] = useState(false);
   const [deleteNoteName, setDeleteNoteName] = useState<string | null>(null);
+  const [, setSearchParams] = useSearchParams();
   const { deleteDoc } = useFrappeDeleteDoc();
   const { call: updateNote } = useFrappePostCall(
     "next_pms.timesheet.api.project_status_update.update_project_status_update",
@@ -62,15 +65,17 @@ export function NotesProvider({ children }: PropsWithChildren) {
         await deleteDoc("Project Status Update", name);
         toast.success("Note deleted");
         await refresh();
-        return true;
+        setSearchParams((prev) => {
+          prev.delete(NOTE_PARAM);
+          return prev;
+        });
       } catch (err) {
         toast.error(parseFrappeErrorMsg(err as FrappeError));
-        return false;
       } finally {
         setIsUpdating(false);
       }
     },
-    [deleteDoc, refresh, toast],
+    [deleteDoc, refresh, toast, setSearchParams],
   );
 
   const togglePin = useCallback(

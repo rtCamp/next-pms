@@ -23,7 +23,7 @@ export interface NotesContextProps {
     setDescriptionInput: (value: string) => void;
     setAuthor: (value: string) => void;
     refresh: () => Promise<unknown>;
-    deleteNote: (name: string) => Promise<boolean>;
+    deleteNote: (name: string) => Promise<void>;
     togglePin: (name: string) => Promise<void>;
     openDeleteDialog: (name: string) => void;
     closeDeleteDialog: () => void;
@@ -51,7 +51,7 @@ export const NotesContext = createContext<NotesContextProps>({
     setDescriptionInput: noop,
     setAuthor: noop,
     refresh: async () => undefined,
-    deleteNote: async () => false,
+    deleteNote: async () => undefined,
     togglePin: async () => undefined,
     openDeleteDialog: noop,
     closeDeleteDialog: noop,
