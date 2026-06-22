@@ -71,7 +71,8 @@ export const PersonalTimesheetTable = () => {
       <div className="flex flex-wrap gap-2 justify-between mb-3.5">
         <div className="flex gap-2">
           <TextInput
-            placeholder="Search Tasks"
+            placeholder="Search tasks"
+            className="w-68.5 shrink-0"
             value={filters.search}
             onChange={(e) => handleSearchChange(e.target.value)}
           />
