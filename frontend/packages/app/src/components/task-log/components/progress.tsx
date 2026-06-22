@@ -27,7 +27,7 @@ const Progress: React.FC<ProgressProps> = ({
           <div className="flex gap-1">
             <span
               className={cn("font-medium", {
-                "text-surface-red-7": progress > 100,
+                "text-ink-red-4": progress > 100,
               })}
             >
               {floatToTime(actualHours, 2)}
@@ -36,7 +36,9 @@ const Progress: React.FC<ProgressProps> = ({
           </div>
           <span className="text-ink-gray-5">/</span>
           <div className="flex gap-1">
-            <span>{floatToTime(estimatedHours, 2)}</span>
+            <span className="text-ink-gray-7">
+              {floatToTime(estimatedHours, 2)}
+            </span>
             <span className="text-ink-gray-5">Est.</span>
           </div>
         </div>

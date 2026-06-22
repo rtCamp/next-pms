@@ -71,7 +71,7 @@ const TaskEntry = ({
 
       <div
         key={description}
-        className="whitespace-pre-wrap wrap-break-word text-base leading-5"
+        className="whitespace-pre-wrap wrap-break-word text-base leading-5.25"
       >
         {description}
       </div>
