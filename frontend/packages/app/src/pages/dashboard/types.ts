@@ -43,6 +43,9 @@ export interface EmployeeOnLeave {
   employee_name: string;
   from_date: string;
   to_date: string;
+  half_day: 0 | 1;
+  custom_first_halfsecond_half: string | null;
+  user_image: string | null;
 }
 
 export type EmployeesOnLeaveResponse = { message: EmployeeOnLeave[] };

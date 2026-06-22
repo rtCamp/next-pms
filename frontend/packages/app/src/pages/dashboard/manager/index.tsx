@@ -21,6 +21,7 @@ import HeatmapCard from "../widget/heatmap";
 import NotificationsCard from "../widget/notificationsCard";
 import LiveStatCard from "../widget/stat-cards";
 import Timesheets from "../widget/timesheet-summary";
+import UpcomingTimeOff from "../widget/upcoming-time-off";
 
 export default function LeadershipDashboard() {
   const [client, setClient] = useState<string>(ALL_CLIENTS_VALUE);
@@ -84,6 +85,7 @@ export default function LeadershipDashboard() {
           <CalendarTimelineCard />
           <AssignedProjects />
           <Timesheets />
+          <UpcomingTimeOff />
         </section>
       </div>
     </>
