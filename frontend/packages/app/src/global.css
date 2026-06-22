@@ -18,19 +18,16 @@
   :root {
     --color-ink-gray-7: var(--color-gray-800);
     --color-ink-gray-8: var(--color-gray-900);
+    --color-surface-green-3: var(--color-green-300);
+    --color-surface-green-5: var(--color-green-600);
+    --color-surface-amber-5: var(--color-amber-600);
+    --color-surface-blue-4: var(--color-blue-300);
+    --color-surface-blue-5: #007BE0 ;
+    --color-ink-violet-3: #7757ee;
+    --color-surface-violet-4: #664ECC;
+    --color-ink-cyan-3: #3bbde5;
+    --animate-fade-in: fade-in 0.2s ease;
   }
-}
-
-@theme {
-  --animate-fade-in: fade-in 0.2s ease;
-  --color-surface-green-3: var(--color-green-300);
-  --color-surface-green-5: var(--color-green-600);
-  --color-surface-amber-5: var(--color-amber-600);
-  --color-surface-blue-4: var(--color-blue-300);
-  --color-surface-blue-5: #007BE0 ;
-  --color-ink-violet-3: #7757ee;
-  --color-surface-violet-4: #664ECC;
-  --color-ink-cyan-3: #3bbde5;
 }
 
 @layer utilities {
