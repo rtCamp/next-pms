@@ -74,7 +74,7 @@ const EntryRow = ({ entry, onSave }: EntryRowProps) => {
               onChange={(val) => setDescription(val)}
               fixedMenu={false}
               placeholder="Comment"
-              editorClass="px-2 h-24 overflow-auto scrollbar bg-white border rounded-md border-outline-gray-2"
+              editorClass="px-2 h-24 prose-sm overflow-auto scrollbar-thin bg-white border rounded-md border-outline-gray-2"
             />
           </div>
         </div>
@@ -108,7 +108,7 @@ const EntryRow = ({ entry, onSave }: EntryRowProps) => {
           </p>
           <p className="text-xs text-ink-gray-5">{entry.projectName}</p>
           <StaticTextEditor
-            editorClass="text-sm text-ink-gray-7 mt-3"
+            editorClass="prose-sm text-ink-gray-7 mt-3"
             content={entry.description}
           />
         </div>

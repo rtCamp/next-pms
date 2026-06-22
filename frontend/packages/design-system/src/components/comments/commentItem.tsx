@@ -90,8 +90,8 @@ export function CommentItem({ comment, canReply }: CommentItemProps) {
           onCancel={() => setIsEditing(false)}
         />
       ) : (
-        <div className="rounded-lg bg-surface-gray-1 px-3 py-1">
-          <StaticTextEditor content={comment.content} />
+        <div className="rounded-lg bg-surface-gray-1 px-3">
+          <StaticTextEditor content={comment.content} editorClass="prose-sm" />
         </div>
       )}
 

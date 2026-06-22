@@ -382,7 +382,10 @@ export const InlineTimeEntry = ({
                         </Button>
                       </TimeEntryForm>
                     ) : (
-                      <StaticTextEditor content={entry.description} />
+                      <StaticTextEditor
+                        content={entry.description}
+                        editorClass="max-h-30 prose-sm overflow-auto scrollbar-thin"
+                      />
                     )}
                   </div>
                 </Accordion.Panel>

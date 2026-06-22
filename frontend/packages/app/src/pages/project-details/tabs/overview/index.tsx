@@ -186,14 +186,14 @@ function OverviewForm() {
                 onChange={(value) => field.handleChange(value)}
                 fixedMenu={false}
                 editorClass={mergeClassNames(
-                  "text-sm text-ink-gray-7 w-full max-w-full p-2",
+                  "text-sm prose-sm text-ink-gray-7 w-full max-w-full p-2",
                   isEditing && "rounded-md ring-1 ring-outline-gray-2",
                 )}
               />
             ) : (
               <StaticTextEditor
                 content={field.state.value}
-                editorClass="text-sm text-ink-gray-7 w-full max-w-full p-2"
+                editorClass="prose-sm text-ink-gray-7 w-full max-w-full p-2"
               />
             )}
           </OverviewSection>
@@ -212,14 +212,14 @@ function OverviewForm() {
                   fixedMenu={false}
                   editorClass={
                     isEditing
-                      ? "text-sm text-ink-gray-7 w-full max-w-full rounded-md p-2 ring-1 ring-outline-gray-2"
-                      : "text-sm text-ink-gray-7 w-full max-w-full p-2"
+                      ? "prose-sm text-ink-gray-7 w-full max-w-full rounded-md p-2 ring-1 ring-outline-gray-2"
+                      : "prose-sm text-ink-gray-7 w-full max-w-full p-2"
                   }
                 />
               ) : (
                 <StaticTextEditor
                   content={field.state.value}
-                  editorClass="text-sm text-ink-gray-7 w-full max-w-full p-2"
+                  editorClass="prose-sm text-ink-gray-7 w-full max-w-full p-2"
                 />
               )}
             </OverviewSection>

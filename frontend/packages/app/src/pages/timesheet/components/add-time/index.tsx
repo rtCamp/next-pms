@@ -317,7 +317,7 @@ const AddTime = ({
                   content={field.state.value}
                   onChange={(value) => field.handleChange(value)}
                   fixedMenu={false}
-                  editorClass="px-2 h-24 overflow-auto scrollbar-thin bg-white border rounded-md border-outline-gray-2"
+                  editorClass="px-2 h-24 prose-sm overflow-auto scrollbar-thin bg-white border rounded-md border-outline-gray-2"
                 />
                 {!field.state.meta.isValid && (
                   <ErrorMessage message={field.state.meta.errors[0]?.message} />

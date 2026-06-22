@@ -78,7 +78,12 @@ export function UpdateEntry({ entry, onEdit, onDelete }: UpdateEntryProps) {
           </div>
 
           {/* Note text */}
-          {filteredNote && <StaticTextEditor content={filteredNote} />}
+          {filteredNote && (
+            <StaticTextEditor
+              content={filteredNote}
+              editorClass="prose prose-sm max-w-none text-ink-gray-8"
+            />
+          )}
         </div>
       </div>
     </>

@@ -52,9 +52,13 @@ export function NoteCard({ note }: NoteCardProps) {
         </h3>
         <NoteActions note={note} />
       </div>
-      <p className="flex-1 line-clamp-7 whitespace-pre-wrap px-3.5 pt-2 text-base leading-6 text-ink-gray-5">
-        <StaticTextEditor content={note.description} />
-      </p>
+      <div className="flex-1 overflow-hidden relative">
+        <StaticTextEditor
+          content={note.description}
+          editorClass="prose-sm px-3.5 pt-2"
+        />
+        <span className="absolute block left-0 bottom-0 z-10 w-full h-12 from-surface-white to-transparent pointer-events-none bg-linear-to-t"></span>
+      </div>
       <div className="flex items-center gap-2 px-3.5 pb-3.5 pt-3">
         <a
           href={authorHref}
