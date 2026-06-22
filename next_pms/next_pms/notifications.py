@@ -90,8 +90,11 @@ def send_review_reminders():
     )
 
     by_reviewer = {}
+    reviewer_cache = {}
     for ts in pending:
-        reviewer = get_reviewer(ts.employee)
+        if ts.employee not in reviewer_cache:
+            reviewer_cache[ts.employee] = get_reviewer(ts.employee)
+        reviewer = reviewer_cache[ts.employee]
         if not reviewer:
             continue
 

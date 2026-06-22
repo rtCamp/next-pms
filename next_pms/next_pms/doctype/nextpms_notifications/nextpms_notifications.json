@@ -1,6 +1,5 @@
 {
  "actions": [],
- "allow_rename": 1,
  "creation": "2026-06-18 22:19:35.913633",
  "doctype": "DocType",
  "engine": "InnoDB",
@@ -46,7 +45,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-06-22 03:41:21.283426",
+ "modified": "2026-06-22 14:27:10.565940",
  "modified_by": "Administrator",
  "module": "Next PMS",
  "name": "NextPMS Notifications",
