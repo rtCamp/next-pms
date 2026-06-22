@@ -195,6 +195,7 @@ scheduler_events = {
         "next_pms.timesheet.tasks.daily_reminder_for_time_entry.send_reminder",
         "next_pms.timesheet.tasks.send_weekly_reminder.send_reminder",
         "next_pms.resource_management.tasks.no_allocation_reminder.send_reminder",
+        "next_pms.next_pms.notifications.send_review_reminders",
     ],
     "weekly": [
         "next_pms.project_currency.tasks.reminde_project_threshold.send_reminder_mail",
@@ -260,9 +261,17 @@ doc_events = {
     "Project": {
         "on_update": [
             "next_pms.project_currency.doc_events.project.on_update",
+            "next_pms.next_projects.doc_events.project.clear_cache",
             "next_pms.resource_management.doctype.resource_allocation.resource_allocation.clear_cache",
+            "next_pms.next_pms.notifications.project_on_update",
         ],
         "on_trash": ["next_pms.resource_management.doctype.resource_allocation.resource_allocation.clear_cache"],
+    },
+    "Risk": {
+        "on_update": "next_pms.next_pms.notifications.risk_on_update",
+    },
+    "Customer Feedback": {
+        "on_submit": "next_pms.next_pms.notifications.customer_feedback_on_submit",
     },
     "Customer": {"validate": "next_pms.resource_management.doc_events.customer.validate_abbr"},
     "Employee": {

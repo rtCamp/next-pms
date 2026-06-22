@@ -1,13 +1,13 @@
 /**
  * External dependencies.
  */
-import { Avatar, Dropdown } from "@rtcamp/frappe-ui-react";
+import { formatRelativeTimeShort } from "@next-pms/design-system/utils";
+import { Avatar, Dropdown, StaticTextEditor } from "@rtcamp/frappe-ui-react";
 import { DotHorizontal } from "@rtcamp/frappe-ui-react/icons";
 
 /**
  * Internal dependencies.
  */
-import { formatRelativeTimeShort, stripTags } from "@/lib/utils";
 import { RiskLevelBadge } from "../riskLevelBadge";
 import { RiskStatusBadge } from "../riskStatusBadge";
 import type { EnrichedRiskUpdateEntry } from "../types";
@@ -20,7 +20,7 @@ interface UpdateEntryProps {
 
 export function UpdateEntry({ entry, onEdit, onDelete }: UpdateEntryProps) {
   const userDetails = entry.updated_by_details;
-  const filteredNote = entry.note ? stripTags(entry.note) : "";
+  const filteredNote = entry.note ?? "";
 
   return (
     <>
@@ -79,9 +79,10 @@ export function UpdateEntry({ entry, onEdit, onDelete }: UpdateEntryProps) {
 
           {/* Note text */}
           {filteredNote && (
-            <p className="text-base leading-relaxed text-ink-gray-8">
-              {filteredNote}
-            </p>
+            <StaticTextEditor
+              content={filteredNote}
+              editorClass="prose prose-sm max-w-none text-ink-gray-8"
+            />
           )}
         </div>
       </div>

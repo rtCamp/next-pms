@@ -4,14 +4,20 @@
 import { useCallback, useMemo, useRef, useState } from "react";
 import { Accordion } from "@base-ui/react/accordion";
 import { floatToTime, mergeClassNames as cn } from "@next-pms/design-system";
-import { Badge, Button, TextEditor, useToasts } from "@rtcamp/frappe-ui-react";
+import { stripTags } from "@next-pms/design-system/utils";
+import {
+  Badge,
+  Button,
+  StaticTextEditor,
+  useToasts,
+} from "@rtcamp/frappe-ui-react";
 import { FrappeError, useFrappePostCall } from "frappe-react-sdk";
 import { Edit, Pen, Plus, Trash2 } from "lucide-react";
 
 /**
  * Internal Dependencies
  */
-import { parseFrappeErrorMsg, stripTags } from "@/lib/utils";
+import { parseFrappeErrorMsg } from "@/lib/utils";
 import { TaskDataItemProps } from "@/types/timesheet";
 import { useInlineTimeEntryForm } from "./form";
 import { TimeEntryForm } from "./timeEntryForm";
@@ -376,10 +382,9 @@ export const InlineTimeEntry = ({
                         </Button>
                       </TimeEntryForm>
                     ) : (
-                      <TextEditor
+                      <StaticTextEditor
                         content={entry.description}
-                        editable={false}
-                        fixedMenu={false}
+                        editorClass="max-h-30 prose-sm overflow-auto scrollbar-thin"
                       />
                     )}
                   </div>

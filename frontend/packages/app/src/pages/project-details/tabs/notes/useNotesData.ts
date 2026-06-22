@@ -1,8 +1,8 @@
 /**
  * External dependencies.
  */
-import { useMemo } from "react";
-import { useFrappeGetDocList } from "frappe-react-sdk";
+import { useMemo, useCallback } from "react";
+import { useFrappeGetCall, useFrappeGetDocList } from "frappe-react-sdk";
 
 /**
  * Internal dependencies.
@@ -37,15 +37,19 @@ export function useNotesData(filters: NoteFilters) {
     return base;
   }, [projectId, filters.author, filters.title, filters.description]);
 
-  const { data, isLoading, error, mutate } = useFrappeGetDocList<Note>(
-    "Project Status Update",
+  const { data, isLoading, error, mutate } = useFrappeGetCall<{
+    message: Note[];
+  }>(
+    "frappe.client.get_list",
     {
+      doctype: "Project Status Update",
       fields: [
         "name",
         "title",
         "description",
         "status",
         "project",
+        "pinned",
         "creation",
         "modified",
         "last_edited_at",
@@ -53,36 +57,33 @@ export function useNotesData(filters: NoteFilters) {
         "owner",
         "modified_by",
       ],
-      filters: frappeFilters as never,
-      orderBy: {
-        field: "creation",
-        order: "desc",
-      },
-      limit: 500,
+      filters: frappeFilters,
+      order_by: "pinned desc, creation desc",
+      limit_page_length: 500,
     },
-    undefined,
+    projectId ? undefined : null,
     {
       keepPreviousData: true,
     },
   );
 
-  const { data: allAuthorsData } = useFrappeGetDocList<{ owner: string }>(
-    "Project Status Update",
-    {
-      fields: ["owner"],
-      filters: [
-        ["project", "=", projectId],
-        ["status", "=", "Publish"],
-      ] as never,
-      limit: 500,
-    },
-  );
+  const { data: allAuthorsData, mutate: mutateAuthors } = useFrappeGetDocList<{
+    owner: string;
+  }>("Project Status Update", {
+    fields: ["owner"],
+    filters: [
+      ["project", "=", projectId],
+      ["status", "=", "Publish"],
+    ] as never,
+    limit: 500,
+  });
 
   const allAuthors = useMemo(() => {
-    if (!allAuthorsData?.length) return [];
-    const emails = allAuthorsData
+    const emails = (allAuthorsData ?? [])
       .map((row) => row.owner)
       .filter(Boolean) as string[];
+
+    if (!emails.length) return [];
     return [...new Set(emails)];
   }, [allAuthorsData]);
 
@@ -108,14 +109,15 @@ export function useNotesData(filters: NoteFilters) {
   );
 
   const notes = useMemo<Note[]>(() => {
-    if (!data?.length) return [];
+    if (!data?.message?.length) return [];
 
-    return data.map((note) => {
+    return data.message.map((note) => {
       const authorDetails = userMap[note.owner];
 
       return {
         ...note,
-        owner_full_name: authorDetails?.full_name || note.owner,
+        pinned: Boolean(note.pinned),
+        owner_full_name: authorDetails?.full_name?.trim() || "",
         owner_image: authorDetails?.user_image ?? null,
       };
     });
@@ -124,13 +126,19 @@ export function useNotesData(filters: NoteFilters) {
   const authorOptions = useMemo<NoteAuthorOption[]>(
     () => [
       { label: "All", value: "" },
-      ...allAuthors.map((email) => ({
-        label: userMap[email]?.full_name ?? email,
-        value: email,
-      })),
+      ...allAuthors
+        .map((email) => ({
+          label: userMap[email]?.full_name?.trim() || "",
+          value: email,
+        }))
+        .filter((option) => option.label),
     ],
     [allAuthors, userMap],
   );
 
-  return { notes, isLoading, error, mutate, authorOptions };
+  const refresh = useCallback(async () => {
+    await Promise.all([mutate(), mutateAuthors()]);
+  }, [mutate, mutateAuthors]);
+
+  return { notes, isLoading, error, refresh, authorOptions };
 }

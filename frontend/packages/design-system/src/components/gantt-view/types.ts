@@ -1,3 +1,8 @@
+export type DeleteAllocationMode =
+  | "only_this"
+  | "this_and_future"
+  | "all_in_series";
+
 export interface Allocation {
   /** Unique identifier for the allocation. */
   id?: string;
@@ -5,6 +10,8 @@ export interface Allocation {
   employeeId?: string;
   /** Project identifier this allocation belongs to. */
   projectId?: string;
+  /** Recurrence identifier shared by a series of allocations. */
+  recurrenceId?: string;
   /** Hours per day. */
   hours: number;
   /** First day of the allocation. */
@@ -101,6 +108,8 @@ export interface AllocationCallbackData {
   employeeId?: string;
   /** Project identifier. */
   projectId?: string;
+  /** Recurrence identifier shared by a series of allocations. */
+  recurrenceId?: string;
   /** Project name. */
   projectName?: string;
   /** Customer name. */
@@ -177,6 +186,9 @@ export interface GanttGridProps {
   onAddAllocation?: (data: AllocationCallbackData) => void;
   /** Called when the edit icon is clicked on an allocation entry. Receives allocation data. */
   onEditAllocation?: (data: AllocationCallbackData) => void;
-  /** Called when the delete icon is clicked on an allocation entry. Receives allocation data. */
-  onDeleteAllocation?: (data: AllocationCallbackData) => void;
+  /** Called when delete is confirmed for an allocation entry. Receives allocation data and delete scope. */
+  onDeleteAllocation?: (
+    data: AllocationCallbackData,
+    deleteMode: DeleteAllocationMode,
+  ) => Promise<void>;
 }

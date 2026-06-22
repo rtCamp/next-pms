@@ -2,6 +2,7 @@
  * External dependencies.
  */
 import type { ProjectGroup } from "@next-pms/design-system/components";
+import type { FilterCondition } from "@rtcamp/frappe-ui-react";
 import { createContext, useContextSelector } from "use-context-selector";
 
 /**
@@ -15,14 +16,18 @@ export interface AllocationsProjectContextProps {
     isQueryLoading: boolean;
     isNextPageLoading: boolean;
     hasMore: boolean;
-    searchInput: string;
+    search: string;
     duration: AllocationsDuration;
+    allocationsType: string[];
+    compositeFilters: FilterCondition[];
     weekCount: number;
     anchorDate: Date;
   };
   actions: {
     setSearch: (value: string) => void;
     setDuration: (value: AllocationsDuration) => void;
+    setAllocationsType: (value: string[]) => void;
+    setCompositeFilters: (value: FilterCondition[]) => void;
     loadMore: () => void;
     handlePrevious: () => void;
     handleNext: () => void;
@@ -38,14 +43,18 @@ export const AllocationsProjectContext =
       isQueryLoading: false,
       isNextPageLoading: false,
       hasMore: true,
-      searchInput: "",
+      search: "",
       duration: "this-quarter",
+      allocationsType: [],
+      compositeFilters: [],
       weekCount: 13,
       anchorDate: new Date(),
     },
     actions: {
       setSearch: () => null,
       setDuration: () => null,
+      setAllocationsType: () => null,
+      setCompositeFilters: () => null,
       loadMore: () => null,
       handlePrevious: () => null,
       handleNext: () => null,

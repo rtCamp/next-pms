@@ -2,13 +2,13 @@
  * External dependencies.
  */
 import { useSearchParams } from "react-router-dom";
+import { formatRelativeTimeShort } from "@next-pms/design-system/utils";
 import { Avatar, Button } from "@rtcamp/frappe-ui-react";
 import { ArrowLeft } from "@rtcamp/frappe-ui-react/icons";
 
 /**
  * Internal dependencies.
  */
-import { formatRelativeTimeShort } from "@/lib/utils";
 import { NOTE_PARAM } from "../constants";
 import { NoteActions } from "../noteActions";
 import type { Note } from "../types";
@@ -25,6 +25,7 @@ export function NoteDetailHeader({ note }: NoteDetailHeaderProps) {
     true,
   );
   const authorHref = `/desk/user/${encodeURIComponent(note.owner)}`;
+  const authorName = note.owner_full_name?.trim() || "";
 
   const handleBack = () => {
     setSearchParams((prev) => {
@@ -47,12 +48,12 @@ export function NoteDetailHeader({ note }: NoteDetailHeaderProps) {
           <Avatar
             size="xs"
             shape="circle"
-            label={note.owner_full_name}
+            label={authorName}
             image={note.owner_image || undefined}
           />
         </a>
         <span className="truncate text-base font-medium text-ink-gray-8">
-          {note.owner_full_name}
+          {authorName}
         </span>
         <span className="shrink-0 text-ink-gray-5">·</span>
         <span className="shrink-0 text-base text-ink-gray-5">

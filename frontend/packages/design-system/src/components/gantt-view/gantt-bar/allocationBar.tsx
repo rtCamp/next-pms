@@ -179,6 +179,7 @@ export function GanttAllocationBar({
         allocationId: allocation.id,
         employeeId: allocation.employeeId,
         projectId: allocation.projectId,
+        recurrenceId: allocation.recurrenceId,
         projectName: allocation.projectName,
         customerName: allocation.customerName,
         startDate,

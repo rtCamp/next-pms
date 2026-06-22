@@ -1,6 +1,8 @@
 /**
  * External dependencies.
  */
+import { useState } from "react";
+import { DeleteActionDialog } from "@next-pms/design-system/components";
 import {
   Avatar,
   Button,
@@ -11,6 +13,7 @@ import {
   ListView,
 } from "@rtcamp/frappe-ui-react";
 import { AddSm } from "@rtcamp/frappe-ui-react/icons";
+import { format, parseISO } from "date-fns";
 
 /**
  * Internal dependencies.
@@ -18,12 +21,24 @@ import { AddSm } from "@rtcamp/frappe-ui-react/icons";
 import { RATE_COLUMNS } from "../constants";
 import { useTracking } from "../context";
 import { ActionsCell } from "./actionsCell";
+import { ProjectRateModal } from "./projectRateModal";
 
 const gridTemplateColumns = RATE_COLUMNS.map((c) => c.width).join(" ");
 
 export function ProjectRatesTable() {
   const rows = useTracking((state) => state.rates);
   const flatRate = useTracking((state) => state.flatRate);
+  const deleteRate = useTracking((state) => state.deleteRate);
+  const createRate = useTracking((state) => state.createRate);
+  const editRate = useTracking((state) => state.editRate);
+  const editingRate = useTracking((state) => state.editingRate);
+  const setEditingRate = useTracking((state) => state.setEditingRate);
+  const addRateModalOpen = useTracking((state) => state.addRateModalOpen);
+  const setAddRateModalOpen = useTracking((state) => state.setAddRateModalOpen);
+  const [deletingRate, setDeletingRate] = useState<{
+    name: string;
+    label: string;
+  } | null>(null);
 
   if (!rows) return null;
 
@@ -33,7 +48,11 @@ export function ProjectRatesTable() {
         <span className="text-base font-semibold text-ink-gray-8">
           Project rates
         </span>
-        <Button icon={AddSm} variant="subtle" />
+        <Button
+          icon={AddSm}
+          variant="subtle"
+          onClick={() => setAddRateModalOpen(true)}
+        />
       </div>
       <ListView
         columns={RATE_COLUMNS}
@@ -53,7 +72,7 @@ export function ProjectRatesTable() {
         <ListRows>
           {flatRate && (
             <div
-              className="grid h-10 items-center rounded-md bg-surface-gray-2 px-2 gap-2"
+              className="grid h-10 items-center rounded-md bg-surface-gray-2 px-2 gap-2 mt-2"
               style={{ gridTemplateColumns }}
             >
               <div className="truncate text-base font-medium text-ink-gray-7">
@@ -63,10 +82,9 @@ export function ProjectRatesTable() {
                 {flatRate.amount}
               </div>
               <div className="truncate text-base text-ink-gray-6 tabular-nums">
-                {flatRate.date}
-              </div>
-              <div className="flex items-center justify-end">
-                <ActionsCell onEdit={() => {}} onDelete={() => {}} />
+                {flatRate.date
+                  ? format(parseISO(flatRate.date), "MMM d, yyyy")
+                  : ""}
               </div>
             </div>
           )}
@@ -78,25 +96,76 @@ export function ProjectRatesTable() {
             rows.map((row, i) => (
               <ListRow key={row.id} row={row} isLastRow={i === rows.length - 1}>
                 <div className="flex min-w-0 items-center gap-2">
-                  <Avatar size="xs" label={row.name} image={row.image ?? ""} />
+                  <Avatar
+                    size="xs"
+                    label={row.employeeName}
+                    image={row.image ?? ""}
+                  />
                   <span className="truncate text-base font-medium text-ink-gray-7">
-                    {row.name}
+                    {row.employeeName}
                   </span>
                 </div>
                 <div className="truncate text-right text-base text-ink-gray-6 tabular-nums">
                   {row.amount}
                 </div>
                 <div className="truncate text-base text-ink-gray-6 tabular-nums">
-                  {row.date}
+                  {row.date ? format(parseISO(row.date), "MMM d, yyyy") : ""}
                 </div>
                 <div className="flex items-center justify-end">
-                  <ActionsCell onEdit={() => {}} onDelete={() => {}} />
+                  <ActionsCell
+                    onEdit={() => setEditingRate(row)}
+                    onDelete={() =>
+                      setDeletingRate({
+                        name: row.name,
+                        label: row.employeeName,
+                      })
+                    }
+                  />
                 </div>
               </ListRow>
             ))
           )}
         </ListRows>
       </ListView>
+      <ProjectRateModal
+        open={addRateModalOpen}
+        onOpenChange={setAddRateModalOpen}
+        onSubmit={createRate}
+      />
+      <ProjectRateModal
+        mode="edit"
+        open={!!editingRate}
+        onOpenChange={(next) => {
+          if (!next) setEditingRate(null);
+        }}
+        initialValues={
+          editingRate
+            ? {
+                employee: editingRate.employee,
+                hourlyRate: String(editingRate.hourlyRate),
+                validFrom: editingRate.date,
+              }
+            : undefined
+        }
+        onSubmit={async (input) => {
+          if (!editingRate) return;
+          await editRate({
+            name: editingRate.name,
+            employee: input.employee ?? "",
+            hourlyRate: input.hourlyRate,
+            validFrom: input.validFrom,
+          });
+          setEditingRate(null);
+        }}
+      />
+      {deletingRate && (
+        <DeleteActionDialog
+          title="Delete rate"
+          description={`Are you sure you want to delete the rate for ${deletingRate.label}? This action cannot be undone.`}
+          onClose={() => setDeletingRate(null)}
+          onConfirm={() => deleteRate(deletingRate.name)}
+        />
+      )}
     </div>
   );
 }

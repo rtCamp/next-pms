@@ -8,31 +8,24 @@ import { useState } from "react";
  */
 import { ClientFeedbackView } from "./clientFeedbackView";
 import { FeedbackToolbar } from "./feedbackToolbar";
-import { MOCK_TEAM_FEEDBACK } from "./mock-data";
+import { FeedbackProvider } from "./provider";
 import { TeamFeedbackView } from "./teamFeedbackView";
 import type { FeedbackType } from "./types";
 
 export function Feedback() {
   const [feedbackType, setFeedbackType] = useState<FeedbackType>("client");
-  const [selectedMonth, setSelectedMonth] = useState("2026-04");
 
   return (
-    <div>
-      <FeedbackToolbar
-        feedbackType={feedbackType}
-        setFeedbackType={setFeedbackType}
-      />
-
-      {feedbackType === "client" && (
-        <ClientFeedbackView
-          selectedMonth={selectedMonth}
-          onSelectMonth={setSelectedMonth}
+    <FeedbackProvider>
+      <div>
+        <FeedbackToolbar
+          feedbackType={feedbackType}
+          setFeedbackType={setFeedbackType}
         />
-      )}
 
-      {feedbackType === "team" && (
-        <TeamFeedbackView rows={MOCK_TEAM_FEEDBACK} />
-      )}
-    </div>
+        {feedbackType === "client" && <ClientFeedbackView />}
+        {feedbackType === "team" && <TeamFeedbackView />}
+      </div>
+    </FeedbackProvider>
   );
 }

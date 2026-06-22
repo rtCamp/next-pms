@@ -26,16 +26,16 @@ function AllocationsTeamLayoutContent() {
     addAllocationModalProps,
     editScheduleModalProps,
   } = useAllocationModal(refresh);
-  const { hasRoleAccess } = useUser(({ state }) => ({
-    hasRoleAccess: state.hasRoleAccess,
-  }));
+  const roles = useUser(({ state }) => state.roles);
+  const canManageAllocations =
+    roles.includes("Projects Manager") || roles.includes("Projects User");
 
   return (
     <>
       <Header className="justify-between">
         <AllocationsBreadcrumbs />
 
-        {hasRoleAccess ? (
+        {canManageAllocations ? (
           <Button
             variant="solid"
             onClick={() => openAddAllocationDialog({})}

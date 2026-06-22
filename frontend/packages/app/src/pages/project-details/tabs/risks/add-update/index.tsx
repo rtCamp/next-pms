@@ -7,7 +7,7 @@ import {
   Dialog,
   ErrorMessage,
   Select,
-  Textarea,
+  TextEditor,
   useToasts,
 } from "@rtcamp/frappe-ui-react";
 import { useForm } from "@tanstack/react-form";
@@ -17,7 +17,7 @@ import { FrappeError, useFrappeUpdateDoc } from "frappe-react-sdk";
 /**
  * Internal dependencies.
  */
-import { parseFrappeErrorMsg, stripTags } from "@/lib/utils";
+import { parseFrappeErrorMsg } from "@/lib/utils";
 import { RISK_LEVELS, RISK_STATUSES } from "../constants";
 import { RiskStatusBadge } from "../riskStatusBadge";
 import { addUpdateSchema } from "./schema";
@@ -134,7 +134,7 @@ export function AddUpdateModal({
         "risk_level",
         (editEntry.risk_level as string | null) ?? null,
       );
-      form.setFieldValue("note", stripTags(editEntry.note ?? ""));
+      form.setFieldValue("note", editEntry.note ?? "");
     } else {
       form.setFieldValue("status", (risk.status as string | null) ?? null);
       form.setFieldValue(
@@ -169,6 +169,7 @@ export function AddUpdateModal({
             <div className="flex flex-col gap-1.5">
               <label className="block text-base text-ink-gray-5">Status</label>
               <Select
+                variant="outline"
                 options={statusOptions}
                 value={field.state.value ?? ""}
                 onChange={(val) =>
@@ -190,6 +191,7 @@ export function AddUpdateModal({
             <div className="flex flex-col gap-1.5">
               <label className="block text-base text-ink-gray-5">Risk</label>
               <Select
+                variant="outline"
                 options={riskLevelOptions}
                 value={field.state.value ?? ""}
                 onChange={(val) =>
@@ -210,11 +212,12 @@ export function AddUpdateModal({
           children={(field) => (
             <div className="flex flex-col gap-1.5">
               <label className="block text-base text-ink-gray-5">Note</label>
-              <Textarea
-                value={field.state.value}
-                onChange={(e) => field.handleChange(e.target.value)}
+              <TextEditor
                 placeholder="Add a note..."
-                rows={4}
+                content={field.state.value}
+                onChange={(value) => field.handleChange(value)}
+                fixedMenu={false}
+                editorClass="px-2 h-24 prose-sm overflow-auto scrollbar-thin bg-white border rounded-md border-outline-gray-2"
               />
             </div>
           )}

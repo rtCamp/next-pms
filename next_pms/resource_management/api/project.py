@@ -10,6 +10,7 @@ from next_pms.resource_management.api.utils.helpers import (
     add_customer_data_if_not_exists,
     filter_project_list,
     get_dates_date,
+    normalize_project_view_filters,
     resource_api_permissions_check,
 )
 from next_pms.resource_management.api.utils.query import (
@@ -21,7 +22,6 @@ from next_pms.resource_management.api.utils.query import (
 
 
 @frappe.whitelist(methods=["GET", "POST"])
-@redis_cache()
 def get_resource_management_project_view_data(
     date: str,
     max_week: int = 2,
@@ -32,15 +32,127 @@ def get_resource_management_project_view_data(
     project_manager: str | None = None,
     tag: str | None = None,
     is_billable: str | None = None,
+    allocation_status: list | str | None = None,
     page_length: int = 10,
     start: int = 0,
     project_id: str | list | None = None,
+    filters: str | list | None = None,
 ):
-    """Returns the data required for resource management project view based on the filters provided"""
-    permissions = resource_api_permissions_check()
+    """Return the data required for the resource management project view.
 
+    Builds the filtered, paginated list of projects and, for each project, the per-week and per-date resource-allocation breakdown over the requested window.
+
+    Callers without write permission have every filter except project_name ignored (both the dedicated params and the filters conditions).
+
+    Args:
+        date: Anchor date (YYYY-MM-DD) for the allocation window; the window spans
+            max_week weeks starting from the week containing this date.
+        max_week: Number of weeks to include in the window, starting from date.
+            Defaults to 2.
+        project_name: Case-insensitive substring to match against Project.project_name
+            (applied as a LIKE). None disables the filter.
+        customer: Customer(s) to match against Project.customer. Accepts a single
+            value or a multi-select list/JSON; matched with IN. Ignored for callers
+            without write permission.
+        billing_type: Billing type(s) to match against Project.custom_billing_type
+            (IN). Ignored for callers without write permission.
+        project_type: Project type(s) to match against Project.project_type (IN).
+            Ignored for callers without write permission.
+        project_manager: Project manager user id(s) to match against
+            Project.custom_project_manager (IN). Ignored for callers without
+            write permission.
+        tag: Tag(s) to match via the Tag Link doctype; resolves to the projects
+            carrying the tag. Ignored for callers without write permission.
+        is_billable: Filters the per-project allocation breakdown to billable
+            (1) or non-billable (0) allocations. Accepts an int or a JSON
+            string. Does not change which projects are returned, only their allocation
+            data. A matching is_billable condition in filters overrides this.
+            Ignored for callers without write permission.
+        allocation_status: Status value(s) to match against Resource Allocation.status,
+            e.g. ["Confirmed", "Tentative"]. Accepts a single value, a list, or a JSON
+            string. Filters the per-project allocation breakdown to the matching statuses;
+            does not change which projects are returned. None or [] disables the filter.
+            Ignored for callers without write permission.
+        page_length: Maximum number of projects to return in this page. Defaults to 10.
+        start: Zero-based offset of the first project to return (pagination). Defaults
+            to 0.
+        project_id: Project id(s) to restrict the result to, matched against
+            Project.name (IN). Accepts a single value or a list/JSON string.
+            When provided, other dedicated project-list filter params are ignored
+            (except composite filters). Ignored for callers without write
+            permission.
+        filters: A JSON list (or already-parsed list) of [field, operator, value]
+            conditions, ANDed with each other and with the dedicated params above
+            (composite filters still apply when project_id is set). Allowed operators: =, !=, like, not like. Supported fields:
+            project_name, customer, billing_type, project_type,
+            project_manager, project_manager_name, project_id, tag, is_billable.
+            project_manager matches the manager's User id (custom_project_manager,
+            Link); project_manager_name matches the manager's name
+            (custom_project_manager_name, Data) and is LIKE-searchable. tag is
+            resolved against the Tag Link doctype; is_billable accepts only
+            = or != with a value of 0 or 1 and overrides the is_billable
+            param. For callers without write permission only project_name conditions
+            are honored.
+
+    Returns:
+        dict: The project-view payload with the keys:
+            - dates (list): the week buckets in the window, each with
+              start_date, end_date, key (label), and dates (the working
+              days in that week).
+            - data (list): one entry per project, the project fields plus
+              all_week_data (per-week allocated/worked hours), all_dates_data
+              (per-date allocation detail), project_allocations (the allocations
+              keyed by name), and weekly_capacity.
+            - customer (dict): customer metadata referenced by the allocations.
+            - employees (dict): employee metadata keyed by employee id for the
+              employees appearing in the allocations.
+            - total_count (int): total number of projects matching the filters,
+              independent of page_length.
+            - has_more (bool): whether more projects exist beyond this page.
+            - permissions (dict): the caller's read/write/delete flags.
+    """
+    permissions = resource_api_permissions_check()
+    return _get_resource_management_project_view_data(
+        json.dumps(permissions),
+        date,
+        max_week,
+        project_name,
+        customer,
+        billing_type,
+        project_type,
+        project_manager,
+        tag,
+        is_billable,
+        allocation_status,
+        page_length,
+        start,
+        project_id,
+        filters,
+    )
+
+
+@redis_cache()
+def _get_resource_management_project_view_data(
+    permissions: str,
+    date: str,
+    max_week: int = 2,
+    project_name: str | None = None,
+    customer: str | None = None,
+    billing_type: str | None = None,
+    project_type: str | None = None,
+    project_manager: str | None = None,
+    tag: str | None = None,
+    is_billable: str | None = None,
+    allocation_status: list | str | None = None,
+    page_length: int = 10,
+    start: int = 0,
+    project_id: str | list | None = None,
+    filters: str | list | None = None,
+):
+    permissions = json.loads(permissions)
     if not permissions["write"]:
         is_billable = None
+        allocation_status = None
         customer = None
         project_id = None
         billing_type = None
@@ -50,6 +162,16 @@ def get_resource_management_project_view_data(
 
     if isinstance(is_billable, str):
         is_billable = json.loads(is_billable)
+    if isinstance(allocation_status, str):
+        allocation_status = json.loads(allocation_status)
+    if allocation_status is not None and not isinstance(allocation_status, list):
+        allocation_status = [allocation_status]
+
+    project_conditions, tag_conditions, filter_is_billable = normalize_project_view_filters(
+        filters, allow_privileged=permissions["write"]
+    )
+    if filter_is_billable is not None:
+        is_billable = filter_is_billable
 
     ids = None
 
@@ -68,6 +190,8 @@ def get_resource_management_project_view_data(
         project_manager=project_manager,
         tag=tag,
         ids=ids,
+        extra_conditions=project_conditions,
+        tag_conditions=tag_conditions,
     )
 
     data = []
@@ -99,6 +223,7 @@ def get_resource_management_project_view_data(
         weeks[0].get("start_date"),
         weeks[-1].get("end_date"),
         is_billable,
+        allocation_status=allocation_status,
     )
     resource_allocation_data = attach_extra_entries(resource_allocation_data)
 

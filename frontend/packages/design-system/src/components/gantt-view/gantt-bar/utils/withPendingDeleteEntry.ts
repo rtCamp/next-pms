@@ -1,3 +1,6 @@
+/**
+ * Internal dependencies.
+ */
 import type { PendingDeleteEntry } from "../../ganttStore";
 import type { AllocationEntry } from "../allocationPopover";
 
@@ -7,11 +10,11 @@ export function withPendingDeleteEntry(
   entry: AllocationEntry,
   setPendingDeleteEntry: SetPendingDeleteEntry,
 ): AllocationEntry {
-  if (!entry.onDelete) {
+  if (!entry.onConfirmDelete) {
     return entry;
   }
 
-  const onDelete = entry.onDelete;
+  const onConfirmDelete = entry.onConfirmDelete;
 
   return {
     ...entry,
@@ -21,7 +24,8 @@ export function withPendingDeleteEntry(
         dateRange: entry.dateRange,
         hoursPerDay: entry.hoursPerDay,
         totalHours: entry.totalHours,
-        onDelete,
+        recurrenceId: entry.recurrenceId,
+        onDelete: (deleteMode) => onConfirmDelete(deleteMode),
       }),
   };
 }

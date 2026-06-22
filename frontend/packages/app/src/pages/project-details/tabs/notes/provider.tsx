@@ -2,14 +2,20 @@
  * External dependencies.
  */
 import { useCallback, useMemo, useState, type PropsWithChildren } from "react";
+import { useSearchParams } from "react-router-dom";
 import { useToasts } from "@rtcamp/frappe-ui-react";
-import { FrappeError, useFrappeDeleteDoc } from "frappe-react-sdk";
+import {
+  FrappeError,
+  useFrappeDeleteDoc,
+  useFrappePostCall,
+} from "frappe-react-sdk";
 
 /**
  * Internal dependencies.
  */
 import { useDebounce } from "@/hooks/useDebounce";
 import { parseFrappeErrorMsg } from "@/lib/utils";
+import { NOTE_PARAM } from "./constants";
 import { NotesContext, type NotesContextProps } from "./context";
 import { useNotesData } from "./useNotesData";
 
@@ -17,8 +23,13 @@ export function NotesProvider({ children }: PropsWithChildren) {
   const [titleInput, setTitleInput] = useState("");
   const [descriptionInput, setDescriptionInput] = useState("");
   const [author, setAuthor] = useState("");
-  const [isDeleting, setIsDeleting] = useState(false);
+  const [isUpdating, setIsUpdating] = useState(false);
+  const [deleteNoteName, setDeleteNoteName] = useState<string | null>(null);
+  const [, setSearchParams] = useSearchParams();
   const { deleteDoc } = useFrappeDeleteDoc();
+  const { call: updateNote } = useFrappePostCall(
+    "next_pms.timesheet.api.project_status_update.update_project_status_update",
+  );
   const toast = useToasts();
   const debouncedTitleInput = useDebounce(titleInput, 400);
   const debouncedDescriptionInput = useDebounce(descriptionInput, 400);
@@ -32,7 +43,7 @@ export function NotesProvider({ children }: PropsWithChildren) {
     [debouncedTitleInput, debouncedDescriptionInput, author],
   );
 
-  const { notes, isLoading, error, mutate, authorOptions } =
+  const { notes, isLoading, error, refresh, authorOptions } =
     useNotesData(filters);
 
   const handleTitleInputChange = useCallback((value: string) => {
@@ -49,19 +60,53 @@ export function NotesProvider({ children }: PropsWithChildren) {
 
   const deleteNote = useCallback(
     async (name: string) => {
-      setIsDeleting(true);
+      setIsUpdating(true);
       try {
         await deleteDoc("Project Status Update", name);
         toast.success("Note deleted");
-        await mutate();
+        await refresh();
+        setSearchParams((prev) => {
+          prev.delete(NOTE_PARAM);
+          return prev;
+        });
       } catch (err) {
         toast.error(parseFrappeErrorMsg(err as FrappeError));
       } finally {
-        setIsDeleting(false);
+        setIsUpdating(false);
       }
     },
-    [deleteDoc, mutate, toast],
+    [deleteDoc, refresh, toast, setSearchParams],
   );
+
+  const togglePin = useCallback(
+    async (name: string) => {
+      const note = notes.find((item) => item.name === name);
+
+      if (!note) return;
+      setIsUpdating(true);
+      try {
+        await updateNote({
+          name,
+          pinned: !note.pinned,
+        });
+        toast.success(note.pinned ? "Note unpinned" : "Note pinned");
+        await refresh();
+      } catch (err) {
+        toast.error(parseFrappeErrorMsg(err as FrappeError));
+      } finally {
+        setIsUpdating(false);
+      }
+    },
+    [notes, refresh, toast, updateNote],
+  );
+
+  const openDeleteDialog = useCallback((name: string) => {
+    setDeleteNoteName(name);
+  }, []);
+
+  const closeDeleteDialog = useCallback(() => {
+    setDeleteNoteName(null);
+  }, []);
 
   const value = useMemo<NotesContextProps>(
     () => ({
@@ -74,15 +119,19 @@ export function NotesProvider({ children }: PropsWithChildren) {
           description: descriptionInput,
           author,
         },
-        isDeleting,
+        isUpdating,
         authorOptions,
+        deleteNoteName,
       },
       actions: {
         setTitleInput: handleTitleInputChange,
         setDescriptionInput: handleDescriptionInputChange,
         setAuthor: handleAuthorChange,
-        refresh: mutate,
+        refresh,
         deleteNote,
+        togglePin,
+        openDeleteDialog,
+        closeDeleteDialog,
       },
     }),
     [
@@ -92,13 +141,17 @@ export function NotesProvider({ children }: PropsWithChildren) {
       titleInput,
       descriptionInput,
       author,
-      isDeleting,
+      isUpdating,
       authorOptions,
+      deleteNoteName,
       handleTitleInputChange,
       handleDescriptionInputChange,
       handleAuthorChange,
-      mutate,
+      refresh,
       deleteNote,
+      togglePin,
+      openDeleteDialog,
+      closeDeleteDialog,
     ],
   );
 
