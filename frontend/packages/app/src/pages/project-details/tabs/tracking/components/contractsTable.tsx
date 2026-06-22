@@ -1,6 +1,8 @@
 /**
  * External dependencies.
  */
+import { useState } from "react";
+import { DeleteActionDialog } from "@next-pms/design-system/components";
 import {
   Button,
   ListHeader,
@@ -34,6 +36,7 @@ export function ContractsTable() {
   const setAddContractModalOpen = useTracking(
     (state) => state.setAddContractModalOpen,
   );
+  const [deletingContract, setDeletingContract] = useState<string | null>(null);
 
   if (!rows) return null;
 
@@ -78,7 +81,7 @@ export function ContractsTable() {
                     >
                       <ActionsCell
                         onEdit={() => setEditingContract(row)}
-                        onDelete={() => deleteContract(row.name)}
+                        onDelete={() => setDeletingContract(row.name)}
                       />
                     </div>
                   ) : (
@@ -141,6 +144,14 @@ export function ContractsTable() {
           setEditingContract(null);
         }}
       />
+      {deletingContract && (
+        <DeleteActionDialog
+          title="Delete contract"
+          description="Are you sure you want to delete this contract? This action cannot be undone."
+          onClose={() => setDeletingContract(null)}
+          onConfirm={() => deleteContract(deletingContract)}
+        />
+      )}
     </div>
   );
 }
