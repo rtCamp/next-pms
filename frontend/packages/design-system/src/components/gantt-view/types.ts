@@ -33,6 +33,22 @@ export interface Allocation {
     name: string;
     image?: string;
   };
+  /** Existing day-level overrides attached to the allocation. */
+  override?: {
+    date: string;
+    hours?: number | null;
+    cancelled?: number | null;
+  }[];
+  /** Underlying allocation document start date. */
+  allocationStartDate?: Date;
+  /** Underlying allocation document end date. */
+  allocationEndDate?: Date;
+  /** Underlying allocation document default hours per day. */
+  allocationHoursPerDay?: number;
+  /** Total number of weekly allocations in the recurrence series. */
+  recurrenceWeekCount?: number;
+  /** Last date covered by the recurrence series. */
+  recurrenceSeriesEndDate?: Date;
 }
 
 export interface MemberBarAllocation extends Allocation {
@@ -108,6 +124,28 @@ export interface AllocationCallbackData {
   tentative?: boolean;
   /** Note for the allocation. */
   note?: string;
+  /** Existing day-level overrides attached to the allocation. */
+  override?: {
+    date: string;
+    hours?: number | null;
+    cancelled?: number | null;
+  }[];
+  /** Underlying allocation document start date. */
+  allocationStartDate?: Date;
+  /** Underlying allocation document end date. */
+  allocationEndDate?: Date;
+  /** Underlying allocation document default hours per day. */
+  allocationHoursPerDay?: number;
+  /** Total number of weekly allocations in the recurrence series. */
+  recurrenceWeekCount?: number;
+  /** Last date covered by the recurrence series. */
+  recurrenceSeriesEndDate?: Date;
+  /** Visible segment start date before the current edit. */
+  segmentStartDate?: Date;
+  /** Visible segment end date before the current edit. */
+  segmentEndDate?: Date;
+  /** Visible segment hours per day before the current edit. */
+  segmentHoursPerDay?: number;
   /** Called after the allocation is successfully saved. */
   onSuccess?: () => void;
 }
