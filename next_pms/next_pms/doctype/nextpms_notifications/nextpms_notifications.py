@@ -1,7 +1,7 @@
 # Copyright (c) 2026, rtCamp and contributors
 # For license information, please see license.txt
 
-import frappe
+from frappe.deferred_insert import deferred_insert
 from frappe.model.document import Document
 from frappe.permissions import add_user_permission
 
@@ -34,12 +34,12 @@ class NextPMSNotifications(Document):
 
 
 def create_notification(user, label, linked_doctype, linked_document):
-    frappe.get_doc(
+    deferred_insert(
+        "NextPMS Notifications",
         {
-            "doctype": "NextPMS Notifications",
             "user": user,
             "label": label,
             "linked_doctype": linked_doctype,
             "linked_document": linked_document,
-        }
-    ).insert(ignore_permissions=True)
+        },
+    )

@@ -60,6 +60,10 @@ def project_on_update(doc, method=None):
 
 def customer_feedback_on_submit(doc, method=None):
     """Notify the project manager(s) of the related project(s) when customer feedback is received."""
+    if doc.flags.get("next_pms_customer_feedback_notified"):
+        return
+    doc.flags.next_pms_customer_feedback_notified = True
+
     projects = frappe.get_all(
         "Customer Feedback Project",
         filters={"parent": doc.customer_feedback_schedule, "parenttype": "Customer Feedback Schedule"},
