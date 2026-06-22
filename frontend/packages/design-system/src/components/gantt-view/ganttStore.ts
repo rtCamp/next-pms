@@ -1,10 +1,18 @@
+/**
+ * External dependencies.
+ */
 import { createContext, useContext } from "react";
 import { addDays, startOfWeek } from "date-fns";
 import { createStore, useStore } from "zustand";
 import { useShallow } from "zustand/react/shallow";
+
+/**
+ * Internal dependencies.
+ */
 import { CELL_WIDTH, ROW_HEADER_WIDTH } from "./constants";
 import type {
   AllocationCallbackData,
+  DeleteAllocationMode,
   GanttGridVariant,
   Member as BaseMember,
   ProjectGroup as BaseProjectGroup,
@@ -26,7 +34,8 @@ export interface PendingDeleteEntry {
   dateRange: string;
   hoursPerDay: string;
   totalHours: string;
-  onDelete: () => void;
+  recurrenceId?: string;
+  onDelete: (deleteMode: DeleteAllocationMode) => Promise<void>;
 }
 
 export interface GanttActiveEdit {
@@ -45,7 +54,10 @@ interface GanttProps {
   hasRoleAccess: boolean;
   onAddAllocation?: (data: AllocationCallbackData) => void;
   onEditAllocation?: (data: AllocationCallbackData) => void;
-  onDeleteAllocation?: (data: AllocationCallbackData) => void;
+  onDeleteAllocation?: (
+    data: AllocationCallbackData,
+    deleteMode: DeleteAllocationMode,
+  ) => Promise<void>;
 }
 
 interface GanttState extends GanttProps {

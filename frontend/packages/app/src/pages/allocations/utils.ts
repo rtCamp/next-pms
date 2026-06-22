@@ -33,6 +33,7 @@ export type AllocationApiRecord = {
   employee?: string;
   project?: string;
   customer?: string | null;
+  recurrence_id?: string | null;
   hours_allocated_per_day: number;
   allocation_start_date: string;
   allocation_end_date: string;
@@ -160,6 +161,7 @@ export function mapResourceAllocation<T extends AllocationApiRecord>(
     id: allocation.name,
     employeeId: allocation.employee || undefined,
     projectId: allocation.project || undefined,
+    recurrenceId: allocation.recurrence_id ?? undefined,
     customerName: customerName ?? allocation.customer ?? undefined,
     hours: allocation.hours_allocated_per_day,
     startDate: parseISO(allocation.allocation_start_date),

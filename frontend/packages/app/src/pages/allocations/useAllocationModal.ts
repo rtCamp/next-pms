@@ -2,7 +2,10 @@
  * External dependencies.
  */
 import { useCallback, useMemo, useState } from "react";
-import type { AllocationCallbackData } from "@next-pms/design-system/components";
+import type {
+  AllocationCallbackData,
+  DeleteAllocationMode,
+} from "@next-pms/design-system/components";
 import { useToasts } from "@rtcamp/frappe-ui-react";
 import { format } from "date-fns";
 import { useFrappePostCall } from "frappe-react-sdk";
@@ -58,6 +61,7 @@ export function useAllocationModal(refresh: RefreshAllocations) {
       employeeId: data.employeeId,
       ...(data.projectId ? { projectId: data.projectId } : {}),
       customer: data.customerName,
+      recurrence: data.recurrenceId ? "recurring" : "one-time",
       fromDate: data.startDate
         ? format(data.startDate, "yyyy-MM-dd")
         : undefined,
@@ -71,7 +75,7 @@ export function useAllocationModal(refresh: RefreshAllocations) {
   }, []);
 
   const handleDelete = useCallback(
-    async (data: AllocationCallbackData) => {
+    async (data: AllocationCallbackData, deleteMode: DeleteAllocationMode) => {
       if (!data.allocationId) {
         toast.error("Allocation ID not found");
         return;
@@ -80,7 +84,7 @@ export function useAllocationModal(refresh: RefreshAllocations) {
       try {
         await deleteAllocation({
           name: data.allocationId,
-          delete_mode: "only_this",
+          delete_mode: deleteMode,
         });
         const refreshTargets = {
           ...(data.employeeId ? { employeeIds: [data.employeeId] } : {}),
