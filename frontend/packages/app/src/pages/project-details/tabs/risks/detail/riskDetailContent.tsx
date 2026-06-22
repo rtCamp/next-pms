@@ -68,12 +68,12 @@ export function RiskDetailContent({
         {/* Summary */}
         <section className="mb-6">
           {filteredSummary ? (
-            <p className="text-base leading-relaxed text-ink-gray-8">
+            <div className="text-base leading-relaxed text-ink-gray-8">
               <StaticTextEditor
                 content={filteredSummary}
                 editorClass="prose prose-sm"
               />
-            </p>
+            </div>
           ) : (
             <p className="text-sm text-ink-gray-5">No summary provided.</p>
           )}
@@ -85,12 +85,12 @@ export function RiskDetailContent({
             Mitigation plan
           </h3>
           {filteredMitigationPlan ? (
-            <p className="text-base leading-relaxed text-ink-gray-8">
+            <div className="text-base leading-relaxed text-ink-gray-8">
               <StaticTextEditor
                 content={filteredMitigationPlan}
                 editorClass="prose prose-sm"
               />
-            </p>
+            </div>
           ) : (
             <p className="text-sm text-ink-gray-5">
               No mitigation plan provided.
