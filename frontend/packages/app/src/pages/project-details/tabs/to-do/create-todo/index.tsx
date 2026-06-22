@@ -219,7 +219,7 @@ export function CreateTodoModal({ open, onClose, todo }: CreateTodoModalProps) {
                 content={field.state.value}
                 onChange={(value) => field.handleChange(value)}
                 placeholder="Add a description..."
-                editorClass="prose prose-sm max-w-none min-h-[160px] rounded-md border border-outline-gray-2 p-2 text-ink-gray-8 focus:outline-none"
+                editorClass="h-40 prose prose-sm max-w-none max-h-[160px] overflow-auto scrollbar-thin rounded-md border border-outline-gray-2 px-2 text-ink-gray-8 focus:outline-none"
               />
             </div>
           )}

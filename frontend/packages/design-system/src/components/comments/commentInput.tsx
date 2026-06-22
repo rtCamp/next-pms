@@ -91,7 +91,10 @@ export function CommentInput({
         <input
           aria-label={placeholder}
           type="text"
-          className="transition-colors w-full min-h-8 outline-none appearance-none text-base rounded h-7 border border-outline-gray-2 bg-surface-white placeholder-ink-gray-4 hover:border-outline-gray-3 hover:shadow-sm focus:bg-surface-white focus:border-outline-gray-4 focus:shadow-sm focus:ring-0 focus-visible:ring-2 focus-visible:ring-outline-gray-3 pl-2 pr-2 py-1.5"
+          className={cn(
+            "transition-colors w-full min-h-10 outline-none appearance-none text-base rounded border border-outline-gray-2 bg-surface-white placeholder-ink-gray-4",
+            "hover:border-outline-gray-3 hover:shadow-sm focus:bg-surface-white focus:border-outline-gray-4 focus:shadow-sm focus:ring-0 focus-visible:ring-2 focus-visible:ring-outline-gray-3 px-3 py-1.5",
+          )}
           onFocus={() => setIsExpanded(true)}
           placeholder={placeholder}
         />
@@ -110,7 +113,7 @@ export function CommentInput({
           fixedMenu={false}
           placeholder={placeholder}
           onChange={setDraft}
-          editorClass="min-h-11 w-full max-w-full rounded-lg border border-outline-gray-2 bg-surface-white px-2 text-ink-gray-8 prose-sm prose-p:my-0 focus:outline-none"
+          editorClass="min-h-8 max-h-50 overflow-auto scrollbar-thin prose-sm w-full max-w-full rounded border border-outline-gray-2 bg-surface-white px-3 text-ink-gray-8 prose-p:my-0 focus:outline-none"
         />
         <div className="flex items-center justify-end gap-2">
           {(onCancel || collapsible) && (

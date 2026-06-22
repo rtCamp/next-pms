@@ -2,7 +2,7 @@
  * External dependencies.
  */
 import { useCallback, useState } from "react";
-import { Avatar } from "@rtcamp/frappe-ui-react";
+import { Avatar, StaticTextEditor } from "@rtcamp/frappe-ui-react";
 
 /**
  * Internal dependencies.
@@ -11,7 +11,7 @@ import { CommentInput } from "./commentInput";
 import { ComponentActions } from "./componentActions";
 import { useCommentsContext } from "./context";
 import type { CommentNode } from "./types";
-import { formatRelativeTimeShort, stripTags } from "../../utils";
+import { formatRelativeTimeShort } from "../../utils";
 
 type CommentItemProps = {
   comment: CommentNode;
@@ -90,10 +90,8 @@ export function CommentItem({ comment, canReply }: CommentItemProps) {
           onCancel={() => setIsEditing(false)}
         />
       ) : (
-        <div className="rounded-lg bg-surface-gray-1">
-          <p className="px-3 py-2.5 text-sm text-ink-gray-8">
-            {stripTags(comment.content)}
-          </p>
+        <div className="rounded-lg bg-surface-gray-1 px-3">
+          <StaticTextEditor content={comment.content} editorClass="prose-sm" />
         </div>
       )}
 
