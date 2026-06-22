@@ -5,7 +5,12 @@ import { useCallback, useMemo, useRef, useState } from "react";
 import { Accordion } from "@base-ui/react/accordion";
 import { floatToTime, mergeClassNames as cn } from "@next-pms/design-system";
 import { stripTags } from "@next-pms/design-system/utils";
-import { Badge, Button, TextEditor, useToasts } from "@rtcamp/frappe-ui-react";
+import {
+  Badge,
+  Button,
+  StaticTextEditor,
+  useToasts,
+} from "@rtcamp/frappe-ui-react";
 import { FrappeError, useFrappePostCall } from "frappe-react-sdk";
 import { Edit, Pen, Plus, Trash2 } from "lucide-react";
 
@@ -377,11 +382,9 @@ export const InlineTimeEntry = ({
                         </Button>
                       </TimeEntryForm>
                     ) : (
-                      <TextEditor
-                        editorClass="text-ink-gray-6 text-base leading-5.25"
+                      <StaticTextEditor
                         content={entry.description}
-                        editable={false}
-                        fixedMenu={false}
+                        editorClass="max-h-30 prose-sm overflow-auto scrollbar-thin text-ink-gray-7 text-base leading-5.25"
                       />
                     )}
                   </div>

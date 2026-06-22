@@ -1,3 +1,6 @@
+/**
+ * External dependencies.
+ */
 import { Avatar, Button } from "@rtcamp/frappe-ui-react";
 import {
   AddMd,
@@ -10,7 +13,12 @@ import {
   Time,
 } from "@rtcamp/frappe-ui-react/icons";
 import { format } from "date-fns";
+
+/**
+ * Internal dependencies.
+ */
 import { mergeClassNames as cn } from "../../../utils";
+import type { DeleteAllocationMode } from "../types";
 
 export interface AllocationEntry {
   projectName: string;
@@ -25,6 +33,8 @@ export interface AllocationEntry {
   updatedByImage?: string;
   onEdit?: () => void;
   onDelete?: () => void;
+  onConfirmDelete?: (deleteMode: DeleteAllocationMode) => Promise<void>;
+  recurrenceId?: string;
   createdOn?: Date;
   updatedOn?: Date;
 }
@@ -132,7 +142,7 @@ function AllocationItem({ entry, hasRoleAccess }: AllocationItemProps) {
               {entry.onEdit && (
                 <button
                   type="button"
-                  onClick={entry.onEdit}
+                  onClick={() => entry.onEdit?.()}
                   className="transition-colors text-ink-gray-6 hover:text-ink-gray-7"
                   aria-label="Edit allocation"
                 >
@@ -142,7 +152,7 @@ function AllocationItem({ entry, hasRoleAccess }: AllocationItemProps) {
               {entry.onDelete && (
                 <button
                   type="button"
-                  onClick={entry.onDelete}
+                  onClick={() => entry.onDelete?.()}
                   className="transition-colors text-ink-gray-6 hover:text-ink-gray-7"
                   aria-label="Delete allocation"
                 >

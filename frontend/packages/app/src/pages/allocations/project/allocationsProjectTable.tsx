@@ -1,25 +1,12 @@
 /**
  * External dependencies.
  */
-import { useState } from "react";
 import { mergeClassNames as cn } from "@next-pms/design-system";
 import {
   GanttGrid,
   Spinner,
   Typography,
 } from "@next-pms/design-system/components";
-import {
-  Button,
-  Filter,
-  FilterCondition,
-  Select,
-  TextInput,
-} from "@rtcamp/frappe-ui-react";
-import {
-  DotHorizontal,
-  SmallLeftChevron,
-  SmallRightChevron,
-} from "@rtcamp/frappe-ui-react/icons";
 
 /**
  * Internal dependencies.
@@ -27,23 +14,13 @@ import {
 import { InfiniteScroll } from "@/components/infiniteScroll";
 import { isWeekendEntryAllowed } from "@/lib/utils";
 import { useAllocationOutletContext } from "@/pages/allocations/allocationOutletContext";
-import {
-  useGuardedAction,
-  useUnsavedChangesSource,
-} from "@/pages/allocations/unsavedChanges/useUnsavedChanges";
+import { useUnsavedChangesSource } from "@/pages/allocations/unsavedChanges/useUnsavedChanges";
 import { useUser } from "@/providers/user";
 import { useAllocationsProject } from "./context";
-import {
-  ALLOCATIONS_PAGE_SIZE,
-  allocationsFilters,
-  allocationsTypeOptions,
-  durationOptions,
-  navigationButtonAriaLabels,
-} from "../constants";
+import { SubHeader } from "./subHeader";
+import { ALLOCATIONS_PAGE_SIZE } from "../constants";
 
 export const AllocationsProjectTable = () => {
-  const searchInput = useAllocationsProject(({ state }) => state.searchInput);
-  const duration = useAllocationsProject(({ state }) => state.duration);
   const weekCount = useAllocationsProject(({ state }) => state.weekCount);
   const isQueryLoading = useAllocationsProject(
     ({ state }) => state.isQueryLoading,
@@ -54,37 +31,19 @@ export const AllocationsProjectTable = () => {
   const hasMore = useAllocationsProject(({ state }) => state.hasMore);
   const projects = useAllocationsProject(({ state }) => state.projects);
   const anchorDate = useAllocationsProject(({ state }) => state.anchorDate);
-  const [allocationsType, setAllocationsType] = useState("all");
-  const [compositeFilters, setCompositeFilters] = useState<FilterCondition[]>(
-    [],
-  );
-
-  const setSearch = useAllocationsProject(({ actions }) => actions.setSearch);
-  const setDuration = useAllocationsProject(
-    ({ actions }) => actions.setDuration,
-  );
   const loadMore = useAllocationsProject(({ actions }) => actions.loadMore);
-  const handlePrevious = useAllocationsProject(
-    ({ actions }) => actions.handlePrevious,
-  );
-  const handleToday = useAllocationsProject(
-    ({ actions }) => actions.handleToday,
-  );
-  const handleNext = useAllocationsProject(({ actions }) => actions.handleNext);
 
-  const guard = useGuardedAction();
   const ganttRef = useUnsavedChangesSource();
 
-  const { hasRoleAccess } = useUser(({ state }) => ({
-    hasRoleAccess: state.hasRoleAccess,
-  }));
+  const roles = useUser(({ state }) => state.roles);
+  const canManageAllocations =
+    roles.includes("Projects Manager") || roles.includes("Projects User");
 
   const {
     openAddAllocationDialog,
     openEditAllocationDialog,
     openDeleteAllocationDialog,
   } = useAllocationOutletContext();
-
   const showWeekend = isWeekendEntryAllowed();
   const hasProjects = projects.length > 0;
   const isRefreshingVisibleGrid = isQueryLoading && hasProjects;
@@ -92,71 +51,7 @@ export const AllocationsProjectTable = () => {
 
   return (
     <div className="flex flex-wrap gap-3.5 justify-between py-3.5">
-      <div className="w-full flex flex-wrap gap-2 justify-between px-5">
-        <div className="flex flex-wrap gap-2">
-          <TextInput
-            className="w-xs"
-            placeholder="Search project"
-            onChange={(e) => guard(() => setSearch(e.target.value))}
-            value={searchInput}
-          />
-          <Select
-            placeholder="Duration"
-            className="w-fit"
-            options={durationOptions}
-            value={duration}
-            onChange={(value) =>
-              guard(() =>
-                setDuration((value || "this-quarter") as typeof duration),
-              )
-            }
-          />
-          <Select
-            placeholder="Allocations Type"
-            className="w-fit"
-            options={allocationsTypeOptions}
-            value={allocationsType}
-            onChange={(value) => setAllocationsType(value ?? "all")}
-          />
-        </div>
-        <div className="flex gap-2">
-          <div className="flex items-center gap-1">
-            <Button
-              variant="ghost"
-              icon={() => (
-                <SmallLeftChevron className="size-4 text-ink-gray-8" />
-              )}
-              onClick={() => guard(handlePrevious)}
-              aria-label={navigationButtonAriaLabels["previous"][duration]}
-            />
-            <Button
-              variant="ghost"
-              label="Today"
-              onClick={() => guard(handleToday)}
-            />
-            <Button
-              variant="ghost"
-              icon={() => (
-                <SmallRightChevron className="size-4 text-ink-gray-8" />
-              )}
-              onClick={() => guard(handleNext)}
-              aria-label={navigationButtonAriaLabels["next"][duration]}
-            />
-          </div>
-          <Filter
-            align="end"
-            fields={allocationsFilters}
-            value={compositeFilters}
-            onChange={(newFilters: FilterCondition[]) => {
-              setCompositeFilters(newFilters);
-            }}
-          />
-          <Button
-            aria-label="More options"
-            icon={() => <DotHorizontal className="size-4 text-ink-gray-8" />}
-          />
-        </div>
-      </div>
+      <SubHeader />
       <div className="relative w-full h-[calc(100vh-112px)]">
         {hasProjects ? (
           <InfiniteScroll
@@ -177,7 +72,7 @@ export const AllocationsProjectTable = () => {
               projects={projects}
               rowHeaderLabel="Projects"
               weekCount={weekCount}
-              hasRoleAccess={hasRoleAccess}
+              hasRoleAccess={canManageAllocations}
               showWeekend={showWeekend}
               onAddAllocation={openAddAllocationDialog}
               onEditAllocation={openEditAllocationDialog}

@@ -74,7 +74,7 @@ export const TimeEntryForm = ({
                   onChange={(value) => field.handleChange(value)}
                   fixedMenu={false}
                   placeholder="Comment"
-                  editorClass="h-24 overflow-scroll bg-white border rounded-md border-outline-gray-2 text-ink-gray-7 text-base p-2 leading-5.25"
+                  editorClass="px-2 h-24 prose-sm overflow-scroll scrollbar-thin bg-white border rounded-md border-outline-gray-2 text-ink-gray-7 text-base leading-5.25"
                 />
                 {field.state.value === "" ? (
                   <span className="absolute flex items-center justify-center text-xs align-middle right-1 bottom-1 text-ink-gray-4">

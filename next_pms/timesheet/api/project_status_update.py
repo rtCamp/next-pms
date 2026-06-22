@@ -187,16 +187,13 @@ def update_project_status_update(
 
 @frappe.whitelist(methods=["POST"])
 @error_logger
-def add_comment_to_project_status_update(
-    name: str, comment: str, user: str | None = None, reply_to: str | None = None
-) -> dict[str, Any]:
+def add_comment_to_project_status_update(name: str, comment: str, reply_to: str | None = None) -> dict[str, Any]:
     """
     Add a comment or reply to a Project Status Update
 
     Args:
         name (str): Project Status Update document name
         comment (str): Comment text
-        user (str, optional): User ID. Defaults to current user
         reply_to (str, optional): Name of the parent comment row when posting a reply
 
     Returns:
@@ -215,7 +212,7 @@ def add_comment_to_project_status_update(
             frappe.throw(_("Parent comment '{0}' not found").format(reply_to))
 
     comment_row = doc.append("comments", {})
-    comment_row.user = user or frappe.session.user
+    comment_row.user = frappe.session.user
     comment_row.comment = comment
     comment_row.reply_to = reply_to or None
     current_time = now()
@@ -271,6 +268,12 @@ def update_comment_in_project_status_update(
         if row.name == comment_name:
             target_row = row
             break
+
+    if not target_row:
+        frappe.throw(_("Comment with name '{0}' not found").format(comment_name))
+
+    if frappe.session.user != "Administrator" and target_row.user != frappe.session.user:
+        frappe.throw(_("You do not have permission to edit this comment"), frappe.PermissionError)
 
     target_row.comment = comment
     target_row.modified_at = now()
@@ -352,6 +355,9 @@ def delete_comment_from_project_status_update(name: str, comment_name: str) -> d
 
     if not target_row:
         frappe.throw(_("Comment with name '{0}' not found").format(comment_name))
+
+    if frappe.session.user != "Administrator" and target_row.user != frappe.session.user:
+        frappe.throw(_("You do not have permission to delete this comment"), frappe.PermissionError)
 
     row_snapshot = list(doc.comments)
     row_by_name = {row.name: row for row in row_snapshot}

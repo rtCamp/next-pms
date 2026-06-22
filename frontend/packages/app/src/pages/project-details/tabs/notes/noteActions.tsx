@@ -1,7 +1,7 @@
 /**
  * External dependencies.
  */
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { Button, Dropdown } from "@rtcamp/frappe-ui-react";
 import {
   Delete,
@@ -17,7 +17,6 @@ import {
  */
 import { ROUTES } from "@/lib/constant";
 import { useProjectDetail } from "@/pages/project-details/context";
-import { NOTE_PARAM } from "./constants";
 import { useNotes } from "./context";
 import { exportNote } from "./detail/utils";
 import type { Note } from "./types";
@@ -28,19 +27,10 @@ type NoteActionsProps = {
 
 export function NoteActions({ note }: NoteActionsProps) {
   const navigate = useNavigate();
-  const [, setSearchParams] = useSearchParams();
   const projectId = useProjectDetail((s) => s.projectId);
-  const deleteNote = useNotes((s) => s.actions.deleteNote);
   const togglePin = useNotes((s) => s.actions.togglePin);
+  const openDeleteDialog = useNotes((s) => s.actions.openDeleteDialog);
   const isUpdating = useNotes((s) => s.state.isUpdating);
-
-  const handleDelete = async () => {
-    await deleteNote(note.name);
-    setSearchParams((prev) => {
-      prev.delete(NOTE_PARAM);
-      return prev;
-    });
-  };
 
   return (
     <span className="flex items-center" onClick={(e) => e.stopPropagation()}>
@@ -90,7 +80,7 @@ export function NoteActions({ note }: NoteActionsProps) {
             theme: "red",
             icon: <Delete className="size-4 mr-2" />,
             disabled: isUpdating,
-            onClick: () => void handleDelete(),
+            onClick: () => openDeleteDialog(note.name),
           },
         ]}
       />
