@@ -84,8 +84,12 @@ export default function LeadershipDashboard() {
           </div>
           <CalendarTimelineCard />
           <AssignedProjects />
-          <Timesheets />
-          <UpcomingTimeOff />
+          <div className="grid grid-cols-3 gap-3">
+            <div className="col-span-2">
+              <Timesheets />
+            </div>
+            <UpcomingTimeOff />
+          </div>
         </section>
       </div>
     </>
