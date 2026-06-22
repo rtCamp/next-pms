@@ -92,6 +92,8 @@ export function SubHeader() {
     <div className="flex flex-wrap justify-between w-full gap-2 px-5">
       <div className="flex flex-wrap gap-2">
         <TextInput
+          variant="subtle"
+          className="text-ink-gray-7 placeholder:text-ink-gray-4"
           placeholder="Search members"
           onChange={(e) => guard(() => setSearchInput(e.target.value))}
           value={searchInput}
@@ -151,7 +153,7 @@ export function SubHeader() {
                 <span
                   className={cn(
                     "truncate",
-                    displayValue ? "text-ink-gray-8" : "text-ink-gray-5",
+                    displayValue ? "text-ink-gray-8" : "text-ink-gray-4",
                   )}
                 >
                   {displayValue || "Select designation"}
@@ -162,7 +164,7 @@ export function SubHeader() {
         ) : null}
         <Select
           placeholder="Duration"
-          className="w-fit"
+          className="w-fit text-ink-gray-7"
           options={durationOptions}
           value={duration}
           onChange={(value) =>

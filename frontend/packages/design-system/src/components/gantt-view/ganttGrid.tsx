@@ -100,7 +100,7 @@ const GanttGridInner: React.FC<{
           <tr>
             <th
               rowSpan={2}
-              className="sticky left-0 z-35 bg-surface-white text-ink-gray-8 border border-l-0 border-outline-gray-1 font-medium text-start p-3 pl-4.25"
+              className="sticky left-0 z-35 bg-surface-white text-lg text-ink-gray-7 border border-l-0 border-outline-gray-1 font-medium text-start p-3 pl-4.25"
               style={{ width: headerWidth, height: HEADER_HEIGHT }}
             >
               {rowHeaderLabel}

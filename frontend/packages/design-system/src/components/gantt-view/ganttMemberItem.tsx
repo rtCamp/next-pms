@@ -104,7 +104,7 @@ export function GanttMemberItem({
                   image={member.image}
                   label={member.name}
                 />
-                <span className="ml-2 text-base font-medium leading-tight truncate text-ink-gray-8">
+                <span className="ml-2 text-base font-medium truncate text-ink-gray-8">
                   {member.name}
                 </span>
               </div>
@@ -125,7 +125,7 @@ export function GanttMemberItem({
               )}
             >
               {member.designation && (
-                <span className="text-xs leading-tight truncate text-ink-gray-6">
+                <span className="text-sm truncate text-ink-gray-6">
                   {member.designation}
                 </span>
               )}

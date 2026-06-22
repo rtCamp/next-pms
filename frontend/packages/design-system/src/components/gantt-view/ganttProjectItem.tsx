@@ -80,7 +80,7 @@ export function GanttProjectItem({
                   />
                 ) : null}
                 <Folder className="size-4 shrink-0" />
-                <span className="ml-2 text-base font-medium leading-tight truncate text-ink-gray-8">
+                <span className="ml-2 text-base font-medium truncate text-ink-gray-8">
                   {name}
                 </span>
               </div>
@@ -95,7 +95,7 @@ export function GanttProjectItem({
               )}
             >
               {subtext && (
-                <span className="text-xs leading-tight truncate text-ink-gray-6">
+                <span className="text-sm truncate text-ink-gray-6">
                   {subtext}
                 </span>
               )}
