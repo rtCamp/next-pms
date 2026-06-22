@@ -112,7 +112,7 @@ const DurationInput = ({
   return (
     <div className="space-y-1.5">
       {variant === "default" ? (
-        <div className="w-full flex justify-between text-sm text-ink-gray-6">
+        <div className="w-full flex justify-between text-sm text-ink-gray-5">
           <label>{label}</label>
           <p className={isOverHours ? "text-ink-red-4" : undefined}>
             {formattedRemainingHours}h left
