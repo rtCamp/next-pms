@@ -10,7 +10,16 @@ import { format } from "date-fns";
  * Internal dependencies.
  */
 import { pickAllowed } from "@/lib/utils";
-import { ALLOCATIONS_PAGE_SIZE } from "../constants";
+import {
+  ALLOCATION_TYPE_PARAM_KEY,
+  ALLOCATIONS_PAGE_SIZE,
+  COMPOSITE_FILTERS_PARAM_KEY,
+  DATE_PARAM_KEY,
+  DEFAULT_DURATION,
+  DURATION_PARAM_KEY,
+  DURATION_PARAM_VALUES,
+  SEARCH_PARAM_KEY,
+} from "../constants";
 import type { AllocationRefreshTargets, AllocationsDuration } from "../types";
 import {
   getWeekCountForDuration,
@@ -25,18 +34,6 @@ import {
   type AllocationsProjectContextProps,
 } from "./context";
 import { useAllocationsProjectData } from "./useAllocationsProjectData";
-
-const SEARCH_PARAM_KEY = "search";
-const DATE_PARAM_KEY = "date";
-const DURATION_PARAM_KEY = "duration";
-const ALLOCATION_TYPE_PARAM_KEY = "allocationType";
-const COMPOSITE_FILTERS_PARAM_KEY = "compositeFilters";
-const DEFAULT_DURATION = "this-quarter";
-const DURATION_PARAM_VALUES = [
-  "this-week",
-  "this-month",
-  "this-quarter",
-] as const satisfies readonly AllocationsDuration[];
 
 export function AllocationsProjectProvider({
   children,
