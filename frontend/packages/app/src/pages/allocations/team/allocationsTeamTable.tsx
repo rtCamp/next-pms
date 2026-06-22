@@ -159,13 +159,13 @@ export const AllocationsTeamTable = () => {
                 variant="subtle"
                 className="justify-between w-full"
                 iconRight={() => (
-                  <SmallDown className="size-4 shrink-0 text-ink-gray-9" />
+                  <SmallDown className="size-4 shrink-0 text-ink-gray-8" />
                 )}
               >
                 <span
                   className={cn(
                     "truncate",
-                    displayValue ? "text-ink-gray-9" : "text-ink-gray-5",
+                    displayValue ? "text-ink-gray-8" : "text-ink-gray-5",
                   )}
                 >
                   {displayValue || "Select designation"}
@@ -197,7 +197,7 @@ export const AllocationsTeamTable = () => {
             <Button
               variant="ghost"
               icon={() => (
-                <SmallLeftChevron className="size-4 text-ink-gray-9" />
+                <SmallLeftChevron className="size-4 text-ink-gray-8" />
               )}
               onClick={() => guard(handlePrevious)}
               aria-label={navigationButtonAriaLabels["previous"][duration]}
@@ -210,7 +210,7 @@ export const AllocationsTeamTable = () => {
             <Button
               variant="ghost"
               icon={() => (
-                <SmallRightChevron className="size-4 text-ink-gray-9" />
+                <SmallRightChevron className="size-4 text-ink-gray-8" />
               )}
               onClick={() => guard(handleNext)}
               aria-label={navigationButtonAriaLabels["next"][duration]}
@@ -226,7 +226,7 @@ export const AllocationsTeamTable = () => {
           />
           <Button
             aria-label="More options"
-            icon={() => <DotHorizontal className="size-4 text-ink-gray-9" />}
+            icon={() => <DotHorizontal className="size-4 text-ink-gray-8" />}
           />
         </div>
       </div>

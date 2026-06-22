@@ -53,7 +53,7 @@ export function MemberHoverCard({ member }: { member: AboutMember }) {
             target="_blank"
             rel="noreferrer"
             aria-label={`Open ${member.name}`}
-            className="shrink-0 text-ink-gray-6 hover:text-ink-gray-9"
+            className="shrink-0 text-ink-gray-6 hover:text-ink-gray-8"
             onClick={(event) => event.stopPropagation()}
           >
             <RightChevron className="size-4" />

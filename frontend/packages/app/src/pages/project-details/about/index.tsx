@@ -173,7 +173,7 @@ function AboutThisProjectContent({ className }: { className: string }) {
 
   return (
     <section className={mergeClassNames("flex h-full flex-col", className)}>
-      <h2 className="h-10 border-b border-outline-gray-1 px-5 py-3 text-lg font-medium text-ink-gray-9">
+      <h2 className="h-10 border-b border-outline-gray-1 px-5 py-3 text-lg font-medium text-ink-gray-8">
         About this project
       </h2>
       <Accordion.Root

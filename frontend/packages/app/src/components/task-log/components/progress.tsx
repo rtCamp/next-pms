@@ -22,7 +22,7 @@ const Progress: React.FC<ProgressProps> = ({
 
   return (
     <>
-      <div className="flex justify-between mt-4 text-base">
+      <div className="flex justify-between mt-4 text-sm">
         <div className="flex gap-0.75 mb-0.5">
           <div className="flex gap-1">
             <span

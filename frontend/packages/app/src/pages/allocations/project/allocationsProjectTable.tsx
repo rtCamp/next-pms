@@ -124,7 +124,7 @@ export const AllocationsProjectTable = () => {
             <Button
               variant="ghost"
               icon={() => (
-                <SmallLeftChevron className="size-4 text-ink-gray-9" />
+                <SmallLeftChevron className="size-4 text-ink-gray-8" />
               )}
               onClick={() => guard(handlePrevious)}
               aria-label={navigationButtonAriaLabels["previous"][duration]}
@@ -137,7 +137,7 @@ export const AllocationsProjectTable = () => {
             <Button
               variant="ghost"
               icon={() => (
-                <SmallRightChevron className="size-4 text-ink-gray-9" />
+                <SmallRightChevron className="size-4 text-ink-gray-8" />
               )}
               onClick={() => guard(handleNext)}
               aria-label={navigationButtonAriaLabels["next"][duration]}
@@ -153,7 +153,7 @@ export const AllocationsProjectTable = () => {
           />
           <Button
             aria-label="More options"
-            icon={() => <DotHorizontal className="size-4 text-ink-gray-9" />}
+            icon={() => <DotHorizontal className="size-4 text-ink-gray-8" />}
           />
         </div>
       </div>

@@ -69,7 +69,10 @@ const TaskEntry = ({
         <span className="text-base">{prettyDate(date).date}</span>
       </div>
 
-      <div key={description} className="whitespace-pre-wrap wrap-break-word">
+      <div
+        key={description}
+        className="whitespace-pre-wrap wrap-break-word text-base leading-5"
+      >
         {description}
       </div>
     </div>
