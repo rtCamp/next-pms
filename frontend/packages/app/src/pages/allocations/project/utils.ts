@@ -12,10 +12,11 @@ import { parseISO } from "date-fns";
  * Internal dependencies.
  */
 import {
+  buildRecurrenceSeriesMetaMap,
   calculateAllocationHourlyRate,
   formatAllocationCapacity,
   getAllocationCapacityHoursPerDay,
-  mapResourceAllocation,
+  mapResourceAllocationSegments,
 } from "../utils";
 import type {
   Customer,
@@ -126,19 +127,22 @@ function getProjectMembers(
   managerNameMap?: ManagerNameMap,
 ): ProjectMember[] {
   const membersById = new Map<string, ProjectMember>();
+  const recurrenceSeriesMetaByAllocationName =
+    buildRecurrenceSeriesMetaMap(projectAllocations);
 
   for (const allocation of projectAllocations) {
     const memberId = allocation.employee;
     const member = membersById.get(memberId);
     const employee = employees[memberId];
-    const mappedAllocation = mapResourceAllocation(
+    const mappedAllocations = mapResourceAllocationSegments(
       allocation,
       resolveCustomerName(allocation.customer, customerLookup),
+      recurrenceSeriesMetaByAllocationName.get(allocation.name),
     );
 
     if (member) {
       const memberAllocations = member.allocations ?? [];
-      memberAllocations.push(mappedAllocation);
+      memberAllocations.push(...mappedAllocations);
       member.allocations = memberAllocations;
       continue;
     }
@@ -170,7 +174,7 @@ function getProjectMembers(
           undefined)
         : undefined,
       image: employee?.image ?? undefined,
-      allocations: [mappedAllocation],
+      allocations: mappedAllocations,
     });
   }
 

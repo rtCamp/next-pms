@@ -3,7 +3,7 @@
  */
 import type { Allocation } from "@next-pms/design-system/components";
 import type { FilterCondition } from "@rtcamp/frappe-ui-react";
-import { addMonths, addWeeks, parseISO } from "date-fns";
+import { addDays, addMonths, addWeeks, format, parseISO } from "date-fns";
 
 /**
  * Internal dependencies.
@@ -47,7 +47,65 @@ export type AllocationApiRecord = {
   modified?: string | null;
   modified_by?: string | null;
   modified_by_avatar?: string | null;
+  override?: AllocationOverrideEntry[];
 };
+
+export type AllocationOverrideEntry = {
+  date: string;
+  hours?: number | null;
+  cancelled?: number | null;
+};
+
+export type RecurrenceSeriesMeta = {
+  recurrenceWeekCount: number;
+  recurrenceSeriesEndDate: string;
+};
+
+/**
+ * Builds per-allocation recurrence metadata for a flat list of allocations.
+ * Allocations sharing a `recurrence_id` are grouped into a series, and every
+ * member of that series is annotated with the total number of allocations in
+ * the series and the last date the series covers, keyed by allocation name.
+ */
+export function buildRecurrenceSeriesMetaMap<T extends AllocationApiRecord>(
+  allocations: T[],
+): Map<string, RecurrenceSeriesMeta> {
+  const allocationsByRecurrenceId = new Map<string, T[]>();
+
+  for (const allocation of allocations) {
+    if (!allocation.recurrence_id) {
+      continue;
+    }
+
+    const seriesAllocations =
+      allocationsByRecurrenceId.get(allocation.recurrence_id) ?? [];
+    seriesAllocations.push(allocation);
+    allocationsByRecurrenceId.set(allocation.recurrence_id, seriesAllocations);
+  }
+
+  const metaByAllocationName = new Map<string, RecurrenceSeriesMeta>();
+
+  for (const seriesAllocations of allocationsByRecurrenceId.values()) {
+    const sortedAllocations = [...seriesAllocations].sort((left, right) =>
+      left.allocation_start_date.localeCompare(right.allocation_start_date),
+    );
+    const recurrenceSeriesEndDate =
+      sortedAllocations[sortedAllocations.length - 1]?.allocation_end_date;
+
+    if (!recurrenceSeriesEndDate) {
+      continue;
+    }
+
+    for (const allocation of sortedAllocations) {
+      metaByAllocationName.set(allocation.name, {
+        recurrenceWeekCount: sortedAllocations.length,
+        recurrenceSeriesEndDate,
+      });
+    }
+  }
+
+  return metaByAllocationName;
+}
 
 type AllocationApiFilter = [string, string, string | string[] | number | null];
 
@@ -200,6 +258,7 @@ export function formatAllocationCapacity(
 export function mapResourceAllocation<T extends AllocationApiRecord>(
   allocation: T,
   customerName?: string,
+  recurrenceSeriesMeta?: RecurrenceSeriesMeta,
 ): Allocation & { customerName?: string } {
   return {
     id: allocation.name,
@@ -210,9 +269,17 @@ export function mapResourceAllocation<T extends AllocationApiRecord>(
     hours: allocation.hours_allocated_per_day,
     startDate: parseISO(allocation.allocation_start_date),
     endDate: parseISO(allocation.allocation_end_date),
+    allocationStartDate: parseISO(allocation.allocation_start_date),
+    allocationEndDate: parseISO(allocation.allocation_end_date),
+    allocationHoursPerDay: allocation.hours_allocated_per_day,
     billable: Boolean(allocation.is_billable),
     tentative: allocation.status === "Tentative",
     note: allocation.note ?? undefined,
+    override: allocation.override,
+    recurrenceWeekCount: recurrenceSeriesMeta?.recurrenceWeekCount,
+    recurrenceSeriesEndDate: recurrenceSeriesMeta?.recurrenceSeriesEndDate
+      ? parseISO(recurrenceSeriesMeta.recurrenceSeriesEndDate)
+      : undefined,
     createdOn: allocation.creation
       ? parseFrappeDatetime(allocation.creation)
       : undefined,
@@ -226,6 +293,85 @@ export function mapResourceAllocation<T extends AllocationApiRecord>(
         }
       : undefined,
   };
+}
+
+/**
+ * Splits an allocation into visible contiguous segments after applying per-day overrides.
+ * Each segment is treated as its own visible allocation entry while still pointing at
+ * the same underlying allocation document id.
+ */
+export function mapResourceAllocationSegments<T extends AllocationApiRecord>(
+  allocation: T,
+  customerName?: string,
+  recurrenceSeriesMeta?: RecurrenceSeriesMeta,
+): Array<Allocation & { customerName?: string }> {
+  const baseAllocation = mapResourceAllocation(
+    allocation,
+    customerName,
+    recurrenceSeriesMeta,
+  );
+  const overrideByDate = new Map(
+    (allocation.override ?? []).map((entry) => [entry.date, entry]),
+  );
+
+  if (!overrideByDate.size) {
+    return [baseAllocation];
+  }
+
+  const segments: Array<Allocation & { customerName?: string }> = [];
+
+  let currentDate = baseAllocation.startDate;
+  let segmentStart: Date | null = null;
+  let segmentEnd: Date | null = null;
+  let segmentHours: number | null = null;
+
+  const pushSegment = () => {
+    if (!segmentStart || !segmentEnd || segmentHours === null) {
+      return;
+    }
+
+    segments.push({
+      ...baseAllocation,
+      startDate: segmentStart,
+      endDate: segmentEnd,
+      hours: segmentHours,
+      override: allocation.override,
+    });
+  };
+
+  while (currentDate <= baseAllocation.endDate) {
+    const dateKey = format(currentDate, "yyyy-MM-dd");
+    const dayOverride = overrideByDate.get(dateKey);
+    const dayHours =
+      dayOverride?.cancelled === 1
+        ? 0
+        : (dayOverride?.hours ?? baseAllocation.hours);
+
+    if (dayHours <= 0) {
+      pushSegment();
+      segmentStart = null;
+      segmentEnd = null;
+      segmentHours = null;
+      currentDate = addDays(currentDate, 1);
+      continue;
+    }
+
+    if (segmentStart && segmentHours === dayHours) {
+      segmentEnd = currentDate;
+      currentDate = addDays(currentDate, 1);
+      continue;
+    }
+
+    pushSegment();
+    segmentStart = currentDate;
+    segmentEnd = currentDate;
+    segmentHours = dayHours;
+    currentDate = addDays(currentDate, 1);
+  }
+
+  pushSegment();
+
+  return segments;
 }
 
 /**
