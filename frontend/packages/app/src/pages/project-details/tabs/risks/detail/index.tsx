@@ -23,6 +23,7 @@ export function RiskDetailView({ riskId }: RiskDetailViewProps) {
     mutate,
     mutateAttachments,
     mutateFollowers,
+    deleteUpdateEntry,
   } = useRiskDetail(riskId);
 
   if (isLoading) {
@@ -53,6 +54,7 @@ export function RiskDetailView({ riskId }: RiskDetailViewProps) {
         attachments={attachments}
         mutate={mutate}
         mutateAttachments={mutateAttachments}
+        onDeleteUpdateEntry={deleteUpdateEntry}
       />
     </div>
   );

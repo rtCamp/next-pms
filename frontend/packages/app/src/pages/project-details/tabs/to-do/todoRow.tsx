@@ -1,6 +1,8 @@
 /**
  * External dependencies.
  */
+import { useState } from "react";
+import { DeleteActionDialog } from "@next-pms/design-system/components";
 import { Avatar, Dropdown } from "@rtcamp/frappe-ui-react";
 import {
   Calendar,
@@ -64,6 +66,7 @@ type TodoRowProps = {
 export function TodoRow({ todo, onEdit }: TodoRowProps) {
   const updateTodoStatus = useTodos((c) => c.actions.updateTodoStatus);
   const deleteTodo = useTodos((c) => c.actions.deleteTodo);
+  const [confirmDelete, setConfirmDelete] = useState(false);
 
   const assigneeHref = `/desk/user/${encodeURIComponent(todo.allocated_to)}`;
   const StatusIcon = STATUS_ICON[todo.status];
@@ -137,10 +140,19 @@ export function TodoRow({ todo, onEdit }: TodoRowProps) {
             label: "Delete",
             key: "delete",
             theme: "red",
-            onClick: () => deleteTodo(todo.name),
+            onClick: () => setConfirmDelete(true),
           },
         ]}
       />
+
+      {confirmDelete && (
+        <DeleteActionDialog
+          title="Delete to-do"
+          description="Are you sure you want to delete this to-do? This action cannot be undone."
+          onClose={() => setConfirmDelete(false)}
+          onConfirm={() => deleteTodo(todo.name)}
+        />
+      )}
     </div>
   );
 }
