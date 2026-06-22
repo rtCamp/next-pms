@@ -145,7 +145,8 @@ export const PersonalTimesheetTable = () => {
                                 ],
                                 highlightLastItem: false,
                                 size: "sm",
-                                crumbClassName: "first:pl-0 last:pr-0",
+                                crumbClassName:
+                                  "first:pl-0 px-0.5 py-0 last:pr-0 font-[420]",
                                 className: "pl-[8px]",
                               }}
                             />
