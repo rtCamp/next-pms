@@ -2,8 +2,7 @@
  * External dependencies.
  */
 import { useState } from "react";
-import { stripTags } from "@next-pms/design-system/utils";
-import { Button } from "@rtcamp/frappe-ui-react";
+import { Button, StaticTextEditor } from "@rtcamp/frappe-ui-react";
 import { Plus } from "lucide-react";
 
 /**
@@ -40,10 +39,8 @@ export function RiskDetailContent({
   const [deleteEntry, setDeleteEntry] =
     useState<EnrichedRiskUpdateEntry | null>(null);
 
-  const filteredSummary = risk.summary ? stripTags(risk.summary) : "";
-  const filteredMitigationPlan = risk.mitigation_plan
-    ? stripTags(risk.mitigation_plan)
-    : "";
+  const filteredSummary = risk.summary ?? "";
+  const filteredMitigationPlan = risk.mitigation_plan ?? "";
 
   return (
     <>
@@ -72,7 +69,7 @@ export function RiskDetailContent({
         <section className="mb-6">
           {filteredSummary ? (
             <p className="text-base leading-relaxed text-ink-gray-8">
-              {filteredSummary}
+              <StaticTextEditor content={filteredSummary} />
             </p>
           ) : (
             <p className="text-sm text-ink-gray-5">No summary provided.</p>
@@ -86,7 +83,7 @@ export function RiskDetailContent({
           </h3>
           {filteredMitigationPlan ? (
             <p className="text-base leading-relaxed text-ink-gray-8">
-              {filteredMitigationPlan}
+              <StaticTextEditor content={filteredMitigationPlan} />
             </p>
           ) : (
             <p className="text-sm text-ink-gray-5">

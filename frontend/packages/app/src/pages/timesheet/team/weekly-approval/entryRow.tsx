@@ -4,7 +4,7 @@
 import { useState, useCallback } from "react";
 import { floatToTime } from "@next-pms/design-system";
 import { TaskStatus, DurationInput } from "@next-pms/design-system/components";
-import { Button, TextEditor } from "@rtcamp/frappe-ui-react";
+import { Button, StaticTextEditor, TextEditor } from "@rtcamp/frappe-ui-react";
 import { Edit, Check, X } from "lucide-react";
 
 /**
@@ -107,11 +107,9 @@ const EntryRow = ({ entry, onSave }: EntryRowProps) => {
             {entry.taskName}
           </p>
           <p className="text-xs text-ink-gray-5">{entry.projectName}</p>
-          <TextEditor
+          <StaticTextEditor
             editorClass="text-sm text-ink-gray-7 mt-3"
             content={entry.description}
-            editable={false}
-            fixedMenu={false}
           />
         </div>
       </div>

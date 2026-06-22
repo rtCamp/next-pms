@@ -3,11 +3,8 @@
  */
 import { useCallback } from "react";
 import { useSearchParams } from "react-router-dom";
-import {
-  formatRelativeTimeShort,
-  stripTags,
-} from "@next-pms/design-system/utils";
-import { Avatar } from "@rtcamp/frappe-ui-react";
+import { formatRelativeTimeShort } from "@next-pms/design-system/utils";
+import { Avatar, StaticTextEditor } from "@rtcamp/frappe-ui-react";
 
 /**
  * Internal dependencies.
@@ -22,7 +19,6 @@ type NoteCardProps = {
 
 export function NoteCard({ note }: NoteCardProps) {
   const [, setSearchParams] = useSearchParams();
-  const excerpt = stripTags(note.description);
   const relativeDate = formatRelativeTimeShort(note.creation, new Date(), true);
   const authorHref = `/desk/user/${encodeURIComponent(note.owner)}`;
   const authorName = note.owner_full_name || note.owner;
@@ -57,7 +53,7 @@ export function NoteCard({ note }: NoteCardProps) {
         <NoteActions note={note} />
       </div>
       <p className="flex-1 line-clamp-7 whitespace-pre-wrap px-3.5 pt-2 text-base leading-6 text-ink-gray-5">
-        {excerpt}
+        <StaticTextEditor content={note.description} />
       </p>
       <div className="flex items-center gap-2 px-3.5 pb-3.5 pt-3">
         <a
