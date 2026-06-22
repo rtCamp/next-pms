@@ -20,8 +20,11 @@ export function DeleteCommentDialog({
   return (
     <Dialog.Root open={open} onOpenChange={(o) => !o && onClose()}>
       <Dialog.Portal>
-        <Dialog.Backdrop className="fixed inset-0 bg-black-overlay-200 backdrop-blur-md" />
-        <Dialog.Popup className="fixed left-1/2 top-1/2 z-50 w-full max-w-sm -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-xl bg-surface-modal shadow-xl">
+        <Dialog.Backdrop
+          forceRender={true}
+          className="fixed inset-0 bg-black-overlay-200 backdrop-blur-md z-50"
+        />
+        <Dialog.Popup className="fixed left-1/2 top-1/2 w-full max-w-sm -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-xl bg-surface-modal shadow-xl z-60">
           <div className="px-4 pb-6 pt-5 sm:px-6">
             <div className="mb-4">
               <Dialog.Title className="text-xl font-semibold text-ink-gray-9">
