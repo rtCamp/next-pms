@@ -273,7 +273,7 @@ function AddAllocationModal({
             Employee
           </label>
           <Combobox
-            inputClassName="bg-white h-8 border-outline-gray-2"
+            inputClassName="bg-white h-8 border-outline-gray-2 text-ink-gray-7"
             loading={isEmployeeLookupLoading}
             options={employeeOptions}
             searchValue={employeeSearch}
@@ -300,7 +300,7 @@ function AddAllocationModal({
             Project
           </label>
           <Combobox
-            inputClassName="bg-white h-8 border-outline-gray-2"
+            inputClassName="bg-white h-8 border-outline-gray-2 text-ink-gray-7"
             loading={isProjectLookupLoading}
             options={projectOptions}
             searchValue={projectSearch}
@@ -327,7 +327,7 @@ function AddAllocationModal({
             Customer
           </label>
           <Combobox
-            inputClassName="bg-white h-8 border-outline-gray-2"
+            inputClassName="bg-white h-8 border-outline-gray-2 text-ink-gray-7"
             loading={isCustomerLookupLoading}
             options={customerOptions}
             searchValue={customerSearch}
@@ -354,7 +354,7 @@ function AddAllocationModal({
       onOpenChange={handleOpenChange}
       options={{
         title: () => (
-          <span className="text-lg font-medium">
+          <span className="text-lg font-medium text-ink-gray-7">
             {variant === "add" ? "Add Allocation" : "Edit Allocation"}
           </span>
         ),
@@ -364,7 +364,7 @@ function AddAllocationModal({
           <form.Field
             name="isTentative"
             children={(field) => (
-              <label className="inline-flex items-center gap-2 text-base shrink-0 text-ink-gray-6">
+              <label className="inline-flex items-center gap-2 text-base shrink-0 text-ink-gray-7">
                 <Checkbox
                   value={field.state.value}
                   onChange={(checked) => field.handleChange(Boolean(checked))}
@@ -409,6 +409,7 @@ function AddAllocationModal({
                 Recurrence
               </label>
               <TabButtons
+                className="[&_button:not([data-pressed])]:text-ink-gray-5 [&_[data-pressed]]:text-ink-gray-8"
                 value={field.state.value}
                 onChange={(value) =>
                   field.handleChange(value as "one-time" | "recurring")
@@ -428,7 +429,7 @@ function AddAllocationModal({
           <form.Field
             name="includeWeekends"
             children={(field) => (
-              <label className="inline-flex items-center gap-2 text-base text-ink-gray-8">
+              <label className="inline-flex items-center gap-2 text-base text-ink-gray-6">
                 <Checkbox
                   value={field.state.value}
                   onChange={(checked) => field.handleChange(Boolean(checked))}
@@ -475,13 +476,13 @@ function AddAllocationModal({
                     placeholder="Start Date - End Date"
                   >
                     {({ displayValue }) => (
-                      <div className="w-full relative flex items-center border border-outline-gray-2 px-2.5 py-1 rounded-lg">
+                      <div className="w-full relative flex items-center border border-outline-gray-2 px-2.5 py-1 rounded">
                         <input
                           readOnly
                           type="text"
                           id="start"
                           value={displayValue}
-                          className="flex-1"
+                          className="flex-1 text-base text-ink-gray-7"
                         />
                         <Calendar className="size-4" />
                       </div>
@@ -558,6 +559,7 @@ function AddAllocationModal({
               size="md"
               value={totalHours}
               variant="outline"
+              className="[&_input]:text-ink-gray-7"
             />
           </div>
         </div>
@@ -587,7 +589,7 @@ function AddAllocationModal({
                 value={field.state.value ?? ""}
                 onChange={(e) => field.handleChange(e.target.value)}
                 placeholder="Add a note"
-                className="bg-white border-outline-gray-2"
+                className="bg-white border-outline-gray-2 text-ink-gray-7"
               />
             </div>
           )}
