@@ -83,11 +83,11 @@ export default function UpcomingTimeOff() {
               <div className="flex min-w-0 flex-1 flex-col gap-1">
                 <span className="text-xs text-ink-gray-5">{group.label}</span>
                 <div className="flex min-w-0 items-center gap-1">
-                  <div className="flex items-center">
+                  <div className="flex items-center justify-center pb-1">
                     {group.people.map((person, index) => (
                       <div
                         key={person.employee}
-                        className="-mr-1 rounded-full outline-2 outline-white last:mr-0"
+                        className="-mr-1 last:mr-0"
                         style={{ zIndex: group.people.length - index }}
                       >
                         <Avatar

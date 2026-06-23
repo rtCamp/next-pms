@@ -90,7 +90,7 @@ export default function Timesheets() {
       <div className="flex items-center justify-between gap-4">
         <h3 className="text-lg font-semibold text-ink-gray-8">Timesheets</h3>
         <Select
-          className="w-fit shrink-0 bg-surface-gray-2 font-bold text-ink-gray-7"
+          className="w-fit shrink-0 bg-surface-gray-2 text-ink-gray-7"
           options={PERIOD_OPTIONS}
           value={period}
           onChange={(value) => setPeriod(value ?? LAST_WEEK_VALUE)}
