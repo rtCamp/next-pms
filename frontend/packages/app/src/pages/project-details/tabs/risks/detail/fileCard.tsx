@@ -28,7 +28,7 @@ export function FileCard({ file }: FileCardProps) {
         <FileText className="size-4" />
       </div>
       <div className="flex-1 min-w-0">
-        <p className="text-sm font-medium truncate text-ink-gray-8">
+        <p className="text-base font-medium truncate text-ink-gray-7">
           {nameWithoutExt}
         </p>
         <p className="text-2xs truncate text-ink-gray-5">

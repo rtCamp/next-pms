@@ -18,7 +18,7 @@ interface KanbanColumnHeaderProps {
 export function KanbanColumnHeader({ status, onAdd }: KanbanColumnHeaderProps) {
   return (
     <div className="flex items-center justify-between px-1.5">
-      <RiskStatusBadge status={status} className="text-base" />
+      <RiskStatusBadge status={status} className="text-base text-ink-gray-7" />
 
       <Button
         variant="ghost"

@@ -48,6 +48,7 @@ export function ColumnsDropdown({
         options={COLUMN_OPTIONS}
         value={selectedValues}
         triggerLabel="Columns"
+        triggerClassName="text-ink-gray-7"
         hideSearch
         onChange={handleChange}
         renderOption={(option) => (

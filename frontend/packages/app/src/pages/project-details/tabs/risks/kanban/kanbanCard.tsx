@@ -50,7 +50,7 @@ export function RiskCard({ risk }: RiskCardProps) {
       className="flex w-full cursor-pointer flex-col gap-2.5 rounded-xl border border-outline-gray-1 bg-surface-white shadow-sm hover:bg-surface-gray-1 focus:outline-none focus-visible:ring focus-visible:ring-outline-gray-3"
     >
       {/* Risk level header */}
-      <div className="px-3.5 py-3 flex items-center gap-2 text-ink-gray-8 text-base border-b border-outline-gray-1">
+      <div className="px-3.5 py-3 flex items-center gap-2 text-ink-gray-7 text-base border-b border-outline-gray-1">
         <Fire className="size-4 shrink-0" />
         <span className="font-medium underline underline-offset-2">
           {risk.risk_level ? `${risk.risk_level} risk` : "Unknown risk level"}
@@ -86,7 +86,9 @@ export function RiskCard({ risk }: RiskCardProps) {
         {risk.summary && (
           <div className="flex items-start gap-2">
             <AlignLeft className="size-4 shrink-0 mt-0.5" />
-            <span className="line-clamp-2">{stripTags(risk.summary)}</span>
+            <span className="line-clamp-2 leading-normal">
+              {stripTags(risk.summary)}
+            </span>
           </div>
         )}
       </div>
