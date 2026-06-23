@@ -37,6 +37,7 @@ export function ProjectListSubHeader() {
     <div className="flex flex-wrap gap-2 justify-between px-5 py-3.5">
       <div className="flex gap-2">
         <TextInput
+          className="text-ink-gray-7"
           size="sm"
           placeholder="Search project"
           value={searchInput}
@@ -44,21 +45,21 @@ export function ProjectListSubHeader() {
         />
         <Select
           placeholder="RAG Status"
-          className="w-fit"
+          className="w-fit text-ink-gray-7"
           value={ragStatus}
           onChange={(v) => setRagStatus((v || "") as RagStatus | "")}
           options={RAG_OPTIONS}
         />
         <Select
           placeholder="Phases"
-          className="w-fit"
+          className="w-fit text-ink-gray-7"
           value={phase}
           onChange={(v) => setPhase((v || "") as Phase | "")}
           options={PHASE_OPTIONS}
         />
         <Select
           placeholder="Status"
-          className="w-fit"
+          className="w-fit text-ink-gray-7"
           value={status}
           onChange={(v) => setStatus((v || "") as ProjectStatus | "")}
           options={STATUS_OPTIONS}
