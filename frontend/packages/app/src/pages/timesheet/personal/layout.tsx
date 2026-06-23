@@ -51,6 +51,7 @@ function PersonalTimesheetLayout() {
             "Leave Application",
           ) && (
             <Button
+              className="text-ink-gray-7"
               onClick={() => setIsLeaveDialogOpen(true)}
               label="Add time-off"
               iconLeft={() => <CalendarX2 />}

@@ -71,6 +71,7 @@ const Sidebar = () => {
       <BaseSidebar
         collapsed={isSidebarCollapsed}
         onCollapseChange={updateIsSidebarCollapsed}
+        activeItemClassName="text-ink-gray-8"
         header={{
           title: "Next PMS",
           subtitle: employeeName,
