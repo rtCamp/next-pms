@@ -53,6 +53,7 @@ export function RisksToolbar() {
         <Select
           size="sm"
           placeholder="Owner"
+          placeholderClassName="text-ink-gray-7"
           className="w-fit text-ink-gray-7"
           value={filters.owner}
           onChange={(v) => setFilters({ owner: (v ?? "") as string })}
@@ -61,6 +62,7 @@ export function RisksToolbar() {
         <Select
           size="sm"
           placeholder="Status"
+          placeholderClassName="text-ink-gray-7"
           className="w-fit text-ink-gray-7"
           value={filters.status}
           onChange={(v) => setFilters({ status: (v ?? "") as RiskStatus | "" })}
@@ -69,6 +71,7 @@ export function RisksToolbar() {
         <Select
           size="sm"
           placeholder="Risk level"
+          placeholderClassName="text-ink-gray-7"
           className="w-fit text-ink-gray-7"
           value={filters.riskLevel}
           onChange={(v) => setFilters({ riskLevel: (v ?? "") as string })}

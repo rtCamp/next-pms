@@ -111,6 +111,7 @@ const TeamTaskLog: React.FC<TeamTaskLogProps> = ({
               }}
               options={dateMap}
               placeholder="Select option"
+              placeholderClassName="text-ink-gray-7"
               value={selectedDays}
             />
           </div>

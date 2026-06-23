@@ -45,6 +45,7 @@ export function ProjectListSubHeader() {
         />
         <Select
           placeholder="RAG Status"
+          placeholderClassName="text-ink-gray-7"
           className="w-fit text-ink-gray-7"
           value={ragStatus}
           onChange={(v) => setRagStatus((v || "") as RagStatus | "")}
@@ -52,6 +53,7 @@ export function ProjectListSubHeader() {
         />
         <Select
           placeholder="Phases"
+          placeholderClassName="text-ink-gray-7"
           className="w-fit text-ink-gray-7"
           value={phase}
           onChange={(v) => setPhase((v || "") as Phase | "")}
@@ -59,6 +61,7 @@ export function ProjectListSubHeader() {
         />
         <Select
           placeholder="Status"
+          placeholderClassName="text-ink-gray-7"
           className="w-fit text-ink-gray-7"
           value={status}
           onChange={(v) => setStatus((v || "") as ProjectStatus | "")}
