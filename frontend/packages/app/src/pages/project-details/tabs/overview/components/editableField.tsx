@@ -28,10 +28,10 @@ export function EditableField({
         {icon}
       </span>
       <div className="flex min-w-0 flex-col">
-        <span className="text-[13px] font-light text-ink-gray-6">{label}</span>
+        <span className="text-sm text-ink-gray-6">{label}</span>
         <span
           className={mergeClassNames(
-            "truncate text-sm font-medium text-ink-gray-7",
+            "truncate text-base font-medium text-ink-gray-7",
             showEditor && "hidden",
           )}
         >
