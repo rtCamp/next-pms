@@ -36,7 +36,7 @@ export function FeedbackDetailBody({ feedbackId }: { feedbackId: string }) {
       <Spinner isFull={true} />
     </div>
   ) : (
-    <div className="-mx-5 -mb-6 sm:-mx-6 flex border-t border-outline-gray-1 max-h-[72vh] -mt-4 relative">
+    <div className="-mx-5 -mb-6 sm:-mx-6 flex border-t border-outline-gray-1 max-h-[72vh] relative">
       {/* Left: main content */}
       <div className="flex-1 min-w-0 max-h-[72vh] overflow-y-auto scrollbar-thin">
         <div className="flex flex-col gap-6 p-6">
@@ -47,9 +47,7 @@ export function FeedbackDetailBody({ feedbackId }: { feedbackId: string }) {
                 key={cat.label}
                 className="flex basis-36 shrink-0 flex-col gap-3 rounded-lg border border-outline-gray-1 bg-surface-modal p-3"
               >
-                <span className="text-sm text-ink-gray-5 leading-tight">
-                  {cat.label}
-                </span>
+                <span className="text-sm text-ink-gray-5">{cat.label}</span>
                 <div className="mt-auto">
                   <StarRating
                     rating={cat.rating}
@@ -65,10 +63,10 @@ export function FeedbackDetailBody({ feedbackId }: { feedbackId: string }) {
 
           {/* Areas of improvement */}
           <div className="flex flex-col gap-2">
-            <h3 className="text-xl font-semibold text-ink-gray-8">
+            <h3 className="text-xl font-semibold text-ink-gray-7">
               Areas of improvement
             </h3>
-            <p className="text-base text-ink-gray-8 leading-relaxed">
+            <p className="text-base text-ink-gray-7 leading-normal">
               {detail.areasOfImprovement || "No specific areas mentioned."}
             </p>
           </div>
@@ -82,7 +80,7 @@ export function FeedbackDetailBody({ feedbackId }: { feedbackId: string }) {
             authorId={userId}
             canManageAllComments={currentUser === "Administrator"}
             title="Comments"
-            titleClassName="text-xl font-semibold"
+            titleClassName="text-xl font-semibold text-ink-gray-7"
             inputPlaceholder="Add a comment"
             inputSubmitLabel="Post"
             inputTriggerClassName="sticky bottom-0 pb-6 -mb-6 bg-linear-to-t from-surface-white"

@@ -43,7 +43,7 @@ export function ClientFeedbackView() {
       ) : (
         <div className="grid grid-cols-[240px_1fr] gap-6">
           <div>
-            <h3 className="text-lg text-ink-gray-8 font-medium mb-3.5">
+            <h3 className="text-lg text-ink-gray-7 font-medium mb-3.5">
               {format(
                 new Date(selectedClientMonth.year, selectedClientMonth.month),
                 "MMMM",
@@ -53,7 +53,7 @@ export function ClientFeedbackView() {
             <FeedbackBreakdown metrics={breakdown} />
           </div>
           <div>
-            <h3 className="text-lg text-ink-gray-8 font-medium mb-3.5">
+            <h3 className="text-lg text-ink-gray-7 font-medium mb-3.5">
               Responses
             </h3>
             <ResponsesList responses={responses} />

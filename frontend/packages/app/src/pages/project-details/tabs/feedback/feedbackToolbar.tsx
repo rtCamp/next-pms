@@ -40,7 +40,7 @@ export function FeedbackToolbar({
         <Button
           type="button"
           variant="ghost"
-          className="text-xl font-semibold"
+          className="text-xl font-semibold text-ink-gray-7"
           label={feedbackTypeLabel}
           iconRight={() => <SmallDown className="size-4" />}
         />
