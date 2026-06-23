@@ -28,16 +28,20 @@ export function HoursUsageCell() {
         size="md"
         indicatorClassName="bg-surface-blue-4"
       />
-      <div className="flex flex-col gap-2 text-base text-ink-gray-7">
+      <div className="flex flex-col gap-2 text-base">
         <LegendItem
           className="bg-surface-blue-4"
-          label="Hours Utilized"
+          label="Hours utilised"
           value={`${utilised} h`}
+          labelClassName="text-ink-gray-6"
+          valueClassName="font-medium text-ink-gray-6"
         />
         <LegendItem
           className="bg-surface-gray-3"
-          label="Hours Remaining"
+          label="Hours remaining"
           value={`${remaining} h`}
+          labelClassName="text-ink-gray-6"
+          valueClassName="font-medium text-ink-gray-6"
         />
       </div>
     </div>
