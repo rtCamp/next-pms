@@ -38,7 +38,7 @@ export function ExpandableList<T>({
         <button
           type="button"
           onClick={() => setExpanded((prev) => !prev)}
-          className="py-1.5 text-left text-base font-light text-ink-gray-5 hover:text-ink-gray-7"
+          className="py-1.5 text-left text-base text-ink-gray-5 hover:text-ink-gray-7"
         >
           {expanded ? "Show less" : `+${remaining} more ${itemLabel}`}
         </button>
