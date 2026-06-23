@@ -131,6 +131,7 @@ const DurationInput = ({
           <Slider.Control className="flex items-center rounded relative focus:border-outline-gray-4 focus:shadow-sm focus:ring-0 focus-visible:ring-2 focus-visible:ring-outline-gray-3">
             <Slider.Track className="w-full h-7 bg-surface-gray-1 rounded">
               <Slider.Indicator className="rounded bg-surface-gray-3 select-none" />
+              <Slider.Thumb aria-label="Duration" />
             </Slider.Track>
           </Slider.Control>
         </Slider.Root>
