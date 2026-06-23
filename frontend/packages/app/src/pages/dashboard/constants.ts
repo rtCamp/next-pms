@@ -6,21 +6,31 @@ import type { ComboboxOption } from "@rtcamp/frappe-ui-react";
 /**
  * Internal dependencies.
  */
-import type { StatCardData } from "./statCard";
+import type { NotificationItem } from "./widget/notificationsCard";
 
-// Hard-coded summary stats from the design until real data is wired in a later issue.
-export const LEADERSHIP_STATS: StatCardData[] = [
-  { label: "Active Projects", value: "15" },
-  { label: "At risk projects", value: "4" },
-  { label: "Members without allocation", value: "12", subLabel: "this month" },
-  { label: "Non-billable hours logged", value: "16h", subLabel: "this month" },
-];
-
-export const MANAGER_STATS: StatCardData[] = [
-  { label: "At risk projects", value: "4" },
-  { label: "Members without allocation", value: "12", subLabel: "this week" },
-  { label: "Timesheets to review", value: "24", subLabel: "this week" },
-  { label: "Outstanding timesheets", value: "4" },
+// Hard-coded notifications from the design until real data is wired in a later issue.
+export const LEADERSHIP_NOTIFICATIONS: NotificationItem[] = [
+  {
+    id: "1",
+    icon: "folder",
+    title: "Project health update",
+    body: "Orion Marketing Automation Revamp is now on track.",
+    timeLabel: "32m",
+  },
+  {
+    id: "2",
+    icon: "fire",
+    title: "Risk update",
+    body: "Gowtham updated the risk status to Mitigated in Atlas UI Stabilisation.",
+    timeLabel: "18h",
+  },
+  {
+    id: "3",
+    icon: "file",
+    title: "Client feedback available",
+    body: "Nov 2025 client feedback received for Nimbus Analytics Enhancement",
+    timeLabel: "2d",
+  },
 ];
 
 export const ALL_CLIENTS_VALUE = "all-clients";

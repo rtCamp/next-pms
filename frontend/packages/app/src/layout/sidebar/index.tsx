@@ -58,7 +58,7 @@ const Sidebar = () => {
   }));
 
   const canSeeDashboard =
-    roles.includes("Projects Manager") || roles.includes("Delivery Manager");
+    roles.includes("Projects Manager") || roles.includes("System Manager");
 
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
@@ -139,7 +139,7 @@ const Sidebar = () => {
                   label: "Dashboard",
                   collapsible: true,
                   items: [
-                    ...(roles.includes("Delivery Manager")
+                    ...(roles.includes("System Manager")
                       ? [
                           {
                             label: "Leadership",
@@ -281,7 +281,7 @@ const Sidebar = () => {
         open={isSearchOpen}
         onOpenChange={setIsSearchOpen}
         items={[
-          ...(roles.includes("Delivery Manager")
+          ...(roles.includes("System Manager")
             ? [
                 {
                   label: "Dashboard - Leadership",
