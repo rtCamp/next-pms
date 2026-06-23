@@ -3,11 +3,18 @@
  */
 import { useCallback, useMemo, useState, type PropsWithChildren } from "react";
 import { useSearchParams } from "react-router-dom";
-import { useFrappeUpdateDoc, useSWRConfig } from "frappe-react-sdk";
+import { useToasts } from "@rtcamp/frappe-ui-react";
+import {
+  FrappeError,
+  useFrappeDeleteDoc,
+  useFrappeUpdateDoc,
+  useSWRConfig,
+} from "frappe-react-sdk";
 
 /**
  * Internal dependencies.
  */
+import { parseFrappeErrorMsg } from "@/lib/utils";
 import { RISK_DETAIL_PARAM, RISK_STATUSES, type RiskStatus } from "./constants";
 import { RisksContext, type RisksContextProps } from "./context";
 import type { RiskFilters, RiskSort, RiskVisibleColumns } from "./types";
@@ -48,6 +55,8 @@ export function RisksProvider({ children }: PropsWithChildren) {
   } = useRisksData(filters, sort);
 
   const { updateDoc } = useFrappeUpdateDoc();
+  const { deleteDoc } = useFrappeDeleteDoc();
+  const toast = useToasts();
 
   const setFilters = useCallback((partial: Partial<RiskFilters>) => {
     setFiltersState((prev) => ({ ...prev, ...partial }));
@@ -112,6 +121,23 @@ export function RisksProvider({ children }: PropsWithChildren) {
     setDeleteRiskName(null);
   }, []);
 
+  const deleteRisk = useCallback(
+    async (name: string) => {
+      try {
+        await deleteDoc("Risk", name);
+        setSearchParams((prev) => {
+          prev.delete(RISK_DETAIL_PARAM);
+          return prev;
+        });
+        void refreshRiskList();
+        toast.success("Risk deleted");
+      } catch (err) {
+        toast.error(parseFrappeErrorMsg(err as FrappeError));
+      }
+    },
+    [deleteDoc, setSearchParams, refreshRiskList, toast],
+  );
+
   const refreshRisks = useCallback(() => {
     void refreshRiskList();
   }, [refreshRiskList]);
@@ -154,6 +180,7 @@ export function RisksProvider({ children }: PropsWithChildren) {
         openCreateRiskWithStatus,
         openDeleteRisk,
         closeDeleteRisk,
+        deleteRisk,
       },
     }),
     [
@@ -180,6 +207,7 @@ export function RisksProvider({ children }: PropsWithChildren) {
       openCreateRiskWithStatus,
       openDeleteRisk,
       closeDeleteRisk,
+      deleteRisk,
     ],
   );
 

@@ -1,7 +1,7 @@
 /**
  * External dependencies.
  */
-import { useMemo } from "react";
+import { useMemo, useCallback } from "react";
 import { useFrappeGetCall, useFrappeGetDocList } from "frappe-react-sdk";
 
 /**
@@ -67,23 +67,23 @@ export function useNotesData(filters: NoteFilters) {
     },
   );
 
-  const { data: allAuthorsData } = useFrappeGetDocList<{ owner: string }>(
-    "Project Status Update",
-    {
-      fields: ["owner"],
-      filters: [
-        ["project", "=", projectId],
-        ["status", "=", "Publish"],
-      ] as never,
-      limit: 500,
-    },
-  );
+  const { data: allAuthorsData, mutate: mutateAuthors } = useFrappeGetDocList<{
+    owner: string;
+  }>("Project Status Update", {
+    fields: ["owner"],
+    filters: [
+      ["project", "=", projectId],
+      ["status", "=", "Publish"],
+    ] as never,
+    limit: 500,
+  });
 
   const allAuthors = useMemo(() => {
-    if (!allAuthorsData?.length) return [];
-    const emails = allAuthorsData
+    const emails = (allAuthorsData ?? [])
       .map((row) => row.owner)
       .filter(Boolean) as string[];
+
+    if (!emails.length) return [];
     return [...new Set(emails)];
   }, [allAuthorsData]);
 
@@ -117,7 +117,7 @@ export function useNotesData(filters: NoteFilters) {
       return {
         ...note,
         pinned: Boolean(note.pinned),
-        owner_full_name: authorDetails?.full_name || note.owner,
+        owner_full_name: authorDetails?.full_name?.trim() || "",
         owner_image: authorDetails?.user_image ?? null,
       };
     });
@@ -126,13 +126,19 @@ export function useNotesData(filters: NoteFilters) {
   const authorOptions = useMemo<NoteAuthorOption[]>(
     () => [
       { label: "All", value: "" },
-      ...allAuthors.map((email) => ({
-        label: userMap[email]?.full_name ?? email,
-        value: email,
-      })),
+      ...allAuthors
+        .map((email) => ({
+          label: userMap[email]?.full_name?.trim() || "",
+          value: email,
+        }))
+        .filter((option) => option.label),
     ],
     [allAuthors, userMap],
   );
 
-  return { notes, isLoading, error, mutate, authorOptions };
+  const refresh = useCallback(async () => {
+    await Promise.all([mutate(), mutateAuthors()]);
+  }, [mutate, mutateAuthors]);
+
+  return { notes, isLoading, error, refresh, authorOptions };
 }

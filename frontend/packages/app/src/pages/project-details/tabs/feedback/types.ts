@@ -52,26 +52,14 @@ export interface TeamFeedbackDetail {
   comments: FeedbackComment[];
 }
 
-interface TeamBreakdownAPIRating {
-  fieldname: string;
-  label: string;
-  fieldtype: string;
-  value: number | null;
-  percent: number | null;
-  stars: number | null;
-  star_max: number;
-}
-
-export interface TeamBreakdownResult {
-  feedback_id: string;
-  evaluation_type: string;
-  employee: string;
-  employee_name: string;
-  customer: string;
-  feedback_by: string;
-  period_from: string;
-  period_to: string;
+export interface TeamFeedbackBreakdownResult {
+  feedbackId: string;
+  evaluationType: string;
+  employee: TeamFeedbackPerson;
+  customer: TeamFeedbackPerson;
+  feedbackBy: string;
+  periodFrom: string;
+  periodTo: string;
   average: number | null;
-  ratings: TeamBreakdownAPIRating[];
-  areas_for_improvement: string | null;
+  areasOfImprovement: string | null;
 }

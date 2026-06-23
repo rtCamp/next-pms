@@ -5,6 +5,7 @@ import { useCallback, useState } from "react";
 import {
   Button,
   Skeleton,
+  StaticTextEditor,
   TextEditor,
   useToasts,
 } from "@rtcamp/frappe-ui-react";
@@ -178,16 +179,23 @@ function OverviewForm() {
       <form.Field name="summary">
         {(field) => (
           <OverviewSection title="Details">
-            <TextEditor
-              editable={isEditing && !submitting}
-              content={field.state.value}
-              onChange={(value) => field.handleChange(value)}
-              fixedMenu={false}
-              editorClass={mergeClassNames(
-                "text-sm text-ink-gray-7 w-full max-w-full p-2",
-                isEditing && "rounded-md ring-1 ring-outline-gray-2",
-              )}
-            />
+            {isEditing ? (
+              <TextEditor
+                editable={isEditing && !submitting}
+                content={field.state.value}
+                onChange={(value) => field.handleChange(value)}
+                fixedMenu={false}
+                editorClass={mergeClassNames(
+                  "text-sm prose-sm text-ink-gray-7 w-full max-w-full p-2",
+                  isEditing && "rounded-md ring-1 ring-outline-gray-2",
+                )}
+              />
+            ) : (
+              <StaticTextEditor
+                content={field.state.value}
+                editorClass="prose-sm text-ink-gray-7 w-full max-w-full p-2"
+              />
+            )}
           </OverviewSection>
         )}
       </form.Field>
@@ -196,17 +204,24 @@ function OverviewForm() {
         {(field) => {
           return (
             <OverviewSection title="Key goals of the project">
-              <TextEditor
-                editable={isEditing && !submitting}
-                content={field.state.value}
-                onChange={(value) => field.handleChange(value)}
-                fixedMenu={false}
-                editorClass={
-                  isEditing
-                    ? "text-sm text-ink-gray-7 w-full max-w-full rounded-md p-2 ring-1 ring-outline-gray-2"
-                    : "text-sm text-ink-gray-7 w-full max-w-full p-2"
-                }
-              />
+              {isEditing ? (
+                <TextEditor
+                  editable={isEditing && !submitting}
+                  content={field.state.value}
+                  onChange={(value) => field.handleChange(value)}
+                  fixedMenu={false}
+                  editorClass={
+                    isEditing
+                      ? "prose-sm text-ink-gray-7 w-full max-w-full rounded-md p-2 ring-1 ring-outline-gray-2"
+                      : "prose-sm text-ink-gray-7 w-full max-w-full p-2"
+                  }
+                />
+              ) : (
+                <StaticTextEditor
+                  content={field.state.value}
+                  editorClass="prose-sm text-ink-gray-7 w-full max-w-full p-2"
+                />
+              )}
             </OverviewSection>
           );
         }}

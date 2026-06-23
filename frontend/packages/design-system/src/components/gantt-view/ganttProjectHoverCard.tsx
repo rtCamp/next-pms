@@ -47,7 +47,7 @@ function GanttProjectHoverCard({ project }: GanttProjectHoverCardProps) {
             target="_blank"
             rel="noreferrer"
             aria-label="Open project"
-            className="shrink-0 text-ink-gray-6 hover:text-ink-gray-9"
+            className="shrink-0 text-ink-gray-6 hover:text-ink-gray-8"
             onClick={(event) => event.stopPropagation()}
           >
             <ArrowUpRight className="size-4 text-ink-gray-8 shrink-0" />

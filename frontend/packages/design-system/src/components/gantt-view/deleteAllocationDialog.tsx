@@ -1,28 +1,72 @@
-import { Button, Dialog } from "@rtcamp/frappe-ui-react";
+/**
+ * External dependencies.
+ */
+import { useCallback, useState } from "react";
+import { Button, Dialog, Select } from "@rtcamp/frappe-ui-react";
+
+/**
+ * Internal dependencies.
+ */
+import type { DeleteAllocationMode } from "./types";
+
+const RECURRING_DELETE_OPTIONS: Array<{
+  label: string;
+  value: DeleteAllocationMode;
+}> = [
+  { label: "This allocation", value: "only_this" },
+  {
+    label: "This and future allocations",
+    value: "this_and_future",
+  },
+  { label: "Whole series", value: "all_in_series" },
+];
 
 export interface DeleteAllocationDialogProps {
-  open: boolean;
   onOpenChange: (open: boolean) => void;
   projectName: string;
   dateRange: string;
   hoursPerDay: string;
   totalHours: string;
-  onConfirm: () => void;
+  isRecurring?: boolean;
+  onConfirm: (deleteMode: DeleteAllocationMode) => Promise<void>;
 }
 
 export function DeleteAllocationDialog({
-  open,
   onOpenChange,
   projectName,
   dateRange,
   hoursPerDay,
   totalHours,
+  isRecurring = false,
   onConfirm,
 }: DeleteAllocationDialogProps) {
+  const [deleteMode, setDeleteMode] =
+    useState<DeleteAllocationMode>("only_this");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleConfirm = useCallback(async () => {
+    if (isSubmitting) {
+      return;
+    }
+
+    try {
+      setIsSubmitting(true);
+      await onConfirm(deleteMode);
+    } finally {
+      setIsSubmitting(false);
+    }
+  }, [deleteMode, onConfirm, isSubmitting]);
+
   return (
     <Dialog
-      open={open}
-      onOpenChange={onOpenChange}
+      open
+      onOpenChange={(nextOpen) => {
+        if (isSubmitting) {
+          return;
+        }
+
+        onOpenChange(nextOpen);
+      }}
       options={{ title: "Delete Allocation", size: "lg", position: "top" }}
       actions={
         <div className="flex items-center justify-end gap-1">
@@ -31,6 +75,7 @@ export function DeleteAllocationDialog({
             theme="gray"
             size="sm"
             label="Cancel"
+            disabled={isSubmitting}
             onClick={() => onOpenChange(false)}
           />
           <Button
@@ -38,7 +83,11 @@ export function DeleteAllocationDialog({
             theme="red"
             size="sm"
             label="Delete"
-            onClick={onConfirm}
+            disabled={isSubmitting}
+            loading={isSubmitting}
+            onClick={() => {
+              void handleConfirm();
+            }}
           />
         </div>
       }
@@ -50,6 +99,22 @@ export function DeleteAllocationDialog({
         </strong>
         ? This cannot be undone.
       </p>
+
+      {isRecurring ? (
+        <div className="mt-4">
+          <label className="mb-1.5 block text-sm text-ink-gray-6">
+            Apply delete to
+          </label>
+          <Select
+            value={deleteMode}
+            onChange={(value) => setDeleteMode(value as DeleteAllocationMode)}
+            variant="outline"
+            className="h-8"
+            disabled={isSubmitting}
+            options={RECURRING_DELETE_OPTIONS}
+          />
+        </div>
+      ) : null}
     </Dialog>
   );
 }

@@ -1,6 +1,8 @@
 /**
  * External dependencies.
  */
+import { useState } from "react";
+import { DeleteActionDialog } from "@next-pms/design-system/components";
 import {
   Avatar,
   Button,
@@ -33,6 +35,10 @@ export function ProjectRatesTable() {
   const setEditingRate = useTracking((state) => state.setEditingRate);
   const addRateModalOpen = useTracking((state) => state.addRateModalOpen);
   const setAddRateModalOpen = useTracking((state) => state.setAddRateModalOpen);
+  const [deletingRate, setDeletingRate] = useState<{
+    name: string;
+    label: string;
+  } | null>(null);
 
   if (!rows) return null;
 
@@ -108,7 +114,12 @@ export function ProjectRatesTable() {
                 <div className="flex items-center justify-end">
                   <ActionsCell
                     onEdit={() => setEditingRate(row)}
-                    onDelete={() => deleteRate(row.name)}
+                    onDelete={() =>
+                      setDeletingRate({
+                        name: row.name,
+                        label: row.employeeName,
+                      })
+                    }
                   />
                 </div>
               </ListRow>
@@ -147,6 +158,14 @@ export function ProjectRatesTable() {
           setEditingRate(null);
         }}
       />
+      {deletingRate && (
+        <DeleteActionDialog
+          title="Delete rate"
+          description={`Are you sure you want to delete the rate for ${deletingRate.label}? This action cannot be undone.`}
+          onClose={() => setDeletingRate(null)}
+          onConfirm={() => deleteRate(deletingRate.name)}
+        />
+      )}
     </div>
   );
 }

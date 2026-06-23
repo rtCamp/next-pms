@@ -84,6 +84,7 @@ export * from "./icons";
 export * from "./gantt-view";
 export { Comments, type CommentNode, type CommentsProps } from "./comments";
 export { default as GlobalSearch } from "./globalSearch";
+export { DeleteActionDialog } from "./delete-action-dialog";
 export {
   SortButton,
   type SortButtonProps,

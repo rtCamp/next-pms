@@ -1,35 +1,83 @@
 /**
  * External dependencies.
  */
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo } from "react";
+import { useSearchParams } from "react-router-dom";
+import type { FilterCondition } from "@rtcamp/frappe-ui-react";
+import { format } from "date-fns";
 
 /**
  * Internal dependencies.
  */
 import { useDebounce } from "@/hooks/useDebounce";
-import { ALLOCATIONS_PAGE_SIZE } from "../constants";
-import type { AllocationRefreshTargets } from "../types";
-import { AllocationsDuration } from "../types";
+import { pickAllowed } from "@/lib/utils";
+import {
+  ALLOCATION_TYPE_PARAM_KEY,
+  ALLOCATIONS_PAGE_SIZE,
+  COMPOSITE_FILTERS_PARAM_KEY,
+  DATE_PARAM_KEY,
+  DEFAULT_DURATION,
+  DURATION_PARAM_KEY,
+  DURATION_PARAM_VALUES,
+  SEARCH_PARAM_KEY,
+} from "../constants";
+import type { AllocationRefreshTargets, AllocationsDuration } from "../types";
+import { teamAllocationsTypeOptions } from "./constants";
 import {
   AllocationsTeamContext,
   type AllocationsTeamContextProps,
 } from "./context";
 import { useAllocationsTeamData } from "./useAllocationsTeamData";
-import { getWeekCountForDuration, moveDateByDuration } from "../utils";
+import {
+  getWeekCountForDuration,
+  moveDateByDuration,
+  parseAllocationAnchorDate,
+  parseAllocationCompositeFilters,
+  parseAllocationStringArray,
+} from "../utils";
 
+const DESIGNATION_PARAM_KEY = "designation";
 export function AllocationsTeamProvider({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const [searchInput, setSearchInput] = useState("");
-  const [designation, setDesignation] = useState<string[]>([]);
-  const [duration, setDurationState] =
-    useState<AllocationsDuration>("this-quarter");
-  const [anchorDate, setAnchorDate] = useState(() => new Date());
+  const [searchParams, setSearchParams] = useSearchParams();
+  const searchParam = searchParams.get(SEARCH_PARAM_KEY) ?? "";
+
+  const allocationTypeValues = useMemo(
+    () => teamAllocationsTypeOptions.map((option) => option.value),
+    [],
+  );
+  const designation = useMemo(
+    () => parseAllocationStringArray(searchParams.get(DESIGNATION_PARAM_KEY)),
+    [searchParams],
+  );
+  const duration =
+    pickAllowed(searchParams.get(DURATION_PARAM_KEY), DURATION_PARAM_VALUES) ??
+    DEFAULT_DURATION;
+  const anchorDate = useMemo(
+    () => parseAllocationAnchorDate(searchParams.get(DATE_PARAM_KEY)),
+    [searchParams],
+  );
+  const allocationsType = useMemo(() => {
+    const raw = searchParams.get(ALLOCATION_TYPE_PARAM_KEY);
+
+    const parsed = parseAllocationStringArray(raw).filter((value) =>
+      allocationTypeValues.includes(value),
+    );
+
+    return parsed;
+  }, [allocationTypeValues, searchParams]);
+  const compositeFilters = useMemo(
+    () =>
+      parseAllocationCompositeFilters(
+        searchParams.get(COMPOSITE_FILTERS_PARAM_KEY),
+      ),
+    [searchParams],
+  );
   const weekCount = getWeekCountForDuration(duration);
 
-  const debouncedSearch = useDebounce(searchInput, 400);
   const debouncedDesignation = useDebounce(designation, 400);
 
   const {
@@ -42,34 +90,104 @@ export function AllocationsTeamProvider({
   } = useAllocationsTeamData({
     anchorDate,
     weekCount,
-    search: debouncedSearch,
+    search: searchParam,
     designation: debouncedDesignation,
+    allocationsType,
+    compositeFilters,
     pageLength: ALLOCATIONS_PAGE_SIZE,
   });
 
-  const setSearch = useCallback((value: string) => {
-    setSearchInput(value);
-  }, []);
+  const updateSearchParams = useCallback(
+    (updates: Record<string, string | undefined>) =>
+      setSearchParams(
+        (prev) => {
+          const next = new URLSearchParams(prev);
 
-  const setDuration = useCallback((value: AllocationsDuration) => {
-    setDurationState(value);
-  }, []);
+          Object.entries(updates).forEach(([key, value]) => {
+            if (value === undefined || value === "") {
+              next.delete(key);
+              return;
+            }
+
+            next.set(key, value);
+          });
+
+          return next;
+        },
+        { replace: true },
+      ),
+    [setSearchParams],
+  );
+
+  const setSearch = useCallback(
+    (value: string) => updateSearchParams({ [SEARCH_PARAM_KEY]: value }),
+    [updateSearchParams],
+  );
+
+  const setDuration = useCallback(
+    (value: AllocationsDuration) =>
+      updateSearchParams({
+        [DURATION_PARAM_KEY]: value === DEFAULT_DURATION ? undefined : value,
+      }),
+    [updateSearchParams],
+  );
+
+  const setDesignation = useCallback(
+    (value: string[]) =>
+      updateSearchParams({
+        [DESIGNATION_PARAM_KEY]: value.length
+          ? JSON.stringify(value)
+          : undefined,
+      }),
+    [updateSearchParams],
+  );
+
+  const setAllocationsType = useCallback(
+    (value: string[]) => {
+      const nextValue = value.filter((item) =>
+        allocationTypeValues.includes(item),
+      );
+
+      updateSearchParams({
+        [ALLOCATION_TYPE_PARAM_KEY]: nextValue.length
+          ? JSON.stringify(nextValue)
+          : undefined,
+      });
+    },
+    [allocationTypeValues, updateSearchParams],
+  );
+
+  const setCompositeFilters = useCallback(
+    (value: FilterCondition[]) =>
+      updateSearchParams({
+        [COMPOSITE_FILTERS_PARAM_KEY]: value.length
+          ? JSON.stringify(value)
+          : undefined,
+      }),
+    [updateSearchParams],
+  );
 
   const handlePrevious = useCallback(() => {
-    setAnchorDate((currentAnchorDate) =>
-      moveDateByDuration(currentAnchorDate, duration, false),
-    );
-  }, [duration]);
+    updateSearchParams({
+      [DATE_PARAM_KEY]: format(
+        moveDateByDuration(anchorDate, duration, false),
+        "yyyy-MM-dd",
+      ),
+    });
+  }, [anchorDate, duration, updateSearchParams]);
 
   const handleNext = useCallback(() => {
-    setAnchorDate((currentAnchorDate) =>
-      moveDateByDuration(currentAnchorDate, duration, true),
-    );
-  }, [duration]);
+    updateSearchParams({
+      [DATE_PARAM_KEY]: format(
+        moveDateByDuration(anchorDate, duration, true),
+        "yyyy-MM-dd",
+      ),
+    });
+  }, [anchorDate, duration, updateSearchParams]);
 
   const handleToday = useCallback(() => {
-    setAnchorDate(new Date());
-  }, []);
+    updateSearchParams({ [DATE_PARAM_KEY]: undefined });
+  }, [updateSearchParams]);
 
   const handleRefresh = useCallback(
     async (targets?: AllocationRefreshTargets) => {
@@ -85,9 +203,11 @@ export function AllocationsTeamProvider({
         isQueryLoading,
         isNextPageLoading,
         hasMore,
-        searchInput,
+        search: searchParam,
         designation,
         duration,
+        allocationsType,
+        compositeFilters,
         weekCount,
         anchorDate,
       },
@@ -95,6 +215,8 @@ export function AllocationsTeamProvider({
         setSearch,
         setDuration,
         setDesignation,
+        setAllocationsType,
+        setCompositeFilters,
         loadMore,
         handlePrevious,
         handleNext,
@@ -107,14 +229,18 @@ export function AllocationsTeamProvider({
       isNextPageLoading,
       isQueryLoading,
       hasMore,
-      searchInput,
+      searchParam,
       duration,
       designation,
+      allocationsType,
+      compositeFilters,
       weekCount,
       anchorDate,
       setSearch,
       setDuration,
       setDesignation,
+      setAllocationsType,
+      setCompositeFilters,
       loadMore,
       handlePrevious,
       handleNext,

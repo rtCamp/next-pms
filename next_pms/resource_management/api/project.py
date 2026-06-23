@@ -32,6 +32,7 @@ def get_resource_management_project_view_data(
     project_manager: str | None = None,
     tag: str | None = None,
     is_billable: str | None = None,
+    allocation_status: list | str | None = None,
     page_length: int = 10,
     start: int = 0,
     project_id: str | list | None = None,
@@ -67,6 +68,11 @@ def get_resource_management_project_view_data(
             string. Does not change which projects are returned, only their allocation
             data. A matching is_billable condition in filters overrides this.
             Ignored for callers without write permission.
+        allocation_status: Status value(s) to match against Resource Allocation.status,
+            e.g. ["Confirmed", "Tentative"]. Accepts a single value, a list, or a JSON
+            string. Filters the per-project allocation breakdown to the matching statuses;
+            does not change which projects are returned. None or [] disables the filter.
+            Ignored for callers without write permission.
         page_length: Maximum number of projects to return in this page. Defaults to 10.
         start: Zero-based offset of the first project to return (pagination). Defaults
             to 0.
@@ -79,7 +85,10 @@ def get_resource_management_project_view_data(
             conditions, ANDed with each other and with the dedicated params above
             (composite filters still apply when project_id is set). Allowed operators: =, !=, like, not like. Supported fields:
             project_name, customer, billing_type, project_type,
-            project_manager, project_id, tag, is_billable. tag is
+            project_manager, project_manager_name, project_id, tag, is_billable.
+            project_manager matches the manager's User id (custom_project_manager,
+            Link); project_manager_name matches the manager's name
+            (custom_project_manager_name, Data) and is LIKE-searchable. tag is
             resolved against the Tag Link doctype; is_billable accepts only
             = or != with a value of 0 or 1 and overrides the is_billable
             param. For callers without write permission only project_name conditions
@@ -114,6 +123,7 @@ def get_resource_management_project_view_data(
         project_manager,
         tag,
         is_billable,
+        allocation_status,
         page_length,
         start,
         project_id,
@@ -133,6 +143,7 @@ def _get_resource_management_project_view_data(
     project_manager: str | None = None,
     tag: str | None = None,
     is_billable: str | None = None,
+    allocation_status: list | str | None = None,
     page_length: int = 10,
     start: int = 0,
     project_id: str | list | None = None,
@@ -141,6 +152,7 @@ def _get_resource_management_project_view_data(
     permissions = json.loads(permissions)
     if not permissions["write"]:
         is_billable = None
+        allocation_status = None
         customer = None
         project_id = None
         billing_type = None
@@ -150,6 +162,10 @@ def _get_resource_management_project_view_data(
 
     if isinstance(is_billable, str):
         is_billable = json.loads(is_billable)
+    if isinstance(allocation_status, str):
+        allocation_status = json.loads(allocation_status)
+    if allocation_status is not None and not isinstance(allocation_status, list):
+        allocation_status = [allocation_status]
 
     project_conditions, tag_conditions, filter_is_billable = normalize_project_view_filters(
         filters, allow_privileged=permissions["write"]
@@ -207,6 +223,7 @@ def _get_resource_management_project_view_data(
         weeks[0].get("start_date"),
         weeks[-1].get("end_date"),
         is_billable,
+        allocation_status=allocation_status,
     )
     resource_allocation_data = attach_extra_entries(resource_allocation_data)
 

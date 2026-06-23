@@ -9,6 +9,7 @@ import { useMemo } from "react";
 import { CommentInput } from "./commentInput";
 import { CommentThread } from "./commentThread";
 import { CommentsProvider } from "./provider";
+import { mergeClassNames as cn } from "../../utils";
 import Spinner from "../spinner";
 import type { CommentsProps } from "./types";
 
@@ -20,9 +21,14 @@ export function Comments({
   isUpdating = false,
   authorId,
   canManageAllComments = false,
+  className,
   title = "Comments",
+  titleClassName,
   inputPlaceholder = "Type a comment",
   inputSubmitLabel = "Post",
+  inputTriggerClassName,
+  inputAvatarName,
+  inputAvatarImage,
   onAddComment,
   onReply,
   onEdit,
@@ -42,8 +48,17 @@ export function Comments({
 
   return (
     <CommentsProvider {...value}>
-      <div className="mt-6 flex flex-col gap-5 border-t border-outline-gray-2 pt-6">
-        <h2 className="text-lg font-medium text-ink-gray-8">{title}</h2>
+      <div
+        className={cn(
+          "mt-6 flex flex-col gap-5 border-t border-outline-gray-2 pt-6",
+          className,
+        )}
+      >
+        <h2
+          className={cn("text-lg font-medium text-ink-gray-8", titleClassName)}
+        >
+          {title}
+        </h2>
 
         {isLoading ? (
           <Spinner className="py-6" />
@@ -62,6 +77,9 @@ export function Comments({
           resetOnSubmit
           isSubmitting={isUpdating}
           onSubmit={onAddComment}
+          triggerClassName={inputTriggerClassName}
+          avatarName={inputAvatarName}
+          avatarImage={inputAvatarImage}
         />
       </div>
     </CommentsProvider>

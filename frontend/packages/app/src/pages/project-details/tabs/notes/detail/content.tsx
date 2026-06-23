@@ -1,7 +1,7 @@
 /**
  * External dependencies.
  */
-import { TextEditor } from "@rtcamp/frappe-ui-react";
+import { StaticTextEditor } from "@rtcamp/frappe-ui-react";
 
 /**
  * Internal dependencies.
@@ -18,10 +18,8 @@ export function NoteDetailContent({ note }: NoteDetailContentProps) {
       <h1 className="text-3xl font-semibold leading-tight text-ink-gray-8">
         {note.title}
       </h1>
-      <TextEditor
+      <StaticTextEditor
         content={note.description}
-        editable={false}
-        fixedMenu={false}
         editorClass="prose prose-sm max-w-none text-ink-gray-8"
       />
     </div>
