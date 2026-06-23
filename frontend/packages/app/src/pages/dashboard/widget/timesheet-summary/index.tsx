@@ -131,7 +131,7 @@ export default function Timesheets() {
                   item={member.name}
                   prefix={
                     <Avatar
-                      size="sm"
+                      size="xs"
                       label={member.name}
                       image={member.image ?? undefined}
                     />
