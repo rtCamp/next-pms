@@ -1,20 +1,13 @@
 /**
  * External dependencies.
  */
-import { useState } from "react";
-import { Breadcrumbs, Combobox } from "@rtcamp/frappe-ui-react";
+import { Breadcrumbs } from "@rtcamp/frappe-ui-react";
 
 /**
  * Internal dependencies.
  */
 import { Header } from "@/layout/header";
 import { useUser } from "@/providers/user";
-import {
-  ALL_CLIENTS_VALUE,
-  ALL_PROJECTS_VALUE,
-  MOCK_CLIENT_OPTIONS,
-  MOCK_PROJECT_OPTIONS,
-} from "../constants";
 import AssignedProjects from "../widget/assigned-projects";
 import CalendarTimelineCard from "../widget/calendar-timeline";
 import HeatmapCard from "../widget/heatmap";
@@ -24,8 +17,6 @@ import Timesheets from "../widget/timesheet-summary";
 import UpcomingTimeOff from "../widget/upcoming-time-off";
 
 export default function ManagerDashboard() {
-  const [client, setClient] = useState<string>(ALL_CLIENTS_VALUE);
-  const [project, setProject] = useState<string>(ALL_PROJECTS_VALUE);
   const { employeeName, userName } = useUser(({ state }) => ({
     employeeName: state.employeeName,
     userName: state.userName,
@@ -49,23 +40,6 @@ export default function ManagerDashboard() {
             <h2 className="text-xl font-semibold text-ink-gray-8">
               Hey, {firstName}
             </h2>
-            <h2 className="text-base text-ink-gray-7">Placeholder text</h2>
-          </div>
-          <div className="flex flex-wrap items-center gap-2">
-            <Combobox
-              className="w-fit rounded-lg border-outline-gray-1 bg-white px-2 py-1.5 text-sm text-ink-gray-7"
-              inputClassName="bg-white"
-              options={MOCK_CLIENT_OPTIONS}
-              value={client}
-              onChange={(value) => setClient(value ?? ALL_CLIENTS_VALUE)}
-            />
-            <Combobox
-              className="w-fit rounded-lg border-outline-gray-1 bg-white px-2 py-1.5 text-sm text-ink-gray-7"
-              inputClassName="bg-white"
-              options={MOCK_PROJECT_OPTIONS}
-              value={project}
-              onChange={(value) => setProject(value ?? ALL_PROJECTS_VALUE)}
-            />
           </div>
         </div>
 
