@@ -20,6 +20,7 @@ from next_pms.timesheet.api.employee import get_employee_daily_working_norm
 NON_DATE_FIELDS = frozenset({"project", "customer", "is_billable", "status", "note", "hours_allocated_per_day"})
 RECURRING_IMMUTABLE_FIELDS = ("employee", "project", "customer")
 VALID_DELETE_MODES = frozenset({"only_this", "this_and_future", "all_in_series"})
+VALID_EDIT_MODES = frozenset({"only_this", "whole_series", "this_and_future"})
 
 
 @dataclass
@@ -433,6 +434,14 @@ def edit_allocation(
     if not permission["write"]:
         frappe.throw(frappe._("You are not allowed to perform this action."), exc=frappe.PermissionError)
 
+    if edit_mode not in VALID_EDIT_MODES:
+        frappe.throw(
+            frappe._("Invalid edit_mode '{0}'. Allowed values: {1}.").format(
+                edit_mode, ", ".join(sorted(VALID_EDIT_MODES))
+            ),
+            exc=frappe.ValidationError,
+        )
+
     allocation.name = name
     stored = frappe.db.get_value(
         "Resource Allocation",
@@ -440,6 +449,12 @@ def edit_allocation(
         ("recurrence_id", "employee", "project", "customer", "hours_allocated_per_day", "allocation_start_date"),
         as_dict=True,
     )
+
+    if not stored:
+        frappe.throw(
+            frappe._("Resource Allocation {0} does not exist.").format(name),
+            exc=frappe.DoesNotExistError,
+        )
 
     if stored.recurrence_id:
         _assert_recurring_immutable(allocation, stored)
@@ -458,21 +473,25 @@ def edit_allocation(
             fields=["name", "allocation_start_date", "allocation_end_date"],
         )
         update_fields = {k: v for k, v in asdict(allocation).items() if k in NON_DATE_FIELDS and v is not None}
+        new_hours = update_fields.get("hours_allocated_per_day")
         for series_doc_meta in series:
             series_doc = frappe.get_doc("Resource Allocation", series_doc_meta.name)
             day_count = (
                 getdate(series_doc_meta.allocation_end_date) - getdate(series_doc_meta.allocation_start_date)
             ).days + 1
+            doc_hours_changed = new_hours is not None and float(new_hours) != float(
+                series_doc.hours_allocated_per_day or 0
+            )
             series_doc.update(
                 {
                     **update_fields,
-                    "total_allocated_hours": update_fields.get(
-                        "hours_allocated_per_day", series_doc.hours_allocated_per_day
+                    "total_allocated_hours": (
+                        new_hours if new_hours is not None else series_doc.hours_allocated_per_day
                     )
                     * day_count,
                 }
             )
-            if hours_changed:
+            if doc_hours_changed:
                 series_doc.override = []
             series_doc.save()
 
@@ -667,7 +686,7 @@ def get_over_allocated_dates(
     hours_per_day = flt(hours_per_day)
     repeat_till_week_count = cint(repeat_till_week_count)
     if hours_per_day <= 0:
-        return []
+        return {"dates": [], "total_excess_hours": 0}
 
     daily_working_hours = get_employee_daily_working_norm(employee)
     fetch_end = add_days(base_end, repeat_till_week_count * 7)
