@@ -7,21 +7,16 @@ import {
   ErrorFallback,
   GlobalSearch,
 } from "@next-pms/design-system/components";
-import { Sidebar as BaseSidebar } from "@rtcamp/frappe-ui-react";
 import {
-  Notifications,
-  People,
-  Reports,
-  Tasks,
-  Time,
-} from "@rtcamp/frappe-ui-react/icons";
+  Sidebar as BaseSidebar,
+  type SidebarSectionType,
+} from "@rtcamp/frappe-ui-react";
+import { Notifications, People, Time } from "@rtcamp/frappe-ui-react/icons";
 import {
   ArrowLeftRight,
   BarChart2,
   Briefcase,
   Folder,
-  Home,
-  Layers,
   LayoutGrid,
   LogOut,
   Moon,
@@ -57,9 +52,6 @@ const Sidebar = () => {
     logout: actions.logout,
   }));
 
-  const canSeeDashboard =
-    roles.includes("Projects Manager") || roles.includes("System Manager");
-
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
       if (e.key === "k" && (e.metaKey || e.ctrlKey)) {
@@ -70,6 +62,89 @@ const Sidebar = () => {
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
   }, []);
+
+  const leadershipDashboard = {
+    label: "Leadership",
+    icon: BarChart2,
+    isActive: pathname === ROUTES["dashboard-leadership"],
+    onClick: () => navigate(ROUTES["dashboard-leadership"]),
+  };
+
+  const managerDashbaord = {
+    label: "Manager",
+    icon: Briefcase,
+    isActive: pathname === ROUTES["dashboard-manager"],
+    onClick: () => navigate(ROUTES["dashboard-manager"]),
+  };
+
+  const dashboardItems: SidebarSectionType["items"] = [];
+
+  if (roles.includes("System Manager")) {
+    dashboardItems.push(leadershipDashboard);
+  }
+  if (roles.includes("Projects Manager")) {
+    dashboardItems.push(managerDashbaord);
+  }
+
+  const personalTimesheet = {
+    label: "Personal",
+    icon: Time,
+    isActive: pathname === ROUTES["timesheet-personal"],
+    onClick: () => navigate(ROUTES["timesheet-personal"]),
+  };
+
+  const teamTimesheet = {
+    label: "Team",
+    icon: People,
+    isActive: pathname === ROUTES["timesheet-team"],
+    onClick: () => navigate(ROUTES["timesheet-team"]),
+  };
+
+  const projectTimesheet = {
+    label: "Projects",
+    icon: Folder,
+    isActive: pathname === ROUTES["timesheet-project"],
+    onClick: () => navigate(ROUTES["timesheet-project"]),
+  };
+
+  const timesheetItems: SidebarSectionType["items"] = [personalTimesheet];
+
+  if (roles.includes("Timesheet Manager") && roles.includes("Timesheet User")) {
+    timesheetItems.push(teamTimesheet);
+    timesheetItems.push(projectTimesheet);
+  }
+
+  const projects = {
+    label: "Projects",
+    icon: Folder,
+    to: "",
+    isActive: pathname === ROUTES.project,
+    onClick: () => navigate(ROUTES.project),
+  };
+
+  const projectItems: SidebarSectionType["items"] = [];
+
+  if (roles.includes("Projects Manager")) {
+    projectItems.push(projects);
+  }
+
+  const teamAllocation = {
+    label: "Team",
+    icon: People,
+    isActive: pathname === ROUTES["allocations-team"],
+    onClick: () => navigate(ROUTES["allocations-team"]),
+  };
+  const projectAllocation = {
+    label: "Projects",
+    icon: Folder,
+    isActive: pathname === ROUTES["allocations-project"],
+    onClick: () => navigate(ROUTES["allocations-project"]),
+  };
+
+  const allocationItems: SidebarSectionType["items"] = [
+    teamAllocation,
+    projectAllocation,
+  ];
 
   return (
     <ErrorFallback>
@@ -116,7 +191,7 @@ const Sidebar = () => {
         }}
         sections={[
           {
-            label: "",
+            label: "Interactions",
             items: [
               {
                 label: "Notifications",
@@ -133,146 +208,39 @@ const Sidebar = () => {
               },
             ],
           },
-          ...(canSeeDashboard
+          ...(dashboardItems.length === 1 || timesheetItems.length === 1
             ? [
                 {
-                  label: "Dashboard",
-                  collapsible: true,
+                  label: "",
                   items: [
-                    ...(roles.includes("System Manager")
-                      ? [
-                          {
-                            label: "Leadership",
-                            icon: BarChart2,
-                            isActive:
-                              pathname === ROUTES["dashboard-leadership"],
-                            onClick: () =>
-                              navigate(ROUTES["dashboard-leadership"]),
-                          },
-                        ]
-                      : []),
-                    ...(roles.includes("Projects Manager")
-                      ? [
-                          {
-                            label: "Manager",
-                            icon: Briefcase,
-                            isActive: pathname === ROUTES["dashboard-manager"],
-                            onClick: () =>
-                              navigate(ROUTES["dashboard-manager"]),
-                          },
-                        ]
-                      : []),
+                    ...(timesheetItems.length === 1 ? timesheetItems : []),
+                    ...(dashboardItems.length === 1 ? dashboardItems : []),
                   ],
                 },
               ]
             : []),
-          {
-            label: "",
-            items: [
-              {
-                label: "Home",
-                icon: Home,
-                to: "",
-                isActive: pathname === ROUTES.home,
-                onClick: () => navigate(ROUTES.home),
-              },
-              {
-                label: "Tasks",
-                icon: Tasks,
-                to: "",
-                isActive: pathname === ROUTES.task,
-                onClick: () => navigate(ROUTES.task),
-              },
-              ...(roles.includes("Projects Manager")
-                ? [
-                    {
-                      label: "Projects",
-                      icon: Folder,
-                      to: "",
-                      isActive: pathname === ROUTES.project,
-                      onClick: () => navigate(ROUTES.project),
-                    },
-                  ]
-                : []),
-              ...(!roles.includes("Timesheet Manager") &&
-              !roles.includes("Timesheet User")
-                ? [
-                    {
-                      label: "Timesheet",
-                      icon: Time,
-                      to: "",
-                      isActive: pathname === ROUTES["timesheet-personal"],
-                      onClick: () => navigate(ROUTES["timesheet-personal"]),
-                    },
-                  ]
-                : []),
-            ],
-          },
-          ...(roles.includes("Timesheet Manager") ||
-          roles.includes("Timesheet User")
+          ...(dashboardItems.length > 1
+            ? [
+                {
+                  label: "Dashboards",
+                  collapsible: true,
+                  items: dashboardItems,
+                },
+              ]
+            : []),
+          ...(timesheetItems.length > 1
             ? [
                 {
                   label: "Timesheet",
                   collapsible: true,
-                  items: [
-                    {
-                      label: "Personal",
-                      icon: Time,
-                      isActive: pathname === ROUTES["timesheet-personal"],
-                      onClick: () => navigate(ROUTES["timesheet-personal"]),
-                    },
-                    {
-                      label: "Team",
-                      icon: People,
-                      isActive: pathname === ROUTES["timesheet-team"],
-                      onClick: () => navigate(ROUTES["timesheet-team"]),
-                    },
-                    {
-                      label: "Projects",
-                      icon: Folder,
-                      isActive: pathname === ROUTES["timesheet-project"],
-                      onClick: () => navigate(ROUTES["timesheet-project"]),
-                    },
-                  ],
+                  items: timesheetItems,
                 },
               ]
             : []),
           {
             label: "Allocations",
             collapsible: true,
-            items: [
-              {
-                label: "Team",
-                icon: People,
-                isActive: pathname === ROUTES["allocations-team"],
-                onClick: () => navigate(ROUTES["allocations-team"]),
-              },
-              {
-                label: "Projects",
-                icon: Folder,
-                isActive: pathname === ROUTES["allocations-project"],
-                onClick: () => navigate(ROUTES["allocations-project"]),
-              },
-            ],
-          },
-          {
-            label: "",
-            items: [
-              {
-                label: "Roadmap",
-                icon: Layers,
-                to: "",
-                isActive: pathname === ROUTES.roadmap,
-                onClick: () => navigate(ROUTES.roadmap),
-              },
-              {
-                label: "Reports",
-                icon: Reports,
-                to: "",
-                isActive: pathname === ROUTES.report,
-                onClick: () => navigate(ROUTES.report),
-              },
-            ],
+            items: allocationItems,
           },
         ]}
       />
@@ -297,8 +265,6 @@ const Sidebar = () => {
                 },
               ]
             : []),
-          { label: "Home", action: () => navigate(ROUTES.home) },
-          { label: "Tasks", action: () => navigate(ROUTES.task) },
           ...(roles.includes("Projects Manager")
             ? [{ label: "Projects", action: () => navigate(ROUTES.project) }]
             : []),
@@ -327,8 +293,6 @@ const Sidebar = () => {
             label: "Allocations - project",
             action: () => navigate(ROUTES["allocations-project"]),
           },
-          { label: "Roadmap", action: () => navigate(ROUTES.roadmap) },
-          { label: "Reports", action: () => navigate(ROUTES.report) },
         ]}
       />
     </ErrorFallback>

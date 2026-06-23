@@ -13,11 +13,9 @@ import { Role } from "./types";
 /**
  * Lazy load components.
  */
-const Home = lazy(() => import("@/pages/home"));
 const Dashboard = lazy(() => import("@/pages/dashboard"));
 const LeadershipDashboard = lazy(() => import("@/pages/dashboard/leadership"));
 const ManagerDashboard = lazy(() => import("@/pages/dashboard/manager"));
-const Task = lazy(() => import("@/pages/task"));
 const ProjectList = lazy(() => import("@/pages/projects/list"));
 const ProjectKanban = lazy(() => import("@/pages/projects/kanban"));
 const ProjectDetail = lazy(() => import("@/pages/project-details"));
@@ -42,8 +40,6 @@ const AllocationsProjectLayout = lazy(
 const AllocationsTeamLayout = lazy(
   () => import("@/pages/allocations/team/layout"),
 );
-const Roadmap = lazy(() => import("@/pages/roadmap"));
-const Report = lazy(() => import("@/pages/report"));
 const NotFound = lazy(() => import("@/pages/404"));
 
 export function Router() {
@@ -51,7 +47,6 @@ export function Router() {
     <Route>
       <Route element={<AuthenticatedRoute />}>
         <Route element={<LayoutWithSidebar />}>
-          <Route path={ROUTES.home} element={<Home />} />
           <Route
             element={
               <RoleProtectedRoute
@@ -77,7 +72,6 @@ export function Router() {
               element={<ManagerDashboard />}
             />
           </Route>
-          <Route path={ROUTES.task} element={<Task />} />
           <Route path={ROUTES.project} element={<ProjectList />} />
           <Route path={ROUTES["project-kanban"]} element={<ProjectKanban />} />
           <Route
@@ -117,8 +111,6 @@ export function Router() {
               element={<AllocationsProject />}
             />
           </Route>
-          <Route path={ROUTES.roadmap} element={<Roadmap />} />
-          <Route path={ROUTES.report} element={<Report />} />
         </Route>
       </Route>
       <Route path="*" element={<NotFound />} />
