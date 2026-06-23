@@ -94,7 +94,7 @@ function GanttMemberHoverCard({ member }: GanttMemberHoverCardProps) {
           {member.manager && (
             <div className="flex gap-2 items-center">
               <User className="size-4 text-ink-gray-6 shrink-0" />
-              <span className="text-sm text-ink-gray-6 truncate leading-tight">
+              <span className="text-sm text-ink-gray-6 truncate">
                 {member.manager}
               </span>
             </div>

@@ -63,15 +63,15 @@ function AllocationItem({ entry, hasRoleAccess }: AllocationItemProps) {
               label={entry.memberName}
             />
           </div>
-          <span className="flex-1 min-w-0 text-base font-medium truncate text-ink-gray-8">
+          <span className="flex-1 min-w-0 text-base font-medium truncate text-ink-gray-7">
             {entry.memberName}
           </span>
         </div>
       ) : (
         /* Project name */
         <div className="flex gap-2 items-start">
-          <Folder className="mt-px size-4 text-ink-gray-8 shrink-0" />
-          <span className="flex-1 min-w-0 text-base font-medium truncate text-ink-gray-8">
+          <Folder className="mt-px size-4 text-ink-gray-7 shrink-0" />
+          <span className="flex-1 min-w-0 text-base font-medium truncate text-ink-gray-7">
             {entry.projectName}
           </span>
         </div>
