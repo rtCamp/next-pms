@@ -42,6 +42,7 @@ export function UtilisationDonut({
       viewBox={`0 0 ${size} ${size}`}
       className="shrink-0"
       role="img"
+      aria-label="Utilisation breakdown"
     >
       {segments.map((segment, index) => {
         const slotAngle = (segment.value / total) * 360;

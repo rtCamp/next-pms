@@ -37,12 +37,12 @@ export const statusIconVariants = cva("", {
   variants: {
     status: {
       open: "text-ink-gray-3",
-      working: "text-ink-gray-9",
-      pendingReview: "text-ink-gray-9",
+      working: "text-ink-gray-8",
+      pendingReview: "text-ink-gray-8",
       overdue: "text-ink-red-4",
-      completed: "text-ink-gray-9",
-      cancelled: "text-ink-gray-9",
-      template: "text-ink-gray-9",
+      completed: "text-ink-gray-8",
+      cancelled: "text-ink-gray-8",
+      template: "text-ink-gray-8",
     },
   },
 });

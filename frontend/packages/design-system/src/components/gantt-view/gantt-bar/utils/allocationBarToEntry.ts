@@ -1,5 +1,12 @@
+/**
+ * External dependencies.
+ */
 import { format } from "date-fns";
-import type { AllocationCallbackData } from "../../types";
+
+/**
+ * Internal dependencies.
+ */
+import type { AllocationCallbackData, DeleteAllocationMode } from "../../types";
 import type { ProjectAllocationBar } from "../../utils";
 import type { AllocationEntry } from "../allocationPopover";
 
@@ -7,12 +14,16 @@ import type { AllocationEntry } from "../allocationPopover";
 export function allocationBarToEntry(
   alloc: ProjectAllocationBar,
   onEdit?: (data: AllocationCallbackData) => void,
-  onDelete?: (data: AllocationCallbackData) => void,
+  onDelete?: (
+    data: AllocationCallbackData,
+    deleteMode: DeleteAllocationMode,
+  ) => Promise<void>,
 ): AllocationEntry {
   const callbackData: AllocationCallbackData = {
     allocationId: alloc.id,
     employeeId: alloc.employeeId,
     projectId: alloc.projectId,
+    recurrenceId: alloc.recurrenceId,
     projectName: alloc.projectName,
     customerName: alloc.customerName,
     startDate: alloc.startDate,
@@ -30,10 +41,13 @@ export function allocationBarToEntry(
     totalHours: `${alloc.hours * alloc.fullNumDays} hours`,
     status: alloc.tentative ? "tentative" : "confirmed",
     billable: alloc.billable ?? true,
+    recurrenceId: alloc.recurrenceId,
     updatedByName: alloc.updatedBy?.name,
     updatedByImage: alloc.updatedBy?.image,
     onEdit: onEdit ? () => onEdit(callbackData) : undefined,
-    onDelete: onDelete ? () => onDelete(callbackData) : undefined,
+    onConfirmDelete: onDelete
+      ? (deleteMode) => onDelete(callbackData, deleteMode)
+      : undefined,
     createdOn: alloc.createdOn,
     updatedOn: alloc.updatedOn,
   };

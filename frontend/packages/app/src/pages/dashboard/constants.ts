@@ -7,14 +7,6 @@ import type { ComboboxOption } from "@rtcamp/frappe-ui-react";
  * Internal dependencies.
  */
 import type { NotificationItem } from "./widget/notificationsCard";
-import type { StatCardData } from "./widget/statCard";
-
-export const MANAGER_STATS: StatCardData[] = [
-  { label: "At risk projects", value: "4" },
-  { label: "Members without allocation", value: "12", subLabel: "this week" },
-  { label: "Timesheets to review", value: "24", subLabel: "this week" },
-  { label: "Outstanding timesheets", value: "4" },
-];
 
 // Hard-coded notifications from the design until real data is wired in a later issue.
 export const LEADERSHIP_NOTIFICATIONS: NotificationItem[] = [

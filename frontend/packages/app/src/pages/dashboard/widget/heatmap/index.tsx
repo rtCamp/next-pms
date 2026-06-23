@@ -97,6 +97,7 @@ export default function HeatmapCard() {
         <h3 className="text-lg font-semibold text-ink-gray-8">Heatmap</h3>
         <div className="w-44 shrink-0">
           <MultiSelect
+            popupClassName="scrollbar-thin"
             options={roleOptions}
             value={selectedRoles}
             triggerLabel={

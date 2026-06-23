@@ -7,7 +7,7 @@ import { useFrappeGetCall } from "frappe-react-sdk";
  * Internal dependencies.
  */
 import { StatCardSkeleton } from "./skeleton";
-import { StatCard } from "./stat-card";
+import { StatCard } from "./statCard";
 import {
   ActiveProjectsCountResponse,
   AtRiskProjectsCountResponse,
@@ -50,7 +50,7 @@ export default function StatCards() {
       ) : (
         <StatCard
           label="Active projects"
-          value={activeProjectData?.message || ""}
+          value={activeProjectData?.message ?? "-"}
         />
       )}
       {isAtRiskProjectDataLoading ? (
@@ -58,7 +58,7 @@ export default function StatCards() {
       ) : (
         <StatCard
           label="At risk project"
-          value={atRiskProjectData?.message || ""}
+          value={atRiskProjectData?.message ?? "-"}
         />
       )}
       {isMembersWithoutAllocationLoading ? (
@@ -67,7 +67,7 @@ export default function StatCards() {
         <StatCard
           label="Members without allocation"
           subLabel="this month"
-          value={membersWithoutAllocationData?.message?.count || ""}
+          value={membersWithoutAllocationData?.message?.count ?? "-"}
         />
       )}
       {isNonBillableHoursLoading ? (
@@ -76,7 +76,7 @@ export default function StatCards() {
         <StatCard
           label="Non-billable hours logged"
           subLabel="this month"
-          value={nonBillableHoursData?.message || ""}
+          value={nonBillableHoursData?.message ?? "-"}
         />
       )}
     </>

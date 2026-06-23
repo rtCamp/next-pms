@@ -10,6 +10,24 @@ def after_install():
     create_default_project_phases()
     create_default_risk_masters()
     setup_project_custom_fields()
+    setup_project_target_hours_field()
+
+
+def setup_project_target_hours_field():
+    from frappe.custom.doctype.custom_field.custom_field import create_custom_fields
+
+    create_custom_fields(
+        {
+            "Project": [
+                {
+                    "fieldname": "custom_target_hours",
+                    "fieldtype": "Float",
+                    "label": "Target Hours",
+                    "insert_after": "percent_complete",
+                },
+            ]
+        }
+    )
 
 
 def setup_project_custom_fields():

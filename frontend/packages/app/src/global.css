@@ -3,29 +3,31 @@
 @source "../../../node_modules/@rtcamp/frappe-ui-react/dist";
 @source "../../design-system/src";
 
-#root {
-  isolation: isolate;
+.accordion-panel {
+  height: var(--accordion-panel-height);
+  overflow: hidden;
+  transition: height 200ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-body {
-  position: relative;
+.accordion-panel[data-starting-style],
+.accordion-panel[data-ending-style] {
+  height: 0;
 }
 
-.resizer {
-  position: absolute;
-  right: 0;
-  top: 0;
-  bottom: 0;
-  width: 5px;
-  background-color: transparent;
-}
-
-.isResizing {
-  background-color: #dedfe091;
-}
-
-.custom-resource-management-team-view-bg {
-  background-color: rgba(247, 150, 150, var(--bg-opacity)) !important;
+@layer base {
+  :root {
+    --color-ink-gray-7: var(--color-gray-800);
+    --color-ink-gray-8: var(--color-gray-900);
+    --color-surface-green-3: var(--color-green-300);
+    --color-surface-green-5: var(--color-green-600);
+    --color-surface-amber-5: var(--color-amber-600);
+    --color-surface-blue-4: var(--color-blue-300);
+    --color-surface-blue-5: #007BE0 ;
+    --color-ink-violet-3: #7757ee;
+    --color-surface-violet-4: #664ECC;
+    --color-ink-cyan-3: #3bbde5;
+    --animate-fade-in: fade-in 0.2s ease;
+  }
 }
 
 @layer utilities {
@@ -86,17 +88,16 @@ body {
   }
 }
 
-html,
-#root {
-  height: 100vh;
-  width: 100vw;
-  overflow: auto;
+@keyframes fade-in {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
 }
 
-.hover-content a {
-  text-decoration: underline;
-  color: hsl(var(--foreground));
-}
+/* Legacy styles */
 
 /** TimeLine CSS overwrite*/
 .react-calendar-timeline .rct-sidebar .rct-sidebar-row.rct-sidebar-row-odd,
@@ -128,6 +129,43 @@ html,
   cursor: cell !important;
   -webkit-cursor: cell !important;
   -moz-cursor: cell !important;
+}
+
+#root {
+    isolation: isolate;
+}
+
+body {
+  position: relative;
+}
+
+.resizer {
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 5px;
+  background-color: transparent;
+}
+
+.isResizing {
+  background-color: #dedfe091;
+}
+
+.custom-resource-management-team-view-bg {
+  background-color: rgba(247, 150, 150, var(--bg-opacity)) !important;
+}
+
+html,
+#root {
+  height: 100vh;
+  width: 100vw;
+  overflow: auto;
+}
+
+.hover-content a {
+  text-decoration: underline;
+  color: hsl(var(--foreground));
 }
 
 .justify-normal-overide {

@@ -131,7 +131,7 @@ export const PersonalTimesheetRow = ({
                   ],
                   size: "md",
                   highlightAllItems: true,
-                  crumbClassName: "first:pl-0 last:pr-0",
+                  crumbClassName: "first:pl-0 last:pr-0 px-0.5",
                 }}
                 totalHours={totalHours}
                 totalHoursTheme={totalHoursTheme}

@@ -21,16 +21,16 @@ function ProjectAllocationsLayoutContent() {
   const refresh = useAllocationsProject(({ actions }) => actions.refresh);
   const { openAddDialog, outletContext, modalProps } =
     useAllocationModal(refresh);
-  const { roles } = useUser(({ state }) => ({
-    roles: state.roles,
-  }));
+  const roles = useUser(({ state }) => state.roles);
+  const canManageAllocations =
+    roles.includes("Projects Manager") || roles.includes("Projects User");
 
   return (
     <>
       <Header className="justify-between">
         <AllocationsBreadcrumbs />
 
-        {roles.includes("Projects Manager") ? (
+        {canManageAllocations ? (
           <Button
             variant="solid"
             onClick={() => openAddDialog({})}

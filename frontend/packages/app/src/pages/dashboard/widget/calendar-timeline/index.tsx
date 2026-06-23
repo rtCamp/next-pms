@@ -100,14 +100,16 @@ export default function CalendarTimelineCard() {
                   type="button"
                   variant="ghost"
                   className="flex shrink-0 items-center gap-2"
+                  iconRight={() => (
+                    <SmallDown className="size-4 shrink-0 text-ink-gray-5" />
+                  )}
                 >
-                  <span className="whitespace-nowrap text-base font-medium text-ink-gray-8">
+                  <span className="whitespace-nowrap text-lg font-semibold text-ink-gray-8">
                     {`${format(rangeStart, "MMM d")} – ${format(
                       addDays(rangeStart, DEFAULT_VISIBLE_DAYS - 1),
                       "MMM d, yyyy",
                     )}`}
                   </span>
-                  <SmallDown className="size-4 shrink-0 text-ink-gray-5" />
                 </Button>
               )}
             </DatePicker>
@@ -140,6 +142,7 @@ export default function CalendarTimelineCard() {
               </div>
               <div className="w-44 shrink-0">
                 <MultiSelect
+                  popupClassName="scrollbar-thin"
                   options={projectOptions}
                   value={selectedProjects}
                   triggerLabel={

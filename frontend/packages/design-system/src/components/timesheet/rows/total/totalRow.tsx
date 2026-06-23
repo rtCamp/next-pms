@@ -99,7 +99,7 @@ export const TotalRow: React.FC<TotalRowProps> = ({
       )}
     >
       <div className="flex flex-1 items-center min-w-0">
-        <div className="flex gap-2 items-center min-w-0 text-ink-gray-9">
+        <div className="flex gap-2 items-center min-w-0 text-ink-gray-8">
           <span className="flex justify-center items-center w-4 shrink-0">
             {renderStarIcon()}
           </span>
@@ -111,7 +111,7 @@ export const TotalRow: React.FC<TotalRowProps> = ({
         return (
           <div
             key={index}
-            className="shrink-0 flex justify-end items-center whitespace-nowrap w-16 h-7 pl-2 py-1.5 leading-3.5 lining-nums tabular-nums"
+            className="shrink-0 flex justify-end items-center whitespace-nowrap w-16 h-7 pl-2 py-1.5 lining-nums tabular-nums"
           >
             <Button
               variant="ghost"
@@ -119,7 +119,7 @@ export const TotalRow: React.FC<TotalRowProps> = ({
                 "w-14.25 relative group flex justify-center items-center enabled:hover:bg-surface-gray-2 ",
                 "enabled:focus:bg-surface-gray-2 enabled:active:bg-surface-gray-3 disabled:cursor-default!",
                 "lining-nums tabular-nums [&_span]:overflow-visible [&_span]:whitespace-normal",
-                "text-base font-medium text-ink-gray-9",
+                "text-base font-medium text-ink-gray-8",
               )}
               disabled={disabled || !onCellClick}
               onClick={() => onCellClick?.(totalTimeEntry.date)}

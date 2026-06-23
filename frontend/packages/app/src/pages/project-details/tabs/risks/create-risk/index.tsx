@@ -3,14 +3,13 @@
  */
 import { useCallback, useEffect, useState } from "react";
 import { Spinner } from "@next-pms/design-system/components";
-import { stripTags } from "@next-pms/design-system/utils";
 import {
   Button,
   Combobox,
   Dialog,
   ErrorMessage,
   Select,
-  Textarea,
+  TextEditor,
   useToasts,
 } from "@rtcamp/frappe-ui-react";
 import { useForm } from "@tanstack/react-form";
@@ -154,11 +153,11 @@ export function CreateRiskModal({
         risk_category: existingRisk.risk_category ?? null,
         risk_level: existingRisk.risk_level ?? "",
         status: existingRisk.status ?? "",
-        summary: stripTags(existingRisk.summary ?? ""),
-        mitigation_plan: stripTags(existingRisk.mitigation_plan ?? ""),
+        summary: existingRisk.summary ?? "",
+        mitigation_plan: existingRisk.mitigation_plan ?? "",
       });
     }
-  }, [open, isEditMode, existingRisk, toast]);
+  }, [open, isEditMode, existingRisk, toast, form]);
 
   const closeModal = useCallback(() => {
     onClose();
@@ -224,6 +223,7 @@ export function CreateRiskModal({
                   Risk level
                 </label>
                 <Select
+                  variant="outline"
                   options={riskLevelOptions}
                   value={field.state.value}
                   onChange={(val) => field.handleChange(val ?? "")}
@@ -245,6 +245,7 @@ export function CreateRiskModal({
                   Status
                 </label>
                 <Select
+                  variant="outline"
                   options={statusOptions}
                   value={field.state.value}
                   onChange={(val) => field.handleChange(val ?? "")}
@@ -265,11 +266,12 @@ export function CreateRiskModal({
                 <label className="block text-base text-ink-gray-5">
                   Summary
                 </label>
-                <Textarea
-                  value={field.state.value}
-                  onChange={(e) => field.handleChange(e.target.value)}
+                <TextEditor
                   placeholder="Describe the risk..."
-                  rows={3}
+                  content={field.state.value}
+                  onChange={(value) => field.handleChange(value)}
+                  fixedMenu={false}
+                  editorClass="px-2 h-24 prose-sm overflow-auto scrollbar-thin bg-white border rounded-md border-outline-gray-2"
                 />
               </div>
             )}
@@ -283,11 +285,12 @@ export function CreateRiskModal({
                 <label className="block text-base text-ink-gray-5">
                   Mitigation plan
                 </label>
-                <Textarea
-                  value={field.state.value}
-                  onChange={(e) => field.handleChange(e.target.value)}
+                <TextEditor
                   placeholder="Describe the mitigation plan..."
-                  rows={3}
+                  content={field.state.value}
+                  onChange={(value) => field.handleChange(value)}
+                  fixedMenu={false}
+                  editorClass="px-2 h-24 prose-sm overflow-auto scrollbar-thin bg-white border rounded-md border-outline-gray-2"
                 />
               </div>
             )}

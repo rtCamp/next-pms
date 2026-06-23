@@ -70,7 +70,7 @@ export const MemberRow: React.FC<MemberRowProps> = ({
         </span>
         <div className="flex gap-2 items-center min-w-0">
           <Avatar image={avatarUrl} shape="circle" label={label} size="xs" />
-          <span className="text-base font-medium truncate text-ink-gray-9">
+          <span className="text-base font-medium truncate text-ink-gray-8">
             {label}
           </span>
           {status !== "none" && (
@@ -84,7 +84,7 @@ export const MemberRow: React.FC<MemberRowProps> = ({
         return (
           <div
             key={index}
-            className="shrink-0 flex justify-end items-center text-base text-ink-gray-9 whitespace-nowrap w-16 h-7 px-2 py-1.5 leading-3.5 lining-nums tabular-nums"
+            className="shrink-0 flex justify-end items-center text-base text-ink-gray-8 whitespace-nowrap w-16 h-7 px-2 py-1.5 lining-nums tabular-nums"
           >
             {timeEntry.time === "" ? (
               <span className="flex-1 ml-2 text-center text-ink-gray-4">-</span>
@@ -99,7 +99,7 @@ export const MemberRow: React.FC<MemberRowProps> = ({
         );
       })}
 
-      <div className="shrink-0 flex justify-end items-center text-sm text-end text-ink-gray-5 whitespace-nowrap w-16 h-7 px-2 py-1.5 leading-3.5">
+      <div className="shrink-0 flex justify-end items-center text-sm text-end text-ink-gray-5 whitespace-nowrap w-16 h-7 px-2 py-1.5">
         <span className={cn(totalHoursVariants({ theme: totalHoursTheme }))}>
           {totalHours}
         </span>

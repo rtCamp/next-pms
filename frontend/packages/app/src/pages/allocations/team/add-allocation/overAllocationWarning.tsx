@@ -41,7 +41,7 @@ export function OverAllocationWarning({
         <Accordion.Header render={<div />}>
           <Accordion.Trigger className="w-full flex items-center gap-2 px-2.5 py-2 group">
             <AlertTriangle className="size-4 shrink-0 text-(--color-violet-700)" />
-            <p className="flex-1 min-w-0 text-xs text-ink-gray-9 text-left">
+            <p className="flex-1 min-w-0 text-xs text-ink-gray-8 text-left">
               This allocation causes over-allocation on {dayCount}{" "}
               {dayCount === 1 ? "day" : "days"} (+{formatHours(totalExcess)}{" "}
               total)
