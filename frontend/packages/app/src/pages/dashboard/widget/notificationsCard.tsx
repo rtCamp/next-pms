@@ -30,12 +30,10 @@ export default function NotificationsCard() {
   return (
     <div className="flex flex-col gap-3 rounded-lg border border-outline-gray-1 bg-surface-cards p-4">
       <div className="flex items-baseline justify-between gap-4">
-        <h3 className="text-base font-semibold text-ink-gray-8">
-          Notifications
-        </h3>
+        <h3 className="text-lg font-semibold text-ink-gray-8">Notifications</h3>
         <button
           type="button"
-          className="text-sm text-ink-gray-5 hover:text-ink-gray-7"
+          className="text-base text-ink-gray-5 hover:text-ink-gray-7"
         >
           See all
         </button>
@@ -52,7 +50,7 @@ export default function NotificationsCard() {
                 </div>
                 <div className="w-full flex flex-col gap-1">
                   <div className="flex items-baseline justify-between gap-2">
-                    <span className="truncate text-sm font-medium text-ink-gray-7">
+                    <span className="truncate text-base font-medium text-ink-gray-7">
                       {item.title}
                     </span>
                     <span className="shrink-0 text-xs text-ink-gray-5">

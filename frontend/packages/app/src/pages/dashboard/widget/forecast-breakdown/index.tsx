@@ -2,6 +2,7 @@
  * External dependencies.
  */
 import { useMemo, useState } from "react";
+import { mergeClassNames } from "@next-pms/design-system";
 import { MultiSelect } from "@rtcamp/frappe-ui-react";
 import type { MultiSelectOption } from "@rtcamp/frappe-ui-react";
 import { useFrappeGetCall } from "frappe-react-sdk";
@@ -79,6 +80,7 @@ export default function ForecastBreakdownCard() {
         </h3>
         <div className="w-44 shrink-0">
           <MultiSelect
+            popupClassName="scrollbar-thin"
             options={roleOptions}
             value={selectedRoles}
             triggerLabel={
@@ -94,7 +96,7 @@ export default function ForecastBreakdownCard() {
         {segments.map((segment) => (
           <div
             key={segment.key}
-            className={`${segment.colorClass} h-full`}
+            className={mergeClassNames(segment.colorClass, "h-full")}
             style={{ width: `${segment.value}%` }}
           />
         ))}
@@ -107,7 +109,10 @@ export default function ForecastBreakdownCard() {
           >
             <div className="flex min-w-0 items-center gap-2">
               <span
-                className={`size-2 shrink-0 rounded-full ${segment.colorClass}`}
+                className={mergeClassNames(
+                  "size-2 shrink-0 rounded-full",
+                  segment.colorClass,
+                )}
               />
               <span className="truncate text-base text-ink-gray-6">
                 {segment.label}

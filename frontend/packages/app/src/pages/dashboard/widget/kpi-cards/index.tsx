@@ -37,9 +37,11 @@ export default function LeadershipKpiCard({
         {KPI_LABELS[kpikey]}
       </span>
       <span className="truncate text-2xl font-medium text-ink-gray-8">
-        {kpikey === "profit_margin"
-          ? data?.current.toFixed(2) + "%"
-          : currencyFormat("USD").format(data?.current)}
+        {data
+          ? kpikey === "profit_margin"
+            ? `${data.current.toFixed(2)}%`
+            : currencyFormat("USD").format(data.current)
+          : "—"}
       </span>
       <div className="flex items-center gap-1 text-sm">
         <span
@@ -49,7 +51,7 @@ export default function LeadershipKpiCard({
           )}
         >
           <TrendArrow className="size-4 shrink-0" />
-          {data?.change_pct?.toFixed(2) + "%"}
+          {data?.change_pct == null ? "—" : `${data.change_pct.toFixed(2)}%`}
         </span>
         <span className="flex min-w-0 items-center gap-1 text-ink-gray-5">
           vs

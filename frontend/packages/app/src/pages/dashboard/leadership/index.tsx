@@ -16,7 +16,7 @@ import {
   MOCK_PROJECT_OPTIONS,
 } from "../constants";
 import CalendarTimelineCard from "../widget/calendar-timeline";
-import ForecastBreakdownCard from "../widget/forcast-breakdown";
+import ForecastBreakdownCard from "../widget/forecast-breakdown";
 import HeatmapCard from "../widget/heatmap";
 import LeadershipKpiCard from "../widget/kpi-cards";
 import NotificationsCard from "../widget/notificationsCard";
