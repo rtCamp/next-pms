@@ -157,6 +157,7 @@ export function CalendarTab() {
           <TabButtons
             value={tableTab}
             onChange={(val) => setTableTab(val as TableTab)}
+            buttonClassName="text-ink-gray-5 data-pressed:text-ink-gray-8"
             buttons={[
               { label: "Milestones", value: "milestones" },
               { label: "Touchpoints", value: "touchpoints" },
