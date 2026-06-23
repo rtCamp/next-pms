@@ -4,7 +4,7 @@
 import { useState, useCallback } from "react";
 import { floatToTime } from "@next-pms/design-system";
 import { TaskStatus, DurationInput } from "@next-pms/design-system/components";
-import { Button, TextEditor } from "@rtcamp/frappe-ui-react";
+import { Button, StaticTextEditor, TextEditor } from "@rtcamp/frappe-ui-react";
 import { Edit, Check, X } from "lucide-react";
 
 /**
@@ -74,7 +74,7 @@ const EntryRow = ({ entry, onSave }: EntryRowProps) => {
               onChange={(val) => setDescription(val)}
               fixedMenu={false}
               placeholder="Comment"
-              editorClass="px-2 h-24 overflow-auto scrollbar bg-white border rounded-md border-outline-gray-2"
+              editorClass="px-2 h-24 prose-sm overflow-auto scrollbar-thin bg-white border rounded-md border-outline-gray-2"
             />
           </div>
         </div>
@@ -107,15 +107,13 @@ const EntryRow = ({ entry, onSave }: EntryRowProps) => {
             {entry.taskName}
           </p>
           <p className="text-xs text-ink-gray-5">{entry.projectName}</p>
-          <TextEditor
-            editorClass="text-sm text-ink-gray-7 mt-3"
+          <StaticTextEditor
+            editorClass="prose-sm text-ink-gray-7 mt-3"
             content={entry.description}
-            editable={false}
-            fixedMenu={false}
           />
         </div>
       </div>
-      <span className="relative size-fit text-md text-ink-gray-6 rounded-sm outline outline-offset-4 outline-outline-gray-modals">
+      <span className="relative size-fit text-base text-ink-gray-6 rounded-sm outline outline-offset-4 outline-outline-gray-modals">
         {entry.isBillable ? (
           <span className="block absolute z-10 -bottom-0.5 left-1/2 w-1 h-1 rounded-full bg-surface-amber-3 transform -translate-x-1/2"></span>
         ) : null}

@@ -112,7 +112,7 @@ const DurationInput = ({
   return (
     <div className="space-y-1.5">
       {variant === "default" ? (
-        <div className="w-full flex justify-between text-xs text-ink-gray-5 ">
+        <div className="w-full flex justify-between text-sm text-ink-gray-5">
           <label>{label}</label>
           <p className={isOverHours ? "text-ink-red-4" : undefined}>
             {formattedRemainingHours}h left
@@ -129,14 +129,14 @@ const DurationInput = ({
           onValueChange={handleSliderChange}
         >
           <Slider.Control className="flex items-center rounded relative focus:border-outline-gray-4 focus:shadow-sm focus:ring-0 focus-visible:ring-2 focus-visible:ring-outline-gray-3">
-            <Slider.Track className="w-full h-8 bg-surface-gray-1 rounded">
+            <Slider.Track className="w-full h-7 bg-surface-gray-1 rounded">
               <Slider.Indicator className="rounded bg-surface-gray-3 select-none" />
             </Slider.Track>
           </Slider.Control>
         </Slider.Root>
         <input
           type="text"
-          className="absolute -translate-y-1/2 top-1/2 right-0 w-12"
+          className="absolute -translate-y-1/2 top-1/2 right-0 w-12 text-sm text-ink-gray-7"
           placeholder="00:00"
           value={inputValue}
           onChange={(e) => handleInputChange(e.target.value)}

@@ -135,7 +135,7 @@ export const GanttMemberRows: React.FC<GanttMemberRowsProps> = ({
               type="button"
               onClick={() => onAddAllocation?.({ employeeId: member.id })}
               tabIndex={isExpanded ? undefined : -1}
-              className="w-full h-full flex items-center gap-2 text-base font-medium text-ink-gray-9 overflow-hidden"
+              className="w-full h-full flex items-center gap-2 text-base font-medium text-ink-gray-8 overflow-hidden"
             >
               <AddMd className="size-4 shrink-0" />
               <span className="truncate">Add project</span>

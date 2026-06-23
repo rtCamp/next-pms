@@ -3,7 +3,10 @@
  */
 import { useSearchParams } from "react-router-dom";
 import { mergeClassNames as cn } from "@next-pms/design-system";
-import { Spinner } from "@next-pms/design-system/components";
+import {
+  DeleteActionDialog,
+  Spinner,
+} from "@next-pms/design-system/components";
 
 /**
  * Internal dependencies.
@@ -12,7 +15,6 @@ import { RISK_DETAIL_PARAM, RISK_VIEW_PARAM } from "./constants";
 import type { RiskViewKey } from "./constants";
 import { useRisks } from "./context";
 import { CreateRiskModal } from "./create-risk";
-import { DeleteRiskDialog } from "./deleteRiskDialog";
 import { RiskDetailView } from "./detail";
 import { RisksHeader } from "./header";
 import { RisksKanbanView } from "./kanban/kanbanView";
@@ -33,6 +35,7 @@ function RisksContent() {
   const deleteRiskName = useRisks((c) => c.state.deleteRiskName);
   const closeCreateRisk = useRisks((c) => c.actions.closeCreateRisk);
   const closeDeleteRisk = useRisks((c) => c.actions.closeDeleteRisk);
+  const deleteRisk = useRisks((c) => c.actions.deleteRisk);
   const isLoading = useRisks((c) => c.state.isLoading);
 
   return (
@@ -44,7 +47,12 @@ function RisksContent() {
         initialStatus={createRiskInitialStatus}
       />
       {deleteRiskName && (
-        <DeleteRiskDialog riskName={deleteRiskName} onClose={closeDeleteRisk} />
+        <DeleteActionDialog
+          title="Delete risk"
+          description="Are you sure you want to delete this risk? This action cannot be undone."
+          onClose={closeDeleteRisk}
+          onConfirm={() => deleteRisk(deleteRiskName)}
+        />
       )}
       {riskId ? (
         <RiskDetailView riskId={riskId} />

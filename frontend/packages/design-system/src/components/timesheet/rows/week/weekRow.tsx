@@ -76,7 +76,7 @@ export const WeekRow: React.FC<WeekRowProps> = ({
           <ChevronDown strokeWidth={1.5} size={16} />
         </span>
         <div className="flex items-center min-w-0 gap-2">
-          <span className="text-base font-medium text-ink-gray-9 truncate leading-3.5">
+          <span className="text-base font-medium text-ink-gray-8 truncate">
             {label}
           </span>
           {status !== "none" && (
@@ -98,7 +98,7 @@ export const WeekRow: React.FC<WeekRowProps> = ({
           return (
             <div
               key={date}
-              className="shrink-0 flex justify-end items-center text-sm text-end text-ink-gray-5 whitespace-nowrap w-16 h-7 px-2 py-1.5 leading-3.5"
+              className="shrink-0 flex justify-end items-center text-sm text-end text-ink-gray-5 whitespace-nowrap w-16 h-7 px-2 py-1.5"
             >
               <span>
                 {monthAndDay[0]}{" "}
@@ -116,7 +116,7 @@ export const WeekRow: React.FC<WeekRowProps> = ({
         })}
 
       {!(isStatusNone && collapsed) && (
-        <div className="shrink-0 flex justify-end items-center text-sm text-end text-ink-gray-5 whitespace-nowrap w-16 h-7 px-2 py-1.5 leading-3.5">
+        <div className="shrink-0 flex justify-end items-center text-sm text-end text-ink-gray-5 whitespace-nowrap w-16 h-7 px-2 py-1.5">
           <span
             className={cn(
               collapsed && totalHoursVariants({ theme: totalHoursTheme }),

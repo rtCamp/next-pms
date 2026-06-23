@@ -2,6 +2,7 @@
  * External dependencies.
  */
 import type { Allocation } from "@next-pms/design-system/components";
+import type { FilterCondition } from "@rtcamp/frappe-ui-react";
 import { addMonths, addWeeks, parseISO } from "date-fns";
 
 /**
@@ -11,6 +12,8 @@ import {
   calculateWeeklyHour,
   currencyFormat,
   expectatedHours,
+  isCompleteFilterCondition,
+  isNoValueOperator,
   pickAllowed,
 } from "@/lib/utils";
 import type { WorkingFrequency } from "@/types";
@@ -33,6 +36,7 @@ export type AllocationApiRecord = {
   employee?: string;
   project?: string;
   customer?: string | null;
+  recurrence_id?: string | null;
   hours_allocated_per_day: number;
   allocation_start_date: string;
   allocation_end_date: string;
@@ -43,6 +47,14 @@ export type AllocationApiRecord = {
   modified?: string | null;
   modified_by?: string | null;
   modified_by_avatar?: string | null;
+};
+
+type AllocationApiFilter = [string, string, string | string[] | number | null];
+
+type AllocationFiltersResult = {
+  requestDate: string;
+  maxWeek: number;
+  filters: AllocationApiFilter[];
 };
 
 /**
@@ -79,6 +91,39 @@ export function moveDateByDuration(
   }
 
   return addMonths(anchorDate, 3 * delta);
+}
+
+export function buildAllocationQueryFilters({
+  compositeFilters,
+  defaultRequestDate,
+  defaultWeekCount,
+}: {
+  compositeFilters: FilterCondition[];
+  defaultRequestDate: string;
+  defaultWeekCount: number;
+}): AllocationFiltersResult {
+  const filters: AllocationApiFilter[] = [];
+
+  const requestDate = defaultRequestDate;
+  const maxWeek = defaultWeekCount;
+
+  compositeFilters.forEach((filter) => {
+    if (!isCompleteFilterCondition(filter)) {
+      return;
+    }
+
+    filters.push([
+      filter.field,
+      filter.operator,
+      isNoValueOperator(filter.operator) ? null : (filter.value ?? null),
+    ]);
+  });
+
+  return {
+    requestDate,
+    maxWeek,
+    filters,
+  };
 }
 
 /**
@@ -160,6 +205,7 @@ export function mapResourceAllocation<T extends AllocationApiRecord>(
     id: allocation.name,
     employeeId: allocation.employee || undefined,
     projectId: allocation.project || undefined,
+    recurrenceId: allocation.recurrence_id ?? undefined,
     customerName: customerName ?? allocation.customer ?? undefined,
     hours: allocation.hours_allocated_per_day,
     startDate: parseISO(allocation.allocation_start_date),
@@ -191,4 +237,67 @@ function resolveWorkingFrequency(
   return (
     pickAllowed(workSchedule, ALLOCATION_WORKING_FREQUENCIES) ?? "Per Week"
   );
+}
+
+/**
+ * Parses a JSON string representing composite filters into an array of FilterCondition objects.
+ */
+export function parseAllocationCompositeFilters(
+  raw: string | null,
+): FilterCondition[] {
+  if (!raw) return [];
+
+  try {
+    const parsed = JSON.parse(raw);
+
+    if (!Array.isArray(parsed)) return [];
+
+    return parsed.filter((value): value is FilterCondition => {
+      if (!value || typeof value !== "object" || Array.isArray(value)) {
+        return false;
+      }
+
+      const filter = value as Record<string, unknown>;
+
+      return (
+        typeof filter.id === "string" &&
+        typeof filter.field === "string" &&
+        typeof filter.operator === "string" &&
+        "value" in filter &&
+        (!("fieldCategory" in filter) ||
+          filter.fieldCategory === undefined ||
+          typeof filter.fieldCategory === "string")
+      );
+    });
+  } catch {
+    return [];
+  }
+}
+
+/**
+ * Parses a JSON string representing an array of allocation types into a string array.
+ */
+export function parseAllocationStringArray(raw: string | null): string[] {
+  if (!raw) return [];
+
+  try {
+    const parsed = JSON.parse(raw);
+
+    if (!Array.isArray(parsed)) return [];
+
+    return parsed.filter((value): value is string => typeof value === "string");
+  } catch {
+    return [];
+  }
+}
+
+/**
+ * Parses a date string from the URL query parameter into a Date object.
+ */
+export function parseAllocationAnchorDate(raw: string | null): Date {
+  if (!raw) return new Date();
+
+  const parsedDate = parseISO(raw);
+
+  return Number.isNaN(parsedDate.getTime()) ? new Date() : parsedDate;
 }

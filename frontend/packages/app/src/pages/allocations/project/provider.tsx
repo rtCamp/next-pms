@@ -1,16 +1,34 @@
 /**
  * External dependencies.
  */
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo } from "react";
+import { useSearchParams } from "react-router-dom";
+import type { FilterCondition } from "@rtcamp/frappe-ui-react";
+import { format } from "date-fns";
 
 /**
  * Internal dependencies.
  */
-import { useDebounce } from "@/hooks/useDebounce";
-import { ALLOCATIONS_PAGE_SIZE } from "../constants";
-import type { AllocationRefreshTargets } from "../types";
-import { AllocationsDuration } from "../types";
-import { getWeekCountForDuration, moveDateByDuration } from "../utils";
+import { pickAllowed } from "@/lib/utils";
+import {
+  ALLOCATION_TYPE_PARAM_KEY,
+  ALLOCATIONS_PAGE_SIZE,
+  COMPOSITE_FILTERS_PARAM_KEY,
+  DATE_PARAM_KEY,
+  DEFAULT_DURATION,
+  DURATION_PARAM_KEY,
+  DURATION_PARAM_VALUES,
+  SEARCH_PARAM_KEY,
+} from "../constants";
+import type { AllocationRefreshTargets, AllocationsDuration } from "../types";
+import {
+  getWeekCountForDuration,
+  moveDateByDuration,
+  parseAllocationAnchorDate,
+  parseAllocationCompositeFilters,
+  parseAllocationStringArray,
+} from "../utils";
+import { projectAllocationsTypeOptions } from "./constants";
 import {
   AllocationsProjectContext,
   type AllocationsProjectContextProps,
@@ -22,13 +40,37 @@ export function AllocationsProjectProvider({
 }: {
   children: React.ReactNode;
 }) {
-  const [searchInput, setSearchInput] = useState("");
-  const [duration, setDurationState] =
-    useState<AllocationsDuration>("this-quarter");
-  const [anchorDate, setAnchorDate] = useState(() => new Date());
-  const weekCount = getWeekCountForDuration(duration);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const searchParam = searchParams.get(SEARCH_PARAM_KEY) ?? "";
 
-  const debouncedSearch = useDebounce(searchInput, 400);
+  const allocationTypeValues = useMemo(
+    () => projectAllocationsTypeOptions.map((option) => option.value),
+    [],
+  );
+  const duration =
+    pickAllowed(searchParams.get(DURATION_PARAM_KEY), DURATION_PARAM_VALUES) ??
+    DEFAULT_DURATION;
+  const anchorDate = useMemo(
+    () => parseAllocationAnchorDate(searchParams.get(DATE_PARAM_KEY)),
+    [searchParams],
+  );
+  const allocationsType = useMemo(() => {
+    const raw = searchParams.get(ALLOCATION_TYPE_PARAM_KEY);
+
+    const parsed = parseAllocationStringArray(raw).filter((value) =>
+      allocationTypeValues.includes(value),
+    );
+
+    return parsed;
+  }, [allocationTypeValues, searchParams]);
+  const compositeFilters = useMemo(
+    () =>
+      parseAllocationCompositeFilters(
+        searchParams.get(COMPOSITE_FILTERS_PARAM_KEY),
+      ),
+    [searchParams],
+  );
+  const weekCount = getWeekCountForDuration(duration);
 
   const {
     projects,
@@ -40,33 +82,93 @@ export function AllocationsProjectProvider({
   } = useAllocationsProjectData({
     anchorDate,
     weekCount,
-    search: debouncedSearch,
+    search: searchParam,
+    allocationsType,
+    compositeFilters,
     pageLength: ALLOCATIONS_PAGE_SIZE,
   });
 
-  const setSearch = useCallback((value: string) => {
-    setSearchInput(value);
-  }, []);
+  const updateSearchParams = useCallback(
+    (updates: Record<string, string | undefined>) =>
+      setSearchParams(
+        (prev) => {
+          const next = new URLSearchParams(prev);
 
-  const setDuration = useCallback((value: AllocationsDuration) => {
-    setDurationState(value);
-  }, []);
+          Object.entries(updates).forEach(([key, value]) => {
+            if (value === undefined || value === "") {
+              next.delete(key);
+              return;
+            }
+
+            next.set(key, value);
+          });
+
+          return next;
+        },
+        { replace: true },
+      ),
+    [setSearchParams],
+  );
+
+  const setSearch = useCallback(
+    (value: string) => updateSearchParams({ [SEARCH_PARAM_KEY]: value }),
+    [updateSearchParams],
+  );
+
+  const setDuration = useCallback(
+    (value: AllocationsDuration) =>
+      updateSearchParams({
+        [DURATION_PARAM_KEY]: value === DEFAULT_DURATION ? undefined : value,
+      }),
+    [updateSearchParams],
+  );
+
+  const setAllocationsType = useCallback(
+    (value: string[]) => {
+      const nextValue = value.filter((item) =>
+        allocationTypeValues.includes(item),
+      );
+
+      updateSearchParams({
+        [ALLOCATION_TYPE_PARAM_KEY]: nextValue.length
+          ? JSON.stringify(nextValue)
+          : undefined,
+      });
+    },
+    [allocationTypeValues, updateSearchParams],
+  );
+
+  const setCompositeFilters = useCallback(
+    (value: FilterCondition[]) =>
+      updateSearchParams({
+        [COMPOSITE_FILTERS_PARAM_KEY]: value.length
+          ? JSON.stringify(value)
+          : undefined,
+      }),
+    [updateSearchParams],
+  );
 
   const handlePrevious = useCallback(() => {
-    setAnchorDate((currentAnchorDate) =>
-      moveDateByDuration(currentAnchorDate, duration, false),
-    );
-  }, [duration]);
+    updateSearchParams({
+      [DATE_PARAM_KEY]: format(
+        moveDateByDuration(anchorDate, duration, false),
+        "yyyy-MM-dd",
+      ),
+    });
+  }, [anchorDate, duration, updateSearchParams]);
 
   const handleNext = useCallback(() => {
-    setAnchorDate((currentAnchorDate) =>
-      moveDateByDuration(currentAnchorDate, duration, true),
-    );
-  }, [duration]);
+    updateSearchParams({
+      [DATE_PARAM_KEY]: format(
+        moveDateByDuration(anchorDate, duration, true),
+        "yyyy-MM-dd",
+      ),
+    });
+  }, [anchorDate, duration, updateSearchParams]);
 
   const handleToday = useCallback(() => {
-    setAnchorDate(new Date());
-  }, []);
+    updateSearchParams({ [DATE_PARAM_KEY]: undefined });
+  }, [updateSearchParams]);
 
   const handleRefresh = useCallback(
     async (targets?: AllocationRefreshTargets) => {
@@ -82,14 +184,18 @@ export function AllocationsProjectProvider({
         isQueryLoading,
         isNextPageLoading,
         hasMore,
-        searchInput,
+        search: searchParam,
         duration,
+        allocationsType,
+        compositeFilters,
         weekCount,
         anchorDate,
       },
       actions: {
         setSearch,
         setDuration,
+        setAllocationsType,
+        setCompositeFilters,
         loadMore,
         handlePrevious,
         handleNext,
@@ -102,12 +208,16 @@ export function AllocationsProjectProvider({
       isQueryLoading,
       isNextPageLoading,
       hasMore,
-      searchInput,
+      searchParam,
       duration,
+      allocationsType,
+      compositeFilters,
       weekCount,
       anchorDate,
       setSearch,
       setDuration,
+      setAllocationsType,
+      setCompositeFilters,
       loadMore,
       handlePrevious,
       handleNext,

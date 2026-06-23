@@ -131,7 +131,14 @@ const AddLeave = ({ open = false, onOpenChange }: LeaveTimeProps) => {
         />
       }
       options={{
-        title: "Add time-off",
+        title: () => (
+          <h3
+            className="text-2xl font-semibold leading-[1.15] text-ink-gray-8"
+            data-testid="dialog-title"
+          >
+            Add time-off
+          </h3>
+        ),
       }}
     >
       <div className="space-y-4">
@@ -141,7 +148,9 @@ const AddLeave = ({ open = false, onOpenChange }: LeaveTimeProps) => {
             children={(field) => {
               return (
                 <div className="flex-1 flex w-full flex-col space-y-1.5">
-                  <label className="block text-xs text-ink-gray-5">From</label>
+                  <label className="block text-base text-ink-gray-5 mb-1.5">
+                    From
+                  </label>
                   <DatePicker
                     label="From"
                     onChange={(val) => field.handleChange(val as string)}
@@ -151,14 +160,14 @@ const AddLeave = ({ open = false, onOpenChange }: LeaveTimeProps) => {
                     {({ displayValue }) => {
                       return (
                         <div
-                          className={`w-full relative flex items-center border border-outline-gray-2 px-[10px] py-1 rounded-lg`}
+                          className={`w-full relative flex items-center border border-outline-gray-2 px-2.5 py-1 rounded`}
                         >
                           <input
                             readOnly
                             type="text"
                             id="start"
                             value={displayValue}
-                            className={`flex-1`}
+                            className="flex-1 text-base text-ink-gray-7"
                           />
                           <Calendar className="size-4" />
                         </div>
@@ -179,7 +188,9 @@ const AddLeave = ({ open = false, onOpenChange }: LeaveTimeProps) => {
             children={(field) => {
               return (
                 <div className="flex-1 flex w-full flex-col space-y-1.5">
-                  <label className="block text-xs text-ink-gray-5">To</label>
+                  <label className="block text-base text-ink-gray-5 mb-1.5">
+                    To
+                  </label>
                   <DatePicker
                     label="To"
                     onChange={(val) => field.handleChange(val as string)}
@@ -189,14 +200,14 @@ const AddLeave = ({ open = false, onOpenChange }: LeaveTimeProps) => {
                     {({ displayValue }) => {
                       return (
                         <div
-                          className={`w-full relative flex items-center border border-outline-gray-2 px-[10px] py-1 rounded-lg`}
+                          className={`w-full relative flex items-center border border-outline-gray-2 px-2.5 py-1 rounded`}
                         >
                           <input
                             readOnly
                             type="text"
                             id="start"
                             value={displayValue}
-                            className={`flex-1`}
+                            className="flex-1 text-base text-ink-gray-7"
                           />
                           <Calendar className="size-4" />
                         </div>
@@ -219,11 +230,12 @@ const AddLeave = ({ open = false, onOpenChange }: LeaveTimeProps) => {
           children={(field) => {
             return (
               <>
-                <label className="block text-xs text-ink-gray-5">
+                <label className="block text-base text-ink-gray-5 mb-1.5">
                   Leave duration
                 </label>
                 <TabButtons
                   className="h-"
+                  buttonClassName="text-ink-gray-5 data-pressed:text-ink-gray-8"
                   value={field.state.value}
                   onChange={(val) => field.handleChange(val as string)}
                   buttons={LEAVE_DURATION.map((value) => ({
@@ -249,14 +261,14 @@ const AddLeave = ({ open = false, onOpenChange }: LeaveTimeProps) => {
           children={(field) => {
             return (
               <>
-                <label className="block text-xs text-ink-gray-5">
+                <label className="block text-base text-ink-gray-5 mb-1.5">
                   Leave type
                 </label>
                 <Select
                   value={field.state.value}
                   onChange={(val) => field.handleChange(val as string)}
                   variant="outline"
-                  className="h-8"
+                  className="h-8 text-ink-gray-7"
                   options={[...unpaidLeaveOptions, ...allocatedLeaveOptions]}
                   placeholder="Select Leave Type"
                 />
@@ -272,11 +284,13 @@ const AddLeave = ({ open = false, onOpenChange }: LeaveTimeProps) => {
           children={(field) => {
             return (
               <>
-                <label className="block text-xs text-ink-gray-5">Reason</label>
+                <label className="block text-base text-ink-gray-5 mb-1.5">
+                  Reason
+                </label>
                 <Textarea
                   value={field.state.value}
                   onChange={(e) => field.handleChange(e.target.value)}
-                  className="bg-white border-outline-gray-2"
+                  className="bg-white border-outline-gray-2 text-ink-gray-7"
                 />
                 {!field.state.meta.isValid && (
                   <ErrorMessage message={field.state.meta.errors[0]?.message} />

@@ -142,23 +142,25 @@ const GanttGridInner: React.FC<{
         </div>
       </div>
 
-      <DeleteAllocationDialog
-        open={pendingDeleteEntry !== null}
-        onOpenChange={(open) => {
-          if (!open) clearPendingDeleteEntry();
-        }}
-        projectName={pendingDeleteEntry?.projectName ?? ""}
-        dateRange={pendingDeleteEntry?.dateRange ?? ""}
-        hoursPerDay={pendingDeleteEntry?.hoursPerDay ?? ""}
-        totalHours={pendingDeleteEntry?.totalHours ?? ""}
-        onConfirm={async () => {
-          try {
-            pendingDeleteEntry?.onDelete();
-          } finally {
-            clearPendingDeleteEntry();
-          }
-        }}
-      />
+      {pendingDeleteEntry ? (
+        <DeleteAllocationDialog
+          onOpenChange={(open) => {
+            if (!open) clearPendingDeleteEntry();
+          }}
+          projectName={pendingDeleteEntry.projectName}
+          dateRange={pendingDeleteEntry.dateRange}
+          hoursPerDay={pendingDeleteEntry.hoursPerDay}
+          totalHours={pendingDeleteEntry.totalHours}
+          isRecurring={Boolean(pendingDeleteEntry.recurrenceId)}
+          onConfirm={async (deleteMode) => {
+            try {
+              await pendingDeleteEntry.onDelete(deleteMode);
+            } finally {
+              clearPendingDeleteEntry();
+            }
+          }}
+        />
+      ) : null}
     </div>
   );
 };
