@@ -3,11 +3,19 @@ from dataclasses import asdict, dataclass
 from datetime import date, timedelta
 
 import frappe
+from erpnext.setup.doctype.employee.employee import get_holiday_list_for_employee
 from frappe.automation.doctype.auto_repeat.auto_repeat import add_days
-from frappe.utils import cint, getdate
+from frappe.utils import cint, flt, getdate
 
-from next_pms.resource_management.api.utils.helpers import resource_api_permissions_check
+from next_pms.resource_management.api.utils.helpers import is_on_leave, resource_api_permissions_check
+from next_pms.resource_management.api.utils.query import (
+    attach_extra_entries,
+    get_allocation_list_for_employee_for_given_range,
+    get_employee_leaves,
+)
 from next_pms.resource_management.doctype.resource_allocation.resource_allocation import clear_cache
+from next_pms.resource_management.report.utils import get_employee_allocations_for_date
+from next_pms.timesheet.api.employee import get_employee_daily_working_norm
 
 NON_DATE_FIELDS = frozenset({"project", "customer", "is_billable", "status", "note", "hours_allocated_per_day"})
 RECURRING_IMMUTABLE_FIELDS = ("employee", "project", "customer")
@@ -588,3 +596,116 @@ def delete_allocation(name: str, delete_mode: str):
     for doc_name in names:
         frappe.delete_doc("Resource Allocation", doc_name)
     return {"success": True}
+
+
+def _override_hours_by_date(allocation: dict) -> dict:
+    """Map each overridden date to its effective hours (0 when cancelled)."""
+    return {
+        getdate(row["date"]): 0 if cint(row.get("cancelled")) else flt(row.get("hours"))
+        for row in allocation.get("override") or []
+    }
+
+
+def _existing_hours_for_date(allocations: list[dict], override_maps: dict, target_date: date) -> float:
+    """Sum the effective allocated hours of existing allocations active on a date.
+
+    Uses a day-override value when present for that date, otherwise the allocation's
+    default ``hours_allocated_per_day``.
+    """
+    total = 0.0
+    for allocation in get_employee_allocations_for_date(allocations, target_date):
+        override = override_maps.get(allocation["name"], {})
+        if target_date in override:
+            total += override[target_date]
+        else:
+            total += flt(allocation.get("hours_allocated_per_day"))
+    return total
+
+
+@frappe.whitelist(methods=["GET", "POST"])
+def get_over_allocated_dates(
+    employee: str,
+    start_date: str,
+    end_date: str,
+    hours_per_day: float,
+    include_weekends: bool = False,
+    repeat_till_week_count: int = 0,
+    allocation_name: str | None = None,
+) -> list[dict]:
+    """Return the dates where a proposed allocation would over-allocate the employee.
+
+    Computes, per day, the employee's available hours (daily working hours reduced by
+    leaves/holidays) against the sum of their existing allocations (day-override aware)
+    plus the proposed ``hours_per_day``. A date is over-allocated when that sum exceeds
+    the available hours.
+
+    Args:
+        employee (str): Employee being allocated.
+        start_date (str): Proposed allocation start ("YYYY-MM-DD").
+        end_date (str): Proposed allocation end ("YYYY-MM-DD").
+        hours_per_day (float): Proposed hours/day for the new allocation.
+        include_weekends (bool): When False, weekend days are skipped.
+        repeat_till_week_count (int): Number of additional weekly copies; the window is
+            also evaluated shifted by +7 days per copy (0 for one-time or edit).
+        allocation_name (str | None): Allocation to exclude from the existing-hours sum
+            (the allocation being edited).
+
+    Returns:
+        list[dict]: ``[{"date": "YYYY-MM-DD", "excess_hours": 2.5}, ...]``, one entry per
+        over-allocated date across all weekly copies.
+    """
+    permission = resource_api_permissions_check()
+    if not permission["read"]:
+        frappe.throw(frappe._("You are not allowed to perform this action."), exc=frappe.PermissionError)
+
+    base_start = getdate(start_date)
+    base_end = getdate(end_date)
+    if base_start > base_end:
+        frappe.throw(frappe._("start_date must be on or before end_date."), exc=frappe.ValidationError)
+
+    hours_per_day = flt(hours_per_day)
+    repeat_till_week_count = cint(repeat_till_week_count)
+    if hours_per_day <= 0:
+        return []
+
+    daily_working_hours = get_employee_daily_working_norm(employee)
+    fetch_end = add_days(base_end, repeat_till_week_count * 7)
+
+    existing = get_allocation_list_for_employee_for_given_range(
+        columns=["name", "allocation_start_date", "allocation_end_date", "hours_allocated_per_day"],
+        value_key="employee",
+        values=[employee],
+        start_date=base_start,
+        end_date=fetch_end,
+    )
+    if allocation_name:
+        existing = [a for a in existing if a["name"] != allocation_name]
+    attach_extra_entries(existing)
+    override_maps = {a["name"]: _override_hours_by_date(a) for a in existing}
+
+    leaves = get_employee_leaves(employee=employee, start_date=str(base_start), end_date=str(fetch_end))
+    holiday_list = get_holiday_list_for_employee(employee, raise_exception=False)
+    holidays = (
+        frappe.get_all(
+            "Holiday",
+            filters={"parent": holiday_list, "holiday_date": ["between", (base_start, fetch_end)]},
+            fields=["holiday_date"],
+        )
+        if holiday_list
+        else []
+    )
+
+    result = []
+    for week in range(repeat_till_week_count + 1):
+        week_delta = timedelta(days=7 * week)
+        current = base_start + week_delta
+        week_end = base_end + week_delta
+        while current <= week_end:
+            if include_weekends or current.weekday() < 5:
+                available = is_on_leave(current, daily_working_hours, leaves, holidays)["leave_work_hours"]
+                total = _existing_hours_for_date(existing, override_maps, current) + hours_per_day
+                if total > available:
+                    result.append({"date": current.strftime("%Y-%m-%d"), "excess_hours": round(total - available, 2)})
+            current = add_days(current, 1)
+
+    return result
