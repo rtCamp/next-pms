@@ -10,7 +10,6 @@ export const THIS_MONTH_VALUE = "this-month";
 export const PERIOD_OPTIONS: SelectOption[] = [
   { value: LAST_WEEK_VALUE, label: "Last week" },
   { value: THIS_WEEK_VALUE, label: "This week" },
-  { value: THIS_MONTH_VALUE, label: "This month" },
 ];
 
 export const TIMESHEET_COLUMNS = [
