@@ -17,6 +17,8 @@ import {
 } from "@rtcamp/frappe-ui-react/icons";
 import {
   ArrowLeftRight,
+  BarChart2,
+  Briefcase,
   Folder,
   Home,
   Layers,
@@ -54,6 +56,9 @@ const Sidebar = () => {
     updateIsSidebarCollapsed: actions.updateIsSidebarCollapsed,
     logout: actions.logout,
   }));
+
+  const canSeeDashboard =
+    roles.includes("Projects Manager") || roles.includes("System Manager");
 
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
@@ -128,6 +133,39 @@ const Sidebar = () => {
               },
             ],
           },
+          ...(canSeeDashboard
+            ? [
+                {
+                  label: "Dashboard",
+                  collapsible: true,
+                  items: [
+                    ...(roles.includes("System Manager")
+                      ? [
+                          {
+                            label: "Leadership",
+                            icon: BarChart2,
+                            isActive:
+                              pathname === ROUTES["dashboard-leadership"],
+                            onClick: () =>
+                              navigate(ROUTES["dashboard-leadership"]),
+                          },
+                        ]
+                      : []),
+                    ...(roles.includes("Projects Manager")
+                      ? [
+                          {
+                            label: "Manager",
+                            icon: Briefcase,
+                            isActive: pathname === ROUTES["dashboard-manager"],
+                            onClick: () =>
+                              navigate(ROUTES["dashboard-manager"]),
+                          },
+                        ]
+                      : []),
+                  ],
+                },
+              ]
+            : []),
           {
             label: "",
             items: [
@@ -243,9 +281,25 @@ const Sidebar = () => {
         open={isSearchOpen}
         onOpenChange={setIsSearchOpen}
         items={[
+          ...(roles.includes("System Manager")
+            ? [
+                {
+                  label: "Dashboard - Leadership",
+                  action: () => navigate(ROUTES["dashboard-leadership"]),
+                },
+              ]
+            : []),
+          ...(roles.includes("Projects Manager")
+            ? [
+                {
+                  label: "Dashboard - Manager",
+                  action: () => navigate(ROUTES["dashboard-manager"]),
+                },
+              ]
+            : []),
           { label: "Home", action: () => navigate(ROUTES.home) },
           { label: "Tasks", action: () => navigate(ROUTES.task) },
-          ...(roles.includes("Project Manager")
+          ...(roles.includes("Projects Manager")
             ? [{ label: "Projects", action: () => navigate(ROUTES.project) }]
             : []),
           {

@@ -9,10 +9,14 @@ import { Route, Outlet } from "react-router-dom";
 import { ROUTES } from "@/lib/constant";
 import LayoutWithSidebar from "./layout";
 import { useUser } from "./providers/user";
+import { Role } from "./types";
 /**
  * Lazy load components.
  */
 const Home = lazy(() => import("@/pages/home"));
+const Dashboard = lazy(() => import("@/pages/dashboard"));
+const LeadershipDashboard = lazy(() => import("@/pages/dashboard/leadership"));
+const ManagerDashboard = lazy(() => import("@/pages/dashboard/manager"));
 const Task = lazy(() => import("@/pages/task"));
 const ProjectList = lazy(() => import("@/pages/projects/list"));
 const ProjectKanban = lazy(() => import("@/pages/projects/kanban"));
@@ -48,6 +52,31 @@ export function Router() {
       <Route element={<AuthenticatedRoute />}>
         <Route element={<LayoutWithSidebar />}>
           <Route path={ROUTES.home} element={<Home />} />
+          <Route
+            element={
+              <RoleProtectedRoute
+                allowedRoles={["System Manager", "Projects Manager"]}
+              />
+            }
+          >
+            <Route path={ROUTES.dashboard} element={<Dashboard />} />
+          </Route>
+          <Route
+            element={<RoleProtectedRoute allowedRoles={["System Manager"]} />}
+          >
+            <Route
+              path={ROUTES["dashboard-leadership"]}
+              element={<LeadershipDashboard />}
+            />
+          </Route>
+          <Route
+            element={<RoleProtectedRoute allowedRoles={["Projects Manager"]} />}
+          >
+            <Route
+              path={ROUTES["dashboard-manager"]}
+              element={<ManagerDashboard />}
+            />
+          </Route>
           <Route path={ROUTES.task} element={<Task />} />
           <Route path={ROUTES.project} element={<ProjectList />} />
           <Route path={ROUTES["project-kanban"]} element={<ProjectKanban />} />
@@ -112,4 +141,19 @@ const AuthenticatedRoute = () => {
   if (!isUserLoading && currentUser && currentUser !== "Guest") {
     return <Outlet />;
   }
+};
+
+const RoleProtectedRoute = ({ allowedRoles }: { allowedRoles: Role[] }) => {
+  const { isLoading, roles } = useUser(({ state }) => ({
+    isLoading: state.isLoading,
+    roles: state.roles,
+  }));
+
+  if (isLoading) {
+    return <></>;
+  }
+
+  const hasAccess = roles.some((role) => allowedRoles.includes(role));
+
+  return hasAccess ? <Outlet /> : <NotFound />;
 };
