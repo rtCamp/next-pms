@@ -15,9 +15,15 @@ import {
   MOCK_CLIENT_OPTIONS,
   MOCK_PROJECT_OPTIONS,
 } from "../constants";
-import { ManagerView } from "../manager-view";
+import AssignedProjects from "../widget/assigned-projects";
+import CalendarTimelineCard from "../widget/calendar-timeline";
+import HeatmapCard from "../widget/heatmap";
+import NotificationsCard from "../widget/notificationsCard";
+import LiveStatCard from "../widget/stat-cards";
+import Timesheets from "../widget/timesheet-summary";
+import UpcomingTimeOff from "../widget/upcoming-time-off";
 
-function ManagerDashboard() {
+export default function ManagerDashboard() {
   const [client, setClient] = useState<string>(ALL_CLIENTS_VALUE);
   const [project, setProject] = useState<string>(ALL_PROJECTS_VALUE);
   const { employeeName, userName } = useUser(({ state }) => ({
@@ -33,11 +39,11 @@ function ManagerDashboard() {
         <Breadcrumbs
           items={[
             { id: "dashboard", label: "Dashboard" },
-            { id: "manager", label: "Manager" },
+            { id: "leadership", label: "Management" },
           ]}
         />
       </Header>
-      <div className="flex flex-col gap-6 overflow-y-auto p-5">
+      <div className="flex flex-col gap-6 overflow-y-auto p-5 max-w-[1200px] mx-auto">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="flex min-w-0 flex-col gap-2">
             <h2 className="text-xl font-semibold text-ink-gray-8">
@@ -62,10 +68,30 @@ function ManagerDashboard() {
             />
           </div>
         </div>
-        <ManagerView />
+
+        <section
+          aria-label="Leadership dashboard"
+          className="flex flex-col gap-3 overflow-y-auto scrollbar-thin"
+        >
+          <div className="grid grid-cols-4 gap-3">
+            <LiveStatCard />
+          </div>
+          <div className="grid grid-cols-3 gap-3">
+            <div className="col-span-2">
+              <HeatmapCard />
+            </div>
+            <NotificationsCard />
+          </div>
+          <CalendarTimelineCard />
+          <AssignedProjects />
+          <div className="grid grid-cols-3 gap-3">
+            <div className="col-span-2">
+              <Timesheets />
+            </div>
+            <UpcomingTimeOff />
+          </div>
+        </section>
       </div>
     </>
   );
 }
-
-export default ManagerDashboard;

@@ -43,14 +43,21 @@ export interface EmployeeOnLeave {
   employee_name: string;
   from_date: string;
   to_date: string;
+  half_day: 0 | 1;
+  custom_first_halfsecond_half: string | null;
+  user_image: string | null;
 }
 
 export type EmployeesOnLeaveResponse = { message: EmployeeOnLeave[] };
 
-export interface TimesheetStatus {
-  name: string;
-  status: string;
-}
+export type WeeklyApprovalStatus =
+  | "Not Submitted"
+  | "Approval Pending"
+  | "Approved"
+  | "Partially Approved"
+  | "Partially Rejected"
+  | "Rejected"
+  | "Processing Timesheet";
 
 export interface TeamTimesheetEntry {
   employee: string;
@@ -60,7 +67,7 @@ export interface TeamTimesheetEntry {
   non_billable_hours: number;
   expected_hours: number;
   delta: number;
-  timesheet_statuses: TimesheetStatus[];
+  weekly_approval_status: WeeklyApprovalStatus;
 }
 
 export type TeamTimesheetsResponse = { message: TeamTimesheetEntry[] };

@@ -1033,7 +1033,8 @@ def get_team_timesheets(days: int = 7) -> list:
     non-billable hours logged in the window, computes expected hours from the
     employee's daily working norm over the working days (weekends and the
     employee's holidays excluded; leaves are not), the delta between expected and
-    logged hours, and the approval status of each timesheet in the window.
+    logged hours, and the week's approval status (uniform across all of the
+    employee's timesheets in a given week).
 
     Args:
         days: Inclusive look-back window of calendar days ending today. Must be at
@@ -1042,8 +1043,9 @@ def get_team_timesheets(days: int = 7) -> list:
     Returns:
         A list of dicts, each with employee ID,
         employee_name, user_image, billable_hours, non_billable_hours,
-        expected_hours, delta, and timesheet_statuses (a list of
-        {name, status} for each timesheet in the window). Empty list when the
+        expected_hours, delta, and weekly_approval_status (the
+        custom_weekly_approval_status of the employee's timesheets in the
+        window, "Not Submitted" when none). Empty list when the
         caller has no linked Employee record or no active direct reports.
 
     Raises:
@@ -1115,7 +1117,7 @@ def _get_team_timesheets(manager_employee: str, days: int) -> list:
         else:
             non_billable_by_employee[row.employee] = flt(row.total_hours)
 
-    statuses_by_employee = {}
+    weekly_status_by_employee = {}
     timesheets = frappe.get_all(
         "Timesheet",
         filters={
@@ -1123,14 +1125,10 @@ def _get_team_timesheets(manager_employee: str, days: int) -> list:
             "start_date": ["between", (start_date, end_date)],
             "docstatus": ["in", [0, 1]],
         },
-        fields=["name", "employee", "custom_approval_status"],
+        fields=["employee", "custom_weekly_approval_status"],
     )
     for timesheet in timesheets:
-        if timesheet.employee not in statuses_by_employee:
-            statuses_by_employee[timesheet.employee] = []
-        statuses_by_employee[timesheet.employee].append(
-            {"name": timesheet.name, "status": timesheet.custom_approval_status}
-        )
+        weekly_status_by_employee.setdefault(timesheet.employee, timesheet.custom_weekly_approval_status)
 
     members = []
     for employee in employees:
@@ -1154,7 +1152,7 @@ def _get_team_timesheets(manager_employee: str, days: int) -> list:
                 "non_billable_hours": non_billable,
                 "expected_hours": expected_hours,
                 "delta": flt(expected_hours - billable - non_billable, 2),
-                "timesheet_statuses": statuses_by_employee.get(employee.name, []),
+                "weekly_approval_status": weekly_status_by_employee.get(employee.name, "Not Submitted"),
             }
         )
 
