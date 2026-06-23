@@ -24,6 +24,7 @@ const ApprovalStatusFilter: React.FC<ApprovalStatusFilterProps> = ({
   return (
     <Select
       placeholder="Approval Status"
+      placeholderClassName="text-ink-gray-7"
       className="w-fit text-ink-gray-7"
       options={options}
       value={value ?? ""}

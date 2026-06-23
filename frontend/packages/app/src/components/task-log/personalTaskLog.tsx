@@ -119,6 +119,7 @@ const PersonalTaskLog: React.FC<PersonalTaskLogProps> = ({
               }}
               options={dateMap}
               placeholder="Select option"
+              placeholderClassName="text-ink-gray-7"
               value={selectedDays}
             />
           </div>

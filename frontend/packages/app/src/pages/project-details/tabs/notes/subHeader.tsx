@@ -75,6 +75,7 @@ export function NotesSubHeader() {
         <Select
           size="sm"
           placeholder="Select Author"
+          placeholderClassName="text-ink-gray-7"
           className="w-fit"
           value={author}
           onChange={(value) => onAuthorChange((value ?? "") as string)}
