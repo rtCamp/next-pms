@@ -631,7 +631,7 @@ def get_over_allocated_dates(
     include_weekends: bool = False,
     repeat_till_week_count: int = 0,
     allocation_name: str | None = None,
-) -> list[dict]:
+) -> dict:
     """Return the dates where a proposed allocation would over-allocate the employee.
 
     Computes, per day, the employee's available hours (daily working hours reduced by
@@ -651,8 +651,9 @@ def get_over_allocated_dates(
             (the allocation being edited).
 
     Returns:
-        list[dict]: ``[{"date": "YYYY-MM-DD", "excess_hours": 2.5}, ...]``, one entry per
-        over-allocated date across all weekly copies.
+        dict: ``{"dates": [{"date": "YYYY-MM-DD", "excess_hours": 2.5}, ...],
+        "total_excess_hours": 5.0}`` — one ``dates`` entry per over-allocated date across
+        all weekly copies, and ``total_excess_hours`` summing their ``excess_hours``.
     """
     permission = resource_api_permissions_check()
     if not permission["read"]:
@@ -708,4 +709,5 @@ def get_over_allocated_dates(
                     result.append({"date": current.strftime("%Y-%m-%d"), "excess_hours": round(total - available, 2)})
             current = add_days(current, 1)
 
-    return result
+    total_excess_hours = round(sum(entry["excess_hours"] for entry in result), 2)
+    return {"dates": result, "total_excess_hours": total_excess_hours}
