@@ -91,7 +91,10 @@ export function CommentItem({ comment, canReply }: CommentItemProps) {
         />
       ) : (
         <div className="rounded-lg bg-surface-gray-1 px-3">
-          <StaticTextEditor content={comment.content} editorClass="prose-sm" />
+          <StaticTextEditor
+            content={comment.content}
+            editorClass="prose-sm text-ink-gray-7"
+          />
         </div>
       )}
 

@@ -823,24 +823,26 @@ def _get_time_utilisation(days: int, role: str | None) -> dict:
 
 
 @whitelist(methods=["GET"])
-def get_forecast_breakdown(days: int = 7, role: str | None = None) -> dict:
-    """Return forward-looking allocation capacity totals for the next window.
+def get_forecast_breakdown(days: int = 7) -> dict:
+    """Return forward-looking allocation capacity totals grouped by designation.
 
     Looks at active employees and their Resource Allocations over an inclusive
     window starting today. For each working day (weekends and the employee's
     holidays are skipped; leaves are not), the employee's daily working hours are
     treated as their capacity, and confirmed and tentative allocation hours are
-    summed against it. Any remaining capacity is counted as unallocated.
+    summed against it. Any remaining capacity is counted as unallocated. Totals
+    are grouped by the employee's designation so callers can filter client-side;
+    employees without a designation are excluded.
 
     Args:
         days: Inclusive forecast window length starting today. Must be at least 1.
             For example, days=7 on 10 Jun covers 10 Jun through 16 Jun inclusive.
-        role: Filter by the employee's designation. Defaults to None (all roles).
 
     Returns:
-        A dict with days, start_date, end_date, allocated_hours (confirmed),
-        tentative_hours, and unallocated_hours, each summed across all matching
-        employees and working days.
+        A dict with days, start_date, end_date, and a roles list, where each entry
+        has a designation and allocated_hours (confirmed), tentative_hours, and
+        unallocated_hours summed across that designation's employees and working
+        days.
 
     Raises:
         frappe.PermissionError: If the caller lacks Projects Manager, Projects User,
@@ -852,11 +854,11 @@ def get_forecast_breakdown(days: int = 7, role: str | None = None) -> dict:
     if days < 1:
         frappe.throw(frappe._("days must be at least 1"))
 
-    return _get_forecast_breakdown(days, role)
+    return _get_forecast_breakdown(days)
 
 
 @redis_cache(ttl=21600)
-def _get_forecast_breakdown(days: int, role: str | None) -> dict:
+def _get_forecast_breakdown(days: int) -> dict:
     start_date = getdate(today())
     end_date = start_date + timedelta(days=days - 1)
     allow_weekend_entries = cint(frappe.db.get_single_value("Timesheet Settings", "allow_weekend_entries"))
@@ -866,19 +868,13 @@ def _get_forecast_breakdown(days: int, role: str | None) -> dict:
         "days": days,
         "start_date": start_date,
         "end_date": end_date,
-        "allocated_hours": 0.0,
-        "tentative_hours": 0.0,
-        "unallocated_hours": 0.0,
+        "roles": [],
     }
-
-    employee_filters = {"status": "Active"}
-    if role:
-        employee_filters["designation"] = role
 
     employees = frappe.get_all(
         "Employee",
-        filters=employee_filters,
-        fields=["name", "custom_working_hours", "custom_work_schedule"],
+        filters={"status": "Active"},
+        fields=["name", "designation", "custom_working_hours", "custom_work_schedule"],
     )
 
     if not employees or not working_dates:
@@ -928,33 +924,45 @@ def _get_forecast_breakdown(days: int, role: str | None) -> dict:
         bucket = tentative_by_employee if allocation.status == "Tentative" else confirmed_by_employee
         bucket.setdefault(allocation.employee, []).append(allocation)
 
-    total_allocated = 0.0
-    total_tentative = 0.0
-    total_unallocated = 0.0
+    # designation -> {"allocated": float, "tentative": float, "unallocated": float}
+    summary = {}
 
     for employee in employees:
+        designation = employee.designation
+        if not designation:
+            continue
+
         working_hours = flt(employee.custom_working_hours) or default_daily_hours
         daily_working_hours = working_hours / 5 if employee.custom_work_schedule == "Per Week" else working_hours
         daily_working_hours = flt(daily_working_hours)
 
         employee_holidays = holidays_by_list.get(holiday_list_by_employee.get(employee.name), [])
+        bucket = summary.setdefault(designation, {"allocated": 0.0, "tentative": 0.0, "unallocated": 0.0})
 
         for date in working_dates:
             if is_holiday(date, employee_holidays):
                 continue
             confirmed = get_employee_allocated_hours_for_date(confirmed_by_employee.get(employee.name, []), date)
             tentative = get_employee_allocated_hours_for_date(tentative_by_employee.get(employee.name, []), date)
-            total_allocated += confirmed
-            total_tentative += tentative
-            total_unallocated += max(0.0, daily_working_hours - confirmed - tentative)
+            bucket["allocated"] += confirmed
+            bucket["tentative"] += tentative
+            bucket["unallocated"] += max(0.0, daily_working_hours - confirmed - tentative)
+
+    roles = [
+        {
+            "designation": designation,
+            "allocated_hours": flt(bucket["allocated"], 2),
+            "tentative_hours": flt(bucket["tentative"], 2),
+            "unallocated_hours": flt(bucket["unallocated"], 2),
+        }
+        for designation, bucket in sorted(summary.items())
+    ]
 
     return {
         "days": days,
         "start_date": start_date,
         "end_date": end_date,
-        "allocated_hours": flt(total_allocated, 2),
-        "tentative_hours": flt(total_tentative, 2),
-        "unallocated_hours": flt(total_unallocated, 2),
+        "roles": roles,
     }
 
 
@@ -1025,7 +1033,8 @@ def get_team_timesheets(days: int = 7) -> list:
     non-billable hours logged in the window, computes expected hours from the
     employee's daily working norm over the working days (weekends and the
     employee's holidays excluded; leaves are not), the delta between expected and
-    logged hours, and the approval status of each timesheet in the window.
+    logged hours, and the week's approval status (uniform across all of the
+    employee's timesheets in a given week).
 
     Args:
         days: Inclusive look-back window of calendar days ending today. Must be at
@@ -1034,8 +1043,9 @@ def get_team_timesheets(days: int = 7) -> list:
     Returns:
         A list of dicts, each with employee ID,
         employee_name, user_image, billable_hours, non_billable_hours,
-        expected_hours, delta, and timesheet_statuses (a list of
-        {name, status} for each timesheet in the window). Empty list when the
+        expected_hours, delta, and weekly_approval_status (the
+        custom_weekly_approval_status of the employee's timesheets in the
+        window, "Not Submitted" when none). Empty list when the
         caller has no linked Employee record or no active direct reports.
 
     Raises:
@@ -1107,7 +1117,7 @@ def _get_team_timesheets(manager_employee: str, days: int) -> list:
         else:
             non_billable_by_employee[row.employee] = flt(row.total_hours)
 
-    statuses_by_employee = {}
+    weekly_status_by_employee = {}
     timesheets = frappe.get_all(
         "Timesheet",
         filters={
@@ -1115,14 +1125,10 @@ def _get_team_timesheets(manager_employee: str, days: int) -> list:
             "start_date": ["between", (start_date, end_date)],
             "docstatus": ["in", [0, 1]],
         },
-        fields=["name", "employee", "custom_approval_status"],
+        fields=["employee", "custom_weekly_approval_status"],
     )
     for timesheet in timesheets:
-        if timesheet.employee not in statuses_by_employee:
-            statuses_by_employee[timesheet.employee] = []
-        statuses_by_employee[timesheet.employee].append(
-            {"name": timesheet.name, "status": timesheet.custom_approval_status}
-        )
+        weekly_status_by_employee.setdefault(timesheet.employee, timesheet.custom_weekly_approval_status)
 
     members = []
     for employee in employees:
@@ -1146,7 +1152,7 @@ def _get_team_timesheets(manager_employee: str, days: int) -> list:
                 "non_billable_hours": non_billable,
                 "expected_hours": expected_hours,
                 "delta": flt(expected_hours - billable - non_billable, 2),
-                "timesheet_statuses": statuses_by_employee.get(employee.name, []),
+                "weekly_approval_status": weekly_status_by_employee.get(employee.name, "Not Submitted"),
             }
         )
 
@@ -1373,23 +1379,29 @@ def _get_calendar_timeline_items(range_start, range_end, project: str | None) ->
     accessible_projects = frappe.get_list(
         "Project",
         filters=project_filters,
-        pluck="name",
+        fields=["name", "project_name"],
         limit_page_length=0,
     )
     if not accessible_projects:
         return {"data": []}
 
+    project_name_map = {p.name: p.project_name for p in accessible_projects}
+
     PTI = frappe.qb.DocType("Project Timeline Item")
     items = (
         frappe.qb.from_(PTI)
         .select(*[PTI[field] for field in TIMELINE_ITEM_FIELDS])
-        .where(PTI.project.isin(accessible_projects))
+        .where(PTI.project.isin(list(project_name_map)))
         .where((PTI.start_date < range_end) & (PTI.planned_end_date > range_start))
         .orderby(PTI.start_date)
         .orderby(PTI.planned_end_date)
         .run(as_dict=True)
     )
 
-    data = [enrich_timeline_item(item, {}, {}) for item in items]
+    data = []
+    for item in items:
+        enriched = enrich_timeline_item(item, {}, {})
+        enriched["project_name"] = project_name_map.get(item.get("project"))
+        data.append(enriched)
 
     return {"data": data}

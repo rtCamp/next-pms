@@ -27,3 +27,4 @@ next_pms.next_projects.patches.create_default_risk_masters
 next_pms.next_projects.patches.add_designation_permissions_for_pm
 next_pms.next_projects.patches.setup_project_lifetime_value_fields
 next_pms.timesheet.patches.add_timesheet_detail_index
+next_pms.next_projects.patches.setup_project_target_hours_field

@@ -36,7 +36,7 @@ export const TimeOffRow: React.FC<TimeOffRowProps> = ({
       )}
       data-testid="time-off-row"
     >
-      <div className="flex items-center flex-1 min-w-0 gap-2 text-ink-gray-9">
+      <div className="flex items-center flex-1 min-w-0 gap-2 text-ink-gray-8">
         <span className="w-4 shrink-0">
           {renderPrefix ? (
             renderPrefix()
@@ -51,7 +51,7 @@ export const TimeOffRow: React.FC<TimeOffRowProps> = ({
           <div
             key={index}
             className={cn(
-              "shrink-0 flex justify-end items-center text-base whitespace-nowrap w-16 h-7 px-2 py-1.5 leading-3.5 lining-nums tabular-nums",
+              "shrink-0 flex justify-end items-center text-base whitespace-nowrap w-16 h-7 px-2 py-1.5 lining-nums tabular-nums",
               timeOffEntry.holiday ? "text-ink-gray-4" : "text-ink-gray-6",
             )}
           >
@@ -64,7 +64,7 @@ export const TimeOffRow: React.FC<TimeOffRowProps> = ({
         );
       })}
 
-      <div className="shrink-0 flex justify-end items-center text-base text-end font-medium text-ink-amber-4 whitespace-nowrap w-16 h-7 px-2 py-1.5 leading-3.5 lining-nums tabular-nums">
+      <div className="shrink-0 flex justify-end items-center text-base text-end font-medium text-ink-amber-4 whitespace-nowrap w-16 h-7 px-2 py-1.5 lining-nums tabular-nums">
         <span>{totalHours}</span>
       </div>
 

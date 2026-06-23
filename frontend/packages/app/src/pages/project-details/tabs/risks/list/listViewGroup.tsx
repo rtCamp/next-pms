@@ -28,7 +28,7 @@ export function RiskGroup({ value, label, risks }: RiskGroupProps) {
     <Accordion.Item value={value}>
       {/* Group header */}
       <Accordion.Header className="w-full">
-        <Accordion.Trigger className="flex items-center gap-2 w-full px-2 py-3 mb-2 text-base font-semibold text-ink-gray-9 border-b border-outline-gray-1 group">
+        <Accordion.Trigger className="flex items-center gap-2 w-full px-2 py-3 mb-2 text-base font-semibold text-ink-gray-8 border-b border-outline-gray-1 group">
           <SmallDown
             aria-hidden
             className="size-4 shrink-0 text-ink-gray-5 transition-transform -rotate-90 group-data-panel-open:rotate-0"
@@ -75,7 +75,7 @@ export function RiskGroup({ value, label, risks }: RiskGroupProps) {
                 minWidth: RISK_LIST_COLUMNS[0].width,
                 flex: RISK_LIST_COLUMNS[0].flex,
               }}
-              className="truncate font-medium text-ink-gray-9 px-2 py-1.5"
+              className="truncate font-medium text-ink-gray-8 px-2 py-1.5"
             >
               {risk.risk_category ?? "—"}
             </div>
@@ -86,7 +86,7 @@ export function RiskGroup({ value, label, risks }: RiskGroupProps) {
                 minWidth: RISK_LIST_COLUMNS[1].width,
                 flex: RISK_LIST_COLUMNS[1].flex,
               }}
-              className="truncate text-ink-gray-7 px-2 py-1.5"
+              className="truncate text-ink-gray-6 px-2 py-1.5"
             >
               {stripTags(risk.summary || "—")}
             </div>
@@ -97,7 +97,7 @@ export function RiskGroup({ value, label, risks }: RiskGroupProps) {
                 minWidth: RISK_LIST_COLUMNS[2].width,
                 flex: RISK_LIST_COLUMNS[2].flex,
               }}
-              className="truncate text-ink-gray-7 px-2 py-1.5"
+              className="truncate text-ink-gray-6 px-2 py-1.5"
             >
               <div className="flex items-center gap-2">
                 <Avatar
@@ -118,7 +118,7 @@ export function RiskGroup({ value, label, risks }: RiskGroupProps) {
                 minWidth: RISK_LIST_COLUMNS[3].width,
                 flex: RISK_LIST_COLUMNS[3].flex,
               }}
-              className="truncate text-ink-gray-7 px-2 py-1.5"
+              className="truncate text-ink-gray-6 px-2 py-1.5"
             >
               {risk.risk_level ?? "—"}
             </div>
@@ -129,7 +129,7 @@ export function RiskGroup({ value, label, risks }: RiskGroupProps) {
                 minWidth: RISK_LIST_COLUMNS[4].width,
                 flex: RISK_LIST_COLUMNS[4].flex,
               }}
-              className="px-2 py-1.5"
+              className="px-2 py-1.5 text-ink-gray-6"
             >
               <RiskStatusBadge status={risk.status} />
             </div>

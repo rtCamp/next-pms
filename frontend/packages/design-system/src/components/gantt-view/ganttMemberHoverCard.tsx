@@ -53,7 +53,7 @@ function GanttMemberHoverCard({ member }: GanttMemberHoverCardProps) {
             target="_blank"
             rel="noreferrer"
             aria-label="Open employee"
-            className="ml-2 shrink-0 text-ink-gray-8 hover:text-ink-gray-9"
+            className="ml-2 shrink-0 text-ink-gray-8 hover:text-ink-gray-8"
             onClick={(e) => e.stopPropagation()}
           >
             <ArrowUpRight className="size-4 text-ink-gray-8 shrink-0" />
@@ -94,7 +94,7 @@ function GanttMemberHoverCard({ member }: GanttMemberHoverCardProps) {
           {member.manager && (
             <div className="flex gap-2 items-center">
               <User className="size-4 text-ink-gray-6 shrink-0" />
-              <span className="text-sm text-ink-gray-6 truncate leading-tight">
+              <span className="text-sm text-ink-gray-6 truncate">
                 {member.manager}
               </span>
             </div>

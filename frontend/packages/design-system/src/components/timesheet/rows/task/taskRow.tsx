@@ -132,7 +132,7 @@ export const TaskRow: React.FC<TaskRowProps> = ({
         return (
           <div
             key={index}
-            className="shrink-0 flex justify-end items-center text-base text-ink-gray-6 whitespace-nowrap w-16 h-7 pl-2 py-1.5 leading-3.5"
+            className="shrink-0 flex justify-end items-center text-base text-ink-gray-6 whitespace-nowrap w-16 h-7 pl-2 py-1.5"
           >
             <Popover.Root actionsRef={actionsRef}>
               <Popover.Trigger

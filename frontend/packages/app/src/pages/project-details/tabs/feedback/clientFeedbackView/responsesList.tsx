@@ -19,7 +19,7 @@ export function ResponsesList({ responses }: ResponsesListProps) {
     <div className="flex flex-col gap-5">
       {responses.map((item, i) => (
         <div key={i} className="flex flex-col gap-1">
-          <p className="text-base font-medium text-ink-gray-8">
+          <p className="text-base font-medium text-ink-gray-7">
             {item.question}
           </p>
           <p className="text-base leading-normal text-ink-gray-6">

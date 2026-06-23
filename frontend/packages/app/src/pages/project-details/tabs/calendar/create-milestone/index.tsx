@@ -175,7 +175,7 @@ export function CreateMilestoneModal({
                 placeholder="Enter milestone name"
                 value={field.state.value}
                 onChange={(e) => field.handleChange(e.target.value)}
-                className="bg-white border-outline-gray-2"
+                className="bg-white border-outline-gray-2 text-ink-gray-7"
               />
               {!field.state.meta.isValid && (
                 <ErrorMessage message={field.state.meta.errors[0]?.message} />
@@ -199,12 +199,12 @@ export function CreateMilestoneModal({
                   placeholder="Start date"
                 >
                   {({ displayValue }) => (
-                    <div className="flex relative items-center py-1 w-full rounded-lg border border-outline-gray-2 px-2.5">
+                    <div className="flex relative items-center py-1 w-full rounded border border-outline-gray-2 px-2.5">
                       <input
                         readOnly
                         type="text"
                         value={displayValue}
-                        className="flex-1"
+                        className="flex-1 text-base text-ink-gray-7"
                       />
                       <Calendar className="size-4" />
                     </div>
@@ -231,12 +231,12 @@ export function CreateMilestoneModal({
                   placeholder="Completion date"
                 >
                   {({ displayValue }) => (
-                    <div className="flex relative items-center py-1 w-full rounded-lg border border-outline-gray-2 px-2.5">
+                    <div className="flex relative items-center py-1 w-full rounded border border-outline-gray-2 px-2.5">
                       <input
                         readOnly
                         type="text"
                         value={displayValue}
-                        className="flex-1"
+                        className="flex-1 text-base text-ink-gray-7"
                       />
                       <Calendar className="size-4" />
                     </div>
@@ -256,7 +256,7 @@ export function CreateMilestoneModal({
             <div className="flex flex-col gap-1.5">
               <label className="block text-base text-ink-gray-5">Owner</label>
               <Combobox
-                inputClassName="bg-white h-8 border-outline-gray-2"
+                inputClassName="bg-white h-8 border-outline-gray-2 text-ink-gray-7"
                 loading={isOwnerLookupLoading}
                 options={ownerOptionsWithAvatars}
                 searchValue={ownerSearch}

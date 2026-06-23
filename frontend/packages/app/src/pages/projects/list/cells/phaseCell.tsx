@@ -14,7 +14,7 @@ export function PhaseCell({ phase }: { phase?: string }) {
     return <TextCell text="N/A" />;
   }
   return (
-    <div className="flex min-w-0 items-center gap-2 text-ink-gray-7 text-base">
+    <div className="flex min-w-0 items-center gap-2 text-ink-gray-6 text-base">
       <StagesIcon phase={_phase} />
       <span className="truncate">{kebabToTitleCase(_phase)}</span>
     </div>

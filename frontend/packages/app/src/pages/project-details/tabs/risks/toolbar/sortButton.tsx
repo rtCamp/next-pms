@@ -28,6 +28,11 @@ export function SortButton() {
     : SORT_FIELDS;
 
   return (
-    <SortButtonBase fields={sortFields} sort={sort} onSortChange={setSort} />
+    <SortButtonBase
+      className="text-ink-gray-7 text-base"
+      fields={sortFields}
+      sort={sort}
+      onSortChange={setSort}
+    />
   );
 }

@@ -136,10 +136,10 @@ export function ContractModal({
                     <Button
                       type="button"
                       variant="outline"
-                      className="w-full flex justify-between gap-2 shrink-0 cursor-pointer"
+                      className="w-full flex justify-between gap-2 shrink-0 cursor-pointer text-ink-gray-7"
                       iconRight={() => <Calendar className="size-4 shrink-0" />}
                     >
-                      <span className="text-lg whitespace-nowrap mr-2">
+                      <span className="whitespace-nowrap mr-2">
                         {displayValue}
                       </span>
                     </Button>
@@ -169,10 +169,10 @@ export function ContractModal({
                     <Button
                       type="button"
                       variant="outline"
-                      className="w-full justify-between gap-2 shrink-0 cursor-pointer"
+                      className="w-full justify-between gap-2 shrink-0 cursor-pointer text-ink-gray-7"
                       iconRight={() => <Calendar className="size-4 shrink-0" />}
                     >
-                      <span className="text-lg whitespace-nowrap mr-2">
+                      <span className="whitespace-nowrap mr-2">
                         {displayValue}
                       </span>
                     </Button>
@@ -200,7 +200,7 @@ export function ContractModal({
                 placeholder="Enter hours"
                 value={field.state.value}
                 onChange={(e) => field.handleChange(e.target.value)}
-                className="bg-white border-outline-gray-2"
+                className="bg-white border-outline-gray-2 text-ink-gray-7"
                 suffix={() => (
                   <span className="pr-2 text-[13px] text-ink-gray-5">/h</span>
                 )}
@@ -220,7 +220,7 @@ export function ContractModal({
                 Sales order
               </label>
               <Combobox
-                inputClassName="bg-white h-8 border-outline-gray-2"
+                inputClassName="bg-white h-8 border-outline-gray-2 text-ink-gray-7"
                 loading={isSalesOrderLookupLoading}
                 options={salesOrderOptions}
                 searchValue={salesOrderSearch}
@@ -245,7 +245,7 @@ export function ContractModal({
                 Sales invoice
               </label>
               <Combobox
-                inputClassName="bg-white h-8 border-outline-gray-2"
+                inputClassName="bg-white h-8 border-outline-gray-2 text-ink-gray-7"
                 loading={isSalesInvoiceLookupLoading}
                 options={salesInvoiceOptions}
                 searchValue={salesInvoiceSearch}

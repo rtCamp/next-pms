@@ -136,7 +136,7 @@ function OverviewForm() {
   return (
     <div className="flex flex-col gap-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-lg font-semibold text-ink-gray-8">Overview</h1>
+        <h1 className="text-xl font-semibold text-ink-gray-8">Overview</h1>
         {isEditing ? (
           <div className="flex items-center gap-2">
             <Button
@@ -186,14 +186,14 @@ function OverviewForm() {
                 onChange={(value) => field.handleChange(value)}
                 fixedMenu={false}
                 editorClass={mergeClassNames(
-                  "text-sm prose-sm text-ink-gray-7 w-full max-w-full p-2",
+                  "prose-sm leading-normal text-ink-gray-7 w-full max-w-full p-2",
                   isEditing && "rounded-md ring-1 ring-outline-gray-2",
                 )}
               />
             ) : (
               <StaticTextEditor
                 content={field.state.value}
-                editorClass="prose-sm text-ink-gray-7 w-full max-w-full p-2"
+                editorClass="prose-sm leading-normal text-ink-gray-7 w-full max-w-full p-2"
               />
             )}
           </OverviewSection>
@@ -213,13 +213,13 @@ function OverviewForm() {
                   editorClass={
                     isEditing
                       ? "prose-sm text-ink-gray-7 w-full max-w-full rounded-md p-2 ring-1 ring-outline-gray-2"
-                      : "prose-sm text-ink-gray-7 w-full max-w-full p-2"
+                      : "prose-sm leading-normal text-ink-gray-7 w-full max-w-full p-2"
                   }
                 />
               ) : (
                 <StaticTextEditor
                   content={field.state.value}
-                  editorClass="prose-sm text-ink-gray-7 w-full max-w-full p-2"
+                  editorClass="prose-sm leading-normal text-ink-gray-7 w-full max-w-full p-2"
                 />
               )}
             </OverviewSection>

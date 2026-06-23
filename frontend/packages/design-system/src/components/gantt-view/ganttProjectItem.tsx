@@ -73,14 +73,14 @@ export function GanttProjectItem({
                 {showChevron ? (
                   <RightChevron
                     className={cn(
-                      "size-4 mr-1 transition-transform duration-150 shrink-0 text-ink-gray-9",
+                      "size-4 mr-1 transition-transform duration-150 shrink-0 text-ink-gray-8",
                       { "opacity-0 pointer-events-none": !canExpand },
                       { "rotate-90": isExpanded },
                     )}
                   />
                 ) : null}
                 <Folder className="size-4 shrink-0" />
-                <span className="ml-2 text-base font-medium leading-tight truncate text-ink-gray-9">
+                <span className="ml-2 text-base font-medium truncate text-ink-gray-8">
                   {name}
                 </span>
               </div>
@@ -95,7 +95,7 @@ export function GanttProjectItem({
               )}
             >
               {subtext && (
-                <span className="text-xs leading-tight truncate text-ink-gray-6">
+                <span className="text-sm truncate text-ink-gray-6">
                   {subtext}
                 </span>
               )}

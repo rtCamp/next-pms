@@ -33,11 +33,11 @@ export function UpdateEntry({ entry, onEdit, onDelete }: UpdateEntryProps) {
           label={userDetails?.full_name ?? entry.updated_by}
         />
 
-        <span className="text-sm font-medium text-ink-gray-9">
+        <span className="text-base font-medium text-ink-gray-7">
           {userDetails?.full_name ?? entry.updated_by}
         </span>
-        <span className="text-sm text-ink-gray-5">posted an update.</span>
-        <span className="ml-auto text-xs text-ink-gray-5">
+        <span className="text-base text-ink-gray-6">posted an update.</span>
+        <span className="ml-auto text-base text-ink-gray-5">
           {formatRelativeTimeShort(entry.updated_at)}
         </span>
       </div>
@@ -81,7 +81,7 @@ export function UpdateEntry({ entry, onEdit, onDelete }: UpdateEntryProps) {
           {filteredNote && (
             <StaticTextEditor
               content={filteredNote}
-              editorClass="prose prose-sm max-w-none text-ink-gray-8"
+              editorClass="prose prose-sm max-w-none text-ink-gray-7"
             />
           )}
         </div>

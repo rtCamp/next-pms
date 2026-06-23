@@ -25,7 +25,7 @@ export function InvoiceBurnCell() {
     <div className="flex flex-1 flex-col gap-4 rounded-xl border border-outline-gray-1 bg-surface-cards p-3">
       <div className="flex items-center justify-between gap-2">
         <span className="text-base text-ink-gray-8 font-medium">
-          Invoice Burn (to date)
+          Invoice burn (to date)
         </span>
         <a
           href={`/desk/sales-invoice?project=${projectId}`}
@@ -49,16 +49,22 @@ export function InvoiceBurnCell() {
           className="bg-surface-violet-4"
           label="Invoiced and paid"
           value={formatter.format(invoicedPaid)}
+          labelClassName="text-ink-gray-6"
+          valueClassName="font-medium"
         />
         <LegendItem
           className="bg-surface-blue-5"
-          label="Invoiced and unpaid"
+          label="Invoiced but not paid"
           value={formatter.format(invoicedUnpaid)}
+          labelClassName="text-ink-gray-6"
+          valueClassName="font-medium"
         />
         <LegendItem
           className="bg-surface-gray-3"
-          label="Total Project Amount"
+          label="Total project amount"
           value={formatter.format(totalAmount ?? 0)}
+          labelClassName="text-ink-gray-6"
+          valueClassName="font-medium"
         />
       </div>
     </div>

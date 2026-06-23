@@ -1,6 +1,9 @@
 export const ROUTES = {
   base: "/next-pms",
   home: "/",
+  dashboard: "/dashboard",
+  "dashboard-leadership": "/dashboard/leadership",
+  "dashboard-manager": "/dashboard/manager",
   task: "/task",
   project: "/projects",
   "project-kanban": "/projects/kanban",
@@ -15,12 +18,6 @@ export const ROUTES = {
   apps: "/apps",
 };
 export const IMPORTED_TASKS_STORAGE_KEY = "next-pms:importedTasks";
-// user roles for timesheet
-export const ROLES = [
-  "Projects Manager",
-  "Timesheet Manager",
-  "Timesheet User",
-];
 
 export const CustomTime = [
   "00:30",

@@ -38,7 +38,7 @@ const ApprovalPopup = () => {
           <p className="text-base text-ink-gray-5">{dateRange}</p>
         </div>
         <div className="flex items-center gap-3">
-          <span className="text-md font-medium text-ink-green-4">
+          <span className="text-lg font-medium text-ink-green-4">
             {floatToTime(totalHours, 2, 2)}
           </span>
           <Dialog.Close className="hover:bg-surface-gray-2 rounded">
@@ -61,12 +61,12 @@ const ApprovalPopup = () => {
               <Accordion.Trigger className="w-full flex items-center justify-between px-3.5 py-3 group">
                 <div className="flex items-center gap-2">
                   <ChevronDown className="h-4 w-4 text-ink-gray-5 transition-transform duration-200 -rotate-90 group-data-panel-open:rotate-0" />
-                  <span className="text-sm font-medium text-ink-gray-8">
+                  <span className="text-base font-medium text-ink-gray-8">
                     {dayGroup.day}
                   </span>
                 </div>
                 <div className="flex items-center gap-3">
-                  <span className="text-md font-semibold text-ink-green-3">
+                  <span className="text-lg font-medium text-ink-green-4">
                     {floatToTime(dayGroup.totalHours, 2, 2)}
                   </span>
                   <div

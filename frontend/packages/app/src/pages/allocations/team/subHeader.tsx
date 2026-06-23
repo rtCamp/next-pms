@@ -92,6 +92,8 @@ export function SubHeader() {
     <div className="flex flex-wrap justify-between w-full gap-2 px-5">
       <div className="flex flex-wrap gap-2">
         <TextInput
+          variant="subtle"
+          className="text-ink-gray-7 placeholder:text-ink-gray-4"
           placeholder="Search members"
           onChange={(e) => guard(() => setSearchInput(e.target.value))}
           value={searchInput}
@@ -145,13 +147,13 @@ export function SubHeader() {
                 variant="subtle"
                 className="justify-between w-full"
                 iconRight={() => (
-                  <ChevronDown className="size-4 shrink-0 text-ink-gray-9" />
+                  <ChevronDown className="size-4 shrink-0 text-ink-gray-8" />
                 )}
               >
                 <span
                   className={cn(
                     "truncate",
-                    displayValue ? "text-ink-gray-9" : "text-ink-gray-5",
+                    displayValue ? "text-ink-gray-7" : "text-ink-gray-4",
                   )}
                 >
                   {displayValue || "Select designation"}
@@ -162,7 +164,7 @@ export function SubHeader() {
         ) : null}
         <Select
           placeholder="Duration"
-          className="w-fit"
+          className="w-fit text-ink-gray-7"
           options={durationOptions}
           value={duration}
           onChange={(value) =>
@@ -177,6 +179,7 @@ export function SubHeader() {
               options={teamAllocationsTypeOptions}
               value={allocationsType}
               placeholder="Allocation type"
+              triggerClassName="text-ink-gray-7"
               onChange={(value) => guard(() => setAllocationsType(value))}
               open={isAllocationTypeOpen}
               onOpenChange={(open) =>
@@ -205,7 +208,7 @@ export function SubHeader() {
         <div className="flex items-center gap-1">
           <Button
             variant="ghost"
-            icon={() => <SmallLeftChevron className="size-4 text-ink-gray-9" />}
+            icon={() => <SmallLeftChevron className="size-4 text-ink-gray-8" />}
             onClick={() => guard(handlePrevious)}
             aria-label={navigationButtonAriaLabels["previous"][duration]}
           />
@@ -217,7 +220,7 @@ export function SubHeader() {
           <Button
             variant="ghost"
             icon={() => (
-              <SmallRightChevron className="size-4 text-ink-gray-9" />
+              <SmallRightChevron className="size-4 text-ink-gray-8" />
             )}
             onClick={() => guard(handleNext)}
             aria-label={navigationButtonAriaLabels["next"][duration]}
@@ -231,6 +234,7 @@ export function SubHeader() {
             )}
             value={compositeFilters}
             onChange={(value) => guard(() => setCompositeFilters(value))}
+            triggerClassName="text-ink-gray-7"
           />
         ) : null}
       </div>

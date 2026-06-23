@@ -12,12 +12,12 @@ export function CurrencyCell({
 }) {
   if (value === null || value === undefined || Number.isNaN(value)) {
     return (
-      <span className="block truncate text-ink-gray-7 text-base">N/A</span>
+      <span className="block truncate text-ink-gray-6 text-base">N/A</span>
     );
   }
 
   return (
-    <span className="block truncate text-ink-gray-7 text-base">
+    <span className="block truncate text-ink-gray-6 text-base">
       {currencyFormat(currency).format(value)}
     </span>
   );

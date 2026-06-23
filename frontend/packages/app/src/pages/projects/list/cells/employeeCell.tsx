@@ -28,7 +28,7 @@ export function EmployeeCell({ employee }: { employee: Employee | null }) {
               label={employee.full_name || ""}
             />
           )}
-          <span className="truncate text-ink-gray-7 text-base">
+          <span className="truncate text-ink-gray-6 text-base">
             {employee.full_name}
           </span>
         </a>
@@ -46,7 +46,7 @@ export function EmployeeCell({ employee }: { employee: Employee | null }) {
             label={employee.full_name || ""}
           />
         )}
-        <span className="truncate text-ink-gray-7 text-base">
+        <span className="truncate text-ink-gray-6 text-base">
           {employee.full_name}
         </span>
       </div>

@@ -41,7 +41,7 @@ export function CustomerHoverCard({ customer }: { customer: AboutCustomer }) {
               {customer.name}
             </span>
             {customer.designation && (
-              <span className="truncate text-sm font-light text-ink-gray-6">
+              <span className="truncate text-sm text-ink-gray-6">
                 {customer.designation}
               </span>
             )}
@@ -53,7 +53,7 @@ export function CustomerHoverCard({ customer }: { customer: AboutCustomer }) {
             target="_blank"
             rel="noreferrer"
             aria-label={`Open ${customer.name}`}
-            className="shrink-0 text-ink-gray-6 hover:text-ink-gray-9"
+            className="shrink-0 text-ink-gray-6 hover:text-ink-gray-8"
             onClick={(event) => event.stopPropagation()}
           >
             <RightChevron className="size-4" />
@@ -69,7 +69,7 @@ export function CustomerHoverCard({ customer }: { customer: AboutCustomer }) {
               value ? (
                 <div key={idx} className="flex items-center gap-2">
                   <Icon className="size-4 shrink-0 text-ink-gray-5" />
-                  <span className="truncate text-sm font-light text-ink-gray-6">
+                  <span className="truncate text-sm text-ink-gray-6">
                     {value}
                   </span>
                 </div>
