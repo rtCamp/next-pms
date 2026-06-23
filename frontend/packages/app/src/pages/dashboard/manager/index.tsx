@@ -11,7 +11,6 @@ import { useUser } from "@/providers/user";
 import AssignedProjects from "../widget/assigned-projects";
 import CalendarTimelineCard from "../widget/calendar-timeline";
 import HeatmapCard from "../widget/heatmap";
-import NotificationsCard from "../widget/notificationsCard";
 import LiveStatCard from "../widget/stat-cards";
 import Timesheets from "../widget/timesheet-summary";
 import UpcomingTimeOff from "../widget/upcoming-time-off";
@@ -51,10 +50,9 @@ export default function ManagerDashboard() {
             <LiveStatCard />
           </div>
           <div className="grid grid-cols-3 gap-3">
-            <div className="col-span-2">
+            <div className="col-span-3">
               <HeatmapCard />
             </div>
-            <NotificationsCard />
           </div>
           <CalendarTimelineCard />
           <AssignedProjects />

@@ -12,7 +12,6 @@ import CalendarTimelineCard from "../widget/calendar-timeline";
 import ForecastBreakdownCard from "../widget/forecast-breakdown";
 import HeatmapCard from "../widget/heatmap";
 import LeadershipKpiCard from "../widget/kpi-cards";
-import NotificationsCard from "../widget/notificationsCard";
 import LiveStatCard from "../widget/stat-cards";
 import UtilisedTimeCard from "../widget/utilization";
 
@@ -53,10 +52,9 @@ export default function LeadershipDashboard() {
             <LeadershipKpiCard kpikey={"profit_margin"} />
           </div>
           <div className="grid grid-cols-3 gap-3">
-            <div className="col-span-2">
+            <div className="col-span-3">
               <HeatmapCard />
             </div>
-            <NotificationsCard />
           </div>
           <div className="grid grid-cols-4 gap-3">
             <LiveStatCard />
