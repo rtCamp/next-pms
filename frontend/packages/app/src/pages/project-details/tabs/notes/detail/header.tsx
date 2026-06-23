@@ -52,7 +52,7 @@ export function NoteDetailHeader({ note }: NoteDetailHeaderProps) {
             image={note.owner_image || undefined}
           />
         </a>
-        <span className="truncate text-base font-medium text-ink-gray-8">
+        <span className="truncate text-base font-medium text-ink-gray-7">
           {authorName}
         </span>
         <span className="shrink-0 text-ink-gray-5">·</span>
