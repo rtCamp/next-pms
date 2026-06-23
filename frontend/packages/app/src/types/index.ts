@@ -52,12 +52,22 @@ export interface DocMetaProps {
   fields: Array<fieldMetaProps>;
   title_field: string;
 }
+
+export type Role =
+  | "Projects Manager"
+  | "Projects User"
+  | "Delivery Manager"
+  | "Employee"
+  | "Timesheet Manager"
+  | "Timesheet User"
+  | "System Manager";
+
 declare global {
   interface Window {
     frappe: {
       boot?: {
         user?: {
-          roles?: string[];
+          roles?: Role[];
           can_create: string[];
         };
         currencies?: string[];
