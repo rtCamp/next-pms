@@ -23,7 +23,7 @@ import LiveStatCard from "../widget/stat-cards";
 import Timesheets from "../widget/timesheet-summary";
 import UpcomingTimeOff from "../widget/upcoming-time-off";
 
-export default function LeadershipDashboard() {
+export default function ManagerDashboard() {
   const [client, setClient] = useState<string>(ALL_CLIENTS_VALUE);
   const [project, setProject] = useState<string>(ALL_PROJECTS_VALUE);
   const { employeeName, userName } = useUser(({ state }) => ({

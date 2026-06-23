@@ -86,7 +86,7 @@ export default function UpcomingTimeOff() {
                   <div className="flex items-center justify-center pb-1">
                     {group.people.map((person, index) => (
                       <div
-                        key={person.employee}
+                        key={`${person.employee}-${index}`}
                         className="-mr-1 last:mr-0"
                         style={{ zIndex: group.people.length - index }}
                       >
