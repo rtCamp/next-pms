@@ -14,8 +14,7 @@
   height: 0;
 }
 
-@layer base {
-  :root {
+@theme {
     --color-ink-gray-7: var(--color-gray-800);
     --color-ink-gray-8: var(--color-gray-900);
     --color-surface-green-3: var(--color-green-300);
@@ -27,7 +26,6 @@
     --color-surface-violet-4: #664ECC;
     --color-ink-cyan-3: #3bbde5;
     --animate-fade-in: fade-in 0.2s ease;
-  }
 }
 
 @layer utilities {

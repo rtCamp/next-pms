@@ -74,7 +74,7 @@ export function CalendarToolbar({
               variant="ghost"
               className="flex items-center gap-2 shrink-0 cursor-pointer"
             >
-              <span className="text-lg whitespace-nowrap mr-2">
+              <span className="text-lg font-medium text-ink-gray-7 whitespace-nowrap mr-2">
                 {displayValue}
               </span>
               <SmallDown className="size-4 shrink-0" />
@@ -101,6 +101,7 @@ export function CalendarToolbar({
         <TabButtons
           value={activeView}
           onChange={(val) => onViewChange?.(val as CalendarView)}
+          buttonClassName="text-ink-gray-5 data-pressed:text-ink-gray-8"
           buttons={[
             { label: "Calendar", value: "calendar" },
             { label: "Gantt", value: "gantt" },

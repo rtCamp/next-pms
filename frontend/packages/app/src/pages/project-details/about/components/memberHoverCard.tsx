@@ -41,7 +41,7 @@ export function MemberHoverCard({ member }: { member: AboutMember }) {
               {member.name}
             </span>
             {member.designation && (
-              <span className="truncate text-sm font-light text-ink-gray-6">
+              <span className="truncate text-sm text-ink-gray-6">
                 {member.designation}
               </span>
             )}
@@ -67,7 +67,7 @@ export function MemberHoverCard({ member }: { member: AboutMember }) {
           <div className="flex items-center gap-2">
             <People className="size-4 shrink-0 text-ink-gray-5" />
 
-            <span className="truncate text-sm font-light text-ink-gray-6">
+            <span className="truncate text-sm text-ink-gray-6">
               {member.department}
             </span>
           </div>
@@ -76,7 +76,7 @@ export function MemberHoverCard({ member }: { member: AboutMember }) {
           <div className="flex items-center gap-2">
             <Payments className="size-4 shrink-0 text-ink-gray-5" />
 
-            <span className="truncate text-sm font-light text-ink-gray-6">
+            <span className="truncate text-sm text-ink-gray-6">
               {currencyFormat(member.currency).format(member.rate)}/hour
             </span>
           </div>
@@ -85,7 +85,7 @@ export function MemberHoverCard({ member }: { member: AboutMember }) {
           member.totalHoursPurchased !== undefined && (
             <div className="flex items-center gap-2">
               <Time className="size-4 shrink-0 text-ink-gray-5" />
-              <span className="truncate text-sm font-light text-ink-gray-6">
+              <span className="truncate text-sm text-ink-gray-6">
                 {Math.round(member.loggedHours)}/
                 {Math.round(member.totalHoursPurchased)}h
               </span>
@@ -94,15 +94,13 @@ export function MemberHoverCard({ member }: { member: AboutMember }) {
         {email && (
           <div className="flex items-center gap-2">
             <Email className="size-4 shrink-0 text-ink-gray-5" />
-            <span className="truncate text-sm font-light text-ink-gray-6">
-              {email}
-            </span>
+            <span className="truncate text-sm text-ink-gray-6">{email}</span>
           </div>
         )}
         {member.phone && (
           <div className="flex items-center gap-2">
             <Call className="size-4 shrink-0 text-ink-gray-5" />
-            <span className="truncate text-sm font-light text-ink-gray-6">
+            <span className="truncate text-sm text-ink-gray-6">
               {member.phone}
             </span>
           </div>
@@ -110,7 +108,7 @@ export function MemberHoverCard({ member }: { member: AboutMember }) {
         {member.linkedin && (
           <div className="flex items-center gap-2">
             <Link className="size-4 shrink-0 text-ink-gray-5" />
-            <span className="truncate text-sm font-light text-ink-gray-6">
+            <span className="truncate text-sm text-ink-gray-6">
               {member.linkedin}
             </span>
           </div>
