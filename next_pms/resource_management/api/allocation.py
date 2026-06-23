@@ -383,7 +383,7 @@ def edit_allocation(name: str, edit_mode: str, allocation: AllocationPayload, da
 
 
 @frappe.whitelist()
-def get_series_remaining_weeks(name: str, recurrence_id: str | None = None):
+def get_series_remaining_weeks(name: str):
     """Return how many weeks of the recurrence series run from this allocation onward.
 
     Used by the edit-schedule modal to show how far the series still repeats from the
@@ -392,9 +392,8 @@ def get_series_remaining_weeks(name: str, recurrence_id: str | None = None):
     weeks (weeks 3, 4 and 5).
 
     Args:
-        name (str): Name of the picked allocation.
-        recurrence_id (str | None): Optional series id. When omitted it is resolved
-                                    from the allocation itself.
+        name (str): Name of the picked allocation. The series is resolved from this
+                    doc's own ``recurrence_id``.
 
     Returns:
         dict: ``allocation_start_date`` / ``allocation_end_date`` of the picked doc,
@@ -417,10 +416,8 @@ def get_series_remaining_weeks(name: str, recurrence_id: str | None = None):
             exc=frappe.DoesNotExistError,
         )
 
-    recurrence_id = recurrence_id or allocation.recurrence_id
-
     # a standalone allocation (no series) is its own single remaining week
-    if not recurrence_id:
+    if not allocation.recurrence_id:
         return {
             "allocation_start_date": allocation.allocation_start_date,
             "allocation_end_date": allocation.allocation_end_date,
@@ -428,21 +425,23 @@ def get_series_remaining_weeks(name: str, recurrence_id: str | None = None):
             "series_end_date": allocation.allocation_end_date,
         }
 
-    future = frappe.get_all(
+    future_filters = {
+        "recurrence_id": allocation.recurrence_id,
+        "allocation_start_date": [">=", allocation.allocation_start_date],
+    }
+    remaining_weeks = frappe.db.count("Resource Allocation", filters=future_filters)
+    series_end_date = frappe.db.get_value(
         "Resource Allocation",
-        filters={
-            "recurrence_id": recurrence_id,
-            "allocation_start_date": [">=", allocation.allocation_start_date],
-        },
-        fields=["allocation_end_date"],
-        order_by="allocation_start_date asc",
+        future_filters,
+        "allocation_end_date",
+        order_by="allocation_start_date desc",
     )
 
     return {
         "allocation_start_date": allocation.allocation_start_date,
         "allocation_end_date": allocation.allocation_end_date,
-        "remaining_weeks": len(future),
-        "series_end_date": future[-1].allocation_end_date if future else allocation.allocation_end_date,
+        "remaining_weeks": remaining_weeks,
+        "series_end_date": series_end_date or allocation.allocation_end_date,
     }
 
 
