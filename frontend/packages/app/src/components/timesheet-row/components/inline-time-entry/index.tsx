@@ -312,7 +312,7 @@ export const InlineTimeEntry = ({
                             }
                             variant="subtle"
                             size="md"
-                            className="gap-0 lining-nums tabular-nums text-ink-gray-9"
+                            className="gap-0 lining-nums tabular-nums text-ink-gray-8"
                           >
                             {entry.hours
                               ? floatToTime(entry.hours, 2)
@@ -322,7 +322,7 @@ export const InlineTimeEntry = ({
                         {!isExpanded ? (
                           <span
                             className={cn(
-                              "w-full min-w-0 text-base truncate text-ink-gray-6",
+                              "w-full min-w-0 text-sm truncate text-ink-gray-6",
                               {
                                 "group-hover:pr-4 group-focus-within:pr-4":
                                   !disabled,
@@ -384,7 +384,7 @@ export const InlineTimeEntry = ({
                     ) : (
                       <StaticTextEditor
                         content={entry.description}
-                        editorClass="max-h-30 prose-sm overflow-auto scrollbar-thin"
+                        editorClass="max-h-30 prose-sm overflow-auto scrollbar-thin text-ink-gray-7 text-base leading-5.25"
                       />
                     )}
                   </div>
@@ -413,6 +413,7 @@ export const InlineTimeEntry = ({
           {!hasNoTimeEntries && entryFormMode !== ENTRY_FORM_MODE.ADD ? (
             <div className="flex justify-between w-full gap-2">
               <Button
+                className="text-ink-gray-7"
                 variant="ghost"
                 size="sm"
                 iconLeft={() =>

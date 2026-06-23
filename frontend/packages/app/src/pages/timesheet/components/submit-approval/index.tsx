@@ -116,8 +116,8 @@ const SubmitApproval = ({
     >
       <div className="space-y-4">
         <div className="flex justify-between items-center bg-surface-gray-1 rounded-lg px-4 py-2.5">
-          <span className="text-sm text-ink-gray-8">{weekLabel}</span>
-          <span className="text-sm text-ink-green-3 font-medium">
+          <span className="text-base text-ink-gray-7">{weekLabel}</span>
+          <span className="text-base text-ink-green-4 font-medium">
             {formattedHours}
           </span>
         </div>
@@ -126,12 +126,12 @@ const SubmitApproval = ({
           name="note"
           children={(field) => (
             <div className="space-y-1.5">
-              <label className="block text-xs text-ink-gray-5">Note</label>
+              <label className="block text-base text-ink-gray-5">Note</label>
               <Textarea
                 value={field.state.value}
                 placeholder="Comment"
                 onChange={(e) => field.handleChange(e.target.value)}
-                className="bg-white border-outline-gray-2"
+                className="bg-white border-outline-gray-2 text-ink-gray-7"
               />
               {!field.state.meta.isValid && (
                 <ErrorMessage message={field.state.meta.errors[0]?.message} />
@@ -144,9 +144,9 @@ const SubmitApproval = ({
           name="sendTo"
           children={(field) => (
             <div className="space-y-1.5">
-              <label className="block text-xs text-ink-gray-5">Send to</label>
+              <label className="block text-base text-ink-gray-5">Send to</label>
               <Combobox
-                inputClassName="bg-white h-8 border-outline-gray-2"
+                inputClassName="bg-white h-8 border-outline-gray-2 text-ink-gray-7"
                 value={field.state.value}
                 placeholder="Select Approver"
                 onChange={(val) => field.handleChange(val as string)}

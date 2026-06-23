@@ -54,7 +54,7 @@ export const ProjectRow: React.FC<ProjectRowProps> = ({
         >
           <ChevronDown strokeWidth={1.5} size={16} />
         </span>
-        <div className="flex items-center min-w-0 gap-2 text-ink-gray-9">
+        <div className="flex items-center min-w-0 gap-2 text-ink-gray-8">
           <span className="shrink-0">
             {renderPrefix ? (
               renderPrefix()
@@ -72,10 +72,10 @@ export const ProjectRow: React.FC<ProjectRowProps> = ({
           <div
             key={`${timeEntry}-${index}`}
             className={cn(
-              "shrink-0 flex justify-end items-center text-base text-ink-gray-6 whitespace-nowrap w-16 h-7 px-2 py-1.5 leading-3.5 lining-nums tabular-nums",
+              "shrink-0 flex justify-end items-center text-base text-ink-gray-6 whitespace-nowrap w-16 h-7 px-2 py-1.5 lining-nums tabular-nums",
               highlightTimeEntries &&
                 timeEntry !== "" &&
-                "text-ink-gray-9 font-medium",
+                "text-ink-gray-8 font-medium",
             )}
           >
             {timeEntry === "" ? (

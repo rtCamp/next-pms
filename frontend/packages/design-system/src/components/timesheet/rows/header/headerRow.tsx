@@ -31,13 +31,13 @@ export const HeaderRow: React.FC<HeaderRowProps> = ({
       {days.map((day, index) => (
         <div
           key={`${day}-${index}`}
-          className="shrink-0 flex justify-end items-center text-sm text-end text-ink-gray-6 whitespace-nowrap w-16 h-7 px-2 py-1.5 leading-3.5"
+          className="shrink-0 flex justify-end items-center text-sm text-end text-ink-gray-5 whitespace-nowrap w-16 h-7 px-2 py-1.5"
         >
           <span>{day}</span>
         </div>
       ))}
 
-      <div className="shrink-0 flex justify-end items-center text-sm text-end text-ink-gray-5 whitespace-nowrap w-16 h-7 px-2 py-1.5 leading-3.5">
+      <div className="shrink-0 flex justify-end items-center text-sm text-end text-ink-gray-5 whitespace-nowrap w-16 h-7 px-2 py-1.5">
         <span>Total</span>
       </div>
 

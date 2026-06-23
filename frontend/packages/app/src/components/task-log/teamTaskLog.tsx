@@ -99,7 +99,9 @@ const TeamTaskLog: React.FC<TeamTaskLogProps> = ({
           />
 
           <div className="flex justify-between items-center mt-6">
-            <h4 className="text-base font-medium">Time entries</h4>
+            <h4 className="text-base font-medium text-ink-gray-8">
+              Time entries
+            </h4>
 
             <Select
               variant="ghost"
