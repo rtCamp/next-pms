@@ -145,13 +145,13 @@ export function SubHeader() {
                 variant="subtle"
                 className="justify-between w-full"
                 iconRight={() => (
-                  <ChevronDown className="size-4 shrink-0 text-ink-gray-9" />
+                  <ChevronDown className="size-4 shrink-0 text-ink-gray-8" />
                 )}
               >
                 <span
                   className={cn(
                     "truncate",
-                    displayValue ? "text-ink-gray-9" : "text-ink-gray-5",
+                    displayValue ? "text-ink-gray-8" : "text-ink-gray-5",
                   )}
                 >
                   {displayValue || "Select designation"}
@@ -205,7 +205,7 @@ export function SubHeader() {
         <div className="flex items-center gap-1">
           <Button
             variant="ghost"
-            icon={() => <SmallLeftChevron className="size-4 text-ink-gray-9" />}
+            icon={() => <SmallLeftChevron className="size-4 text-ink-gray-8" />}
             onClick={() => guard(handlePrevious)}
             aria-label={navigationButtonAriaLabels["previous"][duration]}
           />
@@ -217,7 +217,7 @@ export function SubHeader() {
           <Button
             variant="ghost"
             icon={() => (
-              <SmallRightChevron className="size-4 text-ink-gray-9" />
+              <SmallRightChevron className="size-4 text-ink-gray-8" />
             )}
             onClick={() => guard(handleNext)}
             aria-label={navigationButtonAriaLabels["next"][duration]}

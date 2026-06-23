@@ -92,7 +92,7 @@ export function GanttMemberItem({
                 {showChevron ? (
                   <RightChevron
                     className={cn(
-                      "size-4 mr-1 transition-transform duration-150 shrink-0 text-ink-gray-9",
+                      "size-4 mr-1 transition-transform duration-150 shrink-0 text-ink-gray-8",
                       { "opacity-0 pointer-events-none": !canExpand },
                       { "rotate-90": isExpanded },
                     )}
@@ -104,7 +104,7 @@ export function GanttMemberItem({
                   image={member.image}
                   label={member.name}
                 />
-                <span className="ml-2 text-base font-medium leading-tight truncate text-ink-gray-9">
+                <span className="ml-2 text-base font-medium leading-tight truncate text-ink-gray-8">
                   {member.name}
                 </span>
               </div>

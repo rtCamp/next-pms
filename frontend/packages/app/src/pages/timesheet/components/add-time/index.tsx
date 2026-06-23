@@ -179,11 +179,11 @@ const AddTime = ({
           children={(field) => {
             return (
               <>
-                <label className="block text-xs text-ink-gray-5 mb-1.5">
+                <label className="block text-base text-ink-gray-5 mb-1.5">
                   Project
                 </label>
                 <Combobox
-                  inputClassName="bg-white h-8 border-outline-gray-2"
+                  inputClassName="bg-white h-8 border-outline-gray-2 text-ink-gray-7"
                   loading={isProjectLookupLoading}
                   options={projectOptions}
                   searchValue={projectSearch}
@@ -207,11 +207,11 @@ const AddTime = ({
           children={(field) => {
             return (
               <>
-                <label className="block text-xs text-ink-gray-5 mb-1.5">
+                <label className="block text-base text-ink-gray-5 mb-1.5">
                   Task
                 </label>
                 <Combobox
-                  inputClassName="bg-white h-8 border-outline-gray-2"
+                  inputClassName="bg-white h-8 border-outline-gray-2 text-ink-gray-7"
                   loading={isTaskLookupLoading}
                   options={taskOptions}
                   searchValue={taskSearch}
@@ -251,19 +251,19 @@ const AddTime = ({
                     {({ displayValue }) => {
                       return (
                         <div className=" flex-1 flex w-full flex-col space-y-1.5 ">
-                          <label className="block text-xs text-ink-gray-5">
+                          <label className="block text-base text-ink-gray-5">
                             Date
                           </label>
                           <div
                             className={
-                              "flex relative items-center py-1 rounded-lg border border-outline-gray-2 px-2.5"
+                              "flex relative items-center py-1 rounded border border-outline-gray-2 px-2.5"
                             }
                           >
                             <input
                               type="text"
                               id="start"
                               value={displayValue}
-                              className={`flex-1`}
+                              className="flex-1 text-ink-gray-7 text-base"
                               placeholder="Today"
                             />
                             <Calendar className="size-4" />
@@ -312,12 +312,14 @@ const AddTime = ({
           children={(field) => {
             return (
               <>
-                <label className="block text-xs text-ink-gray-5">Comment</label>
+                <label className="block text-base text-ink-gray-5 mb-1.5">
+                  Comment
+                </label>
                 <TextEditor
                   content={field.state.value}
                   onChange={(value) => field.handleChange(value)}
                   fixedMenu={false}
-                  editorClass="px-2 h-24 prose-sm overflow-auto scrollbar-thin bg-white border rounded-md border-outline-gray-2"
+                  editorClass="px-2 h-24 prose-sm overflow-auto scrollbar-thin bg-white border rounded-md border-outline-gray-2 text-ink-gray-7 text-base"
                 />
                 {!field.state.meta.isValid && (
                   <ErrorMessage message={field.state.meta.errors[0]?.message} />
