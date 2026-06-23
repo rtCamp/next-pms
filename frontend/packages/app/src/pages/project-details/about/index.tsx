@@ -190,7 +190,7 @@ function AboutThisProjectContent({ className }: { className: string }) {
         className="flex flex-col overflow-scroll scrollbar-thin"
       >
         <Section value="summary" title="Summary" empty={!sidebar.summary}>
-          <p className="text-base font-normal text-ink-gray-7">
+          <p className="text-base leading-normal text-ink-gray-7">
             {sidebar.summary}
           </p>
         </Section>
@@ -199,24 +199,24 @@ function AboutThisProjectContent({ className }: { className: string }) {
           <div className="grid grid-cols-[auto_1fr] items-center gap-x-3 gap-y-4.5 text-base text-ink-gray-5">
             <span>Project name</span>
             <div className="flex min-w-0 items-center gap-2">
-              <span className="flex-1 truncate font-medium text-ink-gray-7">
+              <span className="flex-1 truncate text-ink-gray-7">
                 {sidebar.details.project_name}
               </span>
               {risk && <Dot risk={risk} />}
             </div>
 
             <span>Customer</span>
-            <span className="truncate font-medium text-ink-gray-7">
+            <span className="truncate text-ink-gray-7">
               {sidebar.details.customer}
             </span>
 
             <span>Project status</span>
-            <span className="truncate font-medium text-ink-gray-7">
+            <span className="truncate text-ink-gray-7">
               {sidebar.details.status}
             </span>
 
             <span>Current phase</span>
-            <span className="truncate font-medium text-ink-gray-7">
+            <span className="truncate text-ink-gray-7">
               {sidebar.details.phase}
             </span>
           </div>
@@ -286,7 +286,7 @@ function AboutThisProjectContent({ className }: { className: string }) {
               <span className="text-base font-medium text-ink-gray-7">
                 {currencyFormat().format(sidebar.burn.cost_accrued)}
               </span>
-              <span className="text-base font-light text-ink-gray-5">
+              <span className="text-base text-ink-gray-5">
                 {currencyFormat().format(sidebar.burn.total_budget)}
               </span>
             </div>

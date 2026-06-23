@@ -25,7 +25,7 @@ export function MemberRow({ member }: { member: AboutMember }) {
               image={member.image}
             />
             <span className="font-medium text-ink-gray-7">{member.name}</span>
-            <span className="flex-1 truncate font-light text-ink-gray-5">
+            <span className="flex-1 truncate text-ink-gray-5">
               {member.designation}
             </span>
           </div>
