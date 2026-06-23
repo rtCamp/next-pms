@@ -153,7 +153,7 @@ export function SubHeader() {
                 <span
                   className={cn(
                     "truncate",
-                    displayValue ? "text-ink-gray-8" : "text-ink-gray-4",
+                    displayValue ? "text-ink-gray-7" : "text-ink-gray-4",
                   )}
                 >
                   {displayValue || "Select designation"}
@@ -179,6 +179,7 @@ export function SubHeader() {
               options={teamAllocationsTypeOptions}
               value={allocationsType}
               placeholder="Allocation type"
+              triggerClassName="text-ink-gray-7"
               onChange={(value) => guard(() => setAllocationsType(value))}
               open={isAllocationTypeOpen}
               onOpenChange={(open) =>
@@ -233,6 +234,7 @@ export function SubHeader() {
             )}
             value={compositeFilters}
             onChange={(value) => guard(() => setCompositeFilters(value))}
+            triggerClassName="text-ink-gray-7"
           />
         ) : null}
       </div>
