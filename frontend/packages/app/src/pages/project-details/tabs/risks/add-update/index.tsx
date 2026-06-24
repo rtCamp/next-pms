@@ -149,6 +149,13 @@ export function AddUpdateModal({
     <Dialog
       open={open}
       onOpenChange={handleOpenChange}
+      className="my-0 max-w-110"
+      classNames={{
+        viewport: "justify-start pt-30",
+        header: "mb-5.25",
+        content: "pt-5 pb-4",
+        footer: "pb-6",
+      }}
       options={{ title: isEditing ? "Edit update" : "Add update", size: "md" }}
       actions={
         <Button
@@ -217,7 +224,7 @@ export function AddUpdateModal({
                 content={field.state.value}
                 onChange={(value) => field.handleChange(value)}
                 fixedMenu={false}
-                editorClass="px-2 h-24 prose-sm overflow-auto scrollbar-thin bg-white border rounded-md border-outline-gray-2"
+                editorClass="px-2 h-24 prose-sm overflow-auto scrollbar-thin bg-white border rounded-md border-outline-gray-2 text-ink-gray-7"
               />
             </div>
           )}

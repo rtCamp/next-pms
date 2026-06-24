@@ -40,7 +40,7 @@ export function Droppable({
       style={style}
     >
       {header}
-      <div ref={ref} className="flex flex-col gap-3 min-h-40">
+      <div ref={ref} className="flex flex-col gap-2.5 min-h-40">
         {children}
       </div>
     </div>

@@ -55,7 +55,7 @@ export function NoteCard({ note }: NoteCardProps) {
       <div className="flex-1 overflow-hidden relative">
         <StaticTextEditor
           content={note.description}
-          editorClass="prose-sm px-3.5 pt-2 text-ink-gray-5 leading-normal"
+          editorClass="prose-sm px-3.5 text-ink-gray-5 leading-normal"
         />
         <span className="absolute block left-0 bottom-0 z-10 w-full h-12 from-surface-white to-transparent pointer-events-none bg-linear-to-t"></span>
       </div>

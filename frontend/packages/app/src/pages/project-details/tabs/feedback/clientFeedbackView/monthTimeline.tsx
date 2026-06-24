@@ -189,7 +189,10 @@ export function MonthTimeline({
       {/* Edge blur */}
       <div className="absolute top-0 left-0 z-10 w-12 h-full from-surface-white to-transparent pointer-events-none bg-linear-to-r" />
 
-      <div className="overflow-x-auto no-scrollbar pb-4 mb-4" ref={timelineRef}>
+      <div
+        className="overflow-x-auto scrollbar-thin pb-4 mb-4"
+        ref={timelineRef}
+      >
         <div className="flex gap-2 min-w-max">
           {/* Starting Sentinel */}
           <span ref={beginTimelineRef} className="w-2" />

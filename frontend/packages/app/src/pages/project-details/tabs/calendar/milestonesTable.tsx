@@ -37,7 +37,7 @@ export function MilestonesTable({
           {MILESTONE_COLUMNS.map((column) => (
             <th
               key={column.key}
-              className={`p-2 text-sm${column.width ? ` ${column.width}` : ""}`}
+              className={`px-2 py-1.5 text-sm${column.width ? ` ${column.width}` : ""}`}
             >
               {column.label}
             </th>
@@ -51,7 +51,7 @@ export function MilestonesTable({
             className="border-b border-outline-gray-1 last:border-b-0 hover:bg-surface-gray-1 transition-colors text-base text-ink-gray-6"
           >
             {MILESTONE_COLUMNS.map((column) => (
-              <td key={column.key} className="p-2">
+              <td key={column.key} className="py-3 px-2">
                 <TimelineCell
                   item={item}
                   column={column}
