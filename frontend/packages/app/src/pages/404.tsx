@@ -4,7 +4,7 @@
 import { useNavigate } from "react-router-dom";
 import { Typography } from "@next-pms/design-system/components";
 import { Button } from "@rtcamp/frappe-ui-react";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft } from "@rtcamp/frappe-ui-react/icons";
 /**
  * Internal dependencies.
  */

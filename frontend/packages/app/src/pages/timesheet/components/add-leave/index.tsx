@@ -12,13 +12,13 @@ import {
   ErrorMessage,
 } from "@rtcamp/frappe-ui-react";
 import { useToasts } from "@rtcamp/frappe-ui-react";
+import { Calendar, TimeOff } from "@rtcamp/frappe-ui-react/icons";
 import { useForm } from "@tanstack/react-form";
 import {
   FrappeError,
   useFrappeCreateDoc,
   useFrappeGetCall,
 } from "frappe-react-sdk";
-import { Calendar, CalendarX2 } from "lucide-react";
 
 /**
  * Internal Dependencies
@@ -129,7 +129,7 @@ const AddLeave = ({ open = false, onOpenChange }: LeaveTimeProps) => {
         <Button
           className="w-full"
           variant="solid"
-          iconLeft={() => <CalendarX2 />}
+          iconLeft={() => <TimeOff className="size-4 text-ink-white" />}
           label="Add time-off"
           disabled={loading}
           onClick={() => {

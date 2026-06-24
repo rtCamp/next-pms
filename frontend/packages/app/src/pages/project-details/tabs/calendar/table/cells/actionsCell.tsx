@@ -7,8 +7,9 @@ import {
   EditAlt,
   NotificationBell,
   NotificationOff,
+  DotHorizontal,
+  Reset,
 } from "@rtcamp/frappe-ui-react/icons";
-import { Ellipsis, RotateCcw } from "lucide-react";
 
 /**
  * Internal dependencies.
@@ -41,7 +42,7 @@ export function ActionsCell({
       button={{
         className: "h-4",
         variant: "ghost",
-        icon: () => <Ellipsis size={16} />,
+        icon: () => <DotHorizontal size={16} />,
       }}
       options={[
         {
@@ -54,7 +55,7 @@ export function ActionsCell({
           label: item.isComplete ? "Mark as incomplete" : "Mark as completed",
           key: "mark-as-completed",
           icon: item.isComplete ? (
-            <RotateCcw className="size-4 mr-2" />
+            <Reset className="size-4 mr-2" />
           ) : (
             <Check className="size-4 mr-2" />
           ),

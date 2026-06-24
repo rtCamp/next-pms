@@ -1,7 +1,7 @@
 /**
  * External dependencies.
  */
-import { Diamond, Zap } from "lucide-react";
+import { Sparkle, Zap } from "@rtcamp/frappe-ui-react/icons";
 
 /**
  * Internal dependencies.
@@ -24,7 +24,7 @@ export function GanttBar({ item, pos, totalWidth }: GanttBarProps) {
         style={{ left: pos.left, width: pos.width, height: 32 }}
         title={item.title}
       >
-        <Diamond className="size-3.5 shrink-0" />
+        <Sparkle className="size-3.5 shrink-0" />
         <span
           className={`truncate text-sm${item.isComplete ? " line-through opacity-60" : ""}`}
         >

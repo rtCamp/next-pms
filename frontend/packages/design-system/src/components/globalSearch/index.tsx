@@ -4,7 +4,8 @@
 import { Autocomplete } from "@base-ui/react/autocomplete";
 import { Dialog } from "@base-ui/react/dialog";
 import { ScrollArea } from "@base-ui/react/scroll-area";
-import { ArrowDown, ArrowUp, CornerDownLeft } from "lucide-react";
+import { ArrowDown, ArrowUp } from "@rtcamp/frappe-ui-react/icons";
+import { CornerDownLeft } from "lucide-react";
 
 interface Item {
   label: string;
@@ -50,7 +51,7 @@ export default function GlobalSearch({
                   <ScrollArea.Viewport className="max-h-80">
                     <ScrollArea.Content className="py-2">
                       <Autocomplete.List>
-                        {(item:Item) => (
+                        {(item: Item) => (
                           <Autocomplete.Item
                             key={item.label}
                             value={item.label}

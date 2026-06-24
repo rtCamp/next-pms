@@ -7,7 +7,8 @@ import {
   Tooltip,
   type BreadcrumbsProps,
 } from "@rtcamp/frappe-ui-react";
-import { Plus, Star, StarOff } from "lucide-react";
+import { AddMd, Star } from "@rtcamp/frappe-ui-react/icons";
+import { StarOff } from "lucide-react";
 
 /**
  * Internal dependencies.
@@ -131,7 +132,7 @@ export const TotalRow: React.FC<TotalRowProps> = ({
                     -
                   </span>
                   <span className="hidden absolute top-0 left-0 justify-center items-center w-full h-full group-hover:flex group-disabled:group-hover:hidden text-ink-gray-6">
-                    <Plus strokeWidth={1.5} size={16} className="" />
+                    <AddMd size={16} className="" />
                   </span>
                 </>
               ) : (

@@ -11,9 +11,9 @@ import {
   SmallLeftChevron,
   SmallRightChevron,
   SmallDown,
+  DotHorizontal,
 } from "@rtcamp/frappe-ui-react/icons";
 import { format, parseISO } from "date-fns";
-import { Ellipsis } from "lucide-react";
 
 export type CalendarView = "calendar" | "gantt";
 
@@ -122,7 +122,7 @@ export function CalendarToolbar({
           variant="subtle"
         />
 
-        <Button icon={() => <Ellipsis size={16} />} />
+        <Button icon={() => <DotHorizontal size={16} />} />
       </div>
     </div>
   );

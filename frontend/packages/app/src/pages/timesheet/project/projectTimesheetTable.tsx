@@ -5,7 +5,7 @@ import { Fragment } from "react";
 import { mergeClassNames as cn } from "@next-pms/design-system";
 import { Spinner, Typography } from "@next-pms/design-system/components";
 import { Button, Filter, TextInput } from "@rtcamp/frappe-ui-react";
-import { Ellipsis } from "lucide-react";
+import { DotHorizontal } from "@rtcamp/frappe-ui-react/icons";
 
 /**
  * Internal dependencies.
@@ -56,7 +56,7 @@ export const ProjectTimesheetTable = () => {
             value={compositeFilters}
             onChange={handleCompositeFilterChange}
           />
-          <Button icon={() => <Ellipsis size={16} />} />
+          <Button icon={() => <DotHorizontal size={16} />} />
         </div>
       </div>
 

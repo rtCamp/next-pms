@@ -2,6 +2,7 @@
  * External dependencies.
  */
 import { useEffect, useRef, useState } from "react";
+import { ArrowDown } from "@rtcamp/frappe-ui-react/icons";
 import {
   format,
   getDay,
@@ -10,7 +11,6 @@ import {
   parseISO,
   startOfMonth,
 } from "date-fns";
-import { ArrowDown } from "lucide-react";
 /**
  * Internal dependencies.
  */

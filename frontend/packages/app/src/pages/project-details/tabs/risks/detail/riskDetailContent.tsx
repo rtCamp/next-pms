@@ -4,7 +4,7 @@
 import { useState } from "react";
 import { DeleteActionDialog } from "@next-pms/design-system/components";
 import { Button, StaticTextEditor } from "@rtcamp/frappe-ui-react";
-import { Plus } from "lucide-react";
+import { AddSm } from "@rtcamp/frappe-ui-react/icons";
 
 /**
  * Internal dependencies.
@@ -131,7 +131,7 @@ export function RiskDetailContent({
               variant="ghost"
               onClick={() => setIsAddUpdateOpen(true)}
               aria-label="Add update"
-              icon={() => <Plus className="size-4" />}
+              icon={() => <AddSm className="size-4" />}
             ></Button>
           </div>
 

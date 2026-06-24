@@ -5,7 +5,7 @@ import { useState } from "react";
 import { Dialog } from "@base-ui/react/dialog";
 import { floatToTime } from "@next-pms/design-system";
 import { Avatar, Button, Textarea } from "@rtcamp/frappe-ui-react";
-import { X } from "lucide-react";
+import { Close } from "@rtcamp/frappe-ui-react/icons";
 
 /**
  * Internal Dependencies
@@ -34,7 +34,7 @@ const RejectionPopup = () => {
           Reason for timesheet rejection
         </h1>
         <Dialog.Close className="p-1 hover:bg-surface-gray-2 rounded">
-          <X className="h-5 w-5 text-ink-gray-5" />
+          <Close className="h-5 w-5 text-ink-gray-5" />
         </Dialog.Close>
       </div>
 

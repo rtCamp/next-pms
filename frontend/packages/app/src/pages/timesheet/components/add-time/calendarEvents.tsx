@@ -9,7 +9,7 @@ import {
 } from "@next-pms/design-system";
 import { Spinner } from "@next-pms/design-system/components";
 import { Checkbox, Badge } from "@rtcamp/frappe-ui-react";
-import { Calendar, Clock } from "lucide-react";
+import { CalendarDeadline, Clock } from "@rtcamp/frappe-ui-react/icons";
 
 /**
  * Internal Dependencies
@@ -159,11 +159,13 @@ const CalendarEvents = ({
                       <div className="flex gap-1 ml-5">
                         <Badge
                           label={localDate}
-                          prefix={<Calendar className="size-3" />}
+                          prefix={
+                            <CalendarDeadline className="size-3 text-ink-gray-6" />
+                          }
                         />
                         <Badge
                           label={`${localStartTime} - ${localEndTime}`}
-                          prefix={<Clock className="size-3" />}
+                          prefix={<Clock className="size-3 text-ink-gray-6" />}
                         />
                       </div>
                     </div>

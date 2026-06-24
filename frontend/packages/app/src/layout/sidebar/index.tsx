@@ -14,20 +14,18 @@ import {
   Reports,
   Tasks,
   Time,
+  SearchAlt,
+  Home,
 } from "@rtcamp/frappe-ui-react/icons";
 import {
-  ArrowLeftRight,
   BarChart2,
   Briefcase,
   Folder,
-  Home,
   Layers,
-  LayoutGrid,
+  Grid,
   LogOut,
-  Moon,
-  Search,
-  Sun,
-} from "lucide-react";
+} from "@rtcamp/frappe-ui-react/icons";
+import { ArrowLeftRight, Moon, Sun } from "lucide-react";
 /**
  * Internal dependencies.
  */
@@ -84,7 +82,7 @@ const Sidebar = () => {
           menuItems: [
             {
               label: "Apps",
-              icon: <LayoutGrid size={16} className="text-ink-gray-6 mr-2" />,
+              icon: <Grid size={16} className="text-ink-gray-6 mr-2" />,
               onClick: () => {
                 window.location.assign(ROUTES.apps);
               },
@@ -127,7 +125,7 @@ const Sidebar = () => {
               },
               {
                 label: "Search",
-                icon: Search,
+                icon: SearchAlt,
                 to: "",
                 isActive: false,
                 onClick: () => setIsSearchOpen(true),
@@ -136,36 +134,36 @@ const Sidebar = () => {
           },
           ...(canSeeDashboard
             ? [
-                {
-                  label: "Dashboard",
-                  collapsible: true,
-                  items: [
-                    ...(roles.includes("System Manager")
-                      ? [
-                          {
-                            label: "Leadership",
-                            icon: BarChart2,
-                            isActive:
-                              pathname === ROUTES["dashboard-leadership"],
-                            onClick: () =>
-                              navigate(ROUTES["dashboard-leadership"]),
-                          },
-                        ]
-                      : []),
-                    ...(roles.includes("Projects Manager")
-                      ? [
-                          {
-                            label: "Manager",
-                            icon: Briefcase,
-                            isActive: pathname === ROUTES["dashboard-manager"],
-                            onClick: () =>
-                              navigate(ROUTES["dashboard-manager"]),
-                          },
-                        ]
-                      : []),
-                  ],
-                },
-              ]
+              {
+                label: "Dashboard",
+                collapsible: true,
+                items: [
+                  ...(roles.includes("System Manager")
+                    ? [
+                      {
+                        label: "Leadership",
+                        icon: BarChart2,
+                        isActive:
+                          pathname === ROUTES["dashboard-leadership"],
+                        onClick: () =>
+                          navigate(ROUTES["dashboard-leadership"]),
+                      },
+                    ]
+                    : []),
+                  ...(roles.includes("Projects Manager")
+                    ? [
+                      {
+                        label: "Manager",
+                        icon: Briefcase,
+                        isActive: pathname === ROUTES["dashboard-manager"],
+                        onClick: () =>
+                          navigate(ROUTES["dashboard-manager"]),
+                      },
+                    ]
+                    : []),
+                ],
+              },
+            ]
             : []),
           {
             label: "",
@@ -186,57 +184,57 @@ const Sidebar = () => {
               },
               ...(roles.includes("Projects Manager")
                 ? [
-                    {
-                      label: "Projects",
-                      icon: Folder,
-                      to: "",
-                      isActive: pathname === ROUTES.project,
-                      onClick: () => navigate(ROUTES.project),
-                    },
-                  ]
+                  {
+                    label: "Projects",
+                    icon: Folder,
+                    to: "",
+                    isActive: pathname === ROUTES.project,
+                    onClick: () => navigate(ROUTES.project),
+                  },
+                ]
                 : []),
               ...(!roles.includes("Timesheet Manager") &&
-              !roles.includes("Timesheet User")
+                !roles.includes("Timesheet User")
                 ? [
-                    {
-                      label: "Timesheet",
-                      icon: Time,
-                      to: "",
-                      isActive: pathname === ROUTES["timesheet-personal"],
-                      onClick: () => navigate(ROUTES["timesheet-personal"]),
-                    },
-                  ]
+                  {
+                    label: "Timesheet",
+                    icon: Time,
+                    to: "",
+                    isActive: pathname === ROUTES["timesheet-personal"],
+                    onClick: () => navigate(ROUTES["timesheet-personal"]),
+                  },
+                ]
                 : []),
             ],
           },
           ...(roles.includes("Timesheet Manager") ||
-          roles.includes("Timesheet User")
+            roles.includes("Timesheet User")
             ? [
-                {
-                  label: "Timesheet",
-                  collapsible: true,
-                  items: [
-                    {
-                      label: "Personal",
-                      icon: Time,
-                      isActive: pathname === ROUTES["timesheet-personal"],
-                      onClick: () => navigate(ROUTES["timesheet-personal"]),
-                    },
-                    {
-                      label: "Team",
-                      icon: People,
-                      isActive: pathname === ROUTES["timesheet-team"],
-                      onClick: () => navigate(ROUTES["timesheet-team"]),
-                    },
-                    {
-                      label: "Projects",
-                      icon: Folder,
-                      isActive: pathname === ROUTES["timesheet-project"],
-                      onClick: () => navigate(ROUTES["timesheet-project"]),
-                    },
-                  ],
-                },
-              ]
+              {
+                label: "Timesheet",
+                collapsible: true,
+                items: [
+                  {
+                    label: "Personal",
+                    icon: Time,
+                    isActive: pathname === ROUTES["timesheet-personal"],
+                    onClick: () => navigate(ROUTES["timesheet-personal"]),
+                  },
+                  {
+                    label: "Team",
+                    icon: People,
+                    isActive: pathname === ROUTES["timesheet-team"],
+                    onClick: () => navigate(ROUTES["timesheet-team"]),
+                  },
+                  {
+                    label: "Projects",
+                    icon: Folder,
+                    isActive: pathname === ROUTES["timesheet-project"],
+                    onClick: () => navigate(ROUTES["timesheet-project"]),
+                  },
+                ],
+              },
+            ]
             : []),
           {
             label: "Allocations",
@@ -284,19 +282,19 @@ const Sidebar = () => {
         items={[
           ...(roles.includes("System Manager")
             ? [
-                {
-                  label: "Dashboard - Leadership",
-                  action: () => navigate(ROUTES["dashboard-leadership"]),
-                },
-              ]
+              {
+                label: "Dashboard - Leadership",
+                action: () => navigate(ROUTES["dashboard-leadership"]),
+              },
+            ]
             : []),
           ...(roles.includes("Projects Manager")
             ? [
-                {
-                  label: "Dashboard - Manager",
-                  action: () => navigate(ROUTES["dashboard-manager"]),
-                },
-              ]
+              {
+                label: "Dashboard - Manager",
+                action: () => navigate(ROUTES["dashboard-manager"]),
+              },
+            ]
             : []),
           { label: "Home", action: () => navigate(ROUTES.home) },
           { label: "Tasks", action: () => navigate(ROUTES.task) },
@@ -308,17 +306,17 @@ const Sidebar = () => {
             action: () => navigate(ROUTES["timesheet-personal"]),
           },
           ...(roles.includes("Timesheet Manager") ||
-          roles.includes("Timesheet User")
+            roles.includes("Timesheet User")
             ? [
-                {
-                  label: "Timesheet - Team",
-                  action: () => navigate(ROUTES["timesheet-team"]),
-                },
-                {
-                  label: "Timesheet - Projects",
-                  action: () => navigate(ROUTES["timesheet-project"]),
-                },
-              ]
+              {
+                label: "Timesheet - Team",
+                action: () => navigate(ROUTES["timesheet-team"]),
+              },
+              {
+                label: "Timesheet - Projects",
+                action: () => navigate(ROUTES["timesheet-project"]),
+              },
+            ]
             : []),
           {
             label: "Allocations - Team",

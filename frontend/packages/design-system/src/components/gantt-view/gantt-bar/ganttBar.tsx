@@ -2,8 +2,8 @@
  * External dependencies.
  */
 import React from "react";
+import { TimeOff } from "@rtcamp/frappe-ui-react/icons";
 import { cva, type VariantProps } from "class-variance-authority";
-import { CalendarX2 } from "lucide-react";
 
 /**
  * Internal dependencies.
@@ -153,7 +153,11 @@ export const GanttBar = React.forwardRef<HTMLDivElement, GanttBarProps>(
         )}
         {isTimeoff ? (
           <>
-            <CalendarX2 className="shrink-0" size={16} strokeWidth={1.5} />
+            <TimeOff
+              className="shrink-0 size-4 text-ink-gray-5"
+              size={16}
+              strokeWidth={1.5}
+            />
             {label ? (
               <span className="text-[13px] font-medium tracking-[0.02em] truncate">
                 {label}

@@ -9,9 +9,9 @@ import {
   TextEditor,
   useToasts,
 } from "@rtcamp/frappe-ui-react";
+import { EditAlt } from "@rtcamp/frappe-ui-react/icons";
 import { useForm } from "@tanstack/react-form";
 import { FrappeError, useFrappeUpdateDoc } from "frappe-react-sdk";
-import { Pencil } from "lucide-react";
 
 /**
  * Internal dependencies.
@@ -168,7 +168,7 @@ function OverviewForm() {
         ) : (
           <Button
             variant="solid"
-            iconLeft={() => <Pencil size={16} />}
+            iconLeft={() => <EditAlt size={16} />}
             onClick={() => setIsEditing(true)}
           >
             Edit

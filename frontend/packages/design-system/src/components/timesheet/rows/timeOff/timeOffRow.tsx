@@ -1,7 +1,7 @@
 /**
  * External dependencies.
  */
-import { CalendarX2 } from "lucide-react";
+import { TimeOff } from "@rtcamp/frappe-ui-react/icons";
 
 /**
  * Internal dependencies.
@@ -41,7 +41,7 @@ export const TimeOffRow: React.FC<TimeOffRowProps> = ({
           {renderPrefix ? (
             renderPrefix()
           ) : (
-            <CalendarX2 strokeWidth={1.5} size={16} />
+            <TimeOff className="text-ink-gray-8" size={16} />
           )}
         </span>
         <span className="min-w-0 text-base font-medium truncate">{label}</span>

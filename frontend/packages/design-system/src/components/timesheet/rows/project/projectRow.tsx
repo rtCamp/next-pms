@@ -1,7 +1,7 @@
 /**
  * External dependencies.
  */
-import { ChevronDown, Folder } from "lucide-react";
+import { SmallDown, Folder } from "@rtcamp/frappe-ui-react/icons";
 
 /**
  * Internal dependencies.
@@ -52,7 +52,7 @@ export const ProjectRow: React.FC<ProjectRowProps> = ({
             collapsed ? "-rotate-90" : "rotate-0",
           )}
         >
-          <ChevronDown strokeWidth={1.5} size={16} />
+          <SmallDown strokeWidth={1.5} size={16} />
         </span>
         <div className="flex items-center min-w-0 gap-2 text-ink-gray-8">
           <span className="shrink-0">

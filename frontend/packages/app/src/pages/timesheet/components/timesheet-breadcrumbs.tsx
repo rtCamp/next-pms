@@ -3,8 +3,7 @@
  */
 import { useLocation, useNavigate } from "react-router-dom";
 import { Breadcrumbs } from "@rtcamp/frappe-ui-react";
-import { Folder, People, Time } from "@rtcamp/frappe-ui-react/icons";
-import { ChevronDown } from "lucide-react";
+import { Folder, People, Time, SmallDown } from "@rtcamp/frappe-ui-react/icons";
 
 /**
  * Internal dependencies.
@@ -63,7 +62,7 @@ export const TimesheetBreadcrumbs = () => {
           interactive: hasRoleAccess,
           prefixIcon: <activeView.icon className="size-4" />,
           suffixIcon: hasRoleAccess ? (
-            <ChevronDown className="w-4 h-4" />
+            <SmallDown className="w-4 h-4" />
           ) : undefined,
           dropdown: hasRoleAccess
             ? {

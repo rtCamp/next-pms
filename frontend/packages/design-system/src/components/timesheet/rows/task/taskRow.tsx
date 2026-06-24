@@ -8,7 +8,7 @@ import {
   type TaskStatusType,
 } from "@next-pms/design-system/components";
 import { Button } from "@rtcamp/frappe-ui-react";
-import { Plus, Star } from "lucide-react";
+import { AddMd, Star } from "@rtcamp/frappe-ui-react/icons";
 
 /**
  * Internal dependencies.
@@ -172,7 +172,7 @@ export const TaskRow: React.FC<TaskRowProps> = ({
                             },
                           )}
                         >
-                          <Plus strokeWidth={1.5} size={16} className="" />
+                          <AddMd size={16} className="" />
                         </span>
                       </>
                     ) : (
