@@ -67,7 +67,7 @@ export const PersonalTimesheetTable = () => {
     );
 
   return (
-    <div className="w-full flex-1 min-h-0 py-3.5 px-3 relative">
+    <div className="w-full flex-1 min-h-0 py-3.5 px-5 relative">
       <div className="flex flex-wrap gap-2 justify-between mb-3.5">
         <div className="flex gap-2">
           <TextInput

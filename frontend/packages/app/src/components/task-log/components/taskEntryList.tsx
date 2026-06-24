@@ -4,6 +4,7 @@
 import React from "react";
 import { prettyDate } from "@next-pms/design-system";
 import { mergeClassNames as cn } from "@next-pms/design-system/utils";
+import { StaticTextEditor } from "@rtcamp/frappe-ui-react";
 
 /**
  * Internal dependencies.
@@ -63,18 +64,16 @@ const TaskEntry = ({
   showAvatar?: boolean;
 }) => {
   return (
-    <div className="pb-3 border-b border-outline-gray-modals text-ink-gray-6 last:border-none">
+    <div className="pb-1 border-b border-outline-gray-modals text-ink-gray-6 last:border-none">
       <div className="flex justify-between items-center mb-1">
         <TimeBadge employee={employee} hours={hours} showAvatar={showAvatar} />
         <span className="text-base">{prettyDate(date).date}</span>
       </div>
 
-      <div
-        key={description}
-        className="whitespace-pre-wrap wrap-break-word text-base leading-5.25"
-      >
-        {description}
-      </div>
+      <StaticTextEditor
+        content={description}
+        editorClass="max-h-30 prose-sm overflow-auto scrollbar-thin text-ink-gray-7 text-base leading-5.25"
+      />
     </div>
   );
 };
