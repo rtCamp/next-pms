@@ -80,6 +80,7 @@ export * from "./gantt-view";
 export * from "./calendar-timeline";
 export { Comments, type CommentNode, type CommentsProps } from "./comments";
 export { default as GlobalSearch } from "./globalSearch";
+export * from "./date-chip";
 export { DeleteActionDialog } from "./delete-action-dialog";
 export {
   SortButton,

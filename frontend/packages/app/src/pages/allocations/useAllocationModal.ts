@@ -14,6 +14,7 @@ import { useFrappePostCall } from "frappe-react-sdk";
  * Internal dependencies.
  */
 import type { AddAllocationInitialValues } from "@/pages/allocations/team/add-allocation/types";
+import type { EditScheduleInitialValues } from "@/pages/allocations/team/edit-schedule/types";
 import type { AllocationOutletContext } from "./allocationOutletContext";
 import type { AllocationRefreshTargets } from "./types";
 
@@ -24,6 +25,10 @@ export function useAllocationModal(refresh: RefreshAllocations) {
   const [variant, setVariant] = useState<"add" | "edit">("add");
   const [initialValues, setInitialValues] = useState<
     AddAllocationInitialValues | undefined
+  >(undefined);
+  const [isEditScheduleOpen, setIsEditScheduleOpen] = useState(false);
+  const [editScheduleInitialValues, setEditScheduleInitialValues] = useState<
+    EditScheduleInitialValues | undefined
   >(undefined);
   const [onSuccess, setOnSuccess] =
     useState<AllocationCallbackData["onSuccess"]>(undefined);
@@ -139,13 +144,44 @@ export function useAllocationModal(refresh: RefreshAllocations) {
       onOpenChange: handleOpenChange,
       initialValues,
       onSuccess: handleSuccess,
+      onEditScheduleClick: () => {
+        setIsOpen(false);
+        setEditScheduleInitialValues({
+          allocationName: initialValues?.allocationName ?? "",
+          employeeId: initialValues?.employeeId,
+          projectId: initialValues?.projectId,
+          customer: initialValues?.customer,
+          rangeStart: initialValues?.fromDate ?? "",
+          rangeEnd: initialValues?.toDate ?? "",
+          defaultHoursPerDay: initialValues?.hoursPerDay ?? 0,
+          isBillable: initialValues?.isBillable,
+          isTentative: initialValues?.isTentative,
+          note: initialValues?.note,
+        });
+        setIsEditScheduleOpen(true);
+      },
     }),
     [variant, isOpen, handleOpenChange, initialValues, handleSuccess],
+  );
+
+  const editScheduleModalProps = useMemo(
+    () => ({
+      open: isEditScheduleOpen,
+      onOpenChange: (open: boolean) => {
+        setIsEditScheduleOpen(open);
+        if (!open) {
+          setEditScheduleInitialValues(undefined);
+        }
+      },
+      initialValues: editScheduleInitialValues,
+    }),
+    [isEditScheduleOpen, editScheduleInitialValues],
   );
 
   return {
     openAddDialog,
     outletContext,
     modalProps,
+    editScheduleModalProps,
   };
 }
