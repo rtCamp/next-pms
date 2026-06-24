@@ -382,6 +382,69 @@ def edit_allocation(name: str, edit_mode: str, allocation: AllocationPayload, da
     return update_allocation(allocation)
 
 
+@frappe.whitelist()
+def get_series_remaining_weeks(name: str):
+    """Return how many weeks of the recurrence series run from this allocation onward.
+
+    Used by the edit-schedule modal to show how far the series still repeats from the
+    picked allocation (e.g. "Repeats for 3 weeks till Feb 18"). The count is inclusive
+    of the picked allocation: for a 5-week series, the 3rd week reports 3 remaining
+    weeks (weeks 3, 4 and 5).
+
+    Args:
+        name (str): Name of the picked allocation. The series is resolved from this
+                    doc's own ``recurrence_id``.
+
+    Returns:
+        dict: ``allocation_start_date`` / ``allocation_end_date`` of the picked doc,
+        ``remaining_weeks`` (count from this doc onward, inclusive), and
+        ``series_end_date`` (the last allocation's end date in the series).
+    """
+    permission = resource_api_permissions_check()
+    if not permission["read"]:
+        frappe.throw(frappe._("You are not allowed to perform this action."), exc=frappe.PermissionError)
+
+    allocation = frappe.db.get_value(
+        "Resource Allocation",
+        name,
+        ["allocation_start_date", "allocation_end_date", "recurrence_id"],
+        as_dict=True,
+    )
+    if not allocation:
+        frappe.throw(
+            frappe._("Resource Allocation {0} does not exist.").format(name),
+            exc=frappe.DoesNotExistError,
+        )
+
+    # a standalone allocation (no series) is its own single remaining week
+    if not allocation.recurrence_id:
+        return {
+            "allocation_start_date": allocation.allocation_start_date,
+            "allocation_end_date": allocation.allocation_end_date,
+            "remaining_weeks": 1,
+            "series_end_date": allocation.allocation_end_date,
+        }
+
+    future_filters = {
+        "recurrence_id": allocation.recurrence_id,
+        "allocation_start_date": [">=", allocation.allocation_start_date],
+    }
+    remaining_weeks = frappe.db.count("Resource Allocation", filters=future_filters)
+    series_end_date = frappe.db.get_value(
+        "Resource Allocation",
+        future_filters,
+        "allocation_end_date",
+        order_by="allocation_start_date desc",
+    )
+
+    return {
+        "allocation_start_date": allocation.allocation_start_date,
+        "allocation_end_date": allocation.allocation_end_date,
+        "remaining_weeks": remaining_weeks,
+        "series_end_date": series_end_date or allocation.allocation_end_date,
+    }
+
+
 @frappe.whitelist(methods=["POST"])
 def delete_allocation(name: str, delete_mode: str):
     """Delete a Resource Allocation, optionally deleting all or future docs in the series.
