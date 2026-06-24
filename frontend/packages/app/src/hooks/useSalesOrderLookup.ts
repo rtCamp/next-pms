@@ -22,8 +22,8 @@ interface UseSalesOrderLookupOptions {
   pageSize?: number;
   /** Filters sales orders by partial name on the backend. */
   query: string;
-  /** Restricts the lookup to sales orders linked to this project. */
-  projectId?: string;
+  /** Adds fixed backend filters alongside the search filters. */
+  filters?: string[][];
   /** Revalidates the lookup when the window regains focus. */
   revalidateOnFocus?: boolean;
   /** Keeps the current selection visible when it is not in the latest results. */
@@ -37,7 +37,7 @@ export const useSalesOrderLookup = ({
   shouldFetch,
   pageSize = 20,
   query,
-  projectId,
+  filters,
   revalidateOnFocus,
   selectedOption,
 }: UseSalesOrderLookupOptions) => {
@@ -61,7 +61,7 @@ export const useSalesOrderLookup = ({
         "transaction_date",
       ],
       limit_page_length: pageSize,
-      filters: projectId ? { project: projectId } : undefined,
+      filters,
       or_filters: searchQuery
         ? [["Sales Order", "name", "like", `%${searchQuery}%`]]
         : undefined,
