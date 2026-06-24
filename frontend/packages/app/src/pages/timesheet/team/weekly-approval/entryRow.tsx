@@ -3,8 +3,13 @@
  */
 import { useState, useCallback } from "react";
 import { floatToTime } from "@next-pms/design-system";
-import { TaskStatus, DurationInput } from "@next-pms/design-system/components";
-import { Button, StaticTextEditor, TextEditor } from "@rtcamp/frappe-ui-react";
+import { TaskStatus } from "@next-pms/design-system/components";
+import {
+  Button,
+  StaticTextEditor,
+  TextEditor,
+  DurationInput,
+} from "@rtcamp/frappe-ui-react";
 import { Edit, Check, X } from "lucide-react";
 
 /**
@@ -78,7 +83,7 @@ const EntryRow = ({ entry, onSave }: EntryRowProps) => {
             />
           </div>
         </div>
-        <DurationInput value={hours} onChange={setHours} variant="compact" />
+        <DurationInput value={hours} onChange={setHours} />
 
         <div className="flex flex-col gap-2">
           <Button

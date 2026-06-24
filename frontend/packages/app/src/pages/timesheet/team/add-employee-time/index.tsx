@@ -2,7 +2,6 @@
  * External Dependencies
  */
 import { useCallback, useState } from "react";
-import { DurationInput } from "@next-pms/design-system/components";
 import {
   DatePicker,
   Dialog,
@@ -11,6 +10,7 @@ import {
   Combobox,
   useToasts,
   TextEditor,
+  DurationInput,
 } from "@rtcamp/frappe-ui-react";
 import { useForm, useStore } from "@tanstack/react-form";
 import { FrappeError, useFrappePostCall } from "frappe-react-sdk";
@@ -241,7 +241,7 @@ const AddEmployeeTime = ({
             name="date"
             children={(field) => {
               return (
-                <>
+                <div className="flex-1">
                   <DatePicker
                     label="From"
                     onChange={(val) => field.handleChange(val as string)}
@@ -250,20 +250,20 @@ const AddEmployeeTime = ({
                   >
                     {({ displayValue }) => {
                       return (
-                        <div className=" flex-1 flex w-full flex-col space-y-1.5 ">
+                        <div className="flex-1 flex w-full flex-col space-y-1.5 ">
                           <label className="block text-base text-ink-gray-5">
                             Date
                           </label>
                           <div
                             className={
-                              "flex relative items-center py-1 rounded border border-outline-gray-2 px-2.5"
+                              "flex relative items-center rounded border border-outline-gray-2 px-2.5"
                             }
                           >
                             <input
                               type="text"
                               id="start"
                               value={displayValue}
-                              className="flex-1 text-ink-gray-7 text-base"
+                              className="h-7.5 flex-1 text-ink-gray-7 text-base"
                               placeholder="Today"
                             />
                             <Calendar className="size-4" />
@@ -277,7 +277,7 @@ const AddEmployeeTime = ({
                       message={field.state.meta.errors[0]?.message}
                     />
                   )}
-                </>
+                </div>
               );
             }}
           />
@@ -285,8 +285,11 @@ const AddEmployeeTime = ({
             name="duration"
             children={(field) => {
               return (
-                <div className="flex flex-col gap-2 w-full">
+                <div className="flex-1 flex flex-col gap-2 w-full">
                   <DurationInput
+                    label="Duration"
+                    size="md"
+                    snap="smooth"
                     value={field.state.value}
                     onChange={(val) => field.handleChange(val)}
                   />

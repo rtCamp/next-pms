@@ -363,7 +363,6 @@ export const InlineTimeEntry = ({
                         mode="edit"
                         hoursLeft={effectiveHoursLeft}
                         durationLabel="Edit time"
-                        durationVariant="default"
                         maxDurationInHours={dailyWorkingHours}
                         editBaseline={editBaselineRef.current}
                         submitting={submitting}
@@ -402,8 +401,7 @@ export const InlineTimeEntry = ({
               form={form}
               mode="add"
               hoursLeft={effectiveHoursLeft}
-              durationLabel="Add time"
-              durationVariant={hasNoTimeEntries ? "compact" : "default"}
+              durationLabel={hasNoTimeEntries ? false : "Add time"}
               maxDurationInHours={dailyWorkingHours}
               submitting={submitting}
               onSave={() => handleSubmit()}
