@@ -62,7 +62,7 @@ export const WeekRow: React.FC<WeekRowProps> = ({
   return (
     <div
       className={cn(
-        "flex items-center border-b border-outline-gray-1 transition-colors w-full justify-between px-1 py-2 focus:ring focus:ring-outline-gray-3 rounded-sm cursor-pointer",
+        "flex items-center border-b border-outline-gray-1 transition-colors w-full justify-between px-1 py-2 focus:ring focus:ring-outline-gray-3 cursor-pointer",
         className,
       )}
     >

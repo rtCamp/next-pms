@@ -1,7 +1,14 @@
-import { prettyDate } from "@next-pms/design-system/date";
+/**
+ * External dependencies.
+ */
 import { mergeClassNames as cn } from "@next-pms/design-system/utils";
 import { Badge } from "@rtcamp/frappe-ui-react";
+import { format, parseISO } from "date-fns";
 import { CalendarFoldIcon, Folder } from "lucide-react";
+
+/**
+ * Internal dependencies.
+ */
 import { TaskBadgeItem } from "./types";
 
 type TaskBadgesProps = {
@@ -18,7 +25,7 @@ const TaskBadges: React.FC<TaskBadgesProps> = ({
   const badges: TaskBadgeItem[] = [
     dueDate && {
       icon: <CalendarFoldIcon size={12} />,
-      text: prettyDate(dueDate).date,
+      text: format(parseISO(dueDate), "dd MMM"),
     },
     projectName && {
       icon: <Folder size={12} />,
