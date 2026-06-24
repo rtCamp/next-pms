@@ -13,6 +13,23 @@ class TimesheetOverwrite(Timesheet):
     def calculate_hours(self):
         return
 
+    # Override base method to prevent clashes caused by db locks on project table from background jobs
+    def update_task_and_project(self):
+        seen_tasks = set()
+        for data in self.time_logs:
+            if not data.task or data.task in seen_tasks:
+                continue
+            seen_tasks.add(data.task)
+
+            task = frappe.get_doc("Task", data.task)
+            task.flags.from_project = True  # prevent Task.on_update -> Project.update_project() chain call
+            task.update_time_and_costing()
+            all_completed = all(tl.completed for tl in self.time_logs if tl.task == task.name)
+            task.status = "Completed" if all_completed else "Working"
+            task.save(ignore_permissions=True)
+
+        # omit explicit project save loop in base method
+
     def update_billing_hours(self, args):
         if args.is_billable:
             if flt(args.billing_hours) > flt(args.hours):
