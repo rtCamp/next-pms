@@ -68,6 +68,13 @@ def setup_company_and_customer():
     )
     company.insert(ignore_if_duplicate=True)
 
+    # A fresh site has no default company, so get_default_company() (used when
+    # creating employees) returns nothing. Set one only if unset.
+    if not frappe.db.get_single_value("Global Defaults", "default_company"):
+        defaults = frappe.get_single("Global Defaults")
+        defaults.default_company = company.name
+        defaults.save()
+
 
 def setup_project_and_tasks():
     if not frappe.db.exists("Project", {"project_name": "Next Pms"}):
@@ -75,6 +82,7 @@ def setup_project_and_tasks():
             {
                 "doctype": "Project",
                 "project_name": "Next Pms",
+                "company": "Facebook",
                 "customer": "Meta",
                 "estimated_costing": 50000,
                 "custom_billing_type": "Non-Billable",
