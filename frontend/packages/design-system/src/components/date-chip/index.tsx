@@ -10,7 +10,7 @@ import {
 } from "./constants";
 import { mergeClassNames as cn } from "../../utils";
 
-type EditScheduleDayChipProps = {
+type DayChipProps = {
   dayLabel: string;
   dayNumber: number;
   monthLabel?: string;
@@ -39,7 +39,7 @@ export function DayChip({
   disabled = false,
   onClick,
   className,
-}: EditScheduleDayChipProps) {
+}: DayChipProps) {
   const isSkeleton = state === "skeleton";
   const isDisabled = disabled || state === "disabled" || isSkeleton;
 
@@ -58,7 +58,7 @@ export function DayChip({
         <span className={cn(dayLabelVariants({ state }))}>{dayLabel}</span>
         <span className={cn(dayNumberVariants({ state }))}>{dayNumber}</span>
       </div>
-      {isMonthBoundary ? (
+      {isMonthBoundary && monthLabel ? (
         <span className={cn(monthTagVariants({ skeleton: isSkeleton }))}>
           {monthLabel}
         </span>

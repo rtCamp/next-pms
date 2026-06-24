@@ -49,8 +49,12 @@ function EditScheduleModal({
   const defaultHoursPerDay = safeValues.defaultHoursPerDay ?? 0;
   const isRecurringAllocation = Boolean(safeValues.recurrenceId);
   const fullRange = useMemo(
-    () => normalizeRange(safeValues.rangeStart, safeValues.rangeEnd),
-    [safeValues.rangeEnd, safeValues.rangeStart],
+    () =>
+      normalizeRange(
+        safeValues.rangeStart || today,
+        safeValues.rangeEnd || safeValues.rangeStart || today,
+      ),
+    [safeValues.rangeEnd, safeValues.rangeStart, today],
   );
   const recurrenceHelperText = useMemo(() => {
     if (

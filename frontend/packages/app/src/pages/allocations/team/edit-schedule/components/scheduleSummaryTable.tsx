@@ -12,7 +12,13 @@ interface ScheduleSummaryTableProps {
 function ScheduleSummaryTable({ rows }: ScheduleSummaryTableProps) {
   return (
     <div className="overflow-hidden rounded border border-outline-gray-2">
-      <table className="w-full table-fixed border-collapse">
+      <table className="relative w-full table-fixed border-collapse">
+        <thead className="sr-only">
+          <tr>
+            <th scope="col">Date range</th>
+            <th scope="col">Hours</th>
+          </tr>
+        </thead>
         <tbody>
           {rows.map((row) => (
             <tr
