@@ -1,4 +1,9 @@
 /**
+ * External dependencies.
+ */
+import { mergeClassNames as cn } from "@next-pms/design-system";
+
+/**
  * Internal dependencies.
  */
 import { TimelineCell } from "./table/cells";
@@ -37,7 +42,7 @@ export function MilestonesTable({
           {MILESTONE_COLUMNS.map((column) => (
             <th
               key={column.key}
-              className={`px-2 py-1.5 text-sm${column.width ? ` ${column.width}` : ""}`}
+              className={cn("px-2 py-1.5 text-sm", column.width)}
             >
               {column.label}
             </th>
