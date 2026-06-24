@@ -102,6 +102,13 @@ const SubmitApproval = ({
     <Dialog
       open={open}
       onOpenChange={onOpenChange}
+      className="my-0"
+      classNames={{
+        header: "mb-5",
+        content: "pt-5 pb-4",
+        viewport: "justify-start pt-30",
+        footer: "pb-6",
+      }}
       actions={
         <Button
           className="w-full"

@@ -3,7 +3,7 @@
  */
 import { useMemo, useState } from "react";
 import { Accordion } from "@base-ui/react/accordion";
-import { floatToTime } from "@next-pms/design-system";
+import { floatToTime, mergeClassNames as cn } from "@next-pms/design-system";
 import {
   WeekRow as BaseWeekRow,
   ApprovalStatusMap,
@@ -107,6 +107,7 @@ export const WeekRow = ({
       onValueChange={(value) => {
         setCollapsed(value.length === 0);
       }}
+      className={cn(!collapsed && "mb-4")}
     >
       <Accordion.Item value="week" className="border-none">
         <Accordion.Trigger

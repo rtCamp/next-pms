@@ -29,7 +29,7 @@ const RejectionPopup = () => {
   return (
     <Dialog.Popup className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-100 z-101 bg-surface-modal rounded-xl shadow-xl flex flex-col">
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3 border-b border-outline-gray-modals">
+      <div className="flex items-center justify-between px-6 pt-5">
         <h1 className="text-2xl font-semibold text-ink-gray-8">
           Reason for timesheet rejection
         </h1>
@@ -39,7 +39,7 @@ const RejectionPopup = () => {
       </div>
 
       {/* Content */}
-      <div className="p-4 space-y-4">
+      <div className="px-6 py-4 space-y-4">
         {/* Employee info row */}
         <div className="flex items-center justify-between bg-surface-gray-2 rounded-md p-2 text-base font-medium">
           <div className="flex items-center gap-2">
@@ -66,7 +66,7 @@ const RejectionPopup = () => {
       </div>
 
       {/* Footer */}
-      <div className="p-4 pt-0">
+      <div className="px-6 py-4">
         <Button
           className="w-full"
           variant="solid"

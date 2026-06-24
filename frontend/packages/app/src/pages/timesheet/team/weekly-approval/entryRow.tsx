@@ -66,7 +66,7 @@ const EntryRow = ({ entry, onSave }: EntryRowProps) => {
 
   if (isEditing) {
     return (
-      <div className="px-3.5 py-3 flex gap-3 border-b border-outline-gray-modals last:border-b-0 ">
+      <div className="px-3.5 py-4 flex gap-3 border-b border-outline-gray-modals last:border-b-0 ">
         <TaskStatus status={entry.status} />
         <div className="flex-1 min-w-0">
           <div className="space-y-1">
@@ -104,7 +104,7 @@ const EntryRow = ({ entry, onSave }: EntryRowProps) => {
   }
 
   return (
-    <div className="px-3.5 py-3 flex gap-3 border-b border-outline-gray-modals last:border-b-0 group">
+    <div className="px-3.5 py-4 flex gap-3 border-b border-outline-gray-modals last:border-b-0 group">
       <TaskStatus status={entry.status} />
       <div className="flex-1 min-w-0">
         <div className="space-y-1">

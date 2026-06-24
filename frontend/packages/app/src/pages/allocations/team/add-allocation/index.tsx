@@ -352,6 +352,13 @@ function AddAllocationModal({
     <Dialog
       open={open}
       onOpenChange={handleOpenChange}
+      className="my-0"
+      classNames={{
+        header: "mb-5",
+        content: "sm:p-3.5",
+        viewport: "justify-start pt-30",
+        footer: "pb-3.5 pt-5",
+      }}
       options={{
         title: () => (
           <span className="text-lg font-medium text-ink-gray-7">
@@ -386,7 +393,7 @@ function AddAllocationModal({
         </div>
       }
     >
-      <div className="-mt-2 space-y-4">
+      <div className="space-y-4">
         {layoutVariant === "project" ? (
           <>
             {projectField}
