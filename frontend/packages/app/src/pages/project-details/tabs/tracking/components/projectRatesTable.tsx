@@ -1,7 +1,7 @@
 /**
  * External dependencies.
  */
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { DeleteActionDialog } from "@next-pms/design-system/components";
 import {
   Avatar,
@@ -40,7 +40,15 @@ export function ProjectRatesTable() {
     label: string;
   } | null>(null);
 
-  if (!rows) return null;
+  const sortedRows = useMemo(
+    () =>
+      rows
+        ? [...rows].sort((a, b) => (b.date ?? "").localeCompare(a.date ?? ""))
+        : rows,
+    [rows],
+  );
+
+  if (!sortedRows) return null;
 
   return (
     <div className="flex flex-1 min-w-0 flex-col gap-3 rounded-xl border border-outline-gray-1 bg-surface-cards p-3">
@@ -56,7 +64,7 @@ export function ProjectRatesTable() {
       </div>
       <ListView
         columns={RATE_COLUMNS}
-        rows={rows}
+        rows={sortedRows}
         rowKey="id"
         options={{ options: { selectable: false, resizeColumn: false } }}
       >
@@ -88,13 +96,17 @@ export function ProjectRatesTable() {
               </div>
             </div>
           )}
-          {rows.length === 0 && !flatRate ? (
+          {sortedRows.length === 0 && !flatRate ? (
             <div className="py-10 text-center text-sm text-ink-gray-4">
               No project rates yet
             </div>
           ) : (
-            rows.map((row, i) => (
-              <ListRow key={row.id} row={row} isLastRow={i === rows.length - 1}>
+            sortedRows.map((row, i) => (
+              <ListRow
+                key={row.id}
+                row={row}
+                isLastRow={i === sortedRows.length - 1}
+              >
                 <div className="flex min-w-0 items-center gap-2">
                   <Avatar
                     size="xs"
