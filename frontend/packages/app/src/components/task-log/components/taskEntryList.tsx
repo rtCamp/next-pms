@@ -2,9 +2,9 @@
  * External dependencies.
  */
 import React from "react";
-import { prettyDate } from "@next-pms/design-system";
 import { mergeClassNames as cn } from "@next-pms/design-system/utils";
 import { StaticTextEditor } from "@rtcamp/frappe-ui-react";
+import { format, parseISO } from "date-fns";
 
 /**
  * Internal dependencies.
@@ -26,7 +26,7 @@ const TaskEntryList: React.FC<TaskEntryListProps> = ({
   return (
     <div
       className={cn(
-        "flex overflow-y-auto flex-col gap-3 mt-3 max-h-54 scrollbar-thin",
+        "flex overflow-y-auto flex-col gap-3 mt-3 max-h-54 scrollbar-thin pr-3 -mr-3",
         className,
       )}
     >
@@ -67,7 +67,7 @@ const TaskEntry = ({
     <div className="pb-1 border-b border-outline-gray-modals text-ink-gray-6 last:border-none">
       <div className="flex justify-between items-center mb-1">
         <TimeBadge employee={employee} hours={hours} showAvatar={showAvatar} />
-        <span className="text-base">{prettyDate(date).date}</span>
+        <span className="text-base">{format(parseISO(date), "dd MMM")}</span>
       </div>
 
       <StaticTextEditor
