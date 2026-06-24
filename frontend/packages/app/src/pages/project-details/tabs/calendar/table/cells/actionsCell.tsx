@@ -39,6 +39,7 @@ export function ActionsCell({
       dropdownClassName="border-none"
       placement="right"
       button={{
+        className: "h-4",
         variant: "ghost",
         icon: () => <Ellipsis size={16} />,
       }}

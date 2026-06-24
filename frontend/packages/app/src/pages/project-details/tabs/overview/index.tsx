@@ -178,7 +178,7 @@ function OverviewForm() {
 
       <form.Field name="summary">
         {(field) => (
-          <OverviewSection title="Details">
+          <OverviewSection title="Details" className="gap-1">
             {isEditing ? (
               <TextEditor
                 editable={isEditing && !submitting}
@@ -193,7 +193,7 @@ function OverviewForm() {
             ) : (
               <StaticTextEditor
                 content={field.state.value}
-                editorClass="prose-sm leading-normal text-ink-gray-7 w-full max-w-full p-2"
+                editorClass="prose-sm leading-normal text-ink-gray-7 w-full max-w-full"
               />
             )}
           </OverviewSection>
@@ -203,7 +203,7 @@ function OverviewForm() {
       <form.Field name="keyGoals">
         {(field) => {
           return (
-            <OverviewSection title="Key goals of the project">
+            <OverviewSection title="Key goals of the project" className="gap-1">
               {isEditing ? (
                 <TextEditor
                   editable={isEditing && !submitting}
@@ -219,7 +219,7 @@ function OverviewForm() {
               ) : (
                 <StaticTextEditor
                   content={field.state.value}
-                  editorClass="prose-sm leading-normal text-ink-gray-7 w-full max-w-full p-2"
+                  editorClass="prose-sm leading-normal text-ink-gray-7 w-full max-w-full"
                 />
               )}
             </OverviewSection>

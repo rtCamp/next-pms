@@ -90,7 +90,12 @@ export function CalendarToolbar({
             icon={() => <SmallLeftChevron className="size-4" />}
             onClick={onPrevious}
           />
-          <Button variant="ghost" label="Today" onClick={onToday} />
+          <Button
+            className="text-ink-gray-7"
+            variant="ghost"
+            label="Today"
+            onClick={onToday}
+          />
           <Button
             variant="ghost"
             icon={() => <SmallRightChevron className="size-4" />}

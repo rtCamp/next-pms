@@ -124,6 +124,13 @@ const AddEmployeeTime = ({
     <Dialog
       open={open}
       onOpenChange={handleOpenChange}
+      className="my-0"
+      classNames={{
+        header: "mb-5",
+        content: "pt-5 pb-2",
+        viewport: "justify-start pt-30",
+        footer: "pb-6",
+      }}
       actions={
         <Button
           className="w-full"
@@ -144,11 +151,11 @@ const AddEmployeeTime = ({
           children={(field) => {
             return (
               <>
-                <label className="block text-xs text-ink-gray-5 mb-1.5">
+                <label className="block text-base text-ink-gray-5 mb-1.5">
                   Employee
                 </label>
                 <Combobox
-                  inputClassName="bg-white h-8 border-outline-gray-2"
+                  inputClassName="bg-white h-8 border-outline-gray-2 text-ink-gray-7"
                   loading={isEmployeeLookupLoading}
                   options={employeeOptions}
                   searchValue={employeeSearch}
@@ -172,11 +179,11 @@ const AddEmployeeTime = ({
           children={(field) => {
             return (
               <>
-                <label className="block text-xs text-ink-gray-5 mb-1.5">
+                <label className="block text-base text-ink-gray-5 mb-1.5">
                   Project
                 </label>
                 <Combobox
-                  inputClassName="bg-white h-8 border-outline-gray-2"
+                  inputClassName="bg-white h-8 border-outline-gray-2 text-ink-gray-7"
                   loading={isProjectLookupLoading}
                   options={projectOptions}
                   searchValue={projectSearch}
@@ -200,11 +207,11 @@ const AddEmployeeTime = ({
           children={(field) => {
             return (
               <>
-                <label className="block text-xs text-ink-gray-5 mb-1.5">
+                <label className="block text-base text-ink-gray-5 mb-1.5">
                   Task
                 </label>
                 <Combobox
-                  inputClassName="bg-white h-8 border-outline-gray-2"
+                  inputClassName="bg-white h-8 border-outline-gray-2 text-ink-gray-7"
                   loading={isTaskLookupLoading}
                   options={taskOptions}
                   searchValue={taskSearch}
@@ -244,7 +251,7 @@ const AddEmployeeTime = ({
                     {({ displayValue }) => {
                       return (
                         <div className="flex-1 flex w-full flex-col space-y-1.5 ">
-                          <label className="block text-xs text-ink-gray-5">
+                          <label className="block text-base text-ink-gray-5">
                             Date
                           </label>
                           <div
@@ -302,12 +309,14 @@ const AddEmployeeTime = ({
           children={(field) => {
             return (
               <>
-                <label className="block text-xs text-ink-gray-5">Comment</label>
+                <label className="block text-base text-ink-gray-5 mb-1.5">
+                  Comment
+                </label>
                 <TextEditor
                   content={field.state.value}
                   onChange={(value) => field.handleChange(value)}
                   fixedMenu={false}
-                  editorClass="px-2 h-24 prose-sm overflow-auto scrollbar-thin bg-white border rounded-md border-outline-gray-2"
+                  editorClass="px-2 h-24 prose-sm overflow-auto scrollbar-thin bg-white border rounded-md border-outline-gray-2 text-ink-gray-7 text-base"
                 />
                 {!field.state.meta.isValid && (
                   <ErrorMessage message={field.state.meta.errors[0]?.message} />

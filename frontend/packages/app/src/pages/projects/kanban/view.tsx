@@ -107,7 +107,7 @@ const KanbanView = () => {
         }
       }}
     >
-      <div className="flex gap-4 px-7 pt-5.5 overflow-auto scrollbar-thin">
+      <div className="flex gap-4 px-7 overflow-auto scrollbar-thin">
         {PHASES.map((phase) => (
           <Droppable
             key={phase}

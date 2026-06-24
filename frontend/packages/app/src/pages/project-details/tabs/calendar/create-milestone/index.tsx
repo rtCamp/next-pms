@@ -150,6 +150,13 @@ export function CreateMilestoneModal({
       open={open}
       onOpenChange={handleOpenChange}
       options={{ title: isEditMode ? "Edit milestone" : "Create milestone" }}
+      className="my-0 max-w-110"
+      classNames={{
+        viewport: "justify-start pt-30",
+        header: "mb-5.25",
+        content: "pt-5 pb-4",
+        footer: "pb-6",
+      }}
       actions={
         <Button
           className="w-full h-7"
@@ -161,7 +168,7 @@ export function CreateMilestoneModal({
         />
       }
     >
-      <div className="-mt-2 space-y-4">
+      <div className="space-y-4">
         <form.Field
           name="title"
           children={(field) => (
