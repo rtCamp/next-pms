@@ -146,6 +146,50 @@ const Sidebar = () => {
     projectAllocation,
   ];
 
+  const searchItems = [
+    {
+      label: "Timesheet - Personal",
+      action: () => navigate(ROUTES["timesheet-personal"]),
+    },
+    {
+      label: "Allocations - Team",
+      action: () => navigate(ROUTES["allocations-team"]),
+    },
+    {
+      label: "Allocations - project",
+      action: () => navigate(ROUTES["allocations-project"]),
+    },
+  ];
+
+  if (roles.includes("System Manager")) {
+    searchItems.push({
+      label: "Dashboard - Leadership",
+      action: () => navigate(ROUTES["dashboard-leadership"]),
+    });
+  }
+
+  if (roles.includes("Projects Manager")) {
+    searchItems.push({
+      label: "Dashboard - Manager",
+      action: () => navigate(ROUTES["dashboard-manager"]),
+    });
+    searchItems.push({
+      label: "Projects",
+      action: () => navigate(ROUTES["project"]),
+    });
+  }
+
+  if (roles.includes("Timesheet Manager") || roles.includes("Timesheet User")) {
+    searchItems.push({
+      label: "Timesheet - Team",
+      action: () => navigate(ROUTES["timesheet-team"]),
+    });
+    searchItems.push({
+      label: "Timesheet - Projects",
+      action: () => navigate(ROUTES["timesheet-project"]),
+    });
+  }
+
   return (
     <ErrorFallback>
       <BaseSidebar
@@ -191,7 +235,7 @@ const Sidebar = () => {
         }}
         sections={[
           {
-            label: "Interactions",
+            label: "",
             items: [
               {
                 label: "Notifications",
@@ -206,6 +250,7 @@ const Sidebar = () => {
                 isActive: false,
                 onClick: () => setIsSearchOpen(true),
               },
+              ...projectItems,
             ],
           },
           ...(dashboardItems.length === 1 || timesheetItems.length === 1
@@ -248,52 +293,7 @@ const Sidebar = () => {
       <GlobalSearch
         open={isSearchOpen}
         onOpenChange={setIsSearchOpen}
-        items={[
-          ...(roles.includes("System Manager")
-            ? [
-                {
-                  label: "Dashboard - Leadership",
-                  action: () => navigate(ROUTES["dashboard-leadership"]),
-                },
-              ]
-            : []),
-          ...(roles.includes("Projects Manager")
-            ? [
-                {
-                  label: "Dashboard - Manager",
-                  action: () => navigate(ROUTES["dashboard-manager"]),
-                },
-              ]
-            : []),
-          ...(roles.includes("Projects Manager")
-            ? [{ label: "Projects", action: () => navigate(ROUTES.project) }]
-            : []),
-          {
-            label: "Timesheet - Personal",
-            action: () => navigate(ROUTES["timesheet-personal"]),
-          },
-          ...(roles.includes("Timesheet Manager") ||
-          roles.includes("Timesheet User")
-            ? [
-                {
-                  label: "Timesheet - Team",
-                  action: () => navigate(ROUTES["timesheet-team"]),
-                },
-                {
-                  label: "Timesheet - Projects",
-                  action: () => navigate(ROUTES["timesheet-project"]),
-                },
-              ]
-            : []),
-          {
-            label: "Allocations - Team",
-            action: () => navigate(ROUTES["allocations-team"]),
-          },
-          {
-            label: "Allocations - project",
-            action: () => navigate(ROUTES["allocations-project"]),
-          },
-        ]}
+        items={searchItems}
       />
     </ErrorFallback>
   );
