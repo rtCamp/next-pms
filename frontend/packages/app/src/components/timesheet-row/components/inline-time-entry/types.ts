@@ -27,8 +27,7 @@ export type TimeEntryFormProps = {
   form: TimeEntryFormApi;
   mode: EntryFormMode;
   hoursLeft: number;
-  durationLabel: string;
-  durationVariant: "default" | "compact";
+  durationLabel: string | false;
   maxDurationInHours: number;
   submitting: boolean;
   editBaseline?: { duration: number; comment: string } | null;

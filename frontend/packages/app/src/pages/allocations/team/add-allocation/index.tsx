@@ -2,7 +2,6 @@
  * External dependencies.
  */
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { DurationInput } from "@next-pms/design-system/components";
 import { formatDateRange } from "@next-pms/design-system/date";
 import {
   Button,
@@ -14,6 +13,7 @@ import {
   TabButtons,
   Textarea,
   TextInput,
+  DurationInput,
   useToasts,
 } from "@rtcamp/frappe-ui-react";
 import { useForm, useStore } from "@tanstack/react-form";
@@ -512,9 +512,12 @@ function AddAllocationModal({
                   Hours / day
                 </label>
                 <DurationInput
+                  snap="smooth"
+                  variant="outline"
+                  size="md"
                   value={field.state.value}
                   onChange={(value) => field.handleChange(value)}
-                  variant="compact"
+                  label={false}
                 />
                 {!field.state.meta.isValid && (
                   <ErrorMessage message={field.state.meta.errors[0]?.message} />

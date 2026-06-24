@@ -1,8 +1,12 @@
 /**
  * External dependencies
  */
-import { DurationInput } from "@next-pms/design-system/components";
-import { Button, ErrorMessage, TextEditor } from "@rtcamp/frappe-ui-react";
+import {
+  Button,
+  ErrorMessage,
+  TextEditor,
+  DurationInput,
+} from "@rtcamp/frappe-ui-react";
 import { Command, CornerDownLeft, Plus } from "lucide-react";
 
 /**
@@ -17,7 +21,6 @@ import { TimeEntryFormProps } from "./types";
  * @param form An instance of the form API to manage form state and actions.
  * @param mode A string indicating whether the form is in "add" or "edit" mode.
  * @param hoursLeft The number of hours left that can be logged for the day.
- * @param durationLabel The label to display for the duration input field.
  * @param durationVariant The variant style to apply to the duration input field.
  * @param maxDurationInHours The maximum number of hours that can be entered in the duration field.
  * @param submitting A boolean indicating whether the form is currently being submitted, used to disable inputs during submission.
@@ -29,7 +32,6 @@ export const TimeEntryForm = ({
   mode,
   hoursLeft,
   durationLabel,
-  durationVariant,
   maxDurationInHours,
   submitting,
   editBaseline = null,
@@ -45,12 +47,13 @@ export const TimeEntryForm = ({
           return (
             <div className="flex flex-col w-full gap-2">
               <DurationInput
+                snap="smooth"
                 hoursLeft={hoursLeft}
                 label={durationLabel}
-                variant={durationVariant}
+                inlineLabel="Duration"
                 value={field.state.value}
                 onChange={(val) => field.handleChange(val)}
-                maxDurationInHours={maxDurationInHours}
+                maxDuration={maxDurationInHours}
               />
               {!field.state.meta.isValid && (
                 <ErrorMessage message={field.state.meta.errors[0]?.message} />
