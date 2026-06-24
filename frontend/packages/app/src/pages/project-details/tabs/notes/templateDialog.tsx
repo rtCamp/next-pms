@@ -52,9 +52,16 @@ export function TemplateDialog({
     <Dialog
       open={open}
       onOpenChange={onOpenChange}
+      className="my-0"
+      classNames={{
+        header: "mb-5",
+        content: "pt-5 pb-2 sm:px-3",
+        viewport: "justify-start pt-30",
+        footer: "pb-6 sm:px-3",
+      }}
       options={{
         title: () => (
-          <span className="text-[20px] font-medium">Add Template</span>
+          <span className="text-[20px] font-medium px-3">Add Template</span>
         ),
         size: "md",
       }}
@@ -75,9 +82,10 @@ export function TemplateDialog({
         </div>
       }
     >
-      <div className="flex flex-col gap-3 -my-4">
+      <div className="flex flex-col gap-5">
         <TextInput
           size="md"
+          className="mx-3"
           variant="subtle"
           placeholder="Search template"
           prefix={() => <Search className="size-4 text-ink-gray-5" />}
@@ -87,8 +95,8 @@ export function TemplateDialog({
             setSelected(null);
           }}
         />
-        <div className="relative flex flex-col gap-1">
-          <span className="text-base text-ink-gray-5">Templates</span>
+        <div className="relative flex flex-col gap-2">
+          <span className="text-base text-ink-gray-5 mx-3">Templates</span>
           {!isLoading && options.length === 0 ? (
             <div className="py-10 h-80 max-h-80 flex items-center justify-center">
               <span className="text-center text-base text-ink-gray-4">

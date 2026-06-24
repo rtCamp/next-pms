@@ -67,6 +67,13 @@ export function DeleteAllocationDialog({
 
         onOpenChange(nextOpen);
       }}
+      className="my-0"
+      classNames={{
+        header: "mb-5",
+        content: "pt-5 pb-2",
+        viewport: "justify-start pt-30",
+        footer: "pb-6",
+      }}
       options={{ title: "Delete Allocation", size: "lg", position: "top" }}
       actions={
         <div className="flex items-center justify-end gap-1">
