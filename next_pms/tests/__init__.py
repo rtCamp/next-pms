@@ -9,10 +9,21 @@ TEST_EMPLOYEE_USERS = (
 
 
 def setup():
+    setup_projects_settings()
     setup_company_and_customer()
     setup_project_and_tasks()
     setup_employee()
     cleanup_test_timesheets()
+
+
+def setup_projects_settings():
+    # next_pms tracks time entries by date only, so same-day entries share
+    # identical from/to times and must be allowed to overlap. On real sites this
+    # is an onboarding step; a fresh test site defaults the flags off.
+    settings = frappe.get_single("Projects Settings")
+    settings.ignore_user_time_overlap = 1
+    settings.ignore_employee_time_overlap = 1
+    settings.save()
 
 
 def cleanup_test_timesheets():
@@ -33,6 +44,9 @@ def cleanup_test_timesheets():
 
 
 def setup_company_and_customer():
+    if not frappe.db.exists("Warehouse Type", "Transit"):
+        frappe.get_doc({"doctype": "Warehouse Type", "name": "Transit"}).insert(ignore_if_duplicate=True)
+
     if not frappe.db.exists("Customer", "Meta"):
         customer = frappe.get_doc(
             {
@@ -95,6 +109,13 @@ def setup_project_and_tasks():
 
 def setup_employee():
     from .utils import make_employee
+
+    # Fresh sites (no erpnext/hrms setup wizard) lack these masters that
+    # Employee creation links to. Seed them so the bootstrap works anywhere.
+    if not frappe.db.exists("Gender", "Female"):
+        frappe.get_doc({"doctype": "Gender", "gender": "Female"}).insert(ignore_if_duplicate=True)
+    if not frappe.db.exists("Employment Type", "Intern"):
+        frappe.get_doc({"doctype": "Employment Type", "employee_type_name": "Intern"}).insert(ignore_if_duplicate=True)
 
     emp = make_employee("next-employee@example.com")
     manager = make_employee("next-project-manager@example.com")
