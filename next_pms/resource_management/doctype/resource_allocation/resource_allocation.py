@@ -102,5 +102,5 @@ def clear_cache(doc=None, method=None):
             job_id=job_name,
             job_name=job_name,
             queue="default",
-            is_async=False,
+            now=True,
         )

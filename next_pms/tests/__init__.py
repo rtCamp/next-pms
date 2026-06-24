@@ -1,11 +1,35 @@
 import frappe
 from frappe.tests.test_api import FrappeAPITestCase
 
+TEST_EMPLOYEE_USERS = (
+    "next-employee@example.com",
+    "next-project-manager@example.com",
+    "next-employee1@example.com",
+)
+
 
 def setup():
     setup_company_and_customer()
     setup_project_and_tasks()
     setup_employee()
+    cleanup_test_timesheets()
+
+
+def cleanup_test_timesheets():
+    # These HTTP integration tests commit their data, so timesheets submitted by
+    # the approval tests persist beyond the run. Clear them both before (so a
+    # reused database starts clean) and after (so we leave it clean). The commit
+    # is required: otherwise the framework's end-of-class rollback would undo
+    # these deletes.
+    employees = frappe.get_all("Employee", filters={"user_id": ["in", TEST_EMPLOYEE_USERS]}, pluck="name")
+    if not employees:
+        return
+    for name in frappe.get_all("Timesheet", filters={"employee": ["in", employees]}, pluck="name"):
+        doc = frappe.get_doc("Timesheet", name)
+        if doc.docstatus == 1:
+            doc.cancel()
+        frappe.delete_doc("Timesheet", name, force=1)
+    frappe.db.commit()  # nosemgrep — deletes must survive the class-teardown rollback
 
 
 def setup_company_and_customer():
@@ -93,6 +117,7 @@ class TestNextPms(FrappeAPITestCase):
 
     @classmethod
     def tearDownClass(cls):
+        cleanup_test_timesheets()
         super().tearDownClass()
 
     def assign_roles_to_user(self, user: str, roles):
@@ -113,6 +138,8 @@ class TestNextPms(FrappeAPITestCase):
     def get_login_employee(self):
         return frappe.get_value("Employee", {"user_id": frappe.session.user}, "name")
 
-    def setup_project_manager_role(self):
+    @classmethod
+    def setup_project_manager_role(cls):
         if "Projects manager" not in frappe.get_roles("next-project-manager@example.com"):
-            self.assign_roles_to_user("next-project-manager@example.com", ["Projects manager"])
+            user = frappe.get_doc("User", "next-project-manager@example.com")
+            user.add_roles("Projects manager")
