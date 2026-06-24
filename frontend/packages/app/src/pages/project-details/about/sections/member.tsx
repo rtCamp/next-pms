@@ -47,7 +47,11 @@ export function MemberSection() {
 
   const [projectManagerQuery, setProjectManagerQuery] = useState("");
   const { options: projectManagerOptions, isLoading: projectManagerLoading } =
-    useEmployeeLookup({ shouldFetch: true, query: projectManagerQuery });
+    useEmployeeLookup({
+      shouldFetch: true,
+      query: projectManagerQuery,
+      roles: ["Project Manager"],
+    });
   const projectManagerComboboxOptions = useMemo(
     () =>
       toComboboxOptions(
