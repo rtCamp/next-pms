@@ -93,8 +93,15 @@ function AddProjectModal({
       options={{
         title: () => <span className="text-lg font-medium">Add Project</span>,
       }}
+      className="my-0"
+      classNames={{
+        header: "mb-5",
+        content: "pt-5 pb-2",
+        viewport: "justify-start pt-30",
+        footer: "pb-6",
+      }}
       actions={
-        <div className="flex items-center justify-end w-full gap-2 -mt-5">
+        <div className="flex items-center justify-end w-full gap-2">
           <Button variant="ghost" label="Cancel" onClick={closeModal} />
           <Button
             variant="solid"
@@ -106,7 +113,7 @@ function AddProjectModal({
         </div>
       }
     >
-      <div className="-mt-2 space-y-4">
+      <div className="space-y-4">
         <form.Field
           name="projectName"
           children={(field) => (

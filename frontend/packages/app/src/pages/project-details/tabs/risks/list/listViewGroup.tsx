@@ -66,7 +66,7 @@ export function RiskGroup({ value, label, risks }: RiskGroupProps) {
         {risks.map((risk) => (
           <div
             key={risk.name}
-            className="flex items-center gap-2 px-2 py-1 border-b border-outline-gray-1 hover:bg-surface-gray-1 text-base cursor-pointer"
+            className="flex items-center gap-2 px-2 py-1.5 border-b border-outline-gray-1 hover:bg-surface-gray-1 text-base cursor-pointer last:mb-5"
             onClick={() => openRiskDetail(risk.name)}
           >
             {/* Risk category */}

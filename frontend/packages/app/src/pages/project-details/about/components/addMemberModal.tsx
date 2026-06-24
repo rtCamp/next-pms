@@ -71,6 +71,12 @@ export function AddMemberModal({
       open={open}
       onOpenChange={onOpenChange}
       options={{ title: "Add members" }}
+      className="my-0"
+      classNames={{
+        header: "mb-5",
+        content: "pt-5 pb-6",
+        viewport: "justify-start pt-30",
+      }}
     >
       <div className="flex flex-col gap-3">
         <TextInput
