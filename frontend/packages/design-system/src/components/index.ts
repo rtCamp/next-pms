@@ -28,11 +28,6 @@ export {
 } from "./tooltip";
 
 export {
-  default as DurationInput,
-  type DurationInputProps,
-} from "./durationInput";
-
-export {
   Dialog,
   DialogPortal,
   DialogOverlay,
