@@ -83,26 +83,28 @@ export function MemberSection() {
         <div className="grid grid-cols-[auto_1fr] items-center gap-x-3 gap-y-4.5 text-base text-ink-gray-5 mb-4">
           <span>Project Manager</span>
           <Combobox
+            key={projectManager?.email}
             inputClassName="w-fit h-8 border-transparent bg-white"
             loading={projectManagerLoading}
             options={projectManagerComboboxOptions}
             placeholder="N/A"
             searchValue={projectManagerQuery}
             onSearchChange={setProjectManagerQuery}
-            value={projectManager?.name ?? null}
+            value={projectManager?.email ?? null}
             onChange={(value) => updateManager("project_manager", value)}
             openOnFocus
           />
 
           <span>Lead Engineer</span>
           <Combobox
+            key={engineeringManager?.email}
             inputClassName="w-fit h-8 border-transparent bg-white"
             loading={engineeringManagerLoading}
             options={engineeringManagerComboboxOptions}
             placeholder="N/A"
             searchValue={engineeringManagerQuery}
             onSearchChange={setEngineeringManagerQuery}
-            value={engineeringManager?.name ?? null}
+            value={engineeringManager?.email ?? null}
             onChange={(value) => updateManager("engineering_manager", value)}
             openOnFocus
           />
