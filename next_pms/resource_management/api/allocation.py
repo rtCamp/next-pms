@@ -331,15 +331,35 @@ def delete_day_override(doc_name: str, override_date: str):
     doc.save()
 
 
+def _require_override_date(value) -> date:
+    """Coerce a client-supplied override date, failing loudly on a missing/invalid value.
+
+    ``getdate(None)`` silently returns today, so an entry without a usable ``date`` would
+    otherwise be applied to an unintended day instead of being rejected.
+    """
+    if value in (None, ""):
+        frappe.throw(
+            frappe._("A valid date is required for each day override."),
+            exc=frappe.ValidationError,
+        )
+    try:
+        return getdate(value)
+    except Exception:
+        frappe.throw(
+            frappe._("Invalid day override date: {0}.").format(value),
+            exc=frappe.ValidationError,
+        )
+
+
 def apply_day_overrides(doc_name: str, day_overrides: list[dict] | None, deleted_day_overrides: list[str] | None):
     """Apply a batch of add/edit (``day_overrides``) and delete (``deleted_day_overrides``)
     operations to a single Resource Allocation doc, keyed on the literal override dates."""
     for override in day_overrides or []:
         override_fields = {k: v for k, v in override.items() if k != "date"}
-        upsert_day_override(doc_name, str(getdate(override.get("date"))), override_fields)
+        upsert_day_override(doc_name, str(_require_override_date(override.get("date"))), override_fields)
 
     for deleted_date in deleted_day_overrides or []:
-        delete_day_override(doc_name, str(getdate(deleted_date)))
+        delete_day_override(doc_name, str(_require_override_date(deleted_date)))
 
 
 def _assert_recurring_immutable(allocation: AllocationPayload, stored: dict):
@@ -375,7 +395,7 @@ def _propagate_day_overrides_to_series(
 
     def each_series_target(source_date):
         """Yield (series_doc_name, target_date) for the weekday matching source_date."""
-        target_weekday = getdate(source_date).weekday()
+        target_weekday = _require_override_date(source_date).weekday()
         for series_doc in series:
             doc_start = getdate(series_doc.allocation_start_date)
             doc_end = getdate(series_doc.allocation_end_date)
@@ -439,6 +459,12 @@ def edit_allocation(
             frappe._("Invalid edit_mode '{0}'. Allowed values: {1}.").format(
                 edit_mode, ", ".join(sorted(VALID_EDIT_MODES))
             ),
+            exc=frappe.ValidationError,
+        )
+
+    if edit_mode == "whole_series" and (day_overrides or deleted_day_overrides):
+        frappe.throw(
+            frappe._("Day overrides are not supported in 'whole_series' edit mode."),
             exc=frappe.ValidationError,
         )
 
@@ -685,6 +711,8 @@ def get_over_allocated_dates(
 
     hours_per_day = flt(hours_per_day)
     repeat_till_week_count = cint(repeat_till_week_count)
+    if repeat_till_week_count < 0:
+        frappe.throw(frappe._("repeat_till_week_count cannot be negative."), exc=frappe.ValidationError)
     if hours_per_day <= 0:
         return {"dates": [], "total_excess_hours": 0}
 
