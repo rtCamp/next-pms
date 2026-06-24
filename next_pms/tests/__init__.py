@@ -49,6 +49,7 @@ def setup_company_and_customer():
             "doctype": "Company",
             "company_name": "Facebook",
             "default_currency": "INR",
+            "country": "India",
         }
     )
     company.insert(ignore_if_duplicate=True)
