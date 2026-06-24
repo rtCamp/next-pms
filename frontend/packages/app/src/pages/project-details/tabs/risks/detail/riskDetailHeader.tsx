@@ -55,7 +55,7 @@ export function RiskDetailHeader({
           icon={() => <ArrowLeft />}
         />
 
-        <h2 className="text-xl font-semibold text-ink-gray-8 truncate max-w-125">
+        <h2 className="text-xl font-semibold text-ink-gray-7 truncate max-w-125">
           {displayTitle}
         </h2>
       </div>

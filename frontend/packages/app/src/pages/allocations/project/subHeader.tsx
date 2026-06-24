@@ -98,6 +98,7 @@ export function SubHeader() {
         {showFilters ? (
           <div className="w-fit max-w-42">
             <MultiSelect
+              triggerClassName="text-ink-gray-7"
               options={projectAllocationsTypeOptions}
               value={allocationsType}
               placeholder="Allocation type"

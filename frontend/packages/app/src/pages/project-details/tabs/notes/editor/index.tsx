@@ -190,7 +190,7 @@ function NoteEditor() {
                       disabled={isInputDisabled}
                       placeholder="Add note title"
                       aria-label="Note title"
-                      className="w-full resize-none border-0 bg-transparent text-3xl font-semibold leading-tight text-ink-gray-8 placeholder:text-ink-gray-4 focus:outline-none"
+                      className="w-full resize-none border-0 bg-transparent text-3xl font-semibold leading-tight text-ink-gray-7 placeholder:text-ink-gray-4 focus:outline-none"
                     />
                     {!field.state.meta.isValid && (
                       <ErrorMessage
@@ -213,7 +213,7 @@ function NoteEditor() {
                       placeholder="Type a note description..."
                       editable={!isInputDisabled}
                       fixedMenu={false}
-                      editorClass="prose prose-sm max-w-none min-h-[400px] text-ink-gray-8 focus:outline-none"
+                      editorClass="prose prose-sm max-w-none min-h-[400px] text-ink-gray-6 [&_:is(h1,h2,h3,h4,h5,h6)]:text-ink-gray-7 focus:outline-none"
                     />
                     {!field.state.meta.isValid && (
                       <ErrorMessage

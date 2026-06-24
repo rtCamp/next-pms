@@ -2,7 +2,6 @@
  * External dependencies.
  */
 import { useEffect, useState } from "react";
-import { mergeClassNames as cn } from "@next-pms/design-system";
 import {
   Autocomplete,
   Button,
@@ -150,12 +149,7 @@ export function SubHeader() {
                   <ChevronDown className="size-4 shrink-0 text-ink-gray-8" />
                 )}
               >
-                <span
-                  className={cn(
-                    "truncate",
-                    displayValue ? "text-ink-gray-7" : "text-ink-gray-4",
-                  )}
-                >
+                <span className="truncate text-ink-gray-7">
                   {displayValue || "Select designation"}
                 </span>
               </Button>

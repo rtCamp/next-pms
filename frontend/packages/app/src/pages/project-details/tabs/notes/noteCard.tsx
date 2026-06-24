@@ -55,7 +55,7 @@ export function NoteCard({ note }: NoteCardProps) {
       <div className="flex-1 overflow-hidden relative">
         <StaticTextEditor
           content={note.description}
-          editorClass="prose-sm px-3.5 pt-2"
+          editorClass="prose-sm px-3.5 pt-2 text-ink-gray-5 leading-normal"
         />
         <span className="absolute block left-0 bottom-0 z-10 w-full h-12 from-surface-white to-transparent pointer-events-none bg-linear-to-t"></span>
       </div>
@@ -71,7 +71,7 @@ export function NoteCard({ note }: NoteCardProps) {
             image={note.owner_image || undefined}
           />
         </a>
-        <span className="flex-1 truncate leading-tight text-sm text-ink-gray-5">
+        <span className="flex-1 truncate text-sm text-ink-gray-5">
           {authorName}
         </span>
         <span className="shrink-0 text-base text-ink-gray-5">

@@ -57,7 +57,7 @@ export const TeamTimesheetTable = () => {
   const isFilteredDataLoading = isFilterRequest && isLoadingTeamData;
 
   return (
-    <div className="w-full flex-1 min-h-0 py-3.5 px-3 relative">
+    <div className="w-full flex-1 min-h-0 py-3.5 px-5 relative">
       {weeklyApproval && (
         <WeeklyApproval
           employee={weeklyApproval.employee}

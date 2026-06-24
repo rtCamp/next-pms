@@ -72,6 +72,11 @@ const TeamTaskLog: React.FC<TeamTaskLogProps> = ({
     <Dialog
       open={open}
       onOpenChange={onOpenChange}
+      className="my-0"
+      classNames={{
+        content: "sm:px-5 sm:py-5",
+        viewport: "justify-start pt-12",
+      }}
       options={{
         title: () => {
           return (
@@ -111,6 +116,7 @@ const TeamTaskLog: React.FC<TeamTaskLogProps> = ({
               }}
               options={dateMap}
               placeholder="Select option"
+              placeholderClassName="text-ink-gray-7"
               value={selectedDays}
             />
           </div>

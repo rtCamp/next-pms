@@ -70,7 +70,7 @@ export function RiskDetailContent({
         {/* Summary */}
         <section className="mb-6">
           {filteredSummary ? (
-            <div className="text-base leading-relaxed text-ink-gray-8">
+            <div className="text-base leading-relaxed text-ink-gray-7">
               <StaticTextEditor
                 content={filteredSummary}
                 editorClass="prose prose-sm"
@@ -83,11 +83,11 @@ export function RiskDetailContent({
 
         {/* Mitigation plan */}
         <section className="mb-6">
-          <h3 className="mb-2 text-lg font-medium text-ink-gray-8">
+          <h3 className="mb-2 text-lg font-medium text-ink-gray-7">
             Mitigation plan
           </h3>
           {filteredMitigationPlan ? (
-            <div className="text-base leading-relaxed text-ink-gray-8">
+            <div className="text-base leading-relaxed text-ink-gray-7">
               <StaticTextEditor
                 content={filteredMitigationPlan}
                 editorClass="prose prose-sm"
@@ -103,7 +103,7 @@ export function RiskDetailContent({
         {/* Additional documents */}
         <section className="mb-6">
           <div className="flex justify-between items-center mb-3">
-            <h3 className="text-lg font-medium text-ink-gray-8">
+            <h3 className="text-lg font-medium text-ink-gray-7">
               Additional documents
             </h3>
             <DocumentUploadButton
@@ -129,7 +129,7 @@ export function RiskDetailContent({
         {/* Updates */}
         <section>
           <div className="flex justify-between items-center mb-3">
-            <h3 className="text-lg font-medium text-ink-gray-8">Updates</h3>
+            <h3 className="text-lg font-medium text-ink-gray-7">Updates</h3>
             <Button
               type="button"
               variant="ghost"

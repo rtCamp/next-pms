@@ -77,6 +77,11 @@ const PersonalTaskLog: React.FC<PersonalTaskLogProps> = ({
     <Dialog
       open={open}
       onOpenChange={onOpenChange}
+      className="my-0"
+      classNames={{
+        content: "sm:px-5 sm:py-5",
+        viewport: "justify-start pt-30",
+      }}
       options={{
         title: () => {
           return (
@@ -119,6 +124,7 @@ const PersonalTaskLog: React.FC<PersonalTaskLogProps> = ({
               }}
               options={dateMap}
               placeholder="Select option"
+              placeholderClassName="text-ink-gray-7"
               value={selectedDays}
             />
           </div>

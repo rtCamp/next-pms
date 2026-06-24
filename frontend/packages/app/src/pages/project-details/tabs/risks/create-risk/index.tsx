@@ -202,7 +202,7 @@ export function CreateRiskModal({
                   Risk category
                 </label>
                 <Combobox
-                  inputClassName="bg-white h-8 border-outline-gray-2"
+                  inputClassName="bg-white h-8 border-outline-gray-2 text-ink-gray-7"
                   loading={categoriesLoading}
                   options={categoryOptions}
                   placeholder="Select category"
@@ -223,6 +223,7 @@ export function CreateRiskModal({
                   Risk level
                 </label>
                 <Select
+                  className="text-ink-gray-7 **:data-placeholder:text-ink-gray-4"
                   variant="outline"
                   options={riskLevelOptions}
                   value={field.state.value}
@@ -245,6 +246,7 @@ export function CreateRiskModal({
                   Status
                 </label>
                 <Select
+                  className="text-ink-gray-7 **:data-placeholder:text-ink-gray-4"
                   variant="outline"
                   options={statusOptions}
                   value={field.state.value}
@@ -271,7 +273,7 @@ export function CreateRiskModal({
                   content={field.state.value}
                   onChange={(value) => field.handleChange(value)}
                   fixedMenu={false}
-                  editorClass="px-2 h-24 prose-sm overflow-auto scrollbar-thin bg-white border rounded-md border-outline-gray-2"
+                  editorClass="px-2 h-24 prose-sm overflow-auto scrollbar-thin bg-white border rounded-md border-outline-gray-2 text-ink-gray-7"
                 />
               </div>
             )}
@@ -290,7 +292,7 @@ export function CreateRiskModal({
                   content={field.state.value}
                   onChange={(value) => field.handleChange(value)}
                   fixedMenu={false}
-                  editorClass="px-2 h-24 prose-sm overflow-auto scrollbar-thin bg-white border rounded-md border-outline-gray-2"
+                  editorClass="px-2 h-24 prose-sm overflow-auto scrollbar-thin bg-white border rounded-md border-outline-gray-2 text-ink-gray-7"
                 />
               </div>
             )}

@@ -24,7 +24,7 @@ export function CostBurnCell() {
     <div className="flex flex-1 flex-col gap-4 rounded-xl border border-outline-gray-1 bg-surface-cards p-3">
       <div className="flex items-center justify-between gap-2">
         <span className="text-base text-ink-gray-8 font-medium">
-          Cost Burn (to date)
+          Cost burn (to date)
         </span>
         <a
           href={`/desk/timesheet?parent_project=${projectId}`}
@@ -46,18 +46,24 @@ export function CostBurnCell() {
       <div className="flex flex-col gap-2 text-base text-ink-gray-7">
         <LegendItem
           className="bg-surface-green-5"
-          label="Cost incurred"
+          label="Actual cost incurred"
           value={formatter.format(incurred)}
+          labelClassName="text-ink-gray-6"
+          valueClassName="font-medium"
         />
         <LegendItem
           className="bg-surface-green-3"
-          label="Cost forecasted"
+          label="Forecasted cost to completion"
           value={formatter.format(forecasted)}
+          labelClassName="text-ink-gray-6"
+          valueClassName="font-medium"
         />
         <LegendItem
           className="bg-surface-gray-3"
-          label="Total Cost"
+          label="Expected total cost"
           value={formatter.format(total)}
+          labelClassName="text-ink-gray-6"
+          valueClassName="font-medium"
         />
       </div>
     </div>
