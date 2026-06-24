@@ -102,7 +102,7 @@ export function ContractModal({
       }
       onOpenChange(next);
     },
-    [onOpenChange],
+    [form, initialValues, onOpenChange],
   );
 
   return (
