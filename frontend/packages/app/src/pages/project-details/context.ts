@@ -15,6 +15,8 @@ export type RepositoryInput = Pick<
 > &
   Partial<Pick<ProjectRepositoryConnection, "name">>;
 
+export type ManagerRole = "project_manager" | "engineering_manager";
+
 export interface ProjectDetailContextProps {
   projectId: string;
   project: FrappeDoc<ProjectDoc> | undefined;
@@ -22,8 +24,6 @@ export interface ProjectDetailContextProps {
   error: FrappeError | null;
   mutate: () => void;
   updateRepositories: (repositories: RepositoryInput[]) => Promise<void>;
-  addMember: (userId: string) => Promise<void>;
-  removeMember: (userId: string) => Promise<void>;
   updateContacts: (contactIds: string[]) => Promise<void>;
 }
 
@@ -37,8 +37,6 @@ export const ProjectDetailContext = createContext<ProjectDetailContextProps>({
   error: null,
   mutate: noop,
   updateRepositories: asyncNoop,
-  addMember: asyncNoop,
-  removeMember: asyncNoop,
   updateContacts: asyncNoop,
 });
 

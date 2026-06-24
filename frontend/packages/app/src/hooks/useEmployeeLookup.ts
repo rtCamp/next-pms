@@ -26,7 +26,9 @@ interface UseEmployeeLookupOptions {
   pageSize?: number;
   /** Filters employees by partial employee name on the backend. */
   query: string;
-  /** Project id : only search employee assigned to a project */
+  /** Filters : Frappe document filters */
+  filters?: string[][];
+  /** Project id : only search employee assigned to projects */
   projects?: string[];
   /** Revalidates the lookup when the window regains focus. */
   revalidateOnFocus?: boolean;
@@ -47,6 +49,7 @@ export const useEmployeeLookup = ({
   roles,
   selectedOption,
   projects,
+  filters,
 }: UseEmployeeLookupOptions) => {
   return useRemoteLookup<
     EmployeeLookupResult,
@@ -64,6 +67,7 @@ export const useEmployeeLookup = ({
       roles: roles?.length ? roles : undefined,
       start: 0,
       project: projects,
+      filters,
     }),
     getItems: (message) => message?.data ?? [],
     mapOption: (employee) => ({

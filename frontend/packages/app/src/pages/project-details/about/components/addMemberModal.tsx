@@ -1,7 +1,7 @@
 /**
  * External dependencies.
  */
-import { Fragment, useCallback, useEffect, useState } from "react";
+import { Fragment, useCallback, useEffect, useMemo, useState } from "react";
 import { Spinner } from "@next-pms/design-system/components";
 import {
   Avatar,
@@ -9,6 +9,7 @@ import {
   Button,
   Dialog,
   TextInput,
+  Tooltip,
 } from "@rtcamp/frappe-ui-react";
 import { Search } from "@rtcamp/frappe-ui-react/icons";
 
@@ -16,12 +17,13 @@ import { Search } from "@rtcamp/frappe-ui-react/icons";
  * Internal dependencies.
  */
 import { useEmployeeLookup } from "@/hooks/useEmployeeLookup";
+import { useSidebar } from "../sidebarContext";
 
 export type AddMemberModalProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   currentMemberIds: string[];
-  memberRoleByUserId?: Record<string, string>;
+  memberRoleByUserId?: Record<string, string[]>;
   onAdd?: (userId: string) => void;
   onRemove?: (userId: string) => void;
 };
@@ -40,6 +42,12 @@ export function AddMemberModal({
   onRemove,
 }: AddMemberModalProps) {
   const [query, setQuery] = useState("");
+  const billingTeam = useSidebar((s) => s.billingTeam);
+
+  const billingTeamIds = useMemo(
+    () => billingTeam.map((m) => m.userId).filter((id): id is string => !!id),
+    [billingTeam],
+  );
 
   useEffect(() => {
     if (!open) {
@@ -95,10 +103,17 @@ export function AddMemberModal({
                 const memberId = employee.userId ?? "";
                 const isMember =
                   !!memberId && currentMemberIds.includes(memberId);
-                const role = memberId
-                  ? memberRoleByUserId?.[memberId]
-                  : undefined;
-                const roleLabel = role ? ROLE_TAG_LABEL[role] : undefined;
+                const roles = memberId
+                  ? (memberRoleByUserId?.[memberId] ?? [])
+                  : [];
+                const roleLabels = roles.map(
+                  (role) => ROLE_TAG_LABEL[role] ?? role,
+                );
+                const removeDisabledReason = roleLabels.length
+                  ? `${roleLabels.join(" & ")} cannot be removed here`
+                  : billingTeamIds.includes(memberId)
+                    ? "Billing team members cannot be removed here"
+                    : undefined;
 
                 return (
                   <Fragment key={employee.value}>
@@ -125,22 +140,35 @@ export function AddMemberModal({
                           </span>
                         </div>
                       </div>
-                      {roleLabel && (
+                      {roleLabels.map((label) => (
                         <Badge
+                          key={label}
                           size="sm"
                           variant="subtle"
                           theme="gray"
-                          label={roleLabel}
+                          label={label}
                         />
-                      )}
+                      ))}
                       {isMember ? (
-                        <Button
-                          variant="subtle"
-                          theme="red"
-                          label="Remove"
-                          disabled={!!role}
-                          onClick={() => handleRemove(memberId)}
-                        />
+                        removeDisabledReason ? (
+                          <Tooltip text={removeDisabledReason}>
+                            <span tabIndex={0}>
+                              <Button
+                                variant="subtle"
+                                theme="red"
+                                label="Remove"
+                                disabled
+                              />
+                            </span>
+                          </Tooltip>
+                        ) : (
+                          <Button
+                            variant="subtle"
+                            theme="red"
+                            label="Remove"
+                            onClick={() => handleRemove(memberId)}
+                          />
+                        )
                       ) : (
                         <Button
                           variant="subtle"
