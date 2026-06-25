@@ -6,6 +6,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import {
   ErrorFallback,
   GlobalSearch,
+  NotificationTray,
 } from "@next-pms/design-system/components";
 import {
   Sidebar as BaseSidebar,
@@ -28,9 +29,12 @@ import { ROUTES } from "@/lib/constant";
 import logo from "@/logo.svg";
 import { useTheme } from "@/providers/theme/hook";
 import { useUser } from "@/providers/user";
+import { useNotifications } from "./useNotifications";
 
 const Sidebar = () => {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
+  const { notifications } = useNotifications();
 
   const { theme, setTheme } = useTheme();
   const navigate = useNavigate();
@@ -241,6 +245,7 @@ const Sidebar = () => {
                 icon: Notifications,
                 to: "",
                 isActive: false,
+                onClick: () => setIsNotificationsOpen(true),
               },
               {
                 label: "Search",
@@ -293,6 +298,13 @@ const Sidebar = () => {
         open={isSearchOpen}
         onOpenChange={setIsSearchOpen}
         items={searchItems}
+      />
+
+      <NotificationTray
+        open={isNotificationsOpen}
+        onOpenChange={setIsNotificationsOpen}
+        notifications={notifications}
+        offsetClassName={isSidebarCollapsed ? "left-12" : "left-60"}
       />
     </ErrorFallback>
   );

@@ -80,6 +80,15 @@ export * from "./gantt-view";
 export * from "./calendar-timeline";
 export { Comments, type CommentNode, type CommentsProps } from "./comments";
 export { default as GlobalSearch } from "./globalSearch";
+export {
+  default as NotificationTray,
+  type NotificationTrayProps,
+} from "./notificationTray";
+export {
+  type NotificationEntry,
+  type NotificationMessageSegment,
+  type NotificationEmphasis,
+} from "./notificationTray/types";
 export { DeleteActionDialog } from "./delete-action-dialog";
 export {
   SortButton,
