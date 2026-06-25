@@ -28,7 +28,7 @@ const ICONS: Record<
 
 export default function NotificationsCard() {
   return (
-    <div className="flex flex-col gap-3 rounded-lg border border-outline-gray-1 bg-surface-cards p-4">
+    <>
       <div className="flex items-baseline justify-between gap-4">
         <h3 className="text-lg font-semibold text-ink-gray-8">Notifications</h3>
         <button
@@ -66,6 +66,6 @@ export default function NotificationsCard() {
           );
         })}
       </ul>
-    </div>
+    </>
   );
 }

@@ -5,7 +5,7 @@ import { Skeleton } from "@rtcamp/frappe-ui-react";
 
 export function HeatmapCardSkeleton() {
   return (
-    <div className="flex flex-col gap-4 rounded-lg border border-outline-gray-1 bg-surface-cards p-4">
+    <>
       <Skeleton className="h-6 w-24" />
       <div className="flex flex-col gap-2">
         {Array.from({ length: 7 }).map((_, i) => (
@@ -17,6 +17,6 @@ export function HeatmapCardSkeleton() {
           <Skeleton key={i} className="h-4 w-28" />
         ))}
       </div>
-    </div>
+    </>
   );
 }

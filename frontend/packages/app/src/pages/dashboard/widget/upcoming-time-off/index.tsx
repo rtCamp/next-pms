@@ -67,7 +67,7 @@ export default function UpcomingTimeOff() {
   }
 
   return (
-    <div className="flex flex-col gap-3 rounded-lg border border-outline-gray-1 bg-surface-cards p-4">
+    <>
       <h3 className="text-lg font-semibold text-ink-gray-8">
         Upcoming time-offs
       </h3>
@@ -108,6 +108,6 @@ export default function UpcomingTimeOff() {
           ))}
         </div>
       )}
-    </div>
+    </>
   );
 }

@@ -10,7 +10,9 @@ import { Header } from "@/layout/header";
 import { useUser } from "@/providers/user";
 import AssignedProjects from "../widget/assigned-projects";
 import CalendarTimelineCard from "../widget/calendar-timeline";
+import WidgetCard from "../widget/components/card";
 import HeatmapCard from "../widget/heatmap";
+import NotificationsCard from "../widget/notificationsCard";
 import LiveStatCard from "../widget/stat-cards";
 import Timesheets from "../widget/timesheet-summary";
 import UpcomingTimeOff from "../widget/upcoming-time-off";
@@ -44,24 +46,29 @@ export default function ManagerDashboard() {
 
         <section
           aria-label="Leadership dashboard"
-          className="flex flex-col gap-3 overflow-y-auto scrollbar-thin"
+          className="grid grid-cols-12 gap-3 overflow-y-auto scrollbar-thin"
         >
-          <div className="grid grid-cols-4 gap-3">
+          <div className="col-span-12">
             <LiveStatCard />
           </div>
-          <div className="grid grid-cols-3 gap-3">
-            <div className="col-span-3">
-              <HeatmapCard />
-            </div>
-          </div>
-          <CalendarTimelineCard />
-          <AssignedProjects />
-          <div className="grid grid-cols-3 gap-3">
-            <div className="col-span-2">
-              <Timesheets />
-            </div>
+          <WidgetCard className="h-[300px] col-span-8 overflow-y-auto scrollbar-thin">
+            <HeatmapCard />
+          </WidgetCard>
+          <WidgetCard className="h-[300px] col-span-4 overflow-y-auto scrollbar-thin">
+            <NotificationsCard />
+          </WidgetCard>
+          <WidgetCard className="col-span-12">
+            <CalendarTimelineCard />
+          </WidgetCard>
+          <WidgetCard className="h-[300px] col-span-12 overflow-y-auto scrollbar-thin">
+            <AssignedProjects />
+          </WidgetCard>
+          <WidgetCard className="h-[300px] col-span-8 overflow-y-auto p-4">
+            <Timesheets />
+          </WidgetCard>
+          <WidgetCard className="h-[300px] col-span-4 overflow-y-auto p-4">
             <UpcomingTimeOff />
-          </div>
+          </WidgetCard>
         </section>
       </div>
     </>
