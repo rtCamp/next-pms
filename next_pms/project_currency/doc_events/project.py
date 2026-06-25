@@ -7,6 +7,8 @@ def share_project_with_employee(doc):
     import frappe.share
     from frappe import get_value
 
+    if doc.custom_billing_type and doc.custom_billing_type != "Time and Material":
+        return
     employee_set = set()
     for team in doc.custom_project_billing_team:
         employee_set.add(team.employee)
@@ -21,4 +23,4 @@ def share_project_with_employee(doc):
         )
         if not user or already_shared:
             continue
-        frappe.share.add_docshare("Project", doc.name, user=user)
+        frappe.share.add_docshare("Project", doc.name, user=user, flasgs={"ignore_share_permission": True})
