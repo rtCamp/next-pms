@@ -1,7 +1,6 @@
 import type { Member, Project } from "@next-pms/design-system/components";
 import { parseISO } from "date-fns";
 import {
-  buildRecurrenceSeriesMetaMap,
   calculateAllocationHourlyRate,
   formatAllocationCapacity,
   getAllocationCapacityHoursPerDay,
@@ -25,8 +24,6 @@ export function mapTeamAllocationToMembers(
   const employeeList = employees ?? [];
   const allocationList = resource_allocations ?? [];
   const leaveList = leaves ?? [];
-  const recurrenceSeriesMetaByAllocationName =
-    buildRecurrenceSeriesMetaMap(allocationList);
 
   // Group allocations by employee, then by project
   const allocationsByEmployee = new Map<
@@ -74,13 +71,7 @@ export function mapTeamAllocationToMembers(
 
     projectMap
       .get(alloc.project)!
-      .allocations.push(
-        ...mapResourceAllocationSegments(
-          alloc,
-          customerName,
-          recurrenceSeriesMetaByAllocationName.get(alloc.name),
-        ),
-      );
+      .allocations.push(...mapResourceAllocationSegments(alloc, customerName));
   }
 
   return employeeList.map((employee): Member => {

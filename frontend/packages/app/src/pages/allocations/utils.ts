@@ -56,57 +56,6 @@ export type AllocationOverrideEntry = {
   cancelled?: number | null;
 };
 
-export type RecurrenceSeriesMeta = {
-  recurrenceWeekCount: number;
-  recurrenceSeriesEndDate: string;
-};
-
-/**
- * Builds per-allocation recurrence metadata for a flat list of allocations.
- * Allocations sharing a `recurrence_id` are grouped into a series, and every
- * member of that series is annotated with the total number of allocations in
- * the series and the last date the series covers, keyed by allocation name.
- */
-export function buildRecurrenceSeriesMetaMap<T extends AllocationApiRecord>(
-  allocations: T[],
-): Map<string, RecurrenceSeriesMeta> {
-  const allocationsByRecurrenceId = new Map<string, T[]>();
-
-  for (const allocation of allocations) {
-    if (!allocation.recurrence_id) {
-      continue;
-    }
-
-    const seriesAllocations =
-      allocationsByRecurrenceId.get(allocation.recurrence_id) ?? [];
-    seriesAllocations.push(allocation);
-    allocationsByRecurrenceId.set(allocation.recurrence_id, seriesAllocations);
-  }
-
-  const metaByAllocationName = new Map<string, RecurrenceSeriesMeta>();
-
-  for (const seriesAllocations of allocationsByRecurrenceId.values()) {
-    const sortedAllocations = [...seriesAllocations].sort((left, right) =>
-      left.allocation_start_date.localeCompare(right.allocation_start_date),
-    );
-    const recurrenceSeriesEndDate =
-      sortedAllocations[sortedAllocations.length - 1]?.allocation_end_date;
-
-    if (!recurrenceSeriesEndDate) {
-      continue;
-    }
-
-    for (const allocation of sortedAllocations) {
-      metaByAllocationName.set(allocation.name, {
-        recurrenceWeekCount: sortedAllocations.length,
-        recurrenceSeriesEndDate,
-      });
-    }
-  }
-
-  return metaByAllocationName;
-}
-
 type AllocationApiFilter = [string, string, string | string[] | number | null];
 
 type AllocationFiltersResult = {
@@ -258,7 +207,6 @@ export function formatAllocationCapacity(
 export function mapResourceAllocation<T extends AllocationApiRecord>(
   allocation: T,
   customerName?: string,
-  recurrenceSeriesMeta?: RecurrenceSeriesMeta,
 ): Allocation & { customerName?: string } {
   return {
     id: allocation.name,
@@ -276,10 +224,6 @@ export function mapResourceAllocation<T extends AllocationApiRecord>(
     tentative: allocation.status === "Tentative",
     note: allocation.note ?? undefined,
     override: allocation.override,
-    recurrenceWeekCount: recurrenceSeriesMeta?.recurrenceWeekCount,
-    recurrenceSeriesEndDate: recurrenceSeriesMeta?.recurrenceSeriesEndDate
-      ? parseISO(recurrenceSeriesMeta.recurrenceSeriesEndDate)
-      : undefined,
     createdOn: allocation.creation
       ? parseFrappeDatetime(allocation.creation)
       : undefined,
@@ -303,13 +247,8 @@ export function mapResourceAllocation<T extends AllocationApiRecord>(
 export function mapResourceAllocationSegments<T extends AllocationApiRecord>(
   allocation: T,
   customerName?: string,
-  recurrenceSeriesMeta?: RecurrenceSeriesMeta,
 ): Array<Allocation & { customerName?: string }> {
-  const baseAllocation = mapResourceAllocation(
-    allocation,
-    customerName,
-    recurrenceSeriesMeta,
-  );
+  const baseAllocation = mapResourceAllocation(allocation, customerName);
   const overrideByDate = new Map(
     (allocation.override ?? []).map((entry) => [entry.date, entry]),
   );
