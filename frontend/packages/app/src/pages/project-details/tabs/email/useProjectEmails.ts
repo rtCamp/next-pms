@@ -1,11 +1,14 @@
 /**
  * External dependencies.
  */
-import { useFrappeGetCall } from "frappe-react-sdk";
+import { useEffect } from "react";
+import { useToasts } from "@rtcamp/frappe-ui-react";
+import { type FrappeError, useFrappeGetCall } from "frappe-react-sdk";
 
 /**
  * Internal dependencies.
  */
+import { parseFrappeErrorMsg } from "@/lib/utils";
 import { useProjectDetail } from "@/pages/project-details/context";
 import type { Email } from "./types";
 
@@ -70,6 +73,7 @@ function mapEmail(raw: ApiCommunication): Email {
 }
 
 export function useProjectEmails() {
+  const toast = useToasts();
   const projectId = useProjectDetail((s) => s.projectId);
 
   const { data, isLoading, error, mutate } = useFrappeGetCall<EmailApiResponse>(
@@ -78,6 +82,13 @@ export function useProjectEmails() {
     projectId ? undefined : null,
     { revalidateOnFocus: false },
   );
+
+  useEffect(() => {
+    if (error) {
+      toast.error(parseFrappeErrorMsg(error as FrappeError));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [error]);
 
   const emails = (data?.docinfo?.communications ?? [])
     .filter((c) => c.communication_medium === "Email")
