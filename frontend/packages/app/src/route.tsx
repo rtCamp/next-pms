@@ -2,7 +2,7 @@
  * External dependencies.
  */
 import { lazy } from "react";
-import { Route, Outlet } from "react-router-dom";
+import { Route, Outlet, Navigate } from "react-router-dom";
 /**
  * Internal dependencies.
  */
@@ -47,6 +47,10 @@ export function Router() {
     <Route>
       <Route element={<AuthenticatedRoute />}>
         <Route element={<LayoutWithSidebar />}>
+          <Route
+            index
+            element={<Navigate to={ROUTES["timesheet-personal"]} replace />}
+          />
           <Route
             element={
               <RoleProtectedRoute
