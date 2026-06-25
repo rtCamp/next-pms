@@ -18,7 +18,7 @@ function buildSrcdoc(html: string): string {
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet" />
     <style>
       body { margin: 0; font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; font-size: 14px; font-weight: 420; line-height: 1.5; color: #383838; overflow-wrap: break-word; }
-      a { color: #2490EF; }
+      a { color: #171717; text-decoration: underline; font-weight: 500; }
       img { max-width: 100%; }
     </style>
   </head>
