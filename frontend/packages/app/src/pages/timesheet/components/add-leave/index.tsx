@@ -118,7 +118,7 @@ const AddLeave = ({ open = false, onOpenChange }: LeaveTimeProps) => {
     <Dialog
       open={open}
       onOpenChange={handleOpenChange}
-      className="my-0"
+      className="my-0 max-w-110"
       classNames={{
         header: "mb-5",
         content: "pt-5 pb-2",
@@ -143,7 +143,7 @@ const AddLeave = ({ open = false, onOpenChange }: LeaveTimeProps) => {
             className="text-2xl font-semibold leading-[1.15] text-ink-gray-8"
             data-testid="dialog-title"
           >
-            Add time-off
+            Add time off
           </h3>
         ),
       }}
@@ -166,7 +166,7 @@ const AddLeave = ({ open = false, onOpenChange }: LeaveTimeProps) => {
                   >
                     {({ displayValue }) => {
                       return (
-                        <div className="w-full relative flex items-center border border-outline-gray-2 px-2.5 py-1 rounded">
+                        <div className="w-full h-8 relative flex items-center border border-outline-gray-2 px-2.5 py-2 rounded">
                           <input
                             readOnly
                             type="text"
@@ -204,7 +204,7 @@ const AddLeave = ({ open = false, onOpenChange }: LeaveTimeProps) => {
                   >
                     {({ displayValue }) => {
                       return (
-                        <div className="w-full relative flex items-center border border-outline-gray-2 px-2.5 py-1 rounded">
+                        <div className="w-full h-8 relative flex items-center border border-outline-gray-2 px-2.5 py-2 rounded">
                           <input
                             readOnly
                             type="text"
@@ -237,7 +237,7 @@ const AddLeave = ({ open = false, onOpenChange }: LeaveTimeProps) => {
                   Leave duration
                 </label>
                 <TabButtons
-                  className="h-"
+                  className="h-7.5"
                   buttonClassName="text-ink-gray-5 data-pressed:text-ink-gray-8"
                   value={field.state.value}
                   onChange={(val) => field.handleChange(val as string)}
@@ -291,6 +291,7 @@ const AddLeave = ({ open = false, onOpenChange }: LeaveTimeProps) => {
                   Reason
                 </label>
                 <Textarea
+                  variant="outline"
                   value={field.state.value}
                   onChange={(e) => field.handleChange(e.target.value)}
                   className="bg-white border-outline-gray-2 text-ink-gray-7"
