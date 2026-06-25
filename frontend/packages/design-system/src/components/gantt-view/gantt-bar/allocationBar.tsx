@@ -195,8 +195,6 @@ export function GanttAllocationBar({
         segmentStartDate: allocation.startDate,
         segmentEndDate: allocation.endDate,
         segmentHoursPerDay: allocation.hours,
-        recurrenceWeekCount: allocation.recurrenceWeekCount,
-        recurrenceSeriesEndDate: allocation.recurrenceSeriesEndDate,
       });
     },
     [

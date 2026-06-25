@@ -12,7 +12,6 @@ import { parseISO } from "date-fns";
  * Internal dependencies.
  */
 import {
-  buildRecurrenceSeriesMetaMap,
   calculateAllocationHourlyRate,
   formatAllocationCapacity,
   getAllocationCapacityHoursPerDay,
@@ -127,8 +126,6 @@ function getProjectMembers(
   managerNameMap?: ManagerNameMap,
 ): ProjectMember[] {
   const membersById = new Map<string, ProjectMember>();
-  const recurrenceSeriesMetaByAllocationName =
-    buildRecurrenceSeriesMetaMap(projectAllocations);
 
   for (const allocation of projectAllocations) {
     const memberId = allocation.employee;
@@ -137,7 +134,6 @@ function getProjectMembers(
     const mappedAllocations = mapResourceAllocationSegments(
       allocation,
       resolveCustomerName(allocation.customer, customerLookup),
-      recurrenceSeriesMetaByAllocationName.get(allocation.name),
     );
 
     if (member) {
