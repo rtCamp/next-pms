@@ -1,4 +1,9 @@
 /**
+ * External dependencies.
+ */
+import { mergeClassNames as cn } from "@next-pms/design-system";
+
+/**
  * Internal dependencies.
  */
 import { TimelineCell } from "./table/cells";
@@ -37,7 +42,7 @@ export function TouchpointsTable({
           {TOUCHPOINT_COLUMNS.map((column) => (
             <th
               key={column.key}
-              className={`p-2 text-sm${column.width ? ` ${column.width}` : ""}`}
+              className={cn("px-2 py-1.5 text-sm", column.width)}
             >
               {column.label}
             </th>
@@ -51,7 +56,7 @@ export function TouchpointsTable({
             className="border-b border-outline-gray-1 last:border-b-0 hover:bg-surface-gray-1 transition-colors text-base text-ink-gray-6"
           >
             {TOUCHPOINT_COLUMNS.map((column) => (
-              <td key={column.key} className="p-2">
+              <td key={column.key} className="py-3 px-2">
                 <TimelineCell
                   item={item}
                   column={column}

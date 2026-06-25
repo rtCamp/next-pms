@@ -11,8 +11,8 @@ import {
   ErrorMessage,
   TextInput,
 } from "@rtcamp/frappe-ui-react";
+import { Calendar } from "@rtcamp/frappe-ui-react/icons";
 import { useForm } from "@tanstack/react-form";
-import { Calendar } from "lucide-react";
 
 /**
  * Internal dependencies.
@@ -109,6 +109,13 @@ export function ContractModal({
     <Dialog
       open={open}
       onOpenChange={handleOpenChange}
+      className="my-0"
+      classNames={{
+        header: "mb-5",
+        content: "pt-5 pb-2",
+        viewport: "justify-start pt-30",
+        footer: "pb-6",
+      }}
       options={{ title, size: "sm" }}
       actions={
         <Button

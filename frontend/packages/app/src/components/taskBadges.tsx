@@ -3,8 +3,8 @@
  */
 import { mergeClassNames as cn } from "@next-pms/design-system/utils";
 import { Badge } from "@rtcamp/frappe-ui-react";
+import { CalendarDeadline, Summary } from "@rtcamp/frappe-ui-react/icons";
 import { format, parseISO } from "date-fns";
-import { CalendarFoldIcon, Folder } from "lucide-react";
 
 /**
  * Internal dependencies.
@@ -24,11 +24,11 @@ const TaskBadges: React.FC<TaskBadgesProps> = ({
 }) => {
   const badges: TaskBadgeItem[] = [
     dueDate && {
-      icon: <CalendarFoldIcon size={12} />,
+      icon: <CalendarDeadline width={12} height={12} />,
       text: format(parseISO(dueDate), "dd MMM"),
     },
     projectName && {
-      icon: <Folder size={12} />,
+      icon: <Summary width={12} height={12} />,
       text: projectName,
     },
   ].filter(Boolean) as TaskBadgeItem[];

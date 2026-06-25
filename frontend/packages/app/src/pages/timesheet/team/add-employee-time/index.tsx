@@ -2,7 +2,6 @@
  * External Dependencies
  */
 import { useCallback, useState } from "react";
-import { DurationInput } from "@next-pms/design-system/components";
 import {
   DatePicker,
   Dialog,
@@ -11,10 +10,11 @@ import {
   Combobox,
   useToasts,
   TextEditor,
+  DurationInput,
 } from "@rtcamp/frappe-ui-react";
+import { Calendar } from "@rtcamp/frappe-ui-react/icons";
 import { useForm, useStore } from "@tanstack/react-form";
 import { FrappeError, useFrappePostCall } from "frappe-react-sdk";
-import { Calendar } from "lucide-react";
 
 /**
  * Internal Dependencies
@@ -124,6 +124,13 @@ const AddEmployeeTime = ({
     <Dialog
       open={open}
       onOpenChange={handleOpenChange}
+      className="my-0"
+      classNames={{
+        header: "mb-5",
+        content: "pt-5 pb-2",
+        viewport: "justify-start pt-30",
+        footer: "pb-6",
+      }}
       actions={
         <Button
           className="w-full"
@@ -144,11 +151,11 @@ const AddEmployeeTime = ({
           children={(field) => {
             return (
               <>
-                <label className="block text-xs text-ink-gray-5 mb-1.5">
+                <label className="block text-base text-ink-gray-5 mb-1.5">
                   Employee
                 </label>
                 <Combobox
-                  inputClassName="bg-white h-8 border-outline-gray-2"
+                  inputClassName="bg-white h-8 border-outline-gray-2 text-ink-gray-7"
                   loading={isEmployeeLookupLoading}
                   options={employeeOptions}
                   searchValue={employeeSearch}
@@ -172,11 +179,11 @@ const AddEmployeeTime = ({
           children={(field) => {
             return (
               <>
-                <label className="block text-xs text-ink-gray-5 mb-1.5">
+                <label className="block text-base text-ink-gray-5 mb-1.5">
                   Project
                 </label>
                 <Combobox
-                  inputClassName="bg-white h-8 border-outline-gray-2"
+                  inputClassName="bg-white h-8 border-outline-gray-2 text-ink-gray-7"
                   loading={isProjectLookupLoading}
                   options={projectOptions}
                   searchValue={projectSearch}
@@ -200,11 +207,11 @@ const AddEmployeeTime = ({
           children={(field) => {
             return (
               <>
-                <label className="block text-xs text-ink-gray-5 mb-1.5">
+                <label className="block text-base text-ink-gray-5 mb-1.5">
                   Task
                 </label>
                 <Combobox
-                  inputClassName="bg-white h-8 border-outline-gray-2"
+                  inputClassName="bg-white h-8 border-outline-gray-2 text-ink-gray-7"
                   loading={isTaskLookupLoading}
                   options={taskOptions}
                   searchValue={taskSearch}
@@ -234,7 +241,7 @@ const AddEmployeeTime = ({
             name="date"
             children={(field) => {
               return (
-                <>
+                <div className="flex-1">
                   <DatePicker
                     label="From"
                     onChange={(val) => field.handleChange(val as string)}
@@ -243,20 +250,20 @@ const AddEmployeeTime = ({
                   >
                     {({ displayValue }) => {
                       return (
-                        <div className=" flex-1 flex w-full flex-col space-y-1.5 ">
-                          <label className="block text-xs text-ink-gray-5">
+                        <div className="flex-1 flex w-full flex-col space-y-1.5 ">
+                          <label className="block text-base text-ink-gray-5">
                             Date
                           </label>
                           <div
                             className={
-                              "flex relative items-center py-1 rounded-lg border border-outline-gray-2 px-2.5"
+                              "flex relative items-center rounded border border-outline-gray-2 px-2.5"
                             }
                           >
                             <input
                               type="text"
                               id="start"
                               value={displayValue}
-                              className={`flex-1`}
+                              className="h-7.5 flex-1 text-ink-gray-7 text-base"
                               placeholder="Today"
                             />
                             <Calendar className="size-4" />
@@ -270,7 +277,7 @@ const AddEmployeeTime = ({
                       message={field.state.meta.errors[0]?.message}
                     />
                   )}
-                </>
+                </div>
               );
             }}
           />
@@ -278,8 +285,11 @@ const AddEmployeeTime = ({
             name="duration"
             children={(field) => {
               return (
-                <div className="flex flex-col gap-2 w-full">
+                <div className="flex-1 flex flex-col gap-2 w-full">
                   <DurationInput
+                    label="Duration"
+                    size="md"
+                    snap="smooth"
                     value={field.state.value}
                     onChange={(val) => field.handleChange(val)}
                   />
@@ -299,12 +309,14 @@ const AddEmployeeTime = ({
           children={(field) => {
             return (
               <>
-                <label className="block text-xs text-ink-gray-5">Comment</label>
+                <label className="block text-base text-ink-gray-5 mb-1.5">
+                  Comment
+                </label>
                 <TextEditor
                   content={field.state.value}
                   onChange={(value) => field.handleChange(value)}
                   fixedMenu={false}
-                  editorClass="px-2 h-24 prose-sm overflow-auto scrollbar-thin bg-white border rounded-md border-outline-gray-2"
+                  editorClass="px-2 h-24 prose-sm overflow-auto scrollbar-thin bg-white border rounded-md border-outline-gray-2 text-ink-gray-7 text-base"
                 />
                 {!field.state.meta.isValid && (
                   <ErrorMessage message={field.state.meta.errors[0]?.message} />

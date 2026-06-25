@@ -5,7 +5,12 @@ import { Accordion } from "@base-ui/react/accordion";
 import { Dialog } from "@base-ui/react/dialog";
 import { floatToTime } from "@next-pms/design-system";
 import { Avatar, Button, Checkbox } from "@rtcamp/frappe-ui-react";
-import { ChevronDown, X, CircleX, CircleCheck } from "lucide-react";
+import {
+  SmallDown,
+  Close,
+  CloseCircle,
+  Success,
+} from "@rtcamp/frappe-ui-react/icons";
 
 /**
  * Internal Dependencies
@@ -42,7 +47,7 @@ const ApprovalPopup = () => {
             {floatToTime(totalHours, 2, 2)}
           </span>
           <Dialog.Close className="hover:bg-surface-gray-2 rounded">
-            <X className="h-5 w-5 text-ink-gray-5" />
+            <Close className="h-4 w-4 text-ink-gray-7" />
           </Dialog.Close>
         </div>
       </div>
@@ -60,7 +65,7 @@ const ApprovalPopup = () => {
             >
               <Accordion.Trigger className="w-full flex items-center justify-between px-3.5 py-3 group">
                 <div className="flex items-center gap-2">
-                  <ChevronDown className="h-4 w-4 text-ink-gray-5 transition-transform duration-200 -rotate-90 group-data-panel-open:rotate-0" />
+                  <SmallDown className="h-4 w-4 text-ink-gray-5 transition-transform duration-200 -rotate-90 group-data-panel-open:rotate-0" />
                   <span className="text-base font-medium text-ink-gray-8">
                     {dayGroup.day}
                   </span>
@@ -101,14 +106,14 @@ const ApprovalPopup = () => {
           theme="red"
           variant="solid"
           label="Reject"
-          iconLeft={() => <CircleX size={16} className="text-ink-white" />}
+          iconLeft={() => <CloseCircle size={16} className="text-ink-white" />}
           onClick={handleReject}
         />
         <Button
           theme="green"
           variant="solid"
           label="Approve"
-          iconLeft={() => <CircleCheck size={16} className="text-ink-white" />}
+          iconLeft={() => <Success size={16} className="text-ink-white" />}
           onClick={handleApproveSubmit}
         />
       </div>

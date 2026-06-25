@@ -3,9 +3,14 @@
  */
 import { useState, useCallback } from "react";
 import { floatToTime } from "@next-pms/design-system";
-import { TaskStatus, DurationInput } from "@next-pms/design-system/components";
-import { Button, StaticTextEditor, TextEditor } from "@rtcamp/frappe-ui-react";
-import { Edit, Check, X } from "lucide-react";
+import { TaskStatus } from "@next-pms/design-system/components";
+import {
+  Button,
+  StaticTextEditor,
+  TextEditor,
+  DurationInput,
+} from "@rtcamp/frappe-ui-react";
+import { EditAlt, Check, Close } from "@rtcamp/frappe-ui-react/icons";
 
 /**
  * Internal Dependencies
@@ -78,7 +83,7 @@ const EntryRow = ({ entry, onSave }: EntryRowProps) => {
             />
           </div>
         </div>
-        <DurationInput value={hours} onChange={setHours} variant="compact" />
+        <DurationInput value={hours} onChange={setHours} />
 
         <div className="flex flex-col gap-2">
           <Button
@@ -90,7 +95,7 @@ const EntryRow = ({ entry, onSave }: EntryRowProps) => {
           <Button
             className="m-0 size-fit"
             variant="ghost"
-            icon={() => <X size={16} className="text-ink-gray-5" />}
+            icon={() => <Close size={16} className="text-ink-gray-5" />}
             onClick={handleCancel}
           />
         </div>
@@ -122,7 +127,7 @@ const EntryRow = ({ entry, onSave }: EntryRowProps) => {
       <Button
         className="m-0 size-fit hover:bg-surface-white opacity-0 group-hover:opacity-100 transition-opacity"
         variant="ghost"
-        icon={() => <Edit size={16} className="text-ink-gray-7" />}
+        icon={() => <EditAlt size={16} className="text-ink-gray-7" />}
         onClick={handleEdit}
       />
     </div>

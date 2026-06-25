@@ -2,7 +2,7 @@
  * External dependencies.
  */
 import { Button } from "@rtcamp/frappe-ui-react";
-import { Plus } from "lucide-react";
+import { AddSm } from "@rtcamp/frappe-ui-react/icons";
 
 /**
  * Internal dependencies.
@@ -24,7 +24,7 @@ export function KanbanColumnHeader({ status, onAdd }: KanbanColumnHeaderProps) {
         variant="ghost"
         type="button"
         onClick={onAdd}
-        icon={() => <Plus />}
+        icon={() => <AddSm />}
       />
     </div>
   );

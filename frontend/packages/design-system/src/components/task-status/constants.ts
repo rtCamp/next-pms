@@ -2,14 +2,14 @@
  * External dependencies.
  */
 import { Overdue } from "@rtcamp/frappe-ui-react/icons";
-import { cva } from "class-variance-authority";
 import {
-  Circle,
-  CircleCheckBig,
-  CircleX,
-  ClipboardClock,
-  Loader,
-} from "lucide-react";
+  Task,
+  Tasks,
+  CloseCircle,
+  PendingReview,
+  LoadingAlt,
+} from "@rtcamp/frappe-ui-react/icons";
+import { cva } from "class-variance-authority";
 
 /**
  * Internal dependencies.
@@ -24,13 +24,13 @@ export const statusIcon: Record<
     className?: string;
   }>
 > = {
-  open: Circle,
-  working: Loader,
-  pendingReview: ClipboardClock,
+  open: Task,
+  working: LoadingAlt,
+  pendingReview: PendingReview,
   overdue: Overdue,
-  completed: CircleCheckBig,
-  cancelled: CircleX,
-  template: Circle,
+  completed: Tasks,
+  cancelled: CloseCircle,
+  template: Task,
 };
 
 export const statusIconVariants = cva("", {

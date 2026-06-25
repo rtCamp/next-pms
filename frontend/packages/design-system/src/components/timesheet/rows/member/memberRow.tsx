@@ -3,7 +3,7 @@
  */
 import React from "react";
 import { Badge, Button, Avatar } from "@rtcamp/frappe-ui-react";
-import { ChevronDown } from "lucide-react";
+import { SmallDown } from "@rtcamp/frappe-ui-react/icons";
 
 /**
  * Internal dependencies.
@@ -66,7 +66,7 @@ export const MemberRow: React.FC<MemberRowProps> = ({
             collapsed ? "-rotate-90" : "rotate-0",
           )}
         >
-          <ChevronDown strokeWidth={1.5} size={16} />
+          <SmallDown strokeWidth={1.5} size={16} />
         </span>
         <div className="flex gap-2 items-center min-w-0">
           <Avatar image={avatarUrl} shape="circle" label={label} size="xs" />

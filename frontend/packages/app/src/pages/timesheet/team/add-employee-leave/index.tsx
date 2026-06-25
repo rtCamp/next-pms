@@ -14,13 +14,13 @@ import {
   Combobox,
 } from "@rtcamp/frappe-ui-react";
 import { useToasts } from "@rtcamp/frappe-ui-react";
+import { Calendar, TimeOff } from "@rtcamp/frappe-ui-react/icons";
 import { useForm, useStore } from "@tanstack/react-form";
 import {
   FrappeError,
   useFrappeCreateDoc,
   useFrappeGetCall,
 } from "frappe-react-sdk";
-import { Calendar, CalendarX2 } from "lucide-react";
 
 /**
  * Internal Dependencies
@@ -137,11 +137,18 @@ const AddEmployeeLeave = ({
     <Dialog
       open={open}
       onOpenChange={handleOpenChange}
+      className="my-0"
+      classNames={{
+        header: "mb-5",
+        content: "pt-5 pb-2",
+        viewport: "justify-start pt-30",
+        footer: "pb-6",
+      }}
       actions={
         <Button
           className="w-full"
           variant="solid"
-          iconLeft={() => <CalendarX2 />}
+          iconLeft={() => <TimeOff className="size-4 text-ink-gray-7" />}
           label="Add time-off"
           disabled={loading}
           onClick={() => {
@@ -159,11 +166,11 @@ const AddEmployeeLeave = ({
           children={(field) => {
             return (
               <>
-                <label className="block text-xs text-ink-gray-5 mb-1.5">
+                <label className="block text-base text-ink-gray-5 mb-1.5">
                   Employee
                 </label>
                 <Combobox
-                  inputClassName="bg-white h-8 border-outline-gray-2"
+                  inputClassName="bg-white h-8 border-outline-gray-2 text-ink-gray-7"
                   loading={isEmployeeLookupLoading}
                   options={employeeOptions}
                   searchValue={employeeSearch}
@@ -188,7 +195,9 @@ const AddEmployeeLeave = ({
             children={(field) => {
               return (
                 <div className="flex-1 flex w-full flex-col space-y-1.5">
-                  <label className="block text-xs text-ink-gray-5">From</label>
+                  <label className="block text-base text-ink-gray-5">
+                    From
+                  </label>
                   <DatePicker
                     label="From"
                     onChange={(val) => field.handleChange(val as string)}
@@ -203,7 +212,7 @@ const AddEmployeeLeave = ({
                             type="text"
                             id="start"
                             value={displayValue}
-                            className={`flex-1`}
+                            className="flex-1 text-ink-gray-7"
                           />
                           <Calendar className="size-4" />
                         </div>
@@ -224,7 +233,7 @@ const AddEmployeeLeave = ({
             children={(field) => {
               return (
                 <div className="flex-1 flex w-full flex-col space-y-1.5">
-                  <label className="block text-xs text-ink-gray-5">To</label>
+                  <label className="block text-base text-ink-gray-5">To</label>
                   <DatePicker
                     label="To"
                     onChange={(val) => field.handleChange(val as string)}
@@ -239,7 +248,7 @@ const AddEmployeeLeave = ({
                             type="text"
                             id="start"
                             value={displayValue}
-                            className={`flex-1`}
+                            className="flex-1 text-ink-gray-7"
                           />
                           <Calendar className="size-4" />
                         </div>
@@ -262,11 +271,11 @@ const AddEmployeeLeave = ({
           children={(field) => {
             return (
               <>
-                <label className="block text-xs text-ink-gray-5">
+                <label className="block text-base text-ink-gray-5 mb-1.5">
                   Leave duration
                 </label>
                 <TabButtons
-                  className="h-"
+                  buttonClassName="text-ink-gray-5 data-pressed:text-ink-gray-8"
                   value={field.state.value}
                   onChange={(val) => field.handleChange(val as string)}
                   buttons={LEAVE_DURATION.map((value) => ({
@@ -292,14 +301,14 @@ const AddEmployeeLeave = ({
           children={(field) => {
             return (
               <>
-                <label className="block text-xs text-ink-gray-5">
+                <label className="block text-base text-ink-gray-5 mb-1.5">
                   Leave type
                 </label>
                 <Select
                   value={field.state.value}
                   onChange={(val) => field.handleChange(val as string)}
                   variant="outline"
-                  className="h-8"
+                  className="h-8 text-ink-gray-7"
                   options={[...unpaidLeaveOptions, ...allocatedLeaveOptions]}
                   placeholder="Select Leave Type"
                 />
@@ -315,11 +324,13 @@ const AddEmployeeLeave = ({
           children={(field) => {
             return (
               <>
-                <label className="block text-xs text-ink-gray-5">Reason</label>
+                <label className="block text-base text-ink-gray-5 mb-1.5">
+                  Reason
+                </label>
                 <Textarea
                   value={field.state.value}
                   onChange={(e) => field.handleChange(e.target.value)}
-                  className="bg-white border-outline-gray-2"
+                  className="bg-white border-outline-gray-2 text-ink-gray-7"
                 />
                 {!field.state.meta.isValid && (
                   <ErrorMessage message={field.state.meta.errors[0]?.message} />

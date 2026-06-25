@@ -4,7 +4,7 @@
 import { useState } from "react";
 import { DeleteActionDialog } from "@next-pms/design-system/components";
 import { Button, StaticTextEditor } from "@rtcamp/frappe-ui-react";
-import { Plus } from "lucide-react";
+import { AddSm } from "@rtcamp/frappe-ui-react/icons";
 
 /**
  * Internal dependencies.
@@ -68,31 +68,27 @@ export function RiskDetailContent({
 
       <div>
         {/* Summary */}
-        <section className="mb-6">
+        <section className="mb-5">
           {filteredSummary ? (
-            <div className="text-base leading-relaxed text-ink-gray-7">
-              <StaticTextEditor
-                content={filteredSummary}
-                editorClass="prose prose-sm"
-              />
-            </div>
+            <StaticTextEditor
+              content={filteredSummary}
+              editorClass="prose prose-sm w-full max-w-full text-ink-gray-7 leading-normal"
+            />
           ) : (
             <p className="text-sm text-ink-gray-5">No summary provided.</p>
           )}
         </section>
 
         {/* Mitigation plan */}
-        <section className="mb-6">
+        <section className="mb-4.5">
           <h3 className="mb-2 text-lg font-medium text-ink-gray-7">
             Mitigation plan
           </h3>
           {filteredMitigationPlan ? (
-            <div className="text-base leading-relaxed text-ink-gray-7">
-              <StaticTextEditor
-                content={filteredMitigationPlan}
-                editorClass="prose prose-sm"
-              />
-            </div>
+            <StaticTextEditor
+              content={filteredMitigationPlan}
+              editorClass="prose prose-sm w-full max-w-full text-ink-gray-7 leading-normal"
+            />
           ) : (
             <p className="text-sm text-ink-gray-5">
               No mitigation plan provided.
@@ -101,7 +97,7 @@ export function RiskDetailContent({
         </section>
 
         {/* Additional documents */}
-        <section className="mb-6">
+        <section className="mb-4.5">
           <div className="flex justify-between items-center mb-3">
             <h3 className="text-lg font-medium text-ink-gray-7">
               Additional documents
@@ -135,7 +131,7 @@ export function RiskDetailContent({
               variant="ghost"
               onClick={() => setIsAddUpdateOpen(true)}
               aria-label="Add update"
-              icon={() => <Plus className="size-4" />}
+              icon={() => <AddSm className="size-4" />}
             ></Button>
           </div>
 

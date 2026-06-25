@@ -1,9 +1,13 @@
 /**
  * External dependencies
  */
-import { DurationInput } from "@next-pms/design-system/components";
-import { Button, ErrorMessage, TextEditor } from "@rtcamp/frappe-ui-react";
-import { Command, CornerDownLeft, Plus } from "lucide-react";
+import {
+  Button,
+  ErrorMessage,
+  TextEditor,
+  DurationInput,
+} from "@rtcamp/frappe-ui-react";
+import { AddSm } from "@rtcamp/frappe-ui-react/icons";
 
 /**
  * Internal dependencies
@@ -17,7 +21,6 @@ import { TimeEntryFormProps } from "./types";
  * @param form An instance of the form API to manage form state and actions.
  * @param mode A string indicating whether the form is in "add" or "edit" mode.
  * @param hoursLeft The number of hours left that can be logged for the day.
- * @param durationLabel The label to display for the duration input field.
  * @param durationVariant The variant style to apply to the duration input field.
  * @param maxDurationInHours The maximum number of hours that can be entered in the duration field.
  * @param submitting A boolean indicating whether the form is currently being submitted, used to disable inputs during submission.
@@ -29,7 +32,6 @@ export const TimeEntryForm = ({
   mode,
   hoursLeft,
   durationLabel,
-  durationVariant,
   maxDurationInHours,
   submitting,
   editBaseline = null,
@@ -45,12 +47,13 @@ export const TimeEntryForm = ({
           return (
             <div className="flex flex-col w-full gap-2">
               <DurationInput
+                snap="smooth"
                 hoursLeft={hoursLeft}
                 label={durationLabel}
-                variant={durationVariant}
+                inlineLabel="Duration"
                 value={field.state.value}
                 onChange={(val) => field.handleChange(val)}
-                maxDurationInHours={maxDurationInHours}
+                maxDuration={maxDurationInHours}
               />
               {!field.state.meta.isValid && (
                 <ErrorMessage message={field.state.meta.errors[0]?.message} />
@@ -77,9 +80,8 @@ export const TimeEntryForm = ({
                   editorClass="px-2 h-24 prose-sm overflow-scroll scrollbar-thin bg-white border rounded-md border-outline-gray-2 text-ink-gray-7 text-base leading-5.25"
                 />
                 {field.state.value === "" ? (
-                  <span className="absolute flex items-center justify-center text-xs align-middle right-1 bottom-1 text-ink-gray-4">
-                    <Command className="w-3.5! h-3.5!" />+
-                    <CornerDownLeft className="w-3.5! h-3.5!" />
+                  <span className="absolute text-sm align-middle right-2 bottom-1 text-ink-gray-4">
+                    ⌘+↵
                   </span>
                 ) : null}
               </div>
@@ -118,7 +120,7 @@ export const TimeEntryForm = ({
                 className="text-ink-gray-7"
                 variant="subtle"
                 size="sm"
-                iconLeft={() => <Plus size={16} />}
+                iconLeft={() => <AddSm size={16} />}
                 onClick={onSave}
                 disabled={isSaveDisabled}
               >

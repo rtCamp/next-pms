@@ -14,7 +14,7 @@ type NoteDetailContentProps = {
 
 export function NoteDetailContent({ note }: NoteDetailContentProps) {
   return (
-    <div className="flex flex-col gap-2 pt-2">
+    <div className="flex flex-col gap-1.5 pt-3">
       <h1 className="text-3xl font-semibold leading-tight text-ink-gray-7">
         {note.title}
       </h1>

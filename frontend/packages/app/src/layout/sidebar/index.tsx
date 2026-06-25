@@ -11,18 +11,16 @@ import {
   Sidebar as BaseSidebar,
   type SidebarSectionType,
 } from "@rtcamp/frappe-ui-react";
-import { Notifications, People, Time } from "@rtcamp/frappe-ui-react/icons";
 import {
-  ArrowLeftRight,
-  BarChart2,
-  Briefcase,
+  Notifications,
+  People,
+  Time,
+  SearchAlt,
   Folder,
-  LayoutGrid,
+  Grid,
   LogOut,
-  Moon,
-  Search,
-  Sun,
-} from "lucide-react";
+} from "@rtcamp/frappe-ui-react/icons";
+import { ArrowLeftRight, Briefcase, BarChart2, Moon, Sun } from "lucide-react";
 /**
  * Internal dependencies.
  */
@@ -203,7 +201,7 @@ const Sidebar = () => {
           menuItems: [
             {
               label: "Apps",
-              icon: <LayoutGrid size={16} className="text-ink-gray-6 mr-2" />,
+              icon: <Grid size={16} className="text-ink-gray-6 mr-2" />,
               onClick: () => {
                 window.location.assign(ROUTES.apps);
               },
@@ -246,7 +244,7 @@ const Sidebar = () => {
               },
               {
                 label: "Search",
-                icon: Search,
+                icon: SearchAlt,
                 to: "",
                 isActive: false,
                 onClick: () => setIsSearchOpen(true),

@@ -28,7 +28,7 @@ function NotesGrid() {
 
   return (
     // The height is calculated by subtracting the height of the header.
-    <div className="relative flex flex-col gap-4">
+    <div className="relative flex flex-col gap-3.5">
       <NotesSubHeader />
       <div
         className={cn(

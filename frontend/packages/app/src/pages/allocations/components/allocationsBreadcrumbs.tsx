@@ -3,8 +3,7 @@
  */
 import { useLocation, useNavigate } from "react-router-dom";
 import { Breadcrumbs } from "@rtcamp/frappe-ui-react";
-import { Folder, People } from "@rtcamp/frappe-ui-react/icons";
-import { ChevronDown } from "lucide-react";
+import { Folder, People, SmallDown } from "@rtcamp/frappe-ui-react/icons";
 
 /**
  * Internal dependencies.
@@ -45,7 +44,7 @@ export const AllocationsBreadcrumbs = () => {
           id: "team",
           label: activeView.label,
           prefixIcon: <activeView.icon className="size-4" />,
-          suffixIcon: <ChevronDown className="w-4 h-4" />,
+          suffixIcon: <SmallDown className="w-4 h-4" />,
           dropdown: {
             dropdownClassName: "w-[220px] px-1",
             groupClassName: "px-0 py-1 space-y-1",

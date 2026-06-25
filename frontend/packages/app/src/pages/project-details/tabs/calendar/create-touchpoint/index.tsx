@@ -13,9 +13,9 @@ import {
   TextInput,
   useToasts,
 } from "@rtcamp/frappe-ui-react";
+import { Calendar } from "@rtcamp/frappe-ui-react/icons";
 import { useForm } from "@tanstack/react-form";
 import { FrappeError, useFrappePostCall } from "frappe-react-sdk";
-import { Calendar } from "lucide-react";
 
 /**
  * Internal dependencies.
@@ -149,6 +149,13 @@ export function CreateTouchpointModal({
     <Dialog
       open={open}
       onOpenChange={handleOpenChange}
+      className="my-0 max-w-110"
+      classNames={{
+        viewport: "justify-start pt-30",
+        header: "mb-5.25",
+        content: "pt-5 pb-4",
+        footer: "pb-6",
+      }}
       options={{ title: isEditMode ? "Edit touchpoint" : "Create touchpoint" }}
       actions={
         <Button

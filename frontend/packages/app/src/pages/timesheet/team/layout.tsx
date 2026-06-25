@@ -5,7 +5,7 @@ import { useCallback, useState } from "react";
 import { Outlet } from "react-router-dom";
 import { getTodayDate } from "@next-pms/design-system";
 import { Button } from "@rtcamp/frappe-ui-react";
-import { CalendarX2, Plus } from "lucide-react";
+import { AddMd, TimeOff } from "@rtcamp/frappe-ui-react/icons";
 
 /**
  * Internal dependencies.
@@ -37,7 +37,7 @@ function TeamTimesheetLayout() {
             <Button
               onClick={() => setIsLeaveDialogOpen(true)}
               label="Add time-off"
-              iconLeft={() => <CalendarX2 />}
+              iconLeft={() => <TimeOff className="size-4 text-ink-gray-7" />}
             />
           )}
 
@@ -45,7 +45,7 @@ function TeamTimesheetLayout() {
             variant="solid"
             onClick={() => handleAddTime()}
             label="Add time"
-            iconLeft={() => <Plus />}
+            iconLeft={() => <AddMd className="size-4" />}
           />
         </div>
       </Header>

@@ -3,8 +3,7 @@
  */
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Breadcrumbs } from "@rtcamp/frappe-ui-react";
-import { Folder } from "@rtcamp/frappe-ui-react/icons";
-import { ChevronDown } from "lucide-react";
+import { Folder, SmallDown } from "@rtcamp/frappe-ui-react/icons";
 
 /**
  * Internal dependencies.
@@ -59,7 +58,7 @@ export function ProjectDetailHeader() {
                   id: "risks-view",
                   label: currentView.label,
                   prefixIcon: <currentView.icon className="size-4" />,
-                  suffixIcon: <ChevronDown className="w-4 h-4" />,
+                  suffixIcon: <SmallDown className="w-4 h-4" />,
                   dropdown: {
                     dropdownClassName: "w-[220px] px-1",
                     groupClassName: "px-0 py-1 space-y-1",

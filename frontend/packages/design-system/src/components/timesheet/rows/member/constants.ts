@@ -2,8 +2,8 @@
  * External dependencies.
  */
 import { ButtonVariant } from "@rtcamp/frappe-ui-react";
+import { Check } from "@rtcamp/frappe-ui-react/icons";
 import { cva } from "class-variance-authority";
-import { Check } from "lucide-react";
 import { approvalStatusIcon, ApprovalStatusType } from "../constants";
 
 export const memberStatusIcon = {

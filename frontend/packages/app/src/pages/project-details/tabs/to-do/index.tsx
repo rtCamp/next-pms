@@ -4,7 +4,7 @@
 import { useCallback, useState } from "react";
 import { Spinner } from "@next-pms/design-system/components";
 import { Button } from "@rtcamp/frappe-ui-react";
-import { Plus } from "lucide-react";
+import { AddSm } from "@rtcamp/frappe-ui-react/icons";
 
 /**
  * Internal dependencies.
@@ -41,7 +41,7 @@ function TodoContent() {
         <Button
           variant="solid"
           label="New ToDo"
-          iconLeft={() => <Plus size={16} />}
+          iconLeft={() => <AddSm size={16} />}
           onClick={() => setIsCreateOpen(true)}
         />
       </div>
