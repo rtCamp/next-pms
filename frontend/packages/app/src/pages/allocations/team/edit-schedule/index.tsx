@@ -103,6 +103,23 @@ function EditScheduleModal({
     [fullRange.endDate, fullRange.startDate],
   );
 
+  const allocationContext = useMemo(
+    () =>
+      initialValues
+        ? {
+            allocationStartDate:
+              initialValues.allocationStartDate ?? initialValues.rangeStart,
+            allocationEndDate:
+              initialValues.allocationEndDate ?? initialValues.rangeEnd,
+            allocationHoursPerDay:
+              initialValues.allocationHoursPerDay ??
+              initialValues.defaultHoursPerDay,
+            override: initialValues.override,
+          }
+        : null,
+    [initialValues],
+  );
+
   const formDefaultValues = useMemo<EditScheduleFormValues>(
     () => ({
       schedule: {
@@ -120,19 +137,9 @@ function EditScheduleModal({
       onSubmit: editScheduleFormSchema,
     },
     onSubmit: async ({ value }) => {
-      if (!initialValues?.allocationName) {
+      if (!initialValues?.allocationName || !allocationContext) {
         return;
       }
-      const allocationContext = {
-        allocationStartDate:
-          initialValues.allocationStartDate ?? initialValues.rangeStart,
-        allocationEndDate:
-          initialValues.allocationEndDate ?? initialValues.rangeEnd,
-        allocationHoursPerDay:
-          initialValues.allocationHoursPerDay ??
-          initialValues.defaultHoursPerDay,
-        override: initialValues.override,
-      };
       const draft = buildScheduleDraft({
         rangeStart: fullRange.startDate,
         rangeEnd: fullRange.endDate,
@@ -211,6 +218,24 @@ function EditScheduleModal({
     ],
   );
 
+  const overridePatch = useMemo(
+    () =>
+      allocationContext && scheduleDraft.selection
+        ? buildScheduleSelectionOverridePatch({
+            allocation: allocationContext,
+            next: {
+              startDate: scheduleDraft.selection.startDate,
+              endDate: scheduleDraft.selection.endDate,
+              hoursPerDay: scheduleDraft.hoursPerDay,
+            },
+          })
+        : { dayOverrides: [], deletedDayOverrides: [] },
+    [allocationContext, scheduleDraft],
+  );
+  const hasOverrideChange =
+    overridePatch.dayOverrides.length > 0 ||
+    overridePatch.deletedDayOverrides.length > 0;
+
   useEffect(() => {
     if (!open) {
       return;
@@ -256,11 +281,7 @@ function EditScheduleModal({
                 label="Save changes"
                 onClick={() => form.handleSubmit()}
                 loading={submitting}
-                disabled={
-                  !scheduleDraft.hasMeaningfulChange ||
-                  isSubmitting ||
-                  submitting
-                }
+                disabled={!hasOverrideChange || isSubmitting || submitting}
               />
             )}
           </form.Subscribe>
