@@ -22,9 +22,9 @@ export interface NotificationTrayProps {
    * the right edge of the sidebar (e.g. "left-12" collapsed, "left-60" expanded).
    */
   offsetClassName?: string;
-  onSeeAll?: () => void;
   onMarkAllRead?: () => void;
   onSettings?: () => void;
+  onNotificationClick?: (notification: NotificationEntry) => void;
 }
 
 const actionButtonClasses =
@@ -35,9 +35,9 @@ export default function NotificationTray({
   onOpenChange,
   notifications,
   offsetClassName = "left-0",
-  onSeeAll,
   onMarkAllRead,
   onSettings,
+  onNotificationClick,
 }: NotificationTrayProps) {
   return (
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
@@ -95,6 +95,7 @@ export default function NotificationTray({
                     <NotificationItem
                       key={notification.id}
                       notification={notification}
+                      onSelect={onNotificationClick}
                     />
                   ))
                 )}
@@ -104,16 +105,6 @@ export default function NotificationTray({
               <ScrollArea.Thumb className="relative flex-1 rounded-full bg-gray-200 dark:bg-white/20" />
             </ScrollArea.Scrollbar>
           </ScrollArea.Root>
-
-          <div className="border-t border-outline-gray-modals">
-            <button
-              type="button"
-              onClick={onSeeAll}
-              className="w-full py-3 text-center text-sm text-ink-gray-7 hover:text-ink-gray-8"
-            >
-              See all Activity
-            </button>
-          </div>
         </Dialog.Popup>
       </Dialog.Portal>
     </Dialog.Root>

@@ -1,15 +1,16 @@
 /**
  * External dependencies.
  */
-import { useMemo } from "react";
+import { useCallback, useMemo } from "react";
 import type { NotificationEntry } from "@next-pms/design-system/components";
 import { formatDistanceToNow, parseISO } from "date-fns";
-import { useFrappeGetDocList } from "frappe-react-sdk";
+import { useFrappeGetDocList, useFrappeUpdateDoc } from "frappe-react-sdk";
 
 /**
  * Internal dependencies.
  */
-import { hashString } from "@/lib/utils";
+import { ROUTES } from "@/lib/constant";
+import { hashString, toKebabCase } from "@/lib/utils";
 import { useUser } from "@/providers/user";
 
 interface NotificationDoc {
@@ -19,7 +20,10 @@ interface NotificationDoc {
   creation: string;
   linked_doctype: string;
   linked_document: string;
+  viewed: 0 | 1;
 }
+
+const NOTIFICATION_DOCTYPE = "NextPMS Notifications";
 
 interface UserDetails {
   name: string;
@@ -32,11 +36,14 @@ const NOTIFICATION_LIMIT = 20;
 export function useNotifications(): {
   notifications: NotificationEntry[];
   isLoading: boolean;
+  unreadCount: number;
+  markAsViewed: (id: string) => Promise<void>;
+  markAllAsViewed: () => Promise<void>;
 } {
   const userId = useUser(({ state }) => state.userId);
 
-  const { data, isLoading } = useFrappeGetDocList<NotificationDoc>(
-    "NextPMS Notifications",
+  const { data, isLoading, mutate } = useFrappeGetDocList<NotificationDoc>(
+    NOTIFICATION_DOCTYPE,
     {
       fields: [
         "name",
@@ -45,6 +52,7 @@ export function useNotifications(): {
         "creation",
         "linked_doctype",
         "linked_document",
+        "viewed",
       ],
       filters: (userId ? [["user", "=", userId]] : []) as never,
       orderBy: { field: "creation", order: "desc" },
@@ -96,9 +104,48 @@ export function useNotifications(): {
             addSuffix: true,
           },
         ),
+        read: Boolean(doc.viewed),
+        href:
+          doc.linked_doctype && doc.linked_document
+            ? `${ROUTES.desk}/${toKebabCase(doc.linked_doctype)}/${doc.linked_document}`
+            : undefined,
       };
     });
   }, [data, userMap]);
 
-  return { notifications, isLoading };
+  const unreadCount = useMemo(
+    () => (data ?? []).filter((doc) => !doc.viewed).length,
+    [data],
+  );
+
+  const { updateDoc } = useFrappeUpdateDoc();
+
+  const markAsViewed = useCallback(
+    async (id: string) => {
+      const doc = data?.find((row) => row.name === id);
+      if (!doc || doc.viewed) return;
+      await updateDoc(NOTIFICATION_DOCTYPE, id, { viewed: 1 });
+      await mutate();
+    },
+    [data, updateDoc, mutate],
+  );
+
+  const markAllAsViewed = useCallback(async () => {
+    const unread = (data ?? []).filter((doc) => !doc.viewed);
+    if (!unread.length) return;
+    await Promise.all(
+      unread.map((doc) =>
+        updateDoc(NOTIFICATION_DOCTYPE, doc.name, { viewed: 1 }),
+      ),
+    );
+    await mutate();
+  }, [data, updateDoc, mutate]);
+
+  return {
+    notifications,
+    isLoading,
+    unreadCount,
+    markAsViewed,
+    markAllAsViewed,
+  };
 }

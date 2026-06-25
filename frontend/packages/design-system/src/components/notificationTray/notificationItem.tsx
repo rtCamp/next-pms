@@ -1,4 +1,8 @@
 /**
+ * External dependencies.
+ */
+import React from "react";
+/**
  * Internal dependencies.
  */
 import type { NotificationEntry } from "./types";
@@ -7,15 +11,34 @@ import { mergeClassNames as cn } from "../../utils";
 
 const NotificationItem = ({
   notification,
+  onSelect,
 }: {
   notification: NotificationEntry;
+  onSelect?: (notification: NotificationEntry) => void;
 }) => {
-  const { name, image, message, timeLabel, read } = notification;
+  const { name, image, message, timeLabel, read, href } = notification;
+
+  const handleClick = (event: React.MouseEvent<HTMLAnchorElement>) => {
+    if (!onSelect) return;
+    // Let the browser handle new-tab / middle-click natively.
+    if (
+      event.metaKey ||
+      event.ctrlKey ||
+      event.shiftKey ||
+      event.button !== 0
+    ) {
+      onSelect(notification);
+      return;
+    }
+    event.preventDefault();
+    onSelect(notification);
+  };
 
   return (
     <a
-      role="button"
+      href={href}
       tabIndex={0}
+      onClick={handleClick}
       className="group flex cursor-pointer items-start gap-2.5 rounded-[10px] p-2.5 hover:bg-surface-gray-2"
     >
       <span

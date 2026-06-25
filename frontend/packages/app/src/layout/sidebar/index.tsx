@@ -34,7 +34,7 @@ import { useNotifications } from "./useNotifications";
 const Sidebar = () => {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
-  const { notifications } = useNotifications();
+  const { notifications, markAsViewed, markAllAsViewed } = useNotifications();
 
   const { theme, setTheme } = useTheme();
   const navigate = useNavigate();
@@ -305,6 +305,13 @@ const Sidebar = () => {
         onOpenChange={setIsNotificationsOpen}
         notifications={notifications}
         offsetClassName={isSidebarCollapsed ? "left-12" : "left-60"}
+        onMarkAllRead={markAllAsViewed}
+        onNotificationClick={async (notification) => {
+          await markAsViewed(notification.id);
+          if (notification.href) {
+            window.location.assign(notification.href);
+          }
+        }}
       />
     </ErrorFallback>
   );

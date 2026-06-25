@@ -12,4 +12,5 @@ export interface NotificationEntry {
   message: NotificationMessageSegment[];
   timeLabel: string;
   read?: boolean;
+  href?: string;
 }
