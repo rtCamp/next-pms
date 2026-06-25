@@ -38,12 +38,13 @@ function ScheduleDateSelectionField({
       </div>
       <div
         className={cn(
-          "relative pb-1.5",
+          "relative pb-1.5 -mx-3.5",
           showInlineRecurrenceHelper &&
             "flex items-center justify-between gap-3",
         )}
       >
-        <div className="flex overflow-x-auto no-scrollbar items-start gap-1 py-1.5">
+        <div className="absolute top-0 left-0 z-10 w-12 h-full from-surface-white to-transparent pointer-events-none bg-linear-to-r"></div>
+        <div className="flex overflow-x-auto no-scrollbar items-start gap-1 py-1.5 px-3.5">
           {days.map((day) => (
             <DayChip
               className="shrink-0"
