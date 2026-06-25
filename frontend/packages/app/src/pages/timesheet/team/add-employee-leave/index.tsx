@@ -206,13 +206,13 @@ const AddEmployeeLeave = ({
                   >
                     {({ displayValue }) => {
                       return (
-                        <div className="flex relative items-center py-1 w-full rounded-lg border border-outline-gray-2 px-2.5">
+                        <div className="flex relative items-center py-1 w-full rounded border border-outline-gray-2 px-2.5">
                           <input
                             readOnly
                             type="text"
                             id="start"
                             value={displayValue}
-                            className="flex-1 text-ink-gray-7"
+                            className="w-full text-base text-ink-gray-7"
                           />
                           <Calendar className="size-4" />
                         </div>
@@ -242,13 +242,13 @@ const AddEmployeeLeave = ({
                   >
                     {({ displayValue }) => {
                       return (
-                        <div className="flex relative items-center py-1 w-full rounded-lg border border-outline-gray-2 px-2.5">
+                        <div className="flex relative items-center py-1 w-full rounded border border-outline-gray-2 px-2.5">
                           <input
                             readOnly
                             type="text"
                             id="start"
                             value={displayValue}
-                            className="flex-1 text-ink-gray-7"
+                            className="w-full text-base text-ink-gray-7"
                           />
                           <Calendar className="size-4" />
                         </div>
@@ -311,6 +311,7 @@ const AddEmployeeLeave = ({
                   className="h-8 text-ink-gray-7"
                   options={[...unpaidLeaveOptions, ...allocatedLeaveOptions]}
                   placeholder="Select Leave Type"
+                  disabled={!employeeIdFormValue}
                 />
                 {!field.state.meta.isValid && (
                   <ErrorMessage message={field.state.meta.errors[0]?.message} />
