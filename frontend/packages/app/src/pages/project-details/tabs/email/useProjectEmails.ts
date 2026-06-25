@@ -10,7 +10,7 @@ import { type FrappeError, useFrappeGetCall } from "frappe-react-sdk";
  */
 import { parseFrappeErrorMsg } from "@/lib/utils";
 import { useProjectDetail } from "@/pages/project-details/context";
-import type { Email } from "./types";
+import type { Attachment, Email } from "./types";
 
 interface ApiCommunication {
   name: string;
@@ -44,11 +44,11 @@ function parseAddressList(raw: string | null): string[] {
     .filter(Boolean);
 }
 
-function parseAttachments(raw: string | null): unknown[] {
+function parseAttachments(raw: string | null): Attachment[] {
   if (!raw) return [];
   try {
     const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? parsed : [];
+    return Array.isArray(parsed) ? (parsed as Attachment[]) : [];
   } catch {
     return [];
   }

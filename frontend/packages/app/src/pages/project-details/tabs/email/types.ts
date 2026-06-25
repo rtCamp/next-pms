@@ -4,6 +4,11 @@ export type EmailAddress = {
   image?: string;
 };
 
+export type Attachment = {
+  file_url: string;
+  is_private: 0 | 1;
+};
+
 export type Email = {
   id: string;
   sender: EmailAddress;
@@ -14,5 +19,5 @@ export type Email = {
   body: string;
   sentAt: string;
   status: string;
-  attachments: unknown[];
+  attachments: Attachment[];
 };

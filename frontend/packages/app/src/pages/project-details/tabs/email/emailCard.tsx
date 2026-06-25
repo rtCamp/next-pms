@@ -7,13 +7,15 @@ import {
   formatRelativeTimeShort,
   stripTags,
 } from "@next-pms/design-system/utils";
-import { Avatar, Badge } from "@rtcamp/frappe-ui-react";
+import { Avatar } from "@rtcamp/frappe-ui-react";
 import { format } from "date-fns";
 
 /**
  * Internal dependencies.
  */
+import { AttachmentList } from "./attachmentList";
 import { EmailBody } from "./emailBody";
+import { StatusBadge } from "./statusBadge";
 import type { Email } from "./types";
 
 type EmailCardProps = {
@@ -116,6 +118,13 @@ export function EmailCard({
                         <span>{email.cc.join(", ")}</span>
                       </>
                     )}
+                    {email.bcc && email.bcc.length > 0 && (
+                      <>
+                        {"  "}
+                        <span className="mr-1 text-ink-gray-5">BCC:</span>
+                        <span>{email.bcc.join(", ")}</span>
+                      </>
+                    )}
                   </div>
                 </div>
               </Accordion.Trigger>
@@ -125,29 +134,15 @@ export function EmailCard({
                 <div className="border-0 border-t mt-1 mb-1 border-outline-gray-modals" />
 
                 <EmailBody html={email.body} />
+
+                {email.attachments.length > 0 && (
+                  <AttachmentList attachments={email.attachments} />
+                )}
               </Accordion.Panel>
             </div>
           </div>
         </div>
       </Accordion.Item>
     </Accordion.Root>
-  );
-}
-
-function StatusBadge({ status }: { status: string }) {
-  const isSent = status === "Sent";
-
-  if (!isSent) {
-    return null;
-  }
-
-  return (
-    <Badge
-      variant="solid"
-      size="sm"
-      className="bg-surface-green-2 text-ink-green-3"
-    >
-      Sent
-    </Badge>
   );
 }
