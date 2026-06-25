@@ -20,6 +20,9 @@ export interface AddAllocationInitialValues {
   allocationStartDate?: string;
   allocationEndDate?: string;
   allocationHoursPerDay?: number;
+  segmentStartDate?: string;
+  segmentEndDate?: string;
+  segmentHoursPerDay?: number;
   override?: AllocationOverrideEntry[];
   recurrenceId?: string;
 }
