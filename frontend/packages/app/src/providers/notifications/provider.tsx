@@ -1,7 +1,7 @@
 /**
  * External dependencies.
  */
-import { useCallback, useMemo } from "react";
+import { FC, PropsWithChildren, useCallback, useMemo } from "react";
 import type { NotificationEntry } from "@next-pms/design-system/components";
 import { formatDistanceToNow, parseISO } from "date-fns";
 import { useFrappeGetDocList, useFrappeUpdateDoc } from "frappe-react-sdk";
@@ -12,6 +12,7 @@ import { useFrappeGetDocList, useFrappeUpdateDoc } from "frappe-react-sdk";
 import { ROUTES } from "@/lib/constant";
 import { hashString, toKebabCase } from "@/lib/utils";
 import { useUser } from "@/providers/user";
+import { NotificationsContext } from ".";
 
 interface NotificationDoc {
   name: string;
@@ -23,23 +24,16 @@ interface NotificationDoc {
   viewed: 0 | 1;
 }
 
-const NOTIFICATION_DOCTYPE = "NextPMS Notifications";
-
 interface UserDetails {
   name: string;
   full_name: string;
   user_image: string | null;
 }
 
+const NOTIFICATION_DOCTYPE = "NextPMS Notifications";
 const NOTIFICATION_LIMIT = 20;
 
-export function useNotifications(): {
-  notifications: NotificationEntry[];
-  isLoading: boolean;
-  unreadCount: number;
-  markAsViewed: (id: string) => Promise<void>;
-  markAllAsViewed: () => Promise<void>;
-} {
+export const NotificationsProvider: FC<PropsWithChildren> = ({ children }) => {
   const userId = useUser(({ state }) => state.userId);
 
   const { data, isLoading, mutate } = useFrappeGetDocList<NotificationDoc>(
@@ -141,11 +135,17 @@ export function useNotifications(): {
     await mutate();
   }, [data, updateDoc, mutate]);
 
-  return {
-    notifications,
-    isLoading,
-    unreadCount,
-    markAsViewed,
-    markAllAsViewed,
-  };
-}
+  const value = useMemo(
+    () => ({
+      state: { notifications, isLoading, unreadCount },
+      actions: { markAsViewed, markAllAsViewed },
+    }),
+    [notifications, isLoading, unreadCount, markAsViewed, markAllAsViewed],
+  );
+
+  return (
+    <NotificationsContext.Provider value={value}>
+      {children}
+    </NotificationsContext.Provider>
+  );
+};

@@ -27,14 +27,18 @@ import { ArrowLeftRight, Briefcase, BarChart2, Moon, Sun } from "lucide-react";
  */
 import { ROUTES } from "@/lib/constant";
 import logo from "@/logo.svg";
+import { useNotifications } from "@/providers/notifications";
 import { useTheme } from "@/providers/theme/hook";
 import { useUser } from "@/providers/user";
-import { useNotifications } from "./useNotifications";
 
 const Sidebar = () => {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
-  const { notifications, markAsViewed, markAllAsViewed } = useNotifications();
+  const notifications = useNotifications(({ state }) => state.notifications);
+  const markAsViewed = useNotifications(({ actions }) => actions.markAsViewed);
+  const markAllAsViewed = useNotifications(
+    ({ actions }) => actions.markAllAsViewed,
+  );
 
   const { theme, setTheme } = useTheme();
   const navigate = useNavigate();

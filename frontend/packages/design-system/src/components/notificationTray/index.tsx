@@ -4,7 +4,7 @@
 import { Dialog } from "@base-ui/react/dialog";
 import { ScrollArea } from "@base-ui/react/scroll-area";
 import { Tooltip } from "@rtcamp/frappe-ui-react";
-import { Close, DoubleCheck, Settings } from "@rtcamp/frappe-ui-react/icons";
+import { Close, DoubleCheck } from "@rtcamp/frappe-ui-react/icons";
 
 /**
  * Internal dependencies.
@@ -23,7 +23,6 @@ export interface NotificationTrayProps {
    */
   offsetClassName?: string;
   onMarkAllRead?: () => void;
-  onSettings?: () => void;
   onNotificationClick?: (notification: NotificationEntry) => void;
 }
 
@@ -36,7 +35,6 @@ export default function NotificationTray({
   notifications,
   offsetClassName = "left-0",
   onMarkAllRead,
-  onSettings,
   onNotificationClick,
 }: NotificationTrayProps) {
   return (
@@ -59,15 +57,6 @@ export default function NotificationTray({
               Notifications
             </Dialog.Title>
             <div className="flex items-center gap-0.5">
-              <Tooltip text="Notification Settings">
-                <button
-                  type="button"
-                  onClick={onSettings}
-                  className={actionButtonClasses}
-                >
-                  <Settings size={16} />
-                </button>
-              </Tooltip>
               <Tooltip text="Mark all as read">
                 <button
                   type="button"
