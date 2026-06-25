@@ -3,7 +3,7 @@
  */
 import { useLocation, useNavigate } from "react-router-dom";
 import { Breadcrumbs, Button } from "@rtcamp/frappe-ui-react";
-import { ChevronDown, Plus } from "lucide-react";
+import { AddSm, SmallDown } from "@rtcamp/frappe-ui-react/icons";
 
 /**
  * Internal dependencies.
@@ -32,7 +32,7 @@ function ProjectsHeader({ selectedView, openAddProject }: ProjectsHeaderProps) {
             id: "view",
             label: activeView.label,
             prefixIcon: <activeView.icon className="size-4" />,
-            suffixIcon: <ChevronDown className="w-4 h-4" />,
+            suffixIcon: <SmallDown className="w-4 h-4" />,
             dropdown: {
               dropdownClassName: "w-[220px] px-1",
               groupClassName: "px-0 py-1 space-y-1",
@@ -58,7 +58,7 @@ function ProjectsHeader({ selectedView, openAddProject }: ProjectsHeaderProps) {
       <Button
         variant="solid"
         label="Add project"
-        iconLeft={() => <Plus />}
+        iconLeft={() => <AddSm />}
         onClick={openAddProject}
       />
     </Header>

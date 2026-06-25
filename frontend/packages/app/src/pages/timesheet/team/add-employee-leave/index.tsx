@@ -14,13 +14,13 @@ import {
   Combobox,
 } from "@rtcamp/frappe-ui-react";
 import { useToasts } from "@rtcamp/frappe-ui-react";
+import { Calendar, TimeOff } from "@rtcamp/frappe-ui-react/icons";
 import { useForm, useStore } from "@tanstack/react-form";
 import {
   FrappeError,
   useFrappeCreateDoc,
   useFrappeGetCall,
 } from "frappe-react-sdk";
-import { Calendar, CalendarX2 } from "lucide-react";
 
 /**
  * Internal Dependencies
@@ -148,7 +148,7 @@ const AddEmployeeLeave = ({
         <Button
           className="w-full"
           variant="solid"
-          iconLeft={() => <CalendarX2 />}
+          iconLeft={() => <TimeOff className="size-4 text-ink-gray-7" />}
           label="Add time-off"
           disabled={loading}
           onClick={() => {

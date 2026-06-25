@@ -12,8 +12,8 @@ import {
   ErrorMessage,
   TextInput,
 } from "@rtcamp/frappe-ui-react";
+import { Calendar } from "@rtcamp/frappe-ui-react/icons";
 import { useForm } from "@tanstack/react-form";
-import { Calendar } from "lucide-react";
 
 /**
  * Internal dependencies.

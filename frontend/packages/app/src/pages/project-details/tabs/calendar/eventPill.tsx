@@ -1,7 +1,7 @@
 /**
  * External dependencies.
  */
-import { Diamond, Zap } from "lucide-react";
+import { Sparkle, Zap } from "@rtcamp/frappe-ui-react/icons";
 
 /**
  * Internal dependencies.
@@ -26,7 +26,7 @@ export function EventPill({ item, truncate = false }: EventPillProps) {
       title={item.title}
     >
       {isMilestone ? (
-        <Diamond className="size-3 shrink-0" />
+        <Sparkle className="size-3 shrink-0" />
       ) : (
         <Zap className="size-3 shrink-0" />
       )}

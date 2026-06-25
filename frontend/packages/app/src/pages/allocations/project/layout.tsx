@@ -3,7 +3,7 @@
  */
 import { Outlet } from "react-router-dom";
 import { Button } from "@rtcamp/frappe-ui-react";
-import { Plus } from "lucide-react";
+import { AddSm } from "@rtcamp/frappe-ui-react/icons";
 
 /**
  * Internal dependencies.
@@ -35,7 +35,7 @@ function ProjectAllocationsLayoutContent() {
             variant="solid"
             onClick={() => openAddDialog({})}
             label="Add allocation"
-            iconLeft={() => <Plus />}
+            iconLeft={() => <AddSm />}
           />
         ) : null}
       </Header>

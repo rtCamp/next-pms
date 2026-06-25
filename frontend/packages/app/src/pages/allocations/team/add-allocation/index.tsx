@@ -16,9 +16,9 @@ import {
   DurationInput,
   useToasts,
 } from "@rtcamp/frappe-ui-react";
+import { Calendar } from "@rtcamp/frappe-ui-react/icons";
 import { useForm, useStore } from "@tanstack/react-form";
 import { FrappeError, useFrappePostCall } from "frappe-react-sdk";
-import { Calendar } from "lucide-react";
 
 /**
  * Internal dependencies.

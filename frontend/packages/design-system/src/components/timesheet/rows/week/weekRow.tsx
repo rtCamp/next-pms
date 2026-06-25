@@ -3,7 +3,7 @@
  */
 import React from "react";
 import { Badge, Button } from "@rtcamp/frappe-ui-react";
-import { ChevronDown } from "lucide-react";
+import { SmallDown } from "@rtcamp/frappe-ui-react/icons";
 
 /**
  * Internal dependencies.
@@ -73,7 +73,7 @@ export const WeekRow: React.FC<WeekRowProps> = ({
             collapsed ? "-rotate-90" : "rotate-0",
           )}
         >
-          <ChevronDown strokeWidth={1.5} size={16} />
+          <SmallDown size={16} />
         </span>
         <div className="flex items-center min-w-0 gap-2">
           <span className="text-base font-medium text-ink-gray-8 truncate">

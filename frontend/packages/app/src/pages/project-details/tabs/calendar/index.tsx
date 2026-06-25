@@ -4,9 +4,9 @@
 import { useState } from "react";
 import { useParams } from "react-router-dom";
 import { Button, TabButtons, useToasts } from "@rtcamp/frappe-ui-react";
+import { AddSm } from "@rtcamp/frappe-ui-react/icons";
 import { format, parseISO } from "date-fns";
 import { FrappeError, useFrappePostCall } from "frappe-react-sdk";
-import { Plus } from "lucide-react";
 
 /**
  * Internal dependencies.
@@ -167,7 +167,7 @@ export function CalendarTab() {
           <Button
             variant="solid"
             label="Create"
-            iconLeft={() => <Plus className="size-3.5" />}
+            iconLeft={() => <AddSm className="size-3.5" />}
             onClick={() => {
               if (tableTab === "milestones") {
                 setCreateMilestoneOpen(true);

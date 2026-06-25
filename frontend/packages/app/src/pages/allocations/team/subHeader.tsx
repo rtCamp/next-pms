@@ -13,8 +13,8 @@ import {
 import {
   SmallLeftChevron,
   SmallRightChevron,
+  SmallDown,
 } from "@rtcamp/frappe-ui-react/icons";
-import { ChevronDown } from "lucide-react";
 
 /**
  * Internal dependencies.
@@ -146,7 +146,7 @@ export function SubHeader() {
                 variant="subtle"
                 className="justify-between w-full"
                 iconRight={() => (
-                  <ChevronDown className="size-4 shrink-0 text-ink-gray-8" />
+                  <SmallDown className="size-4 shrink-0 text-ink-gray-8" />
                 )}
               >
                 <span className="truncate text-ink-gray-7">

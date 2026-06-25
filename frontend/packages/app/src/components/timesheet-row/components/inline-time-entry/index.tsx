@@ -11,8 +11,8 @@ import {
   StaticTextEditor,
   useToasts,
 } from "@rtcamp/frappe-ui-react";
+import { EditAlt, Compose, AddSm, Delete } from "@rtcamp/frappe-ui-react/icons";
 import { FrappeError, useFrappePostCall } from "frappe-react-sdk";
-import { Edit, Pen, Plus, Trash2 } from "lucide-react";
 
 /**
  * Internal Dependencies
@@ -343,7 +343,7 @@ export const InlineTimeEntry = ({
                             )}
                             variant="ghost"
                             icon={() => (
-                              <Edit className="text-ink-gray-7" size={16} />
+                              <EditAlt className="text-ink-gray-7" size={16} />
                             )}
                             onClick={(e) => {
                               e.stopPropagation();
@@ -373,7 +373,7 @@ export const InlineTimeEntry = ({
                           variant="subtle"
                           theme="red"
                           size="sm"
-                          iconLeft={() => <Trash2 size={16} />}
+                          iconLeft={() => <Delete size={16} />}
                           onClick={handleDelete}
                           disabled={submitting}
                         >
@@ -416,9 +416,9 @@ export const InlineTimeEntry = ({
                 size="sm"
                 iconLeft={() =>
                   isDraftAvailableInEdit ? (
-                    <Pen size={16} />
+                    <Compose size={16} />
                   ) : (
-                    <Plus size={16} />
+                    <AddSm size={16} />
                   )
                 }
                 onClick={handleToggleAddMode}

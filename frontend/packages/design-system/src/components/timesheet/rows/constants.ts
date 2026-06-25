@@ -2,8 +2,13 @@
  * External dependencies.
  */
 import { BadgeProps, ButtonVariant } from "@rtcamp/frappe-ui-react";
+import {
+  Success,
+  CloseCircle,
+  Hourglass,
+  Send,
+} from "@rtcamp/frappe-ui-react/icons";
 import { cva } from "class-variance-authority";
-import { CircleCheck, CircleX, Hourglass, Send } from "lucide-react";
 
 /**
  * Internal dependencies.
@@ -117,11 +122,11 @@ export const approvalStatusIcon: Record<
   },
   approved: {
     variant: "ghost",
-    icon: CircleCheck,
+    icon: Success,
   },
   rejected: {
     variant: "ghost",
-    icon: CircleX,
+    icon: CloseCircle,
   },
   "approval-pending": {
     variant: "ghost",
@@ -129,11 +134,11 @@ export const approvalStatusIcon: Record<
   },
   "partially-approved": {
     variant: "ghost",
-    icon: CircleCheck,
+    icon: Success,
   },
   "partially-rejected": {
     variant: "ghost",
-    icon: CircleX,
+    icon: CloseCircle,
   },
   none: {
     variant: "ghost",

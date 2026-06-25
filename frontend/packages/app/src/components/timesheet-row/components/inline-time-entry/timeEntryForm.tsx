@@ -7,7 +7,7 @@ import {
   TextEditor,
   DurationInput,
 } from "@rtcamp/frappe-ui-react";
-import { Command, CornerDownLeft, Plus } from "lucide-react";
+import { AddSm } from "@rtcamp/frappe-ui-react/icons";
 
 /**
  * Internal dependencies
@@ -80,9 +80,8 @@ export const TimeEntryForm = ({
                   editorClass="px-2 h-24 prose-sm overflow-scroll scrollbar-thin bg-white border rounded-md border-outline-gray-2 text-ink-gray-7 text-base leading-5.25"
                 />
                 {field.state.value === "" ? (
-                  <span className="absolute flex items-center justify-center text-xs align-middle right-1 bottom-1 text-ink-gray-4">
-                    <Command className="w-3.5! h-3.5!" />+
-                    <CornerDownLeft className="w-3.5! h-3.5!" />
+                  <span className="absolute text-sm align-middle right-2 bottom-1 text-ink-gray-4">
+                    ⌘+↵
                   </span>
                 ) : null}
               </div>
@@ -121,7 +120,7 @@ export const TimeEntryForm = ({
                 className="text-ink-gray-7"
                 variant="subtle"
                 size="sm"
-                iconLeft={() => <Plus size={16} />}
+                iconLeft={() => <AddSm size={16} />}
                 onClick={onSave}
                 disabled={isSaveDisabled}
               >

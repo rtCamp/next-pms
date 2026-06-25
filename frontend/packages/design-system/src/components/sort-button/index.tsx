@@ -4,8 +4,7 @@
 import { useState } from "react";
 import { Popover } from "@base-ui/react";
 import { mergeClassNames as cn } from "@next-pms/design-system";
-import { ArrowDown, ArrowUp } from "@rtcamp/frappe-ui-react/icons";
-import { ArrowUpDown } from "lucide-react";
+import { ArrowDown, ArrowUp, Sort } from "@rtcamp/frappe-ui-react/icons";
 
 export type SortOrder = "asc" | "desc";
 
@@ -52,7 +51,7 @@ export function SortButton({
           className,
         )}
       >
-        <ArrowUpDown className="size-3.5" />
+        <Sort className="size-3.5" />
         Sort
         {isActive && (
           <span className="text-xs text-ink-gray-5">

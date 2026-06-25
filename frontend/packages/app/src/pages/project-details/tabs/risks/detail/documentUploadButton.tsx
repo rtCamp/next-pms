@@ -3,7 +3,7 @@
  */
 import { Spinner } from "@next-pms/design-system/components";
 import { Button, FileUploader, useToasts } from "@rtcamp/frappe-ui-react";
-import { Plus } from "lucide-react";
+import { AddSm } from "@rtcamp/frappe-ui-react/icons";
 
 interface DocumentUploadButtonProps {
   riskName: string;
@@ -35,7 +35,7 @@ export function DocumentUploadButton({
           {uploading ? (
             <Spinner className="size-4" />
           ) : (
-            <Plus className="size-4" />
+            <AddSm className="size-4" />
           )}
         </Button>
       )}

@@ -2,7 +2,7 @@
  * External dependencies.
  */
 import { Button } from "@rtcamp/frappe-ui-react";
-import { Plus } from "lucide-react";
+import { AddSm } from "@rtcamp/frappe-ui-react/icons";
 
 /**
  * Internal dependencies.
@@ -20,7 +20,7 @@ export function RisksHeader() {
         <Button
           variant="solid"
           label="Create"
-          iconLeft={() => <Plus />}
+          iconLeft={() => <AddSm />}
           onClick={openCreateRisk}
         />
       </div>

@@ -1,7 +1,7 @@
 /**
  * External dependencies.
  */
-import { FileText } from "lucide-react";
+import { Filetype } from "@rtcamp/frappe-ui-react/icons";
 
 /**
  * Internal dependencies.
@@ -25,7 +25,7 @@ export function FileCard({ file }: FileCardProps) {
       className="flex items-center gap-2 p-2 rounded-lg border border-transparent hover:border-outline-gray-1 bg-surface-gray-1 min-w-0 max-w-50"
     >
       <div className="flex justify-center items-center text-red-600 bg-red-100 rounded shrink-0 size-9">
-        <FileText className="size-4" />
+        <Filetype className="size-4" />
       </div>
       <div className="flex-1 min-w-0">
         <p className="text-base font-medium truncate text-ink-gray-7">

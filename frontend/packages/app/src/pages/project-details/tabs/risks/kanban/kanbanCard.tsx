@@ -4,8 +4,7 @@
 import { useRef } from "react";
 import { stripTags } from "@next-pms/design-system/utils";
 import { Avatar } from "@rtcamp/frappe-ui-react";
-import { Fire } from "@rtcamp/frappe-ui-react/icons";
-import { Tag, AlignLeft } from "lucide-react";
+import { Fire, Tag1, Title } from "@rtcamp/frappe-ui-react/icons";
 
 /**
  * Internal dependencies.
@@ -62,7 +61,7 @@ export function RiskCard({ risk }: RiskCardProps) {
         {/* Category */}
         {risk.risk_category && (
           <div className="flex items-center gap-2 mb-3.5">
-            <Tag className="size-4 shrink-0" />
+            <Tag1 className="size-4 shrink-0" />
             <span className="truncate">{risk.risk_category}</span>
           </div>
         )}
@@ -85,7 +84,7 @@ export function RiskCard({ risk }: RiskCardProps) {
         {/* Summary */}
         {risk.summary && (
           <div className="flex items-start gap-2">
-            <AlignLeft className="size-4 shrink-0 mt-0.5" />
+            <Title className="size-4 shrink-0 mt-0.5" />
             <span className="line-clamp-2 leading-normal">
               {stripTags(risk.summary)}
             </span>

@@ -1,7 +1,7 @@
 /**
  * External dependencies.
  */
-import { Diamond, Zap } from "lucide-react";
+import { Sparkle, Zap } from "@rtcamp/frappe-ui-react/icons";
 
 /**
  * Internal dependencies.
@@ -9,7 +9,7 @@ import { Diamond, Zap } from "lucide-react";
 import type { ProjectTimelineItem } from "../../types";
 
 export function TitleCell({ item }: { item: ProjectTimelineItem }) {
-  const Icon = item.type === "Milestone" ? Diamond : Zap;
+  const Icon = item.type === "Milestone" ? Sparkle : Zap;
 
   return (
     <div className="flex items-center gap-2 text-ink-gray-8">
