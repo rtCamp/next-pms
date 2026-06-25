@@ -23,4 +23,4 @@ def share_project_with_employee(doc):
         )
         if not user or already_shared:
             continue
-        frappe.share.add_docshare("Project", doc.name, user=user, flasgs={"ignore_share_permission": True})
+        frappe.share.add_docshare("Project", doc.name, user=user, flags={"ignore_share_permission": True})
