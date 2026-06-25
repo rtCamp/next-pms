@@ -23,7 +23,7 @@ interface UseSalesInvoiceLookupOptions {
   /** Filters sales invoices by partial name on the backend. */
   query: string;
   /** Restricts the lookup to sales invoices linked to this project. */
-  projectId?: string;
+  filters?: string[][];
   /** Revalidates the lookup when the window regains focus. */
   revalidateOnFocus?: boolean;
   /** Keeps the current selection visible when it is not in the latest results. */
@@ -37,7 +37,7 @@ export const useSalesInvoiceLookup = ({
   shouldFetch,
   pageSize = 20,
   query,
-  projectId,
+  filters,
   revalidateOnFocus,
   selectedOption,
 }: UseSalesInvoiceLookupOptions) => {
@@ -61,7 +61,7 @@ export const useSalesInvoiceLookup = ({
         "posting_date",
       ],
       limit_page_length: pageSize,
-      filters: projectId ? { project: projectId } : undefined,
+      filters,
       or_filters: searchQuery
         ? [["Sales Invoice", "name", "like", `%${searchQuery}%`]]
         : undefined,

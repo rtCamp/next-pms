@@ -19,6 +19,7 @@ import { useForm } from "@tanstack/react-form";
  * Internal dependencies.
  */
 import { useEmployeeLookup } from "@/hooks/useEmployeeLookup";
+import { useProjectDetail } from "@/pages/project-details/context";
 import { addProjectRateSchema } from "./schema";
 import type { ProjectRateFormValues, ProjectRateModalProps } from "./types";
 
@@ -37,6 +38,7 @@ export function ProjectRateModal({
 }: ProjectRateModalProps) {
   const [employeeSearch, setEmployeeSearch] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const projectId = useProjectDetail((s) => s.projectId);
 
   const isEdit = mode === "edit";
   const title = isEdit ? "Edit project rate" : "Add project rate";
@@ -70,6 +72,7 @@ export function ProjectRateModal({
       shouldFetch: open,
       pageSize: 20,
       query: employeeSearch,
+      projects: [projectId],
     });
 
   const employeeOptionsWithAvatars = useMemo(

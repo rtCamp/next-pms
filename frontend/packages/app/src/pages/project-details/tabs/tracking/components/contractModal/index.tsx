@@ -19,6 +19,7 @@ import { useForm } from "@tanstack/react-form";
  */
 import { useSalesInvoiceLookup } from "@/hooks/useSalesInvoiceLookup";
 import { useSalesOrderLookup } from "@/hooks/useSalesOrderLookup";
+import { useProjectDetail } from "@/pages/project-details/context";
 import { addContractSchema } from "./schema";
 import type { ContractFormValues, ContractModalProps } from "./types";
 
@@ -40,6 +41,7 @@ export function ContractModal({
   const [salesOrderSearch, setSalesOrderSearch] = useState("");
   const [salesInvoiceSearch, setSalesInvoiceSearch] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const customer = useProjectDetail((state) => state.project?.customer);
 
   const isEdit = mode === "edit";
   const title = isEdit ? "Edit contract" : "Add contract";
@@ -73,6 +75,7 @@ export function ContractModal({
       shouldFetch: open,
       pageSize: 20,
       query: salesOrderSearch,
+      filters: [["Sales Order", "customer", "=", customer || ""]],
     });
 
   const {
@@ -82,6 +85,7 @@ export function ContractModal({
     shouldFetch: open,
     pageSize: 20,
     query: salesInvoiceSearch,
+    filters: [["Sales Invoice", "customer", "=", customer || ""]],
   });
 
   const handleOpenChange = useCallback(
@@ -98,7 +102,7 @@ export function ContractModal({
       }
       onOpenChange(next);
     },
-    [onOpenChange],
+    [form, initialValues, onOpenChange],
   );
 
   return (

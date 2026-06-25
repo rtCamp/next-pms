@@ -361,15 +361,17 @@ def _get_project_members(
         fields=["user"],
     )
 
-    role_map: dict[str, str] = {}
+    role_map: dict[str, list[str]] = {}
     user_ids: list[str] = []
 
     def _add(uid: str | None, role: str | None = None) -> None:
         if not uid:
             return
         if uid not in role_map:
-            role_map[uid] = role
+            role_map[uid] = []
             user_ids.append(uid)
+        if role and role not in role_map[uid]:
+            role_map[uid].append(role)
 
     _add(project_manager, "Project Manager")
     _add(engineering_manager, "Engineering Manager")
@@ -422,7 +424,7 @@ def _get_project_members(
             "hourly_rate": _hourly_rate(emp.name if emp else None),
             "currency": currency if emp else None,
             "logged_hours": logged_hours_map.get(emp.name, 0.0) if emp else 0.0,
-            "project_role": role_map.get(uid),
+            "project_roles": role_map.get(uid, []),
         }
         for uid in user_ids
         if uid in user_map
@@ -490,6 +492,38 @@ def _get_project_customers(project_doc) -> list[dict]:
         }
         for name in contact_names
         if (c := contact_map.get(name))
+    ]
+
+
+def _get_project_billing_team(project_name: str) -> list[dict]:
+    """Return billing team members with name, employee_id and user_id."""
+    rows = frappe.get_all(
+        "Project Billing Team",
+        filters={"parent": project_name},
+        fields=["employee", "user_name"],
+        order_by="idx asc",
+    )
+    employee_ids = [row.employee for row in rows if row.employee]
+    if not employee_ids:
+        return []
+
+    user_id_map = {
+        e.name: e.user_id
+        for e in frappe.get_all(
+            "Employee",
+            filters={"name": ["in", employee_ids]},
+            fields=["name", "user_id"],
+        )
+    }
+
+    return [
+        {
+            "name": row.user_name,
+            "employee_id": row.employee,
+            "user_id": user_id_map.get(row.employee),
+        }
+        for row in rows
+        if row.employee
     ]
 
 
@@ -802,6 +836,7 @@ def get_project_sidebar(project: str):
         progress      - actual_time, total_hours_purchased
         members       - users the project has been shared with
         customers     - contacts from custom_customer_contacts
+        billing_team  - billing team members (name, employee_id, user_id)
     """
     only_for(ALLOWED_ROLES, message=True)
 
@@ -848,4 +883,5 @@ def get_project_sidebar(project: str):
             project_doc.get("custom_engineering_manager"),
         ),
         "customers": _get_project_customers(project_doc),
+        "billing_team": _get_project_billing_team(project),
     }

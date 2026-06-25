@@ -1,10 +1,8 @@
 export const ROUTES = {
   base: "/next-pms",
-  home: "/",
   dashboard: "/dashboard",
   "dashboard-leadership": "/dashboard/leadership",
   "dashboard-manager": "/dashboard/manager",
-  task: "/task",
   project: "/projects",
   "project-kanban": "/projects/kanban",
   "timesheet-personal": "/timesheet",
@@ -12,8 +10,6 @@ export const ROUTES = {
   "timesheet-project": "/timesheet/project",
   "allocations-team": "/allocations/team",
   "allocations-project": "/allocations/project",
-  roadmap: "/roadmap",
-  report: "/report",
   desk: "/desk",
   apps: "/apps",
 };

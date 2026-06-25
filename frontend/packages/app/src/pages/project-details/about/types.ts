@@ -35,7 +35,13 @@ export type AboutMember = {
   linkedin?: string;
   loggedHours?: number;
   totalHoursPurchased?: number;
-  projectRole?: string;
+  projectRoles: string[];
+};
+
+export type BillingTeamMember = {
+  name: string | null;
+  employeeId: string;
+  userId: string | null;
 };
 
 export type AboutCustomer = {
@@ -107,7 +113,7 @@ export type ProjectSidebar = {
     logged_hours?: number | null;
     currency: string | null;
     linkedin_url?: string | null;
-    project_role?: string | null;
+    project_roles: string[];
   }>;
   customers: Array<{
     contact: string;
@@ -118,6 +124,11 @@ export type ProjectSidebar = {
     email_id: string | null;
     phone: string | null;
     linkedin_url?: string | null;
+  }>;
+  billing_team: Array<{
+    name: string | null;
+    employee_id: string;
+    user_id: string | null;
   }>;
 };
 
