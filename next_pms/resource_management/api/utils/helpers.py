@@ -279,7 +279,7 @@ def normalize_project_view_filters(filters, allow_privileged: bool = True):
 def normalize_team_view_filters(
     filters: str | list | None,
     allow_privileged: bool = False,
-) -> tuple[list[list], list[list], int | None]:
+) -> tuple[list[list], list[list], list[list], int | None]:
     """Validate a [field, operator, value] filter list for the team view.
 
     Args:
@@ -293,6 +293,7 @@ def normalize_team_view_filters(
         A tuple of:
             - employee_conditions: [db_column, operator, value] for direct Employee columns.
             - skill_conditions: [operator, value] to resolve against the Employee Skill doctype.
+            - tag_conditions: [operator, value] to resolve against the Tag Link doctype.
             - is_billable_value: 0, 1, or None when no is_billable condition was requested.
     """
     field_map = {
@@ -307,10 +308,11 @@ def normalize_team_view_filters(
 
     employee_conditions = []
     skill_conditions = []
+    tag_conditions = []
     is_billable_value = None
 
     if not filters:
-        return employee_conditions, skill_conditions, is_billable_value
+        return employee_conditions, skill_conditions, tag_conditions, is_billable_value
 
     if isinstance(filters, str):
         try:
@@ -330,7 +332,7 @@ def normalize_team_view_filters(
         if operator not in allowed_operators:
             frappe.throw(frappe._("Unsupported filter operator: {0}").format(operator))
 
-        if field not in field_map and field not in ("skills", "is_billable"):
+        if field not in field_map and field not in ("skills", "tag", "is_billable"):
             frappe.throw(frappe._("Filtering on field {0} is not supported.").format(field))
 
         if not allow_privileged and field != "employee_name":
@@ -344,12 +346,14 @@ def normalize_team_view_filters(
             is_billable_value = value if operator == "=" else 1 - value
         elif field == "skills":
             skill_conditions.append([operator, value])
+        elif field == "tag":
+            tag_conditions.append([operator, value])
         else:
             if operator in ("like", "not like"):
                 value = f"%{value}%"
             employee_conditions.append([field_map[field], operator, value])
 
-    return employee_conditions, skill_conditions, is_billable_value
+    return employee_conditions, skill_conditions, tag_conditions, is_billable_value
 
 
 def filter_project_list(

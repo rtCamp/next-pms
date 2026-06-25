@@ -6,6 +6,7 @@ from frappe.core.doctype.recorder.recorder import redis_cache
 from frappe.utils import DATE_FORMAT, getdate
 
 from next_pms.resource_management.api.utils.helpers import (
+    _parse_multi_select_filter,
     add_customer_data_if_not_exists,
     find_worked_hours,
     get_allocation_objects,
@@ -37,6 +38,7 @@ def get_resource_management_team_view_data(
     page_length: int = 10,
     start: int = 0,
     skills: list | str | None = None,
+    tag: list | str | None = None,
     employee_id: list | str | None = None,
     need_hours_summary: bool = False,
     filters: str | list | None = None,
@@ -63,6 +65,10 @@ def get_resource_management_team_view_data(
         skills (list | str | None): JSON-encoded list of skill names. When provided and
             `employee_id` is absent, only employees possessing all listed skills are
             returned. Defaults to None.
+        tag (list | str | None): Tag(s) to match via the Tag Link doctype; restricts
+            results to the employees carrying any of the given tags. Accepts a single
+            value or a multi-select list/JSON. Ignored when the caller lacks write
+            permission. Defaults to None.
         employee_id (list | str | None): JSON-encoded list of employee IDs. Takes
             priority over `skills` when both are provided. Defaults to None.
         need_hours_summary (bool): Switches the response shape.
@@ -72,10 +78,10 @@ def get_resource_management_team_view_data(
             [field, operator, value] conditions, ANDed with each other and with the
             dedicated params above. Allowed operators: =, !=, like, not like. Supported
             fields: employee_name, business_unit, designation, reports_to,
-            reporting_manager, employee_id, skills, is_billable. reports_to matches the
-            manager's Employee id (Link); reporting_manager matches the manager's name
+            reporting_manager, employee_id, skills, tag, is_billable. reports_to matches
+            the manager's Employee id (Link); reporting_manager matches the manager's name
             (custom_reporting_manager) and is LIKE-searchable. skills is resolved against
-            the Employee Skill doctype;
+            the Employee Skill doctype; tag is resolved against the Tag Link doctype;
             is_billable accepts only = or != with a value of 0 or 1. For callers without
             write permission only employee_name conditions are honored. Defaults to None.
 
@@ -199,6 +205,7 @@ def get_resource_management_team_view_data(
         page_length,
         start,
         skills,
+        tag,
         employee_id,
         need_hours_summary,
         filters,
@@ -219,6 +226,7 @@ def _get_resource_management_team_view_data(
     page_length: int = 10,
     start: int = 0,
     skills: list | str | None = None,
+    tag: list | str | None = None,
     employee_id: list | str | None = None,
     need_hours_summary: bool = False,
     filters: str | list | None = None,
@@ -233,6 +241,7 @@ def _get_resource_management_team_view_data(
         reports_to = None
         customer = None
         employee_id = None
+        tag = None
 
     data = []
     customer = {}
@@ -246,7 +255,7 @@ def _get_resource_management_team_view_data(
     if isinstance(allocation_status, str):
         allocation_status = frappe.parse_json(allocation_status)
 
-    employee_conditions, skill_conditions, filter_is_billable = normalize_team_view_filters(
+    employee_conditions, skill_conditions, tag_conditions, filter_is_billable = normalize_team_view_filters(
         filters, allow_privileged=permissions["write"]
     )
     if filter_is_billable is not None:
@@ -266,6 +275,30 @@ def _get_resource_management_team_view_data(
         )
         name_op = "in" if operator in ("=", "like") else "not in"
         extra_conditions.append(["name", name_op, skilled_employees or []])
+
+    tag_values = _parse_multi_select_filter(tag)
+    if tag_values:
+        # Tags live in the Tag Link doctype, not on Employee, so resolve the tagged
+        # employees and restrict the result to them.
+        tagged_employees = frappe.get_all(
+            "Tag Link",
+            filters={"document_type": "Employee", "tag": ["in", tag_values]},
+            pluck="document_name",
+            distinct=True,
+        )
+        extra_conditions.append(["name", "in", tagged_employees or []])
+
+    for operator, value in tag_conditions:  # composite filter
+        tag_op = "like" if operator in ("like", "not like") else "="
+        tag_value = f"%{value}%" if operator in ("like", "not like") else value
+        tagged_employees = frappe.get_all(
+            "Tag Link",
+            filters={"document_type": "Employee", "tag": [tag_op, tag_value]},
+            pluck="document_name",
+            distinct=True,
+        )
+        name_op = "in" if operator in ("=", "like") else "not in"
+        extra_conditions.append(["name", name_op, tagged_employees or []])
 
     if employee_id:
         if isinstance(employee_id, str):
