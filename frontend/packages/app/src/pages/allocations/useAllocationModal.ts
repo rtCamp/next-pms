@@ -75,6 +75,15 @@ export function useAllocationModal(refresh: RefreshAllocations) {
       isBillable: data.billable,
       isTentative: data.tentative,
       note: data.note,
+      allocationStartDate: data.allocationStartDate
+        ? format(data.allocationStartDate, "yyyy-MM-dd")
+        : undefined,
+      allocationEndDate: data.allocationEndDate
+        ? format(data.allocationEndDate, "yyyy-MM-dd")
+        : undefined,
+      allocationHoursPerDay: data.allocationHoursPerDay,
+      override: data.override,
+      recurrenceId: data.recurrenceId,
     });
     setIsOpen(true);
   }, []);
@@ -154,14 +163,28 @@ export function useAllocationModal(refresh: RefreshAllocations) {
           rangeStart: initialValues?.fromDate ?? "",
           rangeEnd: initialValues?.toDate ?? "",
           defaultHoursPerDay: initialValues?.hoursPerDay ?? 0,
+          allocationStartDate: initialValues?.allocationStartDate,
+          allocationEndDate: initialValues?.allocationEndDate,
+          allocationHoursPerDay: initialValues?.allocationHoursPerDay,
           isBillable: initialValues?.isBillable,
           isTentative: initialValues?.isTentative,
           note: initialValues?.note,
+          override: initialValues?.override,
+          recurrenceId: initialValues?.recurrenceId,
         });
         setIsEditScheduleOpen(true);
       },
     }),
     [variant, isOpen, handleOpenChange, initialValues, handleSuccess],
+  );
+
+  const handleEditScheduleSuccess = useCallback(
+    async (targets?: AllocationRefreshTargets) => {
+      await refresh(targets);
+      setIsEditScheduleOpen(false);
+      setEditScheduleInitialValues(undefined);
+    },
+    [refresh],
   );
 
   const editScheduleModalProps = useMemo(
@@ -174,8 +197,9 @@ export function useAllocationModal(refresh: RefreshAllocations) {
         }
       },
       initialValues: editScheduleInitialValues,
+      onSuccess: handleEditScheduleSuccess,
     }),
-    [isEditScheduleOpen, editScheduleInitialValues],
+    [isEditScheduleOpen, editScheduleInitialValues, handleEditScheduleSuccess],
   );
 
   return {

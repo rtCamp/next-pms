@@ -13,9 +13,11 @@ import {
 /**
  * Internal dependencies.
  */
+import { EDIT_SCHEDULE_APPLY_MODES } from "@/pages/allocations/constants";
 import type { AllocationOverrideEntry } from "@/pages/allocations/utils";
 import type {
   DayItem,
+  EditScheduleApplyMode,
   EditScheduleDraft,
   EditScheduleValueMode,
   PreviewRow,
@@ -26,6 +28,34 @@ import type {
  */
 export const toDisplayHours = (value: number): string =>
   String(Number(value.toFixed(2)));
+
+/**
+ * Normalizes a TanStack field error into a displayable message string.
+ */
+export const getErrorMessage = (error: unknown): string | undefined => {
+  if (typeof error === "string") {
+    return error;
+  }
+
+  if (
+    typeof error === "object" &&
+    error !== null &&
+    "message" in error &&
+    typeof error.message === "string"
+  ) {
+    return error.message;
+  }
+
+  return undefined;
+};
+
+/**
+ * Type guard for the recurring edit-schedule apply mode.
+ */
+export const isEditScheduleApplyMode = (
+  value: string,
+): value is EditScheduleApplyMode =>
+  EDIT_SCHEDULE_APPLY_MODES.has(value as EditScheduleApplyMode);
 
 /**
  * Normalizes a date range to ensure the start date is less than or equal to the end date.
@@ -79,7 +109,12 @@ export const formatRange = (
     return format(parseISO(safe.startDate), "MMM d");
   }
 
-  return `${format(parseISO(safe.startDate), "MMM d")} - ${format(parseISO(safe.endDate), "MMM d")}`;
+  const start = parseISO(safe.startDate);
+  const end = parseISO(safe.endDate);
+
+  return isSameMonth(start, end)
+    ? `${format(start, "MMM d")} - ${format(end, "d")}`
+    : `${format(start, "MMM d")} - ${format(end, "MMM d")}`;
 };
 
 /**

@@ -19,7 +19,7 @@ function ScheduleHoursPerDayField({
   return (
     <div className="flex-1 space-y-1.5">
       <label className="block text-base text-ink-gray-5">
-        Edit Hours / day
+        Edit hours / day
       </label>
       <DurationInput
         snap="smooth"
