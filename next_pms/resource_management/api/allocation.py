@@ -558,13 +558,14 @@ def get_allocation_series(name: str):
     if not permission["read"]:
         frappe.throw(frappe._("You are not allowed to perform this action."), exc=frappe.PermissionError)
 
-    if not frappe.db.exists("Resource Allocation", name):
+    picked = frappe.db.get_value("Resource Allocation", name, "recurrence_id", as_dict=True)
+    if picked is None:
         frappe.throw(
             frappe._("Resource Allocation {0} does not exist.").format(name),
             exc=frappe.DoesNotExistError,
         )
 
-    recurrence_id = frappe.db.get_value("Resource Allocation", name, "recurrence_id")
+    recurrence_id = picked.recurrence_id
     fields = [
         "name",
         "allocation_start_date",
