@@ -30,7 +30,7 @@ jobs:
         options: --health-cmd="mysqladmin ping -uroot -proot" --health-interval=5s --health-timeout=2s --health-retries=3
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v4
         with:
           submodules: recursive
 
