@@ -26,6 +26,9 @@ frappe.ui.form.on("Project", {
   },
   refresh: function (frm) {
     if (!frm.is_new()) {
+      frm.add_custom_button(__("Refresh Costing"), () => {
+        frm.events.refresh_costing(frm);
+      });
       frm.add_custom_button(__("Recalculate Timesheet Billing"), () => {
         frm.events.recalculate_timesheet_billing(frm);
       });
@@ -67,6 +70,21 @@ frappe.ui.form.on("Project", {
         "For time and material project, reminder is sent based on Total Billable Amount (via Timesheet) vs Estimated Cost."
       );
     }
+  },
+  refresh_costing: function (frm) {
+    // dedicated refresh of Project costing fields
+    frappe.call({
+      method: "erpnext.projects.doctype.project.project.update_costing_and_billing",
+      args: { project: frm.doc.name },
+      freeze: true,
+      freeze_message: __("Refreshing project costing..."),
+      callback: function (r) {
+        if (r && !r.exc) {
+          frappe.show_alert({ message: __("Costing refreshed"), indicator: "green" });
+          frm.reload_doc();
+        }
+      },
+    });
   },
   recalculate_timesheet_billing: function (frm) {
     const base_fields = [
