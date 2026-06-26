@@ -355,10 +355,23 @@ def _get_resource_management_project_view_data(
 
 
 @frappe.whitelist(methods=["GET"])
-@redis_cache()
 def get_employees_resrouce_data_for_given_project(project: str, start_date: str, end_date: str, is_billable: int = -1):
     """Returns the data required for resource management employee view based on the filters provided for a given project"""
     permissions = resource_api_permissions_check()
+    return _get_employees_resrouce_data_for_given_project(
+        json.dumps(permissions),
+        project,
+        start_date,
+        end_date,
+        is_billable,
+    )
+
+
+@redis_cache()
+def _get_employees_resrouce_data_for_given_project(
+    permissions: str, project: str, start_date: str, end_date: str, is_billable: int = -1
+):
+    permissions = json.loads(permissions)
 
     if not permissions["write"]:
         is_billable = -1
