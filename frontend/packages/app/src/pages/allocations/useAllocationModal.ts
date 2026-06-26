@@ -59,6 +59,16 @@ export function useAllocationModal(refresh: RefreshAllocations) {
   }, []);
 
   const openEditDialog = useCallback((data: AllocationCallbackData) => {
+    const isRecurringAllocation = Boolean(data.recurrenceId);
+    const formStartDate =
+      isRecurringAllocation && data.allocationStartDate
+        ? data.allocationStartDate
+        : data.startDate;
+    const formEndDate =
+      isRecurringAllocation && data.allocationEndDate
+        ? data.allocationEndDate
+        : data.endDate;
+
     setOnSuccess(undefined);
     setVariant("edit");
     setInitialValues({
@@ -67,11 +77,12 @@ export function useAllocationModal(refresh: RefreshAllocations) {
       ...(data.projectId ? { projectId: data.projectId } : {}),
       customer: data.customerName,
       recurrence: data.recurrenceId ? "recurring" : "one-time",
-      fromDate: data.startDate
-        ? format(data.startDate, "yyyy-MM-dd")
-        : undefined,
-      toDate: data.endDate ? format(data.endDate, "yyyy-MM-dd") : undefined,
-      hoursPerDay: data.hoursPerDay,
+      fromDate: formStartDate ? format(formStartDate, "yyyy-MM-dd") : undefined,
+      toDate: formEndDate ? format(formEndDate, "yyyy-MM-dd") : undefined,
+      hoursPerDay:
+        isRecurringAllocation && data.allocationHoursPerDay !== undefined
+          ? data.allocationHoursPerDay
+          : data.hoursPerDay,
       isBillable: data.billable,
       isTentative: data.tentative,
       note: data.note,
@@ -82,6 +93,17 @@ export function useAllocationModal(refresh: RefreshAllocations) {
         ? format(data.allocationEndDate, "yyyy-MM-dd")
         : undefined,
       allocationHoursPerDay: data.allocationHoursPerDay,
+      segmentStartDate: data.segmentStartDate
+        ? format(data.segmentStartDate, "yyyy-MM-dd")
+        : data.startDate
+          ? format(data.startDate, "yyyy-MM-dd")
+          : undefined,
+      segmentEndDate: data.segmentEndDate
+        ? format(data.segmentEndDate, "yyyy-MM-dd")
+        : data.endDate
+          ? format(data.endDate, "yyyy-MM-dd")
+          : undefined,
+      segmentHoursPerDay: data.segmentHoursPerDay ?? data.hoursPerDay,
       override: data.override,
       recurrenceId: data.recurrenceId,
     });
@@ -160,9 +182,14 @@ export function useAllocationModal(refresh: RefreshAllocations) {
           employeeId: initialValues?.employeeId,
           projectId: initialValues?.projectId,
           customer: initialValues?.customer,
-          rangeStart: initialValues?.fromDate ?? "",
-          rangeEnd: initialValues?.toDate ?? "",
-          defaultHoursPerDay: initialValues?.hoursPerDay ?? 0,
+          rangeStart:
+            initialValues?.segmentStartDate ?? initialValues?.fromDate ?? "",
+          rangeEnd:
+            initialValues?.segmentEndDate ?? initialValues?.toDate ?? "",
+          defaultHoursPerDay:
+            initialValues?.segmentHoursPerDay ??
+            initialValues?.hoursPerDay ??
+            0,
           allocationStartDate: initialValues?.allocationStartDate,
           allocationEndDate: initialValues?.allocationEndDate,
           allocationHoursPerDay: initialValues?.allocationHoursPerDay,

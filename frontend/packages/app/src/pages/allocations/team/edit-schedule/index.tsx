@@ -290,7 +290,7 @@ function EditScheduleModal({
       className="max-w-90"
       classNames={{
         content: "p-[14px] sm:p-[14px] pb-0 sm:pb-0",
-        header: "mb-5",
+        header: "mb-3",
         footer: "p-[14px] sm:p-[14px] pt-5 sm:pt-5",
       }}
     >
