@@ -19,13 +19,16 @@ export function AttachmentList({ attachments }: AttachmentListProps) {
         const filename =
           attachment.file_url.split("/").pop() ?? attachment.file_url;
         return (
-          <div
+          <a
             key={attachment.file_url}
-            className="flex items-center gap-1.5 rounded border border-outline-gray-2 px-2 py-1 text-sm text-ink-gray-7"
+            href={attachment.file_url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-1.5 rounded border border-outline-gray-2 px-2 py-1 text-sm text-ink-gray-7 hover:bg-surface-gray-2 transition-colors"
           >
             <FileIcon className="size-3.5 shrink-0 text-ink-gray-5" />
             <span className="max-w-48 truncate">{filename}</span>
-          </div>
+          </a>
         );
       })}
     </div>
