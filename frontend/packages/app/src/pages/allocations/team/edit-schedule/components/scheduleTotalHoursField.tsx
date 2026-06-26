@@ -19,7 +19,7 @@ function ScheduleTotalHoursField({
   return (
     <div className="flex-1 space-y-1.5">
       <label className="block text-base text-ink-gray-5">
-        Edit Total Hours
+        Edit total hours
       </label>
       <TextInput
         type="number"

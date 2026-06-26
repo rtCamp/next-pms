@@ -1,4 +1,5 @@
 import type { AllocationRefreshTargets } from "../../types";
+import type { AllocationOverrideEntry } from "../../utils";
 
 export type AddAllocationLayoutVariant = "team" | "project";
 
@@ -16,6 +17,11 @@ export interface AddAllocationInitialValues {
   isBillable?: boolean;
   isTentative?: boolean;
   note?: string;
+  allocationStartDate?: string;
+  allocationEndDate?: string;
+  allocationHoursPerDay?: number;
+  override?: AllocationOverrideEntry[];
+  recurrenceId?: string;
 }
 
 export interface AddAllocationModalProps {
