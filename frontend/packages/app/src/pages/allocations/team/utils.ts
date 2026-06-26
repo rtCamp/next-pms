@@ -4,7 +4,7 @@ import {
   calculateAllocationHourlyRate,
   formatAllocationCapacity,
   getAllocationCapacityHoursPerDay,
-  mapResourceAllocation,
+  mapResourceAllocationSegments,
 } from "../utils";
 import type { ManagerNameMap, TeamAllocationResponse } from "./type";
 
@@ -34,7 +34,7 @@ export function mapTeamAllocationToMembers(
         projectName: string;
         projectId: string;
         customerName: string;
-        allocations: ReturnType<typeof mapResourceAllocation>[];
+        allocations: ReturnType<typeof mapResourceAllocationSegments>;
       }
     >
   >();
@@ -71,7 +71,7 @@ export function mapTeamAllocationToMembers(
 
     projectMap
       .get(alloc.project)!
-      .allocations.push(mapResourceAllocation(alloc, customerName));
+      .allocations.push(...mapResourceAllocationSegments(alloc, customerName));
   }
 
   return employeeList.map((employee): Member => {

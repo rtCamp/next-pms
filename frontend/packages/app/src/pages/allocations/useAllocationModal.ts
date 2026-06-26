@@ -14,6 +14,7 @@ import { useFrappePostCall } from "frappe-react-sdk";
  * Internal dependencies.
  */
 import type { AddAllocationInitialValues } from "@/pages/allocations/team/add-allocation/types";
+import type { EditScheduleInitialValues } from "@/pages/allocations/team/edit-schedule/types";
 import type { AllocationOutletContext } from "./allocationOutletContext";
 import type { AllocationRefreshTargets } from "./types";
 
@@ -24,6 +25,10 @@ export function useAllocationModal(refresh: RefreshAllocations) {
   const [variant, setVariant] = useState<"add" | "edit">("add");
   const [initialValues, setInitialValues] = useState<
     AddAllocationInitialValues | undefined
+  >(undefined);
+  const [isEditScheduleOpen, setIsEditScheduleOpen] = useState(false);
+  const [editScheduleInitialValues, setEditScheduleInitialValues] = useState<
+    EditScheduleInitialValues | undefined
   >(undefined);
   const [onSuccess, setOnSuccess] =
     useState<AllocationCallbackData["onSuccess"]>(undefined);
@@ -54,6 +59,16 @@ export function useAllocationModal(refresh: RefreshAllocations) {
   }, []);
 
   const openEditDialog = useCallback((data: AllocationCallbackData) => {
+    const isRecurringAllocation = Boolean(data.recurrenceId);
+    const formStartDate =
+      isRecurringAllocation && data.allocationStartDate
+        ? data.allocationStartDate
+        : data.startDate;
+    const formEndDate =
+      isRecurringAllocation && data.allocationEndDate
+        ? data.allocationEndDate
+        : data.endDate;
+
     setOnSuccess(undefined);
     setVariant("edit");
     setInitialValues({
@@ -62,14 +77,35 @@ export function useAllocationModal(refresh: RefreshAllocations) {
       ...(data.projectId ? { projectId: data.projectId } : {}),
       customer: data.customerName,
       recurrence: data.recurrenceId ? "recurring" : "one-time",
-      fromDate: data.startDate
-        ? format(data.startDate, "yyyy-MM-dd")
-        : undefined,
-      toDate: data.endDate ? format(data.endDate, "yyyy-MM-dd") : undefined,
-      hoursPerDay: data.hoursPerDay,
+      fromDate: formStartDate ? format(formStartDate, "yyyy-MM-dd") : undefined,
+      toDate: formEndDate ? format(formEndDate, "yyyy-MM-dd") : undefined,
+      hoursPerDay:
+        isRecurringAllocation && data.allocationHoursPerDay !== undefined
+          ? data.allocationHoursPerDay
+          : data.hoursPerDay,
       isBillable: data.billable,
       isTentative: data.tentative,
       note: data.note,
+      allocationStartDate: data.allocationStartDate
+        ? format(data.allocationStartDate, "yyyy-MM-dd")
+        : undefined,
+      allocationEndDate: data.allocationEndDate
+        ? format(data.allocationEndDate, "yyyy-MM-dd")
+        : undefined,
+      allocationHoursPerDay: data.allocationHoursPerDay,
+      segmentStartDate: data.segmentStartDate
+        ? format(data.segmentStartDate, "yyyy-MM-dd")
+        : data.startDate
+          ? format(data.startDate, "yyyy-MM-dd")
+          : undefined,
+      segmentEndDate: data.segmentEndDate
+        ? format(data.segmentEndDate, "yyyy-MM-dd")
+        : data.endDate
+          ? format(data.endDate, "yyyy-MM-dd")
+          : undefined,
+      segmentHoursPerDay: data.segmentHoursPerDay ?? data.hoursPerDay,
+      override: data.override,
+      recurrenceId: data.recurrenceId,
     });
     setIsOpen(true);
   }, []);
@@ -139,13 +175,65 @@ export function useAllocationModal(refresh: RefreshAllocations) {
       onOpenChange: handleOpenChange,
       initialValues,
       onSuccess: handleSuccess,
+      onEditScheduleClick: () => {
+        setIsOpen(false);
+        setEditScheduleInitialValues({
+          allocationName: initialValues?.allocationName ?? "",
+          employeeId: initialValues?.employeeId,
+          projectId: initialValues?.projectId,
+          customer: initialValues?.customer,
+          rangeStart:
+            initialValues?.allocationStartDate ?? initialValues?.fromDate ?? "",
+          rangeEnd:
+            initialValues?.allocationEndDate ?? initialValues?.toDate ?? "",
+          defaultHoursPerDay:
+            initialValues?.allocationHoursPerDay ??
+            initialValues?.hoursPerDay ??
+            initialValues?.segmentHoursPerDay ??
+            0,
+          allocationStartDate: initialValues?.allocationStartDate,
+          allocationEndDate: initialValues?.allocationEndDate,
+          allocationHoursPerDay: initialValues?.allocationHoursPerDay,
+          isBillable: initialValues?.isBillable,
+          isTentative: initialValues?.isTentative,
+          note: initialValues?.note,
+          override: initialValues?.override,
+          recurrenceId: initialValues?.recurrenceId,
+        });
+        setIsEditScheduleOpen(true);
+      },
     }),
     [variant, isOpen, handleOpenChange, initialValues, handleSuccess],
+  );
+
+  const handleEditScheduleSuccess = useCallback(
+    async (targets?: AllocationRefreshTargets) => {
+      await refresh(targets);
+      setIsEditScheduleOpen(false);
+      setEditScheduleInitialValues(undefined);
+    },
+    [refresh],
+  );
+
+  const editScheduleModalProps = useMemo(
+    () => ({
+      open: isEditScheduleOpen,
+      onOpenChange: (open: boolean) => {
+        setIsEditScheduleOpen(open);
+        if (!open) {
+          setEditScheduleInitialValues(undefined);
+        }
+      },
+      initialValues: editScheduleInitialValues,
+      onSuccess: handleEditScheduleSuccess,
+    }),
+    [isEditScheduleOpen, editScheduleInitialValues, handleEditScheduleSuccess],
   );
 
   return {
     openAddDialog,
     outletContext,
     modalProps,
+    editScheduleModalProps,
   };
 }

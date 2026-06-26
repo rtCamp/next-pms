@@ -15,7 +15,7 @@ import {
   calculateAllocationHourlyRate,
   formatAllocationCapacity,
   getAllocationCapacityHoursPerDay,
-  mapResourceAllocation,
+  mapResourceAllocationSegments,
 } from "../utils";
 import type {
   Customer,
@@ -131,14 +131,14 @@ function getProjectMembers(
     const memberId = allocation.employee;
     const member = membersById.get(memberId);
     const employee = employees[memberId];
-    const mappedAllocation = mapResourceAllocation(
+    const mappedAllocations = mapResourceAllocationSegments(
       allocation,
       resolveCustomerName(allocation.customer, customerLookup),
     );
 
     if (member) {
       const memberAllocations = member.allocations ?? [];
-      memberAllocations.push(mappedAllocation);
+      memberAllocations.push(...mappedAllocations);
       member.allocations = memberAllocations;
       continue;
     }
@@ -170,7 +170,7 @@ function getProjectMembers(
           undefined)
         : undefined,
       image: employee?.image ?? undefined,
-      allocations: [mappedAllocation],
+      allocations: mappedAllocations,
     });
   }
 
