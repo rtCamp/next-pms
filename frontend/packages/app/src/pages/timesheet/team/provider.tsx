@@ -4,6 +4,7 @@
 import {
   FC,
   PropsWithChildren,
+  useCallback,
   useEffect,
   useMemo,
   useRef,
@@ -24,7 +25,10 @@ import {
   type TeamTimesheetContextProps,
 } from "./context";
 import { useTeamTimesheetData } from "./useTeamTimesheetData";
-import { useTimesheetFilters } from "../hooks/useTimesheetFilters";
+import {
+  REPORTS_TO_ALL_VALUE,
+  useTimesheetFilters,
+} from "../hooks/useTimesheetFilters";
 
 export const TeamTimesheetProvider: FC<PropsWithChildren> = ({ children }) => {
   const toast = useToasts();
@@ -45,18 +49,34 @@ export const TeamTimesheetProvider: FC<PropsWithChildren> = ({ children }) => {
   }));
 
   useEffect(() => {
-    if (!employeeId || filters.reportsTo) {
+    if (!employeeId || filters.reportsTo !== undefined) {
       return;
     }
 
     setReportsTo(employeeId);
   }, [employeeId, filters.reportsTo, setReportsTo]);
 
+  // A missing param means first visit and "all" means the user explicitly cleared it.
+  const resolvedReportsTo = useMemo(() => {
+    if (filters.reportsTo === undefined) {
+      return employeeId || undefined;
+    }
+
+    if (filters.reportsTo === REPORTS_TO_ALL_VALUE) {
+      return undefined;
+    }
+
+    return filters.reportsTo;
+  }, [employeeId, filters.reportsTo]);
+
   const uiFilters = useMemo(
     () => ({
       search: filters.search,
       approvalStatus: filters.approvalStatus,
-      reportsTo: (filters.reportsTo ?? employeeId) || undefined,
+      reportsTo:
+        filters.reportsTo === undefined
+          ? employeeId || undefined
+          : filters.reportsTo,
     }),
     [employeeId, filters.search, filters.approvalStatus, filters.reportsTo],
   );
@@ -65,9 +85,16 @@ export const TeamTimesheetProvider: FC<PropsWithChildren> = ({ children }) => {
     () => ({
       search: debouncedSearch,
       approvalStatus: filters.approvalStatus,
-      reportsTo: (filters.reportsTo ?? employeeId) || undefined,
+      reportsTo: resolvedReportsTo,
     }),
-    [debouncedSearch, employeeId, filters.reportsTo, filters.approvalStatus],
+    [debouncedSearch, filters.approvalStatus, resolvedReportsTo],
+  );
+
+  const handleReportsToChange = useCallback(
+    (value: string | null) => {
+      setReportsTo(value || REPORTS_TO_ALL_VALUE);
+    },
+    [setReportsTo],
   );
 
   // Only pass complete filter conditions to the data hook so that selecting a
@@ -140,7 +167,7 @@ export const TeamTimesheetProvider: FC<PropsWithChildren> = ({ children }) => {
         loadMore,
         handleSearchChange: setSearch,
         handleApprovalStatusChange: setApprovalStatus,
-        handleReportsToChange: setReportsTo,
+        handleReportsToChange,
         handleCompositeFilterChange: setCompositeFilters,
       },
     }),
@@ -154,7 +181,7 @@ export const TeamTimesheetProvider: FC<PropsWithChildren> = ({ children }) => {
       filters.compositeFilters,
       setSearch,
       setApprovalStatus,
-      setReportsTo,
+      handleReportsToChange,
       setCompositeFilters,
     ],
   );

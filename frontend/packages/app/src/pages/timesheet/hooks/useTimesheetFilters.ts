@@ -15,6 +15,7 @@ const SEARCH_PARAM_KEY = "search";
 const APPROVAL_PARAM_KEY = "approval";
 const REPORTS_TO_PARAM_KEY = "reportsTo";
 const COMPOSITE_FILTERS_PARAM_KEY = "compositeFilters";
+export const REPORTS_TO_ALL_VALUE = "all";
 
 const APPROVAL_STATUS_PARAM_VALUES = [
   "not-submitted",
@@ -78,8 +79,8 @@ export function useTimesheetFilters({
       )
     : undefined;
   const reportsTo =
-    includeReportsTo && searchParams.get(REPORTS_TO_PARAM_KEY)
-      ? (searchParams.get(REPORTS_TO_PARAM_KEY) ?? undefined)
+    includeReportsTo && searchParams.has(REPORTS_TO_PARAM_KEY)
+      ? (searchParams.get(REPORTS_TO_PARAM_KEY) ?? "")
       : undefined;
 
   const updateSearchParams = useCallback(
