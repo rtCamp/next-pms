@@ -86,6 +86,7 @@ const AddEmployeeLeave = ({
           to_date: value.toDate,
           leave_type: value.leaveType,
           half_day,
+          half_day_date: half_day ? value.fromDate : undefined,
           custom_first_halfsecond_half,
         };
         await createDoc("Leave Application", data);
