@@ -2,13 +2,7 @@
  * External dependencies.
  */
 import { getTodayDate, getUTCDateTime } from "@next-pms/design-system/date";
-import {
-  format,
-  isSameMonth,
-  isSameYear,
-  startOfWeek,
-  subWeeks,
-} from "date-fns";
+import { format, isSameMonth, isSameYear, subWeeks } from "date-fns";
 
 /**
  * Formats the label for a timesheet week based on the start and end dates.
@@ -23,18 +17,14 @@ export const formatTimesheetWeekLabel = (
 ): string => {
   const start = getUTCDateTime(startDate);
   const end = getUTCDateTime(endDate);
-  const currentWeekStart = startOfWeek(getUTCDateTime(referenceDate), {
-    weekStartsOn: 0,
-  });
-  const previousWeekStart = startOfWeek(subWeeks(currentWeekStart, 1), {
-    weekStartsOn: 0,
-  });
+  const reference = getUTCDateTime(referenceDate);
+  const previousReference = subWeeks(reference, 1);
 
-  if (start.getTime() === currentWeekStart.getTime()) {
+  if (start <= reference && reference <= end) {
     return "This week";
   }
 
-  if (start.getTime() === previousWeekStart.getTime()) {
+  if (start <= previousReference && previousReference <= end) {
     return "Last week";
   }
 
