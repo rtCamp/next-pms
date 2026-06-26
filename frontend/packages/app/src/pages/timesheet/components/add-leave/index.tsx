@@ -173,6 +173,7 @@ const AddLeave = ({ open = false, onOpenChange }: LeaveTimeProps) => {
                             id="start"
                             value={displayValue}
                             className="w-full text-base text-ink-gray-7"
+                            placeholder="Select start date"
                           />
                           <Calendar className="size-4" />
                         </div>
@@ -211,6 +212,7 @@ const AddLeave = ({ open = false, onOpenChange }: LeaveTimeProps) => {
                             id="start"
                             value={displayValue}
                             className="w-full text-base text-ink-gray-7"
+                            placeholder="Select end date"
                           />
                           <Calendar className="size-4" />
                         </div>

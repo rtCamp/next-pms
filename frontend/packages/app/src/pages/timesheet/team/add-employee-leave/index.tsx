@@ -137,7 +137,7 @@ const AddEmployeeLeave = ({
     <Dialog
       open={open}
       onOpenChange={handleOpenChange}
-      className="my-0"
+      className="my-0 max-w-110"
       classNames={{
         header: "mb-5",
         content: "pt-5 pb-2",
@@ -157,7 +157,7 @@ const AddEmployeeLeave = ({
         />
       }
       options={{
-        title: "Add time-off",
+        title: "Add time off",
       }}
     >
       <div className="space-y-4">
@@ -206,13 +206,14 @@ const AddEmployeeLeave = ({
                   >
                     {({ displayValue }) => {
                       return (
-                        <div className="flex relative items-center py-1 w-full rounded border border-outline-gray-2 px-2.5">
+                        <div className="flex relative items-center py-2 w-full h-8 rounded border border-outline-gray-2 px-2.5">
                           <input
                             readOnly
                             type="text"
                             id="start"
                             value={displayValue}
                             className="w-full text-base text-ink-gray-7"
+                            placeholder="Select start date"
                           />
                           <Calendar className="size-4" />
                         </div>
@@ -242,13 +243,14 @@ const AddEmployeeLeave = ({
                   >
                     {({ displayValue }) => {
                       return (
-                        <div className="flex relative items-center py-1 w-full rounded border border-outline-gray-2 px-2.5">
+                        <div className="flex relative items-center py-2 w-full h-8 rounded border border-outline-gray-2 px-2.5">
                           <input
                             readOnly
                             type="text"
                             id="start"
                             value={displayValue}
                             className="w-full text-base text-ink-gray-7"
+                            placeholder="Select end date"
                           />
                           <Calendar className="size-4" />
                         </div>
@@ -275,6 +277,7 @@ const AddEmployeeLeave = ({
                   Leave duration
                 </label>
                 <TabButtons
+                  className="h-7.5"
                   buttonClassName="text-ink-gray-5 data-pressed:text-ink-gray-8"
                   value={field.state.value}
                   onChange={(val) => field.handleChange(val as string)}
@@ -329,6 +332,7 @@ const AddEmployeeLeave = ({
                   Reason
                 </label>
                 <Textarea
+                  variant="outline"
                   value={field.state.value}
                   onChange={(e) => field.handleChange(e.target.value)}
                   className="bg-white border-outline-gray-2 text-ink-gray-7"
