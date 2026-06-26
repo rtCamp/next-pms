@@ -7,14 +7,14 @@ from frappe.tests import IntegrationTestCase
 from next_pms.resource_management.api.team import get_resource_management_team_view_data
 
 EMPLOYEE_TAGS = {
-    "ZZTAG Alpha": ["zzbackend", "zzfrontend"],
-    "ZZTAG Beta": ["zzbackend"],
-    "ZZTAG Gamma": ["zzbackend"],
-    "ZZTAG Delta": ["zzfrontend"],
+    "Aarav Sharma": ["python", "react"],
+    "Diya Sharma": ["python"],
+    "Kabir Sharma": ["python"],
+    "Meera Sharma": ["react"],
 }
 
-WRITE_USER = "zztag-projects-user@example.com"
-READ_ONLY_USER = "zztag-employee@example.com"
+WRITE_USER = "neha.kapoor@example.com"
+READ_ONLY_USER = "rohan.verma@example.com"
 
 
 class TestTeamViewTagFilter(IntegrationTestCase):
@@ -38,9 +38,9 @@ class TestTeamViewTagFilter(IntegrationTestCase):
 
         # The read-only user only passes the endpoint's role gate via the Employee role,
         # which ERPNext grants by linking a User to an Employee. This employee is untagged
-        # and not ZZTAG-prefixed, so it never appears in the tag/name assertions below.
+        # and has a different surname, so it never appears in the tag/name assertions below.
         cls.read_only_user = cls._make_user(READ_ONLY_USER)
-        cls._make_employee("ZZRO Reader", [], user_id=cls.read_only_user)
+        cls._make_employee("Rohan Verma", [], user_id=cls.read_only_user)
 
         frappe.clear_cache()
 
@@ -93,64 +93,60 @@ class TestTeamViewTagFilter(IntegrationTestCase):
         return names, result["total_count"], result["permissions"]
 
     def test_dedicated_tag_param_returns_employees_with_that_tag(self):
-        names, total_count, _permissions = self._team_view_employee_names(tag=json.dumps(["zzbackend"]))
-        self.assertEqual(names, ["ZZTAG Alpha", "ZZTAG Beta", "ZZTAG Gamma"])
+        names, total_count, _permissions = self._team_view_employee_names(tag=json.dumps(["python"]))
+        self.assertEqual(names, ["Aarav Sharma", "Diya Sharma", "Kabir Sharma"])
         self.assertEqual(total_count, 3)
 
     def test_dedicated_tag_param_with_multiple_tags_unions_membership(self):
-        names, total_count, _permissions = self._team_view_employee_names(tag=json.dumps(["zzbackend", "zzfrontend"]))
-        self.assertEqual(names, ["ZZTAG Alpha", "ZZTAG Beta", "ZZTAG Delta", "ZZTAG Gamma"])
+        names, total_count, _permissions = self._team_view_employee_names(tag=json.dumps(["python", "react"]))
+        self.assertEqual(names, ["Aarav Sharma", "Diya Sharma", "Kabir Sharma", "Meera Sharma"])
         self.assertEqual(total_count, 4)
 
     def test_composite_filter_tag_equals(self):
-        names, total_count, _permissions = self._team_view_employee_names(
-            filters=json.dumps([["tag", "=", "zzbackend"]])
-        )
-        self.assertEqual(names, ["ZZTAG Alpha", "ZZTAG Beta", "ZZTAG Gamma"])
+        names, total_count, _permissions = self._team_view_employee_names(filters=json.dumps([["tag", "=", "python"]]))
+        self.assertEqual(names, ["Aarav Sharma", "Diya Sharma", "Kabir Sharma"])
         self.assertEqual(total_count, 3)
 
     def test_composite_filter_tag_conditions_are_anded(self):
         names, total_count, _permissions = self._team_view_employee_names(
-            filters=json.dumps([["tag", "=", "zzbackend"], ["tag", "=", "zzfrontend"]])
+            filters=json.dumps([["tag", "=", "python"], ["tag", "=", "react"]])
         )
-        self.assertEqual(names, ["ZZTAG Alpha"])
+        self.assertEqual(names, ["Aarav Sharma"])
         self.assertEqual(total_count, 1)
 
     def test_composite_filter_tag_with_employee_name(self):
         names, total_count, _permissions = self._team_view_employee_names(
-            filters=json.dumps([["tag", "=", "zzbackend"], ["employee_name", "like", "Beta"]])
+            filters=json.dumps([["tag", "=", "python"], ["employee_name", "like", "Diya"]])
         )
-        self.assertEqual(names, ["ZZTAG Beta"])
+        self.assertEqual(names, ["Diya Sharma"])
         self.assertEqual(total_count, 1)
 
     def test_composite_filter_tag_like(self):
-        names, total_count, _permissions = self._team_view_employee_names(
-            filters=json.dumps([["tag", "like", "zzfront"]])
-        )
-        self.assertEqual(names, ["ZZTAG Alpha", "ZZTAG Delta"])
+        names, total_count, _permissions = self._team_view_employee_names(filters=json.dumps([["tag", "like", "reac"]]))
+        self.assertEqual(names, ["Aarav Sharma", "Meera Sharma"])
         self.assertEqual(total_count, 2)
 
     def test_composite_filter_tag_not_equals_excludes_tagged(self):
         names, total_count, _permissions = self._team_view_employee_names(
-            filters=json.dumps([["tag", "!=", "zzbackend"], ["employee_name", "like", "ZZTAG"]])
+            filters=json.dumps([["tag", "!=", "python"], ["employee_name", "like", "Sharma"]])
         )
-        self.assertEqual(names, ["ZZTAG Delta"])
+        self.assertEqual(names, ["Meera Sharma"])
         self.assertEqual(total_count, 1)
 
     def test_dedicated_param_and_composite_filter_stack(self):
         names, total_count, _permissions = self._team_view_employee_names(
-            tag=json.dumps(["zzbackend"]),
-            filters=json.dumps([["tag", "=", "zzfrontend"]]),
+            tag=json.dumps(["python"]),
+            filters=json.dumps([["tag", "=", "react"]]),
         )
-        self.assertEqual(names, ["ZZTAG Alpha"])
+        self.assertEqual(names, ["Aarav Sharma"])
         self.assertEqual(total_count, 1)
 
     def test_tag_filter_ignored_without_write_permission(self):
         names, total_count, permissions = self._team_view_employee_names(
             user=READ_ONLY_USER,
-            tag=json.dumps(["zzbackend"]),
-            filters=json.dumps([["employee_name", "like", "ZZTAG"]]),
+            tag=json.dumps(["python"]),
+            filters=json.dumps([["employee_name", "like", "Sharma"]]),
         )
         self.assertFalse(permissions["write"])
-        self.assertEqual(names, ["ZZTAG Alpha", "ZZTAG Beta", "ZZTAG Delta", "ZZTAG Gamma"])
+        self.assertEqual(names, ["Aarav Sharma", "Diya Sharma", "Kabir Sharma", "Meera Sharma"])
         self.assertEqual(total_count, 4)
