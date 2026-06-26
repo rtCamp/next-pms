@@ -4,8 +4,8 @@ from frappe.tests import IntegrationTestCase
 
 from next_pms.resource_management.api.project import get_employees_resrouce_data_for_given_project
 
-WRITE_USER = "zzres-projects-user@example.com"
-READ_ONLY_USER = "zzres-employee@example.com"
+WRITE_USER = "priya.sharma@example.com"
+READ_ONLY_USER = "arjun.mehta@example.com"
 
 START_DATE = "2026-06-15"
 END_DATE = "2026-06-19"
@@ -32,12 +32,12 @@ class TestEmployeeResourceDataCacheIsolation(IntegrationTestCase):
         # The read-only user clears the endpoint's role gate through the Employee role,
         # which ERPNext grants by linking a User to an Employee.
         cls.read_only_user = cls._make_user(READ_ONLY_USER)
-        cls.employee = cls._make_employee("ZZRES Worker", user_id=cls.read_only_user)
+        cls.employee = cls._make_employee("Arjun Mehta", user_id=cls.read_only_user)
         cls._make_allocation(cls.employee, cls.project, is_billable=0)
 
         # A second, billable allocation so the is_billable filter has something to
         # include/exclude.
-        cls.billable_employee = cls._make_employee("ZZRES Biller")
+        cls.billable_employee = cls._make_employee("Neha Kapoor")
         cls._make_allocation(cls.billable_employee, cls.project, is_billable=1)
 
         frappe.clear_cache()
@@ -66,7 +66,7 @@ class TestEmployeeResourceDataCacheIsolation(IntegrationTestCase):
                 frappe.get_doc(
                     {
                         "doctype": "Customer",
-                        "customer_name": "ZZRES Customer",
+                        "customer_name": "Acme Corporation",
                         "customer_type": "Company",
                     }
                 )
@@ -76,7 +76,7 @@ class TestEmployeeResourceDataCacheIsolation(IntegrationTestCase):
         project = frappe.get_doc(
             {
                 "doctype": "Project",
-                "project_name": "ZZRES Project",
+                "project_name": "Website Redesign",
                 "company": cls.company,
                 "customer": customer,
                 "custom_billing_type": "Non-Billable",
