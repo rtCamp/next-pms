@@ -45,7 +45,7 @@ export const ProjectTimesheetTable = () => {
       <div className="flex flex-wrap gap-2 justify-between mb-3.5">
         <div className="flex gap-2">
           <TextInput
-            placeholder="Search Tasks"
+            placeholder="Search tasks"
             value={filters.search}
             onChange={(e) => handleSearchChange(e.target.value)}
           />
@@ -64,7 +64,7 @@ export const ProjectTimesheetTable = () => {
         <Spinner isFull />
       ) : weekGroups.length === 0 ? (
         <Typography className="flex items-center justify-center">
-          No Data
+          No data found
         </Typography>
       ) : (
         <InfiniteScroll

@@ -194,7 +194,7 @@ const AddTime = ({
                   loading={isProjectLookupLoading}
                   options={projectOptions}
                   searchValue={projectSearch}
-                  placeholder="Select Project"
+                  placeholder="Select project"
                   value={field.state.value}
                   openOnFocus
                   onSearchChange={setProjectSearch}
@@ -222,7 +222,7 @@ const AddTime = ({
                   loading={isTaskLookupLoading}
                   options={taskOptions}
                   searchValue={taskSearch}
-                  placeholder="Select Task"
+                  placeholder="Select task"
                   value={field.state.value}
                   openOnFocus
                   onSearchChange={setTaskSearch}

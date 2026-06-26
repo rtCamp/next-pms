@@ -34,6 +34,15 @@ export type ApprovalStatusLabelType =
   | "Partially Rejected"
   | "Processing Timesheet";
 
+export type ApprovalStatusDisplayLabelType =
+  | "Not submitted"
+  | "Approved"
+  | "Rejected"
+  | "Approval pending"
+  | "None"
+  | "Partially approved"
+  | "Partially rejected";
+
 export const ApprovalStatusLabelMap: Record<
   ApprovalStatusType,
   ApprovalStatusLabelType
@@ -44,6 +53,19 @@ export const ApprovalStatusLabelMap: Record<
   "approval-pending": "Approval Pending",
   "partially-approved": "Partially Approved",
   "partially-rejected": "Partially Rejected",
+  none: "None",
+};
+
+export const ApprovalStatusDisplayLabelMap: Record<
+  ApprovalStatusType,
+  ApprovalStatusDisplayLabelType
+> = {
+  "not-submitted": "Not submitted",
+  approved: "Approved",
+  rejected: "Rejected",
+  "approval-pending": "Approval pending",
+  "partially-approved": "Partially approved",
+  "partially-rejected": "Partially rejected",
   none: "None",
 };
 

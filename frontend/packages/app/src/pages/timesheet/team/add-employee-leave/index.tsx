@@ -174,7 +174,7 @@ const AddEmployeeLeave = ({
                   loading={isEmployeeLookupLoading}
                   options={employeeOptions}
                   searchValue={employeeSearch}
-                  placeholder="Select Employee"
+                  placeholder="Select employee"
                   value={field.state.value}
                   openOnFocus
                   onSearchChange={setEmployeeSearch}
@@ -201,7 +201,7 @@ const AddEmployeeLeave = ({
                   <DatePicker
                     label="From"
                     onChange={(val) => field.handleChange(val as string)}
-                    placeholder="Start Date"
+                    placeholder="Start date"
                     value={field.state.value}
                   >
                     {({ displayValue }) => {
@@ -237,7 +237,7 @@ const AddEmployeeLeave = ({
                   <DatePicker
                     label="To"
                     onChange={(val) => field.handleChange(val as string)}
-                    placeholder="End Date"
+                    placeholder="End date"
                     value={field.state.value}
                   >
                     {({ displayValue }) => {
@@ -310,7 +310,7 @@ const AddEmployeeLeave = ({
                   variant="outline"
                   className="h-8 text-ink-gray-7"
                   options={[...unpaidLeaveOptions, ...allocatedLeaveOptions]}
-                  placeholder="Select Leave Type"
+                  placeholder="Select leave type"
                   disabled={!employeeIdFormValue}
                 />
                 {!field.state.meta.isValid && (

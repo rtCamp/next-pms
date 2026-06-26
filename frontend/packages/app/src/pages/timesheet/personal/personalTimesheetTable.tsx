@@ -112,7 +112,7 @@ export const PersonalTimesheetTable = () => {
 
           {Object.keys(timesheetData?.data).length == 0 ? (
             <Typography className="flex items-center justify-center">
-              No Data
+              No data found
             </Typography>
           ) : (
             <InfiniteScroll
