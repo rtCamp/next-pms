@@ -72,6 +72,7 @@ export interface timesheet {
   start_date: string;
   end_date: string;
   key: string;
+  label?: string;
   dates: string[];
   total_hours: number;
   tasks: TaskProps;

@@ -155,7 +155,7 @@ export const TeamTimesheetTable = () => {
 
                   <div className="animate-fade-in">
                     <TeamTimesheetRow
-                      label={week.key}
+                      label={week.label}
                       dates={week.dates}
                       firstWeek={index === 0}
                       approvalPendingCount={week.approvalPendingCount}

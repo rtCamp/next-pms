@@ -108,7 +108,7 @@ export const ProjectTimesheetTable = () => {
 
                   <div className="animate-fade-in">
                     <ProjectTimesheetRow
-                      label={week.key}
+                      label={week.label}
                       dates={week.dates}
                       firstWeek={index === 0}
                       projects={week.projects}

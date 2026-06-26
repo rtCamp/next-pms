@@ -155,7 +155,7 @@ export const PersonalTimesheetTable = () => {
                         ) : null}
                         <div className="animate-fade-in">
                           <PersonalTimesheetRow
-                            label={key}
+                            label={value.label ?? key}
                             employee={employeeId}
                             workingHour={timesheetData.working_hour}
                             workingFrequency={

@@ -37,6 +37,7 @@ export type WeekProjectGroup = {
 
 export type WeekGroup = {
   key: string;
+  label: string;
   start_date: string;
   end_date: string;
   dates: string[];
