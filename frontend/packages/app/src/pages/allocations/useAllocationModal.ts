@@ -183,12 +183,13 @@ export function useAllocationModal(refresh: RefreshAllocations) {
           projectId: initialValues?.projectId,
           customer: initialValues?.customer,
           rangeStart:
-            initialValues?.segmentStartDate ?? initialValues?.fromDate ?? "",
+            initialValues?.allocationStartDate ?? initialValues?.fromDate ?? "",
           rangeEnd:
-            initialValues?.segmentEndDate ?? initialValues?.toDate ?? "",
+            initialValues?.allocationEndDate ?? initialValues?.toDate ?? "",
           defaultHoursPerDay:
-            initialValues?.segmentHoursPerDay ??
+            initialValues?.allocationHoursPerDay ??
             initialValues?.hoursPerDay ??
+            initialValues?.segmentHoursPerDay ??
             0,
           allocationStartDate: initialValues?.allocationStartDate,
           allocationEndDate: initialValues?.allocationEndDate,

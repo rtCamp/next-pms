@@ -32,6 +32,10 @@ import {
   toDisplayHours,
 } from "./utils";
 
+type AllocationSeriesOccurrence = {
+  allocation_end_date: string;
+};
+
 function EditScheduleModal({
   open,
   onOpenChange,
@@ -70,32 +74,55 @@ function EditScheduleModal({
     [safeValues.rangeEnd, safeValues.rangeStart, today],
   );
   const { data: seriesData } = useFrappeGetCall<{
-    message: { remaining_weeks: number; series_end_date: string };
+    message: {
+      occurrences: AllocationSeriesOccurrence[];
+      picked_index: number;
+    };
   }>(
-    "next_pms.resource_management.api.allocation.get_series_remaining_weeks",
+    "next_pms.resource_management.api.allocation.get_allocation_series",
     { name: safeValues.allocationName },
     open && isRecurringAllocation && safeValues.allocationName
       ? undefined
       : false,
   );
-  const recurrenceHelperText = useMemo(() => {
+  const seriesInfo = useMemo(() => {
     const series = seriesData?.message;
+
+    if (!series) {
+      return undefined;
+    }
+
+    const remainingOccurrences = series.occurrences.slice(series.picked_index);
+    const lastOccurrence =
+      remainingOccurrences[remainingOccurrences.length - 1];
+
+    if (!lastOccurrence) {
+      return undefined;
+    }
+
+    return {
+      remainingWeeks: remainingOccurrences.length,
+      seriesEndDate: lastOccurrence.allocation_end_date,
+    };
+  }, [seriesData]);
+
+  const recurrenceHelperText = useMemo(() => {
     if (
       !isRecurringAllocation ||
       applyMode === "only_this" ||
-      !series?.series_end_date
+      !seriesInfo?.seriesEndDate
     ) {
       return undefined;
     }
 
-    return `Repeats for ${series.remaining_weeks} week${series.remaining_weeks === 1 ? "" : "s"} till ${format(parseISO(series.series_end_date), "MMM d")}`;
-  }, [applyMode, isRecurringAllocation, seriesData]);
+    return `Repeats for ${seriesInfo.remainingWeeks} week${seriesInfo.remainingWeeks === 1 ? "" : "s"} till ${format(parseISO(seriesInfo.seriesEndDate), "MMM d")}`;
+  }, [applyMode, isRecurringAllocation, seriesInfo]);
 
   const summaryRepeatWeeks =
     isRecurringAllocation &&
     applyMode !== "only_this" &&
-    seriesData?.message?.remaining_weeks
-      ? Math.max(0, seriesData.message.remaining_weeks - 1)
+    seriesInfo?.remainingWeeks
+      ? Math.max(0, seriesInfo.remainingWeeks - 1)
       : 0;
 
   const days = useMemo(
@@ -380,10 +407,6 @@ function EditScheduleModal({
                 {
                   value: "this_and_future",
                   label: propagationModeLabels.this_and_future,
-                },
-                {
-                  value: "whole_series",
-                  label: propagationModeLabels.whole_series,
                 },
               ]}
               onChange={(value) => {

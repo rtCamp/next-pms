@@ -28,13 +28,11 @@ export const DURATION_PARAM_VALUES = [
 export const propagationModeLabels = {
   only_this: "This allocation",
   this_and_future: "This and future",
-  whole_series: "All allocations",
 } as const;
 
 export const EDIT_SCHEDULE_APPLY_MODES = new Set([
   "only_this",
   "this_and_future",
-  "whole_series",
 ] as const);
 
 export const durationOptions: SelectOption[] = [

@@ -23,10 +23,7 @@ export type NormalizedSelection = {
 };
 
 export type EditScheduleValueMode = "hoursPerDay" | "totalHours";
-export type EditScheduleApplyMode =
-  | "only_this"
-  | "this_and_future"
-  | "whole_series";
+export type EditScheduleApplyMode = "only_this" | "this_and_future";
 
 export type EditScheduleDraft = {
   selection: NormalizedSelection | null;
