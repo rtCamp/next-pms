@@ -35,11 +35,15 @@ export function RiskRowActions({
 
   const handleFollow = async () => {
     try {
-      await updateFollow({
+      const res = await updateFollow({
         doctype: "Risk",
         doc_name: riskName,
         following: !isFollowing,
       });
+      if (!isFollowing && !res?.message) {
+        toast.error("Document follow is not enabled for current user.");
+        return;
+      }
       toast.success(isFollowing ? "Unfollowed document" : "Following document");
       onAfterFollow?.();
     } catch (err) {

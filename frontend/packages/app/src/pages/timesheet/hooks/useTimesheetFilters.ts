@@ -78,8 +78,8 @@ export function useTimesheetFilters({
       )
     : undefined;
   const reportsTo =
-    includeReportsTo && searchParams.get(REPORTS_TO_PARAM_KEY)
-      ? (searchParams.get(REPORTS_TO_PARAM_KEY) ?? undefined)
+    includeReportsTo && searchParams.has(REPORTS_TO_PARAM_KEY)
+      ? (searchParams.get(REPORTS_TO_PARAM_KEY) ?? "")
       : undefined;
 
   const updateSearchParams = useCallback(

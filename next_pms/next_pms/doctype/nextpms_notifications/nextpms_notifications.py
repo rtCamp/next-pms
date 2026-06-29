@@ -19,6 +19,7 @@ class NextPMSNotifications(Document):
         linked_doctype: DF.Link
         linked_document: DF.DynamicLink
         user: DF.Link
+        viewed: DF.Check
     # end: auto-generated types
 
     def after_insert(self):

@@ -6,6 +6,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import {
   ErrorFallback,
   GlobalSearch,
+  NotificationTray,
 } from "@next-pms/design-system/components";
 import {
   Sidebar as BaseSidebar,
@@ -27,11 +28,18 @@ import { ArrowLeftRight, Briefcase, BarChart2, Moon, Sun } from "lucide-react";
 import LinkWithPreload from "@/components/linkWithPreload";
 import { ROUTES } from "@/lib/constant";
 import logo from "@/logo.svg";
+import { useNotifications } from "@/providers/notifications";
 import { useTheme } from "@/providers/theme/hook";
 import { useUser } from "@/providers/user";
 
 const Sidebar = () => {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
+  const notifications = useNotifications(({ state }) => state.notifications);
+  const markAsViewed = useNotifications(({ actions }) => actions.markAsViewed);
+  const markAllAsViewed = useNotifications(
+    ({ actions }) => actions.markAllAsViewed,
+  );
 
   const { theme, setTheme } = useTheme();
   const navigate = useNavigate();
@@ -39,12 +47,14 @@ const Sidebar = () => {
 
   const {
     isSidebarCollapsed,
+    employeeId,
     employeeName,
     roles,
     updateIsSidebarCollapsed,
     logout,
   } = useUser(({ state, actions }) => ({
     isSidebarCollapsed: state.isSidebarCollapsed,
+    employeeId: state.employeeId,
     employeeName: state.employeeName,
     roles: state.roles,
     updateIsSidebarCollapsed: actions.updateIsSidebarCollapsed,
@@ -100,7 +110,11 @@ const Sidebar = () => {
     icon: People,
     to: ROUTES["timesheet-team"],
     isActive: pathname === ROUTES["timesheet-team"],
-    render: <LinkWithPreload to={ROUTES["timesheet-team"]} />,
+    render: (
+      <LinkWithPreload
+        to={`ROUTES["timesheet-team"]${employeeId && "?reportsTo=${encodeURIComponent(employeeId)"}`}
+      />
+    ),
   };
 
   const projectTimesheet = {
@@ -188,7 +202,12 @@ const Sidebar = () => {
   if (roles.includes("Timesheet Manager") || roles.includes("Timesheet User")) {
     searchItems.push({
       label: "Timesheet - Team",
-      action: () => navigate(ROUTES["timesheet-team"]),
+      action: () =>
+        navigate(
+          employeeId
+            ? `${ROUTES["timesheet-team"]}?reportsTo=${encodeURIComponent(employeeId)}`
+            : ROUTES["timesheet-team"],
+        ),
     });
     searchItems.push({
       label: "Timesheet - Projects",
@@ -249,6 +268,7 @@ const Sidebar = () => {
                 icon: Notifications,
                 to: "",
                 isActive: false,
+                onClick: () => setIsNotificationsOpen(true),
               },
               {
                 label: "Search",
@@ -301,6 +321,20 @@ const Sidebar = () => {
         open={isSearchOpen}
         onOpenChange={setIsSearchOpen}
         items={searchItems}
+      />
+
+      <NotificationTray
+        open={isNotificationsOpen}
+        onOpenChange={setIsNotificationsOpen}
+        notifications={notifications}
+        offsetClassName={isSidebarCollapsed ? "left-12" : "left-60"}
+        onMarkAllRead={markAllAsViewed}
+        onNotificationClick={async (notification) => {
+          await markAsViewed(notification.id);
+          if (notification.href) {
+            window.location.assign(notification.href);
+          }
+        }}
       />
     </ErrorFallback>
   );

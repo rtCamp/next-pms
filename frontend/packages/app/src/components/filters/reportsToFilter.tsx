@@ -14,7 +14,7 @@ const ReportsToFilter: React.FC<ReportsToFilterProps> = ({
   const approvers = useApproverOptions();
 
   const options = useMemo(
-    () => [...approvers, { label: "All", value: "" }],
+    () => [{ label: "All", value: "" }, ...approvers],
     [approvers],
   );
 
