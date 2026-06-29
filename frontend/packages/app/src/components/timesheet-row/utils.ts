@@ -67,7 +67,8 @@ export const computeRowData = ({
   const dailyWorkingHours = expectatedHours(workingHour, workingFrequency);
 
   let total = 0;
-  const totalTimeEntries: { date: string; time: string }[] = [];
+  const totalTimeEntries: { date: string; time: string; disabled: boolean }[] =
+    [];
   const totalTimeEntriesInHours: number[] = [];
 
   for (const date of dates) {
@@ -78,6 +79,7 @@ export const computeRowData = ({
     totalTimeEntries.push({
       date,
       time: currentTotal === 0 ? "" : floatToTime(currentTotal, 2),
+      disabled: false,
     });
     totalTimeEntriesInHours.push(currentTotal);
     total += currentTotal;
@@ -151,3 +153,16 @@ export const mergeImportedTasks = (
 
   return merged;
 };
+
+/**
+ * Checks if there are any approved time entries for a given date in the provided tasks.
+ * @param tasks - An object where keys are task identifiers and values are task data.
+ * @param date - The date string to check for approved time entries.
+ * @returns A boolean indicating whether there are any approved time entries for the specified date.
+ */
+export const hasApprovedTimeEntry = (tasks: TaskProps, date: string): boolean =>
+  Object.values(tasks).some((task) =>
+    task.data.some(
+      (entry) => entry.from_time.includes(date) && entry.docstatus === 1,
+    ),
+  );

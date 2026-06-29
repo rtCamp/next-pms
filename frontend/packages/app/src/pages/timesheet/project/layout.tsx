@@ -12,18 +12,43 @@ import { AddMd, TimeOff } from "@rtcamp/frappe-ui-react/icons";
  */
 import { Header } from "@/layout/header";
 import { TimesheetBreadcrumbs } from "@/pages/timesheet/components/timesheet-breadcrumbs";
+import type {
+  OpenAddTimeDialogOptions,
+  TimesheetOutletContext,
+} from "../outletContext";
 import AddEmployeeLeave from "../team/add-employee-leave";
 import AddEmployeeTime from "../team/add-employee-time";
 
 function ProjectTimesheetLayout() {
-  const [initialDate, setInitialDate] = useState(getTodayDate());
+  const [addTimePrefill, setAddTimePrefill] =
+    useState<OpenAddTimeDialogOptions>({
+      date: getTodayDate(),
+      project: "",
+      projectLabel: "",
+      task: "",
+      taskLabel: "",
+      employeeId: "",
+      employeeLabel: "",
+    });
   const [isTimeDialogOpen, setIsTimeDialogOpen] = useState(false);
   const [isLeaveDialogOpen, setIsLeaveDialogOpen] = useState(false);
 
-  const handleAddTime = useCallback((date?: string) => {
-    setInitialDate(date || getTodayDate());
-    setIsTimeDialogOpen(true);
-  }, []);
+  const handleAddTime = useCallback(
+    (prefill: OpenAddTimeDialogOptions = {}) => {
+      setAddTimePrefill({
+        date: getTodayDate(),
+        project: "",
+        projectLabel: "",
+        task: "",
+        taskLabel: "",
+        employeeId: "",
+        employeeLabel: "",
+        ...prefill,
+      });
+      setIsTimeDialogOpen(true);
+    },
+    [],
+  );
 
   return (
     <>
@@ -50,13 +75,27 @@ function ProjectTimesheetLayout() {
         </div>
       </Header>
 
-      <Outlet />
+      <Outlet
+        context={
+          {
+            openAddTimeDialog: handleAddTime,
+            openAddLeaveDialog: () => setIsLeaveDialogOpen(true),
+            handleApproval: () => undefined,
+          } satisfies TimesheetOutletContext
+        }
+      />
 
       <AddEmployeeTime
-        initialDate={initialDate}
+        initialDate={addTimePrefill.date || getTodayDate()}
         open={isTimeDialogOpen}
         onOpenChange={setIsTimeDialogOpen}
         onSuccess={() => setIsTimeDialogOpen(false)}
+        project={addTimePrefill.project}
+        projectLabel={addTimePrefill.projectLabel}
+        task={addTimePrefill.task}
+        taskLabel={addTimePrefill.taskLabel}
+        employeeId={addTimePrefill.employeeId}
+        employeeLabel={addTimePrefill.employeeLabel}
       />
       <AddEmployeeLeave
         open={isLeaveDialogOpen}
