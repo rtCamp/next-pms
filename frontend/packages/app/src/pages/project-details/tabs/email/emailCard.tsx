@@ -128,15 +128,13 @@ export function EmailCard({
                     <span>{toList}</span>
                     {email.cc && email.cc.length > 0 && (
                       <>
-                        {"  "}
-                        <span className="mr-1 text-ink-gray-5">CC:</span>
+                        <span className="ml-2 mr-1 text-ink-gray-5">CC:</span>
                         <span>{email.cc.join(", ")}</span>
                       </>
                     )}
                     {email.bcc && email.bcc.length > 0 && (
                       <>
-                        {"  "}
-                        <span className="mr-1 text-ink-gray-5">BCC:</span>
+                        <span className="ml-2 mr-1 text-ink-gray-5">BCC:</span>
                         <span>{email.bcc.join(", ")}</span>
                       </>
                     )}
