@@ -149,7 +149,7 @@ const AddLeave = ({ open = false, onOpenChange }: LeaveTimeProps) => {
       }}
     >
       <div className="space-y-4">
-        <div className="flex gap-4">
+        <div className="gap-4 flex">
           <form.Field
             name="fromDate"
             children={(field) => {
@@ -166,15 +166,13 @@ const AddLeave = ({ open = false, onOpenChange }: LeaveTimeProps) => {
                   >
                     {({ displayValue }) => {
                       return (
-                        <div
-                          className={`w-full relative flex items-center border border-outline-gray-2 px-2.5 py-1 rounded`}
-                        >
+                        <div className="w-full relative flex items-center border border-outline-gray-2 px-2.5 py-1 rounded">
                           <input
                             readOnly
                             type="text"
                             id="start"
                             value={displayValue}
-                            className="flex-1 text-base text-ink-gray-7"
+                            className="w-full text-base text-ink-gray-7"
                           />
                           <Calendar className="size-4" />
                         </div>
@@ -206,15 +204,13 @@ const AddLeave = ({ open = false, onOpenChange }: LeaveTimeProps) => {
                   >
                     {({ displayValue }) => {
                       return (
-                        <div
-                          className={`w-full relative flex items-center border border-outline-gray-2 px-2.5 py-1 rounded`}
-                        >
+                        <div className="w-full relative flex items-center border border-outline-gray-2 px-2.5 py-1 rounded">
                           <input
                             readOnly
                             type="text"
                             id="start"
                             value={displayValue}
-                            className="flex-1 text-base text-ink-gray-7"
+                            className="w-full text-base text-ink-gray-7"
                           />
                           <Calendar className="size-4" />
                         </div>

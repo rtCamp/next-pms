@@ -1,0 +1,83 @@
+/**
+ * External dependencies.
+ */
+import { cva } from "class-variance-authority";
+
+export const containerVariants = cva(
+  "relative h-11.75 w-10.5 shrink-0 rounded-[12px] px-1.5 py-2 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-1 focus-visible:ring-outline-gray-3",
+  {
+    variants: {
+      state: {
+        default: "bg-surface-gray-1",
+        active: "bg-surface-gray-7",
+        selected: "bg-surface-gray-3",
+        disabled: "bg-surface-gray-1",
+        skeleton: "bg-surface-gray-1 opacity-30",
+        hover: "bg-surface-gray-2",
+        focus: "bg-surface-gray-1 ring-2 ring-outline-gray-3",
+      },
+      disabled: {
+        true: "cursor-not-allowed",
+        false: "cursor-pointer",
+      },
+    },
+  },
+);
+
+export const contentVariants = cva(
+  "mx-auto flex w-5.25 flex-col items-center gap-0.5 text-center",
+  {
+    variants: {
+      skeleton: {
+        true: "opacity-0",
+        false: "",
+      },
+    },
+  },
+);
+
+export const dayLabelVariants = cva(
+  "text-[11px] leading-[1.15] tracking-[0.11px]",
+  {
+    variants: {
+      state: {
+        default: "text-ink-gray-4",
+        active: "text-ink-gray-3",
+        selected: "text-ink-gray-5",
+        disabled: "text-ink-gray-3",
+        skeleton: "text-ink-gray-3",
+        hover: "text-ink-gray-4",
+        focus: "text-ink-gray-4",
+      },
+    },
+  },
+);
+
+export const dayNumberVariants = cva(
+  "text-base font-medium leading-[1.15] tracking-[0.21px]",
+  {
+    variants: {
+      state: {
+        default: "text-ink-gray-6",
+        active: "text-ink-white",
+        selected: "text-ink-gray-7",
+        disabled: "text-ink-gray-3",
+        skeleton: "text-ink-gray-3",
+        hover: "text-ink-gray-6",
+        focus: "text-ink-gray-6",
+      },
+    },
+  },
+);
+
+export const monthTagVariants = cva(
+  "pointer-events-none h-3 absolute left-1/2 -translate-x-1/2 -bottom-1.5 rounded-[5px] px-1 py-0.5 text-[9px] leading-none",
+  {
+    variants: {
+      skeleton: {
+        true: "bg-surface-gray-1 text-transparent",
+        false: "bg-surface-white text-ink-gray-5",
+      },
+    },
+  },
+);

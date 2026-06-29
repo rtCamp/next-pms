@@ -532,67 +532,81 @@ def edit_allocation(
     return result
 
 
-@frappe.whitelist()
-def get_series_remaining_weeks(name: str):
-    """Return how many weeks of the recurrence series run from this allocation onward.
+@frappe.whitelist(methods=["GET"])
+def get_allocation_series(name: str):
+    """Return the full recurrence series a Resource Allocation belongs to.
 
-    Used by the edit-schedule modal to show how far the series still repeats from the
-    picked allocation (e.g. "Repeats for 3 weeks till Feb 18"). The count is inclusive
-    of the picked allocation: for a 5-week series, the 3rd week reports 3 remaining
-    weeks (weeks 3, 4 and 5).
+    Used by the edit-schedule modal to render the schedule summary (before / edited /
+    after rows with multiplied totals), the "Repeats for N weeks till …" helper, and the
+    apply-mode counts. Everything the old ``get_series_remaining_weeks`` returned is
+    derivable from this payload: remaining weeks = ``len(occurrences) - picked_index``,
+    series end = last occurrence's ``allocation_end_date``.
 
     Args:
-        name (str): Name of the picked allocation. The series is resolved from this
-                    doc's own ``recurrence_id``.
+        name (str): Any Resource Allocation. The series is resolved from this doc's
+                    own ``recurrence_id``.
 
     Returns:
-        dict: ``allocation_start_date`` / ``allocation_end_date`` of the picked doc,
-        ``remaining_weeks`` (count from this doc onward, inclusive), and
-        ``series_end_date`` (the last allocation's end date in the series).
+        dict: ``occurrences`` — every doc in the series sorted ascending by
+        ``allocation_start_date`` (a single-element list for a standalone doc), each with
+        ``name``, ``allocation_start_date`` / ``allocation_end_date`` (``"YYYY-MM-DD"``),
+        ``hours_allocated_per_day``, ``total_allocated_hours``, and ``override`` (its
+        per-day override rows, possibly empty). ``picked_index`` — index of ``name``
+        within ``occurrences``.
     """
     permission = resource_api_permissions_check()
     if not permission["read"]:
         frappe.throw(frappe._("You are not allowed to perform this action."), exc=frappe.PermissionError)
 
-    allocation = frappe.db.get_value(
-        "Resource Allocation",
-        name,
-        ["allocation_start_date", "allocation_end_date", "recurrence_id"],
-        as_dict=True,
-    )
-    if not allocation:
+    picked = frappe.db.get_value("Resource Allocation", name, "recurrence_id", as_dict=True)
+    if picked is None:
         frappe.throw(
             frappe._("Resource Allocation {0} does not exist.").format(name),
             exc=frappe.DoesNotExistError,
         )
 
-    # a standalone allocation (no series) is its own single remaining week
-    if not allocation.recurrence_id:
-        return {
-            "allocation_start_date": allocation.allocation_start_date,
-            "allocation_end_date": allocation.allocation_end_date,
-            "remaining_weeks": 1,
-            "series_end_date": allocation.allocation_end_date,
-        }
-
-    future_filters = {
-        "recurrence_id": allocation.recurrence_id,
-        "allocation_start_date": [">=", allocation.allocation_start_date],
-    }
-    remaining_weeks = frappe.db.count("Resource Allocation", filters=future_filters)
-    series_end_date = frappe.db.get_value(
-        "Resource Allocation",
-        future_filters,
+    recurrence_id = picked.recurrence_id
+    fields = [
+        "name",
+        "allocation_start_date",
         "allocation_end_date",
-        order_by="allocation_start_date desc",
-    )
+        "hours_allocated_per_day",
+        "total_allocated_hours",
+    ]
+    if recurrence_id:
+        rows = frappe.get_all(
+            "Resource Allocation",
+            filters={"recurrence_id": recurrence_id},
+            fields=fields,
+            order_by="allocation_start_date asc, name asc",
+        )
+    else:
+        rows = frappe.get_all("Resource Allocation", filters={"name": name}, fields=fields)
 
-    return {
-        "allocation_start_date": allocation.allocation_start_date,
-        "allocation_end_date": allocation.allocation_end_date,
-        "remaining_weeks": remaining_weeks,
-        "series_end_date": series_end_date or allocation.allocation_end_date,
-    }
+    attach_extra_entries(rows)
+
+    occurrences = [
+        {
+            "name": row["name"],
+            "allocation_start_date": str(getdate(row["allocation_start_date"])),
+            "allocation_end_date": str(getdate(row["allocation_end_date"])),
+            "hours_allocated_per_day": flt(row["hours_allocated_per_day"]),
+            "total_allocated_hours": flt(row["total_allocated_hours"]),
+            "override": [
+                {
+                    "date": str(getdate(entry["date"])),
+                    "hours": flt(entry["hours"]) if entry.get("hours") is not None else None,
+                    "cancelled": cint(entry.get("cancelled")),
+                }
+                for entry in row.get("override") or []
+            ],
+        }
+        for row in rows
+    ]
+
+    picked_index = next(i for i, occurrence in enumerate(occurrences) if occurrence["name"] == name)
+
+    return {"occurrences": occurrences, "picked_index": picked_index}
 
 
 @frappe.whitelist(methods=["POST"])

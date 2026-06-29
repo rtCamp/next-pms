@@ -7,8 +7,7 @@ import {
   Tooltip,
   type BreadcrumbsProps,
 } from "@rtcamp/frappe-ui-react";
-import { AddMd, Star } from "@rtcamp/frappe-ui-react/icons";
-import { StarOff } from "lucide-react";
+import { AddMd, SolidStar, StarCrossed } from "@rtcamp/frappe-ui-react/icons";
 
 /**
  * Internal dependencies.
@@ -61,17 +60,9 @@ export const TotalRow: React.FC<TotalRowProps> = ({
     }
 
     const starIcon = starred ? (
-      <Star
-        strokeWidth={1.5}
-        size={16}
-        className="fill-current text-ink-amber-2"
-      />
+      <SolidStar size={16} className="text-ink-amber-2" />
     ) : (
-      <StarOff
-        strokeWidth={1.5}
-        size={16}
-        className="text-ink-gray-4 scale-x-[-1]"
-      />
+      <StarCrossed size={16} className="text-ink-gray-4 scale-x-[-1]" />
     );
 
     if (onStarClick) {

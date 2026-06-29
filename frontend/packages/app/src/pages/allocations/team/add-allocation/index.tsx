@@ -2,6 +2,7 @@
  * External dependencies.
  */
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { mergeClassNames as cn } from "@next-pms/design-system";
 import { formatDateRange } from "@next-pms/design-system/date";
 import {
   Button,
@@ -16,7 +17,7 @@ import {
   DurationInput,
   useToasts,
 } from "@rtcamp/frappe-ui-react";
-import { Calendar } from "@rtcamp/frappe-ui-react/icons";
+import { AlertTriangle, Calendar } from "@rtcamp/frappe-ui-react/icons";
 import { useForm, useStore } from "@tanstack/react-form";
 import { FrappeError, useFrappePostCall } from "frappe-react-sdk";
 
@@ -52,6 +53,12 @@ function AddAllocationModal({
   const [projectSearch, setProjectSearch] = useState("");
   const [customerSearch, setCustomerSearch] = useState("");
   const [submitting, setSubmitting] = useState(false);
+
+  const isRecurringEdit =
+    variant === "edit" && Boolean(initialValues?.recurrenceId);
+  const hasExistingOverrides = (initialValues?.override?.length ?? 0) > 0;
+  const isLockedAllocationMetadataEdit =
+    variant === "edit" && (isRecurringEdit || hasExistingOverrides);
 
   const { call: handleAllocation } = useFrappePostCall(
     "next_pms.resource_management.api.allocation.handle_allocation",
@@ -102,8 +109,6 @@ function AddAllocationModal({
       onSubmit: addAllocationFormSchema,
     },
     onSubmit: async ({ value }) => {
-      setSubmitting(true);
-
       const totalAllocatedHours = computeTotalHours({
         hoursPerDay: value.hoursPerDay,
         recurrence: value.recurrence,
@@ -112,6 +117,8 @@ function AddAllocationModal({
         repeatFor: value.repeatFor ?? 0,
         includeWeekends: weekendEntriesAllowed && value.includeWeekends,
       });
+
+      setSubmitting(true);
 
       try {
         const payload = {
@@ -279,6 +286,7 @@ function AddAllocationModal({
             searchValue={employeeSearch}
             placeholder="Select Employee"
             value={field.state.value}
+            disabled={isLockedAllocationMetadataEdit}
             onChange={(value) => field.handleChange(value as string)}
             onSearchChange={setEmployeeSearch}
             openOnFocus
@@ -306,6 +314,7 @@ function AddAllocationModal({
             searchValue={projectSearch}
             placeholder="Select Project"
             value={field.state.value}
+            disabled={isLockedAllocationMetadataEdit}
             onChange={handleProjectChange}
             onSearchChange={setProjectSearch}
             openOnFocus
@@ -333,6 +342,7 @@ function AddAllocationModal({
             searchValue={customerSearch}
             placeholder="Select Customer"
             value={field.state.value}
+            disabled={isLockedAllocationMetadataEdit}
             onChange={(value) => {
               field.handleChange(value as string);
               setCustomerSearch("");
@@ -347,6 +357,79 @@ function AddAllocationModal({
       )}
     />
   );
+
+  const recurrenceSection =
+    variant === "add" ? (
+      <form.Field
+        name="recurrence"
+        children={(field) => (
+          <>
+            <label className="block text-base text-ink-gray-5 mb-1.5">
+              Recurrence
+            </label>
+            <TabButtons
+              className="[&_button:not([data-pressed])]:text-ink-gray-5 [&_[data-pressed]]:text-ink-gray-8"
+              value={field.state.value}
+              onChange={(value) =>
+                field.handleChange(value as "one-time" | "recurring")
+              }
+              buttons={Object.entries(allocationRecurrenceLabels).map(
+                ([value, label]) => ({ value, label }),
+              )}
+            />
+            {!field.state.meta.isValid && (
+              <ErrorMessage message={field.state.meta.errors[0]?.message} />
+            )}
+          </>
+        )}
+      />
+    ) : isRecurringEdit ? (
+      <div>
+        <label className="block text-base text-ink-gray-5 mb-1.5">
+          Recurrence
+        </label>
+        <TabButtons
+          className="[&_button:not([data-pressed])]:text-ink-gray-5 [&_[data-pressed]]:text-ink-gray-8"
+          value="recurring"
+          onChange={() => {}}
+          buttons={Object.entries(allocationRecurrenceLabels).map(
+            ([value, label]) => ({
+              value,
+              label,
+              disabled: value === "one-time",
+            }),
+          )}
+        />
+      </div>
+    ) : (
+      <form.Field
+        name="recurrence"
+        children={(field) => (
+          <>
+            <label className="block text-base text-ink-gray-5 mb-1.5">
+              Recurrence
+            </label>
+            <TabButtons
+              className="[&_button:not([data-pressed])]:text-ink-gray-5 [&_[data-pressed]]:text-ink-gray-8"
+              value={field.state.value}
+              onChange={(value) =>
+                field.handleChange(value as "one-time" | "recurring")
+              }
+              buttons={Object.entries(allocationRecurrenceLabels).map(
+                ([value, label]) => ({
+                  value,
+                  label,
+                  disabled: value === "recurring",
+                }),
+              )}
+            />
+            {!field.state.meta.isValid && (
+              <ErrorMessage message={field.state.meta.errors[0]?.message} />
+            )}
+          </>
+        )}
+      />
+    );
 
   return (
     <Dialog
@@ -374,6 +457,7 @@ function AddAllocationModal({
               <label className="inline-flex items-center gap-2 text-base shrink-0 text-ink-gray-7">
                 <Checkbox
                   value={field.state.value}
+                  disabled={isLockedAllocationMetadataEdit}
                   onChange={(checked) => field.handleChange(Boolean(checked))}
                 />
                 Mark as tentative
@@ -386,7 +470,7 @@ function AddAllocationModal({
               variant="solid"
               label={variant === "add" ? "Allocate" : "Save Changes"}
               onClick={() => form.handleSubmit()}
-              disabled={submitting}
+              disabled={submitting || isLockedAllocationMetadataEdit}
               loading={submitting}
             />
           </div>
@@ -408,29 +492,7 @@ function AddAllocationModal({
           </>
         )}
 
-        <form.Field
-          name="recurrence"
-          children={(field) => (
-            <>
-              <label className="block text-base text-ink-gray-5 mb-1.5">
-                Recurrence
-              </label>
-              <TabButtons
-                className="[&_button:not([data-pressed])]:text-ink-gray-5 [&_[data-pressed]]:text-ink-gray-8"
-                value={field.state.value}
-                onChange={(value) =>
-                  field.handleChange(value as "one-time" | "recurring")
-                }
-                buttons={Object.entries(allocationRecurrenceLabels).map(
-                  ([value, label]) => ({ value, label }),
-                )}
-              />
-              {!field.state.meta.isValid && (
-                <ErrorMessage message={field.state.meta.errors[0]?.message} />
-              )}
-            </>
-          )}
-        />
+        {recurrenceSection}
 
         {weekendEntriesAllowed ? (
           <form.Field
@@ -439,6 +501,7 @@ function AddAllocationModal({
               <label className="inline-flex items-center gap-2 text-base text-ink-gray-6">
                 <Checkbox
                   value={field.state.value}
+                  disabled={isLockedAllocationMetadataEdit}
                   onChange={(checked) => field.handleChange(Boolean(checked))}
                 />
                 Include weekends
@@ -469,6 +532,7 @@ function AddAllocationModal({
                   </div>
                   <DateRangePicker
                     value={[fromField.state.value, toField.state.value]}
+                    disabled={isLockedAllocationMetadataEdit}
                     onChange={(value) => {
                       const rawFrom = value?.[0] ?? "";
                       const rawTo = value?.[1] ?? "";
@@ -482,14 +546,23 @@ function AddAllocationModal({
                     formatter={formatDateRange}
                     placeholder="Start Date - End Date"
                   >
-                    {({ displayValue }) => (
-                      <div className="w-full relative flex items-center border border-outline-gray-2 px-2.5 py-1 rounded">
+                    {({ displayValue, disabled }) => (
+                      <div
+                        className={cn(
+                          "w-full h-7 relative flex items-center border border-outline-gray-2 px-2.5 py-1 rounded",
+                          disabled && "bg-surface-gray-1 text-ink-gray-5",
+                        )}
+                      >
                         <input
                           readOnly
+                          disabled={disabled}
                           type="text"
                           id="start"
                           value={displayValue}
-                          className="flex-1 text-base text-ink-gray-7"
+                          className={cn(
+                            "flex-1 text-base text-ink-gray-7",
+                            disabled && "text-ink-gray-5",
+                          )}
                         />
                         <Calendar className="size-4" />
                       </div>
@@ -523,6 +596,7 @@ function AddAllocationModal({
                   variant="outline"
                   size="md"
                   value={field.state.value}
+                  disabled={isLockedAllocationMetadataEdit}
                   onChange={(value) => field.handleChange(value)}
                   label={false}
                 />
@@ -533,7 +607,7 @@ function AddAllocationModal({
             )}
           />
 
-          {recurrence === "recurring" && (
+          {(recurrence === "recurring" || isRecurringEdit) && (
             <form.Field
               name="repeatFor"
               children={(field) => (
@@ -545,6 +619,7 @@ function AddAllocationModal({
                     type="number"
                     size="md"
                     variant="outline"
+                    disabled={variant === "edit"}
                     value={field.state.value ?? ""}
                     onChange={(e) =>
                       field.handleChange(Math.max(1, Number(e.target.value)))
@@ -569,12 +644,29 @@ function AddAllocationModal({
               size="md"
               value={totalHours}
               variant="outline"
-              className="[&_input]:text-ink-gray-7"
+              inputClassName={
+                isLockedAllocationMetadataEdit
+                  ? ""
+                  : "text-ink-gray-7 bg-surface-white"
+              }
             />
           </div>
         </div>
 
-        <OverAllocationWarning overAllocatedDays={overAllocatedDays} />
+        {isLockedAllocationMetadataEdit && (
+          <div className="flex items-center gap-2 bg-(--color-violet-50) rounded-lg px-2.5 py-2">
+            <AlertTriangle className="size-4 shrink-0 text-(--color-violet-700)" />
+            <p className="flex-1 min-w-0 text-xs text-ink-gray-9 text-left">
+              {isRecurringEdit
+                ? "Recurring allocations can only be modified using Edit Schedule."
+                : "This allocation has schedule changes. Use Edit Schedule to modify them."}
+            </p>
+          </div>
+        )}
+
+        {!(hasExistingOverrides || isRecurringEdit) ? (
+          <OverAllocationWarning overAllocatedDays={overAllocatedDays} />
+        ) : null}
 
         <form.Field
           name="isBillable"
@@ -582,6 +674,7 @@ function AddAllocationModal({
             <label className="inline-flex items-center gap-2 text-base text-ink-gray-6">
               <Checkbox
                 value={!field.state.value}
+                disabled={isLockedAllocationMetadataEdit}
                 onChange={(checked) => field.handleChange(!checked)}
               />
               Mark as non-billable
@@ -596,10 +689,11 @@ function AddAllocationModal({
             <div className="flex flex-col gap-1.5">
               <label className="block text-base text-ink-gray-5">Note</label>
               <Textarea
+                variant="outline"
                 value={field.state.value ?? ""}
+                disabled={isLockedAllocationMetadataEdit}
                 onChange={(e) => field.handleChange(e.target.value)}
                 placeholder="Add a note"
-                className="bg-white border-outline-gray-2 text-ink-gray-7"
               />
             </div>
           )}

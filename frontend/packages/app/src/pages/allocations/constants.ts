@@ -25,6 +25,16 @@ export const DURATION_PARAM_VALUES = [
   "this-quarter",
 ] as const satisfies readonly AllocationsDuration[];
 
+export const propagationModeLabels = {
+  only_this: "This allocation",
+  this_and_future: "This and future",
+} as const;
+
+export const EDIT_SCHEDULE_APPLY_MODES = new Set([
+  "only_this",
+  "this_and_future",
+] as const);
+
 export const durationOptions: SelectOption[] = [
   { label: "This week", value: "this-week" },
   { label: "This month", value: "this-month" },

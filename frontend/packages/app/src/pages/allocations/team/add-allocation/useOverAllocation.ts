@@ -2,21 +2,12 @@
  * External dependencies.
  */
 import { useMemo } from "react";
-import {
-  addDays,
-  eachDayOfInterval,
-  format,
-  isWeekend,
-  parseISO,
-} from "date-fns";
 import { useFrappeGetCall } from "frappe-react-sdk";
 
 /**
  * Internal dependencies.
  */
 import { useDebounce } from "@/hooks/useDebounce";
-import { expectatedHours } from "@/lib/utils";
-import { FALLBACK_DAILY_WORKING_HOURS } from "./constants";
 import { OverAllocatedDay } from "./overAllocationWarning";
 
 interface UseOverAllocationOptions {
@@ -34,17 +25,10 @@ interface UseOverAllocationOptions {
   allocationName?: string;
 }
 
-interface ExistingAllocation {
-  name: string;
-  allocation_start_date: string;
-  allocation_end_date: string;
-  hours_allocated_per_day: number;
-}
-
-interface EmployeeWorkingHoursResponse {
+interface OverAllocatedDatesResponse {
   message?: {
-    working_hour?: number;
-    working_frequency?: string;
+    dates?: { date: string; excess_hours: number }[];
+    total_excess_hours?: number;
   };
 }
 
@@ -69,111 +53,26 @@ export function useOverAllocation({
     debouncedFromDate <= debouncedToDate &&
     debouncedHoursPerDay > 0;
 
-  // Extend the fetch range to cover all recurring copies.
-  const fetchEndDate = useMemo(() => {
-    if (!debouncedToDate || debouncedRepeatWeeks <= 0) return debouncedToDate;
-    return format(
-      addDays(parseISO(debouncedToDate), debouncedRepeatWeeks * 7),
-      "yyyy-MM-dd",
-    );
-  }, [debouncedToDate, debouncedRepeatWeeks]);
-
-  const { data } = useFrappeGetCall(
-    "frappe.client.get_list",
+  const { data } = useFrappeGetCall<OverAllocatedDatesResponse>(
+    "next_pms.resource_management.api.allocation.get_over_allocated_dates",
     {
-      doctype: "Resource Allocation",
-      fields: [
-        "name",
-        "allocation_start_date",
-        "allocation_end_date",
-        "hours_allocated_per_day",
-      ],
-      filters: JSON.stringify([
-        ["employee", "=", employeeId],
-        ["allocation_start_date", "<=", fetchEndDate],
-        ["allocation_end_date", ">=", debouncedFromDate],
-      ]),
-      limit_page_length: "null",
+      employee: employeeId,
+      start_date: debouncedFromDate,
+      end_date: debouncedToDate,
+      hours_per_day: debouncedHoursPerDay,
+      include_weekends: includeWeekends,
+      repeat_till_week_count: debouncedRepeatWeeks,
+      ...(allocationName ? { allocation_name: allocationName } : {}),
     },
     enabled ? undefined : false,
   );
 
-  const { data: workingHoursData } =
-    useFrappeGetCall<EmployeeWorkingHoursResponse>(
-      "next_pms.timesheet.api.employee.get_employee_working_hours",
-      {
-        employee: employeeId,
-      },
-      employeeId ? undefined : false,
-    );
-
-  const dailyWorkingHours = useMemo(() => {
-    const workingHour = workingHoursData?.message?.working_hour;
-    const resolvedWorkingHour =
-      workingHour && workingHour > 0
-        ? workingHour
-        : FALLBACK_DAILY_WORKING_HOURS;
-
-    const workingFrequency =
-      workingHoursData?.message?.working_frequency === "Per Week"
-        ? "Per Week"
-        : "Per Day";
-
-    return Number(
-      expectatedHours(resolvedWorkingHour, workingFrequency).toFixed(2),
-    );
-  }, [workingHoursData]);
-
-  return useMemo(() => {
-    if (!enabled || !data?.message) return [];
-
-    const existing = (data.message as ExistingAllocation[]).filter(
-      (a) => a.name !== allocationName,
-    );
-
-    const result: OverAllocatedDay[] = [];
-    const baseStart = parseISO(debouncedFromDate);
-    const baseEnd = parseISO(debouncedToDate);
-
-    // Iterate each weekly copy (week 0 = base range, week 1..N = recurring copies).
-    for (let week = 0; week <= debouncedRepeatWeeks; week++) {
-      const weekStart = addDays(baseStart, week * 7);
-      const weekEnd = addDays(baseEnd, week * 7);
-
-      for (const d of eachDayOfInterval({ start: weekStart, end: weekEnd })) {
-        if (!includeWeekends && isWeekend(d)) {
-          continue;
-        }
-
-        const dateStr = format(d, "yyyy-MM-dd");
-        const existingHours = existing
-          .filter(
-            (a) =>
-              a.allocation_start_date <= dateStr &&
-              a.allocation_end_date >= dateStr,
-          )
-          .reduce((sum, a) => sum + (a.hours_allocated_per_day ?? 0), 0);
-
-        const total = existingHours + debouncedHoursPerDay;
-        if (total > dailyWorkingHours) {
-          result.push({
-            date: dateStr,
-            excessHours: Math.round((total - dailyWorkingHours) * 100) / 100,
-          });
-        }
-      }
-    }
-
-    return result;
-  }, [
-    enabled,
-    data,
-    allocationName,
-    debouncedFromDate,
-    debouncedToDate,
-    debouncedRepeatWeeks,
-    debouncedHoursPerDay,
-    dailyWorkingHours,
-    includeWeekends,
-  ]);
+  return useMemo(
+    () =>
+      (data?.message?.dates ?? []).map((entry) => ({
+        date: entry.date,
+        excessHours: entry.excess_hours,
+      })),
+    [data],
+  );
 }

@@ -1,3 +1,5 @@
+import type { AllocationOverrideEntry } from "../utils";
+
 export interface Employee {
   name: string;
   image: string | null;
@@ -40,6 +42,7 @@ export interface ResourceAllocation {
   creation: string;
   status: string;
   modified_by_avatar: string | null;
+  override?: AllocationOverrideEntry[];
 }
 
 export interface Customer {

@@ -89,6 +89,7 @@ export {
   type NotificationMessageSegment,
   type NotificationEmphasis,
 } from "./notificationTray/types";
+export * from "./date-chip";
 export { DeleteActionDialog } from "./delete-action-dialog";
 export {
   SortButton,

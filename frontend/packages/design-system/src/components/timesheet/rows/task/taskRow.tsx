@@ -8,7 +8,7 @@ import {
   type TaskStatusType,
 } from "@next-pms/design-system/components";
 import { Button } from "@rtcamp/frappe-ui-react";
-import { AddMd, Star } from "@rtcamp/frappe-ui-react/icons";
+import { AddMd, Star, SolidStar } from "@rtcamp/frappe-ui-react/icons";
 
 /**
  * Internal dependencies.
@@ -107,17 +107,13 @@ export const TaskRow: React.FC<TaskRowProps> = ({
               )}
               onClick={(e) => onStarClick?.(e, taskKey)}
               aria-label={starred ? "Unstar task" : "Star task"}
-              icon={() => (
-                <Star
-                  strokeWidth={1.5}
-                  size={16}
-                  className={cn(
-                    starred
-                      ? "fill-current text-ink-amber-2"
-                      : "text-ink-gray-4",
-                  )}
-                />
-              )}
+              icon={() =>
+                starred ? (
+                  <SolidStar className="text-ink-amber-2" size={16} />
+                ) : (
+                  <Star className="text-ink-gray-4" size={16} />
+                )
+              }
             />
           ) : null}
         </div>

@@ -188,6 +188,13 @@ export function GanttAllocationBar({
         billable: allocation.billable,
         tentative: allocation.tentative,
         note: allocation.note,
+        override: allocation.override,
+        allocationStartDate: allocation.allocationStartDate,
+        allocationEndDate: allocation.allocationEndDate,
+        allocationHoursPerDay: allocation.allocationHoursPerDay,
+        segmentStartDate: allocation.startDate,
+        segmentEndDate: allocation.endDate,
+        segmentHoursPerDay: allocation.hours,
       });
     },
     [
