@@ -38,12 +38,14 @@ const Sidebar = () => {
 
   const {
     isSidebarCollapsed,
+    employeeId,
     employeeName,
     roles,
     updateIsSidebarCollapsed,
     logout,
   } = useUser(({ state, actions }) => ({
     isSidebarCollapsed: state.isSidebarCollapsed,
+    employeeId: state.employeeId,
     employeeName: state.employeeName,
     roles: state.roles,
     updateIsSidebarCollapsed: actions.updateIsSidebarCollapsed,
@@ -95,7 +97,12 @@ const Sidebar = () => {
     label: "Team",
     icon: People,
     isActive: pathname === ROUTES["timesheet-team"],
-    onClick: () => navigate(ROUTES["timesheet-team"]),
+    onClick: () =>
+      navigate(
+        employeeId
+          ? `${ROUTES["timesheet-team"]}?reportsTo=${encodeURIComponent(employeeId)}`
+          : ROUTES["timesheet-team"],
+      ),
   };
 
   const projectTimesheet = {
@@ -180,7 +187,12 @@ const Sidebar = () => {
   if (roles.includes("Timesheet Manager") || roles.includes("Timesheet User")) {
     searchItems.push({
       label: "Timesheet - Team",
-      action: () => navigate(ROUTES["timesheet-team"]),
+      action: () =>
+        navigate(
+          employeeId
+            ? `${ROUTES["timesheet-team"]}?reportsTo=${encodeURIComponent(employeeId)}`
+            : ROUTES["timesheet-team"],
+        ),
     });
     searchItems.push({
       label: "Timesheet - Projects",
