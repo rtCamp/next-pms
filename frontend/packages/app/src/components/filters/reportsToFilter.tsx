@@ -1,7 +1,6 @@
 import { useMemo } from "react";
 import { Combobox } from "@rtcamp/frappe-ui-react";
 import useApproverOptions from "@/hooks/useApproverOptions";
-import { REPORTS_TO_ALL_VALUE } from "@/pages/timesheet/hooks/useTimesheetFilters";
 
 type ReportsToFilterProps = {
   value?: string | null;
@@ -15,7 +14,7 @@ const ReportsToFilter: React.FC<ReportsToFilterProps> = ({
   const approvers = useApproverOptions();
 
   const options = useMemo(
-    () => [{ label: "All", value: REPORTS_TO_ALL_VALUE }, ...approvers],
+    () => [{ label: "All", value: "" }, ...approvers],
     [approvers],
   );
 

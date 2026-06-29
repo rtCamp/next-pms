@@ -4,7 +4,6 @@
 import {
   FC,
   PropsWithChildren,
-  useCallback,
   useEffect,
   useMemo,
   useRef,
@@ -19,16 +18,12 @@ import type { Error as FrappeError } from "frappe-js-sdk/lib/frappe_app/types";
 import { useFrappeEventListener } from "frappe-react-sdk";
 import { useDebounce } from "@/hooks/useDebounce";
 import { isCompleteFilterCondition, parseFrappeErrorMsg } from "@/lib/utils";
-import { useUser } from "@/providers/user";
 import {
   TeamTimesheetContext,
   type TeamTimesheetContextProps,
 } from "./context";
 import { useTeamTimesheetData } from "./useTeamTimesheetData";
-import {
-  REPORTS_TO_ALL_VALUE,
-  useTimesheetFilters,
-} from "../hooks/useTimesheetFilters";
+import { useTimesheetFilters } from "../hooks/useTimesheetFilters";
 
 export const TeamTimesheetProvider: FC<PropsWithChildren> = ({ children }) => {
   const toast = useToasts();
@@ -44,57 +39,22 @@ export const TeamTimesheetProvider: FC<PropsWithChildren> = ({ children }) => {
   });
   const debouncedSearch = useDebounce(filters.search, 400);
 
-  const { employeeId } = useUser(({ state }) => ({
-    employeeId: state.employeeId,
-  }));
-
-  useEffect(() => {
-    if (!employeeId || filters.reportsTo !== undefined) {
-      return;
-    }
-
-    setReportsTo(employeeId);
-  }, [employeeId, filters.reportsTo, setReportsTo]);
-
-  // A missing param means first visit and "all" means the user explicitly cleared it.
-  const resolvedReportsTo = useMemo(() => {
-    if (filters.reportsTo === undefined) {
-      return employeeId || undefined;
-    }
-
-    if (filters.reportsTo === REPORTS_TO_ALL_VALUE) {
-      return undefined;
-    }
-
-    return filters.reportsTo;
-  }, [employeeId, filters.reportsTo]);
-
   const uiFilters = useMemo(
     () => ({
       search: filters.search,
       approvalStatus: filters.approvalStatus,
-      reportsTo:
-        filters.reportsTo === undefined
-          ? employeeId || undefined
-          : filters.reportsTo,
+      reportsTo: filters.reportsTo,
     }),
-    [employeeId, filters.search, filters.approvalStatus, filters.reportsTo],
+    [filters.search, filters.approvalStatus, filters.reportsTo],
   );
 
   const effectiveFilters = useMemo(
     () => ({
       search: debouncedSearch,
       approvalStatus: filters.approvalStatus,
-      reportsTo: resolvedReportsTo,
+      reportsTo: filters.reportsTo,
     }),
-    [debouncedSearch, filters.approvalStatus, resolvedReportsTo],
-  );
-
-  const handleReportsToChange = useCallback(
-    (value: string | null) => {
-      setReportsTo(value || REPORTS_TO_ALL_VALUE);
-    },
-    [setReportsTo],
+    [debouncedSearch, filters.approvalStatus, filters.reportsTo],
   );
 
   // Only pass complete filter conditions to the data hook so that selecting a
@@ -167,7 +127,7 @@ export const TeamTimesheetProvider: FC<PropsWithChildren> = ({ children }) => {
         loadMore,
         handleSearchChange: setSearch,
         handleApprovalStatusChange: setApprovalStatus,
-        handleReportsToChange,
+        handleReportsToChange: setReportsTo,
         handleCompositeFilterChange: setCompositeFilters,
       },
     }),
@@ -181,7 +141,7 @@ export const TeamTimesheetProvider: FC<PropsWithChildren> = ({ children }) => {
       filters.compositeFilters,
       setSearch,
       setApprovalStatus,
-      handleReportsToChange,
+      setReportsTo,
       setCompositeFilters,
     ],
   );
