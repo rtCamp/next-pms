@@ -79,6 +79,83 @@ export function ProjectListSubHeader() {
               label: "Project",
               type: "string",
             },
+            {
+              name: "custom_project_manager",
+              label: "Project Manager",
+              type: "string",
+            },
+            {
+              name: "custom_business_unit",
+              label: "Business Unit",
+              type: "string",
+            },
+            {
+              name: "project_type",
+              label: "Project Type",
+              type: "select",
+              options: [
+                {
+                  label: "Internal",
+                  value: "internal",
+                },
+                {
+                  label: "External",
+                  value: "external",
+                },
+                {
+                  label: "Other",
+                  value: "other",
+                },
+              ],
+            },
+            {
+              name: "custom_billing_type",
+              label: "Billing type",
+              type: "select",
+              options: [
+                {
+                  label: "Non-Billable",
+                  value: "Non-Billable",
+                },
+                {
+                  label: "Fixed Cost",
+                  value: "Fixed Cost",
+                },
+                {
+                  label: "Retainer",
+                  value: "Retainer",
+                },
+                {
+                  label: "Time and Material",
+                  value: "Time and Material",
+                },
+              ],
+            },
+            {
+              name: "custom_industry",
+              label: "Industry",
+              type: "string",
+            },
+            {
+              name: "customer",
+              label: "Customer",
+              type: "string",
+            },
+            {
+              name: "custom_engineering_manager",
+              label: "Engineering Manager",
+              type: "string",
+            },
+            {
+              name: "custom_account_manager",
+              label: "Account Manger",
+              type: "string",
+            },
+            {
+              name: "custom_host",
+              label: "Host",
+              type: "string",
+            },
           ]}
         />
       </div>

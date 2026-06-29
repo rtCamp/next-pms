@@ -32,7 +32,7 @@ function ProjectList() {
       rowKey="name"
       options={{
         options: {
-          selectable: true,
+          selectable: false,
           showTooltip: true,
           resizeColumn: false,
         },
