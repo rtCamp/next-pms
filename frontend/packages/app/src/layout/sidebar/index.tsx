@@ -187,7 +187,12 @@ const Sidebar = () => {
   if (roles.includes("Timesheet Manager") || roles.includes("Timesheet User")) {
     searchItems.push({
       label: "Timesheet - Team",
-      action: () => navigate(teamTimesheetRoute),
+      action: () =>
+        navigate(
+          employeeId
+            ? `${ROUTES["timesheet-team"]}?reportsTo=${encodeURIComponent(employeeId)}`
+            : ROUTES["timesheet-team"],
+        ),
     });
     searchItems.push({
       label: "Timesheet - Projects",
