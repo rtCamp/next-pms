@@ -112,7 +112,7 @@ export const PersonalTimesheetTable = () => {
 
           {Object.keys(timesheetData?.data).length == 0 ? (
             <Typography className="flex items-center justify-center">
-              No Data
+              No data found
             </Typography>
           ) : (
             <InfiniteScroll
@@ -155,7 +155,7 @@ export const PersonalTimesheetTable = () => {
                         ) : null}
                         <div className="animate-fade-in">
                           <PersonalTimesheetRow
-                            label={key}
+                            label={value.label ?? key}
                             employee={employeeId}
                             workingHour={timesheetData.working_hour}
                             workingFrequency={

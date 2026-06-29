@@ -175,7 +175,7 @@ export const PersonalTimesheetRow = ({
 
             <TimeOffRow
               label="Time-off"
-              className="pl-7.5"
+              className="pl-7.5 mt-3"
               dates={dates}
               leaves={leaves}
               holidayList={holidayList}

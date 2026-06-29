@@ -159,7 +159,7 @@ const AddEmployeeTime = ({
                   loading={isEmployeeLookupLoading}
                   options={employeeOptions}
                   searchValue={employeeSearch}
-                  placeholder="Select Employee"
+                  placeholder="Select employee"
                   value={field.state.value}
                   openOnFocus
                   onSearchChange={setEmployeeSearch}
@@ -187,7 +187,7 @@ const AddEmployeeTime = ({
                   loading={isProjectLookupLoading}
                   options={projectOptions}
                   searchValue={projectSearch}
-                  placeholder="Select Project"
+                  placeholder="Select project"
                   value={field.state.value}
                   openOnFocus
                   onSearchChange={setProjectSearch}
@@ -215,7 +215,7 @@ const AddEmployeeTime = ({
                   loading={isTaskLookupLoading}
                   options={taskOptions}
                   searchValue={taskSearch}
-                  placeholder="Select Task"
+                  placeholder="Select task"
                   value={field.state.value}
                   openOnFocus
                   onSearchChange={setTaskSearch}

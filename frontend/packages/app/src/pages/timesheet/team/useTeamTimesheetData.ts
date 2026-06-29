@@ -16,6 +16,7 @@ import type { TeamMember } from "@/components/timesheet-row/teamTimesheetRow";
 import { NUMBER_OF_WEEKS_TO_FETCH } from "@/lib/constant";
 import { buildCompositeFilters } from "@/lib/utils";
 import type { DataProp, TimesheetFilters } from "@/types/timesheet";
+import { formatTimesheetWeekLabel } from "../utils";
 import type { EmployeeRecord, WeekGroup } from "./context";
 
 type WeekEntry = {
@@ -229,6 +230,10 @@ export function useTeamTimesheetData({
           if (!weekMap.has(weekEntry.start_date)) {
             weekMap.set(weekEntry.start_date, {
               key: weekEntry.key,
+              label: formatTimesheetWeekLabel(
+                weekEntry.start_date,
+                weekEntry.end_date,
+              ),
               start_date: weekEntry.start_date,
               end_date: weekEntry.end_date,
               dates: weekEntry.dates,
@@ -253,6 +258,7 @@ export function useTeamTimesheetData({
             if (!weekMap.has(weekId)) {
               weekMap.set(weekId, {
                 key: week.key,
+                label: formatTimesheetWeekLabel(week.start_date, week.end_date),
                 start_date: week.start_date,
                 end_date: week.end_date,
                 dates: week.dates,

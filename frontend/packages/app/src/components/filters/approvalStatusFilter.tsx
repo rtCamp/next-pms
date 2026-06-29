@@ -1,5 +1,5 @@
 import {
-  ApprovalStatusLabelMap,
+  ApprovalStatusDisplayLabelMap,
   ApprovalStatusType,
 } from "@next-pms/design-system/components";
 import { Select } from "@rtcamp/frappe-ui-react";
@@ -15,7 +15,7 @@ const ApprovalStatusFilter: React.FC<ApprovalStatusFilterProps> = ({
   onChange,
   excludeOptions = [],
 }) => {
-  const options = Object.entries(ApprovalStatusLabelMap)
+  const options = Object.entries(ApprovalStatusDisplayLabelMap)
     .filter(([key]) => !excludeOptions.includes(key as ApprovalStatusType))
     .map(([key, label]) =>
       key === "none" ? { label: "All", value: "" } : { label, value: key },
@@ -23,7 +23,7 @@ const ApprovalStatusFilter: React.FC<ApprovalStatusFilterProps> = ({
 
   return (
     <Select
-      placeholder="Approval Status"
+      placeholder="Approval status"
       placeholderClassName="text-ink-gray-7"
       className="w-fit text-ink-gray-7"
       options={options}

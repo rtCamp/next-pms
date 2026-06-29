@@ -155,7 +155,7 @@ const SubmitApproval = ({
               <Combobox
                 inputClassName="bg-white h-8 border-outline-gray-2 text-ink-gray-7"
                 value={field.state.value}
-                placeholder="Select Approver"
+                placeholder="Select approver"
                 onChange={(val) => field.handleChange(val as string)}
                 options={approverComboboxOptions}
                 openOnFocus

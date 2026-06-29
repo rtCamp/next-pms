@@ -161,7 +161,7 @@ const AddLeave = ({ open = false, onOpenChange }: LeaveTimeProps) => {
                   <DatePicker
                     label="From"
                     onChange={(val) => field.handleChange(val as string)}
-                    placeholder="Start Date"
+                    placeholder="Start date"
                     value={field.state.value}
                   >
                     {({ displayValue }) => {
@@ -199,7 +199,7 @@ const AddLeave = ({ open = false, onOpenChange }: LeaveTimeProps) => {
                   <DatePicker
                     label="To"
                     onChange={(val) => field.handleChange(val as string)}
-                    placeholder="End Date"
+                    placeholder="End date"
                     value={field.state.value}
                   >
                     {({ displayValue }) => {
@@ -273,7 +273,7 @@ const AddLeave = ({ open = false, onOpenChange }: LeaveTimeProps) => {
                   variant="outline"
                   className="h-8 text-ink-gray-7"
                   options={[...unpaidLeaveOptions, ...allocatedLeaveOptions]}
-                  placeholder="Select Leave Type"
+                  placeholder="Select leave type"
                 />
                 {!field.state.meta.isValid && (
                   <ErrorMessage message={field.state.meta.errors[0]?.message} />

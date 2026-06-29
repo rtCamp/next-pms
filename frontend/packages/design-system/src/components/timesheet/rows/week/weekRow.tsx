@@ -11,7 +11,7 @@ import { SmallDown } from "@rtcamp/frappe-ui-react/icons";
 import { buttonVariants } from "./constants";
 import { mergeClassNames as cn } from "../../../../utils";
 import {
-  ApprovalStatusLabelMap,
+  ApprovalStatusDisplayLabelMap,
   type TotalHoursTheme,
   totalHoursVariants,
   type ApprovalStatusType,
@@ -81,7 +81,7 @@ export const WeekRow: React.FC<WeekRowProps> = ({
           </span>
           {status !== "none" && (
             <Badge theme={approvalStatusTheme[status]} className="shrink-0">
-              {ApprovalStatusLabelMap[status]}
+              {ApprovalStatusDisplayLabelMap[status]}
             </Badge>
           )}
           {badgeLabel ? (
@@ -149,7 +149,7 @@ export const WeekRow: React.FC<WeekRowProps> = ({
               return IconComponent ? <IconComponent size={16} /> : null;
             }}
             aria-label="Submit week"
-            title={ApprovalStatusLabelMap[status]}
+            title={ApprovalStatusDisplayLabelMap[status]}
           />
         ) : null}
       </div>

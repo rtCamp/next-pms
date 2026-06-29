@@ -11,7 +11,7 @@ import { SmallDown } from "@rtcamp/frappe-ui-react/icons";
 import { buttonVariants, memberStatusIcon } from "./constants";
 import { mergeClassNames as cn } from "../../../../utils";
 import {
-  ApprovalStatusLabelMap,
+  ApprovalStatusDisplayLabelMap,
   type TotalHoursTheme,
   type ApprovalStatusType,
   totalHoursVariants,
@@ -75,7 +75,7 @@ export const MemberRow: React.FC<MemberRowProps> = ({
           </span>
           {status !== "none" && (
             <Badge theme={approvalStatusTheme[status]} className="shrink-0">
-              {ApprovalStatusLabelMap[status]}
+              {ApprovalStatusDisplayLabelMap[status]}
             </Badge>
           )}
         </div>
@@ -124,7 +124,7 @@ export const MemberRow: React.FC<MemberRowProps> = ({
               const IconComponent = memberStatusIcon[status]?.icon;
               return IconComponent ? <IconComponent size={16} /> : null;
             }}
-            title={ApprovalStatusLabelMap[status]}
+            title={ApprovalStatusDisplayLabelMap[status]}
           />
         ) : null}
       </div>
