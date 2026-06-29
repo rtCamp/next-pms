@@ -108,11 +108,15 @@ export function CalendarTab() {
   async function handleFollowDocument(item: ProjectTimelineItem) {
     const isFollowing = item.watchers.some((w) => w.name === userId);
     try {
-      await updateFollow({
+      const res = await updateFollow({
         doctype: "Project Timeline Item",
         doc_name: item.id,
         following: !isFollowing,
       });
+      if (!isFollowing && !res?.message) {
+        toast.error("Document follow is not enabled for current user.");
+        return;
+      }
       toast.success(isFollowing ? "Unfollowed document" : "Following document");
       void mutate();
     } catch (err) {
