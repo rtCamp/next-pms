@@ -30,7 +30,7 @@ interface WeekRowBaseProps extends Omit<BaseWeekRowProps, "status"> {
   children?: (props: {
     totalHours: string;
     totalHoursTheme: TotalHoursTheme;
-    totalTimeEntries: { date: string; time: string }[];
+    totalTimeEntries: { date: string; time: string; disabled?: boolean }[];
     totalTimeEntriesInHours: number[];
     dailyWorkingHours: number;
     status: ApprovalStatusType;
@@ -71,6 +71,7 @@ export interface MemberRowProps extends Omit<
   workingHour: number;
   workingFrequency: WorkingFrequency;
   status: ApprovalStatusLabelType;
+  disabled?: boolean;
   onCellClick?: (date: string) => void;
   children?: (props: {
     totalTimeEntriesInHours: number[];
@@ -87,6 +88,8 @@ export interface ProjectRowProps extends Omit<
   dates: string[];
   tasks: TaskProps;
   hideTime?: boolean;
+  disabled?: boolean;
+  lockApproved?: boolean;
   onCellClick?: (date: string) => void;
   children?: React.ReactNode;
 }

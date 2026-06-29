@@ -11,6 +11,7 @@ import { ProjectRow as BaseProjectRow } from "@next-pms/design-system/components
  */
 import { calculateTotalHours } from "@/lib/utils";
 import type { ProjectRowProps } from "./types";
+import { hasApprovedTimeEntry } from "../../utils";
 
 /**
  * @description This is the project row component for the timesheet table.
@@ -25,6 +26,8 @@ export const ProjectRow = ({
   dates,
   tasks,
   hideTime,
+  disabled,
+  lockApproved = true,
   onCellClick,
   children,
   ...rest
@@ -33,7 +36,7 @@ export const ProjectRow = ({
 
   const projectData = useMemo(() => {
     let total = 0;
-    const totalTimeEntries: string[] = [];
+    const totalTimeEntries: { time: string; disabled: boolean }[] = [];
 
     if (hideTime) {
       return { total, totalTimeEntries };
@@ -41,13 +44,16 @@ export const ProjectRow = ({
 
     for (const date of dates) {
       const currentTotal = calculateTotalHours(tasks, date);
-      totalTimeEntries.push(
-        currentTotal === 0 ? "" : floatToTime(currentTotal, 2),
-      );
+      totalTimeEntries.push({
+        time: currentTotal === 0 ? "" : floatToTime(currentTotal, 2),
+        disabled:
+          Boolean(disabled) ||
+          (lockApproved && hasApprovedTimeEntry(tasks, date)),
+      });
       total += currentTotal;
     }
     return { total, totalTimeEntries };
-  }, [dates, tasks, hideTime]);
+  }, [dates, tasks, hideTime, disabled, lockApproved]);
 
   return (
     <Accordion.Root

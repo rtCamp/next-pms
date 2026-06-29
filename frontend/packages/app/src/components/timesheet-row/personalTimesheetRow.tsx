@@ -152,6 +152,7 @@ export const PersonalTimesheetRow = ({
                 label={project.project_name || project.project}
                 hideTime={hideTotalRow}
                 className="pl-7.5"
+                disabled={disabled}
                 onCellClick={(date) =>
                   openAddTimeDialog({
                     date,

@@ -77,6 +77,7 @@ export const ProjectTimesheetRow = ({
                 tasks={project.mergedTasks}
                 label={project.projectName || project.project}
                 highlightTimeEntries={true}
+                lockApproved={false}
                 className="pl-7.5"
                 onCellClick={(date) =>
                   openAddTimeDialog({
@@ -100,6 +101,7 @@ export const ProjectTimesheetRow = ({
                     status="None"
                     className="pl-13.5"
                     collapsed={true}
+                    disabled={member.status === "Approved"}
                     onCellClick={(date) =>
                       openAddTimeDialog({
                         date,

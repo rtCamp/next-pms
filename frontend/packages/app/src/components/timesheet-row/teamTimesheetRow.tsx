@@ -93,6 +93,7 @@ export const TeamTimesheetRow = ({
                 status={member.status}
                 className="pl-7.5"
                 collapsed={true}
+                disabled={member.status === "Approved"}
                 onCellClick={(date) =>
                   openAddTimeDialog({
                     date,
@@ -113,6 +114,7 @@ export const TeamTimesheetRow = ({
                         tasks={project.tasks}
                         label={project.project_name || project.project}
                         className="pl-13.5"
+                        disabled={member.status === "Approved"}
                         onCellClick={(date) =>
                           openAddTimeDialog({
                             date,

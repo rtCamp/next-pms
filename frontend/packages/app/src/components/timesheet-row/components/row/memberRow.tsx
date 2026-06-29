@@ -24,6 +24,7 @@ export const MemberRow = ({
   workingHour,
   workingFrequency,
   status,
+  disabled,
   onButtonClick,
   children,
   avatarUrl,
@@ -60,7 +61,10 @@ export const MemberRow = ({
                 avatarUrl={avatarUrl}
                 collapsed={collapsed}
                 status={status ? ApprovalStatusMap[status] : "none"}
-                timeEntries={memberData.totalTimeEntries}
+                timeEntries={memberData.totalTimeEntries.map((timeEntry) => ({
+                  ...timeEntry,
+                  disabled: disabled || timeEntry.disabled,
+                }))}
                 onCellClick={
                   rest.onCellClick
                     ? (date) => rest.onCellClick?.(date)

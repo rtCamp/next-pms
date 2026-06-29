@@ -32,7 +32,7 @@ export interface MemberRowProps {
   /** Optional function to handle day-cell click events. */
   onCellClick?: (date: string, dayIndex: number) => void;
   /** Array of time entries for each day of the week for the member. */
-  timeEntries: { date: string; time: string }[];
+  timeEntries: { date: string; time: string; disabled?: boolean }[];
   /** Total hours logged for the week. */
   totalHours?: string;
   /** Theme for the total hours */
@@ -84,20 +84,26 @@ export const MemberRow: React.FC<MemberRowProps> = ({
         </div>
       </div>
       {timeEntries.map((timeEntry, index) => {
+        const isCellDisabled = Boolean(timeEntry.disabled);
+
         return (
           <div
             key={index}
             className="shrink-0 flex justify-end items-center whitespace-nowrap w-16 h-7 pl-2 py-1.5 lining-nums tabular-nums"
+            onClick={(e) => e.stopPropagation()}
           >
             <Button
               variant="ghost"
               className={cn(
-                "w-14.25 relative group flex justify-center items-center enabled:hover:bg-surface-gray-2",
-                "enabled:focus:bg-surface-gray-2 enabled:active:bg-surface-gray-3 disabled:cursor-default!",
+                "w-14.25 relative group flex justify-center items-center",
+                !isCellDisabled &&
+                  "enabled:hover:bg-surface-gray-2 enabled:focus:bg-surface-gray-2 enabled:active:bg-surface-gray-3",
+                "disabled:cursor-default! disabled:opacity-100! disabled:bg-transparent! disabled:hover:bg-transparent! disabled:focus:bg-transparent! disabled:active:bg-transparent! disabled:text-ink-gray-8!",
+                isCellDisabled && "cursor-default!",
                 "lining-nums tabular-nums [&_span]:overflow-visible [&_span]:whitespace-normal",
                 "text-base text-ink-gray-8",
               )}
-              disabled={!onCellClick}
+              disabled={isCellDisabled || !onCellClick}
               onClick={(e) => {
                 e.stopPropagation();
                 onCellClick?.(timeEntry.date, index);
@@ -106,10 +112,22 @@ export const MemberRow: React.FC<MemberRowProps> = ({
             >
               {timeEntry.time === "" ? (
                 <>
-                  <span className="flex-1 text-center group-hover:hidden group-disabled:group-hover:flex text-ink-gray-4">
+                  <span
+                    className={cn(
+                      "flex-1 text-center text-ink-gray-4",
+                      !isCellDisabled &&
+                        "group-hover:hidden group-disabled:group-hover:flex",
+                    )}
+                  >
                     -
                   </span>
-                  <span className="hidden absolute top-0 left-0 justify-center items-center w-full h-full group-hover:flex group-disabled:group-hover:hidden text-ink-gray-6">
+                  <span
+                    className={cn(
+                      "hidden absolute top-0 left-0 justify-center items-center w-full h-full text-ink-gray-6",
+                      !isCellDisabled &&
+                        "group-hover:flex group-disabled:group-hover:hidden",
+                    )}
+                  >
                     <AddMd size={16} />
                   </span>
                 </>
