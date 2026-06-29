@@ -7,7 +7,7 @@ import {
   formatRelativeTimeShort,
   stripTags,
 } from "@next-pms/design-system/utils";
-import { Avatar } from "@rtcamp/frappe-ui-react";
+import { Avatar, Badge } from "@rtcamp/frappe-ui-react";
 import { format } from "date-fns";
 
 /**
@@ -15,7 +15,6 @@ import { format } from "date-fns";
  */
 import { AttachmentList } from "./attachmentList";
 import { EmailBody } from "./emailBody";
-import { StatusBadge } from "./statusBadge";
 import type { Email } from "./types";
 
 type EmailCardProps = {
@@ -60,7 +59,15 @@ export function EmailCard({
                   </span>
                 </div>
                 <div className="flex items-center gap-1.5 shrink-0">
-                  <StatusBadge status={email.status} />
+                  {email.status === "Sent" && (
+                    <Badge
+                      variant="solid"
+                      size="sm"
+                      className="bg-surface-green-2 text-ink-green-3"
+                    >
+                      Sent
+                    </Badge>
+                  )}
                   <span className="text-sm text-ink-gray-5">{timeString}</span>
                 </div>
               </div>
@@ -100,7 +107,15 @@ export function EmailCard({
                     </span>
                   </div>
                   <div className="flex items-center gap-2 shrink-0">
-                    <StatusBadge status={email.status} />
+                    {email.status === "Sent" && (
+                      <Badge
+                        variant="solid"
+                        size="sm"
+                        className="bg-surface-green-2 text-ink-green-3"
+                      >
+                        Sent
+                      </Badge>
+                    )}
                     <span className="text-sm text-ink-gray-5">
                       {relativeDate}
                     </span>
