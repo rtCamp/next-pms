@@ -8,7 +8,6 @@ export function KpiCardSkeleton() {
     <>
       <Skeleton className="h-5 w-24" />
       <Skeleton className="h-8 w-32" />
-      <Skeleton className="h-4 w-28" />
     </>
   );
 }

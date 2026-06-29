@@ -43,7 +43,7 @@ export default function NotificationsCard() {
           No notifications yet.
         </p>
       ) : (
-        <ul className="flex flex-col overflow-y-scroll">
+        <ul className="flex flex-col overflow-y-scroll scrollbar-thin">
           {notifications.map((item, index) => (
             <li key={item.id}>
               {index > 0 && <div className="my-3 h-px bg-outline-gray-1" />}
