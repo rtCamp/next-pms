@@ -28,12 +28,15 @@ export default function NotificationsCard() {
     <>
       <div className="flex items-baseline justify-between gap-4">
         <h3 className="text-lg font-semibold text-ink-gray-8">Notifications</h3>
-        <button
-          type="button"
-          className="text-base text-ink-gray-5 hover:text-ink-gray-7"
+        <a
+          href="/desk/nextpms-notifications"
+          target="_blank"
+          rel="noreferrer"
+          aria-label="Open employee"
+          className="text-base text-ink-gray-8 hover:text-ink-gray-8"
         >
           See all
-        </button>
+        </a>
       </div>
       {!isLoading && notifications.length === 0 ? (
         <p className="py-10 text-center text-base text-ink-gray-4">
