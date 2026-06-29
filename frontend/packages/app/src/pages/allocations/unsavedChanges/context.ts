@@ -5,7 +5,7 @@ import { createContext, type RefObject } from "react";
 
 export interface UnsavedChangesSource {
   hasUnsavedChanges: () => boolean;
-  saveChanges: () => void;
+  saveChanges: (onSaved?: () => void) => void;
   discardChanges: () => void;
 }
 

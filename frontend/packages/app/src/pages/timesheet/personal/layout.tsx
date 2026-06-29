@@ -11,6 +11,7 @@ import { AddMd, TimeOff } from "@rtcamp/frappe-ui-react/icons";
  * Internal dependencies.
  */
 import { Header } from "@/layout/header";
+import { UnsavedChangesProvider } from "@/pages/allocations/unsavedChanges/UnsavedChangesProvider";
 import AddLeave from "@/pages/timesheet/components/add-leave";
 import AddTime from "@/pages/timesheet/components/add-time";
 import SubmitApproval from "@/pages/timesheet/components/submit-approval";
@@ -62,7 +63,7 @@ function PersonalTimesheetLayout() {
   );
 
   return (
-    <>
+    <UnsavedChangesProvider>
       <Header className="justify-between">
         <TimesheetBreadcrumbs />
 
@@ -115,7 +116,7 @@ function PersonalTimesheetLayout() {
         endDate={submitApprovalDates.endDate}
         totalHours={submitApprovalDates.totalHours}
       />
-    </>
+    </UnsavedChangesProvider>
   );
 }
 

@@ -1,7 +1,7 @@
 /**
  * External dependencies.
  */
-import { createRef, useRef } from "react";
+import { useCallback, useRef, useState } from "react";
 import { Popover, PreviewCard } from "@base-ui/react";
 import {
   TaskStatus,
@@ -35,6 +35,7 @@ export interface TaskRowProps {
     taskKey: string,
     dayIndex: number,
     closePopover: () => void,
+    reportEngaged: (engaged: boolean) => void,
   ) => React.ReactNode;
   /** Total hours logged for the week. */
   totalHours?: string;
@@ -50,6 +51,8 @@ export interface TaskRowProps {
   taskKey: string;
   /** Whether to hide the star button for liking the task. */
   hideStarButton?: boolean;
+  /** Guard for intentional popover dismissals */
+  requestGuarded?: (action: () => void) => void;
 }
 
 export const TaskRow: React.FC<TaskRowProps> = ({
@@ -66,10 +69,54 @@ export const TaskRow: React.FC<TaskRowProps> = ({
   onLabelClick,
   taskKey,
   hideStarButton,
+  requestGuarded = (action) => action(),
 }) => {
-  const actionRefs = useRef<
-    Array<React.RefObject<Popover.Root.Actions | null>>
-  >([]);
+  const [handle] = useState(() => Popover.createHandle<{ dayIndex: number }>());
+  // Once the user starts editing, the popover stays put on pointer/focus drift
+  // and a backdrop catches outside clicks until they dismiss it.
+  const pinnedRef = useRef(false);
+  const [pinned, setPinned] = useState(false);
+
+  const reportEngaged = useCallback((engaged: boolean) => {
+    pinnedRef.current = engaged;
+    setPinned(engaged);
+  }, []);
+
+  const closePopover = useCallback(() => handle.close(), [handle]);
+
+  const handleOpenChange = useCallback(
+    (open: boolean, details: Popover.Root.ChangeEventDetails) => {
+      const reason = details.reason;
+
+      if (
+        pinnedRef.current &&
+        (reason === "trigger-hover" || reason === "focus-out")
+      ) {
+        details.cancel();
+        return;
+      }
+
+      if (open) {
+        return;
+      }
+
+      if (
+        pinnedRef.current &&
+        (reason === "escape-key" ||
+          reason === "outside-press" ||
+          reason === "trigger-press")
+      ) {
+        details.cancel();
+        requestGuarded(() => queueMicrotask(() => handle.close()));
+        return;
+      }
+
+      pinnedRef.current = false;
+      setPinned(false);
+    },
+    [handle, requestGuarded],
+  );
+
   return (
     <div
       className={cn(
@@ -119,79 +166,67 @@ export const TaskRow: React.FC<TaskRowProps> = ({
         </div>
       </div>
       {timeEntries.map((timeEntry, index) => {
-        if (!actionRefs.current[index]) {
-          actionRefs.current[index] = createRef<Popover.Root.Actions | null>();
-        }
-        const actionsRef = actionRefs.current[index];
-        const closePopover = () => actionsRef.current?.close();
-
         return (
           <div
             key={index}
             className="shrink-0 flex justify-end items-center text-base text-ink-gray-6 whitespace-nowrap w-16 h-7 pl-2 py-1.5"
           >
-            <Popover.Root actionsRef={actionsRef}>
-              <Popover.Trigger
-                openOnHover={!(timeEntry.disabled && timeEntry.time === "")}
-                render={(props) => (
-                  <Button
-                    {...props}
-                    variant="ghost"
-                    className={cn(
-                      "w-14.25 relative group flex justify-center items-center text-ink-gray-6 lining-nums tabular-nums [&_span]:overflow-visible [&_span]:whitespace-normal",
-                      "enabled:hover:bg-surface-gray-2 enabled:focus:bg-surface-gray-2 enabled:active:bg-surface-gray-3",
-                      "aria-disabled:cursor-default! aria-disabled:text-ink-gray-5 aria-disabled:hover:bg-transparent aria-disabled:focus:bg-transparent aria-disabled:active:bg-transparent",
-                    )}
-                    aria-disabled={timeEntry.disabled}
-                    onClick={() =>
-                      !timeEntry.disabled
-                        ? onCellClick?.(taskKey, index)
-                        : undefined
+            <Popover.Trigger
+              handle={handle}
+              payload={{ dayIndex: index }}
+              openOnHover={!(timeEntry.disabled && timeEntry.time === "")}
+              delay={250}
+              closeDelay={220}
+              render={(props, state) => (
+                <Button
+                  {...props}
+                  variant="ghost"
+                  className={cn(
+                    "w-14.25 relative group flex justify-center items-center text-ink-gray-6 lining-nums tabular-nums [&_span]:overflow-visible [&_span]:whitespace-normal",
+                    "enabled:hover:bg-surface-gray-2 enabled:focus:bg-surface-gray-2 enabled:active:bg-surface-gray-3",
+                    "aria-disabled:cursor-default! aria-disabled:text-ink-gray-5 aria-disabled:hover:bg-transparent aria-disabled:focus:bg-transparent aria-disabled:active:bg-transparent",
+                  )}
+                  aria-disabled={timeEntry.disabled}
+                  onClick={(event) => {
+                    if (!state.open) {
+                      props.onClick?.(event);
                     }
-                  >
-                    {timeEntry.time === "" ? (
-                      <>
-                        <span
-                          className={cn("flex-1 text-center text-ink-gray-4", {
-                            "group-hover:hidden group-disabled:group-hover:flex":
+                    if (!timeEntry.disabled) {
+                      onCellClick?.(taskKey, index);
+                    }
+                  }}
+                >
+                  {timeEntry.time === "" ? (
+                    <>
+                      <span
+                        className={cn("flex-1 text-center text-ink-gray-4", {
+                          "group-hover:hidden group-disabled:group-hover:flex":
+                            !timeEntry.disabled,
+                        })}
+                      >
+                        -
+                      </span>
+                      <span
+                        className={cn(
+                          "hidden absolute top-0 left-0 justify-center items-center w-full h-full",
+                          {
+                            "group-hover:flex group-disabled:group-hover:hidden":
                               !timeEntry.disabled,
-                          })}
-                        >
-                          -
-                        </span>
-                        <span
-                          className={cn(
-                            "hidden absolute top-0 left-0 justify-center items-center w-full h-full",
-                            {
-                              "group-hover:flex group-disabled:group-hover:hidden":
-                                !timeEntry.disabled,
-                            },
-                          )}
-                        >
-                          <AddMd size={16} className="" />
-                        </span>
-                      </>
-                    ) : (
-                      <span>{timeEntry.time}</span>
-                    )}
-                    {timeEntry.nonBillable ? (
-                      <span className="block absolute z-10 -bottom-0.5 left-1/2 w-1 h-1 rounded-full bg-surface-amber-3 transform -translate-x-1/2"></span>
-                    ) : null}
-                  </Button>
-                )}
-              />
-              <Popover.Portal>
-                <Popover.Positioner sideOffset={8} align="end">
-                  <Popover.Popup>
-                    {renderInlineTimeEntryPopover?.(
-                      taskKey,
-                      index,
-                      closePopover,
-                    )}
-                  </Popover.Popup>
-                </Popover.Positioner>
-              </Popover.Portal>
-            </Popover.Root>
+                          },
+                        )}
+                      >
+                        <AddMd size={16} className="" />
+                      </span>
+                    </>
+                  ) : (
+                    <span>{timeEntry.time}</span>
+                  )}
+                  {timeEntry.nonBillable ? (
+                    <span className="block absolute z-10 -bottom-0.5 left-1/2 w-1 h-1 rounded-full bg-surface-amber-3 transform -translate-x-1/2"></span>
+                  ) : null}
+                </Button>
+              )}
+            />
           </div>
         );
       })}
@@ -201,6 +236,28 @@ export const TaskRow: React.FC<TaskRowProps> = ({
       </div>
 
       <div className="w-12 h-7 shrink-0"></div>
+
+      <Popover.Root handle={handle} onOpenChange={handleOpenChange}>
+        {({ payload }) => (
+          <Popover.Portal>
+            {pinned ? (
+              <Popover.Backdrop className="fixed inset-0 pointer-events-auto!" />
+            ) : null}
+            <Popover.Positioner sideOffset={8} align="end">
+              <Popover.Popup>
+                {payload
+                  ? renderInlineTimeEntryPopover?.(
+                      taskKey,
+                      payload.dayIndex,
+                      closePopover,
+                      reportEngaged,
+                    )
+                  : null}
+              </Popover.Popup>
+            </Popover.Positioner>
+          </Popover.Portal>
+        )}
+      </Popover.Root>
     </div>
   );
 };

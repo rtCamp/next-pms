@@ -79,8 +79,10 @@ export function UnsavedChangesProvider({ children }: { children: ReactNode }) {
   }, [blocker]);
 
   const handleSaveChanges = useCallback(() => {
-    // Hands off to the feature's own save flow don't auto-proceed navigation.
-    sourceRef.current?.saveChanges();
+    const queued = queuedActionRef.current;
+    sourceRef.current?.saveChanges(
+      blocker.state === "blocked" ? undefined : (queued ?? undefined),
+    );
     setPendingAction(null);
     if (blocker.state === "blocked") blocker.reset();
   }, [blocker]);

@@ -13,6 +13,7 @@ export interface InlineTimeEntryProps {
   dailyWorkingHours?: number;
   totalUsedHoursInDay?: number;
   onSubmitSuccess?: () => void;
+  onEngagedChange?: (engaged: boolean) => void;
   timeEntry: TaskRowTimeEntry;
 }
 

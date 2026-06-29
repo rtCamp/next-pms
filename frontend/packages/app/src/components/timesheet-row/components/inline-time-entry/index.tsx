@@ -1,7 +1,14 @@
 /**
  * External Dependencies
  */
-import { useCallback, useMemo, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { Accordion } from "@base-ui/react/accordion";
 import { floatToTime, mergeClassNames as cn } from "@next-pms/design-system";
 import { stripTags } from "@next-pms/design-system/utils";
@@ -12,12 +19,14 @@ import {
   useToasts,
 } from "@rtcamp/frappe-ui-react";
 import { EditAlt, Compose, AddSm, Delete } from "@rtcamp/frappe-ui-react/icons";
+import { useStore } from "@tanstack/react-form";
 import { FrappeError, useFrappePostCall } from "frappe-react-sdk";
 
 /**
  * Internal Dependencies
  */
 import { parseFrappeErrorMsg } from "@/lib/utils";
+import { useUnsavedChangesSource } from "@/pages/allocations/unsavedChanges/useUnsavedChanges";
 import { TaskDataItemProps } from "@/types/timesheet";
 import { useInlineTimeEntryForm } from "./form";
 import { TimeEntryForm } from "./timeEntryForm";
@@ -54,6 +63,7 @@ export const InlineTimeEntry = ({
   dailyWorkingHours = 8,
   totalUsedHoursInDay,
   onSubmitSuccess,
+  onEngagedChange,
   timeEntry,
   tasks,
   disabled,
@@ -75,6 +85,7 @@ export const InlineTimeEntry = ({
   const editBaselineRef = useRef<{ duration: number; comment: string } | null>(
     null,
   );
+  const pendingProceedAfterSaveRef = useRef<(() => void) | null>(null);
 
   const { call: saveTime } = useFrappePostCall(
     "next_pms.timesheet.api.timesheet.save",
@@ -140,10 +151,12 @@ export const InlineTimeEntry = ({
         if (hasNoTimeEntries && entryFormMode === ENTRY_FORM_MODE.DEFAULT) {
           onSubmitSuccess?.();
         }
+        pendingProceedAfterSaveRef.current?.();
       } catch (err) {
         const error = parseFrappeErrorMsg(err as FrappeError);
         toast.error(error);
       } finally {
+        pendingProceedAfterSaveRef.current = null;
         setSubmitting(false);
         form.reset();
         editBaselineRef.current = null;
@@ -153,6 +166,55 @@ export const InlineTimeEntry = ({
       }
     },
   });
+
+  const { duration: liveDuration, comment: liveComment } = useStore(
+    form.store,
+    (state) => state.values,
+  );
+  const hasUnsavedChanges =
+    entryFormMode === ENTRY_FORM_MODE.EDIT && editBaselineRef.current
+      ? liveDuration !== editBaselineRef.current.duration ||
+        liveComment !== editBaselineRef.current.comment
+      : liveDuration !== defaultValues.duration ||
+        liveComment !== defaultValues.comment;
+  const isEngaged =
+    entryFormMode !== ENTRY_FORM_MODE.DEFAULT || hasUnsavedChanges;
+
+  const hasUnsavedChangesRef = useRef(hasUnsavedChanges);
+  hasUnsavedChangesRef.current = hasUnsavedChanges;
+
+  // Layout effect so the pin lands before the browser fires the hover-leave.
+  useLayoutEffect(() => {
+    onEngagedChange?.(isEngaged);
+  }, [isEngaged, onEngagedChange]);
+
+  const discardChanges = useCallback(() => {
+    form.reset();
+    editBaselineRef.current = null;
+    setSelectedEntry(null);
+    setAddDraft(null);
+    setEntryFormMode(ENTRY_FORM_MODE.DEFAULT);
+  }, [form]);
+
+  const unsavedChangesSourceRef = useUnsavedChangesSource();
+  useEffect(() => {
+    const source = {
+      hasUnsavedChanges: () => hasUnsavedChangesRef.current,
+      saveChanges: (onSaved?: () => void) => {
+        pendingProceedAfterSaveRef.current = onSaved ?? null;
+        void form.handleSubmit().finally(() => {
+          pendingProceedAfterSaveRef.current = null;
+        });
+      },
+      discardChanges,
+    };
+    unsavedChangesSourceRef.current = source;
+    return () => {
+      if (unsavedChangesSourceRef.current === source) {
+        unsavedChangesSourceRef.current = null;
+      }
+    };
+  }, [unsavedChangesSourceRef, form, discardChanges]);
 
   const handleDelete = useCallback(async () => {
     if (!selectedEntry) return;
@@ -340,6 +402,8 @@ export const InlineTimeEntry = ({
                               "w-5 h-5 absolute right-0 top-0 opacity-0 pointer-events-none",
                               "group-hover:opacity-100 group-hover:pointer-events-auto",
                               "group-focus-within:opacity-100 group-focus-within:pointer-events-auto",
+                              !isExpanded &&
+                                "group-active:opacity-0 group-active:pointer-events-none",
                             )}
                             variant="ghost"
                             icon={() => (
