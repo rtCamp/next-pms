@@ -92,8 +92,8 @@ export default function HeatmapCard() {
     selectedRoles.length === 0 || selectedRoles.length === roleOptions.length;
 
   return (
-    <div className="flex flex-col gap-4 rounded-lg border border-outline-gray-1 bg-surface-cards p-4">
-      <div className="flex items-start justify-between gap-4">
+    <>
+      <div className="flex shrink-0 items-start justify-between gap-4">
         <h3 className="text-lg font-semibold text-ink-gray-8">Heatmap</h3>
         <div className="w-44 shrink-0">
           <MultiSelect
@@ -109,59 +109,61 @@ export default function HeatmapCard() {
           />
         </div>
       </div>
-      {visibleRoles.length === 0 ? (
-        <p className="py-8 text-center text-sm text-ink-gray-5">
-          No allocation data for this period.
-        </p>
-      ) : (
-        <table className="w-full table-fixed border-separate border-spacing-x-0.5 border-spacing-y-0">
-          <colgroup>
-            <col className="w-40" />
-            {weeks.map((week) => (
-              <col key={week.week_start} />
-            ))}
-          </colgroup>
-          <thead>
-            <tr className="h-[25px]">
-              <th />
-              {monthGroups.map((group) => (
-                <th
-                  key={group.label}
-                  colSpan={group.span}
-                  className="p-0 text-left align-middle text-2xs font-normal text-ink-gray-5"
-                >
-                  {group.label}
-                </th>
+      <div className="min-h-0 flex-1 overflow-y-auto scrollbar-thin">
+        {visibleRoles.length === 0 ? (
+          <p className="py-8 text-center text-sm text-ink-gray-5">
+            No allocation data for this period.
+          </p>
+        ) : (
+          <table className="w-full table-fixed border-separate border-spacing-x-0.5 border-spacing-y-0">
+            <colgroup>
+              <col className="w-40" />
+              {weeks.map((week) => (
+                <col key={week.week_start} />
               ))}
-            </tr>
-          </thead>
-          <tbody>
-            {visibleRoles.map((role) => (
-              <tr key={role.designation} className="h-[25px]">
-                <th
-                  scope="row"
-                  className="truncate p-0 pr-2 text-left align-middle text-2xs font-normal text-ink-gray-5"
-                  title={role.designation}
-                >
-                  {role.designation}
-                </th>
-                {role.weeks.map((week) => {
-                  const state = getCellState(week);
-                  return (
-                    <td key={week.week_start} className="p-0 align-middle">
-                      <span
-                        className={cellVariants({ state })}
-                        aria-label={`${role.designation} week of ${week.week_start}: ${state}`}
-                      />
-                    </td>
-                  );
-                })}
+            </colgroup>
+            <thead>
+              <tr className="h-[25px]">
+                <th />
+                {monthGroups.map((group) => (
+                  <th
+                    key={group.label}
+                    colSpan={group.span}
+                    className="p-0 text-left align-middle text-2xs font-normal text-ink-gray-5"
+                  >
+                    {group.label}
+                  </th>
+                ))}
               </tr>
-            ))}
-          </tbody>
-        </table>
-      )}
-      <div className="flex justify-center gap-8">
+            </thead>
+            <tbody>
+              {visibleRoles.map((role) => (
+                <tr key={role.designation} className="h-[25px]">
+                  <th
+                    scope="row"
+                    className="truncate p-0 pr-2 text-left align-middle text-2xs font-normal text-ink-gray-5"
+                    title={role.designation}
+                  >
+                    {role.designation}
+                  </th>
+                  {role.weeks.map((week) => {
+                    const state = getCellState(week);
+                    return (
+                      <td key={week.week_start} className="p-0 align-middle">
+                        <span
+                          className={cellVariants({ state })}
+                          aria-label={`${role.designation} week of ${week.week_start}: ${state}`}
+                        />
+                      </td>
+                    );
+                  })}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </div>
+      <div className="flex shrink-0 justify-center gap-8">
         {LEGEND.map((item) => (
           <div key={item.label} className="flex items-center gap-1.5">
             <span
@@ -171,6 +173,6 @@ export default function HeatmapCard() {
           </div>
         ))}
       </div>
-    </div>
+    </>
   );
 }

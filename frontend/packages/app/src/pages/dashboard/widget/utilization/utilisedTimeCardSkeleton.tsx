@@ -5,7 +5,7 @@ import { Skeleton } from "@rtcamp/frappe-ui-react";
 
 export function UtilisedTimeCardSkeleton() {
   return (
-    <div className="flex flex-col gap-4 rounded-lg border border-outline-gray-1 bg-surface-cards p-4">
+    <>
       <Skeleton className="h-6 w-56" />
       <div className="flex items-center gap-8">
         <Skeleton className="size-[130px] shrink-0 rounded-full" />
@@ -15,6 +15,6 @@ export function UtilisedTimeCardSkeleton() {
           ))}
         </div>
       </div>
-    </div>
+    </>
   );
 }

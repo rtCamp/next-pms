@@ -19,6 +19,7 @@ import { ToastProvider } from "@rtcamp/frappe-ui-react";
  */
 
 import { ROUTES } from "@/lib/constant";
+import { NotificationsProvider } from "@/providers/notifications/provider";
 import { UserProvider } from "@/providers/user/provider";
 import FrappeProvider from "./providers/frappe";
 import ThemeProvider from "./providers/theme";
@@ -35,15 +36,17 @@ const App = () => {
         <FrappeProvider>
           <ThemeProvider>
             <UserProvider>
-              <Provider store={store}>
-                <TooltipProvider>
-                  <Suspense fallback={<></>}>
-                    <ErrorFallback>
-                      <RouterProvider router={router} />
-                    </ErrorFallback>
-                  </Suspense>
-                </TooltipProvider>
-              </Provider>
+              <NotificationsProvider>
+                <Provider store={store}>
+                  <TooltipProvider>
+                    <Suspense fallback={<></>}>
+                      <ErrorFallback>
+                        <RouterProvider router={router} />
+                      </ErrorFallback>
+                    </Suspense>
+                  </TooltipProvider>
+                </Provider>
+              </NotificationsProvider>
             </UserProvider>
           </ThemeProvider>
         </FrappeProvider>

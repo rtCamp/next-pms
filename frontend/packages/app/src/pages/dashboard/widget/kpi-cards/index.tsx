@@ -28,7 +28,7 @@ export default function LeadershipKpiCard({
   if (isLoading) return <KpiCardSkeleton />;
 
   return (
-    <div className="flex flex-col gap-2 rounded-lg border border-outline-gray-1 bg-surface-cards p-3">
+    <>
       <div className="w-full flex justify-between">
         <span className="truncate text-base text-ink-gray-5">
           {KPI_LABELS[kpikey]}
@@ -48,6 +48,6 @@ export default function LeadershipKpiCard({
             : currencyFormat("USD").format(data.current)
           : "—"}
       </span>
-    </div>
+    </>
   );
 }

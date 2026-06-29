@@ -79,84 +79,80 @@ export default function CalendarTimelineCard() {
     selectedProjects.length === projectOptions.length;
 
   return (
-    <div className="flex flex-col gap-3 rounded-lg border border-outline-gray-1 bg-surface-cards">
-      <CalendarTimeline
-        events={events}
-        rangeStart={rangeStart}
-        today={new Date()}
-        headerSlot={
-          <>
-            <DatePicker
-              value={format(rangeStart, "yyyy-MM-dd")}
-              placement="bottom-start"
-              clearable={false}
-              onChange={(val) => {
-                const picked = Array.isArray(val) ? val[0] : val;
-                if (picked) setRangeStart(getWeekStart(parseISO(picked)));
-              }}
-            >
-              {() => (
-                <Button
-                  type="button"
-                  variant="ghost"
-                  className="flex shrink-0 items-center gap-2"
-                  iconRight={() => (
-                    <SmallDown className="size-4 shrink-0 text-ink-gray-5" />
-                  )}
-                >
-                  <span className="whitespace-nowrap text-lg font-semibold text-ink-gray-8">
-                    {`${format(rangeStart, "MMM d")} – ${format(
-                      addDays(rangeStart, DEFAULT_VISIBLE_DAYS - 1),
-                      "MMM d, yyyy",
-                    )}`}
-                  </span>
-                </Button>
-              )}
-            </DatePicker>
-            <div className="flex flex-wrap items-center gap-2">
-              <div className="flex items-center gap-1">
-                <Button
-                  variant="ghost"
-                  icon={() => <SmallLeftChevron className="size-4" />}
-                  label="Previous range"
-                  onClick={() =>
-                    setRangeStart((prev) =>
-                      addDays(prev, -DEFAULT_VISIBLE_DAYS),
-                    )
-                  }
-                />
-                <Button
-                  variant="ghost"
-                  onClick={() => setRangeStart(getWeekStart(new Date()))}
-                >
-                  Today
-                </Button>
-                <Button
-                  variant="ghost"
-                  icon={() => <SmallRightChevron className="size-4" />}
-                  label="Next range"
-                  onClick={() =>
-                    setRangeStart((prev) => addDays(prev, DEFAULT_VISIBLE_DAYS))
-                  }
-                />
-              </div>
-              <div className="w-44 shrink-0">
-                <MultiSelect
-                  popupClassName="scrollbar-thin"
-                  options={projectOptions}
-                  value={selectedProjects}
-                  triggerLabel={
-                    allProjectsSelected
-                      ? "All projects"
-                      : `${selectedProjects.length} project${selectedProjects.length === 1 ? "" : "s"} selected`
-                  }
-                  onChange={setSelectedProjects}
-                />
-              </div>
+    <CalendarTimeline
+      events={events}
+      rangeStart={rangeStart}
+      today={new Date()}
+      headerSlot={
+        <>
+          <DatePicker
+            value={format(rangeStart, "yyyy-MM-dd")}
+            placement="bottom-start"
+            clearable={false}
+            onChange={(val) => {
+              const picked = Array.isArray(val) ? val[0] : val;
+              if (picked) setRangeStart(getWeekStart(parseISO(picked)));
+            }}
+          >
+            {() => (
+              <Button
+                type="button"
+                variant="ghost"
+                className="flex shrink-0 items-center gap-2"
+                iconRight={() => (
+                  <SmallDown className="size-4 shrink-0 text-ink-gray-5" />
+                )}
+              >
+                <span className="whitespace-nowrap text-lg font-semibold text-ink-gray-8">
+                  {`${format(rangeStart, "MMM d")} – ${format(
+                    addDays(rangeStart, DEFAULT_VISIBLE_DAYS - 1),
+                    "MMM d, yyyy",
+                  )}`}
+                </span>
+              </Button>
+            )}
+          </DatePicker>
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="flex items-center gap-1">
+              <Button
+                variant="ghost"
+                icon={() => <SmallLeftChevron className="size-4" />}
+                label="Previous range"
+                onClick={() =>
+                  setRangeStart((prev) => addDays(prev, -DEFAULT_VISIBLE_DAYS))
+                }
+              />
+              <Button
+                variant="ghost"
+                onClick={() => setRangeStart(getWeekStart(new Date()))}
+              >
+                Today
+              </Button>
+              <Button
+                variant="ghost"
+                icon={() => <SmallRightChevron className="size-4" />}
+                label="Next range"
+                onClick={() =>
+                  setRangeStart((prev) => addDays(prev, DEFAULT_VISIBLE_DAYS))
+                }
+              />
             </div>
-          </>
-        }
-      />
-    </div>
+            <div className="w-44 shrink-0">
+              <MultiSelect
+                popupClassName="scrollbar-thin"
+                options={projectOptions}
+                value={selectedProjects}
+                triggerLabel={
+                  allProjectsSelected
+                    ? "All projects"
+                    : `${selectedProjects.length} project${selectedProjects.length === 1 ? "" : "s"} selected`
+                }
+                onChange={setSelectedProjects}
+              />
+            </div>
+          </div>
+        </>
+      }
+    />
   );
 }
