@@ -63,7 +63,7 @@ export const MemberRow = ({
                 timeEntries={memberData.totalTimeEntries}
                 onCellClick={
                   rest.onCellClick
-                    ? (dayIndex) => rest.onCellClick?.(dates[dayIndex] ?? "")
+                    ? (date) => rest.onCellClick?.(date)
                     : undefined
                 }
                 totalHours={floatToTime(memberData.total, 2)}

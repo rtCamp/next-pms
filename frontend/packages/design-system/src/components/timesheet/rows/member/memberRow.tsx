@@ -30,7 +30,7 @@ export interface MemberRowProps {
   /** Callback function when the action button is clicked. */
   onButtonClick?: () => void;
   /** Optional function to handle day-cell click events. */
-  onCellClick?: (dayIndex: number) => void;
+  onCellClick?: (date: string, dayIndex: number) => void;
   /** Array of time entries for each day of the week for the member. */
   timeEntries: { date: string; time: string }[];
   /** Total hours logged for the week. */
@@ -100,7 +100,7 @@ export const MemberRow: React.FC<MemberRowProps> = ({
               disabled={!onCellClick}
               onClick={(e) => {
                 e.stopPropagation();
-                onCellClick?.(index);
+                onCellClick?.(timeEntry.date, index);
               }}
               aria-label="Add time"
             >
