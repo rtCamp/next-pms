@@ -4,7 +4,7 @@
 import { Dialog } from "@base-ui/react/dialog";
 import { ScrollArea } from "@base-ui/react/scroll-area";
 import { Tooltip } from "@rtcamp/frappe-ui-react";
-import { Close, DoubleCheck } from "@rtcamp/frappe-ui-react/icons";
+import { DoubleCheck } from "@rtcamp/frappe-ui-react/icons";
 
 /**
  * Internal dependencies.
@@ -59,6 +59,7 @@ export default function NotificationTray({
             <div className="flex items-center gap-0.5">
               <Tooltip text="Mark all as read">
                 <button
+                  aria-label="Mark all as read"
                   type="button"
                   onClick={onMarkAllRead}
                   className={actionButtonClasses}
@@ -66,9 +67,10 @@ export default function NotificationTray({
                   <DoubleCheck size={16} />
                 </button>
               </Tooltip>
-              <Dialog.Close className={actionButtonClasses}>
-                <Close size={16} />
-              </Dialog.Close>
+              <Dialog.Close
+                aria-label="Close notifications tray"
+                className={actionButtonClasses}
+              />
             </div>
           </div>
 
