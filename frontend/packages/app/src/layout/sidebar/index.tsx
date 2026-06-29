@@ -112,7 +112,7 @@ const Sidebar = () => {
     isActive: pathname === ROUTES["timesheet-team"],
     render: (
       <LinkWithPreload
-        to={`ROUTES["timesheet-team"]${employeeId && "?reportsTo=${encodeURIComponent(employeeId)"}`}
+        to={`${ROUTES["timesheet-team"]}${employeeId ? `?reportsTo=${encodeURIComponent(employeeId)}` : ""}`}
       />
     ),
   };
