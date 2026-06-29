@@ -31,7 +31,7 @@ type UseProjectTimesheetOptions = {
   compositeFilters: FilterCondition[];
 };
 
-const PROJECT_PAGE_LENGTH = 10;
+const PROJECT_PAGE_LENGTH = 4;
 
 export function useProjectTimesheetData({
   requestKey,
