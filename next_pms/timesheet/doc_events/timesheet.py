@@ -20,6 +20,7 @@ def validate(doc, method=None):
 
 
 def before_insert(doc, method=None):
+    set_date(doc)
     validate_existing_timesheet(doc)
     validate_approved_timesheet(doc)
 
