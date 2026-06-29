@@ -139,7 +139,7 @@ export const PersonalTimesheetRow = ({
                 className="pl-7.5"
                 starred={isWeekImported}
                 disabled={disabled}
-                onCellClick={openAddTimeDialog}
+                onCellClick={(date) => openAddTimeDialog({ date })}
                 onStarClick={handleStarClick}
               />
             ) : null}
@@ -152,6 +152,13 @@ export const PersonalTimesheetRow = ({
                 label={project.project_name || project.project}
                 hideTime={hideTotalRow}
                 className="pl-7.5"
+                onCellClick={(date) =>
+                  openAddTimeDialog({
+                    date,
+                    project: project.project,
+                    projectLabel: project.project_name || project.project,
+                  })
+                }
               >
                 {Object.entries(project.tasks).map(([taskKey, task]) => (
                   <TaskRow

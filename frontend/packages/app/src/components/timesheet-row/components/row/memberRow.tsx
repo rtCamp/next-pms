@@ -61,6 +61,11 @@ export const MemberRow = ({
                 collapsed={collapsed}
                 status={status ? ApprovalStatusMap[status] : "none"}
                 timeEntries={memberData.totalTimeEntries}
+                onCellClick={
+                  rest.onCellClick
+                    ? (dayIndex) => rest.onCellClick?.(dates[dayIndex] ?? "")
+                    : undefined
+                }
                 totalHours={floatToTime(memberData.total, 2)}
                 totalHoursTheme={totalHoursThemeMap[memberData.isExtended]}
                 onButtonClick={() => onButtonClick?.()}

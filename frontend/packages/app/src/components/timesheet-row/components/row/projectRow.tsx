@@ -25,6 +25,7 @@ export const ProjectRow = ({
   dates,
   tasks,
   hideTime,
+  onCellClick,
   children,
   ...rest
 }: ProjectRowProps) => {
@@ -62,6 +63,11 @@ export const ProjectRow = ({
                 {...rest}
                 totalHours={hideTime ? "" : floatToTime(projectData.total, 2)}
                 timeEntries={projectData.totalTimeEntries}
+                onCellClick={
+                  hideTime
+                    ? undefined
+                    : (dayIndex) => onCellClick?.(dates[dayIndex] ?? "")
+                }
                 collapsed={collapsed}
                 totalHoursTheme="green"
               />

@@ -62,7 +62,7 @@ export type WeekRowProps = ReadOnlyWeekRowProps | EditableWeekRowProps;
 
 export interface MemberRowProps extends Omit<
   BaseMemberRowProps,
-  "status" | "timeEntries"
+  "status" | "timeEntries" | "onCellClick"
 > {
   dates: string[];
   tasks: TaskProps;
@@ -71,6 +71,7 @@ export interface MemberRowProps extends Omit<
   workingHour: number;
   workingFrequency: WorkingFrequency;
   status: ApprovalStatusLabelType;
+  onCellClick?: (date: string) => void;
   children?: (props: {
     totalTimeEntriesInHours: number[];
     dailyWorkingHours: number;
@@ -81,11 +82,12 @@ export type TotalRowProps = BaseTotalRowProps;
 
 export interface ProjectRowProps extends Omit<
   BaseProjectRowProps,
-  "timeEntries"
+  "timeEntries" | "onCellClick"
 > {
   dates: string[];
   tasks: TaskProps;
   hideTime?: boolean;
+  onCellClick?: (date: string) => void;
   children?: React.ReactNode;
 }
 

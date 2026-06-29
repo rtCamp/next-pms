@@ -1,7 +1,7 @@
 /**
  * External Dependencies
  */
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   DatePicker,
   Dialog,
@@ -44,7 +44,9 @@ const AddTime = ({
   open = false,
   onOpenChange,
   task = "",
+  taskLabel = "",
   project = "",
+  projectLabel = "",
 }: AddTimeProps) => {
   const { employeeId } = useUser(({ state }) => ({
     employeeId: state.employeeId,
@@ -111,6 +113,34 @@ const AddTime = ({
 
   const selectedProject = useStore(form.store, (state) => state.values.project);
   const selectedDate = useStore(form.store, (state) => state.values.date);
+  const selectedProjectOption = project
+    ? {
+        label: projectLabel || project,
+        value: project,
+      }
+    : null;
+  const selectedTaskOption = task
+    ? {
+        label: taskLabel || task,
+        value: task,
+        projectId: project,
+        projectName: projectLabel || project,
+      }
+    : null;
+
+  useEffect(() => {
+    if (!open) {
+      return;
+    }
+
+    form.reset({
+      project,
+      task,
+      date: initialDate,
+      duration: 0,
+      comment: "",
+    });
+  }, [form, initialDate, open, project, task]);
 
   const { options: projectOptions, isLoading: isProjectLookupLoading } =
     useProjectLookup({
@@ -118,6 +148,7 @@ const AddTime = ({
       filters: window.frappe?.boot?.global_filters.project,
       pageSize: 20,
       query: projectSearch,
+      selectedOption: selectedProjectOption,
     });
 
   const { options: taskOptions, isLoading: isTaskLookupLoading } =
@@ -126,6 +157,7 @@ const AddTime = ({
       pageSize: 20,
       projectId: selectedProject || undefined,
       query: taskSearch,
+      selectedOption: selectedTaskOption,
     });
 
   const handleCalendarSelectionChange = useCallback(

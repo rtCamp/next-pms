@@ -11,6 +11,7 @@ import {
  * Internal dependencies
  */
 import { getHolidayList } from "@/lib/utils";
+import { useTimesheetOutletContext } from "@/pages/timesheet/outletContext";
 import type { WorkingFrequency } from "@/types";
 import type { HolidayProp, LeaveProps, TaskProps } from "@/types/timesheet";
 import { MemberRow } from "./components/row/memberRow";
@@ -51,6 +52,7 @@ export const TeamTimesheetRow = ({
   setSelectedTask,
   openWeeklyApproval,
 }: TeamTimesheetRowProps) => {
+  const { openAddTimeDialog } = useTimesheetOutletContext();
   const teamMembersData = useMemo(() => {
     return teamMembers.map((member) => {
       const projects = groupTasksByProject(member.tasks);
@@ -91,6 +93,13 @@ export const TeamTimesheetRow = ({
                 status={member.status}
                 className="pl-7.5"
                 collapsed={true}
+                onCellClick={(date) =>
+                  openAddTimeDialog({
+                    date,
+                    employeeId: member.employee,
+                    employeeLabel: member.label,
+                  })
+                }
                 onButtonClick={() =>
                   openWeeklyApproval?.(member.employee, dates[0])
                 }
@@ -104,6 +113,16 @@ export const TeamTimesheetRow = ({
                         tasks={project.tasks}
                         label={project.project_name || project.project}
                         className="pl-13.5"
+                        onCellClick={(date) =>
+                          openAddTimeDialog({
+                            date,
+                            project: project.project,
+                            projectLabel:
+                              project.project_name || project.project,
+                            employeeId: member.employee,
+                            employeeLabel: member.label,
+                          })
+                        }
                       >
                         {Object.entries(project.tasks).map(
                           ([taskKey, task]) => (

@@ -15,10 +15,20 @@ import AddLeave from "@/pages/timesheet/components/add-leave";
 import AddTime from "@/pages/timesheet/components/add-time";
 import SubmitApproval from "@/pages/timesheet/components/submit-approval";
 import { TimesheetBreadcrumbs } from "@/pages/timesheet/components/timesheet-breadcrumbs";
-import type { TimesheetOutletContext } from "../outletContext";
+import type {
+  OpenAddTimeDialogOptions,
+  TimesheetOutletContext,
+} from "../outletContext";
 
 function PersonalTimesheetLayout() {
-  const [initialDate, setInitialDate] = useState(getTodayDate());
+  const [addTimePrefill, setAddTimePrefill] =
+    useState<OpenAddTimeDialogOptions>({
+      date: getTodayDate(),
+      project: "",
+      projectLabel: "",
+      task: "",
+      taskLabel: "",
+    });
   const [isTimeDialogOpen, setIsTimeDialogOpen] = useState(false);
   const [isLeaveDialogOpen, setIsLeaveDialogOpen] = useState(false);
   const [isSubmitApprovalOpen, setIsSubmitApprovalOpen] = useState(false);
@@ -28,10 +38,20 @@ function PersonalTimesheetLayout() {
     totalHours: 0,
   });
 
-  const handleAddTime = useCallback((date?: string) => {
-    setInitialDate(date || getTodayDate());
-    setIsTimeDialogOpen(true);
-  }, []);
+  const handleAddTime = useCallback(
+    (prefill: OpenAddTimeDialogOptions = {}) => {
+      setAddTimePrefill({
+        date: getTodayDate(),
+        project: "",
+        projectLabel: "",
+        task: "",
+        taskLabel: "",
+        ...prefill,
+      });
+      setIsTimeDialogOpen(true);
+    },
+    [],
+  );
 
   const handleApproval = useCallback(
     (startDate: string, endDate: string, totalHours: number) => {
@@ -78,10 +98,14 @@ function PersonalTimesheetLayout() {
       />
 
       <AddTime
-        initialDate={initialDate}
+        initialDate={addTimePrefill.date || getTodayDate()}
         open={isTimeDialogOpen}
         onOpenChange={setIsTimeDialogOpen}
         onSuccess={() => setIsTimeDialogOpen(false)}
+        project={addTimePrefill.project}
+        projectLabel={addTimePrefill.projectLabel}
+        task={addTimePrefill.task}
+        taskLabel={addTimePrefill.taskLabel}
       />
       <AddLeave open={isLeaveDialogOpen} onOpenChange={setIsLeaveDialogOpen} />
       <SubmitApproval
