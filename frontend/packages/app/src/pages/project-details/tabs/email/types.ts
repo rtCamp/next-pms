@@ -6,7 +6,7 @@ export type EmailAddress = {
 
 export type Attachment = {
   file_url: string;
-  is_private: 0 | 1;
+  is_private?: 0 | 1;
 };
 
 export type Email = {

@@ -84,7 +84,17 @@ def _get_project_gmail_threads(project: str) -> list[dict]:
     from frappe_gmail_thread.api.activity import get_linked_gmail_threads
 
     threads = get_linked_gmail_threads("Project", project)
-    return [_to_email((entry.get("template_data") or {}).get("doc") or {}) for entry in threads]
+
+    emails = []
+    for entry in threads:
+        doc = (entry.get("template_data") or {}).get("doc") or {}
+        email = _to_email(doc)
+        # get_linked_gmail_threads emits one entry per email but sets `name` to the
+        # parent thread for every one, so synthesize a per-email id (thread + date)
+        # to keep the frontend's key={email.id} unique.
+        email["name"] = f"{doc.get('name')}-{doc.get('creation')}"
+        emails.append(email)
+    return emails
 
 
 def _to_email(data: dict, attachments: list[dict] | None = None) -> dict:
