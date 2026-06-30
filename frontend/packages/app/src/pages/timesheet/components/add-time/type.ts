@@ -43,6 +43,8 @@ export interface AddTimeProps {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   onSuccess?: (data: any) => void;
   task?: string;
+  taskLabel?: string;
   project?: string;
+  projectLabel?: string;
   employeeName?: string;
 }

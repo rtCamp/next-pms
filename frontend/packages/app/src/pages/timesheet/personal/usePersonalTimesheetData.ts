@@ -16,7 +16,7 @@ import { NUMBER_OF_WEEKS_TO_FETCH } from "@/lib/constant";
 import { buildCompositeFilters, parseFrappeErrorMsg } from "@/lib/utils";
 import type { DataProp, TaskDataProps } from "@/types/timesheet";
 import { initialTimesheetData } from "./context";
-import { mergeTimesheetData } from "./utils";
+import { addWeekLabels, mergeTimesheetData } from "./utils";
 
 type UsePersonalTimesheetDataOptions = {
   employeeId: string;
@@ -104,10 +104,12 @@ export function usePersonalTimesheetData({
       return;
     }
 
+    const labeledData = addWeekLabels(data.message);
+
     setTimesheetData((currentData) =>
       isFilterRequest || Object.keys(currentData.data).length === 0
-        ? data.message
-        : mergeTimesheetData(currentData, data.message),
+        ? labeledData
+        : mergeTimesheetData(currentData, labeledData),
     );
     setHasMoreWeeks(filtersAreActive ? (data.message.has_more ?? false) : true);
     setIsInitialLoad(false);
@@ -132,7 +134,7 @@ export function usePersonalTimesheetData({
   }, [error, toast]);
 
   useFrappeEventListener(`timesheet_update::${employeeId}`, (payload) => {
-    const updatedData = payload.message;
+    const updatedData = addWeekLabels(payload.message);
     const key = Object.keys(updatedData.data)[0];
 
     setTimesheetData((currentData) => {

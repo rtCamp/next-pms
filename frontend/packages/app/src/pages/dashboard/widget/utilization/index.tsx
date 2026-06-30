@@ -39,7 +39,7 @@ export default function UtilisedTimeCard() {
   ];
 
   return (
-    <div className="flex flex-col gap-4 rounded-lg border border-outline-gray-1 bg-surface-cards p-4">
+    <>
       <div className="flex items-start justify-between gap-4">
         <h3 className="text-lg font-semibold text-ink-gray-8">
           Utilised time in the past 30 days
@@ -76,6 +76,6 @@ export default function UtilisedTimeCard() {
           ))}
         </div>
       </div>
-    </div>
+    </>
   );
 }

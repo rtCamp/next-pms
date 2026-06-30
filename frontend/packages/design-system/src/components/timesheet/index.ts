@@ -9,9 +9,11 @@ export type { TaskRowTimeEntry } from "./rows/task/constants";
 export {
   type ApprovalStatusType,
   type ApprovalStatusLabelType,
+  type ApprovalStatusDisplayLabelType,
   type TotalHoursTheme,
   totalHoursThemeMap,
   ApprovalStatusLabelMap,
+  ApprovalStatusDisplayLabelMap,
   ApprovalStatusMap,
   taskStatusMap,
 } from "./rows/constants";

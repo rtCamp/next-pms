@@ -71,7 +71,7 @@ export default function AssignedProjects() {
   }
 
   return (
-    <div className="flex flex-col gap-3 rounded-lg border border-outline-gray-1 bg-surface-cards p-4">
+    <>
       <div className="flex items-center justify-between gap-4">
         <h3 className="text-lg font-semibold text-ink-gray-8">
           Managed projects
@@ -173,6 +173,6 @@ export default function AssignedProjects() {
           </ListRows>
         </ListView>
       )}
-    </div>
+    </>
   );
 }

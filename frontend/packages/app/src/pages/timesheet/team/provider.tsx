@@ -18,7 +18,6 @@ import type { Error as FrappeError } from "frappe-js-sdk/lib/frappe_app/types";
 import { useFrappeEventListener } from "frappe-react-sdk";
 import { useDebounce } from "@/hooks/useDebounce";
 import { isCompleteFilterCondition, parseFrappeErrorMsg } from "@/lib/utils";
-import { useUser } from "@/providers/user";
 import {
   TeamTimesheetContext,
   type TeamTimesheetContextProps,
@@ -40,34 +39,22 @@ export const TeamTimesheetProvider: FC<PropsWithChildren> = ({ children }) => {
   });
   const debouncedSearch = useDebounce(filters.search, 400);
 
-  const { employeeId } = useUser(({ state }) => ({
-    employeeId: state.employeeId,
-  }));
-
-  useEffect(() => {
-    if (!employeeId || filters.reportsTo) {
-      return;
-    }
-
-    setReportsTo(employeeId);
-  }, [employeeId, filters.reportsTo, setReportsTo]);
-
   const uiFilters = useMemo(
     () => ({
       search: filters.search,
       approvalStatus: filters.approvalStatus,
-      reportsTo: (filters.reportsTo ?? employeeId) || undefined,
+      reportsTo: filters.reportsTo,
     }),
-    [employeeId, filters.search, filters.approvalStatus, filters.reportsTo],
+    [filters.search, filters.approvalStatus, filters.reportsTo],
   );
 
   const effectiveFilters = useMemo(
     () => ({
       search: debouncedSearch,
       approvalStatus: filters.approvalStatus,
-      reportsTo: (filters.reportsTo ?? employeeId) || undefined,
+      reportsTo: filters.reportsTo,
     }),
-    [debouncedSearch, employeeId, filters.reportsTo, filters.approvalStatus],
+    [debouncedSearch, filters.approvalStatus, filters.reportsTo],
   );
 
   // Only pass complete filter conditions to the data hook so that selecting a

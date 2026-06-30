@@ -13,6 +13,7 @@ import { useFrappeGetCall } from "frappe-react-sdk";
  */
 import { NUMBER_OF_WEEKS_TO_FETCH } from "@/lib/constant";
 import { buildCompositeFilters } from "@/lib/utils";
+import { formatTimesheetWeekLabel } from "../utils";
 import type { ProjectMemberData, WeekGroup } from "./context";
 import type { ApiPayload, ProjectTimesheetApiResponse } from "./types";
 
@@ -31,7 +32,7 @@ type UseProjectTimesheetOptions = {
   compositeFilters: FilterCondition[];
 };
 
-const PROJECT_PAGE_LENGTH = 10;
+const PROJECT_PAGE_LENGTH = 4;
 
 export function useProjectTimesheetData({
   requestKey,
@@ -127,6 +128,7 @@ export function useProjectTimesheetData({
         if (!weekMap.has(week.start_date)) {
           weekMap.set(week.start_date, {
             key: week.key,
+            label: formatTimesheetWeekLabel(week.start_date, week.end_date),
             start_date: week.start_date,
             end_date: week.end_date,
             dates: week.dates,

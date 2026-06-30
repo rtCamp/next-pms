@@ -3,8 +3,18 @@
  */
 import { useOutletContext } from "react-router-dom";
 
+export type OpenAddTimeDialogOptions = {
+  date?: string;
+  project?: string;
+  projectLabel?: string;
+  task?: string;
+  taskLabel?: string;
+  employeeId?: string;
+  employeeLabel?: string;
+};
+
 export type TimesheetOutletContext = {
-  openAddTimeDialog: (date?: string) => void;
+  openAddTimeDialog: (prefill?: OpenAddTimeDialogOptions) => void;
   openAddLeaveDialog: () => void;
   handleApproval: (
     startDate: string,

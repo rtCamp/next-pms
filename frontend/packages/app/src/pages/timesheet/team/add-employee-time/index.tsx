@@ -1,7 +1,7 @@
 /**
  * External Dependencies
  */
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   DatePicker,
   Dialog,
@@ -31,8 +31,11 @@ const AddEmployeeTime = ({
   open = false,
   onOpenChange,
   task = "",
+  taskLabel = "",
   project = "",
+  projectLabel = "",
   employeeId = "",
+  employeeLabel = "",
 }: AddTeamTimeProps) => {
   const toast = useToasts();
   const [employeeSearch, setEmployeeSearch] = useState("");
@@ -97,12 +100,48 @@ const AddEmployeeTime = ({
   );
 
   const selectedProject = useStore(form.store, (state) => state.values.project);
+  const selectedProjectOption = project
+    ? {
+        label: projectLabel || project,
+        value: project,
+      }
+    : null;
+  const selectedEmployeeOption = employeeId
+    ? {
+        label: employeeLabel || employeeId,
+        value: employeeId,
+      }
+    : null;
+  const selectedTaskOption = task
+    ? {
+        label: taskLabel || task,
+        value: task,
+        projectId: project,
+        projectName: projectLabel || project,
+      }
+    : null;
+
+  useEffect(() => {
+    if (!open) {
+      return;
+    }
+
+    form.reset({
+      employeeId,
+      project,
+      task,
+      date: initialDate,
+      duration: 0,
+      comment: "",
+    });
+  }, [employeeId, form, initialDate, open, project, task]);
 
   const { options: employeeOptions, isLoading: isEmployeeLookupLoading } =
     useEmployeeLookup({
       shouldFetch: open,
       pageSize: 20,
       query: employeeSearch,
+      selectedOption: selectedEmployeeOption,
     });
 
   const { options: projectOptions, isLoading: isProjectLookupLoading } =
@@ -110,6 +149,7 @@ const AddEmployeeTime = ({
       shouldFetch: open,
       pageSize: 20,
       query: projectSearch,
+      selectedOption: selectedProjectOption,
     });
 
   const { options: taskOptions, isLoading: isTaskLookupLoading } =
@@ -118,6 +158,7 @@ const AddEmployeeTime = ({
       pageSize: 20,
       projectId: selectedProject || undefined,
       query: taskSearch,
+      selectedOption: selectedTaskOption,
     });
 
   return (
@@ -159,7 +200,7 @@ const AddEmployeeTime = ({
                   loading={isEmployeeLookupLoading}
                   options={employeeOptions}
                   searchValue={employeeSearch}
-                  placeholder="Select Employee"
+                  placeholder="Select employee"
                   value={field.state.value}
                   openOnFocus
                   onSearchChange={setEmployeeSearch}
@@ -187,7 +228,7 @@ const AddEmployeeTime = ({
                   loading={isProjectLookupLoading}
                   options={projectOptions}
                   searchValue={projectSearch}
-                  placeholder="Select Project"
+                  placeholder="Select project"
                   value={field.state.value}
                   openOnFocus
                   onSearchChange={setProjectSearch}
@@ -215,7 +256,7 @@ const AddEmployeeTime = ({
                   loading={isTaskLookupLoading}
                   options={taskOptions}
                   searchValue={taskSearch}
-                  placeholder="Select Task"
+                  placeholder="Select task"
                   value={field.state.value}
                   openOnFocus
                   onSearchChange={setTaskSearch}

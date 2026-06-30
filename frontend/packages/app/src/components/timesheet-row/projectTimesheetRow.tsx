@@ -10,6 +10,7 @@ import {
 /**
  * Internal dependencies
  */
+import { useTimesheetOutletContext } from "@/pages/timesheet/outletContext";
 import type { WorkingFrequency } from "@/types";
 import type { HolidayProp, LeaveProps, TaskProps } from "@/types/timesheet";
 import { MemberRow } from "./components/row/memberRow";
@@ -49,6 +50,7 @@ export const ProjectTimesheetRow = ({
   firstWeek,
   projects,
 }: ProjectTimesheetRowProps) => {
+  const { openAddTimeDialog } = useTimesheetOutletContext();
   const projectsData = useMemo(() => {
     return projects.map((project) => ({
       ...project,
@@ -75,7 +77,15 @@ export const ProjectTimesheetRow = ({
                 tasks={project.mergedTasks}
                 label={project.projectName || project.project}
                 highlightTimeEntries={true}
+                lockApproved={false}
                 className="pl-7.5"
+                onCellClick={(date) =>
+                  openAddTimeDialog({
+                    date,
+                    project: project.project,
+                    projectLabel: project.projectName || project.project,
+                  })
+                }
               >
                 {project.members.map((member) => (
                   <MemberRow
@@ -91,6 +101,16 @@ export const ProjectTimesheetRow = ({
                     status="None"
                     className="pl-13.5"
                     collapsed={true}
+                    disabled={member.status === "Approved"}
+                    onCellClick={(date) =>
+                      openAddTimeDialog({
+                        date,
+                        employeeId: member.employee,
+                        employeeLabel: member.label,
+                        project: project.project,
+                        projectLabel: project.projectName || project.project,
+                      })
+                    }
                   >
                     {({ totalTimeEntriesInHours, dailyWorkingHours }) => (
                       <>

@@ -44,11 +44,12 @@ export default function StatCards() {
     );
 
   return (
-    <>
+    <div className="w-full flex gap-2">
       {isActiveProjectDataLoading ? (
         <StatCardSkeleton />
       ) : (
         <StatCard
+          className="flex-1"
           label="Active projects"
           value={activeProjectData?.message ?? "-"}
         />
@@ -57,6 +58,7 @@ export default function StatCards() {
         <StatCardSkeleton />
       ) : (
         <StatCard
+          className="flex-1"
           label="At risk project"
           value={atRiskProjectData?.message ?? "-"}
         />
@@ -65,6 +67,7 @@ export default function StatCards() {
         <StatCardSkeleton />
       ) : (
         <StatCard
+          className="flex-1"
           label="Members without allocation"
           subLabel="this month"
           value={membersWithoutAllocationData?.message?.count ?? "-"}
@@ -74,11 +77,12 @@ export default function StatCards() {
         <StatCardSkeleton />
       ) : (
         <StatCard
+          className="flex-1"
           label="Non-billable hours logged"
           subLabel="this month"
           value={nonBillableHoursData?.message ?? "-"}
         />
       )}
-    </>
+    </div>
   );
 }

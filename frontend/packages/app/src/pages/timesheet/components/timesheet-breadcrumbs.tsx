@@ -14,7 +14,10 @@ import { useUser } from "@/providers/user";
 export const TimesheetBreadcrumbs = () => {
   const navigate = useNavigate();
   const { pathname } = useLocation();
-  const roles = useUser(({ state }) => state.roles);
+  const { employeeId, roles } = useUser(({ state }) => ({
+    employeeId: state.employeeId,
+    roles: state.roles,
+  }));
 
   const hasRoleAccess =
     roles.includes("Projects Manager") ||
@@ -31,7 +34,9 @@ export const TimesheetBreadcrumbs = () => {
     {
       key: "team",
       label: "Team",
-      to: ROUTES["timesheet-team"],
+      to: employeeId
+        ? `${ROUTES["timesheet-team"]}?reportsTo=${encodeURIComponent(employeeId)}`
+        : ROUTES["timesheet-team"],
       icon: People,
     },
     {

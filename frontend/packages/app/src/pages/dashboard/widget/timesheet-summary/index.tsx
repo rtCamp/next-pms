@@ -86,7 +86,7 @@ export default function Timesheets() {
   }
 
   return (
-    <div className="flex flex-col gap-3 rounded-lg border border-outline-gray-1 bg-surface-cards p-4">
+    <>
       <div className="flex items-center justify-between gap-4">
         <h3 className="text-lg font-semibold text-ink-gray-8">Timesheets</h3>
         <Select
@@ -194,6 +194,6 @@ export default function Timesheets() {
           </ListRows>
         </ListView>
       )}
-    </div>
+    </>
   );
 }
