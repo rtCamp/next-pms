@@ -88,7 +88,7 @@ def generate_pm_report(
         **({"previous_doc_url": previous_doc_url} if previous_doc_url else {}),
         "user_metadata": {
             "user_name": frappe.utils.get_fullname(frappe.session.user),
-            "user_email": frappe.db.get_value("User", frappe.session.user, "email") or "admin@example.com",
+            "user_email": frappe.session.user,
         },
         "github_metadata": get_github_metadata(project_doc, selected_repo=selected_repo, selected_board=selected_board),
         "slack_metadata": {"channel_slug": project_doc.get("custom_slack_channel_slug") or ""},
