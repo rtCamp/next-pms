@@ -60,9 +60,10 @@ jobs:
         run: |
           bench get-app erpnext --branch version-16 --skip-assets
           bench get-app hrms --branch version-16 --skip-assets
+          bench get-app frappe_gmail_thread https://github.com/rtCamp/frappe-gmail-thread --branch version-16 --skip-assets
           bench get-app next_pms "$GITHUB_WORKSPACE" --skip-assets
           bench new-site --db-root-password root --admin-password admin --no-mariadb-socket test_site
-          bench --site test_site install-app erpnext hrms next_pms
+          bench --site test_site install-app erpnext hrms frappe_gmail_thread next_pms
         env:
           CI: "Yes"
 
