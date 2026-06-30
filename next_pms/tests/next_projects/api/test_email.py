@@ -1,3 +1,6 @@
+import sys
+import types
+from contextlib import contextmanager
 from unittest.mock import patch
 
 import frappe
@@ -9,6 +12,7 @@ from next_pms.next_projects.api.email import get_project_emails
 ALLOWED_USER = "priya.sharma@example.com"
 DENIED_USER = "rohan.verma@example.com"
 
+GMAIL_APP = "frappe_gmail_thread"
 GMAIL_NOT_INSTALLED = ["frappe", "erpnext", "next_pms"]
 
 
@@ -168,6 +172,27 @@ class TestGetProjectEmails(IntegrationTestCase):
             },
         }
 
+    @contextmanager
+    def _mock_gmail_threads(self, threads):
+        # CI has no frappe_gmail_thread app, and the endpoint imports it locally only
+        # after the installed-apps guard. Register a fake module so the local import
+        # resolves to our stub regardless of whether the app is installed.
+        activity = types.ModuleType(f"{GMAIL_APP}.api.activity")
+        activity.get_linked_gmail_threads = lambda doctype, docname: threads
+        fake_modules = {
+            GMAIL_APP: types.ModuleType(GMAIL_APP),
+            f"{GMAIL_APP}.api": types.ModuleType(f"{GMAIL_APP}.api"),
+            f"{GMAIL_APP}.api.activity": activity,
+        }
+        with (
+            patch.dict(sys.modules, fake_modules),
+            patch(
+                "next_pms.next_projects.api.email.frappe.get_installed_apps",
+                return_value=[*GMAIL_NOT_INSTALLED, GMAIL_APP],
+            ),
+        ):
+            yield
+
     def tearDown(self):
         frappe.set_user("Administrator")
 
@@ -243,10 +268,7 @@ class TestGetProjectEmails(IntegrationTestCase):
             self._gmail_entry("GMAIL-THREAD-001", "2026-06-21 14:30:00", "Re: Proposal (follow-up)"),
         ]
 
-        with patch(
-            "frappe_gmail_thread.api.activity.get_linked_gmail_threads",
-            return_value=threads,
-        ):
+        with self._mock_gmail_threads(threads):
             result = self._call_as(self.allowed_user, self.project)
 
         # Communications first, then the gmail emails appended at the end.
@@ -265,10 +287,7 @@ class TestGetProjectEmails(IntegrationTestCase):
             self._gmail_entry("GMAIL-THREAD-002", "2026-06-22 10:00:00", "Signed contract", attachments=attachments)
         ]
 
-        with patch(
-            "frappe_gmail_thread.api.activity.get_linked_gmail_threads",
-            return_value=threads,
-        ):
+        with self._mock_gmail_threads(threads):
             result = self._call_as(self.allowed_user, self.empty_project)
 
         self.assertEqual(len(result), 1)
