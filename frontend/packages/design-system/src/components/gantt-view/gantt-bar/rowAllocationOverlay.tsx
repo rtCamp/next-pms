@@ -212,6 +212,7 @@ export const RowAllocationOverlay = forwardRef<
           left={draft.left}
           width={draft.width}
           employeeId={draft.employeeId}
+          employeeName={draft.employeeName}
           projectId={draft.projectId}
           projectName={draft.projectName}
           customerName={draft.customerName}

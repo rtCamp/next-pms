@@ -18,10 +18,12 @@ export function allocationBarToEntry(
     data: AllocationCallbackData,
     deleteMode: DeleteAllocationMode,
   ) => Promise<void>,
+  employeeName?: string,
 ): AllocationEntry {
   const callbackData: AllocationCallbackData = {
     allocationId: alloc.id,
     employeeId: alloc.employeeId,
+    employeeName,
     projectId: alloc.projectId,
     recurrenceId: alloc.recurrenceId,
     projectName: alloc.projectName,

@@ -6,8 +6,11 @@ export type AddAllocationLayoutVariant = "team" | "project";
 export interface AddAllocationInitialValues {
   allocationName?: string;
   employeeId?: string;
+  employeeLabel?: string;
   projectId?: string;
+  projectLabel?: string;
   customer?: string;
+  customerLabel?: string;
   recurrence?: "one-time" | "recurring";
   includeWeekends?: boolean;
   fromDate?: string;

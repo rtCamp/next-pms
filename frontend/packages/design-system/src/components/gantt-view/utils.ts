@@ -66,6 +66,7 @@ export type DraftBarSeed = {
   left: number;
   width: number;
   employeeId?: string;
+  employeeName?: string;
   projectId?: string;
   projectName?: string;
   customerName?: string;

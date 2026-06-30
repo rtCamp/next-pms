@@ -49,6 +49,7 @@ export function GanttProjectSummaryBar({
               allocation,
               onEditAllocation,
               onDeleteAllocation,
+              member.name,
             ),
             memberName: member.name,
             memberImage: member.image,
