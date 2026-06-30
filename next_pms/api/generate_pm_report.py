@@ -4,6 +4,7 @@ import time
 import frappe
 import requests
 from frappe import _
+from frappe.utils import getdate
 from frappe.utils.password import get_decrypted_password
 
 INITIAL_DELAY = 30
@@ -48,6 +49,7 @@ def generate_pm_report(
     selected_board: str | None = None,
 ) -> dict:
     frappe.has_permission("Project", doc=project, ptype="write", throw=True)
+
     urls = get_llm_urls()
     if not urls:
         return {"status": "error"}
@@ -56,6 +58,7 @@ def generate_pm_report(
     api_key = get_api_key()
     if not api_key:
         return {"status": "error"}
+
     project_doc = frappe.get_doc("Project", project)
 
     # Validations
@@ -63,9 +66,11 @@ def generate_pm_report(
         frappe.throw(_("Report generation is not enabled for this project."))
     if not project_doc.get("custom_slack_channel_slug"):
         frappe.throw(_("Please add a Slack Channel Slug before generating."))
-
     if not from_date or not to_date:
         frappe.throw(_("Report dates are missing. Please select a Report Duration."))
+
+    if getdate(from_date) > getdate(to_date):
+        frappe.throw(_("From Date cannot be after To Date."))
 
     drive_link = project_doc.get("custom_project_drive_link") or ""
     if not drive_link or len(drive_link) < 8:
@@ -77,7 +82,7 @@ def generate_pm_report(
             "start_date": from_date,
             "end_date": to_date,
             "project_status": project_doc.get("custom_project_rag_status") or "Green",
-            "project_name": (project_doc.get("project_name") or "").strip(),
+            "project_name": project_doc.get("project_name") or "",
             "drive_link": drive_link,
         },
         **({"previous_doc_url": previous_doc_url} if previous_doc_url else {}),
@@ -108,6 +113,12 @@ def generate_pm_report(
 
         run_id = run_ids[0]
 
+        save_report_to_child_table(
+            project=project,
+            run_id=run_id,
+            date_range=f"{from_date} to {to_date}",
+        )
+
         frappe.enqueue(
             "next_pms.api.generate_pm_report.check_and_save_report",
             project=project,
@@ -116,7 +127,7 @@ def generate_pm_report(
             from_date=from_date,
             to_date=to_date,
             queue="long",
-            timeout=700,
+            timeout=900,
         )
 
         return {"status": "triggered"}
@@ -134,7 +145,7 @@ def generate_pm_report(
         frappe.log_error(
             f"Error: {e!s}\nResponse: {error_detail}\nPayload: {json.dumps(payload, indent=2)}", "PM Report — API Error"
         )
-        frappe.throw(f"Failed to trigger PM Report: {e!s}")
+        frappe.throw(_("Failed to trigger PM Report: {0}").format(str(e)))
 
 
 def check_and_save_report(project, run_id, user, from_date, to_date):
@@ -162,6 +173,7 @@ def check_and_save_report(project, run_id, user, from_date, to_date):
         # Timeout check
         if elapsed >= MAX_POLL_DURATION:
             frappe.log_error(f"run_id: {run_id} | project: {project}", "PM Report — Poll Timeout")
+            update_report_row(project, run_id, status="Failed", generated_on=frappe.utils.now())
             _notify(project, user, error="Polling timed out after 10 minutes.")
             return
 
@@ -181,26 +193,36 @@ def check_and_save_report(project, run_id, user, from_date, to_date):
 
             if status == "Completed":
                 document_url = output.get("document_url") if output else None
-
                 if document_url:
-                    save_report_to_child_table(
+                    # Update row with actual URL and datetime
+                    update_report_row(
                         project=project,
+                        run_id=run_id,
                         report_link=document_url,
-                        date_range=f"{from_date} to {to_date}",
                         generated_on=frappe.utils.now(),
+                        status="Done",
                     )
                     _notify(project, user, doc_link=document_url)
                     _send_bell_notification(project, user, document_url)
                     return
-
                 else:
                     output_retry_count += 1
                     if output_retry_count >= MAX_OUTPUT_RETRIES:
+                        # Completed but no doc_url — keep run_id for resync
+                        update_report_row(
+                            project=project,
+                            run_id=run_id,
+                            status="Completed",
+                            generated_on=frappe.utils.now(),
+                        )
                         _notify(project, user, error="Process completed but no document was generated.")
                         return
+                    time.sleep(COMPLETION_POLL_INTERVAL)
+                    continue
 
             elif status in ("Failed", "Cancelled"):
                 frappe.log_error(f"run_id: {run_id} | status: {status}", "PM Report — Failed/Cancelled")
+                update_report_row(project=project, run_id=run_id, status="Failed", generated_on=frappe.utils.now())
                 _notify(project, user, error=f"Report generation {status.lower()}.")
                 return
 
@@ -212,12 +234,16 @@ def check_and_save_report(project, run_id, user, from_date, to_date):
         time.sleep(POLL_INTERVAL)
 
 
-def save_report_to_child_table(project, report_link, date_range, generated_on):
+def save_report_to_child_table(project, run_id, date_range):
     try:
         project_doc = frappe.get_doc("Project", project)
         project_doc.append(
             "custom_project_reports",
-            {"report_link": report_link, "date_range": date_range, "generated_on": generated_on},
+            {
+                "run_id": run_id,
+                "date_range": date_range,
+                "status": "Generating",
+            },
         )
         project_doc.save(ignore_permissions=True)
         frappe.db.commit()
@@ -258,6 +284,7 @@ def resync_report(project: str, run_id: str) -> dict:
     if not urls:
         frappe.throw(_("PM Report is not configured. Please contact your system administrator."))
     LLM_STATUS_URL = urls[1]
+
     project_doc = frappe.get_doc("Project", project)
     matching_row = next(
         (row for row in project_doc.custom_project_reports if row.run_id == run_id and row.status == "Completed"), None
@@ -339,6 +366,10 @@ def _notify(project, user, doc_link=None, error=None):
 def _send_bell_notification(project, user, document_url):
     """Send Frappe bell notification"""
     try:
+        if not _is_valid_document_url(document_url):
+            frappe.log_error(f"Invalid or untrusted document_url: {document_url}", "PM Report — Invalid Document URL")
+            return
+
         frappe.get_doc(
             {
                 "doctype": "Notification Log",
@@ -374,11 +405,6 @@ def get_github_metadata(project_doc, selected_repo: str | None = None, selected_
         repo_name = project_doc.get("project_name") or ""
         owner_name = "rtCamp"
 
-    if repo_name:
-        repo_name = repo_name.strip()
-    if owner_name:
-        owner_name = owner_name.strip()
-
     project_board = ""
     if selected_board:
         project_board = selected_board
@@ -394,9 +420,6 @@ def get_github_metadata(project_doc, selected_repo: str | None = None, selected_
     if not project_board:
         project_board = project_doc.get("project_name") or ""
 
-    if project_board:
-        project_board = project_board.strip()
-
     return {"repo_name": repo_name, "owner_name": owner_name, "project_board": project_board}
 
 
@@ -408,49 +431,37 @@ def get_hours_breakdown(project, from_date, to_date):
         # Fetch all timesheet details for this project in date range
         timesheet_details = frappe.db.get_all(
             "Timesheet Detail",
-            filters={"project": project, "from_time": ["between", [f"{from_date} 00:00:00", f"{to_date} 23:59:59"]]},
+            filters={
+                "project": project,
+                "from_time": ["between", [f"{from_date} 00:00:00", f"{to_date} 23:59:59"]],
+                "docstatus": ["in", [0, 1]],
+            },
             fields=["task", "hours"],
         )
 
         if not timesheet_details:
             return []
 
-        # Get unique task IDs
-        task_ids = list(set(entry.get("task") for entry in timesheet_details if entry.get("task")))
-
-        # Fetch expected_time for all tasks in a single query
-        task_estimates = {}
-        if task_ids:
-            task_data = frappe.db.get_all(
-                "Task", filters={"name": ["in", task_ids]}, fields=["name", "subject", "expected_time"]
-            )
-            task_estimates = {t["name"]: t for t in task_data}
-
         # Group by task - sum hours_consumed
         task_map = {}
         for entry in timesheet_details:
             task = entry.get("task") or "No Task"
             if task not in task_map:
-                task_map[task] = {"hours_consumed": 0.0, "estimated_hours": 0.0}
+                task_map[task] = {"hours_consumed": 0.0}
             task_map[task]["hours_consumed"] += entry.get("hours") or 0
 
-        # Now add expected_time ONCE per task (after grouping)
-        for task_id in task_map:
-            if task_id != "No Task" and task_id in task_estimates:
-                task_map[task_id]["estimated_hours"] = task_estimates[task_id].get("expected_time") or 0.0
+        task_ids = list(set(t for t in task_map if t != "No Task"))
+        task_titles = {}
+        if task_ids:
+            task_data = frappe.db.get_all("Task", filters={"name": ["in", task_ids]}, fields=["name", "subject"])
+            task_titles = {t["name"]: t["subject"] for t in task_data}
 
-        # Build result with task title
         breakdown = []
         for task_id, data in task_map.items():
-            if task_id == "No Task":
-                task_title = "No Task"
-            else:
-                task_title = task_estimates.get(task_id, {}).get("subject") or task_id
-
+            task_title = "No Task" if task_id == "No Task" else (task_titles.get(task_id) or task_id)
             breakdown.append(
                 {
                     "task_title": task_title,
-                    "estimated_hours": round(data["estimated_hours"], 2),
                     "hours_consumed": round(data["hours_consumed"], 2),
                 }
             )
