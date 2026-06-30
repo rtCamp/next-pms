@@ -51,20 +51,26 @@ function ProjectList() {
         ))}
       </ListHeader>
       <ListRows>
-        <InfiniteScroll
-          isLoading={isLoading}
-          hasMore={hasMore}
-          verticalLodMore={loadMore}
-          count={PROJECT_LIST_PAGE_SIZE}
-        >
-          {data.map((row) => (
-            <ListRow key={row.name} row={row}>
-              {PROJECT_LIST_COLUMNS.map((column) => {
-                return <ProjectListCell row={row} column={column} />;
-              })}
-            </ListRow>
-          ))}
-        </InfiniteScroll>
+        {data.length === 0 ? (
+          <p className="py-6 text-center text-base text-ink-gray-5">
+            No projects found.
+          </p>
+        ) : (
+          <InfiniteScroll
+            isLoading={isLoading}
+            hasMore={hasMore}
+            verticalLodMore={loadMore}
+            count={PROJECT_LIST_PAGE_SIZE}
+          >
+            {data.map((row) => (
+              <ListRow key={row.name} row={row}>
+                {PROJECT_LIST_COLUMNS.map((column) => {
+                  return <ProjectListCell row={row} column={column} />;
+                })}
+              </ListRow>
+            ))}
+          </InfiniteScroll>
+        )}
       </ListRows>
     </ListView>
   );
