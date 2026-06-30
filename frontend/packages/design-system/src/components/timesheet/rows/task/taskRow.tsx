@@ -166,6 +166,10 @@ export const TaskRow: React.FC<TaskRowProps> = ({
         </div>
       </div>
       {timeEntries.map((timeEntry, index) => {
+        const canOpenInlineTimeEntry = !(
+          timeEntry.disabled && timeEntry.time === ""
+        );
+
         return (
           <div
             key={index}
@@ -174,7 +178,7 @@ export const TaskRow: React.FC<TaskRowProps> = ({
             <Popover.Trigger
               handle={handle}
               payload={{ dayIndex: index }}
-              openOnHover={!(timeEntry.disabled && timeEntry.time === "")}
+              openOnHover={canOpenInlineTimeEntry}
               delay={250}
               closeDelay={220}
               render={(props, state) => (
@@ -188,7 +192,7 @@ export const TaskRow: React.FC<TaskRowProps> = ({
                   )}
                   aria-disabled={timeEntry.disabled}
                   onClick={(event) => {
-                    if (!state.open) {
+                    if (canOpenInlineTimeEntry && !state.open) {
                       props.onClick?.(event);
                     }
                     if (!timeEntry.disabled) {
