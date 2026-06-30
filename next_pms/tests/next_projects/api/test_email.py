@@ -198,7 +198,11 @@ class TestGetProjectEmails(IntegrationTestCase):
     # --- Communications path -----------------------------------------------------
 
     def test_returns_only_project_email_communications(self):
-        result = self._call_as(self.allowed_user, self.project)
+        with patch(
+            "next_pms.next_projects.api.email.frappe.get_installed_apps",
+            return_value=GMAIL_NOT_INSTALLED,
+        ):
+            result = self._call_as(self.allowed_user, self.project)
 
         # Only the project's Email communications — Phone medium and other-project mail excluded.
         self.assertEqual({e["name"] for e in result}, self.project_email_ids)
@@ -212,7 +216,11 @@ class TestGetProjectEmails(IntegrationTestCase):
         self.assertEqual(plain["attachments"], [])
 
     def test_attachments_grouped_per_communication(self):
-        result = self._call_as(self.allowed_user, self.project)
+        with patch(
+            "next_pms.next_projects.api.email.frappe.get_installed_apps",
+            return_value=GMAIL_NOT_INSTALLED,
+        ):
+            result = self._call_as(self.allowed_user, self.project)
         by_name = {e["name"]: e for e in result}
 
         attachments = by_name[self.comm_with_files]["attachments"]
