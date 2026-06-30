@@ -1,3 +1,5 @@
+import importlib.util
+import unittest
 from unittest.mock import patch
 
 import frappe
@@ -7,9 +9,13 @@ from frappe.tests import IntegrationTestCase
 from next_pms.next_projects.api.email import get_project_emails
 
 ALLOWED_USER = "priya.sharma@example.com"
-DENIED_USER = "rohan.verma@example.com"
+DENIED_USER = "vikram.singh@example.com"
 
 GMAIL_NOT_INSTALLED = ["frappe", "erpnext", "next_pms"]
+
+# The Gmail-path tests patch `frappe_gmail_thread.api.activity`, which `patch()` can
+# only resolve when the optional app is importable; skip them otherwise.
+GMAIL_THREAD_INSTALLED = importlib.util.find_spec("frappe_gmail_thread") is not None
 
 
 class TestGetProjectEmails(IntegrationTestCase):
@@ -237,6 +243,7 @@ class TestGetProjectEmails(IntegrationTestCase):
 
         self.assertEqual({e["name"] for e in result}, self.project_email_ids)
 
+    @unittest.skipUnless(GMAIL_THREAD_INSTALLED, "frappe_gmail_thread app is not installed")
     def test_gmail_threads_appended_with_unique_ids(self):
         threads = [
             self._gmail_entry("GMAIL-THREAD-001", "2026-06-20 09:00:00", "Re: Proposal"),
@@ -259,6 +266,7 @@ class TestGetProjectEmails(IntegrationTestCase):
         # Synthesized ids keep frontend keys unique despite the shared thread name.
         self.assertEqual(len(set(gmail_ids)), 2)
 
+    @unittest.skipUnless(GMAIL_THREAD_INSTALLED, "frappe_gmail_thread app is not installed")
     def test_gmail_attachments_passed_through(self):
         attachments = [{"file_url": "/files/contract.pdf", "is_private": 0}]
         threads = [
