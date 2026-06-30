@@ -370,11 +370,15 @@ def _send_bell_notification(project, user, document_url):
             frappe.log_error(f"Invalid or untrusted document_url: {document_url}", "PM Report — Invalid Document URL")
             return
 
+        from html import escape
+
+        safe_document_url = escape(document_url, quote=True)
+
         frappe.get_doc(
             {
                 "doctype": "Notification Log",
                 "subject": f"PM Report Ready: {project}",
-                "email_content": f'<a href="{document_url}">📄 View PM Report</a>',
+                "email_content": f'<a href="{safe_document_url}">📄 View PM Report</a>',
                 "for_user": user,
                 "document_type": "Project",
                 "document_name": project,
