@@ -74,7 +74,12 @@ export function GanttMemberSummaryBar({
 
   const entries = overlapping.map((alloc) =>
     withPendingDeleteEntry(
-      allocationBarToEntry(alloc, onEditAllocation, onDeleteAllocation),
+      allocationBarToEntry(
+        alloc,
+        onEditAllocation,
+        onDeleteAllocation,
+        member.name,
+      ),
       setPendingDeleteEntry,
     ),
   );
@@ -83,6 +88,7 @@ export function GanttMemberSummaryBar({
     ? () =>
         onAddAllocation({
           employeeId: member.id,
+          employeeName: member.name,
           startDate: summary.startDate,
           endDate: summary.endDate,
         })

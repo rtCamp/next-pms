@@ -91,6 +91,7 @@ export function useRowAllocationDraft({
 
       onOpenAllocation({
         employeeId: nextDraft.employeeId,
+        employeeName: nextDraft.employeeName,
         projectId: nextDraft.projectId,
         projectName: nextDraft.projectName,
         customerName: nextDraft.customerName,

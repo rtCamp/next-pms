@@ -68,11 +68,33 @@ function AddAllocationModal({
     "next_pms.resource_management.api.allocation.edit_allocation",
   );
 
+  const allocationName = initialValues?.allocationName;
+  const selectedEmployeeOption = initialValues?.employeeId
+    ? {
+        label: initialValues.employeeLabel || initialValues.employeeId,
+        value: initialValues.employeeId,
+      }
+    : null;
+  const selectedProjectOption = initialValues?.projectId
+    ? {
+        label: initialValues.projectLabel || initialValues.projectId,
+        value: initialValues.projectId,
+        customer: initialValues.customer,
+      }
+    : null;
+  const selectedCustomerOption = initialValues?.customer
+    ? {
+        label: initialValues.customerLabel || initialValues.customer,
+        value: initialValues.customer,
+      }
+    : null;
+
   const { options: employeeOptions, isLoading: isEmployeeLookupLoading } =
     useEmployeeLookup({
       shouldFetch: open,
       pageSize: 20,
       query: employeeSearch,
+      selectedOption: selectedEmployeeOption,
     });
 
   const { options: projectOptions, isLoading: isProjectLookupLoading } =
@@ -80,6 +102,7 @@ function AddAllocationModal({
       shouldFetch: open,
       pageSize: 20,
       query: projectSearch,
+      selectedOption: selectedProjectOption,
     });
 
   const { options: customerOptions, isLoading: isCustomerLookupLoading } =
@@ -87,15 +110,18 @@ function AddAllocationModal({
       shouldFetch: open,
       pageSize: 20,
       query: customerSearch,
+      selectedOption: selectedCustomerOption,
     });
 
-  const allocationName = initialValues?.allocationName;
   const mergedDefaultValues = useMemo(() => {
     const initialFormValues = {
       ...(initialValues ?? {}),
     };
 
     delete initialFormValues.allocationName;
+    delete initialFormValues.employeeLabel;
+    delete initialFormValues.projectLabel;
+    delete initialFormValues.customerLabel;
 
     return {
       ...addAllocationDefaultValues,

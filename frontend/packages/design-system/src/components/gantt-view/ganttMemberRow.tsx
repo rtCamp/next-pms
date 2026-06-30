@@ -105,6 +105,7 @@ export const GanttMemberRow: React.FC<GanttMemberRowProps> = ({
             left,
             width: columnWidth,
             employeeId: member.id,
+            employeeName: member.name,
             projectId: project.id,
             projectName: project.name,
             customerName: project.client,

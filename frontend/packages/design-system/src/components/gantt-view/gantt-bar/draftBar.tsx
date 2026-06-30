@@ -24,6 +24,7 @@ interface DraftBarProps {
   left: number;
   width: number;
   employeeId?: string;
+  employeeName?: string;
   projectId?: string;
   projectName?: string;
   customerName?: string;
@@ -36,6 +37,7 @@ export function DraftBar({
   left,
   width,
   employeeId,
+  employeeName,
   projectId,
   projectName,
   customerName,
@@ -119,6 +121,7 @@ export function DraftBar({
 
       onOpenAllocation({
         employeeId,
+        employeeName,
         projectId,
         projectName,
         customerName,
@@ -133,6 +136,7 @@ export function DraftBar({
       columnWidth,
       customerName,
       employeeId,
+      employeeName,
       headerWidth,
       left,
       onOpenAllocation,

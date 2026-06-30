@@ -96,6 +96,7 @@ export const GanttMemberRows: React.FC<GanttMemberRowsProps> = ({
               left,
               width: columnWidth,
               employeeId: member.id,
+              employeeName: member.name,
             })}
             onOpenAllocation={onAddAllocation}
           />
@@ -133,7 +134,12 @@ export const GanttMemberRows: React.FC<GanttMemberRowsProps> = ({
           >
             <button
               type="button"
-              onClick={() => onAddAllocation?.({ employeeId: member.id })}
+              onClick={() =>
+                onAddAllocation?.({
+                  employeeId: member.id,
+                  employeeName: member.name,
+                })
+              }
               tabIndex={isExpanded ? undefined : -1}
               className="w-full h-full flex items-center gap-2 text-base font-medium text-ink-gray-8 overflow-hidden"
             >

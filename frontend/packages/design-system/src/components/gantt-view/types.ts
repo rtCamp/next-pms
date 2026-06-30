@@ -100,6 +100,8 @@ export interface AllocationCallbackData {
   allocationId?: string;
   /** Employee identifier. */
   employeeId?: string;
+  /** Employee name. */
+  employeeName?: string;
   /** Project identifier. */
   projectId?: string;
   /** Recurrence identifier shared by a series of allocations. */

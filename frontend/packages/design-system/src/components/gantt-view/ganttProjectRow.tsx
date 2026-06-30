@@ -94,6 +94,7 @@ export const GanttProjectRow: React.FC<GanttProjectRowProps> = ({
               allocation={alloc}
               capacityHoursPerDay={member.capacityHoursPerDay}
               resizable={canEditAllocations}
+              memberName={member.name}
             />
           ))}
         <RowAllocationOverlay
@@ -105,6 +106,7 @@ export const GanttProjectRow: React.FC<GanttProjectRowProps> = ({
             left,
             width: columnWidth,
             employeeId: member.id,
+            employeeName: member.name,
             projectId: project.id,
             projectName: project.name,
             customerName: project.client,
