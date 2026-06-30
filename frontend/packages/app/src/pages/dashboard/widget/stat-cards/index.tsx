@@ -44,7 +44,7 @@ export default function StatCards() {
     );
 
   return (
-    <div className="w-full flex gap-2">
+    <div className="w-full flex gap-3">
       {isActiveProjectDataLoading ? (
         <StatCardSkeleton />
       ) : (
