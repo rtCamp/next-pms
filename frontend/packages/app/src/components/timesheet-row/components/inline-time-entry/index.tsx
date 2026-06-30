@@ -6,7 +6,6 @@ import {
   useEffect,
   useLayoutEffect,
   useMemo,
-  type PointerEvent,
   useRef,
   useState,
 } from "react";
@@ -32,6 +31,7 @@ import { TaskDataItemProps } from "@/types/timesheet";
 import { useInlineTimeEntryForm } from "./form";
 import { TimeEntryForm } from "./timeEntryForm";
 import type { InlineTimeEntryProps, TimeEntryFormValues } from "./types";
+import { useResizeEngagement } from "./useResizeEngagement";
 
 export const ENTRY_FORM_MODE = {
   DEFAULT: "default",
@@ -81,7 +81,10 @@ export const InlineTimeEntry = ({
     duration: number;
     comment: string;
   } | null>(null);
-  const [commentResizeActive, setCommentResizeActive] = useState(false);
+  const {
+    isResizeActive: commentResizeActive,
+    onResizePointerDown: handleCommentPointerDown,
+  } = useResizeEngagement();
   const [collapsedEntryNames, setCollapsedEntryNames] = useState<string[]>([]);
   const hasInitializedInteractiveModeRef = useRef(false);
   const editBaselineRef = useRef<{ duration: number; comment: string } | null>(
@@ -191,28 +194,6 @@ export const InlineTimeEntry = ({
   useLayoutEffect(() => {
     onEngagedChange?.(isEngaged);
   }, [isEngaged, onEngagedChange]);
-
-  useEffect(() => {
-    if (!commentResizeActive) return;
-
-    const stopResize = () => setCommentResizeActive(false);
-
-    window.addEventListener("pointerup", stopResize);
-    window.addEventListener("pointercancel", stopResize);
-    window.addEventListener("mouseup", stopResize);
-    window.addEventListener("touchend", stopResize);
-    window.addEventListener("contextmenu", stopResize);
-    window.addEventListener("blur", stopResize);
-
-    return () => {
-      window.removeEventListener("pointerup", stopResize);
-      window.removeEventListener("pointercancel", stopResize);
-      window.removeEventListener("mouseup", stopResize);
-      window.removeEventListener("touchend", stopResize);
-      window.removeEventListener("contextmenu", stopResize);
-      window.removeEventListener("blur", stopResize);
-    };
-  }, [commentResizeActive]);
 
   const discardChanges = useCallback(() => {
     form.reset();
@@ -336,26 +317,6 @@ export const InlineTimeEntry = ({
     [form],
   );
 
-  const handleCommentPointerDown = useCallback(
-    (e: PointerEvent<HTMLElement>) => {
-      if (e.button !== 0) return;
-
-      const editor = (e.target as Element | null)?.closest(".ProseMirror");
-      if (!(editor instanceof HTMLElement)) return;
-
-      const rect = editor.getBoundingClientRect();
-      const resizeHandleSize = 20;
-      const isResizeHandlePointerDown =
-        e.clientX >= rect.right - resizeHandleSize &&
-        e.clientY >= rect.bottom - resizeHandleSize;
-
-      if (isResizeHandlePointerDown) {
-        setCommentResizeActive(true);
-      }
-    },
-    [],
-  );
-
   const handleToggleEntryExpand = useCallback((entryName: string) => {
     setCollapsedEntryNames((prev) => {
       if (prev.includes(entryName)) {
@@ -379,13 +340,7 @@ export const InlineTimeEntry = ({
           isEditingThisEntry || !collapsedEntryNames.includes(entry.name);
 
         return (
-          <div
-            key={entry.name}
-            className={cn(
-              "w-full min-w-0 group",
-              !isEditingThisEntry && "contain-[inline-size]",
-            )}
-          >
+          <div key={entry.name} className="w-full min-w-0 group">
             <Accordion.Root
               value={isExpanded ? [entry.name] : []}
               onValueChange={() => handleToggleEntryExpand(entry.name)}
@@ -436,7 +391,7 @@ export const InlineTimeEntry = ({
                         {!isExpanded ? (
                           <span
                             className={cn(
-                              "block min-w-0 max-w-full truncate pr-4 text-sm text-ink-gray-6",
+                              "block min-w-0 max-w-full truncate pr-4 text-sm text-ink-gray-6 contain-[inline-size]",
                             )}
                           >
                             {entry.description
@@ -494,10 +449,19 @@ export const InlineTimeEntry = ({
                         </Button>
                       </TimeEntryForm>
                     ) : (
-                      <StaticTextEditor
-                        content={entry.description}
-                        editorClass="w-full max-w-full max-h-30 prose-sm overflow-auto scrollbar-thin text-ink-gray-7 text-base leading-5.25"
-                      />
+                      <div
+                        className="w-full min-w-0"
+                        onPointerDownCapture={handleCommentPointerDown}
+                      >
+                        <StaticTextEditor
+                          content={entry.description}
+                          editorClass={cn(
+                            "max-h-40 resize prose-sm overflow-auto scrollbar-thin bg-surface-white text-ink-gray-7 text-base leading-5.25",
+                            "box-border w-full min-w-64 max-w-[min(680px,calc(90vw-2rem))]",
+                            "contain-[inline-size] wrap-anywhere **:max-w-full **:wrap-anywhere",
+                          )}
+                        />
+                      </div>
                     )}
                   </div>
                 </Accordion.Panel>
