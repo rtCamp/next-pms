@@ -4,7 +4,6 @@ import re
 import frappe
 from frappe.utils import cint
 
-from next_pms.next_projects.api.email import has_project_email
 from next_pms.next_projects.api.feedback import is_customer_feedback_available
 from next_pms.timesheet.api.app import has_bu_field, has_industry_field
 from next_pms.timesheet.api.project import get_project_filter_for_contractor
@@ -38,7 +37,6 @@ def get_context(context):
     boot["has_industry"] = has_industry_field()
     boot["has_repository_connections"] = bool(frappe.db.exists("DocType", "GitHub Repository"))
     boot["has_customer_feedback"] = is_customer_feedback_available()
-    boot["has_project_email"] = has_project_email()
     boot["has_todo_custom_fields"] = has_todo_custom_fields()
     boot["is_calendar_setup"] = is_google_calendar_enabled()
     boot["global_filters"] = get_global_filters()
@@ -83,7 +81,6 @@ def get_boot():
     boot["has_industry"] = has_industry_field()
     boot["has_repository_connections"] = bool(frappe.db.exists("DocType", "GitHub Repository"))
     boot["has_customer_feedback"] = is_customer_feedback_available()
-    boot["has_project_email"] = has_project_email()
     boot["has_todo_custom_fields"] = has_todo_custom_fields()
     boot["is_calendar_setup"] = is_google_calendar_enabled()
     boot["app_name"] = "Next PMS"
