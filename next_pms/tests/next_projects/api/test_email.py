@@ -9,8 +9,8 @@ from frappe.tests import IntegrationTestCase
 
 from next_pms.next_projects.api.email import get_project_emails
 
-ALLOWED_USER = "priya.sharma@example.com"
-DENIED_USER = "rohan.verma@example.com"
+ALLOWED_USER = "isha.nair+email@example.com"
+DENIED_USER = "kabir.shah+email@example.com"
 
 GMAIL_APP = "frappe_gmail_thread"
 GMAIL_NOT_INSTALLED = ["frappe", "erpnext", "next_pms"]
@@ -225,7 +225,7 @@ class TestGetProjectEmails(IntegrationTestCase):
         plain = next(e for e in result if e["name"] == self.comm_plain)
         self.assertEqual(plain["subject"], "Kickoff agenda")
         self.assertEqual(plain["sender"], ALLOWED_USER)
-        self.assertEqual(plain["sender_full_name"], "priya.sharma")
+        self.assertEqual(plain["sender_full_name"], ALLOWED_USER.split("@")[0])
         self.assertEqual(plain["recipients"], "team@example.com")
         self.assertIn("content", plain)
         self.assertEqual(plain["attachments"], [])
