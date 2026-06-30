@@ -1,4 +1,4 @@
-import type { KeyboardEvent, ReactNode } from "react";
+import type { KeyboardEvent, PointerEvent, ReactNode } from "react";
 import type { TaskRowTimeEntry } from "@next-pms/design-system/components";
 import type { TaskDataItemProps } from "@/types/timesheet";
 import type { EntryFormMode } from ".";
@@ -34,5 +34,6 @@ export type TimeEntryFormProps = {
   editBaseline?: { duration: number; comment: string } | null;
   onSave: () => void;
   onCommentKeyDown: (e: KeyboardEvent<Element>) => void;
+  onCommentPointerDown?: (e: PointerEvent<HTMLElement>) => void;
   children?: ReactNode;
 };

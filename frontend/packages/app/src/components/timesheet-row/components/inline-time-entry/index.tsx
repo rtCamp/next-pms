@@ -6,6 +6,7 @@ import {
   useEffect,
   useLayoutEffect,
   useMemo,
+  type PointerEvent,
   useRef,
   useState,
 } from "react";
@@ -80,6 +81,7 @@ export const InlineTimeEntry = ({
     duration: number;
     comment: string;
   } | null>(null);
+  const [commentResizeActive, setCommentResizeActive] = useState(false);
   const [collapsedEntryNames, setCollapsedEntryNames] = useState<string[]>([]);
   const hasInitializedInteractiveModeRef = useRef(false);
   const editBaselineRef = useRef<{ duration: number; comment: string } | null>(
@@ -178,7 +180,9 @@ export const InlineTimeEntry = ({
       : liveDuration !== defaultValues.duration ||
         liveComment !== defaultValues.comment;
   const isEngaged =
-    entryFormMode !== ENTRY_FORM_MODE.DEFAULT || hasUnsavedChanges;
+    entryFormMode !== ENTRY_FORM_MODE.DEFAULT ||
+    hasUnsavedChanges ||
+    commentResizeActive;
 
   const hasUnsavedChangesRef = useRef(hasUnsavedChanges);
   hasUnsavedChangesRef.current = hasUnsavedChanges;
@@ -187,6 +191,28 @@ export const InlineTimeEntry = ({
   useLayoutEffect(() => {
     onEngagedChange?.(isEngaged);
   }, [isEngaged, onEngagedChange]);
+
+  useEffect(() => {
+    if (!commentResizeActive) return;
+
+    const stopResize = () => setCommentResizeActive(false);
+
+    window.addEventListener("pointerup", stopResize);
+    window.addEventListener("pointercancel", stopResize);
+    window.addEventListener("mouseup", stopResize);
+    window.addEventListener("touchend", stopResize);
+    window.addEventListener("contextmenu", stopResize);
+    window.addEventListener("blur", stopResize);
+
+    return () => {
+      window.removeEventListener("pointerup", stopResize);
+      window.removeEventListener("pointercancel", stopResize);
+      window.removeEventListener("mouseup", stopResize);
+      window.removeEventListener("touchend", stopResize);
+      window.removeEventListener("contextmenu", stopResize);
+      window.removeEventListener("blur", stopResize);
+    };
+  }, [commentResizeActive]);
 
   const discardChanges = useCallback(() => {
     form.reset();
@@ -310,6 +336,26 @@ export const InlineTimeEntry = ({
     [form],
   );
 
+  const handleCommentPointerDown = useCallback(
+    (e: PointerEvent<HTMLElement>) => {
+      if (e.button !== 0) return;
+
+      const editor = (e.target as Element | null)?.closest(".ProseMirror");
+      if (!(editor instanceof HTMLElement)) return;
+
+      const rect = editor.getBoundingClientRect();
+      const resizeHandleSize = 20;
+      const isResizeHandlePointerDown =
+        e.clientX >= rect.right - resizeHandleSize &&
+        e.clientY >= rect.bottom - resizeHandleSize;
+
+      if (isResizeHandlePointerDown) {
+        setCommentResizeActive(true);
+      }
+    },
+    [],
+  );
+
   const handleToggleEntryExpand = useCallback((entryName: string) => {
     setCollapsedEntryNames((prev) => {
       if (prev.includes(entryName)) {
@@ -324,7 +370,7 @@ export const InlineTimeEntry = ({
   }
 
   return (
-    <div className="animate-fade-in w-68 max-h-[min(350px,90dvh)] overflow-y-auto scrollbar-thin shadow bg-surface-modal rounded-lg flex flex-col gap-2 p-2">
+    <div className="animate-fade-in min-w-68 w-fit max-w-[min(720px,90vw)] max-h-[min(500px,90dvh)] overflow-auto scrollbar-thin shadow bg-surface-modal rounded-lg flex flex-col gap-2 p-2">
       {tasks.map((entry: TaskDataItemProps, index: number) => {
         const isEditingThisEntry =
           entryFormMode === ENTRY_FORM_MODE.EDIT &&
@@ -333,7 +379,13 @@ export const InlineTimeEntry = ({
           isEditingThisEntry || !collapsedEntryNames.includes(entry.name);
 
         return (
-          <div key={entry.name} className="w-full group">
+          <div
+            key={entry.name}
+            className={cn(
+              "w-full min-w-0 group",
+              !isEditingThisEntry && "contain-[inline-size]",
+            )}
+          >
             <Accordion.Root
               value={isExpanded ? [entry.name] : []}
               onValueChange={() => handleToggleEntryExpand(entry.name)}
@@ -351,11 +403,11 @@ export const InlineTimeEntry = ({
                       <div
                         {...props}
                         className={cn(
-                          "w-full relative flex justify-start gap-2 cursor-pointer text-left",
+                          "w-full relative gap-2 cursor-pointer text-left",
                           "focus:outline-none focus-visible:ring focus-visible:ring-outline-gray-3 rounded-sm",
                           !isExpanded
-                            ? "flex-row items-center"
-                            : "flex-col items-start ",
+                            ? "grid grid-cols-[auto_minmax(0,1fr)] items-center"
+                            : "flex flex-col items-start ",
                         )}
                       >
                         <div
@@ -384,11 +436,7 @@ export const InlineTimeEntry = ({
                         {!isExpanded ? (
                           <span
                             className={cn(
-                              "w-full min-w-0 text-sm truncate text-ink-gray-6",
-                              {
-                                "group-hover:pr-4 group-focus-within:pr-4":
-                                  !disabled,
-                              },
+                              "block min-w-0 max-w-full truncate pr-4 text-sm text-ink-gray-6",
                             )}
                           >
                             {entry.description
@@ -403,7 +451,7 @@ export const InlineTimeEntry = ({
                               "group-hover:opacity-100 group-hover:pointer-events-auto",
                               "group-focus-within:opacity-100 group-focus-within:pointer-events-auto",
                               !isExpanded &&
-                                "group-active:opacity-0 group-active:pointer-events-none",
+                                "group-active:not-hover:opacity-0 group-active:not-hover:pointer-events-none",
                             )}
                             variant="ghost"
                             icon={() => (
@@ -420,7 +468,7 @@ export const InlineTimeEntry = ({
                   />
                 ) : null}
                 <Accordion.Panel className="accordion-panel">
-                  <div className="pt-2">
+                  <div className="w-full pt-2">
                     {!disabled && isEditingThisEntry ? (
                       <TimeEntryForm
                         form={form}
@@ -432,6 +480,7 @@ export const InlineTimeEntry = ({
                         submitting={submitting}
                         onSave={() => handleSubmit()}
                         onCommentKeyDown={handleSubmit}
+                        onCommentPointerDown={handleCommentPointerDown}
                       >
                         <Button
                           variant="subtle"
@@ -447,7 +496,7 @@ export const InlineTimeEntry = ({
                     ) : (
                       <StaticTextEditor
                         content={entry.description}
-                        editorClass="max-h-30 prose-sm overflow-auto scrollbar-thin text-ink-gray-7 text-base leading-5.25"
+                        editorClass="w-full max-w-full max-h-30 prose-sm overflow-auto scrollbar-thin text-ink-gray-7 text-base leading-5.25"
                       />
                     )}
                   </div>
@@ -470,6 +519,7 @@ export const InlineTimeEntry = ({
               submitting={submitting}
               onSave={() => handleSubmit()}
               onCommentKeyDown={handleSubmit}
+              onCommentPointerDown={handleCommentPointerDown}
             />
           ) : null}
           {!hasNoTimeEntries && entryFormMode !== ENTRY_FORM_MODE.ADD ? (

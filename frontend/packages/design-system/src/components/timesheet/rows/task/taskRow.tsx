@@ -244,15 +244,17 @@ export const TaskRow: React.FC<TaskRowProps> = ({
               <Popover.Backdrop className="fixed inset-0 pointer-events-auto!" />
             ) : null}
             <Popover.Positioner sideOffset={8} align="end">
-              <Popover.Popup>
-                {payload
-                  ? renderInlineTimeEntryPopover?.(
-                      taskKey,
-                      payload.dayIndex,
-                      closePopover,
-                      reportEngaged,
-                    )
-                  : null}
+              <Popover.Popup className="relative before:absolute before:-left-12 before:-right-12 before:-bottom-12 before:top-0 before:content-['']">
+                <div className="relative z-1">
+                  {payload
+                    ? renderInlineTimeEntryPopover?.(
+                        taskKey,
+                        payload.dayIndex,
+                        closePopover,
+                        reportEngaged,
+                      )
+                    : null}
+                </div>
               </Popover.Popup>
             </Popover.Positioner>
           </Popover.Portal>
