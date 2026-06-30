@@ -75,7 +75,6 @@ declare global {
         has_industry?: boolean;
         has_repository_connections?: boolean;
         has_customer_feedback?: boolean;
-        has_project_email?: boolean;
         desk_theme?: string;
         has_todo_custom_fields?: boolean;
         is_calendar_setup: boolean;
