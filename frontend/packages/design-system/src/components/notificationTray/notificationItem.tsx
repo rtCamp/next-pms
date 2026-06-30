@@ -2,11 +2,11 @@
  * External dependencies.
  */
 import React from "react";
+import { Avatar } from "@rtcamp/frappe-ui-react";
 /**
  * Internal dependencies.
  */
 import type { NotificationEntry } from "./types";
-import { getAvatarColors, getInitials } from "./utils";
 import { mergeClassNames as cn } from "../../utils";
 
 const NotificationItem = ({
@@ -47,22 +47,7 @@ const NotificationItem = ({
           read ? "bg-transparent" : "bg-surface-blue-5",
         )}
       />
-      {image ? (
-        <img
-          src={image}
-          alt={name}
-          className="size-7 shrink-0 rounded-full object-cover"
-        />
-      ) : (
-        <span
-          className={cn(
-            "flex size-7 shrink-0 items-center justify-center rounded-full text-xs font-medium uppercase",
-            getAvatarColors(name),
-          )}
-        >
-          {getInitials(name)}
-        </span>
-      )}
+      <Avatar size="lg" shape="circle" image={image} label={name} alt={name} />
       <div className="flex min-w-0 flex-col gap-0.5">
         <p className="text-sm leading-5 text-ink-gray-6">
           {message.map((segment, index) => {

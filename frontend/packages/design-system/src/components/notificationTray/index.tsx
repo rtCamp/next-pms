@@ -4,7 +4,7 @@
 import { Dialog } from "@base-ui/react/dialog";
 import { ScrollArea } from "@base-ui/react/scroll-area";
 import { Tooltip } from "@rtcamp/frappe-ui-react";
-import { DoubleCheck } from "@rtcamp/frappe-ui-react/icons";
+import { Close, DoubleCheck } from "@rtcamp/frappe-ui-react/icons";
 
 /**
  * Internal dependencies.
@@ -70,7 +70,9 @@ export default function NotificationTray({
               <Dialog.Close
                 aria-label="Close notifications tray"
                 className={actionButtonClasses}
-              />
+              >
+                <Close size={16} />
+              </Dialog.Close>
             </div>
           </div>
 
