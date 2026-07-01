@@ -39,7 +39,9 @@ export function useProjectFilters() {
   const filters: ProjectListFilters = useMemo(
     () => ({
       search: searchParams.get("search") ?? "",
-      ragStatus: (searchParams.get("rag") ?? "") as RagStatus | "",
+      ragStatus: JSON.parse(
+        decodeURI(searchParams.get("rag") || "[]"),
+      ) as unknown as RagStatus[],
       phase: (searchParams.get("phase") ?? "") as Phase | "",
       status: (searchParams.get("status") ?? "") as ProjectStatus | "",
       advanced: parseAdvanced(searchParams.get("advanced")),
@@ -65,7 +67,13 @@ export function useProjectFilters() {
     [setParam],
   );
   const setRagStatus = useCallback(
-    (v: RagStatus | "") => setParam("rag", v),
+    (v: RagStatus[]) => {
+      if (v.length === 0) {
+        setParam("rag", "");
+      } else {
+        setParam("rag", encodeURI(JSON.stringify(v)));
+      }
+    },
     [setParam],
   );
   const setPhase = useCallback(

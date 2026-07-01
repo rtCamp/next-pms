@@ -2,7 +2,12 @@
  * External dependencies.
  */
 import { useEffect, useState } from "react";
-import { Select, TextInput, Filter } from "@rtcamp/frappe-ui-react";
+import {
+  Select,
+  TextInput,
+  Filter,
+  MultiSelect,
+} from "@rtcamp/frappe-ui-react";
 
 /**
  * Internal dependencies.
@@ -37,24 +42,24 @@ export function ProjectListSubHeader() {
     <div className="flex flex-wrap gap-2 justify-between px-5 py-3.5">
       <div className="flex gap-2">
         <TextInput
-          className="text-ink-gray-7"
+          className="w-full text-ink-gray-7"
           size="sm"
           placeholder="Search project"
           value={searchInput}
           onChange={(e) => setSearchInput(e.target.value)}
         />
-        <Select
-          placeholder="RAG Status"
-          placeholderClassName="text-ink-gray-7"
-          className="w-fit text-ink-gray-7"
-          value={ragStatus}
-          onChange={(v) => setRagStatus((v || "") as RagStatus | "")}
-          options={RAG_OPTIONS}
-        />
+        <div className="w-44 shrink-0">
+          <MultiSelect
+            placeholder="RAG Status"
+            options={RAG_OPTIONS}
+            value={ragStatus}
+            onChange={(v) => setRagStatus(v as RagStatus[])}
+          />
+        </div>
         <Select
           placeholder="Phases"
           placeholderClassName="text-ink-gray-7"
-          className="w-fit text-ink-gray-7"
+          className="w-full text-ink-gray-7"
           value={phase}
           onChange={(v) => setPhase((v || "") as Phase | "")}
           options={PHASE_OPTIONS}
@@ -62,7 +67,7 @@ export function ProjectListSubHeader() {
         <Select
           placeholder="Status"
           placeholderClassName="text-ink-gray-7"
-          className="w-fit text-ink-gray-7"
+          className="w-full text-ink-gray-7"
           value={status}
           onChange={(v) => setStatus((v || "") as ProjectStatus | "")}
           options={STATUS_OPTIONS}
