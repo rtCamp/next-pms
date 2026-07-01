@@ -36,11 +36,9 @@ const AddEmployeeLeave = ({
   employeeId = "",
 }: EmployeeLeaveTimeProps) => {
   const [employeeSearch, setEmployeeSearch] = useState("");
-  const [submitError, setSubmitError] = useState<string | null>(null);
 
   const closeModal = () => {
     setEmployeeSearch("");
-    setSubmitError(null);
     onOpenChange(false);
     form.reset();
   };
@@ -81,7 +79,6 @@ const AddEmployeeLeave = ({
         value.leaveDuration === "second-half";
 
       try {
-        setSubmitError(null);
         const data = {
           employee: value.employeeId,
           description: value.reason,
@@ -94,9 +91,11 @@ const AddEmployeeLeave = ({
         };
         await createDoc("Leave Application", data);
         toast.success("Leave created successfully");
-        closeModal();
       } catch (err) {
-        setSubmitError(parseFrappeErrorMsg(err as FrappeError));
+        const error = parseFrappeErrorMsg(err as FrappeError);
+        toast.error(error);
+      } finally {
+        closeModal();
       }
     },
   });
@@ -346,7 +345,6 @@ const AddEmployeeLeave = ({
             );
           }}
         />
-        {submitError ? <ErrorMessage message={submitError} /> : null}
       </div>
     </Dialog>
   );

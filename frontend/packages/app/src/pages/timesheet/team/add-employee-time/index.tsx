@@ -42,7 +42,6 @@ const AddEmployeeTime = ({
   const [projectSearch, setProjectSearch] = useState("");
   const [taskSearch, setTaskSearch] = useState("");
   const [submitting, setSubmitting] = useState(false);
-  const [submitError, setSubmitError] = useState<string | null>(null);
   const { call: saveTime } = useFrappePostCall(
     "next_pms.timesheet.api.timesheet.save",
   );
@@ -61,7 +60,6 @@ const AddEmployeeTime = ({
     },
     onSubmit: async ({ value }) => {
       setSubmitting(true);
-      setSubmitError(null);
       try {
         await saveTime({
           date: value.date,
@@ -71,11 +69,12 @@ const AddEmployeeTime = ({
           employee: value.employeeId,
         });
         toast.success("Time Entry submitted successfully");
-        closeModal();
       } catch (err) {
-        setSubmitError(parseFrappeErrorMsg(err as FrappeError));
+        const error = parseFrappeErrorMsg(err as FrappeError);
+        toast.error(error);
       } finally {
         setSubmitting(false);
+        closeModal();
       }
     },
   });
@@ -84,7 +83,6 @@ const AddEmployeeTime = ({
     setEmployeeSearch("");
     setProjectSearch("");
     setTaskSearch("");
-    setSubmitError(null);
     onOpenChange(false);
     form.reset();
   }, [form, onOpenChange]);
@@ -368,7 +366,6 @@ const AddEmployeeTime = ({
             );
           }}
         />
-        {submitError ? <ErrorMessage message={submitError} /> : null}
       </div>
     </Dialog>
   );

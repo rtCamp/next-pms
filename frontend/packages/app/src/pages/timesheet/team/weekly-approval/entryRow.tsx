@@ -4,10 +4,8 @@
 import { useState, useCallback } from "react";
 import { floatToTime } from "@next-pms/design-system";
 import { TaskStatus } from "@next-pms/design-system/components";
-import { stripTags } from "@next-pms/design-system/utils";
 import {
   Button,
-  ErrorMessage,
   StaticTextEditor,
   TextEditor,
   DurationInput,
@@ -35,26 +33,18 @@ const EntryRow = ({ entry, onSave }: EntryRowProps) => {
   const [isEditing, setIsEditing] = useState(false);
   const [description, setDescription] = useState(entry.description);
   const [hours, setHours] = useState(entry.hours);
-  const [descriptionError, setDescriptionError] = useState<string | null>(null);
 
   const handleEdit = useCallback(() => {
-    setDescriptionError(null);
     setIsEditing(true);
   }, []);
 
   const handleCancel = useCallback(() => {
     setDescription(entry.description);
     setHours(entry.hours);
-    setDescriptionError(null);
     setIsEditing(false);
   }, [entry.description, entry.hours]);
 
   const handleSave = useCallback(() => {
-    if (stripTags(description).trim().length === 0) {
-      setDescriptionError("Please enter a comment.");
-      return;
-    }
-
     onSave(
       entry.timesheetId,
       entry.taskId,
@@ -63,7 +53,6 @@ const EntryRow = ({ entry, onSave }: EntryRowProps) => {
       entry.parent,
       entry.day,
     );
-    setDescriptionError(null);
     setIsEditing(false);
   }, [
     entry.timesheetId,
@@ -87,17 +76,11 @@ const EntryRow = ({ entry, onSave }: EntryRowProps) => {
             <p className="text-xs text-ink-gray-5">{entry.projectName}</p>
             <TextEditor
               content={description}
-              onChange={(val) => {
-                setDescription(val);
-                setDescriptionError(null);
-              }}
+              onChange={(val) => setDescription(val)}
               fixedMenu={false}
               placeholder="Comment"
               editorClass="px-2 h-24 prose-sm overflow-auto scrollbar-thin bg-white border rounded-md border-outline-gray-2"
             />
-            {descriptionError ? (
-              <ErrorMessage message={descriptionError} />
-            ) : null}
           </div>
         </div>
         <DurationInput value={hours} onChange={setHours} />

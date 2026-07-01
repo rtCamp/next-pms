@@ -34,7 +34,6 @@ export const TimeEntryForm = ({
   durationLabel,
   maxDurationInHours,
   submitting,
-  submitError = null,
   editBaseline = null,
   onSave,
   onCommentKeyDown,
@@ -93,7 +92,6 @@ export const TimeEntryForm = ({
           );
         }}
       />
-      {submitError ? <ErrorMessage message={submitError} /> : null}
       <form.Subscribe
         selector={(state) => ({
           duration: state.values.duration,

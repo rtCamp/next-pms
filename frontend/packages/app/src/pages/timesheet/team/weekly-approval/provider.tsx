@@ -35,7 +35,6 @@ export interface WeeklyApprovalContextValue {
   avatarUrl: string;
   dateRange: string;
   totalHours: number;
-  rejectionError: string | null;
   groupedByDay: GroupedDay[];
   checkedDays: Set<string>;
   handleDayCheckChange: (day: string, checked: boolean) => void;
@@ -84,7 +83,6 @@ export const WeeklyApprovalProvider = ({
   const toast = useToasts();
   const [currentView, setCurrentView] = useState<ModalView>("approval");
   const [checkedDays, setCheckedDays] = useState<Set<string>>(new Set());
-  const [rejectionError, setRejectionError] = useState<string | null>(null);
 
   const { call: updateTimesheet } = useFrappePostCall(
     "next_pms.timesheet.api.timesheet.update_timesheet_detail",
@@ -139,21 +137,9 @@ export const WeeklyApprovalProvider = ({
   }, [groupedByDay, checkedDays]);
 
   const handleReject = useCallback(() => {
-    setRejectionError(null);
     mutate();
     setCurrentView("rejection");
   }, [mutate]);
-
-  const handleOpenChange = useCallback(
-    (nextOpen: boolean) => {
-      onOpenChange(nextOpen);
-      if (!nextOpen) {
-        setRejectionError(null);
-        setCurrentView("approval");
-      }
-    },
-    [onOpenChange],
-  );
 
   const handleTimesheetUpdate = useCallback(
     async (
@@ -194,25 +180,24 @@ export const WeeklyApprovalProvider = ({
       });
       toast.success(res.message);
       mutate();
-      handleOpenChange(false);
     } catch (error) {
       const message = parseFrappeErrorMsg(error as FrappeError);
       toast.error(message);
     }
+    onOpenChange(false);
   }, [
     getCheckedDates,
     approveOrRejectTimesheet,
     employee,
     toast,
+    onOpenChange,
     mutate,
-    handleOpenChange,
   ]);
 
   const handleRejectionSubmit = useCallback(
     async (reason: string) => {
       const dates = getCheckedDates();
       try {
-        setRejectionError(null);
         const res = await approveOrRejectTimesheet({
           dates,
           status: "Rejected",
@@ -221,25 +206,26 @@ export const WeeklyApprovalProvider = ({
         });
         toast.success(res.message);
         mutate();
-        handleOpenChange(false);
       } catch (error) {
-        setRejectionError(parseFrappeErrorMsg(error as FrappeError));
+        const message = parseFrappeErrorMsg(error as FrappeError);
+        toast.error(message);
       }
+      onOpenChange(false);
     },
     [
       getCheckedDates,
       approveOrRejectTimesheet,
       employee,
       toast,
+      onOpenChange,
       mutate,
-      handleOpenChange,
     ],
   );
 
   const value: WeeklyApprovalContextValue = useMemo(
     () => ({
       open,
-      onOpenChange: handleOpenChange,
+      onOpenChange,
       currentView,
       setCurrentView,
       isLoading,
@@ -248,7 +234,6 @@ export const WeeklyApprovalProvider = ({
       avatarUrl,
       dateRange,
       totalHours,
-      rejectionError,
       groupedByDay,
       checkedDays,
       handleDayCheckChange,
@@ -259,7 +244,7 @@ export const WeeklyApprovalProvider = ({
     }),
     [
       open,
-      handleOpenChange,
+      onOpenChange,
       currentView,
       isLoading,
       employee,
@@ -267,7 +252,6 @@ export const WeeklyApprovalProvider = ({
       avatarUrl,
       dateRange,
       totalHours,
-      rejectionError,
       groupedByDay,
       checkedDays,
       handleDayCheckChange,

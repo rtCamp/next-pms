@@ -60,7 +60,6 @@ export const InlineTimeEntry = ({
 }: InlineTimeEntryProps) => {
   const toast = useToasts();
   const [submitting, setSubmitting] = useState(false);
-  const [submitError, setSubmitError] = useState<string | null>(null);
   const [entryFormMode, setEntryFormMode] = useState<EntryFormMode>(
     ENTRY_FORM_MODE.DEFAULT,
   );
@@ -111,7 +110,6 @@ export const InlineTimeEntry = ({
     defaultValues,
     onSubmit: async ({ value }) => {
       setSubmitting(true);
-      setSubmitError(null);
 
       try {
         if (entryFormMode === ENTRY_FORM_MODE.EDIT && selectedEntry) {
@@ -142,16 +140,16 @@ export const InlineTimeEntry = ({
         if (hasNoTimeEntries && entryFormMode === ENTRY_FORM_MODE.DEFAULT) {
           onSubmitSuccess?.();
         }
-
+      } catch (err) {
+        const error = parseFrappeErrorMsg(err as FrappeError);
+        toast.error(error);
+      } finally {
+        setSubmitting(false);
         form.reset();
         editBaselineRef.current = null;
         setSelectedEntry(null);
         setAddDraft(null);
         setEntryFormMode(ENTRY_FORM_MODE.DEFAULT);
-      } catch (err) {
-        setSubmitError(parseFrappeErrorMsg(err as FrappeError));
-      } finally {
-        setSubmitting(false);
       }
     },
   });
@@ -180,7 +178,6 @@ export const InlineTimeEntry = ({
 
   const handleEditEntry = useCallback(
     (entry: TaskDataItemProps) => {
-      setSubmitError(null);
       if (entryFormMode === ENTRY_FORM_MODE.ADD) {
         const { duration, comment } = form.state.values;
         const hasDraftValue =
@@ -210,7 +207,6 @@ export const InlineTimeEntry = ({
   );
 
   const handleToggleAddMode = useCallback(() => {
-    setSubmitError(null);
     if (entryFormMode === ENTRY_FORM_MODE.ADD) {
       void form.handleSubmit();
       return;
@@ -370,7 +366,6 @@ export const InlineTimeEntry = ({
                         maxDurationInHours={dailyWorkingHours}
                         editBaseline={editBaselineRef.current}
                         submitting={submitting}
-                        submitError={submitError}
                         onSave={() => handleSubmit()}
                         onCommentKeyDown={handleSubmit}
                       >
@@ -409,7 +404,6 @@ export const InlineTimeEntry = ({
               durationLabel={hasNoTimeEntries ? false : "Add time"}
               maxDurationInHours={dailyWorkingHours}
               submitting={submitting}
-              submitError={submitError}
               onSave={() => handleSubmit()}
               onCommentKeyDown={handleSubmit}
             />
