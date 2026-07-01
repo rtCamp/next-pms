@@ -10,6 +10,7 @@ import {
 import { Spinner } from "@next-pms/design-system/components";
 import { Checkbox, Badge } from "@rtcamp/frappe-ui-react";
 import { CalendarDeadline, Clock } from "@rtcamp/frappe-ui-react/icons";
+import { differenceInMinutes, parseISO } from "date-fns";
 
 /**
  * Internal Dependencies
@@ -22,6 +23,7 @@ interface CalendarEventsProps {
   onSelectionChange: (
     selectedLabels: string[],
     allEventSubjects: string[],
+    totalDurationHours: number,
   ) => void;
 }
 
@@ -47,15 +49,22 @@ const CalendarEvents = ({
   );
 
   const notifySelectionChange = (nextIds: string[]) => {
-    const selectedLabels = events
-      .filter((e) => nextIds.includes(e.id))
+    const selectedEvents = events.filter((e) => nextIds.includes(e.id));
+
+    const selectedLabels = selectedEvents
       .map(
         (e) =>
           `${e.subject.trim()} | ${formatDurationLabel(e.starts_on, e.ends_on)}`,
       )
       .filter(Boolean);
 
-    onSelectionChange(selectedLabels, allEventSubjects);
+    const totalDurationHours = selectedEvents.reduce((sum, e) => {
+      const start = parseISO(e.starts_on.replace(" ", "T"));
+      const end = parseISO(e.ends_on.replace(" ", "T"));
+      return sum + differenceInMinutes(end, start) / 60;
+    }, 0);
+
+    onSelectionChange(selectedLabels, allEventSubjects, totalDurationHours);
   };
 
   const handleToggleShow = (val: boolean) => {

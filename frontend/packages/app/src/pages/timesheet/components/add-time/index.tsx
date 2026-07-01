@@ -57,6 +57,8 @@ const AddTime = ({
   const [projectSearch, setProjectSearch] = useState("");
   const [taskSearch, setTaskSearch] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  // We use this key to reset the text editor when the calendar selection changes.
+  const [commentKey, setCommentKey] = useState(0);
   const { call: saveTime } = useFrappePostCall(
     "next_pms.timesheet.api.timesheet.save",
   );
@@ -174,28 +176,21 @@ const AddTime = ({
     });
 
   const handleCalendarSelectionChange = useCallback(
-    (selectedLabels: string[], allEventSubjects: string[]) => {
-      const currentComment = form.state.values.comment || "";
-      const preservedLines = currentComment
-        .split("\n")
-        .map((line) => line.trim())
-        .filter(
-          (line) =>
-            line &&
-            !allEventSubjects.some(
-              (subject) =>
-                line === subject ||
-                line === `- ${subject}` ||
-                line.startsWith(`- ${subject} | `),
-            ),
-        );
+    (
+      selectedLabels: string[],
+      _allEventSubjects: string[],
+      totalDurationHours: number,
+    ) => {
+      const selectedSubjectHtml =
+        selectedLabels.length > 0
+          ? "<ul>" +
+            selectedLabels.map((label) => `<li>${label}</li>`).join("") +
+            "</ul>"
+          : "";
 
-      const selectedSubjectLines = selectedLabels.map((label) => `- ${label}`);
-
-      form.setFieldValue(
-        "comment",
-        [...preservedLines, ...selectedSubjectLines].join("\n"),
-      );
+      form.setFieldValue("comment", selectedSubjectHtml);
+      form.setFieldValue("duration", totalDurationHours);
+      setCommentKey((k) => k + 1);
     },
     [form],
   );
@@ -376,6 +371,7 @@ const AddTime = ({
                   Comment
                 </label>
                 <TextEditor
+                  key={commentKey}
                   content={field.state.value}
                   onChange={(value) => field.handleChange(value)}
                   fixedMenu={false}
