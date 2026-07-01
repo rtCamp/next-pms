@@ -4,7 +4,12 @@
 import { useState } from "react";
 import { Dialog } from "@base-ui/react/dialog";
 import { floatToTime } from "@next-pms/design-system";
-import { Avatar, Button, Textarea } from "@rtcamp/frappe-ui-react";
+import {
+  Avatar,
+  Button,
+  ErrorMessage,
+  Textarea,
+} from "@rtcamp/frappe-ui-react";
 import { Close } from "@rtcamp/frappe-ui-react/icons";
 
 /**
@@ -19,10 +24,18 @@ const RejectionPopup = () => {
     dateRange,
     totalHours,
     handleRejectionSubmit,
+    rejectionError,
   } = useWeeklyApproval();
   const [reason, setReason] = useState("");
+  const [reasonError, setReasonError] = useState<string | null>(null);
 
   const handleReject = () => {
+    if (reason.trim().length === 0) {
+      setReasonError("Please enter a reason.");
+      return;
+    }
+
+    setReasonError(null);
     handleRejectionSubmit(reason);
   };
 
@@ -58,15 +71,20 @@ const RejectionPopup = () => {
           <Textarea
             value={reason}
             placeholder="Enter reason for rejection"
-            onChange={(e) => setReason(e.target.value)}
+            onChange={(e) => {
+              setReason(e.target.value);
+              setReasonError(null);
+            }}
             className="bg-white border-outline-gray-2 text-ink-gray-7"
             rows={4}
           />
+          {reasonError ? <ErrorMessage message={reasonError} /> : null}
         </div>
       </div>
 
       {/* Footer */}
-      <div className="px-6 py-4">
+      <div className="px-6 py-4 space-y-1.5">
+        {rejectionError ? <ErrorMessage message={rejectionError} /> : null}
         <Button
           className="w-full"
           variant="solid"
