@@ -53,6 +53,10 @@ const normalizeRange = (startDate: string, endDate: string) =>
     ? { startDate, endDate }
     : { startDate: endDate, endDate: startDate };
 
+/**
+ * Checks if the proposed edit range is the same as the allocation's current range, ignoring hours-per-day.
+ * This is used to determine if the edit is a base-hours change or a day-override change.
+ */
 const isFullAllocationRangeEdit = ({
   allocation,
   next,
