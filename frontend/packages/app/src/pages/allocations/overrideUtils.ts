@@ -32,6 +32,10 @@ type DayOverridePatch = {
   deletedDayOverrides: string[];
 };
 
+type ScheduleSelectionPayload = DayOverridePatch & {
+  allocationHoursPerDay: number;
+};
+
 /**
  * Lists every calendar date in an inclusive range as `yyyy-MM-dd` strings.
  */
@@ -48,6 +52,25 @@ const normalizeRange = (startDate: string, endDate: string) =>
   startDate <= endDate
     ? { startDate, endDate }
     : { startDate: endDate, endDate: startDate };
+
+const isFullAllocationRangeEdit = ({
+  allocation,
+  next,
+}: {
+  allocation: AllocationScheduleContext;
+  next: Pick<AllocationEditRange, "startDate" | "endDate">;
+}): boolean => {
+  const normalizedNextRange = normalizeRange(next.startDate, next.endDate);
+  const normalizedAllocationRange = normalizeRange(
+    allocation.allocationStartDate,
+    allocation.allocationEndDate,
+  );
+
+  return (
+    normalizedNextRange.startDate === normalizedAllocationRange.startDate &&
+    normalizedNextRange.endDate === normalizedAllocationRange.endDate
+  );
+};
 
 /**
  * Maps each date in the allocation range to its currently effective hours,
@@ -128,17 +151,32 @@ const buildDayOverrideDiff = (
 };
 
 /**
- * Builds the day-override patch for an Edit Schedule submission: sets the selected
- * date range to the chosen hours-per-day and diffs it against the allocation's current
- * effective hours, returning the add/edit and delete operations to send to the API.
+ * Builds the payload for an Edit Schedule submission. Full-allocation range edits
+ * update the allocation's base hours and partial edits become day-override diffs.
  */
-export const buildScheduleSelectionOverridePatch = ({
+export const buildScheduleSelectionPayload = ({
   allocation,
   next,
 }: {
   allocation: AllocationScheduleContext;
   next: AllocationEditRange;
-}): DayOverridePatch => {
+}): ScheduleSelectionPayload => {
+  const isBaseHoursEdit = isFullAllocationRangeEdit({
+    allocation,
+    next,
+  });
+
+  if (
+    isBaseHoursEdit &&
+    next.hoursPerDay !== allocation.allocationHoursPerDay
+  ) {
+    return {
+      allocationHoursPerDay: next.hoursPerDay,
+      dayOverrides: [],
+      deletedDayOverrides: [],
+    };
+  }
+
   const currentHoursByDate = buildEffectiveHoursByDate(allocation);
   const desiredHoursByDate = new Map(currentHoursByDate);
   const normalizedNextRange = normalizeRange(next.startDate, next.endDate);
@@ -150,9 +188,8 @@ export const buildScheduleSelectionOverridePatch = ({
     desiredHoursByDate.set(date, next.hoursPerDay);
   }
 
-  return buildDayOverrideDiff(
-    currentHoursByDate,
-    desiredHoursByDate,
-    allocation,
-  );
+  return {
+    allocationHoursPerDay: allocation.allocationHoursPerDay,
+    ...buildDayOverrideDiff(currentHoursByDate, desiredHoursByDate, allocation),
+  };
 };
