@@ -1,4 +1,8 @@
+import type { ReactNode, ComponentType } from "react";
 import type { TaskStatusType } from "@next-pms/design-system/components";
+
+import { ROUTES } from "@/lib/constant";
+import { PreloadableComponent } from "@/lib/lazy-preload";
 
 export type GlobalFilterCondition =
   | [field: string, operator: string, value: unknown]
@@ -75,7 +79,6 @@ declare global {
         has_industry?: boolean;
         has_repository_connections?: boolean;
         has_customer_feedback?: boolean;
-        has_project_email?: boolean;
         desk_theme?: string;
         has_todo_custom_fields?: boolean;
         is_calendar_setup: boolean;
@@ -89,4 +92,20 @@ declare global {
 export type Project = {
   name: string;
   project_name: string;
+};
+
+/**
+ * Route configuration keyed by ROUTES keys.
+ */
+export type RouteKey = keyof typeof ROUTES;
+
+// `any` mirrors React.lazy's constraint so propful views stay assignable; see
+// lazy-preload.ts for the full rationale.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export type LazyView = PreloadableComponent<ComponentType<any>>;
+
+export type RouteConfig = {
+  Component: LazyView;
+  allowedRoles: Role[];
+  layout?: ReactNode;
 };

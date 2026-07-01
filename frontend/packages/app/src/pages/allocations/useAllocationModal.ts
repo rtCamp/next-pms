@@ -43,7 +43,9 @@ export function useAllocationModal(refresh: RefreshAllocations) {
     setVariant("add");
     setInitialValues({
       ...(data.employeeId ? { employeeId: data.employeeId } : {}),
+      ...(data.employeeName ? { employeeLabel: data.employeeName } : {}),
       ...(data.projectId ? { projectId: data.projectId } : {}),
+      ...(data.projectName ? { projectLabel: data.projectName } : {}),
       ...(data.startDate
         ? { fromDate: format(data.startDate, "yyyy-MM-dd") }
         : {}),
@@ -52,7 +54,7 @@ export function useAllocationModal(refresh: RefreshAllocations) {
         ? { hoursPerDay: data.hoursPerDay }
         : {}),
       ...(data.customerName !== undefined
-        ? { customer: data.customerName }
+        ? { customer: data.customerName, customerLabel: data.customerName }
         : {}),
     });
     setIsOpen(true);
@@ -74,8 +76,11 @@ export function useAllocationModal(refresh: RefreshAllocations) {
     setInitialValues({
       allocationName: data.allocationId,
       employeeId: data.employeeId,
+      employeeLabel: data.employeeName,
       ...(data.projectId ? { projectId: data.projectId } : {}),
+      ...(data.projectName ? { projectLabel: data.projectName } : {}),
       customer: data.customerName,
+      customerLabel: data.customerName,
       recurrence: data.recurrenceId ? "recurring" : "one-time",
       fromDate: formStartDate ? format(formStartDate, "yyyy-MM-dd") : undefined,
       toDate: formEndDate ? format(formEndDate, "yyyy-MM-dd") : undefined,

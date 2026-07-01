@@ -38,7 +38,7 @@ export default function LeadershipDashboard() {
       <div className="flex flex-col gap-6 overflow-y-auto p-5 max-w-[1200px] mx-auto">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="flex min-w-0 flex-col gap-2">
-            <h2 className="text-xl font-semibold text-ink-gray-8">
+            <h2 className="text-2xl font-semibold text-ink-gray-8">
               Hey, {firstName}
             </h2>
           </div>
@@ -57,10 +57,10 @@ export default function LeadershipDashboard() {
           <WidgetCard className="col-span-4">
             <LeadershipKpiCard kpikey={"profit_margin"} />
           </WidgetCard>
-          <WidgetCard className="h-[300px] col-span-8">
+          <WidgetCard className="h-[300px] col-span-8 p-4">
             <HeatmapCard />
           </WidgetCard>
-          <WidgetCard className="h-[300px] col-span-4">
+          <WidgetCard className="h-[300px] col-span-4 p-4">
             <NotificationsCard />
           </WidgetCard>
           <div className="col-span-12">

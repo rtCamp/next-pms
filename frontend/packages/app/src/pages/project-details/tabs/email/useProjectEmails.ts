@@ -14,7 +14,6 @@ import type { Attachment, Email } from "./types";
 
 interface ApiCommunication {
   name: string;
-  communication_medium: string | null;
   communication_date: string | null;
   creation: string | null;
   subject: string | null;
@@ -24,16 +23,13 @@ interface ApiCommunication {
   recipients: string | null;
   cc: string | null;
   bcc: string | null;
-  attachments: string | null;
+  attachments: Attachment[] | null;
   read_by_recipient: 0 | 1;
   delivery_status: string | null;
 }
 
 interface EmailApiResponse {
-  docinfo: {
-    communications: ApiCommunication[];
-  };
-  message: unknown;
+  message: ApiCommunication[];
 }
 
 function parseAddressList(raw: string | null): string[] {
@@ -42,16 +38,6 @@ function parseAddressList(raw: string | null): string[] {
     .split(",")
     .map((s) => s.trim())
     .filter(Boolean);
-}
-
-function parseAttachments(raw: string | null): Attachment[] {
-  if (!raw) return [];
-  try {
-    const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? (parsed as Attachment[]) : [];
-  } catch {
-    return [];
-  }
 }
 
 function mapEmail(raw: ApiCommunication): Email {
@@ -68,7 +54,7 @@ function mapEmail(raw: ApiCommunication): Email {
     body: raw.content ?? "",
     sentAt: raw.communication_date ?? raw.creation ?? "",
     status: raw.delivery_status ?? "unknown",
-    attachments: parseAttachments(raw.attachments),
+    attachments: raw.attachments ?? [],
   };
 }
 
@@ -90,9 +76,7 @@ export function useProjectEmails() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [error]);
 
-  const emails = (data?.docinfo?.communications ?? [])
-    .filter((c) => c.communication_medium === "Email")
-    .map(mapEmail);
+  const emails = (data?.message ?? []).map(mapEmail);
 
   return { emails, isLoading, error, mutate };
 }

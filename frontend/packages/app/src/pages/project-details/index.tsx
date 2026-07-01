@@ -28,10 +28,6 @@ function ProjectDetail() {
     finalTabs = finalTabs.filter((tab) => tab.label !== "Feedback");
     finalTabKeys = finalTabKeys.filter((key) => key !== "feedback");
   }
-  if (!window.frappe?.boot?.has_project_email) {
-    finalTabs = finalTabs.filter((tab) => tab.label !== "Email");
-    finalTabKeys = finalTabKeys.filter((key) => key !== "email");
-  }
 
   const paramTab = searchParams.get(TAB_PARAM) as TabKey | null;
   const activeKey: TabKey =

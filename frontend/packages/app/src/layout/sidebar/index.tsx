@@ -25,6 +25,7 @@ import { ArrowLeftRight, Briefcase, BarChart2, Moon, Sun } from "lucide-react";
 /**
  * Internal dependencies.
  */
+import LinkWithPreload from "@/components/linkWithPreload";
 import { ROUTES } from "@/lib/constant";
 import logo from "@/logo.svg";
 import { useNotifications } from "@/providers/notifications";
@@ -74,15 +75,17 @@ const Sidebar = () => {
   const leadershipDashboard = {
     label: "Leadership",
     icon: BarChart2,
+    to: ROUTES["dashboard-leadership"],
     isActive: pathname === ROUTES["dashboard-leadership"],
-    onClick: () => navigate(ROUTES["dashboard-leadership"]),
+    render: <LinkWithPreload to={ROUTES["dashboard-leadership"]} />,
   };
 
   const managerDashbaord = {
     label: "Manager",
     icon: Briefcase,
+    to: ROUTES["dashboard-manager"],
     isActive: pathname === ROUTES["dashboard-manager"],
-    onClick: () => navigate(ROUTES["dashboard-manager"]),
+    render: <LinkWithPreload to={ROUTES["dashboard-manager"]} />,
   };
 
   const dashboardItems: SidebarSectionType["items"] = [];
@@ -97,27 +100,29 @@ const Sidebar = () => {
   const personalTimesheet = {
     label: "Personal",
     icon: Time,
+    to: ROUTES["timesheet-personal"],
     isActive: pathname === ROUTES["timesheet-personal"],
-    onClick: () => navigate(ROUTES["timesheet-personal"]),
+    render: <LinkWithPreload to={ROUTES["timesheet-personal"]} />,
   };
 
   const teamTimesheet = {
     label: "Team",
     icon: People,
+    to: ROUTES["timesheet-team"],
     isActive: pathname === ROUTES["timesheet-team"],
-    onClick: () =>
-      navigate(
-        employeeId
-          ? `${ROUTES["timesheet-team"]}?reportsTo=${encodeURIComponent(employeeId)}`
-          : ROUTES["timesheet-team"],
-      ),
+    render: (
+      <LinkWithPreload
+        to={`${ROUTES["timesheet-team"]}${employeeId ? `?reportsTo=${encodeURIComponent(employeeId)}` : ""}`}
+      />
+    ),
   };
 
   const projectTimesheet = {
     label: "Projects",
     icon: Folder,
+    to: ROUTES["timesheet-project"],
     isActive: pathname === ROUTES["timesheet-project"],
-    onClick: () => navigate(ROUTES["timesheet-project"]),
+    render: <LinkWithPreload to={ROUTES["timesheet-project"]} />,
   };
 
   const timesheetItems: SidebarSectionType["items"] = [personalTimesheet];
@@ -130,9 +135,9 @@ const Sidebar = () => {
   const projects = {
     label: "Projects",
     icon: Folder,
-    to: "",
+    to: ROUTES.project,
     isActive: pathname === ROUTES.project,
-    onClick: () => navigate(ROUTES.project),
+    render: <LinkWithPreload to={ROUTES.project} />,
   };
 
   const projectItems: SidebarSectionType["items"] = [];
@@ -144,14 +149,16 @@ const Sidebar = () => {
   const teamAllocation = {
     label: "Team",
     icon: People,
+    to: ROUTES["allocations-team"],
     isActive: pathname === ROUTES["allocations-team"],
-    onClick: () => navigate(ROUTES["allocations-team"]),
+    render: <LinkWithPreload to={ROUTES["allocations-team"]} />,
   };
   const projectAllocation = {
     label: "Projects",
     icon: Folder,
+    to: ROUTES["allocations-project"],
     isActive: pathname === ROUTES["allocations-project"],
-    onClick: () => navigate(ROUTES["allocations-project"]),
+    render: <LinkWithPreload to={ROUTES["allocations-project"]} />,
   };
 
   const allocationItems: SidebarSectionType["items"] = [

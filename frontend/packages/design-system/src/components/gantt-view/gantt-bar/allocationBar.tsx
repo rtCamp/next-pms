@@ -152,6 +152,7 @@ export function GanttAllocationBar({
         },
         onEditAllocation,
         onDeleteAllocation,
+        memberName,
       ),
       memberName,
       memberImage,
@@ -178,6 +179,7 @@ export function GanttAllocationBar({
       onEditAllocation({
         allocationId: allocation.id,
         employeeId: allocation.employeeId,
+        employeeName: memberName,
         projectId: allocation.projectId,
         recurrenceId: allocation.recurrenceId,
         projectName: allocation.projectName,
@@ -202,6 +204,7 @@ export function GanttAllocationBar({
       columnCount,
       columnWidth,
       headerWidth,
+      memberName,
       weekStart,
       showWeekend,
       onEditAllocation,
