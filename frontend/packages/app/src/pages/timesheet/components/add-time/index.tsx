@@ -176,11 +176,7 @@ const AddTime = ({
     });
 
   const handleCalendarSelectionChange = useCallback(
-    (
-      selectedLabels: string[],
-      _allEventSubjects: string[],
-      totalDurationHours: number,
-    ) => {
+    (selectedLabels: string[], totalDurationHours: number) => {
       const selectedSubjectHtml =
         selectedLabels.length > 0
           ? "<ul>" +

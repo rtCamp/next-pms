@@ -1,7 +1,7 @@
 /**
  * External Dependencies
  */
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import { useId } from "react";
 import {
   formatDateTimeLabel,
@@ -22,7 +22,6 @@ interface CalendarEventsProps {
   enabled: boolean;
   onSelectionChange: (
     selectedLabels: string[],
-    allEventSubjects: string[],
     totalDurationHours: number,
   ) => void;
 }
@@ -43,11 +42,6 @@ const CalendarEvents = ({
     enabled: enabled && show && isCalendarSetup,
   });
 
-  const allEventSubjects = useMemo(
-    () => events.map((e) => e.subject.trim()).filter(Boolean),
-    [events],
-  );
-
   const notifySelectionChange = (nextIds: string[]) => {
     const selectedEvents = events.filter((e) => nextIds.includes(e.id));
 
@@ -64,7 +58,7 @@ const CalendarEvents = ({
       return sum + differenceInMinutes(end, start) / 60;
     }, 0);
 
-    onSelectionChange(selectedLabels, allEventSubjects, totalDurationHours);
+    onSelectionChange(selectedLabels, totalDurationHours);
   };
 
   const handleToggleShow = (val: boolean) => {
