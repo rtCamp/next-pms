@@ -8,7 +8,7 @@ import {
   stripTags,
 } from "@next-pms/design-system/utils";
 import { Avatar, Badge } from "@rtcamp/frappe-ui-react";
-import { format } from "date-fns";
+import { format, isThisYear, isToday } from "date-fns";
 
 /**
  * Internal dependencies.
@@ -30,7 +30,11 @@ export function EmailCard({
 }: EmailCardProps) {
   const toList = email.to.join(", ");
   const emailDate = new Date(email.sentAt.replace(" ", "T"));
-  const timeString = format(emailDate, "h:mm a");
+  const displayDate = isToday(emailDate)
+    ? format(emailDate, "h:mm a")
+    : isThisYear(emailDate)
+      ? format(emailDate, "MMM d")
+      : format(emailDate, "MMM d, yyyy");
   const relativeDate = formatRelativeTimeShort(email.sentAt, new Date(), true);
   const previewText = stripTags(email.body);
 
@@ -68,7 +72,7 @@ export function EmailCard({
                       Sent
                     </Badge>
                   )}
-                  <span className="text-sm text-ink-gray-5">{timeString}</span>
+                  <span className="text-sm text-ink-gray-5">{displayDate}</span>
                 </div>
               </div>
               <p className="text-sm text-ink-gray-5 truncate mt-0.5">
