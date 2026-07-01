@@ -69,14 +69,6 @@ export interface RiskFilters {
   advanced: FilterCondition[];
 }
 
-export interface RiskVisibleColumns {
-  "To-do": boolean;
-  "In Progress": boolean;
-  Escalated: boolean;
-  Blocked: boolean;
-  Mitigated: boolean;
-}
-
 export interface RiskSort {
   field: string;
   order: "asc" | "desc";

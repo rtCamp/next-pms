@@ -12,6 +12,7 @@ import {
   TextEditor,
   useToasts,
 } from "@rtcamp/frappe-ui-react";
+import { AlertTriangle } from "@rtcamp/frappe-ui-react/icons";
 import { useForm } from "@tanstack/react-form";
 import {
   FrappeError,
@@ -48,13 +49,7 @@ export function CreateRiskModal({
   open,
   onClose,
   riskName,
-  initialStatus,
 }: CreateRiskModalProps) {
-  const defaultState = { ...emptyValues };
-  if (initialStatus) {
-    defaultState.status = initialStatus;
-  }
-
   const projectId = useProjectDetail((s) => s.projectId);
   const refreshRisks = useRisks((c) => c.actions.refreshRisks);
   const [submitting, setSubmitting] = useState(false);
@@ -65,7 +60,6 @@ export function CreateRiskModal({
   const { createDoc } = useFrappeCreateDoc();
   const { updateDoc } = useFrappeUpdateDoc();
 
-  // Fetch existing risk only in edit mode (null swrKey disables fetching)
   const {
     data: existingRisk,
     isLoading: existingRiskLoading,
@@ -102,7 +96,7 @@ export function CreateRiskModal({
   }));
 
   const form = useForm({
-    defaultValues: defaultState,
+    defaultValues: emptyValues,
     validators: {
       onSubmit: createRiskSchema,
     },
@@ -114,8 +108,6 @@ export function CreateRiskModal({
             ...(value.risk_category !== null
               ? { risk_category: value.risk_category }
               : {}),
-            risk_level: value.risk_level,
-            status: value.status,
             ...(value.summary ? { summary: value.summary } : {}),
             ...(value.mitigation_plan
               ? { mitigation_plan: value.mitigation_plan }
@@ -146,7 +138,6 @@ export function CreateRiskModal({
     },
   });
 
-  // Pre-fill form when editing an existing risk
   useEffect(() => {
     if (open && isEditMode && existingRisk) {
       form.reset({
@@ -236,6 +227,7 @@ export function CreateRiskModal({
                   value={field.state.value}
                   onChange={(val) => field.handleChange(val ?? "")}
                   placeholder="Select level"
+                  disabled={isEditMode}
                 />
                 {!field.state.meta.isValid && (
                   <ErrorMessage message={field.state.meta.errors[0]?.message} />
@@ -259,6 +251,7 @@ export function CreateRiskModal({
                   value={field.state.value}
                   onChange={(val) => field.handleChange(val ?? "")}
                   placeholder="Select status"
+                  disabled={isEditMode}
                 />
                 {!field.state.meta.isValid && (
                   <ErrorMessage message={field.state.meta.errors[0]?.message} />
@@ -266,6 +259,15 @@ export function CreateRiskModal({
               </div>
             )}
           />
+
+          {isEditMode && (
+            <div className="flex items-center gap-2 rounded-lg bg-(--color-violet-50) px-2.5 py-2">
+              <AlertTriangle className="size-4 shrink-0 text-(--color-violet-700)" />
+              <p className="min-w-0 flex-1 text-left text-xs text-ink-gray-9">
+                To change status or risk level, add a new risk update instead.
+              </p>
+            </div>
+          )}
 
           {/* Summary */}
           <form.Field
