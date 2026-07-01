@@ -138,7 +138,7 @@ export const GanttProjectRows: React.FC<GanttProjectRowsProps> = ({
 
       {canManageAllocations && (
         <tr
-          className={cn("relative", { "pointer-events-none": !isExpanded })}
+          className={cn("touch-pan-y", { "pointer-events-none": !isExpanded })}
           aria-hidden={!isExpanded}
         >
           <th
@@ -161,10 +161,14 @@ export const GanttProjectRows: React.FC<GanttProjectRowsProps> = ({
                 })
               }
               tabIndex={isExpanded ? undefined : -1}
-              className="w-full h-full flex items-center gap-2 text-base font-medium text-ink-gray-8 overflow-hidden"
+              className="w-full flex items-center gap-2 text-base font-medium text-ink-gray-8 overflow-hidden"
             >
-              <AddMd className="size-4 shrink-0" />
-              <span className="truncate">Add member</span>
+              {isExpanded ? (
+                <>
+                  <AddMd className="size-4 shrink-0" />
+                  <span className="truncate">Add member</span>
+                </>
+              ) : null}
             </button>
           </th>
           {weeks.map((week, index) => (

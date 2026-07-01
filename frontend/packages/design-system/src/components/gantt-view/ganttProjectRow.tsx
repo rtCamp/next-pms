@@ -81,7 +81,7 @@ export const GanttProjectRow: React.FC<GanttProjectRowProps> = ({
           key={i}
           colSpan={daysPerWeek}
           className={cn(
-            "dd overflow-hidden transition-[height] duration-200 ease-in-out",
+            "overflow-hidden transition-[height] duration-200 ease-in-out",
             { "border-r border-outline-gray-1": isExpanded },
           )}
           style={{ height: animatedRowHeight }}
