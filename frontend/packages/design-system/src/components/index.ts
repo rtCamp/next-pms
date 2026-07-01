@@ -98,3 +98,4 @@ export {
   type SortState,
   type SortOrder,
 } from "./sort-button";
+export { SortSelector, type SortSelectorProps } from "./sort-selector";

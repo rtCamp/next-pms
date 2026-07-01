@@ -3,6 +3,7 @@
  */
 import { useCallback, useMemo } from "react";
 import { useSearchParams } from "react-router-dom";
+import { SortOrder, SortState } from "@next-pms/design-system/components";
 import type { FilterCondition } from "@rtcamp/frappe-ui-react";
 
 /**
@@ -21,6 +22,8 @@ const FILTER_PARAM_KEYS = [
   "phase",
   "status",
   "advanced",
+  "sortField",
+  "sortOrder",
 ] as const;
 
 const parseAdvanced = (raw: string | null): FilterCondition[] => {
@@ -45,6 +48,14 @@ export function useProjectFilters() {
       phase: (searchParams.get("phase") ?? "") as Phase | "",
       status: (searchParams.get("status") ?? "") as ProjectStatus | "",
       advanced: parseAdvanced(searchParams.get("advanced")),
+    }),
+    [searchParams],
+  );
+
+  const sort: SortState = useMemo(
+    () => ({
+      field: searchParams.get("sortField") ?? "modified",
+      order: (searchParams.get("sortOrder") ?? "desc") as SortOrder,
     }),
     [searchParams],
   );
@@ -89,6 +100,24 @@ export function useProjectFilters() {
       setParam("advanced", v.length ? JSON.stringify(v) : ""),
     [setParam],
   );
+  const setSort = useCallback(
+    (v: SortState | null) => {
+      if (!v) {
+        setSearchParams(
+          (prev) => {
+            prev.delete("sortField");
+            prev.delete("sortOrder");
+            return prev;
+          },
+          { replace: true },
+        );
+      } else {
+        setParam("sortField", v.field);
+        setParam("sortOrder", v.order);
+      }
+    },
+    [setParam],
+  );
   const resetFilters = useCallback(
     () =>
       setSearchParams(
@@ -103,11 +132,13 @@ export function useProjectFilters() {
 
   return {
     filters,
+    sort,
     setSearch,
     setRagStatus,
     setPhase,
     setStatus,
     setAdvanced,
+    setSort,
     resetFilters,
   };
 }

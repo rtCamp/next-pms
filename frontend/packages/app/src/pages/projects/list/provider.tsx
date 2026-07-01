@@ -15,7 +15,7 @@ import type { ResponseProjectList } from "./types";
 import { useProjectFilters } from "../hooks/useProjectFilters";
 
 export function ProjectListProvider({ children }: PropsWithChildren) {
-  const { filters } = useProjectFilters();
+  const { filters, sort } = useProjectFilters();
   const [addProjectOpen, setAddProjectOpen] = useState(false);
   const openAddProjectModal = useCallback(() => setAddProjectOpen(true), []);
   const closeAddProjectModal = useCallback(() => setAddProjectOpen(false), []);
@@ -29,9 +29,10 @@ export function ProjectListProvider({ children }: PropsWithChildren) {
       JSON.stringify({
         search: filters.search,
         frappeFilters,
+        order_by: sort.field + " " + sort.order,
         page_length: PROJECT_LIST_PAGE_SIZE,
       }),
-    [filters.search, frappeFilters],
+    [filters.search, frappeFilters, sort.field, sort.order],
   );
 
   const getKey = useCallback(
@@ -55,6 +56,7 @@ export function ProjectListProvider({ children }: PropsWithChildren) {
         view: "list",
         search: filters.search,
         filters: frappeFilters,
+        order_by: sort.field + " " + sort.order,
         page_length: PROJECT_LIST_PAGE_SIZE,
       },
       {

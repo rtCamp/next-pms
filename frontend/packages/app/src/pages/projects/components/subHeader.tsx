@@ -2,6 +2,7 @@
  * External dependencies.
  */
 import { useEffect, useState } from "react";
+import { SortSelector } from "@next-pms/design-system/components";
 import {
   Select,
   TextInput,
@@ -20,11 +21,13 @@ import { Phase, type ProjectStatus, type RagStatus } from "../types";
 export function ProjectListSubHeader() {
   const {
     filters: { search, ragStatus, phase, status, advanced },
+    sort,
     setSearch,
     setRagStatus,
     setPhase,
     setStatus,
     setAdvanced,
+    setSort,
   } = useProjectFilters();
 
   const [searchInput, setSearchInput] = useState(search);
@@ -74,6 +77,17 @@ export function ProjectListSubHeader() {
         />
       </div>
       <div className="flex gap-2">
+        <SortSelector
+          sort={sort}
+          onSortChange={setSort}
+          fields={[
+            { label: "Project Name", field: "project_name" },
+            { label: "Last Updated On", field: "modified" },
+            { label: "Created On", field: "creation" },
+            { label: "Expected Start Date", field: "expected_start_date" },
+            { label: "Expected End Date", field: "expected_end_date" },
+          ]}
+        />
         <Filter
           align="end"
           value={advanced}
