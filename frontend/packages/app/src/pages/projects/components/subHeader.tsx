@@ -2,6 +2,7 @@
  * External dependencies.
  */
 import { useEffect, useState } from "react";
+import { useMatch } from "react-router-dom";
 import { SortSelector } from "@next-pms/design-system/components";
 import {
   Select,
@@ -14,6 +15,7 @@ import {
  * Internal dependencies.
  */
 import { useDebounce } from "@/hooks/useDebounce";
+import { ROUTES } from "@/lib/constant";
 import { PHASE_OPTIONS, RAG_OPTIONS, STATUS_OPTIONS } from "../constants";
 import { useProjectFilters } from "../hooks/useProjectFilters";
 import { Phase, type ProjectStatus, type RagStatus } from "../types";
@@ -29,6 +31,8 @@ export function ProjectListSubHeader() {
     setAdvanced,
     setSort,
   } = useProjectFilters();
+
+  const isKanban = !!useMatch(ROUTES["project-kanban"]);
 
   const [searchInput, setSearchInput] = useState(search);
   const debouncedSearch = useDebounce(searchInput, 400);
@@ -77,17 +81,39 @@ export function ProjectListSubHeader() {
         />
       </div>
       <div className="flex gap-2">
-        <SortSelector
-          sort={sort}
-          onSortChange={setSort}
-          fields={[
-            { label: "Project Name", field: "project_name" },
-            { label: "Last Updated On", field: "modified" },
-            { label: "Created On", field: "creation" },
-            { label: "Expected Start Date", field: "expected_start_date" },
-            { label: "Expected End Date", field: "expected_end_date" },
-          ]}
-        />
+        {!isKanban && (
+          <SortSelector
+            sort={sort}
+            onSortChange={setSort}
+            fields={[
+              { field: "project_name", label: "Project name" },
+              { field: "custom_project_phase", label: "Phase" },
+              //          { field: "burn_rate_per_week", label: "Burn rate/week" },
+              //          { field: "cost_burn_percent", label: "Cost burn" },
+              //          { field: "total_budget", label: "Total budget" },
+              {
+                field: "custom_percentage_estimated_profit",
+                label: "Profit margin",
+              },
+              { field: "expected_start_date", label: "Expected Start Date" },
+              { field: "custom_next_milestone", label: "Next milestone" },
+              { field: "expected_end_date", label: "Expected End Date" },
+              {
+                field: "custom_project_manager_name",
+                label: "Project manager",
+              },
+              {
+                field: "custom_engineering_manager_name",
+                label: "Lead engineer",
+              },
+              { field: "project_type", label: "Project type" },
+              { field: "customer", label: "Client name" },
+              //          { field: "contract_end_date", label: "Contract end date" },
+
+              { label: "Last Updated On", field: "modified" },
+            ]}
+          />
+        )}
         <Filter
           align="end"
           value={advanced}

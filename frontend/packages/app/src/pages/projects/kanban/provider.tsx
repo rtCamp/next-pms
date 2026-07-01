@@ -21,7 +21,7 @@ import {
 import type { ResponseProjectKanban } from "./types";
 
 export function ProjectKanbanProvider({ children }: PropsWithChildren) {
-  const { filters, sort } = useProjectFilters();
+  const { filters } = useProjectFilters();
   const [addProjectOpen, setAddProjectOpen] = useState(false);
   const [addProjectPrefill, setAddProjectPrefill] = useState<
     Partial<AddProjectFormValues> | undefined
@@ -50,7 +50,6 @@ export function ProjectKanbanProvider({ children }: PropsWithChildren) {
         view: "kanban",
         search: filters.search,
         filters: frappeFilters,
-        sort: sort.field + " " + sort.order,
       },
     );
 
