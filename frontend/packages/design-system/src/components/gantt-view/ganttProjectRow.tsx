@@ -13,6 +13,7 @@ import {
   type RowAllocationOverlayHandle,
 } from "./gantt-bar/rowAllocationOverlay";
 import { GanttProjectItem } from "./ganttProjectItem";
+import { GanttRowOverlayCell } from "./ganttRowOverlayCell";
 import { useGanttStore } from "./ganttStore";
 import type { Member } from "./ganttStore";
 import { mergeClassNames as cn } from "../../utils";
@@ -53,7 +54,7 @@ export const GanttProjectRow: React.FC<GanttProjectRowProps> = ({
 
   return (
     <tr
-      className={cn("relative touch-pan-y", {
+      className={cn("touch-pan-y", {
         "pointer-events-none": !isExpanded,
       })}
       aria-hidden={!isExpanded}
@@ -86,7 +87,7 @@ export const GanttProjectRow: React.FC<GanttProjectRowProps> = ({
           style={{ height: animatedRowHeight }}
         />
       ))}
-      <td className="p-0 border-0 w-0 min-w-0 max-w-0" style={{ width: 0 }}>
+      <GanttRowOverlayCell height={animatedRowHeight}>
         {isExpanded &&
           project.allocations?.map((alloc, allocIndex) => (
             <GanttAllocationBar
@@ -113,7 +114,7 @@ export const GanttProjectRow: React.FC<GanttProjectRowProps> = ({
           })}
           onOpenAllocation={onAddAllocation}
         />
-      </td>
+      </GanttRowOverlayCell>
     </tr>
   );
 };

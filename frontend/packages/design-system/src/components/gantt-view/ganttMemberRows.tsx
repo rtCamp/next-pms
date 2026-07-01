@@ -15,6 +15,7 @@ import {
 } from "./gantt-bar/rowAllocationOverlay";
 import { GanttMemberItem } from "./ganttMemberItem";
 import { GanttProjectRow } from "./ganttProjectRow";
+import { GanttRowOverlayCell } from "./ganttRowOverlayCell";
 import { useGanttStore } from "./ganttStore";
 import { mergeClassNames as cn } from "../../utils";
 
@@ -58,12 +59,11 @@ export const GanttMemberRows: React.FC<GanttMemberRowsProps> = ({
   const canEditAllocations = hasRoleAccess && Boolean(onEditAllocation);
   const memberRowKey = `member-${memberInd}`;
   const addProjectRowHeight = isExpanded ? ADD_PROJECT_ROW_HEIGHT : 0;
-
   return (
     <React.Fragment>
       {/* Member row */}
       <tr
-        className="relative touch-pan-y last:border-b border-outline-gray-1 animate-fade-in"
+        className="touch-pan-y last:border-b border-outline-gray-1 animate-fade-in"
         onPointerDown={(e) => overlayRef.current?.handleRowPointerDown(e)}
         onPointerMove={(e) => overlayRef.current?.handleRowPointerMove(e)}
         onPointerLeave={() => overlayRef.current?.clearHoveredSlot()}
@@ -79,7 +79,7 @@ export const GanttMemberRows: React.FC<GanttMemberRowsProps> = ({
             style={{ height: CELL_HEIGHT }}
           />
         ))}
-        <td className="p-0 border-0 w-0 min-w-0 max-w-0" style={{ width: 0 }}>
+        <GanttRowOverlayCell>
           {member.memberSummaryBars.map((summary, idx) => (
             <GanttMemberSummaryBar
               key={idx}
@@ -100,7 +100,7 @@ export const GanttMemberRows: React.FC<GanttMemberRowsProps> = ({
             })}
             onOpenAllocation={onAddAllocation}
           />
-        </td>
+        </GanttRowOverlayCell>
       </tr>
 
       {/* Project child rows */}
