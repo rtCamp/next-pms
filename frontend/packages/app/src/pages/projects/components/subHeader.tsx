@@ -90,7 +90,7 @@ export function ProjectListSubHeader() {
               { field: "custom_project_phase", label: "Phase" },
               //          { field: "burn_rate_per_week", label: "Burn rate/week" },
               //          { field: "cost_burn_percent", label: "Cost burn" },
-              //          { field: "total_budget", label: "Total budget" },
+              { field: "total_billable_amount", label: "Total budget" },
               {
                 field: "custom_percentage_estimated_profit",
                 label: "Profit margin",
@@ -108,8 +108,7 @@ export function ProjectListSubHeader() {
               },
               { field: "project_type", label: "Project type" },
               { field: "customer", label: "Client name" },
-              //          { field: "contract_end_date", label: "Contract end date" },
-
+              //               { field: "contract_end_date", label: "Contract end date" },
               { label: "Last Updated On", field: "modified" },
             ]}
           />
