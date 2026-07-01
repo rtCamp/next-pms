@@ -53,16 +53,10 @@ export const routeConfig: Record<
   project: {
     Component: ReactLazyPreload(() => import("@/pages/projects/list")),
     allowedRoles: ["Projects Manager"],
-    defaultParams: {
-      status: "Open",
-    },
   },
   "project-kanban": {
     Component: ReactLazyPreload(() => import("@/pages/projects/kanban")),
     allowedRoles: ["Projects Manager"],
-    defaultParams: {
-      status: "Open",
-    },
   },
   "timesheet-personal": {
     Component: ReactLazyPreload(() => import("@/pages/timesheet/personal")),
