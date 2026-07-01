@@ -55,11 +55,11 @@ export default function NotificationsCard() {
                     event.shiftKey ||
                     event.button !== 0
                   ) {
-                    void markAsViewed(item.id);
+                    markAsViewed(item.id);
                     return;
                   }
                   event.preventDefault();
-                  void handleClick(item);
+                  handleClick(item);
                 }}
                 className="flex cursor-pointer items-start gap-2"
               >

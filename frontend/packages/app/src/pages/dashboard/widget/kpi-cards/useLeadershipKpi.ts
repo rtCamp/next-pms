@@ -1,7 +1,7 @@
 /**
  * External dependencies.
  */
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import { endOfMonth, format, parse, startOfMonth, subMonths } from "date-fns";
 import { useFrappeGetCall } from "frappe-react-sdk";
 
@@ -11,15 +11,16 @@ import { useFrappeGetCall } from "frappe-react-sdk";
 import { LeadershipKPIResponse } from "./types";
 
 // MonthPicker emits and consumes this format, e.g. "May 2026".
-const MONTH_VALUE_FORMAT = "MMMM yyyy";
+export const MONTH_VALUE_FORMAT = "MMMM yyyy";
 const API_DATE_FORMAT = "yyyy-MM-dd";
 
-const getDefaultMonth = () =>
+export const getDefaultKpiMonth = () =>
   format(startOfMonth(subMonths(new Date(), 1)), MONTH_VALUE_FORMAT);
 
-export function useLeadershipKpi(key: keyof LeadershipKPIResponse["message"]) {
-  const [month, setMonth] = useState(getDefaultMonth);
-
+export function useLeadershipKpi(
+  key: keyof LeadershipKPIResponse["message"],
+  month: string,
+) {
   const args = useMemo(() => {
     const monthDate = parse(month, MONTH_VALUE_FORMAT, new Date());
     const prevMonthDate = subMonths(monthDate, 1);
@@ -36,5 +37,5 @@ export function useLeadershipKpi(key: keyof LeadershipKPIResponse["message"]) {
     args,
   );
 
-  return { month, setMonth, data: data?.message[key], isLoading, error };
+  return { data: data?.message[key], isLoading, error };
 }

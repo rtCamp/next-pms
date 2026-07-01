@@ -20,10 +20,14 @@ const KPI_LABELS: Record<keyof LeadershipKPIResponse["message"], string> = {
 
 export default function LeadershipKpiCard({
   kpikey,
+  month,
+  onMonthChange,
 }: {
   kpikey: keyof LeadershipKPIResponse["message"];
+  month: string;
+  onMonthChange: (month: string) => void;
 }) {
-  const { month, setMonth, data, isLoading } = useLeadershipKpi(kpikey);
+  const { data, isLoading } = useLeadershipKpi(kpikey, month);
 
   if (isLoading) return <KpiCardSkeleton />;
 
@@ -35,7 +39,7 @@ export default function LeadershipKpiCard({
         </span>
         <MonthPicker
           value={month}
-          onChange={setMonth}
+          onChange={onMonthChange}
           inputIcon={SmallDown}
           className="h-auto! w-auto! justify-center! gap-0.5 bg-transparent! p-0! text-sm text-ink-gray-5! hover:bg-transparent!"
         />
