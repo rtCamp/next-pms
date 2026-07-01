@@ -12,12 +12,18 @@ export interface NotificationsContextProps {
     isLoading: boolean;
     /** Number of notifications the user has not yet viewed. */
     unreadCount: number;
+    /** Whether the notification tray panel is open. */
+    isTrayOpen: boolean;
   };
   actions: {
     /** Marks a single notification as viewed. */
     markAsViewed: (id: string) => Promise<void>;
     /** Marks every unread notification as viewed. */
     markAllAsViewed: () => Promise<void>;
+    /** Opens the notification tray. */
+    openTray: () => void;
+    /** Closes the notification tray. */
+    closeTray: () => void;
   };
 }
 
@@ -26,10 +32,13 @@ export const NotificationsContext = createContext<NotificationsContextProps>({
     notifications: [],
     isLoading: false,
     unreadCount: 0,
+    isTrayOpen: false,
   },
   actions: {
     markAsViewed: () => Promise.resolve(),
     markAllAsViewed: () => Promise.resolve(),
+    openTray: () => undefined,
+    closeTray: () => undefined,
   },
 });
 

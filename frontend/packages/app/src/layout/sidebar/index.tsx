@@ -34,12 +34,14 @@ import { useUser } from "@/providers/user";
 
 const Sidebar = () => {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
-  const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const notifications = useNotifications(({ state }) => state.notifications);
+  const isNotificationsOpen = useNotifications(({ state }) => state.isTrayOpen);
   const markAsViewed = useNotifications(({ actions }) => actions.markAsViewed);
   const markAllAsViewed = useNotifications(
     ({ actions }) => actions.markAllAsViewed,
   );
+  const openTray = useNotifications(({ actions }) => actions.openTray);
+  const closeTray = useNotifications(({ actions }) => actions.closeTray);
 
   const { theme, setTheme } = useTheme();
   const navigate = useNavigate();
@@ -268,7 +270,7 @@ const Sidebar = () => {
                 icon: Notifications,
                 to: "",
                 isActive: false,
-                onClick: () => setIsNotificationsOpen(true),
+                onClick: openTray,
               },
               {
                 label: "Search",
@@ -325,7 +327,9 @@ const Sidebar = () => {
 
       <NotificationTray
         open={isNotificationsOpen}
-        onOpenChange={setIsNotificationsOpen}
+        onOpenChange={(open) => {
+          if (!open) closeTray();
+        }}
         notifications={notifications}
         offsetClassName={isSidebarCollapsed ? "left-12" : "left-60"}
         onMarkAllRead={markAllAsViewed}
