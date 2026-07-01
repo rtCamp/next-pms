@@ -2,6 +2,7 @@
  * External Dependencies
  */
 import { useCallback, useEffect, useState } from "react";
+import { TaskStatus, taskStatusMap } from "@next-pms/design-system/components";
 import {
   DatePicker,
   Dialog,
@@ -12,7 +13,7 @@ import {
   TextEditor,
   DurationInput,
 } from "@rtcamp/frappe-ui-react";
-import { Calendar } from "@rtcamp/frappe-ui-react/icons";
+import { Calendar, Folder } from "@rtcamp/frappe-ui-react/icons";
 import { useForm, useStore } from "@tanstack/react-form";
 import { FrappeError, useFrappePostCall } from "frappe-react-sdk";
 
@@ -150,6 +151,10 @@ const AddEmployeeTime = ({
       pageSize: 20,
       query: projectSearch,
       selectedOption: selectedProjectOption,
+      formatOption: (option) => ({
+        ...option,
+        icon: <Folder className="size-4 shrink-0 text-ink-gray-7" />,
+      }),
     });
 
   const { options: taskOptions, isLoading: isTaskLookupLoading } =
@@ -159,6 +164,12 @@ const AddEmployeeTime = ({
       projectId: selectedProject || undefined,
       query: taskSearch,
       selectedOption: selectedTaskOption,
+      formatOption: (option) => ({
+        ...option,
+        icon: (
+          <TaskStatus status={taskStatusMap[option.status ?? ""] ?? "open"} />
+        ),
+      }),
     });
 
   return (

@@ -29,6 +29,8 @@ interface UseProjectLookupOptions {
   revalidateOnFocus?: boolean;
   /** Keeps the current selection visible when it is not in the latest results. */
   selectedOption?: ProjectLookupOption | null;
+  /** Formats the mapped project option */
+  formatOption?: (option: ProjectLookupOption) => ProjectLookupOption;
 }
 
 /**
@@ -41,6 +43,7 @@ export const useProjectLookup = ({
   query,
   revalidateOnFocus,
   selectedOption,
+  formatOption,
 }: UseProjectLookupOptions) => {
   return useRemoteLookup<
     ProjectLookupResult,
@@ -70,6 +73,7 @@ export const useProjectLookup = ({
       value: project.name,
       customer: project.customer,
     }),
+    formatOption,
     selectedOption,
   });
 };

@@ -5,6 +5,7 @@ type TaskLookupItem = {
   project: string;
   project_name: string;
   subject: string;
+  status: string;
 };
 
 type TaskLookupResult = {
@@ -14,6 +15,7 @@ type TaskLookupResult = {
 export type TaskLookupOption = LookupOption & {
   projectId: string;
   projectName: string;
+  status?: string;
 };
 
 interface UseTaskLookupOptions {
@@ -29,6 +31,8 @@ interface UseTaskLookupOptions {
   query: string;
   /** Keeps the current selection visible when it is not in the latest results. */
   selectedOption?: TaskLookupOption | null;
+  /** Formats the mapped task option */
+  formatOption?: (option: TaskLookupOption) => TaskLookupOption;
 }
 
 /**
@@ -41,6 +45,7 @@ export const useTaskLookup = ({
   projectId,
   query,
   selectedOption,
+  formatOption,
 }: UseTaskLookupOptions) => {
   return useRemoteLookup<TaskLookupResult, TaskLookupItem, TaskLookupOption>({
     shouldFetch,
@@ -61,6 +66,7 @@ export const useTaskLookup = ({
       projectId: task.project,
       projectName: task.project_name,
     }),
+    formatOption,
     selectedOption,
   });
 };
