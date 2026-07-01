@@ -12,6 +12,7 @@ export const ROUTES = {
   "allocations-project": "/allocations/project",
   desk: "/desk",
   apps: "/apps",
+  "not-found": "/not-found",
 };
 export const IMPORTED_TASKS_STORAGE_KEY = "next-pms:importedTasks";
 

@@ -1,7 +1,7 @@
 /**
  * External dependencies.
  */
-import { Route, Outlet, Navigate } from "react-router-dom";
+import { Route, Outlet, Navigate, useNavigate } from "react-router-dom";
 /**
  * Internal dependencies.
  */
@@ -19,7 +19,6 @@ const ProjectDetail = ReactLazyPreload(() => import("@/pages/project-details"));
 const NoteEditor = ReactLazyPreload(
   () => import("@/pages/project-details/tabs/notes/editor"),
 );
-const NotFound = ReactLazyPreload(() => import("@/pages/404"));
 /**
  * Lazy load layouts.
  */
@@ -54,10 +53,16 @@ export const routeConfig: Record<
   project: {
     Component: ReactLazyPreload(() => import("@/pages/projects/list")),
     allowedRoles: ["Projects Manager"],
+    defaultParams: {
+      status: "Open",
+    },
   },
   "project-kanban": {
     Component: ReactLazyPreload(() => import("@/pages/projects/kanban")),
     allowedRoles: ["Projects Manager"],
+    defaultParams: {
+      status: "Open",
+    },
   },
   "timesheet-personal": {
     Component: ReactLazyPreload(() => import("@/pages/timesheet/personal")),
@@ -79,6 +84,10 @@ export const routeConfig: Record<
     Component: ReactLazyPreload(() => import("@/pages/allocations/project")),
     allowedRoles: [],
   },
+  "not-found": {
+    Component: ReactLazyPreload(() => import("@/pages/404")),
+    allowedRoles: [],
+  },
 };
 
 export function Router() {
@@ -91,6 +100,7 @@ export function Router() {
   const TimesheetProject = routeConfig["timesheet-project"].Component;
   const AllocationsTeam = routeConfig["allocations-team"].Component;
   const AllocationsProject = routeConfig["allocations-project"].Component;
+  const NotFound = routeConfig["not-found"].Component;
 
   return (
     <Route>
@@ -184,7 +194,8 @@ export function Router() {
           </Route>
         </Route>
       </Route>
-      <Route path="*" element={<NotFound />} />
+      <Route path={ROUTES["not-found"]} element={<NotFound />} />
+      <Route path="*" element={<Navigate to={"/not-found"} replace />} />
     </Route>
   );
 }
@@ -207,6 +218,7 @@ const AuthenticatedRoute = () => {
 };
 
 const RoleProtectedRoute = ({ allowedRoles }: { allowedRoles: Role[] }) => {
+  const navigate = useNavigate();
   const { isLoading, roles } = useUser(({ state }) => ({
     isLoading: state.isLoading,
     roles: state.roles,
@@ -221,5 +233,9 @@ const RoleProtectedRoute = ({ allowedRoles }: { allowedRoles: Role[] }) => {
       ? roles.some((role) => allowedRoles.includes(role))
       : true;
 
-  return hasAccess ? <Outlet /> : <NotFound />;
+  if (!hasAccess) {
+    navigate(ROUTES["not-found"]);
+  }
+
+  return <Outlet />;
 };

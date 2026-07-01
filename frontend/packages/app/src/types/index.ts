@@ -108,4 +108,5 @@ export type RouteConfig = {
   Component: LazyView;
   allowedRoles: Role[];
   layout?: ReactNode;
+  defaultParams?: Record<string, unknown>;
 };
