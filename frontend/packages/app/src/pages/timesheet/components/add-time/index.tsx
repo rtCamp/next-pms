@@ -231,7 +231,12 @@ const AddTime = ({
                   openOnFocus
                   onSearchChange={setProjectSearch}
                   onChange={(val) => {
-                    field.handleChange(val as string);
+                    const nextProject = val as string;
+                    if (nextProject !== field.state.value) {
+                      form.setFieldValue("task", "");
+                      setTaskSearch("");
+                    }
+                    field.handleChange(nextProject);
                   }}
                 />
                 {!field.state.meta.isValid && (
