@@ -110,7 +110,11 @@ export function formatRelativeTimeShort(
 }
 
 export function stripTags(html: string): string {
-  return html.replace(/<[^>]*>/g, "");
+  return html
+    .replace(/&nbsp;/g, " ")
+    .replace(/<[^>]*>/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
 export const preProcessLink = (input: string) => {
