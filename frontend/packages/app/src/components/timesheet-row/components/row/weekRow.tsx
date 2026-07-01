@@ -7,6 +7,7 @@ import { floatToTime, mergeClassNames as cn } from "@next-pms/design-system";
 import {
   WeekRow as BaseWeekRow,
   ApprovalStatusMap,
+  approvalStatusCanSubmitMap,
   totalHoursThemeMap,
 } from "@next-pms/design-system/components";
 import { getTodayDate, prettyDate } from "@next-pms/design-system/date";
@@ -100,6 +101,9 @@ export const WeekRow = ({
       : `· ${approvalPendingCount} pending ${
           approvalPendingCount === 1 ? "approval" : "approvals"
         }`;
+  const approvalStatus = status ? ApprovalStatusMap[status] : "none";
+  const canSubmitForApproval =
+    !isReadOnlyWeek && approvalStatusCanSubmitMap[approvalStatus];
 
   return (
     <Accordion.Root
@@ -121,15 +125,11 @@ export const WeekRow = ({
                 dates={formattedDates}
                 totalHours={floatToTime(weekData.total, 2)}
                 totalHoursTheme={totalHoursThemeMap[weekData.isExtended]}
-                status={status ? ApprovalStatusMap[status] : "none"}
+                status={approvalStatus}
                 badgeLabel={pendingApprovalLabel}
                 collapsed={collapsed}
                 onButtonClick={() =>
-                  !isReadOnlyWeek &&
-                  status &&
-                  ApprovalStatusMap[status] === "not-submitted"
-                    ? onButtonClick?.()
-                    : undefined
+                  canSubmitForApproval ? onButtonClick?.() : undefined
                 }
               />
             </div>
@@ -142,7 +142,7 @@ export const WeekRow = ({
             totalTimeEntries: weekData.totalTimeEntries,
             totalTimeEntriesInHours: weekData.totalTimeEntriesInHours,
             dailyWorkingHours: weekData.dailyWorkingHours,
-            status: status ? ApprovalStatusMap[status] : "none",
+            status: approvalStatus,
           })}
         </Accordion.Panel>
       </Accordion.Item>
