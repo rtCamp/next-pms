@@ -15,6 +15,7 @@ export {
   ApprovalStatusLabelMap,
   ApprovalStatusDisplayLabelMap,
   ApprovalStatusMap,
+  approvalStatusActionLabelMap,
   approvalStatusCanSubmitMap,
   taskStatusMap,
 } from "./rows/constants";
