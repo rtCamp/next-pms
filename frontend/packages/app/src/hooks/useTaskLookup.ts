@@ -65,6 +65,7 @@ export const useTaskLookup = ({
       value: task.name,
       projectId: task.project,
       projectName: task.project_name,
+      status: task.status,
     }),
     formatOption,
     selectedOption,
