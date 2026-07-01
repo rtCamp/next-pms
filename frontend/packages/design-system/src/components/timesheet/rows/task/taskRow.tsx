@@ -84,6 +84,14 @@ export const TaskRow: React.FC<TaskRowProps> = ({
 
   const closePopover = useCallback(() => handle.close(), [handle]);
 
+  const requestClosePinnedPopover = useCallback(() => {
+    requestGuarded(() => {
+      pinnedRef.current = false;
+      setPinned(false);
+      queueMicrotask(() => handle.close());
+    });
+  }, [handle, requestGuarded]);
+
   const handleOpenChange = useCallback(
     (open: boolean, details: Popover.Root.ChangeEventDetails) => {
       const reason = details.reason;
@@ -107,14 +115,14 @@ export const TaskRow: React.FC<TaskRowProps> = ({
           reason === "trigger-press")
       ) {
         details.cancel();
-        requestGuarded(() => queueMicrotask(() => handle.close()));
+        requestClosePinnedPopover();
         return;
       }
 
       pinnedRef.current = false;
       setPinned(false);
     },
-    [handle, requestGuarded],
+    [requestClosePinnedPopover],
   );
 
   return (
@@ -245,7 +253,10 @@ export const TaskRow: React.FC<TaskRowProps> = ({
         {({ payload }) => (
           <Popover.Portal>
             {pinned ? (
-              <Popover.Backdrop className="fixed inset-0 pointer-events-auto!" />
+              <Popover.Backdrop
+                className="fixed inset-0 pointer-events-auto!"
+                onClick={requestClosePinnedPopover}
+              />
             ) : null}
             <Popover.Positioner sideOffset={8} align="end">
               <Popover.Popup className="relative before:absolute before:-left-12 before:-right-12 before:-bottom-12 before:top-0 before:content-['']">
