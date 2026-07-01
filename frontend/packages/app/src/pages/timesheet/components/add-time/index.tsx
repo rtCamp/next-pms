@@ -113,6 +113,7 @@ const AddTime = ({
   );
 
   const selectedProject = useStore(form.store, (state) => state.values.project);
+  const selectedTask = useStore(form.store, (state) => state.values.task);
   const selectedDate = useStore(form.store, (state) => state.values.date);
   const selectedProjectOption = project
     ? {
@@ -120,14 +121,15 @@ const AddTime = ({
         value: project,
       }
     : null;
-  const selectedTaskOption = task
-    ? {
-        label: taskLabel || task,
-        value: task,
-        projectId: project,
-        projectName: projectLabel || project,
-      }
-    : null;
+  const selectedTaskOption =
+    task && selectedTask === task
+      ? {
+          label: taskLabel || task,
+          value: task,
+          projectId: project,
+          projectName: projectLabel || project,
+        }
+      : null;
 
   useEffect(() => {
     if (!open) {
