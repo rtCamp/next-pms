@@ -226,6 +226,9 @@ export function AddUpdateModal({
                 fixedMenu={false}
                 editorClass="px-2 h-24 prose-sm overflow-auto scrollbar-thin bg-white border rounded-md border-outline-gray-2 text-ink-gray-7"
               />
+              {field.state.meta.errors.length > 0 && (
+                <ErrorMessage message={field.state.meta.errors[0]?.message} />
+              )}
             </div>
           )}
         />

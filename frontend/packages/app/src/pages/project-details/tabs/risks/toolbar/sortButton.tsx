@@ -1,13 +1,11 @@
 /**
  * External dependencies.
  */
-import { useSearchParams } from "react-router-dom";
 import { SortButton as SortButtonBase } from "@next-pms/design-system/components";
 
 /**
  * Internal dependencies.
  */
-import { RISK_VIEW_PARAM } from "../constants";
 import { useRisks } from "../context";
 
 const SORT_FIELDS = [
@@ -18,19 +16,13 @@ const SORT_FIELDS = [
 ];
 
 export function SortButton() {
-  const [searchParams] = useSearchParams();
-  const isKanban = searchParams.get(RISK_VIEW_PARAM) === "kanban";
   const sort = useRisks((c) => c.state.sort);
   const setSort = useRisks((c) => c.actions.setSort);
-
-  const sortFields = isKanban
-    ? SORT_FIELDS.filter((f) => f.field !== "status")
-    : SORT_FIELDS;
 
   return (
     <SortButtonBase
       className="text-ink-gray-7 text-base"
-      fields={sortFields}
+      fields={SORT_FIELDS}
       sort={sort}
       onSortChange={setSort}
     />

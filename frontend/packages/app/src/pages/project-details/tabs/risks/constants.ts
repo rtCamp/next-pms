@@ -1,16 +1,3 @@
-/**
- * External dependencies.
- */
-import { Kanban, AlignLeft } from "@rtcamp/frappe-ui-react/icons";
-
-export const RISK_VIEWS = [
-  { key: "list", label: "List view", icon: AlignLeft },
-  { key: "kanban", label: "Kanban view", icon: Kanban },
-] as const;
-
-export type RiskViewKey = (typeof RISK_VIEWS)[number]["key"];
-
-export const RISK_VIEW_PARAM = "view";
 export const RISK_DETAIL_PARAM = "risk";
 
 export const RISK_STATUSES = [

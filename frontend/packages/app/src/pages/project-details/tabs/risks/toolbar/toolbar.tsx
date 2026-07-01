@@ -2,16 +2,14 @@
  * External dependencies.
  */
 import { useMemo } from "react";
-import { useSearchParams } from "react-router-dom";
 import { Filter, Select } from "@rtcamp/frappe-ui-react";
 
 /**
  * Internal dependencies.
  */
-import { RISK_STATUSES, RISK_VIEW_PARAM } from "../constants";
+import { RISK_STATUSES } from "../constants";
 import type { RiskStatus } from "../constants";
 import { useRisks } from "../context";
-import { ColumnsDropdown } from "./columnsDropdown";
 import { SortButton } from "./sortButton";
 
 const RISK_LEVEL_OPTIONS = [
@@ -27,14 +25,9 @@ const STATUS_OPTIONS = [
 ];
 
 export function RisksToolbar() {
-  const [searchParams] = useSearchParams();
-  const isKanban = searchParams.get(RISK_VIEW_PARAM) === "kanban";
-
   const filters = useRisks((c) => c.state.filters);
   const allOwnersWithDetails = useRisks((c) => c.state.allOwnersWithDetails);
-  const visibleColumns = useRisks((c) => c.state.visibleColumns);
   const setFilters = useRisks((c) => c.actions.setFilters);
-  const setVisibleColumns = useRisks((c) => c.actions.setVisibleColumns);
 
   const ownerOptions = useMemo(() => {
     return [
@@ -48,7 +41,6 @@ export function RisksToolbar() {
 
   return (
     <div className="flex flex-wrap items-center justify-between gap-2 mb-3.5">
-      {/* Left: quick filters */}
       <div className="flex flex-wrap gap-2">
         <Select
           size="sm"
@@ -79,14 +71,7 @@ export function RisksToolbar() {
         />
       </div>
 
-      {/* Right: columns, filter, sort */}
       <div className="flex gap-2">
-        {isKanban && (
-          <ColumnsDropdown
-            visibleColumns={visibleColumns}
-            setVisibleColumns={setVisibleColumns}
-          />
-        )}
         <Filter
           align="end"
           value={filters.advanced}
