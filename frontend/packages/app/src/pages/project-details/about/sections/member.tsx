@@ -12,6 +12,7 @@ import { useEmployeeLookup } from "@/hooks/useEmployeeLookup";
 import type { EmployeeLookupOption } from "@/hooks/useEmployeeLookup";
 import { AddMemberModal } from "../components/addMemberModal";
 import { ExpandableList } from "../components/expandableList";
+import { MemberHoverCard } from "../components/memberHoverCard";
 import { MemberRow } from "../components/memberRow";
 import { Section } from "../section";
 import { useSidebar } from "../sidebarContext";
@@ -84,33 +85,48 @@ export function MemberSection() {
   return (
     <>
       <Section value="members" title="Members">
-        <div className="grid grid-cols-[auto_1fr] items-center gap-x-3 gap-y-4.5 text-base text-ink-gray-5 mb-4">
-          <span>Project Manager</span>
-          <Combobox
-            key={projectManager?.email}
-            inputClassName="w-fit h-8 border-transparent bg-white"
-            loading={projectManagerLoading}
-            options={projectManagerComboboxOptions}
-            placeholder="N/A"
-            searchValue={projectManagerQuery}
-            onSearchChange={setProjectManagerQuery}
-            value={projectManager?.email ?? null}
-            onChange={(value) => updateManager("project_manager", value)}
-            openOnFocus
+        <div className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-4.5 mb-4 text-base text-ink-gray-5">
+          <MemberHoverCard
+            member={projectManager}
+            render={
+              <div className="col-span-2 grid grid-cols-subgrid items-center">
+                <span className="text-nowrap">Project Manager</span>
+                <Combobox
+                  key={projectManager?.email}
+                  inputClassName="w-fit h-8 border-transparent bg-white"
+                  loading={projectManagerLoading}
+                  options={projectManagerComboboxOptions}
+                  placeholder="N/A"
+                  searchValue={projectManagerQuery}
+                  onSearchChange={setProjectManagerQuery}
+                  value={projectManager?.email ?? null}
+                  onChange={(value) => updateManager("project_manager", value)}
+                  openOnFocus
+                />
+              </div>
+            }
           />
-
-          <span>Lead Engineer</span>
-          <Combobox
-            key={engineeringManager?.email}
-            inputClassName="w-fit h-8 border-transparent bg-white"
-            loading={engineeringManagerLoading}
-            options={engineeringManagerComboboxOptions}
-            placeholder="N/A"
-            searchValue={engineeringManagerQuery}
-            onSearchChange={setEngineeringManagerQuery}
-            value={engineeringManager?.email ?? null}
-            onChange={(value) => updateManager("engineering_manager", value)}
-            openOnFocus
+          <MemberHoverCard
+            member={engineeringManager}
+            render={
+              <div className="col-span-2 grid grid-cols-subgrid items-center">
+                <span className="text-nowrap">Lead Engineer</span>
+                <Combobox
+                  key={engineeringManager?.email}
+                  inputClassName="w-fit h-8 border-transparent bg-white"
+                  loading={engineeringManagerLoading}
+                  options={engineeringManagerComboboxOptions}
+                  placeholder="N/A"
+                  searchValue={engineeringManagerQuery}
+                  onSearchChange={setEngineeringManagerQuery}
+                  value={engineeringManager?.email ?? null}
+                  onChange={(value) =>
+                    updateManager("engineering_manager", value)
+                  }
+                  openOnFocus
+                />
+              </div>
+            }
           />
         </div>
 
