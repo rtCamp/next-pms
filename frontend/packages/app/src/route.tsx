@@ -1,48 +1,97 @@
 /**
  * External dependencies.
  */
-import { lazy } from "react";
 import { Route, Outlet, Navigate } from "react-router-dom";
 /**
  * Internal dependencies.
  */
 import { ROUTES } from "@/lib/constant";
+import ReactLazyPreload from "@/lib/lazy-preload";
+import type { RouteConfig, RouteKey } from "@/types";
 import LayoutWithSidebar from "./layout";
 import { useUser } from "./providers/user";
 import { Role } from "./types";
 /**
- * Lazy load components.
+ * Lazy load components used outside the route config (parameterized and
+ * catch-all routes).
  */
-const Dashboard = lazy(() => import("@/pages/dashboard"));
-const LeadershipDashboard = lazy(() => import("@/pages/dashboard/leadership"));
-const ManagerDashboard = lazy(() => import("@/pages/dashboard/manager"));
-const ProjectList = lazy(() => import("@/pages/projects/list"));
-const ProjectKanban = lazy(() => import("@/pages/projects/kanban"));
-const ProjectDetail = lazy(() => import("@/pages/project-details"));
-const NoteEditor = lazy(
+const ProjectDetail = ReactLazyPreload(() => import("@/pages/project-details"));
+const NoteEditor = ReactLazyPreload(
   () => import("@/pages/project-details/tabs/notes/editor"),
 );
-const PersonalTimesheetLayout = lazy(
+const NotFound = ReactLazyPreload(() => import("@/pages/404"));
+/**
+ * Lazy load layouts.
+ */
+const PersonalTimesheetLayout = ReactLazyPreload(
   () => import("@/pages/timesheet/personal/layout"),
 );
-const TeamTimesheetLayout = lazy(() => import("@/pages/timesheet/team/layout"));
-const ProjectTimesheetLayout = lazy(
+const TeamTimesheetLayout = ReactLazyPreload(
+  () => import("@/pages/timesheet/team/layout"),
+);
+const ProjectTimesheetLayout = ReactLazyPreload(
   () => import("@/pages/timesheet/project/layout"),
 );
-const TimesheetPersonal = lazy(() => import("@/pages/timesheet/personal"));
-const TimesheetTeam = lazy(() => import("@/pages/timesheet/team"));
-const TimesheetProject = lazy(() => import("./pages/timesheet/project"));
-const AllocationsProject = lazy(() => import("@/pages/allocations/project"));
-const AllocationsTeam = lazy(() => import("@/pages/allocations/team"));
-const AllocationsProjectLayout = lazy(
+const AllocationsProjectLayout = ReactLazyPreload(
   () => import("@/pages/allocations/project/layout"),
 );
-const AllocationsTeamLayout = lazy(
+const AllocationsTeamLayout = ReactLazyPreload(
   () => import("@/pages/allocations/team/layout"),
 );
-const NotFound = lazy(() => import("@/pages/404"));
+
+export const routeConfig: Record<
+  Exclude<RouteKey, "base" | "dashboard" | "desk" | "apps">,
+  RouteConfig
+> = {
+  "dashboard-leadership": {
+    Component: ReactLazyPreload(() => import("@/pages/dashboard/leadership")),
+    allowedRoles: ["System Manager"],
+  },
+  "dashboard-manager": {
+    Component: ReactLazyPreload(() => import("@/pages/dashboard/manager")),
+    allowedRoles: ["Projects Manager"],
+  },
+  project: {
+    Component: ReactLazyPreload(() => import("@/pages/projects/list")),
+    allowedRoles: ["Projects Manager"],
+  },
+  "project-kanban": {
+    Component: ReactLazyPreload(() => import("@/pages/projects/kanban")),
+    allowedRoles: ["Projects Manager"],
+  },
+  "timesheet-personal": {
+    Component: ReactLazyPreload(() => import("@/pages/timesheet/personal")),
+    allowedRoles: [],
+  },
+  "timesheet-team": {
+    Component: ReactLazyPreload(() => import("@/pages/timesheet/team")),
+    allowedRoles: ["Timesheet Manager", "Timesheet User"],
+  },
+  "timesheet-project": {
+    Component: ReactLazyPreload(() => import("./pages/timesheet/project")),
+    allowedRoles: ["Timesheet Manager", "Timesheet User"],
+  },
+  "allocations-team": {
+    Component: ReactLazyPreload(() => import("@/pages/allocations/team")),
+    allowedRoles: [],
+  },
+  "allocations-project": {
+    Component: ReactLazyPreload(() => import("@/pages/allocations/project")),
+    allowedRoles: [],
+  },
+};
 
 export function Router() {
+  const LeadershipDashboard = routeConfig["dashboard-leadership"].Component;
+  const ManagerDashboard = routeConfig["dashboard-manager"].Component;
+  const ProjectList = routeConfig.project.Component;
+  const ProjectKanban = routeConfig["project-kanban"].Component;
+  const TimesheetPersonal = routeConfig["timesheet-personal"].Component;
+  const TimesheetTeam = routeConfig["timesheet-team"].Component;
+  const TimesheetProject = routeConfig["timesheet-project"].Component;
+  const AllocationsTeam = routeConfig["allocations-team"].Component;
+  const AllocationsProject = routeConfig["allocations-project"].Component;
+
   return (
     <Route>
       <Route element={<AuthenticatedRoute />}>
@@ -54,14 +103,9 @@ export function Router() {
           <Route
             element={
               <RoleProtectedRoute
-                allowedRoles={["System Manager", "Projects Manager"]}
+                allowedRoles={routeConfig["dashboard-leadership"].allowedRoles}
               />
             }
-          >
-            <Route path={ROUTES.dashboard} element={<Dashboard />} />
-          </Route>
-          <Route
-            element={<RoleProtectedRoute allowedRoles={["System Manager"]} />}
           >
             <Route
               path={ROUTES["dashboard-leadership"]}
@@ -69,15 +113,38 @@ export function Router() {
             />
           </Route>
           <Route
-            element={<RoleProtectedRoute allowedRoles={["Projects Manager"]} />}
+            element={
+              <RoleProtectedRoute
+                allowedRoles={routeConfig["dashboard-leadership"].allowedRoles}
+              />
+            }
           >
             <Route
               path={ROUTES["dashboard-manager"]}
               element={<ManagerDashboard />}
             />
           </Route>
-          <Route path={ROUTES.project} element={<ProjectList />} />
-          <Route path={ROUTES["project-kanban"]} element={<ProjectKanban />} />
+          <Route
+            element={
+              <RoleProtectedRoute
+                allowedRoles={routeConfig["project"].allowedRoles}
+              />
+            }
+          >
+            <Route path={ROUTES.project} element={<ProjectList />} />
+          </Route>
+          <Route
+            element={
+              <RoleProtectedRoute
+                allowedRoles={routeConfig["project-kanban"].allowedRoles}
+              />
+            }
+          >
+            <Route
+              path={ROUTES["project-kanban"]}
+              element={<ProjectKanban />}
+            />
+          </Route>
           <Route
             path={`${ROUTES.project}/:projectId`}
             element={<ProjectDetail />}
@@ -149,7 +216,10 @@ const RoleProtectedRoute = ({ allowedRoles }: { allowedRoles: Role[] }) => {
     return <></>;
   }
 
-  const hasAccess = roles.some((role) => allowedRoles.includes(role));
+  const hasAccess =
+    roles.length >= 0
+      ? roles.some((role) => allowedRoles.includes(role))
+      : true;
 
   return hasAccess ? <Outlet /> : <NotFound />;
 };
