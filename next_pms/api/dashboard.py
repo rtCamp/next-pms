@@ -10,7 +10,7 @@ from frappe import only_for, whitelist
 from frappe.core.doctype.recorder.recorder import redis_cache
 from frappe.query_builder import DocType
 from frappe.query_builder.functions import Sum
-from frappe.utils import add_days, cint, flt, getdate, today
+from frappe.utils import add_days, cint, flt, get_datetime, getdate, today
 from pypika import Case
 from pypika.functions import Date
 
@@ -795,8 +795,12 @@ def _get_time_utilisation(days: int, role: str | None) -> dict:
         filters={"status": "Active"},
         fields=["designation"],
         pluck="designation",
+        distinct=True,
     )
     summary = {d: {"billable": 0.0, "non_billable": 0.0} for d in sorted(d for d in set(all_designations) if d)}
+
+    start_datetime = get_datetime(start_date)
+    end_datetime = get_datetime(add_days(end_date, 1))
 
     query = (
         frappe.qb.from_(TimesheetDetail)
@@ -809,10 +813,10 @@ def _get_time_utilisation(days: int, role: str | None) -> dict:
             TimesheetDetail.is_billable,
             Sum(TimesheetDetail.hours).as_("hours"),
         )
-        .where(Date(TimesheetDetail.from_time) >= start_date)
-        .where(Date(TimesheetDetail.from_time) <= end_date)
-        .where(Employee.designation.isnotnull())
+        .where(TimesheetDetail.from_time >= start_datetime)
+        .where(TimesheetDetail.from_time < end_datetime)
         .where(Employee.designation != "")
+        .where(Timesheet.custom_approval_status != "Rejected")
     )
 
     if role:
