@@ -4,7 +4,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { TransitionEvent } from "react";
 
-interface UseAnimatedPresenceOptions {
+interface UseCollapsiblePresenceOptions {
   durationMs: number;
   exitBufferMs?: number;
 }
@@ -17,9 +17,9 @@ interface UseAnimatedPresenceOptions {
  * - closing keeps the rows mounted while they animate to zero height.
  * - after the height transition ends, the rows are removed from the DOM.
  */
-export function useAnimatedPresence(
+export function useCollapsiblePresence(
   open: boolean,
-  { durationMs, exitBufferMs = 50 }: UseAnimatedPresenceOptions,
+  { durationMs, exitBufferMs = 50 }: UseCollapsiblePresenceOptions,
 ) {
   const [shouldRender, setShouldRender] = useState(open);
   const [isVisible, setIsVisible] = useState(open);

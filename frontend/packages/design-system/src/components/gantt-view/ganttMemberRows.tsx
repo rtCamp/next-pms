@@ -17,7 +17,7 @@ import { GanttMemberItem } from "./ganttMemberItem";
 import { GanttProjectRow } from "./ganttProjectRow";
 import { GanttRowOverlayCell } from "./ganttRowOverlayCell";
 import { useGanttStore } from "./ganttStore";
-import { useAnimatedPresence } from "./hooks/useAnimatedPresence";
+import { useCollapsiblePresence } from "./hooks/useCollapsiblePresence";
 import { mergeClassNames as cn } from "../../utils";
 
 interface GanttMemberRowsProps {
@@ -53,7 +53,7 @@ export const GanttMemberRows: React.FC<GanttMemberRowsProps> = ({
   }));
 
   const overlayRef = useRef<RowAllocationOverlayHandle | null>(null);
-  const childRowsPresence = useAnimatedPresence(isExpanded, {
+  const childRowsPresence = useCollapsiblePresence(isExpanded, {
     durationMs: 200,
   });
 
