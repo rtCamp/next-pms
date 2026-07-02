@@ -53,11 +53,11 @@ export const routeConfig: Record<
   },
   project: {
     Component: ReactLazyPreload(() => import("@/pages/projects/list")),
-    allowedRoles: ["Projects Manager", "Timesheet Manager"],
+    allowedRoles: ["Projects Manager", "Timesheet Manager", "Projects User"],
   },
   "project-kanban": {
     Component: ReactLazyPreload(() => import("@/pages/projects/kanban")),
-    allowedRoles: ["Projects Manager", "Timesheet Manager"],
+    allowedRoles: ["Projects Manager", "Timesheet Manager", "Projects User"],
   },
   "timesheet-personal": {
     Component: ReactLazyPreload(() => import("@/pages/timesheet/personal")),
@@ -65,7 +65,7 @@ export const routeConfig: Record<
   },
   "timesheet-team": {
     Component: ReactLazyPreload(() => import("@/pages/timesheet/team")),
-    allowedRoles: ["Timesheet Manager", "Timesheet User"],
+    allowedRoles: ["Timesheet Manager", "Timesheet User", "Projects Manager"],
   },
   "timesheet-project": {
     Component: ReactLazyPreload(() => import("./pages/timesheet/project")),
