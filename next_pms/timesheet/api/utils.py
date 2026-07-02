@@ -904,12 +904,14 @@ def paginate_unfiltered_employee_payloads(
 ):
     """Fast path for the no-filters case (has_filters=False and no status/business_unit).
 
-    With no search / approval-status / composite filters, `build_employee_week_details`
-    never prunes a week (that only happens under `has_filters and skip_empty_weeks`, or an
-    approval_status mismatch — both require has_filters), so every employee always
-    qualifies and `builder` never returns None here. That means the page can be fetched
-    directly via SQL LIMIT/OFFSET (and its matching COUNT) instead of walking the entire
-    employee pool in Python just to paginate and count, which is what
+    `build_employee_week_details`'s `should_skip_week` only drops a week when
+    `has_filters and skip_empty_weeks`, or when `approval_status` (the caller's
+    `status_filter`) is truthy. The caller only reaches this function when
+    `has_filters` is False, and `status_filter` is itself one of the terms that make
+    `has_filters` True — so here `status_filter` is guaranteed falsy too, no week is
+    ever dropped, and `builder` never returns None. That means the page can be fetched
+    directly via SQL LIMIT/OFFSET (and its matching COUNT) instead of walking the
+    entire employee pool in Python just to paginate and count, which is what
     `paginate_qualifying_employee_payloads` does for the general case.
     """
     page_employees, total_count = filter_employees(
@@ -918,6 +920,11 @@ def paginate_unfiltered_employee_payloads(
         reports_to=reports_to,
     )
     context = build_chunk_context(page_employees, dates, parsed_filters, search)
-    selected = [payload for payload in (builder(employee, context) for employee in page_employees) if payload]
+    # No `if payload` filter here on purpose: per the invariant above, builder()
+    # cannot return None in this path. If that invariant is ever violated, a
+    # `None` in `selected` will raise loudly when `team.py` unpacks it as
+    # `(employee_name, payload)`, instead of silently truncating the page while
+    # total_count/has_more still reflect the full (unfiltered) count.
+    selected = [builder(employee, context) for employee in page_employees]
     has_more = start + page_length < total_count
     return selected, total_count, has_more

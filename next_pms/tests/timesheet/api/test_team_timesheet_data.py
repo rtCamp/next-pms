@@ -19,7 +19,7 @@ W1_MON = "2026-06-15"
 W1_TUE = "2026-06-16"
 W1_WED = "2026-06-17"
 W1_THU = "2026-06-18"
-W2_TUE = "2026-06-22"
+W2_MON = "2026-06-22"
 
 WRITE_USER = "team.timesheet.write@example.com"
 
@@ -92,8 +92,8 @@ class _TeamTimesheetDataBase(IntegrationTestCase):
 
         # E1: does not report to mgr. Single entry in W2 on task_beta, patched
         # to "Rejected".
-        cls._save(cls.e1, W2_TUE, cls.task_beta, 1, "e1 tue")
-        cls._set_week_status(cls.e1, W2_TUE, cls.project_beta, "Rejected")
+        cls._save(cls.e1, W2_MON, cls.task_beta, 1, "e1 mon")
+        cls._set_week_status(cls.e1, W2_MON, cls.project_beta, "Rejected")
 
         # E2: does not report to mgr, no timesheets at all.
 
@@ -433,7 +433,7 @@ class TestTeamTimesheetDataAllEmployees(_TeamTimesheetDataBase):
         # status and hours — proving reports_to=None doesn't scope the pool.
         e1_data = res["data"][self.e1]
         e1_by_date = {row["date"]: row for row in e1_data["data"]}
-        self.assertEqual(e1_by_date[frappe.utils.getdate(W2_TUE)]["hour"], 1)
+        self.assertEqual(e1_by_date[frappe.utils.getdate(W2_MON)]["hour"], 1)
         self.assertEqual(e1_data["status"], "Rejected")
 
         e2_data = res["data"][self.e2]
