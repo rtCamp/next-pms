@@ -136,6 +136,10 @@ export function ProjectListSubHeader() {
               name: "project_type",
               label: "Project Type",
               type: "select",
+              operators: [
+                { label: "Equals", value: "=" },
+                { label: "Not Equals", value: "!=" },
+              ],
               options: [
                 {
                   label: "Internal",
@@ -155,6 +159,10 @@ export function ProjectListSubHeader() {
               name: "custom_billing_type",
               label: "Billing type",
               type: "select",
+              operators: [
+                { label: "Equals", value: "=" },
+                { label: "Not Equals", value: "!=" },
+              ],
               options: [
                 {
                   label: "Non-Billable",
