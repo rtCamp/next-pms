@@ -14,6 +14,9 @@ from next_pms.timesheet.api.utils import get_holidays
 # endpoint, which goes forward). Anchoring on the Monday of W2 yields
 # exactly [W1, W2] = [2026-06-15..2026-06-21, 2026-06-22..2026-06-28] for
 # max_week=2, which is where all the fixture timesheets below are dated.
+# This assumes a Monday-start week, which setUpClass forces explicitly
+# (System Settings' "first_day_of_the_week" isn't Monday by default on a
+# fresh site — a CI-only failure the previous version of this fixture hit).
 DATE = "2026-06-22"
 W1_MON = "2026-06-15"
 W1_TUE = "2026-06-16"
@@ -54,6 +57,15 @@ class _TeamTimesheetDataBase(IntegrationTestCase):
         cls.company = get_default_company()
         cls.write_user = cls._make_user(WRITE_USER)
         frappe.get_doc("User", cls.write_user).add_roles("Timesheet Manager")
+
+        # Every fixture date above is a literal calendar date chosen assuming a
+        # Monday-start week (build_aggregate_dates walks backward in whole-week
+        # steps from `date`, per next_pms.timesheet.api.utils.get_week_dates ->
+        # frappe.utils.get_first_day_of_week). System Settings' first_day_of_the_week
+        # isn't Monday by default on a fresh site (a CI-only failure a previous
+        # version of this fixture hit, since this dev site has it set to Monday
+        # already) — pin it explicitly so the literal dates above are always correct.
+        frappe.db.set_single_value("System Settings", "first_day_of_the_week", "Monday")
 
         # HRMS's own leave-balance validation (validate_balance_leaves ->
         # get_holiday_list_for_employee(..., raise_exception=True)) requires
@@ -321,7 +333,7 @@ class TestTeamTimesheetDataReportsToScoped(_TeamTimesheetDataBase):
         self.assertFalse(res["has_more"])
         self.assertEqual(len(res["dates"]), 2)
         self.assertEqual(res["dates"][0]["start_date"], frappe.utils.getdate(W1_MON))
-        self.assertEqual(res["dates"][1]["start_date"], frappe.utils.getdate("2026-06-22"))
+        self.assertEqual(res["dates"][1]["start_date"], frappe.utils.getdate(W2_MON))
 
         r1_data = res["data"][self.r1]
         r1_by_date = {row["date"]: row for row in r1_data["data"]}
