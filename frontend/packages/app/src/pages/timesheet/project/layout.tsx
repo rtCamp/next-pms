@@ -11,6 +11,7 @@ import { AddMd, TimeOff } from "@rtcamp/frappe-ui-react/icons";
  * Internal dependencies.
  */
 import { Header } from "@/layout/header";
+import { UnsavedChangesProvider } from "@/pages/allocations/unsavedChanges/UnsavedChangesProvider";
 import { TimesheetBreadcrumbs } from "@/pages/timesheet/components/timesheet-breadcrumbs";
 import type {
   OpenAddTimeDialogOptions,
@@ -51,7 +52,7 @@ function ProjectTimesheetLayout() {
   );
 
   return (
-    <>
+    <UnsavedChangesProvider>
       <Header className="justify-between">
         <TimesheetBreadcrumbs />
 
@@ -101,7 +102,7 @@ function ProjectTimesheetLayout() {
         open={isLeaveDialogOpen}
         onOpenChange={setIsLeaveDialogOpen}
       />
-    </>
+    </UnsavedChangesProvider>
   );
 }
 
