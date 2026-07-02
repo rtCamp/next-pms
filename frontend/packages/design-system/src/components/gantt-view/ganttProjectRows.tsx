@@ -86,6 +86,7 @@ export const GanttProjectRows: React.FC<GanttProjectRowsProps> = ({
             height: CELL_HEIGHT,
             width: headerWidth,
             minWidth: headerWidth,
+            maxWidth: headerWidth,
           }}
         />
         {weeks.map((week, index) => (
@@ -142,34 +143,36 @@ export const GanttProjectRows: React.FC<GanttProjectRowsProps> = ({
           aria-hidden={!isExpanded}
         >
           <th
-            className="sticky left-0 z-25 bg-surface-white border-b border-r border-outline-gray-1 pl-8 pr-3 font-normal text-left align-middle flex items-center gap-2 w-full overflow-hidden transition-[height,background-color] cursor-pointer hover:bg-surface-gray-1"
+            className="sticky left-0 z-25 bg-surface-white border-b border-r border-outline-gray-1 pl-8 pr-3 font-normal text-left align-middle transition-[height,background-color] cursor-pointer hover:bg-surface-gray-1"
             style={{
               width: headerWidth,
               minWidth: headerWidth,
+              maxWidth: headerWidth,
               height: addMemberRowHeight,
               borderBottomWidth: isExpanded ? undefined : 0,
               borderRightWidth: isExpanded ? undefined : 0,
             }}
           >
-            <button
-              type="button"
-              onClick={() =>
-                onAddAllocation?.({
-                  projectId: project.id,
-                  projectName: project.name,
-                  customerName: project.client,
-                })
-              }
-              tabIndex={isExpanded ? undefined : -1}
-              className="w-full flex items-center gap-2 text-base font-medium text-ink-gray-8 overflow-hidden"
+            <div
+              className="overflow-hidden transition-[height] duration-200 ease-in-out"
+              style={{ height: addMemberRowHeight }}
             >
-              {isExpanded ? (
-                <>
-                  <AddMd className="size-4 shrink-0" />
-                  <span className="truncate">Add member</span>
-                </>
-              ) : null}
-            </button>
+              <button
+                type="button"
+                onClick={() =>
+                  onAddAllocation?.({
+                    projectId: project.id,
+                    projectName: project.name,
+                    customerName: project.client,
+                  })
+                }
+                tabIndex={isExpanded ? undefined : -1}
+                className="flex h-full w-full items-center gap-2 overflow-hidden text-base font-medium text-ink-gray-8"
+              >
+                <AddMd className="size-4 shrink-0" />
+                <span className="truncate">Add member</span>
+              </button>
+            </div>
           </th>
           {weeks.map((week, index) => (
             <td
