@@ -1,6 +1,7 @@
 /**
  * Internal dependencies.
  */
+import { Tooltip } from "@rtcamp/frappe-ui-react";
 import {
   eventChipSubtitleVariants,
   eventChipTitleVariants,
@@ -15,12 +16,14 @@ interface EventChipProps {
 }
 
 const EventChip = ({ title, subtitle, color = "blue" }: EventChipProps) => (
-  <div className={eventChipVariants({ color })}>
-    <p className={eventChipTitleVariants({ color })}>{title}</p>
-    {subtitle && (
-      <p className={eventChipSubtitleVariants({ color })}>{subtitle}</p>
-    )}
-  </div>
+  <Tooltip text={title + "-" + subtitle}>
+    <div className={eventChipVariants({ color })}>
+      <p className={eventChipTitleVariants({ color })}>{title}</p>
+      {subtitle && (
+        <p className={eventChipSubtitleVariants({ color })}>{subtitle}</p>
+      )}
+    </div>
+  </Tooltip>
 );
 
 export default EventChip;
