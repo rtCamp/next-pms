@@ -8,6 +8,7 @@ import {
   ListRows,
   ListView,
 } from "@rtcamp/frappe-ui-react";
+import { ArrowDown, ArrowUp } from "@rtcamp/frappe-ui-react/icons";
 
 /**
  * Internal dependencies.
@@ -17,12 +18,25 @@ import { ProjectListCell } from "./cells";
 import { PROJECT_LIST_COLUMNS } from "./columns";
 import { PROJECT_LIST_PAGE_SIZE } from "../constants";
 import { useProjectList } from "./context";
+import { useProjectFilters } from "../hooks/useProjectFilters";
 
 function ProjectList() {
   const data = useProjectList((c) => c.state.data);
   const isLoading = useProjectList((c) => c.state.isLoading);
   const hasMore = useProjectList((c) => c.state.hasMore);
   const loadMore = useProjectList((c) => c.actions.loadMore);
+  const { sort, setSort } = useProjectFilters();
+
+  const handleHeaderClick = (sortField: string) => {
+    if (sort.field === sortField) {
+      setSort({
+        field: sortField,
+        order: sort.order === "asc" ? "desc" : "asc",
+      });
+    } else {
+      setSort({ field: sortField, order: "desc" });
+    }
+  };
 
   return (
     <ListView
@@ -44,8 +58,22 @@ function ProjectList() {
       <ListHeader className="mb-0 rounded-none bg-transparent border-b border-outline-gray-1 p-2 gap-2">
         {PROJECT_LIST_COLUMNS.map((column) => (
           <ListHeaderItem key={column.key} item={column}>
-            <div className="flex h-7 items-center py-1.5">
+            <div
+              className={`flex h-7 items-center gap-1 py-1.5${column.sortField ? " cursor-pointer select-none" : ""}`}
+              onClick={
+                column.sortField
+                  ? () => handleHeaderClick(column.sortField!)
+                  : undefined
+              }
+            >
               <span className="truncate">{column.label}</span>
+              {column.sortField &&
+                sort.field === column.sortField &&
+                (sort.order === "asc" ? (
+                  <ArrowUp className="size-3.5 shrink-0 text-ink-gray-7" />
+                ) : (
+                  <ArrowDown className="size-3.5 shrink-0 text-ink-gray-7" />
+                ))}
             </div>
           </ListHeaderItem>
         ))}
