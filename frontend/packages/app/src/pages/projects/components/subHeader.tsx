@@ -198,7 +198,7 @@ export function ProjectListSubHeader() {
               type: "string",
             },
             {
-              name: "custom_account_manager_name",
+              name: "custom_account_manager_",
               label: "Account Manger",
               type: "string",
             },
