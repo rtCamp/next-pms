@@ -9,14 +9,9 @@ from next_pms.timesheet.api.team import get_team_timesheet_data
 from next_pms.timesheet.api.timesheet import save as save_timesheet
 from next_pms.timesheet.api.utils import get_holidays
 
-# _get_team_timesheet_data derives its date window *backward* from the anchor
-# via build_aggregate_dates (unlike the resource_management team-view
-# endpoint, which goes forward). Anchoring on the Monday of W2 yields
-# exactly [W1, W2] = [2026-06-15..2026-06-21, 2026-06-22..2026-06-28] for
-# max_week=2, which is where all the fixture timesheets below are dated.
-# This assumes a Monday-start week, which setUpClass forces explicitly
-# (System Settings' "first_day_of_the_week" isn't Monday by default on a
-# fresh site — a CI-only failure the previous version of this fixture hit).
+# build_aggregate_dates walks backward from `date`, so anchoring on the
+# Monday of W2 yields exactly [W1, W2] = [06-15..06-21, 06-22..06-28] for
+# max_week=2. Assumes Monday-start weeks; setUpClass pins that explicitly.
 DATE = "2026-06-22"
 W1_MON = "2026-06-15"
 W1_TUE = "2026-06-16"
@@ -44,12 +39,7 @@ E2_NAME = "Ritu Bansal"
 
 
 class _TeamTimesheetDataBase(IntegrationTestCase):
-    """Shared fixtures for characterizing next_pms.timesheet.api.team.get_team_timesheet_data.
-
-    This is a regression net for a perf refactor (see plan_refactor_team_timesheet.md) —
-    it must lock current behavior exactly before any change to
-    `_get_team_timesheet_data` / `paginate_qualifying_employee_payloads`.
-    """
+    """Shared fixtures for get_team_timesheet_data — regression net for the pagination refactor."""
 
     @classmethod
     def setUpClass(cls):
@@ -58,21 +48,13 @@ class _TeamTimesheetDataBase(IntegrationTestCase):
         cls.write_user = cls._make_user(WRITE_USER)
         frappe.get_doc("User", cls.write_user).add_roles("Timesheet Manager")
 
-        # Every fixture date above is a literal calendar date chosen assuming a
-        # Monday-start week (build_aggregate_dates walks backward in whole-week
-        # steps from `date`, per next_pms.timesheet.api.utils.get_week_dates ->
-        # frappe.utils.get_first_day_of_week). System Settings' first_day_of_the_week
-        # isn't Monday by default on a fresh site (a CI-only failure a previous
-        # version of this fixture hit, since this dev site has it set to Monday
-        # already) — pin it explicitly so the literal dates above are always correct.
-        frappe.db.set_single_value("System Settings", "first_day_of_the_week", "Monday")
+        # Week start is read via frappe.db.get_default, not System Settings
+        # directly (frappe.db.set_single_value wouldn't take effect here).
+        frappe.db.set_default("first_day_of_the_week", "Monday")
 
-        # HRMS's own leave-balance validation (validate_balance_leaves ->
-        # get_holiday_list_for_employee(..., raise_exception=True)) requires
-        # *some* holiday list to be resolvable for every employee/company —
-        # via an employee-level assignment, or falling back to a company-level
-        # one. A fresh site (e.g. CI) may have neither, so guarantee a
-        # company-level fallback here rather than relying on ambient data.
+        # HRMS's leave-balance validation needs a holiday list resolvable for
+        # every employee (employee-level or company fallback); a fresh site
+        # has neither, so don't rely on ambient data.
         cls._ensure_company_holiday_list_assignment()
 
         cls.customer = cls._make_customer(CUSTOMER_NAME)
@@ -90,39 +72,34 @@ class _TeamTimesheetDataBase(IntegrationTestCase):
 
         frappe.set_user("Administrator")
 
-        # R1: two entries in W1, no entries in W2. Default "Not Submitted" status
-        # (uniform across both of R1's timesheets, so no ambiguity in weekly status).
+        # R1: two entries in W1, no entries in W2, default "Not Submitted" status.
         cls._save(cls.r1, W1_MON, cls.task_alpha, 2, "r1 mon")
         cls._save(cls.r1, W1_TUE, cls.task_alpha, 3, "r1 tue")
 
-        # R2: single entry in W1, patched to "Approved" for the whole week.
+        # R2: single entry in W1, patched to "Approved".
         cls._save(cls.r2, W1_TUE, cls.task_alpha, 4, "r2 tue")
         cls._set_week_status(cls.r2, W1_TUE, cls.project_alpha, "Approved")
 
-        # R3: no timesheets at all — exercises the "no data but still qualifies
-        # under no filters" invariant, plus a holiday override with no timesheet.
+        # R3: no timesheets — should still qualify with no filters, plus a holiday override.
 
-        # E1: does not report to mgr. Single entry in W2 on task_beta, patched
-        # to "Rejected".
+        # E1: does not report to mgr, single entry in W2, patched to "Rejected".
         cls._save(cls.e1, W2_MON, cls.task_beta, 1, "e1 mon")
         cls._set_week_status(cls.e1, W2_MON, cls.project_beta, "Rejected")
 
-        # E2: does not report to mgr, no timesheets at all.
+        # E2: does not report to mgr, no timesheets.
 
-        # Leave for R1 on W1_WED (LWP so no Leave Allocation/balance is needed).
+        # LWP leave for R1 (LWP skips the leave-balance/allocation check).
         cls.leave_type = cls._make_lwp_leave_type(LEAVE_TYPE_NAME)
         cls._make_leave_application(cls.r1, cls.leave_type, W1_WED)
 
-        # Holiday for R3 on W1_THU, non-weekly-off (hour override branch).
+        # Non-weekly-off holiday for R3.
         holiday_list = make_holiday_list(
             HOLIDAY_LIST_NAME,
             from_date="2026-01-01",
             to_date="2026-12-31",
             holiday_dates=[{"holiday_date": W1_THU, "description": "Test Holiday", "weekly_off": 0}],
         )
-        # HRMS overrides holiday-list resolution (hooks.py employee_holiday_list) to use
-        # a submitted "Holiday List Assignment" doc rather than Employee.holiday_list —
-        # the plain field is ignored, so a direct frappe.db.set_value has no effect.
+        # Employee.holiday_list is ignored; HRMS resolves via Holiday List Assignment.
         cls._assign_holiday_list(cls.r3, holiday_list.name)
 
         cls.default_daily_hours = frappe.db.get_single_value("HR Settings", "standard_working_hours") or 8
@@ -158,12 +135,10 @@ class _TeamTimesheetDataBase(IntegrationTestCase):
                 "date_of_joining": "2013-01-01",
                 "status": "Active",
                 "employment_type": "Intern",
-                # The rtcamp Employee doc-event derives leave_approver from reports_to
-                # when left blank and errors on a None reports_to; set it up front.
+                # rtcamp's Employee hook needs this set when reports_to is None.
                 "leave_approver": "Administrator",
                 "reports_to": reports_to,
-                # project_currency's Timesheet override requires a costing rate,
-                # which requires a salary currency on the employee.
+                # Needed for project_currency's Timesheet costing-rate check.
                 "ctc": 100000,
                 "salary_currency": frappe.get_cached_value("Company", cls.company, "default_currency"),
             }
@@ -255,10 +230,7 @@ class _TeamTimesheetDataBase(IntegrationTestCase):
 
     @classmethod
     def _ensure_company_holiday_list_assignment(cls):
-        # Guarded (not per-class-unique like the employee fixtures below): all
-        # three test classes in this module share the same company, and a
-        # duplicate (assigned_to, from_date) assignment is a hard validation
-        # error, so this must be idempotent across setUpClass calls.
+        # Shared company across all 3 classes; guard against duplicate-assignment errors.
         if frappe.db.exists(
             "Holiday List Assignment",
             {"assigned_to": cls.company, "from_date": "2026-01-01", "docstatus": 1},
@@ -317,13 +289,7 @@ class _TeamTimesheetDataBase(IntegrationTestCase):
 
 
 class TestTeamTimesheetDataReportsToScoped(_TeamTimesheetDataBase):
-    """reports_to=<manager>, no filters — the already-fast path.
-
-    Fully controlled pool ({mgr's direct reports}), so this locks the exact
-    per-employee payload shape (daily hours, leave/holiday overrides, notes,
-    timesheet_details weeks/tasks) that the refactor's "fast path" must
-    reproduce byte-for-byte.
-    """
+    """reports_to=<manager>, no filters — locks the full per-employee payload shape."""
 
     def test_reports_to_scoped_full_payload(self):
         res = self._call(reports_to=self.mgr, max_week=2)
@@ -346,11 +312,7 @@ class TestTeamTimesheetDataReportsToScoped(_TeamTimesheetDataBase):
         self.assertEqual(r1_by_date[frappe.utils.getdate(W1_THU)]["hour"], 0)
         self.assertEqual(len(r1_data["leaves"]), 1)
         self.assertEqual(r1_data["leaves"][0]["from_date"], frappe.utils.getdate(W1_WED))
-        # R1 has no employee-specific Holiday List Assignment, so it inherits
-        # whatever the company-level default resolves to on this DB — computed
-        # independently here rather than hardcoded, since it's ambient site data.
-        # (get_holidays doesn't select "parent"; the production code path does,
-        # so compare on the fields the two queries share.)
+        # R1 has no explicit holiday list; compare against the live company default.
         expected_r1_holidays = get_holidays(self.r1, res["dates"][0]["start_date"], res["dates"][-1]["end_date"])
         actual_r1_holidays = [
             {k: holiday[k] for k in ("holiday_date", "description", "weekly_off")} for holiday in r1_data["holidays"]
@@ -380,24 +342,18 @@ class TestTeamTimesheetDataReportsToScoped(_TeamTimesheetDataBase):
         self.assertEqual(len(r3_data["holidays"]), 1)
         self.assertEqual(r3_data["leaves"], [])
         self.assertEqual(r3_data["status"], "Not Submitted")
-        # No timesheets at all, but with no filters every week still qualifies.
+        # No timesheets, but every week still qualifies with no filters.
         self.assertEqual(len(r3_data["timesheet_details"]), 2)
         self.assertEqual(r3_data["timesheet_details"][week1_key]["tasks"], {})
 
     def test_reports_to_ordering_matches_employee_name_asc(self):
         res = self._call(reports_to=self.mgr)
-        # Alphabetical by employee_name: "Arjun Malhotra" (r3), "Naveen Bhatt" (r1),
-        # "Sanya Kapoor" (r2) — not creation order.
+        # Alphabetical by employee_name (r3, r1, r2), not creation order.
         self.assertEqual(list(res["data"].keys()), [self.r3, self.r1, self.r2])
 
 
 class TestTeamTimesheetDataAllEmployees(_TeamTimesheetDataBase):
-    """reports_to=None ("All") — the slow path this refactor targets.
-
-    total_count is computed independently (a direct Employee count with the
-    same status filter `filter_employees` applies) rather than hardcoded, so
-    the test is robust to the ambient employee pool on a shared/live test DB.
-    """
+    """reports_to=None ("All") — the pagination path this refactor targets."""
 
     def _golden_total_count(self):
         return frappe.db.count("Employee", {"status": "Active"})
@@ -420,9 +376,8 @@ class TestTeamTimesheetDataAllEmployees(_TeamTimesheetDataBase):
     def test_all_fixtures_present_with_correct_content(self):
         total_count = self._golden_total_count()
 
-        # page_length=total_count fetches every active employee in one call,
-        # so fixture presence/content can be checked without depending on
-        # where they happen to land alphabetically among the ambient pool.
+        # Fetch every active employee in one call, so fixture presence/content
+        # can be checked without depending on ambient sort position.
         res = self._call(reports_to=None, page_length=total_count, start=0)
         self.assertEqual(res["total_count"], total_count)
         self.assertFalse(res["has_more"])
@@ -431,18 +386,11 @@ class TestTeamTimesheetDataAllEmployees(_TeamTimesheetDataBase):
         for employee in (self.mgr, self.r1, self.r2, self.r3, self.e1, self.e2):
             self.assertIn(employee, res["data"])
 
-        # Note: global ordering across the *entire* result set is not asserted
-        # here. This DB has genuine duplicate employee_name values (e.g.
-        # several employees all named "Aarav Sharma"), and the current
-        # implementation paginates internally in chunks of 50 via repeated
-        # LIMIT/OFFSET queries — MySQL does not guarantee a stable tie-break
-        # for equal employee_name values across separate queries, so the
-        # relative order of same-named employees can legitimately differ
-        # across chunk boundaries. `test_pagination_mechanics_and_no_overlap`
-        # covers the real guarantee: each single page is name-sorted.
+        # Global ordering isn't asserted: duplicate employee_name values in this
+        # DB make cross-chunk tie order non-deterministic. See
+        # test_pagination_mechanics_and_no_overlap for the real guarantee.
 
-        # E1 (not a report of mgr) still appears under "All" with its own
-        # status and hours — proving reports_to=None doesn't scope the pool.
+        # E1 doesn't report to mgr, so this also proves "All" isn't scoped.
         e1_data = res["data"][self.e1]
         e1_by_date = {row["date"]: row for row in e1_data["data"]}
         self.assertEqual(e1_by_date[frappe.utils.getdate(W2_MON)]["hour"], 1)
@@ -461,13 +409,7 @@ class TestTeamTimesheetDataAllEmployees(_TeamTimesheetDataBase):
 
 
 class TestTeamTimesheetDataFilters(_TeamTimesheetDataBase):
-    """search / approval_status / composite `filters` — the has_filters=True path.
-
-    Unlike the "All" pool, these are deterministic regardless of ambient DB
-    state: candidate selection is driven by which employees have a matching
-    Timesheet Detail row, and our fixture project/task names are unique, so
-    no pre-existing data can match them.
-    """
+    """search / approval_status / composite `filters` — the has_filters=True path."""
 
     def test_search_scoped_to_reports_to(self):
         res = self._call(reports_to=self.mgr, search=TASK_ALPHA_SUBJECT)
@@ -502,9 +444,7 @@ class TestTeamTimesheetDataFilters(_TeamTimesheetDataBase):
         self.assertEqual(res["total_count"], 1)
 
     def test_composite_filter_combined_with_reports_to_short_circuits_empty(self):
-        # project_beta timesheets belong only to E1, who does not report to mgr —
-        # candidate_employee_ids narrows to E1, but the reports_to existence
-        # check then finds 0, so the whole call short-circuits to empty.
+        # project_beta only has E1's timesheets, and E1 doesn't report to mgr.
         res = self._call(
             reports_to=self.mgr,
             filters=json.dumps([["Task", "project", "=", self.project_beta]]),
