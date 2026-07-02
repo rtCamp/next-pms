@@ -149,6 +149,25 @@ const Sidebar = () => {
     projectItems.push(projects);
   }
 
+  const notificationsOption = {
+    label: "Notifications",
+    icon: Notifications,
+    to: "",
+    isActive: false,
+    onClick: () => setIsNotificationsOpen(true),
+  };
+
+  const notificationItems = [];
+
+  if (
+    roles.includes("Delivery Manager") ||
+    roles.includes("Delivery User") ||
+    roles.includes("Projects User") ||
+    roles.includes("Projects Manager")
+  ) {
+    notificationItems.push(notificationsOption);
+  }
+
   const teamAllocation = {
     label: "Team",
     icon: People,
@@ -267,19 +286,13 @@ const Sidebar = () => {
             label: "",
             items: [
               {
-                label: "Notifications",
-                icon: Notifications,
-                to: "",
-                isActive: false,
-                onClick: () => setIsNotificationsOpen(true),
-              },
-              {
                 label: "Search",
                 icon: SearchAlt,
                 to: "",
                 isActive: false,
                 onClick: () => setIsSearchOpen(true),
               },
+              ...notificationItems,
               ...projectItems,
             ],
           },
@@ -326,19 +339,24 @@ const Sidebar = () => {
         items={searchItems}
       />
 
-      <NotificationTray
-        open={isNotificationsOpen}
-        onOpenChange={setIsNotificationsOpen}
-        notifications={notifications}
-        offsetClassName={isSidebarCollapsed ? "left-12" : "left-60"}
-        onMarkAllRead={markAllAsViewed}
-        onNotificationClick={async (notification) => {
-          await markAsViewed(notification.id);
-          if (notification.href) {
-            window.location.assign(notification.href);
-          }
-        }}
-      />
+      {roles.includes("Delivery Manager") ||
+        roles.includes("Delivery User") ||
+        roles.includes("Projects User") ||
+        (roles.includes("Projects Manager") && (
+          <NotificationTray
+            open={isNotificationsOpen}
+            onOpenChange={setIsNotificationsOpen}
+            notifications={notifications}
+            offsetClassName={isSidebarCollapsed ? "left-12" : "left-60"}
+            onMarkAllRead={markAllAsViewed}
+            onNotificationClick={async (notification) => {
+              await markAsViewed(notification.id);
+              if (notification.href) {
+                window.location.assign(notification.href);
+              }
+            }}
+          />
+        ))}
     </ErrorFallback>
   );
 };
