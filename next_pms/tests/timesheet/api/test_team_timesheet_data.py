@@ -30,6 +30,7 @@ TASK_ALPHA_SUBJECT = "Implement login page"
 TASK_BETA_SUBJECT = "Setup push notifications"
 LEAVE_TYPE_NAME = "Unpaid Leave"
 HOLIDAY_LIST_NAME = "Regional Holidays"
+COMPANY_HOLIDAY_LIST_NAME = "Company Wide Holidays"
 
 MANAGER_NAME = "Devika Rao"
 R1_NAME = "Naveen Bhatt"
@@ -53,6 +54,14 @@ class _TeamTimesheetDataBase(IntegrationTestCase):
         cls.company = get_default_company()
         cls.write_user = cls._make_user(WRITE_USER)
         frappe.get_doc("User", cls.write_user).add_roles("Timesheet Manager")
+
+        # HRMS's own leave-balance validation (validate_balance_leaves ->
+        # get_holiday_list_for_employee(..., raise_exception=True)) requires
+        # *some* holiday list to be resolvable for every employee/company —
+        # via an employee-level assignment, or falling back to a company-level
+        # one. A fresh site (e.g. CI) may have neither, so guarantee a
+        # company-level fallback here rather than relying on ambient data.
+        cls._ensure_company_holiday_list_assignment()
 
         cls.customer = cls._make_customer(CUSTOMER_NAME)
         cls.project_alpha = cls._make_project(PROJECT_ALPHA_NAME, cls.customer)
@@ -228,6 +237,30 @@ class _TeamTimesheetDataBase(IntegrationTestCase):
                 "applicable_for": "Employee",
                 "assigned_to": employee,
                 "holiday_list": holiday_list_name,
+                "from_date": "2026-01-01",
+            }
+        ).insert(ignore_permissions=True).submit()
+
+    @classmethod
+    def _ensure_company_holiday_list_assignment(cls):
+        # Guarded (not per-class-unique like the employee fixtures below): all
+        # three test classes in this module share the same company, and a
+        # duplicate (assigned_to, from_date) assignment is a hard validation
+        # error, so this must be idempotent across setUpClass calls.
+        if frappe.db.exists(
+            "Holiday List Assignment",
+            {"assigned_to": cls.company, "from_date": "2026-01-01", "docstatus": 1},
+        ):
+            return
+        holiday_list = make_holiday_list(
+            COMPANY_HOLIDAY_LIST_NAME, from_date="2026-01-01", to_date="2026-12-31", holiday_dates=[]
+        )
+        frappe.get_doc(
+            {
+                "doctype": "Holiday List Assignment",
+                "applicable_for": "Company",
+                "assigned_to": cls.company,
+                "holiday_list": holiday_list.name,
                 "from_date": "2026-01-01",
             }
         ).insert(ignore_permissions=True).submit()
