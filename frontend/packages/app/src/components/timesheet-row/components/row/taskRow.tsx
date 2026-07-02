@@ -16,6 +16,7 @@ import { useFrappePostCall } from "frappe-react-sdk";
  */
 import TaskPopover from "@/components/taskPopover";
 import { calculateTotalHours, parseFrappeErrorMsg } from "@/lib/utils";
+import { useGuardedAction } from "@/pages/allocations/unsavedChanges/useUnsavedChanges";
 import { usePersonalTimesheet } from "@/pages/timesheet/personal/context";
 import type { TaskDataItemProps } from "@/types/timesheet";
 import type { TaskRowProps } from "./types";
@@ -58,6 +59,7 @@ export const TaskRow = ({
     "frappe.desk.like.toggle_like",
   );
   const toast = useToasts();
+  const requestGuarded = useGuardedAction();
 
   const taskData = useMemo(() => {
     let total = 0;
@@ -151,8 +153,15 @@ export const TaskRow = ({
       onLabelClick={onLabelClick}
       onStarClick={handleStar}
       hideStarButton={hideLikeButton}
-      renderInlineTimeEntryPopover={(_, dayIndex, closePopover) => (
+      requestGuarded={requestGuarded}
+      renderInlineTimeEntryPopover={(
+        _,
+        dayIndex,
+        closePopover,
+        reportEngaged,
+      ) => (
         <InlineTimeEntry
+          key={`${taskKey}-${dates[dayIndex]}`}
           tasks={taskData.tasksForDates[dayIndex]}
           dailyWorkingHours={dailyWorkingHours}
           totalUsedHoursInDay={totalTimeEntriesInHours?.[dayIndex]}
@@ -162,6 +171,7 @@ export const TaskRow = ({
           taskKey={taskKey}
           employee={employee ?? ""}
           onSubmitSuccess={closePopover}
+          onEngagedChange={reportEngaged}
         />
       )}
     />

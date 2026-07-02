@@ -388,6 +388,9 @@ def filter_project_list(
 
     conditions = []
 
+    # Closed projects (Completed / Cancelled) are excluded from the resource view.
+    conditions.append(["status", "not in", ["Completed", "Cancelled"]])
+
     if ids:
         conditions.append(["name", "in", ids])
 

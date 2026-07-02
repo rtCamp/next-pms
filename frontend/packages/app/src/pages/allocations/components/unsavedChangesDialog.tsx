@@ -22,18 +22,20 @@ export function UnsavedChangesDialog({
     <Dialog
       open={open}
       onOpenChange={onOpenChange}
-      className="my-0"
+      className="my-0 max-w-120"
       classNames={{
-        header: "mb-5",
+        header: "mb-4",
         content: "pt-5 pb-2",
         viewport: "justify-start pt-30",
         footer: "pb-6",
       }}
       options={{
-        title: () => <span className="text-lg font-medium">Save Changes</span>,
+        title: () => (
+          <span className="text-[20px] font-semibold">Save Changes</span>
+        ),
       }}
       actions={
-        <div className="flex items-center justify-end w-full gap-2 -mt-5">
+        <div className="flex items-center justify-end w-full gap-2">
           <Button
             variant="ghost"
             label="Discard Changes"
@@ -52,7 +54,7 @@ export function UnsavedChangesDialog({
         </div>
       }
     >
-      <div className="-mt-2">
+      <div>
         <p className="text-base text-ink-gray-6">
           You have unsaved changes. Would you like to save them before leaving?
         </p>

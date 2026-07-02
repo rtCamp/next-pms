@@ -38,7 +38,6 @@ export const RAG_OPTIONS = [
   { label: "Red", value: "red" },
   { label: "Amber", value: "amber" },
   { label: "Green", value: "green" },
-  { label: "All", value: "" },
 ];
 
 export const STATUS_OPTIONS = [

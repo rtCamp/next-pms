@@ -1,6 +1,7 @@
 /**
  * External dependencies
  */
+import { mergeClassNames as cn } from "@next-pms/design-system";
 import {
   Button,
   ErrorMessage,
@@ -38,6 +39,7 @@ export const TimeEntryForm = ({
   editBaseline = null,
   onSave,
   onCommentKeyDown,
+  onCommentPointerDown,
   children,
 }: TimeEntryFormProps) => {
   return (
@@ -71,6 +73,7 @@ export const TimeEntryForm = ({
               <div
                 className="relative w-full"
                 onKeyDownCapture={(e) => onCommentKeyDown(e)}
+                onPointerDownCapture={onCommentPointerDown}
               >
                 <TextEditor
                   editable={!submitting}
@@ -78,10 +81,15 @@ export const TimeEntryForm = ({
                   onChange={(value) => field.handleChange(value)}
                   fixedMenu={false}
                   placeholder="Comment"
-                  editorClass="px-2 h-24 prose-sm overflow-scroll scrollbar-thin bg-white border rounded-md border-outline-gray-2 text-ink-gray-7 text-base leading-5.25"
+                  editorClass={cn(
+                    "px-2 h-24 min-h-24 max-h-60 resize prose-sm overflow-auto scrollbar-thin",
+                    "bg-surface-white border rounded-md border-outline-gray-2 text-ink-gray-7 text-base leading-5.25",
+                    "box-border w-full min-w-64 max-w-[min(680px,calc(90vw-2rem))]",
+                    "contain-[inline-size] wrap-anywhere **:max-w-full **:wrap-anywhere",
+                  )}
                 />
                 {field.state.value === "" ? (
-                  <span className="absolute text-sm align-middle right-2 bottom-1 text-ink-gray-4">
+                  <span className="absolute text-[12px] align-middle right-2 bottom-1 text-ink-gray-4">
                     ⌘+↵
                   </span>
                 ) : null}

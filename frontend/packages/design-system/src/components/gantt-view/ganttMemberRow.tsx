@@ -13,6 +13,7 @@ import {
   type RowAllocationOverlayHandle,
 } from "./gantt-bar/rowAllocationOverlay";
 import { GanttMemberItem } from "./ganttMemberItem";
+import { GanttRowOverlayCell } from "./ganttRowOverlayCell";
 import { useGanttStore } from "./ganttStore";
 import type { ProjectGroup, ProjectMember } from "./ganttStore";
 import { mergeClassNames as cn } from "../../utils";
@@ -47,7 +48,7 @@ export const GanttMemberRow: React.FC<GanttMemberRowProps> = ({
 
   return (
     <tr
-      className={cn("relative touch-pan-y", {
+      className={cn("touch-pan-y", {
         "pointer-events-none": !isExpanded,
       })}
       aria-hidden={!isExpanded}
@@ -80,7 +81,7 @@ export const GanttMemberRow: React.FC<GanttMemberRowProps> = ({
           style={{ height: animatedRowHeight }}
         />
       ))}
-      <td className="p-0 border-0 w-0 min-w-0 max-w-0" style={{ width: 0 }}>
+      <GanttRowOverlayCell height={animatedRowHeight}>
         {isExpanded &&
           member.allocations?.map((allocation, allocationIndex) => (
             // TODO: Restore project allocation capacity labels when this view consumes backend-computed employee capacity summaries.
@@ -112,7 +113,7 @@ export const GanttMemberRow: React.FC<GanttMemberRowProps> = ({
           })}
           onOpenAllocation={onAddAllocation}
         />
-      </td>
+      </GanttRowOverlayCell>
     </tr>
   );
 };
