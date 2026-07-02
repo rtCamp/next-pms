@@ -2,6 +2,7 @@
  * External Dependencies
  */
 import { useCallback, useEffect, useState } from "react";
+import { TaskStatus, taskStatusMap } from "@next-pms/design-system/components";
 import {
   DatePicker,
   Dialog,
@@ -12,7 +13,7 @@ import {
   TextEditor,
   DurationInput,
 } from "@rtcamp/frappe-ui-react";
-import { Calendar } from "@rtcamp/frappe-ui-react/icons";
+import { Calendar, Folder } from "@rtcamp/frappe-ui-react/icons";
 import { useForm, useStore } from "@tanstack/react-form";
 import { FrappeError, useFrappePostCall } from "frappe-react-sdk";
 
@@ -100,6 +101,7 @@ const AddEmployeeTime = ({
   );
 
   const selectedProject = useStore(form.store, (state) => state.values.project);
+  const selectedTask = useStore(form.store, (state) => state.values.task);
   const selectedProjectOption = project
     ? {
         label: projectLabel || project,
@@ -112,14 +114,15 @@ const AddEmployeeTime = ({
         value: employeeId,
       }
     : null;
-  const selectedTaskOption = task
-    ? {
-        label: taskLabel || task,
-        value: task,
-        projectId: project,
-        projectName: projectLabel || project,
-      }
-    : null;
+  const selectedTaskOption =
+    task && selectedTask === task
+      ? {
+          label: taskLabel || task,
+          value: task,
+          projectId: project,
+          projectName: projectLabel || project,
+        }
+      : null;
 
   useEffect(() => {
     if (!open) {
@@ -150,6 +153,10 @@ const AddEmployeeTime = ({
       pageSize: 20,
       query: projectSearch,
       selectedOption: selectedProjectOption,
+      formatOption: (option) => ({
+        ...option,
+        icon: <Folder className="size-4 shrink-0 text-ink-gray-7" />,
+      }),
     });
 
   const { options: taskOptions, isLoading: isTaskLookupLoading } =
@@ -159,6 +166,12 @@ const AddEmployeeTime = ({
       projectId: selectedProject || undefined,
       query: taskSearch,
       selectedOption: selectedTaskOption,
+      formatOption: (option) => ({
+        ...option,
+        icon: (
+          <TaskStatus status={taskStatusMap[option.status ?? ""] ?? "open"} />
+        ),
+      }),
     });
 
   return (
@@ -233,7 +246,12 @@ const AddEmployeeTime = ({
                   openOnFocus
                   onSearchChange={setProjectSearch}
                   onChange={(val) => {
-                    field.handleChange(val as string);
+                    const nextProject = val as string;
+                    if (nextProject !== field.state.value) {
+                      form.setFieldValue("task", "");
+                      setTaskSearch("");
+                    }
+                    field.handleChange(nextProject);
                   }}
                 />
                 {!field.state.meta.isValid && (
