@@ -39,7 +39,7 @@ export function ProjectListSubHeader() {
 
   useEffect(() => {
     if (debouncedSearch !== search) setSearch(debouncedSearch);
-  }, [debouncedSearch]);
+  }, [debouncedSearch, search, setSearch]);
 
   useEffect(() => {
     setSearchInput(search);
@@ -48,13 +48,15 @@ export function ProjectListSubHeader() {
   return (
     <div className="flex flex-wrap gap-2 justify-between px-5 py-3.5">
       <div className="flex gap-2">
-        <TextInput
-          className="w-full text-ink-gray-7"
-          size="sm"
-          placeholder="Search project"
-          value={searchInput}
-          onChange={(e) => setSearchInput(e.target.value)}
-        />
+        <div className="w-44 shrink-0">
+          <TextInput
+            className="w-full text-ink-gray-7"
+            size="sm"
+            placeholder="Search project"
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
+          />
+        </div>
         <div className="w-44 shrink-0">
           <MultiSelect
             placeholder="RAG Status"
