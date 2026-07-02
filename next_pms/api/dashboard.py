@@ -608,7 +608,7 @@ def get_leadership_kpis(
     return get_cached_leadership_kpis(cur_start, cur_end, prev_start, prev_end, client, project)
 
 
-@redis_cache()
+@redis_cache(ttl=21600)
 def get_cached_leadership_kpis(cur_start, cur_end, prev_start, prev_end, client, project) -> dict:
     cur_revenue, prev_revenue = get_revenue(cur_start, cur_end, prev_start, prev_end, client, project)
     cur_cost, prev_cost = get_cost(cur_start, cur_end, prev_start, prev_end, client, project)
