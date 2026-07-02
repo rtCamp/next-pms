@@ -127,7 +127,7 @@ const Sidebar = () => {
 
   const timesheetItems: SidebarSectionType["items"] = [personalTimesheet];
 
-  if (roles.includes("Timesheet Manager") && roles.includes("Timesheet User")) {
+  if (roles.includes("Timesheet Manager") || roles.includes("Timesheet User")) {
     timesheetItems.push(teamTimesheet);
     timesheetItems.push(projectTimesheet);
   }
@@ -142,7 +142,10 @@ const Sidebar = () => {
 
   const projectItems: SidebarSectionType["items"] = [];
 
-  if (roles.includes("Projects Manager")) {
+  if (
+    roles.includes("Projects Manager") ||
+    roles.includes("Timesheet Manager")
+  ) {
     projectItems.push(projects);
   }
 

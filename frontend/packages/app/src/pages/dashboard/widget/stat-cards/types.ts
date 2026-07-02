@@ -26,3 +26,33 @@ export interface MembersWithoutAllocationResponse {
     members: MemberAllocationGap[];
   };
 }
+
+export interface TimesheetToReview {
+  name: string;
+  employee: string;
+  employee_name: string;
+  start_date: string;
+  end_date: string;
+  custom_approval_status: string;
+}
+
+export type TimesheetsToReviewResponse = { message: TimesheetToReview[] };
+
+export interface OutstandingMember {
+  employee: string;
+  employee_name: string;
+  timesheet_count: number;
+  expected_count: number;
+  missing_count: number;
+  missing_dates: string[];
+}
+
+export interface OutstandingTimesheetsResponse {
+  message: {
+    count: number;
+    days: number;
+    start_date: string;
+    end_date: string;
+    members: OutstandingMember[];
+  };
+}
