@@ -47,9 +47,13 @@ export function useCollapsiblePresence(
   const onTransitionEnd = useCallback(
     (event: TransitionEvent<HTMLElement>) => {
       if (event.propertyName !== "height") return;
+      // If the transition was interrupted, don't finish the exit yet.
+      if (durationMs > 0 && event.elapsedTime * 1000 < durationMs - 16) {
+        return;
+      }
       finishExit();
     },
-    [finishExit],
+    [durationMs, finishExit],
   );
 
   useEffect(() => {
