@@ -1,6 +1,7 @@
 /**
  * External dependencies.
  */
+import { useState } from "react";
 import { Breadcrumbs } from "@rtcamp/frappe-ui-react";
 
 /**
@@ -13,6 +14,7 @@ import WidgetCard from "../widget/components/card";
 import ForecastBreakdownCard from "../widget/forecast-breakdown";
 import HeatmapCard from "../widget/heatmap";
 import LeadershipKpiCard from "../widget/kpi-cards";
+import { getDefaultKpiMonth } from "../widget/kpi-cards/useLeadershipKpi";
 import NotificationsCard from "../widget/notificationsCard";
 import LiveStatCard from "../widget/stat-cards";
 import UtilisedTimeCard from "../widget/utilization";
@@ -24,6 +26,7 @@ export default function LeadershipDashboard() {
   }));
 
   const firstName = (employeeName || userName).trim().split(" ")[0] || "there";
+  const [kpiMonth, setKpiMonth] = useState(getDefaultKpiMonth);
 
   return (
     <main>
@@ -49,13 +52,25 @@ export default function LeadershipDashboard() {
           className="grid grid-cols-12 gap-3 overflow-y-auto scrollbar-thin"
         >
           <WidgetCard className="col-span-4">
-            <LeadershipKpiCard kpikey={"revenue"} />
+            <LeadershipKpiCard
+              kpikey={"revenue"}
+              month={kpiMonth}
+              onMonthChange={setKpiMonth}
+            />
           </WidgetCard>
           <WidgetCard className="col-span-4">
-            <LeadershipKpiCard kpikey={"cost"} />
+            <LeadershipKpiCard
+              kpikey={"cost"}
+              month={kpiMonth}
+              onMonthChange={setKpiMonth}
+            />
           </WidgetCard>
           <WidgetCard className="col-span-4">
-            <LeadershipKpiCard kpikey={"profit_margin"} />
+            <LeadershipKpiCard
+              kpikey={"profit_margin"}
+              month={kpiMonth}
+              onMonthChange={setKpiMonth}
+            />
           </WidgetCard>
           <WidgetCard className="h-[300px] col-span-8 p-4">
             <HeatmapCard />
