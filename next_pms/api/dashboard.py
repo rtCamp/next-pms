@@ -762,7 +762,8 @@ def get_time_utilisation(days: int = 30, role: str | None = None) -> dict:
         For example, days=30 on 10 Jun covers 12 May through 10 Jun.
         Defaults to 30.
     role : str, optional
-        Filter to a single designation. Defaults to None (all roles).
+        When set, only that designation's hours are aggregated (other designations
+        are still returned with 0 hours). Defaults to None (all roles).
 
     Returns
     -------
