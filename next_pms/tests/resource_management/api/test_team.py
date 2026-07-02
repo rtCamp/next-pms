@@ -5,6 +5,17 @@ from erpnext import get_default_company
 from frappe.tests import IntegrationTestCase
 
 from next_pms.resource_management.api.team import get_resource_management_team_view_data
+from next_pms.timesheet.api.app import has_bu_field
+
+
+def _business_unit_available():
+    """True only when the rtcamp Business Unit doctype + custom_business_unit field exist.
+
+    The Business Unit doctype ships with the rtcamp app, which is not installed in CI,
+    so fixtures and assertions that touch it must be skipped there.
+    """
+    return bool(has_bu_field())
+
 
 EMPLOYEE_TAGS = {
     "Aarav Sharma": ["python", "react"],
@@ -310,8 +321,12 @@ class TestTeamViewEmployeeFilters(_TeamViewBase):
         # Read-only employee is not "Tvf"-named, so it never appears in the scoped assertions.
         cls._make_employee("Tv Readonly", user_id=cls.read_only_user)
 
-        cls.bu_alpha = cls._make_master("Business Unit", "business_unit_name", "Tvf BU Alpha")
-        cls.bu_beta = cls._make_master("Business Unit", "business_unit_name", "Tvf BU Beta")
+        cls.has_business_unit = _business_unit_available()
+        if cls.has_business_unit:
+            cls.bu_alpha = cls._make_master("Business Unit", "business_unit_name", "Tvf BU Alpha")
+            cls.bu_beta = cls._make_master("Business Unit", "business_unit_name", "Tvf BU Beta")
+        else:
+            cls.bu_alpha = cls.bu_beta = None
         cls.desig_alpha = cls._make_master("Designation", "designation_name", "Tvf Desig Alpha")
         cls.desig_beta = cls._make_master("Designation", "designation_name", "Tvf Desig Beta")
 
@@ -345,6 +360,8 @@ class TestTeamViewEmployeeFilters(_TeamViewBase):
         self.assertEqual(self._names(result), ["Tvf Alpha", "Tvf Gamma"])
 
     def test_business_unit(self):
+        if not self.has_business_unit:
+            self.skipTest("Business Unit doctype / custom_business_unit field not installed")
         result = self._call(employee_name="Tvf", business_unit=json.dumps([self.bu_beta]))
         self.assertEqual(self._names(result), ["Tvf Beta", "Tvf Mgr"])
 
@@ -397,6 +414,8 @@ class TestTeamViewEmployeeFilters(_TeamViewBase):
     def test_non_write_user_ignores_filters_except_name(self):
         # business_unit=[bu_alpha] would drop Beta/Mgr if honored; a read-only caller must
         # ignore it and return all four Tvf employees via the name filter.
+        if not self.has_business_unit:
+            self.skipTest("Business Unit doctype / custom_business_unit field not installed")
         result = self._call(user=FILTER_READ_ONLY_USER, employee_name="Tvf", business_unit=json.dumps([self.bu_alpha]))
         self.assertFalse(result["permissions"]["write"])
         self.assertEqual(self._names(result), ["Tvf Alpha", "Tvf Beta", "Tvf Gamma", "Tvf Mgr"])
@@ -464,7 +483,13 @@ class TestTeamViewHoursSummaryShape(_TeamViewBase):
         cls.customer = cls._make_customer("TV Hours Customer")
         cls.project = cls._make_project("TV Hours Portal", cls.customer)
         cls.employee = cls._make_employee("Tvh Employee")
-        cls._make_allocation(cls.employee, cls.project, TEAM_WINDOW_START, "2026-06-19", is_billable=1)
+        # In-window allocation ([2026-06-15, 2026-06-28]) and one entirely after it.
+        cls.in_window_alloc = cls._make_allocation(
+            cls.employee, cls.project, TEAM_WINDOW_START, "2026-06-19", is_billable=1
+        )
+        cls.out_of_window_alloc = cls._make_allocation(
+            cls.employee, cls.project, "2026-07-01", "2026-07-05", is_billable=1
+        )
         cls.only = json.dumps([cls.employee])
         frappe.clear_cache()
 
@@ -481,6 +506,14 @@ class TestTeamViewHoursSummaryShape(_TeamViewBase):
         ):
             self.assertIn(key, result)
         self.assertNotIn("data", result)
+
+    def test_flat_grid_excludes_out_of_window_allocations(self):
+        # #1677 regression: the flat grid must only return allocations overlapping the
+        # derived window, not every allocation for the employee ("fetch all weeks").
+        result = self._call(employee_id=self.only, need_hours_summary=False)
+        alloc_names = {allocation["name"] for allocation in result["resource_allocations"]}
+        self.assertIn(self.in_window_alloc, alloc_names)
+        self.assertNotIn(self.out_of_window_alloc, alloc_names)
 
     def test_hours_summary_shape(self):
         result = self._call(employee_id=self.only, need_hours_summary=True)
