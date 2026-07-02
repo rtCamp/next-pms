@@ -66,7 +66,7 @@ function ScheduleDateSelectionField({
         </div>
 
         {showInlineRecurrenceHelper ? (
-          <p className="shrink-0 text-sm text-ink-gray-4">
+          <p className="shrink-0 text-sm text-ink-gray-4 px-3.5">
             {recurrenceHelperText}
           </p>
         ) : (
@@ -75,7 +75,7 @@ function ScheduleDateSelectionField({
       </div>
 
       {recurrenceHelperText && !showInlineRecurrenceHelper ? (
-        <p className="pl-0.5 text-sm text-ink-gray-4">{recurrenceHelperText}</p>
+        <p className="text-sm text-ink-gray-4">{recurrenceHelperText}</p>
       ) : null}
 
       {error ? <ErrorMessage message={error} /> : null}
