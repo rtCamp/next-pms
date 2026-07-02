@@ -38,7 +38,7 @@ export default function LeadershipDashboard() {
           ]}
         />
       </Header>
-      <div className="flex-1 min-h-0 overflow-y-auto p-5 space-y-6 max-w-[1200px] mx-auto">
+      <div className="flex-1 min-h-0 overflow-y-auto scrollbar-thin p-5 space-y-6 max-w-[1200px] mx-auto">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="flex min-w-0 flex-col gap-2">
             <h2 className="text-2xl font-semibold text-ink-gray-8">
@@ -49,7 +49,7 @@ export default function LeadershipDashboard() {
 
         <section
           aria-label="Leadership dashboard"
-          className="grid grid-cols-12 gap-3 overflow-y-auto scrollbar-thin"
+          className="grid grid-cols-12 gap-3"
         >
           <WidgetCard className="col-span-4">
             <LeadershipKpiCard
