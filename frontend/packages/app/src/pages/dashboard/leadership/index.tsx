@@ -29,7 +29,7 @@ export default function LeadershipDashboard() {
   const [kpiMonth, setKpiMonth] = useState(getDefaultKpiMonth);
 
   return (
-    <main>
+    <>
       <Header>
         <Breadcrumbs
           items={[
@@ -38,7 +38,7 @@ export default function LeadershipDashboard() {
           ]}
         />
       </Header>
-      <div className="flex flex-col gap-6 overflow-y-auto p-5 max-w-[1200px] mx-auto">
+      <div className="flex-1 min-h-0 overflow-y-auto p-5 space-y-6 max-w-[1200px] mx-auto">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="flex min-w-0 flex-col gap-2">
             <h2 className="text-2xl font-semibold text-ink-gray-8">
@@ -92,6 +92,6 @@ export default function LeadershipDashboard() {
           </WidgetCard>
         </section>
       </div>
-    </main>
+    </>
   );
 }
