@@ -137,7 +137,7 @@ const Sidebar = () => {
     icon: Folder,
     to: ROUTES.project,
     isActive: pathname === ROUTES.project,
-    render: <LinkWithPreload to={ROUTES.project} />,
+    render: <LinkWithPreload to={`${ROUTES.project}?status=Open`} />,
   };
 
   const projectItems: SidebarSectionType["items"] = [];
