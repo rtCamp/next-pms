@@ -1,7 +1,7 @@
 /**
  * External Dependencies
  */
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { TaskStatus, taskStatusMap } from "@next-pms/design-system/components";
 import {
   DatePicker,
@@ -12,6 +12,8 @@ import {
   useToasts,
   TextEditor,
   DurationInput,
+  type TextEditorHandle,
+  type TextEditorProps,
 } from "@rtcamp/frappe-ui-react";
 import { Calendar, Folder } from "@rtcamp/frappe-ui-react/icons";
 import { useForm, useStore } from "@tanstack/react-form";
@@ -26,7 +28,11 @@ import { parseFrappeErrorMsg } from "@/lib/utils";
 import { useUser } from "@/providers/user";
 import CalendarEvents from "./calendarEvents";
 import { addTimeFormSchema } from "./schema";
-import type { AddTimeProps } from "./type";
+import type { AddTimeProps, SelectedCalendarEvent } from "./type";
+
+const COMMENT_EDITOR_STARTERKIT_OPTIONS: NonNullable<
+  TextEditorProps["starterkitOptions"]
+> = { trailingNode: false };
 
 /**
  * Add Time Component
@@ -57,8 +63,8 @@ const AddTime = ({
   const [projectSearch, setProjectSearch] = useState("");
   const [taskSearch, setTaskSearch] = useState("");
   const [submitting, setSubmitting] = useState(false);
-  // We use this key to reset the text editor when the calendar selection changes.
-  const [commentKey, setCommentKey] = useState(0);
+  const commentEditorRef = useRef<TextEditorHandle>(null);
+  const prevSelectedEventIdsRef = useRef<Set<string>>(new Set());
   const { call: saveTime } = useFrappePostCall(
     "next_pms.timesheet.api.timesheet.save",
   );
@@ -119,18 +125,18 @@ const AddTime = ({
   const selectedDate = useStore(form.store, (state) => state.values.date);
   const selectedProjectOption = project
     ? {
-        label: projectLabel || project,
-        value: project,
-      }
+      label: projectLabel || project,
+      value: project,
+    }
     : null;
   const selectedTaskOption =
     task && selectedTask === task
       ? {
-          label: taskLabel || task,
-          value: task,
-          projectId: project,
-          projectName: projectLabel || project,
-        }
+        label: taskLabel || task,
+        value: task,
+        projectId: project,
+        projectName: projectLabel || project,
+      }
       : null;
 
   useEffect(() => {
@@ -145,6 +151,7 @@ const AddTime = ({
       duration: 0,
       comment: "",
     });
+    prevSelectedEventIdsRef.current = new Set();
   }, [form, initialDate, open, project, task]);
 
   const { options: projectOptions, isLoading: isProjectLookupLoading } =
@@ -176,17 +183,22 @@ const AddTime = ({
     });
 
   const handleCalendarSelectionChange = useCallback(
-    (selectedLabels: string[], totalDurationHours: number) => {
-      const selectedSubjectHtml =
-        selectedLabels.length > 0
-          ? "<ul>" +
-            selectedLabels.map((label) => `<li>${label}</li>`).join("") +
-            "</ul>"
-          : "";
+    (selectedItems: SelectedCalendarEvent[], totalDurationHours: number) => {
+      const nextIds = new Set(selectedItems.map((item) => item.id));
+      const prevIds = prevSelectedEventIdsRef.current;
 
-      form.setFieldValue("comment", selectedSubjectHtml);
+      selectedItems
+        .filter((item) => !prevIds.has(item.id))
+        .forEach((item) =>
+          commentEditorRef.current?.addListItem(item.id, item.label),
+        );
+
+      [...prevIds]
+        .filter((id) => !nextIds.has(id))
+        .forEach((id) => commentEditorRef.current?.removeListItem(id));
+
+      prevSelectedEventIdsRef.current = nextIds;
       form.setFieldValue("duration", totalDurationHours);
-      setCommentKey((k) => k + 1);
     },
     [form],
   );
@@ -367,9 +379,10 @@ const AddTime = ({
                   Comment
                 </label>
                 <TextEditor
-                  key={commentKey}
+                  ref={commentEditorRef}
                   content={field.state.value}
                   onChange={(value) => field.handleChange(value)}
+                  starterkitOptions={COMMENT_EDITOR_STARTERKIT_OPTIONS}
                   fixedMenu={false}
                   editorClass="px-2 h-24 prose-sm overflow-auto scrollbar-thin bg-white border rounded-md border-outline-gray-2 text-ink-gray-7 text-base"
                 />

@@ -15,13 +15,14 @@ import { differenceInMinutes, parseISO } from "date-fns";
 /**
  * Internal Dependencies
  */
+import type { SelectedCalendarEvent } from "./type";
 import useCalendarEvents from "./useCalendarEvents";
 
 interface CalendarEventsProps {
   initialDate: string;
   enabled: boolean;
   onSelectionChange: (
-    selectedLabels: string[],
+    selectedItems: SelectedCalendarEvent[],
     totalDurationHours: number,
   ) => void;
 }
@@ -45,12 +46,10 @@ const CalendarEvents = ({
   const notifySelectionChange = (nextIds: string[]) => {
     const selectedEvents = events.filter((e) => nextIds.includes(e.id));
 
-    const selectedLabels = selectedEvents
-      .map(
-        (e) =>
-          `${e.subject.trim()} | ${formatDurationLabel(e.starts_on, e.ends_on)}`,
-      )
-      .filter(Boolean);
+    const selectedItems: SelectedCalendarEvent[] = selectedEvents.map((e) => ({
+      id: e.id,
+      label: `${e.subject.trim()} | ${formatDurationLabel(e.starts_on, e.ends_on)}`,
+    }));
 
     const totalDurationHours = selectedEvents.reduce((sum, e) => {
       const start = parseISO(e.starts_on.replace(" ", "T"));
@@ -58,7 +57,7 @@ const CalendarEvents = ({
       return sum + differenceInMinutes(end, start) / 60;
     }, 0);
 
-    onSelectionChange(selectedLabels, totalDurationHours);
+    onSelectionChange(selectedItems, totalDurationHours);
   };
 
   const handleToggleShow = (val: boolean) => {
