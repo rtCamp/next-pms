@@ -24,6 +24,7 @@ export interface GanttMemberItemProps {
   onToggle?: () => void;
   className?: string;
   style?: CSSProperties;
+  contentHeight?: number;
 }
 
 export function GanttMemberItem({
@@ -35,6 +36,7 @@ export function GanttMemberItem({
   onToggle,
   className,
   style,
+  contentHeight = CELL_HEIGHT,
 }: GanttMemberItemProps) {
   const { members, expandedRows, toggleRow, headerWidth, hasRoleAccess } =
     useGanttStore((s) => ({
@@ -66,72 +68,81 @@ export function GanttMemberItem({
         render={
           <th
             className={cn(
-              "sticky left-0 z-25 bg-surface-white border-b border-r border-outline-gray-1 pl-3 pr-3 font-normal text-left align-middle flex items-center gap-2 w-full overflow-hidden transition-[height,background-color] cursor-pointer hover:bg-surface-gray-1",
+              "sticky left-0 z-25 bg-surface-white border-b border-r border-outline-gray-1 pl-3 pr-3 font-normal text-left align-middle transition-[height,background-color] cursor-pointer hover:bg-surface-gray-1",
               className,
             )}
             style={{
-              height: CELL_HEIGHT,
               width: headerWidth,
+              minWidth: headerWidth,
+              maxWidth: headerWidth,
               ...style,
             }}
           />
         }
       >
-        <button
-          type="button"
-          disabled={!canExpand}
-          onClick={() => handleToggle?.()}
-          className={cn("flex items-center w-full shrink-0", {
-            "cursor-default!": !canExpand,
-          })}
-          aria-expanded={canExpand ? isExpanded : undefined}
+        <div
+          className="overflow-hidden transition-[height] duration-200 ease-in-out"
+          style={{ height: contentHeight }}
         >
-          <div className="flex flex-col gap-1 w-full min-w-0">
-            <div className="flex gap-1 justify-between items-center w-full">
-              <div className="flex overflow-hidden flex-1 items-center w-full min-w-0">
-                {showChevron ? (
-                  <RightChevron
-                    className={cn(
-                      "size-4 mr-1 transition-transform duration-150 shrink-0 text-ink-gray-8",
-                      { "opacity-0 pointer-events-none": !canExpand },
-                      { "rotate-90": isExpanded },
-                    )}
+          <button
+            type="button"
+            disabled={!canExpand}
+            onClick={() => handleToggle?.()}
+            className={cn(
+              "flex h-full w-full shrink-0 items-center gap-2 overflow-hidden",
+              {
+                "cursor-default!": !canExpand,
+              },
+            )}
+            aria-expanded={canExpand ? isExpanded : undefined}
+          >
+            <div className="flex flex-col gap-1 w-full min-w-0">
+              <div className="flex gap-1 justify-between items-center w-full">
+                <div className="flex overflow-hidden flex-1 items-center w-full min-w-0">
+                  {showChevron ? (
+                    <RightChevron
+                      className={cn(
+                        "size-4 mr-1 transition-transform duration-150 shrink-0 text-ink-gray-8",
+                        { "opacity-0 pointer-events-none": !canExpand },
+                        { "rotate-90": isExpanded },
+                      )}
+                    />
+                  ) : null}
+                  <Avatar
+                    size="xs"
+                    shape="circle"
+                    image={member.image}
+                    label={member.name}
                   />
-                ) : null}
-                <Avatar
-                  size="xs"
-                  shape="circle"
-                  image={member.image}
-                  label={member.name}
-                />
-                <span className="ml-2 text-base font-medium truncate text-ink-gray-8">
-                  {member.name}
-                </span>
+                  <span className="ml-2 text-base font-medium truncate text-ink-gray-8">
+                    {member.name}
+                  </span>
+                </div>
+                {member.badge && (
+                  <Badge
+                    className=""
+                    label={member.badge}
+                    size="sm"
+                    variant="subtle"
+                    theme="gray"
+                  />
+                )}
               </div>
-              {member.badge && (
-                <Badge
-                  className=""
-                  label={member.badge}
-                  size="sm"
-                  variant="subtle"
-                  theme="gray"
-                />
-              )}
+              <div
+                className={cn(
+                  "flex overflow-hidden flex-1 items-center w-full min-w-0",
+                  showChevron ? "pl-11" : "pl-6",
+                )}
+              >
+                {member.designation && (
+                  <span className="text-sm truncate text-ink-gray-6">
+                    {member.designation}
+                  </span>
+                )}
+              </div>
             </div>
-            <div
-              className={cn(
-                "flex overflow-hidden flex-1 items-center w-full min-w-0",
-                showChevron ? "pl-11" : "pl-6",
-              )}
-            >
-              {member.designation && (
-                <span className="text-sm truncate text-ink-gray-6">
-                  {member.designation}
-                </span>
-              )}
-            </div>
-          </div>
-        </button>
+          </button>
+        </div>
       </PreviewCard.Trigger>
       <PreviewCard.Portal>
         <PreviewCard.Positioner

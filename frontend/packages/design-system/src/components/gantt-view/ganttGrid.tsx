@@ -92,7 +92,7 @@ const GanttGridInner: React.FC<{
       )}
 
       <table
-        className="relative border-separate border-spacing-0"
+        className="relative table-fixed border-separate border-spacing-0"
         style={{ width: headerWidth + columnCount * columnWidth }}
       >
         <thead className="sticky top-0 z-30">
@@ -101,7 +101,12 @@ const GanttGridInner: React.FC<{
             <th
               rowSpan={2}
               className="sticky left-0 z-35 bg-surface-white text-lg text-ink-gray-7 border border-l-0 border-outline-gray-1 font-medium text-start p-3 pl-4.25"
-              style={{ width: headerWidth, height: HEADER_HEIGHT }}
+              style={{
+                width: headerWidth,
+                minWidth: headerWidth,
+                maxWidth: headerWidth,
+                height: HEADER_HEIGHT,
+              }}
             >
               {rowHeaderLabel}
             </th>

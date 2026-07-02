@@ -68,10 +68,12 @@ export const GanttProjectRow: React.FC<GanttProjectRowProps> = ({
         canExpand={false}
         showChevron={false}
         showHoverCard={false}
+        contentHeight={animatedRowHeight}
         style={{
           height: animatedRowHeight,
           width: headerWidth,
           minWidth: headerWidth,
+          maxWidth: headerWidth,
           borderBottomWidth: isExpanded ? undefined : 0,
           borderRightWidth: isExpanded ? undefined : 0,
         }}
