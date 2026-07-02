@@ -11,7 +11,6 @@ import {
  * Internal dependencies
  */
 import { useImportedTasks } from "@/hooks/useImportedTasks";
-import { getHolidayList } from "@/lib/utils";
 import { useTimesheetOutletContext } from "@/pages/timesheet/outletContext";
 import { usePersonalTimesheet } from "@/pages/timesheet/personal/context";
 import { WorkingFrequency } from "@/types";
@@ -60,7 +59,6 @@ export const PersonalTimesheetRow = ({
   hideLikeButton,
 }: PersonalTimesheetRowProps) => {
   const { openAddTimeDialog } = useTimesheetOutletContext();
-  const holidayList = getHolidayList(holidays);
 
   // Get liked tasks from context
   const likedTaskData = usePersonalTimesheet(
@@ -186,7 +184,7 @@ export const PersonalTimesheetRow = ({
               className="pl-7.5 mt-3"
               dates={dates}
               leaves={leaves}
-              holidayList={holidayList}
+              holidays={holidays}
               expectedHours={dailyWorkingHours}
             />
           </>
