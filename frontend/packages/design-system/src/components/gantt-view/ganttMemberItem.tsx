@@ -89,7 +89,7 @@ export function GanttMemberItem({
             disabled={!canExpand}
             onClick={() => handleToggle?.()}
             className={cn(
-              "flex h-full w-full shrink-0 items-center gap-2 overflow-hidden",
+              "flex h-full w-full shrink-0 items-center overflow-hidden",
               {
                 "cursor-default!": !canExpand,
               },
