@@ -88,8 +88,13 @@ class TestDashboardPermissions(IntegrationTestCase):
         with self.assertRaises(
             frappe.PermissionError,
             msg=f"{func.__name__} should have raised PermissionError for user {frappe.session.user}",
-        ):
+        ) as ctx:
             func(*args)
+        self.assertIn(
+            "This action is only allowed for",
+            str(ctx.exception),
+            f"{func.__name__} should have been blocked by only_for() for user {frappe.session.user}",
+        )
 
     # Restricted endpoints - Delivery Manager and Delivery User only
 
