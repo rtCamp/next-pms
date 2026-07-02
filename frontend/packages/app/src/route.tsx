@@ -45,11 +45,11 @@ export const routeConfig: Record<
 > = {
   "dashboard-leadership": {
     Component: ReactLazyPreload(() => import("@/pages/dashboard/leadership")),
-    allowedRoles: ["System Manager"],
+    allowedRoles: ["Delivery Manager", "Delivery User"],
   },
   "dashboard-manager": {
     Component: ReactLazyPreload(() => import("@/pages/dashboard/manager")),
-    allowedRoles: ["Projects Manager"],
+    allowedRoles: ["Projects Manager", "Projects User"],
   },
   project: {
     Component: ReactLazyPreload(() => import("@/pages/projects/list")),

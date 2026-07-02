@@ -90,10 +90,10 @@ const Sidebar = () => {
 
   const dashboardItems: SidebarSectionType["items"] = [];
 
-  if (roles.includes("System Manager")) {
+  if (roles.includes("Delivery Manager") || roles.includes("Delivery User")) {
     dashboardItems.push(leadershipDashboard);
   }
-  if (roles.includes("Projects Manager")) {
+  if (roles.includes("Projects Manager") || roles.includes("Projects User")) {
     dashboardItems.push(managerDashbaord);
   }
 

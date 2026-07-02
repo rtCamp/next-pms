@@ -61,6 +61,7 @@ export type Role =
   | "Projects Manager"
   | "Projects User"
   | "Delivery Manager"
+  | "Delivery User"
   | "Employee"
   | "Timesheet Manager"
   | "Timesheet User"
