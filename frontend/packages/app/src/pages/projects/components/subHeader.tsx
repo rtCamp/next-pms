@@ -185,12 +185,12 @@ export function ProjectListSubHeader() {
               type: "string",
             },
             {
-              name: "custom_engineering_manager",
+              name: "custom_engineering_manager_name",
               label: "Engineering Manager",
               type: "string",
             },
             {
-              name: "custom_account_manager",
+              name: "custom_account_manager_name",
               label: "Account Manger",
               type: "string",
             },
