@@ -33,6 +33,7 @@ from .utils import (
     get_team_candidate_employee_ids,
     get_week_dates,
     paginate_qualifying_employee_payloads,
+    paginate_unfiltered_employee_payloads,
     parse_filters,
 )
 
@@ -320,18 +321,35 @@ def _get_team_timesheet_data(
         local_data["timesheet_details"] = timesheet_details
         return employee.name, local_data
 
-    selected_employees, total_count, has_more = paginate_qualifying_employee_payloads(
-        reports_to=reports_to,
-        employee_ids=candidate_employee_ids,
-        dates=dates,
-        parsed_filters=parsed_filters,
-        search=search,
-        start=start,
-        page_length=page_length,
-        builder=build_team_employee_payload,
-        status=employee_status,
-        business_unit=employee_business_unit,
-    )
+    if has_filters:
+        # Filters narrow the pool to candidate_employee_ids (employees whose
+        # timesheets actually match), so this is already bounded by the filter's
+        # selectivity rather than the whole employee table.
+        selected_employees, total_count, has_more = paginate_qualifying_employee_payloads(
+            reports_to=reports_to,
+            employee_ids=candidate_employee_ids,
+            dates=dates,
+            parsed_filters=parsed_filters,
+            search=search,
+            start=start,
+            page_length=page_length,
+            builder=build_team_employee_payload,
+            status=employee_status,
+            business_unit=employee_business_unit,
+        )
+    else:
+        # No filters (candidate_employee_ids is None here) — every employee
+        # qualifies, so fetch exactly the requested page instead of scanning
+        # the full employee pool just to paginate and count in Python.
+        selected_employees, total_count, has_more = paginate_unfiltered_employee_payloads(
+            reports_to=reports_to,
+            dates=dates,
+            parsed_filters=parsed_filters,
+            search=search,
+            start=start,
+            page_length=page_length,
+            builder=build_team_employee_payload,
+        )
 
     res["data"] = {employee_name: payload for employee_name, payload in selected_employees}
     res["total_count"] = total_count

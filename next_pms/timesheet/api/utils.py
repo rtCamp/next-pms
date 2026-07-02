@@ -891,3 +891,33 @@ def paginate_qualifying_employee_payloads(
 
     has_more = start + page_length < total_count
     return selected, total_count, has_more
+
+
+def paginate_unfiltered_employee_payloads(
+    reports_to: str | None,
+    dates: list,
+    parsed_filters: dict,
+    search: str | None,
+    start: int,
+    page_length: int,
+    builder,
+):
+    """Fast path for the no-filters case (has_filters=False and no status/business_unit).
+
+    With no search / approval-status / composite filters, `build_employee_week_details`
+    never prunes a week (that only happens under `has_filters and skip_empty_weeks`, or an
+    approval_status mismatch — both require has_filters), so every employee always
+    qualifies and `builder` never returns None here. That means the page can be fetched
+    directly via SQL LIMIT/OFFSET (and its matching COUNT) instead of walking the entire
+    employee pool in Python just to paginate and count, which is what
+    `paginate_qualifying_employee_payloads` does for the general case.
+    """
+    page_employees, total_count = filter_employees(
+        page_length=page_length,
+        start=start,
+        reports_to=reports_to,
+    )
+    context = build_chunk_context(page_employees, dates, parsed_filters, search)
+    selected = [payload for payload in (builder(employee, context) for employee in page_employees) if payload]
+    has_more = start + page_length < total_count
+    return selected, total_count, has_more
