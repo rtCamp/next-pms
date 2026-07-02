@@ -89,11 +89,12 @@ export function MemberSection() {
           <MemberHoverCard
             member={projectManager}
             render={
-              <div className="col-span-2 grid grid-cols-subgrid items-center">
+              <div className="col-span-2 grid grid-cols-subgrid items-center gap-2">
                 <span className="text-nowrap">Project Manager</span>
                 <Combobox
                   key={projectManager?.email}
-                  inputClassName="w-fit h-8 border-transparent bg-white"
+                  className="col-span-2 @[12rem]:col-span-1"
+                  inputClassName="w-full h-8 border-transparent bg-white"
                   loading={projectManagerLoading}
                   options={projectManagerComboboxOptions}
                   placeholder="N/A"
@@ -109,11 +110,12 @@ export function MemberSection() {
           <MemberHoverCard
             member={engineeringManager}
             render={
-              <div className="col-span-2 grid grid-cols-subgrid items-center">
+              <div className="col-span-2 grid grid-cols-subgrid items-center gap-2">
                 <span className="text-nowrap">Lead Engineer</span>
                 <Combobox
                   key={engineeringManager?.email}
-                  inputClassName="w-fit h-8 border-transparent bg-white"
+                  className="col-span-2 @[12rem]:col-span-1"
+                  inputClassName="w-full h-8 border-transparent bg-white"
                   loading={engineeringManagerLoading}
                   options={engineeringManagerComboboxOptions}
                   placeholder="N/A"

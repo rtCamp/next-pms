@@ -38,7 +38,7 @@ export function Section({
         {suffix}
       </Accordion.Header>
       <Accordion.Panel className="accordion-panel">
-        {empty ? null : <div className="px-5 pb-4">{children}</div>}
+        {empty ? null : <div className="@container px-5 pb-4">{children}</div>}
       </Accordion.Panel>
     </Accordion.Item>
   );
