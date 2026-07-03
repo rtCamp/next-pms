@@ -8,13 +8,7 @@ import {
   mergeClassNames as cn,
   floatToTime,
 } from "@next-pms/design-system/utils";
-import { Badge } from "@rtcamp/frappe-ui-react";
 import TaskBadges from "./taskBadges";
-
-type BadgeItem = {
-  icon: React.ReactNode;
-  text: string;
-};
 
 export type TaskPopoverProps = {
   label: string;
