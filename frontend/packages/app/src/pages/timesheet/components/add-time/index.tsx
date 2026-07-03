@@ -65,6 +65,7 @@ const AddTime = ({
   const [submitting, setSubmitting] = useState(false);
   const commentEditorRef = useRef<TextEditorHandle>(null);
   const prevSelectedEventIdsRef = useRef<Set<string>>(new Set());
+  const [submitError, setSubmitError] = useState<string | null>(null);
   const { call: saveTime } = useFrappePostCall(
     "next_pms.timesheet.api.timesheet.save",
   );
@@ -82,6 +83,7 @@ const AddTime = ({
     },
     onSubmit: async ({ value }) => {
       setSubmitting(true);
+      setSubmitError(null);
       try {
         await saveTime({
           date: value.date,
@@ -91,12 +93,11 @@ const AddTime = ({
           employee: employeeId,
         });
         toast.success("Time Entry submitted successfully");
+        closeModal();
       } catch (err) {
-        const error = parseFrappeErrorMsg(err as FrappeError);
-        toast.error(error);
+        setSubmitError(parseFrappeErrorMsg(err as FrappeError));
       } finally {
         setSubmitting(false);
-        closeModal();
       }
     },
   });
@@ -104,6 +105,7 @@ const AddTime = ({
   const closeModal = useCallback(() => {
     setProjectSearch("");
     setTaskSearch("");
+    setSubmitError(null);
     onOpenChange(false);
     form.reset();
   }, [form, onOpenChange]);
@@ -393,6 +395,7 @@ const AddTime = ({
             );
           }}
         />
+        {submitError ? <ErrorMessage message={submitError} /> : null}
       </div>
     </Dialog>
   );
