@@ -88,10 +88,12 @@ const EntryRow = ({ entry, readOnly = false, onSave }: EntryRowProps) => {
         <TaskStatus status={entry.status} />
         <div className="flex-1 min-w-0">
           <div className="space-y-1">
-            <p className="text-base font-medium text-ink-gray-7">
+            <p className="text-base font-medium text-ink-gray-7 truncate">
               {entry.taskName}
             </p>
-            <p className="text-xs text-ink-gray-5">{entry.projectName}</p>
+            <p className="text-xs text-ink-gray-5 truncate">
+              {entry.projectName}
+            </p>
             <div className="flex flex-col gap-2 mt-3">
               <DurationInput
                 snap="smooth"
@@ -143,10 +145,12 @@ const EntryRow = ({ entry, readOnly = false, onSave }: EntryRowProps) => {
       <TaskStatus status={entry.status} />
       <div className="flex-1 min-w-0">
         <div className="space-y-1">
-          <p className="text-base font-medium text-ink-gray-7">
+          <p className="text-base font-medium text-ink-gray-7 truncate">
             {entry.taskName}
           </p>
-          <p className="text-xs text-ink-gray-5">{entry.projectName}</p>
+          <p className="text-xs text-ink-gray-5 truncate">
+            {entry.projectName}
+          </p>
           <StaticTextEditor
             editorClass="prose-sm text-ink-gray-7 mt-3"
             content={entry.description}
