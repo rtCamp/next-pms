@@ -5,13 +5,7 @@ import { useMemo, useState } from "react";
 import { MultiSelect } from "@rtcamp/frappe-ui-react";
 import type { MultiSelectOption } from "@rtcamp/frappe-ui-react";
 import { cva } from "class-variance-authority";
-import {
-  endOfMonth,
-  format,
-  parseISO,
-  startOfMonth,
-  subMonths,
-} from "date-fns";
+import { addWeeks, endOfWeek, format, parseISO, startOfWeek } from "date-fns";
 import { useFrappeGetCall } from "frappe-react-sdk";
 
 /**
@@ -23,6 +17,8 @@ import type { AllocationHeatmapResponse, RoleAllocationWeek } from "./types";
 export type HeatmapCellState = "full" | "partial" | "none";
 
 const API_DATE_FORMAT = "yyyy-MM-dd";
+const WEEK_COUNT = 16;
+const WEEK_OPTIONS = { weekStartsOn: 1 } as const; // Monday, matches backend
 
 const STATE_BG: Record<HeatmapCellState, string> = {
   full: "bg-surface-gray-3",
@@ -50,10 +46,13 @@ export default function HeatmapCard() {
   const [selectedRoles, setSelectedRoles] = useState<string[]>([]);
 
   const args = useMemo(() => {
-    const now = new Date();
+    const start = startOfWeek(new Date(), WEEK_OPTIONS);
     return {
-      from_date: format(startOfMonth(subMonths(now, 3)), API_DATE_FORMAT),
-      to_date: format(endOfMonth(subMonths(now, 1)), API_DATE_FORMAT),
+      from_date: format(start, API_DATE_FORMAT),
+      to_date: format(
+        endOfWeek(addWeeks(start, WEEK_COUNT - 1), WEEK_OPTIONS),
+        API_DATE_FORMAT,
+      ),
     };
   }, []);
 
@@ -163,7 +162,7 @@ export default function HeatmapCard() {
           </table>
         )}
       </div>
-      <div className="flex shrink-0 justify-center gap-8">
+      <div className="flex shrink-0 justify-center gap-8 mt-1">
         {LEGEND.map((item) => (
           <div key={item.label} className="flex items-center gap-1.5">
             <span
