@@ -125,18 +125,18 @@ const AddTime = ({
   const selectedDate = useStore(form.store, (state) => state.values.date);
   const selectedProjectOption = project
     ? {
-      label: projectLabel || project,
-      value: project,
-    }
+        label: projectLabel || project,
+        value: project,
+      }
     : null;
   const selectedTaskOption =
     task && selectedTask === task
       ? {
-        label: taskLabel || task,
-        value: task,
-        projectId: project,
-        projectName: projectLabel || project,
-      }
+          label: taskLabel || task,
+          value: task,
+          projectId: project,
+          projectName: projectLabel || project,
+        }
       : null;
 
   useEffect(() => {
