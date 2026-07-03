@@ -765,8 +765,8 @@ def get_time_utilisation(days: int = 30) -> dict:
     -------
     dict
         days : int
-        start_date : datetime.date
-        end_date : datetime.date
+        start_date : str
+        end_date : str
         roles : list of dicts, each with designation, billable_hours,
                 non_billable_hours, total_hours
     """
