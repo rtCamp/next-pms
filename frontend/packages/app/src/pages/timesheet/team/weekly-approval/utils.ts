@@ -142,6 +142,7 @@ export const groupEntriesByDay = (entries: TimesheetEntry[]): GroupedDay[] => {
     if (!acc[entry.day]) {
       acc[entry.day] = {
         day: entry.day,
+        date: entry.date,
         totalHours: entry.leaveHours,
         leaveLabel: entry.leaveLabel,
         entries: [],
@@ -152,5 +153,7 @@ export const groupEntriesByDay = (entries: TimesheetEntry[]): GroupedDay[] => {
     return acc;
   }, {});
 
-  return Object.values(grouped);
+  return Object.values(grouped).sort(
+    (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime(),
+  );
 };
