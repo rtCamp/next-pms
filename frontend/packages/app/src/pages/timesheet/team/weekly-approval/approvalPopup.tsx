@@ -24,6 +24,7 @@ const ApprovalPopup = () => {
     avatarUrl,
     dateRange,
     totalHours,
+    isReadOnly,
     groupedByDay,
     checkedDays,
     handleDayCheckChange,
@@ -85,6 +86,7 @@ const ApprovalPopup = () => {
                   >
                     <Checkbox
                       value={checkedDays.has(dayGroup.day)}
+                      disabled={isReadOnly}
                       onChange={(checked) =>
                         handleDayCheckChange(dayGroup.day, checked)
                       }
@@ -97,6 +99,7 @@ const ApprovalPopup = () => {
                   <EntryRow
                     key={entry.timesheetId}
                     entry={entry}
+                    readOnly={isReadOnly}
                     onSave={handleTimesheetUpdate}
                   />
                 ))}
@@ -112,15 +115,18 @@ const ApprovalPopup = () => {
           variant="solid"
           label="Reject"
           iconLeft={() => <CloseCircle size={16} className="text-ink-white" />}
+          disabled={isReadOnly}
           onClick={handleReject}
+          className={isReadOnly ? "text-ink-white" : undefined}
         />
         <Button
           theme="green"
           variant="solid"
           label="Approve"
           iconLeft={() => <Success size={16} className="text-ink-white" />}
+          disabled={isReadOnly}
           onClick={handleApproveSubmit}
-          className="bg-surface-green-5"
+          className={isReadOnly ? "text-ink-white" : "bg-surface-green-5"}
         />
       </div>
     </Dialog.Popup>

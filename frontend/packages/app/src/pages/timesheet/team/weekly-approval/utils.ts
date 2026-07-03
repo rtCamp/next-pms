@@ -66,7 +66,7 @@ export const convertTimesheetToEntries = (response: TimesheetApiResponse) => {
   const weeklyData = response?.message?.data;
 
   if (!weeklyData) {
-    return { dateRange: "", totalHours: 0, entries };
+    return { dateRange: "", totalHours: 0, status: "", entries };
   }
 
   const thisWeek = Object.values(weeklyData)[0];
@@ -111,6 +111,7 @@ export const convertTimesheetToEntries = (response: TimesheetApiResponse) => {
           parent: entry.parent,
           status: task.status.toLowerCase() as TaskStatusType,
           isBillable: Boolean(task.is_billable),
+          docstatus: entry.docstatus,
           leaveHours,
           leaveLabel:
             leaveHours > 0 ? getLeaveLabelForDate(leaves, date) : undefined,
@@ -127,6 +128,7 @@ export const convertTimesheetToEntries = (response: TimesheetApiResponse) => {
   return {
     dateRange: thisWeekDateRange,
     totalHours: Object.values(weeklyData)[0].total_hours + displayedLeaveHours,
+    status: thisWeek.status,
     entries,
   };
 };

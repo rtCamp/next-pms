@@ -31,6 +31,7 @@ export interface TimesheetEntry {
   parent: string;
   status: TaskStatusType;
   isBillable: boolean;
+  docstatus: number;
   leaveHours: number;
   leaveLabel?: string;
 }

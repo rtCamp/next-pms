@@ -21,6 +21,7 @@ import type { TimesheetEntry } from "./types";
 
 interface EntryRowProps {
   entry: TimesheetEntry;
+  readOnly?: boolean;
   onSave: (
     timesheetId: string,
     taskId: string,
@@ -31,17 +32,22 @@ interface EntryRowProps {
   ) => void;
 }
 
-const EntryRow = ({ entry, onSave }: EntryRowProps) => {
+const EntryRow = ({ entry, readOnly = false, onSave }: EntryRowProps) => {
   const [isEditing, setIsEditing] = useState(false);
   const [description, setDescription] = useState(entry.description);
   const [hours, setHours] = useState(entry.hours);
   const [descriptionError, setDescriptionError] = useState<string | null>(null);
   const [isHovered, setIsHovered] = useState(false);
+  const isReadOnly = readOnly || entry.docstatus === 1;
 
   const handleEdit = useCallback(() => {
+    if (isReadOnly) {
+      return;
+    }
+
     setDescriptionError(null);
     setIsEditing(true);
-  }, []);
+  }, [isReadOnly]);
 
   const handleCancel = useCallback(() => {
     setDescription(entry.description);
@@ -76,7 +82,7 @@ const EntryRow = ({ entry, onSave }: EntryRowProps) => {
     onSave,
   ]);
 
-  if (isEditing) {
+  if (isEditing && !isReadOnly) {
     return (
       <div className="px-3.5 py-4 flex gap-3 border-b border-outline-gray-modals last:border-b-0 ">
         <TaskStatus status={entry.status} />
@@ -149,7 +155,9 @@ const EntryRow = ({ entry, onSave }: EntryRowProps) => {
       <Button
         className={cn(
           "m-0 size-fit hover:bg-surface-white transition-opacity",
-          isHovered ? "opacity-100" : "opacity-0 pointer-events-none",
+          !isReadOnly && isHovered
+            ? "opacity-100"
+            : "opacity-0 pointer-events-none",
         )}
         variant="ghost"
         icon={() => <EditAlt size={16} className="text-ink-gray-7" />}
