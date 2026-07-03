@@ -43,7 +43,7 @@ const ApprovalPopup = () => {
           <p className="text-base text-ink-gray-5">{dateRange}</p>
         </div>
         <div className="flex items-center gap-3">
-          <span className="text-lg font-medium text-ink-green-4">
+          <span className="text-lg font-medium text-ink-green-4 tabular-nums lining-nums">
             {floatToTime(totalHours, 2, 2)}
           </span>
           <Dialog.Close className="hover:bg-surface-gray-2 rounded">
@@ -71,7 +71,7 @@ const ApprovalPopup = () => {
                   </span>
                 </div>
                 <div className="flex items-center gap-3">
-                  <span className="text-lg font-medium text-ink-green-4">
+                  <span className="text-lg font-medium text-ink-green-4 tabular-nums lining-nums">
                     {floatToTime(dayGroup.totalHours, 2, 2)}
                   </span>
                   <div
@@ -115,6 +115,7 @@ const ApprovalPopup = () => {
           label="Approve"
           iconLeft={() => <Success size={16} className="text-ink-white" />}
           onClick={handleApproveSubmit}
+          className="bg-surface-green-5"
         />
       </div>
     </Dialog.Popup>
