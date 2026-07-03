@@ -1,10 +1,11 @@
+import re
 from typing import Any
 
 import frappe
 from frappe import _, enqueue, only_for
 from frappe.desk.notifications import extract_mentions
 from frappe.types import DF
-from frappe.utils import cint, now
+from frappe.utils import cint, now, now_datetime
 from frappe.utils.user import get_user_fullname
 
 from next_pms.api.utils import error_logger
@@ -275,8 +276,11 @@ def update_comment_in_project_status_update(
     if frappe.session.user != "Administrator" and target_row.user != frappe.session.user:
         frappe.throw(_("You do not have permission to edit this comment"), frappe.PermissionError)
 
-    target_row.comment = comment
-    target_row.modified_at = now()
+    edited_at = now_datetime().replace(microsecond=0)
+    # drop a previous "edited at ..." marker so repeated edits don't stack
+    base_comment = re.sub(r"\n\nedited at \d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$", "", comment)
+    target_row.comment = f"{base_comment}\n\nedited at {edited_at}"
+    target_row.modified_at = edited_at
     doc.save()
 
     enqueue(
@@ -293,42 +297,11 @@ def update_comment_in_project_status_update(
     return get_project_status_update_details(doc.name)
 
 
-def _comment_descendant_row_names_in_removal_order(parent_name: str, rows: list) -> list[str]:
-    """Collect descendant child row names in post-order (deepest first) for safe ``doc.remove``.
-
-    Args:
-        parent_name (str): Comment row ``name`` to treat as the subtree root (not included
-            in the returned list; callers remove it separately after descendants).
-        rows (list): Snapshot of child rows, e.g. ``list(doc.comments)`` — must not change
-            during this call.
-
-    Returns:
-        list[str]: Row names under ``parent_name`` only; each branch is post-ordered so a
-            row appears only after all of its ``reply_to`` descendants.
-
-    Example thread (``reply_to`` chain: ``A`` is root, each node replies to its left neighbour):
-
-        A -> B -> C -> D
-
-        _comment_descendant_row_names_in_removal_order("A", rows)  # -> ["D", "C", "B"]
-
-    Deleting **B** (B, C, D are all removed; A stays):
-
-        _comment_descendant_row_names_in_removal_order("B", rows)  # -> ["D", "C"]
-    """
-    ordered: list[str] = []
-    for row in rows:
-        if row.reply_to == parent_name:
-            ordered.extend(_comment_descendant_row_names_in_removal_order(row.name, rows))
-            ordered.append(row.name)
-    return ordered
-
-
 @frappe.whitelist(methods=["POST"])
 @error_logger
 def delete_comment_from_project_status_update(name: str, comment_name: str) -> dict[str, Any]:
     """
-    Delete a specific comment from a Project Status Update
+    Soft-delete a specific comment from a Project Status Update.
 
     Args:
         name (str): Project Status Update document name
@@ -359,14 +332,10 @@ def delete_comment_from_project_status_update(name: str, comment_name: str) -> d
     if frappe.session.user != "Administrator" and target_row.user != frappe.session.user:
         frappe.throw(_("You do not have permission to delete this comment"), frappe.PermissionError)
 
-    row_snapshot = list(doc.comments)
-    row_by_name = {row.name: row for row in row_snapshot}
-    # remove the descendants of the comment before the comment itself
-    for row_name in _comment_descendant_row_names_in_removal_order(comment_name, row_snapshot):
-        doc.remove(row_by_name[row_name])
-
-    # remove the comment itself
-    doc.remove(target_row)
+    # keep the author and thread structure, but blank out the content
+    deleted_at = now_datetime().replace(microsecond=0)
+    target_row.comment = f"[deleted at {deleted_at}]"
+    target_row.modified_at = deleted_at
     doc.save()
 
     return get_project_status_update_details(doc.name)
