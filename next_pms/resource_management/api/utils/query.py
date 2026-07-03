@@ -200,6 +200,7 @@ def get_employee_leaves(employee: str | tuple, start_date: str, end_date: str):
                 "total_leave_days": 3.0,
                 "name": "HR-LAP-00001",
                 "leave_type": "Casual Leave",
+                "custom_first_halfsecond_half": None,
                 "is_lwp": 0,
             },
         ]
@@ -219,6 +220,7 @@ def get_employee_leaves(employee: str | tuple, start_date: str, end_date: str):
                 "total_leave_days": 3.0,
                 "name": "HR-LAP-00001",
                 "leave_type": "Casual Leave",
+                "custom_first_halfsecond_half": None,
                 "is_lwp": 0,
             },
             {
@@ -230,6 +232,7 @@ def get_employee_leaves(employee: str | tuple, start_date: str, end_date: str):
                 "total_leave_days": 0.5,
                 "name": "HR-LAP-00002",
                 "leave_type": "Sick Leave",
+                "custom_first_halfsecond_half": "First Half",
                 "is_lwp": 0,
             },
         ]
@@ -255,6 +258,7 @@ def get_employee_leaves(employee: str | tuple, start_date: str, end_date: str):
             LeaveApplication.total_leave_days,
             LeaveApplication.name,
             LeaveApplication.leave_type,
+            LeaveApplication.custom_first_halfsecond_half,
             LeaveType.is_lwp,
         )
     )

@@ -7,6 +7,8 @@ import { TaskStatusType } from "@next-pms/design-system/components";
  * Internal Dependencies
  */
 
+import { calculateLeaveHours, expectatedHours } from "@/lib/utils";
+import type { LeaveProps } from "@/types/timesheet";
 import type { TimesheetEntry, TimesheetApiResponse, GroupedDay } from "./types";
 
 /**
@@ -27,6 +29,34 @@ const formatDay = (dateTimeStr: string): string => {
   return `${weekday}, ${month} ${day}`;
 };
 
+const getLeaveLabel = (leave: LeaveProps): string => {
+  if (!leave.half_day) {
+    return "Full day off";
+  }
+
+  const half = leave.custom_first_halfsecond_half?.trim().toLowerCase();
+  if (half === "first half") {
+    return "First half off";
+  }
+  if (half === "second half") {
+    return "Second half off";
+  }
+
+  return "Half day off";
+};
+
+const getLeaveLabelForDate = (
+  leaves: LeaveProps[],
+  date: string,
+): string | undefined => {
+  const labels = leaves
+    .filter((leave) => date >= leave.from_date && date <= leave.to_date)
+    .map(getLeaveLabel);
+
+  const uniqueLabels = [...new Set(labels)];
+  return uniqueLabels.length > 0 ? uniqueLabels.join(", ") : undefined;
+};
+
 /**
  * Converts the timesheet API response into a flat array of entries.
  * Each entry contains taskName, projectName, hours, and description.
@@ -42,10 +72,32 @@ export const convertTimesheetToEntries = (response: TimesheetApiResponse) => {
   const thisWeek = Object.values(weeklyData)[0];
   const thisWeekTasks = Object.values(thisWeek.tasks);
   const thisWeekDateRange = Object.keys(weeklyData)[0];
+  const leaves = response?.message?.leaves ?? [];
+  const holidays = response?.message?.holidays ?? [];
+  const displayedLeaveHoursByDate = new Map<string, number>();
+  const dailyWorkingHours = expectatedHours(
+    response?.message?.working_hour ?? 0,
+    response?.message?.working_frequency ?? "Per Day",
+  );
 
   thisWeekTasks.forEach((task) => {
     if (task.data && Array.isArray(task.data)) {
       task.data.forEach((entry) => {
+        const date = extractDate(entry.from_time);
+        const holiday = holidays.find(
+          (holiday) => holiday.holiday_date === date,
+        );
+        const leaveHours = calculateLeaveHours(
+          leaves,
+          date,
+          dailyWorkingHours,
+          holiday,
+        );
+
+        if (leaveHours > 0) {
+          displayedLeaveHoursByDate.set(date, leaveHours);
+        }
+
         entries.push({
           timesheetId: entry.name,
           taskId: task.name,
@@ -55,18 +107,26 @@ export const convertTimesheetToEntries = (response: TimesheetApiResponse) => {
           hours: entry.hours,
           description: entry.description,
           day: formatDay(entry.from_time),
-          date: extractDate(entry.from_time),
+          date,
           parent: entry.parent,
           status: task.status.toLowerCase() as TaskStatusType,
           isBillable: Boolean(task.is_billable),
+          leaveHours,
+          leaveLabel:
+            leaveHours > 0 ? getLeaveLabelForDate(leaves, date) : undefined,
         });
       });
     }
   });
 
+  const displayedLeaveHours = [...displayedLeaveHoursByDate.values()].reduce(
+    (total, hours) => total + hours,
+    0,
+  );
+
   return {
     dateRange: thisWeekDateRange,
-    totalHours: Object.values(weeklyData)[0].total_hours,
+    totalHours: Object.values(weeklyData)[0].total_hours + displayedLeaveHours,
     entries,
   };
 };
@@ -78,7 +138,8 @@ export const groupEntriesByDay = (entries: TimesheetEntry[]): GroupedDay[] => {
     if (!acc[entry.day]) {
       acc[entry.day] = {
         day: entry.day,
-        totalHours: 0,
+        totalHours: entry.leaveHours,
+        leaveLabel: entry.leaveLabel,
         entries: [],
       };
     }

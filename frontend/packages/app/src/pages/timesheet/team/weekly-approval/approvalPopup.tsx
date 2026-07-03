@@ -68,6 +68,11 @@ const ApprovalPopup = () => {
                   <SmallDown className="h-4 w-4 text-ink-gray-5 transition-transform duration-200 -rotate-90 group-data-panel-open:rotate-0" />
                   <span className="text-base font-medium text-ink-gray-8">
                     {dayGroup.day}
+                    {dayGroup.leaveLabel ? (
+                      <span className="text-ink-gray-5">
+                        {` · ${dayGroup.leaveLabel}`}
+                      </span>
+                    ) : null}
                   </span>
                 </div>
                 <div className="flex items-center gap-3">
