@@ -891,3 +891,40 @@ def paginate_qualifying_employee_payloads(
 
     has_more = start + page_length < total_count
     return selected, total_count, has_more
+
+
+def paginate_unfiltered_employee_payloads(
+    reports_to: str | None,
+    dates: list,
+    parsed_filters: dict,
+    search: str | None,
+    start: int,
+    page_length: int,
+    builder,
+):
+    """Fast path for the no-filters case (has_filters=False and no status/business_unit).
+
+    `build_employee_week_details`'s `should_skip_week` only drops a week when
+    `has_filters and skip_empty_weeks`, or when `approval_status` (the caller's
+    `status_filter`) is truthy. The caller only reaches this function when
+    `has_filters` is False, and `status_filter` is itself one of the terms that make
+    `has_filters` True — so here `status_filter` is guaranteed falsy too, no week is
+    ever dropped, and `builder` never returns None. That means the page can be fetched
+    directly via SQL LIMIT/OFFSET (and its matching COUNT) instead of walking the
+    entire employee pool in Python just to paginate and count, which is what
+    `paginate_qualifying_employee_payloads` does for the general case.
+    """
+    page_employees, total_count = filter_employees(
+        page_length=page_length,
+        start=start,
+        reports_to=reports_to,
+    )
+    context = build_chunk_context(page_employees, dates, parsed_filters, search)
+    # No `if payload` filter here on purpose: per the invariant above, builder()
+    # cannot return None in this path. If that invariant is ever violated, a
+    # `None` in `selected` will raise loudly when `team.py` unpacks it as
+    # `(employee_name, payload)`, instead of silently truncating the page while
+    # total_count/has_more still reflect the full (unfiltered) count.
+    selected = [builder(employee, context) for employee in page_employees]
+    has_more = start + page_length < total_count
+    return selected, total_count, has_more

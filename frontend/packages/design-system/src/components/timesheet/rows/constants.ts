@@ -83,6 +83,25 @@ export const ApprovalStatusMap: Record<
   None: "none",
 };
 
+export const approvalStatusCanSubmitMap: Record<ApprovalStatusType, boolean> = {
+  "not-submitted": true,
+  approved: false,
+  rejected: true,
+  "approval-pending": false,
+  "partially-approved": true,
+  "partially-rejected": true,
+  none: false,
+};
+
+export const approvalStatusActionLabelMap: Partial<
+  Record<ApprovalStatusType, string>
+> = {
+  "not-submitted": "Submit for approval",
+  rejected: "Resubmit for approval",
+  "partially-approved": "Resubmit for approval",
+  "partially-rejected": "Resubmit for approval",
+};
+
 export const taskStatusMap: Record<string, TaskStatusType> = {
   Open: "open",
   Working: "working",

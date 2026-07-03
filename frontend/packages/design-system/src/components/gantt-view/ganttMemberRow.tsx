@@ -13,6 +13,7 @@ import {
   type RowAllocationOverlayHandle,
 } from "./gantt-bar/rowAllocationOverlay";
 import { GanttMemberItem } from "./ganttMemberItem";
+import { GanttRowOverlayCell } from "./ganttRowOverlayCell";
 import { useGanttStore } from "./ganttStore";
 import type { ProjectGroup, ProjectMember } from "./ganttStore";
 import { mergeClassNames as cn } from "../../utils";
@@ -23,6 +24,7 @@ interface GanttMemberRowProps {
   isExpanded: boolean;
   canManageAllocations: boolean;
   canEditAllocations: boolean;
+  onTransitionEnd?: React.TransitionEventHandler<HTMLTableRowElement>;
 }
 
 export const GanttMemberRow: React.FC<GanttMemberRowProps> = ({
@@ -31,6 +33,7 @@ export const GanttMemberRow: React.FC<GanttMemberRowProps> = ({
   isExpanded,
   canManageAllocations,
   canEditAllocations,
+  onTransitionEnd,
 }) => {
   const { weeks, daysPerWeek, columnWidth, headerWidth, onAddAllocation } =
     useGanttStore((s) => ({
@@ -47,13 +50,14 @@ export const GanttMemberRow: React.FC<GanttMemberRowProps> = ({
 
   return (
     <tr
-      className={cn("relative touch-pan-y", {
+      className={cn("touch-pan-y", {
         "pointer-events-none": !isExpanded,
       })}
       aria-hidden={!isExpanded}
       onPointerDown={(e) => overlayRef.current?.handleRowPointerDown(e)}
       onPointerMove={(e) => overlayRef.current?.handleRowPointerMove(e)}
       onPointerLeave={() => overlayRef.current?.clearHoveredSlot()}
+      onTransitionEnd={onTransitionEnd}
     >
       <GanttMemberItem
         member={member}
@@ -61,6 +65,7 @@ export const GanttMemberRow: React.FC<GanttMemberRowProps> = ({
         canExpand={false}
         showChevron={false}
         className="pl-8 pr-3"
+        contentHeight={animatedRowHeight}
         style={{
           height: animatedRowHeight,
           width: headerWidth,
@@ -80,7 +85,7 @@ export const GanttMemberRow: React.FC<GanttMemberRowProps> = ({
           style={{ height: animatedRowHeight }}
         />
       ))}
-      <td className="p-0 border-0 w-0 min-w-0 max-w-0" style={{ width: 0 }}>
+      <GanttRowOverlayCell height={animatedRowHeight}>
         {isExpanded &&
           member.allocations?.map((allocation, allocationIndex) => (
             // TODO: Restore project allocation capacity labels when this view consumes backend-computed employee capacity summaries.
@@ -112,7 +117,7 @@ export const GanttMemberRow: React.FC<GanttMemberRowProps> = ({
           })}
           onOpenAllocation={onAddAllocation}
         />
-      </td>
+      </GanttRowOverlayCell>
     </tr>
   );
 };

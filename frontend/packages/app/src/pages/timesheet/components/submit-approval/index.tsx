@@ -55,6 +55,7 @@ const SubmitApproval = ({
   }));
   const toast = useToasts();
   const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
   const { call: submitForApproval } = useFrappePostCall(
     "next_pms.timesheet.api.timesheet.submit_for_approval",
   );
@@ -78,6 +79,7 @@ const SubmitApproval = ({
     },
     onSubmit: async ({ value }) => {
       setSubmitting(true);
+      setSubmitError(null);
       try {
         await submitForApproval({
           employee: employeeId,
@@ -87,21 +89,28 @@ const SubmitApproval = ({
           notes: value.note,
         });
         toast.success("Timesheet submitted for approval successfully");
-      } catch (err) {
-        const error = parseFrappeErrorMsg(err as FrappeError);
-        toast.error(error);
-      } finally {
-        setSubmitting(false);
         onOpenChange(false);
         form.reset();
+      } catch (err) {
+        setSubmitError(parseFrappeErrorMsg(err as FrappeError));
+      } finally {
+        setSubmitting(false);
       }
     },
   });
 
+  const handleOpenChange = (nextOpen: boolean) => {
+    onOpenChange(nextOpen);
+    if (!nextOpen) {
+      setSubmitError(null);
+      form.reset();
+    }
+  };
+
   return (
     <Dialog
       open={open}
-      onOpenChange={onOpenChange}
+      onOpenChange={handleOpenChange}
       className="my-0"
       classNames={{
         header: "mb-5",
@@ -166,6 +175,7 @@ const SubmitApproval = ({
             </div>
           )}
         />
+        {submitError ? <ErrorMessage message={submitError} /> : null}
       </div>
     </Dialog>
   );

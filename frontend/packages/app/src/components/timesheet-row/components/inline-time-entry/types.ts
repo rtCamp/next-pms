@@ -1,4 +1,4 @@
-import type { KeyboardEvent, ReactNode } from "react";
+import type { KeyboardEvent, PointerEvent, ReactNode } from "react";
 import type { TaskRowTimeEntry } from "@next-pms/design-system/components";
 import type { TaskDataItemProps } from "@/types/timesheet";
 import type { EntryFormMode } from ".";
@@ -13,6 +13,7 @@ export interface InlineTimeEntryProps {
   dailyWorkingHours?: number;
   totalUsedHoursInDay?: number;
   onSubmitSuccess?: () => void;
+  onEngagedChange?: (engaged: boolean) => void;
   timeEntry: TaskRowTimeEntry;
 }
 
@@ -30,8 +31,10 @@ export type TimeEntryFormProps = {
   durationLabel: string | false;
   maxDurationInHours: number;
   submitting: boolean;
+  submitError?: string | null;
   editBaseline?: { duration: number; comment: string } | null;
   onSave: () => void;
   onCommentKeyDown: (e: KeyboardEvent<Element>) => void;
+  onCommentPointerDown?: (e: PointerEvent<HTMLElement>) => void;
   children?: ReactNode;
 };

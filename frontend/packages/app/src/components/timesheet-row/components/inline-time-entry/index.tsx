@@ -1,7 +1,14 @@
 /**
  * External Dependencies
  */
-import { useCallback, useMemo, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { Accordion } from "@base-ui/react/accordion";
 import { floatToTime, mergeClassNames as cn } from "@next-pms/design-system";
 import { stripTags } from "@next-pms/design-system/utils";
@@ -12,16 +19,19 @@ import {
   useToasts,
 } from "@rtcamp/frappe-ui-react";
 import { EditAlt, Compose, AddSm, Delete } from "@rtcamp/frappe-ui-react/icons";
+import { useStore } from "@tanstack/react-form";
 import { FrappeError, useFrappePostCall } from "frappe-react-sdk";
 
 /**
  * Internal Dependencies
  */
 import { parseFrappeErrorMsg } from "@/lib/utils";
+import { useUnsavedChangesSource } from "@/pages/allocations/unsavedChanges/useUnsavedChanges";
 import { TaskDataItemProps } from "@/types/timesheet";
 import { useInlineTimeEntryForm } from "./form";
 import { TimeEntryForm } from "./timeEntryForm";
 import type { InlineTimeEntryProps, TimeEntryFormValues } from "./types";
+import { useResizeEngagement } from "./useResizeEngagement";
 
 export const ENTRY_FORM_MODE = {
   DEFAULT: "default",
@@ -54,12 +64,14 @@ export const InlineTimeEntry = ({
   dailyWorkingHours = 8,
   totalUsedHoursInDay,
   onSubmitSuccess,
+  onEngagedChange,
   timeEntry,
   tasks,
   disabled,
 }: InlineTimeEntryProps) => {
   const toast = useToasts();
   const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
   const [entryFormMode, setEntryFormMode] = useState<EntryFormMode>(
     ENTRY_FORM_MODE.DEFAULT,
   );
@@ -70,11 +82,16 @@ export const InlineTimeEntry = ({
     duration: number;
     comment: string;
   } | null>(null);
+  const {
+    isResizeActive: commentResizeActive,
+    onResizePointerDown: handleCommentPointerDown,
+  } = useResizeEngagement();
   const [collapsedEntryNames, setCollapsedEntryNames] = useState<string[]>([]);
   const hasInitializedInteractiveModeRef = useRef(false);
   const editBaselineRef = useRef<{ duration: number; comment: string } | null>(
     null,
   );
+  const pendingProceedAfterSaveRef = useRef<(() => void) | null>(null);
 
   const { call: saveTime } = useFrappePostCall(
     "next_pms.timesheet.api.timesheet.save",
@@ -110,6 +127,7 @@ export const InlineTimeEntry = ({
     defaultValues,
     onSubmit: async ({ value }) => {
       setSubmitting(true);
+      setSubmitError(null);
 
       try {
         if (entryFormMode === ENTRY_FORM_MODE.EDIT && selectedEntry) {
@@ -140,10 +158,11 @@ export const InlineTimeEntry = ({
         if (hasNoTimeEntries && entryFormMode === ENTRY_FORM_MODE.DEFAULT) {
           onSubmitSuccess?.();
         }
+        pendingProceedAfterSaveRef.current?.();
       } catch (err) {
-        const error = parseFrappeErrorMsg(err as FrappeError);
-        toast.error(error);
+        setSubmitError(parseFrappeErrorMsg(err as FrappeError));
       } finally {
+        pendingProceedAfterSaveRef.current = null;
         setSubmitting(false);
         form.reset();
         editBaselineRef.current = null;
@@ -153,6 +172,57 @@ export const InlineTimeEntry = ({
       }
     },
   });
+
+  const { duration: liveDuration, comment: liveComment } = useStore(
+    form.store,
+    (state) => state.values,
+  );
+  const hasUnsavedChanges =
+    entryFormMode === ENTRY_FORM_MODE.EDIT && editBaselineRef.current
+      ? liveDuration !== editBaselineRef.current.duration ||
+        liveComment !== editBaselineRef.current.comment
+      : liveDuration !== defaultValues.duration ||
+        liveComment !== defaultValues.comment;
+  const isEngaged =
+    entryFormMode !== ENTRY_FORM_MODE.DEFAULT ||
+    hasUnsavedChanges ||
+    commentResizeActive;
+
+  const hasUnsavedChangesRef = useRef(hasUnsavedChanges);
+  hasUnsavedChangesRef.current = hasUnsavedChanges;
+
+  // Layout effect so the pin lands before the browser fires the hover-leave.
+  useLayoutEffect(() => {
+    onEngagedChange?.(isEngaged);
+  }, [isEngaged, onEngagedChange]);
+
+  const discardChanges = useCallback(() => {
+    form.reset();
+    editBaselineRef.current = null;
+    setSelectedEntry(null);
+    setAddDraft(null);
+    setEntryFormMode(ENTRY_FORM_MODE.DEFAULT);
+  }, [form]);
+
+  const unsavedChangesSourceRef = useUnsavedChangesSource();
+  useEffect(() => {
+    const source = {
+      hasUnsavedChanges: () => hasUnsavedChangesRef.current,
+      saveChanges: (onSaved?: () => void) => {
+        pendingProceedAfterSaveRef.current = onSaved ?? null;
+        void form.handleSubmit().finally(() => {
+          pendingProceedAfterSaveRef.current = null;
+        });
+      },
+      discardChanges,
+    };
+    unsavedChangesSourceRef.current = source;
+    return () => {
+      if (unsavedChangesSourceRef.current === source) {
+        unsavedChangesSourceRef.current = null;
+      }
+    };
+  }, [unsavedChangesSourceRef, form, discardChanges]);
 
   const handleDelete = useCallback(async () => {
     if (!selectedEntry) return;
@@ -178,6 +248,7 @@ export const InlineTimeEntry = ({
 
   const handleEditEntry = useCallback(
     (entry: TaskDataItemProps) => {
+      setSubmitError(null);
       if (entryFormMode === ENTRY_FORM_MODE.ADD) {
         const { duration, comment } = form.state.values;
         const hasDraftValue =
@@ -207,6 +278,7 @@ export const InlineTimeEntry = ({
   );
 
   const handleToggleAddMode = useCallback(() => {
+    setSubmitError(null);
     if (entryFormMode === ENTRY_FORM_MODE.ADD) {
       void form.handleSubmit();
       return;
@@ -262,7 +334,7 @@ export const InlineTimeEntry = ({
   }
 
   return (
-    <div className="animate-fade-in w-68 max-h-[min(350px,90dvh)] overflow-y-auto scrollbar-thin shadow bg-surface-modal rounded-lg flex flex-col gap-2 p-2">
+    <div className="animate-fade-in min-w-68 w-fit max-w-[min(720px,90vw)] max-h-[min(500px,90dvh)] overflow-auto scrollbar-thin shadow bg-surface-modal rounded-lg flex flex-col gap-2 p-2">
       {tasks.map((entry: TaskDataItemProps, index: number) => {
         const isEditingThisEntry =
           entryFormMode === ENTRY_FORM_MODE.EDIT &&
@@ -271,7 +343,7 @@ export const InlineTimeEntry = ({
           isEditingThisEntry || !collapsedEntryNames.includes(entry.name);
 
         return (
-          <div key={entry.name} className="w-full group">
+          <div key={entry.name} className="w-full min-w-0 group">
             <Accordion.Root
               value={isExpanded ? [entry.name] : []}
               onValueChange={() => handleToggleEntryExpand(entry.name)}
@@ -289,11 +361,11 @@ export const InlineTimeEntry = ({
                       <div
                         {...props}
                         className={cn(
-                          "w-full relative flex justify-start gap-2 cursor-pointer text-left",
+                          "w-full relative gap-2 cursor-pointer text-left",
                           "focus:outline-none focus-visible:ring focus-visible:ring-outline-gray-3 rounded-sm",
                           !isExpanded
-                            ? "flex-row items-center"
-                            : "flex-col items-start ",
+                            ? "grid grid-cols-[auto_minmax(0,1fr)] items-center"
+                            : "flex flex-col items-start ",
                         )}
                       >
                         <div
@@ -322,11 +394,7 @@ export const InlineTimeEntry = ({
                         {!isExpanded ? (
                           <span
                             className={cn(
-                              "w-full min-w-0 text-sm truncate text-ink-gray-6",
-                              {
-                                "group-hover:pr-4 group-focus-within:pr-4":
-                                  !disabled,
-                              },
+                              "block min-w-0 max-w-full truncate pr-4 text-sm text-ink-gray-6 contain-[inline-size]",
                             )}
                           >
                             {entry.description
@@ -340,6 +408,8 @@ export const InlineTimeEntry = ({
                               "w-5 h-5 absolute right-0 top-0 opacity-0 pointer-events-none",
                               "group-hover:opacity-100 group-hover:pointer-events-auto",
                               "group-focus-within:opacity-100 group-focus-within:pointer-events-auto",
+                              !isExpanded &&
+                                "group-active:not-hover:opacity-0 group-active:not-hover:pointer-events-none",
                             )}
                             variant="ghost"
                             icon={() => (
@@ -356,7 +426,7 @@ export const InlineTimeEntry = ({
                   />
                 ) : null}
                 <Accordion.Panel className="accordion-panel">
-                  <div className="pt-2">
+                  <div className="w-full pt-2">
                     {!disabled && isEditingThisEntry ? (
                       <TimeEntryForm
                         form={form}
@@ -366,8 +436,10 @@ export const InlineTimeEntry = ({
                         maxDurationInHours={dailyWorkingHours}
                         editBaseline={editBaselineRef.current}
                         submitting={submitting}
+                        submitError={submitError}
                         onSave={() => handleSubmit()}
                         onCommentKeyDown={handleSubmit}
+                        onCommentPointerDown={handleCommentPointerDown}
                       >
                         <Button
                           variant="subtle"
@@ -381,10 +453,19 @@ export const InlineTimeEntry = ({
                         </Button>
                       </TimeEntryForm>
                     ) : (
-                      <StaticTextEditor
-                        content={entry.description}
-                        editorClass="max-h-30 prose-sm overflow-auto scrollbar-thin text-ink-gray-7 text-base leading-5.25"
-                      />
+                      <div
+                        className="w-full min-w-0"
+                        onPointerDownCapture={handleCommentPointerDown}
+                      >
+                        <StaticTextEditor
+                          content={entry.description}
+                          editorClass={cn(
+                            "max-h-40 resize prose-sm overflow-auto scrollbar-thin bg-surface-white text-ink-gray-7 text-base leading-5.25",
+                            "box-border w-full min-w-64 max-w-[min(680px,calc(90vw-2rem))]",
+                            "contain-[inline-size] wrap-anywhere **:max-w-full **:wrap-anywhere",
+                          )}
+                        />
+                      </div>
                     )}
                   </div>
                 </Accordion.Panel>
@@ -404,8 +485,10 @@ export const InlineTimeEntry = ({
               durationLabel={hasNoTimeEntries ? false : "Add time"}
               maxDurationInHours={dailyWorkingHours}
               submitting={submitting}
+              submitError={submitError}
               onSave={() => handleSubmit()}
               onCommentKeyDown={handleSubmit}
+              onCommentPointerDown={handleCommentPointerDown}
             />
           ) : null}
           {!hasNoTimeEntries && entryFormMode !== ENTRY_FORM_MODE.ADD ? (

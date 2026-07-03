@@ -55,7 +55,7 @@
 
   .scrollbar::-webkit-scrollbar-thumb {
     background: var(--color-surface-gray-4);
-    border-radius: 100%;
+    border-radius: 54px;
   }
 
   .scrollbar::-webkit-scrollbar-corner {
@@ -78,7 +78,7 @@
 
   .scrollbar-thin::-webkit-scrollbar-thumb {
     background: var(--color-surface-gray-4);
-    border-radius: 100%;
+    border-radius: 54px;
   }
 
   .scrollbar-thin::-webkit-scrollbar-corner {

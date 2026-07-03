@@ -2,7 +2,7 @@
  * External dependencies.
  */
 import React from "react";
-import { Badge, Button } from "@rtcamp/frappe-ui-react";
+import { Badge, Button, Tooltip } from "@rtcamp/frappe-ui-react";
 import { SmallDown } from "@rtcamp/frappe-ui-react/icons";
 
 /**
@@ -17,6 +17,7 @@ import {
   type ApprovalStatusType,
   approvalStatusTheme,
   approvalStatusIcon,
+  approvalStatusActionLabelMap,
 } from "../constants";
 
 export interface WeekRowProps {
@@ -58,6 +59,9 @@ export const WeekRow: React.FC<WeekRowProps> = ({
   className,
 }) => {
   const isStatusNone = status === "none";
+  const actionLabel =
+    approvalStatusActionLabelMap[status] ??
+    ApprovalStatusDisplayLabelMap[status];
 
   return (
     <div
@@ -129,28 +133,29 @@ export const WeekRow: React.FC<WeekRowProps> = ({
 
       <div className="flex items-center justify-end w-12 shrink-0 h-7 whitespace-nowrap">
         {!isStatusNone ? (
-          <Button
-            onClick={(e) => {
-              e.stopPropagation();
-              onButtonClick?.();
-            }}
-            className={cn(
-              buttonVariants({
-                status,
-                thisWeek,
-                variant: approvalStatusIcon[status]?.variant,
-                collapsed,
-              }),
-            )}
-            variant={approvalStatusIcon[status]?.variant}
-            size="sm"
-            icon={() => {
-              const IconComponent = approvalStatusIcon[status]?.icon;
-              return IconComponent ? <IconComponent size={16} /> : null;
-            }}
-            aria-label="Submit week"
-            title={ApprovalStatusDisplayLabelMap[status]}
-          />
+          <Tooltip text={actionLabel}>
+            <Button
+              onClick={(e) => {
+                e.stopPropagation();
+                onButtonClick?.();
+              }}
+              className={cn(
+                buttonVariants({
+                  status,
+                  thisWeek,
+                  variant: approvalStatusIcon[status]?.variant,
+                  collapsed,
+                }),
+              )}
+              variant={approvalStatusIcon[status]?.variant}
+              size="sm"
+              icon={() => {
+                const IconComponent = approvalStatusIcon[status]?.icon;
+                return IconComponent ? <IconComponent size={16} /> : null;
+              }}
+              aria-label={actionLabel}
+            />
+          </Tooltip>
         ) : null}
       </div>
     </div>

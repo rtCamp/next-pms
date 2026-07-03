@@ -8,7 +8,7 @@ export const DEFAULT_VISIBLE_DAYS = 14;
 export const WEEKEND_DAY_INDICES = [0, 6];
 
 export const eventChipVariants = cva(
-  "flex w-full flex-col gap-0.5 rounded-md py-0.5 pl-1 pr-2 text-left",
+  "flex w-full flex-col gap-0.5 rounded-md py-0.5 pl-1 pr-2 text-left cursor-pointer",
   {
     variants: {
       color: {
