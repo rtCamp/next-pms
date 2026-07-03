@@ -1,7 +1,7 @@
 /**
  * External dependencies.
  */
-import { FC, PropsWithChildren, useCallback, useMemo } from "react";
+import { FC, PropsWithChildren, useCallback, useMemo, useState } from "react";
 import type { NotificationEntry } from "@next-pms/design-system/components";
 import { formatDistanceToNow, parseISO } from "date-fns";
 import { useFrappeGetDocList, useFrappeUpdateDoc } from "frappe-react-sdk";
@@ -135,12 +135,25 @@ export const NotificationsProvider: FC<PropsWithChildren> = ({ children }) => {
     await mutate();
   }, [data, updateDoc, mutate]);
 
+  const [isTrayOpen, setIsTrayOpen] = useState(false);
+  const openTray = useCallback(() => setIsTrayOpen(true), []);
+  const closeTray = useCallback(() => setIsTrayOpen(false), []);
+
   const value = useMemo(
     () => ({
-      state: { notifications, isLoading, unreadCount },
-      actions: { markAsViewed, markAllAsViewed },
+      state: { notifications, isLoading, unreadCount, isTrayOpen },
+      actions: { markAsViewed, markAllAsViewed, openTray, closeTray },
     }),
-    [notifications, isLoading, unreadCount, markAsViewed, markAllAsViewed],
+    [
+      notifications,
+      isLoading,
+      unreadCount,
+      isTrayOpen,
+      markAsViewed,
+      markAllAsViewed,
+      openTray,
+      closeTray,
+    ],
   );
 
   return (

@@ -10,7 +10,7 @@ from frappe import only_for, whitelist
 from frappe.core.doctype.recorder.recorder import redis_cache
 from frappe.query_builder import DocType
 from frappe.query_builder.functions import Sum
-from frappe.utils import add_days, cint, flt, getdate, today
+from frappe.utils import add_days, cint, flt, get_datetime, getdate, today
 from pypika import Case
 from pypika.functions import Date
 
@@ -752,8 +752,8 @@ def get_cost(cur_start, cur_end, prev_start, prev_end, client, project) -> tuple
 
 
 @whitelist(methods=["GET"])
-def get_time_utilisation(days: int = 30, role: str | None = None) -> dict:
-    """Return total billable and non-billable hours logged across all timesheets in the given window.
+def get_time_utilisation(days: int = 30) -> dict:
+    """Return billable and non-billable hours logged in the given window, grouped by designation.
 
     Parameters
     ----------
@@ -761,64 +761,85 @@ def get_time_utilisation(days: int = 30, role: str | None = None) -> dict:
         Inclusive look-back window of calendar days ending today.
         For example, days=30 on 10 Jun covers 12 May through 10 Jun.
         Defaults to 30.
-    role : str, optional
-        Filter by the timesheet employee's designation. Defaults to None (all roles).
-
     Returns
     -------
     dict
-        billable_hours : float
-        non_billable_hours : float
-        total_hours : float
+        days : int
+        start_date : str
+        end_date : str
+        roles : list of dicts, each with designation, billable_hours,
+                non_billable_hours, total_hours
     """
     only_for(["Projects Manager", "Projects User", "System Manager"], message=True)
 
     if days < 1:
         frappe.throw(frappe._("days must be at least 1"))
 
-    return _get_time_utilisation(days, role)
+    return _get_time_utilisation(days)
 
 
 @redis_cache(ttl=21600)
-def _get_time_utilisation(days: int, role: str | None) -> dict:
+def _get_time_utilisation(days: int) -> dict:
     TimesheetDetail = DocType("Timesheet Detail")
-    since = add_days(today(), -(days - 1))
+    Timesheet = DocType("Timesheet")
+    Employee = DocType("Employee")
+    end_date = getdate(today())
+    start_date = getdate(add_days(end_date, -(days - 1)))
+
+    # Seed summary with every active designation so roles with zero activity still appear.
+    all_designations = frappe.get_all(
+        "Employee",
+        filters={"status": "Active"},
+        fields=["designation"],
+        pluck="designation",
+        distinct=True,
+    )
+    summary = {d: {"billable": 0.0, "non_billable": 0.0} for d in sorted(d for d in set(all_designations) if d)}
+
+    start_datetime = get_datetime(start_date)
+    end_datetime = get_datetime(add_days(end_date, 1))
 
     query = (
         frappe.qb.from_(TimesheetDetail)
+        .join(Timesheet)
+        .on(TimesheetDetail.parent == Timesheet.name)
+        .join(Employee)
+        .on(Timesheet.employee == Employee.name)
         .select(
+            Employee.designation,
             TimesheetDetail.is_billable,
-            Sum(TimesheetDetail.hours).as_("total_hours"),
+            Sum(TimesheetDetail.hours).as_("hours"),
         )
-        .where(Date(TimesheetDetail.from_time) >= since)
-        .where(Date(TimesheetDetail.from_time) <= today())
+        .where(TimesheetDetail.from_time >= start_datetime)
+        .where(TimesheetDetail.from_time < end_datetime)
+        .where(Employee.designation != "")
+        .where(Timesheet.custom_approval_status != "Rejected")
     )
 
-    if role:
-        Timesheet = DocType("Timesheet")
-        Employee = DocType("Employee")
-        query = (
-            query.join(Timesheet)
-            .on(TimesheetDetail.parent == Timesheet.name)
-            .join(Employee)
-            .on(Timesheet.employee == Employee.name)
-            .where(Employee.designation == role)
-        )
+    rows = query.groupby(Employee.designation, TimesheetDetail.is_billable).run(as_dict=True)
 
-    rows = query.groupby(TimesheetDetail.is_billable).run(as_dict=True)
-
-    billable = 0.0
-    non_billable = 0.0
     for row in rows:
+        bucket = summary.setdefault(row.designation, {"billable": 0.0, "non_billable": 0.0})
         if row.is_billable:
-            billable = flt(row.total_hours)
+            bucket["billable"] += flt(row.hours)
         else:
-            non_billable = flt(row.total_hours)
+            bucket["non_billable"] += flt(row.hours)
+
+    roles = [
+        {
+            "designation": designation,
+            "billable_hours": flt(bucket["billable"], 2),
+            "non_billable_hours": flt(bucket["non_billable"], 2),
+            "total_hours": flt(bucket["billable"] + bucket["non_billable"], 2),
+        }
+        for designation, bucket in sorted(summary.items())
+    ]
 
     return {
-        "billable_hours": billable,
-        "non_billable_hours": non_billable,
-        "total_hours": billable + non_billable,
+        "days": days,
+        "start_date": start_date,
+        "end_date": end_date,
+        "roles": roles,
     }
 
 
