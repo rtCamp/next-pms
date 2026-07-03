@@ -92,22 +92,29 @@ const EntryRow = ({ entry, readOnly = false, onSave }: EntryRowProps) => {
               {entry.taskName}
             </p>
             <p className="text-xs text-ink-gray-5">{entry.projectName}</p>
-            <TextEditor
-              content={description}
-              onChange={(val) => {
-                setDescription(val);
-                setDescriptionError(null);
-              }}
-              fixedMenu={false}
-              placeholder="Comment"
-              editorClass="px-2 h-24 prose-sm overflow-auto scrollbar-thin bg-white border rounded-md border-outline-gray-2"
-            />
+            <div className="flex flex-col gap-2 mt-3">
+              <DurationInput
+                snap="smooth"
+                variant="outline"
+                value={hours}
+                onChange={setHours}
+              />
+              <TextEditor
+                content={description}
+                onChange={(val) => {
+                  setDescription(val);
+                  setDescriptionError(null);
+                }}
+                fixedMenu={false}
+                placeholder="Comment"
+                editorClass="px-2 h-24 prose-sm overflow-auto scrollbar-thin bg-white border rounded-md border-outline-gray-2"
+              />
+            </div>
             {descriptionError ? (
               <ErrorMessage message={descriptionError} />
             ) : null}
           </div>
         </div>
-        <DurationInput value={hours} onChange={setHours} />
 
         <div className="flex flex-col gap-2">
           <Button
