@@ -16,7 +16,7 @@ interface EventChipProps {
 }
 
 const EventChip = ({ title, subtitle, color = "blue" }: EventChipProps) => (
-  <Tooltip text={title + "-" + subtitle}>
+  <Tooltip text={subtitle ? `${title} - ${subtitle}` : title}>
     <div className={eventChipVariants({ color })}>
       <p className={eventChipTitleVariants({ color })}>{title}</p>
       {subtitle && (

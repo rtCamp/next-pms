@@ -752,7 +752,7 @@ def get_cost(cur_start, cur_end, prev_start, prev_end, client, project) -> tuple
 
 
 @whitelist(methods=["GET"])
-def get_time_utilisation(days: int = 30, role: str | None = None) -> dict:
+def get_time_utilisation(days: int = 30) -> dict:
     """Return billable and non-billable hours logged in the given window, grouped by designation.
 
     Parameters
@@ -761,9 +761,6 @@ def get_time_utilisation(days: int = 30, role: str | None = None) -> dict:
         Inclusive look-back window of calendar days ending today.
         For example, days=30 on 10 Jun covers 12 May through 10 Jun.
         Defaults to 30.
-    role : str, optional
-        Filter to a single designation. Defaults to None (all roles).
-
     Returns
     -------
     dict
@@ -778,11 +775,11 @@ def get_time_utilisation(days: int = 30, role: str | None = None) -> dict:
     if days < 1:
         frappe.throw(frappe._("days must be at least 1"))
 
-    return _get_time_utilisation(days, role)
+    return _get_time_utilisation(days)
 
 
 @redis_cache(ttl=21600)
-def _get_time_utilisation(days: int, role: str | None) -> dict:
+def _get_time_utilisation(days: int) -> dict:
     TimesheetDetail = DocType("Timesheet Detail")
     Timesheet = DocType("Timesheet")
     Employee = DocType("Employee")
@@ -814,9 +811,6 @@ def _get_time_utilisation(days: int, role: str | None) -> dict:
         .where(Employee.designation.isnotnull())
         .where(Employee.designation != "")
     )
-
-    if role:
-        query = query.where(Employee.designation == role)
 
     rows = query.groupby(Employee.designation, TimesheetDetail.is_billable).run(as_dict=True)
 
