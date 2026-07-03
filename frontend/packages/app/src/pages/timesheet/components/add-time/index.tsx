@@ -1,7 +1,7 @@
 /**
  * External Dependencies
  */
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { TaskStatus, taskStatusMap } from "@next-pms/design-system/components";
 import {
   DatePicker,
@@ -12,6 +12,8 @@ import {
   useToasts,
   TextEditor,
   DurationInput,
+  type TextEditorHandle,
+  type TextEditorProps,
 } from "@rtcamp/frappe-ui-react";
 import { Calendar, Folder } from "@rtcamp/frappe-ui-react/icons";
 import { useForm, useStore } from "@tanstack/react-form";
@@ -26,7 +28,11 @@ import { parseFrappeErrorMsg } from "@/lib/utils";
 import { useUser } from "@/providers/user";
 import CalendarEvents from "./calendarEvents";
 import { addTimeFormSchema } from "./schema";
-import type { AddTimeProps } from "./type";
+import type { AddTimeProps, SelectedCalendarEvent } from "./type";
+
+const COMMENT_EDITOR_STARTERKIT_OPTIONS: NonNullable<
+  TextEditorProps["starterkitOptions"]
+> = { trailingNode: false };
 
 /**
  * Add Time Component
@@ -57,6 +63,8 @@ const AddTime = ({
   const [projectSearch, setProjectSearch] = useState("");
   const [taskSearch, setTaskSearch] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const commentEditorRef = useRef<TextEditorHandle>(null);
+  const prevSelectedEventIdsRef = useRef<Set<string>>(new Set());
   const [submitError, setSubmitError] = useState<string | null>(null);
   const { call: saveTime } = useFrappePostCall(
     "next_pms.timesheet.api.timesheet.save",
@@ -145,6 +153,7 @@ const AddTime = ({
       duration: 0,
       comment: "",
     });
+    prevSelectedEventIdsRef.current = new Set();
   }, [form, initialDate, open, project, task]);
 
   const { options: projectOptions, isLoading: isProjectLookupLoading } =
@@ -176,28 +185,22 @@ const AddTime = ({
     });
 
   const handleCalendarSelectionChange = useCallback(
-    (selectedLabels: string[], allEventSubjects: string[]) => {
-      const currentComment = form.state.values.comment || "";
-      const preservedLines = currentComment
-        .split("\n")
-        .map((line) => line.trim())
-        .filter(
-          (line) =>
-            line &&
-            !allEventSubjects.some(
-              (subject) =>
-                line === subject ||
-                line === `- ${subject}` ||
-                line.startsWith(`- ${subject} | `),
-            ),
+    (selectedItems: SelectedCalendarEvent[], totalDurationHours: number) => {
+      const nextIds = new Set(selectedItems.map((item) => item.id));
+      const prevIds = prevSelectedEventIdsRef.current;
+
+      selectedItems
+        .filter((item) => !prevIds.has(item.id))
+        .forEach((item) =>
+          commentEditorRef.current?.addListItem(item.id, item.label),
         );
 
-      const selectedSubjectLines = selectedLabels.map((label) => `- ${label}`);
+      [...prevIds]
+        .filter((id) => !nextIds.has(id))
+        .forEach((id) => commentEditorRef.current?.removeListItem(id));
 
-      form.setFieldValue(
-        "comment",
-        [...preservedLines, ...selectedSubjectLines].join("\n"),
-      );
+      prevSelectedEventIdsRef.current = nextIds;
+      form.setFieldValue("duration", totalDurationHours);
     },
     [form],
   );
@@ -378,8 +381,10 @@ const AddTime = ({
                   Comment
                 </label>
                 <TextEditor
+                  ref={commentEditorRef}
                   content={field.state.value}
                   onChange={(value) => field.handleChange(value)}
+                  starterkitOptions={COMMENT_EDITOR_STARTERKIT_OPTIONS}
                   fixedMenu={false}
                   editorClass="px-2 h-24 prose-sm overflow-auto scrollbar-thin bg-white border rounded-md border-outline-gray-2 text-ink-gray-7 text-base"
                 />
