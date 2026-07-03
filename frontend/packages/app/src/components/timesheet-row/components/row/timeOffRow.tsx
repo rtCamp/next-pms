@@ -2,7 +2,7 @@
  * External dependencies
  */
 import { useMemo } from "react";
-import { floatToTime } from "@next-pms/design-system";
+import { floatToTime, stripTags } from "@next-pms/design-system";
 import { TimeOffRow as BaseTimeOffRow } from "@next-pms/design-system/components";
 
 /**
@@ -42,7 +42,7 @@ export const TimeOffRow = ({
       totalTimeEntries.push({
         time: hour === 0 ? "" : floatToTime(hour, 2),
         holiday: Boolean(holiday),
-        holidayDescription: holiday?.description,
+        holidayDescription: stripTags(holiday?.description ?? ""),
       });
     }
 
