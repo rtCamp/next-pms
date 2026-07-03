@@ -165,12 +165,14 @@ const EntryRow = ({ entry, readOnly = false, onSave }: EntryRowProps) => {
       </span>
       <Button
         className={cn(
-          "m-0 size-fit hover:bg-surface-white transition-opacity",
+          "m-0 size-fit hover:bg-surface-white transition-opacity focus-visible:opacity-100 focus-visible:pointer-events-auto",
           !isReadOnly && isHovered
             ? "opacity-100"
             : "opacity-0 pointer-events-none",
         )}
         variant="ghost"
+        label="Edit time entry"
+        disabled={isReadOnly}
         icon={() => <EditAlt size={16} className="text-ink-gray-7" />}
         onClick={handleEdit}
       />

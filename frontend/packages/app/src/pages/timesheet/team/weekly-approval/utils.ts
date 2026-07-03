@@ -29,8 +29,10 @@ const formatDay = (dateTimeStr: string): string => {
   return `${weekday}, ${month} ${day}`;
 };
 
-const getLeaveLabel = (leave: LeaveProps): string => {
-  if (!leave.half_day) {
+const getLeaveLabel = (leave: LeaveProps, date: string): string => {
+  const isHalfDayLeave = leave.half_day && leave.half_day_date === date;
+
+  if (!isHalfDayLeave) {
     return "Full day off";
   }
 
@@ -51,7 +53,7 @@ const getLeaveLabelForDate = (
 ): string | undefined => {
   const labels = leaves
     .filter((leave) => date >= leave.from_date && date <= leave.to_date)
-    .map(getLeaveLabel);
+    .map((leave) => getLeaveLabel(leave, date));
 
   const uniqueLabels = [...new Set(labels)];
   return uniqueLabels.length > 0 ? uniqueLabels.join(", ") : undefined;
