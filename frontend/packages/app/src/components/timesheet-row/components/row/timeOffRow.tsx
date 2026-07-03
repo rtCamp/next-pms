@@ -42,6 +42,7 @@ export const TimeOffRow = ({
       totalTimeEntries.push({
         time: hour === 0 ? "" : floatToTime(hour, 2),
         holiday: Boolean(holiday),
+        holidayDescription: holiday?.description,
       });
     }
 
