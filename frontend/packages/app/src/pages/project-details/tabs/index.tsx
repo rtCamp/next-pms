@@ -5,6 +5,7 @@ import { EmailTab } from "./email";
 import { Feedback } from "./feedback";
 import { Notes } from "./notes";
 import { Overview } from "./overview";
+import { RagStats } from "./rag-stats";
 import { RisksTab } from "./risks";
 import { Todo } from "./to-do";
 import { Tracking } from "./tracking";
@@ -18,6 +19,7 @@ export const TAB_KEYS = [
   "email",
   "to-do",
   "feedback",
+  "rag-stats",
 ] as const;
 
 export type TabKey = (typeof TAB_KEYS)[number];
@@ -31,4 +33,5 @@ export const TABS: ComponentProps<typeof Tabs>["tabs"] = [
   { label: "Email", content: <EmailTab /> },
   { label: "To-do", content: <Todo /> },
   { label: "Feedback", content: <Feedback /> },
+  { label: "RAG stats", content: <RagStats /> },
 ] as const;
