@@ -16,14 +16,14 @@ import {
  * Internal dependencies.
  */
 import { parseFrappeErrorMsg } from "@/lib/utils";
-import { useProjectDetail } from "../../context";
-import type { ProjectReportRow } from "../../types";
 import {
   DURATION_CUSTOM,
   DURATION_DAYS,
   GENERATE_TIMEOUT_MS,
 } from "./constants";
 import type { PMReportEvent } from "./types";
+import { useProjectDetail } from "../../context";
+import type { ProjectReportRow } from "../../types";
 
 const toDateString = (date: Date) => format(date, "yyyy-MM-dd");
 

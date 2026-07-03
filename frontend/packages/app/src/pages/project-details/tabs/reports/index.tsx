@@ -6,10 +6,10 @@ import { Skeleton } from "@rtcamp/frappe-ui-react";
 /**
  * Internal dependencies.
  */
-import { useProjectDetail } from "../../context";
 import { ReportConfiguration } from "./reportConfiguration";
 import { ReportsTable } from "./reportsTable";
 import { useProjectReport } from "./useProjectReport";
+import { useProjectDetail } from "../../context";
 
 export function Reports() {
   const { project, isLoading } = useProjectDetail((state) => state);

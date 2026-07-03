@@ -15,8 +15,8 @@ import { format, parseISO } from "date-fns";
  * Internal dependencies.
  */
 import { mergeClassNames } from "@/lib/utils";
-import type { ProjectReportRow } from "../../types";
 import { REPORT_COLUMNS } from "./constants";
+import type { ProjectReportRow } from "../../types";
 
 interface ReportsTableProps {
   reports: ProjectReportRow[];
