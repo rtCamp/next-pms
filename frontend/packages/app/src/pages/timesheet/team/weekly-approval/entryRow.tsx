@@ -2,7 +2,7 @@
  * External Dependencies
  */
 import { useState, useCallback } from "react";
-import { floatToTime } from "@next-pms/design-system";
+import { floatToTime, mergeClassNames as cn } from "@next-pms/design-system";
 import { TaskStatus } from "@next-pms/design-system/components";
 import { stripTags } from "@next-pms/design-system/utils";
 import {
@@ -36,6 +36,7 @@ const EntryRow = ({ entry, onSave }: EntryRowProps) => {
   const [description, setDescription] = useState(entry.description);
   const [hours, setHours] = useState(entry.hours);
   const [descriptionError, setDescriptionError] = useState<string | null>(null);
+  const [isHovered, setIsHovered] = useState(false);
 
   const handleEdit = useCallback(() => {
     setDescriptionError(null);
@@ -121,7 +122,11 @@ const EntryRow = ({ entry, onSave }: EntryRowProps) => {
   }
 
   return (
-    <div className="px-3.5 py-4 flex gap-3 border-b border-outline-gray-modals last:border-b-0 group">
+    <div
+      className="px-3.5 py-4 flex gap-3 border-b border-outline-gray-modals last:border-b-0"
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+    >
       <TaskStatus status={entry.status} />
       <div className="flex-1 min-w-0">
         <div className="space-y-1">
@@ -142,7 +147,10 @@ const EntryRow = ({ entry, onSave }: EntryRowProps) => {
         {floatToTime(entry.hours, 2, 2)}
       </span>
       <Button
-        className="m-0 size-fit hover:bg-surface-white opacity-0 group-hover:opacity-100 transition-opacity"
+        className={cn(
+          "m-0 size-fit hover:bg-surface-white transition-opacity",
+          isHovered ? "opacity-100" : "opacity-0 pointer-events-none",
+        )}
         variant="ghost"
         icon={() => <EditAlt size={16} className="text-ink-gray-7" />}
         onClick={handleEdit}

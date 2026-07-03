@@ -32,7 +32,7 @@ const ApprovalPopup = () => {
     handleReject,
   } = useWeeklyApproval();
   return (
-    <Dialog.Popup className="fixed right-0 top-0 w-112 h-[calc(100vh-20px)] m-2.5 z-101 bg-surface-modal rounded-xl shadow-xl flex flex-col">
+    <Dialog.Popup className="fixed right-0 top-0 max-w-120 w-full h-[calc(100vh-20px)] m-2.5 z-101 bg-surface-modal rounded-xl shadow-xl flex flex-col">
       {/* Header */}
       <div className="flex items-center justify-between px-3.5 py-4 border-b border-outline-gray-modals">
         <div className="flex items-center gap-3">
