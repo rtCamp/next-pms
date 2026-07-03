@@ -16,6 +16,7 @@ import type { HolidayProp, LeaveProps, TaskProps } from "@/types/timesheet";
 import { MemberRow } from "./components/row/memberRow";
 import { ProjectRow } from "./components/row/projectRow";
 import { TaskRow } from "./components/row/taskRow";
+import { TimeOffRow } from "./components/row/timeOffRow";
 import { WeekRow } from "./components/row/weekRow";
 import { mergeProjectMemberTasks } from "./utils";
 
@@ -133,6 +134,14 @@ export const ProjectTimesheetRow = ({
                             hideLikeButton={true}
                           />
                         ))}
+                        <TimeOffRow
+                          label="Time-off"
+                          className="pl-19.5"
+                          dates={dates}
+                          leaves={member.leaves}
+                          holidays={member.holidays}
+                          expectedHours={dailyWorkingHours}
+                        />
                       </>
                     )}
                   </MemberRow>
