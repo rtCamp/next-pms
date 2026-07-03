@@ -1,6 +1,7 @@
 /**
  * External dependencies.
  */
+import { Tooltip } from "@rtcamp/frappe-ui-react";
 import { TimeOff } from "@rtcamp/frappe-ui-react/icons";
 
 /**
@@ -12,7 +13,11 @@ export interface TimeOffRowProps {
   /** Label for the time-off row. */
   label?: string;
   /** Array of time-off entries for each day of the week. */
-  timeOffEntries: { time: string; holiday: boolean }[];
+  timeOffEntries: {
+    time: string;
+    holiday: boolean;
+    holidayDescription?: string;
+  }[];
   /** Total time-off hours logged for the week. */
   totalHours?: string;
   /** Optional icon to display next to the label. */
@@ -46,10 +51,13 @@ export const TimeOffRow: React.FC<TimeOffRowProps> = ({
         </span>
         <span className="min-w-0 text-base font-medium truncate">{label}</span>
       </div>
-      {timeOffEntries.map((timeOffEntry, index) => {
-        return (
+      {timeOffEntries.map((timeOffEntry, index) => (
+        <Tooltip
+          key={index}
+          text={timeOffEntry.holidayDescription ?? ""}
+          disabled={!timeOffEntry.holidayDescription}
+        >
           <div
-            key={index}
             className={cn(
               "shrink-0 flex justify-end items-center text-base whitespace-nowrap w-16 h-7 px-2 py-1.5 lining-nums tabular-nums",
               timeOffEntry.holiday ? "text-ink-gray-4" : "text-ink-gray-6",
@@ -61,8 +69,8 @@ export const TimeOffRow: React.FC<TimeOffRowProps> = ({
               <span>{timeOffEntry.time}</span>
             )}
           </div>
-        );
-      })}
+        </Tooltip>
+      ))}
 
       <div className="shrink-0 flex justify-end items-center text-base text-end font-medium text-ink-amber-4 whitespace-nowrap w-16 h-7 px-2 py-1.5 lining-nums tabular-nums">
         <span>{totalHours}</span>
