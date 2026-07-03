@@ -118,8 +118,8 @@ class TestTimeUtilisation(IntegrationTestCase):
     def tearDown(self):
         frappe.set_user("Administrator")
 
-    def _roles_by_designation(self, days=DAYS, role=None):
-        result = _get_time_utilisation(days, role)
+    def _roles_by_designation(self, days=DAYS):
+        result = _get_time_utilisation(days)
         return {r["designation"]: r for r in result["roles"]}
 
     def test_sums_hours_per_designation_across_employees(self):
@@ -150,12 +150,6 @@ class TestTimeUtilisation(IntegrationTestCase):
         # Only the 3h accepted entry should count; the 6h "Rejected" one must not.
         self.assertEqual(roles[DESIGNER]["billable_hours"], 3)
         self.assertEqual(roles[DESIGNER]["total_hours"], 3)
-
-    def test_role_filter_only_aggregates_hours_for_that_designation(self):
-        roles = self._roles_by_designation(role=DESIGNER)
-        self.assertEqual(roles[DESIGNER]["billable_hours"], 3)
-        self.assertEqual(roles[DESIGNER]["total_hours"], 3)
-        self.assertEqual(roles[ENGINEER]["total_hours"], 0)
 
     def test_days_below_one_is_rejected(self):
         with self.assertRaises(frappe.ValidationError):
