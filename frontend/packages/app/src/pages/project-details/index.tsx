@@ -33,10 +33,10 @@ function ProjectDetail() {
 
 function ProjectDetailBody() {
   const [searchParams, setSearchParams] = useSearchParams();
-  const editorMatch = useMatch(`${ROUTES.project}/:projectId/notes/*`);
-  const reportEnabled = useProjectDetail((s) =>
-    Boolean(s.project?.custom_enable_project_report_generation),
+  const reportEnabled = useProjectDetail(
+    (state) => state.project?.custom_enable_project_report_generation,
   );
+  const editorMatch = useMatch(`${ROUTES.project}/:projectId/notes/*`);
 
   let finalTabs = TABS;
   let finalTabKeys = [...TAB_KEYS];

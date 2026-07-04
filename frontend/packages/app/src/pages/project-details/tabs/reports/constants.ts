@@ -1,25 +1,23 @@
-import type { ReportColumn } from "./types";
+import { getFormatedDate } from "@next-pms/design-system/date";
 
-export const DURATION_CUSTOM = "Custom";
+import type { DurationPreset, ReportColumn } from "./types";
 
-export const DURATION_OPTIONS = [
-  { label: "Last Week", value: "Last Week" },
-  { label: "Last 15 Days", value: "Last 15 Days" },
-  { label: "Last Month", value: "Last Month" },
-  { label: DURATION_CUSTOM, value: DURATION_CUSTOM },
-];
+const daysAgo = (days: number): string =>
+  getFormatedDate(new Date(Date.now() - days * 24 * 60 * 60 * 1000));
 
-export const DURATION_DAYS: Record<string, number> = {
-  "Last Week": 7,
-  "Last 15 Days": 15,
-  "Last Month": 30,
+export const getDurationPresets = (): DurationPreset[] => {
+  const today = getFormatedDate(new Date());
+  return [
+    { label: "Last Week", range: [daysAgo(6), today] },
+    { label: "Last 15 Days", range: [daysAgo(14), today] },
+    { label: "Last Month", range: [daysAgo(29), today] },
+  ];
 };
-
-export const GENERATE_TIMEOUT_MS = 600000;
 
 export const REPORT_COLUMNS: ReportColumn[] = [
   { key: "index", label: "#", width: "48px" },
-  { key: "reportLink", label: "Report Link", width: "1fr" },
   { key: "dateRange", label: "Date Range", width: "1fr" },
   { key: "generatedOn", label: "Generated On", width: "1fr" },
+  { key: "status", label: "Status", width: "40px" },
+  { key: "reportLink", label: "Report", width: "80px", align: "right" },
 ];

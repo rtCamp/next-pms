@@ -2,6 +2,7 @@
  * External dependencies.
  */
 import {
+  Button,
   ListHeader,
   ListHeaderItem,
   ListRow,
@@ -9,6 +10,7 @@ import {
   ListView,
   Spinner,
 } from "@rtcamp/frappe-ui-react";
+import { ArrowUpRight } from "@rtcamp/frappe-ui-react/icons";
 import { format, parseISO } from "date-fns";
 
 /**
@@ -27,29 +29,36 @@ const formatGeneratedOn = (value?: string) => {
   return format(parseISO(value.replace(" ", "T")), "dd MMM yyyy, HH:mm");
 };
 
+function StatusCell({ report }: { report: ProjectReportRow }) {
+  switch (report.status) {
+    case "Generating":
+      return (
+        <span className="flex items-center gap-2 text-ink-amber-3">
+          <Spinner className="size-3" /> Generating…
+        </span>
+      );
+    case "Failed":
+      return <span className="text-ink-red-3">Failed</span>;
+    case "Done":
+      return <span className="text-ink-green-4">Done</span>;
+    case "Completed":
+      return <span className="text-ink-gray-5">Completed</span>;
+    default:
+      return <span className="text-ink-gray-5">—</span>;
+  }
+}
+
 function ReportLinkCell({ report }: { report: ProjectReportRow }) {
-  if (report.status === "Generating") {
-    return (
-      <span className="flex items-center gap-2 text-ink-amber-3">
-        <Spinner className="size-3" /> Generating…
-      </span>
-    );
-  }
-  if (report.status === "Failed") {
-    return <span className="text-ink-red-3">Failed</span>;
-  }
-  if (report.status === "Completed" || !report.report_link) {
-    return <span className="text-ink-gray-5">No document</span>;
+  if (!report.report_link) {
+    return null;
   }
   return (
-    <a
-      href={report.report_link}
-      target="_blank"
-      rel="noopener noreferrer"
-      className="text-ink-blue-3 underline"
-    >
-      View Report
-    </a>
+    <Button
+      variant="ghost"
+      label="View Report"
+      icon={ArrowUpRight}
+      link={report.report_link}
+    />
   );
 }
 
@@ -92,6 +101,8 @@ export function ReportsTable({ reports }: ReportsTableProps) {
                   >
                     {column.key === "reportLink" ? (
                       <ReportLinkCell report={row} />
+                    ) : column.key === "status" ? (
+                      <StatusCell report={row} />
                     ) : column.key === "generatedOn" ? (
                       <span className="truncate">
                         {formatGeneratedOn(row.generated_on)}

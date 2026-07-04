@@ -2,7 +2,8 @@ export type ReportColumnKey =
   | "index"
   | "reportLink"
   | "dateRange"
-  | "generatedOn";
+  | "generatedOn"
+  | "status";
 
 export interface ReportColumn {
   key: ReportColumnKey;
@@ -11,8 +12,7 @@ export interface ReportColumn {
   align?: "left" | "right";
 }
 
-export interface PMReportEvent {
-  project: string;
-  doc_link?: string;
-  error?: string;
+export interface DurationPreset {
+  label: string;
+  range: [string, string];
 }
