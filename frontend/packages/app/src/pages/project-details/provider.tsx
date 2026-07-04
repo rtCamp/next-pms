@@ -50,6 +50,16 @@ export function ProjectDetailProvider({
     [updateDoc, projectId, mutate],
   );
 
+  const updateSlackChannel = useCallback(
+    async (slug: string) => {
+      await updateDoc("Project", projectId, {
+        custom_slack_channel_slug: slug,
+      });
+      mutate();
+    },
+    [updateDoc, projectId, mutate],
+  );
+
   const value: ProjectDetailContextProps = {
     projectId,
     project: data,
@@ -58,6 +68,7 @@ export function ProjectDetailProvider({
     mutate,
     updateRepositories,
     updateContacts,
+    updateSlackChannel,
   };
 
   return (
