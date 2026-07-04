@@ -4,6 +4,8 @@
 import { useMatch, useParams } from "react-router-dom";
 import { Accordion } from "@base-ui/react/accordion";
 import { mergeClassNames } from "@next-pms/design-system";
+import { Button, Tooltip } from "@rtcamp/frappe-ui-react";
+import { ArrowUpRight } from "@rtcamp/frappe-ui-react/icons";
 
 /**
  * Internal dependencies.
@@ -19,6 +21,7 @@ import { LinkSection } from "./sections/link";
 import { MemberSection } from "./sections/member";
 import { useSidebar } from "./sidebarContext";
 import { SidebarProvider } from "./sidebarProvider";
+import { useProjectDetail } from "../context";
 
 export function AboutThisProject(props: { className: string }) {
   const editorMatch = useMatch(`${ROUTES.project}/:projectId/notes/*`);
@@ -32,6 +35,7 @@ export function AboutThisProject(props: { className: string }) {
 }
 
 function AboutThisProjectContent({ className }: { className: string }) {
+  const projectId = useProjectDetail((state) => state.projectId);
   const sidebar = useSidebar((state) => state.sidebar);
   const risk = useSidebar((state) => state.risk);
 
@@ -59,7 +63,19 @@ function AboutThisProjectContent({ className }: { className: string }) {
           </p>
         </Section>
 
-        <Section value="details" title="Project details">
+        <Section
+          value="details"
+          title="Project details"
+          suffix={
+            <Tooltip text="Open in Desk">
+              <Button
+                icon={ArrowUpRight}
+                label="Open in Desk"
+                link={`/desk/project/${encodeURIComponent(projectId)}`}
+              />
+            </Tooltip>
+          }
+        >
           <div className="grid grid-cols-[auto_1fr] items-center gap-x-3 gap-y-4.5 text-base text-ink-gray-5">
             <span>Project name</span>
             <div className="flex min-w-0 items-center gap-2">
