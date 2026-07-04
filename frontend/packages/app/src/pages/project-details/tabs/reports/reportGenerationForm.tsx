@@ -51,6 +51,17 @@ export function ReportGenerationForm() {
   const driveLink = useProjectDetail(
     (state) => state.project?.custom_project_drive_link ?? "",
   );
+  const reports = useProjectDetail(
+    (state) => state.project?.custom_project_reports ?? [],
+  );
+  const previousReportUrl = useMemo(() => {
+    for (let index = reports.length - 1; index >= 0; index--) {
+      if (reports[index].report_link) {
+        return reports[index].report_link ?? "";
+      }
+    }
+    return "";
+  }, [reports]);
   const durationPresets = useMemo(() => getDurationPresets(), []);
   const repositoryOptions = useMemo(
     () =>
@@ -71,6 +82,10 @@ export function ReportGenerationForm() {
           to_date: value.dateRange[1],
           selected_repo: value.githubRepository,
           selected_board: value.projectBoard,
+          previous_doc_url:
+            value.includePreviousReport && previousReportUrl
+              ? previousReportUrl
+              : undefined,
         });
         toast.success(
           "Report is being generated. You'll be notified when it's ready",
