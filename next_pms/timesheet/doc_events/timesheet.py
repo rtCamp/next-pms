@@ -1,4 +1,5 @@
 import frappe
+import re
 from frappe import _, get_value, throw
 from frappe.utils import add_days, date_diff, get_link_to_form, getdate, today
 
@@ -92,7 +93,12 @@ def update_note(doc):
     note = ""
     for data in doc.get("time_logs"):
         if data.description:
-            note += data.description.replace("\n", "<br>")
+            desc = data.description
+            # normalize non-breaking spaces and collapse extra spaces after bullets
+            desc = desc.replace("\u00A0", " ").replace("\xa0", " ").replace("&nbsp;", " ")
+            desc = re.sub(r'(?m)(^|\n)([•\-\*]) {2,}', r"\1\2 ", desc)
+            desc = re.sub(r'([•\-\*]) {2,}', r"\1 ", desc)
+            note += desc.replace("\n", "<br>")
         note += "<br>"
     doc.note = note
 

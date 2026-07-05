@@ -1,4 +1,5 @@
 import frappe
+import re
 from frappe import _, throw
 from frappe.utils import (
     add_days,
@@ -146,6 +147,18 @@ def save(date: str, description: str, task: str, hours: float = 0, employee: str
 
     project, custom_is_billable = frappe.get_value("Task", task, ["project", "custom_is_billable"])
 
+    def normalize_description(text: str):
+        if text is None:
+            return text
+        # replace non-breaking spaces and HTML nbsp with normal spaces
+        text = text.replace("\u00A0", " ").replace("\xa0", " ").replace("&nbsp;", " ")
+        # collapse two or more spaces after common bullet chars to a single space (handles line starts and inline)
+        text = re.sub(r'(?m)(^|\n)([•\-\*]) {2,}', r"\1\2 ", text)
+        text = re.sub(r'([•\-\*]) {2,}', r"\1 ", text)
+        return text
+
+    description = normalize_description(description)
+
     timesheet.update({"parent_project": project})
     timesheet.append(
         "time_logs",
@@ -252,6 +265,12 @@ def update_timesheet_detail(
     is_billable: bool | None = None,
 ):
     parent_doc = frappe.get_doc("Timesheet", parent)
+    # Normalize incoming description to avoid extra spaces after bullets
+    if description is not None:
+        description = re.sub(r'\u00A0', ' ', description)
+        description = re.sub(r'&nbsp;', ' ', description)
+        description = re.sub(r'(?m)(^|\n)([•\-\*]) {2,}', r"\1\2 ", description)
+        description = re.sub(r'([•\-\*]) {2,}', r"\1 ", description)
     ignore_permissions = employee_has_higher_access(parent_doc.employee, ptype="write")
     logs_to_remove = []
     new_logs = []

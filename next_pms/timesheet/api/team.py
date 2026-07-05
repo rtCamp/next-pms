@@ -1,4 +1,5 @@
 import json
+import re
 
 from frappe import (
     DoesNotExistError,
@@ -152,12 +153,19 @@ def get_compact_view_data(
                         notes += ts.get("note", "")
                 hour += total_hours
 
+                # Normalize preserved HTML breaks and collapse extra spaces after bullets
+                note_text = notes.replace("<br>", "\n")
+                # Replace non-breaking spaces with normal spaces
+                note_text = note_text.replace("\u00A0", " ")
+                # Collapse two or more spaces after common bullet chars to a single space
+                note_text = re.sub(r'([•\-\*]) {2,}', r'\1 ', note_text)
+
                 local_data["data"].append(
                     {
                         "date": date,
                         "hour": hour,
                         "is_leave": on_leave,
-                        "note": notes.replace("<br>", "\n"),
+                        "note": note_text,
                     }
                 )
 
