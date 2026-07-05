@@ -50,7 +50,47 @@ class ResourceAllocation(Document):
         if self.allocation_end_date < self.allocation_start_date:
             frappe.throw(frappe._("End date should be greater than or equal to start date"))
 
+        self.validate_no_overlap()
         self.calculate_cost()
+
+    def validate_no_overlap(self):
+        """Block a second allocation for the same employee + project whose date range
+        overlaps an existing one (partial or exact overlap)."""
+        if not self.project:
+            return
+
+        filters = [
+            ["employee", "=", self.employee],
+            ["project", "=", self.project],
+            # overlap: existing.start <= new.end AND existing.end >= new.start
+            ["allocation_start_date", "<=", self.allocation_end_date],
+            ["allocation_end_date", ">=", self.allocation_start_date],
+            ["name", "!=", self.name or ""],
+        ]
+        # docs in the same recurring series are distinct weeks; never self-collide
+        if self.recurrence_id:
+            filters.append(["recurrence_id", "!=", self.recurrence_id])
+
+        existing = frappe.db.get_value(
+            "Resource Allocation",
+            filters,
+            ["name", "allocation_start_date", "allocation_end_date"],
+            as_dict=True,
+        )
+        if existing:
+            frappe.throw(
+                frappe._(
+                    "{0} is already allocated to {1} between {2} and {3}. "
+                    "Overlapping allocations for the same project are not allowed."
+                ).format(
+                    self.employee_name or self.employee,
+                    self.project_name or self.project,
+                    frappe.format(existing.allocation_start_date, {"fieldtype": "Date"}),
+                    frappe.format(existing.allocation_end_date, {"fieldtype": "Date"}),
+                ),
+                title=frappe._("Duplicate Allocation"),
+                exc=frappe.ValidationError,
+            )
 
     def calculate_cost(self):
         """Calculate hourly_cost_rate and total_cost based on employee CTC."""
