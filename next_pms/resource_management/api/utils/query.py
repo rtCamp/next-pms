@@ -245,22 +245,27 @@ def get_employee_leaves(employee: str | tuple, start_date: str, end_date: str):
     LeaveApplication = frappe.qb.DocType("Leave Application")
     LeaveType = frappe.qb.DocType("Leave Type")
 
+    has_first_half_column = frappe.db.has_column("Leave Application", "custom_first_halfsecond_half")
+
+    select_fields = [
+        LeaveApplication.employee,
+        LeaveApplication.from_date,
+        LeaveApplication.to_date,
+        LeaveApplication.half_day,
+        LeaveApplication.half_day_date,
+        LeaveApplication.total_leave_days,
+        LeaveApplication.name,
+        LeaveApplication.leave_type,
+        LeaveType.is_lwp,
+    ]
+    if has_first_half_column:
+        select_fields.append(LeaveApplication.custom_first_halfsecond_half)
+
     query = (
         frappe.qb.from_(LeaveApplication)
         .join(LeaveType)
         .on(LeaveApplication.leave_type == LeaveType.name)
-        .select(
-            LeaveApplication.employee,
-            LeaveApplication.from_date,
-            LeaveApplication.to_date,
-            LeaveApplication.half_day,
-            LeaveApplication.half_day_date,
-            LeaveApplication.total_leave_days,
-            LeaveApplication.name,
-            LeaveApplication.leave_type,
-            LeaveApplication.custom_first_halfsecond_half,
-            LeaveType.is_lwp,
-        )
+        .select(*select_fields)
     )
     if isinstance(employee, tuple):
         query = query.where(LeaveApplication.employee.isin(employee))
@@ -276,6 +281,10 @@ def get_employee_leaves(employee: str | tuple, start_date: str, end_date: str):
     )
 
     results = query.run(as_dict=True)
+
+    if not has_first_half_column:
+        for row in results:
+            row["custom_first_halfsecond_half"] = None
 
     return results
 
