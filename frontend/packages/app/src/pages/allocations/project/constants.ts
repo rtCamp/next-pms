@@ -19,7 +19,8 @@ export const projectAllocationFilters: FilterField[] = [
   {
     name: "customer",
     label: "Customer",
-    type: "string",
+    type: "link",
+    link: { doctype: "Customer", labelField: "customer_name" },
   },
   {
     name: "billing_type",
