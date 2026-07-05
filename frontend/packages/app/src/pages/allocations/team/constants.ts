@@ -24,6 +24,11 @@ export const teamAllocationFilters: FilterField[] = [
   {
     name: "reporting_manager",
     label: "Reporting Manager",
-    type: "string",
+    type: "link",
+    link: {
+      doctype: "Employee",
+      labelField: "employee_name",
+      valueField: "employee_name",
+    },
   },
 ];

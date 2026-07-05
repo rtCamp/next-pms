@@ -23,6 +23,7 @@ import { useDebounce } from "@/hooks/useDebounce";
 import { useDesignationLookup } from "@/hooks/useDesignationLookup";
 import { useGuardedAction } from "@/pages/allocations/unsavedChanges/useUnsavedChanges";
 import { useUser } from "@/providers/user";
+import { FilterLinkValue } from "@/components/filters/FilterLinkValue";
 import { durationOptions, navigationButtonAriaLabels } from "../constants";
 import { teamAllocationFilters, teamAllocationsTypeOptions } from "./constants";
 import { useAllocationsTeam } from "./context";
@@ -228,6 +229,7 @@ export function SubHeader() {
             )}
             value={compositeFilters}
             onChange={(value) => guard(() => setCompositeFilters(value))}
+            renderLinkValue={(props) => <FilterLinkValue {...props} />}
             triggerClassName="text-ink-gray-7"
           />
         ) : null}
