@@ -31,6 +31,9 @@ export const AllocationsProjectTable = () => {
   const hasMore = useAllocationsProject(({ state }) => state.hasMore);
   const projects = useAllocationsProject(({ state }) => state.projects);
   const anchorDate = useAllocationsProject(({ state }) => state.anchorDate);
+  const querySignature = useAllocationsProject(
+    ({ state }) => state.querySignature,
+  );
   const loadMore = useAllocationsProject(({ actions }) => actions.loadMore);
 
   const ganttRef = useUnsavedChangesSource();
@@ -58,6 +61,7 @@ export const AllocationsProjectTable = () => {
             isLoading={isQueryLoading || isNextPageLoading}
             hasMore={hasMore}
             verticalLodMore={loadMore}
+            scrollResetKey={querySignature}
             className={cn("w-full h-full overflow-auto no-scrollbar", {
               "opacity-50 transition-opacity duration-150 pointer-events-none":
                 isRefreshingVisibleGrid,

@@ -4,6 +4,7 @@
 import { Outlet } from "react-router-dom";
 import { Button } from "@rtcamp/frappe-ui-react";
 import { AddSm } from "@rtcamp/frappe-ui-react/icons";
+import { SWRConfig } from "swr";
 
 /**
  * Internal dependencies.
@@ -51,11 +52,13 @@ function ProjectAllocationsLayoutContent() {
 
 function ProjectAllocationsLayout() {
   return (
-    <UnsavedChangesProvider>
-      <AllocationsProjectProvider>
-        <ProjectAllocationsLayoutContent />
-      </AllocationsProjectProvider>
-    </UnsavedChangesProvider>
+    <SWRConfig value={{ provider: () => new Map() }}>
+      <UnsavedChangesProvider>
+        <AllocationsProjectProvider>
+          <ProjectAllocationsLayoutContent />
+        </AllocationsProjectProvider>
+      </UnsavedChangesProvider>
+    </SWRConfig>
   );
 }
 

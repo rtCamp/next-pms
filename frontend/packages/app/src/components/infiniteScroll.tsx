@@ -2,6 +2,7 @@
  * External dependencies.
  */
 
+import { useEffect, useRef } from "react";
 import { mergeClassNames as cn } from "@next-pms/design-system";
 import { useInfiniteScroll } from "@next-pms/hooks";
 import { Skeleton } from "@rtcamp/frappe-ui-react";
@@ -19,15 +20,23 @@ const InfiniteScroll = ({
   className,
   skeletonClassName,
   count = 1,
+  scrollResetKey,
 }: InfiniteScrollProps) => {
+  const containerRef = useRef<HTMLDivElement>(null);
   const verticalLoderRef = useInfiniteScroll({
     isLoading: isLoading,
     hasMore: hasMore,
     next: () => verticalLodMore(),
   });
 
+  useEffect(() => {
+    if (containerRef.current) {
+      containerRef.current.scrollTop = 0;
+    }
+  }, [scrollResetKey]);
+
   return (
-    <div className={className}>
+    <div ref={containerRef} className={className}>
       {children}
       {(isLoading || hasMore) && (
         <div

@@ -85,6 +85,7 @@ export function AllocationsTeamProvider({
     hasMore,
     isQueryLoading,
     isNextPageLoading,
+    querySignature,
     loadMore,
     refresh,
   } = useAllocationsTeamData({
@@ -215,6 +216,7 @@ export function AllocationsTeamProvider({
         isQueryLoading,
         isNextPageLoading,
         hasMore,
+        querySignature,
         search: searchParam,
         designation,
         duration,
@@ -242,6 +244,7 @@ export function AllocationsTeamProvider({
       isNextPageLoading,
       isQueryLoading,
       hasMore,
+      querySignature,
       searchParam,
       duration,
       designation,
