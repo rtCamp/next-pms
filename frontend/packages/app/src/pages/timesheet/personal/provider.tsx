@@ -6,7 +6,6 @@ import { FC, PropsWithChildren, useMemo } from "react";
 /**
  * Internal dependencies.
  */
-import { useDebounce } from "@/hooks/useDebounce";
 import { isCompleteFilterCondition } from "@/lib/utils";
 import { useUser } from "@/providers/user";
 import {
@@ -28,7 +27,6 @@ export const PersonalTimesheetProvider: FC<PropsWithChildren> = ({
   } = useTimesheetFilters({
     includeApprovalStatus: true,
   });
-  const debouncedSearch = useDebounce(filters.search, 400);
 
   const { employeeId } = useUser(({ state }) => ({
     employeeId: state.employeeId,
@@ -42,11 +40,11 @@ export const PersonalTimesheetProvider: FC<PropsWithChildren> = ({
   const activeFilterKey = useMemo(
     () =>
       JSON.stringify({
-        search: debouncedSearch,
+        search: filters.search,
         approvalStatus: filters.approvalStatus ?? "",
         compositeFilters: effectiveCompositeFilters,
       }),
-    [debouncedSearch, filters.approvalStatus, effectiveCompositeFilters],
+    [filters.search, filters.approvalStatus, effectiveCompositeFilters],
   );
   const {
     hasMoreWeeks,
@@ -60,7 +58,7 @@ export const PersonalTimesheetProvider: FC<PropsWithChildren> = ({
   } = usePersonalTimesheetData({
     employeeId,
     requestKey: activeFilterKey,
-    search: debouncedSearch,
+    search: filters.search,
     approvalStatus: filters.approvalStatus,
     compositeFilters: effectiveCompositeFilters,
   });
