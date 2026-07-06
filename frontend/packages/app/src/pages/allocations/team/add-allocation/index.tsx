@@ -100,6 +100,10 @@ function AddAllocationModal({
   const { options: projectOptions, isLoading: isProjectLookupLoading } =
     useProjectLookup({
       shouldFetch: open,
+      filters: [
+        ["status", "!=", "Cancelled"],
+        ["is_active", "=", "Yes"],
+      ],
       pageSize: 20,
       query: projectSearch,
       selectedOption: selectedProjectOption,
