@@ -147,7 +147,7 @@ const SubmitApproval = ({
                 value={field.state.value}
                 placeholder="Comment"
                 onChange={(e) => field.handleChange(e.target.value)}
-                className="bg-white border-outline-gray-2 text-ink-gray-7"
+                className="bg-surface-white border-outline-gray-2 text-ink-gray-7"
               />
               {!field.state.meta.isValid && (
                 <ErrorMessage message={field.state.meta.errors[0]?.message} />
@@ -162,7 +162,7 @@ const SubmitApproval = ({
             <div className="space-y-1.5">
               <label className="block text-base text-ink-gray-5">Send to</label>
               <Combobox
-                inputClassName="bg-white h-8 border-outline-gray-2 text-ink-gray-7"
+                inputClassName="bg-surface-white h-8 border-outline-gray-2 text-ink-gray-7"
                 value={field.state.value}
                 placeholder="Select approver"
                 onChange={(val) => field.handleChange(val as string)}

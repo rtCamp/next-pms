@@ -93,7 +93,7 @@ const EntryRow = ({ entry, onSave }: EntryRowProps) => {
               }}
               fixedMenu={false}
               placeholder="Comment"
-              editorClass="px-2 h-24 prose-sm overflow-auto scrollbar-thin bg-white border rounded-md border-outline-gray-2"
+              editorClass="px-2 h-24 prose-sm overflow-auto scrollbar-thin bg-surface-white border rounded-md border-outline-gray-2"
             />
             {descriptionError ? (
               <ErrorMessage message={descriptionError} />
