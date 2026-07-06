@@ -3,11 +3,11 @@
  */
 import { Avatar } from "@rtcamp/frappe-ui-react";
 import {
+  AgentAlt,
   ArrowUpRight,
   Payments,
   People,
   Time,
-  User,
 } from "@rtcamp/frappe-ui-react/icons";
 
 /**
@@ -106,7 +106,7 @@ function GanttMemberHoverCard({
           )}
           {member.manager && (
             <div className="flex gap-2 items-center">
-              <User className="size-4 text-ink-gray-6 shrink-0" />
+              <AgentAlt className="size-4 text-ink-gray-6 shrink-0" />
               <span className="text-sm text-ink-gray-6 truncate">
                 {member.manager}
               </span>
