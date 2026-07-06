@@ -15,12 +15,17 @@ import {
  */
 import type { Project } from "./types";
 import { formatHours } from "./utils";
+import { mergeClassNames as cn } from "../../utils";
 
 interface GanttProjectHoverCardProps {
   project: Project;
+  canOpenProject?: boolean;
 }
 
-function GanttProjectHoverCard({ project }: GanttProjectHoverCardProps) {
+function GanttProjectHoverCard({
+  project,
+  canOpenProject = false,
+}: GanttProjectHoverCardProps) {
   const dateRange = project.projectDateRange ?? project.dateRange;
   const weeklyCapacityLabel =
     project.weeklyCapacity !== undefined
@@ -31,19 +36,27 @@ function GanttProjectHoverCard({ project }: GanttProjectHoverCardProps) {
     dateRange ||
     weeklyCapacityLabel ||
     project.projectManager;
+  const projectHref =
+    canOpenProject && project.id
+      ? `/next-pms/projects/${encodeURIComponent(project.id)}`
+      : undefined;
 
   return (
     <div className="flex flex-col gap-3 p-3 w-72 rounded-xl shadow-2xl bg-surface-modal">
-      <div className="flex justify-between items-start gap-3">
+      <div
+        className={cn("flex items-start gap-3", {
+          "justify-between": projectHref,
+        })}
+      >
         <div className="flex gap-2 items-center min-w-0">
           <Folder className="size-4 text-ink-gray-8 shrink-0" />
           <span className="text-base font-medium truncate text-ink-gray-7">
             {project.name}
           </span>
         </div>
-        {project.id && (
+        {projectHref && (
           <a
-            href={`/next-pms/projects/${encodeURIComponent(project.id)}`}
+            href={projectHref}
             target="_blank"
             rel="noreferrer"
             aria-label="Open project"

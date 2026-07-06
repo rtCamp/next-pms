@@ -82,6 +82,7 @@ export const GanttProjectRows: React.FC<GanttProjectRowsProps> = ({
           canExpand={canExpand}
           isExpanded={isExpanded}
           showChevron={true}
+          hasRoleAccess={hasRoleAccess}
           onToggle={() => {
             if (canExpand) {
               toggleRow(projectInd);
