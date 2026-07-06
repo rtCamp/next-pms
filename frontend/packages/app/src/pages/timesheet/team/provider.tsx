@@ -16,7 +16,6 @@ import { useToasts } from "@rtcamp/frappe-ui-react";
  */
 import type { Error as FrappeError } from "frappe-js-sdk/lib/frappe_app/types";
 import { useFrappeEventListener } from "frappe-react-sdk";
-import { useDebounce } from "@/hooks/useDebounce";
 import { isCompleteFilterCondition, parseFrappeErrorMsg } from "@/lib/utils";
 import {
   TeamTimesheetContext,
@@ -38,7 +37,6 @@ export const TeamTimesheetProvider: FC<PropsWithChildren> = ({ children }) => {
     includeApprovalStatus: true,
     includeReportsTo: true,
   });
-  const debouncedSearch = useDebounce(filters.search, 400);
 
   const uiFilters = useMemo(
     () => ({
@@ -51,11 +49,11 @@ export const TeamTimesheetProvider: FC<PropsWithChildren> = ({ children }) => {
 
   const effectiveFilters = useMemo(
     () => ({
-      search: debouncedSearch,
+      search: filters.search,
       approvalStatus: filters.approvalStatus,
       reportsTo: filters.reportsTo,
     }),
-    [debouncedSearch, filters.approvalStatus, filters.reportsTo],
+    [filters.search, filters.approvalStatus, filters.reportsTo],
   );
 
   // Only pass complete filter conditions to the data hook so that selecting a
