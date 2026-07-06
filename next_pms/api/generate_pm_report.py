@@ -14,6 +14,10 @@ MAX_OUTPUT_RETRIES = 5
 COMPLETION_POLL_INTERVAL = 30
 
 
+class PMReportConfigurationError(frappe.ValidationError):
+    http_status_code = 500
+
+
 def get_llm_urls() -> tuple[str, str] | None:
     # URLs are configured in site_config.json:
     summarize_url = frappe.conf.get("llm_summarize_url")
@@ -52,12 +56,18 @@ def generate_pm_report(
 
     urls = get_llm_urls()
     if not urls:
-        return {"status": "error"}
+        frappe.throw(
+            _("LLM service URLs are not configured"),
+            exc=PMReportConfigurationError,
+        )
     LLM_SUMMARIZE_URL = urls[0]
 
     api_key = get_api_key()
     if not api_key:
-        return {"status": "error"}
+        frappe.throw(
+            _("PM Report API key is not configured"),
+            exc=PMReportConfigurationError,
+        )
 
     project_doc = frappe.get_doc("Project", project)
 

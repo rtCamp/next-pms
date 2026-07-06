@@ -9,6 +9,7 @@ import { Tabs } from "@rtcamp/frappe-ui-react";
  */
 import { ROUTES } from "@/lib/constant";
 import { AboutThisProject } from "./about";
+import { useProjectDetail } from "./context";
 import { ProjectDetailHeader } from "./header";
 import { ProjectDetailProvider } from "./provider";
 import { TAB_KEYS, TABS, type TabKey } from "./tabs";
@@ -19,7 +20,22 @@ const DEFAULT_TAB: TabKey = TAB_KEYS[0];
 
 function ProjectDetail() {
   const { projectId = "" } = useParams<{ projectId: string }>();
+
+  return (
+    <ProjectDetailProvider projectId={projectId}>
+      <div className="h-full flex flex-col">
+        <ProjectDetailHeader />
+        <ProjectDetailBody />
+      </div>
+    </ProjectDetailProvider>
+  );
+}
+
+function ProjectDetailBody() {
   const [searchParams, setSearchParams] = useSearchParams();
+  const reportEnabled = useProjectDetail(
+    (state) => state.project?.custom_enable_project_report_generation,
+  );
   const editorMatch = useMatch(`${ROUTES.project}/:projectId/notes/*`);
 
   let finalTabs = TABS;
@@ -27,6 +43,10 @@ function ProjectDetail() {
   if (!window.frappe?.boot?.has_customer_feedback) {
     finalTabs = finalTabs.filter((tab) => tab.label !== "Feedback");
     finalTabKeys = finalTabKeys.filter((key) => key !== "feedback");
+  }
+  if (!reportEnabled) {
+    finalTabs = finalTabs.filter((tab) => tab.label !== "Reports");
+    finalTabKeys = finalTabKeys.filter((key) => key !== "reports");
   }
 
   const paramTab = searchParams.get(TAB_PARAM) as TabKey | null;
@@ -44,30 +64,25 @@ function ProjectDetail() {
   };
 
   return (
-    <ProjectDetailProvider projectId={projectId}>
-      <div className="h-full flex flex-col">
-        <ProjectDetailHeader />
-        <div className="flex flex-1 min-h-0">
-          {editorMatch ? (
-            <NotesProvider>
-              <div className="flex-1 overflow-auto scrollbar-thin">
-                <Outlet />
-              </div>
-            </NotesProvider>
-          ) : (
-            <Tabs
-              tabListClassName="h-10"
-              tabPanelClassName="overflow-auto scrollbar-thin"
-              className="w-3/4 border-0 rounded-none border-r"
-              tabs={finalTabs}
-              tabIndex={activeTab}
-              onTabChange={handleTabChange}
-            />
-          )}
-          <AboutThisProject className="w-1/4" />
-        </div>
-      </div>
-    </ProjectDetailProvider>
+    <div className="flex flex-1 min-h-0">
+      {editorMatch ? (
+        <NotesProvider>
+          <div className="flex-1 overflow-auto scrollbar-thin">
+            <Outlet />
+          </div>
+        </NotesProvider>
+      ) : (
+        <Tabs
+          tabListClassName="h-10"
+          tabPanelClassName="overflow-auto scrollbar-thin"
+          className="w-3/4 border-0 rounded-none border-r"
+          tabs={finalTabs}
+          tabIndex={activeTab}
+          onTabChange={handleTabChange}
+        />
+      )}
+      <AboutThisProject className="w-1/4" />
+    </div>
   );
 }
 
