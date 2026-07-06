@@ -12,6 +12,11 @@ from next_pms.timesheet.doctype.pms_view_setting.pms_view_setting import get_vie
 no_cache = 1
 
 
+def show_rag_trigger_page() -> bool:
+    """Whether the rtcamp Customer Feedback module is available on this site."""
+    return "rtcamp" in frappe.get_installed_apps()
+
+
 def get_context(context):
     csrf_token = frappe.sessions.get_csrf_token()
     # nosemgrep
@@ -37,6 +42,7 @@ def get_context(context):
     boot["has_industry"] = has_industry_field()
     boot["has_repository_connections"] = bool(frappe.db.exists("DocType", "GitHub Repository"))
     boot["has_customer_feedback"] = is_customer_feedback_available()
+    boot["show_rag_trigger_page"] = show_rag_trigger_page()
     boot["has_todo_custom_fields"] = has_todo_custom_fields()
     boot["is_calendar_setup"] = is_google_calendar_enabled()
     boot["global_filters"] = get_global_filters()
