@@ -10,6 +10,7 @@ export type CostBurn = {
   target_cost: number;
   total_budget: number;
 };
+
 export type ProjectListItem = {
   name: string;
   project_name: string;

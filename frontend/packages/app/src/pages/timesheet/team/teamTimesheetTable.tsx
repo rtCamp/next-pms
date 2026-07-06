@@ -53,8 +53,16 @@ export const TeamTimesheetTable = () => {
   const handleCompositeFilterChange = useTeamTimesheet(
     ({ actions }) => actions.handleCompositeFilterChange,
   );
+  const handleClearAllFilters = useTeamTimesheet(
+    ({ actions }) => actions.handleClearAllFilters,
+  );
 
   const isFilteredDataLoading = isFilterRequest && isLoadingTeamData;
+
+  const externalFilterCount =
+    (filters.search !== "" ? 1 : 0) +
+    (filters.approvalStatus ? 1 : 0) +
+    (filters.reportsTo ? 1 : 0);
 
   return (
     <div className="w-full flex-1 min-h-0 py-3.5 px-5 relative">
@@ -102,6 +110,8 @@ export const TeamTimesheetTable = () => {
             fields={teamTimesheetFilters}
             value={compositeFilters}
             onChange={handleCompositeFilterChange}
+            externalFilterCount={externalFilterCount}
+            onClearAll={handleClearAllFilters}
           />
           <Button icon={() => <DotHorizontal size={16} />} />
         </div>

@@ -14,8 +14,8 @@ import { LegendItem } from "./legendItem";
 
 export function CostBurnCell() {
   const projectId = useProjectDetail((state) => state.projectId);
+  const currency = useProjectDetail((state) => state.project?.custom_currency);
   const tracking = useTracking((state) => state.tracking);
-  const formatter = currencyFormat(tracking.currency);
   const incurred = tracking.actual_cost_incurred;
   const forecasted = tracking.forecasted_cost_to_completion;
   const total = tracking.expected_total_cost;
@@ -47,21 +47,21 @@ export function CostBurnCell() {
         <LegendItem
           className="bg-surface-green-5"
           label="Actual cost incurred"
-          value={formatter.format(incurred)}
+          value={currencyFormat(currency).format(incurred)}
           labelClassName="text-ink-gray-6"
           valueClassName="font-medium"
         />
         <LegendItem
           className="bg-surface-green-3"
           label="Forecasted cost to completion"
-          value={formatter.format(forecasted)}
+          value={currencyFormat(currency).format(forecasted)}
           labelClassName="text-ink-gray-6"
           valueClassName="font-medium"
         />
         <LegendItem
           className="bg-surface-gray-3"
           label="Expected total cost"
-          value={formatter.format(total)}
+          value={currencyFormat(currency).format(total)}
           labelClassName="text-ink-gray-6"
           valueClassName="font-medium"
         />

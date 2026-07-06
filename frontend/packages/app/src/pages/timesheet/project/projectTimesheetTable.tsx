@@ -37,8 +37,13 @@ export const ProjectTimesheetTable = () => {
   const handleCompositeFilterChange = useProjectTimesheet(
     ({ actions }) => actions.handleCompositeFilterChange,
   );
+  const handleClearAllFilters = useProjectTimesheet(
+    ({ actions }) => actions.handleClearAllFilters,
+  );
 
   const isFilteredDataLoading = isFilterRequest && isLoadingProjectData;
+
+  const externalFilterCount = filters.search !== "" ? 1 : 0;
 
   return (
     <div className="w-full flex-1 min-h-0 py-3.5 px-5 relative">
@@ -55,6 +60,8 @@ export const ProjectTimesheetTable = () => {
             fields={projectTimesheetFilters}
             value={compositeFilters}
             onChange={handleCompositeFilterChange}
+            externalFilterCount={externalFilterCount}
+            onClearAll={handleClearAllFilters}
           />
           <Button icon={() => <DotHorizontal size={16} />} />
         </div>

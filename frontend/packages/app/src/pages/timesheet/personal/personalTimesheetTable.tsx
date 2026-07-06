@@ -52,6 +52,9 @@ export const PersonalTimesheetTable = () => {
   const handleCompositeFilterChange = usePersonalTimesheet(
     ({ actions }) => actions.handleCompositeFilterChange,
   );
+  const handleClearAllFilters = usePersonalTimesheet(
+    ({ actions }) => actions.handleClearAllFilters,
+  );
   const { employeeId } = useUser(({ state }) => ({
     employeeId: state.employeeId,
   }));
@@ -65,6 +68,9 @@ export const PersonalTimesheetTable = () => {
     compositeFilters.some(
       (filter) => filter.fieldCategory === "Task" || filter.field === "subject",
     );
+
+  const externalFilterCount =
+    (filters.search !== "" ? 1 : 0) + (filters.approvalStatus ? 1 : 0);
 
   return (
     <div className="w-full flex-1 min-h-0 py-3.5 px-5 relative">
@@ -87,6 +93,8 @@ export const PersonalTimesheetTable = () => {
             fields={personalTimesheetFilters}
             value={compositeFilters}
             onChange={handleCompositeFilterChange}
+            externalFilterCount={externalFilterCount}
+            onClearAll={handleClearAllFilters}
           />
           <Button icon={() => <DotHorizontal size={16} />} />
         </div>

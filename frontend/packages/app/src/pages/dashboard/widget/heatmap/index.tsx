@@ -1,17 +1,11 @@
 /**
  * External dependencies.
  */
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { MultiSelect } from "@rtcamp/frappe-ui-react";
 import type { MultiSelectOption } from "@rtcamp/frappe-ui-react";
 import { cva } from "class-variance-authority";
-import {
-  endOfMonth,
-  format,
-  parseISO,
-  startOfMonth,
-  subMonths,
-} from "date-fns";
+import { addWeeks, endOfWeek, format, parseISO, startOfWeek } from "date-fns";
 import { useFrappeGetCall } from "frappe-react-sdk";
 
 /**
@@ -23,6 +17,49 @@ import type { AllocationHeatmapResponse, RoleAllocationWeek } from "./types";
 export type HeatmapCellState = "full" | "partial" | "none";
 
 const API_DATE_FORMAT = "yyyy-MM-dd";
+const WEEK_COUNT = 16;
+const WEEK_OPTIONS = { weekStartsOn: 1 } as const; // Monday, matches backend
+
+// Designations matching any of these entries are pre-selected on first load.
+const DEFAULT_ROLES = [
+  "L1 - Software Engineer",
+  "L2 - Software Engineer",
+  "L3 - Senior Software Engineer",
+  "L4 - Senior Software Engineer",
+  "L5 - Senior Software Engineer",
+  "L6 - Senior Software Engineer",
+  "L7 - Engineering Manager",
+  "L8 - Engineering Manager",
+  "L7 - Staff Engineer",
+  "L8 - Principal Engineer",
+  "L1 - Quality Engineer",
+  "L2 - Quality Engineer",
+  "L3 - Senior Quality Engineer",
+  "L4 - Senior Quality Engineer",
+  "L5 - Senior Quality Engineer",
+  "L6 - Quality Engineering Manager",
+  "L1 - Project Coordinator",
+  "L2 - Project Manager",
+  "L3 - Project Manager",
+  "L4 - Senior Project Manager",
+  "L5 - Senior Project Manager",
+  "L6 - Senior Project Manager",
+  "L7 - Principal Project Manager",
+  "L1 - Technical Support Engineer",
+  "L2 - Technical Support Engineer",
+  "L3 - Senior Technical Support Engineer",
+  "L4 - Senior Technical Support Engineer",
+  "L5 - Technical Support Engineer Manager",
+  "L1 - Systems Engineer",
+  "L2 - Systems Engineer",
+  "L3 - Senior Systems Engineer",
+  "L4 - Senior Systems Engineer",
+  "L5 - Senior Systems Engineer",
+  "L6 - Systems Engineering Manager",
+  "L5 - Senior Growth Engineer",
+  "L2 - Growth Engineer",
+  "L1 - Growth Engineer",
+];
 
 const STATE_BG: Record<HeatmapCellState, string> = {
   full: "bg-surface-gray-3",
@@ -50,10 +87,13 @@ export default function HeatmapCard() {
   const [selectedRoles, setSelectedRoles] = useState<string[]>([]);
 
   const args = useMemo(() => {
-    const now = new Date();
+    const start = startOfWeek(new Date(), WEEK_OPTIONS);
     return {
-      from_date: format(startOfMonth(subMonths(now, 3)), API_DATE_FORMAT),
-      to_date: format(endOfMonth(subMonths(now, 1)), API_DATE_FORMAT),
+      from_date: format(start, API_DATE_FORMAT),
+      to_date: format(
+        endOfWeek(addWeeks(start, WEEK_COUNT - 1), WEEK_OPTIONS),
+        API_DATE_FORMAT,
+      ),
     };
   }, []);
 
@@ -80,6 +120,22 @@ export default function HeatmapCard() {
       else groups.push({ label, span: 1 });
     }
     return groups;
+  }, [data]);
+
+  const defaultsApplied = useRef(false);
+  useEffect(() => {
+    if (defaultsApplied.current) return;
+    const roles = data?.message.roles;
+    if (!roles) return;
+    defaultsApplied.current = true;
+    const defaults = roles
+      .map((role) => role.designation)
+      .filter((designation) =>
+        DEFAULT_ROLES.some((keyword) =>
+          designation.toLowerCase().includes(keyword.toLowerCase()),
+        ),
+      );
+    if (defaults.length) setSelectedRoles(defaults);
   }, [data]);
 
   if (isLoading || !data) return <HeatmapCardSkeleton />;
@@ -163,7 +219,7 @@ export default function HeatmapCard() {
           </table>
         )}
       </div>
-      <div className="flex shrink-0 justify-center gap-8">
+      <div className="flex shrink-0 justify-center gap-8 mt-1">
         {LEGEND.map((item) => (
           <div key={item.label} className="flex items-center gap-1.5">
             <span

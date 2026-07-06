@@ -134,6 +134,17 @@ export function useTimesheetFilters({
     [updateSearchParams],
   );
 
+  const resetAll = useCallback(
+    () =>
+      updateSearchParams({
+        [SEARCH_PARAM_KEY]: undefined,
+        [APPROVAL_PARAM_KEY]: undefined,
+        [REPORTS_TO_PARAM_KEY]: undefined,
+        [COMPOSITE_FILTERS_PARAM_KEY]: undefined,
+      }),
+    [updateSearchParams],
+  );
+
   return {
     filters: {
       search,
@@ -145,5 +156,6 @@ export function useTimesheetFilters({
     setApprovalStatus,
     setReportsTo,
     setCompositeFilters,
+    resetAll,
   };
 }

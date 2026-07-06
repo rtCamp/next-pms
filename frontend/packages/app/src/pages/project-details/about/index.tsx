@@ -4,6 +4,7 @@
 import { useMatch, useParams } from "react-router-dom";
 import { Accordion } from "@base-ui/react/accordion";
 import { mergeClassNames } from "@next-pms/design-system";
+import { BudgetBurnBar } from "@next-pms/design-system/components";
 import { Button, Tooltip } from "@rtcamp/frappe-ui-react";
 import { ArrowUpRight } from "@rtcamp/frappe-ui-react/icons";
 
@@ -13,7 +14,6 @@ import { ArrowUpRight } from "@rtcamp/frappe-ui-react/icons";
 import { ROUTES } from "@/lib/constant";
 import { currencyFormat } from "@/lib/utils";
 import { Dot } from "@/pages/projects/list/cells/dot";
-import { BudgetBurnBar } from "./components/budgetBurnBar";
 import { ProgressHoursSection } from "./progressHoursSection";
 import { Section } from "./section";
 import { CustomerSection } from "./sections/customer";
@@ -36,6 +36,7 @@ export function AboutThisProject(props: { className: string }) {
 
 function AboutThisProjectContent({ className }: { className: string }) {
   const projectId = useProjectDetail((state) => state.projectId);
+  const currency = useProjectDetail((state) => state.project?.custom_currency);
   const sidebar = useSidebar((state) => state.sidebar);
   const risk = useSidebar((state) => state.risk);
 
@@ -108,18 +109,18 @@ function AboutThisProjectContent({ className }: { className: string }) {
           <div className="flex flex-col gap-2.5">
             <div className="flex items-center justify-between">
               <span className="text-base font-medium text-ink-gray-7">
-                {currencyFormat().format(sidebar.burn.cost_accrued)}
+                {currencyFormat(currency).format(sidebar.burn.cost_accrued)}
               </span>
               <span className="text-base text-ink-gray-5">
-                {currencyFormat().format(sidebar.burn.total_budget)}
+                {currencyFormat(currency).format(sidebar.burn.total_budget)}
               </span>
             </div>
             <BudgetBurnBar
-              budget={{
-                current: sidebar.burn.cost_accrued,
-                total: sidebar.burn.total_budget,
-                projected: sidebar.burn.cost_forecasted,
-              }}
+              value={sidebar.burn.cost_accrued}
+              secondaryValue={sidebar.burn.cost_forecasted}
+              markerValue={sidebar.burn.target_cost}
+              maxValue={sidebar.burn.total_budget}
+              variant="burn"
             />
           </div>
         </Section>
