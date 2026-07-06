@@ -2,7 +2,10 @@
  * External dependencies.
  */
 import { useMemo, useState } from "react";
-import { Combobox, type FilterLinkValueRenderProps } from "@rtcamp/frappe-ui-react";
+import {
+  Combobox,
+  type FilterLinkValueRenderProps,
+} from "@rtcamp/frappe-ui-react";
 
 /**
  * Internal dependencies.
