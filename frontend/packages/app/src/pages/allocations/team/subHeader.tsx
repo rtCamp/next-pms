@@ -19,11 +19,11 @@ import {
 /**
  * Internal dependencies.
  */
+import { FilterLinkValue } from "@/components/filters/FilterLinkValue";
 import { useDebounce } from "@/hooks/useDebounce";
 import { useDesignationLookup } from "@/hooks/useDesignationLookup";
 import { useGuardedAction } from "@/pages/allocations/unsavedChanges/useUnsavedChanges";
 import { useUser } from "@/providers/user";
-import { FilterLinkValue } from "@/components/filters/FilterLinkValue";
 import { durationOptions, navigationButtonAriaLabels } from "../constants";
 import { teamAllocationFilters, teamAllocationsTypeOptions } from "./constants";
 import { useAllocationsTeam } from "./context";
