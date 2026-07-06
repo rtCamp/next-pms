@@ -28,12 +28,13 @@ from next_pms.next_projects.api.project_timeline_item import enrich_timeline_ite
 from next_pms.resource_management.api.utils.query import attach_extra_entries, get_employee_leaves
 from next_pms.timesheet.api.employee import get_employee_daily_working_norm, get_employee_from_user
 
-ALLOWED_ROLES = ["Projects Manager", "Projects User"]
+DELIVERY_ROLES = ["Delivery Manager", "Delivery User"]
+ALL_ROLES = ["Delivery Manager", "Delivery User", "Projects Manager", "Projects User"]
 
 
 @whitelist(methods=["GET"])
 def get_active_projects_count(client: str | None = None, project: str | None = None) -> int:
-    only_for(["System Manager"], message=True)
+    only_for(DELIVERY_ROLES, message=True)
 
     filters = {"is_active": "Yes"}
     if client:
@@ -45,7 +46,7 @@ def get_active_projects_count(client: str | None = None, project: str | None = N
 
 @whitelist(methods=["GET"])
 def get_at_risk_projects_count(client: str | None = None, project: str | None = None) -> int:
-    only_for(["Projects Manager", "Projects User", "System Manager"], message=True)
+    only_for(ALL_ROLES, message=True)
 
     filters = {
         "is_active": "Yes",
@@ -78,7 +79,7 @@ def get_timesheets_to_review(
         custom_approval_status.
         Empty list if the user has no employee record or no direct reports.
     """
-    only_for(["Projects Manager", "Projects User", "System Manager"], message=True)
+    only_for(ALL_ROLES, message=True)
 
     manager_employee = get_employee_from_user()
     if not manager_employee:
@@ -132,7 +133,7 @@ def get_non_billable_hours(
         Sum of hours from Timesheet Detail rows where is_billable = 0
         within the window.
     """
-    only_for(["Projects Manager", "Projects User", "System Manager"], message=True)
+    only_for(DELIVERY_ROLES, message=True)
     return _get_non_billable_hours(days, client, project)
 
 
@@ -179,11 +180,11 @@ def get_members_without_allocation(days: int = 7) -> dict:
         Each gap_dates item has date, allocated_hours, and missing_hours.
 
     Raises:
-        frappe.PermissionError: If the caller lacks Projects Manager, Projects User,
-            or System Manager role.
+        frappe.PermissionError: If the caller lacks Delivery Manager, Delivery User,
+            Projects Manager, or Projects User role.
         frappe.ValidationError: If days is less than 1.
     """
-    only_for(["Projects Manager", "Projects User", "System Manager"], message=True)
+    only_for(ALL_ROLES, message=True)
 
     if days < 1:
         frappe.throw(frappe._("days must be at least 1"))
@@ -313,11 +314,11 @@ def get_outstanding_timesheets(
         direct reports.
 
     Raises:
-        frappe.PermissionError: If the caller lacks Projects Manager, Projects User,
-            or System Manager role.
+        frappe.PermissionError: If the caller lacks Delivery Manager, Delivery User,
+            Projects Manager, or Projects User role.
         frappe.ValidationError: If days is less than 1.
     """
-    only_for(["Projects Manager", "Projects User", "System Manager"], message=True)
+    only_for(ALL_ROLES, message=True)
 
     if days < 1:
         frappe.throw(frappe._("days must be at least 1"))
@@ -480,7 +481,7 @@ def get_my_projects_summary(days: int = 7, customer: str | None = None) -> list:
             billable_hours, non_billable_hours  (both summed over the window).
         Empty list if the user manages no projects.
     """
-    only_for(["Projects Manager", "Projects User", "System Manager"], message=True)
+    only_for(ALL_ROLES, message=True)
     return _get_my_projects_summary(frappe.session.user, days, customer)
 
 
@@ -590,7 +591,7 @@ def get_leadership_kpis(
             "profit_margin": {"current": 20, "previous": 10, "change_pct": 100, "trend": "up"}
             }
     """
-    only_for(ALLOWED_ROLES, message=True)
+    only_for(DELIVERY_ROLES, message=True)
 
     cur_start = getdate(cur_start)
     cur_end = getdate(cur_end)
@@ -607,7 +608,7 @@ def get_leadership_kpis(
     return get_cached_leadership_kpis(cur_start, cur_end, prev_start, prev_end, client, project)
 
 
-@redis_cache()
+@redis_cache(ttl=21600)
 def get_cached_leadership_kpis(cur_start, cur_end, prev_start, prev_end, client, project) -> dict:
     cur_revenue, prev_revenue = get_revenue(cur_start, cur_end, prev_start, prev_end, client, project)
     cur_cost, prev_cost = get_cost(cur_start, cur_end, prev_start, prev_end, client, project)
@@ -770,7 +771,7 @@ def get_time_utilisation(days: int = 30) -> dict:
         roles : list of dicts, each with designation, billable_hours,
                 non_billable_hours, total_hours
     """
-    only_for(["Projects Manager", "Projects User", "System Manager"], message=True)
+    only_for(DELIVERY_ROLES, message=True)
 
     if days < 1:
         frappe.throw(frappe._("days must be at least 1"))
@@ -866,11 +867,10 @@ def get_forecast_breakdown(days: int = 7) -> dict:
         days.
 
     Raises:
-        frappe.PermissionError: If the caller lacks Projects Manager, Projects User,
-            or System Manager role.
+        frappe.PermissionError: If the caller lacks Delivery Manager or Delivery User role.
         frappe.ValidationError: If days is less than 1.
     """
-    only_for(["Projects Manager", "Projects User", "System Manager"], message=True)
+    only_for(DELIVERY_ROLES, message=True)
 
     if days < 1:
         frappe.throw(frappe._("days must be at least 1"))
@@ -999,7 +999,7 @@ def get_employees_on_leave() -> list:
         Empty list if the user has no employee record or no direct reports.
         Ordered by from_date ascending.
     """
-    only_for(["Projects Manager", "Projects User", "System Manager"], message=True)
+    only_for(ALL_ROLES, message=True)
 
     manager_employee = get_employee_from_user()
     if not manager_employee:
@@ -1070,11 +1070,11 @@ def get_team_timesheets(days: int = 7) -> list:
         caller has no linked Employee record or no active direct reports.
 
     Raises:
-        frappe.PermissionError: If the caller lacks Projects Manager, Projects User,
-            or System Manager role.
+        frappe.PermissionError: If the caller lacks Delivery Manager, Delivery User,
+            Projects Manager, or Projects User role.
         frappe.ValidationError: If days is less than 1.
     """
-    only_for(["Projects Manager", "Projects User", "System Manager"], message=True)
+    only_for(ALL_ROLES, message=True)
 
     if days < 1:
         frappe.throw(frappe._("days must be at least 1"))
@@ -1217,11 +1217,11 @@ def get_allocation_heatmap(
         entry adds capacity_hours and allocated_hours.
 
     Raises:
-        frappe.PermissionError: If the caller lacks Projects Manager, Projects
-            User, or System Manager role.
+        frappe.PermissionError: If the caller lacks Delivery Manager, Delivery User,
+            Projects Manager, or Projects User role.
         frappe.ValidationError: If from_date is after to_date.
     """
-    only_for(["Projects Manager", "Projects User", "System Manager"], message=True)
+    only_for(ALL_ROLES, message=True)
 
     start_date = getdate(from_date)
     end_date = getdate(to_date)
@@ -1380,7 +1380,7 @@ def get_calendar_timeline_items(
         frappe.ValidationError: If from_date or to_date is missing, or from_date is
             after to_date.
     """
-    only_for(["Projects Manager", "Projects User", "Timesheet Manager"], message=True)
+    only_for(ALL_ROLES, message=True)
 
     if not from_date or not to_date:
         frappe.throw(frappe._("from_date and to_date are required"))
