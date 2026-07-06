@@ -1,7 +1,10 @@
 /**
  * External dependencies.
  */
+import { useMemo, useState } from "react";
 import { mergeClassNames } from "@next-pms/design-system";
+import { MultiSelect } from "@rtcamp/frappe-ui-react";
+import type { MultiSelectOption } from "@rtcamp/frappe-ui-react";
 import { useFrappeGetCall } from "frappe-react-sdk";
 
 /**
@@ -12,14 +15,40 @@ import { UtilisationDonut } from "./utilisationDonut";
 import { UtilisedTimeCardSkeleton } from "./utilisedTimeCardSkeleton";
 
 export default function UtilisedTimeCard() {
+  const [selectedRoles, setSelectedRoles] = useState<string[]>([]);
+
   const { data, isLoading } = useFrappeGetCall<TimeUtilisationResponse>(
     "next_pms.api.dashboard.get_time_utilisation",
     { days: 30 },
   );
 
+  const roleOptions = useMemo<MultiSelectOption[]>(
+    () =>
+      (data?.message.roles ?? []).map((role) => ({
+        value: role.designation,
+        label: role.designation,
+      })),
+    [data],
+  );
+
   if (isLoading || !data) return <UtilisedTimeCardSkeleton />;
 
-  const { billable_hours, non_billable_hours, total_hours } = data.message;
+  const { roles } = data.message;
+  const visibleRoles = selectedRoles.length
+    ? roles.filter((role) => selectedRoles.includes(role.designation))
+    : roles;
+  const allRolesSelected =
+    selectedRoles.length === 0 || selectedRoles.length === roleOptions.length;
+
+  const billable_hours = visibleRoles.reduce(
+    (sum, r) => sum + r.billable_hours,
+    0,
+  );
+  const non_billable_hours = visibleRoles.reduce(
+    (sum, r) => sum + r.non_billable_hours,
+    0,
+  );
+  const total_hours = visibleRoles.reduce((sum, r) => sum + r.total_hours, 0);
   const billablePct =
     total_hours > 0 ? Math.round((billable_hours / total_hours) * 100) : 0;
   const nonBillablePct =
@@ -44,6 +73,19 @@ export default function UtilisedTimeCard() {
         <h3 className="text-lg font-semibold text-ink-gray-8">
           Utilised time in the past 30 days
         </h3>
+        <div className="w-44 shrink-0">
+          <MultiSelect
+            popupClassName="scrollbar-thin"
+            options={roleOptions}
+            value={selectedRoles}
+            triggerLabel={
+              allRolesSelected
+                ? "All roles"
+                : `${selectedRoles.length} role${selectedRoles.length === 1 ? "" : "s"} selected`
+            }
+            onChange={setSelectedRoles}
+          />
+        </div>
       </div>
       <div className="flex items-center gap-8">
         <UtilisationDonut

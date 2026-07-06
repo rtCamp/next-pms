@@ -13,6 +13,7 @@ import {
   type RowAllocationOverlayHandle,
 } from "./gantt-bar/rowAllocationOverlay";
 import { GanttProjectItem } from "./ganttProjectItem";
+import { GanttRowOverlayCell } from "./ganttRowOverlayCell";
 import { useGanttStore } from "./ganttStore";
 import type { Member } from "./ganttStore";
 import { mergeClassNames as cn } from "../../utils";
@@ -24,6 +25,7 @@ interface GanttProjectRowProps {
   isExpanded: boolean;
   canManageAllocations: boolean;
   canEditAllocations: boolean;
+  onTransitionEnd?: React.TransitionEventHandler<HTMLTableRowElement>;
 }
 
 export const GanttProjectRow: React.FC<GanttProjectRowProps> = ({
@@ -33,6 +35,7 @@ export const GanttProjectRow: React.FC<GanttProjectRowProps> = ({
   isExpanded,
   canManageAllocations,
   canEditAllocations,
+  onTransitionEnd,
 }) => {
   const { weeks, daysPerWeek, columnWidth, headerWidth, onAddAllocation } =
     useGanttStore((s) => ({
@@ -53,13 +56,14 @@ export const GanttProjectRow: React.FC<GanttProjectRowProps> = ({
 
   return (
     <tr
-      className={cn("relative touch-pan-y", {
+      className={cn("touch-pan-y", {
         "pointer-events-none": !isExpanded,
       })}
       aria-hidden={!isExpanded}
       onPointerDown={(e) => overlayRef.current?.handleRowPointerDown(e)}
       onPointerMove={(e) => overlayRef.current?.handleRowPointerMove(e)}
       onPointerLeave={() => overlayRef.current?.clearHoveredSlot()}
+      onTransitionEnd={onTransitionEnd}
     >
       <GanttProjectItem
         {...project}
@@ -67,10 +71,12 @@ export const GanttProjectRow: React.FC<GanttProjectRowProps> = ({
         canExpand={false}
         showChevron={false}
         showHoverCard={false}
+        contentHeight={animatedRowHeight}
         style={{
           height: animatedRowHeight,
           width: headerWidth,
           minWidth: headerWidth,
+          maxWidth: headerWidth,
           borderBottomWidth: isExpanded ? undefined : 0,
           borderRightWidth: isExpanded ? undefined : 0,
         }}
@@ -80,13 +86,13 @@ export const GanttProjectRow: React.FC<GanttProjectRowProps> = ({
           key={i}
           colSpan={daysPerWeek}
           className={cn(
-            "dd overflow-hidden transition-[height] duration-200 ease-in-out",
+            "overflow-hidden transition-[height] duration-200 ease-in-out",
             { "border-r border-outline-gray-1": isExpanded },
           )}
           style={{ height: animatedRowHeight }}
         />
       ))}
-      <td className="p-0 border-0 w-0 min-w-0 max-w-0" style={{ width: 0 }}>
+      <GanttRowOverlayCell height={animatedRowHeight}>
         {isExpanded &&
           project.allocations?.map((alloc, allocIndex) => (
             <GanttAllocationBar
@@ -113,7 +119,7 @@ export const GanttProjectRow: React.FC<GanttProjectRowProps> = ({
           })}
           onOpenAllocation={onAddAllocation}
         />
-      </td>
+      </GanttRowOverlayCell>
     </tr>
   );
 };

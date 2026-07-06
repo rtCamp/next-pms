@@ -23,7 +23,29 @@ export function UtilisationDonut({
   const total = segments.reduce((sum, segment) => sum + segment.value, 0);
 
   if (total <= 0) {
-    return null;
+    const circumference = 2 * Math.PI * radius;
+    return (
+      <svg
+        width={size}
+        height={size}
+        viewBox={`0 0 ${size} ${size}`}
+        className="shrink-0"
+        role="img"
+        aria-label="No utilisation data"
+      >
+        <circle
+          cx={center}
+          cy={center}
+          r={radius}
+          fill="none"
+          stroke="currentColor"
+          strokeWidth={strokeWidth}
+          strokeDasharray={circumference}
+          strokeDashoffset={0}
+          className="text-surface-gray-3"
+        />
+      </svg>
+    );
   }
 
   const polar = (angleDeg: number) => {

@@ -28,6 +28,7 @@ export interface AllocationsProjectContextProps {
     setDuration: (value: AllocationsDuration) => void;
     setAllocationsType: (value: string[]) => void;
     setCompositeFilters: (value: FilterCondition[]) => void;
+    handleClearAllFilters: () => void;
     loadMore: () => void;
     handlePrevious: () => void;
     handleNext: () => void;
@@ -55,6 +56,7 @@ export const AllocationsProjectContext =
       setDuration: () => null,
       setAllocationsType: () => null,
       setCompositeFilters: () => null,
+      handleClearAllFilters: () => null,
       loadMore: () => null,
       handlePrevious: () => null,
       handleNext: () => null,

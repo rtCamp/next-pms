@@ -19,10 +19,15 @@ import { useTimesheetFilters } from "../hooks/useTimesheetFilters";
 export const PersonalTimesheetProvider: FC<PropsWithChildren> = ({
   children,
 }) => {
-  const { filters, setSearch, setApprovalStatus, setCompositeFilters } =
-    useTimesheetFilters({
-      includeApprovalStatus: true,
-    });
+  const {
+    filters,
+    setSearch,
+    setApprovalStatus,
+    setCompositeFilters,
+    resetAll,
+  } = useTimesheetFilters({
+    includeApprovalStatus: true,
+  });
   const debouncedSearch = useDebounce(filters.search, 400);
 
   const { employeeId } = useUser(({ state }) => ({
@@ -80,6 +85,7 @@ export const PersonalTimesheetProvider: FC<PropsWithChildren> = ({
         handleSearchChange: setSearch,
         handleApprovalStatusChange: setApprovalStatus,
         handleCompositeFilterChange: setCompositeFilters,
+        handleClearAllFilters: resetAll,
         refetchLikedTasks,
       },
     }),
@@ -97,6 +103,7 @@ export const PersonalTimesheetProvider: FC<PropsWithChildren> = ({
       setSearch,
       setApprovalStatus,
       setCompositeFilters,
+      resetAll,
       refetchLikedTasks,
     ],
   );

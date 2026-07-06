@@ -16,7 +16,7 @@ import {
  */
 import { parseFrappeErrorMsg } from "@/lib/utils";
 import { propagationModeLabels } from "@/pages/allocations/constants";
-import { buildScheduleSelectionOverridePatch } from "@/pages/allocations/overrideUtils";
+import { buildScheduleSelectionPayload } from "@/pages/allocations/overrideUtils";
 import ScheduleDateSelectionField from "./components/scheduleDateSelectionField";
 import ScheduleHoursPerDayField from "./components/scheduleHoursPerDayField";
 import ScheduleSummaryTable from "./components/scheduleSummaryTable";
@@ -174,8 +174,8 @@ function EditScheduleModal({
         override: safeValues.override,
         schedule: value.schedule,
       });
-      const patch = draft.selection
-        ? buildScheduleSelectionOverridePatch({
+      const schedulePayload = draft.selection
+        ? buildScheduleSelectionPayload({
             allocation: allocationContext,
             next: {
               startDate: draft.selection.startDate,
@@ -183,7 +183,11 @@ function EditScheduleModal({
               hoursPerDay: draft.hoursPerDay,
             },
           })
-        : { dayOverrides: [], deletedDayOverrides: [] };
+        : {
+            allocationHoursPerDay: allocationContext.allocationHoursPerDay,
+            dayOverrides: [],
+            deletedDayOverrides: [],
+          };
 
       try {
         setSubmitting(true);
@@ -197,14 +201,14 @@ function EditScheduleModal({
             customer: initialValues.customer ?? "",
             allocation_start_date: allocationContext.allocationStartDate,
             allocation_end_date: allocationContext.allocationEndDate,
-            hours_allocated_per_day: allocationContext.allocationHoursPerDay,
+            hours_allocated_per_day: schedulePayload.allocationHoursPerDay,
             include_weekends: true,
             is_billable: Number(initialValues.isBillable ?? true),
             status: initialValues.isTentative ? "Tentative" : "Confirmed",
             note: initialValues.note ?? "",
           },
-          day_overrides: patch.dayOverrides,
-          deleted_day_overrides: patch.deletedDayOverrides,
+          day_overrides: schedulePayload.dayOverrides,
+          deleted_day_overrides: schedulePayload.deletedDayOverrides,
         });
         await onSuccess?.({
           ...(safeValues.employeeId
@@ -245,10 +249,10 @@ function EditScheduleModal({
     ],
   );
 
-  const overridePatch = useMemo(
+  const schedulePayload = useMemo(
     () =>
       allocationContext && scheduleDraft.selection
-        ? buildScheduleSelectionOverridePatch({
+        ? buildScheduleSelectionPayload({
             allocation: allocationContext,
             next: {
               startDate: scheduleDraft.selection.startDate,
@@ -256,12 +260,19 @@ function EditScheduleModal({
               hoursPerDay: scheduleDraft.hoursPerDay,
             },
           })
-        : { dayOverrides: [], deletedDayOverrides: [] },
-    [allocationContext, scheduleDraft],
+        : {
+            allocationHoursPerDay:
+              allocationContext?.allocationHoursPerDay ?? defaultHoursPerDay,
+            dayOverrides: [],
+            deletedDayOverrides: [],
+          },
+    [allocationContext, defaultHoursPerDay, scheduleDraft],
   );
-  const hasOverrideChange =
-    overridePatch.dayOverrides.length > 0 ||
-    overridePatch.deletedDayOverrides.length > 0;
+  const hasScheduleChange =
+    schedulePayload.dayOverrides.length > 0 ||
+    schedulePayload.deletedDayOverrides.length > 0 ||
+    schedulePayload.allocationHoursPerDay !==
+      allocationContext?.allocationHoursPerDay;
 
   useEffect(() => {
     if (!open) {
@@ -308,7 +319,7 @@ function EditScheduleModal({
                 label="Save changes"
                 onClick={() => form.handleSubmit()}
                 loading={submitting}
-                disabled={!hasOverrideChange || isSubmitting || submitting}
+                disabled={!hasScheduleChange || isSubmitting || submitting}
               />
             )}
           </form.Subscribe>

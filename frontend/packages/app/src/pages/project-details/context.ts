@@ -25,6 +25,7 @@ export interface ProjectDetailContextProps {
   mutate: () => void;
   updateRepositories: (repositories: RepositoryInput[]) => Promise<void>;
   updateContacts: (contactIds: string[]) => Promise<void>;
+  updateSlackChannel: (slug: string) => Promise<void>;
 }
 
 const noop = () => {};
@@ -38,6 +39,7 @@ export const ProjectDetailContext = createContext<ProjectDetailContextProps>({
   mutate: noop,
   updateRepositories: asyncNoop,
   updateContacts: asyncNoop,
+  updateSlackChannel: asyncNoop,
 });
 
 export const useProjectDetail = <T>(

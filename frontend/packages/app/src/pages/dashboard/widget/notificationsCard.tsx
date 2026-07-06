@@ -16,6 +16,7 @@ export default function NotificationsCard() {
   const notifications = useNotifications(({ state }) => state.notifications);
   const isLoading = useNotifications(({ state }) => state.isLoading);
   const markAsViewed = useNotifications(({ actions }) => actions.markAsViewed);
+  const openTray = useNotifications(({ actions }) => actions.openTray);
 
   const handleClick = async (notification: NotificationEntry) => {
     await markAsViewed(notification.id);
@@ -28,15 +29,13 @@ export default function NotificationsCard() {
     <>
       <div className="flex items-baseline justify-between gap-4">
         <h3 className="text-lg font-semibold text-ink-gray-8">Notifications</h3>
-        <a
-          href="/desk/nextpms-notifications"
-          target="_blank"
-          rel="noreferrer"
-          aria-label="Open employee"
+        <button
+          type="button"
+          onClick={openTray}
           className="text-base text-ink-gray-8 hover:text-ink-gray-8"
         >
           See all
-        </a>
+        </button>
       </div>
       {!isLoading && notifications.length === 0 ? (
         <p className="py-10 text-center text-base text-ink-gray-4">
@@ -56,11 +55,11 @@ export default function NotificationsCard() {
                     event.shiftKey ||
                     event.button !== 0
                   ) {
-                    void markAsViewed(item.id);
+                    markAsViewed(item.id);
                     return;
                   }
                   event.preventDefault();
-                  void handleClick(item);
+                  handleClick(item);
                 }}
                 className="flex cursor-pointer items-start gap-2"
               >

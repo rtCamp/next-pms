@@ -13,17 +13,10 @@ def get_allocation_list_for_employee_for_given_range(
     end_date: str | datetime.date,
     is_billable: list | int | None = None,
     allocation_status: list | None = None,
-    is_need_fetch_all_weeks: bool = False,
 ) -> list[dict]:
     """Return Resource Allocation records for a list of employees or projects.
 
-    Supports two fetching strategies controlled by `is_need_fetch_all_weeks`:
-
-    - is_need_fetch_all_weeks=True: fetches ALL allocations for the given employees/
-      projects with no date filter. `start_date` and `end_date` are ignored.
-
-    - is_need_fetch_all_weeks=False (default): fetches only allocations that overlap
-      the [start_date, end_date] window.
+    Fetches only allocations that overlap the [start_date, end_date] window.
 
     Args:
         columns (list[str]): Fields to SELECT from the Resource Allocation doctype.
@@ -31,17 +24,13 @@ def get_allocation_list_for_employee_for_given_range(
             `values` against.
         values (list): List of employee IDs or project names to filter by.
             Returns [] immediately if empty.
-        start_date (str | datetime.date): Range start. Ignored when
-            `is_need_fetch_all_weeks` is True.
-        end_date (str | datetime.date): Range end. Ignored when
-            `is_need_fetch_all_weeks` is True.
+        start_date (str | datetime.date): Range start.
+        end_date (str | datetime.date): Range end.
         is_billable (list | int | None): Billable filter. Use ``[0]``, ``[1]``, or ``[0, 1]``.
             Legacy callers may pass ``0`` or ``1``; ``-1`` means no filter. ``None`` or
             ``[]`` also skips the filter. Defaults to None.
         allocation_status (list | None): Status values to match, e.g. ``["Confirmed", "Tentative"]``.
             ``None`` or ``[]`` skips the filter. Defaults to None.
-        is_need_fetch_all_weeks (bool): When True, skips the date range filter and
-            returns all allocations for the given employees/projects. Defaults to False.
 
     Returns:
         ```py
@@ -68,27 +57,6 @@ def get_allocation_list_for_employee_for_given_range(
     """
     if not values:
         return []
-
-    if is_need_fetch_all_weeks:
-        filters = {}
-
-        if value_key == "employee":
-            filters["employee"] = ["in", values]
-        else:
-            filters["project"] = ["in", values]
-
-        billable_values = _normalize_is_billable_filter(is_billable)
-        if billable_values:
-            filters["is_billable"] = ["in", billable_values]
-        if allocation_status:
-            filters["status"] = ["in", allocation_status]
-
-        return frappe.db.get_all(
-            "Resource Allocation",
-            filters=filters,
-            fields=columns,
-            order_by="employee_name, allocation_start_date, allocation_end_date",
-        )
 
     ResourceAllocation = frappe.qb.DocType("Resource Allocation")
     filter_column = ResourceAllocation.employee if value_key == "employee" else ResourceAllocation.project

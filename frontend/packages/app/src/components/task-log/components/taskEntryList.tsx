@@ -67,7 +67,7 @@ const TaskEntry = ({
     <div className="pb-1 border-b border-outline-gray-modals text-ink-gray-6 last:border-none">
       <div className="flex justify-between items-center mb-1">
         <TimeBadge employee={employee} hours={hours} showAvatar={showAvatar} />
-        <span className="text-base">{format(parseISO(date), "dd MMM")}</span>
+        <span className="text-base">{format(parseISO(date), "MMM dd")}</span>
       </div>
 
       <StaticTextEditor

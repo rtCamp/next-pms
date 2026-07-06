@@ -15,7 +15,9 @@ import {
 } from "./gantt-bar/rowAllocationOverlay";
 import { GanttMemberItem } from "./ganttMemberItem";
 import { GanttProjectRow } from "./ganttProjectRow";
+import { GanttRowOverlayCell } from "./ganttRowOverlayCell";
 import { useGanttStore } from "./ganttStore";
+import { useCollapsiblePresence } from "./hooks/useCollapsiblePresence";
 import { mergeClassNames as cn } from "../../utils";
 
 interface GanttMemberRowsProps {
@@ -51,19 +53,22 @@ export const GanttMemberRows: React.FC<GanttMemberRowsProps> = ({
   }));
 
   const overlayRef = useRef<RowAllocationOverlayHandle | null>(null);
+  const childRowsPresence = useCollapsiblePresence(isExpanded, {
+    durationMs: 200,
+  });
 
   if (!member) return null;
 
   const canManageAllocations = hasRoleAccess && Boolean(onAddAllocation);
   const canEditAllocations = hasRoleAccess && Boolean(onEditAllocation);
   const memberRowKey = `member-${memberInd}`;
-  const addProjectRowHeight = isExpanded ? ADD_PROJECT_ROW_HEIGHT : 0;
-
+  const childRowsVisible = childRowsPresence.isVisible;
+  const addProjectRowHeight = childRowsVisible ? ADD_PROJECT_ROW_HEIGHT : 0;
   return (
     <React.Fragment>
       {/* Member row */}
       <tr
-        className="relative touch-pan-y last:border-b border-outline-gray-1 animate-fade-in"
+        className="touch-pan-y last:border-b border-outline-gray-1 animate-fade-in"
         onPointerDown={(e) => overlayRef.current?.handleRowPointerDown(e)}
         onPointerMove={(e) => overlayRef.current?.handleRowPointerMove(e)}
         onPointerLeave={() => overlayRef.current?.clearHoveredSlot()}
@@ -79,7 +84,7 @@ export const GanttMemberRows: React.FC<GanttMemberRowsProps> = ({
             style={{ height: CELL_HEIGHT }}
           />
         ))}
-        <td className="p-0 border-0 w-0 min-w-0 max-w-0" style={{ width: 0 }}>
+        <GanttRowOverlayCell>
           {member.memberSummaryBars.map((summary, idx) => (
             <GanttMemberSummaryBar
               key={idx}
@@ -100,52 +105,64 @@ export const GanttMemberRows: React.FC<GanttMemberRowsProps> = ({
             })}
             onOpenAllocation={onAddAllocation}
           />
-        </td>
+        </GanttRowOverlayCell>
       </tr>
 
       {/* Project child rows */}
-      {member.projects?.map((_, projectIndex) => (
-        <GanttProjectRow
-          key={`${memberInd}-project-${projectIndex}`}
-          member={member}
-          memberInd={memberInd}
-          projectInd={projectIndex}
-          isExpanded={isExpanded}
-          canManageAllocations={canManageAllocations}
-          canEditAllocations={canEditAllocations}
-        />
-      ))}
+      {childRowsPresence.shouldRender
+        ? member.projects?.map((_, projectIndex) => (
+            <GanttProjectRow
+              key={`${memberInd}-project-${projectIndex}`}
+              member={member}
+              memberInd={memberInd}
+              projectInd={projectIndex}
+              isExpanded={childRowsVisible}
+              canManageAllocations={canManageAllocations}
+              canEditAllocations={canEditAllocations}
+              onTransitionEnd={childRowsPresence.onTransitionEnd}
+            />
+          ))
+        : null}
 
       {/* Add project row */}
-      {canManageAllocations && (
+      {canManageAllocations && childRowsPresence.shouldRender && (
         <tr
-          className={cn("relative", { "pointer-events-none": !isExpanded })}
-          aria-hidden={!isExpanded}
+          className={cn("touch-pan-y", {
+            "pointer-events-none": !childRowsVisible,
+          })}
+          aria-hidden={!childRowsVisible}
+          onTransitionEnd={childRowsPresence.onTransitionEnd}
         >
           <th
-            className="sticky left-0 z-25 bg-surface-white border-b border-r border-outline-gray-1 pl-8 pr-3 font-normal text-left align-middle flex items-center gap-2 w-full overflow-hidden transition-[height,background-color] cursor-pointer hover:bg-surface-gray-1"
+            className="sticky left-0 z-25 bg-surface-white border-b border-r border-outline-gray-1 pl-8 pr-3 font-normal text-left align-middle transition-[height,background-color] cursor-pointer hover:bg-surface-gray-1"
             style={{
               width: headerWidth,
               minWidth: headerWidth,
+              maxWidth: headerWidth,
               height: addProjectRowHeight,
-              borderBottomWidth: isExpanded ? undefined : 0,
-              borderRightWidth: isExpanded ? undefined : 0,
+              borderBottomWidth: childRowsVisible ? undefined : 0,
+              borderRightWidth: childRowsVisible ? undefined : 0,
             }}
           >
-            <button
-              type="button"
-              onClick={() =>
-                onAddAllocation?.({
-                  employeeId: member.id,
-                  employeeName: member.name,
-                })
-              }
-              tabIndex={isExpanded ? undefined : -1}
-              className="w-full h-full flex items-center gap-2 text-base font-medium text-ink-gray-8 overflow-hidden"
+            <div
+              className="overflow-hidden transition-[height] duration-200 ease-in-out"
+              style={{ height: addProjectRowHeight }}
             >
-              <AddMd className="size-4 shrink-0" />
-              <span className="truncate">Add project</span>
-            </button>
+              <button
+                type="button"
+                onClick={() =>
+                  onAddAllocation?.({
+                    employeeId: member.id,
+                    employeeName: member.name,
+                  })
+                }
+                tabIndex={childRowsVisible ? undefined : -1}
+                className="flex h-full w-full items-center gap-2 overflow-hidden text-base font-medium text-ink-gray-8"
+              >
+                <AddMd className="size-4 shrink-0" />
+                <span className="truncate">Add project</span>
+              </button>
+            </div>
           </th>
           {weeks.map((_, i) => (
             <td
@@ -153,7 +170,7 @@ export const GanttMemberRows: React.FC<GanttMemberRowsProps> = ({
               colSpan={daysPerWeek}
               className={cn(
                 "overflow-hidden transition-[height] duration-200 ease-in-out",
-                { "border-r border-b border-outline-gray-1": isExpanded },
+                { "border-r border-b border-outline-gray-1": childRowsVisible },
               )}
               style={{ height: addProjectRowHeight }}
             />

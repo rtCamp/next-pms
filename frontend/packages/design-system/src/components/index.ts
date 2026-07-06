@@ -21,6 +21,11 @@ export {
   type ProgressBarSize,
 } from "./progress-bar";
 export {
+  default as BudgetBurnBar,
+  type BudgetBurnBarProps,
+  type BudgetBurnVariant,
+} from "./budget-burn-bar";
+export {
   Tooltip,
   TooltipTrigger,
   TooltipContent,
@@ -98,3 +103,4 @@ export {
   type SortState,
   type SortOrder,
 } from "./sort-button";
+export { SortSelector, type SortSelectorProps } from "./sort-selector";

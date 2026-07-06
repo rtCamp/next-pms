@@ -28,7 +28,8 @@ export const ProjectTimesheetProvider: FC<PropsWithChildren> = ({
   children,
 }) => {
   const toast = useToasts();
-  const { filters, setSearch, setCompositeFilters } = useTimesheetFilters();
+  const { filters, setSearch, setCompositeFilters, resetAll } =
+    useTimesheetFilters();
   const debouncedSearch = useDebounce(filters.search, 400);
 
   // Only pass complete filter conditions to the data hook so that selecting a
@@ -98,6 +99,7 @@ export const ProjectTimesheetProvider: FC<PropsWithChildren> = ({
         loadData,
         handleSearchChange: setSearch,
         handleCompositeFilterChange: setCompositeFilters,
+        handleClearAllFilters: resetAll,
       },
     }),
     [
@@ -110,6 +112,7 @@ export const ProjectTimesheetProvider: FC<PropsWithChildren> = ({
       filters.compositeFilters,
       setSearch,
       setCompositeFilters,
+      resetAll,
     ],
   );
 

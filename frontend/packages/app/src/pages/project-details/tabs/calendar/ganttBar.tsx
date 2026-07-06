@@ -1,6 +1,7 @@
 /**
  * External dependencies.
  */
+import { Tooltip } from "@rtcamp/frappe-ui-react";
 import { Sparkle, Zap } from "@rtcamp/frappe-ui-react/icons";
 
 /**
@@ -19,18 +20,20 @@ type GanttBarProps = {
 export function GanttBar({ item, pos, totalWidth }: GanttBarProps) {
   if (item.type === "Milestone") {
     return (
-      <div
-        className="absolute top-1/2 -translate-y-1/2 z-1 flex items-center gap-1.5 px-2.5 rounded-md overflow-hidden mx-0.5 bg-surface-blue-2 text-blue-700"
-        style={{ left: pos.left, width: pos.width, height: 32 }}
-        title={item.title}
-      >
-        <Sparkle className="size-3.5 shrink-0" />
-        <span
-          className={`truncate text-sm${item.isComplete ? " line-through opacity-60" : ""}`}
+      <Tooltip text={item.title}>
+        <div
+          className="absolute top-1/2 -translate-y-1/2 z-1 flex items-center gap-1.5 px-2.5 rounded-md overflow-hidden mx-0.5 bg-surface-blue-2 text-blue-700"
+          style={{ left: pos.left, width: pos.width, height: 32 }}
+          title={item.title}
         >
-          {item.title}
-        </span>
-      </div>
+          <Sparkle className="size-3.5 shrink-0" />
+          <span
+            className={`truncate text-sm${item.isComplete ? " line-through opacity-60" : ""}`}
+          >
+            {item.title}
+          </span>
+        </div>
+      </Tooltip>
     );
   }
 
@@ -39,29 +42,30 @@ export function GanttBar({ item, pos, totalWidth }: GanttBarProps) {
   const flipLeft = spaceRight < 150;
 
   return (
-    <div
-      className="absolute top-1/2 -translate-y-1/2 z-1 flex items-center gap-2"
-      style={
-        flipLeft
-          ? {
-              right: totalWidth - (pos.left + pos.width),
-              flexDirection: "row-reverse",
-            }
-          : { left: pos.left }
-      }
-      title={item.title}
-    >
+    <Tooltip text={item.title}>
       <div
-        className="flex items-center justify-center rounded-md bg-surface-violet-1 text-violet-700 mx-0.5 shrink-0"
-        style={{ width: pos.width, height: 32 }}
+        className="absolute top-1/2 -translate-y-1/2 z-1 flex items-center gap-2"
+        style={
+          flipLeft
+            ? {
+                right: totalWidth - (pos.left + pos.width),
+                flexDirection: "row-reverse",
+              }
+            : { left: pos.left }
+        }
       >
-        <Zap className="size-3.5" />
+        <div
+          className="flex items-center justify-center rounded-md bg-surface-violet-1 text-violet-700 mx-0.5 shrink-0"
+          style={{ width: pos.width, height: 32 }}
+        >
+          <Zap className="size-3.5" />
+        </div>
+        <span
+          className={`text-sm text-violet-700 whitespace-nowrap${item.isComplete ? " line-through opacity-60" : ""}`}
+        >
+          {item.title}
+        </span>
       </div>
-      <span
-        className={`text-sm text-violet-700 whitespace-nowrap${item.isComplete ? " line-through opacity-60" : ""}`}
-      >
-        {item.title}
-      </span>
-    </div>
+    </Tooltip>
   );
 }

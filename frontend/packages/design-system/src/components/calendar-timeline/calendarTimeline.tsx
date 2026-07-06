@@ -113,7 +113,6 @@ const CalendarTimeline = ({
                 </div>
                 {dayEvents.map((event) => (
                   <EventChip
-                    key={event.id}
                     title={event.title}
                     subtitle={event.subtitle}
                     color={event.color}

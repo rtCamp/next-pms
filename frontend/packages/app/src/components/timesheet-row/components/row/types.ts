@@ -116,6 +116,6 @@ export interface TimeOffRowProps extends Omit<
 > {
   dates: string[];
   leaves: Array<LeaveProps>;
-  holidayList: Array<string>;
+  holidays: Array<HolidayProp>;
   expectedHours: number;
 }

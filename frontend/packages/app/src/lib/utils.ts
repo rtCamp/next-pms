@@ -15,6 +15,8 @@ import {
   getISOWeekYear,
   getISOWeeksInYear,
   parse,
+  parseISO,
+  isToday,
 } from "date-fns";
 import { Error as FrappeError } from "frappe-js-sdk/lib/frappe_app/types";
 import { twMerge } from "tailwind-merge";
@@ -491,6 +493,10 @@ export const calculateLeaveHours = (
   daily_working_hours: number,
   holiday: HolidayProp | undefined,
 ) => {
+  if (holiday && !holiday.weekly_off) {
+    return daily_working_hours;
+  }
+
   return leaves.reduce((total, leave) => {
     if (date >= leave.from_date && date <= leave.to_date) {
       if (!leave.is_lwp && holiday?.weekly_off) {

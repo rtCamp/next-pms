@@ -421,7 +421,6 @@ def _get_resource_management_team_view_data(
         dates[-1].get("end_date"),
         is_billable=is_billable,
         allocation_status=allocation_status,
-        is_need_fetch_all_weeks=not need_hours_summary,
     )
     resource_allocation_data = attach_extra_entries(resource_allocation_data)
 

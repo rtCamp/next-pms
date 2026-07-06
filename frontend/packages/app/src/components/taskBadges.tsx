@@ -40,8 +40,16 @@ const TaskBadges: React.FC<TaskBadgesProps> = ({
   return (
     <div className={cn("flex flex-wrap gap-1", className)}>
       {badges.map((badge, index) => (
-        <Badge key={index} variant="subtle" size="md" prefix={badge.icon}>
-          {badge.text}
+        <Badge
+          key={index}
+          variant="subtle"
+          size="md"
+          prefix={badge.icon}
+          className="min-w-0 max-w-full"
+        >
+          <span className="truncate max-w-42" title={badge.text}>
+            {badge.text}
+          </span>
         </Badge>
       ))}
     </div>

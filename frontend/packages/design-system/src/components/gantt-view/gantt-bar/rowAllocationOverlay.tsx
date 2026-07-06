@@ -227,7 +227,7 @@ export const RowAllocationOverlay = forwardRef<
           variant="subtle"
           aria-label="Add allocation"
           className={cn(
-            "absolute opacity-100 transition-opacity duration-100 ease-out motion-reduce:transition-none",
+            "pointer-events-auto absolute opacity-100 transition-opacity duration-100 ease-out motion-reduce:transition-none",
             "starting:opacity-0",
           )}
           style={{

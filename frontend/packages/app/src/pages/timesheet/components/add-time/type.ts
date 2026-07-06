@@ -35,6 +35,11 @@ export type CalendarEvent = {
   event_type: string;
 };
 
+export type SelectedCalendarEvent = {
+  id: string;
+  label: string;
+};
+
 export interface AddTimeProps {
   initialDate: string;
   open: boolean;
