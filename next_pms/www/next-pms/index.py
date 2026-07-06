@@ -13,7 +13,7 @@ no_cache = 1
 
 
 def show_rag_trigger_page() -> bool:
-    """Whether the rtcamp Customer Feedback module is available on this site."""
+    """Whether the rtcamp app is installed or not. If yes, then show the RAG trigger page."""
     return "rtcamp" in frappe.get_installed_apps()
 
 
@@ -87,6 +87,7 @@ def get_boot():
     boot["has_industry"] = has_industry_field()
     boot["has_repository_connections"] = bool(frappe.db.exists("DocType", "GitHub Repository"))
     boot["has_customer_feedback"] = is_customer_feedback_available()
+    boot["show_rag_trigger_page"] = show_rag_trigger_page()
     boot["has_todo_custom_fields"] = has_todo_custom_fields()
     boot["is_calendar_setup"] = is_google_calendar_enabled()
     boot["app_name"] = "Next PMS"
