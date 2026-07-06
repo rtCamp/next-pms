@@ -18,7 +18,7 @@ import { format } from "date-fns";
  * Internal dependencies.
  */
 import { mergeClassNames as cn } from "../../../utils";
-import type { DeleteAllocationMode } from "../types";
+import type { DeleteAllocationMode, GanttGridVariant } from "../types";
 
 export interface AllocationEntry {
   projectName: string;
@@ -42,17 +42,22 @@ export interface AllocationEntry {
 interface AllocationItemProps {
   entry: AllocationEntry;
   hasRoleAccess: boolean;
+  variant: GanttGridVariant;
 }
 
 /**
  * Internal popup card shown when hovering over a Gantt allocation bar.
  */
-function AllocationItem({ entry, hasRoleAccess }: AllocationItemProps) {
+function AllocationItem({
+  entry,
+  hasRoleAccess,
+  variant,
+}: AllocationItemProps) {
   const StatusIcon = entry.status === "confirmed" ? Check : Tentative;
 
   return (
     <div className="flex flex-col gap-3">
-      {entry.memberName ? (
+      {variant === "project" ? (
         /* Member details */
         <div className="flex gap-2 items-center min-w-0">
           <div className="shrink-0 flex items-center">
@@ -169,12 +174,14 @@ function AllocationItem({ entry, hasRoleAccess }: AllocationItemProps) {
 
 interface GanttAllocationPopoverProps {
   entries: AllocationEntry[];
+  variant: GanttGridVariant;
   onAdd?: () => void;
   hasRoleAccess?: boolean;
 }
 
 export function GanttAllocationPopover({
   entries,
+  variant,
   onAdd,
   hasRoleAccess = false,
 }: GanttAllocationPopoverProps) {
@@ -186,7 +193,11 @@ export function GanttAllocationPopover({
             {index > 0 && (
               <div className="my-3 w-full h-px bg-surface-gray-3" />
             )}
-            <AllocationItem entry={entry} hasRoleAccess={hasRoleAccess} />
+            <AllocationItem
+              entry={entry}
+              hasRoleAccess={hasRoleAccess}
+              variant={variant}
+            />
           </div>
         ))}
       </div>

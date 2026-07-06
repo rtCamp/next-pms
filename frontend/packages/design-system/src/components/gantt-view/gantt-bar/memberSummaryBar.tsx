@@ -26,6 +26,7 @@ export function GanttMemberSummaryBar({
   memberInd,
 }: GanttMemberSummaryBarProps) {
   const {
+    variant,
     headerWidth,
     members,
     hasRoleAccess,
@@ -34,6 +35,7 @@ export function GanttMemberSummaryBar({
     onDeleteAllocation,
     setPendingDeleteEntry,
   } = useGanttStore((s) => ({
+    variant: s.variant,
     headerWidth: s.headerWidth,
     members: s.members,
     hasRoleAccess: s.hasRoleAccess,
@@ -115,6 +117,7 @@ export function GanttMemberSummaryBar({
           <PreviewCard.Popup className="z-50 outline-none">
             <GanttAllocationPopover
               entries={entries}
+              variant={variant}
               onAdd={handleAdd}
               hasRoleAccess={hasRoleAccess}
             />

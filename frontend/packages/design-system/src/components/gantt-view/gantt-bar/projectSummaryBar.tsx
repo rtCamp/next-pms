@@ -20,6 +20,7 @@ export function GanttProjectSummaryBar({
   summary,
 }: GanttProjectSummaryBarProps) {
   const {
+    variant,
     headerWidth,
     hasRoleAccess,
     onAddAllocation,
@@ -27,6 +28,7 @@ export function GanttProjectSummaryBar({
     onDeleteAllocation,
     setPendingDeleteEntry,
   } = useGanttStore((state) => ({
+    variant: state.variant,
     headerWidth: state.headerWidth,
     hasRoleAccess: state.hasRoleAccess,
     onAddAllocation: state.onAddAllocation,
@@ -90,6 +92,7 @@ export function GanttProjectSummaryBar({
           <PreviewCard.Popup className="z-50 outline-none">
             <GanttAllocationPopover
               entries={entries}
+              variant={variant}
               onAdd={handleAdd}
               hasRoleAccess={hasRoleAccess}
             />
