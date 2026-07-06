@@ -128,7 +128,7 @@ export const PersonalTimesheetTable = () => {
               hasMore={!isFilterRequest && hasMoreWeeks}
               verticalLodMore={loadData}
               className={cn(
-                "relative w-full h-[calc(100%-var(--spacing)*7)] overflow-auto scrollbar [scrollbar-gutter:stable] opacity-100",
+                "relative w-full h-[calc(100%-var(--spacing)*7)] overflow-auto no-scrollbar opacity-100",
                 {
                   "opacity-50 transition-opacity duration-150":
                     isFilteredDataLoading,
