@@ -13,6 +13,7 @@ export type WeeklyApprovalProps = {
 
 export interface GroupedDay {
   day: string;
+  date: string;
   totalHours: number;
   leaveLabel?: string;
   entries: TimesheetEntry[];

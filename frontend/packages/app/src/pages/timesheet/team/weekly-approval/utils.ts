@@ -1,7 +1,11 @@
 /**
  * External Dependencies
  */
-import { TaskStatusType } from "@next-pms/design-system/components";
+import {
+  statusIcon,
+  taskStatusMap,
+  type TaskStatusType,
+} from "@next-pms/design-system/components";
 
 /**
  * Internal Dependencies
@@ -27,6 +31,15 @@ const formatDay = (dateTimeStr: string): string => {
   const month = date.toLocaleDateString("en-US", { month: "short" });
   const day = date.getDate();
   return `${weekday}, ${month} ${day}`;
+};
+
+const normalizeTaskStatus = (status: string): TaskStatusType => {
+  const mappedStatus = taskStatusMap[status];
+  if (mappedStatus) {
+    return mappedStatus;
+  }
+
+  return status in statusIcon ? (status as TaskStatusType) : "open";
 };
 
 const getLeaveLabel = (leave: LeaveProps, date: string): string => {
@@ -111,7 +124,7 @@ export const convertTimesheetToEntries = (response: TimesheetApiResponse) => {
           day: formatDay(entry.from_time),
           date,
           parent: entry.parent,
-          status: task.status.toLowerCase() as TaskStatusType,
+          status: normalizeTaskStatus(task.status),
           isBillable: Boolean(task.is_billable),
           docstatus: entry.docstatus,
           leaveHours,
@@ -142,6 +155,7 @@ export const groupEntriesByDay = (entries: TimesheetEntry[]): GroupedDay[] => {
     if (!acc[entry.day]) {
       acc[entry.day] = {
         day: entry.day,
+        date: entry.date,
         totalHours: entry.leaveHours,
         leaveLabel: entry.leaveLabel,
         entries: [],
@@ -152,5 +166,7 @@ export const groupEntriesByDay = (entries: TimesheetEntry[]): GroupedDay[] => {
     return acc;
   }, {});
 
-  return Object.values(grouped);
+  return Object.values(grouped).sort(
+    (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime(),
+  );
 };
