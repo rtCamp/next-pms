@@ -137,7 +137,7 @@ export function ProjectRateModal({
             <div className="flex flex-col gap-1.5">
               <label className="block text-base text-ink-gray-5">Member</label>
               <Combobox
-                inputClassName="bg-white h-8 border-outline-gray-2 text-ink-gray-7"
+                inputClassName="bg-surface-white h-8 border-outline-gray-2 text-ink-gray-7"
                 loading={isEmployeeLookupLoading}
                 options={employeeOptionsWithAvatars}
                 searchValue={employeeSearch}
@@ -168,7 +168,7 @@ export function ProjectRateModal({
                 placeholder="0"
                 value={field.state.value}
                 onChange={(e) => field.handleChange(e.target.value)}
-                className="bg-white border-outline-gray-2 text-ink-gray-7"
+                className="bg-surface-white border-outline-gray-2 text-ink-gray-7"
                 suffix={() => (
                   <span className="pr-2 text-[13px] text-ink-gray-5">/h</span>
                 )}

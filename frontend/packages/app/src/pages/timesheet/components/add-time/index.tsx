@@ -240,7 +240,7 @@ const AddTime = ({
                   Project
                 </label>
                 <Combobox
-                  inputClassName="bg-white h-8 border-outline-gray-2 text-ink-gray-7"
+                  inputClassName="bg-surface-white h-8 border-outline-gray-2 text-ink-gray-7"
                   loading={isProjectLookupLoading}
                   options={projectOptions}
                   searchValue={projectSearch}
@@ -273,7 +273,7 @@ const AddTime = ({
                   Task
                 </label>
                 <Combobox
-                  inputClassName="bg-white h-8 border-outline-gray-2 text-ink-gray-7"
+                  inputClassName="bg-surface-white h-8 border-outline-gray-2 text-ink-gray-7"
                   loading={isTaskLookupLoading}
                   options={taskOptions}
                   searchValue={taskSearch}
@@ -386,7 +386,7 @@ const AddTime = ({
                   onChange={(value) => field.handleChange(value)}
                   starterkitOptions={COMMENT_EDITOR_STARTERKIT_OPTIONS}
                   fixedMenu={false}
-                  editorClass="px-2 h-24 prose-sm overflow-auto scrollbar-thin bg-white border rounded-md border-outline-gray-2 text-ink-gray-7 text-base"
+                  editorClass="px-2 h-24 prose-sm overflow-auto scrollbar-thin bg-surface-white border rounded-md border-outline-gray-2 text-ink-gray-7 text-base"
                 />
                 {!field.state.meta.isValid && (
                   <ErrorMessage message={field.state.meta.errors[0]?.message} />

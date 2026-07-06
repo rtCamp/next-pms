@@ -310,7 +310,7 @@ function AddAllocationModal({
             Employee
           </label>
           <Combobox
-            inputClassName="bg-white h-8 border-outline-gray-2 text-ink-gray-7"
+            inputClassName="bg-surface-white h-8 border-outline-gray-2 text-ink-gray-7"
             loading={isEmployeeLookupLoading}
             options={employeeOptions}
             searchValue={employeeSearch}
@@ -338,7 +338,7 @@ function AddAllocationModal({
             Project
           </label>
           <Combobox
-            inputClassName="bg-white h-8 border-outline-gray-2 text-ink-gray-7"
+            inputClassName="bg-surface-white h-8 border-outline-gray-2 text-ink-gray-7"
             loading={isProjectLookupLoading}
             options={projectOptions}
             searchValue={projectSearch}
@@ -366,7 +366,7 @@ function AddAllocationModal({
             Customer
           </label>
           <Combobox
-            inputClassName="bg-white h-8 border-outline-gray-2 text-ink-gray-7"
+            inputClassName="bg-surface-white h-8 border-outline-gray-2 text-ink-gray-7"
             loading={isCustomerLookupLoading}
             options={customerOptions}
             searchValue={customerSearch}

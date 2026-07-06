@@ -165,7 +165,7 @@ function AddProjectModal({
                 Company
               </label>
               <Combobox
-                inputClassName="bg-white h-8 border-outline-gray-2"
+                inputClassName="bg-surface-white h-8 border-outline-gray-2"
                 loading={isCompanyLoading}
                 options={companyOptions}
                 placeholder="Select company"
