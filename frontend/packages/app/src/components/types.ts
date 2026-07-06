@@ -23,6 +23,7 @@ export interface InfiniteScrollProps {
   className?: string;
   skeletonClassName?: string;
   count?: number;
+  scrollResetKey?: string | number;
 }
 
 export interface TaskIndicatorProps {

@@ -16,6 +16,7 @@ export interface AllocationsTeamContextProps {
     isQueryLoading: boolean;
     isNextPageLoading: boolean;
     hasMore: boolean;
+    querySignature: string;
     designation: string[];
     search: string;
     duration: AllocationsDuration;
@@ -45,6 +46,7 @@ export const AllocationsTeamContext =
       isQueryLoading: false,
       isNextPageLoading: false,
       hasMore: true,
+      querySignature: "",
       search: "",
       duration: "this-quarter",
       allocationsType: [],

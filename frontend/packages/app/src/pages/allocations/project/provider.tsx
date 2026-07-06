@@ -77,6 +77,7 @@ export function AllocationsProjectProvider({
     hasMore,
     isQueryLoading,
     isNextPageLoading,
+    querySignature,
     loadMore,
     refresh,
   } = useAllocationsProjectData({
@@ -184,6 +185,7 @@ export function AllocationsProjectProvider({
         isQueryLoading,
         isNextPageLoading,
         hasMore,
+        querySignature,
         search: searchParam,
         duration,
         allocationsType,
@@ -208,6 +210,7 @@ export function AllocationsProjectProvider({
       isQueryLoading,
       isNextPageLoading,
       hasMore,
+      querySignature,
       searchParam,
       duration,
       allocationsType,

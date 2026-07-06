@@ -33,6 +33,7 @@ type UseAllocationsTeamDataResult = {
   hasMore: boolean;
   isQueryLoading: boolean;
   isNextPageLoading: boolean;
+  querySignature: string;
   loadMore: () => void;
   refresh: (employeeIds?: string[]) => Promise<void>;
 };
@@ -40,6 +41,8 @@ type UseAllocationsTeamDataResult = {
 type TeamAllocationCallResponse = {
   message?: TeamAllocationResponse;
 };
+
+const QUERY_SIGNATURE_PREFIX = "team-allocations:";
 
 export function useAllocationsTeamData({
   anchorDate,
@@ -92,9 +95,8 @@ export function useAllocationsTeamData({
       : JSON.stringify(hasBillable ? [1] : [0]);
   const querySignature = useMemo(
     () =>
-      hashString(
+      `${QUERY_SIGNATURE_PREFIX}${hashString(
         [
-          "team-allocations",
           requestDate,
           String(maxWeek),
           search,
@@ -103,7 +105,7 @@ export function useAllocationsTeamData({
           isBillableParam ?? "",
           filtersParam ?? "",
         ].join(":"),
-      ),
+      )}`,
     [
       allocationStatusParam,
       designationParam,
@@ -175,6 +177,9 @@ export function useAllocationsTeamData({
       errorRetryCount: 0,
       onError: (error) => {
         toast.error(parseFrappeErrorMsg(error as FrappeError));
+      },
+      cacheCleanup: {
+        signaturePrefix: QUERY_SIGNATURE_PREFIX,
       },
     },
   );
@@ -270,6 +275,7 @@ export function useAllocationsTeamData({
     hasMore,
     isQueryLoading,
     isNextPageLoading,
+    querySignature,
     loadMore,
     refresh,
   };
