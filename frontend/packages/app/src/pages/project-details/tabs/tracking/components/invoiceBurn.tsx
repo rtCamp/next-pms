@@ -14,9 +14,8 @@ import { LegendItem } from "./legendItem";
 
 export function InvoiceBurnCell() {
   const projectId = useProjectDetail((state) => state.projectId);
+  const currency = useProjectDetail((state) => state.project?.custom_currency);
   const invoiceBurn = useTracking((state) => state.tracking.invoice_burn);
-  const tracking = useTracking((state) => state.tracking);
-  const formatter = currencyFormat(tracking.currency ?? undefined);
   const invoicedPaid = invoiceBurn.invoiced_and_paid ?? 0;
   const invoicedUnpaid = invoiceBurn.invoiced_but_not_paid ?? 0;
   const totalAmount = invoiceBurn.total_project_amount;
@@ -40,7 +39,7 @@ export function InvoiceBurnCell() {
       <ProgressBar
         value={invoicedPaid}
         secondaryValue={invoicedPaid + invoicedUnpaid}
-        maxValue={totalAmount}
+        maxValue={totalAmount || 0}
         indicatorClassName="bg-surface-violet-4"
         secondaryIndicatorClassName="bg-surface-blue-5"
       />
@@ -48,21 +47,21 @@ export function InvoiceBurnCell() {
         <LegendItem
           className="bg-surface-violet-4"
           label="Invoiced and paid"
-          value={formatter.format(invoicedPaid)}
+          value={currencyFormat(currency).format(invoicedPaid)}
           labelClassName="text-ink-gray-6"
           valueClassName="font-medium"
         />
         <LegendItem
           className="bg-surface-blue-5"
           label="Invoiced but not paid"
-          value={formatter.format(invoicedUnpaid)}
+          value={currencyFormat(currency).format(invoicedUnpaid)}
           labelClassName="text-ink-gray-6"
           valueClassName="font-medium"
         />
         <LegendItem
           className="bg-surface-gray-3"
           label="Total project amount"
-          value={formatter.format(totalAmount ?? 0)}
+          value={currencyFormat(currency).format(totalAmount ?? 0)}
           labelClassName="text-ink-gray-6"
           valueClassName="font-medium"
         />

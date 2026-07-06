@@ -20,6 +20,7 @@ import {
  * Internal dependencies.
  */
 import { currencyFormat } from "@/lib/utils";
+import { useProjectDetail } from "../../context";
 import type { AboutMember } from "../types";
 
 export function MemberHoverCard({
@@ -29,6 +30,7 @@ export function MemberHoverCard({
   member: AboutMember | undefined;
   render: PreviewCardTrigger.Props["render"];
 }) {
+  const currency = useProjectDetail((s) => s.project?.custom_currency);
   const triggerEl = useRender({
     // ComponentRenderFn's state param is interface-typed so it can't satisfy
     // Record<string, unknown>; cast to the ReactElement branch instead.
@@ -105,7 +107,7 @@ export function MemberHoverCard({
                     <Payments className="size-4 shrink-0 text-ink-gray-5" />
 
                     <span className="truncate text-sm text-ink-gray-6">
-                      {currencyFormat(member.currency).format(member.rate)}/hour
+                      {currencyFormat(currency).format(member.rate)}/hour
                     </span>
                   </div>
                 )}

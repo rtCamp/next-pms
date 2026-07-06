@@ -19,6 +19,7 @@ import { LinkSection } from "./sections/link";
 import { MemberSection } from "./sections/member";
 import { useSidebar } from "./sidebarContext";
 import { SidebarProvider } from "./sidebarProvider";
+import { useProjectDetail } from "../context";
 
 export function AboutThisProject(props: { className: string }) {
   const editorMatch = useMatch(`${ROUTES.project}/:projectId/notes/*`);
@@ -32,6 +33,7 @@ export function AboutThisProject(props: { className: string }) {
 }
 
 function AboutThisProjectContent({ className }: { className: string }) {
+  const currency = useProjectDetail((state) => state.project?.custom_currency);
   const sidebar = useSidebar((state) => state.sidebar);
   const risk = useSidebar((state) => state.risk);
 
@@ -92,10 +94,10 @@ function AboutThisProjectContent({ className }: { className: string }) {
           <div className="flex flex-col gap-2.5">
             <div className="flex items-center justify-between">
               <span className="text-base font-medium text-ink-gray-7">
-                {currencyFormat().format(sidebar.burn.cost_accrued)}
+                {currencyFormat(currency).format(sidebar.burn.cost_accrued)}
               </span>
               <span className="text-base text-ink-gray-5">
-                {currencyFormat().format(sidebar.burn.total_budget)}
+                {currencyFormat(currency).format(sidebar.burn.total_budget)}
               </span>
             </div>
             <BudgetBurnBar
