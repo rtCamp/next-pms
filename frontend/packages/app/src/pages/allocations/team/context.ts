@@ -30,6 +30,7 @@ export interface AllocationsTeamContextProps {
     setDesignation: (value: string[]) => void;
     setAllocationsType: (value: string[]) => void;
     setCompositeFilters: (value: FilterCondition[]) => void;
+    handleClearAllFilters: () => void;
     loadMore: () => void;
     handlePrevious: () => void;
     handleNext: () => void;
@@ -59,6 +60,7 @@ export const AllocationsTeamContext =
       setDesignation: () => null,
       setAllocationsType: () => null,
       setCompositeFilters: () => null,
+      handleClearAllFilters: () => null,
       loadMore: () => null,
       handlePrevious: () => null,
       handleNext: () => null,

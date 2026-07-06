@@ -33,6 +33,7 @@ export const TeamTimesheetProvider: FC<PropsWithChildren> = ({ children }) => {
     setApprovalStatus,
     setReportsTo,
     setCompositeFilters,
+    resetAll,
   } = useTimesheetFilters({
     includeApprovalStatus: true,
     includeReportsTo: true,
@@ -129,6 +130,7 @@ export const TeamTimesheetProvider: FC<PropsWithChildren> = ({ children }) => {
         handleApprovalStatusChange: setApprovalStatus,
         handleReportsToChange: setReportsTo,
         handleCompositeFilterChange: setCompositeFilters,
+        handleClearAllFilters: resetAll,
       },
     }),
     [
@@ -143,6 +145,7 @@ export const TeamTimesheetProvider: FC<PropsWithChildren> = ({ children }) => {
       setApprovalStatus,
       setReportsTo,
       setCompositeFilters,
+      resetAll,
     ],
   );
 
