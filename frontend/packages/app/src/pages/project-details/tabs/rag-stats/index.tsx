@@ -47,11 +47,7 @@ function formatTriggerDate(date: string | null, precision?: DatePrecision) {
 function renderCell(column: ColumnDef, row: RagTrigger | RagHistory) {
   switch (column.key) {
     case "type":
-      return (
-        <span className={ragColourVariants({ colour: row.colour })}>
-          {row.type_label}
-        </span>
-      );
+      return <span>{row.type_label}</span>;
     case "trigger_date":
       return formatTriggerDate(row.trigger_date, row.date_precision);
     case "clear_date":
@@ -136,7 +132,7 @@ export function RagStats() {
         </p>
       </div>
 
-      <div className="flex flex-col gap-4 rounded-xl">
+      <div className="flex flex-col gap-4 rounded-xl space-y-10">
         <div className="flex items-center gap-1.5 text-base text-ink-gray-7">
           <span>Current Status:</span>
           {status ? (
