@@ -119,7 +119,7 @@ export const TeamTimesheetTable = () => {
           hasMore={hasMore}
           verticalLodMore={loadMore}
           className={cn(
-            "w-full h-[calc(100%-var(--spacing)*7)] overflow-auto scrollbar [scrollbar-gutter:stable] opacity-100",
+            "w-full h-[calc(100%-var(--spacing)*7)] overflow-auto no-scrollbar opacity-100",
             {
               "opacity-50 transition-opacity duration-150":
                 isFilteredDataLoading,
