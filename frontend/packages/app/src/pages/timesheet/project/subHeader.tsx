@@ -2,8 +2,7 @@
  * External dependencies.
  */
 import { useEffect, useState } from "react";
-import { Button, Filter, TextInput } from "@rtcamp/frappe-ui-react";
-import { DotHorizontal } from "@rtcamp/frappe-ui-react/icons";
+import { Filter, TextInput } from "@rtcamp/frappe-ui-react";
 
 /**
  * Internal dependencies.
@@ -54,19 +53,16 @@ export function SubHeader() {
           onChange={(e) => setSearchInput(e.target.value)}
         />
       </div>
-      <div className="flex gap-2">
-        <Filter
-          fields={projectTimesheetFilters}
-          value={compositeFilters}
-          onChange={handleCompositeFilterChange}
-          externalFilterCount={externalFilterCount}
-          onClearAll={() => {
-            setSearchInput("");
-            handleClearAllFilters();
-          }}
-        />
-        <Button icon={() => <DotHorizontal size={16} />} />
-      </div>
+      <Filter
+        fields={projectTimesheetFilters}
+        value={compositeFilters}
+        onChange={handleCompositeFilterChange}
+        externalFilterCount={externalFilterCount}
+        onClearAll={() => {
+          setSearchInput("");
+          handleClearAllFilters();
+        }}
+      />
     </div>
   );
 }
