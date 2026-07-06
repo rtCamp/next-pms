@@ -9,10 +9,10 @@ import { type PaginationKey, usePagination } from "@next-pms/hooks";
  */
 import AddProjectModal from "../components/add-project";
 import { PROJECT_LIST_PAGE_SIZE } from "../constants";
-import { buildListFrappeFilters } from "../utils";
 import { ProjectListContext, type ProjectListContextProps } from "./context";
-import type { ResponseProjectList } from "./types";
 import { useProjectFilters } from "../hooks/useProjectFilters";
+import { buildListFrappeFilters } from "../utils";
+import type { ResponseProjectList } from "./types";
 
 export function ProjectListProvider({ children }: PropsWithChildren) {
   const { filters, sort } = useProjectFilters();

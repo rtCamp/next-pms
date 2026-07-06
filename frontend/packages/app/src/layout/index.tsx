@@ -9,14 +9,28 @@ import { ErrorFallback } from "@next-pms/design-system/components";
  * Internal dependencies.
  */
 import Sidebar from "@/layout/sidebar";
+import { NotificationsProvider } from "@/providers/notifications/provider";
 import { useUser } from "@/providers/user";
+import type { Role } from "@/types";
+
+const NOTIFICATION_ROLES: Role[] = [
+  "Delivery Manager",
+  "Delivery User",
+  "Projects Manager",
+  "Projects User",
+];
 
 const LayoutWithSidebar = () => {
-  const { employeeId } = useUser(({ state }) => ({
+  const { employeeId, roles } = useUser(({ state }) => ({
     employeeId: state.employeeId,
+    roles: state.roles,
   }));
 
-  return (
+  const canReceiveNotifications = roles.some((r) =>
+    NOTIFICATION_ROLES.includes(r),
+  );
+
+  const layout = (
     <ErrorFallback>
       {Boolean(employeeId) && (
         <div className="flex flex-row h-screen w-full">
@@ -33,6 +47,12 @@ const LayoutWithSidebar = () => {
         </div>
       )}
     </ErrorFallback>
+  );
+
+  return canReceiveNotifications ? (
+    <NotificationsProvider>{layout}</NotificationsProvider>
+  ) : (
+    layout
   );
 };
 

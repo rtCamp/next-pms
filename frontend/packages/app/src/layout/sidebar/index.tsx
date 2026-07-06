@@ -92,10 +92,10 @@ const Sidebar = () => {
 
   const dashboardItems: SidebarSectionType["items"] = [];
 
-  if (roles.includes("System Manager")) {
+  if (roles.includes("Delivery Manager") || roles.includes("Delivery User")) {
     dashboardItems.push(leadershipDashboard);
   }
-  if (roles.includes("Projects Manager")) {
+  if (roles.includes("Projects Manager") || roles.includes("Projects User")) {
     dashboardItems.push(managerDashbaord);
   }
 
@@ -129,7 +129,11 @@ const Sidebar = () => {
 
   const timesheetItems: SidebarSectionType["items"] = [personalTimesheet];
 
-  if (roles.includes("Timesheet Manager") && roles.includes("Timesheet User")) {
+  if (
+    roles.includes("Timesheet Manager") ||
+    roles.includes("Timesheet User") ||
+    roles.includes("Projects Manager")
+  ) {
     timesheetItems.push(teamTimesheet);
     timesheetItems.push(projectTimesheet);
   }
@@ -144,8 +148,31 @@ const Sidebar = () => {
 
   const projectItems: SidebarSectionType["items"] = [];
 
-  if (roles.includes("Projects Manager")) {
+  if (
+    roles.includes("Projects Manager") ||
+    roles.includes("Projects User") ||
+    roles.includes("Timesheet Manager")
+  ) {
     projectItems.push(projects);
+  }
+
+  const notificationsOption = {
+    label: "Notifications",
+    icon: Notifications,
+    to: "",
+    isActive: false,
+    onClick: () => openTray(),
+  };
+
+  const notificationItems = [];
+
+  if (
+    roles.includes("Delivery Manager") ||
+    roles.includes("Delivery User") ||
+    roles.includes("Projects User") ||
+    roles.includes("Projects Manager")
+  ) {
+    notificationItems.push(notificationsOption);
   }
 
   const teamAllocation = {
@@ -266,19 +293,13 @@ const Sidebar = () => {
             label: "",
             items: [
               {
-                label: "Notifications",
-                icon: Notifications,
-                to: "",
-                isActive: false,
-                onClick: openTray,
-              },
-              {
                 label: "Search",
                 icon: SearchAlt,
                 to: "",
                 isActive: false,
                 onClick: () => setIsSearchOpen(true),
               },
+              ...notificationItems,
               ...projectItems,
             ],
           },
@@ -325,21 +346,26 @@ const Sidebar = () => {
         items={searchItems}
       />
 
-      <NotificationTray
-        open={isNotificationsOpen}
-        onOpenChange={(open) => {
-          if (!open) closeTray();
-        }}
-        notifications={notifications}
-        offsetClassName={isSidebarCollapsed ? "left-12" : "left-60"}
-        onMarkAllRead={markAllAsViewed}
-        onNotificationClick={async (notification) => {
-          await markAsViewed(notification.id);
-          if (notification.href) {
-            window.location.assign(notification.href);
-          }
-        }}
-      />
+      {roles.includes("Delivery Manager") ||
+        roles.includes("Delivery User") ||
+        roles.includes("Projects User") ||
+        (roles.includes("Projects Manager") && (
+          <NotificationTray
+            onOpenChange={(open) => {
+              if (!open) closeTray();
+            }}
+            open={isNotificationsOpen}
+            notifications={notifications}
+            offsetClassName={isSidebarCollapsed ? "left-12" : "left-60"}
+            onMarkAllRead={markAllAsViewed}
+            onNotificationClick={async (notification) => {
+              await markAsViewed(notification.id);
+              if (notification.href) {
+                window.location.assign(notification.href);
+              }
+            }}
+          />
+        ))}
     </ErrorFallback>
   );
 };

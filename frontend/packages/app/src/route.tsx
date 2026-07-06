@@ -44,19 +44,19 @@ export const routeConfig: Record<
 > = {
   "dashboard-leadership": {
     Component: ReactLazyPreload(() => import("@/pages/dashboard/leadership")),
-    allowedRoles: ["System Manager"],
+    allowedRoles: ["Delivery Manager", "Delivery User"],
   },
   "dashboard-manager": {
     Component: ReactLazyPreload(() => import("@/pages/dashboard/manager")),
-    allowedRoles: ["Projects Manager"],
+    allowedRoles: ["Projects Manager", "Projects User"],
   },
   project: {
     Component: ReactLazyPreload(() => import("@/pages/projects/list")),
-    allowedRoles: ["Projects Manager"],
+    allowedRoles: ["Projects Manager", "Timesheet Manager", "Projects User"],
   },
   "project-kanban": {
     Component: ReactLazyPreload(() => import("@/pages/projects/kanban")),
-    allowedRoles: ["Projects Manager"],
+    allowedRoles: ["Projects Manager", "Timesheet Manager", "Projects User"],
   },
   "timesheet-personal": {
     Component: ReactLazyPreload(() => import("@/pages/timesheet/personal")),
@@ -64,7 +64,7 @@ export const routeConfig: Record<
   },
   "timesheet-team": {
     Component: ReactLazyPreload(() => import("@/pages/timesheet/team")),
-    allowedRoles: ["Timesheet Manager", "Timesheet User"],
+    allowedRoles: ["Timesheet Manager", "Timesheet User", "Projects Manager"],
   },
   "timesheet-project": {
     Component: ReactLazyPreload(() => import("./pages/timesheet/project")),
@@ -119,7 +119,7 @@ export function Router() {
           <Route
             element={
               <RoleProtectedRoute
-                allowedRoles={routeConfig["dashboard-leadership"].allowedRoles}
+                allowedRoles={routeConfig["dashboard-manager"].allowedRoles}
               />
             }
           >

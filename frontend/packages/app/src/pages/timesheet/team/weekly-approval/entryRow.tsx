@@ -2,7 +2,7 @@
  * External Dependencies
  */
 import { useState, useCallback } from "react";
-import { floatToTime } from "@next-pms/design-system";
+import { floatToTime, mergeClassNames as cn } from "@next-pms/design-system";
 import { TaskStatus } from "@next-pms/design-system/components";
 import { stripTags } from "@next-pms/design-system/utils";
 import {
@@ -21,6 +21,7 @@ import type { TimesheetEntry } from "./types";
 
 interface EntryRowProps {
   entry: TimesheetEntry;
+  readOnly?: boolean;
   onSave: (
     timesheetId: string,
     taskId: string,
@@ -31,16 +32,22 @@ interface EntryRowProps {
   ) => void;
 }
 
-const EntryRow = ({ entry, onSave }: EntryRowProps) => {
+const EntryRow = ({ entry, readOnly = false, onSave }: EntryRowProps) => {
   const [isEditing, setIsEditing] = useState(false);
   const [description, setDescription] = useState(entry.description);
   const [hours, setHours] = useState(entry.hours);
   const [descriptionError, setDescriptionError] = useState<string | null>(null);
+  const [isHovered, setIsHovered] = useState(false);
+  const isReadOnly = readOnly || entry.docstatus === 1;
 
   const handleEdit = useCallback(() => {
+    if (isReadOnly) {
+      return;
+    }
+
     setDescriptionError(null);
     setIsEditing(true);
-  }, []);
+  }, [isReadOnly]);
 
   const handleCancel = useCallback(() => {
     setDescription(entry.description);
@@ -75,32 +82,41 @@ const EntryRow = ({ entry, onSave }: EntryRowProps) => {
     onSave,
   ]);
 
-  if (isEditing) {
+  if (isEditing && !isReadOnly) {
     return (
       <div className="px-3.5 py-4 flex gap-3 border-b border-outline-gray-modals last:border-b-0 ">
         <TaskStatus status={entry.status} />
         <div className="flex-1 min-w-0">
           <div className="space-y-1">
-            <p className="text-base font-medium text-ink-gray-7">
+            <p className="text-base font-medium text-ink-gray-7 truncate">
               {entry.taskName}
             </p>
-            <p className="text-xs text-ink-gray-5">{entry.projectName}</p>
-            <TextEditor
-              content={description}
-              onChange={(val) => {
-                setDescription(val);
-                setDescriptionError(null);
-              }}
-              fixedMenu={false}
-              placeholder="Comment"
-              editorClass="px-2 h-24 prose-sm overflow-auto scrollbar-thin bg-surface-white border rounded-md border-outline-gray-2"
-            />
+            <p className="text-xs text-ink-gray-5 truncate">
+              {entry.projectName}
+            </p>
+            <div className="flex flex-col gap-2 mt-3">
+              <DurationInput
+                snap="smooth"
+                variant="outline"
+                value={hours}
+                onChange={setHours}
+              />
+              <TextEditor
+                content={description}
+                onChange={(val) => {
+                  setDescription(val);
+                  setDescriptionError(null);
+                }}
+                fixedMenu={false}
+                placeholder="Comment"
+                editorClass="px-2 h-24 prose-sm overflow-auto scrollbar-thin bg-surface-white border rounded-md border-outline-gray-2"
+              />
+            </div>
             {descriptionError ? (
               <ErrorMessage message={descriptionError} />
             ) : null}
           </div>
         </div>
-        <DurationInput value={hours} onChange={setHours} />
 
         <div className="flex flex-col gap-2">
           <Button
@@ -121,29 +137,42 @@ const EntryRow = ({ entry, onSave }: EntryRowProps) => {
   }
 
   return (
-    <div className="px-3.5 py-4 flex gap-3 border-b border-outline-gray-modals last:border-b-0 group">
+    <div
+      className="px-3.5 py-4 flex gap-3 border-b border-outline-gray-modals last:border-b-0"
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+    >
       <TaskStatus status={entry.status} />
       <div className="flex-1 min-w-0">
         <div className="space-y-1">
-          <p className="text-base font-medium text-ink-gray-7">
+          <p className="text-base font-medium text-ink-gray-7 truncate">
             {entry.taskName}
           </p>
-          <p className="text-xs text-ink-gray-5">{entry.projectName}</p>
+          <p className="text-xs text-ink-gray-5 truncate">
+            {entry.projectName}
+          </p>
           <StaticTextEditor
             editorClass="prose-sm text-ink-gray-7 mt-3"
             content={entry.description}
           />
         </div>
       </div>
-      <span className="relative size-fit text-base text-ink-gray-6 rounded-sm outline outline-offset-4 outline-outline-gray-modals">
-        {entry.isBillable ? (
-          <span className="block absolute z-10 -bottom-0.5 left-1/2 w-1 h-1 rounded-full bg-surface-amber-3 transform -translate-x-1/2"></span>
+      <span className="relative size-fit text-base text-ink-gray-6 rounded-sm outline outline-offset-6 outline-outline-gray-modals">
+        {!entry.isBillable ? (
+          <span className="block absolute z-10 -bottom-1 left-1/2 w-1 h-1 rounded-full bg-surface-amber-3 transform -translate-x-1/2"></span>
         ) : null}
         {floatToTime(entry.hours, 2, 2)}
       </span>
       <Button
-        className="m-0 size-fit hover:bg-surface-white opacity-0 group-hover:opacity-100 transition-opacity"
+        className={cn(
+          "m-0 size-fit hover:bg-surface-white transition-opacity focus-visible:opacity-100 focus-visible:pointer-events-auto",
+          !isReadOnly && isHovered
+            ? "opacity-100"
+            : "opacity-0 pointer-events-none",
+        )}
         variant="ghost"
+        label="Edit time entry"
+        disabled={isReadOnly}
         icon={() => <EditAlt size={16} className="text-ink-gray-7" />}
         onClick={handleEdit}
       />

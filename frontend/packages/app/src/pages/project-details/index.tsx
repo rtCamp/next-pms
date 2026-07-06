@@ -44,6 +44,10 @@ function ProjectDetailBody() {
     finalTabs = finalTabs.filter((tab) => tab.label !== "Feedback");
     finalTabKeys = finalTabKeys.filter((key) => key !== "feedback");
   }
+  if (!window.frappe?.boot?.show_rag_trigger_page) {
+    finalTabs = finalTabs.filter((tab) => tab.label !== "RAG stats");
+    finalTabKeys = finalTabKeys.filter((key) => key !== "rag-stats");
+  }
   if (!reportEnabled) {
     finalTabs = finalTabs.filter((tab) => tab.label !== "Reports");
     finalTabKeys = finalTabKeys.filter((key) => key !== "reports");
@@ -73,7 +77,7 @@ function ProjectDetailBody() {
         </NotesProvider>
       ) : (
         <Tabs
-          tabListClassName="h-10"
+          tabListClassName="h-10 overflow-auto scrollbar-thin"
           tabPanelClassName="overflow-auto scrollbar-thin"
           className="w-3/4 border-0 rounded-none border-r"
           tabs={finalTabs}

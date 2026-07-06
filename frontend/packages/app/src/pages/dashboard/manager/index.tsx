@@ -13,7 +13,7 @@ import CalendarTimelineCard from "../widget/calendar-timeline";
 import WidgetCard from "../widget/components/card";
 import HeatmapCard from "../widget/heatmap";
 import NotificationsCard from "../widget/notificationsCard";
-import LiveStatCard from "../widget/stat-cards";
+import { ManagerStatCards } from "../widget/stat-cards";
 import Timesheets from "../widget/timesheet-summary";
 import UpcomingTimeOff from "../widget/upcoming-time-off";
 
@@ -49,7 +49,7 @@ export default function ManagerDashboard() {
           className="grid grid-cols-12 gap-3 overflow-y-auto scrollbar-thin"
         >
           <div className="col-span-12">
-            <LiveStatCard />
+            <ManagerStatCards />
           </div>
           <WidgetCard className="h-[300px] col-span-8 overflow-y-auto scrollbar-thin">
             <HeatmapCard />
