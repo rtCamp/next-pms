@@ -851,6 +851,7 @@ def get_project_sidebar(project: str):
     total_budget = get_total_budget(project_doc)
     cost_accrued = flt(project_doc.total_costing_amount)
     cost_forecasted = get_cost_forecasted(project)
+    target_cost = flt(project_doc.custom_target_cost)
 
     return {
         "summary": project_doc.get("custom_short_summary"),
@@ -871,6 +872,7 @@ def get_project_sidebar(project: str):
             "total_budget": total_budget,
             "cost_accrued": cost_accrued,
             "cost_forecasted": cost_forecasted,
+            "target_cost": target_cost,
         },
         "progress": {
             "actual_time": flt(project_doc.actual_time),

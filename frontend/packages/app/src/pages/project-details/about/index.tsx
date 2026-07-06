@@ -4,6 +4,7 @@
 import { useMatch, useParams } from "react-router-dom";
 import { Accordion } from "@base-ui/react/accordion";
 import { mergeClassNames } from "@next-pms/design-system";
+import { BudgetBurnBar } from "@next-pms/design-system/components";
 
 /**
  * Internal dependencies.
@@ -11,7 +12,6 @@ import { mergeClassNames } from "@next-pms/design-system";
 import { ROUTES } from "@/lib/constant";
 import { currencyFormat } from "@/lib/utils";
 import { Dot } from "@/pages/projects/list/cells/dot";
-import { BudgetBurnBar } from "./components/budgetBurnBar";
 import { ProgressHoursSection } from "./progressHoursSection";
 import { Section } from "./section";
 import { CustomerSection } from "./sections/customer";
@@ -99,11 +99,11 @@ function AboutThisProjectContent({ className }: { className: string }) {
               </span>
             </div>
             <BudgetBurnBar
-              budget={{
-                current: sidebar.burn.cost_accrued,
-                total: sidebar.burn.total_budget,
-                projected: sidebar.burn.cost_forecasted,
-              }}
+              value={sidebar.burn.cost_accrued}
+              secondaryValue={sidebar.burn.cost_forecasted}
+              markerValue={sidebar.burn.target_cost}
+              maxValue={sidebar.burn.total_budget}
+              variant="burn"
             />
           </div>
         </Section>

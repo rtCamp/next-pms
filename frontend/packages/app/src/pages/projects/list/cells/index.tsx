@@ -40,15 +40,19 @@ export function ProjectListCell({
     case "customer":
       return <TextCell text={row[column.key]} />;
     case "cost_burn_percent": {
-      const { cost_accrued, cost_forecasted, total_budget } = row.cost_burn;
+      const { cost_accrued, cost_forecasted, target_cost, total_budget } =
+        row.cost_burn;
       const percent =
         total_budget > 0 ? (cost_accrued / total_budget) * 100 : 0;
       const secondaryPercent =
         total_budget > 0 ? (cost_forecasted / total_budget) * 100 : 0;
+      const markerPercent =
+        total_budget > 0 ? (target_cost / total_budget) * 100 : 0;
       return (
         <BudgetProgressCell
           percent={percent}
           secondaryPercent={secondaryPercent}
+          markerPercent={markerPercent}
         />
       );
     }
