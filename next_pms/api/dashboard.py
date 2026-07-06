@@ -1022,21 +1022,26 @@ def _get_employees_on_leave(manager_employee: str) -> list:
     Employee = DocType("Employee")
     User = DocType("User")
 
-    return (
+    has_first_half_column = frappe.db.has_column("Leave Application", "custom_first_halfsecond_half")
+
+    select_fields = [
+        LeaveApplication.employee,
+        LeaveApplication.employee_name,
+        LeaveApplication.from_date,
+        LeaveApplication.to_date,
+        LeaveApplication.half_day,
+        User.user_image,
+    ]
+    if has_first_half_column:
+        select_fields.append(LeaveApplication.custom_first_halfsecond_half)
+
+    results = (
         frappe.qb.from_(LeaveApplication)
         .join(Employee)
         .on(Employee.name == LeaveApplication.employee)
         .left_join(User)
         .on(User.name == Employee.user_id)
-        .select(
-            LeaveApplication.employee,
-            LeaveApplication.employee_name,
-            LeaveApplication.from_date,
-            LeaveApplication.to_date,
-            LeaveApplication.half_day,
-            LeaveApplication.custom_first_halfsecond_half,
-            User.user_image,
-        )
+        .select(*select_fields)
         .where(LeaveApplication.docstatus == 1)
         .where(LeaveApplication.status == "Approved")
         .where(LeaveApplication.to_date >= frappe.utils.today())
@@ -1044,6 +1049,12 @@ def _get_employees_on_leave(manager_employee: str) -> list:
         .orderby(LeaveApplication.from_date)
         .run(as_dict=True)
     )
+
+    if not has_first_half_column:
+        for row in results:
+            row["custom_first_halfsecond_half"] = None
+
+    return results
 
 
 @whitelist(methods=["GET"])

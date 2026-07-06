@@ -35,6 +35,7 @@ export interface WeeklyApprovalContextValue {
   avatarUrl: string;
   dateRange: string;
   totalHours: number;
+  isReadOnly: boolean;
   rejectionError: string | null;
   groupedByDay: GroupedDay[];
   checkedDays: Set<string>;
@@ -111,6 +112,9 @@ export const WeeklyApprovalProvider = ({
     [timesheetData.entries],
   );
   const totalHours = timesheetData.totalHours;
+  const isReadOnly =
+    timesheetData.status === "Approved" ||
+    timesheetData.status === "Processing Timesheet";
   const dateRange = timesheetData.dateRange;
   const employeeName = employeeData?.employee_name || "";
   const avatarUrl = employeeData?.image || "";
@@ -120,17 +124,24 @@ export const WeeklyApprovalProvider = ({
     setCheckedDays(new Set(groupedByDay.map((dayGroup) => dayGroup.day)));
   }
 
-  const handleDayCheckChange = useCallback((day: string, checked: boolean) => {
-    setCheckedDays((prev) => {
-      const newSet = new Set(prev);
-      if (checked) {
-        newSet.add(day);
-      } else {
-        newSet.delete(day);
+  const handleDayCheckChange = useCallback(
+    (day: string, checked: boolean) => {
+      if (isReadOnly) {
+        return;
       }
-      return newSet;
-    });
-  }, []);
+
+      setCheckedDays((prev) => {
+        const newSet = new Set(prev);
+        if (checked) {
+          newSet.add(day);
+        } else {
+          newSet.delete(day);
+        }
+        return newSet;
+      });
+    },
+    [isReadOnly],
+  );
 
   const getCheckedDates = useCallback(() => {
     return groupedByDay
@@ -139,10 +150,14 @@ export const WeeklyApprovalProvider = ({
   }, [groupedByDay, checkedDays]);
 
   const handleReject = useCallback(() => {
+    if (isReadOnly) {
+      return;
+    }
+
     setRejectionError(null);
     mutate();
     setCurrentView("rejection");
-  }, [mutate]);
+  }, [isReadOnly, mutate]);
 
   const handleOpenChange = useCallback(
     (nextOpen: boolean) => {
@@ -164,6 +179,10 @@ export const WeeklyApprovalProvider = ({
       parent: string,
       day: string,
     ) => {
+      if (isReadOnly) {
+        return;
+      }
+
       try {
         const res = await updateTimesheet({
           name: timesheetId,
@@ -181,10 +200,14 @@ export const WeeklyApprovalProvider = ({
         toast.error(message);
       }
     },
-    [updateTimesheet, employee, toast, mutate],
+    [isReadOnly, updateTimesheet, employee, toast, mutate],
   );
 
   const handleApproveSubmit = useCallback(async () => {
+    if (isReadOnly) {
+      return;
+    }
+
     const dates = getCheckedDates();
     try {
       const res = await approveOrRejectTimesheet({
@@ -203,6 +226,7 @@ export const WeeklyApprovalProvider = ({
     getCheckedDates,
     approveOrRejectTimesheet,
     employee,
+    isReadOnly,
     toast,
     mutate,
     handleOpenChange,
@@ -210,6 +234,10 @@ export const WeeklyApprovalProvider = ({
 
   const handleRejectionSubmit = useCallback(
     async (reason: string) => {
+      if (isReadOnly) {
+        return;
+      }
+
       const dates = getCheckedDates();
       try {
         setRejectionError(null);
@@ -230,6 +258,7 @@ export const WeeklyApprovalProvider = ({
       getCheckedDates,
       approveOrRejectTimesheet,
       employee,
+      isReadOnly,
       toast,
       mutate,
       handleOpenChange,
@@ -248,6 +277,7 @@ export const WeeklyApprovalProvider = ({
       avatarUrl,
       dateRange,
       totalHours,
+      isReadOnly,
       rejectionError,
       groupedByDay,
       checkedDays,
@@ -267,6 +297,7 @@ export const WeeklyApprovalProvider = ({
       avatarUrl,
       dateRange,
       totalHours,
+      isReadOnly,
       rejectionError,
       groupedByDay,
       checkedDays,

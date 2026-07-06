@@ -1,4 +1,6 @@
 import { TaskStatusType } from "@next-pms/design-system/components";
+import type { WorkingFrequency } from "@/types";
+import type { HolidayProp, LeaveProps } from "@/types/timesheet";
 
 export type ModalView = "approval" | "rejection";
 
@@ -12,6 +14,7 @@ export type WeeklyApprovalProps = {
 export interface GroupedDay {
   day: string;
   totalHours: number;
+  leaveLabel?: string;
   entries: TimesheetEntry[];
 }
 
@@ -28,6 +31,9 @@ export interface TimesheetEntry {
   parent: string;
   status: TaskStatusType;
   isBillable: boolean;
+  docstatus: number;
+  leaveHours: number;
+  leaveLabel?: string;
 }
 
 export interface TaskDataEntry {
@@ -71,9 +77,9 @@ export interface WeekData {
 export interface TimesheetApiResponse {
   message: {
     working_hour: number;
-    working_frequency: string;
-    leaves: unknown[];
-    holidays: unknown[];
+    working_frequency: WorkingFrequency;
+    leaves: LeaveProps[];
+    holidays: HolidayProp[];
     data: Record<string, WeekData>;
   };
 }
