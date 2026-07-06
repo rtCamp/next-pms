@@ -24,6 +24,7 @@ interface GanttMemberRowProps {
   isExpanded: boolean;
   canManageAllocations: boolean;
   canEditAllocations: boolean;
+  onTransitionEnd?: React.TransitionEventHandler<HTMLTableRowElement>;
 }
 
 export const GanttMemberRow: React.FC<GanttMemberRowProps> = ({
@@ -32,6 +33,7 @@ export const GanttMemberRow: React.FC<GanttMemberRowProps> = ({
   isExpanded,
   canManageAllocations,
   canEditAllocations,
+  onTransitionEnd,
 }) => {
   const { weeks, daysPerWeek, columnWidth, headerWidth, onAddAllocation } =
     useGanttStore((s) => ({
@@ -55,6 +57,7 @@ export const GanttMemberRow: React.FC<GanttMemberRowProps> = ({
       onPointerDown={(e) => overlayRef.current?.handleRowPointerDown(e)}
       onPointerMove={(e) => overlayRef.current?.handleRowPointerMove(e)}
       onPointerLeave={() => overlayRef.current?.clearHoveredSlot()}
+      onTransitionEnd={onTransitionEnd}
     >
       <GanttMemberItem
         member={member}
@@ -62,6 +65,7 @@ export const GanttMemberRow: React.FC<GanttMemberRowProps> = ({
         canExpand={false}
         showChevron={false}
         className="pl-8 pr-3"
+        contentHeight={animatedRowHeight}
         style={{
           height: animatedRowHeight,
           width: headerWidth,

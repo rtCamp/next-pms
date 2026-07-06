@@ -1,7 +1,7 @@
 /**
  * External Dependencies
  */
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import { useId } from "react";
 import {
   formatDateTimeLabel,
@@ -10,18 +10,20 @@ import {
 import { Spinner } from "@next-pms/design-system/components";
 import { Checkbox, Badge } from "@rtcamp/frappe-ui-react";
 import { CalendarDeadline, Clock } from "@rtcamp/frappe-ui-react/icons";
+import { differenceInMinutes, parseISO } from "date-fns";
 
 /**
  * Internal Dependencies
  */
+import type { SelectedCalendarEvent } from "./type";
 import useCalendarEvents from "./useCalendarEvents";
 
 interface CalendarEventsProps {
   initialDate: string;
   enabled: boolean;
   onSelectionChange: (
-    selectedLabels: string[],
-    allEventSubjects: string[],
+    selectedItems: SelectedCalendarEvent[],
+    totalDurationHours: number,
   ) => void;
 }
 
@@ -41,21 +43,21 @@ const CalendarEvents = ({
     enabled: enabled && show && isCalendarSetup,
   });
 
-  const allEventSubjects = useMemo(
-    () => events.map((e) => e.subject.trim()).filter(Boolean),
-    [events],
-  );
-
   const notifySelectionChange = (nextIds: string[]) => {
-    const selectedLabels = events
-      .filter((e) => nextIds.includes(e.id))
-      .map(
-        (e) =>
-          `${e.subject.trim()} | ${formatDurationLabel(e.starts_on, e.ends_on)}`,
-      )
-      .filter(Boolean);
+    const selectedEvents = events.filter((e) => nextIds.includes(e.id));
 
-    onSelectionChange(selectedLabels, allEventSubjects);
+    const selectedItems: SelectedCalendarEvent[] = selectedEvents.map((e) => ({
+      id: e.id,
+      label: `${e.subject.trim()} | ${formatDurationLabel(e.starts_on, e.ends_on)}`,
+    }));
+
+    const totalDurationHours = selectedEvents.reduce((sum, e) => {
+      const start = parseISO(e.starts_on.replace(" ", "T"));
+      const end = parseISO(e.ends_on.replace(" ", "T"));
+      return sum + differenceInMinutes(end, start) / 60;
+    }, 0);
+
+    onSelectionChange(selectedItems, totalDurationHours);
   };
 
   const handleToggleShow = (val: boolean) => {

@@ -50,6 +50,8 @@ interface UseRemoteLookupOptions<
   getItems: (message: TMessage | undefined) => TItem[];
   /** Maps each backend item into a combobox option shape. */
   mapOption: (item: TItem) => TOption;
+  /** Formats the mapped option */
+  formatOption?: (option: TOption) => TOption;
   /** Preserves the current selection when it is missing from the latest page. */
   selectedOption?: TOption | TOption[] | null;
 }
@@ -68,6 +70,7 @@ export const useRemoteLookup = <TMessage, TItem, TOption extends LookupOption>({
   params,
   getItems,
   mapOption,
+  formatOption,
   selectedOption,
 }: UseRemoteLookupOptions<TMessage, TItem, TOption>) => {
   const debouncedQuery = useDebounce(query, debounceMs);
@@ -82,11 +85,15 @@ export const useRemoteLookup = <TMessage, TItem, TOption extends LookupOption>({
   );
 
   const options = useMemo(() => {
-    const nextOptions = getItems(data?.message).map(mapOption);
+    const formatLookupOption = (option: TOption) =>
+      formatOption ? formatOption(option) : option;
+    const nextOptions = getItems(data?.message)
+      .map(mapOption)
+      .map(formatLookupOption);
     const selectedOptions = Array.isArray(selectedOption)
-      ? selectedOption
+      ? selectedOption.map(formatLookupOption)
       : selectedOption
-        ? [selectedOption]
+        ? [formatLookupOption(selectedOption)]
         : [];
 
     if (!selectedOptions.length) {
@@ -105,7 +112,7 @@ export const useRemoteLookup = <TMessage, TItem, TOption extends LookupOption>({
     }
 
     return [...missingSelectedOptions, ...nextOptions];
-  }, [data?.message, getItems, mapOption, selectedOption]);
+  }, [data?.message, formatOption, getItems, mapOption, selectedOption]);
 
   return {
     options,

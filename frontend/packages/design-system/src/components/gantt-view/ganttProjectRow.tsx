@@ -25,6 +25,7 @@ interface GanttProjectRowProps {
   isExpanded: boolean;
   canManageAllocations: boolean;
   canEditAllocations: boolean;
+  onTransitionEnd?: React.TransitionEventHandler<HTMLTableRowElement>;
 }
 
 export const GanttProjectRow: React.FC<GanttProjectRowProps> = ({
@@ -34,6 +35,7 @@ export const GanttProjectRow: React.FC<GanttProjectRowProps> = ({
   isExpanded,
   canManageAllocations,
   canEditAllocations,
+  onTransitionEnd,
 }) => {
   const { weeks, daysPerWeek, columnWidth, headerWidth, onAddAllocation } =
     useGanttStore((s) => ({
@@ -61,6 +63,7 @@ export const GanttProjectRow: React.FC<GanttProjectRowProps> = ({
       onPointerDown={(e) => overlayRef.current?.handleRowPointerDown(e)}
       onPointerMove={(e) => overlayRef.current?.handleRowPointerMove(e)}
       onPointerLeave={() => overlayRef.current?.clearHoveredSlot()}
+      onTransitionEnd={onTransitionEnd}
     >
       <GanttProjectItem
         {...project}
@@ -68,10 +71,12 @@ export const GanttProjectRow: React.FC<GanttProjectRowProps> = ({
         canExpand={false}
         showChevron={false}
         showHoverCard={false}
+        contentHeight={animatedRowHeight}
         style={{
           height: animatedRowHeight,
           width: headerWidth,
           minWidth: headerWidth,
+          maxWidth: headerWidth,
           borderBottomWidth: isExpanded ? undefined : 0,
           borderRightWidth: isExpanded ? undefined : 0,
         }}

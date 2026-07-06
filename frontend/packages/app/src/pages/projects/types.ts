@@ -14,7 +14,7 @@ export type ProjectType = "Fixed cost" | "Retainer" | "External";
 
 export interface ProjectListFilters {
   search: string;
-  ragStatus: RagStatus | "";
+  ragStatus: RagStatus[];
   phase: Phase | "";
   status: ProjectStatus | "";
   advanced: FilterCondition[];

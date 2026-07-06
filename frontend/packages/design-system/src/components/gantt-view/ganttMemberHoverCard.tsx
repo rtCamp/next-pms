@@ -14,19 +14,32 @@ import {
  * Internal dependencies.
  */
 import type { Member, ProjectMember } from "./types";
+import { mergeClassNames as cn } from "../../utils";
 
 interface GanttMemberHoverCardProps {
   member: Member | ProjectMember;
+  canOpenEmployee?: boolean;
 }
 
-function GanttMemberHoverCard({ member }: GanttMemberHoverCardProps) {
+function GanttMemberHoverCard({
+  member,
+  canOpenEmployee = false,
+}: GanttMemberHoverCardProps) {
   const hasDetails =
     member.department || member.rate || member.capacity || member.manager;
+  const employeeHref =
+    canOpenEmployee && member.id
+      ? `/desk/employee/${encodeURIComponent(member.id)}`
+      : undefined;
 
   return (
     <div className="flex flex-col gap-3 p-3 w-60 rounded-xl shadow-2xl bg-surface-modal">
       {/* Header */}
-      <div className="flex justify-between items-start">
+      <div
+        className={cn("flex items-start", {
+          "justify-between": employeeHref,
+        })}
+      >
         <div className="flex gap-2 items-center min-w-0">
           <div className="shrink-0">
             <Avatar
@@ -47,9 +60,9 @@ function GanttMemberHoverCard({ member }: GanttMemberHoverCardProps) {
             )}
           </div>
         </div>
-        {member.id && (
+        {employeeHref && (
           <a
-            href={`/desk/employee/${encodeURIComponent(member.id)}`}
+            href={employeeHref}
             target="_blank"
             rel="noreferrer"
             aria-label="Open employee"

@@ -10,7 +10,6 @@ import {
 /**
  * Internal dependencies
  */
-import { getHolidayList } from "@/lib/utils";
 import { useTimesheetOutletContext } from "@/pages/timesheet/outletContext";
 import type { WorkingFrequency } from "@/types";
 import type { HolidayProp, LeaveProps, TaskProps } from "@/types/timesheet";
@@ -56,12 +55,10 @@ export const TeamTimesheetRow = ({
   const teamMembersData = useMemo(() => {
     return teamMembers.map((member) => {
       const projects = groupTasksByProject(member.tasks);
-      const holidayList = getHolidayList(member.holidays);
 
       return {
         ...member,
         projects,
-        holidayList,
       };
     });
   }, [teamMembers]);
@@ -156,7 +153,7 @@ export const TeamTimesheetRow = ({
                       className="pl-13.5"
                       dates={dates}
                       leaves={member.leaves}
-                      holidayList={member.holidayList}
+                      holidays={member.holidays}
                       expectedHours={dailyWorkingHours}
                     />
                   </>

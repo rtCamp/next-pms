@@ -143,6 +143,7 @@ export function CreateTouchpointModal({
 
   useEffect(() => {
     setOwnerSearch(isEditMode && item ? (item.owner?.fullName ?? "") : "");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
   return (

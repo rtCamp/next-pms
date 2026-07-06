@@ -23,6 +23,22 @@ export interface ProjectRepositoryConnection {
   doctype: string;
 }
 
+export type ProjectReportStatus =
+  | "Generating"
+  | "Completed"
+  | "Failed"
+  | "Done"
+  | "";
+
+export interface ProjectReportRow {
+  name?: string;
+  run_id: string;
+  report_link?: string;
+  date_range: string;
+  generated_on?: string;
+  status: ProjectReportStatus;
+}
+
 export interface ProjectUser {
   user: string;
   email?: string;
@@ -164,4 +180,8 @@ export interface ProjectDoc {
   custom_google_drive_folder?: string;
   custom_website?: string;
   custom_project_repository_connections?: ProjectRepositoryConnection[];
+  custom_enable_project_report_generation?: 0 | 1;
+  custom_slack_channel_slug?: string;
+  custom_project_drive_link?: string;
+  custom_project_reports?: ProjectReportRow[];
 }

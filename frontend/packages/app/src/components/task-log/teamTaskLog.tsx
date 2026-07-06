@@ -58,6 +58,7 @@ const TeamTaskLog: React.FC<TeamTaskLogProps> = ({
       const err = parseFrappeErrorMsg(error);
       toast.error(err);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [error]);
 
   const handleDateRangeChange = (value: string | undefined) => {

@@ -148,6 +148,17 @@ export function AllocationsProjectProvider({
     [updateSearchParams],
   );
 
+  const handleClearAllFilters = useCallback(
+    () =>
+      updateSearchParams({
+        [SEARCH_PARAM_KEY]: undefined,
+        [DURATION_PARAM_KEY]: undefined,
+        [ALLOCATION_TYPE_PARAM_KEY]: undefined,
+        [COMPOSITE_FILTERS_PARAM_KEY]: undefined,
+      }),
+    [updateSearchParams],
+  );
+
   const handlePrevious = useCallback(() => {
     updateSearchParams({
       [DATE_PARAM_KEY]: format(
@@ -196,6 +207,7 @@ export function AllocationsProjectProvider({
         setDuration,
         setAllocationsType,
         setCompositeFilters,
+        handleClearAllFilters,
         loadMore,
         handlePrevious,
         handleNext,
@@ -218,6 +230,7 @@ export function AllocationsProjectProvider({
       setDuration,
       setAllocationsType,
       setCompositeFilters,
+      handleClearAllFilters,
       loadMore,
       handlePrevious,
       handleNext,
