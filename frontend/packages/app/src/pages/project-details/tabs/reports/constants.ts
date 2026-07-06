@@ -18,6 +18,6 @@ export const REPORT_COLUMNS: ReportColumn[] = [
   { key: "index", label: "#", width: "48px" },
   { key: "dateRange", label: "Date Range", width: "1fr" },
   { key: "generatedOn", label: "Generated On", width: "1fr" },
-  { key: "status", label: "Status", width: "40px" },
+  { key: "status", label: "Status", width: "80px" },
   { key: "reportLink", label: "Report", width: "80px", align: "right" },
 ];

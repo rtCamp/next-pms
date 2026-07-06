@@ -8,7 +8,6 @@ import {
   ListRow,
   ListRows,
   ListView,
-  Spinner,
 } from "@rtcamp/frappe-ui-react";
 import { ArrowUpRight } from "@rtcamp/frappe-ui-react/icons";
 import { format, parseISO } from "date-fns";
@@ -28,25 +27,6 @@ const formatGeneratedOn = (value?: string) => {
   if (!value) return "—";
   return format(parseISO(value.replace(" ", "T")), "dd MMM yyyy, HH:mm");
 };
-
-function StatusCell({ report }: { report: ProjectReportRow }) {
-  switch (report.status) {
-    case "Generating":
-      return (
-        <span className="flex items-center gap-2 text-ink-amber-3">
-          <Spinner className="size-3" /> Generating…
-        </span>
-      );
-    case "Failed":
-      return <span className="text-ink-red-3">Failed</span>;
-    case "Done":
-      return <span className="text-ink-green-4">Done</span>;
-    case "Completed":
-      return <span className="text-ink-gray-5">Completed</span>;
-    default:
-      return <span className="text-ink-gray-5">—</span>;
-  }
-}
 
 function ReportLinkCell({ report }: { report: ProjectReportRow }) {
   if (!report.report_link) {
@@ -102,7 +82,7 @@ export function ReportsTable({ reports }: ReportsTableProps) {
                     {column.key === "reportLink" ? (
                       <ReportLinkCell report={row} />
                     ) : column.key === "status" ? (
-                      <StatusCell report={row} />
+                      <span className="truncate">{row.status}</span>
                     ) : column.key === "generatedOn" ? (
                       <span className="truncate">
                         {formatGeneratedOn(row.generated_on)}
