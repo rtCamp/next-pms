@@ -55,7 +55,7 @@ export const useDoctypeLinkLookup = ({
       label:
         labelField === "name"
           ? (item[valueField] as string)
-          : (item[labelField] as string) ?? (item[valueField] as string),
+          : ((item[labelField] as string) ?? (item[valueField] as string)),
       value: item[valueField] as string,
     }),
     selectedOption,
