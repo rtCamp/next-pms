@@ -5,11 +5,11 @@ import { Avatar, Button } from "@rtcamp/frappe-ui-react";
 import {
   AddMd,
   Calendar,
-  CalendarDeadline,
   Check,
   DeleteAlt,
   EditAlt,
   Folder,
+  Tentative,
   Time,
 } from "@rtcamp/frappe-ui-react/icons";
 import { format } from "date-fns";
@@ -48,7 +48,7 @@ interface AllocationItemProps {
  * Internal popup card shown when hovering over a Gantt allocation bar.
  */
 function AllocationItem({ entry, hasRoleAccess }: AllocationItemProps) {
-  const StatusIcon = entry.status === "confirmed" ? Check : CalendarDeadline;
+  const StatusIcon = entry.status === "confirmed" ? Check : Tentative;
 
   return (
     <div className="flex flex-col gap-3">
