@@ -6,7 +6,7 @@ import type { ProjectListFilters } from "./types";
 
 export const buildListFrappeFilters = (filters: ProjectListFilters) => {
   const out: unknown[] = [];
-  if (filters.ragStatus) {
+  if (filters.ragStatus && filters.ragStatus.length > 0) {
     out.push(["custom_project_rag_status", "in", filters.ragStatus.join(",")]);
   }
   if (filters.phase) {
