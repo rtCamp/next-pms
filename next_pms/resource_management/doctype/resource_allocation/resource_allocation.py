@@ -67,9 +67,6 @@ class ResourceAllocation(Document):
             ["allocation_end_date", ">=", self.allocation_start_date],
             ["name", "!=", self.name or ""],
         ]
-        # docs in the same recurring series are distinct weeks; never self-collide
-        if self.recurrence_id:
-            filters.append(["recurrence_id", "!=", self.recurrence_id])
 
         existing = frappe.db.get_value(
             "Resource Allocation",
@@ -88,7 +85,7 @@ class ResourceAllocation(Document):
                     frappe.format(existing.allocation_start_date, {"fieldtype": "Date"}),
                     frappe.format(existing.allocation_end_date, {"fieldtype": "Date"}),
                 ),
-                title=frappe._("Duplicate Allocation"),
+                title=frappe._("Overlapping Allocation"),
                 exc=frappe.ValidationError,
             )
 
