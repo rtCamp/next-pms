@@ -77,7 +77,7 @@ function ProjectDetailBody() {
         </NotesProvider>
       ) : (
         <Tabs
-          tabListClassName="h-10 overflow-auto scrollbar-thin"
+          tabListClassName="min-h-10 h-10 overflow-auto scrollbar-thin"
           tabPanelClassName="overflow-auto scrollbar-thin"
           className="w-3/4 border-0 rounded-none border-r"
           tabs={finalTabs}
