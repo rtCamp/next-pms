@@ -96,23 +96,18 @@ function AddAllocationModal({
       pageSize: 20,
       query: employeeSearch,
       selectedOption: selectedEmployeeOption,
-    });
-
-  const employeeOptionsWithAvatars = useMemo(
-    () =>
-      employeeOptions.map((opt) => ({
-        ...opt,
+      formatOption: (option) => ({
+        ...option,
         icon: (
           <Avatar
             size="xs"
             shape="circle"
-            image={opt.image}
-            label={opt.label}
+            image={option.image}
+            label={option.label}
           />
         ),
-      })),
-    [employeeOptions],
-  );
+      }),
+    });
 
   const { options: projectOptions, isLoading: isProjectLookupLoading } =
     useProjectLookup({
@@ -329,7 +324,7 @@ function AddAllocationModal({
           <Combobox
             inputClassName="bg-surface-white h-8 border-outline-gray-2 text-ink-gray-7"
             loading={isEmployeeLookupLoading}
-            options={employeeOptionsWithAvatars}
+            options={employeeOptions}
             searchValue={employeeSearch}
             placeholder="Select Employee"
             value={field.state.value}

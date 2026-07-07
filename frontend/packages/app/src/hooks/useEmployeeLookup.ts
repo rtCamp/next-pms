@@ -36,6 +36,8 @@ interface UseEmployeeLookupOptions {
   roles?: string[];
   /** Keeps the current selection visible when it is not in the latest results. */
   selectedOption?: EmployeeLookupOption | null;
+  /** Formats the mapped employee option */
+  formatOption?: (option: EmployeeLookupOption) => EmployeeLookupOption;
 }
 
 /**
@@ -50,6 +52,7 @@ export const useEmployeeLookup = ({
   selectedOption,
   projects,
   filters,
+  formatOption,
 }: UseEmployeeLookupOptions) => {
   return useRemoteLookup<
     EmployeeLookupResult,
@@ -76,6 +79,7 @@ export const useEmployeeLookup = ({
       image: employee.image,
       userId: employee.user_id,
     }),
+    formatOption,
     selectedOption,
   });
 };
