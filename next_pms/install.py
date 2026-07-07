@@ -11,6 +11,28 @@ def after_install():
     create_default_risk_masters()
     setup_project_custom_fields()
     setup_project_target_hours_field()
+    setup_timesheet_rejection_reason_field()
+
+
+def setup_timesheet_rejection_reason_field():
+    from frappe.custom.doctype.custom_field.custom_field import create_custom_fields
+
+    create_custom_fields(
+        {
+            "Timesheet": [
+                {
+                    "fieldname": "custom_rejection_reason",
+                    "fieldtype": "Text Editor",
+                    "label": "Rejection Reason",
+                    "insert_after": "note",
+                    "depends_on": 'eval:doc.custom_approval_status=="Rejected"',
+                    "read_only": 1,
+                    "no_copy": 1,
+                    "module": "Timesheet",
+                },
+            ]
+        }
+    )
 
 
 def setup_project_target_hours_field():
