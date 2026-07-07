@@ -475,7 +475,7 @@ function AddAllocationModal({
       options={{
         title: () => (
           <span className="text-lg font-medium text-ink-gray-7">
-            {variant === "add" ? "Add Allocation" : "Edit Allocation"}
+            {variant === "add" ? "Add allocation" : "Edit allocation"}
           </span>
         ),
       }}
