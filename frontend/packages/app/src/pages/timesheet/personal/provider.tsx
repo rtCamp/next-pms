@@ -37,15 +37,6 @@ export const PersonalTimesheetProvider: FC<PropsWithChildren> = ({
     [filters.compositeFilters],
   );
 
-  const activeFilterKey = useMemo(
-    () =>
-      JSON.stringify({
-        search: filters.search,
-        approvalStatus: filters.approvalStatus ?? "",
-        compositeFilters: effectiveCompositeFilters,
-      }),
-    [filters.search, filters.approvalStatus, effectiveCompositeFilters],
-  );
   const {
     hasMoreWeeks,
     isLoadingPersonalData,
@@ -57,7 +48,6 @@ export const PersonalTimesheetProvider: FC<PropsWithChildren> = ({
     refetchLikedTasks,
   } = usePersonalTimesheetData({
     employeeId,
-    requestKey: activeFilterKey,
     search: filters.search,
     approvalStatus: filters.approvalStatus,
     compositeFilters: effectiveCompositeFilters,
