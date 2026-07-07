@@ -2,7 +2,7 @@ import frappe
 from erpnext import get_default_company
 from frappe.tests import IntegrationTestCase
 
-from next_pms.tests.utils import make_employee, make_holiday_list
+from next_pms.tests.utils import make_employee
 from next_pms.timesheet.api.team import _approve_or_reject_timesheet
 from next_pms.timesheet.api.timesheet import save as save_timesheet
 from next_pms.timesheet.api.timesheet import submit_for_approval
@@ -32,28 +32,6 @@ class TestTimesheetRejectionReason(IntegrationTestCase):
 
         # Week start is read via frappe.db.get_default, not System Settings directly.
         frappe.db.set_default("first_day_of_the_week", "Monday")
-
-        # HRMS's leave-balance validation needs a holiday list resolvable for every
-        # employee; add a company-wide one unless another test already created it.
-        if not frappe.db.exists(
-            "Holiday List Assignment",
-            {"assigned_to": cls.company, "applicable_for": "Company", "docstatus": 1},
-        ):
-            holiday_list = make_holiday_list(
-                "Rejection Reason Test Company Holidays",
-                from_date="2026-01-01",
-                to_date="2026-12-31",
-                holiday_dates=[],
-            )
-            frappe.get_doc(
-                {
-                    "doctype": "Holiday List Assignment",
-                    "applicable_for": "Company",
-                    "assigned_to": cls.company,
-                    "holiday_list": holiday_list.name,
-                    "from_date": "2026-01-01",
-                }
-            ).insert(ignore_permissions=True).submit()
 
         cls.manager = make_employee(MANAGER_USER, company=cls.company, leave_approver="Administrator")
         cls.employee = make_employee(
