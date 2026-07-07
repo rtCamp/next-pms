@@ -6,6 +6,7 @@ import { useFrappeGetCall } from "frappe-react-sdk";
 /**
  * Internal dependencies.
  */
+import { AT_RISK_PROJECTS_URL } from "./constants";
 import { StatCardSkeleton } from "./skeleton";
 import { StatCard } from "./statCard";
 import type {
@@ -50,9 +51,10 @@ export function ManagerStatCards() {
         <StatCardSkeleton />
       ) : (
         <StatCard
-          className="flex-1"
+          className="flex-1 cursor-pointer"
           label="At risk projects"
           value={atRiskProjectData?.message ?? "-"}
+          to={AT_RISK_PROJECTS_URL}
         />
       )}
       {isMembersWithoutAllocationLoading ? (

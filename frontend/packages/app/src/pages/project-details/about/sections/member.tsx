@@ -51,7 +51,7 @@ export function MemberSection() {
     useEmployeeLookup({
       shouldFetch: true,
       query: projectManagerQuery,
-      roles: ["Project Manager"],
+      roles: ["Projects Manager"],
     });
   const projectManagerComboboxOptions = useMemo(
     () =>
