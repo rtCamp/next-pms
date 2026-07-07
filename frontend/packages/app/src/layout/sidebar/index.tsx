@@ -166,12 +166,13 @@ const Sidebar = () => {
 
   const notificationItems = [];
 
-  if (
+  const hasNotificationAccess =
     roles.includes("Delivery Manager") ||
     roles.includes("Delivery User") ||
     roles.includes("Projects User") ||
-    roles.includes("Projects Manager")
-  ) {
+    roles.includes("Projects Manager");
+
+  if (hasNotificationAccess) {
     notificationItems.push(notificationsOption);
   }
 
@@ -346,26 +347,23 @@ const Sidebar = () => {
         items={searchItems}
       />
 
-      {roles.includes("Delivery Manager") ||
-        roles.includes("Delivery User") ||
-        roles.includes("Projects User") ||
-        (roles.includes("Projects Manager") && (
-          <NotificationTray
-            onOpenChange={(open) => {
-              if (!open) closeTray();
-            }}
-            open={isNotificationsOpen}
-            notifications={notifications}
-            offsetClassName={isSidebarCollapsed ? "left-12" : "left-60"}
-            onMarkAllRead={markAllAsViewed}
-            onNotificationClick={async (notification) => {
-              await markAsViewed(notification.id);
-              if (notification.href) {
-                window.location.assign(notification.href);
-              }
-            }}
-          />
-        ))}
+      {hasNotificationAccess && (
+        <NotificationTray
+          onOpenChange={(open) => {
+            if (!open) closeTray();
+          }}
+          open={isNotificationsOpen}
+          notifications={notifications}
+          offsetClassName={isSidebarCollapsed ? "left-12" : "left-60"}
+          onMarkAllRead={markAllAsViewed}
+          onNotificationClick={async (notification) => {
+            await markAsViewed(notification.id);
+            if (notification.href) {
+              window.location.assign(notification.href);
+            }
+          }}
+        />
+      )}
     </ErrorFallback>
   );
 };
