@@ -1,7 +1,7 @@
 /**
  * External dependencies.
  */
-import { useCallback, useMemo } from "react";
+import { useCallback, useMemo, useRef } from "react";
 import { ApprovalStatusLabelMap } from "@next-pms/design-system/components";
 import { getFormatedDate, getTodayDate } from "@next-pms/design-system/date";
 import { type PaginationKey, usePagination } from "@next-pms/hooks";
@@ -65,15 +65,27 @@ const hasActiveFilters = (
   Boolean(approvalStatus) ||
   compositeFilters.length > 0;
 
-const getNextPageStartDate = (payload?: PersonalTimesheetPayload) => {
-  const weeks = Object.values(payload?.data ?? {});
-  const lastWeek = weeks.at(-1);
+const getNextPageStartDate = (
+  page: PersonalTimesheetCallResponse | null | undefined,
+  requestedStartDate: string | undefined,
+  weeksPerPage: number,
+) => {
+  const payload = page?.message;
+  const lastWeek = Object.values(payload?.data ?? {}).at(-1);
 
-  if (!lastWeek) {
-    return null;
+  if (lastWeek) {
+    return getFormatedDate(addDays(parseISO(lastWeek.start_date), -1));
   }
 
-  return getFormatedDate(addDays(parseISO(lastWeek.start_date), -1));
+  // A filtered window can come back empty while older matches exist
+  // (has_more), so skip one full window back from this page's request date.
+  if (payload?.has_more && requestedStartDate) {
+    return getFormatedDate(
+      addDays(parseISO(requestedStartDate), -(weeksPerPage * 7)),
+    );
+  }
+
+  return null;
 };
 
 const hasWeek = (
@@ -88,6 +100,10 @@ export function usePersonalTimesheetData({
   compositeFilters,
 }: UsePersonalTimesheetDataOptions): UsePersonalTimesheetDataResult {
   const toast = useToasts();
+  const pageStartDatesRef = useRef<{
+    dates: string[];
+    signature: string;
+  }>({ dates: [], signature: "" });
 
   const filtersAreActive = hasActiveFilters(
     search,
@@ -138,6 +154,10 @@ export function usePersonalTimesheetData({
       pageIndex: number,
       previousPageData: PersonalTimesheetCallResponse | null,
     ): PaginationKey<PersonalTimesheetPageParams> | null => {
+      if (pageStartDatesRef.current.signature !== querySignature) {
+        pageStartDatesRef.current = { dates: [], signature: querySignature };
+      }
+
       if (
         filtersAreActive &&
         previousPageData?.message &&
@@ -149,11 +169,17 @@ export function usePersonalTimesheetData({
       const pageStartDate =
         pageIndex === 0
           ? requestWeekDate
-          : getNextPageStartDate(previousPageData?.message);
+          : getNextPageStartDate(
+              previousPageData,
+              pageStartDatesRef.current.dates[pageIndex - 1],
+              weeksPerPage,
+            );
 
       if (!pageStartDate) {
         return null;
       }
+
+      pageStartDatesRef.current.dates[pageIndex] = pageStartDate;
 
       return [
         querySignature,
@@ -161,7 +187,7 @@ export function usePersonalTimesheetData({
         { start_date: pageStartDate },
       ] as const;
     },
-    [filtersAreActive, querySignature, requestWeekDate],
+    [filtersAreActive, querySignature, requestWeekDate, weeksPerPage],
   );
 
   const {
@@ -222,16 +248,29 @@ export function usePersonalTimesheetData({
     );
   }, [payloads]);
 
-  const lastPayload = payloads.at(-1);
-  const hasDateRangeFilter = Boolean(startDate);
+  const nextPageStartDate = getNextPageStartDate(
+    pages.at(-1),
+    pageStartDatesRef.current.dates[pages.length - 1],
+    weeksPerPage,
+  );
+  const emptySkipLimit = addDays(
+    parseISO(
+      Object.values(timesheetData.data).at(-1)?.start_date ?? requestWeekDate,
+    ),
+    -365,
+  );
   const hasMoreWeeks = filtersAreActive
-    ? !hasDateRangeFilter && Boolean(lastPayload?.has_more)
+    ? Boolean(
+        !startDate &&
+        nextPageStartDate &&
+        parseISO(nextPageStartDate) > emptySkipLimit &&
+        payloads.at(-1)?.has_more,
+      )
     : true;
   const isInitialLoad = isLoading && pages.length === 0;
   const isFilterRequest = isLoading && pages.length > 0;
-  const isNextPageLoading =
-    !isLoading && isValidating && typeof pages[size - 1] === "undefined";
-  const isLoadingPersonalData = isLoading || isNextPageLoading;
+  const isLoadingPersonalData =
+    isLoading || (isValidating && typeof pages[size - 1] === "undefined");
 
   const refreshPageForWeek = useCallback(
     async (weekKey: string) => {
