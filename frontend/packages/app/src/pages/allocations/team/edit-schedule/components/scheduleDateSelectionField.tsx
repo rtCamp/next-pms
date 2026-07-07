@@ -1,6 +1,7 @@
 /**
  * External dependencies.
  */
+import { useLayoutEffect, useRef, useState } from "react";
 import { DayChip } from "@next-pms/design-system/components";
 import { mergeClassNames as cn } from "@next-pms/design-system/utils";
 import { ErrorMessage } from "@rtcamp/frappe-ui-react";
@@ -30,6 +31,21 @@ function ScheduleDateSelectionField({
   const showInlineRecurrenceHelper =
     Boolean(recurrenceHelperText) && days.length <= 3;
 
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(false);
+
+  const updateScrollFade = () => {
+    const el = scrollRef.current;
+    if (!el) return;
+    setCanScrollLeft(el.scrollLeft > 0);
+    setCanScrollRight(el.scrollLeft + el.clientWidth < el.scrollWidth - 1);
+  };
+
+  useLayoutEffect(() => {
+    updateScrollFade();
+  }, [days]);
+
   return (
     <div className="space-y-0.75">
       <div className="flex items-center justify-between text-base text-ink-gray-5">
@@ -43,11 +59,24 @@ function ScheduleDateSelectionField({
             "flex items-center justify-between gap-3",
         )}
       >
-        <div className="absolute top-0 left-0 z-10 w-12 h-full from-surface-white to-transparent pointer-events-none bg-linear-to-r"></div>
-        <div className="flex overflow-x-auto no-scrollbar items-start gap-1 py-1.5 px-3.5">
-          {days.map((day) => (
+        <div
+          className={cn(
+            "absolute top-0 left-0 z-10 w-12 h-full from-surface-white to-transparent pointer-events-none bg-linear-to-r transition-opacity",
+            canScrollLeft ? "opacity-100" : "opacity-0",
+          )}
+        ></div>
+        <div
+          ref={scrollRef}
+          onScroll={updateScrollFade}
+          className="flex overflow-x-auto no-scrollbar items-start gap-1 py-1.5 pr-3.5"
+        >
+          {days.map((day, index) => (
             <DayChip
-              className="shrink-0"
+              className={cn(
+                "shrink-0",
+                index === 0 && "ml-3.5",
+                index === days.length - 1 && "mr-3.5",
+              )}
               key={day.date}
               dayLabel={day.dayLabel}
               dayNumber={day.dayNumber}
@@ -66,11 +95,16 @@ function ScheduleDateSelectionField({
         </div>
 
         {showInlineRecurrenceHelper ? (
-          <p className="shrink-0 text-sm text-ink-gray-4 px-3.5">
+          <p className="shrink-0 text-sm text-ink-gray-4 pr-3.5">
             {recurrenceHelperText}
           </p>
         ) : (
-          <div className="absolute top-0 right-0 z-10 w-12 h-full from-surface-white to-transparent pointer-events-none bg-linear-to-l"></div>
+          <div
+            className={cn(
+              "absolute top-0 right-0 z-10 w-12 h-full from-surface-white to-transparent pointer-events-none bg-linear-to-l transition-opacity",
+              canScrollRight ? "opacity-100" : "opacity-0",
+            )}
+          ></div>
         )}
       </div>
 

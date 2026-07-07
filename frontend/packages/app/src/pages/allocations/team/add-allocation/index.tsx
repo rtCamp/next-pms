@@ -5,6 +5,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { mergeClassNames as cn } from "@next-pms/design-system";
 import { formatDateRange } from "@next-pms/design-system/date";
 import {
+  Avatar,
   Button,
   Checkbox,
   Combobox,
@@ -95,6 +96,17 @@ function AddAllocationModal({
       pageSize: 20,
       query: employeeSearch,
       selectedOption: selectedEmployeeOption,
+      formatOption: (option) => ({
+        ...option,
+        icon: (
+          <Avatar
+            size="xs"
+            shape="circle"
+            image={option.image}
+            label={option.label}
+          />
+        ),
+      }),
     });
 
   const { options: projectOptions, isLoading: isProjectLookupLoading } =
@@ -475,7 +487,7 @@ function AddAllocationModal({
       options={{
         title: () => (
           <span className="text-lg font-medium text-ink-gray-7">
-            {variant === "add" ? "Add Allocation" : "Edit Allocation"}
+            {variant === "add" ? "Add allocation" : "Edit allocation"}
           </span>
         ),
       }}

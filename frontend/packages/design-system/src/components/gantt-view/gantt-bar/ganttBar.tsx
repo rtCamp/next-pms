@@ -31,7 +31,7 @@ const ganttBarVariants = cva(
       variant: {
         full: "bg-surface-green-2 text-ink-green-4",
         under: "bg-surface-amber-2 text-ink-amber-4",
-        over: "bg-surface-violet-1 text-ink-violet-1",
+        over: "bg-surface-violet-1 text-ink-violet-4",
         timeoff: "bg-surface-gray-2 text-ink-gray-6 justify-center",
         projectSummary: "bg-surface-blue-2 text-ink-blue-3",
         allocation:
