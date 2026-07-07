@@ -19,7 +19,7 @@ export function EventPill({ item, truncate = false }: EventPillProps) {
     <Tooltip text={item.title}>
       <div
         className={mergeClassNames(
-          "flex gap-1 rounded p-1 text-xs w-full",
+          "flex gap-1 rounded p-1 text-xs w-full cursor-pointer",
           truncate ? "items-center" : "items-start",
           isMilestone
             ? "bg-surface-blue-2 text-blue-700"
