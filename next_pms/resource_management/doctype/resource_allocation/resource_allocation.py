@@ -50,7 +50,25 @@ class ResourceAllocation(Document):
         if self.allocation_end_date < self.allocation_start_date:
             frappe.throw(frappe._("End date should be greater than or equal to start date"))
 
+        self.validate_project_and_customer()
         self.calculate_cost()
+
+    def validate_project_and_customer(self):
+        """Reject allocations pointed at a cancelled/inactive project or a disabled customer.
+
+        Only fires when the project/customer is newly set or changed, so an allocation
+        created while its project was valid stays editable if the project is later cancelled.
+        """
+        if self.project and (self.is_new() or self.has_value_changed("project")):
+            status, is_active = frappe.db.get_value("Project", self.project, ["status", "is_active"])
+            if status == "Cancelled":
+                frappe.throw(frappe._("Cannot allocate to cancelled project {0}.").format(self.project))
+            if is_active == "No":
+                frappe.throw(frappe._("Cannot allocate to inactive project {0}.").format(self.project))
+
+        if self.customer and (self.is_new() or self.has_value_changed("customer")):
+            if frappe.db.get_value("Customer", self.customer, "disabled"):
+                frappe.throw(frappe._("Cannot allocate to disabled customer {0}.").format(self.customer))
 
     def calculate_cost(self):
         """Calculate hourly_cost_rate and total_cost based on employee CTC."""
