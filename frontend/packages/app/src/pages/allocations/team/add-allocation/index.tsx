@@ -5,6 +5,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { mergeClassNames as cn } from "@next-pms/design-system";
 import { formatDateRange } from "@next-pms/design-system/date";
 import {
+  Avatar,
   Button,
   Checkbox,
   Combobox,
@@ -96,6 +97,22 @@ function AddAllocationModal({
       query: employeeSearch,
       selectedOption: selectedEmployeeOption,
     });
+
+  const employeeOptionsWithAvatars = useMemo(
+    () =>
+      employeeOptions.map((opt) => ({
+        ...opt,
+        icon: (
+          <Avatar
+            size="xs"
+            shape="circle"
+            image={opt.image}
+            label={opt.label}
+          />
+        ),
+      })),
+    [employeeOptions],
+  );
 
   const { options: projectOptions, isLoading: isProjectLookupLoading } =
     useProjectLookup({
@@ -312,7 +329,7 @@ function AddAllocationModal({
           <Combobox
             inputClassName="bg-surface-white h-8 border-outline-gray-2 text-ink-gray-7"
             loading={isEmployeeLookupLoading}
-            options={employeeOptions}
+            options={employeeOptionsWithAvatars}
             searchValue={employeeSearch}
             placeholder="Select Employee"
             value={field.state.value}
