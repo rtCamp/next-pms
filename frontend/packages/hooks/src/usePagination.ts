@@ -11,10 +11,14 @@ import useSWRInfinite, {
   unstable_serialize,
 } from "swr/infinite";
 
-export type PaginationKey = readonly [cacheKey: string, pageIndex: number];
+export type PaginationKey<TPageParams = Record<string, unknown>> = readonly [
+  cacheKey: string,
+  pageIndex: number,
+  pageParams?: TPageParams,
+];
 
 type PaginationParams = Record<string, unknown> & {
-  page_length: number;
+  page_length?: number;
 };
 
 type PaginationOptions<T = any, E = any> = SWRInfiniteConfiguration<T, E> & {
@@ -54,7 +58,9 @@ const deletePages = (cache: Cache, prefix: string, keep: string) => {
  *
  * @param method - name of the method to call (will be dotted path e.g. "frappe.client.get_list")
  * @param getKey - A function that accepts the index and previous page data, and returns the key for that page
- * @param params - Request params for every page. Must include `page_length` so the hook can derive the `start` offset.
+ * @param params - Request params for every page. When `page_length` is present,
+ * the hook derives an offset `start` value. A key may include page-specific
+ * params as the third tuple item to support cursor based pagination.
  * @param options - Optional useSWRInfinite configuration, plus `cacheCleanup` (see PaginationOptions)
  *
  * @typeParam T - Type of the data returned by the method
@@ -66,9 +72,13 @@ export const usePagination = <
   T = any,
   E = any,
   P extends PaginationParams = PaginationParams,
+  TPageParams extends object = Record<string, unknown>,
 >(
   method: string,
-  getKey: (index: number, previousPageData: T | null) => PaginationKey | null,
+  getKey: (
+    index: number,
+    previousPageData: T | null,
+  ) => PaginationKey<TPageParams> | null,
   params: P,
   options?: PaginationOptions<T, E>,
 ): SWRInfiniteResponse<T, E> => {
@@ -80,11 +90,18 @@ export const usePagination = <
 
   const result = useSWRInfinite<T, E>(
     getKey,
-    ([, pageIndex]: PaginationKey) =>
-      call.get<T>(method, {
+    ([, pageIndex, pageParams]: PaginationKey<TPageParams>) => {
+      const offsetParams =
+        params.page_length === undefined
+          ? {}
+          : { start: pageIndex * params.page_length };
+
+      return call.get<T>(method, {
         ...params,
-        start: pageIndex * params.page_length,
-      }),
+        ...offsetParams,
+        ...pageParams,
+      });
+    },
     swrOptions,
   );
 

@@ -45,7 +45,7 @@ export const ProjectRow: React.FC<ProjectRowProps> = ({
   return (
     <div
       className={cn(
-        "flex items-center border-b border-outline-gray-1 transition-colors w-full justify-between px-1 py-2",
+        "flex items-center border-b border-outline-gray-1 transition-colors w-full justify-between px-1 py-2 cursor-pointer",
         className,
       )}
     >

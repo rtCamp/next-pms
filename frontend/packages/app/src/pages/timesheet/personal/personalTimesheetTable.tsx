@@ -73,7 +73,12 @@ const PersonalTimesheetGrid = () => {
           )}
 
           {Object.keys(timesheetData?.data).length == 0 ? (
-            <Typography className="flex items-center justify-center">
+            <Typography
+              className={cn("flex items-center justify-center", {
+                "opacity-50 transition-opacity duration-150":
+                  isFilteredDataLoading,
+              })}
+            >
               No data found
             </Typography>
           ) : (

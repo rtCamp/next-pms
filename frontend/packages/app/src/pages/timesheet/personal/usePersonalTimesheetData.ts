@@ -1,26 +1,31 @@
 /**
  * External dependencies.
  */
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo, useRef } from "react";
 import { ApprovalStatusLabelMap } from "@next-pms/design-system/components";
 import { getFormatedDate, getTodayDate } from "@next-pms/design-system/date";
+import { type PaginationKey, usePagination } from "@next-pms/hooks";
 import { useToasts } from "@rtcamp/frappe-ui-react";
 import type { FilterCondition } from "@rtcamp/frappe-ui-react";
-import { addDays } from "date-fns";
+import { addDays, parseISO } from "date-fns";
+import type { FrappeError } from "frappe-react-sdk";
 import { useFrappeEventListener, useFrappeGetCall } from "frappe-react-sdk";
 
 /**
  * Internal dependencies.
  */
 import { NUMBER_OF_WEEKS_TO_FETCH } from "@/lib/constant";
-import { buildCompositeFilters, parseFrappeErrorMsg } from "@/lib/utils";
+import {
+  buildCompositeFilters,
+  hashString,
+  parseFrappeErrorMsg,
+} from "@/lib/utils";
 import type { DataProp, TaskDataProps } from "@/types/timesheet";
 import { initialTimesheetData } from "./context";
 import { addWeekLabels, mergeTimesheetData } from "./utils";
 
 type UsePersonalTimesheetDataOptions = {
   employeeId: string;
-  requestKey: string;
   search: string;
   approvalStatus?: keyof typeof ApprovalStatusLabelMap;
   compositeFilters: FilterCondition[];
@@ -37,6 +42,20 @@ type UsePersonalTimesheetDataResult = {
   refetchLikedTasks: () => void;
 };
 
+type PersonalTimesheetPayload = DataProp & {
+  has_more?: boolean;
+};
+
+type PersonalTimesheetCallResponse = {
+  message?: PersonalTimesheetPayload;
+};
+
+type PersonalTimesheetPageParams = {
+  start_date: string;
+};
+
+const QUERY_SIGNATURE_PREFIX = "personal-timesheet:";
+
 const hasActiveFilters = (
   search: string,
   approvalStatus: keyof typeof ApprovalStatusLabelMap | undefined,
@@ -46,21 +65,46 @@ const hasActiveFilters = (
   Boolean(approvalStatus) ||
   compositeFilters.length > 0;
 
+const getNextPageStartDate = (
+  page: PersonalTimesheetCallResponse | null | undefined,
+  requestedStartDate: string | undefined,
+  weeksPerPage: number,
+) => {
+  const payload = page?.message;
+  const lastWeek = Object.values(payload?.data ?? {}).at(-1);
+
+  if (lastWeek) {
+    return getFormatedDate(addDays(parseISO(lastWeek.start_date), -1));
+  }
+
+  // A filtered window can come back empty while older matches exist
+  // (has_more), so skip one full window back from this page's request date.
+  if (payload?.has_more && requestedStartDate) {
+    return getFormatedDate(
+      addDays(parseISO(requestedStartDate), -(weeksPerPage * 7)),
+    );
+  }
+
+  return null;
+};
+
+const hasWeek = (
+  payload: PersonalTimesheetPayload | undefined,
+  weekKey: string,
+) => Object.prototype.hasOwnProperty.call(payload?.data ?? {}, weekKey);
+
 export function usePersonalTimesheetData({
   employeeId,
-  requestKey,
   search,
   approvalStatus,
   compositeFilters,
 }: UsePersonalTimesheetDataOptions): UsePersonalTimesheetDataResult {
   const toast = useToasts();
-  const [weekDate, setWeekDate] = useState(getTodayDate());
-  const [hasMoreWeeks, setHasMoreWeeks] = useState(true);
-  const [isInitialLoad, setIsInitialLoad] = useState(true);
-  const [timesheetData, setTimesheetData] = useState(initialTimesheetData);
-  const [resolvedRequestKey, setResolvedRequestKey] = useState(requestKey);
+  const pageStartDatesRef = useRef<{
+    dates: string[];
+    signature: string;
+  }>({ dates: [], signature: "" });
 
-  const isFilterRequest = requestKey !== resolvedRequestKey;
   const filtersAreActive = hasActiveFilters(
     search,
     approvalStatus,
@@ -70,97 +114,252 @@ export function usePersonalTimesheetData({
     () => buildCompositeFilters(compositeFilters),
     [compositeFilters],
   );
-  const requestWeekDate =
-    startDate ?? (isFilterRequest ? getTodayDate() : weekDate);
 
-  useEffect(() => {
-    if (!isFilterRequest) {
-      return;
-    }
+  const requestWeekDate = startDate ?? getTodayDate();
+  const weeksPerPage = maxWeek ?? NUMBER_OF_WEEKS_TO_FETCH;
+  const approvalStatusParam = approvalStatus
+    ? ApprovalStatusLabelMap[approvalStatus]
+    : null;
+  const filtersParam = useMemo(
+    () => JSON.stringify(frappeFilters),
+    [frappeFilters],
+  );
 
-    setHasMoreWeeks(true);
-    setWeekDate(startDate ?? getTodayDate());
-  }, [isFilterRequest, startDate]);
+  const querySignature = useMemo(
+    () =>
+      `${QUERY_SIGNATURE_PREFIX}${hashString(
+        JSON.stringify({
+          employeeId,
+          requestWeekDate,
+          maxWeek: weeksPerPage,
+          search,
+          approvalStatus: approvalStatusParam ?? "",
+          filters: filtersParam,
+          skipEmptyWeeks: filtersAreActive,
+        }),
+      )}`,
+    [
+      approvalStatusParam,
+      employeeId,
+      filtersAreActive,
+      filtersParam,
+      weeksPerPage,
+      requestWeekDate,
+      search,
+    ],
+  );
 
-  const { data, isLoading, error } = useFrappeGetCall(
+  const getKey = useCallback(
+    (
+      pageIndex: number,
+      previousPageData: PersonalTimesheetCallResponse | null,
+    ): PaginationKey<PersonalTimesheetPageParams> | null => {
+      if (pageStartDatesRef.current.signature !== querySignature) {
+        pageStartDatesRef.current = { dates: [], signature: querySignature };
+      }
+
+      if (
+        filtersAreActive &&
+        previousPageData?.message &&
+        !previousPageData.message.has_more
+      ) {
+        return null;
+      }
+
+      const pageStartDate =
+        pageIndex === 0
+          ? requestWeekDate
+          : getNextPageStartDate(
+              previousPageData,
+              pageStartDatesRef.current.dates[pageIndex - 1],
+              weeksPerPage,
+            );
+
+      if (!pageStartDate) {
+        return null;
+      }
+
+      pageStartDatesRef.current.dates[pageIndex] = pageStartDate;
+
+      return [
+        querySignature,
+        pageIndex,
+        { start_date: pageStartDate },
+      ] as const;
+    },
+    [filtersAreActive, querySignature, requestWeekDate, weeksPerPage],
+  );
+
+  const {
+    data: paginatedData,
+    isLoading,
+    isValidating,
+    size,
+    setSize,
+    mutate,
+  } = usePagination<PersonalTimesheetCallResponse>(
     "next_pms.timesheet.api.timesheet.get_timesheet_data",
+    getKey,
     {
       employee: employeeId,
-      start_date: requestWeekDate,
-      max_week: maxWeek ?? NUMBER_OF_WEEKS_TO_FETCH,
+      max_week: weeksPerPage,
       search,
-      approval_status: approvalStatus
-        ? ApprovalStatusLabelMap[approvalStatus]
-        : null,
-      filters: JSON.stringify(frappeFilters),
+      approval_status: approvalStatusParam,
+      filters: filtersParam,
       skip_empty_weeks: filtersAreActive,
     },
+    {
+      revalidateOnFocus: false,
+      revalidateAll: false,
+      revalidateFirstPage: false,
+      keepPreviousData: true,
+      persistSize: false,
+      shouldRetryOnError: false,
+      errorRetryCount: 0,
+      onError: (err) => {
+        toast.error(parseFrappeErrorMsg(err as FrappeError));
+      },
+    },
   );
+
   const { data: likedTasksResponse, mutate: refetchLikedTasks } =
     useFrappeGetCall("next_pms.timesheet.api.task.get_liked_tasks");
 
-  useEffect(() => {
-    if (!data?.message) {
-      return;
-    }
+  const pages = useMemo(() => paginatedData ?? [], [paginatedData]);
+  const payloads = useMemo(
+    () =>
+      pages
+        .map((page) => page.message)
+        .filter((payload): payload is PersonalTimesheetPayload =>
+          Boolean(payload),
+        ),
+    [pages],
+  );
 
-    const labeledData = addWeekLabels(data.message);
+  const timesheetData = useMemo(() => {
+    return (
+      payloads.reduce<DataProp | null>((currentData, payload) => {
+        const labeledPayload = addWeekLabels(payload);
 
-    setTimesheetData((currentData) =>
-      isFilterRequest || Object.keys(currentData.data).length === 0
-        ? labeledData
-        : mergeTimesheetData(currentData, labeledData),
+        return currentData
+          ? mergeTimesheetData(currentData, labeledPayload)
+          : labeledPayload;
+      }, null) ?? initialTimesheetData
     );
-    setHasMoreWeeks(filtersAreActive ? (data.message.has_more ?? false) : true);
-    setIsInitialLoad(false);
-    setResolvedRequestKey(requestKey);
-  }, [data, filtersAreActive, isFilterRequest, requestKey]);
+  }, [payloads]);
 
-  useEffect(() => {
-    if (!error || !isFilterRequest) {
-      return;
-    }
+  const nextPageStartDate = getNextPageStartDate(
+    pages.at(-1),
+    pageStartDatesRef.current.dates[pages.length - 1],
+    weeksPerPage,
+  );
+  const emptySkipLimit = addDays(
+    parseISO(
+      Object.values(timesheetData.data).at(-1)?.start_date ?? requestWeekDate,
+    ),
+    -365,
+  );
+  const hasMoreWeeks = filtersAreActive
+    ? Boolean(
+        !startDate &&
+        nextPageStartDate &&
+        parseISO(nextPageStartDate) > emptySkipLimit &&
+        payloads.at(-1)?.has_more,
+      )
+    : true;
+  const isInitialLoad = isLoading && pages.length === 0;
+  const isFilterRequest = isLoading && pages.length > 0;
+  const isLoadingPersonalData =
+    isLoading || (isValidating && typeof pages[size - 1] === "undefined");
 
-    setResolvedRequestKey(requestKey);
-  }, [error, isFilterRequest, requestKey]);
+  const refreshPageForWeek = useCallback(
+    async (weekKey: string) => {
+      try {
+        if (!paginatedData?.length) {
+          return;
+        }
 
-  useEffect(() => {
-    if (!error) {
-      return;
-    }
+        const pagesToRevalidate = new Set<number>();
 
-    const err = parseFrappeErrorMsg(error);
-    toast.error(err);
-  }, [error, toast]);
+        paginatedData.forEach((page, index) => {
+          if (hasWeek(page.message, weekKey)) {
+            pagesToRevalidate.add(index);
+          }
+        });
 
-  useFrappeEventListener(`timesheet_update::${employeeId}`, (payload) => {
-    const updatedData = addWeekLabels(payload.message);
-    const key = Object.keys(updatedData.data)[0];
+        if (!pagesToRevalidate.size) {
+          return;
+        }
 
-    setTimesheetData((currentData) => {
-      if (!Object.prototype.hasOwnProperty.call(currentData.data, key)) {
-        return currentData;
+        await mutate(paginatedData, {
+          revalidate: (_pageData, pageKey) => {
+            return (
+              Array.isArray(pageKey) &&
+              typeof pageKey[1] === "number" &&
+              pagesToRevalidate.has(pageKey[1])
+            );
+          },
+        });
+      } catch {
+        return;
+      }
+    },
+    [mutate, paginatedData],
+  );
+
+  const mergeRealtimePayload = useCallback(
+    (payload: PersonalTimesheetPayload, weekKey: string) => {
+      if (!paginatedData?.length) {
+        return;
       }
 
-      return mergeTimesheetData(currentData, updatedData);
-    });
+      const updatedData = addWeekLabels(payload);
+      let changed = false;
+      const nextPages = paginatedData.map((page) => {
+        if (!page.message || !hasWeek(page.message, weekKey)) {
+          return page;
+        }
+
+        changed = true;
+
+        return {
+          ...page,
+          message: mergeTimesheetData(page.message, updatedData),
+        };
+      });
+
+      if (changed) {
+        void mutate(nextPages, { revalidate: false });
+      }
+    },
+    [mutate, paginatedData],
+  );
+
+  useFrappeEventListener(`timesheet_update::${employeeId}`, (payload) => {
+    const updatedPayload = payload.message as PersonalTimesheetPayload;
+    const key = Object.keys(updatedPayload?.data ?? {})[0];
+
+    if (!key) {
+      return;
+    }
+
+    if (filtersAreActive) {
+      void refreshPageForWeek(key);
+      return;
+    }
+
+    mergeRealtimePayload(updatedPayload, key);
   });
 
   const loadData = useCallback(() => {
-    if (!hasMoreWeeks || isLoading) return;
+    if (!hasMoreWeeks || isLoadingPersonalData) return;
 
-    const weeks = timesheetData.data;
-    if (Object.keys(weeks).length === 0) return;
-
-    const lastKey = Object.keys(weeks).pop();
-    if (!lastKey) return;
-
-    setWeekDate(getFormatedDate(addDays(weeks[lastKey].start_date, -1)));
-  }, [hasMoreWeeks, isLoading, timesheetData.data]);
+    void setSize((current) => current + 1);
+  }, [hasMoreWeeks, isLoadingPersonalData, setSize]);
 
   return {
     hasMoreWeeks,
-    isLoadingPersonalData: isLoading,
+    isLoadingPersonalData,
     isInitialLoad,
     isFilterRequest,
     timesheetData,
