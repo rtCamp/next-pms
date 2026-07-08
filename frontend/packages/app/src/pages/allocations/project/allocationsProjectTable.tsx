@@ -62,7 +62,9 @@ export const AllocationsProjectTable = () => {
             hasMore={hasMore}
             verticalLodMore={loadMore}
             scrollResetKey={querySignature}
-            className={cn("w-full h-full overflow-auto no-scrollbar", {
+            enableScrollArea
+            showScrollbar={false}
+            className={cn("w-full h-full", {
               "opacity-50 transition-opacity duration-150 pointer-events-none":
                 isRefreshingVisibleGrid,
             })}

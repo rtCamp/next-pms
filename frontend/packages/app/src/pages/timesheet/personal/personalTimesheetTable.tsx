@@ -82,13 +82,14 @@ const PersonalTimesheetGrid = () => {
               hasMore={!isFilterRequest && hasMoreWeeks}
               verticalLodMore={loadData}
               className={cn(
-                "relative w-full h-[calc(100%-var(--spacing)*7)] overflow-auto no-scrollbar opacity-100",
+                "relative w-full h-[calc(100%-var(--spacing)*7)] opacity-100",
                 {
                   "opacity-50 transition-opacity duration-150":
                     isFilteredDataLoading,
                 },
               )}
               count={NUMBER_OF_WEEKS_TO_FETCH}
+              enableScrollArea
             >
               <div className="min-w-225">
                 {Object.entries(timesheetData.data).map(
