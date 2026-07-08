@@ -1,7 +1,7 @@
 /**
  * External dependencies.
  */
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { mergeClassNames as cn } from "@next-pms/design-system";
 import { formatDateRange } from "@next-pms/design-system/date";
 import {
@@ -89,45 +89,6 @@ function AddAllocationModal({
         value: initialValues.customer,
       }
     : null;
-
-  const { options: employeeOptions, isLoading: isEmployeeLookupLoading } =
-    useEmployeeLookup({
-      shouldFetch: open,
-      pageSize: 20,
-      query: employeeSearch,
-      selectedOption: selectedEmployeeOption,
-      formatOption: (option) => ({
-        ...option,
-        icon: (
-          <Avatar
-            size="xs"
-            shape="circle"
-            image={option.image}
-            label={option.label}
-          />
-        ),
-      }),
-    });
-
-  const { options: projectOptions, isLoading: isProjectLookupLoading } =
-    useProjectLookup({
-      shouldFetch: open,
-      filters: [
-        ["status", "!=", "Cancelled"],
-        ["is_active", "=", "Yes"],
-      ],
-      pageSize: 20,
-      query: projectSearch,
-      selectedOption: selectedProjectOption,
-    });
-
-  const { options: customerOptions, isLoading: isCustomerLookupLoading } =
-    useCustomerLookup({
-      shouldFetch: open,
-      pageSize: 20,
-      query: customerSearch,
-      selectedOption: selectedCustomerOption,
-    });
 
   const mergedDefaultValues = useMemo(() => {
     const initialFormValues = {
@@ -231,6 +192,49 @@ function AddAllocationModal({
     },
   });
 
+  const projectId = useStore(form.store, (state) => state.values.projectId);
+  const lastValidatedProjectIdRef = useRef(projectId);
+
+  const { options: employeeOptions, isLoading: isEmployeeLookupLoading } =
+    useEmployeeLookup({
+      shouldFetch: open,
+      pageSize: 20,
+      query: employeeSearch,
+      projects: projectId ? [projectId] : undefined,
+      selectedOption: selectedEmployeeOption,
+      formatOption: (option) => ({
+        ...option,
+        icon: (
+          <Avatar
+            size="xs"
+            shape="circle"
+            image={option.image}
+            label={option.label}
+          />
+        ),
+      }),
+    });
+
+  const { options: projectOptions, isLoading: isProjectLookupLoading } =
+    useProjectLookup({
+      shouldFetch: open,
+      filters: [
+        ["status", "!=", "Cancelled"],
+        ["is_active", "=", "Yes"],
+      ],
+      pageSize: 20,
+      query: projectSearch,
+      selectedOption: selectedProjectOption,
+    });
+
+  const { options: customerOptions, isLoading: isCustomerLookupLoading } =
+    useCustomerLookup({
+      shouldFetch: open,
+      pageSize: 20,
+      query: customerSearch,
+      selectedOption: selectedCustomerOption,
+    });
+
   const closeModal = useCallback(() => {
     onOpenChange(false);
     form.reset(mergedDefaultValues);
@@ -286,6 +290,32 @@ function AddAllocationModal({
     setCustomerSearch("");
   }, [open]);
 
+  useEffect(() => {
+    if (isEmployeeLookupLoading || employeeSearch) {
+      return;
+    }
+
+    if (lastValidatedProjectIdRef.current === projectId) {
+      return;
+    }
+    lastValidatedProjectIdRef.current = projectId;
+
+    const isEmployeeInProjectTeam = employeeOptions.some(
+      (option) => option.value === employeeId,
+    );
+
+    if (projectId && employeeId && !isEmployeeInProjectTeam) {
+      form.setFieldValue("employeeId", "");
+    }
+  }, [
+    projectId,
+    employeeId,
+    employeeSearch,
+    employeeOptions,
+    isEmployeeLookupLoading,
+    form,
+  ]);
+
   const totalHours = computeTotalHours({
     hoursPerDay,
     recurrence,
@@ -304,6 +334,7 @@ function AddAllocationModal({
 
       form.setFieldValue("projectId", nextProjectId);
       setProjectSearch("");
+      setEmployeeSearch("");
 
       if (selectedProject?.customer) {
         form.setFieldValue("customer", selectedProject.customer);
