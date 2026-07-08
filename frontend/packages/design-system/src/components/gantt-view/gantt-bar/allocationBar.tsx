@@ -41,6 +41,7 @@ export function GanttAllocationBar({
 }: GanttAllocationBarProps) {
   const allocationBarRef = useRef<HTMLDivElement>(null);
   const {
+    variant,
     headerWidth,
     columnWidth,
     columnCount,
@@ -53,6 +54,7 @@ export function GanttAllocationBar({
     setActiveEdit,
     clearActiveEdit,
   } = useGanttStore((s) => ({
+    variant: s.variant,
     headerWidth: s.headerWidth,
     columnWidth: s.columnWidth,
     columnCount: s.columnCount,
@@ -330,6 +332,7 @@ export function GanttAllocationBar({
           <PreviewCard.Popup className="z-50 outline-none">
             <GanttAllocationPopover
               entries={[entry]}
+              variant={variant}
               hasRoleAccess={hasRoleAccess}
             />
           </PreviewCard.Popup>

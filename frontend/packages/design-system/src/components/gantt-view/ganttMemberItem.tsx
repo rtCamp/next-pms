@@ -152,7 +152,10 @@ export function GanttMemberItem({
           sideOffset={-42}
         >
           <PreviewCard.Popup className="outline-none">
-            <GanttMemberHoverCard member={member} />
+            <GanttMemberHoverCard
+              member={member}
+              canOpenEmployee={hasRoleAccess}
+            />
           </PreviewCard.Popup>
         </PreviewCard.Positioner>
       </PreviewCard.Portal>

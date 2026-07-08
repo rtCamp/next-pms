@@ -156,7 +156,7 @@ export function calculateAllocationHourlyRate(
   const hourlyRate = ctc / 12 / monthlyHours;
   const resolvedCurrency = currency || DEFAULT_CURRENCY;
 
-  return `${currencyFormat(resolvedCurrency).format(hourlyRate)}/hr`;
+  return `${currencyFormat(resolvedCurrency).format(hourlyRate)}/hour`;
 }
 
 /**
@@ -197,7 +197,7 @@ export function formatAllocationCapacity(
     resolveWorkingFrequency(workSchedule),
   );
 
-  return `${weeklyHours} hrs/week`;
+  return `${weeklyHours}h/week`;
 }
 
 /**

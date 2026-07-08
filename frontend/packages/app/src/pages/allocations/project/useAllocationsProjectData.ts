@@ -32,6 +32,7 @@ type UseAllocationsProjectDataResult = {
   hasMore: boolean;
   isQueryLoading: boolean;
   isNextPageLoading: boolean;
+  querySignature: string;
   loadMore: () => void;
   refresh: (projectIds?: string[]) => Promise<void>;
 };
@@ -39,6 +40,8 @@ type UseAllocationsProjectDataResult = {
 type ProjectAllocationCallResponse = {
   message?: ProjectAllocationResponse;
 };
+
+const QUERY_SIGNATURE_PREFIX = "project-allocations:";
 
 export function useAllocationsProjectData({
   anchorDate,
@@ -79,9 +82,8 @@ export function useAllocationsProjectData({
     hasBillable === hasNonBillable ? null : JSON.stringify(hasBillable ? 1 : 0);
   const querySignature = useMemo(
     () =>
-      hashString(
+      `${QUERY_SIGNATURE_PREFIX}${hashString(
         [
-          "project-allocations",
           requestDate,
           String(maxWeek),
           search,
@@ -89,7 +91,7 @@ export function useAllocationsProjectData({
           isBillableParam ?? "",
           filtersParam ?? "",
         ].join(":"),
-      ),
+      )}`,
     [
       allocationStatusParam,
       filtersParam,
@@ -157,6 +159,9 @@ export function useAllocationsProjectData({
       errorRetryCount: 0,
       onError: (error) => {
         toast.error(parseFrappeErrorMsg(error as FrappeError));
+      },
+      cacheCleanup: {
+        signaturePrefix: QUERY_SIGNATURE_PREFIX,
       },
     },
   );
@@ -251,6 +256,7 @@ export function useAllocationsProjectData({
     hasMore,
     isQueryLoading,
     isNextPageLoading,
+    querySignature,
     loadMore,
     refresh,
   };

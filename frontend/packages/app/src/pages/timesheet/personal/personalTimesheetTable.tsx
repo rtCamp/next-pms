@@ -4,8 +4,6 @@
 import { Fragment, useState } from "react";
 import { mergeClassNames as cn } from "@next-pms/design-system";
 import { Spinner, Typography } from "@next-pms/design-system/components";
-import { Button, Filter, TextInput } from "@rtcamp/frappe-ui-react";
-import { DotHorizontal } from "@rtcamp/frappe-ui-react/icons";
 
 /**
  * Internal dependencies.
@@ -15,14 +13,13 @@ import { NUMBER_OF_WEEKS_TO_FETCH } from "@/lib/constant";
 import { useUser } from "@/providers/user";
 import type { WorkingFrequency } from "@/types";
 import { usePersonalTimesheet } from "./context";
-import ApprovalStatusFilter from "../../../components/filters/approvalStatusFilter";
+import { SubHeader } from "./subHeader";
 import { InfiniteScroll } from "../../../components/infiniteScroll";
 import { HeaderRow } from "../../../components/timesheet-row/components/row/headerRow";
 import { PersonalTimesheetRow } from "../../../components/timesheet-row/personalTimesheetRow";
-import { personalTimesheetFilters } from "../constants";
 import { useTimesheetOutletContext } from "../outletContext";
 
-export const PersonalTimesheetTable = () => {
+const PersonalTimesheetGrid = () => {
   const [selectedTask, setSelectedTask] = useState<string | null>(null);
 
   const hasMoreWeeks = usePersonalTimesheet(({ state }) => state.hasMoreWeeks);
@@ -38,20 +35,7 @@ export const PersonalTimesheetTable = () => {
   const timesheetData = usePersonalTimesheet(
     ({ state }) => state.timesheetData,
   );
-  const filters = usePersonalTimesheet(({ state }) => state.filters);
-  const compositeFilters = usePersonalTimesheet(
-    ({ state }) => state.compositeFilters,
-  );
   const loadData = usePersonalTimesheet(({ actions }) => actions.loadData);
-  const handleSearchChange = usePersonalTimesheet(
-    ({ actions }) => actions.handleSearchChange,
-  );
-  const handleApprovalStatusChange = usePersonalTimesheet(
-    ({ actions }) => actions.handleApprovalStatusChange,
-  );
-  const handleCompositeFilterChange = usePersonalTimesheet(
-    ({ actions }) => actions.handleCompositeFilterChange,
-  );
   const { employeeId } = useUser(({ state }) => ({
     employeeId: state.employeeId,
   }));
@@ -59,39 +43,17 @@ export const PersonalTimesheetTable = () => {
   const { handleApproval } = useTimesheetOutletContext();
 
   const isFilteredDataLoading = isFilterRequest && isLoadingPersonalData;
-
-  const hasTaskFilter =
-    filters.search !== "" ||
-    compositeFilters.some(
-      (filter) => filter.fieldCategory === "Task" || filter.field === "subject",
-    );
+  const hasTaskFilter = usePersonalTimesheet(
+    ({ state }) =>
+      state.filters.search !== "" ||
+      state.compositeFilters.some(
+        (filter) =>
+          filter.fieldCategory === "Task" || filter.field === "subject",
+      ),
+  );
 
   return (
-    <div className="w-full flex-1 min-h-0 py-3.5 px-5 relative">
-      <div className="flex flex-wrap gap-2 justify-between mb-3.5">
-        <div className="flex gap-2">
-          <TextInput
-            placeholder="Search tasks"
-            className="w-68.5 shrink-0"
-            value={filters.search}
-            onChange={(e) => handleSearchChange(e.target.value)}
-          />
-          <ApprovalStatusFilter
-            value={filters.approvalStatus}
-            onChange={handleApprovalStatusChange}
-          />
-        </div>
-        <div className="flex gap-2">
-          <Filter
-            align="end"
-            fields={personalTimesheetFilters}
-            value={compositeFilters}
-            onChange={handleCompositeFilterChange}
-          />
-          <Button icon={() => <DotHorizontal size={16} />} />
-        </div>
-      </div>
-
+    <>
       {isInitialLoad &&
       isLoadingPersonalData &&
       Object.keys(timesheetData?.data).length == 0 ? (
@@ -111,7 +73,12 @@ export const PersonalTimesheetTable = () => {
           )}
 
           {Object.keys(timesheetData?.data).length == 0 ? (
-            <Typography className="flex items-center justify-center">
+            <Typography
+              className={cn("flex items-center justify-center", {
+                "opacity-50 transition-opacity duration-150":
+                  isFilteredDataLoading,
+              })}
+            >
               No data found
             </Typography>
           ) : (
@@ -120,7 +87,7 @@ export const PersonalTimesheetTable = () => {
               hasMore={!isFilterRequest && hasMoreWeeks}
               verticalLodMore={loadData}
               className={cn(
-                "relative w-full h-[calc(100%-var(--spacing)*7)] overflow-auto scrollbar [scrollbar-gutter:stable] opacity-100",
+                "relative w-full h-[calc(100%-var(--spacing)*7)] overflow-auto no-scrollbar opacity-100",
                 {
                   "opacity-50 transition-opacity duration-150":
                     isFilteredDataLoading,
@@ -195,6 +162,15 @@ export const PersonalTimesheetTable = () => {
           ) : null}
         </>
       )}
+    </>
+  );
+};
+
+export const PersonalTimesheetTable = () => {
+  return (
+    <div className="w-full flex-1 min-h-0 py-3.5 px-5 relative">
+      <SubHeader />
+      <PersonalTimesheetGrid />
     </div>
   );
 };

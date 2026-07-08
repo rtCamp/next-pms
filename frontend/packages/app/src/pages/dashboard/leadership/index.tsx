@@ -16,7 +16,7 @@ import HeatmapCard from "../widget/heatmap";
 import LeadershipKpiCard from "../widget/kpi-cards";
 import { getDefaultKpiMonth } from "../widget/kpi-cards/useLeadershipKpi";
 import NotificationsCard from "../widget/notificationsCard";
-import LiveStatCard from "../widget/stat-cards";
+import { LeadershipStatCards } from "../widget/stat-cards";
 import UtilisedTimeCard from "../widget/utilization";
 
 export default function LeadershipDashboard() {
@@ -82,7 +82,7 @@ export default function LeadershipDashboard() {
             <NotificationsCard />
           </WidgetCard>
           <div className="col-span-12">
-            <LiveStatCard />
+            <LeadershipStatCards />
           </div>
           <WidgetCard className="col-span-6 gap-4 p-4">
             <UtilisedTimeCard />

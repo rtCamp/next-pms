@@ -45,6 +45,7 @@ export const useCustomerLookup = ({
     params: ({ query: searchQuery, pageSize }) => ({
       doctype: "Customer",
       fields: ["name", "customer_name"],
+      filters: [["disabled", "=", 0]],
       limit_page_length: pageSize,
       or_filters: searchQuery
         ? [

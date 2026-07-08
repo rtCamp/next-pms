@@ -75,7 +75,7 @@ const RejectionPopup = () => {
               setReason(e.target.value);
               setReasonError(null);
             }}
-            className="bg-white border-outline-gray-2 text-ink-gray-7"
+            className="bg-surface-white border-outline-gray-2 text-ink-gray-7"
             rows={4}
           />
           {reasonError ? <ErrorMessage message={reasonError} /> : null}

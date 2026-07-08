@@ -24,6 +24,7 @@ const ApprovalPopup = () => {
     avatarUrl,
     dateRange,
     totalHours,
+    isReadOnly,
     groupedByDay,
     checkedDays,
     handleDayCheckChange,
@@ -32,7 +33,7 @@ const ApprovalPopup = () => {
     handleReject,
   } = useWeeklyApproval();
   return (
-    <Dialog.Popup className="fixed right-0 top-0 w-112 h-[calc(100vh-20px)] m-2.5 z-101 bg-surface-modal rounded-xl shadow-xl flex flex-col">
+    <Dialog.Popup className="fixed right-0 top-0 max-w-120 w-full h-[calc(100vh-20px)] m-2.5 z-101 bg-surface-modal rounded-xl shadow-xl flex flex-col">
       {/* Header */}
       <div className="flex items-center justify-between px-3.5 py-4 border-b border-outline-gray-modals">
         <div className="flex items-center gap-3">
@@ -43,7 +44,7 @@ const ApprovalPopup = () => {
           <p className="text-base text-ink-gray-5">{dateRange}</p>
         </div>
         <div className="flex items-center gap-3">
-          <span className="text-lg font-medium text-ink-green-4">
+          <span className="text-lg font-medium text-ink-green-4 tabular-nums lining-nums">
             {floatToTime(totalHours, 2, 2)}
           </span>
           <Dialog.Close className="hover:bg-surface-gray-2 rounded">
@@ -68,10 +69,15 @@ const ApprovalPopup = () => {
                   <SmallDown className="h-4 w-4 text-ink-gray-5 transition-transform duration-200 -rotate-90 group-data-panel-open:rotate-0" />
                   <span className="text-base font-medium text-ink-gray-8">
                     {dayGroup.day}
+                    {dayGroup.leaveLabel ? (
+                      <span className="text-ink-gray-5">
+                        {` · ${dayGroup.leaveLabel}`}
+                      </span>
+                    ) : null}
                   </span>
                 </div>
                 <div className="flex items-center gap-3">
-                  <span className="text-lg font-medium text-ink-green-4">
+                  <span className="text-lg font-medium text-ink-green-4 tabular-nums lining-nums">
                     {floatToTime(dayGroup.totalHours, 2, 2)}
                   </span>
                   <div
@@ -80,6 +86,7 @@ const ApprovalPopup = () => {
                   >
                     <Checkbox
                       value={checkedDays.has(dayGroup.day)}
+                      disabled={isReadOnly}
                       onChange={(checked) =>
                         handleDayCheckChange(dayGroup.day, checked)
                       }
@@ -92,6 +99,7 @@ const ApprovalPopup = () => {
                   <EntryRow
                     key={entry.timesheetId}
                     entry={entry}
+                    readOnly={isReadOnly}
                     onSave={handleTimesheetUpdate}
                   />
                 ))}
@@ -107,14 +115,18 @@ const ApprovalPopup = () => {
           variant="solid"
           label="Reject"
           iconLeft={() => <CloseCircle size={16} className="text-ink-white" />}
+          disabled={isReadOnly}
           onClick={handleReject}
+          className={isReadOnly ? "text-ink-white" : undefined}
         />
         <Button
           theme="green"
           variant="solid"
           label="Approve"
           iconLeft={() => <Success size={16} className="text-ink-white" />}
+          disabled={isReadOnly}
           onClick={handleApproveSubmit}
+          className={isReadOnly ? "text-ink-white" : "bg-surface-green-5"}
         />
       </div>
     </Dialog.Popup>

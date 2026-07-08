@@ -16,6 +16,7 @@ export interface AllocationsTeamContextProps {
     isQueryLoading: boolean;
     isNextPageLoading: boolean;
     hasMore: boolean;
+    querySignature: string;
     designation: string[];
     search: string;
     duration: AllocationsDuration;
@@ -30,6 +31,7 @@ export interface AllocationsTeamContextProps {
     setDesignation: (value: string[]) => void;
     setAllocationsType: (value: string[]) => void;
     setCompositeFilters: (value: FilterCondition[]) => void;
+    handleClearAllFilters: () => void;
     loadMore: () => void;
     handlePrevious: () => void;
     handleNext: () => void;
@@ -45,6 +47,7 @@ export const AllocationsTeamContext =
       isQueryLoading: false,
       isNextPageLoading: false,
       hasMore: true,
+      querySignature: "",
       search: "",
       duration: "this-quarter",
       allocationsType: [],
@@ -59,6 +62,7 @@ export const AllocationsTeamContext =
       setDesignation: () => null,
       setAllocationsType: () => null,
       setCompositeFilters: () => null,
+      handleClearAllFilters: () => null,
       loadMore: () => null,
       handlePrevious: () => null,
       handleNext: () => null,

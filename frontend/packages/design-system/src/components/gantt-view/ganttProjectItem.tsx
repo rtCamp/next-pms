@@ -19,6 +19,7 @@ export interface GanttProjectItemProps extends Project {
   canExpand?: boolean;
   showChevron?: boolean;
   showHoverCard?: boolean;
+  hasRoleAccess?: boolean;
   onToggle?: () => void;
   className?: string;
   style?: CSSProperties;
@@ -38,6 +39,7 @@ export function GanttProjectItem({
   canExpand = false,
   showChevron = true,
   showHoverCard = true,
+  hasRoleAccess = false,
   onToggle,
   className,
   style,
@@ -137,6 +139,7 @@ export function GanttProjectItem({
                 projectManager,
                 weeklyCapacity,
               }}
+              canOpenProject={hasRoleAccess}
             />
           </PreviewCard.Popup>
         </PreviewCard.Positioner>

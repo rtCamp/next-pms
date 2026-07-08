@@ -34,6 +34,7 @@ import { useProjectDetail } from "../../context";
 
 export function TrackingProvider({ children }: PropsWithChildren) {
   const projectId = useProjectDetail((s) => s.projectId);
+  const currency = useProjectDetail((s) => s.project?.custom_currency);
   const project = useProjectDetail((s) => s.project);
   const projectMutate = useProjectDetail((s) => s.mutate);
   const { updateDoc } = useFrappeUpdateDoc();
@@ -209,7 +210,7 @@ export function TrackingProvider({ children }: PropsWithChildren) {
   );
 
   const value = useMemo<TrackingContextProps>(() => {
-    const formatter = currencyFormat(tracking.currency ?? undefined);
+    const formatter = currencyFormat(currency);
 
     const contracts: ContractRow[] | null = tracking.contracts
       ? tracking.contracts.map((c, i) => ({
@@ -281,6 +282,7 @@ export function TrackingProvider({ children }: PropsWithChildren) {
     editingContract,
     addRateModalOpen,
     addContractModalOpen,
+    currency,
   ]);
 
   return (

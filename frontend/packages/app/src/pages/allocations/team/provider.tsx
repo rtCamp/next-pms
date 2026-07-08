@@ -85,6 +85,7 @@ export function AllocationsTeamProvider({
     hasMore,
     isQueryLoading,
     isNextPageLoading,
+    querySignature,
     loadMore,
     refresh,
   } = useAllocationsTeamData({
@@ -167,6 +168,18 @@ export function AllocationsTeamProvider({
     [updateSearchParams],
   );
 
+  const handleClearAllFilters = useCallback(
+    () =>
+      updateSearchParams({
+        [SEARCH_PARAM_KEY]: undefined,
+        [DESIGNATION_PARAM_KEY]: undefined,
+        [DURATION_PARAM_KEY]: undefined,
+        [ALLOCATION_TYPE_PARAM_KEY]: undefined,
+        [COMPOSITE_FILTERS_PARAM_KEY]: undefined,
+      }),
+    [updateSearchParams],
+  );
+
   const handlePrevious = useCallback(() => {
     updateSearchParams({
       [DATE_PARAM_KEY]: format(
@@ -203,6 +216,7 @@ export function AllocationsTeamProvider({
         isQueryLoading,
         isNextPageLoading,
         hasMore,
+        querySignature,
         search: searchParam,
         designation,
         duration,
@@ -217,6 +231,7 @@ export function AllocationsTeamProvider({
         setDesignation,
         setAllocationsType,
         setCompositeFilters,
+        handleClearAllFilters,
         loadMore,
         handlePrevious,
         handleNext,
@@ -229,6 +244,7 @@ export function AllocationsTeamProvider({
       isNextPageLoading,
       isQueryLoading,
       hasMore,
+      querySignature,
       searchParam,
       duration,
       designation,
@@ -241,6 +257,7 @@ export function AllocationsTeamProvider({
       setDesignation,
       setAllocationsType,
       setCompositeFilters,
+      handleClearAllFilters,
       loadMore,
       handlePrevious,
       handleNext,

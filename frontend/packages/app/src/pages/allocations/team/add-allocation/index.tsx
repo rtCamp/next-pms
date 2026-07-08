@@ -5,6 +5,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { mergeClassNames as cn } from "@next-pms/design-system";
 import { formatDateRange } from "@next-pms/design-system/date";
 import {
+  Avatar,
   Button,
   Checkbox,
   Combobox,
@@ -95,11 +96,26 @@ function AddAllocationModal({
       pageSize: 20,
       query: employeeSearch,
       selectedOption: selectedEmployeeOption,
+      formatOption: (option) => ({
+        ...option,
+        icon: (
+          <Avatar
+            size="xs"
+            shape="circle"
+            image={option.image}
+            label={option.label}
+          />
+        ),
+      }),
     });
 
   const { options: projectOptions, isLoading: isProjectLookupLoading } =
     useProjectLookup({
       shouldFetch: open,
+      filters: [
+        ["status", "!=", "Cancelled"],
+        ["is_active", "=", "Yes"],
+      ],
       pageSize: 20,
       query: projectSearch,
       selectedOption: selectedProjectOption,
@@ -306,7 +322,7 @@ function AddAllocationModal({
             Employee
           </label>
           <Combobox
-            inputClassName="bg-white h-8 border-outline-gray-2 text-ink-gray-7"
+            inputClassName="bg-surface-white h-8 border-outline-gray-2 text-ink-gray-7"
             loading={isEmployeeLookupLoading}
             options={employeeOptions}
             searchValue={employeeSearch}
@@ -334,7 +350,7 @@ function AddAllocationModal({
             Project
           </label>
           <Combobox
-            inputClassName="bg-white h-8 border-outline-gray-2 text-ink-gray-7"
+            inputClassName="bg-surface-white h-8 border-outline-gray-2 text-ink-gray-7"
             loading={isProjectLookupLoading}
             options={projectOptions}
             searchValue={projectSearch}
@@ -362,7 +378,7 @@ function AddAllocationModal({
             Customer
           </label>
           <Combobox
-            inputClassName="bg-white h-8 border-outline-gray-2 text-ink-gray-7"
+            inputClassName="bg-surface-white h-8 border-outline-gray-2 text-ink-gray-7"
             loading={isCustomerLookupLoading}
             options={customerOptions}
             searchValue={customerSearch}
@@ -471,7 +487,7 @@ function AddAllocationModal({
       options={{
         title: () => (
           <span className="text-lg font-medium text-ink-gray-7">
-            {variant === "add" ? "Add Allocation" : "Edit Allocation"}
+            {variant === "add" ? "Add allocation" : "Edit allocation"}
           </span>
         ),
       }}

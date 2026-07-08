@@ -297,7 +297,7 @@ const AddLeave = ({ open = false, onOpenChange }: LeaveTimeProps) => {
                   variant="outline"
                   value={field.state.value}
                   onChange={(e) => field.handleChange(e.target.value)}
-                  className="bg-white border-outline-gray-2 text-ink-gray-7"
+                  className="bg-surface-white border-outline-gray-2 text-ink-gray-7"
                 />
                 {!field.state.meta.isValid && (
                   <ErrorMessage message={field.state.meta.errors[0]?.message} />

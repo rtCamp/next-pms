@@ -51,7 +51,9 @@ class ResourceAllocation(Document):
             frappe.throw(frappe._("End date should be greater than or equal to start date"))
 
         self.validate_no_overlap()
+        self.validate_project_and_customer()
         self.calculate_cost()
+        
 
     def validate_no_overlap(self):
         """Block a second allocation for the same employee + project whose date range
@@ -88,6 +90,26 @@ class ResourceAllocation(Document):
                 title=frappe._("Overlapping Allocation"),
                 exc=frappe.ValidationError,
             )
+
+    def validate_project_and_customer(self):
+        """Reject allocations pointed at a cancelled/inactive project or a disabled customer.
+
+        Only fires when the project/customer is newly set or changed, so an allocation
+        created while its project was valid stays editable if the project is later cancelled.
+        """
+        if self.project and (self.is_new() or self.has_value_changed("project")):
+            status, is_active = frappe.db.get_value("Project", self.project, ["status", "is_active"])
+            if status == "Cancelled":
+                frappe.throw(frappe._("Cannot allocate to cancelled project {0}.").format(self.project))
+            if is_active == "No":
+                frappe.throw(frappe._("Cannot allocate to inactive project {0}.").format(self.project))
+
+        # Customer is fetched from project.customer, so a project change can swap in a
+        # different (possibly disabled) customer without customer itself registering a
+        # change when both projects share the same customer. Re-check on project change too.
+        if self.customer and (self.is_new() or self.has_value_changed("customer") or self.has_value_changed("project")):
+            if frappe.db.get_value("Customer", self.customer, "disabled"):
+                frappe.throw(frappe._("Cannot allocate to disabled customer {0}.").format(self.customer))
 
     def calculate_cost(self):
         """Calculate hourly_cost_rate and total_cost based on employee CTC."""

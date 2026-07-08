@@ -150,7 +150,7 @@ const AddEmployeeLeave = ({
         <Button
           className="w-full"
           variant="solid"
-          iconLeft={() => <TimeOff className="size-4 text-ink-gray-7" />}
+          iconLeft={() => <TimeOff className="size-4 text-ink-white" />}
           label="Add time-off"
           disabled={loading}
           onClick={() => {
@@ -172,7 +172,7 @@ const AddEmployeeLeave = ({
                   Employee
                 </label>
                 <Combobox
-                  inputClassName="bg-white h-8 border-outline-gray-2 text-ink-gray-7"
+                  inputClassName="bg-surface-white h-8 border-outline-gray-2 text-ink-gray-7"
                   loading={isEmployeeLookupLoading}
                   options={employeeOptions}
                   searchValue={employeeSearch}
@@ -337,7 +337,7 @@ const AddEmployeeLeave = ({
                   variant="outline"
                   value={field.state.value}
                   onChange={(e) => field.handleChange(e.target.value)}
-                  className="bg-white border-outline-gray-2 text-ink-gray-7"
+                  className="bg-surface-white border-outline-gray-2 text-ink-gray-7"
                 />
                 {!field.state.meta.isValid && (
                   <ErrorMessage message={field.state.meta.errors[0]?.message} />
