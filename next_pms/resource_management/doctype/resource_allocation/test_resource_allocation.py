@@ -6,7 +6,7 @@ from erpnext import get_default_company
 from frappe.exceptions import ValidationError
 from frappe.tests import IntegrationTestCase
 
-# All fixtures are created manually in setUpClass; skip the auto test-record.
+# All fixtures are created manually in setUpClass; skip the auto test-recordx.
 IGNORE_TEST_RECORD_DEPENDENCIES = ["Employee", "Project", "Customer", "Currency"]
 
 START_DATE = "2026-06-15"
@@ -145,6 +145,26 @@ class TestResourceAllocationValidation(IntegrationTestCase):
             frappe.db.get_value("Resource Allocation", doc.name, "note"),
             "Updated after cancellation",
         )
+
+    def test_project_change_to_disabled_customer_rejected(self):
+        # Customer is fetched from project.customer. An allocation created under an
+        # enabled customer must be rejected when its project is switched to another
+        # project under the same customer after that customer is disabled — even
+        # though the customer field value itself does not change.
+        customer = self._make_customer("Shared Customer")
+        first_project = self._make_project("Shared Proj One", customer)
+        second_project = self._make_project("Shared Proj Two", customer)
+
+        doc = self._make_allocation_doc(project=first_project)
+        doc.insert(ignore_permissions=True)
+
+        frappe.db.set_value("Customer", customer, "disabled", 1)
+
+        doc.reload()
+        doc.project = second_project
+        with self.assertRaises(ValidationError) as cm:
+            doc.save(ignore_permissions=True)
+        self.assertIn("disabled customer", str(cm.exception).lower())
 
     def test_end_date_before_start_date_rejected(self):
         doc = self._make_allocation_doc(project=self.project, allocation_end_date="2026-06-10")

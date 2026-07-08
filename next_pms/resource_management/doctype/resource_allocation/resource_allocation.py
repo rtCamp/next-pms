@@ -66,7 +66,10 @@ class ResourceAllocation(Document):
             if is_active == "No":
                 frappe.throw(frappe._("Cannot allocate to inactive project {0}.").format(self.project))
 
-        if self.customer and (self.is_new() or self.has_value_changed("customer")):
+        # Customer is fetched from project.customer, so a project change can swap in a
+        # different (possibly disabled) customer without customer itself registering a
+        # change when both projects share the same customer. Re-check on project change too.
+        if self.customer and (self.is_new() or self.has_value_changed("customer") or self.has_value_changed("project")):
             if frappe.db.get_value("Customer", self.customer, "disabled"):
                 frappe.throw(frappe._("Cannot allocate to disabled customer {0}.").format(self.customer))
 
