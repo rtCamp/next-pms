@@ -1,11 +1,16 @@
 import frappe
-
+from typing import List, Any
 from next_pms.project_currency.api.project_timesheet_billing_recalculation import (
     generate_the_error_log,
 )
 
 
-def send_reminder_mail():
+def send_reminder_mail() -> None:
+    """Scheduled task to send email reminders for projects approaching their budget/threshold limits.
+    
+    Finds all open projects configured for threshold reminders, filters them
+    based on threshold status, and emails the project managers.
+    """
     try:
         project_list = frappe.get_all(
             "Project",
@@ -26,21 +31,28 @@ def send_reminder_mail():
         )
 
 
-def send_reminder_mail_for_project(project: str):
+def send_reminder_mail_for_project(project: Any) -> None:
+    """Send a notification email to all Project Managers shared on a project.
+
+    Args:
+        project (Any): The Project document object.
+    """
     if not project:
         return frappe.throw(frappe._("Project not found"))
 
     if not project.custom_email_template:
         return
 
+    # Find users who have access to this project
     user_list = frappe.get_all(
         "DocShare",
         fields=["name", "user"],
         filters=dict(share_doctype=project.doctype, share_name=project.name),
     )
 
-    user_list = [user["user"] for user in user_list]
+    user_emails = [user["user"] for user in user_list]
 
+    # Filter users to those with "Projects Manager" role
     all_pms = [
         d.parent
         for d in frappe.get_all(
@@ -48,11 +60,14 @@ def send_reminder_mail_for_project(project: str):
             filters={
                 "role": "Projects Manager",
                 "parenttype": "User",
-                "parent": ["in", user_list],
+                "parent": ["in", user_emails],
             },
             fields=["parent"],
         )
     ]
+
+    if not all_pms:
+        return
 
     reminder_template = frappe.get_doc("Email Template", project.custom_email_template)
 
@@ -75,27 +90,44 @@ def send_reminder_mail_for_project(project: str):
     frappe.sendmail(recipients=recipients, subject=subject, message=message)
 
 
-def filter_project_list(project_list: list):
-    need_to_send_reminder_project_list = []
-    for project_name in project_list:
-        project = frappe.get_doc("Project", project_name)
+def filter_project_list(project_list: List[dict]) -> List[Any]:
+    """Filter projects that have met or exceeded their reminder threshold.
 
-        project_threshold = 0
+    Handles different billing types:
+    - Retainer: calculated based on consumed hours vs budget hours.
+    - Time and Material: calculated based on total billable amount vs estimated costing.
+
+    Args:
+        project_list (List[dict]): List containing project records (e.g., as returned by frappe.get_all).
+
+    Returns:
+        List[Any]: List of Project documents exceeding their threshold limit.
+    """
+    need_to_send_reminder_project_list = []
+    for project_row in project_list:
+        project = frappe.get_doc("Project", project_row.get("name"))
+
+        project_threshold = 0.0
 
         if project.custom_billing_type == "Retainer":
             custom_project_budget_hours = project.custom_project_budget_hours
             if len(custom_project_budget_hours) == 0:
                 continue
 
-            custom_project_budget_hours = custom_project_budget_hours[-1]
-            project_threshold = (
-                custom_project_budget_hours.consumed_hours * 100
-            ) / custom_project_budget_hours.hours_purchased
+            last_budget = custom_project_budget_hours[-1]
+            hours_purchased = last_budget.hours_purchased
+            if not hours_purchased:
+                continue
+
+            project_threshold = (last_budget.consumed_hours * 100.0) / hours_purchased
 
         elif project.custom_billing_type == "Time and Material":
-            project_threshold = (
-                custom_project_budget_hours.total_billable_amount * 100
-            ) / custom_project_budget_hours.estimated_costing
+            # Fix local variable 'custom_project_budget_hours' bug by referencing the Project document directly
+            estimated_costing = project.estimated_costing
+            if not estimated_costing:
+                continue
+
+            project_threshold = (project.total_billable_amount * 100.0) / estimated_costing
 
         else:
             continue

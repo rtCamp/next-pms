@@ -80,7 +80,7 @@ export const Approval = ({ onClose, user, timesheetState, dispatch }: ApprovalPr
       });
   };
   return (
-    <Dialog open={timesheetState.isAprrovalDialogOpen} onOpenChange={handleOpen}>
+    <Dialog open={timesheetState.isApprovalDialogOpen} onOpenChange={handleOpen}>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>

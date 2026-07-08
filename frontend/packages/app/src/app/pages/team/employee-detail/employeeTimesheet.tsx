@@ -88,7 +88,7 @@ export const EmployeeTimesheet = ({
       startDate: startDate,
       endDate: endDate,
     };
-    dispatch({ type: "SET_DATE_RANGE", payload: { dateRange: data, isAprrovalDialogOpen: true } });
+    dispatch({ type: "SET_DATE_RANGE", payload: { dateRange: data, isApprovalDialogOpen: true } });
   };
   const dailyWorkingHour = expectatedHours(
     teamState.timesheetData.working_hour,

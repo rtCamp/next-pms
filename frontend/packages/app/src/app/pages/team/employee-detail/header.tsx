@@ -42,7 +42,7 @@ export const EmployeeDetailHeader = ({ state, dispatch, employeeId }: EmployeeDe
   const onClose = useCallback(() => {
     dispatch({
       type: "SET_DATE_RANGE",
-      payload: { dateRange: { startDate: "", endDate: "" }, isAprrovalDialogOpen: false },
+      payload: { dateRange: { startDate: "", endDate: "" }, isApprovalDialogOpen: false },
     });
   }, [dispatch]);
   return (
@@ -57,10 +57,10 @@ export const EmployeeDetailHeader = ({ state, dispatch, employeeId }: EmployeeDe
           ignoreDefaultFilters={true}
         />
       </Header>
-      {state.isAprrovalDialogOpen && (
+      {state.isApprovalDialogOpen && (
         <Approval
           employee={state.employee}
-          isAprrovalDialogOpen={state.isAprrovalDialogOpen}
+          isApprovalDialogOpen={state.isApprovalDialogOpen}
           endDate={state.dateRange.endDate}
           startDate={state.dateRange.startDate}
           onClose={onClose}

@@ -30,7 +30,7 @@ import { getTaskDataForDate, getTimesheetHourForDate } from "../utils";
 import EditTimeSheetListItem from "./editTimeSheetListItem";
 import type { ApprovalProp } from "./types";
 
-export const Approval = ({ onClose, employee, startDate, endDate, isAprrovalDialogOpen }: ApprovalProp) => {
+export const Approval = ({ onClose, employee, startDate, endDate, isApprovalDialogOpen }: ApprovalProp) => {
   const { toast } = useToast();
   const [timesheetData, setTimesheetData] = useState<timesheet>();
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
@@ -143,7 +143,7 @@ export const Approval = ({ onClose, employee, startDate, endDate, isAprrovalDial
   const dailyWorkingHour = expectatedHours(workingHour, WorkingFrequency);
   return (
     <>
-      <Sheet open={isAprrovalDialogOpen && !isAddTimeOpen} onOpenChange={handleOpen} modal={true}>
+      <Sheet open={isApprovalDialogOpen && !isAddTimeOpen} onOpenChange={handleOpen} modal={true}>
         <SheetContent className="md:max-w-3xl w-full sm:max-w-full overflow-auto ">
           {isLoading ? (
             <Spinner />

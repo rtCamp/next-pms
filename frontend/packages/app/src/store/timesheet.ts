@@ -25,7 +25,7 @@ export interface TimesheetState {
   data: DataProp;
   isDialogOpen: boolean;
   isEditDialogOpen: boolean;
-  isAprrovalDialogOpen: boolean;
+  isApprovalDialogOpen: boolean;
   isLeaveDialogOpen: boolean;
   weekDate: string;
 }
@@ -51,7 +51,7 @@ export const initialState: TimesheetState = {
   },
   isDialogOpen: false,
   isEditDialogOpen: false,
-  isAprrovalDialogOpen: false,
+  isApprovalDialogOpen: false,
   isLeaveDialogOpen: false,
   weekDate: getTodayDate(),
 };
@@ -77,7 +77,7 @@ const timesheetSlice = createSlice({
       state.isDialogOpen = action.payload;
     },
     setApprovalDialog: (state, action: PayloadAction<boolean>) => {
-      state.isAprrovalDialogOpen = action.payload;
+      state.isApprovalDialogOpen = action.payload;
     },
     SetAddLeaveDialog: (state, action: PayloadAction<boolean>) => {
       state.isLeaveDialogOpen = action.payload;

@@ -30,7 +30,7 @@ export const initialState: TimesheetState = {
   },
   isDialogOpen: false,
   isEditDialogOpen: false,
-  isAprrovalDialogOpen: false,
+  isApprovalDialogOpen: false,
   isLeaveDialogOpen: false,
   isImportFromGoogleCalendarDialogOpen: false,
   weekDate: getTodayDate(),
@@ -71,7 +71,7 @@ const actionHandlers = {
     payload: boolean
   ): TimesheetState => ({
     ...state,
-    isAprrovalDialogOpen: payload,
+    isApprovalDialogOpen: payload,
   }),
   SET_LEAVE_DIALOG_STATE: (
     state: TimesheetState,
