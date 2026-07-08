@@ -40,12 +40,12 @@ export function InvoiceBurnCell() {
         value={invoicedPaid}
         secondaryValue={invoicedPaid + invoicedUnpaid}
         maxValue={totalAmount || 0}
-        indicatorClassName="bg-surface-violet-4"
+        indicatorClassName="bg-surface-violet-5"
         secondaryIndicatorClassName="bg-surface-blue-5"
       />
       <div className="flex flex-col gap-2 text-base text-ink-gray-7">
         <LegendItem
-          className="bg-surface-violet-4"
+          className="bg-surface-violet-5"
           label="Invoiced and paid"
           value={currencyFormat(currency).format(invoicedPaid)}
           labelClassName="text-ink-gray-6"

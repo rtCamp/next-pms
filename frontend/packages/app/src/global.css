@@ -15,18 +15,10 @@
 }
 
 @theme {
-    --color-ink-gray-7: var(--color-gray-800);
-    --color-ink-gray-8: var(--color-gray-900);
-    --color-surface-green-3: var(--color-green-300);
-    --color-surface-green-5: var(--color-green-600);
-    --color-surface-amber-5: var(--color-amber-600);
-    --color-surface-blue-4: var(--color-blue-300);
-    --color-surface-blue-5: #007BE0 ;
-    --color-ink-violet-3: #7757ee;
-    --color-ink-violet-4: #4F3DA1;
-    --color-surface-violet-4: #664ECC;
-    --color-ink-cyan-3: #3bbde5;
+    --color-heatmap-red: #e75a5a;
+
     --animate-fade-in: fade-in 0.2s ease;
+    --animate-fade-left: fade-left 0.2s ease;
 }
 
 @layer utilities {
@@ -183,18 +175,6 @@ html,
 }
 
 @theme {
-  --animate-fade-left: fade-left 0.2s ease;
-  --animate-fade-in: fade-in 0.2s ease;
-  --color-surface-green-3: var(--color-green-300);
-  --color-surface-green-4: #a6efc0;
-  --color-surface-green-5: var(--color-green-600);
-  --color-surface-amber-5: var(--color-amber-600);
-  --color-surface-blue-4: var(--color-blue-300);
-  --color-surface-blue-5: #007be0;
-  --color-ink-violet-3: #7757ee;
-  --color-surface-violet-4: #664ecc;
-  --color-ink-cyan-3: #3bbde5;
-  --color-heatmap-red: #e75a5a;
 }
 
 @keyframes fade-left {
