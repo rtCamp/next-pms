@@ -532,6 +532,31 @@ export const isCompleteFilterCondition = (f: FilterCondition): boolean => {
 };
 
 /**
+ * Normalizes the value of a "like" or "not like" filter condition by ensuring
+ * that it is wrapped in "%" wildcards, unless it already starts or ends with one.
+ */
+export const normalizeLikeFilterValue = (
+  operator: string,
+  value: FilterCondition["value"],
+) => {
+  if (!["like", "not like"].includes(operator) || typeof value !== "string") {
+    return value;
+  }
+
+  const trimmedValue = value.trim();
+
+  if (
+    !trimmedValue ||
+    trimmedValue.startsWith("%") ||
+    trimmedValue.endsWith("%")
+  ) {
+    return trimmedValue;
+  }
+
+  return `%${trimmedValue}%`;
+};
+
+/**
  * Builds native Frappe filters from the given composite filters.
  *
  * @param compositeFilters Array of FilterCondition objects.
@@ -546,7 +571,9 @@ export const buildFrappeFilters = (compositeFilters: FilterCondition[]) => {
       filter.fieldCategory,
       filter.field,
       filter.operator,
-      isNoValueOperator(filter.operator) ? null : filter.value,
+      isNoValueOperator(filter.operator)
+        ? null
+        : normalizeLikeFilterValue(filter.operator, filter.value),
     ]);
 };
 
