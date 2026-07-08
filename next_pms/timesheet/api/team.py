@@ -545,7 +545,7 @@ def _approve_or_reject_timesheet(
             job_name="Timesheet Approval Notification",
         )
         db.commit()
-    except:  # noqa: E722
+    except Exception:
         db.rollback()
         log_error(title=_("Error in Timesheet Approval"))
         subject = _("Error in Timesheet Approval")
