@@ -53,7 +53,6 @@ class ResourceAllocation(Document):
         self.validate_no_overlap()
         self.validate_project_and_customer()
         self.calculate_cost()
-        
 
     def validate_no_overlap(self):
         """Block a second allocation for the same employee + project whose date range
