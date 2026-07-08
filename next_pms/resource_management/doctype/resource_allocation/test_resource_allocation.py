@@ -173,16 +173,41 @@ class TestResourceAllocationValidation(IntegrationTestCase):
         self.assertIn("end date", str(cm.exception).lower())
 
     def test_same_start_and_end_date_allowed(self):
+        # Own project: an allocation on the shared project already covers this
+        # window, and same-employee-same-project overlaps are blocked.
+        project = self._make_project("Same Day Project", self.customer)
         doc = self._make_allocation_doc(
-            project=self.project,
+            project=project,
             allocation_start_date=START_DATE,
             allocation_end_date=START_DATE,
         )
         doc.insert(ignore_permissions=True)
         self.assertTrue(frappe.db.exists("Resource Allocation", doc.name))
 
+    def test_overlapping_allocation_same_project_rejected(self):
+        project = self._make_project("Overlap Project", self.customer)
+        self._make_allocation_doc(project=project).insert(ignore_permissions=True)
+
+        overlapping = self._make_allocation_doc(project=project)
+        with self.assertRaises(ValidationError) as cm:
+            overlapping.insert(ignore_permissions=True)
+        self.assertIn("already allocated", str(cm.exception).lower())
+
+    def test_non_overlapping_allocation_same_project_allowed(self):
+        project = self._make_project("Adjacent Project", self.customer)
+        self._make_allocation_doc(project=project).insert(ignore_permissions=True)
+
+        doc = self._make_allocation_doc(
+            project=project,
+            allocation_start_date="2026-06-22",
+            allocation_end_date="2026-06-26",
+        )
+        doc.insert(ignore_permissions=True)
+        self.assertTrue(frappe.db.exists("Resource Allocation", doc.name))
+
     def test_total_cost_is_hourly_rate_times_allocated_hours(self):
-        doc = self._make_allocation_doc(project=self.project, total_allocated_hours=40)
+        project = self._make_project("Costing Project", self.customer)
+        doc = self._make_allocation_doc(project=project, total_allocated_hours=40)
         doc.insert(ignore_permissions=True)
         self.assertGreater(doc.hourly_cost_rate, 0)
         self.assertEqual(doc.total_cost, doc.hourly_cost_rate * doc.total_allocated_hours)
