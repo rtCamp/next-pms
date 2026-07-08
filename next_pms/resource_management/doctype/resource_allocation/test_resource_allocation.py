@@ -6,6 +6,9 @@ from erpnext import get_default_company
 from frappe.exceptions import ValidationError
 from frappe.tests import IntegrationTestCase
 
+# All fixtures are created manually in setUpClass; skip the auto test-record.
+IGNORE_TEST_RECORD_DEPENDENCIES = ["Employee", "Project", "Customer", "Currency"]
+
 START_DATE = "2026-06-15"
 END_DATE = "2026-06-19"
 
