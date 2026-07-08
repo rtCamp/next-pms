@@ -59,6 +59,7 @@ const AddLeave = ({ open = false, onOpenChange }: LeaveTimeProps) => {
       fromDate: getTodayDate(),
       toDate: getTodayDate(),
       leaveDuration: LEAVE_DURATION[0] as string,
+      halfDayDate: "",
       leaveType: "",
       reason: "",
     },
@@ -87,7 +88,11 @@ const AddLeave = ({ open = false, onOpenChange }: LeaveTimeProps) => {
           to_date: value.toDate,
           leave_type: value.leaveType,
           half_day,
-          half_day_date: half_day ? value.fromDate : undefined,
+          half_day_date: half_day
+            ? value.fromDate !== value.toDate
+              ? value.halfDayDate
+              : value.fromDate
+            : undefined,
           custom_first_halfsecond_half,
         };
         await createDoc("Leave Application", data);
@@ -260,6 +265,58 @@ const AddLeave = ({ open = false, onOpenChange }: LeaveTimeProps) => {
               </>
             );
           }}
+        />
+
+        <form.Subscribe
+          selector={(state) => [
+            state.values.fromDate,
+            state.values.toDate,
+            state.values.leaveDuration,
+          ]}
+          children={([fromDate, toDate, leaveDuration]) =>
+            leaveDuration !== "full-day" &&
+            fromDate !== toDate && (
+              <form.Field
+                name="halfDayDate"
+                children={(field) => {
+                  return (
+                    <div className="flex flex-col space-y-1.5">
+                      <label className="block text-base text-ink-gray-5 mb-1.5">
+                        Half Day Date
+                      </label>
+                      <DatePicker
+                        label="Half Day Date"
+                        onChange={(val) => field.handleChange(val as string)}
+                        placeholder="Half day date"
+                        value={field.state.value}
+                      >
+                        {({ displayValue }) => {
+                          return (
+                            <div className="w-full h-8 relative flex items-center border border-outline-gray-2 px-2.5 py-2 rounded">
+                              <input
+                                readOnly
+                                type="text"
+                                id="half-day-date"
+                                value={displayValue}
+                                className="w-full text-base text-ink-gray-7"
+                                placeholder="Select half day date"
+                              />
+                              <Calendar className="size-4" />
+                            </div>
+                          );
+                        }}
+                      </DatePicker>
+                      {!field.state.meta.isValid && (
+                        <ErrorMessage
+                          message={field.state.meta.errors[0]?.message}
+                        />
+                      )}
+                    </div>
+                  );
+                }}
+              />
+            )
+          }
         />
 
         <form.Field
