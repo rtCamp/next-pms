@@ -539,7 +539,12 @@ export const normalizeLikeFilterValue = (
   operator: string,
   value: FilterCondition["value"],
 ) => {
-  if (!["like", "not like"].includes(operator) || typeof value !== "string") {
+  const normalizedOperator = operator.toLowerCase().trim();
+
+  if (
+    !["like", "not like"].includes(normalizedOperator) ||
+    typeof value !== "string"
+  ) {
     return value;
   }
 
