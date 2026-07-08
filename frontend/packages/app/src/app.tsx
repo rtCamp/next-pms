@@ -4,7 +4,7 @@
 import { Suspense } from "react";
 import { Provider } from "react-redux";
 import { RouterProvider, createBrowserRouter, createRoutesFromElements } from "react-router-dom";
-import { ErrorFallback, TooltipProvider } from "@next-pms/design-system/components";
+import { ErrorFallback, TooltipProvider, Spinner } from "@next-pms/design-system/components";
 
 /**
  * Internal dependencies.
@@ -27,7 +27,7 @@ const App = () => {
         <UserProvider>
           <Provider store={store}>
             <TooltipProvider>
-              <Suspense fallback={<></>}>
+              <Suspense fallback={<Spinner isFull />}>
                 <ErrorFallback>
                   <RouterProvider router={router} />
                 </ErrorFallback>

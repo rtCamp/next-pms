@@ -2,6 +2,7 @@
  * External dependencies.
  */
 import { Suspense, useEffect } from "react";
+import { Spinner } from "@next-pms/design-system/components";
 import { useDispatch, useSelector } from "react-redux";
 import { ErrorFallback } from "@next-pms/design-system/components";
 import { useToast, Toaster } from "@next-pms/design-system/components";
@@ -55,7 +56,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
         <div className="w-full overflow-hidden flex flex-col">
           {(user.employee || user.user == "Administrator") && (
             <>
-              <Suspense fallback={<></>}>
+              <Suspense fallback={<Spinner isFull />}>
                 <ErrorFallback>{children}</ErrorFallback>
               </Suspense>
             </>
