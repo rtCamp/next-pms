@@ -36,9 +36,7 @@ export const Approval = ({ onClose, user, timesheetState, dispatch }: ApprovalPr
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
   const { call } = useFrappePostCall("next_pms.timesheet.api.timesheet.submit_for_approval");
-  const { data } = useFrappeGetCall("next_pms.timesheet.api.get_employee_with_role", {
-    role: ["Projects Manager", "Projects User"],
-  });
+  const { data } = useFrappeGetCall("next_pms.timesheet.api.get_approver_details");
   const form = useForm<z.infer<typeof TimesheetApprovalSchema>>({
     resolver: zodResolver(TimesheetApprovalSchema),
     defaultValues: {
