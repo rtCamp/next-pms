@@ -21,7 +21,11 @@ import { FilterLinkValue } from "@/components/filters/FilterLinkValue";
 import { useDebounce } from "@/hooks/useDebounce";
 import { useGuardedAction } from "@/pages/allocations/unsavedChanges/useUnsavedChanges";
 import { useUser } from "@/providers/user";
-import { durationOptions, navigationButtonAriaLabels } from "../constants";
+import {
+  DEFAULT_DURATION,
+  durationOptions,
+  navigationButtonAriaLabels,
+} from "../constants";
 import {
   projectAllocationFilters,
   projectAllocationsTypeOptions,
@@ -48,6 +52,9 @@ export function SubHeader() {
   const setCompositeFilters = useAllocationsProject(
     ({ actions }) => actions.setCompositeFilters,
   );
+  const handleClearAllFilters = useAllocationsProject(
+    ({ actions }) => actions.handleClearAllFilters,
+  );
   const handlePrevious = useAllocationsProject(
     ({ actions }) => actions.handlePrevious,
   );
@@ -60,6 +67,11 @@ export function SubHeader() {
   const roles = useUser(({ state }) => state.roles);
   const showFilters =
     roles.includes("Projects Manager") || roles.includes("Projects User");
+
+  const externalFilterCount =
+    (search !== "" ? 1 : 0) +
+    (duration !== DEFAULT_DURATION ? 1 : 0) +
+    (allocationsType.length > 0 ? 1 : 0);
 
   const [searchInput, setSearchInput] = useState(search);
   const [isAllocationTypeOpen, setIsAllocationTypeOpen] = useState(false);
@@ -156,6 +168,13 @@ export function SubHeader() {
             value={compositeFilters}
             onChange={(value) => guard(() => setCompositeFilters(value))}
             renderLinkValue={(props) => <FilterLinkValue {...props} />}
+            externalFilterCount={externalFilterCount}
+            onClearAll={() =>
+              guard(() => {
+                setSearchInput("");
+                handleClearAllFilters();
+              })
+            }
           />
         ) : null}
       </div>

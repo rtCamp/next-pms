@@ -42,6 +42,7 @@ export interface TeamTimesheetContextProps {
     handleApprovalStatusChange: (value?: ApprovalStatusType | null) => void;
     handleReportsToChange: (value: string | null) => void;
     handleCompositeFilterChange: (value: FilterCondition[]) => void;
+    handleClearAllFilters: () => void;
   };
 }
 
@@ -64,6 +65,7 @@ export const TeamTimesheetContext = createContext<TeamTimesheetContextProps>({
     handleApprovalStatusChange: () => null,
     handleReportsToChange: () => null,
     handleCompositeFilterChange: () => null,
+    handleClearAllFilters: () => null,
   },
 });
 

@@ -15,7 +15,6 @@ import type { Error as FrappeError } from "frappe-js-sdk/lib/frappe_app/types";
 /**
  * Internal dependencies.
  */
-import { useDebounce } from "@/hooks/useDebounce";
 import { isCompleteFilterCondition, parseFrappeErrorMsg } from "@/lib/utils";
 import {
   ProjectTimesheetContext,
@@ -28,8 +27,8 @@ export const ProjectTimesheetProvider: FC<PropsWithChildren> = ({
   children,
 }) => {
   const toast = useToasts();
-  const { filters, setSearch, setCompositeFilters } = useTimesheetFilters();
-  const debouncedSearch = useDebounce(filters.search, 400);
+  const { filters, setSearch, setCompositeFilters, resetAll } =
+    useTimesheetFilters();
 
   // Only pass complete filter conditions to the data hook so that selecting a
   // field (without an operator/value) does not trigger a reset + network request.
@@ -40,10 +39,10 @@ export const ProjectTimesheetProvider: FC<PropsWithChildren> = ({
   const activeFilterKey = useMemo(
     () =>
       JSON.stringify({
-        search: debouncedSearch,
+        search: filters.search,
         compositeFilters: effectiveCompositeFilters,
       }),
-    [debouncedSearch, effectiveCompositeFilters],
+    [filters.search, effectiveCompositeFilters],
   );
   const [resolvedFilterKey, setResolvedFilterKey] = useState(activeFilterKey);
   const isFilterRequest = activeFilterKey !== resolvedFilterKey;
@@ -56,7 +55,7 @@ export const ProjectTimesheetProvider: FC<PropsWithChildren> = ({
     error,
   } = useProjectTimesheetData({
     requestKey: activeFilterKey,
-    search: debouncedSearch,
+    search: filters.search,
     compositeFilters: effectiveCompositeFilters,
   });
 
@@ -98,6 +97,7 @@ export const ProjectTimesheetProvider: FC<PropsWithChildren> = ({
         loadData,
         handleSearchChange: setSearch,
         handleCompositeFilterChange: setCompositeFilters,
+        handleClearAllFilters: resetAll,
       },
     }),
     [
@@ -110,6 +110,7 @@ export const ProjectTimesheetProvider: FC<PropsWithChildren> = ({
       filters.compositeFilters,
       setSearch,
       setCompositeFilters,
+      resetAll,
     ],
   );
 

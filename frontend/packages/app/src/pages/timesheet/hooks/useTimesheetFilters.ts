@@ -15,6 +15,7 @@ const SEARCH_PARAM_KEY = "search";
 const APPROVAL_PARAM_KEY = "approval";
 const REPORTS_TO_PARAM_KEY = "reportsTo";
 const COMPOSITE_FILTERS_PARAM_KEY = "compositeFilters";
+const DEFAULT_CLEAR_KEYS_ON_CHANGE: string[] = [];
 
 const APPROVAL_STATUS_PARAM_VALUES = [
   "not-submitted",
@@ -62,7 +63,7 @@ type TimesheetFilterState = {
 export function useTimesheetFilters({
   includeApprovalStatus = false,
   includeReportsTo = false,
-  clearKeysOnChange = [],
+  clearKeysOnChange = DEFAULT_CLEAR_KEYS_ON_CHANGE,
 }: TimesheetFilterOptions = {}) {
   const [searchParams, setSearchParams] = useSearchParams();
 
@@ -134,6 +135,17 @@ export function useTimesheetFilters({
     [updateSearchParams],
   );
 
+  const resetAll = useCallback(
+    () =>
+      updateSearchParams({
+        [SEARCH_PARAM_KEY]: undefined,
+        [APPROVAL_PARAM_KEY]: undefined,
+        [REPORTS_TO_PARAM_KEY]: undefined,
+        [COMPOSITE_FILTERS_PARAM_KEY]: undefined,
+      }),
+    [updateSearchParams],
+  );
+
   return {
     filters: {
       search,
@@ -145,5 +157,6 @@ export function useTimesheetFilters({
     setApprovalStatus,
     setReportsTo,
     setCompositeFilters,
+    resetAll,
   };
 }

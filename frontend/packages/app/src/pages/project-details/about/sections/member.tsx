@@ -51,7 +51,7 @@ export function MemberSection() {
     useEmployeeLookup({
       shouldFetch: true,
       query: projectManagerQuery,
-      roles: ["Project Manager"],
+      roles: ["Projects Manager"],
     });
   const projectManagerComboboxOptions = useMemo(
     () =>
@@ -94,7 +94,7 @@ export function MemberSection() {
                 <Combobox
                   key={projectManager?.email}
                   className="col-span-2 @[12rem]:col-span-1"
-                  inputClassName="w-full h-8 border-transparent bg-white"
+                  inputClassName="w-full h-8 border-transparent bg-surface-white"
                   loading={projectManagerLoading}
                   options={projectManagerComboboxOptions}
                   placeholder="N/A"
@@ -115,7 +115,7 @@ export function MemberSection() {
                 <Combobox
                   key={engineeringManager?.email}
                   className="col-span-2 @[12rem]:col-span-1"
-                  inputClassName="w-full h-8 border-transparent bg-white"
+                  inputClassName="w-full h-8 border-transparent bg-surface-white"
                   loading={engineeringManagerLoading}
                   options={engineeringManagerComboboxOptions}
                   placeholder="N/A"

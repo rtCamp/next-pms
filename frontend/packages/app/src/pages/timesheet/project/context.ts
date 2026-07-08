@@ -59,6 +59,7 @@ export interface ProjectTimesheetContextProps {
     loadData: () => void;
     handleSearchChange: (value: string) => void;
     handleCompositeFilterChange: (value: FilterCondition[]) => void;
+    handleClearAllFilters: () => void;
   };
 }
 
@@ -78,6 +79,7 @@ export const ProjectTimesheetContext =
       loadData: () => null,
       handleSearchChange: () => null,
       handleCompositeFilterChange: () => null,
+      handleClearAllFilters: () => null,
     },
   });
 

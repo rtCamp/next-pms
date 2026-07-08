@@ -6,7 +6,6 @@ import { FC, PropsWithChildren, useMemo } from "react";
 /**
  * Internal dependencies.
  */
-import { useDebounce } from "@/hooks/useDebounce";
 import { isCompleteFilterCondition } from "@/lib/utils";
 import { useUser } from "@/providers/user";
 import {
@@ -19,11 +18,15 @@ import { useTimesheetFilters } from "../hooks/useTimesheetFilters";
 export const PersonalTimesheetProvider: FC<PropsWithChildren> = ({
   children,
 }) => {
-  const { filters, setSearch, setApprovalStatus, setCompositeFilters } =
-    useTimesheetFilters({
-      includeApprovalStatus: true,
-    });
-  const debouncedSearch = useDebounce(filters.search, 400);
+  const {
+    filters,
+    setSearch,
+    setApprovalStatus,
+    setCompositeFilters,
+    resetAll,
+  } = useTimesheetFilters({
+    includeApprovalStatus: true,
+  });
 
   const { employeeId } = useUser(({ state }) => ({
     employeeId: state.employeeId,
@@ -34,15 +37,6 @@ export const PersonalTimesheetProvider: FC<PropsWithChildren> = ({
     [filters.compositeFilters],
   );
 
-  const activeFilterKey = useMemo(
-    () =>
-      JSON.stringify({
-        search: debouncedSearch,
-        approvalStatus: filters.approvalStatus ?? "",
-        compositeFilters: effectiveCompositeFilters,
-      }),
-    [debouncedSearch, filters.approvalStatus, effectiveCompositeFilters],
-  );
   const {
     hasMoreWeeks,
     isLoadingPersonalData,
@@ -54,8 +48,7 @@ export const PersonalTimesheetProvider: FC<PropsWithChildren> = ({
     refetchLikedTasks,
   } = usePersonalTimesheetData({
     employeeId,
-    requestKey: activeFilterKey,
-    search: debouncedSearch,
+    search: filters.search,
     approvalStatus: filters.approvalStatus,
     compositeFilters: effectiveCompositeFilters,
   });
@@ -80,6 +73,7 @@ export const PersonalTimesheetProvider: FC<PropsWithChildren> = ({
         handleSearchChange: setSearch,
         handleApprovalStatusChange: setApprovalStatus,
         handleCompositeFilterChange: setCompositeFilters,
+        handleClearAllFilters: resetAll,
         refetchLikedTasks,
       },
     }),
@@ -97,6 +91,7 @@ export const PersonalTimesheetProvider: FC<PropsWithChildren> = ({
       setSearch,
       setApprovalStatus,
       setCompositeFilters,
+      resetAll,
       refetchLikedTasks,
     ],
   );

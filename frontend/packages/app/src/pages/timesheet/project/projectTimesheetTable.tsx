@@ -4,8 +4,6 @@
 import { Fragment } from "react";
 import { mergeClassNames as cn } from "@next-pms/design-system";
 import { Spinner, Typography } from "@next-pms/design-system/components";
-import { Button, Filter, TextInput } from "@rtcamp/frappe-ui-react";
-import { DotHorizontal } from "@rtcamp/frappe-ui-react/icons";
 
 /**
  * Internal dependencies.
@@ -15,9 +13,9 @@ import { ProjectTimesheetRow } from "@/components/timesheet-row";
 import { HeaderRow } from "@/components/timesheet-row/components/row/headerRow";
 import { NUMBER_OF_WEEKS_TO_FETCH } from "@/lib/constant";
 import { useProjectTimesheet } from "./context";
-import { projectTimesheetFilters } from "../constants";
+import { SubHeader } from "./subHeader";
 
-export const ProjectTimesheetTable = () => {
+const ProjectTimesheetGrid = () => {
   const hasMore = useProjectTimesheet(({ state }) => state.hasMore);
   const isLoadingProjectData = useProjectTimesheet(
     ({ state }) => state.isLoadingProjectData,
@@ -26,40 +24,12 @@ export const ProjectTimesheetTable = () => {
     ({ state }) => state.isFilterRequest,
   );
   const weekGroups = useProjectTimesheet(({ state }) => state.weekGroups);
-  const filters = useProjectTimesheet(({ state }) => state.filters);
-  const compositeFilters = useProjectTimesheet(
-    ({ state }) => state.compositeFilters,
-  );
   const loadData = useProjectTimesheet(({ actions }) => actions.loadData);
-  const handleSearchChange = useProjectTimesheet(
-    ({ actions }) => actions.handleSearchChange,
-  );
-  const handleCompositeFilterChange = useProjectTimesheet(
-    ({ actions }) => actions.handleCompositeFilterChange,
-  );
 
   const isFilteredDataLoading = isFilterRequest && isLoadingProjectData;
 
   return (
-    <div className="w-full flex-1 min-h-0 py-3.5 px-5 relative">
-      <div className="flex flex-wrap gap-2 justify-between mb-3.5">
-        <div className="flex gap-2">
-          <TextInput
-            placeholder="Search tasks"
-            value={filters.search}
-            onChange={(e) => handleSearchChange(e.target.value)}
-          />
-        </div>
-        <div className="flex gap-2">
-          <Filter
-            fields={projectTimesheetFilters}
-            value={compositeFilters}
-            onChange={handleCompositeFilterChange}
-          />
-          <Button icon={() => <DotHorizontal size={16} />} />
-        </div>
-      </div>
-
+    <>
       {isLoadingProjectData && weekGroups.length === 0 ? (
         <Spinner isFull />
       ) : weekGroups.length === 0 ? (
@@ -72,7 +42,7 @@ export const ProjectTimesheetTable = () => {
           hasMore={hasMore}
           verticalLodMore={loadData}
           className={cn(
-            "w-full h-[calc(100%-var(--spacing)*7)] overflow-auto scrollbar [scrollbar-gutter:stable] opacity-100",
+            "w-full h-[calc(100%-var(--spacing)*7)] overflow-auto no-scrollbar opacity-100",
             {
               "opacity-50 transition-opacity duration-150":
                 isFilteredDataLoading,
@@ -127,6 +97,15 @@ export const ProjectTimesheetTable = () => {
           className="absolute top-0 left-0 w-full h-full cursor-wait"
         />
       ) : null}
+    </>
+  );
+};
+
+export const ProjectTimesheetTable = () => {
+  return (
+    <div className="w-full flex-1 min-h-0 py-3.5 px-5 relative">
+      <SubHeader />
+      <ProjectTimesheetGrid />
     </div>
   );
 };

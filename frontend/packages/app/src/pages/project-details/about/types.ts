@@ -95,6 +95,7 @@ export type ProjectSidebar = {
     total_budget: number;
     cost_accrued: number;
     cost_forecasted: number;
+    target_cost: number;
   };
   progress: {
     actual_time: number;

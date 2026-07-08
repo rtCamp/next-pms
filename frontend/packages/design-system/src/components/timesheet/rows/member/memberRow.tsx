@@ -58,7 +58,7 @@ export const MemberRow: React.FC<MemberRowProps> = ({
   return (
     <div
       className={cn(
-        "flex justify-between items-center px-1 py-2 w-full border-b transition-colors border-outline-gray-1",
+        "flex justify-between items-center px-1 py-2 w-full border-b transition-colors border-outline-gray-1 cursor-pointer",
         className,
       )}
     >
