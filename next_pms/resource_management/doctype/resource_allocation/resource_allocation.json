@@ -149,7 +149,6 @@
   },
   {
    "fetch_from": "project.custom_currency",
-   "fetch_if_empty": 1,
    "fieldname": "currency",
    "fieldtype": "Link",
    "label": "Currency",
