@@ -12,9 +12,11 @@ from frappe.utils import cint, flt, getdate, today
 from next_pms.api.utils import error_logger
 from next_pms.next_projects.api.constant import (
     ALLOWED_ROLES,
+    COMPUTED_SORT_FIELDS,
     KANBAN_VIEW_FIELDS,
     LIST_VIEW_FIELDS,
     PROJECT_TRACKING_CACHE_KEY_PREFIX,
+    SORT_KEY_FIELDS,
     TASK_TRACKING_COMPLETED_STATUS,
     TASK_TRACKING_OPEN_STATUSES,
     TASK_TRACKING_TOTAL_STATUSES,
@@ -39,19 +41,24 @@ def get_total_budget(project: dict) -> float:
 
 
 def get_cost_forecasted(project_name: str) -> float:
-    """Sum of total_cost from ALL Resource Allocations for the project."""
+    """Sum of total_cost from ongoing/future Resource Allocations for the project.
+
+    Past allocations are excluded: their cost is already realized in the
+    project's total_costing_amount (cost_accrued) via timesheets.
+    """
     ResourceAllocation = frappe.qb.DocType("Resource Allocation")
     result = (
         frappe.qb.from_(ResourceAllocation)
         .select(Coalesce(Sum(ResourceAllocation.total_cost), 0).as_("total"))
         .where(ResourceAllocation.project == project_name)
+        .where(ResourceAllocation.allocation_end_date >= today())
         .run(as_dict=True)
     )
     return flt(result[0].total) if result else 0
 
 
 def get_cost_forecasted_map(project_names: list[str]) -> dict[str, float]:
-    """Fetch forecasted costs for multiple projects in a single grouped query."""
+    """Fetch forecasted costs (ongoing/future allocations only) for multiple projects in a single grouped query."""
     if not project_names:
         return {}
     ResourceAllocation = frappe.qb.DocType("Resource Allocation")
@@ -62,6 +69,7 @@ def get_cost_forecasted_map(project_names: list[str]) -> dict[str, float]:
             Coalesce(Sum(ResourceAllocation.total_cost), 0).as_("total"),
         )
         .where(ResourceAllocation.project.isin(project_names))
+        .where(ResourceAllocation.allocation_end_date >= today())
         .groupby(ResourceAllocation.project)
         .run(as_dict=True)
     )
@@ -98,6 +106,67 @@ def get_profit_margin(total_budget: float, cost_accrued: float, cost_forecasted:
     if total_budget <= 0:
         return 0
     return ((total_budget - (cost_accrued + cost_forecasted)) / total_budget) * 100
+
+
+def parse_order_by(order_by: str) -> tuple[str, str]:
+    """Return (field, direction) from the first clause of an order_by string."""
+    first_clause = (order_by or "").split(",")[0].strip()
+    parts = first_clause.split()
+    field = parts[0].strip("`") if parts else ""
+    direction = parts[1].lower() if len(parts) > 1 else "desc"
+    if direction not in ("asc", "desc"):
+        direction = "desc"
+    return field, direction
+
+
+def get_computed_sort_value(sort_field: str, project: dict, cost_forecasted_map: dict[str, float]) -> float | None:
+    total_budget = get_total_budget(project)
+    if sort_field == "burn_rate_per_week":
+        return get_burn_rate_per_week(project)
+    if sort_field == "cost_burn_percent":
+        # Mirrors the frontend cost-burn cell: cost_accrued / total_budget * 100
+        if total_budget <= 0:
+            return 0
+        return (flt(project.get("total_costing_amount")) / total_budget) * 100
+    if sort_field == "total_budget":
+        return total_budget
+    return get_profit_margin(
+        total_budget,
+        flt(project.get("total_costing_amount")),
+        cost_forecasted_map.get(project.get("name"), 0),
+    )
+
+
+def get_page_names_for_computed_sort(
+    sort_field: str,
+    sort_direction: str,
+    project_filters: list,
+    or_filters: dict | None,
+    start: int,
+    limit: int,
+) -> tuple[list[str], int]:
+    """
+    Sort-key pagination for computed fields: fetch only the component columns for
+    every matching project, compute the sort value in Python (same helpers used for
+    display), sort with nulls last, and return the page's names plus the total count.
+    """
+    rows = get_list(
+        "Project",
+        fields=SORT_KEY_FIELDS,
+        filters=project_filters,
+        or_filters=or_filters,
+        limit_page_length=0,
+        order_by="modified desc",
+    )
+
+    cost_forecasted_map = get_cost_forecasted_map([row.name for row in rows]) if sort_field == "profit_margin" else {}
+
+    valued = [(get_computed_sort_value(sort_field, row, cost_forecasted_map), row.name) for row in rows]
+    ranked = [entry for entry in valued if entry[0] is not None]
+    ranked.sort(key=lambda entry: entry[0], reverse=sort_direction == "desc")
+
+    ordered_names = [name for _, name in ranked] + [name for value, name in valued if value is None]
+    return ordered_names[start : start + limit], len(ordered_names)
 
 
 def get_end_date(project: dict) -> str | None:
@@ -244,23 +313,48 @@ def get_projects_view(
     # Select fields based on view
     fields = LIST_VIEW_FIELDS if view == "list" else KANBAN_VIEW_FIELDS
 
-    # Fetch projects
-    projects = get_list(
-        "Project",
-        fields=fields,
-        filters=project_filters,
-        or_filters=or_filters if or_filters else None,
-        limit_start=cint(start),
-        limit_page_length=cint(limit),
-        order_by=order_by,
-    )
+    sort_field, sort_direction = parse_order_by(order_by)
+    use_computed_sort = view == "list" and sort_field in COMPUTED_SORT_FIELDS
+    if sort_field in COMPUTED_SORT_FIELDS and not use_computed_sort:
+        order_by = "modified desc"
 
-    # Get total count
-    total_count = get_count(
-        "Project",
-        filters=project_filters,
-        or_filters=or_filters if or_filters else None,
-    )
+    if use_computed_sort:
+        page_names, total_count = get_page_names_for_computed_sort(
+            sort_field,
+            sort_direction,
+            project_filters,
+            or_filters if or_filters else None,
+            cint(start),
+            cint(limit),
+        )
+        projects = []
+        if page_names:
+            projects = get_list(
+                "Project",
+                fields=fields,
+                filters=[["name", "in", page_names]],
+                limit_page_length=0,
+            )
+            rank = {name: index for index, name in enumerate(page_names)}
+            projects.sort(key=lambda p: rank[p.name])
+    else:
+        # Fetch projects
+        projects = get_list(
+            "Project",
+            fields=fields,
+            filters=project_filters,
+            or_filters=or_filters if or_filters else None,
+            limit_start=cint(start),
+            limit_page_length=cint(limit),
+            order_by=order_by,
+        )
+
+        # Get total count
+        total_count = get_count(
+            "Project",
+            filters=project_filters,
+            or_filters=or_filters if or_filters else None,
+        )
 
     has_more = cint(start) + cint(limit) < total_count
 
@@ -724,7 +818,7 @@ def _get_project_tracking(project: str):
     task_counts = _get_task_counts(project)
     actual_cost_incurred = flt(p.total_costing_amount)
     total_forecasted_cost = get_cost_forecasted(project)
-    forecasted_cost_to_completion = max(0, total_forecasted_cost - actual_cost_incurred)
+    forecasted_cost_to_completion = max(0, total_forecasted_cost)
 
     contracts = None
     if has_hours_pool:

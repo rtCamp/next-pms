@@ -90,11 +90,10 @@ export function ProjectListSubHeader() {
             fields={[
               { field: "project_name", label: "Project name" },
               { field: "custom_project_phase", label: "Phase" },
-              { field: "total_billable_amount", label: "Total budget" },
-              {
-                field: "custom_percentage_estimated_profit",
-                label: "Profit margin",
-              },
+              { field: "burn_rate_per_week", label: "Burn rate/week" },
+              { field: "cost_burn_percent", label: "Cost burn" },
+              { field: "total_budget", label: "Total budget" },
+              { field: "profit_margin", label: "Profit margin" },
               { field: "expected_start_date", label: "Expected Start Date" },
               { field: "custom_next_milestone", label: "Next milestone" },
               { field: "expected_end_date", label: "Expected End Date" },
