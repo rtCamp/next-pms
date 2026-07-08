@@ -3,9 +3,9 @@ from erpnext import get_default_company
 from frappe.tests import IntegrationTestCase
 
 from next_pms.tests.utils import make_employee
-from next_pms.timesheet.api.team import _approve_or_reject_timesheet
+from next_pms.timesheet.api.team import _approve_or_reject_timesheet, get_team_timesheet_data
+from next_pms.timesheet.api.timesheet import get_timesheet_data, submit_for_approval
 from next_pms.timesheet.api.timesheet import save as save_timesheet
-from next_pms.timesheet.api.timesheet import submit_for_approval
 
 MANAGER_USER = "rejection-reason-test-manager@example.com"
 EMPLOYEE_USER = "rejection-reason-test-employee@example.com"
@@ -131,6 +131,52 @@ class TestTimesheetRejectionReason(IntegrationTestCase):
             fields=["name", "start_date", "employee"],
         )
         _approve_or_reject_timesheet(timesheets=drafts, status=status, employee=self.employee, dates=dates, note=note)
+
+    def collect_entries_by_parent(self, timesheet_details):
+        """Both endpoints nest time entries the same way:
+            timesheet_details[week]["tasks"][task]["data"] = [ {entry}, {entry}, ... ]
+        Each entry's "parent" is its Timesheet name. Here every day is its own
+        Timesheet, so flattening by parent gives one entry per day."""
+        entries_by_parent = {}
+        for week in timesheet_details.values():
+            for task in week["tasks"].values():
+                for entry in task["data"]:
+                    entries_by_parent[entry["parent"]] = entry
+        return entries_by_parent
+
+    def assert_entries_carry_fields(self, entries_by_parent, by_date):
+        # A rejected timesheet surfaces its rejection reason on every time entry.
+        tuesday = entries_by_parent[by_date[TUE].name]
+        self.assertEqual(tuesday["custom_approval_status"], "Rejected")
+        self.assertEqual(tuesday["custom_rejection_reason"], TUE_REASON)
+
+        # An approved timesheet has no rejection reason.
+        wednesday = entries_by_parent[by_date[WED].name]
+        self.assertEqual(wednesday["custom_approval_status"], "Approved")
+        self.assertIsNone(wednesday["custom_rejection_reason"])
+
+        # A pending timesheet was never rejected, so it has no reason either.
+        for date in (MON, THU, FRI):
+            entry = entries_by_parent[by_date[date].name]
+            self.assertEqual(entry["custom_approval_status"], "Approval Pending")
+            self.assertIsNone(entry["custom_rejection_reason"])
+
+    def test_endpoints_expose_parent_approval_fields(self):
+        # Reject Tuesday (with a reason) and approve Wednesday; the rest stay pending.
+        self.decide_timesheets("Rejected", [TUE], note=TUE_REASON)
+        self.decide_timesheets("Approved", [WED])
+        # by_date maps each date -> its Timesheet row, so by_date[TUE].name is the
+        # parent name we look each entry up by.
+        by_date = self.get_timesheets_by_date()
+
+        # get_timesheet_data returns data[week]["tasks"][task]["data"][...]
+        personal = get_timesheet_data(employee=self.employee, start_date=MON, max_week=1)
+        self.assert_entries_carry_fields(self.collect_entries_by_parent(personal["data"]), by_date)
+
+        # get_team_timesheet_data nests one level deeper, under data[employee]["timesheet_details"].
+        team = get_team_timesheet_data(date=FRI, max_week=1, reports_to=self.manager)
+        team_details = team["data"][self.employee]["timesheet_details"]
+        self.assert_entries_carry_fields(self.collect_entries_by_parent(team_details), by_date)
 
     def test_reject_resubmit_approve_lifecycle(self):
         # Step 1 (done in setUp): all 5 days pending, no rejection reason yet.
