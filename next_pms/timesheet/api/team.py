@@ -35,6 +35,7 @@ from .utils import (
     paginate_qualifying_employee_payloads,
     paginate_unfiltered_employee_payloads,
     parse_filters,
+    sanitize_employee_conditions,
 )
 
 
@@ -212,7 +213,10 @@ def _get_team_timesheet_data(
     # Employee-level filters (status / business unit drop-downs in frontend) are
     # passed through with their operators intact so the global employee filter
     # narrows the pool with the same semantics the caller asked for (like, in, ...).
-    employee_conditions = parsed_filters.get("Employee", [])
+    # Sanitized (and written back) before has_filters so a condition dropped for a
+    # missing meta field cannot flip the request into the filtered path.
+    employee_conditions = sanitize_employee_conditions(parsed_filters.get("Employee"))
+    parsed_filters["Employee"] = employee_conditions
 
     has_filters = bool(search or status_filter or any(parsed_filters.values()))
     dates, _ = build_aggregate_dates(date=date, max_week=max_week, has_filters=has_filters)
