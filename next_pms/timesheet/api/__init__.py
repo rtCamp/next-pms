@@ -70,13 +70,7 @@ def filter_employees(
         status (list | str | None): JSON-encoded list of statuses (e.g. ["Active"]).
             Defaults to None (no status filter unless set by caller).
         ids (list[str] | None): Explicit list of employee IDs to restrict results to.
-            Takes priority alongside other filters (ANDed). Defaults to None.
-            Note: `ids`, `project`, `user_group`, and `roles` are unioned together
-            (an employee matching any one of them is included) — if one of these
-            is provided but resolves to zero employees (e.g. a project with no
-            assigned team members), the result is still restricted to that empty
-            set rather than falling back to "no restriction" (see
-            `has_membership_filter` below).
+            Defaults to None.
         reports_to (list | str | None): Employee ID or JSON-encoded list of IDs; restricts
             to direct reports of any of the given managers. Defaults to None.
         business_unit (list | str | None): JSON-encoded list of business unit values
@@ -135,7 +129,7 @@ def filter_employees(
     # no assigned team members) still restricts the query to that empty set,
     # instead of silently skipping the "name in employee_ids" filter below and
     # returning every employee.
-    has_membership_filter = bool(ids)
+    has_membership_filter = ids is not None
     filters = {"status": ["in", ["Active"]]}
     or_filters = {}
 
