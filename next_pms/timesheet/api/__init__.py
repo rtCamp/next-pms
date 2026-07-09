@@ -71,6 +71,12 @@ def filter_employees(
             Defaults to None (no status filter unless set by caller).
         ids (list[str] | None): Explicit list of employee IDs to restrict results to.
             Takes priority alongside other filters (ANDed). Defaults to None.
+            Note: `ids`, `project`, `user_group`, and `roles` are unioned together
+            (an employee matching any one of them is included) — if one of these
+            is provided but resolves to zero employees (e.g. a project with no
+            assigned team members), the result is still restricted to that empty
+            set rather than falling back to "no restriction" (see
+            `has_membership_filter` below).
         reports_to (list | str | None): Employee ID or JSON-encoded list of IDs; restricts
             to direct reports of any of the given managers. Defaults to None.
         business_unit (list | str | None): JSON-encoded list of business unit values
@@ -124,6 +130,12 @@ def filter_employees(
     if extra_fields:
         fields.extend(extra_fields)
     employee_ids = []
+    # Set whenever ids/project/user_group/roles is actually provided, so a
+    # filter that legitimately resolves to zero employees (e.g. a project with
+    # no assigned team members) still restricts the query to that empty set,
+    # instead of silently skipping the "name in employee_ids" filter below and
+    # returning every employee.
+    has_membership_filter = bool(ids)
     filters = {"status": ["in", ["Active"]]}
     or_filters = {}
 
@@ -180,6 +192,7 @@ def filter_employees(
         employee_ids.extend(ids)
 
     if project and len(project) > 0:
+        has_membership_filter = True
         project_employee = get_all(
             "DocShare",
             filters={"share_doctype": "Project", "share_name": ["IN", project]},
@@ -189,6 +202,7 @@ def filter_employees(
         employee_ids.extend(ids)
 
     if user_group and len(user_group) > 0:
+        has_membership_filter = True
         users = get_all("User Group Member", pluck="user", filters={"parent": ["in", user_group]})
         ids = [get_value("Employee", {"user_id": user}, cache=True) for user in users]
         employee_ids.extend(ids)
@@ -197,6 +211,7 @@ def filter_employees(
         roles = json.loads(roles)
 
     if roles and len(roles) > 0:
+        has_membership_filter = True
         user_ids = get_all(
             "Has Role",
             filters={"role": ["in", roles], "parenttype": "User", "parent": ["!=", "Administrator"]},
@@ -205,7 +220,7 @@ def filter_employees(
         ids = get_all("Employee", filters={"user_id": ["in", user_ids]}, pluck="name")
         employee_ids.extend(ids)
 
-    if len(employee_ids) > 0:
+    if has_membership_filter:
         filters["name"] = ["in", employee_ids]
 
     if ignore_default_filters:
