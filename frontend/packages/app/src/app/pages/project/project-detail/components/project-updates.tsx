@@ -581,6 +581,7 @@ const ProjectUpdates = ({ projectId, className }: ProjectUpdatesProps) => {
                     enableMentions={true}
                     onFetchUsers={handleFetchUsers}
                     mentionClassName="bg-blue-50 text-xs dark:bg-blue-900 text-blue-600 dark:text-blue-400 px-2 py-0.5 rounded-md font-semibold border border-blue-500 whitespace-nowrap inline-block hover:bg-blue-100 dark:hover:bg-blue-900"
+                    hideToolbar={false}
                   />
                 </div>
               </div>

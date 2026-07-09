@@ -19,6 +19,7 @@ export interface CommentItemProps {
   onEditModeChange?: (commentId: string, isEditing: boolean) => void;
   className?: string;
   mentionClassName?: string;
+  hideToolbar?: boolean;
 }
 
 export interface CommentsListProps {
@@ -31,6 +32,7 @@ export interface CommentsListProps {
   className?: string;
   maxHeight?: string;
   mentionClassName?: string;
+  hideToolbar?: boolean;
 }
 
 export interface CommentFormProps {
@@ -38,4 +40,5 @@ export interface CommentFormProps {
   isSubmitting?: boolean;
   placeholder?: string;
   className?: string;
+  hideToolbar?: boolean;
 }

@@ -37,6 +37,7 @@ const CommentItem = React.forwardRef<HTMLDivElement, CommentItemExtendedProps>(
       mentionClassName,
       enableMentions = false,
       activeCommentName,
+      hideToolbar = true,
       ...props
     },
     ref
@@ -168,7 +169,7 @@ const CommentItem = React.forwardRef<HTMLDivElement, CommentItemExtendedProps>(
                     value={editContent}
                     onChange={setEditContent}
                     placeholder="Edit your comment..."
-                    hideToolbar={true}
+                    hideToolbar={hideToolbar}
                     enableMentions={enableMentions}
                     onFetchUsers={onFetchUsers}
                     mentionClassName={mentionClassName}
@@ -191,8 +192,14 @@ const CommentItem = React.forwardRef<HTMLDivElement, CommentItemExtendedProps>(
                 </div>
               </div>
             ) : (
-              <div className="leading-relaxed prose prose-sm max-w-none [&_p]:my-2 [&_p:first-child]:mt-0 [&_p:last-child]:mb-0">
-                <div dangerouslySetInnerHTML={{ __html: comment.content }} />
+              <div className="prose prose-sm max-w-none">
+                <TextEditor
+                  value={comment.content}
+                  onChange={() => {}}
+                  hideToolbar={true}
+                  readOnly={true}
+                  className="border-0 [&_.ql-editor]:cursor-default [&_.ql-editor]:bg-transparent [&_.ql-editor]:px-0 [&_.ql-editor]:pointer-events-none"
+                />
               </div>
             )}
           </div>

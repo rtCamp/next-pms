@@ -30,6 +30,7 @@ const CommentFormSimple = React.forwardRef<HTMLFormElement, CommentFormSimplePro
       onFetchUsers,
       enableMentions = false,
       mentionClassName,
+      hideToolbar = true,
       ...props
     },
     ref
@@ -82,7 +83,7 @@ const CommentFormSimple = React.forwardRef<HTMLFormElement, CommentFormSimplePro
             value={content}
             onChange={setContent}
             placeholder={placeholder}
-            hideToolbar={true}
+            hideToolbar={hideToolbar}
             enableMentions={enableMentions}
             onFetchUsers={onFetchUsers}
             mentionClassName={mentionClassName}
