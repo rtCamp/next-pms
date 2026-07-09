@@ -37,6 +37,7 @@ import { OverAllocationWarning } from "./overAllocationWarning";
 import { addAllocationFormSchema } from "./schema";
 import type { AddAllocationModalProps } from "./types";
 import { useOverAllocation } from "./useOverAllocation";
+import { useProjectTeamMemberIds } from "./useProjectTeamMemberIds";
 import { computeTotalHours } from "./utils";
 
 function AddAllocationModal({
@@ -235,6 +236,17 @@ function AddAllocationModal({
       selectedOption: selectedCustomerOption,
     });
 
+  const { memberIds: projectTeamMemberIds, isLoading: isProjectTeamLoading } =
+    useProjectTeamMemberIds({
+      projectId,
+      enabled: open,
+    });
+
+  const projectHasNoAssignedMembers =
+    Boolean(projectId) &&
+    !isProjectTeamLoading &&
+    projectTeamMemberIds.size === 0;
+
   const closeModal = useCallback(() => {
     onOpenChange(false);
     form.reset(mergedDefaultValues);
@@ -291,7 +303,7 @@ function AddAllocationModal({
   }, [open]);
 
   useEffect(() => {
-    if (isEmployeeLookupLoading || employeeSearch) {
+    if (isProjectTeamLoading) {
       return;
     }
 
@@ -300,21 +312,12 @@ function AddAllocationModal({
     }
     lastValidatedProjectIdRef.current = projectId;
 
-    const isEmployeeInProjectTeam = employeeOptions.some(
-      (option) => option.value === employeeId,
-    );
+    const isEmployeeInProjectTeam = projectTeamMemberIds.has(employeeId);
 
     if (projectId && employeeId && !isEmployeeInProjectTeam) {
       form.setFieldValue("employeeId", "");
     }
-  }, [
-    projectId,
-    employeeId,
-    employeeSearch,
-    employeeOptions,
-    isEmployeeLookupLoading,
-    form,
-  ]);
+  }, [projectId, employeeId, projectTeamMemberIds, isProjectTeamLoading, form]);
 
   const totalHours = computeTotalHours({
     hoursPerDay,
@@ -354,7 +357,7 @@ function AddAllocationModal({
           </label>
           <Combobox
             inputClassName="bg-surface-white h-8 border-outline-gray-2 text-ink-gray-7"
-            loading={isEmployeeLookupLoading}
+            loading={isEmployeeLookupLoading || isProjectTeamLoading}
             options={employeeOptions}
             searchValue={employeeSearch}
             placeholder="Select Employee"
@@ -362,6 +365,11 @@ function AddAllocationModal({
             disabled={isLockedAllocationMetadataEdit}
             onChange={(value) => field.handleChange(value as string)}
             onSearchChange={setEmployeeSearch}
+            emptyMessage={
+              projectHasNoAssignedMembers
+                ? "This project doesn't have any assigned team members"
+                : undefined
+            }
             openOnFocus
           />
           {!field.state.meta.isValid && (
