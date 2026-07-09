@@ -657,16 +657,22 @@ function AddAllocationModal({
                   <label className="block text-base text-ink-gray-5">
                     Repeat for
                   </label>
-                  <TextInput
-                    type="number"
-                    size="md"
-                    variant="outline"
-                    disabled={variant === "edit"}
-                    value={field.state.value ?? ""}
-                    onChange={(e) =>
-                      field.handleChange(Math.max(1, Number(e.target.value)))
-                    }
-                  />
+                  <div className="relative">
+                    <TextInput
+                      type="number"
+                      size="md"
+                      variant="outline"
+                      disabled={variant === "edit"}
+                      value={field.state.value ?? ""}
+                      onChange={(e) =>
+                        field.handleChange(Math.max(1, Number(e.target.value)))
+                      }
+                      inputClassName="pr-13"
+                    />
+                    <span className="absolute right-2 top-1/2 -translate-y-1/2 text-ink-gray-5 text-sm">
+                      {field.state.value === 1 ? "week" : "weeks"}
+                    </span>
+                  </div>
                   {!field.state.meta.isValid && (
                     <ErrorMessage
                       message={field.state.meta.errors[0]?.message}
