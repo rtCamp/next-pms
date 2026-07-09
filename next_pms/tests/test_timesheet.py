@@ -51,7 +51,7 @@ class TestTimesheet(TestNextPms):
         )
         self.assertEqual(response.status_code, 200)
         res = response.json.get("message")
-        self.assertTrue(res.get("working_hour"), 8)
+        self.assertEqual(res.get("working_hour"), 8)
 
     def test_c_timesheet_update(self):
         """Test timesheet update"""

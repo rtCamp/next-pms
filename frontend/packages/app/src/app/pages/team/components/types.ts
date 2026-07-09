@@ -11,7 +11,7 @@ export interface ApprovalProp {
   employee: string;
   startDate: string;
   endDate: string;
-  isAprrovalDialogOpen: boolean;
+  isApprovalDialogOpen: boolean;
 }
 
 export interface EmployeeTimesheerTableProps {

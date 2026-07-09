@@ -94,7 +94,7 @@ const EmployeeTimesheetList = ({
       startDate: startDate,
       endDate: endDate,
     };
-    dispatch({ type: "SET_DATE_RANGE", payload: { dateRange: data, isAprrovalDialogOpen: true } });
+    dispatch({ type: "SET_DATE_RANGE", payload: { dateRange: data, isApprovalDialogOpen: true } });
   };
 
   const dailyWorkingHour = expectatedHours(
@@ -119,7 +119,7 @@ const EmployeeTimesheetList = ({
           );
 
           return (
-            <Accordion type="multiple" key={key} defaultValue={Object.keys(teamState.timesheetData.data)}>
+            <Accordion type="multiple" key={key} defaultValue={[key]}>
               <AccordionItem value={key}>
                 <AccordionTrigger className="hover:no-underline w-full max-md:[&>svg]:hidden">
                   <div className="flex justify-between w-full pr-2 group">

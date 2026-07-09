@@ -58,7 +58,7 @@ export interface TimesheetState {
   isDialogOpen: boolean;
   isImportFromGoogleCalendarDialogOpen: boolean;
   isEditDialogOpen: boolean;
-  isAprrovalDialogOpen: boolean;
+  isApprovalDialogOpen: boolean;
   isLeaveDialogOpen: boolean;
   weekDate: string;
 }

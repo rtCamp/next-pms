@@ -28,7 +28,7 @@ export const initialState: HomeState = {
   pageLength: 20,
   isDialogOpen: false,
   isNeedToFetchDataAfterUpdate: false,
-  isAprrovalDialogOpen: false,
+  isApprovalDialogOpen: false,
   employeeName: "",
   weekDate: getTodayDate(),
   start: 0,

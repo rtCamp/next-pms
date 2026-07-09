@@ -142,7 +142,7 @@ export const EmployeeTimesheetListItem = ({
                 </Button>
               </div>
             </div>
-            <p
+            <div
               className="text-sm font-normal max-md:text-wrap  col-span-2  my-1 p-0 hover-content"
               onClick={(e) => e.stopPropagation()}
             >
@@ -152,7 +152,7 @@ export const EmployeeTimesheetListItem = ({
                 readOnly={true}
                 value={preProcessLink(task.description ?? "")}
               />
-            </p>
+            </div>
           </div>
         );
       })}

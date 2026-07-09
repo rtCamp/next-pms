@@ -31,6 +31,7 @@ export interface CommentsProps {
   enableMentions?: boolean;
   mentionClassName?: string;
   activeCommentName?: string;
+  hideToolbar?: boolean;
 }
 
 const Comments = React.forwardRef<HTMLDivElement, CommentsProps>(
@@ -52,6 +53,7 @@ const Comments = React.forwardRef<HTMLDivElement, CommentsProps>(
       enableMentions = false,
       mentionClassName,
       activeCommentName,
+      hideToolbar = true,
       ...props
     },
     ref
@@ -76,6 +78,7 @@ const Comments = React.forwardRef<HTMLDivElement, CommentsProps>(
               onFetchUsers={onFetchUsers}
               enableMentions={enableMentions}
               mentionClassName={mentionClassName}
+              hideToolbar={hideToolbar}
             />
             <Separator />
           </>
@@ -92,6 +95,7 @@ const Comments = React.forwardRef<HTMLDivElement, CommentsProps>(
           onFetchUsers={onFetchUsers}
           enableMentions={enableMentions}
           mentionClassName={mentionClassName}
+          hideToolbar={hideToolbar}
         />
       </div>
     );

@@ -36,7 +36,7 @@ export const initialState: TeamState = {
     has_more: false,
   },
   isDialogOpen: false,
-  isAprrovalDialogOpen: false,
+  isApprovalDialogOpen: false,
   weekDate: getFormatedDate(addDays(getTodayDate(), -7)),
   employeeWeekDate: getFormatedDate(getTodayDate()),
   project: [],
@@ -162,16 +162,16 @@ const actionHandlers = {
     state: TeamState,
     payload: {
       dateRange: DateRange;
-      isAprrovalDialogOpen: boolean;
+      isApprovalDialogOpen: boolean;
     }
   ) => ({
     ...state,
     dateRange: payload.dateRange,
-    isAprrovalDialogOpen: payload.isAprrovalDialogOpen,
+    isApprovalDialogOpen: payload.isApprovalDialogOpen,
   }),
   SET_APPROVAL_DIALOG: (state: TeamState, payload: boolean) => ({
     ...state,
-    isAprrovalDialogOpen: payload,
+    isApprovalDialogOpen: payload,
   }),
   SET_EDIT_DIALOG: (state: TeamState, payload: boolean) => ({
     ...state,

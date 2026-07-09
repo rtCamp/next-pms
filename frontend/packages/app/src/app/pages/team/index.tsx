@@ -134,7 +134,7 @@ const TeamComponent = ({ viewData }: TeamComponentProps) => {
       endDate,
     };
     dispatch({ type: "SET_EMPLOYEE", payload: employee });
-    dispatch({ type: "SET_DATE_RANGE", payload: { dateRange: data, isAprrovalDialogOpen: true } });
+    dispatch({ type: "SET_DATE_RANGE", payload: { dateRange: data, isApprovalDialogOpen: true } });
   };
 
   const cellRef = useInfiniteScroll({
@@ -145,17 +145,17 @@ const TeamComponent = ({ viewData }: TeamComponentProps) => {
 
   return (
     <>
-      {teamState.isAprrovalDialogOpen && (
+      {teamState.isApprovalDialogOpen && (
         <Approval
           employee={teamState.employee}
-          isAprrovalDialogOpen={teamState.isAprrovalDialogOpen}
+          isApprovalDialogOpen={teamState.isApprovalDialogOpen}
           endDate={teamState.dateRange.endDate}
           startDate={teamState.dateRange.startDate}
           onClose={() => {
             mutate();
             dispatch({
               type: "SET_DATE_RANGE",
-              payload: { dateRange: { startDate: "", endDate: "" }, isAprrovalDialogOpen: false },
+              payload: { dateRange: { startDate: "", endDate: "" }, isApprovalDialogOpen: false },
             });
           }}
         />

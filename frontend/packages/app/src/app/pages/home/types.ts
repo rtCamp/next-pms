@@ -45,7 +45,7 @@ export type HomeState = {
   data: dataProps;
   action: "SET" | "UPDATE";
   isDialogOpen: boolean;
-  isAprrovalDialogOpen: boolean;
+  isApprovalDialogOpen: boolean;
   employeeName: string;
   status: Array<string>;
   weekDate: string;

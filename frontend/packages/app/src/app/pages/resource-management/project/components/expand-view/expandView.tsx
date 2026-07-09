@@ -39,7 +39,7 @@ export const ResourceExpandView = ({
   const dates = projectData.dates;
 
   const { data } = useFrappeGetCall(
-    "next_pms.resource_management.api.project.get_employees_resrouce_data_for_given_project",
+    "next_pms.resource_management.api.project.get_employees_resource_data_for_given_project",
     {
       project: project,
       start_date: start_date,

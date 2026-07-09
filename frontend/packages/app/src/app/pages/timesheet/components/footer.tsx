@@ -46,7 +46,7 @@ export const Footer = ({ timesheet, user, dispatch, callback }: FooterProps) => 
           user={user}
         />
       )}
-      {timesheet.isAprrovalDialogOpen && <Approval user={user} dispatch={dispatch} timesheetState={timesheet} />}
+      {timesheet.isApprovalDialogOpen && <Approval user={user} dispatch={dispatch} timesheetState={timesheet} />}
       {timesheet.isLeaveDialogOpen && (
         <AddLeave
           employee={user.employee}

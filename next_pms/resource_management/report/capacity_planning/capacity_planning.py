@@ -7,7 +7,6 @@ import frappe
 from erpnext.setup.utils import get_exchange_rate
 from frappe import _, get_list, get_meta, get_value
 from frappe.utils import add_days, getdate
-from hrms.hr.utils import get_holidays_for_employee
 
 from next_pms.resource_management.api.utils.helpers import is_on_leave
 from next_pms.resource_management.api.utils.query import (
@@ -19,7 +18,6 @@ from next_pms.resource_management.report.utils import (
     calculate_employee_hours,
     get_employee_allocations_for_date,
 )
-from next_pms.utils.employee import get_employee_salary
 
 CURRENCY = "USD"
 
@@ -190,20 +188,28 @@ def batch_fetch_billing_rates(all_projects, employee_names):
     return billing_rates
 
 
-def batch_fetch_exchange_rates(project_data):
+def batch_fetch_exchange_rates(project_data, emp_work_map):
     """Pre-fetch exchange rates for all currencies.
 
     Args:
         project_data (dict): Dictionary of project data
+        emp_work_map (dict): Dictionary of employee work data
 
     Returns:
         dict: Dictionary mapping currency to exchange rate
     """
-    currencies = set(
+    project_currencies = set(
         p.custom_currency for p in project_data.values() if p.custom_currency and p.custom_currency != CURRENCY
     )
+    salary_currencies = set(
+        emp.get("salary_currency")
+        for emp in emp_work_map.values()
+        if emp.get("salary_currency") and emp.get("salary_currency") != CURRENCY
+    )
+    all_currencies = project_currencies.union(salary_currencies)
+
     exchange_rates = {}
-    for currency in currencies:
+    for currency in all_currencies:
         exchange_rates[currency] = get_exchange_rate(currency, CURRENCY)
     return exchange_rates
 
@@ -223,12 +229,39 @@ def batch_fetch_employee_work_data(employee_names):
     emp_data = frappe.get_all(
         "Employee",
         filters={"name": ["in", employee_names]},
-        fields=["name", "custom_working_hours", "custom_work_schedule"],
+        fields=["name", "custom_working_hours", "custom_work_schedule", "ctc", "salary_currency"],
     )
     emp_work_map = {}
     for e in emp_data:
         emp_work_map[e.name] = e
     return emp_work_map
+
+
+def batch_fetch_employee_salaries(employee_names, emp_work_map, exchange_rates):
+    """Calculate hourly salaries for all employees using pre-fetched data."""
+    salaries = {}
+    for employee_name in employee_names:
+        emp_work = emp_work_map.get(employee_name, {})
+        ctc = emp_work.get("ctc") or 0
+        salary_currency = emp_work.get("salary_currency") or CURRENCY
+
+        # Apply exchange rate
+        if salary_currency != CURRENCY:
+            exchange_rate = exchange_rates.get(salary_currency, 1)
+            ctc = ctc * exchange_rate
+
+        # Get monthly working hours
+        working_frequency = emp_work.get("custom_work_schedule") or "Per Day"
+        working_hours = emp_work.get("custom_working_hours") or 8
+        if working_frequency != "Per Day":
+            monthly_working_hours = working_hours * 4
+        else:
+            monthly_working_hours = 160
+
+        monthly_salary = ctc / 12
+        hourly_salary = monthly_salary / (monthly_working_hours or 160)
+        salaries[employee_name] = hourly_salary
+    return salaries
 
 
 def batch_get_leaves_and_holidays(employee_names, start_date, end_date):
@@ -245,11 +278,73 @@ def batch_get_leaves_and_holidays(employee_names, start_date, end_date):
     if not employee_names:
         return {}
 
+    # Get holiday lists for all employees, falling back to company's holiday list if empty
+    employees_info = frappe.get_all(
+        "Employee",
+        filters={"name": ["in", employee_names]},
+        fields=["name", "holiday_list", "company"],
+    )
+
+    # Get default holiday lists for the companies of these employees to use as fallback
+    companies = set(emp.company for emp in employees_info if emp.company)
+    company_holiday_lists = {}
+    if companies:
+        company_data = frappe.get_all(
+            "Company",
+            filters={"name": ["in", list(companies)]},
+            fields=["name", "default_holiday_list"],
+        )
+        company_holiday_lists = {c.name: c.default_holiday_list for c in company_data}
+
+    # Map each employee to their resolved holiday list
+    emp_holiday_list_map = {}
+    holiday_lists_to_fetch = set()
+    for emp in employees_info:
+        hl = emp.holiday_list or company_holiday_lists.get(emp.company)
+        if hl:
+            emp_holiday_list_map[emp.name] = hl
+            holiday_lists_to_fetch.add(hl)
+
+    # Fetch holidays for all identified holiday lists in one query
+    holidays_by_list = {}
+    if holiday_lists_to_fetch:
+        holidays_data = frappe.get_all(
+            "Holiday",
+            filters={
+                "parent": ["in", list(holiday_lists_to_fetch)],
+                "holiday_date": ["between", [start_date, end_date]],
+            },
+            fields=["parent", "holiday_date", "name"],
+        )
+        for h in holidays_data:
+            holidays_by_list.setdefault(h.parent, []).append(h)
+
+    # Fetch all leaves in batch query
+    all_leaves = get_employee_leaves(tuple(employee_names), str(start_date), str(end_date))
+    leaves_by_emp = {}
+    for l in all_leaves:
+        leaves_by_emp.setdefault(l.get("employee"), []).append(l)
+
+    # Assemble final mapped output
     all_leaves_holidays = {}
-    for employee in employee_names:
-        holidays = get_holidays_for_employee(employee, start_date, end_date)
-        leaves = get_employee_leaves(employee, str(start_date), str(end_date))
-        all_leaves_holidays[employee] = {"holidays": holidays, "leaves": leaves}
+    for emp in employee_names:
+        hl = emp_holiday_list_map.get(emp)
+        emp_holidays = []
+        if hl and hl in holidays_by_list:
+            for h in holidays_by_list[hl]:
+                emp_holidays.append(
+                    frappe._dict(
+                        {
+                            "holiday_date": h.holiday_date,
+                            "holiday_name": h.name,
+                            "holiday_list": h.parent,
+                        }
+                    )
+                )
+        all_leaves_holidays[emp] = {
+            "holidays": emp_holidays,
+            "leaves": leaves_by_emp.get(emp, []),
+        }
 
     return all_leaves_holidays
 
@@ -297,8 +392,9 @@ def calculate_hours_and_revenue(employees, resource_allocations, start_date, end
     employee_names = [e.employee for e in employees]
     project_data = batch_fetch_project_data(all_projects)
     billing_rates = batch_fetch_billing_rates(all_projects, employee_names)
-    exchange_rates = batch_fetch_exchange_rates(project_data)
     emp_work_map = batch_fetch_employee_work_data(employee_names)
+    exchange_rates = batch_fetch_exchange_rates(project_data, emp_work_map)
+    employee_salaries = batch_fetch_employee_salaries(employee_names, emp_work_map, exchange_rates)
     all_leaves_holidays = batch_get_leaves_and_holidays(employee_names, start_date, end_date)
 
     for employee in employees:
@@ -319,7 +415,8 @@ def calculate_hours_and_revenue(employees, resource_allocations, start_date, end
         employee_free_hours = calculate_employee_available_hours(
             daily_hours, start_date, end_date, employee_allocations, holidays, leaves
         )
-        free_hours_revenue = calculate_and_convert_free_hour_revenue(employee.employee, employee_free_hours)
+        hourly_salary = employee_salaries.get(employee.employee, 0)
+        free_hours_revenue = calculate_and_convert_free_hour_revenue(hourly_salary, employee_free_hours)
         employee_billable_hours = calculate_employee_hours(
             daily_hours, start_date, end_date, billable_allocations, holidays, leaves
         )
@@ -476,8 +573,7 @@ def calculate_and_convert_revenue(
     return total_revenue
 
 
-def calculate_and_convert_free_hour_revenue(employee: str, free_hours: float):
-    hourly_salary = get_employee_salary(employee, CURRENCY, throw=False).get("hourly_salary", 0)
+def calculate_and_convert_free_hour_revenue(hourly_salary: float, free_hours: float):
     return (hourly_salary * 3) * free_hours
 
 

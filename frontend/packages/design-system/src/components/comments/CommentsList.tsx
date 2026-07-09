@@ -33,6 +33,7 @@ const CommentsList = React.forwardRef<HTMLDivElement, CommentsListExtendedProps>
       enableMentions = false,
       mentionClassName,
       activeCommentName,
+      hideToolbar = true,
       ...props
     },
     ref
@@ -77,6 +78,7 @@ const CommentsList = React.forwardRef<HTMLDivElement, CommentsListExtendedProps>
               onFetchUsers={onFetchUsers}
               enableMentions={enableMentions}
               mentionClassName={mentionClassName}
+              hideToolbar={hideToolbar}
             />
           ))}
         </div>

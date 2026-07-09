@@ -6,6 +6,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { Route, Outlet, Navigate } from "react-router-dom";
 import { FrappeConfig, FrappeContext } from "frappe-react-sdk";
 import { useContextSelector } from "use-context-selector";
+import { Spinner } from "@next-pms/design-system/components";
 /**
  * Internal dependencies.
  */
@@ -67,6 +68,10 @@ const AuthenticatedRoute = () => {
   const dispatch = useDispatch();
 
   useEffect(() => {
+    if (isLoading || !currentUser || currentUser === "Guest") {
+      return;
+    }
+
     if (user.roles.length < 1) {
       call.get("next_pms.timesheet.api.app.get_data").then((res) => {
         dispatch(setRole(res.message.roles));
@@ -80,10 +85,10 @@ const AuthenticatedRoute = () => {
         dispatch(setViews(res.message));
       });
     }
-  }, [call, dispatch, user.roles.length, views.views.length]);
+  }, [call, dispatch, user.roles.length, views.views.length, isLoading, currentUser]);
 
   if (isLoading) {
-    return <></>;
+    return <Spinner isFull />;
   } else if (!currentUser || currentUser === "Guest") {
     window.location.replace("/login?redirect-to=/next-pms/timesheet");
   }

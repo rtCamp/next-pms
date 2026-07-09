@@ -39,7 +39,7 @@ export interface TeamState {
   employeeName?: string;
   isDialogOpen: boolean;
   isEditDialogOpen: boolean;
-  isAprrovalDialogOpen: boolean;
+  isApprovalDialogOpen: boolean;
   weekDate: string;
   employeeWeekDate: string;
   project: Array<string>;
@@ -87,7 +87,7 @@ export type Action =
   | { type: "SET_HAS_MORE"; payload: boolean }
   | {
       type: "SET_DATE_RANGE";
-      payload: { dateRange: DateRange; isAprrovalDialogOpen: boolean };
+      payload: { dateRange: DateRange; isApprovalDialogOpen: boolean };
     }
   | { type: "SET_APPROVAL_DIALOG"; payload: boolean }
   | { type: "SET_EDIT_DIALOG"; payload: boolean }
