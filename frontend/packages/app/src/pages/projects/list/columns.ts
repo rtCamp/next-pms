@@ -11,19 +11,29 @@ export const PROJECT_LIST_COLUMNS = [
     width: "160px",
     sortField: "custom_project_phase",
   },
-  { key: "burn_rate_per_week", label: "Burn rate/week", width: "130px" },
-  { key: "cost_burn_percent", label: "Cost burn", width: "140px" },
+  {
+    key: "burn_rate_per_week",
+    label: "Burn rate/week",
+    width: "130px",
+    sortField: "burn_rate_per_week",
+  },
+  {
+    key: "cost_burn_percent",
+    label: "Cost burn",
+    width: "140px",
+    sortField: "cost_burn_percent",
+  },
   {
     key: "total_budget",
     label: "Total budget",
     width: "130px",
-    sortField: "total_billable_amount",
+    sortField: "total_budget",
   },
   {
     key: "profit_margin",
     label: "Profit margin",
     width: "120px",
-    sortField: "custom_percentage_estimated_profit",
+    sortField: "profit_margin",
   },
   {
     key: "start_date",
@@ -67,5 +77,10 @@ export const PROJECT_LIST_COLUMNS = [
     width: "180px",
     sortField: "customer",
   },
-  { key: "contract_end_date", label: "Contract end date", width: "160px" },
+  {
+    key: "contract_end_date",
+    label: "Contract end date",
+    width: "160px",
+    sortField: "contract_end_date",
+  },
 ];

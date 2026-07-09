@@ -23,6 +23,23 @@ class TestResourceAllocationValidation(IntegrationTestCase):
         cls.employee = cls._make_employee("Ravi Kumar")
         cls.customer = cls._make_customer("Globex")
         cls.project = cls._make_project("Active Project", cls.customer)
+        cls.projects_user = cls._make_user("meera.iyer@example.com", roles=["Projects User"])
+
+    @classmethod
+    def _make_user(cls, email, roles=None):
+        if not frappe.db.exists("User", email):
+            frappe.get_doc(
+                {
+                    "doctype": "User",
+                    "email": email,
+                    "first_name": email.split("@")[0],
+                    "user_type": "System User",
+                    "send_welcome_email": 0,
+                }
+            ).insert(ignore_permissions=True)
+        if roles:
+            frappe.get_doc("User", email).add_roles(*roles)
+        return email
 
     @classmethod
     def _make_employee(cls, employee_name):
@@ -211,3 +228,44 @@ class TestResourceAllocationValidation(IntegrationTestCase):
         doc.insert(ignore_permissions=True)
         self.assertGreater(doc.hourly_cost_rate, 0)
         self.assertEqual(doc.total_cost, doc.hourly_cost_rate * doc.total_allocated_hours)
+
+    def test_currency_set_from_project_currency(self):
+        project = self._make_project("USD Project", self.customer)
+        frappe.db.set_value("Project", project, "custom_currency", "USD")
+
+        doc = self._make_allocation_doc(project=project)
+        doc.insert(ignore_permissions=True)
+
+        self.assertEqual(doc.currency, "USD")
+
+    def test_explicit_currency_overridden_by_project_currency(self):
+        # A currency arriving in the payload must not win over the project's
+        # currency (fetch_if_empty used to skip the fetch in that case).
+        project = self._make_project("USD Override Project", self.customer)
+        frappe.db.set_value("Project", project, "custom_currency", "USD")
+
+        doc = self._make_allocation_doc(project=project, currency="INR")
+        doc.insert(ignore_permissions=True)
+
+        self.assertEqual(doc.currency, "USD")
+
+    def test_currency_survives_permlevel_reset_for_projects_user(self):
+        # currency is a permlevel-2 field and Projects User only has permlevel-0
+        # write. On insert, validate_higher_perm_levels resets permlevel-2 fields
+        # AFTER the fetch_from fetch, so the fetched currency was wiped and the
+        # allocation saved with no currency. set_project_currency runs in
+        # validate(), after the reset, so the value must now survive.
+        project = self._make_project("Permlevel Project", self.customer)
+        frappe.db.set_value("Project", project, "custom_currency", "USD")
+
+        frappe.set_user(self.projects_user)
+        doc = self._make_allocation_doc(project=project)
+        doc.insert()
+
+        self.assertEqual(doc.currency, "USD")
+        self.assertEqual(frappe.db.get_value("Resource Allocation", doc.name, "currency"), "USD")
+
+    def test_currency_untouched_without_project(self):
+        doc = self._make_allocation_doc(customer=self.customer, currency="INR")
+        doc.insert(ignore_permissions=True)
+        self.assertEqual(doc.currency, "INR")

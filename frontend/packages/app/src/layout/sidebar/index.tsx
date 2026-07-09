@@ -100,7 +100,7 @@ const Sidebar = () => {
   }
 
   const personalTimesheet = {
-    label: "Personal",
+    label: "Timesheet",
     icon: Time,
     to: ROUTES["timesheet-personal"],
     isActive: pathname === ROUTES["timesheet-personal"],
@@ -134,6 +134,7 @@ const Sidebar = () => {
     roles.includes("Timesheet User") ||
     roles.includes("Projects Manager")
   ) {
+    timesheetItems[0].label = "Personal";
     timesheetItems.push(teamTimesheet);
     timesheetItems.push(projectTimesheet);
   }
