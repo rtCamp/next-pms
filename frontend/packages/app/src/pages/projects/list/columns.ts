@@ -77,5 +77,10 @@ export const PROJECT_LIST_COLUMNS = [
     width: "180px",
     sortField: "customer",
   },
-  { key: "contract_end_date", label: "Contract end date", width: "160px" },
+  {
+    key: "contract_end_date",
+    label: "Contract end date",
+    width: "160px",
+    sortField: "contract_end_date",
+  },
 ];

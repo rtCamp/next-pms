@@ -107,6 +107,7 @@ export function ProjectListSubHeader() {
               },
               { field: "project_type", label: "Project type" },
               { field: "customer", label: "Client name" },
+              { field: "contract_end_date", label: "Contract end date" },
               { label: "Last Updated On", field: "modified" },
             ]}
           />

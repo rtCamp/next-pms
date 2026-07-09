@@ -39,6 +39,7 @@ COMPUTED_SORT_FIELDS = (
     "cost_burn_percent",
     "total_budget",
     "profit_margin",
+    "contract_end_date",
 )
 
 # Minimal Project columns needed to compute the values in COMPUTED_SORT_FIELDS
@@ -51,6 +52,9 @@ SORT_KEY_FIELDS = [
     "total_billable_amount",
     "custom_default_hourly_billing_rate",
     "expected_start_date",
+    "status",
+    "expected_end_date",
+    "actual_end_date",
 ]
 
 # Fields to fetch from Project doctype

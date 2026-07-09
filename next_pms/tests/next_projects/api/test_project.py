@@ -11,8 +11,9 @@ FIXTURE_PREFIX = "CompSort"
 
 class TestGetProjectsViewComputedSort(IntegrationTestCase):
     """get_projects_view sorts by computed fields (burn_rate_per_week,
-    cost_burn_percent, total_budget, profit_margin) via sort-key pagination:
-    correct order across page boundaries, nulls last in both directions.
+    cost_burn_percent, total_budget, profit_margin, contract_end_date) via
+    sort-key pagination: correct order across page boundaries, nulls last
+    in both directions.
 
     Component amounts are written with db.set_value because they are
     read-only/rollup columns on Project.
@@ -35,6 +36,15 @@ class TestGetProjectsViewComputedSort(IntegrationTestCase):
             "C": ("Fixed Cost", 3000, 0, 6000, 100, 2800, 14),
             "D": (None, 0, 0, 100, 0, 0, None),
         }
+        # name -> (status, expected_end_in_days, actual_end_in_days)
+        # contract_end_date = actual_end_date when Completed/Cancelled, else expected_end_date:
+        #   A +10, B +5, C +20 (Completed, actual wins over expected +2), D None
+        end_date_rows = {
+            "A": (None, 10, None),
+            "B": (None, 5, None),
+            "C": ("Completed", 2, 20),
+            "D": (None, None, None),
+        }
         cls.projects = {}
         for suffix, (billing_type, sales, estimated, costing, rate, billable, days_ago) in fixture_rows.items():
             name = (
@@ -48,20 +58,21 @@ class TestGetProjectsViewComputedSort(IntegrationTestCase):
                 .insert(ignore_permissions=True)
                 .name
             )
-            frappe.db.set_value(
-                "Project",
-                name,
-                {
-                    "custom_billing_type": billing_type,
-                    "total_sales_amount": sales,
-                    "estimated_costing": estimated,
-                    "total_costing_amount": costing,
-                    "custom_default_hourly_billing_rate": rate,
-                    "total_billable_amount": billable,
-                    "expected_start_date": add_days(today(), -days_ago) if days_ago else None,
-                },
-                update_modified=False,
-            )
+            status, end_in, actual_end_in = end_date_rows[suffix]
+            values = {
+                "custom_billing_type": billing_type,
+                "total_sales_amount": sales,
+                "estimated_costing": estimated,
+                "total_costing_amount": costing,
+                "custom_default_hourly_billing_rate": rate,
+                "total_billable_amount": billable,
+                "expected_start_date": add_days(today(), -days_ago) if days_ago else None,
+                "expected_end_date": add_days(today(), end_in) if end_in else None,
+                "actual_end_date": add_days(today(), actual_end_in) if actual_end_in else None,
+            }
+            if status:
+                values["status"] = status
+            frappe.db.set_value("Project", name, values, update_modified=False)
             cls.projects[suffix] = name
 
         frappe.set_user("Administrator")
@@ -99,6 +110,10 @@ class TestGetProjectsViewComputedSort(IntegrationTestCase):
         self.assertEqual(asc[:2], ["A", "C"])
         self.assertEqual(set(desc[2:]), {"B", "D"})
         self.assertEqual(set(asc[2:]), {"B", "D"})
+
+    def test_contract_end_date_sort(self):
+        self.assertEqual(self.fixture_order(self.call("contract_end_date desc")), ["C", "A", "B", "D"])
+        self.assertEqual(self.fixture_order(self.call("contract_end_date asc")), ["B", "A", "C", "D"])
 
     def test_pagination_across_page_boundary(self):
         page_one = self.call("cost_burn_percent desc", start=0, limit=2)

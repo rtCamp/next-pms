@@ -2,6 +2,7 @@
 # For license information, please see license.txt
 
 import json
+from datetime import date
 from typing import Literal
 
 import frappe
@@ -119,7 +120,12 @@ def parse_order_by(order_by: str) -> tuple[str, str]:
     return field, direction
 
 
-def get_computed_sort_value(sort_field: str, project: dict, cost_forecasted_map: dict[str, float]) -> float | None:
+def get_computed_sort_value(
+    sort_field: str, project: dict, cost_forecasted_map: dict[str, float]
+) -> float | date | None:
+    if sort_field == "contract_end_date":
+        end_date = get_end_date(project)
+        return getdate(end_date) if end_date else None
     total_budget = get_total_budget(project)
     if sort_field == "burn_rate_per_week":
         return get_burn_rate_per_week(project)
