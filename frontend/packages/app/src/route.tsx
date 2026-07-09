@@ -2,6 +2,7 @@
  * External dependencies.
  */
 import { Route, Outlet, Navigate, useNavigate } from "react-router-dom";
+import { Spinner } from "@next-pms/design-system/components";
 /**
  * Internal dependencies.
  */
@@ -201,7 +202,7 @@ const AuthenticatedRoute = () => {
   }));
 
   if (isUserLoading) {
-    return <></>;
+    return <Spinner isFull />;
   } else if (!currentUser || currentUser === "Guest") {
     window.location.replace("/login?redirect-to=/next-pms/timesheet");
   }
@@ -219,7 +220,7 @@ const RoleProtectedRoute = ({ allowedRoles }: { allowedRoles: Role[] }) => {
   }));
 
   if (isLoading) {
-    return <></>;
+    return <Spinner isFull />;
   }
 
   const hasAccess =
