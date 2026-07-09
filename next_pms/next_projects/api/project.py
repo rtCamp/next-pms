@@ -130,11 +130,13 @@ def get_computed_sort_value(sort_field: str, project: dict, cost_forecasted_map:
         return (flt(project.get("total_costing_amount")) / total_budget) * 100
     if sort_field == "total_budget":
         return total_budget
-    return get_profit_margin(
-        total_budget,
-        flt(project.get("total_costing_amount")),
-        cost_forecasted_map.get(project.get("name"), 0),
-    )
+    if sort_field == "profit_margin":
+        return get_profit_margin(
+            total_budget,
+            flt(project.get("total_costing_amount")),
+            cost_forecasted_map.get(project.get("name"), 0),
+        )
+    return None
 
 
 def get_page_names_for_computed_sort(
