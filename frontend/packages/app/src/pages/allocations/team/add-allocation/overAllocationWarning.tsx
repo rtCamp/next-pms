@@ -36,11 +36,11 @@ export function OverAllocationWarning({
   );
 
   return (
-    <Accordion.Root className="bg-(--color-violet-50) rounded-lg overflow-hidden">
+    <Accordion.Root className="bg-(--color-violet-50) dark:bg-(--color-violet-900)/20 rounded-lg overflow-hidden">
       <Accordion.Item value="details">
         <Accordion.Header render={<div />}>
           <Accordion.Trigger className="w-full flex items-center gap-2 px-2.5 py-2 group">
-            <AlertTriangle className="size-4 shrink-0 text-(--color-violet-700)" />
+            <AlertTriangle className="size-4 shrink-0 text-ink-violet-4 bg-surface-v" />
             <p className="flex-1 min-w-0 text-xs text-ink-gray-8 text-left">
               This allocation causes over-allocation on {dayCount}{" "}
               {dayCount === 1 ? "day" : "days"} (+{formatHours(totalExcess)}{" "}
@@ -50,7 +50,7 @@ export function OverAllocationWarning({
           </Accordion.Trigger>
         </Accordion.Header>
         <Accordion.Panel className="accordion-panel">
-          <div className="flex flex-col gap-1.5 px-2.5 pb-2 pl-8 max-h-24 overflow-y-scroll scrollbar-thin [scrollbar-gutter:stable]">
+          <div className="flex flex-col gap-1.5 px-2.5 pb-2 pl-8 max-h-24 overflow-y-scroll scrollbar-thin scrollbar-gutter-stable">
             {overAllocatedDays.map((day) => (
               <div key={day.date} className="flex items-center gap-2">
                 <span className="text-xs text-ink-gray-7">
@@ -58,7 +58,7 @@ export function OverAllocationWarning({
                 </span>
                 <span
                   className={cn(
-                    "bg-surface-violet-1 text-(--color-violet-700)",
+                    "bg-surface-violet-1 text-ink-violet-4",
                     "text-xs font-medium px-1.5 py-0.5 rounded-md",
                   )}
                 >

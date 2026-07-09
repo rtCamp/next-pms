@@ -169,7 +169,7 @@ export const GanttMemberRows: React.FC<GanttMemberRowsProps> = ({
               key={i}
               colSpan={daysPerWeek}
               className={cn(
-                "overflow-hidden transition-[height] duration-200 ease-in-out",
+                "overflow-hidden transition-[height] duration-200 ease-in-out bg-surface-gray-1/50",
                 { "border-r border-b border-outline-gray-1": childRowsVisible },
               )}
               style={{ height: addProjectRowHeight }}

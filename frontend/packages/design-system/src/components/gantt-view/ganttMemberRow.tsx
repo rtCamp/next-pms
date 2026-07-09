@@ -79,7 +79,7 @@ export const GanttMemberRow: React.FC<GanttMemberRowProps> = ({
           key={`${week}-${index}`}
           colSpan={daysPerWeek}
           className={cn(
-            "overflow-hidden transition-[height] duration-200 ease-in-out",
+            "overflow-hidden transition-[height] duration-200 ease-in-out bg-surface-gray-1/50",
             { "border-r border-outline-gray-1": isExpanded },
           )}
           style={{ height: animatedRowHeight }}
