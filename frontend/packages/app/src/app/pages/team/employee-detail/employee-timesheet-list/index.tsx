@@ -119,7 +119,7 @@ const EmployeeTimesheetList = ({
           );
 
           return (
-            <Accordion type="multiple" key={key} defaultValue={Object.keys(teamState.timesheetData.data)}>
+            <Accordion type="multiple" key={key} defaultValue={[key]}>
               <AccordionItem value={key}>
                 <AccordionTrigger className="hover:no-underline w-full max-md:[&>svg]:hidden">
                   <div className="flex justify-between w-full pr-2 group">
