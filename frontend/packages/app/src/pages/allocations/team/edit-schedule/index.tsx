@@ -202,7 +202,7 @@ function EditScheduleModal({
             allocation_start_date: allocationContext.allocationStartDate,
             allocation_end_date: allocationContext.allocationEndDate,
             hours_allocated_per_day: schedulePayload.allocationHoursPerDay,
-            include_weekends: true,
+            include_weekends: initialValues.includeWeekends ?? true,
             is_billable: Number(initialValues.isBillable ?? true),
             status: initialValues.isTentative ? "Tentative" : "Confirmed",
             note: initialValues.note ?? "",

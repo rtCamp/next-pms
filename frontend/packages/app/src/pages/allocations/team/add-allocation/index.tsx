@@ -157,7 +157,7 @@ function AddAllocationModal({
         fromDate: value.fromDate,
         toDate: value.toDate,
         repeatFor: value.repeatFor ?? 0,
-        includeWeekends: weekendEntriesAllowed && value.includeWeekends,
+        includeWeekends: value.includeWeekends,
       });
 
       setSubmitting(true);
@@ -176,9 +176,7 @@ function AddAllocationModal({
             is_billable: Number(value.isBillable),
             status: value.isTentative ? "Tentative" : "Confirmed",
             note: value.note ?? "",
-            include_weekends: weekendEntriesAllowed
-              ? value.includeWeekends
-              : false,
+            include_weekends: value.includeWeekends,
           },
           // Repeat weeks are only applied when creating a recurring allocation.
           repeat_till_week_count:
@@ -267,7 +265,7 @@ function AddAllocationModal({
     fromDate,
     toDate,
     hoursPerDay,
-    includeWeekends: weekendEntriesAllowed && includeWeekendsValue,
+    includeWeekends: includeWeekendsValue,
     repeatWeeks: recurrence === "recurring" ? repeatFor : 0,
     allocationName,
   });
@@ -292,7 +290,7 @@ function AddAllocationModal({
     fromDate,
     toDate,
     repeatFor,
-    includeWeekends: weekendEntriesAllowed && includeWeekendsValue,
+    includeWeekends: includeWeekendsValue,
   });
 
   const handleProjectChange = useCallback(
@@ -536,21 +534,23 @@ function AddAllocationModal({
 
         {recurrenceSection}
 
-        {weekendEntriesAllowed ? (
-          <form.Field
-            name="includeWeekends"
-            children={(field) => (
+        <form.Field
+          name="includeWeekends"
+          children={(field) =>
+            weekendEntriesAllowed || field.state.value ? (
               <label className="inline-flex items-center gap-2 text-base text-ink-gray-6">
                 <Checkbox
                   value={field.state.value}
-                  disabled={isLockedAllocationMetadataEdit}
+                  disabled={
+                    !weekendEntriesAllowed || isLockedAllocationMetadataEdit
+                  }
                   onChange={(checked) => field.handleChange(Boolean(checked))}
                 />
                 Include weekends
               </label>
-            )}
-          />
-        ) : null}
+            ) : null
+          }
+        />
 
         <form.Field
           name="fromDate"

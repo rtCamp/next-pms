@@ -49,7 +49,6 @@ def _to_doc_dict(payload: AllocationPayload, include_name: bool = True) -> dict:
     Convert an AllocationPayload to a clean dict for `frappe.get_doc`.
     """
     data = {k: v for k, v in asdict(payload).items() if v is not None}  # only keep the fields that are not None
-    data.pop("include_weekends", None)  # include_weekends is not a DocType field, so removed
     if not include_name:
         data.pop("name", None)
     return data
@@ -472,7 +471,15 @@ def edit_allocation(
     stored = frappe.db.get_value(
         "Resource Allocation",
         name,
-        ("recurrence_id", "employee", "project", "customer", "hours_allocated_per_day", "allocation_start_date"),
+        (
+            "recurrence_id",
+            "employee",
+            "project",
+            "customer",
+            "hours_allocated_per_day",
+            "allocation_start_date",
+            "include_weekends",
+        ),
         as_dict=True,
     )
 
@@ -484,6 +491,18 @@ def edit_allocation(
 
     if stored.recurrence_id:
         _assert_recurring_immutable(allocation, stored)
+
+    if (
+        allocation.include_weekends
+        and not stored.include_weekends
+        and not cint(frappe.db.get_single_value("Timesheet Settings", "allow_weekend_entries"))
+    ):
+        frappe.throw(
+            frappe._(
+                "Weekend allocations are not allowed. Enable 'Allow Weekend Entries' in Timesheet Settings to use this option."
+            ),
+            exc=frappe.ValidationError,
+        )
 
     hours_changed = allocation.hours_allocated_per_day is not None and float(
         allocation.hours_allocated_per_day

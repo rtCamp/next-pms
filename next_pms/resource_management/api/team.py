@@ -414,6 +414,7 @@ def _get_resource_management_team_view_data(
             "creation",
             "status",
             "recurrence_id",
+            "include_weekends",
         ],
         "employee",
         [employee.name for employee in employees],
