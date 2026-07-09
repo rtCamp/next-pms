@@ -34,6 +34,9 @@ export const AllocationsProjectTable = () => {
   const querySignature = useAllocationsProject(
     ({ state }) => state.querySignature,
   );
+  const todayResetKey = useAllocationsProject(
+    ({ state }) => state.todayResetKey,
+  );
   const loadMore = useAllocationsProject(({ actions }) => actions.loadMore);
 
   const ganttRef = useUnsavedChangesSource();
@@ -61,7 +64,7 @@ export const AllocationsProjectTable = () => {
             isLoading={isQueryLoading || isNextPageLoading}
             hasMore={hasMore}
             verticalLodMore={loadMore}
-            scrollResetKey={querySignature}
+            scrollResetKey={`${querySignature}:${todayResetKey}`}
             enableScrollArea
             showScrollbar={false}
             className={cn("w-full h-full", {
