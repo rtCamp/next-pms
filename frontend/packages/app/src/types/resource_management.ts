@@ -21,6 +21,10 @@ export type ResourceAllocationProps = {
   modified_by_avatar: string;
   modified: string;
   creation: string;
+  project_allocation?: number;
+  planned_task_effort?: number;
+  actual_logged_hours?: number;
+  allocation_gap?: number;
 };
 
 export interface ResourceCustomerObjectProps {

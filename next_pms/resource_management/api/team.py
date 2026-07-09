@@ -17,6 +17,7 @@ from next_pms.resource_management.api.utils.helpers import (
 from next_pms.resource_management.api.utils.query import (
     get_allocation_list_for_employee_for_given_range,
     get_employee_leaves,
+    get_allocation_task_and_logged_hours,
 )
 from next_pms.timesheet.api import filter_employees
 from next_pms.timesheet.api.employee import get_employee_working_hours
@@ -116,6 +117,7 @@ def get_resource_management_team_view_data(
             "allocation_start_date",
             "allocation_end_date",
             "hours_allocated_per_day",
+            "total_allocated_hours",
             "project",
             "project_name",
             "customer",
@@ -137,6 +139,7 @@ def get_resource_management_team_view_data(
     # Make the map of resource allocation data for given employee
     resource_allocation_map = {}
     user_info_cache = {}
+    todo_assignments_cache = {}
     for resource_allocation in resource_allocation_data:
         modified_by = resource_allocation.get("modified_by") or resource_allocation.get("created_by")
         if modified_by:
@@ -147,6 +150,17 @@ def get_resource_management_team_view_data(
                 }
             resource_allocation["modified_by_avatar"] = user_info_cache[modified_by]["avatar"]
             resource_allocation["modified_by"] = user_info_cache[modified_by]["full_name"]
+
+        stats = get_allocation_task_and_logged_hours(
+            project=resource_allocation.project,
+            employee=resource_allocation.employee,
+            start_date=resource_allocation.allocation_start_date,
+            end_date=resource_allocation.allocation_end_date,
+            total_allocated_hours=resource_allocation.get("total_allocated_hours") or 0.0,
+            cache=todo_assignments_cache
+        )
+        resource_allocation.update(stats)
+
         if resource_allocation.employee not in resource_allocation_map:
             resource_allocation_map[resource_allocation.employee] = []
         customer = add_customer_data_if_not_exists(customer, resource_allocation.customer)

@@ -173,6 +173,32 @@ export const ResourceAllocationCard = ({
               </Typography>
             </div>
           )}
+
+          {resourceAllocation.project_allocation !== undefined && (
+            <div className="mt-3 pt-3 border-t border-gray-100 dark:border-gray-800 grid grid-cols-2 gap-x-4 gap-y-2 text-xs text-muted-foreground bg-gray-50/50 dark:bg-gray-900/30 p-2 rounded-md w-11/12">
+              <div className="flex justify-between">
+                <span>Allocation:</span>
+                <span className="font-semibold text-foreground">{resourceAllocation.project_allocation} hrs</span>
+              </div>
+              <div className="flex justify-between">
+                <span>Planned Tasks:</span>
+                <span className="font-semibold text-foreground">{resourceAllocation.planned_task_effort} hrs</span>
+              </div>
+              <div className="flex justify-between">
+                <span>Logged Hours:</span>
+                <span className="font-semibold text-foreground">{resourceAllocation.actual_logged_hours} hrs</span>
+              </div>
+              <div className="flex justify-between">
+                <span>Allocation Gap:</span>
+                <span className={mergeClassNames(
+                  "font-semibold",
+                  (resourceAllocation.allocation_gap ?? 0) > 0 ? "text-yellow-600 dark:text-yellow-400" : "text-green-600 dark:text-green-400"
+                )}>
+                  {resourceAllocation.allocation_gap} hrs
+                </span>
+              </div>
+            </div>
+          )}
         </div>
         <div className=" absolute right-4 top-3 flex gap-1 cursor-pointer">
           {resourceAllocationPermission.write && (
