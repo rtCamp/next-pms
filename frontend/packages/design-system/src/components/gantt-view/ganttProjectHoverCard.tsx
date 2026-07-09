@@ -29,7 +29,7 @@ function GanttProjectHoverCard({
   const dateRange = project.projectDateRange ?? project.dateRange;
   const weeklyCapacityLabel =
     project.weeklyCapacity !== undefined
-      ? `${formatHours(project.weeklyCapacity)}h/week`
+      ? `${formatHours(project.weeklyCapacity)}h remaining`
       : undefined;
   const hasDetails =
     project.client ||
