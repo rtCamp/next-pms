@@ -1,7 +1,7 @@
 /**
  * External dependencies.
  */
-import { Route, Outlet, Navigate, useNavigate } from "react-router-dom";
+import { Route, Outlet, Navigate } from "react-router-dom";
 import { Spinner } from "@next-pms/design-system/components";
 /**
  * Internal dependencies.
@@ -205,15 +205,17 @@ const AuthenticatedRoute = () => {
     return <Spinner isFull />;
   } else if (!currentUser || currentUser === "Guest") {
     window.location.replace("/login?redirect-to=/next-pms/timesheet");
+    return <Spinner isFull />;
   }
 
   if (!isUserLoading && currentUser && currentUser !== "Guest") {
     return <Outlet />;
   }
+
+  return null;
 };
 
 const RoleProtectedRoute = ({ allowedRoles }: { allowedRoles: Role[] }) => {
-  const navigate = useNavigate();
   const { isLoading, roles } = useUser(({ state }) => ({
     isLoading: state.isLoading,
     roles: state.roles,
@@ -229,7 +231,7 @@ const RoleProtectedRoute = ({ allowedRoles }: { allowedRoles: Role[] }) => {
       : true;
 
   if (!hasAccess) {
-    navigate(ROUTES["not-found"]);
+    return <Navigate to={ROUTES["not-found"]} replace />;
   }
 
   return <Outlet />;
