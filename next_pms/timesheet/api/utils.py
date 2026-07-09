@@ -440,20 +440,38 @@ def get_matching_timesheet_employee_ids(
     return list({timesheet_by_name[parent].employee for parent in matched_parent_names if parent in timesheet_by_name})
 
 
+def employee_condition_kwargs(employee_conditions: list | None) -> dict:
+    """Build `filter_employees` kwargs that apply Employee-level [field, operator, value]
+    conditions with their operators intact (e.g. `like` stays a LIKE, not an IN).
+
+    An explicit status condition replaces the default Active-only filter, matching
+    the behaviour of `filter_employees`'s own `status` parameter. Conditions on
+    fields missing from the site's Employee meta (e.g. `custom_business_unit`
+    without the rtcamp customisation) are dropped instead of raising.
+    """
+    meta = frappe.get_meta("Employee")
+    conditions = [
+        [field, operator, value] for field, operator, value in employee_conditions or [] if meta.has_field(field)
+    ]
+    return {
+        "extra_conditions": conditions or None,
+        "ignore_default_filters": any(field == "status" for field, _operator, _value in conditions),
+    }
+
+
 def get_team_candidate_employee_ids(
     reports_to: str | None = None,
     dates: list | None = None,
     parsed_filters: dict | None = None,
     search: str | None = None,
     timesheet_status: list[str] | None = None,
-    status=None,
-    business_unit=None,
+    employee_conditions: list | None = None,
 ):
     if not dates:
         return []
 
     has_candidate_filters = bool(timesheet_status or search or any((parsed_filters or {}).values()))
-    if not has_candidate_filters and not status and not business_unit:
+    if not has_candidate_filters and not employee_conditions:
         return None
 
     employee_ids = get_matching_timesheet_employee_ids(
@@ -470,8 +488,7 @@ def get_team_candidate_employee_ids(
         start=0,
         reports_to=reports_to,
         ids=employee_ids,
-        status=status,
-        business_unit=business_unit,
+        **employee_condition_kwargs(employee_conditions),
     )
     if not filtered_count:
         return []
@@ -865,8 +882,7 @@ def paginate_qualifying_employee_payloads(
     start: int,
     page_length: int,
     builder,
-    status=None,
-    business_unit=None,
+    employee_conditions: list | None = None,
 ):
     selected = []
     total_count = 0
@@ -878,8 +894,7 @@ def paginate_qualifying_employee_payloads(
             start=employee_start,
             reports_to=reports_to,
             ids=employee_ids,
-            status=status,
-            business_unit=business_unit,
+            **employee_condition_kwargs(employee_conditions),
         )
         if not chunk:
             break
