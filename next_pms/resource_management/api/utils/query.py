@@ -235,3 +235,55 @@ def get_allocation_worked_hours_for_given_employee(project: str, employee: str, 
     ).run(as_dict=True)[0]
 
     return total_hours.get("time") or 0.0
+
+
+def get_allocation_task_and_logged_hours(project: str, employee: str, start_date: str, end_date: str, total_allocated_hours: float, cache: dict = None) -> dict:
+    from frappe.utils import getdate
+
+    project_allocation = total_allocated_hours or 0.0
+    actual_logged_hours = get_allocation_worked_hours_for_given_employee(project, employee, start_date, end_date)
+    planned_task_effort = 0.0
+
+    user_id = frappe.db.get_value("Employee", employee, "user_id")
+    if user_id:
+        if cache is not None and user_id in cache:
+            assigned_tasks = cache[user_id]
+        else:
+            assigned_tasks = frappe.get_all(
+                "ToDo",
+                filters={
+                    "reference_type": "Task",
+                    "allocated_to": user_id,
+                    "status": "Open",
+                },
+                pluck="reference_name"
+            )
+            if cache is not None:
+                cache[user_id] = assigned_tasks
+
+        if assigned_tasks:
+            tasks = frappe.get_all(
+                "Task",
+                filters={
+                    "name": ["in", assigned_tasks],
+                    "project": project,
+                    "status": ["not in", ["Closed", "Completed", "Cancelled"]],
+                },
+                fields=["expected_time", "exp_end_date"]
+            )
+
+            for task in tasks:
+                if task.exp_end_date:
+                    task_end_date = getdate(task.exp_end_date)
+                    if not (getdate(start_date) <= task_end_date <= getdate(end_date)):
+                        continue
+                planned_task_effort += task.expected_time or 0.0
+
+    allocation_gap = max(0.0, project_allocation - planned_task_effort)
+
+    return {
+        "project_allocation": project_allocation,
+        "planned_task_effort": planned_task_effort,
+        "actual_logged_hours": actual_logged_hours,
+        "allocation_gap": allocation_gap
+    }

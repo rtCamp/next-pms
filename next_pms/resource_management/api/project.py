@@ -16,6 +16,7 @@ from next_pms.resource_management.api.utils.query import (
     get_allocation_list_for_employee_for_given_range,
     get_allocation_worked_hours_for_given_employee,
     get_allocation_worked_hours_for_given_projects,
+    get_allocation_task_and_logged_hours,
 )
 
 
@@ -64,6 +65,7 @@ def get_resource_management_project_view_data(
             "allocation_start_date",
             "allocation_end_date",
             "hours_allocated_per_day",
+            "total_allocated_hours",
             "project",
             "project_name",
             "customer",
@@ -78,7 +80,18 @@ def get_resource_management_project_view_data(
     )
 
     resource_allocation_map = {}
+    todo_assignments_cache = {}
     for resource_allocation in resource_allocation_data:
+        stats = get_allocation_task_and_logged_hours(
+            project=resource_allocation.project,
+            employee=resource_allocation.employee,
+            start_date=resource_allocation.allocation_start_date,
+            end_date=resource_allocation.allocation_end_date,
+            total_allocated_hours=resource_allocation.get("total_allocated_hours") or 0.0,
+            cache=todo_assignments_cache
+        )
+        resource_allocation.update(stats)
+
         if resource_allocation.project not in resource_allocation_map:
             resource_allocation_map[resource_allocation.project] = {}
         resource_allocation_map[resource_allocation.project][resource_allocation.name] = resource_allocation
@@ -179,6 +192,7 @@ def get_employees_resrouce_data_for_given_project(project: str, start_date: str,
             "allocation_start_date",
             "allocation_end_date",
             "hours_allocated_per_day",
+            "total_allocated_hours",
             "project",
             "project_name",
             "customer",
@@ -193,7 +207,18 @@ def get_employees_resrouce_data_for_given_project(project: str, start_date: str,
     )
 
     resource_allocation_map = {}
+    todo_assignments_cache = {}
     for resource_allocation in resource_allocation_data:
+        stats = get_allocation_task_and_logged_hours(
+            project=resource_allocation.project,
+            employee=resource_allocation.employee,
+            start_date=resource_allocation.allocation_start_date,
+            end_date=resource_allocation.allocation_end_date,
+            total_allocated_hours=resource_allocation.get("total_allocated_hours") or 0.0,
+            cache=todo_assignments_cache
+        )
+        resource_allocation.update(stats)
+
         if resource_allocation.employee not in resource_allocation_map:
             resource_allocation_map[resource_allocation.employee] = {}
         resource_allocation_map[resource_allocation.employee][resource_allocation.name] = resource_allocation
