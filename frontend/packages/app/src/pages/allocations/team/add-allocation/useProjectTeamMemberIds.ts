@@ -29,7 +29,7 @@ export function useProjectTeamMemberIds({
   const { data, isLoading } = useFrappeGetCall<ProjectSidebarMembersResponse>(
     "next_pms.next_projects.api.project.get_project_sidebar",
     { project: projectId },
-    enabled && projectId ? undefined : false,
+    enabled && projectId ? undefined : null,
   );
 
   const memberIds = useMemo(

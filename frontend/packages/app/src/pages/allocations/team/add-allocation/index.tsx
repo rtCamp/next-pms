@@ -71,12 +71,6 @@ function AddAllocationModal({
   );
 
   const allocationName = initialValues?.allocationName;
-  const selectedEmployeeOption = initialValues?.employeeId
-    ? {
-        label: initialValues.employeeLabel || initialValues.employeeId,
-        value: initialValues.employeeId,
-      }
-    : null;
   const selectedProjectOption = initialValues?.projectId
     ? {
         label: initialValues.projectLabel || initialValues.projectId,
@@ -194,7 +188,18 @@ function AddAllocationModal({
   });
 
   const projectId = useStore(form.store, (state) => state.values.projectId);
-  const lastValidatedProjectIdRef = useRef(projectId);
+  const employeeId = useStore(form.store, (state) => state.values.employeeId);
+  const lastValidatedProjectIdRef = useRef<string | undefined>(undefined);
+
+  const selectedEmployeeOption = employeeId
+    ? {
+        label:
+          employeeId === initialValues?.employeeId
+            ? initialValues.employeeLabel || employeeId
+            : employeeId,
+        value: employeeId,
+      }
+    : null;
 
   const { options: employeeOptions, isLoading: isEmployeeLookupLoading } =
     useEmployeeLookup({
@@ -276,7 +281,6 @@ function AddAllocationModal({
     form.store,
     (state) => state.values.includeWeekends,
   );
-  const employeeId = useStore(form.store, (state) => state.values.employeeId);
 
   const overAllocatedDays = useOverAllocation({
     employeeId,
@@ -294,6 +298,7 @@ function AddAllocationModal({
     }
 
     form.reset(mergedDefaultValues);
+    lastValidatedProjectIdRef.current = undefined;
   }, [form, mergedDefaultValues, open]);
 
   useEffect(() => {
