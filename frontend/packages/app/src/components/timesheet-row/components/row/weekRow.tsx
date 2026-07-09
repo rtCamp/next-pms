@@ -3,7 +3,7 @@
  */
 import { useMemo, useState } from "react";
 import { Accordion } from "@base-ui/react/accordion";
-import { floatToTime, mergeClassNames as cn } from "@next-pms/design-system";
+import { floatToTime } from "@next-pms/design-system";
 import {
   WeekRow as BaseWeekRow,
   ApprovalStatusMap,
@@ -111,7 +111,6 @@ export const WeekRow = ({
       onValueChange={(value) => {
         setCollapsed(value.length === 0);
       }}
-      className={cn(!collapsed && "mb-4")}
     >
       <Accordion.Item value="week" className="border-none">
         <Accordion.Trigger
@@ -136,14 +135,16 @@ export const WeekRow = ({
           )}
         />
         <Accordion.Panel className="pb-0 accordion-panel">
-          {children?.({
-            totalHours: floatToTime(weekData.total, 2),
-            totalHoursTheme: totalHoursThemeMap[weekData.isExtended],
-            totalTimeEntries: weekData.totalTimeEntries,
-            totalTimeEntriesInHours: weekData.totalTimeEntriesInHours,
-            dailyWorkingHours: weekData.dailyWorkingHours,
-            status: approvalStatus,
-          })}
+          <div className="pb-4">
+            {children?.({
+              totalHours: floatToTime(weekData.total, 2),
+              totalHoursTheme: totalHoursThemeMap[weekData.isExtended],
+              totalTimeEntries: weekData.totalTimeEntries,
+              totalTimeEntriesInHours: weekData.totalTimeEntriesInHours,
+              dailyWorkingHours: weekData.dailyWorkingHours,
+              status: approvalStatus,
+            })}
+          </div>
         </Accordion.Panel>
       </Accordion.Item>
     </Accordion.Root>

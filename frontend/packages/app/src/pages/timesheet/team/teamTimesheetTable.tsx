@@ -107,7 +107,6 @@ const TeamTimesheetGrid = () => {
                     <TeamTimesheetRow
                       label={week.label}
                       dates={week.dates}
-                      firstWeek={index === 0}
                       approvalPendingCount={week.approvalPendingCount}
                       setSelectedTask={setSelectedTask}
                       openWeeklyApproval={(employee, date) =>
