@@ -9,15 +9,12 @@ import {
   DateRangePicker,
   Select,
   TextInput,
+  Tooltip,
   useToasts,
 } from "@rtcamp/frappe-ui-react";
 import { Calendar } from "@rtcamp/frappe-ui-react/icons";
-import { useForm, useStore } from "@tanstack/react-form";
-import {
-  FrappeError,
-  useFrappeGetCall,
-  useFrappePostCall,
-} from "frappe-react-sdk";
+import { useForm } from "@tanstack/react-form";
+import { FrappeError, useFrappePostCall } from "frappe-react-sdk";
 
 /**
  * Internal dependencies.
@@ -25,6 +22,7 @@ import {
 import { parseFrappeErrorMsg } from "@/lib/utils";
 import { getDurationPresets } from "./constants";
 import { Field } from "./field";
+import { ProjectBoardField } from "./projectBoardField";
 import { SlackChannelField } from "./slackChannelField";
 import { useProjectDetail } from "../../context";
 
@@ -54,6 +52,7 @@ export function ReportGenerationForm() {
   const reports = useProjectDetail(
     (state) => state.project?.custom_project_reports ?? [],
   );
+  const isReportGenerating = reports.at(-1)?.status === "Generating";
   const previousReportUrl = useMemo(() => {
     for (let index = reports.length - 1; index >= 0; index--) {
       if (reports[index].report_link) {
@@ -95,32 +94,6 @@ export function ReportGenerationForm() {
       }
     },
   });
-
-  const selectedRepository = useStore(
-    form.store,
-    (state) => state.values.githubRepository,
-  );
-
-  const { data: projectBoards } = useFrappeGetCall<{ message: string[] }>(
-    "next_pms.api.generate_pm_report.get_repository_project_boards",
-    { repository: selectedRepository },
-    selectedRepository
-      ? `get_repository_project_boards:${selectedRepository}`
-      : null,
-  );
-
-  const projectBoardOptions = useMemo(
-    () =>
-      (projectBoards?.message ?? []).map((board) => ({
-        label: board,
-        value: board,
-      })),
-    [projectBoards],
-  );
-
-  useEffect(() => {
-    form.setFieldValue("projectBoard", "");
-  }, [selectedRepository, form]);
 
   useEffect(() => {
     form.setFieldValue("driveLink", driveLink);
@@ -203,20 +176,19 @@ export function ReportGenerationForm() {
           )}
         />
 
-        <form.Field
-          name="projectBoard"
-          children={(field) => (
-            <Field label="Project Board" className="col-span-2">
-              <Select
-                variant="outline"
-                className="text-ink-gray-7"
-                value={field.state.value}
-                onChange={(value) => field.handleChange(value ?? "")}
-                options={projectBoardOptions}
-                disabled={projectBoardOptions.length === 0}
-                placeholder="Select project board…"
-              />
-            </Field>
+        <form.Subscribe
+          selector={(state) => state.values.githubRepository}
+          children={(selectedRepository) => (
+            <form.Field
+              name="projectBoard"
+              children={(field) => (
+                <ProjectBoardField
+                  repository={selectedRepository}
+                  value={field.state.value}
+                  onChange={field.handleChange}
+                />
+              )}
+            />
           )}
         />
 
@@ -253,14 +225,21 @@ export function ReportGenerationForm() {
         <form.Subscribe
           selector={(state) => state.isSubmitting}
           children={(isSubmitting) => (
-            <Button
-              type="submit"
-              variant="solid"
-              loading={isSubmitting}
-              disabled={isSubmitting}
+            <Tooltip
+              text="A report is currently being generated"
+              disabled={!isReportGenerating}
             >
-              Generate Project Report
-            </Button>
+              <span>
+                <Button
+                  type="submit"
+                  variant="solid"
+                  loading={isSubmitting}
+                  disabled={isSubmitting || isReportGenerating}
+                >
+                  Generate Project Report
+                </Button>
+              </span>
+            </Tooltip>
           )}
         />
       </div>
