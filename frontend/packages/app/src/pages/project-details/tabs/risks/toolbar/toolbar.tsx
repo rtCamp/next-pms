@@ -39,6 +39,11 @@ export function RisksToolbar() {
     ];
   }, [allOwnersWithDetails]);
 
+  const externalFilterCount =
+    (filters.owner ? 1 : 0) +
+    (filters.status ? 1 : 0) +
+    (filters.riskLevel ? 1 : 0);
+
   return (
     <div className="flex flex-wrap items-center justify-between gap-2 mb-3.5">
       <div className="flex flex-wrap gap-2">
@@ -81,6 +86,10 @@ export function RisksToolbar() {
             { name: "summary", label: "Summary", type: "string" },
             { name: "owner", label: "Owner", type: "string" },
           ]}
+          externalFilterCount={externalFilterCount}
+          onClearAll={() =>
+            setFilters({ owner: "", status: "", riskLevel: "" })
+          }
         />
         <SortButton />
       </div>

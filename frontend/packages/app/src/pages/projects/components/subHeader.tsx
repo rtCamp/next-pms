@@ -32,6 +32,12 @@ export function ProjectListSubHeader() {
     setSort,
   } = useProjectFilters();
 
+  const externalFilterCount =
+    (search !== "" ? 1 : 0) +
+    (ragStatus.length > 0 ? 1 : 0) +
+    (phase ? 1 : 0) +
+    (status ? 1 : 0);
+
   const isKanban = !!useMatch(ROUTES["project-kanban"]);
 
   const [searchInput, setSearchInput] = useState(search);
@@ -208,6 +214,14 @@ export function ProjectListSubHeader() {
               type: "string",
             },
           ]}
+          externalFilterCount={externalFilterCount}
+          onClearAll={() => {
+            setSearchInput("");
+            setSearch("");
+            setRagStatus([]);
+            setPhase("");
+            setStatus("");
+          }}
         />
       </div>
     </div>
