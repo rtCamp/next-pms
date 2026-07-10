@@ -75,6 +75,12 @@ export function ProjectRateModal({
       projects: [projectId],
     });
 
+  const projectHasNoAssignedMembers =
+    Boolean(projectId) &&
+    !isEmployeeLookupLoading &&
+    !employeeSearch &&
+    employeeOptions.length === 0;
+
   const employeeOptionsWithAvatars = useMemo(
     () =>
       employeeOptions.map((opt) => ({
@@ -145,6 +151,11 @@ export function ProjectRateModal({
                 value={field.state.value}
                 onChange={(value) => field.handleChange(value as string)}
                 onSearchChange={setEmployeeSearch}
+                emptyMessage={
+                  projectHasNoAssignedMembers
+                    ? "This project doesn't have any assigned team members"
+                    : undefined
+                }
                 openOnFocus
               />
               {!field.state.meta.isValid && (
