@@ -77,7 +77,7 @@ const ProjectTimesheetGrid = () => {
                     <ProjectTimesheetRow
                       label={week.label}
                       dates={week.dates}
-                      firstWeek={index === 0}
+                      collapsed={index >= 6}
                       projects={week.projects}
                     />
                   </div>

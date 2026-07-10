@@ -133,7 +133,7 @@ const PersonalTimesheetGrid = () => {
                             holidays={timesheetData.holidays}
                             leaves={timesheetData.leaves}
                             tasks={value.tasks}
-                            firstWeek={index === 0}
+                            collapsed={index >= 6}
                             disabled={value.status === "Approved"}
                             setSelectedTask={setSelectedTask}
                             onButtonClick={() =>
