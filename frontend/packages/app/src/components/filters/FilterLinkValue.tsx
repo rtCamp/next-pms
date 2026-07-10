@@ -49,7 +49,7 @@ export const FilterLinkValue: React.FC<FilterLinkValueRenderProps> = ({
       disabled={disabled}
       placeholder="Value"
       onChange={(val) => onChange(val)}
-      className="w-auto"
+      className="w-50"
     />
   );
 };
