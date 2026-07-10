@@ -19,7 +19,8 @@ import {
   useToasts,
 } from "@rtcamp/frappe-ui-react";
 import { AlertTriangle, Calendar } from "@rtcamp/frappe-ui-react/icons";
-import { useForm, useStore } from "@tanstack/react-form";
+import { useForm } from "@tanstack/react-form";
+import { useSelector } from "@tanstack/react-store";
 import { FrappeError, useFrappePostCall } from "frappe-react-sdk";
 
 /**
@@ -180,9 +181,12 @@ function AddAllocationModal({
     },
   });
 
-  const projectId = useStore(form.store, (state) => state.values.projectId);
-  const customerId = useStore(form.store, (state) => state.values.customer);
-  const employeeId = useStore(form.store, (state) => state.values.employeeId);
+  const projectId = useSelector(form.store, (state) => state.values.projectId);
+  const customerId = useSelector(form.store, (state) => state.values.customer);
+  const employeeId = useSelector(
+    form.store,
+    (state) => state.values.employeeId,
+  );
   const lastValidatedProjectIdRef = useRef<string | undefined>(undefined);
 
   const selectedCustomerOption = customerId
@@ -273,15 +277,21 @@ function AddAllocationModal({
     [closeModal, onOpenChange],
   );
 
-  const recurrence = useStore(form.store, (state) => state.values.recurrence);
-  const hoursPerDay = useStore(form.store, (state) => state.values.hoursPerDay);
-  const repeatFor = useStore(
+  const recurrence = useSelector(
+    form.store,
+    (state) => state.values.recurrence,
+  );
+  const hoursPerDay = useSelector(
+    form.store,
+    (state) => state.values.hoursPerDay,
+  );
+  const repeatFor = useSelector(
     form.store,
     (state) => state.values.repeatFor ?? 0,
   );
-  const fromDate = useStore(form.store, (state) => state.values.fromDate);
-  const toDate = useStore(form.store, (state) => state.values.toDate);
-  const includeWeekendsValue = useStore(
+  const fromDate = useSelector(form.store, (state) => state.values.fromDate);
+  const toDate = useSelector(form.store, (state) => state.values.toDate);
+  const includeWeekendsValue = useSelector(
     form.store,
     (state) => state.values.includeWeekends,
   );
