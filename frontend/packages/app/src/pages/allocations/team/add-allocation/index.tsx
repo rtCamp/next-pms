@@ -53,7 +53,6 @@ function AddAllocationModal({
   const weekendEntriesAllowed: boolean = isWeekendEntryAllowed();
   const [employeeSearch, setEmployeeSearch] = useState("");
   const [projectSearch, setProjectSearch] = useState("");
-  const [customerSearch, setCustomerSearch] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
   const isRecurringEdit =
@@ -76,12 +75,6 @@ function AddAllocationModal({
         label: initialValues.projectLabel || initialValues.projectId,
         value: initialValues.projectId,
         customer: initialValues.customer,
-      }
-    : null;
-  const selectedCustomerOption = initialValues?.customer
-    ? {
-        label: initialValues.customerLabel || initialValues.customer,
-        value: initialValues.customer,
       }
     : null;
 
@@ -188,8 +181,19 @@ function AddAllocationModal({
   });
 
   const projectId = useStore(form.store, (state) => state.values.projectId);
+  const customerId = useStore(form.store, (state) => state.values.customer);
   const employeeId = useStore(form.store, (state) => state.values.employeeId);
   const lastValidatedProjectIdRef = useRef<string | undefined>(undefined);
+
+  const selectedCustomerOption = customerId
+    ? {
+        label:
+          customerId === initialValues?.customer
+            ? initialValues.customerLabel || customerId
+            : customerId,
+        value: customerId,
+      }
+    : null;
 
   const selectedEmployeeOption = employeeId
     ? {
@@ -235,9 +239,9 @@ function AddAllocationModal({
 
   const { options: customerOptions, isLoading: isCustomerLookupLoading } =
     useCustomerLookup({
-      shouldFetch: open,
+      shouldFetch: open && Boolean(customerId),
       pageSize: 20,
-      query: customerSearch,
+      query: customerId,
       selectedOption: selectedCustomerOption,
     });
 
@@ -304,7 +308,6 @@ function AddAllocationModal({
   useEffect(() => {
     setEmployeeSearch("");
     setProjectSearch("");
-    setCustomerSearch("");
   }, [open]);
 
   useEffect(() => {
@@ -344,10 +347,7 @@ function AddAllocationModal({
       setProjectSearch("");
       setEmployeeSearch("");
 
-      if (selectedProject?.customer) {
-        form.setFieldValue("customer", selectedProject.customer);
-        setCustomerSearch("");
-      }
+      form.setFieldValue("customer", selectedProject?.customer ?? "");
     },
     [form, projectOptions],
   );
@@ -423,17 +423,11 @@ function AddAllocationModal({
           </label>
           <Combobox
             inputClassName="bg-surface-white h-8 border-outline-gray-2 text-ink-gray-7"
-            loading={isCustomerLookupLoading}
+            loading={isCustomerLookupLoading || isProjectLookupLoading}
             options={customerOptions}
-            searchValue={customerSearch}
             placeholder="Select Customer"
             value={field.state.value}
-            disabled={isLockedAllocationMetadataEdit}
-            onChange={(value) => {
-              field.handleChange(value as string);
-              setCustomerSearch("");
-            }}
-            onSearchChange={setCustomerSearch}
+            disabled
             openOnFocus
           />
           {!field.state.meta.isValid && (
