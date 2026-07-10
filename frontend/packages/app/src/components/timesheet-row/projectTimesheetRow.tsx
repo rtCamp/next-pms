@@ -41,12 +41,14 @@ export type ProjectTimesheetProject = {
 export type ProjectTimesheetRowProps = {
   label?: string;
   dates: string[];
+  collapsed: boolean;
   projects: ProjectTimesheetProject[];
 };
 
 export const ProjectTimesheetRow = ({
   label,
   dates,
+  collapsed,
   projects,
 }: ProjectTimesheetRowProps) => {
   const { openAddTimeDialog } = useTimesheetOutletContext();
@@ -64,7 +66,7 @@ export const ProjectTimesheetRow = ({
         dates={dates}
         workingFrequency="Per Day"
         className="pl-3"
-        collapsed={false}
+        collapsed={collapsed}
         isReadOnlyWeek={true}
       >
         {() => (

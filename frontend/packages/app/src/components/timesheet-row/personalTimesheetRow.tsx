@@ -29,6 +29,7 @@ export type PersonalTimesheetRowProps = {
   holidays: Array<HolidayProp>;
   tasks: TaskProps;
   leaves: Array<LeaveProps>;
+  collapsed: boolean;
   workingHour: number;
   disabled?: boolean;
   workingFrequency: WorkingFrequency;
@@ -47,6 +48,7 @@ export const PersonalTimesheetRow = ({
   holidays,
   tasks,
   leaves,
+  collapsed,
   workingHour,
   workingFrequency,
   disabled,
@@ -108,7 +110,7 @@ export const PersonalTimesheetRow = ({
         status={status}
         className="pl-3"
         onButtonClick={onButtonClick}
-        collapsed={false}
+        collapsed={collapsed}
       >
         {({
           totalHours,

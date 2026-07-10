@@ -35,6 +35,7 @@ export type TeamMember = {
 type TeamTimesheetRowProps = {
   label?: string;
   dates: string[];
+  collapsed: boolean;
   teamMembers: TeamMember[];
   approvalPendingCount?: number;
   setSelectedTask?: (task: string) => void;
@@ -44,6 +45,7 @@ type TeamTimesheetRowProps = {
 export const TeamTimesheetRow = ({
   label,
   dates,
+  collapsed,
   teamMembers,
   approvalPendingCount,
   setSelectedTask,
@@ -68,7 +70,7 @@ export const TeamTimesheetRow = ({
         dates={dates}
         workingFrequency="Per Day"
         className="pl-3"
-        collapsed={false}
+        collapsed={collapsed}
         isReadOnlyWeek={true}
         approvalPendingCount={approvalPendingCount}
       >
