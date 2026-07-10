@@ -301,12 +301,21 @@ const Sidebar = () => {
                 isActive: false,
                 onClick: () => setIsSearchOpen(true),
               },
-              ...(timesheetItems.length === 1 ? timesheetItems : []),
               ...notificationItems,
               ...projectItems,
-              ...(dashboardItems.length === 1 ? dashboardItems : []),
             ],
           },
+          ...(dashboardItems.length === 1 || timesheetItems.length === 1
+            ? [
+                {
+                  label: "",
+                  items: [
+                    ...(timesheetItems.length === 1 ? timesheetItems : []),
+                    ...(dashboardItems.length === 1 ? dashboardItems : []),
+                  ],
+                },
+              ]
+            : []),
           ...(dashboardItems.length > 1
             ? [
                 {
