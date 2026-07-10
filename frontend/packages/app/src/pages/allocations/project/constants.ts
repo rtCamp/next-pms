@@ -43,8 +43,9 @@ export const projectAllocationFilters: FilterField[] = [
     type: "string",
   },
   {
-    name: "project_manager_name",
+    name: "project_manager",
     label: "Project Manager",
-    type: "string",
+    type: "link",
+    link: { doctype: "User", labelField: "full_name" },
   },
 ];

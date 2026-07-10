@@ -24,7 +24,8 @@ export const teamAllocationFilters: FilterField[] = [
   {
     name: "business_unit",
     label: "Business Unit",
-    type: "string",
+    type: "link",
+    link: { doctype: "Business Unit" },
   },
   {
     name: "reporting_manager",
