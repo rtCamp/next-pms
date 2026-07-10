@@ -120,3 +120,23 @@ def send_review_reminders():
             formatdate(entry["end_date"], "dd/mm/yyyy"),
         )
         create_notification(reviewer, label, "Timesheet", entry["timesheet"])
+
+
+def comment_on_trash(doc, method=None):
+    """Clean up custom_reply_to references when a Comment is deleted."""
+    try:
+        replies = frappe.get_all(
+            "Comment",
+            filters={"custom_reply_to": doc.name},
+            fields=["name"]
+        )
+        for reply in replies:
+            frappe.db.set_value(
+                "Comment",
+                reply.name,
+                "custom_reply_to",
+                doc.custom_reply_to
+            )
+    except Exception:
+        pass
+
