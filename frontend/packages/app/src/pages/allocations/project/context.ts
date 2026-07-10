@@ -17,6 +17,7 @@ export interface AllocationsProjectContextProps {
     isNextPageLoading: boolean;
     hasMore: boolean;
     querySignature: string;
+    todayResetKey: number;
     search: string;
     duration: AllocationsDuration;
     allocationsType: string[];
@@ -46,6 +47,7 @@ export const AllocationsProjectContext =
       isNextPageLoading: false,
       hasMore: true,
       querySignature: "",
+      todayResetKey: 0,
       search: "",
       duration: "this-quarter",
       allocationsType: [],

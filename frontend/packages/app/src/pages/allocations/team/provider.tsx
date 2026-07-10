@@ -1,7 +1,7 @@
 /**
  * External dependencies.
  */
-import { useCallback, useMemo } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import type { FilterCondition } from "@rtcamp/frappe-ui-react";
 import { format } from "date-fns";
@@ -44,6 +44,7 @@ export function AllocationsTeamProvider({
 }) {
   const [searchParams, setSearchParams] = useSearchParams();
   const searchParam = searchParams.get(SEARCH_PARAM_KEY) ?? "";
+  const [todayResetKey, setTodayResetKey] = useState(0);
 
   const allocationTypeValues = useMemo(
     () => teamAllocationsTypeOptions.map((option) => option.value),
@@ -200,6 +201,7 @@ export function AllocationsTeamProvider({
 
   const handleToday = useCallback(() => {
     updateSearchParams({ [DATE_PARAM_KEY]: undefined });
+    setTodayResetKey((key) => key + 1);
   }, [updateSearchParams]);
 
   const handleRefresh = useCallback(
@@ -217,6 +219,7 @@ export function AllocationsTeamProvider({
         isNextPageLoading,
         hasMore,
         querySignature,
+        todayResetKey,
         search: searchParam,
         designation,
         duration,
@@ -245,6 +248,7 @@ export function AllocationsTeamProvider({
       isQueryLoading,
       hasMore,
       querySignature,
+      todayResetKey,
       searchParam,
       duration,
       designation,
