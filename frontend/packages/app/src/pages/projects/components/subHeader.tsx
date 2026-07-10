@@ -14,6 +14,7 @@ import {
 /**
  * Internal dependencies.
  */
+import { FilterLinkValue } from "@/components/filters/FilterLinkValue";
 import { useDebounce } from "@/hooks/useDebounce";
 import { ROUTES } from "@/lib/constant";
 import { PHASE_OPTIONS, RAG_OPTIONS, STATUS_OPTIONS } from "../constants";
@@ -122,21 +123,37 @@ export function ProjectListSubHeader() {
           align="end"
           value={advanced}
           onChange={setAdvanced}
+          renderLinkValue={(props) => <FilterLinkValue {...props} />}
           fields={[
             {
-              name: "project_name",
+              name: "name",
               label: "Project",
-              type: "string",
+              type: "link",
+              link: { doctype: "Project" },
+              operators: [
+                { label: "Equals", value: "=" },
+                { label: "Not Equals", value: "!=" },
+              ],
             },
             {
               name: "custom_project_manager",
               label: "Project Manager",
-              type: "string",
+              type: "link",
+              link: { doctype: "User", labelField: "full_name" },
+              operators: [
+                { label: "Equals", value: "=" },
+                { label: "Not Equals", value: "!=" },
+              ],
             },
             {
               name: "custom_business_unit",
               label: "Business Unit",
-              type: "string",
+              type: "link",
+              link: { doctype: "Business Unit" },
+              operators: [
+                { label: "Equals", value: "=" },
+                { label: "Not Equals", value: "!=" },
+              ],
             },
             {
               name: "project_type",
@@ -147,18 +164,9 @@ export function ProjectListSubHeader() {
                 { label: "Not Equals", value: "!=" },
               ],
               options: [
-                {
-                  label: "Internal",
-                  value: "internal",
-                },
-                {
-                  label: "External",
-                  value: "external",
-                },
-                {
-                  label: "Other",
-                  value: "other",
-                },
+                { label: "Internal", value: "internal" },
+                { label: "External", value: "external" },
+                { label: "Other", value: "other" },
               ],
             },
             {
@@ -170,48 +178,61 @@ export function ProjectListSubHeader() {
                 { label: "Not Equals", value: "!=" },
               ],
               options: [
-                {
-                  label: "Non-Billable",
-                  value: "Non-Billable",
-                },
-                {
-                  label: "Fixed Cost",
-                  value: "Fixed Cost",
-                },
-                {
-                  label: "Retainer",
-                  value: "Retainer",
-                },
-                {
-                  label: "Time and Material",
-                  value: "Time and Material",
-                },
+                { label: "Non-Billable", value: "Non-Billable" },
+                { label: "Fixed Cost", value: "Fixed Cost" },
+                { label: "Retainer", value: "Retainer" },
+                { label: "Time and Material", value: "Time and Material" },
               ],
             },
             {
               name: "custom_industry",
               label: "Industry",
-              type: "string",
+              type: "link",
+              link: { doctype: "Industry Type" },
+              operators: [
+                { label: "Equals", value: "=" },
+                { label: "Not Equals", value: "!=" },
+              ],
             },
             {
               name: "customer",
               label: "Customer",
-              type: "string",
+              type: "link",
+              link: { doctype: "Customer", labelField: "customer_name" },
+              operators: [
+                { label: "Equals", value: "=" },
+                { label: "Not Equals", value: "!=" },
+              ],
             },
             {
-              name: "custom_engineering_manager_name",
+              name: "custom_engineering_manager",
               label: "Engineering Manager",
-              type: "string",
+              type: "link",
+              link: { doctype: "User", labelField: "full_name" },
+              operators: [
+                { label: "Equals", value: "=" },
+                { label: "Not Equals", value: "!=" },
+              ],
             },
             {
               name: "custom_account_manager_",
-              label: "Account Manger",
-              type: "string",
+              label: "Account Manager",
+              type: "link",
+              link: { doctype: "User", labelField: "full_name" },
+              operators: [
+                { label: "Equals", value: "=" },
+                { label: "Not Equals", value: "!=" },
+              ],
             },
             {
               name: "custom_host",
               label: "Host",
-              type: "string",
+              type: "link",
+              link: { doctype: "Host" },
+              operators: [
+                { label: "Equals", value: "=" },
+                { label: "Not Equals", value: "!=" },
+              ],
             },
           ]}
           externalFilterCount={externalFilterCount}

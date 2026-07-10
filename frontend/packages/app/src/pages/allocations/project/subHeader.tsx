@@ -17,6 +17,7 @@ import {
 /**
  * Internal dependencies.
  */
+import { FilterLinkValue } from "@/components/filters/FilterLinkValue";
 import { useDebounce } from "@/hooks/useDebounce";
 import { useGuardedAction } from "@/pages/allocations/unsavedChanges/useUnsavedChanges";
 import { useUser } from "@/providers/user";
@@ -166,6 +167,7 @@ export function SubHeader() {
             fields={projectAllocationFilters}
             value={compositeFilters}
             onChange={(value) => guard(() => setCompositeFilters(value))}
+            renderLinkValue={(props) => <FilterLinkValue {...props} />}
             externalFilterCount={externalFilterCount}
             onClearAll={() =>
               guard(() => {

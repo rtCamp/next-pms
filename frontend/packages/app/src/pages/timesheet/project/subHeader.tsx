@@ -7,6 +7,7 @@ import { Filter, TextInput } from "@rtcamp/frappe-ui-react";
 /**
  * Internal dependencies.
  */
+import { FilterLinkValue } from "@/components/filters/FilterLinkValue";
 import { useDebounce } from "@/hooks/useDebounce";
 import { useProjectTimesheet } from "./context";
 import { projectTimesheetFilters } from "../constants";
@@ -57,6 +58,7 @@ export function SubHeader() {
         fields={projectTimesheetFilters}
         value={compositeFilters}
         onChange={handleCompositeFilterChange}
+        renderLinkValue={(props) => <FilterLinkValue {...props} />}
         externalFilterCount={externalFilterCount}
         onClearAll={() => {
           setSearchInput("");

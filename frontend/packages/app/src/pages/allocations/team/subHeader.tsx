@@ -19,6 +19,7 @@ import {
 /**
  * Internal dependencies.
  */
+import { FilterLinkValue } from "@/components/filters/FilterLinkValue";
 import { useDebounce } from "@/hooks/useDebounce";
 import { useDesignationLookup } from "@/hooks/useDesignationLookup";
 import { useGuardedAction } from "@/pages/allocations/unsavedChanges/useUnsavedChanges";
@@ -241,6 +242,7 @@ export function SubHeader() {
             )}
             value={compositeFilters}
             onChange={(value) => guard(() => setCompositeFilters(value))}
+            renderLinkValue={(props) => <FilterLinkValue {...props} />}
             triggerClassName="text-ink-gray-7"
             externalFilterCount={externalFilterCount}
             onClearAll={() =>

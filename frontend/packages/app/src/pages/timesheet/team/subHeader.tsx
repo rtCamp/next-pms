@@ -8,6 +8,7 @@ import { Filter, TextInput } from "@rtcamp/frappe-ui-react";
  * Internal dependencies.
  */
 import ApprovalStatusFilter from "@/components/filters/approvalStatusFilter";
+import { FilterLinkValue } from "@/components/filters/FilterLinkValue";
 import ReportsToFilter from "@/components/filters/reportsToFilter";
 import { useDebounce } from "@/hooks/useDebounce";
 import { useTeamTimesheet } from "./context";
@@ -77,6 +78,7 @@ export function SubHeader() {
         fields={teamTimesheetFilters}
         value={compositeFilters}
         onChange={handleCompositeFilterChange}
+        renderLinkValue={(props) => <FilterLinkValue {...props} />}
         externalFilterCount={externalFilterCount}
         onClearAll={() => {
           setSearchInput("");
