@@ -17,10 +17,10 @@ export const addAllocationFormSchema = z
       .min(1, { message: "Please select a project." }),
     customer: z
       .string({
-        required_error: "Please select a customer.",
+        required_error: "This project doesn't have a customer set.",
       })
       .trim()
-      .min(1, { message: "Please select a customer." }),
+      .min(1, { message: "This project doesn't have a customer set." }),
     recurrence: z.enum(
       Object.keys(allocationRecurrenceLabels) as ["one-time", "recurring"],
     ),
