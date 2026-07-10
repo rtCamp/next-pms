@@ -23,6 +23,7 @@ export {
 export {
   default as BudgetBurnBar,
   type BudgetBurnBarProps,
+  type BudgetBurnBarSize,
   type BudgetBurnVariant,
 } from "./budget-burn-bar";
 export {

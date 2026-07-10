@@ -70,6 +70,7 @@ export function GanttAllocationBar({
 
   const left = allocation.barOffset + headerWidth;
   const { width, fullNumDays } = allocation;
+  const canResize = resizable && !allocation.recurrenceId;
   const [previewGeometry, setPreviewGeometry] = useState({ left, width });
   const [previewOpen, setPreviewOpen] = useState(false);
   const isModified =
@@ -317,13 +318,13 @@ export function GanttAllocationBar({
             billable={allocation.billable}
             showOutline={isModified}
             renderFloatingLabel={isModified ? renderFloatingLabel : undefined}
-            resizable={resizable}
+            resizable={canResize}
             snapUnitPx={columnWidth}
             tabIndex={0}
             minLeft={bounds.minLeft}
             maxRight={bounds.maxRight}
             onKeyDown={handleKeyDown}
-            onResizeEnd={handleResizeEnd}
+            onResizeEnd={canResize ? handleResizeEnd : undefined}
           />
         }
       />

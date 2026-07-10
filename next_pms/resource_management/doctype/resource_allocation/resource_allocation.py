@@ -50,7 +50,74 @@ class ResourceAllocation(Document):
         if self.allocation_end_date < self.allocation_start_date:
             frappe.throw(frappe._("End date should be greater than or equal to start date"))
 
+        self.set_project_currency()
+        self.validate_no_overlap()
+        self.validate_project_and_customer()
         self.calculate_cost()
+
+    def set_project_currency(self):
+        if not self.project:
+            return
+
+        project_currency = frappe.get_cached_value("Project", self.project, "custom_currency")
+        if project_currency:
+            self.currency = project_currency
+
+    def validate_no_overlap(self):
+        """Block a second allocation for the same employee + project whose date range
+        overlaps an existing one (partial or exact overlap)."""
+        if not self.project:
+            return
+
+        filters = [
+            ["employee", "=", self.employee],
+            ["project", "=", self.project],
+            # overlap: existing.start <= new.end AND existing.end >= new.start
+            ["allocation_start_date", "<=", self.allocation_end_date],
+            ["allocation_end_date", ">=", self.allocation_start_date],
+            ["name", "!=", self.name or ""],
+        ]
+
+        existing = frappe.db.get_value(
+            "Resource Allocation",
+            filters,
+            ["name", "allocation_start_date", "allocation_end_date"],
+            as_dict=True,
+        )
+        if existing:
+            frappe.throw(
+                frappe._(
+                    "{0} is already allocated to {1} between {2} and {3}. "
+                    "Overlapping allocations for the same project are not allowed."
+                ).format(
+                    self.employee_name or self.employee,
+                    self.project_name or self.project,
+                    frappe.format(existing.allocation_start_date, {"fieldtype": "Date"}),
+                    frappe.format(existing.allocation_end_date, {"fieldtype": "Date"}),
+                ),
+                title=frappe._("Overlapping Allocation"),
+                exc=frappe.ValidationError,
+            )
+
+    def validate_project_and_customer(self):
+        """Reject allocations pointed at a cancelled/inactive project or a disabled customer.
+
+        Only fires when the project/customer is newly set or changed, so an allocation
+        created while its project was valid stays editable if the project is later cancelled.
+        """
+        if self.project and (self.is_new() or self.has_value_changed("project")):
+            status, is_active = frappe.db.get_value("Project", self.project, ["status", "is_active"])
+            if status == "Cancelled":
+                frappe.throw(frappe._("Cannot allocate to cancelled project {0}.").format(self.project))
+            if is_active == "No":
+                frappe.throw(frappe._("Cannot allocate to inactive project {0}.").format(self.project))
+
+        # Customer is fetched from project.customer, so a project change can swap in a
+        # different (possibly disabled) customer without customer itself registering a
+        # change when both projects share the same customer. Re-check on project change too.
+        if self.customer and (self.is_new() or self.has_value_changed("customer") or self.has_value_changed("project")):
+            if frappe.db.get_value("Customer", self.customer, "disabled"):
+                frappe.throw(frappe._("Cannot allocate to disabled customer {0}.").format(self.customer))
 
     def calculate_cost(self):
         """Calculate hourly_cost_rate and total_cost based on employee CTC."""

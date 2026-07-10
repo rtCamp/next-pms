@@ -276,12 +276,13 @@ class TestProjectViewAllocationFilters(_ProjectViewBase):
         cls.project = cls._make_project("PV Alloc Portal", cls.customer)
         cls.employee = cls._make_employee("PV Alloc Employee")
 
-        # In-window allocations.
+        # In-window allocations. Kept disjoint per employee+project so the
+        # overlap guard on Resource Allocation doesn't reject the fixtures.
         cls.a_billable = cls._make_allocation(
-            cls.employee, cls.project, WINDOW_START, "2026-06-19", is_billable=1, status="Confirmed"
+            cls.employee, cls.project, "2026-06-16", "2026-06-19", is_billable=1, status="Confirmed"
         )
         cls.a_nonbillable = cls._make_allocation(
-            cls.employee, cls.project, "2026-06-16", "2026-06-20", is_billable=0, status="Tentative"
+            cls.employee, cls.project, "2026-06-20", "2026-06-24", is_billable=0, status="Tentative"
         )
         # End == window start: inclusive overlap keeps it.
         cls.a_boundary = cls._make_allocation(

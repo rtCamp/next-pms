@@ -73,7 +73,12 @@ const PersonalTimesheetGrid = () => {
           )}
 
           {Object.keys(timesheetData?.data).length == 0 ? (
-            <Typography className="flex items-center justify-center">
+            <Typography
+              className={cn("flex items-center justify-center", {
+                "opacity-50 transition-opacity duration-150":
+                  isFilteredDataLoading,
+              })}
+            >
               No data found
             </Typography>
           ) : (
@@ -82,13 +87,14 @@ const PersonalTimesheetGrid = () => {
               hasMore={!isFilterRequest && hasMoreWeeks}
               verticalLodMore={loadData}
               className={cn(
-                "relative w-full h-[calc(100%-var(--spacing)*7)] overflow-auto no-scrollbar opacity-100",
+                "relative w-full h-[calc(100%-var(--spacing)*7)] opacity-100",
                 {
                   "opacity-50 transition-opacity duration-150":
                     isFilteredDataLoading,
                 },
               )}
               count={NUMBER_OF_WEEKS_TO_FETCH}
+              enableScrollArea
             >
               <div className="min-w-225">
                 {Object.entries(timesheetData.data).map(
@@ -127,7 +133,7 @@ const PersonalTimesheetGrid = () => {
                             holidays={timesheetData.holidays}
                             leaves={timesheetData.leaves}
                             tasks={value.tasks}
-                            firstWeek={index === 0}
+                            collapsed={index >= 6}
                             disabled={value.status === "Approved"}
                             setSelectedTask={setSelectedTask}
                             onButtonClick={() =>

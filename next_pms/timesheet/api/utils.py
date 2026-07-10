@@ -440,20 +440,45 @@ def get_matching_timesheet_employee_ids(
     return list({timesheet_by_name[parent].employee for parent in matched_parent_names if parent in timesheet_by_name})
 
 
+def sanitize_employee_conditions(employee_conditions: list | None) -> list:
+    """Drop conditions on fields missing from the site's Employee meta
+    (e.g. `custom_business_unit` without the rtcamp customisation) instead of raising.
+
+    Callers must sanitize before deciding filtered-vs-unfiltered behaviour, so a
+    condition that will be dropped anyway cannot flip the request into the
+    filtered path.
+    """
+    meta = frappe.get_meta("Employee")
+    return [[field, operator, value] for field, operator, value in employee_conditions or [] if meta.has_field(field)]
+
+
+def employee_condition_kwargs(employee_conditions: list | None) -> dict:
+    """Build `filter_employees` kwargs that apply Employee-level [field, operator, value]
+    conditions (already sanitized via `sanitize_employee_conditions`) with their
+    operators intact (e.g. `like` stays a LIKE, not an IN).
+
+    An explicit status condition replaces the default Active-only filter, matching
+    the behaviour of `filter_employees`'s own `status` parameter.
+    """
+    return {
+        "extra_conditions": employee_conditions or None,
+        "ignore_default_filters": any(field == "status" for field, _operator, _value in employee_conditions or []),
+    }
+
+
 def get_team_candidate_employee_ids(
     reports_to: str | None = None,
     dates: list | None = None,
     parsed_filters: dict | None = None,
     search: str | None = None,
     timesheet_status: list[str] | None = None,
-    status=None,
-    business_unit=None,
+    employee_conditions: list | None = None,
 ):
     if not dates:
         return []
 
     has_candidate_filters = bool(timesheet_status or search or any((parsed_filters or {}).values()))
-    if not has_candidate_filters and not status and not business_unit:
+    if not has_candidate_filters and not employee_conditions:
         return None
 
     employee_ids = get_matching_timesheet_employee_ids(
@@ -470,8 +495,7 @@ def get_team_candidate_employee_ids(
         start=0,
         reports_to=reports_to,
         ids=employee_ids,
-        status=status,
-        business_unit=business_unit,
+        **employee_condition_kwargs(employee_conditions),
     )
     if not filtered_count:
         return []
@@ -675,9 +699,11 @@ def build_chunk_context(employees: list, dates: list, parsed_filters: dict, sear
             "total_hours",
             "note",
             "custom_approval_status",
+            "custom_rejection_reason",
             "custom_weekly_approval_status",
         ],
     )
+    ts_parent_map = {ts.name: ts for ts in all_timesheets}
 
     timesheet_map = defaultdict(list)
     emp_ts_by_start = defaultdict(lambda: defaultdict(list))
@@ -764,6 +790,7 @@ def build_chunk_context(employees: list, dates: list, parsed_filters: dict, sear
         "timesheet_map": timesheet_map,
         "emp_ts_by_start": emp_ts_by_start,
         "detail_by_parent": detail_by_parent,
+        "ts_parent_map": ts_parent_map,
         "task_details_dict": task_details_dict,
         "week_status_map": week_status_map,
         "overall_status_map": overall_status_map,
@@ -782,6 +809,7 @@ def build_employee_week_details(
     week_details = {}
     emp_ts_by_start = context["emp_ts_by_start"].get(employee_name, {})
     detail_by_parent = context["detail_by_parent"]
+    ts_parent_map = context["ts_parent_map"]
     task_details_dict = context["task_details_dict"]
     has_search_or_task_filters = context["has_search_or_task_filters"]
 
@@ -830,7 +858,11 @@ def build_employee_week_details(
                         "data": [],
                     }
 
-                tasks[task_name]["data"].append({field: log.get(field) for field in ALLOWED_TIMESHET_DETAIL_FIELDS})
+                entry = {field: log.get(field) for field in ALLOWED_TIMESHET_DETAIL_FIELDS}
+                parent_ts = ts_parent_map.get(ts_name)
+                entry["custom_approval_status"] = parent_ts.get("custom_approval_status") if parent_ts else None
+                entry["custom_rejection_reason"] = parent_ts.get("custom_rejection_reason") if parent_ts else None
+                tasks[task_name]["data"].append(entry)
 
         week_status = context["week_status_map"].get((employee_name, date_info["start_date"]), "Not Submitted")
         should_skip_empty = has_filters and skip_empty_weeks
@@ -857,12 +889,12 @@ def paginate_qualifying_employee_payloads(
     start: int,
     page_length: int,
     builder,
-    status=None,
-    business_unit=None,
+    employee_conditions: list | None = None,
 ):
     selected = []
     total_count = 0
     employee_start = 0
+    employee_filter_kwargs = employee_condition_kwargs(employee_conditions)
 
     while True:
         chunk, _ = filter_employees(
@@ -870,8 +902,7 @@ def paginate_qualifying_employee_payloads(
             start=employee_start,
             reports_to=reports_to,
             ids=employee_ids,
-            status=status,
-            business_unit=business_unit,
+            **employee_filter_kwargs,
         )
         if not chunk:
             break

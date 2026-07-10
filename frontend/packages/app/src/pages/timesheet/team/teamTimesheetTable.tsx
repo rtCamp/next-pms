@@ -71,14 +71,11 @@ const TeamTimesheetGrid = () => {
           isLoading={isLoadingTeamData}
           hasMore={hasMore}
           verticalLodMore={loadMore}
-          className={cn(
-            "w-full h-[calc(100%-var(--spacing)*7)] overflow-auto no-scrollbar opacity-100",
-            {
-              "opacity-50 transition-opacity duration-150":
-                isFilteredDataLoading,
-            },
-          )}
+          className={cn("w-full h-[calc(100%-var(--spacing)*7)] opacity-100", {
+            "opacity-50 transition-opacity duration-150": isFilteredDataLoading,
+          })}
           count={NUMBER_OF_WEEKS_TO_FETCH}
+          enableScrollArea
         >
           <div className="min-w-225">
             {weekGroups.map((week, index) => {
@@ -110,7 +107,7 @@ const TeamTimesheetGrid = () => {
                     <TeamTimesheetRow
                       label={week.label}
                       dates={week.dates}
-                      firstWeek={index === 0}
+                      collapsed={index >= 6}
                       approvalPendingCount={week.approvalPendingCount}
                       setSelectedTask={setSelectedTask}
                       openWeeklyApproval={(employee, date) =>

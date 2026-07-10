@@ -1,7 +1,7 @@
 /**
  * External dependencies.
  */
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { mergeClassNames as cn } from "@next-pms/design-system";
 import { formatDateRange } from "@next-pms/design-system/date";
 import {
@@ -37,6 +37,7 @@ import { OverAllocationWarning } from "./overAllocationWarning";
 import { addAllocationFormSchema } from "./schema";
 import type { AddAllocationModalProps } from "./types";
 import { useOverAllocation } from "./useOverAllocation";
+import { useProjectTeamMemberIds } from "./useProjectTeamMemberIds";
 import { computeTotalHours } from "./utils";
 
 function AddAllocationModal({
@@ -70,12 +71,6 @@ function AddAllocationModal({
   );
 
   const allocationName = initialValues?.allocationName;
-  const selectedEmployeeOption = initialValues?.employeeId
-    ? {
-        label: initialValues.employeeLabel || initialValues.employeeId,
-        value: initialValues.employeeId,
-      }
-    : null;
   const selectedProjectOption = initialValues?.projectId
     ? {
         label: initialValues.projectLabel || initialValues.projectId,
@@ -89,45 +84,6 @@ function AddAllocationModal({
         value: initialValues.customer,
       }
     : null;
-
-  const { options: employeeOptions, isLoading: isEmployeeLookupLoading } =
-    useEmployeeLookup({
-      shouldFetch: open,
-      pageSize: 20,
-      query: employeeSearch,
-      selectedOption: selectedEmployeeOption,
-      formatOption: (option) => ({
-        ...option,
-        icon: (
-          <Avatar
-            size="xs"
-            shape="circle"
-            image={option.image}
-            label={option.label}
-          />
-        ),
-      }),
-    });
-
-  const { options: projectOptions, isLoading: isProjectLookupLoading } =
-    useProjectLookup({
-      shouldFetch: open,
-      filters: [
-        ["status", "!=", "Cancelled"],
-        ["is_active", "=", "Yes"],
-      ],
-      pageSize: 20,
-      query: projectSearch,
-      selectedOption: selectedProjectOption,
-    });
-
-  const { options: customerOptions, isLoading: isCustomerLookupLoading } =
-    useCustomerLookup({
-      shouldFetch: open,
-      pageSize: 20,
-      query: customerSearch,
-      selectedOption: selectedCustomerOption,
-    });
 
   const mergedDefaultValues = useMemo(() => {
     const initialFormValues = {
@@ -231,6 +187,71 @@ function AddAllocationModal({
     },
   });
 
+  const projectId = useStore(form.store, (state) => state.values.projectId);
+  const employeeId = useStore(form.store, (state) => state.values.employeeId);
+  const lastValidatedProjectIdRef = useRef<string | undefined>(undefined);
+
+  const selectedEmployeeOption = employeeId
+    ? {
+        label:
+          employeeId === initialValues?.employeeId
+            ? initialValues.employeeLabel || employeeId
+            : employeeId,
+        value: employeeId,
+      }
+    : null;
+
+  const { options: employeeOptions, isLoading: isEmployeeLookupLoading } =
+    useEmployeeLookup({
+      shouldFetch: open,
+      pageSize: 20,
+      query: employeeSearch,
+      projects: projectId ? [projectId] : undefined,
+      selectedOption: selectedEmployeeOption,
+      formatOption: (option) => ({
+        ...option,
+        icon: (
+          <Avatar
+            size="xs"
+            shape="circle"
+            image={option.image}
+            label={option.label}
+          />
+        ),
+      }),
+    });
+
+  const { options: projectOptions, isLoading: isProjectLookupLoading } =
+    useProjectLookup({
+      shouldFetch: open,
+      filters: [
+        ["status", "!=", "Cancelled"],
+        ["is_active", "=", "Yes"],
+      ],
+      pageSize: 20,
+      query: projectSearch,
+      selectedOption: selectedProjectOption,
+    });
+
+  const { options: customerOptions, isLoading: isCustomerLookupLoading } =
+    useCustomerLookup({
+      shouldFetch: open,
+      pageSize: 20,
+      query: customerSearch,
+      selectedOption: selectedCustomerOption,
+    });
+
+  const { memberIds: projectTeamMemberIds, isLoading: isProjectTeamLoading } =
+    useProjectTeamMemberIds({
+      projectId,
+      enabled: open,
+    });
+
+  const projectHasNoAssignedMembers =
+    Boolean(projectId) &&
+    !isProjectTeamLoading &&
+    projectTeamMemberIds.size === 0;
+
   const closeModal = useCallback(() => {
     onOpenChange(false);
     form.reset(mergedDefaultValues);
@@ -260,7 +281,6 @@ function AddAllocationModal({
     form.store,
     (state) => state.values.includeWeekends,
   );
-  const employeeId = useStore(form.store, (state) => state.values.employeeId);
 
   const overAllocatedDays = useOverAllocation({
     employeeId,
@@ -278,6 +298,7 @@ function AddAllocationModal({
     }
 
     form.reset(mergedDefaultValues);
+    lastValidatedProjectIdRef.current = undefined;
   }, [form, mergedDefaultValues, open]);
 
   useEffect(() => {
@@ -285,6 +306,23 @@ function AddAllocationModal({
     setProjectSearch("");
     setCustomerSearch("");
   }, [open]);
+
+  useEffect(() => {
+    if (isProjectTeamLoading) {
+      return;
+    }
+
+    if (lastValidatedProjectIdRef.current === projectId) {
+      return;
+    }
+    lastValidatedProjectIdRef.current = projectId;
+
+    const isEmployeeInProjectTeam = projectTeamMemberIds.has(employeeId);
+
+    if (projectId && employeeId && !isEmployeeInProjectTeam) {
+      form.setFieldValue("employeeId", "");
+    }
+  }, [projectId, employeeId, projectTeamMemberIds, isProjectTeamLoading, form]);
 
   const totalHours = computeTotalHours({
     hoursPerDay,
@@ -304,6 +342,7 @@ function AddAllocationModal({
 
       form.setFieldValue("projectId", nextProjectId);
       setProjectSearch("");
+      setEmployeeSearch("");
 
       if (selectedProject?.customer) {
         form.setFieldValue("customer", selectedProject.customer);
@@ -323,7 +362,7 @@ function AddAllocationModal({
           </label>
           <Combobox
             inputClassName="bg-surface-white h-8 border-outline-gray-2 text-ink-gray-7"
-            loading={isEmployeeLookupLoading}
+            loading={isEmployeeLookupLoading || isProjectTeamLoading}
             options={employeeOptions}
             searchValue={employeeSearch}
             placeholder="Select Employee"
@@ -331,6 +370,11 @@ function AddAllocationModal({
             disabled={isLockedAllocationMetadataEdit}
             onChange={(value) => field.handleChange(value as string)}
             onSearchChange={setEmployeeSearch}
+            emptyMessage={
+              projectHasNoAssignedMembers
+                ? "This project doesn't have any assigned team members"
+                : undefined
+            }
             openOnFocus
           />
           {!field.state.meta.isValid && (
@@ -657,16 +701,22 @@ function AddAllocationModal({
                   <label className="block text-base text-ink-gray-5">
                     Repeat for
                   </label>
-                  <TextInput
-                    type="number"
-                    size="md"
-                    variant="outline"
-                    disabled={variant === "edit"}
-                    value={field.state.value ?? ""}
-                    onChange={(e) =>
-                      field.handleChange(Math.max(1, Number(e.target.value)))
-                    }
-                  />
+                  <div className="relative">
+                    <TextInput
+                      type="number"
+                      size="md"
+                      variant="outline"
+                      disabled={variant === "edit"}
+                      value={field.state.value ?? ""}
+                      onChange={(e) =>
+                        field.handleChange(Math.max(1, Number(e.target.value)))
+                      }
+                      inputClassName="pr-13"
+                    />
+                    <span className="absolute right-2 top-1/2 -translate-y-1/2 text-ink-gray-5 text-sm">
+                      {field.state.value === 1 ? "week" : "weeks"}
+                    </span>
+                  </div>
                   {!field.state.meta.isValid && (
                     <ErrorMessage
                       message={field.state.meta.errors[0]?.message}

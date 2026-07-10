@@ -11,6 +11,7 @@ import {
   hashString,
   isCompleteFilterCondition,
   isNoValueOperator,
+  normalizeLikeFilterValue,
 } from "@/lib/utils";
 import { useProjectDetail } from "@/pages/project-details/context";
 import type { RiskFilters, RiskItem, RiskSort, UserDetails } from "./types";
@@ -30,7 +31,9 @@ export function useRisksData(filters: RiskFilters, sort: RiskSort | null) {
       base.push([
         f.field,
         f.operator,
-        isNoValueOperator(f.operator) ? null : f.value,
+        isNoValueOperator(f.operator)
+          ? null
+          : normalizeLikeFilterValue(f.operator, f.value),
       ]);
     });
 
