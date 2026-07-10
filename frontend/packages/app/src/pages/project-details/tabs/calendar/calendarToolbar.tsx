@@ -11,7 +11,6 @@ import {
   SmallLeftChevron,
   SmallRightChevron,
   SmallDown,
-  DotHorizontal,
 } from "@rtcamp/frappe-ui-react/icons";
 import { format, parseISO } from "date-fns";
 
@@ -121,8 +120,6 @@ export function CalendarToolbar({
           size="sm"
           variant="subtle"
         />
-
-        <Button icon={() => <DotHorizontal size={16} />} />
       </div>
     </div>
   );
