@@ -19,6 +19,7 @@
   "section_break_ugdn",
   "total_allocated_hours",
   "hours_allocated_per_day",
+  "include_weekends",
   "column_break_wppz",
   "allocation_start_date",
   "allocation_end_date",
@@ -69,6 +70,12 @@
    "fieldtype": "Float",
    "label": "Hours Allocated / Day ",
    "reqd": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "include_weekends",
+   "fieldtype": "Check",
+   "label": "Include Weekends"
   },
   {
    "fieldname": "allocation_start_date",
@@ -189,7 +196,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-05-28 16:18:35.637846",
+ "modified": "2026-07-10 00:00:00.000000",
  "modified_by": "Administrator",
  "module": "Resource Management",
  "name": "Resource Allocation",

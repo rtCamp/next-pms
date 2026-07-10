@@ -34,6 +34,7 @@ class ResourceAllocation(Document):
         employee_name: DF.Data | None
         hourly_cost_rate: DF.Currency
         hours_allocated_per_day: DF.Float
+        include_weekends: DF.Check
         is_billable: DF.Check
         naming_series: DF.Literal["RA-.{employee}.-.YYYY.-.####."]
         note: DF.Text | None

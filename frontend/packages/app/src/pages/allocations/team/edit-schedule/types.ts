@@ -48,6 +48,7 @@ export interface EditScheduleInitialValues {
   allocationHoursPerDay?: number;
   isBillable?: boolean;
   isTentative?: boolean;
+  includeWeekends?: boolean;
   note?: string;
   override?: AllocationOverrideEntry[];
   recurrenceId?: string;

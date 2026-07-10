@@ -90,6 +90,7 @@ export function useAllocationModal(refresh: RefreshAllocations) {
           : data.hoursPerDay,
       isBillable: data.billable,
       isTentative: data.tentative,
+      includeWeekends: Boolean(data.includeWeekends),
       note: data.note,
       allocationStartDate: data.allocationStartDate
         ? format(data.allocationStartDate, "yyyy-MM-dd")
@@ -201,6 +202,7 @@ export function useAllocationModal(refresh: RefreshAllocations) {
           allocationHoursPerDay: initialValues?.allocationHoursPerDay,
           isBillable: initialValues?.isBillable,
           isTentative: initialValues?.isTentative,
+          includeWeekends: initialValues?.includeWeekends,
           note: initialValues?.note,
           override: initialValues?.override,
           recurrenceId: initialValues?.recurrenceId,

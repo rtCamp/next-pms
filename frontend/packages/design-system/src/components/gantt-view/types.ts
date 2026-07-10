@@ -1,7 +1,5 @@
 export type DeleteAllocationMode =
-  | "only_this"
-  | "this_and_future"
-  | "all_in_series";
+  "only_this" | "this_and_future" | "all_in_series";
 
 export interface Allocation {
   /** Unique identifier for the allocation. */
@@ -45,6 +43,8 @@ export interface Allocation {
   allocationEndDate?: Date;
   /** Underlying allocation document default hours per day. */
   allocationHoursPerDay?: number;
+  /** Whether the allocation includes weekend days. */
+  includeWeekends?: boolean;
 }
 
 export interface MemberBarAllocation extends Allocation {
@@ -134,6 +134,8 @@ export interface AllocationCallbackData {
   allocationEndDate?: Date;
   /** Underlying allocation document default hours per day. */
   allocationHoursPerDay?: number;
+  /** Whether the allocation includes weekend days. */
+  includeWeekends?: boolean;
   /** Visible segment start date before the current edit. */
   segmentStartDate?: Date;
   /** Visible segment end date before the current edit. */
