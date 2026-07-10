@@ -50,9 +50,18 @@ class ResourceAllocation(Document):
         if self.allocation_end_date < self.allocation_start_date:
             frappe.throw(frappe._("End date should be greater than or equal to start date"))
 
+        self.set_project_currency()
         self.validate_no_overlap()
         self.validate_project_and_customer()
         self.calculate_cost()
+
+    def set_project_currency(self):
+        if not self.project:
+            return
+
+        project_currency = frappe.get_cached_value("Project", self.project, "custom_currency")
+        if project_currency:
+            self.currency = project_currency
 
     def validate_no_overlap(self):
         """Block a second allocation for the same employee + project whose date range

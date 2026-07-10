@@ -14,6 +14,7 @@ import {
   expectatedHours,
   isCompleteFilterCondition,
   isNoValueOperator,
+  normalizeLikeFilterValue,
   pickAllowed,
 } from "@/lib/utils";
 import type { WorkingFrequency } from "@/types";
@@ -122,7 +123,9 @@ export function buildAllocationQueryFilters({
     filters.push([
       filter.field,
       filter.operator,
-      isNoValueOperator(filter.operator) ? null : (filter.value ?? null),
+      isNoValueOperator(filter.operator)
+        ? null
+        : (normalizeLikeFilterValue(filter.operator, filter.value) ?? null),
     ]);
   });
 

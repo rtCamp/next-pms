@@ -32,6 +32,12 @@ export function ProjectListSubHeader() {
     setSort,
   } = useProjectFilters();
 
+  const externalFilterCount =
+    (search !== "" ? 1 : 0) +
+    (ragStatus.length > 0 ? 1 : 0) +
+    (phase ? 1 : 0) +
+    (status ? 1 : 0);
+
   const isKanban = !!useMatch(ROUTES["project-kanban"]);
 
   const [searchInput, setSearchInput] = useState(search);
@@ -90,11 +96,10 @@ export function ProjectListSubHeader() {
             fields={[
               { field: "project_name", label: "Project name" },
               { field: "custom_project_phase", label: "Phase" },
-              { field: "total_billable_amount", label: "Total budget" },
-              {
-                field: "custom_percentage_estimated_profit",
-                label: "Profit margin",
-              },
+              { field: "burn_rate_per_week", label: "Burn rate/week" },
+              { field: "cost_burn_percent", label: "Cost burn" },
+              { field: "total_budget", label: "Total budget" },
+              { field: "profit_margin", label: "Profit margin" },
               { field: "expected_start_date", label: "Expected Start Date" },
               { field: "custom_next_milestone", label: "Next milestone" },
               { field: "expected_end_date", label: "Expected End Date" },
@@ -108,6 +113,7 @@ export function ProjectListSubHeader() {
               },
               { field: "project_type", label: "Project type" },
               { field: "customer", label: "Client name" },
+              { field: "contract_end_date", label: "Contract end date" },
               { label: "Last Updated On", field: "modified" },
             ]}
           />
@@ -208,6 +214,14 @@ export function ProjectListSubHeader() {
               type: "string",
             },
           ]}
+          externalFilterCount={externalFilterCount}
+          onClearAll={() => {
+            setSearchInput("");
+            setSearch("");
+            setRagStatus([]);
+            setPhase("");
+            setStatus("");
+          }}
         />
       </div>
     </div>

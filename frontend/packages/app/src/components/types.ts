@@ -24,6 +24,10 @@ export interface InfiniteScrollProps {
   skeletonClassName?: string;
   count?: number;
   scrollResetKey?: string | number;
+  showScrollbar?: boolean;
+  scrollbarVisibility?: "always" | "hover";
+  scrollbarVariant?: "classic" | "overlay";
+  enableScrollArea?: boolean;
 }
 
 export interface TaskIndicatorProps {

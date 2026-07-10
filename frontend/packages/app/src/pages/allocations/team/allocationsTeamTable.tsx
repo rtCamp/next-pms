@@ -34,6 +34,7 @@ export const AllocationsTeamTable = () => {
   const querySignature = useAllocationsTeam(
     ({ state }) => state.querySignature,
   );
+  const todayResetKey = useAllocationsTeam(({ state }) => state.todayResetKey);
   const loadMore = useAllocationsTeam(({ actions }) => actions.loadMore);
 
   const ganttRef = useUnsavedChangesSource();
@@ -63,8 +64,10 @@ export const AllocationsTeamTable = () => {
             isLoading={isQueryLoading || isNextPageLoading}
             hasMore={hasMore}
             verticalLodMore={loadMore}
-            scrollResetKey={querySignature}
-            className={cn("w-full h-full overflow-auto no-scrollbar", {
+            scrollResetKey={`${querySignature}:${todayResetKey}`}
+            enableScrollArea
+            showScrollbar={false}
+            className={cn("w-full h-full", {
               "opacity-50 transition-opacity duration-150 pointer-events-none":
                 isRefreshingVisibleGrid,
             })}

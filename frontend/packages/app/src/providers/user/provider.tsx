@@ -50,12 +50,22 @@ export const UserProvider: FC<PropsWithChildren> = ({ children }) => {
   >(window.frappe?.boot?.has_industry || false);
 
   const { logout, isLoading: isAuthLoading, currentUser } = useFrappeAuth();
+  const isAuthenticated =
+    !isAuthLoading && !!currentUser && currentUser !== "Guest";
 
   const { data: appData, error: appDataError } = useFrappeGetCall(
     "next_pms.timesheet.api.app.get_data",
+    undefined,
+    isAuthenticated
+      ? ["next_pms.timesheet.api.app.get_data", currentUser]
+      : null,
   );
 
   useEffect(() => {
+    if (!appData) {
+      return;
+    }
+
     setRoles(appData?.message?.roles || []);
     setCurrencies(appData?.message?.currencies || []);
     setHasBuField(appData?.message?.has_business_unit || false);
@@ -64,17 +74,27 @@ export const UserProvider: FC<PropsWithChildren> = ({ children }) => {
 
   const { data: employeeData, error: employeeDataError } = useFrappeGetCall(
     "next_pms.timesheet.api.employee.get_data",
+    undefined,
+    isAuthenticated
+      ? ["next_pms.timesheet.api.employee.get_data", currentUser]
+      : null,
   );
 
-  if (appDataError) {
-    throw new Error(parseFrappeErrorMsg(appDataError));
-  }
+  if (isAuthenticated) {
+    if (appDataError) {
+      throw new Error(parseFrappeErrorMsg(appDataError));
+    }
 
-  if (employeeDataError) {
-    throw new Error(parseFrappeErrorMsg(employeeDataError));
+    if (employeeDataError) {
+      throw new Error(parseFrappeErrorMsg(employeeDataError));
+    }
   }
 
   useEffect(() => {
+    if (!employeeData) {
+      return;
+    }
+
     setEmployeeId(employeeData?.message?.employee ?? "");
     setWorkingHours(
       employeeData?.message?.employee_working_detail?.working_hour ?? 8,

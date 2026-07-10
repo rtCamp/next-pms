@@ -51,12 +51,13 @@ export function GanttMemberSummaryBar({
   if (summary.type === "timeoff") {
     const leaveDays =
       differenceInCalendarDays(summary.endDate, summary.startDate) + 1;
-    const leaveLabel = leaveDays > 2 ? `${leaveDays} days` : "";
+    const leaveLabel = `${leaveDays} ${leaveDays === 1 ? "day" : "days"} off`;
 
     return (
       <GanttBar
         variant="timeoff"
         label={leaveLabel}
+        showInlineLabel={leaveDays > 1}
         left={left}
         width={width}
       />

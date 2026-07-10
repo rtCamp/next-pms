@@ -117,10 +117,12 @@ function AboutThisProjectContent({ className }: { className: string }) {
             </div>
             <BudgetBurnBar
               value={sidebar.burn.cost_accrued}
+              primaryTooltip="Cost Accrued"
               secondaryValue={sidebar.burn.cost_forecasted}
+              secondaryTooltip="Cost Forcasted"
               markerValue={sidebar.burn.target_cost}
+              markerTooltip="Target Cost"
               maxValue={sidebar.burn.total_budget}
-              variant="burn"
             />
           </div>
         </Section>

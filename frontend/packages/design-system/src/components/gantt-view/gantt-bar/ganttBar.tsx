@@ -2,6 +2,7 @@
  * External dependencies.
  */
 import React from "react";
+import { Tooltip } from "@rtcamp/frappe-ui-react";
 import { TimeOff } from "@rtcamp/frappe-ui-react/icons";
 import { cva, type VariantProps } from "class-variance-authority";
 
@@ -76,6 +77,7 @@ interface GanttBarProps
   onResizeEnd?: (geometry: GanttBarGeometry) => void;
   renderLabel?: (state: GanttBarRenderState) => React.ReactNode;
   renderFloatingLabel?: (state: GanttBarRenderState) => React.ReactNode;
+  showInlineLabel?: boolean;
   trailingLabel?: React.ReactNode;
   trailingLabelVariant?: GanttBarTrailingLabelVariant;
 }
@@ -98,6 +100,7 @@ export const GanttBar = React.forwardRef<HTMLDivElement, GanttBarProps>(
       onResizeEnd,
       renderLabel,
       renderFloatingLabel,
+      showInlineLabel = true,
       trailingLabel,
       trailingLabelVariant,
       onClick,
@@ -152,18 +155,20 @@ export const GanttBar = React.forwardRef<HTMLDivElement, GanttBarProps>(
           <CrosshatchLayer variant={variant ?? "allocation"} />
         )}
         {isTimeoff ? (
-          <>
-            <TimeOff
-              className="shrink-0 size-4 text-ink-gray-5"
-              size={16}
-              strokeWidth={1.5}
-            />
-            {label ? (
-              <span className="text-[13px] font-medium tracking-[0.02em] truncate">
-                {label}
-              </span>
-            ) : null}
-          </>
+          <Tooltip text={label}>
+            <div className="absolute inset-0 px-2.5 py-2 w-full flex items-center justify-center gap-1.5">
+              <TimeOff
+                className="shrink-0 size-4 text-ink-gray-5"
+                size={16}
+                strokeWidth={1.5}
+              />
+              {showInlineLabel && label ? (
+                <span className="text-[13px] font-medium tracking-[0.02em] truncate">
+                  {label}
+                </span>
+              ) : null}
+            </div>
+          </Tooltip>
         ) : (
           <>
             <span className="min-w-0 flex-1 overflow-hidden text-[13px] font-medium tracking-[0.02em] truncate">

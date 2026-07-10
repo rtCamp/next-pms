@@ -33,6 +33,30 @@ TIMELINE_ITEM_FIELDS = [
     "actual_end_date",
 ]
 
+# Sort fields whose values are computed (not DB columns); handled via sort-key pagination
+COMPUTED_SORT_FIELDS = (
+    "burn_rate_per_week",
+    "cost_burn_percent",
+    "total_budget",
+    "profit_margin",
+    "contract_end_date",
+)
+
+# Minimal Project columns needed to compute the values in COMPUTED_SORT_FIELDS
+SORT_KEY_FIELDS = [
+    "name",
+    "custom_billing_type",
+    "total_sales_amount",
+    "estimated_costing",
+    "total_costing_amount",
+    "total_billable_amount",
+    "custom_default_hourly_billing_rate",
+    "expected_start_date",
+    "status",
+    "expected_end_date",
+    "actual_end_date",
+]
+
 # Fields to fetch from Project doctype
 LIST_VIEW_FIELDS = [
     "name",

@@ -17,6 +17,11 @@ export const teamAllocationFilters: FilterField[] = [
     type: "string",
   },
   {
+    name: "tag",
+    label: "Tag",
+    type: "string",
+  },
+  {
     name: "business_unit",
     label: "Business Unit",
     type: "string",

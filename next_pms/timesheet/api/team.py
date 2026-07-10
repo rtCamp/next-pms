@@ -35,6 +35,7 @@ from .utils import (
     paginate_qualifying_employee_payloads,
     paginate_unfiltered_employee_payloads,
     parse_filters,
+    sanitize_employee_conditions,
 )
 
 
@@ -209,15 +210,13 @@ def _get_team_timesheet_data(
 
     parsed_filters = parse_filters(filters)
 
-    # get the employee status and business unit from the filters (drop down ui in frontend)
-    # this will be passed to the global employee filter so the pool of employees is narrowed down.
-    employee_status = None
-    employee_business_unit = None
-    for field, _operator, value in parsed_filters.get("Employee", []):
-        if field == "status":
-            employee_status = [value] if isinstance(value, str) else value
-        elif field == "custom_business_unit":
-            employee_business_unit = [value] if isinstance(value, str) else value
+    # Employee-level filters (status / business unit drop-downs in frontend) are
+    # passed through with their operators intact so the global employee filter
+    # narrows the pool with the same semantics the caller asked for (like, in, ...).
+    # Sanitized (and written back) before has_filters so a condition dropped for a
+    # missing meta field cannot flip the request into the filtered path.
+    employee_conditions = sanitize_employee_conditions(parsed_filters.get("Employee"))
+    parsed_filters["Employee"] = employee_conditions
 
     has_filters = bool(search or status_filter or any(parsed_filters.values()))
     dates, _ = build_aggregate_dates(date=date, max_week=max_week, has_filters=has_filters)
@@ -230,8 +229,7 @@ def _get_team_timesheet_data(
         parsed_filters=parsed_filters,
         search=search,
         timesheet_status=status_filter,
-        status=employee_status,
-        business_unit=employee_business_unit,
+        employee_conditions=employee_conditions,
     )
 
     if candidate_employee_ids == []:
@@ -334,8 +332,7 @@ def _get_team_timesheet_data(
             start=start,
             page_length=page_length,
             builder=build_team_employee_payload,
-            status=employee_status,
-            business_unit=employee_business_unit,
+            employee_conditions=employee_conditions,
         )
     else:
         # No filters (candidate_employee_ids is None here) — every employee
