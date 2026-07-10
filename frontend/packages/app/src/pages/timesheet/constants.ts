@@ -79,6 +79,10 @@ export const personalTimesheetFilters: FilterField[] = [
     label: "Project",
     type: "link",
     link: { doctype: "Project" },
+    operators: [
+      { label: "Equals", value: "=" },
+      { label: "Not Equals", value: "!=" },
+    ],
   },
   {
     fieldCategory: "Timesheet Detail",
@@ -86,6 +90,10 @@ export const personalTimesheetFilters: FilterField[] = [
     label: "Task",
     type: "link",
     link: { doctype: "Task", labelField: "subject" },
+    operators: [
+      { label: "Equals", value: "=" },
+      { label: "Not Equals", value: "!=" },
+    ],
   },
   {
     name: "date",
@@ -101,6 +109,10 @@ export const teamTimesheetFilters: FilterField[] = [
     label: "Project",
     type: "link",
     link: { doctype: "Project" },
+    operators: [
+      { label: "Equals", value: "=" },
+      { label: "Not Equals", value: "!=" },
+    ],
   },
   {
     fieldCategory: "Timesheet Detail",
@@ -108,6 +120,10 @@ export const teamTimesheetFilters: FilterField[] = [
     label: "Task",
     type: "link",
     link: { doctype: "Task", labelField: "subject" },
+    operators: [
+      { label: "Equals", value: "=" },
+      { label: "Not Equals", value: "!=" },
+    ],
   },
   {
     name: "date",
@@ -120,6 +136,10 @@ export const teamTimesheetFilters: FilterField[] = [
     label: "Member",
     type: "link",
     link: { doctype: "Employee", labelField: "employee_name" },
+    operators: [
+      { label: "Equals", value: "=" },
+      { label: "Not Equals", value: "!=" },
+    ],
   },
   {
     fieldCategory: "Employee",
@@ -145,6 +165,10 @@ export const teamTimesheetFilters: FilterField[] = [
     label: "Business Unit",
     type: "link",
     link: { doctype: "Business Unit" },
+    operators: [
+      { label: "Equals", value: "=" },
+      { label: "Not Equals", value: "!=" },
+    ],
   },
 ];
 
@@ -155,6 +179,10 @@ export const projectTimesheetFilters: FilterField[] = [
     label: "Project",
     type: "link",
     link: { doctype: "Project" },
+    operators: [
+      { label: "Equals", value: "=" },
+      { label: "Not Equals", value: "!=" },
+    ],
   },
   {
     name: "date",
@@ -167,5 +195,9 @@ export const projectTimesheetFilters: FilterField[] = [
     label: "Member",
     type: "link",
     link: { doctype: "Employee", labelField: "employee_name" },
+    operators: [
+      { label: "Equals", value: "=" },
+      { label: "Not Equals", value: "!=" },
+    ],
   },
 ];

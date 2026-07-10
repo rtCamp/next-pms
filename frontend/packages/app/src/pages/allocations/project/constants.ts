@@ -21,6 +21,10 @@ export const projectAllocationFilters: FilterField[] = [
     label: "Customer",
     type: "link",
     link: { doctype: "Customer", labelField: "customer_name" },
+    operators: [
+      { label: "Equals", value: "=" },
+      { label: "Not Equals", value: "!=" },
+    ],
   },
   {
     name: "billing_type",
@@ -47,5 +51,9 @@ export const projectAllocationFilters: FilterField[] = [
     label: "Project Manager",
     type: "link",
     link: { doctype: "User", labelField: "full_name" },
+    operators: [
+      { label: "Equals", value: "=" },
+      { label: "Not Equals", value: "!=" },
+    ],
   },
 ];

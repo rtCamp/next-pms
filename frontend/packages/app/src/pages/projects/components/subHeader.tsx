@@ -126,21 +126,34 @@ export function ProjectListSubHeader() {
           renderLinkValue={(props) => <FilterLinkValue {...props} />}
           fields={[
             {
-              name: "project_name",
+              name: "name",
               label: "Project",
-              type: "string",
+              type: "link",
+              link: { doctype: "Project" },
+              operators: [
+                { label: "Equals", value: "=" },
+                { label: "Not Equals", value: "!=" },
+              ],
             },
             {
               name: "custom_project_manager",
               label: "Project Manager",
               type: "link",
               link: { doctype: "User", labelField: "full_name" },
+              operators: [
+                { label: "Equals", value: "=" },
+                { label: "Not Equals", value: "!=" },
+              ],
             },
             {
               name: "custom_business_unit",
               label: "Business Unit",
               type: "link",
               link: { doctype: "Business Unit" },
+              operators: [
+                { label: "Equals", value: "=" },
+                { label: "Not Equals", value: "!=" },
+              ],
             },
             {
               name: "project_type",
@@ -176,30 +189,50 @@ export function ProjectListSubHeader() {
               label: "Industry",
               type: "link",
               link: { doctype: "Industry Type" },
+              operators: [
+                { label: "Equals", value: "=" },
+                { label: "Not Equals", value: "!=" },
+              ],
             },
             {
               name: "customer",
               label: "Customer",
               type: "link",
               link: { doctype: "Customer", labelField: "customer_name" },
+              operators: [
+                { label: "Equals", value: "=" },
+                { label: "Not Equals", value: "!=" },
+              ],
             },
             {
               name: "custom_engineering_manager",
               label: "Engineering Manager",
               type: "link",
               link: { doctype: "User", labelField: "full_name" },
+              operators: [
+                { label: "Equals", value: "=" },
+                { label: "Not Equals", value: "!=" },
+              ],
             },
             {
               name: "custom_account_manager_",
               label: "Account Manager",
               type: "link",
               link: { doctype: "User", labelField: "full_name" },
+              operators: [
+                { label: "Equals", value: "=" },
+                { label: "Not Equals", value: "!=" },
+              ],
             },
             {
               name: "custom_host",
               label: "Host",
               type: "link",
               link: { doctype: "Host" },
+              operators: [
+                { label: "Equals", value: "=" },
+                { label: "Not Equals", value: "!=" },
+              ],
             },
           ]}
           externalFilterCount={externalFilterCount}
