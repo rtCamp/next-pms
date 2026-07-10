@@ -82,8 +82,6 @@ def get_burn_rate_per_week(project: dict) -> float | None:
     Average budget consumed per week based on charge-out rate X hours worked.
     Returns None if no billing rate is defined (display blank in UI).
     """
-    if not project.get("custom_default_hourly_billing_rate"):
-        return None
 
     total_billable = flt(project.get("total_billable_amount"))
     if not total_billable:
