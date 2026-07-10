@@ -126,6 +126,12 @@ export const teamTimesheetFilters: FilterField[] = [
       { label: "Suspended", value: "Suspended" },
       { label: "Left", value: "Left" },
     ],
+    // Default select operators (is/is_not/is_empty/is_not_empty) are not valid
+    // Frappe operators, and status is mandatory so empty checks are meaningless.
+    operators: [
+      { label: "is", value: "=" },
+      { label: "is not", value: "!=" },
+    ],
     type: "select",
   },
   {

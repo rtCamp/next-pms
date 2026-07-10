@@ -7,7 +7,7 @@ from frappe.tests import IntegrationTestCase
 from next_pms.tests.utils import make_holiday_list
 from next_pms.timesheet.api.team import get_team_timesheet_data
 from next_pms.timesheet.api.timesheet import save as save_timesheet
-from next_pms.timesheet.api.utils import get_holidays
+from next_pms.timesheet.api.utils import get_holidays, sanitize_employee_conditions
 
 # build_aggregate_dates walks backward from `date`, so anchoring on the
 # Monday of W2 yields exactly [W1, W2] = [06-15..06-21, 06-22..06-28] for
@@ -463,3 +463,100 @@ class TestTeamTimesheetDataFilters(_TeamTimesheetDataBase):
         for emp in (self.r1, self.r2):
             self.assertEqual(len(with_skip["data"][emp]["timesheet_details"]), 1)
             self.assertEqual(len(without_skip["data"][emp]["timesheet_details"]), 2)
+
+
+LEFT_EMP_NAME = "Meera Joshi"
+BU_ALPHA_NAME = "Ttf BU Alpha"
+BU_BETA_NAME = "Ttf BU Beta"
+
+
+class TestTeamTimesheetDataEmployeeFilters(_TeamTimesheetDataBase):
+    """Employee-doctype composite filters — operators must survive to SQL instead of
+    being coerced into IN (status) or exact-match (business unit)."""
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        frappe.set_user("Administrator")
+
+        # Timesheet saved while Active, then flipped via db.set_value to skip
+        # HRMS's relieving-date validation.
+        cls.left_emp = cls._make_employee(LEFT_EMP_NAME, reports_to=cls.mgr)
+        cls._save(cls.left_emp, W1_MON, cls.task_alpha, 2, "left mon")
+        frappe.db.set_value("Employee", cls.left_emp, "status", "Left")
+
+        cls.has_business_unit = bool(frappe.db.exists("DocType", "Business Unit")) and frappe.get_meta(
+            "Employee"
+        ).has_field("custom_business_unit")
+        if cls.has_business_unit:
+            cls.bu_alpha = cls._make_business_unit(BU_ALPHA_NAME)
+            cls.bu_beta = cls._make_business_unit(BU_BETA_NAME)
+            frappe.db.set_value("Employee", cls.r1, "custom_business_unit", cls.bu_alpha)
+            frappe.db.set_value("Employee", cls.r2, "custom_business_unit", cls.bu_beta)
+
+        frappe.clear_cache()
+
+    @classmethod
+    def _make_business_unit(cls, business_unit_name):
+        existing = frappe.db.get_value("Business Unit", {"business_unit_name": business_unit_name})
+        if existing:
+            return existing
+        return (
+            frappe.get_doc({"doctype": "Business Unit", "business_unit_name": business_unit_name})
+            .insert(ignore_permissions=True)
+            .name
+        )
+
+    def _skip_without_business_unit(self):
+        if not self.has_business_unit:
+            self.skipTest("Business Unit doctype / custom_business_unit field not installed")
+
+    def test_status_equals_overrides_default_active_filter(self):
+        res = self._call(
+            reports_to=self.mgr,
+            filters=json.dumps([["Employee", "status", "=", "Left"]]),
+        )
+        self.assertEqual(list(res["data"].keys()), [self.left_emp])
+        self.assertEqual(res["total_count"], 1)
+
+    def test_status_not_equals_operator_preserved(self):
+        # Under the old IN coercion this returned the Active employees instead.
+        res = self._call(
+            reports_to=self.mgr,
+            filters=json.dumps([["Employee", "status", "!=", "Active"]]),
+        )
+        self.assertEqual(list(res["data"].keys()), [self.left_emp])
+        self.assertEqual(res["total_count"], 1)
+
+    def test_status_filter_without_match_returns_empty(self):
+        res = self._call(
+            reports_to=self.mgr,
+            filters=json.dumps([["Employee", "status", "=", "Suspended"]]),
+        )
+        self.assertEqual(res["data"], {})
+        self.assertEqual(res["total_count"], 0)
+        self.assertFalse(res["has_more"])
+
+    def test_business_unit_like_matches_wildcard(self):
+        self._skip_without_business_unit()
+        res = self._call(
+            reports_to=self.mgr,
+            filters=json.dumps([["Employee", "custom_business_unit", "like", "%BU Alph%"]]),
+        )
+        self.assertEqual(list(res["data"].keys()), [self.r1])
+        self.assertEqual(res["total_count"], 1)
+
+    def test_business_unit_not_like_excludes_match(self):
+        self._skip_without_business_unit()
+        # Only r2 qualifies: r1's BU matches the pattern, left_emp fails the
+        # default Active-only filter, r3 has no timesheets in the window.
+        res = self._call(
+            reports_to=self.mgr,
+            filters=json.dumps([["Employee", "custom_business_unit", "not like", "%BU Alph%"]]),
+        )
+        self.assertEqual(list(res["data"].keys()), [self.r2])
+        self.assertEqual(res["total_count"], 1)
+
+    def test_sanitize_drops_conditions_on_missing_meta_fields(self):
+        conditions = sanitize_employee_conditions([["status", "=", "Active"], ["field_missing_from_meta", "=", "x"]])
+        self.assertEqual(conditions, [["status", "=", "Active"]])
