@@ -39,7 +39,8 @@ export function CommentItem({ comment, canReply }: CommentItemProps) {
   const isOwnedByViewer =
     Boolean(authorId) &&
     (comment.authorId === authorId || comment.ownerId === authorId);
-  const canManageComment = isOwnedByViewer || canManageAllComments;
+  const canManageComment =
+    (isOwnedByViewer || canManageAllComments) && !comment.deleted;
 
   const handleEdit = useCallback(
     async (value: string) => {
@@ -73,7 +74,11 @@ export function CommentItem({ comment, canReply }: CommentItemProps) {
             {comment.authorName}
           </span>
           <span className="shrink-0 text-base text-ink-gray-5">
-            added a comment
+            {comment.deleted
+              ? "deleted"
+              : comment.edited
+                ? "edited"
+                : "added a comment"}
           </span>
         </div>
         <span className="shrink-0 text-sm text-ink-gray-5">{timestamp}</span>
@@ -92,7 +97,11 @@ export function CommentItem({ comment, canReply }: CommentItemProps) {
       ) : (
         <div className="rounded-lg bg-surface-gray-1 px-3">
           <StaticTextEditor
-            content={comment.content}
+            content={
+              comment.deleted
+                ? "This comment has been deleted."
+                : comment.content
+            }
             editorClass="prose-sm text-ink-gray-7"
           />
         </div>
