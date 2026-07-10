@@ -41,7 +41,7 @@ class ErrorFallback extends Component<ErrorFallbackProp, ErrorFallbackState> {
 
     return hasError
       ? fallback || (
-          <div className="w-full h-full flex flex-col gap-1 justify-center items-center">
+          <div className="w-full h-full p-2 flex flex-col gap-1 justify-center items-center">
             <Typography variant="p" className="text-ink-gray-7 font-medium">
               Something went wrong
             </Typography>
