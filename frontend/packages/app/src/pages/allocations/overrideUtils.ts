@@ -16,8 +16,7 @@ interface AllocationScheduleContext {
 }
 
 interface AllocationEditRange {
-  startDate: string;
-  endDate: string;
+  selectedDates: string[];
   hoursPerDay: number;
 }
 
@@ -46,33 +45,22 @@ const getDateKeysInRange = (startDate: string, endDate: string) =>
   }).map((date) => format(date, "yyyy-MM-dd"));
 
 /**
- * Orders a date range so the start is on or before the end.
- */
-const normalizeRange = (startDate: string, endDate: string) =>
-  startDate <= endDate
-    ? { startDate, endDate }
-    : { startDate: endDate, endDate: startDate };
-
-/**
- * Checks if the proposed edit range is the same as the allocation's current range, ignoring hours-per-day.
- * This is used to determine if the edit is a base-hours change or a day-override change.
+ * Checks if the proposed edit selection is the same as the allocation's entire range.
  */
 const isFullAllocationRangeEdit = ({
   allocation,
-  next,
+  selectedDates,
 }: {
   allocation: AllocationScheduleContext;
-  next: Pick<AllocationEditRange, "startDate" | "endDate">;
+  selectedDates: string[];
 }): boolean => {
-  const normalizedNextRange = normalizeRange(next.startDate, next.endDate);
-  const normalizedAllocationRange = normalizeRange(
+  const allDays = getDateKeysInRange(
     allocation.allocationStartDate,
     allocation.allocationEndDate,
   );
-
   return (
-    normalizedNextRange.startDate === normalizedAllocationRange.startDate &&
-    normalizedNextRange.endDate === normalizedAllocationRange.endDate
+    allDays.length === selectedDates.length &&
+    allDays.every((d) => selectedDates.includes(d))
   );
 };
 
@@ -167,7 +155,7 @@ export const buildScheduleSelectionPayload = ({
 }): ScheduleSelectionPayload => {
   const isBaseHoursEdit = isFullAllocationRangeEdit({
     allocation,
-    next,
+    selectedDates: next.selectedDates,
   });
 
   if (
@@ -183,12 +171,8 @@ export const buildScheduleSelectionPayload = ({
 
   const currentHoursByDate = buildEffectiveHoursByDate(allocation);
   const desiredHoursByDate = new Map(currentHoursByDate);
-  const normalizedNextRange = normalizeRange(next.startDate, next.endDate);
 
-  for (const date of getDateKeysInRange(
-    normalizedNextRange.startDate,
-    normalizedNextRange.endDate,
-  )) {
+  for (const date of next.selectedDates) {
     desiredHoursByDate.set(date, next.hoursPerDay);
   }
 

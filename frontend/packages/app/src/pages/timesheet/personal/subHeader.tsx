@@ -14,25 +14,13 @@ import { personalTimesheetFilters } from "../constants";
 
 export function SubHeader() {
   const search = usePersonalTimesheet(({ state }) => state.filters.search);
-  const approvalStatus = usePersonalTimesheet(
-    ({ state }) => state.filters.approvalStatus,
-  );
-  const compositeFilters = usePersonalTimesheet(
-    ({ state }) => state.compositeFilters,
-  );
+  const approvalStatus = usePersonalTimesheet(({ state }) => state.filters.approvalStatus);
+  const compositeFilters = usePersonalTimesheet(({ state }) => state.compositeFilters);
 
-  const handleSearchChange = usePersonalTimesheet(
-    ({ actions }) => actions.handleSearchChange,
-  );
-  const handleApprovalStatusChange = usePersonalTimesheet(
-    ({ actions }) => actions.handleApprovalStatusChange,
-  );
-  const handleCompositeFilterChange = usePersonalTimesheet(
-    ({ actions }) => actions.handleCompositeFilterChange,
-  );
-  const handleClearAllFilters = usePersonalTimesheet(
-    ({ actions }) => actions.handleClearAllFilters,
-  );
+  const handleSearchChange = usePersonalTimesheet(({ actions }) => actions.handleSearchChange);
+  const handleApprovalStatusChange = usePersonalTimesheet(({ actions }) => actions.handleApprovalStatusChange);
+  const handleCompositeFilterChange = usePersonalTimesheet(({ actions }) => actions.handleCompositeFilterChange);
+  const handleClearAllFilters = usePersonalTimesheet(({ actions }) => actions.handleClearAllFilters);
 
   const [searchInput, setSearchInput] = useState(search);
   const debouncedSearch = useDebounce(searchInput, 400);
@@ -49,8 +37,7 @@ export function SubHeader() {
     setSearchInput(search);
   }, [search]);
 
-  const externalFilterCount =
-    (search !== "" ? 1 : 0) + (approvalStatus ? 1 : 0);
+  const externalFilterCount = (search !== "" ? 1 : 0) + (approvalStatus ? 1 : 0);
 
   return (
     <div className="flex flex-wrap gap-2 justify-between mb-3.5">
@@ -61,10 +48,7 @@ export function SubHeader() {
           value={searchInput}
           onChange={(e) => setSearchInput(e.target.value)}
         />
-        <ApprovalStatusFilter
-          value={approvalStatus}
-          onChange={handleApprovalStatusChange}
-        />
+        <ApprovalStatusFilter value={approvalStatus} onChange={handleApprovalStatusChange} />
       </div>
       <Filter
         align="end"

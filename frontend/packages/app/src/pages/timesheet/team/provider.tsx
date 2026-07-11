@@ -1,14 +1,7 @@
 /**
  * External dependencies.
  */
-import {
-  FC,
-  PropsWithChildren,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import { FC, PropsWithChildren, useEffect, useMemo, useRef, useState } from "react";
 import { useToasts } from "@rtcamp/frappe-ui-react";
 
 /**
@@ -17,23 +10,13 @@ import { useToasts } from "@rtcamp/frappe-ui-react";
 import type { Error as FrappeError } from "frappe-js-sdk/lib/frappe_app/types";
 import { useFrappeEventListener } from "frappe-react-sdk";
 import { isCompleteFilterCondition, parseFrappeErrorMsg } from "@/lib/utils";
-import {
-  TeamTimesheetContext,
-  type TeamTimesheetContextProps,
-} from "./context";
+import { TeamTimesheetContext, type TeamTimesheetContextProps } from "./context";
 import { useTeamTimesheetData } from "./useTeamTimesheetData";
 import { useTimesheetFilters } from "../hooks/useTimesheetFilters";
 
 export const TeamTimesheetProvider: FC<PropsWithChildren> = ({ children }) => {
   const toast = useToasts();
-  const {
-    filters,
-    setSearch,
-    setApprovalStatus,
-    setReportsTo,
-    setCompositeFilters,
-    resetAll,
-  } = useTimesheetFilters({
+  const { filters, setSearch, setApprovalStatus, setReportsTo, setCompositeFilters, resetAll } = useTimesheetFilters({
     includeApprovalStatus: true,
     includeReportsTo: true,
   });
@@ -93,10 +76,7 @@ export const TeamTimesheetProvider: FC<PropsWithChildren> = ({ children }) => {
   if (freshWeekGroups.length > 0) {
     staleWeekGroupsRef.current = freshWeekGroups;
   }
-  const weekGroups =
-    freshWeekGroups.length > 0 || !isLoadingTeamData
-      ? freshWeekGroups
-      : staleWeekGroupsRef.current;
+  const weekGroups = freshWeekGroups.length > 0 || !isLoadingTeamData ? freshWeekGroups : staleWeekGroupsRef.current;
 
   useEffect(() => {
     if (isLoadingTeamData) return;
@@ -147,9 +127,5 @@ export const TeamTimesheetProvider: FC<PropsWithChildren> = ({ children }) => {
     ],
   );
 
-  return (
-    <TeamTimesheetContext.Provider value={value}>
-      {children}
-    </TeamTimesheetContext.Provider>
-  );
+  return <TeamTimesheetContext.Provider value={value}>{children}</TeamTimesheetContext.Provider>;
 };

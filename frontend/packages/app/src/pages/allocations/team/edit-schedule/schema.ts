@@ -3,10 +3,7 @@ import { z } from "zod";
 export const editScheduleFormSchema = z
   .object({
     schedule: z.object({
-      selection: z.object({
-        startDate: z.string().trim(),
-        endDate: z.string().trim(),
-      }),
+      selection: z.array(z.string().trim()),
       input: z.object({
         value: z
           .number({
@@ -18,22 +15,13 @@ export const editScheduleFormSchema = z
     }),
   })
   .superRefine((value, ctx) => {
-    const { startDate, endDate } = value.schedule.selection;
+    const { selection } = value.schedule;
 
-    if (!startDate || !endDate) {
+    if (!selection || selection.length === 0) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        path: ["schedule", "selection", "startDate"],
+        path: ["schedule", "selection"],
         message: "Please select a date.",
-      });
-      return;
-    }
-
-    if (startDate > endDate) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ["schedule", "selection", "endDate"],
-        message: "End date must be on or after start date.",
       });
     }
   });

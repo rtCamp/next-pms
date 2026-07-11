@@ -17,10 +17,7 @@ export type PreviewRow = {
   isModified: boolean;
 };
 
-export type NormalizedSelection = {
-  startDate: string;
-  endDate: string;
-};
+export type NormalizedSelection = string[];
 
 export type EditScheduleValueMode = "hoursPerDay" | "totalHours";
 export type EditScheduleApplyMode = "only_this" | "this_and_future";

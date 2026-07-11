@@ -32,7 +32,8 @@
   "remind_on",
   "column_break_gyue",
   "allocation_email_template",
-  "designations"
+  "designations",
+  "auto_expand_weeks_by_default"
  ],
  "fields": [
   {
@@ -227,6 +228,12 @@
    "fieldname": "pm_report_api_key",
    "fieldtype": "Password",
    "label": "PM Report API Key"
+  },
+  {
+   "default": "4",
+   "fieldname": "auto_expand_weeks_by_default",
+   "fieldtype": "Int",
+   "label": "Auto Expand Weeks by Default"
   }
  ],
  "index_web_pages_for_search": 1,

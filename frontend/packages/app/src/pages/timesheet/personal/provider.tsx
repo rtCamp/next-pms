@@ -8,23 +8,12 @@ import { FC, PropsWithChildren, useMemo } from "react";
  */
 import { isCompleteFilterCondition } from "@/lib/utils";
 import { useUser } from "@/providers/user";
-import {
-  PersonalTimesheetContext,
-  type PersonalTimesheetContextProps,
-} from "./context";
+import { PersonalTimesheetContext, type PersonalTimesheetContextProps } from "./context";
 import { usePersonalTimesheetData } from "./usePersonalTimesheetData";
 import { useTimesheetFilters } from "../hooks/useTimesheetFilters";
 
-export const PersonalTimesheetProvider: FC<PropsWithChildren> = ({
-  children,
-}) => {
-  const {
-    filters,
-    setSearch,
-    setApprovalStatus,
-    setCompositeFilters,
-    resetAll,
-  } = useTimesheetFilters({
+export const PersonalTimesheetProvider: FC<PropsWithChildren> = ({ children }) => {
+  const { filters, setSearch, setApprovalStatus, setCompositeFilters, resetAll } = useTimesheetFilters({
     includeApprovalStatus: true,
   });
 
@@ -96,9 +85,5 @@ export const PersonalTimesheetProvider: FC<PropsWithChildren> = ({
     ],
   );
 
-  return (
-    <PersonalTimesheetContext.Provider value={value}>
-      {children}
-    </PersonalTimesheetContext.Provider>
-  );
+  return <PersonalTimesheetContext.Provider value={value}>{children}</PersonalTimesheetContext.Provider>;
 };

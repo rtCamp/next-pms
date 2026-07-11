@@ -3,15 +3,7 @@
  */
 import { useMemo, useState } from "react";
 import { floatToTime } from "@next-pms/design-system";
-import {
-  Dialog,
-  Button,
-  Textarea,
-  Combobox,
-  ErrorMessage,
-  useToasts,
-  Avatar,
-} from "@rtcamp/frappe-ui-react";
+import { Dialog, Button, Textarea, Combobox, ErrorMessage, useToasts, Avatar } from "@rtcamp/frappe-ui-react";
 import { useForm } from "@tanstack/react-form";
 import { format, parseISO } from "date-fns";
 import { FrappeError, useFrappePostCall } from "frappe-react-sdk";
@@ -19,9 +11,7 @@ import { FrappeError, useFrappePostCall } from "frappe-react-sdk";
 /**
  * Internal Dependencies
  */
-import useApproverOptions, {
-  type ApproverOption,
-} from "@/hooks/useApproverOptions";
+import useApproverOptions, { type ApproverOption } from "@/hooks/useApproverOptions";
 import { parseFrappeErrorMsg } from "@/lib/utils";
 import { useUser } from "@/providers/user";
 import { submitApprovalSchema } from "./schema";
@@ -42,13 +32,7 @@ const withApproverAvatar = (option: ApproverOption): ApproverOption => ({
   icon: <Avatar size="xs" image={option.image} label={option.label} />,
 });
 
-const SubmitApproval = ({
-  open,
-  onOpenChange,
-  startDate,
-  endDate,
-  totalHours,
-}: SubmitApprovalProps) => {
+const SubmitApproval = ({ open, onOpenChange, startDate, endDate, totalHours }: SubmitApprovalProps) => {
   const { reportsTo, employeeId } = useUser(({ state }) => ({
     reportsTo: state.reportsTo,
     employeeId: state.employeeId,
@@ -56,15 +40,10 @@ const SubmitApproval = ({
   const toast = useToasts();
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
-  const { call: submitForApproval } = useFrappePostCall(
-    "next_pms.timesheet.api.timesheet.submit_for_approval",
-  );
+  const { call: submitForApproval } = useFrappePostCall("next_pms.timesheet.api.timesheet.submit_for_approval");
   const approverOptions = useApproverOptions();
 
-  const approverComboboxOptions = useMemo(
-    () => approverOptions.map(withApproverAvatar),
-    [approverOptions],
-  );
+  const approverComboboxOptions = useMemo(() => approverOptions.map(withApproverAvatar), [approverOptions]);
 
   const weekLabel = formatWeekLabel(startDate, endDate);
   const formattedHours = floatToTime(totalHours, 2);
@@ -133,9 +112,7 @@ const SubmitApproval = ({
       <div className="space-y-4">
         <div className="flex justify-between items-center bg-surface-gray-1 rounded-lg px-4 py-2.5">
           <span className="text-base text-ink-gray-7">{weekLabel}</span>
-          <span className="text-base text-ink-green-4 font-medium">
-            {formattedHours}
-          </span>
+          <span className="text-base text-ink-green-4 font-medium">{formattedHours}</span>
         </div>
 
         <form.Field
@@ -149,9 +126,7 @@ const SubmitApproval = ({
                 onChange={(e) => field.handleChange(e.target.value)}
                 className="bg-surface-white border-outline-gray-2 text-ink-gray-7"
               />
-              {!field.state.meta.isValid && (
-                <ErrorMessage message={field.state.meta.errors[0]?.message} />
-              )}
+              {!field.state.meta.isValid && <ErrorMessage message={field.state.meta.errors[0]?.message} />}
             </div>
           )}
         />
@@ -169,9 +144,7 @@ const SubmitApproval = ({
                 options={approverComboboxOptions}
                 openOnFocus
               />
-              {!field.state.meta.isValid && (
-                <ErrorMessage message={field.state.meta.errors[0]?.message} />
-              )}
+              {!field.state.meta.isValid && <ErrorMessage message={field.state.meta.errors[0]?.message} />}
             </div>
           )}
         />

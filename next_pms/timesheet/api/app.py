@@ -22,11 +22,35 @@ def has_industry_field():
 @whitelist(methods=["GET"])
 def get_data(user: str = None):
     """returns roles.currencies, has_business_unit, has_industry  data for the current user or passed in user"""
+    import frappe
+
+    if not user:
+        user = frappe.session.user
+
+    user_expand = None
+    module_expand = None
+
+    try:
+        user_expand = frappe.db.get_value("User", user, "auto_expand_weeks_by_default")
+    except Exception:
+        pass
+
+    try:
+        module_expand = frappe.db.get_single_value("Timesheet Settings", "auto_expand_weeks_by_default")
+    except Exception:
+        pass
+
+    try:
+        auto_expand_weeks = int(user_expand) if user_expand is not None else int(module_expand) if module_expand is not None else 4
+    except (ValueError, TypeError):
+        auto_expand_weeks = 4
+
     return {
         "roles": get_current_user_roles(user),
         "currencies": get_currencies(),
         "has_business_unit": has_bu_field(),
         "has_industry": has_industry_field(),
+        "auto_expand_weeks": auto_expand_weeks,
     }
 
 

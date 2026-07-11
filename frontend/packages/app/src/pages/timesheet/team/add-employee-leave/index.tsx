@@ -16,11 +16,7 @@ import {
 import { useToasts } from "@rtcamp/frappe-ui-react";
 import { Calendar, TimeOff } from "@rtcamp/frappe-ui-react/icons";
 import { useForm, useStore } from "@tanstack/react-form";
-import {
-  FrappeError,
-  useFrappeCreateDoc,
-  useFrappeGetCall,
-} from "frappe-react-sdk";
+import { FrappeError, useFrappeCreateDoc, useFrappeGetCall } from "frappe-react-sdk";
 
 /**
  * Internal Dependencies
@@ -30,11 +26,7 @@ import { parseFrappeErrorMsg } from "@/lib/utils";
 import { addLeaveFormSchema } from "./schema";
 import { type EmployeeLeaveTimeProps, LEAVE_DURATION } from "./types";
 
-const AddEmployeeLeave = ({
-  open = false,
-  onOpenChange,
-  employeeId = "",
-}: EmployeeLeaveTimeProps) => {
+const AddEmployeeLeave = ({ open = false, onOpenChange, employeeId = "" }: EmployeeLeaveTimeProps) => {
   const [employeeSearch, setEmployeeSearch] = useState("");
   const [submitError, setSubmitError] = useState<string | null>(null);
 
@@ -77,9 +69,7 @@ const AddEmployeeLeave = ({
               .join(" ")
           : "";
 
-      const half_day =
-        value.leaveDuration === "first-half" ||
-        value.leaveDuration === "second-half";
+      const half_day = value.leaveDuration === "first-half" || value.leaveDuration === "second-half";
 
       try {
         setSubmitError(null);
@@ -90,11 +80,7 @@ const AddEmployeeLeave = ({
           to_date: value.toDate,
           leave_type: value.leaveType,
           half_day,
-          half_day_date: half_day
-            ? value.fromDate !== value.toDate
-              ? value.halfDayDate
-              : value.fromDate
-            : undefined,
+          half_day_date: half_day ? (value.fromDate !== value.toDate ? value.halfDayDate : value.fromDate) : undefined,
           custom_first_halfsecond_half,
         };
         await createDoc("Leave Application", data);
@@ -108,17 +94,13 @@ const AddEmployeeLeave = ({
 
   const toast = useToasts();
   const { createDoc, loading } = useFrappeCreateDoc();
-  const employeeIdFormValue = useStore(
-    form.store,
-    (state) => state.values.employeeId,
-  );
+  const employeeIdFormValue = useStore(form.store, (state) => state.values.employeeId);
 
-  const { options: employeeOptions, isLoading: isEmployeeLookupLoading } =
-    useEmployeeLookup({
-      shouldFetch: open,
-      pageSize: 20,
-      query: employeeSearch,
-    });
+  const { options: employeeOptions, isLoading: isEmployeeLookupLoading } = useEmployeeLookup({
+    shouldFetch: open,
+    pageSize: 20,
+    query: employeeSearch,
+  });
 
   const { data: leaveDetails } = useFrappeGetCall(
     "hrms.hr.doctype.leave_application.leave_application.get_leave_details",
@@ -129,9 +111,7 @@ const AddEmployeeLeave = ({
     employeeIdFormValue ? undefined : false,
   );
 
-  const unpaidLeaveOptions = (
-    (leaveDetails?.message?.lwps as string[]) || []
-  ).map((val) => ({
+  const unpaidLeaveOptions = ((leaveDetails?.message?.lwps as string[]) || []).map((val) => ({
     label: val,
     value: val,
   }));
@@ -173,9 +153,7 @@ const AddEmployeeLeave = ({
           children={(field) => {
             return (
               <>
-                <label className="block text-base text-ink-gray-5 mb-1.5">
-                  Employee
-                </label>
+                <label className="block text-base text-ink-gray-5 mb-1.5">Employee</label>
                 <Combobox
                   inputClassName="bg-surface-white h-8 border-outline-gray-2 text-ink-gray-7"
                   loading={isEmployeeLookupLoading}
@@ -189,9 +167,7 @@ const AddEmployeeLeave = ({
                     field.handleChange(val as string);
                   }}
                 />
-                {!field.state.meta.isValid && (
-                  <ErrorMessage message={field.state.meta.errors[0]?.message} />
-                )}
+                {!field.state.meta.isValid && <ErrorMessage message={field.state.meta.errors[0]?.message} />}
               </>
             );
           }}
@@ -202,9 +178,7 @@ const AddEmployeeLeave = ({
             children={(field) => {
               return (
                 <div className="flex-1 flex w-full flex-col space-y-1.5">
-                  <label className="block text-base text-ink-gray-5">
-                    From
-                  </label>
+                  <label className="block text-base text-ink-gray-5">From</label>
                   <DatePicker
                     label="From"
                     onChange={(val) => field.handleChange(val as string)}
@@ -227,11 +201,7 @@ const AddEmployeeLeave = ({
                       );
                     }}
                   </DatePicker>
-                  {!field.state.meta.isValid && (
-                    <ErrorMessage
-                      message={field.state.meta.errors[0]?.message}
-                    />
-                  )}
+                  {!field.state.meta.isValid && <ErrorMessage message={field.state.meta.errors[0]?.message} />}
                 </div>
               );
             }}
@@ -264,11 +234,7 @@ const AddEmployeeLeave = ({
                       );
                     }}
                   </DatePicker>
-                  {!field.state.meta.isValid && (
-                    <ErrorMessage
-                      message={field.state.meta.errors[0]?.message}
-                    />
-                  )}
+                  {!field.state.meta.isValid && <ErrorMessage message={field.state.meta.errors[0]?.message} />}
                 </div>
               );
             }}
@@ -280,9 +246,7 @@ const AddEmployeeLeave = ({
           children={(field) => {
             return (
               <>
-                <label className="block text-base text-ink-gray-5 mb-1.5">
-                  Leave duration
-                </label>
+                <label className="block text-base text-ink-gray-5 mb-1.5">Leave duration</label>
                 <TabButtons
                   className="h-7.5"
                   buttonClassName="text-ink-gray-5 data-pressed:text-ink-gray-8"
@@ -291,27 +255,19 @@ const AddEmployeeLeave = ({
                   buttons={LEAVE_DURATION.map((value) => ({
                     label: value
                       .split("-")
-                      .map(
-                        (word) => word.charAt(0).toUpperCase() + word.slice(1),
-                      )
+                      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
                       .join(" "),
                     value,
                   }))}
                 />
-                {!field.state.meta.isValid && (
-                  <ErrorMessage message={field.state.meta.errors[0]?.message} />
-                )}
+                {!field.state.meta.isValid && <ErrorMessage message={field.state.meta.errors[0]?.message} />}
               </>
             );
           }}
         />
 
         <form.Subscribe
-          selector={(state) => [
-            state.values.fromDate,
-            state.values.toDate,
-            state.values.leaveDuration,
-          ]}
+          selector={(state) => [state.values.fromDate, state.values.toDate, state.values.leaveDuration]}
           children={([fromDate, toDate, leaveDuration]) =>
             leaveDuration !== "full-day" &&
             fromDate !== toDate && (
@@ -320,9 +276,7 @@ const AddEmployeeLeave = ({
                 children={(field) => {
                   return (
                     <div className="flex flex-col space-y-1.5">
-                      <label className="block text-base text-ink-gray-5 mb-1.5">
-                        Half Day Date
-                      </label>
+                      <label className="block text-base text-ink-gray-5 mb-1.5">Half Day Date</label>
                       <DatePicker
                         label="Half Day Date"
                         onChange={(val) => field.handleChange(val as string)}
@@ -345,11 +299,7 @@ const AddEmployeeLeave = ({
                           );
                         }}
                       </DatePicker>
-                      {!field.state.meta.isValid && (
-                        <ErrorMessage
-                          message={field.state.meta.errors[0]?.message}
-                        />
-                      )}
+                      {!field.state.meta.isValid && <ErrorMessage message={field.state.meta.errors[0]?.message} />}
                     </div>
                   );
                 }}
@@ -363,9 +313,7 @@ const AddEmployeeLeave = ({
           children={(field) => {
             return (
               <>
-                <label className="block text-base text-ink-gray-5 mb-1.5">
-                  Leave type
-                </label>
+                <label className="block text-base text-ink-gray-5 mb-1.5">Leave type</label>
                 <Select
                   value={field.state.value}
                   onChange={(val) => field.handleChange(val as string)}
@@ -375,9 +323,7 @@ const AddEmployeeLeave = ({
                   placeholder="Select leave type"
                   disabled={!employeeIdFormValue}
                 />
-                {!field.state.meta.isValid && (
-                  <ErrorMessage message={field.state.meta.errors[0]?.message} />
-                )}
+                {!field.state.meta.isValid && <ErrorMessage message={field.state.meta.errors[0]?.message} />}
               </>
             );
           }}
@@ -387,18 +333,14 @@ const AddEmployeeLeave = ({
           children={(field) => {
             return (
               <>
-                <label className="block text-base text-ink-gray-5 mb-1.5">
-                  Reason
-                </label>
+                <label className="block text-base text-ink-gray-5 mb-1.5">Reason</label>
                 <Textarea
                   variant="outline"
                   value={field.state.value}
                   onChange={(e) => field.handleChange(e.target.value)}
                   className="bg-surface-white border-outline-gray-2 text-ink-gray-7"
                 />
-                {!field.state.meta.isValid && (
-                  <ErrorMessage message={field.state.meta.errors[0]?.message} />
-                )}
+                {!field.state.meta.isValid && <ErrorMessage message={field.state.meta.errors[0]?.message} />}
               </>
             );
           }}

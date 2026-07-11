@@ -12,17 +12,17 @@ import { InfiniteScroll } from "@/components/infiniteScroll";
 import { ProjectTimesheetRow } from "@/components/timesheet-row";
 import { HeaderRow } from "@/components/timesheet-row/components/row/headerRow";
 import { NUMBER_OF_WEEKS_TO_FETCH } from "@/lib/constant";
+import { useUser } from "@/providers/user";
 import { useProjectTimesheet } from "./context";
 import { SubHeader } from "./subHeader";
 
 const ProjectTimesheetGrid = () => {
+  const { autoExpandWeeks } = useUser(({ state }) => ({
+    autoExpandWeeks: state.autoExpandWeeks,
+  }));
   const hasMore = useProjectTimesheet(({ state }) => state.hasMore);
-  const isLoadingProjectData = useProjectTimesheet(
-    ({ state }) => state.isLoadingProjectData,
-  );
-  const isFilterRequest = useProjectTimesheet(
-    ({ state }) => state.isFilterRequest,
-  );
+  const isLoadingProjectData = useProjectTimesheet(({ state }) => state.isLoadingProjectData);
+  const isFilterRequest = useProjectTimesheet(({ state }) => state.isFilterRequest);
   const weekGroups = useProjectTimesheet(({ state }) => state.weekGroups);
   const loadData = useProjectTimesheet(({ actions }) => actions.loadData);
 
@@ -33,9 +33,7 @@ const ProjectTimesheetGrid = () => {
       {isLoadingProjectData && weekGroups.length === 0 ? (
         <Spinner isFull />
       ) : weekGroups.length === 0 ? (
-        <Typography className="flex items-center justify-center">
-          No data found
-        </Typography>
+        <Typography className="flex items-center justify-center">No data found</Typography>
       ) : (
         <InfiniteScroll
           isLoading={isLoadingProjectData}
@@ -65,8 +63,7 @@ const ProjectTimesheetGrid = () => {
                           ],
                           highlightLastItem: false,
                           size: "sm",
-                          crumbClassName:
-                            "first:pl-0 last:pr-0 px-0.5 py-0 font-[420]",
+                          crumbClassName: "first:pl-0 last:pr-0 px-0.5 py-0 font-[420]",
                           className: "pl-[8px]",
                         }}
                       />
@@ -77,7 +74,7 @@ const ProjectTimesheetGrid = () => {
                     <ProjectTimesheetRow
                       label={week.label}
                       dates={week.dates}
-                      collapsed={index >= 6}
+                      collapsed={index >= autoExpandWeeks}
                       projects={week.projects}
                     />
                   </div>
@@ -88,12 +85,7 @@ const ProjectTimesheetGrid = () => {
         </InfiniteScroll>
       )}
 
-      {isFilteredDataLoading ? (
-        <Spinner
-          isFull
-          className="absolute top-0 left-0 w-full h-full cursor-wait"
-        />
-      ) : null}
+      {isFilteredDataLoading ? <Spinner isFull className="absolute top-0 left-0 w-full h-full cursor-wait" /> : null}
     </>
   );
 };

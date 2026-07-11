@@ -30,9 +30,7 @@ import CalendarEvents from "./calendarEvents";
 import { addTimeFormSchema } from "./schema";
 import type { AddTimeProps, SelectedCalendarEvent } from "./type";
 
-const COMMENT_EDITOR_STARTERKIT_OPTIONS: NonNullable<
-  TextEditorProps["starterkitOptions"]
-> = { trailingNode: false };
+const COMMENT_EDITOR_STARTERKIT_OPTIONS: NonNullable<TextEditorProps["starterkitOptions"]> = { trailingNode: false };
 
 /**
  * Add Time Component
@@ -66,9 +64,7 @@ const AddTime = ({
   const commentEditorRef = useRef<TextEditorHandle>(null);
   const prevSelectedEventIdsRef = useRef<Set<string>>(new Set());
   const [submitError, setSubmitError] = useState<string | null>(null);
-  const { call: saveTime } = useFrappePostCall(
-    "next_pms.timesheet.api.timesheet.save",
-  );
+  const { call: saveTime } = useFrappePostCall("next_pms.timesheet.api.timesheet.save");
 
   const form = useForm({
     defaultValues: {
@@ -156,33 +152,29 @@ const AddTime = ({
     prevSelectedEventIdsRef.current = new Set();
   }, [form, initialDate, open, project, task]);
 
-  const { options: projectOptions, isLoading: isProjectLookupLoading } =
-    useProjectLookup({
-      shouldFetch: open,
-      filters: window.frappe?.boot?.global_filters.project,
-      pageSize: 20,
-      query: projectSearch,
-      selectedOption: selectedProjectOption,
-      formatOption: (option) => ({
-        ...option,
-        icon: <Folder className="size-4 shrink-0 text-ink-gray-7" />,
-      }),
-    });
+  const { options: projectOptions, isLoading: isProjectLookupLoading } = useProjectLookup({
+    shouldFetch: open,
+    filters: window.frappe?.boot?.global_filters.project,
+    pageSize: 20,
+    query: projectSearch,
+    selectedOption: selectedProjectOption,
+    formatOption: (option) => ({
+      ...option,
+      icon: <Folder className="size-4 shrink-0 text-ink-gray-7" />,
+    }),
+  });
 
-  const { options: taskOptions, isLoading: isTaskLookupLoading } =
-    useTaskLookup({
-      shouldFetch: open,
-      pageSize: 20,
-      projectId: selectedProject || undefined,
-      query: taskSearch,
-      selectedOption: selectedTaskOption,
-      formatOption: (option) => ({
-        ...option,
-        icon: (
-          <TaskStatus status={taskStatusMap[option.status ?? ""] ?? "open"} />
-        ),
-      }),
-    });
+  const { options: taskOptions, isLoading: isTaskLookupLoading } = useTaskLookup({
+    shouldFetch: open,
+    pageSize: 20,
+    projectId: selectedProject || undefined,
+    query: taskSearch,
+    selectedOption: selectedTaskOption,
+    formatOption: (option) => ({
+      ...option,
+      icon: <TaskStatus status={taskStatusMap[option.status ?? ""] ?? "open"} />,
+    }),
+  });
 
   const handleCalendarSelectionChange = useCallback(
     (selectedItems: SelectedCalendarEvent[], totalDurationHours: number) => {
@@ -191,13 +183,9 @@ const AddTime = ({
 
       selectedItems
         .filter((item) => !prevIds.has(item.id))
-        .forEach((item) =>
-          commentEditorRef.current?.addListItem(item.id, item.label),
-        );
+        .forEach((item) => commentEditorRef.current?.addListItem(item.id, item.label));
 
-      [...prevIds]
-        .filter((id) => !nextIds.has(id))
-        .forEach((id) => commentEditorRef.current?.removeListItem(id));
+      [...prevIds].filter((id) => !nextIds.has(id)).forEach((id) => commentEditorRef.current?.removeListItem(id));
 
       prevSelectedEventIdsRef.current = nextIds;
       form.setFieldValue("duration", totalDurationHours);
@@ -236,9 +224,7 @@ const AddTime = ({
           children={(field) => {
             return (
               <>
-                <label className="block text-base text-ink-gray-5 mb-1.5">
-                  Project
-                </label>
+                <label className="block text-base text-ink-gray-5 mb-1.5">Project</label>
                 <Combobox
                   inputClassName="bg-surface-white h-8 border-outline-gray-2 text-ink-gray-7"
                   loading={isProjectLookupLoading}
@@ -257,9 +243,7 @@ const AddTime = ({
                     field.handleChange(nextProject);
                   }}
                 />
-                {!field.state.meta.isValid && (
-                  <ErrorMessage message={field.state.meta.errors[0]?.message} />
-                )}
+                {!field.state.meta.isValid && <ErrorMessage message={field.state.meta.errors[0]?.message} />}
               </>
             );
           }}
@@ -269,9 +253,7 @@ const AddTime = ({
           children={(field) => {
             return (
               <>
-                <label className="block text-base text-ink-gray-5 mb-1.5">
-                  Task
-                </label>
+                <label className="block text-base text-ink-gray-5 mb-1.5">Task</label>
                 <Combobox
                   inputClassName="bg-surface-white h-8 border-outline-gray-2 text-ink-gray-7"
                   loading={isTaskLookupLoading}
@@ -283,17 +265,13 @@ const AddTime = ({
                   onSearchChange={setTaskSearch}
                   onChange={(val) => {
                     field.handleChange(val as string);
-                    const selectedTask = taskOptions.find(
-                      (task) => task.value === val,
-                    );
+                    const selectedTask = taskOptions.find((task) => task.value === val);
                     if (selectedTask?.projectId) {
                       form.setFieldValue("project", selectedTask.projectId);
                     }
                   }}
                 />
-                {!field.state.meta.isValid && (
-                  <ErrorMessage message={field.state.meta.errors[0]?.message} />
-                )}
+                {!field.state.meta.isValid && <ErrorMessage message={field.state.meta.errors[0]?.message} />}
               </>
             );
           }}
@@ -313,14 +291,8 @@ const AddTime = ({
                     {({ displayValue }) => {
                       return (
                         <div className="flex-1 flex w-full flex-col space-y-1.5 ">
-                          <label className="block text-base text-ink-gray-5">
-                            Date
-                          </label>
-                          <div
-                            className={
-                              "flex relative items-center rounded border border-outline-gray-2 px-2.5"
-                            }
-                          >
+                          <label className="block text-base text-ink-gray-5">Date</label>
+                          <div className={"flex relative items-center rounded border border-outline-gray-2 px-2.5"}>
                             <input
                               type="text"
                               id="start"
@@ -334,11 +306,7 @@ const AddTime = ({
                       );
                     }}
                   </DatePicker>
-                  {!field.state.meta.isValid && (
-                    <ErrorMessage
-                      message={field.state.meta.errors[0]?.message}
-                    />
-                  )}
+                  {!field.state.meta.isValid && <ErrorMessage message={field.state.meta.errors[0]?.message} />}
                 </div>
               );
             }}
@@ -355,31 +323,21 @@ const AddTime = ({
                     value={field.state.value}
                     onChange={(val) => field.handleChange(val)}
                   />
-                  {!field.state.meta.isValid && (
-                    <ErrorMessage
-                      message={field.state.meta.errors[0]?.message}
-                    />
-                  )}
+                  {!field.state.meta.isValid && <ErrorMessage message={field.state.meta.errors[0]?.message} />}
                 </div>
               );
             }}
           />
         </div>
 
-        <CalendarEvents
-          initialDate={selectedDate}
-          enabled={open}
-          onSelectionChange={handleCalendarSelectionChange}
-        />
+        <CalendarEvents initialDate={selectedDate} enabled={open} onSelectionChange={handleCalendarSelectionChange} />
 
         <form.Field
           name="comment"
           children={(field) => {
             return (
               <>
-                <label className="block text-base text-ink-gray-5 mb-1.5">
-                  Comment
-                </label>
+                <label className="block text-base text-ink-gray-5 mb-1.5">Comment</label>
                 <TextEditor
                   ref={commentEditorRef}
                   content={field.state.value}
@@ -388,9 +346,7 @@ const AddTime = ({
                   fixedMenu={false}
                   editorClass="px-2 h-24 prose-sm overflow-auto scrollbar-thin bg-surface-white border rounded-md border-outline-gray-2 text-ink-gray-7 text-base"
                 />
-                {!field.state.meta.isValid && (
-                  <ErrorMessage message={field.state.meta.errors[0]?.message} />
-                )}
+                {!field.state.meta.isValid && <ErrorMessage message={field.state.meta.errors[0]?.message} />}
               </>
             );
           }}

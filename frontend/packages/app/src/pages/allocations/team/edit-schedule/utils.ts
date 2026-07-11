@@ -159,8 +159,7 @@ export const buildPreviewRows = ({
   defaultHoursPerDay: number;
   override?: AllocationOverrideEntry[];
   selection?: {
-    startDate: string;
-    endDate: string;
+    selectedDates: string[];
     hoursPerDay: number;
   } | null;
 }): PreviewRow[] => {
@@ -178,8 +177,7 @@ export const buildPreviewRows = ({
     const inSelection =
       selection !== null &&
       selection !== undefined &&
-      dateKey >= selection.startDate &&
-      dateKey <= selection.endDate;
+      selection.selectedDates.includes(dateKey);
     const hoursPerDay = inSelection
       ? selection.hoursPerDay
       : dayOverride?.cancelled === 1
@@ -226,10 +224,7 @@ export const buildScheduleDraft = ({
   defaultHoursPerDay: number;
   override?: AllocationOverrideEntry[];
   schedule: {
-    selection: {
-      startDate: string;
-      endDate: string;
-    };
+    selection: string[];
     input: {
       value: number;
       mode: EditScheduleValueMode;
@@ -237,28 +232,18 @@ export const buildScheduleDraft = ({
   };
 }): EditScheduleDraft => {
   const hasSelection = Boolean(
-    schedule.selection.startDate && schedule.selection.endDate,
+    schedule.selection && schedule.selection.length > 0,
   );
-  const selection = hasSelection
-    ? normalizeRange(schedule.selection.startDate, schedule.selection.endDate)
-    : null;
+  const selection = hasSelection ? schedule.selection : null;
   const hoursPerDay = selection
     ? schedule.input.mode === "totalHours"
-      ? getHoursPerDayFromTotalHours(
-          selection.startDate,
-          selection.endDate,
-          schedule.input.value,
-        )
+      ? schedule.input.value / selection.length
       : schedule.input.value
     : defaultHoursPerDay;
   const totalHours = selection
     ? schedule.input.mode === "totalHours"
       ? schedule.input.value
-      : getRangeHours(
-          selection.startDate,
-          selection.endDate,
-          schedule.input.value,
-        )
+      : selection.length * schedule.input.value
     : getRangeHours(rangeStart, rangeEnd, defaultHoursPerDay);
   const previewRows = buildPreviewRows({
     rangeStart,
@@ -267,8 +252,7 @@ export const buildScheduleDraft = ({
     override,
     selection: selection
       ? {
-          startDate: selection.startDate,
-          endDate: selection.endDate,
+          selectedDates: selection,
           hoursPerDay,
         }
       : null,
@@ -281,7 +265,9 @@ export const buildScheduleDraft = ({
     totalHours,
     previewRows,
     headerRangeLabel: selection
-      ? formatRange(selection.startDate, selection.endDate)
+      ? selection.length === 1
+        ? formatRange(selection[0])
+        : `${selection.length} dates selected`
       : formatRange(rangeStart, rangeEnd),
     hasMeaningfulChange: previewRows.some((row) => row.isModified),
   };

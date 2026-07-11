@@ -2,23 +2,11 @@
  * External Dependencies
  */
 import { getTodayDate } from "@next-pms/design-system/date";
-import {
-  DatePicker,
-  Dialog,
-  Button,
-  TabButtons,
-  Select,
-  Textarea,
-  ErrorMessage,
-} from "@rtcamp/frappe-ui-react";
+import { DatePicker, Dialog, Button, TabButtons, Select, Textarea, ErrorMessage } from "@rtcamp/frappe-ui-react";
 import { useToasts } from "@rtcamp/frappe-ui-react";
 import { Calendar, TimeOff } from "@rtcamp/frappe-ui-react/icons";
 import { useForm } from "@tanstack/react-form";
-import {
-  FrappeError,
-  useFrappeCreateDoc,
-  useFrappeGetCall,
-} from "frappe-react-sdk";
+import { FrappeError, useFrappeCreateDoc, useFrappeGetCall } from "frappe-react-sdk";
 
 /**
  * Internal Dependencies
@@ -44,9 +32,7 @@ const AddLeave = ({ open = false, onOpenChange }: LeaveTimeProps) => {
     },
   );
 
-  const unpaidLeaveOptions = (
-    (leaveDetails?.message?.lwps as string[]) || []
-  ).map((val) => ({
+  const unpaidLeaveOptions = ((leaveDetails?.message?.lwps as string[]) || []).map((val) => ({
     label: val,
     value: val,
   }));
@@ -76,9 +62,7 @@ const AddLeave = ({ open = false, onOpenChange }: LeaveTimeProps) => {
               .join(" ")
           : "";
 
-      const half_day =
-        value.leaveDuration === "first-half" ||
-        value.leaveDuration === "second-half";
+      const half_day = value.leaveDuration === "first-half" || value.leaveDuration === "second-half";
 
       try {
         const data = {
@@ -88,11 +72,7 @@ const AddLeave = ({ open = false, onOpenChange }: LeaveTimeProps) => {
           to_date: value.toDate,
           leave_type: value.leaveType,
           half_day,
-          half_day_date: half_day
-            ? value.fromDate !== value.toDate
-              ? value.halfDayDate
-              : value.fromDate
-            : undefined,
+          half_day_date: half_day ? (value.fromDate !== value.toDate ? value.halfDayDate : value.fromDate) : undefined,
           custom_first_halfsecond_half,
         };
         await createDoc("Leave Application", data);
@@ -145,10 +125,7 @@ const AddLeave = ({ open = false, onOpenChange }: LeaveTimeProps) => {
       }
       options={{
         title: () => (
-          <h3
-            className="text-2xl font-semibold leading-[1.15] text-ink-gray-8"
-            data-testid="dialog-title"
-          >
+          <h3 className="text-2xl font-semibold leading-[1.15] text-ink-gray-8" data-testid="dialog-title">
             Add time off
           </h3>
         ),
@@ -161,9 +138,7 @@ const AddLeave = ({ open = false, onOpenChange }: LeaveTimeProps) => {
             children={(field) => {
               return (
                 <div className="flex-1 flex w-full flex-col space-y-1.5">
-                  <label className="block text-base text-ink-gray-5 mb-1.5">
-                    From
-                  </label>
+                  <label className="block text-base text-ink-gray-5 mb-1.5">From</label>
                   <DatePicker
                     label="From"
                     onChange={(val) => field.handleChange(val as string)}
@@ -186,11 +161,7 @@ const AddLeave = ({ open = false, onOpenChange }: LeaveTimeProps) => {
                       );
                     }}
                   </DatePicker>
-                  {!field.state.meta.isValid && (
-                    <ErrorMessage
-                      message={field.state.meta.errors[0]?.message}
-                    />
-                  )}
+                  {!field.state.meta.isValid && <ErrorMessage message={field.state.meta.errors[0]?.message} />}
                 </div>
               );
             }}
@@ -200,9 +171,7 @@ const AddLeave = ({ open = false, onOpenChange }: LeaveTimeProps) => {
             children={(field) => {
               return (
                 <div className="flex-1 flex w-full flex-col space-y-1.5">
-                  <label className="block text-base text-ink-gray-5 mb-1.5">
-                    To
-                  </label>
+                  <label className="block text-base text-ink-gray-5 mb-1.5">To</label>
                   <DatePicker
                     label="To"
                     onChange={(val) => field.handleChange(val as string)}
@@ -225,11 +194,7 @@ const AddLeave = ({ open = false, onOpenChange }: LeaveTimeProps) => {
                       );
                     }}
                   </DatePicker>
-                  {!field.state.meta.isValid && (
-                    <ErrorMessage
-                      message={field.state.meta.errors[0]?.message}
-                    />
-                  )}
+                  {!field.state.meta.isValid && <ErrorMessage message={field.state.meta.errors[0]?.message} />}
                 </div>
               );
             }}
@@ -241,9 +206,7 @@ const AddLeave = ({ open = false, onOpenChange }: LeaveTimeProps) => {
           children={(field) => {
             return (
               <>
-                <label className="block text-base text-ink-gray-5 mb-1.5">
-                  Leave duration
-                </label>
+                <label className="block text-base text-ink-gray-5 mb-1.5">Leave duration</label>
                 <TabButtons
                   className="h-7.5"
                   buttonClassName="text-ink-gray-5 data-pressed:text-ink-gray-8"
@@ -252,27 +215,19 @@ const AddLeave = ({ open = false, onOpenChange }: LeaveTimeProps) => {
                   buttons={LEAVE_DURATION.map((value) => ({
                     label: value
                       .split("-")
-                      .map(
-                        (word) => word.charAt(0).toUpperCase() + word.slice(1),
-                      )
+                      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
                       .join(" "),
                     value,
                   }))}
                 />
-                {!field.state.meta.isValid && (
-                  <ErrorMessage message={field.state.meta.errors[0]?.message} />
-                )}
+                {!field.state.meta.isValid && <ErrorMessage message={field.state.meta.errors[0]?.message} />}
               </>
             );
           }}
         />
 
         <form.Subscribe
-          selector={(state) => [
-            state.values.fromDate,
-            state.values.toDate,
-            state.values.leaveDuration,
-          ]}
+          selector={(state) => [state.values.fromDate, state.values.toDate, state.values.leaveDuration]}
           children={([fromDate, toDate, leaveDuration]) =>
             leaveDuration !== "full-day" &&
             fromDate !== toDate && (
@@ -281,9 +236,7 @@ const AddLeave = ({ open = false, onOpenChange }: LeaveTimeProps) => {
                 children={(field) => {
                   return (
                     <div className="flex flex-col space-y-1.5">
-                      <label className="block text-base text-ink-gray-5 mb-1.5">
-                        Half Day Date
-                      </label>
+                      <label className="block text-base text-ink-gray-5 mb-1.5">Half Day Date</label>
                       <DatePicker
                         label="Half Day Date"
                         onChange={(val) => field.handleChange(val as string)}
@@ -306,11 +259,7 @@ const AddLeave = ({ open = false, onOpenChange }: LeaveTimeProps) => {
                           );
                         }}
                       </DatePicker>
-                      {!field.state.meta.isValid && (
-                        <ErrorMessage
-                          message={field.state.meta.errors[0]?.message}
-                        />
-                      )}
+                      {!field.state.meta.isValid && <ErrorMessage message={field.state.meta.errors[0]?.message} />}
                     </div>
                   );
                 }}
@@ -324,9 +273,7 @@ const AddLeave = ({ open = false, onOpenChange }: LeaveTimeProps) => {
           children={(field) => {
             return (
               <>
-                <label className="block text-base text-ink-gray-5 mb-1.5">
-                  Leave type
-                </label>
+                <label className="block text-base text-ink-gray-5 mb-1.5">Leave type</label>
                 <Select
                   value={field.state.value}
                   onChange={(val) => field.handleChange(val as string)}
@@ -335,9 +282,7 @@ const AddLeave = ({ open = false, onOpenChange }: LeaveTimeProps) => {
                   options={[...unpaidLeaveOptions, ...allocatedLeaveOptions]}
                   placeholder="Select leave type"
                 />
-                {!field.state.meta.isValid && (
-                  <ErrorMessage message={field.state.meta.errors[0]?.message} />
-                )}
+                {!field.state.meta.isValid && <ErrorMessage message={field.state.meta.errors[0]?.message} />}
               </>
             );
           }}
@@ -347,18 +292,14 @@ const AddLeave = ({ open = false, onOpenChange }: LeaveTimeProps) => {
           children={(field) => {
             return (
               <>
-                <label className="block text-base text-ink-gray-5 mb-1.5">
-                  Reason
-                </label>
+                <label className="block text-base text-ink-gray-5 mb-1.5">Reason</label>
                 <Textarea
                   variant="outline"
                   value={field.state.value}
                   onChange={(e) => field.handleChange(e.target.value)}
                   className="bg-surface-white border-outline-gray-2 text-ink-gray-7"
                 />
-                {!field.state.meta.isValid && (
-                  <ErrorMessage message={field.state.meta.errors[0]?.message} />
-                )}
+                {!field.state.meta.isValid && <ErrorMessage message={field.state.meta.errors[0]?.message} />}
               </>
             );
           }}

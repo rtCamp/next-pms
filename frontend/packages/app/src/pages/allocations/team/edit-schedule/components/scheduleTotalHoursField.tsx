@@ -10,17 +10,10 @@ interface ScheduleTotalHoursFieldProps {
   error?: string;
 }
 
-function ScheduleTotalHoursField({
-  value,
-  disabled,
-  onChange,
-  error,
-}: ScheduleTotalHoursFieldProps) {
+function ScheduleTotalHoursField({ value, disabled, onChange, error }: ScheduleTotalHoursFieldProps) {
   return (
     <div className="flex-1 space-y-1.5">
-      <label className="block text-base text-ink-gray-5">
-        Edit total hours
-      </label>
+      <label className="block text-base text-ink-gray-5">Edit total hours</label>
       <TextInput
         type="number"
         value={value}

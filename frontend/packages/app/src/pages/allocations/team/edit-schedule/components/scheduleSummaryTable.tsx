@@ -10,10 +10,7 @@ interface ScheduleSummaryTableProps {
   repeatWeeks?: number;
 }
 
-function ScheduleSummaryTable({
-  rows,
-  repeatWeeks,
-}: ScheduleSummaryTableProps) {
+function ScheduleSummaryTable({ rows, repeatWeeks }: ScheduleSummaryTableProps) {
   return (
     <div className="overflow-hidden rounded border border-outline-gray-2">
       <table className="relative w-full table-fixed border-collapse">
@@ -40,13 +37,9 @@ function ScheduleSummaryTable({
                 ) : null}
               </td>
               <td className="w-1/2 px-2 py-2.25 text-base">
-                <span className="text-ink-gray-6">
-                  {toDisplayHours(row.hoursPerDay)}h/day
-                </span>
+                <span className="text-ink-gray-6">{toDisplayHours(row.hoursPerDay)}h/day</span>
                 <span className="text-ink-gray-5">
-                  {` · ${toDisplayHours(
-                    getRangeHours(row.startDate, row.endDate, row.hoursPerDay),
-                  )} hours`}
+                  {` · ${toDisplayHours(getRangeHours(row.startDate, row.endDate, row.hoursPerDay))} hours`}
                 </span>
               </td>
             </tr>

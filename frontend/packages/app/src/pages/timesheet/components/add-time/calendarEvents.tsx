@@ -3,10 +3,7 @@
  */
 import { useState } from "react";
 import { useId } from "react";
-import {
-  formatDateTimeLabel,
-  formatDurationLabel,
-} from "@next-pms/design-system";
+import { formatDateTimeLabel, formatDurationLabel } from "@next-pms/design-system";
 import { Spinner } from "@next-pms/design-system/components";
 import { Checkbox, Badge } from "@rtcamp/frappe-ui-react";
 import { CalendarDeadline, Clock } from "@rtcamp/frappe-ui-react/icons";
@@ -21,17 +18,10 @@ import useCalendarEvents from "./useCalendarEvents";
 interface CalendarEventsProps {
   initialDate: string;
   enabled: boolean;
-  onSelectionChange: (
-    selectedItems: SelectedCalendarEvent[],
-    totalDurationHours: number,
-  ) => void;
+  onSelectionChange: (selectedItems: SelectedCalendarEvent[], totalDurationHours: number) => void;
 }
 
-const CalendarEvents = ({
-  initialDate,
-  enabled,
-  onSelectionChange,
-}: CalendarEventsProps) => {
+const CalendarEvents = ({ initialDate, enabled, onSelectionChange }: CalendarEventsProps) => {
   const id = useId();
   const [show, setShow] = useState(false);
   const [selectAll, setSelectAll] = useState(false);
@@ -77,9 +67,7 @@ const CalendarEvents = ({
   };
 
   const handleToggleEvent = (eventId: string, checked: boolean) => {
-    const nextIds = checked
-      ? [...selectedIds, eventId]
-      : selectedIds.filter((id) => id !== eventId);
+    const nextIds = checked ? [...selectedIds, eventId] : selectedIds.filter((id) => id !== eventId);
 
     setSelectedIds(nextIds);
     setSelectAll(nextIds.length === events.length && events.length > 0);
@@ -98,11 +86,7 @@ const CalendarEvents = ({
         />
 
         {!isCalendarSetup && (
-          <a
-            href="/desk/google-calendar"
-            target="_blank"
-            className="px-2 text-base text-ink-gray-7"
-          >
+          <a href="/desk/google-calendar" target="_blank" className="px-2 text-base text-ink-gray-7">
             Enable
           </a>
         )}
@@ -113,13 +97,9 @@ const CalendarEvents = ({
           {isLoading ? (
             <Spinner />
           ) : error ? (
-            <p className="py-2 text-base text-center text-ink-gray-5">
-              Failed to load calendar events.
-            </p>
+            <p className="py-2 text-base text-center text-ink-gray-5">Failed to load calendar events.</p>
           ) : events.length === 0 ? (
-            <p className="py-2 text-base text-center text-ink-gray-5">
-              No events found for the selected date.
-            </p>
+            <p className="py-2 text-base text-center text-ink-gray-5">No events found for the selected date.</p>
           ) : (
             <>
               <div className="flex justify-between border-b border-outline-gray-1 pb-2.5 text-base text-ink-gray-5 mb-2.5">
@@ -137,14 +117,8 @@ const CalendarEvents = ({
 
               <div className="flex overflow-y-auto flex-col gap-3 max-h-40 scrollbar-thin">
                 {events.map((event) => {
-                  const localDate = formatDateTimeLabel(
-                    event.starts_on,
-                    "MMM d",
-                  );
-                  const localStartTime = formatDateTimeLabel(
-                    event.starts_on,
-                    "p",
-                  );
+                  const localDate = formatDateTimeLabel(event.starts_on, "MMM d");
+                  const localStartTime = formatDateTimeLabel(event.starts_on, "p");
                   const localEndTime = formatDateTimeLabel(event.ends_on, "p");
 
                   return (
@@ -154,17 +128,10 @@ const CalendarEvents = ({
                         label={event.subject}
                         extraLabelClasses="text-ink-gray-8 text-base"
                         value={selectedIds.includes(event.id)}
-                        onChange={(checked) =>
-                          handleToggleEvent(event.id, checked)
-                        }
+                        onChange={(checked) => handleToggleEvent(event.id, checked)}
                       />
                       <div className="flex gap-1 ml-5">
-                        <Badge
-                          label={localDate}
-                          prefix={
-                            <CalendarDeadline className="size-3 text-ink-gray-6" />
-                          }
-                        />
+                        <Badge label={localDate} prefix={<CalendarDeadline className="size-3 text-ink-gray-6" />} />
                         <Badge
                           label={`${localStartTime} - ${localEndTime}`}
                           prefix={<Clock className="size-3 text-ink-gray-6" />}

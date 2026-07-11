@@ -13,16 +13,25 @@ import { AddMd, TimeOff } from "@rtcamp/frappe-ui-react/icons";
 import { Header } from "@/layout/header";
 import { UnsavedChangesProvider } from "@/pages/allocations/unsavedChanges/UnsavedChangesProvider";
 import { TimesheetBreadcrumbs } from "@/pages/timesheet/components/timesheet-breadcrumbs";
-import type {
-  OpenAddTimeDialogOptions,
-  TimesheetOutletContext,
-} from "../outletContext";
+import type { OpenAddTimeDialogOptions, TimesheetOutletContext } from "../outletContext";
 import AddEmployeeLeave from "./add-employee-leave";
 import AddEmployeeTime from "./add-employee-time";
 
 function TeamTimesheetLayout() {
-  const [addTimePrefill, setAddTimePrefill] =
-    useState<OpenAddTimeDialogOptions>({
+  const [addTimePrefill, setAddTimePrefill] = useState<OpenAddTimeDialogOptions>({
+    date: getTodayDate(),
+    project: "",
+    projectLabel: "",
+    task: "",
+    taskLabel: "",
+    employeeId: "",
+    employeeLabel: "",
+  });
+  const [isTimeDialogOpen, setIsTimeDialogOpen] = useState(false);
+  const [isLeaveDialogOpen, setIsLeaveDialogOpen] = useState(false);
+
+  const handleAddTime = useCallback((prefill: OpenAddTimeDialogOptions = {}) => {
+    setAddTimePrefill({
       date: getTodayDate(),
       project: "",
       projectLabel: "",
@@ -30,26 +39,10 @@ function TeamTimesheetLayout() {
       taskLabel: "",
       employeeId: "",
       employeeLabel: "",
+      ...prefill,
     });
-  const [isTimeDialogOpen, setIsTimeDialogOpen] = useState(false);
-  const [isLeaveDialogOpen, setIsLeaveDialogOpen] = useState(false);
-
-  const handleAddTime = useCallback(
-    (prefill: OpenAddTimeDialogOptions = {}) => {
-      setAddTimePrefill({
-        date: getTodayDate(),
-        project: "",
-        projectLabel: "",
-        task: "",
-        taskLabel: "",
-        employeeId: "",
-        employeeLabel: "",
-        ...prefill,
-      });
-      setIsTimeDialogOpen(true);
-    },
-    [],
-  );
+    setIsTimeDialogOpen(true);
+  }, []);
 
   return (
     <UnsavedChangesProvider>
@@ -57,9 +50,7 @@ function TeamTimesheetLayout() {
         <TimesheetBreadcrumbs />
 
         <div className="flex gap-2">
-          {window.frappe?.boot?.user?.can_create.includes(
-            "Leave Application",
-          ) && (
+          {window.frappe?.boot?.user?.can_create.includes("Leave Application") && (
             <Button
               onClick={() => setIsLeaveDialogOpen(true)}
               label="Add time-off"
@@ -98,10 +89,7 @@ function TeamTimesheetLayout() {
         employeeId={addTimePrefill.employeeId}
         employeeLabel={addTimePrefill.employeeLabel}
       />
-      <AddEmployeeLeave
-        open={isLeaveDialogOpen}
-        onOpenChange={setIsLeaveDialogOpen}
-      />
+      <AddEmployeeLeave open={isLeaveDialogOpen} onOpenChange={setIsLeaveDialogOpen} />
     </UnsavedChangesProvider>
   );
 }

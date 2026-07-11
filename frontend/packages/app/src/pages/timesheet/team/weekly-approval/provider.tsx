@@ -1,21 +1,9 @@
 /**
  * External Dependencies
  */
-import {
-  createContext,
-  useContext,
-  useState,
-  useCallback,
-  useMemo,
-  type ReactNode,
-} from "react";
+import { createContext, useContext, useState, useCallback, useMemo, type ReactNode } from "react";
 import { useToasts } from "@rtcamp/frappe-ui-react";
-import {
-  FrappeError,
-  useFrappeGetCall,
-  useFrappeGetDoc,
-  useFrappePostCall,
-} from "frappe-react-sdk";
+import { FrappeError, useFrappeGetCall, useFrappeGetDoc, useFrappePostCall } from "frappe-react-sdk";
 
 /**
  * Internal Dependencies
@@ -53,9 +41,7 @@ export interface WeeklyApprovalContextValue {
   handleReject: () => void;
 }
 
-const WeeklyApprovalContext = createContext<WeeklyApprovalContextValue | null>(
-  null,
-);
+const WeeklyApprovalContext = createContext<WeeklyApprovalContextValue | null>(null);
 
 interface WeeklyApprovalProviderProps {
   employee: string;
@@ -87,34 +73,24 @@ export const WeeklyApprovalProvider = ({
   const [checkedDays, setCheckedDays] = useState<Set<string>>(new Set());
   const [rejectionError, setRejectionError] = useState<string | null>(null);
 
-  const { call: updateTimesheet } = useFrappePostCall(
-    "next_pms.timesheet.api.timesheet.update_timesheet_detail",
-  );
+  const { call: updateTimesheet } = useFrappePostCall("next_pms.timesheet.api.timesheet.update_timesheet_detail");
 
   const { call: approveOrRejectTimesheet } = useFrappePostCall(
     "next_pms.timesheet.api.team.approve_or_reject_timesheet",
   );
 
-  const { isLoading, data, mutate } = useFrappeGetCall(
-    "next_pms.timesheet.api.timesheet.get_timesheet_data",
-    {
-      employee: employee,
-      start_date: startDate,
-      max_week: 1,
-    },
-  );
+  const { isLoading, data, mutate } = useFrappeGetCall("next_pms.timesheet.api.timesheet.get_timesheet_data", {
+    employee: employee,
+    start_date: startDate,
+    max_week: 1,
+  });
 
   const { data: employeeData } = useFrappeGetDoc("Employee", employee);
 
   const timesheetData = useMemo(() => convertTimesheetToEntries(data), [data]);
-  const groupedByDay = useMemo(
-    () => groupEntriesByDay(timesheetData.entries),
-    [timesheetData.entries],
-  );
+  const groupedByDay = useMemo(() => groupEntriesByDay(timesheetData.entries), [timesheetData.entries]);
   const totalHours = timesheetData.totalHours;
-  const isReadOnly =
-    timesheetData.status === "Approved" ||
-    timesheetData.status === "Processing Timesheet";
+  const isReadOnly = timesheetData.status === "Approved" || timesheetData.status === "Processing Timesheet";
   const dateRange = timesheetData.dateRange;
   const employeeName = employeeData?.employee_name || "";
   const avatarUrl = employeeData?.image || "";
@@ -144,9 +120,7 @@ export const WeeklyApprovalProvider = ({
   );
 
   const getCheckedDates = useCallback(() => {
-    return groupedByDay
-      .filter((dayGroup) => checkedDays.has(dayGroup.day))
-      .map((dayGroup) => dayGroup.entries[0].date);
+    return groupedByDay.filter((dayGroup) => checkedDays.has(dayGroup.day)).map((dayGroup) => dayGroup.entries[0].date);
   }, [groupedByDay, checkedDays]);
 
   const handleReject = useCallback(() => {
@@ -171,14 +145,7 @@ export const WeeklyApprovalProvider = ({
   );
 
   const handleTimesheetUpdate = useCallback(
-    async (
-      timesheetId: string,
-      taskId: string,
-      description: string,
-      hours: number,
-      parent: string,
-      day: string,
-    ) => {
+    async (timesheetId: string, taskId: string, description: string, hours: number, parent: string, day: string) => {
       if (isReadOnly) {
         return;
       }
@@ -222,15 +189,7 @@ export const WeeklyApprovalProvider = ({
       const message = parseFrappeErrorMsg(error as FrappeError);
       toast.error(message);
     }
-  }, [
-    getCheckedDates,
-    approveOrRejectTimesheet,
-    employee,
-    isReadOnly,
-    toast,
-    mutate,
-    handleOpenChange,
-  ]);
+  }, [getCheckedDates, approveOrRejectTimesheet, employee, isReadOnly, toast, mutate, handleOpenChange]);
 
   const handleRejectionSubmit = useCallback(
     async (reason: string) => {
@@ -254,15 +213,7 @@ export const WeeklyApprovalProvider = ({
         setRejectionError(parseFrappeErrorMsg(error as FrappeError));
       }
     },
-    [
-      getCheckedDates,
-      approveOrRejectTimesheet,
-      employee,
-      isReadOnly,
-      toast,
-      mutate,
-      handleOpenChange,
-    ],
+    [getCheckedDates, approveOrRejectTimesheet, employee, isReadOnly, toast, mutate, handleOpenChange],
   );
 
   const value: WeeklyApprovalContextValue = useMemo(
@@ -309,11 +260,7 @@ export const WeeklyApprovalProvider = ({
     ],
   );
 
-  return (
-    <WeeklyApprovalContext.Provider value={value}>
-      {children}
-    </WeeklyApprovalContext.Provider>
-  );
+  return <WeeklyApprovalContext.Provider value={value}>{children}</WeeklyApprovalContext.Provider>;
 };
 
 /**
@@ -325,9 +272,7 @@ export const WeeklyApprovalProvider = ({
 export const useWeeklyApproval = (): WeeklyApprovalContextValue => {
   const context = useContext(WeeklyApprovalContext);
   if (!context) {
-    throw new Error(
-      "useWeeklyApproval must be used within a WeeklyApprovalProvider",
-    );
+    throw new Error("useWeeklyApproval must be used within a WeeklyApprovalProvider");
   }
   return context;
 };

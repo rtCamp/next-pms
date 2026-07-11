@@ -12,53 +12,40 @@ import { getCookie, parseFrappeErrorMsg } from "@/lib/utils";
 import { UserContext, type UserContextProps } from ".";
 
 export const UserProvider: FC<PropsWithChildren> = ({ children }) => {
-  const [employeeId, setEmployeeId] =
-    useState<UserContextProps["state"]["employeeId"]>("");
-  const [employeeName, setEmployeeName] =
-    useState<UserContextProps["state"]["employeeName"]>("");
-  const [workingHours, setWorkingHours] =
-    useState<UserContextProps["state"]["workingHours"]>(0);
-  const [workingFrequency, setWorkingFrequency] =
-    useState<UserContextProps["state"]["workingFrequency"]>("Per Day");
-  const [reportsTo, setReportsTo] =
-    useState<UserContextProps["state"]["reportsTo"]>("");
+  const [employeeId, setEmployeeId] = useState<UserContextProps["state"]["employeeId"]>("");
+  const [employeeName, setEmployeeName] = useState<UserContextProps["state"]["employeeName"]>("");
+  const [workingHours, setWorkingHours] = useState<UserContextProps["state"]["workingHours"]>(0);
+  const [workingFrequency, setWorkingFrequency] = useState<UserContextProps["state"]["workingFrequency"]>("Per Day");
+  const [reportsTo, setReportsTo] = useState<UserContextProps["state"]["reportsTo"]>("");
 
-  const userId: UserContextProps["state"]["userId"] = decodeURIComponent(
-    getCookie("user_id") ?? "",
-  );
-  const userName: UserContextProps["state"]["userName"] = decodeURIComponent(
-    getCookie("full_name") ?? "",
-  );
-  const image: UserContextProps["state"]["image"] = decodeURIComponent(
-    getCookie("userImage") ?? "",
-  );
+  const userId: UserContextProps["state"]["userId"] = decodeURIComponent(getCookie("user_id") ?? "");
+  const userName: UserContextProps["state"]["userName"] = decodeURIComponent(getCookie("full_name") ?? "");
+  const image: UserContextProps["state"]["image"] = decodeURIComponent(getCookie("userImage") ?? "");
 
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState<
-    UserContextProps["state"]["isSidebarCollapsed"]
-  >(getLocalStorage("next-pms:isSidebarCollapsed", false));
-  const [roles, setRoles] = useState<UserContextProps["state"]["roles"]>(
-    window.frappe?.boot?.user?.roles || [],
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState<UserContextProps["state"]["isSidebarCollapsed"]>(
+    getLocalStorage("next-pms:isSidebarCollapsed", false),
   );
-  const [currencies, setCurrencies] = useState<
-    UserContextProps["state"]["currencies"]
-  >(window.frappe?.boot?.currencies || []);
-  const [hasBuField, setHasBuField] = useState<
-    UserContextProps["state"]["hasBuField"]
-  >(window.frappe?.boot?.has_business_unit || false);
-  const [hasIndustryField, setHasIndustryField] = useState<
-    UserContextProps["state"]["hasIndustryField"]
-  >(window.frappe?.boot?.has_industry || false);
+  const [roles, setRoles] = useState<UserContextProps["state"]["roles"]>(window.frappe?.boot?.user?.roles || []);
+  const [currencies, setCurrencies] = useState<UserContextProps["state"]["currencies"]>(
+    window.frappe?.boot?.currencies || [],
+  );
+  const [hasBuField, setHasBuField] = useState<UserContextProps["state"]["hasBuField"]>(
+    window.frappe?.boot?.has_business_unit || false,
+  );
+  const [hasIndustryField, setHasIndustryField] = useState<UserContextProps["state"]["hasIndustryField"]>(
+    window.frappe?.boot?.has_industry || false,
+  );
+  const [autoExpandWeeks, setAutoExpandWeeks] = useState<UserContextProps["state"]["autoExpandWeeks"]>(
+    window.frappe?.boot?.auto_expand_weeks ?? 4,
+  );
 
   const { logout, isLoading: isAuthLoading, currentUser } = useFrappeAuth();
-  const isAuthenticated =
-    !isAuthLoading && !!currentUser && currentUser !== "Guest";
+  const isAuthenticated = !isAuthLoading && !!currentUser && currentUser !== "Guest";
 
   const { data: appData, error: appDataError } = useFrappeGetCall(
     "next_pms.timesheet.api.app.get_data",
     undefined,
-    isAuthenticated
-      ? ["next_pms.timesheet.api.app.get_data", currentUser]
-      : null,
+    isAuthenticated ? ["next_pms.timesheet.api.app.get_data", currentUser] : null,
   );
 
   useEffect(() => {
@@ -70,14 +57,13 @@ export const UserProvider: FC<PropsWithChildren> = ({ children }) => {
     setCurrencies(appData?.message?.currencies || []);
     setHasBuField(appData?.message?.has_business_unit || false);
     setHasIndustryField(appData?.message?.has_industry || false);
+    setAutoExpandWeeks(appData?.message?.auto_expand_weeks ?? 4);
   }, [appData]);
 
   const { data: employeeData, error: employeeDataError } = useFrappeGetCall(
     "next_pms.timesheet.api.employee.get_data",
     undefined,
-    isAuthenticated
-      ? ["next_pms.timesheet.api.employee.get_data", currentUser]
-      : null,
+    isAuthenticated ? ["next_pms.timesheet.api.employee.get_data", currentUser] : null,
   );
 
   if (isAuthenticated) {
@@ -96,13 +82,8 @@ export const UserProvider: FC<PropsWithChildren> = ({ children }) => {
     }
 
     setEmployeeId(employeeData?.message?.employee ?? "");
-    setWorkingHours(
-      employeeData?.message?.employee_working_detail?.working_hour ?? 8,
-    );
-    setWorkingFrequency(
-      employeeData?.message?.employee_working_detail?.working_frequency ??
-        "Per Day",
-    );
+    setWorkingHours(employeeData?.message?.employee_working_detail?.working_hour ?? 8);
+    setWorkingFrequency(employeeData?.message?.employee_working_detail?.working_frequency ?? "Per Day");
     setReportsTo(employeeData?.message?.employee_report_to ?? "");
     setEmployeeName(employeeData?.message?.employee_name ?? "");
   }, [employeeData]);
@@ -144,6 +125,7 @@ export const UserProvider: FC<PropsWithChildren> = ({ children }) => {
           currencies,
           hasBuField,
           hasIndustryField,
+          autoExpandWeeks,
           currentUser,
         },
         actions: {

@@ -5,11 +5,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { Button, Dialog, Select, useToasts } from "@rtcamp/frappe-ui-react";
 import { useForm, useStore } from "@tanstack/react-form";
 import { format, parseISO } from "date-fns";
-import {
-  FrappeError,
-  useFrappeGetCall,
-  useFrappePostCall,
-} from "frappe-react-sdk";
+import { FrappeError, useFrappeGetCall, useFrappePostCall } from "frappe-react-sdk";
 
 /**
  * Internal dependencies.
@@ -36,21 +32,13 @@ type AllocationSeriesOccurrence = {
   allocation_end_date: string;
 };
 
-function EditScheduleModal({
-  open,
-  onOpenChange,
-  initialValues,
-  onSuccess,
-}: EditScheduleModalProps) {
+function EditScheduleModal({ open, onOpenChange, initialValues, onSuccess }: EditScheduleModalProps) {
   const toast = useToasts();
-  const { call: editAllocation } = useFrappePostCall(
-    "next_pms.resource_management.api.allocation.edit_allocation",
-  );
+  const { call: editAllocation } = useFrappePostCall("next_pms.resource_management.api.allocation.edit_allocation");
   const today = useMemo(() => format(new Date(), "yyyy-MM-dd"), []);
   const [selectionAnchor, setSelectionAnchor] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
-  const [applyMode, setApplyMode] =
-    useState<EditScheduleApplyMode>("this_and_future");
+  const [applyMode, setApplyMode] = useState<EditScheduleApplyMode>("this_and_future");
 
   const safeValues = useMemo(
     () =>
@@ -66,11 +54,7 @@ function EditScheduleModal({
   const defaultHoursPerDay = safeValues.defaultHoursPerDay ?? 0;
   const isRecurringAllocation = Boolean(safeValues.recurrenceId);
   const fullRange = useMemo(
-    () =>
-      normalizeRange(
-        safeValues.rangeStart || today,
-        safeValues.rangeEnd || safeValues.rangeStart || today,
-      ),
+    () => normalizeRange(safeValues.rangeStart || today, safeValues.rangeEnd || safeValues.rangeStart || today),
     [safeValues.rangeEnd, safeValues.rangeStart, today],
   );
   const { data: seriesData } = useFrappeGetCall<{
@@ -81,9 +65,7 @@ function EditScheduleModal({
   }>(
     "next_pms.resource_management.api.allocation.get_allocation_series",
     { name: safeValues.allocationName },
-    open && isRecurringAllocation && safeValues.allocationName
-      ? undefined
-      : false,
+    open && isRecurringAllocation && safeValues.allocationName ? undefined : false,
   );
   const seriesInfo = useMemo(() => {
     const series = seriesData?.message;
@@ -93,8 +75,7 @@ function EditScheduleModal({
     }
 
     const remainingOccurrences = series.occurrences.slice(series.picked_index);
-    const lastOccurrence =
-      remainingOccurrences[remainingOccurrences.length - 1];
+    const lastOccurrence = remainingOccurrences[remainingOccurrences.length - 1];
 
     if (!lastOccurrence) {
       return undefined;
@@ -107,11 +88,7 @@ function EditScheduleModal({
   }, [seriesData]);
 
   const recurrenceHelperText = useMemo(() => {
-    if (
-      !isRecurringAllocation ||
-      applyMode === "only_this" ||
-      !seriesInfo?.seriesEndDate
-    ) {
+    if (!isRecurringAllocation || applyMode === "only_this" || !seriesInfo?.seriesEndDate) {
       return undefined;
     }
 
@@ -119,9 +96,7 @@ function EditScheduleModal({
   }, [applyMode, isRecurringAllocation, seriesInfo]);
 
   const summaryRepeatWeeks =
-    isRecurringAllocation &&
-    applyMode !== "only_this" &&
-    seriesInfo?.remainingWeeks
+    isRecurringAllocation && applyMode !== "only_this" && seriesInfo?.remainingWeeks
       ? Math.max(0, seriesInfo.remainingWeeks - 1)
       : 0;
 
@@ -134,13 +109,9 @@ function EditScheduleModal({
     () =>
       initialValues
         ? {
-            allocationStartDate:
-              initialValues.allocationStartDate ?? initialValues.rangeStart,
-            allocationEndDate:
-              initialValues.allocationEndDate ?? initialValues.rangeEnd,
-            allocationHoursPerDay:
-              initialValues.allocationHoursPerDay ??
-              initialValues.defaultHoursPerDay,
+            allocationStartDate: initialValues.allocationStartDate ?? initialValues.rangeStart,
+            allocationEndDate: initialValues.allocationEndDate ?? initialValues.rangeEnd,
+            allocationHoursPerDay: initialValues.allocationHoursPerDay ?? initialValues.defaultHoursPerDay,
             override: initialValues.override,
           }
         : null,
@@ -150,7 +121,7 @@ function EditScheduleModal({
   const formDefaultValues = useMemo<EditScheduleFormValues>(
     () => ({
       schedule: {
-        selection: { startDate: "", endDate: "" },
+        selection: [],
         input: { value: defaultHoursPerDay, mode: "hoursPerDay" },
       },
     }),
@@ -178,8 +149,7 @@ function EditScheduleModal({
         ? buildScheduleSelectionPayload({
             allocation: allocationContext,
             next: {
-              startDate: draft.selection.startDate,
-              endDate: draft.selection.endDate,
+              selectedDates: draft.selection,
               hoursPerDay: draft.hoursPerDay,
             },
           })
@@ -211,12 +181,8 @@ function EditScheduleModal({
           deleted_day_overrides: schedulePayload.deletedDayOverrides,
         });
         await onSuccess?.({
-          ...(safeValues.employeeId
-            ? { employeeIds: [safeValues.employeeId] }
-            : {}),
-          ...(safeValues.projectId
-            ? { projectIds: [safeValues.projectId] }
-            : {}),
+          ...(safeValues.employeeId ? { employeeIds: [safeValues.employeeId] } : {}),
+          ...(safeValues.projectId ? { projectIds: [safeValues.projectId] } : {}),
         });
         toast.success("Schedule updated.");
         if (!onSuccess) {
@@ -240,13 +206,7 @@ function EditScheduleModal({
         override: safeValues.override,
         schedule,
       }),
-    [
-      defaultHoursPerDay,
-      fullRange.endDate,
-      fullRange.startDate,
-      safeValues.override,
-      schedule,
-    ],
+    [defaultHoursPerDay, fullRange.endDate, fullRange.startDate, safeValues.override, schedule],
   );
 
   const schedulePayload = useMemo(
@@ -255,14 +215,12 @@ function EditScheduleModal({
         ? buildScheduleSelectionPayload({
             allocation: allocationContext,
             next: {
-              startDate: scheduleDraft.selection.startDate,
-              endDate: scheduleDraft.selection.endDate,
+              selectedDates: scheduleDraft.selection,
               hoursPerDay: scheduleDraft.hoursPerDay,
             },
           })
         : {
-            allocationHoursPerDay:
-              allocationContext?.allocationHoursPerDay ?? defaultHoursPerDay,
+            allocationHoursPerDay: allocationContext?.allocationHoursPerDay ?? defaultHoursPerDay,
             dayOverrides: [],
             deletedDayOverrides: [],
           },
@@ -271,8 +229,7 @@ function EditScheduleModal({
   const hasScheduleChange =
     schedulePayload.dayOverrides.length > 0 ||
     schedulePayload.deletedDayOverrides.length > 0 ||
-    schedulePayload.allocationHoursPerDay !==
-      allocationContext?.allocationHoursPerDay;
+    schedulePayload.allocationHoursPerDay !== allocationContext?.allocationHoursPerDay;
 
   useEffect(() => {
     if (!open) {
@@ -302,11 +259,7 @@ function EditScheduleModal({
         closeModal();
       }}
       options={{
-        title: () => (
-          <span className="text-lg font-medium text-ink-gray-7">
-            Edit schedule
-          </span>
-        ),
+        title: () => <span className="text-lg font-medium text-ink-gray-7">Edit schedule</span>,
         size: "sm",
       }}
       actions={
@@ -333,35 +286,22 @@ function EditScheduleModal({
       }}
     >
       <div className="space-y-3">
-        <form.Field name="schedule.selection.startDate">
-          {(startField) => (
-            <form.Field name="schedule.selection.endDate">
-              {(endField) => (
-                <ScheduleDateSelectionField
-                  days={days}
-                  headerRangeLabel={scheduleDraft.headerRangeLabel}
-                  recurrenceHelperText={recurrenceHelperText}
-                  selection={scheduleDraft.selection}
-                  onDayClick={(date) => {
-                    if (!selectionAnchor) {
-                      setSelectionAnchor(date);
-                      startField.handleChange(date);
-                      endField.handleChange(date);
-                      return;
-                    }
-
-                    const next = normalizeRange(selectionAnchor, date);
-                    setSelectionAnchor(null);
-                    startField.handleChange(next.startDate);
-                    endField.handleChange(next.endDate);
-                  }}
-                  error={
-                    getErrorMessage(startField.state.meta.errors[0]) ??
-                    getErrorMessage(endField.state.meta.errors[0])
-                  }
-                />
-              )}
-            </form.Field>
+        <form.Field name="schedule.selection">
+          {(selectionField) => (
+            <ScheduleDateSelectionField
+              days={days}
+              headerRangeLabel={scheduleDraft.headerRangeLabel}
+              recurrenceHelperText={recurrenceHelperText}
+              selection={scheduleDraft.selection}
+              onDayClick={(date) => {
+                const currentSelection = selectionField.state.value || [];
+                const nextSelection = currentSelection.includes(date)
+                  ? currentSelection.filter((d) => d !== date)
+                  : [...currentSelection, date];
+                selectionField.handleChange(nextSelection);
+              }}
+              error={getErrorMessage(selectionField.state.meta.errors[0])}
+            />
           )}
         </form.Field>
 
@@ -375,32 +315,20 @@ function EditScheduleModal({
                   form.setFieldValue("schedule.input.mode", "hoursPerDay");
                   field.handleChange(value);
                 }}
-                error={
-                  schedule.input.mode === "hoursPerDay"
-                    ? getErrorMessage(field.state.meta.errors[0])
-                    : undefined
-                }
+                error={schedule.input.mode === "hoursPerDay" ? getErrorMessage(field.state.meta.errors[0]) : undefined}
               />
             )}
           </form.Field>
           <form.Field name="schedule.input.value">
             {(field) => (
               <ScheduleTotalHoursField
-                value={
-                  scheduleDraft.hasSelection
-                    ? toDisplayHours(scheduleDraft.totalHours)
-                    : ""
-                }
+                value={scheduleDraft.hasSelection ? toDisplayHours(scheduleDraft.totalHours) : ""}
                 disabled={!scheduleDraft.hasSelection}
                 onChange={(value) => {
                   form.setFieldValue("schedule.input.mode", "totalHours");
                   field.handleChange(value);
                 }}
-                error={
-                  schedule.input.mode === "totalHours"
-                    ? getErrorMessage(field.state.meta.errors[0])
-                    : undefined
-                }
+                error={schedule.input.mode === "totalHours" ? getErrorMessage(field.state.meta.errors[0]) : undefined}
               />
             )}
           </form.Field>
@@ -408,9 +336,7 @@ function EditScheduleModal({
 
         {isRecurringAllocation ? (
           <div className="space-y-1.5">
-            <label className="block text-base text-ink-gray-5">
-              Apply edits to
-            </label>
+            <label className="block text-base text-ink-gray-5">Apply edits to</label>
             <Select
               value={applyMode}
               options={[
@@ -432,13 +358,8 @@ function EditScheduleModal({
         ) : null}
 
         <div className="space-y-1.5">
-          <label className="block text-base text-ink-gray-5">
-            Schedule summary
-          </label>
-          <ScheduleSummaryTable
-            rows={scheduleDraft.previewRows}
-            repeatWeeks={summaryRepeatWeeks}
-          />
+          <label className="block text-base text-ink-gray-5">Schedule summary</label>
+          <ScheduleSummaryTable rows={scheduleDraft.previewRows} repeatWeeks={summaryRepeatWeeks} />
         </div>
       </div>
     </Dialog>

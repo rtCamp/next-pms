@@ -16,20 +16,16 @@ import AddLeave from "@/pages/timesheet/components/add-leave";
 import AddTime from "@/pages/timesheet/components/add-time";
 import SubmitApproval from "@/pages/timesheet/components/submit-approval";
 import { TimesheetBreadcrumbs } from "@/pages/timesheet/components/timesheet-breadcrumbs";
-import type {
-  OpenAddTimeDialogOptions,
-  TimesheetOutletContext,
-} from "../outletContext";
+import type { OpenAddTimeDialogOptions, TimesheetOutletContext } from "../outletContext";
 
 function PersonalTimesheetLayout() {
-  const [addTimePrefill, setAddTimePrefill] =
-    useState<OpenAddTimeDialogOptions>({
-      date: getTodayDate(),
-      project: "",
-      projectLabel: "",
-      task: "",
-      taskLabel: "",
-    });
+  const [addTimePrefill, setAddTimePrefill] = useState<OpenAddTimeDialogOptions>({
+    date: getTodayDate(),
+    project: "",
+    projectLabel: "",
+    task: "",
+    taskLabel: "",
+  });
   const [isTimeDialogOpen, setIsTimeDialogOpen] = useState(false);
   const [isLeaveDialogOpen, setIsLeaveDialogOpen] = useState(false);
   const [isSubmitApprovalOpen, setIsSubmitApprovalOpen] = useState(false);
@@ -39,28 +35,22 @@ function PersonalTimesheetLayout() {
     totalHours: 0,
   });
 
-  const handleAddTime = useCallback(
-    (prefill: OpenAddTimeDialogOptions = {}) => {
-      setAddTimePrefill({
-        date: getTodayDate(),
-        project: "",
-        projectLabel: "",
-        task: "",
-        taskLabel: "",
-        ...prefill,
-      });
-      setIsTimeDialogOpen(true);
-    },
-    [],
-  );
+  const handleAddTime = useCallback((prefill: OpenAddTimeDialogOptions = {}) => {
+    setAddTimePrefill({
+      date: getTodayDate(),
+      project: "",
+      projectLabel: "",
+      task: "",
+      taskLabel: "",
+      ...prefill,
+    });
+    setIsTimeDialogOpen(true);
+  }, []);
 
-  const handleApproval = useCallback(
-    (startDate: string, endDate: string, totalHours: number) => {
-      setSubmitApprovalDates({ startDate, endDate, totalHours });
-      setIsSubmitApprovalOpen(true);
-    },
-    [],
-  );
+  const handleApproval = useCallback((startDate: string, endDate: string, totalHours: number) => {
+    setSubmitApprovalDates({ startDate, endDate, totalHours });
+    setIsSubmitApprovalOpen(true);
+  }, []);
 
   return (
     <UnsavedChangesProvider>
@@ -68,9 +58,7 @@ function PersonalTimesheetLayout() {
         <TimesheetBreadcrumbs />
 
         <div className="flex gap-2">
-          {window.frappe?.boot?.user?.can_create.includes(
-            "Leave Application",
-          ) && (
+          {window.frappe?.boot?.user?.can_create.includes("Leave Application") && (
             <Button
               className="text-ink-gray-7"
               onClick={() => setIsLeaveDialogOpen(true)}

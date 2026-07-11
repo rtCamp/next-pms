@@ -5,12 +5,7 @@ import { Accordion } from "@base-ui/react/accordion";
 import { Dialog } from "@base-ui/react/dialog";
 import { floatToTime } from "@next-pms/design-system";
 import { Avatar, Button, Checkbox } from "@rtcamp/frappe-ui-react";
-import {
-  SmallDown,
-  Close,
-  CloseCircle,
-  Success,
-} from "@rtcamp/frappe-ui-react/icons";
+import { SmallDown, Close, CloseCircle, Success } from "@rtcamp/frappe-ui-react/icons";
 
 /**
  * Internal Dependencies
@@ -38,9 +33,7 @@ const ApprovalPopup = () => {
       <div className="flex items-center justify-between px-3.5 py-4 border-b border-outline-gray-modals">
         <div className="flex items-center gap-3">
           <Avatar size="xs" image={avatarUrl} label={employeeName} />
-          <h1 className="text-lg font-medium text-ink-gray-8">
-            {employeeName}
-          </h1>
+          <h1 className="text-lg font-medium text-ink-gray-8">{employeeName}</h1>
           <p className="text-base text-ink-gray-5">{dateRange}</p>
         </div>
         <div className="flex items-center gap-3">
@@ -54,10 +47,7 @@ const ApprovalPopup = () => {
       </div>
       {/* Content */}
       <div className="flex-1 overflow-y-auto scrollbar">
-        <Accordion.Root
-          multiple
-          defaultValue={groupedByDay.map((dayGroup) => dayGroup.day)}
-        >
+        <Accordion.Root multiple defaultValue={groupedByDay.map((dayGroup) => dayGroup.day)}>
           {groupedByDay.map((dayGroup) => (
             <Accordion.Item
               key={dayGroup.day}
@@ -70,9 +60,7 @@ const ApprovalPopup = () => {
                   <span className="text-base font-medium text-ink-gray-8">
                     {dayGroup.day}
                     {dayGroup.leaveLabel ? (
-                      <span className="text-ink-gray-5">
-                        {` · ${dayGroup.leaveLabel}`}
-                      </span>
+                      <span className="text-ink-gray-5">{` · ${dayGroup.leaveLabel}`}</span>
                     ) : null}
                   </span>
                 </div>
@@ -80,16 +68,11 @@ const ApprovalPopup = () => {
                   <span className="text-lg font-medium text-ink-green-4 tabular-nums lining-nums">
                     {floatToTime(dayGroup.totalHours, 2, 2)}
                   </span>
-                  <div
-                    onClick={(e) => e.stopPropagation()}
-                    className="flex items-center"
-                  >
+                  <div onClick={(e) => e.stopPropagation()} className="flex items-center">
                     <Checkbox
                       value={checkedDays.has(dayGroup.day)}
                       disabled={isReadOnly}
-                      onChange={(checked) =>
-                        handleDayCheckChange(dayGroup.day, checked)
-                      }
+                      onChange={(checked) => handleDayCheckChange(dayGroup.day, checked)}
                     />
                   </div>
                 </div>

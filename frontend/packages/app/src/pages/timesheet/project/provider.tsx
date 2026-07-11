@@ -1,14 +1,7 @@
 /**
  * External dependencies.
  */
-import {
-  FC,
-  PropsWithChildren,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import { FC, PropsWithChildren, useEffect, useMemo, useRef, useState } from "react";
 import { useToasts } from "@rtcamp/frappe-ui-react";
 import type { Error as FrappeError } from "frappe-js-sdk/lib/frappe_app/types";
 
@@ -16,19 +9,13 @@ import type { Error as FrappeError } from "frappe-js-sdk/lib/frappe_app/types";
  * Internal dependencies.
  */
 import { isCompleteFilterCondition, parseFrappeErrorMsg } from "@/lib/utils";
-import {
-  ProjectTimesheetContext,
-  type ProjectTimesheetContextProps,
-} from "./context";
+import { ProjectTimesheetContext, type ProjectTimesheetContextProps } from "./context";
 import { useProjectTimesheetData } from "./useProjectTimesheetData";
 import { useTimesheetFilters } from "../hooks/useTimesheetFilters";
 
-export const ProjectTimesheetProvider: FC<PropsWithChildren> = ({
-  children,
-}) => {
+export const ProjectTimesheetProvider: FC<PropsWithChildren> = ({ children }) => {
   const toast = useToasts();
-  const { filters, setSearch, setCompositeFilters, resetAll } =
-    useTimesheetFilters();
+  const { filters, setSearch, setCompositeFilters, resetAll } = useTimesheetFilters();
 
   // Only pass complete filter conditions to the data hook so that selecting a
   // field (without an operator/value) does not trigger a reset + network request.
@@ -66,10 +53,7 @@ export const ProjectTimesheetProvider: FC<PropsWithChildren> = ({
   if (freshWeekGroups.length > 0) {
     staleWeekGroupsRef.current = freshWeekGroups;
   }
-  const weekGroups =
-    freshWeekGroups.length > 0 || !isLoadingProjectData
-      ? freshWeekGroups
-      : staleWeekGroupsRef.current;
+  const weekGroups = freshWeekGroups.length > 0 || !isLoadingProjectData ? freshWeekGroups : staleWeekGroupsRef.current;
 
   useEffect(() => {
     if (isLoadingProjectData) return;
@@ -114,9 +98,5 @@ export const ProjectTimesheetProvider: FC<PropsWithChildren> = ({
     ],
   );
 
-  return (
-    <ProjectTimesheetContext.Provider value={value}>
-      {children}
-    </ProjectTimesheetContext.Provider>
-  );
+  return <ProjectTimesheetContext.Provider value={value}>{children}</ProjectTimesheetContext.Provider>;
 };

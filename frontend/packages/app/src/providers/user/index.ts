@@ -42,6 +42,8 @@ export interface UserContextProps {
     hasBuField: boolean;
     /** Whether the industry field is enabled in the system. */
     hasIndustryField: boolean;
+    /** Default expanded weeks setting for timesheets. */
+    autoExpandWeeks: number;
   };
   actions: {
     /** Logs out the current user and clears the active session. */
@@ -68,6 +70,7 @@ export const UserContext = createContext<UserContextProps>({
     currencies: window.frappe?.boot?.currencies ?? [],
     hasBuField: window.frappe?.boot?.has_business_unit ?? false,
     hasIndustryField: window.frappe?.boot?.has_industry ?? false,
+    autoExpandWeeks: window.frappe?.boot?.auto_expand_weeks ?? 4,
   },
   actions: {
     logout: () => Promise.resolve(),

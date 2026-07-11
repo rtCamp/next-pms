@@ -10,17 +10,10 @@ interface ScheduleHoursPerDayFieldProps {
   error?: string;
 }
 
-function ScheduleHoursPerDayField({
-  value,
-  disabled,
-  onChange,
-  error,
-}: ScheduleHoursPerDayFieldProps) {
+function ScheduleHoursPerDayField({ value, disabled, onChange, error }: ScheduleHoursPerDayFieldProps) {
   return (
     <div className="flex-1 space-y-1.5">
-      <label className="block text-base text-ink-gray-5">
-        Edit hours / day
-      </label>
+      <label className="block text-base text-ink-gray-5">Edit hours / day</label>
       <DurationInput
         snap="smooth"
         variant="outline"

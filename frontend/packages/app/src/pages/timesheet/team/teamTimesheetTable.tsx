@@ -13,11 +13,15 @@ import TeamTaskLog from "@/components/task-log/teamTaskLog";
 import { HeaderRow } from "@/components/timesheet-row/components/row/headerRow";
 import { TeamTimesheetRow } from "@/components/timesheet-row/teamTimesheetRow";
 import { NUMBER_OF_WEEKS_TO_FETCH } from "@/lib/constant";
+import { useUser } from "@/providers/user";
 import { useTeamTimesheet } from "./context";
 import { SubHeader } from "./subHeader";
 import WeeklyApproval from "./weekly-approval";
 
 const TeamTimesheetGrid = () => {
+  const { autoExpandWeeks } = useUser(({ state }) => ({
+    autoExpandWeeks: state.autoExpandWeeks,
+  }));
   const [selectedTask, setSelectedTask] = useState<string | null>(null);
   const [weeklyApproval, setWeeklyApproval] = useState<{
     employee: string;
@@ -25,12 +29,8 @@ const TeamTimesheetGrid = () => {
   } | null>(null);
 
   const hasMore = useTeamTimesheet(({ state }) => state.hasMore);
-  const isLoadingTeamData = useTeamTimesheet(
-    ({ state }) => state.isLoadingTeamData,
-  );
-  const isFilterRequest = useTeamTimesheet(
-    ({ state }) => state.isFilterRequest,
-  );
+  const isLoadingTeamData = useTeamTimesheet(({ state }) => state.isLoadingTeamData);
+  const isFilterRequest = useTeamTimesheet(({ state }) => state.isFilterRequest);
   const weekGroups = useTeamTimesheet(({ state }) => state.weekGroups);
   const loadMore = useTeamTimesheet(({ actions }) => actions.loadMore);
 
@@ -63,9 +63,7 @@ const TeamTimesheetGrid = () => {
       {isLoadingTeamData && weekGroups.length === 0 ? (
         <Spinner isFull />
       ) : weekGroups.length === 0 ? (
-        <Typography className="flex justify-center items-center">
-          No data
-        </Typography>
+        <Typography className="flex justify-center items-center">No data</Typography>
       ) : (
         <InfiniteScroll
           isLoading={isLoadingTeamData}
@@ -95,8 +93,7 @@ const TeamTimesheetGrid = () => {
                           ],
                           highlightLastItem: false,
                           size: "sm",
-                          crumbClassName:
-                            "first:pl-0 last:pr-0 px-0.5 py-0 font-[420]",
+                          crumbClassName: "first:pl-0 last:pr-0 px-0.5 py-0 font-[420]",
                           className: "pl-[8px]",
                         }}
                       />
@@ -107,12 +104,10 @@ const TeamTimesheetGrid = () => {
                     <TeamTimesheetRow
                       label={week.label}
                       dates={week.dates}
-                      collapsed={index >= 6}
+                      collapsed={index >= autoExpandWeeks}
                       approvalPendingCount={week.approvalPendingCount}
                       setSelectedTask={setSelectedTask}
-                      openWeeklyApproval={(employee, date) =>
-                        setWeeklyApproval({ employee, startDate: date })
-                      }
+                      openWeeklyApproval={(employee, date) => setWeeklyApproval({ employee, startDate: date })}
                       teamMembers={week.members}
                     />
                   </div>
@@ -123,12 +118,7 @@ const TeamTimesheetGrid = () => {
         </InfiniteScroll>
       )}
 
-      {isFilteredDataLoading ? (
-        <Spinner
-          isFull
-          className="absolute top-0 left-0 w-full h-full cursor-wait"
-        />
-      ) : null}
+      {isFilteredDataLoading ? <Spinner isFull className="absolute top-0 left-0 w-full h-full cursor-wait" /> : null}
     </>
   );
 };

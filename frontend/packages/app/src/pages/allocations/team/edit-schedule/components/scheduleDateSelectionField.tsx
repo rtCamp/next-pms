@@ -28,8 +28,7 @@ function ScheduleDateSelectionField({
   onDayClick,
   error,
 }: ScheduleDateSelectionFieldProps) {
-  const showInlineRecurrenceHelper =
-    Boolean(recurrenceHelperText) && days.length <= 3;
+  const showInlineRecurrenceHelper = Boolean(recurrenceHelperText) && days.length <= 3;
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
@@ -55,8 +54,7 @@ function ScheduleDateSelectionField({
       <div
         className={cn(
           "relative pb-1.5 -mx-3.5",
-          showInlineRecurrenceHelper &&
-            "flex items-center justify-between gap-3",
+          showInlineRecurrenceHelper && "flex items-center justify-between gap-3",
         )}
       >
         <div
@@ -72,32 +70,20 @@ function ScheduleDateSelectionField({
         >
           {days.map((day, index) => (
             <DayChip
-              className={cn(
-                "shrink-0",
-                index === 0 && "ml-3.5",
-                index === days.length - 1 && "mr-3.5",
-              )}
+              className={cn("shrink-0", index === 0 && "ml-3.5", index === days.length - 1 && "mr-3.5")}
               key={day.date}
               dayLabel={day.dayLabel}
               dayNumber={day.dayNumber}
               monthLabel={day.monthLabel}
               isMonthBoundary={day.isMonthBoundary}
-              state={
-                selection &&
-                day.date >= selection.startDate &&
-                day.date <= selection.endDate
-                  ? "active"
-                  : "default"
-              }
+              state={selection && selection.includes(day.date) ? "active" : "default"}
               onClick={() => onDayClick(day.date)}
             />
           ))}
         </div>
 
         {showInlineRecurrenceHelper ? (
-          <p className="shrink-0 text-sm text-ink-gray-4 pr-3.5">
-            {recurrenceHelperText}
-          </p>
+          <p className="shrink-0 text-sm text-ink-gray-4 pr-3.5">{recurrenceHelperText}</p>
         ) : (
           <div
             className={cn(

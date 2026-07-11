@@ -5,13 +5,7 @@ import { useState, useCallback } from "react";
 import { floatToTime, mergeClassNames as cn } from "@next-pms/design-system";
 import { TaskStatus } from "@next-pms/design-system/components";
 import { stripTags } from "@next-pms/design-system/utils";
-import {
-  Button,
-  ErrorMessage,
-  StaticTextEditor,
-  TextEditor,
-  DurationInput,
-} from "@rtcamp/frappe-ui-react";
+import { Button, ErrorMessage, StaticTextEditor, TextEditor, DurationInput } from "@rtcamp/frappe-ui-react";
 import { EditAlt, Check, Close } from "@rtcamp/frappe-ui-react/icons";
 
 /**
@@ -62,25 +56,10 @@ const EntryRow = ({ entry, readOnly = false, onSave }: EntryRowProps) => {
       return;
     }
 
-    onSave(
-      entry.timesheetId,
-      entry.taskId,
-      description,
-      hours,
-      entry.parent,
-      entry.day,
-    );
+    onSave(entry.timesheetId, entry.taskId, description, hours, entry.parent, entry.day);
     setDescriptionError(null);
     setIsEditing(false);
-  }, [
-    entry.timesheetId,
-    entry.taskId,
-    entry.parent,
-    entry.day,
-    description,
-    hours,
-    onSave,
-  ]);
+  }, [entry.timesheetId, entry.taskId, entry.parent, entry.day, description, hours, onSave]);
 
   if (isEditing && !isReadOnly) {
     return (
@@ -88,19 +67,10 @@ const EntryRow = ({ entry, readOnly = false, onSave }: EntryRowProps) => {
         <TaskStatus status={entry.status} />
         <div className="flex-1 min-w-0">
           <div className="space-y-1">
-            <p className="text-base font-medium text-ink-gray-7 truncate">
-              {entry.taskName}
-            </p>
-            <p className="text-xs text-ink-gray-5 truncate">
-              {entry.projectName}
-            </p>
+            <p className="text-base font-medium text-ink-gray-7 truncate">{entry.taskName}</p>
+            <p className="text-xs text-ink-gray-5 truncate">{entry.projectName}</p>
             <div className="flex flex-col gap-2 mt-3">
-              <DurationInput
-                snap="smooth"
-                variant="outline"
-                value={hours}
-                onChange={setHours}
-              />
+              <DurationInput snap="smooth" variant="outline" value={hours} onChange={setHours} />
               <TextEditor
                 content={description}
                 onChange={(val) => {
@@ -112,9 +82,7 @@ const EntryRow = ({ entry, readOnly = false, onSave }: EntryRowProps) => {
                 editorClass="px-2 h-24 prose-sm overflow-auto scrollbar-thin bg-surface-white border rounded-md border-outline-gray-2"
               />
             </div>
-            {descriptionError ? (
-              <ErrorMessage message={descriptionError} />
-            ) : null}
+            {descriptionError ? <ErrorMessage message={descriptionError} /> : null}
           </div>
         </div>
 
@@ -145,16 +113,9 @@ const EntryRow = ({ entry, readOnly = false, onSave }: EntryRowProps) => {
       <TaskStatus status={entry.status} />
       <div className="flex-1 min-w-0">
         <div className="space-y-1">
-          <p className="text-base font-medium text-ink-gray-7 truncate">
-            {entry.taskName}
-          </p>
-          <p className="text-xs text-ink-gray-5 truncate">
-            {entry.projectName}
-          </p>
-          <StaticTextEditor
-            editorClass="prose-sm text-ink-gray-7 mt-3"
-            content={entry.description}
-          />
+          <p className="text-base font-medium text-ink-gray-7 truncate">{entry.taskName}</p>
+          <p className="text-xs text-ink-gray-5 truncate">{entry.projectName}</p>
+          <StaticTextEditor editorClass="prose-sm text-ink-gray-7 mt-3" content={entry.description} />
         </div>
       </div>
       <span className="relative size-fit text-base text-ink-gray-6 rounded-sm outline outline-offset-6 outline-outline-gray-modals">
@@ -166,9 +127,7 @@ const EntryRow = ({ entry, readOnly = false, onSave }: EntryRowProps) => {
       <Button
         className={cn(
           "m-0 size-fit hover:bg-surface-white transition-opacity focus-visible:opacity-100 focus-visible:pointer-events-auto",
-          !isReadOnly && isHovered
-            ? "opacity-100"
-            : "opacity-0 pointer-events-none",
+          !isReadOnly && isHovered ? "opacity-100" : "opacity-0 pointer-events-none",
         )}
         variant="ghost"
         label="Edit time entry"

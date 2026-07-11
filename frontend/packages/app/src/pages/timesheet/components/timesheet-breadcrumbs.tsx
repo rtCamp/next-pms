@@ -20,9 +20,7 @@ export const TimesheetBreadcrumbs = () => {
   }));
 
   const hasRoleAccess =
-    roles.includes("Projects Manager") ||
-    roles.includes("Timesheet User") ||
-    roles.includes("Timesheet Manager");
+    roles.includes("Projects Manager") || roles.includes("Timesheet User") || roles.includes("Timesheet Manager");
 
   const timesheetViews = [
     {
@@ -47,11 +45,7 @@ export const TimesheetBreadcrumbs = () => {
     },
   ] as const;
 
-  const selectedKey = pathname.includes("team")
-    ? "team"
-    : pathname.includes("project")
-      ? "project"
-      : "personal";
+  const selectedKey = pathname.includes("team") ? "team" : pathname.includes("project") ? "project" : "personal";
 
   const activeView = timesheetViews.find((v) => v.key === selectedKey)!;
 
@@ -66,9 +60,7 @@ export const TimesheetBreadcrumbs = () => {
           label: activeView.label,
           interactive: hasRoleAccess,
           prefixIcon: <activeView.icon className="size-4" />,
-          suffixIcon: hasRoleAccess ? (
-            <SmallDown className="w-4 h-4" />
-          ) : undefined,
+          suffixIcon: hasRoleAccess ? <SmallDown className="w-4 h-4" /> : undefined,
           dropdown: hasRoleAccess
             ? {
                 dropdownClassName: "w-[220px] px-1",

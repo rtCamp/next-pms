@@ -36,19 +36,9 @@ const WeeklyApprovalContent = () => {
  * Weekly Approval modal component.
  * Wraps content with the WeeklyApprovalProvider to provide context.
  */
-const WeeklyApproval = ({
-  employee,
-  startDate,
-  open,
-  onOpenChange,
-}: WeeklyApprovalProps) => {
+const WeeklyApproval = ({ employee, startDate, open, onOpenChange }: WeeklyApprovalProps) => {
   return (
-    <WeeklyApprovalProvider
-      employee={employee}
-      startDate={startDate}
-      open={open}
-      onOpenChange={onOpenChange}
-    >
+    <WeeklyApprovalProvider employee={employee} startDate={startDate} open={open} onOpenChange={onOpenChange}>
       <WeeklyApprovalContent />
     </WeeklyApprovalProvider>
   );
