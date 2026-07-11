@@ -19,26 +19,13 @@ type CommentItemProps = {
 };
 
 export function CommentItem({ comment, canReply }: CommentItemProps) {
-  const {
-    onReply,
-    onEdit,
-    onDelete,
-    isUpdating,
-    authorId,
-    canManageAllComments = false,
-  } = useCommentsContext();
+  const { onReply, onEdit, onDelete, isUpdating, authorId, canManageAllComments = false } = useCommentsContext();
   const [isEditing, setIsEditing] = useState(false);
   const [isReplying, setIsReplying] = useState(false);
 
   const authorHref = `/desk/user/${encodeURIComponent(comment.authorId)}`;
-  const timestamp = formatRelativeTimeShort(
-    comment.createdAt,
-    new Date(),
-    true,
-  );
-  const isOwnedByViewer =
-    Boolean(authorId) &&
-    (comment.authorId === authorId || comment.ownerId === authorId);
+  const timestamp = formatRelativeTimeShort(comment.createdAt, new Date(), true);
+  const isOwnedByViewer = Boolean(authorId) && (comment.authorId === authorId || comment.ownerId === authorId);
   const canManageComment = isOwnedByViewer || canManageAllComments;
 
   const handleEdit = useCallback(
@@ -62,21 +49,15 @@ export function CommentItem({ comment, canReply }: CommentItemProps) {
       <div className="flex items-center justify-between gap-4">
         <div className="flex flex-1 min-w-0 items-center gap-2">
           <a href={authorHref} className="shrink-0 flex items-center">
-            <Avatar
-              size="sm"
-              shape="circle"
-              label={comment.authorName}
-              image={comment.authorImage || undefined}
-            />
+            <Avatar size="sm" shape="circle" label={comment.authorName} image={comment.authorImage || undefined} />
           </a>
-          <span className="truncate text-base font-medium text-ink-gray-7">
-            {comment.authorName}
-          </span>
-          <span className="shrink-0 text-base text-ink-gray-5">
-            added a comment
-          </span>
+          <span className="truncate text-base font-medium text-ink-gray-7">{comment.authorName}</span>
+          <span className="shrink-0 text-base text-ink-gray-5">added a comment</span>
         </div>
-        <span className="shrink-0 text-sm text-ink-gray-5">{timestamp}</span>
+        <span className="shrink-0 text-sm text-ink-gray-5">
+          {timestamp}
+          {comment.edited && !comment.deleted && <span className="ml-1 text-xs text-ink-gray-4">(edited)</span>}
+        </span>
       </div>
 
       {isEditing ? (
@@ -89,23 +70,22 @@ export function CommentItem({ comment, canReply }: CommentItemProps) {
           onSubmit={handleEdit}
           onCancel={() => setIsEditing(false)}
         />
+      ) : comment.deleted ? (
+        <div className="rounded-lg bg-surface-gray-1 px-3 py-2">
+          <span className="text-sm italic text-ink-gray-4">This comment has been deleted.</span>
+        </div>
       ) : (
         <div className="rounded-lg bg-surface-gray-1 px-3">
-          <StaticTextEditor
-            content={comment.content}
-            editorClass="prose-sm text-ink-gray-7"
-          />
+          <StaticTextEditor content={comment.content} editorClass="prose-sm text-ink-gray-7" />
         </div>
       )}
 
       {!isEditing && (
         <ComponentActions
-          onReply={
-            canReply ? () => setIsReplying((value) => !value) : undefined
-          }
-          onEdit={canManageComment ? () => setIsEditing(true) : undefined}
+          onReply={canReply ? () => setIsReplying((value) => !value) : undefined}
+          onEdit={canManageComment && !comment.deleted ? () => setIsEditing(true) : undefined}
           onDelete={
-            canManageComment
+            canManageComment && !comment.deleted
               ? () => {
                   void onDelete(comment.id).catch(() => {});
                 }

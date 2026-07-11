@@ -7,6 +7,9 @@ export type CommentNode = {
   createdAt: string;
   ownerId?: string | null;
   replies: CommentNode[];
+  edited?: boolean;
+  deleted?: boolean;
+  deletedAt?: string | null;
 };
 
 export type CommentActions = {
