@@ -299,10 +299,7 @@ export const formatNumber = (value: NumericFormatValue): string => {
     return "0";
   }
 
-  return new Intl.NumberFormat("en-US", {
-    useGrouping: false,
-    maximumFractionDigits: 2,
-  }).format(numericValue);
+  return `${Number(numericValue.toFixed(2))}`;
 };
 
 /**
@@ -317,7 +314,7 @@ export const formatHours = (value: NumericFormatValue, suffix = "h"): string =>
 /**
  * Formats a numeric value representing a percentage into a string representation with a "%" suffix.
  * @param value - The numeric value representing a percentage to format.
- * @returns
+ * @returns A percentage string with a maximum of two decimal places and a "%" suffix.
  */
 export const formatPercentage = (value: NumericFormatValue): string =>
   `${formatNumber(value)}%`;
