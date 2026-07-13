@@ -50,7 +50,15 @@ export const projectAllocationFilters: FilterField[] = [
     name: "project_manager",
     label: "Project Manager",
     type: "link",
-    link: { doctype: "User", labelField: "full_name" },
+    link: {
+      doctype: "Employee",
+      labelField: "employee_name",
+      valueField: "user_id",
+      customMethod: {
+        method: "next_pms.timesheet.api.employee.get_employee_list",
+        args: { roles: ["Projects Manager"] },
+      },
+    },
     operators: [
       { label: "Equals", value: "=" },
       { label: "Not Equals", value: "!=" },

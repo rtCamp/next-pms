@@ -33,6 +33,8 @@ export const FilterLinkValue: React.FC<FilterLinkValueRenderProps> = ({
     doctype: linkConfig?.doctype ?? "",
     labelField: linkConfig?.labelField,
     valueField: linkConfig?.valueField,
+    filters: linkConfig?.filters,
+    customMethod: linkConfig?.customMethod,
     shouldFetch: Boolean(linkConfig?.doctype),
     query,
     selectedOption,

@@ -39,6 +39,10 @@ export const teamAllocationFilters: FilterField[] = [
       doctype: "Employee",
       labelField: "employee_name",
       valueField: "employee_name",
+      customMethod: {
+        method: "next_pms.timesheet.api.employee.get_employee_list",
+        args: { roles: ["Projects Manager"] },
+      },
     },
     operators: [
       { label: "Equals", value: "=" },
