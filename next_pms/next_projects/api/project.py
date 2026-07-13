@@ -932,8 +932,8 @@ def get_project_sidebar(project: str):
         summary       - short summary text
         details       - project name, phase, status, customer
         links         - slack, google_drive, website, github, opportunity
-        burn          - total_budget, cost_accrued, cost_forecasted
-        progress      - actual_time, total_hours_purchased
+        burn          - total_budget, cost_accrued, cost_forecasted, target_cost
+        progress      - actual_time; total_hours_purchased (or custom_target_hours when no hours pool)
         members       - users the project has been shared with
         customers     - contacts from custom_customer_contacts
         billing_team  - billing team members (name, employee_id, user_id)
@@ -947,6 +947,9 @@ def get_project_sidebar(project: str):
         frappe.throw(frappe._("Project '{0}' does not exist").format(project), frappe.DoesNotExistError)
 
     project_doc = frappe.get_doc("Project", project)
+
+    billing_type = project_doc.get("custom_billing_type")
+    has_hours_pool = billing_type in ("Fixed Cost", "Retainer")
 
     total_budget = get_total_budget(project_doc)
     cost_accrued = flt(project_doc.total_costing_amount)
@@ -976,7 +979,11 @@ def get_project_sidebar(project: str):
         },
         "progress": {
             "actual_time": flt(project_doc.actual_time),
-            "total_hours_purchased": flt(project_doc.get("custom_total_hours_purchased")),
+            "total_hours_purchased": (
+                flt(project_doc.get("custom_total_hours_purchased"))
+                if has_hours_pool
+                else flt(project_doc.get("custom_target_hours"))
+            ),
         },
         "members": _get_project_members(
             project,
