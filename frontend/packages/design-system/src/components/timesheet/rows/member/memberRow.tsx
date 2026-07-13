@@ -71,7 +71,7 @@ export const MemberRow: React.FC<MemberRowProps> = ({
         >
           <SmallDown strokeWidth={1.5} size={16} />
         </span>
-        <div className="flex gap-2 items-center min-w-0">
+        <div className="flex gap-2 items-center min-w-0 max-w-75 sm:max-w-112">
           <Avatar image={avatarUrl} shape="circle" label={label} size="xs" />
           <span className="text-base font-medium truncate text-ink-gray-8">
             {label}
