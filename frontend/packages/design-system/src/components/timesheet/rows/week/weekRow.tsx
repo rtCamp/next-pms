@@ -79,7 +79,7 @@ export const WeekRow: React.FC<WeekRowProps> = ({
         >
           <SmallDown size={16} />
         </span>
-        <div className="flex items-center min-w-0 gap-2">
+        <div className="flex items-center min-w-0 max-w-75 sm:max-w-112 gap-2">
           <span className="text-base font-medium text-ink-gray-8 truncate">
             {label}
           </span>

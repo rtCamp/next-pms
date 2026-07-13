@@ -58,7 +58,7 @@ export const ProjectRow: React.FC<ProjectRowProps> = ({
         >
           <SmallDown strokeWidth={1.5} size={16} />
         </span>
-        <div className="flex items-center min-w-0 gap-2 text-ink-gray-8">
+        <div className="flex items-center min-w-0 max-w-75 sm:max-w-112 gap-2 text-ink-gray-8">
           <span className="shrink-0">
             {renderPrefix ? (
               renderPrefix()

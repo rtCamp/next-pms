@@ -135,7 +135,7 @@ export const TaskRow: React.FC<TaskRowProps> = ({
       <div className="flex items-center flex-1 min-w-0 group">
         <div className="flex items-center min-w-0 gap-2">
           <TaskStatus status={status} />
-          <span className="min-w-0 text-base font-medium truncate">
+          <span className="min-w-0 max-w-75 sm:max-w-112 text-base font-medium truncate">
             <PreviewCard.Root>
               <PreviewCard.Trigger
                 onClick={() => onLabelClick?.(taskKey)}
@@ -234,7 +234,7 @@ export const TaskRow: React.FC<TaskRowProps> = ({
                     <span>{timeEntry.time}</span>
                   )}
                   {timeEntry.nonBillable ? (
-                    <span className="block absolute z-10 -bottom-0.5 left-1/2 w-1 h-1 rounded-full bg-surface-amber-3 transform -translate-x-1/2"></span>
+                    <span className="block absolute z-5 -bottom-0.5 left-1/2 w-1 h-1 rounded-full bg-surface-amber-3 transform -translate-x-1/2"></span>
                   ) : null}
                 </Button>
               )}
