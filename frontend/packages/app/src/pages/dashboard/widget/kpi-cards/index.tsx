@@ -1,14 +1,13 @@
 /**
  * External dependencies.
  */
-import { MonthPicker } from "@rtcamp/frappe-ui-react";
+import { MonthPicker, Skeleton } from "@rtcamp/frappe-ui-react";
 import { SmallDown } from "@rtcamp/frappe-ui-react/icons";
 
 /**
  * Internal dependencies.
  */
 import { currencyFormat } from "@/lib/utils";
-import { KpiCardSkeleton } from "./skeleton";
 import { LeadershipKPIResponse } from "./types";
 import { useLeadershipKpi } from "./useLeadershipKpi";
 
@@ -29,8 +28,6 @@ export default function LeadershipKpiCard({
 }) {
   const { data, isLoading } = useLeadershipKpi(kpikey, month);
 
-  if (isLoading) return <KpiCardSkeleton />;
-
   return (
     <>
       <div className="w-full flex justify-between">
@@ -45,13 +42,17 @@ export default function LeadershipKpiCard({
         />
       </div>
 
-      <span className="truncate text-2xl font-medium text-ink-gray-8">
-        {data
-          ? kpikey === "profit_margin"
-            ? `${data.current.toFixed(2)}%`
-            : currencyFormat("USD").format(data.current)
-          : "—"}
-      </span>
+      {isLoading ? (
+        <Skeleton className="h-8 w-32" />
+      ) : (
+        <span className="truncate text-2xl font-medium text-ink-gray-8">
+          {data
+            ? kpikey === "profit_margin"
+              ? `${data.current.toFixed(2)}%`
+              : currencyFormat("USD").format(data.current)
+            : "—"}
+        </span>
+      )}
     </>
   );
 }
