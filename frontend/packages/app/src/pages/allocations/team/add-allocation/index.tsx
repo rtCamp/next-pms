@@ -712,11 +712,21 @@ function AddAllocationModal({
                       min={1}
                       disabled={variant === "edit"}
                       value={
-                        Number.isNaN(field.state.value) ? "" : field.state.value
+                        field.state.value == null ||
+                        Number.isNaN(field.state.value)
+                          ? ""
+                          : field.state.value
                       }
                       onChange={(e) => {
                         const raw = e.target.value;
-                        field.handleChange(raw === "" ? NaN : Number(raw));
+                        if (raw === "") {
+                          field.handleChange(NaN);
+                          return;
+                        }
+                        const parsed = Number(raw);
+                        if (Number.isFinite(parsed)) {
+                          field.handleChange(parsed);
+                        }
                       }}
                       inputClassName="pr-13"
                     />

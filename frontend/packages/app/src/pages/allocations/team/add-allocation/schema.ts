@@ -42,9 +42,10 @@ export const addAllocationFormSchema = z
         required_error: "Please enter hours per day.",
       })
       .positive({ message: "Must be greater than 0." }),
-    // z.number() rejects NaN outright; NaN is the "field cleared" sentinel
-    // here, so accept any number and validate it in superRefine below.
-    repeatFor: z.custom<number>((value) => typeof value === "number"),
+    // z.number() rejects NaN outright, so union in z.nan() to allow it as
+    // the "field cleared" sentinel while keeping the int/nonnegative constraint
+    // for real values; superRefine below handles the NaN/<1 recurring check.
+    repeatFor: z.union([z.number().int().nonnegative(), z.nan()]),
     isBillable: z.boolean(),
     isTentative: z.boolean(),
     note: z.string().trim(),
