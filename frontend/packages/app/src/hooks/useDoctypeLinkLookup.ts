@@ -21,7 +21,7 @@ interface UseDoctypeLinkLookupOptions {
     /** Whitelisted API method. */
     method: string;
     /** Arguments passed to the custom method. */
-    args?: unknown;
+    args?: Record<string, unknown>;
   };
   /** Controls whether the lookup should fetch for the current UI state. */
   shouldFetch: boolean;
@@ -79,9 +79,7 @@ export const useDoctypeLinkLookup = ({
         page_length: pageSize,
         start: 0,
         filters: filters ?? undefined,
-        ...(customMethod.args
-          ? (customMethod.args as Record<string, unknown>)
-          : {}),
+        ...(customMethod.args ? customMethod.args : {}),
       });
 
   const getItems = isDefaultMethod
