@@ -78,7 +78,7 @@ export const personalTimesheetFilters: FilterField[] = [
     name: "project",
     label: "Project",
     type: "link",
-    link: { doctype: "Project" },
+    link: { doctype: "Project", labelField: "project_name" },
     operators: [
       { label: "Equals", value: "=" },
       { label: "Not Equals", value: "!=" },
@@ -108,7 +108,7 @@ export const teamTimesheetFilters: FilterField[] = [
     name: "project",
     label: "Project",
     type: "link",
-    link: { doctype: "Project" },
+    link: { doctype: "Project", labelField: "project_name" },
     operators: [
       { label: "Equals", value: "=" },
       { label: "Not Equals", value: "!=" },
@@ -178,7 +178,7 @@ export const projectTimesheetFilters: FilterField[] = [
     name: "project",
     label: "Project",
     type: "link",
-    link: { doctype: "Project" },
+    link: { doctype: "Project", labelField: "project_name" },
     operators: [
       { label: "Equals", value: "=" },
       { label: "Not Equals", value: "!=" },
