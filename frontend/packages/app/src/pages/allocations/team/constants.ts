@@ -19,7 +19,12 @@ export const teamAllocationFilters: FilterField[] = [
   {
     name: "tag",
     label: "Tag",
-    type: "string",
+    type: "link",
+    link: { doctype: "Tag" },
+    operators: [
+      { label: "Equals", value: "=" },
+      { label: "Not Equals", value: "!=" },
+    ],
   },
   {
     name: "business_unit",
