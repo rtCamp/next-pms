@@ -1,5 +1,11 @@
+import { formatPercentage } from "@/lib/utils";
+
 export function PercentCell({ value }: { value: number | null | undefined }) {
-  if (value === null || value === undefined || Number.isNaN(value)) {
+  if (
+    value === null ||
+    value === undefined ||
+    !Number.isFinite(Number(value))
+  ) {
     return (
       <span className="block truncate text-ink-gray-6 text-base">N/A</span>
     );
@@ -7,7 +13,7 @@ export function PercentCell({ value }: { value: number | null | undefined }) {
 
   return (
     <span className="block truncate text-ink-gray-6 text-base">
-      {`${value.toFixed(2)}%`}
+      {formatPercentage(value)}
     </span>
   );
 }

@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { mergeClassNames } from "@next-pms/design-system";
+import { formatNumber } from "@/lib/utils";
 
 export type StatCardData = {
   label: string;
@@ -23,7 +24,9 @@ export function StatCard({
     <>
       <span className="truncate text-base text-ink-gray-5">{label}</span>
       <div className="flex items-baseline gap-1">
-        <span className="text-2xl font-medium text-ink-gray-8">{value}</span>
+        <span className="text-2xl font-medium text-ink-gray-8">
+          {formatNumber(value)}
+        </span>
         {subLabel && (
           <span className="truncate text-base text-ink-gray-5">{subLabel}</span>
         )}

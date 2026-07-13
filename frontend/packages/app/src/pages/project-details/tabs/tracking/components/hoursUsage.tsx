@@ -6,6 +6,7 @@ import { ProgressBar } from "@next-pms/design-system/components";
 /**
  * Internal dependencies.
  */
+import { formatHours } from "@/lib/utils";
 import { useTracking } from "../context";
 import { LegendItem } from "./legendItem";
 
@@ -32,14 +33,14 @@ export function HoursUsageCell() {
         <LegendItem
           className="bg-surface-blue-4"
           label="Hours utilised"
-          value={`${utilised} h`}
+          value={formatHours(utilised, " h")}
           labelClassName="text-ink-gray-6"
           valueClassName="font-medium text-ink-gray-6"
         />
         <LegendItem
           className="bg-surface-gray-3"
           label="Hours remaining"
-          value={`${remaining} h`}
+          value={formatHours(remaining, " h")}
           labelClassName="text-ink-gray-6"
           valueClassName="font-medium text-ink-gray-6"
         />

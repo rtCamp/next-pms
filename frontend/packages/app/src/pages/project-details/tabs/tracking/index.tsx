@@ -1,7 +1,7 @@
 /**
  * Internal dependencies.
  */
-import { currencyFormat } from "@/lib/utils";
+import { currencyFormat, formatPercentage } from "@/lib/utils";
 import { ContractsTable } from "./components/contractsTable";
 import { CostBurnCell } from "./components/costBurn";
 import { HoursUsageCell } from "./components/hoursUsage";
@@ -41,7 +41,7 @@ function TrackingContent() {
         />
         <KnowledgePoint
           title="Projected profit margin"
-          value={`${(tracking.projected_profit_margin ?? 0).toFixed(2)}%`}
+          value={formatPercentage(tracking.projected_profit_margin ?? 0)}
         />
       </div>
 

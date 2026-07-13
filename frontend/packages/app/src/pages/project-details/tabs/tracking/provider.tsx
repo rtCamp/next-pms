@@ -12,7 +12,7 @@ import {
 /**
  * Internal dependencies.
  */
-import { currencyFormat, parseFrappeErrorMsg } from "@/lib/utils";
+import { currencyFormat, formatNumber, parseFrappeErrorMsg } from "@/lib/utils";
 import {
   DEFAULT_TRACKING,
   TrackingContext,
@@ -218,10 +218,10 @@ export function TrackingProvider({ children }: PropsWithChildren) {
           name: c.name,
           startDate: c.start_date,
           endDate: c.end_date,
-          hoursBought: `${c.hours_purchased}`,
+          hoursBought: formatNumber(c.hours_purchased),
           hoursBoughtRaw: c.hours_purchased,
-          hoursUsed: `${c.consumed_hours}`,
-          hoursLeft: `${c.remaining_hours}`,
+          hoursUsed: formatNumber(c.consumed_hours),
+          hoursLeft: formatNumber(c.remaining_hours),
           salesOrder: c.sales_order ?? "",
           salesInvoice: c.sales_invoice ?? "",
         }))

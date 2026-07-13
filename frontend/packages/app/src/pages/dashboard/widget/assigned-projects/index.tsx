@@ -18,12 +18,11 @@ import { useFrappeGetCall } from "frappe-react-sdk";
 /**
  * Internal dependencies.
  */
+import { formatHours } from "@/lib/utils";
 import { ASSIGNED_PROJECTS_COLUMNS } from "./constants";
 import { HoursBurnBar } from "./hours-burn";
 import { AssignedProjectsSkeleton } from "./skeleton";
 import type { AssignedProject, ProjectSummaryResponse } from "./types";
-
-const HOURS = (value: number) => `${value}h`;
 
 export default function AssignedProjects() {
   const [selectedCustomers, setSelectedCustomers] = useState<string[]>([]);
@@ -137,7 +136,7 @@ export default function AssignedProjects() {
                   align="right"
                 >
                   <span className="truncate text-base text-ink-gray-6">
-                    {HOURS(row.remaining)}
+                    {formatHours(row.remaining)}
                   </span>
                 </ListRowItem>
                 <ListRowItem
@@ -155,7 +154,7 @@ export default function AssignedProjects() {
                   align="right"
                 >
                   <span className="truncate text-base text-ink-gray-6">
-                    {HOURS(row.billableLastWeek)}
+                    {formatHours(row.billableLastWeek)}
                   </span>
                 </ListRowItem>
                 <ListRowItem
@@ -165,7 +164,7 @@ export default function AssignedProjects() {
                   align="right"
                 >
                   <span className="truncate text-base text-ink-gray-6">
-                    {HOURS(row.nonBillableLastWeek)}
+                    {formatHours(row.nonBillableLastWeek)}
                   </span>
                 </ListRowItem>
               </ListRow>
