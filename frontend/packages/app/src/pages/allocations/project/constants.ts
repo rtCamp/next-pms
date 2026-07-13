@@ -44,7 +44,12 @@ export const projectAllocationFilters: FilterField[] = [
   {
     name: "project_type",
     label: "Project Type",
-    type: "string",
+    type: "link",
+    link: { doctype: "Project Type" },
+    operators: [
+      { label: "Equals", value: "=" },
+      { label: "Not Equals", value: "!=" },
+    ],
   },
   {
     name: "project_manager",

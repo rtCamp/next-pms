@@ -166,15 +166,11 @@ export function ProjectListSubHeader() {
             {
               name: "project_type",
               label: "Project Type",
-              type: "select",
+              type: "link",
+              link: { doctype: "Project Type" },
               operators: [
                 { label: "Equals", value: "=" },
                 { label: "Not Equals", value: "!=" },
-              ],
-              options: [
-                { label: "Internal", value: "internal" },
-                { label: "External", value: "external" },
-                { label: "Other", value: "other" },
               ],
             },
             {
