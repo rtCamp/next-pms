@@ -16,7 +16,6 @@ from next_pms.next_projects.api.constant import (
     COMPUTED_SORT_FIELDS,
     KANBAN_VIEW_FIELDS,
     LIST_VIEW_FIELDS,
-    PROJECT_TRACKING_CACHE_KEY_PREFIX,
     SORT_KEY_FIELDS,
     TASK_TRACKING_COMPLETED_STATUS,
     TASK_TRACKING_OPEN_STATUSES,
@@ -740,8 +739,9 @@ def get_project_tracking(project: str):
             Project currency code.
         hours_utilised : float
             Total hours logged via Timesheets.
-        hours_remaining : float or None
-            Remaining hours from Project Budget pool. None for Non-Billable and T&M.
+        hours_remaining : float
+            Remaining hours from Project Budget pool, or target hours minus
+            utilised hours when there is no hours pool.
         tasks : dict
             total, open, completed task counts.
         invoice_burn : dict
@@ -783,15 +783,6 @@ def get_project_tracking(project: str):
 
     frappe.has_permission(doctype="Project", doc=project, throw=True)
 
-    return _get_project_tracking(project)
-
-
-def _get_project_tracking(project: str):
-    cache_key = f"{PROJECT_TRACKING_CACHE_KEY_PREFIX}::{project}"
-    cached_val = frappe.cache().get_value(cache_key)
-    if cached_val is not None:
-        return cached_val
-
     p = frappe.db.get_value(
         "Project",
         project,
@@ -806,6 +797,7 @@ def _get_project_tracking(project: str):
             "custom_percentage_estimated_profit",
             "custom_target_cost",
             "custom_total_hours_remaining",
+            "custom_target_hours",
             "actual_start_date",
             "custom_default_hourly_billing_rate",
             "custom_lifetime_value_to_date",
@@ -897,7 +889,7 @@ def _get_project_tracking(project: str):
             else None,
         }
 
-    result = {
+    return {
         "company": p.company,
         "billing_type": billing_type,
         "currency": p.custom_currency,
@@ -908,7 +900,11 @@ def _get_project_tracking(project: str):
         "forecasted_cost_to_completion": forecasted_cost_to_completion,
         "expected_total_cost": flt(p.custom_target_cost),
         "hours_utilised": flt(p.actual_time),
-        "hours_remaining": flt(p.custom_total_hours_remaining) if has_hours_pool else None,
+        "hours_remaining": (
+            flt(p.custom_total_hours_remaining)
+            if has_hours_pool
+            else max(0, flt(p.get("custom_target_hours")) - flt(p.actual_time))
+        ),
         "tasks": task_counts,
         "invoice_burn": {
             **(invoice_burn or {}),
@@ -918,8 +914,6 @@ def _get_project_tracking(project: str):
         "project_rates": project_rates,
         "lifetime_values": lifetime_values,
     }
-    frappe.cache().set_value(cache_key, result, expires_in_sec=3600)
-    return result
 
 
 @whitelist(methods=["GET"])

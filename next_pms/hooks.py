@@ -261,7 +261,6 @@ doc_events = {
     "Project": {
         "on_update": [
             "next_pms.project_currency.doc_events.project.on_update",
-            "next_pms.next_projects.doc_events.project.clear_cache",
             "next_pms.resource_management.doctype.resource_allocation.resource_allocation.clear_cache",
             "next_pms.next_pms.notifications.project_on_update",
         ],
