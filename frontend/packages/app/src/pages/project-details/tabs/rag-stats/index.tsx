@@ -47,7 +47,11 @@ function formatTriggerDate(date: string | null, precision?: DatePrecision) {
 function renderCell(column: ColumnDef, row: RagTrigger | RagHistory) {
   switch (column.key) {
     case "type":
-      return <span>{row.type_label}</span>;
+      return (
+        <Tooltip text={row.type_label}>
+          <span className="truncate">{row.type_label}</span>
+        </Tooltip>
+      );
     case "trigger_date":
       return formatTriggerDate(row.trigger_date, row.date_precision);
     case "clear_date":
@@ -91,7 +95,7 @@ function StatusTable({
               {columns.map((column) => (
                 <div
                   key={column.key}
-                  className="flex items-center text-base text-ink-gray-6"
+                  className="flex min-w-0 items-center text-base text-ink-gray-6"
                 >
                   {renderCell(column, row)}
                 </div>
