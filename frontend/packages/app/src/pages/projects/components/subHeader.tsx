@@ -145,7 +145,7 @@ export function ProjectListSubHeader() {
                 valueField: "user_id",
                 customMethod: {
                   method: "next_pms.timesheet.api.employee.get_employee_list",
-                  roles: ["Projects Manager"],
+                  args: { roles: ["Projects Manager"] },
                 },
               },
               operators: [
