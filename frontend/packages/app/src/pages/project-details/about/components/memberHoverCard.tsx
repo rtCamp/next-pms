@@ -19,7 +19,7 @@ import {
 /**
  * Internal dependencies.
  */
-import { currencyFormat } from "@/lib/utils";
+import { currencyFormat, formatNumber } from "@/lib/utils";
 import { useProjectDetail } from "../../context";
 import type { AboutMember } from "../types";
 
@@ -116,8 +116,8 @@ export function MemberHoverCard({
                     <div className="flex items-center gap-2">
                       <Time className="size-4 shrink-0 text-ink-gray-5" />
                       <span className="truncate text-sm text-ink-gray-6">
-                        {Math.round(member.loggedHours)}/
-                        {Math.round(member.totalHoursPurchased)}h
+                        {formatNumber(member.loggedHours)}/
+                        {formatNumber(member.totalHoursPurchased)}h
                       </span>
                     </div>
                   )}

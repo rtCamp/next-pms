@@ -18,6 +18,7 @@ import { useFrappeGetCall } from "frappe-react-sdk";
 /**
  * Internal dependencies.
  */
+import { formatHours } from "@/lib/utils";
 import {
   LAST_WEEK_VALUE,
   PERIOD_OPTIONS,
@@ -28,8 +29,6 @@ import {
 import { TimesheetsSkeleton } from "./skeleton";
 import { StatusIcon } from "./statusIcon";
 import type { TeamTimesheetsResponse, WeeklyApprovalStatus } from "../../types";
-
-const HOURS = (value: number) => `${value}h`;
 
 function periodToDays(period: string): number {
   const today = new Date();
@@ -148,7 +147,7 @@ export default function Timesheets() {
                   align="right"
                 >
                   <span className="truncate text-base text-ink-gray-6">
-                    {HOURS(member.billable)}
+                    {formatHours(member.billable)}
                   </span>
                 </ListRowItem>
                 <ListRowItem
@@ -158,7 +157,7 @@ export default function Timesheets() {
                   align="right"
                 >
                   <span className="truncate text-base text-ink-gray-6">
-                    {HOURS(member.nonBillable)}
+                    {formatHours(member.nonBillable)}
                   </span>
                 </ListRowItem>
                 <ListRowItem
@@ -168,7 +167,7 @@ export default function Timesheets() {
                   align="right"
                 >
                   <span className="truncate text-base text-ink-gray-6">
-                    {HOURS(member.expected)}
+                    {formatHours(member.expected)}
                   </span>
                 </ListRowItem>
                 <ListRowItem
@@ -178,7 +177,7 @@ export default function Timesheets() {
                   align="right"
                 >
                   <span className="truncate text-base text-ink-gray-6">
-                    {HOURS(member.delta)}
+                    {formatHours(member.delta)}
                   </span>
                 </ListRowItem>
                 <ListRowItem

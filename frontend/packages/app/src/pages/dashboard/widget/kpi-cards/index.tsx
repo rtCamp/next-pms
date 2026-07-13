@@ -7,7 +7,7 @@ import { SmallDown } from "@rtcamp/frappe-ui-react/icons";
 /**
  * Internal dependencies.
  */
-import { currencyFormat } from "@/lib/utils";
+import { currencyFormat, formatPercentage } from "@/lib/utils";
 import { LeadershipKPIResponse } from "./types";
 import { useLeadershipKpi } from "./useLeadershipKpi";
 
@@ -48,7 +48,7 @@ export default function LeadershipKpiCard({
         <span className="truncate text-2xl font-medium text-ink-gray-8">
           {data
             ? kpikey === "profit_margin"
-              ? `${data.current.toFixed(2)}%`
+              ? formatPercentage(data.current)
               : currencyFormat("USD").format(data.current)
             : "—"}
         </span>

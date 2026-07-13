@@ -282,6 +282,43 @@ export const currencyFormat = (currency: string = "INR"): Intl.NumberFormat => {
   }
 };
 
+export type NumericFormatValue = number | string | null | undefined;
+
+/**
+ * Formats a numeric value into a string representation with a maximum of two decimal places.
+ * @param value - The numeric value to format.
+ * @returns A string representation of the numeric value.
+ */
+export const formatNumber = (value: NumericFormatValue): string => {
+  if (value === null || value === undefined || value === "") {
+    return "0";
+  }
+
+  const numericValue = Number(value);
+  if (!Number.isFinite(numericValue)) {
+    return "0";
+  }
+
+  return `${Number(numericValue.toFixed(2))}`;
+};
+
+/**
+ * Formats a numeric value representing hours into a string representation with a specified suffix.
+ * @param value - The numeric value representing hours to format.
+ * @param suffix - The suffix to append to the formatted string (default is "h").
+ * @returns A string representation of the numeric value with the specified suffix.
+ */
+export const formatHours = (value: NumericFormatValue, suffix = "h"): string =>
+  `${formatNumber(value)}${suffix}`;
+
+/**
+ * Formats a numeric value representing a percentage into a string representation with a "%" suffix.
+ * @param value - The numeric value representing a percentage to format.
+ * @returns A percentage string with a maximum of two decimal places and a "%" suffix.
+ */
+export const formatPercentage = (value: NumericFormatValue): string =>
+  `${formatNumber(value)}%`;
+
 export const getBgCsssForToday = (date: string) => {
   return isToday(getUTCDateTime(date)) ? "bg-slate-100 dark:bg-muted/50 " : "";
 };

@@ -1,6 +1,7 @@
 /**
  * Internal dependencies.
  */
+import { formatNumber } from "@/lib/utils";
 import { Section } from "./section";
 import type { ProjectProgressHours } from "./types";
 
@@ -22,10 +23,10 @@ export function ProgressHoursSection({
       <div className="flex flex-col gap-2.5">
         <div className="flex items-center justify-between">
           <span className="text-base font-medium text-ink-gray-7">
-            {consumed} hours
+            {formatNumber(consumed)} hours
           </span>
           <span className="text-base font-light text-ink-gray-5">
-            {total} hours
+            {formatNumber(total)} hours
           </span>
         </div>
         <div
