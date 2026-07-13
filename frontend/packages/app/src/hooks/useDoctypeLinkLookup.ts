@@ -14,6 +14,15 @@ interface UseDoctypeLinkLookupOptions {
   labelField?: string;
   /** Field on the target doctype whose value is stored as the filter value. Defaults to `name`. */
   valueField?: string;
+  /** Server-side filters applied to the lookup request. */
+  filters?: Array<Array<unknown>>;
+  /** Custom API method configuration for the lookup. */
+  customMethod?: {
+    /** Whitelisted API method. */
+    method: string;
+    /** Role names to restrict lookup results to. */
+    roles?: string[];
+  };
   /** Controls whether the lookup should fetch for the current UI state. */
   shouldFetch: boolean;
   /** Raw user search text before debounce is applied. */
@@ -29,28 +38,60 @@ export const useDoctypeLinkLookup = ({
   doctype,
   labelField = "name",
   valueField = "name",
+  filters,
+  customMethod,
   shouldFetch,
   query,
   selectedOption,
 }: UseDoctypeLinkLookupOptions) => {
+  const isDefaultMethod =
+    !customMethod?.method || customMethod.method === "frappe.client.get_list";
   const fields =
     labelField === "name" || labelField === valueField
       ? [valueField]
       : [valueField, labelField];
 
+  const params = isDefaultMethod
+    ? ({
+        query: searchQuery,
+        pageSize,
+      }: {
+        query: string;
+        pageSize: number;
+      }) => ({
+        doctype,
+        fields,
+        limit_page_length: pageSize,
+        order_by: `${labelField} asc`,
+        filters: [
+          ...(filters ?? []),
+          ...(searchQuery ? [[labelField, "like", `%${searchQuery}%`]] : []),
+        ],
+      })
+    : ({
+        query: searchQuery,
+        pageSize,
+      }: {
+        query: string;
+        pageSize: number;
+      }) => ({
+        employee_name: searchQuery || undefined,
+        page_length: pageSize,
+        start: 0,
+        filters: filters ?? undefined,
+        roles: customMethod.roles?.length ? customMethod.roles : undefined,
+      });
+
+  const getItems = isDefaultMethod
+    ? (message: DoctypeLinkItem[] | undefined) => message ?? []
+    : (data: { data?: DoctypeLinkItem[] } | undefined) => data?.data ?? [];
+
   return useRemoteLookup<DoctypeLinkItem[], DoctypeLinkItem, LookupOption>({
     shouldFetch,
     query,
-    params: ({ query: searchQuery, pageSize }) => ({
-      doctype,
-      fields,
-      limit_page_length: pageSize,
-      order_by: `${labelField} asc`,
-      filters: searchQuery
-        ? [[labelField, "like", `%${searchQuery}%`]]
-        : undefined,
-    }),
-    getItems: (message) => message ?? [],
+    method: customMethod?.method || "frappe.client.get_list",
+    params,
+    getItems: getItems as (message: unknown) => DoctypeLinkItem[],
     mapOption: (item) => ({
       label:
         labelField === "name"

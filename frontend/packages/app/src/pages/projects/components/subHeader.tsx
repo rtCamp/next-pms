@@ -139,7 +139,15 @@ export function ProjectListSubHeader() {
               name: "custom_project_manager",
               label: "Project Manager",
               type: "link",
-              link: { doctype: "User", labelField: "full_name" },
+              link: {
+                doctype: "Employee",
+                labelField: "employee_name",
+                valueField: "user_id",
+                customMethod: {
+                  method: "next_pms.timesheet.api.employee.get_employee_list",
+                  roles: ["Projects Manager"],
+                },
+              },
               operators: [
                 { label: "Equals", value: "=" },
                 { label: "Not Equals", value: "!=" },
@@ -208,7 +216,14 @@ export function ProjectListSubHeader() {
               name: "custom_engineering_manager",
               label: "Engineering Manager",
               type: "link",
-              link: { doctype: "User", labelField: "full_name" },
+              link: {
+                doctype: "Employee",
+                labelField: "employee_name",
+                valueField: "user_id",
+                customMethod: {
+                  method: "next_pms.timesheet.api.employee.get_employee_list",
+                },
+              },
               operators: [
                 { label: "Equals", value: "=" },
                 { label: "Not Equals", value: "!=" },
@@ -218,7 +233,14 @@ export function ProjectListSubHeader() {
               name: "custom_account_manager_",
               label: "Account Manager",
               type: "link",
-              link: { doctype: "User", labelField: "full_name" },
+              link: {
+                doctype: "Employee",
+                labelField: "employee_name",
+                valueField: "user_id",
+                customMethod: {
+                  method: "next_pms.timesheet.api.employee.get_employee_list",
+                },
+              },
               operators: [
                 { label: "Equals", value: "=" },
                 { label: "Not Equals", value: "!=" },
