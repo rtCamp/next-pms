@@ -234,7 +234,7 @@ export const TaskRow: React.FC<TaskRowProps> = ({
                     <span>{timeEntry.time}</span>
                   )}
                   {timeEntry.nonBillable ? (
-                    <span className="block absolute z-10 -bottom-0.5 left-1/2 w-1 h-1 rounded-full bg-surface-amber-3 transform -translate-x-1/2"></span>
+                    <span className="block absolute z-5 -bottom-0.5 left-1/2 w-1 h-1 rounded-full bg-surface-amber-3 transform -translate-x-1/2"></span>
                   ) : null}
                 </Button>
               )}
