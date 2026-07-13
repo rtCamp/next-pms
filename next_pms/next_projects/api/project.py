@@ -741,7 +741,7 @@ def get_project_tracking(project: str):
             Total hours logged via Timesheets.
         hours_remaining : float
             Remaining hours from Project Budget pool, or target hours minus
-            utilised hours when there is no hours pool.
+            utilised hours when there is no hours pool (may be negative).
         tasks : dict
             total, open, completed task counts.
         invoice_burn : dict
@@ -903,7 +903,7 @@ def get_project_tracking(project: str):
         "hours_remaining": (
             flt(p.custom_total_hours_remaining)
             if has_hours_pool
-            else max(0, flt(p.get("custom_target_hours")) - flt(p.actual_time))
+            else flt(p.get("custom_target_hours")) - flt(p.actual_time)
         ),
         "tasks": task_counts,
         "invoice_burn": {
