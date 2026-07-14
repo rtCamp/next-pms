@@ -14,7 +14,11 @@ import {
 } from "@rtcamp/frappe-ui-react";
 import { Calendar } from "@rtcamp/frappe-ui-react/icons";
 import { useForm } from "@tanstack/react-form";
-import { FrappeError, useFrappePostCall } from "frappe-react-sdk";
+import {
+  FrappeError,
+  useFrappeEventListener,
+  useFrappePostCall,
+} from "frappe-react-sdk";
 
 /**
  * Internal dependencies.
@@ -52,7 +56,17 @@ export function ReportGenerationForm() {
   const reports = useProjectDetail(
     (state) => state.project?.custom_project_reports ?? [],
   );
-  const isReportGenerating = reports.at(-1)?.status === "Generating";
+  const mutate = useProjectDetail((state) => state.mutate);
+  const isReportGenerating = reports.some(
+    (report) => report.status === "Generating",
+  );
+
+  // Listen for real-time PM report status updates from the backend to refresh project details
+  useFrappeEventListener("pm_report_ready", (message) => {
+    if (message?.project === projectId) {
+      mutate();
+    }
+  });
   const previousReportUrl = useMemo(() => {
     for (let index = reports.length - 1; index >= 0; index--) {
       if (reports[index].report_link) {
@@ -86,6 +100,8 @@ export function ReportGenerationForm() {
               ? previousReportUrl
               : undefined,
         });
+        // Optimistically mutate local project data to show the new report in 'Generating' state
+        mutate();
         toast.success(
           "Report is being generated. You'll be notified when it's ready",
         );
