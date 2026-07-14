@@ -106,7 +106,7 @@ function AddAllocationModal({
         recurrence: value.recurrence,
         fromDate: value.fromDate,
         toDate: value.toDate,
-        repeatFor: value.repeatFor ?? 0,
+        repeatFor: Number.isFinite(value.repeatFor) ? value.repeatFor : 0,
         includeWeekends: value.includeWeekends,
       });
 
@@ -283,9 +283,8 @@ function AddAllocationModal({
     form.store,
     (state) => state.values.hoursPerDay,
   );
-  const repeatFor = useSelector(
-    form.store,
-    (state) => state.values.repeatFor ?? 0,
+  const repeatFor = useSelector(form.store, (state) =>
+    Number.isFinite(state.values.repeatFor) ? state.values.repeatFor : 0,
   );
   const fromDate = useSelector(form.store, (state) => state.values.fromDate);
   const toDate = useSelector(form.store, (state) => state.values.toDate);
@@ -710,11 +709,25 @@ function AddAllocationModal({
                       type="number"
                       size="md"
                       variant="outline"
+                      min={1}
                       disabled={variant === "edit"}
-                      value={field.state.value ?? ""}
-                      onChange={(e) =>
-                        field.handleChange(Math.max(1, Number(e.target.value)))
+                      value={
+                        field.state.value == null ||
+                        Number.isNaN(field.state.value)
+                          ? ""
+                          : field.state.value
                       }
+                      onChange={(e) => {
+                        const raw = e.target.value;
+                        if (raw === "") {
+                          field.handleChange(NaN);
+                          return;
+                        }
+                        const parsed = Number(raw);
+                        if (Number.isFinite(parsed)) {
+                          field.handleChange(parsed);
+                        }
+                      }}
                       inputClassName="pr-13"
                     />
                     <span className="absolute right-2 top-1/2 -translate-y-1/2 text-ink-gray-5 text-sm">

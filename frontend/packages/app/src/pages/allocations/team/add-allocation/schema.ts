@@ -42,7 +42,10 @@ export const addAllocationFormSchema = z
         required_error: "Please enter hours per day.",
       })
       .positive({ message: "Must be greater than 0." }),
-    repeatFor: z.number().int().nonnegative(),
+    // z.number() rejects NaN outright, so union in z.nan() to allow it as
+    // the "field cleared" sentinel while keeping the int/nonnegative constraint
+    // for real values; superRefine below handles the NaN/<1 recurring check.
+    repeatFor: z.union([z.number().int().nonnegative(), z.nan()]),
     isBillable: z.boolean(),
     isTentative: z.boolean(),
     note: z.string().trim(),
@@ -56,7 +59,10 @@ export const addAllocationFormSchema = z
       });
     }
 
-    if (value.recurrence === "recurring" && value.repeatFor < 1) {
+    if (
+      value.recurrence === "recurring" &&
+      (Number.isNaN(value.repeatFor) || value.repeatFor < 1)
+    ) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         path: ["repeatFor"],
