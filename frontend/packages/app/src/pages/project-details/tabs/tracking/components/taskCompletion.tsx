@@ -3,8 +3,10 @@
  */
 import { useTracking } from "../context";
 
-const ARC_RADIUS = 75;
-const ARC_LENGTH = Math.PI * ARC_RADIUS;
+// Full circle normalized to 200 units; the rotated dash keeps only the
+// top semicircle (100 units) visible, so gauge values map 1:1 to percent.
+const CIRCLE_PATH_LENGTH = 200;
+const SEMICIRCLE = CIRCLE_PATH_LENGTH / 2;
 
 export function TaskCompletionCell() {
   const tasks = useTracking((state) => state.tracking.tasks);
@@ -28,22 +30,31 @@ export function TaskCompletionCell() {
             className="block w-full h-auto"
             aria-hidden
           >
-            <path
-              d="M 15 100 A 75 75 0 0 1 185 100"
+            <circle
+              cx={100}
+              cy={100}
+              r={85}
               fill="none"
               stroke="currentColor"
               strokeWidth={22}
               strokeLinecap="round"
+              pathLength={CIRCLE_PATH_LENGTH}
+              strokeDasharray={`${SEMICIRCLE} ${CIRCLE_PATH_LENGTH}`}
+              transform="rotate(180 100 100)"
               className="text-surface-gray-2"
             />
             {ratio > 0 && (
-              <path
-                d="M 15 100 A 75 75 0 0 1 185 100"
+              <circle
+                cx={100}
+                cy={100}
+                r={85}
                 fill="none"
                 stroke="currentColor"
                 strokeWidth={22}
                 strokeLinecap="round"
-                strokeDasharray={`${ratio * ARC_LENGTH} ${ARC_LENGTH}`}
+                pathLength={CIRCLE_PATH_LENGTH}
+                strokeDasharray={`${ratio * SEMICIRCLE} ${CIRCLE_PATH_LENGTH}`}
+                transform="rotate(180 100 100)"
                 className="text-surface-green-5"
               />
             )}
