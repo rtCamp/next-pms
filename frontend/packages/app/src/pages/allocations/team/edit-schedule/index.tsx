@@ -50,7 +50,7 @@ function EditScheduleModal({
   const [selectionAnchor, setSelectionAnchor] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [applyMode, setApplyMode] =
-    useState<EditScheduleApplyMode>("this_and_future");
+    useState<EditScheduleApplyMode>("only_this");
 
   const safeValues = useMemo(
     () =>
@@ -281,14 +281,14 @@ function EditScheduleModal({
 
     form.reset(formDefaultValues);
     setSelectionAnchor(null);
-    setApplyMode("this_and_future");
+    setApplyMode("only_this");
   }, [form, formDefaultValues, open]);
 
   const closeModal = useCallback(() => {
     onOpenChange(false);
     form.reset(formDefaultValues);
     setSelectionAnchor(null);
-    setApplyMode("this_and_future");
+    setApplyMode("only_this");
   }, [form, formDefaultValues, onOpenChange]);
 
   return (
@@ -438,6 +438,7 @@ function EditScheduleModal({
           <ScheduleSummaryTable
             rows={scheduleDraft.previewRows}
             repeatWeeks={summaryRepeatWeeks}
+            variant={applyMode === "this_and_future" ? "day" : "date"}
           />
         </div>
       </div>

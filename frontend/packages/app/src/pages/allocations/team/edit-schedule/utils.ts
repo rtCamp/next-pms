@@ -100,10 +100,19 @@ export const getHoursPerDayFromTotalHours = (
 export const formatRange = (
   startDate: string,
   endDate?: string | null,
+  variant: "date" | "day" = "date",
 ): string => {
-  if (!endDate) return format(parseISO(startDate), "MMM d");
+  const safe = normalizeRange(startDate, endDate ?? startDate);
 
-  const safe = normalizeRange(startDate, endDate);
+  if (variant === "day") {
+    const start = format(parseISO(safe.startDate), "EEE");
+
+    if (safe.startDate === safe.endDate) {
+      return start;
+    }
+
+    return `${start} - ${format(parseISO(safe.endDate), "EEE")}`;
+  }
 
   if (safe.startDate === safe.endDate) {
     return format(parseISO(safe.startDate), "MMM d");

@@ -8,11 +8,13 @@ import { formatRange, getRangeHours, toDisplayHours } from "../utils";
 interface ScheduleSummaryTableProps {
   rows: PreviewRow[];
   repeatWeeks?: number;
+  variant?: "date" | "day";
 }
 
 function ScheduleSummaryTable({
   rows,
   repeatWeeks,
+  variant = "date",
 }: ScheduleSummaryTableProps) {
   return (
     <div className="overflow-hidden rounded border border-outline-gray-2">
@@ -34,7 +36,7 @@ function ScheduleSummaryTable({
               )}
             >
               <td className="w-1/2 truncate border-r border-outline-gray-2 px-2 py-2.25 text-base text-ink-gray-6">
-                {formatRange(row.startDate, row.endDate)}
+                {formatRange(row.startDate, row.endDate, variant)}
                 {repeatWeeks && index === rows.length - 1 ? (
                   <span className="text-ink-gray-5">{` (+${repeatWeeks} week${repeatWeeks === 1 ? "" : "s"})`}</span>
                 ) : null}
