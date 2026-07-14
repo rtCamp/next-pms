@@ -129,7 +129,7 @@ export function ProjectListSubHeader() {
               name: "name",
               label: "Project",
               type: "link",
-              link: { doctype: "Project" },
+              link: { doctype: "Project", labelField: "project_name" },
               operators: [
                 { label: "Equals", value: "=" },
                 { label: "Not Equals", value: "!=" },
