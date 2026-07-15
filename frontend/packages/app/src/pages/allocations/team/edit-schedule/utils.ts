@@ -100,10 +100,19 @@ export const getHoursPerDayFromTotalHours = (
 export const formatRange = (
   startDate: string,
   endDate?: string | null,
+  variant: "date" | "day" = "date",
 ): string => {
-  if (!endDate) return format(parseISO(startDate), "MMM d");
+  const safe = normalizeRange(startDate, endDate ?? startDate);
 
-  const safe = normalizeRange(startDate, endDate);
+  if (variant === "day") {
+    const start = format(parseISO(safe.startDate), "EEE");
+
+    if (safe.startDate === safe.endDate) {
+      return start;
+    }
+
+    return `${start} - ${format(parseISO(safe.endDate), "EEE")}`;
+  }
 
   if (safe.startDate === safe.endDate) {
     return format(parseISO(safe.startDate), "MMM d");
@@ -180,11 +189,14 @@ export const buildPreviewRows = ({
       selection !== undefined &&
       dateKey >= selection.startDate &&
       dateKey <= selection.endDate;
-    const hoursPerDay = inSelection
-      ? selection.hoursPerDay
-      : dayOverride?.cancelled === 1
+    const currentHoursPerDay =
+      dayOverride?.cancelled === 1
         ? 0
         : (dayOverride?.hours ?? defaultHoursPerDay);
+    const hoursPerDay = inSelection
+      ? selection.hoursPerDay
+      : currentHoursPerDay;
+    const isModified = inSelection && hoursPerDay !== currentHoursPerDay;
 
     if (
       currentRow &&
@@ -192,8 +204,7 @@ export const buildPreviewRows = ({
       currentRow.isSelected === inSelection
     ) {
       currentRow.endDate = dateKey;
-      currentRow.isModified =
-        currentRow.isSelected && currentRow.hoursPerDay !== defaultHoursPerDay;
+      currentRow.isModified = currentRow.isModified || isModified;
       continue;
     }
 
@@ -202,7 +213,7 @@ export const buildPreviewRows = ({
       endDate: dateKey,
       hoursPerDay,
       isSelected: inSelection,
-      isModified: inSelection && hoursPerDay !== defaultHoursPerDay,
+      isModified,
     };
     rows.push(currentRow);
   }
