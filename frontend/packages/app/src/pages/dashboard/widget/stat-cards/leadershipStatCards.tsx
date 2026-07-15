@@ -48,7 +48,7 @@ export function LeadershipStatCards() {
       ) : (
         <StatCard
           className="flex-1 cursor-pointer"
-          label="Active projects"
+          label="Active billable projects"
           value={activeProjectData?.message ?? "-"}
           to={ACTIVE_PROJECTS_URL}
         />

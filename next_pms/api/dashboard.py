@@ -36,7 +36,7 @@ ALL_ROLES = ["Delivery Manager", "Delivery User", "Projects Manager", "Projects 
 def get_active_projects_count(client: str | None = None, project: str | None = None) -> int:
     only_for(DELIVERY_ROLES, message=True)
 
-    filters = {"is_active": "Yes"}
+    filters = {"is_active": "Yes", "custom_billing_type": ["!=", "Non-Billable"]}
     if client:
         filters["customer"] = client
     if project:
