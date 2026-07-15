@@ -717,6 +717,32 @@ def _get_task_counts(project_name: str) -> dict:
     }
 
 
+def _get_hours_split(project: str) -> tuple[float, float]:
+    """Billable and non-billable hours logged against the project via Timesheets."""
+    TimesheetDetail = frappe.qb.DocType("Timesheet Detail")
+    rows = (
+        frappe.qb.from_(TimesheetDetail)
+        .select(
+            TimesheetDetail.is_billable,
+            Coalesce(Sum(TimesheetDetail.hours), 0).as_("total"),
+        )
+        .where(TimesheetDetail.project == project)
+        .where((TimesheetDetail.docstatus == 1) | (TimesheetDetail.docstatus == 0))
+        .groupby(TimesheetDetail.is_billable)
+        .run(as_dict=True)
+    )
+
+    billable = 0
+    non_billable = 0
+    for row in rows:
+        if cint(row.is_billable):
+            billable += flt(row.total)
+        else:
+            non_billable += flt(row.total)
+
+    return billable, non_billable
+
+
 @whitelist(methods=["GET"])
 @error_logger
 def get_project_tracking(project: str):
@@ -739,9 +765,13 @@ def get_project_tracking(project: str):
             Project currency code.
         hours_utilised : float
             Total hours logged via Timesheets.
+        hours_utilised_billable : float
+            Billable hours logged via Timesheets.
+        hours_utilised_non_billable : float
+            Non-billable hours logged via Timesheets.
         hours_remaining : float
-            Remaining hours from Project Budget pool, or target hours minus
-            utilised hours when there is no hours pool (may be negative).
+            Contracted hours (total hours purchased for hours-pool projects,
+            target hours otherwise) minus utilised hours (may be negative).
         tasks : dict
             total, open, completed task counts.
         invoice_burn : dict
@@ -793,10 +823,8 @@ def get_project_tracking(project: str):
             "total_sales_amount",
             "actual_time",
             "custom_currency",
-            "custom_estimated_profit",
-            "custom_percentage_estimated_profit",
             "custom_target_cost",
-            "custom_total_hours_remaining",
+            "custom_total_hours_purchased",
             "custom_target_hours",
             "actual_start_date",
             "custom_default_hourly_billing_rate",
@@ -817,6 +845,13 @@ def get_project_tracking(project: str):
     actual_cost_incurred = flt(p.total_costing_amount)
     total_forecasted_cost = get_cost_forecasted(project)
     forecasted_cost_to_completion = max(0, total_forecasted_cost)
+
+    total_project_value = flt(p.total_sales_amount)
+    projected_profit = total_project_value - (actual_cost_incurred + forecasted_cost_to_completion)
+    projected_profit_margin = (projected_profit / total_project_value * 100) if total_project_value else 0
+
+    hours_utilised_billable, hours_utilised_non_billable = _get_hours_split(project)
+    total_contracted_hours = flt(p.custom_total_hours_purchased) if has_hours_pool else flt(p.custom_target_hours)
 
     contracts = None
     if has_hours_pool:
@@ -893,18 +928,16 @@ def get_project_tracking(project: str):
         "company": p.company,
         "billing_type": billing_type,
         "currency": p.custom_currency,
-        "total_project_value": flt(p.total_sales_amount) if is_billable else None,
-        "project_profit": flt(p.custom_estimated_profit) if is_billable else None,
-        "projected_profit_margin": flt(p.custom_percentage_estimated_profit) if is_billable else None,
+        "total_project_value": total_project_value if is_billable else None,
+        "project_profit": projected_profit if is_billable else None,
+        "projected_profit_margin": projected_profit_margin if is_billable else None,
         "actual_cost_incurred": actual_cost_incurred,
         "forecasted_cost_to_completion": forecasted_cost_to_completion,
         "expected_total_cost": flt(p.custom_target_cost),
         "hours_utilised": flt(p.actual_time),
-        "hours_remaining": (
-            flt(p.custom_total_hours_remaining)
-            if has_hours_pool
-            else flt(p.get("custom_target_hours")) - flt(p.actual_time)
-        ),
+        "hours_utilised_billable": hours_utilised_billable,
+        "hours_utilised_non_billable": hours_utilised_non_billable,
+        "hours_remaining": total_contracted_hours - flt(p.actual_time),
         "tasks": task_counts,
         "invoice_burn": {
             **(invoice_burn or {}),
