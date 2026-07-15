@@ -278,6 +278,7 @@ export function SidebarProvider({ projectId, children }: SidebarProviderProps) {
     currentMemberUserIds,
     currentContactIds,
     memberRoleByUserId,
+    isSharedWithEveryone: sidebar.is_shared_with_everyone,
     addMember,
     removeMember,
     updateManager,

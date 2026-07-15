@@ -131,6 +131,7 @@ export type ProjectSidebar = {
     employee_id: string;
     user_id: string | null;
   }>;
+  is_shared_with_everyone: boolean;
 };
 
 export type ProjectSidebarResponse = { message: ProjectSidebar };
