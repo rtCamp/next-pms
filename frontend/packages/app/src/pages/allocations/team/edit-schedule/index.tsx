@@ -3,7 +3,7 @@
  */
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Button, Dialog, Select, useToasts } from "@rtcamp/frappe-ui-react";
-import { useForm, useStore } from "@tanstack/react-form";
+import { revalidateLogic, useForm, useStore } from "@tanstack/react-form";
 import { format, parseISO } from "date-fns";
 import {
   FrappeError,
@@ -159,6 +159,10 @@ function EditScheduleModal({
 
   const form = useForm({
     defaultValues: formDefaultValues,
+    validationLogic: revalidateLogic({
+      mode: "submit",
+      modeAfterSubmission: "change",
+    }),
     validators: {
       onChange: editScheduleFormSchema,
       onSubmit: editScheduleFormSchema,
@@ -274,6 +278,14 @@ function EditScheduleModal({
     schedulePayload.allocationHoursPerDay !==
       allocationContext?.allocationHoursPerDay;
 
+  const validateScheduleChange = useCallback(
+    () =>
+      scheduleDraft.hasSelection && !hasScheduleChange
+        ? "Change hours to save."
+        : undefined,
+    [hasScheduleChange, scheduleDraft.hasSelection],
+  );
+
   useEffect(() => {
     if (!open) {
       return;
@@ -310,7 +322,7 @@ function EditScheduleModal({
         size: "sm",
       }}
       actions={
-        <div className="flex w-full items-center justify-end gap-2">
+        <div className="flex items-center justify-end w-full gap-2">
           <Button variant="ghost" label="Cancel" onClick={closeModal} />
           <form.Subscribe selector={(state) => state.isSubmitting}>
             {(isSubmitting) => (
@@ -319,7 +331,7 @@ function EditScheduleModal({
                 label="Save changes"
                 onClick={() => form.handleSubmit()}
                 loading={submitting}
-                disabled={!hasScheduleChange || isSubmitting || submitting}
+                disabled={isSubmitting || submitting}
               />
             )}
           </form.Subscribe>
@@ -366,7 +378,12 @@ function EditScheduleModal({
         </form.Field>
 
         <div className="flex w-full items-start gap-2 pb-1.5">
-          <form.Field name="schedule.input.value">
+          <form.Field
+            name="schedule.input.value"
+            validators={{
+              onDynamic: validateScheduleChange,
+            }}
+          >
             {(field) => (
               <ScheduleHoursPerDayField
                 value={scheduleDraft.hoursPerDay}
@@ -383,7 +400,12 @@ function EditScheduleModal({
               />
             )}
           </form.Field>
-          <form.Field name="schedule.input.value">
+          <form.Field
+            name="schedule.input.value"
+            validators={{
+              onDynamic: validateScheduleChange,
+            }}
+          >
             {(field) => (
               <ScheduleTotalHoursField
                 value={
