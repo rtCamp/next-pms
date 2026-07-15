@@ -31,10 +31,11 @@ def risk_on_update(doc, method=None):
     project_name = frappe.db.get_value("Project", doc.project, "project_name")
     label = _("{0} updated the risk status to {1} in {2}").format(get_fullname(actor), doc.status, project_name)
 
+    title = _("Risk update")
     for user in get_followers("Risk", doc.name):
         if user == actor:
             continue
-        create_notification(user, label, "Risk", doc.name)
+        create_notification(user, title, label, "Risk", doc.name)
 
 
 def project_on_update(doc, method=None):
@@ -54,8 +55,9 @@ def project_on_update(doc, method=None):
         recipients.add(doc.custom_project_manager)
     recipients.discard(actor)
 
+    title = _("Project health update")
     for user in recipients:
-        create_notification(user, label, "Project", doc.name)
+        create_notification(user, title, label, "Project", doc.name)
 
 
 def customer_feedback_on_submit(doc, method=None):
@@ -77,7 +79,8 @@ def customer_feedback_on_submit(doc, method=None):
             continue
         project_name = frappe.db.get_value("Project", project, "project_name")
         label = _("{0} client feedback received for {1}").format(date, project_name)
-        create_notification(manager, label, "Customer Feedback", doc.name)
+        title = _("Client feedback available")
+        create_notification(manager, title, label, "Customer Feedback", doc.name)
 
 
 def send_review_reminders():
@@ -113,10 +116,11 @@ def send_review_reminders():
         entry["start_date"] = min(entry["start_date"], start)
         entry["end_date"] = max(entry["end_date"], end)
 
+    title = _("Timesheets to review")
     for reviewer, entry in by_reviewer.items():
         label = _("You have {0} timesheets to review between {1} and {2}").format(
             entry["count"],
             formatdate(entry["start_date"], "dd/mm/yyyy"),
             formatdate(entry["end_date"], "dd/mm/yyyy"),
         )
-        create_notification(reviewer, label, "Timesheet", entry["timesheet"])
+        create_notification(reviewer, title, label, "Timesheet", entry["timesheet"])
