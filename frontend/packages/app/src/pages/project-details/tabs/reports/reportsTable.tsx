@@ -43,11 +43,13 @@ function ReportLinkCell({ report }: { report: ProjectReportRow }) {
 }
 
 export function ReportsTable({ reports }: ReportsTableProps) {
-  const rows = reports.map((report, index) => ({
-    ...report,
-    id: report.run_id || `report-${index}`,
-    index: index + 1,
-  }));
+  const rows = reports
+    .map((report, index) => ({
+      ...report,
+      id: report.run_id || `report-${index}`,
+      index: index + 1,
+    }))
+    .reverse();
 
   return (
     <section className="flex flex-col gap-3">
