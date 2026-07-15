@@ -85,9 +85,18 @@ def customer_feedback_on_submit(doc, method=None):
 
 def send_review_reminders():
     """Nightly: notify each reviewer of how many timesheets are pending their review."""
+    active_employees = frappe.get_all("Employee", filters={"status": "Active"}, pluck="name")
+    if not active_employees:
+        return
+
     pending = frappe.get_all(
         "Timesheet",
-        filters={"custom_approval_status": "Approval Pending", "docstatus": 0},
+        filters={
+            "custom_approval_status": "Approval Pending",
+            "custom_weekly_approval_status": ["!=", "Not Submitted"],
+            "docstatus": 0,
+            "employee": ["in", active_employees],
+        },
         fields=["name", "employee", "start_date", "end_date"],
         order_by="modified desc",
     )
