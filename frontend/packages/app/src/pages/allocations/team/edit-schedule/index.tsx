@@ -274,7 +274,7 @@ function EditScheduleModal({
   const validateScheduleChange = useCallback(
     () =>
       scheduleDraft.hasSelection && !hasScheduleChange
-        ? "Change hours to save."
+        ? "Update hours first."
         : undefined,
     [hasScheduleChange, scheduleDraft.hasSelection],
   );
@@ -378,45 +378,38 @@ function EditScheduleModal({
             }}
           >
             {(field) => (
-              <ScheduleHoursPerDayField
-                value={scheduleDraft.hoursPerDay}
-                disabled={!scheduleDraft.hasSelection}
-                onChange={(value) => {
-                  form.setFieldValue("schedule.input.mode", "hoursPerDay");
-                  field.handleChange(value);
-                }}
-                error={
-                  schedule.input.mode === "hoursPerDay"
-                    ? getErrorMessage(field.state.meta.errors[0])
-                    : undefined
-                }
-              />
-            )}
-          </form.Field>
-          <form.Field
-            name="schedule.input.value"
-            validators={{
-              onDynamic: validateScheduleChange,
-            }}
-          >
-            {(field) => (
-              <ScheduleTotalHoursField
-                value={
-                  scheduleDraft.hasSelection
-                    ? toDisplayHours(scheduleDraft.totalHours)
-                    : ""
-                }
-                disabled={!scheduleDraft.hasSelection}
-                onChange={(value) => {
-                  form.setFieldValue("schedule.input.mode", "totalHours");
-                  field.handleChange(value);
-                }}
-                error={
-                  schedule.input.mode === "totalHours"
-                    ? getErrorMessage(field.state.meta.errors[0])
-                    : undefined
-                }
-              />
+              <>
+                <ScheduleHoursPerDayField
+                  value={scheduleDraft.hoursPerDay}
+                  disabled={!scheduleDraft.hasSelection}
+                  onChange={(value) => {
+                    form.setFieldValue("schedule.input.mode", "hoursPerDay");
+                    field.handleChange(value);
+                  }}
+                  error={
+                    schedule.input.mode === "hoursPerDay"
+                      ? getErrorMessage(field.state.meta.errors[0])
+                      : undefined
+                  }
+                />
+                <ScheduleTotalHoursField
+                  value={
+                    scheduleDraft.hasSelection
+                      ? toDisplayHours(scheduleDraft.totalHours)
+                      : ""
+                  }
+                  disabled={!scheduleDraft.hasSelection}
+                  onChange={(value) => {
+                    form.setFieldValue("schedule.input.mode", "totalHours");
+                    field.handleChange(value);
+                  }}
+                  error={
+                    schedule.input.mode === "totalHours"
+                      ? getErrorMessage(field.state.meta.errors[0])
+                      : undefined
+                  }
+                />
+              </>
             )}
           </form.Field>
         </div>

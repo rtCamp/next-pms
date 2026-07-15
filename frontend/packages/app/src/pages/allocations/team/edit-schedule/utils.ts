@@ -189,11 +189,14 @@ export const buildPreviewRows = ({
       selection !== undefined &&
       dateKey >= selection.startDate &&
       dateKey <= selection.endDate;
-    const hoursPerDay = inSelection
-      ? selection.hoursPerDay
-      : dayOverride?.cancelled === 1
+    const currentHoursPerDay =
+      dayOverride?.cancelled === 1
         ? 0
         : (dayOverride?.hours ?? defaultHoursPerDay);
+    const hoursPerDay = inSelection
+      ? selection.hoursPerDay
+      : currentHoursPerDay;
+    const isModified = inSelection && hoursPerDay !== currentHoursPerDay;
 
     if (
       currentRow &&
@@ -201,8 +204,7 @@ export const buildPreviewRows = ({
       currentRow.isSelected === inSelection
     ) {
       currentRow.endDate = dateKey;
-      currentRow.isModified =
-        currentRow.isSelected && currentRow.hoursPerDay !== defaultHoursPerDay;
+      currentRow.isModified = currentRow.isModified || isModified;
       continue;
     }
 
@@ -211,7 +213,7 @@ export const buildPreviewRows = ({
       endDate: dateKey,
       hoursPerDay,
       isSelected: inSelection,
-      isModified: inSelection && hoursPerDay !== defaultHoursPerDay,
+      isModified,
     };
     rows.push(currentRow);
   }
