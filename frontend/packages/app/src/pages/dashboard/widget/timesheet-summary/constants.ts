@@ -3,6 +3,24 @@
  */
 import type { SelectOption } from "@rtcamp/frappe-ui-react";
 
+/**
+ * Internal dependencies.
+ */
+import { ROUTES } from "@/lib/constant";
+
+export const teamTimesheetUrlForEmployee = (employee: string) =>
+  `${ROUTES["timesheet-team"]}?compositeFilters=${encodeURI(
+    JSON.stringify([
+      {
+        id: "filter-employee",
+        field: "employee",
+        operator: "=",
+        value: employee,
+        fieldCategory: "Timesheet",
+      },
+    ]),
+  )}`;
+
 export const LAST_WEEK_VALUE = "last-week";
 export const THIS_WEEK_VALUE = "this-week";
 export const THIS_MONTH_VALUE = "this-month";

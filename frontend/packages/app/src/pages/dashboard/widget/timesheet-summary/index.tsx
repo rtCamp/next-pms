@@ -2,6 +2,7 @@
  * External dependencies.
  */
 import { useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 import {
   Avatar,
   ListHeader,
@@ -25,6 +26,7 @@ import {
   THIS_MONTH_VALUE,
   THIS_WEEK_VALUE,
   TIMESHEET_COLUMNS,
+  teamTimesheetUrlForEmployee,
 } from "./constants";
 import { TimesheetsSkeleton } from "./skeleton";
 import { StatusIcon } from "./statusIcon";
@@ -136,9 +138,12 @@ export default function Timesheets() {
                     />
                   }
                 >
-                  <span className="truncate text-base font-medium text-ink-gray-7">
+                  <Link
+                    to={teamTimesheetUrlForEmployee(member.employee)}
+                    className="truncate text-base font-medium text-ink-gray-7 hover:underline"
+                  >
                     {member.name}
-                  </span>
+                  </Link>
                 </ListRowItem>
                 <ListRowItem
                   column={TIMESHEET_COLUMNS[1]}
