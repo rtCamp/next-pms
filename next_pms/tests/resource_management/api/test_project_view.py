@@ -421,3 +421,12 @@ class TestProjectViewAllocationProjectFiltering(_ProjectViewBase):
         self.assertEqual(ordered[-1], self.p_empty)
         self.assertIn(ordered[0], {self.p_confirmed, self.p_tentative})
         self.assertFalse(result["has_more"])
+
+    def test_empty_prioritized_ids_falls_back_to_plain_pagination(self):
+        from next_pms.resource_management.api.utils.helpers import filter_project_list
+
+        frappe.set_user("Administrator")
+        plain, plain_count = filter_project_list(customer=self.customer)
+        empty, empty_count = filter_project_list(customer=self.customer, prioritized_ids=[])
+        self.assertEqual([p.name for p in empty], [p.name for p in plain])
+        self.assertEqual(empty_count, plain_count)

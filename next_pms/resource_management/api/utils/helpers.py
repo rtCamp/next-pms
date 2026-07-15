@@ -372,8 +372,9 @@ def filter_project_list(
 ):
     """Return one page of Projects plus the total count of matches.
 
-    When prioritized_ids is given, matching projects in that list are paginated
-    before the rest (two-phase pagination); total_count is unaffected.
+    When prioritized_ids is a non-empty list, matching projects in that list are
+    paginated before the rest (two-phase pagination); total_count is unaffected.
+    An empty list behaves like None (plain single-query pagination).
     """
     from next_pms.timesheet.api import get_count
 
@@ -449,7 +450,7 @@ def filter_project_list(
 
     total_count = get_count("Project", filters=conditions)
 
-    if prioritized_ids is None:
+    if not prioritized_ids:
         projects = frappe.get_list(
             "Project",
             filters=conditions,
@@ -459,8 +460,8 @@ def filter_project_list(
         )
         return projects, total_count
 
-    prioritized_conditions = [*conditions, ["name", "in", prioritized_ids or []]]
-    remaining_conditions = [*conditions, ["name", "not in", prioritized_ids or []]]
+    prioritized_conditions = [*conditions, ["name", "in", prioritized_ids]]
+    remaining_conditions = [*conditions, ["name", "not in", prioritized_ids]]
     prioritized_count = get_count("Project", filters=prioritized_conditions)
 
     projects = []
