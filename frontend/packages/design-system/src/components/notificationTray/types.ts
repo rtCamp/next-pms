@@ -7,8 +7,8 @@ export interface NotificationMessageSegment {
 
 export interface NotificationEntry {
   id: string;
-  name: string;
-  image?: string;
+  linkedDoctype: string;
+  title?: string;
   message: NotificationMessageSegment[];
   timeLabel: string;
   read?: boolean;

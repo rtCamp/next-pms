@@ -1,13 +1,30 @@
 /**
  * External dependencies.
  */
+import type { ComponentType } from "react";
 import type { NotificationEntry } from "@next-pms/design-system/components";
-import { Avatar } from "@rtcamp/frappe-ui-react";
+import { File, Fire, Folder, Time, Check } from "@rtcamp/frappe-ui-react/icons";
 
 /**
  * Internal dependencies.
  */
 import { useNotifications } from "@/providers/notifications";
+
+const DOCTYPE_ICON_MAP: Record<string, ComponentType<{ size?: number }>> = {
+  Risk: Fire,
+  Timesheet: Time,
+  "Customer Feedback": File,
+  Project: Folder,
+};
+
+const NotificationIcon = ({ linkedDoctype }: { linkedDoctype: string }) => {
+  const Icon = DOCTYPE_ICON_MAP[linkedDoctype] ?? Check;
+  return (
+    <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-surface-gray-2">
+      <Icon size={18} />
+    </div>
+  );
+};
 
 const renderMessage = (message: NotificationEntry["message"]) =>
   message.map((segment) => segment.text).join("");
@@ -63,17 +80,14 @@ export default function NotificationsCard() {
                 }}
                 className="flex cursor-pointer items-start gap-2"
               >
-                <Avatar
-                  size="md"
-                  shape="circle"
-                  image={item.image}
-                  label={item.name}
-                />
+                <NotificationIcon linkedDoctype={item.linkedDoctype} />
                 <div className="flex w-full flex-col gap-1">
                   <div className="flex items-baseline justify-between gap-2">
-                    <span className="truncate text-base font-medium text-ink-gray-7">
-                      {item.name}
-                    </span>
+                    {item.title && (
+                      <span className="truncate text-base font-medium text-ink-gray-7">
+                        {item.title}
+                      </span>
+                    )}
                     <span className="shrink-0 text-xs text-ink-gray-5">
                       {item.timeLabel}
                     </span>
