@@ -57,6 +57,7 @@ export const FilterLinkValue: React.FC<FilterLinkValueRenderProps> = ({
         onChange(val, label);
       }}
       className="w-50"
+      popupClassName="w-fit max-w-[300px]"
     />
   );
 };
