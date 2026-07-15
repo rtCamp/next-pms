@@ -59,7 +59,7 @@ export const computeTotalHours = ({
 
   const dayCount =
     recurrence === "recurring"
-      ? Math.max(1, safeRepeatFor) *
+      ? (Math.max(0, safeRepeatFor) + 1) *
         getRangeDayCount(safeFromDate, safeToDate, includeWeekends)
       : includeWeekends
         ? Math.max(1, getRangeDayCount(safeFromDate, safeToDate, true))
