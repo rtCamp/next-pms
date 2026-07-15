@@ -197,7 +197,7 @@ def filter_employees(
             has_membership_filter = True
             project_employee = get_all(
                 "DocShare",
-                filters={"share_doctype": "Project", "share_name": ["IN", project], "everyone": 0},
+                filters={"share_doctype": "Project", "share_name": ["in", project], "everyone": 0},
                 pluck="user",
             )
             ids = [get_value("Employee", {"user_id": employee}) for employee in project_employee]

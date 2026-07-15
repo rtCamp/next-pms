@@ -12,6 +12,7 @@ from .utils import (
     build_aggregate_dates,
     build_chunk_context,
     build_employee_week_details,
+    employee_has_higher_access,
     get_employees_for_projects,
     get_qualifying_project_ids,
     normalize_status_filter,
@@ -115,9 +116,11 @@ def get_project_filter_for_contractor(only_list=False):
 @whitelist(methods=["GET"])
 @error_logger
 def get_employee_project_ids(employee: str):
-    """Return every project id the given employee can access — individually shared, or via "everyone"."""
+    """Return every Project name the given employee can access — individually shared, or via "everyone"."""
     if not employee:
         return []
+    if not employee_has_higher_access(employee, ptype="read"):
+        frappe.throw(frappe._("You are not authorized to view this employee's projects."), frappe.PermissionError)
 
     everyone_projects = get_all("DocShare", filters={"share_doctype": "Project", "everyone": 1}, pluck="share_name")
     user_id = get_value("Employee", employee, "user_id")
@@ -143,9 +146,11 @@ def get_project_filter_for_employee(employee: str | None):
 @error_logger
 def get_project_employee_access(project: str | None = None, employee: str | None = None):
     """Whether `project` has any member, whether `employee` has any project, and whether this pair is valid together."""
+    if employee and not employee_has_higher_access(employee, ptype="read"):
+        frappe.throw(frappe._("You are not authorized to view this employee's project access."), frappe.PermissionError)
 
     def is_shared(share_filter):
-        return bool(get_all("DocShare", filters={"share_doctype": "Project", **share_filter}, limit=1))
+        return bool(frappe.db.exists("DocShare", {"share_doctype": "Project", **share_filter}))
 
     user_id = get_value("Employee", employee, "user_id") if employee else None
 
@@ -157,7 +162,9 @@ def get_project_employee_access(project: str | None = None, employee: str | None
     has_any_member = bool(project) and (
         is_project_shared_with_everyone or is_shared({"share_name": project, "everyone": 0})
     )
-    has_any_project = bool(user_id) and (is_shared({"everyone": 1}) or is_shared({"user": user_id, "everyone": 0}))
+    has_any_project = bool(user_id) and (
+        is_employee_shared_on_project or is_shared({"everyone": 1}) or is_shared({"user": user_id, "everyone": 0})
+    )
     is_valid = bool(project and employee) and (is_project_shared_with_everyone or is_employee_shared_on_project)
 
     return {"has_any_member": has_any_member, "has_any_project": has_any_project, "is_valid": is_valid}
