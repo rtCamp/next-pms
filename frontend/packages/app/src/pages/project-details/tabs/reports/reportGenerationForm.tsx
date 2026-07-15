@@ -1,7 +1,7 @@
 /**
  * External dependencies.
  */
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { formatDateRange } from "@next-pms/design-system/date";
 import {
   Button,
@@ -67,6 +67,31 @@ export function ReportGenerationForm() {
       mutate();
     }
   });
+
+  const prevReportStatusesRef = useRef<Record<string, string>>({});
+
+  // Compare report history updates to trigger completion/failure toasts
+  useEffect(() => {
+    reports.forEach((report) => {
+      if (!report.run_id) return;
+      const prevStatus = prevReportStatusesRef.current[report.run_id];
+      if (prevStatus === "Generating" && report.status === "Done") {
+        toast.success("Project Report is Ready! ✅");
+      } else if (prevStatus === "Generating" && report.status === "Failed") {
+        toast.error("Report generation failed.");
+      }
+    });
+
+    // Save current statuses map to ref (avoids in-place reference mutation bugs)
+    const nextStatuses: Record<string, string> = {};
+    reports.forEach((r) => {
+      if (r.run_id) {
+        nextStatuses[r.run_id] = r.status ?? "";
+      }
+    });
+    prevReportStatusesRef.current = nextStatuses;
+  }, [reports, toast]);
+
   const previousReportUrl = useMemo(() => {
     for (let index = reports.length - 1; index >= 0; index--) {
       if (reports[index].report_link) {
