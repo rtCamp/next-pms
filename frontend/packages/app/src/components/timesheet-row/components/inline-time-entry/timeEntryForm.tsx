@@ -4,11 +4,14 @@
 import { mergeClassNames as cn } from "@next-pms/design-system";
 import {
   Button,
+  DatePicker,
   ErrorMessage,
   TextEditor,
   DurationInput,
+  TextInput,
 } from "@rtcamp/frappe-ui-react";
-import { AddSm } from "@rtcamp/frappe-ui-react/icons";
+import { AddSm, Calendar } from "@rtcamp/frappe-ui-react/icons";
+import { format, parseISO } from "date-fns";
 
 /**
  * Internal dependencies
@@ -65,6 +68,48 @@ export const TimeEntryForm = ({
           );
         }}
       />
+      {mode === ENTRY_FORM_MODE.EDIT ? (
+        <form.Field
+          name="date"
+          children={(field) => {
+            return (
+              <div className="flex flex-col w-full gap-1.5">
+                <label className="block text-xs text-ink-gray-5">
+                  Edit date
+                </label>
+                <DatePicker
+                  label="Date"
+                  variant="outline"
+                  clearable={false}
+                  placement="bottom-start"
+                  formatter={(date) => format(parseISO(date), "MMM d, yyyy")}
+                  value={field.state.value}
+                  onChange={(val) =>
+                    field.handleChange(
+                      typeof val === "string" ? val : (val[0] ?? ""),
+                    )
+                  }
+                >
+                  {({ displayValue }) => (
+                    <TextInput
+                      className="h-8 text-base text-ink-gray-7"
+                      type="text"
+                      placeholder="Select date"
+                      value={displayValue}
+                      readOnly
+                      suffix={() => <Calendar className="size-4" />}
+                      variant="outline"
+                    />
+                  )}
+                </DatePicker>
+                {!field.state.meta.isValid && (
+                  <ErrorMessage message={field.state.meta.errors[0]?.message} />
+                )}
+              </div>
+            );
+          }}
+        />
+      ) : null}
       <form.Field
         name="comment"
         children={(field) => {
@@ -104,12 +149,14 @@ export const TimeEntryForm = ({
       {submitError ? <ErrorMessage message={submitError} /> : null}
       <form.Subscribe
         selector={(state) => ({
+          date: state.values.date,
           duration: state.values.duration,
           comment: state.values.comment,
           durationIsDefault: state.fieldMeta.duration?.isDefaultValue ?? true,
           commentIsDefault: state.fieldMeta.comment?.isDefaultValue ?? true,
         })}
         children={({
+          date,
           duration,
           comment,
           durationIsDefault,
@@ -119,7 +166,8 @@ export const TimeEntryForm = ({
           const isEditUnchanged =
             editBaseline !== null &&
             duration === editBaseline.duration &&
-            comment === editBaseline.comment;
+            comment === editBaseline.comment &&
+            date === editBaseline.date;
           const isSaveDisabled =
             submitting ||
             (mode === ENTRY_FORM_MODE.ADD ? isAddUnchanged : isEditUnchanged);

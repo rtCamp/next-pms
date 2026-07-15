@@ -88,9 +88,11 @@ export const InlineTimeEntry = ({
   } = useResizeEngagement();
   const [collapsedEntryNames, setCollapsedEntryNames] = useState<string[]>([]);
   const hasInitializedInteractiveModeRef = useRef(false);
-  const editBaselineRef = useRef<{ duration: number; comment: string } | null>(
-    null,
-  );
+  const editBaselineRef = useRef<{
+    duration: number;
+    comment: string;
+    date: string;
+  } | null>(null);
   const pendingProceedAfterSaveRef = useRef<(() => void) | null>(null);
 
   const { call: saveTime } = useFrappePostCall(
@@ -173,14 +175,16 @@ export const InlineTimeEntry = ({
     },
   });
 
-  const { duration: liveDuration, comment: liveComment } = useStore(
-    form.store,
-    (state) => state.values,
-  );
+  const {
+    duration: liveDuration,
+    comment: liveComment,
+    date: liveDate,
+  } = useStore(form.store, (state) => state.values);
   const hasUnsavedChanges =
     entryFormMode === ENTRY_FORM_MODE.EDIT && editBaselineRef.current
       ? liveDuration !== editBaselineRef.current.duration ||
-        liveComment !== editBaselineRef.current.comment
+        liveComment !== editBaselineRef.current.comment ||
+        liveDate !== editBaselineRef.current.date
       : liveDuration !== defaultValues.duration ||
         liveComment !== defaultValues.comment;
   const isEngaged =
@@ -267,14 +271,16 @@ export const InlineTimeEntry = ({
       editBaselineRef.current = {
         duration: entry.hours,
         comment: entry.description ?? "",
+        date,
       };
       setCollapsedEntryNames((prev) =>
         prev.filter((name) => name !== entry.name),
       );
       form.setFieldValue("duration", entry.hours);
       form.setFieldValue("comment", entry.description ?? "");
+      form.setFieldValue("date", date);
     },
-    [entryFormMode, form, defaultValues, tasks],
+    [entryFormMode, form, defaultValues, date, tasks],
   );
 
   const handleToggleAddMode = useCallback(() => {
