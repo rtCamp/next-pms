@@ -140,6 +140,12 @@ export function ReportGenerationForm() {
     form.setFieldValue("driveLink", driveLink);
   }, [driveLink, form]);
 
+  useEffect(() => {
+    if (repositoryOptions.length > 0 && !form.state.values.githubRepository) {
+      form.setFieldValue("githubRepository", repositoryOptions[0].value);
+    }
+  }, [repositoryOptions, form]);
+
   return (
     <form
       className="flex flex-col gap-4"
