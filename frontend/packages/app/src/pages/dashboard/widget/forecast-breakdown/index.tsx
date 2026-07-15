@@ -3,6 +3,7 @@
  */
 import { useMemo } from "react";
 import { mergeClassNames } from "@next-pms/design-system";
+import { useSavedState } from "@next-pms/hooks";
 import { MultiSelect } from "@rtcamp/frappe-ui-react";
 import type { MultiSelectOption } from "@rtcamp/frappe-ui-react";
 import { useFrappeGetCall } from "frappe-react-sdk";
@@ -10,12 +11,14 @@ import { useFrappeGetCall } from "frappe-react-sdk";
 /**
  * Internal dependencies.
  */
-import { useSavedState } from "@next-pms/hooks";
 import { ForecastBreakdownCardSkeleton } from "./skeleton";
 import type { ForecastBreakdownResponse } from "./types";
 
 export default function ForecastBreakdownCard() {
-  const [selectedRoles, setSelectedRoles] = useSavedState("forecastRoles", [] as string[]);
+  const [selectedRoles, setSelectedRoles] = useSavedState(
+    "forecastRoles",
+    [] as string[],
+  );
 
   const { data, isLoading } = useFrappeGetCall<ForecastBreakdownResponse>(
     "next_pms.api.dashboard.get_forecast_breakdown",

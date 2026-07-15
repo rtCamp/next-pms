@@ -2,6 +2,7 @@
  * External dependencies.
  */
 import { useEffect, useMemo, useRef } from "react";
+import { useSavedState } from "@next-pms/hooks";
 import { MultiSelect } from "@rtcamp/frappe-ui-react";
 import type { MultiSelectOption } from "@rtcamp/frappe-ui-react";
 import { cva } from "class-variance-authority";
@@ -11,7 +12,6 @@ import { useFrappeGetCall } from "frappe-react-sdk";
 /**
  * Internal dependencies.
  */
-import { useSavedState } from "@next-pms/hooks";
 import { HeatmapCardSkeleton } from "./skeleton";
 import type { AllocationHeatmapResponse, RoleAllocationWeek } from "./types";
 
@@ -85,7 +85,10 @@ function getCellState(week: RoleAllocationWeek): HeatmapCellState {
 }
 
 export default function HeatmapCard() {
-  const [selectedRoles, setSelectedRoles] = useSavedState("heatmapRoles", [] as string[]);
+  const [selectedRoles, setSelectedRoles] = useSavedState(
+    "heatmapRoles",
+    [] as string[],
+  );
 
   const args = useMemo(() => {
     const start = startOfWeek(new Date(), WEEK_OPTIONS);

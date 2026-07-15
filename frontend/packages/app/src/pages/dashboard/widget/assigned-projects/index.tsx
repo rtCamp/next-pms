@@ -2,6 +2,7 @@
  * External dependencies.
  */
 import { useMemo } from "react";
+import { useSavedState } from "@next-pms/hooks";
 import {
   ListHeader,
   ListHeaderItem,
@@ -18,7 +19,6 @@ import { useFrappeGetCall } from "frappe-react-sdk";
 /**
  * Internal dependencies.
  */
-import { useSavedState } from "@next-pms/hooks";
 import { formatHours } from "@/lib/utils";
 import { ASSIGNED_PROJECTS_COLUMNS } from "./constants";
 import { HoursBurnBar } from "./hours-burn";
@@ -26,7 +26,10 @@ import { AssignedProjectsSkeleton } from "./skeleton";
 import type { AssignedProject, ProjectSummaryResponse } from "./types";
 
 export default function AssignedProjects() {
-  const [selectedCustomers, setSelectedCustomers] = useSavedState("managedProjectsCustomers", [] as string[]);
+  const [selectedCustomers, setSelectedCustomers] = useSavedState(
+    "managedProjectsCustomers",
+    [] as string[],
+  );
 
   const { data, isLoading } = useFrappeGetCall<ProjectSummaryResponse>(
     "next_pms.api.dashboard.get_my_projects_summary",
