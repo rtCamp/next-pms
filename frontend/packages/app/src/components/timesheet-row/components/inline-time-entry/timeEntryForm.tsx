@@ -27,7 +27,8 @@ import { TimeEntryFormProps } from "./types";
  * @param hoursLeft The number of hours left that can be logged for the day.
  * @param durationVariant The variant style to apply to the duration input field.
  * @param maxDurationInHours The maximum number of hours that can be entered in the duration field.
- * @param submitting A boolean indicating whether the form is currently being submitted, used to disable inputs during submission.
+ * @param isSaving Whether this form's own save/update request is in flight; drives the Save button's loading state.
+ * @param isMutating Whether any mutation (save, update or delete) is in flight; disables every input and the Save button.
  * @param editBaseline An optional object containing the original duration and comment values when in edit mode.
  * @param onCommentKeyDown A callback function to handle key down events in the comment textarea.
  */
@@ -37,7 +38,8 @@ export const TimeEntryForm = ({
   hoursLeft,
   durationLabel,
   maxDurationInHours,
-  submitting,
+  isSaving,
+  isMutating,
   submitError = null,
   editBaseline = null,
   onSave,
@@ -60,6 +62,7 @@ export const TimeEntryForm = ({
                 value={field.state.value}
                 onChange={(val) => field.handleChange(val)}
                 maxDuration={maxDurationInHours}
+                disabled={isMutating}
               />
               {!field.state.meta.isValid && (
                 <ErrorMessage message={field.state.meta.errors[0]?.message} />
@@ -82,6 +85,7 @@ export const TimeEntryForm = ({
                   variant="outline"
                   clearable={false}
                   placement="bottom-start"
+                  disabled={isMutating}
                   formatter={(date) => format(parseISO(date), "MMM d, yyyy")}
                   value={field.state.value}
                   onChange={(val) =>
@@ -90,13 +94,14 @@ export const TimeEntryForm = ({
                     )
                   }
                 >
-                  {({ displayValue }) => (
+                  {({ displayValue, disabled }) => (
                     <TextInput
                       className="h-8 text-base text-ink-gray-7"
                       type="text"
                       placeholder="Select date"
                       value={displayValue}
                       readOnly
+                      disabled={disabled}
                       suffix={() => <Calendar className="size-4" />}
                       variant="outline"
                     />
@@ -121,7 +126,7 @@ export const TimeEntryForm = ({
                 onPointerDownCapture={onCommentPointerDown}
               >
                 <TextEditor
-                  editable={!submitting}
+                  editable={!isMutating}
                   content={field.state.value}
                   onChange={(value) => field.handleChange(value)}
                   fixedMenu={false}
@@ -169,17 +174,21 @@ export const TimeEntryForm = ({
             comment === editBaseline.comment &&
             date === editBaseline.date;
           const isSaveDisabled =
-            submitting ||
+            isMutating ||
             (mode === ENTRY_FORM_MODE.ADD ? isAddUnchanged : isEditUnchanged);
 
           return (
             <div className="flex justify-between w-full gap-2">
               <Button
-                className="text-ink-gray-7"
+                className={cn(
+                  "text-ink-gray-7",
+                  (isSaving || isSaveDisabled) && "text-ink-gray-4",
+                )}
                 variant="subtle"
                 size="sm"
                 iconLeft={() => <AddSm size={16} />}
                 onClick={onSave}
+                loading={isSaving}
                 disabled={isSaveDisabled}
               >
                 Save entry

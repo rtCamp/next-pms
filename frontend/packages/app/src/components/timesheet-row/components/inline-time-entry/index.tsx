@@ -70,7 +70,6 @@ export const InlineTimeEntry = ({
   disabled,
 }: InlineTimeEntryProps) => {
   const toast = useToasts();
-  const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [entryFormMode, setEntryFormMode] = useState<EntryFormMode>(
     ENTRY_FORM_MODE.DEFAULT,
@@ -95,15 +94,18 @@ export const InlineTimeEntry = ({
   } | null>(null);
   const pendingProceedAfterSaveRef = useRef<(() => void) | null>(null);
 
-  const { call: saveTime } = useFrappePostCall(
+  const { call: saveTime, loading: isSaving } = useFrappePostCall(
     "next_pms.timesheet.api.timesheet.save",
   );
-  const { call: updateTimesheet } = useFrappePostCall(
+  const { call: updateTimesheet, loading: isUpdating } = useFrappePostCall(
     "next_pms.timesheet.api.timesheet.bulk_update_timesheet_detail",
   );
-  const { call: deleteTimesheet } = useFrappePostCall(
+  const { call: deleteTimesheet, loading: isDeleting } = useFrappePostCall(
     "next_pms.timesheet.api.timesheet.delete",
   );
+
+  const isSavingEntry = isSaving || isUpdating;
+  const isMutating = isSavingEntry || isDeleting;
 
   const hoursLeft = (dailyWorkingHours ?? 0) - (totalUsedHoursInDay ?? 0);
   const effectiveHoursLeft =
@@ -128,7 +130,6 @@ export const InlineTimeEntry = ({
   const form = useInlineTimeEntryForm({
     defaultValues,
     onSubmit: async ({ value }) => {
-      setSubmitting(true);
       setSubmitError(null);
 
       try {
@@ -165,7 +166,6 @@ export const InlineTimeEntry = ({
         setSubmitError(parseFrappeErrorMsg(err as FrappeError));
       } finally {
         pendingProceedAfterSaveRef.current = null;
-        setSubmitting(false);
         form.reset();
         editBaselineRef.current = null;
         setSelectedEntry(null);
@@ -230,7 +230,6 @@ export const InlineTimeEntry = ({
 
   const handleDelete = useCallback(async () => {
     if (!selectedEntry) return;
-    setSubmitting(true);
     try {
       await deleteTimesheet({
         parent: selectedEntry.parent,
@@ -241,7 +240,6 @@ export const InlineTimeEntry = ({
       const error = parseFrappeErrorMsg(err as FrappeError);
       toast.error(error);
     } finally {
-      setSubmitting(false);
       form.reset();
       editBaselineRef.current = null;
       setSelectedEntry(null);
@@ -441,7 +439,8 @@ export const InlineTimeEntry = ({
                         durationLabel="Edit time"
                         maxDurationInHours={dailyWorkingHours}
                         editBaseline={editBaselineRef.current}
-                        submitting={submitting}
+                        isSaving={isSavingEntry}
+                        isMutating={isMutating}
                         submitError={submitError}
                         onSave={() => handleSubmit()}
                         onCommentKeyDown={handleSubmit}
@@ -453,7 +452,8 @@ export const InlineTimeEntry = ({
                           size="sm"
                           iconLeft={() => <Delete size={16} />}
                           onClick={handleDelete}
-                          disabled={submitting}
+                          loading={isDeleting}
+                          disabled={isSavingEntry}
                         >
                           Delete entry
                         </Button>
@@ -490,7 +490,8 @@ export const InlineTimeEntry = ({
               hoursLeft={effectiveHoursLeft}
               durationLabel={hasNoTimeEntries ? false : "Add time"}
               maxDurationInHours={dailyWorkingHours}
-              submitting={submitting}
+              isSaving={isSavingEntry}
+              isMutating={isMutating}
               submitError={submitError}
               onSave={() => handleSubmit()}
               onCommentKeyDown={handleSubmit}
@@ -500,7 +501,10 @@ export const InlineTimeEntry = ({
           {!hasNoTimeEntries && entryFormMode !== ENTRY_FORM_MODE.ADD ? (
             <div className="flex justify-between w-full gap-2">
               <Button
-                className="text-ink-gray-7"
+                className={cn(
+                  "text-ink-gray-7",
+                  isMutating && "text-ink-gray-4",
+                )}
                 variant="ghost"
                 size="sm"
                 iconLeft={() =>
@@ -511,7 +515,7 @@ export const InlineTimeEntry = ({
                   )
                 }
                 onClick={handleToggleAddMode}
-                disabled={submitting}
+                disabled={isMutating}
               >
                 {isDraftAvailableInEdit ? "Draft" : "Add time"}
               </Button>
