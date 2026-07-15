@@ -4,7 +4,7 @@ import frappe
 from frappe import _, enqueue, only_for
 from frappe.desk.notifications import extract_mentions
 from frappe.types import DF
-from frappe.utils import cint, now, now_datetime
+from frappe.utils import cint, now_datetime
 from frappe.utils.user import get_user_fullname
 
 from next_pms.api.utils import error_logger
@@ -51,7 +51,7 @@ def create_project_status_update(
         doc.status = status
         if pinned is not None:
             doc.pinned = cint(pinned)
-        doc.insert()
+        doc.insert(ignore_permissions=True)
 
         if status == "Publish":
             should_enqueue_publish_notification = True
@@ -180,9 +180,36 @@ def update_project_status_update(
     if pinned is not None:
         doc.pinned = cint(pinned)
 
-    doc.save()
+    doc.save(ignore_permissions=True)
 
     return get_project_status_update_details(doc.name)
+
+
+@frappe.whitelist(methods=["POST"])
+@error_logger
+def delete_project_status_update(name: str) -> dict[str, Any]:
+    """
+    Delete a Project Status Update. Only its author (owner) may delete it.
+
+    Args:
+        name (str): Document name
+
+    Returns:
+        Dict[str, Any]: The name of the deleted document
+    """
+    only_for(ROLES, message=True)
+
+    if not frappe.db.exists("Project Status Update", name):
+        frappe.throw(_("Project Status Update '{name}' does not exist").format(name=name))
+
+    doc = frappe.get_doc("Project Status Update", name)
+
+    if frappe.session.user != "Administrator" and doc.owner != frappe.session.user:
+        frappe.throw(_("You do not have permission to delete this update"), frappe.PermissionError)
+
+    doc.delete(ignore_permissions=True)
+
+    return {"name": name}
 
 
 @frappe.whitelist(methods=["POST"])
@@ -215,11 +242,11 @@ def add_comment_to_project_status_update(name: str, comment: str, reply_to: str 
     comment_row.user = frappe.session.user
     comment_row.comment = comment
     comment_row.reply_to = reply_to or None
-    current_time = now()
+    current_time = now_datetime()
     comment_row.created_at = current_time
     comment_row.modified_at = current_time
 
-    doc.save()
+    doc.save(ignore_permissions=True)
 
     enqueue(
         notify_mentions,
@@ -281,7 +308,7 @@ def update_comment_in_project_status_update(
     target_row.comment = comment
     target_row.edited = 1
     target_row.modified_at = now_datetime()
-    doc.save()
+    doc.save(ignore_permissions=True)
 
     enqueue(
         notify_mentions,
@@ -340,7 +367,7 @@ def delete_comment_from_project_status_update(name: str, comment_name: str) -> d
     target_row.deleted = 1
     target_row.deleted_at = deleted_at
     target_row.modified_at = deleted_at
-    doc.save()
+    doc.save(ignore_permissions=True)
 
     return get_project_status_update_details(doc.name)
 

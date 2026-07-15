@@ -6,6 +6,7 @@ from next_pms.timesheet.api.project_status_update import (
     add_comment_to_project_status_update,
     create_project_status_update,
     delete_comment_from_project_status_update,
+    delete_project_status_update,
     get_project_status_update,
     get_project_status_updates_by_project,
     update_comment_in_project_status_update,
@@ -14,6 +15,11 @@ from next_pms.timesheet.api.project_status_update import (
 
 AUTHOR_USER = "psu.author@example.com"
 OTHER_USER = "psu.other@example.com"
+# Holds no Projects role, so the endpoints' only_for gate must reject it.
+NO_ROLE_USER = "psu.norole@example.com"
+# Holds Projects User: allowed through the API, but must still be denied direct
+# (permission-checked) Frappe CRUD, since the doctype grants the role no perms.
+PROJECTS_USER = "psu.projectsuser@example.com"
 
 
 def _find_comment(comments: list[dict], name: str) -> dict | None:
@@ -44,13 +50,16 @@ class TestProjectStatusUpdateComments(IntegrationTestCase):
         cls.company = get_default_company()
         cls.project = cls._make_project()
 
-        # Projects Manager clears both the ROLES gate on the endpoints and the
-        # doctype-level permissions on Project Status Update.
-        cls.author_user = cls._make_user(AUTHOR_USER)
-        cls.other_user = cls._make_user(OTHER_USER)
+        # Projects Manager clears the ROLES gate on the endpoints. The doctype
+        # itself grants no CRUD to this role; writes succeed only because the
+        # endpoints run with ignore_permissions, so the API is the sole gate.
+        cls.author_user = cls._make_user(AUTHOR_USER, roles=("Projects Manager",))
+        cls.other_user = cls._make_user(OTHER_USER, roles=("Projects Manager",))
+        cls.no_role_user = cls._make_user(NO_ROLE_USER)
+        cls.projects_user = cls._make_user(PROJECTS_USER, roles=("Projects User",))
 
     @classmethod
-    def _make_user(cls, email):
+    def _make_user(cls, email, roles=()):
         if not frappe.db.exists("User", email):
             frappe.get_doc(
                 {
@@ -61,7 +70,8 @@ class TestProjectStatusUpdateComments(IntegrationTestCase):
                     "send_welcome_email": 0,
                 }
             ).insert(ignore_permissions=True)
-        frappe.get_doc("User", email).add_roles("Projects Manager")
+        if roles:
+            frappe.get_doc("User", email).add_roles(*roles)
         return email
 
     @classmethod
@@ -154,6 +164,19 @@ class TestProjectStatusUpdateComments(IntegrationTestCase):
         self.assertEqual(root["comment"], "<p>root comment</p>")
         self.assertIsNone(root["reply_to"])
         self.assertEqual(root["reply_count"], 0)
+
+    def test_role_user_can_write_through_api(self):
+        # The doctype grants Projects Manager no CRUD, yet a non-admin holder of
+        # the role can create and comment because the endpoints run with
+        # ignore_permissions. This is the API-only access model.
+        frappe.set_user(AUTHOR_USER)
+
+        created = self._make_update(title="Author-created Update")
+        self.assertEqual(created["owner"], AUTHOR_USER)
+
+        result = add_comment_to_project_status_update(name=created["name"], comment="<p>by author</p>")
+        self.assertEqual(len(result["comments"]), 1)
+        self.assertEqual(result["comments"][0]["user"], AUTHOR_USER)
 
     def test_add_reply_and_reply_chain_nesting(self):
         created = self._make_update()
@@ -293,3 +316,71 @@ class TestProjectStatusUpdateComments(IntegrationTestCase):
 
         with self.assertRaises(frappe.exceptions.ValidationError):
             delete_comment_from_project_status_update(name=created["name"], comment_name=root)
+
+    def test_user_without_projects_role_is_rejected_by_endpoints(self):
+        # A user holding neither Projects Manager nor Projects User must be
+        # blocked at the only_for gate on every endpoint - read and write.
+        created = self._make_update()
+        comment_name = self._add_comment(created["name"], "<p>seed</p>")
+
+        frappe.set_user(NO_ROLE_USER)
+        with self.assertRaises(frappe.PermissionError):
+            get_project_status_update(name=created["name"])
+        with self.assertRaises(frappe.PermissionError):
+            create_project_status_update(project=self.project, title="nope", description="<p>nope</p>", status="Draft")
+        with self.assertRaises(frappe.PermissionError):
+            add_comment_to_project_status_update(name=created["name"], comment="<p>nope</p>")
+        with self.assertRaises(frappe.PermissionError):
+            update_comment_in_project_status_update(
+                name=created["name"], comment="<p>nope</p>", comment_name=comment_name
+            )
+        with self.assertRaises(frappe.PermissionError):
+            delete_comment_from_project_status_update(name=created["name"], comment_name=comment_name)
+        with self.assertRaises(frappe.PermissionError):
+            delete_project_status_update(name=created["name"])
+
+    def test_author_can_delete_update(self):
+        frappe.set_user(AUTHOR_USER)
+        created = self._make_update(title="To be deleted")
+
+        delete_project_status_update(name=created["name"])
+
+        self.assertFalse(frappe.db.exists("Project Status Update", created["name"]))
+
+    def test_delete_update_by_non_author_is_forbidden(self):
+        frappe.set_user(AUTHOR_USER)
+        created = self._make_update(title="Author's update")
+
+        frappe.set_user(OTHER_USER)
+        with self.assertRaises(frappe.PermissionError):
+            delete_project_status_update(name=created["name"])
+
+        self.assertTrue(frappe.db.exists("Project Status Update", created["name"]))
+
+    def _assert_direct_crud_forbidden(self, user):
+        # Acting as `user` through the permission-checked ORM (the Desk path),
+        # every write must raise PermissionError because the doctype grants the
+        # role no create/write/delete. This is what forces all access through
+        # the API, where only_for + author-only ownership checks apply.
+        created = self._make_update()
+        frappe.set_user(user)
+
+        with self.assertRaises(frappe.PermissionError):
+            new_update = frappe.new_doc("Project Status Update")
+            new_update.project = self.project
+            new_update.title = "direct create"
+            new_update.insert()
+
+        with self.assertRaises(frappe.PermissionError):
+            doc = frappe.get_doc("Project Status Update", created["name"])
+            doc.title = "direct edit"
+            doc.save()
+
+        with self.assertRaises(frappe.PermissionError):
+            frappe.get_doc("Project Status Update", created["name"]).delete()
+
+    def test_projects_manager_cannot_edit_via_direct_crud(self):
+        self._assert_direct_crud_forbidden(AUTHOR_USER)
+
+    def test_projects_user_cannot_edit_via_direct_crud(self):
+        self._assert_direct_crud_forbidden(PROJECTS_USER)

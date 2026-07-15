@@ -1,5 +1,6 @@
 {
  "actions": [],
+ "allow_bulk_edit": 1,
  "allow_rename": 1,
  "autoname": "field:template_name",
  "creation": "2026-05-07 19:10:32.461670",
@@ -39,7 +40,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-05-08 13:28:02.096891",
+ "modified": "2026-07-15 16:07:20.516627",
  "modified_by": "Administrator",
  "module": "Next PMS",
  "name": "Project Status Update Template",
@@ -68,6 +69,19 @@
    "read": 1,
    "report": 1,
    "role": "Projects Manager",
+   "select": 1,
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Projects User",
    "select": 1,
    "share": 1,
    "write": 1
