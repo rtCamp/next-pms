@@ -6,6 +6,7 @@ from next_pms.timesheet.api import filter_employees
 
 SHARED_PROJECT_NAME = "Filter Employees Shared Project"
 EMPTY_PROJECT_NAME = "Filter Employees Empty Project"
+EVERYONE_PROJECT_NAME = "Filter Employees Everyone Project"
 
 MEMBER_A_NAME = "FE Member Alpha"
 MEMBER_B_NAME = "FE Member Beta"
@@ -24,10 +25,12 @@ class TestFilterEmployeesMembership(IntegrationTestCase):
         cls.member_a = cls._make_employee(MEMBER_A_NAME, cls.user_a)
         cls.member_b = cls._make_employee(MEMBER_B_NAME, cls.user_b)
 
-        # Shared project → member A only. Empty project → nobody.
+        # Shared project → member A only. Empty project → nobody. Everyone project → all active employees.
         cls.shared_project = cls._make_project(SHARED_PROJECT_NAME)
         cls.empty_project = cls._make_project(EMPTY_PROJECT_NAME)
+        cls.everyone_project = cls._make_project(EVERYONE_PROJECT_NAME)
         frappe.share.add("Project", cls.shared_project, cls.user_a, read=1)
+        frappe.share.add("Project", cls.everyone_project, everyone=1, read=1)
 
         frappe.clear_cache()
 
@@ -124,3 +127,11 @@ class TestFilterEmployeesMembership(IntegrationTestCase):
         employees, count = filter_employees(project=[self.shared_project], ids=[self.member_b], ignore_permissions=True)
         self.assertEqual(self._names(employees), {self.member_a, self.member_b})
         self.assertEqual(count, 2)
+
+    def test_project_shared_with_everyone_returns_all_active(self):
+        employees, count = filter_employees(
+            project=[self.everyone_project], page_length=self._active_count(), ignore_permissions=True
+        )
+        self.assertEqual(count, self._active_count())
+        self.assertIn(self.member_a, self._names(employees))
+        self.assertIn(self.member_b, self._names(employees))
