@@ -86,7 +86,9 @@ export const TimeEntryForm = ({
                   clearable={false}
                   placement="bottom-start"
                   disabled={isMutating}
-                  formatter={(date) => format(parseISO(date), "MMM d, yyyy")}
+                  formatter={(date) =>
+                    date ? format(parseISO(date), "MMM d, yyyy") : ""
+                  }
                   value={field.state.value}
                   onChange={(val) =>
                     field.handleChange(

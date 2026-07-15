@@ -200,10 +200,13 @@ export const InlineTimeEntry = ({
   }, [baseEngaged]);
   const isEngaged = baseEngaged || stayEngaged;
 
-  // Freeze the tasks when a mutation is in progress to avoid flickering of the list when the data is being updated.
-  if (!isMutating) {
-    frozenTasksRef.current = tasks;
-  }
+  // Snapshot the list while this popover's own mutation is in flight, so the realtime
+  // data (which arrives before the response of the mutation) can't cause flicker of the list.
+  useEffect(() => {
+    if (!isMutating) {
+      frozenTasksRef.current = tasks;
+    }
+  }, [isMutating, tasks]);
   const displayTasks = isMutating ? frozenTasksRef.current : tasks;
   const hasNoTimeEntries = displayTasks.length === 0;
 
