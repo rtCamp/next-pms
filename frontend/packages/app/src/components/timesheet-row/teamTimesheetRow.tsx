@@ -88,6 +88,7 @@ export const TeamTimesheetRow = ({
                 workingHour={member.workingHour}
                 workingFrequency={member.workingFrequency}
                 status={member.status}
+                hideAction={member.status === "Not Submitted"}
                 className="pl-7.5"
                 collapsed={true}
                 disabled={member.status === "Approved"}

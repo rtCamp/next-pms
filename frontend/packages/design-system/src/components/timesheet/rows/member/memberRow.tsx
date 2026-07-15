@@ -39,6 +39,8 @@ export interface MemberRowProps {
   totalHoursTheme?: TotalHoursTheme;
   /** Additional class names for the member row container. */
   className?: string;
+  /** When true, hides the trailing status action button. */
+  hideAction?: boolean;
 }
 
 export const MemberRow: React.FC<MemberRowProps> = ({
@@ -52,6 +54,7 @@ export const MemberRow: React.FC<MemberRowProps> = ({
   totalHours = "",
   totalHoursTheme,
   className,
+  hideAction = false,
 }) => {
   const isStatusNone = status === "none";
 
@@ -62,7 +65,7 @@ export const MemberRow: React.FC<MemberRowProps> = ({
         className,
       )}
     >
-      <div className="flex flex-1 gap-2 items-center min-w-0 align-middle">
+      <div className="flex items-center flex-1 min-w-0 gap-2 align-middle">
         <span
           className={cn(
             "w-4 transition-transform shrink-0",
@@ -71,7 +74,7 @@ export const MemberRow: React.FC<MemberRowProps> = ({
         >
           <SmallDown strokeWidth={1.5} size={16} />
         </span>
-        <div className="flex gap-2 items-center min-w-0 max-w-75 sm:max-w-112">
+        <div className="flex items-center min-w-0 gap-2 max-w-75 sm:max-w-112">
           <Avatar image={avatarUrl} shape="circle" label={label} size="xs" />
           <span className="text-base font-medium truncate text-ink-gray-8">
             {label}
@@ -151,8 +154,8 @@ export const MemberRow: React.FC<MemberRowProps> = ({
         </span>
       </div>
 
-      <div className="flex justify-end items-center w-12 h-7 whitespace-nowrap shrink-0">
-        {!isStatusNone && memberStatusIcon[status]?.icon ? (
+      <div className="flex items-center justify-end w-12 h-7 whitespace-nowrap shrink-0">
+        {!hideAction && !isStatusNone && memberStatusIcon[status]?.icon ? (
           <Button
             onClick={(e) => {
               e.stopPropagation();
