@@ -94,6 +94,7 @@ export const InlineTimeEntry = ({
     date: string;
   } | null>(null);
   const pendingProceedAfterSaveRef = useRef<(() => void) | null>(null);
+  const frozenTasksRef = useRef(tasks);
 
   const { call: saveTime, loading: isSaving } = useFrappePostCall(
     "next_pms.timesheet.api.timesheet.save",
@@ -114,7 +115,6 @@ export const InlineTimeEntry = ({
       ? hoursLeft + selectedEntry.hours
       : hoursLeft;
   const defaultDuration = hoursLeft >= 0.5 ? 0.5 : 0;
-  const hasNoTimeEntries = (tasks.length ?? 0) === 0;
   const isDraftAvailableInEdit =
     entryFormMode === ENTRY_FORM_MODE.EDIT && addDraft !== null;
 
@@ -159,7 +159,7 @@ export const InlineTimeEntry = ({
           });
           toast.success("Time Entry submitted successfully");
         }
-        if (hasNoTimeEntries && entryFormMode === ENTRY_FORM_MODE.DEFAULT) {
+        if (tasks.length === 0 && entryFormMode === ENTRY_FORM_MODE.DEFAULT) {
           onSubmitSuccess?.();
         }
         pendingProceedAfterSaveRef.current?.();
@@ -199,6 +199,13 @@ export const InlineTimeEntry = ({
     }
   }, [baseEngaged]);
   const isEngaged = baseEngaged || stayEngaged;
+
+  // Freeze the tasks when a mutation is in progress to avoid flickering of the list when the data is being updated.
+  if (!isMutating) {
+    frozenTasksRef.current = tasks;
+  }
+  const displayTasks = isMutating ? frozenTasksRef.current : tasks;
+  const hasNoTimeEntries = displayTasks.length === 0;
 
   const hasUnsavedChangesRef = useRef(hasUnsavedChanges);
   hasUnsavedChangesRef.current = hasUnsavedChanges;
@@ -352,7 +359,7 @@ export const InlineTimeEntry = ({
 
   return (
     <div className="animate-fade-in min-w-68 w-fit max-w-[min(720px,90vw)] max-h-[min(500px,90dvh)] overflow-auto scrollbar-thin shadow bg-surface-modal rounded-lg flex flex-col gap-2 p-2">
-      {tasks.map((entry: TaskDataItemProps, index: number) => {
+      {displayTasks.map((entry: TaskDataItemProps, index: number) => {
         const isEditingThisEntry =
           entryFormMode === ENTRY_FORM_MODE.EDIT &&
           selectedEntry?.name === entry.name;
@@ -368,7 +375,9 @@ export const InlineTimeEntry = ({
               <Accordion.Item
                 value={entry.name}
                 className={cn("border-outline-gray-modals", {
-                  "pb-2 border-b": !(disabled && tasks.length - 1 === index),
+                  "pb-2 border-b": !(
+                    disabled && displayTasks.length - 1 === index
+                  ),
                 })}
               >
                 {!isEditingThisEntry ? (
