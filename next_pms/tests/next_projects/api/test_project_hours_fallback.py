@@ -73,11 +73,15 @@ class TestProjectHoursFallback(IntegrationTestCase):
                 msg=billing_type,
             )
 
-    def test_tracking_uses_remaining_hours_for_hours_pool(self):
+    def test_tracking_uses_purchased_minus_actual_for_hours_pool(self):
         for billing_type in ("Fixed Cost", "Retainer"):
             fixture = self.projects[billing_type]
             result = get_project_tracking(fixture["name"])
-            self.assertEqual(result["hours_remaining"], fixture["remaining"], msg=billing_type)
+            self.assertEqual(
+                result["hours_remaining"],
+                fixture["purchased"] - fixture["actual"],
+                msg=billing_type,
+            )
             self.assertEqual(result["hours_utilised"], fixture["actual"], msg=billing_type)
 
     def test_tracking_falls_back_to_target_minus_actual_without_hours_pool(self):
