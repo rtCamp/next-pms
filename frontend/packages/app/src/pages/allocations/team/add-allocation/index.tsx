@@ -1,7 +1,8 @@
 /**
  * External dependencies.
  */
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 import { mergeClassNames as cn } from "@next-pms/design-system";
 import { formatDateRange } from "@next-pms/design-system/date";
 import {
@@ -29,6 +30,7 @@ import { FrappeError, useFrappePostCall } from "frappe-react-sdk";
 import { useCustomerLookup } from "@/hooks/useCustomerLookup";
 import { useEmployeeLookup } from "@/hooks/useEmployeeLookup";
 import { useProjectLookup } from "@/hooks/useProjectLookup";
+import { ROUTES } from "@/lib/constant";
 import { isWeekendEntryAllowed, parseFrappeErrorMsg } from "@/lib/utils";
 import {
   addAllocationDefaultValues,
@@ -38,7 +40,7 @@ import { OverAllocationWarning } from "./overAllocationWarning";
 import { addAllocationFormSchema } from "./schema";
 import type { AddAllocationModalProps } from "./types";
 import { useOverAllocation } from "./useOverAllocation";
-import { useProjectTeamMemberIds } from "./useProjectTeamMemberIds";
+import { useProjectEmployeeAccess } from "./useProjectEmployeeAccess";
 import { computeTotalHours } from "./utils";
 
 function AddAllocationModal({
@@ -185,7 +187,6 @@ function AddAllocationModal({
     form.store,
     (state) => state.values.employeeId,
   );
-  const lastValidatedProjectIdRef = useRef<string | undefined>(undefined);
 
   const selectedCustomerOption = customerId
     ? {
@@ -236,6 +237,7 @@ function AddAllocationModal({
       ],
       pageSize: 20,
       query: projectSearch,
+      employee: employeeId || undefined,
       selectedOption: selectedProjectOption,
     });
 
@@ -248,19 +250,45 @@ function AddAllocationModal({
     });
 
   const {
-    memberIds: projectTeamMemberIds,
-    isSharedWithEveryone,
-    isLoading: isProjectTeamLoading,
-  } = useProjectTeamMemberIds({
+    hasAnyMember: projectHasAnyMember,
+    hasAnyProject: employeeHasAnyProject,
+    isValid: isProjectEmployeePairValid,
+    isLoading: isProjectEmployeeAccessLoading,
+  } = useProjectEmployeeAccess({
     projectId,
+    employeeId,
     enabled: open,
   });
 
   const projectHasNoAssignedMembers =
     Boolean(projectId) &&
-    !isProjectTeamLoading &&
-    !isSharedWithEveryone &&
-    projectTeamMemberIds.size === 0;
+    !isProjectEmployeeAccessLoading &&
+    !projectHasAnyMember;
+
+  const employeeHasNoAssignedProjects =
+    Boolean(employeeId) &&
+    !isProjectEmployeeAccessLoading &&
+    !employeeHasAnyProject;
+
+  const isProjectEmployeeMismatch =
+    Boolean(projectId) &&
+    Boolean(employeeId) &&
+    !isProjectEmployeeAccessLoading &&
+    !isProjectEmployeePairValid;
+
+  const projectEmployeeMismatchError = isProjectEmployeeMismatch ? (
+    <p className="flex flex-wrap gap-1 text-sm text-ink-red-4" role="alert">
+      <span>This employee is not part of the project's team.</span>
+      <Link
+        to={`${ROUTES.project}/${projectId}`}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="underline"
+      >
+        Add them to the team
+      </Link>
+    </p>
+  ) : null;
 
   const closeModal = useCallback(() => {
     onOpenChange(false);
@@ -313,42 +341,12 @@ function AddAllocationModal({
     }
 
     form.reset(mergedDefaultValues);
-    lastValidatedProjectIdRef.current = undefined;
   }, [form, mergedDefaultValues, open]);
 
   useEffect(() => {
     setEmployeeSearch("");
     setProjectSearch("");
   }, [open]);
-
-  useEffect(() => {
-    if (isProjectTeamLoading) {
-      return;
-    }
-
-    if (lastValidatedProjectIdRef.current === projectId) {
-      return;
-    }
-    lastValidatedProjectIdRef.current = projectId;
-
-    const isEmployeeInProjectTeam = projectTeamMemberIds.has(employeeId);
-
-    if (
-      projectId &&
-      employeeId &&
-      !isSharedWithEveryone &&
-      !isEmployeeInProjectTeam
-    ) {
-      form.setFieldValue("employeeId", "");
-    }
-  }, [
-    projectId,
-    employeeId,
-    projectTeamMemberIds,
-    isSharedWithEveryone,
-    isProjectTeamLoading,
-    form,
-  ]);
 
   const totalHours = computeTotalHours({
     hoursPerDay,
@@ -385,7 +383,7 @@ function AddAllocationModal({
           </label>
           <Combobox
             inputClassName="bg-surface-white h-8 border-outline-gray-2 text-ink-gray-7"
-            loading={isEmployeeLookupLoading || isProjectTeamLoading}
+            loading={isEmployeeLookupLoading || isProjectEmployeeAccessLoading}
             options={employeeOptions}
             searchValue={employeeSearch}
             placeholder="Select Employee"
@@ -403,6 +401,7 @@ function AddAllocationModal({
           {!field.state.meta.isValid && (
             <ErrorMessage message={field.state.meta.errors[0]?.message} />
           )}
+          {projectEmployeeMismatchError}
         </>
       )}
     />
@@ -418,7 +417,7 @@ function AddAllocationModal({
           </label>
           <Combobox
             inputClassName="bg-surface-white h-8 border-outline-gray-2 text-ink-gray-7"
-            loading={isProjectLookupLoading}
+            loading={isProjectLookupLoading || isProjectEmployeeAccessLoading}
             options={projectOptions}
             searchValue={projectSearch}
             placeholder="Select Project"
@@ -426,6 +425,11 @@ function AddAllocationModal({
             disabled={isLockedAllocationMetadataEdit}
             onChange={handleProjectChange}
             onSearchChange={setProjectSearch}
+            emptyMessage={
+              employeeHasNoAssignedProjects
+                ? "This employee isn't part of any project's team"
+                : undefined
+            }
             openOnFocus
           />
           {!field.state.meta.isValid && (
@@ -573,7 +577,11 @@ function AddAllocationModal({
               variant="solid"
               label={variant === "add" ? "Allocate" : "Save Changes"}
               onClick={() => form.handleSubmit()}
-              disabled={submitting || isLockedAllocationMetadataEdit}
+              disabled={
+                submitting ||
+                isLockedAllocationMetadataEdit ||
+                isProjectEmployeeMismatch
+              }
               loading={submitting}
             />
           </div>
