@@ -166,14 +166,6 @@ export function useTeamTimesheetData({
         Object.values(payload.data ?? {})
           .filter((emp) => emp.name)
           .forEach((emp) => {
-            // Eliminate "Not Submitted" weeks at the source so all downstream
-            // logic can assume every timesheet entry is worth displaying.
-            const submittedTimesheets = Object.fromEntries(
-              Object.entries(emp.timesheet_details ?? {}).filter(
-                ([, week]) => week.status !== "Not Submitted",
-              ),
-            );
-
             if (!employeeMap[emp.name]) {
               employeeMap[emp.name] = {
                 member: {
@@ -183,7 +175,7 @@ export function useTeamTimesheetData({
                 },
                 working_hour: emp.working_hour,
                 working_frequency: emp.working_frequency,
-                timesheetDetails: submittedTimesheets,
+                timesheetDetails: emp.timesheet_details ?? {},
                 leaves: emp.leaves ?? [],
                 holidays: emp.holidays ?? [],
               };
@@ -201,7 +193,7 @@ export function useTeamTimesheetData({
                 ...existing,
                 timesheetDetails: {
                   ...existing.timesheetDetails,
-                  ...submittedTimesheets,
+                  ...(emp.timesheet_details ?? {}),
                 },
                 leaves: [
                   ...existing.leaves,
@@ -223,8 +215,8 @@ export function useTeamTimesheetData({
       const weekMap = new Map<string, WeekGroup>();
 
       // Seed week skeletons from the API-declared date ranges so that weeks
-      // are always present in the output even when every employee's timesheet
-      // for that week has status "Not Submitted" (and was filtered above).
+      // are always present in the output even when no employee has any
+      // timesheet data for that week.
       pages.forEach((payload) => {
         (payload.dates ?? []).forEach((weekEntry) => {
           if (!weekMap.has(weekEntry.start_date)) {
