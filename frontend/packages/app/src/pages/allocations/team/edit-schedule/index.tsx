@@ -118,13 +118,6 @@ function EditScheduleModal({
     return `Repeats for ${seriesInfo.remainingWeeks} week${seriesInfo.remainingWeeks === 1 ? "" : "s"} till ${format(parseISO(seriesInfo.seriesEndDate), "MMM d")}`;
   }, [applyMode, isRecurringAllocation, seriesInfo]);
 
-  const summaryRepeatWeeks =
-    isRecurringAllocation &&
-    applyMode !== "only_this" &&
-    seriesInfo?.remainingWeeks
-      ? Math.max(0, seriesInfo.remainingWeeks - 1)
-      : 0;
-
   const days = useMemo(
     () => buildDays(fullRange.startDate, fullRange.endDate),
     [fullRange.endDate, fullRange.startDate],
@@ -459,7 +452,6 @@ function EditScheduleModal({
           </label>
           <ScheduleSummaryTable
             rows={scheduleDraft.previewRows}
-            repeatWeeks={summaryRepeatWeeks}
             variant={applyMode === "this_and_future" ? "day" : "date"}
           />
         </div>
