@@ -12,6 +12,7 @@ interface UseProjectTeamMemberIdsOptions {
 interface ProjectSidebarMembersResponse {
   message?: {
     members?: { employee: string }[];
+    is_shared_with_everyone?: boolean;
   };
 }
 
@@ -38,5 +39,7 @@ export function useProjectTeamMemberIds({
     [data],
   );
 
-  return { memberIds, isLoading };
+  const isSharedWithEveryone = data?.message?.is_shared_with_everyone ?? false;
+
+  return { memberIds, isSharedWithEveryone, isLoading };
 }

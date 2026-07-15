@@ -247,15 +247,19 @@ function AddAllocationModal({
       selectedOption: selectedCustomerOption,
     });
 
-  const { memberIds: projectTeamMemberIds, isLoading: isProjectTeamLoading } =
-    useProjectTeamMemberIds({
-      projectId,
-      enabled: open,
-    });
+  const {
+    memberIds: projectTeamMemberIds,
+    isSharedWithEveryone,
+    isLoading: isProjectTeamLoading,
+  } = useProjectTeamMemberIds({
+    projectId,
+    enabled: open,
+  });
 
   const projectHasNoAssignedMembers =
     Boolean(projectId) &&
     !isProjectTeamLoading &&
+    !isSharedWithEveryone &&
     projectTeamMemberIds.size === 0;
 
   const closeModal = useCallback(() => {
@@ -329,10 +333,22 @@ function AddAllocationModal({
 
     const isEmployeeInProjectTeam = projectTeamMemberIds.has(employeeId);
 
-    if (projectId && employeeId && !isEmployeeInProjectTeam) {
+    if (
+      projectId &&
+      employeeId &&
+      !isSharedWithEveryone &&
+      !isEmployeeInProjectTeam
+    ) {
       form.setFieldValue("employeeId", "");
     }
-  }, [projectId, employeeId, projectTeamMemberIds, isProjectTeamLoading, form]);
+  }, [
+    projectId,
+    employeeId,
+    projectTeamMemberIds,
+    isSharedWithEveryone,
+    isProjectTeamLoading,
+    form,
+  ]);
 
   const totalHours = computeTotalHours({
     hoursPerDay,
