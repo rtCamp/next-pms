@@ -86,6 +86,7 @@ export const InlineTimeEntry = ({
     onResizePointerDown: handleCommentPointerDown,
   } = useResizeEngagement();
   const [collapsedEntryNames, setCollapsedEntryNames] = useState<string[]>([]);
+  const [stayEngaged, setStayEngaged] = useState(false);
   const hasInitializedInteractiveModeRef = useRef(false);
   const editBaselineRef = useRef<{
     duration: number;
@@ -187,10 +188,17 @@ export const InlineTimeEntry = ({
         liveDate !== editBaselineRef.current.date
       : liveDuration !== defaultValues.duration ||
         liveComment !== defaultValues.comment;
-  const isEngaged =
+  const baseEngaged =
     entryFormMode !== ENTRY_FORM_MODE.DEFAULT ||
     hasUnsavedChanges ||
     commentResizeActive;
+
+  useEffect(() => {
+    if (baseEngaged) {
+      setStayEngaged(true);
+    }
+  }, [baseEngaged]);
+  const isEngaged = baseEngaged || stayEngaged;
 
   const hasUnsavedChangesRef = useRef(hasUnsavedChanges);
   hasUnsavedChangesRef.current = hasUnsavedChanges;
@@ -205,6 +213,7 @@ export const InlineTimeEntry = ({
     editBaselineRef.current = null;
     setSelectedEntry(null);
     setAddDraft(null);
+    setStayEngaged(false);
     setEntryFormMode(ENTRY_FORM_MODE.DEFAULT);
   }, [form]);
 
@@ -236,6 +245,10 @@ export const InlineTimeEntry = ({
         name: selectedEntry.name,
       });
       toast.success("Time Entry deleted successfully");
+      // Deleting the last remaining entry leaves nothing to show, so close.
+      if (tasks.length <= 1) {
+        onSubmitSuccess?.();
+      }
     } catch (err) {
       const error = parseFrappeErrorMsg(err as FrappeError);
       toast.error(error);
@@ -246,7 +259,7 @@ export const InlineTimeEntry = ({
       setAddDraft(null);
       setEntryFormMode(ENTRY_FORM_MODE.DEFAULT);
     }
-  }, [selectedEntry, deleteTimesheet, toast, form]);
+  }, [selectedEntry, deleteTimesheet, toast, form, tasks, onSubmitSuccess]);
 
   const handleEditEntry = useCallback(
     (entry: TaskDataItemProps) => {
