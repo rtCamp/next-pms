@@ -21,7 +21,7 @@ const NotificationIcon = ({ linkedDoctype }: { linkedDoctype: string }) => {
   const Icon = DOCTYPE_ICON_MAP[linkedDoctype] ?? Check;
   return (
     <div
-      aria-hidden
+      aria-hidden="true"
       className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-surface-gray-2"
     >
       <Icon size={18} />
