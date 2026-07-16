@@ -677,7 +677,8 @@ function AddAllocationModal({
                       <Button
                         variant="ghost"
                         label="Edit Schedule"
-                        className="p-0 bg-transparent h-fit text-ink-gray-5 hover:bg-transparent focus:bg-transparent active:bg-transparent"
+                        className="p-0 bg-transparent h-fit text-ink-gray-5 hover:bg-transparent focus:bg-transparent active:bg-transparent disabled:cursor-not-allowed!"
+                        disabled={isProjectEmployeeMismatch}
                         onClick={onEditScheduleClick}
                       />
                     ) : null}
