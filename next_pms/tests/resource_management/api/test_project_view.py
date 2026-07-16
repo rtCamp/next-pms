@@ -263,8 +263,8 @@ class TestProjectViewProjectListFilters(_ProjectViewBase):
 class TestProjectViewAllocationFilters(_ProjectViewBase):
     """The per-project allocation breakdown — allocation query branches.
 
-    These filters change which allocations appear (project_allocations), not which
-    projects are returned.
+    These filters change which allocations appear (project_allocations) and drop
+    projects left without a single matching allocation in the window.
     """
 
     @classmethod
@@ -324,10 +324,109 @@ class TestProjectViewAllocationFilters(_ProjectViewBase):
         tentative = self._allocation_names(allocation_status=json.dumps(["Tentative"]))
         self.assertEqual(tentative, {self.a_nonbillable})
 
-    def test_allocation_filters_do_not_drop_the_project(self):
-        # Even a status that matches nothing in-window leaves the project in the payload.
+    def test_allocation_filters_drop_projects_without_matching_allocations(self):
+        # No in-window allocation is both non-billable and Confirmed, so the project
+        # is excluded from the payload instead of rendering as an empty row.
         result = self._call(
             project_id=json.dumps([self.project]), is_billable="0", allocation_status=json.dumps(["Confirmed"])
         )
-        self.assertIn(self.project, self._project_ids(result))
-        self.assertEqual(self._entry(result, self.project)["project_allocations"], {})
+        self.assertEqual(result["data"], [])
+        self.assertEqual(result["total_count"], 0)
+        self.assertFalse(result["has_more"])
+
+
+class TestProjectViewAllocationProjectFiltering(_ProjectViewBase):
+    """Which projects the allocation-level filters keep, and how unfiltered rows order.
+
+    With allocation_status / is_billable active only projects owning a matching
+    in-window allocation survive; without them, allocated projects paginate before
+    projects that have no allocation in the window.
+    """
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.company = get_default_company()
+        cls.write_user = cls._make_user(WRITE_USER, projects_user=True)
+        cls.customer = cls._make_customer("PV Partition Customer")
+        cls.employee = cls._make_employee("PV Partition Employee")
+
+        cls.p_confirmed = cls._make_project("PV Zeta Portal", cls.customer)
+        cls.p_tentative = cls._make_project("PV Eta Portal", cls.customer)
+        cls.p_empty = cls._make_project("PV Theta Portal", cls.customer)
+
+        cls._make_allocation(
+            cls.employee, cls.p_confirmed, "2026-06-16", "2026-06-17", is_billable=1, status="Confirmed"
+        )
+        cls._make_allocation(
+            cls.employee, cls.p_tentative, "2026-06-18", "2026-06-19", is_billable=0, status="Tentative"
+        )
+        # p_empty only has an out-of-window allocation, so the window guard must
+        # treat it as having no allocations.
+        cls._make_allocation(cls.employee, cls.p_empty, "2026-07-06", "2026-07-08", is_billable=1, status="Confirmed")
+
+        frappe.clear_cache()
+
+    def _scoped_call(self, **kwargs):
+        return self._call(customer=self.customer, **kwargs)
+
+    def test_status_filter_keeps_only_projects_with_matching_allocations(self):
+        result = self._scoped_call(allocation_status=json.dumps(["Confirmed"]))
+        self.assertEqual(self._project_ids(result), {self.p_confirmed})
+        self.assertEqual(result["total_count"], 1)
+        self.assertTrue(self._entry(result, self.p_confirmed)["project_allocations"])
+
+    def test_billable_filter_keeps_only_projects_with_matching_allocations(self):
+        billable = self._scoped_call(is_billable="1")
+        self.assertEqual(self._project_ids(billable), {self.p_confirmed})
+        self.assertEqual(billable["total_count"], 1)
+
+        non_billable = self._scoped_call(is_billable="0")
+        self.assertEqual(self._project_ids(non_billable), {self.p_tentative})
+        self.assertEqual(non_billable["total_count"], 1)
+
+    def test_no_matching_projects_returns_empty_page(self):
+        result = self._scoped_call(is_billable="1", allocation_status=json.dumps(["Tentative"]))
+        self.assertEqual(result["data"], [])
+        self.assertEqual(result["total_count"], 0)
+        self.assertFalse(result["has_more"])
+
+    def test_unfiltered_lists_allocated_projects_before_empty_ones(self):
+        result = self._scoped_call()
+        ordered = [entry["name"] for entry in result["data"]]
+        self.assertEqual(set(ordered), {self.p_confirmed, self.p_tentative, self.p_empty})
+        self.assertEqual(result["total_count"], 3)
+        self.assertEqual(ordered[-1], self.p_empty)
+
+    def test_unfiltered_pagination_across_partitions(self):
+        pages = [self._scoped_call(page_length=1, start=start) for start in range(3)]
+
+        ordered = [entry["name"] for page in pages for entry in page["data"]]
+        self.assertEqual(len(ordered), 3)
+        self.assertEqual(set(ordered), {self.p_confirmed, self.p_tentative, self.p_empty})
+        self.assertEqual(ordered[-1], self.p_empty)
+
+        for page in pages:
+            self.assertEqual(page["total_count"], 3)
+        self.assertTrue(pages[0]["has_more"])
+        self.assertTrue(pages[1]["has_more"])
+        self.assertFalse(pages[2]["has_more"])
+
+    def test_unfiltered_boundary_page_spans_both_partitions(self):
+        # start=1, page_length=2 straddles the allocated/empty boundary: one allocated
+        # project plus p_empty, without duplicates or gaps.
+        result = self._scoped_call(page_length=2, start=1)
+        ordered = [entry["name"] for entry in result["data"]]
+        self.assertEqual(len(ordered), 2)
+        self.assertEqual(ordered[-1], self.p_empty)
+        self.assertIn(ordered[0], {self.p_confirmed, self.p_tentative})
+        self.assertFalse(result["has_more"])
+
+    def test_empty_prioritized_ids_falls_back_to_plain_pagination(self):
+        from next_pms.resource_management.api.utils.helpers import filter_project_list
+
+        frappe.set_user("Administrator")
+        plain, plain_count = filter_project_list(customer=self.customer)
+        empty, empty_count = filter_project_list(customer=self.customer, prioritized_ids=[])
+        self.assertEqual([p.name for p in empty], [p.name for p in plain])
+        self.assertEqual(empty_count, plain_count)

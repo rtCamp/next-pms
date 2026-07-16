@@ -18,6 +18,8 @@ from next_pms.resource_management.api.utils.query import (
     get_allocation_list_for_employee_for_given_range,
     get_allocation_worked_hours_for_given_employee,
     get_allocation_worked_hours_for_given_projects,
+    get_projects_with_allocations,
+    has_active_allocation_filter,
 )
 
 
@@ -65,13 +67,15 @@ def get_resource_management_project_view_data(
             carrying the tag. Ignored for callers without write permission.
         is_billable: Filters the per-project allocation breakdown to billable
             (1) or non-billable (0) allocations. Accepts an int or a JSON
-            string. Does not change which projects are returned, only their allocation
-            data. A matching is_billable condition in filters overrides this.
+            string. Projects without a single matching allocation in the window
+            are excluded from the result (and from total_count). A matching
+            is_billable condition in filters overrides this.
             Ignored for callers without write permission.
         allocation_status: Status value(s) to match against Resource Allocation.status,
             e.g. ["Confirmed", "Tentative"]. Accepts a single value, a list, or a JSON
             string. Filters the per-project allocation breakdown to the matching statuses;
-            does not change which projects are returned. None or [] disables the filter.
+            projects without a single matching allocation in the window are excluded
+            from the result (and from total_count). None or [] disables the filter.
             Ignored for callers without write permission.
         page_length: Maximum number of projects to return in this page. Defaults to 10.
         start: Zero-based offset of the first project to return (pagination). Defaults
@@ -102,7 +106,9 @@ def get_resource_management_project_view_data(
             - data (list): one entry per project, the project fields plus
               all_week_data (per-week allocated/worked hours), all_dates_data
               (per-date allocation detail), project_allocations (the allocations
-              keyed by name), and weekly_capacity.
+              keyed by name), and weekly_capacity. When no allocation-level filter
+              (is_billable / allocation_status) is active, projects with at least
+              one allocation in the window are listed before projects with none.
             - customer (dict): customer metadata referenced by the allocations.
             - employees (dict): employee metadata keyed by employee id for the
               employees appearing in the allocations.
@@ -180,6 +186,20 @@ def _get_resource_management_project_view_data(
             project_id = json.loads(project_id)
         ids = project_id
 
+    weeks = get_dates_date(max_week, date)
+
+    allocated_projects = get_projects_with_allocations(
+        weeks[0].get("start_date"),
+        weeks[-1].get("end_date"),
+        is_billable,
+        allocation_status=allocation_status,
+    )
+    prioritized_ids = None
+    if has_active_allocation_filter(is_billable, allocation_status):
+        project_conditions.append(["name", "in", allocated_projects or []])
+    else:
+        prioritized_ids = allocated_projects
+
     projects, total_count = filter_project_list(
         project_name,
         page_length=page_length,
@@ -192,11 +212,11 @@ def _get_resource_management_project_view_data(
         ids=ids,
         extra_conditions=project_conditions,
         tag_conditions=tag_conditions,
+        prioritized_ids=prioritized_ids,
     )
 
     data = []
     customer = {}
-    weeks = get_dates_date(max_week, date)
     res = {"dates": weeks}
 
     resource_allocation_data = get_allocation_list_for_employee_for_given_range(

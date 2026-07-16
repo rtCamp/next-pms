@@ -368,7 +368,14 @@ def filter_project_list(
     ids=None,
     extra_conditions=None,
     tag_conditions=None,
+    prioritized_ids=None,
 ):
+    """Return one page of Projects plus the total count of matches.
+
+    When prioritized_ids is a non-empty list, matching projects in that list are
+    paginated before the rest (two-phase pagination); total_count is unaffected.
+    An empty list behaves like None (plain single-query pagination).
+    """
     from next_pms.timesheet.api import get_count
 
     start = int(start)
@@ -441,15 +448,41 @@ def filter_project_list(
         name_op = "in" if operator in ("=", "like") else "not in"
         conditions.append(["name", name_op, tagged_projects or []])
 
-    projects = frappe.get_list(
-        "Project",
-        filters=conditions,
-        fields=fields,
-        offset=start,
-        limit=page_length,
-    )
-
     total_count = get_count("Project", filters=conditions)
+
+    if not prioritized_ids:
+        projects = frappe.get_list(
+            "Project",
+            filters=conditions,
+            fields=fields,
+            offset=start,
+            limit=page_length,
+        )
+        return projects, total_count
+
+    prioritized_conditions = [*conditions, ["name", "in", prioritized_ids]]
+    remaining_conditions = [*conditions, ["name", "not in", prioritized_ids]]
+    prioritized_count = get_count("Project", filters=prioritized_conditions)
+
+    projects = []
+    if start < prioritized_count:
+        projects = frappe.get_list(
+            "Project",
+            filters=prioritized_conditions,
+            fields=fields,
+            offset=start,
+            limit=page_length,
+        )
+
+    remaining_page_length = page_length - len(projects)
+    if remaining_page_length > 0:
+        projects += frappe.get_list(
+            "Project",
+            filters=remaining_conditions,
+            fields=fields,
+            offset=max(0, start - prioritized_count),
+            limit=remaining_page_length,
+        )
 
     return projects, total_count
 
