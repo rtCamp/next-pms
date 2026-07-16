@@ -83,6 +83,8 @@ export type TrackingMessage = {
   forecasted_cost_to_completion: number;
   expected_total_cost: number;
   hours_utilised: number;
+  hours_utilised_billable: number;
+  hours_utilised_non_billable: number;
   hours_remaining: number | null;
   tasks: TrackingTasks;
   invoice_burn: TrackingInvoiceBurn;

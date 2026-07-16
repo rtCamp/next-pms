@@ -1,6 +1,7 @@
 import frappe
 from erpnext import get_default_company
 from frappe.tests import IntegrationTestCase
+from frappe.utils import add_days, nowdate
 
 from next_pms.next_projects.api.project import get_project_sidebar, get_project_tracking
 
@@ -12,13 +13,17 @@ class TestProjectHoursFallback(IntegrationTestCase):
         cls.company = get_default_company()
         cls.projects = {}
 
+        employee = frappe.db.get_value("Employee", {"status": "Active"}, "name")
+        activity_type = frappe.db.get_value("Activity Type", {}, "name")
+
         fixtures = {
-            "Fixed Cost": (100, 40, 200, 60),
-            "Retainer": (80, 25, 150, 55),
-            "Time and Material": (999, 888, 120, 30),
-            "Non-Billable": (999, 888, 50, 70),
+            "Fixed Cost": (100, 40, 200, 60, 6, 2),
+            "Retainer": (80, 25, 150, 55, 4, 3),
+            "Time and Material": (999, 888, 120, 30, 5, 1),
+            "Non-Billable": (999, 888, 50, 70, 0, 4),
         }
-        for billing_type, (purchased, remaining, target, actual) in fixtures.items():
+        for index, (billing_type, values) in enumerate(fixtures.items()):
+            purchased, remaining, target, actual, billable, non_billable = values
             name = (
                 frappe.get_doc(
                     {
@@ -30,6 +35,38 @@ class TestProjectHoursFallback(IntegrationTestCase):
                 .insert(ignore_permissions=True)
                 .name
             )
+            task = (
+                frappe.get_doc(
+                    {
+                        "doctype": "Task",
+                        "subject": f"HoursFallback {billing_type}",
+                        "project": name,
+                    }
+                )
+                .insert(ignore_permissions=True)
+                .name
+            )
+            time_logs = [
+                {
+                    "activity_type": activity_type,
+                    "task": task,
+                    "hours": hours,
+                    "project": name,
+                    "is_billable": is_billable,
+                    "from_time": f"{add_days(nowdate(), -(2 * index + day))} 09:00:00",
+                    "description": f"HoursFallback {billing_type}",
+                }
+                for day, (hours, is_billable) in enumerate(((billable, 1), (non_billable, 0)), start=1)
+                if hours
+            ]
+            frappe.get_doc(
+                {
+                    "doctype": "Timesheet",
+                    "company": cls.company,
+                    "employee": employee,
+                    "time_logs": time_logs,
+                }
+            ).insert(ignore_permissions=True)
             frappe.db.set_value(
                 "Project",
                 name,
@@ -48,6 +85,8 @@ class TestProjectHoursFallback(IntegrationTestCase):
                 "remaining": remaining,
                 "target": target,
                 "actual": actual,
+                "billable": billable,
+                "non_billable": non_billable,
             }
 
         frappe.set_user("Administrator")
@@ -73,19 +112,37 @@ class TestProjectHoursFallback(IntegrationTestCase):
                 msg=billing_type,
             )
 
-    def test_tracking_uses_remaining_hours_for_hours_pool(self):
+    def test_tracking_splits_utilised_hours_by_billability(self):
+        for billing_type, fixture in self.projects.items():
+            result = get_project_tracking(fixture["name"])
+            self.assertEqual(result["hours_utilised_billable"], fixture["billable"], msg=billing_type)
+            self.assertEqual(
+                result["hours_utilised_non_billable"],
+                fixture["non_billable"],
+                msg=billing_type,
+            )
+            self.assertEqual(
+                result["hours_utilised"],
+                fixture["billable"] + fixture["non_billable"],
+                msg=billing_type,
+            )
+
+    def test_tracking_uses_purchased_minus_utilised_for_hours_pool(self):
         for billing_type in ("Fixed Cost", "Retainer"):
             fixture = self.projects[billing_type]
             result = get_project_tracking(fixture["name"])
-            self.assertEqual(result["hours_remaining"], fixture["remaining"], msg=billing_type)
-            self.assertEqual(result["hours_utilised"], fixture["actual"], msg=billing_type)
+            self.assertEqual(
+                result["hours_remaining"],
+                fixture["purchased"] - (fixture["billable"] + fixture["non_billable"]),
+                msg=billing_type,
+            )
 
-    def test_tracking_falls_back_to_target_minus_actual_without_hours_pool(self):
+    def test_tracking_falls_back_to_target_minus_utilised_without_hours_pool(self):
         for billing_type in ("Time and Material", "Non-Billable"):
             fixture = self.projects[billing_type]
             result = get_project_tracking(fixture["name"])
             self.assertEqual(
                 result["hours_remaining"],
-                fixture["target"] - fixture["actual"],
+                fixture["target"] - (fixture["billable"] + fixture["non_billable"]),
                 msg=billing_type,
             )

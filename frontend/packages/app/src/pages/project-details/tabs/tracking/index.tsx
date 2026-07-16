@@ -36,7 +36,7 @@ function TrackingContent() {
           )}
         />
         <KnowledgePoint
-          title="Project profit"
+          title="Projected profit"
           value={currencyFormat(currency).format(tracking.project_profit ?? 0)}
         />
         <KnowledgePoint
