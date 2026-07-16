@@ -4,11 +4,7 @@
 import { useCallback, useMemo, useState, type PropsWithChildren } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useToasts } from "@rtcamp/frappe-ui-react";
-import {
-  FrappeError,
-  useFrappeDeleteDoc,
-  useFrappePostCall,
-} from "frappe-react-sdk";
+import { FrappeError, useFrappePostCall } from "frappe-react-sdk";
 
 /**
  * Internal dependencies.
@@ -26,9 +22,11 @@ export function NotesProvider({ children }: PropsWithChildren) {
   const [isUpdating, setIsUpdating] = useState(false);
   const [deleteNoteName, setDeleteNoteName] = useState<string | null>(null);
   const [, setSearchParams] = useSearchParams();
-  const { deleteDoc } = useFrappeDeleteDoc();
   const { call: updateNote } = useFrappePostCall(
     "next_pms.timesheet.api.project_status_update.update_project_status_update",
+  );
+  const { call: deleteNoteCall } = useFrappePostCall(
+    "next_pms.timesheet.api.project_status_update.delete_project_status_update",
   );
   const toast = useToasts();
   const debouncedTitleInput = useDebounce(titleInput, 400);
@@ -62,7 +60,7 @@ export function NotesProvider({ children }: PropsWithChildren) {
     async (name: string) => {
       setIsUpdating(true);
       try {
-        await deleteDoc("Project Status Update", name);
+        await deleteNoteCall({ name });
         toast.success("Note deleted");
         await refresh();
         setSearchParams((prev) => {
@@ -75,7 +73,7 @@ export function NotesProvider({ children }: PropsWithChildren) {
         setIsUpdating(false);
       }
     },
-    [deleteDoc, refresh, toast, setSearchParams],
+    [deleteNoteCall, refresh, toast, setSearchParams],
   );
 
   const togglePin = useCallback(

@@ -6,6 +6,7 @@ from next_pms.timesheet.api.project_status_update import (
     add_comment_to_project_status_update,
     create_project_status_update,
     delete_comment_from_project_status_update,
+    delete_project_status_update,
     get_project_status_update,
     get_project_status_updates_by_project,
     update_comment_in_project_status_update,
@@ -14,6 +15,11 @@ from next_pms.timesheet.api.project_status_update import (
 
 AUTHOR_USER = "psu.author@example.com"
 OTHER_USER = "psu.other@example.com"
+# Holds no Projects role, so the endpoints' only_for gate must reject it.
+NO_ROLE_USER = "psu.norole@example.com"
+# Holds Projects User: allowed through the API, but must still be denied direct
+# (permission-checked) Frappe CRUD, since the doctype grants the role no perms.
+PROJECTS_USER = "psu.projectsuser@example.com"
 
 
 def _find_comment(comments: list[dict], name: str) -> dict | None:
@@ -30,11 +36,12 @@ def _find_comment(comments: list[dict], name: str) -> dict | None:
 class TestProjectStatusUpdateComments(IntegrationTestCase):
     """Cover the Project Status Update CRUD + threaded comment endpoints.
 
-    Deleting a comment is a soft delete: the comment content is replaced with
-    a "deleted at <timestamp>" tombstone while the author and the thread
-    structure (child comments) are preserved. Editing a comment appends an
-    "edited at <timestamp>" marker to the content instead of replacing it,
-    and repeated edits replace the previous marker rather than stacking.
+    Deleting a comment is a soft delete: the deleted flag is set and
+    deleted_at recorded while the author and the thread structure (child
+    comments) are preserved; the serialized content is blanked so deleted text
+    never reaches the client. Editing a comment stores the new content verbatim
+    and ticks the edited flag. A deleted comment can no longer be edited or
+    deleted again.
     """
 
     @classmethod
@@ -43,13 +50,16 @@ class TestProjectStatusUpdateComments(IntegrationTestCase):
         cls.company = get_default_company()
         cls.project = cls._make_project()
 
-        # Projects Manager clears both the ROLES gate on the endpoints and the
-        # doctype-level permissions on Project Status Update.
-        cls.author_user = cls._make_user(AUTHOR_USER)
-        cls.other_user = cls._make_user(OTHER_USER)
+        # Projects Manager clears the ROLES gate on the endpoints. The doctype
+        # itself grants no CRUD to this role; writes succeed only because the
+        # endpoints run with ignore_permissions, so the API is the sole gate.
+        cls.author_user = cls._make_user(AUTHOR_USER, roles=("Projects Manager",))
+        cls.other_user = cls._make_user(OTHER_USER, roles=("Projects Manager",))
+        cls.no_role_user = cls._make_user(NO_ROLE_USER)
+        cls.projects_user = cls._make_user(PROJECTS_USER, roles=("Projects User",))
 
     @classmethod
-    def _make_user(cls, email):
+    def _make_user(cls, email, roles=()):
         if not frappe.db.exists("User", email):
             frappe.get_doc(
                 {
@@ -60,7 +70,8 @@ class TestProjectStatusUpdateComments(IntegrationTestCase):
                     "send_welcome_email": 0,
                 }
             ).insert(ignore_permissions=True)
-        frappe.get_doc("User", email).add_roles("Projects Manager")
+        if roles:
+            frappe.get_doc("User", email).add_roles(*roles)
         return email
 
     @classmethod
@@ -154,6 +165,19 @@ class TestProjectStatusUpdateComments(IntegrationTestCase):
         self.assertIsNone(root["reply_to"])
         self.assertEqual(root["reply_count"], 0)
 
+    def test_role_user_can_write_through_api(self):
+        # The doctype grants Projects Manager no CRUD, yet a non-admin holder of
+        # the role can create and comment because the endpoints run with
+        # ignore_permissions. This is the API-only access model.
+        frappe.set_user(AUTHOR_USER)
+
+        created = self._make_update(title="Author-created Update")
+        self.assertEqual(created["owner"], AUTHOR_USER)
+
+        result = add_comment_to_project_status_update(name=created["name"], comment="<p>by author</p>")
+        self.assertEqual(len(result["comments"]), 1)
+        self.assertEqual(result["comments"][0]["user"], AUTHOR_USER)
+
     def test_add_reply_and_reply_chain_nesting(self):
         created = self._make_update()
         root = self._add_comment(created["name"], "<p>A root</p>")
@@ -183,29 +207,30 @@ class TestProjectStatusUpdateComments(IntegrationTestCase):
                 name=created["name"], comment="<p>orphan</p>", reply_to="does-not-exist"
             )
 
-    def test_update_comment_content_appends_edited_marker(self):
+    def test_update_comment_stores_content_verbatim_and_flags_edited(self):
         created = self._make_update()
         root = self._add_comment(created["name"], "<p>before</p>")
+
+        # A fresh comment is not flagged as edited.
+        self.assertFalse(get_project_status_update(name=created["name"])["comments"][0]["edited"])
+
         result = update_comment_in_project_status_update(
             name=created["name"], comment="<p>after</p>", comment_name=root
         )
-        edited = result["comments"][0]["comment"]
-        self.assertTrue(edited.startswith("<p>after</p>\n\nedited at "))
+        edited = result["comments"][0]
+        self.assertEqual(edited["comment"], "<p>after</p>")
+        self.assertTrue(edited["edited"])
 
-    def test_repeated_edits_do_not_stack_markers(self):
+    def test_repeated_edits_keep_content_verbatim(self):
         created = self._make_update()
         root = self._add_comment(created["name"], "<p>v1</p>")
 
-        first = update_comment_in_project_status_update(name=created["name"], comment="<p>v2</p>", comment_name=root)
-        edited_once = first["comments"][0]["comment"]
+        update_comment_in_project_status_update(name=created["name"], comment="<p>v2</p>", comment_name=root)
+        second = update_comment_in_project_status_update(name=created["name"], comment="<p>v3</p>", comment_name=root)
 
-        # Simulate the client sending back the stored content (marker included).
-        second = update_comment_in_project_status_update(name=created["name"], comment=edited_once, comment_name=root)
-        edited_twice = second["comments"][0]["comment"]
-
-        self.assertTrue(edited_twice.startswith("<p>v2</p>\n\nedited at "))
-        # Only a single trailing marker remains, not one per edit.
-        self.assertEqual(edited_twice.count("edited at "), 1)
+        edited = second["comments"][0]
+        self.assertEqual(edited["comment"], "<p>v3</p>")
+        self.assertTrue(edited["edited"])
 
     def test_update_comment_requires_comment_name(self):
         created = self._make_update()
@@ -223,9 +248,10 @@ class TestProjectStatusUpdateComments(IntegrationTestCase):
         self.assertEqual(len(result["comments"]), 1)
         deleted = result["comments"][0]
         self.assertEqual(deleted["name"], root)
-        # Content is replaced with a "[deleted at <timestamp>]" tombstone.
-        self.assertTrue(deleted["comment"].startswith("[deleted at "))
-        self.assertTrue(deleted["comment"].endswith("]"))
+        # Flagged as deleted with a timestamp; content is blanked out.
+        self.assertTrue(deleted["deleted"])
+        self.assertIsNotNone(deleted["deleted_at"])
+        self.assertEqual(deleted["comment"], "")
         # Author and identity metadata are preserved.
         self.assertEqual(deleted["user"], AUTHOR_USER)
 
@@ -241,7 +267,8 @@ class TestProjectStatusUpdateComments(IntegrationTestCase):
         details = get_project_status_update(name=created["name"])
         deleted_reply = _find_comment(details["comments"], reply)
         self.assertIsNotNone(deleted_reply)
-        self.assertTrue(deleted_reply["comment"].startswith("[deleted at "))
+        self.assertTrue(deleted_reply["deleted"])
+        self.assertEqual(deleted_reply["comment"], "")
         self.assertEqual(deleted_reply["reply_to"], root)
 
         # The child of the deleted comment survives unchanged.
@@ -271,3 +298,89 @@ class TestProjectStatusUpdateComments(IntegrationTestCase):
         frappe.set_user(OTHER_USER)
         with self.assertRaises(frappe.PermissionError):
             update_comment_in_project_status_update(name=created["name"], comment="<p>hijack</p>", comment_name=root)
+
+    def test_editing_a_deleted_comment_is_forbidden(self):
+        created = self._make_update()
+        frappe.set_user(AUTHOR_USER)
+        root = self._add_comment(created["name"], "<p>to be deleted</p>")
+        delete_comment_from_project_status_update(name=created["name"], comment_name=root)
+
+        with self.assertRaises(frappe.exceptions.ValidationError):
+            update_comment_in_project_status_update(name=created["name"], comment="<p>resurrect</p>", comment_name=root)
+
+    def test_deleting_a_deleted_comment_is_forbidden(self):
+        created = self._make_update()
+        frappe.set_user(AUTHOR_USER)
+        root = self._add_comment(created["name"], "<p>to be deleted</p>")
+        delete_comment_from_project_status_update(name=created["name"], comment_name=root)
+
+        with self.assertRaises(frappe.exceptions.ValidationError):
+            delete_comment_from_project_status_update(name=created["name"], comment_name=root)
+
+    def test_user_without_projects_role_is_rejected_by_endpoints(self):
+        # A user holding neither Projects Manager nor Projects User must be
+        # blocked at the only_for gate on every endpoint - read and write.
+        created = self._make_update()
+        comment_name = self._add_comment(created["name"], "<p>seed</p>")
+
+        frappe.set_user(NO_ROLE_USER)
+        with self.assertRaises(frappe.PermissionError):
+            get_project_status_update(name=created["name"])
+        with self.assertRaises(frappe.PermissionError):
+            create_project_status_update(project=self.project, title="nope", description="<p>nope</p>", status="Draft")
+        with self.assertRaises(frappe.PermissionError):
+            add_comment_to_project_status_update(name=created["name"], comment="<p>nope</p>")
+        with self.assertRaises(frappe.PermissionError):
+            update_comment_in_project_status_update(
+                name=created["name"], comment="<p>nope</p>", comment_name=comment_name
+            )
+        with self.assertRaises(frappe.PermissionError):
+            delete_comment_from_project_status_update(name=created["name"], comment_name=comment_name)
+        with self.assertRaises(frappe.PermissionError):
+            delete_project_status_update(name=created["name"])
+
+    def test_author_can_delete_update(self):
+        frappe.set_user(AUTHOR_USER)
+        created = self._make_update(title="To be deleted")
+
+        delete_project_status_update(name=created["name"])
+
+        self.assertFalse(frappe.db.exists("Project Status Update", created["name"]))
+
+    def test_delete_update_by_non_author_is_forbidden(self):
+        frappe.set_user(AUTHOR_USER)
+        created = self._make_update(title="Author's update")
+
+        frappe.set_user(OTHER_USER)
+        with self.assertRaises(frappe.PermissionError):
+            delete_project_status_update(name=created["name"])
+
+        self.assertTrue(frappe.db.exists("Project Status Update", created["name"]))
+
+    def _assert_direct_crud_forbidden(self, user):
+        # Acting as `user` through the permission-checked ORM (the Desk path),
+        # every write must raise PermissionError because the doctype grants the
+        # role no create/write/delete. This is what forces all access through
+        # the API, where only_for + author-only ownership checks apply.
+        created = self._make_update()
+        frappe.set_user(user)
+
+        with self.assertRaises(frappe.PermissionError):
+            new_update = frappe.new_doc("Project Status Update")
+            new_update.project = self.project
+            new_update.title = "direct create"
+            new_update.insert()
+
+        with self.assertRaises(frappe.PermissionError):
+            doc = frappe.get_doc("Project Status Update", created["name"])
+            doc.title = "direct edit"
+            doc.save()
+
+        with self.assertRaises(frappe.PermissionError):
+            frappe.get_doc("Project Status Update", created["name"]).delete()
+
+    def test_projects_manager_cannot_edit_via_direct_crud(self):
+        self._assert_direct_crud_forbidden(AUTHOR_USER)
+
+    def test_projects_user_cannot_edit_via_direct_crud(self):
+        self._assert_direct_crud_forbidden(PROJECTS_USER)

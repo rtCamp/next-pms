@@ -1,5 +1,6 @@
 {
  "actions": [],
+ "allow_bulk_edit": 1,
  "creation": "2025-08-25 12:12:22.154396",
  "doctype": "DocType",
  "engine": "InnoDB",
@@ -63,7 +64,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-06-11 20:45:23.893484",
+ "modified": "2026-07-15 16:08:24.682099",
  "modified_by": "Administrator",
  "module": "Next PMS",
  "name": "Project Status Update",
@@ -83,8 +84,6 @@
    "write": 1
   },
   {
-   "create": 1,
-   "delete": 1,
    "email": 1,
    "export": 1,
    "print": 1,
@@ -92,8 +91,17 @@
    "report": 1,
    "role": "Projects Manager",
    "select": 1,
-   "share": 1,
-   "write": 1
+   "share": 1
+  },
+  {
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Projects User",
+   "select": 1,
+   "share": 1
   }
  ],
  "row_format": "Dynamic",

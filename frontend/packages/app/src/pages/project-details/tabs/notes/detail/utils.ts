@@ -42,6 +42,9 @@ export function mapNoteComment(comment: NoteComment): CommentNode {
     content: comment.comment,
     createdAt: comment.created_at,
     ownerId: comment.owner,
+    edited: comment?.edited,
+    deleted: comment?.deleted,
+    deletedAt: comment?.deleted_at,
     replies: (comment.replies ?? []).map(mapNoteComment),
   };
 }
