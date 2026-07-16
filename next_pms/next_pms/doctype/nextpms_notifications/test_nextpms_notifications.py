@@ -4,6 +4,9 @@
 import frappe
 from frappe.tests import IntegrationTestCase
 
+from next_pms.next_pms.patches.backfill_notification_title import NOTIFICATION_TITLES
+from next_pms.next_pms.patches.backfill_notification_title import execute as backfill_notification_title
+
 # On IntegrationTestCase, the doctype test records and all
 # link-field test record dependencies are recursively loaded
 # Use these module variables to add/remove to/from that list
@@ -72,6 +75,7 @@ class IntegrationTestNextPMSNotifications(IntegrationTestCase):
             {
                 "doctype": "NextPMS Notifications",
                 "user": user,
+                "title": "Original title",
                 "label": "Original label",
                 "linked_doctype": "User",
                 "linked_document": user,
@@ -97,6 +101,7 @@ class IntegrationTestNextPMSNotifications(IntegrationTestCase):
                         {
                             "doctype": "NextPMS Notifications",
                             "user": user,
+                            "title": "Should not be creatable",
                             "label": "Should not be creatable",
                             "linked_doctype": "User",
                             "linked_document": user,
@@ -109,6 +114,7 @@ class IntegrationTestNextPMSNotifications(IntegrationTestCase):
             {
                 "doctype": "NextPMS Notifications",
                 "user": SYSTEM_MANAGER_USER,
+                "title": "Created by System Manager",
                 "label": "Created by System Manager",
                 "linked_doctype": "User",
                 "linked_document": SYSTEM_MANAGER_USER,
@@ -159,11 +165,17 @@ class IntegrationTestNextPMSNotifications(IntegrationTestCase):
             frappe.set_user(user)
             with self.subTest(user=user):
                 as_user = frappe.get_doc("NextPMS Notifications", doc.name)
+                as_user.title = "Edited by restricted role"
                 as_user.label = "Edited by restricted role"
                 as_user.viewed = 1
                 as_user.save()
 
                 reloaded = frappe.get_doc("NextPMS Notifications", doc.name)
+                self.assertEqual(
+                    reloaded.title,
+                    "Original title",
+                    f"{user} should not be able to write the permlevel-1 'title' field",
+                )
                 self.assertEqual(
                     reloaded.label,
                     "Original label",
@@ -180,8 +192,88 @@ class IntegrationTestNextPMSNotifications(IntegrationTestCase):
         frappe.set_user(SYSTEM_MANAGER_USER)
 
         as_user = frappe.get_doc("NextPMS Notifications", doc.name)
+        as_user.title = "Edited by System Manager"
         as_user.label = "Edited by System Manager"
         as_user.save()
 
         reloaded = frappe.get_doc("NextPMS Notifications", doc.name)
+        self.assertEqual(reloaded.title, "Edited by System Manager")
         self.assertEqual(reloaded.label, "Edited by System Manager")
+
+    # Title is mandatory — every notification created from now on carries one.
+    def test_title_is_mandatory(self):
+        frappe.set_user("Administrator")
+        with self.assertRaises(frappe.MandatoryError):
+            frappe.get_doc(
+                {
+                    "doctype": "NextPMS Notifications",
+                    "user": SYSTEM_MANAGER_USER,
+                    "label": "Missing title",
+                    "linked_doctype": "User",
+                    "linked_document": SYSTEM_MANAGER_USER,
+                }
+            ).insert(ignore_permissions=True)
+
+    # Backfill patch — existing rows with no title get one derived from the linked doctype.
+    def test_backfill_sets_title_from_linked_doctype(self):
+        frappe.set_user("Administrator")
+        for linked_doctype, expected_title in NOTIFICATION_TITLES.items():
+            with self.subTest(linked_doctype=linked_doctype):
+                doc = frappe.get_doc(
+                    {
+                        "doctype": "NextPMS Notifications",
+                        "user": SYSTEM_MANAGER_USER,
+                        "title": "placeholder",
+                        "label": "Legacy notification",
+                        "linked_doctype": linked_doctype,
+                        "linked_document": SYSTEM_MANAGER_USER,
+                    }
+                )
+                doc.flags.ignore_links = True
+                doc.insert(ignore_permissions=True)
+                self.addCleanup(
+                    frappe.delete_doc,
+                    "NextPMS Notifications",
+                    doc.name,
+                    ignore_permissions=True,
+                    force=True,
+                )
+                # Simulate a row created before the title field existed.
+                frappe.db.set_value("NextPMS Notifications", doc.name, "title", "", update_modified=False)
+
+                backfill_notification_title()
+
+                self.assertEqual(
+                    frappe.db.get_value("NextPMS Notifications", doc.name, "title"),
+                    expected_title,
+                )
+
+    # Backfill must not clobber a title that is already set.
+    def test_backfill_preserves_existing_title(self):
+        frappe.set_user("Administrator")
+        doc = frappe.get_doc(
+            {
+                "doctype": "NextPMS Notifications",
+                "user": SYSTEM_MANAGER_USER,
+                "title": "Already set",
+                "label": "Notification with title",
+                "linked_doctype": "Risk",
+                "linked_document": SYSTEM_MANAGER_USER,
+            }
+        )
+        doc.flags.ignore_links = True
+        doc.insert(ignore_permissions=True)
+        self.addCleanup(
+            frappe.delete_doc,
+            "NextPMS Notifications",
+            doc.name,
+            ignore_permissions=True,
+            force=True,
+        )
+
+        backfill_notification_title()
+
+        self.assertEqual(
+            frappe.db.get_value("NextPMS Notifications", doc.name, "title"),
+            "Already set",
+        )

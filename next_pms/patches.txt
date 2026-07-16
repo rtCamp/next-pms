@@ -30,3 +30,4 @@ next_pms.timesheet.patches.add_timesheet_detail_index
 next_pms.next_projects.patches.setup_project_target_hours_field
 next_pms.timesheet.patches.add_project_report_permissions
 next_pms.timesheet.patches.setup_timesheet_rejection_reason_field
+next_pms.next_pms.patches.backfill_notification_title

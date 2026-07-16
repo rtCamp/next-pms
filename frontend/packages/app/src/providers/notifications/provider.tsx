@@ -10,24 +10,18 @@ import { useFrappeGetDocList, useFrappeUpdateDoc } from "frappe-react-sdk";
  * Internal dependencies.
  */
 import { ROUTES } from "@/lib/constant";
-import { hashString, toKebabCase } from "@/lib/utils";
+import { toKebabCase } from "@/lib/utils";
 import { useUser } from "@/providers/user";
 import { NotificationsContext } from ".";
 
 interface NotificationDoc {
   name: string;
   label: string;
-  owner: string;
+  title: string;
   creation: string;
   linked_doctype: string;
   linked_document: string;
   viewed: 0 | 1;
-}
-
-interface UserDetails {
-  name: string;
-  full_name: string;
-  user_image: string | null;
 }
 
 const NOTIFICATION_DOCTYPE = "NextPMS Notifications";
@@ -42,7 +36,7 @@ export const NotificationsProvider: FC<PropsWithChildren> = ({ children }) => {
       fields: [
         "name",
         "label",
-        "owner",
+        "title",
         "creation",
         "linked_doctype",
         "linked_document",
@@ -55,57 +49,24 @@ export const NotificationsProvider: FC<PropsWithChildren> = ({ children }) => {
     userId ? undefined : null,
   );
 
-  const owners = useMemo(() => {
-    const emails = (data ?? []).map((row) => row.owner).filter(Boolean);
-    return [...new Set(emails)];
-  }, [data]);
-
-  const usersSwrKey = useMemo(() => {
-    if (!owners.length) return null;
-    return `notifications-users-${hashString(owners.slice().sort().join(","))}`;
-  }, [owners]);
-
-  const { data: usersData } = useFrappeGetDocList<UserDetails>(
-    "User",
-    {
-      fields: ["name", "full_name", "user_image"],
-      filters: (owners.length ? [["name", "in", owners]] : []) as never,
-      limit: owners.length || 1,
-    },
-    usersSwrKey,
-  );
-
-  const userMap = useMemo(
-    () =>
-      Object.fromEntries((usersData ?? []).map((user) => [user.name, user])),
-    [usersData],
-  );
-
   const notifications = useMemo<NotificationEntry[]>(() => {
     if (!data?.length) return [];
 
-    return data.map((doc) => {
-      const details = userMap[doc.owner];
-
-      return {
-        id: doc.name,
-        name: details?.full_name?.trim() || doc.owner,
-        image: details?.user_image ?? undefined,
-        message: [{ text: doc.label }],
-        timeLabel: formatDistanceToNow(
-          parseISO(doc.creation.replace(" ", "T")),
-          {
-            addSuffix: true,
-          },
-        ),
-        read: Boolean(doc.viewed),
-        href:
-          doc.linked_doctype && doc.linked_document
-            ? `${ROUTES.desk}/${toKebabCase(doc.linked_doctype)}/${doc.linked_document}`
-            : undefined,
-      };
-    });
-  }, [data, userMap]);
+    return data.map((doc) => ({
+      id: doc.name,
+      linkedDoctype: doc.linked_doctype,
+      title: doc.title || undefined,
+      message: [{ text: doc.label }],
+      timeLabel: formatDistanceToNow(parseISO(doc.creation.replace(" ", "T")), {
+        addSuffix: true,
+      }),
+      read: Boolean(doc.viewed),
+      href:
+        doc.linked_doctype && doc.linked_document
+          ? `${ROUTES.desk}/${toKebabCase(doc.linked_doctype)}/${doc.linked_document}`
+          : undefined,
+    }));
+  }, [data]);
 
   const unreadCount = useMemo(
     () => (data ?? []).filter((doc) => !doc.viewed).length,

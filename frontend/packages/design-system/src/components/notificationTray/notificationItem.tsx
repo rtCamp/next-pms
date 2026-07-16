@@ -1,13 +1,33 @@
 /**
  * External dependencies.
  */
-import React from "react";
-import { Avatar } from "@rtcamp/frappe-ui-react";
+import React, { type ComponentType } from "react";
+import { Folder, Fire, File, Time, Check } from "@rtcamp/frappe-ui-react/icons";
+
 /**
  * Internal dependencies.
  */
 import type { NotificationEntry } from "./types";
 import { mergeClassNames as cn } from "../../utils";
+
+const DOCTYPE_ICON_MAP: Record<string, ComponentType<{ size?: number }>> = {
+  Risk: Fire,
+  Timesheet: Time,
+  "Customer Feedback": File,
+  Project: Folder,
+};
+
+const NotificationIcon = ({ linkedDoctype }: { linkedDoctype: string }) => {
+  const Icon = DOCTYPE_ICON_MAP[linkedDoctype] ?? Check;
+  return (
+    <div
+      aria-hidden="true"
+      className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-surface-gray-2"
+    >
+      <Icon size={18} />
+    </div>
+  );
+};
 
 const NotificationItem = ({
   notification,
@@ -16,11 +36,10 @@ const NotificationItem = ({
   notification: NotificationEntry;
   onSelect?: (notification: NotificationEntry) => void;
 }) => {
-  const { name, image, message, timeLabel, read, href } = notification;
+  const { linkedDoctype, title, message, timeLabel, read, href } = notification;
 
   const handleClick = (event: React.MouseEvent<HTMLAnchorElement>) => {
     if (!onSelect) return;
-    // Let the browser handle new-tab / middle-click natively.
     if (
       event.metaKey ||
       event.ctrlKey ||
@@ -47,9 +66,17 @@ const NotificationItem = ({
           read ? "bg-transparent" : "bg-surface-blue-5",
         )}
       />
-      <Avatar size="lg" shape="circle" image={image} label={name} alt={name} />
-      <div className="flex min-w-0 flex-col gap-0.5">
-        <p className="text-sm leading-5 text-ink-gray-6">
+      <NotificationIcon linkedDoctype={linkedDoctype} />
+      <div className="flex min-w-0 flex-col gap-1">
+        <div className="flex items-baseline justify-between gap-2">
+          {title && (
+            <span className="truncate text-sm font-medium text-ink-gray-7">
+              {title}
+            </span>
+          )}
+          <span className="shrink-0 text-xs text-ink-gray-5">{timeLabel}</span>
+        </div>
+        <p className="text-[13px] leading-[1.5] text-ink-gray-6">
           {message.map((segment, index) => {
             if (segment.emphasis === "strong") {
               return (
@@ -68,7 +95,6 @@ const NotificationItem = ({
             return <span key={index}>{segment.text}</span>;
           })}
         </p>
-        <span className="text-xs text-ink-gray-5">{timeLabel}</span>
       </div>
     </a>
   );
