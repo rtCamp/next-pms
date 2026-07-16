@@ -7,6 +7,9 @@ export type NoteComment = {
   reply_to: string | null;
   created_at: string;
   modified_at: string | null;
+  edited: boolean;
+  deleted: boolean;
+  deleted_at: string | null;
   owner: string;
   modified_by: string;
   reply_count: number;

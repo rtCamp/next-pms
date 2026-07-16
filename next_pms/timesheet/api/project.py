@@ -2,7 +2,7 @@ import json
 
 import frappe
 from erpnext.accounts.report.utils import get_rate_as_at
-from frappe import get_list, get_meta, only_for, whitelist
+from frappe import get_all, get_list, get_meta, get_value, only_for, whitelist
 from frappe.utils import flt, getdate
 
 from next_pms.api.utils import error_logger
@@ -12,6 +12,7 @@ from .utils import (
     build_aggregate_dates,
     build_chunk_context,
     build_employee_week_details,
+    employee_has_higher_access,
     get_employees_for_projects,
     get_qualifying_project_ids,
     normalize_status_filter,
@@ -28,6 +29,7 @@ def get_projects(
     or_filters: list | str | None = None,
     start: int = 0,
     order_by: str = "modified desc",
+    employee: str | None = None,
 ):
     """Returns list of projects based on filters and fields provided. If currency is provided, it converts the currency fields to the provided currency based on the exchange rate as of today."""
     meta = get_meta("Project")
@@ -46,6 +48,7 @@ def get_projects(
         filters = get_project_filter_for_contractor()
     else:
         filters += get_project_filter_for_contractor()
+    filters += get_project_filter_for_employee(employee)
     project_lists = get_list(
         "Project",
         fields=fields,
@@ -108,6 +111,63 @@ def get_project_filter_for_contractor(only_list=False):
         return [["name", "in", names]]
 
     return []
+
+
+@whitelist(methods=["GET"])
+@error_logger
+def get_employee_project_ids(employee: str):
+    """Return every Project name the given employee can access — individually shared, or via "everyone"."""
+    if not employee:
+        return []
+    if not employee_has_higher_access(employee, ptype="read"):
+        frappe.throw(frappe._("You are not authorized to view this employee's projects."), frappe.PermissionError)
+
+    everyone_projects = get_all("DocShare", filters={"share_doctype": "Project", "everyone": 1}, pluck="share_name")
+    user_id = get_value("Employee", employee, "user_id")
+    shared_projects = (
+        get_all(
+            "DocShare",
+            filters={"share_doctype": "Project", "user": user_id, "everyone": 0},
+            pluck="share_name",
+        )
+        if user_id
+        else []
+    )
+    return list(set(everyone_projects) | set(shared_projects))
+
+
+def get_project_filter_for_employee(employee: str | None):
+    if not employee:
+        return []
+    return [["name", "in", get_employee_project_ids(employee)]]
+
+
+@whitelist(methods=["GET"])
+@error_logger
+def get_project_employee_access(project: str | None = None, employee: str | None = None):
+    """Whether `project` has any member, whether `employee` has any project, and whether this pair is valid together."""
+    if employee and not employee_has_higher_access(employee, ptype="read"):
+        frappe.throw(frappe._("You are not authorized to view this employee's project access."), frappe.PermissionError)
+
+    def is_shared(share_filter):
+        return bool(frappe.db.exists("DocShare", {"share_doctype": "Project", **share_filter}))
+
+    user_id = get_value("Employee", employee, "user_id") if employee else None
+
+    is_project_shared_with_everyone = bool(project) and is_shared({"share_name": project, "everyone": 1})
+    is_employee_shared_on_project = (
+        bool(project) and bool(user_id) and is_shared({"share_name": project, "user": user_id, "everyone": 0})
+    )
+
+    has_any_member = bool(project) and (
+        is_project_shared_with_everyone or is_shared({"share_name": project, "everyone": 0})
+    )
+    has_any_project = bool(user_id) and (
+        is_employee_shared_on_project or is_shared({"everyone": 1}) or is_shared({"user": user_id, "everyone": 0})
+    )
+    is_valid = bool(project and employee) and (is_project_shared_with_everyone or is_employee_shared_on_project)
+
+    return {"has_any_member": has_any_member, "has_any_project": has_any_project, "is_valid": is_valid}
 
 
 def _coerce_project_skip_empty_weeks(skip_empty_weeks: bool | str):

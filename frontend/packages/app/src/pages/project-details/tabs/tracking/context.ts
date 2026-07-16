@@ -48,6 +48,8 @@ export const DEFAULT_TRACKING: Tracking = {
   forecasted_cost_to_completion: 0,
   expected_total_cost: 0,
   hours_utilised: 0,
+  hours_utilised_billable: 0,
+  hours_utilised_non_billable: 0,
   hours_remaining: null,
   tasks: { total: 0, open: 0, completed: 0 },
   invoice_burn: {

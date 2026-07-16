@@ -18,6 +18,7 @@ import { useDoctypeLinkLookup } from "@/hooks/useDoctypeLinkLookup";
 export const FilterLinkValue: React.FC<FilterLinkValueRenderProps> = ({
   field,
   value,
+  displayLabel,
   onChange,
   disabled,
 }) => {
@@ -25,8 +26,8 @@ export const FilterLinkValue: React.FC<FilterLinkValueRenderProps> = ({
   const [query, setQuery] = useState("");
 
   const selectedOption = useMemo(
-    () => (value ? { label: value, value } : null),
-    [value],
+    () => (value ? { label: displayLabel ?? value, value } : null),
+    [value, displayLabel],
   );
 
   const { options, isLoading } = useDoctypeLinkLookup({
@@ -50,8 +51,13 @@ export const FilterLinkValue: React.FC<FilterLinkValueRenderProps> = ({
       openOnFocus
       disabled={disabled}
       placeholder="Value"
-      onChange={(val) => onChange(val)}
+      onChange={(val, option) => {
+        const label =
+          option && typeof option !== "string" ? option.label : undefined;
+        onChange(val, label);
+      }}
       className="w-50"
+      popupClassName="w-fit max-w-[300px]"
     />
   );
 };

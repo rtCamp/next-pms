@@ -8,11 +8,7 @@ import type { ComponentType, SVGProps } from "react";
  */
 
 export type ProjectLinkKey =
-  | "website"
-  | "files"
-  | "github"
-  | "people"
-  | "support";
+  "website" | "files" | "github" | "people" | "support";
 
 export type ProjectLink = {
   key: ProjectLinkKey;
@@ -131,6 +127,7 @@ export type ProjectSidebar = {
     employee_id: string;
     user_id: string | null;
   }>;
+  is_shared_with_everyone: boolean;
 };
 
 export type ProjectSidebarResponse = { message: ProjectSidebar };

@@ -16,6 +16,9 @@ class ProjectComments(Document):
 
         comment: DF.TextEditor | None
         created_at: DF.Datetime | None
+        deleted: DF.Check
+        deleted_at: DF.Datetime | None
+        edited: DF.Check
         modified_at: DF.Datetime | None
         parent: DF.Data
         parentfield: DF.Data

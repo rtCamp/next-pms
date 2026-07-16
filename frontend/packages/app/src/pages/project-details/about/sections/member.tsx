@@ -2,8 +2,8 @@
  * External dependencies.
  */
 import { useMemo, useState } from "react";
-import { Button, Combobox } from "@rtcamp/frappe-ui-react";
-import { AddSm } from "@rtcamp/frappe-ui-react/icons";
+import { Badge, Button, Combobox, Tooltip } from "@rtcamp/frappe-ui-react";
+import { AddSm, Globe } from "@rtcamp/frappe-ui-react/icons";
 
 /**
  * Internal dependencies.
@@ -42,6 +42,9 @@ export function MemberSection() {
     (state) => state.currentMemberUserIds,
   );
   const memberRoleByUserId = useSidebar((state) => state.memberRoleByUserId);
+  const isSharedWithEveryone = useSidebar(
+    (state) => state.isSharedWithEveryone,
+  );
   const addMember = useSidebar((state) => state.addMember);
   const removeMember = useSidebar((state) => state.removeMember);
   const updateManager = useSidebar((state) => state.updateManager);
@@ -132,10 +135,26 @@ export function MemberSection() {
           />
         </div>
 
-        <div className="flex items-center justify-between">
-          <h3 className="text-base font-medium text-ink-gray-8">
-            Team members
-          </h3>
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <h3 className="text-base font-medium text-ink-gray-8">
+              Team members
+            </h3>
+
+            {isSharedWithEveryone && (
+              <Tooltip text="Shared with everyone in the organization">
+                <span>
+                  <Badge
+                    className="mt-1.5"
+                    variant="subtle"
+                    size="sm"
+                    prefix={<Globe className="size-3.5" />}
+                    label="Everyone"
+                  />
+                </span>
+              </Tooltip>
+            )}
+          </div>
 
           <Button
             icon={AddSm}

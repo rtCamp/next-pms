@@ -6,6 +6,9 @@ export type CommentNode = {
   content: string;
   createdAt: string;
   ownerId?: string | null;
+  edited?: boolean;
+  deleted?: boolean;
+  deletedAt?: string | null;
   replies: CommentNode[];
 };
 

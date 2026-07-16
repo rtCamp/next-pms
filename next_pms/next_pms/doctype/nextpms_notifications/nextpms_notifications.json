@@ -1,9 +1,11 @@
 {
  "actions": [],
+ "allow_bulk_edit": 1,
  "creation": "2026-06-18 22:19:35.913633",
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
+  "title",
   "label",
   "user",
   "linked_doctype",
@@ -51,12 +53,19 @@
    "fieldname": "viewed",
    "fieldtype": "Check",
    "label": "Viewed"
+  },
+  {
+   "fieldname": "title",
+   "fieldtype": "Data",
+   "label": "Title",
+   "permlevel": 1,
+   "reqd": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-07-01 20:01:42.357283",
+ "modified": "2026-07-15 17:38:55.818935",
  "modified_by": "Administrator",
  "module": "Next PMS",
  "name": "NextPMS Notifications",

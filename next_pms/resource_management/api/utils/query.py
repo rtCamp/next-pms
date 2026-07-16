@@ -81,6 +81,53 @@ def get_allocation_list_for_employee_for_given_range(
     return query.run(as_dict=True)
 
 
+def get_projects_with_allocations(
+    start_date: str | datetime.date,
+    end_date: str | datetime.date,
+    is_billable: list | int | None = None,
+    allocation_status: list | None = None,
+) -> list[str]:
+    """Return the distinct projects having at least one Resource Allocation in the window.
+
+    Mirrors the predicates of get_allocation_list_for_employee_for_given_range (window
+    overlap, is_billable, status) without the project restriction, so the two queries
+    can never disagree on which allocations "match".
+
+    Args:
+        start_date (str | datetime.date): Range start.
+        end_date (str | datetime.date): Range end.
+        is_billable (list | int | None): Billable filter, same conventions as
+            get_allocation_list_for_employee_for_given_range. Defaults to None.
+        allocation_status (list | None): Status values to match. ``None`` or ``[]``
+            skips the filter. Defaults to None.
+
+    Returns:
+        list[str]: Distinct project names with a matching allocation in the window.
+    """
+    ResourceAllocation = frappe.qb.DocType("Resource Allocation")
+
+    query = (
+        frappe.qb.from_(ResourceAllocation)
+        .select(ResourceAllocation.project)
+        .distinct()
+        .where(ResourceAllocation.allocation_start_date <= end_date)
+        .where(ResourceAllocation.allocation_end_date >= start_date)
+    )
+
+    billable_values = _normalize_is_billable_filter(is_billable)
+    if billable_values:
+        query = query.where(ResourceAllocation.is_billable.isin(billable_values))
+    if allocation_status:
+        query = query.where(ResourceAllocation.status.isin(allocation_status))
+
+    return query.run(pluck=True)
+
+
+def has_active_allocation_filter(is_billable: list | int | None, allocation_status: list | None) -> bool:
+    """Whether the caller requested an allocation-level filter (billable or status)."""
+    return bool(allocation_status) or bool(_normalize_is_billable_filter(is_billable))
+
+
 def _normalize_is_billable_filter(is_billable: list | int | None) -> list[int]:
     """Normalise the ``is_billable`` argument into a clean list of integers.
 
