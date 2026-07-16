@@ -1,7 +1,7 @@
 /**
  * External dependencies.
  */
-import { useState } from "react";
+import { useSavedState } from "@next-pms/hooks";
 import { Breadcrumbs } from "@rtcamp/frappe-ui-react";
 
 /**
@@ -26,7 +26,7 @@ export default function LeadershipDashboard() {
   }));
 
   const firstName = (employeeName || userName).trim().split(" ")[0] || "there";
-  const [kpiMonth, setKpiMonth] = useState(getDefaultKpiMonth);
+  const [kpiMonth, setKpiMonth] = useSavedState("kpiMonth", getDefaultKpiMonth);
 
   return (
     <>

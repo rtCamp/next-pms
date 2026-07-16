@@ -1,7 +1,8 @@
 /**
  * External dependencies.
  */
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef } from "react";
+import { useSavedState } from "@next-pms/hooks";
 import { MultiSelect } from "@rtcamp/frappe-ui-react";
 import type { MultiSelectOption } from "@rtcamp/frappe-ui-react";
 import { cva } from "class-variance-authority";
@@ -84,7 +85,10 @@ function getCellState(week: RoleAllocationWeek): HeatmapCellState {
 }
 
 export default function HeatmapCard() {
-  const [selectedRoles, setSelectedRoles] = useState<string[]>([]);
+  const [selectedRoles, setSelectedRoles] = useSavedState(
+    "heatmapRoles",
+    [] as string[],
+  );
 
   const args = useMemo(() => {
     const start = startOfWeek(new Date(), WEEK_OPTIONS);
@@ -124,7 +128,7 @@ export default function HeatmapCard() {
 
   const defaultsApplied = useRef(false);
   useEffect(() => {
-    if (defaultsApplied.current) return;
+    if (defaultsApplied.current || selectedRoles.length > 0) return;
     const roles = data?.message.roles;
     if (!roles) return;
     defaultsApplied.current = true;

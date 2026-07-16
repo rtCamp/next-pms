@@ -11,6 +11,7 @@ import type {
   CalendarEventColor,
   CalendarTimelineEvent,
 } from "@next-pms/design-system/components";
+import { useSavedState } from "@next-pms/hooks";
 import { Button, DatePicker, MultiSelect } from "@rtcamp/frappe-ui-react";
 import type { MultiSelectOption } from "@rtcamp/frappe-ui-react";
 import {
@@ -36,7 +37,10 @@ export default function CalendarTimelineCard() {
   const [rangeStart, setRangeStart] = useState<Date>(() =>
     getWeekStart(new Date()),
   );
-  const [selectedProjects, setSelectedProjects] = useState<string[]>([]);
+  const [selectedProjects, setSelectedProjects] = useSavedState(
+    "calendarProjects",
+    [] as string[],
+  );
 
   const { data, isLoading } = useFrappeGetCall<CalendarTimelineResponse>(
     "next_pms.api.dashboard.get_calendar_timeline_items",

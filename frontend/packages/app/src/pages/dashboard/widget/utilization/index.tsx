@@ -1,8 +1,9 @@
 /**
  * External dependencies.
  */
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import { mergeClassNames } from "@next-pms/design-system";
+import { useSavedState } from "@next-pms/hooks";
 import { MultiSelect } from "@rtcamp/frappe-ui-react";
 import type { MultiSelectOption } from "@rtcamp/frappe-ui-react";
 import { useFrappeGetCall } from "frappe-react-sdk";
@@ -15,7 +16,10 @@ import { UtilisationDonut } from "./utilisationDonut";
 import { UtilisedTimeCardSkeleton } from "./utilisedTimeCardSkeleton";
 
 export default function UtilisedTimeCard() {
-  const [selectedRoles, setSelectedRoles] = useState<string[]>([]);
+  const [selectedRoles, setSelectedRoles] = useSavedState(
+    "utilisationRoles",
+    [] as string[],
+  );
 
   const { data, isLoading } = useFrappeGetCall<TimeUtilisationResponse>(
     "next_pms.api.dashboard.get_time_utilisation",

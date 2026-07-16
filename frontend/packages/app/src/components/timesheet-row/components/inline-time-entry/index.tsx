@@ -70,7 +70,6 @@ export const InlineTimeEntry = ({
   disabled,
 }: InlineTimeEntryProps) => {
   const toast = useToasts();
-  const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [entryFormMode, setEntryFormMode] = useState<EntryFormMode>(
     ENTRY_FORM_MODE.DEFAULT,
@@ -87,21 +86,28 @@ export const InlineTimeEntry = ({
     onResizePointerDown: handleCommentPointerDown,
   } = useResizeEngagement();
   const [collapsedEntryNames, setCollapsedEntryNames] = useState<string[]>([]);
+  const [stayEngaged, setStayEngaged] = useState(false);
   const hasInitializedInteractiveModeRef = useRef(false);
-  const editBaselineRef = useRef<{ duration: number; comment: string } | null>(
-    null,
-  );
+  const editBaselineRef = useRef<{
+    duration: number;
+    comment: string;
+    date: string;
+  } | null>(null);
   const pendingProceedAfterSaveRef = useRef<(() => void) | null>(null);
+  const frozenTasksRef = useRef(tasks);
 
-  const { call: saveTime } = useFrappePostCall(
+  const { call: saveTime, loading: isSaving } = useFrappePostCall(
     "next_pms.timesheet.api.timesheet.save",
   );
-  const { call: updateTimesheet } = useFrappePostCall(
+  const { call: updateTimesheet, loading: isUpdating } = useFrappePostCall(
     "next_pms.timesheet.api.timesheet.bulk_update_timesheet_detail",
   );
-  const { call: deleteTimesheet } = useFrappePostCall(
+  const { call: deleteTimesheet, loading: isDeleting } = useFrappePostCall(
     "next_pms.timesheet.api.timesheet.delete",
   );
+
+  const isSavingEntry = isSaving || isUpdating;
+  const isMutating = isSavingEntry || isDeleting;
 
   const hoursLeft = (dailyWorkingHours ?? 0) - (totalUsedHoursInDay ?? 0);
   const effectiveHoursLeft =
@@ -109,7 +115,6 @@ export const InlineTimeEntry = ({
       ? hoursLeft + selectedEntry.hours
       : hoursLeft;
   const defaultDuration = hoursLeft >= 0.5 ? 0.5 : 0;
-  const hasNoTimeEntries = (tasks.length ?? 0) === 0;
   const isDraftAvailableInEdit =
     entryFormMode === ENTRY_FORM_MODE.EDIT && addDraft !== null;
 
@@ -126,7 +131,6 @@ export const InlineTimeEntry = ({
   const form = useInlineTimeEntryForm({
     defaultValues,
     onSubmit: async ({ value }) => {
-      setSubmitting(true);
       setSubmitError(null);
 
       try {
@@ -155,7 +159,7 @@ export const InlineTimeEntry = ({
           });
           toast.success("Time Entry submitted successfully");
         }
-        if (hasNoTimeEntries && entryFormMode === ENTRY_FORM_MODE.DEFAULT) {
+        if (tasks.length === 0 && entryFormMode === ENTRY_FORM_MODE.DEFAULT) {
           onSubmitSuccess?.();
         }
         pendingProceedAfterSaveRef.current?.();
@@ -163,7 +167,6 @@ export const InlineTimeEntry = ({
         setSubmitError(parseFrappeErrorMsg(err as FrappeError));
       } finally {
         pendingProceedAfterSaveRef.current = null;
-        setSubmitting(false);
         form.reset();
         editBaselineRef.current = null;
         setSelectedEntry(null);
@@ -173,20 +176,39 @@ export const InlineTimeEntry = ({
     },
   });
 
-  const { duration: liveDuration, comment: liveComment } = useStore(
-    form.store,
-    (state) => state.values,
-  );
+  const {
+    duration: liveDuration,
+    comment: liveComment,
+    date: liveDate,
+  } = useStore(form.store, (state) => state.values);
   const hasUnsavedChanges =
     entryFormMode === ENTRY_FORM_MODE.EDIT && editBaselineRef.current
       ? liveDuration !== editBaselineRef.current.duration ||
-        liveComment !== editBaselineRef.current.comment
+        liveComment !== editBaselineRef.current.comment ||
+        liveDate !== editBaselineRef.current.date
       : liveDuration !== defaultValues.duration ||
         liveComment !== defaultValues.comment;
-  const isEngaged =
+  const baseEngaged =
     entryFormMode !== ENTRY_FORM_MODE.DEFAULT ||
     hasUnsavedChanges ||
     commentResizeActive;
+
+  useEffect(() => {
+    if (baseEngaged) {
+      setStayEngaged(true);
+    }
+  }, [baseEngaged]);
+  const isEngaged = baseEngaged || stayEngaged;
+
+  // Snapshot the list while this popover's own mutation is in flight, so the realtime
+  // data (which arrives before the response of the mutation) can't cause flicker of the list.
+  useEffect(() => {
+    if (!isMutating) {
+      frozenTasksRef.current = tasks;
+    }
+  }, [isMutating, tasks]);
+  const displayTasks = isMutating ? frozenTasksRef.current : tasks;
+  const hasNoTimeEntries = displayTasks.length === 0;
 
   const hasUnsavedChangesRef = useRef(hasUnsavedChanges);
   hasUnsavedChangesRef.current = hasUnsavedChanges;
@@ -201,6 +223,7 @@ export const InlineTimeEntry = ({
     editBaselineRef.current = null;
     setSelectedEntry(null);
     setAddDraft(null);
+    setStayEngaged(false);
     setEntryFormMode(ENTRY_FORM_MODE.DEFAULT);
   }, [form]);
 
@@ -226,25 +249,27 @@ export const InlineTimeEntry = ({
 
   const handleDelete = useCallback(async () => {
     if (!selectedEntry) return;
-    setSubmitting(true);
     try {
       await deleteTimesheet({
         parent: selectedEntry.parent,
         name: selectedEntry.name,
       });
       toast.success("Time Entry deleted successfully");
+      // Deleting the last remaining entry leaves nothing to show, so close.
+      if (tasks.length <= 1) {
+        onSubmitSuccess?.();
+      }
     } catch (err) {
       const error = parseFrappeErrorMsg(err as FrappeError);
       toast.error(error);
     } finally {
-      setSubmitting(false);
       form.reset();
       editBaselineRef.current = null;
       setSelectedEntry(null);
       setAddDraft(null);
       setEntryFormMode(ENTRY_FORM_MODE.DEFAULT);
     }
-  }, [selectedEntry, deleteTimesheet, toast, form]);
+  }, [selectedEntry, deleteTimesheet, toast, form, tasks, onSubmitSuccess]);
 
   const handleEditEntry = useCallback(
     (entry: TaskDataItemProps) => {
@@ -267,14 +292,16 @@ export const InlineTimeEntry = ({
       editBaselineRef.current = {
         duration: entry.hours,
         comment: entry.description ?? "",
+        date,
       };
       setCollapsedEntryNames((prev) =>
         prev.filter((name) => name !== entry.name),
       );
       form.setFieldValue("duration", entry.hours);
       form.setFieldValue("comment", entry.description ?? "");
+      form.setFieldValue("date", date);
     },
-    [entryFormMode, form, defaultValues, tasks],
+    [entryFormMode, form, defaultValues, date, tasks],
   );
 
   const handleToggleAddMode = useCallback(() => {
@@ -335,7 +362,7 @@ export const InlineTimeEntry = ({
 
   return (
     <div className="animate-fade-in min-w-68 w-fit max-w-[min(720px,90vw)] max-h-[min(500px,90dvh)] overflow-auto scrollbar-thin shadow bg-surface-modal rounded-lg flex flex-col gap-2 p-2">
-      {tasks.map((entry: TaskDataItemProps, index: number) => {
+      {displayTasks.map((entry: TaskDataItemProps, index: number) => {
         const isEditingThisEntry =
           entryFormMode === ENTRY_FORM_MODE.EDIT &&
           selectedEntry?.name === entry.name;
@@ -351,7 +378,9 @@ export const InlineTimeEntry = ({
               <Accordion.Item
                 value={entry.name}
                 className={cn("border-outline-gray-modals", {
-                  "pb-2 border-b": !(disabled && tasks.length - 1 === index),
+                  "pb-2 border-b": !(
+                    disabled && displayTasks.length - 1 === index
+                  ),
                 })}
               >
                 {!isEditingThisEntry ? (
@@ -435,7 +464,8 @@ export const InlineTimeEntry = ({
                         durationLabel="Edit time"
                         maxDurationInHours={dailyWorkingHours}
                         editBaseline={editBaselineRef.current}
-                        submitting={submitting}
+                        isSaving={isSavingEntry}
+                        isMutating={isMutating}
                         submitError={submitError}
                         onSave={() => handleSubmit()}
                         onCommentKeyDown={handleSubmit}
@@ -447,7 +477,8 @@ export const InlineTimeEntry = ({
                           size="sm"
                           iconLeft={() => <Delete size={16} />}
                           onClick={handleDelete}
-                          disabled={submitting}
+                          loading={isDeleting}
+                          disabled={isSavingEntry}
                         >
                           Delete entry
                         </Button>
@@ -484,7 +515,8 @@ export const InlineTimeEntry = ({
               hoursLeft={effectiveHoursLeft}
               durationLabel={hasNoTimeEntries ? false : "Add time"}
               maxDurationInHours={dailyWorkingHours}
-              submitting={submitting}
+              isSaving={isSavingEntry}
+              isMutating={isMutating}
               submitError={submitError}
               onSave={() => handleSubmit()}
               onCommentKeyDown={handleSubmit}
@@ -494,7 +526,10 @@ export const InlineTimeEntry = ({
           {!hasNoTimeEntries && entryFormMode !== ENTRY_FORM_MODE.ADD ? (
             <div className="flex justify-between w-full gap-2">
               <Button
-                className="text-ink-gray-7"
+                className={cn(
+                  "text-ink-gray-7",
+                  isMutating && "text-ink-gray-4",
+                )}
                 variant="ghost"
                 size="sm"
                 iconLeft={() =>
@@ -505,7 +540,7 @@ export const InlineTimeEntry = ({
                   )
                 }
                 onClick={handleToggleAddMode}
-                disabled={submitting}
+                disabled={isMutating}
               >
                 {isDraftAvailableInEdit ? "Draft" : "Add time"}
               </Button>

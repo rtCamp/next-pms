@@ -4,11 +4,14 @@
 import { mergeClassNames as cn } from "@next-pms/design-system";
 import {
   Button,
+  DatePicker,
   ErrorMessage,
   TextEditor,
   DurationInput,
+  TextInput,
 } from "@rtcamp/frappe-ui-react";
-import { AddSm } from "@rtcamp/frappe-ui-react/icons";
+import { AddSm, Calendar } from "@rtcamp/frappe-ui-react/icons";
+import { format, parseISO } from "date-fns";
 
 /**
  * Internal dependencies
@@ -24,7 +27,8 @@ import { TimeEntryFormProps } from "./types";
  * @param hoursLeft The number of hours left that can be logged for the day.
  * @param durationVariant The variant style to apply to the duration input field.
  * @param maxDurationInHours The maximum number of hours that can be entered in the duration field.
- * @param submitting A boolean indicating whether the form is currently being submitted, used to disable inputs during submission.
+ * @param isSaving Whether this form's own save/update request is in flight; drives the Save button's loading state.
+ * @param isMutating Whether any mutation (save, update or delete) is in flight; disables every input and the Save button.
  * @param editBaseline An optional object containing the original duration and comment values when in edit mode.
  * @param onCommentKeyDown A callback function to handle key down events in the comment textarea.
  */
@@ -34,7 +38,8 @@ export const TimeEntryForm = ({
   hoursLeft,
   durationLabel,
   maxDurationInHours,
-  submitting,
+  isSaving,
+  isMutating,
   submitError = null,
   editBaseline = null,
   onSave,
@@ -57,6 +62,7 @@ export const TimeEntryForm = ({
                 value={field.state.value}
                 onChange={(val) => field.handleChange(val)}
                 maxDuration={maxDurationInHours}
+                disabled={isMutating}
               />
               {!field.state.meta.isValid && (
                 <ErrorMessage message={field.state.meta.errors[0]?.message} />
@@ -65,6 +71,52 @@ export const TimeEntryForm = ({
           );
         }}
       />
+      {mode === ENTRY_FORM_MODE.EDIT ? (
+        <form.Field
+          name="date"
+          children={(field) => {
+            return (
+              <div className="flex flex-col w-full gap-1.5">
+                <label className="block text-xs text-ink-gray-5">
+                  Edit date
+                </label>
+                <DatePicker
+                  label="Date"
+                  variant="outline"
+                  clearable={false}
+                  placement="bottom-start"
+                  disabled={isMutating}
+                  formatter={(date) =>
+                    date ? format(parseISO(date), "MMM d, yyyy") : ""
+                  }
+                  value={field.state.value}
+                  onChange={(val) =>
+                    field.handleChange(
+                      typeof val === "string" ? val : (val[0] ?? ""),
+                    )
+                  }
+                >
+                  {({ displayValue, disabled }) => (
+                    <TextInput
+                      className="h-8 text-base text-ink-gray-7"
+                      type="text"
+                      placeholder="Select date"
+                      value={displayValue}
+                      readOnly
+                      disabled={disabled}
+                      suffix={() => <Calendar className="size-4" />}
+                      variant="outline"
+                    />
+                  )}
+                </DatePicker>
+                {!field.state.meta.isValid && (
+                  <ErrorMessage message={field.state.meta.errors[0]?.message} />
+                )}
+              </div>
+            );
+          }}
+        />
+      ) : null}
       <form.Field
         name="comment"
         children={(field) => {
@@ -76,7 +128,7 @@ export const TimeEntryForm = ({
                 onPointerDownCapture={onCommentPointerDown}
               >
                 <TextEditor
-                  editable={!submitting}
+                  editable={!isMutating}
                   content={field.state.value}
                   onChange={(value) => field.handleChange(value)}
                   fixedMenu={false}
@@ -104,12 +156,14 @@ export const TimeEntryForm = ({
       {submitError ? <ErrorMessage message={submitError} /> : null}
       <form.Subscribe
         selector={(state) => ({
+          date: state.values.date,
           duration: state.values.duration,
           comment: state.values.comment,
           durationIsDefault: state.fieldMeta.duration?.isDefaultValue ?? true,
           commentIsDefault: state.fieldMeta.comment?.isDefaultValue ?? true,
         })}
         children={({
+          date,
           duration,
           comment,
           durationIsDefault,
@@ -119,19 +173,24 @@ export const TimeEntryForm = ({
           const isEditUnchanged =
             editBaseline !== null &&
             duration === editBaseline.duration &&
-            comment === editBaseline.comment;
+            comment === editBaseline.comment &&
+            date === editBaseline.date;
           const isSaveDisabled =
-            submitting ||
+            isMutating ||
             (mode === ENTRY_FORM_MODE.ADD ? isAddUnchanged : isEditUnchanged);
 
           return (
             <div className="flex justify-between w-full gap-2">
               <Button
-                className="text-ink-gray-7"
+                className={cn(
+                  "text-ink-gray-7",
+                  (isSaving || isSaveDisabled) && "text-ink-gray-4",
+                )}
                 variant="subtle"
                 size="sm"
                 iconLeft={() => <AddSm size={16} />}
                 onClick={onSave}
+                loading={isSaving}
                 disabled={isSaveDisabled}
               >
                 Save entry

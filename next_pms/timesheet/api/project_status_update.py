@@ -1,11 +1,10 @@
-import re
 from typing import Any
 
 import frappe
 from frappe import _, enqueue, only_for
 from frappe.desk.notifications import extract_mentions
 from frappe.types import DF
-from frappe.utils import cint, now, now_datetime
+from frappe.utils import cint, now_datetime
 from frappe.utils.user import get_user_fullname
 
 from next_pms.api.utils import error_logger
@@ -52,7 +51,7 @@ def create_project_status_update(
         doc.status = status
         if pinned is not None:
             doc.pinned = cint(pinned)
-        doc.insert()
+        doc.insert(ignore_permissions=True)
 
         if status == "Publish":
             should_enqueue_publish_notification = True
@@ -181,9 +180,36 @@ def update_project_status_update(
     if pinned is not None:
         doc.pinned = cint(pinned)
 
-    doc.save()
+    doc.save(ignore_permissions=True)
 
     return get_project_status_update_details(doc.name)
+
+
+@frappe.whitelist(methods=["POST"])
+@error_logger
+def delete_project_status_update(name: str) -> dict[str, Any]:
+    """
+    Delete a Project Status Update. Only its author (owner) may delete it.
+
+    Args:
+        name (str): Document name
+
+    Returns:
+        Dict[str, Any]: The name of the deleted document
+    """
+    only_for(ROLES, message=True)
+
+    if not frappe.db.exists("Project Status Update", name):
+        frappe.throw(_("Project Status Update '{name}' does not exist").format(name=name))
+
+    doc = frappe.get_doc("Project Status Update", name)
+
+    if frappe.session.user != "Administrator" and doc.owner != frappe.session.user:
+        frappe.throw(_("You do not have permission to delete this update"), frappe.PermissionError)
+
+    doc.delete(ignore_permissions=True)
+
+    return {"name": name}
 
 
 @frappe.whitelist(methods=["POST"])
@@ -216,11 +242,11 @@ def add_comment_to_project_status_update(name: str, comment: str, reply_to: str 
     comment_row.user = frappe.session.user
     comment_row.comment = comment
     comment_row.reply_to = reply_to or None
-    current_time = now()
+    current_time = now_datetime()
     comment_row.created_at = current_time
     comment_row.modified_at = current_time
 
-    doc.save()
+    doc.save(ignore_permissions=True)
 
     enqueue(
         notify_mentions,
@@ -276,12 +302,13 @@ def update_comment_in_project_status_update(
     if frappe.session.user != "Administrator" and target_row.user != frappe.session.user:
         frappe.throw(_("You do not have permission to edit this comment"), frappe.PermissionError)
 
-    edited_at = now_datetime().replace(microsecond=0)
-    # drop a previous "edited at ..." marker so repeated edits don't stack
-    base_comment = re.sub(r"\n\nedited at \d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$", "", comment)
-    target_row.comment = f"{base_comment}\n\nedited at {edited_at}"
-    target_row.modified_at = edited_at
-    doc.save()
+    if target_row.deleted:
+        frappe.throw(_("This comment has been deleted and can no longer be edited"))
+
+    target_row.comment = comment
+    target_row.edited = 1
+    target_row.modified_at = now_datetime()
+    doc.save(ignore_permissions=True)
 
     enqueue(
         notify_mentions,
@@ -332,11 +359,15 @@ def delete_comment_from_project_status_update(name: str, comment_name: str) -> d
     if frappe.session.user != "Administrator" and target_row.user != frappe.session.user:
         frappe.throw(_("You do not have permission to delete this comment"), frappe.PermissionError)
 
-    # keep the author and thread structure, but blank out the content
-    deleted_at = now_datetime().replace(microsecond=0)
-    target_row.comment = f"[deleted at {deleted_at}]"
+    if target_row.deleted:
+        frappe.throw(_("This comment has already been deleted"))
+
+    # keep the author and thread structure; the row is flagged as deleted
+    deleted_at = now_datetime()
+    target_row.deleted = 1
+    target_row.deleted_at = deleted_at
     target_row.modified_at = deleted_at
-    doc.save()
+    doc.save(ignore_permissions=True)
 
     return get_project_status_update_details(doc.name)
 
@@ -355,20 +386,27 @@ def _serialize_comment(comment, user_map: dict[str, tuple]) -> dict[str, Any]:
             "reply_to": "parent_comment_row_name",
             "created_at": "2025-05-14 10:00:00.000000",
             "modified_at": "2025-05-14 12:30:00.000000",
+            "edited": True,
+            "deleted": False,
+            "deleted_at": None,
             "owner": "jane@example.com",
             "modified_by": "jane@example.com",
         }
     """
     user_details = user_map.get(comment.user)
+    is_deleted = bool(comment.deleted)
     return {
         "name": comment.name,
         "user": comment.user,
         "user_full_name": user_details[0] if user_details else comment.user,
         "user_image": user_details[1] if user_details else None,
-        "comment": comment.comment,
+        "comment": "" if is_deleted else comment.comment,
         "reply_to": comment.reply_to,
         "created_at": comment.created_at,
         "modified_at": comment.modified_at,
+        "edited": bool(comment.edited),
+        "deleted": is_deleted,
+        "deleted_at": comment.deleted_at,
         "owner": comment.owner,
         "modified_by": comment.modified_by,
     }

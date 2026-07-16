@@ -17,6 +17,7 @@ import {
  */
 import { ROUTES } from "@/lib/constant";
 import { useProjectDetail } from "@/pages/project-details/context";
+import { useUser } from "@/providers/user";
 import { useNotes } from "./context";
 import { exportNote } from "./detail/utils";
 import type { Note } from "./types";
@@ -31,6 +32,10 @@ export function NoteActions({ note }: NoteActionsProps) {
   const togglePin = useNotes((s) => s.actions.togglePin);
   const openDeleteDialog = useNotes((s) => s.actions.openDeleteDialog);
   const isUpdating = useNotes((s) => s.state.isUpdating);
+  const currentUser = useUser((s) => s.state.currentUser);
+
+  // Deletion is author-only on the backend; hide the action for non-authors.
+  const isAuthor = Boolean(currentUser) && note.owner === currentUser;
 
   return (
     <span className="flex items-center" onClick={(e) => e.stopPropagation()}>
@@ -74,14 +79,18 @@ export function NoteActions({ note }: NoteActionsProps) {
             icon: <Export className="size-4 mr-2" />,
             onClick: () => exportNote(note),
           },
-          {
-            key: "delete",
-            label: "Delete",
-            theme: "red",
-            icon: <Delete className="size-4 mr-2" />,
-            disabled: isUpdating,
-            onClick: () => openDeleteDialog(note.name),
-          },
+          ...(isAuthor
+            ? [
+                {
+                  key: "delete",
+                  label: "Delete",
+                  theme: "red" as const,
+                  icon: <Delete className="size-4 mr-2" />,
+                  disabled: isUpdating,
+                  onClick: () => openDeleteDialog(note.name),
+                },
+              ]
+            : []),
         ]}
       />
     </span>

@@ -30,9 +30,10 @@ export type TimeEntryFormProps = {
   hoursLeft: number;
   durationLabel: string | false;
   maxDurationInHours: number;
-  submitting: boolean;
+  isSaving: boolean;
+  isMutating: boolean;
   submitError?: string | null;
-  editBaseline?: { duration: number; comment: string } | null;
+  editBaseline?: { duration: number; comment: string; date: string } | null;
   onSave: () => void;
   onCommentKeyDown: (e: KeyboardEvent<Element>) => void;
   onCommentPointerDown?: (e: PointerEvent<HTMLElement>) => void;

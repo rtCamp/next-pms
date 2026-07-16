@@ -3,7 +3,7 @@
  */
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Button, Dialog, Select, useToasts } from "@rtcamp/frappe-ui-react";
-import { useForm, useStore } from "@tanstack/react-form";
+import { revalidateLogic, useForm, useStore } from "@tanstack/react-form";
 import { format, parseISO } from "date-fns";
 import {
   FrappeError,
@@ -50,7 +50,7 @@ function EditScheduleModal({
   const [selectionAnchor, setSelectionAnchor] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [applyMode, setApplyMode] =
-    useState<EditScheduleApplyMode>("this_and_future");
+    useState<EditScheduleApplyMode>("only_this");
 
   const safeValues = useMemo(
     () =>
@@ -118,13 +118,6 @@ function EditScheduleModal({
     return `Repeats for ${seriesInfo.remainingWeeks} week${seriesInfo.remainingWeeks === 1 ? "" : "s"} till ${format(parseISO(seriesInfo.seriesEndDate), "MMM d")}`;
   }, [applyMode, isRecurringAllocation, seriesInfo]);
 
-  const summaryRepeatWeeks =
-    isRecurringAllocation &&
-    applyMode !== "only_this" &&
-    seriesInfo?.remainingWeeks
-      ? Math.max(0, seriesInfo.remainingWeeks - 1)
-      : 0;
-
   const days = useMemo(
     () => buildDays(fullRange.startDate, fullRange.endDate),
     [fullRange.endDate, fullRange.startDate],
@@ -159,6 +152,10 @@ function EditScheduleModal({
 
   const form = useForm({
     defaultValues: formDefaultValues,
+    validationLogic: revalidateLogic({
+      mode: "submit",
+      modeAfterSubmission: "change",
+    }),
     validators: {
       onChange: editScheduleFormSchema,
       onSubmit: editScheduleFormSchema,
@@ -274,6 +271,14 @@ function EditScheduleModal({
     schedulePayload.allocationHoursPerDay !==
       allocationContext?.allocationHoursPerDay;
 
+  const validateScheduleChange = useCallback(
+    () =>
+      scheduleDraft.hasSelection && !hasScheduleChange
+        ? "Update hours first."
+        : undefined,
+    [hasScheduleChange, scheduleDraft.hasSelection],
+  );
+
   useEffect(() => {
     if (!open) {
       return;
@@ -281,14 +286,14 @@ function EditScheduleModal({
 
     form.reset(formDefaultValues);
     setSelectionAnchor(null);
-    setApplyMode("this_and_future");
+    setApplyMode("only_this");
   }, [form, formDefaultValues, open]);
 
   const closeModal = useCallback(() => {
     onOpenChange(false);
     form.reset(formDefaultValues);
     setSelectionAnchor(null);
-    setApplyMode("this_and_future");
+    setApplyMode("only_this");
   }, [form, formDefaultValues, onOpenChange]);
 
   return (
@@ -310,7 +315,7 @@ function EditScheduleModal({
         size: "sm",
       }}
       actions={
-        <div className="flex w-full items-center justify-end gap-2">
+        <div className="flex items-center justify-end w-full gap-2">
           <Button variant="ghost" label="Cancel" onClick={closeModal} />
           <form.Subscribe selector={(state) => state.isSubmitting}>
             {(isSubmitting) => (
@@ -319,7 +324,7 @@ function EditScheduleModal({
                 label="Save changes"
                 onClick={() => form.handleSubmit()}
                 loading={submitting}
-                disabled={!hasScheduleChange || isSubmitting || submitting}
+                disabled={isSubmitting || submitting}
               />
             )}
           </form.Subscribe>
@@ -366,42 +371,45 @@ function EditScheduleModal({
         </form.Field>
 
         <div className="flex w-full items-start gap-2 pb-1.5">
-          <form.Field name="schedule.input.value">
+          <form.Field
+            name="schedule.input.value"
+            validators={{
+              onDynamic: validateScheduleChange,
+            }}
+          >
             {(field) => (
-              <ScheduleHoursPerDayField
-                value={scheduleDraft.hoursPerDay}
-                disabled={!scheduleDraft.hasSelection}
-                onChange={(value) => {
-                  form.setFieldValue("schedule.input.mode", "hoursPerDay");
-                  field.handleChange(value);
-                }}
-                error={
-                  schedule.input.mode === "hoursPerDay"
-                    ? getErrorMessage(field.state.meta.errors[0])
-                    : undefined
-                }
-              />
-            )}
-          </form.Field>
-          <form.Field name="schedule.input.value">
-            {(field) => (
-              <ScheduleTotalHoursField
-                value={
-                  scheduleDraft.hasSelection
-                    ? toDisplayHours(scheduleDraft.totalHours)
-                    : ""
-                }
-                disabled={!scheduleDraft.hasSelection}
-                onChange={(value) => {
-                  form.setFieldValue("schedule.input.mode", "totalHours");
-                  field.handleChange(value);
-                }}
-                error={
-                  schedule.input.mode === "totalHours"
-                    ? getErrorMessage(field.state.meta.errors[0])
-                    : undefined
-                }
-              />
+              <>
+                <ScheduleHoursPerDayField
+                  value={scheduleDraft.hoursPerDay}
+                  disabled={!scheduleDraft.hasSelection}
+                  onChange={(value) => {
+                    form.setFieldValue("schedule.input.mode", "hoursPerDay");
+                    field.handleChange(value);
+                  }}
+                  error={
+                    schedule.input.mode === "hoursPerDay"
+                      ? getErrorMessage(field.state.meta.errors[0])
+                      : undefined
+                  }
+                />
+                <ScheduleTotalHoursField
+                  value={
+                    scheduleDraft.hasSelection
+                      ? toDisplayHours(scheduleDraft.totalHours)
+                      : ""
+                  }
+                  disabled={!scheduleDraft.hasSelection}
+                  onChange={(value) => {
+                    form.setFieldValue("schedule.input.mode", "totalHours");
+                    field.handleChange(value);
+                  }}
+                  error={
+                    schedule.input.mode === "totalHours"
+                      ? getErrorMessage(field.state.meta.errors[0])
+                      : undefined
+                  }
+                />
+              </>
             )}
           </form.Field>
         </div>
@@ -437,7 +445,7 @@ function EditScheduleModal({
           </label>
           <ScheduleSummaryTable
             rows={scheduleDraft.previewRows}
-            repeatWeeks={summaryRepeatWeeks}
+            variant={applyMode === "this_and_future" ? "day" : "date"}
           />
         </div>
       </div>

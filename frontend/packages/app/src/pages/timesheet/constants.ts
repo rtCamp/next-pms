@@ -135,7 +135,13 @@ export const teamTimesheetFilters: FilterField[] = [
     name: "employee",
     label: "Member",
     type: "link",
-    link: { doctype: "Employee", labelField: "employee_name" },
+    link: {
+      doctype: "Employee",
+      labelField: "employee_name",
+      customMethod: {
+        method: "next_pms.timesheet.api.employee.get_employee_list",
+      },
+    },
     operators: [
       { label: "Equals", value: "=" },
       { label: "Not Equals", value: "!=" },
@@ -194,7 +200,13 @@ export const projectTimesheetFilters: FilterField[] = [
     name: "employee",
     label: "Member",
     type: "link",
-    link: { doctype: "Employee", labelField: "employee_name" },
+    link: {
+      doctype: "Employee",
+      labelField: "employee_name",
+      customMethod: {
+        method: "next_pms.timesheet.api.employee.get_employee_list",
+      },
+    },
     operators: [
       { label: "Equals", value: "=" },
       { label: "Not Equals", value: "!=" },
