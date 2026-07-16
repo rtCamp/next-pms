@@ -127,9 +127,10 @@ def send_review_reminders():
 
     title = _("Timesheets to review")
     for reviewer, entry in by_reviewer.items():
-        label = _("You have {0} timesheets to review between {1} and {2}").format(
-            entry["count"],
-            formatdate(entry["start_date"], "dd/mm/yyyy"),
-            formatdate(entry["end_date"], "dd/mm/yyyy"),
-        )
+        start = formatdate(entry["start_date"], "dd/mm/yyyy")
+        end = formatdate(entry["end_date"], "dd/mm/yyyy")
+        if entry["count"] == 1:
+            label = _("You have 1 timesheet to review between {0} and {1}").format(start, end)
+        else:
+            label = _("You have {0} timesheets to review between {1} and {2}").format(entry["count"], start, end)
         create_notification(reviewer, title, label, "Timesheet", entry["timesheet"])

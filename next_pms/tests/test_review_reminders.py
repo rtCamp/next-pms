@@ -54,8 +54,8 @@ class TestSendReviewReminders(IntegrationTestCase):
         frappe.clear_cache()
 
     @classmethod
-    def _make_pending_timesheet(cls, employee, weekly_status):
-        from_time = get_datetime(TIMESHEET_DATE)
+    def _make_pending_timesheet(cls, employee, weekly_status, date=TIMESHEET_DATE):
+        from_time = get_datetime(date)
         timesheet = frappe.get_doc(
             {
                 "doctype": "Timesheet",
@@ -114,6 +114,28 @@ class TestSendReviewReminders(IntegrationTestCase):
 
         self.assertEqual(len(notifications), 1)
         self.assertEqual(notifications[0].linked_document, self.active_timesheet)
-        self.assertIn("1 timesheets", notifications[0].label)
+        self.assertIn("1 timesheet to review", notifications[0].label)
         self.assertNotEqual(notifications[0].linked_document, self.left_timesheet)
         self.assertNotEqual(notifications[0].linked_document, self.not_submitted_timesheet)
+
+    def test_label_pluralizes_for_multiple_timesheets(self):
+        self._delete_manager_notifications()
+
+        extra_timesheet = self._make_pending_timesheet(
+            self.active_employee, weekly_status="Approval Pending", date="2026-10-12"
+        )
+        try:
+            send_review_reminders()
+            # create_notification uses deferred_insert; flush so rows land in the DB.
+            save_to_db()
+
+            notifications = frappe.get_all(
+                "NextPMS Notifications",
+                filters={"user": MANAGER_USER, "title": "Timesheets to review"},
+                fields=["label"],
+            )
+
+            self.assertEqual(len(notifications), 1)
+            self.assertIn("2 timesheets to review", notifications[0].label)
+        finally:
+            frappe.delete_doc("Timesheet", extra_timesheet, force=True, ignore_permissions=True)
