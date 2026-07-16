@@ -186,14 +186,22 @@ def filter_employees(
         employee_ids.extend(ids)
 
     if project and len(project) > 0:
-        has_membership_filter = True
-        project_employee = get_all(
-            "DocShare",
-            filters={"share_doctype": "Project", "share_name": ["IN", project]},
-            pluck="user",
+        is_shared_with_everyone = bool(
+            get_all(
+                "DocShare",
+                filters={"share_doctype": "Project", "share_name": ["in", project], "everyone": 1},
+                limit=1,
+            )
         )
-        ids = [get_value("Employee", {"user_id": employee}) for employee in project_employee]
-        employee_ids.extend(ids)
+        if not is_shared_with_everyone:
+            has_membership_filter = True
+            project_employee = get_all(
+                "DocShare",
+                filters={"share_doctype": "Project", "share_name": ["in", project], "everyone": 0},
+                pluck="user",
+            )
+            ids = [get_value("Employee", {"user_id": employee}) for employee in project_employee]
+            employee_ids.extend(ids)
 
     if user_group and len(user_group) > 0:
         has_membership_filter = True

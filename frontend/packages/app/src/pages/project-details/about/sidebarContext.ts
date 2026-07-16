@@ -30,6 +30,7 @@ export interface SidebarContextProps {
   currentMemberUserIds: string[];
   currentContactIds: string[];
   memberRoleByUserId: Record<string, string[]>;
+  isSharedWithEveryone: boolean;
 
   addMember: (userId: string) => Promise<void>;
   removeMember: (userId: string) => Promise<void>;
@@ -53,6 +54,7 @@ export const DEFAULT_SIDEBAR: ProjectSidebar = {
   members: [],
   customers: [],
   billing_team: [],
+  is_shared_with_everyone: false,
 };
 
 const noop = () => {};
@@ -73,6 +75,7 @@ export const SidebarContext = createContext<SidebarContextProps>({
   currentMemberUserIds: [],
   currentContactIds: [],
   memberRoleByUserId: {},
+  isSharedWithEveryone: false,
 
   addMember: asyncNoop,
   removeMember: asyncNoop,

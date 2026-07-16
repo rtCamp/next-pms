@@ -1020,4 +1020,10 @@ def get_project_sidebar(project: str):
         ),
         "customers": _get_project_customers(project_doc),
         "billing_team": _get_project_billing_team(project),
+        "is_shared_with_everyone": bool(
+            frappe.db.exists(
+                "DocShare",
+                {"share_doctype": "Project", "share_name": project, "everyone": 1},
+            )
+        ),
     }
