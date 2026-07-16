@@ -11,6 +11,7 @@ import ReactLazyPreload from "@/lib/lazy-preload";
 import type { RouteConfig, RouteKey } from "@/types";
 import LayoutWithSidebar from "./layout";
 import { useUser } from "./providers/user";
+import { ViewsProvider } from "./providers/views/provider";
 import { Role } from "./types";
 /**
  * Lazy load components used outside the route config (parameterized and
@@ -209,7 +210,11 @@ const AuthenticatedRoute = () => {
   }
 
   if (!isUserLoading && currentUser && currentUser !== "Guest") {
-    return <Outlet />;
+    return (
+      <ViewsProvider>
+        <Outlet />
+      </ViewsProvider>
+    );
   }
 
   return null;
