@@ -57,6 +57,11 @@ function AddAllocationModal({
   const [employeeSearch, setEmployeeSearch] = useState("");
   const [projectSearch, setProjectSearch] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [employeeSelectionCache, setEmployeeSelectionCache] = useState<{
+    id: string;
+    label: string;
+    image?: string;
+  } | null>(null);
 
   const isRecurringEdit =
     variant === "edit" && Boolean(initialValues?.recurrenceId);
@@ -198,13 +203,18 @@ function AddAllocationModal({
       }
     : null;
 
+  const cachedEmployeeSelection =
+    employeeSelectionCache?.id === employeeId ? employeeSelectionCache : null;
+
   const selectedEmployeeOption = employeeId
     ? {
         label:
-          employeeId === initialValues?.employeeId
+          cachedEmployeeSelection?.label ??
+          (employeeId === initialValues?.employeeId
             ? initialValues.employeeLabel || employeeId
-            : employeeId,
+            : employeeId),
         value: employeeId,
+        image: cachedEmployeeSelection?.image,
       }
     : null;
 
@@ -227,6 +237,34 @@ function AddAllocationModal({
         ),
       }),
     });
+
+  // Remembers the selected employee's name/avatar so they still show once the
+  // employee is filtered out of the list after switching the project.
+  useEffect(() => {
+    if (!employeeId) {
+      return;
+    }
+
+    const matchedOption = employeeOptions.find(
+      (option) => option.value === employeeId,
+    );
+
+    if (!matchedOption) {
+      return;
+    }
+
+    setEmployeeSelectionCache((previous) =>
+      previous?.id === employeeId &&
+      previous.label === matchedOption.label &&
+      previous.image === matchedOption.image
+        ? previous
+        : {
+            id: employeeId,
+            label: matchedOption.label,
+            image: matchedOption.image,
+          },
+    );
+  }, [employeeId, employeeOptions]);
 
   const { options: projectOptions, isLoading: isProjectLookupLoading } =
     useProjectLookup({
@@ -346,6 +384,7 @@ function AddAllocationModal({
   useEffect(() => {
     setEmployeeSearch("");
     setProjectSearch("");
+    setEmployeeSelectionCache(null);
   }, [open]);
 
   const totalHours = computeTotalHours({
