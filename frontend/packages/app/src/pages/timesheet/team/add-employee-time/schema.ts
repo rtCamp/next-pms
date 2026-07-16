@@ -14,12 +14,15 @@ export const addTimeFormSchema = z.object({
     })
     .trim()
     .min(1, { message: "Select Project" }),
+  projectLabel: z.string(),
   task: z
     .string({
       required_error: "Select Task",
     })
     .trim()
     .min(1, { message: "Select Task" }),
+  taskLabel: z.string(),
+  taskStatus: z.string(),
   date: z
     .string({
       required_error: "Select Date",
