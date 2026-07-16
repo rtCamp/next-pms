@@ -25,9 +25,9 @@ import { FrappeError, useFrappePostCall } from "frappe-react-sdk";
 /**
  * Internal Dependencies
  */
+import { FALLBACK_DAILY_WORKING_HOURS } from "@/lib/constant";
 import { parseFrappeErrorMsg } from "@/lib/utils";
 import { useUnsavedChangesSource } from "@/pages/allocations/unsavedChanges/useUnsavedChanges";
-import { FALLBACK_DAILY_WORKING_HOURS } from "@/pages/timesheet/constants";
 import { TaskDataItemProps } from "@/types/timesheet";
 import { useInlineTimeEntryForm } from "./form";
 import { TimeEntryForm } from "./timeEntryForm";

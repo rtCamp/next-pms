@@ -6,7 +6,7 @@ import { useFrappeGetCall } from "frappe-react-sdk";
 /**
  * Internal Dependencies.
  */
-import { FALLBACK_DAILY_WORKING_HOURS } from "../constants";
+import { FALLBACK_DAILY_WORKING_HOURS } from "@/lib/constant";
 
 type RemainingHoursResponse = {
   message: {
