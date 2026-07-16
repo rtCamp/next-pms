@@ -81,7 +81,13 @@ export const convertTimesheetToEntries = (response: TimesheetApiResponse) => {
   const weeklyData = response?.message?.data;
 
   if (!weeklyData) {
-    return { dateRange: "", totalHours: 0, status: "", entries };
+    return {
+      dateRange: "",
+      totalHours: 0,
+      status: "",
+      entries,
+      dailyWorkingHours: 0,
+    };
   }
 
   const thisWeek = Object.values(weeklyData)[0];
@@ -145,6 +151,7 @@ export const convertTimesheetToEntries = (response: TimesheetApiResponse) => {
     totalHours: Object.values(weeklyData)[0].total_hours + displayedLeaveHours,
     status: thisWeek.status,
     entries,
+    dailyWorkingHours,
   };
 };
 /**

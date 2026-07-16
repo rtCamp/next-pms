@@ -27,6 +27,7 @@ import { FrappeError, useFrappePostCall } from "frappe-react-sdk";
  */
 import { parseFrappeErrorMsg } from "@/lib/utils";
 import { useUnsavedChangesSource } from "@/pages/allocations/unsavedChanges/useUnsavedChanges";
+import { FALLBACK_DAILY_WORKING_HOURS } from "@/pages/timesheet/constants";
 import { TaskDataItemProps } from "@/types/timesheet";
 import { useInlineTimeEntryForm } from "./form";
 import { TimeEntryForm } from "./timeEntryForm";
@@ -61,7 +62,7 @@ export const InlineTimeEntry = ({
   date,
   taskKey,
   employee,
-  dailyWorkingHours = 8,
+  dailyWorkingHours = FALLBACK_DAILY_WORKING_HOURS,
   totalUsedHoursInDay,
   onSubmitSuccess,
   onEngagedChange,
