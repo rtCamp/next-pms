@@ -1,4 +1,9 @@
+/**
+ * External dependencies.
+ */
 import { FilterField } from "@rtcamp/frappe-ui-react";
+
+export const FALLBACK_DAILY_WORKING_HOURS = 8;
 
 const projectOptions = [
   { label: "Atlas UI Stabilization", value: "atlas-ui" },

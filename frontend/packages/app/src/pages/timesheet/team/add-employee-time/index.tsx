@@ -16,7 +16,11 @@ import {
 import { Calendar, Folder } from "@rtcamp/frappe-ui-react/icons";
 import { useForm } from "@tanstack/react-form";
 import { useSelector } from "@tanstack/react-store";
-import { FrappeError, useFrappePostCall } from "frappe-react-sdk";
+import {
+  FrappeError,
+  useFrappeGetCall,
+  useFrappePostCall,
+} from "frappe-react-sdk";
 
 /**
  * Internal Dependencies
@@ -30,6 +34,7 @@ import { useTaskLookup, type TaskLookupOption } from "@/hooks/useTaskLookup";
 import { parseFrappeErrorMsg } from "@/lib/utils";
 import { addTimeFormSchema, type addTimeFormValues } from "./schema";
 import type { AddTeamTimeProps } from "./type";
+import { FALLBACK_DAILY_WORKING_HOURS } from "../../constants";
 
 const AddEmployeeTime = ({
   initialDate,
@@ -126,6 +131,11 @@ const AddEmployeeTime = ({
     form.store,
     (state) => state.values.taskStatus,
   );
+  const selectedDate = useSelector(form.store, (state) => state.values.date);
+  const selectedEmployeeId = useSelector(
+    form.store,
+    (state) => state.values.employeeId,
+  );
   const selectedProjectOption: ProjectLookupOption | null = selectedProject
     ? {
         label: selectedProjectLabel || selectedProject,
@@ -147,6 +157,13 @@ const AddEmployeeTime = ({
         status: selectedTaskStatus,
       }
     : null;
+
+  const { data: remainingHours, isLoading: isRemainingHoursLoading } =
+    useFrappeGetCall(
+      "next_pms.timesheet.api.timesheet.get_remaining_hour_for_employee",
+      { employee: selectedEmployeeId, date: selectedDate },
+      open && selectedEmployeeId && selectedDate ? undefined : null,
+    );
 
   useEffect(() => {
     if (!open) {
@@ -399,11 +416,21 @@ const AddEmployeeTime = ({
             name="duration"
             children={(field) => {
               return (
-                <div className="flex-1 flex flex-col gap-2 w-full">
+                <div className="flex flex-col flex-1 w-full gap-2">
                   <DurationInput
                     label="Duration"
                     size="md"
                     snap="smooth"
+                    maxDuration={
+                      remainingHours?.message?.working_hour ??
+                      FALLBACK_DAILY_WORKING_HOURS
+                    }
+                    hoursLeft={
+                      remainingHours?.message?.remaining_hours ??
+                      FALLBACK_DAILY_WORKING_HOURS
+                    }
+                    loading={isRemainingHoursLoading}
+                    disabled={isRemainingHoursLoading}
                     value={field.state.value}
                     onChange={(val) => field.handleChange(val)}
                   />

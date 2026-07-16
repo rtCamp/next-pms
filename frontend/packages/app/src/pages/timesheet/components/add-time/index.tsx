@@ -18,7 +18,11 @@ import {
 import { Calendar, Folder } from "@rtcamp/frappe-ui-react/icons";
 import { useForm } from "@tanstack/react-form";
 import { useSelector } from "@tanstack/react-store";
-import { FrappeError, useFrappePostCall } from "frappe-react-sdk";
+import {
+  FrappeError,
+  useFrappeGetCall,
+  useFrappePostCall,
+} from "frappe-react-sdk";
 
 /**
  * Internal Dependencies
@@ -33,6 +37,7 @@ import { useUser } from "@/providers/user";
 import CalendarEvents from "./calendarEvents";
 import { addTimeFormSchema, type addTimeFormValues } from "./schema";
 import type { AddTimeProps, SelectedCalendarEvent } from "./type";
+import { FALLBACK_DAILY_WORKING_HOURS } from "../../constants";
 
 const COMMENT_EDITOR_STARTERKIT_OPTIONS: NonNullable<
   TextEditorProps["starterkitOptions"]
@@ -162,6 +167,13 @@ const AddTime = ({
         status: selectedTaskStatus,
       }
     : null;
+
+  const { data: remainingHours, isValidating: isRemainingHoursLoading } =
+    useFrappeGetCall(
+      "next_pms.timesheet.api.timesheet.get_remaining_hour_for_employee",
+      { employee: employeeId, date: selectedDate },
+      open && employeeId && selectedDate ? undefined : null,
+    );
 
   useEffect(() => {
     if (!open) {
@@ -391,11 +403,21 @@ const AddTime = ({
             name="duration"
             children={(field) => {
               return (
-                <div className="flex-1 flex flex-col gap-2 w-full">
+                <div className="flex flex-col flex-1 w-full gap-2">
                   <DurationInput
                     label="Duration"
                     size="md"
                     snap="smooth"
+                    maxDuration={
+                      remainingHours?.message?.working_hour ??
+                      FALLBACK_DAILY_WORKING_HOURS
+                    }
+                    hoursLeft={
+                      remainingHours?.message?.remaining_hours ??
+                      FALLBACK_DAILY_WORKING_HOURS
+                    }
+                    loading={isRemainingHoursLoading}
+                    disabled={isRemainingHoursLoading}
                     value={field.state.value}
                     onChange={(val) => field.handleChange(val)}
                   />
