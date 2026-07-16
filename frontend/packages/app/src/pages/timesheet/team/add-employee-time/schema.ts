@@ -14,15 +14,15 @@ export const addTimeFormSchema = z.object({
     })
     .trim()
     .min(1, { message: "Select Project" }),
-  projectLabel: z.string(),
+  projectLabel: z.string().optional().default(""),
   task: z
     .string({
       required_error: "Select Task",
     })
     .trim()
     .min(1, { message: "Select Task" }),
-  taskLabel: z.string(),
-  taskStatus: z.string(),
+  taskLabel: z.string().optional().default(""),
+  taskStatus: z.string().optional().default(""),
   date: z
     .string({
       required_error: "Select Date",
@@ -44,4 +44,4 @@ export const addTimeFormSchema = z.object({
     }),
 });
 
-export type addTimeFormValues = z.infer<typeof addTimeFormSchema>;
+export type addTimeFormValues = z.input<typeof addTimeFormSchema>;

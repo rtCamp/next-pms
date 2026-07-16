@@ -28,7 +28,7 @@ import {
 } from "@/hooks/useProjectLookup";
 import { useTaskLookup, type TaskLookupOption } from "@/hooks/useTaskLookup";
 import { parseFrappeErrorMsg } from "@/lib/utils";
-import { addTimeFormSchema } from "./schema";
+import { addTimeFormSchema, type addTimeFormValues } from "./schema";
 import type { AddTeamTimeProps } from "./type";
 
 const AddEmployeeTime = ({
@@ -56,14 +56,14 @@ const AddEmployeeTime = ({
     defaultValues: {
       employeeId: employeeId,
       project: project,
-      projectLabel: projectLabel || project,
+      projectLabel: projectLabel || project || undefined,
       task: task,
-      taskLabel: taskLabel || task,
-      taskStatus: "",
+      taskLabel: taskLabel || task || undefined,
+      taskStatus: undefined,
       date: initialDate,
       duration: 0,
       comment: "",
-    },
+    } as addTimeFormValues,
     validators: {
       onSubmit: addTimeFormSchema,
     },
@@ -156,10 +156,10 @@ const AddEmployeeTime = ({
     form.reset({
       employeeId,
       project,
-      projectLabel: projectLabel || project,
+      projectLabel: projectLabel || project || undefined,
       task,
-      taskLabel: taskLabel || task,
-      taskStatus: "",
+      taskLabel: taskLabel || task || undefined,
+      taskStatus: undefined,
       date: initialDate,
       duration: 0,
       comment: "",
@@ -283,6 +283,8 @@ const AddEmployeeTime = ({
                   onSearchChange={setProjectSearch}
                   onChange={(val, option) => {
                     const nextProject = val ?? "";
+                    const nextProjectOption =
+                      option as ProjectLookupOption | null;
                     if (nextProject !== field.state.value) {
                       form.setFieldValue("task", "");
                       form.setFieldValue("taskLabel", "");
@@ -291,9 +293,7 @@ const AddEmployeeTime = ({
                     }
                     form.setFieldValue(
                       "projectLabel",
-                      option && typeof option === "object"
-                        ? option.label
-                        : nextProject,
+                      nextProjectOption?.label ?? nextProject,
                     );
                     field.handleChange(nextProject);
                   }}
@@ -325,10 +325,7 @@ const AddEmployeeTime = ({
                   onChange={(val, option) => {
                     const nextTask = val ?? "";
                     field.handleChange(nextTask);
-                    const nextTaskOption =
-                      option && typeof option === "object"
-                        ? (option as TaskLookupOption)
-                        : null;
+                    const nextTaskOption = option as TaskLookupOption | null;
                     form.setFieldValue(
                       "taskLabel",
                       nextTaskOption?.label ?? nextTask,
