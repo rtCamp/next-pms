@@ -18,11 +18,7 @@ import {
 import { Calendar, Folder } from "@rtcamp/frappe-ui-react/icons";
 import { useForm } from "@tanstack/react-form";
 import { useSelector } from "@tanstack/react-store";
-import {
-  FrappeError,
-  useFrappeGetCall,
-  useFrappePostCall,
-} from "frappe-react-sdk";
+import { FrappeError, useFrappePostCall } from "frappe-react-sdk";
 
 /**
  * Internal Dependencies
@@ -37,7 +33,7 @@ import { useUser } from "@/providers/user";
 import CalendarEvents from "./calendarEvents";
 import { addTimeFormSchema, type addTimeFormValues } from "./schema";
 import type { AddTimeProps, SelectedCalendarEvent } from "./type";
-import { FALLBACK_DAILY_WORKING_HOURS } from "../../constants";
+import { useRemainingHours } from "../../hooks/useRemainingHours";
 
 const COMMENT_EDITOR_STARTERKIT_OPTIONS: NonNullable<
   TextEditorProps["starterkitOptions"]
@@ -168,12 +164,15 @@ const AddTime = ({
       }
     : null;
 
-  const { data: remainingHours, isValidating: isRemainingHoursLoading } =
-    useFrappeGetCall(
-      "next_pms.timesheet.api.timesheet.get_remaining_hour_for_employee",
-      { employee: employeeId, date: selectedDate },
-      open && employeeId && selectedDate ? undefined : null,
-    );
+  const {
+    maxDuration,
+    hoursLeft,
+    isLoading: isRemainingHoursLoading,
+  } = useRemainingHours({
+    employee: employeeId,
+    date: selectedDate,
+    enabled: open,
+  });
 
   useEffect(() => {
     if (!open) {
@@ -408,14 +407,8 @@ const AddTime = ({
                     label="Duration"
                     size="md"
                     snap="smooth"
-                    maxDuration={
-                      remainingHours?.message?.working_hour ??
-                      FALLBACK_DAILY_WORKING_HOURS
-                    }
-                    hoursLeft={
-                      remainingHours?.message?.remaining_hours ??
-                      FALLBACK_DAILY_WORKING_HOURS
-                    }
+                    maxDuration={maxDuration}
+                    hoursLeft={hoursLeft}
                     loading={isRemainingHoursLoading}
                     disabled={isRemainingHoursLoading}
                     value={field.state.value}
