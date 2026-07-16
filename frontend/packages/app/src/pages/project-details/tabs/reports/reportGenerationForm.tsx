@@ -68,17 +68,37 @@ export function ReportGenerationForm() {
     }
   });
 
+  // Safety net: poll every 30s while any report is Generating (in case WebSocket event is missed)
+  useEffect(() => {
+    if (!isReportGenerating) return;
+    const interval = setInterval(() => mutate(), 30000);
+    return () => clearInterval(interval);
+  }, [isReportGenerating, mutate]);
+
   const prevReportStatusesRef = useRef<Record<string, string>>({});
+  const toastedRunIdsRef = useRef<Record<string, boolean>>({});
 
   // Compare report history updates to trigger completion/failure toasts
   useEffect(() => {
     reports.forEach((report) => {
       if (!report.run_id) return;
       const prevStatus = prevReportStatusesRef.current[report.run_id];
+
       if (prevStatus === "Generating" && report.status === "Done") {
-        toast.success("Project Report is Ready! ✅");
+        if (!toastedRunIdsRef.current[report.run_id]) {
+          toastedRunIdsRef.current[report.run_id] = true;
+          toast.success("Project Report is Ready! ✅");
+        }
       } else if (prevStatus === "Generating" && report.status === "Failed") {
-        toast.error("Report generation failed.");
+        if (!toastedRunIdsRef.current[report.run_id]) {
+          toastedRunIdsRef.current[report.run_id] = true;
+          toast.error("Report generation failed.");
+        }
+      } else if (prevStatus === "Generating" && report.status === "Completed") {
+        if (!toastedRunIdsRef.current[report.run_id]) {
+          toastedRunIdsRef.current[report.run_id] = true;
+          toast.error("Generation completed — Resync to get the document URL.");
+        }
       }
     });
 
