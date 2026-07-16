@@ -20,7 +20,10 @@ const DOCTYPE_ICON_MAP: Record<string, ComponentType<{ size?: number }>> = {
 const NotificationIcon = ({ linkedDoctype }: { linkedDoctype: string }) => {
   const Icon = DOCTYPE_ICON_MAP[linkedDoctype] ?? Check;
   return (
-    <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-surface-gray-2">
+    <div
+      aria-hidden
+      className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-surface-gray-2"
+    >
       <Icon size={18} />
     </div>
   );
