@@ -14,17 +14,21 @@ import {
   DurationInput,
 } from "@rtcamp/frappe-ui-react";
 import { Calendar, Folder } from "@rtcamp/frappe-ui-react/icons";
-import { useForm, useStore } from "@tanstack/react-form";
+import { useForm } from "@tanstack/react-form";
+import { useSelector } from "@tanstack/react-store";
 import { FrappeError, useFrappePostCall } from "frappe-react-sdk";
 
 /**
  * Internal Dependencies
  */
 import { useEmployeeLookup } from "@/hooks/useEmployeeLookup";
-import { useProjectLookup } from "@/hooks/useProjectLookup";
-import { useTaskLookup } from "@/hooks/useTaskLookup";
+import {
+  useProjectLookup,
+  type ProjectLookupOption,
+} from "@/hooks/useProjectLookup";
+import { useTaskLookup, type TaskLookupOption } from "@/hooks/useTaskLookup";
 import { parseFrappeErrorMsg } from "@/lib/utils";
-import { addTimeFormSchema } from "./schema";
+import { addTimeFormSchema, type addTimeFormValues } from "./schema";
 import type { AddTeamTimeProps } from "./type";
 
 const AddEmployeeTime = ({
@@ -52,11 +56,14 @@ const AddEmployeeTime = ({
     defaultValues: {
       employeeId: employeeId,
       project: project,
+      projectLabel: projectLabel || project || undefined,
       task: task,
+      taskLabel: taskLabel || task || undefined,
+      taskStatus: undefined,
       date: initialDate,
       duration: 0,
       comment: "",
-    },
+    } as addTimeFormValues,
     validators: {
       onSubmit: addTimeFormSchema,
     },
@@ -102,12 +109,27 @@ const AddEmployeeTime = ({
     [closeModal, onOpenChange],
   );
 
-  const selectedProject = useStore(form.store, (state) => state.values.project);
-  const selectedTask = useStore(form.store, (state) => state.values.task);
-  const selectedProjectOption = project
+  const selectedProject = useSelector(
+    form.store,
+    (state) => state.values.project,
+  );
+  const selectedProjectLabel = useSelector(
+    form.store,
+    (state) => state.values.projectLabel,
+  );
+  const selectedTask = useSelector(form.store, (state) => state.values.task);
+  const selectedTaskLabel = useSelector(
+    form.store,
+    (state) => state.values.taskLabel,
+  );
+  const selectedTaskStatus = useSelector(
+    form.store,
+    (state) => state.values.taskStatus,
+  );
+  const selectedProjectOption: ProjectLookupOption | null = selectedProject
     ? {
-        label: projectLabel || project,
-        value: project,
+        label: selectedProjectLabel || selectedProject,
+        value: selectedProject,
       }
     : null;
   const selectedEmployeeOption = employeeId
@@ -116,15 +138,15 @@ const AddEmployeeTime = ({
         value: employeeId,
       }
     : null;
-  const selectedTaskOption =
-    task && selectedTask === task
-      ? {
-          label: taskLabel || task,
-          value: task,
-          projectId: project,
-          projectName: projectLabel || project,
-        }
-      : null;
+  const selectedTaskOption: TaskLookupOption | null = selectedTask
+    ? {
+        label: selectedTaskLabel || selectedTask,
+        value: selectedTask,
+        projectId: selectedProject || project,
+        projectName: selectedProjectLabel || projectLabel || project,
+        status: selectedTaskStatus,
+      }
+    : null;
 
   useEffect(() => {
     if (!open) {
@@ -134,12 +156,24 @@ const AddEmployeeTime = ({
     form.reset({
       employeeId,
       project,
+      projectLabel: projectLabel || project || undefined,
       task,
+      taskLabel: taskLabel || task || undefined,
+      taskStatus: undefined,
       date: initialDate,
       duration: 0,
       comment: "",
     });
-  }, [employeeId, form, initialDate, open, project, task]);
+  }, [
+    employeeId,
+    form,
+    initialDate,
+    open,
+    project,
+    projectLabel,
+    task,
+    taskLabel,
+  ]);
 
   const { options: employeeOptions, isLoading: isEmployeeLookupLoading } =
     useEmployeeLookup({
@@ -247,12 +281,20 @@ const AddEmployeeTime = ({
                   value={field.state.value}
                   openOnFocus
                   onSearchChange={setProjectSearch}
-                  onChange={(val) => {
-                    const nextProject = val as string;
+                  onChange={(val, option) => {
+                    const nextProject = val ?? "";
+                    const nextProjectOption =
+                      option as ProjectLookupOption | null;
                     if (nextProject !== field.state.value) {
                       form.setFieldValue("task", "");
+                      form.setFieldValue("taskLabel", "");
+                      form.setFieldValue("taskStatus", "");
                       setTaskSearch("");
                     }
+                    form.setFieldValue(
+                      "projectLabel",
+                      nextProjectOption?.label ?? nextProject,
+                    );
                     field.handleChange(nextProject);
                   }}
                 />
@@ -280,13 +322,24 @@ const AddEmployeeTime = ({
                   value={field.state.value}
                   openOnFocus
                   onSearchChange={setTaskSearch}
-                  onChange={(val) => {
-                    field.handleChange(val as string);
-                    const selectedTask = taskOptions.find(
-                      (task) => task.value === val,
+                  onChange={(val, option) => {
+                    const nextTask = val ?? "";
+                    field.handleChange(nextTask);
+                    const nextTaskOption = option as TaskLookupOption | null;
+                    form.setFieldValue(
+                      "taskLabel",
+                      nextTaskOption?.label ?? nextTask,
                     );
-                    if (selectedTask?.projectId) {
-                      form.setFieldValue("project", selectedTask.projectId);
+                    form.setFieldValue(
+                      "taskStatus",
+                      nextTaskOption?.status ?? "",
+                    );
+                    if (nextTaskOption?.projectId) {
+                      form.setFieldValue("project", nextTaskOption.projectId);
+                      form.setFieldValue(
+                        "projectLabel",
+                        nextTaskOption.projectName || nextTaskOption.projectId,
+                      );
                     }
                   }}
                 />
