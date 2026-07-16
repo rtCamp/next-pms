@@ -37,13 +37,14 @@ export function ProjectBoardField({
   );
 
   useEffect(() => {
-    if (options.length > 0) {
-      // Auto-select first board if value is empty or no longer in options
-      if (!value || !options.some((opt) => opt.value === value)) {
-        onChange(options[0].value);
-      }
-    } else {
+    if (options.length === 0) {
       onChange("");
+      return;
+    }
+
+    // Auto-select first board if value is empty or no longer in options
+    if (!value || !options.some((opt) => opt.value === value)) {
+      onChange(options[0].value);
     }
   }, [options, value, onChange]);
 

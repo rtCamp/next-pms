@@ -63,9 +63,8 @@ export function ReportGenerationForm() {
 
   // Listen for real-time PM report status updates from the backend to refresh project details
   useFrappeEventListener("pm_report_ready", (message) => {
-    if (message?.project === projectId) {
-      mutate();
-    }
+    if (message?.project !== projectId) return;
+    mutate();
   });
 
   // Safety net: poll every 30s while any report is Generating (in case WebSocket event is missed)
@@ -84,21 +83,22 @@ export function ReportGenerationForm() {
       if (!report.run_id) return;
       const prevStatus = prevReportStatusesRef.current[report.run_id];
 
-      if (prevStatus === "Generating" && report.status === "Done") {
-        if (!toastedRunIdsRef.current[report.run_id]) {
-          toastedRunIdsRef.current[report.run_id] = true;
-          toast.success("Project Report is Ready! ✅");
-        }
-      } else if (prevStatus === "Generating" && report.status === "Failed") {
-        if (!toastedRunIdsRef.current[report.run_id]) {
-          toastedRunIdsRef.current[report.run_id] = true;
-          toast.error("Report generation failed.");
-        }
-      } else if (prevStatus === "Generating" && report.status === "Completed") {
-        if (!toastedRunIdsRef.current[report.run_id]) {
-          toastedRunIdsRef.current[report.run_id] = true;
-          toast.error("Generation completed — Resync to get the document URL.");
-        }
+      if (
+        prevStatus !== "Generating" ||
+        toastedRunIdsRef.current[report.run_id]
+      ) {
+        return;
+      }
+
+      if (report.status === "Done") {
+        toastedRunIdsRef.current[report.run_id] = true;
+        toast.success("Project Report is Ready! ✅");
+      } else if (report.status === "Failed") {
+        toastedRunIdsRef.current[report.run_id] = true;
+        toast.error("Report generation failed.");
+      } else if (report.status === "Completed") {
+        toastedRunIdsRef.current[report.run_id] = true;
+        toast.error("Generation completed — Resync to get the document URL.");
       }
     });
 
@@ -161,9 +161,10 @@ export function ReportGenerationForm() {
   }, [driveLink, form]);
 
   useEffect(() => {
-    if (repositoryOptions.length > 0 && !form.state.values.githubRepository) {
-      form.setFieldValue("githubRepository", repositoryOptions[0].value);
+    if (repositoryOptions.length === 0 || form.state.values.githubRepository) {
+      return;
     }
+    form.setFieldValue("githubRepository", repositoryOptions[0].value);
   }, [repositoryOptions, form]);
 
   return (
