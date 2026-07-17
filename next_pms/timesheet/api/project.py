@@ -446,7 +446,6 @@ def get_project_timesheet_data(
         employees=employees,
         dates=project_context["dates"],
         parsed_filters=project_context["parsed_filters"],
-        search=search,
     )
 
     employee_data_map = {}
