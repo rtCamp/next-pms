@@ -508,6 +508,7 @@ class TeamEmployeeScope:
     employee_conditions: list
     status_filter: list | None
     search: str | None
+    reports_to: str | None
     has_filters: bool
     candidate_employee_ids: list[str] | None = None
 
@@ -573,9 +574,100 @@ def resolve_team_employee_scope(
         employee_conditions=employee_conditions,
         status_filter=status_filter,
         search=search,
+        reports_to=reports_to,
         has_filters=has_filters,
         candidate_employee_ids=candidate_employee_ids,
     )
+
+
+def get_team_week_participation(scope: TeamEmployeeScope, weeks: list) -> dict:
+    """Per-week distinct employees, and how many of them are pending approval.
+
+    One query for the whole range, bucketed into weeks in Python via
+    `get_first_day_of_week` so the week boundary matches the rest of the app rather
+    than a hand-rolled SQL date expression that would ignore System Settings.
+
+    Returns `{week_start: {"members": set, "pending": set}}`. Sets rather than counts
+    because API 2 intersects them with its own employee page, and a count cannot be
+    intersected.
+    """
+    if not weeks:
+        return {}
+
+    timesheet_filters = {
+        "start_date": [">=", weeks[0]["start_date"]],
+        "end_date": ["<=", weeks[-1]["end_date"]],
+        "docstatus": ["!=", 2],
+    }
+    if scope.candidate_employee_ids is not None:
+        timesheet_filters["employee"] = ["in", scope.candidate_employee_ids]
+
+    rows = get_all(
+        "Timesheet",
+        filters=timesheet_filters,
+        fields=["employee", "start_date", "custom_weekly_approval_status"],
+        distinct=True,
+        # Unordered on purpose: the result is folded into sets, and the default
+        # `creation` sort costs a filesort over the whole match set.
+        order_by=None,
+    )
+
+    participation = {week["start_date"]: {"members": set(), "pending": set()} for week in weeks}
+    for row in rows:
+        week_start = get_first_day_of_week(row.start_date)
+        bucket = participation.get(week_start)
+        if bucket is None:
+            continue
+        bucket["members"].add(row.employee)
+        if row.custom_weekly_approval_status == "Approval Pending":
+            bucket["pending"].add(row.employee)
+
+    return participation
+
+
+def resolve_team_members(scope: TeamEmployeeScope, weeks: list) -> dict:
+    """Resolve which employees qualify, per week, before any pagination happens.
+
+    This is the single source both team timesheet endpoints read: the week endpoint
+    turns these sets into counts, the data endpoint paginates one of them. Deriving
+    both from here is what stops the pending-approval badge from disagreeing with the
+    rows beneath it.
+
+    Resolving qualification up front is also what removes the O(total employees) scan:
+    membership used to be knowable only after a full payload had been built and
+    discarded, so a 20-row page walked the entire pool.
+
+    Returns `{"eligible_ids", "eligible_count", "members_by_week", "pending_by_week"}`.
+    """
+    eligible_employees, eligible_count = filter_employees(
+        page_length=0,
+        start=0,
+        reports_to=scope.reports_to,
+        ids=scope.candidate_employee_ids,
+        **employee_condition_kwargs(scope.employee_conditions),
+    )
+    eligible_ids = {employee.name for employee in eligible_employees}
+
+    participation = get_team_week_participation(scope, weeks)
+
+    members_by_week = {}
+    pending_by_week = {}
+    for week in weeks:
+        bucket = participation.get(week["start_date"], {"members": set(), "pending": set()})
+        # Without filters an employee belongs to every week whether or not they logged
+        # time - the page still shows them, with an empty row. With filters, membership
+        # means "matched the filter in this week".
+        members_by_week[week["start_date"]] = (
+            eligible_ids if not scope.has_filters else bucket["members"] & eligible_ids
+        )
+        pending_by_week[week["start_date"]] = bucket["pending"] & eligible_ids
+
+    return {
+        "eligible_ids": eligible_ids,
+        "eligible_count": eligible_count,
+        "members_by_week": members_by_week,
+        "pending_by_week": pending_by_week,
+    }
 
 
 def get_qualifying_project_ids(

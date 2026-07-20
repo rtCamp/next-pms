@@ -49,6 +49,13 @@ ALLOWED_FILTER_FIELDS = {
 
 FILTER_LOOKBACK_WEEKS = 12
 
+# Default members per page, matching EMPLOYEE_PAGE_LENGTH in the frontend.
+TEAM_TIMESHEET_PAGE_LENGTH = 20
+
+# Server-side ceiling on a caller-supplied page_length. A safety net rather than the
+# pagination mechanism, since has_more_members is authoritative.
+MAX_TEAM_TIMESHEET_PAGE_LENGTH = 100
+
 ALLOWED_TIMESHET_DETAIL_FIELDS = [
     "name",
     "from_time",
