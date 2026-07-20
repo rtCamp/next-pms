@@ -421,8 +421,11 @@ class TestTeamTimesheetDataFilters(_TeamTimesheetDataBase):
         # A name match doesn't narrow which of the employee's tasks are shown —
         # the full week detail (all tasks/hours) still renders, same as the
         # no-filter payload in TestTeamTimesheetDataReportsToScoped.
+        # R1 only has entries in W1 (W2 is empty, since search doesn't prune
+        # weeks) — select the populated week explicitly rather than relying on
+        # dict insertion order.
         r1_weeks = res["data"][self.r1]["timesheet_details"]
-        week1 = next(iter(r1_weeks.values()))
+        week1 = next(week for week in r1_weeks.values() if week["tasks"])
         self.assertEqual(week1["total_hours"], 5)
         self.assertIn(self.task_alpha, week1["tasks"])
         self.assertEqual(len(week1["tasks"][self.task_alpha]["data"]), 2)

@@ -50,6 +50,9 @@ class _ProjectTimesheetDataBase(IntegrationTestCase):
         cls.write_user = cls._make_user(WRITE_USER)
         frappe.get_doc("User", cls.write_user).add_roles("Timesheet Manager")
 
+        # Week start is a global default — capture the prior value so
+        # tearDownClass can restore it instead of leaking into other test modules.
+        cls._prior_first_day_of_week = frappe.db.get_default("first_day_of_the_week")
         frappe.db.set_default("first_day_of_the_week", "Monday")
         cls._ensure_company_holiday_list_assignment()
 
@@ -80,6 +83,14 @@ class _ProjectTimesheetDataBase(IntegrationTestCase):
         cls._set_week_status(cls.emp2, W2_MON, cls.project_beta, "Rejected")
 
         frappe.clear_cache()
+
+    @classmethod
+    def tearDownClass(cls):
+        if cls._prior_first_day_of_week:
+            frappe.db.set_default("first_day_of_the_week", cls._prior_first_day_of_week)
+        else:
+            frappe.defaults.clear_default("first_day_of_the_week")
+        super().tearDownClass()
 
     # -- fixture factories (mirrors test_team_timesheet_data.py) -------------
 
@@ -324,11 +335,13 @@ class TestProjectTimesheetDataSearch(_ProjectTimesheetDataBase):
     """search — matches Project name/id, not Task text (the behavioural change under test)."""
 
     def test_search_matches_full_project_name(self):
-        res = self._call(search=PROJECT_ALPHA_NAME)
+        # Scoped to fixtures: ambient seed projects could otherwise coincidentally
+        # match the search term and make this non-deterministic.
+        res = self._call(search=PROJECT_ALPHA_NAME, filters=self._scope_to_fixtures_filter())
         self.assertEqual(self._all_project_ids(res), {self.project_alpha})
 
     def test_search_matches_partial_case_insensitive_project_name(self):
-        res = self._call(search="nimbus")
+        res = self._call(search="nimbus", filters=self._scope_to_fixtures_filter())
         self.assertEqual(self._all_project_ids(res), {self.project_beta})
 
     def test_search_matches_project_id_substring(self):

@@ -327,6 +327,8 @@ def _get_team_timesheet_data(
             employee_ids=candidate_employee_ids,
             dates=dates,
             parsed_filters=parsed_filters,
+            # The public `search` param is now an employee-name search only
+            # (see get_qualifying_project_ids for the project-side equivalent).
             employee_name=search,
             start=start,
             page_length=page_length,
