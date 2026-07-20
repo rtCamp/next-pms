@@ -11,6 +11,7 @@ import { Skeleton } from "@rtcamp/frappe-ui-react";
 /**
  * Internal dependencies.
  */
+import { ScrollRootContext } from "./scrollRoot";
 import { InfiniteScrollProps } from "./types";
 
 const InfiniteScroll = ({
@@ -51,12 +52,12 @@ const InfiniteScroll = ({
   }, [scrollResetKey]);
 
   const content = (
-    <>
+    <ScrollRootContext.Provider value={observerRoot}>
       {children}
       {(isLoading || hasMore) && (
         <div
           ref={verticalLoderRef}
-          className="flex flex-col items-start w-full sticky left-0 h-30 gap-px"
+          className="flex flex-col items-start w-full sticky left-0 gap-px"
         >
           {Array.from({ length: count }).map((_, index) => (
             <Skeleton
@@ -69,7 +70,7 @@ const InfiniteScroll = ({
           ))}
         </div>
       )}
-    </>
+    </ScrollRootContext.Provider>
   );
 
   if (!enableScrollArea) {

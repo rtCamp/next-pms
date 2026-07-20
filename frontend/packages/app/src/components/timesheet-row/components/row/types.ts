@@ -37,6 +37,7 @@ interface WeekRowBaseProps extends Omit<BaseWeekRowProps, "status"> {
   }) => React.ReactNode;
   approvalPendingCount?: number;
   onCollapsedChange?: (collapsed: boolean) => void;
+  triggerClassName?: string;
 }
 
 type ReadOnlyWeekRowProps = WeekRowBaseProps & {

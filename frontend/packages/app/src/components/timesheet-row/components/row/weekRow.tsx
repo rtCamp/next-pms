@@ -3,7 +3,7 @@
  */
 import { useMemo, useState } from "react";
 import { Accordion } from "@base-ui/react/accordion";
-import { floatToTime } from "@next-pms/design-system";
+import { floatToTime, mergeClassNames as cn } from "@next-pms/design-system";
 import {
   WeekRow as BaseWeekRow,
   ApprovalStatusMap,
@@ -44,6 +44,7 @@ export const WeekRow = ({
   isReadOnlyWeek,
   approvalPendingCount,
   onCollapsedChange,
+  triggerClassName,
   ...rest
 }: WeekRowProps) => {
   const [collapsed, setCollapsed] = useState(initialCollapsed);
@@ -119,7 +120,7 @@ export const WeekRow = ({
         <Accordion.Trigger
           nativeButton={false}
           render={(props) => (
-            <div {...props}>
+            <div {...props} className={cn(props.className, triggerClassName)}>
               <BaseWeekRow
                 {...rest}
                 today={today}
