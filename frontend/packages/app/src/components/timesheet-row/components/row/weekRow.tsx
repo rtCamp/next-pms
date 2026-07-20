@@ -44,6 +44,7 @@ export const WeekRow = ({
   isReadOnlyWeek,
   approvalPendingCount,
   onCollapsedChange,
+  triggerClassName,
   ...rest
 }: WeekRowProps) => {
   const [collapsed, setCollapsed] = useState(initialCollapsed);
@@ -124,6 +125,7 @@ export const WeekRow = ({
               className={cn(
                 props.className,
                 "focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-outline-gray-3",
+                triggerClassName,
               )}
             >
               <BaseWeekRow

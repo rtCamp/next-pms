@@ -2,10 +2,12 @@
  * External dependencies.
  */
 import { useEffect, useRef, useState } from "react";
+import { useInfiniteScroll } from "@next-pms/hooks";
 
 /**
  * Internal dependencies.
  */
+import { useScrollRoot } from "@/components/scrollRoot";
 import { TeamTimesheetRow } from "@/components/timesheet-row/teamTimesheetRow";
 import { useTeamTimesheet } from "./context";
 import type { TeamWeekSummary } from "./types";
@@ -57,6 +59,14 @@ export const TeamTimesheetWeek = ({
     return registerMemberRefresh(week.start_date, refreshMember);
   }, [enabled, registerMemberRefresh, refreshMember, week.start_date]);
 
+  const scrollRoot = useScrollRoot();
+  const loadMoreRef = useInfiniteScroll({
+    isLoading: isLoadingMembers || isNextPageLoading,
+    hasMore,
+    next: loadMore,
+    root: scrollRoot,
+  });
+
   return (
     <TeamTimesheetRow
       label={week.label}
@@ -65,11 +75,11 @@ export const TeamTimesheetWeek = ({
       onCollapsedChange={(collapsed) => setExpanded(!collapsed)}
       approvalPendingCount={week.approval_pending_count}
       teamMembers={members}
-      hasMoreMembers={hasMore}
+      hasMoreMembers={!isFilterRequest && hasMore}
       isLoadingMembers={
         !isFilterRequest && (isLoadingMembers || isNextPageLoading)
       }
-      onLoadMoreMembers={loadMore}
+      loadMoreRef={loadMoreRef}
       setSelectedTask={setSelectedTask}
       openWeeklyApproval={openWeeklyApproval}
     />

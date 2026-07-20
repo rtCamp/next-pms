@@ -85,7 +85,7 @@ const TeamTimesheetGrid = () => {
             {weeks.map((week, index) => (
               <Fragment key={`${resolvedFilterKey}:${week.key}`}>
                 {index === 0 ? (
-                  <div className="sticky top-0 z-10 mb-4 bg-surface-white">
+                  <div className="sticky top-0 z-20 bg-surface-white">
                     <HeaderRow
                       dates={week.dates}
                       showHeading={true}
@@ -106,7 +106,7 @@ const TeamTimesheetGrid = () => {
                   </div>
                 ) : null}
 
-                <div className="animate-fade-in">
+                <div className={cn("animate-fade-in", index === 0 && "mt-4")}>
                   <TeamTimesheetWeek
                     week={week}
                     defaultExpanded={index === 0}
