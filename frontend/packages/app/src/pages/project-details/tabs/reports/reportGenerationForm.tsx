@@ -1,7 +1,7 @@
 /**
  * External dependencies.
  */
-import { useEffect, useMemo, useRef } from "react";
+import { useCallback, useEffect, useMemo, useRef } from "react";
 import { formatDateRange } from "@next-pms/design-system/date";
 import {
   Button,
@@ -62,10 +62,15 @@ export function ReportGenerationForm() {
   );
 
   // Listen for real-time PM report status updates from the backend to refresh project details
-  useFrappeEventListener("pm_report_ready", (message) => {
-    if (message?.project !== projectId) return;
-    mutate();
-  });
+  const handleReportReady = useCallback(
+    (message?: { project?: string }) => {
+      if (message?.project !== projectId) return;
+      mutate();
+    },
+    [projectId, mutate],
+  );
+
+  useFrappeEventListener("pm_report_ready", handleReportReady);
 
   // Safety net: poll every 30s while any report is Generating (in case WebSocket event is missed)
   useEffect(() => {
@@ -145,7 +150,7 @@ export function ReportGenerationForm() {
               ? previousReportUrl
               : undefined,
         });
-        // Optimistically mutate local project data to show the new report in 'Generating' state
+        // Refetch project data to reflect the new report row in 'Generating' state
         mutate();
         toast.success(
           "Report is being generated. You'll be notified when it's ready",

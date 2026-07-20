@@ -34,7 +34,8 @@ const formatGeneratedOn = (value?: string) => {
 
 const isGeneratingRow = (r: ProjectReportRow) => r.status === "Generating";
 const isFailedRow = (r: ProjectReportRow) => r.status === "Failed";
-const isResyncableRow = (r: ProjectReportRow) => r.status === "Completed";
+const isResyncableRow = (r: ProjectReportRow) =>
+  r.status === "Completed" && Boolean(r.run_id);
 const isDoneRow = (r: ProjectReportRow) =>
   r.status === "Done" && !!r.report_link;
 
@@ -53,7 +54,7 @@ function StatusCell({ report }: { report: ProjectReportRow }) {
   if (isResyncableRow(report)) {
     return (
       <span className="text-amber-600 text-sm font-medium">
-        ⚠ Completed — Resync to get URL
+        ⚠ Resync to get doc URL
       </span>
     );
   }
@@ -84,7 +85,7 @@ function ReportActionCell({
     return (
       <Button
         variant="subtle"
-        label={isResyncing ? "Resyncing..." : "🔄 Resync"}
+        label={isResyncing ? "Resyncing..." : "Resync"}
         loading={isResyncing}
         onClick={onResync}
       />
@@ -103,8 +104,8 @@ export function ReportsTable({ reports }: ReportsTableProps) {
     "next_pms.api.generate_pm_report.resync_report",
   );
 
-  const handleResync = async (runId: string) => {
-    if (!projectId) return;
+  const handleResync = async (runId?: string) => {
+    if (!projectId || !runId) return;
     setResyncingRunId(runId);
     try {
       const result = await resyncCall({
@@ -181,8 +182,14 @@ export function ReportsTable({ reports }: ReportsTableProps) {
                     {column.key === "reportLink" ? (
                       <ReportActionCell
                         report={row}
-                        isResyncing={resyncingRunId === row.run_id}
-                        onResync={() => handleResync(row.run_id)}
+                        isResyncing={
+                          Boolean(row.run_id) && resyncingRunId === row.run_id
+                        }
+                        onResync={() => {
+                          if (row.run_id) {
+                            handleResync(row.run_id);
+                          }
+                        }}
                       />
                     ) : column.key === "status" ? (
                       <StatusCell report={row} />
