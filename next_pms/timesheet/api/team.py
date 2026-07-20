@@ -281,7 +281,7 @@ def get_team_timesheet_data(
         **employee_condition_kwargs(scope.employee_conditions),
     )
 
-    context = build_chunk_context(page_employees, [week], scope.parsed_filters, scope.search)
+    context = build_chunk_context(page_employees, [week], scope.parsed_filters)
     response["members"] = [
         build_team_member_payload(employee, context, week, scope.has_filters) for employee in page_employees
     ]
@@ -379,7 +379,7 @@ def get_team_timesheet_member_week(employee: str, start_date: str, by_pass_acces
     if not employee_rows:
         return None
 
-    context = build_chunk_context(employee_rows, [week], {dt: [] for dt in ALLOWED_FILTER_FIELDS}, None)
+    context = build_chunk_context(employee_rows, [week], {dt: [] for dt in ALLOWED_FILTER_FIELDS})
     return build_team_member_payload(employee_rows[0], context, week, has_filters=False)
 
 

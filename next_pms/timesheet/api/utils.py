@@ -558,6 +558,8 @@ def resolve_team_employee_scope(
     dates, _ = build_aggregate_dates(date=date, max_week=max_week, has_filters=has_filters)
     response_dates = dates[-max_week:] if has_filters and len(dates) > max_week else dates
 
+    # `search` is an employee-name search, so it narrows the employee query rather than
+    # the timesheet query - it is applied in resolve_team_members, not here.
     candidate_employee_ids = get_team_candidate_employee_ids(
         reports_to=reports_to,
         dates=dates,
@@ -643,6 +645,7 @@ def resolve_team_members(scope: TeamEmployeeScope, weeks: list) -> dict:
         start=0,
         reports_to=scope.reports_to,
         ids=scope.candidate_employee_ids,
+        employee_name=scope.search,
         **employee_condition_kwargs(scope.employee_conditions),
     )
     eligible_ids = {employee.name for employee in eligible_employees}
@@ -653,11 +656,11 @@ def resolve_team_members(scope: TeamEmployeeScope, weeks: list) -> dict:
     pending_by_week = {}
     for week in weeks:
         bucket = participation.get(week["start_date"], {"members": set(), "pending": set()})
-        # Without filters an employee belongs to every week whether or not they logged
-        # time - the page still shows them, with an empty row. With filters, membership
-        # means "matched the filter in this week".
+        # Membership is per-week participation only for filters that describe work.
+        # For a member-name search an employee belongs to every week whether or not they
+        # logged time - the point of searching a person is to see their empty weeks too.
         members_by_week[week["start_date"]] = (
-            eligible_ids if not scope.has_filters else bucket["members"] & eligible_ids
+            bucket["members"] & eligible_ids if scope.skip_empty_weeks else eligible_ids
         )
         pending_by_week[week["start_date"]] = bucket["pending"] & eligible_ids
 
