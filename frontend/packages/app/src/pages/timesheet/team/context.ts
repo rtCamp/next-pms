@@ -8,36 +8,33 @@ import { createContext, useContextSelector } from "use-context-selector";
 /**
  * Internal dependencies.
  */
-import type { TeamMember } from "@/components/timesheet-row/teamTimesheetRow";
 import type { TimesheetFilters } from "@/types/timesheet";
+import type {
+  TeamFilterArgs,
+  TeamMemberPayload,
+  TeamWeekSummary,
+} from "./types";
 
-export type EmployeeRecord = {
-  name: string;
-  image: string | null;
-  employee_name: string;
-};
-
-export type WeekGroup = {
-  key: string;
-  label: string;
-  start_date: string;
-  end_date: string;
-  dates: string[];
-  members: TeamMember[];
-  approvalPendingCount: number;
-};
+export type MemberRefreshHandler = (member: TeamMemberPayload) => void;
 
 export interface TeamTimesheetContextProps {
   state: {
-    hasMore: boolean;
-    isLoadingTeamData: boolean;
+    weeks: TeamWeekSummary[];
+    hasMoreWeeks: boolean;
+    isLoadingWeeks: boolean;
+    isNextPageLoading: boolean;
     isFilterRequest: boolean;
-    weekGroups: WeekGroup[];
+    resolvedFilterKey: string;
+    filterArgs: TeamFilterArgs;
     filters: TimesheetFilters;
     compositeFilters: FilterCondition[];
   };
   actions: {
-    loadMore: () => void;
+    loadMoreWeeks: () => void;
+    registerMemberRefresh: (
+      startDate: string,
+      handler: MemberRefreshHandler,
+    ) => () => void;
     handleSearchChange: (value: string) => void;
     handleApprovalStatusChange: (value?: ApprovalStatusType | null) => void;
     handleReportsToChange: (value: string | null) => void;
@@ -48,10 +45,18 @@ export interface TeamTimesheetContextProps {
 
 export const TeamTimesheetContext = createContext<TeamTimesheetContextProps>({
   state: {
-    hasMore: false,
-    isLoadingTeamData: false,
+    weeks: [],
+    hasMoreWeeks: false,
+    isLoadingWeeks: false,
+    isNextPageLoading: false,
     isFilterRequest: false,
-    weekGroups: [],
+    resolvedFilterKey: "",
+    filterArgs: {
+      reports_to: null,
+      search: null,
+      status_filter: null,
+      filters: null,
+    },
     filters: {
       search: "",
       approvalStatus: undefined,
@@ -60,7 +65,8 @@ export const TeamTimesheetContext = createContext<TeamTimesheetContextProps>({
     compositeFilters: [],
   },
   actions: {
-    loadMore: () => null,
+    loadMoreWeeks: () => null,
+    registerMemberRefresh: () => () => null,
     handleSearchChange: () => null,
     handleApprovalStatusChange: () => null,
     handleReportsToChange: () => null,

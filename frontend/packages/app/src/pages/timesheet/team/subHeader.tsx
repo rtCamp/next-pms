@@ -62,7 +62,7 @@ export function SubHeader() {
     <div className="flex flex-wrap gap-2 justify-between mb-3.5">
       <div className="flex gap-2">
         <TextInput
-          placeholder="Search tasks"
+          placeholder="Search member"
           value={searchInput}
           onChange={(e) => setSearchInput(e.target.value)}
         />
