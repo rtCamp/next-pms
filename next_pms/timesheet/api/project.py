@@ -37,6 +37,8 @@ def get_projects(
         fields = json.loads(fields)
     if isinstance(filters, str):
         filters = json.loads(filters)
+    if isinstance(or_filters, str):
+        or_filters = json.loads(or_filters)
 
     if not fields:
         fields = list(meta.default_fields)  # Copy to avoid mutating class attribute
