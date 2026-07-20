@@ -1,5 +1,7 @@
 import datetime
+import json
 from collections import defaultdict
+from dataclasses import dataclass
 
 import frappe
 from erpnext.setup.doctype.employee.employee import get_holiday_list_for_employee
@@ -501,6 +503,92 @@ def get_team_candidate_employee_ids(
         return []
 
     return employee_ids
+
+
+@dataclass
+class TeamEmployeeScope:
+    """Everything the team timesheet endpoints need to agree on about *who* and *when*.
+
+    `get_team_timesheet_weeks` derives its counts from this and `get_team_timesheet_data`
+    derives its rows from it, so a single resolver is what keeps the pending-approval
+    badge consistent with the rows underneath it.
+    """
+
+    dates: list
+    response_dates: list
+    parsed_filters: dict
+    employee_conditions: list
+    status_filter: list | None
+    search: str | None
+    has_filters: bool
+    candidate_employee_ids: list[str] | None = None
+
+    @property
+    def is_empty(self) -> bool:
+        """True when the filters provably match no employee, so callers can skip work."""
+        return self.candidate_employee_ids == []
+
+    @property
+    def skip_empty_weeks(self) -> bool:
+        """Empty weeks are dropped for filters that describe *work*, not for member search.
+
+        Searching for a person and being shown none of their weeks reads as "no data";
+        filtering by project/task/status means the caller asked for weeks matching that
+        predicate. Resolved here rather than accepted as a parameter so both endpoints
+        make the same choice.
+        """
+        if not self.has_filters:
+            return False
+        return bool(
+            self.status_filter or any(conditions for doctype, conditions in self.parsed_filters.items() if conditions)
+        )
+
+
+def resolve_team_employee_scope(
+    date: str,
+    max_week: int,
+    status_filter: str | list[str] | None = None,
+    reports_to: str | None = None,
+    search: str | None = None,
+    filters: str | list | None = None,
+) -> TeamEmployeeScope:
+    """Resolve the employee/date scope shared by the team timesheet endpoints."""
+    if status_filter and isinstance(status_filter, str):
+        status_filter = json.loads(status_filter)
+
+    parsed_filters = parse_filters(filters)
+
+    # Employee-level filters (status / business unit drop-downs in frontend) are
+    # passed through with their operators intact so the global employee filter
+    # narrows the pool with the same semantics the caller asked for (like, in, ...).
+    # Sanitized (and written back) before has_filters so a condition dropped for a
+    # missing meta field cannot flip the request into the filtered path.
+    employee_conditions = sanitize_employee_conditions(parsed_filters.get("Employee"))
+    parsed_filters["Employee"] = employee_conditions
+
+    has_filters = bool(search or status_filter or any(parsed_filters.values()))
+    dates, _ = build_aggregate_dates(date=date, max_week=max_week, has_filters=has_filters)
+    response_dates = dates[-max_week:] if has_filters and len(dates) > max_week else dates
+
+    candidate_employee_ids = get_team_candidate_employee_ids(
+        reports_to=reports_to,
+        dates=dates,
+        parsed_filters=parsed_filters,
+        search=search,
+        timesheet_status=status_filter,
+        employee_conditions=employee_conditions,
+    )
+
+    return TeamEmployeeScope(
+        dates=dates,
+        response_dates=response_dates,
+        parsed_filters=parsed_filters,
+        employee_conditions=employee_conditions,
+        status_filter=status_filter,
+        search=search,
+        has_filters=has_filters,
+        candidate_employee_ids=candidate_employee_ids,
+    )
 
 
 def get_qualifying_project_ids(
