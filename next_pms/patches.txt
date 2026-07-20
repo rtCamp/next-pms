@@ -35,3 +35,4 @@ next_pms.resource_management.patches.update_active_allocation_currency_and_cost
 next_pms.next_projects.patches.share_projects_with_managers
 next_pms.next_projects.patches.setup_task_permissions
 next_pms.timesheet.patches.delete_legacy_project_views
+next_pms.timesheet.patches.add_team_timesheet_indexes
