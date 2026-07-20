@@ -374,7 +374,6 @@ def build_aggregate_dates(date: str, max_week: int, has_filters: bool):
 def get_matching_timesheet_employee_ids(
     dates: list,
     parsed_filters: dict,
-    search: str | None = None,
     approval_status: list[str] | None = None,
     require_project_tasks: bool = False,
 ):
@@ -395,7 +394,7 @@ def get_matching_timesheet_employee_ids(
         return []
 
     requires_detail_scan = bool(
-        require_project_tasks or search or parsed_filters.get("Task") or parsed_filters.get("Timesheet Detail")
+        require_project_tasks or parsed_filters.get("Task") or parsed_filters.get("Timesheet Detail")
     )
     if not requires_detail_scan:
         return list({timesheet.employee for timesheet in timesheets})
@@ -408,7 +407,7 @@ def get_matching_timesheet_employee_ids(
     if not details:
         return []
 
-    requires_task_scan = bool(require_project_tasks or search or parsed_filters.get("Task"))
+    requires_task_scan = bool(require_project_tasks or parsed_filters.get("Task"))
     if not requires_task_scan:
         matched_parent_names = {detail.parent for detail in details}
         return list(
@@ -420,16 +419,7 @@ def get_matching_timesheet_employee_ids(
         return []
 
     task_filters = build_filters({"name": ["in", task_ids]}, parsed_filters.get("Task", []))
-    tasks = get_all("Task", filters=task_filters, fields=TASK_FIELDS)
-    if search:
-        search_term = search.lower()
-        tasks = [
-            task
-            for task in tasks
-            if search_term in (task.get("subject") or "").lower()
-            or search_term in (task.get("name") or "").lower()
-            or search_term in (task.get("project_name") or "").lower()
-        ]
+    tasks = get_all("Task", filters=task_filters, fields=["name", "project"])
     if require_project_tasks:
         tasks = [task for task in tasks if task.get("project")]
 
@@ -471,21 +461,19 @@ def get_team_candidate_employee_ids(
     reports_to: str | None = None,
     dates: list | None = None,
     parsed_filters: dict | None = None,
-    search: str | None = None,
     timesheet_status: list[str] | None = None,
     employee_conditions: list | None = None,
 ):
     if not dates:
         return []
 
-    has_candidate_filters = bool(timesheet_status or search or any((parsed_filters or {}).values()))
+    has_candidate_filters = bool(timesheet_status or any((parsed_filters or {}).values()))
     if not has_candidate_filters and not employee_conditions:
         return None
 
     employee_ids = get_matching_timesheet_employee_ids(
         dates=dates,
         parsed_filters=parsed_filters or {dt: [] for dt in ALLOWED_FILTER_FIELDS},
-        search=search,
         approval_status=timesheet_status,
     )
     if not employee_ids:
@@ -570,11 +558,12 @@ def resolve_team_employee_scope(
     dates, _ = build_aggregate_dates(date=date, max_week=max_week, has_filters=has_filters)
     response_dates = dates[-max_week:] if has_filters and len(dates) > max_week else dates
 
+    # `search` is an employee-name search, so it narrows the employee query rather than
+    # the timesheet query - it is applied in resolve_team_members, not here.
     candidate_employee_ids = get_team_candidate_employee_ids(
         reports_to=reports_to,
         dates=dates,
         parsed_filters=parsed_filters,
-        search=search,
         timesheet_status=status_filter,
         employee_conditions=employee_conditions,
     )
@@ -656,6 +645,7 @@ def resolve_team_members(scope: TeamEmployeeScope, weeks: list) -> dict:
         start=0,
         reports_to=scope.reports_to,
         ids=scope.candidate_employee_ids,
+        employee_name=scope.search,
         **employee_condition_kwargs(scope.employee_conditions),
     )
     eligible_ids = {employee.name for employee in eligible_employees}
@@ -666,11 +656,11 @@ def resolve_team_members(scope: TeamEmployeeScope, weeks: list) -> dict:
     pending_by_week = {}
     for week in weeks:
         bucket = participation.get(week["start_date"], {"members": set(), "pending": set()})
-        # Without filters an employee belongs to every week whether or not they logged
-        # time - the page still shows them, with an empty row. With filters, membership
-        # means "matched the filter in this week".
+        # Membership is per-week participation only for filters that describe work.
+        # For a member-name search an employee belongs to every week whether or not they
+        # logged time - the point of searching a person is to see their empty weeks too.
         members_by_week[week["start_date"]] = (
-            eligible_ids if not scope.has_filters else bucket["members"] & eligible_ids
+            bucket["members"] & eligible_ids if scope.skip_empty_weeks else eligible_ids
         )
         pending_by_week[week["start_date"]] = bucket["pending"] & eligible_ids
 
@@ -829,7 +819,7 @@ def resolve_holiday_lists(employee_meta_map: dict, employee_names: list) -> dict
     }
 
 
-def build_chunk_context(employees: list, dates: list, parsed_filters: dict, search: str | None = None):
+def build_chunk_context(employees: list, dates: list, parsed_filters: dict):
     """Runs the filters to build the context for the list of employees passed."""
     employee_names = [employee.name for employee in employees]
     if not employee_names:
@@ -966,26 +956,10 @@ def build_chunk_context(employees: list, dates: list, parsed_filters: dict, sear
             base_task_filters = {"name": ["in", all_task_ids]}
             task_filters = build_filters(base_task_filters, parsed_filters.get("Task", []))
             all_tasks = get_all("Task", filters=task_filters, fields=TASK_FIELDS)
-            if search:
-                search_term = search.lower()
-                all_tasks = [
-                    task
-                    for task in all_tasks
-                    if search_term in (task.get("subject") or "").lower()
-                    or search_term in (task.get("name") or "").lower()
-                    or search_term in (task.get("project_name") or "").lower()
-                ]
             task_details_dict = {task["name"]: task for task in all_tasks}
 
-    if search and all_logs:
-        filtered_task_ids = set(task_details_dict.keys())
-        all_logs = [log for log in all_logs if not log.get("task") or log.get("task") in filtered_task_ids]
-        detail_by_parent = defaultdict(list)
-        for log in all_logs:
-            detail_by_parent[log.parent].append(log)
-
     matched_parent_names = set(detail_by_parent.keys())
-    if matched_parent_names and (search or parsed_filters.get("Task") or parsed_filters.get("Timesheet Detail")):
+    if matched_parent_names and (parsed_filters.get("Task") or parsed_filters.get("Timesheet Detail")):
         for employee_name, timesheets in list(timesheet_map.items()):
             filtered_timesheets = [timesheet for timesheet in timesheets if timesheet.name in matched_parent_names]
             timesheet_map[employee_name] = filtered_timesheets
@@ -1000,7 +974,7 @@ def build_chunk_context(employees: list, dates: list, parsed_filters: dict, sear
             else:
                 overall_status_map[employee_name] = "Not Submitted"
 
-    has_search_or_task_filters = bool(search or parsed_filters.get("Task"))
+    has_search_or_task_filters = bool(parsed_filters.get("Task"))
 
     return {
         "working_hours_map": working_hours_map,

@@ -429,12 +429,24 @@ class TestTeamTimesheetDataAllEmployees(_TeamTimesheetDataBase):
 class TestTeamTimesheetDataFilters(_TeamTimesheetDataBase):
     """search / approval_status / composite `filters` — the has_filters=True path."""
 
-    def test_search_scoped_to_reports_to(self):
-        res = self._call(reports_to=self.mgr, search=TASK_ALPHA_SUBJECT, start_date=W1_MON)
+    def test_search_matches_member_name_scoped_to_reports_to(self):
+        res = self._call(reports_to=self.mgr, search=R1_NAME.split()[0], start_date=W1_MON)
         members = self._members_by_employee(res)
-        self.assertEqual(sorted(members), [self.r1, self.r2])
-        self.assertEqual(res["total_count"], 2)
-        self.assertIn(self.task_alpha, members[self.r1]["tasks"])
+        self.assertEqual(list(members), [self.r1])
+        self.assertEqual(res["total_count"], 1)
+
+    def test_search_does_not_match_task_subject(self):
+        """Search is a member search: task text must not produce results."""
+        res = self._call(reports_to=self.mgr, search=TASK_ALPHA_SUBJECT, start_date=W1_MON)
+        self.assertEqual(res["members"], [])
+        self.assertEqual(res["total_count"], 0)
+
+    def test_search_keeps_weeks_the_member_logged_nothing_in(self):
+        """Empty weeks are dropped for work filters, not for a member search - the
+        point of searching a person is to see their empty weeks too."""
+        res = self._call(reports_to=self.mgr, search=R1_NAME.split()[0], start_date=W2_MON)
+        self.assertEqual(list(self._members_by_employee(res)), [self.r1])
+        self.assertEqual(res["total_count"], 1)
 
     def test_approval_status_filter_scoped_to_reports_to(self):
         res = self._call(reports_to=self.mgr, status_filter=["Approved"], start_date=W1_MON)
