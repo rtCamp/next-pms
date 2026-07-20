@@ -341,7 +341,6 @@ def build_filters(base_filters, additional_filters):
     return result
 
 
-EMPLOYEE_SCAN_CHUNK_SIZE = 50
 TASK_FIELDS = [
     "name",
     "subject",
@@ -785,11 +784,6 @@ def get_employees_for_projects(
     return list({employee_by_ts[parent] for parent in matched_parents if parent in employee_by_ts})
 
 
-def iter_employee_chunks(employees: list, chunk_size: int = EMPLOYEE_SCAN_CHUNK_SIZE):
-    for index in range(0, len(employees), chunk_size):
-        yield employees[index : index + chunk_size]
-
-
 def resolve_holiday_lists(employee_meta_map: dict, employee_names: list) -> dict:
     """Resolve every employee's holiday list in one query instead of one per employee.
 
@@ -1104,84 +1098,3 @@ def build_employee_week_details(
         }
 
     return week_details
-
-
-def paginate_qualifying_employee_payloads(
-    reports_to: str | None,
-    employee_ids,
-    dates: list,
-    parsed_filters: dict,
-    search: str | None,
-    start: int,
-    page_length: int,
-    builder,
-    employee_conditions: list | None = None,
-):
-    selected = []
-    total_count = 0
-    employee_start = 0
-    employee_filter_kwargs = employee_condition_kwargs(employee_conditions)
-
-    while True:
-        chunk, _ = filter_employees(
-            page_length=EMPLOYEE_SCAN_CHUNK_SIZE,
-            start=employee_start,
-            reports_to=reports_to,
-            ids=employee_ids,
-            **employee_filter_kwargs,
-        )
-        if not chunk:
-            break
-
-        context = build_chunk_context(chunk, dates, parsed_filters, search)
-        for employee in chunk:
-            payload = builder(employee, context)
-            if not payload:
-                continue
-
-            if total_count >= start and len(selected) < page_length:
-                selected.append(payload)
-
-            total_count += 1
-
-        employee_start += len(chunk)
-
-    has_more = start + page_length < total_count
-    return selected, total_count, has_more
-
-
-def paginate_unfiltered_employee_payloads(
-    reports_to: str | None,
-    dates: list,
-    parsed_filters: dict,
-    search: str | None,
-    start: int,
-    page_length: int,
-    builder,
-):
-    """Fast path for the no-filters case (has_filters=False and no status/business_unit).
-
-    `build_employee_week_details`'s `should_skip_week` only drops a week when
-    `has_filters and skip_empty_weeks`, or when `approval_status` (the caller's
-    `status_filter`) is truthy. The caller only reaches this function when
-    `has_filters` is False, and `status_filter` is itself one of the terms that make
-    `has_filters` True — so here `status_filter` is guaranteed falsy too, no week is
-    ever dropped, and `builder` never returns None. That means the page can be fetched
-    directly via SQL LIMIT/OFFSET (and its matching COUNT) instead of walking the
-    entire employee pool in Python just to paginate and count, which is what
-    `paginate_qualifying_employee_payloads` does for the general case.
-    """
-    page_employees, total_count = filter_employees(
-        page_length=page_length,
-        start=start,
-        reports_to=reports_to,
-    )
-    context = build_chunk_context(page_employees, dates, parsed_filters, search)
-    # No `if payload` filter here on purpose: per the invariant above, builder()
-    # cannot return None in this path. If that invariant is ever violated, a
-    # `None` in `selected` will raise loudly when `team.py` unpacks it as
-    # `(employee_name, payload)`, instead of silently truncating the page while
-    # total_count/has_more still reflect the full (unfiltered) count.
-    selected = [builder(employee, context) for employee in page_employees]
-    has_more = start + page_length < total_count
-    return selected, total_count, has_more
