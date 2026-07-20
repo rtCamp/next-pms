@@ -686,6 +686,51 @@ def iter_employee_chunks(employees: list, chunk_size: int = EMPLOYEE_SCAN_CHUNK_
         yield employees[index : index + chunk_size]
 
 
+def resolve_holiday_lists(employee_meta_map: dict, employee_names: list) -> dict:
+    """Resolve every employee's holiday list in one query instead of one per employee.
+
+    `get_holiday_list_for_employee` is overridden by hrms to read Holiday List
+    Assignment, costing an assignment lookup per employee plus a company lookup per
+    fallback. Called in a loop that is itself inside the chunk loop, that was the bulk
+    of the per-page query count.
+
+    Mirrors the hrms resolution order - latest submitted assignment for the employee as
+    of today, else the same for their company - and falls back to the per-employee call
+    when that override is not the one installed, so sites without hrms keep the
+    erpnext behaviour.
+    """
+    if not employee_names:
+        return {}
+
+    override = frappe.get_hooks("employee_holiday_list")
+    if not override or not override[-1].startswith("hrms."):
+        return {name: get_holiday_list_for_employee(name, raise_exception=False) for name in employee_names}
+
+    companies_by_employee = {name: (employee_meta_map.get(name) or {}).get("company") for name in employee_names}
+    lookup_targets = {name for name in employee_names}
+    lookup_targets.update(company for company in companies_by_employee.values() if company)
+
+    as_on = getdate(None)
+    assignments = get_all(
+        "Holiday List Assignment",
+        filters={
+            "assigned_to": ["in", list(lookup_targets)],
+            "from_date": ["<=", as_on],
+            "docstatus": 1,
+        },
+        fields=["assigned_to", "holiday_list"],
+        order_by="from_date asc",
+    )
+    # Ascending order means the last write per key is the latest assignment, matching
+    # hrms's `order by from_date desc limit 1`.
+    latest_by_target = {row.assigned_to: row.holiday_list for row in assignments}
+
+    return {
+        name: latest_by_target.get(name) or latest_by_target.get(companies_by_employee.get(name))
+        for name in employee_names
+    }
+
+
 def build_chunk_context(employees: list, dates: list, parsed_filters: dict):
     """Runs the filters to build the context for the list of employees passed."""
     employee_names = [employee.name for employee in employees]
@@ -707,9 +752,10 @@ def build_chunk_context(employees: list, dates: list, parsed_filters: dict):
     employee_meta_rows = get_all(
         "Employee",
         filters={"name": ["in", employee_names]},
-        fields=["name", "custom_working_hours", "custom_work_schedule", "holiday_list"],
+        fields=["name", "custom_working_hours", "custom_work_schedule", "holiday_list", "company"],
     )
     employee_meta_map = {row.name: row for row in employee_meta_rows}
+    resolved_holiday_lists = resolve_holiday_lists(employee_meta_map, employee_names)
 
     default_hours = frappe.db.get_single_value("HR Settings", "standard_working_hours") or 8
     working_hours_map = {}
@@ -729,7 +775,7 @@ def build_chunk_context(employees: list, dates: list, parsed_filters: dict):
             if working_frequency != "Per Day"
             else working_hours_map[employee_name]["working_hour"]
         )
-        holiday_list = get_holiday_list_for_employee(employee_name, raise_exception=False) or meta.get("holiday_list")
+        holiday_list = resolved_holiday_lists.get(employee_name) or meta.get("holiday_list")
         if holiday_list:
             holiday_lists.add(holiday_list)
         meta["resolved_holiday_list"] = holiday_list
