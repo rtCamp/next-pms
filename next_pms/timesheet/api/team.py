@@ -26,16 +26,13 @@ from . import filter_employees
 from .employee import get_employee_daily_working_norm, get_employee_working_hours
 from .timesheet import get_timesheet_state
 from .utils import (
-    build_aggregate_dates,
     build_employee_week_details,
     employee_has_higher_access,
     get_holidays,
-    get_team_candidate_employee_ids,
     get_week_dates,
     paginate_qualifying_employee_payloads,
     paginate_unfiltered_employee_payloads,
-    parse_filters,
-    sanitize_employee_conditions,
+    resolve_team_employee_scope,
 )
 
 
@@ -209,33 +206,23 @@ def _get_team_timesheet_data(
     if isinstance(skip_empty_weeks, str):
         skip_empty_weeks = skip_empty_weeks.lower() in ("true", "1")
 
-    if status_filter and isinstance(status_filter, str):
-        status_filter = json.loads(status_filter)
-
-    parsed_filters = parse_filters(filters)
-
-    # Employee-level filters (status / business unit drop-downs in frontend) are
-    # passed through with their operators intact so the global employee filter
-    # narrows the pool with the same semantics the caller asked for (like, in, ...).
-    # Sanitized (and written back) before has_filters so a condition dropped for a
-    # missing meta field cannot flip the request into the filtered path.
-    employee_conditions = sanitize_employee_conditions(parsed_filters.get("Employee"))
-    parsed_filters["Employee"] = employee_conditions
-
-    has_filters = bool(search or status_filter or any(parsed_filters.values()))
-    dates, _ = build_aggregate_dates(date=date, max_week=max_week, has_filters=has_filters)
-    response_dates = dates[-max_week:] if has_filters and len(dates) > max_week else dates
-    res = {"dates": response_dates}
-
-    candidate_employee_ids = get_team_candidate_employee_ids(
+    scope = resolve_team_employee_scope(
+        date=date,
+        max_week=max_week,
+        status_filter=status_filter,
         reports_to=reports_to,
-        dates=dates,
-        parsed_filters=parsed_filters,
-        timesheet_status=status_filter,
-        employee_conditions=employee_conditions,
+        search=search,
+        filters=filters,
     )
+    status_filter = scope.status_filter
+    parsed_filters = scope.parsed_filters
+    employee_conditions = scope.employee_conditions
+    has_filters = scope.has_filters
+    dates = scope.dates
+    candidate_employee_ids = scope.candidate_employee_ids
+    res = {"dates": scope.response_dates}
 
-    if candidate_employee_ids == []:
+    if scope.is_empty:
         res["data"] = {}
         res["total_count"] = 0
         res["has_more"] = False
