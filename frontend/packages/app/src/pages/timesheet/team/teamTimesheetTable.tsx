@@ -11,10 +11,9 @@ import { Spinner, Typography } from "@next-pms/design-system/components";
 import { InfiniteScroll } from "@/components/infiniteScroll";
 import TeamTaskLog from "@/components/task-log/teamTaskLog";
 import { HeaderRow } from "@/components/timesheet-row/components/row/headerRow";
-import { TeamTimesheetRow } from "@/components/timesheet-row/teamTimesheetRow";
-import { NUMBER_OF_WEEKS_TO_FETCH } from "@/lib/constant";
 import { useTeamTimesheet } from "./context";
 import { SubHeader } from "./subHeader";
+import { TeamTimesheetWeek } from "./teamTimesheetWeek";
 import WeeklyApproval from "./weekly-approval";
 
 const TeamTimesheetGrid = () => {
@@ -24,17 +23,23 @@ const TeamTimesheetGrid = () => {
     startDate: string;
   } | null>(null);
 
-  const hasMore = useTeamTimesheet(({ state }) => state.hasMore);
-  const isLoadingTeamData = useTeamTimesheet(
-    ({ state }) => state.isLoadingTeamData,
+  const weeks = useTeamTimesheet(({ state }) => state.weeks);
+  const hasMoreWeeks = useTeamTimesheet(({ state }) => state.hasMoreWeeks);
+  const isLoadingWeeks = useTeamTimesheet(({ state }) => state.isLoadingWeeks);
+  const isNextPageLoading = useTeamTimesheet(
+    ({ state }) => state.isNextPageLoading,
   );
   const isFilterRequest = useTeamTimesheet(
     ({ state }) => state.isFilterRequest,
   );
-  const weekGroups = useTeamTimesheet(({ state }) => state.weekGroups);
-  const loadMore = useTeamTimesheet(({ actions }) => actions.loadMore);
+  const resolvedFilterKey = useTeamTimesheet(
+    ({ state }) => state.resolvedFilterKey,
+  );
+  const loadMoreWeeks = useTeamTimesheet(
+    ({ actions }) => actions.loadMoreWeeks,
+  );
 
-  const isFilteredDataLoading = isFilterRequest && isLoadingTeamData;
+  const isFilteredDataLoading = isFilterRequest && isLoadingWeeks;
 
   return (
     <>
@@ -60,65 +65,59 @@ const TeamTimesheetGrid = () => {
         />
       )}
 
-      {isLoadingTeamData && weekGroups.length === 0 ? (
+      {isLoadingWeeks && weeks.length === 0 ? (
         <Spinner isFull />
-      ) : weekGroups.length === 0 ? (
+      ) : weeks.length === 0 ? (
         <Typography className="flex justify-center items-center">
           No data
         </Typography>
       ) : (
         <InfiniteScroll
-          isLoading={isLoadingTeamData}
-          hasMore={hasMore}
-          verticalLodMore={loadMore}
+          isLoading={isNextPageLoading}
+          hasMore={hasMoreWeeks}
+          verticalLodMore={loadMoreWeeks}
           className={cn("w-full h-[calc(100%-var(--spacing)*7)] opacity-100", {
             "opacity-50 transition-opacity duration-150": isFilteredDataLoading,
           })}
-          count={NUMBER_OF_WEEKS_TO_FETCH}
           enableScrollArea
         >
           <div className="min-w-225">
-            {weekGroups.map((week, index) => {
-              return (
-                <Fragment key={`${week.start_date}-${week.end_date}`}>
-                  {index === 0 ? (
-                    <div className="sticky top-0 z-10 mb-4 bg-surface-white">
-                      <HeaderRow
-                        dates={week.dates}
-                        showHeading={true}
-                        breadcrumbs={{
-                          items: [
-                            { label: "Week", interactive: false },
-                            { label: "Member", interactive: false },
-                            { label: "Project", interactive: false },
-                            { label: "Task", interactive: false },
-                          ],
-                          highlightLastItem: false,
-                          size: "sm",
-                          crumbClassName:
-                            "first:pl-0 last:pr-0 px-0.5 py-0 font-[420]",
-                          className: "pl-[8px]",
-                        }}
-                      />
-                    </div>
-                  ) : null}
-
-                  <div className="animate-fade-in">
-                    <TeamTimesheetRow
-                      label={week.label}
+            {weeks.map((week, index) => (
+              <Fragment key={`${resolvedFilterKey}:${week.key}`}>
+                {index === 0 ? (
+                  <div className="sticky top-0 z-10 mb-4 bg-surface-white">
+                    <HeaderRow
                       dates={week.dates}
-                      collapsed={index >= 6}
-                      approvalPendingCount={week.approvalPendingCount}
-                      setSelectedTask={setSelectedTask}
-                      openWeeklyApproval={(employee, date) =>
-                        setWeeklyApproval({ employee, startDate: date })
-                      }
-                      teamMembers={week.members}
+                      showHeading={true}
+                      breadcrumbs={{
+                        items: [
+                          { label: "Week", interactive: false },
+                          { label: "Member", interactive: false },
+                          { label: "Project", interactive: false },
+                          { label: "Task", interactive: false },
+                        ],
+                        highlightLastItem: false,
+                        size: "sm",
+                        crumbClassName:
+                          "first:pl-0 last:pr-0 px-0.5 py-0 font-[420]",
+                        className: "pl-[8px]",
+                      }}
                     />
                   </div>
-                </Fragment>
-              );
-            })}
+                ) : null}
+
+                <div className="animate-fade-in">
+                  <TeamTimesheetWeek
+                    week={week}
+                    defaultExpanded={index === 0}
+                    setSelectedTask={setSelectedTask}
+                    openWeeklyApproval={(employee, date) =>
+                      setWeeklyApproval({ employee, startDate: date })
+                    }
+                  />
+                </div>
+              </Fragment>
+            ))}
           </div>
         </InfiniteScroll>
       )}

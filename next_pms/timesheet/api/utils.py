@@ -613,7 +613,10 @@ def get_team_week_participation(scope: TeamEmployeeScope, weeks: list) -> dict:
         order_by=None,
     )
 
-    participation = {week["start_date"]: {"members": set(), "pending": set()} for week in weeks}
+    status_filter = set(scope.status_filter or [])
+    participation = {
+        week["start_date"]: {"members": set(), "pending": set(), "status_matched": set()} for week in weeks
+    }
     for row in rows:
         week_start = get_first_day_of_week(row.start_date)
         bucket = participation.get(week_start)
@@ -622,6 +625,12 @@ def get_team_week_participation(scope: TeamEmployeeScope, weeks: list) -> dict:
         bucket["members"].add(row.employee)
         if row.custom_weekly_approval_status == "Approval Pending":
             bucket["pending"].add(row.employee)
+        # Per-week status membership: an employee belongs to a status-filtered week only
+        # when that week's approval status is one the caller asked for. Without this the
+        # filter fell back to plain participation, so every status except "Approval
+        # Pending" matched anyone who merely logged time that week.
+        if status_filter and row.custom_weekly_approval_status in status_filter:
+            bucket["status_matched"].add(row.employee)
 
     return participation
 
@@ -655,13 +664,19 @@ def resolve_team_members(scope: TeamEmployeeScope, weeks: list) -> dict:
     members_by_week = {}
     pending_by_week = {}
     for week in weeks:
-        bucket = participation.get(week["start_date"], {"members": set(), "pending": set()})
+        bucket = participation.get(week["start_date"], {"members": set(), "pending": set(), "status_matched": set()})
         # Membership is per-week participation only for filters that describe work.
         # For a member-name search an employee belongs to every week whether or not they
         # logged time - the point of searching a person is to see their empty weeks too.
-        members_by_week[week["start_date"]] = (
-            bucket["members"] & eligible_ids if scope.skip_empty_weeks else eligible_ids
-        )
+        # A status filter is stricter still: the week's approval status must match, so it
+        # keys off the status-matched set rather than plain participation.
+        if scope.status_filter:
+            week_members = bucket["status_matched"]
+        elif scope.skip_empty_weeks:
+            week_members = bucket["members"]
+        else:
+            week_members = eligible_ids
+        members_by_week[week["start_date"]] = week_members & eligible_ids
         pending_by_week[week["start_date"]] = bucket["pending"] & eligible_ids
 
     return {

@@ -43,6 +43,7 @@ export const WeekRow = ({
   collapsed: initialCollapsed,
   isReadOnlyWeek,
   approvalPendingCount,
+  onCollapsedChange,
   ...rest
 }: WeekRowProps) => {
   const [collapsed, setCollapsed] = useState(initialCollapsed);
@@ -109,7 +110,9 @@ export const WeekRow = ({
     <Accordion.Root
       value={collapsed ? [] : ["week"]}
       onValueChange={(value) => {
-        setCollapsed(value.length === 0);
+        const nextCollapsed = value.length === 0;
+        setCollapsed(nextCollapsed);
+        onCollapsedChange?.(nextCollapsed);
       }}
     >
       <Accordion.Item value="week" className="border-none">

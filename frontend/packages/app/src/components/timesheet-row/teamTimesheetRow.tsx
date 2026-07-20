@@ -5,7 +5,10 @@ import { useMemo } from "react";
 import {
   type ApprovalStatusLabelType,
   ErrorFallback,
+  Spinner,
+  Typography,
 } from "@next-pms/design-system/components";
+import { Button } from "@rtcamp/frappe-ui-react";
 
 /**
  * Internal dependencies
@@ -38,6 +41,10 @@ type TeamTimesheetRowProps = {
   collapsed: boolean;
   teamMembers: TeamMember[];
   approvalPendingCount?: number;
+  hasMoreMembers?: boolean;
+  isLoadingMembers?: boolean;
+  onLoadMoreMembers?: () => void;
+  onCollapsedChange?: (collapsed: boolean) => void;
   setSelectedTask?: (task: string) => void;
   openWeeklyApproval?: (employee: string, date: string) => void;
 };
@@ -48,6 +55,10 @@ export const TeamTimesheetRow = ({
   collapsed,
   teamMembers,
   approvalPendingCount,
+  hasMoreMembers,
+  isLoadingMembers,
+  onLoadMoreMembers,
+  onCollapsedChange,
   setSelectedTask,
   openWeeklyApproval,
 }: TeamTimesheetRowProps) => {
@@ -71,6 +82,7 @@ export const TeamTimesheetRow = ({
         workingFrequency="Per Day"
         className="pl-3"
         collapsed={collapsed}
+        onCollapsedChange={onCollapsedChange}
         isReadOnlyWeek={true}
         approvalPendingCount={approvalPendingCount}
       >
@@ -89,7 +101,7 @@ export const TeamTimesheetRow = ({
                 workingFrequency={member.workingFrequency}
                 status={member.status}
                 hideAction={member.status === "Not Submitted"}
-                className="pl-7.5"
+                className="pl-7.5 animate-fade-in"
                 collapsed={true}
                 disabled={member.status === "Approved"}
                 onCellClick={(date) =>
@@ -161,6 +173,24 @@ export const TeamTimesheetRow = ({
                 )}
               </MemberRow>
             ))}
+
+            {isLoadingMembers ? (
+              <Spinner className="h-11.25" />
+            ) : teamMembers.length === 0 ? (
+              <div className="flex h-11.25 items-center pl-7.5 animate-fade-in">
+                <Typography variant="p" className="text-base text-ink-gray-5">
+                  No timesheet for this week
+                </Typography>
+              </div>
+            ) : hasMoreMembers ? (
+              <Button
+                variant="ghost"
+                onClick={onLoadMoreMembers}
+                className="h-11.25 w-full justify-start rounded-none px-0 pl-7.5 text-base font-normal text-ink-gray-6 animate-fade-in"
+              >
+                Load more
+              </Button>
+            ) : null}
           </>
         )}
       </WeekRow>
