@@ -3,10 +3,11 @@ from erpnext import get_default_company
 from frappe.tests import IntegrationTestCase
 from frappe.utils import add_days, today
 
-from next_pms.next_projects.api.project import get_projects_view
+from next_pms.next_projects.api.project import get_project_sidebar, get_projects_view
 
 # Unique marker so `search` scopes every call to this suite's fixtures only.
 FIXTURE_PREFIX = "CompSort"
+BURN_FIXTURE_PREFIX = "BurnAccrued"
 
 
 class TestGetProjectsViewComputedSort(IntegrationTestCase):
@@ -137,3 +138,97 @@ class TestGetProjectsViewComputedSort(IntegrationTestCase):
         result = self.call("cost_burn_percent desc", view="kanban")
         self.assertEqual(result["total_count"], 4)
         self.assertIn("columns", result)
+
+
+class TestBudgetBurnAccrued(IntegrationTestCase):
+    """The Budget Burn bar (project sidebar + projects list) burns the budget with
+    billable amounts on billable projects and with costing amounts on non-billable
+    ones, while cost-incurred metrics stay on costing amounts throughout.
+
+    Both fixtures set costing != billable so every assertion discriminates between
+    the two sources.
+    """
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.company = get_default_company()
+
+        # name -> (billing_type, sales, estimated, costing, billable)
+        # Derived values (cost_forecasted = 0, no allocations):
+        #   BILL:    budget 10000 (sales),     burn 7000 (billable), margin 70 (costing)
+        #   NONBILL: budget  5000 (estimated), burn 2000 (costing),  margin 60 (costing)
+        fixture_rows = {
+            "BILL": ("Fixed Cost", 10000, 0, 3000, 7000),
+            "NONBILL": ("Non-Billable", 0, 5000, 2000, 6000),
+        }
+        cls.projects = {}
+        for suffix, (billing_type, sales, estimated, costing, billable) in fixture_rows.items():
+            name = (
+                frappe.get_doc(
+                    {
+                        "doctype": "Project",
+                        "project_name": f"{BURN_FIXTURE_PREFIX} {suffix}",
+                        "company": cls.company,
+                    }
+                )
+                .insert(ignore_permissions=True)
+                .name
+            )
+            frappe.db.set_value(
+                "Project",
+                name,
+                {
+                    "custom_billing_type": billing_type,
+                    "total_sales_amount": sales,
+                    "estimated_costing": estimated,
+                    "total_costing_amount": costing,
+                    "total_billable_amount": billable,
+                },
+                update_modified=False,
+            )
+            cls.projects[suffix] = name
+
+        frappe.set_user("Administrator")
+        frappe.clear_cache()
+
+    def list_view(self, order_by=None):
+        return get_projects_view(
+            view="list",
+            search=BURN_FIXTURE_PREFIX,
+            start=0,
+            limit=20,
+            **({"order_by": order_by} if order_by else {}),
+        )
+
+    def list_row(self, suffix):
+        return next(row for row in self.list_view()["data"] if row["name"] == self.projects[suffix])
+
+    def test_list_burn_uses_billable_amount_when_billable(self):
+        cost_burn = self.list_row("BILL")["cost_burn"]
+        self.assertEqual(cost_burn["cost_accrued"], 7000)
+        self.assertEqual(cost_burn["total_budget"], 10000)
+
+    def test_list_burn_uses_costing_amount_when_non_billable(self):
+        cost_burn = self.list_row("NONBILL")["cost_burn"]
+        self.assertEqual(cost_burn["cost_accrued"], 2000)
+        self.assertEqual(cost_burn["total_budget"], 5000)
+
+    def test_sidebar_burn_matches_list_burn(self):
+        for suffix, expected in (("BILL", 7000), ("NONBILL", 2000)):
+            burn = get_project_sidebar(self.projects[suffix])["burn"]
+            self.assertEqual(burn["cost_accrued"], expected, msg=suffix)
+            self.assertEqual(burn["cost_accrued"], self.list_row(suffix)["cost_burn"]["cost_accrued"], msg=suffix)
+
+    def test_profit_margin_stays_on_costing_amount(self):
+        # Guards the cost_accrued / budget_burn_accrued split: billable amounts must
+        # not leak into the margin. BILL would read 30 instead of 70 if they did.
+        self.assertEqual(self.list_row("BILL")["profit_margin"], 70)
+        self.assertEqual(self.list_row("NONBILL")["profit_margin"], 60)
+
+    def test_cost_burn_percent_sort_ranks_by_burn_source(self):
+        # BILL burns 70% (7000/10000), NONBILL 40% (2000/5000). Sorting the whole
+        # list on costing amounts would put BILL at 30% and invert the order.
+        by_name = {name: suffix for suffix, name in self.projects.items()}
+        result = self.list_view(order_by="cost_burn_percent desc")
+        self.assertEqual([by_name[row["name"]] for row in result["data"]], ["BILL", "NONBILL"])
