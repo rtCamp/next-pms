@@ -373,7 +373,6 @@ def build_aggregate_dates(date: str, max_week: int, has_filters: bool):
 def get_matching_timesheet_employee_ids(
     dates: list,
     parsed_filters: dict,
-    search: str | None = None,
     approval_status: list[str] | None = None,
     require_project_tasks: bool = False,
 ):
@@ -394,7 +393,7 @@ def get_matching_timesheet_employee_ids(
         return []
 
     requires_detail_scan = bool(
-        require_project_tasks or search or parsed_filters.get("Task") or parsed_filters.get("Timesheet Detail")
+        require_project_tasks or parsed_filters.get("Task") or parsed_filters.get("Timesheet Detail")
     )
     if not requires_detail_scan:
         return list({timesheet.employee for timesheet in timesheets})
@@ -407,7 +406,7 @@ def get_matching_timesheet_employee_ids(
     if not details:
         return []
 
-    requires_task_scan = bool(require_project_tasks or search or parsed_filters.get("Task"))
+    requires_task_scan = bool(require_project_tasks or parsed_filters.get("Task"))
     if not requires_task_scan:
         matched_parent_names = {detail.parent for detail in details}
         return list(
@@ -419,16 +418,7 @@ def get_matching_timesheet_employee_ids(
         return []
 
     task_filters = build_filters({"name": ["in", task_ids]}, parsed_filters.get("Task", []))
-    tasks = get_all("Task", filters=task_filters, fields=TASK_FIELDS)
-    if search:
-        search_term = search.lower()
-        tasks = [
-            task
-            for task in tasks
-            if search_term in (task.get("subject") or "").lower()
-            or search_term in (task.get("name") or "").lower()
-            or search_term in (task.get("project_name") or "").lower()
-        ]
+    tasks = get_all("Task", filters=task_filters, fields=["name", "project"])
     if require_project_tasks:
         tasks = [task for task in tasks if task.get("project")]
 
@@ -470,21 +460,19 @@ def get_team_candidate_employee_ids(
     reports_to: str | None = None,
     dates: list | None = None,
     parsed_filters: dict | None = None,
-    search: str | None = None,
     timesheet_status: list[str] | None = None,
     employee_conditions: list | None = None,
 ):
     if not dates:
         return []
 
-    has_candidate_filters = bool(timesheet_status or search or any((parsed_filters or {}).values()))
+    has_candidate_filters = bool(timesheet_status or any((parsed_filters or {}).values()))
     if not has_candidate_filters and not employee_conditions:
         return None
 
     employee_ids = get_matching_timesheet_employee_ids(
         dates=dates,
         parsed_filters=parsed_filters or {dt: [] for dt in ALLOWED_FILTER_FIELDS},
-        search=search,
         approval_status=timesheet_status,
     )
     if not employee_ids:
@@ -542,20 +530,21 @@ def get_qualifying_project_ids(
 
     base_task_filters = {"name": ["in", task_ids], "project": ["!=", ""]}
     task_filters = build_filters(base_task_filters, parsed_filters.get("Task", []))
-    tasks = get_all("Task", filters=task_filters, fields=TASK_FIELDS)
-
-    if search:
-        search_lower = search.lower()
-        tasks = [
-            t
-            for t in tasks
-            if search_lower in (t.get("subject") or "").lower()
-            or search_lower in (t.get("name") or "").lower()
-            or search_lower in (t.get("project_name") or "").lower()
-        ]
+    tasks = get_all("Task", filters=task_filters, fields=["name", "project"])
 
     project_ids = sorted({t.project for t in tasks if t.get("project")})
-    return project_ids
+    if not project_ids:
+        return []
+
+    if search:
+        project_ids = get_all(
+            "Project",
+            filters=[["name", "in", project_ids]],
+            or_filters=[["name", "like", f"%{search}%"], ["project_name", "like", f"%{search}%"]],
+            pluck="name",
+        )
+
+    return sorted(project_ids)
 
 
 def get_employees_for_projects(
@@ -610,7 +599,7 @@ def iter_employee_chunks(employees: list, chunk_size: int = EMPLOYEE_SCAN_CHUNK_
         yield employees[index : index + chunk_size]
 
 
-def build_chunk_context(employees: list, dates: list, parsed_filters: dict, search: str | None = None):
+def build_chunk_context(employees: list, dates: list, parsed_filters: dict):
     """Runs the filters to build the context for the list of employees passed."""
     employee_names = [employee.name for employee in employees]
     if not employee_names:
@@ -746,26 +735,10 @@ def build_chunk_context(employees: list, dates: list, parsed_filters: dict, sear
             base_task_filters = {"name": ["in", all_task_ids]}
             task_filters = build_filters(base_task_filters, parsed_filters.get("Task", []))
             all_tasks = get_all("Task", filters=task_filters, fields=TASK_FIELDS)
-            if search:
-                search_term = search.lower()
-                all_tasks = [
-                    task
-                    for task in all_tasks
-                    if search_term in (task.get("subject") or "").lower()
-                    or search_term in (task.get("name") or "").lower()
-                    or search_term in (task.get("project_name") or "").lower()
-                ]
             task_details_dict = {task["name"]: task for task in all_tasks}
 
-    if search and all_logs:
-        filtered_task_ids = set(task_details_dict.keys())
-        all_logs = [log for log in all_logs if not log.get("task") or log.get("task") in filtered_task_ids]
-        detail_by_parent = defaultdict(list)
-        for log in all_logs:
-            detail_by_parent[log.parent].append(log)
-
     matched_parent_names = set(detail_by_parent.keys())
-    if matched_parent_names and (search or parsed_filters.get("Task") or parsed_filters.get("Timesheet Detail")):
+    if matched_parent_names and (parsed_filters.get("Task") or parsed_filters.get("Timesheet Detail")):
         for employee_name, timesheets in list(timesheet_map.items()):
             filtered_timesheets = [timesheet for timesheet in timesheets if timesheet.name in matched_parent_names]
             timesheet_map[employee_name] = filtered_timesheets
@@ -780,7 +753,7 @@ def build_chunk_context(employees: list, dates: list, parsed_filters: dict, sear
             else:
                 overall_status_map[employee_name] = "Not Submitted"
 
-    has_search_or_task_filters = bool(search or parsed_filters.get("Task"))
+    has_search_or_task_filters = bool(parsed_filters.get("Task"))
 
     return {
         "working_hours_map": working_hours_map,
@@ -885,7 +858,7 @@ def paginate_qualifying_employee_payloads(
     employee_ids,
     dates: list,
     parsed_filters: dict,
-    search: str | None,
+    employee_name: str | None,
     start: int,
     page_length: int,
     builder,
@@ -902,12 +875,13 @@ def paginate_qualifying_employee_payloads(
             start=employee_start,
             reports_to=reports_to,
             ids=employee_ids,
+            employee_name=employee_name,
             **employee_filter_kwargs,
         )
         if not chunk:
             break
 
-        context = build_chunk_context(chunk, dates, parsed_filters, search)
+        context = build_chunk_context(chunk, dates, parsed_filters)
         for employee in chunk:
             payload = builder(employee, context)
             if not payload:
@@ -928,7 +902,6 @@ def paginate_unfiltered_employee_payloads(
     reports_to: str | None,
     dates: list,
     parsed_filters: dict,
-    search: str | None,
     start: int,
     page_length: int,
     builder,
@@ -950,7 +923,7 @@ def paginate_unfiltered_employee_payloads(
         start=start,
         reports_to=reports_to,
     )
-    context = build_chunk_context(page_employees, dates, parsed_filters, search)
+    context = build_chunk_context(page_employees, dates, parsed_filters)
     # No `if payload` filter here on purpose: per the invariant above, builder()
     # cannot return None in this path. If that invariant is ever violated, a
     # `None` in `selected` will raise loudly when `team.py` unpacks it as

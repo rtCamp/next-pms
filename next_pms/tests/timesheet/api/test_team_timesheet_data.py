@@ -411,12 +411,30 @@ class TestTeamTimesheetDataAllEmployees(_TeamTimesheetDataBase):
 class TestTeamTimesheetDataFilters(_TeamTimesheetDataBase):
     """search / approval_status / composite `filters` — the has_filters=True path."""
 
-    def test_search_scoped_to_reports_to(self):
-        res = self._call(reports_to=self.mgr, search=TASK_ALPHA_SUBJECT)
-        self.assertEqual(sorted(res["data"].keys()), [self.r1, self.r2])
-        self.assertEqual(res["total_count"], 2)
+    def test_search_matches_employee_name_scoped_to_reports_to(self):
+        # Partial, lowercase substring against Naveen Bhatt's employee_name —
+        # search now matches the Employee, not Task text.
+        res = self._call(reports_to=self.mgr, search="naveen")
+        self.assertEqual(list(res["data"].keys()), [self.r1])
+        self.assertEqual(res["total_count"], 1)
+
+        # A name match doesn't narrow which of the employee's tasks are shown —
+        # the full week detail (all tasks/hours) still renders, same as the
+        # no-filter payload in TestTeamTimesheetDataReportsToScoped.
+        # R1 only has entries in W1 (W2 is empty, since search doesn't prune
+        # weeks) — select the populated week explicitly rather than relying on
+        # dict insertion order.
         r1_weeks = res["data"][self.r1]["timesheet_details"]
-        self.assertIn(self.task_alpha, next(iter(r1_weeks.values()))["tasks"])
+        week1 = next(week for week in r1_weeks.values() if week["tasks"])
+        self.assertEqual(week1["total_hours"], 5)
+        self.assertIn(self.task_alpha, week1["tasks"])
+        self.assertEqual(len(week1["tasks"][self.task_alpha]["data"]), 2)
+
+    def test_search_by_task_text_no_longer_matches_anyone(self):
+        res = self._call(reports_to=self.mgr, search=TASK_ALPHA_SUBJECT)
+        self.assertEqual(res["data"], {})
+        self.assertEqual(res["total_count"], 0)
+        self.assertFalse(res["has_more"])
 
     def test_approval_status_filter_scoped_to_reports_to(self):
         res = self._call(reports_to=self.mgr, status_filter=["Approved"])
@@ -454,15 +472,16 @@ class TestTeamTimesheetDataFilters(_TeamTimesheetDataBase):
         self.assertFalse(res["has_more"])
 
     def test_skip_empty_weeks_prunes_weeks_without_tasks(self):
-        with_skip = self._call(reports_to=self.mgr, search=TASK_ALPHA_SUBJECT, skip_empty_weeks=True)
-        without_skip = self._call(reports_to=self.mgr, search=TASK_ALPHA_SUBJECT, skip_empty_weeks=False)
+        # R1 (matched via name search) only has entries in W1 — W2 is empty and
+        # should be pruned when skip_empty_weeks=True.
+        with_skip = self._call(reports_to=self.mgr, search="naveen", skip_empty_weeks=True)
+        without_skip = self._call(reports_to=self.mgr, search="naveen", skip_empty_weeks=False)
 
-        self.assertEqual(sorted(with_skip["data"].keys()), [self.r1, self.r2])
-        self.assertEqual(sorted(without_skip["data"].keys()), [self.r1, self.r2])
+        self.assertEqual(list(with_skip["data"].keys()), [self.r1])
+        self.assertEqual(list(without_skip["data"].keys()), [self.r1])
 
-        for emp in (self.r1, self.r2):
-            self.assertEqual(len(with_skip["data"][emp]["timesheet_details"]), 1)
-            self.assertEqual(len(without_skip["data"][emp]["timesheet_details"]), 2)
+        self.assertEqual(len(with_skip["data"][self.r1]["timesheet_details"]), 1)
+        self.assertEqual(len(without_skip["data"][self.r1]["timesheet_details"]), 2)
 
 
 LEFT_EMP_NAME = "Meera Joshi"
