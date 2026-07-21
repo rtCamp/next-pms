@@ -60,7 +60,7 @@ export function InvoiceBurnCell() {
         />
         <LegendItem
           className="bg-surface-gray-3"
-          label="Total project amount"
+          label="Total Project Value"
           value={currencyFormat(currency).format(totalAmount ?? 0)}
           labelClassName="text-ink-gray-6"
           valueClassName="font-medium"
