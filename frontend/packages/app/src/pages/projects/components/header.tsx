@@ -9,6 +9,7 @@ import { AddSm, SmallDown } from "@rtcamp/frappe-ui-react/icons";
  * Internal dependencies.
  */
 import { Header } from "@/layout/header";
+import { useViews } from "@/providers/views";
 import { VIEWS } from "../constants";
 
 type ViewKey = (typeof VIEWS)[number]["key"];
@@ -21,6 +22,10 @@ type ProjectsHeaderProps = {
 function ProjectsHeader({ selectedView, openAddProject }: ProjectsHeaderProps) {
   const navigate = useNavigate();
   const { search } = useLocation();
+  const projectViews = useViews((state) => state.state.views);
+  console.log(projectViews);
+
+  const createView = useViews((state) => state.actions.createView);
   const activeView = VIEWS.find((v) => v.key === selectedView) ?? VIEWS[0];
 
   return (
@@ -43,12 +48,32 @@ function ProjectsHeader({ selectedView, openAddProject }: ProjectsHeaderProps) {
                 {
                   group: "",
                   key: "views-group",
-                  items: VIEWS.map((v) => ({
-                    label: v.label,
-                    key: v.key,
-                    icon: <v.icon className="size-4 mr-2" />,
-                    onClick: () => navigate({ pathname: v.path, search }),
-                  })),
+                  items: [
+                    ...projectViews.map((view) => ({
+                      label: view.label,
+                      key: view.name,
+                      icon: view.icon,
+                      onClick: () => null,
+                    })),
+                    ...VIEWS.map((v) => ({
+                      label: v.label,
+                      key: v.key,
+                      icon: <v.icon className="size-4 mr-2" />,
+                      onClick: () => navigate({ pathname: v.path, search }),
+                    })),
+                  ],
+                },
+                {
+                  group: "",
+                  key: "actions-group",
+                  items: [
+                    {
+                      label: "Create View",
+                      key: "create-view",
+                      icon: <AddSm className="size-4 mr-2" />,
+                      onClick: () => createView({ type: "List" }),
+                    },
+                  ],
                 },
               ],
             },

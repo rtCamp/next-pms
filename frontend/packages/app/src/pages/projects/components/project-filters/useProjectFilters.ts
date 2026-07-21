@@ -14,9 +14,9 @@ import type {
   ProjectListFilters,
   ProjectStatus,
   RagStatus,
-} from "../types";
+} from "../../types";
 
-const FILTER_PARAM_KEYS = [
+export const FILTER_PARAM_KEYS = [
   "search",
   "rag",
   "phase",

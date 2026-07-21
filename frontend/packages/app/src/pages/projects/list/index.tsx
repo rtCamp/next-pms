@@ -5,7 +5,7 @@ import { useProjectList } from "./context";
 import { ProjectListProvider } from "./provider";
 import ProjectListView from "./view";
 import ProjectsHeader from "../components/header";
-import { ProjectListSubHeader } from "../components/subHeader";
+import { ProjectFilters } from "../components/project-filters";
 
 function ProjectListPage() {
   return (
@@ -21,7 +21,7 @@ function ProjectListPageContent() {
   return (
     <>
       <ProjectsHeader selectedView="list" openAddProject={openAddProject} />
-      <ProjectListSubHeader />
+      <ProjectFilters />
       <ProjectListView />
     </>
   );

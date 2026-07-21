@@ -8,17 +8,17 @@ import { useFrappeGetCall, useFrappeUpdateDoc } from "frappe-react-sdk";
  * Internal dependencies.
  */
 import { kebabToTitleCase } from "@/lib/utils";
-
-import AddProjectModal from "../components/add-project";
-import type { AddProjectFormValues } from "../components/add-project/schema";
-import { useProjectFilters } from "../hooks/useProjectFilters";
-import type { Phase } from "../types";
-import { buildListFrappeFilters } from "../utils";
 import {
   ProjectKanbanContext,
   type ProjectKanbanContextProps,
 } from "./context";
 import type { ResponseProjectKanban } from "./types";
+import AddProjectModal from "../components/add-project";
+import type { AddProjectFormValues } from "../components/add-project/schema";
+import { useProjectFilters } from "../components/project-filters/useProjectFilters";
+
+import type { Phase } from "../types";
+import { buildListFrappeFilters } from "../utils";
 
 export function ProjectKanbanProvider({ children }: PropsWithChildren) {
   const { filters } = useProjectFilters();

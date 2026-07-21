@@ -11,7 +11,6 @@ import ReactLazyPreload from "@/lib/lazy-preload";
 import type { RouteConfig, RouteKey } from "@/types";
 import LayoutWithSidebar from "./layout";
 import { useUser } from "./providers/user";
-import { ViewsProvider } from "./providers/views/provider";
 import { Role } from "./types";
 /**
  * Lazy load components used outside the route config (parameterized and
@@ -53,7 +52,7 @@ export const routeConfig: Record<
     allowedRoles: ["Projects Manager", "Projects User"],
   },
   project: {
-    Component: ReactLazyPreload(() => import("@/pages/projects/list")),
+    Component: ReactLazyPreload(() => import("@/pages/projects")),
     allowedRoles: ["Projects Manager", "Timesheet Manager", "Projects User"],
   },
   "project-kanban": {
@@ -210,11 +209,7 @@ const AuthenticatedRoute = () => {
   }
 
   if (!isUserLoading && currentUser && currentUser !== "Guest") {
-    return (
-      <ViewsProvider>
-        <Outlet />
-      </ViewsProvider>
-    );
+    return <Outlet />;
   }
 
   return null;

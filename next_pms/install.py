@@ -12,6 +12,7 @@ def after_install():
     setup_project_custom_fields()
     setup_project_target_hours_field()
     setup_timesheet_rejection_reason_field()
+    create_default_views()
 
 
 def setup_timesheet_rejection_reason_field():
@@ -181,6 +182,34 @@ def create_default_project_phases():
     for phase_data in phases:
         if not frappe.db.exists("Project Phase", {"phase": phase_data["phase"]}):
             frappe.get_doc(phase_data).insert(ignore_permissions=True, ignore_mandatory=True)
+
+
+def create_default_views():
+    import json
+
+    import frappe
+
+    views = [
+        {
+            "label": "List view",
+            "icon": "📋",
+            "dt": "Project",
+            "type": "List",
+            "route": "/projects",
+            "public": 1,
+            "default": 1,
+            "filters": json.dumps({}),
+            "order_by": json.dumps([]),
+            "rows": json.dumps([]),
+            "columns": json.dumps({}),
+            "pinned_columns": json.dumps([]),
+        },
+    ]
+
+    for view in views:
+        if frappe.db.exists("PMS View Setting", {"label": view["label"], "dt": view["dt"], "public": 1}):
+            continue
+        frappe.get_doc({"doctype": "PMS View Setting", **view}).insert(ignore_permissions=True)
 
 
 def create_default_risk_masters():

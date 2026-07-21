@@ -18,7 +18,7 @@ import { ProjectListCell } from "./cells";
 import { PROJECT_LIST_COLUMNS } from "./columns";
 import { PROJECT_LIST_PAGE_SIZE } from "../constants";
 import { useProjectList } from "./context";
-import { useProjectFilters } from "../hooks/useProjectFilters";
+import { useProjectFilters } from "../components/project-filters/useProjectFilters";
 
 function ProjectList() {
   const data = useProjectList((c) => c.state.data);

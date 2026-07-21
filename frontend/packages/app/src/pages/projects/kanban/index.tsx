@@ -5,7 +5,7 @@ import { useProjectKanban } from "./context";
 import { ProjectKanbanProvider } from "./provider";
 import ProjectKanbanView from "./view";
 import ProjectsHeader from "../components/header";
-import { ProjectListSubHeader } from "../components/subHeader";
+import { ProjectFilters } from "../components/project-filters";
 
 function ProjectKanbanPage() {
   return (
@@ -21,7 +21,7 @@ function ProjectKanbanPageContent() {
   return (
     <>
       <ProjectsHeader selectedView="kanban" openAddProject={openAddProject} />
-      <ProjectListSubHeader />
+      <ProjectFilters />
       <ProjectKanbanView />
     </>
   );
