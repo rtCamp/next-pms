@@ -53,7 +53,7 @@ export function TaskListProvider({ children }: PropsWithChildren) {
     [querySignature],
   );
 
-  const { data, error, isLoading, isValidating, size, setSize } =
+  const { data, error, isLoading, isValidating, size, setSize, mutate } =
     usePagination<ResponseTaskList>(
       "next_pms.timesheet.api.task.get_task_list",
       getKey,
@@ -88,6 +88,10 @@ export function TaskListProvider({ children }: PropsWithChildren) {
     void setSize((s) => s + 1);
   }, [isLoading, isNextPageLoading, hasMore, setSize]);
 
+  const refresh = useCallback(() => {
+    void mutate();
+  }, [mutate]);
+
   const value: TaskListContextProps = useMemo(
     () => ({
       state: {
@@ -98,9 +102,10 @@ export function TaskListProvider({ children }: PropsWithChildren) {
       },
       actions: {
         loadMore,
+        refresh,
       },
     }),
-    [tasks, hasMore, isLoading, error, loadMore],
+    [tasks, hasMore, isLoading, error, loadMore, refresh],
   );
 
   return (

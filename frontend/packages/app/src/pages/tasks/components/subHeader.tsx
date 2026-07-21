@@ -13,7 +13,6 @@ import {
 /**
  * Internal dependencies.
  */
-import { FilterLinkValue } from "@/components/filters/FilterLinkValue";
 import { useDebounce } from "@/hooks/useDebounce";
 import { useDoctypeLinkLookup } from "@/hooks/useDoctypeLinkLookup";
 import {
@@ -60,7 +59,7 @@ export function TaskListSubHeader() {
     () => (project ? { label: project, value: project } : null),
     [project],
   );
-  const { options: projectOptions, isLoading: isProjectLoading } =
+  const { options: projectLookupOptions, isLoading: isProjectLoading } =
     useDoctypeLinkLookup({
       doctype: "Project",
       labelField: "project_name",
@@ -68,6 +67,10 @@ export function TaskListSubHeader() {
       query: projectQuery,
       selectedOption: selectedProjectOption,
     });
+  const projectOptions = useMemo(
+    () => [{ label: "All", value: "" }, ...projectLookupOptions],
+    [projectLookupOptions],
+  );
 
   return (
     <div className="flex flex-wrap gap-2 justify-between px-5 py-3.5">
@@ -116,33 +119,12 @@ export function TaskListSubHeader() {
           align="end"
           value={advanced}
           onChange={setAdvanced}
-          renderLinkValue={(props) => <FilterLinkValue {...props} />}
           fields={[
             {
               name: "priority",
               label: "Priority",
               type: "select",
               options: TASK_PRIORITY_OPTIONS,
-              operators: [
-                { label: "Equals", value: "=" },
-                { label: "Not Equals", value: "!=" },
-              ],
-            },
-            {
-              name: "type",
-              label: "Task Type",
-              type: "link",
-              link: { doctype: "Task Type" },
-              operators: [
-                { label: "Equals", value: "=" },
-                { label: "Not Equals", value: "!=" },
-              ],
-            },
-            {
-              name: "department",
-              label: "Department",
-              type: "link",
-              link: { doctype: "Department" },
               operators: [
                 { label: "Equals", value: "=" },
                 { label: "Not Equals", value: "!=" },
@@ -160,6 +142,11 @@ export function TaskListSubHeader() {
                 { label: "Equals", value: "=" },
                 { label: "Not Equals", value: "!=" },
               ],
+            },
+            {
+              name: "exp_end_date",
+              label: "Due date",
+              type: "daterange",
             },
           ]}
           externalFilterCount={externalFilterCount}

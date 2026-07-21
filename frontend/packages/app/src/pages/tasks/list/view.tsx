@@ -1,21 +1,28 @@
 /**
  * External dependencies.
  */
-import { useState } from "react";
+import { useCallback, useState } from "react";
+import { getTodayDate } from "@next-pms/design-system";
+import { DeleteActionDialog } from "@next-pms/design-system/components";
 import {
   ListHeader,
   ListHeaderItem,
   ListRow,
   ListRows,
   ListView,
+  useToasts,
 } from "@rtcamp/frappe-ui-react";
 import { ArrowDown, ArrowUp } from "@rtcamp/frappe-ui-react/icons";
+import { type FrappeError, useFrappeDeleteDoc } from "frappe-react-sdk";
 
 /**
  * Internal dependencies.
  */
 import { InfiniteScroll } from "@/components/infiniteScroll";
 import PersonalTaskLog from "@/components/task-log/personalTaskLog";
+import { parseFrappeErrorMsg } from "@/lib/utils";
+import AddTime from "@/pages/timesheet/components/add-time";
+import type { OpenAddTimeDialogOptions } from "@/pages/timesheet/outletContext";
 import { TaskListCell } from "./cells";
 import { TASK_LIST_COLUMNS } from "./columns";
 import { useTaskList } from "./context";
@@ -31,8 +38,33 @@ function TaskList() {
   const isLoading = useTaskList((c) => c.state.isLoading);
   const hasMore = useTaskList((c) => c.state.hasMore);
   const loadMore = useTaskList((c) => c.actions.loadMore);
+  const refresh = useTaskList((c) => c.actions.refresh);
   const { sort, setSort } = useTaskFilters();
   const [openTask, setOpenTask] = useState<string | null>(null);
+  const [addTimePrefill, setAddTimePrefill] =
+    useState<OpenAddTimeDialogOptions>({ date: getTodayDate() });
+  const [isAddTimeOpen, setIsAddTimeOpen] = useState(false);
+  const [deleteTaskName, setDeleteTaskName] = useState<string | null>(null);
+  const { deleteDoc } = useFrappeDeleteDoc();
+  const toast = useToasts();
+
+  const handleAddTime = useCallback((prefill: OpenAddTimeDialogOptions) => {
+    setAddTimePrefill({ date: getTodayDate(), ...prefill });
+    setIsAddTimeOpen(true);
+  }, []);
+
+  const handleDeleteTask = useCallback(
+    async (name: string) => {
+      try {
+        await deleteDoc("Task", name);
+        refresh();
+        toast.success("Task deleted");
+      } catch (err) {
+        toast.error(parseFrappeErrorMsg(err as FrappeError));
+      }
+    },
+    [deleteDoc, refresh, toast],
+  );
 
   const handleHeaderClick = (sortField: string) => {
     if (sort.field === sortField) {
@@ -107,6 +139,8 @@ function TaskList() {
                       row={row}
                       column={column}
                       onOpenTask={setOpenTask}
+                      onAddTime={handleAddTime}
+                      onDeleteTask={setDeleteTaskName}
                     />
                   ))}
                 </ListRow>
@@ -120,6 +154,23 @@ function TaskList() {
           task={openTask}
           open={Boolean(openTask)}
           onOpenChange={(open) => !open && setOpenTask(null)}
+        />
+      )}
+      <AddTime
+        initialDate={addTimePrefill.date || getTodayDate()}
+        open={isAddTimeOpen}
+        onOpenChange={setIsAddTimeOpen}
+        project={addTimePrefill.project}
+        projectLabel={addTimePrefill.projectLabel}
+        task={addTimePrefill.task}
+        taskLabel={addTimePrefill.taskLabel}
+      />
+      {deleteTaskName && (
+        <DeleteActionDialog
+          title="Delete task"
+          description="Are you sure you want to delete this task? This action cannot be undone."
+          onClose={() => setDeleteTaskName(null)}
+          onConfirm={() => handleDeleteTask(deleteTaskName)}
         />
       )}
     </>

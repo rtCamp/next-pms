@@ -17,6 +17,7 @@ export interface TaskListContextProps {
   };
   actions: {
     loadMore: () => void;
+    refresh: () => void;
   };
 }
 
@@ -31,6 +32,7 @@ export const TaskListContext = createContext<TaskListContextProps>({
   },
   actions: {
     loadMore: noop,
+    refresh: noop,
   },
 });
 
