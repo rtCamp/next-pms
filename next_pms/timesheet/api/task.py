@@ -61,7 +61,7 @@ def parse_task_filters(raw_filters: list | str | None) -> list:
             frappe.throw(frappe._("Unsupported filter operator '{0}'.").format(operator))
         if field != "name" and not meta.has_field(field):
             frappe.throw(frappe._("Filtering on field '{0}' of Task is not supported.").format(field))
-        parsed.append([field, operator, value])
+        parsed.append([field, operator.lower().strip(), value])
     return parsed
 
 
