@@ -130,6 +130,8 @@ export const convertTimesheetToEntries = (response: TimesheetApiResponse) => {
           leaveHours,
           leaveLabel:
             leaveHours > 0 ? getLeaveLabelForDate(leaves, date) : undefined,
+          approvalStatus: entry.custom_approval_status!,
+          rejectionReason: entry.custom_rejection_reason || undefined,
         });
       });
     }
