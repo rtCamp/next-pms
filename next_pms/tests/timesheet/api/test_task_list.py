@@ -159,6 +159,41 @@ class TestGetTaskListFiltersAndSorting(IntegrationTestCase):
             ["Charlie billing sync", "Bravo push service", "Alpha login page", "Delta reporting"],
         )
 
+    def test_order_by_default_field(self):
+        # `modified` is a Frappe default column, not a Task DocField, but must still be sortable.
+        # Stamp distinct modified values so order is deterministic (avoids same-second ties).
+        stamps = {
+            "Alpha login page": "2024-01-01 10:00:00",
+            "Bravo push service": "2024-01-03 10:00:00",
+            "Charlie billing sync": "2024-01-02 10:00:00",
+            "Delta reporting": "2024-01-04 10:00:00",
+        }
+        for subject, modified in stamps.items():
+            frappe.db.set_value("Task", self.task_names[subject], "modified", modified, update_modified=False)
+
+        result = get_task_list(projects=[self.project], order_by="modified desc")
+        self.assertEqual(
+            self._subjects(result),
+            ["Delta reporting", "Bravo push service", "Charlie billing sync", "Alpha login page"],
+        )
+
+    def test_filter_on_default_field(self):
+        stamps = {
+            "Alpha login page": "1999-06-01 00:00:00",
+            "Bravo push service": "2024-01-03 10:00:00",
+            "Charlie billing sync": "2024-01-02 10:00:00",
+            "Delta reporting": "2024-01-04 10:00:00",
+        }
+        for subject, modified in stamps.items():
+            frappe.db.set_value("Task", self.task_names[subject], "modified", modified, update_modified=False)
+
+        result = get_task_list(projects=[self.project], filters=[["modified", ">", "2000-01-01"]])
+        self.assertEqual(result["total_count"], 3)
+        self.assertEqual(
+            set(self._subjects(result)),
+            {"Bravo push service", "Charlie billing sync", "Delta reporting"},
+        )
+
     def test_order_by_unknown_field_raises(self):
         with self.assertRaises(frappe.ValidationError):
             get_task_list(projects=[self.project], order_by="not_a_real_field asc")

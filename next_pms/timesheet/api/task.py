@@ -6,24 +6,11 @@ from frappe.query_builder import functions as fn
 from frappe.utils import add_days, getdate, now_datetime
 from pypika import Criterion, Order
 
+from next_pms.timesheet.utils.constant import TASK_FILTER_OPERATORS, TASK_META_FIELDS
+
 from . import get_count
 from .project import get_project_filter_for_contractor
 from .timesheet import _apply_qb_condition
-
-TASK_FILTER_OPERATORS = {
-    "=",
-    "!=",
-    "like",
-    "not like",
-    "in",
-    "not in",
-    ">=",
-    "<=",
-    ">",
-    "<",
-    "between",
-    "is",
-}
 
 
 def parse_task_filters(raw_filters: list | str | None) -> list:
@@ -31,8 +18,8 @@ def parse_task_filters(raw_filters: list | str | None) -> list:
 
     Args:
         raw_filters: A list of [field, operator, value] entries, or a JSON string encoding one.
-            Every field must exist on the Task doctype, so all Task fields are supported without
-            allowing arbitrary column access.
+            Every field must be a Task field or a Frappe default column (e.g. modified, creation),
+            so all real Task columns are supported without allowing arbitrary column access.
 
     Returns:
         A list of validated [field, operator, value] triples.
@@ -59,7 +46,7 @@ def parse_task_filters(raw_filters: list | str | None) -> list:
         field, operator, value = condition
         if not isinstance(operator, str) or operator.lower().strip() not in TASK_FILTER_OPERATORS:
             frappe.throw(frappe._("Unsupported filter operator '{0}'.").format(operator))
-        if field != "name" and not meta.has_field(field):
+        if field not in TASK_META_FIELDS and not meta.has_field(field):
             frappe.throw(frappe._("Filtering on field '{0}' of Task is not supported.").format(field))
         parsed.append([field, operator.lower().strip(), value])
     return parsed
@@ -69,8 +56,8 @@ def parse_task_order_by(order_by: str | None) -> list:
     """Parse a Frappe-style order_by string into validated sort pairs for Task.
 
     Args:
-        order_by: A sort string such as "field asc, other desc". Every field must exist on the
-            Task doctype.
+        order_by: A sort string such as "field asc, other desc". Every field must be a Task field
+            or a Frappe default column (e.g. modified, creation).
 
     Returns:
         A list of (field, Order) pairs to apply to the query in order.
@@ -89,7 +76,7 @@ def parse_task_order_by(order_by: str | None) -> list:
         direction = tokens[1].lower() if len(tokens) > 1 else "asc"
         if len(tokens) > 2 or direction not in ("asc", "desc"):
             frappe.throw(frappe._("Invalid order_by clause '{0}'.").format(clause))
-        if field != "name" and not meta.has_field(field):
+        if field not in TASK_META_FIELDS and not meta.has_field(field):
             frappe.throw(frappe._("Sorting on field '{0}' of Task is not supported.").format(field))
         parsed.append((field, Order.asc if direction == "asc" else Order.desc))
     return parsed
