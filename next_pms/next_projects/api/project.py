@@ -40,6 +40,23 @@ def get_total_budget(project: dict) -> float:
     return flt(project.get("estimated_costing"))
 
 
+def get_budget_burn_accrued(project: dict) -> float:
+    """
+    Amount burnt against the budget, as shown by the Budget Burn bar.
+
+    Paired with get_total_budget: for billable projects the budget is revenue
+    (total_sales_amount), so what burns it is billed work (total_billable_amount).
+    For non-billable there is no billing, so cost (total_costing_amount) burns the
+    estimated_costing budget.
+
+    Distinct from cost incurred, which is always total_costing_amount.
+    """
+    billing_type = project.get("custom_billing_type")
+    if billing_type and billing_type != "Non-Billable":
+        return flt(project.get("total_billable_amount"))
+    return flt(project.get("total_costing_amount"))
+
+
 def get_cost_forecasted(project_name: str) -> float:
     """Sum of total_cost from ongoing/future Resource Allocations for the project.
 
@@ -127,10 +144,10 @@ def get_computed_sort_value(
     if sort_field == "burn_rate_per_week":
         return get_burn_rate_per_week(project)
     if sort_field == "cost_burn_percent":
-        # Mirrors the frontend cost-burn cell: cost_accrued / total_budget * 100
+        # Mirrors the frontend cost-burn cell: cost_burn.cost_accrued / total_budget * 100
         if total_budget <= 0:
             return 0
-        return (flt(project.get("total_billable_amount")) / total_budget) * 100
+        return (get_budget_burn_accrued(project) / total_budget) * 100
     if sort_field == "total_budget":
         return total_budget
     if sort_field == "profit_margin":
@@ -194,8 +211,8 @@ def enrich_project_with_calculated_fields(
 
     # Basic calculated values
     total_budget = get_total_budget(project)
-    cost_accrued = flt(project.get("total_billable_amount"))
-    cost_incurred = flt(project.get("total_costing_amount"))
+    cost_accrued = flt(project.get("total_costing_amount"))
+    budget_burn_accrued = get_budget_burn_accrued(project)
     cost_forecasted = (
         cost_forecasted_map.get(project_name, 0)
         if cost_forecasted_map is not None
@@ -218,13 +235,13 @@ def enrich_project_with_calculated_fields(
         # Calculated financial fields
         "burn_rate_per_week": get_burn_rate_per_week(project),
         "cost_burn": {
-            "cost_accrued": cost_accrued,
+            "cost_accrued": budget_burn_accrued,
             "cost_forecasted": cost_forecasted,
             "target_cost": target_cost,
             "total_budget": total_budget,
         },
         "total_budget": total_budget,
-        "profit_margin": get_profit_margin(total_budget, cost_incurred, cost_forecasted),
+        "profit_margin": get_profit_margin(total_budget, cost_accrued, cost_forecasted),
         # Dates
         "start_date": project.get("expected_start_date"),
         "next_milestone": project.get("custom_next_milestone"),
@@ -980,7 +997,7 @@ def get_project_sidebar(project: str):
     has_hours_pool = billing_type in ("Fixed Cost", "Retainer")
 
     total_budget = get_total_budget(project_doc)
-    cost_accrued = flt(project_doc.total_billable_amount)
+    cost_accrued = get_budget_burn_accrued(project_doc)
     cost_forecasted = get_cost_forecasted(project)
     target_cost = flt(project_doc.custom_target_cost)
 
