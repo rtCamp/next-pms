@@ -11,8 +11,10 @@ import {
 } from "react";
 import { Accordion } from "@base-ui/react/accordion";
 import { floatToTime, mergeClassNames as cn } from "@next-pms/design-system";
+import { ApprovalStatus } from "@next-pms/design-system/components";
 import { stripTags } from "@next-pms/design-system/utils";
 import {
+  Alert,
   Badge,
   Button,
   StaticTextEditor,
@@ -363,6 +365,7 @@ export const InlineTimeEntry = ({
   return (
     <div className="animate-fade-in min-w-68 w-fit max-w-[min(720px,90vw)] max-h-[min(500px,90dvh)] overflow-auto scrollbar-thin shadow bg-surface-modal rounded-lg flex flex-col gap-2 p-2">
       {displayTasks.map((entry: TaskDataItemProps, index: number) => {
+        const isEntryApproved = entry.custom_approval_status === "Approved";
         const isEditingThisEntry =
           entryFormMode === ENTRY_FORM_MODE.EDIT &&
           selectedEntry?.name === entry.name;
@@ -415,9 +418,15 @@ export const InlineTimeEntry = ({
                             size="md"
                             className="gap-0 lining-nums tabular-nums text-ink-gray-8"
                           >
-                            {entry.hours
-                              ? floatToTime(entry.hours, 2)
-                              : "00:00"}
+                            <span>
+                              {entry.hours
+                                ? floatToTime(entry.hours, 2)
+                                : "00:00"}
+                            </span>
+                            <ApprovalStatus
+                              status={entry.custom_approval_status || "None"}
+                              className="w-3 m-1"
+                            />
                           </Badge>
                         </div>
                         {!isExpanded ? (
@@ -431,7 +440,7 @@ export const InlineTimeEntry = ({
                               : null}
                           </span>
                         ) : null}
-                        {!disabled ? (
+                        {!disabled && !isEntryApproved ? (
                           <Button
                             className={cn(
                               "w-5 h-5 absolute right-0 top-0 opacity-0 pointer-events-none",
@@ -496,6 +505,18 @@ export const InlineTimeEntry = ({
                             "contain-[inline-size] wrap-anywhere **:max-w-full **:wrap-anywhere",
                           )}
                         />
+                        {entry.custom_approval_status === "Rejected" &&
+                        entry.custom_rejection_reason ? (
+                          <Alert
+                            title="Rejection reason"
+                            variant="outline"
+                            theme="red"
+                            dismissable={false}
+                            renderIcon={false}
+                            renderDescription={entry.custom_rejection_reason}
+                            className="mt-2 [&_h3]:text-xs [&_h3]:font-bold [&_h3]:text-ink-red-4 [&_p]:text-xs [&_p]:text-ink-red-3 p-2"
+                          />
+                        ) : null}
                       </div>
                     )}
                   </div>
