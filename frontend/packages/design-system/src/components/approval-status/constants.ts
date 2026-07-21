@@ -1,7 +1,12 @@
 /**
  * External dependencies.
  */
-import { Success, CloseCircle, Hourglass } from "@rtcamp/frappe-ui-react/icons";
+import {
+  Success,
+  CloseCircle,
+  Hourglass,
+  Overdue,
+} from "@rtcamp/frappe-ui-react/icons";
 import { cva } from "class-variance-authority";
 
 /**
@@ -21,7 +26,7 @@ export const approvalStatusIcon: Record<
   Rejected: CloseCircle,
   "Approval Pending": Hourglass,
   "Processing Timesheet": Hourglass,
-  "Not Submitted": Hourglass,
+  "Not Submitted": Overdue,
   "Partially Approved": Success,
   "Partially Rejected": CloseCircle,
   None: Hourglass,
@@ -34,7 +39,7 @@ export const approvalStatusIconVariants = cva("", {
       Rejected: "text-ink-red-4",
       "Approval Pending": "text-ink-amber-4",
       "Processing Timesheet": "text-ink-amber-4",
-      "Not Submitted": "text-ink-amber-4",
+      "Not Submitted": "text-ink-gray-4",
       "Partially Approved": "text-ink-green-4",
       "Partially Rejected": "text-ink-red-4",
       None: "text-ink-amber-4",
