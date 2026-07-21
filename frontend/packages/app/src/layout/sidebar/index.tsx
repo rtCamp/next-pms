@@ -21,7 +21,14 @@ import {
   Grid,
   LogOut,
 } from "@rtcamp/frappe-ui-react/icons";
-import { ArrowLeftRight, Briefcase, BarChart2, Moon, Sun } from "lucide-react";
+import {
+  ArrowLeftRight,
+  Briefcase,
+  BarChart2,
+  ListTodo,
+  Moon,
+  Sun,
+} from "lucide-react";
 /**
  * Internal dependencies.
  */
@@ -157,6 +164,24 @@ const Sidebar = () => {
     projectItems.push(projects);
   }
 
+  const tasks = {
+    label: "Tasks",
+    icon: ListTodo,
+    to: ROUTES.task,
+    isActive: pathname === ROUTES.task,
+    render: <LinkWithPreload to={ROUTES.task} />,
+  };
+
+  const taskItems: SidebarSectionType["items"] = [];
+
+  if (
+    roles.includes("Projects Manager") ||
+    roles.includes("Projects User") ||
+    roles.includes("Timesheet Manager")
+  ) {
+    taskItems.push(tasks);
+  }
+
   const notificationsOption = {
     label: "Notifications",
     icon: Notifications,
@@ -227,6 +252,10 @@ const Sidebar = () => {
     searchItems.push({
       label: "Projects",
       action: () => navigate(ROUTES["project"]),
+    });
+    searchItems.push({
+      label: "Tasks",
+      action: () => navigate(ROUTES["task"]),
     });
   }
 
@@ -304,6 +333,7 @@ const Sidebar = () => {
               ...(timesheetItems.length === 1 ? timesheetItems : []),
               ...notificationItems,
               ...projectItems,
+              ...taskItems,
               ...(dashboardItems.length === 1 ? dashboardItems : []),
             ],
           },

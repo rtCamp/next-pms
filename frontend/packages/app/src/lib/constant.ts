@@ -5,6 +5,7 @@ export const ROUTES = {
   "dashboard-manager": "/dashboard/manager",
   project: "/projects",
   "project-kanban": "/projects/kanban",
+  task: "/tasks",
   "timesheet-personal": "/timesheet",
   "timesheet-team": "/timesheet/team",
   "timesheet-project": "/timesheet/project",

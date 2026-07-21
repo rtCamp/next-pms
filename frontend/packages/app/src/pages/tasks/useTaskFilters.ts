@@ -1,0 +1,127 @@
+/**
+ * External dependencies.
+ */
+import { useCallback, useMemo } from "react";
+import { useSearchParams } from "react-router-dom";
+import type { SortOrder, SortState } from "@next-pms/design-system/components";
+import type { FilterCondition } from "@rtcamp/frappe-ui-react";
+
+/**
+ * Internal dependencies.
+ */
+import type { TaskListFilters, TaskStatus } from "./types";
+
+const FILTER_PARAM_KEYS = [
+  "search",
+  "project",
+  "status",
+  "advanced",
+  "sortField",
+  "sortOrder",
+] as const;
+
+const parseAdvanced = (raw: string | null): FilterCondition[] => {
+  if (!raw) return [];
+  try {
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? (parsed as FilterCondition[]) : [];
+  } catch {
+    return [];
+  }
+};
+
+export function useTaskFilters() {
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  const filters: TaskListFilters = useMemo(
+    () => ({
+      search: searchParams.get("search") ?? "",
+      project: searchParams.get("project") ?? "",
+      status: JSON.parse(
+        decodeURI(searchParams.get("status") || "[]"),
+      ) as unknown as TaskStatus[],
+      advanced: parseAdvanced(searchParams.get("advanced")),
+    }),
+    [searchParams],
+  );
+
+  const sort: SortState = useMemo(
+    () => ({
+      field: searchParams.get("sortField") ?? "",
+      order: (searchParams.get("sortOrder") ?? "desc") as SortOrder,
+    }),
+    [searchParams],
+  );
+
+  const setParam = useCallback(
+    (key: string, value: string) =>
+      setSearchParams(
+        (prev) => {
+          if (value) prev.set(key, value);
+          else prev.delete(key);
+          return prev;
+        },
+        { replace: true },
+      ),
+    [setSearchParams],
+  );
+
+  const setSearch = useCallback(
+    (v: string) => setParam("search", v),
+    [setParam],
+  );
+  const setProject = useCallback(
+    (v: string) => setParam("project", v),
+    [setParam],
+  );
+  const setStatus = useCallback(
+    (v: TaskStatus[]) =>
+      setParam("status", v.length ? encodeURI(JSON.stringify(v)) : ""),
+    [setParam],
+  );
+  const setAdvanced = useCallback(
+    (v: FilterCondition[]) =>
+      setParam("advanced", v.length ? JSON.stringify(v) : ""),
+    [setParam],
+  );
+  const setSort = useCallback(
+    (v: SortState | null) => {
+      if (!v) {
+        setSearchParams(
+          (prev) => {
+            prev.delete("sortField");
+            prev.delete("sortOrder");
+            return prev;
+          },
+          { replace: true },
+        );
+      } else {
+        setParam("sortField", v.field);
+        setParam("sortOrder", v.order);
+      }
+    },
+    [setParam],
+  );
+  const resetFilters = useCallback(
+    () =>
+      setSearchParams(
+        (prev) => {
+          for (const key of FILTER_PARAM_KEYS) prev.delete(key);
+          return prev;
+        },
+        { replace: true },
+      ),
+    [setSearchParams],
+  );
+
+  return {
+    filters,
+    sort,
+    setSearch,
+    setProject,
+    setStatus,
+    setAdvanced,
+    setSort,
+    resetFilters,
+  };
+}

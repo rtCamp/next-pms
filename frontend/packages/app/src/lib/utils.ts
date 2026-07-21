@@ -620,6 +620,25 @@ export const buildFrappeFilters = (compositeFilters: FilterCondition[]) => {
 };
 
 /**
+ * Builds native Frappe filters from composite filters on a single doctype
+ * (no `fieldCategory` prefix) — e.g. `[["priority", "=", "Urgent"]]`.
+ *
+ * @param compositeFilters Array of FilterCondition objects.
+ * @returns Array of Frappe filters in the format [[field, operator, value]].
+ */
+export const buildFilterConditions = (compositeFilters: FilterCondition[]) => {
+  return compositeFilters
+    .filter(isCompleteFilterCondition)
+    .map((filter) => [
+      filter.field,
+      filter.operator,
+      isNoValueOperator(filter.operator)
+        ? null
+        : normalizeLikeFilterValue(filter.operator, filter.value),
+    ]);
+};
+
+/**
  * Builds composite filters by extracting relevant information from the given
  * array of FilterCondition objects, including start date, maximum week range,
  * and native Frappe filters.
