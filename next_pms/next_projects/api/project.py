@@ -130,7 +130,7 @@ def get_computed_sort_value(
         # Mirrors the frontend cost-burn cell: cost_accrued / total_budget * 100
         if total_budget <= 0:
             return 0
-        return (flt(project.get("total_costing_amount")) / total_budget) * 100
+        return (flt(project.get("total_billable_amount")) / total_budget) * 100
     if sort_field == "total_budget":
         return total_budget
     if sort_field == "profit_margin":
@@ -194,7 +194,8 @@ def enrich_project_with_calculated_fields(
 
     # Basic calculated values
     total_budget = get_total_budget(project)
-    cost_accrued = flt(project.get("total_costing_amount"))
+    cost_accrued = flt(project.get("total_billable_amount"))
+    cost_incurred = flt(project.get("total_costing_amount"))
     cost_forecasted = (
         cost_forecasted_map.get(project_name, 0)
         if cost_forecasted_map is not None
@@ -223,7 +224,7 @@ def enrich_project_with_calculated_fields(
             "total_budget": total_budget,
         },
         "total_budget": total_budget,
-        "profit_margin": get_profit_margin(total_budget, cost_accrued, cost_forecasted),
+        "profit_margin": get_profit_margin(total_budget, cost_incurred, cost_forecasted),
         # Dates
         "start_date": project.get("expected_start_date"),
         "next_milestone": project.get("custom_next_milestone"),
@@ -979,7 +980,7 @@ def get_project_sidebar(project: str):
     has_hours_pool = billing_type in ("Fixed Cost", "Retainer")
 
     total_budget = get_total_budget(project_doc)
-    cost_accrued = flt(project_doc.total_costing_amount)
+    cost_accrued = flt(project_doc.total_billable_amount)
     cost_forecasted = get_cost_forecasted(project)
     target_cost = flt(project_doc.custom_target_cost)
 

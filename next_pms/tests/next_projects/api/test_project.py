@@ -27,7 +27,7 @@ class TestGetProjectsViewComputedSort(IntegrationTestCase):
         # name -> (billing_type, sales, estimated, costing, rate, billable, start_days_ago)
         # Derived values (cost_forecasted = 0, no allocations):
         #   total_budget:      A 1000, B 2000, C 3000, D 0
-        #   cost_burn_percent: A 50,   B 25,   C 200,  D 0 (budget<=0 guard)
+        #   cost_burn_percent: A 70,   B 0,    C 93.3, D 0 (budget<=0 guard)
         #   profit_margin:     A 50,   B 75,   C -100, D 0 (budget<=0 guard)
         #   burn_rate/week:    A 700,  B None, C 1400, D None
         fixture_rows = {
@@ -92,8 +92,14 @@ class TestGetProjectsViewComputedSort(IntegrationTestCase):
         return [by_name[row["name"]] for row in result["data"]]
 
     def test_cost_burn_percent_sort(self):
-        self.assertEqual(self.fixture_order(self.call("cost_burn_percent desc")), ["C", "A", "B", "D"])
-        self.assertEqual(self.fixture_order(self.call("cost_burn_percent asc")), ["D", "B", "A", "C"])
+        # B and D both burn 0% (B has no billable amount, D is caught by the budget<=0
+        # guard), so only the ranked head is order-stable.
+        desc = self.fixture_order(self.call("cost_burn_percent desc"))
+        asc = self.fixture_order(self.call("cost_burn_percent asc"))
+        self.assertEqual(desc[:2], ["C", "A"])
+        self.assertEqual(asc[2:], ["A", "C"])
+        self.assertEqual(set(desc[2:]), {"B", "D"})
+        self.assertEqual(set(asc[:2]), {"B", "D"})
 
     def test_total_budget_sort(self):
         self.assertEqual(self.fixture_order(self.call("total_budget desc")), ["C", "B", "A", "D"])
@@ -122,10 +128,8 @@ class TestGetProjectsViewComputedSort(IntegrationTestCase):
         self.assertEqual(page_one["total_count"], 4)
         self.assertTrue(page_one["has_more"])
         self.assertFalse(page_two["has_more"])
-        self.assertEqual(
-            self.fixture_order(page_one) + self.fixture_order(page_two),
-            ["C", "A", "B", "D"],
-        )
+        self.assertEqual(self.fixture_order(page_one), ["C", "A"])
+        self.assertEqual(set(self.fixture_order(page_two)), {"B", "D"})
 
     def test_stored_field_sort_unchanged(self):
         result = self.call("project_name asc")
