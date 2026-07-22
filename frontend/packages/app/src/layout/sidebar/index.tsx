@@ -20,15 +20,9 @@ import {
   Folder,
   Grid,
   LogOut,
+  Summary,
 } from "@rtcamp/frappe-ui-react/icons";
-import {
-  ArrowLeftRight,
-  Briefcase,
-  BarChart2,
-  ListTodo,
-  Moon,
-  Sun,
-} from "lucide-react";
+import { ArrowLeftRight, Briefcase, BarChart2, Moon, Sun } from "lucide-react";
 /**
  * Internal dependencies.
  */
@@ -166,7 +160,7 @@ const Sidebar = () => {
 
   const tasks = {
     label: "Tasks",
-    icon: ListTodo,
+    icon: Summary,
     to: ROUTES.task,
     isActive: pathname === ROUTES.task,
     render: <LinkWithPreload to={ROUTES.task} />,
