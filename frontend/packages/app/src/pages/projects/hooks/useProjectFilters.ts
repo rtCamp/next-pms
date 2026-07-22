@@ -9,7 +9,7 @@ import type { FilterCondition } from "@rtcamp/frappe-ui-react";
 /**
  * Internal dependencies.
  */
-import { parseAdvancedFilters } from "@/lib/utils";
+import { parseJSONArrayParam } from "@/lib/utils";
 import type {
   Phase,
   ProjectListFilters,
@@ -38,7 +38,9 @@ export function useProjectFilters() {
       ) as unknown as RagStatus[],
       phase: (searchParams.get("phase") ?? "") as Phase | "",
       status: (searchParams.get("status") ?? "") as ProjectStatus | "",
-      advanced: parseAdvancedFilters(searchParams.get("advanced")),
+      advanced: parseJSONArrayParam<FilterCondition>(
+        searchParams.get("advanced"),
+      ),
     }),
     [searchParams],
   );

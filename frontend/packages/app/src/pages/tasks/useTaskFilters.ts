@@ -9,7 +9,7 @@ import type { FilterCondition } from "@rtcamp/frappe-ui-react";
 /**
  * Internal dependencies.
  */
-import { parseAdvancedFilters } from "@/lib/utils";
+import { parseJSONArrayParam } from "@/lib/utils";
 import type { TaskListFilters, TaskStatus } from "./types";
 
 const FILTER_PARAM_KEYS = [
@@ -30,10 +30,13 @@ export function useTaskFilters() {
       search: searchParams.get("search") ?? "",
       project: searchParams.get("project") ?? "",
       projectLabel: searchParams.get("projectLabel") ?? "",
-      status: JSON.parse(
-        decodeURI(searchParams.get("status") || "[]"),
-      ) as unknown as TaskStatus[],
-      advanced: parseAdvancedFilters(searchParams.get("advanced")),
+      status: parseJSONArrayParam<TaskStatus>(
+        searchParams.get("status"),
+        decodeURI,
+      ),
+      advanced: parseJSONArrayParam<FilterCondition>(
+        searchParams.get("advanced"),
+      ),
     }),
     [searchParams],
   );

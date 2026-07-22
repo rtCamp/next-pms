@@ -2,7 +2,7 @@
  * External dependencies.
  */
 import { useCallback, useState } from "react";
-import { getTodayDate } from "@next-pms/design-system";
+import { getTodayDate, mergeClassNames as cn } from "@next-pms/design-system";
 import { DeleteActionDialog } from "@next-pms/design-system/components";
 import {
   ListHeader,
@@ -106,7 +106,10 @@ function TaskList() {
             return (
               <ListHeaderItem key={column.key} item={column}>
                 <div
-                  className={`flex h-7 items-center gap-1 py-1.5${sortField ? " cursor-pointer select-none" : ""}`}
+                  className={cn(
+                    "flex h-7 items-center gap-1 py-1.5",
+                    sortField && "cursor-pointer select-none",
+                  )}
                   onClick={
                     sortField ? () => handleHeaderClick(sortField) : undefined
                   }

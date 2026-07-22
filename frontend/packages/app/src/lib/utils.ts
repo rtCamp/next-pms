@@ -553,14 +553,19 @@ export const isNoValueOperator = (operator: string): boolean =>
   NO_VALUE_OPERATORS.includes(operator);
 
 /**
- * Parses a URL search param holding a JSON-encoded array of FilterCondition
- * objects, returning an empty array if the param is missing or malformed.
+ * Parses a URL search param holding a JSON-encoded array, returning an
+ * empty array if the param is missing, malformed, or decodes to a
+ * non-array value. Pass `decode` (e.g. `decodeURI`) when the param was
+ * encoded before being written to the URL.
  */
-export const parseAdvancedFilters = (raw: string | null): FilterCondition[] => {
+export const parseJSONArrayParam = <T>(
+  raw: string | null,
+  decode: (value: string) => string = (value) => value,
+): T[] => {
   if (!raw) return [];
   try {
-    const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? (parsed as FilterCondition[]) : [];
+    const parsed = JSON.parse(decode(raw));
+    return Array.isArray(parsed) ? (parsed as T[]) : [];
   } catch {
     return [];
   }
