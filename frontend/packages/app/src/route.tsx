@@ -61,7 +61,7 @@ export const routeConfig: Record<
   },
   task: {
     Component: ReactLazyPreload(() => import("@/pages/tasks/list")),
-    allowedRoles: ["Projects Manager", "Timesheet Manager", "Projects User"],
+    allowedRoles: [],
   },
   "timesheet-personal": {
     Component: ReactLazyPreload(() => import("@/pages/timesheet/personal")),
@@ -155,15 +155,7 @@ export function Router() {
               element={<ProjectKanban />}
             />
           </Route>
-          <Route
-            element={
-              <RoleProtectedRoute
-                allowedRoles={routeConfig["task"].allowedRoles}
-              />
-            }
-          >
-            <Route path={ROUTES.task} element={<TaskList />} />
-          </Route>
+          <Route path={ROUTES.task} element={<TaskList />} />
           <Route
             path={`${ROUTES.project}/:projectId`}
             element={<ProjectDetail />}

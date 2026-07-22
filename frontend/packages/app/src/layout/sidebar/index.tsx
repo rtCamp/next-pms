@@ -172,15 +172,7 @@ const Sidebar = () => {
     render: <LinkWithPreload to={ROUTES.task} />,
   };
 
-  const taskItems: SidebarSectionType["items"] = [];
-
-  if (
-    roles.includes("Projects Manager") ||
-    roles.includes("Projects User") ||
-    roles.includes("Timesheet Manager")
-  ) {
-    taskItems.push(tasks);
-  }
+  const taskItems: SidebarSectionType["items"] = [tasks];
 
   const notificationsOption = {
     label: "Notifications",
@@ -235,6 +227,10 @@ const Sidebar = () => {
       label: "Allocations - project",
       action: () => navigate(ROUTES["allocations-project"]),
     },
+    {
+      label: "Tasks",
+      action: () => navigate(ROUTES["task"]),
+    },
   ];
 
   if (roles.includes("System Manager")) {
@@ -252,10 +248,6 @@ const Sidebar = () => {
     searchItems.push({
       label: "Projects",
       action: () => navigate(ROUTES["project"]),
-    });
-    searchItems.push({
-      label: "Tasks",
-      action: () => navigate(ROUTES["task"]),
     });
   }
 
