@@ -25,10 +25,6 @@ const timeEntryStatusClassNames: Record<string, string> = {
   "Partially Rejected": "!text-ink-red-4",
 };
 
-const getTimeEntryStatusClassName = (status?: string) => {
-  return status ? timeEntryStatusClassNames[status] : undefined;
-};
-
 export interface TaskRowProps {
   /** Label for the task row. */
   label: string;
@@ -190,12 +186,9 @@ export const TaskRow: React.FC<TaskRowProps> = ({
         const canOpenInlineTimeEntry = !(
           timeEntry.disabled && timeEntry.time === ""
         );
-        const timeEntryTextClassName = cn(
-          getTimeEntryStatusClassName(timeEntry.status),
-          {
-            "text-ink-gray-4": timeEntry.time === "",
-          },
-        );
+        const timeEntryTextClassName = timeEntry.status
+          ? timeEntryStatusClassNames[timeEntry.status]
+          : undefined;
 
         return (
           <div

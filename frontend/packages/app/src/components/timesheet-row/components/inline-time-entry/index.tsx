@@ -423,10 +423,12 @@ export const InlineTimeEntry = ({
                                 ? floatToTime(entry.hours, 2)
                                 : "00:00"}
                             </span>
-                            <ApprovalStatus
-                              status={entry.custom_approval_status || "None"}
-                              className="w-3 m-1"
-                            />
+                            {entry.custom_approval_status && (
+                              <ApprovalStatus
+                                status={entry.custom_approval_status}
+                                className="w-3 m-1"
+                              />
+                            )}
                           </Badge>
                         </div>
                         {!isExpanded ? (
