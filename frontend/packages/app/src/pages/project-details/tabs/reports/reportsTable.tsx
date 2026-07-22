@@ -9,6 +9,7 @@ import {
   ListRow,
   ListRows,
   ListView,
+  Spinner,
   useToasts,
 } from "@rtcamp/frappe-ui-react";
 import { ArrowUpRight } from "@rtcamp/frappe-ui-react/icons";
@@ -32,29 +33,22 @@ const formatGeneratedOn = (value?: string) => {
   return format(parseISO(value.replace(" ", "T")), "dd MMM yyyy, HH:mm");
 };
 
-const isGeneratingRow = (r: ProjectReportRow) => r.status === "Generating";
-const isFailedRow = (r: ProjectReportRow) => r.status === "Failed";
-const isResyncableRow = (r: ProjectReportRow) =>
-  r.status === "Completed" && Boolean(r.run_id);
-const isDoneRow = (r: ProjectReportRow) =>
-  r.status === "Done" && !!r.report_link;
-
 function StatusCell({ report }: { report: ProjectReportRow }) {
-  if (isGeneratingRow(report)) {
+  if (report.status === "Generating") {
     return (
       <span className="flex items-center gap-2 text-amber-600">
-        <span className="inline-block h-2.5 w-2.5 animate-spin rounded-full border-2 border-amber-600 border-t-transparent" />
+        <Spinner className="h-3.5 w-3.5 text-amber-600" />
         Generating...
       </span>
     );
   }
-  if (isFailedRow(report)) {
-    return <span className="text-red-600">❌ Failed</span>;
+  if (report.status === "Failed") {
+    return <span className="text-red-600">Failed</span>;
   }
-  if (isResyncableRow(report)) {
+  if (report.status === "Completed" && Boolean(report.run_id)) {
     return (
       <span className="text-amber-600 text-sm font-medium">
-        ⚠ Resync to get doc URL
+        Resync to get doc URL
       </span>
     );
   }
@@ -70,7 +64,7 @@ function ReportActionCell({
   isResyncing: boolean;
   onResync: () => void;
 }) {
-  if (isDoneRow(report)) {
+  if (report.status === "Done" && Boolean(report.report_link)) {
     return (
       <Button
         variant="ghost"
@@ -81,7 +75,7 @@ function ReportActionCell({
     );
   }
 
-  if (isResyncableRow(report)) {
+  if (report.status === "Completed" && Boolean(report.run_id)) {
     return (
       <Button
         variant="subtle"
@@ -163,14 +157,7 @@ export function ReportsTable({ reports }: ReportsTableProps) {
           </ListHeader>
           <ListRows>
             {rows.map((row) => (
-              <ListRow
-                key={row.id}
-                row={row}
-                className={mergeClassNames("gap-4", {
-                  "bg-amber-50": isGeneratingRow(row),
-                  "bg-red-50": isFailedRow(row) || isResyncableRow(row),
-                })}
-              >
+              <ListRow key={row.id} row={row} className="gap-4">
                 {REPORT_COLUMNS.map((column) => (
                   <div
                     key={column.key}

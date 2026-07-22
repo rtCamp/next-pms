@@ -3,7 +3,11 @@
  */
 import { useCallback } from "react";
 import type { PropsWithChildren } from "react";
-import { useFrappeGetDoc, useFrappeUpdateDoc } from "frappe-react-sdk";
+import {
+  useFrappeDocTypeEventListener,
+  useFrappeGetDoc,
+  useFrappeUpdateDoc,
+} from "frappe-react-sdk";
 
 /**
  * Internal dependencies.
@@ -29,6 +33,12 @@ export function ProjectDetailProvider({
   );
 
   const { updateDoc } = useFrappeUpdateDoc();
+
+  const handleDocUpdate = useCallback(() => {
+    mutate();
+  }, [mutate]);
+
+  useFrappeDocTypeEventListener("Project", projectId, handleDocUpdate);
 
   const updateRepositories = useCallback(
     async (repositories: RepositoryInput[]) => {

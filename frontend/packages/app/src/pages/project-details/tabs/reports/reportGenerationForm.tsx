@@ -1,7 +1,7 @@
 /**
  * External dependencies.
  */
-import { useCallback, useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo } from "react";
 import { formatDateRange } from "@next-pms/design-system/date";
 import {
   Button,
@@ -14,11 +14,7 @@ import {
 } from "@rtcamp/frappe-ui-react";
 import { Calendar } from "@rtcamp/frappe-ui-react/icons";
 import { useForm } from "@tanstack/react-form";
-import {
-  FrappeError,
-  useFrappeEventListener,
-  useFrappePostCall,
-} from "frappe-react-sdk";
+import { FrappeError, useFrappePostCall } from "frappe-react-sdk";
 
 /**
  * Internal dependencies.
@@ -61,61 +57,11 @@ export function ReportGenerationForm() {
     (report) => report.status === "Generating",
   );
 
-  // Listen for real-time PM report status updates from the backend to refresh project details
-  const handleReportReady = useCallback(
-    (message?: { project?: string }) => {
-      if (message?.project !== projectId) return;
-      mutate();
-    },
-    [projectId, mutate],
-  );
-
-  useFrappeEventListener("pm_report_ready", handleReportReady);
-
-  // Safety net: poll every 30s while any report is Generating (in case WebSocket event is missed)
   useEffect(() => {
     if (!isReportGenerating) return;
     const interval = setInterval(() => mutate(), 30000);
     return () => clearInterval(interval);
   }, [isReportGenerating, mutate]);
-
-  const prevReportStatusesRef = useRef<Record<string, string>>({});
-  const toastedRunIdsRef = useRef<Record<string, boolean>>({});
-
-  // Compare report history updates to trigger completion/failure toasts
-  useEffect(() => {
-    reports.forEach((report) => {
-      if (!report.run_id) return;
-      const prevStatus = prevReportStatusesRef.current[report.run_id];
-
-      if (
-        prevStatus !== "Generating" ||
-        toastedRunIdsRef.current[report.run_id]
-      ) {
-        return;
-      }
-
-      if (report.status === "Done") {
-        toastedRunIdsRef.current[report.run_id] = true;
-        toast.success("Project Report is Ready! ✅");
-      } else if (report.status === "Failed") {
-        toastedRunIdsRef.current[report.run_id] = true;
-        toast.error("Report generation failed.");
-      } else if (report.status === "Completed") {
-        toastedRunIdsRef.current[report.run_id] = true;
-        toast.error("Generation completed — Resync to get the document URL.");
-      }
-    });
-
-    // Save current statuses map to ref (avoids in-place reference mutation bugs)
-    const nextStatuses: Record<string, string> = {};
-    reports.forEach((r) => {
-      if (r.run_id) {
-        nextStatuses[r.run_id] = r.status ?? "";
-      }
-    });
-    prevReportStatusesRef.current = nextStatuses;
-  }, [reports, toast]);
 
   const previousReportUrl = useMemo(() => {
     for (let index = reports.length - 1; index >= 0; index--) {
@@ -150,7 +96,6 @@ export function ReportGenerationForm() {
               ? previousReportUrl
               : undefined,
         });
-        // Refetch project data to reflect the new report row in 'Generating' state
         mutate();
         toast.success(
           "Report is being generated. You'll be notified when it's ready",
