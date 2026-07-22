@@ -24,6 +24,7 @@ export interface TeamTimesheetContextProps {
     isLoadingWeeks: boolean;
     isNextPageLoading: boolean;
     isFilterRequest: boolean;
+    activeFilterKey: string;
     resolvedFilterKey: string;
     filterArgs: TeamFilterArgs;
     filters: TimesheetFilters;
@@ -50,6 +51,7 @@ export const TeamTimesheetContext = createContext<TeamTimesheetContextProps>({
     isLoadingWeeks: false,
     isNextPageLoading: false,
     isFilterRequest: false,
+    activeFilterKey: "",
     resolvedFilterKey: "",
     filterArgs: {
       reports_to: null,
