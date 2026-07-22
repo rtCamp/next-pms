@@ -24,6 +24,7 @@ const ApprovalPopup = () => {
     avatarUrl,
     dateRange,
     totalHours,
+    dailyWorkingHours,
     isReadOnly,
     groupedByDay,
     checkedDays,
@@ -118,6 +119,7 @@ const ApprovalPopup = () => {
                     key={entry.timesheetId}
                     entry={entry}
                     readOnly={isReadOnly}
+                    maxDuration={dailyWorkingHours}
                     onSave={handleTimesheetUpdate}
                   />
                 ))}

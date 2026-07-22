@@ -23,6 +23,7 @@ import type { TimesheetEntry } from "./types";
 interface EntryRowProps {
   entry: TimesheetEntry;
   readOnly?: boolean;
+  maxDuration?: number;
   onSave: (
     timesheetId: string,
     taskId: string,
@@ -33,7 +34,12 @@ interface EntryRowProps {
   ) => void;
 }
 
-const EntryRow = ({ entry, readOnly = false, onSave }: EntryRowProps) => {
+const EntryRow = ({
+  entry,
+  readOnly = false,
+  maxDuration,
+  onSave,
+}: EntryRowProps) => {
   const [isEditing, setIsEditing] = useState(false);
   const [description, setDescription] = useState(entry.description);
   const [hours, setHours] = useState(entry.hours);
@@ -102,6 +108,8 @@ const EntryRow = ({ entry, readOnly = false, onSave }: EntryRowProps) => {
               <DurationInput
                 snap="smooth"
                 variant="outline"
+                maxDuration={maxDuration}
+                allowOverflow
                 value={hours}
                 onChange={setHours}
               />
