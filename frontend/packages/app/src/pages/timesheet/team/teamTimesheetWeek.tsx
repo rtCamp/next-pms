@@ -36,6 +36,8 @@ export const TeamTimesheetWeek = ({
 
   const [expanded, setExpanded] = useState(defaultExpanded);
   const activatedRef = useRef(defaultExpanded);
+  const weekRef = useRef<HTMLDivElement>(null);
+
   if (expanded) {
     activatedRef.current = true;
   }
@@ -67,21 +69,31 @@ export const TeamTimesheetWeek = ({
     root: scrollRoot,
   });
 
+  const handleCollapsedChange = (collapsed: boolean) => {
+    setExpanded(!collapsed);
+    if (collapsed) {
+      // Prevents the page from jumping up when the collapsed week's rows disappear.
+      weekRef.current?.scrollIntoView({ block: "start" });
+    }
+  };
+
   return (
-    <TeamTimesheetRow
-      label={week.label}
-      dates={week.dates}
-      collapsed={!defaultExpanded}
-      onCollapsedChange={(collapsed) => setExpanded(!collapsed)}
-      approvalPendingCount={week.approval_pending_count}
-      teamMembers={members}
-      hasMoreMembers={!isFilterRequest && hasMore}
-      isLoadingMembers={
-        !isFilterRequest && (isLoadingMembers || isNextPageLoading)
-      }
-      loadMoreRef={loadMoreRef}
-      setSelectedTask={setSelectedTask}
-      openWeeklyApproval={openWeeklyApproval}
-    />
+    <div ref={weekRef} className="scroll-mt-7">
+      <TeamTimesheetRow
+        label={week.label}
+        dates={week.dates}
+        collapsed={!defaultExpanded}
+        onCollapsedChange={handleCollapsedChange}
+        approvalPendingCount={week.approval_pending_count}
+        teamMembers={members}
+        hasMoreMembers={!isFilterRequest && hasMore}
+        isLoadingMembers={
+          !isFilterRequest && (isLoadingMembers || isNextPageLoading)
+        }
+        loadMoreRef={loadMoreRef}
+        setSelectedTask={setSelectedTask}
+        openWeeklyApproval={openWeeklyApproval}
+      />
+    </div>
   );
 };
