@@ -13,11 +13,6 @@ interface UseToggleLikeOptions {
   onToggled?: (liked: boolean) => void;
 }
 
-/**
- * Wraps Frappe core's `frappe.desk.like.toggle_like` with optimistic update
- * and rollback-on-error, so callers don't have to re-implement the
- * like/unlike dance for every doctype that needs a star toggle.
- */
 export const useToggleLike = ({
   doctype,
   name,
