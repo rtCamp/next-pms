@@ -47,8 +47,8 @@ export function useTaskFilters() {
 
   const sort: SortState = useMemo(
     () => ({
-      field: searchParams.get("sortField") ?? "subject",
-      order: (searchParams.get("sortOrder") ?? "asc") as SortOrder,
+      field: searchParams.get("sortField") ?? "modified",
+      order: (searchParams.get("sortOrder") ?? "desc") as SortOrder,
     }),
     [searchParams],
   );
