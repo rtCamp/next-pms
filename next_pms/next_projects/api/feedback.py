@@ -5,7 +5,8 @@
 import frappe
 from frappe import _, only_for
 from frappe.query_builder import DocType, Order
-from frappe.utils import cint, getdate
+from frappe.utils import cint, getdate, strip_html_tags
+from frappe.utils.user import get_user_fullname
 
 from next_pms.next_projects.api.constant import (
     ALLOWED_ROLES,
@@ -19,6 +20,7 @@ from next_pms.next_projects.api.utils import (
     get_contact_image_map,
     get_employee_image,
     get_employee_image_map,
+    get_user_details_map,
 )
 
 
@@ -355,4 +357,206 @@ def get_team_feedback_breakdown(feedback_name: str):
         "average": round(mean * DEFAULT_STAR_MAX, 1) if mean is not None else None,
         "ratings": ratings,
         "areas_for_improvement": data.additional_comments__feedback,
+    }
+
+
+@frappe.whitelist(methods=["GET"])
+@frappe.read_only()
+def get_feedback_comments(feedback: str):
+    """Threaded comments for a Customer Feedback record.
+
+    Comments are stored as Comment documents referencing the feedback; a reply
+    links to its parent through custom_reply_to. Deleting a comment blanks its
+    content, so a blank comment is a soft-delete tombstone: it stays in the
+    thread to keep its replies anchored and is returned with deleted set.
+
+    Args:
+        feedback: Customer Feedback name to list comments for.
+
+    Returns:
+        list[dict]: Root comments oldest first, each with name, user,
+        user_full_name, user_image, comment, reply_to, created_at, modified_at,
+        edited, deleted, deleted_at, reply_count and nested replies.
+    """
+    only_for(ALLOWED_ROLES, message=True)
+    ensure_customer_feedback_available()
+    ensure_feedback_exists(feedback)
+    return get_feedback_comment_tree(feedback)
+
+
+@frappe.whitelist(methods=["POST"])
+def add_comment_to_feedback(feedback: str, comment: str, reply_to: str | None = None):
+    """Add a comment or reply to a Customer Feedback record.
+
+    The author is always the session user. The commenting roles have no
+    doctype access to Comment or Customer Feedback, so this endpoint is the
+    only write path and runs with elevated permissions.
+
+    Args:
+        feedback: Customer Feedback name to comment on.
+        comment: Comment body (HTML).
+        reply_to: Name of the parent comment when posting a reply.
+
+    Returns:
+        list[dict]: The refreshed comment tree, as in get_feedback_comments.
+    """
+    only_for(ALLOWED_ROLES, message=True)
+    ensure_customer_feedback_available()
+    ensure_feedback_exists(feedback)
+    if is_blank(comment):
+        frappe.throw(_("Comment cannot be empty"))
+    if reply_to:
+        parent = frappe.db.get_value(
+            "Comment", reply_to, ["comment_type", "reference_doctype", "reference_name"], as_dict=True
+        )
+        if (
+            not parent
+            or parent.comment_type != "Comment"
+            or parent.reference_doctype != "Customer Feedback"
+            or parent.reference_name != feedback
+        ):
+            frappe.throw(_("Parent comment {0} not found").format(reply_to))
+
+    frappe.get_doc(
+        {
+            "doctype": "Comment",
+            "comment_type": "Comment",
+            "reference_doctype": "Customer Feedback",
+            "reference_name": feedback,
+            "content": comment,
+            "comment_email": frappe.session.user,
+            "comment_by": get_user_fullname(frappe.session.user),
+            "custom_reply_to": reply_to,
+        }
+    ).insert(ignore_permissions=True)
+    return get_feedback_comment_tree(feedback)
+
+
+@frappe.whitelist(methods=["POST"])
+def update_comment_in_feedback(comment_name: str, comment: str):
+    """Update a comment on a Customer Feedback record.
+
+    Only the comment's author (or Administrator) may edit it. A soft-deleted
+    comment can no longer be edited.
+
+    Args:
+        comment_name: Name of the Comment to update.
+        comment: New comment body (HTML).
+
+    Returns:
+        list[dict]: The refreshed comment tree, as in get_feedback_comments.
+    """
+    only_for(ALLOWED_ROLES, message=True)
+    ensure_customer_feedback_available()
+    doc = get_feedback_comment_doc(comment_name)
+    ensure_comment_author(doc)
+    if is_blank(doc.content):
+        frappe.throw(_("This comment has been deleted and can no longer be edited"))
+    if is_blank(comment):
+        frappe.throw(_("Comment cannot be empty"))
+
+    doc.content = comment
+    doc.save(ignore_permissions=True)
+    return get_feedback_comment_tree(doc.reference_name)
+
+
+@frappe.whitelist(methods=["POST"])
+def delete_comment_from_feedback(comment_name: str):
+    """Soft-delete a comment on a Customer Feedback record.
+
+    Only the comment's author (or Administrator) may delete it. The content is
+    blanked while the author and thread structure are kept, so replies stay
+    anchored under the tombstone.
+
+    Args:
+        comment_name: Name of the Comment to delete.
+
+    Returns:
+        list[dict]: The refreshed comment tree, as in get_feedback_comments.
+    """
+    only_for(ALLOWED_ROLES, message=True)
+    ensure_customer_feedback_available()
+    doc = get_feedback_comment_doc(comment_name)
+    ensure_comment_author(doc)
+    if is_blank(doc.content):
+        frappe.throw(_("This comment has already been deleted"))
+
+    doc.content = ""
+    doc.save(ignore_permissions=True)
+    return get_feedback_comment_tree(doc.reference_name)
+
+
+def ensure_feedback_exists(feedback: str):
+    """Guard: throw when the Customer Feedback record does not exist."""
+    if not feedback or not frappe.db.exists("Customer Feedback", feedback):
+        frappe.throw(_("Customer Feedback {0} not found").format(feedback), frappe.DoesNotExistError)
+
+
+def get_feedback_comment_doc(comment_name: str):
+    """Load a Comment and verify it belongs to a Customer Feedback record."""
+    if not comment_name or not frappe.db.exists("Comment", comment_name):
+        frappe.throw(_("Comment {0} not found").format(comment_name), frappe.DoesNotExistError)
+    doc = frappe.get_doc("Comment", comment_name)
+    if doc.comment_type != "Comment" or doc.reference_doctype != "Customer Feedback" or not doc.reference_name:
+        frappe.throw(_("Comment {0} not found").format(comment_name), frappe.DoesNotExistError)
+    return doc
+
+
+def ensure_comment_author(doc):
+    """Guard: only the comment's author or Administrator may modify it."""
+    if frappe.session.user != "Administrator" and doc.owner != frappe.session.user:
+        frappe.throw(_("You can only modify your own comments"), frappe.PermissionError)
+
+
+def is_blank(content: str | None) -> bool:
+    """Whether the comment body has no visible text."""
+    return not strip_html_tags(content or "").strip()
+
+
+def get_feedback_comment_tree(feedback: str) -> list[dict]:
+    """Fetch and nest all comments of a Customer Feedback record."""
+    rows = frappe.get_all(
+        "Comment",
+        filters={
+            "reference_doctype": "Customer Feedback",
+            "reference_name": feedback,
+            "comment_type": "Comment",
+        },
+        fields=["name", "owner", "content", "creation", "modified", "custom_reply_to"],
+        order_by="creation asc",
+    )
+    user_map = get_user_details_map([row.owner for row in rows])
+    names = {row.name for row in rows}
+    children_by_parent = {}
+    roots = []
+    for row in rows:
+        if row.custom_reply_to in names:
+            children_by_parent.setdefault(row.custom_reply_to, []).append(row)
+        else:
+            roots.append(row)
+    return [serialize_feedback_comment(row, user_map, children_by_parent) for row in roots]
+
+
+def serialize_feedback_comment(row, user_map: dict, children_by_parent: dict) -> dict:
+    """Serialize one Comment row with its replies nested recursively."""
+    user = user_map.get(row.owner) or {}
+    deleted = is_blank(row.content)
+    replies = [
+        serialize_feedback_comment(child, user_map, children_by_parent)
+        for child in children_by_parent.get(row.name, [])
+    ]
+    return {
+        "name": row.name,
+        "user": row.owner,
+        "user_full_name": user.get("full_name") or row.owner,
+        "user_image": user.get("user_image"),
+        "comment": "" if deleted else row.content,
+        "reply_to": row.custom_reply_to,
+        "created_at": row.creation,
+        "modified_at": row.modified,
+        "edited": not deleted and row.modified != row.creation,
+        "deleted": deleted,
+        "deleted_at": row.modified if deleted else None,
+        "reply_count": len(replies),
+        "replies": replies,
     }
