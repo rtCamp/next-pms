@@ -53,9 +53,10 @@ export function useTaskFilters() {
     (key: string, value: string) =>
       setSearchParams(
         (prev) => {
-          if (value) prev.set(key, value);
-          else prev.delete(key);
-          return prev;
+          const next = new URLSearchParams(prev);
+          if (value) next.set(key, value);
+          else next.delete(key);
+          return next;
         },
         { replace: true },
       ),
@@ -70,11 +71,12 @@ export function useTaskFilters() {
     (v: string, label?: string) => {
       setSearchParams(
         (prev) => {
-          if (v) prev.set("project", v);
-          else prev.delete("project");
-          if (label) prev.set("projectLabel", label);
-          else prev.delete("projectLabel");
-          return prev;
+          const next = new URLSearchParams(prev);
+          if (v) next.set("project", v);
+          else next.delete("project");
+          if (label) next.set("projectLabel", label);
+          else next.delete("projectLabel");
+          return next;
         },
         { replace: true },
       );
@@ -93,28 +95,30 @@ export function useTaskFilters() {
   );
   const setSort = useCallback(
     (v: SortState | null) => {
-      if (!v) {
-        setSearchParams(
-          (prev) => {
-            prev.delete("sortField");
-            prev.delete("sortOrder");
-            return prev;
-          },
-          { replace: true },
-        );
-      } else {
-        setParam("sortField", v.field);
-        setParam("sortOrder", v.order);
-      }
+      setSearchParams(
+        (prev) => {
+          const next = new URLSearchParams(prev);
+          if (!v) {
+            next.delete("sortField");
+            next.delete("sortOrder");
+          } else {
+            next.set("sortField", v.field);
+            next.set("sortOrder", v.order);
+          }
+          return next;
+        },
+        { replace: true },
+      );
     },
-    [setParam],
+    [setSearchParams],
   );
   const resetFilters = useCallback(
     () =>
       setSearchParams(
         (prev) => {
-          for (const key of FILTER_PARAM_KEYS) prev.delete(key);
-          return prev;
+          const next = new URLSearchParams(prev);
+          for (const key of FILTER_PARAM_KEYS) next.delete(key);
+          return next;
         },
         { replace: true },
       ),
