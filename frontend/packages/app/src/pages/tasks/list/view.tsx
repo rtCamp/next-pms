@@ -20,9 +20,11 @@ import { type FrappeError, useFrappeDeleteDoc } from "frappe-react-sdk";
  */
 import { InfiniteScroll } from "@/components/infiniteScroll";
 import PersonalTaskLog from "@/components/task-log/personalTaskLog";
+import TeamTaskLog from "@/components/task-log/teamTaskLog";
 import { parseFrappeErrorMsg } from "@/lib/utils";
 import AddTime from "@/pages/timesheet/components/add-time";
 import type { OpenAddTimeDialogOptions } from "@/pages/timesheet/outletContext";
+import { useUser } from "@/providers/user";
 import { TaskListCell } from "./cells";
 import { TASK_LIST_COLUMNS } from "./columns";
 import { useTaskList } from "./context";
@@ -40,6 +42,9 @@ function TaskList() {
   const loadMore = useTaskList((c) => c.actions.loadMore);
   const refresh = useTaskList((c) => c.actions.refresh);
   const { sort, setSort } = useTaskFilters();
+  const roles = useUser(({ state }) => state.roles);
+  const showTeamTaskLog =
+    roles.includes("Projects Manager") || roles.includes("Timesheet Manager");
   const [openTask, setOpenTask] = useState<string | null>(null);
   const [addTimePrefill, setAddTimePrefill] =
     useState<OpenAddTimeDialogOptions>({ date: getTodayDate() });
@@ -149,13 +154,20 @@ function TaskList() {
           )}
         </ListRows>
       </ListView>
-      {openTask && (
-        <PersonalTaskLog
-          task={openTask}
-          open={Boolean(openTask)}
-          onOpenChange={(open) => !open && setOpenTask(null)}
-        />
-      )}
+      {openTask &&
+        (showTeamTaskLog ? (
+          <TeamTaskLog
+            task={openTask}
+            open={Boolean(openTask)}
+            onOpenChange={(open) => !open && setOpenTask(null)}
+          />
+        ) : (
+          <PersonalTaskLog
+            task={openTask}
+            open={Boolean(openTask)}
+            onOpenChange={(open) => !open && setOpenTask(null)}
+          />
+        ))}
       <AddTime
         initialDate={addTimePrefill.date || getTodayDate()}
         open={isAddTimeOpen}
