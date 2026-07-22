@@ -1,7 +1,7 @@
 /**
  * External dependencies.
  */
-import { PreviewCard } from "@base-ui/react/preview-card";
+import { Popover } from "@base-ui/react/popover";
 import { differenceInCalendarDays } from "date-fns";
 
 /**
@@ -98,10 +98,13 @@ export function GanttMemberSummaryBar({
     : undefined;
 
   return (
-    <PreviewCard.Root>
-      <PreviewCard.Trigger
+    <Popover.Root>
+      <Popover.Trigger
+        openOnHover
         delay={400}
         closeDelay={150}
+        nativeButton={false}
+        aria-label="Allocation summary"
         render={
           <GanttBar
             variant={capacityStatus.variant}
@@ -113,19 +116,19 @@ export function GanttMemberSummaryBar({
           />
         }
       />
-      <PreviewCard.Portal>
-        <PreviewCard.Positioner side="bottom" align="start" sideOffset={4}>
-          <PreviewCard.Popup className="z-50 outline-none">
+      <Popover.Portal>
+        <Popover.Positioner side="bottom" align="start" sideOffset={4}>
+          <Popover.Popup className="z-50 outline-none">
             <GanttAllocationPopover
               entries={entries}
               variant={variant}
               onAdd={handleAdd}
               hasRoleAccess={hasRoleAccess}
             />
-          </PreviewCard.Popup>
-        </PreviewCard.Positioner>
-      </PreviewCard.Portal>
-    </PreviewCard.Root>
+          </Popover.Popup>
+        </Popover.Positioner>
+      </Popover.Portal>
+    </Popover.Root>
   );
 }
 

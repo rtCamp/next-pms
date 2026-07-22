@@ -64,7 +64,7 @@ export const GanttMemberRow: React.FC<GanttMemberRowProps> = ({
         isExpanded={false}
         canExpand={false}
         showChevron={false}
-        className="pl-8 pr-3"
+        buttonClassName="pl-8 pr-3"
         contentHeight={animatedRowHeight}
         style={{
           height: animatedRowHeight,

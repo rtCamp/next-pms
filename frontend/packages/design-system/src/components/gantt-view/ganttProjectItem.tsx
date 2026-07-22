@@ -55,8 +55,7 @@ export function GanttProjectItem({
         render={
           <th
             className={cn(
-              "sticky left-0 z-25 bg-surface-white border-b border-r border-outline-gray-1 pr-3 font-normal text-left align-middle transition-[height,background-color] cursor-pointer hover:bg-surface-gray-1",
-              showChevron ? "pl-3" : "pl-8",
+              "sticky left-0 z-25 bg-surface-white border-b border-r border-outline-gray-1 font-normal text-left align-middle transition-[height,background-color] cursor-pointer hover:bg-surface-gray-1",
               className,
             )}
             style={style}
@@ -72,10 +71,11 @@ export function GanttProjectItem({
             disabled={!canExpand}
             onClick={() => onToggle?.()}
             className={cn(
-              "flex h-full w-full shrink-0 items-center overflow-hidden",
+              "flex pr-3 h-full w-full shrink-0 items-center overflow-hidden focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-outline-gray-3",
               {
                 "cursor-default!": !canExpand,
               },
+              showChevron ? "pl-3" : "pl-8",
             )}
             aria-expanded={canExpand ? isExpanded : undefined}
           >

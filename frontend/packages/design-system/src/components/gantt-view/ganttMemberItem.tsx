@@ -23,6 +23,7 @@ export interface GanttMemberItemProps {
   showChevron?: boolean;
   onToggle?: () => void;
   className?: string;
+  buttonClassName?: string;
   style?: CSSProperties;
   contentHeight?: number;
 }
@@ -35,6 +36,7 @@ export function GanttMemberItem({
   showChevron = true,
   onToggle,
   className,
+  buttonClassName,
   style,
   contentHeight = CELL_HEIGHT,
 }: GanttMemberItemProps) {
@@ -68,7 +70,7 @@ export function GanttMemberItem({
         render={
           <th
             className={cn(
-              "sticky left-0 z-25 bg-surface-white border-b border-r border-outline-gray-1 pl-3 pr-3 font-normal text-left align-middle transition-[height,background-color] cursor-pointer hover:bg-surface-gray-1",
+              "sticky left-0 z-25 bg-surface-white border-b border-r border-outline-gray-1 font-normal text-left align-middle transition-[height,background-color] cursor-pointer hover:bg-surface-gray-1",
               className,
             )}
             style={{
@@ -89,10 +91,11 @@ export function GanttMemberItem({
             disabled={!canExpand}
             onClick={() => handleToggle?.()}
             className={cn(
-              "flex h-full w-full shrink-0 items-center overflow-hidden",
+              "flex pl-3 pr-3 h-full w-full shrink-0 items-center overflow-hidden focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-outline-gray-3",
               {
                 "cursor-default!": !canExpand,
               },
+              buttonClassName,
             )}
             aria-expanded={canExpand ? isExpanded : undefined}
           >
