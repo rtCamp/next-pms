@@ -1,7 +1,28 @@
+from frappe.model import DEFAULT_FIELDS
+
 # Cache Keys
 
 EMP_WOKING_DETAILS = "emp_working_details"
 EMP_TIMESHEET = "emp_timesheet"
+
+TASK_FILTER_OPERATORS = {
+    "=",
+    "!=",
+    "like",
+    "not like",
+    "in",
+    "not in",
+    ">=",
+    "<=",
+    ">",
+    "<",
+    "between",
+    "is",
+}
+
+# Frappe's default columns minus the virtual "doctype", which has no physical column on the table.
+# These sit alongside the doctype's own fields as valid targets for filtering and sorting.
+TASK_META_FIELDS = DEFAULT_FIELDS - {"doctype"}
 
 ALLOWED_FILTER_FIELDS = {
     "Timesheet": {
