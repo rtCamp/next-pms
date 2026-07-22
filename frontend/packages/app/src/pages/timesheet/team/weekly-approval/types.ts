@@ -1,4 +1,7 @@
-import { TaskStatusType } from "@next-pms/design-system/components";
+import {
+  TaskStatusType,
+  type ApprovalStatusLabelType,
+} from "@next-pms/design-system/components";
 import type { WorkingFrequency } from "@/types";
 import type { HolidayProp, LeaveProps } from "@/types/timesheet";
 
@@ -35,6 +38,8 @@ export interface TimesheetEntry {
   docstatus: number;
   leaveHours: number;
   leaveLabel?: string;
+  approvalStatus: ApprovalStatusLabelType;
+  rejectionReason?: string;
 }
 
 export interface TaskDataEntry {
@@ -49,6 +54,8 @@ export interface TaskDataEntry {
   hours: number;
   parent: string;
   docstatus: number;
+  custom_approval_status: ApprovalStatusLabelType;
+  custom_rejection_reason?: string | null;
 }
 
 export interface Task {
