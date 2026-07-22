@@ -11,9 +11,10 @@ def execute():
     Unlike populate_resource_allocation_cost, this writes `currency` itself instead of
     skipping rows where it is blank — a blank currency is what left those rows at 0.
     """
+    as_of_date = today()
     allocations = frappe.get_all(
         "Resource Allocation",
-        filters={"allocation_end_date": [">=", today()]},
+        filters={"allocation_end_date": [">=", as_of_date]},
         fields=["name", "employee", "project", "currency", "total_allocated_hours"],
     )
     if not allocations:
@@ -32,7 +33,7 @@ def execute():
 
         key = (allocation.employee, currency)
         if key not in hourly_rates:
-            hourly_rates[key] = get_hourly_cost_rate(allocation.employee, currency)
+            hourly_rates[key] = get_hourly_cost_rate(allocation.employee, currency, as_of_date)
         hourly_cost_rate = hourly_rates[key]
 
         values = {"currency": currency}
@@ -66,8 +67,8 @@ def get_project_currency(projects: set) -> dict:
     )
 
 
-def get_hourly_cost_rate(employee: str, currency: str) -> float | None:
-    """Hourly cost of the employee in `currency`, or None when it cannot be derived."""
+def get_hourly_cost_rate(employee: str, currency: str, date: str) -> float | None:
+    """Hourly cost of the employee in `currency` as of `date`, or None when it cannot be derived."""
     from next_pms.utils.employee import get_employee_salary
 
     ctc, salary_currency = frappe.get_cached_value("Employee", employee, ["ctc", "salary_currency"])
@@ -78,7 +79,7 @@ def get_hourly_cost_rate(employee: str, currency: str) -> float | None:
         salary_info = get_employee_salary(
             employee=employee,
             to_currency=currency,
-            date=today(),
+            date=date,
             throw=False,
             ctc=ctc,
             salary_currency=salary_currency,
@@ -90,4 +91,4 @@ def get_hourly_cost_rate(employee: str, currency: str) -> float | None:
         )
         return None
 
-    return flt(salary_info.get("hourly_salary", 0)) if salary_info else 0
+    return flt(salary_info["hourly_salary"]) if salary_info else None
