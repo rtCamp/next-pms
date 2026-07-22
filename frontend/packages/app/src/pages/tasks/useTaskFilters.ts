@@ -9,6 +9,7 @@ import type { FilterCondition } from "@rtcamp/frappe-ui-react";
 /**
  * Internal dependencies.
  */
+import { parseAdvancedFilters } from "@/lib/utils";
 import type { TaskListFilters, TaskStatus } from "./types";
 
 const FILTER_PARAM_KEYS = [
@@ -21,16 +22,6 @@ const FILTER_PARAM_KEYS = [
   "sortOrder",
 ] as const;
 
-const parseAdvanced = (raw: string | null): FilterCondition[] => {
-  if (!raw) return [];
-  try {
-    const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? (parsed as FilterCondition[]) : [];
-  } catch {
-    return [];
-  }
-};
-
 export function useTaskFilters() {
   const [searchParams, setSearchParams] = useSearchParams();
 
@@ -42,7 +33,7 @@ export function useTaskFilters() {
       status: JSON.parse(
         decodeURI(searchParams.get("status") || "[]"),
       ) as unknown as TaskStatus[],
-      advanced: parseAdvanced(searchParams.get("advanced")),
+      advanced: parseAdvancedFilters(searchParams.get("advanced")),
     }),
     [searchParams],
   );

@@ -553,6 +553,20 @@ export const isNoValueOperator = (operator: string): boolean =>
   NO_VALUE_OPERATORS.includes(operator);
 
 /**
+ * Parses a URL search param holding a JSON-encoded array of FilterCondition
+ * objects, returning an empty array if the param is missing or malformed.
+ */
+export const parseAdvancedFilters = (raw: string | null): FilterCondition[] => {
+  if (!raw) return [];
+  try {
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? (parsed as FilterCondition[]) : [];
+  } catch {
+    return [];
+  }
+};
+
+/**
  * Returns true when a FilterCondition is fully specified and ready to be sent
  * to the API — i.e. it has a field, an operator, and either a non-empty value
  * or an operator that requires no value.
