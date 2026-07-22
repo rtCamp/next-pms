@@ -37,7 +37,7 @@ export function TaskRowActions({
         aria-label="Task actions"
         className="inline-flex w-4 h-4 shrink-0 cursor-pointer items-center justify-center focus:outline-none focus-visible:ring focus-visible:ring-outline-gray-3 rounded"
       >
-        <DotHorizontal className="text-ink-gray-6" size={16} />
+        <DotHorizontal className="text-ink-gray-6 size-4" />
       </div>
     </Dropdown>
   );

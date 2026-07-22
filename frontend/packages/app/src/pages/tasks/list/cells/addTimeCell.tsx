@@ -51,7 +51,7 @@ export function AddTimeCell({
         aria-label="Add time"
         className="inline-flex w-4 h-4 shrink-0 cursor-pointer items-center justify-center focus:outline-none focus-visible:ring focus-visible:ring-outline-gray-3 rounded"
       >
-        <Clock className="text-ink-gray-6" size={16} />
+        <Clock className="text-ink-gray-4 size-4" />
       </div>
     </Tooltip>
   );
