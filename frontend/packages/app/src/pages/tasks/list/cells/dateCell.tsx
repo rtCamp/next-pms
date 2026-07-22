@@ -9,8 +9,6 @@ import { format, parseISO } from "date-fns";
  */
 import { TextCell } from "./textCell";
 
-// `exp_end_date` is a Datetime field, so it needs `parseISO` (not the
-// date-only `formatProjectDate` used for the Projects list' Date fields).
 export function DateCell({ isoDate }: { isoDate: string | null }) {
   if (!isoDate) {
     return <TextCell text="N/A" />;
