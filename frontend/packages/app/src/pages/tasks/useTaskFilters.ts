@@ -18,8 +18,6 @@ const FILTER_PARAM_KEYS = [
   "projectLabel",
   "status",
   "advanced",
-  "sortField",
-  "sortOrder",
 ] as const;
 
 export function useTaskFilters() {

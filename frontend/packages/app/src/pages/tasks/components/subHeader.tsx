@@ -32,6 +32,7 @@ export function TaskListSubHeader() {
     setStatus,
     setAdvanced,
     setSort,
+    resetFilters,
   } = useTaskFilters();
 
   const externalFilterCount =
@@ -156,9 +157,7 @@ export function TaskListSubHeader() {
           externalFilterCount={externalFilterCount}
           onClearAll={() => {
             setSearchInput("");
-            setSearch("");
-            setProject("", "");
-            setStatus([]);
+            resetFilters();
           }}
         />
       </div>
