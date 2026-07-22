@@ -33,7 +33,7 @@ function GanttMemberHoverCard({
       : undefined;
 
   return (
-    <div className="flex flex-col gap-3 p-3 w-60 rounded-xl shadow-2xl bg-surface-modal">
+    <div className="flex flex-col gap-3 p-3 w-60 rounded-xl shadow-2xl bg-surface-modal animate-fade-in">
       {/* Header */}
       <div
         className={cn("flex items-start", {

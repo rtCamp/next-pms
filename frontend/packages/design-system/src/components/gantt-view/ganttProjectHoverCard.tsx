@@ -42,7 +42,7 @@ function GanttProjectHoverCard({
       : undefined;
 
   return (
-    <div className="flex flex-col gap-3 p-3 w-72 rounded-xl shadow-2xl bg-surface-modal">
+    <div className="flex flex-col gap-3 p-3 w-72 rounded-xl shadow-2xl bg-surface-modal animate-fade-in">
       <div
         className={cn("flex items-start gap-3", {
           "justify-between": projectHref,

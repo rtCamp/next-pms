@@ -84,15 +84,13 @@ const InfiniteScroll = ({
     <ScrollArea.Root className={cn("relative h-full w-full", className)}>
       <ScrollArea.Viewport
         ref={handleViewportRef}
-        className={cn(
-          "h-full w-full rounded-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-outline-gray-3",
-          {
-            "w-[calc(100%-var(--spacing)*1.5)]":
-              showScrollbar && scrollbarVariant === "classic",
-            "h-[calc(100%-var(--spacing)*1.5)]":
-              showScrollbar && scrollbarVariant === "classic",
-          },
-        )}
+        tabIndex={-1}
+        className={cn("h-full w-full", {
+          "w-[calc(100%-var(--spacing)*1.5)]":
+            showScrollbar && scrollbarVariant === "classic",
+          "h-[calc(100%-var(--spacing)*1.5)]":
+            showScrollbar && scrollbarVariant === "classic",
+        })}
       >
         <ScrollArea.Content className="min-h-full">
           {content}
