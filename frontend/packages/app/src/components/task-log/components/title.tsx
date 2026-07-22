@@ -29,7 +29,7 @@ const Title: React.FC<TitleProps> = ({
           className="text-lg text-ink-gray-8 font-semibold flex items-end gap-1"
         >
           {taskName}
-          <ArrowUpRight className="size-4 shrink-0 text-ink-gray-5" />
+          <ArrowUpRight className="size-4 shrink-0 text-ink-gray-8" />
         </a>
       ) : (
         <div className="text-lg text-ink-gray-8 font-semibold">{taskName}</div>
