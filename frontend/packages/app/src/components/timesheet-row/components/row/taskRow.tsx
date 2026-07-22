@@ -134,7 +134,7 @@ export const TaskRow = ({
         ),
       );
     }
-  }, [likeError, toast]);
+  }, [likeError]);
 
   return (
     <BaseTaskRow
