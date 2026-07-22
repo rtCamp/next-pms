@@ -1,3 +1,5 @@
+import unittest
+
 import frappe
 from frappe.tests import IntegrationTestCase
 
@@ -42,6 +44,8 @@ class TestFeedbackComments(IntegrationTestCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
+        if not frappe.db.exists("DocType", "Customer Feedback"):
+            raise unittest.SkipTest("Customer Feedback doctypes not installed on this site")
         cls.feedback = cls.make_feedback()
 
         # Projects Manager clears the ALLOWED_ROLES gate on the endpoints; the
