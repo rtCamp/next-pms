@@ -26,6 +26,7 @@ const ApprovalStatusFilter: React.FC<ApprovalStatusFilterProps> = ({
     <MultiSelect
       placeholder="Approval status"
       triggerClassName="w-fit text-ink-gray-7"
+      popupClassName="w-max min-w-(--anchor-width)"
       hideSearch
       options={options}
       value={value}
