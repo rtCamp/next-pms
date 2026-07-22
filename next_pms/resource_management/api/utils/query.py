@@ -2,6 +2,7 @@ import datetime
 
 import frappe
 from frappe.query_builder.functions import Sum
+from frappe.utils import cint, date_diff, flt, getdate
 from frappe.utils.caching import redis_cache
 
 
@@ -209,12 +210,36 @@ def get_allocation_worked_hours_for_given_projects(project: str, start_date: str
     return total_hours.get("time") or 0.0
 
 
+def leave_includes_holidays(leave: dict) -> bool:
+    """Return whether a leave's stored day count covers the holidays inside its range.
+
+    Leave Application.total_leave_days is recomputed server-side on every save by
+    get_number_of_leave_days, which honours Leave Type.include_holiday and any
+    site-level override of that policy (rtCamp, for instance, monkey-patches it so that
+    unpaid leave spanning fewer than five working days drops holidays while longer runs
+    keep them). Comparing the stored count against the raw calendar span therefore tells
+    us what was actually counted, without restating any of those rules here.
+    """
+    span = date_diff(leave["to_date"], leave["from_date"]) + 1
+
+    if cint(leave.get("half_day")):
+        half_day_date = leave.get("half_day_date")
+        if getdate(leave["from_date"]) == getdate(leave["to_date"]):
+            span = 0.5
+        elif half_day_date and getdate(leave["from_date"]) <= getdate(half_day_date) <= getdate(leave["to_date"]):
+            span -= 0.5
+
+    return flt(leave.get("total_leave_days")) >= flt(span)
+
+
 @redis_cache
 def get_employee_leaves(employee: str | tuple, start_date: str, end_date: str):
     """Return Leave Application records that overlap a date range for one or more employees.
 
     Fetches approved or open leave applications whose ``from_date``/``to_date`` window
-    overlaps ``[start_date, end_date]``. Joins ``Leave Type`` to include ``is_lwp`` (is leave without pay).
+    overlaps ``[start_date, end_date]``. Joins ``Leave Type`` to include ``is_lwp`` (is leave without pay),
+    and derives ``includes_holidays`` (see :func:`leave_includes_holidays`) so callers can render a leave
+    across its whole range or skip the holidays inside it without re-deriving leave policy.
 
     Pass a single employee ID for one person, or a ``tuple`` of IDs to batch-fetch
     leaves for multiple employees in one query.
@@ -249,6 +274,7 @@ def get_employee_leaves(employee: str | tuple, start_date: str, end_date: str):
                 "leave_type": "Casual Leave",
                 "custom_first_halfsecond_half": None,
                 "is_lwp": 0,
+                "includes_holidays": True,
             },
         ]
 
@@ -269,6 +295,7 @@ def get_employee_leaves(employee: str | tuple, start_date: str, end_date: str):
                 "leave_type": "Casual Leave",
                 "custom_first_halfsecond_half": None,
                 "is_lwp": 0,
+                "includes_holidays": True,
             },
             {
                 "employee": "HR-EMP-00002",
@@ -281,6 +308,7 @@ def get_employee_leaves(employee: str | tuple, start_date: str, end_date: str):
                 "leave_type": "Sick Leave",
                 "custom_first_halfsecond_half": "First Half",
                 "is_lwp": 0,
+                "includes_holidays": True,
             },
         ]
         ```
@@ -329,9 +357,10 @@ def get_employee_leaves(employee: str | tuple, start_date: str, end_date: str):
 
     results = query.run(as_dict=True)
 
-    if not has_first_half_column:
-        for row in results:
+    for row in results:
+        if not has_first_half_column:
             row["custom_first_halfsecond_half"] = None
+        row["includes_holidays"] = leave_includes_holidays(row)
 
     return results
 
