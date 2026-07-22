@@ -14,6 +14,7 @@ import type { TaskListFilters, TaskStatus } from "./types";
 const FILTER_PARAM_KEYS = [
   "search",
   "project",
+  "projectLabel",
   "status",
   "advanced",
   "sortField",
@@ -37,6 +38,7 @@ export function useTaskFilters() {
     () => ({
       search: searchParams.get("search") ?? "",
       project: searchParams.get("project") ?? "",
+      projectLabel: searchParams.get("projectLabel") ?? "",
       status: JSON.parse(
         decodeURI(searchParams.get("status") || "[]"),
       ) as unknown as TaskStatus[],
@@ -71,8 +73,19 @@ export function useTaskFilters() {
     [setParam],
   );
   const setProject = useCallback(
-    (v: string) => setParam("project", v),
-    [setParam],
+    (v: string, label?: string) => {
+      setSearchParams(
+        (prev) => {
+          if (v) prev.set("project", v);
+          else prev.delete("project");
+          if (label) prev.set("projectLabel", label);
+          else prev.delete("projectLabel");
+          return prev;
+        },
+        { replace: true },
+      );
+    },
+    [setSearchParams],
   );
   const setStatus = useCallback(
     (v: TaskStatus[]) =>

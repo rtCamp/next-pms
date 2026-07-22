@@ -25,7 +25,7 @@ import { useTaskFilters } from "../useTaskFilters";
 
 export function TaskListSubHeader() {
   const {
-    filters: { search, project, status, advanced },
+    filters: { search, project, projectLabel, status, advanced },
     sort,
     setSearch,
     setProject,
@@ -56,8 +56,8 @@ export function TaskListSubHeader() {
 
   const [projectQuery, setProjectQuery] = useState("");
   const selectedProjectOption = useMemo(
-    () => (project ? { label: project, value: project } : null),
-    [project],
+    () => (project ? { label: projectLabel || project, value: project } : null),
+    [project, projectLabel],
   );
   const { options: projectLookupOptions, isLoading: isProjectLoading } =
     useDoctypeLinkLookup({
@@ -93,7 +93,11 @@ export function TaskListSubHeader() {
             onSearchChange={setProjectQuery}
             openOnFocus
             placeholder="Project"
-            onChange={(val) => setProject(val ?? "")}
+            onChange={(val, option) => {
+              const label =
+                option && typeof option !== "string" ? option.label : undefined;
+              setProject(val ?? "", label);
+            }}
             className="w-full"
           />
         </div>
@@ -153,7 +157,7 @@ export function TaskListSubHeader() {
           onClearAll={() => {
             setSearchInput("");
             setSearch("");
-            setProject("");
+            setProject("", "");
             setStatus([]);
           }}
         />

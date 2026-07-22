@@ -11,6 +11,7 @@ export type TaskPriority = (typeof TASK_PRIORITIES)[number];
 export interface TaskListFilters {
   search: string;
   project: string;
+  projectLabel: string;
   status: TaskStatus[];
   advanced: FilterCondition[];
 }
