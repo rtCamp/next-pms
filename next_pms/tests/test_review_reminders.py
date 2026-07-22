@@ -1,3 +1,4 @@
+import json
 from urllib.parse import urlencode
 
 import frappe
@@ -123,9 +124,16 @@ class TestSendReviewReminders(IntegrationTestCase):
             {
                 "reportsTo": self.manager,
                 "approval": "approval-pending,partially-approved,partially-rejected",
-                "compositeFilters": (
-                    '[{"id":"date","field":"date","operator":"between",'
-                    f'"value":["{TIMESHEET_DATE}","{TIMESHEET_DATE}"]}}]'
+                "compositeFilters": json.dumps(
+                    [
+                        {
+                            "id": "date",
+                            "field": "date",
+                            "operator": "between",
+                            "value": [TIMESHEET_DATE, TIMESHEET_DATE],
+                        }
+                    ],
+                    separators=(",", ":"),
                 ),
             }
         )
