@@ -21,6 +21,7 @@ interface NotificationDoc {
   creation: string;
   linked_doctype: string;
   linked_document: string;
+  url: string | null;
   viewed: 0 | 1;
 }
 
@@ -40,6 +41,7 @@ export const NotificationsProvider: FC<PropsWithChildren> = ({ children }) => {
         "creation",
         "linked_doctype",
         "linked_document",
+        "url",
         "viewed",
       ],
       filters: (userId ? [["user", "=", userId]] : []) as never,
@@ -62,9 +64,10 @@ export const NotificationsProvider: FC<PropsWithChildren> = ({ children }) => {
       }),
       read: Boolean(doc.viewed),
       href:
-        doc.linked_doctype && doc.linked_document
+        doc.url ||
+        (doc.linked_doctype && doc.linked_document
           ? `${ROUTES.desk}/${toKebabCase(doc.linked_doctype)}/${doc.linked_document}`
-          : undefined,
+          : undefined),
     }));
   }, [data]);
 

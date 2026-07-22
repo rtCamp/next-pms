@@ -2,33 +2,34 @@ import {
   ApprovalStatusDisplayLabelMap,
   ApprovalStatusType,
 } from "@next-pms/design-system/components";
-import { Select } from "@rtcamp/frappe-ui-react";
+import { MultiSelect } from "@rtcamp/frappe-ui-react";
 
 type ApprovalStatusFilterProps = {
-  value?: ApprovalStatusType | null;
-  onChange: (value?: ApprovalStatusType | null) => void;
+  value?: ApprovalStatusType[];
+  onChange: (value: ApprovalStatusType[]) => void;
   excludeOptions?: ApprovalStatusType[];
 };
 
 const ApprovalStatusFilter: React.FC<ApprovalStatusFilterProps> = ({
-  value,
+  value = [],
   onChange,
   excludeOptions = [],
 }) => {
   const options = Object.entries(ApprovalStatusDisplayLabelMap)
-    .filter(([key]) => !excludeOptions.includes(key as ApprovalStatusType))
-    .map(([key, label]) =>
-      key === "none" ? { label: "All", value: "" } : { label, value: key },
-    );
+    .filter(
+      ([key]) =>
+        key !== "none" && !excludeOptions.includes(key as ApprovalStatusType),
+    )
+    .map(([key, label]) => ({ label, value: key }));
 
   return (
-    <Select
+    <MultiSelect
       placeholder="Approval status"
-      placeholderClassName="text-ink-gray-7"
-      className="w-fit text-ink-gray-7"
+      triggerClassName="w-fit text-ink-gray-7"
+      hideSearch
       options={options}
-      value={value ?? ""}
-      onChange={(val) => onChange(val ? (val as ApprovalStatusType) : null)}
+      value={value}
+      onChange={(values) => onChange(values as ApprovalStatusType[])}
     />
   );
 };

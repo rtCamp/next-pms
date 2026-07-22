@@ -1,3 +1,5 @@
+from urllib.parse import urlencode
+
 import frappe
 from erpnext import get_default_company
 from frappe.deferred_insert import save_to_db
@@ -109,7 +111,7 @@ class TestSendReviewReminders(IntegrationTestCase):
         notifications = frappe.get_all(
             "NextPMS Notifications",
             filters={"user": MANAGER_USER, "title": "Timesheets to review"},
-            fields=["label", "linked_document"],
+            fields=["label", "linked_document", "url"],
         )
 
         self.assertEqual(len(notifications), 1)
@@ -117,6 +119,17 @@ class TestSendReviewReminders(IntegrationTestCase):
         self.assertIn("1 timesheet to review", notifications[0].label)
         self.assertNotEqual(notifications[0].linked_document, self.left_timesheet)
         self.assertNotEqual(notifications[0].linked_document, self.not_submitted_timesheet)
+        expected_query = urlencode(
+            {
+                "reportsTo": self.manager,
+                "approval": "approval-pending,partially-approved,partially-rejected",
+                "compositeFilters": (
+                    '[{"id":"date","field":"date","operator":"between",'
+                    f'"value":["{TIMESHEET_DATE}","{TIMESHEET_DATE}"]}}]'
+                ),
+            }
+        )
+        self.assertEqual(notifications[0].url, f"/next-pms/timesheet/team?{expected_query}")
 
     def test_label_pluralizes_for_multiple_timesheets(self):
         self._delete_manager_notifications()
