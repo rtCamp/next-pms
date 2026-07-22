@@ -32,6 +32,9 @@ const TeamTimesheetGrid = () => {
   const isFilterRequest = useTeamTimesheet(
     ({ state }) => state.isFilterRequest,
   );
+  const activeFilterKey = useTeamTimesheet(
+    ({ state }) => state.activeFilterKey,
+  );
   const resolvedFilterKey = useTeamTimesheet(
     ({ state }) => state.resolvedFilterKey,
   );
@@ -79,6 +82,7 @@ const TeamTimesheetGrid = () => {
           className={cn("w-full h-[calc(100%-var(--spacing)*7)] opacity-100", {
             "opacity-50 transition-opacity duration-150": isFilteredDataLoading,
           })}
+          scrollResetKey={activeFilterKey}
           enableScrollArea
         >
           <div className="min-w-225">
