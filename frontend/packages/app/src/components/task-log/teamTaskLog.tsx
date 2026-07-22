@@ -84,6 +84,7 @@ const TeamTaskLog: React.FC<TeamTaskLogProps> = ({
             <Title
               taskName={taskDetails.label}
               status={taskStatusMap[taskDetails.status]}
+              ghLink={taskDetails.ghLink}
             />
           );
         },
