@@ -9,8 +9,8 @@ import { AddSm, SmallDown } from "@rtcamp/frappe-ui-react/icons";
  * Internal dependencies.
  */
 import { Header } from "@/layout/header";
-import { useViews } from "@/providers/views";
 import { VIEWS } from "../constants";
+import { useProjectViews } from "../views";
 
 type ViewKey = (typeof VIEWS)[number]["key"];
 
@@ -22,10 +22,8 @@ type ProjectsHeaderProps = {
 function ProjectsHeader({ selectedView, openAddProject }: ProjectsHeaderProps) {
   const navigate = useNavigate();
   const { search } = useLocation();
-  const projectViews = useViews((state) => state.state.views);
-  console.log(projectViews);
-
-  const createView = useViews((state) => state.actions.createView);
+  const projectViews = useProjectViews((state) => state.state.views);
+  const createView = useProjectViews((state) => state.actions.createView);
   const activeView = VIEWS.find((v) => v.key === selectedView) ?? VIEWS[0];
 
   return (

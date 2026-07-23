@@ -11,7 +11,7 @@ import { AddSm, SmallDown } from "@rtcamp/frappe-ui-react/icons";
  * Internal dependencies.
  */
 import { Header } from "@/layout/header";
-import { useViews } from "@/providers/views";
+import { useProjectViews } from "../views";
 
 type ProjectsHeaderProps = PropsWithChildren<{
   label: string;
@@ -19,12 +19,12 @@ type ProjectsHeaderProps = PropsWithChildren<{
 
 function ProjectsHeader({ label, children }: ProjectsHeaderProps) {
   const [searchParams] = useSearchParams();
-  const doctype = useViews((state) => state.state.doctype);
-  const views = useViews((state) => state.state.views);
-  const activeView = useViews((state) => state.state.activeView);
-  const isLoading = useViews((state) => state.state.isLoading);
-  const createView = useViews((state) => state.actions.createView);
-  const applyView = useViews((state) => state.actions.applyView);
+  const doctype = useProjectViews((state) => state.state.doctype);
+  const views = useProjectViews((state) => state.state.views);
+  const activeView = useProjectViews((state) => state.state.activeView);
+  const isLoading = useProjectViews((state) => state.state.isLoading);
+  const createView = useProjectViews((state) => state.actions.createView);
+  const applyView = useProjectViews((state) => state.actions.applyView);
 
   if (isLoading || !activeView) {
     return <Spinner isFull />;

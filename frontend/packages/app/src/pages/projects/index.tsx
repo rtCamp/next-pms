@@ -7,14 +7,13 @@ import { AddSm } from "@rtcamp/frappe-ui-react/icons";
 /**
  * Internal dependencies.
  */
-import { ViewsProvider } from "@/providers/views/provider";
 import { ProjectFilters } from "./components/project-filters";
-import { FILTER_PARAM_KEYS } from "./components/project-filters/useProjectFilters";
 import ProjectsHeader from "./components/projectsHeader";
+import { ProjectViewsProvider } from "./views";
 
 function ProjectsPage() {
   return (
-    <ViewsProvider doctype="Project" filterParamKeys={FILTER_PARAM_KEYS}>
+    <ProjectViewsProvider>
       <ProjectsHeader label="Projects">
         <Button
           variant="solid"
@@ -24,7 +23,7 @@ function ProjectsPage() {
         />
       </ProjectsHeader>
       <ProjectFilters />
-    </ViewsProvider>
+    </ProjectViewsProvider>
   );
 }
 

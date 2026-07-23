@@ -10,8 +10,6 @@ import type { View } from "@/types";
 
 export interface ViewsContextProps {
   state: {
-    /** DocType this provider instance is scoped to. */
-    doctype: string;
     /** Saved views for the doctype available to the current user (own + public). */
     views: View[];
     /** View currently selected via the `view` search param, if any. */
@@ -27,8 +25,8 @@ export interface ViewsContextProps {
     }) => void;
     /** Selects a view: syncs the `view`, filter and sort search params to it. */
     applyView: (view: View, options?: { replace?: boolean }) => void;
-    /** Updates an existing view and refreshes the list. */
-    updateView: (view: Partial<View>) => Promise<void>;
+    /** Updates an existing view and refreshes the list. The provider's doctype is applied automatically. */
+    updateView: (view: Omit<Partial<View>, "dt">) => Promise<void>;
     /** Re-fetches the views from the server. */
     refresh: () => Promise<void>;
   };
@@ -36,7 +34,6 @@ export interface ViewsContextProps {
 
 export const ViewsContext = createContext<ViewsContextProps>({
   state: {
-    doctype: "",
     views: [],
     activeView: undefined,
     isLoading: false,

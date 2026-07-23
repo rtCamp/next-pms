@@ -133,11 +133,11 @@ export const ViewsProvider: FC<
   );
 
   const updateView = useCallback(
-    async (view: Partial<View>) => {
-      await updateViewCall({ view });
+    async (view: Omit<Partial<View>, "dt">) => {
+      await updateViewCall({ view: { ...view, dt: doctype } });
       await mutate();
     },
-    [updateViewCall, mutate],
+    [updateViewCall, mutate, doctype],
   );
 
   const refresh = useCallback(async () => {
