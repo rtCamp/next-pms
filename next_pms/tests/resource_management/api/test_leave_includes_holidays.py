@@ -9,6 +9,7 @@ from next_pms.resource_management.api.utils.query import (
 )
 from next_pms.tests.utils import make_employee, make_holiday_list
 from next_pms.timesheet.api.team import get_compact_view_data
+from next_pms.timesheet.api.utils import get_holidays
 
 # Aug 2026: Mon 10 … Fri 14, Sat 15 + Sun 16 weekly off, Mon 17 … Wed 19.
 MON, FRI = "2026-08-10", "2026-08-14"
@@ -115,13 +116,28 @@ class TestLeaveWeekendRendering(IntegrationTestCase):
                 )
             date = add_days(date, 1)
 
-        make_holiday_list(HOLIDAY_LIST, from_date="2026-01-01", to_date="2026-12-31", holiday_dates=weekends)
+        holiday_list = make_holiday_list(
+            HOLIDAY_LIST, from_date="2026-01-01", to_date="2026-12-31", holiday_dates=weekends
+        )
         cls.employee = make_employee(
             EMPLOYEE_USER,
             company=get_default_company(),
-            holiday_list=HOLIDAY_LIST,
             leave_approver="Administrator",
         )
+        # Employee.holiday_list is ignored; HRMS resolves via Holiday List Assignment.
+        if not frappe.db.exists(
+            "Holiday List Assignment",
+            {"assigned_to": cls.employee, "from_date": "2026-01-01", "docstatus": 1},
+        ):
+            frappe.get_doc(
+                {
+                    "doctype": "Holiday List Assignment",
+                    "applicable_for": "Employee",
+                    "assigned_to": cls.employee,
+                    "holiday_list": holiday_list.name,
+                    "from_date": "2026-01-01",
+                }
+            ).insert(ignore_permissions=True).submit()
 
         for name, include_holiday in ((INCLUDES_HOLIDAYS_TYPE, 1), (EXCLUDES_HOLIDAYS_TYPE, 0)):
             if not frappe.db.exists("Leave Type", name):
@@ -140,7 +156,21 @@ class TestLeaveWeekendRendering(IntegrationTestCase):
 
     def tearDown(self):
         get_employee_leaves.clear_cache()
+        get_holidays.clear_cache()
         frappe.cache().delete_keys("emp_timesheet")
+
+    def test_weekends_resolve_as_holidays_for_the_employee(self):
+        """Guards the fixture itself.
+
+        HRMS resolves an employee's holiday list through Holiday List Assignment, so a
+        missing assignment yields no holidays at all — and then every weekend assertion
+        below passes for the wrong reason instead of failing.
+        """
+        holidays = {str(h.holiday_date): h for h in get_holidays(self.employee, SEP_THU, SEP_TUE_NEXT)}
+
+        for weekend_day in (SEP_SAT, SEP_SUN):
+            self.assertIn(weekend_day, holidays)
+            self.assertTrue(holidays[weekend_day].weekly_off)
 
     def _apply_leave(self, leave_type, from_date, to_date):
         get_employee_leaves.clear_cache()
