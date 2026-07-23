@@ -56,10 +56,6 @@ type PersonalTimesheetPageParams = {
 
 const QUERY_SIGNATURE_PREFIX = "personal-timesheet:";
 
-const APPROVAL_STATUS_COUNT = Object.keys(ApprovalStatusLabelMap).filter(
-  (status) => status !== "none",
-).length;
-
 const hasActiveFilters = (
   search: string,
   approvalStatus: (keyof typeof ApprovalStatusLabelMap)[] | undefined,
@@ -121,12 +117,11 @@ export function usePersonalTimesheetData({
 
   const requestWeekDate = startDate ?? getTodayDate();
   const weeksPerPage = maxWeek ?? NUMBER_OF_WEEKS_TO_FETCH;
-  const approvalStatusParam =
-    approvalStatus?.length && approvalStatus.length !== APPROVAL_STATUS_COUNT
-      ? JSON.stringify(
-          approvalStatus.map((status) => ApprovalStatusLabelMap[status]),
-        )
-      : null;
+  const approvalStatusParam = approvalStatus?.length
+    ? JSON.stringify(
+        approvalStatus.map((status) => ApprovalStatusLabelMap[status]),
+      )
+    : null;
   const filtersParam = useMemo(
     () => JSON.stringify(frappeFilters),
     [frappeFilters],

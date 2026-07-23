@@ -13,7 +13,10 @@ import {
   type PersonalTimesheetContextProps,
 } from "./context";
 import { usePersonalTimesheetData } from "./usePersonalTimesheetData";
-import { useTimesheetFilters } from "../hooks/useTimesheetFilters";
+import {
+  APPROVAL_STATUS_PARAM_VALUES,
+  useTimesheetFilters,
+} from "../hooks/useTimesheetFilters";
 
 export const PersonalTimesheetProvider: FC<PropsWithChildren> = ({
   children,
@@ -37,6 +40,15 @@ export const PersonalTimesheetProvider: FC<PropsWithChildren> = ({
     [filters.compositeFilters],
   );
 
+  const requestApprovalStatus = useMemo(
+    () =>
+      // Selecting every status is equivalent to no filter
+      filters.approvalStatus?.length === APPROVAL_STATUS_PARAM_VALUES.length
+        ? []
+        : filters.approvalStatus,
+    [filters.approvalStatus],
+  );
+
   const {
     hasMoreWeeks,
     isLoadingPersonalData,
@@ -49,7 +61,7 @@ export const PersonalTimesheetProvider: FC<PropsWithChildren> = ({
   } = usePersonalTimesheetData({
     employeeId,
     search: filters.search,
-    approvalStatus: filters.approvalStatus,
+    approvalStatus: requestApprovalStatus,
     compositeFilters: effectiveCompositeFilters,
   });
 

@@ -17,7 +17,7 @@ const REPORTS_TO_PARAM_KEY = "reportsTo";
 const COMPOSITE_FILTERS_PARAM_KEY = "compositeFilters";
 const DEFAULT_CLEAR_KEYS_ON_CHANGE: string[] = [];
 
-const APPROVAL_STATUS_PARAM_VALUES = [
+export const APPROVAL_STATUS_PARAM_VALUES = [
   "not-submitted",
   "approved",
   "rejected",
