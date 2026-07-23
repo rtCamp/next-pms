@@ -8,7 +8,11 @@ import type { ComponentType, SVGProps } from "react";
  */
 
 export type ProjectLinkKey =
-  "website" | "files" | "github" | "people" | "support";
+  | "website"
+  | "files"
+  | "github"
+  | "people"
+  | "support";
 
 export type ProjectLink = {
   key: ProjectLinkKey;

@@ -1,6 +1,9 @@
-exclude: 'node_modules|.git'
+exclude: "node_modules|.git"
 default_stages: [pre-commit]
 fail_fast: false
+
+default_language_version:
+  python: python3.14
 
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
@@ -25,7 +28,7 @@ repos:
         name: "Python linter"
 
       - id: ruff
-        args: ["--select=T20","--exit-zero"]
+        args: ["--select=T20", "--exit-zero"]
         name: "Print Statement Warning"
         stages: [pre-commit]
 
@@ -41,11 +44,21 @@ repos:
         always_run: true
 
   - repo: https://github.com/semgrep/pre-commit
-    rev: 'v1.163.0'
+    rev: "v1.163.0"
     hooks:
       - id: semgrep-ci
         name: "Sempgrep: frappe"
-        args: ['--config', './.frappe-semgrep/rules', '--config','r/python.lang.correctness','--error', '--skip-unknown-extensions', '--metrics','off']
+        args:
+          [
+            "--config",
+            "./.frappe-semgrep/rules",
+            "--config",
+            "r/python.lang.correctness",
+            "--error",
+            "--skip-unknown-extensions",
+            "--metrics",
+            "off",
+          ]
 
   - repo: https://github.com/pre-commit/mirrors-prettier
     rev: v4.0.0-alpha.8
@@ -56,14 +69,13 @@ repos:
         files: ^.*\.(jsx|tsx|ts|js)$
         types: [file]
         exclude: |
-            (?x)^(
-                next_pms/public/dist/.*|
-                .*node_modules.*|
-                .*boilerplate.*|
-                next_pms/templates/includes/.*|
-                next_pms/public/js/lib/.*
-            )$
-
+          (?x)^(
+              next_pms/public/dist/.*|
+              .*node_modules.*|
+              .*boilerplate.*|
+              next_pms/templates/includes/.*|
+              next_pms/public/js/lib/.*
+          )$
 
   - repo: local
     hooks:
@@ -75,9 +87,9 @@ repos:
         types: [file]
         pass_filenames: true
         exclude: |
-            (?x)^(
-                .*node_modules.*
-            )$
+          (?x)^(
+              .*node_modules.*
+          )$
 
   - repo: local
     hooks:
@@ -88,15 +100,15 @@ repos:
         files: '\.js$'
         types: [javascript]
         exclude: |
-            (?x)^(
-                next_pms/public/dist/.*|
-                cypress/.*|
-                .*node_modules.*|
-                .*boilerplate.*|
-                next_pms/templates/includes/.*|
-            )$
+          (?x)^(
+              next_pms/public/dist/.*|
+              cypress/.*|
+              .*node_modules.*|
+              .*boilerplate.*|
+              next_pms/templates/includes/.*|
+          )$
 
 ci:
-    autoupdate_schedule: weekly
-    skip: []
-    submodules: false
+  autoupdate_schedule: weekly
+  skip: []
+  submodules: false
