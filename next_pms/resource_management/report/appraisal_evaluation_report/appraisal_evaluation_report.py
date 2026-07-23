@@ -13,15 +13,13 @@ from next_pms.next_pms.report.profit_report.profit_report import (
     get_employees_billable_amount,
     get_employees_timesheet_hours,
 )
-from next_pms.resource_management.report.spare_capacity_report.spare_capacity_report import (
-    convert_currency,
-    sort_by_designation,
-    sort_by_reports_to,
-)
 from next_pms.resource_management.report.spare_capacity_report.utils import (
     BU_FIELD_NAME,
+    convert_currency,
     get_employee_fields,
     get_employee_filters,
+    sort_by_designation,
+    sort_by_reports_to,
 )
 from next_pms.timesheet.api.employee import get_employee_daily_working_norm
 from next_pms.utils.employee import (

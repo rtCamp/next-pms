@@ -558,7 +558,8 @@ def notify_mentions(
         status_update_doc = frappe.get_doc("Project Status Update", project_status_update)
         project_name = status_update_doc.project
         update_title = status_update_doc.title
-        notification_context = f"project status update '{update_title}'"
+        project_title = frappe.db.get_value("Project", project_name, "project_name")
+        notification_context = f"project status '{update_title}' for project '{project_title}'"
     else:
         return {"message": "No project status update found"}
 

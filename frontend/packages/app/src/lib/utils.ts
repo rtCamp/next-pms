@@ -437,16 +437,14 @@ export const extractTextFromHTML = (htmlContent: string) => {
 
 export const enableSocket = () => {
   const enableSocket = import.meta.env.VITE_ENABLE_SOCKET;
+  // Default to enabled when no env is configured.
   if (typeof enableSocket !== "string") {
-    return enableSocket;
-  }
-  if (enableSocket === "true") {
     return true;
-  } else if (enableSocket === "false") {
+  }
+  if (enableSocket === "false") {
     return false;
-  } else {
-    return true;
   }
+  return true;
 };
 
 export const formatTime = (timeStr: string): string => {

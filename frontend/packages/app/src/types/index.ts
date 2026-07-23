@@ -74,6 +74,7 @@ declare global {
         user?: {
           roles?: Role[];
           can_create: string[];
+          can_write?: string[];
         };
         currencies?: string[];
         has_business_unit?: boolean;
@@ -86,6 +87,10 @@ declare global {
         is_calendar_setup: boolean;
         global_filters: GlobalFilters;
         allow_weekend_entries?: boolean;
+      };
+      realtime?: {
+        on: (event: string, handler: (data: unknown) => void) => void;
+        off: (event: string, handler: (data: unknown) => void) => void;
       };
     };
   }

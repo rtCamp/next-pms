@@ -336,6 +336,46 @@ def get_employee_leaves(employee: str | tuple, start_date: str, end_date: str):
     return results
 
 
+@redis_cache
+def get_employee_holidays(employee: str | tuple, start_date: str, end_date: str) -> list:
+    """Get the holidays for given employee for given time range.
+    Args:
+        employee (str | tuple): employee name or tuple of employee names
+        start_date (str): start date
+        end_date (str): end date
+    Returns:
+        list: list of holidays
+    """
+    Employee = frappe.qb.DocType("Employee")
+    HolidayList = frappe.qb.DocType("Holiday List")
+    Holiday = frappe.qb.DocType("Holiday")
+
+    query = (
+        frappe.qb.from_(Employee)
+        .join(HolidayList)
+        .on(Employee.holiday_list == HolidayList.name)
+        .join(Holiday)
+        .on(Holiday.parent == HolidayList.name)
+        .select(
+            Employee.name.as_("employee"),
+            Holiday.holiday_date,
+            Holiday.name.as_("holiday_name"),
+            Holiday.parent.as_("holiday_list"),
+        )
+    )
+    if isinstance(employee, tuple):
+        query = query.where(Employee.name.isin(employee))
+    else:
+        query = query.where(Employee.name == employee)
+    query = query.where((Holiday.holiday_date >= start_date) & (Holiday.holiday_date <= end_date)).orderby(
+        Employee.name
+    )
+
+    results = query.run(as_dict=True)
+
+    return results
+
+
 def get_allocation_worked_hours_for_given_employee(project: str, employee: str, start_date: str, end_date: str):
     """Get the total hours spend for given projects for given time range.
 
