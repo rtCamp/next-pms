@@ -1,8 +1,7 @@
 /**
  * External dependencies.
  */
-import { Breadcrumbs, Button } from "@rtcamp/frappe-ui-react";
-import { AddSm } from "@rtcamp/frappe-ui-react/icons";
+import { Breadcrumbs } from "@rtcamp/frappe-ui-react";
 
 /**
  * Internal dependencies.
@@ -13,12 +12,6 @@ function TasksHeader() {
   return (
     <Header>
       <Breadcrumbs items={[{ id: "tasks", label: "Tasks" }]} />
-      <Button
-        variant="solid"
-        label="Add task"
-        iconLeft={() => <AddSm />}
-        onClick={() => {}}
-      />
     </Header>
   );
 }
