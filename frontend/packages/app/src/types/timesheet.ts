@@ -37,6 +37,8 @@ export interface TaskDataItemProps {
   subject?: string;
   project?: string;
   project_name?: string | null;
+  custom_approval_status?: ApprovalStatusLabelType | null;
+  custom_rejection_reason?: string | null;
 }
 
 export interface LeaveProps {

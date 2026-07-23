@@ -29,7 +29,6 @@ export const approvalStatusIcon: Record<
   "Not Submitted": Overdue,
   "Partially Approved": Success,
   "Partially Rejected": CloseCircle,
-  None: Hourglass,
 };
 
 export const approvalStatusIconVariants = cva("", {
@@ -42,7 +41,6 @@ export const approvalStatusIconVariants = cva("", {
       "Not Submitted": "text-ink-gray-4",
       "Partially Approved": "text-ink-green-4",
       "Partially Rejected": "text-ink-red-4",
-      None: "text-ink-amber-4",
     },
   },
 });

@@ -5,5 +5,4 @@ export type ApprovalStatusLabelType =
   | "Processing Timesheet"
   | "Not Submitted"
   | "Partially Approved"
-  | "Partially Rejected"
-  | "None";
+  | "Partially Rejected";

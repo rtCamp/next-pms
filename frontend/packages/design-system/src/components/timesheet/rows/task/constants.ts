@@ -2,6 +2,8 @@ export type TaskRowTimeEntry = {
   time: string;
   nonBillable?: boolean;
   disabled?: boolean;
+  status?: string;
+  rejectionReason?: string | null;
 };
 
 export type TaskData = {
