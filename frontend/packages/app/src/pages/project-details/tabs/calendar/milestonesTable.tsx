@@ -16,6 +16,7 @@ type MilestonesTableProps = {
   onEdit?: (item: ProjectTimelineItem) => void;
   onMarkAsCompleted?: (item: ProjectTimelineItem) => void;
   onFollowDocument?: (item: ProjectTimelineItem) => void;
+  onDelete?: (item: ProjectTimelineItem) => Promise<void>;
 };
 
 export function MilestonesTable({
@@ -24,6 +25,7 @@ export function MilestonesTable({
   onEdit,
   onMarkAsCompleted,
   onFollowDocument,
+  onDelete,
 }: MilestonesTableProps) {
   const milestones = items.filter((i) => i.type === "Milestone");
 
@@ -64,6 +66,7 @@ export function MilestonesTable({
                   onEdit={onEdit}
                   onMarkAsCompleted={onMarkAsCompleted}
                   onFollowDocument={onFollowDocument}
+                  onDelete={onDelete}
                 />
               </td>
             ))}

@@ -6,7 +6,11 @@ import { useParams } from "react-router-dom";
 import { Button, TabButtons, useToasts } from "@rtcamp/frappe-ui-react";
 import { AddSm } from "@rtcamp/frappe-ui-react/icons";
 import { format, parseISO } from "date-fns";
-import { FrappeError, useFrappePostCall } from "frappe-react-sdk";
+import {
+  FrappeError,
+  useFrappeDeleteDoc,
+  useFrappePostCall,
+} from "frappe-react-sdk";
 
 /**
  * Internal dependencies.
@@ -37,6 +41,8 @@ export function CalendarTab() {
   const { call: updateFollow } = useFrappePostCall(
     "frappe.desk.form.document_follow.update_follow",
   );
+
+  const { deleteDoc } = useFrappeDeleteDoc();
 
   const [currentDate, setCurrentDate] = useState(() => {
     const n = new Date();
@@ -124,6 +130,16 @@ export function CalendarTab() {
     }
   }
 
+  async function handleDelete(item: ProjectTimelineItem) {
+    try {
+      await deleteDoc("Project Timeline Item", item.id);
+      toast.success(`${item.type} deleted`);
+      mutate();
+    } catch (err) {
+      toast.error(parseFrappeErrorMsg(err as FrappeError));
+    }
+  }
+
   return (
     <div className="flex flex-col gap-0">
       {/* Calendar toolbar */}
@@ -191,6 +207,7 @@ export function CalendarTab() {
               onEdit={handleEdit}
               onMarkAsCompleted={handleMarkAsCompleted}
               onFollowDocument={handleFollowDocument}
+              onDelete={handleDelete}
             />
           ) : (
             <TouchpointsTable
@@ -199,6 +216,7 @@ export function CalendarTab() {
               onEdit={handleEdit}
               onMarkAsCompleted={handleMarkAsCompleted}
               onFollowDocument={handleFollowDocument}
+              onDelete={handleDelete}
             />
           )}
         </div>

@@ -16,6 +16,7 @@ type TouchpointsTableProps = {
   onEdit?: (item: ProjectTimelineItem) => void;
   onMarkAsCompleted?: (item: ProjectTimelineItem) => void;
   onFollowDocument?: (item: ProjectTimelineItem) => void;
+  onDelete?: (item: ProjectTimelineItem) => Promise<void>;
 };
 
 export function TouchpointsTable({
@@ -24,6 +25,7 @@ export function TouchpointsTable({
   onEdit,
   onMarkAsCompleted,
   onFollowDocument,
+  onDelete,
 }: TouchpointsTableProps) {
   const touchpoints = items.filter((i) => i.type === "Touchpoint");
 
@@ -64,6 +66,7 @@ export function TouchpointsTable({
                   onEdit={onEdit}
                   onMarkAsCompleted={onMarkAsCompleted}
                   onFollowDocument={onFollowDocument}
+                  onDelete={onDelete}
                 />
               </td>
             ))}

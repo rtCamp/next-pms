@@ -17,6 +17,7 @@ type TimelineCellProps = {
   onEdit?: (item: ProjectTimelineItem) => void;
   onMarkAsCompleted?: (item: ProjectTimelineItem) => void;
   onFollowDocument?: (item: ProjectTimelineItem) => void;
+  onDelete?: (item: ProjectTimelineItem) => Promise<void>;
 };
 
 export function TimelineCell({
@@ -26,6 +27,7 @@ export function TimelineCell({
   onEdit,
   onMarkAsCompleted,
   onFollowDocument,
+  onDelete,
 }: TimelineCellProps) {
   switch (column.key) {
     case "title":
@@ -53,6 +55,7 @@ export function TimelineCell({
           onEdit={onEdit}
           onMarkAsCompleted={onMarkAsCompleted}
           onFollowDocument={onFollowDocument}
+          onDelete={onDelete}
         />
       );
     default:
