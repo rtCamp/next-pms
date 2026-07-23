@@ -72,7 +72,6 @@ export function SubHeader() {
         <ApprovalStatusFilter
           value={approvalStatus}
           onChange={handleApprovalStatusChange}
-          excludeOptions={["not-submitted"]}
         />
       </div>
       <Filter

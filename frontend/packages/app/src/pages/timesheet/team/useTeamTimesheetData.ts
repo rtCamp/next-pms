@@ -61,6 +61,10 @@ type UseTeamTimesheetOptions = {
 
 const EMPLOYEE_PAGE_LENGTH = 20;
 
+const APPROVAL_STATUS_COUNT = Object.keys(ApprovalStatusLabelMap).filter(
+  (status) => status !== "none",
+).length;
+
 export function useTeamTimesheetData({
   requestKey,
   filters,
@@ -121,13 +125,15 @@ export function useTeamTimesheetData({
     page_length: EMPLOYEE_PAGE_LENGTH,
     start: requestEmployeeStart,
     search: filters.search || null,
-    status_filter: filters.approvalStatus?.length
-      ? JSON.stringify(
-          filters.approvalStatus.map(
-            (status) => ApprovalStatusLabelMap[status],
-          ),
-        )
-      : null,
+    status_filter:
+      filters.approvalStatus?.length &&
+      filters.approvalStatus.length !== APPROVAL_STATUS_COUNT
+        ? JSON.stringify(
+            filters.approvalStatus.map(
+              (status) => ApprovalStatusLabelMap[status],
+            ),
+          )
+        : null,
     filters: frappeFilters.length > 0 ? JSON.stringify(frappeFilters) : null,
     // skip_empty_weeks: hasActiveFilter || null,
   });
