@@ -33,8 +33,6 @@ export function LikeCell({ name, likedBy }: { name: string; likedBy: string }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [error]);
 
-  const handleToggle = () => void toggle();
-
   return (
     <Tooltip text={liked ? "Unstar task" : "Star task"}>
       {/* A native <button> can't be used here: ListRow already wraps every
@@ -46,7 +44,7 @@ export function LikeCell({ name, likedBy }: { name: string; likedBy: string }) {
         aria-disabled={isToggling}
         onClick={(e) => {
           e.stopPropagation();
-          if (!isToggling) handleToggle();
+          if (!isToggling) toggle();
         }}
         onKeyDown={(e) => {
           if (
@@ -56,7 +54,7 @@ export function LikeCell({ name, likedBy }: { name: string; likedBy: string }) {
           ) {
             e.preventDefault();
             e.stopPropagation();
-            handleToggle();
+            toggle();
           }
         }}
         aria-label={liked ? "Unstar task" : "Star task"}

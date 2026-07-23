@@ -113,7 +113,7 @@ export const TaskRow = ({
 
   const handleStar = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.stopPropagation();
-    void toggleLike();
+    toggleLike();
   };
 
   const onLabelClick = useCallback(

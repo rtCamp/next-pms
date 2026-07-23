@@ -85,11 +85,11 @@ export function TaskListProvider({ children }: PropsWithChildren) {
 
   const loadMore = useCallback(() => {
     if (isLoading || isNextPageLoading || !hasMore) return;
-    void setSize((s) => s + 1);
+    setSize((s) => s + 1);
   }, [isLoading, isNextPageLoading, hasMore, setSize]);
 
   const refresh = useCallback(() => {
-    void mutate();
+    mutate();
   }, [mutate]);
 
   const value: TaskListContextProps = useMemo(
