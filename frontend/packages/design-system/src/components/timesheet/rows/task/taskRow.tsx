@@ -16,6 +16,15 @@ import { AddMd, Star, SolidStar } from "@rtcamp/frappe-ui-react/icons";
 import { type TaskRowTimeEntry } from "./constants";
 import { mergeClassNames as cn } from "../../../../utils";
 
+const timeEntryStatusClassNames: Record<string, string> = {
+  Approved: "!text-ink-green-4",
+  Rejected: "!text-ink-red-4",
+  "Approval Pending": "!text-ink-amber-4",
+  "Processing Timesheet": "!text-ink-amber-4",
+  "Partially Approved": "!text-ink-green-4",
+  "Partially Rejected": "!text-ink-red-4",
+};
+
 export interface TaskRowProps {
   /** Label for the task row. */
   label: string;
@@ -177,6 +186,9 @@ export const TaskRow: React.FC<TaskRowProps> = ({
         const canOpenInlineTimeEntry = !(
           timeEntry.disabled && timeEntry.time === ""
         );
+        const timeEntryTextClassName = timeEntry.status
+          ? timeEntryStatusClassNames[timeEntry.status]
+          : undefined;
 
         return (
           <div
@@ -194,9 +206,10 @@ export const TaskRow: React.FC<TaskRowProps> = ({
                   {...props}
                   variant="ghost"
                   className={cn(
-                    "w-14.25 relative group flex justify-center items-center text-ink-gray-6 lining-nums tabular-nums [&_span]:overflow-visible [&_span]:whitespace-normal",
+                    "w-14.25 relative group flex justify-center items-center lining-nums tabular-nums [&_span]:overflow-visible [&_span]:whitespace-normal",
                     "enabled:hover:bg-surface-gray-2 enabled:focus:bg-surface-gray-2 enabled:active:bg-surface-gray-3",
                     "aria-disabled:cursor-default! aria-disabled:text-ink-gray-5 aria-disabled:hover:bg-transparent aria-disabled:focus:bg-transparent aria-disabled:active:bg-transparent",
+                    timeEntryTextClassName,
                   )}
                   aria-disabled={timeEntry.disabled}
                   onClick={(event) => {

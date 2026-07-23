@@ -27,7 +27,7 @@ import { addWeekLabels, mergeTimesheetData } from "./utils";
 type UsePersonalTimesheetDataOptions = {
   employeeId: string;
   search: string;
-  approvalStatus?: keyof typeof ApprovalStatusLabelMap;
+  approvalStatus?: (keyof typeof ApprovalStatusLabelMap)[];
   compositeFilters: FilterCondition[];
 };
 
@@ -58,11 +58,11 @@ const QUERY_SIGNATURE_PREFIX = "personal-timesheet:";
 
 const hasActiveFilters = (
   search: string,
-  approvalStatus: keyof typeof ApprovalStatusLabelMap | undefined,
+  approvalStatus: (keyof typeof ApprovalStatusLabelMap)[] | undefined,
   compositeFilters: FilterCondition[],
 ) =>
   search.trim().length > 0 ||
-  Boolean(approvalStatus) ||
+  Boolean(approvalStatus?.length) ||
   compositeFilters.length > 0;
 
 const getNextPageStartDate = (
@@ -117,8 +117,10 @@ export function usePersonalTimesheetData({
 
   const requestWeekDate = startDate ?? getTodayDate();
   const weeksPerPage = maxWeek ?? NUMBER_OF_WEEKS_TO_FETCH;
-  const approvalStatusParam = approvalStatus
-    ? ApprovalStatusLabelMap[approvalStatus]
+  const approvalStatusParam = approvalStatus?.length
+    ? JSON.stringify(
+        approvalStatus.map((status) => ApprovalStatusLabelMap[status]),
+      )
     : null;
   const filtersParam = useMemo(
     () => JSON.stringify(frappeFilters),

@@ -22,6 +22,13 @@ import type { TaskDataItemProps } from "@/types/timesheet";
 import type { TaskRowProps } from "./types";
 import { InlineTimeEntry } from "../inline-time-entry";
 
+const statusPriority: Record<string, number> = {
+  Rejected: 5,
+  "Approval Pending": 4,
+  "Processing Timesheet": 3,
+  Approved: 2,
+};
+
 /**
  * @description This is the task row component for the timesheet table.
  * It is responsible for rendering the task row of the timesheet table.
@@ -67,19 +74,47 @@ export const TaskRow = ({
     const tasksForDates: TaskDataItemProps[][] = [];
     for (const date of dates) {
       const currentTotal = calculateTotalHours(tasks, date);
-      // Check if the time entry for the day is approved or not.
+      // Build per-day status metadata from approval status.
       const tasksForDate = tasks[taskKey].data.filter((entry) =>
         entry.from_time.includes(date),
       );
-      const isApproved = tasksForDate.some((entry) => entry.docstatus === 1);
-      totalTimeEntries.push({
+      let dayStatus: string | undefined;
+      let highestPriority = 0;
+      let rejectionReason: string | null = null;
+      const isDayFullyApproved =
+        tasksForDate.length > 0 &&
+        tasksForDate.every(
+          (entry) => entry.custom_approval_status === "Approved",
+        );
+
+      for (const entry of tasksForDate) {
+        const approvalStatus = entry.custom_approval_status;
+        if (!approvalStatus) {
+          continue;
+        }
+
+        const priority = statusPriority[approvalStatus] ?? 1;
+        if (priority > highestPriority) {
+          highestPriority = priority;
+          dayStatus = approvalStatus;
+        }
+
+        if (!rejectionReason && approvalStatus === "Rejected") {
+          rejectionReason = entry.custom_rejection_reason ?? null;
+        }
+      }
+
+      const timeEntry: TaskRowTimeEntry = {
         time: currentTotal === 0 ? "" : floatToTime(currentTotal, 2),
         nonBillable:
           currentTotal === 0 || (taskKey && tasks[taskKey]?.is_billable)
             ? false
             : true,
-        disabled: disabled || isApproved || false,
-      });
+        disabled: disabled || isDayFullyApproved || false,
+        status: dayStatus,
+        rejectionReason,
+      };
+      totalTimeEntries.push(timeEntry);
       tasksForDates.push(tasksForDate);
       total += currentTotal;
     }
