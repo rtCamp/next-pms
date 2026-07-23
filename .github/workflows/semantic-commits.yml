@@ -22,7 +22,17 @@ jobs:
         run: npm install --no-save @commitlint/cli @commitlint/config-conventional
 
       - name: Check commit titles
-        run: >-
-          npx commitlint --verbose
-          --from ${{ github.event.pull_request.base.sha }}
-          --to ${{ github.event.pull_request.head.sha }}
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          # Pre-2.0 history (everything up to and including the feat/redesign
+          # merge) predates commit-message linting and is grandfathered in.
+          LEGACY_CUTOFF: b403dec26b9c61d89ca983a4453be2b4675ceada
+        run: |
+          FROM="$BASE_SHA"
+          if ! git merge-base --is-ancestor "$LEGACY_CUTOFF" "$BASE_SHA" 2>/dev/null; then
+            if git merge-base --is-ancestor "$LEGACY_CUTOFF" "$HEAD_SHA" 2>/dev/null; then
+              FROM="$LEGACY_CUTOFF"
+            fi
+          fi
+          npx commitlint --verbose --from "$FROM" --to "$HEAD_SHA"
