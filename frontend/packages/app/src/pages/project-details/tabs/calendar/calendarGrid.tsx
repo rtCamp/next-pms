@@ -7,23 +7,16 @@ import { format, isSameDay, isSameMonth, isToday } from "date-fns";
  */
 import { mergeClassNames } from "@/lib/utils";
 import { DAY_HEADERS } from "./constants";
+import { useCalendar } from "./context";
 import { EventPill } from "./eventPill";
-import type { ProjectTimelineItem } from "./types";
 import { getCalendarWeeks, groupByDate } from "./utils";
 
-type CalendarGridProps = {
-  year: number;
-  month: number;
-  items: ProjectTimelineItem[];
-  selectedDate?: Date | null;
-};
+export function CalendarGrid() {
+  const year = useCalendar((c) => c.state.year);
+  const month = useCalendar((c) => c.state.month);
+  const items = useCalendar((c) => c.state.filteredItems);
+  const selectedDate = useCalendar((c) => c.state.selectedDate);
 
-export function CalendarGrid({
-  year,
-  month,
-  items,
-  selectedDate,
-}: CalendarGridProps) {
   const weeks = getCalendarWeeks(year, month);
   const byDate = groupByDate(items);
   const currentMonth = new Date(year, month, 1);

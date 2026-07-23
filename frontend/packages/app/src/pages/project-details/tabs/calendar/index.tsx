@@ -1,174 +1,51 @@
 /**
  * External dependencies.
  */
-import { useState } from "react";
 import { useParams } from "react-router-dom";
-import { Button, TabButtons, useToasts } from "@rtcamp/frappe-ui-react";
+import { Button, TabButtons } from "@rtcamp/frappe-ui-react";
 import { AddSm } from "@rtcamp/frappe-ui-react/icons";
-import { format, parseISO } from "date-fns";
-import {
-  FrappeError,
-  useFrappeDeleteDoc,
-  useFrappePostCall,
-} from "frappe-react-sdk";
 
 /**
  * Internal dependencies.
  */
-import { parseFrappeErrorMsg } from "@/lib/utils";
-import { useUser } from "@/providers/user";
 import { CalendarGrid } from "./calendarGrid";
-import { CalendarToolbar, type CalendarView } from "./calendarToolbar";
+import { CalendarToolbar } from "./calendarToolbar";
+import { useCalendar } from "./context";
 import { CreateMilestoneModal } from "./create-milestone";
 import { CreateTouchpointModal } from "./create-touchpoint";
 import { GanttView } from "./ganttView";
 import { MilestonesTable } from "./milestonesTable";
+import { CalendarProvider } from "./provider";
 import { TouchpointsTable } from "./touchpointsTable";
-import type { ProjectTimelineItem } from "./types";
-import { useProjectTimelineItems } from "./useProjectTimelineItems";
+import type { TableTab } from "./types";
 
-type TableTab = "milestones" | "touchpoints";
-
-export function CalendarTab() {
-  const { projectId = "" } = useParams<{ projectId: string }>();
-  const toast = useToasts();
-  const { userId } = useUser(({ state }) => ({ userId: state.userId }));
-
-  const { call: markComplete } = useFrappePostCall(
-    "next_pms.next_projects.api.project_timeline_item.mark_timeline_item_complete",
+function CalendarContent({ projectId }: { projectId: string }) {
+  const activeView = useCalendar((c) => c.state.activeView);
+  const tableTab = useCalendar((c) => c.state.tableTab);
+  const items = useCalendar((c) => c.state.items);
+  const editItem = useCalendar((c) => c.state.editItem);
+  const createMilestoneOpen = useCalendar((c) => c.state.createMilestoneOpen);
+  const createTouchpointOpen = useCalendar((c) => c.state.createTouchpointOpen);
+  const setTableTab = useCalendar((c) => c.actions.setTableTab);
+  const setCreateMilestoneOpen = useCalendar(
+    (c) => c.actions.setCreateMilestoneOpen,
   );
-
-  const { call: updateFollow } = useFrappePostCall(
-    "frappe.desk.form.document_follow.update_follow",
+  const setCreateTouchpointOpen = useCalendar(
+    (c) => c.actions.setCreateTouchpointOpen,
   );
-
-  const { deleteDoc } = useFrappeDeleteDoc();
-
-  const [currentDate, setCurrentDate] = useState(() => {
-    const n = new Date();
-    return new Date(n.getFullYear(), n.getMonth(), 1);
-  });
-  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
-  const [activeView, setActiveView] = useState<CalendarView>("calendar");
-  const [filterType, setFilterType] = useState("all");
-  const [tableTab, setTableTab] = useState<TableTab>("milestones");
-  const [createMilestoneOpen, setCreateMilestoneOpen] = useState(false);
-  const [createTouchpointOpen, setCreateTouchpointOpen] = useState(false);
-  const [editItem, setEditItem] = useState<ProjectTimelineItem | null>(null);
-
-  const year = currentDate.getFullYear();
-  const month = currentDate.getMonth();
-
-  const { items, mutate } = useProjectTimelineItems(projectId, year, month);
-
-  const filteredItems =
-    filterType === "all"
-      ? items
-      : items.filter((item) =>
-          filterType === "milestones"
-            ? item.type === "Milestone"
-            : item.type === "Touchpoint",
-        );
-
-  function handlePeriodChange(isoVal: string) {
-    const d = parseISO(isoVal);
-    setCurrentDate(new Date(d.getFullYear(), d.getMonth(), 1));
-    setSelectedDate(d);
-  }
-
-  function goToPrev() {
-    setCurrentDate((d) => new Date(d.getFullYear(), d.getMonth() - 1, 1));
-    setSelectedDate(null);
-  }
-
-  function goToNext() {
-    setCurrentDate((d) => new Date(d.getFullYear(), d.getMonth() + 1, 1));
-    setSelectedDate(null);
-  }
-
-  function goToToday() {
-    const n = new Date();
-    setCurrentDate(new Date(n.getFullYear(), n.getMonth(), 1));
-    setSelectedDate(null);
-  }
-
-  async function handleMarkAsCompleted(item: ProjectTimelineItem) {
-    try {
-      await markComplete({
-        name: item.id,
-        is_complete: item.isComplete ? 0 : 1,
-      });
-      toast.success(
-        item.isComplete ? "Marked as incomplete" : "Marked as completed",
-      );
-      void mutate();
-    } catch (err) {
-      toast.error(parseFrappeErrorMsg(err as FrappeError));
-    }
-  }
-
-  function handleEdit(item: ProjectTimelineItem) {
-    setEditItem(item);
-  }
-
-  async function handleFollowDocument(item: ProjectTimelineItem) {
-    const isFollowing = item.watchers.some((w) => w.name === userId);
-    try {
-      const res = await updateFollow({
-        doctype: "Project Timeline Item",
-        doc_name: item.id,
-        following: !isFollowing,
-      });
-      if (!isFollowing && !res?.message) {
-        toast.error("Document follow is not enabled for current user.");
-        return;
-      }
-      toast.success(isFollowing ? "Unfollowed document" : "Following document");
-      void mutate();
-    } catch (err) {
-      toast.error(parseFrappeErrorMsg(err as FrappeError));
-    }
-  }
-
-  async function handleDelete(item: ProjectTimelineItem) {
-    try {
-      await deleteDoc("Project Timeline Item", item.id);
-      toast.success(`${item.type} deleted`);
-      mutate();
-    } catch (err) {
-      toast.error(parseFrappeErrorMsg(err as FrappeError));
-    }
-  }
+  const closeEditItem = useCalendar((c) => c.actions.closeEditItem);
+  const mutate = useCalendar((c) => c.actions.mutate);
 
   return (
     <div className="flex flex-col gap-0">
       {/* Calendar toolbar */}
       <div className="py-3.5">
-        <CalendarToolbar
-          currentPeriodValue={format(currentDate, "yyyy-MM-dd")}
-          onPeriodChange={handlePeriodChange}
-          onPrevious={goToPrev}
-          onNext={goToNext}
-          onToday={goToToday}
-          activeView={activeView}
-          onViewChange={setActiveView}
-          filterValue={filterType}
-          onFilterChange={setFilterType}
-        />
+        <CalendarToolbar />
       </div>
 
       {/* Calendar or Gantt view */}
       <div className="border-b border-gray-100 -mx-5">
-        {activeView === "calendar" ? (
-          <CalendarGrid
-            year={year}
-            month={month}
-            items={filteredItems}
-            selectedDate={selectedDate}
-          />
-        ) : (
-          <GanttView year={year} month={month} items={filteredItems} />
-        )}
+        {activeView === "calendar" ? <CalendarGrid /> : <GanttView />}
       </div>
 
       {/* Table section */}
@@ -201,23 +78,9 @@ export function CalendarTab() {
         {/* Table */}
         <div className="overflow-x-auto">
           {tableTab === "milestones" ? (
-            <MilestonesTable
-              items={items}
-              userId={userId}
-              onEdit={handleEdit}
-              onMarkAsCompleted={handleMarkAsCompleted}
-              onFollowDocument={handleFollowDocument}
-              onDelete={handleDelete}
-            />
+            <MilestonesTable items={items} />
           ) : (
-            <TouchpointsTable
-              items={items}
-              userId={userId}
-              onEdit={handleEdit}
-              onMarkAsCompleted={handleMarkAsCompleted}
-              onFollowDocument={handleFollowDocument}
-              onDelete={handleDelete}
-            />
+            <TouchpointsTable items={items} />
           )}
         </div>
       </div>
@@ -244,12 +107,12 @@ export function CalendarTab() {
       <CreateMilestoneModal
         open={editItem?.type === "Milestone"}
         onOpenChange={(open) => {
-          if (!open) setEditItem(null);
+          if (!open) closeEditItem();
         }}
         projectId={projectId}
         item={editItem?.type === "Milestone" ? editItem : undefined}
         onSuccess={() => {
-          setEditItem(null);
+          closeEditItem();
           void mutate();
         }}
       />
@@ -257,15 +120,25 @@ export function CalendarTab() {
       <CreateTouchpointModal
         open={editItem?.type === "Touchpoint"}
         onOpenChange={(open) => {
-          if (!open) setEditItem(null);
+          if (!open) closeEditItem();
         }}
         projectId={projectId}
         item={editItem?.type === "Touchpoint" ? editItem : undefined}
         onSuccess={() => {
-          setEditItem(null);
+          closeEditItem();
           void mutate();
         }}
       />
     </div>
+  );
+}
+
+export function CalendarTab() {
+  const { projectId = "" } = useParams<{ projectId: string }>();
+
+  return (
+    <CalendarProvider>
+      <CalendarContent projectId={projectId} />
+    </CalendarProvider>
   );
 }

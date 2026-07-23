@@ -12,21 +12,9 @@ import type { ProjectTimelineItem } from "./types";
 
 type TouchpointsTableProps = {
   items: ProjectTimelineItem[];
-  userId?: string;
-  onEdit?: (item: ProjectTimelineItem) => void;
-  onMarkAsCompleted?: (item: ProjectTimelineItem) => void;
-  onFollowDocument?: (item: ProjectTimelineItem) => void;
-  onDelete?: (item: ProjectTimelineItem) => Promise<void>;
 };
 
-export function TouchpointsTable({
-  items,
-  userId,
-  onEdit,
-  onMarkAsCompleted,
-  onFollowDocument,
-  onDelete,
-}: TouchpointsTableProps) {
+export function TouchpointsTable({ items }: TouchpointsTableProps) {
   const touchpoints = items.filter((i) => i.type === "Touchpoint");
 
   if (touchpoints.length === 0) {
@@ -59,15 +47,7 @@ export function TouchpointsTable({
           >
             {TOUCHPOINT_COLUMNS.map((column) => (
               <td key={column.key} className="py-3 px-2">
-                <TimelineCell
-                  item={item}
-                  column={column}
-                  userId={userId}
-                  onEdit={onEdit}
-                  onMarkAsCompleted={onMarkAsCompleted}
-                  onFollowDocument={onFollowDocument}
-                  onDelete={onDelete}
-                />
+                <TimelineCell item={item} column={column} />
               </td>
             ))}
           </tr>

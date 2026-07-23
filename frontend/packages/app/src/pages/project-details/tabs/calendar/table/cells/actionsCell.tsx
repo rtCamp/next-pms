@@ -17,25 +17,20 @@ import {
 /**
  * Internal dependencies.
  */
+import { useCalendar } from "../../context";
 import type { ProjectTimelineItem } from "../../types";
 
 type ActionsCellProps = {
   item: ProjectTimelineItem;
-  userId?: string;
-  onEdit?: (item: ProjectTimelineItem) => void;
-  onMarkAsCompleted?: (item: ProjectTimelineItem) => void;
-  onFollowDocument?: (item: ProjectTimelineItem) => void;
-  onDelete?: (item: ProjectTimelineItem) => Promise<void>;
 };
 
-export function ActionsCell({
-  item,
-  userId,
-  onEdit,
-  onMarkAsCompleted,
-  onFollowDocument,
-  onDelete,
-}: ActionsCellProps) {
+export function ActionsCell({ item }: ActionsCellProps) {
+  const userId = useCalendar((c) => c.state.userId);
+  const onEdit = useCalendar((c) => c.actions.onEdit);
+  const onMarkAsCompleted = useCalendar((c) => c.actions.onMarkAsCompleted);
+  const onFollowDocument = useCalendar((c) => c.actions.onFollowDocument);
+  const onDelete = useCalendar((c) => c.actions.onDelete);
+
   const [confirmDelete, setConfirmDelete] = useState(false);
   const isFollowing = userId
     ? item.watchers.some((w) => w.name === userId)
@@ -56,7 +51,7 @@ export function ActionsCell({
             label: "Edit",
             key: "edit",
             icon: <EditAlt className="size-4 mr-2" />,
-            onClick: () => onEdit?.(item),
+            onClick: () => onEdit(item),
           },
           {
             label: item.isComplete ? "Mark as incomplete" : "Mark as completed",
@@ -66,7 +61,7 @@ export function ActionsCell({
             ) : (
               <Check className="size-4 mr-2" />
             ),
-            onClick: () => onMarkAsCompleted?.(item),
+            onClick: () => onMarkAsCompleted(item),
           },
           {
             label: isFollowing ? "Unfollow Document" : "Follow Document",
@@ -76,7 +71,7 @@ export function ActionsCell({
             ) : (
               <NotificationBell className="size-4 mr-2" />
             ),
-            onClick: () => onFollowDocument?.(item),
+            onClick: () => onFollowDocument(item),
           },
           {
             label: "Delete",
@@ -93,7 +88,7 @@ export function ActionsCell({
           title={`Delete ${item.type.toLowerCase()}`}
           description={`Are you sure you want to delete this ${item.type.toLowerCase()}? This action cannot be undone.`}
           onClose={() => setConfirmDelete(false)}
-          onConfirm={() => onDelete?.(item) ?? Promise.resolve()}
+          onConfirm={() => onDelete(item)}
         />
       )}
     </>
