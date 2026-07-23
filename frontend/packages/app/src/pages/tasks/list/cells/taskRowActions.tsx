@@ -16,10 +16,6 @@ export function TaskRowActions({
       placement="center"
       options={[
         {
-          key: "edit",
-          label: "Edit",
-        },
-        {
           key: "delete",
           label: "Delete",
           theme: "red",
