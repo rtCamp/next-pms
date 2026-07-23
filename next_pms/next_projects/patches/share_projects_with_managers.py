@@ -12,9 +12,15 @@ def execute():
         fields=["name", *MANAGER_FIELDS],
     )
 
+    user_exists = {}
+
     for project in projects:
         for user in {project.get(field) for field in MANAGER_FIELDS}:
-            if not user or not frappe.db.exists("User", user):
+            if not user:
+                continue
+            if user not in user_exists:
+                user_exists[user] = frappe.db.exists("User", user)
+            if not user_exists[user]:
                 continue
             if frappe.db.exists(
                 "DocShare",

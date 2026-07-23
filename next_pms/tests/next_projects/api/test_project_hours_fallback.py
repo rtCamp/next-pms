@@ -94,8 +94,8 @@ class TestProjectHoursFallback(IntegrationTestCase):
     def test_sidebar_uses_purchased_hours_for_retainer(self):
         fixture = self.projects["Retainer"]
         result = get_project_sidebar(fixture["name"])
-        self.assertEqual(result["progress"]["total_hours_purchased"], fixture["purchased"])
-        self.assertEqual(result["progress"]["actual_time"], fixture["actual"])
+        self.assertEqual(result["progress"]["total_hours_purchased"], fixture["purchased"], msg="Retainer")
+        self.assertEqual(result["progress"]["actual_time"], fixture["actual"], msg="Retainer")
 
     def test_sidebar_uses_target_hours_for_non_retainer(self):
         for billing_type in ("Fixed Cost", "Time and Material", "Non-Billable"):
