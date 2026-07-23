@@ -38,9 +38,9 @@ function useInfiniteScroll({
 
   const observerRef = useCallback(
     (element: HTMLElement | null) => {
-      if (!element) return;
-
       observer.current?.disconnect();
+
+      if (!element) return;
 
       observer.current = new IntersectionObserver(
         ([entry]) => {
@@ -53,12 +53,12 @@ function useInfiniteScroll({
           root,
           rootMargin,
           threshold,
-        }
+        },
       );
 
       observer.current.observe(element);
     },
-    [hasMore, next, threshold, root, rootMargin]
+    [hasMore, next, threshold, root, rootMargin],
   );
   if (!isLoading) {
     isFetchingRef.current = false;

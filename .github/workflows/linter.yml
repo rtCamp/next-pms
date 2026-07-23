@@ -25,6 +25,8 @@ jobs:
           python3 -m pip install pre-commit --break-system-packages  # Main tool
 
       - uses: actions/checkout@v6
+        with:
+          submodules: recursive
 
       - run: |
           git config --global --add safe.directory $GITHUB_WORKSPACE

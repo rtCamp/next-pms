@@ -1,0 +1,122 @@
+/**
+ * External dependencies.
+ */
+import {
+  FC,
+  PropsWithChildren,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+import { useToasts } from "@rtcamp/frappe-ui-react";
+import type { Error as FrappeError } from "frappe-js-sdk/lib/frappe_app/types";
+
+/**
+ * Internal dependencies.
+ */
+import { isCompleteFilterCondition, parseFrappeErrorMsg } from "@/lib/utils";
+import {
+  ProjectTimesheetContext,
+  type ProjectTimesheetContextProps,
+} from "./context";
+import { useProjectTimesheetData } from "./useProjectTimesheetData";
+import { useTimesheetFilters } from "../hooks/useTimesheetFilters";
+
+export const ProjectTimesheetProvider: FC<PropsWithChildren> = ({
+  children,
+}) => {
+  const toast = useToasts();
+  const { filters, setSearch, setCompositeFilters, resetAll } =
+    useTimesheetFilters();
+
+  // Only pass complete filter conditions to the data hook so that selecting a
+  // field (without an operator/value) does not trigger a reset + network request.
+  const effectiveCompositeFilters = useMemo(
+    () => filters.compositeFilters.filter(isCompleteFilterCondition),
+    [filters.compositeFilters],
+  );
+  const activeFilterKey = useMemo(
+    () =>
+      JSON.stringify({
+        search: filters.search,
+        compositeFilters: effectiveCompositeFilters,
+      }),
+    [filters.search, effectiveCompositeFilters],
+  );
+  const [resolvedFilterKey, setResolvedFilterKey] = useState(activeFilterKey);
+  const isFilterRequest = activeFilterKey !== resolvedFilterKey;
+
+  const {
+    hasMore,
+    isLoadingProjectData,
+    weekGroups: freshWeekGroups,
+    loadData,
+    error,
+  } = useProjectTimesheetData({
+    requestKey: activeFilterKey,
+    search: filters.search,
+    compositeFilters: effectiveCompositeFilters,
+  });
+
+  // Keep the last non-empty result so that during a filter-triggered reload the
+  // table stays visible (faded) instead of blinking through an empty state and
+  // triggering the full-page spinner.
+  const staleWeekGroupsRef = useRef(freshWeekGroups);
+  if (freshWeekGroups.length > 0) {
+    staleWeekGroupsRef.current = freshWeekGroups;
+  }
+  const weekGroups =
+    freshWeekGroups.length > 0 || !isLoadingProjectData
+      ? freshWeekGroups
+      : staleWeekGroupsRef.current;
+
+  useEffect(() => {
+    if (isLoadingProjectData) return;
+    setResolvedFilterKey(activeFilterKey);
+
+    if (error) {
+      toast.error(parseFrappeErrorMsg(error as FrappeError));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeFilterKey, isLoadingProjectData, error]);
+
+  const value: ProjectTimesheetContextProps = useMemo(
+    () => ({
+      state: {
+        hasMore,
+        isLoadingProjectData,
+        isFilterRequest,
+        weekGroups,
+        filters: {
+          search: filters.search,
+        },
+        compositeFilters: filters.compositeFilters,
+      },
+      actions: {
+        loadData,
+        handleSearchChange: setSearch,
+        handleCompositeFilterChange: setCompositeFilters,
+        handleClearAllFilters: resetAll,
+      },
+    }),
+    [
+      hasMore,
+      isLoadingProjectData,
+      isFilterRequest,
+      loadData,
+      weekGroups,
+      filters.search,
+      filters.compositeFilters,
+      setSearch,
+      setCompositeFilters,
+      resetAll,
+    ],
+  );
+
+  return (
+    <ProjectTimesheetContext.Provider value={value}>
+      {children}
+    </ProjectTimesheetContext.Provider>
+  );
+};

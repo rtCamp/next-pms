@@ -2,12 +2,19 @@ import json
 import re
 
 import frappe
+from frappe.utils import cint
 
+from next_pms.next_projects.api.feedback import is_customer_feedback_available
 from next_pms.timesheet.api.app import has_bu_field, has_industry_field
 from next_pms.timesheet.api.project import get_project_filter_for_contractor
 from next_pms.timesheet.doctype.pms_view_setting.pms_view_setting import get_views
 
 no_cache = 1
+
+
+def show_rag_trigger_page() -> bool:
+    """Whether the rtcamp app is installed or not. If yes, then show the RAG trigger page."""
+    return "rtcamp" in frappe.get_installed_apps()
 
 
 def get_context(context):
@@ -33,8 +40,15 @@ def get_context(context):
     boot["currencies"] = frappe.get_all("Currency", pluck="name", filters={"enabled": 1})
     boot["has_business_unit"] = has_bu_field()
     boot["has_industry"] = has_industry_field()
+    boot["has_repository_connections"] = bool(frappe.db.exists("DocType", "GitHub Repository"))
+    boot["has_customer_feedback"] = is_customer_feedback_available()
+    boot["show_rag_trigger_page"] = show_rag_trigger_page()
+    boot["has_todo_custom_fields"] = has_todo_custom_fields()
     boot["is_calendar_setup"] = is_google_calendar_enabled()
     boot["global_filters"] = get_global_filters()
+    boot["allow_weekend_entries"] = bool(
+        cint(frappe.db.get_single_value("Timesheet Settings", "allow_weekend_entries"))
+    )
     boot_json = frappe.as_json(boot, indent=None, separators=(",", ":"))
     boot_json = re.sub(
         r"<script\b[^>]*>.*?</script\s*>",
@@ -71,9 +85,16 @@ def get_boot():
     boot["currencies"] = frappe.get_all("Currency", pluck="name", filters={"enabled": 1})
     boot["has_business_unit"] = has_bu_field()
     boot["has_industry"] = has_industry_field()
+    boot["has_repository_connections"] = bool(frappe.db.exists("DocType", "GitHub Repository"))
+    boot["has_customer_feedback"] = is_customer_feedback_available()
+    boot["show_rag_trigger_page"] = show_rag_trigger_page()
+    boot["has_todo_custom_fields"] = has_todo_custom_fields()
     boot["is_calendar_setup"] = is_google_calendar_enabled()
     boot["app_name"] = "Next PMS"
     boot["global_filters"] = get_global_filters()
+    boot["allow_weekend_entries"] = bool(
+        cint(frappe.db.get_single_value("Timesheet Settings", "allow_weekend_entries"))
+    )
     boot_json = frappe.as_json(boot, indent=None, separators=(",", ":"))
     boot_json = re.sub(
         r"<script\b[^>]*>.*?</script\s*>",
@@ -87,6 +108,15 @@ def get_boot():
 
 def is_google_calendar_enabled():
     return bool(frappe.db.exists("Google Calendar", {"user": frappe.session.user, "enable": 1}))
+
+
+def has_todo_custom_fields():
+    """Returns true if the custom_title, custom_from_time and custom_to_time custom fields are present in the ToDo doctype.
+
+    These are custom fields not shipped by Next PMS, so the frontend must check for them before use.
+    """
+    meta = frappe.get_meta("ToDo")
+    return all(meta.has_field(fieldname) for fieldname in ("custom_title", "custom_from_time", "custom_to_time"))
 
 
 def get_global_filters():

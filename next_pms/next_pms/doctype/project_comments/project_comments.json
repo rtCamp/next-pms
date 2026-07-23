@@ -1,15 +1,19 @@
 {
  "actions": [],
- "allow_rename": 0,
+ "allow_bulk_edit": 1,
  "creation": "2025-08-25 12:22:30.110887",
  "doctype": "DocType",
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
   "user",
+  "reply_to",
   "comment",
   "created_at",
-  "modified_at"
+  "modified_at",
+  "deleted",
+  "edited",
+  "deleted_at"
  ],
  "fields": [
   {
@@ -24,21 +28,47 @@
    "label": "Comment"
   },
   {
-    "fieldname": "created_at",
-    "fieldtype": "Datetime",
-    "label": "Created At"
+   "fieldname": "created_at",
+   "fieldtype": "Datetime",
+   "label": "Created At"
   },
   {
    "fieldname": "modified_at",
    "fieldtype": "Datetime",
    "label": "Modified At"
+  },
+  {
+   "fieldname": "reply_to",
+   "fieldtype": "Link",
+   "label": "Reply To",
+   "options": "Project Comments",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "deleted",
+   "fieldtype": "Check",
+   "label": "Deleted"
+  },
+  {
+   "default": "0",
+   "fieldname": "edited",
+   "fieldtype": "Check",
+   "label": "Edited"
+  },
+  {
+   "depends_on": "eval:doc.deleted",
+   "fieldname": "deleted_at",
+   "fieldtype": "Datetime",
+   "label": "Deleted At",
+   "mandatory_depends_on": "eval:doc.deleted"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-08-26 17:12:38.275040",
+ "modified": "2026-07-10 15:36:43.566755",
  "modified_by": "Administrator",
  "module": "Next PMS",
  "name": "Project Comments",

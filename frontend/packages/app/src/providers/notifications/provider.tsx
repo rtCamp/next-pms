@@ -1,0 +1,128 @@
+/**
+ * External dependencies.
+ */
+import { FC, PropsWithChildren, useCallback, useMemo, useState } from "react";
+import type { NotificationEntry } from "@next-pms/design-system/components";
+import { formatDistanceToNow, parseISO } from "date-fns";
+import { useFrappeGetDocList, useFrappeUpdateDoc } from "frappe-react-sdk";
+
+/**
+ * Internal dependencies.
+ */
+import { ROUTES } from "@/lib/constant";
+import { toKebabCase } from "@/lib/utils";
+import { useUser } from "@/providers/user";
+import { NotificationsContext } from ".";
+
+interface NotificationDoc {
+  name: string;
+  label: string;
+  title: string;
+  creation: string;
+  linked_doctype: string;
+  linked_document: string;
+  url: string | null;
+  viewed: 0 | 1;
+}
+
+const NOTIFICATION_DOCTYPE = "NextPMS Notifications";
+const NOTIFICATION_LIMIT = 20;
+
+export const NotificationsProvider: FC<PropsWithChildren> = ({ children }) => {
+  const userId = useUser(({ state }) => state.userId);
+
+  const { data, isLoading, mutate } = useFrappeGetDocList<NotificationDoc>(
+    NOTIFICATION_DOCTYPE,
+    {
+      fields: [
+        "name",
+        "label",
+        "title",
+        "creation",
+        "linked_doctype",
+        "linked_document",
+        "url",
+        "viewed",
+      ],
+      filters: (userId ? [["user", "=", userId]] : []) as never,
+      orderBy: { field: "creation", order: "desc" },
+      limit: NOTIFICATION_LIMIT,
+    },
+    userId ? undefined : null,
+  );
+
+  const notifications = useMemo<NotificationEntry[]>(() => {
+    if (!data?.length) return [];
+
+    return data.map((doc) => ({
+      id: doc.name,
+      linkedDoctype: doc.linked_doctype,
+      title: doc.title || undefined,
+      message: [{ text: doc.label }],
+      timeLabel: formatDistanceToNow(parseISO(doc.creation.replace(" ", "T")), {
+        addSuffix: true,
+      }),
+      read: Boolean(doc.viewed),
+      href:
+        doc.url ||
+        (doc.linked_doctype && doc.linked_document
+          ? `${ROUTES.desk}/${toKebabCase(doc.linked_doctype)}/${doc.linked_document}`
+          : undefined),
+    }));
+  }, [data]);
+
+  const unreadCount = useMemo(
+    () => (data ?? []).filter((doc) => !doc.viewed).length,
+    [data],
+  );
+
+  const { updateDoc } = useFrappeUpdateDoc();
+
+  const markAsViewed = useCallback(
+    async (id: string) => {
+      const doc = data?.find((row) => row.name === id);
+      if (!doc || doc.viewed) return;
+      await updateDoc(NOTIFICATION_DOCTYPE, id, { viewed: 1 });
+      await mutate();
+    },
+    [data, updateDoc, mutate],
+  );
+
+  const markAllAsViewed = useCallback(async () => {
+    const unread = (data ?? []).filter((doc) => !doc.viewed);
+    if (!unread.length) return;
+    await Promise.all(
+      unread.map((doc) =>
+        updateDoc(NOTIFICATION_DOCTYPE, doc.name, { viewed: 1 }),
+      ),
+    );
+    await mutate();
+  }, [data, updateDoc, mutate]);
+
+  const [isTrayOpen, setIsTrayOpen] = useState(false);
+  const openTray = useCallback(() => setIsTrayOpen(true), []);
+  const closeTray = useCallback(() => setIsTrayOpen(false), []);
+
+  const value = useMemo(
+    () => ({
+      state: { notifications, isLoading, unreadCount, isTrayOpen },
+      actions: { markAsViewed, markAllAsViewed, openTray, closeTray },
+    }),
+    [
+      notifications,
+      isLoading,
+      unreadCount,
+      isTrayOpen,
+      markAsViewed,
+      markAllAsViewed,
+      openTray,
+      closeTray,
+    ],
+  );
+
+  return (
+    <NotificationsContext.Provider value={value}>
+      {children}
+    </NotificationsContext.Provider>
+  );
+};

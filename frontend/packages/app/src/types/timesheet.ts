@@ -1,6 +1,10 @@
 /**
  * Internal dependencies.
  */
+import {
+  ApprovalStatusLabelType,
+  ApprovalStatusType,
+} from "@next-pms/design-system/components";
 import { WorkingFrequency } from "@/types";
 
 export interface TaskProps {
@@ -16,6 +20,7 @@ export interface TaskDataProps {
   expected_time: number;
   actual_time: number;
   status: string;
+  due_date?: string;
   data: Array<TaskDataItemProps>;
 }
 
@@ -32,6 +37,8 @@ export interface TaskDataItemProps {
   subject?: string;
   project?: string;
   project_name?: string | null;
+  custom_approval_status?: ApprovalStatusLabelType | null;
+  custom_rejection_reason?: string | null;
 }
 
 export interface LeaveProps {
@@ -43,6 +50,7 @@ export interface LeaveProps {
   half_day_date: string;
   leave_type: string;
   is_lwp: boolean;
+  custom_first_halfsecond_half?: string | null;
 }
 
 export interface DynamicKey {
@@ -67,18 +75,26 @@ export interface timesheet {
   start_date: string;
   end_date: string;
   key: string;
+  label?: string;
   dates: string[];
   total_hours: number;
   tasks: TaskProps;
-  status: string;
+  status: ApprovalStatusLabelType;
 }
 
 export interface NewTimesheetProps {
   name: string;
   parent?: string;
   task: string;
+  project?: string;
   date: string;
   description: string;
   hours: number;
   employee: string;
+}
+
+export interface TimesheetFilters {
+  search: string;
+  approvalStatus?: ApprovalStatusType[];
+  reportsTo?: string;
 }

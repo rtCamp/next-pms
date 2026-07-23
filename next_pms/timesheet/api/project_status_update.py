@@ -1,9 +1,10 @@
 from typing import Any
 
 import frappe
-from frappe import _, enqueue
+from frappe import _, enqueue, only_for
 from frappe.desk.notifications import extract_mentions
-from frappe.utils import now
+from frappe.types import DF
+from frappe.utils import cint, now_datetime
 from frappe.utils.user import get_user_fullname
 
 from next_pms.api.utils import error_logger
@@ -16,67 +17,45 @@ ROLES = {
 
 @frappe.whitelist(methods=["POST"])
 @error_logger
-def save_project_status_update(
+def create_project_status_update(
     project: str,
     title: str,
     description: str = None,
     status: str = "Draft",
-    name: str = None,
-    comments: list[dict] = None,
+    pinned: DF.Check | None = None,
 ) -> dict[str, Any]:
     """
-    Create a new Project Status Update or update an existing one
+    Create a new Project Status Update
 
     Args:
         project (str): Project ID
         title (str): Title of the update
         description (str, optional): Description of the update
         status (str, optional): Status (Draft/Review/Publish). Defaults to "Draft"
-        name (str, optional): Document name for updates. If provided, updates existing doc
-        comments (List[Dict], optional): List of comments
+        pinned (DF.Check, optional): Whether the update is pinned
 
     Returns:
-        Dict[str, Any]: Created/Updated document data
+        Dict[str, Any]: Created document data
     """
+    only_for(ROLES, message=True)
+
     try:
         should_enqueue_publish_notification = False
         if not frappe.db.exists("Project", project):
-            frappe.throw(_("Project '{project}' does not exist"))
+            frappe.throw(_("Project '{project}' does not exist").format(project=project))
 
-        if name and frappe.db.exists("Project Status Update", name):
-            doc = frappe.get_doc("Project Status Update", name)
-            was_publish = doc.status == "Publish"
-            doc.title = title
-            doc.description = description or ""
-            doc.status = status
-            doc.last_edited_at = now()
-            doc.last_edited_by = frappe.session.user
+        doc = frappe.new_doc("Project Status Update")
+        doc.project = project
+        doc.title = title
+        doc.description = description or ""
+        doc.status = status
+        if pinned is not None:
+            doc.pinned = cint(pinned)
+        doc.insert(ignore_permissions=True)
 
-            if comments is not None:
-                doc.comments = []
-                for comment in comments:
-                    comment_row = doc.append("comments", {})
-                    comment_row.user = comment.get("user", frappe.session.user)
-                    comment_row.comment = comment.get("comment", "")
-            doc.save()
+        if status == "Publish":
+            should_enqueue_publish_notification = True
 
-            if status == "Publish" and not was_publish:
-                should_enqueue_publish_notification = True
-        else:
-            doc = frappe.new_doc("Project Status Update")
-            doc.project = project
-            doc.title = title
-            doc.description = description or ""
-            doc.status = status
-
-            if comments:
-                for comment in comments:
-                    comment_row = doc.append("comments", {})
-                    comment_row.user = comment.get("user", frappe.session.user)
-                    comment_row.comment = comment.get("comment", "")
-            doc.insert()
-            if status == "Publish":
-                should_enqueue_publish_notification = True
         if should_enqueue_publish_notification:
             enqueue(
                 send_publish_notifications,
@@ -91,19 +70,8 @@ def save_project_status_update(
         return get_project_status_update_details(doc.name)
 
     except Exception:
-        frappe.log_error(_("Error saving project status update: {e!s}"))
-        frappe.throw(_("Failed to save project status update: {e!s}"))
-
-
-@frappe.whitelist(methods=["POST"])
-@error_logger
-def create_project_status_update(
-    project: str, title: str, description: str = None, status: str = "Draft", comments: list[dict] = None
-) -> dict[str, Any]:
-    """
-    Create a new Project Status Update (backward compatibility)
-    """
-    return save_project_status_update(project, title, description, status, None, comments)
+        frappe.log_error(_("Error creating project status update: {e!s}"))
+        frappe.throw(_("Failed to create project status update: {e!s}"))
 
 
 @frappe.whitelist(methods=["GET"])
@@ -118,43 +86,52 @@ def get_project_status_update(name: str) -> dict[str, Any]:
     Returns:
         Dict[str, Any]: Project Status Update data with comments
     """
+    only_for(ROLES, message=True)
+
     if not frappe.db.exists("Project Status Update", name):
-        frappe.throw(_("Project Status Update '{name}' does not exist"))
+        frappe.throw(_("Project Status Update '{name}' does not exist").format(name=name))
 
     return get_project_status_update_details(name)
 
 
 @frappe.whitelist(methods=["GET"])
 @error_logger
-def get_project_status_updates_by_project(project: str) -> list[dict[str, Any]]:
+def get_project_status_updates_by_project(project: str, author: str | None = None) -> list[dict[str, Any]]:
     """
     Get all Project Status Updates for a specific project
 
     Args:
         project (str): Project ID
+        author (str, optional): Filter by owner (User.name)
 
     Returns:
         List[Dict[str, Any]]: List of Project Status Updates
     """
+    only_for(ROLES, message=True)
 
     if not frappe.db.exists("Project", project):
-        frappe.throw(_("Project '{project}' does not exist"))
+        frappe.throw(_("Project '{project}' does not exist").format(project=project))
+
+    filters: dict[str, str] = {"project": project}
+    if author:
+        filters["owner"] = author
 
     updates = frappe.get_all(
         "Project Status Update",
-        filters={"project": project},
+        filters=filters,
         fields=[
             "name",
             "title",
             "description",
             "status",
             "project",
+            "pinned",
             "creation",
             "modified",
             "owner",
             "modified_by",
         ],
-        order_by="creation desc",
+        order_by="modified desc",
     )
 
     detailed_updates = []
@@ -168,7 +145,11 @@ def get_project_status_updates_by_project(project: str) -> list[dict[str, Any]]:
 @frappe.whitelist(methods=["POST"])
 @error_logger
 def update_project_status_update(
-    name: str, title: str = None, description: str = None, status: str = None
+    name: str,
+    title: str = None,
+    description: str = None,
+    status: str = None,
+    pinned: DF.Check | None = None,
 ) -> dict[str, Any]:
     """
     Update an existing Project Status Update
@@ -178,12 +159,15 @@ def update_project_status_update(
         title (str, optional): New title
         description (str, optional): New description
         status (str, optional): New status
+        pinned (DF.Check, optional): New pinned state
 
     Returns:
         Dict[str, Any]: Updated document data
     """
+    only_for(ROLES, message=True)
+
     if not frappe.db.exists("Project Status Update", name):
-        frappe.throw(_("Project Status Update '{name}' does not exist"))
+        frappe.throw(_("Project Status Update '{name}' does not exist").format(name=name))
 
     doc = frappe.get_doc("Project Status Update", name)
 
@@ -193,40 +177,76 @@ def update_project_status_update(
         doc.description = description
     if status is not None:
         doc.status = status
+    if pinned is not None:
+        doc.pinned = cint(pinned)
 
-    doc.save()
+    doc.save(ignore_permissions=True)
 
     return get_project_status_update_details(doc.name)
 
 
 @frappe.whitelist(methods=["POST"])
 @error_logger
-def add_comment_to_project_status_update(name: str, comment: str, user: str = None) -> dict[str, Any]:
+def delete_project_status_update(name: str) -> dict[str, Any]:
     """
-    Add a comment to a Project Status Update
+    Delete a Project Status Update. Only its author (owner) may delete it.
+
+    Args:
+        name (str): Document name
+
+    Returns:
+        Dict[str, Any]: The name of the deleted document
+    """
+    only_for(ROLES, message=True)
+
+    if not frappe.db.exists("Project Status Update", name):
+        frappe.throw(_("Project Status Update '{name}' does not exist").format(name=name))
+
+    doc = frappe.get_doc("Project Status Update", name)
+
+    if frappe.session.user != "Administrator" and doc.owner != frappe.session.user:
+        frappe.throw(_("You do not have permission to delete this update"), frappe.PermissionError)
+
+    doc.delete(ignore_permissions=True)
+
+    return {"name": name}
+
+
+@frappe.whitelist(methods=["POST"])
+@error_logger
+def add_comment_to_project_status_update(name: str, comment: str, reply_to: str | None = None) -> dict[str, Any]:
+    """
+    Add a comment or reply to a Project Status Update
 
     Args:
         name (str): Project Status Update document name
         comment (str): Comment text
-        user (str, optional): User ID. Defaults to current user
+        reply_to (str, optional): Name of the parent comment row when posting a reply
 
     Returns:
         Dict[str, Any]: Updated document data
     """
+    only_for(ROLES, message=True)
 
     if not frappe.db.exists("Project Status Update", name):
-        frappe.throw(_("Project Status Update '{name}' does not exist"))
+        frappe.throw(_("Project Status Update '{name}' does not exist").format(name=name))
 
     doc = frappe.get_doc("Project Status Update", name)
 
+    if reply_to:
+        existing_names = {row.name for row in doc.comments}
+        if reply_to not in existing_names:
+            frappe.throw(_("Parent comment '{0}' not found").format(reply_to))
+
     comment_row = doc.append("comments", {})
-    comment_row.user = user or frappe.session.user
+    comment_row.user = frappe.session.user
     comment_row.comment = comment
-    current_time = now()
+    comment_row.reply_to = reply_to or None
+    current_time = now_datetime()
     comment_row.created_at = current_time
     comment_row.modified_at = current_time
 
-    doc.save()
+    doc.save(ignore_permissions=True)
 
     enqueue(
         notify_mentions,
@@ -260,12 +280,13 @@ def update_comment_in_project_status_update(
     Returns:
         Dict[str, Any]: Updated document data
     """
+    only_for(ROLES, message=True)
 
     if not comment_name:
         frappe.throw(_("Comment name is required"))
 
     if not frappe.db.exists("Project Status Update", name):
-        frappe.throw(_("Project Status Update '{name}' does not exist"))
+        frappe.throw(_("Project Status Update '{name}' does not exist").format(name=name))
 
     doc = frappe.get_doc("Project Status Update", name)
 
@@ -275,9 +296,19 @@ def update_comment_in_project_status_update(
             target_row = row
             break
 
+    if not target_row:
+        frappe.throw(_("Comment with name '{0}' not found").format(comment_name))
+
+    if frappe.session.user != "Administrator" and target_row.user != frappe.session.user:
+        frappe.throw(_("You do not have permission to edit this comment"), frappe.PermissionError)
+
+    if target_row.deleted:
+        frappe.throw(_("This comment has been deleted and can no longer be edited"))
+
     target_row.comment = comment
-    target_row.modified_at = now()
-    doc.save()
+    target_row.edited = 1
+    target_row.modified_at = now_datetime()
+    doc.save(ignore_permissions=True)
 
     enqueue(
         notify_mentions,
@@ -297,7 +328,7 @@ def update_comment_in_project_status_update(
 @error_logger
 def delete_comment_from_project_status_update(name: str, comment_name: str) -> dict[str, Any]:
     """
-    Delete a specific comment from a Project Status Update
+    Soft-delete a specific comment from a Project Status Update.
 
     Args:
         name (str): Project Status Update document name
@@ -306,12 +337,13 @@ def delete_comment_from_project_status_update(name: str, comment_name: str) -> d
     Returns:
         Dict[str, Any]: Updated document data
     """
+    only_for(ROLES, message=True)
 
     if not comment_name:
         frappe.throw(_("Comment name is required"))
 
     if not frappe.db.exists("Project Status Update", name):
-        frappe.throw(_("Project Status Update '{name}' does not exist"))
+        frappe.throw(_("Project Status Update '{name}' does not exist").format(name=name))
 
     doc = frappe.get_doc("Project Status Update", name)
 
@@ -324,10 +356,107 @@ def delete_comment_from_project_status_update(name: str, comment_name: str) -> d
     if not target_row:
         frappe.throw(_("Comment with name '{0}' not found").format(comment_name))
 
-    doc.remove(target_row)
-    doc.save()
+    if frappe.session.user != "Administrator" and target_row.user != frappe.session.user:
+        frappe.throw(_("You do not have permission to delete this comment"), frappe.PermissionError)
+
+    if target_row.deleted:
+        frappe.throw(_("This comment has already been deleted"))
+
+    # keep the author and thread structure; the row is flagged as deleted
+    deleted_at = now_datetime()
+    target_row.deleted = 1
+    target_row.deleted_at = deleted_at
+    target_row.modified_at = deleted_at
+    doc.save(ignore_permissions=True)
 
     return get_project_status_update_details(doc.name)
+
+
+def _serialize_comment(comment, user_map: dict[str, tuple]) -> dict[str, Any]:
+    """Return one Project Comments child row as dict (flat, no thread tree).
+
+    Example return shape::
+
+        {
+            "name": "a1b2c3d4e",
+            "user": "jane@example.com",
+            "user_full_name": "Jane Doe",
+            "user_image": "/files/jane.png",
+            "comment": "<p>Status looks good.</p>",
+            "reply_to": "parent_comment_row_name",
+            "created_at": "2025-05-14 10:00:00.000000",
+            "modified_at": "2025-05-14 12:30:00.000000",
+            "edited": True,
+            "deleted": False,
+            "deleted_at": None,
+            "owner": "jane@example.com",
+            "modified_by": "jane@example.com",
+        }
+    """
+    user_details = user_map.get(comment.user)
+    is_deleted = bool(comment.deleted)
+    return {
+        "name": comment.name,
+        "user": comment.user,
+        "user_full_name": user_details[0] if user_details else comment.user,
+        "user_image": user_details[1] if user_details else None,
+        "comment": "" if is_deleted else comment.comment,
+        "reply_to": comment.reply_to,
+        "created_at": comment.created_at,
+        "modified_at": comment.modified_at,
+        "edited": bool(comment.edited),
+        "deleted": is_deleted,
+        "deleted_at": comment.deleted_at,
+        "owner": comment.owner,
+        "modified_by": comment.modified_by,
+    }
+
+
+def _serialize_comment_with_replies(
+    comment, user_map: dict[str, tuple], replies_by_parent_name: dict[str, list]
+) -> dict[str, Any]:
+    """Return the same keys as ``_serialize_comment``, plus nested ``replies`` and ``reply_count``.
+
+    Each reply element repeats this structure recursively (depth matches the ``reply_to`` chain).
+
+    Example return shape::
+
+        {
+            "name": "root_row",
+            "user": "owner@example.com",
+            "user_full_name": "Owner",
+            "user_image": "/files/owner.png",
+            "comment": "<p>Weekly update.</p>",
+            "reply_to": None,
+            "created_at": "2025-05-14 09:00:00.000000",
+            "modified_at": "2025-05-14 09:00:00.000000",
+            "owner": "owner@example.com",
+            "modified_by": "owner@example.com",
+            "reply_count": 1,
+            "replies": [
+                {
+                    "name": "reply_row",
+                    "user": "peer@example.com",
+                    "user_full_name": "Peer",
+                    "user_image": None,
+                    "comment": "<p>Thanks!</p>",
+                    "reply_to": "root_row",
+                    "created_at": "2025-05-14 10:00:00.000000",
+                    "modified_at": "2025-05-14 10:00:00.000000",
+                    "owner": "peer@example.com",
+                    "modified_by": "peer@example.com",
+                    "reply_count": 0,
+                    "replies": [],
+                }
+            ],
+        }
+    """
+    data = _serialize_comment(comment, user_map)
+    children = replies_by_parent_name.get(comment.name, [])
+    # this recursively serializes the replies (comment of a comment)
+    data["replies"] = [_serialize_comment_with_replies(child, user_map, replies_by_parent_name) for child in children]
+    data["reply_count"] = len(data["replies"])
+    return data
 
 
 def get_project_status_update_details(name: str) -> dict[str, Any]:
@@ -342,24 +471,38 @@ def get_project_status_update_details(name: str) -> dict[str, Any]:
     """
     doc = frappe.get_doc("Project Status Update", name)
 
-    comments_with_details = []
-    for comment in doc.comments:
-        user_data = frappe.db.get_value("User", comment.user, ["full_name", "user_image"]) if comment.user else None
+    # make a list of all user ids part of this document
+    all_user_ids = [c.user for c in doc.comments if c.user] + [doc.owner]
 
-        comment_data = {
-            "name": comment.name,
-            "user": comment.user,
-            "user_full_name": user_data[0] if user_data else comment.user,
-            "user_image": user_data[1] if user_data else None,
-            "comment": comment.comment,
-            "created_at": comment.created_at,
-            "modified_at": comment.modified_at,
-            "owner": comment.owner,
-            "modified_by": comment.modified_by,
-        }
-        comments_with_details.append(comment_data)
+    # get the user map for all users part of this document
+    user_map: dict[str, tuple] = {}
+    if all_user_ids:
+        rows = frappe.get_all(
+            "User",
+            filters={"name": ["in", all_user_ids]},
+            fields=["name", "full_name", "user_image"],
+        )
+        user_map = {r.name: (r.full_name, r.user_image) for r in rows}
 
-    owner_data = frappe.db.get_value("User", doc.owner, ["full_name", "user_image"]) if doc.owner else None
+    # map of comment name to list of reply comments
+    replies_by_parent_name: dict[str, list] = {}
+    # list of root comments
+    root_comments = []
+
+    # loop through all project comments
+    for c in doc.comments:
+        # if the comment has a reply_to, it is a reply to another comment
+        if c.reply_to:
+            replies_by_parent_name.setdefault(c.reply_to, []).append(c)
+        else:
+            root_comments.append(c)
+
+    # serialize the root comments and their replies
+    comments_with_details = [
+        _serialize_comment_with_replies(c, user_map, replies_by_parent_name) for c in root_comments
+    ]
+
+    owner_details = user_map.get(doc.owner)
 
     return {
         "name": doc.name,
@@ -367,8 +510,9 @@ def get_project_status_update_details(name: str) -> dict[str, Any]:
         "description": doc.description,
         "status": doc.status,
         "project": doc.project,
-        "owner_full_name": owner_data[0] if owner_data else doc.owner,
-        "owner_image": owner_data[1] if owner_data and owner_data[1] else "",
+        "pinned": cint(doc.pinned),
+        "owner_full_name": owner_details[0] if owner_details else doc.owner,
+        "owner_image": owner_details[1] if owner_details and owner_details[1] else "",
         "comments": comments_with_details,
         "creation": doc.creation,
         "modified": doc.modified,
@@ -436,7 +580,6 @@ def notify_mentions(
                 "document_type": doc_type,
                 "document_name": doc_name,
                 "from_user": current_user,
-                "link": project_url,
                 "email_content": frappe.render_template(  # nosemgrep - trusted template file
                     "next_pms/timesheet/templates/project_status_update/mention_notification.html",
                     {

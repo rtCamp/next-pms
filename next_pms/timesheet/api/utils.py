@@ -1,4 +1,4 @@
-import json
+import datetime
 from collections import defaultdict
 
 import frappe
@@ -26,19 +26,75 @@ def has_write_access():
 
 
 @redis_cache()
-def get_week_dates(date, ignore_weekend=False):
-    """Returns the dates map with dates and other details.
-    example:
+def get_week_dates(date: str | datetime.date | datetime.datetime, ignore_weekend: bool = False) -> dict:
+    """Return week boundaries and day list for the week containing ``date``.
+
+    Args:
+        date (str | datetime.date | datetime.datetime): Any day within the target week.
+        ignore_weekend (bool): If True, ``dates`` lists weekdays only (no Sat/Sun).
+            Week bounds (``start_date`` / ``end_date``) stay the same. Defaults to False.
+
+    Returns:
+        When ``ignore_weekend`` is False (default):
+
+        ```py
         {
-            "start_date": "2021-08-01",
-            "end_date": "2021-08-07",
-            "key": "Aug 01 - Aug 07",
+            "start_date": datetime.date(2026, 5, 18),
+            "end_date": datetime.date(2026, 5, 24),
+            "key": "This Week",
             "dates": [
-                "2021-08-01",
-                "2021-08-02",
-                ...
-            ]
+                datetime.date(2026, 5, 18),
+                datetime.date(2026, 5, 19),
+                datetime.date(2026, 5, 20),
+                datetime.date(2026, 5, 21),
+                datetime.date(2026, 5, 22),
+                datetime.date(2026, 5, 23),
+                datetime.date(2026, 5, 24),
+            ],
         }
+
+        # start_date / end_date: first/last day of week (Frappe System Settings).
+        # dates: every day from start_date through end_date (7 days when week is Mon-Sun).
+        # key: "This Week" if today falls in range, else "Mon DD - Sun DD" (last day = end_date).
+        ```
+
+        When ``ignore_weekend`` is True:
+
+        ```py
+        {
+            "start_date": datetime.date(2026, 5, 18),
+            "end_date": datetime.date(2026, 5, 24),
+            "key": "This Week",
+            "dates": [
+                datetime.date(2026, 5, 18),
+                datetime.date(2026, 5, 19),
+                datetime.date(2026, 5, 20),
+                datetime.date(2026, 5, 21),
+                datetime.date(2026, 5, 22),
+            ],
+        }
+
+        # start_date / end_date: same full week range as above (not shortened).
+        # dates: only Mon-Fri when the configured week is Mon-Sun (Sat/Sun skipped).
+        # key: "This Week" if today is in range, else "Mon DD - Fri DD" (end_date - 2 days).
+        ```
+
+        Non-current week with ``ignore_weekend`` True (same ``dates`` shape, different ``key``):
+
+        ```py
+        {
+            "start_date": datetime.date(2026, 5, 18),
+            "end_date": datetime.date(2026, 5, 24),
+            "key": "May 18 - May 22",
+            "dates": [
+                datetime.date(2026, 5, 18),
+                datetime.date(2026, 5, 19),
+                datetime.date(2026, 5, 20),
+                datetime.date(2026, 5, 21),
+                datetime.date(2026, 5, 22),
+            ],
+        }
+        ```
     """
 
     dates = []
@@ -218,8 +274,8 @@ def normalize_status_filter(status_filter, coerce_non_list: bool = False):
             return None
 
         try:
-            status_filter = json.loads(status_filter)
-        except (json.JSONDecodeError, ValueError):
+            status_filter = frappe.parse_json(status_filter)
+        except (ValueError, TypeError):
             return [status_filter]
 
     if status_filter == "":
@@ -243,8 +299,8 @@ def parse_filters(raw_filters):
 
     if isinstance(raw_filters, str):
         try:
-            raw_filters = json.loads(raw_filters)
-        except (json.JSONDecodeError, ValueError):
+            raw_filters = frappe.parse_json(raw_filters)
+        except (ValueError, TypeError):
             frappe.throw(frappe._("Invalid filters format. Expected a JSON array."))
 
     if not isinstance(raw_filters, list):
@@ -317,7 +373,6 @@ def build_aggregate_dates(date: str, max_week: int, has_filters: bool):
 def get_matching_timesheet_employee_ids(
     dates: list,
     parsed_filters: dict,
-    search: str | None = None,
     approval_status: list[str] | None = None,
     require_project_tasks: bool = False,
 ):
@@ -338,7 +393,7 @@ def get_matching_timesheet_employee_ids(
         return []
 
     requires_detail_scan = bool(
-        require_project_tasks or search or parsed_filters.get("Task") or parsed_filters.get("Timesheet Detail")
+        require_project_tasks or parsed_filters.get("Task") or parsed_filters.get("Timesheet Detail")
     )
     if not requires_detail_scan:
         return list({timesheet.employee for timesheet in timesheets})
@@ -351,7 +406,7 @@ def get_matching_timesheet_employee_ids(
     if not details:
         return []
 
-    requires_task_scan = bool(require_project_tasks or search or parsed_filters.get("Task"))
+    requires_task_scan = bool(require_project_tasks or parsed_filters.get("Task"))
     if not requires_task_scan:
         matched_parent_names = {detail.parent for detail in details}
         return list(
@@ -363,16 +418,7 @@ def get_matching_timesheet_employee_ids(
         return []
 
     task_filters = build_filters({"name": ["in", task_ids]}, parsed_filters.get("Task", []))
-    tasks = get_all("Task", filters=task_filters, fields=TASK_FIELDS)
-    if search:
-        search_term = search.lower()
-        tasks = [
-            task
-            for task in tasks
-            if search_term in (task.get("subject") or "").lower()
-            or search_term in (task.get("name") or "").lower()
-            or search_term in (task.get("project_name") or "").lower()
-        ]
+    tasks = get_all("Task", filters=task_filters, fields=["name", "project"])
     if require_project_tasks:
         tasks = [task for task in tasks if task.get("project")]
 
@@ -384,26 +430,49 @@ def get_matching_timesheet_employee_ids(
     return list({timesheet_by_name[parent].employee for parent in matched_parent_names if parent in timesheet_by_name})
 
 
+def sanitize_employee_conditions(employee_conditions: list | None) -> list:
+    """Drop conditions on fields missing from the site's Employee meta
+    (e.g. `custom_business_unit` without the rtcamp customisation) instead of raising.
+
+    Callers must sanitize before deciding filtered-vs-unfiltered behaviour, so a
+    condition that will be dropped anyway cannot flip the request into the
+    filtered path.
+    """
+    meta = frappe.get_meta("Employee")
+    return [[field, operator, value] for field, operator, value in employee_conditions or [] if meta.has_field(field)]
+
+
+def employee_condition_kwargs(employee_conditions: list | None) -> dict:
+    """Build `filter_employees` kwargs that apply Employee-level [field, operator, value]
+    conditions (already sanitized via `sanitize_employee_conditions`) with their
+    operators intact (e.g. `like` stays a LIKE, not an IN).
+
+    An explicit status condition replaces the default Active-only filter, matching
+    the behaviour of `filter_employees`'s own `status` parameter.
+    """
+    return {
+        "extra_conditions": employee_conditions or None,
+        "ignore_default_filters": any(field == "status" for field, _operator, _value in employee_conditions or []),
+    }
+
+
 def get_team_candidate_employee_ids(
     reports_to: str | None = None,
     dates: list | None = None,
     parsed_filters: dict | None = None,
-    search: str | None = None,
     timesheet_status: list[str] | None = None,
-    status=None,
-    business_unit=None,
+    employee_conditions: list | None = None,
 ):
     if not dates:
         return []
 
-    has_candidate_filters = bool(timesheet_status or search or any((parsed_filters or {}).values()))
-    if not has_candidate_filters and not status and not business_unit:
+    has_candidate_filters = bool(timesheet_status or any((parsed_filters or {}).values()))
+    if not has_candidate_filters and not employee_conditions:
         return None
 
     employee_ids = get_matching_timesheet_employee_ids(
         dates=dates,
         parsed_filters=parsed_filters or {dt: [] for dt in ALLOWED_FILTER_FIELDS},
-        search=search,
         approval_status=timesheet_status,
     )
     if not employee_ids:
@@ -414,8 +483,7 @@ def get_team_candidate_employee_ids(
         start=0,
         reports_to=reports_to,
         ids=employee_ids,
-        status=status,
-        business_unit=business_unit,
+        **employee_condition_kwargs(employee_conditions),
     )
     if not filtered_count:
         return []
@@ -423,31 +491,107 @@ def get_team_candidate_employee_ids(
     return employee_ids
 
 
-def get_project_candidate_employee_ids(
-    reports_to: str | None = None,
-    dates: list | None = None,
+def get_qualifying_project_ids(
+    dates: list,
     parsed_filters: dict | None = None,
     search: str | None = None,
     approval_status: list[str] | None = None,
-):
+) -> list[str]:
+    """Return a sorted list of distinct project IDs that have timesheet entries in the date range.
+
+    Query chain: Timesheet → Timesheet Detail → Task → distinct projects.
+    All intermediate empty results short-circuit to [].
+    """
     if not dates:
         return []
 
-    employee_ids = get_matching_timesheet_employee_ids(
-        dates=dates,
-        parsed_filters=parsed_filters or {dt: [] for dt in ALLOWED_FILTER_FIELDS},
-        search=search,
-        approval_status=approval_status,
-        require_project_tasks=True,
+    parsed_filters = parsed_filters or {dt: [] for dt in ALLOWED_FILTER_FIELDS}
+
+    base_ts_filters = {
+        "start_date": [">=", dates[0].get("start_date")],
+        "end_date": ["<=", dates[-1].get("end_date")],
+        "docstatus": ["!=", 2],
+    }
+    if approval_status:
+        base_ts_filters["custom_weekly_approval_status"] = ["in", approval_status]
+
+    ts_filters = build_filters(base_ts_filters, parsed_filters.get("Timesheet", []))
+    timesheets = get_all("Timesheet", filters=ts_filters, fields=["name"])
+    if not timesheets:
+        return []
+
+    ts_names = [ts.name for ts in timesheets]
+    base_detail_filters = {"parent": ["in", ts_names]}
+    detail_filters = build_filters(base_detail_filters, parsed_filters.get("Timesheet Detail", []))
+    details = get_all("Timesheet Detail", filters=detail_filters, fields=["task"])
+    task_ids = list({d.task for d in details if d.task})
+    if not task_ids:
+        return []
+
+    base_task_filters = {"name": ["in", task_ids], "project": ["!=", ""]}
+    task_filters = build_filters(base_task_filters, parsed_filters.get("Task", []))
+    tasks = get_all("Task", filters=task_filters, fields=["name", "project"])
+
+    project_ids = sorted({t.project for t in tasks if t.get("project")})
+    if not project_ids:
+        return []
+
+    if search:
+        project_ids = get_all(
+            "Project",
+            filters=[["name", "in", project_ids]],
+            or_filters=[["name", "like", f"%{search}%"], ["project_name", "like", f"%{search}%"]],
+            pluck="name",
+        )
+
+    return sorted(project_ids)
+
+
+def get_employees_for_projects(
+    project_ids: list[str],
+    dates: list,
+    parsed_filters: dict | None = None,
+    approval_status: list[str] | None = None,
+) -> list[str]:
+    """Return distinct employee IDs who logged time to any of the given projects in the date range.
+
+    Query chain: Task (project IN project_ids) → Timesheet (date range) → Timesheet Detail
+    (bounded by in-range parents AND task IDs) → distinct employees.
+    """
+    if not project_ids or not dates:
+        return []
+
+    parsed_filters = parsed_filters or {dt: [] for dt in ALLOWED_FILTER_FIELDS}
+
+    task_ids = get_all("Task", filters={"project": ["in", project_ids]}, pluck="name")
+    if not task_ids:
+        return []
+
+    # Resolve the in-range timesheets first so the (much larger) Timesheet Detail scan can be
+    # bounded by both parent IN <in-range timesheets> and task IN <task_ids>, instead of pulling
+    # every detail row that has ever referenced these projects' tasks.
+    base_ts_filters = {
+        "start_date": [">=", dates[0].get("start_date")],
+        "end_date": ["<=", dates[-1].get("end_date")],
+        "docstatus": ["!=", 2],
+    }
+    if approval_status:
+        base_ts_filters["custom_weekly_approval_status"] = ["in", approval_status]
+
+    ts_filters = build_filters(base_ts_filters, parsed_filters.get("Timesheet", []))
+    timesheets = get_all("Timesheet", filters=ts_filters, fields=["name", "employee"])
+    if not timesheets:
+        return []
+
+    employee_by_ts = {ts.name: ts.employee for ts in timesheets}
+    detail_filters = build_filters(
+        {"parent": ["in", list(employee_by_ts)], "task": ["in", task_ids]},
+        parsed_filters.get("Timesheet Detail", []),
     )
-    if not employee_ids:
-        return []
-
-    _, filtered_count = filter_employees(page_length=1, start=0, reports_to=reports_to, ids=employee_ids)
-    if not filtered_count:
-        return []
-
-    return employee_ids
+    matched_parents = {
+        d.parent for d in get_all("Timesheet Detail", filters=detail_filters, fields=["parent"]) if d.parent
+    }
+    return list({employee_by_ts[parent] for parent in matched_parents if parent in employee_by_ts})
 
 
 def iter_employee_chunks(employees: list, chunk_size: int = EMPLOYEE_SCAN_CHUNK_SIZE):
@@ -455,7 +599,8 @@ def iter_employee_chunks(employees: list, chunk_size: int = EMPLOYEE_SCAN_CHUNK_
         yield employees[index : index + chunk_size]
 
 
-def build_chunk_context(employees: list, dates: list, parsed_filters: dict, search: str | None = None):
+def build_chunk_context(employees: list, dates: list, parsed_filters: dict):
+    """Runs the filters to build the context for the list of employees passed."""
     employee_names = [employee.name for employee in employees]
     if not employee_names:
         return {
@@ -543,9 +688,11 @@ def build_chunk_context(employees: list, dates: list, parsed_filters: dict, sear
             "total_hours",
             "note",
             "custom_approval_status",
+            "custom_rejection_reason",
             "custom_weekly_approval_status",
         ],
     )
+    ts_parent_map = {ts.name: ts for ts in all_timesheets}
 
     timesheet_map = defaultdict(list)
     emp_ts_by_start = defaultdict(lambda: defaultdict(list))
@@ -556,7 +703,7 @@ def build_chunk_context(employees: list, dates: list, parsed_filters: dict, sear
     for timesheet in all_timesheets:
         timesheet_map[timesheet.employee].append(timesheet)
         emp_ts_by_start[timesheet.employee][timesheet.start_date].append(timesheet.name)
-        week_status_map[(timesheet.employee, timesheet.start_date)] = (
+        week_status_map[(timesheet.employee, get_first_day_of_week(timesheet.start_date))] = (
             timesheet.get("custom_weekly_approval_status") or "Not Submitted"
         )
         all_timesheet_names.append(timesheet.name)
@@ -588,26 +735,10 @@ def build_chunk_context(employees: list, dates: list, parsed_filters: dict, sear
             base_task_filters = {"name": ["in", all_task_ids]}
             task_filters = build_filters(base_task_filters, parsed_filters.get("Task", []))
             all_tasks = get_all("Task", filters=task_filters, fields=TASK_FIELDS)
-            if search:
-                search_term = search.lower()
-                all_tasks = [
-                    task
-                    for task in all_tasks
-                    if search_term in (task.get("subject") or "").lower()
-                    or search_term in (task.get("name") or "").lower()
-                    or search_term in (task.get("project_name") or "").lower()
-                ]
             task_details_dict = {task["name"]: task for task in all_tasks}
 
-    if search and all_logs:
-        filtered_task_ids = set(task_details_dict.keys())
-        all_logs = [log for log in all_logs if not log.get("task") or log.get("task") in filtered_task_ids]
-        detail_by_parent = defaultdict(list)
-        for log in all_logs:
-            detail_by_parent[log.parent].append(log)
-
     matched_parent_names = set(detail_by_parent.keys())
-    if matched_parent_names and (search or parsed_filters.get("Task") or parsed_filters.get("Timesheet Detail")):
+    if matched_parent_names and (parsed_filters.get("Task") or parsed_filters.get("Timesheet Detail")):
         for employee_name, timesheets in list(timesheet_map.items()):
             filtered_timesheets = [timesheet for timesheet in timesheets if timesheet.name in matched_parent_names]
             timesheet_map[employee_name] = filtered_timesheets
@@ -622,7 +753,7 @@ def build_chunk_context(employees: list, dates: list, parsed_filters: dict, sear
             else:
                 overall_status_map[employee_name] = "Not Submitted"
 
-    has_search_or_task_filters = bool(search or parsed_filters.get("Task"))
+    has_search_or_task_filters = bool(parsed_filters.get("Task"))
 
     return {
         "working_hours_map": working_hours_map,
@@ -632,6 +763,7 @@ def build_chunk_context(employees: list, dates: list, parsed_filters: dict, sear
         "timesheet_map": timesheet_map,
         "emp_ts_by_start": emp_ts_by_start,
         "detail_by_parent": detail_by_parent,
+        "ts_parent_map": ts_parent_map,
         "task_details_dict": task_details_dict,
         "week_status_map": week_status_map,
         "overall_status_map": overall_status_map,
@@ -650,6 +782,7 @@ def build_employee_week_details(
     week_details = {}
     emp_ts_by_start = context["emp_ts_by_start"].get(employee_name, {})
     detail_by_parent = context["detail_by_parent"]
+    ts_parent_map = context["ts_parent_map"]
     task_details_dict = context["task_details_dict"]
     has_search_or_task_filters = context["has_search_or_task_filters"]
 
@@ -698,7 +831,11 @@ def build_employee_week_details(
                         "data": [],
                     }
 
-                tasks[task_name]["data"].append({field: log.get(field) for field in ALLOWED_TIMESHET_DETAIL_FIELDS})
+                entry = {field: log.get(field) for field in ALLOWED_TIMESHET_DETAIL_FIELDS}
+                parent_ts = ts_parent_map.get(ts_name)
+                entry["custom_approval_status"] = parent_ts.get("custom_approval_status") if parent_ts else None
+                entry["custom_rejection_reason"] = parent_ts.get("custom_rejection_reason") if parent_ts else None
+                tasks[task_name]["data"].append(entry)
 
         week_status = context["week_status_map"].get((employee_name, date_info["start_date"]), "Not Submitted")
         should_skip_empty = has_filters and skip_empty_weeks
@@ -721,16 +858,16 @@ def paginate_qualifying_employee_payloads(
     employee_ids,
     dates: list,
     parsed_filters: dict,
-    search: str | None,
+    employee_name: str | None,
     start: int,
     page_length: int,
     builder,
-    status=None,
-    business_unit=None,
+    employee_conditions: list | None = None,
 ):
     selected = []
     total_count = 0
     employee_start = 0
+    employee_filter_kwargs = employee_condition_kwargs(employee_conditions)
 
     while True:
         chunk, _ = filter_employees(
@@ -738,13 +875,13 @@ def paginate_qualifying_employee_payloads(
             start=employee_start,
             reports_to=reports_to,
             ids=employee_ids,
-            status=status,
-            business_unit=business_unit,
+            employee_name=employee_name,
+            **employee_filter_kwargs,
         )
         if not chunk:
             break
 
-        context = build_chunk_context(chunk, dates, parsed_filters, search)
+        context = build_chunk_context(chunk, dates, parsed_filters)
         for employee in chunk:
             payload = builder(employee, context)
             if not payload:
@@ -757,5 +894,41 @@ def paginate_qualifying_employee_payloads(
 
         employee_start += len(chunk)
 
+    has_more = start + page_length < total_count
+    return selected, total_count, has_more
+
+
+def paginate_unfiltered_employee_payloads(
+    reports_to: str | None,
+    dates: list,
+    parsed_filters: dict,
+    start: int,
+    page_length: int,
+    builder,
+):
+    """Fast path for the no-filters case (has_filters=False and no status/business_unit).
+
+    `build_employee_week_details`'s `should_skip_week` only drops a week when
+    `has_filters and skip_empty_weeks`, or when `approval_status` (the caller's
+    `status_filter`) is truthy. The caller only reaches this function when
+    `has_filters` is False, and `status_filter` is itself one of the terms that make
+    `has_filters` True — so here `status_filter` is guaranteed falsy too, no week is
+    ever dropped, and `builder` never returns None. That means the page can be fetched
+    directly via SQL LIMIT/OFFSET (and its matching COUNT) instead of walking the
+    entire employee pool in Python just to paginate and count, which is what
+    `paginate_qualifying_employee_payloads` does for the general case.
+    """
+    page_employees, total_count = filter_employees(
+        page_length=page_length,
+        start=start,
+        reports_to=reports_to,
+    )
+    context = build_chunk_context(page_employees, dates, parsed_filters)
+    # No `if payload` filter here on purpose: per the invariant above, builder()
+    # cannot return None in this path. If that invariant is ever violated, a
+    # `None` in `selected` will raise loudly when `team.py` unpacks it as
+    # `(employee_name, payload)`, instead of silently truncating the page while
+    # total_count/has_more still reflect the full (unfiltered) count.
+    selected = [builder(employee, context) for employee in page_employees]
     has_more = start + page_length < total_count
     return selected, total_count, has_more

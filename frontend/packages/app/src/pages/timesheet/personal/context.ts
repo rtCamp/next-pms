@@ -1,0 +1,74 @@
+/**
+ * External dependencies.
+ */
+import type { ApprovalStatusType } from "@next-pms/design-system/components";
+import type { FilterCondition } from "@rtcamp/frappe-ui-react";
+import { createContext, useContextSelector } from "use-context-selector";
+
+/**
+ * Internal dependencies.
+ */
+import type { DataProp, TaskDataProps } from "@/types/timesheet";
+
+export interface PersonalTimesheetContextProps {
+  state: {
+    hasMoreWeeks: boolean;
+    isLoadingPersonalData: boolean;
+    isInitialLoad: boolean;
+    isFilterRequest: boolean;
+    timesheetData: DataProp;
+    filters: {
+      search: string;
+      approvalStatus?: ApprovalStatusType[];
+    };
+    compositeFilters: FilterCondition[];
+    likedTaskData: TaskDataProps[];
+  };
+  actions: {
+    loadData: () => void;
+    handleSearchChange: (value: string) => void;
+    handleApprovalStatusChange: (value: ApprovalStatusType[]) => void;
+    handleCompositeFilterChange: (value: FilterCondition[]) => void;
+    handleClearAllFilters: () => void;
+    refetchLikedTasks: () => void;
+  };
+}
+
+export const initialTimesheetData: DataProp = {
+  working_hour: 0,
+  working_frequency: "Per Day",
+  data: {},
+  leaves: [],
+  holidays: [],
+};
+
+export const PersonalTimesheetContext =
+  createContext<PersonalTimesheetContextProps>({
+    state: {
+      hasMoreWeeks: false,
+      isLoadingPersonalData: false,
+      isInitialLoad: true,
+      isFilterRequest: false,
+      timesheetData: initialTimesheetData,
+      filters: {
+        search: "",
+        approvalStatus: undefined,
+      },
+      compositeFilters: [],
+      likedTaskData: [],
+    },
+    actions: {
+      loadData: () => null,
+      handleSearchChange: () => null,
+      handleApprovalStatusChange: () => null,
+      handleCompositeFilterChange: () => null,
+      handleClearAllFilters: () => null,
+      refetchLikedTasks: () => null,
+    },
+  });
+
+export const usePersonalTimesheet = <T>(
+  selector: (state: PersonalTimesheetContextProps) => T,
+) => {
+  return useContextSelector(PersonalTimesheetContext, selector);
+};

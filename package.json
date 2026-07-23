@@ -9,7 +9,7 @@
   "private": true,
   "scripts": {
     "dev": "cd frontend && npm run dev",
-    "build": "cd frontend && npm install && npm run build",
+    "build": "git submodule update --init --recursive && npx pnpm --dir frappe-ui-react install --frozen-lockfile && npx pnpm --dir frappe-ui-react build && npm --prefix frontend install && npm --prefix frontend run build",
     "e2e:tests": "npx playwright test --config=tests/e2e/playwright.config.js",
     "lint:precommit": "eslint --fix --config eslint.config.js",
     "allure:report": "allure generate allure-results --clean -o allure-report-for-count-extraction",

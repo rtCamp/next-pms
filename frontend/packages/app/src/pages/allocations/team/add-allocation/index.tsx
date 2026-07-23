@@ -1,0 +1,879 @@
+/**
+ * External dependencies.
+ */
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { Link } from "react-router-dom";
+import { mergeClassNames as cn } from "@next-pms/design-system";
+import { formatDateRange } from "@next-pms/design-system/date";
+import {
+  Avatar,
+  Button,
+  Checkbox,
+  Combobox,
+  DateRangePicker,
+  Dialog,
+  ErrorMessage,
+  TabButtons,
+  Textarea,
+  TextInput,
+  DurationInput,
+  useToasts,
+} from "@rtcamp/frappe-ui-react";
+import { AlertTriangle, Calendar } from "@rtcamp/frappe-ui-react/icons";
+import { useForm } from "@tanstack/react-form";
+import { useSelector } from "@tanstack/react-store";
+import { FrappeError, useFrappePostCall } from "frappe-react-sdk";
+
+/**
+ * Internal dependencies.
+ */
+import { useCustomerLookup } from "@/hooks/useCustomerLookup";
+import { useEmployeeLookup } from "@/hooks/useEmployeeLookup";
+import { useProjectLookup } from "@/hooks/useProjectLookup";
+import { ROUTES } from "@/lib/constant";
+import { isWeekendEntryAllowed, parseFrappeErrorMsg } from "@/lib/utils";
+import {
+  addAllocationDefaultValues,
+  allocationRecurrenceLabels,
+} from "./constants";
+import { OverAllocationWarning } from "./overAllocationWarning";
+import { addAllocationFormSchema } from "./schema";
+import type { AddAllocationModalProps } from "./types";
+import { useOverAllocation } from "./useOverAllocation";
+import { useProjectEmployeeAccess } from "./useProjectEmployeeAccess";
+import { computeTotalHours } from "./utils";
+
+function AddAllocationModal({
+  variant = "add",
+  layoutVariant = "team",
+  open,
+  onOpenChange,
+  onEditScheduleClick,
+  initialValues,
+  onSuccess,
+}: AddAllocationModalProps) {
+  const toast = useToasts();
+  const weekendEntriesAllowed: boolean = isWeekendEntryAllowed();
+  const [employeeSearch, setEmployeeSearch] = useState("");
+  const [projectSearch, setProjectSearch] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [employeeSelectionCache, setEmployeeSelectionCache] = useState<{
+    id: string;
+    label: string;
+    image?: string;
+  } | null>(null);
+
+  const isRecurringEdit =
+    variant === "edit" && Boolean(initialValues?.recurrenceId);
+  const hasExistingOverrides = (initialValues?.override?.length ?? 0) > 0;
+  const isLockedAllocationMetadataEdit =
+    variant === "edit" && (isRecurringEdit || hasExistingOverrides);
+
+  const { call: handleAllocation } = useFrappePostCall(
+    "next_pms.resource_management.api.allocation.handle_allocation",
+  );
+
+  const { call: editAllocation } = useFrappePostCall(
+    "next_pms.resource_management.api.allocation.edit_allocation",
+  );
+
+  const allocationName = initialValues?.allocationName;
+  const selectedProjectOption = initialValues?.projectId
+    ? {
+        label: initialValues.projectLabel || initialValues.projectId,
+        value: initialValues.projectId,
+        customer: initialValues.customer,
+      }
+    : null;
+
+  const mergedDefaultValues = useMemo(() => {
+    const initialFormValues = {
+      ...(initialValues ?? {}),
+    };
+
+    delete initialFormValues.allocationName;
+    delete initialFormValues.employeeLabel;
+    delete initialFormValues.projectLabel;
+    delete initialFormValues.customerLabel;
+
+    return {
+      ...addAllocationDefaultValues,
+      ...initialFormValues,
+    };
+  }, [initialValues]);
+
+  const form = useForm({
+    defaultValues: mergedDefaultValues,
+    validators: {
+      onSubmit: addAllocationFormSchema,
+    },
+    onSubmit: async ({ value }) => {
+      const totalAllocatedHours = computeTotalHours({
+        hoursPerDay: value.hoursPerDay,
+        recurrence: value.recurrence,
+        fromDate: value.fromDate,
+        toDate: value.toDate,
+        repeatFor: Number.isFinite(value.repeatFor) ? value.repeatFor : 0,
+        includeWeekends: value.includeWeekends,
+      });
+
+      setSubmitting(true);
+
+      try {
+        const payload = {
+          allocation: {
+            doctype: "Resource Allocation",
+            employee: value.employeeId,
+            project: value.projectId,
+            customer: value.customer,
+            allocation_start_date: value.fromDate,
+            allocation_end_date: value.toDate,
+            hours_allocated_per_day: value.hoursPerDay,
+            total_allocated_hours: totalAllocatedHours,
+            is_billable: Number(value.isBillable),
+            status: value.isTentative ? "Tentative" : "Confirmed",
+            note: value.note ?? "",
+            include_weekends: value.includeWeekends,
+          },
+          // Repeat weeks are only applied when creating a recurring allocation.
+          repeat_till_week_count:
+            variant === "edit" || value.recurrence === "one-time"
+              ? 0
+              : value.repeatFor,
+        };
+
+        if (variant === "edit" && allocationName) {
+          await editAllocation({
+            name: allocationName,
+            edit_mode: "only_this",
+            ...payload,
+          });
+        } else {
+          await handleAllocation(payload);
+        }
+
+        toast.success(
+          variant === "edit"
+            ? "Allocation updated successfully"
+            : "Allocation created successfully",
+        );
+
+        closeModal();
+        const employeeIds = [
+          ...new Set(
+            [initialValues?.employeeId, value.employeeId].filter(Boolean),
+          ),
+        ] as string[];
+        const projectIds = [
+          ...new Set(
+            [initialValues?.projectId, value.projectId].filter(Boolean),
+          ),
+        ] as string[];
+        const refreshTargets = {
+          ...(employeeIds.length > 0 ? { employeeIds } : {}),
+          ...(projectIds.length > 0 ? { projectIds } : {}),
+        };
+
+        await onSuccess?.(
+          Object.keys(refreshTargets).length > 0 ? refreshTargets : undefined,
+        );
+      } catch (err) {
+        const error = parseFrappeErrorMsg(err as FrappeError);
+        toast.error(error);
+      } finally {
+        setSubmitting(false);
+      }
+    },
+  });
+
+  const projectId = useSelector(form.store, (state) => state.values.projectId);
+  const customerId = useSelector(form.store, (state) => state.values.customer);
+  const employeeId = useSelector(
+    form.store,
+    (state) => state.values.employeeId,
+  );
+
+  const selectedCustomerOption = customerId
+    ? {
+        label:
+          customerId === initialValues?.customer
+            ? initialValues.customerLabel || customerId
+            : customerId,
+        value: customerId,
+      }
+    : null;
+
+  const cachedEmployeeSelection =
+    employeeSelectionCache?.id === employeeId ? employeeSelectionCache : null;
+
+  const selectedEmployeeOption = employeeId
+    ? {
+        label:
+          cachedEmployeeSelection?.label ??
+          (employeeId === initialValues?.employeeId
+            ? initialValues.employeeLabel || employeeId
+            : employeeId),
+        value: employeeId,
+        image: cachedEmployeeSelection?.image,
+      }
+    : null;
+
+  const { options: employeeOptions, isLoading: isEmployeeLookupLoading } =
+    useEmployeeLookup({
+      shouldFetch: open,
+      pageSize: 20,
+      query: employeeSearch,
+      projects: projectId ? [projectId] : undefined,
+      selectedOption: selectedEmployeeOption,
+      formatOption: (option) => ({
+        ...option,
+        icon: (
+          <Avatar
+            size="xs"
+            shape="circle"
+            image={option.image}
+            label={option.label}
+          />
+        ),
+      }),
+    });
+
+  // Remembers the selected employee's name/avatar so they still show once the
+  // employee is filtered out of the list after switching the project.
+  useEffect(() => {
+    if (!employeeId) {
+      return;
+    }
+
+    const matchedOption = employeeOptions.find(
+      (option) => option.value === employeeId,
+    );
+
+    if (!matchedOption) {
+      return;
+    }
+
+    setEmployeeSelectionCache((previous) =>
+      previous?.id === employeeId &&
+      previous.label === matchedOption.label &&
+      previous.image === matchedOption.image
+        ? previous
+        : {
+            id: employeeId,
+            label: matchedOption.label,
+            image: matchedOption.image,
+          },
+    );
+  }, [employeeId, employeeOptions]);
+
+  const { options: projectOptions, isLoading: isProjectLookupLoading } =
+    useProjectLookup({
+      shouldFetch: open,
+      filters: [
+        ["status", "!=", "Cancelled"],
+        ["is_active", "=", "Yes"],
+      ],
+      pageSize: 20,
+      query: projectSearch,
+      employee: employeeId || undefined,
+      selectedOption: selectedProjectOption,
+    });
+
+  const { options: customerOptions, isLoading: isCustomerLookupLoading } =
+    useCustomerLookup({
+      shouldFetch: open && Boolean(customerId),
+      pageSize: 20,
+      query: customerId,
+      selectedOption: selectedCustomerOption,
+    });
+
+  const {
+    hasAnyMember: projectHasAnyMember,
+    hasAnyProject: employeeHasAnyProject,
+    isValid: isProjectEmployeePairValid,
+    isLoading: isProjectEmployeeAccessLoading,
+  } = useProjectEmployeeAccess({
+    projectId,
+    employeeId,
+    enabled: open,
+  });
+
+  const projectHasNoAssignedMembers =
+    Boolean(projectId) &&
+    !isProjectEmployeeAccessLoading &&
+    !projectHasAnyMember;
+
+  const employeeHasNoAssignedProjects =
+    Boolean(employeeId) &&
+    !isProjectEmployeeAccessLoading &&
+    !employeeHasAnyProject;
+
+  const isProjectEmployeeMismatch =
+    Boolean(projectId) &&
+    Boolean(employeeId) &&
+    !isProjectEmployeeAccessLoading &&
+    !isProjectEmployeePairValid;
+
+  const projectEmployeeMismatchError = isProjectEmployeeMismatch ? (
+    <p className="flex flex-wrap gap-1 text-sm text-ink-red-4" role="alert">
+      <span>This employee is not part of the project's team.</span>
+      <Link
+        to={`${ROUTES.project}/${projectId}`}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="underline"
+      >
+        Add them to the team
+      </Link>
+    </p>
+  ) : null;
+
+  const closeModal = useCallback(() => {
+    onOpenChange(false);
+    form.reset(mergedDefaultValues);
+  }, [form, mergedDefaultValues, onOpenChange]);
+
+  const handleOpenChange = useCallback(
+    (nextOpen: boolean) => {
+      if (nextOpen) {
+        onOpenChange(true);
+        return;
+      }
+
+      closeModal();
+    },
+    [closeModal, onOpenChange],
+  );
+
+  const recurrence = useSelector(
+    form.store,
+    (state) => state.values.recurrence,
+  );
+  const hoursPerDay = useSelector(
+    form.store,
+    (state) => state.values.hoursPerDay,
+  );
+  const repeatFor = useSelector(form.store, (state) =>
+    Number.isFinite(state.values.repeatFor) ? state.values.repeatFor : 0,
+  );
+  const fromDate = useSelector(form.store, (state) => state.values.fromDate);
+  const toDate = useSelector(form.store, (state) => state.values.toDate);
+  const includeWeekendsValue = useSelector(
+    form.store,
+    (state) => state.values.includeWeekends,
+  );
+
+  const overAllocatedDays = useOverAllocation({
+    employeeId,
+    fromDate,
+    toDate,
+    hoursPerDay,
+    includeWeekends: includeWeekendsValue,
+    repeatWeeks: recurrence === "recurring" ? repeatFor : 0,
+    allocationName,
+  });
+
+  useEffect(() => {
+    if (!open) {
+      return;
+    }
+
+    form.reset(mergedDefaultValues);
+  }, [form, mergedDefaultValues, open]);
+
+  useEffect(() => {
+    setEmployeeSearch("");
+    setProjectSearch("");
+    setEmployeeSelectionCache(null);
+  }, [open]);
+
+  const totalHours = computeTotalHours({
+    hoursPerDay,
+    recurrence,
+    fromDate,
+    toDate,
+    repeatFor,
+    includeWeekends: includeWeekendsValue,
+  });
+
+  const handleProjectChange = useCallback(
+    (value: string | null) => {
+      const nextProjectId = value ?? "";
+      const selectedProject = projectOptions.find(
+        (project) => project.value === nextProjectId,
+      );
+
+      form.setFieldValue("projectId", nextProjectId);
+      setProjectSearch("");
+      setEmployeeSearch("");
+
+      form.setFieldValue("customer", selectedProject?.customer ?? "");
+    },
+    [form, projectOptions],
+  );
+
+  const employeeField = (
+    <form.Field
+      name="employeeId"
+      children={(field) => (
+        <>
+          <label className="block text-base text-ink-gray-5 mb-1.5">
+            Employee
+          </label>
+          <Combobox
+            inputClassName="bg-surface-white h-8 border-outline-gray-2 text-ink-gray-7"
+            loading={isEmployeeLookupLoading || isProjectEmployeeAccessLoading}
+            options={employeeOptions}
+            searchValue={employeeSearch}
+            placeholder="Select Employee"
+            value={field.state.value}
+            disabled={isLockedAllocationMetadataEdit}
+            onChange={(value) => field.handleChange(value as string)}
+            onSearchChange={setEmployeeSearch}
+            emptyMessage={
+              projectHasNoAssignedMembers
+                ? "This project doesn't have any assigned team members"
+                : undefined
+            }
+            openOnFocus
+          />
+          {!field.state.meta.isValid && (
+            <ErrorMessage message={field.state.meta.errors[0]?.message} />
+          )}
+          {projectEmployeeMismatchError}
+        </>
+      )}
+    />
+  );
+
+  const projectField = (
+    <form.Field
+      name="projectId"
+      children={(field) => (
+        <>
+          <label className="block text-base text-ink-gray-5 mb-1.5">
+            Project
+          </label>
+          <Combobox
+            inputClassName="bg-surface-white h-8 border-outline-gray-2 text-ink-gray-7"
+            loading={isProjectLookupLoading || isProjectEmployeeAccessLoading}
+            options={projectOptions}
+            searchValue={projectSearch}
+            placeholder="Select Project"
+            value={field.state.value}
+            disabled={isLockedAllocationMetadataEdit}
+            onChange={handleProjectChange}
+            onSearchChange={setProjectSearch}
+            emptyMessage={
+              employeeHasNoAssignedProjects
+                ? "This employee isn't part of any project's team"
+                : undefined
+            }
+            openOnFocus
+          />
+          {!field.state.meta.isValid && (
+            <ErrorMessage message={field.state.meta.errors[0]?.message} />
+          )}
+        </>
+      )}
+    />
+  );
+
+  const customerField = (
+    <form.Field
+      name="customer"
+      children={(field) => (
+        <>
+          <label className="block text-base text-ink-gray-5 mb-1.5">
+            Customer
+          </label>
+          <Combobox
+            inputClassName="bg-surface-white h-8 border-outline-gray-2 text-ink-gray-7"
+            loading={isCustomerLookupLoading || isProjectLookupLoading}
+            options={customerOptions}
+            placeholder="Select Customer"
+            value={field.state.value}
+            disabled
+            openOnFocus
+          />
+          {!field.state.meta.isValid && (
+            <ErrorMessage message={field.state.meta.errors[0]?.message} />
+          )}
+        </>
+      )}
+    />
+  );
+
+  const recurrenceSection =
+    variant === "add" ? (
+      <form.Field
+        name="recurrence"
+        children={(field) => (
+          <>
+            <label className="block text-base text-ink-gray-5 mb-1.5">
+              Recurrence
+            </label>
+            <TabButtons
+              className="[&_button:not([data-pressed])]:text-ink-gray-5 [&_[data-pressed]]:text-ink-gray-8"
+              value={field.state.value}
+              onChange={(value) =>
+                field.handleChange(value as "one-time" | "recurring")
+              }
+              buttons={Object.entries(allocationRecurrenceLabels).map(
+                ([value, label]) => ({ value, label }),
+              )}
+            />
+            {!field.state.meta.isValid && (
+              <ErrorMessage message={field.state.meta.errors[0]?.message} />
+            )}
+          </>
+        )}
+      />
+    ) : isRecurringEdit ? (
+      <div>
+        <label className="block text-base text-ink-gray-5 mb-1.5">
+          Recurrence
+        </label>
+        <TabButtons
+          className="[&_button:not([data-pressed])]:text-ink-gray-5 [&_[data-pressed]]:text-ink-gray-8"
+          value="recurring"
+          onChange={() => {}}
+          buttons={Object.entries(allocationRecurrenceLabels).map(
+            ([value, label]) => ({
+              value,
+              label,
+              disabled: value === "one-time",
+            }),
+          )}
+        />
+      </div>
+    ) : (
+      <form.Field
+        name="recurrence"
+        children={(field) => (
+          <>
+            <label className="block text-base text-ink-gray-5 mb-1.5">
+              Recurrence
+            </label>
+            <TabButtons
+              className="[&_button:not([data-pressed])]:text-ink-gray-5 [&_[data-pressed]]:text-ink-gray-8"
+              value={field.state.value}
+              onChange={(value) =>
+                field.handleChange(value as "one-time" | "recurring")
+              }
+              buttons={Object.entries(allocationRecurrenceLabels).map(
+                ([value, label]) => ({
+                  value,
+                  label,
+                  disabled: value === "recurring",
+                }),
+              )}
+            />
+            {!field.state.meta.isValid && (
+              <ErrorMessage message={field.state.meta.errors[0]?.message} />
+            )}
+          </>
+        )}
+      />
+    );
+
+  return (
+    <Dialog
+      open={open}
+      onOpenChange={handleOpenChange}
+      className="my-0"
+      classNames={{
+        header: "mb-5",
+        content: "sm:p-3.5",
+        viewport: "justify-start pt-30",
+        footer: "pb-3.5 pt-5",
+      }}
+      options={{
+        title: () => (
+          <span className="text-lg font-medium text-ink-gray-7">
+            {variant === "add" ? "Add allocation" : "Edit allocation"}
+          </span>
+        ),
+      }}
+      actions={
+        <div className="flex items-center justify-between w-full gap-2 -mt-5">
+          <form.Field
+            name="isTentative"
+            children={(field) => (
+              <label className="inline-flex items-center gap-2 text-base shrink-0 text-ink-gray-7">
+                <Checkbox
+                  value={field.state.value}
+                  disabled={isLockedAllocationMetadataEdit}
+                  onChange={(checked) => field.handleChange(Boolean(checked))}
+                />
+                Mark as tentative
+              </label>
+            )}
+          />
+          <div className="flex items-center justify-end w-full gap-2">
+            <Button variant="ghost" label="Cancel" onClick={closeModal} />
+            <Button
+              variant="solid"
+              label={variant === "add" ? "Allocate" : "Save Changes"}
+              onClick={() => form.handleSubmit()}
+              disabled={
+                submitting ||
+                isLockedAllocationMetadataEdit ||
+                isProjectEmployeeMismatch
+              }
+              loading={submitting}
+            />
+          </div>
+        </div>
+      }
+    >
+      <div className="space-y-4">
+        {layoutVariant === "project" ? (
+          <>
+            {projectField}
+            {customerField}
+            {employeeField}
+          </>
+        ) : (
+          <>
+            {employeeField}
+            {projectField}
+            {customerField}
+          </>
+        )}
+
+        {recurrenceSection}
+
+        <form.Field
+          name="includeWeekends"
+          children={(field) =>
+            weekendEntriesAllowed || field.state.value ? (
+              <label className="inline-flex items-center gap-2 text-base text-ink-gray-6">
+                <Checkbox
+                  value={field.state.value}
+                  disabled={
+                    !weekendEntriesAllowed || isLockedAllocationMetadataEdit
+                  }
+                  onChange={(checked) => field.handleChange(Boolean(checked))}
+                />
+                Include weekends
+              </label>
+            ) : null
+          }
+        />
+
+        <form.Field
+          name="fromDate"
+          children={(fromField) => (
+            <form.Field
+              name="toDate"
+              children={(toField) => (
+                <div className="flex w-full flex-col gap-1.5">
+                  <div className="flex justify-between">
+                    <label className="block text-base text-ink-gray-5">
+                      Start and end date
+                    </label>
+                    {variant === "edit" ? (
+                      <Button
+                        variant="ghost"
+                        label="Edit Schedule"
+                        className="p-0 bg-transparent h-fit text-ink-gray-5 hover:bg-transparent focus:bg-transparent active:bg-transparent disabled:cursor-not-allowed!"
+                        disabled={isProjectEmployeeMismatch}
+                        onClick={onEditScheduleClick}
+                      />
+                    ) : null}
+                  </div>
+                  <DateRangePicker
+                    value={[fromField.state.value, toField.state.value]}
+                    disabled={isLockedAllocationMetadataEdit}
+                    onChange={(value) => {
+                      const rawFrom = value?.[0] ?? "";
+                      const rawTo = value?.[1] ?? "";
+                      const shouldSwap = rawFrom && rawTo && rawFrom > rawTo;
+                      const nextFrom = shouldSwap ? rawTo : rawFrom;
+                      const nextTo = shouldSwap ? rawFrom : rawTo;
+
+                      fromField.handleChange(nextFrom);
+                      toField.handleChange(nextTo);
+                    }}
+                    formatter={formatDateRange}
+                    placeholder="Start Date - End Date"
+                  >
+                    {({ displayValue, disabled }) => (
+                      <div
+                        className={cn(
+                          "w-full h-7 relative flex items-center border border-outline-gray-2 px-2.5 py-1 rounded",
+                          disabled && "bg-surface-gray-1 text-ink-gray-5",
+                        )}
+                      >
+                        <input
+                          readOnly
+                          disabled={disabled}
+                          type="text"
+                          id="start"
+                          value={displayValue}
+                          className={cn(
+                            "flex-1 text-base text-ink-gray-7",
+                            disabled && "text-ink-gray-5",
+                          )}
+                        />
+                        <Calendar className="size-4" />
+                      </div>
+                    )}
+                  </DateRangePicker>
+                  {(!fromField.state.meta.isValid ||
+                    !toField.state.meta.isValid) && (
+                    <ErrorMessage
+                      message={
+                        fromField.state.meta.errors[0]?.message ??
+                        toField.state.meta.errors[0]?.message
+                      }
+                    />
+                  )}
+                </div>
+              )}
+            />
+          )}
+        />
+
+        <div className="flex gap-3">
+          <form.Field
+            name="hoursPerDay"
+            children={(field) => (
+              <div className="shrink-0 flex flex-1 flex-col gap-1.5">
+                <label className="block text-base text-ink-gray-5">
+                  Hours / day
+                </label>
+                <DurationInput
+                  snap="smooth"
+                  variant="outline"
+                  size="md"
+                  value={field.state.value}
+                  disabled={isLockedAllocationMetadataEdit}
+                  onChange={(value) => field.handleChange(value)}
+                  label={false}
+                />
+                {!field.state.meta.isValid && (
+                  <ErrorMessage message={field.state.meta.errors[0]?.message} />
+                )}
+              </div>
+            )}
+          />
+
+          {(recurrence === "recurring" || isRecurringEdit) && (
+            <form.Field
+              name="repeatFor"
+              children={(field) => (
+                <div className="shrink-0 flex flex-1 flex-col gap-1.5">
+                  <label className="block text-base text-ink-gray-5">
+                    Repeat for
+                  </label>
+                  <div className="relative">
+                    <TextInput
+                      type="number"
+                      size="md"
+                      variant="outline"
+                      min={1}
+                      disabled={variant === "edit"}
+                      value={
+                        field.state.value == null ||
+                        Number.isNaN(field.state.value)
+                          ? ""
+                          : field.state.value
+                      }
+                      onChange={(e) => {
+                        const raw = e.target.value;
+                        if (raw === "") {
+                          field.handleChange(NaN);
+                          return;
+                        }
+                        const parsed = Number(raw);
+                        if (Number.isFinite(parsed)) {
+                          field.handleChange(parsed);
+                        }
+                      }}
+                      inputClassName="pr-13"
+                    />
+                    <span className="absolute right-2 top-1/2 -translate-y-1/2 text-ink-gray-5 text-sm">
+                      {field.state.value === 1 ? "week" : "weeks"}
+                    </span>
+                  </div>
+                  {!field.state.meta.isValid && (
+                    <ErrorMessage
+                      message={field.state.meta.errors[0]?.message}
+                    />
+                  )}
+                </div>
+              )}
+            />
+          )}
+
+          <div className="shrink-0 flex flex-1 flex-col gap-1.5">
+            <label className="block text-base text-ink-gray-5">
+              Total hours
+            </label>
+            <TextInput
+              disabled={true}
+              size="md"
+              value={totalHours}
+              variant="outline"
+              inputClassName={
+                isLockedAllocationMetadataEdit
+                  ? ""
+                  : "text-ink-gray-7 bg-surface-white"
+              }
+            />
+          </div>
+        </div>
+
+        {isLockedAllocationMetadataEdit && (
+          <div className="flex items-center gap-2 bg-(--color-violet-50) rounded-lg px-2.5 py-2">
+            <AlertTriangle className="size-4 shrink-0 text-(--color-violet-700)" />
+            <p className="flex-1 min-w-0 text-xs text-ink-gray-9 text-left">
+              {isRecurringEdit
+                ? "Recurring allocations can only be modified using Edit Schedule."
+                : "This allocation has schedule changes. Use Edit Schedule to modify them."}
+            </p>
+          </div>
+        )}
+
+        {!(hasExistingOverrides || isRecurringEdit) ? (
+          <OverAllocationWarning overAllocatedDays={overAllocatedDays} />
+        ) : null}
+
+        <form.Field
+          name="isBillable"
+          children={(field) => (
+            <label className="inline-flex items-center gap-2 text-base text-ink-gray-6">
+              <Checkbox
+                value={!field.state.value}
+                disabled={isLockedAllocationMetadataEdit}
+                onChange={(checked) => field.handleChange(!checked)}
+              />
+              Mark as non-billable
+              <span className="inline-block rounded-full size-1 bg-surface-amber-3" />
+            </label>
+          )}
+        />
+
+        <form.Field
+          name="note"
+          children={(field) => (
+            <div className="flex flex-col gap-1.5">
+              <label className="block text-base text-ink-gray-5">Note</label>
+              <Textarea
+                variant="outline"
+                value={field.state.value ?? ""}
+                disabled={isLockedAllocationMetadataEdit}
+                onChange={(e) => field.handleChange(e.target.value)}
+                placeholder="Add a note"
+              />
+            </div>
+          )}
+        />
+      </div>
+    </Dialog>
+  );
+}
+
+export default AddAllocationModal;

@@ -39,6 +39,13 @@ const ThemeProvider = ({
       localStorage.setItem(storageKey, theme);
       setTheme(theme);
     },
+    changeTheme: () => {
+      if (theme === "system") {
+        setTheme(window.matchMedia("(prefers-color-scheme: dark)").matches ? "light" : "dark");
+      } else {
+        setTheme(theme === "light" ? "dark" : "light");
+      }
+    },
   };
 
   return (

@@ -1,3 +1,5 @@
+import datetime
+
 import frappe
 from frappe.utils import flt
 from frappe.utils.data import add_days, getdate
@@ -5,15 +7,26 @@ from frappe.utils.data import add_days, getdate
 from next_pms.timesheet.api.team import get_week_dates
 
 
-def add_customer_data_if_not_exists(customer, customer_name):
+def add_customer_data_if_not_exists(customer: dict, customer_name: str | None) -> dict:
     """If customer is not present in the customer dictionary then add it with name, image and abbr information.
 
     Args:
-        customer (object): customer object
-        customer_name (string): name of customer
+        customer (dict): Running lookup dict keyed by customer name. Mutated in place.
+        customer_name (str | None): The customer field value from a Resource Allocation
+            record.
 
     Returns:
-        customer (object): customer object
+        ```py
+        >>> customer = {}
+        >>> add_customer_data_if_not_exists(customer, "ACME Corp")
+        {"ACME Corp": {"name": "ACME Corp", "abbr": "AC", "image": "/files/acme.png"}}
+
+        >>> add_customer_data_if_not_exists(customer, "Stark Industries")
+        {
+            "ACME Corp": {"name": "ACME Corp", "abbr": "AC", "image": "/files/acme.png"},
+            "Stark Industries": {"name": "Stark Industries", "abbr": "SI", "image": None},
+        }
+        ```
     """
     if not customer_name:
         return customer
@@ -49,7 +62,42 @@ def get_allocation_objects(employee_resource_allocation: list[object]) -> object
     return resource_object
 
 
-def is_on_leave(date, daily_working_hours, leaves, holidays):
+def is_on_leave(date: datetime.date, daily_working_hours: float, leaves: list[dict], holidays: list) -> dict:
+    """Determine whether an employee is on leave or a holiday on a given date,
+    and calculate how many working hours they have on that day.
+
+    Checks leave applications first, then public/employee holidays.
+    A full-day leave or holiday results in 0 working hours.
+    A half-day leave on the exact `date` results in half the normal daily hours.
+    If neither applies, `leave_work_hours` equals `daily_working_hours` (unchanged).
+
+    Note: `leave_work_hours` represents the hours the employee IS available to work
+    on that day — not the hours taken as leave. It is 0 for a full day off and
+    daily_working_hours / 2 for a half day.
+
+    Args:
+        date (datetime.date): The specific day to check.
+        daily_working_hours (float): The employee's normal working hours per day
+            (already converted from weekly if needed).
+        leaves (list[dict]): Leave Application records for the employee, each
+            containing at minimum: from_date, to_date, half_day, half_day_date.
+        holidays (list): Holiday records for the employee, each containing
+            holiday_date.
+
+    Returns:
+        ```py
+        >>> is_on_leave(
+        ...     datetime.date(2026, 5, 20), 8.0,
+        ...     [{"from_date": datetime.date(2026, 5, 20), "to_date": datetime.date(2026, 5, 22),
+        ...       "half_day": 0, "half_day_date": None}],
+        ...     [],
+        ... )
+        {"on_leave": True, "leave_work_hours": 0.0}
+
+        >>> is_on_leave(datetime.date(2026, 5, 21), 8.0, [], [])
+        {"on_leave": False, "leave_work_hours": 8.0}
+        ```
+    """
     leave_work_hours = daily_working_hours
     on_leave = False
     for leave in leaves:
@@ -68,15 +116,44 @@ def is_on_leave(date, daily_working_hours, leaves, holidays):
     return {"on_leave": on_leave, "leave_work_hours": leave_work_hours}
 
 
-def get_dates_date(max_week: int, date: str):
-    """Get the dates for the given week count.
+def get_dates_date(max_week: int, date: str) -> list[dict]:
+    """Return a list of week descriptors starting from the week that contains `date`.
 
     Args:
-        max_week (number): Number of weeks
-        date (string): Date string
+        max_week (int): Number of consecutive weeks to generate.
+        date (str): Anchor date string ("YYYY-MM-DD"). Any day within the desired
+            starting week is acceptable — the function resolves to that week's Monday.
 
     Returns:
-        object: date objects
+        ```py
+        >>> get_dates_date(max_week=2, date="2026-05-21")
+        [
+            {
+                "start_date": datetime.date(2026, 5, 18),
+                "end_date": datetime.date(2026, 5, 24),
+                "key": "This Week",
+                "dates": [
+                    datetime.date(2026, 5, 18), # Monday
+                    datetime.date(2026, 5, 19),
+                    datetime.date(2026, 5, 20),
+                    datetime.date(2026, 5, 21),
+                    datetime.date(2026, 5, 22), # Friday
+                ],
+            },
+            {
+                "start_date": datetime.date(2026, 5, 25),
+                "end_date": datetime.date(2026, 5, 31),
+                "key": "May 25 - May 29",
+                "dates": [
+                    datetime.date(2026, 5, 25),
+                    datetime.date(2026, 5, 26),
+                    datetime.date(2026, 5, 27),
+                    datetime.date(2026, 5, 28),
+                    datetime.date(2026, 5, 29),
+                ],
+            },
+        ]
+        ```
     """
 
     next_dates = []
@@ -107,40 +184,305 @@ def find_worked_hours(timesheet_data: list, date: str, project: str = None):
     return total_hours
 
 
-def filter_project_list(project_name=None, customer=None, billing_type=None, page_length=10, start=0, ids=None):
-    import json
+def _parse_multi_select_filter(value: str | list | None) -> list | None:
+    if not value:
+        return None
+    if isinstance(value, str):
+        try:
+            parsed = frappe.parse_json(value)
+            value = parsed if isinstance(parsed, list) else [parsed]
+        except ValueError, TypeError:
+            value = [value]
+    if isinstance(value, list) and len(value) > 0:
+        return value
+    return None
 
+
+def normalize_project_view_filters(filters, allow_privileged: bool = True):
+    """Validate a [field, operator, value] filter list for the project view.
+
+    Splits the requested conditions into the three layers they target, because the
+    supported fields do not all live on the Project doctype.
+
+    Args:
+        filters: A JSON string or list of [field, operator, value] triplets. The
+            operator must be one of =, !=, like, not like. is_billable accepts only
+            = or != with a value of 0 or 1.
+        allow_privileged: When False (caller has no write permission) every condition
+            except project_name is dropped, mirroring the param-level gating in
+            get_resource_management_project_view_data.
+
+    Returns:
+        A tuple of:
+            - project_conditions: [db_column, operator, value] for direct Project columns.
+            - tag_conditions: [operator, value] to resolve against the Tag Link doctype.
+            - is_billable_value: 0, 1, or None when no is_billable condition was requested.
+    """
+    field_map = {
+        "project_name": "project_name",
+        "customer": "customer",
+        "billing_type": "custom_billing_type",
+        "project_type": "project_type",
+        "project_manager": "custom_project_manager",
+        "project_manager_name": "custom_project_manager_name",
+        "project_id": "name",
+    }
+    allowed_operators = ("=", "!=", "like", "not like")
+
+    project_conditions = []
+    tag_conditions = []
+    is_billable_value = None
+
+    if not filters:
+        return project_conditions, tag_conditions, is_billable_value
+
+    if isinstance(filters, str):
+        try:
+            filters = frappe.parse_json(filters)
+        except ValueError, TypeError:
+            frappe.throw(frappe._("Invalid filters format. Expected a JSON list of [field, operator, value]."))
+
+    if not isinstance(filters, list):
+        frappe.throw(frappe._("Invalid filters format. Expected a list of [field, operator, value] conditions."))
+
+    for condition in filters:
+        if not isinstance(condition, list | tuple) or len(condition) != 3:
+            frappe.throw(frappe._("Each filter must be a [field, operator, value] triplet."))
+
+        field, operator, value = condition
+
+        if operator not in allowed_operators:
+            frappe.throw(frappe._("Unsupported filter operator: {0}").format(operator))
+
+        if field not in field_map and field not in ("tag", "is_billable"):
+            frappe.throw(frappe._("Filtering on field {0} is not supported.").format(field))
+
+        if not allow_privileged and field != "project_name":
+            continue
+
+        if field == "is_billable":
+            if operator not in ("=", "!="):
+                frappe.throw(frappe._("Operator {0} is not supported for is_billable.").format(operator))
+            if value not in (0, 1):
+                frappe.throw(frappe._("is_billable accepts only 0 or 1, got: {0}").format(value))
+            is_billable_value = value if operator == "=" else 1 - value
+        elif field == "tag":
+            tag_conditions.append([operator, value])
+        else:
+            if operator in ("like", "not like"):
+                value = f"%{value}%"
+            project_conditions.append([field_map[field], operator, value])
+
+    return project_conditions, tag_conditions, is_billable_value
+
+
+def normalize_team_view_filters(
+    filters: str | list | None,
+    allow_privileged: bool = False,
+) -> tuple[list[list], list[list], list[list], int | None]:
+    """Validate a [field, operator, value] filter list for the team view.
+
+    Args:
+        filters: A JSON string or list of [field, operator, value] triplets. The
+            operator must be one of =, !=, like, not like. is_billable accepts only
+            = or != with a value of 0 or 1.
+        allow_privileged: When False (caller has no write permission) every condition
+            except employee_name is dropped.
+
+    Returns:
+        A tuple of:
+            - employee_conditions: [db_column, operator, value] for direct Employee columns.
+            - skill_conditions: [operator, value] to resolve against the Employee Skill doctype.
+            - tag_conditions: [operator, value] to resolve against the Tag Link doctype.
+            - is_billable_value: 0, 1, or None when no is_billable condition was requested.
+    """
+    field_map = {
+        "employee_name": "employee_name",
+        "business_unit": "custom_business_unit",
+        "designation": "designation",
+        "reports_to": "reports_to",
+        "reporting_manager": "custom_reporting_manager",
+        "employee_id": "name",
+    }
+    allowed_operators = ("=", "!=", "like", "not like")
+
+    employee_conditions = []
+    skill_conditions = []
+    tag_conditions = []
+    is_billable_value = None
+
+    if not filters:
+        return employee_conditions, skill_conditions, tag_conditions, is_billable_value
+
+    if isinstance(filters, str):
+        try:
+            filters = frappe.parse_json(filters)
+        except ValueError, TypeError:
+            frappe.throw(frappe._("Invalid filters format. Expected a JSON list of [field, operator, value]."))
+
+    if not isinstance(filters, list):
+        frappe.throw(frappe._("Invalid filters format. Expected a list of [field, operator, value] conditions."))
+
+    for condition in filters:
+        if not isinstance(condition, list | tuple) or len(condition) != 3:
+            frappe.throw(frappe._("Each filter must be a [field, operator, value] triplet."))
+
+        field, operator, value = condition
+
+        if operator not in allowed_operators:
+            frappe.throw(frappe._("Unsupported filter operator: {0}").format(operator))
+
+        if field not in field_map and field not in ("skills", "tag", "is_billable"):
+            frappe.throw(frappe._("Filtering on field {0} is not supported.").format(field))
+
+        if not allow_privileged and field != "employee_name":
+            continue
+
+        if field == "is_billable":
+            if operator not in ("=", "!="):
+                frappe.throw(frappe._("Operator {0} is not supported for is_billable.").format(operator))
+            if value not in (0, 1):
+                frappe.throw(frappe._("is_billable accepts only 0 or 1, got: {0}").format(value))
+            is_billable_value = value if operator == "=" else 1 - value
+        elif field == "skills":
+            skill_conditions.append([operator, value])
+        elif field == "tag":
+            tag_conditions.append([operator, value])
+        else:
+            if operator in ("like", "not like"):
+                value = f"%{value}%"
+            employee_conditions.append([field_map[field], operator, value])
+
+    return employee_conditions, skill_conditions, tag_conditions, is_billable_value
+
+
+def filter_project_list(
+    project_name=None,
+    customer=None,
+    billing_type=None,
+    project_type=None,
+    project_manager=None,
+    tag=None,
+    page_length=10,
+    start=0,
+    ids=None,
+    extra_conditions=None,
+    tag_conditions=None,
+    prioritized_ids=None,
+):
+    """Return one page of Projects plus the total count of matches.
+
+    When prioritized_ids is a non-empty list, matching projects in that list are
+    paginated before the rest (two-phase pagination); total_count is unaffected.
+    An empty list behaves like None (plain single-query pagination).
+    """
     from next_pms.timesheet.api import get_count
 
     start = int(start)
     page_length = int(page_length)
 
-    filters = {}
+    fields = [
+        "name",
+        "project_name",
+        "status",
+        "customer",
+        "expected_start_date",
+        "expected_end_date",
+        "custom_project_manager",
+        "custom_project_manager_name",
+        "custom_total_hours_remaining",
+    ]
 
-    fields = ["name", "project_name", "status"]
+    conditions = []
+
+    # Closed projects (Completed / Cancelled) are excluded from the resource view.
+    conditions.append(["status", "not in", ["Completed", "Cancelled"]])
 
     if ids:
-        filters["name"] = ["in", ids]
+        conditions.append(["name", "in", ids])
 
     else:
         if project_name:
-            filters["project_name"] = ["like", f"%{project_name}%"]
+            conditions.append(["project_name", "like", f"%{project_name}%"])
 
-        if customer:
-            if isinstance(customer, str):
-                customer = json.loads(customer)
-            if customer and len(customer) > 0:
-                filters["customer"] = ["in", customer]
+        customer_values = _parse_multi_select_filter(customer)
+        if customer_values:
+            conditions.append(["customer", "in", customer_values])
 
-        if billing_type:
-            if isinstance(billing_type, str):
-                billing_type = json.loads(billing_type)
-            if billing_type and len(billing_type) > 0:
-                filters["custom_billing_type"] = ["in", billing_type]
+        billing_type_values = _parse_multi_select_filter(billing_type)
+        if billing_type_values:
+            conditions.append(["custom_billing_type", "in", billing_type_values])
 
-    projects = frappe.get_list("Project", filters=filters, fields=fields, start=start, page_length=page_length)
+        project_type_values = _parse_multi_select_filter(project_type)
+        if project_type_values:
+            conditions.append(["project_type", "in", project_type_values])
 
-    total_count = get_count("Project", filters=filters)
+        project_manager_values = _parse_multi_select_filter(project_manager)
+        if project_manager_values:
+            conditions.append(["custom_project_manager", "in", project_manager_values])
+
+        tag_values = _parse_multi_select_filter(tag)
+        if tag_values:
+            tagged_projects = frappe.get_all(
+                "Tag Link",
+                filters={"document_type": "Project", "tag": ["in", tag_values]},
+                pluck="document_name",
+                distinct=True,
+            )
+            conditions.append(["name", "in", tagged_projects or []])
+
+    if extra_conditions:
+        conditions.extend(extra_conditions)
+
+    if tag_conditions is None:
+        tag_conditions = []
+    for operator, value in tag_conditions:
+        tag_op = "like" if operator in ("like", "not like") else "="
+        tag_value = f"%{value}%" if operator in ("like", "not like") else value
+        tagged_projects = frappe.get_all(
+            "Tag Link",
+            filters={"document_type": "Project", "tag": [tag_op, tag_value]},
+            pluck="document_name",
+            distinct=True,
+        )
+        name_op = "in" if operator in ("=", "like") else "not in"
+        conditions.append(["name", name_op, tagged_projects or []])
+
+    total_count = get_count("Project", filters=conditions)
+
+    if not prioritized_ids:
+        projects = frappe.get_list(
+            "Project",
+            filters=conditions,
+            fields=fields,
+            offset=start,
+            limit=page_length,
+        )
+        return projects, total_count
+
+    prioritized_conditions = [*conditions, ["name", "in", prioritized_ids]]
+    remaining_conditions = [*conditions, ["name", "not in", prioritized_ids]]
+    prioritized_count = get_count("Project", filters=prioritized_conditions)
+
+    projects = []
+    if start < prioritized_count:
+        projects = frappe.get_list(
+            "Project",
+            filters=prioritized_conditions,
+            fields=fields,
+            offset=start,
+            limit=page_length,
+        )
+
+    remaining_page_length = page_length - len(projects)
+    if remaining_page_length > 0:
+        projects += frappe.get_list(
+            "Project",
+            filters=remaining_conditions,
+            fields=fields,
+            offset=max(0, start - prioritized_count),
+            limit=remaining_page_length,
+        )
 
     return projects, total_count
 
