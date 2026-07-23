@@ -8,7 +8,7 @@ from next_pms.resource_management.api.utils.query import (
     leave_includes_holidays,
 )
 from next_pms.tests.utils import make_employee, make_holiday_list
-from next_pms.timesheet.api.team import get_compact_view_data
+from next_pms.timesheet.api.team import _get_team_timesheet_data
 from next_pms.timesheet.api.utils import get_holidays
 
 # Aug 2026: Mon 10 … Fri 14, Sat 15 + Sun 16 weekly off, Mon 17 … Wed 19.
@@ -24,6 +24,7 @@ SEP_TUE_NEXT = "2026-09-15"
 
 HOLIDAY_LIST = "Leave Weekend Test Holiday List"
 EMPLOYEE_USER = "leave-weekend-test@example.com"
+MANAGER_USER = "leave-weekend-test-manager@example.com"
 
 INCLUDES_HOLIDAYS_TYPE = "Leave Weekend Test Incl"
 EXCLUDES_HOLIDAYS_TYPE = "Leave Weekend Test Excl"
@@ -93,6 +94,9 @@ class TestLeaveIncludesHolidays(IntegrationTestCase):
 class TestLeaveWeekendRendering(IntegrationTestCase):
     """A leave spanning a weekend is rendered to match what the backend actually counted.
 
+    Renders through the live team-view path (`_get_team_timesheet_data`), the endpoint the
+    frontend calls. The employee reports to a manager so it surfaces under `reports_to`.
+
     Both leave types below are `is_lwp` so no Leave Allocation is needed, and both are
     configured so that stock HRMS and rtCamp's override agree on the outcome — the
     assertions hold whether or not the rtcamp app is installed.
@@ -101,6 +105,9 @@ class TestLeaveWeekendRendering(IntegrationTestCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
+        # The framework rolls back the DefaultValue row at class teardown, but set_default also
+        # rewarms a non-transactional cache that rollback won't revert, so restore it explicitly.
+        cls._prev_first_day_of_the_week = frappe.db.get_default("first_day_of_the_week")
         frappe.db.set_default("first_day_of_the_week", "Monday")
 
         weekends = []
@@ -119,10 +126,12 @@ class TestLeaveWeekendRendering(IntegrationTestCase):
         holiday_list = make_holiday_list(
             HOLIDAY_LIST, from_date="2026-01-01", to_date="2026-12-31", holiday_dates=weekends
         )
+        cls.manager = make_employee(MANAGER_USER, company=get_default_company(), leave_approver="Administrator")
         cls.employee = make_employee(
             EMPLOYEE_USER,
             company=get_default_company(),
             leave_approver="Administrator",
+            reports_to=cls.manager,
         )
         # Employee.holiday_list is ignored; HRMS resolves via Holiday List Assignment.
         if not frappe.db.exists(
@@ -153,6 +162,11 @@ class TestLeaveWeekendRendering(IntegrationTestCase):
         # A previous aborted run can leave applications behind and trip the overlap check.
         for leave in frappe.get_all("Leave Application", filters={"employee": cls.employee}, pluck="name"):
             frappe.delete_doc("Leave Application", leave, force=1, ignore_permissions=True)
+
+    @classmethod
+    def tearDownClass(cls):
+        frappe.db.set_default("first_day_of_the_week", cls._prev_first_day_of_the_week)
+        super().tearDownClass()
 
     def tearDown(self):
         get_employee_leaves.clear_cache()
@@ -189,9 +203,7 @@ class TestLeaveWeekendRendering(IntegrationTestCase):
         ).insert()
 
     def _weekend_hours(self, week_of):
-        payload = get_compact_view_data(
-            date=week_of, max_week=1, employee_ids=[self.employee], by_pass_access_check=True
-        )
+        payload = _get_team_timesheet_data(date=week_of, max_week=1, reports_to=self.manager, by_pass_access_check=True)
         row = payload["data"][self.employee]
         days = {str(day["date"]): day for day in row["data"]}
         return row["working_hour"], days

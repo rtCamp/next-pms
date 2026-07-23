@@ -229,7 +229,9 @@ def leave_includes_holidays(leave: dict) -> bool:
         elif half_day_date and getdate(leave["from_date"]) <= getdate(half_day_date) <= getdate(leave["to_date"]):
             span -= 0.5
 
-    return flt(leave.get("total_leave_days")) >= flt(span)
+    # total_leave_days is persisted at 2-decimal precision; round the span to match so the
+    # comparison never trips on sub-precision float noise (e.g. a stored 6.999999 vs a span of 7).
+    return flt(leave.get("total_leave_days"), 2) >= flt(span, 2)
 
 
 @redis_cache
