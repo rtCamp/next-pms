@@ -12,6 +12,12 @@ export {
   type TaskStatusType,
 } from "./task-status";
 export {
+  ApprovalStatus,
+  approvalStatusIcon,
+  approvalStatusIconVariants,
+  type ApprovalStatusLabelType,
+} from "./approval-status";
+export {
   default as TaskProgress,
   type TaskProgressProps,
 } from "./task-progress";

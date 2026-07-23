@@ -19,6 +19,25 @@ def get_user_image(user: str) -> str | None:
     return frappe.db.get_value("User", user, "user_image")
 
 
+def get_user_details_map(users: list[str]) -> dict[str, dict]:
+    """Fetch full_name and user_image for multiple users in a single query.
+
+    Args:
+        users: User names (emails) to look up; duplicates are collapsed.
+
+    Returns:
+        dict[str, dict]: Map of user name to a dict with full_name and user_image.
+    """
+    if not users:
+        return {}
+    rows = frappe.get_all(
+        "User",
+        filters={"name": ["in", list(set(users))]},
+        fields=["name", "full_name", "user_image"],
+    )
+    return {row.name: {"full_name": row.full_name, "user_image": row.user_image} for row in rows}
+
+
 def get_employee_image_map(employees: list[str]) -> dict[str, str | None]:
     """Map each employee to their linked User's avatar image, in two bulk queries."""
     if not employees:

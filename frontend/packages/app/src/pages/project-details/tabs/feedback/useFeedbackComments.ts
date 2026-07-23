@@ -14,99 +14,53 @@ import {
  * Internal dependencies.
  */
 import { parseFrappeErrorMsg } from "@/lib/utils";
-import { useUser } from "@/providers/user";
+import type { FeedbackComment } from "./types";
 
-interface FeedbackCommentAPIItem {
-  name: string;
-  comment_by: string;
-  comment_email: string;
-  content: string;
-  creation: string;
-  custom_reply_to: string | null;
-}
-
-function buildCommentTree(items: FeedbackCommentAPIItem[]): CommentNode[] {
-  const nodeMap = new Map<string, CommentNode>();
-  const roots: CommentNode[] = [];
-
-  for (const item of items) {
-    nodeMap.set(item.name, {
-      id: item.name,
-      authorId: item.comment_email,
-      authorName: item.comment_by,
-      content: item.content,
-      createdAt: item.creation,
-      replies: [],
-    });
-  }
-
-  for (const item of items) {
-    const node = nodeMap.get(item.name)!;
-    if (item.custom_reply_to) {
-      const parent = nodeMap.get(item.custom_reply_to);
-      if (parent) {
-        parent.replies.push(node);
-      } else {
-        roots.push(node);
-      }
-    } else {
-      roots.push(node);
-    }
-  }
-
-  return roots;
+function mapFeedbackComment(comment: FeedbackComment): CommentNode {
+  return {
+    id: comment.name,
+    authorId: comment.user,
+    authorName: comment.user_full_name,
+    authorImage: comment.user_image,
+    content: comment.comment,
+    createdAt: comment.created_at,
+    ownerId: comment.user,
+    edited: comment.edited,
+    deleted: comment.deleted,
+    deletedAt: comment.deleted_at,
+    replies: (comment.replies ?? []).map(mapFeedbackComment),
+  };
 }
 
 export function useFeedbackComments(feedbackName: string) {
   const toast = useToasts();
-  const { userId, userName } = useUser(({ state }) => ({
-    userId: state.userId,
-    userName: state.userName,
-  }));
 
   const { data, isLoading, isValidating, error, mutate } = useFrappeGetCall<{
-    message: FeedbackCommentAPIItem[];
-  }>("frappe.client.get_list", {
-    doctype: "Comment",
-    filters: JSON.stringify([
-      ["reference_doctype", "=", "Customer Feedback"],
-      ["reference_name", "=", feedbackName],
-      ["comment_type", "=", "Comment"],
-    ]),
-    fields: JSON.stringify([
-      "name",
-      "comment_by",
-      "comment_email",
-      "content",
-      "creation",
-      "custom_reply_to",
-    ]),
-    order_by: "creation asc",
+    message: FeedbackComment[];
+  }>("next_pms.next_projects.api.feedback.get_feedback_comments", {
+    feedback: feedbackName,
   });
 
   const { call: addCall, loading: isAdding } = useFrappePostCall(
-    "frappe.desk.form.utils.add_comment",
+    "next_pms.next_projects.api.feedback.add_comment_to_feedback",
   );
   const { call: editCall, loading: isEditing } = useFrappePostCall(
-    "frappe.client.set_value",
+    "next_pms.next_projects.api.feedback.update_comment_in_feedback",
   );
   const { call: deleteCall, loading: isDeleting } = useFrappePostCall(
-    "frappe.client.delete",
+    "next_pms.next_projects.api.feedback.delete_comment_from_feedback",
   );
 
   const postComment = useCallback(
     async (comment: string, replyTo?: string) => {
       await addCall({
-        reference_doctype: "Customer Feedback",
-        reference_name: feedbackName,
-        content: comment,
-        comment_email: userId,
-        comment_by: userName,
-        ...(replyTo && { custom_reply_to: replyTo }),
+        feedback: feedbackName,
+        comment,
+        ...(replyTo && { reply_to: replyTo }),
       });
       await mutate();
     },
-    [addCall, feedbackName, mutate, userId, userName],
+    [addCall, feedbackName, mutate],
   );
 
   const addComment = useCallback(
@@ -136,12 +90,7 @@ export function useFeedbackComments(feedbackName: string) {
   const editComment = useCallback(
     async (commentId: string, comment: string) => {
       try {
-        await editCall({
-          doctype: "Comment",
-          name: commentId,
-          fieldname: "content",
-          value: comment,
-        });
+        await editCall({ comment_name: commentId, comment });
         await mutate();
       } catch (err) {
         toast.error(parseFrappeErrorMsg(err as FrappeError));
@@ -154,7 +103,7 @@ export function useFeedbackComments(feedbackName: string) {
   const deleteComment = useCallback(
     async (commentId: string) => {
       try {
-        await deleteCall({ doctype: "Comment", name: commentId });
+        await deleteCall({ comment_name: commentId });
         await mutate();
       } catch (err) {
         toast.error(parseFrappeErrorMsg(err as FrappeError));
@@ -165,7 +114,7 @@ export function useFeedbackComments(feedbackName: string) {
   );
 
   return {
-    comments: buildCommentTree(data?.message ?? []),
+    comments: (data?.message ?? []).map(mapFeedbackComment),
     isLoading,
     isUpdating: isAdding || isEditing || isDeleting || isValidating,
     error,

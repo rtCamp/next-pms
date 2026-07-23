@@ -41,7 +41,8 @@ jobs:
           DEPS=$(grep -E "required_apps\s*=\s*\[" app_repo/*/hooks.py | sed 's/.*\[\(.*\)\]/\1/g' | tr -d '"' | tr -d "'" | tr ',' '\n' | awk '{$1=$1};1')
           rm -rf app_repo
           for dep in $DEPS; do
-            su frappe bash -c "bench get-app $dep"
+            # required_apps entries carry the app name (underscores); GitHub repo slugs use dashes
+            su frappe bash -c "bench get-app $(echo $dep | tr '_' '-')"
           done
 
       - name: Get APP and Build

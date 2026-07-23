@@ -35,6 +35,7 @@ export interface WeeklyApprovalContextValue {
   avatarUrl: string;
   dateRange: string;
   totalHours: number;
+  dailyWorkingHours: number;
   isReadOnly: boolean;
   rejectionError: string | null;
   groupedByDay: GroupedDay[];
@@ -112,6 +113,7 @@ export const WeeklyApprovalProvider = ({
     [timesheetData.entries],
   );
   const totalHours = timesheetData.totalHours;
+  const dailyWorkingHours = timesheetData.dailyWorkingHours;
   const isReadOnly =
     timesheetData.status === "Approved" ||
     timesheetData.status === "Processing Timesheet";
@@ -277,6 +279,7 @@ export const WeeklyApprovalProvider = ({
       avatarUrl,
       dateRange,
       totalHours,
+      dailyWorkingHours,
       isReadOnly,
       rejectionError,
       groupedByDay,
@@ -297,6 +300,7 @@ export const WeeklyApprovalProvider = ({
       avatarUrl,
       dateRange,
       totalHours,
+      dailyWorkingHours,
       isReadOnly,
       rejectionError,
       groupedByDay,

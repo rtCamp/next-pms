@@ -33,6 +33,7 @@ import { useUser } from "@/providers/user";
 import CalendarEvents from "./calendarEvents";
 import { addTimeFormSchema, type addTimeFormValues } from "./schema";
 import type { AddTimeProps, SelectedCalendarEvent } from "./type";
+import { useRemainingHours } from "../../hooks/useRemainingHours";
 
 const COMMENT_EDITOR_STARTERKIT_OPTIONS: NonNullable<
   TextEditorProps["starterkitOptions"]
@@ -162,6 +163,16 @@ const AddTime = ({
         status: selectedTaskStatus,
       }
     : null;
+
+  const {
+    maxDuration,
+    hoursLeft,
+    isLoading: isRemainingHoursLoading,
+  } = useRemainingHours({
+    employee: employeeId,
+    date: selectedDate,
+    enabled: open,
+  });
 
   useEffect(() => {
     if (!open) {
@@ -391,11 +402,15 @@ const AddTime = ({
             name="duration"
             children={(field) => {
               return (
-                <div className="flex-1 flex flex-col gap-2 w-full">
+                <div className="flex flex-col flex-1 w-full gap-2">
                   <DurationInput
                     label="Duration"
                     size="md"
                     snap="smooth"
+                    maxDuration={maxDuration}
+                    hoursLeft={hoursLeft}
+                    loading={isRemainingHoursLoading}
+                    disabled={isRemainingHoursLoading}
                     value={field.state.value}
                     onChange={(val) => field.handleChange(val)}
                   />

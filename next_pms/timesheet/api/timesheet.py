@@ -661,7 +661,7 @@ def get_timesheet_state(employee: str, start_date: str, end_date: str):
 @frappe.whitelist(methods=["GET"])
 @validate_current_employee(ptype="write")
 def get_remaining_hour_for_employee(employee: str, date: str):
-    """Return the working hours for the given employee on the given date."""
+    """Return the daily working-hour norm and the remaining available hours for the given employee on the given date."""
     from .employee import get_employee_working_hours
 
     working_hours = get_employee_working_hours(employee)
@@ -694,7 +694,10 @@ def get_remaining_hour_for_employee(employee: str, date: str):
                 total_hours += working_hours.get("working_hour") / 2
             else:
                 total_hours += working_hours.get("working_hour")
-    return working_hours.get("working_hour") - total_hours
+    return {
+        "working_hour": working_hours.get("working_hour"),
+        "remaining_hours": working_hours.get("working_hour") - total_hours,
+    }
 
 
 @frappe.whitelist(methods=["GET"])
