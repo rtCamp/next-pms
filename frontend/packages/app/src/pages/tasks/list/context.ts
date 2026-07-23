@@ -18,10 +18,12 @@ export interface TaskListContextProps {
   actions: {
     loadMore: () => void;
     refresh: () => void;
+    deleteTask: (name: string) => Promise<void>;
   };
 }
 
 const noop = () => {};
+const noopAsync = async () => {};
 
 export const TaskListContext = createContext<TaskListContextProps>({
   state: {
@@ -33,6 +35,7 @@ export const TaskListContext = createContext<TaskListContextProps>({
   actions: {
     loadMore: noop,
     refresh: noop,
+    deleteTask: noopAsync,
   },
 });
 

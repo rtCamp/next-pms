@@ -3,17 +3,21 @@
  */
 import { useCallback, useMemo, type PropsWithChildren } from "react";
 import { type PaginationKey, usePagination } from "@next-pms/hooks";
+import { useToasts } from "@rtcamp/frappe-ui-react";
+import { type FrappeError, useFrappeDeleteDoc } from "frappe-react-sdk";
 
 /**
  * Internal dependencies.
  */
-import { buildFilterConditions } from "@/lib/utils";
+import { buildFilterConditions, parseFrappeErrorMsg } from "@/lib/utils";
 import { TASK_LIST_PAGE_SIZE } from "../constants";
 import { TaskListContext, type TaskListContextProps } from "./context";
 import type { ResponseTaskList } from "./types";
 import { useTaskFilters } from "../useTaskFilters";
 
 export function TaskListProvider({ children }: PropsWithChildren) {
+  const toast = useToasts();
+  const { deleteDoc } = useFrappeDeleteDoc();
   const { filters, sort } = useTaskFilters();
   const frappeFilters = useMemo(
     () => buildFilterConditions(filters.advanced),
@@ -92,6 +96,19 @@ export function TaskListProvider({ children }: PropsWithChildren) {
     mutate();
   }, [mutate]);
 
+  const deleteTask = useCallback(
+    async (name: string) => {
+      try {
+        await deleteDoc("Task", name);
+        refresh();
+        toast.success("Task deleted");
+      } catch (err) {
+        toast.error(parseFrappeErrorMsg(err as FrappeError));
+      }
+    },
+    [deleteDoc, refresh],
+  );
+
   const value: TaskListContextProps = useMemo(
     () => ({
       state: {
@@ -103,9 +120,10 @@ export function TaskListProvider({ children }: PropsWithChildren) {
       actions: {
         loadMore,
         refresh,
+        deleteTask,
       },
     }),
-    [tasks, hasMore, isLoading, error, loadMore, refresh],
+    [tasks, hasMore, isLoading, error, loadMore, refresh, deleteTask],
   );
 
   return (

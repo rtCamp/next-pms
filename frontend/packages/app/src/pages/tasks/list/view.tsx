@@ -10,10 +10,8 @@ import {
   ListRow,
   ListRows,
   ListView,
-  useToasts,
 } from "@rtcamp/frappe-ui-react";
 import { ArrowDown, ArrowUp } from "@rtcamp/frappe-ui-react/icons";
-import { type FrappeError, useFrappeDeleteDoc } from "frappe-react-sdk";
 
 /**
  * Internal dependencies.
@@ -21,7 +19,6 @@ import { type FrappeError, useFrappeDeleteDoc } from "frappe-react-sdk";
 import { InfiniteScroll } from "@/components/infiniteScroll";
 import PersonalTaskLog from "@/components/task-log/personalTaskLog";
 import TeamTaskLog from "@/components/task-log/teamTaskLog";
-import { parseFrappeErrorMsg } from "@/lib/utils";
 import AddTime from "@/pages/timesheet/components/add-time";
 import type { OpenAddTimeDialogOptions } from "@/pages/timesheet/outletContext";
 import { useUser } from "@/providers/user";
@@ -40,7 +37,7 @@ function TaskList() {
   const isLoading = useTaskList((c) => c.state.isLoading);
   const hasMore = useTaskList((c) => c.state.hasMore);
   const loadMore = useTaskList((c) => c.actions.loadMore);
-  const refresh = useTaskList((c) => c.actions.refresh);
+  const deleteTask = useTaskList((c) => c.actions.deleteTask);
   const { sort, setSort } = useTaskFilters();
   const roles = useUser(({ state }) => state.roles);
   const showTeamTaskLog =
@@ -50,26 +47,11 @@ function TaskList() {
     useState<OpenAddTimeDialogOptions>({ date: getTodayDate() });
   const [isAddTimeOpen, setIsAddTimeOpen] = useState(false);
   const [deleteTaskName, setDeleteTaskName] = useState<string | null>(null);
-  const { deleteDoc } = useFrappeDeleteDoc();
-  const toast = useToasts();
 
   const handleAddTime = useCallback((prefill: OpenAddTimeDialogOptions) => {
     setAddTimePrefill({ date: getTodayDate(), ...prefill });
     setIsAddTimeOpen(true);
   }, []);
-
-  const handleDeleteTask = useCallback(
-    async (name: string) => {
-      try {
-        await deleteDoc("Task", name);
-        refresh();
-        toast.success("Task deleted");
-      } catch (err) {
-        toast.error(parseFrappeErrorMsg(err as FrappeError));
-      }
-    },
-    [deleteDoc, refresh, toast],
-  );
 
   const handleHeaderClick = (sortField: string) => {
     if (sort.field === sortField) {
@@ -185,7 +167,7 @@ function TaskList() {
           title="Delete task"
           description="Are you sure you want to delete this task? This action cannot be undone."
           onClose={() => setDeleteTaskName(null)}
-          onConfirm={() => handleDeleteTask(deleteTaskName)}
+          onConfirm={() => deleteTask(deleteTaskName)}
         />
       )}
     </>
