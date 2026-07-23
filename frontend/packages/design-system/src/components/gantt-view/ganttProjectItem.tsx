@@ -61,19 +61,20 @@ export function GanttProjectItem({
           className="relative overflow-hidden transition-[height] duration-200 ease-in-out"
           style={{ height: contentHeight }}
         >
-          {/* Mouse only trigger */}
+          {/* Mouse-only trigger */}
           <Popover.Trigger
             id={`${triggerId}-cell`}
             openOnHover
             delay={300}
             closeDelay={150}
             tabIndex={-1}
+            onMouseDown={(e) => e.preventDefault()}
             onClick={() => {
               if (canExpand) onToggle?.();
             }}
             render={<button type="button" />}
             className={cn(
-              "absolute inset-0 z-10",
+              "absolute inset-0 z-10 focus:outline-none",
               canExpand ? "cursor-pointer" : "cursor-default",
             )}
           />
