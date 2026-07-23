@@ -55,10 +55,6 @@ export const routeConfig: Record<
     Component: ReactLazyPreload(() => import("@/pages/projects")),
     allowedRoles: ["Projects Manager", "Timesheet Manager", "Projects User"],
   },
-  "project-kanban": {
-    Component: ReactLazyPreload(() => import("@/pages/projects/kanban")),
-    allowedRoles: ["Projects Manager", "Timesheet Manager", "Projects User"],
-  },
   "timesheet-personal": {
     Component: ReactLazyPreload(() => import("@/pages/timesheet/personal")),
     allowedRoles: [],
@@ -89,7 +85,6 @@ export function Router() {
   const LeadershipDashboard = routeConfig["dashboard-leadership"].Component;
   const ManagerDashboard = routeConfig["dashboard-manager"].Component;
   const ProjectList = routeConfig.project.Component;
-  const ProjectKanban = routeConfig["project-kanban"].Component;
   const TimesheetPersonal = routeConfig["timesheet-personal"].Component;
   const TimesheetTeam = routeConfig["timesheet-team"].Component;
   const TimesheetProject = routeConfig["timesheet-project"].Component;
@@ -137,18 +132,6 @@ export function Router() {
             }
           >
             <Route path={ROUTES.project} element={<ProjectList />} />
-          </Route>
-          <Route
-            element={
-              <RoleProtectedRoute
-                allowedRoles={routeConfig["project-kanban"].allowedRoles}
-              />
-            }
-          >
-            <Route
-              path={ROUTES["project-kanban"]}
-              element={<ProjectKanban />}
-            />
           </Route>
           <Route
             path={`${ROUTES.project}/:projectId`}

@@ -2,7 +2,6 @@
  * External dependencies.
  */
 import { useEffect, useRef, useState } from "react";
-import { useMatch } from "react-router-dom";
 import { SortSelector } from "@next-pms/design-system/components";
 import {
   Select,
@@ -16,10 +15,10 @@ import {
  */
 import { FilterLinkValue } from "@/components/filters/FilterLinkValue";
 import { useDebounce } from "@/hooks/useDebounce";
-import { ROUTES } from "@/lib/constant";
 import { useProjectFilters } from "./useProjectFilters";
 import { PHASE_OPTIONS, RAG_OPTIONS, STATUS_OPTIONS } from "../../constants";
 import { Phase, type ProjectStatus, type RagStatus } from "../../types";
+import { useProjectViews } from "../../views";
 
 export function ProjectFilters() {
   const {
@@ -39,7 +38,8 @@ export function ProjectFilters() {
     (phase ? 1 : 0) +
     (status ? 1 : 0);
 
-  const isKanban = !!useMatch(ROUTES["project-kanban"]);
+  const activeView = useProjectViews((state) => state.state.activeView);
+  const isKanban = activeView?.type.toLowerCase() === "custom";
 
   const [searchInput, setSearchInput] = useState(search);
   const isUserInput = useRef(false);

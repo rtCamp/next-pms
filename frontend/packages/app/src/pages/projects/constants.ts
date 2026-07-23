@@ -1,22 +1,7 @@
 /**
- * External dependencies.
- */
-import { Kanban } from "@rtcamp/frappe-ui-react/icons";
-
-/**
  * Internal dependencies.
  */
-import { ROUTES } from "@/lib/constant";
 import { kebabToTitleCase } from "@/lib/utils";
-
-export const VIEWS = [
-  {
-    key: "kanban",
-    label: "Kanban view",
-    icon: Kanban,
-    path: ROUTES["project-kanban"],
-  },
-] as const;
 
 export const PHASES = [
   "delivery-prep",
@@ -28,8 +13,6 @@ export const PHASES = [
 ] as const;
 
 export const RAG_STATUS = ["red", "amber", "green"] as const;
-
-export const PROJECT_TYPES = ["fixed-cost", "retainer", "external"] as const;
 
 export const PROJECT_LIST_PAGE_SIZE = 20;
 
