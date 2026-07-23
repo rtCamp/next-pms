@@ -32,3 +32,4 @@ next_pms.timesheet.patches.add_project_report_permissions
 next_pms.timesheet.patches.setup_timesheet_rejection_reason_field
 next_pms.next_pms.patches.backfill_notification_title
 next_pms.resource_management.patches.update_active_allocation_currency_and_cost
+next_pms.next_projects.patches.share_projects_with_managers
