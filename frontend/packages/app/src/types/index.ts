@@ -108,7 +108,7 @@ export interface View {
   route?: string;
   columns: unknown[];
   rows: string[];
-  filters: Record<string, unknown> | unknown[];
+  filters: Record<string, unknown>;
   order_by: unknown[];
   pinnedColumns: string[];
 }

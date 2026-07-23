@@ -14,6 +14,8 @@ export interface ViewsContextProps {
     doctype: string;
     /** Saved views for the doctype available to the current user (own + public). */
     views: View[];
+    /** View currently selected via the `view` search param, if any. */
+    activeView: View | undefined;
     /** Indicates whether views are still being fetched. */
     isLoading: boolean;
   };
@@ -23,6 +25,8 @@ export interface ViewsContextProps {
       type?: string;
       filters?: Record<string, unknown>;
     }) => void;
+    /** Selects a view: syncs the `view`, filter and sort search params to it. */
+    applyView: (view: View, options?: { replace?: boolean }) => void;
     /** Updates an existing view and refreshes the list. */
     updateView: (view: Partial<View>) => Promise<void>;
     /** Re-fetches the views from the server. */
@@ -34,10 +38,12 @@ export const ViewsContext = createContext<ViewsContextProps>({
   state: {
     doctype: "",
     views: [],
+    activeView: undefined,
     isLoading: false,
   },
   actions: {
     createView: () => null,
+    applyView: () => null,
     updateView: () => Promise.resolve(),
     refresh: () => Promise.resolve(),
   },

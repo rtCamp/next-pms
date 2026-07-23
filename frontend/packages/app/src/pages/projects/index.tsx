@@ -14,8 +14,8 @@ import ProjectsHeader from "./components/projectsHeader";
 
 function ProjectsPage() {
   return (
-    <ViewsProvider doctype="Project">
-      <ProjectsHeader label="Projects" filterParamKeys={FILTER_PARAM_KEYS}>
+    <ViewsProvider doctype="Project" filterParamKeys={FILTER_PARAM_KEYS}>
+      <ProjectsHeader label="Projects">
         <Button
           variant="solid"
           label="Add project"

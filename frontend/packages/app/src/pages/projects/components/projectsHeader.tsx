@@ -1,7 +1,7 @@
 /**
  * External dependencies.
  */
-import { useCallback, useEffect, type PropsWithChildren } from "react";
+import { type PropsWithChildren } from "react";
 import { useSearchParams } from "react-router-dom";
 import { Spinner } from "@next-pms/design-system/components";
 import { Breadcrumbs } from "@rtcamp/frappe-ui-react";
@@ -12,65 +12,19 @@ import { AddSm, SmallDown } from "@rtcamp/frappe-ui-react/icons";
  */
 import { Header } from "@/layout/header";
 import { useViews } from "@/providers/views";
-import type { View } from "@/types";
-
-const NO_PARAM_KEYS: readonly string[] = [];
 
 type ProjectsHeaderProps = PropsWithChildren<{
   label: string;
-  filterParamKeys?: readonly string[];
 }>;
 
-function ProjectsHeader({
-  label,
-  filterParamKeys = NO_PARAM_KEYS,
-  children,
-}: ProjectsHeaderProps) {
-  const [searchParams, setSearchParams] = useSearchParams();
+function ProjectsHeader({ label, children }: ProjectsHeaderProps) {
+  const [searchParams] = useSearchParams();
   const doctype = useViews((state) => state.state.doctype);
   const views = useViews((state) => state.state.views);
-  const createView = useViews((state) => state.actions.createView);
+  const activeView = useViews((state) => state.state.activeView);
   const isLoading = useViews((state) => state.state.isLoading);
-  const viewParam = searchParams.get("view");
-  const activeView = views.find(({ name }) => String(name) === viewParam);
-
-  const applyView = useCallback(
-    (view: View, options?: { replace?: boolean }) => {
-      setSearchParams(
-        (params) => {
-          for (const key of filterParamKeys) {
-            params.delete(key);
-          }
-          params.set("view", String(view.name));
-          if (view.filters && !Array.isArray(view.filters)) {
-            for (const [key, value] of Object.entries(view.filters)) {
-              params.set(
-                key,
-                typeof value === "string" ? value : JSON.stringify(value),
-              );
-            }
-          }
-          const [sort] = view.order_by ?? [];
-          if (typeof sort === "string" && sort) {
-            const [field, order] = sort.split(" ");
-            params.set("sortField", field);
-            params.set("sortOrder", order ?? "desc");
-          }
-          return params;
-        },
-        { replace: options?.replace ?? false },
-      );
-    },
-    [setSearchParams, filterParamKeys],
-  );
-
-  useEffect(() => {
-    if (isLoading || activeView || views.length === 0) {
-      return;
-    }
-    const initialView = views.find((view) => view.default === 1) ?? views[0];
-    applyView(initialView, { replace: true });
-  }, [isLoading, activeView, views, applyView]);
+  const createView = useViews((state) => state.actions.createView);
+  const applyView = useViews((state) => state.actions.applyView);
 
   if (isLoading || !activeView) {
     return <Spinner isFull />;

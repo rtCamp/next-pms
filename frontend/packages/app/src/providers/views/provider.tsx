@@ -1,7 +1,16 @@
 /**
  * External dependencies.
  */
-import { FC, PropsWithChildren, useCallback, useMemo, useState } from "react";
+import {
+  FC,
+  PropsWithChildren,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+import { useSearchParams } from "react-router-dom";
 import { useFrappeGetCall, useFrappePostCall } from "frappe-react-sdk";
 
 /**
@@ -11,10 +20,11 @@ import CreateViewModal from "@/components/create-view";
 import type { View } from "@/types";
 import { ViewsContext } from ".";
 
-export const ViewsProvider: FC<PropsWithChildren<{ doctype: string }>> = ({
-  doctype,
-  children,
-}) => {
+export const ViewsProvider: FC<
+  PropsWithChildren<{ doctype: string; filterParamKeys?: readonly string[] }>
+> = ({ doctype, filterParamKeys, children }) => {
+  const [searchParams, setSearchParams] = useSearchParams();
+
   const [isCreateViewModal, setIsCreateViewModal] = useState(false);
   const [type, settype] = useState("");
   const [filters, setFilters] = useState<Record<string, unknown>>({});
@@ -24,14 +34,66 @@ export const ViewsProvider: FC<PropsWithChildren<{ doctype: string }>> = ({
     { dt: doctype },
   );
 
-  const views = useMemo(() => data?.message ?? [], [data]);
-
   const { call: createViewCall } = useFrappePostCall(
     "next_pms.timesheet.doctype.pms_view_setting.pms_view_setting.create_view",
   );
   const { call: updateViewCall } = useFrappePostCall(
     "next_pms.timesheet.doctype.pms_view_setting.pms_view_setting.update_view",
   );
+
+  const views = useMemo(() => data?.message ?? [], [data]);
+
+  const viewParam = searchParams.get("view");
+  const activeView = views.find(({ name }) => String(name) === viewParam);
+
+  const appliedViewName = useRef<string | null>(null);
+
+  const applyView = useCallback(
+    (view: View, options?: { replace?: boolean }) => {
+      appliedViewName.current = String(view.name);
+      setSearchParams(
+        (params) => {
+          params.set("view", String(view.name));
+
+          filterParamKeys?.forEach((key) => {
+            const value = view.filters?.[key];
+            if (value === undefined || value === null) {
+              params.delete(key);
+            } else {
+              params.set(
+                key,
+                typeof value === "string" ? value : JSON.stringify(value),
+              );
+            }
+          });
+
+          const [sort] = view.order_by ?? [];
+          if (typeof sort === "string" && sort) {
+            const [field, order] = sort.split(" ");
+            params.set("sortField", field);
+            params.set("sortOrder", order ?? "desc");
+          }
+          return params;
+        },
+        { replace: options?.replace ?? false },
+      );
+    },
+    [setSearchParams, filterParamKeys],
+  );
+
+  useEffect(() => {
+    if (isLoading || views.length === 0) {
+      return;
+    }
+    if (!activeView) {
+      const initialView = views.find((view) => view.default === 1) ?? views[0];
+      applyView(initialView, { replace: true });
+      return;
+    }
+    if (appliedViewName.current !== String(activeView.name)) {
+      applyView(activeView, { replace: true });
+    }
+  }, [isLoading, activeView, views, applyView]);
 
   const createView = useCallback(
     (args?: { type?: string; filters?: Record<string, unknown> }) => {
@@ -46,7 +108,6 @@ export const ViewsProvider: FC<PropsWithChildren<{ doctype: string }>> = ({
 
   const _createView = useCallback(
     async ({
-      name,
       label,
       icon,
       isPublic,
@@ -58,11 +119,10 @@ export const ViewsProvider: FC<PropsWithChildren<{ doctype: string }>> = ({
     }) => {
       await createViewCall({
         view: {
-          name: name,
           label: label,
           public: isPublic ? 1 : 0,
           icon: icon,
-          doctype: doctype,
+          dt: doctype,
           type: type,
           filters: filters,
         },
@@ -86,10 +146,19 @@ export const ViewsProvider: FC<PropsWithChildren<{ doctype: string }>> = ({
 
   const value = useMemo(
     () => ({
-      state: { doctype, views, isLoading },
-      actions: { createView, updateView, refresh },
+      state: { doctype, views, activeView, isLoading },
+      actions: { createView, applyView, updateView, refresh },
     }),
-    [doctype, views, isLoading, createView, updateView, refresh],
+    [
+      doctype,
+      views,
+      activeView,
+      isLoading,
+      createView,
+      applyView,
+      updateView,
+      refresh,
+    ],
   );
 
   return (
