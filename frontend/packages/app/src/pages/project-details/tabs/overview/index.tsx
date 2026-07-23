@@ -111,11 +111,9 @@ function OverviewForm() {
         frequency: value.frequency,
         custom_restricted_under_nda: Number(value.ndaSigned) as 0 | 1,
         custom_permission_for_case_study: Number(value.caseStudyApproved) as
-          | 0
-          | 1,
+          0 | 1,
         custom_permission_for_testimonial: Number(value.testimonialApproval) as
-          | 0
-          | 1,
+          0 | 1,
         custom_testimonial_contact: value.testimonialContact,
       });
       mutate();

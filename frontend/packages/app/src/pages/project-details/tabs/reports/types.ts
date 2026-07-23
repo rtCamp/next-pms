@@ -1,9 +1,5 @@
 export type ReportColumnKey =
-  | "index"
-  | "reportLink"
-  | "dateRange"
-  | "generatedOn"
-  | "status";
+  "index" | "reportLink" | "dateRange" | "generatedOn" | "status";
 
 export interface ReportColumn {
   key: ReportColumnKey;
