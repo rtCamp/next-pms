@@ -19,6 +19,7 @@ class NextPMSNotifications(Document):
         linked_doctype: DF.Link
         linked_document: DF.DynamicLink
         title: DF.Data
+        url: DF.SmallText | None
         user: DF.Link
         viewed: DF.Check
     # end: auto-generated types
@@ -35,7 +36,7 @@ class NextPMSNotifications(Document):
             )
 
 
-def create_notification(user, title, label, linked_doctype, linked_document):
+def create_notification(user, title, label, linked_doctype, linked_document, url=None):
     deferred_insert(
         "NextPMS Notifications",
         {
@@ -44,5 +45,6 @@ def create_notification(user, title, label, linked_doctype, linked_document):
             "label": label,
             "linked_doctype": linked_doctype,
             "linked_document": linked_document,
+            "url": url,
         },
     )

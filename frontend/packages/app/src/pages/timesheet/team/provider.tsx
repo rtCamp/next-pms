@@ -22,7 +22,10 @@ import {
   type TeamTimesheetContextProps,
 } from "./context";
 import { useTeamTimesheetData } from "./useTeamTimesheetData";
-import { useTimesheetFilters } from "../hooks/useTimesheetFilters";
+import {
+  APPROVAL_STATUS_PARAM_VALUES,
+  useTimesheetFilters,
+} from "../hooks/useTimesheetFilters";
 
 export const TeamTimesheetProvider: FC<PropsWithChildren> = ({ children }) => {
   const toast = useToasts();
@@ -50,7 +53,10 @@ export const TeamTimesheetProvider: FC<PropsWithChildren> = ({ children }) => {
   const effectiveFilters = useMemo(
     () => ({
       search: filters.search,
-      approvalStatus: filters.approvalStatus,
+      approvalStatus:
+        filters.approvalStatus?.length === APPROVAL_STATUS_PARAM_VALUES.length
+          ? []
+          : filters.approvalStatus,
       reportsTo: filters.reportsTo,
     }),
     [filters.search, filters.approvalStatus, filters.reportsTo],

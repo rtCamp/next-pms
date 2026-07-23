@@ -17,7 +17,7 @@ const REPORTS_TO_PARAM_KEY = "reportsTo";
 const COMPOSITE_FILTERS_PARAM_KEY = "compositeFilters";
 const DEFAULT_CLEAR_KEYS_ON_CHANGE: string[] = [];
 
-const APPROVAL_STATUS_PARAM_VALUES = [
+export const APPROVAL_STATUS_PARAM_VALUES = [
   "not-submitted",
   "approved",
   "rejected",
@@ -25,6 +25,20 @@ const APPROVAL_STATUS_PARAM_VALUES = [
   "partially-approved",
   "partially-rejected",
 ] as const satisfies readonly ApprovalStatusType[];
+
+type ApprovalStatusParamValue = (typeof APPROVAL_STATUS_PARAM_VALUES)[number];
+
+const parseApprovalStatuses = (
+  raw: string | null,
+): ApprovalStatusParamValue[] =>
+  raw
+    ? raw
+        .split(",")
+        .map((value) => pickAllowed(value, APPROVAL_STATUS_PARAM_VALUES))
+        .filter(
+          (value): value is ApprovalStatusParamValue => value !== undefined,
+        )
+    : [];
 
 /**
  * Parses the composite filters from a JSON string in the URL search params.
@@ -51,7 +65,7 @@ type TimesheetFilterOptions = {
 type TimesheetFilterState = {
   search: string;
   compositeFilters: FilterCondition[];
-  approvalStatus?: ApprovalStatusType;
+  approvalStatus?: ApprovalStatusType[];
   reportsTo?: string;
 };
 
@@ -72,12 +86,12 @@ export function useTimesheetFilters({
     () => parseCompositeFilters(searchParams.get(COMPOSITE_FILTERS_PARAM_KEY)),
     [searchParams],
   );
-  const approvalStatus = includeApprovalStatus
-    ? pickAllowed(
-        searchParams.get(APPROVAL_PARAM_KEY),
-        APPROVAL_STATUS_PARAM_VALUES,
-      )
-    : undefined;
+  const approvalParam = searchParams.get(APPROVAL_PARAM_KEY);
+  const approvalStatus = useMemo(
+    () =>
+      includeApprovalStatus ? parseApprovalStatuses(approvalParam) : undefined,
+    [includeApprovalStatus, approvalParam],
+  );
   const reportsTo =
     includeReportsTo && searchParams.has(REPORTS_TO_PARAM_KEY)
       ? (searchParams.get(REPORTS_TO_PARAM_KEY) ?? "")
@@ -112,9 +126,9 @@ export function useTimesheetFilters({
   );
 
   const setApprovalStatus = useCallback(
-    (value?: ApprovalStatusType | null) =>
+    (values: ApprovalStatusType[]) =>
       updateSearchParams({
-        [APPROVAL_PARAM_KEY]: value && value !== "none" ? value : undefined,
+        [APPROVAL_PARAM_KEY]: values.length ? values.join(",") : undefined,
       }),
     [updateSearchParams],
   );

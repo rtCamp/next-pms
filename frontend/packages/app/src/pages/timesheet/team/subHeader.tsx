@@ -56,7 +56,9 @@ export function SubHeader() {
   }, [search]);
 
   const externalFilterCount =
-    (search !== "" ? 1 : 0) + (approvalStatus ? 1 : 0) + (reportsTo ? 1 : 0);
+    (search !== "" ? 1 : 0) +
+    (approvalStatus?.length ? 1 : 0) +
+    (reportsTo ? 1 : 0);
 
   return (
     <div className="flex flex-wrap gap-2 justify-between mb-3.5">
@@ -70,7 +72,6 @@ export function SubHeader() {
         <ApprovalStatusFilter
           value={approvalStatus}
           onChange={handleApprovalStatusChange}
-          excludeOptions={["not-submitted"]}
         />
       </div>
       <Filter

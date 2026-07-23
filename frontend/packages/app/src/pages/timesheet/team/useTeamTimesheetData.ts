@@ -107,7 +107,7 @@ export function useTeamTimesheetData({
   const hasActiveFilter =
     !!filters.reportsTo ||
     !!filters.search ||
-    !!filters.approvalStatus ||
+    !!filters.approvalStatus?.length ||
     compositeFilters.length > 0;
 
   const {
@@ -121,8 +121,12 @@ export function useTeamTimesheetData({
     page_length: EMPLOYEE_PAGE_LENGTH,
     start: requestEmployeeStart,
     search: filters.search || null,
-    status_filter: filters.approvalStatus
-      ? JSON.stringify([ApprovalStatusLabelMap[filters.approvalStatus]])
+    status_filter: filters.approvalStatus?.length
+      ? JSON.stringify(
+          filters.approvalStatus.map(
+            (status) => ApprovalStatusLabelMap[status],
+          ),
+        )
       : null,
     filters: frappeFilters.length > 0 ? JSON.stringify(frappeFilters) : null,
     // skip_empty_weeks: hasActiveFilter || null,

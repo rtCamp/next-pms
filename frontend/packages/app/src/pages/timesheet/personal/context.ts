@@ -19,7 +19,7 @@ export interface PersonalTimesheetContextProps {
     timesheetData: DataProp;
     filters: {
       search: string;
-      approvalStatus?: ApprovalStatusType;
+      approvalStatus?: ApprovalStatusType[];
     };
     compositeFilters: FilterCondition[];
     likedTaskData: TaskDataProps[];
@@ -27,7 +27,7 @@ export interface PersonalTimesheetContextProps {
   actions: {
     loadData: () => void;
     handleSearchChange: (value: string) => void;
-    handleApprovalStatusChange: (value?: ApprovalStatusType | null) => void;
+    handleApprovalStatusChange: (value: ApprovalStatusType[]) => void;
     handleCompositeFilterChange: (value: FilterCondition[]) => void;
     handleClearAllFilters: () => void;
     refetchLikedTasks: () => void;
