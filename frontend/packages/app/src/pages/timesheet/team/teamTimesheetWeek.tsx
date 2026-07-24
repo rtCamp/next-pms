@@ -13,6 +13,8 @@ import { useTeamTimesheet } from "./context";
 import type { TeamWeekSummary } from "./types";
 import { useTeamWeekMembers } from "./useTeamWeekMembers";
 
+const STICKY_HEADER_OFFSET = 28;
+
 type TeamTimesheetWeekProps = {
   week: TeamWeekSummary;
   defaultExpanded: boolean;
@@ -71,9 +73,16 @@ export const TeamTimesheetWeek = ({
 
   const handleCollapsedChange = (collapsed: boolean) => {
     setExpanded(!collapsed);
-    if (collapsed) {
-      // Prevents the page from jumping up when the collapsed week's rows disappear.
-      weekRef.current?.scrollIntoView({ block: "start" });
+    if (!collapsed) return;
+
+    const weekEl = weekRef.current;
+    if (!weekEl) return;
+
+    // Scroll the week into view if it is above the scroll root's top position.
+    const rootTop = scrollRoot?.getBoundingClientRect().top ?? 0;
+    const weekTop = weekEl.getBoundingClientRect().top;
+    if (weekTop < rootTop + STICKY_HEADER_OFFSET) {
+      weekEl.scrollIntoView({ block: "start" });
     }
   };
 
