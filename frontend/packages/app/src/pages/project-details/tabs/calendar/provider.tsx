@@ -143,7 +143,7 @@ export function CalendarProvider({
       try {
         await deleteDoc("Project Timeline Item", item.id);
         toast.success(`${item.type} deleted`);
-        mutate();
+        void mutate();
       } catch (err) {
         toast.error(parseFrappeErrorMsg(err as FrappeError));
       }
