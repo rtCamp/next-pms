@@ -3,6 +3,7 @@ export type TaskListItem = {
   subject: string;
   project: string;
   project_name: string | null;
+  description: string | null;
   status: string;
   priority: string;
   exp_end_date: string | null;

@@ -17,12 +17,14 @@ export interface TaskListContextProps {
     error: unknown;
     addTaskOpen: boolean;
     addTaskPrefill: AddTaskPrefill | null;
+    editTaskName: string | null;
   };
   actions: {
     loadMore: () => void;
     refresh: () => void;
     deleteTask: (name: string) => Promise<void>;
     openAddTaskModal: (prefill?: AddTaskPrefill) => void;
+    openEditTaskModal: (task: TaskListItem) => void;
     closeAddTaskModal: () => void;
   };
 }
@@ -38,12 +40,14 @@ export const TaskListContext = createContext<TaskListContextProps>({
     error: null,
     addTaskOpen: false,
     addTaskPrefill: null,
+    editTaskName: null,
   },
   actions: {
     loadMore: noop,
     refresh: noop,
     deleteTask: noopAsync,
     openAddTaskModal: noop,
+    openEditTaskModal: noop,
     closeAddTaskModal: noop,
   },
 });

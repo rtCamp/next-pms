@@ -38,6 +38,7 @@ function TaskList() {
   const hasMore = useTaskList((c) => c.state.hasMore);
   const loadMore = useTaskList((c) => c.actions.loadMore);
   const deleteTask = useTaskList((c) => c.actions.deleteTask);
+  const openEditTaskModal = useTaskList((c) => c.actions.openEditTaskModal);
   const { sort, setSort } = useTaskFilters();
   const roles = useUser(({ state }) => state.roles);
   const showTeamTaskLog =
@@ -130,6 +131,7 @@ function TaskList() {
                       column={column}
                       onOpenTask={setOpenTask}
                       onAddTime={handleAddTime}
+                      onEditTask={openEditTaskModal}
                       onDeleteTask={setDeleteTaskName}
                     />
                   ))}

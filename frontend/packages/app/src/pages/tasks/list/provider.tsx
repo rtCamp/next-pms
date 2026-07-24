@@ -25,13 +25,30 @@ export function TaskListProvider({ children }: PropsWithChildren) {
   const [addTaskPrefill, setAddTaskPrefill] = useState<AddTaskPrefill | null>(
     null,
   );
+  const [editTaskName, setEditTaskName] = useState<string | null>(null);
   const openAddTaskModal = useCallback((prefill?: AddTaskPrefill) => {
+    setEditTaskName(null);
     setAddTaskPrefill(prefill ?? null);
     setAddTaskOpen(true);
   }, []);
+  const openEditTaskModal = useCallback(
+    (task: TaskListContextProps["state"]["data"][number]) => {
+      setEditTaskName(task.name);
+      setAddTaskPrefill({
+        subject: task.subject,
+        project: task.project,
+        projectLabel: task.project_name ?? task.project,
+        expected_time: String(task.expected_time ?? ""),
+        description: task.description ?? "",
+      });
+      setAddTaskOpen(true);
+    },
+    [],
+  );
   const closeAddTaskModal = useCallback(() => {
     setAddTaskOpen(false);
     setAddTaskPrefill(null);
+    setEditTaskName(null);
   }, []);
   const frappeFilters = useMemo(
     () => buildFilterConditions(filters.advanced),
@@ -132,12 +149,14 @@ export function TaskListProvider({ children }: PropsWithChildren) {
         error,
         addTaskOpen,
         addTaskPrefill,
+        editTaskName,
       },
       actions: {
         loadMore,
         refresh,
         deleteTask,
         openAddTaskModal,
+        openEditTaskModal,
         closeAddTaskModal,
       },
     }),
@@ -148,10 +167,12 @@ export function TaskListProvider({ children }: PropsWithChildren) {
       error,
       addTaskOpen,
       addTaskPrefill,
+      editTaskName,
       loadMore,
       refresh,
       deleteTask,
       openAddTaskModal,
+      openEditTaskModal,
       closeAddTaskModal,
     ],
   );
@@ -169,6 +190,7 @@ export function TaskListProvider({ children }: PropsWithChildren) {
           closeAddTaskModal();
         }}
         prefill={addTaskPrefill}
+        taskName={editTaskName}
         onSuccess={() => {
           mutate();
         }}

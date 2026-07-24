@@ -13,7 +13,11 @@ import {
 } from "@rtcamp/frappe-ui-react";
 import { useForm } from "@tanstack/react-form";
 import { useSelector } from "@tanstack/react-store";
-import { FrappeError, useFrappePostCall } from "frappe-react-sdk";
+import {
+  FrappeError,
+  useFrappePostCall,
+  useFrappeUpdateDoc,
+} from "frappe-react-sdk";
 
 /**
  * Internal Dependencies
@@ -38,6 +42,7 @@ const AddTask = ({
   open = false,
   onOpenChange,
   prefill,
+  taskName,
   onSuccess,
 }: AddTaskProps) => {
   const [projectSearch, setProjectSearch] = useState("");
@@ -48,6 +53,8 @@ const AddTask = ({
   const { call: createTask } = useFrappePostCall(
     "next_pms.timesheet.api.task.add_task",
   );
+  const { updateDoc } = useFrappeUpdateDoc();
+  const isEditMode = Boolean(taskName);
 
   const initialValues = useMemo<addTaskFormValues>(
     () => ({
@@ -66,14 +73,27 @@ const AddTask = ({
       setSubmitting(true);
       setSubmitError(null);
       try {
-        await createTask({
-          subject: value.subject.trim(),
-          project: value.project.trim(),
-          expected_time: value.expected_time.trim(),
-          description: value.description.trim(),
-        });
+        if (isEditMode && taskName) {
+          await updateDoc("Task", taskName, {
+            subject: value.subject.trim(),
+            project: value.project.trim(),
+            expected_time: value.expected_time.trim(),
+            description: value.description.trim(),
+          });
+        } else {
+          await createTask({
+            subject: value.subject.trim(),
+            project: value.project.trim(),
+            expected_time: value.expected_time.trim(),
+            description: value.description.trim(),
+          });
+        }
 
-        toast.success("Task created successfully");
+        toast.success(
+          isEditMode
+            ? "Task updated successfully"
+            : "Task created successfully",
+        );
         closeModal();
         onSuccess?.();
       } catch (err) {
@@ -143,7 +163,11 @@ const AddTask = ({
       open={open}
       onOpenChange={handleOpenChange}
       options={{
-        title: () => <span className="text-lg font-medium">Add Task</span>,
+        title: () => (
+          <span className="text-lg font-medium">
+            {isEditMode ? "Edit Task" : "Add Task"}
+          </span>
+        ),
       }}
       className="my-0"
       classNames={{
@@ -157,7 +181,7 @@ const AddTask = ({
           <Button variant="ghost" label="Cancel" onClick={closeModal} />
           <Button
             variant="solid"
-            label="Add Task"
+            label={isEditMode ? "Save" : "Add Task"}
             onClick={() => form.handleSubmit()}
             disabled={submitting}
             loading={submitting}
