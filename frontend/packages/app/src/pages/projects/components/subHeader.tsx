@@ -45,8 +45,12 @@ export function ProjectListSubHeader() {
   const debouncedSearch = useDebounce(searchInput, 400);
 
   useEffect(() => {
-    if (debouncedSearch !== search) setSearch(debouncedSearch);
-  }, [debouncedSearch, search, setSearch]);
+    if (debouncedSearch !== searchInput || debouncedSearch === search) {
+      return;
+    }
+
+    setSearch(debouncedSearch);
+  }, [debouncedSearch, searchInput, search, setSearch]);
 
   useEffect(() => {
     setSearchInput(search);

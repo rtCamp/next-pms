@@ -553,6 +553,25 @@ export const isNoValueOperator = (operator: string): boolean =>
   NO_VALUE_OPERATORS.includes(operator);
 
 /**
+ * Parses a URL search param holding a JSON-encoded array, returning an
+ * empty array if the param is missing, malformed, or decodes to a
+ * non-array value. Pass `decode` (e.g. `decodeURI`) when the param was
+ * encoded before being written to the URL.
+ */
+export const parseJSONArrayParam = <T>(
+  raw: string | null,
+  decode: (value: string) => string = (value) => value,
+): T[] => {
+  if (!raw) return [];
+  try {
+    const parsed = JSON.parse(decode(raw));
+    return Array.isArray(parsed) ? (parsed as T[]) : [];
+  } catch {
+    return [];
+  }
+};
+
+/**
  * Returns true when a FilterCondition is fully specified and ready to be sent
  * to the API — i.e. it has a field, an operator, and either a non-empty value
  * or an operator that requires no value.
@@ -611,6 +630,25 @@ export const buildFrappeFilters = (compositeFilters: FilterCondition[]) => {
     )
     .map((filter) => [
       filter.fieldCategory,
+      filter.field,
+      filter.operator,
+      isNoValueOperator(filter.operator)
+        ? null
+        : normalizeLikeFilterValue(filter.operator, filter.value),
+    ]);
+};
+
+/**
+ * Builds native Frappe filters from composite filters on a single doctype
+ * (no `fieldCategory` prefix) — e.g. `[["priority", "=", "Urgent"]]`.
+ *
+ * @param compositeFilters Array of FilterCondition objects.
+ * @returns Array of Frappe filters in the format [[field, operator, value]].
+ */
+export const buildFilterConditions = (compositeFilters: FilterCondition[]) => {
+  return compositeFilters
+    .filter(isCompleteFilterCondition)
+    .map((filter) => [
       filter.field,
       filter.operator,
       isNoValueOperator(filter.operator)

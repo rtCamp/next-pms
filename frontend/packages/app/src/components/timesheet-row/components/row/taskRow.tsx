@@ -1,15 +1,15 @@
 /**
  * External dependencies
  */
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo } from "react";
 import { floatToTime } from "@next-pms/design-system";
 import {
   TaskRow as BaseTaskRow,
   type TaskRowTimeEntry,
   taskStatusMap,
 } from "@next-pms/design-system/components";
+import { useToggleLike } from "@next-pms/hooks";
 import { useToasts } from "@rtcamp/frappe-ui-react";
-import { useFrappePostCall } from "frappe-react-sdk";
 
 /**
  * Internal dependencies
@@ -55,18 +55,25 @@ export const TaskRow = ({
   setSelectedTask,
   ...rest
 }: TaskRowProps) => {
-  const [taskLiked, setTaskLiked] = useState(false);
   const likedTaskData = usePersonalTimesheet(
     ({ state }) => state.likedTaskData,
   );
   const refetchLikedTasks = usePersonalTimesheet(
     ({ actions }) => actions.refetchLikedTasks,
   );
-  const { call: toggleLikeCall } = useFrappePostCall(
-    "frappe.desk.like.toggle_like",
-  );
   const toast = useToasts();
   const requestGuarded = useGuardedAction();
+
+  const {
+    liked: taskLiked,
+    error: likeError,
+    toggle: toggleLike,
+  } = useToggleLike({
+    doctype: "Task",
+    name: taskKey,
+    liked: likedTaskData?.some((obj) => obj.name === taskKey) || false,
+    onToggled: refetchLikedTasks,
+  });
 
   const taskData = useMemo(() => {
     let total = 0;
@@ -139,27 +146,9 @@ export const TaskRow = ({
     [rest.label, tasks, status],
   );
 
-  const handleStar = async (
-    e: React.MouseEvent<HTMLButtonElement>,
-    taskKey: string,
-  ): Promise<void> => {
+  const handleStar = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.stopPropagation();
-    const data = {
-      name: taskKey,
-      add: taskLiked ? "No" : "Yes",
-      doctype: "Task",
-    };
-    setTaskLiked((prev) => !prev);
-    try {
-      await toggleLikeCall(data);
-      // Refetch liked tasks to update the context
-      refetchLikedTasks();
-    } catch (err) {
-      const error = parseFrappeErrorMsg(
-        err as Parameters<typeof parseFrappeErrorMsg>[0],
-      );
-      toast.error(error);
-    }
+    toggleLike();
   };
 
   const onLabelClick = useCallback(
@@ -173,8 +162,14 @@ export const TaskRow = ({
   );
 
   useEffect(() => {
-    setTaskLiked(likedTaskData?.some((obj) => obj.name === taskKey) || false);
-  }, [likedTaskData, taskKey]);
+    if (likeError) {
+      toast.error(
+        parseFrappeErrorMsg(
+          likeError as Parameters<typeof parseFrappeErrorMsg>[0],
+        ),
+      );
+    }
+  }, [likeError]);
 
   return (
     <BaseTaskRow

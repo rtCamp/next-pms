@@ -20,6 +20,7 @@ type UseTaskLogReturn = {
     status: string;
     dueDate?: string;
     workedBy: TaskWorker[];
+    ghLink?: string;
   };
   taskLogs: TaskLog[];
 };
@@ -48,6 +49,7 @@ const useTaskLog = ({
     exp_end_date: dueDate,
     status = "Open",
     worked_by: workedByRaw,
+    gh_link: ghLink,
   } = data?.message || {};
 
   let workedBy: TaskWorker[] = (workedByRaw || []).map(
@@ -123,6 +125,7 @@ const useTaskLog = ({
       status,
       dueDate,
       workedBy,
+      ghLink,
     },
     taskLogs: taskLogs,
   };
