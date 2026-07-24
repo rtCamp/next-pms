@@ -3,7 +3,7 @@
  */
 import { useMemo, useState } from "react";
 import { Accordion } from "@base-ui/react/accordion";
-import { floatToTime } from "@next-pms/design-system";
+import { floatToTime, mergeClassNames as cn } from "@next-pms/design-system";
 import {
   ApprovalStatusMap,
   MemberRow as BaseMemberRow,
@@ -55,7 +55,13 @@ export const MemberRow = ({
         <Accordion.Trigger
           nativeButton={false}
           render={(props) => (
-            <div {...props}>
+            <div
+              {...props}
+              className={cn(
+                props.className,
+                "focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-outline-gray-3",
+              )}
+            >
               <BaseMemberRow
                 {...rest}
                 avatarUrl={avatarUrl}
