@@ -79,6 +79,7 @@ export const AllocationsProjectTable = () => {
               projects={projects}
               rowHeaderLabel="Projects"
               weekCount={weekCount}
+              fillHeight={!hasMore}
               hasRoleAccess={canManageAllocations}
               showWeekend={showWeekend}
               onAddAllocation={openAddAllocationDialog}

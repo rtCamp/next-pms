@@ -1,5 +1,7 @@
 export type DeleteAllocationMode =
-  "only_this" | "this_and_future" | "all_in_series";
+  | "only_this"
+  | "this_and_future"
+  | "all_in_series";
 
 export interface Allocation {
   /** Unique identifier for the allocation. */
@@ -174,6 +176,8 @@ export interface GanttGridProps {
   hasRoleAccess?: boolean;
   /** Optional custom classes for the root wrapper. */
   className?: string;
+  /** Stretch the grid to fill the scroll viewport's height when the content is shorter. */
+  fillHeight?: boolean;
   /** Called when "Add" is clicked in an allocation popup. Receives employee data. */
   onAddAllocation?: (data: AllocationCallbackData) => void;
   /** Called when the edit icon is clicked on an allocation entry. Receives allocation data. */
