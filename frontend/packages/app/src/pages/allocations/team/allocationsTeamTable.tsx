@@ -65,9 +65,7 @@ export const AllocationsTeamTable = () => {
             hasMore={hasMore}
             verticalLodMore={loadMore}
             scrollResetKey={`${querySignature}:${todayResetKey}`}
-            enableScrollArea
-            showScrollbar={false}
-            className={cn("w-full h-full", {
+            className={cn("w-full h-full overflow-auto no-scrollbar", {
               "opacity-50 transition-opacity duration-150 pointer-events-none":
                 isRefreshingVisibleGrid,
             })}
