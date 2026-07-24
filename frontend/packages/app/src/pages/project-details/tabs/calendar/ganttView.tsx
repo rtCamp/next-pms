@@ -22,8 +22,8 @@ import {
   ROW_HEIGHT,
   WEEK_LABEL_HEIGHT,
 } from "./constants";
+import { useCalendar } from "./context";
 import { GanttBar } from "./ganttBar";
-import type { ProjectTimelineItem } from "./types";
 import {
   buildColIndexMap,
   buildDayColumns,
@@ -32,18 +32,14 @@ import {
 } from "./utils";
 
 export type GanttViewProps = {
-  year: number;
-  month: number;
-  items: ProjectTimelineItem[];
   showWeekend?: boolean;
 };
 
-export function GanttView({
-  year,
-  month,
-  items,
-  showWeekend = true,
-}: GanttViewProps) {
+export function GanttView({ showWeekend = true }: GanttViewProps) {
+  const year = useCalendar((c) => c.state.year);
+  const month = useCalendar((c) => c.state.month);
+  const items = useCalendar((c) => c.state.filteredItems);
+
   const scrollRef = useRef<HTMLDivElement>(null);
   const [hasMoreBelow, setHasMoreBelow] = useState(false);
 
