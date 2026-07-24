@@ -7,6 +7,7 @@ import { createContext, useContextSelector } from "use-context-selector";
  * Internal dependencies.
  */
 import type { TaskListItem } from "./types";
+import type { AddTaskPrefill } from "../components/add-task/type";
 
 export interface TaskListContextProps {
   state: {
@@ -14,11 +15,15 @@ export interface TaskListContextProps {
     hasMore: boolean;
     isLoading: boolean;
     error: unknown;
+    addTaskOpen: boolean;
+    addTaskPrefill: AddTaskPrefill | null;
   };
   actions: {
     loadMore: () => void;
     refresh: () => void;
     deleteTask: (name: string) => Promise<void>;
+    openAddTaskModal: (prefill?: AddTaskPrefill) => void;
+    closeAddTaskModal: () => void;
   };
 }
 
@@ -31,11 +36,15 @@ export const TaskListContext = createContext<TaskListContextProps>({
     hasMore: false,
     isLoading: false,
     error: null,
+    addTaskOpen: false,
+    addTaskPrefill: null,
   },
   actions: {
     loadMore: noop,
     refresh: noop,
     deleteTask: noopAsync,
+    openAddTaskModal: noop,
+    closeAddTaskModal: noop,
   },
 });
 
