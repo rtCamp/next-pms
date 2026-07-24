@@ -239,7 +239,7 @@ export function DraftBar({
         renderFloatingLabel={renderFloatingLabel}
         left={previewGeometry.left}
         width={previewGeometry.width}
-        className="outline-none z-20"
+        className="z-20"
         minLeft={bounds.minLeft}
         maxRight={bounds.maxRight}
         resizable={Boolean(onOpenAllocation)}

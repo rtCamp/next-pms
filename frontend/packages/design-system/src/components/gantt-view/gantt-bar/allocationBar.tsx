@@ -2,7 +2,7 @@
  * External dependencies.
  */
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { PreviewCard } from "@base-ui/react/preview-card";
+import { Popover } from "@base-ui/react/popover";
 import { Button } from "@rtcamp/frappe-ui-react";
 
 /**
@@ -291,13 +291,15 @@ export function GanttAllocationBar({
   }, [handleClick, handleResetPreview]);
 
   return (
-    <PreviewCard.Root
+    <Popover.Root
       open={isModified ? false : previewOpen}
       onOpenChange={setPreviewOpen}
     >
-      <PreviewCard.Trigger
+      <Popover.Trigger
+        openOnHover
         delay={400}
         closeDelay={150}
+        nativeButton={false}
         render={
           <GanttBar
             ref={allocationBarRef}
@@ -315,13 +317,12 @@ export function GanttAllocationBar({
             }
             left={previewGeometry.left}
             width={previewGeometry.width}
-            className={cn("outline-none", isModified && "z-20")}
+            className={cn(isModified && "z-20")}
             billable={allocation.billable}
             showOutline={isModified}
             renderFloatingLabel={isModified ? renderFloatingLabel : undefined}
             resizable={canResize}
             snapUnitPx={columnWidth}
-            tabIndex={0}
             minLeft={bounds.minLeft}
             maxRight={bounds.maxRight}
             onKeyDown={handleKeyDown}
@@ -329,18 +330,18 @@ export function GanttAllocationBar({
           />
         }
       />
-      <PreviewCard.Portal>
-        <PreviewCard.Positioner side="bottom" align="start" sideOffset={4}>
-          <PreviewCard.Popup className="z-50 outline-none">
+      <Popover.Portal>
+        <Popover.Positioner side="bottom" align="start" sideOffset={4}>
+          <Popover.Popup className="z-50 outline-none">
             <GanttAllocationPopover
               entries={[entry]}
               variant={variant}
               hasRoleAccess={hasRoleAccess}
             />
-          </PreviewCard.Popup>
-        </PreviewCard.Positioner>
-      </PreviewCard.Portal>
-    </PreviewCard.Root>
+          </Popover.Popup>
+        </Popover.Positioner>
+      </Popover.Portal>
+    </Popover.Root>
   );
 }
 
