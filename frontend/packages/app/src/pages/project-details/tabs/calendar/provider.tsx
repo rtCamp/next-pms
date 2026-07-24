@@ -2,7 +2,6 @@
  * External dependencies.
  */
 import { useCallback, useMemo, useState, type PropsWithChildren } from "react";
-import { useParams } from "react-router-dom";
 import { useToasts } from "@rtcamp/frappe-ui-react";
 import { parseISO } from "date-fns";
 import {
@@ -20,8 +19,14 @@ import { CalendarContext, type CalendarContextProps } from "./context";
 import type { CalendarView, ProjectTimelineItem, TableTab } from "./types";
 import { useProjectTimelineItems } from "./useProjectTimelineItems";
 
-export function CalendarProvider({ children }: PropsWithChildren) {
-  const { projectId = "" } = useParams<{ projectId: string }>();
+interface CalendarProviderProps extends PropsWithChildren {
+  projectId: string;
+}
+
+export function CalendarProvider({
+  children,
+  projectId,
+}: CalendarProviderProps) {
   const toast = useToasts();
   const userId = useUser(({ state }) => state.userId);
 
@@ -149,6 +154,7 @@ export function CalendarProvider({ children }: PropsWithChildren) {
   const value = useMemo<CalendarContextProps>(
     () => ({
       state: {
+        projectId,
         items,
         filteredItems,
         userId,
@@ -182,6 +188,7 @@ export function CalendarProvider({ children }: PropsWithChildren) {
       },
     }),
     [
+      projectId,
       items,
       filteredItems,
       userId,

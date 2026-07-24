@@ -13,8 +13,8 @@ export function CalendarTab() {
   const { projectId = "" } = useParams<{ projectId: string }>();
 
   return (
-    <CalendarProvider>
-      <CalendarContent projectId={projectId} />
+    <CalendarProvider projectId={projectId}>
+      <CalendarContent />
     </CalendarProvider>
   );
 }

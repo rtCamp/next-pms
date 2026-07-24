@@ -17,7 +17,8 @@ import { MilestonesTable } from "./milestonesTable";
 import { TouchpointsTable } from "./touchpointsTable";
 import type { TableTab } from "./types";
 
-export function CalendarContent({ projectId }: { projectId: string }) {
+export function CalendarContent() {
+  const projectId = useCalendar((c) => c.state.projectId);
   const activeView = useCalendar((c) => c.state.activeView);
   const tableTab = useCalendar((c) => c.state.tableTab);
   const items = useCalendar((c) => c.state.items);

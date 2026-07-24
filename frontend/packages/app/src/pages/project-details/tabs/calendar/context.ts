@@ -10,6 +10,7 @@ import type { CalendarView, ProjectTimelineItem, TableTab } from "./types";
 
 export interface CalendarContextProps {
   state: {
+    projectId: string;
     items: ProjectTimelineItem[];
     filteredItems: ProjectTimelineItem[];
     userId?: string;
@@ -47,6 +48,7 @@ const noop = () => {};
 
 export const CalendarContext = createContext<CalendarContextProps>({
   state: {
+    projectId: "",
     items: [],
     filteredItems: [],
     userId: undefined,
