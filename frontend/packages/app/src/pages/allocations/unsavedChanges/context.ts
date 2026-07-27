@@ -11,7 +11,7 @@ export interface UnsavedChangesSource {
 
 export interface UnsavedChangesContextValue {
   sourceRef: RefObject<UnsavedChangesSource | null>;
-  requestGuardedAction: (action: () => void) => void;
+  requestGuardedAction: (action?: () => void) => void;
 }
 
 export const UnsavedChangesContext =

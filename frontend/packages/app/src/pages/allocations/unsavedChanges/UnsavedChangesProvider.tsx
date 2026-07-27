@@ -39,12 +39,12 @@ export function UnsavedChangesProvider({ children }: { children: ReactNode }) {
   );
 
   const requestGuardedAction = useCallback(
-    (action: () => void) => {
+    (action?: () => void) => {
       if (!hasDirty()) {
-        action();
+        action?.();
         return;
       }
-      setPendingAction(() => action);
+      setPendingAction(() => action ?? (() => {}));
     },
     [hasDirty],
   );

@@ -14,7 +14,10 @@ import {
 import { InfiniteScroll } from "@/components/infiniteScroll";
 import { isWeekendEntryAllowed } from "@/lib/utils";
 import { useAllocationOutletContext } from "@/pages/allocations/allocationOutletContext";
-import { useUnsavedChangesSource } from "@/pages/allocations/unsavedChanges/useUnsavedChanges";
+import {
+  useGuardedAction,
+  useUnsavedChangesSource,
+} from "@/pages/allocations/unsavedChanges/useUnsavedChanges";
 import { useUser } from "@/providers/user";
 import { useAllocationsTeam } from "./context";
 import { SubHeader } from "./subHeader";
@@ -38,6 +41,7 @@ export const AllocationsTeamTable = () => {
   const loadMore = useAllocationsTeam(({ actions }) => actions.loadMore);
 
   const ganttRef = useUnsavedChangesSource();
+  const guardAction = useGuardedAction();
 
   const roles = useUser(({ state }) => state.roles);
   const canManageAllocations =
@@ -81,6 +85,7 @@ export const AllocationsTeamTable = () => {
               weekCount={weekCount}
               fillHeight={!hasMore}
               hasRoleAccess={canManageAllocations}
+              guardAction={guardAction}
               showWeekend={showWeekend}
               onAddAllocation={openAddAllocationDialog}
               onEditAllocation={openEditAllocationDialog}

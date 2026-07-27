@@ -178,6 +178,8 @@ export interface GanttGridProps {
   className?: string;
   /** Stretch the grid to fill the scroll viewport's height when the content is shorter. */
   fillHeight?: boolean;
+  /** Optional guard function to wrap actions that may be blocked by unsaved changes. */
+  guardAction?: (action?: () => void) => void;
   /** Called when "Add" is clicked in an allocation popup. Receives employee data. */
   onAddAllocation?: (data: AllocationCallbackData) => void;
   /** Called when the edit icon is clicked on an allocation entry. Receives allocation data. */
