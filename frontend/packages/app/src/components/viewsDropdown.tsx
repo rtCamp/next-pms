@@ -23,6 +23,7 @@ type ViewsDropdownProps = PropsWithChildren<{
   savedViews: ViewsContextProps["state"]["savedViews"];
   activeView: ViewsContextProps["state"]["activeView"];
   applyView: ViewsContextProps["actions"]["applyView"];
+  editView: ViewsContextProps["actions"]["editView"];
   updateView: ViewsContextProps["actions"]["updateView"];
   deleteView: ViewsContextProps["actions"]["deleteView"];
   createView: () => void;
@@ -44,6 +45,7 @@ function ViewsDropdown({
   savedViews,
   activeView,
   applyView,
+  editView,
   updateView,
   deleteView,
   createView,
@@ -108,7 +110,11 @@ function ViewsDropdown({
                 label: "Duplicate",
                 icon: <Duplicate className="size-4 mr-2" />,
               },
-              { label: "Edit", icon: <Edit className="size-4 mr-2" /> },
+              {
+                label: "Edit",
+                icon: <Edit className="size-4 mr-2" />,
+                onClick: () => editView(view),
+              },
               {
                 label: view.public ? "Make Private" : "Make Public",
                 icon: <Lock className="size-4 mr-2" />,

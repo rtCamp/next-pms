@@ -23,6 +23,7 @@ import {
  * Internal dependencies.
  */
 import CreateViewModal from "@/components/create-view";
+import EditViewModal from "@/components/edit-view";
 import { parseFrappeErrorMsg } from "@/lib/utils";
 import type { View } from "@/types";
 import { ViewsContext } from ".";
@@ -40,6 +41,7 @@ export const ViewsProvider: FC<
   const [isCreateViewModal, setIsCreateViewModal] = useState(false);
   const [type, settype] = useState("");
   const [filters, setFilters] = useState<Record<string, unknown>>({});
+  const [editingView, setEditingView] = useState<View | null>(null);
 
   const { data, isLoading, mutate } = useFrappeGetCall<{ message: View[] }>(
     "next_pms.timesheet.doctype.pms_view_setting.pms_view_setting.get_view",
@@ -149,6 +151,37 @@ export const ViewsProvider: FC<
     [createViewCall, mutate, doctype, type, filters],
   );
 
+  const editView = useCallback((view: View) => {
+    setEditingView(view);
+  }, []);
+
+  const _editView = useCallback(
+    async ({
+      label,
+      icon,
+      isPublic,
+    }: {
+      label: string;
+      icon: string;
+      isPublic: boolean;
+    }) => {
+      if (!editingView) {
+        return;
+      }
+      await updateViewCall({
+        view: {
+          ...editingView,
+          label: label,
+          icon: icon,
+          public: isPublic ? 1 : 0,
+          dt: doctype,
+        },
+      });
+      await mutate();
+    },
+    [updateViewCall, mutate, doctype, editingView],
+  );
+
   const updateView = useCallback(
     async (view: Omit<Partial<View>, "dt">) => {
       try {
@@ -191,7 +224,14 @@ export const ViewsProvider: FC<
         activeView,
         isLoading,
       },
-      actions: { createView, applyView, updateView, deleteView, refresh },
+      actions: {
+        createView,
+        applyView,
+        editView,
+        updateView,
+        deleteView,
+        refresh,
+      },
     }),
     [
       doctype,
@@ -202,6 +242,7 @@ export const ViewsProvider: FC<
       isLoading,
       createView,
       applyView,
+      editView,
       updateView,
       deleteView,
       refresh,
@@ -215,6 +256,16 @@ export const ViewsProvider: FC<
         open={isCreateViewModal}
         onOpenChange={setIsCreateViewModal}
         createView={_createView}
+      />
+      <EditViewModal
+        open={editingView !== null}
+        onOpenChange={(open) => {
+          if (!open) {
+            setEditingView(null);
+          }
+        }}
+        view={editingView}
+        editView={_editView}
       />
     </ViewsContext.Provider>
   );
