@@ -23,6 +23,7 @@ type ViewsDropdownProps = PropsWithChildren<{
   savedViews: ViewsContextProps["state"]["savedViews"];
   activeView: ViewsContextProps["state"]["activeView"];
   applyView: ViewsContextProps["actions"]["applyView"];
+  duplicateView: ViewsContextProps["actions"]["duplicateView"];
   editView: ViewsContextProps["actions"]["editView"];
   updateView: ViewsContextProps["actions"]["updateView"];
   deleteView: ViewsContextProps["actions"]["deleteView"];
@@ -45,6 +46,7 @@ function ViewsDropdown({
   savedViews,
   activeView,
   applyView,
+  duplicateView,
   editView,
   updateView,
   deleteView,
@@ -54,7 +56,7 @@ function ViewsDropdown({
   const toViewItem = (view: View) => ({
     label: view.label,
     key: String(view.name),
-    icon: renderViewIcon(view.icon, "size-4 mr-2"),
+    icon: renderViewIcon(view.icon, "size-4 mr-2 shrink-0"),
     onClick: () => applyView(view),
   });
 
@@ -109,6 +111,7 @@ function ViewsDropdown({
               {
                 label: "Duplicate",
                 icon: <Duplicate className="size-4 mr-2" />,
+                onClick: () => duplicateView(view),
               },
               {
                 label: "Edit",

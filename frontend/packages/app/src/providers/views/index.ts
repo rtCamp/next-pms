@@ -29,6 +29,8 @@ export interface ViewsContextProps {
     }) => void;
     /** Selects a view: syncs the `view`, filter and sort search params to it. */
     applyView: (view: View, options?: { replace?: boolean }) => void;
+    /** Creates a private copy of the given view and refreshes the list. */
+    duplicateView: (view: View) => Promise<void>;
     /** Opens the edit-view modal prefilled with the given saved view. */
     editView: (view: View) => void;
     /** Updates an existing view and refreshes the list. The provider's doctype is applied automatically. */
@@ -51,6 +53,7 @@ export const ViewsContext = createContext<ViewsContextProps>({
   actions: {
     createView: () => null,
     applyView: () => null,
+    duplicateView: () => Promise.resolve(),
     editView: () => null,
     updateView: () => Promise.resolve(),
     deleteView: () => Promise.resolve(),

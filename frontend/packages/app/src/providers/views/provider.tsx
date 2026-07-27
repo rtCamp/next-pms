@@ -151,6 +151,28 @@ export const ViewsProvider: FC<
     [createViewCall, mutate, doctype, type, filters],
   );
 
+  const duplicateView = useCallback(
+    async (view: View) => {
+      try {
+        await createViewCall({
+          view: {
+            ...view,
+            label: `${view.label} (Copy)`,
+            public: 0,
+            default: 0,
+            dt: doctype,
+          },
+        });
+        await mutate();
+        toast.success("View Duplicated");
+      } catch (error) {
+        const message = parseFrappeErrorMsg(error as FrappeError);
+        toast.error(message);
+      }
+    },
+    [createViewCall, mutate, doctype, toast],
+  );
+
   const editView = useCallback((view: View) => {
     setEditingView(view);
   }, []);
@@ -227,6 +249,7 @@ export const ViewsProvider: FC<
       actions: {
         createView,
         applyView,
+        duplicateView,
         editView,
         updateView,
         deleteView,
@@ -242,6 +265,7 @@ export const ViewsProvider: FC<
       isLoading,
       createView,
       applyView,
+      duplicateView,
       editView,
       updateView,
       deleteView,
