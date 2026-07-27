@@ -12,10 +12,28 @@ from next_pms.timesheet.utils.constant import (
 )
 
 
+def _empty_working_hours() -> dict:
+    """Working hour payload used when no Employee can be resolved."""
+    return {"working_hour": 0, "working_frequency": DEFAULT_WORKING_FREQUENCY}
+
+
 @frappe.whitelist(methods=["GET"])
 def get_data():
-    """returns employee, employee_name, employee_working_detail and employee_report_to for the current user"""
+    """returns employee, employee_name, employee_working_detail and employee_report_to for the current user
+
+    Users with no linked Employee (Administrator, most System Managers) get an empty payload rather
+    than a DoesNotExistError. The SPA loads this once on boot for every route and treats a failure
+    as fatal, so raising here would break pages that never needed an employee in the first place.
+    """
     employee = get_employee_from_user()
+    if not employee:
+        return {
+            "employee": None,
+            "employee_name": None,
+            "employee_working_detail": _empty_working_hours(),
+            "employee_report_to": None,
+        }
+
     doc = frappe.get_cached_doc("Employee", employee)
 
     return {
@@ -100,7 +118,7 @@ def get_employee_working_hours(employee: str | None = None) -> dict:
     if not employee:
         employee = get_employee_from_user()
     if not employee:
-        return {"working_hour": 0, "working_frequency": DEFAULT_WORKING_FREQUENCY}
+        return _empty_working_hours()
 
     data = frappe.cache().hget(EMP_WOKING_DETAILS, employee)
     if data:
