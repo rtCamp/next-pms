@@ -1,4 +1,8 @@
-export const LEAVE_DURATION = ["full-day" , "first-half" , "second-half"] as const;
+export const LEAVE_DURATION = [
+  "full-day",
+  "first-half",
+  "second-half",
+] as const;
 
 export interface LeaveTimeProps {
   open: boolean;

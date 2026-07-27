@@ -61,8 +61,7 @@ export function getAllocationSummary(
       billable: !dayHasNonBillable.get(ts),
       tentative: Boolean(dayHasTentative.get(ts)),
       type: (dayIsTimeoff.get(ts) ? "timeoff" : "default") as
-        | "default"
-        | "timeoff",
+        "default" | "timeoff",
     }));
 
   const merged: MemberBarAllocation[] = [];
