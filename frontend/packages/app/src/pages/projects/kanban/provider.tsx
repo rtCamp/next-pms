@@ -1,7 +1,7 @@
 /**
  * External dependencies.
  */
-import { useCallback, useMemo, useState, type PropsWithChildren } from "react";
+import { useCallback, useMemo, type PropsWithChildren } from "react";
 import { useFrappeGetCall, useFrappeUpdateDoc } from "frappe-react-sdk";
 
 /**
@@ -13,30 +13,14 @@ import {
   type ProjectKanbanContextProps,
 } from "./context";
 import type { ResponseProjectKanban } from "./types";
-import AddProjectModal from "../components/add-project";
-import type { AddProjectFormValues } from "../components/add-project/schema";
 import { useProjectFilters } from "../components/project-filters/useProjectFilters";
+import { PROJECTS_VIEW_METHOD } from "../constants";
 
 import type { Phase } from "../types";
 import { buildListFrappeFilters } from "../utils";
 
 export function ProjectKanbanProvider({ children }: PropsWithChildren) {
   const { filters } = useProjectFilters();
-  const [addProjectOpen, setAddProjectOpen] = useState(false);
-  const [addProjectPrefill, setAddProjectPrefill] = useState<
-    Partial<AddProjectFormValues> | undefined
-  >(undefined);
-  const openAddProjectModal = useCallback(
-    (prefill?: Partial<AddProjectFormValues>) => {
-      setAddProjectPrefill(prefill);
-      setAddProjectOpen(true);
-    },
-    [],
-  );
-  const closeAddProjectModal = useCallback(() => {
-    setAddProjectOpen(false);
-    setAddProjectPrefill(undefined);
-  }, []);
 
   const frappeFilters = useMemo(
     () => buildListFrappeFilters(filters),
@@ -44,14 +28,11 @@ export function ProjectKanbanProvider({ children }: PropsWithChildren) {
   );
 
   const { data, error, isLoading, mutate } =
-    useFrappeGetCall<ResponseProjectKanban>(
-      "next_pms.next_projects.api.project.get_projects_view",
-      {
-        view: "kanban",
-        search: filters.search,
-        filters: frappeFilters,
-      },
-    );
+    useFrappeGetCall<ResponseProjectKanban>(PROJECTS_VIEW_METHOD, {
+      view: "kanban",
+      search: filters.search,
+      filters: frappeFilters,
+    });
 
   const message = useMemo(
     () => data?.message ?? { columns: [], data: {}, total_count: 0 },
@@ -75,40 +56,17 @@ export function ProjectKanbanProvider({ children }: PropsWithChildren) {
         data: message,
         isLoading,
         error,
-        addProjectOpen,
       },
       actions: {
         updateProjectPhase,
-        openAddProjectModal,
-        closeAddProjectModal,
       },
     }),
-    [
-      message,
-      isLoading,
-      error,
-      updateProjectPhase,
-      addProjectOpen,
-      openAddProjectModal,
-      closeAddProjectModal,
-    ],
+    [message, isLoading, error, updateProjectPhase],
   );
 
   return (
     <ProjectKanbanContext.Provider value={value}>
       {children}
-      <AddProjectModal
-        open={addProjectOpen}
-        onOpenChange={(next) => {
-          if (next) {
-            setAddProjectOpen(true);
-          } else {
-            closeAddProjectModal();
-          }
-        }}
-        prefill={addProjectPrefill}
-        onSuccess={() => mutate()}
-      />
     </ProjectKanbanContext.Provider>
   );
 }

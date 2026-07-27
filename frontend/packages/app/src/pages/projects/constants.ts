@@ -3,6 +3,9 @@
  */
 import { kebabToTitleCase } from "@/lib/utils";
 
+export const PROJECTS_VIEW_METHOD =
+  "next_pms.next_projects.api.project.get_projects_view";
+
 export const PHASES = [
   "delivery-prep",
   "kick-off",

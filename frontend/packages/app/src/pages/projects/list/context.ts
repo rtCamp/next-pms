@@ -14,12 +14,9 @@ export interface ProjectListContextProps {
     hasMore: boolean;
     isLoading: boolean;
     error: unknown;
-    addProjectOpen: boolean;
   };
   actions: {
     loadMore: () => void;
-    openAddProjectModal: () => void;
-    closeAddProjectModal: () => void;
   };
 }
 
@@ -31,12 +28,9 @@ export const ProjectListContext = createContext<ProjectListContextProps>({
     hasMore: false,
     isLoading: false,
     error: null,
-    addProjectOpen: false,
   },
   actions: {
     loadMore: noop,
-    openAddProjectModal: noop,
-    closeAddProjectModal: noop,
   },
 });
 
