@@ -57,40 +57,187 @@ def get_budget_burn_accrued(project: dict) -> float:
     return flt(project.get("total_costing_amount"))
 
 
-def get_cost_forecasted(project_name: str) -> float:
-    """Sum of total_cost from ongoing/future Resource Allocations for the project.
+def _allocated_day_count(start: date, end: date, include_weekends: bool) -> int:
+    """Number of days an allocation charges for between start and end, both inclusive.
 
-    Past allocations are excluded: their cost is already realized in the
-    project's total_costing_amount (cost_accrued) via timesheets.
+    Weekends only count when the allocation includes them.
     """
-    ResourceAllocation = frappe.qb.DocType("Resource Allocation")
-    result = (
-        frappe.qb.from_(ResourceAllocation)
-        .select(Coalesce(Sum(ResourceAllocation.total_cost), 0).as_("total"))
-        .where(ResourceAllocation.project == project_name)
-        .where(ResourceAllocation.allocation_end_date >= today())
+    if end < start:
+        return 0
+
+    total = (end - start).days + 1
+    if include_weekends:
+        return total
+
+    full_weeks, remainder = divmod(total, 7)
+    first_weekday = start.weekday()
+    return full_weeks * 5 + sum(1 for offset in range(remainder) if (first_weekday + offset) % 7 < 5)
+
+
+def _chargeable_hours(
+    start: date,
+    end: date,
+    include_weekends: bool,
+    hours_per_day: float,
+    overrides: dict[date, float],
+) -> float:
+    """Hours an allocation charges for between start and end, both inclusive.
+
+    Every chargeable day contributes hours_per_day, and a day override replaces that
+    default for its own date. An override counts even on a day the allocation would
+    otherwise skip: a per-day entry is a deliberate instruction, so it outranks the
+    weekday rule.
+
+    Applied as deltas off the day count rather than by walking the range, so the cost
+    is proportional to the number of overrides, not to the length of the allocation.
+    """
+    if end < start:
+        return 0.0
+
+    hours = _allocated_day_count(start, end, include_weekends) * hours_per_day
+    for override_date, override_hours in overrides.items():
+        if start <= override_date <= end:
+            if include_weekends or override_date.weekday() < 5:
+                hours -= hours_per_day
+            hours += override_hours
+
+    return hours
+
+
+def _remaining_cost_ratio(
+    start: date,
+    end: date,
+    include_weekends: bool,
+    hours_per_day: float,
+    overrides: dict[date, float],
+    as_on: date,
+) -> float:
+    """Fraction of an allocation's total_cost that still lies on or after as_on.
+
+    Split by chargeable hours rather than by days, so a shortened or cancelled day
+    moves cost across the today boundary in proportion to the hours it changes.
+    """
+    if as_on <= start:
+        return 1.0
+    if as_on > end:
+        return 0.0
+
+    if not _allocated_day_count(start, end, include_weekends):
+        # No chargeable day in the range at all (a weekday allocation sitting on a
+        # weekend): the hour model cannot split it, so fall back to calendar days
+        # rather than dropping a non-zero total_cost.
+        return ((end - as_on).days + 1) / ((end - start).days + 1)
+
+    total_hours = _chargeable_hours(start, end, include_weekends, hours_per_day, overrides)
+    if total_hours <= 0:
+        # Overrides cancelled out every day: nothing is left to spend.
+        return 0.0
+
+    return _chargeable_hours(as_on, end, include_weekends, hours_per_day, overrides) / total_hours
+
+
+def _get_day_overrides(allocation_names: list[str]) -> dict[str, dict[date, float]]:
+    """Per-day override hours for the given allocations, keyed by allocation then date.
+
+    A cancelled day is read as zero hours regardless of what its hours column holds.
+    """
+    if not allocation_names:
+        return {}
+
+    ExtraEntry = frappe.qb.DocType("Resource Allocation Extra Entry")
+    rows = (
+        frappe.qb.from_(ExtraEntry)
+        .select(ExtraEntry.parent, ExtraEntry.date, ExtraEntry.hours, ExtraEntry.cancelled)
+        .where(ExtraEntry.parenttype == "Resource Allocation")
+        .where(ExtraEntry.parent.isin(allocation_names))
         .run(as_dict=True)
     )
-    return flt(result[0].total) if result else 0
+
+    overrides: dict[str, dict[date, float]] = {}
+    for row in rows:
+        overrides.setdefault(row.parent, {})[getdate(row.date)] = 0.0 if cint(row.cancelled) else flt(row.hours)
+    return overrides
+
+
+def get_cost_forecasted(project_name: str) -> float:
+    """Forecasted cost still ahead of today for the project's Resource Allocations."""
+    return get_cost_forecasted_map([project_name]).get(project_name, 0.0)
 
 
 def get_cost_forecasted_map(project_names: list[str]) -> dict[str, float]:
-    """Fetch forecasted costs (ongoing/future allocations only) for multiple projects in a single grouped query."""
+    """Forecasted costs for multiple projects, keyed by project name.
+
+    Only cost that is still ahead of today counts: elapsed allocation days are already
+    realized in the project's total_costing_amount (cost_accrued) via timesheets, so
+    counting them here would double-count them.
+
+    An allocation that has not started yet is still fully ahead whatever its internal
+    shape, so those are summed in the database and never inspected row by row. Only
+    allocations straddling today need splitting, and that set holds at most one row per
+    (employee, project) because the allocation API chunks every allocation into a single
+    week. The split runs on chargeable hours so day overrides land on the right side of
+    today, and stops at the employee's relieving date, which total_cost is already
+    clamped to. Today counts as forecast, since today's timesheet is typically not
+    submitted yet.
+    """
     if not project_names:
         return {}
+
+    as_on = getdate(today())
     ResourceAllocation = frappe.qb.DocType("Resource Allocation")
-    rows = (
+    Employee = frappe.qb.DocType("Employee")
+
+    not_started = (
         frappe.qb.from_(ResourceAllocation)
         .select(
             ResourceAllocation.project,
             Coalesce(Sum(ResourceAllocation.total_cost), 0).as_("total"),
         )
         .where(ResourceAllocation.project.isin(project_names))
-        .where(ResourceAllocation.allocation_end_date >= today())
+        .where(ResourceAllocation.allocation_start_date >= as_on)
         .groupby(ResourceAllocation.project)
         .run(as_dict=True)
     )
-    return {row.project: flt(row.total) for row in rows}
+    forecast = {row.project: flt(row.total) for row in not_started}
+
+    in_flight = (
+        frappe.qb.from_(ResourceAllocation)
+        .left_join(Employee)
+        .on(Employee.name == ResourceAllocation.employee)
+        .select(
+            ResourceAllocation.name,
+            ResourceAllocation.project,
+            ResourceAllocation.total_cost,
+            ResourceAllocation.allocation_start_date,
+            ResourceAllocation.allocation_end_date,
+            ResourceAllocation.include_weekends,
+            ResourceAllocation.hours_allocated_per_day,
+            Employee.relieving_date,
+        )
+        .where(ResourceAllocation.project.isin(project_names))
+        .where(ResourceAllocation.allocation_start_date < as_on)
+        .where(ResourceAllocation.allocation_end_date >= as_on)
+        .run(as_dict=True)
+    )
+    overrides = _get_day_overrides([row.name for row in in_flight])
+
+    for row in in_flight:
+        end = getdate(row.allocation_end_date)
+        if row.relieving_date:
+            end = min(end, getdate(row.relieving_date))
+
+        ratio = _remaining_cost_ratio(
+            getdate(row.allocation_start_date),
+            end,
+            bool(cint(row.include_weekends)),
+            flt(row.hours_allocated_per_day),
+            overrides.get(row.name, {}),
+            as_on,
+        )
+        if ratio:
+            forecast[row.project] = forecast.get(row.project, 0.0) + flt(row.total_cost) * ratio
+
+    return forecast
 
 
 def get_burn_rate_per_week(project: dict) -> float | None:

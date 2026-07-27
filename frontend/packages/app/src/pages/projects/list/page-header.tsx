@@ -1,7 +1,7 @@
 /**
  * External dependencies.
  */
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams } from "react-router";
 import { Breadcrumbs, Button } from "@rtcamp/frappe-ui-react";
 import { AddSm, SmallDown } from "@rtcamp/frappe-ui-react/icons";
 

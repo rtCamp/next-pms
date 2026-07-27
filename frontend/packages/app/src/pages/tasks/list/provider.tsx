@@ -1,7 +1,7 @@
 /**
  * External dependencies.
  */
-import { useCallback, useMemo, type PropsWithChildren } from "react";
+import { useCallback, useMemo, useState, type PropsWithChildren } from "react";
 import { type PaginationKey, usePagination } from "@next-pms/hooks";
 import { useToasts } from "@rtcamp/frappe-ui-react";
 import { type FrappeError, useFrappeDeleteDoc } from "frappe-react-sdk";
@@ -10,6 +10,8 @@ import { type FrappeError, useFrappeDeleteDoc } from "frappe-react-sdk";
  * Internal dependencies.
  */
 import { buildFilterConditions, parseFrappeErrorMsg } from "@/lib/utils";
+import AddTask from "../components/add-task";
+import type { AddTaskPrefill } from "../components/add-task/type";
 import { TASK_LIST_PAGE_SIZE } from "../constants";
 import { TaskListContext, type TaskListContextProps } from "./context";
 import type { ResponseTaskList } from "./types";
@@ -19,6 +21,35 @@ export function TaskListProvider({ children }: PropsWithChildren) {
   const toast = useToasts();
   const { deleteDoc } = useFrappeDeleteDoc();
   const { filters, sort } = useTaskFilters();
+  const [addTaskOpen, setAddTaskOpen] = useState(false);
+  const [addTaskPrefill, setAddTaskPrefill] = useState<AddTaskPrefill | null>(
+    null,
+  );
+  const [editTaskName, setEditTaskName] = useState<string | null>(null);
+  const openAddTaskModal = useCallback((prefill?: AddTaskPrefill) => {
+    setEditTaskName(null);
+    setAddTaskPrefill(prefill ?? null);
+    setAddTaskOpen(true);
+  }, []);
+  const openEditTaskModal = useCallback(
+    (task: TaskListContextProps["state"]["data"][number]) => {
+      setEditTaskName(task.name);
+      setAddTaskPrefill({
+        subject: task.subject,
+        project: task.project,
+        projectLabel: task.project_name ?? task.project,
+        expected_time: String(task.expected_time ?? ""),
+        description: task.description ?? "",
+      });
+      setAddTaskOpen(true);
+    },
+    [],
+  );
+  const closeAddTaskModal = useCallback(() => {
+    setAddTaskOpen(false);
+    setAddTaskPrefill(null);
+    setEditTaskName(null);
+  }, []);
   const frappeFilters = useMemo(
     () => buildFilterConditions(filters.advanced),
     [filters.advanced],
@@ -116,19 +147,54 @@ export function TaskListProvider({ children }: PropsWithChildren) {
         hasMore,
         isLoading,
         error,
+        addTaskOpen,
+        addTaskPrefill,
+        editTaskName,
       },
       actions: {
         loadMore,
         refresh,
         deleteTask,
+        openAddTaskModal,
+        openEditTaskModal,
+        closeAddTaskModal,
       },
     }),
-    [tasks, hasMore, isLoading, error, loadMore, refresh, deleteTask],
+    [
+      tasks,
+      hasMore,
+      isLoading,
+      error,
+      addTaskOpen,
+      addTaskPrefill,
+      editTaskName,
+      loadMore,
+      refresh,
+      deleteTask,
+      openAddTaskModal,
+      openEditTaskModal,
+      closeAddTaskModal,
+    ],
   );
 
   return (
     <TaskListContext.Provider value={value}>
       {children}
+      <AddTask
+        open={addTaskOpen}
+        onOpenChange={(open) => {
+          if (open) {
+            setAddTaskOpen(true);
+            return;
+          }
+          closeAddTaskModal();
+        }}
+        prefill={addTaskPrefill}
+        taskName={editTaskName}
+        onSuccess={() => {
+          mutate();
+        }}
+      />
     </TaskListContext.Provider>
   );
 }

@@ -18,12 +18,14 @@ export function TaskListCell({
   column,
   onOpenTask,
   onAddTime,
+  onEditTask,
   onDeleteTask,
 }: {
   row: TaskListItem;
   column: ListViewColumn;
   onOpenTask?: (taskName: string) => void;
   onAddTime?: (prefill: OpenAddTimeDialogOptions) => void;
+  onEditTask?: (task: TaskListItem) => void;
   onDeleteTask?: (name: string) => void;
 }) {
   switch (column.key) {
@@ -48,7 +50,13 @@ export function TaskListCell({
     case "like":
       return <LikeCell name={row.name} likedBy={row._liked_by} />;
     case "actions":
-      return <TaskRowActions name={row.name} onDelete={onDeleteTask} />;
+      return (
+        <TaskRowActions
+          name={row.name}
+          onEdit={() => onEditTask?.(row)}
+          onDelete={onDeleteTask}
+        />
+      );
     default:
       return null;
   }

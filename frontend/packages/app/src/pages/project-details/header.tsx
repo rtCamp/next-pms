@@ -1,7 +1,7 @@
 /**
  * External dependencies.
  */
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router";
 import { Breadcrumbs } from "@rtcamp/frappe-ui-react";
 import { Folder } from "@rtcamp/frappe-ui-react/icons";
 

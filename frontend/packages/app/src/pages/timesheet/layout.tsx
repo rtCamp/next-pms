@@ -1,7 +1,7 @@
 /**
  * External dependencies.
  */
-import { Outlet } from "react-router-dom";
+import { Outlet } from "react-router";
 
 /**
  * Internal dependencies.

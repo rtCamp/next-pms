@@ -22,6 +22,7 @@ interface GanttMemberRowProps {
   project: ProjectGroup;
   member: ProjectMember;
   isExpanded: boolean;
+  isLast: boolean;
   canManageAllocations: boolean;
   canEditAllocations: boolean;
   onTransitionEnd?: React.TransitionEventHandler<HTMLTableRowElement>;
@@ -31,6 +32,7 @@ export const GanttMemberRow: React.FC<GanttMemberRowProps> = ({
   project,
   member,
   isExpanded,
+  isLast,
   canManageAllocations,
   canEditAllocations,
   onTransitionEnd,
@@ -47,6 +49,7 @@ export const GanttMemberRow: React.FC<GanttMemberRowProps> = ({
   const overlayRef = useRef<RowAllocationOverlayHandle | null>(null);
   const memberRowKey = `project-member-${project.id ?? project.name}-${member.id ?? member.name}`;
   const animatedRowHeight = isExpanded ? CELL_HEIGHT : 0;
+  const showBottomBorder = isExpanded && isLast && !canManageAllocations;
 
   return (
     <tr
@@ -81,6 +84,7 @@ export const GanttMemberRow: React.FC<GanttMemberRowProps> = ({
           className={cn(
             "overflow-hidden transition-[height] duration-200 ease-in-out bg-surface-gray-1/50",
             { "border-r border-outline-gray-1": isExpanded },
+            { "border-b border-outline-gray-1": showBottomBorder },
           )}
           style={{ height: animatedRowHeight }}
         />
@@ -96,6 +100,7 @@ export const GanttMemberRow: React.FC<GanttMemberRowProps> = ({
                   : allocationIndex
               }
               allocation={allocation}
+              rowAllocations={member.allocations ?? []}
               memberName={member.name}
               memberImage={member.image}
               resizable={canEditAllocations}

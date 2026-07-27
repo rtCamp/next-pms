@@ -1,7 +1,7 @@
 /**
  * External dependencies.
  */
-import { useOutletContext } from "react-router-dom";
+import { useOutletContext } from "react-router";
 import type {
   AllocationCallbackData,
   DeleteAllocationMode,

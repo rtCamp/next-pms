@@ -117,6 +117,7 @@ export const GanttMemberRows: React.FC<GanttMemberRowsProps> = ({
               memberInd={memberInd}
               projectInd={projectIndex}
               isExpanded={childRowsVisible}
+              isLast={projectIndex === member.projects.length - 1}
               canManageAllocations={canManageAllocations}
               canEditAllocations={canEditAllocations}
               onTransitionEnd={childRowsPresence.onTransitionEnd}

@@ -4,6 +4,7 @@ export const overviewSchema = z.object({
   summary: z.string(),
   keyGoals: z.string(),
   priority: z.string(),
+  host: z.string(),
   complexity: z.string(),
   keyAccount: z.string(),
   source: z.string(),

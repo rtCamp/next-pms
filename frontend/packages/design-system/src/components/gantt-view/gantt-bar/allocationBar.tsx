@@ -24,6 +24,7 @@ import { mergeClassNames as cn } from "../../../utils";
 
 interface GanttAllocationBarProps {
   allocation: ProjectAllocationBar;
+  rowAllocations: ProjectAllocationBar[];
   resizable: boolean;
   capacityHoursPerDay?: number;
   showCapacityStatus?: boolean;
@@ -33,6 +34,7 @@ interface GanttAllocationBarProps {
 
 export function GanttAllocationBar({
   allocation,
+  rowAllocations,
   resizable,
   capacityHoursPerDay,
   showCapacityStatus = false,
@@ -144,24 +146,39 @@ export function GanttAllocationBar({
     [columnWidth, formatDayCountLabel, resolvedDayCount],
   );
 
-  const entry = withPendingDeleteEntry(
-    {
-      ...allocationBarToEntry(
-        {
-          ...allocation,
-          startDate: resolvedDates.startDate,
-          endDate: resolvedDates.endDate,
-          fullNumDays: resolvedDayCount,
-        },
-        onEditAllocation,
-        onDeleteAllocation,
+  const toEntry = (alloc: ProjectAllocationBar) =>
+    withPendingDeleteEntry(
+      {
+        ...allocationBarToEntry(
+          alloc,
+          onEditAllocation,
+          onDeleteAllocation,
+          memberName,
+        ),
         memberName,
-      ),
-      memberName,
-      memberImage,
-    },
-    setPendingDeleteEntry,
+        memberImage,
+      },
+      setPendingDeleteEntry,
+    );
+
+  // Overlapping bars share the same row and stack on top of each other, so the
+  // ones underneath are listed here to keep them reachable.
+  const stackedAllocations = rowAllocations.filter(
+    (alloc) =>
+      alloc !== allocation &&
+      alloc.startDate <= allocation.endDate &&
+      alloc.endDate >= allocation.startDate,
   );
+
+  const entries = [
+    toEntry({
+      ...allocation,
+      startDate: resolvedDates.startDate,
+      endDate: resolvedDates.endDate,
+      fullNumDays: resolvedDayCount,
+    }),
+    ...stackedAllocations.map(toEntry),
+  ];
 
   const openEditAllocation = useCallback(
     (nextLeft: number, nextWidth: number) => {
@@ -334,7 +351,7 @@ export function GanttAllocationBar({
         <Popover.Positioner side="bottom" align="start" sideOffset={4}>
           <Popover.Popup className="z-50 outline-none">
             <GanttAllocationPopover
-              entries={[entry]}
+              entries={entries}
               variant={variant}
               hasRoleAccess={hasRoleAccess}
             />
