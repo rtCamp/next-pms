@@ -36,9 +36,12 @@ class TestDailyReminderForTimeEntry(IntegrationTestCase):
         cls._make_leave_application(cls.on_leave_employee, cls.yesterday, company)
         cls._make_email_template()
         cls._configure_settings()
+        cls.original_mute_emails = frappe.flags.mute_emails
+        frappe.flags.mute_emails = True
 
     @classmethod
     def tearDownClass(cls):
+        frappe.flags.mute_emails = cls.original_mute_emails
         cls._restore_settings()
         super().tearDownClass()
 
