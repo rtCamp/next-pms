@@ -1,21 +1,16 @@
 /**
  * External Dependencies
  */
-import {
-  useCallback,
-  useEffect,
-  useMemo,
-  useState,
-  type ChangeEvent,
-} from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   Button,
   Combobox,
   Dialog,
   ErrorMessage,
-  Textarea,
+  TextEditor,
   TextInput,
   useToasts,
+  type TextEditorProps,
 } from "@rtcamp/frappe-ui-react";
 import { useForm } from "@tanstack/react-form";
 import { useSelector } from "@tanstack/react-store";
@@ -36,6 +31,10 @@ import {
   type AddTaskFormValues,
 } from "./schema";
 import type { AddTaskProps } from "./type";
+
+const DESCRIPTION_EDITOR_STARTERKIT_OPTIONS: NonNullable<
+  TextEditorProps["starterkitOptions"]
+> = { trailingNode: false };
 
 const emptyValues: AddTaskFormValues = {
   subject: "",
@@ -213,7 +212,11 @@ const AddTask = ({
                   onChange={(event) => field.handleChange(event.target.value)}
                 />
                 {!field.state.meta.isValid && (
-                  <ErrorMessage message={field.state.meta.errors[0]?.message} />
+                  <div className="mt-4">
+                    <ErrorMessage
+                      message={field.state.meta.errors[0]?.message}
+                    />
+                  </div>
                 )}
               </div>
             )}
@@ -235,7 +238,11 @@ const AddTask = ({
                   onChange={(event) => field.handleChange(event.target.value)}
                 />
                 {!field.state.meta.isValid && (
-                  <ErrorMessage message={field.state.meta.errors[0]?.message} />
+                  <div className="mt-4">
+                    <ErrorMessage
+                      message={field.state.meta.errors[0]?.message}
+                    />
+                  </div>
                 )}
               </div>
             )}
@@ -270,7 +277,9 @@ const AddTask = ({
                 openOnFocus
               />
               {!field.state.meta.isValid && (
-                <ErrorMessage message={field.state.meta.errors[0]?.message} />
+                <div className="mt-4">
+                  <ErrorMessage message={field.state.meta.errors[0]?.message} />
+                </div>
               )}
             </div>
           )}
@@ -283,16 +292,18 @@ const AddTask = ({
               <label className="block text-base text-ink-gray-5 mb-1.5">
                 Description
               </label>
-              <Textarea
-                rows={4}
+              <TextEditor
                 placeholder="Add description"
-                value={field.state.value}
-                onChange={(event: ChangeEvent<HTMLTextAreaElement>) =>
-                  field.handleChange(event.target.value)
-                }
+                content={field.state.value}
+                onChange={(value) => field.handleChange(value)}
+                starterkitOptions={DESCRIPTION_EDITOR_STARTERKIT_OPTIONS}
+                fixedMenu={false}
+                editorClass="px-2 h-24 prose-sm overflow-auto scrollbar-thin bg-surface-white border rounded-md border-outline-gray-2 text-ink-gray-7 text-base"
               />
               {!field.state.meta.isValid && (
-                <ErrorMessage message={field.state.meta.errors[0]?.message} />
+                <div className="mt-4">
+                  <ErrorMessage message={field.state.meta.errors[0]?.message} />
+                </div>
               )}
             </div>
           )}
