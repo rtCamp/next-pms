@@ -151,8 +151,14 @@ export const ViewsProvider: FC<
 
   const updateView = useCallback(
     async (view: Omit<Partial<View>, "dt">) => {
-      await updateViewCall({ view: { ...view, dt: doctype } });
-      await mutate();
+      try {
+        await updateViewCall({ view: { ...view, dt: doctype } });
+        await mutate();
+        toast.success("View Updated");
+      } catch (error) {
+        const message = parseFrappeErrorMsg(error as FrappeError);
+        toast.error(message);
+      }
     },
     [updateViewCall, mutate, doctype],
   );

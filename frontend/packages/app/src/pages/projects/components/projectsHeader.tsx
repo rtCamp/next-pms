@@ -29,6 +29,7 @@ function ProjectsHeader({ label, children }: ProjectsHeaderProps) {
   const isLoading = useProjectViews((state) => state.state.isLoading);
   const createView = useProjectViews((state) => state.actions.createView);
   const applyView = useProjectViews((state) => state.actions.applyView);
+  const updateView = useProjectViews((state) => state.actions.updateView);
   const deleteView = useProjectViews((state) => state.actions.deleteView);
 
   if (isLoading || !activeView) {
@@ -41,6 +42,7 @@ function ProjectsHeader({ label, children }: ProjectsHeaderProps) {
       savedViews={savedViews}
       activeView={activeView}
       applyView={applyView}
+      updateView={updateView}
       deleteView={deleteView}
       createView={() =>
         createView({

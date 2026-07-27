@@ -1,7 +1,7 @@
 /**
  * External dependencies.
  */
-import { Kanban, List } from "@rtcamp/frappe-ui-react/icons";
+import { AlignLeft, Kanban } from "@rtcamp/frappe-ui-react/icons";
 
 /**
  * Internal dependencies.
@@ -28,7 +28,7 @@ export const DEFAULT_PROJECT_VIEWS: View[] = [
     ...DEFAULT_PROJECT_VIEW_BASE,
     name: "list",
     label: "List view",
-    icon: List,
+    icon: AlignLeft,
     type: "List",
   },
   {

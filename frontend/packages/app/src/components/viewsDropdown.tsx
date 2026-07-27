@@ -23,13 +23,17 @@ type ViewsDropdownProps = PropsWithChildren<{
   savedViews: ViewsContextProps["state"]["savedViews"];
   activeView: ViewsContextProps["state"]["activeView"];
   applyView: ViewsContextProps["actions"]["applyView"];
+  updateView: ViewsContextProps["actions"]["updateView"];
   deleteView: ViewsContextProps["actions"]["deleteView"];
   createView: () => void;
 }>;
 
 export function renderViewIcon(icon: View["icon"], className: string) {
-  if (!icon || typeof icon === "string") {
+  if (!icon) {
     return icon;
+  }
+  if (typeof icon === "string") {
+    return <span className={className}>{icon}</span>;
   }
   const Icon = icon;
   return <Icon className={className} />;
@@ -40,6 +44,7 @@ function ViewsDropdown({
   savedViews,
   activeView,
   applyView,
+  updateView,
   deleteView,
   createView,
   children,
@@ -50,8 +55,6 @@ function ViewsDropdown({
     icon: renderViewIcon(view.icon, "size-4 mr-2"),
     onClick: () => applyView(view),
   });
-
-  const savedViewNames = new Set(savedViews.map((view) => String(view.name)));
 
   const viewOptions: DropdownOptions = [
     {
@@ -90,8 +93,10 @@ function ViewsDropdown({
       itemClassName="text-ink-gray-8 hover:text-ink-gray-7"
       selectedKey={activeView ? String(activeView.name) : undefined}
       renderMenuItem={(menuProps, state) => {
-        const key = state.item.key;
-        if (!key || !savedViewNames.has(String(key))) {
+        const view = savedViews.find(
+          ({ name }) => String(name) === String(state.item.key),
+        );
+        if (!view) {
           return <div {...menuProps} />;
         }
         const savedViewActions: DropdownOptions = [
@@ -104,7 +109,12 @@ function ViewsDropdown({
                 icon: <Duplicate className="size-4 mr-2" />,
               },
               { label: "Edit", icon: <Edit className="size-4 mr-2" /> },
-              { label: "Make Public", icon: <Lock className="size-4 mr-2" /> },
+              {
+                label: view.public ? "Make Private" : "Make Public",
+                icon: <Lock className="size-4 mr-2" />,
+                onClick: () =>
+                  updateView({ ...view, public: view.public ? 0 : 1 }),
+              },
             ],
           },
           {
@@ -115,7 +125,7 @@ function ViewsDropdown({
                 label: "Delete",
                 icon: <Delete className="size-4 mr-2" />,
                 theme: "red",
-                onClick: () => deleteView(String(key)),
+                onClick: () => deleteView(String(view.name)),
               },
             ],
           },

@@ -83,7 +83,8 @@ def update_view(view: dict):
     import json
 
     view = frappe._dict(view)
-    if view.public and frappe.session.user != "Administrator":
+    doc = frappe.get_doc("PMS View Setting", view.name)
+    if (view.public or doc.public) and frappe.session.user not in ("Administrator", doc.owner):
         frappe.throw(
             frappe._("Only Administrator or Owner can update public view"),
             frappe.PermissionError,
@@ -93,8 +94,6 @@ def update_view(view: dict):
     view.rows = parse_json(view.rows or "[]")
     view.columns = parse_json(view.columns or "{}")
     view.pinnedColumns = parse_json(view.pinnedColumns or "[]")
-
-    doc = frappe.get_doc("PMS View Setting", view.name)
     user = view.user or frappe.session.user
     doc.label = view.label
     doc.type = view.type or "list"
