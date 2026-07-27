@@ -21,6 +21,7 @@ from next_pms.resource_management.api.utils.query import (
     get_projects_with_allocations,
     has_active_allocation_filter,
 )
+from next_pms.timesheet.api.employee import apply_working_hours_fallback
 
 
 @frappe.whitelist(methods=["GET", "POST"])
@@ -111,7 +112,8 @@ def get_resource_management_project_view_data(
               one allocation in the window are listed before projects with none.
             - customer (dict): customer metadata referenced by the allocations.
             - employees (dict): employee metadata keyed by employee id for the
-              employees appearing in the allocations.
+              employees appearing in the allocations. Blank custom_working_hours /
+              custom_work_schedule are filled from HR Settings / "Per Day" before returning.
             - total_count (int): total number of projects matching the filters,
               independent of page_length.
             - has_more (bool): whether more projects exist beyond this page.
@@ -286,6 +288,7 @@ def _get_resource_management_project_view_data(
         if emp_ids
         else {}
     )
+    apply_working_hours_fallback(employees.values())
 
     for project in projects:
         all_week_data, all_dates_data = [], {}
@@ -468,6 +471,7 @@ def _get_employees_resrouce_data_for_given_project(
             "Employee", filters={"name": ["in", list(resource_allocation_map.keys())]}, fields=emp_fields
         )
     }
+    apply_working_hours_fallback(all_employees.values())
 
     for emp_id in resource_allocation_map:
         employee_resource_allocation = resource_allocation_map.get(emp_id, [])
