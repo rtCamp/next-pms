@@ -1,7 +1,7 @@
 /**
  * External dependencies.
  */
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Combobox, Select } from "@rtcamp/frappe-ui-react";
 import {
   AuthenticatedUserAlt,
@@ -14,6 +14,7 @@ import {
  * Internal dependencies.
  */
 import { useHostLookup } from "@/hooks/useHostLookup";
+import { useProjectDetail } from "../../../context";
 import { EditableField } from "../components/editableField";
 import { OverviewSection } from "../components/overviewSection";
 import type { OverviewFormApi } from "../index";
@@ -47,9 +48,15 @@ type SpecificsProps = {
 
 export function Specifics({ form, isEditing, submitting }: SpecificsProps) {
   const [hostSearch, setHostSearch] = useState("");
+  const hostValue = useProjectDetail((state) => state.project?.custom_host);
+  const hostSelectedOption = useMemo(
+    () => (hostValue ? { label: hostValue, value: hostValue } : null),
+    [hostValue],
+  );
   const { options: hostOptions, isLoading: isHostLoading } = useHostLookup({
     shouldFetch: isEditing,
     query: hostSearch,
+    selectedOption: hostSelectedOption,
   });
 
   return (
