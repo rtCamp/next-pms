@@ -6,15 +6,22 @@ import { DotHorizontal } from "@rtcamp/frappe-ui-react/icons";
 
 export function TaskRowActions({
   name,
+  onEdit,
   onDelete,
 }: {
   name: string;
+  onEdit?: (name: string) => void;
   onDelete?: (name: string) => void;
 }) {
   return (
     <Dropdown
       placement="center"
       options={[
+        {
+          key: "edit",
+          label: "Edit",
+          onClick: () => onEdit?.(name),
+        },
         {
           key: "delete",
           label: "Delete",
