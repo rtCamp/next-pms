@@ -8,6 +8,7 @@ import {
   ListRow,
   ListRows,
   ListView,
+  Spinner,
 } from "@rtcamp/frappe-ui-react";
 import { ArrowUpRight } from "@rtcamp/frappe-ui-react/icons";
 import { format, parseISO } from "date-fns";
@@ -17,6 +18,7 @@ import { format, parseISO } from "date-fns";
  */
 import { mergeClassNames } from "@/lib/utils";
 import { REPORT_COLUMNS } from "./constants";
+import { useProjectDetail } from "../../context";
 import type { ProjectReportRow } from "../../types";
 
 interface ReportsTableProps {
@@ -28,30 +30,60 @@ const formatGeneratedOn = (value?: string) => {
   return format(parseISO(value.replace(" ", "T")), "dd MMM yyyy, HH:mm");
 };
 
-function ReportLinkCell({ report }: { report: ProjectReportRow }) {
-  if (!report.report_link) {
-    return null;
+function StatusCell({ report }: { report: ProjectReportRow }) {
+  if (report.status === "Generating") {
+    return (
+      <span className="flex items-center gap-2">
+        <Spinner className="h-3.5 w-3.5" />
+        Generating...
+      </span>
+    );
   }
-  return (
-    <Button
-      variant="ghost"
-      label="View Report"
-      icon={ArrowUpRight}
-      link={report.report_link}
-    />
-  );
+  return <span className="truncate">{report.status}</span>;
+}
+
+function ReportActionCell({ report }: { report: ProjectReportRow }) {
+  if (report.status === "Done" && Boolean(report.report_link)) {
+    return (
+      <Button
+        variant="ghost"
+        label="View Report"
+        icon={ArrowUpRight}
+        link={report.report_link}
+      />
+    );
+  }
+  return null;
 }
 
 export function ReportsTable({ reports }: ReportsTableProps) {
-  const rows = reports.map((report, index) => ({
-    ...report,
-    id: report.run_id || `report-${index}`,
-    index: index + 1,
-  }));
+  const mutate = useProjectDetail((state) => state.mutate);
+
+  const totalCount = reports.length;
+
+  const rows = [...reports]
+    .sort((a, b) => {
+      if (a.status === "Generating") return -1;
+      if (b.status === "Generating") return 1;
+      return (b.generated_on ?? "").localeCompare(a.generated_on ?? "");
+    })
+    .map((report, index) => ({
+      ...report,
+      id: report.run_id || `report-${index}`,
+      index: totalCount - index,
+    }));
 
   return (
     <section className="flex flex-col gap-3">
-      <h2 className="text-xl font-semibold text-ink-gray-8">Project Reports</h2>
+      <div className="flex items-center justify-between">
+        <h2 className="text-xl font-semibold text-ink-gray-8">
+          Project Reports
+        </h2>
+        {reports.length > 0 && (
+          <Button variant="subtle" label="Resync" onClick={() => mutate()} />
+        )}
+      </div>
+
       {rows.length === 0 ? (
         <p className="text-base text-ink-gray-5">No reports generated yet.</p>
       ) : (
@@ -80,9 +112,9 @@ export function ReportsTable({ reports }: ReportsTableProps) {
                     )}
                   >
                     {column.key === "reportLink" ? (
-                      <ReportLinkCell report={row} />
+                      <ReportActionCell report={row} />
                     ) : column.key === "status" ? (
-                      <span className="truncate">{row.status}</span>
+                      <StatusCell report={row} />
                     ) : column.key === "generatedOn" ? (
                       <span className="truncate">
                         {formatGeneratedOn(row.generated_on)}

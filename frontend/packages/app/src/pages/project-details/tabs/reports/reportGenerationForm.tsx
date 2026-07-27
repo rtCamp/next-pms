@@ -52,7 +52,17 @@ export function ReportGenerationForm() {
   const reports = useProjectDetail(
     (state) => state.project?.custom_project_reports ?? [],
   );
-  const isReportGenerating = reports.at(-1)?.status === "Generating";
+  const mutate = useProjectDetail((state) => state.mutate);
+  const isReportGenerating = reports.some(
+    (report) => report.status === "Generating",
+  );
+
+  useEffect(() => {
+    if (!isReportGenerating) return;
+    const interval = setInterval(() => mutate(), 30000);
+    return () => clearInterval(interval);
+  }, [isReportGenerating, mutate]);
+
   const previousReportUrl = useMemo(() => {
     for (let index = reports.length - 1; index >= 0; index--) {
       if (reports[index].report_link) {
@@ -86,6 +96,7 @@ export function ReportGenerationForm() {
               ? previousReportUrl
               : undefined,
         });
+        mutate();
         toast.success(
           "Report is being generated. You'll be notified when it's ready",
         );
@@ -98,6 +109,13 @@ export function ReportGenerationForm() {
   useEffect(() => {
     form.setFieldValue("driveLink", driveLink);
   }, [driveLink, form]);
+
+  useEffect(() => {
+    if (repositoryOptions.length === 0 || form.state.values.githubRepository) {
+      return;
+    }
+    form.setFieldValue("githubRepository", repositoryOptions[0].value);
+  }, [repositoryOptions, form]);
 
   return (
     <form
