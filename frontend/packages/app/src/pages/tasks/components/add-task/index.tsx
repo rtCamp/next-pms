@@ -1,7 +1,13 @@
 /**
  * External Dependencies
  */
-import { useCallback, useEffect, useMemo, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+  type ChangeEvent,
+} from "react";
 import {
   Button,
   Combobox,
@@ -13,11 +19,8 @@ import {
 } from "@rtcamp/frappe-ui-react";
 import { useForm } from "@tanstack/react-form";
 import { useSelector } from "@tanstack/react-store";
-import {
-  FrappeError,
-  useFrappePostCall,
-  useFrappeUpdateDoc,
-} from "frappe-react-sdk";
+import { useFrappePostCall, useFrappeUpdateDoc } from "frappe-react-sdk";
+import type { FrappeError } from "frappe-react-sdk";
 
 /**
  * Internal Dependencies
@@ -27,10 +30,14 @@ import {
   type ProjectLookupOption,
 } from "@/hooks/useProjectLookup";
 import { parseFrappeErrorMsg } from "@/lib/utils";
-import { addTaskFormSchema, type addTaskFormValues } from "./schema";
+import {
+  addTaskFormSchema,
+  editTaskFormSchema,
+  type AddTaskFormValues,
+} from "./schema";
 import type { AddTaskProps } from "./type";
 
-const emptyValues: addTaskFormValues = {
+const emptyValues: AddTaskFormValues = {
   subject: "",
   project: "",
   projectLabel: "",
@@ -56,7 +63,7 @@ const AddTask = ({
   const { updateDoc } = useFrappeUpdateDoc();
   const isEditMode = Boolean(taskName);
 
-  const initialValues = useMemo<addTaskFormValues>(
+  const initialValues = useMemo<AddTaskFormValues>(
     () => ({
       ...emptyValues,
       ...prefill,
@@ -67,7 +74,7 @@ const AddTask = ({
   const form = useForm({
     defaultValues: initialValues,
     validators: {
-      onSubmit: addTaskFormSchema,
+      onSubmit: isEditMode ? editTaskFormSchema : addTaskFormSchema,
     },
     onSubmit: async ({ value }) => {
       setSubmitting(true);
@@ -280,7 +287,7 @@ const AddTask = ({
                 rows={4}
                 placeholder="Add description"
                 value={field.state.value}
-                onChange={(event: React.ChangeEvent<HTMLTextAreaElement>) =>
+                onChange={(event: ChangeEvent<HTMLTextAreaElement>) =>
                   field.handleChange(event.target.value)
                 }
               />

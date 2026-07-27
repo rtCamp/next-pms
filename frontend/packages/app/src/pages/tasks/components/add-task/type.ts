@@ -1,9 +1,9 @@
 /**
  * Internal Dependencies
  */
-import type { addTaskFormValues } from "./schema";
+import type { AddTaskFormValues } from "./schema";
 
-export type AddTaskPrefill = Partial<addTaskFormValues>;
+export type AddTaskPrefill = Partial<AddTaskFormValues>;
 
 export interface AddTaskProps {
   open: boolean;

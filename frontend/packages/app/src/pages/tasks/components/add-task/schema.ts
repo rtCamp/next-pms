@@ -1,13 +1,10 @@
 import { z } from "zod";
 
 const expectedTimeSchema = z
-  .string({
-    required_error: "Please enter a valid number for hours.",
-  })
+  .string()
   .trim()
-  .min(1, { message: "Please enter a valid time in Hours" })
-  .refine((value) => Number.isFinite(Number(value)), {
-    message: "Invalid Time format. Please enter a valid time in Hours",
+  .refine((value) => value !== "" && Number.isFinite(Number(value)), {
+    message: "Please enter a valid time in hours.",
   });
 
 export const addTaskFormSchema = z.object({
@@ -27,4 +24,9 @@ export const addTaskFormSchema = z.object({
     .min(4, { message: "Please enter valid description." }),
 });
 
-export type addTaskFormValues = z.input<typeof addTaskFormSchema>;
+export const editTaskFormSchema = z.object({
+  ...addTaskFormSchema.shape,
+  description: z.string().trim(),
+});
+
+export type AddTaskFormValues = z.input<typeof addTaskFormSchema>;
