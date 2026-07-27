@@ -2,7 +2,7 @@
  * External dependencies.
  */
 import { useState, useEffect, Dispatch, SetStateAction } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation } from "react-router";
 
 type UseQueryParam<T> = [T, Dispatch<SetStateAction<T>>];
 

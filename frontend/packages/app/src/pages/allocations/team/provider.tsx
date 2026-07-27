@@ -2,7 +2,7 @@
  * External dependencies.
  */
 import { useCallback, useMemo, useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams } from "react-router";
 import type { FilterCondition } from "@rtcamp/frappe-ui-react";
 import { format } from "date-fns";
 

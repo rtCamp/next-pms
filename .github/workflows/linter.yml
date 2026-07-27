@@ -15,7 +15,7 @@ jobs:
     name: "Frappe Linter"
     runs-on: ubuntu-latest
     container:
-      image: node:18-bookworm
+      image: node:20-bookworm
 
     steps:
       - name: Install dependencies

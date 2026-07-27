@@ -1,7 +1,7 @@
 /**
  * External dependencies.
  */
-import { matchPath } from "react-router-dom";
+import { matchPath } from "react-router";
 /**
  * Internal dependencies.
  */

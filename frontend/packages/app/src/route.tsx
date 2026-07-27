@@ -1,7 +1,7 @@
 /**
  * External dependencies.
  */
-import { Route, Outlet, Navigate } from "react-router-dom";
+import { Route, Outlet, Navigate } from "react-router";
 import { Spinner } from "@next-pms/design-system/components";
 /**
  * Internal dependencies.

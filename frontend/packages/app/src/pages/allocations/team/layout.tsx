@@ -1,7 +1,7 @@
 /**
  * External dependencies.
  */
-import { Outlet } from "react-router-dom";
+import { Outlet } from "react-router";
 import { Button } from "@rtcamp/frappe-ui-react";
 import { AddSm } from "@rtcamp/frappe-ui-react/icons";
 import { SWRConfig } from "swr";

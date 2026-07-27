@@ -2,7 +2,7 @@
  * External dependencies.
  */
 import { useCallback, useMemo, useState, type PropsWithChildren } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams } from "react-router";
 import { useToasts } from "@rtcamp/frappe-ui-react";
 import { FrappeError, useFrappePostCall } from "frappe-react-sdk";
 

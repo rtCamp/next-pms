@@ -2,7 +2,7 @@
  * External dependencies.
  */
 import { useCallback, useState } from "react";
-import { Outlet } from "react-router-dom";
+import { Outlet } from "react-router";
 import { getTodayDate } from "@next-pms/design-system";
 import { Button } from "@rtcamp/frappe-ui-react";
 import { AddMd, TimeOff } from "@rtcamp/frappe-ui-react/icons";

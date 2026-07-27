@@ -2,7 +2,7 @@
  * External dependencies.
  */
 import { useCallback, useMemo } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams } from "react-router";
 import { type ApprovalStatusType } from "@next-pms/design-system/components";
 import type { FilterCondition } from "@rtcamp/frappe-ui-react";
 
