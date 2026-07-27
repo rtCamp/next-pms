@@ -93,7 +93,13 @@ function ProjectList() {
             {data.map((row) => (
               <ListRow key={row.name} row={row}>
                 {PROJECT_LIST_COLUMNS.map((column) => {
-                  return <ProjectListCell row={row} column={column} />;
+                  return (
+                    <ProjectListCell
+                      key={column.key}
+                      row={row}
+                      column={column}
+                    />
+                  );
                 })}
               </ListRow>
             ))}

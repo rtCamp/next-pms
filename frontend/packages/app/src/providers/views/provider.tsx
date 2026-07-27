@@ -11,12 +11,19 @@ import {
   useState,
 } from "react";
 import { useSearchParams } from "react-router-dom";
-import { useFrappeGetCall, useFrappePostCall } from "frappe-react-sdk";
+import { useToasts } from "@rtcamp/frappe-ui-react";
+import {
+  FrappeError,
+  useFrappeDeleteDoc,
+  useFrappeGetCall,
+  useFrappePostCall,
+} from "frappe-react-sdk";
 
 /**
  * Internal dependencies.
  */
 import CreateViewModal from "@/components/create-view";
+import { parseFrappeErrorMsg } from "@/lib/utils";
 import type { View } from "@/types";
 import { ViewsContext } from ".";
 
@@ -28,6 +35,7 @@ export const ViewsProvider: FC<
   }>
 > = ({ doctype, defaultViews, filterParamKeys, children }) => {
   const [searchParams, setSearchParams] = useSearchParams();
+  const toast = useToasts();
 
   const [isCreateViewModal, setIsCreateViewModal] = useState(false);
   const [type, settype] = useState("");
@@ -44,6 +52,7 @@ export const ViewsProvider: FC<
   const { call: updateViewCall } = useFrappePostCall(
     "next_pms.timesheet.doctype.pms_view_setting.pms_view_setting.update_view",
   );
+  const { deleteDoc } = useFrappeDeleteDoc();
 
   const savedViews = useMemo(() => data?.message ?? [], [data]);
   const views = useMemo(
@@ -148,6 +157,20 @@ export const ViewsProvider: FC<
     [updateViewCall, mutate, doctype],
   );
 
+  const deleteView = useCallback(
+    async (name: string) => {
+      try {
+        await deleteDoc("PMS View Setting", name);
+        await mutate();
+        toast.success("View Deleted");
+      } catch (error) {
+        const message = parseFrappeErrorMsg(error as FrappeError);
+        toast.error(message);
+      }
+    },
+    [toast, deleteDoc, mutate],
+  );
+
   const refresh = useCallback(async () => {
     await mutate();
   }, [mutate]);
@@ -162,7 +185,7 @@ export const ViewsProvider: FC<
         activeView,
         isLoading,
       },
-      actions: { createView, applyView, updateView, refresh },
+      actions: { createView, applyView, updateView, deleteView, refresh },
     }),
     [
       doctype,
@@ -174,6 +197,7 @@ export const ViewsProvider: FC<
       createView,
       applyView,
       updateView,
+      deleteView,
       refresh,
     ],
   );
