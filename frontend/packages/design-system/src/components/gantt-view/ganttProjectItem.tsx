@@ -69,7 +69,8 @@ export function GanttProjectItem({
             closeDelay={150}
             tabIndex={-1}
             onMouseDown={(e) => e.preventDefault()}
-            onClick={() => {
+            onClick={(e) => {
+              e.preventBaseUIHandler();
               if (canExpand) onToggle?.();
             }}
             render={<button type="button" />}
