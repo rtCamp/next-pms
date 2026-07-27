@@ -14,7 +14,10 @@ import {
 import { InfiniteScroll } from "@/components/infiniteScroll";
 import { isWeekendEntryAllowed } from "@/lib/utils";
 import { useAllocationOutletContext } from "@/pages/allocations/allocationOutletContext";
-import { useUnsavedChangesSource } from "@/pages/allocations/unsavedChanges/useUnsavedChanges";
+import {
+  useGuardedAction,
+  useUnsavedChangesSource,
+} from "@/pages/allocations/unsavedChanges/useUnsavedChanges";
 import { useUser } from "@/providers/user";
 import { useAllocationsProject } from "./context";
 import { SubHeader } from "./subHeader";
@@ -40,6 +43,7 @@ export const AllocationsProjectTable = () => {
   const loadMore = useAllocationsProject(({ actions }) => actions.loadMore);
 
   const ganttRef = useUnsavedChangesSource();
+  const guardAction = useGuardedAction();
 
   const roles = useUser(({ state }) => state.roles);
   const canManageAllocations =
@@ -65,9 +69,7 @@ export const AllocationsProjectTable = () => {
             hasMore={hasMore}
             verticalLodMore={loadMore}
             scrollResetKey={`${querySignature}:${todayResetKey}`}
-            enableScrollArea
-            showScrollbar={false}
-            className={cn("w-full h-full", {
+            className={cn("w-full h-full overflow-auto no-scrollbar", {
               "opacity-50 transition-opacity duration-150 pointer-events-none":
                 isRefreshingVisibleGrid,
             })}
@@ -81,7 +83,9 @@ export const AllocationsProjectTable = () => {
               projects={projects}
               rowHeaderLabel="Projects"
               weekCount={weekCount}
+              fillHeight={!hasMore}
               hasRoleAccess={canManageAllocations}
+              guardAction={guardAction}
               showWeekend={showWeekend}
               onAddAllocation={openAddAllocationDialog}
               onEditAllocation={openEditAllocationDialog}

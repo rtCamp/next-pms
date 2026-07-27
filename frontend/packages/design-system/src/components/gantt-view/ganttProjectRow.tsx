@@ -23,6 +23,7 @@ interface GanttProjectRowProps {
   memberInd: number;
   projectInd: number;
   isExpanded: boolean;
+  isLast: boolean;
   canManageAllocations: boolean;
   canEditAllocations: boolean;
   onTransitionEnd?: React.TransitionEventHandler<HTMLTableRowElement>;
@@ -33,6 +34,7 @@ export const GanttProjectRow: React.FC<GanttProjectRowProps> = ({
   memberInd,
   projectInd,
   isExpanded,
+  isLast,
   canManageAllocations,
   canEditAllocations,
   onTransitionEnd,
@@ -53,6 +55,7 @@ export const GanttProjectRow: React.FC<GanttProjectRowProps> = ({
 
   const projectRowKey = `project-${memberInd}-${projectInd}`;
   const animatedRowHeight = isExpanded ? CELL_HEIGHT : 0;
+  const showBottomBorder = isExpanded && isLast && !canManageAllocations;
 
   return (
     <tr
@@ -88,6 +91,7 @@ export const GanttProjectRow: React.FC<GanttProjectRowProps> = ({
           className={cn(
             "overflow-hidden transition-[height] duration-200 ease-in-out bg-surface-gray-1/50",
             { "border-r border-outline-gray-1": isExpanded },
+            { "border-b border-outline-gray-1": showBottomBorder },
           )}
           style={{ height: animatedRowHeight }}
         />
@@ -98,6 +102,7 @@ export const GanttProjectRow: React.FC<GanttProjectRowProps> = ({
             <GanttAllocationBar
               key={allocIndex}
               allocation={alloc}
+              rowAllocations={project.allocations ?? []}
               capacityHoursPerDay={member.capacityHoursPerDay}
               resizable={canEditAllocations}
               memberName={member.name}

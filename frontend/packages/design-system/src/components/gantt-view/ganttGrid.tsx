@@ -28,7 +28,8 @@ import { mergeClassNames as cn } from "../../utils";
 const GanttGridInner: React.FC<{
   rootRef?: React.RefObject<HTMLDivElement | null>;
   className?: string;
-}> = ({ rootRef, className }) => {
+  fillHeight?: boolean;
+}> = ({ rootRef, className, fillHeight = false }) => {
   const {
     variant,
     members,
@@ -42,6 +43,7 @@ const GanttGridInner: React.FC<{
     startResize,
     columnCount,
     weeks,
+    daysPerWeek,
     pendingDeleteEntry,
     clearPendingDeleteEntry,
   } = useGanttStore((s) => ({
@@ -57,6 +59,7 @@ const GanttGridInner: React.FC<{
     startResize: s.startResize,
     columnCount: s.columnCount,
     weeks: s.weeks,
+    daysPerWeek: s.daysPerWeek,
     pendingDeleteEntry: s.pendingDeleteEntry,
     clearPendingDeleteEntry: s.clearPendingDeleteEntry,
   }));
@@ -72,7 +75,11 @@ const GanttGridInner: React.FC<{
   return (
     <div
       ref={rootRef}
-      className={cn("relative", className)}
+      className={cn(
+        "relative",
+        { "flex flex-col min-h-full": fillHeight },
+        className,
+      )}
       style={{ width: headerWidth + columnCount * columnWidth }}
     >
       {weekendColumns.length > 0 && (
@@ -92,7 +99,9 @@ const GanttGridInner: React.FC<{
       )}
 
       <table
-        className="relative table-fixed border-separate border-spacing-0"
+        className={cn("relative table-fixed border-separate border-spacing-0", {
+          grow: fillHeight,
+        })}
         style={{ width: headerWidth + columnCount * columnWidth }}
       >
         <thead className="sticky top-0 z-30">
@@ -125,6 +134,32 @@ const GanttGridInner: React.FC<{
             : projects.map((_, rowIndex) => (
                 <GanttProjectRows key={rowIndex} projectInd={rowIndex} />
               ))}
+
+          {/* Absorbs leftover vertical space so short tables still fill the viewport */}
+          {fillHeight && (
+            <tr aria-hidden="true">
+              <th
+                className="sticky left-0 z-25 bg-surface-white border-r border-outline-gray-1"
+                style={{
+                  width: headerWidth,
+                  minWidth: headerWidth,
+                  maxWidth: headerWidth,
+                }}
+              />
+              {weeks.map((weekIndex) => (
+                <td
+                  key={weekIndex}
+                  colSpan={daysPerWeek}
+                  className="border-r border-outline-gray-1"
+                />
+              ))}
+              <td
+                aria-hidden="true"
+                className="p-0 border-0 w-0 min-w-0 max-w-0"
+                style={{ width: 0 }}
+              />
+            </tr>
+          )}
         </tbody>
       </table>
 
@@ -184,12 +219,14 @@ export const GanttGrid = forwardRef<GanttGridHandle, GanttGridProps>(
         startDate: props.startDate,
         weekCount: props.weekCount ?? 3,
         hasRoleAccess: props.hasRoleAccess ?? false,
+        guardAction: props.guardAction,
         onAddAllocation: props.onAddAllocation,
         onEditAllocation: props.onEditAllocation,
         onDeleteAllocation: props.onDeleteAllocation,
       }),
       [
         props.hasRoleAccess,
+        props.guardAction,
         props.onAddAllocation,
         props.onDeleteAllocation,
         props.onEditAllocation,
@@ -228,7 +265,11 @@ export const GanttGrid = forwardRef<GanttGridHandle, GanttGridProps>(
 
     return (
       <GanttContext.Provider value={store}>
-        <GanttGridInner rootRef={rootRef} className={props.className} />
+        <GanttGridInner
+          rootRef={rootRef}
+          className={props.className}
+          fillHeight={props.fillHeight}
+        />
       </GanttContext.Provider>
     );
   },

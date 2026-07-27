@@ -131,13 +131,14 @@ export const GanttProjectRows: React.FC<GanttProjectRowsProps> = ({
       </tr>
 
       {childRowsPresence.shouldRender
-        ? project.members?.map((member) => {
+        ? project.members?.map((member, memberIndex) => {
             return (
               <GanttMemberRow
                 key={member.id ?? member.name}
                 project={project}
                 member={member}
                 isExpanded={childRowsVisible}
+                isLast={memberIndex === project.members.length - 1}
                 canManageAllocations={canManageAllocations}
                 canEditAllocations={canEditAllocations}
                 onTransitionEnd={childRowsPresence.onTransitionEnd}
