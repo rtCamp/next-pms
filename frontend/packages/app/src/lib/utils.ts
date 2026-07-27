@@ -362,7 +362,7 @@ export const getTimesheetHours = (
         if (isHalfDayLeave) {
           totalHours += dailyWorkingHours / 2;
           timeOffHours += dailyWorkingHours / 2;
-        } else if (holiday?.weekly_off && !data.is_lwp) {
+        } else if (holiday?.weekly_off && !data.includes_holidays) {
           continue;
         } else {
           totalHours += dailyWorkingHours;
@@ -536,8 +536,8 @@ export const calculateLeaveHours = (
 
   return leaves.reduce((total, leave) => {
     if (date >= leave.from_date && date <= leave.to_date) {
-      if (!leave.is_lwp && holiday?.weekly_off) {
-        return 0;
+      if (!leave.includes_holidays && holiday?.weekly_off) {
+        return total;
       } else if (leave.half_day && leave.half_day_date === date) {
         return total + daily_working_hours / 2;
       } else {
