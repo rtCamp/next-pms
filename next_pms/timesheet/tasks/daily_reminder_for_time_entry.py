@@ -1,4 +1,7 @@
+from collections import defaultdict
+
 import frappe
+from erpnext.setup.doctype.employee.employee import get_holiday_list_for_employee
 from frappe.utils import add_days, datetime, getdate
 
 from next_pms.timesheet.api.employee import get_employee_daily_working_norm
@@ -36,7 +39,8 @@ def send_reminder(start=INITIAL_OFFSET, limit=BATCH_SIZE):
 
     email_subject = reminder_template.subject
 
-    holiday_names = set([e.holiday_list for e in employees if e.holiday_list])
+    holiday_list_by_employee = get_holiday_list_by_employee(employees)
+    holiday_names = set(holiday_list_by_employee.values())
 
     holiday_info = get_holidays(list(holiday_names), date)
     leaves = get_employee_leaves(employee_names, date)
@@ -46,8 +50,9 @@ def send_reminder(start=INITIAL_OFFSET, limit=BATCH_SIZE):
         employee_hour = employee_hours.get(employee.name, 0)
         daily_norm = get_employee_daily_working_norm(employee.name)
         employee_leaves = leaves.get(employee.name, [])
+        holiday_list = holiday_list_by_employee.get(employee.name)
 
-        if is_holiday_or_leave(date, daily_norm, employee.holiday_list, holiday_info, employee_leaves):
+        if is_holiday_or_leave(date, daily_norm, holiday_list, holiday_info, employee_leaves):
             continue
         hour = reported_time_by_employee(date, daily_norm, employee_hour, employee_leaves)
         if hour >= daily_norm:
@@ -104,6 +109,28 @@ def reported_time_by_employee(date: datetime.date, daily_norm: int, hours: int =
     return total_hours
 
 
+def get_holiday_list_by_employee(employees: list[dict]) -> dict:
+    """Resolve the holiday list applicable to each employee.
+
+    The Employee record often leaves holiday_list blank and inherits it from a
+    Holiday List Assignment or the company default, so the raw field alone cannot
+    be trusted.
+
+    Args:
+        employees: Employee records, each carrying at least name and holiday_list.
+
+    Returns:
+        Employee name mapped to the resolved holiday list name, skipping employees
+        with no applicable holiday list.
+    """
+    holiday_list_by_employee = {}
+    for employee in employees:
+        holiday_list = get_holiday_list_for_employee(employee.name, raise_exception=False) or employee.holiday_list
+        if holiday_list:
+            holiday_list_by_employee[employee.name] = holiday_list
+    return holiday_list_by_employee
+
+
 def get_holidays(holiday_names: list[str], date: datetime.date):
     return frappe.get_all(
         "Holiday",
@@ -144,14 +171,11 @@ def get_employee_leaves(employee: list[str], date: datetime.date) -> dict:
             "from_date": ["<=", date],
             "to_date": [">=", date],
         },
-        fields=["half_day", "half_day_date"],
+        fields=["employee", "half_day", "half_day_date"],
     )
-    employee_leaves = {}
+    employee_leaves = defaultdict(list)
     for leave in leaves:
-        emp = leave.employee
-        if emp not in employee_leaves:
-            employee_leaves[emp] = []
-        employee_leaves[emp].append(leave)
+        employee_leaves[leave.employee].append(leave)
     return employee_leaves
 
 
