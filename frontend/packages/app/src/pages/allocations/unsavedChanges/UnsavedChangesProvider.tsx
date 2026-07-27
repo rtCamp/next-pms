@@ -2,7 +2,7 @@
  * External dependencies.
  */
 import { useCallback, useMemo, useRef, useState, type ReactNode } from "react";
-import { useBeforeUnload, useBlocker } from "react-router-dom";
+import { useBeforeUnload, useBlocker } from "react-router";
 
 /**
  * Internal dependencies.

@@ -2,7 +2,7 @@
  * External dependencies.
  */
 import { useCallback } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams } from "react-router";
 import { formatRelativeTimeShort } from "@next-pms/design-system/utils";
 import { Avatar, StaticTextEditor } from "@rtcamp/frappe-ui-react";
 

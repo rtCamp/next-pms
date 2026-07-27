@@ -1,7 +1,7 @@
 /**
  * External dependencies.
  */
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router";
 import { Breadcrumbs } from "@rtcamp/frappe-ui-react";
 import { Folder, People, SmallDown } from "@rtcamp/frappe-ui-react/icons";
 

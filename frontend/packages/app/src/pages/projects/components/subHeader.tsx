@@ -2,7 +2,7 @@
  * External dependencies.
  */
 import { useEffect, useState } from "react";
-import { useMatch } from "react-router-dom";
+import { useMatch } from "react-router";
 import { SortSelector } from "@next-pms/design-system/components";
 import {
   Select,

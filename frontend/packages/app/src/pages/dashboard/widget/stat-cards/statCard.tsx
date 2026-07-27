@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link } from "react-router";
 import { mergeClassNames } from "@next-pms/design-system";
 import { formatNumber } from "@/lib/utils";
 
