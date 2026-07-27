@@ -21,8 +21,12 @@ import type { View } from "@/types";
 import { ViewsContext } from ".";
 
 export const ViewsProvider: FC<
-  PropsWithChildren<{ doctype: string; filterParamKeys?: readonly string[] }>
-> = ({ doctype, filterParamKeys, children }) => {
+  PropsWithChildren<{
+    doctype: string;
+    defaultViews?: View[];
+    filterParamKeys?: readonly string[];
+  }>
+> = ({ doctype, defaultViews, filterParamKeys, children }) => {
   const [searchParams, setSearchParams] = useSearchParams();
 
   const [isCreateViewModal, setIsCreateViewModal] = useState(false);
@@ -41,7 +45,11 @@ export const ViewsProvider: FC<
     "next_pms.timesheet.doctype.pms_view_setting.pms_view_setting.update_view",
   );
 
-  const views = useMemo(() => data?.message ?? [], [data]);
+  const savedViews = useMemo(() => data?.message ?? [], [data]);
+  const views = useMemo(
+    () => [...(defaultViews ?? []), ...savedViews],
+    [defaultViews, savedViews],
+  );
 
   const viewParam = searchParams.get("view");
   const activeView = views.find(({ name }) => String(name) === viewParam);
@@ -146,12 +154,21 @@ export const ViewsProvider: FC<
 
   const value = useMemo(
     () => ({
-      state: { doctype, views, activeView, isLoading },
+      state: {
+        doctype,
+        views,
+        defaultViews: defaultViews ?? [],
+        savedViews,
+        activeView,
+        isLoading,
+      },
       actions: { createView, applyView, updateView, refresh },
     }),
     [
       doctype,
       views,
+      defaultViews,
+      savedViews,
       activeView,
       isLoading,
       createView,

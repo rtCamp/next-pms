@@ -1,10 +1,44 @@
 /**
+ * External dependencies.
+ */
+import { Kanban, List } from "@rtcamp/frappe-ui-react/icons";
+
+/**
  * Internal dependencies.
  */
 import { kebabToTitleCase } from "@/lib/utils";
+import type { View } from "@/types";
 
 export const PROJECTS_VIEW_METHOD =
   "next_pms.next_projects.api.project.get_projects_view";
+
+const DEFAULT_PROJECT_VIEW_BASE = {
+  default: 0,
+  public: 1,
+  dt: "Project",
+  columns: [],
+  rows: [],
+  filters: {},
+  order_by: [],
+  pinnedColumns: [],
+} satisfies Partial<View>;
+
+export const DEFAULT_PROJECT_VIEWS: View[] = [
+  {
+    ...DEFAULT_PROJECT_VIEW_BASE,
+    name: "list",
+    label: "List view",
+    icon: List,
+    type: "List",
+  },
+  {
+    ...DEFAULT_PROJECT_VIEW_BASE,
+    name: "kanban",
+    label: "Kanban view",
+    icon: Kanban,
+    type: "Custom",
+  },
+];
 
 export const PHASES = [
   "delivery-prep",

@@ -9,9 +9,14 @@ import { FC, PropsWithChildren } from "react";
 import { useViews } from "@/providers/views";
 import { ViewsProvider } from "@/providers/views/provider";
 import { FILTER_PARAM_KEYS } from "./components/project-filters/useProjectFilters";
+import { DEFAULT_PROJECT_VIEWS } from "./constants";
 
 export const ProjectViewsProvider: FC<PropsWithChildren> = ({ children }) => (
-  <ViewsProvider doctype="Project" filterParamKeys={FILTER_PARAM_KEYS}>
+  <ViewsProvider
+    doctype="Project"
+    defaultViews={DEFAULT_PROJECT_VIEWS}
+    filterParamKeys={FILTER_PARAM_KEYS}
+  >
     {children}
   </ViewsProvider>
 );

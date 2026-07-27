@@ -10,8 +10,12 @@ import type { View } from "@/types";
 
 export interface ViewsContextProps {
   state: {
-    /** Saved views for the doctype available to the current user (own + public). */
+    /** Views for the doctype: provider-supplied defaults followed by the current user's saved views (own + public). */
     views: View[];
+    /** Built-in views supplied by the provider, always available. */
+    defaultViews: View[];
+    /** Saved views for the doctype available to the current user (own + public). */
+    savedViews: View[];
     /** View currently selected via the `view` search param, if any. */
     activeView: View | undefined;
     /** Indicates whether views are still being fetched. */
@@ -35,6 +39,8 @@ export interface ViewsContextProps {
 export const ViewsContext = createContext<ViewsContextProps>({
   state: {
     views: [],
+    defaultViews: [],
+    savedViews: [],
     activeView: undefined,
     isLoading: false,
   },

@@ -99,7 +99,7 @@ export type Project = {
 export interface View {
   name: string;
   label: string;
-  icon?: string;
+  icon?: string | ComponentType<{ className?: string }>;
   user?: string | null;
   default: 0 | 1;
   public: 0 | 1;
