@@ -22,7 +22,7 @@ from next_pms.resource_management.api.utils.query import (
     get_employee_leaves,
 )
 from next_pms.timesheet.api import filter_employees
-from next_pms.timesheet.api.employee import get_employee_working_hours
+from next_pms.timesheet.api.employee import apply_working_hours_fallback, get_employee_working_hours
 
 
 @frappe.whitelist(methods=["GET", "POST"])
@@ -97,7 +97,8 @@ def get_resource_management_team_view_data(
                     "department": "Engineering",
                     "designation": "Software Engineer",
                     "image": "/files/photo.jpg",
-                    "custom_work_schedule": "Mon-Fri",
+                    # blanks are filled from HR Settings / "Per Day" before returning
+                    "custom_work_schedule": "Per Day",
                     "custom_working_hours": 8.0,
                     "reports_to": "HR-EMP-00002",
                     # write permission only:
@@ -395,6 +396,8 @@ def _get_resource_management_team_view_data(
         res["has_more"] = False
         res["permissions"] = permissions
         return res
+
+    apply_working_hours_fallback(employees)
 
     resource_allocation_data = get_allocation_list_for_employee_for_given_range(
         [

@@ -5,6 +5,12 @@ from frappe.model import DEFAULT_FIELDS
 EMP_WOKING_DETAILS = "emp_working_details"
 EMP_TIMESHEET = "emp_timesheet"
 
+# Last resort when neither the Employee nor HR Settings define working hours.
+DEFAULT_DAILY_WORKING_HOURS = 8
+
+# Assumed when an Employee has no custom_work_schedule set.
+DEFAULT_WORKING_FREQUENCY = "Per Day"
+
 TASK_FILTER_OPERATORS = {
     "=",
     "!=",
