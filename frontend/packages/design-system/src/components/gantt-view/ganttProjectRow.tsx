@@ -102,6 +102,7 @@ export const GanttProjectRow: React.FC<GanttProjectRowProps> = ({
             <GanttAllocationBar
               key={allocIndex}
               allocation={alloc}
+              rowAllocations={project.allocations ?? []}
               capacityHoursPerDay={member.capacityHoursPerDay}
               resizable={canEditAllocations}
               memberName={member.name}

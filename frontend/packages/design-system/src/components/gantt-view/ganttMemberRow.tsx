@@ -100,6 +100,7 @@ export const GanttMemberRow: React.FC<GanttMemberRowProps> = ({
                   : allocationIndex
               }
               allocation={allocation}
+              rowAllocations={member.allocations ?? []}
               memberName={member.name}
               memberImage={member.image}
               resizable={canEditAllocations}
