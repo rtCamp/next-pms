@@ -90,7 +90,7 @@ function ViewsDropdown({
       options={viewOptions}
       dropdownClassName="w-[220px] px-1"
       groupClassName="px-0 py-1 space-y-1"
-      itemClassName="text-ink-gray-8 hover:text-ink-gray-7"
+      itemClassName="cursor-pointer text-ink-gray-8 hover:text-ink-gray-7"
       selectedKey={activeView ? String(activeView.name) : undefined}
       renderMenuItem={(menuProps, state) => {
         const view = savedViews.find(
@@ -138,10 +138,14 @@ function ViewsDropdown({
               className="ml-auto"
               onClick={(event) => event.stopPropagation()}
             >
-              <Dropdown options={savedViewActions} side="right">
+              <Dropdown
+                options={savedViewActions}
+                side="right"
+                itemClassName="cursor-pointer"
+              >
                 <button
                   type="button"
-                  className="flex rounded p-0.5 hover:bg-surface-gray-4"
+                  className="flex cursor-pointer rounded p-0.5 hover:bg-surface-gray-4"
                 >
                   <DotHorizontal className="size-4" />
                 </button>
