@@ -193,6 +193,7 @@ export function useGanttBarInteraction({
         releasePointerCapture(interaction);
 
         let snappedLeft = liveLeftRef.current;
+        // eslint-disable-next-line no-useless-assignment
         let snappedWidth = liveWidthRef.current;
 
         if (interaction.edge === "start") {

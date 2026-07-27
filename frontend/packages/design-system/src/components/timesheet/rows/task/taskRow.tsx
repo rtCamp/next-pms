@@ -3,12 +3,12 @@
  */
 import { useCallback, useRef, useState } from "react";
 import { Popover, PreviewCard } from "@base-ui/react";
+import { Button } from "@rtcamp/frappe-ui-react";
+import { AddMd, Star, SolidStar } from "@rtcamp/frappe-ui-react/icons";
 import {
   TaskStatus,
   type TaskStatusType,
 } from "@next-pms/design-system/components";
-import { Button } from "@rtcamp/frappe-ui-react";
-import { AddMd, Star, SolidStar } from "@rtcamp/frappe-ui-react/icons";
 
 /**
  * Internal dependencies.
