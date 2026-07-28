@@ -23,7 +23,9 @@ export const LeaveInfo = ({ leaveInfo }: LeaveInfoProps) => {
   return (
     <Accordion type="single" collapsible key="leave-info">
       <AccordionItem value="leave-info" className="">
-        <AccordionTrigger className="py-2 hover:no-underline">Allocated Leaves</AccordionTrigger>
+        <AccordionTrigger className="py-2 hover:no-underline">
+          Allocated Leaves
+        </AccordionTrigger>
         <AccordionContent className="pb-0">
           {!leaveInfo || Object.keys(leaveInfo).length === 0 ? (
             <Typography>No leaves have been allocated.</Typography>

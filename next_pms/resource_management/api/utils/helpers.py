@@ -191,7 +191,7 @@ def _parse_multi_select_filter(value: str | list | None) -> list | None:
         try:
             parsed = frappe.parse_json(value)
             value = parsed if isinstance(parsed, list) else [parsed]
-        except (ValueError, TypeError):
+        except ValueError, TypeError:
             value = [value]
     if isinstance(value, list) and len(value) > 0:
         return value
@@ -239,7 +239,7 @@ def normalize_project_view_filters(filters, allow_privileged: bool = True):
     if isinstance(filters, str):
         try:
             filters = frappe.parse_json(filters)
-        except (ValueError, TypeError):
+        except ValueError, TypeError:
             frappe.throw(frappe._("Invalid filters format. Expected a JSON list of [field, operator, value]."))
 
     if not isinstance(filters, list):
@@ -317,7 +317,7 @@ def normalize_team_view_filters(
     if isinstance(filters, str):
         try:
             filters = frappe.parse_json(filters)
-        except (ValueError, TypeError):
+        except ValueError, TypeError:
             frappe.throw(frappe._("Invalid filters format. Expected a JSON list of [field, operator, value]."))
 
     if not isinstance(filters, list):

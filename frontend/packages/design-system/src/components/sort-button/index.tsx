@@ -3,8 +3,8 @@
  */
 import { useState } from "react";
 import { Popover } from "@base-ui/react";
-import { mergeClassNames as cn } from "@next-pms/design-system";
 import { ArrowDown, ArrowUp, Sort } from "@rtcamp/frappe-ui-react/icons";
+import { mergeClassNames as cn } from "@next-pms/design-system";
 
 export type SortOrder = "asc" | "desc";
 

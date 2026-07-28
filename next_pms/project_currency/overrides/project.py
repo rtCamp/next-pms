@@ -85,7 +85,7 @@ class ProjectOverwrite(EmployeeProject):
             self.name,
         )
 
-        self.total_sales_amount = total_sales_amount and total_sales_amount[0][0] or 0
+        self.total_sales_amount = (total_sales_amount and total_sales_amount[0][0]) or 0
 
     def update_billed_amount(self):
         # nosemgrep
@@ -95,7 +95,7 @@ class ProjectOverwrite(EmployeeProject):
             self.name,
         )
 
-        self.total_billed_amount = total_billed_amount and total_billed_amount[0][0] or 0
+        self.total_billed_amount = (total_billed_amount and total_billed_amount[0][0]) or 0
 
     def update_purchase_costing(self):
         total_purchase_cost = frappe.db.get_all(

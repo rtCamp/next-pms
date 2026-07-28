@@ -4,7 +4,7 @@ authors = [
     { name = "rtCamp", email = "frappe@rtcamp.com"}
 ]
 description = "Simplified Project Management System"
-requires-python = ">=3.10"
+requires-python = ">=3.14,<3.15"
 readme = "README.md"
 dynamic = ["version"]
 dependencies = [
@@ -24,7 +24,7 @@ line-length = 120
 
 [tool.ruff]
 line-length = 120
-target-version = "py310"
+target-version = "py314"
 exclude = [
     "**/doctype/*/boilerplate/*.py" # boilerplate are template strings, not valid python
 ]
@@ -69,3 +69,4 @@ docstring-code-format = true
 [tool.bench.frappe-dependencies]
 frappe = ">=15.0.0,<17.0.0"
 erpnext = ">=15.0.0,<17.0.0"
+hrms = ">=15.0.0,<17.0.0"
