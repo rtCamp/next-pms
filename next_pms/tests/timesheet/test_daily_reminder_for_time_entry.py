@@ -1,3 +1,5 @@
+from unittest.mock import patch
+
 import frappe
 from erpnext import get_default_company
 from frappe.tests import IntegrationTestCase
@@ -38,6 +40,7 @@ class TestDailyReminderForTimeEntry(IntegrationTestCase):
         cls._configure_settings()
         cls.original_mute_emails = frappe.flags.mute_emails
         frappe.flags.mute_emails = True
+        cls.enterClassContext(patch("frappe.utils.get_assets_json", return_value={}))
 
     @classmethod
     def tearDownClass(cls):
