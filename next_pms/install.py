@@ -12,6 +12,7 @@ def after_install():
     setup_project_custom_fields()
     setup_project_target_hours_field()
     setup_timesheet_rejection_reason_field()
+    setup_task_permissions()
 
 
 def setup_timesheet_rejection_reason_field():
@@ -91,6 +92,41 @@ def setup_project_custom_fields():
             ]
         }
     )
+
+
+def setup_task_permissions():
+    import frappe
+    from frappe.core.doctype.doctype.doctype import validate_permissions_for_doctype
+    from frappe.permissions import add_permission, setup_custom_perms, update_permission_property
+
+    doctype = "Task"
+    permissions = {"read": 1, "write": 1, "create": 1, "delete": 1}
+
+    for role in ("Projects Manager", "Delivery Manager", "Delivery User"):
+        if not frappe.db.exists("Role", role):
+            continue
+        add_permission(doctype, role, 0)
+        for perm_key, perm_val in permissions.items():
+            update_permission_property(doctype, role, 0, perm_key, perm_val)
+
+    if not frappe.db.exists("Role", "Employee"):
+        return
+
+    setup_custom_perms(doctype)
+    if not frappe.db.exists("Custom DocPerm", {"parent": doctype, "role": "Employee", "permlevel": 0, "if_owner": 1}):
+        frappe.get_doc(
+            {
+                "doctype": "Custom DocPerm",
+                "parent": doctype,
+                "parenttype": "DocType",
+                "parentfield": "permissions",
+                "role": "Employee",
+                "permlevel": 0,
+                "if_owner": 1,
+                **permissions,
+            }
+        ).insert(ignore_permissions=True)
+        validate_permissions_for_doctype(doctype)
 
 
 def add_project_manager_perm():
