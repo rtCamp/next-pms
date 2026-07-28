@@ -1,0 +1,163 @@
+/**
+ * External dependencies.
+ */
+import React from "react";
+import { Badge, Button, Tooltip } from "@rtcamp/frappe-ui-react";
+import { SmallDown } from "@rtcamp/frappe-ui-react/icons";
+
+/**
+ * Internal dependencies.
+ */
+import { buttonVariants } from "./constants";
+import { mergeClassNames as cn } from "../../../../utils";
+import {
+  ApprovalStatusDisplayLabelMap,
+  type TotalHoursTheme,
+  totalHoursVariants,
+  type ApprovalStatusType,
+  approvalStatusTheme,
+  approvalStatusIcon,
+  approvalStatusActionLabelMap,
+} from "../constants";
+
+export interface WeekRowProps {
+  /** Label for the week row. */
+  label?: string;
+  /** Whether the week row is collapsed or expanded. */
+  collapsed?: boolean;
+  /** Status of the timesheet for the week. */
+  status?: ApprovalStatusType;
+  /** Whether the week row represents the current week. */
+  thisWeek?: boolean;
+  /** Callback function when the action button is clicked. */
+  onButtonClick?: () => void;
+  /** Array of date strings representing the days in the week. */
+  dates: string[];
+  /** The date string representing today's date, used for highlighting. */
+  today?: string;
+  /** Total hours logged for the week. */
+  totalHours?: string;
+  /** Theme for the total hours */
+  totalHoursTheme?: TotalHoursTheme;
+  /** Optional badge label shown next to the week label. */
+  badgeLabel?: string;
+  /** Additional class names for the week row container. */
+  className?: string;
+}
+
+export const WeekRow: React.FC<WeekRowProps> = ({
+  label = "This Week",
+  collapsed = false,
+  status = "not-submitted",
+  thisWeek = false,
+  dates,
+  today = "",
+  onButtonClick,
+  totalHours = "",
+  totalHoursTheme,
+  badgeLabel,
+  className,
+}) => {
+  const isStatusNone = status === "none";
+  const actionLabel =
+    approvalStatusActionLabelMap[status] ??
+    ApprovalStatusDisplayLabelMap[status];
+
+  return (
+    <div
+      className={cn(
+        "flex items-center border-b border-outline-gray-1 transition-colors w-full justify-between px-1 py-2 focus:ring focus:ring-outline-gray-3 cursor-pointer",
+        className,
+      )}
+    >
+      <div className="flex items-center flex-1 min-w-0 gap-2 align-middle">
+        <span
+          className={cn(
+            "w-4 shrink-0 transition-transform",
+            collapsed ? "-rotate-90" : "rotate-0",
+          )}
+        >
+          <SmallDown size={16} />
+        </span>
+        <div className="flex items-center min-w-0 max-w-75 sm:max-w-112 gap-2">
+          <span className="text-base font-medium text-ink-gray-8 truncate">
+            {label}
+          </span>
+          {status !== "none" && (
+            <Badge theme={approvalStatusTheme[status]} className="shrink-0">
+              {ApprovalStatusDisplayLabelMap[status]}
+            </Badge>
+          )}
+          {badgeLabel ? (
+            <p className="shrink-0 text-ink-gray-5 text-base whitespace-nowrap">
+              {badgeLabel}
+            </p>
+          ) : null}
+        </div>
+      </div>
+      {!collapsed &&
+        dates.map((date) => {
+          const monthAndDay = date.split(" ");
+          const isToday = thisWeek && date === today;
+          return (
+            <div
+              key={date}
+              className="shrink-0 flex justify-end items-center text-sm text-end text-ink-gray-5 whitespace-nowrap w-16 h-7 px-2 py-1.5"
+            >
+              <span>
+                {monthAndDay[0]}{" "}
+                <span
+                  className={cn(
+                    isToday &&
+                      "w-4.25 h-4.25 px-1 py-px rounded-sm bg-surface-red-5 text-ink-white",
+                  )}
+                >
+                  {monthAndDay[1]}
+                </span>
+              </span>
+            </div>
+          );
+        })}
+
+      {!(isStatusNone && collapsed) && (
+        <div className="shrink-0 flex justify-end items-center text-sm text-end text-ink-gray-5 whitespace-nowrap w-16 h-7 px-2 py-1.5">
+          <span
+            className={cn(
+              collapsed && totalHoursVariants({ theme: totalHoursTheme }),
+            )}
+          >
+            {collapsed ? totalHours : "Total"}
+          </span>
+        </div>
+      )}
+
+      <div className="flex items-center justify-end w-12 shrink-0 h-7 whitespace-nowrap">
+        {!isStatusNone ? (
+          <Tooltip text={actionLabel}>
+            <Button
+              onClick={(e) => {
+                e.stopPropagation();
+                onButtonClick?.();
+              }}
+              className={cn(
+                buttonVariants({
+                  status,
+                  thisWeek,
+                  variant: approvalStatusIcon[status]?.variant,
+                  collapsed,
+                }),
+              )}
+              variant={approvalStatusIcon[status]?.variant}
+              size="sm"
+              icon={() => {
+                const IconComponent = approvalStatusIcon[status]?.icon;
+                return IconComponent ? <IconComponent size={16} /> : null;
+              }}
+              aria-label={actionLabel}
+            />
+          </Tooltip>
+        ) : null}
+      </div>
+    </div>
+  );
+};

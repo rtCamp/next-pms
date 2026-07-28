@@ -1,7 +1,25 @@
 import frappe
 from erpnext import get_default_company
-from erpnext.setup.doctype.holiday_list.test_holiday_list import make_holiday_list
 from frappe.utils import add_days, nowdate
+
+
+def make_holiday_list(name, from_date=None, to_date=None, holiday_dates=None):
+    if from_date is None:
+        from_date = add_days(nowdate(), -10)
+
+    if to_date is None:
+        to_date = nowdate()
+
+    frappe.delete_doc_if_exists("Holiday List", name, force=1)
+    return frappe.get_doc(
+        {
+            "doctype": "Holiday List",
+            "holiday_list_name": name,
+            "from_date": from_date,
+            "to_date": to_date,
+            "holidays": holiday_dates,
+        }
+    ).insert()
 
 
 def make_employee(user, company=None, **kwargs):

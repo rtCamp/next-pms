@@ -543,15 +543,18 @@ def get_timesheet(dates: list, employee: str, search: str | None = None, parsed_
     }
     ts_filters = build_filters(base_ts_filters, parsed_filters.get("Timesheet", []))
 
-    timesheet_names = frappe.get_all(
+    timesheets = frappe.get_all(
         "Timesheet",
         filters=ts_filters,
-        pluck="name",
+        fields=["name", "custom_approval_status", "custom_rejection_reason"],
         ignore_permissions=employee_has_higher_access(employee, ptype="read"),
     )
 
-    if not timesheet_names:
+    if not timesheets:
         return [data, total_hours]
+
+    timesheet_names = [ts.name for ts in timesheets]
+    ts_parent_map = {ts.name: ts for ts in timesheets}
 
     # Fetch all timesheet detail records with needed fields in one query
     base_detail_filters = {"parent": ["in", timesheet_names]}
@@ -629,7 +632,11 @@ def get_timesheet(dates: list, employee: str, search: str | None = None, parsed_
                 "exp_end_date": task["exp_end_date"] or "",
             }
 
-        data[task_name]["data"].append({field: log.get(field) for field in ALLOWED_TIMESHET_DETAIL_FIELDS})
+        entry = {field: log.get(field) for field in ALLOWED_TIMESHET_DETAIL_FIELDS}
+        parent_ts = ts_parent_map.get(log.get("parent"))
+        entry["custom_approval_status"] = parent_ts.get("custom_approval_status") if parent_ts else None
+        entry["custom_rejection_reason"] = parent_ts.get("custom_rejection_reason") if parent_ts else None
+        data[task_name]["data"].append(entry)
 
     return [data, total_hours]
 
@@ -654,7 +661,7 @@ def get_timesheet_state(employee: str, start_date: str, end_date: str):
 @frappe.whitelist(methods=["GET"])
 @validate_current_employee(ptype="write")
 def get_remaining_hour_for_employee(employee: str, date: str):
-    """Return the working hours for the given employee on the given date."""
+    """Return the daily working-hour norm and the remaining available hours for the given employee on the given date."""
     from .employee import get_employee_working_hours
 
     working_hours = get_employee_working_hours(employee)
@@ -687,7 +694,10 @@ def get_remaining_hour_for_employee(employee: str, date: str):
                 total_hours += working_hours.get("working_hour") / 2
             else:
                 total_hours += working_hours.get("working_hour")
-    return working_hours.get("working_hour") - total_hours
+    return {
+        "working_hour": working_hours.get("working_hour"),
+        "remaining_hours": working_hours.get("working_hour") - total_hours,
+    }
 
 
 @frappe.whitelist(methods=["GET"])

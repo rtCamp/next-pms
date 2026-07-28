@@ -1,0 +1,161 @@
+/**
+ * External dependencies.
+ */
+import {
+  FC,
+  PropsWithChildren,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+import { useToasts } from "@rtcamp/frappe-ui-react";
+
+/**
+ * Internal dependencies.
+ */
+import type { Error as FrappeError } from "frappe-js-sdk/lib/frappe_app/types";
+import { useFrappeEventListener } from "frappe-react-sdk";
+import { isCompleteFilterCondition, parseFrappeErrorMsg } from "@/lib/utils";
+import {
+  TeamTimesheetContext,
+  type TeamTimesheetContextProps,
+} from "./context";
+import { useTeamTimesheetData } from "./useTeamTimesheetData";
+import {
+  APPROVAL_STATUS_PARAM_VALUES,
+  useTimesheetFilters,
+} from "../hooks/useTimesheetFilters";
+
+export const TeamTimesheetProvider: FC<PropsWithChildren> = ({ children }) => {
+  const toast = useToasts();
+  const {
+    filters,
+    setSearch,
+    setApprovalStatus,
+    setReportsTo,
+    setCompositeFilters,
+    resetAll,
+  } = useTimesheetFilters({
+    includeApprovalStatus: true,
+    includeReportsTo: true,
+  });
+
+  const uiFilters = useMemo(
+    () => ({
+      search: filters.search,
+      approvalStatus: filters.approvalStatus,
+      reportsTo: filters.reportsTo,
+    }),
+    [filters.search, filters.approvalStatus, filters.reportsTo],
+  );
+
+  const effectiveFilters = useMemo(
+    () => ({
+      search: filters.search,
+      approvalStatus:
+        filters.approvalStatus?.length === APPROVAL_STATUS_PARAM_VALUES.length
+          ? []
+          : filters.approvalStatus,
+      reportsTo: filters.reportsTo,
+    }),
+    [filters.search, filters.approvalStatus, filters.reportsTo],
+  );
+
+  // Only pass complete filter conditions to the data hook so that selecting a
+  // field (without an operator/value) does not trigger a reset + network request.
+  const effectiveCompositeFilters = useMemo(
+    () => filters.compositeFilters.filter(isCompleteFilterCondition),
+    [filters.compositeFilters],
+  );
+  const activeFilterKey = useMemo(
+    () =>
+      JSON.stringify({
+        filters: effectiveFilters,
+        compositeFilters: effectiveCompositeFilters,
+      }),
+    [effectiveCompositeFilters, effectiveFilters],
+  );
+  const [resolvedFilterKey, setResolvedFilterKey] = useState(activeFilterKey);
+  const isFilterRequest = activeFilterKey !== resolvedFilterKey;
+
+  const {
+    hasMore,
+    isLoadingTeamData,
+    weekGroups: freshWeekGroups,
+    loadMore,
+    handleRealtimeUpdate,
+    error,
+  } = useTeamTimesheetData({
+    requestKey: activeFilterKey,
+    filters: effectiveFilters,
+    compositeFilters: effectiveCompositeFilters,
+  });
+
+  // Keep the last non-empty result so that during a filter-triggered reload the
+  // table stays visible (faded) instead of blinking through an empty state and
+  // triggering the full-page spinner.
+  const staleWeekGroupsRef = useRef(freshWeekGroups);
+  if (freshWeekGroups.length > 0) {
+    staleWeekGroupsRef.current = freshWeekGroups;
+  }
+  const weekGroups =
+    freshWeekGroups.length > 0 || !isLoadingTeamData
+      ? freshWeekGroups
+      : staleWeekGroupsRef.current;
+
+  useEffect(() => {
+    if (isLoadingTeamData) return;
+    setResolvedFilterKey(activeFilterKey);
+
+    if (error) {
+      toast.error(parseFrappeErrorMsg(error as FrappeError));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeFilterKey, isLoadingTeamData, error]);
+
+  useFrappeEventListener("timesheet_info", (payload) => {
+    handleRealtimeUpdate(payload.message);
+  });
+
+  const value: TeamTimesheetContextProps = useMemo(
+    () => ({
+      state: {
+        hasMore,
+        isLoadingTeamData,
+        isFilterRequest,
+        weekGroups,
+        filters: uiFilters,
+        compositeFilters: filters.compositeFilters,
+      },
+      actions: {
+        loadMore,
+        handleSearchChange: setSearch,
+        handleApprovalStatusChange: setApprovalStatus,
+        handleReportsToChange: setReportsTo,
+        handleCompositeFilterChange: setCompositeFilters,
+        handleClearAllFilters: resetAll,
+      },
+    }),
+    [
+      hasMore,
+      isLoadingTeamData,
+      isFilterRequest,
+      loadMore,
+      weekGroups,
+      uiFilters,
+      filters.compositeFilters,
+      setSearch,
+      setApprovalStatus,
+      setReportsTo,
+      setCompositeFilters,
+      resetAll,
+    ],
+  );
+
+  return (
+    <TeamTimesheetContext.Provider value={value}>
+      {children}
+    </TeamTimesheetContext.Provider>
+  );
+};

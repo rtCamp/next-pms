@@ -4,7 +4,7 @@ app_publisher = "rtCamp"
 app_description = "Simplified Project Management System"
 app_email = "frappe@rtcamp.com"
 app_license = "GNU AFFERO GENERAL PUBLIC LICENSE (v3)"
-required_apps = ["frappe/erpnext", "frappe/hrms"]
+required_apps = ["frappe/erpnext", "frappe/hrms", "rtCamp/frappe_comment_xt"]
 
 
 # Includes in <head>
@@ -148,7 +148,7 @@ fixtures = [
             [
                 "module",
                 "in",
-                ["Next PMS", "Project Currency", "Timesheet", "Resource Management"],
+                ["Next PMS", "Project Currency", "Timesheet", "Resource Management", "Next Projects"],
             ]
         ],
     },
@@ -158,7 +158,7 @@ fixtures = [
             [
                 "module",
                 "in",
-                ["Next PMS", "Project Currency", "Timesheet", "Resource Management"],
+                ["Next PMS", "Project Currency", "Timesheet", "Resource Management", "Next Projects"],
             ]
         ],
     },
@@ -195,6 +195,7 @@ scheduler_events = {
         "next_pms.timesheet.tasks.daily_reminder_for_time_entry.send_reminder",
         "next_pms.timesheet.tasks.send_weekly_reminder.send_reminder",
         "next_pms.resource_management.tasks.no_allocation_reminder.send_reminder",
+        "next_pms.next_pms.notifications.send_review_reminders",
     ],
     "weekly": [
         "next_pms.project_currency.tasks.reminde_project_threshold.send_reminder_mail",
@@ -261,11 +262,26 @@ doc_events = {
         "on_update": [
             "next_pms.project_currency.doc_events.project.on_update",
             "next_pms.resource_management.doctype.resource_allocation.resource_allocation.clear_cache",
+            "next_pms.next_pms.notifications.project_on_update",
         ],
         "on_trash": ["next_pms.resource_management.doctype.resource_allocation.resource_allocation.clear_cache"],
     },
+    "Risk": {
+        "on_update": "next_pms.next_pms.notifications.risk_on_update",
+    },
+    "Customer Feedback": {
+        "on_submit": "next_pms.next_pms.notifications.customer_feedback_on_submit",
+    },
     "Customer": {"validate": "next_pms.resource_management.doc_events.customer.validate_abbr"},
-    "Employee": {"on_update": "next_pms.timesheet.doc_events.employee.on_update"},
+    "Employee": {
+        "on_update": [
+            "next_pms.timesheet.doc_events.employee.on_update",
+            "next_pms.next_projects.doc_events.employee.on_update",
+        ]
+    },
+    "Employee Promotion": {
+        "on_submit": "next_pms.next_projects.doc_events.employee_promotion.on_submit",
+    },
     "Holiday List": {
         "validate": "next_pms.timesheet.doc_events.holiday_list.validate",
     },
@@ -285,7 +301,7 @@ doc_events = {
 # Ignore links to specified DocTypes when deleting documents
 # -----------------------------------------------------------
 
-# ignore_links_on_delete = ["Communication", "ToDo"]
+ignore_links_on_delete = ["NextPMS Notifications"]
 
 # Request Events
 # ----------------
@@ -329,7 +345,7 @@ doc_events = {
 # ]
 
 # Automatically update python controller files with type annotations for this app.
-# export_python_type_annotations = True
+export_python_type_annotations = True
 
 # default_log_clearing_doctypes = {
 # 	"Logging DocType Name": 30  # days to retain logs

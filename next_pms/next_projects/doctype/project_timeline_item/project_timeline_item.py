@@ -1,0 +1,29 @@
+# Copyright (c) 2026, rtCamp and contributors
+# For license information, please see license.txt
+
+from frappe.model.document import Document
+
+
+class ProjectTimelineItem(Document):
+    # begin: auto-generated types
+    # This code is auto-generated. Do not modify anything in this block.
+
+    from typing import TYPE_CHECKING
+
+    if TYPE_CHECKING:
+        from frappe.types import DF
+
+        actual_end_date: DF.Date | None
+        is_complete: DF.Check
+        item_owner: DF.Link
+        item_owner_name: DF.Data | None
+        planned_end_date: DF.Date
+        project: DF.Link
+        start_date: DF.Date | None
+        title: DF.Data
+        type: DF.Literal["Milestone", "Touchpoint"]
+    # end: auto-generated types
+
+    def validate(self):
+        if self.type == "Touchpoint" and not self.start_date:
+            self.start_date = self.planned_end_date

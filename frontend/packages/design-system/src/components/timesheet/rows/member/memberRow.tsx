@@ -1,0 +1,182 @@
+/**
+ * External dependencies.
+ */
+import React from "react";
+import { Badge, Button, Avatar } from "@rtcamp/frappe-ui-react";
+import { AddMd, SmallDown } from "@rtcamp/frappe-ui-react/icons";
+
+/**
+ * Internal dependencies.
+ */
+import { buttonVariants, memberStatusIcon } from "./constants";
+import { mergeClassNames as cn } from "../../../../utils";
+import {
+  ApprovalStatusDisplayLabelMap,
+  type TotalHoursTheme,
+  type ApprovalStatusType,
+  totalHoursVariants,
+  approvalStatusTheme,
+} from "../constants";
+
+export interface MemberRowProps {
+  /** Name of the member. */
+  label?: string;
+  /** URL for the member's avatar image. */
+  avatarUrl?: string;
+  /** Whether the member row is collapsed or expanded. */
+  collapsed?: boolean;
+  /** Status of the timesheet for the member. */
+  status?: ApprovalStatusType;
+  /** Callback function when the action button is clicked. */
+  onButtonClick?: () => void;
+  /** Optional function to handle day-cell click events. */
+  onCellClick?: (date: string, dayIndex: number) => void;
+  /** Array of time entries for each day of the week for the member. */
+  timeEntries: { date: string; time: string; disabled?: boolean }[];
+  /** Total hours logged for the week. */
+  totalHours?: string;
+  /** Theme for the total hours */
+  totalHoursTheme?: TotalHoursTheme;
+  /** Additional class names for the member row container. */
+  className?: string;
+  /** When true, hides the trailing status action button. */
+  hideAction?: boolean;
+}
+
+export const MemberRow: React.FC<MemberRowProps> = ({
+  label,
+  avatarUrl,
+  collapsed = false,
+  status = "not-submitted",
+  timeEntries,
+  onButtonClick,
+  onCellClick,
+  totalHours = "",
+  totalHoursTheme,
+  className,
+  hideAction = false,
+}) => {
+  const isStatusNone = status === "none";
+
+  return (
+    <div
+      className={cn(
+        "flex justify-between items-center px-1 py-2 w-full border-b transition-colors border-outline-gray-1 cursor-pointer",
+        className,
+      )}
+    >
+      <div className="flex items-center flex-1 min-w-0 gap-2 align-middle">
+        <span
+          className={cn(
+            "w-4 transition-transform shrink-0",
+            collapsed ? "-rotate-90" : "rotate-0",
+          )}
+        >
+          <SmallDown strokeWidth={1.5} size={16} />
+        </span>
+        <div className="flex items-center min-w-0 gap-2 max-w-75 sm:max-w-112">
+          <Avatar image={avatarUrl} shape="circle" label={label} size="xs" />
+          <span className="text-base font-medium truncate text-ink-gray-8">
+            {label}
+          </span>
+          {status !== "none" && (
+            <Badge theme={approvalStatusTheme[status]} className="shrink-0">
+              {ApprovalStatusDisplayLabelMap[status]}
+            </Badge>
+          )}
+        </div>
+      </div>
+      {timeEntries.map((timeEntry, index) => {
+        const isCellDisabled = Boolean(timeEntry.disabled);
+
+        return (
+          <div
+            key={index}
+            className="shrink-0 flex justify-end items-center whitespace-nowrap w-16 h-7 pl-2 py-1.5 lining-nums tabular-nums"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <Button
+              variant="ghost"
+              className={cn(
+                "w-14.25 relative group flex justify-center items-center",
+                !isCellDisabled &&
+                  "enabled:hover:bg-surface-gray-2 enabled:focus:bg-surface-gray-2 enabled:active:bg-surface-gray-3",
+                "disabled:cursor-default! disabled:opacity-100! disabled:bg-transparent! disabled:hover:bg-transparent! disabled:focus:bg-transparent! disabled:active:bg-transparent! disabled:text-ink-gray-8!",
+                isCellDisabled && "cursor-default!",
+                "lining-nums tabular-nums [&_span]:overflow-visible [&_span]:whitespace-normal",
+                "text-base text-ink-gray-8",
+              )}
+              disabled={isCellDisabled || !onCellClick}
+              onClick={(e) => {
+                e.stopPropagation();
+                onCellClick?.(timeEntry.date, index);
+              }}
+              aria-label="Add time"
+            >
+              {timeEntry.time === "" ? (
+                <>
+                  <span
+                    className={cn(
+                      "flex-1 text-center text-ink-gray-4",
+                      !isCellDisabled &&
+                        "group-hover:hidden group-disabled:group-hover:flex",
+                    )}
+                  >
+                    -
+                  </span>
+                  <span
+                    className={cn(
+                      "hidden absolute top-0 left-0 justify-center items-center w-full h-full text-ink-gray-6",
+                      !isCellDisabled &&
+                        "group-hover:flex group-disabled:group-hover:hidden",
+                    )}
+                  >
+                    <AddMd size={16} />
+                  </span>
+                </>
+              ) : (
+                <span
+                  className={cn(
+                    isStatusNone ? "text-ink-gray-6" : "font-medium",
+                  )}
+                >
+                  {timeEntry.time}
+                </span>
+              )}
+            </Button>
+          </div>
+        );
+      })}
+
+      <div className="shrink-0 flex justify-end items-center text-sm text-end text-ink-gray-5 whitespace-nowrap w-16 h-7 px-2 py-1.5">
+        <span className={cn(totalHoursVariants({ theme: totalHoursTheme }))}>
+          {totalHours}
+        </span>
+      </div>
+
+      <div className="flex items-center justify-end w-12 h-7 whitespace-nowrap shrink-0">
+        {!hideAction && !isStatusNone && memberStatusIcon[status]?.icon ? (
+          <Button
+            onClick={(e) => {
+              e.stopPropagation();
+              onButtonClick?.();
+            }}
+            className={cn(
+              buttonVariants({
+                status,
+                variant: memberStatusIcon[status]?.variant,
+              }),
+            )}
+            variant={memberStatusIcon[status]?.variant}
+            size="sm"
+            icon={() => {
+              const IconComponent = memberStatusIcon[status]?.icon;
+              return IconComponent ? <IconComponent size={16} /> : null;
+            }}
+            title={ApprovalStatusDisplayLabelMap[status]}
+          />
+        ) : null}
+      </div>
+    </div>
+  );
+};
