@@ -1,0 +1,77 @@
+/**
+ * External dependencies.
+ */
+import type { FilterField, MultiSelectOption } from "@rtcamp/frappe-ui-react";
+
+export const projectAllocationsTypeOptions: MultiSelectOption[] = [
+  { label: "Confirmed only", value: "Confirmed" },
+  { label: "Tentative only", value: "Tentative" },
+  { label: "Billable only", value: "billable" },
+  { label: "Non-billable only", value: "non-billable" },
+];
+
+export const projectAllocationFilters: FilterField[] = [
+  {
+    name: "tag",
+    label: "Tag",
+    type: "link",
+    link: { doctype: "Tag" },
+    operators: [
+      { label: "Equals", value: "=" },
+      { label: "Not Equals", value: "!=" },
+    ],
+  },
+  {
+    name: "customer",
+    label: "Customer",
+    type: "link",
+    link: { doctype: "Customer", labelField: "customer_name" },
+    operators: [
+      { label: "Equals", value: "=" },
+      { label: "Not Equals", value: "!=" },
+    ],
+  },
+  {
+    name: "billing_type",
+    label: "Billing Type",
+    type: "select",
+    operators: [
+      { label: "Equals", value: "=" },
+      { label: "Not Equals", value: "!=" },
+    ],
+    options: [
+      { label: "Non-Billable", value: "Non-Billable" },
+      { label: "Fixed Cost", value: "Fixed Cost" },
+      { label: "Retainer", value: "Retainer" },
+      { label: "Time and Material", value: "Time and Material" },
+    ],
+  },
+  {
+    name: "project_type",
+    label: "Project Type",
+    type: "link",
+    link: { doctype: "Project Type" },
+    operators: [
+      { label: "Equals", value: "=" },
+      { label: "Not Equals", value: "!=" },
+    ],
+  },
+  {
+    name: "project_manager",
+    label: "Project Manager",
+    type: "link",
+    link: {
+      doctype: "Employee",
+      labelField: "employee_name",
+      valueField: "user_id",
+      customMethod: {
+        method: "next_pms.timesheet.api.employee.get_employee_list",
+        args: { roles: ["Projects Manager"] },
+      },
+    },
+    operators: [
+      { label: "Equals", value: "=" },
+      { label: "Not Equals", value: "!=" },
+    ],
+  },
+];

@@ -1,0 +1,122 @@
+/**
+ * External Dependencies.
+ */
+import type { ReactNode } from "react";
+import { useMemo } from "react";
+import { useFrappeGetCall } from "frappe-react-sdk";
+
+/**
+ * Internal Dependencies.
+ */
+import { useDebounce } from "@/hooks/useDebounce";
+
+type FrappeResponse<T> = {
+  message: T;
+};
+
+export type LookupOption = {
+  label: string;
+  value: string;
+  description?: string;
+  icon?: ReactNode;
+  disabled?: boolean;
+};
+
+interface UseRemoteLookupOptions<
+  TMessage,
+  TItem,
+  TOption extends LookupOption,
+> {
+  /** Controls whether the remote lookup request should run for the current UI state. */
+  shouldFetch?: boolean;
+  /** Raw user search text before debounce is applied. */
+  query?: string;
+  /** Wait time before firing a new request for the latest query. */
+  debounceMs?: number;
+  /** Max number of rows requested from the backend. */
+  pageSize?: number;
+  /** Fully qualified Frappe method used for the lookup request. */
+  method?: string;
+  /** Revalidates the lookup when the window regains focus. */
+  revalidateOnFocus?: boolean;
+  /** Preserves the previous list of options while loading new data. */
+  keepPreviousData?: boolean;
+  /** Builds backend params from the debounced query and page size. */
+  params: (args: {
+    query: string;
+    pageSize: number;
+  }) => Record<string, unknown>;
+  /** Extracts the list payload from the backend response message. */
+  getItems: (message: TMessage | undefined) => TItem[];
+  /** Maps each backend item into a combobox option shape. */
+  mapOption: (item: TItem) => TOption;
+  /** Formats the mapped option */
+  formatOption?: (option: TOption) => TOption;
+  /** Preserves the current selection when it is missing from the latest page. */
+  selectedOption?: TOption | TOption[] | null;
+}
+
+/**
+ * Runs the shared remote lookup request for lookup hooks.
+ */
+export const useRemoteLookup = <TMessage, TItem, TOption extends LookupOption>({
+  shouldFetch = true,
+  query = "",
+  debounceMs = 300,
+  pageSize = 20,
+  method = "frappe.client.get_list",
+  revalidateOnFocus = false,
+  keepPreviousData = false,
+  params,
+  getItems,
+  mapOption,
+  formatOption,
+  selectedOption,
+}: UseRemoteLookupOptions<TMessage, TItem, TOption>) => {
+  const debouncedQuery = useDebounce(query, debounceMs);
+  const { data, isLoading, error } = useFrappeGetCall<FrappeResponse<TMessage>>(
+    method,
+    params({ query: debouncedQuery, pageSize }),
+    shouldFetch ? undefined : null,
+    {
+      revalidateOnFocus,
+      keepPreviousData,
+    },
+  );
+
+  const options = useMemo(() => {
+    const formatLookupOption = (option: TOption) =>
+      formatOption ? formatOption(option) : option;
+    const nextOptions = getItems(data?.message)
+      .map(mapOption)
+      .map(formatLookupOption);
+    const selectedOptions = Array.isArray(selectedOption)
+      ? selectedOption.map(formatLookupOption)
+      : selectedOption
+        ? [formatLookupOption(selectedOption)]
+        : [];
+
+    if (!selectedOptions.length) {
+      return nextOptions;
+    }
+
+    const missingSelectedOptions = selectedOptions.filter(
+      (selectedLookupOption) =>
+        !nextOptions.some(
+          (option) => option.value === selectedLookupOption.value,
+        ),
+    );
+
+    if (!missingSelectedOptions.length) {
+      return nextOptions;
+    }
+
+    return [...missingSelectedOptions, ...nextOptions];
+  }, [data?.message, formatOption, getItems, mapOption, selectedOption]);
+
+  return {
+    options,
+    isLoading,
+    error,
+  };
+};

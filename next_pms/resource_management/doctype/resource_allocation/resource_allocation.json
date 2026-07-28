@@ -10,6 +10,7 @@
   "employee_name",
   "status",
   "is_billable",
+  "recurrence_id",
   "column_break_wngn",
   "project",
   "project_name",
@@ -18,11 +19,19 @@
   "section_break_ugdn",
   "total_allocated_hours",
   "hours_allocated_per_day",
+  "include_weekends",
   "column_break_wppz",
   "allocation_start_date",
   "allocation_end_date",
+  "section_break_hoeq",
+  "hourly_cost_rate",
+  "currency",
+  "column_break_zhca",
+  "total_cost",
   "section_break_dysk",
-  "note"
+  "note",
+  "section_break_muzg",
+  "override"
  ],
  "fields": [
   {
@@ -61,6 +70,12 @@
    "fieldtype": "Float",
    "label": "Hours Allocated / Day ",
    "reqd": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "include_weekends",
+   "fieldtype": "Check",
+   "label": "Include Weekends"
   },
   {
    "fieldname": "allocation_start_date",
@@ -126,12 +141,62 @@
    "fieldname": "project_name",
    "fieldtype": "Data",
    "label": "Project Name"
+  },
+  {
+   "fieldname": "section_break_hoeq",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "hourly_cost_rate",
+   "fieldtype": "Currency",
+   "label": "Hourly Cost Rate",
+   "options": "currency",
+   "permlevel": 2,
+   "read_only": 1
+  },
+  {
+   "fetch_from": "project.custom_currency",
+   "fieldname": "currency",
+   "fieldtype": "Link",
+   "label": "Currency",
+   "options": "Currency",
+   "permlevel": 2,
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_zhca",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "total_cost",
+   "fieldtype": "Currency",
+   "label": "Total Cost",
+   "options": "currency",
+   "permlevel": 2,
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_break_muzg",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "override",
+   "fieldtype": "Table",
+   "label": "Override",
+   "options": "Resource Allocation Extra Entry"
+  },
+  {
+   "fieldname": "recurrence_id",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Recurrence ID",
+   "search_index": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-06-23 17:56:31.066756",
+ "modified": "2026-07-10 00:00:00.000000",
  "modified_by": "Administrator",
  "module": "Resource Management",
  "name": "Resource Allocation",
@@ -179,6 +244,30 @@
   {
    "read": 1,
    "role": "Employee"
+  },
+  {
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "permlevel": 2,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Projects Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "permlevel": 2,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
   }
  ],
  "row_format": "Dynamic",

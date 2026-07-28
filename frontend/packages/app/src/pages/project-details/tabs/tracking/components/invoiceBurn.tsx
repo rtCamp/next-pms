@@ -1,0 +1,72 @@
+/**
+ * External dependencies.
+ */
+import { ProgressBar } from "@next-pms/design-system/components";
+import { ArrowUpRight } from "@rtcamp/frappe-ui-react/icons";
+
+/**
+ * Internal dependencies.
+ */
+import { currencyFormat } from "@/lib/utils";
+import { useProjectDetail } from "@/pages/project-details/context";
+import { useTracking } from "../context";
+import { LegendItem } from "./legendItem";
+
+export function InvoiceBurnCell() {
+  const projectId = useProjectDetail((state) => state.projectId);
+  const currency = useProjectDetail((state) => state.project?.custom_currency);
+  const invoiceBurn = useTracking((state) => state.tracking.invoice_burn);
+  const invoicedPaid = invoiceBurn.invoiced_and_paid ?? 0;
+  const invoicedUnpaid = invoiceBurn.invoiced_but_not_paid ?? 0;
+  const totalAmount = invoiceBurn.total_project_amount;
+
+  return (
+    <div className="flex flex-1 flex-col gap-4 rounded-xl border border-outline-gray-1 bg-surface-cards p-3">
+      <div className="flex items-center justify-between gap-2">
+        <span className="text-base text-ink-gray-8 font-medium">
+          Invoice burn (to date)
+        </span>
+        <a
+          href={`/desk/sales-invoice?project=${projectId}`}
+          target="_blank"
+          rel="noreferrer noopener"
+          className="flex items-center gap-2 text-base text-ink-gray-6 hover:text-ink-gray-8"
+        >
+          All invoices
+          <ArrowUpRight aria-hidden className="size-4" />
+        </a>
+      </div>
+      <ProgressBar
+        value={invoicedPaid}
+        secondaryValue={invoicedPaid + invoicedUnpaid}
+        maxValue={totalAmount || 0}
+        indicatorClassName="bg-surface-violet-5"
+        secondaryIndicatorClassName="bg-surface-blue-5"
+      />
+      <div className="flex flex-col gap-2 text-base text-ink-gray-7">
+        <LegendItem
+          className="bg-surface-violet-5"
+          label="Invoiced and paid"
+          value={currencyFormat(currency).format(invoicedPaid)}
+          labelClassName="text-ink-gray-6"
+          valueClassName="font-medium"
+        />
+        <LegendItem
+          className="bg-surface-blue-5"
+          label="Invoiced but not paid"
+          value={currencyFormat(currency).format(invoicedUnpaid)}
+          labelClassName="text-ink-gray-6"
+          valueClassName="font-medium"
+        />
+        <LegendItem
+          className="bg-surface-gray-3"
+          label="Total Project Value"
+          labelTooltipText="Total Sales Order Value"
+          value={currencyFormat(currency).format(totalAmount ?? 0)}
+          labelClassName="text-ink-gray-6"
+          valueClassName="font-medium"
+        />
+      </div>
+    </div>
+  );
+}

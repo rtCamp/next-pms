@@ -1,0 +1,213 @@
+/**
+ * External Dependencies
+ */
+import { useState, useCallback } from "react";
+import { floatToTime, mergeClassNames as cn } from "@next-pms/design-system";
+import { ApprovalStatus, TaskStatus } from "@next-pms/design-system/components";
+import { stripTags } from "@next-pms/design-system/utils";
+import {
+  Alert,
+  Button,
+  ErrorMessage,
+  StaticTextEditor,
+  TextEditor,
+  DurationInput,
+} from "@rtcamp/frappe-ui-react";
+import { EditAlt, Check, Close } from "@rtcamp/frappe-ui-react/icons";
+
+/**
+ * Internal Dependencies
+ */
+import type { TimesheetEntry } from "./types";
+
+interface EntryRowProps {
+  entry: TimesheetEntry;
+  readOnly?: boolean;
+  maxDuration?: number;
+  onSave: (
+    timesheetId: string,
+    taskId: string,
+    description: string,
+    hours: number,
+    parent: string,
+    date: string,
+  ) => void;
+}
+
+const EntryRow = ({
+  entry,
+  readOnly = false,
+  maxDuration,
+  onSave,
+}: EntryRowProps) => {
+  const [isEditing, setIsEditing] = useState(false);
+  const [description, setDescription] = useState(entry.description);
+  const [hours, setHours] = useState(entry.hours);
+  const [descriptionError, setDescriptionError] = useState<string | null>(null);
+  const [isHovered, setIsHovered] = useState(false);
+  const isReadOnly = readOnly || entry.docstatus === 1;
+
+  const handleEdit = useCallback(() => {
+    if (isReadOnly) {
+      return;
+    }
+
+    setDescriptionError(null);
+    setIsEditing(true);
+  }, [isReadOnly]);
+
+  const handleCancel = useCallback(() => {
+    setDescription(entry.description);
+    setHours(entry.hours);
+    setDescriptionError(null);
+    setIsEditing(false);
+  }, [entry.description, entry.hours]);
+
+  const handleSave = useCallback(() => {
+    if (stripTags(description).trim().length === 0) {
+      setDescriptionError("Please enter a comment.");
+      return;
+    }
+
+    onSave(
+      entry.timesheetId,
+      entry.taskId,
+      description,
+      hours,
+      entry.parent,
+      entry.day,
+    );
+    setDescriptionError(null);
+    setIsEditing(false);
+  }, [
+    entry.timesheetId,
+    entry.taskId,
+    entry.parent,
+    entry.day,
+    description,
+    hours,
+    onSave,
+  ]);
+
+  if (isEditing && !isReadOnly) {
+    return (
+      <div className="px-3.5 py-4 flex gap-3 border-b border-outline-gray-modals last:border-b-0 ">
+        <TaskStatus status={entry.status} />
+        <div className="flex-1 min-w-0">
+          <div className="space-y-1">
+            <div className="flex gap-1.5">
+              <p className="text-base font-medium text-ink-gray-7 truncate">
+                {entry.taskName}
+              </p>
+              {entry.approvalStatus && (
+                <ApprovalStatus status={entry.approvalStatus} />
+              )}
+            </div>
+            <p className="text-xs text-ink-gray-5 truncate">
+              {entry.projectName}
+            </p>
+            <div className="flex flex-col gap-2 mt-3">
+              <DurationInput
+                snap="smooth"
+                variant="outline"
+                maxDuration={maxDuration}
+                allowOverflow
+                value={hours}
+                onChange={setHours}
+              />
+              <TextEditor
+                content={description}
+                onChange={(val) => {
+                  setDescription(val);
+                  setDescriptionError(null);
+                }}
+                fixedMenu={false}
+                placeholder="Comment"
+                editorClass="px-2 h-24 prose-sm overflow-auto scrollbar-thin bg-surface-white border rounded-md border-outline-gray-2"
+              />
+            </div>
+            {descriptionError ? (
+              <ErrorMessage message={descriptionError} />
+            ) : null}
+          </div>
+        </div>
+
+        <div className="flex flex-col gap-2">
+          <Button
+            className="m-0 size-fit"
+            variant="ghost"
+            icon={() => <Check size={16} className="text-ink-green-4" />}
+            onClick={handleSave}
+          />
+          <Button
+            className="m-0 size-fit"
+            variant="ghost"
+            icon={() => <Close size={16} className="text-ink-gray-5" />}
+            onClick={handleCancel}
+          />
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div
+      className="px-3.5 py-4 flex gap-3 border-b border-outline-gray-modals last:border-b-0"
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+    >
+      <TaskStatus status={entry.status} />
+      <div className="flex-1 min-w-0">
+        <div className="space-y-1">
+          <div className="flex gap-1.5">
+            <p className="text-base font-medium text-ink-gray-7 truncate">
+              {entry.taskName}
+            </p>
+            {entry.approvalStatus && (
+              <ApprovalStatus status={entry.approvalStatus} />
+            )}
+          </div>
+          <p className="text-xs text-ink-gray-5 truncate">
+            {entry.projectName}
+          </p>
+          <StaticTextEditor
+            editorClass="prose-sm text-ink-gray-7 mt-3"
+            content={entry.description}
+          />
+          {entry.rejectionReason ? (
+            <Alert
+              title="Rejection reason"
+              variant="outline"
+              theme="red"
+              dismissable={false}
+              renderIcon={false}
+              renderDescription={entry.rejectionReason}
+              className="[&_h3]:text-xs [&_h3]:font-bold [&_h3]:text-ink-red-4 [&_p]:text-xs [&_p]:text-ink-red-3 p-2"
+            />
+          ) : null}
+        </div>
+      </div>
+      <span className="relative size-fit text-base text-ink-gray-6 rounded-sm outline outline-offset-6 outline-outline-gray-modals">
+        {!entry.isBillable ? (
+          <span className="block absolute z-10 -bottom-1 left-1/2 w-1 h-1 rounded-full bg-surface-amber-3 transform -translate-x-1/2"></span>
+        ) : null}
+        {floatToTime(entry.hours, 2, 2)}
+      </span>
+      <Button
+        className={cn(
+          "m-0 size-fit hover:bg-surface-white transition-opacity focus-visible:opacity-100 focus-visible:pointer-events-auto",
+          !isReadOnly && isHovered
+            ? "opacity-100"
+            : "opacity-0 pointer-events-none",
+        )}
+        variant="ghost"
+        label="Edit time entry"
+        disabled={isReadOnly}
+        icon={() => <EditAlt size={16} className="text-ink-gray-7" />}
+        onClick={handleEdit}
+      />
+    </div>
+  );
+};
+
+export default EntryRow;

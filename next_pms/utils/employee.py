@@ -137,18 +137,22 @@ def generate_flat_tree(doctype: str, nsm_field: str, filters: dict, fields: list
 
 
 def employee_age_in_company(employee, end_date):
-    from frappe import get_all
+    from frappe import get_all, get_meta
     from frappe.utils import month_diff
 
     all_comapines = get_all("Company", pluck="name")
+
+    company_field = (
+        "custom_company" if get_meta("Employee Internal Work History").has_field("custom_company") else "company"
+    )
 
     all_work_history = get_all(
         "Employee Internal Work History",
         filters={
             "parent": employee.employee,
-            "custom_company": ["in", all_comapines],
+            company_field: ["in", all_comapines],
         },
-        fields=["custom_company", "from_date", "to_date"],
+        fields=[company_field, "from_date", "to_date"],
     )
 
     total_age = month_diff(end_date, employee.date_of_joining)

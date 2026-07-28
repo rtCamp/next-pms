@@ -33,7 +33,9 @@ from .utils import (
     get_team_candidate_employee_ids,
     get_week_dates,
     paginate_qualifying_employee_payloads,
+    paginate_unfiltered_employee_payloads,
     parse_filters,
+    sanitize_employee_conditions,
 )
 
 
@@ -140,21 +142,25 @@ def get_compact_view_data(
                 hour = 0
                 on_leave = False
 
-                for leave in leaves:
-                    if leave["from_date"] <= date <= leave["to_date"]:
-                        if leave.get("half_day") and leave.get("half_day_date") == date:
-                            hour += daily_working_hours / 2
-                        else:
-                            hour += daily_working_hours
-                        on_leave = True
+                holiday = next((h for h in holidays if h.holiday_date == date), None)
 
-                for holiday in holidays:
-                    if date == holiday.holiday_date:
-                        if not holiday.weekly_off:
-                            hour = daily_working_hours
-                        else:
-                            hour = 0
+                for leave in leaves:
+                    if not leave["from_date"] <= date <= leave["to_date"]:
+                        continue
+                    if holiday and holiday.weekly_off and not leave.get("includes_holidays"):
+                        continue
+                    if leave.get("half_day") and leave.get("half_day_date") == date:
+                        hour += daily_working_hours / 2
+                    else:
+                        hour += daily_working_hours
+                    on_leave = True
+
+                if holiday:
+                    if not holiday.weekly_off:
+                        hour = daily_working_hours
                         on_leave = False
+                    elif not on_leave:
+                        hour = 0
                 total_hours = 0
                 notes = ""
                 for ts in employee_timesheets:
@@ -186,7 +192,7 @@ def _get_team_timesheet_data(
     max_week: int = 2,
     page_length=10,
     start=0,
-    status_filter=None,
+    status_filter: str | list[str] | None = None,
     reports_to: str | None = None,
     by_pass_access_check=False,
     search: str | None = None,
@@ -208,17 +214,15 @@ def _get_team_timesheet_data(
 
     parsed_filters = parse_filters(filters)
 
-    # get the employee status and business unit from the filters (drop down ui in frontend)
-    # this will be passed to the global employee filter so the pool of employees is narrowed down.
-    employee_status = None
-    employee_business_unit = None
-    for field, _operator, value in parsed_filters.get("Employee", []):
-        if field == "status":
-            employee_status = [value] if isinstance(value, str) else value
-        elif field == "custom_business_unit":
-            employee_business_unit = [value] if isinstance(value, str) else value
+    # Employee-level filters (status / business unit drop-downs in frontend) are
+    # passed through with their operators intact so the global employee filter
+    # narrows the pool with the same semantics the caller asked for (like, in, ...).
+    # Sanitized (and written back) before has_filters so a condition dropped for a
+    # missing meta field cannot flip the request into the filtered path.
+    employee_conditions = sanitize_employee_conditions(parsed_filters.get("Employee"))
+    parsed_filters["Employee"] = employee_conditions
 
-    has_filters = bool(search or any(parsed_filters.values()))
+    has_filters = bool(search or status_filter or any(parsed_filters.values()))
     dates, _ = build_aggregate_dates(date=date, max_week=max_week, has_filters=has_filters)
     response_dates = dates[-max_week:] if has_filters and len(dates) > max_week else dates
     res = {"dates": response_dates}
@@ -227,10 +231,8 @@ def _get_team_timesheet_data(
         reports_to=reports_to,
         dates=dates,
         parsed_filters=parsed_filters,
-        search=search,
         timesheet_status=status_filter,
-        status=employee_status,
-        business_unit=employee_business_unit,
+        employee_conditions=employee_conditions,
     )
 
     if candidate_employee_ids == []:
@@ -240,6 +242,7 @@ def _get_team_timesheet_data(
         return res
 
     def build_team_employee_payload(employee, context):
+        """Builds the response payload for a single employee from the chunk context."""
         working_hours = context["working_hours_map"].get(
             employee.name, {"working_hour": 0, "working_frequency": "Per Day"}
         )
@@ -268,21 +271,25 @@ def _get_team_timesheet_data(
                 hour = 0
                 on_leave = False
 
-                for leave in leaves:
-                    if leave["from_date"] <= current_date <= leave["to_date"]:
-                        if leave.get("half_day") and leave.get("half_day_date") == current_date:
-                            hour += daily_working_hours / 2
-                        else:
-                            hour += daily_working_hours
-                        on_leave = True
-
                 holiday = holidays_by_date.get(current_date)
+
+                for leave in leaves:
+                    if not leave["from_date"] <= current_date <= leave["to_date"]:
+                        continue
+                    if holiday and holiday.weekly_off and not leave.get("includes_holidays"):
+                        continue
+                    if leave.get("half_day") and leave.get("half_day_date") == current_date:
+                        hour += daily_working_hours / 2
+                    else:
+                        hour += daily_working_hours
+                    on_leave = True
+
                 if holiday:
                     if not holiday.weekly_off:
                         hour = daily_working_hours
-                    else:
+                        on_leave = False
+                    elif not on_leave:
                         hour = 0
-                    on_leave = False
 
                 hour += hours_by_date.get(current_date, 0)
                 local_data["data"].append(
@@ -300,6 +307,7 @@ def _get_team_timesheet_data(
             context=context,
             has_filters=has_filters,
             skip_empty_weeks=skip_empty_weeks,
+            approval_status=status_filter,
         )
 
         if has_filters and len(timesheet_details) > max_week:
@@ -318,18 +326,35 @@ def _get_team_timesheet_data(
         local_data["timesheet_details"] = timesheet_details
         return employee.name, local_data
 
-    selected_employees, total_count, has_more = paginate_qualifying_employee_payloads(
-        reports_to=reports_to,
-        employee_ids=candidate_employee_ids,
-        dates=dates,
-        parsed_filters=parsed_filters,
-        search=search,
-        start=start,
-        page_length=page_length,
-        builder=build_team_employee_payload,
-        status=employee_status,
-        business_unit=employee_business_unit,
-    )
+    if has_filters:
+        # Filters narrow the pool to candidate_employee_ids (employees whose
+        # timesheets actually match), so this is already bounded by the filter's
+        # selectivity rather than the whole employee table.
+        selected_employees, total_count, has_more = paginate_qualifying_employee_payloads(
+            reports_to=reports_to,
+            employee_ids=candidate_employee_ids,
+            dates=dates,
+            parsed_filters=parsed_filters,
+            # The public `search` param is now an employee-name search only
+            # (see get_qualifying_project_ids for the project-side equivalent).
+            employee_name=search,
+            start=start,
+            page_length=page_length,
+            builder=build_team_employee_payload,
+            employee_conditions=employee_conditions,
+        )
+    else:
+        # No filters (candidate_employee_ids is None here) — every employee
+        # qualifies, so fetch exactly the requested page instead of scanning
+        # the full employee pool just to paginate and count in Python.
+        selected_employees, total_count, has_more = paginate_unfiltered_employee_payloads(
+            reports_to=reports_to,
+            dates=dates,
+            parsed_filters=parsed_filters,
+            start=start,
+            page_length=page_length,
+            builder=build_team_employee_payload,
+        )
 
     res["data"] = {employee_name: payload for employee_name, payload in selected_employees}
     res["total_count"] = total_count
@@ -345,7 +370,7 @@ def get_team_timesheet_data(
     max_week: int = 2,
     page_length: int = 10,
     start: int = 0,
-    status_filter: str | list | None = None,
+    status_filter: str | list[str] | None = None,
     reports_to: str | None = None,
     search: str | None = None,
     filters: str | list | None = None,
@@ -531,6 +556,7 @@ def _approve_or_reject_timesheet(
         for timesheet in timesheets_to_process:
             doc = get_doc("Timesheet", timesheet.name)
             doc.custom_approval_status = status
+            doc.custom_rejection_reason = note if status == "Rejected" else None
             doc.save(ignore_permissions=has_permission)
             if status == "Approved":
                 doc.submit()

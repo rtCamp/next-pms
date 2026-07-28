@@ -1,0 +1,107 @@
+/**
+ * External dependencies.
+ */
+import {
+  ListHeader,
+  ListHeaderItem,
+  ListRow,
+  ListRows,
+  ListView,
+} from "@rtcamp/frappe-ui-react";
+import { ArrowDown, ArrowUp } from "@rtcamp/frappe-ui-react/icons";
+
+/**
+ * Internal dependencies.
+ */
+import { InfiniteScroll } from "@/components/infiniteScroll";
+import { ProjectListCell } from "./cells";
+import { PROJECT_LIST_COLUMNS } from "./columns";
+import { PROJECT_LIST_PAGE_SIZE } from "../constants";
+import { useProjectList } from "./context";
+import { useProjectFilters } from "../hooks/useProjectFilters";
+
+function ProjectList() {
+  const data = useProjectList((c) => c.state.data);
+  const isLoading = useProjectList((c) => c.state.isLoading);
+  const hasMore = useProjectList((c) => c.state.hasMore);
+  const loadMore = useProjectList((c) => c.actions.loadMore);
+  const { sort, setSort } = useProjectFilters();
+
+  const handleHeaderClick = (sortField: string) => {
+    if (sort.field === sortField) {
+      setSort({
+        field: sortField,
+        order: sort.order === "asc" ? "desc" : "asc",
+      });
+    } else {
+      setSort({ field: sortField, order: "desc" });
+    }
+  };
+
+  return (
+    <ListView
+      className="px-5 py-0 scrollbar-thin"
+      columns={PROJECT_LIST_COLUMNS}
+      rows={data}
+      rowKey="name"
+      options={{
+        options: {
+          selectable: false,
+          showTooltip: true,
+          resizeColumn: false,
+        },
+        slots: {
+          cell: ProjectListCell,
+        },
+      }}
+    >
+      <ListHeader className="mb-0 rounded-none bg-transparent border-b border-outline-gray-1 p-2 gap-2">
+        {PROJECT_LIST_COLUMNS.map((column) => (
+          <ListHeaderItem key={column.key} item={column}>
+            <div
+              className={`flex h-7 items-center gap-1 py-1.5${column.sortField ? " cursor-pointer select-none" : ""}`}
+              onClick={
+                column.sortField
+                  ? () => handleHeaderClick(column.sortField!)
+                  : undefined
+              }
+            >
+              <span className="truncate">{column.label}</span>
+              {column.sortField &&
+                sort.field === column.sortField &&
+                (sort.order === "asc" ? (
+                  <ArrowUp className="size-3.5 shrink-0 text-ink-gray-7" />
+                ) : (
+                  <ArrowDown className="size-3.5 shrink-0 text-ink-gray-7" />
+                ))}
+            </div>
+          </ListHeaderItem>
+        ))}
+      </ListHeader>
+      <ListRows>
+        {data.length === 0 ? (
+          <p className="py-6 text-center text-base text-ink-gray-5">
+            No projects found.
+          </p>
+        ) : (
+          <InfiniteScroll
+            isLoading={isLoading}
+            hasMore={hasMore}
+            verticalLodMore={loadMore}
+            count={PROJECT_LIST_PAGE_SIZE}
+          >
+            {data.map((row) => (
+              <ListRow key={row.name} row={row}>
+                {PROJECT_LIST_COLUMNS.map((column) => {
+                  return <ProjectListCell row={row} column={column} />;
+                })}
+              </ListRow>
+            ))}
+          </InfiniteScroll>
+        )}
+      </ListRows>
+    </ListView>
+  );
+}
+
+export default ProjectList;

@@ -14,6 +14,10 @@ MAX_OUTPUT_RETRIES = 5
 COMPLETION_POLL_INTERVAL = 30
 
 
+class PMReportConfigurationError(frappe.ValidationError):
+    http_status_code = 500
+
+
 def get_llm_urls() -> tuple[str, str] | None:
     # URLs are configured in site_config.json:
     summarize_url = frappe.conf.get("llm_summarize_url")
@@ -52,12 +56,18 @@ def generate_pm_report(
 
     urls = get_llm_urls()
     if not urls:
-        return {"status": "error"}
+        frappe.throw(
+            _("LLM service URLs are not configured"),
+            exc=PMReportConfigurationError,
+        )
     LLM_SUMMARIZE_URL = urls[0]
 
     api_key = get_api_key()
     if not api_key:
-        return {"status": "error"}
+        frappe.throw(
+            _("PM Report API key is not configured"),
+            exc=PMReportConfigurationError,
+        )
 
     project_doc = frappe.get_doc("Project", project)
 
@@ -82,7 +92,7 @@ def generate_pm_report(
             "start_date": from_date,
             "end_date": to_date,
             "project_status": project_doc.get("custom_project_rag_status") or "Green",
-            "project_name": (project_doc.get("project_name") or "").strip(),
+            "project_name": project_doc.get("project_name") or "",
             "drive_link": drive_link,
         },
         **({"previous_doc_url": previous_doc_url} if previous_doc_url else {}),
@@ -370,11 +380,15 @@ def _send_bell_notification(project, user, document_url):
             frappe.log_error(f"Invalid or untrusted document_url: {document_url}", "PM Report — Invalid Document URL")
             return
 
+        from html import escape
+
+        safe_document_url = escape(document_url, quote=True)
+
         frappe.get_doc(
             {
                 "doctype": "Notification Log",
                 "subject": f"PM Report Ready: {project}",
-                "email_content": f'<a href="{document_url}">📄 View PM Report</a>',
+                "email_content": f'<a href="{safe_document_url}">📄 View PM Report</a>',
                 "for_user": user,
                 "document_type": "Project",
                 "document_name": project,
@@ -405,11 +419,6 @@ def get_github_metadata(project_doc, selected_repo: str | None = None, selected_
         repo_name = project_doc.get("project_name") or ""
         owner_name = "rtCamp"
 
-    if repo_name:
-        repo_name = repo_name.strip()
-    if owner_name:
-        owner_name = owner_name.strip()
-
     project_board = ""
     if selected_board:
         project_board = selected_board
@@ -424,9 +433,6 @@ def get_github_metadata(project_doc, selected_repo: str | None = None, selected_
 
     if not project_board:
         project_board = project_doc.get("project_name") or ""
-
-    if project_board:
-        project_board = project_board.strip()
 
     return {"repo_name": repo_name, "owner_name": owner_name, "project_board": project_board}
 

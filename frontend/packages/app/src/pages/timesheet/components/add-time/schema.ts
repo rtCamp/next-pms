@@ -1,0 +1,41 @@
+import { stripTags } from "@next-pms/design-system/utils";
+import { z } from "zod";
+
+export const addTimeFormSchema = z.object({
+  project: z
+    .string({
+      required_error: "Select Project",
+    })
+    .trim()
+    .min(1, { message: "Select Project" }),
+  projectLabel: z.string().optional().default(""),
+  task: z
+    .string({
+      required_error: "Select Task",
+    })
+    .trim()
+    .min(1, { message: "Select Task" }),
+  taskLabel: z.string().optional().default(""),
+  taskStatus: z.string().optional().default(""),
+  date: z
+    .string({
+      required_error: "Select Date",
+    })
+    .trim()
+    .min(1, { message: "Select Date" }),
+  duration: z
+    .number({
+      required_error: "Select Duration",
+      invalid_type_error: "Select Duration",
+    })
+    .positive({ message: "Select Duration" }),
+  comment: z
+    .string({
+      required_error: "Please enter a comment.",
+    })
+    .refine((value) => stripTags(value).trim().length > 0, {
+      message: "Please enter a comment.",
+    }),
+});
+
+export type addTimeFormValues = z.input<typeof addTimeFormSchema>;

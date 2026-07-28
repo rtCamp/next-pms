@@ -1,0 +1,412 @@
+/**
+ * External Dependencies
+ */
+import { useState } from "react";
+import { getTodayDate } from "@next-pms/design-system/date";
+import {
+  DatePicker,
+  Dialog,
+  Button,
+  TabButtons,
+  Select,
+  Textarea,
+  ErrorMessage,
+  Combobox,
+} from "@rtcamp/frappe-ui-react";
+import { useToasts } from "@rtcamp/frappe-ui-react";
+import { Calendar, TimeOff } from "@rtcamp/frappe-ui-react/icons";
+import { useForm, useStore } from "@tanstack/react-form";
+import {
+  FrappeError,
+  useFrappeCreateDoc,
+  useFrappeGetCall,
+} from "frappe-react-sdk";
+
+/**
+ * Internal Dependencies
+ */
+import { useEmployeeLookup } from "@/hooks/useEmployeeLookup";
+import { parseFrappeErrorMsg } from "@/lib/utils";
+import { addLeaveFormSchema } from "./schema";
+import { type EmployeeLeaveTimeProps, LEAVE_DURATION } from "./types";
+
+const AddEmployeeLeave = ({
+  open = false,
+  onOpenChange,
+  employeeId = "",
+}: EmployeeLeaveTimeProps) => {
+  const [employeeSearch, setEmployeeSearch] = useState("");
+  const [submitError, setSubmitError] = useState<string | null>(null);
+
+  const closeModal = () => {
+    setEmployeeSearch("");
+    setSubmitError(null);
+    onOpenChange(false);
+    form.reset();
+  };
+
+  const handleOpenChange = (nextOpen: boolean) => {
+    if (nextOpen) {
+      onOpenChange(true);
+      return;
+    }
+
+    closeModal();
+  };
+
+  const form = useForm({
+    defaultValues: {
+      employeeId: employeeId,
+      fromDate: getTodayDate(),
+      toDate: getTodayDate(),
+      leaveDuration: LEAVE_DURATION[0] as string,
+      halfDayDate: "",
+      leaveType: "",
+      reason: "",
+    },
+    validators: {
+      onSubmit: addLeaveFormSchema,
+    },
+    onSubmit: async ({ value }) => {
+      // Convert to Title case
+      const custom_first_halfsecond_half =
+        value.leaveDuration !== "full-day"
+          ? value.leaveDuration
+              .split("-")
+              .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+              .join(" ")
+          : "";
+
+      const half_day =
+        value.leaveDuration === "first-half" ||
+        value.leaveDuration === "second-half";
+
+      try {
+        setSubmitError(null);
+        const data = {
+          employee: value.employeeId,
+          description: value.reason,
+          from_date: value.fromDate,
+          to_date: value.toDate,
+          leave_type: value.leaveType,
+          half_day,
+          half_day_date: half_day
+            ? value.fromDate !== value.toDate
+              ? value.halfDayDate
+              : value.fromDate
+            : undefined,
+          custom_first_halfsecond_half,
+        };
+        await createDoc("Leave Application", data);
+        toast.success("Leave created successfully");
+        closeModal();
+      } catch (err) {
+        setSubmitError(parseFrappeErrorMsg(err as FrappeError));
+      }
+    },
+  });
+
+  const toast = useToasts();
+  const { createDoc, loading } = useFrappeCreateDoc();
+  const employeeIdFormValue = useStore(
+    form.store,
+    (state) => state.values.employeeId,
+  );
+
+  const { options: employeeOptions, isLoading: isEmployeeLookupLoading } =
+    useEmployeeLookup({
+      shouldFetch: open,
+      pageSize: 20,
+      query: employeeSearch,
+    });
+
+  const { data: leaveDetails } = useFrappeGetCall(
+    "hrms.hr.doctype.leave_application.leave_application.get_leave_details",
+    {
+      employee: employeeIdFormValue,
+      date: getTodayDate(),
+    },
+    employeeIdFormValue ? undefined : false,
+  );
+
+  const unpaidLeaveOptions = (
+    (leaveDetails?.message?.lwps as string[]) || []
+  ).map((val) => ({
+    label: val,
+    value: val,
+  }));
+
+  const allocatedLeaveOptions = Object.keys(
+    (leaveDetails?.message?.leave_allocation as Record<string, unknown>) || {},
+  ).map((val) => ({ label: val, value: val }));
+
+  return (
+    <Dialog
+      open={open}
+      onOpenChange={handleOpenChange}
+      className="my-0 max-w-110"
+      classNames={{
+        header: "mb-5",
+        content: "pt-5 pb-2",
+        viewport: "justify-start pt-30",
+        footer: "pb-6",
+      }}
+      actions={
+        <Button
+          className="w-full"
+          variant="solid"
+          iconLeft={() => <TimeOff className="size-4 text-ink-white" />}
+          label="Add time-off"
+          disabled={loading}
+          onClick={() => {
+            form.handleSubmit();
+          }}
+        />
+      }
+      options={{
+        title: "Add time off",
+      }}
+    >
+      <div className="space-y-4">
+        <form.Field
+          name="employeeId"
+          children={(field) => {
+            return (
+              <>
+                <label className="block text-base text-ink-gray-5 mb-1.5">
+                  Employee
+                </label>
+                <Combobox
+                  inputClassName="bg-surface-white h-8 border-outline-gray-2 text-ink-gray-7"
+                  loading={isEmployeeLookupLoading}
+                  options={employeeOptions}
+                  searchValue={employeeSearch}
+                  placeholder="Select employee"
+                  value={field.state.value}
+                  openOnFocus
+                  onSearchChange={setEmployeeSearch}
+                  onChange={(val) => {
+                    field.handleChange(val as string);
+                  }}
+                />
+                {!field.state.meta.isValid && (
+                  <ErrorMessage message={field.state.meta.errors[0]?.message} />
+                )}
+              </>
+            );
+          }}
+        />
+        <div className="flex gap-4">
+          <form.Field
+            name="fromDate"
+            children={(field) => {
+              return (
+                <div className="flex-1 flex w-full flex-col space-y-1.5">
+                  <label className="block text-base text-ink-gray-5">
+                    From
+                  </label>
+                  <DatePicker
+                    label="From"
+                    onChange={(val) => field.handleChange(val as string)}
+                    placeholder="Start date"
+                    value={field.state.value}
+                  >
+                    {({ displayValue }) => {
+                      return (
+                        <div className="flex relative items-center py-2 w-full h-8 rounded border border-outline-gray-2 px-2.5">
+                          <input
+                            readOnly
+                            type="text"
+                            id="start"
+                            value={displayValue}
+                            className="w-full text-base text-ink-gray-7"
+                            placeholder="Select start date"
+                          />
+                          <Calendar className="size-4" />
+                        </div>
+                      );
+                    }}
+                  </DatePicker>
+                  {!field.state.meta.isValid && (
+                    <ErrorMessage
+                      message={field.state.meta.errors[0]?.message}
+                    />
+                  )}
+                </div>
+              );
+            }}
+          />
+          <form.Field
+            name="toDate"
+            children={(field) => {
+              return (
+                <div className="flex-1 flex w-full flex-col space-y-1.5">
+                  <label className="block text-base text-ink-gray-5">To</label>
+                  <DatePicker
+                    label="To"
+                    onChange={(val) => field.handleChange(val as string)}
+                    placeholder="End date"
+                    value={field.state.value}
+                  >
+                    {({ displayValue }) => {
+                      return (
+                        <div className="flex relative items-center py-2 w-full h-8 rounded border border-outline-gray-2 px-2.5">
+                          <input
+                            readOnly
+                            type="text"
+                            id="start"
+                            value={displayValue}
+                            className="w-full text-base text-ink-gray-7"
+                            placeholder="Select end date"
+                          />
+                          <Calendar className="size-4" />
+                        </div>
+                      );
+                    }}
+                  </DatePicker>
+                  {!field.state.meta.isValid && (
+                    <ErrorMessage
+                      message={field.state.meta.errors[0]?.message}
+                    />
+                  )}
+                </div>
+              );
+            }}
+          />
+        </div>
+
+        <form.Field
+          name="leaveDuration"
+          children={(field) => {
+            return (
+              <>
+                <label className="block text-base text-ink-gray-5 mb-1.5">
+                  Leave duration
+                </label>
+                <TabButtons
+                  className="h-7.5"
+                  buttonClassName="text-ink-gray-5 data-pressed:text-ink-gray-8"
+                  value={field.state.value}
+                  onChange={(val) => field.handleChange(val as string)}
+                  buttons={LEAVE_DURATION.map((value) => ({
+                    label: value
+                      .split("-")
+                      .map(
+                        (word) => word.charAt(0).toUpperCase() + word.slice(1),
+                      )
+                      .join(" "),
+                    value,
+                  }))}
+                />
+                {!field.state.meta.isValid && (
+                  <ErrorMessage message={field.state.meta.errors[0]?.message} />
+                )}
+              </>
+            );
+          }}
+        />
+
+        <form.Subscribe
+          selector={(state) => [
+            state.values.fromDate,
+            state.values.toDate,
+            state.values.leaveDuration,
+          ]}
+          children={([fromDate, toDate, leaveDuration]) =>
+            leaveDuration !== "full-day" &&
+            fromDate !== toDate && (
+              <form.Field
+                name="halfDayDate"
+                children={(field) => {
+                  return (
+                    <div className="flex flex-col space-y-1.5">
+                      <label className="block text-base text-ink-gray-5 mb-1.5">
+                        Half Day Date
+                      </label>
+                      <DatePicker
+                        label="Half Day Date"
+                        onChange={(val) => field.handleChange(val as string)}
+                        placeholder="Half day date"
+                        value={field.state.value}
+                      >
+                        {({ displayValue }) => {
+                          return (
+                            <div className="flex relative items-center py-2 w-full h-8 rounded border border-outline-gray-2 px-2.5">
+                              <input
+                                readOnly
+                                type="text"
+                                id="half-day-date"
+                                value={displayValue}
+                                className="w-full text-base text-ink-gray-7"
+                                placeholder="Select half day date"
+                              />
+                              <Calendar className="size-4" />
+                            </div>
+                          );
+                        }}
+                      </DatePicker>
+                      {!field.state.meta.isValid && (
+                        <ErrorMessage
+                          message={field.state.meta.errors[0]?.message}
+                        />
+                      )}
+                    </div>
+                  );
+                }}
+              />
+            )
+          }
+        />
+
+        <form.Field
+          name="leaveType"
+          children={(field) => {
+            return (
+              <>
+                <label className="block text-base text-ink-gray-5 mb-1.5">
+                  Leave type
+                </label>
+                <Select
+                  value={field.state.value}
+                  onChange={(val) => field.handleChange(val as string)}
+                  variant="outline"
+                  className="h-8 text-ink-gray-7"
+                  options={[...unpaidLeaveOptions, ...allocatedLeaveOptions]}
+                  placeholder="Select leave type"
+                  disabled={!employeeIdFormValue}
+                />
+                {!field.state.meta.isValid && (
+                  <ErrorMessage message={field.state.meta.errors[0]?.message} />
+                )}
+              </>
+            );
+          }}
+        />
+        <form.Field
+          name="reason"
+          children={(field) => {
+            return (
+              <>
+                <label className="block text-base text-ink-gray-5 mb-1.5">
+                  Reason
+                </label>
+                <Textarea
+                  variant="outline"
+                  value={field.state.value}
+                  onChange={(e) => field.handleChange(e.target.value)}
+                  className="bg-surface-white border-outline-gray-2 text-ink-gray-7"
+                />
+                {!field.state.meta.isValid && (
+                  <ErrorMessage message={field.state.meta.errors[0]?.message} />
+                )}
+              </>
+            );
+          }}
+        />
+        {submitError ? <ErrorMessage message={submitError} /> : null}
+      </div>
+    </Dialog>
+  );
+};
+
+export default AddEmployeeLeave;

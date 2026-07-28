@@ -2,18 +2,32 @@
  * External dependencies.
  */
 import { floatToTime } from "@next-pms/design-system";
-import { getUTCDateTime, normalizeDate } from "@next-pms/design-system/date";
-import { toast } from "@next-pms/design-system/hooks";
+import {
+  getDateFromDateAndTimeString,
+  getUTCDateTime,
+  normalizeDate,
+} from "@next-pms/design-system/date";
+import { FilterCondition } from "@rtcamp/frappe-ui-react";
 import { type ClassValue, clsx } from "clsx";
-import { isToday } from "date-fns";
+import {
+  format,
+  getISOWeek,
+  getISOWeekYear,
+  getISOWeeksInYear,
+  parse,
+  parseISO,
+  isToday,
+} from "date-fns";
 import { Error as FrappeError } from "frappe-js-sdk/lib/frappe_app/types";
 import { twMerge } from "tailwind-merge";
+
 /**
  * Internal dependencies.
  */
 import { timeStringToFloat } from "@/schema/timesheet";
 import { WorkingFrequency } from "@/types";
-import { HolidayProp, LeaveProps } from "@/types/timesheet";
+import { HolidayProp, LeaveProps, TaskProps } from "@/types/timesheet";
+import { NO_VALUE_OPERATORS, NUMBER_OF_WEEKS_TO_FETCH } from "./constant";
 
 export const NO_VALUE_FIELDS = [
   "Section Break",
@@ -30,6 +44,38 @@ export const NO_VALUE_FIELDS = [
 
 export function mergeClassNames(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
+}
+
+export function pickAllowed<T extends string>(
+  value: string | undefined | null,
+  allowed: readonly T[],
+): T | undefined {
+  return allowed.includes(value as T) ? (value as T) : undefined;
+}
+
+export function formatProjectDate(isoDate: string): string {
+  const date = parse(isoDate, "yyyy-MM-dd", new Date());
+  const pattern =
+    date.getFullYear() === new Date().getFullYear() ? "MMM d" : "MMM d, yyyy";
+  return format(date, pattern);
+}
+
+export function toKebabCase(value?: string | null): string | undefined {
+  if (!value) {
+    return undefined;
+  }
+  return value
+    .replace(/([a-z0-9])([A-Z])/g, "$1-$2")
+    .replace(/[\s_]+/g, "-")
+    .toLowerCase();
+}
+
+export function kebabToTitleCase(value: string): string {
+  return value
+    .split("-")
+    .filter(Boolean)
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join(" ");
 }
 
 export function getCookie(name: string) {
@@ -49,6 +95,10 @@ export const getSiteName = () => {
   // eslint-disable-next-line
   // @ts-expect-error
   return window.frappe?.boot?.sitename ?? import.meta.env.VITE_SITE_NAME;
+};
+
+export const isWeekendEntryAllowed = (): boolean => {
+  return window.frappe?.boot?.allow_weekend_entries ?? false;
 };
 
 export function parseFrappeErrorMsg(error: FrappeError) {
@@ -181,17 +231,11 @@ export const checkIsMobile = () => {
   }
 };
 
-export const copyToClipboard = (text: string) => {
-  navigator.clipboard.writeText(text);
-  toast({ title: "Copied to clipboard", variant: "success" });
-};
-
 export const canExport = (doctype: string) => {
   // @ts-expect-error - frappe is global object provided by frappe
   return window.frappe?.boot?.user?.can_export?.includes(doctype) ?? true;
 };
 export const canCreate = (doctype: string) => {
-  // @ts-expect-error - frappe is global object provided by frappe
   return window.frappe?.boot?.user?.can_create?.includes(doctype) ?? true;
 };
 
@@ -238,6 +282,43 @@ export const currencyFormat = (currency: string = "INR"): Intl.NumberFormat => {
   }
 };
 
+export type NumericFormatValue = number | string | null | undefined;
+
+/**
+ * Formats a numeric value into a string representation with a maximum of two decimal places.
+ * @param value - The numeric value to format.
+ * @returns A string representation of the numeric value.
+ */
+export const formatNumber = (value: NumericFormatValue): string => {
+  if (value === null || value === undefined || value === "") {
+    return "0";
+  }
+
+  const numericValue = Number(value);
+  if (!Number.isFinite(numericValue)) {
+    return "0";
+  }
+
+  return `${Number(numericValue.toFixed(2))}`;
+};
+
+/**
+ * Formats a numeric value representing hours into a string representation with a specified suffix.
+ * @param value - The numeric value representing hours to format.
+ * @param suffix - The suffix to append to the formatted string (default is "h").
+ * @returns A string representation of the numeric value with the specified suffix.
+ */
+export const formatHours = (value: NumericFormatValue, suffix = "h"): string =>
+  `${formatNumber(value)}${suffix}`;
+
+/**
+ * Formats a numeric value representing a percentage into a string representation with a "%" suffix.
+ * @param value - The numeric value representing a percentage to format.
+ * @returns A percentage string with a maximum of two decimal places and a "%" suffix.
+ */
+export const formatPercentage = (value: NumericFormatValue): string =>
+  `${formatNumber(value)}%`;
+
 export const getBgCsssForToday = (date: string) => {
   return isToday(getUTCDateTime(date)) ? "bg-slate-100 dark:bg-muted/50 " : "";
 };
@@ -281,7 +362,7 @@ export const getTimesheetHours = (
         if (isHalfDayLeave) {
           totalHours += dailyWorkingHours / 2;
           timeOffHours += dailyWorkingHours / 2;
-        } else if (holiday?.weekly_off && !data.is_lwp) {
+        } else if (holiday?.weekly_off && !data.includes_holidays) {
           continue;
         } else {
           totalHours += dailyWorkingHours;
@@ -356,14 +437,16 @@ export const extractTextFromHTML = (htmlContent: string) => {
 
 export const enableSocket = () => {
   const enableSocket = import.meta.env.VITE_ENABLE_SOCKET;
-  // Default to enabled when no env is configured.
   if (typeof enableSocket !== "string") {
+    return enableSocket;
+  }
+  if (enableSocket === "true") {
+    return true;
+  } else if (enableSocket === "false") {
+    return false;
+  } else {
     return true;
   }
-  if (enableSocket === "false") {
-    return false;
-  }
-  return true;
 };
 
 export const formatTime = (timeStr: string): string => {
@@ -415,3 +498,275 @@ export const getDefaultView = (
     default: true,
   };
 };
+
+/**
+ * Calculates the total hours for a given date across all tasks.
+ *
+ * @param tasks TaskProps object containing task data.
+ * @param date Date string for which to calculate total hours.
+ * @returns Total hours for the given date.
+ */
+export const calculateTotalHours = (tasks: TaskProps, date: string) => {
+  return Object.values(tasks).reduce((total, taskData) => {
+    const taskHours = taskData.data
+      .filter((data) => getDateFromDateAndTimeString(data.from_time) === date)
+      .reduce((sum, item) => sum + item.hours, 0);
+    return total + taskHours;
+  }, 0);
+};
+
+/**
+ * Calculates the total leave hours for a given date.
+ *
+ * @param leaves Array of LeaveProps containing leave data.
+ * @param date Date string for which to calculate leave hours.
+ * @param daily_working_hours Number of working hours in a day.
+ * @param holiday HolidayProp object for the given date (if any).
+ * @returns Total leave hours for the given date.
+ */
+export const calculateLeaveHours = (
+  leaves: LeaveProps[],
+  date: string,
+  daily_working_hours: number,
+  holiday: HolidayProp | undefined,
+) => {
+  if (holiday && !holiday.weekly_off) {
+    return daily_working_hours;
+  }
+
+  return leaves.reduce((total, leave) => {
+    if (date >= leave.from_date && date <= leave.to_date) {
+      if (!leave.includes_holidays && holiday?.weekly_off) {
+        return total;
+      } else if (leave.half_day && leave.half_day_date === date) {
+        return total + daily_working_hours / 2;
+      } else {
+        return total + daily_working_hours;
+      }
+    }
+    return total;
+  }, 0);
+};
+
+/** Returns true when the operator does not require a value. */
+export const isNoValueOperator = (operator: string): boolean =>
+  NO_VALUE_OPERATORS.includes(operator);
+
+/**
+ * Parses a URL search param holding a JSON-encoded array, returning an
+ * empty array if the param is missing, malformed, or decodes to a
+ * non-array value. Pass `decode` (e.g. `decodeURI`) when the param was
+ * encoded before being written to the URL.
+ */
+export const parseJSONArrayParam = <T>(
+  raw: string | null,
+  decode: (value: string) => string = (value) => value,
+): T[] => {
+  if (!raw) return [];
+  try {
+    const parsed = JSON.parse(decode(raw));
+    return Array.isArray(parsed) ? (parsed as T[]) : [];
+  } catch {
+    return [];
+  }
+};
+
+/**
+ * Returns true when a FilterCondition is fully specified and ready to be sent
+ * to the API — i.e. it has a field, an operator, and either a non-empty value
+ * or an operator that requires no value.
+ */
+export const isCompleteFilterCondition = (f: FilterCondition): boolean => {
+  if (!f.field || !f.operator) return false;
+  if (isNoValueOperator(f.operator)) return true;
+  return (
+    f.value !== null &&
+    f.value !== undefined &&
+    !(typeof f.value === "string" && f.value.trim() === "") &&
+    !(Array.isArray(f.value) && f.value.length === 0)
+  );
+};
+
+/**
+ * Normalizes the value of a "like" or "not like" filter condition by ensuring
+ * that it is wrapped in "%" wildcards, unless it already starts or ends with one.
+ */
+export const normalizeLikeFilterValue = (
+  operator: string,
+  value: FilterCondition["value"],
+) => {
+  const normalizedOperator = operator.toLowerCase().trim();
+
+  if (
+    !["like", "not like"].includes(normalizedOperator) ||
+    typeof value !== "string"
+  ) {
+    return value;
+  }
+
+  const trimmedValue = value.trim();
+
+  if (
+    !trimmedValue ||
+    trimmedValue.startsWith("%") ||
+    trimmedValue.endsWith("%")
+  ) {
+    return trimmedValue;
+  }
+
+  return `%${trimmedValue}%`;
+};
+
+/**
+ * Builds native Frappe filters from the given composite filters.
+ *
+ * @param compositeFilters Array of FilterCondition objects.
+ * @returns Array of Frappe filters in the format [[fieldCategory, field, operator, value]].
+ */
+export const buildFrappeFilters = (compositeFilters: FilterCondition[]) => {
+  return compositeFilters
+    .filter(
+      (filter) => filter.fieldCategory && isCompleteFilterCondition(filter),
+    )
+    .map((filter) => [
+      filter.fieldCategory,
+      filter.field,
+      filter.operator,
+      isNoValueOperator(filter.operator)
+        ? null
+        : normalizeLikeFilterValue(filter.operator, filter.value),
+    ]);
+};
+
+/**
+ * Builds native Frappe filters from composite filters on a single doctype
+ * (no `fieldCategory` prefix) — e.g. `[["priority", "=", "Urgent"]]`.
+ *
+ * @param compositeFilters Array of FilterCondition objects.
+ * @returns Array of Frappe filters in the format [[field, operator, value]].
+ */
+export const buildFilterConditions = (compositeFilters: FilterCondition[]) => {
+  return compositeFilters
+    .filter(isCompleteFilterCondition)
+    .map((filter) => [
+      filter.field,
+      filter.operator,
+      isNoValueOperator(filter.operator)
+        ? null
+        : normalizeLikeFilterValue(filter.operator, filter.value),
+    ]);
+};
+
+/**
+ * Builds composite filters by extracting relevant information from the given
+ * array of FilterCondition objects, including start date, maximum week range,
+ * and native Frappe filters.
+ *
+ * @param compositeFilters Array of FilterCondition objects.
+ * @returns Object containing startDate, endDate, maxWeek, and frappeFilters derived from the composite filters.
+ */
+export const buildCompositeFilters = (compositeFilters: FilterCondition[]) => {
+  if (compositeFilters.length === 0) {
+    return {
+      startDate: undefined,
+      maxWeek: NUMBER_OF_WEEKS_TO_FETCH,
+      frappeFilters: [],
+    };
+  }
+
+  // Frappe filter (i.e. filters that have fieldCategory set).
+  const frappeFilters = buildFrappeFilters(compositeFilters);
+
+  // Date filter.
+  const dateFilters = compositeFilters.filter(
+    (filter) => filter.field === "date",
+  );
+  const startDate =
+    dateFilters.length > 0
+      ? (dateFilters[0].value as string[])?.length > 0
+        ? (dateFilters[0].value as string[])[0]
+        : undefined
+      : undefined;
+
+  const endDate =
+    dateFilters.length > 0
+      ? (dateFilters[0].value as string[])?.length > 1
+        ? (dateFilters[0].value as string[])[1]
+        : undefined
+      : undefined;
+
+  let maxWeek = NUMBER_OF_WEEKS_TO_FETCH;
+  if (startDate && endDate) {
+    // Calculate the number of calendar weeks spanned (inclusive) using ISO week logic
+    // to correctly handle week boundary crossings (e.g., Sun→Mon spans 2 weeks).
+    const start = parseISO(startDate);
+    const end = parseISO(endDate);
+
+    const startWeekYear = getISOWeekYear(start);
+    const startWeek = getISOWeek(start);
+    const endWeekYear = getISOWeekYear(end);
+    const endWeek = getISOWeek(end);
+
+    if (startWeekYear === endWeekYear) {
+      // Same ISO week year: simple difference
+      maxWeek = Math.max(endWeek - startWeek + 1, 1);
+    } else {
+      // Different ISO week years: sum weeks from start year and end year
+      const weeksInStartYear = getISOWeeksInYear(start);
+      maxWeek = Math.max(
+        weeksInStartYear -
+          startWeek +
+          1 +
+          endWeek +
+          (endWeekYear - startWeekYear - 1) * 52, // Estimate for years in between
+        1,
+      );
+    }
+  }
+
+  // Note: We are returning end date as start date because API expects end date and fetches backwards from there.
+  return {
+    startDate: endDate,
+    endDate: startDate,
+    maxWeek: maxWeek,
+    frappeFilters,
+  };
+};
+
+/**
+ * Returns a short, stable base-36 hash of the given string (djb2 variant).
+ * Useful for building cache keys from arbitrarily long inputs.
+ */
+export function hashString(str: string): string {
+  let h = 5381;
+  for (let i = 0; i < str.length; i++) {
+    h = (Math.imul(31, h) + str.charCodeAt(i)) | 0;
+  }
+  return (h >>> 0).toString(36);
+}
+
+/**
+ * Formats file size in bytes to a human-readable string.
+ * @param bytes - File size in bytes
+ * @returns Formatted file size string (e.g., "1 KB", "2 MB")
+ */
+export function formatFileSize(bytes: number): string {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${Math.round(bytes / 1024)} KB`;
+  return `${Math.round(bytes / (1024 * 1024))} MB`;
+}
+
+/**
+ * Gets the file extension from a file name.
+ * @param fileName - The name of the file
+ * @returns The file extension in uppercase (e.g., "PDF", "TXT")
+ */
+export function getFileExtension(fileName: string): string {
+  const lastDotIndex = fileName.lastIndexOf(".");
+
+  if (lastDotIndex === -1 || lastDotIndex === fileName.length - 1) {
+    return "FILE";
+  }
+
+  return fileName.slice(lastDotIndex + 1).toUpperCase();
+}

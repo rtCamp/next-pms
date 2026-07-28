@@ -1,5 +1,18 @@
-import { TaskStatusType } from "./task";
-import { type ViewState } from "../store/view";
+import type { ReactNode, ComponentType } from "react";
+import type { TaskStatusType } from "@next-pms/design-system/components";
+
+import { ROUTES } from "@/lib/constant";
+import { PreloadableComponent } from "@/lib/lazy-preload";
+
+export type GlobalFilterCondition =
+  | [field: string, operator: string, value: unknown]
+  | [doctype: string, field: string, operator: string, value: unknown];
+
+export type GlobalFilters = {
+  project?: GlobalFilterCondition[];
+  [key: string]: GlobalFilterCondition[] | undefined;
+};
+
 export type Employee = {
   name: string;
   image: string;
@@ -43,27 +56,36 @@ export interface DocMetaProps {
   fields: Array<fieldMetaProps>;
   title_field: string;
 }
+
+export type Role =
+  | "Projects Manager"
+  | "Projects User"
+  | "Delivery Manager"
+  | "Delivery User"
+  | "Employee"
+  | "Timesheet Manager"
+  | "Timesheet User"
+  | "System Manager";
+
 declare global {
   interface Window {
     frappe: {
       boot?: {
         user?: {
-          roles?: string[];
+          roles?: Role[];
           can_create: string[];
-          can_write?: string[];
         };
         currencies?: string[];
         has_business_unit?: boolean;
         has_industry?: boolean;
+        has_repository_connections?: boolean;
+        has_customer_feedback?: boolean;
+        show_rag_trigger_page?: boolean;
         desk_theme?: string;
-        views: ViewState["views"];
+        has_todo_custom_fields?: boolean;
         is_calendar_setup: boolean;
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        global_filters: { [key: string]: Array<any> };
-      };
-      realtime?: {
-        on: (event: string, handler: (data: unknown) => void) => void;
-        off: (event: string, handler: (data: unknown) => void) => void;
+        global_filters: GlobalFilters;
+        allow_weekend_entries?: boolean;
       };
     };
   }
@@ -72,4 +94,20 @@ declare global {
 export type Project = {
   name: string;
   project_name: string;
+};
+
+/**
+ * Route configuration keyed by ROUTES keys.
+ */
+export type RouteKey = keyof typeof ROUTES;
+
+// `any` mirrors React.lazy's constraint so propful views stay assignable; see
+// lazy-preload.ts for the full rationale.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export type LazyView = PreloadableComponent<ComponentType<any>>;
+
+export type RouteConfig = {
+  Component: LazyView;
+  allowedRoles: Role[];
+  layout?: ReactNode;
 };
