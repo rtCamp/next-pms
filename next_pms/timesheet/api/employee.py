@@ -183,7 +183,7 @@ def get_employee_list(
     if roles and isinstance(roles, str):
         try:
             roles = frappe.parse_json(roles)
-        except (ValueError, TypeError):
+        except ValueError, TypeError:
             roles = None  ## useFrappeGetCall will  pass string as JSON-String if string received its better to set it to None and handle it in filter_employees function
     employees, count = filter_employees(
         employee_name=employee_name,

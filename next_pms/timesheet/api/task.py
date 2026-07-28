@@ -32,7 +32,7 @@ def parse_task_filters(raw_filters: list | str | None) -> list:
     if isinstance(raw_filters, str):
         try:
             raw_filters = json.loads(raw_filters)
-        except (ValueError, TypeError):
+        except ValueError, TypeError:
             frappe.throw(frappe._("Invalid filters format. Expected a JSON array of [field, operator, value] entries."))
 
     if not isinstance(raw_filters, list):

@@ -28,7 +28,7 @@ def is_server_ready(port, timeout=30):
         try:
             with socket.create_connection(("localhost", port), timeout=1):
                 return True
-        except (OSError, ConnectionRefusedError):
+        except OSError, ConnectionRefusedError:
             time.sleep(0.5)
     return False
 
