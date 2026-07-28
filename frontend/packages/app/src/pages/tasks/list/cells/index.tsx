@@ -1,6 +1,7 @@
 /**
  * Internal dependencies.
  */
+import { formatHours } from "@/lib/utils";
 import type { OpenAddTimeDialogOptions } from "@/pages/timesheet/outletContext";
 import { AddTimeCell } from "./addTimeCell";
 import { DateCell } from "./dateCell";
@@ -41,6 +42,8 @@ export function TaskListCell({
       return <TextCell text={row.project_name} />;
     case "status":
       return <StatusCell status={row.status} />;
+    case "expected_time":
+      return <TextCell text={formatHours(row.expected_time)} />;
     case "priority":
       return <PriorityCell priority={row.priority} />;
     case "exp_end_date":
