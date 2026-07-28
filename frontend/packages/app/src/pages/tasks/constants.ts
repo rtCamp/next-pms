@@ -25,6 +25,7 @@ export const TASK_SORTABLE_FIELDS = [
   { column: "subject", field: "subject", label: "Subject" },
   { column: "project_name", field: "project", label: "Project" },
   { column: "status", field: "status", label: "Status" },
+  { column: "expected_time", field: "expected_time", label: "Expected time" },
   { column: "priority", field: "priority", label: "Priority" },
   { column: "exp_end_date", field: "exp_end_date", label: "Due date" },
   { column: "modified", field: "modified", label: "Last updated" },
