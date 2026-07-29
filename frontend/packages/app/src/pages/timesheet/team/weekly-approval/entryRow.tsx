@@ -3,9 +3,10 @@
  */
 import { useState, useCallback } from "react";
 import { floatToTime, mergeClassNames as cn } from "@next-pms/design-system";
-import { TaskStatus } from "@next-pms/design-system/components";
+import { ApprovalStatus, TaskStatus } from "@next-pms/design-system/components";
 import { stripTags } from "@next-pms/design-system/utils";
 import {
+  Alert,
   Button,
   ErrorMessage,
   StaticTextEditor,
@@ -22,6 +23,7 @@ import type { TimesheetEntry } from "./types";
 interface EntryRowProps {
   entry: TimesheetEntry;
   readOnly?: boolean;
+  maxDuration?: number;
   onSave: (
     timesheetId: string,
     taskId: string,
@@ -32,7 +34,12 @@ interface EntryRowProps {
   ) => void;
 }
 
-const EntryRow = ({ entry, readOnly = false, onSave }: EntryRowProps) => {
+const EntryRow = ({
+  entry,
+  readOnly = false,
+  maxDuration,
+  onSave,
+}: EntryRowProps) => {
   const [isEditing, setIsEditing] = useState(false);
   const [description, setDescription] = useState(entry.description);
   const [hours, setHours] = useState(entry.hours);
@@ -88,9 +95,14 @@ const EntryRow = ({ entry, readOnly = false, onSave }: EntryRowProps) => {
         <TaskStatus status={entry.status} />
         <div className="flex-1 min-w-0">
           <div className="space-y-1">
-            <p className="text-base font-medium text-ink-gray-7 truncate">
-              {entry.taskName}
-            </p>
+            <div className="flex gap-1.5">
+              <p className="text-base font-medium text-ink-gray-7 truncate">
+                {entry.taskName}
+              </p>
+              {entry.approvalStatus && (
+                <ApprovalStatus status={entry.approvalStatus} />
+              )}
+            </div>
             <p className="text-xs text-ink-gray-5 truncate">
               {entry.projectName}
             </p>
@@ -98,6 +110,8 @@ const EntryRow = ({ entry, readOnly = false, onSave }: EntryRowProps) => {
               <DurationInput
                 snap="smooth"
                 variant="outline"
+                maxDuration={maxDuration}
+                allowOverflow
                 value={hours}
                 onChange={setHours}
               />
@@ -145,9 +159,14 @@ const EntryRow = ({ entry, readOnly = false, onSave }: EntryRowProps) => {
       <TaskStatus status={entry.status} />
       <div className="flex-1 min-w-0">
         <div className="space-y-1">
-          <p className="text-base font-medium text-ink-gray-7 truncate">
-            {entry.taskName}
-          </p>
+          <div className="flex gap-1.5">
+            <p className="text-base font-medium text-ink-gray-7 truncate">
+              {entry.taskName}
+            </p>
+            {entry.approvalStatus && (
+              <ApprovalStatus status={entry.approvalStatus} />
+            )}
+          </div>
           <p className="text-xs text-ink-gray-5 truncate">
             {entry.projectName}
           </p>
@@ -155,6 +174,17 @@ const EntryRow = ({ entry, readOnly = false, onSave }: EntryRowProps) => {
             editorClass="prose-sm text-ink-gray-7 mt-3"
             content={entry.description}
           />
+          {entry.rejectionReason ? (
+            <Alert
+              title="Rejection reason"
+              variant="outline"
+              theme="red"
+              dismissable={false}
+              renderIcon={false}
+              renderDescription={entry.rejectionReason}
+              className="[&_h3]:text-xs [&_h3]:font-bold [&_h3]:text-ink-red-4 [&_p]:text-xs [&_p]:text-ink-red-3 p-2"
+            />
+          ) : null}
         </div>
       </div>
       <span className="relative size-fit text-base text-ink-gray-6 rounded-sm outline outline-offset-6 outline-outline-gray-modals">

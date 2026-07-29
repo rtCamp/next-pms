@@ -1,8 +1,8 @@
 /**
  * External dependencies.
  */
-import type { CSSProperties } from "react";
-import { PreviewCard } from "@base-ui/react/preview-card";
+import { useId, type CSSProperties } from "react";
+import { Popover } from "@base-ui/react/popover";
 import { Avatar, Badge } from "@rtcamp/frappe-ui-react";
 import { RightChevron } from "@rtcamp/frappe-ui-react/icons";
 
@@ -23,6 +23,7 @@ export interface GanttMemberItemProps {
   showChevron?: boolean;
   onToggle?: () => void;
   className?: string;
+  buttonClassName?: string;
   style?: CSSProperties;
   contentHeight?: number;
 }
@@ -35,6 +36,7 @@ export function GanttMemberItem({
   showChevron = true,
   onToggle,
   className,
+  buttonClassName,
   style,
   contentHeight = CELL_HEIGHT,
 }: GanttMemberItemProps) {
@@ -47,6 +49,7 @@ export function GanttMemberItem({
       hasRoleAccess: s.hasRoleAccess,
     }));
 
+  const triggerId = useId();
   const hasMemberIndex = memberInd !== undefined;
   const storeMember = hasMemberIndex ? members[memberInd] : undefined;
   const member = memberProp ?? storeMember;
@@ -61,52 +64,69 @@ export function GanttMemberItem({
     onToggle ?? (hasMemberIndex ? () => toggleRow(memberInd) : undefined);
 
   return (
-    <PreviewCard.Root>
-      <PreviewCard.Trigger
-        delay={300}
-        closeDelay={150}
-        render={
-          <th
-            className={cn(
-              "sticky left-0 z-25 bg-surface-white border-b border-r border-outline-gray-1 pl-3 pr-3 font-normal text-left align-middle transition-[height,background-color] cursor-pointer hover:bg-surface-gray-1",
-              className,
-            )}
-            style={{
-              width: headerWidth,
-              minWidth: headerWidth,
-              maxWidth: headerWidth,
-              ...style,
-            }}
-          />
-        }
-      >
+    <th
+      className={cn(
+        "sticky left-0 z-25 bg-surface-white border-b border-r border-outline-gray-1 font-normal text-left align-middle transition-[height,background-color] hover:bg-surface-gray-1",
+        className,
+      )}
+      style={{
+        width: headerWidth,
+        minWidth: headerWidth,
+        maxWidth: headerWidth,
+        ...style,
+      }}
+    >
+      <Popover.Root>
         <div
-          className="overflow-hidden transition-[height] duration-200 ease-in-out"
+          className="relative overflow-hidden transition-[height] duration-200 ease-in-out"
           style={{ height: contentHeight }}
         >
-          <button
-            type="button"
-            disabled={!canExpand}
-            onClick={() => handleToggle?.()}
+          {/* Mouse-only trigger */}
+          <Popover.Trigger
+            id={`${triggerId}-cell`}
+            openOnHover
+            delay={300}
+            closeDelay={150}
+            tabIndex={-1}
+            onMouseDown={(e) => e.preventDefault()}
+            onClick={(e) => {
+              e.preventBaseUIHandler();
+              if (canExpand) handleToggle?.();
+            }}
+            render={<button type="button" />}
             className={cn(
-              "flex h-full w-full shrink-0 items-center overflow-hidden",
-              {
-                "cursor-default!": !canExpand,
-              },
+              "absolute inset-0 z-10 focus:outline-none",
+              canExpand ? "cursor-pointer" : "cursor-default",
             )}
-            aria-expanded={canExpand ? isExpanded : undefined}
+          />
+          <div
+            className={cn(
+              "flex pl-3 pr-3 h-full w-full shrink-0 items-center overflow-hidden",
+              buttonClassName,
+            )}
           >
             <div className="flex flex-col gap-1 w-full min-w-0">
               <div className="flex gap-1 justify-between items-center w-full">
-                <div className="flex overflow-hidden flex-1 items-center w-full min-w-0">
+                <div className="flex flex-1 items-center w-full min-w-0">
                   {showChevron ? (
-                    <RightChevron
+                    <button
+                      type="button"
+                      disabled={!canExpand}
+                      onClick={() => handleToggle?.()}
+                      aria-expanded={canExpand ? isExpanded : undefined}
+                      aria-label={isExpanded ? "Collapse" : "Expand"}
                       className={cn(
-                        "size-4 mr-1 transition-transform duration-150 shrink-0 text-ink-gray-8",
+                        "mr-1 shrink-0 rounded-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-outline-gray-3",
                         { "opacity-0 pointer-events-none": !canExpand },
-                        { "rotate-90": isExpanded },
                       )}
-                    />
+                    >
+                      <RightChevron
+                        className={cn(
+                          "size-4 transition-transform duration-150 text-ink-gray-8",
+                          { "rotate-90": isExpanded },
+                        )}
+                      />
+                    </button>
                   ) : null}
                   <Avatar
                     size="xs"
@@ -114,13 +134,18 @@ export function GanttMemberItem({
                     image={member.image}
                     label={member.name}
                   />
-                  <span className="ml-2 text-base font-medium truncate text-ink-gray-8">
+                  <Popover.Trigger
+                    id={`${triggerId}-name`}
+                    nativeButton={false}
+                    aria-label={`View ${member.name} details`}
+                    render={<span />}
+                    className="ml-2 rounded-sm text-base font-medium text-left truncate text-ink-gray-8 focus:outline-none focus-visible:ring-2 focus-visible:ring-outline-gray-3"
+                  >
                     {member.name}
-                  </span>
+                  </Popover.Trigger>
                 </div>
                 {member.badge && (
                   <Badge
-                    className=""
                     label={member.badge}
                     size="sm"
                     variant="subtle"
@@ -141,24 +166,24 @@ export function GanttMemberItem({
                 )}
               </div>
             </div>
-          </button>
+          </div>
         </div>
-      </PreviewCard.Trigger>
-      <PreviewCard.Portal>
-        <PreviewCard.Positioner
-          side="right"
-          align="center"
-          alignOffset={20}
-          sideOffset={-42}
-        >
-          <PreviewCard.Popup className="outline-none">
-            <GanttMemberHoverCard
-              member={member}
-              canOpenEmployee={hasRoleAccess}
-            />
-          </PreviewCard.Popup>
-        </PreviewCard.Positioner>
-      </PreviewCard.Portal>
-    </PreviewCard.Root>
+        <Popover.Portal>
+          <Popover.Positioner
+            side="right"
+            align="center"
+            alignOffset={20}
+            sideOffset={-42}
+          >
+            <Popover.Popup initialFocus={false} className="z-50 outline-none">
+              <GanttMemberHoverCard
+                member={member}
+                canOpenEmployee={hasRoleAccess}
+              />
+            </Popover.Popup>
+          </Popover.Positioner>
+        </Popover.Portal>
+      </Popover.Root>
+    </th>
   );
 }

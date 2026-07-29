@@ -1,27 +1,79 @@
 import datetime
+from collections.abc import Iterable
 from functools import wraps
 
 import frappe
+from frappe.utils import flt
 
-from next_pms.timesheet.utils.constant import EMP_WOKING_DETAILS
+from next_pms.timesheet.utils.constant import (
+    DEFAULT_DAILY_WORKING_HOURS,
+    DEFAULT_WORKING_FREQUENCY,
+    EMP_WOKING_DETAILS,
+)
+
+
+def _empty_working_hours() -> dict:
+    """Working hour payload used when no Employee can be resolved."""
+    return {"working_hour": 0, "working_frequency": DEFAULT_WORKING_FREQUENCY}
 
 
 @frappe.whitelist(methods=["GET"])
 def get_data():
-    """returns employee, employee_name, employee_working_detail and employee_report_to for the current user"""
+    """returns employee, employee_name, employee_working_detail and employee_report_to for the current user
+
+    Users with no linked Employee (Administrator, most System Managers) get an empty payload rather
+    than a DoesNotExistError. The SPA loads this once on boot for every route and treats a failure
+    as fatal, so raising here would break pages that never needed an employee in the first place.
+    """
     employee = get_employee_from_user()
+    if not employee:
+        return {
+            "employee": None,
+            "employee_name": None,
+            "employee_working_detail": _empty_working_hours(),
+            "employee_report_to": None,
+        }
+
     doc = frappe.get_cached_doc("Employee", employee)
-    working_hour = doc.custom_working_hours
-    working_frequency = doc.custom_work_schedule or "Per Day"
 
     return {
         "employee": employee,
         "employee_name": doc.employee_name,
-        "employee_working_detail": get_employee_working_hours(employee)
-        if not working_hour
-        else {"working_hour": working_hour or 8, "working_frequency": working_frequency},
+        "employee_working_detail": get_employee_working_hours(employee),
         "employee_report_to": doc.reports_to,
     }
+
+
+def get_default_working_hours() -> float:
+    """returns the standard daily working hours configured in HR Settings.
+
+    Employee.custom_working_hours and Employee.custom_work_schedule are maintained by the HR team
+    and are routinely left blank, so every consumer needs a system-wide default to fall back on.
+    """
+    return flt(frappe.db.get_single_value("HR Settings", "standard_working_hours")) or DEFAULT_DAILY_WORKING_HOURS
+
+
+def apply_working_hours_fallback(employees: Iterable[dict], default_working_hours: float | None = None) -> None:
+    """Fills in the working hour fields left blank on the given Employee rows.
+
+    Without this an unset custom_work_schedule leaves consumers guessing at the frequency, which
+    reads 8 hours as 8 hours per week rather than per day.
+
+    Args:
+        employees (Iterable[dict]): Employee rows carrying custom_working_hours and
+            custom_work_schedule. Mutated in place.
+        default_working_hours (float | None): Hours to use for employees with none of their own.
+            Resolved once for the whole batch when not provided, so HR Settings is read once per
+            request instead of once per employee.
+    """
+    if default_working_hours is None:
+        default_working_hours = get_default_working_hours()
+
+    for employee in employees:
+        if not employee.get("custom_working_hours"):
+            employee["custom_working_hours"] = default_working_hours
+        if not employee.get("custom_work_schedule"):
+            employee["custom_work_schedule"] = DEFAULT_WORKING_FREQUENCY
 
 
 @frappe.whitelist(methods=["GET"])
@@ -66,7 +118,7 @@ def get_employee_working_hours(employee: str | None = None) -> dict:
     if not employee:
         employee = get_employee_from_user()
     if not employee:
-        return {"working_hour": 0, "working_frequency": "Per Day"}
+        return _empty_working_hours()
 
     data = frappe.cache().hget(EMP_WOKING_DETAILS, employee)
     if data:
@@ -77,11 +129,10 @@ def get_employee_working_hours(employee: str | None = None) -> dict:
         employee,
         ["custom_working_hours", "custom_work_schedule"],
     )
-    if not working_hour:
-        working_hour = frappe.db.get_single_value("HR Settings", "standard_working_hours")
-    if not working_frequency:
-        working_frequency = "Per Day"
-    data = {"working_hour": working_hour or 8, "working_frequency": working_frequency}
+    data = {
+        "working_hour": working_hour or get_default_working_hours(),
+        "working_frequency": working_frequency or DEFAULT_WORKING_FREQUENCY,
+    }
     frappe.cache().hset(EMP_WOKING_DETAILS, employee, data)
     return data
 
@@ -132,7 +183,7 @@ def get_employee_list(
     if roles and isinstance(roles, str):
         try:
             roles = frappe.parse_json(roles)
-        except (ValueError, TypeError):
+        except ValueError, TypeError:
             roles = None  ## useFrappeGetCall will  pass string as JSON-String if string received its better to set it to None and handle it in filter_employees function
     employees, count = filter_employees(
         employee_name=employee_name,

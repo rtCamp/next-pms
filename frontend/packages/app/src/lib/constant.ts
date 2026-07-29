@@ -5,6 +5,7 @@ export const ROUTES = {
   "dashboard-manager": "/dashboard/manager",
   project: "/projects",
   "project-kanban": "/projects/kanban",
+  task: "/tasks",
   "timesheet-personal": "/timesheet",
   "timesheet-team": "/timesheet/team",
   "timesheet-project": "/timesheet/project",
@@ -36,6 +37,9 @@ export const CustomTime = [
 ];
 
 export const NUMBER_OF_WEEKS_TO_FETCH = 4;
+
+/** Default daily working hours used when an employee's configured hours are unavailable. */
+export const FALLBACK_DAILY_WORKING_HOURS = 8;
 
 /** Operators that carry no value. */
 export const NO_VALUE_OPERATORS: string[] = ["is_empty", "is_not_empty"];

@@ -36,7 +36,10 @@ import type {
   TeamWeekSummary,
 } from "./types";
 import { useTeamTimesheetWeeks } from "./useTeamTimesheetWeeks";
-import { useTimesheetFilters } from "../hooks/useTimesheetFilters";
+import {
+  APPROVAL_STATUS_PARAM_VALUES,
+  useTimesheetFilters,
+} from "../hooks/useTimesheetFilters";
 
 export const TeamTimesheetProvider: FC<PropsWithChildren> = ({ children }) => {
   const toast = useToasts();
@@ -77,17 +80,31 @@ export const TeamTimesheetProvider: FC<PropsWithChildren> = ({ children }) => {
   const weeksPerPage = startDate ? maxWeek : TEAM_WEEKS_PER_PAGE;
   const isDateBounded = Boolean(startDate && endDate);
 
-  const filterArgs = useMemo<TeamFilterArgs>(
-    () => ({
+  const filterArgs = useMemo<TeamFilterArgs>(() => {
+    const selectedStatuses = filters.approvalStatus ?? [];
+    // Selecting every status is equivalent to selecting none, so send no filter
+    // at all rather than enumerating them - otherwise the request takes the
+    // filtered path and the page stalls waiting on a needless narrowing.
+    const isEveryStatusSelected =
+      selectedStatuses.length === APPROVAL_STATUS_PARAM_VALUES.length;
+
+    return {
       reports_to: filters.reportsTo || null,
       search: filters.search || null,
-      status_filter: filters.approvalStatus
-        ? JSON.stringify([ApprovalStatusLabelMap[filters.approvalStatus]])
-        : null,
+      status_filter:
+        selectedStatuses.length && !isEveryStatusSelected
+          ? JSON.stringify(
+              selectedStatuses.map((status) => ApprovalStatusLabelMap[status]),
+            )
+          : null,
       filters: frappeFilters.length > 0 ? JSON.stringify(frappeFilters) : null,
-    }),
-    [filters.reportsTo, filters.search, filters.approvalStatus, frappeFilters],
-  );
+    };
+  }, [
+    filters.reportsTo,
+    filters.search,
+    filters.approvalStatus,
+    frappeFilters,
+  ]);
 
   const activeFilterKey = useMemo(
     () => JSON.stringify({ weekDate, weeksPerPage, ...filterArgs }),

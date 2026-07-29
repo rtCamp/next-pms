@@ -324,9 +324,7 @@ export function mapResourceAllocationSegments<T extends AllocationApiRecord>(
 function resolveWorkingFrequency(
   workSchedule: string | undefined | null,
 ): WorkingFrequency {
-  return (
-    pickAllowed(workSchedule, ALLOCATION_WORKING_FREQUENCIES) ?? "Per Week"
-  );
+  return pickAllowed(workSchedule, ALLOCATION_WORKING_FREQUENCIES) ?? "Per Day";
 }
 
 /**

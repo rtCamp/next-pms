@@ -6,8 +6,80 @@ from frappe.query_builder import functions as fn
 from frappe.utils import add_days, getdate, now_datetime
 from pypika import Criterion, Order
 
+from next_pms.timesheet.utils.constant import TASK_FILTER_OPERATORS, TASK_META_FIELDS
+
 from . import get_count
 from .project import get_project_filter_for_contractor
+from .timesheet import _apply_qb_condition
+
+
+def parse_task_filters(raw_filters: list | str | None) -> list:
+    """Parse [field, operator, value] filters into validated triples for Task.
+
+    Args:
+        raw_filters: A list of [field, operator, value] entries, or a JSON string encoding one.
+            Every field must be a Task field or a Frappe default column (e.g. modified, creation),
+            so all real Task columns are supported without allowing arbitrary column access.
+
+    Returns:
+        A list of validated [field, operator, value] triples.
+    """
+    import json
+
+    if not raw_filters:
+        return []
+
+    if isinstance(raw_filters, str):
+        try:
+            raw_filters = json.loads(raw_filters)
+        except ValueError, TypeError:
+            frappe.throw(frappe._("Invalid filters format. Expected a JSON array of [field, operator, value] entries."))
+
+    if not isinstance(raw_filters, list):
+        frappe.throw(frappe._("Filters must be a list of [field, operator, value] entries."))
+
+    meta = frappe.get_meta("Task")
+    parsed = []
+    for condition in raw_filters:
+        if not isinstance(condition, (list, tuple)) or len(condition) != 3:
+            frappe.throw(frappe._("Each filter must be a list of [field, operator, value]."))
+        field, operator, value = condition
+        if not isinstance(operator, str) or operator.lower().strip() not in TASK_FILTER_OPERATORS:
+            frappe.throw(frappe._("Unsupported filter operator '{0}'.").format(operator))
+        if field not in TASK_META_FIELDS and not meta.has_field(field):
+            frappe.throw(frappe._("Filtering on field '{0}' of Task is not supported.").format(field))
+        parsed.append([field, operator.lower().strip(), value])
+    return parsed
+
+
+def parse_task_order_by(order_by: str | None) -> list:
+    """Parse a Frappe-style order_by string into validated sort pairs for Task.
+
+    Args:
+        order_by: A sort string such as "field asc, other desc". Every field must be a Task field
+            or a Frappe default column (e.g. modified, creation).
+
+    Returns:
+        A list of (field, Order) pairs to apply to the query in order.
+    """
+    if not order_by:
+        return []
+
+    meta = frappe.get_meta("Task")
+    parsed = []
+    for clause in str(order_by).split(","):
+        clause = clause.strip()
+        if not clause:
+            continue
+        tokens = clause.split()
+        field = tokens[0]
+        direction = tokens[1].lower() if len(tokens) > 1 else "asc"
+        if len(tokens) > 2 or direction not in ("asc", "desc"):
+            frappe.throw(frappe._("Invalid order_by clause '{0}'.").format(clause))
+        if field not in TASK_META_FIELDS and not meta.has_field(field):
+            frappe.throw(frappe._("Sorting on field '{0}' of Task is not supported.").format(field))
+        parsed.append((field, Order.asc if direction == "asc" else Order.desc))
+    return parsed
 
 
 @frappe.whitelist(methods=["GET"])
@@ -19,8 +91,27 @@ def get_task_list(
     status: list | str = None,
     fields: list | str = None,
     filter_recent: bool = False,
+    filters: list | str | None = None,
+    order_by: str | None = None,
 ):
-    """Get the list of tasks. If no filters are provided, it fetches all tasks for projects the user has access to. Users can filter by projects, status, and search text, and can also limit results to tasks they have worked on recently by setting filter_recent to True."""
+    """Get the list of tasks for projects the user has access to, with optional filters and sorting.
+
+    Args:
+        search: Text matched against task name, subject, and github issue link.
+        page_length: Number of tasks to return.
+        start: Pagination offset.
+        projects: Restrict results to these project names.
+        status: Restrict results to these task statuses.
+        fields: Extra Task fields to include in each result row.
+        filter_recent: Order tasks the user logged time against in the last week first.
+        filters: Composite conditions on any Task field, combined with AND. A list of
+            [field, operator, value] entries, or a JSON string encoding one.
+        order_by: Frappe-style sort string such as "priority desc, modified asc". When provided it
+            replaces the default recent/liked/open ordering.
+
+    Returns:
+        A dict with the task list, the total matching count, and whether more results exist.
+    """
     import json
 
     frappe.has_permission(doctype="Project", throw=True)
@@ -31,6 +122,9 @@ def get_task_list(
         status = json.loads(status)
     if fields and isinstance(fields, str):
         fields = json.loads(fields)
+
+    parsed_filters = parse_task_filters(filters)
+    parsed_order_by = parse_task_order_by(order_by)
 
     field_list = [
         "name",
@@ -111,40 +205,48 @@ def get_task_list(
         tasks = tasks.where(doctype.status.isin(status))
         filter.update({"status": ["in", status]})
 
+    for field, operator, value in parsed_filters:
+        tasks = _apply_qb_condition(tasks, doctype, field, operator, value)
+
     if page_length:
-        tasks = tasks.limit(page_length)
+        tasks = tasks.limit(int(page_length))
+    tasks = tasks.offset(int(start or 0))
 
-    order_conditions = []
-
-    # If filter_recent is True, we will order the tasks based on the recent worked tasks First.
-    # This will help in showing the tasks that the user has worked on recently at the top.
-    if filter_recent:
-        recent_worked_tasks = get_recent_log_tasks()
+    if parsed_order_by:
+        # An explicit caller sort replaces the default recent/liked/open heuristic ordering.
+        for field, order in parsed_order_by:
+            tasks = tasks.orderby(getattr(doctype, field), order=order)
+    else:
         order_conditions = []
-        if recent_worked_tasks:
-            order_conditions.append(Case().when(doctype.name.isin(recent_worked_tasks), 1).else_(0))
 
-    order_conditions.append(
-        Case()
-        .when(
-            fn.Function("INSTR", doctype._liked_by, f'"{frappe.session.user}"') > 0,
-            1,
+        # If filter_recent is True, we will order the tasks based on the recent worked tasks First.
+        # This will help in showing the tasks that the user has worked on recently at the top.
+        if filter_recent:
+            recent_worked_tasks = get_recent_log_tasks()
+            if recent_worked_tasks:
+                order_conditions.append(Case().when(doctype.name.isin(recent_worked_tasks), 1).else_(0))
+
+        order_conditions.append(
+            Case()
+            .when(
+                fn.Function("INSTR", doctype._liked_by, f'"{frappe.session.user}"') > 0,
+                1,
+            )
+            .else_(0)
         )
-        .else_(0)
-    )
-    # Since we can not hide closed tasks, as user might need to add time against it,
-    # We can deprioritize the closed tasks.
-    order_conditions.append(Case().when(doctype.status.isin(["Open", "Working"]), 1).else_(0))
+        # Since we can not hide closed tasks, as user might need to add time against it,
+        # We can deprioritize the closed tasks.
+        order_conditions.append(Case().when(doctype.status.isin(["Open", "Working"]), 1).else_(0))
 
-    tasks = tasks.offset(start).orderby(
-        *order_conditions,
-        order=Order.desc,
-    )
+        tasks = tasks.orderby(*order_conditions, order=Order.desc)
+
     tasks = tasks.run(as_dict=True)
 
+    count_filters = [[field, condition[0], condition[1]] for field, condition in filter.items()]
+    count_filters.extend(parsed_filters)
     count = get_count(
         doctype="Task",
-        filters=filter,
+        filters=count_filters,
         or_filters=search_filter,
         ignore_permissions=True,
     )

@@ -1,7 +1,7 @@
 {
  "actions": [],
  "allow_bulk_edit": 1,
- "creation": "2026-06-18 22:19:35.913633",
+ "creation": "2026-07-16 13:21:37.030853",
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
@@ -10,6 +10,7 @@
   "user",
   "linked_doctype",
   "linked_document",
+  "url",
   "viewed"
  ],
  "fields": [
@@ -60,12 +61,18 @@
    "label": "Title",
    "permlevel": 1,
    "reqd": 1
+  },
+  {
+   "fieldname": "url",
+   "fieldtype": "Small Text",
+   "label": "URL",
+   "permlevel": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-07-15 17:38:55.818935",
+ "modified": "2026-07-22 14:11:23.300567",
  "modified_by": "Administrator",
  "module": "Next PMS",
  "name": "NextPMS Notifications",

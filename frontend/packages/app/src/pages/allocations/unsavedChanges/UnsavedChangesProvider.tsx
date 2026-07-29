@@ -2,7 +2,7 @@
  * External dependencies.
  */
 import { useCallback, useMemo, useRef, useState, type ReactNode } from "react";
-import { useBeforeUnload, useBlocker } from "react-router-dom";
+import { useBeforeUnload, useBlocker } from "react-router";
 
 /**
  * Internal dependencies.
@@ -39,12 +39,12 @@ export function UnsavedChangesProvider({ children }: { children: ReactNode }) {
   );
 
   const requestGuardedAction = useCallback(
-    (action: () => void) => {
+    (action?: () => void) => {
       if (!hasDirty()) {
-        action();
+        action?.();
         return;
       }
-      setPendingAction(() => action);
+      setPendingAction(() => action ?? (() => {}));
     },
     [hasDirty],
   );

@@ -1,7 +1,7 @@
 /**
  * External dependencies.
  */
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router";
 import { Button, Dropdown } from "@rtcamp/frappe-ui-react";
 import {
   Delete,

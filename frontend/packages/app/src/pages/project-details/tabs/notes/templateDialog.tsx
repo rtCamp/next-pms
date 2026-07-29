@@ -2,7 +2,7 @@
  * External dependencies.
  */
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router";
 import { Spinner } from "@next-pms/design-system/components";
 import { stripTags } from "@next-pms/design-system/utils";
 import { Button, Dialog, TextInput } from "@rtcamp/frappe-ui-react";

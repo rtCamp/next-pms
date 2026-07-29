@@ -277,7 +277,7 @@ def normalize_status_filter(status_filter, coerce_non_list: bool = False):
 
         try:
             status_filter = frappe.parse_json(status_filter)
-        except (ValueError, TypeError):
+        except ValueError, TypeError:
             return [status_filter]
 
     if status_filter == "":
@@ -302,7 +302,7 @@ def parse_filters(raw_filters):
     if isinstance(raw_filters, str):
         try:
             raw_filters = frappe.parse_json(raw_filters)
-        except (ValueError, TypeError):
+        except ValueError, TypeError:
             frappe.throw(frappe._("Invalid filters format. Expected a JSON array."))
 
     if not isinstance(raw_filters, list):
@@ -726,20 +726,21 @@ def get_qualifying_project_ids(
 
     base_task_filters = {"name": ["in", task_ids], "project": ["!=", ""]}
     task_filters = build_filters(base_task_filters, parsed_filters.get("Task", []))
-    tasks = get_all("Task", filters=task_filters, fields=TASK_FIELDS)
-
-    if search:
-        search_lower = search.lower()
-        tasks = [
-            t
-            for t in tasks
-            if search_lower in (t.get("subject") or "").lower()
-            or search_lower in (t.get("name") or "").lower()
-            or search_lower in (t.get("project_name") or "").lower()
-        ]
+    tasks = get_all("Task", filters=task_filters, fields=["name", "project"])
 
     project_ids = sorted({t.project for t in tasks if t.get("project")})
-    return project_ids
+    if not project_ids:
+        return []
+
+    if search:
+        project_ids = get_all(
+            "Project",
+            filters=[["name", "in", project_ids]],
+            or_filters=[["name", "like", f"%{search}%"], ["project_name", "like", f"%{search}%"]],
+            pluck="name",
+        )
+
+    return sorted(project_ids)
 
 
 def get_employees_for_projects(

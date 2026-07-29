@@ -145,21 +145,25 @@ def get_compact_view_data(
                 hour = 0
                 on_leave = False
 
-                for leave in leaves:
-                    if leave["from_date"] <= date <= leave["to_date"]:
-                        if leave.get("half_day") and leave.get("half_day_date") == date:
-                            hour += daily_working_hours / 2
-                        else:
-                            hour += daily_working_hours
-                        on_leave = True
+                holiday = next((h for h in holidays if h.holiday_date == date), None)
 
-                for holiday in holidays:
-                    if date == holiday.holiday_date:
-                        if not holiday.weekly_off:
-                            hour = daily_working_hours
-                        else:
-                            hour = 0
+                for leave in leaves:
+                    if not leave["from_date"] <= date <= leave["to_date"]:
+                        continue
+                    if holiday and holiday.weekly_off and not leave.get("includes_holidays"):
+                        continue
+                    if leave.get("half_day") and leave.get("half_day_date") == date:
+                        hour += daily_working_hours / 2
+                    else:
+                        hour += daily_working_hours
+                    on_leave = True
+
+                if holiday:
+                    if not holiday.weekly_off:
+                        hour = daily_working_hours
                         on_leave = False
+                    elif not on_leave:
+                        hour = 0
                 total_hours = 0
                 notes = ""
                 for ts in employee_timesheets:

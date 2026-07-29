@@ -120,7 +120,14 @@ export const WeekRow = ({
         <Accordion.Trigger
           nativeButton={false}
           render={(props) => (
-            <div {...props} className={cn(props.className, triggerClassName)}>
+            <div
+              {...props}
+              className={cn(
+                props.className,
+                "focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-outline-gray-3",
+                triggerClassName,
+              )}
+            >
               <BaseWeekRow
                 {...rest}
                 today={today}

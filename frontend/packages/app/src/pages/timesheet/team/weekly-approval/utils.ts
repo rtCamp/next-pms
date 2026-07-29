@@ -11,6 +11,7 @@ import {
  * Internal Dependencies
  */
 
+import { FALLBACK_DAILY_WORKING_HOURS } from "@/lib/constant";
 import { calculateLeaveHours, expectatedHours } from "@/lib/utils";
 import type { LeaveProps } from "@/types/timesheet";
 import type { TimesheetEntry, TimesheetApiResponse, GroupedDay } from "./types";
@@ -81,7 +82,13 @@ export const convertTimesheetToEntries = (response: TimesheetApiResponse) => {
   const weeklyData = response?.message?.data;
 
   if (!weeklyData) {
-    return { dateRange: "", totalHours: 0, status: "", entries };
+    return {
+      dateRange: "",
+      totalHours: 0,
+      status: "",
+      entries,
+      dailyWorkingHours: FALLBACK_DAILY_WORKING_HOURS,
+    };
   }
 
   const thisWeek = Object.values(weeklyData)[0];
@@ -91,7 +98,7 @@ export const convertTimesheetToEntries = (response: TimesheetApiResponse) => {
   const holidays = response?.message?.holidays ?? [];
   const displayedLeaveHoursByDate = new Map<string, number>();
   const dailyWorkingHours = expectatedHours(
-    response?.message?.working_hour ?? 0,
+    response?.message?.working_hour ?? FALLBACK_DAILY_WORKING_HOURS,
     response?.message?.working_frequency ?? "Per Day",
   );
 
@@ -130,6 +137,8 @@ export const convertTimesheetToEntries = (response: TimesheetApiResponse) => {
           leaveHours,
           leaveLabel:
             leaveHours > 0 ? getLeaveLabelForDate(leaves, date) : undefined,
+          approvalStatus: entry.custom_approval_status || undefined,
+          rejectionReason: entry.custom_rejection_reason || undefined,
         });
       });
     }
@@ -145,6 +154,7 @@ export const convertTimesheetToEntries = (response: TimesheetApiResponse) => {
     totalHours: Object.values(weeklyData)[0].total_hours + displayedLeaveHours,
     status: thisWeek.status,
     entries,
+    dailyWorkingHours,
   };
 };
 /**

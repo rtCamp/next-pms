@@ -30,6 +30,7 @@ import { useTaskLookup, type TaskLookupOption } from "@/hooks/useTaskLookup";
 import { parseFrappeErrorMsg } from "@/lib/utils";
 import { addTimeFormSchema, type addTimeFormValues } from "./schema";
 import type { AddTeamTimeProps } from "./type";
+import { useRemainingHours } from "../../hooks/useRemainingHours";
 
 const AddEmployeeTime = ({
   initialDate,
@@ -126,6 +127,11 @@ const AddEmployeeTime = ({
     form.store,
     (state) => state.values.taskStatus,
   );
+  const selectedDate = useSelector(form.store, (state) => state.values.date);
+  const selectedEmployeeId = useSelector(
+    form.store,
+    (state) => state.values.employeeId,
+  );
   const selectedProjectOption: ProjectLookupOption | null = selectedProject
     ? {
         label: selectedProjectLabel || selectedProject,
@@ -147,6 +153,16 @@ const AddEmployeeTime = ({
         status: selectedTaskStatus,
       }
     : null;
+
+  const {
+    maxDuration,
+    hoursLeft,
+    isLoading: isRemainingHoursLoading,
+  } = useRemainingHours({
+    employee: selectedEmployeeId,
+    date: selectedDate,
+    enabled: open,
+  });
 
   useEffect(() => {
     if (!open) {
@@ -399,11 +415,15 @@ const AddEmployeeTime = ({
             name="duration"
             children={(field) => {
               return (
-                <div className="flex-1 flex flex-col gap-2 w-full">
+                <div className="flex flex-col flex-1 w-full gap-2">
                   <DurationInput
                     label="Duration"
                     size="md"
                     snap="smooth"
+                    maxDuration={maxDuration}
+                    hoursLeft={hoursLeft}
+                    loading={isRemainingHoursLoading}
+                    disabled={isRemainingHoursLoading}
                     value={field.state.value}
                     onChange={(val) => field.handleChange(val)}
                   />

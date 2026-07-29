@@ -52,6 +52,7 @@ interface GanttProps {
   startDate: Date;
   weekCount: number;
   hasRoleAccess: boolean;
+  guardAction?: (action?: () => void) => void;
   onAddAllocation?: (data: AllocationCallbackData) => void;
   onEditAllocation?: (data: AllocationCallbackData) => void;
   onDeleteAllocation?: (
@@ -307,16 +308,27 @@ export const createGanttStore = (initProps: GanttProps) => {
     pendingDeleteEntry: null,
     activeEdit: null,
 
-    toggleRow: (index) =>
-      set((state) => {
-        const next = new Set(state.expandedRows);
-        if (next.has(index)) {
-          next.delete(index);
-        } else {
-          next.add(index);
-        }
-        return { expandedRows: next };
-      }),
+    toggleRow: (index) => {
+      const applyToggle = () =>
+        set((state) => {
+          const next = new Set(state.expandedRows);
+          if (next.has(index)) {
+            next.delete(index);
+          } else {
+            next.add(index);
+          }
+          return { expandedRows: next };
+        });
+
+      // Expanding never discards an edit; only collapsing can, so guard that.
+      const isCollapsing = get().expandedRows.has(index);
+      const guard = get().guardAction;
+      if (isCollapsing && guard) {
+        guard(applyToggle);
+      } else {
+        applyToggle();
+      }
+    },
 
     setHeaderWidth: (width) =>
       set((state) => resolveSizingUpdate(state, { headerWidth: width })),

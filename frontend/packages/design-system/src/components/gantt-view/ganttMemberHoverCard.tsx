@@ -33,7 +33,7 @@ function GanttMemberHoverCard({
       : undefined;
 
   return (
-    <div className="flex flex-col gap-3 p-3 w-60 rounded-xl shadow-2xl bg-surface-modal">
+    <div className="flex flex-col gap-3 p-3 w-60 rounded-xl shadow-2xl bg-surface-modal animate-fade-in">
       {/* Header */}
       <div
         className={cn("flex items-start", {
@@ -66,7 +66,7 @@ function GanttMemberHoverCard({
             target="_blank"
             rel="noreferrer"
             aria-label="Open employee"
-            className="ml-2 shrink-0 text-ink-gray-8 hover:text-ink-gray-8"
+            className="ml-2 shrink-0 rounded-sm text-ink-gray-8 hover:text-ink-gray-8 focus:outline-none focus-visible:ring-2 focus-visible:ring-outline-gray-3"
             onClick={(e) => e.stopPropagation()}
           >
             <ArrowUpRight className="size-4 text-ink-gray-8 shrink-0" />

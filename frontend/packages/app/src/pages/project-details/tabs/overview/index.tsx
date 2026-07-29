@@ -77,6 +77,7 @@ function OverviewForm() {
     summary: project?.custom_executive_summary ?? "",
     keyGoals: project?.custom_key_goals ?? "",
     priority: project?.priority ?? "",
+    host: project?.custom_host ?? "",
     complexity: project?.custom_complexity ?? "",
     keyAccount: project?.custom_key_account ?? "",
     source: project?.custom_source ?? "",
@@ -102,6 +103,7 @@ function OverviewForm() {
         custom_executive_summary: value.summary,
         custom_key_goals: value.keyGoals,
         priority: value.priority,
+        custom_host: value.host,
         custom_complexity: value.complexity,
         custom_key_account: value.keyAccount,
         custom_source: value.source,
@@ -111,11 +113,9 @@ function OverviewForm() {
         frequency: value.frequency,
         custom_restricted_under_nda: Number(value.ndaSigned) as 0 | 1,
         custom_permission_for_case_study: Number(value.caseStudyApproved) as
-          | 0
-          | 1,
+          0 | 1,
         custom_permission_for_testimonial: Number(value.testimonialApproval) as
-          | 0
-          | 1,
+          0 | 1,
         custom_testimonial_contact: value.testimonialContact,
       });
       mutate();

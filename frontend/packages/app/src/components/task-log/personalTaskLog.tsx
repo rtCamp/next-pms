@@ -89,6 +89,7 @@ const PersonalTaskLog: React.FC<PersonalTaskLogProps> = ({
             <Title
               taskName={taskDetails.label}
               status={taskStatusMap[taskDetails.status]}
+              ghLink={taskDetails.ghLink}
             />
           );
         },

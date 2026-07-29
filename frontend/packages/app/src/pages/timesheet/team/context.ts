@@ -37,7 +37,7 @@ export interface TeamTimesheetContextProps {
       handler: MemberRefreshHandler,
     ) => () => void;
     handleSearchChange: (value: string) => void;
-    handleApprovalStatusChange: (value?: ApprovalStatusType | null) => void;
+    handleApprovalStatusChange: (value: ApprovalStatusType[]) => void;
     handleReportsToChange: (value: string | null) => void;
     handleCompositeFilterChange: (value: FilterCondition[]) => void;
     handleClearAllFilters: () => void;

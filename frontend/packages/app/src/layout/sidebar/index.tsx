@@ -2,7 +2,7 @@
  * External dependencies.
  */
 import { useEffect, useState } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router";
 import {
   ErrorFallback,
   GlobalSearch,
@@ -20,6 +20,7 @@ import {
   Folder,
   Grid,
   LogOut,
+  Summary,
 } from "@rtcamp/frappe-ui-react/icons";
 import { ArrowLeftRight, Briefcase, BarChart2, Moon, Sun } from "lucide-react";
 /**
@@ -157,6 +158,16 @@ const Sidebar = () => {
     projectItems.push(projects);
   }
 
+  const tasks = {
+    label: "Tasks",
+    icon: Summary,
+    to: ROUTES.task,
+    isActive: pathname === ROUTES.task,
+    render: <LinkWithPreload to={ROUTES.task} />,
+  };
+
+  const taskItems: SidebarSectionType["items"] = [tasks];
+
   const notificationsOption = {
     label: "Notifications",
     icon: Notifications,
@@ -209,6 +220,10 @@ const Sidebar = () => {
     {
       label: "Allocations - project",
       action: () => navigate(ROUTES["allocations-project"]),
+    },
+    {
+      label: "Tasks",
+      action: () => navigate(ROUTES["task"]),
     },
   ];
 
@@ -304,6 +319,7 @@ const Sidebar = () => {
               ...(timesheetItems.length === 1 ? timesheetItems : []),
               ...notificationItems,
               ...projectItems,
+              ...taskItems,
               ...(dashboardItems.length === 1 ? dashboardItems : []),
             ],
           },

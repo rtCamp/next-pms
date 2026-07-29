@@ -1,7 +1,5 @@
 import { getTodayDate } from "@next-pms/design-system/date";
 
-export const FALLBACK_DAILY_WORKING_HOURS = 8;
-
 export const allocationRecurrenceLabels = {
   "one-time": "One time",
   recurring: "Recurring",

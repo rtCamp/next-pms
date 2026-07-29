@@ -91,19 +91,14 @@ class TestProjectHoursFallback(IntegrationTestCase):
 
         frappe.set_user("Administrator")
 
-    def test_sidebar_uses_purchased_hours_for_hours_pool(self):
-        for billing_type in ("Fixed Cost", "Retainer"):
-            fixture = self.projects[billing_type]
-            result = get_project_sidebar(fixture["name"])
-            self.assertEqual(
-                result["progress"]["total_hours_purchased"],
-                fixture["purchased"],
-                msg=billing_type,
-            )
-            self.assertEqual(result["progress"]["actual_time"], fixture["actual"], msg=billing_type)
+    def test_sidebar_uses_purchased_hours_for_retainer(self):
+        fixture = self.projects["Retainer"]
+        result = get_project_sidebar(fixture["name"])
+        self.assertEqual(result["progress"]["total_hours_purchased"], fixture["purchased"], msg="Retainer")
+        self.assertEqual(result["progress"]["actual_time"], fixture["actual"], msg="Retainer")
 
-    def test_sidebar_falls_back_to_target_hours_without_hours_pool(self):
-        for billing_type in ("Time and Material", "Non-Billable"):
+    def test_sidebar_uses_target_hours_for_non_retainer(self):
+        for billing_type in ("Fixed Cost", "Time and Material", "Non-Billable"):
             fixture = self.projects[billing_type]
             result = get_project_sidebar(fixture["name"])
             self.assertEqual(

@@ -1,5 +1,9 @@
 export type TimelineItemType = "Milestone" | "Touchpoint";
 
+export type CalendarView = "calendar" | "gantt";
+
+export type TableTab = "milestones" | "touchpoints";
+
 export type UserRef = {
   name: string;
   fullName: string;

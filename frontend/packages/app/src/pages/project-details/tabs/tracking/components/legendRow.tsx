@@ -23,12 +23,7 @@ const swatch = cva("inline-block size-2 rounded-full shrink-0", {
 });
 
 export type LegendTone =
-  | "paid"
-  | "unpaid"
-  | "remaining"
-  | "green"
-  | "amber"
-  | "red";
+  "paid" | "unpaid" | "remaining" | "green" | "amber" | "red";
 
 type LegendRowProps = {
   tone: LegendTone;
