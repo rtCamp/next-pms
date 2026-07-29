@@ -10,7 +10,7 @@ import {
   useRef,
   useState,
 } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams } from "react-router";
 import { useToasts } from "@rtcamp/frappe-ui-react";
 import {
   FrappeError,

@@ -2,7 +2,7 @@
  * External dependencies.
  */
 import { type PropsWithChildren } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams } from "react-router";
 import { Spinner } from "@next-pms/design-system/components";
 import {
   Breadcrumbs,
