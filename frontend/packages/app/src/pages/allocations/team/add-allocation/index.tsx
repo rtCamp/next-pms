@@ -687,14 +687,8 @@ function AddAllocationModal({
                     value={[fromField.state.value, toField.state.value]}
                     disabled={isLockedAllocationMetadataEdit}
                     onChange={(value) => {
-                      const rawFrom = value?.[0] ?? "";
-                      const rawTo = value?.[1] ?? "";
-                      const shouldSwap = rawFrom && rawTo && rawFrom > rawTo;
-                      const nextFrom = shouldSwap ? rawTo : rawFrom;
-                      const nextTo = shouldSwap ? rawFrom : rawTo;
-
-                      fromField.handleChange(nextFrom);
-                      toField.handleChange(nextTo);
+                      fromField.handleChange(value?.[0] ?? "");
+                      toField.handleChange(value?.[1] ?? "");
                     }}
                     formatter={formatDateRange}
                     placeholder="Start Date - End Date"

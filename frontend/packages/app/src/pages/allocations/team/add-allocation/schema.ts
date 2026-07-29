@@ -27,16 +27,16 @@ export const addAllocationFormSchema = z
     includeWeekends: z.boolean(),
     fromDate: z
       .string({
-        required_error: "Please select from date.",
+        required_error: "Please select a start and end date.",
       })
       .trim()
-      .min(1, { message: "Please select from date." }),
+      .min(1, { message: "Please select a start and end date." }),
     toDate: z
       .string({
-        required_error: "Please select to date.",
+        required_error: "Please select an end date.",
       })
       .trim()
-      .min(1, { message: "Please select to date." }),
+      .min(1, { message: "Please select an end date." }),
     hoursPerDay: z
       .number({
         required_error: "Please enter hours per day.",
