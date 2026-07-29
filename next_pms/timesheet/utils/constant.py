@@ -11,6 +11,10 @@ DEFAULT_DAILY_WORKING_HOURS = 8
 # Assumed when an Employee has no custom_work_schedule set.
 DEFAULT_WORKING_FREQUENCY = "Per Day"
 
+# The one approval status that is an absence of data rather than a stored value: a week
+# with no Timesheet, or a Timesheet whose weekly status was never set.
+NOT_SUBMITTED_STATUS = "Not Submitted"
+
 TASK_FILTER_OPERATORS = {
     "=",
     "!=",

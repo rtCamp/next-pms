@@ -455,6 +455,36 @@ class TestTeamTimesheetDataFilters(_TeamTimesheetDataBase):
         self.assertEqual(res["total_count"], 1)
         self.assertEqual(members[self.r2]["status"], "Approved")
 
+    def test_not_submitted_filter_returns_members_without_a_timesheet(self):
+        """ "Not Submitted" is the absence of a Timesheet, so it cannot be answered by
+        querying them: r3 logged nothing that week and r1's week status was never set.
+        Both render as Not Submitted, so both have to come back."""
+        res = self._call(reports_to=self.mgr, status_filter=["Not Submitted"], start_date=W1_MON)
+        members = self._members_by_employee(res)
+
+        self.assertEqual(sorted(members), sorted([self.r1, self.r3]))
+        self.assertEqual(res["total_count"], 2)
+        for employee in (self.r1, self.r3):
+            self.assertEqual(members[employee]["status"], "Not Submitted")
+
+    def test_not_submitted_filter_excludes_a_decided_week(self):
+        res = self._call(reports_to=self.mgr, status_filter=["Not Submitted"], start_date=W1_MON)
+        self.assertNotIn(self.r2, self._members_by_employee(res))
+
+    def test_not_submitted_unions_with_a_stored_status(self):
+        res = self._call(reports_to=self.mgr, status_filter=["Approved", "Not Submitted"], start_date=W1_MON)
+        self.assertEqual(sorted(self._members_by_employee(res)), sorted([self.r1, self.r2, self.r3]))
+        self.assertEqual(res["total_count"], 3)
+
+    def test_not_submitted_week_count_matches_the_member_page(self):
+        """The badge and the rows beneath it read from the same resolver - if the no-row
+        population is only added on one side they drift."""
+        weeks = self._weeks(start_date=W1_MON, max_week=1, reports_to=self.mgr, status_filter=["Not Submitted"])
+        week = next(w for w in weeks["weeks"] if str(w["start_date"]) == W1_MON)
+        page = self._call(reports_to=self.mgr, status_filter=["Not Submitted"], start_date=W1_MON)
+
+        self.assertEqual(week["member_count"], page["total_count"])
+
     def test_composite_filter_task_project_positive(self):
         res = self._call(
             reports_to=self.mgr,

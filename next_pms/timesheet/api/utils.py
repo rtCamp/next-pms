@@ -14,6 +14,7 @@ from next_pms.timesheet.utils.constant import (
     ALLOWED_FILTER_FIELDS,
     ALLOWED_TIMESHET_DETAIL_FIELDS,
     FILTER_LOOKBACK_WEEKS,
+    NOT_SUBMITTED_STATUS,
 )
 
 from . import filter_employees
@@ -467,14 +468,25 @@ def get_team_candidate_employee_ids(
     if not dates:
         return []
 
-    has_candidate_filters = bool(timesheet_status or any((parsed_filters or {}).values()))
+    # "Not Submitted" is the absence of a Timesheet, so it cannot be resolved by querying
+    # them. Narrowing the pool on it would drop exactly the employees it should return.
+    db_statuses = [status for status in (timesheet_status or []) if status != NOT_SUBMITTED_STATUS]
+    wants_not_submitted = bool(timesheet_status) and len(db_statuses) < len(timesheet_status)
+    has_work_filters = any((parsed_filters or {}).values())
+
+    has_candidate_filters = bool(db_statuses or has_work_filters)
     if not has_candidate_filters and not employee_conditions:
+        return None
+
+    # Work filters still narrow: an employee with no Timesheet cannot match one, so
+    # combining them with "Not Submitted" legitimately excludes the no-row population.
+    if wants_not_submitted and not has_work_filters:
         return None
 
     employee_ids = get_matching_timesheet_employee_ids(
         dates=dates,
         parsed_filters=parsed_filters or {dt: [] for dt in ALLOWED_FILTER_FIELDS},
-        approval_status=timesheet_status,
+        approval_status=db_statuses or None,
     )
     if not employee_ids:
         return []
@@ -625,11 +637,14 @@ def get_team_week_participation(scope: TeamEmployeeScope, weeks: list) -> dict:
         bucket["members"].add(row.employee)
         if row.custom_weekly_approval_status == "Approval Pending":
             bucket["pending"].add(row.employee)
+        # Read the status the same way the payload derives it for display, so a row whose
+        # weekly status was never set counts as "Not Submitted" here too.
+        status = row.custom_weekly_approval_status or NOT_SUBMITTED_STATUS
         # Per-week status membership: an employee belongs to a status-filtered week only
         # when that week's approval status is one the caller asked for. Without this the
         # filter fell back to plain participation, so every status except "Approval
         # Pending" matched anyone who merely logged time that week.
-        if status_filter and row.custom_weekly_approval_status in status_filter:
+        if status_filter and status in status_filter:
             bucket["status_matched"].add(row.employee)
 
     return participation
@@ -672,6 +687,11 @@ def resolve_team_members(scope: TeamEmployeeScope, weeks: list) -> dict:
         # keys off the status-matched set rather than plain participation.
         if scope.status_filter:
             week_members = bucket["status_matched"]
+            # A week with no Timesheet at all reads as "Not Submitted" everywhere else in
+            # the payload, so it has to answer to that filter rather than the Timesheet
+            # query, which by definition cannot return it.
+            if NOT_SUBMITTED_STATUS in scope.status_filter:
+                week_members = week_members | (eligible_ids - bucket["members"])
         elif scope.skip_empty_weeks:
             week_members = bucket["members"]
         else:
