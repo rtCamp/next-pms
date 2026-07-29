@@ -135,6 +135,7 @@ def get_task_list(
         "actual_time",
         "expected_time",
         "_liked_by",
+        "owner",
     ]
     if fields:
         field_list.extend(fields)
