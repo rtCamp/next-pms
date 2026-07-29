@@ -8,7 +8,7 @@ from next_pms.resource_management.api.utils.query import (
     leave_includes_holidays,
 )
 from next_pms.tests.utils import make_employee, make_holiday_list
-from next_pms.timesheet.api.team import _get_team_timesheet_data
+from next_pms.timesheet.api.team import get_team_timesheet_data
 from next_pms.timesheet.api.utils import get_holidays
 
 # Aug 2026: Mon 10 … Fri 14, Sat 15 + Sun 16 weekly off, Mon 17 … Wed 19.
@@ -18,7 +18,7 @@ TUE_NEXT, WED_NEXT = "2026-08-18", "2026-08-19"
 THU = "2026-08-13"
 
 # Sep 2026, one weekend per test so the two Leave Applications never overlap.
-SEP_THU, SEP_FRI = "2026-09-10", "2026-09-11"
+SEP_THU = "2026-09-10"
 SEP_SAT, SEP_SUN = "2026-09-12", "2026-09-13"
 SEP_TUE_NEXT = "2026-09-15"
 
@@ -92,10 +92,16 @@ class TestLeaveIncludesHolidays(IntegrationTestCase):
 
 
 class TestLeaveWeekendRendering(IntegrationTestCase):
-    """A leave spanning a weekend is rendered to match what the backend actually counted.
+    """A leave spanning a weekend reaches the frontend flagged with what the backend counted.
 
-    Renders through the live team-view path (`_get_team_timesheet_data`), the endpoint the
-    frontend calls. The employee reports to a manager so it surfaces under `reports_to`.
+    The team timesheet refactor stopped folding leaves into per-day hours server-side;
+    `get_team_timesheet_data` now ships the raw leave rows and the frontend's
+    `calculateLeaveHours` applies the weekend rule. So the backend's remaining
+    responsibility - and all this class can assert - is that `includes_holidays` is
+    derived correctly from a real Leave Application and survives onto the member row.
+    The per-day arithmetic it feeds is frontend logic and needs frontend coverage.
+
+    The employee reports to a manager so it surfaces under `reports_to`.
 
     Both leave types below are `is_lwp` so no Leave Allocation is needed, and both are
     configured so that stock HRMS and rtCamp's override agree on the outcome — the
@@ -202,40 +208,31 @@ class TestLeaveWeekendRendering(IntegrationTestCase):
             }
         ).insert()
 
-    def _weekend_hours(self, week_of):
-        payload = _get_team_timesheet_data(date=week_of, max_week=1, reports_to=self.manager, by_pass_access_check=True)
-        row = payload["data"][self.employee]
-        days = {str(day["date"]): day for day in row["data"]}
-        return row["working_hour"], days
+    def _member_leave(self, week_of, leave_name):
+        """The leave row as the team page receives it, for the week containing `week_of`."""
+        payload = get_team_timesheet_data(start_date=week_of, reports_to=self.manager)
+        member = next(m for m in payload["members"] if m["employee"] == self.employee)
+        return next(lv for lv in member["leaves"] if lv["name"] == leave_name)
 
-    def test_leave_counting_the_weekend_renders_across_it(self):
+    def test_leave_counting_the_weekend_is_flagged_inclusive(self):
         leave = self._apply_leave(INCLUDES_HOLIDAYS_TYPE, THU, WED_NEXT)
 
         row = next(r for r in get_employee_leaves(self.employee, THU, WED_NEXT) if r["name"] == leave.name)
         self.assertTrue(row["includes_holidays"])
 
-        working_hour, days = self._weekend_hours(THU)
-        self.assertEqual(days[SAT]["hour"], working_hour)
-        self.assertTrue(days[SAT]["is_leave"])
-        self.assertEqual(days[SUN]["hour"], working_hour)
-        self.assertTrue(days[SUN]["is_leave"])
+        # The same verdict has to reach the team page, which spans SAT/SUN off it.
+        self.assertTrue(self._member_leave(THU, leave.name)["includes_holidays"])
 
-        # Working days inside the range are unaffected.
-        self.assertEqual(days[FRI]["hour"], working_hour)
-        self.assertTrue(days[FRI]["is_leave"])
-
-    def test_leave_dropping_the_weekend_skips_it(self):
+    def test_leave_dropping_the_weekend_is_flagged_exclusive(self):
         leave = self._apply_leave(EXCLUDES_HOLIDAYS_TYPE, SEP_THU, SEP_TUE_NEXT)
 
         row = next(r for r in get_employee_leaves(self.employee, SEP_THU, SEP_TUE_NEXT) if r["name"] == leave.name)
         self.assertFalse(row["includes_holidays"])
 
-        working_hour, days = self._weekend_hours(SEP_THU)
-        self.assertEqual(days[SEP_SAT]["hour"], 0)
-        self.assertFalse(days[SEP_SAT]["is_leave"])
-        self.assertEqual(days[SEP_SUN]["hour"], 0)
-        self.assertFalse(days[SEP_SUN]["is_leave"])
+        member_row = self._member_leave(SEP_THU, leave.name)
+        self.assertFalse(member_row["includes_holidays"])
 
-        # Working days inside the range are unaffected.
-        self.assertEqual(days[SEP_FRI]["hour"], working_hour)
-        self.assertTrue(days[SEP_FRI]["is_leave"])
+        # The flag is only actionable if the row it rides on actually spans the weekend -
+        # the frontend derives which days to skip from from_date/to_date.
+        self.assertLessEqual(getdate(member_row["from_date"]), getdate(SEP_SAT))
+        self.assertGreaterEqual(getdate(member_row["to_date"]), getdate(SEP_SUN))
