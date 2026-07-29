@@ -131,13 +131,14 @@ export const GanttProjectRows: React.FC<GanttProjectRowsProps> = ({
       </tr>
 
       {childRowsPresence.shouldRender
-        ? project.members?.map((member) => {
+        ? project.members?.map((member, memberIndex) => {
             return (
               <GanttMemberRow
                 key={member.id ?? member.name}
                 project={project}
                 member={member}
                 isExpanded={childRowsVisible}
+                isLast={memberIndex === project.members.length - 1}
                 canManageAllocations={canManageAllocations}
                 canEditAllocations={canEditAllocations}
                 onTransitionEnd={childRowsPresence.onTransitionEnd}
@@ -155,7 +156,7 @@ export const GanttProjectRows: React.FC<GanttProjectRowsProps> = ({
           onTransitionEnd={childRowsPresence.onTransitionEnd}
         >
           <th
-            className="sticky left-0 z-25 bg-surface-white border-b border-r border-outline-gray-1 pl-8 pr-3 font-normal text-left align-middle transition-[height,background-color] cursor-pointer hover:bg-surface-gray-1"
+            className="sticky left-0 z-25 bg-surface-white border-b border-r border-outline-gray-1 font-normal text-left align-middle transition-[height,background-color] cursor-pointer hover:bg-surface-gray-1"
             style={{
               width: headerWidth,
               minWidth: headerWidth,
@@ -179,7 +180,7 @@ export const GanttProjectRows: React.FC<GanttProjectRowsProps> = ({
                   })
                 }
                 tabIndex={childRowsVisible ? undefined : -1}
-                className="flex h-full w-full items-center gap-2 overflow-hidden text-base font-medium text-ink-gray-8"
+                className="flex pl-8 pr-3 h-full w-full items-center gap-2 overflow-hidden text-base font-medium text-ink-gray-8 focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-outline-gray-3"
               >
                 <AddMd className="size-4 shrink-0" />
                 <span className="truncate">Add member</span>

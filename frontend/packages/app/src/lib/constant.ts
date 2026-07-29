@@ -4,6 +4,7 @@ export const ROUTES = {
   "dashboard-leadership": "/dashboard/leadership",
   "dashboard-manager": "/dashboard/manager",
   project: "/projects",
+  task: "/tasks",
   "timesheet-personal": "/timesheet",
   "timesheet-team": "/timesheet/team",
   "timesheet-project": "/timesheet/project",

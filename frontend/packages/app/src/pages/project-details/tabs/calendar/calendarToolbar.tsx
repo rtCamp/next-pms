@@ -14,28 +14,11 @@ import {
 } from "@rtcamp/frappe-ui-react/icons";
 import { format, parseISO } from "date-fns";
 
-export type CalendarView = "calendar" | "gantt";
-
-interface CalendarToolbarProps {
-  /** ISO date string for the current period, e.g. "2026-01-01" */
-  currentPeriodValue: string;
-  /** Called when the user picks a date; receives an ISO date string */
-  onPeriodChange?: (value: string) => void;
-  /** Called when navigating to the previous period */
-  onPrevious?: () => void;
-  /** Called when navigating to today */
-  onToday?: () => void;
-  /** Called when navigating to the next period */
-  onNext?: () => void;
-  /** Currently active view */
-  activeView?: CalendarView;
-  /** Called when the user switches between Calendar and Gantt views */
-  onViewChange?: (view: CalendarView) => void;
-  /** Active filter value: "all" | "milestones" | "touchpoints" */
-  filterValue?: string;
-  /** Called when the filter changes */
-  onFilterChange?: (value: string) => void;
-}
+/**
+ * Internal dependencies.
+ */
+import { useCalendar } from "./context";
+import type { CalendarView } from "./types";
 
 const filterOptions = [
   { value: "all", label: "All" },
@@ -43,17 +26,19 @@ const filterOptions = [
   { value: "touchpoints", label: "Touchpoints" },
 ];
 
-export function CalendarToolbar({
-  currentPeriodValue,
-  onPeriodChange,
-  onPrevious,
-  onToday,
-  onNext,
-  activeView = "calendar",
-  onViewChange,
-  filterValue = "all",
-  onFilterChange,
-}: CalendarToolbarProps) {
+export function CalendarToolbar() {
+  const currentDate = useCalendar((c) => c.state.currentDate);
+  const activeView = useCalendar((c) => c.state.activeView);
+  const filterValue = useCalendar((c) => c.state.filterType);
+  const handlePeriodChange = useCalendar((c) => c.actions.handlePeriodChange);
+  const goToPrev = useCalendar((c) => c.actions.goToPrev);
+  const goToToday = useCalendar((c) => c.actions.goToToday);
+  const goToNext = useCalendar((c) => c.actions.goToNext);
+  const setActiveView = useCalendar((c) => c.actions.setActiveView);
+  const setFilterType = useCalendar((c) => c.actions.setFilterType);
+
+  const currentPeriodValue = format(currentDate, "yyyy-MM-dd");
+
   return (
     <div className="flex justify-between items-center w-full">
       <div className="flex items-center">
@@ -64,7 +49,7 @@ export function CalendarToolbar({
           clearable={false}
           onChange={(val) => {
             const v = Array.isArray(val) ? val[0] : val;
-            if (v) onPeriodChange?.(v);
+            if (v) handlePeriodChange(v);
           }}
         >
           {({ displayValue }) => (
@@ -87,24 +72,24 @@ export function CalendarToolbar({
           <Button
             variant="ghost"
             icon={() => <SmallLeftChevron className="size-4" />}
-            onClick={onPrevious}
+            onClick={goToPrev}
           />
           <Button
             className="text-ink-gray-7"
             variant="ghost"
             label="Today"
-            onClick={onToday}
+            onClick={goToToday}
           />
           <Button
             variant="ghost"
             icon={() => <SmallRightChevron className="size-4" />}
-            onClick={onNext}
+            onClick={goToNext}
           />
         </div>
 
         <TabButtons
           value={activeView}
-          onChange={(val) => onViewChange?.(val as CalendarView)}
+          onChange={(val) => setActiveView(val as CalendarView)}
           buttonClassName="text-ink-gray-5 data-pressed:text-ink-gray-8"
           buttons={[
             { label: "Calendar", value: "calendar" },
@@ -116,7 +101,7 @@ export function CalendarToolbar({
           className="w-min"
           value={filterValue}
           options={filterOptions}
-          onChange={(val) => onFilterChange?.(val ?? "all")}
+          onChange={(val) => setFilterType(val ?? "all")}
           size="sm"
           variant="subtle"
         />

@@ -37,8 +37,16 @@ export function ProjectBoardField({
   );
 
   useEffect(() => {
-    onChange("");
-  }, [repository, onChange]);
+    if (options.length === 0) {
+      onChange("");
+      return;
+    }
+
+    // Auto-select first board if value is empty or no longer in options
+    if (!value || !options.some((opt) => opt.value === value)) {
+      onChange(options[0].value);
+    }
+  }, [options, value, onChange]);
 
   return (
     <Field label="Project Board" className="col-span-2">

@@ -38,7 +38,7 @@ export interface TimesheetEntry {
   docstatus: number;
   leaveHours: number;
   leaveLabel?: string;
-  approvalStatus: ApprovalStatusLabelType;
+  approvalStatus?: ApprovalStatusLabelType;
   rejectionReason?: string;
 }
 
@@ -54,7 +54,7 @@ export interface TaskDataEntry {
   hours: number;
   parent: string;
   docstatus: number;
-  custom_approval_status: ApprovalStatusLabelType;
+  custom_approval_status?: ApprovalStatusLabelType | null;
   custom_rejection_reason?: string | null;
 }
 

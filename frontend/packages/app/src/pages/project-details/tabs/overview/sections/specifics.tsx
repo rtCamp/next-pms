@@ -1,16 +1,20 @@
 /**
  * External dependencies.
  */
-import { Select } from "@rtcamp/frappe-ui-react";
+import { useMemo, useState } from "react";
+import { Combobox, Select } from "@rtcamp/frappe-ui-react";
 import {
   AuthenticatedUserAlt,
   Branch,
+  Server,
   SolidPriorityHigh,
 } from "@rtcamp/frappe-ui-react/icons";
 
 /**
  * Internal dependencies.
  */
+import { useHostLookup } from "@/hooks/useHostLookup";
+import { useProjectDetail } from "../../../context";
 import { EditableField } from "../components/editableField";
 import { OverviewSection } from "../components/overviewSection";
 import type { OverviewFormApi } from "../index";
@@ -43,6 +47,18 @@ type SpecificsProps = {
 };
 
 export function Specifics({ form, isEditing, submitting }: SpecificsProps) {
+  const [hostSearch, setHostSearch] = useState("");
+  const hostValue = useProjectDetail((state) => state.project?.custom_host);
+  const hostSelectedOption = useMemo(
+    () => (hostValue ? { label: hostValue, value: hostValue } : null),
+    [hostValue],
+  );
+  const { options: hostOptions, isLoading: isHostLoading } = useHostLookup({
+    shouldFetch: isEditing,
+    query: hostSearch,
+    selectedOption: hostSelectedOption,
+  });
+
   return (
     <OverviewSection title="Specifics">
       <div className="flex w-[828px] max-w-full flex-wrap gap-4">
@@ -93,6 +109,28 @@ export function Specifics({ form, isEditing, submitting }: SpecificsProps) {
                 onChange={(v) => field.handleChange(v || "")}
                 options={KEY_ACCOUNT_OPTIONS}
                 disabled={submitting}
+              />
+            </EditableField>
+          )}
+        </form.Field>
+        <form.Field name="host">
+          {(field) => (
+            <EditableField
+              icon={<Server className="size-[18px]" />}
+              label="Host"
+              value={field.state.value || EMPTY}
+              isEditing={isEditing}
+            >
+              <Combobox
+                loading={isHostLoading}
+                options={hostOptions}
+                placeholder="Select host"
+                searchValue={hostSearch}
+                onSearchChange={setHostSearch}
+                value={field.state.value || null}
+                onChange={(v) => field.handleChange(v ?? "")}
+                disabled={submitting}
+                openOnFocus
               />
             </EditableField>
           )}

@@ -99,7 +99,9 @@ const EntryRow = ({
               <p className="text-base font-medium text-ink-gray-7 truncate">
                 {entry.taskName}
               </p>
-              <ApprovalStatus status={entry.approvalStatus} />
+              {entry.approvalStatus && (
+                <ApprovalStatus status={entry.approvalStatus} />
+              )}
             </div>
             <p className="text-xs text-ink-gray-5 truncate">
               {entry.projectName}
@@ -161,7 +163,9 @@ const EntryRow = ({
             <p className="text-base font-medium text-ink-gray-7 truncate">
               {entry.taskName}
             </p>
-            <ApprovalStatus status={entry.approvalStatus} />
+            {entry.approvalStatus && (
+              <ApprovalStatus status={entry.approvalStatus} />
+            )}
           </div>
           <p className="text-xs text-ink-gray-5 truncate">
             {entry.projectName}

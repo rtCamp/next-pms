@@ -2,7 +2,7 @@
  * External dependencies.
  */
 import { useRef } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router";
 import { Avatar } from "@rtcamp/frappe-ui-react";
 import { AgentAlt, Apps, Calendar, Code } from "@rtcamp/frappe-ui-react/icons";
 

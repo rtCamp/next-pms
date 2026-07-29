@@ -144,7 +144,7 @@ def get_employee_leaves(employee: list[str], date: datetime.date) -> dict:
             "from_date": ["<=", date],
             "to_date": [">=", date],
         },
-        fields=["half_day", "half_day_date"],
+        fields=["employee", "half_day", "half_day_date"],
     )
     employee_leaves = {}
     for leave in leaves:

@@ -1,7 +1,7 @@
 /**
  * External dependencies.
  */
-import { useOutletContext } from "react-router-dom";
+import { useOutletContext } from "react-router";
 
 export type OpenAddTimeDialogOptions = {
   date?: string;

@@ -2,7 +2,7 @@
  * External dependencies.
  */
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { PreviewCard } from "@base-ui/react/preview-card";
+import { Popover } from "@base-ui/react/popover";
 import { Button } from "@rtcamp/frappe-ui-react";
 
 /**
@@ -24,6 +24,7 @@ import { mergeClassNames as cn } from "../../../utils";
 
 interface GanttAllocationBarProps {
   allocation: ProjectAllocationBar;
+  rowAllocations: ProjectAllocationBar[];
   resizable: boolean;
   capacityHoursPerDay?: number;
   showCapacityStatus?: boolean;
@@ -33,6 +34,7 @@ interface GanttAllocationBarProps {
 
 export function GanttAllocationBar({
   allocation,
+  rowAllocations,
   resizable,
   capacityHoursPerDay,
   showCapacityStatus = false,
@@ -144,24 +146,39 @@ export function GanttAllocationBar({
     [columnWidth, formatDayCountLabel, resolvedDayCount],
   );
 
-  const entry = withPendingDeleteEntry(
-    {
-      ...allocationBarToEntry(
-        {
-          ...allocation,
-          startDate: resolvedDates.startDate,
-          endDate: resolvedDates.endDate,
-          fullNumDays: resolvedDayCount,
-        },
-        onEditAllocation,
-        onDeleteAllocation,
+  const toEntry = (alloc: ProjectAllocationBar) =>
+    withPendingDeleteEntry(
+      {
+        ...allocationBarToEntry(
+          alloc,
+          onEditAllocation,
+          onDeleteAllocation,
+          memberName,
+        ),
         memberName,
-      ),
-      memberName,
-      memberImage,
-    },
-    setPendingDeleteEntry,
+        memberImage,
+      },
+      setPendingDeleteEntry,
+    );
+
+  // Overlapping bars share the same row and stack on top of each other, so the
+  // ones underneath are listed here to keep them reachable.
+  const stackedAllocations = rowAllocations.filter(
+    (alloc) =>
+      alloc !== allocation &&
+      alloc.startDate <= allocation.endDate &&
+      alloc.endDate >= allocation.startDate,
   );
+
+  const entries = [
+    toEntry({
+      ...allocation,
+      startDate: resolvedDates.startDate,
+      endDate: resolvedDates.endDate,
+      fullNumDays: resolvedDayCount,
+    }),
+    ...stackedAllocations.map(toEntry),
+  ];
 
   const openEditAllocation = useCallback(
     (nextLeft: number, nextWidth: number) => {
@@ -291,13 +308,15 @@ export function GanttAllocationBar({
   }, [handleClick, handleResetPreview]);
 
   return (
-    <PreviewCard.Root
+    <Popover.Root
       open={isModified ? false : previewOpen}
       onOpenChange={setPreviewOpen}
     >
-      <PreviewCard.Trigger
+      <Popover.Trigger
+        openOnHover
         delay={400}
         closeDelay={150}
+        nativeButton={false}
         render={
           <GanttBar
             ref={allocationBarRef}
@@ -315,13 +334,12 @@ export function GanttAllocationBar({
             }
             left={previewGeometry.left}
             width={previewGeometry.width}
-            className={cn("outline-none", isModified && "z-20")}
+            className={cn(isModified && "z-20")}
             billable={allocation.billable}
             showOutline={isModified}
             renderFloatingLabel={isModified ? renderFloatingLabel : undefined}
             resizable={canResize}
             snapUnitPx={columnWidth}
-            tabIndex={0}
             minLeft={bounds.minLeft}
             maxRight={bounds.maxRight}
             onKeyDown={handleKeyDown}
@@ -329,18 +347,18 @@ export function GanttAllocationBar({
           />
         }
       />
-      <PreviewCard.Portal>
-        <PreviewCard.Positioner side="bottom" align="start" sideOffset={4}>
-          <PreviewCard.Popup className="z-50 outline-none">
+      <Popover.Portal>
+        <Popover.Positioner side="bottom" align="start" sideOffset={4}>
+          <Popover.Popup className="z-50 outline-none">
             <GanttAllocationPopover
-              entries={[entry]}
+              entries={entries}
               variant={variant}
               hasRoleAccess={hasRoleAccess}
             />
-          </PreviewCard.Popup>
-        </PreviewCard.Positioner>
-      </PreviewCard.Portal>
-    </PreviewCard.Root>
+          </Popover.Popup>
+        </Popover.Positioner>
+      </Popover.Portal>
+    </Popover.Root>
   );
 }
 

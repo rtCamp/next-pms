@@ -26,7 +26,7 @@ export interface GanttBarRenderState {
 }
 
 const ganttBarVariants = cva(
-  "group pointer-events-auto absolute shrink-0 flex items-center gap-1.5 rounded-[9px] mx-0.5 px-2.5 py-2 whitespace-nowrap",
+  "group pointer-events-auto absolute shrink-0 flex items-center gap-1.5 rounded-[9px] mx-0.5 px-2.5 py-2 whitespace-nowrap focus:outline-none focus-visible:ring-2 focus-visible:ring-outline-gray-3",
   {
     variants: {
       variant: {

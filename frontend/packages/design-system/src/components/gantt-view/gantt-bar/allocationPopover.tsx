@@ -148,7 +148,7 @@ function AllocationItem({
                 <button
                   type="button"
                   onClick={() => entry.onEdit?.()}
-                  className="transition-colors text-ink-gray-6 hover:text-ink-gray-7"
+                  className="rounded-sm transition-colors text-ink-gray-6 hover:text-ink-gray-7 focus:outline-none focus-visible:ring-2 focus-visible:ring-outline-gray-3"
                   aria-label="Edit allocation"
                 >
                   <EditAlt className="size-4 text-ink-gray-6" />
@@ -158,7 +158,7 @@ function AllocationItem({
                 <button
                   type="button"
                   onClick={() => entry.onDelete?.()}
-                  className="transition-colors text-ink-gray-6 hover:text-ink-gray-7"
+                  className="rounded-sm transition-colors text-ink-gray-6 hover:text-ink-gray-7 focus:outline-none focus-visible:ring-2 focus-visible:ring-outline-gray-3"
                   aria-label="Delete allocation"
                 >
                   <DeleteAlt className="size-4 text-ink-gray-6" />

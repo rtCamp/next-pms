@@ -1,7 +1,7 @@
 /**
  * External dependencies.
  */
-import { useMatch, useParams } from "react-router-dom";
+import { useMatch, useParams } from "react-router";
 import { Accordion } from "@base-ui/react/accordion";
 import { mergeClassNames } from "@next-pms/design-system";
 import { BudgetBurnBar } from "@next-pms/design-system/components";

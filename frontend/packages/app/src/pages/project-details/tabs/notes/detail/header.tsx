@@ -1,7 +1,7 @@
 /**
  * External dependencies.
  */
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams } from "react-router";
 import { formatRelativeTimeShort } from "@next-pms/design-system/utils";
 import { Avatar, Button } from "@rtcamp/frappe-ui-react";
 import { ArrowLeft } from "@rtcamp/frappe-ui-react/icons";

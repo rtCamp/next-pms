@@ -2,13 +2,14 @@
  * External dependencies.
  */
 import { useCallback, useMemo } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams } from "react-router";
 import { SortOrder, SortState } from "@next-pms/design-system/components";
 import type { FilterCondition } from "@rtcamp/frappe-ui-react";
 
 /**
  * Internal dependencies.
  */
+import { parseJSONArrayParam } from "@/lib/utils";
 import type {
   Phase,
   ProjectListFilters,
@@ -26,16 +27,6 @@ export const FILTER_PARAM_KEYS = [
   "sortOrder",
 ] as const;
 
-const parseAdvanced = (raw: string | null): FilterCondition[] => {
-  if (!raw) return [];
-  try {
-    const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? (parsed as FilterCondition[]) : [];
-  } catch {
-    return [];
-  }
-};
-
 export function useProjectFilters() {
   const [searchParams, setSearchParams] = useSearchParams();
 
@@ -47,7 +38,9 @@ export function useProjectFilters() {
       ) as unknown as RagStatus[],
       phase: (searchParams.get("phase") ?? "") as Phase | "",
       status: (searchParams.get("status") ?? "") as ProjectStatus | "",
-      advanced: parseAdvanced(searchParams.get("advanced")),
+      advanced: parseJSONArrayParam<FilterCondition>(
+        searchParams.get("advanced"),
+      ),
     }),
     [searchParams],
   );
@@ -116,7 +109,7 @@ export function useProjectFilters() {
         setParam("sortOrder", v.order);
       }
     },
-    [setParam],
+    [setParam, setSearchParams],
   );
   const resetFilters = useCallback(
     () =>

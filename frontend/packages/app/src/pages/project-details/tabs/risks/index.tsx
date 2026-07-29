@@ -1,7 +1,7 @@
 /**
  * External dependencies.
  */
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams } from "react-router";
 import { mergeClassNames as cn } from "@next-pms/design-system";
 import {
   DeleteActionDialog,

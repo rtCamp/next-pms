@@ -1,7 +1,7 @@
 /**
  * External dependencies.
  */
-import { Link } from "react-router-dom";
+import { Link } from "react-router";
 import { mergeClassNames } from "@next-pms/design-system";
 import { Tooltip } from "@rtcamp/frappe-ui-react";
 

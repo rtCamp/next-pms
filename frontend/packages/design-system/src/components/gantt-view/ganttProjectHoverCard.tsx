@@ -42,7 +42,7 @@ function GanttProjectHoverCard({
       : undefined;
 
   return (
-    <div className="flex flex-col gap-3 p-3 w-72 rounded-xl shadow-2xl bg-surface-modal">
+    <div className="flex flex-col gap-3 p-3 w-72 rounded-xl shadow-2xl bg-surface-modal animate-fade-in">
       <div
         className={cn("flex items-start gap-3", {
           "justify-between": projectHref,
@@ -60,7 +60,7 @@ function GanttProjectHoverCard({
             target="_blank"
             rel="noreferrer"
             aria-label="Open project"
-            className="shrink-0 text-ink-gray-6 hover:text-ink-gray-8"
+            className="shrink-0 rounded-sm text-ink-gray-6 hover:text-ink-gray-8 focus:outline-none focus-visible:ring-2 focus-visible:ring-outline-gray-3"
             onClick={(event) => event.stopPropagation()}
           >
             <ArrowUpRight className="size-4 text-ink-gray-8 shrink-0" />

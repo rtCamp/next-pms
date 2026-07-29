@@ -71,7 +71,7 @@ export const TotalRow: React.FC<TotalRowProps> = ({
           <button
             type="button"
             onClick={onStarClick}
-            className="flex justify-center items-center w-4 h-4 rounded transition-colors cursor-pointer hover:bg-surface-gray-2"
+            className="flex justify-center items-center w-4 h-4 rounded transition-colors cursor-pointer hover:bg-surface-gray-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-outline-gray-3"
             aria-label={starTooltipText}
           >
             {starIcon}

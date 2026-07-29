@@ -2,7 +2,7 @@
  * External dependencies.
  */
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link } from "react-router";
 import { mergeClassNames as cn } from "@next-pms/design-system";
 import { formatDateRange } from "@next-pms/design-system/date";
 import {

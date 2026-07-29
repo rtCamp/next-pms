@@ -37,6 +37,8 @@ export interface TaskDataItemProps {
   subject?: string;
   project?: string;
   project_name?: string | null;
+  custom_approval_status?: ApprovalStatusLabelType | null;
+  custom_rejection_reason?: string | null;
 }
 
 export interface LeaveProps {
@@ -48,6 +50,7 @@ export interface LeaveProps {
   half_day_date: string;
   leave_type: string;
   is_lwp: boolean;
+  includes_holidays: boolean;
   custom_first_halfsecond_half?: string | null;
 }
 
@@ -93,6 +96,6 @@ export interface NewTimesheetProps {
 
 export interface TimesheetFilters {
   search: string;
-  approvalStatus?: ApprovalStatusType;
+  approvalStatus?: ApprovalStatusType[];
   reportsTo?: string;
 }

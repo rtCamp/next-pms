@@ -2,7 +2,7 @@
  * External dependencies.
  */
 import { useCallback, useEffect, useRef } from "react";
-import { Link, type LinkProps } from "react-router-dom";
+import { Link, type LinkProps } from "react-router";
 /**
  * Internal dependencies.
  */

@@ -12,7 +12,7 @@ def after_install():
     setup_project_custom_fields()
     setup_project_target_hours_field()
     setup_timesheet_rejection_reason_field()
-    create_default_views()
+    setup_task_permissions()
 
 
 def setup_timesheet_rejection_reason_field():
@@ -92,6 +92,41 @@ def setup_project_custom_fields():
             ]
         }
     )
+
+
+def setup_task_permissions():
+    import frappe
+    from frappe.core.doctype.doctype.doctype import validate_permissions_for_doctype
+    from frappe.permissions import add_permission, setup_custom_perms, update_permission_property
+
+    doctype = "Task"
+    permissions = {"read": 1, "write": 1, "create": 1, "delete": 1}
+
+    for role in ("Projects Manager", "Delivery Manager", "Delivery User"):
+        if not frappe.db.exists("Role", role):
+            continue
+        add_permission(doctype, role, 0)
+        for perm_key, perm_val in permissions.items():
+            update_permission_property(doctype, role, 0, perm_key, perm_val)
+
+    if not frappe.db.exists("Role", "Employee"):
+        return
+
+    setup_custom_perms(doctype)
+    if not frappe.db.exists("Custom DocPerm", {"parent": doctype, "role": "Employee", "permlevel": 0, "if_owner": 1}):
+        frappe.get_doc(
+            {
+                "doctype": "Custom DocPerm",
+                "parent": doctype,
+                "parenttype": "DocType",
+                "parentfield": "permissions",
+                "role": "Employee",
+                "permlevel": 0,
+                "if_owner": 1,
+                **permissions,
+            }
+        ).insert(ignore_permissions=True)
+        validate_permissions_for_doctype(doctype)
 
 
 def add_project_manager_perm():
@@ -182,34 +217,6 @@ def create_default_project_phases():
     for phase_data in phases:
         if not frappe.db.exists("Project Phase", {"phase": phase_data["phase"]}):
             frappe.get_doc(phase_data).insert(ignore_permissions=True, ignore_mandatory=True)
-
-
-def create_default_views():
-    import json
-
-    import frappe
-
-    views = [
-        {
-            "label": "List view",
-            "icon": "📋",
-            "dt": "Project",
-            "type": "List",
-            "route": "/projects",
-            "public": 1,
-            "default": 1,
-            "filters": json.dumps({}),
-            "order_by": json.dumps([]),
-            "rows": json.dumps([]),
-            "columns": json.dumps({}),
-            "pinned_columns": json.dumps([]),
-        },
-    ]
-
-    for view in views:
-        if frappe.db.exists("PMS View Setting", {"label": view["label"], "dt": view["dt"], "public": 1}):
-            continue
-        frappe.get_doc({"doctype": "PMS View Setting", **view}).insert(ignore_permissions=True)
 
 
 def create_default_risk_masters():

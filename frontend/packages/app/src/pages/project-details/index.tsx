@@ -1,7 +1,7 @@
 /**
  * External dependencies.
  */
-import { Outlet, useMatch, useParams, useSearchParams } from "react-router-dom";
+import { Outlet, useMatch, useParams, useSearchParams } from "react-router";
 import { Tabs } from "@rtcamp/frappe-ui-react";
 
 /**

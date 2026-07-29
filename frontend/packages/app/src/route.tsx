@@ -1,7 +1,7 @@
 /**
  * External dependencies.
  */
-import { Route, Outlet, Navigate } from "react-router-dom";
+import { Route, Outlet, Navigate } from "react-router";
 import { Spinner } from "@next-pms/design-system/components";
 /**
  * Internal dependencies.
@@ -54,6 +54,10 @@ export const routeConfig: Record<
   project: {
     Component: ReactLazyPreload(() => import("@/pages/projects")),
     allowedRoles: ["Projects Manager", "Timesheet Manager", "Projects User"],
+  },
+  task: {
+    Component: ReactLazyPreload(() => import("@/pages/tasks/list")),
+    allowedRoles: [],
   },
   "timesheet-personal": {
     Component: ReactLazyPreload(() => import("@/pages/timesheet/personal")),

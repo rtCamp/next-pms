@@ -3,7 +3,7 @@
  */
 import { useMemo, useState } from "react";
 import { Accordion } from "@base-ui/react/accordion";
-import { floatToTime } from "@next-pms/design-system";
+import { floatToTime, mergeClassNames as cn } from "@next-pms/design-system";
 import { ProjectRow as BaseProjectRow } from "@next-pms/design-system/components";
 
 /**
@@ -64,7 +64,13 @@ export const ProjectRow = ({
         <Accordion.Trigger
           nativeButton={false}
           render={(props) => (
-            <div {...props}>
+            <div
+              {...props}
+              className={cn(
+                props.className,
+                "focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-outline-gray-3",
+              )}
+            >
               <BaseProjectRow
                 {...rest}
                 totalHours={hideTime ? "" : floatToTime(projectData.total, 2)}
