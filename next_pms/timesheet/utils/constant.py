@@ -53,7 +53,7 @@ ALLOWED_FILTER_FIELDS = {
 
 FILTER_LOOKBACK_WEEKS = 12
 
-# Default members per page, matching EMPLOYEE_PAGE_LENGTH in the frontend.
+# Default members per page, matching TEAM_MEMBER_PAGE_LENGTH in the frontend.
 TEAM_TIMESHEET_PAGE_LENGTH = 20
 
 # Server-side ceiling on a caller-supplied page_length. A safety net rather than the

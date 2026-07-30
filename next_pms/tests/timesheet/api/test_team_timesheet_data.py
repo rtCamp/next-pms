@@ -24,6 +24,8 @@ W1_TUE = "2026-06-16"
 W1_WED = "2026-06-17"
 W1_THU = "2026-06-18"
 W2_MON = "2026-06-22"
+# A week older than the [W1, W2] window, for the "are there more weeks" probe.
+OLDER_MON = "2026-06-08"
 
 WRITE_USER = "team.timesheet.write@example.com"
 
@@ -687,6 +689,26 @@ class TestTeamTimesheetWeeks(_TeamTimesheetDataBase):
         )
         self.assertEqual(res["weeks"], [])
         self.assertFalse(res["has_more_weeks"])
+
+    def test_has_more_weeks_ignores_timesheets_outside_the_scope(self):
+        # E1 is outside the manager's team; their older week must not keep the frontend
+        # paging backwards through weeks that can never produce a row.
+        self._save(self.e1, OLDER_MON, self.task_alpha, 3, "e1 older")
+
+        res = self._weeks(reports_to=self.mgr, max_week=2, status_filter=["Approved"])
+
+        self.assertEqual([week["start_date"] for week in res["weeks"]], [frappe.utils.getdate(W1_MON)])
+        self.assertFalse(res["has_more_weeks"])
+        self.assertIsNone(res["next_date"])
+
+    def test_has_more_weeks_when_a_scoped_member_has_an_older_week(self):
+        self._save(self.r2, OLDER_MON, self.task_alpha, 3, "r2 older")
+        self._set_week_status(self.r2, OLDER_MON, self.project_alpha, "Approved")
+
+        res = self._weeks(reports_to=self.mgr, max_week=2, status_filter=["Approved"])
+
+        self.assertTrue(res["has_more_weeks"])
+        self.assertEqual(res["next_date"], frappe.utils.getdate("2026-06-14"))
 
 
 class TestTeamTimesheetConsistency(_TeamTimesheetDataBase):

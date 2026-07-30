@@ -1,5 +1,4 @@
 import datetime
-import json
 from collections import defaultdict
 from dataclasses import dataclass
 
@@ -271,6 +270,13 @@ def employee_has_higher_access(employee: str, ptype: str = "read") -> bool:
 
 
 def normalize_status_filter(status_filter, coerce_non_list: bool = False):
+    """Normalize an approval-status filter into a list of status labels.
+
+    Accepts an already-decoded list, a JSON-encoded array, or a bare label - a string that
+    is not JSON is the single-element filter it looks like, not an error. A payload that
+    does decode but into something other than status labels *is* a caller error, and is
+    reported as one here rather than reaching the query builder as an unhashable value.
+    """
     if isinstance(status_filter, str):
         status_filter = status_filter.strip()
         if not status_filter:
@@ -281,10 +287,13 @@ def normalize_status_filter(status_filter, coerce_non_list: bool = False):
         except ValueError, TypeError:
             return [status_filter]
 
-    if status_filter == "":
+    if not status_filter:
         return None
-    if coerce_non_list and status_filter and not isinstance(status_filter, list):
-        return [status_filter]
+    if coerce_non_list and not isinstance(status_filter, list):
+        status_filter = [status_filter]
+
+    if isinstance(status_filter, list) and not all(isinstance(status, str) for status in status_filter):
+        frappe.throw(frappe._("Approval status filter must be a list of status labels."))
 
     return status_filter
 
@@ -553,8 +562,7 @@ def resolve_team_employee_scope(
     filters: str | list | None = None,
 ) -> TeamEmployeeScope:
     """Resolve the employee/date scope shared by the team timesheet endpoints."""
-    if status_filter and isinstance(status_filter, str):
-        status_filter = json.loads(status_filter)
+    status_filter = normalize_status_filter(status_filter, coerce_non_list=True)
 
     parsed_filters = parse_filters(filters)
 
@@ -705,6 +713,44 @@ def resolve_team_members(scope: TeamEmployeeScope, weeks: list) -> dict:
         "members_by_week": members_by_week,
         "pending_by_week": pending_by_week,
     }
+
+
+def has_scoped_timesheets_before(scope: TeamEmployeeScope, eligible_ids: set, date) -> bool:
+    """Whether a week older than `date` could still hold a row for this scope.
+
+    This is what tells the week endpoint to keep offering older pages, so it has to ask
+    about *this* caller's team rather than about the Timesheet table as a whole - an
+    unrelated employee's three-year-old timesheet would otherwise keep a filtered view
+    paging backwards over weeks that can never produce a row.
+
+    Deliberately an upper bound: employee scope, Timesheet-level filters and stored
+    approval statuses narrow it, while Task / Timesheet Detail filters (which need the
+    detail join) and `Not Submitted` (which is the absence of a row, so no Timesheet query
+    can answer it) do not. Over-reporting costs one empty page; under-reporting would hide
+    weeks that do have data, so the bound leans the safe way.
+    """
+    if not eligible_ids:
+        return False
+
+    filters = {
+        "start_date": ["<", date],
+        "docstatus": ["!=", 2],
+        "employee": ["in", sorted(eligible_ids)],
+    }
+
+    status_filter = scope.status_filter or []
+    db_statuses = [status for status in status_filter if status != NOT_SUBMITTED_STATUS]
+    if db_statuses and len(db_statuses) == len(status_filter):
+        filters["custom_weekly_approval_status"] = ["in", db_statuses]
+
+    return bool(
+        get_all(
+            "Timesheet",
+            filters=build_filters(filters, scope.parsed_filters.get("Timesheet", [])),
+            fields=["name"],
+            limit=1,
+        )
+    )
 
 
 def get_qualifying_project_ids(
