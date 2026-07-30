@@ -250,7 +250,7 @@ const AddEmployeeTime = ({
         <div className="flex items-center justify-between w-full gap-2">
           <Button
             className="w-full"
-            variant="ghost"
+            variant="subtle"
             label="Save entry and add another"
             onClick={() => form.handleSubmit({ keepOpen: true })}
             disabled={submitting}
