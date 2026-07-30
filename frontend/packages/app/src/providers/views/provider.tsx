@@ -76,9 +76,7 @@ export const ViewsProvider: FC<
 
           filterParamKeys?.forEach((key) => {
             const value = view.filters?.[key];
-            if (value === undefined || value === null) {
-              params.delete(key);
-            } else {
+            if (value !== undefined && value !== null) {
               params.set(
                 key,
                 typeof value === "string" ? value : JSON.stringify(value),

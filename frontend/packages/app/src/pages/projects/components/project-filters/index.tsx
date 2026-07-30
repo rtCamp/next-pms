@@ -30,6 +30,7 @@ export function ProjectFilters() {
     setStatus,
     setAdvanced,
     setSort,
+    resetFilters,
   } = useProjectFilters();
 
   const externalFilterCount =
@@ -260,13 +261,7 @@ export function ProjectFilters() {
             },
           ]}
           externalFilterCount={externalFilterCount}
-          onClearAll={() => {
-            setSearchInput("");
-            setSearch("");
-            setRagStatus([]);
-            setPhase("");
-            setStatus("");
-          }}
+          onClearAll={resetFilters}
         />
       </div>
     </div>
