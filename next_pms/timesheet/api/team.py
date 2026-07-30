@@ -24,6 +24,7 @@ from next_pms.timesheet.doc_events.timesheet import flush_cache, publish_timeshe
 from next_pms.timesheet.utils.constant import (
     ALLOWED_FILTER_FIELDS,
     MAX_TEAM_TIMESHEET_PAGE_LENGTH,
+    NOT_SUBMITTED_STATUS,
     TEAM_TIMESHEET_PAGE_LENGTH,
 )
 
@@ -37,6 +38,7 @@ from .utils import (
     employee_has_higher_access,
     get_holidays,
     get_week_dates,
+    has_scoped_timesheets_before,
     resolve_team_employee_scope,
     resolve_team_members,
 )
@@ -210,7 +212,7 @@ def build_team_member_payload(employee, context, week, has_filters):
         "employee_name": employee.get("employee_name"),
         "image": employee.get("image"),
         **working_hours,
-        "status": detail.get("status", "Not Submitted"),
+        "status": detail.get("status", NOT_SUBMITTED_STATUS),
         "total_hours": detail.get("total_hours", 0),
         "tasks": detail.get("tasks", {}),
         "leaves": list(context["leaves_by_employee"].get(employee.name, [])),
@@ -222,7 +224,6 @@ def build_team_member_payload(employee, context, week, has_filters):
 @error_logger
 def get_team_timesheet_data(
     start_date: str,
-    end_date: str | None = None,
     page_length: int = TEAM_TIMESHEET_PAGE_LENGTH,
     start: int = 0,
     status_filter: str | list[str] | None = None,
@@ -231,6 +232,9 @@ def get_team_timesheet_data(
     filters: str | list | None = None,
 ):
     """Members of a single week, paginated.
+
+    `start_date` is any day inside the wanted week; the week boundaries come from
+    `get_week_dates`, so the caller does not supply an end date.
 
     Pairs with `get_team_timesheet_weeks`, which supplies the week structure and the
     counts. Both derive membership from `resolve_team_members`, so this endpoint's
@@ -345,16 +349,12 @@ def get_team_timesheet_weeks(
             }
         )
 
+    # Asked against this caller's scope, not the whole Timesheet table: with empty weeks
+    # dropped, `week_payloads` can legitimately come back empty, and a global probe would
+    # then keep the frontend paging backwards to the oldest timesheet in history.
     earliest = weeks[0]["start_date"]
     next_date = add_days(getdate(earliest), -1)
-    has_more_weeks = bool(
-        get_all(
-            "Timesheet",
-            filters={"start_date": ["<", earliest], "docstatus": ["!=", 2]},
-            fields=["name"],
-            limit=1,
-        )
-    )
+    has_more_weeks = has_scoped_timesheets_before(scope, resolved["eligible_ids"], earliest)
 
     return {
         "weeks": week_payloads,
