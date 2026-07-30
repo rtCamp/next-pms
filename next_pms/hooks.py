@@ -197,7 +197,7 @@ scheduler_events = {
         "next_pms.resource_management.tasks.no_allocation_reminder.send_reminder",
     ],
     "weekly": [
-        "next_pms.project_currency.tasks.reminde_project_threshold.send_reminder_mail",
+        "next_pms.project_currency.tasks.reminder_project_threshold.send_reminder_mail",
     ],
 }
 
