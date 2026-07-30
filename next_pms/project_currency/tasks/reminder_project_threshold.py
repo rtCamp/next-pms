@@ -20,7 +20,7 @@ def send_reminder_mail():
                 "custom_reminder_threshold_percentage",
                 "custom_email_template",
                 "total_billable_amount",
-                "estimated_costing",
+                "total_sales_amount",
             ],
         )
 
@@ -192,11 +192,10 @@ def calculate_threshold(project, project_budget):
         return threshold
 
     elif project.custom_billing_type == "Time and Material":
-        # Time and Material billing is not currently supported for threshold reminders
-        # The original implementation had a bug referencing undefined fields
-        # (total_billable_amount, estimated_costing) that don't exist in Project Budget.
-        # TODO: Implement proper Time and Material threshold calculation if needed
-        project_threshold = (project.total_billable_amount * 100) / (project.estimated_costing)
-        return project_threshold
+        # total_sales_amount is the project's total budget
+        if not project.total_sales_amount or project.total_sales_amount <= 0 or project.total_billable_amount is None:
+            return None
+
+        return (project.total_billable_amount * 100) / project.total_sales_amount
 
     return None
