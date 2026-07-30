@@ -76,11 +76,13 @@ export const ViewsProvider: FC<
 
           filterParamKeys?.forEach((key) => {
             const value = view.filters?.[key];
-            if (value !== undefined && value !== null) {
+            if (value) {
               params.set(
                 key,
                 typeof value === "string" ? value : JSON.stringify(value),
               );
+            } else if (value === null) {
+              params.delete(key);
             }
           });
 
@@ -134,6 +136,16 @@ export const ViewsProvider: FC<
       icon: string;
       isPublic: boolean;
     }) => {
+      let _filters;
+
+      if (filterParamKeys) {
+        _filters = Object.fromEntries(
+          filterParamKeys.map((key) => [key, filters[key] ?? null]),
+        );
+      } else {
+        _filters = filters;
+      }
+
       await createViewCall({
         view: {
           label: label,
@@ -141,12 +153,12 @@ export const ViewsProvider: FC<
           icon: icon,
           dt: doctype,
           type: type,
-          filters: filters,
+          filters: _filters,
         },
       });
       await mutate();
     },
-    [createViewCall, mutate, doctype, type, filters],
+    [createViewCall, mutate, doctype, type, filters, filterParamKeys],
   );
 
   const duplicateView = useCallback(
