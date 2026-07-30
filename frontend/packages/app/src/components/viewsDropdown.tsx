@@ -143,10 +143,7 @@ function ViewsDropdown({
         return (
           <div {...menuProps}>
             {menuProps.children}
-            <div
-              className="ml-auto"
-              onClick={(event) => event.stopPropagation()}
-            >
+            <div className="ml-auto">
               <Dropdown
                 options={savedViewActions}
                 side="right"
@@ -155,6 +152,7 @@ function ViewsDropdown({
                 <button
                   type="button"
                   className="flex cursor-pointer rounded p-0.5 hover:bg-surface-gray-4"
+                  onClick={(event) => event.stopPropagation()}
                 >
                   <DotHorizontal className="size-4" />
                 </button>
