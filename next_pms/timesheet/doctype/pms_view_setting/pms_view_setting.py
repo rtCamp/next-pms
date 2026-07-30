@@ -106,6 +106,7 @@ def update_view(view: dict):
     doc.route = view.route
     doc.default = view.default or 0
     doc.public = view.public or 0
+    doc.icon = view.icon
     doc.pinned_columns = json.dumps(view.pinnedColumns)
     doc.save()
     updated_view = doc.as_dict()

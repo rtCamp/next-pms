@@ -67,6 +67,10 @@ export const ViewsProvider: FC<
 
   const appliedViewName = useRef<string | null>(null);
 
+  const currentFilters = Object.fromEntries(
+    filterParamKeys?.map((key) => [key, searchParams.get(key)]) ?? [],
+  );
+
   const applyView = useCallback(
     (view: View, options?: { replace?: boolean }) => {
       appliedViewName.current = String(view.name);
@@ -203,6 +207,7 @@ export const ViewsProvider: FC<
       await updateViewCall({
         view: {
           ...editingView,
+          filters: { ...editingView.filters, ...currentFilters },
           label: label,
           icon: icon,
           public: isPublic ? 1 : 0,
@@ -211,7 +216,7 @@ export const ViewsProvider: FC<
       });
       await mutate();
     },
-    [updateViewCall, mutate, doctype, editingView],
+    [updateViewCall, mutate, doctype, editingView, currentFilters],
   );
 
   const updateView = useCallback(
