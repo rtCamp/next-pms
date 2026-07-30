@@ -44,7 +44,7 @@ export const useRemainingHours = ({
   return {
     maxDuration: data?.message?.working_hour ?? FALLBACK_DAILY_WORKING_HOURS,
     hoursLeft: data?.message?.remaining_hours ?? FALLBACK_DAILY_WORKING_HOURS,
-    isLoading: shouldFetch && (isValidating || !data),
+    isLoading: shouldFetch && isValidating,
     refresh: mutate,
   };
 };
