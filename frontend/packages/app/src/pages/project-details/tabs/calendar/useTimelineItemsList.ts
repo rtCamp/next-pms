@@ -64,7 +64,11 @@ export function useTimelineItemsList(
 
   const items = useMemo(
     () =>
-      (data ?? []).flatMap((page) => page.message.data.map(mapTimelineItem)),
+      (data ?? []).flatMap((page) =>
+        page.message.data
+          .filter((item) => item.planned_end_date !== null)
+          .map(mapTimelineItem),
+      ),
     [data],
   );
 
