@@ -9,6 +9,7 @@ from next_pms.resource_management.api.utils.query import get_employee_leaves
 
 EMPLOYEE_USER = "leave-realtime-test@example.com"
 LEAVE_TYPE = "Leave Realtime Test LWP"
+HOLIDAY_LIST = "Leave Realtime Test Holiday List"
 
 PUBLISH_TARGET = "next_pms.timesheet.doc_events.timesheet.publish_timesheet_update"
 
@@ -30,9 +31,27 @@ class LeaveRealtimeTestCase(IntegrationTestCase):
         cls._prev_first_day_of_the_week = frappe.db.get_default("first_day_of_the_week")
         frappe.db.set_default("first_day_of_the_week", "Monday")
 
-        from next_pms.tests.utils import make_employee
+        from next_pms.tests.utils import make_employee, make_holiday_list
 
         cls.employee = make_employee(EMPLOYEE_USER, company=get_default_company(), leave_approver="Administrator")
+
+        # HRMS refuses to insert a Leave Application unless the employee resolves a
+        # holiday list, and resolution goes through Holiday List Assignment, not
+        # Employee.holiday_list. Spans all of 2026 to cover every fixed test date.
+        holiday_list = make_holiday_list(HOLIDAY_LIST, from_date="2026-01-01", to_date="2026-12-31")
+        if not frappe.db.exists(
+            "Holiday List Assignment",
+            {"assigned_to": cls.employee, "from_date": "2026-01-01", "docstatus": 1},
+        ):
+            frappe.get_doc(
+                {
+                    "doctype": "Holiday List Assignment",
+                    "applicable_for": "Employee",
+                    "assigned_to": cls.employee,
+                    "holiday_list": holiday_list.name,
+                    "from_date": "2026-01-01",
+                }
+            ).insert(ignore_permissions=True).submit()
 
         if not frappe.db.exists("Leave Type", LEAVE_TYPE):
             frappe.get_doc({"doctype": "Leave Type", "leave_type_name": LEAVE_TYPE, "is_lwp": 1}).insert()
