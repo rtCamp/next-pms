@@ -1,6 +1,7 @@
 /**
  * Internal dependencies.
  */
+import { ROUTES } from "@/lib/constant";
 import { currencyFormat, formatPercentage } from "@/lib/utils";
 import { ContractsTable } from "./components/contractsTable";
 import { CostBurnCell } from "./components/costBurn";
@@ -22,6 +23,7 @@ export function Tracking() {
 }
 
 function TrackingContent() {
+  const projectId = useProjectDetail((s) => s.projectId);
   const currency = useProjectDetail((s) => s.project?.custom_currency);
   const tracking = useTracking((state) => state.tracking);
 
@@ -34,6 +36,9 @@ function TrackingContent() {
           value={currencyFormat(currency).format(
             tracking.total_project_value ?? 0,
           )}
+          href={`${ROUTES.desk}/sales-order?status=Cancelled&project=${encodeURIComponent(
+            projectId,
+          )}`}
         />
         <KnowledgePoint
           title="Projected profit"

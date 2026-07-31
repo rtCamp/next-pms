@@ -1,0 +1,38 @@
+name: Semantic Commits
+
+on:
+  pull_request:
+
+jobs:
+  commitlint:
+    name: Semantic Commits
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install commitlint
+        run: npm install --no-save @commitlint/cli @commitlint/config-conventional
+
+      - name: Check commit titles
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          GRANDFATHER_SHA=44d2d72f1d9d34ab2beb2f96c628391153503ffa
+
+          if git merge-base --is-ancestor "$GRANDFATHER_SHA" "$BASE_SHA" \
+            || ! git merge-base --is-ancestor "$GRANDFATHER_SHA" "$HEAD_SHA"; then
+            FROM="$BASE_SHA"
+          else
+            FROM="$GRANDFATHER_SHA"
+          fi
+
+          npx commitlint --verbose --from "$FROM" --to "$HEAD_SHA"

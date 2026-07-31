@@ -69,8 +69,7 @@ export interface ProjectRecord {
   all_week_data: ProjectWeekData[];
   all_dates_data: Record<string, ProjectDateData>;
   project_allocations:
-    | Record<string, ProjectResourceAllocation>
-    | ProjectResourceAllocation[];
+    Record<string, ProjectResourceAllocation> | ProjectResourceAllocation[];
 }
 
 export interface ProjectAllocationResponse {

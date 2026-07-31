@@ -3,6 +3,7 @@
  */
 import { useCallback } from "react";
 import type { PropsWithChildren } from "react";
+import { useDocumentTitle } from "@next-pms/hooks";
 import {
   useFrappeDocumentEventListener,
   useFrappeGetDoc,
@@ -31,6 +32,8 @@ export function ProjectDetailProvider({
     "Project",
     projectId,
   );
+
+  useDocumentTitle(data?.project_name, false);
 
   const { updateDoc } = useFrappeUpdateDoc();
 

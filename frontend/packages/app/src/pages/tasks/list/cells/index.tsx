@@ -1,6 +1,7 @@
 /**
  * Internal dependencies.
  */
+import { formatHours } from "@/lib/utils";
 import type { OpenAddTimeDialogOptions } from "@/pages/timesheet/outletContext";
 import { AddTimeCell } from "./addTimeCell";
 import { DateCell } from "./dateCell";
@@ -13,6 +14,15 @@ import { TextCell } from "./textCell";
 import type { ListViewColumn } from "../../types";
 import type { TaskListItem } from "../types";
 
+const MANAGER_ROLES = ["Projects Manager", "Delivery Manager", "Delivery User"];
+
+function canUserDelete(row: TaskListItem, userId?: string, roles?: string[]) {
+  return (
+    roles &&
+    (MANAGER_ROLES.some((r) => roles.includes(r)) || row.owner === userId)
+  );
+}
+
 export function TaskListCell({
   row,
   column,
@@ -20,6 +30,8 @@ export function TaskListCell({
   onAddTime,
   onEditTask,
   onDeleteTask,
+  userId,
+  roles,
 }: {
   row: TaskListItem;
   column: ListViewColumn;
@@ -27,6 +39,8 @@ export function TaskListCell({
   onAddTime?: (prefill: OpenAddTimeDialogOptions) => void;
   onEditTask?: (task: TaskListItem) => void;
   onDeleteTask?: (name: string) => void;
+  userId?: string;
+  roles?: string[];
 }) {
   switch (column.key) {
     case "subject":
@@ -41,6 +55,8 @@ export function TaskListCell({
       return <TextCell text={row.project_name} />;
     case "status":
       return <StatusCell status={row.status} />;
+    case "expected_time":
+      return <TextCell text={formatHours(row.expected_time)} />;
     case "priority":
       return <PriorityCell priority={row.priority} />;
     case "exp_end_date":
@@ -55,6 +71,7 @@ export function TaskListCell({
           name={row.name}
           onEdit={() => onEditTask?.(row)}
           onDelete={onDeleteTask}
+          canDelete={canUserDelete(row, userId, roles)}
         />
       );
     default:
