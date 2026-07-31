@@ -7,6 +7,7 @@ import { type PaginationKey, usePagination } from "@next-pms/hooks";
 /**
  * Internal dependencies.
  */
+import { useFrappeDocTypeEventListener } from "frappe-react-sdk";
 import { useProjectFilters } from "../components/project-filters/useProjectFilters";
 import { PROJECT_LIST_PAGE_SIZE, PROJECTS_VIEW_METHOD } from "../constants";
 import { ProjectListContext, type ProjectListContextProps } from "./context";
@@ -45,7 +46,7 @@ export function ProjectListProvider({ children }: PropsWithChildren) {
     [querySignature],
   );
 
-  const { data, error, isLoading, isValidating, size, setSize } =
+  const { data, error, isLoading, isValidating, size, setSize, mutate } =
     usePagination<ResponseProjectList>(
       PROJECTS_VIEW_METHOD,
       getKey,
@@ -63,6 +64,10 @@ export function ProjectListProvider({ children }: PropsWithChildren) {
         keepPreviousData: false,
       },
     );
+
+  useFrappeDocTypeEventListener("Project", () => {
+    mutate();
+  });
 
   const projects = useMemo(
     () => (data ?? []).flatMap((page) => page.message?.data ?? []),

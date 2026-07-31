@@ -140,19 +140,28 @@ export const ViewsProvider: FC<
       icon: string;
       isPublic: boolean;
     }) => {
-      await createViewCall({
-        view: {
-          label: label,
-          public: isPublic ? 1 : 0,
-          icon: icon,
-          dt: doctype,
-          type: type,
-          filters: filters,
-        },
-      });
-      await mutate();
+      try {
+        const { message } = await createViewCall({
+          view: {
+            label: label,
+            public: isPublic ? 1 : 0,
+            icon: icon,
+            dt: doctype,
+            type: type,
+            filters: filters,
+          },
+        });
+        await mutate();
+        toast.success("View Created");
+        if (Array.isArray(message) && message.length > 0) {
+          applyView(message[0]);
+        }
+      } catch (error) {
+        const message = parseFrappeErrorMsg(error as FrappeError);
+        toast.error(message);
+      }
     },
-    [createViewCall, mutate, doctype, type, filters],
+    [createViewCall, mutate, doctype, type, filters, toast, applyView],
   );
 
   const duplicateView = useCallback(

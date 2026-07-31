@@ -8,7 +8,6 @@ import {
   ErrorMessage,
   Switch,
   TextInput,
-  useToasts,
 } from "@rtcamp/frappe-ui-react";
 import { useForm } from "@tanstack/react-form";
 
@@ -24,7 +23,6 @@ function CreateViewModal({
   onOpenChange,
   createView,
 }: CreateViewModalProps) {
-  const toast = useToasts();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const form = useForm({
@@ -45,12 +43,7 @@ function CreateViewModal({
           isPublic: value.isPublic,
           icon: value.icon,
         });
-        toast.success("View created successfully");
         closeModal();
-      } catch (error) {
-        toast.error(
-          error instanceof Error ? error.message : "Failed to create view",
-        );
       } finally {
         setIsSubmitting(false);
       }
