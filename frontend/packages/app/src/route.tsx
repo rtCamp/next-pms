@@ -94,6 +94,7 @@ export function Router() {
   const TimesheetProject = routeConfig["timesheet-project"].Component;
   const AllocationsTeam = routeConfig["allocations-team"].Component;
   const AllocationsProject = routeConfig["allocations-project"].Component;
+  const TasksPage = routeConfig["task"].Component;
   const NotFound = routeConfig["not-found"].Component;
 
   return (
@@ -136,6 +137,15 @@ export function Router() {
             }
           >
             <Route path={ROUTES.project} element={<ProjectList />} />
+          </Route>
+          <Route
+            element={
+              <RoleProtectedRoute
+                allowedRoles={routeConfig["task"].allowedRoles}
+              />
+            }
+          >
+            <Route path={ROUTES.task} element={<TasksPage />} />
           </Route>
           <Route
             path={`${ROUTES.project}/:projectId`}
@@ -210,6 +220,10 @@ const RoleProtectedRoute = ({ allowedRoles }: { allowedRoles: Role[] }) => {
 
   if (isLoading) {
     return <Spinner isFull />;
+  }
+
+  if (allowedRoles.length == 0) {
+    return <Outlet />;
   }
 
   const hasAccess =
