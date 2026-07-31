@@ -20,7 +20,12 @@ import {
  * Internal dependencies.
  */
 import { COLUMN_WIDTH, MIN_CARD_DAYS } from "./constants";
-import type { ProjectTimelineItem } from "./types";
+import type {
+  ApiTimelineItem,
+  ApiUserRef,
+  ProjectTimelineItem,
+  UserRef,
+} from "./types";
 
 // Gantt utils
 
@@ -182,4 +187,29 @@ export function groupByDate(
     map.get(key)!.push(item);
   }
   return map;
+}
+
+// API mapping utils
+
+export function mapUserRef(raw: ApiUserRef): UserRef {
+  return {
+    name: raw.user,
+    fullName: raw.full_name,
+    avatar: raw.image ?? undefined,
+  };
+}
+
+export function mapTimelineItem(raw: ApiTimelineItem): ProjectTimelineItem {
+  return {
+    id: raw.name,
+    title: raw.title,
+    project: raw.project,
+    type: raw.type,
+    isComplete: Boolean(raw.is_complete),
+    startDate: raw.start_date ?? undefined,
+    plannedEndDate: raw.planned_end_date as string,
+    actualEndDate: raw.actual_end_date ?? undefined,
+    owner: raw.owner ? mapUserRef(raw.owner) : { name: "", fullName: "" },
+    watchers: (raw.watchers ?? []).map(mapUserRef),
+  };
 }
