@@ -34,7 +34,7 @@ export function KnowledgePoint({ title, value, href }: KnowledgePointProps) {
         rel="noreferrer noopener"
         className={cn(
           CARD_CLASSNAME,
-          "cursor-pointer transition-colors hover:border-outline-gray-3",
+          "cursor-pointer transition-colors hover:border-outline-gray-3 focus:outline-none focus-visible:ring-2 focus-visible:ring-outline-gray-3",
         )}
       >
         {content}
