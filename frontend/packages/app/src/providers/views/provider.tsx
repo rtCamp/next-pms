@@ -78,18 +78,20 @@ export const ViewsProvider: FC<
 
           filterParamKeys?.forEach((key) => {
             const value = view.filters?.[key];
-            if (value === undefined || value === null) {
-              params.delete(key);
-            } else {
+            if (value) {
               params.set(
                 key,
                 typeof value === "string" ? value : JSON.stringify(value),
               );
+            } else if (value === null) {
+              params.delete(key);
             }
           });
 
           const [sort] = view.order_by ?? [];
           if (typeof sort === "string" && sort) {
+            console.log(sort);
+
             const [field, order] = sort.split(" ");
             params.set("sortField", field);
             params.set("sortOrder", order ?? "desc");
