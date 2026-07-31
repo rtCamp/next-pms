@@ -105,8 +105,14 @@ export function useProjectFilters() {
           { replace: true },
         );
       } else {
-        setParam("sortField", v.field);
-        setParam("sortOrder", v.order);
+        setSearchParams(
+          (prev) => {
+            prev.set("sortField", v.field);
+            prev.set("sortOrder", v.order);
+            return prev;
+          },
+          { replace: true },
+        );
       }
     },
     [setParam, setSearchParams],
