@@ -87,7 +87,7 @@ const AddTime = ({
         date: date,
         duration: 0,
         comment: "",
-      }) as addTimeFormValues,
+      }) satisfies addTimeFormValues,
     [project, projectLabel, task, taskLabel],
   );
 
