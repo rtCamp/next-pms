@@ -35,8 +35,8 @@ export interface ViewsContextProps {
     editView: (view: View) => void;
     /** Updates an existing view and refreshes the list. The provider's doctype is applied automatically. */
     updateView: (view: Omit<Partial<View>, "dt">) => Promise<void>;
-    /** Deletes a saved view by name and refreshes the list. */
-    deleteView: (name: string) => Promise<void>;
+    /** Opens the delete confirmation dialog for the given saved view. */
+    deleteView: (view: View) => void;
     /** Re-fetches the views from the server. */
     refresh: () => Promise<void>;
   };
@@ -56,7 +56,7 @@ export const ViewsContext = createContext<ViewsContextProps>({
     duplicateView: () => Promise.resolve(),
     editView: () => null,
     updateView: () => Promise.resolve(),
-    deleteView: () => Promise.resolve(),
+    deleteView: () => null,
     refresh: () => Promise.resolve(),
   },
 });

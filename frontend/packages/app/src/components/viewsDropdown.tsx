@@ -134,7 +134,7 @@ function ViewsDropdown({
                 label: "Delete",
                 icon: <Delete className="size-4 mr-2" />,
                 theme: "red",
-                onClick: () => deleteView(String(view.name)),
+                onClick: () => deleteView(view),
               },
             ],
           },

@@ -11,6 +11,7 @@ import {
   useState,
 } from "react";
 import { useSearchParams } from "react-router";
+import { DeleteActionDialog } from "@next-pms/design-system/components";
 import { useToasts } from "@rtcamp/frappe-ui-react";
 import {
   FrappeError,
@@ -42,6 +43,7 @@ export const ViewsProvider: FC<
   const [type, settype] = useState("");
   const [filters, setFilters] = useState<Record<string, unknown>>({});
   const [editingView, setEditingView] = useState<View | null>(null);
+  const [deletingView, setDeletingView] = useState<View | null>(null);
 
   const { data, isLoading, mutate } = useFrappeGetCall<{ message: View[] }>(
     "next_pms.timesheet.doctype.pms_view_setting.pms_view_setting.get_view",
@@ -67,10 +69,6 @@ export const ViewsProvider: FC<
 
   const appliedViewName = useRef<string | null>(null);
 
-  const currentFilters = Object.fromEntries(
-    filterParamKeys?.map((key) => [key, searchParams.get(key)]) ?? [],
-  );
-
   const applyView = useCallback(
     (view: View, options?: { replace?: boolean }) => {
       appliedViewName.current = String(view.name);
@@ -80,13 +78,13 @@ export const ViewsProvider: FC<
 
           filterParamKeys?.forEach((key) => {
             const value = view.filters?.[key];
-            if (value) {
+            if (value === undefined || value === null) {
+              params.delete(key);
+            } else {
               params.set(
                 key,
                 typeof value === "string" ? value : JSON.stringify(value),
               );
-            } else if (value === null) {
-              params.delete(key);
             }
           });
 
@@ -140,16 +138,6 @@ export const ViewsProvider: FC<
       icon: string;
       isPublic: boolean;
     }) => {
-      let _filters;
-
-      if (filterParamKeys) {
-        _filters = Object.fromEntries(
-          filterParamKeys.map((key) => [key, filters[key] ?? null]),
-        );
-      } else {
-        _filters = filters;
-      }
-
       await createViewCall({
         view: {
           label: label,
@@ -157,12 +145,12 @@ export const ViewsProvider: FC<
           icon: icon,
           dt: doctype,
           type: type,
-          filters: _filters,
+          filters: filters,
         },
       });
       await mutate();
     },
-    [createViewCall, mutate, doctype, type, filters, filterParamKeys],
+    [createViewCall, mutate, doctype, type, filters],
   );
 
   const duplicateView = useCallback(
@@ -207,7 +195,6 @@ export const ViewsProvider: FC<
       await updateViewCall({
         view: {
           ...editingView,
-          filters: { ...editingView.filters, ...currentFilters },
           label: label,
           icon: icon,
           public: isPublic ? 1 : 0,
@@ -216,7 +203,7 @@ export const ViewsProvider: FC<
       });
       await mutate();
     },
-    [updateViewCall, mutate, doctype, editingView, currentFilters],
+    [updateViewCall, mutate, doctype, editingView],
   );
 
   const updateView = useCallback(
@@ -230,13 +217,17 @@ export const ViewsProvider: FC<
         toast.error(message);
       }
     },
-    [updateViewCall, mutate, doctype],
+    [updateViewCall, mutate, doctype, toast],
   );
 
-  const deleteView = useCallback(
-    async (name: string) => {
+  const deleteView = useCallback((view: View) => {
+    setDeletingView(view);
+  }, []);
+
+  const _deleteView = useCallback(
+    async (view: View) => {
       try {
-        await deleteDoc("PMS View Setting", name);
+        await deleteDoc("PMS View Setting", String(view.name));
         await mutate();
         toast.success("View Deleted");
       } catch (error) {
@@ -306,6 +297,14 @@ export const ViewsProvider: FC<
         view={editingView}
         editView={_editView}
       />
+      {deletingView ? (
+        <DeleteActionDialog
+          title="Delete view"
+          description={`Are you sure you want to delete "${deletingView.label}"? This action cannot be undone.`}
+          onClose={() => setDeletingView(null)}
+          onConfirm={() => _deleteView(deletingView)}
+        />
+      ) : null}
     </ViewsContext.Provider>
   );
 };
