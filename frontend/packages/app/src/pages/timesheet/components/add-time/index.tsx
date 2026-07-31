@@ -274,14 +274,14 @@ const AddTime = ({
           <Button
             className="w-full"
             variant="subtle"
-            label="Save entry and add another"
+            label="Save and add another"
             onClick={() => form.handleSubmit({ keepOpen: true })}
             disabled={submitting}
           />
           <Button
             className="w-full"
             variant="solid"
-            label="Save entry and close"
+            label="Save and close"
             onClick={() => form.handleSubmit()}
             disabled={submitting}
             loading={submitting}
