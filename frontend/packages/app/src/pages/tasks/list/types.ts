@@ -11,6 +11,7 @@ export type TaskListItem = {
   expected_time: number;
   custom_is_billable?: boolean;
   _liked_by: string;
+  owner: string;
 };
 
 export type ResponseTaskList = {

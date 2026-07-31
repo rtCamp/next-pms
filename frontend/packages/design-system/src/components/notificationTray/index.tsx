@@ -84,13 +84,15 @@ export default function NotificationTray({
                     No notifications yet.
                   </p>
                 ) : (
-                  notifications.map((notification) => (
-                    <NotificationItem
-                      key={notification.id}
-                      notification={notification}
-                      onSelect={onNotificationClick}
-                    />
-                  ))
+                  notifications
+                    .filter((n) => !n.read)
+                    .map((notification) => (
+                      <NotificationItem
+                        key={notification.id}
+                        notification={notification}
+                        onSelect={onNotificationClick}
+                      />
+                    ))
                 )}
               </ScrollArea.Content>
             </ScrollArea.Viewport>
