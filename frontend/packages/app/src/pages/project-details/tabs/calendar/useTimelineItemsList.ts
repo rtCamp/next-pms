@@ -1,7 +1,7 @@
 /**
  * External dependencies.
  */
-import { useCallback, useMemo } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { type PaginationKey, usePagination } from "@next-pms/hooks";
 
 /**
@@ -17,11 +17,19 @@ export function useTimelineItemsList(
   projectId: string,
   type: TimelineItemType,
   search: string,
-  enabled: boolean,
+  active: boolean,
 ) {
+  // Latches true once the list is first viewed, so the SWR key stays live even
+  // after switching views — otherwise mutate() from other views is a no-op and
+  // edits never invalidate this list's cache.
+  const [everActive, setEverActive] = useState(active);
+  useEffect(() => {
+    if (active) setEverActive(true);
+  }, [active]);
+
   const querySignature = useMemo(
-    () => JSON.stringify({ projectId, type, search, enabled }),
-    [projectId, type, search, enabled],
+    () => JSON.stringify({ projectId, type, search, everActive }),
+    [projectId, type, search, everActive],
   );
 
   const getKey = useCallback(
@@ -29,11 +37,11 @@ export function useTimelineItemsList(
       pageIndex: number,
       previousPageData: ListPage | null,
     ): PaginationKey | null => {
-      if (!enabled || !projectId) return null;
+      if (!everActive || !projectId) return null;
       if (previousPageData && !previousPageData.message.has_more) return null;
       return [querySignature, pageIndex] as const;
     },
-    [enabled, projectId, querySignature],
+    [everActive, projectId, querySignature],
   );
 
   const { data, error, isLoading, isValidating, size, setSize, mutate } =
