@@ -1,4 +1,4 @@
-def on_update(doc, mehod=None):
+def on_update(doc, method=None):
     flush_cache(doc)
     publish_updates(doc)
 
