@@ -90,8 +90,6 @@ export const ViewsProvider: FC<
 
           const [sort] = view.order_by ?? [];
           if (typeof sort === "string" && sort) {
-            console.log(sort);
-
             const [field, order] = sort.split(" ");
             params.set("sortField", field);
             params.set("sortOrder", order ?? "desc");
@@ -140,6 +138,15 @@ export const ViewsProvider: FC<
       icon: string;
       isPublic: boolean;
     }) => {
+      let _filters;
+
+      if (filterParamKeys) {
+        _filters = Object.fromEntries(
+          filterParamKeys.map((key) => [key, filters[key] ?? null]),
+        );
+      } else {
+        _filters = filters;
+      }
       try {
         const { message } = await createViewCall({
           view: {
@@ -148,7 +155,7 @@ export const ViewsProvider: FC<
             icon: icon,
             dt: doctype,
             type: type,
-            filters: filters,
+            filters: _filters,
           },
         });
         await mutate();
@@ -161,7 +168,16 @@ export const ViewsProvider: FC<
         toast.error(message);
       }
     },
-    [createViewCall, mutate, doctype, type, filters, toast, applyView],
+    [
+      createViewCall,
+      mutate,
+      doctype,
+      type,
+      filters,
+      toast,
+      applyView,
+      filterParamKeys,
+    ],
   );
 
   const duplicateView = useCallback(
