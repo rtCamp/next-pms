@@ -50,7 +50,7 @@ function ProjectsHeader({ label, children }: ProjectsHeaderProps) {
       deleteView={deleteView}
       createView={() =>
         createView({
-          type: "List",
+          type: activeView.type,
           filters: Object.fromEntries(
             [...searchParams.entries()].filter(([key]) => key !== "view"),
           ),
