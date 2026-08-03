@@ -96,6 +96,23 @@ export type Project = {
   project_name: string;
 };
 
+export interface View {
+  name: string;
+  label: string;
+  icon?: string | ComponentType<{ className?: string }>;
+  user?: string | null;
+  default: 0 | 1;
+  public: 0 | 1;
+  dt: string;
+  type: "List" | "Custom";
+  route?: string;
+  columns: unknown[];
+  rows: string[];
+  filters: Record<string, unknown>;
+  order_by: unknown[];
+  pinnedColumns: string[];
+}
+
 /**
  * Route configuration keyed by ROUTES keys.
  */

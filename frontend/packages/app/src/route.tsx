@@ -62,12 +62,7 @@ export const routeConfig: Record<
     title: "Manager Dashboard",
   },
   project: {
-    Component: ReactLazyPreload(() => import("@/pages/projects/list")),
-    allowedRoles: ["Projects Manager", "Timesheet Manager", "Projects User"],
-    title: "Projects",
-  },
-  "project-kanban": {
-    Component: ReactLazyPreload(() => import("@/pages/projects/kanban")),
+    Component: ReactLazyPreload(() => import("@/pages/projects")),
     allowedRoles: ["Projects Manager", "Timesheet Manager", "Projects User"],
     title: "Projects",
   },
@@ -112,13 +107,12 @@ export function Router() {
   const LeadershipDashboard = routeConfig["dashboard-leadership"].Component;
   const ManagerDashboard = routeConfig["dashboard-manager"].Component;
   const ProjectList = routeConfig.project.Component;
-  const ProjectKanban = routeConfig["project-kanban"].Component;
-  const TaskList = routeConfig.task.Component;
   const TimesheetPersonal = routeConfig["timesheet-personal"].Component;
   const TimesheetTeam = routeConfig["timesheet-team"].Component;
   const TimesheetProject = routeConfig["timesheet-project"].Component;
   const AllocationsTeam = routeConfig["allocations-team"].Component;
   const AllocationsProject = routeConfig["allocations-project"].Component;
+  const TaskList = routeConfig["task"].Component;
   const NotFound = routeConfig["not-found"].Component;
 
   return (
@@ -180,27 +174,19 @@ export function Router() {
           <BaseRoute
             element={
               <RoleProtectedRoute
-                allowedRoles={routeConfig["project-kanban"].allowedRoles}
+                allowedRoles={routeConfig["task"].allowedRoles}
               />
             }
           >
             <BaseRoute
-              path={ROUTES["project-kanban"]}
+              path={ROUTES.task}
               element={
-                <Route title={routeConfig["project-kanban"].title}>
-                  <ProjectKanban />
+                <Route title={routeConfig.task.title}>
+                  <TaskList />
                 </Route>
               }
             />
           </BaseRoute>
-          <BaseRoute
-            path={ROUTES.task}
-            element={
-              <Route title={routeConfig.task.title}>
-                <TaskList />
-              </Route>
-            }
-          />
           <BaseRoute
             path={`${ROUTES.project}/:projectId`}
             element={<ProjectDetail />}
@@ -301,6 +287,10 @@ const RoleProtectedRoute = ({ allowedRoles }: { allowedRoles: Role[] }) => {
 
   if (isLoading) {
     return <Spinner isFull />;
+  }
+
+  if (allowedRoles.length == 0) {
+    return <Outlet />;
   }
 
   const hasAccess =

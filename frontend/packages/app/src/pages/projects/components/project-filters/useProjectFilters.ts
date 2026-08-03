@@ -15,9 +15,9 @@ import type {
   ProjectListFilters,
   ProjectStatus,
   RagStatus,
-} from "../types";
+} from "../../types";
 
-const FILTER_PARAM_KEYS = [
+export const FILTER_PARAM_KEYS = [
   "search",
   "rag",
   "phase",
@@ -105,11 +105,17 @@ export function useProjectFilters() {
           { replace: true },
         );
       } else {
-        setParam("sortField", v.field);
-        setParam("sortOrder", v.order);
+        setSearchParams(
+          (prev) => {
+            prev.set("sortField", v.field);
+            prev.set("sortOrder", v.order);
+            return prev;
+          },
+          { replace: true },
+        );
       }
     },
-    [setParam],
+    [setParam, setSearchParams],
   );
   const resetFilters = useCallback(
     () =>

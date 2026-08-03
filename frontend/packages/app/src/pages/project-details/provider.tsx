@@ -5,7 +5,7 @@ import { useCallback } from "react";
 import type { PropsWithChildren } from "react";
 import { useDocumentTitle } from "@next-pms/hooks";
 import {
-  useFrappeDocTypeEventListener,
+  useFrappeDocumentEventListener,
   useFrappeGetDoc,
   useFrappeUpdateDoc,
 } from "frappe-react-sdk";
@@ -41,7 +41,7 @@ export function ProjectDetailProvider({
     mutate();
   }, [mutate]);
 
-  useFrappeDocTypeEventListener("Project", projectId, handleDocUpdate);
+  useFrappeDocumentEventListener("Project", projectId, handleDocUpdate);
 
   const updateRepositories = useCallback(
     async (repositories: RepositoryInput[]) => {
