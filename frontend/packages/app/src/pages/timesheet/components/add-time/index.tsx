@@ -67,7 +67,9 @@ const AddTime = ({
   const toast = useToasts();
   const [projectSearch, setProjectSearch] = useState("");
   const [taskSearch, setTaskSearch] = useState("");
-  const [submitting, setSubmitting] = useState(false);
+  const [submittingAction, setSubmittingAction] = useState<
+    "addAnother" | "close" | null
+  >(null);
   const commentEditorRef = useRef<TextEditorHandle>(null);
   const prevSelectedEventIdsRef = useRef<Set<string>>(new Set());
   const [submitError, setSubmitError] = useState<string | null>(null);
@@ -98,7 +100,7 @@ const AddTime = ({
     },
     onSubmitMeta: { keepOpen: false },
     onSubmit: async ({ value, meta }) => {
-      setSubmitting(true);
+      setSubmittingAction(meta.keepOpen ? "addAnother" : "close");
       setSubmitError(null);
       try {
         await saveTime({
@@ -118,7 +120,7 @@ const AddTime = ({
       } catch (err) {
         setSubmitError(parseFrappeErrorMsg(err as FrappeError));
       } finally {
-        setSubmitting(false);
+        setSubmittingAction(null);
       }
     },
   });
@@ -276,15 +278,16 @@ const AddTime = ({
             variant="subtle"
             label="Save and add another"
             onClick={() => form.handleSubmit({ keepOpen: true })}
-            disabled={submitting}
+            disabled={submittingAction !== null}
+            loading={submittingAction === "addAnother"}
           />
           <Button
             className="w-full"
             variant="solid"
             label="Save and close"
             onClick={() => form.handleSubmit()}
-            disabled={submitting}
-            loading={submitting}
+            disabled={submittingAction !== null}
+            loading={submittingAction === "close"}
           />
         </div>
       }
