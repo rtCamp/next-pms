@@ -99,6 +99,7 @@ def get_project_timeline_items(
     start_date: str | None = None,
     end_date: str | None = None,
     is_calendar: bool = False,
+    search: str | None = None,
 ):
     """
     Get all Project Timeline Items (complete and incomplete) for a project.
@@ -123,6 +124,8 @@ def get_project_timeline_items(
             interval-overlap date filtering
         is_calendar: Pass "1"/1/True to skip owner images and watchers (used for
             calendar/gantt views). Accepts "0"/"1" strings — coerced via cint().
+        search: Optional title substring filter (case-insensitive), used by the
+            List view to search across all of a project's items.
 
     Returns:
         {"data": [...], "total_count": int, "has_more": bool}
@@ -146,6 +149,9 @@ def get_project_timeline_items(
         # Interval overlap: item overlaps with [range_start, range_end) when
         # start_date < range_end AND planned_end_date > range_start
         query_base = query_base.where((PTI.start_date < range_end) & (PTI.planned_end_date > range_start))
+
+    if search:
+        query_base = query_base.where(PTI.title.like(f"%{search}%"))
 
     items = (
         query_base.select(*[PTI[field] for field in TIMELINE_ITEM_FIELDS])
