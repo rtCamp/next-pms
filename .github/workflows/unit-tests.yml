@@ -60,11 +60,15 @@ jobs:
         run: |
           bench get-app erpnext --branch version-16 --skip-assets
           bench get-app hrms --branch version-16 --skip-assets
+          # required_app of rtcamp
+          bench get-app helpdesk --branch main --skip-assets
           bench get-app frappe_gmail_thread https://github.com/rtCamp/frappe-gmail-thread --branch version-16 --skip-assets
           bench get-app frappe_comment_xt https://github.com/rtCamp/frappe-comment-xt --branch version-16-hotfix --skip-assets
+          # private repo: owns the Business Unit and Customer Feedback doctypes the team/feedback tests need
+          bench get-app rtcamp https://rtbot:${{ secrets.RTBOT_TOKEN }}@github.com/rtCamp/erp-rtcamp --branch version-16-hotfix --skip-assets
           bench get-app next_pms "$GITHUB_WORKSPACE" --skip-assets
           bench new-site --db-root-password root --admin-password admin --no-mariadb-socket test_site
-          bench --site test_site install-app erpnext hrms frappe_gmail_thread frappe_comment_xt next_pms
+          bench --site test_site install-app erpnext hrms helpdesk frappe_gmail_thread frappe_comment_xt rtcamp next_pms
         env:
           CI: "Yes"
 
