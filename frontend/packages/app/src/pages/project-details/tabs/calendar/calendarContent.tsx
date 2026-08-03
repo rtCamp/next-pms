@@ -78,15 +78,13 @@ export function CalendarContent() {
         </div>
 
         {/* Table */}
-        <div className="overflow-x-auto">
-          {activeView === "list" ? (
-            <TimelineListView />
-          ) : tableTab === "milestones" ? (
-            <MilestonesTable items={items} />
-          ) : (
-            <TouchpointsTable items={items} />
-          )}
-        </div>
+        {activeView === "list" ? (
+          <TimelineListView />
+        ) : tableTab === "milestones" ? (
+          <MilestonesTable items={items} />
+        ) : (
+          <TouchpointsTable items={items} />
+        )}
       </div>
 
       <CreateMilestoneModal
