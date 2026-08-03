@@ -251,6 +251,9 @@ doc_events = {
             "next_pms.resource_management.doctype.resource_allocation.resource_allocation.clear_cache",
             "next_pms.timesheet.doc_events.leave_application.on_cancel",
         ],
+        "after_delete": [
+            "next_pms.timesheet.doc_events.leave_application.after_delete",
+        ],
     },
     "Employee Skill Map": {
         "on_update": [

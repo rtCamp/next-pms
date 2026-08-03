@@ -2,10 +2,12 @@
  * Internal dependencies
  */
 import type { DataProp } from "@/types/timesheet";
-import { formatTimesheetWeekLabel } from "../utils";
+import { formatTimesheetWeekLabel, replaceLeavesForWeeks } from "../utils";
 
 /**
- * Merges existing timesheet data with new payload, ensuring no duplicate leaves and combining holidays and data.
+ * Merges existing timesheet data with new payload, combining holidays and data.
+ * The payload is authoritative for the leaves of the weeks it covers, so leaves
+ * cancelled or deleted on the server are dropped from the merged result.
  * @param existing The existing timesheet data to be merged with the new payload.
  * @param payload The new timesheet data that needs to be merged with the existing data.
  */
@@ -13,11 +15,6 @@ export const mergeTimesheetData = (
   existing: DataProp,
   payload: DataProp,
 ): DataProp => {
-  const existingLeaveIds = new Set(existing.leaves.map((leave) => leave.name));
-  const newLeaves = payload.leaves.filter(
-    (leave) => !existingLeaveIds.has(leave.name),
-  );
-
   return {
     ...existing,
     data: {
@@ -25,7 +22,11 @@ export const mergeTimesheetData = (
       ...payload.data,
     },
     holidays: [...existing.holidays, ...payload.holidays],
-    leaves: [...existing.leaves, ...newLeaves],
+    leaves: replaceLeavesForWeeks(
+      existing.leaves,
+      payload.leaves,
+      Object.values(payload.data),
+    ),
   };
 };
 
