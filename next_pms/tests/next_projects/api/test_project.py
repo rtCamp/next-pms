@@ -12,6 +12,7 @@ from next_pms.next_projects.api.project import (
     get_cost_forecasted,
     get_cost_forecasted_map,
     get_project_sidebar,
+    get_project_tracking,
     get_projects_view,
 )
 from next_pms.resource_management.api.allocation import upsert_day_override
@@ -616,3 +617,121 @@ class TestCostForecastedAdjustments(IntegrationTestCase):
         forecast = get_cost_forecasted_map(list(self.projects.values()))
         for suffix, project in self.projects.items():
             self.assertAlmostEqual(flt(forecast.get(project, 0.0)), self.forecast(suffix), msg=suffix)
+
+
+class TestSidebarBillingTeamGate(IntegrationTestCase):
+    """get_project_sidebar exposes billing team members only on Time and
+    Material projects; every other billing type gets an empty list even when
+    rows exist in the child table.
+    """
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.company = get_default_company()
+
+        employee = frappe.new_doc("Employee")
+        employee.update(
+            {
+                "naming_series": "EMP-",
+                "first_name": "SidebarTeam Member",
+                "company": cls.company,
+                "gender": "Female",
+                "date_of_birth": "1990-05-08",
+                "date_of_joining": "2013-01-01",
+                "status": "Active",
+                "employment_type": "Intern",
+                "leave_approver": "Administrator",
+            }
+        )
+        employee.insert(ignore_permissions=True)
+        cls.employee = employee.name
+
+        cls.projects = {}
+        for suffix, billing_type in {
+            "TNM": "Time and Material",
+            "FIXED": "Fixed Cost",
+            "RETAINER": "Retainer",
+        }.items():
+            name = (
+                frappe.get_doc(
+                    {
+                        "doctype": "Project",
+                        "project_name": f"SidebarTeam {suffix}",
+                        "company": cls.company,
+                    }
+                )
+                .insert(ignore_permissions=True)
+                .name
+            )
+            frappe.db.set_value("Project", name, "custom_billing_type", billing_type, update_modified=False)
+            frappe.get_doc(
+                {
+                    "doctype": "Project Billing Team",
+                    "parenttype": "Project",
+                    "parent": name,
+                    "parentfield": "custom_project_billing_team",
+                    "employee": cls.employee,
+                    "hourly_billing_rate": 100,
+                    "valid_from": today(),
+                }
+            ).insert(ignore_permissions=True)
+            cls.projects[suffix] = name
+
+        frappe.set_user("Administrator")
+        frappe.clear_cache()
+
+    def test_time_and_material_returns_members(self):
+        billing_team = get_project_sidebar(self.projects["TNM"])["billing_team"]
+        self.assertEqual(len(billing_team), 1)
+        self.assertEqual(billing_team[0]["employee_id"], self.employee)
+
+    def test_other_billing_types_return_empty(self):
+        for suffix in ("FIXED", "RETAINER"):
+            self.assertEqual(get_project_sidebar(self.projects[suffix])["billing_team"], [], msg=suffix)
+
+
+class TestTrackingBillingTables(IntegrationTestCase):
+    """get_project_tracking returns the contracts and project_rates tables for
+    Fixed Cost, Retainer and Time and Material projects, and None for
+    Non-Billable ones.
+    """
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.company = get_default_company()
+        cls.projects = {}
+        for suffix, billing_type in {
+            "TNM": "Time and Material",
+            "FIXED": "Fixed Cost",
+            "RETAINER": "Retainer",
+            "NONBILL": "Non-Billable",
+        }.items():
+            name = (
+                frappe.get_doc(
+                    {
+                        "doctype": "Project",
+                        "project_name": f"TrackingTables {suffix}",
+                        "company": cls.company,
+                    }
+                )
+                .insert(ignore_permissions=True)
+                .name
+            )
+            frappe.db.set_value("Project", name, "custom_billing_type", billing_type, update_modified=False)
+            cls.projects[suffix] = name
+
+        frappe.set_user("Administrator")
+        frappe.clear_cache()
+
+    def test_billable_types_get_both_tables(self):
+        for suffix in ("TNM", "FIXED", "RETAINER"):
+            tracking = get_project_tracking(self.projects[suffix])
+            self.assertIsInstance(tracking["contracts"], list, msg=suffix)
+            self.assertIsInstance(tracking["project_rates"], list, msg=suffix)
+
+    def test_non_billable_gets_neither_table(self):
+        tracking = get_project_tracking(self.projects["NONBILL"])
+        self.assertIsNone(tracking["contracts"])
+        self.assertIsNone(tracking["project_rates"])
