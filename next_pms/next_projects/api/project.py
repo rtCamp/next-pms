@@ -955,13 +955,13 @@ def get_project_tracking(project: str):
         expected_total_cost : float
             Static target/expected cost from the Project.
         contracts : list of dict or None
-            Project Budget rows. None for Non-Billable and T&M.
+            Project Budget rows. None for Non-Billable.
         lifetime_values : dict or None
             Billable-only lifetime value metrics (None for Non-Billable):
             lifetime_value_to_date, expected_lifetime_value,
             lifetime_value_vs_billed_amount (each float or None).
         project_rates : list of dict or None
-            Project Billing Team rows. None unless T&M.
+            Project Billing Team rows. None for Non-Billable.
             First element is always the flat-rate entry:
               flat_rate_hourly - custom_default_hourly_billing_rate (None if unset)
               flat_rate_valid_from - actual_start_date (None if unset)
@@ -1002,7 +1002,7 @@ def get_project_tracking(project: str):
     billing_type = p.custom_billing_type
     is_billable = billing_type != "Non-Billable"
     has_hours_pool = billing_type in ("Fixed Cost", "Retainer")
-    is_time_and_material = billing_type == "Time and Material"
+    shows_billing_tables = billing_type in ("Fixed Cost", "Retainer", "Time and Material")
 
     invoice_burn = _get_invoice_burn(project) if is_billable else None
     task_counts = _get_task_counts(project)
@@ -1019,7 +1019,7 @@ def get_project_tracking(project: str):
     total_contracted_hours = flt(p.custom_total_hours_purchased) if has_hours_pool else flt(p.custom_target_hours)
 
     contracts = None
-    if has_hours_pool:
+    if shows_billing_tables:
         contracts = [
             {
                 "name": row.name,
@@ -1049,7 +1049,7 @@ def get_project_tracking(project: str):
         ]
 
     project_rates = None
-    if is_time_and_material:
+    if shows_billing_tables:
         flat_rate_hourly = flt(p.custom_default_hourly_billing_rate) or None
         flat_rate_valid_from = p.actual_start_date
 
@@ -1128,7 +1128,8 @@ def get_project_sidebar(project: str):
         progress      - actual_time; total_hours_purchased (Retainer) or custom_target_hours (all other billing types)
         members       - users the project has been shared with
         customers     - contacts from custom_customer_contacts
-        billing_team  - billing team members (name, employee_id, user_id)
+        billing_team  - billing team members (name, employee_id, user_id);
+                        empty unless billing type is Time and Material
     """
     only_for(ALLOWED_ROLES, message=True)
 
@@ -1183,7 +1184,9 @@ def get_project_sidebar(project: str):
             project_doc.get("custom_engineering_manager"),
         ),
         "customers": _get_project_customers(project_doc),
-        "billing_team": _get_project_billing_team(project),
+        "billing_team": (
+            _get_project_billing_team(project) if project_doc.get("custom_billing_type") == "Time and Material" else []
+        ),
         "is_shared_with_everyone": bool(
             frappe.db.exists(
                 "DocShare",
