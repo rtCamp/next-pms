@@ -55,6 +55,19 @@ jobs:
           mysql --host 127.0.0.1 --port 3306 -u root -proot -e "SET GLOBAL character_set_server = 'utf8mb4'"
           mysql --host 127.0.0.1 --port 3306 -u root -proot -e "SET GLOBAL collation_server = 'utf8mb4_unicode_ci'"
 
+      # TEMPORARY diagnostic: remove once the erp-rtcamp clone authenticates.
+      - name: Probe RTBOT_TOKEN
+        run: |
+          if [ -z "${TOK}" ]; then echo "RTBOT_TOKEN: EMPTY (not available to this repo)"; else echo "RTBOT_TOKEN: present, ${#TOK} chars"; fi
+          curl -s -o /dev/null -w "api.github.com/user            -> %{http_code} (401 = expired/revoked)\n" \
+            -H "Authorization: token ${TOK}" https://api.github.com/user
+          curl -s -o /dev/null -w "repos/rtCamp/erp-rtcamp        -> %{http_code} (404 = valid token, no access)\n" \
+            -H "Authorization: token ${TOK}" https://api.github.com/repos/rtCamp/erp-rtcamp
+          curl -s -o /dev/null -w "erp-rtcamp.git/info/refs       -> %{http_code} (git transport)\n" \
+            -u "rtbot:${TOK}" https://github.com/rtCamp/erp-rtcamp.git/info/refs?service=git-upload-pack
+        env:
+          TOK: ${{ secrets.RTBOT_TOKEN }}
+
       - name: Install
         working-directory: /home/runner/frappe-bench
         run: |
