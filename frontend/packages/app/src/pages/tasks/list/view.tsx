@@ -41,6 +41,7 @@ function TaskList() {
   const openEditTaskModal = useTaskList((c) => c.actions.openEditTaskModal);
   const { sort, setSort } = useTaskFilters();
   const roles = useUser(({ state }) => state.roles);
+  const userId = useUser(({ state }) => state.userId);
   const showTeamTaskLog =
     roles.includes("Projects Manager") || roles.includes("Timesheet Manager");
   const [openTask, setOpenTask] = useState<string | null>(null);
@@ -133,6 +134,8 @@ function TaskList() {
                       onAddTime={handleAddTime}
                       onEditTask={openEditTaskModal}
                       onDeleteTask={setDeleteTaskName}
+                      userId={userId}
+                      roles={roles}
                     />
                   ))}
                 </ListRow>

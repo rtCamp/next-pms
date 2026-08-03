@@ -1,24 +1,21 @@
 /**
  * External dependencies.
  */
-import { useCallback, useMemo, useState, type PropsWithChildren } from "react";
+import { useCallback, useMemo, type PropsWithChildren } from "react";
 import { type PaginationKey, usePagination } from "@next-pms/hooks";
 
 /**
  * Internal dependencies.
  */
-import AddProjectModal from "../components/add-project";
-import { PROJECT_LIST_PAGE_SIZE } from "../constants";
+import { useFrappeDocTypeEventListener } from "frappe-react-sdk";
+import { useProjectFilters } from "../components/project-filters/useProjectFilters";
+import { PROJECT_LIST_PAGE_SIZE, PROJECTS_VIEW_METHOD } from "../constants";
 import { ProjectListContext, type ProjectListContextProps } from "./context";
-import { useProjectFilters } from "../hooks/useProjectFilters";
 import { buildListFrappeFilters } from "../utils";
 import type { ResponseProjectList } from "./types";
 
 export function ProjectListProvider({ children }: PropsWithChildren) {
   const { filters, sort } = useProjectFilters();
-  const [addProjectOpen, setAddProjectOpen] = useState(false);
-  const openAddProjectModal = useCallback(() => setAddProjectOpen(true), []);
-  const closeAddProjectModal = useCallback(() => setAddProjectOpen(false), []);
   const frappeFilters = useMemo(
     () => buildListFrappeFilters(filters),
     [filters],
@@ -27,6 +24,7 @@ export function ProjectListProvider({ children }: PropsWithChildren) {
   const querySignature = useMemo(
     () =>
       JSON.stringify({
+        method: PROJECTS_VIEW_METHOD,
         search: filters.search,
         frappeFilters,
         order_by: sort.field + " " + sort.order,
@@ -50,7 +48,7 @@ export function ProjectListProvider({ children }: PropsWithChildren) {
 
   const { data, error, isLoading, isValidating, size, setSize, mutate } =
     usePagination<ResponseProjectList>(
-      "next_pms.next_projects.api.project.get_projects_view",
+      PROJECTS_VIEW_METHOD,
       getKey,
       {
         view: "list",
@@ -66,6 +64,10 @@ export function ProjectListProvider({ children }: PropsWithChildren) {
         keepPreviousData: false,
       },
     );
+
+  useFrappeDocTypeEventListener("Project", () => {
+    mutate();
+  });
 
   const projects = useMemo(
     () => (data ?? []).flatMap((page) => page.message?.data ?? []),
@@ -89,34 +91,17 @@ export function ProjectListProvider({ children }: PropsWithChildren) {
         hasMore,
         isLoading,
         error,
-        addProjectOpen,
       },
       actions: {
         loadMore,
-        openAddProjectModal,
-        closeAddProjectModal,
       },
     }),
-    [
-      projects,
-      hasMore,
-      isLoading,
-      error,
-      loadMore,
-      addProjectOpen,
-      openAddProjectModal,
-      closeAddProjectModal,
-    ],
+    [projects, hasMore, isLoading, error, loadMore],
   );
 
   return (
     <ProjectListContext.Provider value={value}>
       {children}
-      <AddProjectModal
-        open={addProjectOpen}
-        onOpenChange={setAddProjectOpen}
-        onSuccess={() => mutate()}
-      />
     </ProjectListContext.Provider>
   );
 }

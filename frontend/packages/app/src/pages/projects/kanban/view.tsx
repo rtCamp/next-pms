@@ -23,6 +23,7 @@ import { KANBAN_COLUMN_WIDTH } from "./constants";
 import { Header } from "./header";
 import { ProjectCard } from "./projectCard";
 import type { KanbanProjectItem } from "./types";
+import type { OpenAddProject } from "../components/add-project/types";
 import { PHASES } from "../constants";
 
 type ProjectIdsByPhase = Record<Phase, string[]>;
@@ -51,7 +52,7 @@ function groupIdsByPhase(
   return out;
 }
 
-const KanbanView = () => {
+const KanbanView = ({ openAddProject }: { openAddProject: OpenAddProject }) => {
   const data = useProjectKanban((c) => c.state.data);
   const isLoading = useProjectKanban((c) => c.state.isLoading);
   const error = useProjectKanban((c) => c.state.error);
@@ -112,7 +113,7 @@ const KanbanView = () => {
           <Droppable
             key={phase}
             id={phase}
-            header={<Header phase={phase} />}
+            header={<Header phase={phase} openAddProject={openAddProject} />}
             style={{ width: KANBAN_COLUMN_WIDTH }}
           >
             {items[phase].map((id, index) => {

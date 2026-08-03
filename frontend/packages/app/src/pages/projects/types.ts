@@ -10,8 +10,6 @@ export type RagStatus = (typeof RAG_STATUS)[number];
 
 export type ProjectStatus = "Open" | "Completed" | "Cancelled";
 
-export type ProjectType = "Fixed cost" | "Retainer" | "External";
-
 export interface ProjectListFilters {
   search: string;
   ragStatus: RagStatus[];

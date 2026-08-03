@@ -34,15 +34,17 @@ export const useRemainingHours = ({
 }: UseRemainingHoursArgs) => {
   const shouldFetch = enabled && Boolean(employee) && Boolean(date);
 
-  const { data, isValidating } = useFrappeGetCall<RemainingHoursResponse>(
-    "next_pms.timesheet.api.timesheet.get_remaining_hour_for_employee",
-    { employee, date },
-    shouldFetch ? undefined : null,
-  );
+  const { data, isValidating, mutate } =
+    useFrappeGetCall<RemainingHoursResponse>(
+      "next_pms.timesheet.api.timesheet.get_remaining_hour_for_employee",
+      { employee, date },
+      shouldFetch ? undefined : null,
+    );
 
   return {
     maxDuration: data?.message?.working_hour ?? FALLBACK_DAILY_WORKING_HOURS,
     hoursLeft: data?.message?.remaining_hours ?? FALLBACK_DAILY_WORKING_HOURS,
     isLoading: shouldFetch && isValidating,
+    refresh: mutate,
   };
 };

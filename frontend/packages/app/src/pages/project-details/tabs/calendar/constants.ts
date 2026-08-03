@@ -7,3 +7,6 @@ export const MIN_CARD_DAYS = 1; // minimum card width in days
 
 // Calendar grid constants
 export const DAY_HEADERS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+
+// List view constants
+export const TIMELINE_LIST_PAGE_SIZE = 20;

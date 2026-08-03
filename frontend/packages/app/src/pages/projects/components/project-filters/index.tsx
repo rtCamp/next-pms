@@ -1,8 +1,7 @@
 /**
  * External dependencies.
  */
-import { useEffect, useState } from "react";
-import { useMatch } from "react-router";
+import { useEffect, useRef, useState } from "react";
 import { SortSelector } from "@next-pms/design-system/components";
 import {
   Select,
@@ -16,12 +15,12 @@ import {
  */
 import { FilterLinkValue } from "@/components/filters/FilterLinkValue";
 import { useDebounce } from "@/hooks/useDebounce";
-import { ROUTES } from "@/lib/constant";
-import { PHASE_OPTIONS, RAG_OPTIONS, STATUS_OPTIONS } from "../constants";
-import { useProjectFilters } from "../hooks/useProjectFilters";
-import { Phase, type ProjectStatus, type RagStatus } from "../types";
+import { useProjectFilters } from "./useProjectFilters";
+import { PHASE_OPTIONS, RAG_OPTIONS, STATUS_OPTIONS } from "../../constants";
+import { Phase, type ProjectStatus, type RagStatus } from "../../types";
+import { useProjectViews } from "../../views";
 
-export function ProjectListSubHeader() {
+export function ProjectFilters() {
   const {
     filters: { search, ragStatus, phase, status, advanced },
     sort,
@@ -31,6 +30,7 @@ export function ProjectListSubHeader() {
     setStatus,
     setAdvanced,
     setSort,
+    resetFilters,
   } = useProjectFilters();
 
   const externalFilterCount =
@@ -39,20 +39,20 @@ export function ProjectListSubHeader() {
     (phase ? 1 : 0) +
     (status ? 1 : 0);
 
-  const isKanban = !!useMatch(ROUTES["project-kanban"]);
+  const activeView = useProjectViews((state) => state.state.activeView);
+  const isKanban = activeView?.type.toLowerCase() === "custom";
 
   const [searchInput, setSearchInput] = useState(search);
+  const isUserInput = useRef(false);
   const debouncedSearch = useDebounce(searchInput, 400);
 
   useEffect(() => {
-    if (debouncedSearch !== searchInput || debouncedSearch === search) {
-      return;
-    }
-
-    setSearch(debouncedSearch);
-  }, [debouncedSearch, searchInput, search, setSearch]);
+    if (!isUserInput.current) return;
+    if (debouncedSearch !== search) setSearch(debouncedSearch);
+  }, [debouncedSearch, search, setSearch]);
 
   useEffect(() => {
+    isUserInput.current = false;
     setSearchInput(search);
   }, [search]);
 
@@ -65,7 +65,10 @@ export function ProjectListSubHeader() {
             size="sm"
             placeholder="Search project"
             value={searchInput}
-            onChange={(e) => setSearchInput(e.target.value)}
+            onChange={(e) => {
+              isUserInput.current = true;
+              setSearchInput(e.target.value);
+            }}
           />
         </div>
         <div className="w-44 shrink-0">
@@ -258,13 +261,7 @@ export function ProjectListSubHeader() {
             },
           ]}
           externalFilterCount={externalFilterCount}
-          onClearAll={() => {
-            setSearchInput("");
-            setSearch("");
-            setRagStatus([]);
-            setPhase("");
-            setStatus("");
-          }}
+          onClearAll={resetFilters}
         />
       </div>
     </div>

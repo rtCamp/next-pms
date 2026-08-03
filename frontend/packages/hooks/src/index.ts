@@ -10,3 +10,4 @@ export { useFrappeVersionUpdate } from "./useFrappeVersionUpdate";
 export { useProjectPhase } from "./useProjectPhase";
 export { useSavedState } from "./useSavedState";
 export { useToggleLike } from "./useToggleLike";
+export { useDocumentTitle } from "./useDocumentTitle";

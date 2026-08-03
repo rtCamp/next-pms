@@ -14,6 +14,7 @@ import { CreateMilestoneModal } from "./create-milestone";
 import { CreateTouchpointModal } from "./create-touchpoint";
 import { GanttView } from "./ganttView";
 import { MilestonesTable } from "./milestonesTable";
+import { TimelineListView } from "./timelineListView";
 import { TouchpointsTable } from "./touchpointsTable";
 import type { TableTab } from "./types";
 
@@ -43,9 +44,11 @@ export function CalendarContent() {
       </div>
 
       {/* Calendar or Gantt view */}
-      <div className="border-b border-gray-100 -mx-5">
-        {activeView === "calendar" ? <CalendarGrid /> : <GanttView />}
-      </div>
+      {activeView !== "list" && (
+        <div className="border-b border-gray-100 -mx-5">
+          {activeView === "calendar" ? <CalendarGrid /> : <GanttView />}
+        </div>
+      )}
 
       {/* Table section */}
       <div className="mt-4">
@@ -75,13 +78,13 @@ export function CalendarContent() {
         </div>
 
         {/* Table */}
-        <div className="overflow-x-auto">
-          {tableTab === "milestones" ? (
-            <MilestonesTable items={items} />
-          ) : (
-            <TouchpointsTable items={items} />
-          )}
-        </div>
+        {activeView === "list" ? (
+          <TimelineListView />
+        ) : tableTab === "milestones" ? (
+          <MilestonesTable items={items} />
+        ) : (
+          <TouchpointsTable items={items} />
+        )}
       </div>
 
       <CreateMilestoneModal
