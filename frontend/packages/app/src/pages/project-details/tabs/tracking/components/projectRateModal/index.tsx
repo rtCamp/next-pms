@@ -11,14 +11,17 @@ import {
   Dialog,
   ErrorMessage,
   TextInput,
+  useToasts,
 } from "@rtcamp/frappe-ui-react";
 import { Calendar } from "@rtcamp/frappe-ui-react/icons";
 import { useForm } from "@tanstack/react-form";
+import { type FrappeError } from "frappe-react-sdk";
 
 /**
  * Internal dependencies.
  */
 import { useEmployeeLookup } from "@/hooks/useEmployeeLookup";
+import { parseFrappeErrorMsg } from "@/lib/utils";
 import { useProjectDetail } from "@/pages/project-details/context";
 import { addProjectRateSchema } from "./schema";
 import type { ProjectRateFormValues, ProjectRateModalProps } from "./types";
@@ -36,6 +39,7 @@ export function ProjectRateModal({
   mode = "add",
   initialValues,
 }: ProjectRateModalProps) {
+  const toast = useToasts();
   const [employeeSearch, setEmployeeSearch] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const projectId = useProjectDetail((s) => s.projectId);
@@ -55,15 +59,22 @@ export function ProjectRateModal({
       onSubmit: addProjectRateSchema,
     },
     onSubmit: async ({ value }) => {
-      setSubmitting(true);
-      await onSubmit({
-        employee: value.employee,
-        hourlyRate: Number(value.hourlyRate),
-        validFrom: value.validFrom,
-      });
-      onOpenChange(false);
-      form.reset();
-      setSubmitting(false);
+      try {
+        setSubmitting(true);
+        await onSubmit({
+          employee: value.employee,
+          hourlyRate: Number(value.hourlyRate),
+          validFrom: value.validFrom,
+        });
+        toast.success("Project Rate Added");
+      } catch (error) {
+        const message = parseFrappeErrorMsg(error as FrappeError);
+        toast.error(message);
+      } finally {
+        onOpenChange(false);
+        form.reset();
+        setSubmitting(false);
+      }
     },
   });
 
