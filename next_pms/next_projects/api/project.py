@@ -6,6 +6,7 @@ from datetime import date
 from typing import Literal
 
 import frappe
+from erpnext.setup.utils import get_exchange_rate
 from frappe import get_list, only_for, whitelist
 from frappe.query_builder.functions import Coalesce, Count, Sum
 from frappe.utils import cint, flt, getdate, today
@@ -430,6 +431,33 @@ def enrich_project_for_kanban(project: dict) -> dict:
     }
 
 
+def _apply_currency_conversion(enriched_projects: list[dict], to_currency: str) -> None:
+    """Convert monetary fields to the target currency."""
+    # Early return if invalid currency to avoid silent failures
+    if not frappe.db.exists("Currency", to_currency):
+        return
+
+    from_currencies = {p["currency"] for p in enriched_projects if p.get("currency") and p["currency"] != to_currency}
+    if not from_currencies:
+        return
+
+    conversion_date = getdate(today())
+    rates = {fc: get_exchange_rate(fc, to_currency, conversion_date) or 1.0 for fc in from_currencies}
+
+    for project in enriched_projects:
+        from_currency = project.get("currency")
+        if not from_currency or from_currency == to_currency:
+            continue
+
+        rate = rates[from_currency]
+
+        if (value := project.get("burn_rate_per_week")) is not None:
+            project["burn_rate_per_week"] = flt(value) * rate
+
+        project["total_budget"] = flt(project.get("total_budget")) * rate
+        project["currency"] = to_currency
+
+
 def get_project_phases() -> list[dict]:
     """Get all project phases ordered by position."""
     phases = frappe.get_all(
@@ -449,6 +477,7 @@ def get_projects_view(
     start: int = 0,
     limit: int = 20,
     order_by: str = "modified desc",
+    currency: str | None = None,
 ):
     """
     Get projects for list view or kanban view.
@@ -460,6 +489,8 @@ def get_projects_view(
         start: Pagination offset
         limit: Page size
         order_by: Sort order
+        currency: If provided, all monetary values are converted to this
+            currency using today's exchange rate
 
     Returns:
         For list view: {"data": [...], "total_count": int, "has_more": bool}
@@ -541,6 +572,9 @@ def get_projects_view(
         enriched_projects = [
             enrich_project_with_calculated_fields(p, cost_forecasted_map, user_image_map) for p in projects
         ]
+
+        if currency:
+            _apply_currency_conversion(enriched_projects, currency)
 
         return {
             "data": enriched_projects,
