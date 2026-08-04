@@ -7,6 +7,7 @@ import { Tooltip } from "@rtcamp/frappe-ui-react";
 /**
  * Internal dependencies.
  */
+import { mergeClassNames as cn } from "@/lib/utils";
 import { FLOATING_LABEL_FLIP_THRESHOLD } from "./constants";
 import type { ProjectTimelineItem } from "./types";
 
@@ -47,13 +48,20 @@ export function FloatingChip({
         }
       >
         <div
-          className={`flex items-center justify-center rounded-md mx-0.5 shrink-0 ${chipClassName}`}
+          className={cn(
+            "flex items-center justify-center rounded-md mx-0.5 shrink-0",
+            chipClassName,
+          )}
           style={{ width: pos.width, height: 32 }}
         >
           <Icon className="size-3.5" />
         </div>
         <span
-          className={`text-sm whitespace-nowrap ${textClassName}${item.isComplete ? " line-through opacity-60" : ""}`}
+          className={cn(
+            "text-sm whitespace-nowrap",
+            textClassName,
+            item.isComplete && "line-through opacity-60",
+          )}
         >
           {item.title}
         </span>
