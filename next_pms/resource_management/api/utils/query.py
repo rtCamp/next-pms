@@ -250,13 +250,13 @@ def get_remaining_allocation_hours_by_project(
         days = (end - start).days + 1 if includes_weekends else _working_days_between(start, end)
         hours = days * hours_per_day
 
-        for entry in allocation.get("override") or []:
-            date = getdate(entry["date"])
+        for entry in allocation.override or []:
+            date = getdate(entry.date)
             if not start <= date <= end:
                 continue
             if not includes_weekends and date.weekday() >= 5:
                 continue
-            hours += (0 if cint(entry["cancelled"]) else flt(entry["hours"])) - hours_per_day
+            hours += (0 if cint(entry.cancelled) else flt(entry.hours)) - hours_per_day
 
         remaining_hours[allocation.project] = remaining_hours.get(allocation.project, 0.0) + hours
 
