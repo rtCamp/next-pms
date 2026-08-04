@@ -1,13 +1,15 @@
 import frappe
 from erpnext import get_company_currency
-from erpnext.projects.doctype.timesheet.timesheet import Timesheet
 from erpnext.setup.utils import get_exchange_rate
 from frappe.utils.data import flt, nowdate
+from hrms.overrides.employee_timesheet import EmployeeTimesheet
 
 from next_pms.utils.employee import get_employee_salary
 
 
-class TimesheetOverwrite(Timesheet):
+# Inheritance: erpnext.Timesheet -> hrms.EmployeeTimesheet -> TimesheetOverride
+# It inherits from HRMS EmployeeTimesheet to support custom project billing and costing.
+class TimesheetOverride(EmployeeTimesheet):
     ignore_backdated_validation = False
 
     def calculate_hours(self):

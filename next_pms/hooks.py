@@ -180,9 +180,9 @@ fixtures = [
 # Override standard doctype classes
 
 override_doctype_class = {
-    "Project": "next_pms.project_currency.overrides.project.ProjectOverwrite",
+    "Project": "next_pms.project_currency.overrides.project.ProjectOverride",
     "Customize Form": "next_pms.project_currency.overrides.customize_form.CustomizeFormOverride",
-    "Timesheet": "next_pms.project_currency.overrides.timesheet.TimesheetOverwrite",
+    "Timesheet": "next_pms.project_currency.overrides.timesheet.TimesheetOverride",
     "Task": "next_pms.project_currency.overrides.task.TaskOverride",
 }
 
