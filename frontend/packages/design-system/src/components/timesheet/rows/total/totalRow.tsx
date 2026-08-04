@@ -125,30 +125,25 @@ export const TotalRow: React.FC<TotalRowProps> = ({
               }}
               aria-label="Add time"
             >
-              {totalTimeEntry.time === "" ? (
-                <>
-                  <span
-                    className={cn(
-                      "flex-1 text-center text-ink-gray-4",
-                      !isCellDisabled &&
-                        "group-hover:hidden group-disabled:group-hover:flex",
-                    )}
-                  >
-                    -
-                  </span>
-                  <span
-                    className={cn(
-                      "hidden absolute top-0 left-0 justify-center items-center w-full h-full text-ink-gray-6",
-                      !isCellDisabled &&
-                        "group-hover:flex group-disabled:group-hover:hidden",
-                    )}
-                  >
-                    <AddMd size={16} className="" />
-                  </span>
-                </>
-              ) : (
-                <span>{totalTimeEntry.time}</span>
-              )}
+              <span
+                className={cn(
+                  "flex-1 text-center",
+                  totalTimeEntry.time === "" && "text-ink-gray-4",
+                  !isCellDisabled &&
+                    "group-hover:hidden group-disabled:group-hover:flex",
+                )}
+              >
+                {totalTimeEntry.time === "" ? "-" : totalTimeEntry.time}
+              </span>
+              <span
+                className={cn(
+                  "hidden absolute top-0 left-0 justify-center items-center w-full h-full text-ink-gray-6",
+                  !isCellDisabled &&
+                    "group-hover:flex group-disabled:group-hover:hidden",
+                )}
+              >
+                <AddMd size={16} className="" />
+              </span>
             </Button>
           </div>
         );

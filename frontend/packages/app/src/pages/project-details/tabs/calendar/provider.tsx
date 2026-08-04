@@ -13,11 +13,13 @@ import {
 /**
  * Internal dependencies.
  */
+import { useDebounce } from "@/hooks/useDebounce";
 import { parseFrappeErrorMsg } from "@/lib/utils";
 import { useUser } from "@/providers/user";
 import { CalendarContext, type CalendarContextProps } from "./context";
 import type { CalendarView, ProjectTimelineItem, TableTab } from "./types";
 import { useProjectTimelineItems } from "./useProjectTimelineItems";
+import { useTimelineItemsList } from "./useTimelineItemsList";
 
 interface CalendarProviderProps extends PropsWithChildren {
   projectId: string;
@@ -51,11 +53,31 @@ export function CalendarProvider({
   const [createMilestoneOpen, setCreateMilestoneOpen] = useState(false);
   const [createTouchpointOpen, setCreateTouchpointOpen] = useState(false);
   const [editItem, setEditItem] = useState<ProjectTimelineItem | null>(null);
+  const [searchInput, setSearchInput] = useState("");
+  const search = useDebounce(searchInput, 400);
 
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth();
 
   const { items, mutate } = useProjectTimelineItems(projectId, year, month);
+
+  const {
+    items: listItems,
+    hasMore: hasMoreList,
+    isLoading: isLoadingList,
+    loadMore: loadMoreList,
+    mutate: mutateList,
+  } = useTimelineItemsList(
+    projectId,
+    tableTab === "milestones" ? "Milestone" : "Touchpoint",
+    search,
+    activeView === "list",
+  );
+
+  const mutateAll = useCallback(() => {
+    void mutate();
+    void mutateList();
+  }, [mutate, mutateList]);
 
   const filteredItems =
     filterType === "all"
@@ -98,12 +120,12 @@ export function CalendarProvider({
         toast.success(
           item.isComplete ? "Marked as incomplete" : "Marked as completed",
         );
-        void mutate();
+        mutateAll();
       } catch (err) {
         toast.error(parseFrappeErrorMsg(err as FrappeError));
       }
     },
-    [markComplete, mutate, toast],
+    [markComplete, mutateAll, toast],
   );
 
   const onEdit = useCallback((item: ProjectTimelineItem) => {
@@ -130,12 +152,12 @@ export function CalendarProvider({
         toast.success(
           isFollowing ? "Unfollowed document" : "Following document",
         );
-        void mutate();
+        mutateAll();
       } catch (err) {
         toast.error(parseFrappeErrorMsg(err as FrappeError));
       }
     },
-    [mutate, toast, updateFollow, userId],
+    [mutateAll, toast, updateFollow, userId],
   );
 
   const onDelete = useCallback(
@@ -143,12 +165,12 @@ export function CalendarProvider({
       try {
         await deleteDoc("Project Timeline Item", item.id);
         toast.success(`${item.type} deleted`);
-        void mutate();
+        mutateAll();
       } catch (err) {
         toast.error(parseFrappeErrorMsg(err as FrappeError));
       }
     },
-    [deleteDoc, mutate, toast],
+    [deleteDoc, mutateAll, toast],
   );
 
   const value = useMemo<CalendarContextProps>(
@@ -168,6 +190,10 @@ export function CalendarProvider({
         createMilestoneOpen,
         createTouchpointOpen,
         editItem,
+        searchInput,
+        listItems,
+        hasMoreList,
+        isLoadingList,
       },
       actions: {
         setActiveView,
@@ -184,7 +210,9 @@ export function CalendarProvider({
         setCreateMilestoneOpen,
         setCreateTouchpointOpen,
         closeEditItem,
-        mutate,
+        mutate: mutateAll,
+        setSearchInput,
+        loadMoreList,
       },
     }),
     [
@@ -202,6 +230,10 @@ export function CalendarProvider({
       createMilestoneOpen,
       createTouchpointOpen,
       editItem,
+      searchInput,
+      listItems,
+      hasMoreList,
+      isLoadingList,
       handlePeriodChange,
       goToPrev,
       goToNext,
@@ -211,7 +243,8 @@ export function CalendarProvider({
       onFollowDocument,
       onDelete,
       closeEditItem,
-      mutate,
+      mutateAll,
+      loadMoreList,
     ],
   );
 

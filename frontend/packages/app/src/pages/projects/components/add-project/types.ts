@@ -4,6 +4,8 @@ export type AddProjectSuccessCallback = (
   doc: { name: string } & Record<string, unknown>,
 ) => void;
 
+export type OpenAddProject = (prefill?: Partial<AddProjectFormValues>) => void;
+
 export interface AddProjectModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;

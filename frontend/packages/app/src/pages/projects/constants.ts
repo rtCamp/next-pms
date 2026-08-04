@@ -1,23 +1,44 @@
 /**
  * External dependencies.
  */
-import { Kanban, AlignLeft } from "@rtcamp/frappe-ui-react/icons";
+import { AlignLeft, Kanban } from "@rtcamp/frappe-ui-react/icons";
 
 /**
  * Internal dependencies.
  */
-import { ROUTES } from "@/lib/constant";
 import { kebabToTitleCase } from "@/lib/utils";
+import type { View } from "@/types";
 
-export const VIEWS = [
-  { key: "list", label: "List view", icon: AlignLeft, path: ROUTES.project },
+export const PROJECTS_VIEW_METHOD =
+  "next_pms.next_projects.api.project.get_projects_view";
+
+const DEFAULT_PROJECT_VIEW_BASE = {
+  default: 0,
+  public: 1,
+  dt: "Project",
+  columns: [],
+  rows: [],
+  filters: {},
+  order_by: [],
+  pinnedColumns: [],
+} satisfies Partial<View>;
+
+export const DEFAULT_PROJECT_VIEWS: View[] = [
   {
-    key: "kanban",
+    ...DEFAULT_PROJECT_VIEW_BASE,
+    name: "list",
+    label: "List view",
+    icon: AlignLeft,
+    type: "List",
+  },
+  {
+    ...DEFAULT_PROJECT_VIEW_BASE,
+    name: "kanban",
     label: "Kanban view",
     icon: Kanban,
-    path: ROUTES["project-kanban"],
+    type: "Custom",
   },
-] as const;
+];
 
 export const PHASES = [
   "delivery-prep",
@@ -29,8 +50,6 @@ export const PHASES = [
 ] as const;
 
 export const RAG_STATUS = ["red", "amber", "green"] as const;
-
-export const PROJECT_TYPES = ["fixed-cost", "retainer", "external"] as const;
 
 export const PROJECT_LIST_PAGE_SIZE = 20;
 

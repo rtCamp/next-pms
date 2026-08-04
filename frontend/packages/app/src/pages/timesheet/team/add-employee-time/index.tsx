@@ -47,29 +47,39 @@ const AddEmployeeTime = ({
   const [employeeSearch, setEmployeeSearch] = useState("");
   const [projectSearch, setProjectSearch] = useState("");
   const [taskSearch, setTaskSearch] = useState("");
-  const [submitting, setSubmitting] = useState(false);
+  const [submittingAction, setSubmittingAction] = useState<
+    "addAnother" | "close" | null
+  >(null);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [entryKey, setEntryKey] = useState(0);
   const { call: saveTime } = useFrappePostCall(
     "next_pms.timesheet.api.timesheet.save",
   );
 
+  const getDefaultValues = useCallback(
+    (date: string, employee: string): addTimeFormValues =>
+      ({
+        employeeId: employee,
+        project: project,
+        projectLabel: projectLabel || project || undefined,
+        task: task,
+        taskLabel: taskLabel || task || undefined,
+        taskStatus: undefined,
+        date: date,
+        duration: 0,
+        comment: "",
+      }) satisfies addTimeFormValues,
+    [project, projectLabel, task, taskLabel],
+  );
+
   const form = useForm({
-    defaultValues: {
-      employeeId: employeeId,
-      project: project,
-      projectLabel: projectLabel || project || undefined,
-      task: task,
-      taskLabel: taskLabel || task || undefined,
-      taskStatus: undefined,
-      date: initialDate,
-      duration: 0,
-      comment: "",
-    } as addTimeFormValues,
+    defaultValues: getDefaultValues(initialDate, employeeId),
     validators: {
       onSubmit: addTimeFormSchema,
     },
-    onSubmit: async ({ value }) => {
-      setSubmitting(true);
+    onSubmitMeta: { keepOpen: false },
+    onSubmit: async ({ value, meta }) => {
+      setSubmittingAction(meta.keepOpen ? "addAnother" : "close");
       setSubmitError(null);
       try {
         await saveTime({
@@ -80,14 +90,33 @@ const AddEmployeeTime = ({
           employee: value.employeeId,
         });
         toast.success("Time Entry submitted successfully");
+        if (meta.keepOpen) {
+          resetEntry(value.date, value.employeeId);
+          await refreshRemainingHours();
+          return;
+        }
         closeModal();
       } catch (err) {
         setSubmitError(parseFrappeErrorMsg(err as FrappeError));
       } finally {
-        setSubmitting(false);
+        setSubmittingAction(null);
       }
     },
   });
+
+  const resetEntry = useCallback(
+    (date: string, employee: string) => {
+      setEmployeeSearch("");
+      setProjectSearch("");
+      setTaskSearch("");
+      setSubmitError(null);
+      form.reset(getDefaultValues(date, employee), {
+        keepDefaultValues: true,
+      });
+      setEntryKey((key) => key + 1);
+    },
+    [form, getDefaultValues],
+  );
 
   const closeModal = useCallback(() => {
     setEmployeeSearch("");
@@ -158,6 +187,7 @@ const AddEmployeeTime = ({
     maxDuration,
     hoursLeft,
     isLoading: isRemainingHoursLoading,
+    refresh: refreshRemainingHours,
   } = useRemainingHours({
     employee: selectedEmployeeId,
     date: selectedDate,
@@ -169,27 +199,8 @@ const AddEmployeeTime = ({
       return;
     }
 
-    form.reset({
-      employeeId,
-      project,
-      projectLabel: projectLabel || project || undefined,
-      task,
-      taskLabel: taskLabel || task || undefined,
-      taskStatus: undefined,
-      date: initialDate,
-      duration: 0,
-      comment: "",
-    });
-  }, [
-    employeeId,
-    form,
-    initialDate,
-    open,
-    project,
-    projectLabel,
-    task,
-    taskLabel,
-  ]);
+    form.reset(getDefaultValues(initialDate, employeeId));
+  }, [employeeId, form, getDefaultValues, initialDate, open]);
 
   const { options: employeeOptions, isLoading: isEmployeeLookupLoading } =
     useEmployeeLookup({
@@ -238,14 +249,24 @@ const AddEmployeeTime = ({
         footer: "pb-6",
       }}
       actions={
-        <Button
-          className="w-full"
-          variant="solid"
-          label="Save entry"
-          onClick={() => form.handleSubmit()}
-          disabled={submitting}
-          loading={submitting}
-        />
+        <div className="flex items-center justify-between w-full gap-2">
+          <Button
+            className="w-full"
+            variant="subtle"
+            label="Save and add another"
+            onClick={() => form.handleSubmit({ keepOpen: true })}
+            disabled={submittingAction !== null}
+            loading={submittingAction === "addAnother"}
+          />
+          <Button
+            className="w-full"
+            variant="solid"
+            label="Save and close"
+            onClick={() => form.handleSubmit()}
+            disabled={submittingAction !== null}
+            loading={submittingAction === "close"}
+          />
+        </div>
       }
       options={{
         title: "Add time",
@@ -447,6 +468,7 @@ const AddEmployeeTime = ({
                   Comment
                 </label>
                 <TextEditor
+                  key={`comment-${entryKey}`}
                   content={field.state.value}
                   onChange={(value) => field.handleChange(value)}
                   fixedMenu={false}

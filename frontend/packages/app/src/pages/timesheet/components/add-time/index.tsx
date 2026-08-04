@@ -67,30 +67,40 @@ const AddTime = ({
   const toast = useToasts();
   const [projectSearch, setProjectSearch] = useState("");
   const [taskSearch, setTaskSearch] = useState("");
-  const [submitting, setSubmitting] = useState(false);
+  const [submittingAction, setSubmittingAction] = useState<
+    "addAnother" | "close" | null
+  >(null);
   const commentEditorRef = useRef<TextEditorHandle>(null);
   const prevSelectedEventIdsRef = useRef<Set<string>>(new Set());
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [entryKey, setEntryKey] = useState(0);
   const { call: saveTime } = useFrappePostCall(
     "next_pms.timesheet.api.timesheet.save",
   );
 
+  const getDefaultValues = useCallback(
+    (date: string): addTimeFormValues =>
+      ({
+        project: project,
+        projectLabel: projectLabel || project || undefined,
+        task: task,
+        taskLabel: taskLabel || task || undefined,
+        taskStatus: undefined,
+        date: date,
+        duration: 0,
+        comment: "",
+      }) satisfies addTimeFormValues,
+    [project, projectLabel, task, taskLabel],
+  );
+
   const form = useForm({
-    defaultValues: {
-      project: project,
-      projectLabel: projectLabel || project || undefined,
-      task: task,
-      taskLabel: taskLabel || task || undefined,
-      taskStatus: undefined,
-      date: initialDate,
-      duration: 0,
-      comment: "",
-    } as addTimeFormValues,
+    defaultValues: getDefaultValues(initialDate),
     validators: {
       onSubmit: addTimeFormSchema,
     },
-    onSubmit: async ({ value }) => {
-      setSubmitting(true);
+    onSubmitMeta: { keepOpen: false },
+    onSubmit: async ({ value, meta }) => {
+      setSubmittingAction(meta.keepOpen ? "addAnother" : "close");
       setSubmitError(null);
       try {
         await saveTime({
@@ -101,14 +111,31 @@ const AddTime = ({
           employee: employeeId,
         });
         toast.success("Time Entry submitted successfully");
+        if (meta.keepOpen) {
+          resetEntry(value.date);
+          await refreshRemainingHours();
+          return;
+        }
         closeModal();
       } catch (err) {
         setSubmitError(parseFrappeErrorMsg(err as FrappeError));
       } finally {
-        setSubmitting(false);
+        setSubmittingAction(null);
       }
     },
   });
+
+  const resetEntry = useCallback(
+    (date: string) => {
+      setProjectSearch("");
+      setTaskSearch("");
+      setSubmitError(null);
+      form.reset(getDefaultValues(date), { keepDefaultValues: true });
+      prevSelectedEventIdsRef.current = new Set();
+      setEntryKey((key) => key + 1);
+    },
+    [form, getDefaultValues],
+  );
 
   const closeModal = useCallback(() => {
     setProjectSearch("");
@@ -168,6 +195,7 @@ const AddTime = ({
     maxDuration,
     hoursLeft,
     isLoading: isRemainingHoursLoading,
+    refresh: refreshRemainingHours,
   } = useRemainingHours({
     employee: employeeId,
     date: selectedDate,
@@ -179,18 +207,9 @@ const AddTime = ({
       return;
     }
 
-    form.reset({
-      project,
-      projectLabel: projectLabel || project || undefined,
-      task,
-      taskLabel: taskLabel || task || undefined,
-      taskStatus: undefined,
-      date: initialDate,
-      duration: 0,
-      comment: "",
-    });
+    form.reset(getDefaultValues(initialDate));
     prevSelectedEventIdsRef.current = new Set();
-  }, [form, initialDate, open, project, projectLabel, task, taskLabel]);
+  }, [form, getDefaultValues, initialDate, open]);
 
   const { options: projectOptions, isLoading: isProjectLookupLoading } =
     useProjectLookup({
@@ -253,14 +272,24 @@ const AddTime = ({
         footer: "pb-6",
       }}
       actions={
-        <Button
-          className="w-full"
-          variant="solid"
-          label="Save entry"
-          onClick={() => form.handleSubmit()}
-          disabled={submitting}
-          loading={submitting}
-        />
+        <div className="flex items-center justify-between w-full gap-2">
+          <Button
+            className="w-full"
+            variant="subtle"
+            label="Save and add another"
+            onClick={() => form.handleSubmit({ keepOpen: true })}
+            disabled={submittingAction !== null}
+            loading={submittingAction === "addAnother"}
+          />
+          <Button
+            className="w-full"
+            variant="solid"
+            label="Save and close"
+            onClick={() => form.handleSubmit()}
+            disabled={submittingAction !== null}
+            loading={submittingAction === "close"}
+          />
+        </div>
       }
       options={{
         title: "Add time",
@@ -426,6 +455,7 @@ const AddTime = ({
         </div>
 
         <CalendarEvents
+          key={`calendar-events-${entryKey}`}
           initialDate={selectedDate}
           enabled={open}
           onSelectionChange={handleCalendarSelectionChange}
@@ -440,6 +470,7 @@ const AddTime = ({
                   Comment
                 </label>
                 <TextEditor
+                  key={`comment-${entryKey}`}
                   ref={commentEditorRef}
                   content={field.state.value}
                   onChange={(value) => field.handleChange(value)}

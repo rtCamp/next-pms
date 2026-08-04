@@ -16,7 +16,7 @@ import type { TeamMember } from "@/components/timesheet-row/teamTimesheetRow";
 import { NUMBER_OF_WEEKS_TO_FETCH } from "@/lib/constant";
 import { buildCompositeFilters } from "@/lib/utils";
 import type { DataProp, TimesheetFilters } from "@/types/timesheet";
-import { formatTimesheetWeekLabel } from "../utils";
+import { formatTimesheetWeekLabel, replaceLeavesForWeeks } from "../utils";
 import type { EmployeeRecord, WeekGroup } from "./context";
 
 type WeekEntry = {
@@ -367,6 +367,11 @@ export function useTeamTimesheetData({
           nextData[empName] = {
             ...nextData[empName],
             timesheet_details: mergedDetails,
+            leaves: replaceLeavesForWeeks(
+              nextData[empName].leaves ?? [],
+              updatedEmp.leaves ?? [],
+              Object.values(updatedEmp.timesheet_details),
+            ),
           };
           changed = true;
         }
