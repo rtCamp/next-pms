@@ -45,10 +45,10 @@ export function FloatingChip({
       >
         <div
           className={cn(
-            "flex items-center justify-center rounded-md mx-0.5 shrink-0",
+            "flex items-center justify-center rounded-md mx-0.5 shrink-0 h-8",
             chipClassName,
           )}
-          style={{ width: pos.width, height: 32 }}
+          style={{ width: pos.width }}
         >
           <Icon className="size-3.5" />
         </div>
