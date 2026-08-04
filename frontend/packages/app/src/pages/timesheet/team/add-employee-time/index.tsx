@@ -47,7 +47,9 @@ const AddEmployeeTime = ({
   const [employeeSearch, setEmployeeSearch] = useState("");
   const [projectSearch, setProjectSearch] = useState("");
   const [taskSearch, setTaskSearch] = useState("");
-  const [submitting, setSubmitting] = useState(false);
+  const [submittingAction, setSubmittingAction] = useState<
+    "addAnother" | "close" | null
+  >(null);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [entryKey, setEntryKey] = useState(0);
   const { call: saveTime } = useFrappePostCall(
@@ -77,7 +79,7 @@ const AddEmployeeTime = ({
     },
     onSubmitMeta: { keepOpen: false },
     onSubmit: async ({ value, meta }) => {
-      setSubmitting(true);
+      setSubmittingAction(meta.keepOpen ? "addAnother" : "close");
       setSubmitError(null);
       try {
         await saveTime({
@@ -97,7 +99,7 @@ const AddEmployeeTime = ({
       } catch (err) {
         setSubmitError(parseFrappeErrorMsg(err as FrappeError));
       } finally {
-        setSubmitting(false);
+        setSubmittingAction(null);
       }
     },
   });
@@ -253,15 +255,16 @@ const AddEmployeeTime = ({
             variant="subtle"
             label="Save and add another"
             onClick={() => form.handleSubmit({ keepOpen: true })}
-            disabled={submitting}
+            disabled={submittingAction !== null}
+            loading={submittingAction === "addAnother"}
           />
           <Button
             className="w-full"
             variant="solid"
             label="Save and close"
             onClick={() => form.handleSubmit()}
-            disabled={submitting}
-            loading={submitting}
+            disabled={submittingAction !== null}
+            loading={submittingAction === "close"}
           />
         </div>
       }
