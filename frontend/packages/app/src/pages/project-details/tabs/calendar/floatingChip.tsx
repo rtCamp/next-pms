@@ -37,15 +37,11 @@ export function FloatingChip({
   return (
     <Tooltip text={item.title}>
       <div
-        className="absolute top-1/2 -translate-y-1/2 z-1 flex items-center gap-2"
-        style={
-          flipLeft
-            ? {
-                right: totalWidth - (pos.left + pos.width),
-                flexDirection: "row-reverse",
-              }
-            : { left: pos.left }
-        }
+        className={cn(
+          "absolute top-1/2 -translate-y-1/2 z-1 flex items-center gap-2",
+          flipLeft && "flex-row-reverse",
+        )}
+        style={flipLeft ? { right: spaceRight } : { left: pos.left }}
       >
         <div
           className={cn(
