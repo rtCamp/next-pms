@@ -202,8 +202,8 @@ def _working_days_between(start: datetime.date, end: datetime.date) -> int:
 def get_remaining_allocation_hours_by_project(
     projects: list[str],
     on_or_after: datetime.date,
-    is_billable: list | int | None = None,
-    allocation_status: list | None = None,
+    is_billable: list[int] | int | None = None,
+    allocation_status: list[str] | None = None,
 ) -> dict[str, float]:
     """Return still-to-come allocated hours per project, keyed by project name.
 
