@@ -65,7 +65,7 @@ export interface Project {
   projectDateRange?: string;
   client?: string;
   projectManager?: string;
-  weeklyCapacity?: number;
+  remainingHours?: number;
   badge?: string;
   allocations?: Allocation[];
 }

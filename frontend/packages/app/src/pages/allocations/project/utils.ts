@@ -202,7 +202,7 @@ function mapProjectRecord(
     dateRange: allocationDateRange,
     projectDateRange: getProjectHoverDateRange(project) ?? allocationDateRange,
     projectManager: project.custom_project_manager_name ?? undefined,
-    weeklyCapacity: project.weekly_capacity ?? undefined,
+    remainingHours: project.remaining_hours ?? undefined,
     members,
   };
 }

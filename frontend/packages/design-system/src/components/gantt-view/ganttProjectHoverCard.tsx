@@ -27,14 +27,14 @@ function GanttProjectHoverCard({
   canOpenProject = false,
 }: GanttProjectHoverCardProps) {
   const dateRange = project.projectDateRange ?? project.dateRange;
-  const weeklyCapacityLabel =
-    project.weeklyCapacity !== undefined
-      ? `${formatHours(project.weeklyCapacity)}h remaining`
+  const remainingHoursLabel =
+    project.remainingHours !== undefined
+      ? `${formatHours(project.remainingHours)}h remaining`
       : undefined;
   const hasDetails =
     project.client ||
     dateRange ||
-    weeklyCapacityLabel ||
+    remainingHoursLabel ||
     project.projectManager;
   const projectHref =
     canOpenProject && project.id
@@ -88,11 +88,11 @@ function GanttProjectHoverCard({
               </span>
             </div>
           )}
-          {weeklyCapacityLabel && (
+          {remainingHoursLabel && (
             <div className="flex gap-2 items-center">
               <Time className="size-4 text-ink-gray-6 shrink-0" />
               <span className="text-sm text-ink-gray-6 truncate">
-                {weeklyCapacityLabel}
+                {remainingHoursLabel}
               </span>
             </div>
           )}

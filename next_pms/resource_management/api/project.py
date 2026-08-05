@@ -19,6 +19,7 @@ from next_pms.resource_management.api.utils.query import (
     get_allocation_worked_hours_for_given_employee,
     get_allocation_worked_hours_for_given_projects,
     get_projects_with_allocations,
+    get_remaining_allocation_hours_by_project,
     has_active_allocation_filter,
 )
 from next_pms.timesheet.api.employee import apply_working_hours_fallback
@@ -107,7 +108,9 @@ def get_resource_management_project_view_data(
             - data (list): one entry per project, the project fields plus
               all_week_data (per-week allocated/worked hours), all_dates_data
               (per-date allocation detail), project_allocations (the allocations
-              keyed by name), and weekly_capacity. When no allocation-level filter
+              keyed by name), and remaining_hours (hours still allocated from today
+              to each allocation's end, across the allocation's full span rather than
+              the requested window). When no allocation-level filter
               (is_billable / allocation_status) is active, projects with at least
               one allocation in the window are listed before projects with none.
             - customer (dict): customer metadata referenced by the allocations.
@@ -122,6 +125,7 @@ def get_resource_management_project_view_data(
     permissions = resource_api_permissions_check()
     return _get_resource_management_project_view_data(
         json.dumps(permissions),
+        frappe.utils.today(),
         date,
         max_week,
         project_name,
@@ -142,6 +146,7 @@ def get_resource_management_project_view_data(
 @redis_cache()
 def _get_resource_management_project_view_data(
     permissions: str,
+    today: str,
     date: str,
     max_week: int = 2,
     project_name: str | None = None,
@@ -290,16 +295,16 @@ def _get_resource_management_project_view_data(
     )
     apply_working_hours_fallback(employees.values())
 
+    remaining_hours_map = get_remaining_allocation_hours_by_project(
+        [project.name for project in projects],
+        getdate(today),
+        is_billable,
+        allocation_status=allocation_status,
+    )
+
     for project in projects:
         all_week_data, all_dates_data = [], {}
         project_resource_allocation = resource_allocation_map.get(project.name, {})
-        weekly_capacity = sum(
-            alloc.hours_allocated_per_day
-            for week in weeks
-            for date in week.get("dates")
-            for alloc in project_resource_allocation.values()
-            if alloc.allocation_start_date <= date <= alloc.allocation_end_date
-        )
 
         for week in weeks:
             total_allocated_hours_for_given_week = 0
@@ -364,7 +369,7 @@ def _get_resource_management_project_view_data(
                 "all_week_data": all_week_data,
                 "all_dates_data": all_dates_data,
                 "project_allocations": project_resource_allocation,
-                "weekly_capacity": weekly_capacity,
+                "remaining_hours": remaining_hours_map.get(project.name, 0.0),
             }
         )
 

@@ -3,8 +3,14 @@ import json
 import frappe
 from erpnext import get_default_company
 from frappe.tests import IntegrationTestCase
+from frappe.utils import getdate
 
-from next_pms.resource_management.api.project import get_resource_management_project_view_data
+from next_pms.resource_management.api.project import (
+    _get_resource_management_project_view_data,
+    get_resource_management_project_view_data,
+)
+from next_pms.resource_management.api.utils.helpers import resource_api_permissions_check
+from next_pms.resource_management.api.utils.query import get_remaining_allocation_hours_by_project
 
 WRITE_USER = "pv.write@example.com"
 READ_ONLY_USER = "pv.readonly@example.com"
@@ -115,23 +121,33 @@ class _ProjectViewBase(IntegrationTestCase):
         return doc.name
 
     @classmethod
-    def _make_allocation(cls, employee, project, start, end, is_billable=0, status="Confirmed"):
-        return (
-            frappe.get_doc(
-                {
-                    "doctype": "Resource Allocation",
-                    "employee": employee,
-                    "project": project,
-                    "allocation_start_date": start,
-                    "allocation_end_date": end,
-                    "hours_allocated_per_day": 8,
-                    "status": status,
-                    "is_billable": is_billable,
-                }
-            )
-            .insert(ignore_permissions=True)
-            .name
+    def _make_allocation(
+        cls,
+        employee,
+        project,
+        start,
+        end,
+        is_billable=0,
+        status="Confirmed",
+        include_weekends=0,
+        override=(),
+    ):
+        doc = frappe.get_doc(
+            {
+                "doctype": "Resource Allocation",
+                "employee": employee,
+                "project": project,
+                "allocation_start_date": start,
+                "allocation_end_date": end,
+                "hours_allocated_per_day": 8,
+                "status": status,
+                "is_billable": is_billable,
+                "include_weekends": include_weekends,
+            }
         )
+        for date, hours, cancelled in override:
+            doc.append("override", {"date": date, "hours": hours, "cancelled": cancelled})
+        return doc.insert(ignore_permissions=True).name
 
     def tearDown(self):
         frappe.set_user("Administrator")
@@ -430,3 +446,128 @@ class TestProjectViewAllocationProjectFiltering(_ProjectViewBase):
         empty, empty_count = filter_project_list(customer=self.customer, prioritized_ids=[])
         self.assertEqual([p.name for p in empty], [p.name for p in plain])
         self.assertEqual(empty_count, plain_count)
+
+
+class TestProjectViewRemainingHours(_ProjectViewBase):
+    """remaining_hours — the rolling forecast behind the project hover card.
+
+    Every assertion pins "today" explicitly (AS_OF / the today argument) rather than
+    letting it default to the wall clock. The figure is by definition today-relative,
+    so a test that let it float would drift into asserting 0 once the fixture dates
+    fell into the past, and would keep passing after the feature broke.
+    """
+
+    # A Wednesday, mid-way through the straddling allocation below.
+    AS_OF = getdate("2026-06-17")
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.company = get_default_company()
+        cls.write_user = cls._make_user(WRITE_USER, projects_user=True)
+        cls.customer = cls._make_customer("PV Remaining Customer")
+        cls.employee = cls._make_employee("PV Remaining Employee")
+
+        # One project per scenario: the overlap guard rejects concurrent allocations
+        # for the same employee+project, and per-project totals stay independently
+        # assertable.
+        def project(name):
+            return cls._make_project(name, cls.customer)
+
+        cls.p_straddle = project("PV Rem Straddle")
+        cls.p_past = project("PV Rem Past")
+        cls.p_future = project("PV Rem Future")
+        cls.p_cross = project("PV Rem Cross")
+        cls.p_weekend = project("PV Rem Weekend")
+        cls.p_cancelled = project("PV Rem Cancelled")
+        cls.p_adjusted = project("PV Rem Adjusted")
+        cls.p_billable = project("PV Rem Billable")
+
+        # Mon 06-15 -> Fri 06-19. From Wed 06-17: Wed/Thu/Fri = 3 * 8h.
+        cls._make_allocation(cls.employee, cls.p_straddle, "2026-06-15", "2026-06-19")
+        # Entirely elapsed.
+        cls._make_allocation(cls.employee, cls.p_past, "2026-06-01", "2026-06-05")
+        # Entirely ahead: full 5 * 8h span survives.
+        cls._make_allocation(cls.employee, cls.p_future, "2026-06-22", "2026-06-26")
+        # Two months long — the case a window-bounded sum cannot report.
+        cls._make_allocation(cls.employee, cls.p_cross, "2026-06-15", "2026-08-14")
+        # Mon 06-15 -> Sun 06-21 counting weekends. From Wed: 5 calendar days.
+        cls._make_allocation(cls.employee, cls.p_weekend, "2026-06-15", "2026-06-21", include_weekends=1)
+        # Straddling span with Thu 06-18 cancelled.
+        cls._make_allocation(cls.employee, cls.p_cancelled, "2026-06-15", "2026-06-19", override=[("2026-06-18", 0, 1)])
+        # Straddling span with Thu 06-18 cut from 8h to 3h.
+        cls._make_allocation(cls.employee, cls.p_adjusted, "2026-06-15", "2026-06-19", override=[("2026-06-18", 3, 0)])
+        cls._make_allocation(cls.employee, cls.p_billable, "2026-06-15", "2026-06-19", is_billable=1)
+
+        frappe.clear_cache()
+
+    def _remaining(self, projects=None, **kwargs):
+        return get_remaining_allocation_hours_by_project(projects or [self.p_straddle], self.AS_OF, **kwargs)
+
+    def test_elapsed_days_are_dropped(self):
+        # 40h allocated Mon-Fri; on Wednesday only Wed/Thu/Fri remain.
+        self.assertEqual(self._remaining()[self.p_straddle], 24.0)
+
+    def test_finished_allocation_contributes_nothing(self):
+        self.assertNotIn(self.p_past, self._remaining([self.p_past]))
+
+    def test_future_allocation_counts_in_full(self):
+        self.assertEqual(self._remaining([self.p_future])[self.p_future], 40.0)
+
+    def test_span_longer_than_any_window_is_counted_whole(self):
+        # 06-17..08-14 is 43 weekdays. Bounding this to a 2-week view would report 24h.
+        self.assertEqual(self._remaining([self.p_cross])[self.p_cross], 344.0)
+
+    def test_include_weekends_counts_calendar_days(self):
+        self.assertEqual(self._remaining([self.p_weekend])[self.p_weekend], 40.0)
+
+    def test_cancelled_day_is_deducted(self):
+        self.assertEqual(self._remaining([self.p_cancelled])[self.p_cancelled], 16.0)
+
+    def test_adjusted_day_uses_override_hours(self):
+        self.assertEqual(self._remaining([self.p_adjusted])[self.p_adjusted], 19.0)
+
+    def test_overrides_before_today_are_ignored(self):
+        # Mon 06-15 is inside the allocation but already elapsed, so cancelling it
+        # must not move a forecast that never counted it.
+        project = self._make_project("PV Rem Past Override", self.customer)
+        self._make_allocation(self.employee, project, "2026-06-15", "2026-06-19", override=[("2026-06-15", 0, 1)])
+        self.assertEqual(self._remaining([project])[project], 24.0)
+
+    def test_allocation_filters_are_honored(self):
+        both = [self.p_straddle, self.p_billable]
+        self.assertEqual(set(self._remaining(both)), {self.p_straddle, self.p_billable})
+        self.assertEqual(set(self._remaining(both, is_billable=[1])), {self.p_billable})
+        self.assertEqual(set(self._remaining(both, allocation_status=["Tentative"])), set())
+
+    def test_empty_project_list_short_circuits(self):
+        self.assertEqual(get_remaining_allocation_hours_by_project([], self.AS_OF), {})
+
+    def test_payload_exposes_remaining_hours(self):
+        result = self._view(project_id=json.dumps([self.p_straddle]))
+        entry = self._entry(result, self.p_straddle)
+        self.assertEqual(entry["remaining_hours"], 24.0)
+        self.assertNotIn("weekly_capacity", entry)
+
+    def test_figure_does_not_move_with_the_requested_window(self):
+        # The whole point of the change: scrolling the grid must not restate the
+        # forecast. Same today, three different anchors and week counts.
+        windows = [
+            {"date": "2026-06-15", "max_week": 2},
+            {"date": "2026-06-15", "max_week": 8},
+            {"date": "2026-05-04", "max_week": 2},
+            {"date": "2026-08-03", "max_week": 4},
+        ]
+        values = {
+            self._entry(self._view(project_id=json.dumps([self.p_cross]), **window), self.p_cross)["remaining_hours"]
+            for window in windows
+        }
+        self.assertEqual(values, {344.0})
+
+    def _view(self, project_id, date=DATE, max_week=2):
+        """Call the endpoint with "today" injected, bypassing the wall-clock wrapper."""
+        frappe.set_user(WRITE_USER)
+        permissions = json.dumps(resource_api_permissions_check())
+        return _get_resource_management_project_view_data(
+            permissions, str(self.AS_OF), date, max_week, project_id=project_id
+        )
