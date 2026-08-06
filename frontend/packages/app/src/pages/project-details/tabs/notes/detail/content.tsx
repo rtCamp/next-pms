@@ -21,15 +21,15 @@ type NoteDetailContentProps = {
 };
 
 export function NoteDetailContent({ note }: NoteDetailContentProps) {
-  const updateDescription = useNotes((s) => s.actions.updateDescription);
+  const updateNote = useNotes((s) => s.actions.updateNote);
   const [description, setDescription] = useState(note.description);
   const debouncedDescription = useDebounce(description);
 
   useEffect(() => {
     if (debouncedDescription === note.description) return;
 
-    updateDescription(note.name, debouncedDescription);
-  }, [debouncedDescription, note.description, note.name, updateDescription]);
+    updateNote(note.name, { description: debouncedDescription });
+  }, [debouncedDescription, note.description, note.name, updateNote]);
 
   return (
     <div className="flex flex-col gap-1.5 pt-3">

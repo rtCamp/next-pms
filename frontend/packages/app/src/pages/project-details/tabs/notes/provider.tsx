@@ -13,6 +13,7 @@ import { useDebounce } from "@/hooks/useDebounce";
 import { parseFrappeErrorMsg } from "@/lib/utils";
 import { NOTE_PARAM } from "./constants";
 import { NotesContext, type NotesContextProps } from "./context";
+import type { NoteUpdateInput } from "./types";
 import { useNotesData } from "./useNotesData";
 
 export function NotesProvider({ children }: PropsWithChildren) {
@@ -22,7 +23,7 @@ export function NotesProvider({ children }: PropsWithChildren) {
   const [isUpdating, setIsUpdating] = useState(false);
   const [deleteNoteName, setDeleteNoteName] = useState<string | null>(null);
   const [, setSearchParams] = useSearchParams();
-  const { call: updateNote } = useFrappePostCall(
+  const { call: updateNoteCall } = useFrappePostCall(
     "next_pms.timesheet.api.project_status_update.update_project_status_update",
   );
   const { call: deleteNoteCall } = useFrappePostCall(
@@ -83,7 +84,7 @@ export function NotesProvider({ children }: PropsWithChildren) {
       if (!note) return;
       setIsUpdating(true);
       try {
-        await updateNote({
+        await updateNoteCall({
           name,
           pinned: !note.pinned,
         });
@@ -95,19 +96,19 @@ export function NotesProvider({ children }: PropsWithChildren) {
         setIsUpdating(false);
       }
     },
-    [notes, refresh, toast, updateNote],
+    [notes, refresh, toast, updateNoteCall],
   );
 
-  const updateDescription = useCallback(
-    async (name: string, description: string) => {
+  const updateNote = useCallback(
+    async (name: string, values: NoteUpdateInput) => {
       try {
-        await updateNote({ name, description });
+        await updateNoteCall({ name, ...values });
         await refresh();
       } catch (err) {
         toast.error(parseFrappeErrorMsg(err as FrappeError));
       }
     },
-    [refresh, toast, updateNote],
+    [refresh, toast, updateNoteCall],
   );
 
   const openDeleteDialog = useCallback((name: string) => {
@@ -140,7 +141,7 @@ export function NotesProvider({ children }: PropsWithChildren) {
         refresh,
         deleteNote,
         togglePin,
-        updateDescription,
+        updateNote,
         openDeleteDialog,
         closeDeleteDialog,
       },
@@ -161,7 +162,7 @@ export function NotesProvider({ children }: PropsWithChildren) {
       refresh,
       deleteNote,
       togglePin,
-      updateDescription,
+      updateNote,
       openDeleteDialog,
       closeDeleteDialog,
     ],

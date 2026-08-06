@@ -6,7 +6,12 @@ import { createContext, useContextSelector } from "use-context-selector";
 /**
  * Internal dependencies.
  */
-import type { Note, NoteAuthorOption, NoteFilters } from "./types";
+import type {
+  Note,
+  NoteAuthorOption,
+  NoteFilters,
+  NoteUpdateInput,
+} from "./types";
 
 export interface NotesContextProps {
   state: {
@@ -25,7 +30,7 @@ export interface NotesContextProps {
     refresh: () => Promise<unknown>;
     deleteNote: (name: string) => Promise<void>;
     togglePin: (name: string) => Promise<void>;
-    updateDescription: (name: string, description: string) => Promise<void>;
+    updateNote: (name: string, values: NoteUpdateInput) => Promise<void>;
     openDeleteDialog: (name: string) => void;
     closeDeleteDialog: () => void;
   };
@@ -54,7 +59,7 @@ export const NotesContext = createContext<NotesContextProps>({
     refresh: async () => undefined,
     deleteNote: async () => undefined,
     togglePin: async () => undefined,
-    updateDescription: async () => undefined,
+    updateNote: async () => undefined,
     openDeleteDialog: noop,
     closeDeleteDialog: noop,
   },
