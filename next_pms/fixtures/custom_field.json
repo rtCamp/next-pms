@@ -623,7 +623,7 @@
   "is_virtual": 0,
   "label": "Client Point of Contact",
   "length": 0,
-  "link_filters": "[[\"Contact\",\"link_doctype\",\"=\",\"Customer\"],[\"Contact\",\"link_name\",\"=\",\"eval:doc.customer\"]]",
+  "link_filters": null,
   "mandatory_depends_on": null,
   "modified": "2024-12-16 11:02:27.035180",
   "module": "Project Currency",
