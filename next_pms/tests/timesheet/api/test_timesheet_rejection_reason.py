@@ -176,10 +176,11 @@ class TestTimesheetRejectionReason(IntegrationTestCase):
         personal = get_timesheet_data(employee=self.employee, start_date=MON, max_week=1)
         self.assert_entries_carry_fields(self.collect_entries_by_parent(personal["data"]), by_date)
 
-        # get_team_timesheet_data nests one level deeper, under data[employee]["timesheet_details"].
-        team = get_team_timesheet_data(date=FRI, max_week=1, reports_to=self.manager)
-        team_details = team["data"][self.employee]["timesheet_details"]
-        self.assert_entries_carry_fields(self.collect_entries_by_parent(team_details), by_date)
+        # get_team_timesheet_data is single-week now: the member row carries its tasks
+        # directly, instead of a timesheet_details map keyed by week.
+        team = get_team_timesheet_data(start_date=MON, reports_to=self.manager)
+        member = next(m for m in team["members"] if m["employee"] == self.employee)
+        self.assert_entries_carry_fields(self.collect_entries_by_parent({MON: {"tasks": member["tasks"]}}), by_date)
 
     def test_reject_resubmit_approve_lifecycle(self):
         # Step 1 (done in setUp): all 5 days pending, no rejection reason yet.

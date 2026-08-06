@@ -11,6 +11,10 @@ DEFAULT_DAILY_WORKING_HOURS = 8
 # Assumed when an Employee has no custom_work_schedule set.
 DEFAULT_WORKING_FREQUENCY = "Per Day"
 
+# The one approval status that is an absence of data rather than a stored value: a week
+# with no Timesheet, or a Timesheet whose weekly status was never set.
+NOT_SUBMITTED_STATUS = "Not Submitted"
+
 TASK_FILTER_OPERATORS = {
     "=",
     "!=",
@@ -48,6 +52,13 @@ ALLOWED_FILTER_FIELDS = {
 }
 
 FILTER_LOOKBACK_WEEKS = 12
+
+# Default members per page, matching TEAM_MEMBER_PAGE_LENGTH in the frontend.
+TEAM_TIMESHEET_PAGE_LENGTH = 20
+
+# Server-side ceiling on a caller-supplied page_length. A safety net rather than the
+# pagination mechanism, since has_more_members is authoritative.
+MAX_TEAM_TIMESHEET_PAGE_LENGTH = 100
 
 ALLOWED_TIMESHET_DETAIL_FIELDS = [
     "name",

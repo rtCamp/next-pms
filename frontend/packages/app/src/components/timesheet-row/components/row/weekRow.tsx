@@ -1,7 +1,7 @@
 /**
  * External dependencies
  */
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { Accordion } from "@base-ui/react/accordion";
 import { floatToTime, mergeClassNames as cn } from "@next-pms/design-system";
 import {
@@ -15,8 +15,12 @@ import { getTodayDate, prettyDate } from "@next-pms/design-system/date";
 /**
  * Internal dependencies
  */
+import { useScrollRoot } from "@/components/scrollRoot";
 import type { WeekRowProps } from "./types";
 import { computeRowData } from "../../utils";
+
+// Offset to account for the sticky header when scrolling into view.
+const STICKY_HEADER_OFFSET = 28;
 
 /**
  * @description This is the week row component for the timesheet table.
@@ -43,9 +47,25 @@ export const WeekRow = ({
   collapsed: initialCollapsed,
   isReadOnlyWeek,
   approvalPendingCount,
+  onCollapsedChange,
+  triggerClassName,
   ...rest
 }: WeekRowProps) => {
   const [collapsed, setCollapsed] = useState(initialCollapsed);
+  const scrollRoot = useScrollRoot();
+  const weekRef = useRef<HTMLDivElement>(null);
+
+  const anchorOnCollapse = () => {
+    const weekEl = weekRef.current;
+    if (!scrollRoot || !weekEl) return;
+
+    // Scroll the week into view if it is above the scroll root's top position.
+    const rootTop = scrollRoot.getBoundingClientRect().top;
+    const weekTop = weekEl.getBoundingClientRect().top;
+    if (weekTop < rootTop + STICKY_HEADER_OFFSET) {
+      weekEl.scrollIntoView({ block: "start" });
+    }
+  };
 
   const formattedDates = useMemo(() => {
     return dates?.map((date: string) => prettyDate(date).date);
@@ -106,53 +126,59 @@ export const WeekRow = ({
     !isReadOnlyWeek && approvalStatusCanSubmitMap[approvalStatus];
 
   return (
-    <Accordion.Root
-      value={collapsed ? [] : ["week"]}
-      onValueChange={(value) => {
-        setCollapsed(value.length === 0);
-      }}
-    >
-      <Accordion.Item value="week" className="border-none">
-        <Accordion.Trigger
-          nativeButton={false}
-          render={(props) => (
-            <div
-              {...props}
-              className={cn(
-                props.className,
-                "focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-outline-gray-3",
-              )}
-            >
-              <BaseWeekRow
-                {...rest}
-                today={today}
-                thisWeek={thisWeek}
-                dates={formattedDates}
-                totalHours={floatToTime(weekData.total, 2)}
-                totalHoursTheme={totalHoursThemeMap[weekData.isExtended]}
-                status={approvalStatus}
-                badgeLabel={pendingApprovalLabel}
-                collapsed={collapsed}
-                onButtonClick={() =>
-                  canSubmitForApproval ? onButtonClick?.() : undefined
-                }
-              />
+    <div ref={weekRef} className="scroll-mt-7">
+      <Accordion.Root
+        value={collapsed ? [] : ["week"]}
+        onValueChange={(value) => {
+          const nextCollapsed = value.length === 0;
+          setCollapsed(nextCollapsed);
+          onCollapsedChange?.(nextCollapsed);
+          if (nextCollapsed) anchorOnCollapse();
+        }}
+      >
+        <Accordion.Item value="week" className="border-none">
+          <Accordion.Trigger
+            nativeButton={false}
+            render={(props) => (
+              <div
+                {...props}
+                className={cn(
+                  props.className,
+                  "focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-outline-gray-3",
+                  triggerClassName,
+                )}
+              >
+                <BaseWeekRow
+                  {...rest}
+                  today={today}
+                  thisWeek={thisWeek}
+                  dates={formattedDates}
+                  totalHours={floatToTime(weekData.total, 2)}
+                  totalHoursTheme={totalHoursThemeMap[weekData.isExtended]}
+                  status={approvalStatus}
+                  badgeLabel={pendingApprovalLabel}
+                  collapsed={collapsed}
+                  onButtonClick={() =>
+                    canSubmitForApproval ? onButtonClick?.() : undefined
+                  }
+                />
+              </div>
+            )}
+          />
+          <Accordion.Panel className="pb-0 accordion-panel">
+            <div className="pb-4">
+              {children?.({
+                totalHours: floatToTime(weekData.total, 2),
+                totalHoursTheme: totalHoursThemeMap[weekData.isExtended],
+                totalTimeEntries: weekData.totalTimeEntries,
+                totalTimeEntriesInHours: weekData.totalTimeEntriesInHours,
+                dailyWorkingHours: weekData.dailyWorkingHours,
+                status: approvalStatus,
+              })}
             </div>
-          )}
-        />
-        <Accordion.Panel className="pb-0 accordion-panel">
-          <div className="pb-4">
-            {children?.({
-              totalHours: floatToTime(weekData.total, 2),
-              totalHoursTheme: totalHoursThemeMap[weekData.isExtended],
-              totalTimeEntries: weekData.totalTimeEntries,
-              totalTimeEntriesInHours: weekData.totalTimeEntriesInHours,
-              dailyWorkingHours: weekData.dailyWorkingHours,
-              status: approvalStatus,
-            })}
-          </div>
-        </Accordion.Panel>
-      </Accordion.Item>
-    </Accordion.Root>
+          </Accordion.Panel>
+        </Accordion.Item>
+      </Accordion.Root>
+    </div>
   );
 };
