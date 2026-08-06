@@ -8,6 +8,7 @@ export const teamAllocationsTypeOptions: MultiSelectOption[] = [
   { label: "Tentative only", value: "Tentative" },
   { label: "Billable only", value: "billable" },
   { label: "Non-billable only", value: "non-billable" },
+  { label: "No allocation only", value: "no-allocation" },
 ];
 
 export const teamAllocationFilters: FilterField[] = [

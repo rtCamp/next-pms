@@ -15,6 +15,7 @@ from next_pms.resource_management.api.utils.helpers import (
     is_on_leave,
     normalize_team_view_filters,
     resource_api_permissions_check,
+    split_allocated_employees,
 )
 from next_pms.resource_management.api.utils.query import (
     attach_extra_entries,
@@ -42,6 +43,7 @@ def get_resource_management_team_view_data(
     employee_id: list | str | None = None,
     need_hours_summary: bool = False,
     filters: str | list | None = None,
+    no_allocation: bool = False,
 ):
     """Get resource management team view data for the given filters and date range.
 
@@ -84,6 +86,16 @@ def get_resource_management_team_view_data(
             the Employee Skill doctype; tag is resolved against the Tag Link doctype;
             is_billable accepts only = or != with a value of 0 or 1. For callers without
             write permission only employee_name conditions are honored. Defaults to None.
+        no_allocation (bool): Adds the employees with *no* in-window allocation to the
+            result. This is an independent leg rather than a modifier of the other
+            allocation options, so it unions with them: on its own it selects the
+            employees with zero allocations of any kind; with `is_billable=[1]` it selects
+            the employees with a billable allocation *plus* the employees with no
+            allocation at all. "No allocation" always means zero allocations of any kind —
+            an employee holding only a non-billable allocation is not unallocated, even
+            when `is_billable=[1]` is passed. Every employee-level filter (employee_name,
+            designation, business_unit, reports_to, skills, tag, employee_id) still applies
+            on top. Ignored when the caller lacks write permission. Defaults to False.
 
     Returns:
         When ``need_hours_summary`` is False:
@@ -210,6 +222,7 @@ def get_resource_management_team_view_data(
         employee_id,
         need_hours_summary,
         filters,
+        no_allocation,
     )
 
 
@@ -231,12 +244,14 @@ def _get_resource_management_team_view_data(
     employee_id: list | str | None = None,
     need_hours_summary: bool = False,
     filters: str | list | None = None,
+    no_allocation: bool = False,
 ):
     permissions = json.loads(permissions)
 
     if not permissions["write"]:
         is_billable = None
         allocation_status = None
+        no_allocation = False
         business_unit = None
         designation = None
         reports_to = None
@@ -331,43 +346,69 @@ def _get_resource_management_team_view_data(
                 res["permissions"] = permissions
                 return res
 
-    if is_billable or allocation_status:
+    if is_billable or allocation_status or no_allocation:
         # narrow `ids` to employees with matching allocations in the window before
         # paginating. Without this, the billable/status filter is applied after
         # pagination and page 1 can come back blank when the first N employees
         # have no matching allocations.
-        allocation_filters = {
+        window_filters = {
             "allocation_start_date": ["<=", dates[-1].get("end_date")],
             "allocation_end_date": [">=", dates[0].get("start_date")],
         }
-        if is_billable:
-            allocation_filters["is_billable"] = ["in", is_billable]
-        if allocation_status:
-            allocation_filters["status"] = ["in", allocation_status]
         if ids:
-            allocation_filters["employee"] = ["in", ids]
+            window_filters["employee"] = ["in", ids]
 
-        matching_emp_ids = frappe.db.get_all(
-            "Resource Allocation",
-            filters=allocation_filters,
-            pluck="employee",
-            distinct=True,
-        )
+        if no_allocation and (is_billable or allocation_status):
+            # `no_allocation` is an independent leg of the allocation-type multi-select,
+            # so it unions with the others instead of inverting them: keep the employees
+            # matching the billable/status options PLUS the employees with no allocation
+            # at all. Only the employees holding allocations of which none match are
+            # dropped, so the union still resolves to a single NOT IN — one query, no OR.
+            allocations = frappe.db.get_all(
+                "Resource Allocation",
+                filters=window_filters,
+                fields=["employee", "is_billable", "status"],
+                distinct=True,
+            )
+            allocated_ids, matched_ids = split_allocated_employees(allocations, is_billable, allocation_status)
 
-        if not matching_emp_ids:
-            if need_hours_summary:
-                res["data"] = []
+            unmatched_emp_ids = allocated_ids - matched_ids
+            if unmatched_emp_ids:
+                extra_conditions.append(["name", "not in", list(unmatched_emp_ids)])
+        else:
+            allocation_filters = dict(window_filters)
+            if is_billable:
+                allocation_filters["is_billable"] = ["in", is_billable]
+            if allocation_status:
+                allocation_filters["status"] = ["in", allocation_status]
+
+            matching_emp_ids = frappe.db.get_all(
+                "Resource Allocation",
+                filters=allocation_filters,
+                pluck="employee",
+                distinct=True,
+            )
+
+            if no_allocation:
+                # Nothing to union with, so every allocated employee is excluded. An empty
+                # match set means everyone qualifies and must not short-circuit to an
+                # empty response.
+                if matching_emp_ids:
+                    extra_conditions.append(["name", "not in", matching_emp_ids])
+            elif not matching_emp_ids:
+                if need_hours_summary:
+                    res["data"] = []
+                else:
+                    res["employees"] = []
+                    res["resource_allocations"] = []
+                    res["leaves"] = []
+                res["customer"] = customer
+                res["total_count"] = 0
+                res["has_more"] = False
+                res["permissions"] = permissions
+                return res
             else:
-                res["employees"] = []
-                res["resource_allocations"] = []
-                res["leaves"] = []
-            res["customer"] = customer
-            res["total_count"] = 0
-            res["has_more"] = False
-            res["permissions"] = permissions
-            return res
-
-        ids = matching_emp_ids
+                ids = matching_emp_ids
 
     privileged_fields = ["ctc", "salary_currency"] if permissions["write"] else []
     employees, total_count = filter_employees(

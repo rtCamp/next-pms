@@ -85,6 +85,7 @@ export function useAllocationsTeamData({
   const hasTentative = allocationsType.includes("Tentative");
   const hasBillable = allocationsType.includes("billable");
   const hasNonBillable = allocationsType.includes("non-billable");
+  const hasNoAllocation = allocationsType.includes("no-allocation");
   const allocationStatusParam =
     hasConfirmed === hasTentative
       ? null
@@ -104,12 +105,14 @@ export function useAllocationsTeamData({
           allocationStatusParam ?? "",
           isBillableParam ?? "",
           filtersParam ?? "",
+          String(hasNoAllocation),
         ].join(":"),
       )}`,
     [
       allocationStatusParam,
       designationParam,
       filtersParam,
+      hasNoAllocation,
       isBillableParam,
       maxWeek,
       requestDate,
@@ -127,11 +130,13 @@ export function useAllocationsTeamData({
       is_billable: isBillableParam,
       filters: filtersParam,
       need_hours_summary: false,
+      no_allocation: hasNoAllocation ? 1 : 0,
     }),
     [
       allocationStatusParam,
       designationParam,
       filtersParam,
+      hasNoAllocation,
       isBillableParam,
       maxWeek,
       requestDate,

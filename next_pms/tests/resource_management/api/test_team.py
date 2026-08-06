@@ -472,6 +472,119 @@ class TestTeamViewAllocationFilters(_TeamViewBase):
         self.assertFalse(result["has_more"])
 
 
+class TestTeamViewNoAllocationFilter(_TeamViewBase):
+    """`no_allocation` — an independent leg of the allocation-type multi-select.
+
+    It unions with is_billable / allocation_status rather than inverting them: the result
+    is the employees matching those options PLUS the employees with zero in-window
+    allocations. "No allocation" always means zero allocations of any kind. Employee sets
+    are scoped with employee_id for determinism.
+    """
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.company = get_default_company()
+        cls.write_user = cls._make_user(FILTER_WRITE_USER, projects_user=True)
+        cls.read_only_user = cls._make_user(FILTER_READ_ONLY_USER)
+        if not frappe.db.exists("Employee", {"user_id": cls.read_only_user}):
+            # The endpoint gates on the Employee role, which comes from a linked Employee.
+            # Not "Tna"-named, so it never appears in the scoped assertions.
+            cls._make_employee("Tv NoAlloc Readonly", user_id=cls.read_only_user)
+        cls.customer = cls._make_customer("TV NoAlloc Customer")
+        cls.project = cls._make_project("TV NoAlloc Portal", cls.customer)
+
+        cls.emp_billable = cls._make_employee("Tna Billable")
+        cls.emp_nonbillable = cls._make_employee("Tna Nonbillable")
+        cls.emp_out = cls._make_employee("Tna OutOfWindow")
+        cls.emp_free = cls._make_employee("Tna Free")
+        cls.emp_mixed = cls._make_employee("Tna Mixed")
+
+        cls._make_allocation(
+            cls.emp_billable, cls.project, TEAM_WINDOW_START, "2026-06-19", is_billable=1, status="Confirmed"
+        )
+        cls._make_allocation(
+            cls.emp_nonbillable, cls.project, "2026-06-16", "2026-06-20", is_billable=0, status="Tentative"
+        )
+        # Allocated, but entirely after the window — counts as unallocated for this range.
+        cls._make_allocation(cls.emp_out, cls.project, "2026-07-01", "2026-07-05", is_billable=1, status="Confirmed")
+        # Holds one allocation of each kind, so it is matched by either billable option and
+        # must never be dropped merely for holding a non-matching allocation too. The two
+        # must not overlap — Resource Allocation rejects overlaps on the same project.
+        cls._make_allocation(
+            cls.emp_mixed, cls.project, TEAM_WINDOW_START, "2026-06-17", is_billable=1, status="Confirmed"
+        )
+        cls._make_allocation(cls.emp_mixed, cls.project, "2026-06-22", "2026-06-24", is_billable=0, status="Tentative")
+
+        cls.all_ids = json.dumps([cls.emp_billable, cls.emp_nonbillable, cls.emp_out, cls.emp_free])
+        cls.allocated_ids = json.dumps([cls.emp_billable, cls.emp_nonbillable])
+        cls.mixed_ids = json.dumps([cls.emp_mixed, cls.emp_billable, cls.emp_free])
+        frappe.clear_cache()
+
+    def test_alone_returns_only_employees_without_any_allocation(self):
+        result = self._call(employee_id=self.all_ids, no_allocation=True)
+        self.assertEqual(self._names(result), ["Tna Free", "Tna OutOfWindow"])
+
+    def test_unions_with_is_billable(self):
+        # "No allocation" + "Billable only" — the billable employee plus the unallocated.
+        result = self._call(employee_id=self.all_ids, no_allocation=True, is_billable=json.dumps([1]))
+        self.assertEqual(self._names(result), ["Tna Billable", "Tna Free", "Tna OutOfWindow"])
+
+    def test_unions_with_non_billable(self):
+        result = self._call(employee_id=self.all_ids, no_allocation=True, is_billable=json.dumps([0]))
+        self.assertEqual(self._names(result), ["Tna Free", "Tna Nonbillable", "Tna OutOfWindow"])
+
+    def test_unions_with_allocation_status(self):
+        result = self._call(employee_id=self.all_ids, no_allocation=True, allocation_status=json.dumps(["Confirmed"]))
+        self.assertEqual(self._names(result), ["Tna Billable", "Tna Free", "Tna OutOfWindow"])
+
+    def test_employee_matching_on_one_of_several_allocations_is_kept(self):
+        # Tna Mixed holds both a billable and a non-billable allocation. Either option must
+        # match it — holding a *non*-matching allocation is not grounds for exclusion.
+        billable = self._call(employee_id=self.mixed_ids, no_allocation=True, is_billable=json.dumps([1]))
+        self.assertEqual(self._names(billable), ["Tna Billable", "Tna Free", "Tna Mixed"])
+
+        non_billable = self._call(employee_id=self.mixed_ids, no_allocation=True, is_billable=json.dumps([0]))
+        self.assertEqual(self._names(non_billable), ["Tna Free", "Tna Mixed"])
+
+    def test_combines_with_employee_name(self):
+        result = self._call(employee_id=self.all_ids, no_allocation=True, employee_name="Free")
+        self.assertEqual(self._names(result), ["Tna Free"])
+
+    def test_all_scoped_employees_allocated_returns_empty(self):
+        result = self._call(employee_id=self.allocated_ids, no_allocation=True)
+        self.assertEqual(result["employees"], [])
+        self.assertEqual(result["total_count"], 0)
+        self.assertFalse(result["has_more"])
+
+    def test_empty_match_set_returns_only_the_unallocated(self):
+        # Nobody in this set has a *billable Tentative* allocation, so the union collapses
+        # to its no-allocation leg — and must not fall into the empty-response branch.
+        result = self._call(
+            employee_id=self.all_ids,
+            no_allocation=True,
+            is_billable=json.dumps([1]),
+            allocation_status=json.dumps(["Tentative"]),
+        )
+        self.assertEqual(self._names(result), ["Tna Free", "Tna OutOfWindow"])
+
+    def test_pagination_counts_the_filtered_set(self):
+        result = self._call(employee_id=self.all_ids, no_allocation=True, page_length=1)
+        self.assertEqual(self._names(result), ["Tna Free"])
+        self.assertEqual(result["total_count"], 2)
+        self.assertTrue(result["has_more"])
+
+    def test_ignored_without_write_permission(self):
+        # no_allocation would drop the allocated employees if honored; a read-only caller
+        # must ignore it and return every Tna employee via the name filter.
+        result = self._call(user=FILTER_READ_ONLY_USER, employee_name="Tna", no_allocation=True)
+        self.assertFalse(result["permissions"]["write"])
+        self.assertEqual(
+            self._names(result),
+            ["Tna Billable", "Tna Free", "Tna Mixed", "Tna Nonbillable", "Tna OutOfWindow"],
+        )
+
+
 class TestTeamViewHoursSummaryShape(_TeamViewBase):
     """The need_hours_summary response-shape switch."""
 
