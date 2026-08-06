@@ -3,11 +3,16 @@
 frappe.ui.form.on("Project", {
   setup: function (frm) {
     frm.set_query("custom_client_point_of_contact", function () {
+      if (!frm.doc.customer) {
+        return {
+          filters: { name: "" },
+        };
+      }
       return {
         query: "frappe.contacts.doctype.contact.contact.contact_query",
         filters: {
           link_doctype: "Customer",
-          link_name: frm.doc.customer || "",
+          link_name: frm.doc.customer,
         },
       };
     });
