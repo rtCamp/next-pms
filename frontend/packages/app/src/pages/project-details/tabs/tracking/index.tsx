@@ -36,9 +36,9 @@ function TrackingContent() {
           value={currencyFormat(currency).format(
             tracking.total_project_value ?? 0,
           )}
-          href={`${ROUTES.desk}/sales-order?status=Cancelled&project=${encodeURIComponent(
-            projectId,
-          )}`}
+          href={`${ROUTES.desk}/sales-order?status=${encodeURIComponent(
+            JSON.stringify(["!=", "Cancelled"]),
+          )}&project=${encodeURIComponent(projectId)}`}
         />
         <KnowledgePoint
           title="Projected profit"
