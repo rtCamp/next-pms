@@ -66,8 +66,9 @@ jobs:
             git config --global "url.https://rtbot:${RTBOT_TOKEN}@github.com/.insteadOf" "https://github.com/"
             bench get-app telephony --branch develop --skip-assets
             bench get-app helpdesk --branch main --skip-assets
+            bench get-app crm --branch main --skip-assets
             bench get-app rtcamp "https://${RTCAMP_APP}" --branch version-16-hotfix --skip-assets
-            PRIVATE_APPS="telephony helpdesk rtcamp"
+            PRIVATE_APPS="telephony helpdesk crm rtcamp"
           else
             echo "RTBOT_TOKEN unavailable (fork PR) — skipping private rtcamp app; rtcamp-gated tests will skip"
             PRIVATE_APPS=""
