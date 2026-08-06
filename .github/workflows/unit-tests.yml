@@ -67,6 +67,9 @@ jobs:
             bench get-app telephony --branch develop --skip-assets
             bench get-app helpdesk --branch main --skip-assets
             bench get-app crm --branch main --skip-assets
+            bench get-app frappe_appointment https://github.com/rtCamp/frappe-appointment --branch version-16-hotfix --skip-assets
+            bench get-app careers https://github.com/rtCamp/frappe-careers --branch version-16-hotfix --skip-assets
+            bench get-app india_compliance https://github.com/resilient-tech/india-compliance --branch version-16 --skip-assets
             bench get-app rtcamp "https://${RTCAMP_APP}" --branch version-16-hotfix --skip-assets
             PRIVATE_APPS="telephony helpdesk crm rtcamp"
           else
