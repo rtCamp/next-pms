@@ -1,7 +1,7 @@
 /**
  * External dependencies.
  */
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { useInfiniteScroll } from "@next-pms/hooks";
 
 /**
@@ -34,13 +34,7 @@ export const TeamTimesheetWeek = ({
     ({ actions }) => actions.registerMemberRefresh,
   );
 
-  const [expanded, setExpanded] = useState(defaultExpanded);
-  const activatedRef = useRef(defaultExpanded);
-
-  if (expanded) {
-    activatedRef.current = true;
-  }
-  const enabled = activatedRef.current;
+  const [enabled, setEnabled] = useState(defaultExpanded);
 
   const {
     members,
@@ -73,7 +67,9 @@ export const TeamTimesheetWeek = ({
       label={week.label}
       dates={week.dates}
       collapsed={!defaultExpanded}
-      onCollapsedChange={(collapsed) => setExpanded(!collapsed)}
+      onCollapsedChange={(collapsed) => {
+        if (!collapsed) setEnabled(true);
+      }}
       approvalPendingCount={week.approval_pending_count}
       teamMembers={members}
       hasMoreMembers={!isFilterRequest && hasMore}

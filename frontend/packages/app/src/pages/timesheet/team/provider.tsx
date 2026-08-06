@@ -175,12 +175,10 @@ export const TeamTimesheetProvider: FC<PropsWithChildren> = ({ children }) => {
       const week = weeksRef.current.find((w) =>
         w.dates.includes(info.start_date!),
       );
-      const handler = refreshRegistry.current.get(
-        week?.start_date ?? info.start_date,
-      );
-      if (!handler) return;
+      if (!week) return;
 
-      if (info.message) {
+      const handler = refreshRegistry.current.get(week.start_date);
+      if (handler && info.message) {
         handler(info.message);
       }
       void refreshWeeks();
