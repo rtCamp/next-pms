@@ -3,6 +3,8 @@
  */
 import type { FilterField, MultiSelectOption } from "@rtcamp/frappe-ui-react";
 
+export const teamAllocationStatusOptionValues = ["Confirmed", "Tentative"];
+
 export const teamAllocationsTypeOptions: MultiSelectOption[] = [
   { label: "Confirmed only", value: "Confirmed" },
   { label: "Tentative only", value: "Tentative" },

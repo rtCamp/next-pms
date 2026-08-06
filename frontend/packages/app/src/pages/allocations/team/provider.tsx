@@ -28,6 +28,7 @@ import {
   type AllocationsTeamContextProps,
 } from "./context";
 import { useAllocationsTeamData } from "./useAllocationsTeamData";
+import { normalizeAllocationTypeSelection } from "./utils";
 import {
   getWeekCountForDuration,
   moveDateByDuration,
@@ -68,7 +69,7 @@ export function AllocationsTeamProvider({
       allocationTypeValues.includes(value),
     );
 
-    return parsed;
+    return normalizeAllocationTypeSelection(parsed);
   }, [allocationTypeValues, searchParams]);
   const compositeFilters = useMemo(
     () =>

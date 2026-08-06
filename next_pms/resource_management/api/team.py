@@ -93,9 +93,11 @@ def get_resource_management_team_view_data(
             the employees with a billable allocation *plus* the employees with no
             allocation at all. "No allocation" always means zero allocations of any kind —
             an employee holding only a non-billable allocation is not unallocated, even
-            when `is_billable=[1]` is passed. Every employee-level filter (employee_name,
-            designation, business_unit, reports_to, skills, tag, employee_id) still applies
-            on top. Ignored when the caller lacks write permission. Defaults to False.
+            when `is_billable=[1]` is passed. `allocation_status` is dropped when this is
+            set without `is_billable`, since the status axis has no allocation to narrow.
+            Every employee-level filter (employee_name, designation, business_unit,
+            reports_to, skills, tag, employee_id) still applies on top. Ignored when the
+            caller lacks write permission. Defaults to False.
 
     Returns:
         When ``need_hours_summary`` is False:
@@ -276,6 +278,12 @@ def _get_resource_management_team_view_data(
     )
     if filter_is_billable is not None:
         is_billable = [filter_is_billable]
+
+    if no_allocation and not is_billable:
+        # "No allocation" is the only allocation-presence option selected. An unallocated
+        # employee holds no allocation to carry a status, so the status axis has nothing to
+        # narrow — honouring it would union in a set the caller cannot have meant.
+        allocation_status = None
 
     extra_conditions = list(employee_conditions)
     for operator, value in skill_conditions:

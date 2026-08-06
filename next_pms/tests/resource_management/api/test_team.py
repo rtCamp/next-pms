@@ -465,6 +465,16 @@ class TestTeamViewAllocationFilters(_TeamViewBase):
         confirmed = self._call(employee_id=self.all_ids, allocation_status=json.dumps(["Tentative"]))
         self.assertEqual(self._names(confirmed), ["Tva Nonbillable"])
 
+    def test_both_billable_values_select_every_allocated_employee(self):
+        # Selecting both billable options means "either kind of allocation", which is not
+        # the same as leaving the axis unfiltered — the out-of-window employee stays out.
+        result = self._call(employee_id=self.all_ids, is_billable=json.dumps([0, 1]))
+        self.assertEqual(self._names(result), ["Tva Billable", "Tva Nonbillable"])
+
+    def test_both_status_values_select_every_allocated_employee(self):
+        result = self._call(employee_id=self.all_ids, allocation_status=json.dumps(["Confirmed", "Tentative"]))
+        self.assertEqual(self._names(result), ["Tva Billable", "Tva Nonbillable"])
+
     def test_no_matching_allocation_returns_empty(self):
         result = self._call(employee_id=json.dumps([self.emp_nonbillable]), is_billable=json.dumps([1]))
         self.assertEqual(result["employees"], [])
@@ -534,8 +544,21 @@ class TestTeamViewNoAllocationFilter(_TeamViewBase):
         result = self._call(employee_id=self.all_ids, no_allocation=True, is_billable=json.dumps([0]))
         self.assertEqual(self._names(result), ["Tna Free", "Tna Nonbillable", "Tna OutOfWindow"])
 
-    def test_unions_with_allocation_status(self):
+    def test_allocation_status_is_dropped_without_a_billability_option(self):
+        # An unallocated employee has no allocation to be Confirmed, so the status axis
+        # cannot narrow anything here and must not union in the confirmed employees.
         result = self._call(employee_id=self.all_ids, no_allocation=True, allocation_status=json.dumps(["Confirmed"]))
+        self.assertEqual(self._names(result), ["Tna Free", "Tna OutOfWindow"])
+
+    def test_allocation_status_applies_alongside_a_billability_option(self):
+        # With a presence option selected the status axis is meaningful again: it narrows
+        # the billable leg, and the no-allocation leg unions on top.
+        result = self._call(
+            employee_id=self.all_ids,
+            no_allocation=True,
+            is_billable=json.dumps([1]),
+            allocation_status=json.dumps(["Confirmed"]),
+        )
         self.assertEqual(self._names(result), ["Tna Billable", "Tna Free", "Tna OutOfWindow"])
 
     def test_employee_matching_on_one_of_several_allocations_is_kept(self):
