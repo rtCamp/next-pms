@@ -98,6 +98,18 @@ export function NotesProvider({ children }: PropsWithChildren) {
     [notes, refresh, toast, updateNote],
   );
 
+  const updateDescription = useCallback(
+    async (name: string, description: string) => {
+      try {
+        await updateNote({ name, description });
+        await refresh();
+      } catch (err) {
+        toast.error(parseFrappeErrorMsg(err as FrappeError));
+      }
+    },
+    [refresh, toast, updateNote],
+  );
+
   const openDeleteDialog = useCallback((name: string) => {
     setDeleteNoteName(name);
   }, []);
@@ -128,6 +140,7 @@ export function NotesProvider({ children }: PropsWithChildren) {
         refresh,
         deleteNote,
         togglePin,
+        updateDescription,
         openDeleteDialog,
         closeDeleteDialog,
       },
@@ -148,6 +161,7 @@ export function NotesProvider({ children }: PropsWithChildren) {
       refresh,
       deleteNote,
       togglePin,
+      updateDescription,
       openDeleteDialog,
       closeDeleteDialog,
     ],
