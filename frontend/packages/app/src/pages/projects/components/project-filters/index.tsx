@@ -41,7 +41,8 @@ export function ProjectFilters() {
     (search !== "" ? 1 : 0) +
     (ragStatus.length > 0 ? 1 : 0) +
     (phase ? 1 : 0) +
-    (status ? 1 : 0);
+    (status ? 1 : 0) +
+    (currency ? 1 : 0);
 
   const activeView = useProjectViews((state) => state.state.activeView);
   const isKanban = activeView?.type.toLowerCase() === "custom";
