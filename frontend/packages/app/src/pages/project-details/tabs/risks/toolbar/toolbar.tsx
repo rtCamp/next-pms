@@ -52,6 +52,7 @@ export function RisksToolbar() {
           placeholder="Owner"
           placeholderClassName="text-ink-gray-7"
           className="w-36 text-ink-gray-7"
+          matchTriggerWidth
           value={filters.owner}
           onChange={(v) => setFilters({ owner: (v ?? "") as string })}
           options={ownerOptions}
@@ -61,6 +62,7 @@ export function RisksToolbar() {
           placeholder="Status"
           placeholderClassName="text-ink-gray-7"
           className="w-30 text-ink-gray-7"
+          matchTriggerWidth
           value={filters.status}
           onChange={(v) => setFilters({ status: (v ?? "") as RiskStatus | "" })}
           options={STATUS_OPTIONS}
@@ -70,6 +72,7 @@ export function RisksToolbar() {
           placeholder="Risk level"
           placeholderClassName="text-ink-gray-7"
           className="w-30 text-ink-gray-7"
+          matchTriggerWidth
           value={filters.riskLevel}
           onChange={(v) => setFilters({ riskLevel: (v ?? "") as string })}
           options={RISK_LEVEL_OPTIONS}
