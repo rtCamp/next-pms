@@ -1,5 +1,6 @@
 import datetime
 from collections import defaultdict
+from dataclasses import dataclass
 
 import frappe
 from erpnext.setup.doctype.employee.employee import get_holiday_list_for_employee
@@ -12,6 +13,7 @@ from next_pms.timesheet.utils.constant import (
     ALLOWED_FILTER_FIELDS,
     ALLOWED_TIMESHET_DETAIL_FIELDS,
     FILTER_LOOKBACK_WEEKS,
+    NOT_SUBMITTED_STATUS,
 )
 
 from . import filter_employees
@@ -268,6 +270,13 @@ def employee_has_higher_access(employee: str, ptype: str = "read") -> bool:
 
 
 def normalize_status_filter(status_filter, coerce_non_list: bool = False):
+    """Normalize an approval-status filter into a list of status labels.
+
+    Accepts an already-decoded list, a JSON-encoded array, or a bare label - a string that
+    is not JSON is the single-element filter it looks like, not an error. A payload that
+    does decode but into something other than status labels *is* a caller error, and is
+    reported as one here rather than reaching the query builder as an unhashable value.
+    """
     if isinstance(status_filter, str):
         status_filter = status_filter.strip()
         if not status_filter:
@@ -278,10 +287,13 @@ def normalize_status_filter(status_filter, coerce_non_list: bool = False):
         except ValueError, TypeError:
             return [status_filter]
 
-    if status_filter == "":
+    if not status_filter:
         return None
-    if coerce_non_list and status_filter and not isinstance(status_filter, list):
-        return [status_filter]
+    if coerce_non_list and not isinstance(status_filter, list):
+        status_filter = [status_filter]
+
+    if isinstance(status_filter, list) and not all(isinstance(status, str) for status in status_filter):
+        frappe.throw(frappe._("Approval status filter must be a list of status labels."))
 
     return status_filter
 
@@ -339,7 +351,6 @@ def build_filters(base_filters, additional_filters):
     return result
 
 
-EMPLOYEE_SCAN_CHUNK_SIZE = 50
 TASK_FIELDS = [
     "name",
     "subject",
@@ -466,14 +477,25 @@ def get_team_candidate_employee_ids(
     if not dates:
         return []
 
-    has_candidate_filters = bool(timesheet_status or any((parsed_filters or {}).values()))
+    # "Not Submitted" is the absence of a Timesheet, so it cannot be resolved by querying
+    # them. Narrowing the pool on it would drop exactly the employees it should return.
+    db_statuses = [status for status in (timesheet_status or []) if status != NOT_SUBMITTED_STATUS]
+    wants_not_submitted = bool(timesheet_status) and len(db_statuses) < len(timesheet_status)
+    has_work_filters = any((parsed_filters or {}).values())
+
+    has_candidate_filters = bool(db_statuses or has_work_filters)
     if not has_candidate_filters and not employee_conditions:
+        return None
+
+    # Work filters still narrow: an employee with no Timesheet cannot match one, so
+    # combining them with "Not Submitted" legitimately excludes the no-row population.
+    if wants_not_submitted and not has_work_filters:
         return None
 
     employee_ids = get_matching_timesheet_employee_ids(
         dates=dates,
         parsed_filters=parsed_filters or {dt: [] for dt in ALLOWED_FILTER_FIELDS},
-        approval_status=timesheet_status,
+        approval_status=db_statuses or None,
     )
     if not employee_ids:
         return []
@@ -489,6 +511,246 @@ def get_team_candidate_employee_ids(
         return []
 
     return employee_ids
+
+
+@dataclass
+class TeamEmployeeScope:
+    """Everything the team timesheet endpoints need to agree on about *who* and *when*.
+
+    `get_team_timesheet_weeks` derives its counts from this and `get_team_timesheet_data`
+    derives its rows from it, so a single resolver is what keeps the pending-approval
+    badge consistent with the rows underneath it.
+    """
+
+    dates: list
+    response_dates: list
+    parsed_filters: dict
+    employee_conditions: list
+    status_filter: list | None
+    search: str | None
+    reports_to: str | None
+    has_filters: bool
+    candidate_employee_ids: list[str] | None = None
+
+    @property
+    def is_empty(self) -> bool:
+        """True when the filters provably match no employee, so callers can skip work."""
+        return self.candidate_employee_ids == []
+
+    @property
+    def skip_empty_weeks(self) -> bool:
+        """Empty weeks are dropped for filters that describe *work*, not for member search.
+
+        Searching for a person and being shown none of their weeks reads as "no data";
+        filtering by project/task/status means the caller asked for weeks matching that
+        predicate. Resolved here rather than accepted as a parameter so both endpoints
+        make the same choice.
+        """
+        if not self.has_filters:
+            return False
+        return bool(
+            self.status_filter or any(conditions for doctype, conditions in self.parsed_filters.items() if conditions)
+        )
+
+
+def resolve_team_employee_scope(
+    date: str,
+    max_week: int,
+    status_filter: str | list[str] | None = None,
+    reports_to: str | None = None,
+    search: str | None = None,
+    filters: str | list | None = None,
+) -> TeamEmployeeScope:
+    """Resolve the employee/date scope shared by the team timesheet endpoints."""
+    status_filter = normalize_status_filter(status_filter, coerce_non_list=True)
+
+    parsed_filters = parse_filters(filters)
+
+    # Employee-level filters (status / business unit drop-downs in frontend) are
+    # passed through with their operators intact so the global employee filter
+    # narrows the pool with the same semantics the caller asked for (like, in, ...).
+    # Sanitized (and written back) before has_filters so a condition dropped for a
+    # missing meta field cannot flip the request into the filtered path.
+    employee_conditions = sanitize_employee_conditions(parsed_filters.get("Employee"))
+    parsed_filters["Employee"] = employee_conditions
+
+    has_filters = bool(search or status_filter or any(parsed_filters.values()))
+    dates, _ = build_aggregate_dates(date=date, max_week=max_week, has_filters=has_filters)
+    response_dates = dates[-max_week:] if has_filters and len(dates) > max_week else dates
+
+    # `search` is an employee-name search, so it narrows the employee query rather than
+    # the timesheet query - it is applied in resolve_team_members, not here.
+    candidate_employee_ids = get_team_candidate_employee_ids(
+        reports_to=reports_to,
+        dates=dates,
+        parsed_filters=parsed_filters,
+        timesheet_status=status_filter,
+        employee_conditions=employee_conditions,
+    )
+
+    return TeamEmployeeScope(
+        dates=dates,
+        response_dates=response_dates,
+        parsed_filters=parsed_filters,
+        employee_conditions=employee_conditions,
+        status_filter=status_filter,
+        search=search,
+        reports_to=reports_to,
+        has_filters=has_filters,
+        candidate_employee_ids=candidate_employee_ids,
+    )
+
+
+def get_team_week_participation(scope: TeamEmployeeScope, weeks: list) -> dict:
+    """Per-week distinct employees, and how many of them are pending approval.
+
+    One query for the whole range, bucketed into weeks in Python via
+    `get_first_day_of_week` so the week boundary matches the rest of the app rather
+    than a hand-rolled SQL date expression that would ignore System Settings.
+
+    Returns `{week_start: {"members": set, "pending": set}}`. Sets rather than counts
+    because API 2 intersects them with its own employee page, and a count cannot be
+    intersected.
+    """
+    if not weeks:
+        return {}
+
+    timesheet_filters = {
+        "start_date": [">=", weeks[0]["start_date"]],
+        "end_date": ["<=", weeks[-1]["end_date"]],
+        "docstatus": ["!=", 2],
+    }
+    if scope.candidate_employee_ids is not None:
+        timesheet_filters["employee"] = ["in", scope.candidate_employee_ids]
+
+    rows = get_all(
+        "Timesheet",
+        filters=timesheet_filters,
+        fields=["employee", "start_date", "custom_weekly_approval_status"],
+        distinct=True,
+        # Unordered on purpose: the result is folded into sets, and the default
+        # `creation` sort costs a filesort over the whole match set.
+        order_by=None,
+    )
+
+    status_filter = set(scope.status_filter or [])
+    participation = {
+        week["start_date"]: {"members": set(), "pending": set(), "status_matched": set()} for week in weeks
+    }
+    for row in rows:
+        week_start = get_first_day_of_week(row.start_date)
+        bucket = participation.get(week_start)
+        if bucket is None:
+            continue
+        bucket["members"].add(row.employee)
+        if row.custom_weekly_approval_status == "Approval Pending":
+            bucket["pending"].add(row.employee)
+        # Read the status the same way the payload derives it for display, so a row whose
+        # weekly status was never set counts as "Not Submitted" here too.
+        status = row.custom_weekly_approval_status or NOT_SUBMITTED_STATUS
+        # Per-week status membership: an employee belongs to a status-filtered week only
+        # when that week's approval status is one the caller asked for. Without this the
+        # filter fell back to plain participation, so every status except "Approval
+        # Pending" matched anyone who merely logged time that week.
+        if status_filter and status in status_filter:
+            bucket["status_matched"].add(row.employee)
+
+    return participation
+
+
+def resolve_team_members(scope: TeamEmployeeScope, weeks: list) -> dict:
+    """Resolve which employees qualify, per week, before any pagination happens.
+
+    This is the single source both team timesheet endpoints read: the week endpoint
+    turns these sets into counts, the data endpoint paginates one of them. Deriving
+    both from here is what stops the pending-approval badge from disagreeing with the
+    rows beneath it.
+
+    Resolving qualification up front is also what removes the O(total employees) scan:
+    membership used to be knowable only after a full payload had been built and
+    discarded, so a 20-row page walked the entire pool.
+
+    Returns `{"eligible_ids", "eligible_count", "members_by_week", "pending_by_week"}`.
+    """
+    eligible_employees, eligible_count = filter_employees(
+        page_length=0,
+        start=0,
+        reports_to=scope.reports_to,
+        ids=scope.candidate_employee_ids,
+        employee_name=scope.search,
+        **employee_condition_kwargs(scope.employee_conditions),
+    )
+    eligible_ids = {employee.name for employee in eligible_employees}
+
+    participation = get_team_week_participation(scope, weeks)
+
+    members_by_week = {}
+    pending_by_week = {}
+    for week in weeks:
+        bucket = participation.get(week["start_date"], {"members": set(), "pending": set(), "status_matched": set()})
+        # Membership is per-week participation only for filters that describe work.
+        # For a member-name search an employee belongs to every week whether or not they
+        # logged time - the point of searching a person is to see their empty weeks too.
+        # A status filter is stricter still: the week's approval status must match, so it
+        # keys off the status-matched set rather than plain participation.
+        if scope.status_filter:
+            week_members = bucket["status_matched"]
+            # A week with no Timesheet at all reads as "Not Submitted" everywhere else in
+            # the payload, so it has to answer to that filter rather than the Timesheet
+            # query, which by definition cannot return it.
+            if NOT_SUBMITTED_STATUS in scope.status_filter:
+                week_members = week_members | (eligible_ids - bucket["members"])
+        elif scope.skip_empty_weeks:
+            week_members = bucket["members"]
+        else:
+            week_members = eligible_ids
+        members_by_week[week["start_date"]] = week_members & eligible_ids
+        pending_by_week[week["start_date"]] = bucket["pending"] & eligible_ids
+
+    return {
+        "eligible_ids": eligible_ids,
+        "eligible_count": eligible_count,
+        "members_by_week": members_by_week,
+        "pending_by_week": pending_by_week,
+    }
+
+
+def has_scoped_timesheets_before(scope: TeamEmployeeScope, eligible_ids: set, date) -> bool:
+    """Whether a week older than `date` could still hold a row for this scope.
+
+    This is what tells the week endpoint to keep offering older pages, so it has to ask
+    about *this* caller's team rather than about the Timesheet table as a whole - an
+    unrelated employee's three-year-old timesheet would otherwise keep a filtered view
+    paging backwards over weeks that can never produce a row.
+
+    Deliberately an upper bound: employee scope, Timesheet-level filters and stored
+    approval statuses narrow it, while Task / Timesheet Detail filters (which need the
+    detail join) and `Not Submitted` (which is the absence of a row, so no Timesheet query
+    can answer it) do not. Over-reporting costs one empty page; under-reporting would hide
+    weeks that do have data, so the bound leans the safe way.
+    """
+    if not eligible_ids:
+        return False
+
+    filters = {
+        "start_date": ["<", date],
+        "docstatus": ["!=", 2],
+        "employee": ["in", sorted(eligible_ids)],
+    }
+
+    status_filter = scope.status_filter or []
+    db_statuses = [status for status in status_filter if status != NOT_SUBMITTED_STATUS]
+    if db_statuses and len(db_statuses) == len(status_filter):
+        filters["custom_weekly_approval_status"] = ["in", db_statuses]
+
+    return bool(
+        get_all(
+            "Timesheet",
+            filters=build_filters(filters, scope.parsed_filters.get("Timesheet", [])),
+            fields=["name"],
+            limit=1,
+        )
+    )
 
 
 def get_qualifying_project_ids(
@@ -594,9 +856,49 @@ def get_employees_for_projects(
     return list({employee_by_ts[parent] for parent in matched_parents if parent in employee_by_ts})
 
 
-def iter_employee_chunks(employees: list, chunk_size: int = EMPLOYEE_SCAN_CHUNK_SIZE):
-    for index in range(0, len(employees), chunk_size):
-        yield employees[index : index + chunk_size]
+def resolve_holiday_lists(employee_meta_map: dict, employee_names: list) -> dict:
+    """Resolve every employee's holiday list in one query instead of one per employee.
+
+    `get_holiday_list_for_employee` is overridden by hrms to read Holiday List
+    Assignment, costing an assignment lookup per employee plus a company lookup per
+    fallback. Called in a loop that is itself inside the chunk loop, that was the bulk
+    of the per-page query count.
+
+    Mirrors the hrms resolution order - latest submitted assignment for the employee as
+    of today, else the same for their company - and falls back to the per-employee call
+    when that override is not the one installed, so sites without hrms keep the
+    erpnext behaviour.
+    """
+    if not employee_names:
+        return {}
+
+    override = frappe.get_hooks("employee_holiday_list")
+    if not override or not override[-1].startswith("hrms."):
+        return {name: get_holiday_list_for_employee(name, raise_exception=False) for name in employee_names}
+
+    companies_by_employee = {name: (employee_meta_map.get(name) or {}).get("company") for name in employee_names}
+    lookup_targets = {name for name in employee_names}
+    lookup_targets.update(company for company in companies_by_employee.values() if company)
+
+    as_on = getdate(None)
+    assignments = get_all(
+        "Holiday List Assignment",
+        filters={
+            "assigned_to": ["in", list(lookup_targets)],
+            "from_date": ["<=", as_on],
+            "docstatus": 1,
+        },
+        fields=["assigned_to", "holiday_list"],
+        order_by="from_date asc",
+    )
+    # Ascending order means the last write per key is the latest assignment, matching
+    # hrms's `order by from_date desc limit 1`.
+    latest_by_target = {row.assigned_to: row.holiday_list for row in assignments}
+
+    return {
+        name: latest_by_target.get(name) or latest_by_target.get(companies_by_employee.get(name))
+        for name in employee_names
+    }
 
 
 def build_chunk_context(employees: list, dates: list, parsed_filters: dict):
@@ -620,9 +922,10 @@ def build_chunk_context(employees: list, dates: list, parsed_filters: dict):
     employee_meta_rows = get_all(
         "Employee",
         filters={"name": ["in", employee_names]},
-        fields=["name", "custom_working_hours", "custom_work_schedule", "holiday_list"],
+        fields=["name", "custom_working_hours", "custom_work_schedule", "holiday_list", "company"],
     )
     employee_meta_map = {row.name: row for row in employee_meta_rows}
+    resolved_holiday_lists = resolve_holiday_lists(employee_meta_map, employee_names)
 
     default_hours = frappe.db.get_single_value("HR Settings", "standard_working_hours") or 8
     working_hours_map = {}
@@ -642,7 +945,7 @@ def build_chunk_context(employees: list, dates: list, parsed_filters: dict):
             if working_frequency != "Per Day"
             else working_hours_map[employee_name]["working_hour"]
         )
-        holiday_list = get_holiday_list_for_employee(employee_name, raise_exception=False) or meta.get("holiday_list")
+        holiday_list = resolved_holiday_lists.get(employee_name) or meta.get("holiday_list")
         if holiday_list:
             holiday_lists.add(holiday_list)
         meta["resolved_holiday_list"] = holiday_list
@@ -851,84 +1154,3 @@ def build_employee_week_details(
         }
 
     return week_details
-
-
-def paginate_qualifying_employee_payloads(
-    reports_to: str | None,
-    employee_ids,
-    dates: list,
-    parsed_filters: dict,
-    employee_name: str | None,
-    start: int,
-    page_length: int,
-    builder,
-    employee_conditions: list | None = None,
-):
-    selected = []
-    total_count = 0
-    employee_start = 0
-    employee_filter_kwargs = employee_condition_kwargs(employee_conditions)
-
-    while True:
-        chunk, _ = filter_employees(
-            page_length=EMPLOYEE_SCAN_CHUNK_SIZE,
-            start=employee_start,
-            reports_to=reports_to,
-            ids=employee_ids,
-            employee_name=employee_name,
-            **employee_filter_kwargs,
-        )
-        if not chunk:
-            break
-
-        context = build_chunk_context(chunk, dates, parsed_filters)
-        for employee in chunk:
-            payload = builder(employee, context)
-            if not payload:
-                continue
-
-            if total_count >= start and len(selected) < page_length:
-                selected.append(payload)
-
-            total_count += 1
-
-        employee_start += len(chunk)
-
-    has_more = start + page_length < total_count
-    return selected, total_count, has_more
-
-
-def paginate_unfiltered_employee_payloads(
-    reports_to: str | None,
-    dates: list,
-    parsed_filters: dict,
-    start: int,
-    page_length: int,
-    builder,
-):
-    """Fast path for the no-filters case (has_filters=False and no status/business_unit).
-
-    `build_employee_week_details`'s `should_skip_week` only drops a week when
-    `has_filters and skip_empty_weeks`, or when `approval_status` (the caller's
-    `status_filter`) is truthy. The caller only reaches this function when
-    `has_filters` is False, and `status_filter` is itself one of the terms that make
-    `has_filters` True — so here `status_filter` is guaranteed falsy too, no week is
-    ever dropped, and `builder` never returns None. That means the page can be fetched
-    directly via SQL LIMIT/OFFSET (and its matching COUNT) instead of walking the
-    entire employee pool in Python just to paginate and count, which is what
-    `paginate_qualifying_employee_payloads` does for the general case.
-    """
-    page_employees, total_count = filter_employees(
-        page_length=page_length,
-        start=start,
-        reports_to=reports_to,
-    )
-    context = build_chunk_context(page_employees, dates, parsed_filters)
-    # No `if payload` filter here on purpose: per the invariant above, builder()
-    # cannot return None in this path. If that invariant is ever violated, a
-    # `None` in `selected` will raise loudly when `team.py` unpacks it as
-    # `(employee_name, payload)`, instead of silently truncating the page while
-    # total_count/has_more still reflect the full (unfiltered) count.
-    selected = [builder(employee, context) for employee in page_employees]
-    has_more = start + page_length < total_count
-    return selected, total_count, has_more

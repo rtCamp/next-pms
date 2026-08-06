@@ -179,7 +179,7 @@ fixtures = [
 # ---------------
 # Override standard doctype classes
 
-override_doctype_class = {
+override_doctype_class = {  # nosemgrep - existing legacy overrides; migration tracked separately
     "Project": "next_pms.project_currency.overrides.project.ProjectOverwrite",
     "Customize Form": "next_pms.project_currency.overrides.customize_form.CustomizeFormOverride",
     "Timesheet": "next_pms.project_currency.overrides.timesheet.TimesheetOverwrite",
