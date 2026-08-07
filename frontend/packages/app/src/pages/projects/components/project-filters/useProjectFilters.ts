@@ -23,6 +23,7 @@ export const FILTER_PARAM_KEYS = [
   "phase",
   "status",
   "advanced",
+  "currency",
   "sortField",
   "sortOrder",
 ] as const;
@@ -41,6 +42,7 @@ export function useProjectFilters() {
       advanced: parseJSONArrayParam<FilterCondition>(
         searchParams.get("advanced"),
       ),
+      currency: searchParams.get("currency") ?? "",
     }),
     [searchParams],
   );
@@ -86,6 +88,10 @@ export function useProjectFilters() {
   );
   const setStatus = useCallback(
     (v: ProjectStatus | "") => setParam("status", v),
+    [setParam],
+  );
+  const setCurrency = useCallback(
+    (v: string) => setParam("currency", v),
     [setParam],
   );
   const setAdvanced = useCallback(
@@ -136,6 +142,7 @@ export function useProjectFilters() {
     setRagStatus,
     setPhase,
     setStatus,
+    setCurrency,
     setAdvanced,
     setSort,
     resetFilters,

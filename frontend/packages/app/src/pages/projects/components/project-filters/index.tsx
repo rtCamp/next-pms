@@ -4,6 +4,7 @@
 import { useEffect, useRef, useState } from "react";
 import { SortSelector } from "@next-pms/design-system/components";
 import {
+  Combobox,
   Select,
   TextInput,
   Filter,
@@ -15,6 +16,7 @@ import {
  */
 import { FilterLinkValue } from "@/components/filters/FilterLinkValue";
 import { useDebounce } from "@/hooks/useDebounce";
+import { useUser } from "@/providers/user";
 import { useProjectFilters } from "./useProjectFilters";
 import { PHASE_OPTIONS, RAG_OPTIONS, STATUS_OPTIONS } from "../../constants";
 import { Phase, type ProjectStatus, type RagStatus } from "../../types";
@@ -22,7 +24,7 @@ import { useProjectViews } from "../../views";
 
 export function ProjectFilters() {
   const {
-    filters: { search, ragStatus, phase, status, advanced },
+    filters: { search, ragStatus, phase, status, advanced, currency },
     sort,
     setSearch,
     setRagStatus,
@@ -31,7 +33,9 @@ export function ProjectFilters() {
     setAdvanced,
     setSort,
     resetFilters,
+    setCurrency,
   } = useProjectFilters();
+  const currencies = useUser((s) => s.state.currencies);
 
   const externalFilterCount =
     (search !== "" ? 1 : 0) +
@@ -77,6 +81,14 @@ export function ProjectFilters() {
             options={RAG_OPTIONS}
             value={ragStatus}
             onChange={(v) => setRagStatus(v as RagStatus[])}
+          />
+        </div>
+        <div className="w-28 shrink-0">
+          <Combobox
+            placeholder="Currency"
+            value={currency || null}
+            onChange={(v) => setCurrency(v || "")}
+            options={currencies}
           />
         </div>
         <Select
