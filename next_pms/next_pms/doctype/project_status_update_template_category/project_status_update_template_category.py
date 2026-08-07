@@ -5,7 +5,7 @@
 from frappe.model.document import Document
 
 
-class ProjectStatusUpdateTemplate(Document):
+class ProjectStatusUpdateTemplateCategory(Document):
     # begin: auto-generated types
     # This code is auto-generated. Do not modify anything in this block.
 
@@ -14,11 +14,6 @@ class ProjectStatusUpdateTemplate(Document):
     if TYPE_CHECKING:
         from frappe.types import DF
 
-        category: DF.Link | None
-        description: DF.TextEditor
-        template_description: DF.Data | None
-        template_name: DF.Data
-        title: DF.Data | None
     # end: auto-generated types
 
     pass
