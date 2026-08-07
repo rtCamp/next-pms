@@ -20,6 +20,7 @@ type CommentItemProps = {
 
 export function CommentItem({ comment, canReply }: CommentItemProps) {
   const {
+    getMentions,
     onReply,
     onEdit,
     onDelete,
@@ -86,6 +87,7 @@ export function CommentItem({ comment, canReply }: CommentItemProps) {
 
       {isEditing ? (
         <CommentInput
+          getMentions={getMentions}
           initialValue={comment.content}
           placeholder="Edit comment"
           autoFocus

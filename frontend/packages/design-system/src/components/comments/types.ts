@@ -15,6 +15,7 @@ export type CommentNode = {
 };
 
 export type CommentActions = {
+  getMentions?: TextEditorProps["mentions"];
   onReply: (parentId: string, comment: string) => Promise<void>;
   onEdit: (commentId: string, comment: string) => Promise<void>;
   onDelete: (commentId: string) => Promise<void>;
