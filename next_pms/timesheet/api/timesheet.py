@@ -399,8 +399,10 @@ def submit_for_approval(start_date: str, notes: str = None, employee: str = None
         frappe.db.set_value(
             "Timesheet",
             timesheet.name,
-            "custom_weekly_approval_status",
-            "Approval Pending",
+            {
+                "custom_weekly_approval_status": "Approval Pending",
+                "custom_weekly_rejection_reason": None,
+            },
         )
     frappe.db.commit()  # nosemgrep Need to do as we need to publish status changes.
 

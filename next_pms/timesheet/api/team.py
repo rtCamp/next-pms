@@ -409,8 +409,15 @@ def approve_or_reject_timesheet(employee: str, status: str, dates: list[str] | N
     for timesheet in timesheets:
         if str(timesheet.start_date) not in dates:
             continue
-        db.set_value("Timesheet", timesheet.name, "custom_approval_status", "Processing Timesheet")
-        db.set_value("Timesheet", timesheet.name, "custom_weekly_approval_status", "Processing Timesheet")
+        db.set_value(
+            "Timesheet",
+            timesheet.name,
+            {
+                "custom_approval_status": "Processing Timesheet",
+                "custom_weekly_approval_status": "Processing Timesheet",
+                "custom_weekly_rejection_reason": None,
+            },
+        )
     doc = _dict(
         {
             "employee": employee,

@@ -145,7 +145,7 @@ def update_weekly_status_of_timesheet(employee: str, date: str):
             "end_date": ["<=", end_date],
             "docstatus": ["<", 2],
         },
-        ["name", "custom_approval_status", "start_date"],
+        ["name", "custom_approval_status", "custom_rejection_reason", "start_date"],
     )
     if not current_week_timesheet:
         return
@@ -209,9 +209,28 @@ def update_weekly_status_of_timesheet(employee: str, date: str):
     elif status_count["Approved"] > 0:
         week_status = "Partially Approved"
 
+    weekly_rejection_reason = None
+    if week_status == "Rejected":
+        reasons = []
+        seen = set()
+        for ts in current_week_timesheet:
+            if ts.get("custom_approval_status") != "Rejected":
+                continue
+            reason = (ts.get("custom_rejection_reason") or "").strip()
+            if reason and reason not in seen:
+                seen.add(reason)
+                reasons.append(reason)
+        weekly_rejection_reason = "\n".join(reasons) if reasons else None
+
     for timesheet in current_week_timesheet:
         frappe.db.set_value(
-            "Timesheet", timesheet.name, "custom_weekly_approval_status", week_status, update_modified=False
+            "Timesheet",
+            timesheet.name,
+            {
+                "custom_weekly_approval_status": week_status,
+                "custom_weekly_rejection_reason": weekly_rejection_reason,
+            },
+            update_modified=False,
         )
 
 
