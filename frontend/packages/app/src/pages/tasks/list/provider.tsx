@@ -9,12 +9,16 @@ import { type FrappeError, useFrappeDeleteDoc } from "frappe-react-sdk";
 /**
  * Internal dependencies.
  */
-import { buildFilterConditions, parseFrappeErrorMsg } from "@/lib/utils";
-import AddTask from "../components/add-task";
-import type { AddTaskPrefill } from "../components/add-task/type";
-import { TASK_LIST_PAGE_SIZE } from "../constants";
+import {
+  buildFilterConditions,
+  parseFrappeErrorMsg,
+  pickAllowed,
+} from "@/lib/utils";
 import { TaskListContext, type TaskListContextProps } from "./context";
 import type { ResponseTaskList } from "./types";
+import AddTask from "../components/add-task";
+import type { AddTaskPrefill } from "../components/add-task/type";
+import { TASK_LIST_PAGE_SIZE, TASK_PRIORITIES } from "../constants";
 import { useTaskFilters } from "../useTaskFilters";
 
 export function TaskListProvider({ children }: PropsWithChildren) {
@@ -39,6 +43,8 @@ export function TaskListProvider({ children }: PropsWithChildren) {
         project: task.project,
         projectLabel: task.project_name ?? task.project,
         expected_time: String(task.expected_time ?? ""),
+        priority: pickAllowed(task.priority, TASK_PRIORITIES) ?? "",
+        exp_end_date: task.exp_end_date ?? "",
         description: task.description ?? "",
       });
       setAddTaskOpen(true);
