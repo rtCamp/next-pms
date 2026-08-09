@@ -1,6 +1,8 @@
 # Copyright (c) 2026, rtCamp and contributors
 # For license information, please see license.txt
 
+from datetime import date
+
 import frappe
 from frappe.utils import flt, getdate
 
@@ -38,7 +40,7 @@ def resolve_billing_rate(
     project: str,
     employee: str,
     hourly_cost_rate: float,
-    as_on,
+    as_on: date | str,
     project_map: dict[str, dict],
     context: dict[tuple[str, str], list],
 ) -> float:
@@ -52,6 +54,8 @@ def resolve_billing_rate(
     conversion happens here. Unlike the timesheet path this never throws — a missing rate
     degrades to the fallback rather than blocking a page that is only forecasting.
     """
+    as_on = getdate(as_on)
+
     project_row = project_map.get(project)
     if not project_row:
         return 0.0

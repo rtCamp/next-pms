@@ -200,10 +200,15 @@ def get_forecast_map(
     stops at the employee's relieving date, which total_cost is already clamped to. Today
     counts as forecast, since today's timesheet is typically not submitted yet.
 
-    Cost is always forecast. Budget is only forecast when with_budget is set, because it
-    costs a row scan the database-side sum would otherwise avoid: budget needs each
-    allocation's own employee and rate, where cost can be summed blind. Callers that only
-    read cost therefore pay exactly what they paid before this argument existed.
+    Every entry carries both a "cost" and a "budget" key. Cost is always forecast. Budget
+    is only forecast when with_budget is set, and reads 0.0 otherwise — a caller that did
+    not ask for budget cannot tell that zero apart from a project that genuinely bills
+    nothing, and should not read the key at all.
+
+    Budget is opt-in because it costs a row scan the database-side sum would otherwise
+    avoid: budget needs each allocation's own employee and rate, where cost can be summed
+    blind. Callers that only read cost therefore pay exactly what they paid before this
+    argument existed.
     """
     if not project_names:
         return {}
