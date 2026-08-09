@@ -229,6 +229,42 @@ const AddTask = ({
           )}
         />
 
+        <form.Field
+          name="project"
+          children={(field) => (
+            <div>
+              <label className="block text-base text-ink-gray-5 mb-1.5">
+                Project
+              </label>
+              <Combobox
+                inputClassName="bg-surface-white h-8 border-outline-gray-2 text-ink-gray-7"
+                loading={isProjectLookupLoading}
+                options={projectOptions}
+                placeholder="Select project"
+                searchValue={projectSearch}
+                onSearchChange={setProjectSearch}
+                value={field.state.value}
+                onChange={(value, option) => {
+                  const nextProject = value ?? "";
+                  const nextProjectOption =
+                    option as ProjectLookupOption | null;
+                  form.setFieldValue(
+                    "projectLabel",
+                    nextProjectOption?.label ?? nextProject,
+                  );
+                  field.handleChange(nextProject);
+                }}
+                openOnFocus
+              />
+              {!field.state.meta.isValid && (
+                <div className="mt-4">
+                  <ErrorMessage message={field.state.meta.errors[0]?.message} />
+                </div>
+              )}
+            </div>
+          )}
+        />
+
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
           <form.Field
             name="priority"
@@ -326,42 +362,6 @@ const AddTask = ({
             )}
           />
         </div>
-
-        <form.Field
-          name="project"
-          children={(field) => (
-            <div>
-              <label className="block text-base text-ink-gray-5 mb-1.5">
-                Project
-              </label>
-              <Combobox
-                inputClassName="bg-surface-white h-8 border-outline-gray-2 text-ink-gray-7"
-                loading={isProjectLookupLoading}
-                options={projectOptions}
-                placeholder="Select project"
-                searchValue={projectSearch}
-                onSearchChange={setProjectSearch}
-                value={field.state.value}
-                onChange={(value, option) => {
-                  const nextProject = value ?? "";
-                  const nextProjectOption =
-                    option as ProjectLookupOption | null;
-                  form.setFieldValue(
-                    "projectLabel",
-                    nextProjectOption?.label ?? nextProject,
-                  );
-                  field.handleChange(nextProject);
-                }}
-                openOnFocus
-              />
-              {!field.state.meta.isValid && (
-                <div className="mt-4">
-                  <ErrorMessage message={field.state.meta.errors[0]?.message} />
-                </div>
-              )}
-            </div>
-          )}
-        />
 
         <form.Field
           name="description"
