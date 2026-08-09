@@ -356,44 +356,6 @@ def normalize_team_view_filters(
     return employee_conditions, skill_conditions, tag_conditions, is_billable_value
 
 
-def split_allocated_employees(
-    allocations: list[dict],
-    is_billable: list | None = None,
-    allocation_status: list | None = None,
-) -> tuple[set, set]:
-    """Split in-window allocation rows into the allocated and the matching employee sets.
-
-    Args:
-        allocations: Rows carrying at least ``employee``, ``is_billable`` and ``status``.
-        is_billable: Billable values to match, e.g. ``[1]``. Falsy means "any".
-        allocation_status: Status values to match, e.g. ``["Confirmed"]``. Falsy means "any".
-
-    Returns:
-        A tuple of:
-            - allocated_ids: every employee holding an allocation in the window.
-            - matched_ids: the subset whose allocation satisfies both option sets. An
-              employee with several allocations matches when *any* one of them does.
-    """
-    billable_values = {int(value) for value in is_billable} if is_billable else None
-    status_values = set(allocation_status) if allocation_status else None
-
-    allocated_ids = set()
-    matched_ids = set()
-
-    for allocation in allocations:
-        employee = allocation.get("employee")
-        allocated_ids.add(employee)
-
-        if billable_values is not None and int(allocation.get("is_billable") or 0) not in billable_values:
-            continue
-        if status_values is not None and allocation.get("status") not in status_values:
-            continue
-
-        matched_ids.add(employee)
-
-    return allocated_ids, matched_ids
-
-
 def filter_project_list(
     project_name=None,
     customer=None,

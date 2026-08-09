@@ -128,7 +128,7 @@ export function useAllocationsTeamData({
       is_billable: isBillableParam,
       filters: filtersParam,
       need_hours_summary: false,
-      no_allocation: includeUnallocated ? 1 : 0,
+      no_allocation: includeUnallocated,
     }),
     [
       allocationStatusParam,

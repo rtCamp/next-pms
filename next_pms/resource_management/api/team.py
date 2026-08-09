@@ -15,7 +15,6 @@ from next_pms.resource_management.api.utils.helpers import (
     is_on_leave,
     normalize_team_view_filters,
     resource_api_permissions_check,
-    split_allocated_employees,
 )
 from next_pms.resource_management.api.utils.query import (
     attach_extra_entries,
@@ -366,30 +365,35 @@ def _get_resource_management_team_view_data(
         if ids:
             window_filters["employee"] = ["in", ids]
 
+        allocation_filters = dict(window_filters)
+        if is_billable:
+            allocation_filters["is_billable"] = ["in", is_billable]
+        if allocation_status:
+            allocation_filters["status"] = ["in", allocation_status]
+
         if no_allocation and (is_billable or allocation_status):
             # `no_allocation` is an independent leg of the allocation-type multi-select,
             # so it unions with the others instead of inverting them: keep the employees
             # matching the billable/status options PLUS the employees with no allocation
             # at all. Only the employees holding allocations of which none match are
-            # dropped, so the union still resolves to a single NOT IN — one query, no OR.
-            allocations = frappe.db.get_all(
+            # dropped, so the union still resolves to a single NOT IN — no OR.
+            allocated_emp_ids = frappe.db.get_all(
                 "Resource Allocation",
                 filters=window_filters,
-                fields=["employee", "is_billable", "status"],
+                pluck="employee",
                 distinct=True,
             )
-            allocated_ids, matched_ids = split_allocated_employees(allocations, is_billable, allocation_status)
+            matching_emp_ids = frappe.db.get_all(
+                "Resource Allocation",
+                filters=allocation_filters,
+                pluck="employee",
+                distinct=True,
+            )
 
-            unmatched_emp_ids = allocated_ids - matched_ids
+            unmatched_emp_ids = set(allocated_emp_ids) - set(matching_emp_ids)
             if unmatched_emp_ids:
                 extra_conditions.append(["name", "not in", list(unmatched_emp_ids)])
         else:
-            allocation_filters = dict(window_filters)
-            if is_billable:
-                allocation_filters["is_billable"] = ["in", is_billable]
-            if allocation_status:
-                allocation_filters["status"] = ["in", allocation_status]
-
             matching_emp_ids = frappe.db.get_all(
                 "Resource Allocation",
                 filters=allocation_filters,
