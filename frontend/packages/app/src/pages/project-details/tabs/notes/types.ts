@@ -36,6 +36,10 @@ export type NoteFilters = {
   author: string;
 };
 
+export type NoteUpdateInput = Partial<
+  Pick<Note, "title" | "description" | "status" | "pinned">
+>;
+
 export type Note = {
   name: string;
   title: string;

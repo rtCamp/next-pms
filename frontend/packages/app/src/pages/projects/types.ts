@@ -16,4 +16,5 @@ export interface ProjectListFilters {
   phase: Phase | "";
   status: ProjectStatus | "";
   advanced: FilterCondition[];
+  currency: string;
 }

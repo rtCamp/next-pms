@@ -12,6 +12,7 @@ def after_install():
     setup_project_custom_fields()
     setup_project_target_hours_field()
     setup_timesheet_rejection_reason_field()
+    setup_timesheet_weekly_rejection_reason_field()
     setup_task_permissions()
 
 
@@ -27,6 +28,27 @@ def setup_timesheet_rejection_reason_field():
                     "label": "Rejection Reason",
                     "insert_after": "note",
                     "depends_on": 'eval:doc.custom_approval_status=="Rejected"',
+                    "read_only": 1,
+                    "no_copy": 1,
+                    "module": "Timesheet",
+                },
+            ]
+        }
+    )
+
+
+def setup_timesheet_weekly_rejection_reason_field():
+    from frappe.custom.doctype.custom_field.custom_field import create_custom_fields
+
+    create_custom_fields(
+        {
+            "Timesheet": [
+                {
+                    "fieldname": "custom_weekly_rejection_reason",
+                    "fieldtype": "Text Editor",
+                    "label": "Weekly Rejection Reason",
+                    "insert_after": "custom_rejection_reason",
+                    "depends_on": 'eval:doc.custom_weekly_approval_status=="Rejected"',
                     "read_only": 1,
                     "no_copy": 1,
                     "module": "Timesheet",
