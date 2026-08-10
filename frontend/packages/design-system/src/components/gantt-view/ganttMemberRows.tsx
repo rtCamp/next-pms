@@ -85,16 +85,16 @@ export const GanttMemberRows: React.FC<GanttMemberRowsProps> = ({
           />
         ))}
         <GanttRowOverlayCell>
-          {member.freeCapacityBars.map((summary, idx) => (
+          {member.freeCapacityBars.map((summary) => (
             <GanttMemberSummaryBar
-              key={`free-${idx}`}
+              key={`${summary.type}-${summary.startDate.getTime()}-${summary.endDate.getTime()}`}
               summary={summary}
               memberInd={memberInd}
             />
           ))}
-          {member.memberSummaryBars.map((summary, idx) => (
+          {member.memberSummaryBars.map((summary) => (
             <GanttMemberSummaryBar
-              key={idx}
+              key={`${summary.type}-${summary.startDate.getTime()}-${summary.endDate.getTime()}`}
               summary={summary}
               memberInd={memberInd}
             />
