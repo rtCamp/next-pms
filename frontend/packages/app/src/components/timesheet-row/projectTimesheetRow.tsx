@@ -66,6 +66,7 @@ export const ProjectTimesheetRow = ({
         dates={dates}
         workingFrequency="Per Day"
         className="pl-3"
+        triggerClassName="sticky top-7 z-10 bg-surface-white"
         collapsed={collapsed}
         isReadOnlyWeek={true}
       >
