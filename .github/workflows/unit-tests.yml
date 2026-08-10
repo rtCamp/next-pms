@@ -64,6 +64,7 @@ jobs:
           bench get-app hrms --branch version-16 --skip-assets
           bench get-app frappe_gmail_thread https://github.com/rtCamp/frappe-gmail-thread --branch version-16-hotfix --skip-assets
           bench get-app frappe_comment_xt https://github.com/rtCamp/frappe-comment-xt --branch version-16-hotfix --skip-assets
+          bench get-app frappe_slack_connector https://github.com/rtCamp/frappe-slack-connector --branch version-16-hotfix --skip-assets
           if [ -n "$RTBOT_TOKEN" ]; then
             git config --global "url.https://rtbot:${RTBOT_TOKEN}@github.com/rtCamp/.insteadOf" "https://github.com/rtCamp/"
             bench get-app telephony --branch develop --skip-assets
@@ -82,7 +83,7 @@ jobs:
           fi
           bench get-app next_pms "$GITHUB_WORKSPACE" --skip-assets
           bench new-site --db-root-password root --admin-password admin --no-mariadb-socket test_site
-          bench --site test_site install-app erpnext hrms frappe_gmail_thread frappe_comment_xt $PRIVATE_APPS next_pms
+          bench --site test_site install-app erpnext hrms frappe_gmail_thread frappe_comment_xt frappe_slack_connector $PRIVATE_APPS next_pms
         env:
           CI: "Yes"
           RTBOT_TOKEN: ${{ secrets.RTBOT_TOKEN }}
