@@ -141,10 +141,10 @@ export function getFreeCapacitySegments(
     const dayOfWeek = day.getDay();
     if (dayOfWeek === 0 || dayOfWeek === 6) continue;
 
-    const key = startOfDay(day).getTime();
-    if (coveredDays.has(key)) continue;
+    const dayStart = startOfDay(day);
+    if (coveredDays.has(dayStart.getTime())) continue;
 
-    freeDays.push(startOfDay(day));
+    freeDays.push(dayStart);
   }
 
   const merged: MemberBarAllocation[] = [];
