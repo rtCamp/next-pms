@@ -140,5 +140,18 @@ export function useNotesData(filters: NoteFilters) {
     await Promise.all([mutate(), mutateAuthors()]);
   }, [mutate, mutateAuthors]);
 
-  return { notes, isLoading, error, refresh, authorOptions };
+  const patchNote = useCallback(
+    (updated: Note) => {
+      if (!data?.message) return;
+
+      const message = data.message.map((note) =>
+        note.name === updated.name ? { ...note, ...updated } : note,
+      );
+
+      void mutate({ ...data, message }, { revalidate: false });
+    },
+    [data, mutate],
+  );
+
+  return { notes, isLoading, error, refresh, patchNote, authorOptions };
 }
