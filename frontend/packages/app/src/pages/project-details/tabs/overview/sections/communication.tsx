@@ -37,6 +37,7 @@ export function Communication({
       limit: 100,
       orderBy: { field: "creation", order: "asc" },
     },
+    isEditing ? undefined : null,
   );
   const frequencyOptions = [
     { label: "None", value: "" },
