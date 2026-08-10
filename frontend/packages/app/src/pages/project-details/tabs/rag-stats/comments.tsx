@@ -1,7 +1,7 @@
 /**
  * External dependencies.
  */
-import { useContext } from "react";
+import { useCallback, useContext } from "react";
 import type { CommentNode } from "@next-pms/design-system/components";
 import { Comments } from "@next-pms/design-system/components";
 import { FrappeContext } from "frappe-react-sdk";
@@ -45,27 +45,32 @@ export function RagComments() {
 
   if (error) throw error;
 
+  const getMentions = useCallback(
+    async (query: string) => {
+      const response = await frappe?.call.get(
+        "next_pms.timesheet.api.employee.get_employee_list",
+        {
+          employee_name: query || undefined,
+          page_length: 5,
+          start: 0,
+        },
+      );
+
+      const mentions = response.message.data.map(
+        (emp: { name: string; employee_name: string }) => ({
+          id: emp.name,
+          label: emp.employee_name,
+        }),
+      );
+
+      return mentions || [];
+    },
+    [frappe],
+  );
+
   return (
     <Comments
-      getMentions={async (query) => {
-        const response = await frappe?.call.get(
-          "next_pms.timesheet.api.employee.get_employee_list",
-          {
-            employee_name: query || undefined,
-            page_length: 5,
-            start: 0,
-          },
-        );
-
-        const mentions = response.message.data.map(
-          (emp: { name: string; employee_name: string }) => ({
-            id: emp.name,
-            label: emp.employee_name,
-          }),
-        );
-
-        return mentions || [];
-      }}
+      getMentions={getMentions}
       comments={comments.map(mapRagComment)}
       isLoading={isLoading}
       isUpdating={isUpdating}

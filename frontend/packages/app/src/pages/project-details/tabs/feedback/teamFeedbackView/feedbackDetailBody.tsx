@@ -1,7 +1,7 @@
 /**
  * External dependencies.
  */
-import { useContext } from "react";
+import { useCallback, useContext } from "react";
 import { Comments, Spinner } from "@next-pms/design-system/components";
 import { format, parseISO } from "date-fns";
 import { FrappeContext } from "frappe-react-sdk";
@@ -34,6 +34,29 @@ export function FeedbackDetailBody({ feedbackId }: { feedbackId: string }) {
   }));
 
   const frappe = useContext(FrappeContext);
+
+  const getMentions = useCallback(
+    async (query: string) => {
+      const response = await frappe?.call.get(
+        "next_pms.timesheet.api.employee.get_employee_list",
+        {
+          employee_name: query || undefined,
+          page_length: 5,
+          start: 0,
+        },
+      );
+
+      const mentions = response.message.data.map(
+        (emp: { name: string; employee_name: string }) => ({
+          id: emp.name,
+          label: emp.employee_name,
+        }),
+      );
+
+      return mentions || [];
+    },
+    [frappe],
+  );
 
   return isLoading ? (
     <div className="flex h-60 items-center justify-center">
@@ -77,25 +100,7 @@ export function FeedbackDetailBody({ feedbackId }: { feedbackId: string }) {
 
           {/* Comments */}
           <Comments
-            getMentions={async (query) => {
-              const response = await frappe?.call.get(
-                "next_pms.timesheet.api.employee.get_employee_list",
-                {
-                  employee_name: query || undefined,
-                  page_length: 5,
-                  start: 0,
-                },
-              );
-
-              const mentions = response.message.data.map(
-                (emp: { name: string; employee_name: string }) => ({
-                  id: emp.name,
-                  label: emp.employee_name,
-                }),
-              );
-
-              return mentions || [];
-            }}
+            getMentions={getMentions}
             className="mt-0 pt-0 border-none gap-4"
             comments={comments}
             isLoading={isCommentsLoading}
