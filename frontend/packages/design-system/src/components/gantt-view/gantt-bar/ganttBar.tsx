@@ -119,8 +119,9 @@ export const GanttBar = React.forwardRef<HTMLDivElement, GanttBarProps>(
   ) {
     const isTimeoff = variant === "timeoff";
     const isCrosshatch = theme === "crosshatch";
-    const isInteractive = resizable || typeof onClick === "function";
-    const showPointerCursor = typeof onClick === "function";
+    const isResizable = resizable && !passive;
+    const showPointerCursor = !passive && typeof onClick === "function";
+    const isInteractive = isResizable || showPointerCursor;
     const {
       isInteracting,
       liveLeft,
@@ -136,7 +137,7 @@ export const GanttBar = React.forwardRef<HTMLDivElement, GanttBarProps>(
       snapUnitPx,
       minLeft,
       maxRight,
-      onResizeEnd: resizable ? onResizeEnd : undefined,
+      onResizeEnd: isResizable ? onResizeEnd : undefined,
     });
 
     return (
@@ -160,9 +161,10 @@ export const GanttBar = React.forwardRef<HTMLDivElement, GanttBarProps>(
           top: (CELL_HEIGHT - BAR_HEIGHT) / 2,
         }}
       >
-        {!isTimeoff && variant !== "draft" && isCrosshatch && (
-          <CrosshatchLayer variant={variant ?? "allocation"} />
-        )}
+        {!isTimeoff &&
+          variant !== "draft" &&
+          variant !== "empty" &&
+          isCrosshatch && <CrosshatchLayer variant={variant ?? "allocation"} />}
         {isTimeoff ? (
           <Tooltip text={label}>
             <div className="absolute inset-0 px-2.5 py-2 w-full flex items-center justify-center gap-1.5">
@@ -199,7 +201,7 @@ export const GanttBar = React.forwardRef<HTMLDivElement, GanttBarProps>(
             {billable === false ? (
               <span className="block ml-1 w-1 h-1 rounded-full bg-surface-amber-3"></span>
             ) : null}
-            {resizable ? (
+            {isResizable ? (
               <>
                 <span
                   className="absolute shrink-0 inset-y-0 left-0 w-2.5 pl-1 flex cursor-ew-resize items-center justify-start touch-none"
