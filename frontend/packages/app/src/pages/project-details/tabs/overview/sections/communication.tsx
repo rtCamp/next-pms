@@ -38,10 +38,10 @@ export function Communication({
       orderBy: { field: "creation", order: "asc" },
     },
   );
-  const frequencyOptions = (frequencies ?? []).map((f) => ({
-    label: f.name,
-    value: f.name,
-  }));
+  const frequencyOptions = [
+    { label: "None", value: "" },
+    ...(frequencies ?? []).map((f) => ({ label: f.name, value: f.name })),
+  ];
   const { options: contactOptions, isLoading: isContactLoading } =
     useCustomerContactLookup({
       customer,
