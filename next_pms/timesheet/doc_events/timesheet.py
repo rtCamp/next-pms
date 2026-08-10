@@ -281,7 +281,7 @@ def publish_timesheet_update(employee, start_date):
     from frappe.realtime import get_site_room
     from frappe.utils import get_date_str
 
-    from next_pms.timesheet.api.team import get_compact_view_data
+    from next_pms.timesheet.api.team import get_team_timesheet_member_week
     from next_pms.timesheet.api.timesheet import get_timesheet_data
 
     data = get_timesheet_data(employee, start_date, 1)
@@ -297,24 +297,22 @@ def publish_timesheet_update(employee, start_date):
         after_commit=True,
         user=frappe.session.user,
     )
-    res = get_compact_view_data(
-        date=get_date_str(start_date),
-        max_week=2,
+    # Publishes one member-week, matching get_team_timesheet_data's `members` element,
+    # so a listener can swap a single row. This previously sent get_compact_view_data's
+    # output, which never contains the key the team page keys its merge on, making every
+    # team timesheet realtime update a silent no-op.
+    member = get_team_timesheet_member_week(
+        employee=employee,
+        start_date=get_date_str(start_date),
         by_pass_access_check=True,
-        employee_ids=[employee],
     )
-    publish_realtime(
-        "timesheet_info",
-        {"message": res, "employee": employee, "date": get_date_str(start_date)},
-        after_commit=True,
-        room=get_site_room(),
-    )
-    publish_realtime(
-        "timesheet_info",
-        {"message": res, "employee": employee, "date": get_date_str(start_date)},
-        after_commit=True,
-        user=frappe.session.user,
-    )
+    payload = {
+        "message": member,
+        "employee": employee,
+        "start_date": get_date_str(start_date),
+    }
+    publish_realtime("timesheet_info", payload, after_commit=True, room=get_site_room())
+    publish_realtime("timesheet_info", payload, after_commit=True, user=frappe.session.user)
 
 
 def validate_start_date(doc):

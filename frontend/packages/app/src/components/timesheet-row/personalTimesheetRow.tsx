@@ -109,6 +109,7 @@ export const PersonalTimesheetRow = ({
         workingFrequency={workingFrequency}
         status={status}
         className="pl-3"
+        triggerClassName="sticky top-7 z-10 bg-surface-white"
         onButtonClick={onButtonClick}
         collapsed={collapsed}
       >

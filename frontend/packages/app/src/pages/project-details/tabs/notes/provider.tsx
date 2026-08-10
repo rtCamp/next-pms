@@ -13,6 +13,7 @@ import { useDebounce } from "@/hooks/useDebounce";
 import { parseFrappeErrorMsg } from "@/lib/utils";
 import { NOTE_PARAM } from "./constants";
 import { NotesContext, type NotesContextProps } from "./context";
+import type { Note, NoteUpdateInput } from "./types";
 import { useNotesData } from "./useNotesData";
 
 export function NotesProvider({ children }: PropsWithChildren) {
@@ -22,7 +23,7 @@ export function NotesProvider({ children }: PropsWithChildren) {
   const [isUpdating, setIsUpdating] = useState(false);
   const [deleteNoteName, setDeleteNoteName] = useState<string | null>(null);
   const [, setSearchParams] = useSearchParams();
-  const { call: updateNote } = useFrappePostCall(
+  const { call: updateNoteCall } = useFrappePostCall<{ message: Note }>(
     "next_pms.timesheet.api.project_status_update.update_project_status_update",
   );
   const { call: deleteNoteCall } = useFrappePostCall(
@@ -41,7 +42,7 @@ export function NotesProvider({ children }: PropsWithChildren) {
     [debouncedTitleInput, debouncedDescriptionInput, author],
   );
 
-  const { notes, isLoading, error, refresh, authorOptions } =
+  const { notes, isLoading, error, refresh, patchNote, authorOptions } =
     useNotesData(filters);
 
   const handleTitleInputChange = useCallback((value: string) => {
@@ -83,7 +84,7 @@ export function NotesProvider({ children }: PropsWithChildren) {
       if (!note) return;
       setIsUpdating(true);
       try {
-        await updateNote({
+        await updateNoteCall({
           name,
           pinned: !note.pinned,
         });
@@ -95,7 +96,19 @@ export function NotesProvider({ children }: PropsWithChildren) {
         setIsUpdating(false);
       }
     },
-    [notes, refresh, toast, updateNote],
+    [notes, refresh, toast, updateNoteCall],
+  );
+
+  const updateNote = useCallback(
+    async (name: string, values: NoteUpdateInput) => {
+      try {
+        const { message } = await updateNoteCall({ name, ...values });
+        patchNote(message);
+      } catch (err) {
+        toast.error(parseFrappeErrorMsg(err as FrappeError));
+      }
+    },
+    [patchNote, toast, updateNoteCall],
   );
 
   const openDeleteDialog = useCallback((name: string) => {
@@ -128,6 +141,7 @@ export function NotesProvider({ children }: PropsWithChildren) {
         refresh,
         deleteNote,
         togglePin,
+        updateNote,
         openDeleteDialog,
         closeDeleteDialog,
       },
@@ -148,6 +162,7 @@ export function NotesProvider({ children }: PropsWithChildren) {
       refresh,
       deleteNote,
       togglePin,
+      updateNote,
       openDeleteDialog,
       closeDeleteDialog,
     ],
