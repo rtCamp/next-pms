@@ -1,7 +1,7 @@
 /**
  * External dependencies.
  */
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   Autocomplete,
   Button,
@@ -29,8 +29,13 @@ import {
   durationOptions,
   navigationButtonAriaLabels,
 } from "../constants";
-import { teamAllocationFilters, teamAllocationsTypeOptions } from "./constants";
+import {
+  teamAllocationFilters,
+  teamAllocationStatusOptionValues,
+  teamAllocationsTypeOptions,
+} from "./constants";
 import { useAllocationsTeam } from "./context";
+import { resolveAllocationTypeSelection } from "./utils";
 
 export function SubHeader() {
   const search = useAllocationsTeam(({ state }) => state.search);
@@ -76,6 +81,24 @@ export function SubHeader() {
     (designation.length > 0 ? 1 : 0) +
     (duration !== DEFAULT_DURATION ? 1 : 0) +
     (allocationsType.length > 0 ? 1 : 0);
+
+  // Status narrows which allocations count, so it cannot apply while "No allocation" is
+  // the only allocation-presence option picked. Disable it rather than let it read as an
+  // active filter that silently does nothing.
+  const allocationTypeOptions = useMemo(() => {
+    const { isStatusApplicable } =
+      resolveAllocationTypeSelection(allocationsType);
+
+    if (isStatusApplicable) {
+      return teamAllocationsTypeOptions;
+    }
+
+    return teamAllocationsTypeOptions.map((option) =>
+      teamAllocationStatusOptionValues.includes(option.value)
+        ? { ...option, disabled: true }
+        : option,
+    );
+  }, [allocationsType]);
 
   const [searchInput, setSearchInput] = useState(search);
   const [designationQuery, setDesignationQuery] = useState("");
@@ -184,7 +207,7 @@ export function SubHeader() {
         {showFilters ? (
           <div className="w-fit max-w-42">
             <MultiSelect
-              options={teamAllocationsTypeOptions}
+              options={allocationTypeOptions}
               value={allocationsType}
               placeholder="Allocation type"
               triggerClassName="text-ink-gray-7"
