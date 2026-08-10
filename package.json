@@ -1,7 +1,7 @@
 {
  "name": "next-pms",
  "version": "0.1.0",
- "private": true,
+  "private": true,
  "license": "AGPLv3",
  "author": "rtCamp",
  "repository": "git@github.com:rtCamp/next-pms.git",
