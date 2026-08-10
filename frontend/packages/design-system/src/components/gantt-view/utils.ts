@@ -6,7 +6,11 @@ import { addDays, eachDayOfInterval, isSameDay, startOfDay } from "date-fns";
 /**
  * Internal dependencies.
  */
-import { getMemberAllocation } from "./gantt-bar/utils/getMemberAllocation";
+import {
+  getCoveredDayKeys,
+  getFreeCapacitySegments,
+  getMemberAllocation,
+} from "./gantt-bar/utils/getMemberAllocation";
 import { getNumDays } from "./gantt-bar/utils/getNumDays";
 import type {
   Allocation,
@@ -48,6 +52,7 @@ export interface MemberProject extends SourceProject {
 export interface Member extends SourceMember {
   projects: MemberProject[];
   memberSummaryBars: MemberSummaryBar[];
+  freeCapacityBars: MemberSummaryBar[];
 }
 
 export type ProjectMemberAllocationBar = ProjectAllocationBar;
@@ -324,10 +329,26 @@ export const prepareMemberBars = (
       columnWidth,
     );
 
+    const coveredDays = getCoveredDayKeys(rawMemberSummaryAllocations);
+    const rangeStart = getDateAtColumnIndex(0, weekStart, showWeekend);
+    const rangeEnd = getDateAtColumnIndex(
+      columnCount - 1,
+      weekStart,
+      showWeekend,
+    );
+    const freeCapacityBars = prepareMemberSummaryBars(
+      getFreeCapacitySegments(coveredDays, rangeStart, rangeEnd),
+      weekStart,
+      columnCount,
+      showWeekend,
+      columnWidth,
+    );
+
     return {
       ...member,
       projects,
       memberSummaryBars,
+      freeCapacityBars,
     };
   });
 };

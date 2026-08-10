@@ -48,6 +48,23 @@ export function GanttMemberSummaryBar({
   const left = summary.barOffset + headerWidth;
   const { width } = summary;
 
+  if (summary.type === "free") {
+    const { label } = getCapacityStatus(
+      0,
+      members[memberInd].capacityHoursPerDay,
+    );
+
+    return (
+      <GanttBar
+        variant="empty"
+        passive
+        label={label}
+        left={left}
+        width={width}
+      />
+    );
+  }
+
   if (summary.type === "timeoff") {
     const leaveDays =
       differenceInCalendarDays(summary.endDate, summary.startDate) + 1;

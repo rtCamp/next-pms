@@ -61,7 +61,8 @@ export function getAllocationSummary(
       billable: !dayHasNonBillable.get(ts),
       tentative: Boolean(dayHasTentative.get(ts)),
       type: (dayIsTimeoff.get(ts) ? "timeoff" : "default") as
-        "default" | "timeoff",
+        | "default"
+        | "timeoff",
     }));
 
   const merged: MemberBarAllocation[] = [];
@@ -101,4 +102,65 @@ export function getMemberAllocation(
 ): MemberBarAllocation[] {
   const allAllocs = projects.flatMap((p) => p.allocations ?? []);
   return getAllocationSummary(allAllocs, leaves);
+}
+
+/**
+ * Collects the local-midnight day keys already covered by an allocation or
+ * leave segment (i.e. everything `getAllocationSummary` already emitted a
+ * bar for).
+ */
+export function getCoveredDayKeys(summary: MemberBarAllocation[]): Set<number> {
+  const coveredDays = new Set<number>();
+
+  for (const segment of summary) {
+    for (const day of eachDayOfInterval({
+      start: segment.startDate,
+      end: segment.endDate,
+    })) {
+      coveredDays.add(startOfDay(day).getTime());
+    }
+  }
+
+  return coveredDays;
+}
+
+/**
+ * Builds merged "free capacity" segments for every weekday in
+ * [rangeStart, rangeEnd] that isn't already covered by an allocation or
+ * leave. Weekends are always excluded, regardless of the showWeekend toggle.
+ */
+export function getFreeCapacitySegments(
+  coveredDays: Set<number>,
+  rangeStart: Date,
+  rangeEnd: Date,
+): MemberBarAllocation[] {
+  if (rangeEnd < rangeStart) return [];
+
+  const freeDays: Date[] = [];
+  for (const day of eachDayOfInterval({ start: rangeStart, end: rangeEnd })) {
+    const dayOfWeek = day.getDay();
+    if (dayOfWeek === 0 || dayOfWeek === 6) continue;
+
+    const key = startOfDay(day).getTime();
+    if (coveredDays.has(key)) continue;
+
+    freeDays.push(startOfDay(day));
+  }
+
+  const merged: MemberBarAllocation[] = [];
+  for (const date of freeDays) {
+    const last = merged[merged.length - 1];
+    if (last && isSameDay(addDays(last.endDate, 1), date)) {
+      last.endDate = date;
+    } else {
+      merged.push({
+        hours: 0,
+        startDate: date,
+        endDate: date,
+        type: "free",
+      });
+    }
+  }
+
+  return merged;
 }
