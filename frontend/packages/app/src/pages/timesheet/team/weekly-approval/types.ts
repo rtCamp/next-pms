@@ -40,6 +40,7 @@ export interface TimesheetEntry {
   leaveLabel?: string;
   approvalStatus?: ApprovalStatusLabelType;
   rejectionReason?: string;
+  weeklyRejectionReason?: string;
 }
 
 export interface TaskDataEntry {
@@ -56,6 +57,7 @@ export interface TaskDataEntry {
   docstatus: number;
   custom_approval_status?: ApprovalStatusLabelType | null;
   custom_rejection_reason?: string | null;
+  custom_weekly_rejection_reason?: string | null;
 }
 
 export interface Task {
