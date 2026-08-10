@@ -5,13 +5,16 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   Button,
   Combobox,
+  DatePicker,
   Dialog,
   ErrorMessage,
+  Select,
   TextEditor,
   TextInput,
   useToasts,
   type TextEditorProps,
 } from "@rtcamp/frappe-ui-react";
+import { Calendar } from "@rtcamp/frappe-ui-react/icons";
 import { useForm } from "@tanstack/react-form";
 import { useSelector } from "@tanstack/react-store";
 import { useFrappePostCall, useFrappeUpdateDoc } from "frappe-react-sdk";
@@ -31,6 +34,7 @@ import {
   type AddTaskFormValues,
 } from "./schema";
 import type { AddTaskProps } from "./type";
+import { TASK_PRIORITY_OPTIONS } from "../../constants";
 
 const DESCRIPTION_EDITOR_STARTERKIT_OPTIONS: NonNullable<
   TextEditorProps["starterkitOptions"]
@@ -41,6 +45,8 @@ const emptyValues: AddTaskFormValues = {
   project: "",
   projectLabel: "",
   expected_time: "",
+  priority: "Low",
+  exp_end_date: "",
   description: "",
 };
 
@@ -84,6 +90,8 @@ const AddTask = ({
             subject: value.subject.trim(),
             project: value.project.trim(),
             expected_time: value.expected_time.trim(),
+            priority: value.priority?.trim() || "",
+            exp_end_date: value.exp_end_date?.trim() || "",
             description: value.description.trim(),
           });
         } else {
@@ -91,6 +99,8 @@ const AddTask = ({
             subject: value.subject.trim(),
             project: value.project.trim(),
             expected_time: value.expected_time.trim(),
+            priority: value.priority?.trim() || "",
+            exp_end_date: value.exp_end_date?.trim() || "",
             description: value.description.trim(),
           });
         }
@@ -196,58 +206,28 @@ const AddTask = ({
       }
     >
       <div className="space-y-4">
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-12">
-          <form.Field
-            name="subject"
-            children={(field) => (
-              <div className="sm:col-span-9">
-                <label className="block text-base text-ink-gray-5 mb-1.5">
-                  Subject
-                </label>
-                <TextInput
-                  size="md"
-                  variant="outline"
-                  placeholder="Add subject"
-                  value={field.state.value}
-                  onChange={(event) => field.handleChange(event.target.value)}
-                />
-                {!field.state.meta.isValid && (
-                  <div className="mt-4">
-                    <ErrorMessage
-                      message={field.state.meta.errors[0]?.message}
-                    />
-                  </div>
-                )}
-              </div>
-            )}
-          />
-
-          <form.Field
-            name="expected_time"
-            children={(field) => (
-              <div className="sm:col-span-3">
-                <label className="block text-base text-ink-gray-5 mb-1.5">
-                  Expected Time
-                </label>
-                <TextInput
-                  size="md"
-                  variant="outline"
-                  placeholder="Hours"
-                  type="number"
-                  value={field.state.value}
-                  onChange={(event) => field.handleChange(event.target.value)}
-                />
-                {!field.state.meta.isValid && (
-                  <div className="mt-4">
-                    <ErrorMessage
-                      message={field.state.meta.errors[0]?.message}
-                    />
-                  </div>
-                )}
-              </div>
-            )}
-          />
-        </div>
+        <form.Field
+          name="subject"
+          children={(field) => (
+            <div>
+              <label className="block text-base text-ink-gray-5 mb-1.5">
+                Subject
+              </label>
+              <TextInput
+                size="md"
+                variant="outline"
+                placeholder="Add subject"
+                value={field.state.value}
+                onChange={(event) => field.handleChange(event.target.value)}
+              />
+              {!field.state.meta.isValid && (
+                <div className="mt-4">
+                  <ErrorMessage message={field.state.meta.errors[0]?.message} />
+                </div>
+              )}
+            </div>
+          )}
+        />
 
         <form.Field
           name="project"
@@ -284,6 +264,104 @@ const AddTask = ({
             </div>
           )}
         />
+
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+          <form.Field
+            name="priority"
+            children={(field) => (
+              <div>
+                <label className="block text-base text-ink-gray-5 mb-1.5">
+                  Priority
+                </label>
+                <Select
+                  size="md"
+                  variant="outline"
+                  placeholder="Priority"
+                  options={TASK_PRIORITY_OPTIONS}
+                  value={field.state.value}
+                  onChange={(value) =>
+                    field.handleChange(
+                      (value ?? "") as AddTaskFormValues["priority"],
+                    )
+                  }
+                />
+                {!field.state.meta.isValid && (
+                  <div className="mt-4">
+                    <ErrorMessage
+                      message={field.state.meta.errors[0]?.message}
+                    />
+                  </div>
+                )}
+              </div>
+            )}
+          />
+
+          <form.Field
+            name="expected_time"
+            children={(field) => (
+              <div>
+                <label className="block text-base text-ink-gray-5 mb-1.5">
+                  Expected Time
+                </label>
+                <TextInput
+                  size="md"
+                  variant="outline"
+                  placeholder="Hours"
+                  type="number"
+                  value={field.state.value}
+                  onChange={(event) => field.handleChange(event.target.value)}
+                />
+                {!field.state.meta.isValid && (
+                  <div className="mt-4">
+                    <ErrorMessage
+                      message={field.state.meta.errors[0]?.message}
+                    />
+                  </div>
+                )}
+              </div>
+            )}
+          />
+
+          <form.Field
+            name="exp_end_date"
+            children={(field) => (
+              <div>
+                <label className="block text-base text-ink-gray-5 mb-1.5">
+                  Due Date
+                </label>
+                <DatePicker
+                  variant="outline"
+                  placeholder="Due Date"
+                  value={field.state.value}
+                  onChange={(value) => field.handleChange(value as string)}
+                >
+                  {({ displayValue, onTriggerKeyDown }) => (
+                    <div className="flex h-8 items-center gap-2 rounded border border-outline-gray-2 bg-surface-white px-2.5">
+                      <input
+                        type="text"
+                        value={displayValue}
+                        readOnly
+                        tabIndex={-1}
+                        onMouseDown={(e) => e.preventDefault()}
+                        onKeyDown={onTriggerKeyDown}
+                        placeholder="Due Date"
+                        className="min-w-0 flex-1 text-base text-ink-gray-7"
+                      />
+                      <Calendar className="size-4 shrink-0" />
+                    </div>
+                  )}
+                </DatePicker>
+                {!field.state.meta.isValid && (
+                  <div className="mt-4">
+                    <ErrorMessage
+                      message={field.state.meta.errors[0]?.message}
+                    />
+                  </div>
+                )}
+              </div>
+            )}
+          />
+        </div>
 
         <form.Field
           name="description"
