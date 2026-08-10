@@ -76,6 +76,8 @@ jobs:
             PRIVATE_APPS="telephony helpdesk crm frappe_appointment india_compliance rtcamp"
           else
             echo "RTBOT_TOKEN unavailable (fork PR) — skipping private rtcamp app; rtcamp-gated tests will skip"
+            echo "> [!WARNING]" >> "$GITHUB_STEP_SUMMARY"
+            echo "> RTBOT_TOKEN unavailable (fork PR) — private apps were not installed; rtcamp-gated tests will skip." >> "$GITHUB_STEP_SUMMARY"
             PRIVATE_APPS=""
           fi
           bench get-app next_pms "$GITHUB_WORKSPACE" --skip-assets
