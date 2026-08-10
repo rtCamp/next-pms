@@ -116,9 +116,7 @@ export function ProjectFilters() {
             fields={[
               { field: "project_name", label: "Project name" },
               { field: "custom_project_phase", label: "Phase" },
-              { field: "burn_rate_per_week", label: "Burn rate/week" },
               { field: "cost_burn_percent", label: "Cost burn" },
-              { field: "total_budget", label: "Total budget" },
               { field: "profit_margin", label: "Profit margin" },
               { field: "expected_start_date", label: "Expected Start Date" },
               { field: "custom_next_milestone", label: "Next milestone" },
