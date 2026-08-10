@@ -280,6 +280,7 @@ class _TeamTimesheetDataBase(IntegrationTestCase):
                 "description": "Test LWP leave",
                 "posting_date": date,
                 "status": "Approved",
+                "leave_approver": "Administrator",
             }
         )
         doc.insert(ignore_permissions=True)
