@@ -48,7 +48,7 @@ class IntegrationTestProjectTimeReportFrequency(IntegrationTestCase):
         )
 
     def make_frequency(self, name):
-        return frappe.get_doc({"doctype": FREQUENCY_DOCTYPE, "__newname": name}).insert()
+        return frappe.get_doc({"doctype": FREQUENCY_DOCTYPE, "name": name}).insert()
 
     def make_project(self, project_name, frequency=None):
         return frappe.get_doc(
