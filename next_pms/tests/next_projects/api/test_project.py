@@ -11,9 +11,16 @@ from next_pms.next_projects.api.project import (
     _remaining_cost_ratio,
     get_cost_forecasted,
     get_cost_forecasted_map,
+    get_forecast_map,
+    get_project_forecast,
     get_project_sidebar,
     get_project_tracking,
     get_projects_view,
+)
+from next_pms.project_currency.billing_rate import (
+    BILLING_RATE_COST_MULTIPLIER,
+    get_billing_rate_context,
+    resolve_billing_rate,
 )
 from next_pms.resource_management.api.allocation import upsert_day_override
 
@@ -22,6 +29,7 @@ FIXTURE_PREFIX = "CompSort"
 BURN_FIXTURE_PREFIX = "BurnAccrued"
 FORECAST_FIXTURE_PREFIX = "CostForecast"
 ADJUSTED_FIXTURE_PREFIX = "CostAdjusted"
+BUDGET_FIXTURE_PREFIX = "BudgetForecast"
 
 # 2026-05-04 is a Monday, so 05-08 is Friday and 05-09/05-10 are the weekend.
 MONDAY = date(2026, 5, 4)
@@ -735,3 +743,288 @@ class TestTrackingBillingTables(IntegrationTestCase):
         tracking = get_project_tracking(self.projects["NONBILL"])
         self.assertIsNone(tracking["contracts"])
         self.assertIsNone(tracking["project_rates"])
+
+
+class TestResolveBillingRate(IntegrationTestCase):
+    """The rate an employee's forecast work bills at, resolved in the same order
+    Timesheet.get_activity_billing_rate applies: a Time and Material project rates each
+    member off its billing team, every other billing type rates the whole project off its
+    default rate, and a project with no rate at all falls back to a multiple of cost.
+
+    resolve_billing_rate takes its project and billing team rows as plain data, so every
+    case below is exercised without touching the database.
+    """
+
+    COST_RATE = 100.0
+
+    def project(self, billing_type, default_rate=0.0):
+        return {"PROJ": frappe._dict(custom_billing_type=billing_type, custom_default_hourly_billing_rate=default_rate)}
+
+    def team(self, *rows):
+        return {("PROJ", "EMP"): [frappe._dict(**row) for row in rows]}
+
+    def resolve(self, project_map, context=None, employee="EMP"):
+        return resolve_billing_rate("PROJ", employee, self.COST_RATE, date(2026, 6, 1), project_map, context or {})
+
+    def test_non_billable_project_never_bills(self):
+        self.assertEqual(self.resolve(self.project("Non-Billable", default_rate=500)), 0.0)
+
+    def test_unknown_project_never_bills(self):
+        self.assertEqual(self.resolve({}), 0.0)
+
+    def test_flat_rate_projects_use_the_project_default(self):
+        for billing_type in ("Fixed Cost", "Retainer", "Time and Material"):
+            self.assertEqual(self.resolve(self.project(billing_type, default_rate=500)), 500.0, msg=billing_type)
+
+    def test_missing_rate_falls_back_to_a_multiple_of_cost(self):
+        for billing_type in ("Fixed Cost", "Retainer", "Time and Material"):
+            self.assertEqual(
+                self.resolve(self.project(billing_type)),
+                BILLING_RATE_COST_MULTIPLIER * self.COST_RATE,
+                msg=billing_type,
+            )
+
+    def test_time_and_material_prefers_the_member_rate(self):
+        context = self.team({"hourly_billing_rate": 700, "valid_from": date(2026, 1, 1)})
+        self.assertEqual(self.resolve(self.project("Time and Material", default_rate=500), context), 700.0)
+
+    def test_flat_rate_projects_ignore_the_billing_team(self):
+        # The regression: a member rate on a Fixed Cost or Retainer project is not
+        # contractual, so billing it would overstate the forecast.
+        context = self.team({"hourly_billing_rate": 700, "valid_from": date(2026, 1, 1)})
+        for billing_type in ("Fixed Cost", "Retainer"):
+            self.assertEqual(
+                self.resolve(self.project(billing_type, default_rate=500), context), 500.0, msg=billing_type
+            )
+
+    def test_latest_effective_member_rate_wins(self):
+        context = self.team(
+            {"hourly_billing_rate": 900, "valid_from": date(2026, 5, 1)},
+            {"hourly_billing_rate": 700, "valid_from": date(2026, 1, 1)},
+        )
+        self.assertEqual(self.resolve(self.project("Time and Material"), context), 900.0)
+
+    def test_member_rate_that_has_not_taken_effect_is_skipped(self):
+        context = self.team(
+            {"hourly_billing_rate": 900, "valid_from": date(2026, 9, 1)},
+            {"hourly_billing_rate": 700, "valid_from": date(2026, 1, 1)},
+        )
+        self.assertEqual(self.resolve(self.project("Time and Material"), context), 700.0)
+
+    def test_member_rate_without_a_start_date_is_skipped(self):
+        context = self.team({"hourly_billing_rate": 900, "valid_from": None})
+        self.assertEqual(self.resolve(self.project("Time and Material", default_rate=500), context), 500.0)
+
+    def test_another_employees_rate_is_not_borrowed(self):
+        context = self.team({"hourly_billing_rate": 700, "valid_from": date(2026, 1, 1)})
+        self.assertEqual(
+            self.resolve(self.project("Time and Material", default_rate=500), context, employee="OTHER"), 500.0
+        )
+
+
+class TestBudgetForecasted(IntegrationTestCase):
+    """Forecast budget burn is remaining allocation hours priced at each member's
+    billable rate, which is a different figure from forecast cost (hours priced at CTC).
+
+    Every allocation below books 40 hours and a pinned total_cost, so a fixture's budget
+    is never confusable with its cost.
+    """
+
+    HOURS = 40.0
+    COST_RATE = 100.0
+    FLAT_RATE = 500.0
+    MEMBER_RATE = 700.0
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.company = get_default_company()
+        cls.customer = TestCostForecastedProration._get_customer()
+        cls.employee = cls._make_employee("Member")
+        cls.other_employee = cls._make_employee("Other")
+
+        # suffix -> (billing type, project default rate)
+        specs = {
+            "FLAT": ("Fixed Cost", cls.FLAT_RATE),
+            "RETAINER": ("Retainer", cls.FLAT_RATE),
+            "MULTIPLIER": ("Fixed Cost", 0),
+            "NON_BILLABLE_RESOURCE": ("Fixed Cost", cls.FLAT_RATE),
+            "NON_BILLABLE_PROJECT": ("Non-Billable", 0),
+            "TIME_AND_MATERIAL": ("Time and Material", cls.FLAT_RATE),
+            "TIME_AND_MATERIAL_NO_ROW": ("Time and Material", cls.FLAT_RATE),
+            "RUNNING": ("Fixed Cost", cls.FLAT_RATE),
+        }
+        cls.projects = {
+            suffix: cls._make_project(suffix, billing_type, rate) for suffix, (billing_type, rate) in specs.items()
+        }
+
+        # Only the Time and Material project rates its members individually.
+        for suffix in ("TIME_AND_MATERIAL", "TIME_AND_MATERIAL_NO_ROW"):
+            project = frappe.get_doc("Project", cls.projects[suffix])
+            project.append(
+                "custom_project_billing_team",
+                {
+                    "employee": cls.employee if suffix == "TIME_AND_MATERIAL" else cls.other_employee,
+                    "hourly_billing_rate": cls.MEMBER_RATE,
+                    "valid_from": add_days(today(), -30),
+                },
+            )
+            project.save(ignore_permissions=True)
+
+        for suffix in cls.projects:
+            if suffix == "RUNNING":
+                continue
+            cls._make_allocation(suffix, start=1, end=5, is_billable=suffix != "NON_BILLABLE_RESOURCE")
+        # 10 days with weekends, today..+5 still ahead: 60% of both cost and budget.
+        cls._make_allocation("RUNNING", start=-4, end=5)
+
+        frappe.set_user("Administrator")
+        frappe.clear_cache()
+
+    @classmethod
+    def _make_employee(cls, label):
+        employee = frappe.new_doc("Employee")
+        employee.update(
+            {
+                "naming_series": "EMP-",
+                "first_name": f"{BUDGET_FIXTURE_PREFIX} {label}",
+                "company": cls.company,
+                "gender": "Female",
+                "date_of_birth": "1990-05-08",
+                "date_of_joining": "2013-01-01",
+                "status": "Active",
+                "employment_type": "Intern",
+                "leave_approver": "Administrator",
+                "ctc": 100000,
+                "salary_currency": "INR",
+            }
+        )
+        employee.insert(ignore_permissions=True)
+        return employee.name
+
+    @classmethod
+    def _make_project(cls, suffix, billing_type, default_rate):
+        return (
+            frappe.get_doc(
+                {
+                    "doctype": "Project",
+                    "project_name": f"{BUDGET_FIXTURE_PREFIX} {suffix}",
+                    "company": cls.company,
+                    "customer": cls.customer,
+                    "custom_billing_type": billing_type,
+                    "custom_default_hourly_billing_rate": default_rate,
+                }
+            )
+            .insert(ignore_permissions=True)
+            .name
+        )
+
+    @classmethod
+    def _make_allocation(cls, suffix, start, end, is_billable=True):
+        allocation = frappe.get_doc(
+            {
+                "doctype": "Resource Allocation",
+                "employee": cls.employee,
+                "project": cls.projects[suffix],
+                "allocation_start_date": add_days(today(), start),
+                "allocation_end_date": add_days(today(), end),
+                "hours_allocated_per_day": 8,
+                "total_allocated_hours": cls.HOURS,
+                "include_weekends": 1,
+                "is_billable": int(is_billable),
+                "status": "Confirmed",
+            }
+        ).insert(ignore_permissions=True)
+        # Both are read-only and derived from the employee's CTC; pin them so every
+        # expectation below is exact and independent of salary setup.
+        frappe.db.set_value(
+            "Resource Allocation",
+            allocation.name,
+            {"total_cost": ALLOCATION_COST, "hourly_cost_rate": cls.COST_RATE},
+            update_modified=False,
+        )
+        return allocation.name
+
+    def forecast(self, suffix):
+        project = frappe.db.get_value(
+            "Project",
+            self.projects[suffix],
+            ["custom_billing_type", "custom_default_hourly_billing_rate"],
+            as_dict=True,
+        )
+        return get_project_forecast(self.projects[suffix], project)
+
+    def test_flat_rate_projects_bill_hours_at_the_project_rate(self):
+        for suffix in ("FLAT", "RETAINER"):
+            self.assertAlmostEqual(self.forecast(suffix)["budget"], self.HOURS * self.FLAT_RATE, msg=suffix)
+
+    def test_project_without_a_rate_bills_a_multiple_of_cost(self):
+        self.assertAlmostEqual(
+            self.forecast("MULTIPLIER")["budget"],
+            self.HOURS * BILLING_RATE_COST_MULTIPLIER * self.COST_RATE,
+        )
+
+    def test_time_and_material_bills_the_member_rate(self):
+        self.assertAlmostEqual(self.forecast("TIME_AND_MATERIAL")["budget"], self.HOURS * self.MEMBER_RATE)
+
+    def test_time_and_material_without_a_member_row_bills_the_project_rate(self):
+        self.assertAlmostEqual(self.forecast("TIME_AND_MATERIAL_NO_ROW")["budget"], self.HOURS * self.FLAT_RATE)
+
+    def test_non_billable_resource_burns_cost_but_not_budget(self):
+        forecast = self.forecast("NON_BILLABLE_RESOURCE")
+        self.assertEqual(forecast["budget"], 0.0)
+        self.assertAlmostEqual(forecast["cost"], ALLOCATION_COST)
+
+    def test_non_billable_project_has_no_budget_to_burn(self):
+        forecast = self.forecast("NON_BILLABLE_PROJECT")
+        self.assertEqual(forecast["budget"], 0.0)
+        self.assertAlmostEqual(forecast["cost"], ALLOCATION_COST)
+
+    def test_running_allocation_prorates_budget_like_cost(self):
+        forecast = self.forecast("RUNNING")
+        self.assertAlmostEqual(forecast["budget"], 0.6 * self.HOURS * self.FLAT_RATE)
+        self.assertAlmostEqual(forecast["cost"], 0.6 * ALLOCATION_COST)
+
+    def test_budget_is_not_a_restatement_of_cost(self):
+        # Guards the whole class: reporting cost as budget passes nothing here.
+        for suffix in ("FLAT", "RETAINER", "MULTIPLIER", "TIME_AND_MATERIAL", "RUNNING"):
+            forecast = self.forecast(suffix)
+            self.assertNotAlmostEqual(forecast["budget"], forecast["cost"], places=2, msg=suffix)
+
+    def test_cost_is_unchanged_by_forecasting_budget(self):
+        # The regression guard for generalising get_cost_forecasted_map: asking for budget
+        # must not perturb the cost figure the project list view has always read.
+        names = list(self.projects.values())
+        cost_only = get_cost_forecasted_map(names)
+        with_budget = get_forecast_map(names, with_budget=True)
+        for suffix, project in self.projects.items():
+            self.assertAlmostEqual(with_budget[project]["cost"], flt(cost_only.get(project, 0.0)), places=6, msg=suffix)
+
+    def test_billing_rate_context_only_loads_time_and_material_projects(self):
+        project_map = {
+            name: frappe.db.get_value(
+                "Project", name, ["custom_billing_type", "custom_default_hourly_billing_rate"], as_dict=True
+            )
+            for name in self.projects.values()
+        }
+        context = get_billing_rate_context(project_map)
+        self.assertEqual(
+            {project for project, _employee in context},
+            {self.projects["TIME_AND_MATERIAL"], self.projects["TIME_AND_MATERIAL_NO_ROW"]},
+        )
+
+    def test_tracking_reports_the_budget_burn(self):
+        tracking = get_project_tracking(self.projects["FLAT"])
+        self.assertAlmostEqual(tracking["budget_burn"]["forecasted"], self.HOURS * self.FLAT_RATE)
+        self.assertEqual(tracking["budget_burn"]["actual"], 0.0)
+        self.assertEqual(tracking["budget_burn"]["total_budget"], tracking["total_project_value"])
+        # Cost burn keeps reporting cost, not budget.
+        self.assertAlmostEqual(tracking["forecasted_cost_to_completion"], ALLOCATION_COST)
+
+    def test_tracking_omits_budget_burn_for_non_billable(self):
+        self.assertIsNone(get_project_tracking(self.projects["NON_BILLABLE_PROJECT"])["budget_burn"])
+
+    def test_sidebar_reports_budget_and_cost_forecasts_apart(self):
+        burn = get_project_sidebar(self.projects["FLAT"])["burn"]
+        self.assertAlmostEqual(burn["budget_forecasted"], self.HOURS * self.FLAT_RATE)
+        self.assertAlmostEqual(burn["cost_forecasted"], ALLOCATION_COST)
