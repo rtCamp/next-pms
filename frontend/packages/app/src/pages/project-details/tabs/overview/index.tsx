@@ -1,7 +1,7 @@
 /**
  * External dependencies.
  */
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import {
   Button,
   Skeleton,
@@ -73,23 +73,28 @@ export function Overview() {
 function OverviewForm() {
   const { project, projectId, mutate } = useProjectDetail((state) => state);
 
-  const defaultValues: OverviewFormValues = {
-    summary: project?.custom_executive_summary ?? "",
-    keyGoals: project?.custom_key_goals ?? "",
-    priority: project?.priority ?? "",
-    host: project?.custom_host ?? "",
-    complexity: project?.custom_complexity ?? "",
-    keyAccount: project?.custom_key_account ?? "",
-    source: project?.custom_source ?? "",
-    primaryLocation: project?.custom_territory ?? "",
-    previousCms: project?.custom_previous_cms ?? "",
-    pointOfContact: project?.custom_client_point_of_contact ?? "",
-    frequency: project?.frequency ?? "",
-    ndaSigned: toBoolStr(project?.custom_restricted_under_nda),
-    caseStudyApproved: toBoolStr(project?.custom_permission_for_case_study),
-    testimonialApproval: toBoolStr(project?.custom_permission_for_testimonial),
-    testimonialContact: project?.custom_testimonial_contact ?? "",
-  };
+  const defaultValues: OverviewFormValues = useMemo(
+    () => ({
+      summary: project?.custom_executive_summary ?? "",
+      keyGoals: project?.custom_key_goals ?? "",
+      priority: project?.priority ?? "",
+      host: project?.custom_host ?? "",
+      complexity: project?.custom_complexity ?? "",
+      keyAccount: project?.custom_key_account ?? "",
+      source: project?.custom_source ?? "",
+      primaryLocation: project?.custom_territory ?? "",
+      previousCms: project?.custom_previous_cms ?? "",
+      pointOfContact: project?.custom_client_point_of_contact ?? "",
+      timeReportFrequency: project?.custom_time_report_frequency ?? "",
+      ndaSigned: toBoolStr(project?.custom_restricted_under_nda),
+      caseStudyApproved: toBoolStr(project?.custom_permission_for_case_study),
+      testimonialApproval: toBoolStr(
+        project?.custom_permission_for_testimonial,
+      ),
+      testimonialContact: project?.custom_testimonial_contact ?? "",
+    }),
+    [project],
+  );
 
   const [isEditing, setIsEditing] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -110,7 +115,7 @@ function OverviewForm() {
         custom_territory: value.primaryLocation,
         custom_previous_cms: value.previousCms,
         custom_client_point_of_contact: value.pointOfContact,
-        frequency: value.frequency,
+        custom_time_report_frequency: value.timeReportFrequency,
         custom_restricted_under_nda: Number(value.ndaSigned) as 0 | 1,
         custom_permission_for_case_study: Number(value.caseStudyApproved) as
           0 | 1,

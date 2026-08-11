@@ -29,8 +29,9 @@ export function ProjectListProvider({ children }: PropsWithChildren) {
         frappeFilters,
         order_by: sort.field + " " + sort.order,
         page_length: PROJECT_LIST_PAGE_SIZE,
+        currency: filters.currency,
       }),
-    [filters.search, frappeFilters, sort.field, sort.order],
+    [filters.search, frappeFilters, sort.field, sort.order, filters.currency],
   );
 
   const getKey = useCallback(
@@ -56,6 +57,7 @@ export function ProjectListProvider({ children }: PropsWithChildren) {
         filters: frappeFilters,
         order_by: sort.field + " " + sort.order,
         page_length: PROJECT_LIST_PAGE_SIZE,
+        currency: filters.currency,
       },
       {
         revalidateOnFocus: false,

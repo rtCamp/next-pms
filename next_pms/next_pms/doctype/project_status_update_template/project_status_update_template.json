@@ -9,6 +9,8 @@
  "field_order": [
   "template_name",
   "title",
+  "category",
+  "template_description",
   "description"
  ],
  "fields": [
@@ -35,12 +37,23 @@
    "fieldtype": "Text Editor",
    "label": "Description",
    "reqd": 1
+  },
+  {
+   "fieldname": "category",
+   "fieldtype": "Link",
+   "label": "Category",
+   "options": "Project Status Update Template Category"
+  },
+  {
+   "fieldname": "template_description",
+   "fieldtype": "Data",
+   "label": "Template Description"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-07-15 16:07:20.516627",
+ "modified": "2026-08-06 16:19:33.478440",
  "modified_by": "Administrator",
  "module": "Next PMS",
  "name": "Project Status Update Template",

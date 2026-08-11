@@ -6,7 +6,66 @@ import {
   getAllocationCapacityHoursPerDay,
   mapResourceAllocationSegments,
 } from "../utils";
-import type { ManagerNameMap, TeamAllocationResponse } from "./type";
+import { teamAllocationStatusOptionValues } from "./constants";
+import type {
+  AllocationTypeSelection,
+  ManagerNameMap,
+  TeamAllocationResponse,
+} from "./type";
+
+/**
+ * Resolves the allocation-type multi-select into the two axes the API takes.
+ *
+ * Billable / non-billable / no-allocation partition the employees, so selecting several
+ * of them unions their groups. Selecting both billable options therefore means "either
+ * kind of allocation" ([0, 1]) — not an unfiltered axis (null), which would also let
+ * unallocated employees through.
+ *
+ * Confirmed / tentative form a second axis narrowing which allocations count. It cannot
+ * apply to the no-allocation leg, since an unallocated employee has no allocation to
+ * carry a status, so it is dropped when no-allocation is the only presence option picked.
+ */
+export function resolveAllocationTypeSelection(
+  allocationsType: string[],
+): AllocationTypeSelection {
+  const hasBillable = allocationsType.includes("billable");
+  const hasNonBillable = allocationsType.includes("non-billable");
+  const includeUnallocated = allocationsType.includes("no-allocation");
+  const isStatusApplicable =
+    !includeUnallocated || hasBillable || hasNonBillable;
+
+  return {
+    billableValues: [
+      ...(hasBillable ? [1] : []),
+      ...(hasNonBillable ? [0] : []),
+    ],
+    statusValues: isStatusApplicable
+      ? teamAllocationStatusOptionValues.filter((status) =>
+          allocationsType.includes(status),
+        )
+      : [],
+    includeUnallocated,
+    isStatusApplicable,
+  };
+}
+
+/**
+ * Drops selections the query would ignore, so the multi-select never shows a checked
+ * option that has no effect. Returns the input untouched when nothing needs dropping,
+ * keeping the reference stable for memoisation.
+ */
+export function normalizeAllocationTypeSelection(
+  allocationsType: string[],
+): string[] {
+  const { isStatusApplicable } =
+    resolveAllocationTypeSelection(allocationsType);
+
+  return isStatusApplicable
+    ? allocationsType
+    : allocationsType.filter(
+        (value) => !teamAllocationStatusOptionValues.includes(value),
+      );
+}
 
 /**
  * Converts a TeamAllocationResponse from the API into a Member[] array

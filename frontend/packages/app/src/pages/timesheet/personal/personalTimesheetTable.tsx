@@ -102,7 +102,7 @@ const PersonalTimesheetGrid = () => {
                     return (
                       <Fragment key={`${value.start_date}-${value.end_date}`}>
                         {index === 0 ? (
-                          <div className="sticky top-0 z-10 mb-4 bg-surface-white">
+                          <div className="sticky top-0 z-20 bg-surface-white">
                             <HeaderRow
                               dates={value.dates}
                               showHeading={true}
@@ -121,7 +121,12 @@ const PersonalTimesheetGrid = () => {
                             />
                           </div>
                         ) : null}
-                        <div className="animate-fade-in">
+                        <div
+                          className={cn(
+                            "animate-fade-in",
+                            index === 0 && "mt-4",
+                          )}
+                        >
                           <PersonalTimesheetRow
                             label={value.label ?? key}
                             employee={employeeId}

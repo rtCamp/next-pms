@@ -6,6 +6,7 @@ from datetime import date
 from typing import Literal
 
 import frappe
+from erpnext.setup.utils import get_exchange_rate
 from frappe import get_list, only_for, whitelist
 from frappe.query_builder.functions import Coalesce, Count, Sum
 from frappe.utils import cint, flt, getdate, today
@@ -22,6 +23,7 @@ from next_pms.next_projects.api.constant import (
     TASK_TRACKING_TOTAL_STATUSES,
 )
 from next_pms.next_projects.api.utils import build_person_data, get_employee_image_map, get_user_image_map
+from next_pms.project_currency.billing_rate import get_billing_rate_context, resolve_billing_rate
 from next_pms.timesheet.api import get_count
 from next_pms.utils.employee import (
     get_employee_salary,
@@ -165,20 +167,48 @@ def get_cost_forecasted(project_name: str) -> float:
 
 
 def get_cost_forecasted_map(project_names: list[str]) -> dict[str, float]:
-    """Forecasted costs for multiple projects, keyed by project name.
+    """Forecasted costs for multiple projects, keyed by project name."""
+    return {name: value["cost"] for name, value in get_forecast_map(project_names).items()}
 
-    Only cost that is still ahead of today counts: elapsed allocation days are already
-    realized in the project's total_costing_amount (cost_accrued) via timesheets, so
-    counting them here would double-count them.
 
-    An allocation that has not started yet is still fully ahead whatever its internal
-    shape, so those are summed in the database and never inspected row by row. Only
-    allocations straddling today need splitting, and that set holds at most one row per
-    (employee, project) because the allocation API chunks every allocation into a single
-    week. The split runs on chargeable hours so day overrides land on the right side of
-    today, and stops at the employee's relieving date, which total_cost is already
-    clamped to. Today counts as forecast, since today's timesheet is typically not
-    submitted yet.
+def get_project_forecast(project_name: str, project: dict) -> dict[str, float]:
+    """Forecasted cost and budget burn for one project, keyed "cost" and "budget".
+
+    Takes the already-fetched Project row so resolving billable rates costs no extra
+    lookup for it.
+    """
+    return get_forecast_map([project_name], with_budget=True, project_map={project_name: project}).get(
+        project_name, {"cost": 0.0, "budget": 0.0}
+    )
+
+
+def get_forecast_map(
+    project_names: list[str],
+    with_budget: bool = False,
+    project_map: dict[str, dict] | None = None,
+) -> dict[str, dict[str, float]]:
+    """Forecasts still ahead of today for multiple projects, keyed by project name.
+
+    Only what is still ahead of today counts: elapsed allocation days are already realized
+    in the project's totals via timesheets, so counting them here would double-count them.
+
+    An allocation that has not started yet is still fully ahead whatever its internal shape,
+    so those are summed in the database and never inspected row by row. Only allocations
+    straddling today need splitting, and that set holds at most one row per (employee,
+    project) because the allocation API chunks every allocation into a single week. The
+    split runs on chargeable hours so day overrides land on the right side of today, and
+    stops at the employee's relieving date, which total_cost is already clamped to. Today
+    counts as forecast, since today's timesheet is typically not submitted yet.
+
+    Every entry carries both a "cost" and a "budget" key. Cost is always forecast. Budget
+    is only forecast when with_budget is set, and reads 0.0 otherwise — a caller that did
+    not ask for budget cannot tell that zero apart from a project that genuinely bills
+    nothing, and should not read the key at all.
+
+    Budget is opt-in because it costs a row scan the database-side sum would otherwise
+    avoid: budget needs each allocation's own employee and rate, where cost can be summed
+    blind. Callers that only read cost therefore pay exactly what they paid before this
+    argument existed.
     """
     if not project_names:
         return {}
@@ -187,27 +217,79 @@ def get_cost_forecasted_map(project_names: list[str]) -> dict[str, float]:
     ResourceAllocation = frappe.qb.DocType("Resource Allocation")
     Employee = frappe.qb.DocType("Employee")
 
-    not_started = (
-        frappe.qb.from_(ResourceAllocation)
-        .select(
-            ResourceAllocation.project,
-            Coalesce(Sum(ResourceAllocation.total_cost), 0).as_("total"),
+    forecast: dict[str, dict[str, float]] = {}
+
+    def accrue(project: str, cost: float, budget: float = 0.0) -> None:
+        entry = forecast.setdefault(project, {"cost": 0.0, "budget": 0.0})
+        entry["cost"] += cost
+        entry["budget"] += budget
+
+    rate_context = {}
+    if with_budget:
+        if project_map is None:
+            project_map = {
+                row.name: row
+                for row in frappe.get_all(
+                    "Project",
+                    filters={"name": ["in", project_names]},
+                    fields=["name", "custom_billing_type", "custom_default_hourly_billing_rate"],
+                )
+            }
+        rate_context = get_billing_rate_context(project_map)
+
+    def budget_of(row: dict, ratio: float) -> float:
+        """Forecast budget for one allocation, for the fraction of it still ahead.
+
+        A non-billable resource on a billable project burns the project's cost but never
+        its budget, mirroring a non-billable Timesheet Detail row.
+        """
+        if not with_budget or not cint(row.is_billable):
+            return 0.0
+
+        rate = resolve_billing_rate(row.project, row.employee, row.hourly_cost_rate, as_on, project_map, rate_context)
+        return rate * flt(row.total_allocated_hours) * ratio
+
+    allocation_fields = [
+        ResourceAllocation.name,
+        ResourceAllocation.project,
+        ResourceAllocation.employee,
+        ResourceAllocation.is_billable,
+        ResourceAllocation.total_cost,
+        ResourceAllocation.total_allocated_hours,
+        ResourceAllocation.hourly_cost_rate,
+    ]
+
+    if with_budget:
+        not_started = (
+            frappe.qb.from_(ResourceAllocation)
+            .select(*allocation_fields)
+            .where(ResourceAllocation.project.isin(project_names))
+            .where(ResourceAllocation.allocation_start_date >= as_on)
+            .run(as_dict=True)
         )
-        .where(ResourceAllocation.project.isin(project_names))
-        .where(ResourceAllocation.allocation_start_date >= as_on)
-        .groupby(ResourceAllocation.project)
-        .run(as_dict=True)
-    )
-    forecast = {row.project: flt(row.total) for row in not_started}
+        for row in not_started:
+            accrue(row.project, flt(row.total_cost), budget_of(row, 1.0))
+    else:
+        not_started = (
+            frappe.qb.from_(ResourceAllocation)
+            .select(
+                ResourceAllocation.project,
+                Coalesce(Sum(ResourceAllocation.total_cost), 0).as_("total"),
+            )
+            .where(ResourceAllocation.project.isin(project_names))
+            .where(ResourceAllocation.allocation_start_date >= as_on)
+            .groupby(ResourceAllocation.project)
+            .run(as_dict=True)
+        )
+        for row in not_started:
+            accrue(row.project, flt(row.total))
 
     in_flight = (
         frappe.qb.from_(ResourceAllocation)
         .left_join(Employee)
         .on(Employee.name == ResourceAllocation.employee)
         .select(
-            ResourceAllocation.name,
-            ResourceAllocation.project,
-            ResourceAllocation.total_cost,
+            *allocation_fields,
             ResourceAllocation.allocation_start_date,
             ResourceAllocation.allocation_end_date,
             ResourceAllocation.include_weekends,
@@ -235,7 +317,7 @@ def get_cost_forecasted_map(project_names: list[str]) -> dict[str, float]:
             as_on,
         )
         if ratio:
-            forecast[row.project] = forecast.get(row.project, 0.0) + flt(row.total_cost) * ratio
+            accrue(row.project, flt(row.total_cost) * ratio, budget_of(row, ratio))
 
     return forecast
 
@@ -430,6 +512,33 @@ def enrich_project_for_kanban(project: dict) -> dict:
     }
 
 
+def _apply_currency_conversion(enriched_projects: list[dict], to_currency: str) -> None:
+    """Convert monetary fields to the target currency."""
+    # Early return if invalid currency to avoid silent failures
+    if not frappe.db.exists("Currency", to_currency):
+        return
+
+    from_currencies = {p["currency"] for p in enriched_projects if p.get("currency") and p["currency"] != to_currency}
+    if not from_currencies:
+        return
+
+    conversion_date = getdate(today())
+    rates = {fc: get_exchange_rate(fc, to_currency, conversion_date) or 1.0 for fc in from_currencies}
+
+    for project in enriched_projects:
+        from_currency = project.get("currency")
+        if not from_currency or from_currency == to_currency:
+            continue
+
+        rate = rates[from_currency]
+
+        if (value := project.get("burn_rate_per_week")) is not None:
+            project["burn_rate_per_week"] = flt(value) * rate
+
+        project["total_budget"] = flt(project.get("total_budget")) * rate
+        project["currency"] = to_currency
+
+
 def get_project_phases() -> list[dict]:
     """Get all project phases ordered by position."""
     phases = frappe.get_all(
@@ -449,6 +558,7 @@ def get_projects_view(
     start: int = 0,
     limit: int = 20,
     order_by: str = "modified desc",
+    currency: str | None = None,
 ):
     """
     Get projects for list view or kanban view.
@@ -460,6 +570,8 @@ def get_projects_view(
         start: Pagination offset
         limit: Page size
         order_by: Sort order
+        currency: If provided, all monetary values are converted to this
+            currency using today's exchange rate
 
     Returns:
         For list view: {"data": [...], "total_count": int, "has_more": bool}
@@ -541,6 +653,9 @@ def get_projects_view(
         enriched_projects = [
             enrich_project_with_calculated_fields(p, cost_forecasted_map, user_image_map) for p in projects
         ]
+
+        if currency:
+            _apply_currency_conversion(enriched_projects, currency)
 
         return {
             "data": enriched_projects,
@@ -942,6 +1057,10 @@ def get_project_tracking(project: str):
         invoice_burn : dict
             currency (company default), invoiced_and_paid, invoiced_but_not_paid,
             total_project_amount. Omitted for Non-Billable projects.
+        budget_burn : dict or None
+            actual (amount billed to date), forecasted (remaining allocation hours priced
+            at each member's billable rate), total_budget. None for Non-Billable, which
+            has no budget to burn.
         total_project_value : float
             Total budget/value for the project.
         project_profit : float
@@ -986,6 +1105,7 @@ def get_project_tracking(project: str):
             "custom_billing_type",
             "total_costing_amount",
             "total_sales_amount",
+            "total_billable_amount",
             "custom_currency",
             "custom_target_cost",
             "custom_total_hours_purchased",
@@ -1007,8 +1127,8 @@ def get_project_tracking(project: str):
     invoice_burn = _get_invoice_burn(project) if is_billable else None
     task_counts = _get_task_counts(project)
     actual_cost_incurred = flt(p.total_costing_amount)
-    total_forecasted_cost = get_cost_forecasted(project)
-    forecasted_cost_to_completion = max(0, total_forecasted_cost)
+    forecast = get_project_forecast(project, p)
+    forecasted_cost_to_completion = max(0, forecast["cost"])
 
     total_project_value = flt(p.total_sales_amount)
     projected_profit = total_project_value - (actual_cost_incurred + forecasted_cost_to_completion)
@@ -1108,6 +1228,13 @@ def get_project_tracking(project: str):
             **(invoice_burn or {}),
             "total_project_amount": flt(p.total_sales_amount) if is_billable else None,
         },
+        "budget_burn": {
+            "actual": get_budget_burn_accrued(p),
+            "forecasted": forecast["budget"],
+            "total_budget": total_project_value,
+        }
+        if is_billable
+        else None,
         "contracts": contracts,
         "project_rates": project_rates,
         "lifetime_values": lifetime_values,
@@ -1124,7 +1251,8 @@ def get_project_sidebar(project: str):
         summary       - short summary text
         details       - project name, phase, status, customer
         links         - slack, google_drive, website, github, opportunity
-        burn          - total_budget, cost_accrued, cost_forecasted, target_cost
+        burn          - total_budget, cost_accrued, cost_forecasted, budget_forecasted,
+                        target_cost
         progress      - actual_time; total_hours_purchased (Retainer) or custom_target_hours (all other billing types)
         members       - users the project has been shared with
         customers     - contacts from custom_customer_contacts
@@ -1145,7 +1273,7 @@ def get_project_sidebar(project: str):
 
     total_budget = get_total_budget(project_doc)
     cost_accrued = get_budget_burn_accrued(project_doc)
-    cost_forecasted = get_cost_forecasted(project)
+    forecast = get_project_forecast(project, project_doc)
     target_cost = flt(project_doc.custom_target_cost)
 
     return {
@@ -1166,7 +1294,8 @@ def get_project_sidebar(project: str):
         "burn": {
             "total_budget": total_budget,
             "cost_accrued": cost_accrued,
-            "cost_forecasted": cost_forecasted,
+            "cost_forecasted": forecast["cost"],
+            "budget_forecasted": forecast["budget"],
             "target_cost": target_cost,
         },
         "progress": {

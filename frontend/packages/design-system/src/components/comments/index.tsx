@@ -33,9 +33,11 @@ export function Comments({
   onReply,
   onEdit,
   onDelete,
+  getMentions,
 }: CommentsProps) {
   const value = useMemo(
     () => ({
+      getMentions,
       onReply,
       onEdit,
       onDelete,
@@ -43,7 +45,15 @@ export function Comments({
       authorId,
       canManageAllComments,
     }),
-    [onReply, onEdit, onDelete, isUpdating, authorId, canManageAllComments],
+    [
+      getMentions,
+      onReply,
+      onEdit,
+      onDelete,
+      isUpdating,
+      authorId,
+      canManageAllComments,
+    ],
   );
 
   return (
@@ -71,6 +81,7 @@ export function Comments({
         ) : null}
 
         <CommentInput
+          getMentions={getMentions}
           placeholder={inputPlaceholder}
           submitLabel={inputSubmitLabel}
           collapsible

@@ -48,7 +48,7 @@ export interface Allocation {
 }
 
 export interface MemberBarAllocation extends Allocation {
-  type?: "default" | "timeoff";
+  type?: "default" | "timeoff" | "free";
 }
 
 export interface LeaveAllocation {
@@ -65,7 +65,7 @@ export interface Project {
   projectDateRange?: string;
   client?: string;
   projectManager?: string;
-  weeklyCapacity?: number;
+  remainingHours?: number;
   badge?: string;
   allocations?: Allocation[];
 }

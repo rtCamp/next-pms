@@ -11,7 +11,7 @@ export const overviewSchema = z.object({
   primaryLocation: z.string(),
   previousCms: z.string(),
   pointOfContact: z.string(),
-  frequency: z.string(),
+  timeReportFrequency: z.string(),
   ndaSigned: z.string(),
   caseStudyApproved: z.string(),
   testimonialApproval: z.string(),
