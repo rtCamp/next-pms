@@ -9,51 +9,51 @@
 <table>
   <tr>
     <td>
-      <img width="1455" height="822" alt="Project overview" src="next_pms/public/readme/project-overview.png" />
+      <img alt="Project overview" src="next_pms/public/readme/project-overview.png" />
       <p align="center">Every project at a glance - goals, budget burn, team and more in one place.</p>
       <br>
     </td>
     <td>
-      <img width="950" height="659" alt="Project calendar" src="next_pms/public/readme/project-calendar.png" />
+      <img alt="Project calendar" src="next_pms/public/readme/project-calendar.png" />
       <p align="center">Plan milestones and touchpoints on a shared project calendar.</p>
       <br>
     </td>
     <td>
-      <img width="924" height="775" alt="Project tracking" src="next_pms/public/readme/project-tracking.png" />
+      <img alt="Project tracking" src="next_pms/public/readme/project-tracking.png" />
       <p align="center">Track value, burn, profitability and more in real time - no spreadsheets.</p>
       <br>
     </td>
   </tr>
   <tr>
     <td>
-      <img width="933" height="443" alt="Project email" src="next_pms/public/readme/project-email.png" />
+      <img alt="Project email" src="next_pms/public/readme/project-email.png" />
       <p align="center">Emails - right where the work happens.</p>
       <br>
     </td>
     <td>
-      <img width="1202" height="818" alt="Leadership dashboard" src="next_pms/public/readme/leadership-dashboard.png" />
+      <img alt="Leadership dashboard" src="next_pms/public/readme/leadership-dashboard.png" />
       <p align="center">A leadership cockpit - revenue, cost, utilisation, capacity and more in one view.</p>
       <br>
     </td>
     <td>
-      <img width="1470" height="816" alt="Personal timesheet" src="next_pms/public/readme/personal-timesheet.png" />
+      <img alt="Personal timesheet" src="next_pms/public/readme/personal-timesheet.png" />
       <p align="center">Modern UI for logging time entries.</p>
       <br>
     </td>
   </tr>
   <tr>
     <td>
-      <img width="1470" height="796" alt="Team timesheets" src="next_pms/public/readme/team-timesheets.png" />
+      <img alt="Team timesheets" src="next_pms/public/readme/team-timesheets.png" />
       <p align="center">Review and approve team timesheets in one click.</p>
       <br>
     </td>
     <td>
-      <img width="1470" height="793" alt="Project timesheets" src="next_pms/public/readme/project-timesheets.png" />
+      <img alt="Project timesheets" src="next_pms/public/readme/project-timesheets.png" />
       <p align="center">See where every hour goes - by project, member and task.</p>
       <br>
     </td>
     <td>
-      <img width="1470" height="787" alt="Team allocations" src="next_pms/public/readme/team-allocations.png" />
+      <img alt="Team allocations" src="next_pms/public/readme/team-allocations.png" />
       <p align="center">Spot free capacity instantly and allocate people in seconds.</p>
       <br>
     </td>
@@ -74,7 +74,7 @@
 
 Before you begin, make sure you have the following apps installed on your site:
 
-- [ERPNext](https://github.com/frappe/erpnext) - core ERP for projects, billing, customers and accounting that NextPMS builds on
+- [ERPNext](https://github.com/frappe/erpnext) - core ERP for projects, billing, customers and accounting that Next PMS builds on
 - [Frappe HR](https://github.com/frappe/hrms) - HRMS for employees, leaves and attendance used by timesheets and resource planning
 - [Frappe Gmail Thread](https://github.com/rtCamp/frappe-gmail-thread) - brings GMail conversations into Frappe, powering the project Email tab
 - [Frappe Comment XT](https://github.com/rtCamp/frappe-comment-xt) - extended comments with mentions used across notes and feedback
