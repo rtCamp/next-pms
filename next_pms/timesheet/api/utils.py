@@ -176,6 +176,29 @@ def update_weekly_status_of_timesheet(employee: str, date: str):
                 highest_value = priority[status]
         final_status_per_day[day] = highest_status or "Not Submitted"
 
+    # propagate day rejection reason to new timesheets created on the same day
+    day_rejection_updates = {}
+    for day, timesheets in timesheet_by_start_date.items():
+        if final_status_per_day.get(day) != "Rejected":
+            continue
+        reasons = []
+        seen = set()
+        for ts in timesheets:
+            if ts.get("custom_approval_status") != "Rejected":
+                continue
+            reason = (ts.get("custom_rejection_reason") or "").strip()
+            if reason and reason not in seen:
+                seen.add(reason)
+                reasons.append(reason)
+        day_reason = "\n".join(reasons) if reasons else None
+        for ts in timesheets:
+            if ts.get("custom_approval_status") not in (None, "Not Submitted"):
+                continue
+            day_rejection_updates[ts["name"]] = {
+                "custom_approval_status": "Rejected",
+                "custom_rejection_reason": day_reason,
+            }
+
     week_status = "Not Submitted"
 
     status_count = {
@@ -229,6 +252,7 @@ def update_weekly_status_of_timesheet(employee: str, date: str):
             {
                 "custom_weekly_approval_status": week_status,
                 "custom_weekly_rejection_reason": weekly_rejection_reason,
+                **day_rejection_updates.get(timesheet.name, {}),
             },
             update_modified=False,
         )
