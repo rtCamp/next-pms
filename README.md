@@ -10,7 +10,7 @@
   <tr>
     <td>
       <img width="1455" height="822" alt="image" src="https://github.com/user-attachments/assets/1044ec9c-cee6-4b34-9e7e-2af9b735fc6b" />
-      <p align="center">Every project at a glance — goals, budget burn, team and more in one place.</p>
+      <p align="center">Every project at a glance - goals, budget burn, team and more in one place.</p>
       <br>
     </td>
     <td>
@@ -20,7 +20,7 @@
     </td>
     <td>
       <img width="924" height="775" alt="image" src="https://github.com/user-attachments/assets/c148432e-3548-415a-9334-0d2322d48f0b" />
-      <p align="center">Track value, burn, profitability and more in real time — no spreadsheets.</p>
+      <p align="center">Track value, burn, profitability and more in real time - no spreadsheets.</p>
       <br>
     </td>
   </tr>
@@ -32,7 +32,7 @@
     </td>
     <td>
       <img width="1202" height="818" alt="image" src="https://github.com/user-attachments/assets/bfecb66d-404d-4595-858a-ee2b6b130eb4" />
-      <p align="center">A leadership cockpit — revenue, cost, utilisation, capacity and more in one view.</p>
+      <p align="center">A leadership cockpit - revenue, cost, utilisation, capacity and more in one view.</p>
       <br>
     </td>
     <td>
@@ -49,7 +49,7 @@
     </td>
     <td>
       <img width="1470" height="793" alt="image" src="https://github.com/user-attachments/assets/89295aa3-7b82-471e-956c-b193b81e50a2" />
-      <p align="center">See where every hour goes — by project, member and task.</p>
+      <p align="center">See where every hour goes - by project, member and task.</p>
       <br>
     </td>
     <td>
@@ -63,24 +63,26 @@
 ## Key Features
 
 1. **Enhanced Timesheets**: Improved timesheet creation for employees with a React-based UI, allowing employees to make time entries from a single screen.
-
 2. **Streamlined Project Billing**: Simplifies the billing process by integrating project-specific rates and billing information.
+3. **Resource Management**: Easily allocate resources across multiple projects and track the people working on each project and its progress.
+4. **Simplified Workflows**: Managers can quickly work with timesheets, approve or reject them, and view the information in several ways.
+5. **Custom Views**: Save your frequently used filters, ensuring quick access to the most relevant information.
+6. **Reports**: Customized reports around resource management, budget burn, timesheets and more.
+7. **Project Command Center**: Every project gets its own workspace with Overview, Calendar, Tracking, Risks, Notes, Email and To-do tabs, bringing budget burn, invoices, milestones and client conversations onto a single page.
 
-3. **Resource Management**: Easily Allocate resources on multiple project and track people working on projects and it's progress.
-4. **Simplified Workflows**: Managers may quickly work with timesheets, accept or deny them, and see the information in several ways.
-5. **Custom Views**: All the pages can be saved, ensuring quick access to the most relevant information.
-6. **Reports**: Customized reports around resource management and timesheets.
+## Prerequisites
 
-## Prerequisite
-
-Before you begin, make sure you have following apps installed on your site:
+Before you begin, make sure you have the following apps installed on your site:
 
 - [ERPNext](https://github.com/frappe/erpnext)
 - [Frappe HR](https://github.com/frappe/hrms)
+- [Frappe Gmail Thread](https://github.com/rtCamp/frappe-gmail-thread) — brings Gmail conversations into Frappe, powering the project Email tab
+- [Frappe Comment XT](https://github.com/rtCamp/frappe-comment-xt) — extended comments with mentions used across notes and feedback
+- [Frappe Slack Connector](https://github.com/rtCamp/frappe-slack-connector) — Slack notifications for approvals and leaves
 
 ## Installation
 
-Run the following command to install the app.
+Run the following commands to install the app.
 
 ```bash
 bench get-app https://github.com/rtCamp/next-pms.git
@@ -91,7 +93,7 @@ bench restart
 
 For local development, check out our dev-tool for seamlessly building Frappe apps: [frappe-manager](https://github.com/rtCamp/Frappe-Manager)
 
-NOTE: If using `frappe-manager`, you might require to `fm restart` to provision the worker queues.
+NOTE: If using `frappe-manager`, you may need to run `fm restart` to provision the worker queues.
 
 ## Setup
 
