@@ -74,11 +74,11 @@
 
 Before you begin, make sure you have the following apps installed on your site:
 
-- [ERPNext](https://github.com/frappe/erpnext)
-- [Frappe HR](https://github.com/frappe/hrms)
-- [Frappe Gmail Thread](https://github.com/rtCamp/frappe-gmail-thread) — brings Gmail conversations into Frappe, powering the project Email tab
-- [Frappe Comment XT](https://github.com/rtCamp/frappe-comment-xt) — extended comments with mentions used across notes and feedback
-- [Frappe Slack Connector](https://github.com/rtCamp/frappe-slack-connector) — Slack notifications for approvals and leaves
+- [ERPNext](https://github.com/frappe/erpnext) - core ERP for projects, billing, customers and accounting that NextPMS builds on
+- [Frappe HR](https://github.com/frappe/hrms) - HRMS for employees, leaves and attendance used by timesheets and resource planning
+- [Frappe Gmail Thread](https://github.com/rtCamp/frappe-gmail-thread) - brings GMail conversations into Frappe, powering the project Email tab
+- [Frappe Comment XT](https://github.com/rtCamp/frappe-comment-xt) - extended comments with mentions used across notes and feedback
+- [Frappe Slack Connector](https://github.com/rtCamp/frappe-slack-connector) - Slack notifications for approvals and leaves
 
 ## Installation
 
