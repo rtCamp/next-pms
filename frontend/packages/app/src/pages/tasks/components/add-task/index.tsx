@@ -207,29 +207,6 @@ const AddTask = ({
     >
       <div className="space-y-4">
         <form.Field
-          name="subject"
-          children={(field) => (
-            <div>
-              <label className="block text-base text-ink-gray-5 mb-1.5">
-                Subject
-              </label>
-              <TextInput
-                size="md"
-                variant="outline"
-                placeholder="Add subject"
-                value={field.state.value}
-                onChange={(event) => field.handleChange(event.target.value)}
-              />
-              {!field.state.meta.isValid && (
-                <div className="mt-4">
-                  <ErrorMessage message={field.state.meta.errors[0]?.message} />
-                </div>
-              )}
-            </div>
-          )}
-        />
-
-        <form.Field
           name="project"
           children={(field) => (
             <div>
@@ -255,6 +232,29 @@ const AddTask = ({
                   field.handleChange(nextProject);
                 }}
                 openOnFocus
+              />
+              {!field.state.meta.isValid && (
+                <div className="mt-4">
+                  <ErrorMessage message={field.state.meta.errors[0]?.message} />
+                </div>
+              )}
+            </div>
+          )}
+        />
+
+        <form.Field
+          name="subject"
+          children={(field) => (
+            <div>
+              <label className="block text-base text-ink-gray-5 mb-1.5">
+                Subject
+              </label>
+              <TextInput
+                size="md"
+                variant="outline"
+                placeholder="Add subject"
+                value={field.state.value}
+                onChange={(event) => field.handleChange(event.target.value)}
               />
               {!field.state.meta.isValid && (
                 <div className="mt-4">
