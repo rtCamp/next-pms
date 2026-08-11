@@ -9,51 +9,51 @@
 <table>
   <tr>
     <td>
-      <img width="1455" height="822" alt="image" src="https://github.com/user-attachments/assets/1044ec9c-cee6-4b34-9e7e-2af9b735fc6b" />
+      <img width="1455" height="822" alt="Project overview" src="next_pms/public/readme/project-overview.png" />
       <p align="center">Every project at a glance - goals, budget burn, team and more in one place.</p>
       <br>
     </td>
     <td>
-      <img width="950" height="659" alt="image" src="https://github.com/user-attachments/assets/e24a5e4f-a8e9-4605-9fb1-ea605d0a429f" />
+      <img width="950" height="659" alt="Project calendar" src="next_pms/public/readme/project-calendar.png" />
       <p align="center">Plan milestones and touchpoints on a shared project calendar.</p>
       <br>
     </td>
     <td>
-      <img width="924" height="775" alt="image" src="https://github.com/user-attachments/assets/c148432e-3548-415a-9334-0d2322d48f0b" />
+      <img width="924" height="775" alt="Project tracking" src="next_pms/public/readme/project-tracking.png" />
       <p align="center">Track value, burn, profitability and more in real time - no spreadsheets.</p>
       <br>
     </td>
   </tr>
   <tr>
     <td>
-      <img width="933" height="443" alt="image" src="https://github.com/user-attachments/assets/860d31cb-c9eb-4396-8b10-6837cf130399" />
+      <img width="933" height="443" alt="Project email" src="next_pms/public/readme/project-email.png" />
       <p align="center">Emails - right where the work happens.</p>
       <br>
     </td>
     <td>
-      <img width="1202" height="818" alt="image" src="https://github.com/user-attachments/assets/bfecb66d-404d-4595-858a-ee2b6b130eb4" />
+      <img width="1202" height="818" alt="Leadership dashboard" src="next_pms/public/readme/leadership-dashboard.png" />
       <p align="center">A leadership cockpit - revenue, cost, utilisation, capacity and more in one view.</p>
       <br>
     </td>
     <td>
-      <img width="1470" height="816" alt="image" src="https://github.com/user-attachments/assets/bb405e51-f8b7-467b-84c6-c4c4e917c016" />
+      <img width="1470" height="816" alt="Personal timesheet" src="next_pms/public/readme/personal-timesheet.png" />
       <p align="center">Modern UI for logging time entries.</p>
       <br>
     </td>
   </tr>
   <tr>
     <td>
-      <img width="1470" height="796" alt="image" src="https://github.com/user-attachments/assets/4fdb88c3-fbe3-48fb-b8de-553c043d0425" />
+      <img width="1470" height="796" alt="Team timesheets" src="next_pms/public/readme/team-timesheets.png" />
       <p align="center">Review and approve team timesheets in one click.</p>
       <br>
     </td>
     <td>
-      <img width="1470" height="793" alt="image" src="https://github.com/user-attachments/assets/89295aa3-7b82-471e-956c-b193b81e50a2" />
+      <img width="1470" height="793" alt="Project timesheets" src="next_pms/public/readme/project-timesheets.png" />
       <p align="center">See where every hour goes - by project, member and task.</p>
       <br>
     </td>
     <td>
-      <img width="1470" height="787" alt="image" src="https://github.com/user-attachments/assets/dc4b55d6-0315-4e2e-9c65-7c3dfb7faa3d" />
+      <img width="1470" height="787" alt="Team allocations" src="next_pms/public/readme/team-allocations.png" />
       <p align="center">Spot free capacity instantly and allocate people in seconds.</p>
       <br>
     </td>
