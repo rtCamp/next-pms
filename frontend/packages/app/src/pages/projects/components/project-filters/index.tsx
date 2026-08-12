@@ -91,22 +91,26 @@ export function ProjectFilters() {
             options={currencies}
           />
         </div>
-        <Select
-          placeholder="Phases"
-          placeholderClassName="text-ink-gray-7"
-          className="w-full text-ink-gray-7"
-          value={phase}
-          onChange={(v) => setPhase((v || "") as Phase | "")}
-          options={PHASE_OPTIONS}
-        />
-        <Select
-          placeholder="Status"
-          placeholderClassName="text-ink-gray-7"
-          className="w-full text-ink-gray-7"
-          value={status}
-          onChange={(v) => setStatus((v || "") as ProjectStatus | "")}
-          options={STATUS_OPTIONS}
-        />
+        <div className="w-fit max-w-34 shrink-0">
+          <Select
+            placeholder="Phases"
+            placeholderClassName="text-ink-gray-7"
+            className="w-full text-ink-gray-7"
+            value={phase}
+            onChange={(v) => setPhase((v || "") as Phase | "")}
+            options={PHASE_OPTIONS}
+          />
+        </div>
+        <div className="w-fit max-w-34 shrink-0">
+          <Select
+            placeholder="Status"
+            placeholderClassName="text-ink-gray-7"
+            className="w-full text-ink-gray-7"
+            value={status}
+            onChange={(v) => setStatus((v || "") as ProjectStatus | "")}
+            options={STATUS_OPTIONS}
+          />
+        </div>
       </div>
       <div className="flex gap-2">
         {!isKanban && (
