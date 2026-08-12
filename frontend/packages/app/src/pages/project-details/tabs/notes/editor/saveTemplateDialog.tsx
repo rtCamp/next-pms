@@ -148,7 +148,7 @@ export function SaveTemplateDialog({
         content: "pt-5 pb-4",
         footer: "pb-6",
       }}
-      options={{ title: "New Template", size: "md" }}
+      options={{ title: "New template", size: "md" }}
       actions={
         <form.Subscribe selector={(state) => state.values.title.trim()}>
           {(title) => (

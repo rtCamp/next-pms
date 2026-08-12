@@ -199,7 +199,7 @@ function NoteEditor() {
                     variant="solid"
                     theme="gray"
                     size="sm"
-                    label="Save Template"
+                    label="Save template"
                     disabled={isInputDisabled || !hasTitle || !hasDescription}
                     onClick={() => setIsSaveTemplateDialogOpen(true)}
                   />
