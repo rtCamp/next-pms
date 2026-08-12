@@ -8,9 +8,11 @@ from frappe.utils import add_days
 
 from next_pms.resource_management.api.utils.helpers import (
     add_customer_data_if_not_exists,
+    allocation_hours_for_date,
     filter_project_list,
     get_dates_date,
     normalize_project_view_filters,
+    override_hours_by_date,
     resource_api_permissions_check,
 )
 from next_pms.resource_management.api.utils.query import (
@@ -254,6 +256,7 @@ def _get_resource_management_project_view_data(
         allocation_status=allocation_status,
     )
     resource_allocation_data = attach_extra_entries(resource_allocation_data)
+    override_maps = {a["name"]: override_hours_by_date(a) for a in resource_allocation_data}
 
     resource_allocation_map = {}
     user_info_cache = {}
@@ -318,7 +321,9 @@ def _get_resource_management_project_view_data(
                     customer = add_customer_data_if_not_exists(customer, resource_allocation.customer)
 
                     if resource_allocation.allocation_start_date <= date <= resource_allocation.allocation_end_date:
-                        total_allocated_hours_for_given_date += resource_allocation.hours_allocated_per_day
+                        total_allocated_hours_for_given_date += allocation_hours_for_date(
+                            resource_allocation, date, override_maps.get(resource_allocation.name)
+                        )
                         project_resource_allocation_for_given_date.append(
                             {
                                 "name": resource_allocation.name,
@@ -433,6 +438,7 @@ def _get_employees_resrouce_data_for_given_project(
         is_billable,
     )
     resource_allocation_data = attach_extra_entries(resource_allocation_data)
+    override_maps = {a["name"]: override_hours_by_date(a) for a in resource_allocation_data}
 
     resource_allocation_map = {}
     user_info_cache = {}
@@ -503,7 +509,9 @@ def _get_employees_resrouce_data_for_given_project(
                 customer = add_customer_data_if_not_exists(customer, resource_allocation.customer)
 
                 if resource_allocation.allocation_start_date <= current_date <= resource_allocation.allocation_end_date:
-                    total_allocated_hours_for_employee += resource_allocation.hours_allocated_per_day
+                    total_allocated_hours_for_employee += allocation_hours_for_date(
+                        resource_allocation, current_date, override_maps.get(resource_allocation.name)
+                    )
                     employee_resource_allocation_for_given_date.append(
                         {
                             "name": resource_allocation.name,

@@ -1,7 +1,7 @@
 import datetime
 
 import frappe
-from frappe.utils import flt
+from frappe.utils import cint, flt
 from frappe.utils.data import add_days, getdate
 
 from next_pms.timesheet.api.team import get_week_dates
@@ -60,6 +60,29 @@ def get_allocation_objects(employee_resource_allocation: list[object]) -> object
         resource_object[allocation.name] = allocation
 
     return resource_object
+
+
+def override_hours_by_date(allocation: dict) -> dict:
+    """Map each overridden date of an allocation to its effective hours (0 when cancelled).
+
+    Requires ``attach_extra_entries`` to have run over the allocation first.
+    """
+    return {
+        getdate(row["date"]): 0 if cint(row.get("cancelled")) else flt(row.get("hours"))
+        for row in allocation.get("override") or []
+    }
+
+
+def allocation_hours_for_date(allocation: dict, date: datetime.date, override_hours: dict | None = None) -> float:
+    """Hours an allocation books on a date, honouring a day override when one exists.
+
+    Pass ``override_hours`` (from :func:`override_hours_by_date`) when looping over many
+    dates for the same allocation, so the override table is only walked once.
+    """
+    if override_hours is None:
+        override_hours = override_hours_by_date(allocation)
+
+    return flt(override_hours.get(date, allocation.get("hours_allocated_per_day")))
 
 
 def is_on_leave(date: datetime.date, daily_working_hours: float, leaves: list[dict], holidays: list) -> dict:
