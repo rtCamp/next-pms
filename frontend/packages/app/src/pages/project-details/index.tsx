@@ -1,6 +1,7 @@
 /**
  * External dependencies.
  */
+import { useEffect } from "react";
 import { Outlet, useMatch, useParams, useSearchParams } from "react-router";
 import { Tabs } from "@rtcamp/frappe-ui-react";
 
@@ -33,6 +34,7 @@ function ProjectDetail() {
 
 function ProjectDetailBody() {
   const [searchParams, setSearchParams] = useSearchParams();
+  const isProjectLoaded = useProjectDetail((state) => Boolean(state.project));
   const reportEnabled = useProjectDetail(
     (state) => state.project?.custom_enable_project_report_generation,
   );
@@ -54,9 +56,23 @@ function ProjectDetailBody() {
   }
 
   const paramTab = searchParams.get(TAB_PARAM) as TabKey | null;
-  const activeKey: TabKey =
-    paramTab && finalTabKeys.includes(paramTab) ? paramTab : DEFAULT_TAB;
+  const isParamTabValid = Boolean(paramTab && finalTabKeys.includes(paramTab));
+  const activeKey: TabKey = isParamTabValid
+    ? (paramTab as TabKey)
+    : DEFAULT_TAB;
   const activeTab = finalTabKeys.indexOf(activeKey);
+
+  useEffect(() => {
+    if (!isProjectLoaded || !paramTab || isParamTabValid) return;
+
+    setSearchParams(
+      (prev) => {
+        prev.delete(TAB_PARAM);
+        return prev;
+      },
+      { replace: true },
+    );
+  }, [isProjectLoaded, paramTab, isParamTabValid, setSearchParams]);
 
   const handleTabChange = (index: number) => {
     const key = finalTabKeys[index];
