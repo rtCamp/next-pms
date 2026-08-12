@@ -14,17 +14,10 @@ from next_pms.resource_management.api.utils.query import get_employee_leaves
 LEAVE_SOURCE = "Leave"
 MANUAL_SOURCE = "Manual"
 
-# `is_on_leave` scales the availability it returns by the employee's daily working hours.
-# Passing a unit norm collapses that into a plain factor — 0 for a full day of leave or a
-# public holiday, 0.5 for a half day, 1 otherwise — so an allocation is reduced by the shape
-# of the day alone and is never clamped to the employee's capacity. A deliberately
-# over-allocated day therefore stays over-allocated, just halved.
-UNIT_WORKING_NORM = 1.0
-
 
 def availability_factor(date: datetime.date, leaves: list[dict], holidays: list) -> float:
     """Return the fraction of a normal day the employee is available to work on `date`."""
-    return flt(is_on_leave(date, UNIT_WORKING_NORM, leaves, holidays)["leave_work_hours"])
+    return flt(is_on_leave(date, 1.0, leaves, holidays)["leave_work_hours"])
 
 
 def effective_hours(base_hours: float, date: datetime.date, leaves: list[dict], holidays: list) -> float:

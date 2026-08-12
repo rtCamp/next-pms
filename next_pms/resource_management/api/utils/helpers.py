@@ -108,18 +108,10 @@ def is_on_leave(date: datetime.date, daily_working_hours: float, leaves: list[di
             holiday_date.
 
     Returns:
-        ```py
-        >>> is_on_leave(
-        ...     datetime.date(2026, 5, 20), 8.0,
-        ...     [{"from_date": datetime.date(2026, 5, 20), "to_date": datetime.date(2026, 5, 22),
-        ...       "half_day": 0, "half_day_date": None}],
-        ...     [],
-        ... )
-        {"on_leave": True, "leave_work_hours": 0.0}
-
-        >>> is_on_leave(datetime.date(2026, 5, 21), 8.0, [], [])
-        {"on_leave": False, "leave_work_hours": 8.0}
-        ```
+        dict: {
+            "on_leave": bool,  # True if the employee is on leave or a holiday
+            "leave_work_hours": float,  # Hours the employee is available to work on `date`
+        }
     """
     leave_work_hours = daily_working_hours
     on_leave = False
@@ -148,35 +140,9 @@ def get_dates_date(max_week: int, date: str) -> list[dict]:
             starting week is acceptable — the function resolves to that week's Monday.
 
     Returns:
-        ```py
-        >>> get_dates_date(max_week=2, date="2026-05-21")
-        [
-            {
-                "start_date": datetime.date(2026, 5, 18),
-                "end_date": datetime.date(2026, 5, 24),
-                "key": "This Week",
-                "dates": [
-                    datetime.date(2026, 5, 18), # Monday
-                    datetime.date(2026, 5, 19),
-                    datetime.date(2026, 5, 20),
-                    datetime.date(2026, 5, 21),
-                    datetime.date(2026, 5, 22), # Friday
-                ],
-            },
-            {
-                "start_date": datetime.date(2026, 5, 25),
-                "end_date": datetime.date(2026, 5, 31),
-                "key": "May 25 - May 29",
-                "dates": [
-                    datetime.date(2026, 5, 25),
-                    datetime.date(2026, 5, 26),
-                    datetime.date(2026, 5, 27),
-                    datetime.date(2026, 5, 28),
-                    datetime.date(2026, 5, 29),
-                ],
-            },
-        ]
-        ```
+        list[dict]: Each dict contains:
+            - start_date (str): Monday of the week ("YYYY-MM-DD").
+            - end_date (str): Sunday of the week ("YYYY-MM-DD").
     """
 
     next_dates = []
