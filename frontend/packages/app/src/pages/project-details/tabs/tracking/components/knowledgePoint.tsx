@@ -1,4 +1,9 @@
 /**
+ * External dependencies.
+ */
+import { Tooltip } from "@rtcamp/frappe-ui-react";
+
+/**
  * Internal dependencies.
  */
 import { mergeClassNames as cn } from "@/lib/utils";
@@ -20,9 +25,11 @@ export function KnowledgePoint({ title, value, href }: KnowledgePointProps) {
           {title}
         </span>
       </div>
-      <span className="truncate text-xl font-medium text-ink-gray-8">
-        {value}
-      </span>
+      <Tooltip text={value}>
+        <span className="truncate text-xl font-medium text-ink-gray-8">
+          {value}
+        </span>
+      </Tooltip>
     </>
   );
 

@@ -122,9 +122,9 @@ export function ProjectFilters() {
               { field: "custom_project_phase", label: "Phase" },
               { field: "cost_burn_percent", label: "Cost burn" },
               { field: "profit_margin", label: "Profit margin" },
-              { field: "expected_start_date", label: "Expected Start Date" },
+              { field: "expected_start_date", label: "Start date" },
               { field: "custom_next_milestone", label: "Next milestone" },
-              { field: "expected_end_date", label: "Expected End Date" },
+              { field: "expected_end_date", label: "End date" },
               {
                 field: "custom_project_manager_name",
                 label: "Project manager",
