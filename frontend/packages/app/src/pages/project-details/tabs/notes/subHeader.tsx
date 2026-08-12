@@ -10,7 +10,11 @@ import { AddSm, SmallDown } from "@rtcamp/frappe-ui-react/icons";
  * Internal dependencies.
  */
 import { ROUTES } from "@/lib/constant";
-import { CREATE_OPTIONS } from "./constants";
+import {
+  CREATE_OPTIONS,
+  EDITOR_MODE_PARAM,
+  TEMPLATE_EDITOR_MODE,
+} from "./constants";
 import { useNotes } from "./context";
 import { TemplateDialog } from "./templateDialog";
 import { useProjectDetail } from "../../context";
@@ -53,6 +57,14 @@ export function NotesSubHeader() {
               key: CREATE_OPTIONS.newBlankNote,
               onClick: () =>
                 navigate(`${ROUTES.project}/${projectId}/notes/new`),
+            },
+            {
+              label: "Create template",
+              key: CREATE_OPTIONS.createTemplate,
+              onClick: () =>
+                navigate(
+                  `${ROUTES.project}/${projectId}/notes/new?${EDITOR_MODE_PARAM}=${TEMPLATE_EDITOR_MODE}`,
+                ),
             },
           ]}
         />

@@ -4,6 +4,7 @@
 import { useEffect, useImperativeHandle, useRef, useState } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router";
 import { Spinner } from "@next-pms/design-system/components";
+import { stripTags } from "@next-pms/design-system/utils";
 import {
   Avatar,
   Button,
@@ -27,8 +28,13 @@ import { UnsavedChangesProvider } from "@/pages/allocations/unsavedChanges/Unsav
 import { useUnsavedChangesSource } from "@/pages/allocations/unsavedChanges/useUnsavedChanges";
 import { useProjectDetail } from "@/pages/project-details/context";
 import { useUser } from "@/providers/user";
+import { SaveTemplateDialog } from "./saveTemplateDialog";
 import { noteFormSchema } from "./schema";
-import { TEMPLATE_PARAM } from "../constants";
+import {
+  EDITOR_MODE_PARAM,
+  TEMPLATE_EDITOR_MODE,
+  TEMPLATE_PARAM,
+} from "../constants";
 import { useNotes } from "../context";
 
 function NoteEditor() {
@@ -38,6 +44,9 @@ function NoteEditor() {
   }>();
   const mode: "edit" | "new" = noteId ? "edit" : "new";
   const [searchParams] = useSearchParams();
+  const isTemplateMode =
+    mode === "new" &&
+    searchParams.get(EDITOR_MODE_PARAM) === TEMPLATE_EDITOR_MODE;
   const templateName = mode === "new" ? searchParams.get(TEMPLATE_PARAM) : null;
   const userName = useUser((s) => s.state.userName);
   const userImage = useUser((s) => s.state.image);
@@ -45,6 +54,8 @@ function NoteEditor() {
   const refresh = useNotes((s) => s.actions.refresh);
   const toast = useToasts();
   const [isFormInitialized, setIsFormInitialized] = useState(false);
+  const [isSaveTemplateDialogOpen, setIsSaveTemplateDialogOpen] =
+    useState(false);
   const titleRef = useRef<HTMLInputElement>(null);
   const sourceRef = useUnsavedChangesSource();
 
@@ -133,16 +144,26 @@ function NoteEditor() {
     }
   }, [isFormInitialized]);
 
+  const handleTemplateSaved = () => {
+    setIsSaveTemplateDialogOpen(false);
+    form.reset(form.state.values);
+    navigate(`${ROUTES.project}/${projectId}?tab=notes`);
+  };
+
   useImperativeHandle(
     sourceRef,
     () => ({
       hasUnsavedChanges: () => form.state.isDirty,
       saveChanges: () => {
+        if (isTemplateMode) {
+          setIsSaveTemplateDialogOpen(true);
+          return;
+        }
         void form.handleSubmit();
       },
       discardChanges: () => form.reset(),
     }),
-    [form],
+    [form, isTemplateMode],
   );
 
   return (
@@ -163,20 +184,48 @@ function NoteEditor() {
                 {userName}
               </span>
             </div>
-            <form.Subscribe selector={(state) => state.isDirty}>
-              {(isDirty) => (
-                <Button
-                  variant="solid"
-                  theme="gray"
-                  size="sm"
-                  label="Save note"
-                  loading={isCreating || isUpdating}
-                  disabled={isInputDisabled || !isDirty}
-                  onClick={() => form.handleSubmit()}
-                />
-              )}
+            <form.Subscribe
+              selector={(state) => ({
+                isDirty: state.isDirty,
+                hasTitle: Boolean(state.values.title.trim()),
+                hasDescription: Boolean(
+                  stripTags(state.values.description).trim(),
+                ),
+              })}
+            >
+              {({ isDirty, hasTitle, hasDescription }) =>
+                isTemplateMode ? (
+                  <Button
+                    variant="solid"
+                    theme="gray"
+                    size="sm"
+                    label="Save Template"
+                    disabled={isInputDisabled || !hasTitle || !hasDescription}
+                    onClick={() => setIsSaveTemplateDialogOpen(true)}
+                  />
+                ) : (
+                  <Button
+                    variant="solid"
+                    theme="gray"
+                    size="sm"
+                    label="Save note"
+                    loading={isCreating || isUpdating}
+                    disabled={isInputDisabled || !isDirty}
+                    onClick={() => form.handleSubmit()}
+                  />
+                )
+              }
             </form.Subscribe>
           </div>
+          {isSaveTemplateDialogOpen && (
+            <SaveTemplateDialog
+              open
+              onOpenChange={setIsSaveTemplateDialogOpen}
+              defaultTitle={form.state.values.title}
+              description={form.state.values.description}
+              onSaved={handleTemplateSaved}
+            />
+          )}
           <div className="flex flex-col gap-2 pt-4">
             <form.Field
               name="title"
@@ -188,8 +237,12 @@ function NoteEditor() {
                       value={field.state.value}
                       onChange={(e) => field.handleChange(e.target.value)}
                       disabled={isInputDisabled}
-                      placeholder="Add note title"
-                      aria-label="Note title"
+                      placeholder={
+                        isTemplateMode ? "Add template title" : "Add note title"
+                      }
+                      aria-label={
+                        isTemplateMode ? "Template title" : "Note title"
+                      }
                       className="w-full resize-none border-0 bg-transparent text-3xl font-semibold leading-tight text-ink-gray-7 placeholder:text-ink-gray-4 focus:outline-none"
                     />
                     {!field.state.meta.isValid && (
