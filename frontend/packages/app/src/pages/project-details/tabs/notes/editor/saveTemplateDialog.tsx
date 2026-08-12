@@ -82,7 +82,11 @@ export function SaveTemplateDialog({
     if (!selected) return null;
 
     if (!existingCategories.some((option) => option.value === selected)) {
-      await createDoc(CATEGORY_DOCTYPE, { __newname: selected });
+      try {
+        await createDoc(CATEGORY_DOCTYPE, { __newname: selected });
+      } catch {
+        // Ignore duplicate category creation errors.
+      }
     }
 
     return selected;
