@@ -26,6 +26,8 @@ PUBLIC_HOLIDAY = "2026-09-09"
 HOLIDAY_LIST = "Leave Aware Allocation Holiday List"
 EMPLOYEE_USER = "leave-aware-allocation@example.com"
 LEAVE_TYPE = "Leave Aware Allocation LWP"
+CUSTOMER = "Leave Aware Allocation Customer"
+PROJECT = "Leave Aware Allocation Project"
 
 DAILY_HOURS = 8.0
 
@@ -133,15 +135,23 @@ class TestLeaveAwareAllocation(IntegrationTestCase):
 
     @classmethod
     def _make_customer(cls):
-        customer = frappe.db.get_value("Customer", {}, "name")
-        if customer:
-            return customer
+        """Own the customer rather than borrowing whichever one the site happens to return.
+
+        `ResourceAllocation.validate` rejects a disabled customer outright, so an arbitrary
+        pick makes the suite fail during setup — on unrelated seed data — instead of on the
+        behaviour under test.
+        """
+        existing = frappe.db.get_value("Customer", {"customer_name": CUSTOMER}, "name")
+        if existing:
+            return existing
+
         return (
             frappe.get_doc(
                 {
                     "doctype": "Customer",
-                    "customer_name": "Leave Aware Allocation Customer",
+                    "customer_name": CUSTOMER,
                     "customer_type": "Company",
+                    "default_currency": "INR",
                 }
             )
             .insert(ignore_permissions=True)
@@ -150,14 +160,14 @@ class TestLeaveAwareAllocation(IntegrationTestCase):
 
     @classmethod
     def _make_project(cls):
-        name = frappe.db.get_value("Project", {"project_name": "Leave Aware Allocation Project"})
+        name = frappe.db.get_value("Project", {"project_name": PROJECT})
         if name:
             return name
         return (
             frappe.get_doc(
                 {
                     "doctype": "Project",
-                    "project_name": "Leave Aware Allocation Project",
+                    "project_name": PROJECT,
                     "company": cls.company,
                     "customer": cls.customer,
                     "custom_billing_type": "Non-Billable",
