@@ -1,7 +1,7 @@
 /**
  * External dependencies.
  */
-import { useContext, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   Button,
   Combobox,
@@ -12,11 +12,7 @@ import {
   useToasts,
 } from "@rtcamp/frappe-ui-react";
 import { useForm } from "@tanstack/react-form";
-import {
-  FrappeContext,
-  FrappeError,
-  useFrappeCreateDoc,
-} from "frappe-react-sdk";
+import { FrappeError, useFrappeCreateDoc } from "frappe-react-sdk";
 
 /**
  * Internal dependencies.
@@ -47,7 +43,6 @@ export function SaveTemplateDialog({
   onSaved,
 }: SaveTemplateDialogProps) {
   const toast = useToasts();
-  const frappe = useContext(FrappeContext);
   const [categorySearch, setCategorySearch] = useState("");
   const [submitError, setSubmitError] = useState<string | null>(null);
   const { createDoc, loading: isSaving } = useFrappeCreateDoc();
@@ -86,10 +81,7 @@ export function SaveTemplateDialog({
   const resolveCategory = async (selected: string | null) => {
     if (!selected) return null;
 
-    const existing = await frappe?.db.getCount(CATEGORY_DOCTYPE, [
-      ["name", "=", selected],
-    ]);
-    if (!existing) {
+    if (!existingCategories.some((option) => option.value === selected)) {
       await createDoc(CATEGORY_DOCTYPE, { __newname: selected });
     }
 
@@ -204,8 +196,6 @@ export function SaveTemplateDialog({
                 value={field.state.value}
                 openOnFocus
                 onSearchChange={(search) => {
-                  // The combobox blanks its input on select and on close, so an
-                  // empty search is a reset rather than the user clearing it.
                   if (!search) return;
 
                   setCategorySearch(search);
