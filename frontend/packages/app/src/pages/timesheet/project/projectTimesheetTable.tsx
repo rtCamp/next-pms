@@ -9,81 +9,87 @@ import { Spinner, Typography } from "@next-pms/design-system/components";
  * Internal dependencies.
  */
 import { InfiniteScroll } from "@/components/infiniteScroll";
-import { ProjectTimesheetRow } from "@/components/timesheet-row";
 import { HeaderRow } from "@/components/timesheet-row/components/row/headerRow";
-import { NUMBER_OF_WEEKS_TO_FETCH } from "@/lib/constant";
 import { useProjectTimesheet } from "./context";
+import { ProjectTimesheetWeek } from "./projectTimesheetWeek";
 import { SubHeader } from "./subHeader";
 
 const ProjectTimesheetGrid = () => {
-  const hasMore = useProjectTimesheet(({ state }) => state.hasMore);
-  const isLoadingProjectData = useProjectTimesheet(
-    ({ state }) => state.isLoadingProjectData,
+  const weeks = useProjectTimesheet(({ state }) => state.weeks);
+  const hasMoreWeeks = useProjectTimesheet(({ state }) => state.hasMoreWeeks);
+  const isLoadingWeeks = useProjectTimesheet(
+    ({ state }) => state.isLoadingWeeks,
+  );
+  const isNextPageLoading = useProjectTimesheet(
+    ({ state }) => state.isNextPageLoading,
   );
   const isFilterRequest = useProjectTimesheet(
     ({ state }) => state.isFilterRequest,
   );
-  const weekGroups = useProjectTimesheet(({ state }) => state.weekGroups);
-  const loadData = useProjectTimesheet(({ actions }) => actions.loadData);
+  const activeFilterKey = useProjectTimesheet(
+    ({ state }) => state.activeFilterKey,
+  );
+  const resolvedFilterKey = useProjectTimesheet(
+    ({ state }) => state.resolvedFilterKey,
+  );
+  const loadMoreWeeks = useProjectTimesheet(
+    ({ actions }) => actions.loadMoreWeeks,
+  );
 
-  const isFilteredDataLoading = isFilterRequest && isLoadingProjectData;
+  const isFilteredDataLoading = isFilterRequest && isLoadingWeeks;
 
   return (
     <>
-      {isLoadingProjectData && weekGroups.length === 0 ? (
+      {isLoadingWeeks && weeks.length === 0 ? (
         <Spinner isFull />
-      ) : weekGroups.length === 0 ? (
+      ) : weeks.length === 0 ? (
         <Typography className="flex items-center justify-center">
           No data found
         </Typography>
       ) : (
         <InfiniteScroll
-          isLoading={isLoadingProjectData}
-          hasMore={hasMore}
-          verticalLodMore={loadData}
+          isLoading={isNextPageLoading}
+          hasMore={hasMoreWeeks}
+          verticalLodMore={loadMoreWeeks}
           className={cn("w-full h-[calc(100%-var(--spacing)*7)] opacity-100", {
             "opacity-50 transition-opacity duration-150": isFilteredDataLoading,
           })}
-          count={NUMBER_OF_WEEKS_TO_FETCH}
+          scrollResetKey={activeFilterKey}
           enableScrollArea
         >
           <div className="min-w-225">
-            {weekGroups.map((week, index) => {
-              return (
-                <Fragment key={`${week.start_date}-${week.end_date}`}>
-                  {index === 0 ? (
-                    <div className="sticky top-0 z-20 bg-surface-white">
-                      <HeaderRow
-                        dates={week.dates}
-                        showHeading={true}
-                        breadcrumbs={{
-                          items: [
-                            { label: "Week", interactive: false },
-                            { label: "Project", interactive: false },
-                            { label: "Member", interactive: false },
-                            { label: "Task", interactive: false },
-                          ],
-                          highlightLastItem: false,
-                          size: "sm",
-                          crumbClassName:
-                            "first:pl-0 last:pr-0 px-0.5 py-0 font-[420]",
-                          className: "pl-[8px]",
-                        }}
-                      />
-                    </div>
-                  ) : null}
-
-                  <div className={cn("animate-fade-in", index === 0 && "mt-4")}>
-                    <ProjectTimesheetRow
-                      label={week.label}
+            {weeks.map((week, index) => (
+              <Fragment key={`${resolvedFilterKey}:${week.key}`}>
+                {index === 0 ? (
+                  <div className="sticky top-0 z-20 bg-surface-white">
+                    <HeaderRow
                       dates={week.dates}
-                      collapsed={index >= 6}
-                      projects={week.projects}
+                      showHeading={true}
+                      breadcrumbs={{
+                        items: [
+                          { label: "Week", interactive: false },
+                          { label: "Project", interactive: false },
+                          { label: "Member", interactive: false },
+                          { label: "Task", interactive: false },
+                        ],
+                        highlightLastItem: false,
+                        size: "sm",
+                        crumbClassName:
+                          "first:pl-0 last:pr-0 px-0.5 py-0 font-[420]",
+                        className: "pl-[8px]",
+                      }}
                     />
                   </div>
-                </Fragment>
-              );
-            })}
+                ) : null}
+
+                <div className={cn("animate-fade-in", index === 0 && "mt-4")}>
+                  <ProjectTimesheetWeek
+                    week={week}
+                    defaultExpanded={index === 0}
+                  />
+                </div>
+              </Fragment>
+            ))}
           </div>
         </InfiniteScroll>
       )}
