@@ -103,9 +103,14 @@ function ProjectList() {
       </ListHeader>
       <ListRows role="rowgroup">
         {data.length === 0 ? (
-          <p className="py-6 text-center text-base text-ink-gray-5">
-            No projects found.
-          </p>
+          <div role="row">
+            <p
+              role="cell"
+              className="py-6 text-center text-base text-ink-gray-5"
+            >
+              No projects found.
+            </p>
+          </div>
         ) : (
           <InfiniteScroll
             role="presentation"

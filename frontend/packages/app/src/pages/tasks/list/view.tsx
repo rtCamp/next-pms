@@ -133,9 +133,14 @@ function TaskList() {
         </ListHeader>
         <ListRows role="rowgroup">
           {data.length === 0 ? (
-            <p className="py-6 text-center text-base text-ink-gray-5">
-              No tasks found.
-            </p>
+            <div role="row">
+              <p
+                role="cell"
+                className="py-6 text-center text-base text-ink-gray-5"
+              >
+                No tasks found.
+              </p>
+            </div>
           ) : (
             <InfiniteScroll
               role="presentation"
