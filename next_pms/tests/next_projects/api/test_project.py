@@ -23,6 +23,7 @@ from next_pms.project_currency.billing_rate import (
     resolve_billing_rate,
 )
 from next_pms.resource_management.api.allocation import upsert_day_override
+from next_pms.tests.utils import assign_empty_holiday_list
 
 # Unique marker so `search` scopes every call to this suite's fixtures only.
 FIXTURE_PREFIX = "CompSort"
@@ -440,6 +441,7 @@ class TestCostForecastedProration(IntegrationTestCase):
             }
         )
         employee.insert(ignore_permissions=True)
+        assign_empty_holiday_list(employee.name)
         return employee.name
 
     @classmethod
@@ -570,6 +572,7 @@ class TestCostForecastedAdjustments(IntegrationTestCase):
             }
         )
         employee.insert(ignore_permissions=True)
+        assign_empty_holiday_list(employee.name)
         return employee.name
 
     @classmethod
@@ -831,6 +834,8 @@ class TestBudgetForecasted(IntegrationTestCase):
     """
 
     HOURS = 40.0
+    # RUNNING spans 10 days rather than the 5 every other fixture allocation covers.
+    RUNNING_HOURS = 80.0
     COST_RATE = 100.0
     FLAT_RATE = 500.0
     MEMBER_RATE = 700.0
@@ -900,6 +905,7 @@ class TestBudgetForecasted(IntegrationTestCase):
             }
         )
         employee.insert(ignore_permissions=True)
+        assign_empty_holiday_list(employee.name)
         return employee.name
 
     @classmethod
@@ -929,7 +935,6 @@ class TestBudgetForecasted(IntegrationTestCase):
                 "allocation_start_date": add_days(today(), start),
                 "allocation_end_date": add_days(today(), end),
                 "hours_allocated_per_day": 8,
-                "total_allocated_hours": cls.HOURS,
                 "include_weekends": 1,
                 "is_billable": int(is_billable),
                 "status": "Confirmed",
@@ -982,7 +987,7 @@ class TestBudgetForecasted(IntegrationTestCase):
 
     def test_running_allocation_prorates_budget_like_cost(self):
         forecast = self.forecast("RUNNING")
-        self.assertAlmostEqual(forecast["budget"], 0.6 * self.HOURS * self.FLAT_RATE)
+        self.assertAlmostEqual(forecast["budget"], 0.6 * self.RUNNING_HOURS * self.FLAT_RATE)
         self.assertAlmostEqual(forecast["cost"], 0.6 * ALLOCATION_COST)
 
     def test_budget_is_not_a_restatement_of_cost(self):

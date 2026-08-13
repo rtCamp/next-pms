@@ -8,12 +8,14 @@ from frappe.utils import DATE_FORMAT, getdate
 from next_pms.resource_management.api.utils.helpers import (
     _parse_multi_select_filter,
     add_customer_data_if_not_exists,
+    allocation_hours_for_date,
     find_worked_hours,
     get_allocation_objects,
     get_dates_date,
     get_employees_by_skills,
     is_on_leave,
     normalize_team_view_filters,
+    override_hours_by_date,
     resource_api_permissions_check,
 )
 from next_pms.resource_management.api.utils.query import (
@@ -480,6 +482,7 @@ def _get_resource_management_team_view_data(
         allocation_status=allocation_status,
     )
     resource_allocation_data = attach_extra_entries(resource_allocation_data)
+    override_maps = {a["name"]: override_hours_by_date(a) for a in resource_allocation_data}
 
     # Make the map of resource allocation data for given employee
     resource_allocation_map = {}
@@ -627,7 +630,9 @@ def _get_resource_management_team_view_data(
                             resource_allocation.allocation_start_date <= date
                             and resource_allocation.allocation_end_date >= date
                         ):
-                            total_allocated_hours_for_given_date += resource_allocation.get("hours_allocated_per_day")
+                            total_allocated_hours_for_given_date += allocation_hours_for_date(
+                                resource_allocation, date, override_maps.get(resource_allocation.name)
+                            )
                             total_worked_hours_resource_allocation = find_worked_hours(
                                 timesheet_data=timesheet_data, date=date, project=resource_allocation.project
                             )
