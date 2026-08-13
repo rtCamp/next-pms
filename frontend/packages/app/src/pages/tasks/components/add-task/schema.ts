@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { TASK_PRIORITIES } from "../../constants";
 
 const expectedTimeSchema = z
   .string()
@@ -18,6 +19,11 @@ export const addTaskFormSchema = z.object({
     .min(1, { message: "Please select a project." }),
   projectLabel: z.string().optional().default(""),
   expected_time: expectedTimeSchema,
+  priority: z
+    .enum([...TASK_PRIORITIES, ""] as const)
+    .optional()
+    .default(""),
+  exp_end_date: z.string().trim().optional().default(""),
   description: z
     .string({ required_error: "Please enter description." })
     .trim()

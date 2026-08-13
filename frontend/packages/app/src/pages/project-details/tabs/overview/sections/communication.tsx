@@ -4,6 +4,7 @@
 import { useState } from "react";
 import { Combobox, Select } from "@rtcamp/frappe-ui-react";
 import { CalendarDeadline, Contact } from "@rtcamp/frappe-ui-react/icons";
+import { useFrappeGetDocList } from "frappe-react-sdk";
 
 /**
  * Internal dependencies.
@@ -15,13 +16,6 @@ import { OverviewSection } from "../components/overviewSection";
 import type { OverviewFormApi } from "../index";
 
 const EMPTY = "—";
-
-const FREQUENCY_OPTIONS = [
-  { label: "Hourly", value: "Hourly" },
-  { label: "Twice Daily", value: "Twice Daily" },
-  { label: "Daily", value: "Daily" },
-  { label: "Weekly", value: "Weekly" },
-];
 
 type CommunicationProps = {
   form: OverviewFormApi;
@@ -36,6 +30,19 @@ export function Communication({
 }: CommunicationProps) {
   const customer = useProjectDetail((state) => state.project?.customer ?? "");
   const [contactSearch, setContactSearch] = useState("");
+  const { data: frequencies } = useFrappeGetDocList<{ name: string }>(
+    "Project Time Report Frequency",
+    {
+      fields: ["name"],
+      limit: 100,
+      orderBy: { field: "creation", order: "asc" },
+    },
+    isEditing ? undefined : null,
+  );
+  const frequencyOptions = [
+    { label: "None", value: "" },
+    ...(frequencies ?? []).map((f) => ({ label: f.name, value: f.name })),
+  ];
   const { options: contactOptions, isLoading: isContactLoading } =
     useCustomerContactLookup({
       customer,
@@ -69,7 +76,7 @@ export function Communication({
           )}
         </form.Field>
 
-        <form.Field name="frequency">
+        <form.Field name="timeReportFrequency">
           {(field) => (
             <EditableField
               icon={<CalendarDeadline className="size-[18px]" />}
@@ -80,7 +87,7 @@ export function Communication({
               <Select
                 value={field.state.value}
                 onChange={(v) => field.handleChange(v || "")}
-                options={FREQUENCY_OPTIONS}
+                options={frequencyOptions}
                 disabled={submitting}
               />
             </EditableField>

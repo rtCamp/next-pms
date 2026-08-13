@@ -36,7 +36,7 @@ export function NoteDetail({ noteId }: NoteDetailProps) {
   return (
     <div className="w-full">
       <NoteDetailHeader note={note} />
-      <NoteDetailContent note={note} />
+      <NoteDetailContent key={note.name} note={note} />
       <NoteComments noteId={note.name} />
     </div>
   );

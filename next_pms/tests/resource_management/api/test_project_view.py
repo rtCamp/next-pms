@@ -11,6 +11,7 @@ from next_pms.resource_management.api.project import (
 )
 from next_pms.resource_management.api.utils.helpers import resource_api_permissions_check
 from next_pms.resource_management.api.utils.query import get_remaining_allocation_hours_by_project
+from next_pms.tests.utils import assign_empty_holiday_list
 
 WRITE_USER = "pv.write@example.com"
 READ_ONLY_USER = "pv.readonly@example.com"
@@ -467,6 +468,7 @@ class TestProjectViewRemainingHours(_ProjectViewBase):
         cls.write_user = cls._make_user(WRITE_USER, projects_user=True)
         cls.customer = cls._make_customer("PV Remaining Customer")
         cls.employee = cls._make_employee("PV Remaining Employee")
+        assign_empty_holiday_list(cls.employee)
 
         # One project per scenario: the overlap guard rejects concurrent allocations
         # for the same employee+project, and per-project totals stay independently

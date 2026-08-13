@@ -122,23 +122,12 @@ export function removeHtmlString(data: string) {
 export function calculateExtendedWorkingHour(
   hours: number,
   expected_hours: number,
-  frequency: WorkingFrequency,
 ) {
   const flotTime = floatToTime(hours);
   const timeToFloat = timeStringToFloat(flotTime);
-  if (frequency === "Per Day") {
-    if (timeToFloat > expected_hours) {
-      return 2;
-    } else if (timeToFloat < expected_hours) {
-      return 0;
-    } else {
-      return 1;
-    }
-  }
-  const perDay = expected_hours / 5;
-  if (timeToFloat > perDay) {
+  if (timeToFloat > expected_hours) {
     return 2;
-  } else if (timeToFloat < perDay) {
+  } else if (timeToFloat < expected_hours) {
     return 0;
   } else {
     return 1;
@@ -530,15 +519,15 @@ export const calculateLeaveHours = (
   daily_working_hours: number,
   holiday: HolidayProp | undefined,
 ) => {
-  if (holiday && !holiday.weekly_off) {
-    return daily_working_hours;
+  // Holidays are already removed from the week's expected hours, so counting
+  // them here would count the day twice.
+  if (holiday) {
+    return 0;
   }
 
   return leaves.reduce((total, leave) => {
     if (date >= leave.from_date && date <= leave.to_date) {
-      if (!leave.includes_holidays && holiday?.weekly_off) {
-        return total;
-      } else if (leave.half_day && leave.half_day_date === date) {
+      if (leave.half_day && leave.half_day_date === date) {
         return total + daily_working_hours / 2;
       } else {
         return total + daily_working_hours;

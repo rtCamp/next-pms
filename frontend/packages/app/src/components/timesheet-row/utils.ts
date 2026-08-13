@@ -67,12 +67,16 @@ export const computeRowData = ({
   const dailyWorkingHours = expectatedHours(workingHour, workingFrequency);
 
   let total = 0;
+  let holidayCount = 0;
   const totalTimeEntries: { date: string; time: string; disabled: boolean }[] =
     [];
   const totalTimeEntriesInHours: number[] = [];
 
   for (const date of dates) {
     const holiday = holidays.find((holiday) => holiday.holiday_date === date);
+    if (holiday) {
+      holidayCount += 1;
+    }
     const currentTotal =
       calculateTotalHours(tasks, date) +
       calculateLeaveHours(leaves, date, dailyWorkingHours, holiday);
@@ -85,12 +89,13 @@ export const computeRowData = ({
     total += currentTotal;
   }
 
-  const expected = calculateWeeklyHour(workingHour, workingFrequency);
-  const isExtended = calculateExtendedWorkingHour(
-    total,
-    expected,
-    workingFrequency,
-  );
+  // Every holiday takes one working day out of the week. A week without any
+  // holiday row is outside the employee's holiday list, so use the configured
+  // weekly hours instead of charging all seven days.
+  const expected = holidayCount
+    ? dailyWorkingHours * (dates.length - holidayCount)
+    : calculateWeeklyHour(workingHour, workingFrequency);
+  const isExtended = calculateExtendedWorkingHour(total, expected);
 
   return {
     total,

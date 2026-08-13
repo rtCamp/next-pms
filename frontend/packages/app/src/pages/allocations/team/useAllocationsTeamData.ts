@@ -16,7 +16,10 @@ import useApproverOptions from "@/hooks/useApproverOptions";
 import { hashString, parseFrappeErrorMsg } from "@/lib/utils";
 import { buildAllocationQueryFilters } from "../utils";
 import type { TeamAllocationResponse } from "./type";
-import { mapTeamAllocationToMembers } from "./utils";
+import {
+  mapTeamAllocationToMembers,
+  resolveAllocationTypeSelection,
+} from "./utils";
 
 type UseAllocationsTeamDataOptions = {
   anchorDate: Date;
@@ -81,18 +84,14 @@ export function useAllocationsTeamData({
     () => (filters.length > 0 ? JSON.stringify(filters) : null),
     [filters],
   );
-  const hasConfirmed = allocationsType.includes("Confirmed");
-  const hasTentative = allocationsType.includes("Tentative");
-  const hasBillable = allocationsType.includes("billable");
-  const hasNonBillable = allocationsType.includes("non-billable");
-  const allocationStatusParam =
-    hasConfirmed === hasTentative
-      ? null
-      : JSON.stringify([hasConfirmed ? "Confirmed" : "Tentative"]);
-  const isBillableParam =
-    hasBillable === hasNonBillable
-      ? null
-      : JSON.stringify(hasBillable ? [1] : [0]);
+  const { billableValues, statusValues, includeUnallocated } =
+    resolveAllocationTypeSelection(allocationsType);
+  const allocationStatusParam = statusValues.length
+    ? JSON.stringify(statusValues)
+    : null;
+  const isBillableParam = billableValues.length
+    ? JSON.stringify(billableValues)
+    : null;
   const querySignature = useMemo(
     () =>
       `${QUERY_SIGNATURE_PREFIX}${hashString(
@@ -104,12 +103,14 @@ export function useAllocationsTeamData({
           allocationStatusParam ?? "",
           isBillableParam ?? "",
           filtersParam ?? "",
+          String(includeUnallocated),
         ].join(":"),
       )}`,
     [
       allocationStatusParam,
       designationParam,
       filtersParam,
+      includeUnallocated,
       isBillableParam,
       maxWeek,
       requestDate,
@@ -127,11 +128,13 @@ export function useAllocationsTeamData({
       is_billable: isBillableParam,
       filters: filtersParam,
       need_hours_summary: false,
+      no_allocation: includeUnallocated,
     }),
     [
       allocationStatusParam,
       designationParam,
       filtersParam,
+      includeUnallocated,
       isBillableParam,
       maxWeek,
       requestDate,

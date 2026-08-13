@@ -68,3 +68,10 @@ export interface TeamAllocationResponse {
 }
 
 export type ManagerNameMap = Map<string, string>;
+
+export interface AllocationTypeSelection {
+  billableValues: number[];
+  statusValues: string[];
+  includeUnallocated: boolean;
+  isStatusApplicable: boolean;
+}

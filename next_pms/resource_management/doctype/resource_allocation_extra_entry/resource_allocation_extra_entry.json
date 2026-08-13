@@ -8,7 +8,8 @@
  "field_order": [
   "date",
   "hours",
-  "cancelled"
+  "cancelled",
+  "source"
  ],
  "fields": [
   {
@@ -30,13 +31,21 @@
    "fieldtype": "Check",
    "label": "Cancelled",
    "read_only_depends_on": "eval:doc.hours>0"
+  },
+  {
+   "default": "Manual",
+   "fieldname": "source",
+   "fieldtype": "Select",
+   "label": "Source",
+   "options": "Manual\nLeave",
+   "read_only": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2026-05-28 16:10:27.593873",
+ "modified": "2026-08-12 00:00:00.000000",
  "modified_by": "Administrator",
  "module": "Resource Management",
  "name": "Resource Allocation Extra Entry",

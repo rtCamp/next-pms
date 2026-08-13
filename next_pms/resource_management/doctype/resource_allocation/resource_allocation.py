@@ -11,6 +11,7 @@ from next_pms.resource_management.api.project import (
     _get_resource_management_project_view_data,
 )
 from next_pms.resource_management.api.team import _get_resource_management_team_view_data
+from next_pms.resource_management.api.utils import leave_sync
 
 
 class ResourceAllocation(Document):
@@ -54,6 +55,7 @@ class ResourceAllocation(Document):
         self.set_project_currency()
         self.validate_no_overlap()
         self.validate_project_and_customer()
+        self.apply_leave_availability()
         self.calculate_cost()
 
     def set_project_currency(self):
@@ -119,6 +121,15 @@ class ResourceAllocation(Document):
         if self.customer and (self.is_new() or self.has_value_changed("customer") or self.has_value_changed("project")):
             if frappe.db.get_value("Customer", self.customer, "disabled"):
                 frappe.throw(frappe._("Cannot allocate to disabled customer {0}.").format(self.customer))
+
+    def apply_leave_availability(self):
+        """Drop leave and holiday days from this allocation, and keep its total in step.
+
+        Lives in `validate` so every write path — the allocation APIs, the desk form, and the
+        resync triggered when a Leave Application changes — reduces the same way.
+        """
+        leave_sync.sync_leave_overrides(self)
+        self.total_allocated_hours = leave_sync.effective_total_hours(self)
 
     def calculate_cost(self):
         """Calculate hourly_cost_rate and total_cost based on employee CTC."""

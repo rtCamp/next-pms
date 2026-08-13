@@ -35,12 +35,15 @@ export const TimeOffRow = ({
     for (const date of dates) {
       const holiday = holidays.find((holiday) => holiday.holiday_date === date);
       const hour = calculateLeaveHours(leaves, date, expectedHours, holiday);
-      hasVisibleHoliday =
-        hasVisibleHoliday || Boolean(holiday && !holiday.weekly_off);
+      const isNamedHoliday = Boolean(holiday && !holiday.weekly_off);
+      hasVisibleHoliday = hasVisibleHoliday || isNamedHoliday;
 
       totalHours += hour;
+      // A named holiday shows the daily working hours, but is never added to
+      // any total.
+      const displayHour = isNamedHoliday ? expectedHours : hour;
       totalTimeEntries.push({
-        time: hour === 0 ? "" : floatToTime(hour, 2),
+        time: displayHour === 0 ? "" : floatToTime(displayHour, 2),
         holiday: Boolean(holiday),
         holidayDescription: stripTags(holiday?.description ?? ""),
       });

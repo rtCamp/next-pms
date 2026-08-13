@@ -38,6 +38,7 @@ const ganttBarVariants = cva(
         allocation:
           "bg-surface-white text-ink-gray-5 shadow-[0px_0px_1px_0px_rgba(0,0,0,0.14),0px_1px_3px_0px_rgba(0,0,0,0.14)]",
         draft: "bg-surface-gray-2 text-ink-gray-5",
+        empty: "bg-surface-gray-2/60 text-ink-gray-4",
       },
     },
   },
@@ -80,6 +81,12 @@ interface GanttBarProps
   showInlineLabel?: boolean;
   trailingLabel?: React.ReactNode;
   trailingLabelVariant?: GanttBarTrailingLabelVariant;
+  /**
+   * Renders the bar as a non-interactive background layer: adds
+   * pointer-events-none and omits `data-gantt-bar`, so it doesn't trip the
+   * row's add-allocation hover/occupancy detection (see RowAllocationOverlay).
+   */
+  passive?: boolean;
 }
 
 export const GanttBar = React.forwardRef<HTMLDivElement, GanttBarProps>(
@@ -103,6 +110,7 @@ export const GanttBar = React.forwardRef<HTMLDivElement, GanttBarProps>(
       showInlineLabel = true,
       trailingLabel,
       trailingLabelVariant,
+      passive = false,
       onClick,
       style,
       ...htmlProps
@@ -111,8 +119,9 @@ export const GanttBar = React.forwardRef<HTMLDivElement, GanttBarProps>(
   ) {
     const isTimeoff = variant === "timeoff";
     const isCrosshatch = theme === "crosshatch";
-    const isInteractive = resizable || typeof onClick === "function";
-    const showPointerCursor = typeof onClick === "function";
+    const isResizable = resizable && !passive;
+    const showPointerCursor = !passive && typeof onClick === "function";
+    const isInteractive = isResizable || showPointerCursor;
     const {
       isInteracting,
       liveLeft,
@@ -128,17 +137,18 @@ export const GanttBar = React.forwardRef<HTMLDivElement, GanttBarProps>(
       snapUnitPx,
       minLeft,
       maxRight,
-      onResizeEnd: resizable ? onResizeEnd : undefined,
+      onResizeEnd: isResizable ? onResizeEnd : undefined,
     });
 
     return (
       <div
         ref={ref}
-        data-gantt-bar="true"
+        data-gantt-bar={passive ? undefined : "true"}
         className={cn(
           ganttBarVariants({ variant }),
           isInteracting && "z-5",
           showPointerCursor && "cursor-pointer",
+          passive && "pointer-events-none",
           className,
         )}
         {...htmlProps}
@@ -151,9 +161,10 @@ export const GanttBar = React.forwardRef<HTMLDivElement, GanttBarProps>(
           top: (CELL_HEIGHT - BAR_HEIGHT) / 2,
         }}
       >
-        {!isTimeoff && variant !== "draft" && isCrosshatch && (
-          <CrosshatchLayer variant={variant ?? "allocation"} />
-        )}
+        {!isTimeoff &&
+          variant !== "draft" &&
+          variant !== "empty" &&
+          isCrosshatch && <CrosshatchLayer variant={variant ?? "allocation"} />}
         {isTimeoff ? (
           <Tooltip text={label}>
             <div className="absolute inset-0 px-2.5 py-2 w-full flex items-center justify-center gap-1.5">
@@ -190,7 +201,7 @@ export const GanttBar = React.forwardRef<HTMLDivElement, GanttBarProps>(
             {billable === false ? (
               <span className="block ml-1 w-1 h-1 rounded-full bg-surface-amber-3"></span>
             ) : null}
-            {resizable ? (
+            {isResizable ? (
               <>
                 <span
                   className="absolute shrink-0 inset-y-0 left-0 w-2.5 pl-1 flex cursor-ew-resize items-center justify-start touch-none"

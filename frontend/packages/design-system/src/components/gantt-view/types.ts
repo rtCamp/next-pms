@@ -48,7 +48,7 @@ export interface Allocation {
 }
 
 export interface MemberBarAllocation extends Allocation {
-  type?: "default" | "timeoff";
+  type?: "default" | "timeoff" | "free";
 }
 
 export interface LeaveAllocation {

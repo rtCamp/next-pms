@@ -20,6 +20,16 @@ class TestPmReport(TestNextPms):
         self.link_patcher.start()
 
         self.project_name = frappe.db.get_value("Project", {"project_name": "Next Pms"}, "name")
+        self._original_project_fields = frappe.db.get_value(
+            "Project",
+            self.project_name,
+            [
+                "custom_enable_project_report_generation",
+                "custom_slack_channel_slug",
+                "custom_project_drive_link",
+            ],
+            as_dict=True,
+        )
         # Ensure report generation is enabled, slack channel slug is set, and a valid drive link is present
         frappe.db.set_value(
             "Project",
@@ -48,13 +58,16 @@ class TestPmReport(TestNextPms):
         frappe.conf.llm_status_url = "https://mock-status-url"
 
     def tearDown(self):
-        super().tearDown()
+        if getattr(self, "project_name", None) and getattr(self, "_original_project_fields", None):
+            frappe.db.set_value("Project", self.project_name, self._original_project_fields)
+            frappe.db.commit()
         if hasattr(self, "link_patcher"):
             self.link_patcher.stop()
         if hasattr(self, "old_summarize_url"):
             frappe.conf.llm_summarize_url = self.old_summarize_url
         if hasattr(self, "old_status_url"):
             frappe.conf.llm_status_url = self.old_status_url
+        super().tearDown()
 
     # ------------------------------------------------------------------ #
     # generate_pm_report — happy path

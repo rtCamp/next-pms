@@ -1,3 +1,5 @@
+import { TextEditorProps } from "@rtcamp/frappe-ui-react";
+
 export type CommentNode = {
   id: string;
   authorId: string;
@@ -13,6 +15,7 @@ export type CommentNode = {
 };
 
 export type CommentActions = {
+  getMentions?: TextEditorProps["mentions"];
   onReply: (parentId: string, comment: string) => Promise<void>;
   onEdit: (commentId: string, comment: string) => Promise<void>;
   onDelete: (commentId: string) => Promise<void>;
@@ -35,6 +38,7 @@ export type CommentsProps = {
   inputTriggerClassName?: string;
   inputAvatarName?: string;
   inputAvatarImage?: string | null;
+  getMentions?: TextEditorProps["mentions"];
   onAddComment: (comment: string) => Promise<void>;
   onReply: (parentId: string, comment: string) => Promise<void>;
   onEdit: (commentId: string, comment: string) => Promise<void>;
