@@ -15,6 +15,11 @@ from next_pms.resource_management.api.utils.helpers import (
     override_hours_by_date,
     resource_api_permissions_check,
 )
+from next_pms.resource_management.api.utils.leave_calendar import (
+    build_leave_map,
+    get_daily_working_hours,
+    get_leave_calendars,
+)
 from next_pms.resource_management.api.utils.query import (
     attach_extra_entries,
     get_allocation_list_for_employee_for_given_range,
@@ -119,6 +124,11 @@ def get_resource_management_project_view_data(
             - employees (dict): employee metadata keyed by employee id for the
               employees appearing in the allocations. Blank custom_working_hours /
               custom_work_schedule are filled from HR Settings / "Per Day" before returning.
+            - employee_leaves (dict): the days those employees are away, keyed by employee
+              id and then by date, each carrying is_on_leave, is_holiday and
+              total_leave_hours. Sparse - employees and dates without leave are absent.
+              Leave already reduces the allocated hours reported above; this is what says
+              why they were reduced.
             - total_count (int): total number of projects matching the filters,
               independent of page_length.
             - has_more (bool): whether more projects exist beyond this page.
@@ -270,6 +280,7 @@ def _get_resource_management_project_view_data(
         "reports_to",
         "custom_work_schedule",
         "custom_working_hours",
+        "company",
         *privileged_emp_fields,
     ]
     emp_ids = set()
@@ -298,6 +309,16 @@ def _get_resource_management_project_view_data(
     )
     apply_working_hours_fallback(employees.values())
 
+    leaves_map, holidays_map = get_leave_calendars(
+        employees.values(), weeks[0].get("start_date"), weeks[-1].get("end_date")
+    )
+    employee_leaves = build_leave_map(
+        employees.values(),
+        [date for week in weeks for date in week.get("dates")],
+        leaves_map,
+        holidays_map,
+    )
+
     remaining_hours_map = get_remaining_allocation_hours_by_project(
         [project.name for project in projects],
         getdate(today),
@@ -313,6 +334,7 @@ def _get_resource_management_project_view_data(
             total_allocated_hours_for_given_week = 0
 
             for date in week.get("dates"):
+                date_key = date.strftime(DATE_FORMAT)
                 total_allocated_hours_for_given_date = 0
                 project_resource_allocation_for_given_date = []
 
@@ -328,6 +350,7 @@ def _get_resource_management_project_view_data(
                             {
                                 "name": resource_allocation.name,
                                 "date": date,
+                                "is_on_leave": date_key in employee_leaves.get(resource_allocation.employee, {}),
                             }
                         )
 
@@ -335,14 +358,14 @@ def _get_resource_management_project_view_data(
 
                 if permissions["write"]:
                     date_data = {
-                        "date": date.strftime(DATE_FORMAT),
+                        "date": date_key,
                         "total_allocated_hours": total_allocated_hours_for_given_date,
                         "project_resource_allocation_for_given_date": project_resource_allocation_for_given_date,
                         "total_worked_hours": get_allocation_worked_hours_for_given_projects(project.name, date, date),
                     }
                 else:
                     date_data = {
-                        "date": date.strftime(DATE_FORMAT),
+                        "date": date_key,
                         "total_allocated_hours": total_allocated_hours_for_given_date,
                         "project_resource_allocation_for_given_date": project_resource_allocation_for_given_date,
                     }
@@ -381,6 +404,7 @@ def _get_resource_management_project_view_data(
     res["data"] = data
     res["customer"] = customer
     res["employees"] = employees
+    res["employee_leaves"] = employee_leaves
     res["total_count"] = total_count
     res["has_more"] = int(start) + int(page_length) < total_count
     res["permissions"] = permissions
@@ -390,7 +414,13 @@ def _get_resource_management_project_view_data(
 
 @frappe.whitelist(methods=["GET"])
 def get_employees_resrouce_data_for_given_project(project: str, start_date: str, end_date: str, is_billable: int = -1):
-    """Returns the data required for resource management employee view based on the filters provided for a given project"""
+    """Returns the data required for resource management employee view based on the filters provided for a given project.
+
+    Each employee carries all_dates_data (per-date allocated hours, plus is_on_leave and
+    total_leave_hours), all_leave_data (hours away, keyed by date, for the days they are),
+    employee_daily_working_hours and their allocations. A day the employee is fully away is
+    reported even when nothing is allocated or worked on it.
+    """
     permissions = resource_api_permissions_check()
     return _get_employees_resrouce_data_for_given_project(
         json.dumps(permissions),
@@ -473,6 +503,7 @@ def _get_employees_resrouce_data_for_given_project(
         "reports_to",
         "custom_work_schedule",
         "custom_working_hours",
+        "company",
         *privileged_emp_fields,
     ]
 
@@ -484,6 +515,16 @@ def _get_employees_resrouce_data_for_given_project(
     }
     apply_working_hours_fallback(all_employees.values())
 
+    working_dates = []
+    current_date = start_date
+    while current_date <= end_date:
+        if current_date.weekday() < 5:
+            working_dates.append(current_date)
+        current_date = add_days(current_date, 1)
+
+    leaves_map, holidays_map = get_leave_calendars(all_employees.values(), start_date, end_date)
+    employee_leaves = build_leave_map(all_employees.values(), working_dates, leaves_map, holidays_map)
+
     for emp_id in resource_allocation_map:
         employee_resource_allocation = resource_allocation_map.get(emp_id, [])
 
@@ -491,14 +532,12 @@ def _get_employees_resrouce_data_for_given_project(
         if not employee:
             continue
 
-        current_date = start_date
+        employee_dates_off = employee_leaves.get(emp_id, {})
+        all_dates_data, all_leave_data = {}, {}
 
-        all_dates_data = {}
-
-        while current_date <= end_date:
-            if current_date.weekday() in [5, 6]:
-                current_date = add_days(current_date, 1)
-                continue
+        for current_date in working_dates:
+            date_key = current_date.strftime(DATE_FORMAT)
+            leave_info = employee_dates_off.get(date_key)
 
             total_allocated_hours_for_employee = 0
             employee_resource_allocation_for_given_date = []
@@ -520,26 +559,35 @@ def _get_employees_resrouce_data_for_given_project(
                     )
 
             total_worked_hours_for_employee = get_allocation_worked_hours_for_given_employee(
-                project, employee.name, current_date.strftime(DATE_FORMAT), current_date.strftime(DATE_FORMAT)
+                project, employee.name, date_key, date_key
             )
 
-            if total_allocated_hours_for_employee > 0 or total_worked_hours_for_employee > 0:
-                if permissions["write"]:
-                    all_dates_data[current_date.strftime(DATE_FORMAT)] = {
-                        "date": current_date.strftime(DATE_FORMAT),
-                        "total_allocated_hours": total_allocated_hours_for_employee,
-                        "total_worked_hours": total_worked_hours_for_employee,
-                        "employee_resource_allocation_for_given_date": employee_resource_allocation_for_given_date,
-                    }
-                else:
-                    all_dates_data[current_date.strftime(DATE_FORMAT)] = {
-                        "date": current_date.strftime(DATE_FORMAT),
-                        "total_allocated_hours": total_allocated_hours_for_employee,
-                        "employee_resource_allocation_for_given_date": employee_resource_allocation_for_given_date,
-                    }
+            if leave_info:
+                all_leave_data[date_key] = leave_info["total_leave_hours"]
 
-            current_date = add_days(current_date, 1)
-        data.append({**employee, "all_dates_data": all_dates_data, "allocations": employee_resource_allocation})
+            if total_allocated_hours_for_employee > 0 or total_worked_hours_for_employee > 0 or leave_info:
+                date_data = {
+                    "date": date_key,
+                    "total_allocated_hours": total_allocated_hours_for_employee,
+                    "employee_resource_allocation_for_given_date": employee_resource_allocation_for_given_date,
+                    "is_on_leave": bool(leave_info),
+                    "total_leave_hours": leave_info["total_leave_hours"] if leave_info else 0.0,
+                }
+
+                if permissions["write"]:
+                    date_data["total_worked_hours"] = total_worked_hours_for_employee
+
+                all_dates_data[date_key] = date_data
+
+        data.append(
+            {
+                **employee,
+                "all_dates_data": all_dates_data,
+                "all_leave_data": all_leave_data,
+                "allocations": employee_resource_allocation,
+                "employee_daily_working_hours": get_daily_working_hours(employee),
+            }
+        )
 
     res["data"] = data
     res["customer"] = customer
