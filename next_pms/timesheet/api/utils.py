@@ -400,6 +400,58 @@ def build_aggregate_dates(date: str, max_week: int, has_filters: bool):
     return dates, max_lookback
 
 
+def timesheet_names_matching_work_filters(
+    timesheets: list,
+    parsed_filters: dict,
+    require_project_tasks: bool = False,
+) -> set[str]:
+    """Timesheet names whose details/tasks survive Task / Timesheet Detail filters.
+
+    The team UI sends Project and Task as Timesheet Detail filters. Without this
+    scan, a week that only has time on some other project/task still looks occupied.
+    No work filter means every name is kept, so callers can share one code path.
+    """
+    timesheet_by_name = {timesheet.name: timesheet for timesheet in timesheets}
+    if not timesheet_by_name:
+        return set()
+
+    requires_detail_scan = bool(
+        require_project_tasks or parsed_filters.get("Task") or parsed_filters.get("Timesheet Detail")
+    )
+    if not requires_detail_scan:
+        return set(timesheet_by_name)
+
+    details = get_all(
+        "Timesheet Detail",
+        filters=build_filters({"parent": ["in", list(timesheet_by_name)]}, parsed_filters.get("Timesheet Detail", [])),
+        fields=["parent", "task"],
+    )
+    if not details:
+        return set()
+
+    requires_task_scan = bool(require_project_tasks or parsed_filters.get("Task"))
+    if not requires_task_scan:
+        return {detail.parent for detail in details if detail.parent in timesheet_by_name}
+
+    task_ids = list({detail.task for detail in details if detail.task})
+    if not task_ids:
+        return set()
+
+    tasks = get_all(
+        "Task",
+        filters=build_filters({"name": ["in", task_ids]}, parsed_filters.get("Task", [])),
+        fields=["name", "project"],
+    )
+    if require_project_tasks:
+        tasks = [task for task in tasks if task.get("project")]
+
+    valid_task_ids = {task.name for task in tasks}
+    if not valid_task_ids:
+        return set()
+
+    return {detail.parent for detail in details if detail.task in valid_task_ids and detail.parent in timesheet_by_name}
+
+
 def get_matching_timesheet_employee_ids(
     dates: list,
     parsed_filters: dict,
@@ -422,42 +474,11 @@ def get_matching_timesheet_employee_ids(
     if not timesheets:
         return []
 
-    requires_detail_scan = bool(
-        require_project_tasks or parsed_filters.get("Task") or parsed_filters.get("Timesheet Detail")
+    matched_names = timesheet_names_matching_work_filters(
+        timesheets, parsed_filters, require_project_tasks=require_project_tasks
     )
-    if not requires_detail_scan:
-        return list({timesheet.employee for timesheet in timesheets})
-
     timesheet_by_name = {timesheet.name: timesheet for timesheet in timesheets}
-    detail_filters = build_filters(
-        {"parent": ["in", list(timesheet_by_name)]}, parsed_filters.get("Timesheet Detail", [])
-    )
-    details = get_all("Timesheet Detail", filters=detail_filters, fields=["parent", "task"])
-    if not details:
-        return []
-
-    requires_task_scan = bool(require_project_tasks or parsed_filters.get("Task"))
-    if not requires_task_scan:
-        matched_parent_names = {detail.parent for detail in details}
-        return list(
-            {timesheet_by_name[parent].employee for parent in matched_parent_names if parent in timesheet_by_name}
-        )
-
-    task_ids = list({detail.task for detail in details if detail.task})
-    if not task_ids:
-        return []
-
-    task_filters = build_filters({"name": ["in", task_ids]}, parsed_filters.get("Task", []))
-    tasks = get_all("Task", filters=task_filters, fields=["name", "project"])
-    if require_project_tasks:
-        tasks = [task for task in tasks if task.get("project")]
-
-    valid_task_ids = {task.name for task in tasks}
-    if not valid_task_ids:
-        return []
-
-    matched_parent_names = {detail.parent for detail in details if detail.task in valid_task_ids}
-    return list({timesheet_by_name[parent].employee for parent in matched_parent_names if parent in timesheet_by_name})
+    return list({timesheet_by_name[name].employee for name in matched_names})
 
 
 def sanitize_employee_conditions(employee_conditions: list | None) -> list:
@@ -627,6 +648,10 @@ def get_team_week_participation(scope: TeamEmployeeScope, weeks: list) -> dict:
     `get_first_day_of_week` so the week boundary matches the rest of the app rather
     than a hand-rolled SQL date expression that would ignore System Settings.
 
+    Task / Project filters are Timesheet Detail predicates, so a week only counts
+    when that week's timesheet actually matches them. Counting any timesheet in
+    the week is what produced empty rows for #2011.
+
     Returns `{week_start: {"members": set, "pending": set}}`. Sets rather than counts
     because API 2 intersects them with its own employee page, and a count cannot be
     intersected.
@@ -644,19 +669,22 @@ def get_team_week_participation(scope: TeamEmployeeScope, weeks: list) -> dict:
 
     rows = get_all(
         "Timesheet",
-        filters=timesheet_filters,
-        fields=["employee", "start_date", "custom_weekly_approval_status"],
+        filters=build_filters(timesheet_filters, scope.parsed_filters.get("Timesheet", [])),
+        fields=["name", "employee", "start_date", "custom_weekly_approval_status"],
         distinct=True,
         # Unordered on purpose: the result is folded into sets, and the default
         # `creation` sort costs a filesort over the whole match set.
         order_by=None,
     )
+    matching_names = timesheet_names_matching_work_filters(rows, scope.parsed_filters)
 
     status_filter = set(scope.status_filter or [])
     participation = {
         week["start_date"]: {"members": set(), "pending": set(), "status_matched": set()} for week in weeks
     }
     for row in rows:
+        if row.name not in matching_names:
+            continue
         week_start = get_first_day_of_week(row.start_date)
         bucket = participation.get(week_start)
         if bucket is None:

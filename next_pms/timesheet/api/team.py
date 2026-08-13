@@ -307,7 +307,7 @@ def get_team_timesheet_weeks(
 
     Feeds first paint: the page can render its week rows and pending-approval badges
     before any member data is fetched, and `get_team_timesheet_data` then fills one week
-    at a time. Touches no Timesheet Detail rows.
+    at a time. Timesheet Detail is read only when Task / Project filters need it.
     """
     only_for(["Timesheet Manager", "Timesheet User", "Projects Manager"], message=True)
 

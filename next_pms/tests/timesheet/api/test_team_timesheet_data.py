@@ -526,6 +526,38 @@ class TestTeamTimesheetDataFilters(_TeamTimesheetDataBase):
         )
         self.assertNotIn(self.r3, self._members_by_employee(res))
 
+    def test_timesheet_detail_task_filter_excludes_a_week_of_unrelated_work(self):
+        """#2011: the team UI sends Task as Timesheet Detail.task. Time on a
+        different task in W2 must not produce an empty member row."""
+        self._save(self.r1, W2_MON, self.task_beta, 2, "r1 w2 other task")
+        res = self._call(
+            reports_to=self.mgr,
+            filters=json.dumps([["Timesheet Detail", "task", "=", self.task_alpha]]),
+            start_date=W2_MON,
+        )
+        self.assertEqual(res["members"], [])
+        self.assertEqual(res["total_count"], 0)
+
+    def test_timesheet_detail_project_filter_excludes_a_week_of_unrelated_work(self):
+        """#2011: the team UI sends Project as Timesheet Detail.project."""
+        self._save(self.r1, W2_MON, self.task_beta, 2, "r1 w2 other project")
+        res = self._call(
+            reports_to=self.mgr,
+            filters=json.dumps([["Timesheet Detail", "project", "=", self.project_alpha]]),
+            start_date=W2_MON,
+        )
+        self.assertEqual(res["members"], [])
+        self.assertEqual(res["total_count"], 0)
+
+    def test_timesheet_detail_task_filter_keeps_the_week_that_matches(self):
+        res = self._call(
+            reports_to=self.mgr,
+            filters=json.dumps([["Timesheet Detail", "task", "=", self.task_alpha]]),
+            start_date=W1_MON,
+        )
+        self.assertEqual(sorted(self._members_by_employee(res)), [self.r1, self.r2])
+        self.assertEqual(res["total_count"], 2)
+
 
 LEFT_EMP_NAME = "Meera Joshi"
 BU_ALPHA_NAME = "Ttf BU Alpha"
@@ -691,6 +723,30 @@ class TestTeamTimesheetWeeks(_TeamTimesheetDataBase):
         self.assertEqual(res["weeks"], [])
         self.assertFalse(res["has_more_weeks"])
 
+    def test_timesheet_detail_task_filter_hides_weeks_without_that_task(self):
+        """#2011: W2 has time, just not on the filtered task, so it must not
+        render as an empty week row."""
+        self._save(self.r1, W2_MON, self.task_beta, 2, "r1 w2 other task")
+        res = self._weeks(
+            reports_to=self.mgr,
+            max_week=2,
+            filters=json.dumps([["Timesheet Detail", "task", "=", self.task_alpha]]),
+        )
+        starts = [week["start_date"] for week in res["weeks"]]
+        self.assertEqual(starts, [frappe.utils.getdate(W1_MON)])
+        self.assertEqual(res["weeks"][0]["member_count"], 2)
+
+    def test_timesheet_detail_project_filter_hides_weeks_without_that_project(self):
+        self._save(self.r1, W2_MON, self.task_beta, 2, "r1 w2 other project")
+        res = self._weeks(
+            reports_to=self.mgr,
+            max_week=2,
+            filters=json.dumps([["Timesheet Detail", "project", "=", self.project_alpha]]),
+        )
+        starts = [week["start_date"] for week in res["weeks"]]
+        self.assertEqual(starts, [frappe.utils.getdate(W1_MON)])
+        self.assertEqual(res["weeks"][0]["member_count"], 2)
+
     def test_has_more_weeks_ignores_timesheets_outside_the_scope(self):
         # E1 is outside the manager's team; their older week must not keep the frontend
         # paging backwards through weeks that can never produce a row.
@@ -744,6 +800,12 @@ class TestTeamTimesheetConsistency(_TeamTimesheetDataBase):
 
     def test_consistent_with_task_project_filter(self):
         self._assert_consistent(filters=json.dumps([["Task", "project", "=", self.project_alpha]]))
+
+    def test_consistent_with_timesheet_detail_task_filter(self):
+        self._assert_consistent(filters=json.dumps([["Timesheet Detail", "task", "=", self.task_alpha]]))
+
+    def test_consistent_with_timesheet_detail_project_filter(self):
+        self._assert_consistent(filters=json.dumps([["Timesheet Detail", "project", "=", self.project_alpha]]))
 
 
 class TestTeamTimesheetMemberWeek(_TeamTimesheetDataBase):
