@@ -17,6 +17,7 @@ import { FrappeError, useFrappeUpdateDoc } from "frappe-react-sdk";
  * Internal dependencies.
  */
 import { mergeClassNames, parseFrappeErrorMsg } from "@/lib/utils";
+import { useUser } from "@/providers/user";
 import { useProjectDetail } from "../../context";
 import { OverviewSection } from "./components/overviewSection";
 import { overviewSchema, type OverviewFormValues } from "./schema";
@@ -96,6 +97,9 @@ function OverviewForm() {
     [project],
   );
 
+  const roles = useUser(({ state }) => state.roles);
+  const canEdit = roles.includes("Projects Manager");
+
   const [isEditing, setIsEditing] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const toast = useToasts();
@@ -142,43 +146,46 @@ function OverviewForm() {
     <div className="flex flex-col gap-6">
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-semibold text-ink-gray-8">Overview</h1>
-        {isEditing ? (
-          <div className="flex items-center gap-2">
+        {canEdit &&
+          (isEditing ? (
+            <div className="flex items-center gap-2">
+              <Button
+                variant="subtle"
+                onClick={() => {
+                  resetForm();
+                  setIsEditing(false);
+                }}
+                disabled={submitting}
+              >
+                Cancel
+              </Button>
+              <form.Subscribe
+                selector={(state) =>
+                  [state.isDirty, state.isSubmitting] as const
+                }
+              >
+                {([isDirty, isSubmitting]) => (
+                  <Button
+                    variant="solid"
+                    onClick={() => {
+                      void form.handleSubmit();
+                    }}
+                    disabled={!isDirty || isSubmitting || submitting}
+                  >
+                    Save
+                  </Button>
+                )}
+              </form.Subscribe>
+            </div>
+          ) : (
             <Button
-              variant="subtle"
-              onClick={() => {
-                resetForm();
-                setIsEditing(false);
-              }}
-              disabled={submitting}
+              variant="solid"
+              iconLeft={() => <EditAlt size={16} />}
+              onClick={() => setIsEditing(true)}
             >
-              Cancel
+              Edit
             </Button>
-            <form.Subscribe
-              selector={(state) => [state.isDirty, state.isSubmitting] as const}
-            >
-              {([isDirty, isSubmitting]) => (
-                <Button
-                  variant="solid"
-                  onClick={() => {
-                    void form.handleSubmit();
-                  }}
-                  disabled={!isDirty || isSubmitting || submitting}
-                >
-                  Save
-                </Button>
-              )}
-            </form.Subscribe>
-          </div>
-        ) : (
-          <Button
-            variant="solid"
-            iconLeft={() => <EditAlt size={16} />}
-            onClick={() => setIsEditing(true)}
-          >
-            Edit
-          </Button>
-        )}
+          ))}
       </div>
 
       <form.Field name="summary">

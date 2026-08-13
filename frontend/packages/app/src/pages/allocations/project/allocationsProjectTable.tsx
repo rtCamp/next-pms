@@ -46,8 +46,7 @@ export const AllocationsProjectTable = () => {
   const guardAction = useGuardedAction();
 
   const roles = useUser(({ state }) => state.roles);
-  const canManageAllocations =
-    roles.includes("Projects Manager") || roles.includes("Projects User");
+  const canManageAllocations = roles.includes("Projects Manager");
 
   const {
     openAddAllocationDialog,

@@ -7,6 +7,7 @@ import { AddSm } from "@rtcamp/frappe-ui-react/icons";
 /**
  * Internal dependencies.
  */
+import { useUser } from "@/providers/user";
 import { CalendarGrid } from "./calendarGrid";
 import { CalendarToolbar } from "./calendarToolbar";
 import { useCalendar } from "./context";
@@ -19,6 +20,9 @@ import { TouchpointsTable } from "./touchpointsTable";
 import type { TableTab } from "./types";
 
 export function CalendarContent() {
+  const roles = useUser(({ state }) => state.roles);
+  const canCreate = roles.includes("Projects Manager");
+
   const projectId = useCalendar((c) => c.state.projectId);
   const activeView = useCalendar((c) => c.state.activeView);
   const tableTab = useCalendar((c) => c.state.tableTab);
@@ -63,18 +67,20 @@ export function CalendarContent() {
             ]}
           />
 
-          <Button
-            variant="solid"
-            label="Create"
-            iconLeft={() => <AddSm className="size-3.5" />}
-            onClick={() => {
-              if (tableTab === "milestones") {
-                setCreateMilestoneOpen(true);
-              } else {
-                setCreateTouchpointOpen(true);
-              }
-            }}
-          />
+          {canCreate && (
+            <Button
+              variant="solid"
+              label="Create"
+              iconLeft={() => <AddSm className="size-3.5" />}
+              onClick={() => {
+                if (tableTab === "milestones") {
+                  setCreateMilestoneOpen(true);
+                } else {
+                  setCreateTouchpointOpen(true);
+                }
+              }}
+            />
+          )}
         </div>
 
         {/* Table */}

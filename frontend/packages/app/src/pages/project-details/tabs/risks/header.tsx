@@ -7,22 +7,28 @@ import { AddSm } from "@rtcamp/frappe-ui-react/icons";
 /**
  * Internal dependencies.
  */
+import { useUser } from "@/providers/user";
 import { useRisks } from "./context";
 import { RisksToolbar } from "./toolbar/toolbar";
 
 export function RisksHeader() {
+  const roles = useUser(({ state }) => state.roles);
+  const canCreate = roles.includes("Projects Manager");
+
   const openCreateRisk = useRisks((c) => c.actions.openCreateRisk);
 
   return (
     <>
       <div className="flex items-center justify-between mb-3.5">
         <h1 className="text-xl font-semibold text-ink-gray-8">Risks</h1>
-        <Button
-          variant="solid"
-          label="Create"
-          iconLeft={() => <AddSm />}
-          onClick={openCreateRisk}
-        />
+        {canCreate && (
+          <Button
+            variant="solid"
+            label="Create"
+            iconLeft={() => <AddSm />}
+            onClick={openCreateRisk}
+          />
+        )}
       </div>
 
       <RisksToolbar />
