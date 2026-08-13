@@ -32,6 +32,7 @@ export type TeamMember = {
   workingHour: number;
   workingFrequency: WorkingFrequency;
   status: ApprovalStatusLabelType;
+  backdateRestrictedBefore: string | null;
 };
 
 type TeamTimesheetRowProps = {
@@ -104,6 +105,7 @@ export const TeamTimesheetRow = ({
                 className="pl-7.5 animate-fade-in"
                 collapsed={true}
                 disabled={member.status === "Approved"}
+                backdateRestrictedBefore={member.backdateRestrictedBefore}
                 onCellClick={(date) =>
                   openAddTimeDialog({
                     date,
@@ -125,6 +127,9 @@ export const TeamTimesheetRow = ({
                         label={project.project_name || project.project}
                         className="pl-13.5"
                         disabled={member.status === "Approved"}
+                        backdateRestrictedBefore={
+                          member.backdateRestrictedBefore
+                        }
                         onCellClick={(date) =>
                           openAddTimeDialog({
                             date,
@@ -153,6 +158,9 @@ export const TeamTimesheetRow = ({
                               dailyWorkingHours={dailyWorkingHours}
                               totalTimeEntriesInHours={totalTimeEntriesInHours}
                               employee={member.employee}
+                              backdateRestrictedBefore={
+                                member.backdateRestrictedBefore
+                              }
                               hideLikeButton={true}
                               setSelectedTask={setSelectedTask}
                             />

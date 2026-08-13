@@ -48,6 +48,8 @@ export const UserProvider: FC<PropsWithChildren> = ({ children }) => {
   const [hasIndustryField, setHasIndustryField] = useState<
     UserContextProps["state"]["hasIndustryField"]
   >(window.frappe?.boot?.has_industry || false);
+  const [backdateRestrictedBefore, setBackdateRestrictedBefore] =
+    useState<UserContextProps["state"]["backdateRestrictedBefore"]>(null);
 
   const { logout, isLoading: isAuthLoading, currentUser } = useFrappeAuth();
   const isAuthenticated =
@@ -70,6 +72,9 @@ export const UserProvider: FC<PropsWithChildren> = ({ children }) => {
     setCurrencies(appData?.message?.currencies || []);
     setHasBuField(appData?.message?.has_business_unit || false);
     setHasIndustryField(appData?.message?.has_industry || false);
+    setBackdateRestrictedBefore(
+      appData?.message?.backdate_restricted_before ?? null,
+    );
   }, [appData]);
 
   const { data: employeeData, error: employeeDataError } = useFrappeGetCall(
@@ -144,6 +149,7 @@ export const UserProvider: FC<PropsWithChildren> = ({ children }) => {
           currencies,
           hasBuField,
           hasIndustryField,
+          backdateRestrictedBefore,
           currentUser,
         },
         actions: {

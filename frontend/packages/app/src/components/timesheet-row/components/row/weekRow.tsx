@@ -16,6 +16,8 @@ import { getTodayDate, prettyDate } from "@next-pms/design-system/date";
  * Internal dependencies
  */
 import { useScrollRoot } from "@/components/scrollRoot";
+import { isDateBackdateRestricted } from "@/pages/timesheet/utils";
+import { useUser } from "@/providers/user";
 import type { WeekRowProps } from "./types";
 import { computeRowData } from "../../utils";
 
@@ -54,6 +56,9 @@ export const WeekRow = ({
   const [collapsed, setCollapsed] = useState(initialCollapsed);
   const scrollRoot = useScrollRoot();
   const weekRef = useRef<HTMLDivElement>(null);
+  const backdateRestrictedBefore = useUser(
+    ({ state }) => state.backdateRestrictedBefore,
+  );
 
   const anchorOnCollapse = () => {
     const weekEl = weekRef.current;
@@ -170,7 +175,15 @@ export const WeekRow = ({
               {children?.({
                 totalHours: floatToTime(weekData.total, 2),
                 totalHoursTheme: totalHoursThemeMap[weekData.isExtended],
-                totalTimeEntries: weekData.totalTimeEntries,
+                totalTimeEntries: weekData.totalTimeEntries.map((entry) => ({
+                  ...entry,
+                  disabled:
+                    entry.disabled ||
+                    isDateBackdateRestricted(
+                      entry.date,
+                      backdateRestrictedBefore,
+                    ),
+                })),
                 totalTimeEntriesInHours: weekData.totalTimeEntriesInHours,
                 dailyWorkingHours: weekData.dailyWorkingHours,
                 status: approvalStatus,

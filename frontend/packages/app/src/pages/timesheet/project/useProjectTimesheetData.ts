@@ -171,6 +171,7 @@ export function useProjectTimesheetData({
               tasks: member.tasks,
               holidays: member.holidays,
               leaves: member.leaves,
+              backdateRestrictedBefore: member.backdate_restricted_before,
               workingHour: member.working_hour,
               workingFrequency: member.working_frequency,
               status: member.status,
