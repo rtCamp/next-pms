@@ -117,18 +117,7 @@ def validate_is_time_billable(doc, method=None):
 
 def validate_dates(doc):
     """Validate if time entry is made for holidays or leave days."""
-    # import frappe
-    from frappe import get_roles
-    from hrms.hr.utils import get_holiday_dates_for_employee
-
-    from next_pms.resource_management.api.utils.query import get_employee_leaves
-    from next_pms.timesheet.api.employee import get_employee_from_user
-
-    frappe_roles = set(get_roles())
-    ignore_roles = frappe.get_all("Timesheet Role", pluck="role")
-
-    roles_to_ignore = frappe_roles.intersection(ignore_roles)
-    if frappe.session.user == "Administrator" or doc.ignore_backdated_validation or roles_to_ignore:
+    if _is_exempt_from_backdate_validation() or doc.ignore_backdated_validation:
         return
     #  Do not allow the time entry for more then one day.
     if date_diff(doc.end_date, doc.start_date) > 0:
@@ -142,43 +131,104 @@ def validate_dates(doc):
     if not allow_future_entry and date_gap > 0:
         throw(_("Future time entries are not allowed."))
 
-    #  Check if the back dated time entry is allowed.
-    allow_back_dated_entry = frappe.db.get_single_value("Timesheet Settings", "allow_backdated_entries")
-    if not allow_back_dated_entry and date_gap < 0:
-        throw(_("Backdated time entries are not allowed."))
-
-    # validate backdated entries as per the setting
+    #  Check if the backdated time entry falls within the allowed working-day window.
     if date_gap < 0:
-        has_access = ROLES.intersection(frappe_roles)
-        employee = get_employee_from_user()
-
-        if has_access and employee != doc.employee:
-            allowed_days = frappe.db.get_single_value("Timesheet Settings", "allow_backdated_entries_till_manager")
-        else:
-            allowed_days = frappe.db.get_single_value("Timesheet Settings", "allow_backdated_entries_till_employee")
-        holidays = get_holiday_dates_for_employee(doc.employee, doc.start_date, today_date)
-        leaves = get_employee_leaves(
-            start_date=add_days(doc.start_date, -28),
-            end_date=add_days(today_date, 28),
-            employee=doc.employee,
-        )
-
-        for leave in leaves:
-            from_date = getdate(leave.from_date)
-            to_date = getdate(leave.to_date)
-
-            current_date = from_date
-            while current_date <= to_date:
-                holidays.append(str(current_date))
-                current_date = add_days(current_date, 1)
-
-        holiday_counter = 0
-        holidays = set(holidays)
-        for holiday in holidays:
-            if doc.start_date <= getdate(holiday) < today_date:
-                holiday_counter += 1
-        if abs(date_gap + holiday_counter) > allowed_days:
+        boundary = get_backdate_restriction_boundary(doc.employee)
+        if boundary and doc.start_date < getdate(boundary):
             throw(_("Backdated time entries are not allowed."))
+
+
+def _is_exempt_from_backdate_validation() -> bool:
+    """True if the current session user is fully exempt from backdate validation -
+    Administrator, or holding a role listed in Timesheet Settings' Ignored Role table.
+    Shared by validate_dates and get_backdate_restriction_boundary so there's exactly one
+    place this exemption is decided."""
+    from frappe import get_roles
+
+    if frappe.session.user == "Administrator":
+        return True
+
+    ignore_roles = frappe.get_all("Timesheet Role", pluck="role")
+    return bool(set(get_roles()).intersection(ignore_roles))
+
+
+def get_backdate_restriction_boundary(employee: str) -> str | None:
+    """Returns the earliest date (inclusive) `employee` may still log a time entry for, from
+    the current session user's perspective. Any date before the returned boundary is
+    restricted. Returns None if the current session user is exempt entirely (see
+    _is_exempt_from_backdate_validation) - meaning no date should be treated as restricted.
+    Single source of truth for the backdated-entry check: used both by the validation above
+    and by the frontend's disabled-cell precheck (exposed via API endpoints in api/app.py,
+    api/team.py, api/project.py)."""
+    if _is_exempt_from_backdate_validation():
+        return None
+
+    today_date = getdate(today())
+
+    if not frappe.db.get_single_value("Timesheet Settings", "allow_backdated_entries"):
+        return str(today_date)
+
+    allowed_days = _get_effective_backdated_allowed_days(employee)
+    return _compute_backdate_boundary(employee, allowed_days, today_date)
+
+
+def _get_effective_backdated_allowed_days(employee: str) -> int:
+    """Resolves the 'allow backdated entries till' day threshold for `employee`'s record,
+    from the current session user's perspective: the manager threshold applies if they hold
+    a manager-ish role (see ROLES) and are looking at someone else's record, the employee
+    threshold otherwise."""
+    from frappe import get_roles
+
+    from next_pms.timesheet.api.employee import get_employee_from_user
+
+    frappe_roles = set(get_roles())
+    has_access = ROLES.intersection(frappe_roles)
+    viewer_employee = get_employee_from_user()
+
+    if has_access and viewer_employee != employee:
+        return frappe.db.get_single_value("Timesheet Settings", "allow_backdated_entries_till_manager") or 0
+    return frappe.db.get_single_value("Timesheet Settings", "allow_backdated_entries_till_employee") or 0
+
+
+def _compute_backdate_boundary(employee: str, allowed_days: int, today_date) -> str:
+    """Walks backward from today counting only working days (skipping holidays, weekly-offs,
+    and approved/open leave) until `allowed_days` have been counted; the date it stops on is
+    the boundary - the earliest date still within the allowed window."""
+    from hrms.hr.utils import get_holiday_dates_for_employee
+
+    from next_pms.resource_management.api.utils.query import get_employee_leaves
+
+    if allowed_days <= 0:
+        return str(today_date)
+
+    # A generous, fixed search window - realistically far wider than any configured
+    # threshold would ever need, so the loop below always terminates within it.
+    search_start = add_days(today_date, -365)
+
+    holidays = get_holiday_dates_for_employee(employee, search_start, today_date)
+    leaves = get_employee_leaves(
+        start_date=add_days(search_start, -28),
+        end_date=add_days(today_date, 28),
+        employee=employee,
+    )
+
+    non_working_days = set(holidays)
+    for leave in leaves:
+        current_date = getdate(leave.from_date)
+        leave_to_date = getdate(leave.to_date)
+        while current_date <= leave_to_date:
+            non_working_days.add(str(current_date))
+            current_date = add_days(current_date, 1)
+
+    working_days_counted = 0
+    current_date = today_date
+    while working_days_counted < allowed_days:
+        current_date = add_days(current_date, -1)
+        if current_date < search_start:
+            break
+        if str(current_date) not in non_working_days:
+            working_days_counted += 1
+    return str(current_date)
 
 
 def validate_existing_timesheet(doc, method=None):
