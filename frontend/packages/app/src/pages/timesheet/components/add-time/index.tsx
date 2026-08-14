@@ -12,6 +12,7 @@ import {
   useToasts,
   TextEditor,
   DurationInput,
+  FormLabel,
   type TextEditorHandle,
   type TextEditorProps,
 } from "@rtcamp/frappe-ui-react";
@@ -302,9 +303,9 @@ const AddTime = ({
           children={(field) => {
             return (
               <>
-                <label className="block text-base text-ink-gray-5 mb-1.5">
+                <FormLabel size="md" className="mb-1.5" required>
                   Project
-                </label>
+                </FormLabel>
                 <Combobox
                   inputClassName="bg-surface-white h-8 border-outline-gray-2 text-ink-gray-7"
                   loading={isProjectLookupLoading}
@@ -343,9 +344,9 @@ const AddTime = ({
           children={(field) => {
             return (
               <>
-                <label className="block text-base text-ink-gray-5 mb-1.5">
+                <FormLabel size="md" className="mb-1.5" required>
                   Task
-                </label>
+                </FormLabel>
                 <Combobox
                   inputClassName="bg-surface-white h-8 border-outline-gray-2 text-ink-gray-7"
                   loading={isTaskLookupLoading}
@@ -427,9 +428,9 @@ const AddTime = ({
                     {({ displayValue }) => {
                       return (
                         <div className="flex-1 flex w-full flex-col space-y-1.5 ">
-                          <label className="block text-base text-ink-gray-5">
+                          <FormLabel size="md" required>
                             Date
-                          </label>
+                          </FormLabel>
                           <div
                             className={
                               "flex relative items-center rounded border border-outline-gray-2 px-2.5"
@@ -464,6 +465,7 @@ const AddTime = ({
                 <div className="flex flex-col flex-1 w-full gap-2">
                   <DurationInput
                     label="Duration"
+                    required
                     size="md"
                     snap="smooth"
                     maxDuration={maxDuration}
@@ -496,9 +498,9 @@ const AddTime = ({
           children={(field) => {
             return (
               <>
-                <label className="block text-base text-ink-gray-5 mb-1.5">
+                <FormLabel size="md" className="mb-1.5" required>
                   Comment
-                </label>
+                </FormLabel>
                 <TextEditor
                   key={`comment-${entryKey}`}
                   ref={commentEditorRef}

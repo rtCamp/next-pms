@@ -11,6 +11,7 @@ import {
   ErrorMessage,
   useToasts,
   Avatar,
+  FormLabel,
 } from "@rtcamp/frappe-ui-react";
 import { useForm } from "@tanstack/react-form";
 import { format, parseISO } from "date-fns";
@@ -160,7 +161,9 @@ const SubmitApproval = ({
           name="sendTo"
           children={(field) => (
             <div className="space-y-1.5">
-              <label className="block text-base text-ink-gray-5">Send to</label>
+              <FormLabel size="md" required>
+                Send to
+              </FormLabel>
               <Combobox
                 inputClassName="bg-surface-white h-8 border-outline-gray-2 text-ink-gray-7"
                 value={field.state.value}

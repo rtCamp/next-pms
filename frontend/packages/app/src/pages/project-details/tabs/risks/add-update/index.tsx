@@ -6,6 +6,7 @@ import {
   Button,
   Dialog,
   ErrorMessage,
+  FormLabel,
   Select,
   TextEditor,
   useToasts,
@@ -218,7 +219,9 @@ export function AddUpdateModal({
           name="note"
           children={(field) => (
             <div className="flex flex-col gap-1.5">
-              <label className="block text-base text-ink-gray-5">Note</label>
+              <FormLabel size="md" required>
+                Note
+              </FormLabel>
               <TextEditor
                 placeholder="Add a note..."
                 content={field.state.value}

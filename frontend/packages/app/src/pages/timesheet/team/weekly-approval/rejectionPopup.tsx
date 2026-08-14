@@ -9,6 +9,7 @@ import {
   Button,
   ErrorMessage,
   Textarea,
+  FormLabel,
 } from "@rtcamp/frappe-ui-react";
 import { Close } from "@rtcamp/frappe-ui-react/icons";
 
@@ -67,7 +68,9 @@ const RejectionPopup = () => {
 
         {/* Reason textarea */}
         <div className="space-y-1.5">
-          <label className="block text-base text-ink-gray-5">Reason</label>
+          <FormLabel size="md" required>
+            Reason
+          </FormLabel>
           <Textarea
             value={reason}
             placeholder="Enter reason for rejection"
