@@ -11,18 +11,12 @@ import {
   useState,
 } from "react";
 import { getTodayDate } from "@next-pms/design-system/date";
-import { useToasts } from "@rtcamp/frappe-ui-react";
-import type { Error as FrappeError } from "frappe-js-sdk/lib/frappe_app/types";
 import { useFrappeEventListener } from "frappe-react-sdk";
 
 /**
  * Internal dependencies.
  */
-import {
-  buildCompositeFilters,
-  isCompleteFilterCondition,
-  parseFrappeErrorMsg,
-} from "@/lib/utils";
+import { buildCompositeFilters, isCompleteFilterCondition } from "@/lib/utils";
 import { PROJECT_WEEKS_PER_PAGE } from "./constants";
 import {
   type ProjectRefreshHandler,
@@ -40,7 +34,6 @@ import { useTimesheetFilters } from "../hooks/useTimesheetFilters";
 export const ProjectTimesheetProvider: FC<PropsWithChildren> = ({
   children,
 }) => {
-  const toast = useToasts();
   const { filters, setSearch, setCompositeFilters, resetAll } =
     useTimesheetFilters();
 
@@ -82,7 +75,6 @@ export const ProjectTimesheetProvider: FC<PropsWithChildren> = ({
     isNextPageLoading,
     loadMoreWeeks,
     refreshWeeks,
-    error,
   } = useProjectTimesheetWeeks({
     date: weekDate,
     maxWeek: weeksPerPage,
@@ -105,12 +97,7 @@ export const ProjectTimesheetProvider: FC<PropsWithChildren> = ({
   useEffect(() => {
     if (isLoadingWeeks) return;
     setResolvedFilterKey(activeFilterKey);
-
-    if (error) {
-      toast.error(parseFrappeErrorMsg(error as FrappeError));
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeFilterKey, isLoadingWeeks, error]);
+  }, [activeFilterKey, isLoadingWeeks]);
 
   // Keep a registry of refresh handlers for each week so that when a project
   // timesheet is updated, we can reconcile that specific week's projects.

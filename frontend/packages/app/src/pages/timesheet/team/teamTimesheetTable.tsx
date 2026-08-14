@@ -70,7 +70,7 @@ const TeamTimesheetGrid = () => {
 
       {isLoadingWeeks && weeks.length === 0 ? (
         <Spinner isFull />
-      ) : weeks.length === 0 ? (
+      ) : weeks.length === 0 && !hasMoreWeeks ? (
         <Typography className="flex justify-center items-center">
           No data
         </Typography>

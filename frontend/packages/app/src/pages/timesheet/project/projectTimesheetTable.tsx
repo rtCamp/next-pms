@@ -42,7 +42,7 @@ const ProjectTimesheetGrid = () => {
     <>
       {isLoadingWeeks && weeks.length === 0 ? (
         <Spinner isFull />
-      ) : weeks.length === 0 ? (
+      ) : weeks.length === 0 && !hasMoreWeeks ? (
         <Typography className="flex items-center justify-center">
           No data found
         </Typography>
