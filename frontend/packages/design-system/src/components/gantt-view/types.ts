@@ -47,8 +47,12 @@ export interface Allocation {
   includeWeekends?: boolean;
 }
 
+export type TimeoffPortion = "full" | "first" | "second" | "half";
+
 export interface MemberBarAllocation extends Allocation {
   type?: "default" | "timeoff" | "free";
+  /** How much of the day is off, for `timeoff` segments. */
+  timeoff?: TimeoffPortion;
 }
 
 export interface LeaveAllocation {
@@ -56,6 +60,10 @@ export interface LeaveAllocation {
   startDate: Date;
   /** Last day of leave (inclusive). */
   endDate: Date;
+  /** The single day inside the range taken as a half day, when the leave has one. */
+  halfDayDate?: Date;
+  /** Which half of the half-day is taken off, when the leave has one. */
+  halfDayPortion?: "first" | "second";
 }
 
 export interface Project {
