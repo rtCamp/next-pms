@@ -22,7 +22,6 @@ from next_pms.api.utils import error_logger
 from next_pms.resource_management.api.utils.query import get_employee_leaves
 from next_pms.timesheet.doc_events.timesheet import (
     flush_cache,
-    get_backdate_restriction_boundary,
     publish_timesheet_update,
 )
 from next_pms.timesheet.utils.constant import (
@@ -221,7 +220,7 @@ def build_team_member_payload(employee, context, week, has_filters):
         "tasks": detail.get("tasks", {}),
         "leaves": list(context["leaves_by_employee"].get(employee.name, [])),
         "holidays": list(context["holidays_by_employee"].get(employee.name, [])),
-        "backdate_restricted_before": get_backdate_restriction_boundary(employee.name),
+        "backdate_restricted_before": context["backdate_boundary_by_employee"].get(employee.name),
     }
 
 

@@ -6,7 +6,6 @@ from frappe import get_all, get_list, get_meta, get_value, only_for, whitelist
 from frappe.utils import flt, getdate
 
 from next_pms.api.utils import error_logger
-from next_pms.timesheet.doc_events.timesheet import get_backdate_restriction_boundary
 
 from . import filter_employees, get_count
 from .utils import (
@@ -314,7 +313,7 @@ def _build_project_employee_payload(
         "working_hours": working_hours,
         "holidays": list(context["holidays_by_employee"].get(employee.name, [])),
         "leaves": list(context["leaves_by_employee"].get(employee.name, [])),
-        "backdate_restricted_before": get_backdate_restriction_boundary(employee.name),
+        "backdate_restricted_before": context["backdate_boundary_by_employee"].get(employee.name),
         "week_details": week_details,
     }
 
