@@ -47,7 +47,7 @@ export function Marketing({ form, isEditing, submitting }: MarketingProps) {
 
   return (
     <OverviewSection title="Marketing">
-      <div className="flex w-207 max-w-full flex-wrap gap-4">
+      <div className="flex w-220 max-w-full flex-wrap gap-4">
         <form.Field name="ndaSigned">
           {(field) => (
             <EditableField
