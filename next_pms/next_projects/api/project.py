@@ -22,7 +22,12 @@ from next_pms.next_projects.api.constant import (
     TASK_TRACKING_OPEN_STATUSES,
     TASK_TRACKING_TOTAL_STATUSES,
 )
-from next_pms.next_projects.api.utils import build_person_data, get_employee_image_map, get_user_image_map
+from next_pms.next_projects.api.utils import (
+    build_person_data,
+    get_employee_image_map,
+    get_user_image_map,
+    resolve_tag_filters,
+)
 from next_pms.project_currency.billing_rate import get_billing_rate_context, resolve_billing_rate
 from next_pms.timesheet.api import get_count
 from next_pms.utils.employee import (
@@ -585,7 +590,7 @@ def get_projects_view(
         filters = json.loads(filters)
 
     # Build filters
-    project_filters = list(filters) if filters else []
+    project_filters = resolve_tag_filters(list(filters) if filters else [])
 
     # Build or_filters for search
     or_filters = {}

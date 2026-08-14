@@ -271,6 +271,16 @@ export function ProjectFilters() {
                 { label: "Not Equals", value: "!=" },
               ],
             },
+            {
+              name: "tag",
+              label: "Tags",
+              type: "link",
+              link: { doctype: "Tag" },
+              operators: [
+                { label: "Equals", value: "=" },
+                { label: "Not Equals", value: "!=" },
+              ],
+            },
           ]}
           externalFilterCount={externalFilterCount}
           onClearAll={resetFilters}
