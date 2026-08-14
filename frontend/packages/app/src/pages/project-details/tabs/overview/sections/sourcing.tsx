@@ -39,7 +39,7 @@ export function Sourcing({ form, isEditing, submitting }: SourcingProps) {
 
   return (
     <OverviewSection title="Sourcing">
-      <div className="flex w-[828px] max-w-full flex-wrap gap-4">
+      <div className="flex w-[880px] max-w-full flex-wrap gap-4">
         <form.Field name="source">
           {(field) => (
             <EditableField
@@ -51,6 +51,7 @@ export function Sourcing({ form, isEditing, submitting }: SourcingProps) {
               <Combobox
                 loading={isSourceLoading}
                 options={sourceOptions}
+                popupClassName="w-max min-w-(--anchor-width) max-w-[300px]"
                 placeholder="Select source"
                 searchValue={sourceSearch}
                 onSearchChange={setSourceSearch}
@@ -74,6 +75,7 @@ export function Sourcing({ form, isEditing, submitting }: SourcingProps) {
               <Combobox
                 loading={isTerritoryLoading}
                 options={territoryOptions}
+                popupClassName="w-max min-w-(--anchor-width) max-w-[300px]"
                 placeholder="Select primary location"
                 searchValue={territorySearch}
                 onSearchChange={setTerritorySearch}

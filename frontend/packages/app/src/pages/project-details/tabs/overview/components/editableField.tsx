@@ -23,7 +23,7 @@ export function EditableField({
 }) {
   const showEditor = isEditing && children;
   return (
-    <div className="flex w-[180px] items-center gap-2">
+    <div className="flex w-52 items-center gap-2">
       <span className="flex size-8 shrink-0 items-center justify-center rounded-lg text-ink-gray-7">
         {icon}
       </span>
