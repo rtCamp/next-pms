@@ -119,12 +119,20 @@ export function useProjectWeekProjects({
     void setSize((current) => current + 1);
   }, [hasMore, isLoading, isNextPageLoading, setSize]);
 
+  const hasActiveFilter = Boolean(filterArgs.search || filterArgs.filters);
+
   /**
    * Refresh a single employee's week across all projects.
    */
   const refreshEmployeeWeek = useCallback(
     (payload: ProjectMemberWeekPayload) => {
       if (!paginatedData?.length) return;
+
+      // If there is an active filter refresh the entire list to avoid including stale data in the filtered results.
+      if (hasActiveFilter) {
+        void mutate();
+        return;
+      }
 
       const nextPages = paginatedData.map((page) =>
         page.message
@@ -133,7 +141,7 @@ export function useProjectWeekProjects({
       );
       void mutate(nextPages, { revalidate: false });
     },
-    [mutate, paginatedData],
+    [hasActiveFilter, mutate, paginatedData],
   );
 
   return {
