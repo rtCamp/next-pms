@@ -154,6 +154,18 @@ class TestFeedbackComments(IntegrationTestCase):
         self.assertFalse(root["deleted"])
         self.assertEqual(root["replies"], [])
 
+    def test_add_comment_with_mention(self):
+        mention = (
+            f'<span class="mention" data-type="mention" data-id="{OTHER_USER}" '
+            'data-label="Other">@Other</span>'
+        )
+        name, tree = self.add_comment(f"<p>{mention} ping</p>")
+        comment = find_comment(tree, name)
+
+        self.assertIsNotNone(comment)
+        self.assertNotIn('data-type="mention"', comment["comment"])
+        self.assertIn(f'data-id="{OTHER_USER}"', comment["comment"])
+
     def test_add_blank_comment_raises(self):
         frappe.set_user(self.author_user)
         with self.assertRaises(frappe.ValidationError):
@@ -247,3 +259,49 @@ class TestFeedbackComments(IntegrationTestCase):
             update_comment_in_feedback(comment_name=foreign.name, comment="<p>hijack</p>")
         with self.assertRaises(frappe.ValidationError):
             add_comment_to_feedback(feedback=self.feedback, comment="<p>reply</p>", reply_to=foreign.name)
+
+    def test_mention_creates_only_nextpms_notification(self):
+        from erpnext import get_default_company
+
+        from next_pms.next_projects.api.feedback import notify_feedback_nextpms_mentions
+
+        frappe.set_user("Administrator")
+        customer = frappe.db.get_value("Customer Feedback", self.feedback, "customer")
+        project = (
+            frappe.get_doc(
+                {
+                    "doctype": "Project",
+                    "project_name": "Feedback Mention Project",
+                    "company": get_default_company(),
+                    "customer": customer,
+                    "custom_billing_type": "Non-Billable",
+                }
+            )
+            .insert(ignore_permissions=True)
+            .name
+        )
+
+        frappe.set_user(self.author_user)
+        mention_html = (
+            f'<p><span class="mention" data-id="{OTHER_USER}" data-label="Other">@Other</span> ping</p>'
+        )
+        notify_feedback_nextpms_mentions(content=mention_html, feedback=self.feedback, project=project)
+
+        expected_path = f"/next-pms/projects/{project}?tab=feedback"
+
+        self.assertFalse(
+            frappe.db.exists(
+                "Notification Log",
+                {"for_user": OTHER_USER, "document_name": self.feedback, "type": "Mention"},
+            )
+        )
+
+        nextpms = frappe.get_all(
+            "NextPMS Notifications",
+            filters={"user": OTHER_USER, "linked_document": self.feedback},
+            fields=["url", "title", "label"],
+        )
+        self.assertEqual(len(nextpms), 1)
+        self.assertEqual(nextpms[0].url, expected_path)
+        self.assertEqual(nextpms[0].title, "You got a Feedback mention")
+        self.assertIn("Feedback Mention Project", nextpms[0].label)

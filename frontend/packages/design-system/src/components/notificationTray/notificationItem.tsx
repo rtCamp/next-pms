@@ -2,7 +2,7 @@
  * External dependencies.
  */
 import React, { type ComponentType } from "react";
-import { Folder, Fire, File, Time, Check } from "@rtcamp/frappe-ui-react/icons";
+import { AtSign, Folder, Fire, File, Time, Check } from "@rtcamp/frappe-ui-react/icons";
 
 /**
  * Internal dependencies.
@@ -15,10 +15,21 @@ const DOCTYPE_ICON_MAP: Record<string, ComponentType<{ size?: number }>> = {
   Timesheet: Time,
   "Customer Feedback": File,
   Project: Folder,
+  "Project Status Update": AtSign,
+  "Project RAG Status": AtSign,
 };
 
-const NotificationIcon = ({ linkedDoctype }: { linkedDoctype: string }) => {
-  const Icon = DOCTYPE_ICON_MAP[linkedDoctype] ?? Check;
+const NotificationIcon = ({
+  linkedDoctype,
+  title,
+}: {
+  linkedDoctype: string;
+  title?: string;
+}) => {
+  const Icon =
+    title?.toLowerCase().includes("mention")
+      ? AtSign
+      : (DOCTYPE_ICON_MAP[linkedDoctype] ?? Check);
   return (
     <div
       aria-hidden="true"
@@ -66,7 +77,7 @@ const NotificationItem = ({
           read ? "bg-transparent" : "bg-surface-blue-5",
         )}
       />
-      <NotificationIcon linkedDoctype={linkedDoctype} />
+      <NotificationIcon linkedDoctype={linkedDoctype} title={title} />
       <div className="flex min-w-0 flex-col gap-1">
         <div className="flex items-baseline justify-between gap-2">
           {title && (

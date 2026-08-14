@@ -2,6 +2,7 @@ import frappe
 from erpnext import get_default_company
 from frappe.tests import IntegrationTestCase
 
+from next_pms.next_pms.notifications import send_mention_notifications
 from next_pms.timesheet.api.project_status_update import (
     add_comment_to_project_status_update,
     create_project_status_update,
@@ -356,6 +357,49 @@ class TestProjectStatusUpdateComments(IntegrationTestCase):
             delete_project_status_update(name=created["name"])
 
         self.assertTrue(frappe.db.exists("Project Status Update", created["name"]))
+
+    def test_mention_notifies_user_and_links_to_notes_page(self):
+        frappe.set_user(AUTHOR_USER)
+        created = self._make_update(title="Weekly note")
+        mention_html = (
+            f'<p><span class="mention" data-id="{OTHER_USER}" data-label="Other">@Other</span> ping</p>'
+        )
+        expected_path = f"/next-pms/projects/{self.project}?tab=notes&note={created['name']}"
+        send_mention_notifications(
+            content=mention_html,
+            title="You got a Notes mention",
+            label=(
+                f"{frappe.utils.get_fullname(AUTHOR_USER)} mentioned you in "
+                "Weekly note from Comment Thread Project project"
+            ),
+            linked_doctype="Project Status Update",
+            linked_document=created["name"],
+            url_path=expected_path,
+        )
+        expected_url = frappe.utils.get_url(expected_path)
+
+        logs = frappe.get_all(
+            "Notification Log",
+            filters={"for_user": OTHER_USER, "document_name": created["name"], "type": "Mention"},
+            fields=["link", "subject", "email_header"],
+        )
+        self.assertEqual(len(logs), 1)
+        self.assertEqual(logs[0].link, expected_url)
+        self.assertEqual(logs[0].email_header, "You got a Notes mention")
+        self.assertIn("Weekly note", logs[0].subject)
+        self.assertIn("Comment Thread Project", logs[0].subject)
+
+        nextpms = frappe.get_all(
+            "NextPMS Notifications",
+            filters={"user": OTHER_USER, "linked_document": created["name"]},
+            fields=["url", "title", "label"],
+        )
+        self.assertEqual(len(nextpms), 1)
+        self.assertEqual(nextpms[0].url, expected_path)
+        self.assertEqual(nextpms[0].title, "You got a Notes mention")
+        self.assertEqual(nextpms[0].label, logs[0].subject)
+        self.assertIn("Weekly note", nextpms[0].label)
+        self.assertIn("Comment Thread Project", nextpms[0].label)
 
     def _assert_direct_crud_forbidden(self, user):
         # Acting as `user` through the permission-checked ORM (the Desk path),
