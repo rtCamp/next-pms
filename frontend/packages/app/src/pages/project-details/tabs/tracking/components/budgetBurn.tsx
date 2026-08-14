@@ -2,7 +2,6 @@
  * External dependencies.
  */
 import { ProgressBar } from "@next-pms/design-system/components";
-import { ArrowUpRight } from "@rtcamp/frappe-ui-react/icons";
 
 /**
  * Internal dependencies.
@@ -13,32 +12,17 @@ import { useTracking } from "../context";
 import { LegendItem } from "./legendItem";
 
 export function BudgetBurnCell() {
-  const projectId = useProjectDetail((state) => state.projectId);
   const currency = useProjectDetail((state) => state.project?.custom_currency);
   const budgetBurn = useTracking((state) => state.tracking.budget_burn);
-
-  if (!budgetBurn) {
-    return null;
-  }
-
-  const { actual, forecasted, total_budget: totalBudget } = budgetBurn;
+  const actual = budgetBurn?.actual ?? 0;
+  const forecasted = budgetBurn?.forecasted ?? 0;
+  const totalBudget = budgetBurn?.total_budget ?? 0;
 
   return (
     <div className="flex flex-1 flex-col gap-4 rounded-xl border border-outline-gray-1 bg-surface-cards p-3">
-      <div className="flex items-center justify-between gap-2">
-        <span className="text-base text-ink-gray-8 font-medium">
-          Budget burn (to date)
-        </span>
-        <a
-          href={`/desk/timesheet?parent_project=${projectId}`}
-          target="_blank"
-          rel="noreferrer noopener"
-          className="flex items-center gap-2 text-base text-ink-gray-6 hover:text-ink-gray-8"
-        >
-          All Timesheets
-          <ArrowUpRight aria-hidden className="size-4" />
-        </a>
-      </div>
+      <span className="text-base text-ink-gray-8 font-medium">
+        Budget burn (to date)
+      </span>
       <ProgressBar
         value={actual}
         secondaryValue={actual + forecasted}
