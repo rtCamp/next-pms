@@ -2,7 +2,14 @@
  * External dependencies.
  */
 import React, { type ComponentType } from "react";
-import { AtSign, Folder, Fire, File, Time, Check } from "@rtcamp/frappe-ui-react/icons";
+import {
+  AtSign,
+  Folder,
+  Fire,
+  File,
+  Time,
+  Check,
+} from "@rtcamp/frappe-ui-react/icons";
 
 /**
  * Internal dependencies.
@@ -26,10 +33,9 @@ const NotificationIcon = ({
   linkedDoctype: string;
   title?: string;
 }) => {
-  const Icon =
-    title?.toLowerCase().includes("mention")
-      ? AtSign
-      : (DOCTYPE_ICON_MAP[linkedDoctype] ?? Check);
+  const Icon = title?.toLowerCase().includes("mention")
+    ? AtSign
+    : (DOCTYPE_ICON_MAP[linkedDoctype] ?? Check);
   return (
     <div
       aria-hidden="true"

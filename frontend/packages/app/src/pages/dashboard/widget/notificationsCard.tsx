@@ -3,7 +3,14 @@
  */
 import type { ComponentType } from "react";
 import type { NotificationEntry } from "@next-pms/design-system/components";
-import { AtSign, File, Fire, Folder, Time, Check } from "@rtcamp/frappe-ui-react/icons";
+import {
+  AtSign,
+  File,
+  Fire,
+  Folder,
+  Time,
+  Check,
+} from "@rtcamp/frappe-ui-react/icons";
 
 /**
  * Internal dependencies.
@@ -26,10 +33,9 @@ const NotificationIcon = ({
   linkedDoctype: string;
   title?: string;
 }) => {
-  const Icon =
-    title?.toLowerCase().includes("mention")
-      ? AtSign
-      : (DOCTYPE_ICON_MAP[linkedDoctype] ?? Check);
+  const Icon = title?.toLowerCase().includes("mention")
+    ? AtSign
+    : (DOCTYPE_ICON_MAP[linkedDoctype] ?? Check);
   return (
     <div
       aria-hidden="true"

@@ -1,3 +1,5 @@
+from unittest.mock import patch
+
 import frappe
 from erpnext import get_default_company
 from frappe.tests import IntegrationTestCase
@@ -361,21 +363,20 @@ class TestProjectStatusUpdateComments(IntegrationTestCase):
     def test_mention_notifies_user_and_links_to_notes_page(self):
         frappe.set_user(AUTHOR_USER)
         created = self._make_update(title="Weekly note")
-        mention_html = (
-            f'<p><span class="mention" data-id="{OTHER_USER}" data-label="Other">@Other</span> ping</p>'
-        )
+        mention_html = f'<p><span class="mention" data-id="{OTHER_USER}" data-label="Other">@Other</span> ping</p>'
         expected_path = f"/next-pms/projects/{self.project}?tab=notes&note={created['name']}"
-        send_mention_notifications(
-            content=mention_html,
-            title="You got a Notes mention",
-            label=(
-                f"{frappe.utils.get_fullname(AUTHOR_USER)} mentioned you in "
-                "Weekly note from Comment Thread Project project"
-            ),
-            linked_doctype="Project Status Update",
-            linked_document=created["name"],
-            url_path=expected_path,
-        )
+        with patch("frappe.sendmail"):
+            send_mention_notifications(
+                content=mention_html,
+                title="You got a Notes mention",
+                label=(
+                    f"{frappe.utils.get_fullname(AUTHOR_USER)} mentioned you in "
+                    "Weekly note from Comment Thread Project project"
+                ),
+                linked_doctype="Project Status Update",
+                linked_document=created["name"],
+                url_path=expected_path,
+            )
         expected_url = frappe.utils.get_url(expected_path)
 
         logs = frappe.get_all(

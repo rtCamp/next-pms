@@ -385,7 +385,7 @@ def get_feedback_comments(feedback: str):
 
 
 @frappe.whitelist(methods=["POST"])
-def add_comment_to_feedback(feedback: str, comment: str, reply_to: str | None = None, project: str | None = None):
+def add_comment_to_feedback(feedback: str, comment: str, project: str, reply_to: str | None = None):
     """Add a comment or reply to a Customer Feedback record.
 
     The author is always the session user. The commenting roles have no
@@ -395,8 +395,8 @@ def add_comment_to_feedback(feedback: str, comment: str, reply_to: str | None = 
     Args:
         feedback: Customer Feedback name to comment on.
         comment: Comment body (HTML).
-        reply_to: Name of the parent comment when posting a reply.
         project: Project the commenter is viewing, used for mention deep-links.
+        reply_to: Name of the parent comment when posting a reply.
 
     Returns:
         list[dict]: The refreshed comment tree, as in get_feedback_comments.
@@ -404,6 +404,7 @@ def add_comment_to_feedback(feedback: str, comment: str, reply_to: str | None = 
     only_for(ALLOWED_ROLES, message=True)
     ensure_customer_feedback_available()
     ensure_feedback_exists(feedback)
+    ensure_feedback_belongs_to_project(feedback, project)
     if is_blank(comment):
         frappe.throw(_("Comment cannot be empty"))
     if reply_to:
@@ -499,9 +500,20 @@ def delete_comment_from_feedback(comment_name: str):
 
 
 def ensure_feedback_exists(feedback: str):
-    """Guard: throw when the Customer Feedback record does not exist."""
+    """throw when the Customer Feedback record does not exist."""
     if not feedback or not frappe.db.exists("Customer Feedback", feedback):
         frappe.throw(_("Customer Feedback {0} not found").format(feedback), frappe.DoesNotExistError)
+
+
+def ensure_feedback_belongs_to_project(feedback: str, project: str):
+    """the project must exist and expose this customer's feedback."""
+    if not frappe.db.exists("Project", project):
+        frappe.throw(_("Project {0} not found").format(project), frappe.DoesNotExistError)
+
+    feedback_customer = frappe.db.get_value("Customer Feedback", feedback, "customer")
+    project_customer = frappe.db.get_value("Project", project, "customer")
+    if not feedback_customer or feedback_customer != project_customer:
+        frappe.throw(_("Customer Feedback {0} is not available for Project {1}").format(feedback, project))
 
 
 def get_feedback_comment_doc(comment_name: str):

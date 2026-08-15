@@ -27,7 +27,9 @@ def send_mention_notifications(
 
     current_user = frappe.session.user
     full_url = frappe.utils.get_url(url_path)
-    email_content = frappe.render_template(MENTION_EMAIL_TEMPLATE, {"content": content})  # nosemgrep - trusted template file
+    email_content = frappe.render_template(  # nosemgrep - trusted template file
+        MENTION_EMAIL_TEMPLATE, {"content": content}
+    )
 
     for user_email in mentioned_users:
         if not user_email or user_email == current_user:
