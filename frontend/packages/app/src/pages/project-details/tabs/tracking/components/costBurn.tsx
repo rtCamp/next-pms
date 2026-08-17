@@ -60,7 +60,7 @@ export function CostBurnCell() {
         />
         <LegendItem
           className="bg-surface-gray-3"
-          label="Target Cost"
+          label="Target cost"
           value={currencyFormat(currency).format(total)}
           labelClassName="text-ink-gray-6"
           valueClassName="font-medium"

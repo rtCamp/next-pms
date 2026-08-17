@@ -12,6 +12,7 @@ import {
   Textarea,
   ErrorMessage,
   Combobox,
+  FormLabel,
 } from "@rtcamp/frappe-ui-react";
 import { useToasts } from "@rtcamp/frappe-ui-react";
 import { Calendar, TimeOff } from "@rtcamp/frappe-ui-react/icons";
@@ -173,9 +174,9 @@ const AddEmployeeLeave = ({
           children={(field) => {
             return (
               <>
-                <label className="block text-base text-ink-gray-5 mb-1.5">
+                <FormLabel size="md" className="mb-1.5" required>
                   Employee
-                </label>
+                </FormLabel>
                 <Combobox
                   inputClassName="bg-surface-white h-8 border-outline-gray-2 text-ink-gray-7"
                   loading={isEmployeeLookupLoading}
@@ -202,9 +203,9 @@ const AddEmployeeLeave = ({
             children={(field) => {
               return (
                 <div className="flex-1 flex w-full flex-col space-y-1.5">
-                  <label className="block text-base text-ink-gray-5">
+                  <FormLabel size="md" required>
                     From
-                  </label>
+                  </FormLabel>
                   <DatePicker
                     label="From"
                     onChange={(val) => field.handleChange(val as string)}
@@ -241,7 +242,9 @@ const AddEmployeeLeave = ({
             children={(field) => {
               return (
                 <div className="flex-1 flex w-full flex-col space-y-1.5">
-                  <label className="block text-base text-ink-gray-5">To</label>
+                  <FormLabel size="md" required>
+                    To
+                  </FormLabel>
                   <DatePicker
                     label="To"
                     onChange={(val) => field.handleChange(val as string)}
@@ -280,9 +283,9 @@ const AddEmployeeLeave = ({
           children={(field) => {
             return (
               <>
-                <label className="block text-base text-ink-gray-5 mb-1.5">
+                <FormLabel size="md" className="mb-1.5" required>
                   Leave duration
-                </label>
+                </FormLabel>
                 <TabButtons
                   className="h-7.5"
                   buttonClassName="text-ink-gray-5 data-pressed:text-ink-gray-8"
@@ -320,9 +323,9 @@ const AddEmployeeLeave = ({
                 children={(field) => {
                   return (
                     <div className="flex flex-col space-y-1.5">
-                      <label className="block text-base text-ink-gray-5 mb-1.5">
+                      <FormLabel size="md" className="mb-1.5" required>
                         Half Day Date
-                      </label>
+                      </FormLabel>
                       <DatePicker
                         label="Half Day Date"
                         onChange={(val) => field.handleChange(val as string)}
@@ -363,9 +366,9 @@ const AddEmployeeLeave = ({
           children={(field) => {
             return (
               <>
-                <label className="block text-base text-ink-gray-5 mb-1.5">
+                <FormLabel size="md" className="mb-1.5" required>
                   Leave type
-                </label>
+                </FormLabel>
                 <Select
                   value={field.state.value}
                   onChange={(val) => field.handleChange(val as string)}
@@ -387,9 +390,9 @@ const AddEmployeeLeave = ({
           children={(field) => {
             return (
               <>
-                <label className="block text-base text-ink-gray-5 mb-1.5">
+                <FormLabel size="md" className="mb-1.5" required>
                   Reason
-                </label>
+                </FormLabel>
                 <Textarea
                   variant="outline"
                   value={field.state.value}

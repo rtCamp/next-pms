@@ -2,7 +2,7 @@
  * External dependencies.
  */
 import { useCallback, useState } from "react";
-import { getTodayDate, mergeClassNames as cn } from "@next-pms/design-system";
+import { getTodayDate } from "@next-pms/design-system";
 import { DeleteActionDialog } from "@next-pms/design-system/components";
 import {
   ListHeader,
@@ -69,6 +69,8 @@ function TaskList() {
   return (
     <>
       <ListView
+        role="table"
+        aria-label="Tasks"
         className="px-5 py-0 scrollbar-thin"
         columns={TASK_LIST_COLUMNS}
         rows={data}
@@ -84,59 +86,84 @@ function TaskList() {
           },
         }}
       >
-        <ListHeader className="mb-0 rounded-none bg-transparent border-b border-outline-gray-1 p-2 gap-2">
+        <ListHeader
+          role="row"
+          className="mb-0 rounded-none bg-transparent border-b border-outline-gray-1 p-2 gap-2"
+        >
           {TASK_LIST_COLUMNS.map((column) => {
             const sortField = SORT_FIELD_BY_COLUMN.get(column.key);
+            const isSorted = Boolean(sortField) && sort.field === sortField;
             return (
-              <ListHeaderItem key={column.key} item={column}>
-                <div
-                  className={cn(
-                    "flex h-7 items-center gap-1 py-1.5",
-                    sortField && "cursor-pointer select-none",
-                  )}
-                  onClick={
-                    sortField ? () => handleHeaderClick(sortField) : undefined
-                  }
-                >
-                  <span className="truncate">{column.label}</span>
-                  {sortField &&
-                    sort.field === sortField &&
-                    (sort.order === "asc" ? (
-                      <ArrowUp className="size-3.5 shrink-0 text-ink-gray-7" />
-                    ) : (
-                      <ArrowDown className="size-3.5 shrink-0 text-ink-gray-7" />
-                    ))}
-                </div>
+              <ListHeaderItem
+                key={column.key}
+                role="columnheader"
+                aria-sort={
+                  sortField
+                    ? isSorted
+                      ? sort.order === "asc"
+                        ? "ascending"
+                        : "descending"
+                      : "none"
+                    : undefined
+                }
+                item={column}
+              >
+                {sortField ? (
+                  <button
+                    type="button"
+                    className="flex h-7 min-w-0 items-center gap-1 rounded-sm py-1.5 select-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-outline-gray-3"
+                    onClick={() => handleHeaderClick(sortField)}
+                  >
+                    <span className="truncate">{column.label}</span>
+                    {isSorted &&
+                      (sort.order === "asc" ? (
+                        <ArrowUp className="size-3.5 shrink-0 text-ink-gray-7" />
+                      ) : (
+                        <ArrowDown className="size-3.5 shrink-0 text-ink-gray-7" />
+                      ))}
+                  </button>
+                ) : (
+                  <div className="flex h-7 items-center gap-1 py-1.5">
+                    <span className="truncate">{column.label}</span>
+                  </div>
+                )}
               </ListHeaderItem>
             );
           })}
         </ListHeader>
-        <ListRows>
+        <ListRows role="rowgroup">
           {data.length === 0 ? (
-            <p className="py-6 text-center text-base text-ink-gray-5">
-              No tasks found.
-            </p>
+            <div role="row">
+              <p
+                role="cell"
+                className="py-6 text-center text-base text-ink-gray-5"
+              >
+                No tasks found.
+              </p>
+            </div>
           ) : (
             <InfiniteScroll
+              role="presentation"
               isLoading={isLoading}
               hasMore={hasMore}
               verticalLodMore={loadMore}
               count={TASK_LIST_PAGE_SIZE}
             >
               {data.map((row) => (
-                <ListRow key={row.name} row={row}>
+                <ListRow key={row.name} role="row" row={row}>
                   {TASK_LIST_COLUMNS.map((column) => (
-                    <TaskListCell
-                      key={column.key}
-                      row={row}
-                      column={column}
-                      onOpenTask={setOpenTask}
-                      onAddTime={handleAddTime}
-                      onEditTask={openEditTaskModal}
-                      onDeleteTask={setDeleteTaskName}
-                      userId={userId}
-                      roles={roles}
-                    />
+                    <div key={column.key} role="cell" className="min-w-0">
+                      <TaskListCell
+                        row={row}
+                        column={column}
+                        onOpenTask={setOpenTask}
+                        onAddTime={handleAddTime}
+                        onEditTask={openEditTaskModal}
+                        onDeleteTask={setDeleteTaskName}
+                        userId={userId}
+                        roles={roles}
+                      />
+                    </div>
                   ))}
                 </ListRow>
               ))}

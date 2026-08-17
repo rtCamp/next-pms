@@ -13,6 +13,7 @@ import {
   DateRangePicker,
   Dialog,
   ErrorMessage,
+  FormLabel,
   TabButtons,
   Textarea,
   TextInput,
@@ -417,9 +418,9 @@ function AddAllocationModal({
       name="employeeId"
       children={(field) => (
         <>
-          <label className="block text-base text-ink-gray-5 mb-1.5">
+          <FormLabel size="md" className="mb-1.5" required>
             Employee
-          </label>
+          </FormLabel>
           <Combobox
             inputClassName="bg-surface-white h-8 border-outline-gray-2 text-ink-gray-7"
             loading={isEmployeeLookupLoading || isProjectEmployeeAccessLoading}
@@ -451,9 +452,9 @@ function AddAllocationModal({
       name="projectId"
       children={(field) => (
         <>
-          <label className="block text-base text-ink-gray-5 mb-1.5">
+          <FormLabel size="md" className="mb-1.5" required>
             Project
-          </label>
+          </FormLabel>
           <Combobox
             inputClassName="bg-surface-white h-8 border-outline-gray-2 text-ink-gray-7"
             loading={isProjectLookupLoading || isProjectEmployeeAccessLoading}
@@ -670,9 +671,9 @@ function AddAllocationModal({
               children={(toField) => (
                 <div className="flex w-full flex-col gap-1.5">
                   <div className="flex justify-between">
-                    <label className="block text-base text-ink-gray-5">
+                    <FormLabel size="md" required>
                       Start and end date
-                    </label>
+                    </FormLabel>
                     {variant === "edit" ? (
                       <Button
                         variant="ghost"
@@ -735,9 +736,9 @@ function AddAllocationModal({
             name="hoursPerDay"
             children={(field) => (
               <div className="shrink-0 flex flex-1 flex-col gap-1.5">
-                <label className="block text-base text-ink-gray-5">
+                <FormLabel size="md" required>
                   Hours / day
-                </label>
+                </FormLabel>
                 <DurationInput
                   snap="smooth"
                   variant="outline"
@@ -759,9 +760,9 @@ function AddAllocationModal({
               name="repeatFor"
               children={(field) => (
                 <div className="shrink-0 flex flex-1 flex-col gap-1.5">
-                  <label className="block text-base text-ink-gray-5">
+                  <FormLabel size="md" required>
                     Repeat for
-                  </label>
+                  </FormLabel>
                   <div className="relative">
                     <TextInput
                       type="number"

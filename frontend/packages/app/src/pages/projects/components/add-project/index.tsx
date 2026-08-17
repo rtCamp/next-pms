@@ -7,6 +7,7 @@ import {
   Combobox,
   Dialog,
   ErrorMessage,
+  FormLabel,
   Select,
   TextInput,
   useToasts,
@@ -118,9 +119,9 @@ function AddProjectModal({
           name="projectName"
           children={(field) => (
             <div>
-              <label className="block text-base text-ink-gray-5 mb-1.5">
+              <FormLabel size="md" className="mb-1.5" required>
                 Project
-              </label>
+              </FormLabel>
               <TextInput
                 size="md"
                 variant="outline"
@@ -139,9 +140,9 @@ function AddProjectModal({
           name="phase"
           children={(field) => (
             <div>
-              <label className="block text-base text-ink-gray-5 mb-1.5">
+              <FormLabel size="md" className="mb-1.5" required>
                 Phase
-              </label>
+              </FormLabel>
               <Select
                 className="h-8"
                 variant="outline"
@@ -161,9 +162,9 @@ function AddProjectModal({
           name="company"
           children={(field) => (
             <div>
-              <label className="block text-base text-ink-gray-5 mb-1.5">
+              <FormLabel size="md" className="mb-1.5" required>
                 Company
-              </label>
+              </FormLabel>
               <Combobox
                 inputClassName="bg-surface-white h-8 border-outline-gray-2"
                 loading={isCompanyLoading}

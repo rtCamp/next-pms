@@ -12,6 +12,7 @@ import {
   useToasts,
   TextEditor,
   DurationInput,
+  FormLabel,
 } from "@rtcamp/frappe-ui-react";
 import { Calendar, Folder } from "@rtcamp/frappe-ui-react/icons";
 import { useForm } from "@tanstack/react-form";
@@ -279,9 +280,9 @@ const AddEmployeeTime = ({
           children={(field) => {
             return (
               <>
-                <label className="block text-base text-ink-gray-5 mb-1.5">
+                <FormLabel size="md" className="mb-1.5" required>
                   Employee
-                </label>
+                </FormLabel>
                 <Combobox
                   inputClassName="bg-surface-white h-8 border-outline-gray-2 text-ink-gray-7"
                   loading={isEmployeeLookupLoading}
@@ -307,9 +308,9 @@ const AddEmployeeTime = ({
           children={(field) => {
             return (
               <>
-                <label className="block text-base text-ink-gray-5 mb-1.5">
+                <FormLabel size="md" className="mb-1.5" required>
                   Project
-                </label>
+                </FormLabel>
                 <Combobox
                   inputClassName="bg-surface-white h-8 border-outline-gray-2 text-ink-gray-7"
                   loading={isProjectLookupLoading}
@@ -348,9 +349,9 @@ const AddEmployeeTime = ({
           children={(field) => {
             return (
               <>
-                <label className="block text-base text-ink-gray-5 mb-1.5">
+                <FormLabel size="md" className="mb-1.5" required>
                   Task
-                </label>
+                </FormLabel>
                 <Combobox
                   inputClassName="bg-surface-white h-8 border-outline-gray-2 text-ink-gray-7"
                   loading={isTaskLookupLoading}
@@ -404,9 +405,9 @@ const AddEmployeeTime = ({
                     {({ displayValue }) => {
                       return (
                         <div className="flex-1 flex w-full flex-col space-y-1.5 ">
-                          <label className="block text-base text-ink-gray-5">
+                          <FormLabel size="md" required>
                             Date
-                          </label>
+                          </FormLabel>
                           <div
                             className={
                               "flex relative items-center rounded border border-outline-gray-2 px-2.5"
@@ -441,6 +442,7 @@ const AddEmployeeTime = ({
                 <div className="flex flex-col flex-1 w-full gap-2">
                   <DurationInput
                     label="Duration"
+                    required
                     size="md"
                     snap="smooth"
                     maxDuration={maxDuration}
@@ -466,9 +468,9 @@ const AddEmployeeTime = ({
           children={(field) => {
             return (
               <>
-                <label className="block text-base text-ink-gray-5 mb-1.5">
+                <FormLabel size="md" className="mb-1.5" required>
                   Comment
-                </label>
+                </FormLabel>
                 <TextEditor
                   key={`comment-${entryKey}`}
                   content={field.state.value}
