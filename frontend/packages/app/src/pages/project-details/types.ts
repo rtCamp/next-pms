@@ -113,6 +113,7 @@ export interface ProjectDoc {
   users?: ProjectUser[];
   copied_from?: string;
   notes?: string;
+  custom_time_report_frequency?: string;
   collect_progress?: 0 | 1;
   holiday_list?: string;
   frequency?: "Hourly" | "Twice Daily" | "Daily" | "Weekly";

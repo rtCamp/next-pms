@@ -70,3 +70,37 @@ def make_employee(user, company=None, **kwargs):
         employee.status = "Active"
         employee.save()
         return employee.name
+
+
+def assign_empty_holiday_list(employee, name="Test Empty Holiday List"):
+    """Pin an employee to a holiday list that holds no holidays.
+
+    Allocations skip the days an employee is unavailable, so a fixture that asserts hours or
+    cost totals would otherwise depend on whatever the company default holiday list happens to
+    carry — Independence Day alone moves every figure. Assigned through Holiday List
+    Assignment, which is how HRMS resolves an employee's list.
+    """
+    if not frappe.db.exists("Holiday List", name):
+        frappe.get_doc(
+            {
+                "doctype": "Holiday List",
+                "holiday_list_name": name,
+                "from_date": "2020-01-01",
+                "to_date": "2035-12-31",
+            }
+        ).insert(ignore_permissions=True)
+
+    frappe.db.set_value("Employee", employee, "holiday_list", name)
+
+    if frappe.db.exists("Holiday List Assignment", {"assigned_to": employee, "holiday_list": name, "docstatus": 1}):
+        return
+
+    frappe.get_doc(
+        {
+            "doctype": "Holiday List Assignment",
+            "applicable_for": "Employee",
+            "assigned_to": employee,
+            "holiday_list": name,
+            "from_date": "2020-01-01",
+        }
+    ).insert(ignore_permissions=True).submit()

@@ -10,6 +10,7 @@ import { ProjectRow as BaseProjectRow } from "@next-pms/design-system/components
  * Internal dependencies
  */
 import { calculateTotalHours } from "@/lib/utils";
+import { isDateBackdateRestricted } from "@/pages/timesheet/utils";
 import type { ProjectRowProps } from "./types";
 import { hasApprovedTimeEntry } from "../../utils";
 
@@ -28,6 +29,7 @@ export const ProjectRow = ({
   hideTime,
   disabled,
   lockApproved = true,
+  backdateRestrictedBefore,
   onCellClick,
   children,
   ...rest
@@ -48,12 +50,20 @@ export const ProjectRow = ({
         time: currentTotal === 0 ? "" : floatToTime(currentTotal, 2),
         disabled:
           Boolean(disabled) ||
-          (lockApproved && hasApprovedTimeEntry(tasks, date)),
+          (lockApproved && hasApprovedTimeEntry(tasks, date)) ||
+          isDateBackdateRestricted(date, backdateRestrictedBefore),
       });
       total += currentTotal;
     }
     return { total, totalTimeEntries };
-  }, [dates, tasks, hideTime, disabled, lockApproved]);
+  }, [
+    dates,
+    tasks,
+    hideTime,
+    disabled,
+    lockApproved,
+    backdateRestrictedBefore,
+  ]);
 
   return (
     <Accordion.Root

@@ -10,6 +10,7 @@ import {
   DatePicker,
   Dialog,
   ErrorMessage,
+  FormLabel,
   TextInput,
   useToasts,
 } from "@rtcamp/frappe-ui-react";
@@ -174,9 +175,9 @@ export function CreateTouchpointModal({
           name="title"
           children={(field) => (
             <div className="flex flex-col gap-1.5">
-              <label className="block text-base text-ink-gray-5">
+              <FormLabel size="md" required>
                 Touchpoint name
-              </label>
+              </FormLabel>
               <TextInput
                 size="md"
                 variant="outline"
@@ -196,9 +197,9 @@ export function CreateTouchpointModal({
           name="scheduledDate"
           children={(field) => (
             <div className="flex flex-col gap-1.5">
-              <label className="block text-base text-ink-gray-5">
+              <FormLabel size="md" required>
                 Scheduled date
-              </label>
+              </FormLabel>
               <DatePicker
                 label="Scheduled date"
                 value={field.state.value}
@@ -228,7 +229,9 @@ export function CreateTouchpointModal({
           name="owner"
           children={(field) => (
             <div className="flex flex-col gap-1.5">
-              <label className="block text-base text-ink-gray-5">Owner</label>
+              <FormLabel size="md" required>
+                Owner
+              </FormLabel>
               <Combobox
                 inputClassName="bg-surface-white h-8 border-outline-gray-2 text-ink-gray-7"
                 loading={isOwnerLookupLoading}

@@ -32,6 +32,7 @@ export type ProjectTimesheetMember = {
   leaves: LeaveProps[];
   holidays: HolidayProp[];
   status: ApprovalStatusLabelType;
+  backdateRestrictedBefore: string | null;
 };
 
 export type ProjectTimesheetProject = {
@@ -115,6 +116,7 @@ export const ProjectTimesheetRow = ({
                     className="pl-13.5"
                     collapsed={true}
                     disabled={member.status === "Approved"}
+                    backdateRestrictedBefore={member.backdateRestrictedBefore}
                     onCellClick={(date) =>
                       openAddTimeDialog({
                         date,
@@ -143,6 +145,9 @@ export const ProjectTimesheetRow = ({
                             dailyWorkingHours={dailyWorkingHours}
                             totalTimeEntriesInHours={totalTimeEntriesInHours}
                             employee={member.employee}
+                            backdateRestrictedBefore={
+                              member.backdateRestrictedBefore
+                            }
                             hideLikeButton={true}
                           />
                         ))}

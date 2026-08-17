@@ -551,3 +551,31 @@ class TestProjectTimesheetPublisher(_ProjectTimesheetDataBase):
         frappe.set_user("Administrator")
         expected = get_project_timesheet_member_week(employee=self.emp1, start_date=W1_MON, by_pass_access_check=True)
         self.assertEqual(payload["message"], expected)
+
+
+class TestProjectTimesheetDataBackdateRestriction(_ProjectTimesheetDataBase):
+    """backdate_restricted_before on each member payload - confirms the field is
+    threaded through from get_backdate_restriction_boundary."""
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        frappe.db.set_single_value("Timesheet Settings", "allow_backdated_entries", 1)
+        frappe.db.set_single_value("Timesheet Settings", "allow_backdated_entries_till_employee", 3)
+        frappe.clear_cache()
+
+    def test_member_payload_carries_matching_boundary(self):
+        from next_pms.timesheet.doc_events.timesheet import get_backdate_restriction_boundary
+
+        res = self._call(filters=self._scope_to_fixtures_filter())
+
+        frappe.set_user(WRITE_USER)
+        seen_employees = set()
+        for week in res["week_groups"]:
+            for project in week["projects"]:
+                for member in project["members"]:
+                    seen_employees.add(member["employee"])
+                    expected = get_backdate_restriction_boundary(member["employee"])
+                    self.assertEqual(member["backdate_restricted_before"], expected)
+
+        self.assertTrue(seen_employees, "fixtures produced no members to check")

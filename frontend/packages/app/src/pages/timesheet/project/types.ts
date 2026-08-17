@@ -37,6 +37,7 @@ export type ProjectMemberPayload = {
   tasks: TaskProps;
   holidays: HolidayProp[];
   leaves: LeaveProps[];
+  backdate_restricted_before: string | null;
   working_hour: number;
   working_frequency: WorkingFrequency;
   status: ApprovalStatusLabelType;

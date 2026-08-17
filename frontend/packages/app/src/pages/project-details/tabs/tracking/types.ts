@@ -55,6 +55,12 @@ export type TrackingInvoiceBurn = {
   total_project_amount: number | null;
 };
 
+export type TrackingBudgetBurn = {
+  actual: number;
+  forecasted: number;
+  total_budget: number;
+};
+
 export type TrackingContract = {
   name: string;
   start_date: string;
@@ -88,6 +94,7 @@ export type TrackingMessage = {
   hours_remaining: number | null;
   tasks: TrackingTasks;
   invoice_burn: TrackingInvoiceBurn;
+  budget_burn: TrackingBudgetBurn | null;
   contracts: TrackingContract[] | null;
   project_rates: [ProjectFlatRate, ...ProjectRate[]] | null;
   lifetime_values: TrackingLifetimeValues | null;

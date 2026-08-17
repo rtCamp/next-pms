@@ -1,7 +1,7 @@
 /**
  * External dependencies.
  */
-import { ErrorMessage, TextInput } from "@rtcamp/frappe-ui-react";
+import { ErrorMessage, FormLabel, TextInput } from "@rtcamp/frappe-ui-react";
 
 interface ScheduleTotalHoursFieldProps {
   value: string;
@@ -18,9 +18,9 @@ function ScheduleTotalHoursField({
 }: ScheduleTotalHoursFieldProps) {
   return (
     <div className="flex-1 space-y-1.5">
-      <label className="block text-base text-ink-gray-5">
+      <FormLabel size="md" required>
         Edit total hours
-      </label>
+      </FormLabel>
       <TextInput
         type="number"
         value={value}

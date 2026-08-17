@@ -1039,6 +1039,35 @@ def resolve_holiday_lists(employee_meta_map: dict, employee_names: list) -> dict
     }
 
 
+def get_holiday_dates_by_employee(employee_names: list, start_date, end_date) -> dict:
+    """Batch-resolve each employee's holiday dates within `[start_date, end_date]` in a
+    fixed number of queries, regardless of how many employees are passed - one to resolve
+    holiday lists (see resolve_holiday_lists) and one to fetch the holidays themselves.
+    Mirrors what build_chunk_context already does for holidays_by_employee, but over a
+    caller-supplied date range instead of the currently viewed week."""
+    if not employee_names:
+        return {}
+
+    employee_meta_map = {
+        row.name: row
+        for row in get_all("Employee", filters={"name": ["in", employee_names]}, fields=["name", "company"])
+    }
+    holiday_list_by_employee = resolve_holiday_lists(employee_meta_map, employee_names)
+
+    holiday_lists = {hl for hl in holiday_list_by_employee.values() if hl}
+    holidays_by_list = defaultdict(list)
+    if holiday_lists:
+        holidays = get_all(
+            "Holiday",
+            filters={"parent": ["in", list(holiday_lists)], "holiday_date": ["between", (start_date, end_date)]},
+            fields=["parent", "holiday_date"],
+        )
+        for holiday in holidays:
+            holidays_by_list[holiday.parent].append(str(holiday.holiday_date))
+
+    return {name: holidays_by_list.get(holiday_list_by_employee.get(name), []) for name in employee_names}
+
+
 def build_chunk_context(employees: list, dates: list, parsed_filters: dict):
     """Runs the filters to build the context for the list of employees passed."""
     employee_names = [employee.name for employee in employees]
@@ -1048,6 +1077,7 @@ def build_chunk_context(employees: list, dates: list, parsed_filters: dict):
             "daily_norm_map": {},
             "leaves_by_employee": {},
             "holidays_by_employee": {},
+            "backdate_boundary_by_employee": {},
             "timesheet_map": {},
             "emp_ts_by_start": {},
             "detail_by_parent": {},
@@ -1196,11 +1226,16 @@ def build_chunk_context(employees: list, dates: list, parsed_filters: dict):
 
     has_search_or_task_filters = bool(parsed_filters.get("Task"))
 
+    from next_pms.timesheet.doc_events.timesheet import get_backdate_restriction_boundaries
+
+    backdate_boundary_by_employee = get_backdate_restriction_boundaries(employee_names)
+
     return {
         "working_hours_map": working_hours_map,
         "daily_norm_map": daily_norm_map,
         "leaves_by_employee": leaves_by_employee,
         "holidays_by_employee": holidays_by_employee,
+        "backdate_boundary_by_employee": backdate_boundary_by_employee,
         "timesheet_map": timesheet_map,
         "emp_ts_by_start": emp_ts_by_start,
         "detail_by_parent": detail_by_parent,

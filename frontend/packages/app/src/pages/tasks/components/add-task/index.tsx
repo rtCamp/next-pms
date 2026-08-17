@@ -8,6 +8,7 @@ import {
   DatePicker,
   Dialog,
   ErrorMessage,
+  FormLabel,
   Select,
   TextEditor,
   TextInput,
@@ -207,35 +208,12 @@ const AddTask = ({
     >
       <div className="space-y-4">
         <form.Field
-          name="subject"
-          children={(field) => (
-            <div>
-              <label className="block text-base text-ink-gray-5 mb-1.5">
-                Subject
-              </label>
-              <TextInput
-                size="md"
-                variant="outline"
-                placeholder="Add subject"
-                value={field.state.value}
-                onChange={(event) => field.handleChange(event.target.value)}
-              />
-              {!field.state.meta.isValid && (
-                <div className="mt-4">
-                  <ErrorMessage message={field.state.meta.errors[0]?.message} />
-                </div>
-              )}
-            </div>
-          )}
-        />
-
-        <form.Field
           name="project"
           children={(field) => (
             <div>
-              <label className="block text-base text-ink-gray-5 mb-1.5">
+              <FormLabel size="md" className="mb-1.5" required>
                 Project
-              </label>
+              </FormLabel>
               <Combobox
                 inputClassName="bg-surface-white h-8 border-outline-gray-2 text-ink-gray-7"
                 loading={isProjectLookupLoading}
@@ -255,6 +233,29 @@ const AddTask = ({
                   field.handleChange(nextProject);
                 }}
                 openOnFocus
+              />
+              {!field.state.meta.isValid && (
+                <div className="mt-4">
+                  <ErrorMessage message={field.state.meta.errors[0]?.message} />
+                </div>
+              )}
+            </div>
+          )}
+        />
+
+        <form.Field
+          name="subject"
+          children={(field) => (
+            <div>
+              <FormLabel size="md" className="mb-1.5" required>
+                Subject
+              </FormLabel>
+              <TextInput
+                size="md"
+                variant="outline"
+                placeholder="Add subject"
+                value={field.state.value}
+                onChange={(event) => field.handleChange(event.target.value)}
               />
               {!field.state.meta.isValid && (
                 <div className="mt-4">
@@ -300,9 +301,9 @@ const AddTask = ({
             name="expected_time"
             children={(field) => (
               <div>
-                <label className="block text-base text-ink-gray-5 mb-1.5">
+                <FormLabel size="md" className="mb-1.5" required>
                   Expected Time
-                </label>
+                </FormLabel>
                 <TextInput
                   size="md"
                   variant="outline"
@@ -367,9 +368,9 @@ const AddTask = ({
           name="description"
           children={(field) => (
             <div>
-              <label className="block text-base text-ink-gray-5 mb-1.5">
+              <FormLabel size="md" className="mb-1.5" required={!isEditMode}>
                 Description
-              </label>
+              </FormLabel>
               <TextEditor
                 placeholder="Add description"
                 content={field.state.value}

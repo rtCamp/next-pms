@@ -8,6 +8,7 @@ import {
   Combobox,
   Dialog,
   ErrorMessage,
+  FormLabel,
   Select,
   TextEditor,
   useToasts,
@@ -217,9 +218,9 @@ export function CreateRiskModal({
             name="risk_level"
             children={(field) => (
               <div className="flex flex-col gap-1.5">
-                <label className="block text-base text-ink-gray-5">
+                <FormLabel size="md" required>
                   Risk level
-                </label>
+                </FormLabel>
                 <Select
                   className="text-ink-gray-7 **:data-placeholder:text-ink-gray-4"
                   variant="outline"
@@ -241,9 +242,9 @@ export function CreateRiskModal({
             name="status"
             children={(field) => (
               <div className="flex flex-col gap-1.5">
-                <label className="block text-base text-ink-gray-5">
+                <FormLabel size="md" required>
                   Status
-                </label>
+                </FormLabel>
                 <Select
                   className="text-ink-gray-7 **:data-placeholder:text-ink-gray-4"
                   variant="outline"

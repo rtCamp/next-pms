@@ -12,12 +12,14 @@ import {
   useToasts,
   TextEditor,
   DurationInput,
+  FormLabel,
   type TextEditorHandle,
   type TextEditorProps,
 } from "@rtcamp/frappe-ui-react";
 import { Calendar, Folder } from "@rtcamp/frappe-ui-react/icons";
 import { useForm } from "@tanstack/react-form";
 import { useSelector } from "@tanstack/react-store";
+import { format, subDays } from "date-fns";
 import { FrappeError, useFrappePostCall } from "frappe-react-sdk";
 
 /**
@@ -301,9 +303,9 @@ const AddTime = ({
           children={(field) => {
             return (
               <>
-                <label className="block text-base text-ink-gray-5 mb-1.5">
+                <FormLabel size="md" className="mb-1.5" required>
                   Project
-                </label>
+                </FormLabel>
                 <Combobox
                   inputClassName="bg-surface-white h-8 border-outline-gray-2 text-ink-gray-7"
                   loading={isProjectLookupLoading}
@@ -342,9 +344,9 @@ const AddTime = ({
           children={(field) => {
             return (
               <>
-                <label className="block text-base text-ink-gray-5 mb-1.5">
+                <FormLabel size="md" className="mb-1.5" required>
                   Task
-                </label>
+                </FormLabel>
                 <Combobox
                   inputClassName="bg-surface-white h-8 border-outline-gray-2 text-ink-gray-7"
                   loading={isTaskLookupLoading}
@@ -393,13 +395,42 @@ const AddTime = ({
                     onChange={(val) => field.handleChange(val as string)}
                     placeholder="Placeholder"
                     value={field.state.value}
+                    footer={(props, { setValue, clear, close }) => (
+                      <div {...props} className="flex gap-1 justify-between">
+                        <div className="flex gap-1">
+                          <Button
+                            variant="outline"
+                            onClick={() => {
+                              setValue(
+                                format(subDays(new Date(), 1), "yyyy-MM-dd"),
+                              );
+                              close();
+                            }}
+                          >
+                            Yesterday
+                          </Button>
+                          <Button
+                            variant="outline"
+                            onClick={() => {
+                              setValue(format(new Date(), "yyyy-MM-dd"));
+                              close();
+                            }}
+                          >
+                            Today
+                          </Button>
+                        </div>
+                        <Button variant="outline" onClick={clear}>
+                          Clear
+                        </Button>
+                      </div>
+                    )}
                   >
                     {({ displayValue }) => {
                       return (
                         <div className="flex-1 flex w-full flex-col space-y-1.5 ">
-                          <label className="block text-base text-ink-gray-5">
+                          <FormLabel size="md" required>
                             Date
-                          </label>
+                          </FormLabel>
                           <div
                             className={
                               "flex relative items-center rounded border border-outline-gray-2 px-2.5"
@@ -434,6 +465,7 @@ const AddTime = ({
                 <div className="flex flex-col flex-1 w-full gap-2">
                   <DurationInput
                     label="Duration"
+                    required
                     size="md"
                     snap="smooth"
                     maxDuration={maxDuration}
@@ -466,9 +498,9 @@ const AddTime = ({
           children={(field) => {
             return (
               <>
-                <label className="block text-base text-ink-gray-5 mb-1.5">
+                <FormLabel size="md" className="mb-1.5" required>
                   Comment
-                </label>
+                </FormLabel>
                 <TextEditor
                   key={`comment-${entryKey}`}
                   ref={commentEditorRef}

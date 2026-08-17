@@ -28,6 +28,7 @@ export const toProjectMember = (
   workingHour: member.working_hour,
   workingFrequency: member.working_frequency,
   status: member.status,
+  backdateRestrictedBefore: member.backdate_restricted_before,
 });
 
 /**

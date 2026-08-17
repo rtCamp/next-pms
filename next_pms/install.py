@@ -14,6 +14,7 @@ def after_install():
     setup_timesheet_rejection_reason_field()
     setup_timesheet_weekly_rejection_reason_field()
     setup_task_permissions()
+    setup_time_report_frequency()
 
 
 def setup_timesheet_rejection_reason_field():
@@ -73,6 +74,34 @@ def setup_project_target_hours_field():
             ]
         }
     )
+
+
+def setup_time_report_frequency():
+    import frappe
+    from frappe.custom.doctype.custom_field.custom_field import create_custom_fields
+    from frappe.custom.doctype.property_setter.property_setter import make_property_setter
+
+    create_custom_fields(
+        {
+            "Project": [
+                {
+                    "fieldname": "custom_time_report_frequency",
+                    "fieldtype": "Link",
+                    "label": "Time Report Frequency",
+                    "options": "Project Time Report Frequency",
+                    "insert_after": "custom_duration",
+                },
+            ]
+        }
+    )
+
+    for frequency in ("Weekly", "Bi-weekly", "Monthly"):
+        if not frappe.db.exists("Project Time Report Frequency", frequency):
+            frappe.get_doc({"doctype": "Project Time Report Frequency", "name": frequency}).insert(
+                ignore_permissions=True
+            )
+
+    make_property_setter("Project", "collect_progress", "hidden", 1, "Check")
 
 
 def setup_project_custom_fields():
