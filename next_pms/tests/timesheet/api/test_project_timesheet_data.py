@@ -567,15 +567,13 @@ class TestProjectTimesheetDataBackdateRestriction(_ProjectTimesheetDataBase):
     def test_member_payload_carries_matching_boundary(self):
         from next_pms.timesheet.doc_events.timesheet import get_backdate_restriction_boundary
 
-        res = self._call(filters=self._scope_to_fixtures_filter())
+        res = self._data(start_date=W1_MON, page_length=10, filters=self._scope_to_fixtures_filter())
 
-        frappe.set_user(WRITE_USER)
         seen_employees = set()
-        for week in res["week_groups"]:
-            for project in week["projects"]:
-                for member in project["members"]:
-                    seen_employees.add(member["employee"])
-                    expected = get_backdate_restriction_boundary(member["employee"])
-                    self.assertEqual(member["backdate_restricted_before"], expected)
+        for project in res["projects"]:
+            for member in project["members"]:
+                seen_employees.add(member["employee"])
+                expected = get_backdate_restriction_boundary(member["employee"])
+                self.assertEqual(member["backdate_restricted_before"], expected)
 
         self.assertTrue(seen_employees, "fixtures produced no members to check")

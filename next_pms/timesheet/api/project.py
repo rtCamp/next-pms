@@ -205,6 +205,7 @@ def _build_project_member_payload(employee, employee_data: dict, project_tasks: 
         "tasks": project_tasks,
         "holidays": employee_data["holidays"],
         "leaves": employee_data["leaves"],
+        "backdate_restricted_before": employee_data["backdate_restricted_before"],
         "working_hour": working_hours.get("working_hour", 8),
         "working_frequency": working_hours.get("working_frequency", "Per Day"),
         "status": employee_data["status"],
@@ -243,6 +244,7 @@ def _collect_employee_week_data(employees: list, week: dict, context: dict, scop
             ),
             "holidays": list(context["holidays_by_employee"].get(employee.name, [])),
             "leaves": list(context["leaves_by_employee"].get(employee.name, [])),
+            "backdate_restricted_before": context["backdate_boundary_by_employee"].get(employee.name),
             "status": week_detail.get("status", "Not Submitted"),
             "project_tasks": project_tasks_map,
         }
