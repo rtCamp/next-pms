@@ -8,11 +8,15 @@ type NoteTemplateItem = {
   template_name: string;
   title: string;
   description: string;
+  template_description: string | null;
+  category: string | null;
 };
 
 export type NoteTemplateOption = LookupOption & {
   title: string;
   description: string;
+  template_description: string | null;
+  category: string | null;
 };
 
 interface UseNoteTemplateLookupOptions {
@@ -20,6 +24,8 @@ interface UseNoteTemplateLookupOptions {
   shouldFetch: boolean;
   /** Filters templates through backend or_filters on template name and title. */
   query: string;
+  /** Restricts templates to a single category. */
+  category?: string;
   /** Caps the number of template rows fetched per request. */
   pageSize?: number;
   /** Revalidates the lookup when the window regains focus. */
@@ -34,6 +40,7 @@ interface UseNoteTemplateLookupOptions {
 export const useNoteTemplateLookup = ({
   shouldFetch,
   query,
+  category,
   pageSize = 20,
   revalidateOnFocus,
   keepPreviousData,
@@ -50,8 +57,18 @@ export const useNoteTemplateLookup = ({
     keepPreviousData,
     params: ({ query: searchQuery, pageSize }) => ({
       doctype: "Project Status Update Template",
-      fields: ["name", "template_name", "title", "description"],
+      fields: [
+        "name",
+        "template_name",
+        "title",
+        "description",
+        "template_description",
+        "category",
+      ],
       limit_page_length: pageSize,
+      filters: category
+        ? [["Project Status Update Template", "category", "=", category]]
+        : undefined,
       or_filters: searchQuery
         ? [
             [
@@ -76,6 +93,8 @@ export const useNoteTemplateLookup = ({
       value: template.name,
       title: template.title,
       description: template.description,
+      template_description: template.template_description,
+      category: template.category,
     }),
   });
 };
