@@ -9,6 +9,7 @@ import {
   DatePicker,
   Dialog,
   ErrorMessage,
+  FormLabel,
   TextInput,
 } from "@rtcamp/frappe-ui-react";
 import { Calendar } from "@rtcamp/frappe-ui-react/icons";
@@ -134,9 +135,9 @@ export function ContractModal({
             name="startDate"
             children={(field) => (
               <div className="flex-1 flex flex-col gap-1.5">
-                <label className="block text-base text-ink-gray-5">
+                <FormLabel size="md" required>
                   Start date
-                </label>
+                </FormLabel>
                 <DatePicker
                   label="Start date"
                   value={field.state.value}
@@ -167,9 +168,9 @@ export function ContractModal({
             name="endDate"
             children={(field) => (
               <div className="flex-1 flex flex-col gap-1.5">
-                <label className="block text-base text-ink-gray-5">
+                <FormLabel size="md" required>
                   End date
-                </label>
+                </FormLabel>
                 <DatePicker
                   label="End date"
                   value={field.state.value}
@@ -201,9 +202,9 @@ export function ContractModal({
           name="hoursBought"
           children={(field) => (
             <div className="flex flex-col gap-1.5">
-              <label className="block text-base text-ink-gray-5">
+              <FormLabel size="md" required>
                 Hours bought
-              </label>
+              </FormLabel>
               <TextInput
                 size="md"
                 variant="outline"
