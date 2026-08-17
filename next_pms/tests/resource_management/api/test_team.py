@@ -7,6 +7,7 @@ from frappe.utils import getdate
 
 from next_pms.resource_management.api.team import get_resource_management_team_view_data
 from next_pms.resource_management.api.utils.query import get_employee_leaves
+from next_pms.tests.utils import assign_empty_holiday_list
 from next_pms.timesheet.api.app import has_bu_field
 
 
@@ -690,6 +691,11 @@ class TestTeamViewFlatGridLeaves(_TeamViewBase):
         cls.write_user = cls._make_user(FILTER_WRITE_USER, projects_user=True)
         cls.employee = cls._make_employee("Tvl Employee")
         cls.only = json.dumps([cls.employee])
+
+        # HRMS subtracts holidays from every leave whose type does not include them, and throws
+        # outright when the employee resolves to no holiday list. An empty list satisfies that
+        # lookup without letting site holidays move the day counts below.
+        assign_empty_holiday_list(cls.employee)
 
         # is_lwp so the applications below need no Leave Allocation to be valid.
         if not frappe.db.exists("Leave Type", TEAM_LEAVE_TYPE):
