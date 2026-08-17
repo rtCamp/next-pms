@@ -11,6 +11,7 @@ export type ApiProjectMember = {
   tasks: TaskProps;
   holidays: ProjectMemberData["holidays"];
   leaves: ProjectMemberData["leaves"];
+  backdate_restricted_before: ProjectMemberData["backdateRestrictedBefore"];
   working_hour: number;
   working_frequency: ProjectMemberData["workingFrequency"];
   status: ProjectMemberData["status"];

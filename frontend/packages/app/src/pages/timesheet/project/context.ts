@@ -24,6 +24,7 @@ export type ProjectMemberData = {
   tasks: TaskProps;
   holidays: HolidayProp[];
   leaves: LeaveProps[];
+  backdateRestrictedBefore: string | null;
   workingHour: number;
   workingFrequency: WorkingFrequency;
   status: ApprovalStatusLabelType;

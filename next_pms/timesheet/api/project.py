@@ -313,6 +313,7 @@ def _build_project_employee_payload(
         "working_hours": working_hours,
         "holidays": list(context["holidays_by_employee"].get(employee.name, [])),
         "leaves": list(context["leaves_by_employee"].get(employee.name, [])),
+        "backdate_restricted_before": context["backdate_boundary_by_employee"].get(employee.name),
         "week_details": week_details,
     }
 
@@ -364,6 +365,7 @@ def _build_project_week_groups(response_dates: list, employee_data_map: dict):
                         "tasks": project_tasks,
                         "holidays": emp_data["holidays"],
                         "leaves": emp_data["leaves"],
+                        "backdate_restricted_before": emp_data["backdate_restricted_before"],
                         "working_hour": emp_data["working_hours"].get("working_hour", 8),
                         "working_frequency": emp_data["working_hours"].get("working_frequency", "Per Day"),
                         "status": week_detail.get("status", "Not Submitted"),
