@@ -3,8 +3,10 @@ import json
 import frappe
 from erpnext import get_default_company
 from frappe.tests import IntegrationTestCase
+from frappe.utils import getdate
 
 from next_pms.resource_management.api.team import get_resource_management_team_view_data
+from next_pms.resource_management.api.utils.query import get_employee_leaves
 from next_pms.timesheet.api.app import has_bu_field
 
 
@@ -15,6 +17,15 @@ def _business_unit_available():
     so fixtures and assertions that touch it must be skipped there.
     """
     return bool(has_bu_field())
+
+
+def _first_half_field_available():
+    """True only when the `custom_first_halfsecond_half` customization is installed.
+
+    The field is a site customization, so `get_employee_leaves` guards on it and reports
+    None where it is missing — the key is always in the payload, only its value varies.
+    """
+    return frappe.db.has_column("Leave Application", "custom_first_halfsecond_half")
 
 
 EMPLOYEE_TAGS = {
@@ -169,6 +180,10 @@ TEAM_WINDOW_START = "2026-06-15"
 
 FILTER_WRITE_USER = "tv.write@example.com"
 FILTER_READ_ONLY_USER = "tv.readonly@example.com"
+
+TEAM_LEAVE_TYPE = "TV Leave Without Pay"
+TEAM_HALF_DAY_DATE = "2026-06-17"
+TEAM_HALF_DAY_PORTION = "First Half"
 
 
 class _TeamViewBase(IntegrationTestCase):
@@ -658,3 +673,70 @@ class TestTeamViewHoursSummaryShape(_TeamViewBase):
         entry = next(row for row in result["data"] if row["name"] == self.employee)
         self.assertIn("all_dates_data", entry)
         self.assertIn("all_week_data", entry)
+
+
+class TestTeamViewFlatGridLeaves(_TeamViewBase):
+    """The `leaves` payload the flat grid renders time-off bars from.
+
+    The grid draws one bar per leave across from_date..to_date and splits out the
+    half day, so the window scoping and the half_day_date / custom_first_halfsecond_half
+    pair are contract, not incidental fields on the row.
+    """
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.company = get_default_company()
+        cls.write_user = cls._make_user(FILTER_WRITE_USER, projects_user=True)
+        cls.employee = cls._make_employee("Tvl Employee")
+        cls.only = json.dumps([cls.employee])
+
+        # is_lwp so the applications below need no Leave Allocation to be valid.
+        if not frappe.db.exists("Leave Type", TEAM_LEAVE_TYPE):
+            frappe.get_doc({"doctype": "Leave Type", "leave_type_name": TEAM_LEAVE_TYPE, "is_lwp": 1}).insert(
+                ignore_permissions=True
+            )
+
+        # In-window half day ([2026-06-15, 2026-06-28]) and one leave entirely after it.
+        cls.in_window_leave = cls._make_leave(TEAM_HALF_DAY_DATE, TEAM_HALF_DAY_DATE, half_day_date=TEAM_HALF_DAY_DATE)
+        cls.out_of_window_leave = cls._make_leave("2026-07-01", "2026-07-05")
+
+        get_employee_leaves.clear_cache()
+        frappe.clear_cache()
+
+    @classmethod
+    def _make_leave(cls, from_date, to_date, half_day_date=None):
+        leave = frappe.get_doc(
+            {
+                "doctype": "Leave Application",
+                "employee": cls.employee,
+                "leave_type": TEAM_LEAVE_TYPE,
+                "from_date": from_date,
+                "to_date": to_date,
+                "half_day": 1 if half_day_date else 0,
+                "half_day_date": half_day_date,
+                "description": "team view flat grid leave fixture",
+                "leave_approver": "Administrator",
+                "status": "Open",
+            }
+        )
+        if half_day_date and _first_half_field_available():
+            leave.custom_first_halfsecond_half = TEAM_HALF_DAY_PORTION
+        return leave.insert(ignore_permissions=True).name
+
+    def _leaves(self):
+        return self._call(employee_id=self.only, need_hours_summary=False)["leaves"]
+
+    def test_excludes_out_of_window_leaves(self):
+        leave_names = {leave["name"] for leave in self._leaves()}
+        self.assertIn(self.in_window_leave, leave_names)
+        self.assertNotIn(self.out_of_window_leave, leave_names)
+
+    def test_half_day_leave_carries_the_day_and_the_half_it_covers(self):
+        leave = next(row for row in self._leaves() if row["name"] == self.in_window_leave)
+
+        self.assertTrue(leave["half_day"])
+        self.assertEqual(getdate(leave["half_day_date"]), getdate(TEAM_HALF_DAY_DATE))
+        self.assertIn("custom_first_halfsecond_half", leave)
+        if _first_half_field_available():
+            self.assertEqual(leave["custom_first_halfsecond_half"], TEAM_HALF_DAY_PORTION)
