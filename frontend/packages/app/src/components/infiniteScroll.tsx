@@ -16,6 +16,7 @@ import { InfiniteScrollProps } from "./types";
 
 const InfiniteScroll = ({
   children,
+  role,
   isLoading,
   hasMore,
   verticalLodMore,
@@ -75,14 +76,17 @@ const InfiniteScroll = ({
 
   if (!enableScrollArea) {
     return (
-      <div ref={handleViewportRef} className={className}>
+      <div role={role} ref={handleViewportRef} className={className}>
         {content}
       </div>
     );
   }
 
   return (
-    <ScrollArea.Root className={cn("relative h-full w-full", className)}>
+    <ScrollArea.Root
+      role={role}
+      className={cn("relative h-full w-full", className)}
+    >
       <ScrollArea.Viewport
         ref={handleViewportRef}
         tabIndex={-1}

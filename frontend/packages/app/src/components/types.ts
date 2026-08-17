@@ -1,7 +1,7 @@
 /**
  * External Dependencies
  */
-import { ReactNode } from "react";
+import { AriaRole, ReactNode } from "react";
 
 export interface EmployeeComboProps {
   disabled?: boolean;
@@ -17,6 +17,7 @@ export interface EmployeeComboProps {
 
 export interface InfiniteScrollProps {
   children: ReactNode;
+  role?: AriaRole;
   isLoading: boolean;
   hasMore: boolean;
   verticalLodMore: () => void;
