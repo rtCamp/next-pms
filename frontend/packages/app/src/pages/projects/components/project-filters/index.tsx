@@ -89,6 +89,7 @@ export function ProjectFilters() {
             value={currency || null}
             onChange={(v) => setCurrency(v || "")}
             options={currencies}
+            clearable
           />
         </div>
         <Select
