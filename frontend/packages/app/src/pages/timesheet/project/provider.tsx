@@ -61,6 +61,8 @@ export const ProjectTimesheetProvider: FC<PropsWithChildren> = ({
     [filters.search, frappeFilters],
   );
 
+  const hasActiveFilter = Boolean(filterArgs.search || filterArgs.filters);
+
   const activeFilterKey = useMemo(
     () => JSON.stringify({ weekDate, weeksPerPage, ...filterArgs }),
     [weekDate, weeksPerPage, filterArgs],
@@ -133,9 +135,12 @@ export const ProjectTimesheetProvider: FC<PropsWithChildren> = ({
       if (handler && info.message) {
         handler(info.message);
       }
-      void refreshWeeks();
+
+      if (hasActiveFilter) {
+        void refreshWeeks();
+      }
     },
-    [refreshWeeks],
+    [hasActiveFilter, refreshWeeks],
   );
 
   useFrappeEventListener("project_timesheet_info", handleProjectTimesheetInfo);

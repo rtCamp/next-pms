@@ -17,7 +17,7 @@ import type {
   ProjectMemberWeekPayload,
   ProjectWeekProjectsResponse,
 } from "./types";
-import { reconcileEmployeeWeek, toProjectGroup } from "./utils";
+import { applyRealtimeToPages, toProjectGroup } from "./utils";
 
 type UseProjectWeekProjectsOptions = {
   startDate: string;
@@ -134,11 +134,12 @@ export function useProjectWeekProjects({
         return;
       }
 
-      const nextPages = paginatedData.map((page) =>
-        page.message
-          ? { ...page, message: reconcileEmployeeWeek(page.message, payload) }
-          : page,
-      );
+      const nextPages = applyRealtimeToPages(paginatedData, payload);
+      if (!nextPages) {
+        void mutate();
+        return;
+      }
+
       void mutate(nextPages, { revalidate: false });
     },
     [hasActiveFilter, mutate, paginatedData],

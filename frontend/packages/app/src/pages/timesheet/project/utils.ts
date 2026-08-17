@@ -10,6 +10,7 @@ import type {
   ProjectMemberWeekPayload,
   ProjectWeekProjectPayload,
   ProjectWeekProjectsPayload,
+  ProjectWeekProjectsResponse,
 } from "./types";
 
 /**
@@ -59,7 +60,7 @@ const upsertMember = (
  * on the projects the payload lists, drops them from the projects it omits, and
  * removes any project left with no members.
  */
-export const reconcileEmployeeWeek = (
+const reconcileEmployeeWeek = (
   message: ProjectWeekProjectsPayload,
   { employee, projects: incoming }: ProjectMemberWeekPayload,
 ): ProjectWeekProjectsPayload => {
@@ -74,4 +75,33 @@ export const reconcileEmployeeWeek = (
     .filter((project) => project.members.length > 0);
 
   return { ...message, projects };
+};
+
+/**
+ * Optimistically patches the loaded pages for a realtime member-week update, returning null if a project was added or dropped.
+ */
+export const applyRealtimeToPages = (
+  pages: ProjectWeekProjectsResponse[],
+  payload: ProjectMemberWeekPayload,
+): ProjectWeekProjectsResponse[] | null => {
+  const loadedIds = new Set(
+    pages.flatMap(
+      (page) => page.message?.projects.map((project) => project.project) ?? [],
+    ),
+  );
+  if (Object.keys(payload.projects).some((id) => !loadedIds.has(id))) {
+    return null;
+  }
+
+  let droppedProject = false;
+  const nextPages = pages.map((page) => {
+    if (!page.message) return page;
+    const message = reconcileEmployeeWeek(page.message, payload);
+    if (message.projects.length < page.message.projects.length) {
+      droppedProject = true;
+    }
+    return { ...page, message };
+  });
+
+  return droppedProject ? null : nextPages;
 };
