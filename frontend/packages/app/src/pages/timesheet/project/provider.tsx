@@ -131,10 +131,9 @@ export const ProjectTimesheetProvider: FC<PropsWithChildren> = ({
       );
       if (!week) return;
 
-      const handler = refreshRegistry.current.get(week.start_date);
-      if (handler && info.message) {
-        handler(info.message);
-      }
+      // A site-wide update arrives without `message` - the detailed week is routed only
+      // to the user who wrote the timesheet - so pass null and let the week refetch.
+      refreshRegistry.current.get(week.start_date)?.(info.message ?? null);
 
       if (hasActiveFilter) {
         void refreshWeeks();

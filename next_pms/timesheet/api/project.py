@@ -326,7 +326,15 @@ def get_project_timesheet_data(
     if not employee_ids:
         return response
 
-    employees, _ = filter_employees(page_length=len(employee_ids), start=0, ids=employee_ids)
+    # `ignore_default_filters` because participation was resolved from Timesheet rows,
+    # which carry no employee-status condition. Letting `filter_employees` re-apply its
+    # default `status = Active` would drop a departed employee's rows while their project
+    # still occupies a slot in `total_count` and in this page, rendering it memberless.
+    # Employee status stays filterable - `resolve_project_scope` folds an explicit
+    # `Employee.status` filter into the participation query, so it is honoured there.
+    employees, _ = filter_employees(
+        page_length=len(employee_ids), start=0, ids=employee_ids, ignore_default_filters=True
+    )
     # Context spans only this week. It used to be built across the whole (up to 12-week)
     # lookback and then mostly discarded, which dominated the cost of a filtered request.
     context = build_chunk_context(employees=employees, dates=[week], parsed_filters=scope.parsed_filters)
@@ -414,10 +422,15 @@ def get_project_timesheet_weeks(
     }
 
 
-@whitelist(methods=["GET", "POST"])
 @error_logger
 def get_project_timesheet_member_week(employee: str, start_date: str, by_pass_access_check: bool = False):
     """One employee's week, grouped by project - the unit the realtime publisher swaps in.
+
+    Deliberately not whitelisted. `by_pass_access_check` exists for the publisher, which
+    runs as whoever saved the timesheet and so cannot be assumed to hold the viewing roles;
+    exposing that switch over HTTP would let any logged-in user skip `only_for` and read
+    another employee's tasks, hours and leave. The page never calls this directly - it
+    reads `get_project_timesheet_data` - so there is nothing to expose.
 
     Keyed by project rather than returning a single project because one employee-week can
     span several projects, and an edit can *remove* them from one (task reassigned, last

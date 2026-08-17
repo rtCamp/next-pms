@@ -323,13 +323,20 @@ def publish_timesheet_update(employee, start_date):
         start_date=get_date_str(start_date),
         by_pass_access_check=True,
     )
-    project_payload = {
-        "message": project_member,
-        "employee": employee,
-        "start_date": get_date_str(start_date),
-    }
-    publish_realtime("project_timesheet_info", project_payload, after_commit=True, room=get_site_room())
-    publish_realtime("project_timesheet_info", project_payload, after_commit=True, user=frappe.session.user)
+    # The detailed week carries another employee's tasks, hours, leave and approval
+    # status, so the site room - which holds every logged-in client, including ones that
+    # would fail get_project_timesheet_data's only_for - gets an invalidation only.
+    # Authorized viewers reload the week through that checked endpoint. The editor, who is
+    # authorized by virtue of having just written the timesheet, still gets the payload so
+    # their own row swaps in without a round trip.
+    invalidation = {"employee": employee, "start_date": get_date_str(start_date)}
+    publish_realtime("project_timesheet_info", invalidation, after_commit=True, room=get_site_room())
+    publish_realtime(
+        "project_timesheet_info",
+        {**invalidation, "message": project_member},
+        after_commit=True,
+        user=frappe.session.user,
+    )
 
 
 def validate_start_date(doc):

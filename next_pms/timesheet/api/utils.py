@@ -968,9 +968,17 @@ def has_scoped_project_timesheets_before(scope: ProjectTimesheetScope, date) -> 
 
     Deliberately an upper bound: Timesheet-level filters and stored approval statuses
     narrow it, while Task / Timesheet Detail filters and the project-name search do not,
-    since answering those needs the full detail-and-task hop. Over-reporting costs one empty
-    page; under-reporting would hide weeks that do have data, so the bound leans the safe
-    way.
+    since answering those needs the full detail-and-task hop.
+
+    Know what that bound costs before widening its use. Under those unapplied filters this
+    can stay true across consecutive empty windows, and because the frontend leaves its
+    infinite-scroll sentinel mounted on a page that rendered no weeks, those windows are
+    requested automatically rather than on a scroll - so the tail is several round trips,
+    not the single empty page it might look like. It is kept because answering exactly
+    means joining Timesheet Detail to Task on every week request: measured at ~132ms under
+    a Task filter against ~0.2ms here, on a call that is itself ~600ms, and paid even when
+    nothing would have chained. Under-reporting would hide weeks that do have data, so the
+    bound still leans the safe way.
     """
     filters = {"start_date": ["<", date], "docstatus": ["!=", 2]}
     if scope.approval_status:

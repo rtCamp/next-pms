@@ -396,6 +396,23 @@ class TestProjectTimesheetData(_ProjectTimesheetDataBase):
         )
         self.assertEqual(self._project_ids(res), {self.project_alpha})
 
+    def test_inactive_member_still_fills_the_slot_their_project_occupies(self):
+        """Participation is resolved from Timesheet rows, which carry no employee-status
+        condition, so a departed employee's project counts toward `total_count`. The member
+        lookup has to use the same population or that project renders as a hole in the page."""
+        frappe.set_user("Administrator")
+        frappe.db.set_value("Employee", self.emp3, "status", "Inactive")
+        try:
+            res = self._data(start_date=W1_MON, filters=self._scope_to_fixtures_filter())
+
+            beta = self._project_entry(res, self.project_beta)
+            self.assertIsNotNone(beta)
+            self.assertIsNotNone(self._member(beta, self.emp3))
+            self.assertEqual(len(res["projects"]), res["total_count"])
+        finally:
+            frappe.set_user("Administrator")
+            frappe.db.set_value("Employee", self.emp3, "status", "Active")
+
     def test_search_matching_name_without_entries_excludes_project(self):
         res = self._data(start_date=W1_MON, page_length=10, search=PROJECT_GAMMA_NAME)
         self.assertEqual(self._project_ids(res), set())
@@ -497,7 +514,7 @@ class TestProjectTimesheetPublisher(_ProjectTimesheetDataBase):
         original = frappe.publish_realtime
 
         def spy(event=None, message=None, *args, **kwargs):
-            captured.append((event, message))
+            captured.append((event, message, kwargs))
 
         frappe.publish_realtime = spy
         try:
@@ -506,13 +523,26 @@ class TestProjectTimesheetPublisher(_ProjectTimesheetDataBase):
             frappe.publish_realtime = original
         return captured
 
+    def _project_events(self, employee, date):
+        return [entry for entry in self._capture(employee, date) if entry[0] == "project_timesheet_info"]
+
     def test_publishes_project_timesheet_info(self):
-        events = {event for event, _ in self._capture(self.emp1, W1_MON)}
+        events = {event for event, _, _ in self._capture(self.emp1, W1_MON)}
         self.assertIn("project_timesheet_info", events)
 
+    def test_site_room_publish_carries_no_member_detail(self):
+        """The site room holds every logged-in client, including ones that cannot read this
+        employee's week, so it may only be told *that* the week changed."""
+        broadcast = next(
+            message for _, message, kwargs in self._project_events(self.emp1, W1_MON) if kwargs.get("room")
+        )
+
+        self.assertEqual(sorted(broadcast.keys()), ["employee", "start_date"])
+        self.assertEqual(broadcast["employee"], self.emp1)
+        self.assertEqual(str(broadcast["start_date"]), W1_MON)
+
     def test_published_payload_matches_api_3(self):
-        captured = self._capture(self.emp1, W1_MON)
-        payload = next(message for event, message in captured if event == "project_timesheet_info")
+        payload = next(message for _, message, kwargs in self._project_events(self.emp1, W1_MON) if kwargs.get("user"))
 
         self.assertEqual(sorted(payload.keys()), ["employee", "message", "start_date"])
         self.assertEqual(payload["employee"], self.emp1)

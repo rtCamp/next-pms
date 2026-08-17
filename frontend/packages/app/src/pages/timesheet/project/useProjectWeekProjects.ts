@@ -31,7 +31,7 @@ type UseProjectWeekProjectsResult = {
   isLoadingProjects: boolean;
   isNextPageLoading: boolean;
   loadMore: () => void;
-  refreshEmployeeWeek: (payload: ProjectMemberWeekPayload) => void;
+  refreshEmployeeWeek: (payload: ProjectMemberWeekPayload | null) => void;
 };
 
 const QUERY_SIGNATURE_PREFIX = "project-week-projects:";
@@ -125,11 +125,13 @@ export function useProjectWeekProjects({
    * Refresh a single employee's week across all projects.
    */
   const refreshEmployeeWeek = useCallback(
-    (payload: ProjectMemberWeekPayload) => {
+    (payload: ProjectMemberWeekPayload | null) => {
       if (!paginatedData?.length) return;
 
-      // If there is an active filter refresh the entire list to avoid including stale data in the filtered results.
-      if (hasActiveFilter) {
+      // No payload means the update came in as an invalidation, so the week has to be
+      // refetched. An active filter refreshes the entire list for the same reason, to
+      // avoid including stale data in the filtered results.
+      if (!payload || hasActiveFilter) {
         void mutate();
         return;
       }

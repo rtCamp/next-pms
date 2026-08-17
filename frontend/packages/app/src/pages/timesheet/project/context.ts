@@ -13,7 +13,9 @@ import type {
   ProjectWeekSummary,
 } from "./types";
 
-export type ProjectRefreshHandler = (payload: ProjectMemberWeekPayload) => void;
+export type ProjectRefreshHandler = (
+  payload: ProjectMemberWeekPayload | null,
+) => void;
 
 export interface ProjectTimesheetContextProps {
   state: {
