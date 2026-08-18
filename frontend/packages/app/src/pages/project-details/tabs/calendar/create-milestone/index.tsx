@@ -10,6 +10,7 @@ import {
   DatePicker,
   Dialog,
   ErrorMessage,
+  FormLabel,
   TextInput,
   useToasts,
 } from "@rtcamp/frappe-ui-react";
@@ -173,9 +174,9 @@ export function CreateMilestoneModal({
           name="title"
           children={(field) => (
             <div className="flex flex-col gap-1.5">
-              <label className="block text-base text-ink-gray-5">
+              <FormLabel size="md" required>
                 Milestone name
-              </label>
+              </FormLabel>
               <TextInput
                 size="md"
                 variant="outline"
@@ -196,9 +197,9 @@ export function CreateMilestoneModal({
             name="startDate"
             children={(field) => (
               <div className="flex-1 flex flex-col gap-1.5">
-                <label className="block text-base text-ink-gray-5">
+                <FormLabel size="md" required>
                   Start date
-                </label>
+                </FormLabel>
                 <DatePicker
                   label="Start date"
                   value={field.state.value}
@@ -228,9 +229,9 @@ export function CreateMilestoneModal({
             name="completionDate"
             children={(field) => (
               <div className="flex-1 flex flex-col gap-1.5">
-                <label className="block text-base text-ink-gray-5">
+                <FormLabel size="md" required>
                   Completion date
-                </label>
+                </FormLabel>
                 <DatePicker
                   label="Completion date"
                   value={field.state.value}
@@ -261,7 +262,9 @@ export function CreateMilestoneModal({
           name="owner"
           children={(field) => (
             <div className="flex flex-col gap-1.5">
-              <label className="block text-base text-ink-gray-5">Owner</label>
+              <FormLabel size="md" required>
+                Owner
+              </FormLabel>
               <Combobox
                 inputClassName="bg-surface-white h-8 border-outline-gray-2 text-ink-gray-7"
                 loading={isOwnerLookupLoading}

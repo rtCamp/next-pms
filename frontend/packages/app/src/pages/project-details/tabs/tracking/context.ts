@@ -58,6 +58,7 @@ export const DEFAULT_TRACKING: Tracking = {
     invoiced_but_not_paid: 0,
     total_project_amount: 0,
   },
+  budget_burn: null,
   contracts: null,
   project_rates: null,
   lifetime_values: null,

@@ -45,6 +45,7 @@ const toTeamMember = (member: TeamMemberPayload): TeamMember => ({
   workingHour: member.working_hour,
   workingFrequency: member.working_frequency,
   status: member.status,
+  backdateRestrictedBefore: member.backdate_restricted_before,
 });
 
 export function useTeamWeekMembers({

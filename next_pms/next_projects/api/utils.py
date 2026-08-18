@@ -3,6 +3,11 @@
 
 import frappe
 
+# Composite-filter field name the projects view accepts for tags, and the
+# operators it resolves against Tag Link.
+TAG_FILTER_FIELD = "tag"
+TAG_FILTER_OPERATORS = ("=", "!=", "like", "not like")
+
 
 def get_user_image_map(users: list[str]) -> dict[str, str | None]:
     """Fetch user_image for multiple users in a single query."""
@@ -84,3 +89,38 @@ def build_person_data(
         "full_name": full_name or "",
         "image": image,
     }
+
+
+def resolve_tag_filters(filters: list) -> list:
+    """Rewrite `tag` conditions in a Project filter list into conditions on `name`.
+
+    A tag is not a Project column: ERPNext keeps the project-tag mapping in the Tag
+    Link doctype, so a tag condition is resolved there first and re-expressed as the
+    set of project names carrying that tag. Every other condition passes through
+    untouched.
+    """
+    resolved = []
+
+    for condition in filters:
+        if not (isinstance(condition, list | tuple) and len(condition) == 3 and condition[0] == TAG_FILTER_FIELD):
+            resolved.append(condition)
+            continue
+
+        _, operator, value = condition
+        if operator not in TAG_FILTER_OPERATORS:
+            frappe.throw(frappe._("Unsupported operator {0} for the tag filter.").format(operator))
+
+        is_like = operator in ("like", "not like")
+        tagged_projects = frappe.get_all(
+            "Tag Link",
+            filters={
+                "document_type": "Project",
+                "tag": ["like", f"%{value}%"] if is_like else ["=", value],
+            },
+            pluck="document_name",
+            distinct=True,
+        )
+        # An empty list keeps the semantics: `in ()` matches nothing, `not in ()` matches all.
+        resolved.append(["name", "in" if operator in ("=", "like") else "not in", tagged_projects])
+
+    return resolved

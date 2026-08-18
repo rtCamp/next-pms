@@ -61,7 +61,7 @@ export function Specifics({ form, isEditing, submitting }: SpecificsProps) {
 
   return (
     <OverviewSection title="Specifics">
-      <div className="flex w-[828px] max-w-full flex-wrap gap-4">
+      <div className="flex w-[880px] max-w-full flex-wrap gap-4">
         <form.Field name="priority">
           {(field) => (
             <EditableField
@@ -124,6 +124,7 @@ export function Specifics({ form, isEditing, submitting }: SpecificsProps) {
               <Combobox
                 loading={isHostLoading}
                 options={hostOptions}
+                popupClassName="w-max min-w-(--anchor-width) max-w-[300px]"
                 placeholder="Select host"
                 searchValue={hostSearch}
                 onSearchChange={setHostSearch}

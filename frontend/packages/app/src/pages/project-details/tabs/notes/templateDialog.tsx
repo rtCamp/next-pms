@@ -5,12 +5,13 @@ import { useState } from "react";
 import { useNavigate } from "react-router";
 import { Spinner } from "@next-pms/design-system/components";
 import { stripTags } from "@next-pms/design-system/utils";
-import { Button, Dialog, TextInput } from "@rtcamp/frappe-ui-react";
+import { Button, Combobox, Dialog, TextInput } from "@rtcamp/frappe-ui-react";
 import { Search } from "@rtcamp/frappe-ui-react/icons";
 
 /**
  * Internal dependencies.
  */
+import { useNoteTemplateCategoryLookup } from "@/hooks/useNoteTemplateCategoryLookup";
 import {
   useNoteTemplateLookup,
   type NoteTemplateOption,
@@ -32,13 +33,23 @@ export function TemplateDialog({
 }: TemplateDialogProps) {
   const navigate = useNavigate();
   const [query, setQuery] = useState("");
+  const [category, setCategory] = useState<string | null>(null);
+  const [categorySearch, setCategorySearch] = useState("");
   const [selected, setSelected] = useState<NoteTemplateOption | null>(null);
 
   const { options, isLoading } = useNoteTemplateLookup({
     shouldFetch: open,
     keepPreviousData: true,
     query,
+    category: category ?? undefined,
   });
+
+  const { options: categoryOptions, isLoading: isCategoryLoading } =
+    useNoteTemplateCategoryLookup({
+      shouldFetch: open,
+      query: categorySearch,
+      keepPreviousData: true,
+    });
 
   const handleUseTemplate = () => {
     if (!selected) return;
@@ -95,6 +106,21 @@ export function TemplateDialog({
             setSelected(null);
           }}
         />
+        <Combobox
+          className="px-3"
+          inputClassName="bg-surface-white h-8 border-outline-gray-2 text-ink-gray-7"
+          loading={isCategoryLoading}
+          options={categoryOptions}
+          searchValue={categorySearch}
+          placeholder="All categories"
+          value={category}
+          openOnFocus
+          onSearchChange={setCategorySearch}
+          onChange={(value) => {
+            setCategory(value);
+            setSelected(null);
+          }}
+        />
         <div className="relative flex flex-col gap-2">
           <span className="text-base text-ink-gray-5 mx-3">Templates</span>
           {!isLoading && options.length === 0 ? (
@@ -120,11 +146,19 @@ export function TemplateDialog({
                     selected?.value === template.value && "bg-surface-gray-3",
                   )}
                 >
-                  <span className="w-full truncate text-base font-medium text-ink-gray-8">
-                    {template.label}
-                  </span>
+                  <div className="flex w-full items-center gap-2">
+                    <span className="min-w-0 flex-1 truncate text-base font-medium text-ink-gray-8">
+                      {template.label}
+                    </span>
+                    {template.category && (
+                      <span className="text-xs text-ink-gray-7 px-1.5 py-0.75 border border-outline-gray-2 rounded-[5px]">
+                        {template.category}
+                      </span>
+                    )}
+                  </div>
                   <span className="w-full truncate text-sm text-ink-gray-5">
-                    {stripTags(template.description)}
+                    {template.template_description ||
+                      stripTags(template.description)}
                   </span>
                 </button>
               ))}

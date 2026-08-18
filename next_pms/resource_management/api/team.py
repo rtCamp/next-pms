@@ -8,12 +8,14 @@ from frappe.utils import DATE_FORMAT, getdate
 from next_pms.resource_management.api.utils.helpers import (
     _parse_multi_select_filter,
     add_customer_data_if_not_exists,
+    allocation_hours_for_date,
     find_worked_hours,
     get_allocation_objects,
     get_dates_date,
     get_employees_by_skills,
     is_on_leave,
     normalize_team_view_filters,
+    override_hours_by_date,
     resource_api_permissions_check,
 )
 from next_pms.resource_management.api.utils.query import (
@@ -124,6 +126,13 @@ def get_resource_management_team_view_data(
                     "employee": "HR-EMP-00001",
                     "from_date": datetime.date(2026, 5, 20),
                     "to_date": datetime.date(2026, 5, 22),
+                    "half_day": 1,
+                    "half_day_date": datetime.date(2026, 5, 22),
+                    "custom_first_halfsecond_half": "Second Half",
+                    "total_leave_days": 2.5,
+                    "leave_type": "Casual Leave",
+                    "is_lwp": 0,
+                    "includes_holidays": True,
                     "name": "HR-LAP-00001",
                 },
             ],
@@ -480,6 +489,7 @@ def _get_resource_management_team_view_data(
         allocation_status=allocation_status,
     )
     resource_allocation_data = attach_extra_entries(resource_allocation_data)
+    override_maps = {a["name"]: override_hours_by_date(a) for a in resource_allocation_data}
 
     # Make the map of resource allocation data for given employee
     resource_allocation_map = {}
@@ -501,23 +511,10 @@ def _get_resource_management_team_view_data(
         resource_allocation_map[resource_allocation.employee].append(resource_allocation)
 
     if not need_hours_summary:
-        all_leave_data = frappe.get_all(
-            "Leave Application",
-            filters={
-                "employee": ["in", [employee.name for employee in employees]],
-                "docstatus": ["in", [0, 1]],
-                "status": ["in", ["Approved", "Open"]],
-            },
-            fields=[
-                "employee",
-                "employee_name",
-                "from_date",
-                "to_date",
-                "half_day",
-                "half_day_date",
-                "total_leave_days",
-                "name",
-            ],
+        all_leave_data = get_employee_leaves(
+            employee=tuple(employee.name for employee in employees),
+            start_date=dates[0].get("start_date"),
+            end_date=dates[-1].get("end_date"),
         )
         res["employees"] = employees
         res["leaves"] = all_leave_data
@@ -627,7 +624,9 @@ def _get_resource_management_team_view_data(
                             resource_allocation.allocation_start_date <= date
                             and resource_allocation.allocation_end_date >= date
                         ):
-                            total_allocated_hours_for_given_date += resource_allocation.get("hours_allocated_per_day")
+                            total_allocated_hours_for_given_date += allocation_hours_for_date(
+                                resource_allocation, date, override_maps.get(resource_allocation.name)
+                            )
                             total_worked_hours_resource_allocation = find_worked_hours(
                                 timesheet_data=timesheet_data, date=date, project=resource_allocation.project
                             )

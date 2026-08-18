@@ -15,11 +15,11 @@ export interface Employee {
 
 export interface Leave {
   employee: string;
-  employee_name: string;
   from_date: string;
   to_date: string;
   half_day: number;
   half_day_date: string | null;
+  custom_first_halfsecond_half: string | null;
   total_leave_days: number;
   name: string;
 }

@@ -242,6 +242,14 @@ doc_events = {
         "on_update": [
             "next_pms.resource_management.doctype.resource_allocation.resource_allocation.clear_cache",
             "next_pms.timesheet.doc_events.leave_application.on_update",
+            "next_pms.resource_management.doc_events.leave_application.resync_allocations",
+        ],
+        # `on_update` does not fire when a submitted leave changes status, so approval of an
+        # already-submitted application would otherwise never reach the allocations.
+        "on_update_after_submit": [
+            "next_pms.resource_management.doctype.resource_allocation.resource_allocation.clear_cache",
+            "next_pms.timesheet.doc_events.leave_application.on_update",
+            "next_pms.resource_management.doc_events.leave_application.resync_allocations",
         ],
         "on_trash": [
             "next_pms.resource_management.doctype.resource_allocation.resource_allocation.clear_cache",
@@ -250,9 +258,12 @@ doc_events = {
         "on_cancel": [
             "next_pms.resource_management.doctype.resource_allocation.resource_allocation.clear_cache",
             "next_pms.timesheet.doc_events.leave_application.on_cancel",
+            "next_pms.resource_management.doc_events.leave_application.resync_allocations",
         ],
+        # Deletion is resynced after the row is gone — on_trash still sees the leave in the DB.
         "after_delete": [
             "next_pms.timesheet.doc_events.leave_application.after_delete",
+            "next_pms.resource_management.doc_events.leave_application.resync_allocations",
         ],
     },
     "Employee Skill Map": {

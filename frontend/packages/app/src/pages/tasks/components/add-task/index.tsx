@@ -8,6 +8,7 @@ import {
   DatePicker,
   Dialog,
   ErrorMessage,
+  FormLabel,
   Select,
   TextEditor,
   TextInput,
@@ -210,9 +211,9 @@ const AddTask = ({
           name="project"
           children={(field) => (
             <div>
-              <label className="block text-base text-ink-gray-5 mb-1.5">
+              <FormLabel size="md" className="mb-1.5" required>
                 Project
-              </label>
+              </FormLabel>
               <Combobox
                 inputClassName="bg-surface-white h-8 border-outline-gray-2 text-ink-gray-7"
                 loading={isProjectLookupLoading}
@@ -246,9 +247,9 @@ const AddTask = ({
           name="subject"
           children={(field) => (
             <div>
-              <label className="block text-base text-ink-gray-5 mb-1.5">
+              <FormLabel size="md" className="mb-1.5" required>
                 Subject
-              </label>
+              </FormLabel>
               <TextInput
                 size="md"
                 variant="outline"
@@ -300,9 +301,9 @@ const AddTask = ({
             name="expected_time"
             children={(field) => (
               <div>
-                <label className="block text-base text-ink-gray-5 mb-1.5">
+                <FormLabel size="md" className="mb-1.5" required>
                   Expected Time
-                </label>
+                </FormLabel>
                 <TextInput
                   size="md"
                   variant="outline"
@@ -367,9 +368,9 @@ const AddTask = ({
           name="description"
           children={(field) => (
             <div>
-              <label className="block text-base text-ink-gray-5 mb-1.5">
+              <FormLabel size="md" className="mb-1.5" required={!isEditMode}>
                 Description
-              </label>
+              </FormLabel>
               <TextEditor
                 placeholder="Add description"
                 content={field.state.value}

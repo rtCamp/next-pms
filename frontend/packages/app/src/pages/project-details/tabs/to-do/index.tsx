@@ -37,7 +37,7 @@ function TodoContent() {
   return (
     <div className="flex flex-col gap-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-lg font-semibold text-ink-gray-8">ToDos</h1>
+        <h1 className="text-xl font-semibold text-ink-gray-8">ToDos</h1>
         <Button
           variant="solid"
           label="New ToDo"

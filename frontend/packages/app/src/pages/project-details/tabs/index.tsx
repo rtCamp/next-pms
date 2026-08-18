@@ -34,7 +34,7 @@ export const TABS: ComponentProps<typeof Tabs>["tabs"] = [
   { label: "Risks", content: <RisksTab /> },
   { label: "Notes", content: <Notes /> },
   { label: "Email", content: <EmailTab /> },
-  { label: "To-do", content: <Todo /> },
+  { label: "ToDos", content: <Todo /> },
   { label: "Feedback", content: <Feedback /> },
   { label: "RAG stats", content: <RagStats /> },
 ] as const;
