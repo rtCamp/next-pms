@@ -126,6 +126,13 @@ def get_resource_management_team_view_data(
                     "employee": "HR-EMP-00001",
                     "from_date": datetime.date(2026, 5, 20),
                     "to_date": datetime.date(2026, 5, 22),
+                    "half_day": 1,
+                    "half_day_date": datetime.date(2026, 5, 22),
+                    "custom_first_halfsecond_half": "Second Half",
+                    "total_leave_days": 2.5,
+                    "leave_type": "Casual Leave",
+                    "is_lwp": 0,
+                    "includes_holidays": True,
                     "name": "HR-LAP-00001",
                 },
             ],
@@ -504,23 +511,10 @@ def _get_resource_management_team_view_data(
         resource_allocation_map[resource_allocation.employee].append(resource_allocation)
 
     if not need_hours_summary:
-        all_leave_data = frappe.get_all(
-            "Leave Application",
-            filters={
-                "employee": ["in", [employee.name for employee in employees]],
-                "docstatus": ["in", [0, 1]],
-                "status": ["in", ["Approved", "Open"]],
-            },
-            fields=[
-                "employee",
-                "employee_name",
-                "from_date",
-                "to_date",
-                "half_day",
-                "half_day_date",
-                "total_leave_days",
-                "name",
-            ],
+        all_leave_data = get_employee_leaves(
+            employee=tuple(employee.name for employee in employees),
+            start_date=dates[0].get("start_date"),
+            end_date=dates[-1].get("end_date"),
         )
         res["employees"] = employees
         res["leaves"] = all_leave_data

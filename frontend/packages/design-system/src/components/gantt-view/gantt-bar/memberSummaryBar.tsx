@@ -14,6 +14,7 @@ import { GanttBar } from "./ganttBar";
 import { allocationBarToEntry } from "./utils/allocationBarToEntry";
 import { getCapacityStatus } from "./utils/getCapacityStatus";
 import { getOverlappingAllocations } from "./utils/getOverlappingAllocations";
+import { getTimeoffLabel } from "./utils/getTimeoffLabel";
 import { withPendingDeleteEntry } from "./utils/withPendingDeleteEntry";
 
 interface GanttMemberSummaryBarProps {
@@ -68,7 +69,11 @@ export function GanttMemberSummaryBar({
   if (summary.type === "timeoff") {
     const leaveDays =
       differenceInCalendarDays(summary.endDate, summary.startDate) + 1;
-    const leaveLabel = `${leaveDays} ${leaveDays === 1 ? "day" : "days"} off`;
+    const leaveLabel = getTimeoffLabel(
+      summary.startDate,
+      summary.endDate,
+      summary.timeoff,
+    );
 
     return (
       <GanttBar

@@ -1,4 +1,8 @@
-import type { Member, Project } from "@next-pms/design-system/components";
+import type {
+  LeaveAllocation,
+  Member,
+  Project,
+} from "@next-pms/design-system/components";
 import { parseISO } from "date-fns";
 import {
   calculateAllocationHourlyRate,
@@ -68,6 +72,25 @@ export function normalizeAllocationTypeSelection(
 }
 
 /**
+ * Reads the half a half-day leave covers. The field is a site customization, so
+ * it can be absent even when half_day is set.
+ */
+function parseLeaveHalfDayPortion(
+  half: string | null,
+): LeaveAllocation["halfDayPortion"] {
+  const normalized = half?.trim().toLowerCase();
+
+  if (normalized === "first half") {
+    return "first";
+  }
+  if (normalized === "second half") {
+    return "second";
+  }
+
+  return undefined;
+}
+
+/**
  * Converts a TeamAllocationResponse from the API into a Member[] array
  * suitable for the GanttGrid component.
  *
@@ -98,16 +121,21 @@ export function mapTeamAllocationToMembers(
     >
   >();
 
-  const leavesByEmployee = new Map<
-    string,
-    { startDate: Date; endDate: Date }[]
-  >();
+  const leavesByEmployee = new Map<string, LeaveAllocation[]>();
 
   for (const leave of leaveList) {
     const employeeLeaves = leavesByEmployee.get(leave.employee) ?? [];
     employeeLeaves.push({
       startDate: parseISO(leave.from_date),
       endDate: parseISO(leave.to_date),
+      ...(leave.half_day && leave.half_day_date
+        ? {
+            halfDayDate: parseISO(leave.half_day_date),
+            halfDayPortion: parseLeaveHalfDayPortion(
+              leave.custom_first_halfsecond_half,
+            ),
+          }
+        : {}),
     });
     leavesByEmployee.set(leave.employee, employeeLeaves);
   }
