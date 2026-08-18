@@ -17,6 +17,7 @@ class Risk(Document):
 
     if TYPE_CHECKING:
         from frappe.types import DF
+
         from next_pms.next_pms.doctype.risk_update.risk_update import RiskUpdate
 
         mitigation_plan: DF.TextEditor | None

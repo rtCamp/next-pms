@@ -15,7 +15,7 @@ def _backfill_risk_owner():
     for risk in frappe.get_all(
         "Risk",
         filters={
-            "risk_owner": ["in", ["", None]],
+            "risk_owner": ["is", "not set"],
             "owner": ["is", "set"],
         },
         fields=["name", "owner"],
