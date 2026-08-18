@@ -101,8 +101,8 @@ export const MemberRow: React.FC<MemberRowProps> = ({
                 "w-14.25 relative group flex justify-center items-center",
                 !isCellDisabled &&
                   "enabled:hover:bg-surface-gray-2 enabled:focus:bg-surface-gray-2 enabled:active:bg-surface-gray-3",
-                "disabled:cursor-default! disabled:opacity-100! disabled:bg-transparent! disabled:hover:bg-transparent! disabled:focus:bg-transparent! disabled:active:bg-transparent! disabled:text-ink-gray-8!",
-                isCellDisabled && "cursor-default!",
+                "disabled:cursor-not-allowed! disabled:opacity-100! disabled:bg-transparent! disabled:hover:bg-transparent! disabled:focus:bg-transparent! disabled:active:bg-transparent! disabled:text-ink-gray-8!",
+                isCellDisabled && "cursor-not-allowed!",
                 "lining-nums tabular-nums [&_span]:overflow-visible [&_span]:whitespace-normal",
                 "text-base text-ink-gray-8",
               )}
