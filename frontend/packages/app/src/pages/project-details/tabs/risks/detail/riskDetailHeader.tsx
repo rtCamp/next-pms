@@ -63,8 +63,28 @@ export function RiskDetailHeader({
       <div className="flex items-center gap-1 text-sm text-ink-gray-7">
         <RiskLevelBadge level={risk.risk_level} />
 
+        {risk.risk_owner && (
+          <div
+            className="flex items-center gap-1 bg-surface-gray-2 rounded-full px-2 py-1"
+            title="Risk owner"
+          >
+            <span className="text-ink-gray-5">Risk owner</span>
+            <Avatar
+              size="xs"
+              shape="circle"
+              image={risk.risk_owner_details?.user_image ?? undefined}
+              label={risk.risk_owner_details?.full_name ?? risk.risk_owner}
+            />
+            <span>{risk.risk_owner_details?.full_name ?? risk.risk_owner}</span>
+          </div>
+        )}
+
         {risk.owner && (
-          <div className="flex items-center gap-1 bg-surface-gray-2 rounded-full px-2 py-1">
+          <div
+            className="flex items-center gap-1 bg-surface-gray-2 rounded-full px-2 py-1"
+            title="Owner"
+          >
+            <span className="text-ink-gray-5">Owner</span>
             <Avatar
               size="xs"
               shape="circle"
@@ -84,6 +104,7 @@ export function RiskDetailHeader({
 
         <RiskRowActions
           riskName={risk.name}
+          riskOwner={risk.risk_owner}
           isFollowing={isFollowing}
           onAfterFollow={onAfterFollow}
         />

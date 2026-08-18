@@ -79,7 +79,7 @@ class TestNotificationUrls(IntegrationTestCase):
             ignore_permissions=True,
         )
 
-        risk.status = RISK_STATUS_MITIGATED
+        risk.append("risk_update_log", {"status": RISK_STATUS_MITIGATED})
         risk.save(ignore_permissions=True)
         save_to_db()
 

@@ -1,9 +1,10 @@
 /**
  * External dependencies.
  */
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Spinner } from "@next-pms/design-system/components";
 import {
+  Avatar,
   Button,
   Combobox,
   Dialog,
@@ -26,11 +27,13 @@ import {
 /**
  * Internal dependencies.
  */
+import { useEmployeeLookup } from "@/hooks/useEmployeeLookup";
+import type { EmployeeLookupOption } from "@/hooks/useEmployeeLookup";
 import { parseFrappeErrorMsg } from "@/lib/utils";
 import { useProjectDetail } from "@/pages/project-details/context";
 import { RISK_STATUSES } from "../constants";
 import { useRisks } from "../context";
-import { createRiskSchema } from "./schema";
+import { createRiskSchema, editRiskSchema } from "./schema";
 import type { CreateRiskModalProps } from "./types";
 import { RiskLevelBadge } from "../riskLevelBadge";
 import { RiskStatusBadge } from "../riskStatusBadge";
@@ -42,9 +45,41 @@ const emptyValues = {
   risk_category: null as string | null,
   risk_level: "",
   status: "",
+  risk_owner: "",
   summary: "",
   mitigation_plan: "",
 };
+
+function toRiskOwnerOptions(
+  options: EmployeeLookupOption[],
+  userId?: string,
+  name?: string,
+) {
+  const mapped = options
+    .filter((option) => option.userId)
+    .map((option) => ({
+      label: option.label,
+      value: option.userId!,
+      icon: (
+        <Avatar
+          size="xs"
+          shape="circle"
+          image={option.image}
+          label={option.label}
+        />
+      ),
+    }));
+
+  if (userId && !mapped.some((option) => option.value === userId)) {
+    mapped.unshift({
+      label: name ?? userId,
+      value: userId,
+      icon: <Avatar size="xs" shape="circle" label={name ?? userId} />,
+    });
+  }
+
+  return mapped;
+}
 
 export function CreateRiskModal({
   open,
@@ -52,8 +87,16 @@ export function CreateRiskModal({
   riskName,
 }: CreateRiskModalProps) {
   const projectId = useProjectDetail((s) => s.projectId);
+  const projectManagerUserId = useProjectDetail(
+    (s) => s.project?.custom_project_manager ?? "",
+  );
+  const projectManagerName = useProjectDetail(
+    (s) => s.project?.custom_project_manager_name ?? "",
+  );
   const refreshRisks = useRisks((c) => c.actions.refreshRisks);
   const [submitting, setSubmitting] = useState(false);
+  const [ownerSearch, setOwnerSearch] = useState("");
+  const [submitError, setSubmitError] = useState<string | null>(null);
   const toast = useToasts();
 
   const isEditMode = Boolean(riskName);
@@ -96,19 +139,26 @@ export function CreateRiskModal({
     value: s,
   }));
 
+  const riskSchema = useMemo(
+    () => (isEditMode ? editRiskSchema : createRiskSchema),
+    [isEditMode],
+  );
+
   const form = useForm({
     defaultValues: emptyValues,
     validators: {
-      onSubmit: createRiskSchema,
+      onSubmit: riskSchema,
     },
     onSubmit: async ({ value }) => {
       setSubmitting(true);
+      setSubmitError(null);
       try {
         if (isEditMode && riskName) {
           await updateDoc("Risk", riskName, {
             ...(value.risk_category !== null
               ? { risk_category: value.risk_category }
               : {}),
+            risk_owner: value.risk_owner || "",
             ...(value.summary ? { summary: value.summary } : {}),
             ...(value.mitigation_plan
               ? { mitigation_plan: value.mitigation_plan }
@@ -123,6 +173,7 @@ export function CreateRiskModal({
               : {}),
             risk_level: value.risk_level,
             status: value.status,
+            ...(value.risk_owner ? { risk_owner: value.risk_owner } : {}),
             ...(value.summary ? { summary: value.summary } : {}),
             ...(value.mitigation_plan
               ? { mitigation_plan: value.mitigation_plan }
@@ -132,7 +183,9 @@ export function CreateRiskModal({
         refreshRisks();
         closeModal();
       } catch (err) {
-        toast.error(parseFrappeErrorMsg(err as FrappeError));
+        const message = parseFrappeErrorMsg(err as FrappeError);
+        setSubmitError(message);
+        toast.error(message);
       } finally {
         setSubmitting(false);
       }
@@ -140,21 +193,41 @@ export function CreateRiskModal({
   });
 
   useEffect(() => {
-    if (open && isEditMode && existingRisk) {
+    if (!open) return;
+    if (isEditMode && existingRisk) {
+      form.setFieldValue("risk_category", existingRisk.risk_category ?? null);
+      form.setFieldValue("risk_level", existingRisk.risk_level ?? "");
+      form.setFieldValue("status", existingRisk.status ?? "");
+      form.setFieldValue("risk_owner", existingRisk.risk_owner ?? "");
+      form.setFieldValue("summary", existingRisk.summary ?? "");
+      form.setFieldValue("mitigation_plan", existingRisk.mitigation_plan ?? "");
+      return;
+    }
+    if (!isEditMode) {
       form.reset({
-        risk_category: existingRisk.risk_category ?? null,
-        risk_level: existingRisk.risk_level ?? "",
-        status: existingRisk.status ?? "",
-        summary: existingRisk.summary ?? "",
-        mitigation_plan: existingRisk.mitigation_plan ?? "",
+        ...emptyValues,
+        risk_owner: projectManagerUserId,
       });
     }
-  }, [open, isEditMode, existingRisk, toast, form]);
+  }, [open, isEditMode, existingRisk, projectManagerUserId, form]);
 
   const closeModal = useCallback(() => {
     onClose();
+    setOwnerSearch("");
+    setSubmitError(null);
     form.reset(emptyValues);
   }, [form, onClose]);
+
+  const { options: employeeOptions, isLoading: employeesLoading } =
+    useEmployeeLookup({
+      shouldFetch: open,
+      pageSize: 100,
+      query: ownerSearch,
+    });
+
+  const selectedOwnerLabel = isEditMode
+    ? (existingRisk?.risk_owner ?? "")
+    : projectManagerName || projectManagerUserId;
 
   const handleOpenChange = useCallback(
     (nextOpen: boolean) => {
@@ -214,49 +287,106 @@ export function CreateRiskModal({
           />
 
           {/* Risk level */}
-          <form.Field
-            name="risk_level"
-            children={(field) => (
-              <div className="flex flex-col gap-1.5">
-                <FormLabel size="md" required>
-                  Risk level
-                </FormLabel>
-                <Select
-                  className="text-ink-gray-7 **:data-placeholder:text-ink-gray-4"
-                  variant="outline"
-                  options={riskLevelOptions}
-                  value={field.state.value}
-                  onChange={(val) => field.handleChange(val ?? "")}
-                  placeholder="Select level"
-                  disabled={isEditMode}
+          {isEditMode ? (
+            <div className="flex flex-col gap-1.5">
+              <FormLabel size="md">Risk level</FormLabel>
+              {existingRisk?.risk_level ? (
+                <RiskLevelBadge
+                  className="w-fit bg-transparent p-0"
+                  level={existingRisk.risk_level}
                 />
-                {!field.state.meta.isValid && (
-                  <ErrorMessage message={field.state.meta.errors[0]?.message} />
-                )}
-              </div>
-            )}
-          />
+              ) : (
+                <p className="text-sm text-ink-gray-5">—</p>
+              )}
+            </div>
+          ) : (
+            <form.Field
+              name="risk_level"
+              children={(field) => (
+                <div className="flex flex-col gap-1.5">
+                  <FormLabel size="md" required>
+                    Risk level
+                  </FormLabel>
+                  <Select
+                    className="text-ink-gray-7 **:data-placeholder:text-ink-gray-4"
+                    variant="outline"
+                    options={riskLevelOptions}
+                    value={field.state.value}
+                    onChange={(val) => field.handleChange(val ?? "")}
+                    placeholder="Select level"
+                  />
+                  {!field.state.meta.isValid && (
+                    <ErrorMessage
+                      message={field.state.meta.errors[0]?.message}
+                    />
+                  )}
+                </div>
+              )}
+            />
+          )}
 
           {/* Status */}
+          {isEditMode ? (
+            <div className="flex flex-col gap-1.5">
+              <FormLabel size="md">Status</FormLabel>
+              {existingRisk?.status ? (
+                <RiskStatusBadge
+                  className="w-fit bg-transparent p-0"
+                  status={existingRisk.status}
+                />
+              ) : (
+                <p className="text-sm text-ink-gray-5">—</p>
+              )}
+            </div>
+          ) : (
+            <form.Field
+              name="status"
+              children={(field) => (
+                <div className="flex flex-col gap-1.5">
+                  <FormLabel size="md" required>
+                    Status
+                  </FormLabel>
+                  <Select
+                    className="text-ink-gray-7 **:data-placeholder:text-ink-gray-4"
+                    variant="outline"
+                    options={statusOptions}
+                    value={field.state.value}
+                    onChange={(val) => field.handleChange(val ?? "")}
+                    placeholder="Select status"
+                  />
+                  {!field.state.meta.isValid && (
+                    <ErrorMessage
+                      message={field.state.meta.errors[0]?.message}
+                    />
+                  )}
+                </div>
+              )}
+            />
+          )}
+
+          {/* Risk owner */}
           <form.Field
-            name="status"
+            name="risk_owner"
             children={(field) => (
               <div className="flex flex-col gap-1.5">
-                <FormLabel size="md" required>
-                  Status
-                </FormLabel>
-                <Select
-                  className="text-ink-gray-7 **:data-placeholder:text-ink-gray-4"
-                  variant="outline"
-                  options={statusOptions}
-                  value={field.state.value}
-                  onChange={(val) => field.handleChange(val ?? "")}
-                  placeholder="Select status"
-                  disabled={isEditMode}
+                <label className="block text-base text-ink-gray-5">
+                  Risk owner
+                </label>
+                <Combobox
+                  inputClassName="bg-surface-white h-8 border-outline-gray-2 text-ink-gray-7"
+                  loading={employeesLoading}
+                  options={toRiskOwnerOptions(
+                    employeeOptions,
+                    field.state.value || undefined,
+                    selectedOwnerLabel || undefined,
+                  )}
+                  placeholder="Select risk owner"
+                  searchValue={ownerSearch}
+                  onSearchChange={setOwnerSearch}
+                  value={field.state.value || null}
+                  onChange={(val) => field.handleChange((val as string) ?? "")}
+                  openOnFocus
                 />
-                {!field.state.meta.isValid && (
-                  <ErrorMessage message={field.state.meta.errors[0]?.message} />
-                )}
               </div>
             )}
           />
@@ -307,6 +437,7 @@ export function CreateRiskModal({
               </div>
             )}
           />
+          {submitError ? <ErrorMessage message={submitError} /> : null}
         </div>
       )}
     </Dialog>

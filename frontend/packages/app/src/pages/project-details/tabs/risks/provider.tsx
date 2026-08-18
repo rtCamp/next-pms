@@ -21,6 +21,7 @@ import { useRisksData } from "./useRisksData";
 
 const defaultFilters: RiskFilters = {
   owner: "",
+  riskOwner: "",
   status: "",
   riskLevel: "",
   advanced: [],
@@ -41,6 +42,7 @@ export function RisksProvider({ children }: PropsWithChildren) {
     error,
     mutate: refreshRiskList,
     allOwnersWithDetails,
+    allRiskOwnersWithDetails,
   } = useRisksData(filters, sort);
 
   const { deleteDoc } = useFrappeDeleteDoc();
@@ -131,6 +133,7 @@ export function RisksProvider({ children }: PropsWithChildren) {
         editRiskName,
         deleteRiskName,
         allOwnersWithDetails,
+        allRiskOwnersWithDetails,
       },
       actions: {
         setFilters,
@@ -155,6 +158,7 @@ export function RisksProvider({ children }: PropsWithChildren) {
       editRiskName,
       deleteRiskName,
       allOwnersWithDetails,
+      allRiskOwnersWithDetails,
       setFilters,
       setSort,
       openCreateRisk,

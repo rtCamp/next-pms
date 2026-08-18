@@ -91,7 +91,7 @@ export function RiskGroup({ value, label, risks }: RiskGroupProps) {
               {stripTags(risk.summary || "—")}
             </div>
 
-            {/* Owner */}
+            {/* Risk owner */}
             <div
               style={{
                 minWidth: RISK_LIST_COLUMNS[2].width,
@@ -99,17 +99,23 @@ export function RiskGroup({ value, label, risks }: RiskGroupProps) {
               }}
               className="truncate text-ink-gray-6 px-2 py-1.5"
             >
-              <div className="flex items-center gap-2">
-                <Avatar
-                  size="xs"
-                  shape="circle"
-                  image={risk.owner_details?.user_image ?? undefined}
-                  label={risk.owner_details?.full_name ?? risk.owner}
-                />
-                <span className="truncate">
-                  {risk.owner_details?.full_name ?? risk.owner}
-                </span>
-              </div>
+              {risk.risk_owner ? (
+                <div className="flex items-center gap-2">
+                  <Avatar
+                    size="xs"
+                    shape="circle"
+                    image={risk.risk_owner_details?.user_image ?? undefined}
+                    label={
+                      risk.risk_owner_details?.full_name ?? risk.risk_owner
+                    }
+                  />
+                  <span className="truncate">
+                    {risk.risk_owner_details?.full_name ?? risk.risk_owner}
+                  </span>
+                </div>
+              ) : (
+                "—"
+              )}
             </div>
 
             {/* Risk level */}
@@ -139,7 +145,11 @@ export function RiskGroup({ value, label, risks }: RiskGroupProps) {
               className="w-8 shrink-0 flex justify-end"
               onClick={(e) => e.stopPropagation()}
             >
-              <RiskRowActions riskName={risk.name} showFollow={false} />
+              <RiskRowActions
+                riskName={risk.name}
+                riskOwner={risk.risk_owner}
+                showFollow={false}
+              />
             </div>
           </div>
         ))}

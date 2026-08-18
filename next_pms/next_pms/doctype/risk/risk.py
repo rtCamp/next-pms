@@ -4,6 +4,10 @@
 import frappe
 from frappe.model.document import Document
 
+OWNER_GATED_ROLES = frozenset({"Timesheet Manager", "Projects User"})
+UNRESTRICTED_ROLES = frozenset({"System Manager", "Projects Manager", "Delivery Manager", "Delivery User"})
+RISK_OWNER_REQUIRED_PTYPES = frozenset({"write", "delete", "share"})
+
 
 class Risk(Document):
     # begin: auto-generated types
@@ -13,23 +17,38 @@ class Risk(Document):
 
     if TYPE_CHECKING:
         from frappe.types import DF
-
         from next_pms.next_pms.doctype.risk_update.risk_update import RiskUpdate
 
         mitigation_plan: DF.TextEditor | None
         project: DF.Link
         risk_category: DF.Link | None
         risk_level: DF.Link | None
+        risk_owner: DF.Link | None
         risk_update_log: DF.Table[RiskUpdate]
         status: DF.Link | None
         summary: DF.TextEditor | None
     # end: auto-generated types
 
     def before_save(self):
+        self._ensure_initial_update_log()
         self._set_updated_by_on_new_rows()
         self._prevent_deleting_others_rows()
         self._prevent_editing_others_rows()
         self._sync_fields_from_latest_update()
+
+    def _ensure_initial_update_log(self):
+        if self.risk_update_log:
+            return
+        if not self.status and not self.risk_level:
+            return
+        self.append(
+            "risk_update_log",
+            {
+                "status": self.status,
+                "risk_level": self.risk_level,
+                "updated_at": self.creation,
+            },
+        )
 
     def _set_updated_by_on_new_rows(self):
         for row in self.risk_update_log:
@@ -98,7 +117,23 @@ class Risk(Document):
         if not self.risk_update_log:
             return
         latest = self.risk_update_log[-1]
-        if latest.status:
+        if latest.status and self.status != latest.status:
             self.status = latest.status
-        if latest.risk_level:
+        if latest.risk_level and self.risk_level != latest.risk_level:
             self.risk_level = latest.risk_level
+
+
+def has_permission(doc, ptype="read", user=None, debug=False):
+    """Timesheet Manager / Projects User may write only when they are risk_owner."""
+    user = user or frappe.session.user
+    roles = frappe.get_roles(user)
+
+    for role in roles:
+        if role in UNRESTRICTED_ROLES:
+            return True
+    if ptype not in RISK_OWNER_REQUIRED_PTYPES:
+        return True
+    for role in roles:
+        if role in OWNER_GATED_ROLES:
+            return (doc.risk_owner or "").lower() == user.lower()
+    return True

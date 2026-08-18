@@ -135,10 +135,10 @@ after_install = "next_pms.install.after_install"
 # permission_query_conditions = {
 # 	"Event": "frappe.desk.doctype.event.event.get_permission_query_conditions",
 # }
-#
-# has_permission = {
-# 	"Event": "frappe.desk.doctype.event.event.has_permission",
-# }
+
+has_permission = {
+    "Risk": "next_pms.next_pms.doctype.risk.risk.has_permission",
+}
 
 
 fixtures = [
