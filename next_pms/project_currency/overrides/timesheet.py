@@ -4,6 +4,9 @@ from erpnext.projects.doctype.timesheet.timesheet import Timesheet
 from erpnext.setup.utils import get_exchange_rate
 from frappe.utils.data import flt, nowdate
 
+from next_pms.project_currency.background_jobs.project_costing import (
+    enqueue_update_task_and_project,
+)
 from next_pms.project_currency.billing_rate import BILLING_RATE_COST_MULTIPLIER
 from next_pms.utils.employee import get_employee_salary
 
@@ -13,6 +16,13 @@ class TimesheetOverwrite(Timesheet):
 
     def calculate_hours(self):
         return
+
+    def update_task_and_project(self):
+        if self.flags.costing_calculation_queued:
+            return
+
+        self.flags.costing_calculation_queued = True
+        enqueue_update_task_and_project(self.name)
 
     def update_billing_hours(self, args):
         if args.is_billable:
