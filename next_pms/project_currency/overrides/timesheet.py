@@ -6,6 +6,7 @@ from frappe.utils.data import flt, nowdate
 
 from next_pms.project_currency.background_jobs.project_costing import (
     enqueue_update_task_and_project,
+    get_affected_tasks_and_projects,
 )
 from next_pms.project_currency.billing_rate import BILLING_RATE_COST_MULTIPLIER
 from next_pms.utils.employee import get_employee_salary
@@ -22,7 +23,9 @@ class TimesheetOverwrite(Timesheet):
             return
 
         self.flags.costing_calculation_queued = True
-        enqueue_update_task_and_project(self.name)
+        tasks, projects = get_affected_tasks_and_projects(self.time_logs)
+
+        enqueue_update_task_and_project(self.name, tasks=tasks, projects=projects)
 
     def update_billing_hours(self, args):
         if args.is_billable:
