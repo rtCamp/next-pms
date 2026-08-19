@@ -68,7 +68,6 @@ export function RiskDetailHeader({
             className="flex items-center gap-1 bg-surface-gray-2 rounded-full px-2 py-1"
             title="Risk owner"
           >
-            <span className="text-ink-gray-5">Risk owner</span>
             <Avatar
               size="xs"
               shape="circle"
@@ -76,6 +75,7 @@ export function RiskDetailHeader({
               label={risk.risk_owner_details?.full_name ?? risk.risk_owner}
             />
             <span>{risk.risk_owner_details?.full_name ?? risk.risk_owner}</span>
+            <span className="text-ink-gray-5">- Risk owner</span>
           </div>
         )}
 
@@ -84,7 +84,6 @@ export function RiskDetailHeader({
             className="flex items-center gap-1 bg-surface-gray-2 rounded-full px-2 py-1"
             title="Owner"
           >
-            <span className="text-ink-gray-5">Owner</span>
             <Avatar
               size="xs"
               shape="circle"
@@ -92,6 +91,7 @@ export function RiskDetailHeader({
               label={risk.owner_details?.full_name ?? risk.owner}
             />
             <span>{risk.owner_details?.full_name ?? risk.owner}</span>
+            <span className="text-ink-gray-5">- Owner</span>
           </div>
         )}
 

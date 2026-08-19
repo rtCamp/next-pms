@@ -14,9 +14,8 @@ import type { FrappeError } from "frappe-react-sdk";
  * Internal dependencies.
  */
 import { parseFrappeErrorMsg } from "@/lib/utils";
-import { useUser } from "@/providers/user";
-import { MANAGE_ALL_RISK_ROLES, RISK_OWNER_GATED_ROLES } from "./constants";
 import { useRisks } from "./context";
+import { useRiskPermissions } from "./useRiskPermissions";
 
 interface RiskRowActionsProps {
   riskName: string;
@@ -35,26 +34,12 @@ export function RiskRowActions({
 }: RiskRowActionsProps) {
   const openEditRisk = useRisks((c) => c.actions.openEditRisk);
   const openDeleteRisk = useRisks((c) => c.actions.openDeleteRisk);
-  const { roles, userId } = useUser(({ state }) => ({
-    roles: state.roles,
-    userId: state.userId,
-  }));
+  const { canEditRisk, canDeleteRisk } = useRiskPermissions(riskOwner);
   const toast = useToasts();
 
   const { call: updateFollow } = useFrappePostCall(
     "frappe.desk.form.document_follow.update_follow",
   );
-
-  const hasUnrestrictedRole = MANAGE_ALL_RISK_ROLES.some((role) =>
-    roles.includes(role),
-  );
-  const hasRiskOwnerRole = RISK_OWNER_GATED_ROLES.some((role) =>
-    roles.includes(role),
-  );
-  const isRiskOwner =
-    riskOwner?.toLowerCase() === userId.toLowerCase() && hasRiskOwnerRole;
-  const canEditRisk = hasUnrestrictedRole || isRiskOwner;
-  const canDeleteRisk = hasUnrestrictedRole;
 
   const handleFollow = async () => {
     try {
