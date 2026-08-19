@@ -4,7 +4,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Spinner } from "@next-pms/design-system/components";
 import {
-  Avatar,
   Button,
   Combobox,
   Dialog,
@@ -28,58 +27,18 @@ import {
  * Internal dependencies.
  */
 import { useEmployeeLookup } from "@/hooks/useEmployeeLookup";
-import type { EmployeeLookupOption } from "@/hooks/useEmployeeLookup";
 import { parseFrappeErrorMsg } from "@/lib/utils";
 import { useProjectDetail } from "@/pages/project-details/context";
-import { RISK_STATUSES } from "../constants";
+import { RISK_LEVELS, RISK_STATUSES } from "../constants";
 import { useRisks } from "../context";
+import { EMPTY_RISK_VALUES } from "./constants";
+import { DisabledRiskField } from "./disabledRiskField";
 import { createRiskSchema, editRiskSchema } from "./schema";
 import type { CreateRiskModalProps } from "./types";
+import { toRiskOwnerOptions } from "./utils";
 import { RiskLevelBadge } from "../riskLevelBadge";
 import { RiskStatusBadge } from "../riskStatusBadge";
 import type { ApiRiskDetail } from "../types";
-
-const RISK_LEVELS = ["Low", "Medium", "High"] as const;
-
-const emptyValues = {
-  risk_category: null as string | null,
-  risk_level: "",
-  status: "",
-  risk_owner: "",
-  summary: "",
-  mitigation_plan: "",
-};
-
-function toRiskOwnerOptions(
-  options: EmployeeLookupOption[],
-  userId?: string,
-  name?: string,
-) {
-  const mapped = options
-    .filter((option) => option.userId)
-    .map((option) => ({
-      label: option.label,
-      value: option.userId!,
-      icon: (
-        <Avatar
-          size="xs"
-          shape="circle"
-          image={option.image}
-          label={option.label}
-        />
-      ),
-    }));
-
-  if (userId && !mapped.some((option) => option.value === userId)) {
-    mapped.unshift({
-      label: name ?? userId,
-      value: userId,
-      icon: <Avatar size="xs" shape="circle" label={name ?? userId} />,
-    });
-  }
-
-  return mapped;
-}
 
 export function CreateRiskModal({
   open,
@@ -145,7 +104,7 @@ export function CreateRiskModal({
   );
 
   const form = useForm({
-    defaultValues: emptyValues,
+    defaultValues: EMPTY_RISK_VALUES,
     validators: {
       onSubmit: riskSchema,
     },
@@ -205,7 +164,7 @@ export function CreateRiskModal({
     }
     if (!isEditMode) {
       form.reset({
-        ...emptyValues,
+        ...EMPTY_RISK_VALUES,
         risk_owner: projectManagerUserId,
       });
     }
@@ -215,7 +174,7 @@ export function CreateRiskModal({
     onClose();
     setOwnerSearch("");
     setSubmitError(null);
-    form.reset(emptyValues);
+    form.reset(EMPTY_RISK_VALUES);
   }, [form, onClose]);
 
   const { options: employeeOptions, isLoading: employeesLoading } =
@@ -288,17 +247,16 @@ export function CreateRiskModal({
 
           {/* Risk level */}
           {isEditMode ? (
-            <div className="flex flex-col gap-1.5">
-              <FormLabel size="md">Risk level</FormLabel>
+            <DisabledRiskField label="Risk level">
               {existingRisk?.risk_level ? (
                 <RiskLevelBadge
-                  className="w-fit bg-transparent p-0"
+                  className="bg-transparent p-0"
                   level={existingRisk.risk_level}
                 />
               ) : (
-                <p className="text-sm text-ink-gray-5">—</p>
+                <span>—</span>
               )}
-            </div>
+            </DisabledRiskField>
           ) : (
             <form.Field
               name="risk_level"
@@ -327,17 +285,16 @@ export function CreateRiskModal({
 
           {/* Status */}
           {isEditMode ? (
-            <div className="flex flex-col gap-1.5">
-              <FormLabel size="md">Status</FormLabel>
+            <DisabledRiskField label="Status">
               {existingRisk?.status ? (
                 <RiskStatusBadge
-                  className="w-fit bg-transparent p-0"
+                  className="text-base text-ink-gray-7"
                   status={existingRisk.status}
                 />
               ) : (
-                <p className="text-sm text-ink-gray-5">—</p>
+                <span>—</span>
               )}
-            </div>
+            </DisabledRiskField>
           ) : (
             <form.Field
               name="status"
@@ -362,6 +319,15 @@ export function CreateRiskModal({
                 </div>
               )}
             />
+          )}
+
+          {isEditMode && (
+            <div className="flex items-center gap-2 rounded-lg bg-(--color-violet-50) px-2.5 py-2">
+              <AlertTriangle className="size-4 shrink-0 text-(--color-violet-700)" />
+              <p className="min-w-0 flex-1 text-left text-xs text-ink-gray-9">
+                To change status or risk level, add a new risk update instead.
+              </p>
+            </div>
           )}
 
           {/* Risk owner */}
@@ -390,15 +356,6 @@ export function CreateRiskModal({
               </div>
             )}
           />
-
-          {isEditMode && (
-            <div className="flex items-center gap-2 rounded-lg bg-(--color-violet-50) px-2.5 py-2">
-              <AlertTriangle className="size-4 shrink-0 text-(--color-violet-700)" />
-              <p className="min-w-0 flex-1 text-left text-xs text-ink-gray-9">
-                To change status or risk level, add a new risk update instead.
-              </p>
-            </div>
-          )}
 
           {/* Summary */}
           <form.Field
