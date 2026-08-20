@@ -41,6 +41,7 @@ export function getAllocationSummary(
   const dayHasNonBillable = new Map<number, boolean>();
   const dayHasTentative = new Map<number, boolean>();
   const dayTimeoff = new Map<number, TimeoffPortion>();
+  const dayLabel = new Map<number, string>();
   const dayKeys = new Set<number>();
 
   for (const alloc of allocations) {
@@ -71,6 +72,9 @@ export function getAllocationSummary(
       if (portion === "full" || !dayTimeoff.has(key)) {
         dayTimeoff.set(key, portion);
       }
+      if (leave.label) {
+        dayLabel.set(key, leave.label);
+      }
     }
   }
 
@@ -83,8 +87,10 @@ export function getAllocationSummary(
       billable: !dayHasNonBillable.get(ts),
       tentative: Boolean(dayHasTentative.get(ts)),
       type: (dayTimeoff.has(ts) ? "timeoff" : "default") as
-        "default" | "timeoff",
+        | "default"
+        | "timeoff",
       timeoff: dayTimeoff.get(ts),
+      label: dayLabel.get(ts),
     }));
 
   const merged: MemberBarAllocation[] = [];
@@ -95,6 +101,7 @@ export function getAllocationSummary(
     tentative,
     type,
     timeoff,
+    label,
   } of sortedDays) {
     const last = merged[merged.length - 1];
     if (
@@ -104,6 +111,7 @@ export function getAllocationSummary(
       last.tentative === tentative &&
       last.type === type &&
       last.timeoff === timeoff &&
+      last.label === label &&
       isSameDay(addDays(last.endDate, 1), date)
     ) {
       last.endDate = date;
@@ -116,6 +124,7 @@ export function getAllocationSummary(
         tentative,
         type,
         timeoff,
+        label,
       });
     }
   }
