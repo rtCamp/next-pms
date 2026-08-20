@@ -247,7 +247,6 @@ def get_promotion_salary_currency(promotion):
         "new",
     )
 
-    print(f"Changed currency: {changed_currency}, Promotion salary currency: {promotion.salary_currency}")
 
     return changed_currency or promotion.salary_currency
 
