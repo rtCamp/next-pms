@@ -18,16 +18,20 @@ import { ProjectListCell } from "./cells";
 import { PROJECT_LIST_COLUMNS } from "./columns";
 import { useProjectList } from "./context";
 import { useProjectFilters } from "../components/project-filters/useProjectFilters";
-import { PROJECT_LIST_PAGE_SIZE } from "../constants";
+import { MONETARY_SORT_FIELDS, PROJECT_LIST_PAGE_SIZE } from "../constants";
 
 function ProjectList() {
   const data = useProjectList((c) => c.state.data);
   const isLoading = useProjectList((c) => c.state.isLoading);
   const hasMore = useProjectList((c) => c.state.hasMore);
   const loadMore = useProjectList((c) => c.actions.loadMore);
-  const { sort, setSort } = useProjectFilters();
+  const { sort, setSort, filters } = useProjectFilters();
+  const currency = filters.currency;
 
   const handleHeaderClick = (sortField: string) => {
+    if (!currency && MONETARY_SORT_FIELDS.includes(sortField)) {
+      return;
+    }
     if (sort.field === sortField) {
       setSort({
         field: sortField,
