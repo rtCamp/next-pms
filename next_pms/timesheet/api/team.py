@@ -20,15 +20,34 @@ from frappe.utils.data import add_days, getdate
 
 from next_pms.api.utils import error_logger
 from next_pms.resource_management.api.utils.query import get_employee_leaves
-from next_pms.timesheet.doc_events.timesheet import flush_cache, publish_timesheet_update
+from next_pms.timesheet.doc_events.timesheet import (
+    flush_cache,
+    publish_timesheet_update,
+)
+from next_pms.timesheet.utils.constant import (
+    ALLOWED_FILTER_FIELDS,
+    MAX_TEAM_TIMESHEET_PAGE_LENGTH,
+    NOT_SUBMITTED_STATUS,
+    TEAM_TIMESHEET_PAGE_LENGTH,
+)
 
 from . import filter_employees
 from .employee import get_employee_daily_working_norm, get_employee_working_hours
 from .timesheet import get_timesheet_state
-from .utils import employee_has_higher_access, get_holidays, get_week_dates
+from .utils import (
+    build_chunk_context,
+    build_employee_week_details,
+    employee_condition_kwargs,
+    employee_has_higher_access,
+    get_holidays,
+    get_week_dates,
+    has_scoped_timesheets_before,
+    resolve_team_employee_scope,
+    resolve_team_members,
+)
 
 
-@whitelist()
+@whitelist(methods=["GET"])
 @error_logger
 def get_compact_view_data(
     date: str,
@@ -45,6 +64,8 @@ def get_compact_view_data(
     reports_to: str | None = None,
     by_pass_access_check: bool = False,
 ):
+    """API to get the timesheet data in compact view format, it will return the timesheet data for the employees based on the filters provided. It will return the data in a format which can be used to render the compact view of the timesheet. If no filters are provided, it will return the timesheet data for all the employees for the current week and previous weeks based on the max_week parameter."""
+    ## TODO: Deprecated ; can be removed after the redesign is completed
     if not by_pass_access_check:
         only_for(["Timesheet Manager", "Timesheet User", "Projects Manager"], message=True)
 
@@ -129,21 +150,25 @@ def get_compact_view_data(
                 hour = 0
                 on_leave = False
 
-                for leave in leaves:
-                    if leave["from_date"] <= date <= leave["to_date"]:
-                        if leave.get("half_day") and leave.get("half_day_date") == date:
-                            hour += daily_working_hours / 2
-                        else:
-                            hour += daily_working_hours
-                        on_leave = True
+                holiday = next((h for h in holidays if h.holiday_date == date), None)
 
-                for holiday in holidays:
-                    if date == holiday.holiday_date:
-                        if not holiday.weekly_off:
-                            hour = daily_working_hours
-                        else:
-                            hour = 0
+                for leave in leaves:
+                    if not leave["from_date"] <= date <= leave["to_date"]:
+                        continue
+                    if holiday and holiday.weekly_off and not leave.get("includes_holidays"):
+                        continue
+                    if leave.get("half_day") and leave.get("half_day_date") == date:
+                        hour += daily_working_hours / 2
+                    else:
+                        hour += daily_working_hours
+                    on_leave = True
+
+                if holiday:
+                    if not holiday.weekly_off:
+                        hour = daily_working_hours
                         on_leave = False
+                    elif not on_leave:
+                        hour = 0
                 total_hours = 0
                 notes = ""
                 for ts in employee_timesheets:
@@ -170,9 +195,202 @@ def get_compact_view_data(
     return res
 
 
+def build_team_member_payload(employee, context, week, has_filters):
+    """One member's row for one week, in the shape TeamMember renders."""
+    working_hours = context["working_hours_map"].get(employee.name, {"working_hour": 0, "working_frequency": "Per Day"})
+    # Qualification is already settled by resolve_team_members, so nothing is pruned
+    # here - this only shapes the week that survived.
+    week_details = build_employee_week_details(
+        employee_name=employee.name,
+        dates=[week],
+        context=context,
+        has_filters=has_filters,
+        skip_empty_weeks=False,
+        approval_status=None,
+    )
+    detail = week_details.get(week["key"]) or {}
+
+    return {
+        "employee": employee.name,
+        "employee_name": employee.get("employee_name"),
+        "image": employee.get("image"),
+        **working_hours,
+        "status": detail.get("status", NOT_SUBMITTED_STATUS),
+        "total_hours": detail.get("total_hours", 0),
+        "tasks": detail.get("tasks", {}),
+        "leaves": list(context["leaves_by_employee"].get(employee.name, [])),
+        "holidays": list(context["holidays_by_employee"].get(employee.name, [])),
+        "backdate_restricted_before": context["backdate_boundary_by_employee"].get(employee.name),
+    }
+
+
+@whitelist(methods=["GET", "POST"])
+@error_logger
+def get_team_timesheet_data(
+    start_date: str,
+    page_length: int = TEAM_TIMESHEET_PAGE_LENGTH,
+    start: int = 0,
+    status_filter: str | list[str] | None = None,
+    reports_to: str | None = None,
+    search: str | None = None,
+    filters: str | list | None = None,
+):
+    """Members of a single week, paginated.
+
+    `start_date` is any day inside the wanted week; the week boundaries come from
+    `get_week_dates`, so the caller does not supply an end date.
+
+    Pairs with `get_team_timesheet_weeks`, which supplies the week structure and the
+    counts. Both derive membership from `resolve_team_members`, so this endpoint's
+    `total_count` and that endpoint's `member_count` cannot drift.
+    """
+    only_for(["Timesheet Manager", "Timesheet User", "Projects Manager"], message=True)
+
+    start = int(start)
+    page_length = max(0, min(int(page_length), MAX_TEAM_TIMESHEET_PAGE_LENGTH))
+    week = get_week_dates(date=start_date)
+
+    scope = resolve_team_employee_scope(
+        date=start_date,
+        max_week=1,
+        status_filter=status_filter,
+        reports_to=reports_to,
+        search=search,
+        filters=filters,
+    )
+
+    response = {
+        "start_date": week["start_date"],
+        "end_date": week["end_date"],
+        "dates": week["dates"],
+        "members": [],
+        "total_count": 0,
+        "has_more": False,
+    }
+    if scope.is_empty:
+        return response
+
+    resolved = resolve_team_members(scope, [week])
+    qualifying = resolved["members_by_week"][week["start_date"]]
+    total_count = len(qualifying)
+    response["total_count"] = total_count
+
+    if not qualifying or not page_length or start >= total_count:
+        return response
+
+    # The page comes out of the database rather than out of a Python scan: membership
+    # is already known, so LIMIT/OFFSET over the qualifying ids replaces walking the
+    # whole pool building payloads only to discard them.
+    page_employees, _ = filter_employees(
+        page_length=page_length,
+        start=start,
+        reports_to=reports_to,
+        ids=sorted(qualifying),
+        **employee_condition_kwargs(scope.employee_conditions),
+    )
+
+    context = build_chunk_context(page_employees, [week], scope.parsed_filters)
+    response["members"] = [
+        build_team_member_payload(employee, context, week, scope.has_filters) for employee in page_employees
+    ]
+    response["has_more"] = start + page_length < total_count
+    return response
+
+
+@whitelist(methods=["GET", "POST"])
+@error_logger
+def get_team_timesheet_weeks(
+    date: str,
+    max_week: int = 4,
+    reports_to: str | None = None,
+    search: str | None = None,
+    status_filter: str | list[str] | None = None,
+    filters: str | list | None = None,
+):
+    """Week structure and per-week counts for the team timesheet, without member payloads.
+
+    Feeds first paint: the page can render its week rows and pending-approval badges
+    before any member data is fetched, and `get_team_timesheet_data` then fills one week
+    at a time. Touches no Timesheet Detail rows.
+    """
+    only_for(["Timesheet Manager", "Timesheet User", "Projects Manager"], message=True)
+
+    max_week = int(max_week)
+    scope = resolve_team_employee_scope(
+        date=date,
+        max_week=max_week,
+        status_filter=status_filter,
+        reports_to=reports_to,
+        search=search,
+        filters=filters,
+    )
+    weeks = scope.response_dates
+
+    if scope.is_empty or not weeks:
+        return {"weeks": [], "has_more_weeks": False, "next_date": None}
+
+    resolved = resolve_team_members(scope, weeks)
+
+    week_payloads = []
+    for week in weeks:
+        members = resolved["members_by_week"][week["start_date"]]
+        pending = resolved["pending_by_week"][week["start_date"]]
+        member_count = len(members)
+
+        if scope.skip_empty_weeks and not members:
+            continue
+
+        week_payloads.append(
+            {
+                "key": str(week["start_date"]),
+                "start_date": week["start_date"],
+                "end_date": week["end_date"],
+                "label": week["key"],
+                "dates": week["dates"],
+                "member_count": member_count,
+                "approval_pending_count": len(pending),
+                "has_more_members": member_count > TEAM_TIMESHEET_PAGE_LENGTH,
+            }
+        )
+
+    # Asked against this caller's scope, not the whole Timesheet table: with empty weeks
+    # dropped, `week_payloads` can legitimately come back empty, and a global probe would
+    # then keep the frontend paging backwards to the oldest timesheet in history.
+    earliest = weeks[0]["start_date"]
+    next_date = add_days(getdate(earliest), -1)
+    has_more_weeks = has_scoped_timesheets_before(scope, resolved["eligible_ids"], earliest)
+
+    return {
+        "weeks": week_payloads,
+        "has_more_weeks": has_more_weeks,
+        "next_date": next_date if has_more_weeks else None,
+    }
+
+
+@whitelist(methods=["GET", "POST"])
+@error_logger
+def get_team_timesheet_member_week(employee: str, start_date: str, by_pass_access_check: bool = False):
+    """One member's row for one week - the unit the realtime publisher swaps in.
+
+    Returns exactly one element of `get_team_timesheet_data`'s `members`, so a realtime
+    update replaces a single row instead of forcing a reload of the whole week.
+    """
+    if not by_pass_access_check:
+        only_for(["Timesheet Manager", "Timesheet User", "Projects Manager"], message=True)
+
+    week = get_week_dates(date=start_date)
+    employee_rows, _ = filter_employees(page_length=1, start=0, ids=[employee], ignore_default_filters=True)
+    if not employee_rows:
+        return None
+
+    context = build_chunk_context(employee_rows, [week], {dt: [] for dt in ALLOWED_FILTER_FIELDS})
+    return build_team_member_payload(employee_rows[0], context, week, has_filters=False)
+
+
 @whitelist(methods=["POST"])
 @error_logger
 def approve_or_reject_timesheet(employee: str, status: str, dates: list[str] | None = None, note: str = ""):
+    """API to approve or reject the timesheet for the given employee and date range. It will update the custom_approval_status and custom_weekly_approval_status field of the timesheet to "Processing Timesheet" and then enqueue a background job to approve or reject the timesheet. The background job will update the status of the timesheet to "Approved" or "Rejected" based on the status parameter passed in the API and then trigger a notification to the employee about the approval or rejection of the timesheet."""
     only_for(["Timesheet Manager", "Timesheet User", "Projects Manager"], message=True)
     if not dates:
         return throw(_("Please select the dates to approve or reject the timesheet."))
@@ -195,8 +413,15 @@ def approve_or_reject_timesheet(employee: str, status: str, dates: list[str] | N
     for timesheet in timesheets:
         if str(timesheet.start_date) not in dates:
             continue
-        db.set_value("Timesheet", timesheet.name, "custom_approval_status", "Processing Timesheet")
-        db.set_value("Timesheet", timesheet.name, "custom_weekly_approval_status", "Processing Timesheet")
+        db.set_value(
+            "Timesheet",
+            timesheet.name,
+            {
+                "custom_approval_status": "Processing Timesheet",
+                "custom_weekly_approval_status": "Processing Timesheet",
+                "custom_weekly_rejection_reason": None,
+            },
+        )
     doc = _dict(
         {
             "employee": employee,
@@ -332,6 +557,7 @@ def _approve_or_reject_timesheet(
         for timesheet in timesheets_to_process:
             doc = get_doc("Timesheet", timesheet.name)
             doc.custom_approval_status = status
+            doc.custom_rejection_reason = note if status == "Rejected" else None
             doc.save(ignore_permissions=has_permission)
             if status == "Approved":
                 doc.submit()

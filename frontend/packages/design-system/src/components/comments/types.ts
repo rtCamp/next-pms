@@ -1,41 +1,46 @@
-export interface Comment {
-  name: string;
-  userImageUrl: string;
-  userName: string;
+import { TextEditorProps } from "@rtcamp/frappe-ui-react";
+
+export type CommentNode = {
+  id: string;
+  authorId: string;
+  authorName: string;
+  authorImage?: string | null;
   content: string;
-  createdAt: string | Date;
-  updatedAt?: string | Date;
-  canEdit?: boolean;
-  canDelete?: boolean;
-  owner?: string;
-}
+  createdAt: string;
+  ownerId?: string | null;
+  edited?: boolean;
+  deleted?: boolean;
+  deletedAt?: string | null;
+  replies: CommentNode[];
+};
 
-export interface CommentItemProps {
-  comment: Comment;
-  onDelete?: (commentId: string) => void;
-  onUpdate?: (commentId: string, newContent: string) => void;
-  onShare?: (commentId: string) => void;
-  isEditing?: boolean;
-  onEditModeChange?: (commentId: string, isEditing: boolean) => void;
-  className?: string;
-  mentionClassName?: string;
-}
+export type CommentActions = {
+  getMentions?: TextEditorProps["mentions"];
+  onReply: (parentId: string, comment: string) => Promise<void>;
+  onEdit: (commentId: string, comment: string) => Promise<void>;
+  onDelete: (commentId: string) => Promise<void>;
+  isUpdating: boolean;
+  authorId?: string;
+  canManageAllComments?: boolean;
+};
 
-export interface CommentsListProps {
-  comments: Comment[];
-  onDelete?: (commentId: string) => void;
-  onUpdate?: (commentId: string, newContent: string) => void;
-  onShare?: (commentId: string) => void;
+export type CommentsProps = {
+  comments: CommentNode[];
   isLoading?: boolean;
-  emptyMessage?: string;
+  isUpdating?: boolean;
+  authorId?: string;
+  canManageAllComments?: boolean;
   className?: string;
-  maxHeight?: string;
-  mentionClassName?: string;
-}
-
-export interface CommentFormProps {
-  onSubmit: (content: string) => void | Promise<void>;
-  isSubmitting?: boolean;
-  placeholder?: string;
-  className?: string;
-}
+  title?: string;
+  titleClassName?: string;
+  inputPlaceholder?: string;
+  inputSubmitLabel?: string;
+  inputTriggerClassName?: string;
+  inputAvatarName?: string;
+  inputAvatarImage?: string | null;
+  getMentions?: TextEditorProps["mentions"];
+  onAddComment: (comment: string) => Promise<void>;
+  onReply: (parentId: string, comment: string) => Promise<void>;
+  onEdit: (commentId: string, comment: string) => Promise<void>;
+  onDelete: (commentId: string) => Promise<void>;
+};

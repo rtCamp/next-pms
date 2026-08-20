@@ -14,6 +14,10 @@ MAX_OUTPUT_RETRIES = 5
 COMPLETION_POLL_INTERVAL = 30
 
 
+class PMReportConfigurationError(frappe.ValidationError):
+    http_status_code = 500
+
+
 def get_llm_urls() -> tuple[str, str] | None:
     # URLs are configured in site_config.json:
     summarize_url = frappe.conf.get("llm_summarize_url")
@@ -46,17 +50,24 @@ def generate_pm_report(
     to_date: str | None = None,
     previous_doc_url: str | None = None,
     selected_repo: str | None = None,
+    selected_board: str | None = None,
 ) -> dict:
     frappe.has_permission("Project", doc=project, ptype="write", throw=True)
 
     urls = get_llm_urls()
     if not urls:
-        return {"status": "error"}
+        frappe.throw(
+            _("LLM service URLs are not configured"),
+            exc=PMReportConfigurationError,
+        )
     LLM_SUMMARIZE_URL = urls[0]
 
     api_key = get_api_key()
     if not api_key:
-        return {"status": "error"}
+        frappe.throw(
+            _("PM Report API key is not configured"),
+            exc=PMReportConfigurationError,
+        )
 
     project_doc = frappe.get_doc("Project", project)
 
@@ -85,8 +96,11 @@ def generate_pm_report(
             "drive_link": drive_link,
         },
         **({"previous_doc_url": previous_doc_url} if previous_doc_url else {}),
-        "user_metadata": {"user_name": frappe.session.user, "user_email": frappe.session.user},
-        "github_metadata": get_github_metadata(project_doc, selected_repo=selected_repo),
+        "user_metadata": {
+            "user_name": frappe.utils.get_fullname(frappe.session.user),
+            "user_email": frappe.session.user,
+        },
+        "github_metadata": get_github_metadata(project_doc, selected_repo=selected_repo, selected_board=selected_board),
         "slack_metadata": {"channel_slug": project_doc.get("custom_slack_channel_slug") or ""},
         "hours_breakdown": get_hours_breakdown(project, from_date, to_date),
     }
@@ -366,11 +380,15 @@ def _send_bell_notification(project, user, document_url):
             frappe.log_error(f"Invalid or untrusted document_url: {document_url}", "PM Report — Invalid Document URL")
             return
 
+        from html import escape
+
+        safe_document_url = escape(document_url, quote=True)
+
         frappe.get_doc(
             {
                 "doctype": "Notification Log",
                 "subject": f"PM Report Ready: {project}",
-                "email_content": f'<a href="{document_url}">📄 View PM Report</a>',
+                "email_content": f'<a href="{safe_document_url}">📄 View PM Report</a>',
                 "for_user": user,
                 "document_type": "Project",
                 "document_name": project,
@@ -381,7 +399,7 @@ def _send_bell_notification(project, user, document_url):
         frappe.log_error(frappe.get_traceback(), "PM Report — Bell Notification Error")
 
 
-def get_github_metadata(project_doc, selected_repo: str | None = None):
+def get_github_metadata(project_doc, selected_repo: str | None = None, selected_board: str | None = None):
     repos = project_doc.get("custom_project_repository_connections") or []
     allowed_repos = [r.get("github_repository") for r in repos]
     if selected_repo:
@@ -401,7 +419,22 @@ def get_github_metadata(project_doc, selected_repo: str | None = None):
         repo_name = project_doc.get("project_name") or ""
         owner_name = "rtCamp"
 
-    return {"repo_name": repo_name, "owner_name": owner_name, "project_board": project_doc.get("project_name") or ""}
+    project_board = ""
+    if selected_board:
+        project_board = selected_board
+    elif repo_url:
+        try:
+            repo_doc = frappe.get_doc("GitHub Repository", repo_url)
+            boards = repo_doc.get("project_boards") or []
+            if boards:
+                project_board = boards[0].board_name
+        except Exception:
+            pass
+
+    if not project_board:
+        project_board = project_doc.get("project_name") or ""
+
+    return {"repo_name": repo_name, "owner_name": owner_name, "project_board": project_board}
 
 
 def get_hours_breakdown(project, from_date, to_date):
@@ -473,3 +506,14 @@ def _is_valid_document_url(url: str) -> bool:
         )
     except Exception:
         return False
+
+
+@frappe.whitelist()
+def get_repository_project_boards(repository: str | None = None) -> list[str]:
+    if not repository:
+        return []
+    try:
+        repo_doc = frappe.get_doc("GitHub Repository", repository)
+        return [b.board_name for b in repo_doc.get("project_boards") or [] if b.board_name]
+    except Exception:
+        return []

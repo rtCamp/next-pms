@@ -1,0 +1,209 @@
+/**
+ * External dependencies.
+ */
+import { useCallback, useState } from "react";
+import { getTodayDate } from "@next-pms/design-system";
+import { DeleteActionDialog } from "@next-pms/design-system/components";
+import {
+  ListHeader,
+  ListHeaderItem,
+  ListRow,
+  ListRows,
+  ListView,
+} from "@rtcamp/frappe-ui-react";
+import { ArrowDown, ArrowUp } from "@rtcamp/frappe-ui-react/icons";
+
+/**
+ * Internal dependencies.
+ */
+import { InfiniteScroll } from "@/components/infiniteScroll";
+import PersonalTaskLog from "@/components/task-log/personalTaskLog";
+import TeamTaskLog from "@/components/task-log/teamTaskLog";
+import AddTime from "@/pages/timesheet/components/add-time";
+import type { OpenAddTimeDialogOptions } from "@/pages/timesheet/outletContext";
+import { useUser } from "@/providers/user";
+import { TaskListCell } from "./cells";
+import { TASK_LIST_COLUMNS } from "./columns";
+import { useTaskList } from "./context";
+import { TASK_LIST_PAGE_SIZE, TASK_SORTABLE_FIELDS } from "../constants";
+import { useTaskFilters } from "../useTaskFilters";
+
+const SORT_FIELD_BY_COLUMN = new Map(
+  TASK_SORTABLE_FIELDS.map((f) => [f.column as string, f.field as string]),
+);
+
+function TaskList() {
+  const data = useTaskList((c) => c.state.data);
+  const isLoading = useTaskList((c) => c.state.isLoading);
+  const hasMore = useTaskList((c) => c.state.hasMore);
+  const loadMore = useTaskList((c) => c.actions.loadMore);
+  const deleteTask = useTaskList((c) => c.actions.deleteTask);
+  const openEditTaskModal = useTaskList((c) => c.actions.openEditTaskModal);
+  const { sort, setSort } = useTaskFilters();
+  const roles = useUser(({ state }) => state.roles);
+  const userId = useUser(({ state }) => state.userId);
+  const showTeamTaskLog =
+    roles.includes("Projects Manager") || roles.includes("Timesheet Manager");
+  const [openTask, setOpenTask] = useState<string | null>(null);
+  const [addTimePrefill, setAddTimePrefill] =
+    useState<OpenAddTimeDialogOptions>({ date: getTodayDate() });
+  const [isAddTimeOpen, setIsAddTimeOpen] = useState(false);
+  const [deleteTaskName, setDeleteTaskName] = useState<string | null>(null);
+
+  const handleAddTime = useCallback((prefill: OpenAddTimeDialogOptions) => {
+    setAddTimePrefill({ date: getTodayDate(), ...prefill });
+    setIsAddTimeOpen(true);
+  }, []);
+
+  const handleHeaderClick = (sortField: string) => {
+    if (sort.field === sortField) {
+      setSort({
+        field: sortField,
+        order: sort.order === "asc" ? "desc" : "asc",
+      });
+    } else {
+      setSort({ field: sortField, order: "desc" });
+    }
+  };
+
+  return (
+    <>
+      <ListView
+        role="table"
+        aria-label="Tasks"
+        className="px-5 py-0 scrollbar-thin"
+        columns={TASK_LIST_COLUMNS}
+        rows={data}
+        rowKey="name"
+        options={{
+          options: {
+            selectable: false,
+            showTooltip: true,
+            resizeColumn: false,
+          },
+          slots: {
+            cell: TaskListCell,
+          },
+        }}
+      >
+        <ListHeader
+          role="row"
+          className="mb-0 rounded-none bg-transparent border-b border-outline-gray-1 p-2 gap-2"
+        >
+          {TASK_LIST_COLUMNS.map((column) => {
+            const sortField = SORT_FIELD_BY_COLUMN.get(column.key);
+            const isSorted = Boolean(sortField) && sort.field === sortField;
+            return (
+              <ListHeaderItem
+                key={column.key}
+                role="columnheader"
+                aria-sort={
+                  sortField
+                    ? isSorted
+                      ? sort.order === "asc"
+                        ? "ascending"
+                        : "descending"
+                      : "none"
+                    : undefined
+                }
+                item={column}
+              >
+                {sortField ? (
+                  <button
+                    type="button"
+                    className="flex h-7 min-w-0 items-center gap-1 rounded-sm py-1.5 select-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-outline-gray-3"
+                    onClick={() => handleHeaderClick(sortField)}
+                  >
+                    <span className="truncate">{column.label}</span>
+                    {isSorted &&
+                      (sort.order === "asc" ? (
+                        <ArrowUp className="size-3.5 shrink-0 text-ink-gray-7" />
+                      ) : (
+                        <ArrowDown className="size-3.5 shrink-0 text-ink-gray-7" />
+                      ))}
+                  </button>
+                ) : (
+                  <div className="flex h-7 items-center gap-1 py-1.5">
+                    <span className="truncate">{column.label}</span>
+                  </div>
+                )}
+              </ListHeaderItem>
+            );
+          })}
+        </ListHeader>
+        <ListRows role="rowgroup">
+          {data.length === 0 ? (
+            <div role="row">
+              <p
+                role="cell"
+                className="py-6 text-center text-base text-ink-gray-5"
+              >
+                No tasks found.
+              </p>
+            </div>
+          ) : (
+            <InfiniteScroll
+              role="presentation"
+              isLoading={isLoading}
+              hasMore={hasMore}
+              verticalLodMore={loadMore}
+              count={TASK_LIST_PAGE_SIZE}
+            >
+              {data.map((row) => (
+                <ListRow key={row.name} role="row" row={row}>
+                  {TASK_LIST_COLUMNS.map((column) => (
+                    <div key={column.key} role="cell" className="min-w-0">
+                      <TaskListCell
+                        row={row}
+                        column={column}
+                        onOpenTask={setOpenTask}
+                        onAddTime={handleAddTime}
+                        onEditTask={openEditTaskModal}
+                        onDeleteTask={setDeleteTaskName}
+                        userId={userId}
+                        roles={roles}
+                      />
+                    </div>
+                  ))}
+                </ListRow>
+              ))}
+            </InfiniteScroll>
+          )}
+        </ListRows>
+      </ListView>
+      {openTask &&
+        (showTeamTaskLog ? (
+          <TeamTaskLog
+            task={openTask}
+            open={Boolean(openTask)}
+            onOpenChange={(open) => !open && setOpenTask(null)}
+          />
+        ) : (
+          <PersonalTaskLog
+            task={openTask}
+            open={Boolean(openTask)}
+            onOpenChange={(open) => !open && setOpenTask(null)}
+          />
+        ))}
+      <AddTime
+        initialDate={addTimePrefill.date || getTodayDate()}
+        open={isAddTimeOpen}
+        onOpenChange={setIsAddTimeOpen}
+        project={addTimePrefill.project}
+        projectLabel={addTimePrefill.projectLabel}
+        task={addTimePrefill.task}
+        taskLabel={addTimePrefill.taskLabel}
+      />
+      {deleteTaskName && (
+        <DeleteActionDialog
+          title="Delete task"
+          description="Are you sure you want to delete this task? This action cannot be undone."
+          onClose={() => setDeleteTaskName(null)}
+          onConfirm={() => deleteTask(deleteTaskName)}
+        />
+      )}
+    </>
+  );
+}
+
+export default TaskList;

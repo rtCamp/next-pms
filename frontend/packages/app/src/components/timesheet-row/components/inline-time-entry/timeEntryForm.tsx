@@ -1,0 +1,207 @@
+/**
+ * External dependencies
+ */
+import { mergeClassNames as cn } from "@next-pms/design-system";
+import {
+  Button,
+  DatePicker,
+  ErrorMessage,
+  TextEditor,
+  DurationInput,
+  TextInput,
+  FormLabel,
+} from "@rtcamp/frappe-ui-react";
+import { AddSm, Calendar } from "@rtcamp/frappe-ui-react/icons";
+import { format, parseISO } from "date-fns";
+
+/**
+ * Internal dependencies
+ */
+import { ENTRY_FORM_MODE } from ".";
+import { TimeEntryFormProps } from "./types";
+
+/**
+ * TimeEntryForm Component
+ * Renders a form for entering time entry details, including duration and comments.
+ * @param form An instance of the form API to manage form state and actions.
+ * @param mode A string indicating whether the form is in "add" or "edit" mode.
+ * @param hoursLeft The number of hours left that can be logged for the day.
+ * @param durationVariant The variant style to apply to the duration input field.
+ * @param maxDurationInHours The maximum number of hours that can be entered in the duration field.
+ * @param isSaving Whether this form's own save/update request is in flight; drives the Save button's loading state.
+ * @param isMutating Whether any mutation (save, update or delete) is in flight; disables every input and the Save button.
+ * @param editBaseline An optional object containing the original duration and comment values when in edit mode.
+ * @param onCommentKeyDown A callback function to handle key down events in the comment textarea.
+ */
+export const TimeEntryForm = ({
+  form,
+  mode,
+  hoursLeft,
+  durationLabel,
+  maxDurationInHours,
+  isSaving,
+  isMutating,
+  submitError = null,
+  editBaseline = null,
+  onSave,
+  onCommentKeyDown,
+  onCommentPointerDown,
+  children,
+}: TimeEntryFormProps) => {
+  return (
+    <div className="flex flex-col w-full gap-2">
+      <form.Field
+        name="duration"
+        children={(field) => {
+          return (
+            <div className="flex flex-col w-full gap-2">
+              <DurationInput
+                snap="smooth"
+                hoursLeft={hoursLeft}
+                label={durationLabel}
+                required
+                inlineLabel="Duration"
+                value={field.state.value}
+                onChange={(val) => field.handleChange(val)}
+                maxDuration={maxDurationInHours}
+                disabled={isMutating}
+              />
+              {!field.state.meta.isValid && (
+                <ErrorMessage message={field.state.meta.errors[0]?.message} />
+              )}
+            </div>
+          );
+        }}
+      />
+      {mode === ENTRY_FORM_MODE.EDIT ? (
+        <form.Field
+          name="date"
+          children={(field) => {
+            return (
+              <div className="flex flex-col w-full gap-1.5">
+                <FormLabel size="sm" required>
+                  Edit date
+                </FormLabel>
+                <DatePicker
+                  label="Date"
+                  variant="outline"
+                  clearable={false}
+                  placement="bottom-start"
+                  disabled={isMutating}
+                  formatter={(date) =>
+                    date ? format(parseISO(date), "MMM d, yyyy") : ""
+                  }
+                  value={field.state.value}
+                  onChange={(val) =>
+                    field.handleChange(
+                      typeof val === "string" ? val : (val[0] ?? ""),
+                    )
+                  }
+                >
+                  {({ displayValue, disabled }) => (
+                    <TextInput
+                      className="h-8 text-base text-ink-gray-7"
+                      type="text"
+                      placeholder="Select date"
+                      value={displayValue}
+                      readOnly
+                      disabled={disabled}
+                      suffix={() => <Calendar className="size-4" />}
+                      variant="outline"
+                    />
+                  )}
+                </DatePicker>
+                {!field.state.meta.isValid && (
+                  <ErrorMessage message={field.state.meta.errors[0]?.message} />
+                )}
+              </div>
+            );
+          }}
+        />
+      ) : null}
+      <form.Field
+        name="comment"
+        children={(field) => {
+          return (
+            <>
+              <div
+                className="relative w-full"
+                onKeyDownCapture={(e) => onCommentKeyDown(e)}
+                onPointerDownCapture={onCommentPointerDown}
+              >
+                <TextEditor
+                  editable={!isMutating}
+                  content={field.state.value}
+                  onChange={(value) => field.handleChange(value)}
+                  fixedMenu={false}
+                  placeholder="Comment"
+                  editorClass={cn(
+                    "px-2 h-24 min-h-24 max-h-60 resize prose-sm overflow-auto scrollbar-thin",
+                    "bg-surface-white border rounded-md border-outline-gray-2 text-ink-gray-7 text-base leading-5.25",
+                    "box-border w-full min-w-64 max-w-[min(680px,calc(90vw-2rem))]",
+                    "contain-[inline-size] wrap-anywhere **:max-w-full **:wrap-anywhere",
+                  )}
+                />
+                {field.state.value === "" ? (
+                  <span className="absolute text-[12px] align-middle right-2 bottom-1 text-ink-gray-4">
+                    ⌘+↵
+                  </span>
+                ) : null}
+              </div>
+              {!field.state.meta.isValid && (
+                <ErrorMessage message={field.state.meta.errors[0]?.message} />
+              )}
+            </>
+          );
+        }}
+      />
+      {submitError ? <ErrorMessage message={submitError} /> : null}
+      <form.Subscribe
+        selector={(state) => ({
+          date: state.values.date,
+          duration: state.values.duration,
+          comment: state.values.comment,
+          durationIsDefault: state.fieldMeta.duration?.isDefaultValue ?? true,
+          commentIsDefault: state.fieldMeta.comment?.isDefaultValue ?? true,
+        })}
+        children={({
+          date,
+          duration,
+          comment,
+          durationIsDefault,
+          commentIsDefault,
+        }) => {
+          const isAddUnchanged = durationIsDefault && commentIsDefault;
+          const isEditUnchanged =
+            editBaseline !== null &&
+            duration === editBaseline.duration &&
+            comment === editBaseline.comment &&
+            date === editBaseline.date;
+          const isSaveDisabled =
+            isMutating ||
+            (mode === ENTRY_FORM_MODE.ADD ? isAddUnchanged : isEditUnchanged);
+
+          return (
+            <div className="flex justify-between w-full gap-2">
+              <Button
+                className={cn(
+                  "text-ink-gray-7",
+                  (isSaving || isSaveDisabled) && "text-ink-gray-4",
+                )}
+                variant="subtle"
+                size="sm"
+                iconLeft={() => <AddSm size={16} />}
+                onClick={onSave}
+                loading={isSaving}
+                disabled={isSaveDisabled}
+              >
+                Save entry
+              </Button>
+              {children}
+            </div>
+          );
+        }}
+      />
+    </div>
+  );
+};

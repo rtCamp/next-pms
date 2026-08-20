@@ -1,0 +1,372 @@
+/**
+ * External Dependencies
+ */
+import { getTodayDate } from "@next-pms/design-system/date";
+import {
+  DatePicker,
+  Dialog,
+  Button,
+  TabButtons,
+  Select,
+  Textarea,
+  ErrorMessage,
+  FormLabel,
+} from "@rtcamp/frappe-ui-react";
+import { useToasts } from "@rtcamp/frappe-ui-react";
+import { Calendar, TimeOff } from "@rtcamp/frappe-ui-react/icons";
+import { useForm } from "@tanstack/react-form";
+import {
+  FrappeError,
+  useFrappeCreateDoc,
+  useFrappeGetCall,
+} from "frappe-react-sdk";
+
+/**
+ * Internal Dependencies
+ */
+import { parseFrappeErrorMsg } from "@/lib/utils";
+import { useUser } from "@/providers/user";
+import { addLeaveFormSchema } from "./schema";
+import { type LeaveTimeProps, LEAVE_DURATION } from "./types";
+
+const AddLeave = ({ open = false, onOpenChange }: LeaveTimeProps) => {
+  const { employeeId } = useUser(({ state }) => ({
+    employeeId: state.employeeId,
+  }));
+
+  const toast = useToasts();
+  const { createDoc, loading } = useFrappeCreateDoc();
+
+  const { data: leaveDetails } = useFrappeGetCall(
+    "hrms.hr.doctype.leave_application.leave_application.get_leave_details",
+    {
+      employee: employeeId,
+      date: getTodayDate(),
+    },
+  );
+
+  const unpaidLeaveOptions = (
+    (leaveDetails?.message?.lwps as string[]) || []
+  ).map((val) => ({
+    label: val,
+    value: val,
+  }));
+  const allocatedLeaveOptions = Object.keys(
+    (leaveDetails?.message?.leave_allocation as Record<string, unknown>) || {},
+  ).map((val) => ({ label: val, value: val }));
+
+  const form = useForm({
+    defaultValues: {
+      fromDate: getTodayDate(),
+      toDate: getTodayDate(),
+      leaveDuration: LEAVE_DURATION[0] as string,
+      halfDayDate: "",
+      leaveType: "",
+      reason: "",
+    },
+    validators: {
+      onSubmit: addLeaveFormSchema,
+    },
+    onSubmit: async ({ value }) => {
+      // Convert to Title case
+      const custom_first_halfsecond_half =
+        value.leaveDuration !== "full-day"
+          ? value.leaveDuration
+              .split("-")
+              .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+              .join(" ")
+          : "";
+
+      const half_day =
+        value.leaveDuration === "first-half" ||
+        value.leaveDuration === "second-half";
+
+      try {
+        const data = {
+          employee: employeeId,
+          description: value.reason,
+          from_date: value.fromDate,
+          to_date: value.toDate,
+          leave_type: value.leaveType,
+          half_day,
+          half_day_date: half_day
+            ? value.fromDate !== value.toDate
+              ? value.halfDayDate
+              : value.fromDate
+            : undefined,
+          custom_first_halfsecond_half,
+        };
+        await createDoc("Leave Application", data);
+        toast.success("Leave created successfully");
+      } catch (err) {
+        const error = parseFrappeErrorMsg(err as FrappeError);
+        toast.error(error);
+      } finally {
+        closeModal();
+      }
+    },
+  });
+
+  const closeModal = () => {
+    onOpenChange(false);
+    form.reset();
+  };
+
+  const handleOpenChange = (nextOpen: boolean) => {
+    if (nextOpen) {
+      onOpenChange(true);
+      return;
+    }
+
+    closeModal();
+  };
+
+  return (
+    <Dialog
+      open={open}
+      onOpenChange={handleOpenChange}
+      className="my-0 max-w-110"
+      classNames={{
+        header: "mb-5",
+        content: "pt-5 pb-2",
+        viewport: "justify-start pt-30",
+        footer: "pb-6",
+      }}
+      actions={
+        <Button
+          className="w-full"
+          variant="solid"
+          iconLeft={() => <TimeOff className="size-4 text-ink-white" />}
+          label="Add time-off"
+          disabled={loading}
+          onClick={() => {
+            form.handleSubmit();
+          }}
+        />
+      }
+      options={{
+        title: () => (
+          <h3
+            className="text-2xl font-semibold leading-[1.15] text-ink-gray-8"
+            data-testid="dialog-title"
+          >
+            Add time off
+          </h3>
+        ),
+      }}
+    >
+      <div className="space-y-4">
+        <div className="gap-4 flex">
+          <form.Field
+            name="fromDate"
+            children={(field) => {
+              return (
+                <div className="flex-1 flex w-full flex-col space-y-1.5">
+                  <FormLabel size="md" className="mb-1.5" required>
+                    From
+                  </FormLabel>
+                  <DatePicker
+                    label="From"
+                    onChange={(val) => field.handleChange(val as string)}
+                    placeholder="Start date"
+                    value={field.state.value}
+                  >
+                    {({ displayValue }) => {
+                      return (
+                        <div className="w-full h-8 relative flex items-center border border-outline-gray-2 px-2.5 py-2 rounded">
+                          <input
+                            readOnly
+                            type="text"
+                            id="start"
+                            value={displayValue}
+                            className="w-full text-base text-ink-gray-7"
+                            placeholder="Select start date"
+                          />
+                          <Calendar className="size-4" />
+                        </div>
+                      );
+                    }}
+                  </DatePicker>
+                  {!field.state.meta.isValid && (
+                    <ErrorMessage
+                      message={field.state.meta.errors[0]?.message}
+                    />
+                  )}
+                </div>
+              );
+            }}
+          />
+          <form.Field
+            name="toDate"
+            children={(field) => {
+              return (
+                <div className="flex-1 flex w-full flex-col space-y-1.5">
+                  <FormLabel size="md" className="mb-1.5" required>
+                    To
+                  </FormLabel>
+                  <DatePicker
+                    label="To"
+                    onChange={(val) => field.handleChange(val as string)}
+                    placeholder="End date"
+                    value={field.state.value}
+                  >
+                    {({ displayValue }) => {
+                      return (
+                        <div className="w-full h-8 relative flex items-center border border-outline-gray-2 px-2.5 py-2 rounded">
+                          <input
+                            readOnly
+                            type="text"
+                            id="start"
+                            value={displayValue}
+                            className="w-full text-base text-ink-gray-7"
+                            placeholder="Select end date"
+                          />
+                          <Calendar className="size-4" />
+                        </div>
+                      );
+                    }}
+                  </DatePicker>
+                  {!field.state.meta.isValid && (
+                    <ErrorMessage
+                      message={field.state.meta.errors[0]?.message}
+                    />
+                  )}
+                </div>
+              );
+            }}
+          />
+        </div>
+
+        <form.Field
+          name="leaveDuration"
+          children={(field) => {
+            return (
+              <>
+                <FormLabel size="md" className="mb-1.5" required>
+                  Leave duration
+                </FormLabel>
+                <TabButtons
+                  className="h-7.5"
+                  buttonClassName="text-ink-gray-5 data-pressed:text-ink-gray-8"
+                  value={field.state.value}
+                  onChange={(val) => field.handleChange(val as string)}
+                  buttons={LEAVE_DURATION.map((value) => ({
+                    label: value
+                      .split("-")
+                      .map(
+                        (word) => word.charAt(0).toUpperCase() + word.slice(1),
+                      )
+                      .join(" "),
+                    value,
+                  }))}
+                />
+                {!field.state.meta.isValid && (
+                  <ErrorMessage message={field.state.meta.errors[0]?.message} />
+                )}
+              </>
+            );
+          }}
+        />
+
+        <form.Subscribe
+          selector={(state) => [
+            state.values.fromDate,
+            state.values.toDate,
+            state.values.leaveDuration,
+          ]}
+          children={([fromDate, toDate, leaveDuration]) =>
+            leaveDuration !== "full-day" &&
+            fromDate !== toDate && (
+              <form.Field
+                name="halfDayDate"
+                children={(field) => {
+                  return (
+                    <div className="flex flex-col space-y-1.5">
+                      <FormLabel size="md" className="mb-1.5" required>
+                        Half Day Date
+                      </FormLabel>
+                      <DatePicker
+                        label="Half Day Date"
+                        onChange={(val) => field.handleChange(val as string)}
+                        placeholder="Half day date"
+                        value={field.state.value}
+                      >
+                        {({ displayValue }) => {
+                          return (
+                            <div className="w-full h-8 relative flex items-center border border-outline-gray-2 px-2.5 py-2 rounded">
+                              <input
+                                readOnly
+                                type="text"
+                                id="half-day-date"
+                                value={displayValue}
+                                className="w-full text-base text-ink-gray-7"
+                                placeholder="Select half day date"
+                              />
+                              <Calendar className="size-4" />
+                            </div>
+                          );
+                        }}
+                      </DatePicker>
+                      {!field.state.meta.isValid && (
+                        <ErrorMessage
+                          message={field.state.meta.errors[0]?.message}
+                        />
+                      )}
+                    </div>
+                  );
+                }}
+              />
+            )
+          }
+        />
+
+        <form.Field
+          name="leaveType"
+          children={(field) => {
+            return (
+              <>
+                <FormLabel size="md" className="mb-1.5" required>
+                  Leave type
+                </FormLabel>
+                <Select
+                  value={field.state.value}
+                  onChange={(val) => field.handleChange(val as string)}
+                  variant="outline"
+                  className="h-8 text-ink-gray-7"
+                  options={[...unpaidLeaveOptions, ...allocatedLeaveOptions]}
+                  placeholder="Select leave type"
+                />
+                {!field.state.meta.isValid && (
+                  <ErrorMessage message={field.state.meta.errors[0]?.message} />
+                )}
+              </>
+            );
+          }}
+        />
+        <form.Field
+          name="reason"
+          children={(field) => {
+            return (
+              <>
+                <FormLabel size="md" className="mb-1.5" required>
+                  Reason
+                </FormLabel>
+                <Textarea
+                  variant="outline"
+                  value={field.state.value}
+                  onChange={(e) => field.handleChange(e.target.value)}
+                  className="bg-surface-white border-outline-gray-2 text-ink-gray-7"
+                />
+                {!field.state.meta.isValid && (
+                  <ErrorMessage message={field.state.meta.errors[0]?.message} />
+                )}
+              </>
+            );
+          }}
+        />
+      </div>
+    </Dialog>
+  );
+};
+
+export default AddLeave;

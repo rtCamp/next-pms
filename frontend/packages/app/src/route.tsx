@@ -1,108 +1,305 @@
 /**
  * External dependencies.
  */
-import { lazy, useContext, useEffect } from "react";
-import { useDispatch, useSelector } from "react-redux";
-import { Route, Outlet, Navigate } from "react-router-dom";
-import { FrappeConfig, FrappeContext } from "frappe-react-sdk";
-import { useContextSelector } from "use-context-selector";
+import type { ReactNode } from "react";
+import { Route as BaseRoute, Outlet, Navigate } from "react-router";
+import { Spinner } from "@next-pms/design-system/components";
+import { useDocumentTitle } from "@next-pms/hooks";
 /**
  * Internal dependencies.
  */
-import { TIMESHEET, HOME, TEAM, TASK, PROJECT, RESOURCE_MANAGEMENT, ROLES } from "@/lib/constant";
-import { UserContext } from "@/lib/UserProvider";
-import { default as Layout } from "./app/layout";
-import { RootState } from "./store";
-import { setCurrency, setHasBuField, setHasIndustryField } from "./store/user";
-import { setRole } from "./store/user";
-import { setViews } from "./store/view";
+import { ROUTES } from "@/lib/constant";
+import ReactLazyPreload from "@/lib/lazy-preload";
+import type { RouteConfig, RouteKey } from "@/types";
+import LayoutWithSidebar from "./layout";
+import { useUser } from "./providers/user";
+import { Role } from "./types";
 /**
- * Lazy load components.
+ * Lazy load components used outside the route config (parameterized and
+ * catch-all routes).
  */
-const Timesheet = lazy(() => import("@/app/pages/timesheet"));
-const Home = lazy(() => import("@/app/pages/home"));
-const Team = lazy(() => import("@/app/pages/team"));
-const ResourceTeam = lazy(() => import("@/app/pages/resource-management/team"));
-const ResourceProject = lazy(() => import("@/app/pages/resource-management/project"));
-const ResourceTimeLine = lazy(() => import("@/app/pages/resource-management/timeline"));
-const EmployeeDetail = lazy(() => import("@/app/pages/team/employee-detail"));
-const Task = lazy(() => import("@/app/pages/task"));
-const Project = lazy(() => import("@/app/pages/project"));
-const ProjectDetail = lazy(() => import("@/app/pages/project/project-detail"));
-const NotFound = lazy(() => import("@/app/pages/404"));
+const ProjectDetail = ReactLazyPreload(() => import("@/pages/project-details"));
+const NoteEditor = ReactLazyPreload(
+  () => import("@/pages/project-details/tabs/notes/editor"),
+);
+/**
+ * Lazy load layouts.
+ */
+const PersonalTimesheetLayout = ReactLazyPreload(
+  () => import("@/pages/timesheet/personal/layout"),
+);
+const TeamTimesheetLayout = ReactLazyPreload(
+  () => import("@/pages/timesheet/team/layout"),
+);
+const ProjectTimesheetLayout = ReactLazyPreload(
+  () => import("@/pages/timesheet/project/layout"),
+);
+const AllocationsProjectLayout = ReactLazyPreload(
+  () => import("@/pages/allocations/project/layout"),
+);
+const AllocationsTeamLayout = ReactLazyPreload(
+  () => import("@/pages/allocations/team/layout"),
+);
+
+const Route = ({ title, children }: { title: string; children: ReactNode }) => {
+  useDocumentTitle(title);
+
+  return children;
+};
+
+export const routeConfig: Record<
+  Exclude<RouteKey, "base" | "dashboard" | "desk" | "apps">,
+  RouteConfig
+> = {
+  "dashboard-leadership": {
+    Component: ReactLazyPreload(() => import("@/pages/dashboard/leadership")),
+    allowedRoles: ["Delivery Manager", "Delivery User"],
+    title: "Leadership Dashboard",
+  },
+  "dashboard-manager": {
+    Component: ReactLazyPreload(() => import("@/pages/dashboard/manager")),
+    allowedRoles: ["Projects Manager", "Projects User"],
+    title: "Manager Dashboard",
+  },
+  project: {
+    Component: ReactLazyPreload(() => import("@/pages/projects")),
+    allowedRoles: ["Projects Manager", "Timesheet Manager", "Projects User"],
+    title: "Projects",
+  },
+  task: {
+    Component: ReactLazyPreload(() => import("@/pages/tasks/list")),
+    allowedRoles: [],
+    title: "Tasks",
+  },
+  "timesheet-personal": {
+    Component: ReactLazyPreload(() => import("@/pages/timesheet/personal")),
+    allowedRoles: [],
+    title: "Timesheet",
+  },
+  "timesheet-team": {
+    Component: ReactLazyPreload(() => import("@/pages/timesheet/team")),
+    allowedRoles: ["Timesheet Manager", "Timesheet User", "Projects Manager"],
+    title: "Team Timesheet",
+  },
+  "timesheet-project": {
+    Component: ReactLazyPreload(() => import("./pages/timesheet/project")),
+    allowedRoles: ["Timesheet Manager", "Timesheet User"],
+    title: "Project Timesheet",
+  },
+  "allocations-team": {
+    Component: ReactLazyPreload(() => import("@/pages/allocations/team")),
+    allowedRoles: [],
+    title: "Team Allocations",
+  },
+  "allocations-project": {
+    Component: ReactLazyPreload(() => import("@/pages/allocations/project")),
+    allowedRoles: [],
+    title: "Project Allocations",
+  },
+  "not-found": {
+    Component: ReactLazyPreload(() => import("@/pages/404")),
+    allowedRoles: [],
+    title: "Page Not Found",
+  },
+};
 
 export function Router() {
+  const LeadershipDashboard = routeConfig["dashboard-leadership"].Component;
+  const ManagerDashboard = routeConfig["dashboard-manager"].Component;
+  const ProjectList = routeConfig.project.Component;
+  const TimesheetPersonal = routeConfig["timesheet-personal"].Component;
+  const TimesheetTeam = routeConfig["timesheet-team"].Component;
+  const TimesheetProject = routeConfig["timesheet-project"].Component;
+  const AllocationsTeam = routeConfig["allocations-team"].Component;
+  const AllocationsProject = routeConfig["allocations-project"].Component;
+  const TaskList = routeConfig["task"].Component;
+  const NotFound = routeConfig["not-found"].Component;
+
   return (
-    <Route>
-      <Route element={<AuthenticatedRoute />}>
-        <Route path="/" element={<Navigate to={TIMESHEET} replace />} />
-        <Route path={TIMESHEET} element={<Timesheet />} />
-        <Route element={<PmRoute />}>
-          <Route path={HOME} element={<Home />} />
-          <Route path={TEAM}>
-            <Route path={`${TEAM}/`} element={<Team />} />
-            <Route path={`${TEAM}/employee/:id?`} element={<EmployeeDetail />} />
+    <BaseRoute>
+      <BaseRoute element={<AuthenticatedRoute />}>
+        <BaseRoute element={<LayoutWithSidebar />}>
+          <BaseRoute
+            index
+            element={<Navigate to={ROUTES["timesheet-personal"]} replace />}
+          />
+          <BaseRoute
+            element={
+              <RoleProtectedRoute
+                allowedRoles={routeConfig["dashboard-leadership"].allowedRoles}
+              />
+            }
+          >
+            <BaseRoute
+              path={ROUTES["dashboard-leadership"]}
+              element={
+                <Route title={routeConfig["dashboard-leadership"].title}>
+                  <LeadershipDashboard />
+                </Route>
+              }
+            />
+          </BaseRoute>
+          <BaseRoute
+            element={
+              <RoleProtectedRoute
+                allowedRoles={routeConfig["dashboard-manager"].allowedRoles}
+              />
+            }
+          >
+            <BaseRoute
+              path={ROUTES["dashboard-manager"]}
+              element={
+                <Route title={routeConfig["dashboard-manager"].title}>
+                  <ManagerDashboard />
+                </Route>
+              }
+            />
+          </BaseRoute>
+          <BaseRoute
+            element={
+              <RoleProtectedRoute
+                allowedRoles={routeConfig["project"].allowedRoles}
+              />
+            }
+          >
+            <BaseRoute
+              path={ROUTES.project}
+              element={
+                <Route title={routeConfig.project.title}>
+                  <ProjectList />
+                </Route>
+              }
+            />
+          </BaseRoute>
+          <BaseRoute
+            element={
+              <RoleProtectedRoute
+                allowedRoles={routeConfig["task"].allowedRoles}
+              />
+            }
+          >
+            <BaseRoute
+              path={ROUTES.task}
+              element={
+                <Route title={routeConfig.task.title}>
+                  <TaskList />
+                </Route>
+              }
+            />
+          </BaseRoute>
+          <BaseRoute
+            path={`${ROUTES.project}/:projectId`}
+            element={<ProjectDetail />}
+          >
+            <BaseRoute path="notes/new" element={<NoteEditor />} />
+            <BaseRoute path="notes/:noteId/edit" element={<NoteEditor />} />
+          </BaseRoute>
+          <BaseRoute element={<PersonalTimesheetLayout />}>
+            <BaseRoute
+              path={ROUTES["timesheet-personal"]}
+              element={
+                <Route title={routeConfig["timesheet-personal"].title}>
+                  <TimesheetPersonal />
+                </Route>
+              }
+            />
+          </BaseRoute>
+          <BaseRoute element={<TeamTimesheetLayout />}>
+            <BaseRoute
+              path={ROUTES["timesheet-team"]}
+              element={
+                <Route title={routeConfig["timesheet-team"].title}>
+                  <TimesheetTeam />
+                </Route>
+              }
+            />
+          </BaseRoute>
+          <BaseRoute element={<ProjectTimesheetLayout />}>
+            <BaseRoute
+              path={ROUTES["timesheet-project"]}
+              element={
+                <Route title={routeConfig["timesheet-project"].title}>
+                  <TimesheetProject />
+                </Route>
+              }
+            />
+          </BaseRoute>
+          <BaseRoute element={<AllocationsTeamLayout />}>
+            <BaseRoute
+              path={ROUTES["allocations-team"]}
+              element={
+                <Route title={routeConfig["allocations-team"].title}>
+                  <AllocationsTeam />
+                </Route>
+              }
+            />
+          </BaseRoute>
+          <BaseRoute element={<AllocationsProjectLayout />}>
+            <BaseRoute
+              path={ROUTES["allocations-project"]}
+              element={
+                <Route title={routeConfig["allocations-project"].title}>
+                  <AllocationsProject />
+                </Route>
+              }
+            />
+          </BaseRoute>
+        </BaseRoute>
+      </BaseRoute>
+      <BaseRoute
+        path={ROUTES["not-found"]}
+        element={
+          <Route title={routeConfig["not-found"].title}>
+            <NotFound />
           </Route>
-          <Route path={PROJECT}>
-            <Route path={`${PROJECT}/`} element={<Project />} />
-            <Route path={`${PROJECT}/:projectId`} element={<ProjectDetail />} />
-          </Route>
-        </Route>
-        <Route path={TASK} element={<Task />} />
-        <Route path={`${RESOURCE_MANAGEMENT}/timeline`} element={<ResourceTimeLine />} />
-        <Route path={`${RESOURCE_MANAGEMENT}/team`} element={<ResourceTeam />} />
-        <Route path={`${RESOURCE_MANAGEMENT}/project`} element={<ResourceProject />} />
-      </Route>
-      <Route path={TASK} element={<Task />} />
-      <Route path="*" element={<NotFound />} />
-    </Route>
+        }
+      />
+      <BaseRoute path="*" element={<Navigate to={"/not-found"} replace />} />
+    </BaseRoute>
   );
 }
 
 const AuthenticatedRoute = () => {
-  const { currentUser, isLoading } = useContextSelector(UserContext, (value) => value.state);
-  const { call } = useContext(FrappeContext) as FrappeConfig;
-  const user = useSelector((state: RootState) => state.user);
-  const views = useSelector((state: RootState) => state.view);
-  const dispatch = useDispatch();
+  const { isLoading: isUserLoading, currentUser } = useUser(({ state }) => ({
+    isLoading: state.isLoading,
+    currentUser: state.currentUser,
+  }));
 
-  useEffect(() => {
-    if (user.roles.length < 1) {
-      call.get("next_pms.timesheet.api.app.get_data").then((res) => {
-        dispatch(setRole(res.message.roles));
-        dispatch(setCurrency(res.message.currencies));
-        dispatch(setHasBuField(res.message.has_business_unit));
-        dispatch(setHasIndustryField(res.message.has_industry));
-      });
-    }
-    if (views.views.length < 1) {
-      call.get("next_pms.timesheet.doctype.pms_view_setting.pms_view_setting.get_views").then((res) => {
-        dispatch(setViews(res.message));
-      });
-    }
-  }, [call, dispatch, user.roles.length, views.views.length]);
-
-  if (isLoading) {
-    return <></>;
+  if (isUserLoading) {
+    return <Spinner isFull />;
   } else if (!currentUser || currentUser === "Guest") {
     window.location.replace("/login?redirect-to=/next-pms/timesheet");
+    return <Spinner isFull />;
   }
 
-  if (!isLoading && currentUser && currentUser !== "Guest") {
-    return (
-      <Layout>
-        <Outlet />
-      </Layout>
-    );
+  if (!isUserLoading && currentUser && currentUser !== "Guest") {
+    return <Outlet />;
   }
+
+  return null;
 };
 
-const PmRoute = () => {
-  const user = useSelector((state: RootState) => state.user);
-  const hasAccess = user.roles.some((role: string) => ROLES.includes(role));
+const RoleProtectedRoute = ({ allowedRoles }: { allowedRoles: Role[] }) => {
+  const { isLoading, roles } = useUser(({ state }) => ({
+    isLoading: state.isLoading,
+    roles: state.roles,
+  }));
+
+  if (isLoading) {
+    return <Spinner isFull />;
+  }
+
+  if (allowedRoles.length == 0) {
+    return <Outlet />;
+  }
+
+  const hasAccess =
+    roles.length >= 0
+      ? roles.some((role) => allowedRoles.includes(role))
+      : true;
 
   if (!hasAccess) {
-    return <Navigate to={TIMESHEET} />;
+    return <Navigate to={ROUTES["not-found"]} replace />;
   }
 
   return <Outlet />;

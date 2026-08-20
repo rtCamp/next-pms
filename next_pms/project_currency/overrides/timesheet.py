@@ -4,6 +4,7 @@ from erpnext.projects.doctype.timesheet.timesheet import Timesheet
 from erpnext.setup.utils import get_exchange_rate
 from frappe.utils.data import flt, nowdate
 
+from next_pms.project_currency.billing_rate import BILLING_RATE_COST_MULTIPLIER
 from next_pms.utils.employee import get_employee_salary
 
 
@@ -96,8 +97,8 @@ class TimesheetOverwrite(Timesheet):
                 )
 
                 if billing_rate == "Take Costing Rate":
-                    billing_rate = 3 * costing_rate
-                    base_billing_rate = 3 * base_costing_rate
+                    billing_rate = BILLING_RATE_COST_MULTIPLIER * costing_rate
+                    base_billing_rate = BILLING_RATE_COST_MULTIPLIER * base_costing_rate
 
                 if billing_rate or custom_billing_type == "Time and Material":
                     data.billing_rate = billing_rate
@@ -136,7 +137,7 @@ class TimesheetOverwrite(Timesheet):
             employee = frappe.get_doc(
                 "Employee",
                 self.employee,
-                ["ctc", "salary_currency"],
+                fields=["ctc", "salary_currency"],
             )
             employee_salary = employee.ctc
             employee_currency = employee.salary_currency

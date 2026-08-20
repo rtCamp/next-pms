@@ -1,20 +1,20 @@
-export const BASE_ROUTE = "/next-pms";
-export const TIMESHEET = "timesheet";
-export const HOME = "home";
-export const TEAM = "/team";
-export const DESK = "/desk";
-export const EMPLOYEE = "/employee";
-export const TASK = "task";
-export const PROJECT = "/project";
-export const LOCAL_STORAGE_TASK = "task_list";
-export const RESOURCE_MANAGEMENT = "/resource-management";
-export const LIKED_TASK_KEY = "next_pms_liked_task";
-// user roles for timesheet
-export const ROLES = [
-  "Projects Manager",
-  "Timesheet Manager",
-  "Timesheet User",
-];
+export const ROUTES = {
+  base: "/next-pms",
+  dashboard: "/dashboard",
+  "dashboard-leadership": "/dashboard/leadership",
+  "dashboard-manager": "/dashboard/manager",
+  project: "/projects",
+  task: "/tasks",
+  "timesheet-personal": "/timesheet",
+  "timesheet-team": "/timesheet/team",
+  "timesheet-project": "/timesheet/project",
+  "allocations-team": "/allocations/team",
+  "allocations-project": "/allocations/project",
+  desk: "/desk",
+  apps: "/apps",
+  "not-found": "/not-found",
+};
+export const IMPORTED_TASKS_STORAGE_KEY = "next-pms:importedTasks";
 
 export const CustomTime = [
   "00:30",
@@ -34,3 +34,11 @@ export const CustomTime = [
   "07:30",
   "08:00",
 ];
+
+export const NUMBER_OF_WEEKS_TO_FETCH = 4;
+
+/** Default daily working hours used when an employee's configured hours are unavailable. */
+export const FALLBACK_DAILY_WORKING_HOURS = 8;
+
+/** Operators that carry no value. */
+export const NO_VALUE_OPERATORS: string[] = ["is_empty", "is_not_empty"];

@@ -3,8 +3,9 @@ import frappe
 from next_pms.project_currency.helpers.error import generate_the_error_log
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])
 def calculate(project_id: str, valid_from_date: str):
+    """Endpoint to enqueue the timesheet billing recalculation for a project."""
     if not project_id:
         return frappe.throw(frappe._("Please select a project."))
 

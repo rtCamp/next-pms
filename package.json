@@ -9,7 +9,7 @@
   "private": true,
   "scripts": {
     "dev": "cd frontend && npm run dev",
-    "build": "cd frontend && npm install && npm run build",
+    "build": "git submodule update --init --recursive && npx pnpm --dir frappe-ui-react install --frozen-lockfile && npx pnpm --dir frappe-ui-react build && npm --prefix frontend install && npm --prefix frontend run build",
     "e2e:tests": "npx playwright test --config=tests/e2e/playwright.config.js",
     "lint:precommit": "eslint --fix --config eslint.config.js",
     "allure:report": "allure generate allure-results --clean -o allure-report-for-count-extraction",
@@ -25,20 +25,16 @@
   "devDependencies": {
     "@babel/parser": "^7.28.0",
     "@babel/traverse": "^7.28.6",
-    "@eslint/js": "^9.39.2",
+    "@eslint/js": "^10.0.1",
     "@playwright/test": "^1.58.0",
     "allure-commandline": "^2.36.0",
     "allure-playwright": "^3.4.5",
-    "eslint": "^9.18.0",
-    "eslint-plugin-import": "^2.32.0",
+    "eslint": "^10.8.0",
     "playwright": "^1.56.1"
   },
   "dependencies": {
     "dotenv": "^17.2.3",
-    "axios": "^1.15.0",
+    "axios": "^1.18.1",
     "proper-lockfile": "^4.1.2"
-  },
-  "overrides": {
-    "follow-redirects": "^1.15.12"
   }
 }

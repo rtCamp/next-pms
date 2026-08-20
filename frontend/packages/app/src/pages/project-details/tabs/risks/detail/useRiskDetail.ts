@@ -1,0 +1,151 @@
+/**
+ * External dependencies.
+ */
+import { useCallback, useMemo } from "react";
+import { useToasts } from "@rtcamp/frappe-ui-react";
+import {
+  FrappeError,
+  useFrappeGetDoc,
+  useFrappeGetDocList,
+  useFrappeUpdateDoc,
+} from "frappe-react-sdk";
+
+/**
+ * Internal dependencies.
+ */
+import { hashString, parseFrappeErrorMsg } from "@/lib/utils";
+import type {
+  ApiRiskDetail,
+  EnrichedRiskUpdateEntry,
+  FileAttachment,
+  Follower,
+  RiskDetail,
+  UserDetails,
+} from "../types";
+
+export function useRiskDetail(riskId: string) {
+  const {
+    data: risk,
+    isLoading,
+    error,
+    mutate,
+  } = useFrappeGetDoc<ApiRiskDetail>("Risk", riskId);
+
+  const { updateDoc } = useFrappeUpdateDoc();
+  const toast = useToasts();
+
+  const userEmails = useMemo(() => {
+    if (!risk) return [];
+    const emails = [
+      risk.owner,
+      ...(risk.risk_update_log?.map((e) => e.updated_by) ?? []),
+    ].filter(Boolean) as string[];
+    return [...new Set(emails)];
+  }, [risk]);
+
+  const usersSwrKey = useMemo(() => {
+    if (!userEmails.length) return null;
+    return `risk-detail-users-${hashString(userEmails.slice().sort().join(","))}`;
+  }, [userEmails]);
+
+  const { data: usersData } = useFrappeGetDocList<UserDetails>(
+    "User",
+    {
+      fields: ["name", "full_name", "user_image"],
+      filters: [["name", "in", userEmails]],
+      limit: userEmails.length,
+    },
+    usersSwrKey,
+  );
+
+  const { data: attachments, mutate: mutateAttachments } =
+    useFrappeGetDocList<FileAttachment>("File", {
+      fields: ["name", "file_name", "file_url", "file_size"],
+      filters: [
+        ["attached_to_doctype", "=", "Risk"],
+        ["attached_to_name", "=", riskId],
+      ],
+      limit: 50,
+    });
+
+  const { data: followersData, mutate: mutateFollowers } = useFrappeGetDocList<{
+    user: string;
+    full_name: string | null;
+    user_image: string | null;
+  }>("Document Follow", {
+    fields: [
+      "user",
+      "user.full_name as full_name",
+      "user.user_image as user_image",
+    ] as never,
+    filters: [
+      ["ref_doctype", "=", "Risk"],
+      ["ref_docname", "=", riskId],
+    ],
+    limit: 50,
+  });
+
+  const enrichedRisk = useMemo((): RiskDetail | undefined => {
+    if (!risk) return undefined;
+    const usersMap: Record<string, UserDetails> = {};
+    usersData?.forEach((u) => {
+      usersMap[u.name] = u;
+    });
+    const enrichedLog: EnrichedRiskUpdateEntry[] = (risk.risk_update_log ?? [])
+      .map((entry) => ({
+        ...entry,
+        updated_by_details: usersMap[entry.updated_by] ?? null,
+      }))
+      .sort((a, b) => b.updated_at.localeCompare(a.updated_at));
+    return {
+      ...risk,
+      owner_details: usersMap[risk.owner] ?? null,
+      risk_update_log: enrichedLog,
+    };
+  }, [risk, usersData]);
+
+  const followers: Follower[] = useMemo(
+    () => followersData ?? [],
+    [followersData],
+  );
+
+  const deleteUpdateEntry = useCallback(
+    async (entry: EnrichedRiskUpdateEntry) => {
+      if (!enrichedRisk) return;
+      try {
+        const remainingEntries = (enrichedRisk.risk_update_log ?? [])
+          .filter((e) => e.name !== entry.name)
+          .map((e) => ({
+            name: e.name,
+            status: e.status,
+            risk_level: e.risk_level,
+            note: e.note,
+            updated_at: e.updated_at,
+          }));
+
+        await updateDoc("Risk", enrichedRisk.name, {
+          modified: enrichedRisk.modified,
+          risk_update_log: remainingEntries,
+        });
+
+        toast.success("Update deleted");
+        await mutate();
+      } catch (err) {
+        toast.error(parseFrappeErrorMsg(err as FrappeError));
+      }
+    },
+    [enrichedRisk, updateDoc, toast, mutate],
+  );
+
+  return {
+    risk: enrichedRisk,
+    attachments: attachments ?? [],
+    followers,
+    isLoading,
+    error,
+    mutate,
+    mutateAttachments,
+    mutateFollowers,
+    deleteUpdateEntry,
+  };
+}

@@ -1,0 +1,92 @@
+/**
+ * External dependencies.
+ */
+import { useCallback } from "react";
+import type { PropsWithChildren } from "react";
+import { useDocumentTitle } from "@next-pms/hooks";
+import {
+  useFrappeDocumentEventListener,
+  useFrappeGetDoc,
+  useFrappeUpdateDoc,
+} from "frappe-react-sdk";
+
+/**
+ * Internal dependencies.
+ */
+import {
+  ProjectDetailContext,
+  type ProjectDetailContextProps,
+  type RepositoryInput,
+} from "./context";
+import type { ProjectDoc } from "./types";
+
+interface ProjectDetailProviderProps extends PropsWithChildren {
+  projectId: string;
+}
+
+export function ProjectDetailProvider({
+  projectId,
+  children,
+}: ProjectDetailProviderProps) {
+  const { data, isLoading, error, mutate } = useFrappeGetDoc<ProjectDoc>(
+    "Project",
+    projectId,
+  );
+
+  useDocumentTitle(data?.project_name, false);
+
+  const { updateDoc } = useFrappeUpdateDoc();
+
+  const handleDocUpdate = useCallback(() => {
+    mutate();
+  }, [mutate]);
+
+  useFrappeDocumentEventListener("Project", projectId, handleDocUpdate);
+
+  const updateRepositories = useCallback(
+    async (repositories: RepositoryInput[]) => {
+      await updateDoc("Project", projectId, {
+        custom_project_repository_connections: repositories,
+      });
+      mutate();
+    },
+    [updateDoc, projectId, mutate],
+  );
+
+  const updateContacts = useCallback(
+    async (contactIds: string[]) => {
+      await updateDoc("Project", projectId, {
+        custom_customer_contacts: contactIds.map((contact) => ({ contact })),
+      });
+      mutate();
+    },
+    [updateDoc, projectId, mutate],
+  );
+
+  const updateSlackChannel = useCallback(
+    async (slug: string) => {
+      await updateDoc("Project", projectId, {
+        custom_slack_channel_slug: slug,
+      });
+      mutate();
+    },
+    [updateDoc, projectId, mutate],
+  );
+
+  const value: ProjectDetailContextProps = {
+    projectId,
+    project: data,
+    isLoading,
+    error: error ?? null,
+    mutate,
+    updateRepositories,
+    updateContacts,
+    updateSlackChannel,
+  };
+
+  return (
+    <ProjectDetailContext.Provider value={value}>
+      {children}
+    </ProjectDetailContext.Provider>
+  );
+}

@@ -6,11 +6,83 @@ from frappe.query_builder import functions as fn
 from frappe.utils import add_days, getdate, now_datetime
 from pypika import Criterion, Order
 
+from next_pms.timesheet.utils.constant import TASK_FILTER_OPERATORS, TASK_META_FIELDS
+
 from . import get_count
 from .project import get_project_filter_for_contractor
+from .timesheet import _apply_qb_condition
 
 
-@frappe.whitelist()
+def parse_task_filters(raw_filters: list | str | None) -> list:
+    """Parse [field, operator, value] filters into validated triples for Task.
+
+    Args:
+        raw_filters: A list of [field, operator, value] entries, or a JSON string encoding one.
+            Every field must be a Task field or a Frappe default column (e.g. modified, creation),
+            so all real Task columns are supported without allowing arbitrary column access.
+
+    Returns:
+        A list of validated [field, operator, value] triples.
+    """
+    import json
+
+    if not raw_filters:
+        return []
+
+    if isinstance(raw_filters, str):
+        try:
+            raw_filters = json.loads(raw_filters)
+        except ValueError, TypeError:
+            frappe.throw(frappe._("Invalid filters format. Expected a JSON array of [field, operator, value] entries."))
+
+    if not isinstance(raw_filters, list):
+        frappe.throw(frappe._("Filters must be a list of [field, operator, value] entries."))
+
+    meta = frappe.get_meta("Task")
+    parsed = []
+    for condition in raw_filters:
+        if not isinstance(condition, (list, tuple)) or len(condition) != 3:
+            frappe.throw(frappe._("Each filter must be a list of [field, operator, value]."))
+        field, operator, value = condition
+        if not isinstance(operator, str) or operator.lower().strip() not in TASK_FILTER_OPERATORS:
+            frappe.throw(frappe._("Unsupported filter operator '{0}'.").format(operator))
+        if field not in TASK_META_FIELDS and not meta.has_field(field):
+            frappe.throw(frappe._("Filtering on field '{0}' of Task is not supported.").format(field))
+        parsed.append([field, operator.lower().strip(), value])
+    return parsed
+
+
+def parse_task_order_by(order_by: str | None) -> list:
+    """Parse a Frappe-style order_by string into validated sort pairs for Task.
+
+    Args:
+        order_by: A sort string such as "field asc, other desc". Every field must be a Task field
+            or a Frappe default column (e.g. modified, creation).
+
+    Returns:
+        A list of (field, Order) pairs to apply to the query in order.
+    """
+    if not order_by:
+        return []
+
+    meta = frappe.get_meta("Task")
+    parsed = []
+    for clause in str(order_by).split(","):
+        clause = clause.strip()
+        if not clause:
+            continue
+        tokens = clause.split()
+        field = tokens[0]
+        direction = tokens[1].lower() if len(tokens) > 1 else "asc"
+        if len(tokens) > 2 or direction not in ("asc", "desc"):
+            frappe.throw(frappe._("Invalid order_by clause '{0}'.").format(clause))
+        if field not in TASK_META_FIELDS and not meta.has_field(field):
+            frappe.throw(frappe._("Sorting on field '{0}' of Task is not supported.").format(field))
+        parsed.append((field, Order.asc if direction == "asc" else Order.desc))
+    return parsed
+
+
+@frappe.whitelist(methods=["GET"])
 def get_task_list(
     search: str = None,
     page_length: int | bool = 20,
@@ -19,7 +91,27 @@ def get_task_list(
     status: list | str = None,
     fields: list | str = None,
     filter_recent: bool = False,
+    filters: list | str | None = None,
+    order_by: str | None = None,
 ):
+    """Get the list of tasks for projects the user has access to, with optional filters and sorting.
+
+    Args:
+        search: Text matched against task name, subject, and github issue link.
+        page_length: Number of tasks to return.
+        start: Pagination offset.
+        projects: Restrict results to these project names.
+        status: Restrict results to these task statuses.
+        fields: Extra Task fields to include in each result row.
+        filter_recent: Order tasks the user logged time against in the last week first.
+        filters: Composite conditions on any Task field, combined with AND. A list of
+            [field, operator, value] entries, or a JSON string encoding one.
+        order_by: Frappe-style sort string such as "priority desc, modified asc". When provided it
+            replaces the default recent/liked/open ordering.
+
+    Returns:
+        A dict with the task list, the total matching count, and whether more results exist.
+    """
     import json
 
     frappe.has_permission(doctype="Project", throw=True)
@@ -31,6 +123,9 @@ def get_task_list(
     if fields and isinstance(fields, str):
         fields = json.loads(fields)
 
+    parsed_filters = parse_task_filters(filters)
+    parsed_order_by = parse_task_order_by(order_by)
+
     field_list = [
         "name",
         "subject",
@@ -40,6 +135,7 @@ def get_task_list(
         "actual_time",
         "expected_time",
         "_liked_by",
+        "owner",
     ]
     if fields:
         field_list.extend(fields)
@@ -110,40 +206,48 @@ def get_task_list(
         tasks = tasks.where(doctype.status.isin(status))
         filter.update({"status": ["in", status]})
 
+    for field, operator, value in parsed_filters:
+        tasks = _apply_qb_condition(tasks, doctype, field, operator, value)
+
     if page_length:
-        tasks = tasks.limit(page_length)
+        tasks = tasks.limit(int(page_length))
+    tasks = tasks.offset(int(start or 0))
 
-    order_conditions = []
-
-    # If filter_recent is True, we will order the tasks based on the recent worked tasks First.
-    # This will help in showing the tasks that the user has worked on recently at the top.
-    if filter_recent:
-        recent_worked_tasks = get_recent_log_tasks()
+    if parsed_order_by:
+        # An explicit caller sort replaces the default recent/liked/open heuristic ordering.
+        for field, order in parsed_order_by:
+            tasks = tasks.orderby(getattr(doctype, field), order=order)
+    else:
         order_conditions = []
-        if recent_worked_tasks:
-            order_conditions.append(Case().when(doctype.name.isin(recent_worked_tasks), 1).else_(0))
 
-    order_conditions.append(
-        Case()
-        .when(
-            fn.Function("INSTR", doctype._liked_by, f'"{frappe.session.user}"') > 0,
-            1,
+        # If filter_recent is True, we will order the tasks based on the recent worked tasks First.
+        # This will help in showing the tasks that the user has worked on recently at the top.
+        if filter_recent:
+            recent_worked_tasks = get_recent_log_tasks()
+            if recent_worked_tasks:
+                order_conditions.append(Case().when(doctype.name.isin(recent_worked_tasks), 1).else_(0))
+
+        order_conditions.append(
+            Case()
+            .when(
+                fn.Function("INSTR", doctype._liked_by, f'"{frappe.session.user}"') > 0,
+                1,
+            )
+            .else_(0)
         )
-        .else_(0)
-    )
-    # Since we can not hide closed tasks, as user might need to add time against it,
-    # We can deprioritize the closed tasks.
-    order_conditions.append(Case().when(doctype.status.isin(["Open", "Working"]), 1).else_(0))
+        # Since we can not hide closed tasks, as user might need to add time against it,
+        # We can deprioritize the closed tasks.
+        order_conditions.append(Case().when(doctype.status.isin(["Open", "Working"]), 1).else_(0))
 
-    tasks = tasks.offset(start).orderby(
-        *order_conditions,
-        order=Order.desc,
-    )
+        tasks = tasks.orderby(*order_conditions, order=Order.desc)
+
     tasks = tasks.run(as_dict=True)
 
+    count_filters = [[field, condition[0], condition[1]] for field, condition in filter.items()]
+    count_filters.extend(parsed_filters)
     count = get_count(
         doctype="Task",
-        filters=filter,
+        filters=count_filters,
         or_filters=search_filter,
         ignore_permissions=True,
     )
@@ -155,9 +259,17 @@ def get_task_list(
     }
 
 
-@frappe.whitelist()
-def add_task(subject: str, expected_time: str, project: str, description: str):
-    frappe.get_doc(
+@frappe.whitelist(methods=["POST"])
+def add_task(
+    subject: str,
+    expected_time: str,
+    project: str,
+    description: str,
+    priority: str | None = None,
+    exp_end_date: str | None = None,
+):
+    """API to add task, it will create a task under the given project with the given details."""
+    task = frappe.get_doc(
         {
             "doctype": "Task",
             "subject": subject,
@@ -165,12 +277,18 @@ def add_task(subject: str, expected_time: str, project: str, description: str):
             "project": project,
             "description": description,
         }
-    ).insert(ignore_permissions=True)
+    )
+    if priority:
+        task.priority = priority
+    if exp_end_date:
+        task.exp_end_date = exp_end_date
+    task.insert(ignore_permissions=True)
     return frappe._("Task Created Successfully")
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["GET"])
 def get_task(task: str, start_date: str | datetime.date, end_date: str | datetime.date):
+    """API to get the task details along with the time logged against it between the given start date and end date."""
     from frappe.query_builder.functions import Sum
 
     if isinstance(start_date, str):
@@ -209,6 +327,7 @@ def get_task(task: str, start_date: str | datetime.date, end_date: str | datetim
     return {
         "subject": task.subject,
         "expected_time": task.expected_time,
+        "exp_end_date": task.exp_end_date or "",
         "project_name": frappe.db.get_value("Project", task.project, "project_name"),
         "project": task.project,
         "actual_time": task.actual_time,
@@ -219,8 +338,9 @@ def get_task(task: str, start_date: str | datetime.date, end_date: str | datetim
     }
 
 
-@frappe.whitelist()
-def get_task_log(task: str, start_date: str = None, end_date: str = None):
+@frappe.whitelist(methods=["GET"])
+def get_task_log(task: str, start_date: str = None, end_date: str = None, employee: str = None):
+    """API to get the time log details for a task between the given start date and end date. with an optional parameter of passing in employee"""
     project = frappe.db.get_value("Task", task, "project")
 
     if project:
@@ -247,43 +367,32 @@ def get_task_log(task: str, start_date: str = None, end_date: str = None):
         .orderby(timesheet.start_date, order=frappe.qb.desc)
     )
 
+    if employee:
+        query = query.where(timesheet.employee == employee)
+
     result = query.run(as_dict=True)
 
-    aggregated_data = {}
+    log_entries = {}
 
     for res in result:
-        employee_name = res.get("employee")
-        start_date = res.get("start_date")
-        hours = res.get("hours")
-        description = res.get("description")
+        key = str(res.get("start_date"))
+        if key not in log_entries:
+            log_entries[key] = []
 
-        key = start_date
-
-        if key not in aggregated_data:
-            aggregated_data[key] = {}
-
-        if employee_name not in aggregated_data[key]:
-            aggregated_data[key][employee_name] = {"hours": 0, "description": []}
-
-        aggregated_data[key][employee_name]["hours"] += hours
-        aggregated_data[key][employee_name]["description"].append(description)
-
-    response = {
-        str(key): [
+        log_entries[key].append(
             {
-                "employee": emp,
-                "hours": data["hours"],
-                "description": data["description"],
+                "employee": res.get("employee"),
+                "hours": res.get("hours"),
+                "description": [res.get("description")] if res.get("description") else [],
             }
-            for emp, data in value.items()
-        ]
-        for key, value in aggregated_data.items()
-    }
-    return response
+        )
+
+    return log_entries
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["GET"])
 def get_liked_tasks():
+    """API to get the list of tasks that the user has liked, along with the project name."""
     from next_pms.timesheet.api.app import get_liked_documents
 
     return get_liked_documents("Task", fields=["project.project_name"])

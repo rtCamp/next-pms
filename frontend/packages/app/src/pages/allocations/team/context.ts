@@ -1,0 +1,80 @@
+/**
+ * External dependencies.
+ */
+import type { Member } from "@next-pms/design-system/components";
+import type { FilterCondition } from "@rtcamp/frappe-ui-react";
+import { createContext, useContextSelector } from "use-context-selector";
+
+/**
+ * Internal dependencies.
+ */
+import type { AllocationRefreshTargets, AllocationsDuration } from "../types";
+
+export interface AllocationsTeamContextProps {
+  state: {
+    members: Member[];
+    isQueryLoading: boolean;
+    isNextPageLoading: boolean;
+    hasMore: boolean;
+    querySignature: string;
+    todayResetKey: number;
+    designation: string[];
+    search: string;
+    duration: AllocationsDuration;
+    allocationsType: string[];
+    compositeFilters: FilterCondition[];
+    weekCount: number;
+    anchorDate: Date;
+  };
+  actions: {
+    setSearch: (value: string) => void;
+    setDuration: (value: AllocationsDuration) => void;
+    setDesignation: (value: string[]) => void;
+    setAllocationsType: (value: string[]) => void;
+    setCompositeFilters: (value: FilterCondition[]) => void;
+    handleClearAllFilters: () => void;
+    loadMore: () => void;
+    handlePrevious: () => void;
+    handleNext: () => void;
+    handleToday: () => void;
+    refresh: (targets?: AllocationRefreshTargets) => Promise<void>;
+  };
+}
+
+export const AllocationsTeamContext =
+  createContext<AllocationsTeamContextProps>({
+    state: {
+      members: [],
+      isQueryLoading: false,
+      isNextPageLoading: false,
+      hasMore: true,
+      querySignature: "",
+      todayResetKey: 0,
+      search: "",
+      duration: "this-quarter",
+      allocationsType: [],
+      compositeFilters: [],
+      designation: [],
+      weekCount: 13,
+      anchorDate: new Date(),
+    },
+    actions: {
+      setSearch: () => null,
+      setDuration: () => null,
+      setDesignation: () => null,
+      setAllocationsType: () => null,
+      setCompositeFilters: () => null,
+      handleClearAllFilters: () => null,
+      loadMore: () => null,
+      handlePrevious: () => null,
+      handleNext: () => null,
+      handleToday: () => null,
+      refresh: async () => undefined,
+    },
+  });
+
+export function useAllocationsTeam<T>(
+  selector: (value: AllocationsTeamContextProps) => T,
+): T {
+  return useContextSelector(AllocationsTeamContext, selector);
+}

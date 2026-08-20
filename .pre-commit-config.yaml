@@ -12,13 +12,15 @@ repos:
       - id: check-yaml
       - id: check-merge-conflict
       - id: check-ast
+        language_version: python3.14  # codebase targets py3.14 syntax (PEP 758)
       - id: check-json
       - id: check-toml
       - id: check-yaml
       - id: debug-statements
+        language_version: python3.14  # codebase targets py3.14 syntax (PEP 758)
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.14.5
+    rev: v0.15.14
     hooks:
       - id: ruff
         args: ["--fix"]
@@ -41,7 +43,7 @@ repos:
         always_run: true
 
   - repo: https://github.com/semgrep/pre-commit
-    rev: 'v1.142.2'
+    rev: 'v1.163.0'
     hooks:
       - id: semgrep-ci
         name: "Sempgrep: frappe"
