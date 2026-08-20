@@ -3,11 +3,16 @@
  */
 import { useCallback, useMemo, type PropsWithChildren } from "react";
 import { type PaginationKey, usePagination } from "@next-pms/hooks";
+import { useToasts } from "@rtcamp/frappe-ui-react";
 
 /**
  * Internal dependencies.
  */
-import { useFrappeDocTypeEventListener } from "frappe-react-sdk";
+import {
+  type FrappeError,
+  useFrappeDocTypeEventListener,
+} from "frappe-react-sdk";
+import { parseFrappeErrorMsg } from "@/lib/utils";
 import { useProjectFilters } from "../components/project-filters/useProjectFilters";
 import { PROJECT_LIST_PAGE_SIZE, PROJECTS_VIEW_METHOD } from "../constants";
 import { ProjectListContext, type ProjectListContextProps } from "./context";
@@ -15,6 +20,7 @@ import { buildListFrappeFilters } from "../utils";
 import type { ResponseProjectList } from "./types";
 
 export function ProjectListProvider({ children }: PropsWithChildren) {
+  const toast = useToasts();
   const { filters, sort } = useProjectFilters();
   const frappeFilters = useMemo(
     () => buildListFrappeFilters(filters),
@@ -64,6 +70,11 @@ export function ProjectListProvider({ children }: PropsWithChildren) {
         revalidateAll: false,
         revalidateFirstPage: false,
         keepPreviousData: true,
+        onError: (err) => {
+          toast.error(parseFrappeErrorMsg(err as FrappeError), {
+            id: "project-list-fetch-error",
+          });
+        },
       },
     );
 

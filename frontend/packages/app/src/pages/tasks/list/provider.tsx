@@ -111,6 +111,11 @@ export function TaskListProvider({ children }: PropsWithChildren) {
         revalidateAll: false,
         revalidateFirstPage: false,
         keepPreviousData: true,
+        onError: (err) => {
+          toast.error(parseFrappeErrorMsg(err as FrappeError), {
+            id: "task-list-fetch-error",
+          });
+        },
       },
     );
 
