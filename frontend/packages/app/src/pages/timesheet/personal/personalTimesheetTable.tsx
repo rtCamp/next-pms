@@ -3,7 +3,11 @@
  */
 import { Fragment, useState } from "react";
 import { mergeClassNames as cn } from "@next-pms/design-system";
-import { Spinner, Typography } from "@next-pms/design-system/components";
+import {
+  LoadingOverlay,
+  Spinner,
+  Typography,
+} from "@next-pms/design-system/components";
 
 /**
  * Internal dependencies.
@@ -72,100 +76,84 @@ const PersonalTimesheetGrid = () => {
             />
           )}
 
-          {Object.keys(timesheetData?.data).length == 0 ? (
-            <Typography
-              className={cn("flex items-center justify-center", {
-                "opacity-50 transition-opacity duration-150":
-                  isFilteredDataLoading,
-              })}
-            >
-              No data found
-            </Typography>
-          ) : (
-            <InfiniteScroll
-              isLoading={isLoadingPersonalData}
-              hasMore={!isFilterRequest && hasMoreWeeks}
-              verticalLodMore={loadData}
-              className={cn(
-                "relative w-full h-[calc(100%-var(--spacing)*7)] opacity-100",
-                {
-                  "opacity-50 transition-opacity duration-150":
-                    isFilteredDataLoading,
-                },
-              )}
-              count={NUMBER_OF_WEEKS_TO_FETCH}
-              enableScrollArea
-            >
-              <div className="min-w-225">
-                {Object.entries(timesheetData.data).map(
-                  ([key, value], index) => {
-                    return (
-                      <Fragment key={`${value.start_date}-${value.end_date}`}>
-                        {index === 0 ? (
-                          <div className="sticky top-0 z-20 bg-surface-white">
-                            <HeaderRow
+          <LoadingOverlay active={isFilteredDataLoading}>
+            {Object.keys(timesheetData?.data).length == 0 ? (
+              <Typography className="flex items-center justify-center">
+                No data found
+              </Typography>
+            ) : (
+              <InfiniteScroll
+                isLoading={isLoadingPersonalData}
+                hasMore={!isFilterRequest && hasMoreWeeks}
+                verticalLodMore={loadData}
+                className="w-full h-full"
+                count={NUMBER_OF_WEEKS_TO_FETCH}
+                enableScrollArea
+              >
+                <div className="min-w-225">
+                  {Object.entries(timesheetData.data).map(
+                    ([key, value], index) => {
+                      return (
+                        <Fragment key={`${value.start_date}-${value.end_date}`}>
+                          {index === 0 ? (
+                            <div className="sticky top-0 z-20 bg-surface-white">
+                              <HeaderRow
+                                dates={value.dates}
+                                showHeading={true}
+                                breadcrumbs={{
+                                  items: [
+                                    { label: "Week", interactive: false },
+                                    { label: "Project", interactive: false },
+                                    { label: "Task", interactive: false },
+                                  ],
+                                  highlightLastItem: false,
+                                  size: "sm",
+                                  crumbClassName:
+                                    "first:pl-0 px-0.5 py-0 last:pr-0 font-[420]",
+                                  className: "pl-[8px]",
+                                }}
+                              />
+                            </div>
+                          ) : null}
+                          <div
+                            className={cn(
+                              "animate-fade-in",
+                              index === 0 && "mt-4",
+                            )}
+                          >
+                            <PersonalTimesheetRow
+                              label={value.label ?? key}
+                              employee={employeeId}
+                              workingHour={timesheetData.working_hour}
+                              workingFrequency={
+                                timesheetData.working_frequency as WorkingFrequency
+                              }
                               dates={value.dates}
-                              showHeading={true}
-                              breadcrumbs={{
-                                items: [
-                                  { label: "Week", interactive: false },
-                                  { label: "Project", interactive: false },
-                                  { label: "Task", interactive: false },
-                                ],
-                                highlightLastItem: false,
-                                size: "sm",
-                                crumbClassName:
-                                  "first:pl-0 px-0.5 py-0 last:pr-0 font-[420]",
-                                className: "pl-[8px]",
-                              }}
+                              holidays={timesheetData.holidays}
+                              leaves={timesheetData.leaves}
+                              tasks={value.tasks}
+                              collapsed={index >= 6}
+                              disabled={value.status === "Approved"}
+                              setSelectedTask={setSelectedTask}
+                              onButtonClick={() =>
+                                handleApproval(
+                                  value.start_date,
+                                  value.end_date,
+                                  value.total_hours,
+                                )
+                              }
+                              status={value.status}
+                              hideTotalRow={hasTaskFilter}
                             />
                           </div>
-                        ) : null}
-                        <div
-                          className={cn(
-                            "animate-fade-in",
-                            index === 0 && "mt-4",
-                          )}
-                        >
-                          <PersonalTimesheetRow
-                            label={value.label ?? key}
-                            employee={employeeId}
-                            workingHour={timesheetData.working_hour}
-                            workingFrequency={
-                              timesheetData.working_frequency as WorkingFrequency
-                            }
-                            dates={value.dates}
-                            holidays={timesheetData.holidays}
-                            leaves={timesheetData.leaves}
-                            tasks={value.tasks}
-                            collapsed={index >= 6}
-                            disabled={value.status === "Approved"}
-                            setSelectedTask={setSelectedTask}
-                            onButtonClick={() =>
-                              handleApproval(
-                                value.start_date,
-                                value.end_date,
-                                value.total_hours,
-                              )
-                            }
-                            status={value.status}
-                            hideTotalRow={hasTaskFilter}
-                          />
-                        </div>
-                      </Fragment>
-                    );
-                  },
-                )}
-              </div>
-            </InfiniteScroll>
-          )}
-
-          {isFilteredDataLoading ? (
-            <Spinner
-              isFull
-              className="absolute top-0 left-0 w-full h-full cursor-wait"
-            />
-          ) : null}
+                        </Fragment>
+                      );
+                    },
+                  )}
+                </div>
+              </InfiniteScroll>
+            )}
+          </LoadingOverlay>
         </>
       )}
     </>
@@ -174,7 +162,7 @@ const PersonalTimesheetGrid = () => {
 
 export const PersonalTimesheetTable = () => {
   return (
-    <div className="w-full flex-1 min-h-0 py-3.5 px-5 relative">
+    <div className="w-full flex-1 min-h-0 flex flex-col py-3.5 px-5 relative">
       <SubHeader />
       <PersonalTimesheetGrid />
     </div>
