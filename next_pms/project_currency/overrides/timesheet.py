@@ -247,7 +247,6 @@ def get_promotion_salary_currency(promotion):
         "new",
     )
 
-
     return changed_currency or promotion.salary_currency
 
 
