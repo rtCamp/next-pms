@@ -63,7 +63,7 @@ export function ProjectListProvider({ children }: PropsWithChildren) {
         revalidateOnFocus: false,
         revalidateAll: false,
         revalidateFirstPage: false,
-        keepPreviousData: false,
+        keepPreviousData: true,
       },
     );
 
@@ -80,6 +80,8 @@ export function ProjectListProvider({ children }: PropsWithChildren) {
   const hasMore = lastPage ? Boolean(lastPage.message?.has_more) : true;
   const isNextPageLoading =
     !isLoading && isValidating && typeof data?.[size - 1] === "undefined";
+  const isInitialLoad = isLoading && (data?.length ?? 0) === 0;
+  const isFilterRequest = isLoading && (data?.length ?? 0) > 0;
 
   const loadMore = useCallback(() => {
     if (isLoading || isNextPageLoading || !hasMore) return;
@@ -92,13 +94,23 @@ export function ProjectListProvider({ children }: PropsWithChildren) {
         data: projects,
         hasMore,
         isLoading,
+        isInitialLoad,
+        isFilterRequest,
         error,
       },
       actions: {
         loadMore,
       },
     }),
-    [projects, hasMore, isLoading, error, loadMore],
+    [
+      projects,
+      hasMore,
+      isLoading,
+      isInitialLoad,
+      isFilterRequest,
+      error,
+      loadMore,
+    ],
   );
 
   return (
