@@ -21,6 +21,7 @@ from next_pms.resource_management.api.utils.leave_calendar import get_leave_cale
 from next_pms.resource_management.api.utils.query import (
     attach_extra_entries,
     get_allocation_list_for_employee_for_given_range,
+    get_employee_leaves,
 )
 from next_pms.timesheet.api import filter_employees
 from next_pms.timesheet.api.employee import apply_working_hours_fallback, get_employee_working_hours

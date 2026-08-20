@@ -126,7 +126,8 @@ def get_resource_management_project_view_data(
               custom_work_schedule are filled from HR Settings / "Per Day" before returning.
             - employee_leaves (dict): the days those employees are away, keyed by employee
               id and then by date, each carrying is_on_leave, is_holiday and
-              total_leave_hours. Sparse - employees and dates without leave are absent.
+              total_leave_hours, plus holiday_name when is_holiday is true. Sparse -
+              employees and dates without leave are absent.
               Leave already reduces the allocated hours reported above; this is what says
               why they were reduced.
             - total_count (int): total number of projects matching the filters,

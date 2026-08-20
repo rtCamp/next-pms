@@ -5,7 +5,7 @@ import datetime
 from collections.abc import Iterable
 
 import frappe
-from frappe.utils import DATE_FORMAT, flt, getdate
+from frappe.utils import DATE_FORMAT, flt, getdate, strip_html_tags
 
 from next_pms.resource_management.api.utils.helpers import is_on_leave
 from next_pms.resource_management.api.utils.query import get_employee_leaves
@@ -53,7 +53,7 @@ def get_leave_calendars(employees: Iterable[dict], start_date, end_date) -> tupl
                 "parent": ["in", list(holiday_lists)],
                 "holiday_date": ["between", (getdate(start_date), getdate(end_date))],
             },
-            fields=["parent", "holiday_date", "weekly_off"],
+            fields=["parent", "holiday_date", "weekly_off", "description"],
         ):
             holidays_by_list.setdefault(holiday.parent, []).append(holiday)
 
@@ -98,7 +98,9 @@ def build_leave_map(employees: Iterable[dict], dates: Iterable[datetime.date], l
             continue
 
         daily_working_hours = get_daily_working_hours(employee)
-        holiday_dates = {holiday.holiday_date for holiday in holidays}
+        holiday_names_by_date = {
+            holiday.holiday_date: strip_html_tags(holiday.description or "").strip() for holiday in holidays
+        }
         dates_off = {}
 
         for date in dates:
@@ -107,10 +109,13 @@ def build_leave_map(employees: Iterable[dict], dates: Iterable[datetime.date], l
             if not leave_object.get("on_leave"):
                 continue
 
+            is_holiday = date in holiday_names_by_date
+            holiday_name = holiday_names_by_date.get(date)
             dates_off[date.strftime(DATE_FORMAT)] = {
                 "is_on_leave": True,
-                "is_holiday": date in holiday_dates,
+                "is_holiday": is_holiday,
                 "total_leave_hours": flt(daily_working_hours - leave_object.get("leave_work_hours"), 2),
+                **({"holiday_name": holiday_name} if holiday_name else {}),
             }
 
         if dates_off:

@@ -487,7 +487,12 @@ class TestProjectLeaveReporting(IntegrationTestCase):
     def test_public_holiday_is_reported_without_a_leave_application(self):
         self.assertEqual(
             self._leave_days(self.employee_away)[PUBLIC_HOLIDAY],
-            {"is_on_leave": True, "is_holiday": True, "total_leave_hours": DAILY_HOURS},
+            {
+                "is_on_leave": True,
+                "is_holiday": True,
+                "total_leave_hours": DAILY_HOURS,
+                "holiday_name": "Company Day",
+            },
         )
 
     def test_only_the_days_off_are_reported(self):
