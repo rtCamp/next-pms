@@ -86,9 +86,7 @@ export function getAllocationSummary(
       hours: dayTimeoff.has(ts) ? 0 : (dayHours.get(ts) ?? 0),
       billable: !dayHasNonBillable.get(ts),
       tentative: Boolean(dayHasTentative.get(ts)),
-      type: (dayTimeoff.has(ts) ? "timeoff" : "default") as
-        | "default"
-        | "timeoff",
+      type: (dayTimeoff.has(ts) ? "timeoff" : "default") as "default" | "timeoff",
       timeoff: dayTimeoff.get(ts),
       label: dayLabel.get(ts),
     }));
