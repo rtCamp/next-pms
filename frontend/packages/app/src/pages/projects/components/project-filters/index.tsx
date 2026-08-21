@@ -133,14 +133,18 @@ export function ProjectFilters() {
                 field: "burn_rate_per_week",
                 label: "Burn rate/week",
                 disabled: !currency,
-                tooltipText: "Select a currency to enable this sort",
+                tooltipText: !currency
+                  ? "Select a currency to enable this sort"
+                  : undefined,
               },
               { field: "cost_burn_percent", label: "Cost burn" },
               {
                 field: "total_budget",
                 label: "Total budget",
                 disabled: !currency,
-                tooltipText: "Select a currency to enable this sort",
+                tooltipText: !currency
+                  ? "Select a currency to enable this sort"
+                  : undefined,
               },
               { field: "profit_margin", label: "Profit margin" },
               { field: "expected_start_date", label: "Start date" },
