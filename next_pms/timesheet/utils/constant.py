@@ -60,6 +60,13 @@ TEAM_TIMESHEET_PAGE_LENGTH = 20
 # pagination mechanism, since has_more_members is authoritative.
 MAX_TEAM_TIMESHEET_PAGE_LENGTH = 100
 
+# Default projects per page on the project timesheet, matching PROJECT_PAGE_LENGTH in
+# the frontend.
+PROJECT_TIMESHEET_PAGE_LENGTH = 4
+
+# Server-side ceiling on a caller-supplied page_length, mirroring the team endpoint's cap.
+MAX_PROJECT_TIMESHEET_PAGE_LENGTH = 100
+
 ALLOWED_TIMESHET_DETAIL_FIELDS = [
     "name",
     "from_time",

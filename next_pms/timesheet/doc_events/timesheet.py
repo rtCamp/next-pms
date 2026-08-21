@@ -369,6 +369,7 @@ def publish_timesheet_update(employee, start_date):
     from frappe.realtime import get_site_room
     from frappe.utils import get_date_str
 
+    from next_pms.timesheet.api.project import get_project_timesheet_member_week
     from next_pms.timesheet.api.team import get_team_timesheet_member_week
     from next_pms.timesheet.api.timesheet import get_timesheet_data
 
@@ -401,6 +402,29 @@ def publish_timesheet_update(employee, start_date):
     }
     publish_realtime("timesheet_info", payload, after_commit=True, room=get_site_room())
     publish_realtime("timesheet_info", payload, after_commit=True, user=frappe.session.user)
+
+    # The project timesheet groups by project, so it needs the employee's whole week keyed
+    # by project - a single member-week would not tell it which project rows to update, nor
+    # which to remove when an entry moves off a project.
+    project_member = get_project_timesheet_member_week(
+        employee=employee,
+        start_date=get_date_str(start_date),
+        by_pass_access_check=True,
+    )
+    # The detailed week carries another employee's tasks, hours, leave and approval
+    # status, so the site room - which holds every logged-in client, including ones that
+    # would fail get_project_timesheet_data's only_for - gets an invalidation only.
+    # Authorized viewers reload the week through that checked endpoint. The editor, who is
+    # authorized by virtue of having just written the timesheet, still gets the payload so
+    # their own row swaps in without a round trip.
+    invalidation = {"employee": employee, "start_date": get_date_str(start_date)}
+    publish_realtime("project_timesheet_info", invalidation, after_commit=True, room=get_site_room())
+    publish_realtime(
+        "project_timesheet_info",
+        {**invalidation, "message": project_member},
+        after_commit=True,
+        user=frappe.session.user,
+    )
 
 
 def validate_start_date(doc):

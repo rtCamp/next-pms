@@ -12,18 +12,12 @@ import {
 } from "react";
 import { ApprovalStatusLabelMap } from "@next-pms/design-system/components";
 import { getTodayDate } from "@next-pms/design-system/date";
-import { useToasts } from "@rtcamp/frappe-ui-react";
-import type { Error as FrappeError } from "frappe-js-sdk/lib/frappe_app/types";
 import { useFrappeEventListener } from "frappe-react-sdk";
 
 /**
  * Internal dependencies.
  */
-import {
-  buildCompositeFilters,
-  isCompleteFilterCondition,
-  parseFrappeErrorMsg,
-} from "@/lib/utils";
+import { buildCompositeFilters, isCompleteFilterCondition } from "@/lib/utils";
 import { TEAM_WEEKS_PER_PAGE } from "./constants";
 import {
   type MemberRefreshHandler,
@@ -42,7 +36,6 @@ import {
 } from "../hooks/useTimesheetFilters";
 
 export const TeamTimesheetProvider: FC<PropsWithChildren> = ({ children }) => {
-  const toast = useToasts();
   const {
     filters,
     setSearch,
@@ -120,7 +113,6 @@ export const TeamTimesheetProvider: FC<PropsWithChildren> = ({ children }) => {
     isNextPageLoading,
     loadMoreWeeks,
     refreshWeeks,
-    error,
   } = useTeamTimesheetWeeks({
     date: weekDate,
     maxWeek: weeksPerPage,
@@ -143,12 +135,7 @@ export const TeamTimesheetProvider: FC<PropsWithChildren> = ({ children }) => {
   useEffect(() => {
     if (isLoadingWeeks) return;
     setResolvedFilterKey(activeFilterKey);
-
-    if (error) {
-      toast.error(parseFrappeErrorMsg(error as FrappeError));
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeFilterKey, isLoadingWeeks, error]);
+  }, [activeFilterKey, isLoadingWeeks]);
 
   // Keep a registry of refresh handlers for each week so that when a member's
   // timesheet is updated, we can trigger a refresh for that specific week.

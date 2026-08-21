@@ -13,48 +13,58 @@ import {
  * Internal dependencies.
  */
 import { InfiniteScroll } from "@/components/infiniteScroll";
-import { ProjectTimesheetRow } from "@/components/timesheet-row";
 import { HeaderRow } from "@/components/timesheet-row/components/row/headerRow";
-import { NUMBER_OF_WEEKS_TO_FETCH } from "@/lib/constant";
 import { useProjectTimesheet } from "./context";
+import { ProjectTimesheetWeek } from "./projectTimesheetWeek";
 import { SubHeader } from "./subHeader";
 
 const ProjectTimesheetGrid = () => {
-  const hasMore = useProjectTimesheet(({ state }) => state.hasMore);
-  const isLoadingProjectData = useProjectTimesheet(
-    ({ state }) => state.isLoadingProjectData,
+  const weeks = useProjectTimesheet(({ state }) => state.weeks);
+  const hasMoreWeeks = useProjectTimesheet(({ state }) => state.hasMoreWeeks);
+  const isLoadingWeeks = useProjectTimesheet(
+    ({ state }) => state.isLoadingWeeks,
+  );
+  const isNextPageLoading = useProjectTimesheet(
+    ({ state }) => state.isNextPageLoading,
   );
   const isFilterRequest = useProjectTimesheet(
     ({ state }) => state.isFilterRequest,
   );
-  const weekGroups = useProjectTimesheet(({ state }) => state.weekGroups);
-  const loadData = useProjectTimesheet(({ actions }) => actions.loadData);
+  const activeFilterKey = useProjectTimesheet(
+    ({ state }) => state.activeFilterKey,
+  );
+  const resolvedFilterKey = useProjectTimesheet(
+    ({ state }) => state.resolvedFilterKey,
+  );
+  const loadMoreWeeks = useProjectTimesheet(
+    ({ actions }) => actions.loadMoreWeeks,
+  );
 
-  const isFilteredDataLoading = isFilterRequest && isLoadingProjectData;
+  const isFilteredDataLoading = isFilterRequest && isLoadingWeeks;
 
   return (
     <>
-      {isLoadingProjectData && weekGroups.length === 0 ? (
+      {isLoadingWeeks && weeks.length === 0 ? (
         <Spinner isFull />
       ) : (
         <LoadingOverlay active={isFilteredDataLoading}>
-          {weekGroups.length === 0 ? (
+          {weeks.length === 0 && !hasMoreWeeks ? (
             <Typography className="flex items-center justify-center">
               No data found
             </Typography>
           ) : (
             <InfiniteScroll
-              isLoading={isLoadingProjectData}
-              hasMore={hasMore}
-              verticalLodMore={loadData}
+              isLoading={isNextPageLoading}
+              hasMore={hasMoreWeeks}
+              verticalLodMore={loadMoreWeeks}
               className="w-full h-full"
-              count={NUMBER_OF_WEEKS_TO_FETCH}
+              scrollResetKey={activeFilterKey}
               enableScrollArea
             >
               <div className="min-w-225">
-                {weekGroups.map((week, index) => {
+                {weeks.map((week, index) => {
                   return (
-                    <Fragment key={`${week.start_date}-${week.end_date}`}>
+                    <Fragment key={`${resolvedFilterKey}:${week.key}`}>
                       {index === 0 ? (
                         <div className="sticky top-0 z-20 bg-surface-white">
                           <HeaderRow
@@ -80,11 +90,9 @@ const ProjectTimesheetGrid = () => {
                       <div
                         className={cn("animate-fade-in", index === 0 && "mt-4")}
                       >
-                        <ProjectTimesheetRow
-                          label={week.label}
-                          dates={week.dates}
-                          collapsed={index >= 6}
-                          projects={week.projects}
+                        <ProjectTimesheetWeek
+                          week={week}
+                          defaultExpanded={index === 0}
                         />
                       </div>
                     </Fragment>
