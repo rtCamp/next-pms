@@ -14,6 +14,7 @@ import {
  * Internal dependencies.
  */
 import { parseFrappeErrorMsg } from "@/lib/utils";
+import { useProjectDetail } from "@/pages/project-details/context";
 import type { FeedbackComment } from "./types";
 
 function mapFeedbackComment(comment: FeedbackComment): CommentNode {
@@ -34,6 +35,7 @@ function mapFeedbackComment(comment: FeedbackComment): CommentNode {
 
 export function useFeedbackComments(feedbackName: string) {
   const toast = useToasts();
+  const projectId = useProjectDetail((s) => s.projectId);
 
   const { data, isLoading, isValidating, error, mutate } = useFrappeGetCall<{
     message: FeedbackComment[];
@@ -56,11 +58,12 @@ export function useFeedbackComments(feedbackName: string) {
       await addCall({
         feedback: feedbackName,
         comment,
+        project: projectId,
         ...(replyTo && { reply_to: replyTo }),
       });
       await mutate();
     },
-    [addCall, feedbackName, mutate],
+    [addCall, feedbackName, mutate, projectId],
   );
 
   const addComment = useCallback(

@@ -19,12 +19,12 @@ import {
 import { Calendar, Folder } from "@rtcamp/frappe-ui-react/icons";
 import { useForm } from "@tanstack/react-form";
 import { useSelector } from "@tanstack/react-store";
-import { format, subDays } from "date-fns";
 import { FrappeError, useFrappePostCall } from "frappe-react-sdk";
 
 /**
  * Internal Dependencies
  */
+import { datePickerFooter } from "@/components/datePickerFooter";
 import {
   useProjectLookup,
   type ProjectLookupOption,
@@ -395,35 +395,7 @@ const AddTime = ({
                     onChange={(val) => field.handleChange(val as string)}
                     placeholder="Placeholder"
                     value={field.state.value}
-                    footer={(props, { setValue, clear, close }) => (
-                      <div {...props} className="flex gap-1 justify-between">
-                        <div className="flex gap-1">
-                          <Button
-                            variant="outline"
-                            onClick={() => {
-                              setValue(
-                                format(subDays(new Date(), 1), "yyyy-MM-dd"),
-                              );
-                              close();
-                            }}
-                          >
-                            Yesterday
-                          </Button>
-                          <Button
-                            variant="outline"
-                            onClick={() => {
-                              setValue(format(new Date(), "yyyy-MM-dd"));
-                              close();
-                            }}
-                          >
-                            Today
-                          </Button>
-                        </div>
-                        <Button variant="outline" onClick={clear}>
-                          Clear
-                        </Button>
-                      </div>
-                    )}
+                    footer={datePickerFooter}
                   >
                     {({ displayValue }) => {
                       return (

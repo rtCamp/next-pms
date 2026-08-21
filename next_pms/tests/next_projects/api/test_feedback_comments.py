@@ -1,6 +1,7 @@
 import unittest
 
 import frappe
+from erpnext import get_default_company
 from frappe.tests import IntegrationTestCase
 
 from next_pms.next_projects.api.feedback import (
@@ -47,6 +48,20 @@ class TestFeedbackComments(IntegrationTestCase):
         if not frappe.db.exists("DocType", "Customer Feedback"):
             raise unittest.SkipTest("Customer Feedback doctypes not installed on this site")
         cls.feedback = cls.make_feedback()
+        customer = frappe.db.get_value("Customer Feedback", cls.feedback, "customer")
+        cls.project = (
+            frappe.get_doc(
+                {
+                    "doctype": "Project",
+                    "project_name": f"Feedback Comment Project {frappe.generate_hash(length=8)}",
+                    "company": get_default_company(),
+                    "customer": customer,
+                    "custom_billing_type": "Non-Billable",
+                }
+            )
+            .insert(ignore_permissions=True)
+            .name
+        )
 
         # Projects Manager clears the ALLOWED_ROLES gate on the endpoints; the
         # doctypes themselves grant this role no CRUD, so the API is the sole gate.
@@ -117,7 +132,12 @@ class TestFeedbackComments(IntegrationTestCase):
 
     def add_comment(self, comment, reply_to=None, user=None):
         frappe.set_user(user or self.author_user)
-        tree = add_comment_to_feedback(feedback=self.feedback, comment=comment, reply_to=reply_to)
+        tree = add_comment_to_feedback(
+            feedback=self.feedback,
+            comment=comment,
+            project=self.project,
+            reply_to=reply_to,
+        )
         added = frappe.get_all(
             "Comment",
             filters={"reference_doctype": "Customer Feedback", "reference_name": self.feedback},
@@ -137,7 +157,7 @@ class TestFeedbackComments(IntegrationTestCase):
         with self.assertRaises(frappe.PermissionError):
             get_feedback_comments(feedback=self.feedback)
         with self.assertRaises(frappe.PermissionError):
-            add_comment_to_feedback(feedback=self.feedback, comment="<p>nope</p>")
+            add_comment_to_feedback(feedback=self.feedback, comment="<p>nope</p>", project=self.project)
 
     def test_allowed_role_has_no_direct_doctype_access(self):
         frappe.set_user(self.author_user)
@@ -154,10 +174,28 @@ class TestFeedbackComments(IntegrationTestCase):
         self.assertFalse(root["deleted"])
         self.assertEqual(root["replies"], [])
 
+    def test_add_comment_with_mention(self):
+        mention = f'<span class="mention" data-type="mention" data-id="{OTHER_USER}" data-label="Other">@Other</span>'
+        name, tree = self.add_comment(f"<p>{mention} ping</p>")
+        comment = find_comment(tree, name)
+
+        self.assertIsNotNone(comment)
+        self.assertNotIn('data-type="mention"', comment["comment"])
+        self.assertIn(f'data-id="{OTHER_USER}"', comment["comment"])
+
     def test_add_blank_comment_raises(self):
         frappe.set_user(self.author_user)
         with self.assertRaises(frappe.ValidationError):
-            add_comment_to_feedback(feedback=self.feedback, comment="<p>  </p>")
+            add_comment_to_feedback(feedback=self.feedback, comment="<p>  </p>", project=self.project)
+
+    def test_add_comment_requires_existing_project(self):
+        frappe.set_user(self.author_user)
+        with self.assertRaises(frappe.DoesNotExistError):
+            add_comment_to_feedback(
+                feedback=self.feedback,
+                comment="<p>comment</p>",
+                project="PROJ-DOES-NOT-EXIST",
+            )
 
     def test_add_reply_nests_under_parent(self):
         parent, _ = self.add_comment("<p>parent</p>")
@@ -171,7 +209,12 @@ class TestFeedbackComments(IntegrationTestCase):
     def test_reply_to_unknown_parent_raises(self):
         frappe.set_user(self.author_user)
         with self.assertRaises(frappe.ValidationError):
-            add_comment_to_feedback(feedback=self.feedback, comment="<p>orphan</p>", reply_to="not-a-comment")
+            add_comment_to_feedback(
+                feedback=self.feedback,
+                comment="<p>orphan</p>",
+                project=self.project,
+                reply_to="not-a-comment",
+            )
 
     def test_edit_own_comment(self):
         name, _ = self.add_comment("<p>original</p>")
@@ -246,4 +289,36 @@ class TestFeedbackComments(IntegrationTestCase):
         with self.assertRaises(frappe.DoesNotExistError):
             update_comment_in_feedback(comment_name=foreign.name, comment="<p>hijack</p>")
         with self.assertRaises(frappe.ValidationError):
-            add_comment_to_feedback(feedback=self.feedback, comment="<p>reply</p>", reply_to=foreign.name)
+            add_comment_to_feedback(
+                feedback=self.feedback,
+                comment="<p>reply</p>",
+                project=self.project,
+                reply_to=foreign.name,
+            )
+
+    def test_mention_creates_only_nextpms_notification(self):
+        from next_pms.next_projects.api.feedback import notify_feedback_nextpms_mentions
+
+        frappe.set_user(self.author_user)
+        mention_html = f'<p><span class="mention" data-id="{OTHER_USER}" data-label="Other">@Other</span> ping</p>'
+        log_filters = {
+            "for_user": OTHER_USER,
+            "document_name": self.feedback,
+            "type": "Mention",
+        }
+        logs_before = frappe.db.count("Notification Log", log_filters)
+        notify_feedback_nextpms_mentions(content=mention_html, feedback=self.feedback, project=self.project)
+
+        expected_path = f"/next-pms/projects/{self.project}?tab=feedback"
+
+        self.assertEqual(frappe.db.count("Notification Log", log_filters), logs_before)
+
+        nextpms = frappe.get_all(
+            "NextPMS Notifications",
+            filters={"user": OTHER_USER, "linked_document": self.feedback},
+            fields=["url", "title", "label"],
+        )
+        self.assertEqual(len(nextpms), 1)
+        self.assertEqual(nextpms[0].url, expected_path)
+        self.assertEqual(nextpms[0].title, "You got a Feedback mention")
+        self.assertIn("Feedback Comment Project", nextpms[0].label)

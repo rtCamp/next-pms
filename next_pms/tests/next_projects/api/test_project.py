@@ -1,7 +1,9 @@
+import json
 from datetime import date
 
 import frappe
 from erpnext import get_default_company
+from frappe.desk.doctype.tag.tag import add_tag
 from frappe.tests import IntegrationTestCase
 from frappe.utils import add_days, flt, today
 
@@ -17,6 +19,7 @@ from next_pms.next_projects.api.project import (
     get_project_tracking,
     get_projects_view,
 )
+from next_pms.next_projects.api.utils import resolve_tag_filters
 from next_pms.project_currency.billing_rate import (
     BILLING_RATE_COST_MULTIPLIER,
     get_billing_rate_context,
@@ -31,6 +34,7 @@ BURN_FIXTURE_PREFIX = "BurnAccrued"
 FORECAST_FIXTURE_PREFIX = "CostForecast"
 ADJUSTED_FIXTURE_PREFIX = "CostAdjusted"
 BUDGET_FIXTURE_PREFIX = "BudgetForecast"
+TAG_FIXTURE_PREFIX = "TagFilter"
 
 # 2026-05-04 is a Monday, so 05-08 is Friday and 05-09/05-10 are the weekend.
 MONDAY = date(2026, 5, 4)
@@ -1033,3 +1037,95 @@ class TestBudgetForecasted(IntegrationTestCase):
         burn = get_project_sidebar(self.projects["FLAT"])["burn"]
         self.assertAlmostEqual(burn["budget_forecasted"], self.HOURS * self.FLAT_RATE)
         self.assertAlmostEqual(burn["cost_forecasted"], ALLOCATION_COST)
+
+
+class TestGetProjectsViewTagFilter(IntegrationTestCase):
+    """The projects list/kanban composite filter supports a `tag` condition,
+    resolved against the Tag Link doctype that ERPNext already maintains for the
+    tags shown on the Project form.
+    """
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.company = get_default_company()
+
+        # suffix -> tags assigned through the ERPNext tagging API
+        fixture_tags = {
+            "A": [f"{TAG_FIXTURE_PREFIX} Alpha", f"{TAG_FIXTURE_PREFIX} Beta"],
+            "B": [f"{TAG_FIXTURE_PREFIX} Beta"],
+            "C": [],
+        }
+        cls.projects = {}
+        for suffix, tags in fixture_tags.items():
+            name = (
+                frappe.get_doc(
+                    {
+                        "doctype": "Project",
+                        "project_name": f"{TAG_FIXTURE_PREFIX} {suffix}",
+                        "company": cls.company,
+                    }
+                )
+                .insert(ignore_permissions=True)
+                .name
+            )
+            for tag in tags:
+                add_tag(tag, "Project", name)
+            cls.projects[suffix] = name
+
+        frappe.set_user("Administrator")
+        frappe.clear_cache()
+
+    def matched(self, filters, view="list"):
+        result = get_projects_view(view=view, search=TAG_FIXTURE_PREFIX, filters=filters, limit=50)
+        by_name = {name: suffix for suffix, name in self.projects.items()}
+        return {by_name[row["name"]] for row in result["data"]}, result["total_count"]
+
+    def test_no_filter_returns_every_fixture(self):
+        self.assertEqual(self.matched([]), ({"A", "B", "C"}, 3))
+
+    def test_equals_returns_only_the_tagged_projects(self):
+        self.assertEqual(self.matched([["tag", "=", f"{TAG_FIXTURE_PREFIX} Beta"]]), ({"A", "B"}, 2))
+        self.assertEqual(self.matched([["tag", "=", f"{TAG_FIXTURE_PREFIX} Alpha"]]), ({"A"}, 1))
+
+    def test_not_equals_excludes_the_tagged_projects(self):
+        self.assertEqual(self.matched([["tag", "!=", f"{TAG_FIXTURE_PREFIX} Beta"]]), ({"C"}, 1))
+
+    def test_unknown_tag_matches_nothing(self):
+        self.assertEqual(self.matched([["tag", "=", f"{TAG_FIXTURE_PREFIX} Missing"]]), (set(), 0))
+        self.assertEqual(self.matched([["tag", "!=", f"{TAG_FIXTURE_PREFIX} Missing"]]), ({"A", "B", "C"}, 3))
+
+    def test_tag_conditions_combine_with_each_other(self):
+        filters = [
+            ["tag", "=", f"{TAG_FIXTURE_PREFIX} Alpha"],
+            ["tag", "=", f"{TAG_FIXTURE_PREFIX} Beta"],
+        ]
+        self.assertEqual(self.matched(filters), ({"A"}, 1))
+
+    def test_tag_condition_combines_with_project_fields(self):
+        frappe.db.set_value("Project", self.projects["A"], "status", "Completed", update_modified=False)
+        self.addCleanup(frappe.db.set_value, "Project", self.projects["A"], "status", "Open", update_modified=False)
+        filters = [["tag", "=", f"{TAG_FIXTURE_PREFIX} Beta"], ["status", "=", "Open"]]
+        self.assertEqual(self.matched(filters), ({"B"}, 1))
+
+    def test_kanban_view_applies_the_same_filter(self):
+        result = get_projects_view(
+            view="kanban",
+            search=TAG_FIXTURE_PREFIX,
+            filters=[["tag", "=", f"{TAG_FIXTURE_PREFIX} Alpha"]],
+            limit=50,
+        )
+        self.assertEqual(result["total_count"], 1)
+
+    def test_json_encoded_filters_are_accepted(self):
+        filters = json.dumps([["tag", "=", f"{TAG_FIXTURE_PREFIX} Alpha"]])
+        self.assertEqual(self.matched(filters), ({"A"}, 1))
+
+    def test_non_tag_conditions_pass_through_untouched(self):
+        self.assertEqual(
+            resolve_tag_filters([["status", "=", "Open"], ["project_name", "like", "%x%"]]),
+            [["status", "=", "Open"], ["project_name", "like", "%x%"]],
+        )
+
+    def test_unsupported_operator_is_rejected(self):
+        self.assertRaises(frappe.ValidationError, resolve_tag_filters, [["tag", "in", ["Alpha"]]])
