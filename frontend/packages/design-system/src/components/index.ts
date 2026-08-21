@@ -4,6 +4,10 @@
 export { type CheckedState } from "@radix-ui/react-checkbox";
 export { default as Input, type InputProps } from "./input";
 export { default as Spinner, type SpinnerProp } from "./spinner";
+export {
+  default as LoadingOverlay,
+  type LoadingOverlayProps,
+} from "./loading-overlay";
 export { default as Typography, type TypographyProps } from "./typography";
 export {
   TaskStatus,
