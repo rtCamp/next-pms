@@ -1,6 +1,7 @@
 /**
  * External dependencies.
  */
+import { mergeClassNames as cn } from "@next-pms/design-system";
 import { LoadingOverlay, Spinner } from "@next-pms/design-system/components";
 import {
   ListHeader,
@@ -83,11 +84,12 @@ function ProjectList() {
                 <button
                   type="button"
                   aria-disabled={isDisabled}
-                  className={`flex h-7 min-w-0 items-center gap-1 rounded-sm py-1.5 select-none ${
+                  className={cn(
+                    "flex h-7 min-w-0 items-center gap-1 rounded-sm py-1.5 select-none",
                     isDisabled
                       ? "cursor-not-allowed text-ink-gray-5"
-                      : "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-outline-gray-3"
-                  }`}
+                      : "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-outline-gray-3",
+                  )}
                   onClick={() => handleHeaderClick(column.sortField!)}
                 >
                   <span className="truncate">{column.label}</span>
