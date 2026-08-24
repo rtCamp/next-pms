@@ -1,6 +1,6 @@
 ## Security
 
-rtCamp takes the security of our software products seriously. If you believe you have found a security vulnerability, please report it to us at sys+gh@rtcamp.com.
+rtCamp takes the security of our software products seriously. If you believe you have found a security vulnerability, please report it to us at sys@rtcamp.com.
 
 ## Reporting Security Issues
 
