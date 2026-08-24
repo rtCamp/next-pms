@@ -150,21 +150,6 @@ def get_employee_weekly_working_norm(employee: str) -> int:
 
 
 @frappe.whitelist(methods=["GET"])
-def get_employee(filters: dict | str | None = None, fieldname: list | str | None = None):
-    """returns the employee's information for the given filters"""
-    if not fieldname:
-        fieldname = ["name", "employee_name", "image"]
-
-    if fieldname and isinstance(fieldname, str):
-        fieldname = frappe.parse_json(fieldname)
-
-    if filters and isinstance(filters, str):
-        filters = frappe.parse_json(filters)
-
-    return frappe.db.get_value("Employee", filters=filters, fieldname=fieldname, as_dict=True)
-
-
-@frappe.whitelist(methods=["GET"])
 def get_employee_list(
     employee_name: str | None = None,
     department: str | None = None,
