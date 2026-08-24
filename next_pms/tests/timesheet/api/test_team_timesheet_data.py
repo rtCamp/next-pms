@@ -527,6 +527,99 @@ class TestTeamTimesheetDataFilters(_TeamTimesheetDataBase):
         self.assertNotIn(self.r3, self._members_by_employee(res))
 
 
+class TestTeamTimesheetFilteredWeekMembership(_TeamTimesheetDataBase):
+    """Issue #2011 — a work filter qualifies a *week*, not the whole lookback window.
+
+    Filtered requests widen the window to FILTER_LOOKBACK_WEEKS to resolve the employee pool,
+    so a member matching in one week used to be listed in every other week they had merely
+    logged something in — rendering as an empty row under the filter.
+    """
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        frappe.set_user("Administrator")
+        # R1 logs alpha work in W1 (base fixture) and beta work in W2: a candidate for an
+        # alpha filter across the window, with nothing matching it in W2.
+        cls._save(cls.r1, W2_MON, cls.task_beta, 5, "r1 w2 beta")
+        frappe.clear_cache()
+
+    def _alpha_task_filter(self):
+        return json.dumps([["Task", "project", "=", self.project_alpha]])
+
+    def _detail_task_filter(self):
+        """The payload the Team Timesheets UI emits for its Task filter."""
+        return json.dumps([["Timesheet Detail", "task", "=", self.task_alpha]])
+
+    def _detail_project_filter(self):
+        """The payload the Team Timesheets UI emits for its Project filter."""
+        return json.dumps([["Timesheet Detail", "project", "=", self.project_alpha]])
+
+    def test_week_without_matching_entries_drops_the_member(self):
+        res = self._call(reports_to=self.mgr, filters=self._alpha_task_filter(), start_date=W2_MON)
+
+        self.assertEqual(res["members"], [])
+        self.assertEqual(res["total_count"], 0)
+
+    def test_week_with_matching_entries_keeps_the_member(self):
+        res = self._call(reports_to=self.mgr, filters=self._alpha_task_filter(), start_date=W1_MON)
+
+        self.assertIn(self.r1, self._members_by_employee(res))
+
+    def test_weeks_endpoint_drops_the_non_matching_week(self):
+        res = self._weeks(reports_to=self.mgr, max_week=2, filters=self._alpha_task_filter())
+
+        starts = [week["start_date"] for week in res["weeks"]]
+        self.assertIn(frappe.utils.getdate(W1_MON), starts)
+        self.assertNotIn(frappe.utils.getdate(W2_MON), starts)
+
+    def test_timesheet_level_filter_is_resolved_per_week(self):
+        # parent_project lives on Timesheet, so it was never applied to the per-week query.
+        res = self._call(
+            reports_to=self.mgr,
+            filters=json.dumps([["Timesheet", "parent_project", "=", self.project_alpha]]),
+            start_date=W2_MON,
+        )
+
+        self.assertEqual(res["members"], [])
+        self.assertEqual(res["total_count"], 0)
+
+    def test_ui_task_filter_is_resolved_per_week(self):
+        # Issue #2011 as reported: a Timesheet Detail task filter with no Task condition,
+        # which resolves without the task scan.
+        kept = self._call(reports_to=self.mgr, filters=self._detail_task_filter(), start_date=W1_MON)
+        dropped = self._call(reports_to=self.mgr, filters=self._detail_task_filter(), start_date=W2_MON)
+
+        self.assertIn(self.r1, self._members_by_employee(kept))
+        self.assertEqual(dropped["members"], [])
+        self.assertEqual(dropped["total_count"], 0)
+
+    def test_ui_project_filter_is_resolved_per_week(self):
+        kept = self._call(reports_to=self.mgr, filters=self._detail_project_filter(), start_date=W1_MON)
+        dropped = self._call(reports_to=self.mgr, filters=self._detail_project_filter(), start_date=W2_MON)
+
+        self.assertIn(self.r1, self._members_by_employee(kept))
+        self.assertEqual(dropped["members"], [])
+        self.assertEqual(dropped["total_count"], 0)
+
+    def test_weeks_endpoint_drops_the_non_matching_week_for_ui_filters(self):
+        for label, filters in (
+            ("task", self._detail_task_filter()),
+            ("project", self._detail_project_filter()),
+        ):
+            with self.subTest(filter=label):
+                res = self._weeks(reports_to=self.mgr, max_week=2, filters=filters)
+
+                starts = [week["start_date"] for week in res["weeks"]]
+                self.assertIn(frappe.utils.getdate(W1_MON), starts)
+                self.assertNotIn(frappe.utils.getdate(W2_MON), starts)
+
+    def test_unfiltered_week_still_lists_the_member(self):
+        res = self._call(reports_to=self.mgr, start_date=W2_MON)
+
+        self.assertIn(self.r1, self._members_by_employee(res))
+
+
 LEFT_EMP_NAME = "Meera Joshi"
 BU_ALPHA_NAME = "Ttf BU Alpha"
 BU_BETA_NAME = "Ttf BU Beta"

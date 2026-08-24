@@ -51,6 +51,10 @@ ALLOWED_FILTER_FIELDS = {
     "Employee": {"status", "custom_business_unit"},
 }
 
+# Filter doctypes that describe logged work rather than who the employee is. Work filters
+# qualify a week, so they are re-checked per week; Employee conditions narrow the pool once.
+WORK_FILTER_DOCTYPES = ("Timesheet", "Timesheet Detail", "Task")
+
 FILTER_LOOKBACK_WEEKS = 12
 
 # Default members per page, matching TEAM_MEMBER_PAGE_LENGTH in the frontend.
