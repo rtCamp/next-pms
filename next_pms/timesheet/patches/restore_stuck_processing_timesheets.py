@@ -20,7 +20,7 @@ def execute():
     stuck = frappe.get_all(
         "Timesheet",
         filters={"custom_approval_status": "Processing Timesheet", "docstatus": 0},
-        fields=["name", "employee", "start_date", "custom_rejection_reason"],
+        fields=["name", "employee", "start_date"],
         order_by="employee, start_date",
     )
 
@@ -35,13 +35,13 @@ def execute():
     if not stuck and not weekly_stuck:
         return
 
+    # Every parked day goes back to Approval Pending. Nothing on record identifies what a row
+    # held before - parking used db.set_value, which writes no Version - and custom_rejection_reason
+    # cannot stand in for it: submit_for_approval returns a rejected draft to Approval Pending
+    # without clearing the reason, so a resubmitted day still carries a stale one. Approval Pending
+    # is deterministic, and it is the status that puts the week back in front of the reviewer.
     for timesheet in stuck:
-        # Parking never wrote custom_rejection_reason - only a rejection that committed does -
-        # so a stuck row still carrying one was Rejected before the job took it. Everything else
-        # goes back to Approval Pending: the status a day must have held to be actionable, and
-        # the one that puts the week back in front of the reviewer.
-        status = "Rejected" if (timesheet.custom_rejection_reason or "").strip() else "Approval Pending"
-        frappe.db.set_value("Timesheet", timesheet.name, "custom_approval_status", status)
+        frappe.db.set_value("Timesheet", timesheet.name, "custom_approval_status", "Approval Pending")
 
     # Rows in a partially stuck week disagree about the weekly status, so re-derive it per week
     # rather than per row - the same call the Timesheet's own on_update makes.

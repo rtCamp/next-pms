@@ -598,20 +598,32 @@ def _approve_or_reject_timesheet(
 
 
 def _restore_parked_timesheets(timesheets: list, employee: str):
-    """Put rows the caller parked in "Processing Timesheet" back on the status each held before,
+    """Put rows this job parked in "Processing Timesheet" back on the status each held before,
     so a failed run leaves the week actionable instead of dead-ended (#2075). The prior status
-    rides along in the job payload, so this restores the real value rather than guessing. Best
-    effort - a killed worker never reaches this, which is what the restore patch cleans up."""
+    rides along in the job payload, so this restores the real value rather than guessing, and
+    only rows still parked as drafts are touched - a concurrent run may have finished first, and
+    its result wins. Best effort: a killed worker never reaches this, which the restore patch
+    cleans up."""
     weeks = {getdate(ts.start_date) for ts in timesheets}
     try:
         for timesheet in timesheets:
+            current = db.get_value("Timesheet", timesheet.name, ["docstatus", "custom_approval_status"], as_dict=True)
+            # Nothing stops a second request from parking the same row while this job is in
+            # flight. A row that is no longer a parked draft carries that run's result, which
+            # is newer than anything captured here - leave it alone.
+            if not current or current.docstatus != 0 or current.custom_approval_status != "Processing Timesheet":
+                continue
+
+            captured = timesheet.get("custom_approval_status")
             db.set_value(
                 "Timesheet",
                 timesheet.name,
                 "custom_approval_status",
-                # A job enqueued before this field joined the payload has nothing to restore
-                # from; "Approval Pending" is the status a row must have held to be actionable.
-                timesheet.get("custom_approval_status") or "Approval Pending",
+                # A captured "Processing Timesheet" means this run parked a row a concurrent run
+                # had already parked, so it says nothing about the status before either of them;
+                # same for a job enqueued before this field joined the payload. "Approval Pending"
+                # is the status a row must have held to be actionable.
+                captured if captured and captured != "Processing Timesheet" else "Approval Pending",
             )
         for start_date in weeks:
             update_weekly_status_of_timesheet(employee, start_date)

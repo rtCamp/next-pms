@@ -1,3 +1,5 @@
+from unittest.mock import patch
+
 import frappe
 from erpnext import get_default_company
 from frappe.tests import IntegrationTestCase
@@ -41,6 +43,7 @@ class TestBackdatedApprovalGuard(IntegrationTestCase):
         super().setUpClass()
         cls.company = get_default_company()
 
+        cls.previous_first_day = frappe.db.get_default("first_day_of_the_week")
         frappe.db.set_default("first_day_of_the_week", "Monday")
 
         cls.previous_settings = {
@@ -91,6 +94,9 @@ class TestBackdatedApprovalGuard(IntegrationTestCase):
         cls.drop_added_ignored_roles()
         for field, value in cls.previous_settings.items():
             frappe.db.set_single_value("Timesheet Settings", field, value)
+        # These tests exercise paths that commit, so a site-wide default set here would
+        # otherwise outlive the run and follow every later test.
+        frappe.db.set_default("first_day_of_the_week", cls.previous_first_day)
         frappe.db.commit()  # nosemgrep settings live outside the per-test transaction
         super().tearDownClass()
 
@@ -146,7 +152,7 @@ class TestBackdatedApprovalGuard(IntegrationTestCase):
         rows = frappe.get_all(
             "Timesheet",
             filters={"employee": self.employee, "docstatus": ["<", 2]},
-            fields=["start_date", "custom_approval_status", "custom_weekly_approval_status"],
+            fields=["name", "start_date", "custom_approval_status", "custom_weekly_approval_status"],
         )
         return {str(row.start_date): row for row in rows}
 
@@ -205,20 +211,27 @@ class TestBackdatedApprovalGuard(IntegrationTestCase):
 
         self.assertIsNone(message)
 
-    def test_failed_job_restores_the_status_it_parked(self):
-        self.make_pending_week(self.restricted_dates)
-        before = self.statuses_by_date()
+    def run_failing_job(self, payload):
+        """Drive the job down its failure path - the week is older than the limit, so every
+        save throws. The mail it sends on the way out needs a built assets.json the CI runner
+        has no reason to produce, and it is not what these tests are about.
+        """
+        frappe.set_user(MANAGER_USER)
+        with patch("next_pms.timesheet.api.team.sendmail"):
+            _approve_or_reject_timesheet(
+                timesheets=payload,
+                status="Rejected",
+                employee=self.employee,
+                dates=self.restricted_dates,
+                note="too old",
+            )
+        frappe.set_user("Administrator")
 
-        # Park the rows the way the API used to, then let the job fail on the backdate check.
-        payload = frappe.get_all(
-            "Timesheet",
-            filters={"employee": self.employee, "docstatus": 0},
-            fields=["name", "start_date", "employee", "custom_approval_status"],
-        )
-        for row in payload:
+    def park(self, names):
+        for name in names:
             frappe.db.set_value(
                 "Timesheet",
-                row.name,
+                name,
                 {
                     "custom_approval_status": "Processing Timesheet",
                     "custom_weekly_approval_status": "Processing Timesheet",
@@ -228,15 +241,58 @@ class TestBackdatedApprovalGuard(IntegrationTestCase):
         # transaction, which only works from a clean one.
         frappe.db.commit()  # nosemgrep mirrors the commit the API makes before enqueueing
 
-        frappe.set_user(MANAGER_USER)
-        _approve_or_reject_timesheet(
-            timesheets=payload,
-            status="Rejected",
-            employee=self.employee,
-            dates=self.restricted_dates,
-            note="too old",
+    def draft_payload(self):
+        return frappe.get_all(
+            "Timesheet",
+            filters={"employee": self.employee, "docstatus": 0},
+            fields=["name", "start_date", "employee", "custom_approval_status"],
+            order_by="start_date",
         )
-        frappe.set_user("Administrator")
+
+    def test_restore_leaves_a_concurrent_runs_result_alone(self):
+        """Two requests can park the same day. If the other one finishes first, its result is
+        newer than anything this job captured - re-parking or reverting it would be the very
+        dead-end this whole fix is about."""
+        self.make_pending_week(self.restricted_dates)
+        payload = self.draft_payload()
+        self.park([row.name for row in payload])
+
+        # The concurrent run finished this one day while this job was still in flight.
+        decided = payload[0]
+        frappe.db.set_value("Timesheet", decided.name, "custom_approval_status", "Rejected")
+        frappe.db.commit()  # nosemgrep the concurrent run would have committed its own result
+
+        self.run_failing_job(payload)
+
+        rows = {row.name: row for row in self.statuses_by_date().values()}
+        self.assertEqual(rows[decided.name].custom_approval_status, "Rejected")
+        for row in payload[1:]:
+            self.assertEqual(rows[row.name].custom_approval_status, "Approval Pending")
+
+    def test_a_captured_processing_status_is_not_written_back(self):
+        """A row parked twice captures "Processing Timesheet" as its own prior status. Writing
+        that back would leave the week parked forever."""
+        self.make_pending_week(self.restricted_dates)
+        payload = self.draft_payload()
+        self.park([row.name for row in payload])
+        # Re-read after parking: this is the payload a second request would capture.
+        stale_payload = self.draft_payload()
+        self.assertEqual({row.custom_approval_status for row in stale_payload}, {"Processing Timesheet"})
+
+        self.run_failing_job(stale_payload)
+
+        for date, row in self.statuses_by_date().items():
+            self.assertEqual(row.custom_approval_status, "Approval Pending", f"{date} stayed parked")
+
+    def test_failed_job_restores_the_status_it_parked(self):
+        self.make_pending_week(self.restricted_dates)
+        before = self.statuses_by_date()
+
+        # Park the rows the way the API does, then let the job fail on the backdate check.
+        payload = self.draft_payload()
+        self.park([row.name for row in payload])
+
+        self.run_failing_job(payload)
 
         for date, row in self.statuses_by_date().items():
             self.assertEqual(row.custom_approval_status, before[date].custom_approval_status)
