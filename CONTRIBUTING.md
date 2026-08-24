@@ -29,4 +29,4 @@ For local development, check out our dev-tool for seamlessly building Frappe app
 
 ## Security Disclosures
 
-For security disclosures, please avoid opening a public issue. Report them via sys+gh@rtcamp.com. Refer to [Security](SECURITY.md) for more details.
+For security disclosures, please avoid opening a public issue. Report them via sys@rtcamp.com. Refer to [Security](SECURITY.md) for more details.
