@@ -42,6 +42,10 @@ export interface UserContextProps {
     hasBuField: boolean;
     /** Whether the industry field is enabled in the system. */
     hasIndustryField: boolean;
+    /** Earliest date the current user may still log their own time entry for — computed
+     * server-side (already accounts for holidays/leave/manager-vs-employee threshold).
+     * `null` means not yet known (e.g. still loading) or no employee record. */
+    backdateRestrictedBefore: string | null;
   };
   actions: {
     /** Logs out the current user and clears the active session. */
@@ -68,6 +72,7 @@ export const UserContext = createContext<UserContextProps>({
     currencies: window.frappe?.boot?.currencies ?? [],
     hasBuField: window.frappe?.boot?.has_business_unit ?? false,
     hasIndustryField: window.frappe?.boot?.has_industry ?? false,
+    backdateRestrictedBefore: null,
   },
   actions: {
     logout: () => Promise.resolve(),

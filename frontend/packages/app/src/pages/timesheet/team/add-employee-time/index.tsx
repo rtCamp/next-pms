@@ -22,6 +22,7 @@ import { FrappeError, useFrappePostCall } from "frappe-react-sdk";
 /**
  * Internal Dependencies
  */
+import { datePickerFooter } from "@/components/datePickerFooter";
 import { useEmployeeLookup } from "@/hooks/useEmployeeLookup";
 import {
   useProjectLookup,
@@ -399,6 +400,7 @@ const AddEmployeeTime = ({
                     onChange={(val) => field.handleChange(val as string)}
                     placeholder="Placeholder"
                     value={field.state.value}
+                    footer={datePickerFooter}
                   >
                     {({ displayValue }) => {
                       return (

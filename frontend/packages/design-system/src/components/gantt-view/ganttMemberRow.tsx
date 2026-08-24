@@ -12,6 +12,7 @@ import {
   RowAllocationOverlay,
   type RowAllocationOverlayHandle,
 } from "./gantt-bar/rowAllocationOverlay";
+import { GanttTimeoffBar } from "./gantt-bar/timeoffBar";
 import { GanttMemberItem } from "./ganttMemberItem";
 import { GanttRowOverlayCell } from "./ganttRowOverlayCell";
 import { useGanttStore } from "./ganttStore";
@@ -106,10 +107,25 @@ export const GanttMemberRow: React.FC<GanttMemberRowProps> = ({
               resizable={canEditAllocations}
             />
           ))}
+        {isExpanded &&
+          member.leaveBars?.map((bar) => (
+            <GanttTimeoffBar
+              key={`${bar.startDate.getTime()}-${bar.endDate.getTime()}`}
+              startDate={bar.startDate}
+              endDate={bar.endDate}
+              timeoff={bar.timeoff}
+              label={bar.label}
+              left={bar.barOffset + headerWidth}
+              width={bar.width}
+            />
+          ))}
         <RowAllocationOverlay
           ref={overlayRef}
           enabled={canManageAllocations && isExpanded}
-          allocations={member.allocations ?? []}
+          allocations={[
+            ...(member.allocations ?? []),
+            ...(member.leaveBars ?? []),
+          ]}
           createDraftBar={(left) => ({
             rowKey: memberRowKey,
             left,

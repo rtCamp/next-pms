@@ -27,7 +27,21 @@ def get_data(user: str = None):
         "currencies": get_currencies(),
         "has_business_unit": has_bu_field(),
         "has_industry": has_industry_field(),
+        "backdate_restricted_before": get_own_backdate_restriction_boundary(),
     }
+
+
+def get_own_backdate_restriction_boundary():
+    """returns the earliest date the current session user may still log their own time
+    entry for - any date before this is restricted. See
+    doc_events.timesheet.get_backdate_restriction_boundary for the shared calculation."""
+    from next_pms.timesheet.api.employee import get_employee_from_user
+    from next_pms.timesheet.doc_events.timesheet import get_backdate_restriction_boundary
+
+    employee = get_employee_from_user()
+    if not employee:
+        return None
+    return get_backdate_restriction_boundary(employee)
 
 
 @whitelist(methods=["GET"])

@@ -1,9 +1,8 @@
 import json
 
 import frappe
-from erpnext.setup.doctype.employee.employee import get_holiday_list_for_employee
 from frappe.core.doctype.recorder.recorder import redis_cache
-from frappe.utils import DATE_FORMAT, getdate
+from frappe.utils import DATE_FORMAT
 
 from next_pms.resource_management.api.utils.helpers import (
     _parse_multi_select_filter,
@@ -18,6 +17,7 @@ from next_pms.resource_management.api.utils.helpers import (
     override_hours_by_date,
     resource_api_permissions_check,
 )
+from next_pms.resource_management.api.utils.leave_calendar import get_leave_calendars
 from next_pms.resource_management.api.utils.query import (
     attach_extra_entries,
     get_allocation_list_for_employee_for_given_range,
@@ -126,6 +126,13 @@ def get_resource_management_team_view_data(
                     "employee": "HR-EMP-00001",
                     "from_date": datetime.date(2026, 5, 20),
                     "to_date": datetime.date(2026, 5, 22),
+                    "half_day": 1,
+                    "half_day_date": datetime.date(2026, 5, 22),
+                    "custom_first_halfsecond_half": "Second Half",
+                    "total_leave_days": 2.5,
+                    "leave_type": "Casual Leave",
+                    "is_lwp": 0,
+                    "includes_holidays": True,
                     "name": "HR-LAP-00001",
                 },
             ],
@@ -435,7 +442,7 @@ def _get_resource_management_team_view_data(
         status=["Active"],
         ids=ids,
         ignore_permissions=True,
-        extra_fields=["custom_work_schedule", "custom_working_hours", "reports_to", *privileged_fields],
+        extra_fields=["custom_work_schedule", "custom_working_hours", "reports_to", "company", *privileged_fields],
         extra_conditions=extra_conditions,
     )
 
@@ -504,23 +511,10 @@ def _get_resource_management_team_view_data(
         resource_allocation_map[resource_allocation.employee].append(resource_allocation)
 
     if not need_hours_summary:
-        all_leave_data = frappe.get_all(
-            "Leave Application",
-            filters={
-                "employee": ["in", [employee.name for employee in employees]],
-                "docstatus": ["in", [0, 1]],
-                "status": ["in", ["Approved", "Open"]],
-            },
-            fields=[
-                "employee",
-                "employee_name",
-                "from_date",
-                "to_date",
-                "half_day",
-                "half_day_date",
-                "total_leave_days",
-                "name",
-            ],
+        all_leave_data = get_employee_leaves(
+            employee=tuple(employee.name for employee in employees),
+            start_date=dates[0].get("start_date"),
+            end_date=dates[-1].get("end_date"),
         )
         res["employees"] = employees
         res["leaves"] = all_leave_data
@@ -549,33 +543,7 @@ def _get_resource_management_team_view_data(
     for t in all_timesheets:
         timesheet_map.setdefault(t.employee, []).append(t)
 
-    # Batch leaves — get_employee_leaves accepts a tuple of employee IDs
-    all_leaves = get_employee_leaves(
-        employee=tuple(employee_ids),
-        start_date=range_start,
-        end_date=range_end,
-    )
-    leaves_map = {}
-    for leave in all_leaves:
-        leaves_map.setdefault(leave.employee, []).append(leave)
-
-    # Batch holidays — fetch once per unique holiday list instead of once per employee
-    holiday_list_per_employee = {
-        emp.name: get_holiday_list_for_employee(emp.name, raise_exception=False) for emp in employees
-    }
-    unique_holiday_lists = {hl for hl in holiday_list_per_employee.values() if hl}
-    holidays_by_list = {
-        hl: frappe.get_all(
-            "Holiday",
-            filters={
-                "parent": hl,
-                "holiday_date": ["between", (getdate(range_start), getdate(range_end))],
-            },
-            fields=["holiday_date", "description", "weekly_off"],
-        )
-        for hl in unique_holiday_lists
-    }
-    holidays_map = {emp.name: holidays_by_list.get(holiday_list_per_employee.get(emp.name), []) for emp in employees}
+    leaves_map, holidays_map = get_leave_calendars(employees, range_start, range_end)
 
     for employee in employees:
         employee_resource_allocation = resource_allocation_map.get(employee.name, [])

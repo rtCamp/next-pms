@@ -1,9 +1,9 @@
 # Copyright (c) 2026, rtCamp and contributors
 # For license information, please see license.txt
 
-
 import frappe
-from frappe import _, only_for
+from frappe import _, enqueue, only_for
+from frappe.desk.notifications import extract_mentions
 from frappe.query_builder import DocType, Order
 from frappe.utils import cint, getdate, strip_html_tags
 from frappe.utils.user import get_user_fullname
@@ -385,7 +385,7 @@ def get_feedback_comments(feedback: str):
 
 
 @frappe.whitelist(methods=["POST"])
-def add_comment_to_feedback(feedback: str, comment: str, reply_to: str | None = None):
+def add_comment_to_feedback(feedback: str, comment: str, project: str, reply_to: str | None = None):
     """Add a comment or reply to a Customer Feedback record.
 
     The author is always the session user. The commenting roles have no
@@ -395,6 +395,7 @@ def add_comment_to_feedback(feedback: str, comment: str, reply_to: str | None = 
     Args:
         feedback: Customer Feedback name to comment on.
         comment: Comment body (HTML).
+        project: Project the commenter is viewing, used for mention deep-links.
         reply_to: Name of the parent comment when posting a reply.
 
     Returns:
@@ -403,6 +404,7 @@ def add_comment_to_feedback(feedback: str, comment: str, reply_to: str | None = 
     only_for(ALLOWED_ROLES, message=True)
     ensure_customer_feedback_available()
     ensure_feedback_exists(feedback)
+    ensure_feedback_belongs_to_project(feedback, project)
     if is_blank(comment):
         frappe.throw(_("Comment cannot be empty"))
     if reply_to:
@@ -423,12 +425,22 @@ def add_comment_to_feedback(feedback: str, comment: str, reply_to: str | None = 
             "comment_type": "Comment",
             "reference_doctype": "Customer Feedback",
             "reference_name": feedback,
-            "content": comment,
+            "content": comment.replace(' data-type="mention"', ""),
             "comment_email": frappe.session.user,
             "comment_by": get_user_fullname(frappe.session.user),
             "custom_reply_to": reply_to,
         }
     ).insert(ignore_permissions=True)
+
+    enqueue(
+        notify_feedback_nextpms_mentions,
+        content=comment,
+        feedback=feedback,
+        project=project,
+        queue="short",
+        enqueue_after_commit=True,
+        job_name=f"Mention Notifications for Feedback Comment {feedback}",
+    )
     return get_feedback_comment_tree(feedback)
 
 
@@ -455,8 +467,9 @@ def update_comment_in_feedback(comment_name: str, comment: str):
     if is_blank(comment):
         frappe.throw(_("Comment cannot be empty"))
 
-    doc.content = comment
+    doc.content = comment.replace(' data-type="mention"', "")
     doc.save(ignore_permissions=True)
+
     return get_feedback_comment_tree(doc.reference_name)
 
 
@@ -487,9 +500,20 @@ def delete_comment_from_feedback(comment_name: str):
 
 
 def ensure_feedback_exists(feedback: str):
-    """Guard: throw when the Customer Feedback record does not exist."""
+    """throw when the Customer Feedback record does not exist."""
     if not feedback or not frappe.db.exists("Customer Feedback", feedback):
         frappe.throw(_("Customer Feedback {0} not found").format(feedback), frappe.DoesNotExistError)
+
+
+def ensure_feedback_belongs_to_project(feedback: str, project: str):
+    """the project must exist and expose this customer's feedback."""
+    if not frappe.db.exists("Project", project):
+        frappe.throw(_("Project {0} not found").format(project), frappe.DoesNotExistError)
+
+    feedback_customer = frappe.db.get_value("Customer Feedback", feedback, "customer")
+    project_customer = frappe.db.get_value("Project", project, "customer")
+    if not feedback_customer or feedback_customer != project_customer:
+        frappe.throw(_("Customer Feedback {0} is not available for Project {1}").format(feedback, project))
 
 
 def get_feedback_comment_doc(comment_name: str):
@@ -560,3 +584,26 @@ def serialize_feedback_comment(row, user_map: dict, children_by_parent: dict) ->
         "reply_count": len(replies),
         "replies": replies,
     }
+
+
+def notify_feedback_nextpms_mentions(content: str, feedback: str, project: str) -> None:
+    """Create NextPMS notifications for users mentioned in a feedback comment."""
+    project_title = frappe.db.get_value("Project", project, "project_name")
+    actor = get_user_fullname(frappe.session.user)
+    title = _("You got a Feedback mention")
+    label = _("{0} mentioned you in feedback from {1} project").format(actor, project_title)
+
+    for user in extract_mentions(content):
+        if user == frappe.session.user or not frappe.db.exists("User", user):
+            continue
+        frappe.get_doc(
+            {
+                "doctype": "NextPMS Notifications",
+                "user": user,
+                "title": title,
+                "label": label,
+                "linked_doctype": "Customer Feedback",
+                "linked_document": feedback,
+                "url": f"/next-pms/projects/{project}?tab=feedback",
+            }
+        ).insert(ignore_permissions=True)

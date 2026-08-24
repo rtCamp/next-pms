@@ -3,9 +3,69 @@ from urllib.parse import urlencode
 
 import frappe
 from frappe import _
+from frappe.desk.notifications import extract_mentions
 from frappe.utils import formatdate, get_fullname, getdate
 
 from next_pms.next_pms.doctype.nextpms_notifications.nextpms_notifications import create_notification
+
+MENTION_EMAIL_TEMPLATE = "next_pms/templates/mention_notification.html"
+
+
+def send_mention_notifications(
+    content: str,
+    title: str,
+    label: str,
+    linked_doctype: str,
+    linked_document: str,
+    url_path: str,
+) -> dict:
+    """Notify mentioned users via Notification Log and NextPMS Notifications."""
+
+    mentioned_users = extract_mentions(content)
+    if not mentioned_users:
+        return {"message": "No mentions found"}
+
+    current_user = frappe.session.user
+    full_url = frappe.utils.get_url(url_path)
+    email_content = frappe.render_template(  # nosemgrep - trusted template file
+        MENTION_EMAIL_TEMPLATE, {"content": content}
+    )
+
+    for user_email in mentioned_users:
+        if not user_email or user_email == current_user:
+            continue
+        if not frappe.db.exists("User", user_email):
+            continue
+
+        frappe.get_doc(
+            {
+                "doctype": "Notification Log",
+                "subject": label,
+                "for_user": user_email,
+                "type": "Mention",
+                "document_type": linked_doctype,
+                "document_name": linked_document,
+                "from_user": current_user,
+                "link": full_url,
+                "email_header": title,
+                "email_content": email_content,
+                "read": 0,
+            }
+        ).insert(ignore_permissions=True)
+
+        frappe.get_doc(
+            {
+                "doctype": "NextPMS Notifications",
+                "user": user_email,
+                "title": title,
+                "label": label,
+                "linked_doctype": linked_doctype,
+                "linked_document": linked_document,
+                "url": url_path,
+            }
+        ).insert(ignore_permissions=True)
+
+    return {"message": f"Notifications sent successfully to {len(mentioned_users)} users"}
 
 
 def get_followers(doctype, name):

@@ -47,12 +47,12 @@ export function NoteComments({ noteId }: NoteCommentsProps) {
         },
       );
 
-      const mentions = response.message.data.map(
-        (emp: { name: string; employee_name: string }) => ({
-          id: emp.name,
+      const mentions = response.message.data
+        .filter((emp: { user_id?: string }) => emp.user_id)
+        .map((emp: { user_id: string; employee_name: string }) => ({
+          id: emp.user_id,
           label: emp.employee_name,
-        }),
-      );
+        }));
 
       return mentions || [];
     },

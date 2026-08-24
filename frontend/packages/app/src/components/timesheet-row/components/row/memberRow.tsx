@@ -13,6 +13,7 @@ import {
 /**
  * Internal dependencies
  */
+import { isDateBackdateRestricted } from "@/pages/timesheet/utils";
 import { MemberRowProps } from "./types";
 import { computeRowData } from "../../utils";
 
@@ -25,6 +26,7 @@ export const MemberRow = ({
   workingFrequency,
   status,
   disabled,
+  backdateRestrictedBefore,
   onButtonClick,
   children,
   avatarUrl,
@@ -69,7 +71,13 @@ export const MemberRow = ({
                 status={status ? ApprovalStatusMap[status] : "none"}
                 timeEntries={memberData.totalTimeEntries.map((timeEntry) => ({
                   ...timeEntry,
-                  disabled: disabled || timeEntry.disabled,
+                  disabled:
+                    disabled ||
+                    timeEntry.disabled ||
+                    isDateBackdateRestricted(
+                      timeEntry.date,
+                      backdateRestrictedBefore,
+                    ),
                 }))}
                 onCellClick={
                   rest.onCellClick

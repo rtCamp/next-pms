@@ -13,6 +13,7 @@ import { cva } from "class-variance-authority";
  * Internal dependencies.
  */
 import type { ApprovalStatusLabelType } from "./types";
+import Spinner from "../spinner";
 
 export const approvalStatusIcon: Record<
   ApprovalStatusLabelType,
@@ -25,7 +26,7 @@ export const approvalStatusIcon: Record<
   Approved: Success,
   Rejected: CloseCircle,
   "Approval Pending": Hourglass,
-  "Processing Timesheet": Hourglass,
+  "Processing Timesheet": Spinner,
   "Not Submitted": Overdue,
   "Partially Approved": Success,
   "Partially Rejected": CloseCircle,
