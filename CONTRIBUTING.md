@@ -5,19 +5,14 @@ We accept contributions in the form of Issues & Pull Requests. To create a Pull 
 1. Install the app along with its dependencies.
 
 ```bash
-bench get-app https://github.com/frappe/erpnext
-bench get-app https://github.com/frappe/hrms
-bench get-app https://github.com/rtCamp/frappe-gmail-thread
-bench get-app https://github.com/rtCamp/frappe-comment-xt
-bench get-app https://github.com/rtCamp/frappe-slack-connector
-bench get-app https://github.com/rtCamp/next-pms
+bench get-app erpnext --branch version-16
+bench get-app hrms --branch version-16
+bench get-app frappe_gmail_thread https://github.com/rtCamp/frappe-gmail-thread --branch version-16-hotfix
+bench get-app frappe_comment_xt https://github.com/rtCamp/frappe-comment-xt --branch version-16-hotfix
+bench get-app frappe_slack_connector https://github.com/rtCamp/frappe-slack-connector --branch version-16-hotfix
+bench get-app next_pms https://github.com/rtCamp/next-pms --branch version-16-hotfix
 
-bench --site [site-name] install-app erpnext
-bench --site [site-name] install-app hrms
-bench --site [site-name] install-app frappe_gmail_thread
-bench --site [site-name] install-app frappe_comment_xt
-bench --site [site-name] install-app frappe_slack_connector
-bench --site [site-name] install-app next_pms
+bench --site [site-name] install-app erpnext hrms frappe_gmail_thread frappe_comment_xt frappe_slack_connector next_pms
 
 bench --site [site-name] migrate
 ```
@@ -34,4 +29,4 @@ For local development, check out our dev-tool for seamlessly building Frappe app
 
 ## Security Disclosures
 
-For security disclosures, please avoid opening a public issue. Report them via sys+gh@rtcamp.com. Refer [Security](SECURITY.md) for more details.
+For security disclosures, please avoid opening a public issue. Report them via sys+gh@rtcamp.com. Refer to [Security](SECURITY.md) for more details.
