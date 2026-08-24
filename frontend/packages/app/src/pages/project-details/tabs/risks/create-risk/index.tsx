@@ -322,9 +322,9 @@ export function CreateRiskModal({
           )}
 
           {isEditMode && (
-            <div className="flex items-center gap-2 rounded-lg bg-(--color-violet-50) px-2.5 py-2">
-              <AlertTriangle className="size-4 shrink-0 text-(--color-violet-700)" />
-              <p className="min-w-0 flex-1 text-left text-xs text-ink-gray-9">
+            <div className="flex items-center gap-2 rounded-lg bg-surface-violet-1 px-2.5 py-2">
+              <AlertTriangle className="size-4 shrink-0 text-ink-violet-4" />
+              <p className="min-w-0 flex-1 text-left text-xs text-ink-gray-8">
                 To change status or risk level, add a new risk update instead.
               </p>
             </div>
