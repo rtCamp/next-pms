@@ -2,7 +2,6 @@
  * External dependencies.
  */
 import { Popover } from "@base-ui/react/popover";
-import { differenceInCalendarDays } from "date-fns";
 
 /**
  * Internal dependencies.
@@ -11,10 +10,10 @@ import { useGanttStore } from "../ganttStore";
 import type { MemberSummaryBar } from "../ganttStore";
 import { GanttAllocationPopover } from "./allocationPopover";
 import { GanttBar } from "./ganttBar";
+import { GanttTimeoffBar } from "./timeoffBar";
 import { allocationBarToEntry } from "./utils/allocationBarToEntry";
 import { getCapacityStatus } from "./utils/getCapacityStatus";
 import { getOverlappingAllocations } from "./utils/getOverlappingAllocations";
-import { getTimeoffLabel } from "./utils/getTimeoffLabel";
 import { withPendingDeleteEntry } from "./utils/withPendingDeleteEntry";
 
 interface GanttMemberSummaryBarProps {
@@ -67,19 +66,12 @@ export function GanttMemberSummaryBar({
   }
 
   if (summary.type === "timeoff") {
-    const leaveDays =
-      differenceInCalendarDays(summary.endDate, summary.startDate) + 1;
-    const leaveLabel = getTimeoffLabel(
-      summary.startDate,
-      summary.endDate,
-      summary.timeoff,
-    );
-
     return (
-      <GanttBar
-        variant="timeoff"
-        label={leaveLabel}
-        showInlineLabel={leaveDays > 1}
+      <GanttTimeoffBar
+        startDate={summary.startDate}
+        endDate={summary.endDate}
+        timeoff={summary.timeoff}
+        label={summary.label}
         left={left}
         width={width}
       />
