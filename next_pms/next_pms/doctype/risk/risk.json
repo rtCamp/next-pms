@@ -50,7 +50,8 @@
    "in_preview": 1,
    "in_standard_filter": 1,
    "label": "Risk Level",
-   "options": "Risk Level"
+   "options": "Risk Level",
+   "reqd": 1
   },
   {
    "fieldname": "status",
@@ -59,7 +60,8 @@
    "in_preview": 1,
    "in_standard_filter": 1,
    "label": "Status",
-   "options": "Risk Status"
+   "options": "Risk Status",
+   "reqd": 1
   },
   {
    "fieldname": "column_break_twxk",
@@ -119,7 +121,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-08-18 05:35:52.725495",
+ "modified": "2026-08-24 21:51:47.732185",
  "modified_by": "Administrator",
  "module": "Next PMS",
  "name": "Risk",

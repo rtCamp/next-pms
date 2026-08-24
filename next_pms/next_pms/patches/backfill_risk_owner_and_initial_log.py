@@ -4,8 +4,8 @@ import frappe
 def execute():
     """Fill risk_owner and a creation log row on Risks that predate those rules.
 
-    Empty risk_owner is set to the document creator. Every Risk gets a first
-    log row timestamped at creation if it does not already have one.
+    Empty risk_owner is set to the document creator. Risks with an empty
+    update log get a first row timestamped at creation.
     """
     _backfill_risk_owner()
     _backfill_initial_update_log()
@@ -24,29 +24,10 @@ def _backfill_risk_owner():
 
 
 def _backfill_initial_update_log():
-    updates_by_parent = {}
-    for row in frappe.get_all(
-        "Risk Update",
-        fields=["name", "parent", "idx", "status", "risk_level", "updated_at"],
-        order_by="idx asc",
-    ):
-        updates_by_parent.setdefault(row.parent, []).append(row)
-
+    risks_with_updates = {row.parent for row in frappe.get_all("Risk Update", fields=["parent"])}
     for risk in frappe.get_all("Risk", fields=["name", "status", "risk_level", "creation", "owner"]):
-        existing = updates_by_parent.get(risk.name, [])
-        if existing:
-            if str(existing[0].updated_at or "") == str(risk.creation or ""):
-                continue
-            for child in reversed(existing):
-                frappe.db.set_value("Risk Update", child.name, "idx", child.idx + 1, update_modified=False)
-            status = existing[0].status
-            risk_level = existing[0].risk_level
-        else:
-            if not risk.status and not risk.risk_level:
-                continue
-            status = risk.status
-            risk_level = risk.risk_level
-
+        if risk.name in risks_with_updates:
+            continue
         row = frappe.get_doc(
             {
                 "doctype": "Risk Update",
@@ -54,8 +35,8 @@ def _backfill_initial_update_log():
                 "parenttype": "Risk",
                 "parentfield": "risk_update_log",
                 "idx": 1,
-                "status": status,
-                "risk_level": risk_level,
+                "status": risk.status,
+                "risk_level": risk.risk_level,
                 "updated_at": risk.creation,
                 "updated_by": risk.owner,
             }

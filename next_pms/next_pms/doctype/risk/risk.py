@@ -23,10 +23,10 @@ class Risk(Document):
         mitigation_plan: DF.TextEditor | None
         project: DF.Link
         risk_category: DF.Link | None
-        risk_level: DF.Link | None
+        risk_level: DF.Link
         risk_owner: DF.Link | None
         risk_update_log: DF.Table[RiskUpdate]
-        status: DF.Link | None
+        status: DF.Link
         summary: DF.TextEditor | None
     # end: auto-generated types
 
