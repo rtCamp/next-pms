@@ -41,7 +41,7 @@ export function SortSelector({
     <Popover.Root open={open} onOpenChange={setOpen}>
       <Popover.Trigger
         className={cn(
-          "flex items-center gap-1.5 rounded border border-none bg-surface-gray-2 px-2 py-1.5 text-base text-ink-gray-7 cursor-pointer",
+          "flex items-center gap-1.5 rounded border border-none bg-surface-gray-2 px-2 py-1.5 text-base text-ink-gray-7 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-outline-gray-3",
           className,
         )}
       >
@@ -65,7 +65,7 @@ export function SortSelector({
                     type="button"
                     aria-disabled={disabled}
                     className={cn(
-                      "flex w-full items-center justify-between gap-3 rounded px-3 py-1.5 text-sm",
+                      "flex w-full items-center justify-between gap-3 rounded px-3 py-1.5 text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-outline-gray-3",
                       disabled
                         ? "cursor-not-allowed text-ink-gray-5"
                         : "text-ink-gray-8 hover:bg-surface-gray-2",
@@ -101,7 +101,7 @@ export function SortSelector({
                 <div className="px-1">
                   <button
                     type="button"
-                    className="flex w-full items-center rounded px-3 py-1.5 text-sm text-ink-red-3 hover:bg-surface-gray-2"
+                    className="flex w-full items-center rounded px-3 py-1.5 text-sm text-ink-red-3 hover:bg-surface-gray-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-outline-gray-3"
                     onClick={() => {
                       onSortChange(null);
                       setOpen(false);
