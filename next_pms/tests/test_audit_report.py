@@ -31,6 +31,11 @@ class TestAuditReport(TestNextPms):
         mock_get_audit_url.return_value = None
         self.assertRaises(frappe.ValidationError, trigger_audit_report)
 
+    def test_trigger_audit_report_unauthorized_user_throws(self):
+        self.login_as_user("next-employee@example.com")
+        with self.assertRaises(frappe.PermissionError):
+            trigger_audit_report()
+
     @patch("next_pms.tasks.scheduled_audit.trigger_audit_report")
     def test_trigger_weekly_audits_runs_without_error(self, mock_trigger_audit_report):
         trigger_weekly_audits()

@@ -4,7 +4,7 @@ from frappe import _, only_for
 
 from next_pms.api.generate_pm_report import get_api_key
 
-ALLOWED_ROLES = ["System Manager", "Projects Manager"]
+ALLOWED_ROLES = ["System Manager", "Projects Manager", "Delivery Manager"]
 
 
 def get_audit_url() -> str | None:
