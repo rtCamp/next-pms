@@ -676,6 +676,84 @@ class TestTeamViewHoursSummaryShape(_TeamViewBase):
         self.assertIn("all_week_data", entry)
 
 
+class TestTeamViewFlatGridHolidays(_TeamViewBase):
+    """The `holidays` payload the flat grid uses to mark holiday cells.
+
+    Holidays are company/holiday-list wide, not tied to an allocation, so an employee with
+    zero resource allocations in the window must still surface their holidays — unlike
+    `leaves`/`resource_allocations`, which are naturally empty for an unallocated employee.
+    """
+
+    TEAM_HOLIDAY_DATE = "2026-06-17"  # A Wednesday inside the [2026-06-15, 2026-06-28] window.
+    OUT_OF_WINDOW_HOLIDAY_DATE = "2026-07-02"
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.company = get_default_company()
+        cls.write_user = cls._make_user(FILTER_WRITE_USER, projects_user=True)
+        # No allocations at all — proves holidays surface independent of allocation status.
+        cls.employee = cls._make_employee("Tvh Holiday Employee")
+        cls.only = json.dumps([cls.employee])
+
+        holiday_list = frappe.get_doc(
+            {
+                "doctype": "Holiday List",
+                "holiday_list_name": "TV Holiday Grid List",
+                "from_date": "2026-01-01",
+                "to_date": "2026-12-31",
+                "holidays": [
+                    {"holiday_date": cls.TEAM_HOLIDAY_DATE, "description": "Testing holiday", "weekly_off": 0},
+                    {"holiday_date": cls.OUT_OF_WINDOW_HOLIDAY_DATE, "description": "Out of window", "weekly_off": 0},
+                    {"holiday_date": "2026-06-20", "description": "Saturday", "weekly_off": 1},
+                ],
+            }
+        )
+        holiday_list.insert(ignore_permissions=True)
+        frappe.db.set_value("Employee", cls.employee, "holiday_list", holiday_list.name)
+        # hrms resolves an employee's holiday list from Holiday List Assignment, not the
+        # Employee.holiday_list field directly — mirrors assign_empty_holiday_list.
+        frappe.get_doc(
+            {
+                "doctype": "Holiday List Assignment",
+                "applicable_for": "Employee",
+                "assigned_to": cls.employee,
+                "holiday_list": holiday_list.name,
+                "from_date": "2026-01-01",
+            }
+        ).insert(ignore_permissions=True).submit()
+
+        frappe.clear_cache()
+
+    def _holidays(self):
+        return self._call(employee_id=self.only, need_hours_summary=False)["holidays"]
+
+    def test_unallocated_employee_still_gets_holidays(self):
+        # #2003: an employee with no resource allocation in the window must still surface
+        # their holidays, so the FE can mark holiday cells even on otherwise-empty days.
+        result = self._call(employee_id=self.only, need_hours_summary=False)
+        self.assertEqual(result["resource_allocations"], [])
+        holiday_dates = {getdate(holiday["holiday_date"]) for holiday in result["holidays"]}
+        self.assertIn(getdate(self.TEAM_HOLIDAY_DATE), holiday_dates)
+
+    def test_excludes_out_of_window_holidays(self):
+        holiday_dates = {getdate(holiday["holiday_date"]) for holiday in self._holidays()}
+        self.assertNotIn(getdate(self.OUT_OF_WINDOW_HOLIDAY_DATE), holiday_dates)
+
+    def test_excludes_weekly_off_placeholders(self):
+        # weekly_off entries (Saturday/Sunday) are routine, not named holidays, and must be
+        # dropped so the FE doesn't mark every weekend as a "holiday".
+        for holiday in self._holidays():
+            self.assertNotEqual(holiday["description"], "Saturday")
+
+    def test_holiday_carries_employee_and_description(self):
+        holiday = next(
+            row for row in self._holidays() if getdate(row["holiday_date"]) == getdate(self.TEAM_HOLIDAY_DATE)
+        )
+        self.assertEqual(holiday["employee"], self.employee)
+        self.assertEqual(holiday["description"], "Testing holiday")
+
+
 class TestTeamViewFlatGridLeaves(_TeamViewBase):
     """The `leaves` payload the flat grid renders time-off bars from.
 
