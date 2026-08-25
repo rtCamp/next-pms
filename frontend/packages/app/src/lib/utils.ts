@@ -101,6 +101,10 @@ export const isWeekendEntryAllowed = (): boolean => {
   return window.frappe?.boot?.allow_weekend_entries ?? false;
 };
 
+export const getDefaultCurrency = (): string => {
+  return window.frappe?.boot?.sysdefaults?.currency ?? "INR";
+};
+
 export function parseFrappeErrorMsg(error: FrappeError) {
   const messages = getErrorMessages(error);
   let message = "";

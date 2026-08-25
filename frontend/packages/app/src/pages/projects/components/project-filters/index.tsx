@@ -16,6 +16,7 @@ import {
  */
 import { FilterLinkValue } from "@/components/filters/FilterLinkValue";
 import { useDebounce } from "@/hooks/useDebounce";
+import { getDefaultCurrency } from "@/lib/utils";
 import { useUser } from "@/providers/user";
 import { useProjectFilters } from "./useProjectFilters";
 import { PHASE_OPTIONS, RAG_OPTIONS, STATUS_OPTIONS } from "../../constants";
@@ -36,6 +37,13 @@ export function ProjectFilters() {
     setCurrency,
   } = useProjectFilters();
   const currencies = useUser((s) => s.state.currencies);
+
+  const didInitCurrency = useRef(false);
+  useEffect(() => {
+    if (didInitCurrency.current) return;
+    didInitCurrency.current = true;
+    if (!currency) setCurrency(getDefaultCurrency());
+  }, [currency, setCurrency]);
 
   const externalFilterCount =
     (search !== "" ? 1 : 0) +
@@ -121,7 +129,23 @@ export function ProjectFilters() {
             fields={[
               { field: "project_name", label: "Project name" },
               { field: "custom_project_phase", label: "Phase" },
+              {
+                field: "burn_rate_per_week",
+                label: "Burn rate/week",
+                disabled: !currency,
+                tooltipText: !currency
+                  ? "Select a currency to enable this sort"
+                  : undefined,
+              },
               { field: "cost_burn_percent", label: "Cost burn" },
+              {
+                field: "total_budget",
+                label: "Total budget",
+                disabled: !currency,
+                tooltipText: !currency
+                  ? "Select a currency to enable this sort"
+                  : undefined,
+              },
               { field: "profit_margin", label: "Profit margin" },
               { field: "expected_start_date", label: "Start date" },
               { field: "custom_next_milestone", label: "Next milestone" },

@@ -11,6 +11,8 @@ export type SortOrder = "asc" | "desc";
 export interface SortField {
   field: string;
   label: string;
+  disabled?: boolean;
+  tooltipText?: string;
 }
 
 export interface SortState {

@@ -1,6 +1,7 @@
 /**
  * External dependencies.
  */
+import { mergeClassNames as cn } from "@next-pms/design-system";
 import { LoadingOverlay, Spinner } from "@next-pms/design-system/components";
 import {
   ListHeader,
@@ -8,6 +9,7 @@ import {
   ListRow,
   ListRows,
   ListView,
+  Tooltip,
 } from "@rtcamp/frappe-ui-react";
 import { ArrowDown, ArrowUp } from "@rtcamp/frappe-ui-react/icons";
 
@@ -19,7 +21,7 @@ import { ProjectListCell } from "./cells";
 import { PROJECT_LIST_COLUMNS } from "./columns";
 import { useProjectList } from "./context";
 import { useProjectFilters } from "../components/project-filters/useProjectFilters";
-import { PROJECT_LIST_PAGE_SIZE } from "../constants";
+import { MONETARY_SORT_FIELDS, PROJECT_LIST_PAGE_SIZE } from "../constants";
 
 function ProjectList() {
   const data = useProjectList((c) => c.state.data);
@@ -28,9 +30,13 @@ function ProjectList() {
   const isFilterRequest = useProjectList((c) => c.state.isFilterRequest);
   const hasMore = useProjectList((c) => c.state.hasMore);
   const loadMore = useProjectList((c) => c.actions.loadMore);
-  const { sort, setSort } = useProjectFilters();
+  const { sort, setSort, filters } = useProjectFilters();
+  const currency = filters.currency;
 
   const handleHeaderClick = (sortField: string) => {
+    if (!currency && MONETARY_SORT_FIELDS.includes(sortField)) {
+      return;
+    }
     if (sort.field === sortField) {
       setSort({
         field: sortField,
@@ -70,6 +76,36 @@ function ProjectList() {
           >
             {PROJECT_LIST_COLUMNS.map((column) => {
               const isSorted = sort.field === column.sortField;
+              const isDisabled =
+                !currency &&
+                MONETARY_SORT_FIELDS.includes(column.sortField ?? "");
+
+              const headerControl = column.sortField ? (
+                <button
+                  type="button"
+                  aria-disabled={isDisabled}
+                  className={cn(
+                    "flex h-7 min-w-0 items-center gap-1 rounded-sm py-1.5 select-none",
+                    isDisabled
+                      ? "cursor-not-allowed text-ink-gray-5"
+                      : "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-outline-gray-3",
+                  )}
+                  onClick={() => handleHeaderClick(column.sortField!)}
+                >
+                  <span className="truncate">{column.label}</span>
+                  {isSorted &&
+                    (sort.order === "asc" ? (
+                      <ArrowUp className="size-3.5 shrink-0 text-ink-gray-7" />
+                    ) : (
+                      <ArrowDown className="size-3.5 shrink-0 text-ink-gray-7" />
+                    ))}
+                </button>
+              ) : (
+                <div className="flex h-7 items-center gap-1 py-1.5">
+                  <span className="truncate">{column.label}</span>
+                </div>
+              );
+
               return (
                 <ListHeaderItem
                   key={column.key}
@@ -85,24 +121,12 @@ function ProjectList() {
                   }
                   item={column}
                 >
-                  {column.sortField ? (
-                    <button
-                      type="button"
-                      className="flex h-7 min-w-0 items-center gap-1 rounded-sm py-1.5 select-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-outline-gray-3"
-                      onClick={() => handleHeaderClick(column.sortField!)}
-                    >
-                      <span className="truncate">{column.label}</span>
-                      {isSorted &&
-                        (sort.order === "asc" ? (
-                          <ArrowUp className="size-3.5 shrink-0 text-ink-gray-7" />
-                        ) : (
-                          <ArrowDown className="size-3.5 shrink-0 text-ink-gray-7" />
-                        ))}
-                    </button>
+                  {isDisabled ? (
+                    <Tooltip text="Select a currency to enable this sort">
+                      {headerControl}
+                    </Tooltip>
                   ) : (
-                    <div className="flex h-7 items-center gap-1 py-1.5">
-                      <span className="truncate">{column.label}</span>
-                    </div>
+                    headerControl
                   )}
                 </ListHeaderItem>
               );
