@@ -10,5 +10,8 @@ def trigger_weekly_audits():
     """
     try:
         trigger_audit_report()
-    except Exception as e:
-        frappe.log_error(f"Weekly Audit Schedule Error: {e!s}", "Audit Report — Scheduled Task Error")
+    except Exception:
+        frappe.log_error(
+            title="Audit Report — Scheduled Task Error",
+            message=frappe.get_traceback(),
+        )

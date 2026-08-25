@@ -1,8 +1,10 @@
 import frappe
 import requests
-from frappe import _
+from frappe import _, only_for
 
 from next_pms.api.generate_pm_report import get_api_key
+
+ALLOWED_ROLES = ["System Manager", "Projects Manager"]
 
 
 def get_audit_url() -> str | None:
@@ -16,12 +18,14 @@ def get_audit_url() -> str | None:
     return audit_url
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])
 def trigger_audit_report() -> dict:
     """
     Trigger bulk Audit Report for all open billable projects via the LLM microservice.
     Pings POST /api/audit/run-all endpoint.
     """
+    only_for(ALLOWED_ROLES, message=True)
+
     audit_url = get_audit_url()
     if not audit_url:
         frappe.throw(_("LLM Audit service URL is not configured."))
