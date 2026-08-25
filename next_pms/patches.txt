@@ -40,3 +40,4 @@ next_pms.timesheet.patches.setup_timesheet_weekly_rejection_reason_field
 next_pms.next_pms.patches.setup_time_report_frequency
 next_pms.timesheet.patches.restore_stuck_processing_timesheets
 next_pms.next_pms.patches.backfill_risk_owner_and_initial_log
+next_pms.next_projects.patches.setup_todo_permissions
