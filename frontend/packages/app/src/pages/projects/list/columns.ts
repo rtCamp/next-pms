@@ -17,6 +17,7 @@ export const PROJECT_LIST_COLUMNS: ProjectListColumn[] = [
     key: "burn_rate_per_week",
     label: "Burn rate/week",
     width: "130px",
+    sortField: "burn_rate_per_week",
   },
   {
     key: "cost_burn_percent",
@@ -28,6 +29,7 @@ export const PROJECT_LIST_COLUMNS: ProjectListColumn[] = [
     key: "total_budget",
     label: "Total budget",
     width: "130px",
+    sortField: "total_budget",
   },
   {
     key: "profit_margin",

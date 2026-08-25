@@ -14,6 +14,7 @@ def after_install():
     setup_timesheet_rejection_reason_field()
     setup_timesheet_weekly_rejection_reason_field()
     setup_task_permissions()
+    setup_todo_permissions()
     setup_time_report_frequency()
 
 
@@ -178,6 +179,20 @@ def setup_task_permissions():
             }
         ).insert(ignore_permissions=True)
         validate_permissions_for_doctype(doctype)
+
+
+def setup_todo_permissions():
+    import frappe
+    from frappe.permissions import add_permission, update_permission_property
+
+    doctype = "ToDo"
+    role = "System Manager"
+    permlevel = 0
+
+    if not frappe.db.exists("Custom DocPerm", {"parent": doctype, "role": role, "permlevel": permlevel}):
+        add_permission(doctype, role, permlevel)
+
+    update_permission_property(doctype, role, permlevel, "delete", 1)
 
 
 def add_project_manager_perm():

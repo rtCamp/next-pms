@@ -53,6 +53,8 @@ export interface MemberBarAllocation extends Allocation {
   type?: "default" | "timeoff" | "free";
   /** How much of the day is off, for `timeoff` segments. */
   timeoff?: TimeoffPortion;
+  /** Literal text to show instead of the generated "N days off" wording, e.g. a holiday's name. */
+  label?: string;
 }
 
 export interface LeaveAllocation {
@@ -64,6 +66,8 @@ export interface LeaveAllocation {
   halfDayDate?: Date;
   /** Which half of the half-day is taken off, when the leave has one. */
   halfDayPortion?: "first" | "second";
+  /** Literal text to show instead of the generated "N days off" wording, e.g. a holiday's name. */
+  label?: string;
 }
 
 export interface Project {

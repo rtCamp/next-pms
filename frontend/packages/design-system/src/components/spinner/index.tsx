@@ -9,12 +9,19 @@ import { mergeClassNames } from "../../utils";
 
 export type SpinnerProp = {
   isFull?: boolean;
+  size?: number;
   className?: string;
 };
-const Spinner = ({ isFull = false, className }: SpinnerProp) => {
+const Spinner = ({ isFull = false, size = 24, className }: SpinnerProp) => {
   return (
-    <div className={mergeClassNames("flex justify-center items-center", isFull && "h-screen", className)}>
-      <LoaderCircle size={64} className="w-6 h-6 animate-spin" />
+    <div
+      className={mergeClassNames(
+        "flex justify-center items-center",
+        isFull && "h-screen",
+        className,
+      )}
+    >
+      <LoaderCircle size={size} className="animate-spin" />
     </div>
   );
 };

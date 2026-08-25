@@ -76,6 +76,9 @@ declare global {
           can_create: string[];
         };
         currencies?: string[];
+        sysdefaults?: {
+          currency?: string;
+        };
         has_business_unit?: boolean;
         has_industry?: boolean;
         has_repository_connections?: boolean;

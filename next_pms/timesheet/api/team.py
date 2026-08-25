@@ -22,6 +22,7 @@ from next_pms.api.utils import error_logger
 from next_pms.resource_management.api.utils.query import get_employee_leaves
 from next_pms.timesheet.doc_events.timesheet import (
     flush_cache,
+    get_date_restriction_message,
     publish_timesheet_update,
 )
 from next_pms.timesheet.utils.constant import (
@@ -44,6 +45,7 @@ from .utils import (
     has_scoped_timesheets_before,
     resolve_team_employee_scope,
     resolve_team_members,
+    update_weekly_status_of_timesheet,
 )
 
 
@@ -311,7 +313,9 @@ def get_team_timesheet_weeks(
 
     Feeds first paint: the page can render its week rows and pending-approval badges
     before any member data is fetched, and `get_team_timesheet_data` then fills one week
-    at a time. Touches no Timesheet Detail rows.
+    at a time. Builds no member payload, so an unfiltered call reads Timesheet rows only;
+    a Task or Timesheet Detail filter does reach the detail rows, since qualifying a week
+    against it cannot be answered from the Timesheet table alone.
     """
     only_for(["Timesheet Manager", "Timesheet User", "Projects Manager"], message=True)
 
@@ -403,16 +407,24 @@ def approve_or_reject_timesheet(employee: str, status: str, dates: list[str] | N
             "end_date": ["<=", current_week.get("end_date")],
             "docstatus": ["=", 0],
         },
-        ["name", "start_date", "employee"],
+        ["name", "start_date", "employee", "custom_approval_status"],
     )
     if not timesheets:
         return throw(
             _("No timesheet found for the given date range."),
             exc=DoesNotExistError,
         )
-    for timesheet in timesheets:
-        if str(timesheet.start_date) not in dates:
-            continue
+    dates_set = set(dates)
+    timesheets_to_process = [ts for ts in timesheets if str(ts.start_date) in dates_set]
+
+    # Refuse before anything is written: the background job below saves each document, which
+    # runs the very same check per document - and by then the rows are already parked in
+    # "Processing Timesheet" and committed, leaving the week unactionable forever (#2075).
+    restriction = get_date_restriction_message(employee, [ts.start_date for ts in timesheets_to_process])
+    if restriction:
+        return throw(restriction)
+
+    for timesheet in timesheets_to_process:
         db.set_value(
             "Timesheet",
             timesheet.name,
@@ -574,6 +586,7 @@ def _approve_or_reject_timesheet(
         db.commit()
     except:  # noqa: E722
         db.rollback()
+        _restore_parked_timesheets(timesheets_to_process, employee)
         log_error(title=_("Error in Timesheet Approval"))
         subject = _("Error in Timesheet Approval")
         date_param = f"?date='{dates[0]}'" if dates else ""
@@ -584,6 +597,47 @@ def _approve_or_reject_timesheet(
             link=f"/next-pms/team/employee/{employee}{date_param}",
         )
         sendmail(recipients=[session.user], subject=subject, message=message)
+
+
+def _restore_parked_timesheets(timesheets: list, employee: str):
+    """Put rows this job parked in "Processing Timesheet" back on the status each held before,
+    so a failed run leaves the week actionable instead of dead-ended (#2075). The prior status
+    rides along in the job payload, so this restores the real value rather than guessing, and
+    only rows still parked as drafts are touched - a concurrent run may have finished first, and
+    its result wins. Best effort: a killed worker never reaches this, which the restore patch
+    cleans up."""
+    weeks = {getdate(ts.start_date) for ts in timesheets}
+    try:
+        for timesheet in timesheets:
+            current = db.get_value("Timesheet", timesheet.name, ["docstatus", "custom_approval_status"], as_dict=True)
+            # Nothing stops a second request from parking the same row while this job is in
+            # flight. A row that is no longer a parked draft carries that run's result, which
+            # is newer than anything captured here - leave it alone.
+            if not current or current.docstatus != 0 or current.custom_approval_status != "Processing Timesheet":
+                continue
+
+            captured = timesheet.get("custom_approval_status")
+            db.set_value(
+                "Timesheet",
+                timesheet.name,
+                "custom_approval_status",
+                # A captured "Processing Timesheet" means this run parked a row a concurrent run
+                # had already parked, so it says nothing about the status before either of them;
+                # same for a job enqueued before this field joined the payload. "Approval Pending"
+                # is the status a row must have held to be actionable.
+                captured if captured and captured != "Processing Timesheet" else "Approval Pending",
+            )
+        for start_date in weeks:
+            update_weekly_status_of_timesheet(employee, start_date)
+        db.commit()  # nosemgrep Need to do as we need to publish status changes.
+    except:  # noqa: E722
+        db.rollback()
+        log_error(title=_("Error restoring Timesheet status after failed approval"))
+        return
+
+    for start_date in weeks:
+        flush_cache(_dict({"employee": employee, "start_date": start_date}))
+        publish_timesheet_update(employee=employee, start_date=start_date)
 
 
 def trigger_notification_for_approved_or_rejected_timesheet(

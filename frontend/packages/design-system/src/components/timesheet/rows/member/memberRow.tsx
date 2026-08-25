@@ -2,7 +2,7 @@
  * External dependencies.
  */
 import React from "react";
-import { Badge, Button, Avatar } from "@rtcamp/frappe-ui-react";
+import { Badge, Button, Avatar, Tooltip } from "@rtcamp/frappe-ui-react";
 import { AddMd, SmallDown } from "@rtcamp/frappe-ui-react/icons";
 
 /**
@@ -156,25 +156,27 @@ export const MemberRow: React.FC<MemberRowProps> = ({
 
       <div className="flex items-center justify-end w-12 h-7 whitespace-nowrap shrink-0">
         {!hideAction && !isStatusNone && memberStatusIcon[status]?.icon ? (
-          <Button
-            onClick={(e) => {
-              e.stopPropagation();
-              onButtonClick?.();
-            }}
-            className={cn(
-              buttonVariants({
-                status,
-                variant: memberStatusIcon[status]?.variant,
-              }),
-            )}
-            variant={memberStatusIcon[status]?.variant}
-            size="sm"
-            icon={() => {
-              const IconComponent = memberStatusIcon[status]?.icon;
-              return IconComponent ? <IconComponent size={16} /> : null;
-            }}
-            title={ApprovalStatusDisplayLabelMap[status]}
-          />
+          <Tooltip text={ApprovalStatusDisplayLabelMap[status]}>
+            <Button
+              onClick={(e) => {
+                e.stopPropagation();
+                onButtonClick?.();
+              }}
+              className={cn(
+                buttonVariants({
+                  status,
+                  variant: memberStatusIcon[status]?.variant,
+                }),
+              )}
+              variant={memberStatusIcon[status]?.variant}
+              size="sm"
+              icon={() => {
+                const IconComponent = memberStatusIcon[status]?.icon;
+                return IconComponent ? <IconComponent size={16} /> : null;
+              }}
+              aria-label={ApprovalStatusDisplayLabelMap[status]}
+            />
+          </Tooltip>
         ) : null}
       </div>
     </div>

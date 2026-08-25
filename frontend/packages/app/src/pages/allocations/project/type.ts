@@ -47,6 +47,13 @@ export interface ProjectDateData {
   }>;
 }
 
+export interface EmployeeLeaveDay {
+  is_on_leave: boolean;
+  is_holiday: boolean;
+  total_leave_hours: number;
+  holiday_name?: string;
+}
+
 export interface ProjectResourceAllocation extends AllocationApiRecord {
   employee: string;
   employee_name: string;
@@ -77,6 +84,7 @@ export interface ProjectAllocationResponse {
   data: ProjectRecord[];
   customer: Record<string, Customer>;
   employees: Record<string, ProjectEmployee>;
+  employee_leaves?: Record<string, Record<string, EmployeeLeaveDay>>;
   total_count: number;
   has_more: boolean;
   permissions: Permissions;
