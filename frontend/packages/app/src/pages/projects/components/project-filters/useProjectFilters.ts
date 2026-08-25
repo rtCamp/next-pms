@@ -10,6 +10,7 @@ import type { FilterCondition } from "@rtcamp/frappe-ui-react";
  * Internal dependencies.
  */
 import { parseJSONArrayParam } from "@/lib/utils";
+import { MONETARY_SORT_FIELDS } from "../../constants";
 import type {
   Phase,
   ProjectListFilters,
@@ -91,8 +92,24 @@ export function useProjectFilters() {
     [setParam],
   );
   const setCurrency = useCallback(
-    (v: string) => setParam("currency", v),
-    [setParam],
+    (v: string) => {
+      setSearchParams(
+        (prev) => {
+          if (v) {
+            prev.set("currency", v);
+          } else {
+            prev.delete("currency");
+            if (MONETARY_SORT_FIELDS.includes(prev.get("sortField") ?? "")) {
+              prev.delete("sortField");
+              prev.delete("sortOrder");
+            }
+          }
+          return prev;
+        },
+        { replace: true },
+      );
+    },
+    [setSearchParams],
   );
   const setAdvanced = useCallback(
     (v: FilterCondition[]) =>

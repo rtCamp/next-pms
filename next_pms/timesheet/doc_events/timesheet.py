@@ -2,7 +2,7 @@ from collections import defaultdict
 
 import frappe
 from frappe import _, get_value, throw
-from frappe.utils import add_days, date_diff, get_link_to_form, getdate, today
+from frappe.utils import add_days, date_diff, formatdate, get_link_to_form, getdate, today
 
 ROLES = {
     "Projects Manager",
@@ -125,19 +125,38 @@ def validate_dates(doc):
     if date_diff(doc.end_date, doc.start_date) > 0:
         throw(_("Timesheet should not exceed more than one day."))
 
+    message = get_date_restriction_message(doc.employee, [doc.start_date])
+    if message:
+        throw(message)
+
+
+def get_date_restriction_message(employee: str, dates: list) -> str | None:
+    """The reason the current session user may not write a timesheet for `employee` on `dates`,
+    or None when every date is writable. Same rule validate_dates enforces per document, asked
+    once for a whole set of dates - so a caller that hands the write off to a background job can
+    refuse up front instead of parking the week mid-flight when the job dies on the same check."""
+    if _is_exempt_from_backdate_validation():
+        return None
+
+    dates = [getdate(date) for date in dates]
+    if not dates:
+        return None
+
     today_date = getdate(today())
-    date_gap = date_diff(doc.start_date, today_date)
 
     #  Check if the future time entry is allowed.
-    allow_future_entry = frappe.db.get_single_value("Timesheet Settings", "allow_future_entries")
-    if not allow_future_entry and date_gap > 0:
-        throw(_("Future time entries are not allowed."))
+    if max(dates) > today_date and not frappe.db.get_single_value("Timesheet Settings", "allow_future_entries"):
+        return _("Future time entries are not allowed.")
 
     #  Check if the backdated time entry falls within the allowed working-day window.
-    if date_gap < 0:
-        boundary = get_backdate_restriction_boundary(doc.employee)
-        if boundary and doc.start_date < getdate(boundary):
-            throw(_("Backdated time entries are not allowed."))
+    if min(dates) < today_date:
+        boundary = get_backdate_restriction_boundary(employee)
+        if boundary and min(dates) < getdate(boundary):
+            return _("Backdated time entries are not allowed. The earliest date you can log time for is {0}.").format(
+                formatdate(boundary)
+            )
+
+    return None
 
 
 def _is_exempt_from_backdate_validation() -> bool:
