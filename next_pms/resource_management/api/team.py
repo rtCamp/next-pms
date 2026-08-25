@@ -17,7 +17,7 @@ from next_pms.resource_management.api.utils.helpers import (
     override_hours_by_date,
     resource_api_permissions_check,
 )
-from next_pms.resource_management.api.utils.leave_calendar import get_leave_calendars
+from next_pms.resource_management.api.utils.leave_calendar import build_leave_map, get_leave_calendars
 from next_pms.resource_management.api.utils.query import (
     attach_extra_entries,
     get_allocation_list_for_employee_for_given_range,
@@ -349,6 +349,7 @@ def _get_resource_management_team_view_data(
                     res["employees"] = []
                     res["resource_allocations"] = []
                     res["leaves"] = []
+                    res["employee_leaves"] = {}
                     res["customer"] = {}
                     res["total_count"] = 0
                     res["has_more"] = False
@@ -423,6 +424,7 @@ def _get_resource_management_team_view_data(
                     res["employees"] = []
                     res["resource_allocations"] = []
                     res["leaves"] = []
+                    res["employee_leaves"] = {}
                 res["customer"] = customer
                 res["total_count"] = 0
                 res["has_more"] = False
@@ -453,6 +455,7 @@ def _get_resource_management_team_view_data(
             res["employees"] = []
             res["resource_allocations"] = []
             res["leaves"] = []
+            res["employee_leaves"] = {}
         res["customer"] = customer
         res["total_count"] = total_count
         res["has_more"] = False
@@ -516,8 +519,15 @@ def _get_resource_management_team_view_data(
             start_date=dates[0].get("start_date"),
             end_date=dates[-1].get("end_date"),
         )
+        leaves_map, holidays_map = get_leave_calendars(employees, dates[0].get("start_date"), dates[-1].get("end_date"))
         res["employees"] = employees
         res["leaves"] = all_leave_data
+        res["employee_leaves"] = build_leave_map(
+            employees,
+            [date for date_info in dates for date in date_info.get("dates")],
+            leaves_map,
+            holidays_map,
+        )
         res["resource_allocations"] = resource_allocation_data
         res["customer"] = customer
         res["total_count"] = total_count

@@ -1,5 +1,7 @@
 export type DeleteAllocationMode =
-  "only_this" | "this_and_future" | "all_in_series";
+  | "only_this"
+  | "this_and_future"
+  | "all_in_series";
 
 export interface Allocation {
   /** Unique identifier for the allocation. */
@@ -51,8 +53,10 @@ export type TimeoffPortion = "full" | "first" | "second" | "half";
 
 export interface MemberBarAllocation extends Allocation {
   type?: "default" | "timeoff" | "free";
-  /** How much of the day is off, for `timeoff` segments. */
+  /** How much of the day is off, on every segment the employee is away for. */
   timeoff?: TimeoffPortion;
+  /** The share of a normal day the employee is available for, when they are away for part of it. */
+  availabilityFactor?: number;
   /** Literal text to show instead of the generated "N days off" wording, e.g. a holiday's name. */
   label?: string;
 }

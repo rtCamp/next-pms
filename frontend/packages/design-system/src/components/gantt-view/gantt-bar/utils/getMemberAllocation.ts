@@ -26,6 +26,13 @@ function getLeaveDayPortion(leave: LeaveAllocation, day: Date): TimeoffPortion {
 }
 
 /**
+ * The share of a normal day left to work on a day the employee is partly or wholly away.
+ */
+function getAvailabilityFactor(portion: TimeoffPortion): number {
+  return portion === "full" ? 0 : 0.5;
+}
+
+/**
  * Builds merged day-level allocation summary segments from a flat allocation
  * list and optional leave ranges.
  */
@@ -78,19 +85,30 @@ export function getAllocationSummary(
     }
   }
 
-  // Sort days and merge contiguous runs with the same total hours
+  // Sort days and merge contiguous runs with the same total hours. A day the employee is
+  // only half away still books hours, so those are kept: the allocation itself is what
+  // the leave reduced, and dropping them would hide work the day genuinely holds.
   const sortedDays = [...dayKeys]
     .sort((a, b) => a - b)
-    .map((ts) => ({
-      date: new Date(ts),
-      hours: dayTimeoff.has(ts) ? 0 : (dayHours.get(ts) ?? 0),
-      billable: !dayHasNonBillable.get(ts),
-      tentative: Boolean(dayHasTentative.get(ts)),
-      type: (dayTimeoff.has(ts) ? "timeoff" : "default") as
-        "default" | "timeoff",
-      timeoff: dayTimeoff.get(ts),
-      label: dayLabel.get(ts),
-    }));
+    .map((ts) => {
+      const portion = dayTimeoff.get(ts);
+      const availabilityFactor =
+        portion === undefined ? undefined : getAvailabilityFactor(portion);
+      const hours = availabilityFactor === 0 ? 0 : (dayHours.get(ts) ?? 0);
+
+      return {
+        date: new Date(ts),
+        hours,
+        billable: !dayHasNonBillable.get(ts),
+        tentative: Boolean(dayHasTentative.get(ts)),
+        type: (portion !== undefined && hours === 0 ? "timeoff" : "default") as
+          | "default"
+          | "timeoff",
+        timeoff: portion,
+        availabilityFactor,
+        label: dayLabel.get(ts),
+      };
+    });
 
   const merged: MemberBarAllocation[] = [];
   for (const {
@@ -100,6 +118,7 @@ export function getAllocationSummary(
     tentative,
     type,
     timeoff,
+    availabilityFactor,
     label,
   } of sortedDays) {
     const last = merged[merged.length - 1];
@@ -110,6 +129,7 @@ export function getAllocationSummary(
       last.tentative === tentative &&
       last.type === type &&
       last.timeoff === timeoff &&
+      last.availabilityFactor === availabilityFactor &&
       last.label === label &&
       isSameDay(addDays(last.endDate, 1), date)
     ) {
@@ -123,6 +143,7 @@ export function getAllocationSummary(
         tentative,
         type,
         timeoff,
+        availabilityFactor,
         label,
       });
     }

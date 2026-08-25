@@ -83,12 +83,15 @@ function ScheduleDateSelectionField({
               monthLabel={day.monthLabel}
               isMonthBoundary={day.isMonthBoundary}
               state={
-                selection &&
-                day.date >= selection.startDate &&
-                day.date <= selection.endDate
-                  ? "active"
-                  : "default"
+                day.dayOffTooltip
+                  ? "disabled"
+                  : selection &&
+                      day.date >= selection.startDate &&
+                      day.date <= selection.endDate
+                    ? "active"
+                    : "default"
               }
+              tooltip={day.dayOffTooltip}
               onClick={() => onDayClick(day.date)}
             />
           ))}

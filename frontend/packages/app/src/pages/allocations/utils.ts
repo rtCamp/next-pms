@@ -22,6 +22,7 @@ import {
   ALLOCATION_WORKING_FREQUENCIES,
   DEFAULT_CURRENCY,
   DEFAULT_HOURS_PER_WEEK,
+  LEAVE_OVERRIDE_SOURCE,
   WEEKS_PER_MONTH,
 } from "./constants";
 import type { AllocationsDuration } from "./types";
@@ -56,7 +57,15 @@ export type AllocationOverrideEntry = {
   date: string;
   hours?: number | null;
   cancelled?: number | null;
+  source?: string | null;
 };
+
+/**
+ * Whether a day override was derived from a leave or a holiday rather than entered by a
+ * user. The backend rewrites these rows on every save, so they cannot be edited per day.
+ */
+export const isLeaveOwnedOverride = (entry: AllocationOverrideEntry): boolean =>
+  entry.source === LEAVE_OVERRIDE_SOURCE;
 
 type AllocationApiFilter = [string, string, string | string[] | number | null];
 

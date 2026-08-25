@@ -1,4 +1,9 @@
 /**
+ * External dependencies.
+ */
+import { Tooltip } from "@rtcamp/frappe-ui-react";
+
+/**
  * Internal dependencies.
  */
 import {
@@ -17,6 +22,7 @@ type DayChipProps = {
   isMonthBoundary?: boolean;
   state: DateChipVisualState;
   disabled?: boolean;
+  tooltip?: string;
   onClick?: () => void;
   className?: string;
 };
@@ -37,17 +43,19 @@ export function DayChip({
   isMonthBoundary = false,
   state,
   disabled = false,
+  tooltip,
   onClick,
   className,
 }: DayChipProps) {
   const isSkeleton = state === "skeleton";
   const isDisabled = disabled || state === "disabled" || isSkeleton;
 
-  return (
+  const chip = (
     <button
       type="button"
-      disabled={isDisabled}
-      onClick={onClick}
+      aria-disabled={isDisabled}
+      tabIndex={isSkeleton ? -1 : undefined}
+      onClick={isDisabled ? undefined : onClick}
       className={cn(
         containerVariants({ state, disabled: isDisabled }),
         className,
@@ -65,4 +73,6 @@ export function DayChip({
       ) : null}
     </button>
   );
+
+  return tooltip ? <Tooltip text={tooltip}>{chip}</Tooltip> : chip;
 }
