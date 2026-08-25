@@ -3,9 +3,14 @@ import json
 import frappe
 from erpnext import get_default_company
 from frappe.tests import IntegrationTestCase
+from frappe.utils import getdate
 
 from next_pms.tests.utils import make_holiday_list
-from next_pms.timesheet.api.project import get_project_timesheet_data
+from next_pms.timesheet.api.project import (
+    get_project_timesheet_data,
+    get_project_timesheet_member_week,
+    get_project_timesheet_weeks,
+)
 from next_pms.timesheet.api.timesheet import save as save_timesheet
 
 # Same week-anchoring convention as test_team_timesheet_data.py: anchoring on
@@ -34,7 +39,7 @@ COMPANY_HOLIDAY_LIST_NAME = "Ptd Company Wide Holidays"
 
 
 class _ProjectTimesheetDataBase(IntegrationTestCase):
-    """Shared fixtures for get_project_timesheet_data.
+    """Shared fixtures for the project timesheet endpoints.
 
     Alpha: emp1 logs 2 entries in W1 only (5h), week marked Approved.
     Beta: emp3 logs 1 entry in W1 (1h); emp2 logs 1 entry in W2 (4h), week marked Rejected.
@@ -226,25 +231,33 @@ class _ProjectTimesheetDataBase(IntegrationTestCase):
     def tearDown(self):
         frappe.set_user("Administrator")
 
-    def _call(self, user=WRITE_USER, **kwargs):
+    def _weeks(self, user=WRITE_USER, date=DATE, **kwargs):
         frappe.set_user(user)
-        return get_project_timesheet_data(date=DATE, **kwargs)
+        return get_project_timesheet_weeks(date=date, **kwargs)
 
-    def _all_project_ids(self, res):
-        return {proj["project"] for week in res["week_groups"] for proj in week["projects"]}
+    def _data(self, start_date=W2_MON, user=WRITE_USER, **kwargs):
+        frappe.set_user(user)
+        return get_project_timesheet_data(start_date=start_date, **kwargs)
 
-    def _project_entry(self, res, week_key, project_id):
-        """The project's entry within a specific week_group, or None if absent."""
-        for week in res["week_groups"]:
-            if week["key"] != week_key:
-                continue
-            for proj in week["projects"]:
-                if proj["project"] == project_id:
-                    return proj
+    def _member_week(self, employee, start_date, user=WRITE_USER):
+        frappe.set_user(user)
+        return get_project_timesheet_member_week(employee=employee, start_date=start_date)
+
+    def _scope_to_fixtures_filter(self):
+        # This endpoint has no reports_to-style scoping — it's org-wide, and this DB
+        # carries ambient seed timesheets on unrelated projects. Scope every
+        # non-search assertion to just our fixture projects so ambient data can't
+        # leak into count / pagination checks.
+        return json.dumps([["Task", "project", "in", [self.project_alpha, self.project_beta]]])
+
+    def _project_ids(self, res):
+        return {project["project"] for project in res["projects"]}
+
+    def _project_entry(self, res, project_id):
+        for project in res["projects"]:
+            if project["project"] == project_id:
+                return project
         return None
-
-    def _week_keys_for_project(self, res, project_id):
-        return [week["key"] for week in res["week_groups"] if any(p["project"] == project_id for p in week["projects"])]
 
     def _member(self, project_entry, employee_id):
         for member in project_entry["members"]:
@@ -252,167 +265,315 @@ class _ProjectTimesheetDataBase(IntegrationTestCase):
                 return member
         return None
 
-    def _scope_to_fixtures_filter(self):
-        # This endpoint has no reports_to-style scoping — it's org-wide, and
-        # this DB carries ambient seed timesheets on unrelated projects. Scope
-        # every non-search assertion to just our fixture projects so ambient
-        # data can't leak into total_count / pagination checks.
-        return json.dumps([["Task", "project", "in", [self.project_alpha, self.project_beta]]])
+    def _week(self, res, start_date):
+        for week in res["weeks"]:
+            if str(week["start_date"]) == start_date:
+                return week
+        return None
 
 
-class TestProjectTimesheetDataNoFilters(_ProjectTimesheetDataBase):
-    """Locks the baseline payload shape (project/member/task detail).
+class TestProjectTimesheetWeeks(_ProjectTimesheetDataBase):
+    """API 1 — week structure and per-week counts, carrying no project payloads."""
 
-    This endpoint is org-wide with no reports_to-style scoping, and the DB
-    carries ambient seed timesheets on unrelated projects — so every call
-    here is scoped to just our fixtures via a composite Task.project filter
-    (not itself the thing under test) to keep total_count/pagination
-    assertions deterministic.
+    def test_week_structure_and_counts(self):
+        res = self._weeks(max_week=2, filters=self._scope_to_fixtures_filter())
+
+        # Alpha (emp1) and Beta (emp3) both have W1 entries; only Beta has W2.
+        w1 = self._week(res, W1_MON)
+        w2 = self._week(res, W2_MON)
+        self.assertIsNotNone(w1)
+        self.assertIsNotNone(w2)
+        self.assertEqual(w1["project_count"], 2)
+        self.assertEqual(w2["project_count"], 1)
+
+    def test_week_payload_carries_no_projects_or_members(self):
+        res = self._weeks(max_week=2, filters=self._scope_to_fixtures_filter())
+        for week in res["weeks"]:
+            self.assertNotIn("projects", week)
+            self.assertNotIn("members", week)
+            self.assertEqual(
+                sorted(week.keys()),
+                ["dates", "end_date", "has_more_projects", "key", "label", "project_count", "start_date"],
+            )
+
+    def test_has_more_projects_reflects_page_length(self):
+        res = self._weeks(max_week=2, filters=self._scope_to_fixtures_filter())
+        # 2 projects in W1 is under the default page length, so there is no second page.
+        self.assertFalse(self._week(res, W1_MON)["has_more_projects"])
+
+    def test_empty_weeks_dropped_when_filtered(self):
+        # A filter is active, so weeks holding no qualifying project are dropped
+        # rather than returned empty.
+        res = self._weeks(max_week=2, filters=self._scope_to_fixtures_filter())
+        self.assertEqual({str(week["start_date"]) for week in res["weeks"]}, {W1_MON, W2_MON})
+
+    def test_no_match_returns_no_weeks(self):
+        res = self._weeks(max_week=2, search="zzz-no-project-matches-this")
+        self.assertEqual(res["weeks"], [])
+
+    def test_next_date_precedes_earliest_week(self):
+        res = self._weeks(max_week=2, filters=self._scope_to_fixtures_filter())
+        if res["has_more_weeks"]:
+            self.assertIsNotNone(res["next_date"])
+            self.assertLess(getdate(res["next_date"]), getdate(res["weeks"][0]["start_date"]))
+        else:
+            self.assertIsNone(res["next_date"])
+
+
+class TestProjectTimesheetData(_ProjectTimesheetDataBase):
+    """API 2 — one week's projects, paginated."""
+
+    def test_single_week_payload_shape(self):
+        res = self._data(start_date=W1_MON, page_length=10, filters=self._scope_to_fixtures_filter())
+
+        self.assertEqual(str(res["start_date"]), W1_MON)
+        self.assertEqual(sorted(res.keys()), ["dates", "end_date", "has_more", "projects", "start_date", "total_count"])
+        self.assertEqual(self._project_ids(res), {self.project_alpha, self.project_beta})
+        # Gamma has a task but no timesheet entries — it must never qualify.
+        self.assertNotIn(self.project_gamma, self._project_ids(res))
+
+        alpha = self._project_entry(res, self.project_alpha)
+        self.assertEqual(alpha["project_name"], PROJECT_ALPHA_NAME)
+        emp1 = self._member(alpha, self.emp1)
+        self.assertIsNotNone(emp1)
+        self.assertEqual(emp1["label"], EMP1_NAME)
+        self.assertEqual(emp1["status"], "Approved")
+        self.assertEqual(len(emp1["tasks"][self.task_alpha]["data"]), 2)
+
+    def test_total_count_is_per_week_not_window(self):
+        w1 = self._data(start_date=W1_MON, page_length=10, filters=self._scope_to_fixtures_filter())
+        w2 = self._data(start_date=W2_MON, page_length=10, filters=self._scope_to_fixtures_filter())
+        self.assertEqual(w1["total_count"], 2)
+        self.assertEqual(w2["total_count"], 1)
+
+    def test_projects_ordered_by_project_name(self):
+        res = self._data(start_date=W1_MON, page_length=10, filters=self._scope_to_fixtures_filter())
+        names = [project["project_name"] for project in res["projects"]]
+        self.assertEqual(names, sorted(names))
+
+    def test_pagination_splits_without_overlap_or_gaps(self):
+        page1 = self._data(start_date=W1_MON, page_length=1, start=0, filters=self._scope_to_fixtures_filter())
+        page2 = self._data(start_date=W1_MON, page_length=1, start=1, filters=self._scope_to_fixtures_filter())
+
+        self.assertTrue(page1["has_more"])
+        self.assertFalse(page2["has_more"])
+        self.assertEqual(page1["total_count"], 2)
+        self.assertEqual(page2["total_count"], 2)
+        # Display order, and the two pages partition the week's projects.
+        self.assertEqual(self._project_ids(page1), {self.project_alpha})
+        self.assertEqual(self._project_ids(page2), {self.project_beta})
+        self.assertEqual(self._project_ids(page1) & self._project_ids(page2), set())
+
+    def test_start_beyond_total_count_returns_empty_page(self):
+        res = self._data(start_date=W1_MON, page_length=4, start=99, filters=self._scope_to_fixtures_filter())
+        self.assertEqual(res["projects"], [])
+        self.assertEqual(res["total_count"], 2)
+        self.assertFalse(res["has_more"])
+
+    def test_zero_page_length_returns_count_without_rows(self):
+        res = self._data(start_date=W1_MON, page_length=0, filters=self._scope_to_fixtures_filter())
+        self.assertEqual(res["projects"], [])
+        self.assertEqual(res["total_count"], 2)
+        self.assertFalse(res["has_more"])
+
+    def test_page_length_is_clamped(self):
+        # Above the server-side ceiling; must not raise and must not over-fetch.
+        res = self._data(start_date=W1_MON, page_length=10_000, filters=self._scope_to_fixtures_filter())
+        self.assertEqual(len(res["projects"]), 2)
+
+    def test_approval_status_filter_scopes_to_matching_week(self):
+        res = self._data(
+            start_date=W1_MON,
+            page_length=10,
+            approval_status=json.dumps(["Approved"]),
+            filters=self._scope_to_fixtures_filter(),
+        )
+        self.assertEqual(self._project_ids(res), {self.project_alpha})
+
+    def test_search_matches_project_name(self):
+        res = self._data(
+            start_date=W1_MON, page_length=10, search=PROJECT_ALPHA_NAME, filters=self._scope_to_fixtures_filter()
+        )
+        self.assertEqual(self._project_ids(res), {self.project_alpha})
+
+    def test_inactive_member_still_fills_the_slot_their_project_occupies(self):
+        """Participation is resolved from Timesheet rows, which carry no employee-status
+        condition, so a departed employee's project counts toward `total_count`. The member
+        lookup has to use the same population or that project renders as a hole in the page."""
+        frappe.set_user("Administrator")
+        frappe.db.set_value("Employee", self.emp3, "status", "Inactive")
+        try:
+            res = self._data(start_date=W1_MON, filters=self._scope_to_fixtures_filter())
+
+            beta = self._project_entry(res, self.project_beta)
+            self.assertIsNotNone(beta)
+            self.assertIsNotNone(self._member(beta, self.emp3))
+            self.assertEqual(len(res["projects"]), res["total_count"])
+        finally:
+            frappe.set_user("Administrator")
+            frappe.db.set_value("Employee", self.emp3, "status", "Active")
+
+    def test_search_matching_name_without_entries_excludes_project(self):
+        res = self._data(start_date=W1_MON, page_length=10, search=PROJECT_GAMMA_NAME)
+        self.assertEqual(self._project_ids(res), set())
+        self.assertEqual(res["total_count"], 0)
+
+
+class TestProjectTimesheetConsistency(_ProjectTimesheetDataBase):
+    """The invariant that makes the split safe: API 1's count must equal what API 2 pages."""
+
+    def _walk_all_pages(self, start_date, **kwargs):
+        seen = []
+        start = 0
+        while True:
+            page = self._data(start_date=start_date, page_length=1, start=start, **kwargs)
+            seen.extend(project["project"] for project in page["projects"])
+            if not page["has_more"]:
+                return seen
+            start += 1
+            if start > 50:
+                self.fail("pagination did not terminate")
+
+    def test_week_count_equals_union_of_data_pages(self):
+        scoped = {"filters": self._scope_to_fixtures_filter()}
+        weeks = self._weeks(max_week=2, **scoped)
+
+        for week in weeks["weeks"]:
+            walked = self._walk_all_pages(str(week["start_date"]), **scoped)
+            self.assertEqual(
+                len(walked),
+                week["project_count"],
+                f"week {week['start_date']}: API 1 said {week['project_count']}, API 2 paged {len(walked)}",
+            )
+            self.assertEqual(len(walked), len(set(walked)), "a project appeared on two pages")
+
+    def test_counts_agree_under_each_filter(self):
+        cases = [
+            {"filters": self._scope_to_fixtures_filter()},
+            {"filters": self._scope_to_fixtures_filter(), "approval_status": json.dumps(["Approved"])},
+            {"filters": self._scope_to_fixtures_filter(), "search": PROJECT_ALPHA_NAME},
+            {"filters": json.dumps([["Task", "project", "=", self.project_beta]])},
+        ]
+        for case in cases:
+            with self.subTest(case=case):
+                weeks = self._weeks(max_week=2, **case)
+                for week in weeks["weeks"]:
+                    data = self._data(start_date=str(week["start_date"]), page_length=100, **case)
+                    self.assertEqual(week["project_count"], data["total_count"])
+                    self.assertEqual(week["project_count"], len(data["projects"]))
+
+
+class TestProjectTimesheetMemberWeek(_ProjectTimesheetDataBase):
+    """API 3 — one employee's week keyed by project; the realtime unit."""
+
+    def test_returns_employee_week_grouped_by_project(self):
+        res = self._member_week(self.emp1, W1_MON)
+
+        self.assertEqual(res["employee"], self.emp1)
+        self.assertEqual(str(res["start_date"]), W1_MON)
+        self.assertIn(self.project_alpha, res["projects"])
+
+        entry = res["projects"][self.project_alpha]
+        self.assertEqual(entry["project_name"], PROJECT_ALPHA_NAME)
+        self.assertEqual(entry["member"]["employee"], self.emp1)
+        self.assertEqual(entry["member"]["status"], "Approved")
+
+    def test_member_matches_the_row_api_2_renders(self):
+        # The realtime payload must be swappable into API 2's output as-is.
+        data = self._data(start_date=W1_MON, page_length=10, filters=self._scope_to_fixtures_filter())
+        rendered = self._member(self._project_entry(data, self.project_alpha), self.emp1)
+        published = self._member_week(self.emp1, W1_MON)["projects"][self.project_alpha]["member"]
+        self.assertEqual(published, rendered)
+
+    def test_project_absent_when_employee_has_no_entry_there(self):
+        # emp1 never logged to Beta — Beta must not appear, which is what lets a
+        # listener remove a row rather than only replace one.
+        res = self._member_week(self.emp1, W1_MON)
+        self.assertNotIn(self.project_beta, res["projects"])
+
+    def test_week_without_entries_returns_no_projects(self):
+        res = self._member_week(self.emp1, W2_MON)
+        self.assertEqual(res["projects"], {})
+
+    def test_unknown_employee_returns_empty_payload(self):
+        res = self._member_week("EMP-does-not-exist", W1_MON)
+        self.assertEqual(res["projects"], {})
+
+
+class TestProjectTimesheetPublisher(_ProjectTimesheetDataBase):
+    """Regression guard for the realtime contract.
+
+    The team page's equivalent bug existed precisely because nothing asserted that
+    the published payload was the shape the listener keys on.
     """
 
-    def test_qualifying_projects_and_payload_shape(self):
-        res = self._call(max_week=2, page_length=10, filters=self._scope_to_fixtures_filter())
+    def _capture(self, employee, date):
+        from next_pms.timesheet.doc_events.timesheet import publish_timesheet_update
 
-        self.assertEqual(res["total_count"], 2)
-        self.assertFalse(res["has_more"])
-        self.assertEqual(self._all_project_ids(res), {self.project_alpha, self.project_beta})
-        # Gamma has a task but no timesheet entries in range — must never qualify.
-        self.assertNotIn(self.project_gamma, self._all_project_ids(res))
+        captured = []
+        original = frappe.publish_realtime
 
-        alpha_weeks = self._week_keys_for_project(res, self.project_alpha)
-        self.assertEqual(len(alpha_weeks), 1)
-        w1_key = alpha_weeks[0]
+        def spy(event=None, message=None, *args, **kwargs):
+            captured.append((event, message, kwargs))
 
-        alpha_w1 = self._project_entry(res, w1_key, self.project_alpha)
-        self.assertEqual(alpha_w1["project_name"], PROJECT_ALPHA_NAME)
-        emp1_member = self._member(alpha_w1, self.emp1)
-        self.assertIsNotNone(emp1_member)
-        self.assertEqual(emp1_member["label"], EMP1_NAME)
-        self.assertEqual(emp1_member["status"], "Approved")
-        self.assertIn(self.task_alpha, emp1_member["tasks"])
-        self.assertEqual(len(emp1_member["tasks"][self.task_alpha]["data"]), 2)
+        frappe.publish_realtime = spy
+        try:
+            publish_timesheet_update(employee, date)
+        finally:
+            frappe.publish_realtime = original
+        return captured
 
-        beta_w1 = self._project_entry(res, w1_key, self.project_beta)
-        self.assertIsNotNone(beta_w1)
-        emp3_member = self._member(beta_w1, self.emp3)
-        self.assertIsNotNone(emp3_member)
-        self.assertEqual(emp3_member["label"], EMP3_NAME)
+    def _project_events(self, employee, date):
+        return [entry for entry in self._capture(employee, date) if entry[0] == "project_timesheet_info"]
 
-        beta_weeks = self._week_keys_for_project(res, self.project_beta)
-        self.assertEqual(len(beta_weeks), 2)
-        w2_key = next(k for k in beta_weeks if k != w1_key)
-        beta_w2 = self._project_entry(res, w2_key, self.project_beta)
-        emp2_member = self._member(beta_w2, self.emp2)
-        self.assertIsNotNone(emp2_member)
-        self.assertEqual(emp2_member["status"], "Rejected")
-        self.assertIn(self.task_beta, emp2_member["tasks"])
+    def test_publishes_project_timesheet_info(self):
+        events = {event for event, _, _ in self._capture(self.emp1, W1_MON)}
+        self.assertIn("project_timesheet_info", events)
 
-    def test_pagination_mechanics(self):
-        scope = self._scope_to_fixtures_filter()
-        page1 = self._call(max_week=2, page_length=1, start=0, filters=scope)
-        self.assertEqual(page1["total_count"], 2)
-        self.assertTrue(page1["has_more"])
-        self.assertEqual(len(self._all_project_ids(page1)), 1)
-
-        page2 = self._call(max_week=2, page_length=1, start=1, filters=scope)
-        self.assertEqual(page2["total_count"], 2)
-        self.assertFalse(page2["has_more"])
-        self.assertEqual(len(self._all_project_ids(page2)), 1)
-
-        self.assertFalse(self._all_project_ids(page1) & self._all_project_ids(page2))
-        self.assertEqual(
-            self._all_project_ids(page1) | self._all_project_ids(page2), {self.project_alpha, self.project_beta}
+    def test_site_room_publish_carries_no_member_detail(self):
+        """The site room holds every logged-in client, including ones that cannot read this
+        employee's week, so it may only be told *that* the week changed."""
+        broadcast = next(
+            message for _, message, kwargs in self._project_events(self.emp1, W1_MON) if kwargs.get("room")
         )
 
-    def test_start_beyond_total_count_returns_empty(self):
-        res = self._call(max_week=2, page_length=5, start=10, filters=self._scope_to_fixtures_filter())
-        self.assertEqual(self._all_project_ids(res), set())
-        self.assertEqual(res["total_count"], 2)
-        self.assertFalse(res["has_more"])
+        self.assertEqual(sorted(broadcast.keys()), ["employee", "start_date"])
+        self.assertEqual(broadcast["employee"], self.emp1)
+        self.assertEqual(str(broadcast["start_date"]), W1_MON)
+
+    def test_published_payload_matches_api_3(self):
+        payload = next(message for _, message, kwargs in self._project_events(self.emp1, W1_MON) if kwargs.get("user"))
+
+        self.assertEqual(sorted(payload.keys()), ["employee", "message", "start_date"])
+        self.assertEqual(payload["employee"], self.emp1)
+        self.assertEqual(str(payload["start_date"]), W1_MON)
+
+        frappe.set_user("Administrator")
+        expected = get_project_timesheet_member_week(employee=self.emp1, start_date=W1_MON, by_pass_access_check=True)
+        self.assertEqual(payload["message"], expected)
 
 
-class TestProjectTimesheetDataSearch(_ProjectTimesheetDataBase):
-    """search — matches Project name/id, not Task text (the behavioural change under test)."""
+class TestProjectTimesheetDataBackdateRestriction(_ProjectTimesheetDataBase):
+    """backdate_restricted_before on each member payload - confirms the field is
+    threaded through from get_backdate_restriction_boundary."""
 
-    def test_search_matches_full_project_name(self):
-        # Scoped to fixtures: ambient seed projects could otherwise coincidentally
-        # match the search term and make this non-deterministic.
-        res = self._call(search=PROJECT_ALPHA_NAME, filters=self._scope_to_fixtures_filter())
-        self.assertEqual(self._all_project_ids(res), {self.project_alpha})
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        frappe.db.set_single_value("Timesheet Settings", "allow_backdated_entries", 1)
+        frappe.db.set_single_value("Timesheet Settings", "allow_backdated_entries_till_employee", 3)
+        frappe.clear_cache()
 
-    def test_search_matches_partial_case_insensitive_project_name(self):
-        res = self._call(search="nimbus", filters=self._scope_to_fixtures_filter())
-        self.assertEqual(self._all_project_ids(res), {self.project_beta})
+    def test_member_payload_carries_matching_boundary(self):
+        from next_pms.timesheet.doc_events.timesheet import get_backdate_restriction_boundary
 
-    def test_search_matches_project_id_substring(self):
-        res = self._call(search=self.project_alpha)
-        self.assertEqual(self._all_project_ids(res), {self.project_alpha})
+        res = self._data(start_date=W1_MON, page_length=10, filters=self._scope_to_fixtures_filter())
 
-    def test_search_by_task_text_no_longer_matches_anyone(self):
-        res = self._call(search=TASK_ALPHA_SUBJECT)
-        self.assertEqual(self._all_project_ids(res), set())
-        self.assertEqual(res["total_count"], 0)
-        self.assertFalse(res["has_more"])
+        seen_employees = set()
+        for project in res["projects"]:
+            for member in project["members"]:
+                seen_employees.add(member["employee"])
+                expected = get_backdate_restriction_boundary(member["employee"])
+                self.assertEqual(member["backdate_restricted_before"], expected)
 
-    def test_search_matching_name_but_no_timesheet_entries_excludes_project(self):
-        # Gamma's name matches the search term, but it has zero timesheet
-        # entries in the window — a name match alone must not be enough.
-        res = self._call(search=PROJECT_GAMMA_NAME)
-        self.assertEqual(self._all_project_ids(res), set())
-        self.assertEqual(res["total_count"], 0)
-
-    def test_search_match_shows_full_task_detail_not_narrowed(self):
-        # A project-name match doesn't narrow which tasks/employees show under
-        # it — the full detail renders, same as the no-filter payload.
-        res = self._call(search=PROJECT_ALPHA_NAME)
-        w1_key = self._week_keys_for_project(res, self.project_alpha)[0]
-        alpha_w1 = self._project_entry(res, w1_key, self.project_alpha)
-        emp1_member = self._member(alpha_w1, self.emp1)
-        self.assertEqual(len(emp1_member["tasks"][self.task_alpha]["data"]), 2)
-
-
-class TestProjectTimesheetDataApprovalStatus(_ProjectTimesheetDataBase):
-    def test_approval_status_scopes_to_matching_week(self):
-        res = self._call(approval_status=json.dumps(["Approved"]), filters=self._scope_to_fixtures_filter())
-        self.assertEqual(self._all_project_ids(res), {self.project_alpha})
-        w1_key = self._week_keys_for_project(res, self.project_alpha)[0]
-        alpha_w1 = self._project_entry(res, w1_key, self.project_alpha)
-        self.assertEqual(self._member(alpha_w1, self.emp1)["status"], "Approved")
-
-    def test_approval_status_without_match_returns_empty(self):
-        res = self._call(approval_status=json.dumps(["Processing Timesheet"]), filters=self._scope_to_fixtures_filter())
-        self.assertEqual(self._all_project_ids(res), set())
-        self.assertEqual(res["total_count"], 0)
-
-
-class TestProjectTimesheetDataCompositeFilters(_ProjectTimesheetDataBase):
-    def test_composite_filter_task_project_positive(self):
-        res = self._call(filters=json.dumps([["Task", "project", "=", self.project_beta]]))
-        self.assertEqual(self._all_project_ids(res), {self.project_beta})
-
-    def test_composite_filter_task_project_excludes_other_projects(self):
-        res = self._call(filters=json.dumps([["Task", "project", "=", self.project_alpha]]))
-        self.assertEqual(self._all_project_ids(res), {self.project_alpha})
-
-    def test_search_combined_with_composite_filter(self):
-        # Search narrows to alpha by name; composite filter narrows to beta's
-        # task — the intersection is empty.
-        res = self._call(
-            search=PROJECT_ALPHA_NAME,
-            filters=json.dumps([["Task", "project", "=", self.project_beta]]),
-        )
-        self.assertEqual(self._all_project_ids(res), set())
-        self.assertEqual(res["total_count"], 0)
-
-
-class TestProjectTimesheetDataSkipEmptyWeeks(_ProjectTimesheetDataBase):
-    def test_skip_empty_weeks_prunes_weeks_without_matching_project_tasks(self):
-        # Alpha (matched via name search) only has entries in W1.
-        with_skip = self._call(search=PROJECT_ALPHA_NAME, skip_empty_weeks=True)
-        without_skip = self._call(search=PROJECT_ALPHA_NAME, skip_empty_weeks=False)
-
-        with_skip_weeks = self._week_keys_for_project(with_skip, self.project_alpha)
-        without_skip_weeks = self._week_keys_for_project(without_skip, self.project_alpha)
-
-        self.assertEqual(len(with_skip_weeks), 1)
-        self.assertGreaterEqual(len(without_skip_weeks), 1)
+        self.assertTrue(seen_employees, "fixtures produced no members to check")

@@ -1,10 +1,29 @@
+/**
+ * External dependencies.
+ */
 import { addDays, eachDayOfInterval, isSameDay, startOfDay } from "date-fns";
+
+/**
+ * Internal dependencies.
+ */
 import type {
   Allocation,
   LeaveAllocation,
   MemberBarAllocation,
   Project,
+  TimeoffPortion,
 } from "../../types";
+
+/**
+ * Returns the portion of a leave that applies to a given day.
+ */
+function getLeaveDayPortion(leave: LeaveAllocation, day: Date): TimeoffPortion {
+  if (!leave.halfDayDate || !isSameDay(leave.halfDayDate, day)) {
+    return "full";
+  }
+
+  return leave.halfDayPortion ?? "half";
+}
 
 /**
  * Builds merged day-level allocation summary segments from a flat allocation
@@ -21,7 +40,8 @@ export function getAllocationSummary(
   const dayHours = new Map<number, number>();
   const dayHasNonBillable = new Map<number, boolean>();
   const dayHasTentative = new Map<number, boolean>();
-  const dayIsTimeoff = new Map<number, boolean>();
+  const dayTimeoff = new Map<number, TimeoffPortion>();
+  const dayLabel = new Map<number, string>();
   const dayKeys = new Set<number>();
 
   for (const alloc of allocations) {
@@ -48,7 +68,13 @@ export function getAllocationSummary(
     })) {
       const key = startOfDay(day).getTime();
       dayKeys.add(key);
-      dayIsTimeoff.set(key, true);
+      const portion = getLeaveDayPortion(leave, day);
+      if (portion === "full" || !dayTimeoff.has(key)) {
+        dayTimeoff.set(key, portion);
+      }
+      if (leave.label) {
+        dayLabel.set(key, leave.label);
+      }
     }
   }
 
@@ -57,15 +83,25 @@ export function getAllocationSummary(
     .sort((a, b) => a - b)
     .map((ts) => ({
       date: new Date(ts),
-      hours: dayIsTimeoff.get(ts) ? 0 : (dayHours.get(ts) ?? 0),
+      hours: dayTimeoff.has(ts) ? 0 : (dayHours.get(ts) ?? 0),
       billable: !dayHasNonBillable.get(ts),
       tentative: Boolean(dayHasTentative.get(ts)),
-      type: (dayIsTimeoff.get(ts) ? "timeoff" : "default") as
+      type: (dayTimeoff.has(ts) ? "timeoff" : "default") as
         "default" | "timeoff",
+      timeoff: dayTimeoff.get(ts),
+      label: dayLabel.get(ts),
     }));
 
   const merged: MemberBarAllocation[] = [];
-  for (const { date, hours, billable, tentative, type } of sortedDays) {
+  for (const {
+    date,
+    hours,
+    billable,
+    tentative,
+    type,
+    timeoff,
+    label,
+  } of sortedDays) {
     const last = merged[merged.length - 1];
     if (
       last &&
@@ -73,6 +109,8 @@ export function getAllocationSummary(
       last.billable === billable &&
       last.tentative === tentative &&
       last.type === type &&
+      last.timeoff === timeoff &&
+      last.label === label &&
       isSameDay(addDays(last.endDate, 1), date)
     ) {
       last.endDate = date;
@@ -84,6 +122,8 @@ export function getAllocationSummary(
         billable,
         tentative,
         type,
+        timeoff,
+        label,
       });
     }
   }

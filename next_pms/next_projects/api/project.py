@@ -17,12 +17,18 @@ from next_pms.next_projects.api.constant import (
     COMPUTED_SORT_FIELDS,
     KANBAN_VIEW_FIELDS,
     LIST_VIEW_FIELDS,
+    MONETARY_SORT_FIELDS,
     SORT_KEY_FIELDS,
     TASK_TRACKING_COMPLETED_STATUS,
     TASK_TRACKING_OPEN_STATUSES,
     TASK_TRACKING_TOTAL_STATUSES,
 )
-from next_pms.next_projects.api.utils import build_person_data, get_employee_image_map, get_user_image_map
+from next_pms.next_projects.api.utils import (
+    build_person_data,
+    get_employee_image_map,
+    get_user_image_map,
+    resolve_tag_filters,
+)
 from next_pms.project_currency.billing_rate import get_billing_rate_context, resolve_billing_rate
 from next_pms.timesheet.api import get_count
 from next_pms.utils.employee import (
@@ -395,6 +401,7 @@ def get_page_names_for_computed_sort(
     or_filters: dict | None,
     start: int,
     limit: int,
+    currency: str | None = None,
 ) -> tuple[list[str], int]:
     """
     Sort-key pagination for computed fields: fetch only the component columns for
@@ -412,7 +419,25 @@ def get_page_names_for_computed_sort(
 
     cost_forecasted_map = get_cost_forecasted_map([row.name for row in rows]) if sort_field == "profit_margin" else {}
 
-    valued = [(get_computed_sort_value(sort_field, row, cost_forecasted_map), row.name) for row in rows]
+    # Monetary sort fields are converted to `currency` before sorting, mirroring `_apply_currency_conversion`, so the order matches the displayed values.
+    convert = bool(currency) and sort_field in MONETARY_SORT_FIELDS
+    rates = {}
+    if convert:
+        conversion_date = getdate(today())
+        for row in rows:
+            from_currency = row.get("custom_currency")
+            if from_currency and from_currency != currency and from_currency not in rates:
+                rates[from_currency] = get_exchange_rate(from_currency, currency, conversion_date) or 1.0
+
+    valued = []
+    for row in rows:
+        value = get_computed_sort_value(sort_field, row, cost_forecasted_map)
+        if convert and value is not None:
+            from_currency = row.get("custom_currency")
+            if from_currency and from_currency != currency:
+                value = flt(value) * rates.get(from_currency, 1.0)
+        valued.append((value, row.name))
+
     ranked = [entry for entry in valued if entry[0] is not None]
     ranked.sort(key=lambda entry: entry[0], reverse=sort_direction == "desc")
 
@@ -585,7 +610,7 @@ def get_projects_view(
         filters = json.loads(filters)
 
     # Build filters
-    project_filters = list(filters) if filters else []
+    project_filters = resolve_tag_filters(list(filters) if filters else [])
 
     # Build or_filters for search
     or_filters = {}
@@ -608,6 +633,7 @@ def get_projects_view(
             or_filters if or_filters else None,
             cint(start),
             cint(limit),
+            currency,
         )
         projects = []
         if page_names:

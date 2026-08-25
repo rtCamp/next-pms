@@ -40,10 +40,17 @@ COMPUTED_SORT_FIELDS = (
     "contract_end_date",
 )
 
+# Computed sort fields whose values are monetary and must be converted to the selected currency before sorting.
+MONETARY_SORT_FIELDS = (
+    "burn_rate_per_week",
+    "total_budget",
+)
+
 # Minimal Project columns needed to compute the values in COMPUTED_SORT_FIELDS
 SORT_KEY_FIELDS = [
     "name",
     "custom_billing_type",
+    "custom_currency",
     "total_sales_amount",
     "estimated_costing",
     "total_costing_amount",

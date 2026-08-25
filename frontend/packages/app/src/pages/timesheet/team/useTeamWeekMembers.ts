@@ -45,6 +45,7 @@ const toTeamMember = (member: TeamMemberPayload): TeamMember => ({
   workingHour: member.working_hour,
   workingFrequency: member.working_frequency,
   status: member.status,
+  backdateRestrictedBefore: member.backdate_restricted_before,
 });
 
 export function useTeamWeekMembers({
@@ -99,10 +100,10 @@ export function useTeamWeekMembers({
       revalidateFirstPage: false,
       keepPreviousData: true,
       persistSize: false,
-      shouldRetryOnError: false,
-      errorRetryCount: 0,
       onError: (err) => {
-        toast.error(parseFrappeErrorMsg(err as FrappeError));
+        toast.error(parseFrappeErrorMsg(err as FrappeError), {
+          id: "team-timesheet-members-fetch-error",
+        });
       },
     },
   );

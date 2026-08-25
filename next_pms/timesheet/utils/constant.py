@@ -51,6 +51,10 @@ ALLOWED_FILTER_FIELDS = {
     "Employee": {"status", "custom_business_unit"},
 }
 
+# Filter doctypes that describe logged work rather than who the employee is. Work filters
+# qualify a week, so they are re-checked per week; Employee conditions narrow the pool once.
+WORK_FILTER_DOCTYPES = ("Timesheet", "Timesheet Detail", "Task")
+
 FILTER_LOOKBACK_WEEKS = 12
 
 # Default members per page, matching TEAM_MEMBER_PAGE_LENGTH in the frontend.
@@ -59,6 +63,13 @@ TEAM_TIMESHEET_PAGE_LENGTH = 20
 # Server-side ceiling on a caller-supplied page_length. A safety net rather than the
 # pagination mechanism, since has_more_members is authoritative.
 MAX_TEAM_TIMESHEET_PAGE_LENGTH = 100
+
+# Default projects per page on the project timesheet, matching PROJECT_PAGE_LENGTH in
+# the frontend.
+PROJECT_TIMESHEET_PAGE_LENGTH = 4
+
+# Server-side ceiling on a caller-supplied page_length, mirroring the team endpoint's cap.
+MAX_PROJECT_TIMESHEET_PAGE_LENGTH = 100
 
 ALLOWED_TIMESHET_DETAIL_FIELDS = [
     "name",

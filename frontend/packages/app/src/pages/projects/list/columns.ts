@@ -1,4 +1,6 @@
-export const PROJECT_LIST_COLUMNS = [
+import type { ProjectListColumn } from "../types";
+
+export const PROJECT_LIST_COLUMNS: ProjectListColumn[] = [
   {
     key: "name",
     label: "Project name",

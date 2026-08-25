@@ -52,7 +52,7 @@ export function Communication({
 
   return (
     <OverviewSection title="Communication">
-      <div className="flex w-[828px] max-w-full flex-wrap gap-4">
+      <div className="flex w-[880px] max-w-full flex-wrap gap-4">
         <form.Field name="pointOfContact">
           {(field) => (
             <EditableField

@@ -1,7 +1,9 @@
+import json
 from datetime import date
 
 import frappe
 from erpnext import get_default_company
+from frappe.desk.doctype.tag.tag import add_tag
 from frappe.tests import IntegrationTestCase
 from frappe.utils import add_days, flt, today
 
@@ -17,6 +19,7 @@ from next_pms.next_projects.api.project import (
     get_project_tracking,
     get_projects_view,
 )
+from next_pms.next_projects.api.utils import resolve_tag_filters
 from next_pms.project_currency.billing_rate import (
     BILLING_RATE_COST_MULTIPLIER,
     get_billing_rate_context,
@@ -31,6 +34,8 @@ BURN_FIXTURE_PREFIX = "BurnAccrued"
 FORECAST_FIXTURE_PREFIX = "CostForecast"
 ADJUSTED_FIXTURE_PREFIX = "CostAdjusted"
 BUDGET_FIXTURE_PREFIX = "BudgetForecast"
+TAG_FIXTURE_PREFIX = "TagFilter"
+CURRENCY_FIXTURE_PREFIX = "CurrSort"
 
 # 2026-05-04 is a Monday, so 05-08 is Friday and 05-09/05-10 are the weekend.
 MONDAY = date(2026, 5, 4)
@@ -183,6 +188,100 @@ class TestGetProjectsViewComputedSort(IntegrationTestCase):
         result = self.call("cost_burn_percent desc", view="kanban")
         self.assertEqual(result["total_count"], 4)
         self.assertIn("columns", result)
+
+
+class TestGetProjectsViewMonetarySortConversion(IntegrationTestCase):
+    """Monetary sort fields are converted to the selected currency before
+    ranking, so the order matches the displayed values.
+
+    Two projects use different currencies with an exchange rate that reverses
+    their raw numeric order: USD 100 vs INR 5000. Raw order is [INR, USD];
+    converted to INR the USD project becomes 8500, flipping the order to
+    [USD, INR].
+    """
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.company = get_default_company()
+
+        for code in ("INR", "USD"):
+            if not frappe.db.exists("Currency", code):
+                frappe.get_doc({"doctype": "Currency", "currency_name": code, "enabled": 1}).insert(
+                    ignore_permissions=True
+                )
+
+        frappe.get_doc(
+            {
+                "doctype": "Currency Exchange",
+                "from_currency": "USD",
+                "to_currency": "INR",
+                "exchange_rate": 85,
+                "date": today(),
+            }
+        ).insert(ignore_permissions=True)
+
+        # suffix -> (currency, total_sales_amount)
+        # total_budget = total_sales_amount for Fixed Cost projects.
+        fixture_rows = {
+            "USD": ("USD", 100),
+            "INR": ("INR", 5000),
+        }
+        cls.projects = {}
+        for suffix, (currency, sales) in fixture_rows.items():
+            name = (
+                frappe.get_doc(
+                    {
+                        "doctype": "Project",
+                        "project_name": f"{CURRENCY_FIXTURE_PREFIX} {suffix}",
+                        "company": cls.company,
+                    }
+                )
+                .insert(ignore_permissions=True)
+                .name
+            )
+            frappe.db.set_value(
+                "Project",
+                name,
+                {
+                    "custom_billing_type": "Fixed Cost",
+                    "total_sales_amount": sales,
+                    "custom_currency": currency,
+                },
+                update_modified=False,
+            )
+            cls.projects[suffix] = name
+
+        frappe.set_user("Administrator")
+        frappe.clear_cache()
+
+    def fixture_order(self, result):
+        by_name = {name: suffix for suffix, name in self.projects.items()}
+        return [by_name[row["name"]] for row in result["data"]]
+
+    def test_total_budget_sort_converts_to_selected_currency(self):
+        raw = get_projects_view(
+            view="list",
+            search=CURRENCY_FIXTURE_PREFIX,
+            start=0,
+            limit=20,
+            order_by="total_budget desc",
+        )
+        self.assertEqual(self.fixture_order(raw), ["INR", "USD"])
+
+        converted = get_projects_view(
+            view="list",
+            search=CURRENCY_FIXTURE_PREFIX,
+            start=0,
+            limit=20,
+            order_by="total_budget desc",
+            currency="INR",
+        )
+        self.assertEqual(self.fixture_order(converted), ["USD", "INR"])
+
+        budget_by_name = {row["name"]: row["total_budget"] for row in converted["data"]}
+        self.assertEqual(budget_by_name[self.projects["USD"]], 8500)
+        self.assertEqual(budget_by_name[self.projects["INR"]], 5000)
 
 
 class TestBudgetBurnAccrued(IntegrationTestCase):
@@ -1033,3 +1132,95 @@ class TestBudgetForecasted(IntegrationTestCase):
         burn = get_project_sidebar(self.projects["FLAT"])["burn"]
         self.assertAlmostEqual(burn["budget_forecasted"], self.HOURS * self.FLAT_RATE)
         self.assertAlmostEqual(burn["cost_forecasted"], ALLOCATION_COST)
+
+
+class TestGetProjectsViewTagFilter(IntegrationTestCase):
+    """The projects list/kanban composite filter supports a `tag` condition,
+    resolved against the Tag Link doctype that ERPNext already maintains for the
+    tags shown on the Project form.
+    """
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.company = get_default_company()
+
+        # suffix -> tags assigned through the ERPNext tagging API
+        fixture_tags = {
+            "A": [f"{TAG_FIXTURE_PREFIX} Alpha", f"{TAG_FIXTURE_PREFIX} Beta"],
+            "B": [f"{TAG_FIXTURE_PREFIX} Beta"],
+            "C": [],
+        }
+        cls.projects = {}
+        for suffix, tags in fixture_tags.items():
+            name = (
+                frappe.get_doc(
+                    {
+                        "doctype": "Project",
+                        "project_name": f"{TAG_FIXTURE_PREFIX} {suffix}",
+                        "company": cls.company,
+                    }
+                )
+                .insert(ignore_permissions=True)
+                .name
+            )
+            for tag in tags:
+                add_tag(tag, "Project", name)
+            cls.projects[suffix] = name
+
+        frappe.set_user("Administrator")
+        frappe.clear_cache()
+
+    def matched(self, filters, view="list"):
+        result = get_projects_view(view=view, search=TAG_FIXTURE_PREFIX, filters=filters, limit=50)
+        by_name = {name: suffix for suffix, name in self.projects.items()}
+        return {by_name[row["name"]] for row in result["data"]}, result["total_count"]
+
+    def test_no_filter_returns_every_fixture(self):
+        self.assertEqual(self.matched([]), ({"A", "B", "C"}, 3))
+
+    def test_equals_returns_only_the_tagged_projects(self):
+        self.assertEqual(self.matched([["tag", "=", f"{TAG_FIXTURE_PREFIX} Beta"]]), ({"A", "B"}, 2))
+        self.assertEqual(self.matched([["tag", "=", f"{TAG_FIXTURE_PREFIX} Alpha"]]), ({"A"}, 1))
+
+    def test_not_equals_excludes_the_tagged_projects(self):
+        self.assertEqual(self.matched([["tag", "!=", f"{TAG_FIXTURE_PREFIX} Beta"]]), ({"C"}, 1))
+
+    def test_unknown_tag_matches_nothing(self):
+        self.assertEqual(self.matched([["tag", "=", f"{TAG_FIXTURE_PREFIX} Missing"]]), (set(), 0))
+        self.assertEqual(self.matched([["tag", "!=", f"{TAG_FIXTURE_PREFIX} Missing"]]), ({"A", "B", "C"}, 3))
+
+    def test_tag_conditions_combine_with_each_other(self):
+        filters = [
+            ["tag", "=", f"{TAG_FIXTURE_PREFIX} Alpha"],
+            ["tag", "=", f"{TAG_FIXTURE_PREFIX} Beta"],
+        ]
+        self.assertEqual(self.matched(filters), ({"A"}, 1))
+
+    def test_tag_condition_combines_with_project_fields(self):
+        frappe.db.set_value("Project", self.projects["A"], "status", "Completed", update_modified=False)
+        self.addCleanup(frappe.db.set_value, "Project", self.projects["A"], "status", "Open", update_modified=False)
+        filters = [["tag", "=", f"{TAG_FIXTURE_PREFIX} Beta"], ["status", "=", "Open"]]
+        self.assertEqual(self.matched(filters), ({"B"}, 1))
+
+    def test_kanban_view_applies_the_same_filter(self):
+        result = get_projects_view(
+            view="kanban",
+            search=TAG_FIXTURE_PREFIX,
+            filters=[["tag", "=", f"{TAG_FIXTURE_PREFIX} Alpha"]],
+            limit=50,
+        )
+        self.assertEqual(result["total_count"], 1)
+
+    def test_json_encoded_filters_are_accepted(self):
+        filters = json.dumps([["tag", "=", f"{TAG_FIXTURE_PREFIX} Alpha"]])
+        self.assertEqual(self.matched(filters), ({"A"}, 1))
+
+    def test_non_tag_conditions_pass_through_untouched(self):
+        self.assertEqual(
+            resolve_tag_filters([["status", "=", "Open"], ["project_name", "like", "%x%"]]),
+            [["status", "=", "Open"], ["project_name", "like", "%x%"]],
+        )
+
+    def test_unsupported_operator_is_rejected(self):
+        self.assertRaises(frappe.ValidationError, resolve_tag_filters, [["tag", "in", ["Alpha"]]])

@@ -6,6 +6,7 @@ import {
   Button,
   Dialog,
   ErrorMessage,
+  FormLabel,
   Switch,
   TextInput,
   useToasts,
@@ -114,7 +115,9 @@ function EditViewModal({
     >
       <div className="space-y-4">
         <div>
-          <label className="block text-base text-ink-gray-5 mb-1.5">Name</label>
+          <FormLabel size="md" className="mb-1.5" required>
+            Name
+          </FormLabel>
           <div className="flex items-start gap-2">
             <form.Field
               name="icon"

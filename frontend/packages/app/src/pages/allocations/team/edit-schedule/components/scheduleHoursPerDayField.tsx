@@ -1,7 +1,11 @@
 /**
  * External dependencies.
  */
-import { DurationInput, ErrorMessage } from "@rtcamp/frappe-ui-react";
+import {
+  DurationInput,
+  ErrorMessage,
+  FormLabel,
+} from "@rtcamp/frappe-ui-react";
 
 interface ScheduleHoursPerDayFieldProps {
   value: number;
@@ -18,9 +22,9 @@ function ScheduleHoursPerDayField({
 }: ScheduleHoursPerDayFieldProps) {
   return (
     <div className="flex-1 space-y-1.5">
-      <label className="block text-base text-ink-gray-5">
+      <FormLabel size="md" required>
         Edit hours / day
-      </label>
+      </FormLabel>
       <DurationInput
         snap="smooth"
         variant="outline"

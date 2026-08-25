@@ -10,6 +10,7 @@ import {
   DatePicker,
   Dialog,
   ErrorMessage,
+  FormLabel,
   TextInput,
   useToasts,
 } from "@rtcamp/frappe-ui-react";
@@ -152,7 +153,9 @@ export function ProjectRateModal({
           name="employee"
           children={(field) => (
             <div className="flex flex-col gap-1.5">
-              <label className="block text-base text-ink-gray-5">Member</label>
+              <FormLabel size="md" required>
+                Member
+              </FormLabel>
               <Combobox
                 inputClassName="bg-surface-white h-8 border-outline-gray-2 text-ink-gray-7"
                 loading={isEmployeeLookupLoading}
@@ -180,9 +183,9 @@ export function ProjectRateModal({
           name="hourlyRate"
           children={(field) => (
             <div className="flex flex-col gap-1.5">
-              <label className="block text-base text-ink-gray-5">
+              <FormLabel size="md" required>
                 Hourly rate
-              </label>
+              </FormLabel>
               <TextInput
                 size="md"
                 variant="outline"
@@ -206,9 +209,9 @@ export function ProjectRateModal({
           name="validFrom"
           children={(field) => (
             <div className="flex flex-col gap-1.5">
-              <label className="block text-base text-ink-gray-5">
+              <FormLabel size="md" required>
                 Valid from
-              </label>
+              </FormLabel>
               <DatePicker
                 label="Valid from"
                 value={field.state.value}

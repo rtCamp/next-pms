@@ -3,7 +3,14 @@
  */
 import type { ComponentType } from "react";
 import type { NotificationEntry } from "@next-pms/design-system/components";
-import { File, Fire, Folder, Time, Check } from "@rtcamp/frappe-ui-react/icons";
+import {
+  AtSign,
+  File,
+  Fire,
+  Folder,
+  Time,
+  Check,
+} from "@rtcamp/frappe-ui-react/icons";
 
 /**
  * Internal dependencies.
@@ -15,10 +22,20 @@ const DOCTYPE_ICON_MAP: Record<string, ComponentType<{ size?: number }>> = {
   Timesheet: Time,
   "Customer Feedback": File,
   Project: Folder,
+  "Project Status Update": AtSign,
+  "Project RAG Status": AtSign,
 };
 
-const NotificationIcon = ({ linkedDoctype }: { linkedDoctype: string }) => {
-  const Icon = DOCTYPE_ICON_MAP[linkedDoctype] ?? Check;
+const NotificationIcon = ({
+  linkedDoctype,
+  title,
+}: {
+  linkedDoctype: string;
+  title?: string;
+}) => {
+  const Icon = title?.toLowerCase().includes("mention")
+    ? AtSign
+    : (DOCTYPE_ICON_MAP[linkedDoctype] ?? Check);
   return (
     <div
       aria-hidden="true"
@@ -85,7 +102,10 @@ export default function NotificationsCard() {
                   }}
                   className="flex cursor-pointer items-start gap-2"
                 >
-                  <NotificationIcon linkedDoctype={item.linkedDoctype} />
+                  <NotificationIcon
+                    linkedDoctype={item.linkedDoctype}
+                    title={item.title}
+                  />
                   <div className="flex w-full flex-col gap-1">
                     <div className="flex items-baseline justify-between gap-2">
                       {item.title && (

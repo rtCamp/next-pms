@@ -1,62 +1,43 @@
 /**
  * External dependencies.
  */
-import type { ApprovalStatusLabelType } from "@next-pms/design-system/components";
 import type { FilterCondition } from "@rtcamp/frappe-ui-react";
 import { createContext, useContextSelector } from "use-context-selector";
 
 /**
  * Internal dependencies.
  */
-import type { WorkingFrequency } from "@/types";
-import type { HolidayProp, LeaveProps, TaskProps } from "@/types/timesheet";
+import type {
+  ProjectFilterArgs,
+  ProjectMemberWeekPayload,
+  ProjectWeekSummary,
+} from "./types";
 
-export type EmployeeRecord = {
-  name: string;
-  image: string;
-  employeeName: string;
-};
-
-export type ProjectMemberData = {
-  label: string;
-  employee: string;
-  avatarUrl?: string;
-  tasks: TaskProps;
-  holidays: HolidayProp[];
-  leaves: LeaveProps[];
-  workingHour: number;
-  workingFrequency: WorkingFrequency;
-  status: ApprovalStatusLabelType;
-};
-
-export type WeekProjectGroup = {
-  project: string;
-  projectName: string | null;
-  members: ProjectMemberData[];
-};
-
-export type WeekGroup = {
-  key: string;
-  label: string;
-  start_date: string;
-  end_date: string;
-  dates: string[];
-  projects: WeekProjectGroup[];
-};
+export type ProjectRefreshHandler = (
+  payload: ProjectMemberWeekPayload | null,
+) => void;
 
 export interface ProjectTimesheetContextProps {
   state: {
-    hasMore: boolean;
-    isLoadingProjectData: boolean;
+    weeks: ProjectWeekSummary[];
+    hasMoreWeeks: boolean;
+    isLoadingWeeks: boolean;
+    isNextPageLoading: boolean;
     isFilterRequest: boolean;
-    weekGroups: WeekGroup[];
+    activeFilterKey: string;
+    resolvedFilterKey: string;
+    filterArgs: ProjectFilterArgs;
     filters: {
       search: string;
     };
     compositeFilters: FilterCondition[];
   };
   actions: {
-    loadData: () => void;
+    loadMoreWeeks: () => void;
+    registerProjectRefresh: (
+      startDate: string,
+      handler: ProjectRefreshHandler,
+    ) => () => void;
     handleSearchChange: (value: string) => void;
     handleCompositeFilterChange: (value: FilterCondition[]) => void;
     handleClearAllFilters: () => void;
@@ -66,17 +47,25 @@ export interface ProjectTimesheetContextProps {
 export const ProjectTimesheetContext =
   createContext<ProjectTimesheetContextProps>({
     state: {
-      hasMore: false,
-      isLoadingProjectData: false,
+      weeks: [],
+      hasMoreWeeks: false,
+      isLoadingWeeks: false,
+      isNextPageLoading: false,
       isFilterRequest: false,
-      weekGroups: [],
+      activeFilterKey: "",
+      resolvedFilterKey: "",
+      filterArgs: {
+        search: null,
+        filters: null,
+      },
       filters: {
         search: "",
       },
       compositeFilters: [],
     },
     actions: {
-      loadData: () => null,
+      loadMoreWeeks: () => null,
+      registerProjectRefresh: () => () => null,
       handleSearchChange: () => null,
       handleCompositeFilterChange: () => null,
       handleClearAllFilters: () => null,

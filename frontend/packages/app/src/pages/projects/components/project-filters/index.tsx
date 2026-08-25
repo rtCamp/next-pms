@@ -16,6 +16,7 @@ import {
  */
 import { FilterLinkValue } from "@/components/filters/FilterLinkValue";
 import { useDebounce } from "@/hooks/useDebounce";
+import { getDefaultCurrency } from "@/lib/utils";
 import { useUser } from "@/providers/user";
 import { useProjectFilters } from "./useProjectFilters";
 import { PHASE_OPTIONS, RAG_OPTIONS, STATUS_OPTIONS } from "../../constants";
@@ -36,6 +37,13 @@ export function ProjectFilters() {
     setCurrency,
   } = useProjectFilters();
   const currencies = useUser((s) => s.state.currencies);
+
+  const didInitCurrency = useRef(false);
+  useEffect(() => {
+    if (didInitCurrency.current) return;
+    didInitCurrency.current = true;
+    if (!currency) setCurrency(getDefaultCurrency());
+  }, [currency, setCurrency]);
 
   const externalFilterCount =
     (search !== "" ? 1 : 0) +
@@ -89,24 +97,29 @@ export function ProjectFilters() {
             value={currency || null}
             onChange={(v) => setCurrency(v || "")}
             options={currencies}
+            clearable
           />
         </div>
-        <Select
-          placeholder="Phases"
-          placeholderClassName="text-ink-gray-7"
-          className="w-full text-ink-gray-7"
-          value={phase}
-          onChange={(v) => setPhase((v || "") as Phase | "")}
-          options={PHASE_OPTIONS}
-        />
-        <Select
-          placeholder="Status"
-          placeholderClassName="text-ink-gray-7"
-          className="w-full text-ink-gray-7"
-          value={status}
-          onChange={(v) => setStatus((v || "") as ProjectStatus | "")}
-          options={STATUS_OPTIONS}
-        />
+        <div className="w-fit max-w-34 shrink-0">
+          <Select
+            placeholder="Phases"
+            placeholderClassName="text-ink-gray-7"
+            className="w-full text-ink-gray-7"
+            value={phase}
+            onChange={(v) => setPhase((v || "") as Phase | "")}
+            options={PHASE_OPTIONS}
+          />
+        </div>
+        <div className="w-fit max-w-34 shrink-0">
+          <Select
+            placeholder="Status"
+            placeholderClassName="text-ink-gray-7"
+            className="w-full text-ink-gray-7"
+            value={status}
+            onChange={(v) => setStatus((v || "") as ProjectStatus | "")}
+            options={STATUS_OPTIONS}
+          />
+        </div>
       </div>
       <div className="flex gap-2">
         {!isKanban && (
@@ -116,13 +129,27 @@ export function ProjectFilters() {
             fields={[
               { field: "project_name", label: "Project name" },
               { field: "custom_project_phase", label: "Phase" },
-              { field: "burn_rate_per_week", label: "Burn rate/week" },
+              {
+                field: "burn_rate_per_week",
+                label: "Burn rate/week",
+                disabled: !currency,
+                tooltipText: !currency
+                  ? "Select a currency to enable this sort"
+                  : undefined,
+              },
               { field: "cost_burn_percent", label: "Cost burn" },
-              { field: "total_budget", label: "Total budget" },
+              {
+                field: "total_budget",
+                label: "Total budget",
+                disabled: !currency,
+                tooltipText: !currency
+                  ? "Select a currency to enable this sort"
+                  : undefined,
+              },
               { field: "profit_margin", label: "Profit margin" },
-              { field: "expected_start_date", label: "Expected Start Date" },
+              { field: "expected_start_date", label: "Start date" },
               { field: "custom_next_milestone", label: "Next milestone" },
-              { field: "expected_end_date", label: "Expected End Date" },
+              { field: "expected_end_date", label: "End date" },
               {
                 field: "custom_project_manager_name",
                 label: "Project manager",
@@ -266,6 +293,16 @@ export function ProjectFilters() {
               label: "Host",
               type: "link",
               link: { doctype: "Host" },
+              operators: [
+                { label: "Equals", value: "=" },
+                { label: "Not Equals", value: "!=" },
+              ],
+            },
+            {
+              name: "tag",
+              label: "Tags",
+              type: "link",
+              link: { doctype: "Tag" },
               operators: [
                 { label: "Equals", value: "=" },
                 { label: "Not Equals", value: "!=" },

@@ -174,7 +174,7 @@ export const GanttBar = React.forwardRef<HTMLDivElement, GanttBarProps>(
                 strokeWidth={1.5}
               />
               {showInlineLabel && label ? (
-                <span className="text-[13px] font-medium tracking-[0.02em] truncate">
+                <span className="min-w-0 flex-1 overflow-hidden text-[13px] font-medium tracking-[0.02em] truncate">
                   {label}
                 </span>
               ) : null}

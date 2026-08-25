@@ -9,6 +9,7 @@ import {
   DateTimePicker,
   Dialog,
   ErrorMessage,
+  FormLabel,
   Select,
   TextEditor,
   TextInput,
@@ -192,7 +193,9 @@ export function CreateTodoModal({ open, onClose, todo }: CreateTodoModalProps) {
             name="title"
             children={(field) => (
               <div className="flex flex-col gap-1.5">
-                <label className="block text-base text-ink-gray-5">Title</label>
+                <FormLabel size="md" required>
+                  Title
+                </FormLabel>
                 <TextInput
                   size="md"
                   variant="outline"

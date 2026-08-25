@@ -14,11 +14,17 @@ import type { EnrichedRiskUpdateEntry } from "../types";
 
 interface UpdateEntryProps {
   entry: EnrichedRiskUpdateEntry;
+  canEdit: boolean;
   onEdit: () => void;
   onDelete: () => void;
 }
 
-export function UpdateEntry({ entry, onEdit, onDelete }: UpdateEntryProps) {
+export function UpdateEntry({
+  entry,
+  canEdit,
+  onEdit,
+  onDelete,
+}: UpdateEntryProps) {
   const userDetails = entry.updated_by_details;
   const filteredNote = entry.note ?? "";
 
@@ -54,27 +60,29 @@ export function UpdateEntry({ entry, onEdit, onDelete }: UpdateEntryProps) {
             )}
             {entry.risk_level && <RiskLevelBadge level={entry.risk_level} />}
 
-            <Dropdown
-              placement="center"
-              button={{
-                variant: "ghost",
-                icon: DotHorizontal,
-                className: "ml-auto",
-              }}
-              options={[
-                {
-                  key: "edit",
-                  label: "Edit",
-                  onClick: onEdit,
-                },
-                {
-                  key: "delete",
-                  label: "Delete",
-                  theme: "red",
-                  onClick: onDelete,
-                },
-              ]}
-            />
+            {canEdit && (
+              <Dropdown
+                placement="center"
+                button={{
+                  variant: "ghost",
+                  icon: DotHorizontal,
+                  className: "ml-auto",
+                }}
+                options={[
+                  {
+                    key: "edit",
+                    label: "Edit",
+                    onClick: onEdit,
+                  },
+                  {
+                    key: "delete",
+                    label: "Delete",
+                    theme: "red",
+                    onClick: onDelete,
+                  },
+                ]}
+              />
+            )}
           </div>
 
           {/* Note text */}

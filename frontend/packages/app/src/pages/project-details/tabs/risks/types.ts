@@ -28,10 +28,12 @@ export interface ApiRiskItem {
   status: RiskStatus | null;
   summary: string | null;
   owner: string;
+  risk_owner: string | null;
 }
 
 export interface RiskItem extends ApiRiskItem {
   owner_details?: UserDetails | null;
+  risk_owner_details?: UserDetails | null;
 }
 
 export interface RiskUpdateEntry {
@@ -57,6 +59,7 @@ export interface ApiRiskDetail extends ApiRiskItem {
 
 export interface RiskDetail extends ApiRiskDetail {
   owner_details?: UserDetails | null;
+  risk_owner_details?: UserDetails | null;
   risk_update_log: EnrichedRiskUpdateEntry[];
 }
 
@@ -64,6 +67,7 @@ export interface RiskDetail extends ApiRiskDetail {
 
 export interface RiskFilters {
   owner: string;
+  riskOwner: string;
   status: RiskStatus | "";
   riskLevel: string;
   advanced: FilterCondition[];
