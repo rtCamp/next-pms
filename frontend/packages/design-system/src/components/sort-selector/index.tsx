@@ -3,6 +3,7 @@
  */
 import { useState } from "react";
 import { Popover } from "@base-ui/react";
+import { Tooltip } from "@rtcamp/frappe-ui-react";
 import { ArrowDown, ArrowUp, Sort } from "@rtcamp/frappe-ui-react/icons";
 
 /**
@@ -56,14 +57,22 @@ export function SortSelector({
         <Popover.Positioner side="bottom" align="end" sideOffset={4}>
           <Popover.Popup className="min-w-44 rounded-lg border border-outline-gray-2 bg-surface-white py-1 shadow-lg z-50">
             <div className="flex flex-col px-1">
-              {fields.map(({ field, label }) => {
+              {fields.map(({ field, label, disabled, tooltipText }) => {
                 const isSelected = sort?.field === field;
-                return (
+                const button = (
                   <button
                     key={field}
                     type="button"
-                    className="flex w-full items-center justify-between gap-3 rounded px-3 py-1.5 text-sm text-ink-gray-8 hover:bg-surface-gray-2"
-                    onClick={() => handleFieldClick(field)}
+                    aria-disabled={disabled}
+                    className={cn(
+                      "flex w-full items-center justify-between gap-3 rounded px-3 py-1.5 text-sm",
+                      disabled
+                        ? "cursor-not-allowed text-ink-gray-5"
+                        : "text-ink-gray-8 hover:bg-surface-gray-2",
+                    )}
+                    onClick={() => {
+                      if (!disabled) handleFieldClick(field);
+                    }}
                   >
                     <span>{label}</span>
                     {isSelected &&
@@ -74,6 +83,16 @@ export function SortSelector({
                       ))}
                   </button>
                 );
+
+                if (tooltipText) {
+                  return (
+                    <Tooltip key={field} text={tooltipText}>
+                      {button}
+                    </Tooltip>
+                  );
+                }
+
+                return button;
               })}
             </div>
             {isActive && (
