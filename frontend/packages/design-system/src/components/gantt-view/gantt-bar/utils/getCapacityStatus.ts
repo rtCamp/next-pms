@@ -16,17 +16,12 @@ interface CapacityStatus {
 
 /**
  * Determines the capacity status based on allocated hours and capacity hours per day.
- *
- * `availabilityFactor` shrinks the capacity to what the day actually holds, so a day the
- * employee is half away is measured against half of it.
  */
 export function getCapacityStatus(
   hours: number,
   capacityHoursPerDay?: number,
-  availabilityFactor: number = 1,
 ): CapacityStatus {
-  const resolvedCapacityHoursPerDay =
-    (capacityHoursPerDay ?? FULL_DAY_HOURS) * availabilityFactor;
+  const resolvedCapacityHoursPerDay = capacityHoursPerDay ?? FULL_DAY_HOURS;
   const difference = hours - resolvedCapacityHoursPerDay;
   const normalizedDifference = Number(formatHours(difference));
 

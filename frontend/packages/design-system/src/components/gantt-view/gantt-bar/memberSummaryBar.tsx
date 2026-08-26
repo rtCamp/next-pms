@@ -14,7 +14,6 @@ import { GanttTimeoffBar } from "./timeoffBar";
 import { allocationBarToEntry } from "./utils/allocationBarToEntry";
 import { getCapacityStatus } from "./utils/getCapacityStatus";
 import { getOverlappingAllocations } from "./utils/getOverlappingAllocations";
-import { getTimeoffLabel } from "./utils/getTimeoffLabel";
 import { withPendingDeleteEntry } from "./utils/withPendingDeleteEntry";
 
 interface GanttMemberSummaryBarProps {
@@ -83,12 +82,7 @@ export function GanttMemberSummaryBar({
   const capacityStatus = getCapacityStatus(
     summary.hours,
     member.capacityHoursPerDay,
-    summary.availabilityFactor,
   );
-
-  const timeoffLabel = summary.timeoff
-    ? getTimeoffLabel(summary.startDate, summary.endDate, summary.timeoff)
-    : undefined;
   const overlapping = getOverlappingAllocations(
     member,
     summary.startDate,
@@ -130,7 +124,6 @@ export function GanttMemberSummaryBar({
             variant={capacityStatus.variant}
             theme={summary.tentative ? "crosshatch" : "default"}
             label={capacityStatus.label}
-            trailingLabel={timeoffLabel}
             left={left}
             width={width}
             billable={summary.billable}
