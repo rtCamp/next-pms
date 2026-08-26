@@ -13,6 +13,7 @@ from next_pms.resource_management.api.utils.helpers import (
     resource_api_permissions_check,
 )
 from next_pms.resource_management.api.utils.leave_sync import (
+    LEAVE_SOURCE,
     allocation_dates,
     availability_factor,
     effective_hours,
@@ -276,6 +277,10 @@ def upsert_day_override(doc_name: str, override_date: str, override_fields: dict
     - Setting ``cancelled=1`` clears ``hours`` to 0.
     - Setting ``hours`` to a value clears ``cancelled`` to 0.
 
+    A row derived from a leave or a holiday is left untouched, so a caller cannot book
+    hours against a day off. That matters most for a series propagation, where the target
+    dates are derived by weekday and the caller never saw them.
+
     Args:
         doc_name (str): Name of the Resource Allocation document.
         override_date (str): The specific date to override (``"YYYY-MM-DD"``).
@@ -300,10 +305,17 @@ def upsert_day_override(doc_name: str, override_date: str, override_fields: dict
     existing_row = frappe.db.get_value(
         "Resource Allocation Extra Entry",
         {"parent": doc_name, "parenttype": "Resource Allocation", "date": override_date},
-        "name",
+        ["name", "source"],
+        as_dict=True,
     )
     if existing_row:
-        frappe.db.set_value("Resource Allocation Extra Entry", existing_row, fields)
+        if existing_row.source == LEAVE_SOURCE:
+            # A leave-derived row is re-derived from the leave on every save, and this write
+            # path is a `set_value` that skips validate, so honouring the caller here would
+            # book hours against a day off and leave the row's own source lying about it.
+            return
+
+        frappe.db.set_value("Resource Allocation Extra Entry", existing_row.name, fields)
         clear_cache()  # set_value bypasses on_update, so invalidate manually
     else:
         doc = frappe.get_doc("Resource Allocation", doc_name)

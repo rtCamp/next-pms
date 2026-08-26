@@ -36,7 +36,7 @@ function ScheduleSummaryTable({
               <tr
                 key={`${row.startDate}_${row.endDate}`}
                 className={cn(
-                  "h-8 border-outline-gray-2 last:border-b-0 transition-opacity",
+                  "h-8 border-b border-outline-gray-2 last:border-b-0 transition-opacity",
                   row.isSelected && "bg-surface-gray-3",
                   row.isSelected && !row.isModified && "opacity-50",
                 )}
