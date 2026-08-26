@@ -101,6 +101,14 @@ export const isWeekendEntryAllowed = (): boolean => {
   return window.frappe?.boot?.allow_weekend_entries ?? false;
 };
 
+export const hasProjectField = (fieldname: string): boolean => {
+  return window.frappe?.boot?.optional_project_fields?.[fieldname] ?? false;
+};
+
+export const hasTodoCustomFields = (): boolean => {
+  return window.frappe?.boot?.has_todo_custom_fields ?? false;
+};
+
 export function parseFrappeErrorMsg(error: FrappeError) {
   const messages = getErrorMessages(error);
   let message = "";
