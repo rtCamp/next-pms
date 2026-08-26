@@ -30,7 +30,7 @@ export function InvoiceBurnCell() {
           href={`/desk/sales-invoice?project=${projectId}`}
           target="_blank"
           rel="noreferrer noopener"
-          className="flex items-center gap-2 rounded-sm text-base text-ink-gray-6 hover:text-ink-gray-8 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-outline-gray-3"
+          className="flex items-center gap-2 rounded-sm text-base text-ink-gray-6 hover:text-ink-gray-8"
         >
           All invoices
           <ArrowUpRight aria-hidden className="size-4" />

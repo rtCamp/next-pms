@@ -81,7 +81,7 @@ const ApprovalPopup = () => {
               value={dayGroup.day}
               className="bg-surface-gray-2 border-b border-outline-gray-modals last:border-b-0"
             >
-              <Accordion.Trigger className="w-full flex items-center justify-between px-3.5 py-3 group focus:outline-none focus-visible:ring-2 focus-visible:ring-outline-gray-3 focus-visible:ring-inset">
+              <Accordion.Trigger className="w-full flex items-center justify-between px-3.5 py-3 group focus-visible:outline-offset-[-2px]">
                 <div className="flex items-center gap-2">
                   <SmallDown className="h-4 w-4 text-ink-gray-5 transition-transform duration-200 -rotate-90 group-data-panel-open:rotate-0" />
                   <span className="text-base font-medium text-ink-gray-8">

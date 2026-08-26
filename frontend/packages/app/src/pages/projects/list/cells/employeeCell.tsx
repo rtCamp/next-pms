@@ -20,7 +20,7 @@ export function EmployeeCell({ employee }: { employee: Employee | null }) {
       <Tooltip text={employee.user || ""}>
         <a
           href={`/desk/user/${encodeURIComponent(employee.user)}`}
-          className="flex gap-2 w-fit rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-outline-gray-3"
+          className="flex gap-2 w-fit rounded-sm"
         >
           {employee.image && (
             <Avatar
