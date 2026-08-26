@@ -192,7 +192,7 @@ override_doctype_class = {  # nosemgrep - existing legacy overrides; migration t
 
 scheduler_events = {
     "cron": {
-        "30 2 * * 1": [
+        "0 8 * * 1": [
             "next_pms.tasks.scheduled_audit.trigger_weekly_audits",
         ],
     },
