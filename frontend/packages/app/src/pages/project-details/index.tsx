@@ -84,7 +84,7 @@ function ProjectDetailBody() {
   };
 
   return (
-    <div className="flex flex-1 min-h-0">
+    <div className="flex flex-1 min-h-0 overflow-x-auto">
       {editorMatch ? (
         <NotesProvider>
           <div className="flex-1 overflow-auto scrollbar-thin">
@@ -95,13 +95,13 @@ function ProjectDetailBody() {
         <Tabs
           tabListClassName="min-h-10 h-10 overflow-auto scrollbar-thin"
           tabPanelClassName="overflow-auto scrollbar-thin"
-          className="w-3/4 border-0 rounded-none border-r"
+          className="w-3/4 min-w-full md:min-w-0 border-0 rounded-none border-r"
           tabs={finalTabs}
           tabIndex={activeTab}
           onTabChange={handleTabChange}
         />
       )}
-      <AboutThisProject className="w-1/4" />
+      <AboutThisProject className="w-1/4 min-w-60 shrink-0" />
     </div>
   );
 }
