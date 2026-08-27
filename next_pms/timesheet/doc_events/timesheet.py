@@ -414,13 +414,20 @@ def publish_timesheet_update(employee, start_date):
         start_date=get_date_str(start_date),
         by_pass_access_check=True,
     )
-    payload = {
-        "message": member,
-        "employee": employee,
-        "start_date": get_date_str(start_date),
-    }
-    publish_realtime("timesheet_info", payload, after_commit=True, room=get_site_room())
-    publish_realtime("timesheet_info", payload, after_commit=True, user=frappe.session.user)
+    # Same split as project_timesheet_info below: the member-week carries another
+    # employee's tasks, hours and leave, and the site room is every logged-in System User
+    # - joined automatically on socket connect, with no role check - so it gets an
+    # invalidation only. Authorized viewers reload the week through get_team_timesheet_data,
+    # which enforces only_for. The editor, authorized by having just written the timesheet,
+    # keeps the payload so their own row swaps in without a round trip.
+    member_invalidation = {"employee": employee, "start_date": get_date_str(start_date)}
+    publish_realtime("timesheet_info", member_invalidation, after_commit=True, room=get_site_room())
+    publish_realtime(
+        "timesheet_info",
+        {**member_invalidation, "message": member},
+        after_commit=True,
+        user=frappe.session.user,
+    )
 
     # The project timesheet groups by project, so it needs the employee's whole week keyed
     # by project - a single member-week would not tell it which project rows to update, nor

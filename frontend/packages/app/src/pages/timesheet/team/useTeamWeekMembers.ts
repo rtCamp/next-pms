@@ -30,7 +30,7 @@ type UseTeamWeekMembersResult = {
   isLoadingMembers: boolean;
   isNextPageLoading: boolean;
   loadMore: () => void;
-  refreshMember: (member: TeamMemberPayload) => void;
+  refreshMember: (member: TeamMemberPayload | null) => void;
 };
 
 const QUERY_SIGNATURE_PREFIX = "team-week-members:";
@@ -130,8 +130,15 @@ export function useTeamWeekMembers({
   }, [hasMore, isLoading, isNextPageLoading, setSize]);
 
   const refreshMember = useCallback(
-    (member: TeamMemberPayload) => {
+    (member: TeamMemberPayload | null) => {
       if (!paginatedData?.length) {
+        return;
+      }
+
+      // No member means the update arrived as an invalidation, so the week has to be
+      // refetched through get_team_timesheet_data, which enforces the viewing roles.
+      if (!member) {
+        void mutate();
         return;
       }
 

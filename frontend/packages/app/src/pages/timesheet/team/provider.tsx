@@ -164,10 +164,10 @@ export const TeamTimesheetProvider: FC<PropsWithChildren> = ({ children }) => {
       );
       if (!week) return;
 
-      const handler = refreshRegistry.current.get(week.start_date);
-      if (handler && info.message) {
-        handler(info.message);
-      }
+      // A site-wide update arrives without `message` - the detailed member-week is
+      // routed only to the user who wrote the timesheet - so pass null and let the
+      // week refetch through the role-checked endpoint.
+      refreshRegistry.current.get(week.start_date)?.(info.message ?? null);
       void refreshWeeks();
     },
     [refreshWeeks],

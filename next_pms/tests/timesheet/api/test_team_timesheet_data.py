@@ -854,13 +854,13 @@ class TestTeamTimesheetMemberWeek(_TeamTimesheetDataBase):
         frappe.set_user(WRITE_USER)
         self.assertIsNone(get_team_timesheet_member_week(employee="EMP-does-not-exist", start_date=W1_MON))
 
-    def test_publisher_payload_carries_member_employee_and_start_date(self):
-        """Regression guard for D2: the published shape was never asserted, and the
-        page silently discarded every realtime update for it."""
+    def _capture_timesheet_info(self):
+        """Run the publisher with publish_realtime stubbed, returning its timesheet_info
+        calls as (message, kwargs) pairs."""
         published = []
 
         def capture(event, message, **kwargs):
-            published.append((event, message))
+            published.append((event, message, kwargs))
 
         frappe.set_user(WRITE_USER)
         original = frappe.publish_realtime
@@ -877,13 +877,44 @@ class TestTeamTimesheetMemberWeek(_TeamTimesheetDataBase):
         finally:
             frappe.publish_realtime = original
 
-        info = [message for event, message in published if event == "timesheet_info"]
+        return [(message, kwargs) for event, message, kwargs in published if event == "timesheet_info"]
+
+    def test_publisher_payload_carries_member_employee_and_start_date(self):
+        """Regression guard for D2: the published shape was never asserted, and the
+        page silently discarded every realtime update for it."""
+        info = self._capture_timesheet_info()
         self.assertTrue(info, "no timesheet_info event published")
-        for payload in info:
-            self.assertEqual(sorted(payload), ["employee", "message", "start_date"])
+        for payload, _kwargs in info:
             self.assertEqual(payload["employee"], self.r1)
+            self.assertEqual(payload["start_date"], W1_MON)
+
+    def test_site_room_broadcast_carries_no_member_detail(self):
+        """The site room is every logged-in System User - joined on socket connect with no
+        role check - so it must get an invalidation only. Shipping the member-week there
+        hands another employee's tasks, hours and leave to clients that would fail
+        get_team_timesheet_data's only_for."""
+        info = self._capture_timesheet_info()
+
+        broadcasts = [payload for payload, kwargs in info if kwargs.get("room")]
+        self.assertTrue(broadcasts, "no site-room timesheet_info event published")
+        for payload in broadcasts:
+            self.assertEqual(sorted(payload), ["employee", "start_date"])
+
+        targeted = [payload for payload, kwargs in info if kwargs.get("user")]
+        self.assertTrue(targeted, "no user-targeted timesheet_info event published")
+        for payload in targeted:
+            self.assertEqual(sorted(payload), ["employee", "message", "start_date"])
             self.assertIn("tasks", payload["message"])
             self.assertIn("status", payload["message"])
+
+    def test_is_not_exposed_over_http(self):
+        """The function takes `by_pass_access_check`, which skips only_for. Every other test
+        here calls it in-process, so all of them would still pass if @whitelist were
+        restored - this asserts the boundary itself, through the gate frappe.handler uses."""
+        method = frappe.get_attr("next_pms.timesheet.api.team.get_team_timesheet_member_week")
+        self.assertNotIn(method, frappe.whitelisted)
+        with self.assertRaises(frappe.PermissionError):
+            frappe.is_whitelisted(method)
 
 
 class TestTeamTimesheetDataBackdateRestriction(_TeamTimesheetDataBase):

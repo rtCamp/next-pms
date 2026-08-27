@@ -15,7 +15,7 @@ import type {
   TeamWeekSummary,
 } from "./types";
 
-export type MemberRefreshHandler = (member: TeamMemberPayload) => void;
+export type MemberRefreshHandler = (member: TeamMemberPayload | null) => void;
 
 export interface TeamTimesheetContextProps {
   state: {
