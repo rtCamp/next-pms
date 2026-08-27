@@ -45,7 +45,7 @@ export function CalendarToolbar() {
   const isListView = activeView === "list";
 
   return (
-    <div className="flex justify-between items-center w-full">
+    <div className="flex w-full flex-wrap items-center justify-between gap-2">
       <div className="flex items-center">
         {isListView ? (
           <TextInput
@@ -86,7 +86,7 @@ export function CalendarToolbar() {
         )}
       </div>
 
-      <div className="flex items-center justify-end gap-2">
+      <div className="flex items-center justify-end gap-2 max-md:contents">
         {!isListView && (
           <div className="flex items-center py-0.5">
             <Button
@@ -108,27 +108,29 @@ export function CalendarToolbar() {
           </div>
         )}
 
-        <TabButtons
-          value={activeView}
-          onChange={(val) => setActiveView(val as CalendarView)}
-          buttonClassName="text-ink-gray-5 data-pressed:text-ink-gray-8"
-          buttons={[
-            { label: "Calendar", value: "calendar" },
-            { label: "Gantt", value: "gantt" },
-            { label: "List", value: "list" },
-          ]}
-        />
-
-        {!isListView && (
-          <Select
-            className="w-min"
-            value={filterValue}
-            options={filterOptions}
-            onChange={(val) => setFilterType(val ?? "all")}
-            size="sm"
-            variant="subtle"
+        <div className="flex items-center gap-2 max-md:w-full max-md:justify-between">
+          <TabButtons
+            value={activeView}
+            onChange={(val) => setActiveView(val as CalendarView)}
+            buttonClassName="text-ink-gray-5 data-pressed:text-ink-gray-8"
+            buttons={[
+              { label: "Calendar", value: "calendar" },
+              { label: "Gantt", value: "gantt" },
+              { label: "List", value: "list" },
+            ]}
           />
-        )}
+
+          {!isListView && (
+            <Select
+              className="w-min"
+              value={filterValue}
+              options={filterOptions}
+              onChange={(val) => setFilterType(val ?? "all")}
+              size="sm"
+              variant="subtle"
+            />
+          )}
+        </div>
       </div>
     </div>
   );
