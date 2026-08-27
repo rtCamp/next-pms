@@ -371,13 +371,19 @@ def get_team_timesheet_weeks(
     }
 
 
-@whitelist(methods=["GET", "POST"])
 @error_logger
 def get_team_timesheet_member_week(employee: str, start_date: str, by_pass_access_check: bool = False):
     """One member's row for one week - the unit the realtime publisher swaps in.
 
     Returns exactly one element of `get_team_timesheet_data`'s `members`, so a realtime
     update replaces a single row instead of forcing a reload of the whole week.
+
+    Deliberately not whitelisted, mirroring `get_project_timesheet_member_week`.
+    `by_pass_access_check` exists for the publisher, which runs as whoever saved the
+    timesheet and so cannot be assumed to hold the viewing roles; exposing that switch
+    over HTTP let any logged-in user skip `only_for` and read another employee's tasks,
+    hours and leave. The page never calls this directly - it reads
+    `get_team_timesheet_data` - so there is nothing to expose.
     """
     if not by_pass_access_check:
         only_for(["Timesheet Manager", "Timesheet User", "Projects Manager"], message=True)
