@@ -1,5 +1,6 @@
 import frappe
 
+from next_pms.project_currency.background_jobs.project_costing import update_task_and_project
 from next_pms.project_currency.helpers.error import generate_the_error_log
 
 
@@ -23,7 +24,7 @@ def calculate(project_id: str, valid_from_date: str):
 
 def recalculate_timesheet_billing(project_id: str, valid_from_date: str, start: int = 0):
     try:
-        timsheets = frappe.get_all(
+        timesheets = frappe.get_all(
             "Timesheet",
             filters={"parent_project": project_id, "start_date": [">=", valid_from_date]},
             fields=["name"],
@@ -32,7 +33,7 @@ def recalculate_timesheet_billing(project_id: str, valid_from_date: str, start: 
             order_by="start_date asc",
         )
 
-        if not timsheets or len(timsheets) < 1:
+        if not timesheets:
             project_name = frappe.db.get_value("Project", project_id, "project_name")
             if start == 0:
                 return frappe.msgprint(
@@ -40,20 +41,18 @@ def recalculate_timesheet_billing(project_id: str, valid_from_date: str, start: 
                     realtime=True,
                 )
             else:
-                project_doc = frappe.get_doc("Project", project_id)
-                project_doc.update_project()
-                project_doc.save(ignore_permissions=True)
+                tasks = frappe.get_all("Task", filters={"project": project_id}, pluck="name")
+                update_task_and_project(tasks=tasks, projects=[project_id])
 
                 return frappe.msgprint(
                     f"Timesheet billing recalculation completed for project: {project_id}-{project_name}.",
                     realtime=True,
                 )
 
-        for timesheet in timsheets:
+        for timesheet in timesheets:
             timesheet_doc = frappe.get_doc("Timesheet", timesheet.name)
             timesheet_doc.flags.ignore_validate_update_after_submit = True
             timesheet_doc.flags.costing_calculation_queued = True
-            timesheet_doc.validate()
             timesheet_doc.ignore_backdated_validation = True
             timesheet_doc.save(ignore_permissions=True)
 
