@@ -18,6 +18,7 @@ import { format, parseISO } from "date-fns";
 /**
  * Internal dependencies.
  */
+import { extractTextFromHTML, hasTodoCustomFields } from "@/lib/utils";
 import type { TodoPriority, TodoStatus } from "./create-todo/schema";
 import { useTodos } from "./provider/context";
 import type { Todo } from "./types";
@@ -75,7 +76,9 @@ export function TodoRow({ todo, onEdit }: TodoRowProps) {
     <div className="flex items-center gap-4 border-b border-outline-gray-2 py-4">
       <div className="min-w-0 flex-1">
         <h3 className="truncate text-base font-medium text-ink-gray-8">
-          {todo.custom_title || "Untitled"}
+          {todo.custom_title ||
+            extractTextFromHTML(todo.description) ||
+            "Untitled"}
         </h3>
         <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-ink-gray-5">
           <a
@@ -90,16 +93,20 @@ export function TodoRow({ todo, onEdit }: TodoRowProps) {
             />
             <span className="truncate">{todo.allocated_to_full_name}</span>
           </a>
-          <span aria-hidden>·</span>
-          <span className="flex items-center gap-1.5">
-            <Calendar className="size-3.5" />
-            {formatDateTime(todo.custom_from_time)}
-          </span>
-          <span aria-hidden>·</span>
-          <span className="flex items-center gap-1.5">
-            <Calendar className="size-3.5" />
-            {formatDateTime(todo.custom_to_time)}
-          </span>
+          {hasTodoCustomFields() && (
+            <>
+              <span aria-hidden>·</span>
+              <span className="flex items-center gap-1.5">
+                <Calendar className="size-3.5" />
+                {formatDateTime(todo.custom_from_time)}
+              </span>
+              <span aria-hidden>·</span>
+              <span className="flex items-center gap-1.5">
+                <Calendar className="size-3.5" />
+                {formatDateTime(todo.custom_to_time)}
+              </span>
+            </>
+          )}
           <span aria-hidden>·</span>
           <span className="flex items-center gap-1.5">
             <span

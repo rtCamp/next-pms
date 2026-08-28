@@ -1,6 +1,7 @@
 /**
  * External dependencies.
  */
+import { useRef } from "react";
 import { mergeClassNames } from "@next-pms/design-system";
 import { Tooltip } from "@rtcamp/frappe-ui-react";
 
@@ -13,10 +14,11 @@ export function SubjectCell({
   subject: string;
   onOpenTask?: (taskName: string) => void;
 }) {
+  const subjectRef = useRef<HTMLSpanElement>(null);
   const handleOpen = () => onOpenTask?.(name);
 
   return (
-    <Tooltip text={subject}>
+    <Tooltip text={subject} showWhen="truncated" truncationRef={subjectRef}>
       {/* A native <button> can't be used here: ListRow already wraps every
           cell in a <button>, and nested buttons are invalid HTML / trigger
           a React DOM-nesting warning. */}
@@ -43,7 +45,9 @@ export function SubjectCell({
           "focus:outline-none focus-visible:ring focus-visible:ring-outline-gray-3 transition-colors",
         )}
       >
-        <span className="ml-2 truncate">{subject}</span>
+        <span ref={subjectRef} className="ml-2 truncate">
+          {subject}
+        </span>
       </div>
     </Tooltip>
   );

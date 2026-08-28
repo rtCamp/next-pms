@@ -101,6 +101,18 @@ export const isWeekendEntryAllowed = (): boolean => {
   return window.frappe?.boot?.allow_weekend_entries ?? false;
 };
 
+export const hasProjectField = (fieldname: string): boolean => {
+  return window.frappe?.boot?.optional_project_fields?.[fieldname] ?? false;
+};
+
+export const hasTodoCustomFields = (): boolean => {
+  return window.frappe?.boot?.has_todo_custom_fields ?? false;
+};
+
+export const getDefaultCurrency = (): string => {
+  return window.frappe?.boot?.sysdefaults?.currency ?? "INR";
+};
+
 export function parseFrappeErrorMsg(error: FrappeError) {
   const messages = getErrorMessages(error);
   let message = "";
@@ -172,42 +184,50 @@ export const getHolidayList = (holidays: Array<HolidayProp>) => {
 };
 
 export const getErrorMessages = (error: FrappeError) => {
-  let eMessages = error?._server_messages
-    ? JSON.parse(error?._server_messages)
-    : [];
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  eMessages = eMessages.map((m: any) => {
+  let eMessages: { message?: string; title?: string }[] = [];
+
+  if (error?._server_messages) {
     try {
-      return JSON.parse(m);
-    } catch (e) {
-      return e;
-    }
-  });
-
-  if (eMessages.length === 0) {
-    // Get the message from the exception by removing the exc_type
-    const index = error?.exception?.indexOf(":");
-    if (index) {
-      const exception = error?.exception?.slice(index + 1);
-      if (exception) {
-        eMessages = [
-          {
-            message: exception,
-            title: "Error",
-          },
-        ];
-      }
-    }
-
-    if (eMessages.length === 0) {
-      eMessages = [
-        {
-          message: error?.message,
-          title: "Error",
-        },
-      ];
+      const parsed = JSON.parse(error._server_messages);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      eMessages = (Array.isArray(parsed) ? parsed : []).map((m: any) => {
+        try {
+          return typeof m === "string" ? JSON.parse(m) : m;
+        } catch {
+          return { message: String(m) };
+        }
+      });
+    } catch {
+      eMessages = [];
     }
   }
+
+  eMessages = eMessages.filter((m) => Boolean(m?.message));
+
+  if (eMessages.length === 0) {
+    // PermissionError (403) sets frappe.flags.error_message, returned as _error_message
+    const permissionMessage = (
+      error as FrappeError & { _error_message?: string }
+    )?._error_message;
+    if (permissionMessage) {
+      eMessages = [{ message: permissionMessage, title: "Error" }];
+    }
+  }
+
+  if (eMessages.length === 0) {
+    const index = error?.exception?.indexOf(":");
+    if (index !== undefined && index > -1) {
+      const exception = error.exception.slice(index + 1).trim();
+      if (exception) {
+        eMessages = [{ message: exception, title: "Error" }];
+      }
+    }
+  }
+
+  if (eMessages.length === 0 && error?.message) {
+    eMessages = [{ message: error.message, title: "Error" }];
+  }
+
   return eMessages;
 };
 

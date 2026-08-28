@@ -14,6 +14,7 @@ from next_pms.timesheet.utils.constant import (
     ALLOWED_TIMESHET_DETAIL_FIELDS,
     FILTER_LOOKBACK_WEEKS,
     NOT_SUBMITTED_STATUS,
+    WORK_FILTER_DOCTYPES,
 )
 
 from . import filter_employees
@@ -400,12 +401,20 @@ def build_aggregate_dates(date: str, max_week: int, has_filters: bool):
     return dates, max_lookback
 
 
-def get_matching_timesheet_employee_ids(
+def get_matching_timesheets(
     dates: list,
     parsed_filters: dict,
     approval_status: list[str] | None = None,
     require_project_tasks: bool = False,
+    employee_ids: list[str] | None = None,
 ):
+    """Timesheets in the range that satisfy the filters, detail and task conditions included.
+
+    Returns the rows rather than the employees behind them because the same join answers
+    two different questions: *who* can match at all (the employee pool) and *which weeks*
+    of theirs match (per-week membership). Collapsing to employees here is what let a
+    match in one week qualify every other week the employee logged anything in.
+    """
     if not dates:
         return []
 
@@ -416,9 +425,11 @@ def get_matching_timesheet_employee_ids(
     }
     if approval_status:
         base_ts_filters["custom_weekly_approval_status"] = ["in", approval_status]
+    if employee_ids is not None:
+        base_ts_filters["employee"] = ["in", employee_ids]
 
     ts_filters = build_filters(base_ts_filters, parsed_filters.get("Timesheet", []))
-    timesheets = get_all("Timesheet", filters=ts_filters, fields=["name", "employee"])
+    timesheets = get_all("Timesheet", filters=ts_filters, fields=["name", "employee", "start_date"])
     if not timesheets:
         return []
 
@@ -426,7 +437,7 @@ def get_matching_timesheet_employee_ids(
         require_project_tasks or parsed_filters.get("Task") or parsed_filters.get("Timesheet Detail")
     )
     if not requires_detail_scan:
-        return list({timesheet.employee for timesheet in timesheets})
+        return timesheets
 
     timesheet_by_name = {timesheet.name: timesheet for timesheet in timesheets}
     detail_filters = build_filters(
@@ -437,27 +448,40 @@ def get_matching_timesheet_employee_ids(
         return []
 
     requires_task_scan = bool(require_project_tasks or parsed_filters.get("Task"))
-    if not requires_task_scan:
+    if requires_task_scan:
+        task_ids = list({detail.task for detail in details if detail.task})
+        if not task_ids:
+            return []
+
+        task_filters = build_filters({"name": ["in", task_ids]}, parsed_filters.get("Task", []))
+        tasks = get_all("Task", filters=task_filters, fields=["name", "project"])
+        if require_project_tasks:
+            tasks = [task for task in tasks if task.get("project")]
+
+        valid_task_ids = {task.name for task in tasks}
+        if not valid_task_ids:
+            return []
+
+        matched_parent_names = {detail.parent for detail in details if detail.task in valid_task_ids}
+    else:
         matched_parent_names = {detail.parent for detail in details}
-        return list(
-            {timesheet_by_name[parent].employee for parent in matched_parent_names if parent in timesheet_by_name}
-        )
 
-    task_ids = list({detail.task for detail in details if detail.task})
-    if not task_ids:
-        return []
+    return [timesheet_by_name[parent] for parent in matched_parent_names if parent in timesheet_by_name]
 
-    task_filters = build_filters({"name": ["in", task_ids]}, parsed_filters.get("Task", []))
-    tasks = get_all("Task", filters=task_filters, fields=["name", "project"])
-    if require_project_tasks:
-        tasks = [task for task in tasks if task.get("project")]
 
-    valid_task_ids = {task.name for task in tasks}
-    if not valid_task_ids:
-        return []
-
-    matched_parent_names = {detail.parent for detail in details if detail.task in valid_task_ids}
-    return list({timesheet_by_name[parent].employee for parent in matched_parent_names if parent in timesheet_by_name})
+def get_matching_timesheet_employee_ids(
+    dates: list,
+    parsed_filters: dict,
+    approval_status: list[str] | None = None,
+    require_project_tasks: bool = False,
+):
+    timesheets = get_matching_timesheets(
+        dates=dates,
+        parsed_filters=parsed_filters,
+        approval_status=approval_status,
+        require_project_tasks=require_project_tasks,
+    )
+    return list({timesheet.employee for timesheet in timesheets})
 
 
 def sanitize_employee_conditions(employee_conditions: list | None) -> list:
@@ -557,6 +581,15 @@ class TeamEmployeeScope:
         return self.candidate_employee_ids == []
 
     @property
+    def has_work_filters(self) -> bool:
+        """True when a filter describes logged work rather than who the employee is.
+
+        Employee-level conditions narrow the pool once; work filters have to be answered
+        again for every week, since a member matching one week says nothing about another.
+        """
+        return any(self.parsed_filters.get(doctype) for doctype in WORK_FILTER_DOCTYPES)
+
+    @property
     def skip_empty_weeks(self) -> bool:
         """Empty weeks are dropped for filters that describe *work*, not for member search.
 
@@ -627,9 +660,10 @@ def get_team_week_participation(scope: TeamEmployeeScope, weeks: list) -> dict:
     `get_first_day_of_week` so the week boundary matches the rest of the app rather
     than a hand-rolled SQL date expression that would ignore System Settings.
 
-    Returns `{week_start: {"members": set, "pending": set}}`. Sets rather than counts
-    because API 2 intersects them with its own employee page, and a count cannot be
-    intersected.
+    Returns `{week_start: {"members": set, "matched": set, "pending": set, "status_matched": set}}`.
+    Sets rather than counts because API 2 intersects them with its own employee page, and a
+    count cannot be intersected. `members` is raw participation; `matched` is the subset whose
+    timesheets *in that week* satisfy the work filters.
     """
     if not weeks:
         return {}
@@ -645,23 +679,43 @@ def get_team_week_participation(scope: TeamEmployeeScope, weeks: list) -> dict:
     rows = get_all(
         "Timesheet",
         filters=timesheet_filters,
-        fields=["employee", "start_date", "custom_weekly_approval_status"],
+        fields=["name", "employee", "start_date", "custom_weekly_approval_status"],
         distinct=True,
         # Unordered on purpose: the result is folded into sets, and the default
         # `creation` sort costs a filesort over the whole match set.
         order_by=None,
     )
 
+    # A work filter is resolved per week, not once for the whole lookback window:
+    # `candidate_employee_ids` only says the employee matched *somewhere* in it, so reading
+    # that as membership listed them in every week they merely logged something in.
+    matched_names = None
+    if scope.has_work_filters:
+        matched_names = {
+            timesheet.name
+            for timesheet in get_matching_timesheets(
+                dates=weeks,
+                parsed_filters=scope.parsed_filters,
+                employee_ids=scope.candidate_employee_ids,
+            )
+        }
+
     status_filter = set(scope.status_filter or [])
     participation = {
-        week["start_date"]: {"members": set(), "pending": set(), "status_matched": set()} for week in weeks
+        week["start_date"]: {"members": set(), "matched": set(), "pending": set(), "status_matched": set()}
+        for week in weeks
     }
     for row in rows:
         week_start = get_first_day_of_week(row.start_date)
         bucket = participation.get(week_start)
         if bucket is None:
             continue
+        # `members` stays raw participation - "Not Submitted" is the absence of a row, so it
+        # has to be derived from every week the employee did or did not log time in.
         bucket["members"].add(row.employee)
+        if matched_names is not None and row.name not in matched_names:
+            continue
+        bucket["matched"].add(row.employee)
         if row.custom_weekly_approval_status == "Approval Pending":
             bucket["pending"].add(row.employee)
         # Read the status the same way the payload derives it for display, so a row whose
@@ -706,9 +760,11 @@ def resolve_team_members(scope: TeamEmployeeScope, weeks: list) -> dict:
     members_by_week = {}
     pending_by_week = {}
     for week in weeks:
-        bucket = participation.get(week["start_date"], {"members": set(), "pending": set(), "status_matched": set()})
-        # Membership is per-week participation only for filters that describe work.
-        # For a member-name search an employee belongs to every week whether or not they
+        bucket = participation.get(
+            week["start_date"], {"members": set(), "matched": set(), "pending": set(), "status_matched": set()}
+        )
+        # Membership is per-week filter-matching participation only for filters that describe
+        # work. For a member-name search an employee belongs to every week whether or not they
         # logged time - the point of searching a person is to see their empty weeks too.
         # A status filter is stricter still: the week's approval status must match, so it
         # keys off the status-matched set rather than plain participation.
@@ -720,7 +776,7 @@ def resolve_team_members(scope: TeamEmployeeScope, weeks: list) -> dict:
             if NOT_SUBMITTED_STATUS in scope.status_filter:
                 week_members = week_members | (eligible_ids - bucket["members"])
         elif scope.skip_empty_weeks:
-            week_members = bucket["members"]
+            week_members = bucket["matched"]
         else:
             week_members = eligible_ids
         members_by_week[week["start_date"]] = week_members & eligible_ids
@@ -772,107 +828,226 @@ def has_scoped_timesheets_before(scope: TeamEmployeeScope, eligible_ids: set, da
     )
 
 
-def get_qualifying_project_ids(
-    dates: list,
-    parsed_filters: dict | None = None,
+@dataclass
+class ProjectTimesheetScope:
+    """Everything the project timesheet endpoints need to agree on about *which projects*
+    and *when*.
+
+    The project-page counterpart of `TeamEmployeeScope`. `get_project_timesheet_weeks`
+    derives its per-week counts from this and `get_project_timesheet_data` paginates one of
+    those weeks, so a single resolver is what keeps a week's project count consistent with
+    the rows rendered beneath it.
+    """
+
+    dates: list
+    response_dates: list
+    parsed_filters: dict
+    search: str | None
+    approval_status: list[str] | None
+    has_filters: bool
+
+    @property
+    def skip_empty_weeks(self) -> bool:
+        """Weeks holding no qualifying project are dropped whenever any filter is set.
+
+        Unlike the team page, member/name search is *not* carved out here: `search` is a
+        project-name search, and a project only qualifies once it has timesheet entries in
+        the window, so carving search out would emit weeks that are empty by construction.
+        Resolved here rather than taken as a parameter so both endpoints make the same
+        choice.
+        """
+        return self.has_filters
+
+
+def resolve_project_scope(
+    date: str,
+    max_week: int,
+    filters: str | list | None = None,
     search: str | None = None,
     approval_status: list[str] | None = None,
-) -> list[str]:
-    """Return a sorted list of distinct project IDs that have timesheet entries in the date range.
+) -> ProjectTimesheetScope:
+    """Resolve the project/date scope shared by the project timesheet endpoints."""
+    parsed_filters = parse_filters(filters)
+    has_filters = bool(search or approval_status or any(parsed_filters.values()))
 
-    Query chain: Timesheet → Timesheet Detail → Task → distinct projects.
-    All intermediate empty results short-circuit to [].
-    """
-    if not dates:
-        return []
+    # Employee-level filters have no Timesheet-side equivalent, so they are resolved to
+    # employee IDs and folded into the Timesheet filter list. Every downstream query reads
+    # parsed_filters["Timesheet"], so doing it once here is what stops them being silently
+    # dropped by one query path and honoured by another.
+    employee_filters = parsed_filters.get("Employee")
+    if employee_filters:
+        employee_names = get_all("Employee", filters=employee_filters, pluck="name")
+        parsed_filters["Timesheet"] = [*parsed_filters.get("Timesheet", []), ["employee", "in", employee_names]]
 
-    parsed_filters = parsed_filters or {dt: [] for dt in ALLOWED_FILTER_FIELDS}
+    dates, _ = build_aggregate_dates(date=date, max_week=max_week, has_filters=has_filters)
 
-    base_ts_filters = {
-        "start_date": [">=", dates[0].get("start_date")],
-        "end_date": ["<=", dates[-1].get("end_date")],
-        "docstatus": ["!=", 2],
-    }
-    if approval_status:
-        base_ts_filters["custom_weekly_approval_status"] = ["in", approval_status]
-
-    ts_filters = build_filters(base_ts_filters, parsed_filters.get("Timesheet", []))
-    timesheets = get_all("Timesheet", filters=ts_filters, fields=["name"])
-    if not timesheets:
-        return []
-
-    ts_names = [ts.name for ts in timesheets]
-    base_detail_filters = {"parent": ["in", ts_names]}
-    detail_filters = build_filters(base_detail_filters, parsed_filters.get("Timesheet Detail", []))
-    details = get_all("Timesheet Detail", filters=detail_filters, fields=["task"])
-    task_ids = list({d.task for d in details if d.task})
-    if not task_ids:
-        return []
-
-    base_task_filters = {"name": ["in", task_ids], "project": ["!=", ""]}
-    task_filters = build_filters(base_task_filters, parsed_filters.get("Task", []))
-    tasks = get_all("Task", filters=task_filters, fields=["name", "project"])
-
-    project_ids = sorted({t.project for t in tasks if t.get("project")})
-    if not project_ids:
-        return []
-
-    if search:
-        project_ids = get_all(
-            "Project",
-            filters=[["name", "in", project_ids]],
-            or_filters=[["name", "like", f"%{search}%"], ["project_name", "like", f"%{search}%"]],
-            pluck="name",
-        )
-
-    return sorted(project_ids)
-
-
-def get_employees_for_projects(
-    project_ids: list[str],
-    dates: list,
-    parsed_filters: dict | None = None,
-    approval_status: list[str] | None = None,
-) -> list[str]:
-    """Return distinct employee IDs who logged time to any of the given projects in the date range.
-
-    Query chain: Task (project IN project_ids) → Timesheet (date range) → Timesheet Detail
-    (bounded by in-range parents AND task IDs) → distinct employees.
-    """
-    if not project_ids or not dates:
-        return []
-
-    parsed_filters = parsed_filters or {dt: [] for dt in ALLOWED_FILTER_FIELDS}
-
-    task_ids = get_all("Task", filters={"project": ["in", project_ids]}, pluck="name")
-    if not task_ids:
-        return []
-
-    # Resolve the in-range timesheets first so the (much larger) Timesheet Detail scan can be
-    # bounded by both parent IN <in-range timesheets> and task IN <task_ids>, instead of pulling
-    # every detail row that has ever referenced these projects' tasks.
-    base_ts_filters = {
-        "start_date": [">=", dates[0].get("start_date")],
-        "end_date": ["<=", dates[-1].get("end_date")],
-        "docstatus": ["!=", 2],
-    }
-    if approval_status:
-        base_ts_filters["custom_weekly_approval_status"] = ["in", approval_status]
-
-    ts_filters = build_filters(base_ts_filters, parsed_filters.get("Timesheet", []))
-    timesheets = get_all("Timesheet", filters=ts_filters, fields=["name", "employee"])
-    if not timesheets:
-        return []
-
-    employee_by_ts = {ts.name: ts.employee for ts in timesheets}
-    detail_filters = build_filters(
-        {"parent": ["in", list(employee_by_ts)], "task": ["in", task_ids]},
-        parsed_filters.get("Timesheet Detail", []),
+    return ProjectTimesheetScope(
+        dates=dates,
+        # Under filters `dates` spans the full (up to 12-week) lookback used to locate
+        # matching data, and empty weeks are dropped downstream - so the whole span is
+        # rendered rather than trimmed to the most recent `max_week`, otherwise data in
+        # older weeks would be hidden.
+        response_dates=dates,
+        parsed_filters=parsed_filters,
+        search=search,
+        approval_status=approval_status,
+        has_filters=has_filters,
     )
-    matched_parents = {
-        d.parent for d in get_all("Timesheet Detail", filters=detail_filters, fields=["parent"]) if d.parent
+
+
+def get_project_timesheet_detail_rows(scope: ProjectTimesheetScope, weeks: list) -> list:
+    """Timesheet Detail rows in range, joined to their parent Timesheet, as one query.
+
+    Replaces the previous two-step "select every Timesheet in range, then select details
+    with `parent IN (<thousands of names>)`". That IN list was the slowest query in every
+    scenario measured at baseline (58.9 ms of S6's 107 ms at 500 projects), because its
+    cost scales with how many timesheets are in the window rather than with how many
+    actually match.
+
+    Handing the whole thing to the database as a join lets it pick the plan, and it wins in
+    every regime measured - broad 75 -> 34 ms, a status filter 15 -> 12 ms, a
+    single-employee filter 0.4 -> 0.2 ms - while also removing a round trip. The parent
+    side is built with `frappe.qb.get_query` so the caller's filters keep frappe's own
+    operator handling and escaping instead of a hand-rolled WHERE clause.
+    """
+    base_ts_filters = {
+        "start_date": [">=", weeks[0].get("start_date")],
+        "end_date": ["<=", weeks[-1].get("end_date")],
+        "docstatus": ["!=", 2],
     }
-    return list({employee_by_ts[parent] for parent in matched_parents if parent in employee_by_ts})
+    if scope.approval_status:
+        base_ts_filters["custom_weekly_approval_status"] = ["in", scope.approval_status]
+
+    timesheet_query = frappe.qb.get_query(
+        "Timesheet",
+        filters=build_filters(base_ts_filters, scope.parsed_filters.get("Timesheet", [])),
+        fields=["name", "employee", "start_date"],
+    )
+    detail_query = frappe.qb.get_query(
+        "Timesheet Detail",
+        filters=build_filters({"docstatus": ["!=", 2]}, scope.parsed_filters.get("Timesheet Detail", [])),
+        fields=["parent", "task", "from_time"],
+    )
+
+    detail = frappe.qb.DocType("Timesheet Detail")
+    joined = (
+        detail_query.join(timesheet_query)
+        .on(timesheet_query.name == detail.parent)
+        .select(timesheet_query.employee, timesheet_query.start_date)
+    )
+    return joined.run(as_dict=True)
+
+
+def resolve_project_participation(scope: ProjectTimesheetScope, weeks: list) -> dict:
+    """Resolve which projects have qualifying activity, per week, before any pagination.
+
+    The single source both project timesheet endpoints read: the week endpoint turns these
+    sets into counts, the data endpoint paginates one of them. Deriving both from here is
+    what stops a week's project count from disagreeing with its rows.
+
+    Returns `{week_start: {"projects": set, "employees_by_project": {project: set}}}`.
+
+    Unlike the team page's `get_team_week_participation`, this cannot be answered from
+    `Timesheet` alone - project membership lives on `Task.project`, reachable only through
+    `Timesheet Detail` - so the detail hop is unavoidable. It is still one pass over the
+    whole range, bucketed into weeks in Python via `get_first_day_of_week`, so the week
+    boundary matches the rest of the app rather than a hand-rolled SQL date expression that
+    would ignore System Settings.
+    """
+    if not weeks:
+        return {}
+
+    participation = {
+        week["start_date"]: {"projects": set(), "employees_by_project": defaultdict(set)} for week in weeks
+    }
+
+    details = get_project_timesheet_detail_rows(scope, weeks)
+    if not details:
+        return participation
+
+    task_ids = list({detail.task for detail in details if detail.task})
+    if not task_ids:
+        return participation
+
+    task_filters = build_filters(
+        {"name": ["in", task_ids], "project": ["!=", ""]}, scope.parsed_filters.get("Task", [])
+    )
+    project_by_task = {
+        task.name: task.project
+        for task in get_all("Task", filters=task_filters, fields=["name", "project"])
+        if task.get("project")
+    }
+    if not project_by_task:
+        return participation
+
+    matched_projects = set(project_by_task.values())
+    if scope.search:
+        matched_projects = set(
+            get_all(
+                "Project",
+                filters=[["name", "in", sorted(matched_projects)]],
+                or_filters=[["name", "like", f"%{scope.search}%"], ["project_name", "like", f"%{scope.search}%"]],
+                pluck="name",
+            )
+        )
+        if not matched_projects:
+            return participation
+
+    for detail in details:
+        project = project_by_task.get(detail.task)
+        if project is None or project not in matched_projects:
+            continue
+        # The rendered payload puts an entry in a week only when the parent timesheet's
+        # start_date AND the entry's own from_time both fall in it
+        # (`build_employee_week_details`). Participation applies the same conjunction,
+        # otherwise a week could be counted here and render empty there - exactly the
+        # count/rows drift the shared resolver exists to prevent.
+        week_start = get_first_day_of_week(detail.start_date)
+        if week_start != get_first_day_of_week(getdate(detail.from_time)):
+            continue
+        bucket = participation.get(week_start)
+        if bucket is None:
+            continue
+        bucket["projects"].add(project)
+        bucket["employees_by_project"][project].add(detail.employee)
+
+    return participation
+
+
+def has_scoped_project_timesheets_before(scope: ProjectTimesheetScope, date) -> bool:
+    """Whether a week older than `date` could still hold a qualifying project for this scope.
+
+    This is what tells the week endpoint to keep offering older pages, so it asks about
+    *this* caller's filters rather than about the Timesheet table as a whole - otherwise an
+    unrelated three-year-old timesheet would keep a filtered view paging backwards over
+    weeks that can never produce a row.
+
+    Deliberately an upper bound: Timesheet-level filters and stored approval statuses
+    narrow it, while Task / Timesheet Detail filters and the project-name search do not,
+    since answering those needs the full detail-and-task hop.
+
+    Know what that bound costs before widening its use. Under those unapplied filters this
+    can stay true across consecutive empty windows, and because the frontend leaves its
+    infinite-scroll sentinel mounted on a page that rendered no weeks, those windows are
+    requested automatically rather than on a scroll - so the tail is several round trips,
+    not the single empty page it might look like. It is kept because answering exactly
+    means joining Timesheet Detail to Task on every week request: measured at ~132ms under
+    a Task filter against ~0.2ms here, on a call that is itself ~600ms, and paid even when
+    nothing would have chained. Under-reporting would hide weeks that do have data, so the
+    bound still leans the safe way.
+    """
+    filters = {"start_date": ["<", date], "docstatus": ["!=", 2]}
+    if scope.approval_status:
+        filters["custom_weekly_approval_status"] = ["in", scope.approval_status]
+
+    return bool(
+        get_all(
+            "Timesheet",
+            filters=build_filters(filters, scope.parsed_filters.get("Timesheet", [])),
+            fields=["name"],
+            limit=1,
+        )
+    )
 
 
 def resolve_holiday_lists(employee_meta_map: dict, employee_names: list) -> dict:

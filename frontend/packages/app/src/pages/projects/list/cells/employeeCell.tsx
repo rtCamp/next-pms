@@ -1,6 +1,7 @@
 /**
  * External dependencies.
  */
+import { useRef } from "react";
 import { Avatar, Tooltip } from "@rtcamp/frappe-ui-react";
 
 /**
@@ -10,6 +11,7 @@ import type { Employee } from "../types";
 import { TextCell } from "./textCell";
 
 export function EmployeeCell({ employee }: { employee: Employee | null }) {
+  const nameRef = useRef<HTMLSpanElement>(null);
   if (!employee) {
     return <TextCell text="N/A" />;
   }
@@ -36,7 +38,11 @@ export function EmployeeCell({ employee }: { employee: Employee | null }) {
     );
   }
   return (
-    <Tooltip text={employee.full_name || ""}>
+    <Tooltip
+      text={employee.full_name || ""}
+      showWhen="truncated"
+      truncationRef={nameRef}
+    >
       <div className="flex gap-2 w-fit">
         {employee.image && (
           <Avatar
@@ -46,7 +52,7 @@ export function EmployeeCell({ employee }: { employee: Employee | null }) {
             label={employee.full_name || ""}
           />
         )}
-        <span className="truncate text-ink-gray-6 text-base">
+        <span ref={nameRef} className="truncate text-ink-gray-6 text-base">
           {employee.full_name}
         </span>
       </div>

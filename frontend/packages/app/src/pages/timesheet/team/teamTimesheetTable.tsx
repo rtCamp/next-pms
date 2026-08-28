@@ -3,7 +3,11 @@
  */
 import { Fragment, useState } from "react";
 import { mergeClassNames as cn } from "@next-pms/design-system";
-import { Spinner, Typography } from "@next-pms/design-system/components";
+import {
+  LoadingOverlay,
+  Spinner,
+  Typography,
+} from "@next-pms/design-system/components";
 
 /**
  * Internal dependencies.
@@ -70,75 +74,72 @@ const TeamTimesheetGrid = () => {
 
       {isLoadingWeeks && weeks.length === 0 ? (
         <Spinner isFull />
-      ) : weeks.length === 0 ? (
-        <Typography className="flex justify-center items-center">
-          No data
-        </Typography>
       ) : (
-        <InfiniteScroll
-          isLoading={isNextPageLoading}
-          hasMore={hasMoreWeeks}
-          verticalLodMore={loadMoreWeeks}
-          className={cn("w-full h-[calc(100%-var(--spacing)*7)] opacity-100", {
-            "opacity-50 transition-opacity duration-150": isFilteredDataLoading,
-          })}
-          scrollResetKey={activeFilterKey}
-          enableScrollArea
-        >
-          <div className="min-w-225">
-            {weeks.map((week, index) => (
-              <Fragment key={`${resolvedFilterKey}:${week.key}`}>
-                {index === 0 ? (
-                  <div className="sticky top-0 z-20 bg-surface-white">
-                    <HeaderRow
-                      dates={week.dates}
-                      showHeading={true}
-                      breadcrumbs={{
-                        items: [
-                          { label: "Week", interactive: false },
-                          { label: "Member", interactive: false },
-                          { label: "Project", interactive: false },
-                          { label: "Task", interactive: false },
-                        ],
-                        highlightLastItem: false,
-                        size: "sm",
-                        crumbClassName:
-                          "first:pl-0 last:pr-0 px-0.5 py-0 font-[420]",
-                        className: "pl-[8px]",
-                      }}
-                    />
-                  </div>
-                ) : null}
+        <LoadingOverlay active={isFilteredDataLoading}>
+          {weeks.length === 0 && !hasMoreWeeks ? (
+            <Typography className="flex justify-center items-center">
+              No data
+            </Typography>
+          ) : (
+            <InfiniteScroll
+              isLoading={isNextPageLoading}
+              hasMore={hasMoreWeeks}
+              verticalLodMore={loadMoreWeeks}
+              className="w-full h-full"
+              scrollResetKey={activeFilterKey}
+              enableScrollArea
+            >
+              <div className="min-w-225">
+                {weeks.map((week, index) => (
+                  <Fragment key={`${resolvedFilterKey}:${week.key}`}>
+                    {index === 0 ? (
+                      <div className="sticky top-0 z-20 bg-surface-white">
+                        <HeaderRow
+                          dates={week.dates}
+                          showHeading={true}
+                          breadcrumbs={{
+                            items: [
+                              { label: "Week", interactive: false },
+                              { label: "Member", interactive: false },
+                              { label: "Project", interactive: false },
+                              { label: "Task", interactive: false },
+                            ],
+                            highlightLastItem: false,
+                            size: "sm",
+                            crumbClassName:
+                              "first:pl-0 last:pr-0 px-0.5 py-0 font-[420]",
+                            className: "pl-[8px]",
+                          }}
+                        />
+                      </div>
+                    ) : null}
 
-                <div className={cn("animate-fade-in", index === 0 && "mt-4")}>
-                  <TeamTimesheetWeek
-                    week={week}
-                    defaultExpanded={index === 0}
-                    setSelectedTask={setSelectedTask}
-                    openWeeklyApproval={(employee, date) =>
-                      setWeeklyApproval({ employee, startDate: date })
-                    }
-                  />
-                </div>
-              </Fragment>
-            ))}
-          </div>
-        </InfiniteScroll>
+                    <div
+                      className={cn("animate-fade-in", index === 0 && "mt-4")}
+                    >
+                      <TeamTimesheetWeek
+                        week={week}
+                        defaultExpanded={index === 0}
+                        setSelectedTask={setSelectedTask}
+                        openWeeklyApproval={(employee, date) =>
+                          setWeeklyApproval({ employee, startDate: date })
+                        }
+                      />
+                    </div>
+                  </Fragment>
+                ))}
+              </div>
+            </InfiniteScroll>
+          )}
+        </LoadingOverlay>
       )}
-
-      {isFilteredDataLoading ? (
-        <Spinner
-          isFull
-          className="absolute top-0 left-0 w-full h-full cursor-wait"
-        />
-      ) : null}
     </>
   );
 };
 
 export const TeamTimesheetTable = () => {
   return (
-    <div className="w-full flex-1 min-h-0 py-3.5 px-5 relative">
+    <div className="w-full flex-1 min-h-0 flex flex-col py-3.5 px-5 relative">
       <SubHeader />
       <TeamTimesheetGrid />
     </div>
