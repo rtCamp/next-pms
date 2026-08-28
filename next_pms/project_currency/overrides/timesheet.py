@@ -18,14 +18,14 @@ class TimesheetOverwrite(Timesheet):
     def calculate_hours(self):
         return
 
-    def update_task_and_project(self):
+    def update_task_and_project(self) -> None:
         if self.flags.costing_calculation_queued:
             return
 
         self.flags.costing_calculation_queued = True
         tasks, projects = get_affected_tasks_and_projects(self.time_logs)
 
-        enqueue_update_task_and_project(self.name, tasks=tasks, projects=projects)
+        enqueue_update_task_and_project(tasks=tasks, projects=projects)
 
     def update_billing_hours(self, args):
         if args.is_billable:
