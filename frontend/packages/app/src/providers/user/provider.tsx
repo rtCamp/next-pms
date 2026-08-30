@@ -95,6 +95,10 @@ export const UserProvider: FC<PropsWithChildren> = ({ children }) => {
     }
   }
 
+  const hasEmployee = employeeData
+    ? Boolean(employeeData.message?.employee)
+    : null;
+
   useEffect(() => {
     if (!employeeData) {
       return;
@@ -137,6 +141,7 @@ export const UserProvider: FC<PropsWithChildren> = ({ children }) => {
         state: {
           isLoading: isAuthLoading,
           employeeId,
+          hasEmployee,
           employeeName,
           workingHours,
           workingFrequency,
