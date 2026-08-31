@@ -692,7 +692,6 @@ class TestTeamViewFlatGridHolidays(_TeamViewBase):
         super().setUpClass()
         cls.company = get_default_company()
         cls.write_user = cls._make_user(FILTER_WRITE_USER, projects_user=True)
-        # No allocations at all — proves holidays surface independent of allocation status.
         cls.employee = cls._make_employee("Tvh Holiday Employee")
         cls.only = json.dumps([cls.employee])
 
@@ -730,8 +729,6 @@ class TestTeamViewFlatGridHolidays(_TeamViewBase):
         return self._call(employee_id=self.only, need_hours_summary=False)["holidays"]
 
     def test_unallocated_employee_still_gets_holidays(self):
-        # #2003: an employee with no resource allocation in the window must still surface
-        # their holidays, so the FE can mark holiday cells even on otherwise-empty days.
         result = self._call(employee_id=self.only, need_hours_summary=False)
         self.assertEqual(result["resource_allocations"], [])
         holiday_dates = {getdate(holiday["holiday_date"]) for holiday in result["holidays"]}
@@ -742,8 +739,7 @@ class TestTeamViewFlatGridHolidays(_TeamViewBase):
         self.assertNotIn(getdate(self.OUT_OF_WINDOW_HOLIDAY_DATE), holiday_dates)
 
     def test_excludes_weekly_off_placeholders(self):
-        # weekly_off entries (Saturday/Sunday) are routine, not named holidays, and must be
-        # dropped so the FE doesn't mark every weekend as a "holiday".
+        # weekly_off rows mark the routine weekend, so keeping them would flag every weekend.
         for holiday in self._holidays():
             self.assertNotEqual(holiday["description"], "Saturday")
 
@@ -755,9 +751,8 @@ class TestTeamViewFlatGridHolidays(_TeamViewBase):
         self.assertEqual(holiday["description"], "Testing holiday")
 
     def test_editing_the_holiday_list_invalidates_the_cached_payload(self):
-        # #2003 AC: "the calendar shall accurately reflect updates when holidays are added,
-        # modified, or removed". The team view is @redis_cache()d, so a Holiday List save
-        # has to drop that cache or the page keeps serving the pre-edit holidays.
+        # The view is @redis_cache()d, so a save that misses the invalidation would keep
+        # serving the pre-edit holidays.
         added_date = "2026-06-18"
         # The redis cache outlives the per-test rollback, so drop it for the next test.
         self.addCleanup(frappe.clear_cache)

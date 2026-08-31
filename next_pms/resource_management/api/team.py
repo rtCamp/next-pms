@@ -135,9 +135,7 @@ def get_resource_management_team_view_data(
                     "name": "HR-LAP-00001",
                 },
             ],
-            # every employee's holidays for the window, independent of allocation or
-            # leave — an employee with nothing else booked still gets their holidays
-            "holidays": [
+            "holidays": [  # independent of allocation — an unallocated employee still gets these
                 {
                     "employee": "HR-EMP-00001",
                     "holiday_date": datetime.date(2026, 5, 25),
@@ -199,9 +197,7 @@ def get_resource_management_team_view_data(
                                 },
                             ],
                         },
-                        # a holiday zeroes the day's working hours, so it always lands in
-                        # the sparse map even with no allocation; `holiday_name` is
-                        # emitted only on such a day
+                        # a holiday zeroes the day's working hours, so it lands here with no allocation
                         "2026-05-25": {
                             "date": "2026-05-25",
                             "total_allocated_hours": 0.0,
@@ -540,9 +536,7 @@ def _get_resource_management_team_view_data(
     if not need_hours_summary:
         leaves_map, holidays_map = get_leave_calendars(employees, dates[0].get("start_date"), dates[-1].get("end_date"))
         all_leave_data = [leave for employee_leaves in leaves_map.values() for leave in employee_leaves]
-        # Holidays apply to every employee regardless of allocation, so they are
-        # collected independently of leaves — a weekly_off entry marks the routine
-        # weekend, not a named holiday, so it is dropped here.
+        # weekly_off rows mark the routine weekend, not a named holiday.
         all_holiday_data = [
             {
                 "employee": employee_name,
