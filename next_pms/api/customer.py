@@ -17,6 +17,8 @@ def generate_unique_abbr(customer_name: str, exclude_name: str | None = None) ->
     each word in order, so we prefetch all existing customer abbrs matching
     that shape (e.g. ``A%W%C%``) in one query and check collisions in memory.
     """
+    frappe.has_permission("Customer", ptype="read", throw=True)
+
     words = (customer_name or "").split()
     if not words:
         frappe.throw(frappe._("Abbreviation is mandatory"))
