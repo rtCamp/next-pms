@@ -569,7 +569,8 @@ def _approve_or_reject_timesheet(
         for timesheet in timesheets_to_process:
             doc = get_doc("Timesheet", timesheet.name)
             doc.custom_approval_status = status
-            doc.custom_rejection_reason = note if status == "Rejected" else None
+            for log in doc.time_logs:
+                log.custom_rejection_reason = note if status == "Rejected" else None
             doc.save(ignore_permissions=has_permission)
             if status == "Approved":
                 doc.submit()
