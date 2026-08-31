@@ -30,9 +30,9 @@ function TrackingContent() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex flex-col gap-3 md:flex-row md:*:basis-1/2!">
+      <div className="flex flex-col gap-3 lg:flex-row lg:*:basis-1/2!">
         <div className="flex min-w-0 flex-1 flex-col justify-between gap-3">
-          <div className="flex flex-col gap-3 md:flex-row">
+          <div className="flex flex-col gap-3 lg:flex-row">
             <KnowledgePoint title="Company" value={tracking.company} />
             <KnowledgePoint
               title="Total project value"
@@ -44,7 +44,7 @@ function TrackingContent() {
               )}&project=${encodeURIComponent(projectId)}`}
             />
           </div>
-          <div className="flex flex-col gap-3 md:flex-row">
+          <div className="flex flex-col gap-3 lg:flex-row">
             <KnowledgePoint
               title="Projected profit"
               value={currencyFormat(currency).format(
@@ -60,17 +60,17 @@ function TrackingContent() {
         <TaskCompletionCell />
       </div>
 
-      <div className="flex flex-col gap-3 md:flex-row">
+      <div className="flex flex-col gap-3 lg:flex-row">
         <HoursUsageCell />
         <InvoiceBurnCell />
       </div>
 
-      <div className="flex flex-col gap-3 md:flex-row">
+      <div className="flex flex-col gap-3 lg:flex-row">
         <BudgetBurnCell />
         <CostBurnCell />
       </div>
 
-      <div className="flex flex-col gap-3 md:flex-row">
+      <div className="flex flex-col gap-3 lg:flex-row">
         <KnowledgePoint
           title="Lifetime value to date"
           value={currencyFormat(currency).format(
