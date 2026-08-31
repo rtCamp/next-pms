@@ -4,6 +4,8 @@
 # import frappe
 from frappe.model.document import Document
 
+from next_pms.resource_management.doctype.resource_allocation.resource_allocation import clear_cache
+
 
 class TimesheetSettings(Document):
     # begin: auto-generated types
@@ -42,4 +44,8 @@ class TimesheetSettings(Document):
         weekly_approval_reminder_template: DF.Link | None
     # end: auto-generated types
 
-    pass
+    def on_update(self):
+        if self.has_value_changed("default_currency"):
+            # The resource management views cache their payload with the rates already
+            # restated in this currency, so a stale cache keeps serving the old one.
+            clear_cache()

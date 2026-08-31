@@ -517,6 +517,7 @@ def _get_employees_resrouce_data_for_given_project(
         )
     }
     apply_working_hours_fallback(all_employees.values())
+    convert_ctc_to_allocation_currency(all_employees.values())
 
     working_dates = []
     current_date = start_date
