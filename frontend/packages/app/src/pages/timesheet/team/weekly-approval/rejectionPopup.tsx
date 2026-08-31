@@ -68,10 +68,11 @@ const RejectionPopup = () => {
 
         {/* Reason textarea */}
         <div className="space-y-1.5">
-          <FormLabel size="md" required>
+          <FormLabel id="rejection-reason" size="md" required>
             Reason
           </FormLabel>
           <Textarea
+            id="rejection-reason"
             value={reason}
             placeholder="Enter reason for rejection"
             onChange={(e) => {

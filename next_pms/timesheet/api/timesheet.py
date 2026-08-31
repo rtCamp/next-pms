@@ -548,7 +548,7 @@ def get_timesheet(dates: list, employee: str, search: str | None = None, parsed_
     timesheets = frappe.get_all(
         "Timesheet",
         filters=ts_filters,
-        fields=["name", "custom_approval_status", "custom_rejection_reason", "custom_weekly_rejection_reason"],
+        fields=["name", "custom_approval_status", "custom_weekly_rejection_reason"],
         ignore_permissions=employee_has_higher_access(employee, ptype="read"),
     )
 
@@ -637,7 +637,6 @@ def get_timesheet(dates: list, employee: str, search: str | None = None, parsed_
         entry = {field: log.get(field) for field in ALLOWED_TIMESHET_DETAIL_FIELDS}
         parent_ts = ts_parent_map.get(log.get("parent"))
         entry["custom_approval_status"] = parent_ts.get("custom_approval_status") if parent_ts else None
-        entry["custom_rejection_reason"] = parent_ts.get("custom_rejection_reason") if parent_ts else None
         entry["custom_weekly_rejection_reason"] = parent_ts.get("custom_weekly_rejection_reason") if parent_ts else None
         data[task_name]["data"].append(entry)
 
