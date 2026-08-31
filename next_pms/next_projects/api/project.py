@@ -1293,7 +1293,7 @@ def get_project_sidebar(project: str):
     if not frappe.db.exists("Project", project):
         frappe.throw(frappe._("Project '{0}' does not exist").format(project), frappe.DoesNotExistError)
 
-    project_doc = frappe.get_doc("Project", project)
+    project_doc = frappe.get_doc("Project", project, check_permission=True)
 
     is_retainer = project_doc.get("custom_billing_type") == "Retainer"
 
