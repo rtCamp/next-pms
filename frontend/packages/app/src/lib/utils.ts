@@ -70,6 +70,36 @@ export function toKebabCase(value?: string | null): string | undefined {
     .toLowerCase();
 }
 
+const SAFE_URL_PROTOCOLS = new Set(["http:", "https:", "mailto:"]);
+
+/**
+ * Normalizes a user-supplied URL for use in an anchor `href`, returning
+ * `undefined` when the value cannot be resolved to a safe absolute URL.
+ *
+ * Values stored in plain `Data` fields are unvalidated, so they may carry a
+ * dangerous scheme (`javascript:`, `file:`, custom protocol handlers) or no
+ * scheme at all. A scheme-less value such as `example.com` would otherwise
+ * resolve relative to the current page and navigate inside the SPA, so it is
+ * promoted to `https://`. Anything outside SAFE_URL_PROTOCOLS is rejected.
+ */
+export function safeExternalUrl(value?: string | null): string | undefined {
+  if (!value) {
+    return undefined;
+  }
+
+  const trimmed = value.trim();
+  const candidate = /^[a-z][a-z0-9+.-]*:/i.test(trimmed)
+    ? trimmed
+    : `https://${trimmed.replace(/^\/+/, "")}`;
+
+  try {
+    const url = new URL(candidate);
+    return SAFE_URL_PROTOCOLS.has(url.protocol) ? url.href : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
 export function kebabToTitleCase(value: string): string {
   return value
     .split("-")
