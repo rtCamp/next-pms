@@ -1225,6 +1225,7 @@ def build_chunk_context(employees: list, dates: list, parsed_filters: dict):
             "note",
             "custom_approval_status",
             "custom_weekly_approval_status",
+            "custom_weekly_rejection_reason",
         ],
     )
     ts_parent_map = {ts.name: ts for ts in all_timesheets}
@@ -1374,6 +1375,9 @@ def build_employee_week_details(
                 entry = {field: log.get(field) for field in ALLOWED_TIMESHET_DETAIL_FIELDS}
                 parent_ts = ts_parent_map.get(ts_name)
                 entry["custom_approval_status"] = parent_ts.get("custom_approval_status") if parent_ts else None
+                entry["custom_weekly_rejection_reason"] = (
+                    parent_ts.get("custom_weekly_rejection_reason") if parent_ts else None
+                )
                 tasks[task_name]["data"].append(entry)
 
         week_status = context["week_status_map"].get((employee_name, date_info["start_date"]), "Not Submitted")

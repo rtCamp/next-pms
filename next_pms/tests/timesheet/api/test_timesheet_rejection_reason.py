@@ -228,6 +228,24 @@ class TestTimesheetRejectionReason(IntegrationTestCase):
                     entries_by_parent[entry["parent"]].append(entry)
         return entries_by_parent
 
+    def collect_personal_and_team_entries(self):
+        personal = get_timesheet_data(employee=self.employee, start_date=MON, max_week=1)
+        team = get_team_timesheet_data(start_date=MON, reports_to=self.manager)
+        member = next(m for m in team["members"] if m["employee"] == self.employee)
+        return (
+            self.collect_entries_by_parent(personal["data"]),
+            self.collect_entries_by_parent({MON: {"tasks": member["tasks"]}}),
+        )
+
+    def assert_entries_carry_weekly_rejection_reason(self, entries_by_parent, by_date, expected_reasons):
+        expected = set(expected_reasons) if expected_reasons else set()
+        for date in WEEK_DATES:
+            entries = entries_by_parent[by_date[date].name]
+            self.assertTrue(entries, f"expected at least one time entry for {date}")
+            for entry in entries:
+                actual = {line for line in (entry["custom_weekly_rejection_reason"] or "").split("\n") if line}
+                self.assertEqual(actual, expected, f"unexpected weekly rejection reason on {date} payload")
+
     def assert_entries_carry_fields(self, entries_by_parent, by_date):
         def assert_day(date, status, reason):
             # The approval status comes from the parent Timesheet and the rejection
@@ -238,6 +256,8 @@ class TestTimesheetRejectionReason(IntegrationTestCase):
             for entry in entries:
                 self.assertEqual(entry["custom_approval_status"], status)
                 self.assertEqual(entry["custom_rejection_reason"], reason)
+                # Partial reject must not surface a weekly reason on the payload.
+                self.assertFalse(entry["custom_weekly_rejection_reason"])
 
         # A rejected timesheet surfaces its rejection reason.
         assert_day(TUE, "Rejected", TUE_REASON)
@@ -255,15 +275,9 @@ class TestTimesheetRejectionReason(IntegrationTestCase):
         # parent name we look each entry up by.
         by_date = self.get_timesheets_by_date()
 
-        # get_timesheet_data returns data[week]["tasks"][task]["data"][...]
-        personal = get_timesheet_data(employee=self.employee, start_date=MON, max_week=1)
-        self.assert_entries_carry_fields(self.collect_entries_by_parent(personal["data"]), by_date)
-
-        # get_team_timesheet_data is single-week now: the member row carries its tasks
-        # directly, instead of a timesheet_details map keyed by week.
-        team = get_team_timesheet_data(start_date=MON, reports_to=self.manager)
-        member = next(m for m in team["members"] if m["employee"] == self.employee)
-        self.assert_entries_carry_fields(self.collect_entries_by_parent({MON: {"tasks": member["tasks"]}}), by_date)
+        personal_entries, team_entries = self.collect_personal_and_team_entries()
+        self.assert_entries_carry_fields(personal_entries, by_date)
+        self.assert_entries_carry_fields(team_entries, by_date)
 
     def test_reject_resubmit_approve_lifecycle(self):
         # Step 1 (done in setUp): all 5 days pending, no rejection reason yet.
@@ -323,6 +337,10 @@ class TestTimesheetRejectionReason(IntegrationTestCase):
             self.assertEqual(by_date[date].custom_weekly_approval_status, "Rejected")
         self.assert_weekly_rejection_reason(by_date, [WEEK_REASON])
 
+        personal_entries, team_entries = self.collect_personal_and_team_entries()
+        self.assert_entries_carry_weekly_rejection_reason(personal_entries, by_date, [WEEK_REASON])
+        self.assert_entries_carry_weekly_rejection_reason(team_entries, by_date, [WEEK_REASON])
+
     def test_distinct_day_reasons_combined_when_week_rejected(self):
         for date, reason in DAY_REASONS.items():
             self.decide_timesheets("Rejected", [date], note=reason)
@@ -333,6 +351,10 @@ class TestTimesheetRejectionReason(IntegrationTestCase):
             self.assert_day_row_reasons(by_date, date, reason)
             self.assertEqual(by_date[date].custom_weekly_approval_status, "Rejected")
         self.assert_weekly_rejection_reason(by_date, DAY_REASONS.values())
+
+        personal_entries, team_entries = self.collect_personal_and_team_entries()
+        self.assert_entries_carry_weekly_rejection_reason(personal_entries, by_date, DAY_REASONS.values())
+        self.assert_entries_carry_weekly_rejection_reason(team_entries, by_date, DAY_REASONS.values())
 
     def test_weekly_rejection_reason_cleared_when_leaving_rejected(self):
         self.decide_timesheets("Rejected", WEEK_DATES, note=WEEK_REASON)

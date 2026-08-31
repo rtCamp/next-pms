@@ -11,22 +11,22 @@ def execute():
     weekly rejection reason field that used to sit after it.
     """
     setup_timesheet_rejection_reason_field()
-
-    timesheets = frappe.get_all(
-        "Timesheet",
-        filters={"custom_rejection_reason": ["is", "set"], "docstatus": ["!=", 2]},
-        fields=["name", "custom_rejection_reason"],
-    )
-    for timesheet in timesheets:
-        frappe.db.set_value(
-            "Timesheet Detail",
-            {"parent": timesheet.name},
-            "custom_rejection_reason",
-            timesheet.custom_rejection_reason,
-            update_modified=False,
-        )
-
     parent_field = frappe.db.get_value("Custom Field", {"dt": "Timesheet", "fieldname": "custom_rejection_reason"})
+    if parent_field and frappe.db.has_column("Timesheet", "custom_rejection_reason"):
+        timesheets = frappe.get_all(
+            "Timesheet",
+            filters={"custom_rejection_reason": ["is", "set"], "docstatus": ["!=", 2]},
+            fields=["name", "custom_rejection_reason"],
+        )
+        for timesheet in timesheets:
+            frappe.db.set_value(
+                "Timesheet Detail",
+                {"parent": timesheet.name},
+                "custom_rejection_reason",
+                timesheet.custom_rejection_reason,
+                update_modified=False,
+            )
+
     if parent_field:
         frappe.delete_doc("Custom Field", parent_field, force=True)
 
