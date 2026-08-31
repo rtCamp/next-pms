@@ -5,6 +5,7 @@ from next_pms.api.utils import error_logger
 COSTING_QUEUE = "pms_costings_queue"
 COSTING_QUEUE_FALLBACK = "long"
 
+
 def enqueue_update_task_and_project(tasks: list[str], projects: list[str]) -> None:
     """Queue the costing recalculation for the given tasks/projects."""
     if not tasks and not projects:

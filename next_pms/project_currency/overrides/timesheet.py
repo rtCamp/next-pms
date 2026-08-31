@@ -23,7 +23,11 @@ class TimesheetOverwrite(Timesheet):
             return
 
         self.flags.costing_calculation_queued = True
-        tasks, projects = get_affected_tasks_and_projects(self.time_logs)
+        time_logs = list(self.time_logs)
+        if previous_doc := self.get_doc_before_save():
+            time_logs.extend(previous_doc.time_logs)
+
+        tasks, projects = get_affected_tasks_and_projects(time_logs)
 
         enqueue_update_task_and_project(tasks=tasks, projects=projects)
 
