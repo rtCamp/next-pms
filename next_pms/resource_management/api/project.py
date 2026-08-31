@@ -9,6 +9,7 @@ from frappe.utils import add_days
 from next_pms.resource_management.api.utils.helpers import (
     add_customer_data_if_not_exists,
     allocation_hours_for_date,
+    convert_ctc_to_allocation_currency,
     filter_project_list,
     get_dates_date,
     normalize_project_view_filters,
@@ -309,6 +310,7 @@ def _get_resource_management_project_view_data(
         else {}
     )
     apply_working_hours_fallback(employees.values())
+    convert_ctc_to_allocation_currency(employees.values())
 
     leaves_map, holidays_map = get_leave_calendars(
         employees.values(), weeks[0].get("start_date"), weeks[-1].get("end_date")
