@@ -36,6 +36,8 @@ interface WeekRowBaseProps extends Omit<BaseWeekRowProps, "status"> {
     status: ApprovalStatusType;
   }) => React.ReactNode;
   approvalPendingCount?: number;
+  onCollapsedChange?: (collapsed: boolean) => void;
+  triggerClassName?: string;
 }
 
 type ReadOnlyWeekRowProps = WeekRowBaseProps & {
@@ -72,6 +74,7 @@ export interface MemberRowProps extends Omit<
   workingFrequency: WorkingFrequency;
   status: ApprovalStatusLabelType;
   disabled?: boolean;
+  backdateRestrictedBefore?: string | null;
   onCellClick?: (date: string) => void;
   children?: (props: {
     totalTimeEntriesInHours: number[];
@@ -90,6 +93,7 @@ export interface ProjectRowProps extends Omit<
   hideTime?: boolean;
   disabled?: boolean;
   lockApproved?: boolean;
+  backdateRestrictedBefore?: string | null;
   onCellClick?: (date: string) => void;
   children?: React.ReactNode;
 }
@@ -106,6 +110,7 @@ export interface TaskRowProps extends Omit<
   dailyWorkingHours?: number;
   totalTimeEntriesInHours?: number[];
   employee?: string;
+  backdateRestrictedBefore?: string | null;
   hideLikeButton?: boolean;
   setSelectedTask?: (taskKey: string) => void;
 }

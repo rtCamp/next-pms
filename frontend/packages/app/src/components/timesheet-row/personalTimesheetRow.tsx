@@ -13,6 +13,7 @@ import {
 import { useImportedTasks } from "@/hooks/useImportedTasks";
 import { useTimesheetOutletContext } from "@/pages/timesheet/outletContext";
 import { usePersonalTimesheet } from "@/pages/timesheet/personal/context";
+import { useUser } from "@/providers/user";
 import { WorkingFrequency } from "@/types";
 import type { HolidayProp, LeaveProps, TaskProps } from "@/types/timesheet";
 import { ProjectRow } from "./components/row/projectRow";
@@ -59,6 +60,9 @@ export const PersonalTimesheetRow = ({
   hideLikeButton,
 }: PersonalTimesheetRowProps) => {
   const { openAddTimeDialog } = useTimesheetOutletContext();
+  const backdateRestrictedBefore = useUser(
+    ({ state }) => state.backdateRestrictedBefore,
+  );
 
   // Get liked tasks from context
   const likedTaskData = usePersonalTimesheet(
@@ -109,6 +113,7 @@ export const PersonalTimesheetRow = ({
         workingFrequency={workingFrequency}
         status={status}
         className="pl-3"
+        triggerClassName="sticky top-7 z-10 bg-surface-white"
         onButtonClick={onButtonClick}
         collapsed={collapsed}
       >
@@ -151,6 +156,7 @@ export const PersonalTimesheetRow = ({
                 hideTime={hideTotalRow}
                 className="pl-7.5"
                 disabled={disabled}
+                backdateRestrictedBefore={backdateRestrictedBefore}
                 onCellClick={(date) =>
                   openAddTimeDialog({
                     date,
@@ -172,6 +178,7 @@ export const PersonalTimesheetRow = ({
                     dailyWorkingHours={dailyWorkingHours}
                     totalTimeEntriesInHours={totalTimeEntriesInHours}
                     employee={employee}
+                    backdateRestrictedBefore={backdateRestrictedBefore}
                     setSelectedTask={setSelectedTask}
                     hideLikeButton={hideLikeButton}
                   />

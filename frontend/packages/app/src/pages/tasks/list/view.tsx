@@ -2,8 +2,12 @@
  * External dependencies.
  */
 import { useCallback, useState } from "react";
-import { getTodayDate, mergeClassNames as cn } from "@next-pms/design-system";
-import { DeleteActionDialog } from "@next-pms/design-system/components";
+import { getTodayDate } from "@next-pms/design-system";
+import {
+  DeleteActionDialog,
+  LoadingOverlay,
+  Spinner,
+} from "@next-pms/design-system/components";
 import {
   ListHeader,
   ListHeaderItem,
@@ -35,12 +39,15 @@ const SORT_FIELD_BY_COLUMN = new Map(
 function TaskList() {
   const data = useTaskList((c) => c.state.data);
   const isLoading = useTaskList((c) => c.state.isLoading);
+  const isInitialLoad = useTaskList((c) => c.state.isInitialLoad);
+  const isFilterRequest = useTaskList((c) => c.state.isFilterRequest);
   const hasMore = useTaskList((c) => c.state.hasMore);
   const loadMore = useTaskList((c) => c.actions.loadMore);
   const deleteTask = useTaskList((c) => c.actions.deleteTask);
   const openEditTaskModal = useTaskList((c) => c.actions.openEditTaskModal);
   const { sort, setSort } = useTaskFilters();
   const roles = useUser(({ state }) => state.roles);
+  const userId = useUser(({ state }) => state.userId);
   const showTeamTaskLog =
     roles.includes("Projects Manager") || roles.includes("Timesheet Manager");
   const [openTask, setOpenTask] = useState<string | null>(null);
@@ -67,80 +74,115 @@ function TaskList() {
 
   return (
     <>
-      <ListView
-        className="px-5 py-0 scrollbar-thin"
-        columns={TASK_LIST_COLUMNS}
-        rows={data}
-        rowKey="name"
-        options={{
-          options: {
-            selectable: false,
-            showTooltip: true,
-            resizeColumn: false,
-          },
-          slots: {
-            cell: TaskListCell,
-          },
-        }}
-      >
-        <ListHeader className="mb-0 rounded-none bg-transparent border-b border-outline-gray-1 p-2 gap-2">
-          {TASK_LIST_COLUMNS.map((column) => {
-            const sortField = SORT_FIELD_BY_COLUMN.get(column.key);
-            return (
-              <ListHeaderItem key={column.key} item={column}>
-                <div
-                  className={cn(
-                    "flex h-7 items-center gap-1 py-1.5",
-                    sortField && "cursor-pointer select-none",
-                  )}
-                  onClick={
-                    sortField ? () => handleHeaderClick(sortField) : undefined
-                  }
-                >
-                  <span className="truncate">{column.label}</span>
-                  {sortField &&
-                    sort.field === sortField &&
-                    (sort.order === "asc" ? (
-                      <ArrowUp className="size-3.5 shrink-0 text-ink-gray-7" />
-                    ) : (
-                      <ArrowDown className="size-3.5 shrink-0 text-ink-gray-7" />
-                    ))}
-                </div>
-              </ListHeaderItem>
-            );
-          })}
-        </ListHeader>
-        <ListRows>
-          {data.length === 0 ? (
-            <p className="py-6 text-center text-base text-ink-gray-5">
-              No tasks found.
-            </p>
-          ) : (
-            <InfiniteScroll
-              isLoading={isLoading}
-              hasMore={hasMore}
-              verticalLodMore={loadMore}
-              count={TASK_LIST_PAGE_SIZE}
+      <LoadingOverlay active={isFilterRequest}>
+        {isInitialLoad ? (
+          <Spinner isFull />
+        ) : (
+          <ListView
+            role="table"
+            aria-label="Tasks"
+            className="px-5 py-0 scrollbar-thin"
+            columns={TASK_LIST_COLUMNS}
+            rows={data}
+            rowKey="name"
+            options={{
+              options: {
+                selectable: false,
+                showTooltip: true,
+                resizeColumn: false,
+              },
+              slots: {
+                cell: TaskListCell,
+              },
+            }}
+          >
+            <ListHeader
+              role="row"
+              className="mb-0 rounded-none bg-transparent border-b border-outline-gray-1 p-2 gap-2"
             >
-              {data.map((row) => (
-                <ListRow key={row.name} row={row}>
-                  {TASK_LIST_COLUMNS.map((column) => (
-                    <TaskListCell
-                      key={column.key}
-                      row={row}
-                      column={column}
-                      onOpenTask={setOpenTask}
-                      onAddTime={handleAddTime}
-                      onEditTask={openEditTaskModal}
-                      onDeleteTask={setDeleteTaskName}
-                    />
+              {TASK_LIST_COLUMNS.map((column) => {
+                const sortField = SORT_FIELD_BY_COLUMN.get(column.key);
+                const isSorted = Boolean(sortField) && sort.field === sortField;
+                return (
+                  <ListHeaderItem
+                    key={column.key}
+                    role="columnheader"
+                    aria-sort={
+                      sortField
+                        ? isSorted
+                          ? sort.order === "asc"
+                            ? "ascending"
+                            : "descending"
+                          : "none"
+                        : undefined
+                    }
+                    item={column}
+                  >
+                    {sortField ? (
+                      <button
+                        type="button"
+                        className="flex h-7 min-w-0 items-center gap-1 rounded-sm py-1.5 select-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-outline-gray-3"
+                        onClick={() => handleHeaderClick(sortField)}
+                      >
+                        <span className="truncate">{column.label}</span>
+                        {isSorted &&
+                          (sort.order === "asc" ? (
+                            <ArrowUp className="size-3.5 shrink-0 text-ink-gray-7" />
+                          ) : (
+                            <ArrowDown className="size-3.5 shrink-0 text-ink-gray-7" />
+                          ))}
+                      </button>
+                    ) : (
+                      <div className="flex h-7 items-center gap-1 py-1.5">
+                        <span className="truncate">{column.label}</span>
+                      </div>
+                    )}
+                  </ListHeaderItem>
+                );
+              })}
+            </ListHeader>
+            <ListRows role="rowgroup">
+              {!isFilterRequest && data.length === 0 ? (
+                <div role="row">
+                  <p
+                    role="cell"
+                    className="py-6 text-center text-base text-ink-gray-5"
+                  >
+                    No tasks found.
+                  </p>
+                </div>
+              ) : (
+                <InfiniteScroll
+                  role="presentation"
+                  isLoading={isLoading}
+                  hasMore={hasMore}
+                  verticalLodMore={loadMore}
+                  count={TASK_LIST_PAGE_SIZE}
+                >
+                  {data.map((row) => (
+                    <ListRow key={row.name} role="row" row={row}>
+                      {TASK_LIST_COLUMNS.map((column) => (
+                        <div key={column.key} role="cell" className="min-w-0">
+                          <TaskListCell
+                            row={row}
+                            column={column}
+                            onOpenTask={setOpenTask}
+                            onAddTime={handleAddTime}
+                            onEditTask={openEditTaskModal}
+                            onDeleteTask={setDeleteTaskName}
+                            userId={userId}
+                            roles={roles}
+                          />
+                        </div>
+                      ))}
+                    </ListRow>
                   ))}
-                </ListRow>
-              ))}
-            </InfiniteScroll>
-          )}
-        </ListRows>
-      </ListView>
+                </InfiniteScroll>
+              )}
+            </ListRows>
+          </ListView>
+        )}
+      </LoadingOverlay>
       {openTask &&
         (showTeamTaskLog ? (
           <TeamTaskLog

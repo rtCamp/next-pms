@@ -35,18 +35,9 @@ const ApprovalPopup = () => {
   } = useWeeklyApproval();
 
   const allEntries = groupedByDay.flatMap((dayGroup) => dayGroup.entries);
-  const rejectedEntriesCount = allEntries.filter(
-    (entry) => entry.approvalStatus === "Rejected",
-  ).length;
-  const hasRejectedEntries = rejectedEntriesCount > 0;
-  const isFullyRejected =
-    hasRejectedEntries && rejectedEntriesCount === allEntries.length;
-
-  const summaryText = hasRejectedEntries
-    ? isFullyRejected
-      ? "This timesheet is rejected."
-      : "This timesheet is partially rejected."
-    : null;
+  const weeklyRejectionReason = allEntries
+    .map((entry) => entry.weeklyRejectionReason?.trim())
+    .find((reason) => Boolean(reason));
 
   return (
     <Dialog.Popup className="fixed right-0 top-0 max-w-120 w-full h-[calc(100vh-20px)] m-2.5 z-101 bg-surface-modal rounded-xl shadow-xl flex flex-col">
@@ -68,8 +59,15 @@ const ApprovalPopup = () => {
           </Dialog.Close>
         </div>
       </div>
-      {summaryText ? (
-        <p className="p-4 text-sm text-ink-red-4">{summaryText}</p>
+      {weeklyRejectionReason ? (
+        <div className="p-4 text-sm text-ink-red-4 space-y-1">
+          <p className="font-medium text-md text-ink-red-4">
+            Weekly Rejection Reason:
+          </p>
+          <p className="text-ink-red-5 whitespace-pre-line">
+            {weeklyRejectionReason}
+          </p>
+        </div>
       ) : null}
       {/* Content */}
       <div className="flex-1 overflow-y-auto scrollbar">

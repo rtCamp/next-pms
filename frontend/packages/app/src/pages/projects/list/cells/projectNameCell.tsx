@@ -1,6 +1,7 @@
 /**
  * External dependencies.
  */
+import { useRef } from "react";
 import { Link } from "react-router";
 import { mergeClassNames } from "@next-pms/design-system";
 import { Tooltip } from "@rtcamp/frappe-ui-react";
@@ -24,9 +25,10 @@ export function ProjectNameCell({
   riskLevel?: string;
 }) {
   const risk = pickAllowed<RagStatus>(riskLevel, RAG_STATUS);
+  const nameRef = useRef<HTMLSpanElement>(null);
 
   return (
-    <Tooltip text={name}>
+    <Tooltip text={name} showWhen="truncated" truncationRef={nameRef}>
       <Link
         to={`${ROUTES.project}/${id}`}
         className={mergeClassNames(
@@ -36,7 +38,9 @@ export function ProjectNameCell({
         )}
       >
         {risk && <Dot risk={risk} />}
-        <span className="ml-2 truncate">{name}</span>
+        <span ref={nameRef} className="ml-2 truncate">
+          {name}
+        </span>
       </Link>
     </Tooltip>
   );

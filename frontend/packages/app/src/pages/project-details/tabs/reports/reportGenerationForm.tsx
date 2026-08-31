@@ -2,7 +2,7 @@
  * External dependencies.
  */
 import { useEffect, useMemo } from "react";
-import { formatDateRange } from "@next-pms/design-system/date";
+import { formatDateRange, getTodayDate } from "@next-pms/design-system/date";
 import {
   Button,
   Checkbox,
@@ -140,6 +140,7 @@ export function ReportGenerationForm() {
                 onChange={(value) => field.handleChange(value)}
                 formatter={formatDateRange}
                 placeholder="Select duration"
+                disallowAfter={getTodayDate()}
                 footer={({ setRange, close }) => (
                   <div className="flex flex-wrap items-center gap-1">
                     {durationPresets.map((preset) => (

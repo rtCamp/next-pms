@@ -2,7 +2,12 @@
  * External dependencies.
  */
 import { useEffect, useState } from "react";
-import { Avatar, Button, TextEditor } from "@rtcamp/frappe-ui-react";
+import {
+  Avatar,
+  Button,
+  TextEditor,
+  TextEditorProps,
+} from "@rtcamp/frappe-ui-react";
 
 /**
  * Internal dependencies.
@@ -10,6 +15,7 @@ import { Avatar, Button, TextEditor } from "@rtcamp/frappe-ui-react";
 import { mergeClassNames as cn, stripTags } from "../../utils";
 
 export type CommentInputProps = {
+  getMentions?: TextEditorProps["mentions"];
   onSubmit: (comment: string) => Promise<void>;
   placeholder?: string;
   initialValue?: string;
@@ -25,6 +31,7 @@ export type CommentInputProps = {
 };
 
 export function CommentInput({
+  getMentions,
   onSubmit,
   placeholder = "Add a comment...",
   initialValue = "",
@@ -106,6 +113,7 @@ export function CommentInput({
     <div className="flex w-full flex-col gap-2">
       <div className="flex w-full flex-col gap-2">
         <TextEditor
+          mentions={getMentions}
           key={editorKey}
           content={draft}
           editable={!isSubmitting}

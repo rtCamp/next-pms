@@ -1,6 +1,7 @@
 /**
  * External dependencies.
  */
+import { useRef } from "react";
 import { Tooltip } from "@rtcamp/frappe-ui-react";
 import { Sparkle, Zap } from "@rtcamp/frappe-ui-react/icons";
 
@@ -13,10 +14,11 @@ import type { ProjectTimelineItem } from "./types";
 type EventPillProps = { item: ProjectTimelineItem; truncate?: boolean };
 
 export function EventPill({ item, truncate = false }: EventPillProps) {
+  const titleRef = useRef<HTMLSpanElement>(null);
   const isMilestone = item.type === "Milestone";
 
   return (
-    <Tooltip text={item.title}>
+    <Tooltip text={item.title} showWhen="truncated" truncationRef={titleRef}>
       <div
         className={mergeClassNames(
           "flex gap-1 rounded p-1 text-xs w-full cursor-pointer",
@@ -32,6 +34,7 @@ export function EventPill({ item, truncate = false }: EventPillProps) {
           <Zap className="size-3 shrink-0" />
         )}
         <span
+          ref={titleRef}
           className={mergeClassNames(
             "min-w-0 leading-tight",
             truncate ? "truncate" : "wrap-break-word",

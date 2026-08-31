@@ -399,8 +399,10 @@ def submit_for_approval(start_date: str, notes: str = None, employee: str = None
         frappe.db.set_value(
             "Timesheet",
             timesheet.name,
-            "custom_weekly_approval_status",
-            "Approval Pending",
+            {
+                "custom_weekly_approval_status": "Approval Pending",
+                "custom_weekly_rejection_reason": None,
+            },
         )
     frappe.db.commit()  # nosemgrep Need to do as we need to publish status changes.
 
@@ -546,7 +548,7 @@ def get_timesheet(dates: list, employee: str, search: str | None = None, parsed_
     timesheets = frappe.get_all(
         "Timesheet",
         filters=ts_filters,
-        fields=["name", "custom_approval_status", "custom_rejection_reason"],
+        fields=["name", "custom_approval_status", "custom_rejection_reason", "custom_weekly_rejection_reason"],
         ignore_permissions=employee_has_higher_access(employee, ptype="read"),
     )
 
@@ -636,6 +638,7 @@ def get_timesheet(dates: list, employee: str, search: str | None = None, parsed_
         parent_ts = ts_parent_map.get(log.get("parent"))
         entry["custom_approval_status"] = parent_ts.get("custom_approval_status") if parent_ts else None
         entry["custom_rejection_reason"] = parent_ts.get("custom_rejection_reason") if parent_ts else None
+        entry["custom_weekly_rejection_reason"] = parent_ts.get("custom_weekly_rejection_reason") if parent_ts else None
         data[task_name]["data"].append(entry)
 
     return [data, total_hours]

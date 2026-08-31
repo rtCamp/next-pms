@@ -208,7 +208,7 @@ export const TaskRow: React.FC<TaskRowProps> = ({
                   className={cn(
                     "w-14.25 relative group flex justify-center items-center lining-nums tabular-nums [&_span]:overflow-visible [&_span]:whitespace-normal",
                     "enabled:hover:bg-surface-gray-2 enabled:focus:bg-surface-gray-2 enabled:active:bg-surface-gray-3",
-                    "aria-disabled:cursor-default! aria-disabled:text-ink-gray-5 aria-disabled:hover:bg-transparent aria-disabled:focus:bg-transparent aria-disabled:active:bg-transparent",
+                    "aria-disabled:cursor-not-allowed! aria-disabled:text-ink-gray-5 aria-disabled:hover:bg-transparent aria-disabled:focus:bg-transparent aria-disabled:active:bg-transparent",
                     timeEntryTextClassName,
                   )}
                   aria-disabled={timeEntry.disabled}

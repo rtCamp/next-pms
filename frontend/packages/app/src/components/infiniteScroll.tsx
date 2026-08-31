@@ -11,10 +11,12 @@ import { Skeleton } from "@rtcamp/frappe-ui-react";
 /**
  * Internal dependencies.
  */
+import { ScrollRootContext } from "./scrollRoot";
 import { InfiniteScrollProps } from "./types";
 
 const InfiniteScroll = ({
   children,
+  role,
   isLoading,
   hasMore,
   verticalLodMore,
@@ -51,12 +53,12 @@ const InfiniteScroll = ({
   }, [scrollResetKey]);
 
   const content = (
-    <>
+    <ScrollRootContext.Provider value={observerRoot}>
       {children}
       {(isLoading || hasMore) && (
         <div
           ref={verticalLoderRef}
-          className="flex flex-col items-start w-full sticky left-0 h-30 gap-px"
+          className="flex flex-col items-start w-full sticky left-0 gap-px"
         >
           {Array.from({ length: count }).map((_, index) => (
             <Skeleton
@@ -69,19 +71,22 @@ const InfiniteScroll = ({
           ))}
         </div>
       )}
-    </>
+    </ScrollRootContext.Provider>
   );
 
   if (!enableScrollArea) {
     return (
-      <div ref={handleViewportRef} className={className}>
+      <div role={role} ref={handleViewportRef} className={className}>
         {content}
       </div>
     );
   }
 
   return (
-    <ScrollArea.Root className={cn("relative h-full w-full", className)}>
+    <ScrollArea.Root
+      role={role}
+      className={cn("relative h-full w-full", className)}
+    >
       <ScrollArea.Viewport
         ref={handleViewportRef}
         tabIndex={-1}

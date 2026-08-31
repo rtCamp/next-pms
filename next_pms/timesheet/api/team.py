@@ -20,22 +20,32 @@ from frappe.utils.data import add_days, getdate
 
 from next_pms.api.utils import error_logger
 from next_pms.resource_management.api.utils.query import get_employee_leaves
-from next_pms.timesheet.doc_events.timesheet import flush_cache, publish_timesheet_update
+from next_pms.timesheet.doc_events.timesheet import (
+    flush_cache,
+    get_date_restriction_message,
+    publish_timesheet_update,
+)
+from next_pms.timesheet.utils.constant import (
+    ALLOWED_FILTER_FIELDS,
+    MAX_TEAM_TIMESHEET_PAGE_LENGTH,
+    NOT_SUBMITTED_STATUS,
+    TEAM_TIMESHEET_PAGE_LENGTH,
+)
 
 from . import filter_employees
 from .employee import get_employee_daily_working_norm, get_employee_working_hours
 from .timesheet import get_timesheet_state
 from .utils import (
-    build_aggregate_dates,
+    build_chunk_context,
     build_employee_week_details,
+    employee_condition_kwargs,
     employee_has_higher_access,
     get_holidays,
-    get_team_candidate_employee_ids,
     get_week_dates,
-    paginate_qualifying_employee_payloads,
-    paginate_unfiltered_employee_payloads,
-    parse_filters,
-    sanitize_employee_conditions,
+    has_scoped_timesheets_before,
+    resolve_team_employee_scope,
+    resolve_team_members,
+    update_weekly_status_of_timesheet,
 )
 
 
@@ -187,210 +197,198 @@ def get_compact_view_data(
     return res
 
 
-def _get_team_timesheet_data(
-    date: str,
-    max_week: int = 2,
-    page_length=10,
-    start=0,
-    status_filter: str | list[str] | None = None,
-    reports_to: str | None = None,
-    by_pass_access_check=False,
-    search: str | None = None,
-    filters: str | list | None = None,
-    skip_empty_weeks: bool = False,
-):
-    if not by_pass_access_check:
-        only_for(["Timesheet Manager", "Timesheet User", "Projects Manager"], message=True)
-
-    start = int(start)
-    page_length = int(page_length)
-    max_week = int(max_week)
-
-    if isinstance(skip_empty_weeks, str):
-        skip_empty_weeks = skip_empty_weeks.lower() in ("true", "1")
-
-    if status_filter and isinstance(status_filter, str):
-        status_filter = json.loads(status_filter)
-
-    parsed_filters = parse_filters(filters)
-
-    # Employee-level filters (status / business unit drop-downs in frontend) are
-    # passed through with their operators intact so the global employee filter
-    # narrows the pool with the same semantics the caller asked for (like, in, ...).
-    # Sanitized (and written back) before has_filters so a condition dropped for a
-    # missing meta field cannot flip the request into the filtered path.
-    employee_conditions = sanitize_employee_conditions(parsed_filters.get("Employee"))
-    parsed_filters["Employee"] = employee_conditions
-
-    has_filters = bool(search or status_filter or any(parsed_filters.values()))
-    dates, _ = build_aggregate_dates(date=date, max_week=max_week, has_filters=has_filters)
-    response_dates = dates[-max_week:] if has_filters and len(dates) > max_week else dates
-    res = {"dates": response_dates}
-
-    candidate_employee_ids = get_team_candidate_employee_ids(
-        reports_to=reports_to,
-        dates=dates,
-        parsed_filters=parsed_filters,
-        timesheet_status=status_filter,
-        employee_conditions=employee_conditions,
+def build_team_member_payload(employee, context, week, has_filters):
+    """One member's row for one week, in the shape TeamMember renders."""
+    working_hours = context["working_hours_map"].get(employee.name, {"working_hour": 0, "working_frequency": "Per Day"})
+    # Qualification is already settled by resolve_team_members, so nothing is pruned
+    # here - this only shapes the week that survived.
+    week_details = build_employee_week_details(
+        employee_name=employee.name,
+        dates=[week],
+        context=context,
+        has_filters=has_filters,
+        skip_empty_weeks=False,
+        approval_status=None,
     )
+    detail = week_details.get(week["key"]) or {}
 
-    if candidate_employee_ids == []:
-        res["data"] = {}
-        res["total_count"] = 0
-        res["has_more"] = False
-        return res
-
-    def build_team_employee_payload(employee, context):
-        """Builds the response payload for a single employee from the chunk context."""
-        working_hours = context["working_hours_map"].get(
-            employee.name, {"working_hour": 0, "working_frequency": "Per Day"}
-        )
-        daily_working_hours = context["daily_norm_map"].get(employee.name, 0)
-        employee_timesheets = context["timesheet_map"].get(employee.name, [])
-        leaves = list(context["leaves_by_employee"].get(employee.name, []))
-        holidays = list(context["holidays_by_employee"].get(employee.name, []))
-
-        local_data = {**employee, **working_hours}
-        local_data["status"] = context["overall_status_map"].get(employee.name, "Not Submitted")
-        local_data["leaves"] = leaves
-        local_data["holidays"] = holidays
-        local_data["data"] = []
-
-        hours_by_date = {}
-        notes_by_date = {}
-        for ts in employee_timesheets:
-            if ts.start_date != ts.end_date:
-                continue
-            hours_by_date[ts.start_date] = hours_by_date.get(ts.start_date, 0) + (ts.get("total_hours") or 0)
-            notes_by_date[ts.start_date] = notes_by_date.get(ts.start_date, "") + (ts.get("note") or "")
-
-        holidays_by_date = {holiday.holiday_date: holiday for holiday in holidays}
-        for date_info in dates:
-            for current_date in date_info.get("dates"):
-                hour = 0
-                on_leave = False
-
-                holiday = holidays_by_date.get(current_date)
-
-                for leave in leaves:
-                    if not leave["from_date"] <= current_date <= leave["to_date"]:
-                        continue
-                    if holiday and holiday.weekly_off and not leave.get("includes_holidays"):
-                        continue
-                    if leave.get("half_day") and leave.get("half_day_date") == current_date:
-                        hour += daily_working_hours / 2
-                    else:
-                        hour += daily_working_hours
-                    on_leave = True
-
-                if holiday:
-                    if not holiday.weekly_off:
-                        hour = daily_working_hours
-                        on_leave = False
-                    elif not on_leave:
-                        hour = 0
-
-                hour += hours_by_date.get(current_date, 0)
-                local_data["data"].append(
-                    {
-                        "date": current_date,
-                        "hour": hour,
-                        "is_leave": on_leave,
-                        "note": notes_by_date.get(current_date, "").replace("<br>", "\n"),
-                    }
-                )
-
-        timesheet_details = build_employee_week_details(
-            employee_name=employee.name,
-            dates=dates,
-            context=context,
-            has_filters=has_filters,
-            skip_empty_weeks=skip_empty_weeks,
-            approval_status=status_filter,
-        )
-
-        if has_filters and len(timesheet_details) > max_week:
-            sorted_keys = list(timesheet_details.keys())
-            timesheet_details = {key: timesheet_details[key] for key in sorted_keys[-max_week:]}
-
-        if not timesheet_details:
-            return None
-
-        if has_filters:
-            kept_week_dates = set()
-            for week in timesheet_details.values():
-                kept_week_dates.update(week.get("dates", []))
-            local_data["data"] = [row for row in local_data["data"] if row["date"] in kept_week_dates]
-
-        local_data["timesheet_details"] = timesheet_details
-        return employee.name, local_data
-
-    if has_filters:
-        # Filters narrow the pool to candidate_employee_ids (employees whose
-        # timesheets actually match), so this is already bounded by the filter's
-        # selectivity rather than the whole employee table.
-        selected_employees, total_count, has_more = paginate_qualifying_employee_payloads(
-            reports_to=reports_to,
-            employee_ids=candidate_employee_ids,
-            dates=dates,
-            parsed_filters=parsed_filters,
-            # The public `search` param is now an employee-name search only
-            # (see get_qualifying_project_ids for the project-side equivalent).
-            employee_name=search,
-            start=start,
-            page_length=page_length,
-            builder=build_team_employee_payload,
-            employee_conditions=employee_conditions,
-        )
-    else:
-        # No filters (candidate_employee_ids is None here) — every employee
-        # qualifies, so fetch exactly the requested page instead of scanning
-        # the full employee pool just to paginate and count in Python.
-        selected_employees, total_count, has_more = paginate_unfiltered_employee_payloads(
-            reports_to=reports_to,
-            dates=dates,
-            parsed_filters=parsed_filters,
-            start=start,
-            page_length=page_length,
-            builder=build_team_employee_payload,
-        )
-
-    res["data"] = {employee_name: payload for employee_name, payload in selected_employees}
-    res["total_count"] = total_count
-    res["has_more"] = has_more
-
-    return res
+    return {
+        "employee": employee.name,
+        "employee_name": employee.get("employee_name"),
+        "image": employee.get("image"),
+        **working_hours,
+        "status": detail.get("status", NOT_SUBMITTED_STATUS),
+        "total_hours": detail.get("total_hours", 0),
+        "tasks": detail.get("tasks", {}),
+        "leaves": list(context["leaves_by_employee"].get(employee.name, [])),
+        "holidays": list(context["holidays_by_employee"].get(employee.name, [])),
+        "backdate_restricted_before": context["backdate_boundary_by_employee"].get(employee.name),
+    }
 
 
 @whitelist(methods=["GET", "POST"])
 @error_logger
 def get_team_timesheet_data(
-    date: str,
-    max_week: int = 2,
-    page_length: int = 10,
+    start_date: str,
+    page_length: int = TEAM_TIMESHEET_PAGE_LENGTH,
     start: int = 0,
     status_filter: str | list[str] | None = None,
     reports_to: str | None = None,
     search: str | None = None,
     filters: str | list | None = None,
-    skip_empty_weeks: bool = False,
 ):
-    """API to get team timesheet data with task-level detail in a single request.
-    Combines the compact view (daily hours per employee) with detailed timesheet
-    entries (tasks, hours per day) to avoid N+1 API calls from the frontend."""
-    return _get_team_timesheet_data(
-        date=date,
-        max_week=max_week,
-        page_length=page_length,
-        start=start,
+    """Members of a single week, paginated.
+
+    `start_date` is any day inside the wanted week; the week boundaries come from
+    `get_week_dates`, so the caller does not supply an end date.
+
+    Pairs with `get_team_timesheet_weeks`, which supplies the week structure and the
+    counts. Both derive membership from `resolve_team_members`, so this endpoint's
+    `total_count` and that endpoint's `member_count` cannot drift.
+    """
+    only_for(["Timesheet Manager", "Timesheet User", "Projects Manager"], message=True)
+
+    start = int(start)
+    page_length = max(0, min(int(page_length), MAX_TEAM_TIMESHEET_PAGE_LENGTH))
+    week = get_week_dates(date=start_date)
+
+    scope = resolve_team_employee_scope(
+        date=start_date,
+        max_week=1,
         status_filter=status_filter,
         reports_to=reports_to,
-        by_pass_access_check=False,
         search=search,
         filters=filters,
-        skip_empty_weeks=skip_empty_weeks,
     )
+
+    response = {
+        "start_date": week["start_date"],
+        "end_date": week["end_date"],
+        "dates": week["dates"],
+        "members": [],
+        "total_count": 0,
+        "has_more": False,
+    }
+    if scope.is_empty:
+        return response
+
+    resolved = resolve_team_members(scope, [week])
+    qualifying = resolved["members_by_week"][week["start_date"]]
+    total_count = len(qualifying)
+    response["total_count"] = total_count
+
+    if not qualifying or not page_length or start >= total_count:
+        return response
+
+    # The page comes out of the database rather than out of a Python scan: membership
+    # is already known, so LIMIT/OFFSET over the qualifying ids replaces walking the
+    # whole pool building payloads only to discard them.
+    page_employees, _ = filter_employees(
+        page_length=page_length,
+        start=start,
+        reports_to=reports_to,
+        ids=sorted(qualifying),
+        **employee_condition_kwargs(scope.employee_conditions),
+    )
+
+    context = build_chunk_context(page_employees, [week], scope.parsed_filters)
+    response["members"] = [
+        build_team_member_payload(employee, context, week, scope.has_filters) for employee in page_employees
+    ]
+    response["has_more"] = start + page_length < total_count
+    return response
+
+
+@whitelist(methods=["GET", "POST"])
+@error_logger
+def get_team_timesheet_weeks(
+    date: str,
+    max_week: int = 4,
+    reports_to: str | None = None,
+    search: str | None = None,
+    status_filter: str | list[str] | None = None,
+    filters: str | list | None = None,
+):
+    """Week structure and per-week counts for the team timesheet, without member payloads.
+
+    Feeds first paint: the page can render its week rows and pending-approval badges
+    before any member data is fetched, and `get_team_timesheet_data` then fills one week
+    at a time. Builds no member payload, so an unfiltered call reads Timesheet rows only;
+    a Task or Timesheet Detail filter does reach the detail rows, since qualifying a week
+    against it cannot be answered from the Timesheet table alone.
+    """
+    only_for(["Timesheet Manager", "Timesheet User", "Projects Manager"], message=True)
+
+    max_week = int(max_week)
+    scope = resolve_team_employee_scope(
+        date=date,
+        max_week=max_week,
+        status_filter=status_filter,
+        reports_to=reports_to,
+        search=search,
+        filters=filters,
+    )
+    weeks = scope.response_dates
+
+    if scope.is_empty or not weeks:
+        return {"weeks": [], "has_more_weeks": False, "next_date": None}
+
+    resolved = resolve_team_members(scope, weeks)
+
+    week_payloads = []
+    for week in weeks:
+        members = resolved["members_by_week"][week["start_date"]]
+        pending = resolved["pending_by_week"][week["start_date"]]
+        member_count = len(members)
+
+        if scope.skip_empty_weeks and not members:
+            continue
+
+        week_payloads.append(
+            {
+                "key": str(week["start_date"]),
+                "start_date": week["start_date"],
+                "end_date": week["end_date"],
+                "label": week["key"],
+                "dates": week["dates"],
+                "member_count": member_count,
+                "approval_pending_count": len(pending),
+                "has_more_members": member_count > TEAM_TIMESHEET_PAGE_LENGTH,
+            }
+        )
+
+    # Asked against this caller's scope, not the whole Timesheet table: with empty weeks
+    # dropped, `week_payloads` can legitimately come back empty, and a global probe would
+    # then keep the frontend paging backwards to the oldest timesheet in history.
+    earliest = weeks[0]["start_date"]
+    next_date = add_days(getdate(earliest), -1)
+    has_more_weeks = has_scoped_timesheets_before(scope, resolved["eligible_ids"], earliest)
+
+    return {
+        "weeks": week_payloads,
+        "has_more_weeks": has_more_weeks,
+        "next_date": next_date if has_more_weeks else None,
+    }
+
+
+@whitelist(methods=["GET", "POST"])
+@error_logger
+def get_team_timesheet_member_week(employee: str, start_date: str, by_pass_access_check: bool = False):
+    """One member's row for one week - the unit the realtime publisher swaps in.
+
+    Returns exactly one element of `get_team_timesheet_data`'s `members`, so a realtime
+    update replaces a single row instead of forcing a reload of the whole week.
+    """
+    if not by_pass_access_check:
+        only_for(["Timesheet Manager", "Timesheet User", "Projects Manager"], message=True)
+
+    week = get_week_dates(date=start_date)
+    employee_rows, _ = filter_employees(page_length=1, start=0, ids=[employee], ignore_default_filters=True)
+    if not employee_rows:
+        return None
+
+    context = build_chunk_context(employee_rows, [week], {dt: [] for dt in ALLOWED_FILTER_FIELDS})
+    return build_team_member_payload(employee_rows[0], context, week, has_filters=False)
 
 
 @whitelist(methods=["POST"])
@@ -409,18 +407,33 @@ def approve_or_reject_timesheet(employee: str, status: str, dates: list[str] | N
             "end_date": ["<=", current_week.get("end_date")],
             "docstatus": ["=", 0],
         },
-        ["name", "start_date", "employee"],
+        ["name", "start_date", "employee", "custom_approval_status"],
     )
     if not timesheets:
         return throw(
             _("No timesheet found for the given date range."),
             exc=DoesNotExistError,
         )
-    for timesheet in timesheets:
-        if str(timesheet.start_date) not in dates:
-            continue
-        db.set_value("Timesheet", timesheet.name, "custom_approval_status", "Processing Timesheet")
-        db.set_value("Timesheet", timesheet.name, "custom_weekly_approval_status", "Processing Timesheet")
+    dates_set = set(dates)
+    timesheets_to_process = [ts for ts in timesheets if str(ts.start_date) in dates_set]
+
+    # Refuse before anything is written: the background job below saves each document, which
+    # runs the very same check per document - and by then the rows are already parked in
+    # "Processing Timesheet" and committed, leaving the week unactionable forever (#2075).
+    restriction = get_date_restriction_message(employee, [ts.start_date for ts in timesheets_to_process])
+    if restriction:
+        return throw(restriction)
+
+    for timesheet in timesheets_to_process:
+        db.set_value(
+            "Timesheet",
+            timesheet.name,
+            {
+                "custom_approval_status": "Processing Timesheet",
+                "custom_weekly_approval_status": "Processing Timesheet",
+                "custom_weekly_rejection_reason": None,
+            },
+        )
     doc = _dict(
         {
             "employee": employee,
@@ -573,6 +586,7 @@ def _approve_or_reject_timesheet(
         db.commit()
     except:  # noqa: E722
         db.rollback()
+        _restore_parked_timesheets(timesheets_to_process, employee)
         log_error(title=_("Error in Timesheet Approval"))
         subject = _("Error in Timesheet Approval")
         date_param = f"?date='{dates[0]}'" if dates else ""
@@ -583,6 +597,47 @@ def _approve_or_reject_timesheet(
             link=f"/next-pms/team/employee/{employee}{date_param}",
         )
         sendmail(recipients=[session.user], subject=subject, message=message)
+
+
+def _restore_parked_timesheets(timesheets: list, employee: str):
+    """Put rows this job parked in "Processing Timesheet" back on the status each held before,
+    so a failed run leaves the week actionable instead of dead-ended (#2075). The prior status
+    rides along in the job payload, so this restores the real value rather than guessing, and
+    only rows still parked as drafts are touched - a concurrent run may have finished first, and
+    its result wins. Best effort: a killed worker never reaches this, which the restore patch
+    cleans up."""
+    weeks = {getdate(ts.start_date) for ts in timesheets}
+    try:
+        for timesheet in timesheets:
+            current = db.get_value("Timesheet", timesheet.name, ["docstatus", "custom_approval_status"], as_dict=True)
+            # Nothing stops a second request from parking the same row while this job is in
+            # flight. A row that is no longer a parked draft carries that run's result, which
+            # is newer than anything captured here - leave it alone.
+            if not current or current.docstatus != 0 or current.custom_approval_status != "Processing Timesheet":
+                continue
+
+            captured = timesheet.get("custom_approval_status")
+            db.set_value(
+                "Timesheet",
+                timesheet.name,
+                "custom_approval_status",
+                # A captured "Processing Timesheet" means this run parked a row a concurrent run
+                # had already parked, so it says nothing about the status before either of them;
+                # same for a job enqueued before this field joined the payload. "Approval Pending"
+                # is the status a row must have held to be actionable.
+                captured if captured and captured != "Processing Timesheet" else "Approval Pending",
+            )
+        for start_date in weeks:
+            update_weekly_status_of_timesheet(employee, start_date)
+        db.commit()  # nosemgrep Need to do as we need to publish status changes.
+    except:  # noqa: E722
+        db.rollback()
+        log_error(title=_("Error restoring Timesheet status after failed approval"))
+        return
+
+    for start_date in weeks:
+        flush_cache(_dict({"employee": employee, "start_date": start_date}))
+        publish_timesheet_update(employee=employee, start_date=start_date)
 
 
 def trigger_notification_for_approved_or_rejected_timesheet(

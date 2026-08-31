@@ -40,6 +40,14 @@ plan.md
 plan_*.md
 plan_issue_*.md
 
+# Benchmark artifacts — summary goes in the PR body, raw numbers and the seed
+# script stay local
+perf_*.md
+scripts/seed_timesheet_perf.py
+scripts/seed_project_timesheet_perf.py
+scripts/bench_project_timesheet.py
+scripts/bench_project_timesheet_http.py
+
 # Claude Code local-only files (permissions etc); skills/ is committed
 .claude/settings.local.json
 

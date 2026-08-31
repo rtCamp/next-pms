@@ -76,6 +76,9 @@ declare global {
           can_create: string[];
         };
         currencies?: string[];
+        sysdefaults?: {
+          currency?: string;
+        };
         has_business_unit?: boolean;
         has_industry?: boolean;
         has_repository_connections?: boolean;
@@ -83,6 +86,7 @@ declare global {
         show_rag_trigger_page?: boolean;
         desk_theme?: string;
         has_todo_custom_fields?: boolean;
+        optional_project_fields?: Record<string, boolean>;
         is_calendar_setup: boolean;
         global_filters: GlobalFilters;
         allow_weekend_entries?: boolean;
@@ -95,6 +99,23 @@ export type Project = {
   name: string;
   project_name: string;
 };
+
+export interface View {
+  name: string;
+  label: string;
+  icon?: string | ComponentType<{ className?: string }>;
+  user?: string | null;
+  default: 0 | 1;
+  public: 0 | 1;
+  dt: string;
+  type: "List" | "Custom";
+  route?: string;
+  columns: unknown[];
+  rows: string[];
+  filters: Record<string, unknown>;
+  order_by: unknown[];
+  pinnedColumns: string[];
+}
 
 /**
  * Route configuration keyed by ROUTES keys.
@@ -110,4 +131,5 @@ export type RouteConfig = {
   Component: LazyView;
   allowedRoles: Role[];
   layout?: ReactNode;
+  title: string;
 };

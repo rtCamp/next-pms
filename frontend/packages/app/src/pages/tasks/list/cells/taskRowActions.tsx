@@ -8,27 +8,39 @@ export function TaskRowActions({
   name,
   onEdit,
   onDelete,
+  canDelete = false,
 }: {
   name: string;
   onEdit?: (name: string) => void;
   onDelete?: (name: string) => void;
+  canDelete?: boolean;
 }) {
   return (
     <Dropdown
       placement="center"
-      options={[
-        {
-          key: "edit",
-          label: "Edit",
-          onClick: () => onEdit?.(name),
-        },
-        {
-          key: "delete",
-          label: "Delete",
-          theme: "red",
-          onClick: () => onDelete?.(name),
-        },
-      ]}
+      options={
+        canDelete
+          ? [
+              {
+                key: "edit",
+                label: "Edit",
+                onClick: () => onEdit?.(name),
+              },
+              {
+                key: "delete",
+                label: "Delete",
+                theme: "red",
+                onClick: () => onDelete?.(name),
+              },
+            ]
+          : [
+              {
+                key: "edit",
+                label: "Edit",
+                onClick: () => onEdit?.(name),
+              },
+            ]
+      }
     >
       {/* A native <button> can't be used here: ListRow already wraps every
       cell in a <button>, and nested buttons are invalid HTML / trigger a

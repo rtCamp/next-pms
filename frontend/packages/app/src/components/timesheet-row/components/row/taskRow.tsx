@@ -18,6 +18,7 @@ import TaskPopover from "@/components/taskPopover";
 import { calculateTotalHours, parseFrappeErrorMsg } from "@/lib/utils";
 import { useGuardedAction } from "@/pages/allocations/unsavedChanges/useUnsavedChanges";
 import { usePersonalTimesheet } from "@/pages/timesheet/personal/context";
+import { isDateBackdateRestricted } from "@/pages/timesheet/utils";
 import type { TaskDataItemProps } from "@/types/timesheet";
 import type { TaskRowProps } from "./types";
 import { InlineTimeEntry } from "../inline-time-entry";
@@ -51,6 +52,7 @@ export const TaskRow = ({
   dailyWorkingHours,
   totalTimeEntriesInHours,
   employee,
+  backdateRestrictedBefore,
   hideLikeButton,
   setSelectedTask,
   ...rest
@@ -117,7 +119,10 @@ export const TaskRow = ({
           currentTotal === 0 || (taskKey && tasks[taskKey]?.is_billable)
             ? false
             : true,
-        disabled: disabled || isDayFullyApproved || false,
+        disabled:
+          disabled ||
+          isDayFullyApproved ||
+          isDateBackdateRestricted(date, backdateRestrictedBefore),
         status: dayStatus,
         rejectionReason,
       };
@@ -126,7 +131,7 @@ export const TaskRow = ({
       total += currentTotal;
     }
     return { total, totalTimeEntries, tasksForDates };
-  }, [dates, taskKey, tasks, disabled]);
+  }, [dates, taskKey, tasks, disabled, backdateRestrictedBefore]);
 
   const renderTaskHoverContent = useCallback(
     (taskKey: string) => {

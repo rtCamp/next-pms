@@ -135,10 +135,10 @@ after_install = "next_pms.install.after_install"
 # permission_query_conditions = {
 # 	"Event": "frappe.desk.doctype.event.event.get_permission_query_conditions",
 # }
-#
-# has_permission = {
-# 	"Event": "frappe.desk.doctype.event.event.has_permission",
-# }
+
+has_permission = {
+    "Risk": "next_pms.next_pms.doctype.risk.risk.has_permission",
+}
 
 
 fixtures = [
@@ -179,7 +179,7 @@ fixtures = [
 # ---------------
 # Override standard doctype classes
 
-override_doctype_class = {
+override_doctype_class = {  # nosemgrep - existing legacy overrides; migration tracked separately
     "Project": "next_pms.project_currency.overrides.project.ProjectOverwrite",
     "Customize Form": "next_pms.project_currency.overrides.customize_form.CustomizeFormOverride",
     "Timesheet": "next_pms.project_currency.overrides.timesheet.TimesheetOverwrite",
@@ -191,6 +191,11 @@ override_doctype_class = {
 # ---------------
 
 scheduler_events = {
+    "cron": {
+        "0 8 * * 1": [
+            "next_pms.tasks.scheduled_audit.trigger_weekly_audits",
+        ],
+    },
     "daily_long": [
         "next_pms.timesheet.tasks.daily_reminder_for_time_entry.send_reminder",
         "next_pms.timesheet.tasks.send_weekly_reminder.send_reminder",
@@ -242,6 +247,14 @@ doc_events = {
         "on_update": [
             "next_pms.resource_management.doctype.resource_allocation.resource_allocation.clear_cache",
             "next_pms.timesheet.doc_events.leave_application.on_update",
+            "next_pms.resource_management.doc_events.leave_application.resync_allocations",
+        ],
+        # `on_update` does not fire when a submitted leave changes status, so approval of an
+        # already-submitted application would otherwise never reach the allocations.
+        "on_update_after_submit": [
+            "next_pms.resource_management.doctype.resource_allocation.resource_allocation.clear_cache",
+            "next_pms.timesheet.doc_events.leave_application.on_update",
+            "next_pms.resource_management.doc_events.leave_application.resync_allocations",
         ],
         "on_trash": [
             "next_pms.resource_management.doctype.resource_allocation.resource_allocation.clear_cache",
@@ -250,6 +263,12 @@ doc_events = {
         "on_cancel": [
             "next_pms.resource_management.doctype.resource_allocation.resource_allocation.clear_cache",
             "next_pms.timesheet.doc_events.leave_application.on_cancel",
+            "next_pms.resource_management.doc_events.leave_application.resync_allocations",
+        ],
+        # Deletion is resynced after the row is gone — on_trash still sees the leave in the DB.
+        "after_delete": [
+            "next_pms.timesheet.doc_events.leave_application.after_delete",
+            "next_pms.resource_management.doc_events.leave_application.resync_allocations",
         ],
     },
     "Employee Skill Map": {
@@ -284,6 +303,28 @@ doc_events = {
     },
     "Holiday List": {
         "validate": "next_pms.timesheet.doc_events.holiday_list.validate",
+        "on_update": [
+            "next_pms.resource_management.doctype.resource_allocation.resource_allocation.clear_cache",
+        ],
+        "on_trash": [
+            "next_pms.resource_management.doctype.resource_allocation.resource_allocation.clear_cache",
+        ],
+    },
+    # An employee's holidays resolve through their Holiday List Assignment, so reassigning
+    # one changes the holidays the cached resource payloads were built from.
+    "Holiday List Assignment": {
+        "on_submit": [
+            "next_pms.resource_management.doctype.resource_allocation.resource_allocation.clear_cache",
+        ],
+        "on_update_after_submit": [
+            "next_pms.resource_management.doctype.resource_allocation.resource_allocation.clear_cache",
+        ],
+        "on_cancel": [
+            "next_pms.resource_management.doctype.resource_allocation.resource_allocation.clear_cache",
+        ],
+        "on_trash": [
+            "next_pms.resource_management.doctype.resource_allocation.resource_allocation.clear_cache",
+        ],
     },
 }
 #

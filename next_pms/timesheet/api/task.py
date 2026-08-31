@@ -260,9 +260,16 @@ def get_task_list(
 
 
 @frappe.whitelist(methods=["POST"])
-def add_task(subject: str, expected_time: str, project: str, description: str):
+def add_task(
+    subject: str,
+    expected_time: str,
+    project: str,
+    description: str,
+    priority: str | None = None,
+    exp_end_date: str | None = None,
+):
     """API to add task, it will create a task under the given project with the given details."""
-    frappe.get_doc(
+    task = frappe.get_doc(
         {
             "doctype": "Task",
             "subject": subject,
@@ -270,7 +277,12 @@ def add_task(subject: str, expected_time: str, project: str, description: str):
             "project": project,
             "description": description,
         }
-    ).insert(ignore_permissions=True)
+    )
+    if priority:
+        task.priority = priority
+    if exp_end_date:
+        task.exp_end_date = exp_end_date
+    task.insert(ignore_permissions=True)
     return frappe._("Task Created Successfully")
 
 

@@ -44,8 +44,10 @@ jobs:
 
       - uses: actions/cache@v6
         with:
-          path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ hashFiles('**/pyproject.toml') }}
+          path: |
+            ~/.cache/pip
+            ~/.cache/uv
+          key: ${{ runner.os }}-pip-uv-${{ hashFiles('**/pyproject.toml') }}
           restore-keys: ${{ runner.os }}-pip-
 
       - name: Setup bench
@@ -60,13 +62,32 @@ jobs:
         run: |
           bench get-app erpnext --branch version-16 --skip-assets
           bench get-app hrms --branch version-16 --skip-assets
-          bench get-app frappe_gmail_thread https://github.com/rtCamp/frappe-gmail-thread --branch version-16 --skip-assets
+          bench get-app frappe_gmail_thread https://github.com/rtCamp/frappe-gmail-thread --branch version-16-hotfix --skip-assets
           bench get-app frappe_comment_xt https://github.com/rtCamp/frappe-comment-xt --branch version-16-hotfix --skip-assets
+          bench get-app frappe_slack_connector https://github.com/rtCamp/frappe-slack-connector --branch version-16-hotfix --skip-assets
+          if [ -n "$RTBOT_TOKEN" ]; then
+            git config --global "url.https://rtbot:${RTBOT_TOKEN}@github.com/rtCamp/.insteadOf" "https://github.com/rtCamp/"
+            bench get-app telephony --branch develop --skip-assets
+            bench get-app helpdesk --branch main --skip-assets
+            bench get-app crm --branch main --skip-assets
+            bench get-app frappe_appointment https://github.com/rtCamp/frappe-appointment --branch version-16-hotfix --skip-assets
+            bench get-app india_compliance https://github.com/resilient-tech/india-compliance --branch version-16 --skip-assets
+            bench get-app rtcamp "https://${RTCAMP_APP}" --branch version-16-hotfix --skip-assets
+            git config --global --unset "url.https://rtbot:${RTBOT_TOKEN}@github.com/rtCamp/.insteadOf"
+            PRIVATE_APPS="telephony helpdesk crm frappe_appointment india_compliance rtcamp"
+          else
+            echo "RTBOT_TOKEN unavailable (fork PR) — skipping private rtcamp app; rtcamp-gated tests will skip"
+            echo "> [!WARNING]" >> "$GITHUB_STEP_SUMMARY"
+            echo "> RTBOT_TOKEN unavailable (fork PR) — private apps were not installed; rtcamp-gated tests will skip." >> "$GITHUB_STEP_SUMMARY"
+            PRIVATE_APPS=""
+          fi
           bench get-app next_pms "$GITHUB_WORKSPACE" --skip-assets
           bench new-site --db-root-password root --admin-password admin --no-mariadb-socket test_site
-          bench --site test_site install-app erpnext hrms frappe_gmail_thread frappe_comment_xt next_pms
+          bench --site test_site install-app erpnext hrms frappe_gmail_thread frappe_comment_xt frappe_slack_connector $PRIVATE_APPS next_pms
         env:
           CI: "Yes"
+          RTBOT_TOKEN: ${{ secrets.RTBOT_TOKEN }}
+          RTCAMP_APP: ${{ secrets.RTCAMP_APP }}
 
       - name: Run tests
         working-directory: /home/runner/frappe-bench

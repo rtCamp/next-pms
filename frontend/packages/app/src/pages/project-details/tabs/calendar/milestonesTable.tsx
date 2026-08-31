@@ -1,13 +1,8 @@
 /**
- * External dependencies.
- */
-import { mergeClassNames as cn } from "@next-pms/design-system";
-
-/**
  * Internal dependencies.
  */
-import { TimelineCell } from "./table/cells";
 import { MILESTONE_COLUMNS } from "./table/columns";
+import { TimelineTable } from "./table/timelineTable";
 import type { ProjectTimelineItem } from "./types";
 
 type MilestonesTableProps = {
@@ -17,42 +12,11 @@ type MilestonesTableProps = {
 export function MilestonesTable({ items }: MilestonesTableProps) {
   const milestones = items.filter((i) => i.type === "Milestone");
 
-  if (milestones.length === 0) {
-    return (
-      <div className="py-10 text-center text-sm text-ink-gray-4">
-        No milestones yet
-      </div>
-    );
-  }
-
   return (
-    <table className="w-full text-sm whitespace-nowrap">
-      <thead>
-        <tr className="border-b border-outline-gray-1 text-ink-gray-5 text-left">
-          {MILESTONE_COLUMNS.map((column) => (
-            <th
-              key={column.key}
-              className={cn("px-2 py-1.5 text-sm", column.width)}
-            >
-              {column.label}
-            </th>
-          ))}
-        </tr>
-      </thead>
-      <tbody>
-        {milestones.map((item) => (
-          <tr
-            key={item.id}
-            className="border-b border-outline-gray-1 last:border-b-0 hover:bg-surface-gray-1 transition-colors text-base text-ink-gray-6"
-          >
-            {MILESTONE_COLUMNS.map((column) => (
-              <td key={column.key} className="py-3 px-2">
-                <TimelineCell item={item} column={column} />
-              </td>
-            ))}
-          </tr>
-        ))}
-      </tbody>
-    </table>
+    <TimelineTable
+      items={milestones}
+      columns={MILESTONE_COLUMNS}
+      emptyMessage="No milestones yet"
+    />
   );
 }

@@ -184,6 +184,85 @@ def attach_extra_entries(allocations: list[dict]) -> list[dict]:
     return allocations
 
 
+def _working_days_between(start: datetime.date, end: datetime.date) -> int:
+    """Count Mon-Fri days in the inclusive range, in constant time.
+
+    Allocations routinely span months, so this must not iterate days.
+    """
+    total_days = (end - start).days + 1
+    if total_days <= 0:
+        return 0
+
+    full_weeks, remainder = divmod(total_days, 7)
+    weekday = start.weekday()
+
+    return full_weeks * 5 + sum(1 for offset in range(remainder) if (weekday + offset) % 7 < 5)
+
+
+def get_remaining_allocation_hours_by_project(
+    projects: list[str],
+    on_or_after: datetime.date,
+    is_billable: list[int] | int | None = None,
+    allocation_status: list[str] | None = None,
+) -> dict[str, float]:
+    """Return still-to-come allocated hours per project, keyed by project name.
+
+    Sums each allocation's hours from ``on_or_after`` to its end date over the allocation's
+    full span — deliberately not bounded by the view's week window, so the figure stays
+    stable as the user scrolls. Per-day overrides (cancelled days, adjusted hours) are
+    applied so the total agrees with the bars the grid draws.
+
+    Costs two queries regardless of how many projects or weeks are on the page.
+    """
+    if not projects:
+        return {}
+
+    ResourceAllocation = frappe.qb.DocType("Resource Allocation")
+    query = (
+        frappe.qb.from_(ResourceAllocation)
+        .select(
+            ResourceAllocation.name,
+            ResourceAllocation.project,
+            ResourceAllocation.allocation_start_date,
+            ResourceAllocation.allocation_end_date,
+            ResourceAllocation.hours_allocated_per_day,
+            ResourceAllocation.include_weekends,
+        )
+        .where(ResourceAllocation.project.isin(projects))
+        .where(ResourceAllocation.allocation_end_date >= on_or_after)
+    )
+
+    billable_values = _normalize_is_billable_filter(is_billable)
+    if billable_values:
+        query = query.where(ResourceAllocation.is_billable.isin(billable_values))
+    if allocation_status:
+        query = query.where(ResourceAllocation.status.isin(allocation_status))
+
+    allocations = attach_extra_entries(query.run(as_dict=True))
+
+    remaining_hours = {}
+    for allocation in allocations:
+        start = max(getdate(allocation.allocation_start_date), on_or_after)
+        end = getdate(allocation.allocation_end_date)
+        includes_weekends = cint(allocation.include_weekends)
+        hours_per_day = flt(allocation.hours_allocated_per_day)
+
+        days = (end - start).days + 1 if includes_weekends else _working_days_between(start, end)
+        hours = days * hours_per_day
+
+        for entry in allocation.override or []:
+            date = getdate(entry.date)
+            if not start <= date <= end:
+                continue
+            if not includes_weekends and date.weekday() >= 5:
+                continue
+            hours += (0 if cint(entry.cancelled) else flt(entry.hours)) - hours_per_day
+
+        remaining_hours[allocation.project] = remaining_hours.get(allocation.project, 0.0) + hours
+
+    return remaining_hours
+
+
 def get_allocation_worked_hours_for_given_projects(project: str, start_date: str, end_date: str):
     """Get the total hours spend for given projects for given time range.
 

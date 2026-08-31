@@ -9,12 +9,16 @@ import { type FrappeError, useFrappeDeleteDoc } from "frappe-react-sdk";
 /**
  * Internal dependencies.
  */
-import { buildFilterConditions, parseFrappeErrorMsg } from "@/lib/utils";
-import AddTask from "../components/add-task";
-import type { AddTaskPrefill } from "../components/add-task/type";
-import { TASK_LIST_PAGE_SIZE } from "../constants";
+import {
+  buildFilterConditions,
+  parseFrappeErrorMsg,
+  pickAllowed,
+} from "@/lib/utils";
 import { TaskListContext, type TaskListContextProps } from "./context";
 import type { ResponseTaskList } from "./types";
+import AddTask from "../components/add-task";
+import type { AddTaskPrefill } from "../components/add-task/type";
+import { TASK_LIST_PAGE_SIZE, TASK_PRIORITIES } from "../constants";
 import { useTaskFilters } from "../useTaskFilters";
 
 export function TaskListProvider({ children }: PropsWithChildren) {
@@ -39,6 +43,8 @@ export function TaskListProvider({ children }: PropsWithChildren) {
         project: task.project,
         projectLabel: task.project_name ?? task.project,
         expected_time: String(task.expected_time ?? ""),
+        priority: pickAllowed(task.priority, TASK_PRIORITIES) ?? "",
+        exp_end_date: task.exp_end_date ?? "",
         description: task.description ?? "",
       });
       setAddTaskOpen(true);
@@ -104,7 +110,12 @@ export function TaskListProvider({ children }: PropsWithChildren) {
         revalidateOnFocus: false,
         revalidateAll: false,
         revalidateFirstPage: false,
-        keepPreviousData: false,
+        keepPreviousData: true,
+        onError: (err) => {
+          toast.error(parseFrappeErrorMsg(err as FrappeError), {
+            id: "task-list-fetch-error",
+          });
+        },
       },
     );
 
@@ -117,6 +128,8 @@ export function TaskListProvider({ children }: PropsWithChildren) {
   const hasMore = lastPage ? Boolean(lastPage.message?.has_more) : true;
   const isNextPageLoading =
     !isLoading && isValidating && typeof data?.[size - 1] === "undefined";
+  const isInitialLoad = isLoading && (data?.length ?? 0) === 0;
+  const isFilterRequest = isLoading && (data?.length ?? 0) > 0;
 
   const loadMore = useCallback(() => {
     if (isLoading || isNextPageLoading || !hasMore) return;
@@ -146,6 +159,8 @@ export function TaskListProvider({ children }: PropsWithChildren) {
         data: tasks,
         hasMore,
         isLoading,
+        isInitialLoad,
+        isFilterRequest,
         error,
         addTaskOpen,
         addTaskPrefill,
@@ -164,6 +179,8 @@ export function TaskListProvider({ children }: PropsWithChildren) {
       tasks,
       hasMore,
       isLoading,
+      isInitialLoad,
+      isFilterRequest,
       error,
       addTaskOpen,
       addTaskPrefill,

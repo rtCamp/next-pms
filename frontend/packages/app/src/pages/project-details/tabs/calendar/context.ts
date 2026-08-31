@@ -24,6 +24,10 @@ export interface CalendarContextProps {
     createMilestoneOpen: boolean;
     createTouchpointOpen: boolean;
     editItem: ProjectTimelineItem | null;
+    searchInput: string;
+    listItems: ProjectTimelineItem[];
+    hasMoreList: boolean;
+    isLoadingList: boolean;
   };
   actions: {
     setActiveView: (view: CalendarView) => void;
@@ -41,6 +45,8 @@ export interface CalendarContextProps {
     setCreateTouchpointOpen: (open: boolean) => void;
     closeEditItem: () => void;
     mutate: () => void;
+    setSearchInput: (value: string) => void;
+    loadMoreList: () => void;
   };
 }
 
@@ -62,6 +68,10 @@ export const CalendarContext = createContext<CalendarContextProps>({
     createMilestoneOpen: false,
     createTouchpointOpen: false,
     editItem: null,
+    searchInput: "",
+    listItems: [],
+    hasMoreList: false,
+    isLoadingList: false,
   },
   actions: {
     setActiveView: noop,
@@ -79,6 +89,8 @@ export const CalendarContext = createContext<CalendarContextProps>({
     setCreateTouchpointOpen: noop,
     closeEditItem: noop,
     mutate: noop,
+    setSearchInput: noop,
+    loadMoreList: noop,
   },
 });
 

@@ -2,7 +2,7 @@
  * External dependencies.
  */
 import React from "react";
-import { Badge, Button, Avatar } from "@rtcamp/frappe-ui-react";
+import { Badge, Button, Avatar, Tooltip } from "@rtcamp/frappe-ui-react";
 import { AddMd, SmallDown } from "@rtcamp/frappe-ui-react/icons";
 
 /**
@@ -101,8 +101,8 @@ export const MemberRow: React.FC<MemberRowProps> = ({
                 "w-14.25 relative group flex justify-center items-center",
                 !isCellDisabled &&
                   "enabled:hover:bg-surface-gray-2 enabled:focus:bg-surface-gray-2 enabled:active:bg-surface-gray-3",
-                "disabled:cursor-default! disabled:opacity-100! disabled:bg-transparent! disabled:hover:bg-transparent! disabled:focus:bg-transparent! disabled:active:bg-transparent! disabled:text-ink-gray-8!",
-                isCellDisabled && "cursor-default!",
+                "disabled:cursor-not-allowed! disabled:opacity-100! disabled:bg-transparent! disabled:hover:bg-transparent! disabled:focus:bg-transparent! disabled:active:bg-transparent! disabled:text-ink-gray-8!",
+                isCellDisabled && "cursor-not-allowed!",
                 "lining-nums tabular-nums [&_span]:overflow-visible [&_span]:whitespace-normal",
                 "text-base text-ink-gray-8",
               )}
@@ -156,25 +156,27 @@ export const MemberRow: React.FC<MemberRowProps> = ({
 
       <div className="flex items-center justify-end w-12 h-7 whitespace-nowrap shrink-0">
         {!hideAction && !isStatusNone && memberStatusIcon[status]?.icon ? (
-          <Button
-            onClick={(e) => {
-              e.stopPropagation();
-              onButtonClick?.();
-            }}
-            className={cn(
-              buttonVariants({
-                status,
-                variant: memberStatusIcon[status]?.variant,
-              }),
-            )}
-            variant={memberStatusIcon[status]?.variant}
-            size="sm"
-            icon={() => {
-              const IconComponent = memberStatusIcon[status]?.icon;
-              return IconComponent ? <IconComponent size={16} /> : null;
-            }}
-            title={ApprovalStatusDisplayLabelMap[status]}
-          />
+          <Tooltip text={ApprovalStatusDisplayLabelMap[status]}>
+            <Button
+              onClick={(e) => {
+                e.stopPropagation();
+                onButtonClick?.();
+              }}
+              className={cn(
+                buttonVariants({
+                  status,
+                  variant: memberStatusIcon[status]?.variant,
+                }),
+              )}
+              variant={memberStatusIcon[status]?.variant}
+              size="sm"
+              icon={() => {
+                const IconComponent = memberStatusIcon[status]?.icon;
+                return IconComponent ? <IconComponent size={16} /> : null;
+              }}
+              aria-label={ApprovalStatusDisplayLabelMap[status]}
+            />
+          </Tooltip>
         ) : null}
       </div>
     </div>

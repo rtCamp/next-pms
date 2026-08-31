@@ -1,8 +1,10 @@
 /**
  * External dependencies.
  */
+import { useCallback, useContext } from "react";
 import type { CommentNode } from "@next-pms/design-system/components";
 import { Comments } from "@next-pms/design-system/components";
+import { FrappeContext } from "frappe-react-sdk";
 import { useUser } from "@/providers/user";
 
 /**
@@ -29,6 +31,8 @@ export function RagComments() {
     currentUser: state.currentUser,
   }));
 
+  const frappe = useContext(FrappeContext);
+
   const {
     comments,
     isLoading,
@@ -41,8 +45,32 @@ export function RagComments() {
 
   if (error) throw error;
 
+  const getMentions = useCallback(
+    async (query: string) => {
+      const response = await frappe?.call.get(
+        "next_pms.timesheet.api.employee.get_employee_list",
+        {
+          employee_name: query || undefined,
+          page_length: 5,
+          start: 0,
+        },
+      );
+
+      const mentions = response.message.data
+        .filter((emp: { user_id?: string }) => emp.user_id)
+        .map((emp: { user_id: string; employee_name: string }) => ({
+          id: emp.user_id,
+          label: emp.employee_name,
+        }));
+
+      return mentions || [];
+    },
+    [frappe],
+  );
+
   return (
     <Comments
+      getMentions={getMentions}
       comments={comments.map(mapRagComment)}
       isLoading={isLoading}
       isUpdating={isUpdating}

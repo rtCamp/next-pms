@@ -13,13 +13,12 @@ export interface ProjectListContextProps {
     data: ProjectListItem[];
     hasMore: boolean;
     isLoading: boolean;
+    isInitialLoad: boolean;
+    isFilterRequest: boolean;
     error: unknown;
-    addProjectOpen: boolean;
   };
   actions: {
     loadMore: () => void;
-    openAddProjectModal: () => void;
-    closeAddProjectModal: () => void;
   };
 }
 
@@ -30,13 +29,12 @@ export const ProjectListContext = createContext<ProjectListContextProps>({
     data: [],
     hasMore: false,
     isLoading: false,
+    isInitialLoad: false,
+    isFilterRequest: false,
     error: null,
-    addProjectOpen: false,
   },
   actions: {
     loadMore: noop,
-    openAddProjectModal: noop,
-    closeAddProjectModal: noop,
   },
 });
 

@@ -6,6 +6,7 @@ FOLLOWER_USER = "notification-url-follower@example.com"
 
 RISK_STATUS_OPEN = "URL Test Open"
 RISK_STATUS_MITIGATED = "URL Test Mitigated"
+RISK_LEVEL = "URL Test Level"
 
 
 class TestNotificationUrls(IntegrationTestCase):
@@ -35,6 +36,8 @@ class TestNotificationUrls(IntegrationTestCase):
         for status in (RISK_STATUS_OPEN, RISK_STATUS_MITIGATED):
             if not frappe.db.exists("Risk Status", status):
                 frappe.get_doc({"doctype": "Risk Status", "__newname": status}).insert(ignore_permissions=True)
+        if not frappe.db.exists("Risk Level", RISK_LEVEL):
+            frappe.get_doc({"doctype": "Risk Level", "__newname": RISK_LEVEL}).insert(ignore_permissions=True)
 
     @classmethod
     def tearDownClass(cls):
@@ -59,6 +62,7 @@ class TestNotificationUrls(IntegrationTestCase):
                 "doctype": "Risk",
                 "project": self.project.name,
                 "status": RISK_STATUS_OPEN,
+                "risk_level": RISK_LEVEL,
             }
         ).insert(ignore_permissions=True)
         self.addCleanup(frappe.delete_doc, "Risk", risk.name, force=True, ignore_permissions=True)
@@ -79,7 +83,7 @@ class TestNotificationUrls(IntegrationTestCase):
             ignore_permissions=True,
         )
 
-        risk.status = RISK_STATUS_MITIGATED
+        risk.append("risk_update_log", {"status": RISK_STATUS_MITIGATED})
         risk.save(ignore_permissions=True)
         save_to_db()
 

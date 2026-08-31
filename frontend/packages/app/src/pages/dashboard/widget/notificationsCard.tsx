@@ -3,7 +3,14 @@
  */
 import type { ComponentType } from "react";
 import type { NotificationEntry } from "@next-pms/design-system/components";
-import { File, Fire, Folder, Time, Check } from "@rtcamp/frappe-ui-react/icons";
+import {
+  AtSign,
+  File,
+  Fire,
+  Folder,
+  Time,
+  Check,
+} from "@rtcamp/frappe-ui-react/icons";
 
 /**
  * Internal dependencies.
@@ -15,10 +22,20 @@ const DOCTYPE_ICON_MAP: Record<string, ComponentType<{ size?: number }>> = {
   Timesheet: Time,
   "Customer Feedback": File,
   Project: Folder,
+  "Project Status Update": AtSign,
+  "Project RAG Status": AtSign,
 };
 
-const NotificationIcon = ({ linkedDoctype }: { linkedDoctype: string }) => {
-  const Icon = DOCTYPE_ICON_MAP[linkedDoctype] ?? Check;
+const NotificationIcon = ({
+  linkedDoctype,
+  title,
+}: {
+  linkedDoctype: string;
+  title?: string;
+}) => {
+  const Icon = title?.toLowerCase().includes("mention")
+    ? AtSign
+    : (DOCTYPE_ICON_MAP[linkedDoctype] ?? Check);
   return (
     <div
       aria-hidden="true"
@@ -63,45 +80,50 @@ export default function NotificationsCard() {
         </p>
       ) : (
         <ul className="flex flex-col overflow-y-scroll scrollbar-thin">
-          {notifications.map((item, index) => (
-            <li key={item.id}>
-              {index > 0 && <div className="my-3 h-px bg-outline-gray-1" />}
-              <a
-                href={item.href}
-                onClick={(event) => {
-                  if (
-                    event.metaKey ||
-                    event.ctrlKey ||
-                    event.shiftKey ||
-                    event.button !== 0
-                  ) {
-                    markAsViewed(item.id);
-                    return;
-                  }
-                  event.preventDefault();
-                  handleClick(item);
-                }}
-                className="flex cursor-pointer items-start gap-2"
-              >
-                <NotificationIcon linkedDoctype={item.linkedDoctype} />
-                <div className="flex w-full flex-col gap-1">
-                  <div className="flex items-baseline justify-between gap-2">
-                    {item.title && (
-                      <span className="truncate text-base font-medium text-ink-gray-7">
-                        {item.title}
+          {notifications
+            .filter((n) => !n.read)
+            .map((item, index) => (
+              <li key={item.id}>
+                {index > 0 && <div className="my-3 h-px bg-outline-gray-1" />}
+                <a
+                  href={item.href}
+                  onClick={(event) => {
+                    if (
+                      event.metaKey ||
+                      event.ctrlKey ||
+                      event.shiftKey ||
+                      event.button !== 0
+                    ) {
+                      markAsViewed(item.id);
+                      return;
+                    }
+                    event.preventDefault();
+                    handleClick(item);
+                  }}
+                  className="flex cursor-pointer items-start gap-2"
+                >
+                  <NotificationIcon
+                    linkedDoctype={item.linkedDoctype}
+                    title={item.title}
+                  />
+                  <div className="flex w-full flex-col gap-1">
+                    <div className="flex items-baseline justify-between gap-2">
+                      {item.title && (
+                        <span className="truncate text-base font-medium text-ink-gray-7">
+                          {item.title}
+                        </span>
+                      )}
+                      <span className="shrink-0 text-xs text-ink-gray-5">
+                        {item.timeLabel}
                       </span>
-                    )}
-                    <span className="shrink-0 text-xs text-ink-gray-5">
-                      {item.timeLabel}
-                    </span>
+                    </div>
+                    <p className="text-[13px] leading-[1.5] text-ink-gray-6">
+                      {renderMessage(item.message)}
+                    </p>
                   </div>
-                  <p className="text-[13px] leading-[1.5] text-ink-gray-6">
-                    {renderMessage(item.message)}
-                  </p>
-                </div>
-              </a>
-            </li>
-          ))}
+                </a>
+              </li>
+            ))}
         </ul>
       )}
     </>

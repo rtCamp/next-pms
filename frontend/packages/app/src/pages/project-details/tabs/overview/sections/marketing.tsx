@@ -14,6 +14,7 @@ import {
  * Internal dependencies.
  */
 import { useCustomerContactLookup } from "@/hooks/useCustomerContactLookup";
+import { hasProjectField } from "@/lib/utils";
 import { useProjectDetail } from "../../../context";
 import { EditableField } from "../components/editableField";
 import { OverviewSection } from "../components/overviewSection";
@@ -47,60 +48,66 @@ export function Marketing({ form, isEditing, submitting }: MarketingProps) {
 
   return (
     <OverviewSection title="Marketing">
-      <div className="flex w-207 max-w-full flex-wrap gap-4">
-        <form.Field name="ndaSigned">
-          {(field) => (
-            <EditableField
-              icon={<PreviewOff className="size-[18px]" />}
-              label="NDA signed"
-              value={toYesNo(field.state.value)}
-              isEditing={isEditing}
-            >
-              <Select
-                value={field.state.value}
-                onChange={(v) => field.handleChange(v || "0")}
-                options={YES_NO_OPTIONS}
-                disabled={submitting}
-              />
-            </EditableField>
-          )}
-        </form.Field>
+      <div className="flex w-220 max-w-full flex-wrap gap-4">
+        {hasProjectField("custom_restricted_under_nda") && (
+          <form.Field name="ndaSigned">
+            {(field) => (
+              <EditableField
+                icon={<PreviewOff className="size-[18px]" />}
+                label="NDA signed"
+                value={toYesNo(field.state.value)}
+                isEditing={isEditing}
+              >
+                <Select
+                  value={field.state.value}
+                  onChange={(v) => field.handleChange(v || "0")}
+                  options={YES_NO_OPTIONS}
+                  disabled={submitting}
+                />
+              </EditableField>
+            )}
+          </form.Field>
+        )}
 
-        <form.Field name="caseStudyApproved">
-          {(field) => (
-            <EditableField
-              icon={<Article className="size-[18px]" />}
-              label="Case study approved"
-              value={toYesNo(field.state.value)}
-              isEditing={isEditing}
-            >
-              <Select
-                value={field.state.value}
-                onChange={(v) => field.handleChange(v || "0")}
-                options={YES_NO_OPTIONS}
-                disabled={submitting}
-              />
-            </EditableField>
-          )}
-        </form.Field>
+        {hasProjectField("custom_permission_for_case_study") && (
+          <form.Field name="caseStudyApproved">
+            {(field) => (
+              <EditableField
+                icon={<Article className="size-[18px]" />}
+                label="Case study approved"
+                value={toYesNo(field.state.value)}
+                isEditing={isEditing}
+              >
+                <Select
+                  value={field.state.value}
+                  onChange={(v) => field.handleChange(v || "0")}
+                  options={YES_NO_OPTIONS}
+                  disabled={submitting}
+                />
+              </EditableField>
+            )}
+          </form.Field>
+        )}
 
-        <form.Field name="testimonialApproval">
-          {(field) => (
-            <EditableField
-              icon={<Quote className="size-[18px]" />}
-              label="Testimonial approval"
-              value={toYesNo(field.state.value)}
-              isEditing={isEditing}
-            >
-              <Select
-                value={field.state.value}
-                onChange={(v) => field.handleChange(v || "0")}
-                options={YES_NO_OPTIONS}
-                disabled={submitting}
-              />
-            </EditableField>
-          )}
-        </form.Field>
+        {hasProjectField("custom_permission_for_testimonial") && (
+          <form.Field name="testimonialApproval">
+            {(field) => (
+              <EditableField
+                icon={<Quote className="size-[18px]" />}
+                label="Testimonial approval"
+                value={toYesNo(field.state.value)}
+                isEditing={isEditing}
+              >
+                <Select
+                  value={field.state.value}
+                  onChange={(v) => field.handleChange(v || "0")}
+                  options={YES_NO_OPTIONS}
+                  disabled={submitting}
+                />
+              </EditableField>
+            )}
+          </form.Field>
+        )}
 
         <form.Field name="testimonialContact">
           {(field) => (

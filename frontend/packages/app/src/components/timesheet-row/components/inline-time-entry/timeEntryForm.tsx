@@ -9,6 +9,7 @@ import {
   TextEditor,
   DurationInput,
   TextInput,
+  FormLabel,
 } from "@rtcamp/frappe-ui-react";
 import { AddSm, Calendar } from "@rtcamp/frappe-ui-react/icons";
 import { format, parseISO } from "date-fns";
@@ -58,6 +59,7 @@ export const TimeEntryForm = ({
                 snap="smooth"
                 hoursLeft={hoursLeft}
                 label={durationLabel}
+                required
                 inlineLabel="Duration"
                 value={field.state.value}
                 onChange={(val) => field.handleChange(val)}
@@ -77,9 +79,9 @@ export const TimeEntryForm = ({
           children={(field) => {
             return (
               <div className="flex flex-col w-full gap-1.5">
-                <label className="block text-xs text-ink-gray-5">
+                <FormLabel size="sm" required>
                   Edit date
-                </label>
+                </FormLabel>
                 <DatePicker
                   label="Date"
                   variant="outline"

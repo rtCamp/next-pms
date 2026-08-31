@@ -2,11 +2,12 @@
  * External dependencies.
  */
 import type {
+  LeaveAllocation,
   ProjectGroup,
   ProjectMember,
 } from "@next-pms/design-system/components";
 import { formatDateRange } from "@next-pms/design-system/date";
-import { parseISO } from "date-fns";
+import { addDays, isSameDay, parseISO } from "date-fns";
 
 /**
  * Internal dependencies.
@@ -19,6 +20,7 @@ import {
 } from "../utils";
 import type {
   Customer,
+  EmployeeLeaveDay,
   ManagerNameMap,
   ProjectAllocationResponse,
   ProjectEmployee,
@@ -117,12 +119,81 @@ function getProjectDateRange(projectAllocations: ProjectResourceAllocation[]) {
 }
 
 /**
+ * Builds each employee's leave/holiday days into merged LeaveAllocation ranges.
+ *
+ * A day whose leave hours fall short of the employee's full daily capacity is kept as its
+ * own single-day range with a half-day marker, rather than merged into a neighbouring
+ * full-day run, since the API gives no way to tell which side of a run the half applies to.
+ * A holiday is always its own single-day range labelled with the holiday's name, never
+ * merged with a neighbouring day, so a run of leave days butting up against a named holiday
+ * doesn't drop the name into an "N days off" range.
+ */
+function buildEmployeeLeaveAllocations(
+  employeeLeaves: Record<string, Record<string, EmployeeLeaveDay>> | undefined,
+  employees: Record<string, ProjectEmployee>,
+): Map<string, LeaveAllocation[]> {
+  const leavesByEmployee = new Map<string, LeaveAllocation[]>();
+
+  for (const [employeeId, leaveDays] of Object.entries(employeeLeaves ?? {})) {
+    const employee = employees[employeeId];
+    const capacityHoursPerDay = getAllocationCapacityHoursPerDay(
+      employee?.custom_working_hours,
+      employee?.custom_work_schedule,
+    );
+
+    const sortedDates = Object.keys(leaveDays)
+      .filter((date) => leaveDays[date].is_on_leave)
+      .sort();
+
+    const ranges: LeaveAllocation[] = [];
+    for (const dateStr of sortedDates) {
+      const date = parseISO(dateStr);
+      const { total_leave_hours, is_holiday, holiday_name } =
+        leaveDays[dateStr];
+      const isHalfDay =
+        capacityHoursPerDay !== undefined &&
+        total_leave_hours > 0 &&
+        total_leave_hours < capacityHoursPerDay;
+      const label = is_holiday ? holiday_name || "Holiday" : undefined;
+
+      const last = ranges[ranges.length - 1];
+      const canExtendLast =
+        !isHalfDay &&
+        !label &&
+        last &&
+        !last.halfDayDate &&
+        !last.label &&
+        isSameDay(addDays(last.endDate, 1), date);
+
+      if (canExtendLast) {
+        last.endDate = date;
+        continue;
+      }
+
+      ranges.push({
+        startDate: date,
+        endDate: date,
+        ...(isHalfDay ? { halfDayDate: date } : {}),
+        ...(label ? { label } : {}),
+      });
+    }
+
+    if (ranges.length > 0) {
+      leavesByEmployee.set(employeeId, ranges);
+    }
+  }
+
+  return leavesByEmployee;
+}
+
+/**
  * Groups project allocations by employee for the project Gantt rows.
  */
 function getProjectMembers(
   projectAllocations: ProjectResourceAllocation[],
   customerLookup: Record<string, Customer>,
   employees: Record<string, ProjectEmployee>,
+  leavesByEmployee: Map<string, LeaveAllocation[]>,
   managerNameMap?: ManagerNameMap,
 ): ProjectMember[] {
   const membersById = new Map<string, ProjectMember>();
@@ -171,6 +242,7 @@ function getProjectMembers(
         : undefined,
       image: employee?.image ?? undefined,
       allocations: mappedAllocations,
+      leaves: leavesByEmployee.get(memberId),
     });
   }
 
@@ -184,6 +256,7 @@ function mapProjectRecord(
   project: ProjectRecord,
   customerLookup: Record<string, Customer>,
   employees: Record<string, ProjectEmployee>,
+  leavesByEmployee: Map<string, LeaveAllocation[]>,
   managerNameMap?: ManagerNameMap,
 ): ProjectGroup {
   const projectAllocations = getAllocationList(project.project_allocations);
@@ -192,6 +265,7 @@ function mapProjectRecord(
     projectAllocations,
     customerLookup,
     employees,
+    leavesByEmployee,
     managerNameMap,
   );
 
@@ -202,7 +276,7 @@ function mapProjectRecord(
     dateRange: allocationDateRange,
     projectDateRange: getProjectHoverDateRange(project) ?? allocationDateRange,
     projectManager: project.custom_project_manager_name ?? undefined,
-    weeklyCapacity: project.weekly_capacity ?? undefined,
+    remainingHours: project.remaining_hours ?? undefined,
     members,
   };
 }
@@ -215,8 +289,18 @@ export function mapProjectAllocationToProjects(
   managerNameMap?: ManagerNameMap,
 ): ProjectGroup[] {
   const employees = response.employees ?? {};
+  const leavesByEmployee = buildEmployeeLeaveAllocations(
+    response.employee_leaves,
+    employees,
+  );
 
   return response.data.map((project) =>
-    mapProjectRecord(project, response.customer, employees, managerNameMap),
+    mapProjectRecord(
+      project,
+      response.customer,
+      employees,
+      leavesByEmployee,
+      managerNameMap,
+    ),
   );
 }

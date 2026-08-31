@@ -15,13 +15,19 @@ export interface Employee {
 
 export interface Leave {
   employee: string;
-  employee_name: string;
   from_date: string;
   to_date: string;
   half_day: number;
   half_day_date: string | null;
+  custom_first_halfsecond_half: string | null;
   total_leave_days: number;
   name: string;
+}
+
+export interface Holiday {
+  employee: string;
+  holiday_date: string;
+  description: string;
 }
 
 export interface ResourceAllocation {
@@ -60,6 +66,7 @@ export interface Permissions {
 export interface TeamAllocationResponse {
   employees: Employee[];
   leaves: Leave[];
+  holidays: Holiday[];
   resource_allocations: ResourceAllocation[];
   customer: Record<string, Customer>;
   total_count: number;
@@ -68,3 +75,10 @@ export interface TeamAllocationResponse {
 }
 
 export type ManagerNameMap = Map<string, string>;
+
+export interface AllocationTypeSelection {
+  billableValues: number[];
+  statusValues: string[];
+  includeUnallocated: boolean;
+  isStatusApplicable: boolean;
+}

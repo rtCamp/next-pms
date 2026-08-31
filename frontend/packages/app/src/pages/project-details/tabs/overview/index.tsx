@@ -1,7 +1,7 @@
 /**
  * External dependencies.
  */
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import {
   Button,
   Skeleton,
@@ -16,9 +16,14 @@ import { FrappeError, useFrappeUpdateDoc } from "frappe-react-sdk";
 /**
  * Internal dependencies.
  */
-import { mergeClassNames, parseFrappeErrorMsg } from "@/lib/utils";
+import {
+  hasProjectField,
+  mergeClassNames,
+  parseFrappeErrorMsg,
+} from "@/lib/utils";
 import { useProjectDetail } from "../../context";
 import { OverviewSection } from "./components/overviewSection";
+import { SOURCING_FIELDS } from "./constants";
 import { overviewSchema, type OverviewFormValues } from "./schema";
 import { Communication } from "./sections/communication";
 import { Marketing } from "./sections/marketing";
@@ -34,6 +39,27 @@ const toBoolStr = (value: 0 | 1 | undefined) => {
   }
   return value === 1 ? "1" : "0";
 };
+
+const OPTIONAL_FIELD_READERS: Record<
+  string,
+  (value: OverviewFormValues) => string | 0 | 1
+> = {
+  custom_source: (value) => value.source,
+  custom_territory: (value) => value.primaryLocation,
+  custom_previous_cms: (value) => value.previousCms,
+  custom_restricted_under_nda: (value) => Number(value.ndaSigned) as 0 | 1,
+  custom_permission_for_case_study: (value) =>
+    Number(value.caseStudyApproved) as 0 | 1,
+  custom_permission_for_testimonial: (value) =>
+    Number(value.testimonialApproval) as 0 | 1,
+};
+
+const optionalFieldValues = (value: OverviewFormValues) =>
+  Object.fromEntries(
+    Object.entries(OPTIONAL_FIELD_READERS)
+      .filter(([fieldname]) => hasProjectField(fieldname))
+      .map(([fieldname, read]) => [fieldname, read(value)]),
+  );
 
 const useOverviewForm = (
   defaultValues: OverviewFormValues,
@@ -73,23 +99,28 @@ export function Overview() {
 function OverviewForm() {
   const { project, projectId, mutate } = useProjectDetail((state) => state);
 
-  const defaultValues: OverviewFormValues = {
-    summary: project?.custom_executive_summary ?? "",
-    keyGoals: project?.custom_key_goals ?? "",
-    priority: project?.priority ?? "",
-    host: project?.custom_host ?? "",
-    complexity: project?.custom_complexity ?? "",
-    keyAccount: project?.custom_key_account ?? "",
-    source: project?.custom_source ?? "",
-    primaryLocation: project?.custom_territory ?? "",
-    previousCms: project?.custom_previous_cms ?? "",
-    pointOfContact: project?.custom_client_point_of_contact ?? "",
-    frequency: project?.frequency ?? "",
-    ndaSigned: toBoolStr(project?.custom_restricted_under_nda),
-    caseStudyApproved: toBoolStr(project?.custom_permission_for_case_study),
-    testimonialApproval: toBoolStr(project?.custom_permission_for_testimonial),
-    testimonialContact: project?.custom_testimonial_contact ?? "",
-  };
+  const defaultValues: OverviewFormValues = useMemo(
+    () => ({
+      summary: project?.custom_executive_summary ?? "",
+      keyGoals: project?.custom_key_goals ?? "",
+      priority: project?.priority ?? "",
+      host: project?.custom_host ?? "",
+      complexity: project?.custom_complexity ?? "",
+      keyAccount: project?.custom_key_account ?? "",
+      source: project?.custom_source ?? "",
+      primaryLocation: project?.custom_territory ?? "",
+      previousCms: project?.custom_previous_cms ?? "",
+      pointOfContact: project?.custom_client_point_of_contact ?? "",
+      timeReportFrequency: project?.custom_time_report_frequency ?? "",
+      ndaSigned: toBoolStr(project?.custom_restricted_under_nda),
+      caseStudyApproved: toBoolStr(project?.custom_permission_for_case_study),
+      testimonialApproval: toBoolStr(
+        project?.custom_permission_for_testimonial,
+      ),
+      testimonialContact: project?.custom_testimonial_contact ?? "",
+    }),
+    [project],
+  );
 
   const [isEditing, setIsEditing] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -106,17 +137,10 @@ function OverviewForm() {
         custom_host: value.host,
         custom_complexity: value.complexity,
         custom_key_account: value.keyAccount,
-        custom_source: value.source,
-        custom_territory: value.primaryLocation,
-        custom_previous_cms: value.previousCms,
         custom_client_point_of_contact: value.pointOfContact,
-        frequency: value.frequency,
-        custom_restricted_under_nda: Number(value.ndaSigned) as 0 | 1,
-        custom_permission_for_case_study: Number(value.caseStudyApproved) as
-          0 | 1,
-        custom_permission_for_testimonial: Number(value.testimonialApproval) as
-          0 | 1,
+        custom_time_report_frequency: value.timeReportFrequency,
         custom_testimonial_contact: value.testimonialContact,
+        ...optionalFieldValues(value),
       });
       mutate();
       form.reset(value);
@@ -228,7 +252,9 @@ function OverviewForm() {
       </form.Field>
 
       <Specifics form={form} isEditing={isEditing} submitting={submitting} />
-      <Sourcing form={form} isEditing={isEditing} submitting={submitting} />
+      {SOURCING_FIELDS.some(hasProjectField) && (
+        <Sourcing form={form} isEditing={isEditing} submitting={submitting} />
+      )}
       <Communication
         form={form}
         isEditing={isEditing}

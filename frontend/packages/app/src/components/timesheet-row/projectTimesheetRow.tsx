@@ -5,7 +5,9 @@ import { useMemo } from "react";
 import {
   type ApprovalStatusLabelType,
   ErrorFallback,
+  Typography,
 } from "@next-pms/design-system/components";
+import { Skeleton } from "@rtcamp/frappe-ui-react";
 
 /**
  * Internal dependencies
@@ -30,6 +32,7 @@ export type ProjectTimesheetMember = {
   leaves: LeaveProps[];
   holidays: HolidayProp[];
   status: ApprovalStatusLabelType;
+  backdateRestrictedBefore: string | null;
 };
 
 export type ProjectTimesheetProject = {
@@ -43,6 +46,10 @@ export type ProjectTimesheetRowProps = {
   dates: string[];
   collapsed: boolean;
   projects: ProjectTimesheetProject[];
+  hasMoreProjects?: boolean;
+  isLoadingProjects?: boolean;
+  loadMoreRef?: (element: HTMLElement | null) => void;
+  onCollapsedChange?: (collapsed: boolean) => void;
 };
 
 export const ProjectTimesheetRow = ({
@@ -50,6 +57,10 @@ export const ProjectTimesheetRow = ({
   dates,
   collapsed,
   projects,
+  hasMoreProjects,
+  isLoadingProjects,
+  loadMoreRef,
+  onCollapsedChange,
 }: ProjectTimesheetRowProps) => {
   const { openAddTimeDialog } = useTimesheetOutletContext();
   const projectsData = useMemo(() => {
@@ -66,7 +77,9 @@ export const ProjectTimesheetRow = ({
         dates={dates}
         workingFrequency="Per Day"
         className="pl-3"
+        triggerClassName="sticky top-7 z-10 bg-surface-white"
         collapsed={collapsed}
+        onCollapsedChange={onCollapsedChange}
         isReadOnlyWeek={true}
       >
         {() => (
@@ -103,6 +116,7 @@ export const ProjectTimesheetRow = ({
                     className="pl-13.5"
                     collapsed={true}
                     disabled={member.status === "Approved"}
+                    backdateRestrictedBefore={member.backdateRestrictedBefore}
                     onCellClick={(date) =>
                       openAddTimeDialog({
                         date,
@@ -131,6 +145,9 @@ export const ProjectTimesheetRow = ({
                             dailyWorkingHours={dailyWorkingHours}
                             totalTimeEntriesInHours={totalTimeEntriesInHours}
                             employee={member.employee}
+                            backdateRestrictedBefore={
+                              member.backdateRestrictedBefore
+                            }
                             hideLikeButton={true}
                           />
                         ))}
@@ -148,6 +165,21 @@ export const ProjectTimesheetRow = ({
                 ))}
               </ProjectRow>
             ))}
+
+            {isLoadingProjects || hasMoreProjects ? (
+              <div ref={loadMoreRef}>
+                <Skeleton className="h-11.25 w-full shrink-0 rounded-none" />
+              </div>
+            ) : projects.length === 0 ? (
+              <div className="flex h-11.25 justify-center items-center border-b border-outline-gray-1 animate-fade-in">
+                <Typography
+                  variant="p"
+                  className="text-base text-center text-ink-gray-5"
+                >
+                  No timesheet for this week
+                </Typography>
+              </div>
+            ) : null}
           </>
         )}
       </WeekRow>

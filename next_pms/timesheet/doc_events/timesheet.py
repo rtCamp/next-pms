@@ -1,6 +1,8 @@
+from collections import defaultdict
+
 import frappe
 from frappe import _, get_value, throw
-from frappe.utils import add_days, date_diff, get_link_to_form, getdate, today
+from frappe.utils import add_days, date_diff, formatdate, get_link_to_form, getdate, today
 
 ROLES = {
     "Projects Manager",
@@ -117,68 +119,173 @@ def validate_is_time_billable(doc, method=None):
 
 def validate_dates(doc):
     """Validate if time entry is made for holidays or leave days."""
-    # import frappe
-    from frappe import get_roles
-    from hrms.hr.utils import get_holiday_dates_for_employee
-
-    from next_pms.resource_management.api.utils.query import get_employee_leaves
-    from next_pms.timesheet.api.employee import get_employee_from_user
-
-    frappe_roles = set(get_roles())
-    ignore_roles = frappe.get_all("Timesheet Role", pluck="role")
-
-    roles_to_ignore = frappe_roles.intersection(ignore_roles)
-    if frappe.session.user == "Administrator" or doc.ignore_backdated_validation or roles_to_ignore:
+    if _is_exempt_from_backdate_validation() or doc.ignore_backdated_validation:
         return
     #  Do not allow the time entry for more then one day.
     if date_diff(doc.end_date, doc.start_date) > 0:
         throw(_("Timesheet should not exceed more than one day."))
 
+    message = get_date_restriction_message(doc.employee, [doc.start_date])
+    if message:
+        throw(message)
+
+
+def get_date_restriction_message(employee: str, dates: list) -> str | None:
+    """The reason the current session user may not write a timesheet for `employee` on `dates`,
+    or None when every date is writable. Same rule validate_dates enforces per document, asked
+    once for a whole set of dates - so a caller that hands the write off to a background job can
+    refuse up front instead of parking the week mid-flight when the job dies on the same check."""
+    if _is_exempt_from_backdate_validation():
+        return None
+
+    dates = [getdate(date) for date in dates]
+    if not dates:
+        return None
+
     today_date = getdate(today())
-    date_gap = date_diff(doc.start_date, today_date)
 
     #  Check if the future time entry is allowed.
-    allow_future_entry = frappe.db.get_single_value("Timesheet Settings", "allow_future_entries")
-    if not allow_future_entry and date_gap > 0:
-        throw(_("Future time entries are not allowed."))
+    if max(dates) > today_date and not frappe.db.get_single_value("Timesheet Settings", "allow_future_entries"):
+        return _("Future time entries are not allowed.")
 
-    #  Check if the back dated time entry is allowed.
-    allow_back_dated_entry = frappe.db.get_single_value("Timesheet Settings", "allow_backdated_entries")
-    if not allow_back_dated_entry and date_gap < 0:
-        throw(_("Backdated time entries are not allowed."))
+    #  Check if the backdated time entry falls within the allowed working-day window.
+    if min(dates) < today_date:
+        boundary = get_backdate_restriction_boundary(employee)
+        if boundary and min(dates) < getdate(boundary):
+            return _("Backdated time entries are not allowed. The earliest date you can log time for is {0}.").format(
+                formatdate(boundary)
+            )
 
-    # validate backdated entries as per the setting
-    if date_gap < 0:
-        has_access = ROLES.intersection(frappe_roles)
-        employee = get_employee_from_user()
+    return None
 
-        if has_access and employee != doc.employee:
-            allowed_days = frappe.db.get_single_value("Timesheet Settings", "allow_backdated_entries_till_manager")
-        else:
-            allowed_days = frappe.db.get_single_value("Timesheet Settings", "allow_backdated_entries_till_employee")
-        holidays = get_holiday_dates_for_employee(doc.employee, doc.start_date, today_date)
-        leaves = get_employee_leaves(
-            start_date=add_days(doc.start_date, -28),
-            end_date=add_days(today_date, 28),
-            employee=doc.employee,
-        )
 
-        for leave in leaves:
-            from_date = getdate(leave.from_date)
-            to_date = getdate(leave.to_date)
+def _is_exempt_from_backdate_validation() -> bool:
+    """True if the current session user is fully exempt from backdate validation -
+    Administrator, or holding a role listed in Timesheet Settings' Ignored Role table.
+    Shared by validate_dates and get_backdate_restriction_boundary so there's exactly one
+    place this exemption is decided."""
+    from frappe import get_roles
 
-            current_date = from_date
-            while current_date <= to_date:
-                holidays.append(str(current_date))
+    if frappe.session.user == "Administrator":
+        return True
+
+    ignore_roles = frappe.get_all("Timesheet Role", pluck="role")
+    return bool(set(get_roles()).intersection(ignore_roles))
+
+
+def get_backdate_restriction_boundary(employee: str) -> str | None:
+    """Returns the earliest date (inclusive) `employee` may still log a time entry for, from
+    the current session user's perspective. Any date before the returned boundary is
+    restricted. Returns None if the current session user is exempt entirely (see
+    _is_exempt_from_backdate_validation) - meaning no date should be treated as restricted.
+    Single source of truth for the backdated-entry check: used both by the validation above
+    and by the frontend's disabled-cell precheck (exposed via API endpoints in api/app.py,
+    api/team.py, api/project.py). Thin single-employee wrapper over
+    get_backdate_restriction_boundaries - callers rendering many employees at once should
+    call that directly instead of looping this."""
+    return get_backdate_restriction_boundaries([employee]).get(employee)
+
+
+def get_backdate_restriction_boundaries(employees: list) -> dict:
+    """Batch form of get_backdate_restriction_boundary: computes the boundary for every
+    employee in `employees` using one round of queries regardless of list size, instead of
+    one round of holiday/leave queries per employee. Team/project timesheet pages render up
+    to a hundred employees per request - call this once for the whole page rather than
+    looping the single-employee wrapper above."""
+    if not employees:
+        return {}
+
+    if _is_exempt_from_backdate_validation():
+        return dict.fromkeys(employees)
+
+    today_date = getdate(today())
+
+    if not frappe.db.get_single_value("Timesheet Settings", "allow_backdated_entries"):
+        return dict.fromkeys(employees, str(today_date))
+
+    allowed_days_by_employee = _get_effective_backdated_allowed_days(employees)
+    return _compute_backdate_boundaries(employees, allowed_days_by_employee, today_date)
+
+
+def _get_effective_backdated_allowed_days(employees: list) -> dict:
+    """Resolves the 'allow backdated entries till' day threshold for every employee in
+    `employees`, from the current session user's perspective: the manager threshold applies
+    if they hold a manager-ish role (see ROLES) and are looking at someone else's record, the
+    employee threshold otherwise. Reads the viewer's roles/employee record and both settings
+    once, no matter how many employees are passed."""
+    from frappe import get_roles
+
+    from next_pms.timesheet.api.employee import get_employee_from_user
+
+    frappe_roles = set(get_roles())
+    has_access = ROLES.intersection(frappe_roles)
+    viewer_employee = get_employee_from_user()
+
+    employee_days = frappe.db.get_single_value("Timesheet Settings", "allow_backdated_entries_till_employee") or 0
+    manager_days = frappe.db.get_single_value("Timesheet Settings", "allow_backdated_entries_till_manager") or 0
+
+    return {
+        employee: manager_days if has_access and viewer_employee != employee else employee_days
+        for employee in employees
+    }
+
+
+def _compute_backdate_boundaries(employees: list, allowed_days_by_employee: dict, today_date) -> dict:
+    """Walks backward from today, per employee, counting only working days (skipping
+    holidays, weekly-offs, and approved/open leave) until that employee's allowed_days have
+    been counted; the date it stops on is the boundary - extended further back to absorb any
+    holiday/leave plateau immediately preceding it (see below). Fetches holidays and leave
+    for every employee in one round of queries instead of one round per employee."""
+    from next_pms.resource_management.api.utils.query import get_employee_leaves
+    from next_pms.timesheet.api.utils import get_holiday_dates_by_employee
+
+    boundaries = {employee: str(today_date) for employee, days in allowed_days_by_employee.items() if days <= 0}
+    pending = [employee for employee in employees if employee not in boundaries]
+    if not pending:
+        return boundaries
+
+    # A generous, fixed search window - realistically far wider than any configured
+    # threshold would ever need, so the loop below always terminates within it.
+    search_start = add_days(today_date, -365)
+
+    holidays_by_employee = get_holiday_dates_by_employee(pending, search_start, today_date)
+    leaves_by_employee = defaultdict(list)
+    for leave in get_employee_leaves(
+        employee=tuple(pending), start_date=add_days(search_start, -28), end_date=add_days(today_date, 28)
+    ):
+        leaves_by_employee[leave.employee].append(leave)
+
+    for employee in pending:
+        non_working_days = set(holidays_by_employee.get(employee, []))
+        for leave in leaves_by_employee.get(employee, []):
+            current_date = getdate(leave.from_date)
+            leave_to_date = getdate(leave.to_date)
+            while current_date <= leave_to_date:
+                non_working_days.add(str(current_date))
                 current_date = add_days(current_date, 1)
 
-        holiday_counter = 0
-        holidays = set(holidays)
-        for holiday in holidays:
-            if doc.start_date <= getdate(holiday) < today_date:
-                holiday_counter += 1
-        if abs(date_gap + holiday_counter) > allowed_days:
-            throw(_("Backdated time entries are not allowed."))
+        working_days_counted = 0
+        current_date = today_date
+        while working_days_counted < allowed_days_by_employee[employee]:
+            current_date = add_days(current_date, -1)
+            if current_date < search_start:
+                break
+            if str(current_date) not in non_working_days:
+                working_days_counted += 1
+
+        # Absorb any holiday/leave days immediately preceding the counted boundary day too -
+        # matches the old per-submission check, which never penalized a date that was itself
+        # a non-working day (a date that is its own holiday/leave day never cost a working
+        # day, so it was always at least as permissive as the working day right after it).
+        while True:
+            previous_date = add_days(current_date, -1)
+            if previous_date < search_start or str(previous_date) not in non_working_days:
+                break
+            current_date = previous_date
+
+        boundaries[employee] = str(current_date)
+
+    return boundaries
 
 
 def validate_existing_timesheet(doc, method=None):
@@ -281,7 +388,8 @@ def publish_timesheet_update(employee, start_date):
     from frappe.realtime import get_site_room
     from frappe.utils import get_date_str
 
-    from next_pms.timesheet.api.team import get_compact_view_data
+    from next_pms.timesheet.api.project import get_project_timesheet_member_week
+    from next_pms.timesheet.api.team import get_team_timesheet_member_week
     from next_pms.timesheet.api.timesheet import get_timesheet_data
 
     data = get_timesheet_data(employee, start_date, 1)
@@ -297,21 +405,42 @@ def publish_timesheet_update(employee, start_date):
         after_commit=True,
         user=frappe.session.user,
     )
-    res = get_compact_view_data(
-        date=get_date_str(start_date),
-        max_week=2,
+    # Publishes one member-week, matching get_team_timesheet_data's `members` element,
+    # so a listener can swap a single row. This previously sent get_compact_view_data's
+    # output, which never contains the key the team page keys its merge on, making every
+    # team timesheet realtime update a silent no-op.
+    member = get_team_timesheet_member_week(
+        employee=employee,
+        start_date=get_date_str(start_date),
         by_pass_access_check=True,
-        employee_ids=[employee],
     )
-    publish_realtime(
-        "timesheet_info",
-        {"message": res, "employee": employee, "date": get_date_str(start_date)},
-        after_commit=True,
-        room=get_site_room(),
+    payload = {
+        "message": member,
+        "employee": employee,
+        "start_date": get_date_str(start_date),
+    }
+    publish_realtime("timesheet_info", payload, after_commit=True, room=get_site_room())
+    publish_realtime("timesheet_info", payload, after_commit=True, user=frappe.session.user)
+
+    # The project timesheet groups by project, so it needs the employee's whole week keyed
+    # by project - a single member-week would not tell it which project rows to update, nor
+    # which to remove when an entry moves off a project.
+    project_member = get_project_timesheet_member_week(
+        employee=employee,
+        start_date=get_date_str(start_date),
+        by_pass_access_check=True,
     )
+    # The detailed week carries another employee's tasks, hours, leave and approval
+    # status, so the site room - which holds every logged-in client, including ones that
+    # would fail get_project_timesheet_data's only_for - gets an invalidation only.
+    # Authorized viewers reload the week through that checked endpoint. The editor, who is
+    # authorized by virtue of having just written the timesheet, still gets the payload so
+    # their own row swaps in without a round trip.
+    invalidation = {"employee": employee, "start_date": get_date_str(start_date)}
+    publish_realtime("project_timesheet_info", invalidation, after_commit=True, room=get_site_room())
     publish_realtime(
-        "timesheet_info",
-        {"message": res, "employee": employee, "date": get_date_str(start_date)},
+        "project_timesheet_info",
+        {**invalidation, "message": project_member},
         after_commit=True,
         user=frappe.session.user,
     )

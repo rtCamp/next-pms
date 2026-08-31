@@ -2,12 +2,12 @@ from typing import Any
 
 import frappe
 from frappe import _, enqueue, only_for
-from frappe.desk.notifications import extract_mentions
 from frappe.types import DF
 from frappe.utils import cint, now_datetime
 from frappe.utils.user import get_user_fullname
 
 from next_pms.api.utils import error_logger
+from next_pms.next_pms.notifications import send_mention_notifications
 
 ROLES = {
     "Projects Manager",
@@ -248,16 +248,7 @@ def add_comment_to_project_status_update(name: str, comment: str, reply_to: str 
 
     doc.save(ignore_permissions=True)
 
-    enqueue(
-        notify_mentions,
-        content=comment,
-        comment_name=doc.comments[-1].name,
-        project_status_update=name,
-        context_type="comment",
-        queue="short",
-        enqueue_after_commit=True,
-        job_name=f"Mention Notifications for Comment {doc.comments[-1].name}",
-    )
+    enqueue_note_mentions(comment, doc)
 
     return get_project_status_update_details(doc.name)
 
@@ -309,17 +300,6 @@ def update_comment_in_project_status_update(
     target_row.edited = 1
     target_row.modified_at = now_datetime()
     doc.save(ignore_permissions=True)
-
-    enqueue(
-        notify_mentions,
-        content=comment,
-        comment_name=target_row.name,
-        project_status_update=name,
-        context_type="comment_update",
-        enqueue_after_commit=True,
-        queue="short",
-        job_name=f"Mention Notifications for Comment Update {target_row.name}",
-    )
 
     return get_project_status_update_details(doc.name)
 
@@ -524,79 +504,22 @@ def get_project_status_update_details(name: str) -> dict[str, Any]:
     }
 
 
-def notify_mentions(
-    content: str,
-    comment_name: str = None,
-    project_status_update: str = None,
-    context_type: str = "comment",
-) -> dict[str, Any]:
-    """
-    Send notifications to mentioned users in project status updates or comments
-
-    Args:
-        content (str): The content containing mentions (HTML format)
-        project_status_update (str, optional): Project Status Update document name
-        context_type (str, optional): Type of context (project_status_update, comment, etc.)
-
-    Returns:
-        Dict[str, Any]: Notification results
-    """
-
-    mentioned_users = extract_mentions(content)
-
-    if not mentioned_users:
-        return {"message": "No mentions found"}
-
-    current_user = frappe.session.user
-    current_user_name = get_user_fullname(current_user)
-
-    doc_name = project_status_update
-    doc_type = "Project Status Update" if project_status_update else "Project"
-    project_name = None
-
-    if project_status_update and frappe.db.exists("Project Status Update", project_status_update):
-        status_update_doc = frappe.get_doc("Project Status Update", project_status_update)
-        project_name = status_update_doc.project
-        update_title = status_update_doc.title
-        notification_context = f"project status update '{update_title}'"
-    else:
-        return {"message": "No project status update found"}
-
-    for user_email in mentioned_users:
-        if user_email == current_user:
-            continue
-
-        if not frappe.db.exists("User", user_email):
-            continue
-
-        project_url = frappe.utils.get_url(f"/next-pms/project/{project_name}?tab=Project+Updates&cid={comment_name}")
-        notification_doc = frappe.get_doc(
-            {
-                "doctype": "Notification Log",
-                "subject": f"You were mentioned in {notification_context}",
-                "for_user": user_email,
-                "type": "Mention",
-                "document_type": doc_type,
-                "document_name": doc_name,
-                "from_user": current_user,
-                "email_content": frappe.render_template(  # nosemgrep - trusted template file
-                    "next_pms/timesheet/templates/project_status_update/mention_notification.html",
-                    {
-                        "current_user_name": current_user_name,
-                        "notification_context": notification_context,
-                        "content": content,
-                        "project_url": project_url,
-                    },
-                ),
-                "read": 0,
-            }
-        )
-
-        notification_doc.insert(ignore_permissions=True)
-
-    return {
-        "message": f"Notifications sent successfully to {len(mentioned_users)} users",
-    }
+def enqueue_note_mentions(content: str, doc) -> None:
+    project_title = frappe.db.get_value("Project", doc.project, "project_name") or doc.project
+    enqueue(
+        send_mention_notifications,
+        content=content,
+        title=_("You got a Notes mention"),
+        label=_("{0} mentioned you in {1} note from {2} project").format(
+            get_user_fullname(frappe.session.user), doc.title, project_title
+        ),
+        linked_doctype="Project Status Update",
+        linked_document=doc.name,
+        url_path=f"/next-pms/projects/{doc.project}?tab=notes&note={doc.name}",
+        queue="short",
+        enqueue_after_commit=True,
+        job_name=f"Mention Notifications for {doc.name}",
+    )
 
 
 def send_publish_notifications(project: str, title: str, name: str):

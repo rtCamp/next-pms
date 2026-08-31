@@ -3,8 +3,11 @@ import json
 import frappe
 from erpnext import get_default_company
 from frappe.tests import IntegrationTestCase
+from frappe.utils import getdate
 
 from next_pms.resource_management.api.team import get_resource_management_team_view_data
+from next_pms.resource_management.api.utils.query import get_employee_leaves
+from next_pms.tests.utils import assign_empty_holiday_list
 from next_pms.timesheet.api.app import has_bu_field
 
 
@@ -15,6 +18,15 @@ def _business_unit_available():
     so fixtures and assertions that touch it must be skipped there.
     """
     return bool(has_bu_field())
+
+
+def _first_half_field_available():
+    """True only when the `custom_first_halfsecond_half` customization is installed.
+
+    The field is a site customization, so `get_employee_leaves` guards on it and reports
+    None where it is missing — the key is always in the payload, only its value varies.
+    """
+    return frappe.db.has_column("Leave Application", "custom_first_halfsecond_half")
 
 
 EMPLOYEE_TAGS = {
@@ -169,6 +181,10 @@ TEAM_WINDOW_START = "2026-06-15"
 
 FILTER_WRITE_USER = "tv.write@example.com"
 FILTER_READ_ONLY_USER = "tv.readonly@example.com"
+
+TEAM_LEAVE_TYPE = "TV Leave Without Pay"
+TEAM_HALF_DAY_DATE = "2026-06-17"
+TEAM_HALF_DAY_PORTION = "First Half"
 
 
 class _TeamViewBase(IntegrationTestCase):
@@ -465,11 +481,147 @@ class TestTeamViewAllocationFilters(_TeamViewBase):
         confirmed = self._call(employee_id=self.all_ids, allocation_status=json.dumps(["Tentative"]))
         self.assertEqual(self._names(confirmed), ["Tva Nonbillable"])
 
+    def test_both_billable_values_select_every_allocated_employee(self):
+        # Selecting both billable options means "either kind of allocation", which is not
+        # the same as leaving the axis unfiltered — the out-of-window employee stays out.
+        result = self._call(employee_id=self.all_ids, is_billable=json.dumps([0, 1]))
+        self.assertEqual(self._names(result), ["Tva Billable", "Tva Nonbillable"])
+
+    def test_both_status_values_select_every_allocated_employee(self):
+        result = self._call(employee_id=self.all_ids, allocation_status=json.dumps(["Confirmed", "Tentative"]))
+        self.assertEqual(self._names(result), ["Tva Billable", "Tva Nonbillable"])
+
     def test_no_matching_allocation_returns_empty(self):
         result = self._call(employee_id=json.dumps([self.emp_nonbillable]), is_billable=json.dumps([1]))
         self.assertEqual(result["employees"], [])
         self.assertEqual(result["total_count"], 0)
         self.assertFalse(result["has_more"])
+
+
+class TestTeamViewNoAllocationFilter(_TeamViewBase):
+    """`no_allocation` — an independent leg of the allocation-type multi-select.
+
+    It unions with is_billable / allocation_status rather than inverting them: the result
+    is the employees matching those options PLUS the employees with zero in-window
+    allocations. "No allocation" always means zero allocations of any kind. Employee sets
+    are scoped with employee_id for determinism.
+    """
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.company = get_default_company()
+        cls.write_user = cls._make_user(FILTER_WRITE_USER, projects_user=True)
+        cls.read_only_user = cls._make_user(FILTER_READ_ONLY_USER)
+        if not frappe.db.exists("Employee", {"user_id": cls.read_only_user}):
+            # The endpoint gates on the Employee role, which comes from a linked Employee.
+            # Not "Tna"-named, so it never appears in the scoped assertions.
+            cls._make_employee("Tv NoAlloc Readonly", user_id=cls.read_only_user)
+        cls.customer = cls._make_customer("TV NoAlloc Customer")
+        cls.project = cls._make_project("TV NoAlloc Portal", cls.customer)
+
+        cls.emp_billable = cls._make_employee("Tna Billable")
+        cls.emp_nonbillable = cls._make_employee("Tna Nonbillable")
+        cls.emp_out = cls._make_employee("Tna OutOfWindow")
+        cls.emp_free = cls._make_employee("Tna Free")
+        cls.emp_mixed = cls._make_employee("Tna Mixed")
+
+        cls._make_allocation(
+            cls.emp_billable, cls.project, TEAM_WINDOW_START, "2026-06-19", is_billable=1, status="Confirmed"
+        )
+        cls._make_allocation(
+            cls.emp_nonbillable, cls.project, "2026-06-16", "2026-06-20", is_billable=0, status="Tentative"
+        )
+        # Allocated, but entirely after the window — counts as unallocated for this range.
+        cls._make_allocation(cls.emp_out, cls.project, "2026-07-01", "2026-07-05", is_billable=1, status="Confirmed")
+        # Holds one allocation of each kind, so it is matched by either billable option and
+        # must never be dropped merely for holding a non-matching allocation too. The two
+        # must not overlap — Resource Allocation rejects overlaps on the same project.
+        cls._make_allocation(
+            cls.emp_mixed, cls.project, TEAM_WINDOW_START, "2026-06-17", is_billable=1, status="Confirmed"
+        )
+        cls._make_allocation(cls.emp_mixed, cls.project, "2026-06-22", "2026-06-24", is_billable=0, status="Tentative")
+
+        cls.all_ids = json.dumps([cls.emp_billable, cls.emp_nonbillable, cls.emp_out, cls.emp_free])
+        cls.allocated_ids = json.dumps([cls.emp_billable, cls.emp_nonbillable])
+        cls.mixed_ids = json.dumps([cls.emp_mixed, cls.emp_billable, cls.emp_free])
+        frappe.clear_cache()
+
+    def test_alone_returns_only_employees_without_any_allocation(self):
+        result = self._call(employee_id=self.all_ids, no_allocation=True)
+        self.assertEqual(self._names(result), ["Tna Free", "Tna OutOfWindow"])
+
+    def test_unions_with_is_billable(self):
+        # "No allocation" + "Billable only" — the billable employee plus the unallocated.
+        result = self._call(employee_id=self.all_ids, no_allocation=True, is_billable=json.dumps([1]))
+        self.assertEqual(self._names(result), ["Tna Billable", "Tna Free", "Tna OutOfWindow"])
+
+    def test_unions_with_non_billable(self):
+        result = self._call(employee_id=self.all_ids, no_allocation=True, is_billable=json.dumps([0]))
+        self.assertEqual(self._names(result), ["Tna Free", "Tna Nonbillable", "Tna OutOfWindow"])
+
+    def test_allocation_status_is_dropped_without_a_billability_option(self):
+        # An unallocated employee has no allocation to be Confirmed, so the status axis
+        # cannot narrow anything here and must not union in the confirmed employees.
+        result = self._call(employee_id=self.all_ids, no_allocation=True, allocation_status=json.dumps(["Confirmed"]))
+        self.assertEqual(self._names(result), ["Tna Free", "Tna OutOfWindow"])
+
+    def test_allocation_status_applies_alongside_a_billability_option(self):
+        # With a presence option selected the status axis is meaningful again: it narrows
+        # the billable leg, and the no-allocation leg unions on top.
+        result = self._call(
+            employee_id=self.all_ids,
+            no_allocation=True,
+            is_billable=json.dumps([1]),
+            allocation_status=json.dumps(["Confirmed"]),
+        )
+        self.assertEqual(self._names(result), ["Tna Billable", "Tna Free", "Tna OutOfWindow"])
+
+    def test_employee_matching_on_one_of_several_allocations_is_kept(self):
+        # Tna Mixed holds both a billable and a non-billable allocation. Either option must
+        # match it — holding a *non*-matching allocation is not grounds for exclusion.
+        billable = self._call(employee_id=self.mixed_ids, no_allocation=True, is_billable=json.dumps([1]))
+        self.assertEqual(self._names(billable), ["Tna Billable", "Tna Free", "Tna Mixed"])
+
+        non_billable = self._call(employee_id=self.mixed_ids, no_allocation=True, is_billable=json.dumps([0]))
+        self.assertEqual(self._names(non_billable), ["Tna Free", "Tna Mixed"])
+
+    def test_combines_with_employee_name(self):
+        result = self._call(employee_id=self.all_ids, no_allocation=True, employee_name="Free")
+        self.assertEqual(self._names(result), ["Tna Free"])
+
+    def test_all_scoped_employees_allocated_returns_empty(self):
+        result = self._call(employee_id=self.allocated_ids, no_allocation=True)
+        self.assertEqual(result["employees"], [])
+        self.assertEqual(result["total_count"], 0)
+        self.assertFalse(result["has_more"])
+
+    def test_empty_match_set_returns_only_the_unallocated(self):
+        # Nobody in this set has a *billable Tentative* allocation, so the union collapses
+        # to its no-allocation leg — and must not fall into the empty-response branch.
+        result = self._call(
+            employee_id=self.all_ids,
+            no_allocation=True,
+            is_billable=json.dumps([1]),
+            allocation_status=json.dumps(["Tentative"]),
+        )
+        self.assertEqual(self._names(result), ["Tna Free", "Tna OutOfWindow"])
+
+    def test_pagination_counts_the_filtered_set(self):
+        result = self._call(employee_id=self.all_ids, no_allocation=True, page_length=1)
+        self.assertEqual(self._names(result), ["Tna Free"])
+        self.assertEqual(result["total_count"], 2)
+        self.assertTrue(result["has_more"])
+
+    def test_ignored_without_write_permission(self):
+        # no_allocation would drop the allocated employees if honored; a read-only caller
+        # must ignore it and return every Tna employee via the name filter.
+        result = self._call(user=FILTER_READ_ONLY_USER, employee_name="Tna", no_allocation=True)
+        self.assertFalse(result["permissions"]["write"])
+        self.assertEqual(
+            self._names(result),
+            ["Tna Billable", "Tna Free", "Tna Mixed", "Tna Nonbillable", "Tna OutOfWindow"],
+        )
 
 
 class TestTeamViewHoursSummaryShape(_TeamViewBase):
@@ -522,3 +674,164 @@ class TestTeamViewHoursSummaryShape(_TeamViewBase):
         entry = next(row for row in result["data"] if row["name"] == self.employee)
         self.assertIn("all_dates_data", entry)
         self.assertIn("all_week_data", entry)
+
+
+class TestTeamViewFlatGridHolidays(_TeamViewBase):
+    """The `holidays` payload the flat grid uses to mark holiday cells.
+
+    Holidays are company/holiday-list wide, not tied to an allocation, so an employee with
+    zero resource allocations in the window must still surface their holidays — unlike
+    `leaves`/`resource_allocations`, which are naturally empty for an unallocated employee.
+    """
+
+    TEAM_HOLIDAY_DATE = "2026-06-17"  # A Wednesday inside the [2026-06-15, 2026-06-28] window.
+    OUT_OF_WINDOW_HOLIDAY_DATE = "2026-07-02"
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.company = get_default_company()
+        cls.write_user = cls._make_user(FILTER_WRITE_USER, projects_user=True)
+        cls.employee = cls._make_employee("Tvh Holiday Employee")
+        cls.only = json.dumps([cls.employee])
+
+        holiday_list = frappe.get_doc(
+            {
+                "doctype": "Holiday List",
+                "holiday_list_name": "TV Holiday Grid List",
+                "from_date": "2026-01-01",
+                "to_date": "2026-12-31",
+                "holidays": [
+                    {"holiday_date": cls.TEAM_HOLIDAY_DATE, "description": "Testing holiday", "weekly_off": 0},
+                    {"holiday_date": cls.OUT_OF_WINDOW_HOLIDAY_DATE, "description": "Out of window", "weekly_off": 0},
+                    {"holiday_date": "2026-06-20", "description": "Saturday", "weekly_off": 1},
+                ],
+            }
+        )
+        holiday_list.insert(ignore_permissions=True)
+        cls.holiday_list = holiday_list.name
+        frappe.db.set_value("Employee", cls.employee, "holiday_list", holiday_list.name)
+        # hrms resolves an employee's holiday list from Holiday List Assignment, not the
+        # Employee.holiday_list field directly — mirrors assign_empty_holiday_list.
+        frappe.get_doc(
+            {
+                "doctype": "Holiday List Assignment",
+                "applicable_for": "Employee",
+                "assigned_to": cls.employee,
+                "holiday_list": holiday_list.name,
+                "from_date": "2026-01-01",
+            }
+        ).insert(ignore_permissions=True).submit()
+
+        frappe.clear_cache()
+
+    def _holidays(self):
+        return self._call(employee_id=self.only, need_hours_summary=False)["holidays"]
+
+    def test_unallocated_employee_still_gets_holidays(self):
+        result = self._call(employee_id=self.only, need_hours_summary=False)
+        self.assertEqual(result["resource_allocations"], [])
+        holiday_dates = {getdate(holiday["holiday_date"]) for holiday in result["holidays"]}
+        self.assertIn(getdate(self.TEAM_HOLIDAY_DATE), holiday_dates)
+
+    def test_excludes_out_of_window_holidays(self):
+        holiday_dates = {getdate(holiday["holiday_date"]) for holiday in self._holidays()}
+        self.assertNotIn(getdate(self.OUT_OF_WINDOW_HOLIDAY_DATE), holiday_dates)
+
+    def test_excludes_weekly_off_placeholders(self):
+        # weekly_off rows mark the routine weekend, so keeping them would flag every weekend.
+        for holiday in self._holidays():
+            self.assertNotEqual(holiday["description"], "Saturday")
+
+    def test_holiday_carries_employee_and_description(self):
+        holiday = next(
+            row for row in self._holidays() if getdate(row["holiday_date"]) == getdate(self.TEAM_HOLIDAY_DATE)
+        )
+        self.assertEqual(holiday["employee"], self.employee)
+        self.assertEqual(holiday["description"], "Testing holiday")
+
+    def test_editing_the_holiday_list_invalidates_the_cached_payload(self):
+        # The view is @redis_cache()d, so a save that misses the invalidation would keep
+        # serving the pre-edit holidays.
+        added_date = "2026-06-18"
+        # The redis cache outlives the per-test rollback, so drop it for the next test.
+        self.addCleanup(frappe.clear_cache)
+        self.assertNotIn(getdate(added_date), {getdate(row["holiday_date"]) for row in self._holidays()})
+
+        holiday_list = frappe.get_doc("Holiday List", self.holiday_list)
+        holiday_list.append("holidays", {"holiday_date": added_date, "description": "Added later", "weekly_off": 0})
+        holiday_list.save(ignore_permissions=True)
+
+        self.assertIn(getdate(added_date), {getdate(row["holiday_date"]) for row in self._holidays()})
+
+
+class TestTeamViewFlatGridLeaves(_TeamViewBase):
+    """The `leaves` payload the flat grid renders time-off bars from.
+
+    The grid draws one bar per leave across from_date..to_date and splits out the
+    half day, so the window scoping and the half_day_date / custom_first_halfsecond_half
+    pair are contract, not incidental fields on the row.
+    """
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.company = get_default_company()
+        cls.write_user = cls._make_user(FILTER_WRITE_USER, projects_user=True)
+        cls.employee = cls._make_employee("Tvl Employee")
+        cls.only = json.dumps([cls.employee])
+
+        # HRMS subtracts holidays from every leave whose type does not include them, and throws
+        # outright when the employee resolves to no holiday list. An empty list satisfies that
+        # lookup without letting site holidays move the day counts below.
+        assign_empty_holiday_list(cls.employee)
+
+        # is_lwp so the applications below need no Leave Allocation to be valid.
+        if not frappe.db.exists("Leave Type", TEAM_LEAVE_TYPE):
+            frappe.get_doc({"doctype": "Leave Type", "leave_type_name": TEAM_LEAVE_TYPE, "is_lwp": 1}).insert(
+                ignore_permissions=True
+            )
+
+        # In-window half day ([2026-06-15, 2026-06-28]) and one leave entirely after it.
+        cls.in_window_leave = cls._make_leave(TEAM_HALF_DAY_DATE, TEAM_HALF_DAY_DATE, half_day_date=TEAM_HALF_DAY_DATE)
+        cls.out_of_window_leave = cls._make_leave("2026-07-01", "2026-07-05")
+
+        get_employee_leaves.clear_cache()
+        frappe.clear_cache()
+
+    @classmethod
+    def _make_leave(cls, from_date, to_date, half_day_date=None):
+        leave = frappe.get_doc(
+            {
+                "doctype": "Leave Application",
+                "employee": cls.employee,
+                "leave_type": TEAM_LEAVE_TYPE,
+                "from_date": from_date,
+                "to_date": to_date,
+                "half_day": 1 if half_day_date else 0,
+                "half_day_date": half_day_date,
+                "description": "team view flat grid leave fixture",
+                "leave_approver": "Administrator",
+                "status": "Open",
+            }
+        )
+        if half_day_date and _first_half_field_available():
+            leave.custom_first_halfsecond_half = TEAM_HALF_DAY_PORTION
+        return leave.insert(ignore_permissions=True).name
+
+    def _leaves(self):
+        return self._call(employee_id=self.only, need_hours_summary=False)["leaves"]
+
+    def test_excludes_out_of_window_leaves(self):
+        leave_names = {leave["name"] for leave in self._leaves()}
+        self.assertIn(self.in_window_leave, leave_names)
+        self.assertNotIn(self.out_of_window_leave, leave_names)
+
+    def test_half_day_leave_carries_the_day_and_the_half_it_covers(self):
+        leave = next(row for row in self._leaves() if row["name"] == self.in_window_leave)
+
+        self.assertTrue(leave["half_day"])
+        self.assertEqual(getdate(leave["half_day_date"]), getdate(TEAM_HALF_DAY_DATE))
+        self.assertIn("custom_first_halfsecond_half", leave)
+        if _first_half_field_available():
+            self.assertEqual(leave["custom_first_halfsecond_half"], TEAM_HALF_DAY_PORTION)

@@ -5,7 +5,9 @@ import { useMemo } from "react";
 import {
   type ApprovalStatusLabelType,
   ErrorFallback,
+  Typography,
 } from "@next-pms/design-system/components";
+import { Skeleton } from "@rtcamp/frappe-ui-react";
 
 /**
  * Internal dependencies
@@ -30,6 +32,7 @@ export type TeamMember = {
   workingHour: number;
   workingFrequency: WorkingFrequency;
   status: ApprovalStatusLabelType;
+  backdateRestrictedBefore: string | null;
 };
 
 type TeamTimesheetRowProps = {
@@ -38,6 +41,10 @@ type TeamTimesheetRowProps = {
   collapsed: boolean;
   teamMembers: TeamMember[];
   approvalPendingCount?: number;
+  hasMoreMembers?: boolean;
+  isLoadingMembers?: boolean;
+  loadMoreRef?: (element: HTMLElement | null) => void;
+  onCollapsedChange?: (collapsed: boolean) => void;
   setSelectedTask?: (task: string) => void;
   openWeeklyApproval?: (employee: string, date: string) => void;
 };
@@ -48,6 +55,10 @@ export const TeamTimesheetRow = ({
   collapsed,
   teamMembers,
   approvalPendingCount,
+  hasMoreMembers,
+  isLoadingMembers,
+  loadMoreRef,
+  onCollapsedChange,
   setSelectedTask,
   openWeeklyApproval,
 }: TeamTimesheetRowProps) => {
@@ -70,7 +81,9 @@ export const TeamTimesheetRow = ({
         dates={dates}
         workingFrequency="Per Day"
         className="pl-3"
+        triggerClassName="sticky top-7 z-10 bg-surface-white"
         collapsed={collapsed}
+        onCollapsedChange={onCollapsedChange}
         isReadOnlyWeek={true}
         approvalPendingCount={approvalPendingCount}
       >
@@ -89,9 +102,10 @@ export const TeamTimesheetRow = ({
                 workingFrequency={member.workingFrequency}
                 status={member.status}
                 hideAction={member.status === "Not Submitted"}
-                className="pl-7.5"
+                className="pl-7.5 animate-fade-in"
                 collapsed={true}
                 disabled={member.status === "Approved"}
+                backdateRestrictedBefore={member.backdateRestrictedBefore}
                 onCellClick={(date) =>
                   openAddTimeDialog({
                     date,
@@ -113,6 +127,9 @@ export const TeamTimesheetRow = ({
                         label={project.project_name || project.project}
                         className="pl-13.5"
                         disabled={member.status === "Approved"}
+                        backdateRestrictedBefore={
+                          member.backdateRestrictedBefore
+                        }
                         onCellClick={(date) =>
                           openAddTimeDialog({
                             date,
@@ -141,6 +158,9 @@ export const TeamTimesheetRow = ({
                               dailyWorkingHours={dailyWorkingHours}
                               totalTimeEntriesInHours={totalTimeEntriesInHours}
                               employee={member.employee}
+                              backdateRestrictedBefore={
+                                member.backdateRestrictedBefore
+                              }
                               hideLikeButton={true}
                               setSelectedTask={setSelectedTask}
                             />
@@ -161,6 +181,21 @@ export const TeamTimesheetRow = ({
                 )}
               </MemberRow>
             ))}
+
+            {isLoadingMembers || hasMoreMembers ? (
+              <div ref={loadMoreRef}>
+                <Skeleton className="h-11.25 w-full shrink-0 rounded-none" />
+              </div>
+            ) : teamMembers.length === 0 ? (
+              <div className="flex h-11.25 justify-center items-center border-b border-outline-gray-1 animate-fade-in">
+                <Typography
+                  variant="p"
+                  className="text-base text-center text-ink-gray-5"
+                >
+                  No timesheet for this week
+                </Typography>
+              </div>
+            ) : null}
           </>
         )}
       </WeekRow>

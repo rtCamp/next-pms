@@ -6,7 +6,12 @@ import { addDays, eachDayOfInterval, isSameDay, startOfDay } from "date-fns";
 /**
  * Internal dependencies.
  */
-import { getMemberAllocation } from "./gantt-bar/utils/getMemberAllocation";
+import {
+  getAllocationSummary,
+  getCoveredDayKeys,
+  getFreeCapacitySegments,
+  getMemberAllocation,
+} from "./gantt-bar/utils/getMemberAllocation";
 import { getNumDays } from "./gantt-bar/utils/getNumDays";
 import type {
   Allocation,
@@ -48,12 +53,14 @@ export interface MemberProject extends SourceProject {
 export interface Member extends SourceMember {
   projects: MemberProject[];
   memberSummaryBars: MemberSummaryBar[];
+  freeCapacityBars: MemberSummaryBar[];
 }
 
 export type ProjectMemberAllocationBar = ProjectAllocationBar;
 
 export interface ProjectMember extends SourceProjectMember {
   allocations: ProjectMemberAllocationBar[];
+  leaveBars: MemberSummaryBar[];
 }
 
 export interface ProjectGroup extends SourceProjectGroup {
@@ -324,10 +331,26 @@ export const prepareMemberBars = (
       columnWidth,
     );
 
+    const coveredDays = getCoveredDayKeys(rawMemberSummaryAllocations);
+    const rangeStart = getDateAtColumnIndex(0, weekStart, showWeekend);
+    const rangeEnd = getDateAtColumnIndex(
+      columnCount - 1,
+      weekStart,
+      showWeekend,
+    );
+    const freeCapacityBars = prepareMemberSummaryBars(
+      getFreeCapacitySegments(coveredDays, rangeStart, rangeEnd),
+      weekStart,
+      columnCount,
+      showWeekend,
+      columnWidth,
+    );
+
     return {
       ...member,
       projects,
       memberSummaryBars,
+      freeCapacityBars,
     };
   });
 };
@@ -348,20 +371,32 @@ export const prepareProjectBars = (
     );
 
     const members: ProjectGroup["members"] = (project.members ?? []).map(
-      (member) => ({
-        ...member,
-        allocations: prepareAllocationBars(
-          member.allocations ?? [],
-          weekStart,
-          columnCount,
-          showWeekend,
-          columnWidth,
-        ).map((allocation) => ({
-          ...allocation,
-          projectName: project.name,
-          customerName: project.client,
-        })),
-      }),
+      (member) => {
+        const rawAllocations = member.allocations ?? [];
+        const leaveSegments = getAllocationSummary([], member.leaves ?? []);
+
+        return {
+          ...member,
+          allocations: prepareAllocationBars(
+            rawAllocations,
+            weekStart,
+            columnCount,
+            showWeekend,
+            columnWidth,
+          ).map((allocation) => ({
+            ...allocation,
+            projectName: project.name,
+            customerName: project.client,
+          })),
+          leaveBars: prepareMemberSummaryBars(
+            leaveSegments,
+            weekStart,
+            columnCount,
+            showWeekend,
+            columnWidth,
+          ),
+        };
+      },
     );
 
     const projectSummaryBars = prepareProjectSummaryBars(

@@ -10,15 +10,19 @@ import {
   DatePicker,
   Dialog,
   ErrorMessage,
+  FormLabel,
   TextInput,
+  useToasts,
 } from "@rtcamp/frappe-ui-react";
 import { Calendar } from "@rtcamp/frappe-ui-react/icons";
 import { useForm } from "@tanstack/react-form";
+import { type FrappeError } from "frappe-react-sdk";
 
 /**
  * Internal dependencies.
  */
 import { useEmployeeLookup } from "@/hooks/useEmployeeLookup";
+import { parseFrappeErrorMsg } from "@/lib/utils";
 import { useProjectDetail } from "@/pages/project-details/context";
 import { addProjectRateSchema } from "./schema";
 import type { ProjectRateFormValues, ProjectRateModalProps } from "./types";
@@ -36,6 +40,7 @@ export function ProjectRateModal({
   mode = "add",
   initialValues,
 }: ProjectRateModalProps) {
+  const toast = useToasts();
   const [employeeSearch, setEmployeeSearch] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const projectId = useProjectDetail((s) => s.projectId);
@@ -55,15 +60,22 @@ export function ProjectRateModal({
       onSubmit: addProjectRateSchema,
     },
     onSubmit: async ({ value }) => {
-      setSubmitting(true);
-      await onSubmit({
-        employee: value.employee,
-        hourlyRate: Number(value.hourlyRate),
-        validFrom: value.validFrom,
-      });
-      onOpenChange(false);
-      form.reset();
-      setSubmitting(false);
+      try {
+        setSubmitting(true);
+        await onSubmit({
+          employee: value.employee,
+          hourlyRate: Number(value.hourlyRate),
+          validFrom: value.validFrom,
+        });
+        toast.success("Project Rate Added");
+      } catch (error) {
+        const message = parseFrappeErrorMsg(error as FrappeError);
+        toast.error(message);
+      } finally {
+        onOpenChange(false);
+        form.reset();
+        setSubmitting(false);
+      }
     },
   });
 
@@ -141,7 +153,9 @@ export function ProjectRateModal({
           name="employee"
           children={(field) => (
             <div className="flex flex-col gap-1.5">
-              <label className="block text-base text-ink-gray-5">Member</label>
+              <FormLabel size="md" required>
+                Member
+              </FormLabel>
               <Combobox
                 inputClassName="bg-surface-white h-8 border-outline-gray-2 text-ink-gray-7"
                 loading={isEmployeeLookupLoading}
@@ -169,9 +183,9 @@ export function ProjectRateModal({
           name="hourlyRate"
           children={(field) => (
             <div className="flex flex-col gap-1.5">
-              <label className="block text-base text-ink-gray-5">
+              <FormLabel size="md" required>
                 Hourly rate
-              </label>
+              </FormLabel>
               <TextInput
                 size="md"
                 variant="outline"
@@ -195,9 +209,9 @@ export function ProjectRateModal({
           name="validFrom"
           children={(field) => (
             <div className="flex flex-col gap-1.5">
-              <label className="block text-base text-ink-gray-5">
+              <FormLabel size="md" required>
                 Valid from
-              </label>
+              </FormLabel>
               <DatePicker
                 label="Valid from"
                 value={field.state.value}

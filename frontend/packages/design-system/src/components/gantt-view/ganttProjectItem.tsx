@@ -33,7 +33,7 @@ export function GanttProjectItem({
   projectDateRange,
   client,
   projectManager,
-  weeklyCapacity,
+  remainingHours,
   badge,
   isExpanded = false,
   canExpand = false,
@@ -165,7 +165,7 @@ export function GanttProjectItem({
                   dateRange,
                   projectDateRange,
                   projectManager,
-                  weeklyCapacity,
+                  remainingHours,
                 }}
                 canOpenProject={hasRoleAccess}
               />

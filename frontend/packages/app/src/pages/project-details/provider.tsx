@@ -3,8 +3,9 @@
  */
 import { useCallback } from "react";
 import type { PropsWithChildren } from "react";
+import { useDocumentTitle } from "@next-pms/hooks";
 import {
-  useFrappeDocTypeEventListener,
+  useFrappeDocumentEventListener,
   useFrappeGetDoc,
   useFrappeUpdateDoc,
 } from "frappe-react-sdk";
@@ -32,13 +33,15 @@ export function ProjectDetailProvider({
     projectId,
   );
 
+  useDocumentTitle(data?.project_name, false);
+
   const { updateDoc } = useFrappeUpdateDoc();
 
   const handleDocUpdate = useCallback(() => {
     mutate();
   }, [mutate]);
 
-  useFrappeDocTypeEventListener("Project", projectId, handleDocUpdate);
+  useFrappeDocumentEventListener("Project", projectId, handleDocUpdate);
 
   const updateRepositories = useCallback(
     async (repositories: RepositoryInput[]) => {

@@ -8,12 +8,14 @@
     "dev": "npm run dev:app",
     "dev:app": "npm run dev -w @next-pms/app",
     "build:app": "npm run build -w @next-pms/app",
-    "build:frappe-ui-react": "npm run corepack-enable && cd ../frappe-ui-react && pnpm install && pnpm build",
+    "build:frappe-ui-react": "npm run corepack-enable && cd ../frappe-ui-react && pnpm install --frozen-lockfile && pnpm build",
     "build": "npm install && npm run build:frappe-ui-react && npm run build:app",
     "lint": "eslint . --report-unused-disable-directives --max-warnings 0",
     "lint:fix": "eslint . --fix",
     "lint:precommit": "eslint --fix --config eslint.config.js",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "format": "prettier --write \"packages/**/*.{ts,tsx,js,jsx}\" \"*.{ts,js}\"",
+    "format:check": "prettier --check \"packages/**/*.{ts,tsx,js,jsx}\" \"*.{ts,js}\""
   },
   "workspaces": [
     "./packages/*"
@@ -50,6 +52,7 @@
     "eslint-plugin-react-refresh": "^0.4.16",
     "globals": "^15.14.0",
     "postcss": "^8.4.39",
+    "prettier": "4.0.0-alpha.8",
     "tailwindcss": "^4.1.18",
     "typescript": "~5.6.2",
     "typescript-eslint": "^8.18.2",
