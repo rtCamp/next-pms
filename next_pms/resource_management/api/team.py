@@ -11,7 +11,6 @@ from next_pms.resource_management.api.utils.helpers import (
     find_worked_hours,
     get_allocation_objects,
     get_dates_date,
-    get_employees_by_skills,
     is_on_leave,
     normalize_team_view_filters,
     override_hours_by_date,
@@ -23,7 +22,10 @@ from next_pms.resource_management.api.utils.query import (
     get_allocation_list_for_employee_for_given_range,
 )
 from next_pms.timesheet.api import filter_employees
-from next_pms.timesheet.api.employee import apply_working_hours_fallback, get_employee_working_hours
+from next_pms.timesheet.api.employee import (
+    apply_working_hours_fallback,
+    get_employee_working_hours,
+)
 
 
 @frappe.whitelist(methods=["GET", "POST"])
@@ -357,32 +359,6 @@ def _get_resource_management_team_view_data(
             employee_id = frappe.parse_json(employee_id)
         ids = employee_id
 
-    if not employee_id:
-        if not skills:
-            skills = []
-        if isinstance(skills, str):
-            skills = frappe.parse_json(skills)
-        if skills:
-            ids = get_employees_by_skills(skills)
-            if len(ids) == 0:
-                if not need_hours_summary:
-                    res["employees"] = []
-                    res["resource_allocations"] = []
-                    res["leaves"] = []
-                    res["holidays"] = []
-                    res["customer"] = {}
-                    res["total_count"] = 0
-                    res["has_more"] = False
-                    res["permissions"] = permissions
-                    return res
-
-                res["data"] = data
-                res["customer"] = customer
-                res["total_count"] = 0
-                res["has_more"] = False
-                res["permissions"] = permissions
-                return res
-
     if is_billable or allocation_status or no_allocation:
         # narrow `ids` to employees with matching allocations in the window before
         # paginating. Without this, the billable/status filter is applied after
@@ -464,7 +440,13 @@ def _get_resource_management_team_view_data(
         status=["Active"],
         ids=ids,
         ignore_permissions=True,
-        extra_fields=["custom_work_schedule", "custom_working_hours", "reports_to", "company", *privileged_fields],
+        extra_fields=[
+            "custom_work_schedule",
+            "custom_working_hours",
+            "reports_to",
+            "company",
+            *privileged_fields,
+        ],
         extra_conditions=extra_conditions,
     )
 
@@ -569,7 +551,14 @@ def _get_resource_management_team_view_data(
             "start_date": [">=", range_start],
             "end_date": ["<=", range_end],
         },
-        fields=["employee", "start_date", "end_date", "total_hours", "parent_project", "customer"],
+        fields=[
+            "employee",
+            "start_date",
+            "end_date",
+            "total_hours",
+            "parent_project",
+            "customer",
+        ],
     )
     timesheet_map = {}
     for t in all_timesheets:
@@ -637,10 +626,14 @@ def _get_resource_management_team_view_data(
                             and resource_allocation.allocation_end_date >= date
                         ):
                             total_allocated_hours_for_given_date += allocation_hours_for_date(
-                                resource_allocation, date, override_maps.get(resource_allocation.name)
+                                resource_allocation,
+                                date,
+                                override_maps.get(resource_allocation.name),
                             )
                             total_worked_hours_resource_allocation = find_worked_hours(
-                                timesheet_data=timesheet_data, date=date, project=resource_allocation.project
+                                timesheet_data=timesheet_data,
+                                date=date,
+                                project=resource_allocation.project,
                             )
                             total_worked_hours_for_given_date += total_worked_hours_resource_allocation
                             total_allocation_count += 1
