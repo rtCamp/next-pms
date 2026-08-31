@@ -132,12 +132,13 @@ after_install = "next_pms.install.after_install"
 # -----------
 # Permissions evaluated in scripted ways
 
-# permission_query_conditions = {
-# 	"Event": "frappe.desk.doctype.event.event.get_permission_query_conditions",
-# }
+permission_query_conditions = {
+    "Timesheet": "next_pms.timesheet.permissions.get_permission_query_conditions_for_timesheet",
+}
 
 has_permission = {
     "Risk": "next_pms.next_pms.doctype.risk.risk.has_permission",
+    "Timesheet": "next_pms.timesheet.permissions.has_permission_for_timesheet",
 }
 
 
