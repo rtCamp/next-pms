@@ -95,6 +95,10 @@ export const UserProvider: FC<PropsWithChildren> = ({ children }) => {
     }
   }
 
+  const hasEmployee = employeeData
+    ? Boolean(employeeData.message?.employee)
+    : null;
+
   useEffect(() => {
     if (!employeeData) {
       return;
@@ -127,7 +131,6 @@ export const UserProvider: FC<PropsWithChildren> = ({ children }) => {
   const handleLogout = async () => {
     return logout().then(() => {
       window.location.replace("/login?redirect-to=/timesheet");
-      window.location.reload();
     });
   };
 
@@ -137,6 +140,7 @@ export const UserProvider: FC<PropsWithChildren> = ({ children }) => {
         state: {
           isLoading: isAuthLoading,
           employeeId,
+          hasEmployee,
           employeeName,
           workingHours,
           workingFrequency,

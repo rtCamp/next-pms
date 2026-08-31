@@ -16,6 +16,9 @@ export interface UserContextProps {
     isLoading: boolean;
     /** Employee record ID linked to the current user. */
     employeeId: string;
+    /** Whether the current user has a linked Employee record.
+     * `null` while the employee lookup is still resolving. */
+    hasEmployee: boolean | null;
     /** Display name of the current employee. */
     employeeName: string;
     /** Configured working hours for the employee. */
@@ -59,6 +62,7 @@ export const UserContext = createContext<UserContextProps>({
   state: {
     isLoading: false,
     employeeId: "",
+    hasEmployee: null,
     employeeName: "",
     workingHours: 0,
     workingFrequency: "Per Day",

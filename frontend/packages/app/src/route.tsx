@@ -101,6 +101,11 @@ export const routeConfig: Record<
     allowedRoles: [],
     title: "Page Not Found",
   },
+  "no-employee": {
+    Component: ReactLazyPreload(() => import("@/pages/noEmployee")),
+    allowedRoles: [],
+    title: "Access Restricted",
+  },
 };
 
 export function Router() {
@@ -114,6 +119,7 @@ export function Router() {
   const AllocationsProject = routeConfig["allocations-project"].Component;
   const TaskList = routeConfig["task"].Component;
   const NotFound = routeConfig["not-found"].Component;
+  const NoEmployee = routeConfig["no-employee"].Component;
 
   return (
     <BaseRoute>
@@ -278,29 +284,44 @@ export function Router() {
           </Route>
         }
       />
+      <BaseRoute
+        path={ROUTES["no-employee"]}
+        element={
+          <Route title={routeConfig["no-employee"].title}>
+            <NoEmployee />
+          </Route>
+        }
+      />
       <BaseRoute path="*" element={<Navigate to={"/not-found"} replace />} />
     </BaseRoute>
   );
 }
 
 const AuthenticatedRoute = () => {
-  const { isLoading: isUserLoading, currentUser } = useUser(({ state }) => ({
+  const {
+    isLoading: isUserLoading,
+    currentUser,
+    hasEmployee,
+  } = useUser(({ state }) => ({
     isLoading: state.isLoading,
     currentUser: state.currentUser,
+    hasEmployee: state.hasEmployee,
   }));
 
-  if (isUserLoading) {
+  if (isUserLoading || hasEmployee === null) {
     return <Spinner isFull />;
-  } else if (!currentUser || currentUser === "Guest") {
+  }
+
+  if (!currentUser || currentUser === "Guest") {
     window.location.replace("/login?redirect-to=/next-pms/timesheet");
     return <Spinner isFull />;
   }
 
-  if (!isUserLoading && currentUser && currentUser !== "Guest") {
-    return <Outlet />;
+  if (!hasEmployee) {
+    return <Navigate to={ROUTES["no-employee"]} replace />;
   }
 
-  return null;
+  return <Outlet />;
 };
 
 const RoleProtectedRoute = ({ allowedRoles }: { allowedRoles: Role[] }) => {
