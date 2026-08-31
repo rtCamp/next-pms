@@ -220,8 +220,6 @@ def get_team_timesheet_weeks(
     }
 
 
-@whitelist(methods=["GET", "POST"])
-@error_logger
 def get_team_timesheet_member_week(employee: str, start_date: str, by_pass_access_check: bool = False):
     """One member's row for one week - the unit the realtime publisher swaps in.
 
