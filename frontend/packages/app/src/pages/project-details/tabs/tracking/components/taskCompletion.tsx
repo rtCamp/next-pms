@@ -23,7 +23,7 @@ export function TaskCompletionCell() {
       <span className="text-base font-medium text-ink-gray-8">
         Task completion
       </span>
-      <div className="flex items-center gap-6">
+      <div className="flex flex-col items-center gap-6 md:flex-row">
         <div className="relative shrink-0 w-[167px]">
           <svg
             viewBox="0 0 200 110"
@@ -66,7 +66,7 @@ export function TaskCompletionCell() {
             <span className="text-xs text-ink-gray-6">completed</span>
           </div>
         </div>
-        <div className="flex flex-1 flex-col gap-2 text-base text-ink-gray-6">
+        <div className="flex max-md:w-full flex-1 flex-col gap-2 text-base text-ink-gray-6">
           <div className="flex items-center justify-between gap-2">
             <span className="min-w-0 truncate">Total issues created</span>
             <span className="font-medium">{totalIssuesCreated}</span>
