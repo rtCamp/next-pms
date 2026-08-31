@@ -33,7 +33,7 @@ from next_pms.timesheet.utils.constant import (
 )
 
 from . import filter_employees
-from .employee import get_employee_daily_working_norm, get_employee_working_hours
+from .employee import get_employee_daily_working_norm, get_employee_from_user, get_employee_working_hours
 from .timesheet import get_timesheet_state
 from .utils import (
     build_chunk_context,
@@ -396,6 +396,11 @@ def get_team_timesheet_member_week(employee: str, start_date: str, by_pass_acces
 def approve_or_reject_timesheet(employee: str, status: str, dates: list[str] | None = None, note: str = ""):
     """API to approve or reject the timesheet for the given employee and date range. It will update the custom_approval_status and custom_weekly_approval_status field of the timesheet to "Processing Timesheet" and then enqueue a background job to approve or reject the timesheet. The background job will update the status of the timesheet to "Approved" or "Rejected" based on the status parameter passed in the API and then trigger a notification to the employee about the approval or rejection of the timesheet."""
     only_for(["Timesheet Manager", "Timesheet User", "Projects Manager"], message=True)
+
+    # No role approves its own week - a reviewer role is permission to review someone else.
+    if employee == get_employee_from_user():
+        return throw(_("You cannot approve or reject your own timesheets."))
+
     if not dates:
         return throw(_("Please select the dates to approve or reject the timesheet."))
     current_week = get_week_dates(dates[0])
