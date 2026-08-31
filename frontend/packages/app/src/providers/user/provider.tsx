@@ -131,7 +131,6 @@ export const UserProvider: FC<PropsWithChildren> = ({ children }) => {
   const handleLogout = async () => {
     return logout().then(() => {
       window.location.replace("/login?redirect-to=/timesheet");
-      window.location.reload();
     });
   };
 

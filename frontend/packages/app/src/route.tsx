@@ -284,8 +284,6 @@ const AuthenticatedRoute = () => {
     hasEmployee: state.hasEmployee,
   }));
 
-  console.log(isUserLoading, currentUser, hasEmployee);
-
   if (isUserLoading || hasEmployee === null) {
     return <Spinner isFull />;
   }
