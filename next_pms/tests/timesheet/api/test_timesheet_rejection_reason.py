@@ -170,7 +170,6 @@ class TestTimesheetRejectionReason(IntegrationTestCase):
                 "name",
                 "start_date",
                 "custom_approval_status",
-                "custom_rejection_reason",
                 "custom_weekly_approval_status",
                 "custom_weekly_rejection_reason",
                 "docstatus",
@@ -180,12 +179,29 @@ class TestTimesheetRejectionReason(IntegrationTestCase):
         self.assertEqual(len(by_date), 5, "expected exactly 5 daily timesheets for the test week")
         return by_date
 
+    def assert_day_row_reasons(self, by_date, date, reason):
+        """Every Timesheet Detail row of the day carries the same rejection reason."""
+        rows = frappe.get_all(
+            "Timesheet Detail",
+            filters={"parent": by_date[date].name},
+            pluck="custom_rejection_reason",
+        )
+        self.assertTrue(rows, f"expected at least one time entry for {date}")
+        for value in rows:
+            self.assertEqual(value or "", reason or "", f"unexpected row rejection reason on {date}")
+
     def assert_weekly_rejection_reason(self, by_date, expected_reasons):
         """Weekly reason is duplicated on every timesheet in the week."""
         expected = set(expected_reasons) if expected_reasons is not None else set()
         for date in WEEK_DATES:
             actual = {line for line in (by_date[date].custom_weekly_rejection_reason or "").split("\n") if line}
             self.assertEqual(actual, expected, f"unexpected weekly rejection reason on {date}")
+
+    def assert_original_row_keeps_reason_and_new_row_does_not(self, rows, original_description, new_description):
+        self.assertEqual(len(rows), 2, "expected the original row plus the post-reject row")
+        by_description = {row["description"]: row["custom_rejection_reason"] or "" for row in rows}
+        self.assertEqual(by_description[original_description], TUE_REASON)
+        self.assertEqual(by_description[new_description], "")
 
     def decide_timesheets(self, status, dates, note=""):
         drafts = frappe.get_all(
@@ -214,8 +230,9 @@ class TestTimesheetRejectionReason(IntegrationTestCase):
 
     def assert_entries_carry_fields(self, entries_by_parent, by_date):
         def assert_day(date, status, reason):
-            # The approval fields come from the parent Timesheet, so every entry
-            # under that Timesheet must carry the same values.
+            # The approval status comes from the parent Timesheet and the rejection
+            # reason from each row; a day-level decision stamps every row alike, so
+            # all entries under one Timesheet carry the same values.
             entries = entries_by_parent[by_date[date].name]
             self.assertTrue(entries, f"expected at least one time entry for {date}")
             for entry in entries:
@@ -253,7 +270,7 @@ class TestTimesheetRejectionReason(IntegrationTestCase):
         by_date = self.get_timesheets_by_date()
         for date in WEEK_DATES:
             self.assertEqual(by_date[date].custom_approval_status, "Approval Pending")
-            self.assertEqual(by_date[date].custom_rejection_reason or "", "")
+            self.assert_day_row_reasons(by_date, date, None)
             self.assertEqual(by_date[date].docstatus, 0)
 
         # Step 2: reject Tuesday and Thursday, each with its own reason.
@@ -262,12 +279,12 @@ class TestTimesheetRejectionReason(IntegrationTestCase):
 
         by_date = self.get_timesheets_by_date()
         self.assertEqual(by_date[TUE].custom_approval_status, "Rejected")
-        self.assertEqual(by_date[TUE].custom_rejection_reason, TUE_REASON)
+        self.assert_day_row_reasons(by_date, TUE, TUE_REASON)
         self.assertEqual(by_date[THU].custom_approval_status, "Rejected")
-        self.assertEqual(by_date[THU].custom_rejection_reason, THU_REASON)
+        self.assert_day_row_reasons(by_date, THU, THU_REASON)
         for date in (MON, WED, FRI):
             self.assertEqual(by_date[date].custom_approval_status, "Approval Pending")
-            self.assertEqual(by_date[date].custom_rejection_reason or "", "")
+            self.assert_day_row_reasons(by_date, date, None)
         # Partial reject must not populate the weekly reason.
         self.assertEqual(by_date[MON].custom_weekly_approval_status, "Partially Rejected")
         self.assert_weekly_rejection_reason(by_date, None)
@@ -281,8 +298,8 @@ class TestTimesheetRejectionReason(IntegrationTestCase):
             self.assertEqual(by_date[date].custom_approval_status, "Approval Pending")
             self.assertEqual(by_date[date].docstatus, 0)
             self.assertEqual(by_date[date].custom_weekly_approval_status, "Approval Pending")
-        self.assertEqual(by_date[TUE].custom_rejection_reason, TUE_REASON)
-        self.assertEqual(by_date[THU].custom_rejection_reason, THU_REASON)
+        self.assert_day_row_reasons(by_date, TUE, TUE_REASON)
+        self.assert_day_row_reasons(by_date, THU, THU_REASON)
         self.assert_weekly_rejection_reason(by_date, None)
 
         # Step 4: manager approves the whole week; reasons are cleared on approval.
@@ -292,7 +309,7 @@ class TestTimesheetRejectionReason(IntegrationTestCase):
         for date in WEEK_DATES:
             self.assertEqual(by_date[date].custom_approval_status, "Approved")
             self.assertEqual(by_date[date].docstatus, 1)
-            self.assertEqual(by_date[date].custom_rejection_reason or "", "")
+            self.assert_day_row_reasons(by_date, date, None)
             self.assertEqual(by_date[date].custom_weekly_approval_status, "Approved")
         self.assert_weekly_rejection_reason(by_date, None)
 
@@ -302,7 +319,7 @@ class TestTimesheetRejectionReason(IntegrationTestCase):
         by_date = self.get_timesheets_by_date()
         for date in WEEK_DATES:
             self.assertEqual(by_date[date].custom_approval_status, "Rejected")
-            self.assertEqual(by_date[date].custom_rejection_reason, WEEK_REASON)
+            self.assert_day_row_reasons(by_date, date, WEEK_REASON)
             self.assertEqual(by_date[date].custom_weekly_approval_status, "Rejected")
         self.assert_weekly_rejection_reason(by_date, [WEEK_REASON])
 
@@ -313,7 +330,7 @@ class TestTimesheetRejectionReason(IntegrationTestCase):
         by_date = self.get_timesheets_by_date()
         for date, reason in DAY_REASONS.items():
             self.assertEqual(by_date[date].custom_approval_status, "Rejected")
-            self.assertEqual(by_date[date].custom_rejection_reason, reason)
+            self.assert_day_row_reasons(by_date, date, reason)
             self.assertEqual(by_date[date].custom_weekly_approval_status, "Rejected")
         self.assert_weekly_rejection_reason(by_date, DAY_REASONS.values())
 
@@ -329,7 +346,7 @@ class TestTimesheetRejectionReason(IntegrationTestCase):
         by_date = self.get_timesheets_by_date()
         for date in WEEK_DATES:
             self.assertEqual(by_date[date].custom_approval_status, "Approval Pending")
-            self.assertEqual(by_date[date].custom_rejection_reason, WEEK_REASON)
+            self.assert_day_row_reasons(by_date, date, WEEK_REASON)
             self.assertEqual(by_date[date].custom_weekly_approval_status, "Approval Pending")
         self.assert_weekly_rejection_reason(by_date, None)
 
@@ -337,6 +354,49 @@ class TestTimesheetRejectionReason(IntegrationTestCase):
         by_date = self.get_timesheets_by_date()
         for date in WEEK_DATES:
             self.assertEqual(by_date[date].custom_approval_status, "Approved")
-            self.assertEqual(by_date[date].custom_rejection_reason or "", "")
+            self.assert_day_row_reasons(by_date, date, None)
             self.assertEqual(by_date[date].custom_weekly_approval_status, "Approved")
         self.assert_weekly_rejection_reason(by_date, None)
+
+    def test_new_row_after_reject_does_not_inherit_rejection_reason(self):
+        # setUp already logged one row per day and submitted the week.
+        original_description = f"Work logged on {TUE}"
+        new_description = "Follow-up work after rejection"
+
+        self.decide_timesheets("Rejected", [TUE], note=TUE_REASON)
+        by_date = self.get_timesheets_by_date()
+        self.assertEqual(by_date[TUE].custom_approval_status, "Rejected")
+        self.assert_day_row_reasons(by_date, TUE, TUE_REASON)
+
+        save_timesheet(
+            date=TUE,
+            description=new_description,
+            task=self.task,
+            hours=1,
+            employee=self.employee,
+        )
+
+        rows = frappe.get_all(
+            "Timesheet Detail",
+            filters={"parent": by_date[TUE].name},
+            fields=["description", "custom_rejection_reason"],
+        )
+        self.assert_original_row_keeps_reason_and_new_row_does_not(rows, original_description, new_description)
+
+        by_date = self.get_timesheets_by_date()
+        self.assertEqual(by_date[TUE].custom_approval_status, "Rejected")
+
+        personal = get_timesheet_data(employee=self.employee, start_date=MON, max_week=1)
+        self.assert_original_row_keeps_reason_and_new_row_does_not(
+            self.collect_entries_by_parent(personal["data"])[by_date[TUE].name],
+            original_description,
+            new_description,
+        )
+
+        team = get_team_timesheet_data(start_date=MON, reports_to=self.manager)
+        member = next(m for m in team["members"] if m["employee"] == self.employee)
+        self.assert_original_row_keeps_reason_and_new_row_does_not(
+            self.collect_entries_by_parent({MON: {"tasks": member["tasks"]}})[by_date[TUE].name],
+            original_description,
+            new_description,
+        )
