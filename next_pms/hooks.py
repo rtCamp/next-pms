@@ -298,6 +298,28 @@ doc_events = {
     },
     "Holiday List": {
         "validate": "next_pms.timesheet.doc_events.holiday_list.validate",
+        "on_update": [
+            "next_pms.resource_management.doctype.resource_allocation.resource_allocation.clear_cache",
+        ],
+        "on_trash": [
+            "next_pms.resource_management.doctype.resource_allocation.resource_allocation.clear_cache",
+        ],
+    },
+    # Reassigning an employee to a different Holiday List changes which holidays the
+    # resource views resolve for them, so the cached payloads must be dropped too.
+    "Holiday List Assignment": {
+        "on_submit": [
+            "next_pms.resource_management.doctype.resource_allocation.resource_allocation.clear_cache",
+        ],
+        "on_update_after_submit": [
+            "next_pms.resource_management.doctype.resource_allocation.resource_allocation.clear_cache",
+        ],
+        "on_cancel": [
+            "next_pms.resource_management.doctype.resource_allocation.resource_allocation.clear_cache",
+        ],
+        "on_trash": [
+            "next_pms.resource_management.doctype.resource_allocation.resource_allocation.clear_cache",
+        ],
     },
 }
 #

@@ -190,7 +190,6 @@ def get_resource_management_team_view_data(
                             "is_on_leave": False,
                             "total_leave_hours": 0.0,
                             "is_holiday": False,
-                            "holiday_name": "Independence Day",  # only present when is_holiday is True
                             "employee_resource_allocation_for_given_date": [
                                 {
                                     "name": "RA-00001",
@@ -200,6 +199,21 @@ def get_resource_management_team_view_data(
                                 },
                             ],
                         },
+                        # a holiday zeroes the day's working hours, so it always lands in
+                        # the sparse map even with no allocation; `holiday_name` is
+                        # emitted only on such a day
+                        "2026-05-25": {
+                            "date": "2026-05-25",
+                            "total_allocated_hours": 0.0,
+                            "total_working_hours": 0.0,
+                            "total_worked_hours": 0.0,  # write permission only
+                            "total_allocation_count": 0,
+                            "is_on_leave": True,
+                            "total_leave_hours": 8.0,
+                            "is_holiday": True,
+                            "holiday_name": "Independence Day",
+                            "employee_resource_allocation_for_given_date": [],
+                        },
                     },
                     "all_week_data": {
                         "This Week": {
@@ -208,7 +222,7 @@ def get_resource_management_team_view_data(
                             "total_worked_hours": 32.0,  # write permission only
                         },
                     },
-                    "all_leave_data": {"2026-05-20": 8.0},
+                    "all_leave_data": {"2026-05-20": 8.0, "2026-05-25": 8.0},
                     "employee_allocations": [],
                 },
             ],

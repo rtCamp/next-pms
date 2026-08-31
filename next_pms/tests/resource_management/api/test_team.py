@@ -710,6 +710,7 @@ class TestTeamViewFlatGridHolidays(_TeamViewBase):
             }
         )
         holiday_list.insert(ignore_permissions=True)
+        cls.holiday_list = holiday_list.name
         frappe.db.set_value("Employee", cls.employee, "holiday_list", holiday_list.name)
         # hrms resolves an employee's holiday list from Holiday List Assignment, not the
         # Employee.holiday_list field directly — mirrors assign_empty_holiday_list.
@@ -752,6 +753,21 @@ class TestTeamViewFlatGridHolidays(_TeamViewBase):
         )
         self.assertEqual(holiday["employee"], self.employee)
         self.assertEqual(holiday["description"], "Testing holiday")
+
+    def test_editing_the_holiday_list_invalidates_the_cached_payload(self):
+        # #2003 AC: "the calendar shall accurately reflect updates when holidays are added,
+        # modified, or removed". The team view is @redis_cache()d, so a Holiday List save
+        # has to drop that cache or the page keeps serving the pre-edit holidays.
+        added_date = "2026-06-18"
+        # The redis cache outlives the per-test rollback, so drop it for the next test.
+        self.addCleanup(frappe.clear_cache)
+        self.assertNotIn(getdate(added_date), {getdate(row["holiday_date"]) for row in self._holidays()})
+
+        holiday_list = frappe.get_doc("Holiday List", self.holiday_list)
+        holiday_list.append("holidays", {"holiday_date": added_date, "description": "Added later", "weekly_off": 0})
+        holiday_list.save(ignore_permissions=True)
+
+        self.assertIn(getdate(added_date), {getdate(row["holiday_date"]) for row in self._holidays()})
 
 
 class TestTeamViewFlatGridLeaves(_TeamViewBase):
