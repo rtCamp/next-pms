@@ -1,3 +1,5 @@
+from collections import defaultdict
+
 import frappe
 
 from next_pms.project_currency.api.project_timesheet_billing_recalculation import (
@@ -7,21 +9,15 @@ from next_pms.project_currency.api.project_timesheet_billing_recalculation impor
 
 def send_reminder_mail():
     try:
-        # Batch fetch all required project fields upfront
+        # Email Templates are user authored and may reference any Project field or
+        # budget row, so the batched context has to mirror a full Project document.
         projects = frappe.get_all(
             "Project",
             filters={
                 "custom_send_reminder_when_approaching_project_threshold_limit": 1,
                 "status": "Open",
             },
-            fields=[
-                "name",
-                "custom_billing_type",
-                "custom_reminder_threshold_percentage",
-                "custom_email_template",
-                "total_billable_amount",
-                "total_sales_amount",
-            ],
+            fields=["*"],
         )
 
         if not projects:
@@ -29,26 +25,21 @@ def send_reminder_mail():
 
         project_names = [p.name for p in projects]
 
-        # Batch fetch Project Budget child table data for all projects
         budget_hours = frappe.get_all(
             "Project Budget",
-            filters={"parent": ["in", project_names]},
-            fields=["parent", "hours_purchased", "consumed_hours", "idx"],
-            order_by="parent, idx",
+            filters={"parent": ["in", project_names], "parentfield": "custom_project_budget_hours"},
+            fields=["*"],
+            order_by="parent asc, idx asc",
         )
 
-        # Group budget hours by project
-        budget_map = {}
+        budget_map = defaultdict(list)
         for bh in budget_hours:
-            if bh.parent not in budget_map:
-                budget_map[bh.parent] = []
             budget_map[bh.parent].append(bh)
 
-        # Filter projects that need reminders
         projects_needing_reminder = []
         for project in projects:
-            project_budget = budget_map.get(project.name, [])
-            threshold = calculate_threshold(project, project_budget)
+            project.custom_project_budget_hours = budget_map.get(project.name, [])
+            threshold = calculate_threshold(project)
 
             if (
                 threshold is not None
@@ -63,44 +54,35 @@ def send_reminder_mail():
 
         reminder_project_names = [p.name for p in projects_needing_reminder]
 
-        # Batch fetch DocShare for all projects needing reminder
         doc_shares = frappe.get_all(
             "DocShare",
             filters={"share_doctype": "Project", "share_name": ["in", reminder_project_names]},
             fields=["share_name", "user"],
         )
 
-        # Group by project
-        share_map = {}
+        share_map = defaultdict(set)
         for ds in doc_shares:
-            if ds.share_name not in share_map:
-                share_map[ds.share_name] = []
-            share_map[ds.share_name].append(ds.user)
+            share_map[ds.share_name].add(ds.user)
 
-        # Get all unique users who have access to any project
-        all_users = list(set([ds.user for ds in doc_shares]))
+        all_users = list({ds.user for ds in doc_shares})
 
-        # Batch fetch users with "Projects Manager" role
         if all_users:
-            pms = frappe.get_all(
-                "Has Role",
-                filters={
-                    "role": "Projects Manager",
-                    "parenttype": "User",
-                    "parent": ["in", all_users],
-                },
-                fields=["parent"],
+            pm_set = set(
+                frappe.get_all(
+                    "Has Role",
+                    filters={
+                        "role": "Projects Manager",
+                        "parenttype": "User",
+                        "parent": ["in", all_users],
+                    },
+                    pluck="parent",
+                )
             )
-            pm_set = set([pm.parent for pm in pms])
         else:
             pm_set = set()
 
-        # Get all unique email templates
-        template_names = list(
-            set([p.custom_email_template for p in projects_needing_reminder if p.custom_email_template])
-        )
+        template_names = list({p.custom_email_template for p in projects_needing_reminder if p.custom_email_template})
 
-        # Batch fetch email templates
         email_templates = {}
         if template_names:
             templates = frappe.get_all(
@@ -111,9 +93,17 @@ def send_reminder_mail():
             for tmpl in templates:
                 email_templates[tmpl.name] = tmpl
 
-        # Send reminders
         for project in projects_needing_reminder:
-            send_reminder_mail_for_project(project, share_map, pm_set, email_templates)
+            try:
+                send_reminder_mail_for_project(project, share_map, pm_set, email_templates)
+            except Exception:
+                # A template that does not fit its project (an hours based one on a
+                # Time and Material project, say) must not stop the other reminders.
+                generate_the_error_log(
+                    "send_reminder_project_threshold_mail_failed",
+                    msg=f"Project: {project.name}\n\n{frappe.get_traceback()}",
+                    is_mute_message=True,
+                )
     except Exception:
         generate_the_error_log(
             "send_reminder_project_threshold_mail_failed",
@@ -125,23 +115,20 @@ def send_reminder_mail_for_project(project, share_map, pm_set, email_templates):
 
     Args:
         project: Project object with fields
-        share_map: Dict mapping project names to list of users with access
+        share_map: Dict mapping project names to the set of users with access
         pm_set: Set of user IDs who have Projects Manager role
         email_templates: Dict mapping template names to template objects
     """
     if not project or not project.custom_email_template:
         return
 
-    # Get users with access to this project from pre-fetched data
-    user_list = share_map.get(project.name, [])
+    user_list = share_map.get(project.name, set())
 
-    # Filter to only Project Managers from pre-fetched data
-    all_pms = [user for user in user_list if user in pm_set]
+    all_pms = sorted(user for user in user_list if user in pm_set)
 
     if not all_pms:
         return
 
-    # Get email template from pre-fetched data
     reminder_template = email_templates.get(project.custom_email_template)
     if not reminder_template:
         return
@@ -165,21 +152,25 @@ def send_reminder_mail_for_project(project, share_map, pm_set, email_templates):
     frappe.sendmail(recipients=recipients, subject=subject, message=message)
 
 
-def calculate_threshold(project, project_budget):
-    """Calculate threshold percentage for a project.
+def calculate_threshold(project):
+    """Calculate the percentage of a project's budget that has been consumed.
+
+    Retainer projects burn prepaid hours, so the baseline is the latest budget row.
+    Time and Material projects burn the order value the client has approved, so the
+    baseline is total_sales_amount, matching get_total_budget in
+    next_pms.next_projects.api.project.
 
     Args:
-        project: Project object with custom fields
-        project_budget: List of Project Budget objects for this project
+        project: Project object with custom fields and its budget rows attached
 
     Returns:
         float: Threshold percentage or None if not applicable
     """
     if project.custom_billing_type == "Retainer":
+        project_budget = project.custom_project_budget_hours
         if not project_budget:
             return None
 
-        # Use the last budget entry
         latest_budget = project_budget[-1]
         if (
             not latest_budget.hours_purchased
@@ -192,7 +183,6 @@ def calculate_threshold(project, project_budget):
         return threshold
 
     elif project.custom_billing_type == "Time and Material":
-        # total_sales_amount is the project's total budget
         if not project.total_sales_amount or project.total_sales_amount <= 0 or project.total_billable_amount is None:
             return None
 
