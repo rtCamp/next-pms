@@ -129,7 +129,7 @@ class TimesheetOverwrite(Timesheet):
                 "promotion_date": ["<=", self.start_date],
                 "revised_ctc": ["is", "set"],
             },
-            ["salary_currency", "revised_ctc"],
+            ["name", "salary_currency", "revised_ctc"],
             order_by="promotion_date desc",
         )
 
@@ -144,7 +144,7 @@ class TimesheetOverwrite(Timesheet):
         else:
             employee_promotion = employee_promotion[0]
             employee_salary = employee_promotion.revised_ctc
-            employee_currency = employee_promotion.salary_currency
+            employee_currency = get_promotion_salary_currency(employee_promotion)
 
         return get_employee_costing_rate(self.employee, employee_currency, employee_salary, currency, self.start_date)
 
@@ -227,6 +227,27 @@ def get_employee_billing_rate(
         return billing_rate * (rate or 1)
 
     return billing_rate
+
+
+def get_promotion_salary_currency(promotion):
+    """Currency the promotion's revised CTC is denominated in.
+
+    `Employee Promotion.salary_currency` is read only and fetched from the employee, so it keeps
+    the currency the employee had *before* the promotion. When the promotion also changes the
+    salary currency, the new one is only recorded in the `salary_currency` row of promotion_details.
+    """
+    changed_currency = frappe.db.get_value(
+        "Employee Property History",
+        {
+            "parent": promotion.name,
+            "parenttype": "Employee Promotion",
+            "parentfield": "promotion_details",
+            "fieldname": "salary_currency",
+        },
+        "new",
+    )
+
+    return changed_currency or promotion.salary_currency
 
 
 def get_employee_costing_rate(employee: str, salary_currency: float, ctc: float, currency: str, start_date: any):
