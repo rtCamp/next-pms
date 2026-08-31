@@ -41,13 +41,11 @@ export const useDesignationLookup = ({
     query,
     pageSize,
     revalidateOnFocus,
+    method: "next_pms.api.designation.get_designations",
     params: ({ query: searchQuery, pageSize }) => ({
-      doctype: "Designation",
-      fields: ["name"],
-      limit_page_length: pageSize,
-      or_filters: searchQuery
-        ? [["Designation", "name", "like", `%${searchQuery}%`]]
-        : undefined,
+      search: searchQuery || undefined,
+      page_length: pageSize,
+      start: 0,
     }),
     getItems: (message) => message ?? [],
     mapOption: (designation) => ({
