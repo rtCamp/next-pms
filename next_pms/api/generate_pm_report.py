@@ -512,6 +512,7 @@ def _is_valid_document_url(url: str) -> bool:
 def get_repository_project_boards(repository: str | None = None) -> list[str]:
     if not repository:
         return []
+    frappe.has_permission("GitHub Repository", doc=repository, ptype="read", throw=True)
     try:
         repo_doc = frappe.get_doc("GitHub Repository", repository)
         return [b.board_name for b in repo_doc.get("project_boards") or [] if b.board_name]
