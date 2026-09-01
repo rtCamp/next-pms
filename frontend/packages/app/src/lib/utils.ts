@@ -71,6 +71,23 @@ export function toKebabCase(value?: string | null): string | undefined {
 }
 
 const SAFE_URL_PROTOCOLS = new Set(["http:", "https:", "mailto:"]);
+const SCHEME_PREFIX = /^([a-z][a-z0-9+.-]*):/i;
+
+/**
+ * True when `value` already has an explicit URL scheme, as opposed to a
+ * scheme-less host that happens to contain a colon (`example.com:8080`).
+ * `mailto:` is the only allowed scheme that does not use `://`.
+ */
+function hasExplicitScheme(value: string): boolean {
+  const match = SCHEME_PREFIX.exec(value);
+  if (!match) {
+    return false;
+  }
+  if (match[1].toLowerCase() === "mailto") {
+    return true;
+  }
+  return value.startsWith(`${match[0]}//`);
+}
 
 /**
  * Normalizes a user-supplied URL for use in an anchor `href`, returning
@@ -80,7 +97,8 @@ const SAFE_URL_PROTOCOLS = new Set(["http:", "https:", "mailto:"]);
  * dangerous scheme (`javascript:`, `file:`, custom protocol handlers) or no
  * scheme at all. A scheme-less value such as `example.com` would otherwise
  * resolve relative to the current page and navigate inside the SPA, so it is
- * promoted to `https://`. Anything outside SAFE_URL_PROTOCOLS is rejected.
+ * promoted to `https://`. Host-port forms (`localhost:3000/path`) are treated
+ * the same way. Anything outside SAFE_URL_PROTOCOLS is rejected.
  */
 export function safeExternalUrl(value?: string | null): string | undefined {
   if (!value) {
@@ -88,7 +106,7 @@ export function safeExternalUrl(value?: string | null): string | undefined {
   }
 
   const trimmed = value.trim();
-  const candidate = /^[a-z][a-z0-9+.-]*:/i.test(trimmed)
+  const candidate = hasExplicitScheme(trimmed)
     ? trimmed
     : `https://${trimmed.replace(/^\/+/, "")}`;
 
