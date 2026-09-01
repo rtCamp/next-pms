@@ -297,3 +297,178 @@ class TestBackdatedApprovalGuard(IntegrationTestCase):
         for date, row in self.statuses_by_date().items():
             self.assertEqual(row.custom_approval_status, before[date].custom_approval_status)
             self.assertNotEqual(row.custom_weekly_approval_status, "Processing Timesheet")
+
+
+SELF_APPROVAL_REVIEWER = "self-approval-test-reviewer@example.com"
+SELF_APPROVAL_PEER = "self-approval-test-peer@example.com"
+
+SELF_APPROVAL_PROJECT = "Self Approval Test Project"
+SELF_APPROVAL_TASK = "Self Approval Test Task"
+SELF_APPROVAL_BACKDATED_DAYS = 30
+
+
+class TestSelfApprovalGuard(IntegrationTestCase):
+    """A reviewer cannot approve their own week, whatever roles they hold.
+
+    `validate_self_approval` runs per document inside the background job, so it fires only
+    after `approve_or_reject_timesheet` has parked the week in "Processing Timesheet" and
+    committed - and it exempts System Manager outright. The guard on the API refuses the
+    call up front and for every role.
+    """
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.company = get_default_company()
+
+        cls.previous_first_day = frappe.db.get_default("first_day_of_the_week")
+        frappe.db.set_default("first_day_of_the_week", "Monday")
+
+        cls.previous_settings = {
+            field: frappe.db.get_single_value("Timesheet Settings", field)
+            for field in ("allow_backdated_entries", "allow_backdated_entries_till_manager", "allow_future_entries")
+        }
+
+        cls.peer = make_employee(SELF_APPROVAL_PEER, company=cls.company, leave_approver="Administrator")
+        cls.reviewer = make_employee(
+            SELF_APPROVAL_REVIEWER, company=cls.company, reports_to=cls.peer, leave_approver="Administrator"
+        )
+        frappe.get_doc("User", SELF_APPROVAL_REVIEWER).add_roles("Projects Manager", "Timesheet Manager")
+
+        if not frappe.db.exists("Project", {"project_name": SELF_APPROVAL_PROJECT}):
+            frappe.get_doc(
+                {
+                    "doctype": "Project",
+                    "project_name": SELF_APPROVAL_PROJECT,
+                    "company": cls.company,
+                    "custom_billing_type": "Non-Billable",
+                }
+            ).insert(ignore_permissions=True)
+        cls.project = frappe.db.get_value("Project", {"project_name": SELF_APPROVAL_PROJECT})
+
+        if not frappe.db.exists("Task", {"subject": SELF_APPROVAL_TASK}):
+            frappe.get_doc({"doctype": "Task", "subject": SELF_APPROVAL_TASK, "project": cls.project}).insert(
+                ignore_permissions=True
+            )
+        cls.task = frappe.db.get_value("Task", {"subject": SELF_APPROVAL_TASK})
+
+        cls.dates = [str(add_days(get_first_day_of_week(nowdate()), offset)) for offset in range(2)]
+
+        frappe.clear_cache()
+        get_holidays.clear_cache()
+
+    @classmethod
+    def tearDownClass(cls):
+        for field, value in cls.previous_settings.items():
+            frappe.db.set_single_value("Timesheet Settings", field, value)
+        # The approval API commits, so a default set here would otherwise outlive the run.
+        frappe.db.set_default("first_day_of_the_week", cls.previous_first_day)
+        frappe.db.commit()  # nosemgrep settings live outside the per-test transaction
+        super().tearDownClass()
+
+    def setUp(self):
+        super().setUp()
+        frappe.set_user("Administrator")
+        frappe.db.set_single_value("Timesheet Settings", "allow_backdated_entries", 1)
+        frappe.db.set_single_value(
+            "Timesheet Settings", "allow_backdated_entries_till_manager", SELF_APPROVAL_BACKDATED_DAYS
+        )
+        frappe.db.set_single_value("Timesheet Settings", "allow_future_entries", 1)
+        self.delete_test_timesheets()
+        self.make_pending_week()
+
+    def tearDown(self):
+        self.delete_test_timesheets()
+        frappe.set_user("Administrator")
+        super().tearDown()
+
+    def delete_test_timesheets(self):
+        # Both the API and its job commit, so a previous run's rows can survive a rollback.
+        for name in frappe.get_all("Timesheet", filters={"employee": self.reviewer}, pluck="name"):
+            doc = frappe.get_doc("Timesheet", name)
+            if doc.docstatus == 1:
+                doc.cancel()
+            frappe.delete_doc("Timesheet", name, force=True, ignore_permissions=True)
+
+    def make_pending_week(self):
+        """Put the reviewer's own week in front of them, awaiting a decision."""
+        for date in self.dates:
+            save_timesheet(
+                date=date,
+                description=f"Work logged on {date}",
+                task=self.task,
+                hours=2,
+                employee=self.reviewer,
+            )
+        submit_for_approval(start_date=self.dates[0], employee=self.reviewer, approver=self.peer)
+
+    def statuses_by_date(self):
+        rows = frappe.get_all(
+            "Timesheet",
+            filters={"employee": self.reviewer, "docstatus": ["<", 2]},
+            fields=["name", "start_date", "custom_approval_status", "custom_weekly_approval_status"],
+        )
+        return {str(row.start_date): row for row in rows}
+
+    def approve_own_week_as(self, user):
+        frappe.set_user(user)
+        try:
+            with self.assertRaises(frappe.ValidationError):
+                approve_or_reject_timesheet(employee=self.reviewer, status="Approved", dates=self.dates)
+        finally:
+            frappe.set_user("Administrator")
+
+    def test_reviewer_cannot_approve_their_own_week(self):
+        before = self.statuses_by_date()
+
+        self.approve_own_week_as(SELF_APPROVAL_REVIEWER)
+
+        # Refused before the parking write, so the week is still actionable by someone else.
+        after = self.statuses_by_date()
+        self.assertEqual(len(after), len(self.dates))
+        for date, row in after.items():
+            self.assertNotEqual(row.custom_approval_status, "Processing Timesheet")
+            self.assertEqual(row.custom_approval_status, before[date].custom_approval_status)
+            self.assertEqual(row.custom_weekly_approval_status, before[date].custom_weekly_approval_status)
+            self.assertEqual(frappe.db.get_value("Timesheet", row.name, "docstatus"), 0)
+
+    def test_system_manager_is_not_exempt(self):
+        """`validate_self_approval` waves System Manager through; the API guard does not."""
+        user = frappe.get_doc("User", SELF_APPROVAL_REVIEWER)
+        user.add_roles("System Manager")
+        try:
+            self.approve_own_week_as(SELF_APPROVAL_REVIEWER)
+        finally:
+            user.remove_roles("System Manager")
+
+        for date, row in self.statuses_by_date().items():
+            self.assertNotEqual(row.custom_approval_status, "Processing Timesheet", f"{date} was queued")
+
+    def test_another_employees_week_is_untouched(self):
+        """The guard keys on the target employee, not on holding a reviewer role."""
+        frappe.set_user("Administrator")
+        for date in self.dates:
+            save_timesheet(
+                date=date,
+                description=f"Peer work on {date}",
+                task=self.task,
+                hours=2,
+                employee=self.peer,
+            )
+        submit_for_approval(start_date=self.dates[0], employee=self.peer, approver=self.reviewer)
+
+        frappe.set_user(SELF_APPROVAL_REVIEWER)
+        approve_or_reject_timesheet(employee=self.peer, status="Approved", dates=self.dates)
+        frappe.set_user("Administrator")
+
+        rows = frappe.get_all(
+            "Timesheet",
+            filters={"employee": self.peer, "docstatus": ["<", 2]},
+            fields=["name", "custom_approval_status"],
+        )
+        self.assertTrue(rows)
+        for row in rows:
+            self.assertEqual(row.custom_approval_status, "Processing Timesheet")
+        for name in [row.name for row in rows]:
+            doc = frappe.get_doc("Timesheet", name)
+            frappe.delete_doc("Timesheet", doc.name, force=True, ignore_permissions=True)
