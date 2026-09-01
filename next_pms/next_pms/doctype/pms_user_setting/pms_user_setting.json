@@ -7,7 +7,9 @@
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
-  "user"
+  "user",
+  "section_break_qddn",
+  "auto_expand_weeks_by_default"
  ],
  "fields": [
   {
@@ -19,12 +21,22 @@
    "read_only": 1,
    "reqd": 1,
    "unique": 1
+  },
+  {
+   "fieldname": "section_break_qddn",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "auto_expand_weeks_by_default",
+   "fieldtype": "Int",
+   "label": "Auto Expand Weeks by Default",
+   "non_negative": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-08-31 20:32:18.108308",
+ "modified": "2026-08-31 21:52:12.304878",
  "modified_by": "Administrator",
  "module": "Next PMS",
  "name": "PMS User Setting",
