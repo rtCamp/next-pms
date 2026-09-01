@@ -308,12 +308,16 @@ const AuthenticatedRoute = () => {
     hasEmployee: state.hasEmployee,
   }));
 
-  if (isUserLoading || hasEmployee === null) {
+  if (isUserLoading) {
     return <Spinner isFull />;
   }
 
   if (!currentUser || currentUser === "Guest") {
     window.location.replace("/login?redirect-to=/next-pms/timesheet");
+    return <Spinner isFull />;
+  }
+
+  if (hasEmployee === null) {
     return <Spinner isFull />;
   }
 
@@ -325,12 +329,13 @@ const AuthenticatedRoute = () => {
 };
 
 const RoleProtectedRoute = ({ allowedRoles }: { allowedRoles: Role[] }) => {
-  const { isLoading, roles } = useUser(({ state }) => ({
+  const { isLoading, isAppDataLoading, roles } = useUser(({ state }) => ({
     isLoading: state.isLoading,
+    isAppDataLoading: state.isAppDataLoading,
     roles: state.roles,
   }));
 
-  if (isLoading) {
+  if (isLoading || isAppDataLoading) {
     return <Spinner isFull />;
   }
 

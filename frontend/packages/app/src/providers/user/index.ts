@@ -14,6 +14,8 @@ export interface UserContextProps {
   state: {
     /** Indicates whether user/auth data is still being resolved. */
     isLoading: boolean;
+    /** Indicates whether the app data is still being fetched. */
+    isAppDataLoading: boolean;
     /** Employee record ID linked to the current user. */
     employeeId: string;
     /** Whether the current user has a linked Employee record.
@@ -61,6 +63,7 @@ export interface UserContextProps {
 export const UserContext = createContext<UserContextProps>({
   state: {
     isLoading: false,
+    isAppDataLoading: false,
     employeeId: "",
     hasEmployee: null,
     employeeName: "",
