@@ -54,6 +54,14 @@ EDITABLE_SETTINGS = {
     "use_system_auto_expand_weeks": None,
 }
 
+DEFAULT_AUTO_EXPAND_WEEKS = 4
+
+
+def _get_system_auto_expand_weeks() -> int:
+    """Return the global Timesheet auto-expand setting with an application fallback."""
+    value = frappe.db.get_single_value("Timesheet Settings", "auto_expand_weeks_by_default")
+    return value if value is not None else DEFAULT_AUTO_EXPAND_WEEKS
+
 
 def _get_or_create_settings() -> PMSUserSetting:
     """Return or create the current Employee's settings document."""
@@ -80,11 +88,13 @@ def get_pms_settings() -> dict:
         dict: The user's PMS settings containing:
             - auto_expand_weeks_by_default: Number of weeks to expand by default, or None.
             - use_system_auto_expand_weeks: Whether to use the system default.
+            - system_auto_expand_weeks_by_default: Global auto-expand weeks setting.
     """
     settings_doc = _get_or_create_settings()
     return {
         "auto_expand_weeks_by_default": settings_doc.auto_expand_weeks_by_default,
         "use_system_auto_expand_weeks": settings_doc.use_system_auto_expand_weeks,
+        "system_auto_expand_weeks_by_default": _get_system_auto_expand_weeks(),
     }
 
 
@@ -99,6 +109,7 @@ def update_pms_settings(settings: dict) -> dict:
         dict: The updated PMS settings containing:
             - auto_expand_weeks_by_default: Number of weeks to expand by default, or None.
             - use_system_auto_expand_weeks: Whether to use the system default.
+            - system_auto_expand_weeks_by_default: Global auto-expand weeks setting.
     """
     unknown_settings = set(settings) - EDITABLE_SETTINGS.keys()
     if unknown_settings:
@@ -116,4 +127,5 @@ def update_pms_settings(settings: dict) -> dict:
     return {
         "auto_expand_weeks_by_default": settings_doc.auto_expand_weeks_by_default,
         "use_system_auto_expand_weeks": settings_doc.use_system_auto_expand_weeks,
+        "system_auto_expand_weeks_by_default": _get_system_auto_expand_weeks(),
     }
