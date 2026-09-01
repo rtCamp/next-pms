@@ -1,7 +1,6 @@
 {
  "actions": [],
  "allow_bulk_edit": 1,
- "allow_rename": 1,
  "autoname": "field:user",
  "creation": "2026-08-27 17:40:53.861090",
  "doctype": "DocType",
@@ -36,7 +35,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-08-31 21:52:12.304878",
+ "modified": "2026-09-01 20:13:35.050092",
  "modified_by": "Administrator",
  "module": "Next PMS",
  "name": "PMS User Setting",

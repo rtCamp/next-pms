@@ -21,10 +21,16 @@ class PMSUserSetting(Document):
     pass
 
 
-def _validate_non_negative_int(value: int | str | None) -> int | None:
+def _validate_non_negative_int(value: int | float | str | None) -> int | None:
     """Normalize an optional non-negative integer setting."""
     if value in (None, ""):
         return None
+
+    if isinstance(value, bool) or (isinstance(value, float) and not value.is_integer()):
+        frappe.throw(
+            frappe._("Value must be a non-negative whole number."),
+            frappe.ValidationError,
+        )
 
     try:
         value = int(value)
