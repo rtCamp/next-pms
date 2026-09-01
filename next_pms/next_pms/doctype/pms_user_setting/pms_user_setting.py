@@ -15,6 +15,7 @@ class PMSUserSetting(Document):
         from frappe.types import DF
 
         auto_expand_weeks_by_default: DF.Int
+        use_system_auto_expand_weeks: DF.Check
         user: DF.Link
     # end: auto-generated types
 
@@ -50,6 +51,7 @@ def _validate_non_negative_int(value: int | float | str | None) -> int | None:
 
 EDITABLE_SETTINGS = {
     "auto_expand_weeks_by_default": _validate_non_negative_int,
+    "use_system_auto_expand_weeks": None,
 }
 
 
@@ -77,10 +79,12 @@ def get_pms_settings() -> dict:
     Returns:
         dict: The user's PMS settings containing:
             - auto_expand_weeks_by_default: Number of weeks to expand by default, or None.
+            - use_system_auto_expand_weeks: Whether to use the system default.
     """
     settings_doc = _get_or_create_settings()
     return {
         "auto_expand_weeks_by_default": settings_doc.auto_expand_weeks_by_default,
+        "use_system_auto_expand_weeks": settings_doc.use_system_auto_expand_weeks,
     }
 
 
@@ -94,6 +98,7 @@ def update_pms_settings(settings: dict) -> dict:
     Returns:
         dict: The updated PMS settings containing:
             - auto_expand_weeks_by_default: Number of weeks to expand by default, or None.
+            - use_system_auto_expand_weeks: Whether to use the system default.
     """
     unknown_settings = set(settings) - EDITABLE_SETTINGS.keys()
     if unknown_settings:
@@ -102,9 +107,13 @@ def update_pms_settings(settings: dict) -> dict:
     frappe.only_for(["Employee"], message=True)
     settings_doc = frappe.get_doc("PMS User Setting", frappe.session.user)
     for fieldname, value in settings.items():
-        setattr(settings_doc, fieldname, EDITABLE_SETTINGS[fieldname](value))
+        validator = EDITABLE_SETTINGS[fieldname]
+        if validator:
+            value = validator(value)
+        setattr(settings_doc, fieldname, value)
     settings_doc.save()
 
     return {
         "auto_expand_weeks_by_default": settings_doc.auto_expand_weeks_by_default,
+        "use_system_auto_expand_weeks": settings_doc.use_system_auto_expand_weeks,
     }
