@@ -54,6 +54,7 @@ def recalculate_timesheet_billing(project_id: str, valid_from_date: str, start: 
             timesheet_doc.flags.ignore_validate_update_after_submit = True
             timesheet_doc.flags.costing_calculation_queued = True
             timesheet_doc.ignore_backdated_validation = True
+            timesheet_doc.validate()
             timesheet_doc.save(ignore_permissions=True)
 
         frappe.enqueue(

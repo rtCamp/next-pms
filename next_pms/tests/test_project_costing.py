@@ -278,6 +278,37 @@ class TestProjectTimesheetBillingRecalculation(IntegrationTestCase):
             projects=["PROJ-1"],
         )
 
+    def test_batch_revalidates_each_timesheet_before_save(self):
+        """validate() must be called explicitly: save() skips it for submitted timesheets.
+
+        For a docstatus 1 document, save() classifies the write as
+        update_after_submit and only runs before_update_after_submit, so
+        billing/costing rates are recomputed solely through this explicit call.
+        """
+        timesheet_doc = MagicMock()
+        timesheet_doc.flags = frappe._dict()
+
+        with (
+            patch.object(
+                project_timesheet_billing_recalculation.frappe,
+                "get_all",
+                return_value=[frappe._dict(name="TS-1")],
+            ),
+            patch.object(
+                project_timesheet_billing_recalculation.frappe,
+                "get_doc",
+                return_value=timesheet_doc,
+            ),
+            patch.object(project_timesheet_billing_recalculation.frappe, "enqueue"),
+        ):
+            project_timesheet_billing_recalculation.recalculate_timesheet_billing(
+                project_id="PROJ-1",
+                valid_from_date="2026-01-01",
+            )
+
+        timesheet_doc.validate.assert_called_once_with()
+        timesheet_doc.save.assert_called_once_with(ignore_permissions=True)
+
     def test_no_initial_timesheets_does_not_recalculate_costing(self):
         """Skip costing recalculation when the project has no timesheets to roll up."""
         with (
