@@ -28,6 +28,7 @@ class TimesheetSettings(Document):
         allow_weekend_entries: DF.Check
         allowed_departments: DF.TableMultiSelect[TimesheetDepartment]
         approval_request_reminder_template: DF.Link | None
+        auto_expand_weeks_by_default: DF.Int
         daily_reminder_template: DF.Link | None
         day_to_send_reminder: DF.Literal["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
         default_currency: DF.Link | None

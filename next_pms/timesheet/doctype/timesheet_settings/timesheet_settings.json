@@ -12,6 +12,7 @@
   "column_break_cypz",
   "allow_future_entries",
   "allow_weekend_entries",
+  "auto_expand_weeks_by_default",
   "reminder_setting_section",
   "send_daily_reminder",
   "daily_reminder_template",
@@ -242,12 +243,20 @@
    "fieldtype": "Link",
    "label": "Default Currency",
    "options": "Currency"
+  },
+  {
+   "default": "4",
+   "description": "Number of recent weeks expanded by default on Timesheets page when a user uses the system setting.",
+   "fieldname": "auto_expand_weeks_by_default",
+   "fieldtype": "Int",
+   "label": "Auto Expand Weeks by Default",
+   "non_negative": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2026-08-31 15:43:28.904082",
+ "modified": "2026-09-02 00:07:36.473428",
  "modified_by": "Administrator",
  "module": "Timesheet",
  "name": "Timesheet Settings",
