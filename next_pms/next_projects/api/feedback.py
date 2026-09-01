@@ -131,12 +131,13 @@ def get_project_feedback_timeline(
 
 @frappe.whitelist(methods=["GET"])
 @frappe.read_only()
-def get_project_feedback_breakdown(feedback_name: str):
+def get_project_feedback_breakdown(feedback_name: str, project: str | None = None):
     """Per-month breakdown for a single project feedback record.
 
     Params:
         feedback_name: Customer Feedback name (``evaluation_type == 'Project'``), as
             returned in the timeline's ``feedback_id``.
+        project: Optional Project name for scoping access.
 
     Returns:
         dict: ``{ feedback_id, period_from, period_to, overall_score, ratings, responses }``
@@ -145,6 +146,20 @@ def get_project_feedback_breakdown(feedback_name: str):
     """
     only_for(ALLOWED_ROLES, message=True)
     ensure_customer_feedback_available()
+
+    if project:
+        frappe.has_permission("Project", doc=project, ptype="read", throw=True)
+        ensure_feedback_belongs_to_project(feedback_name, project)
+    else:
+        customer = frappe.db.get_value("Customer Feedback", feedback_name, "customer")
+        if customer:
+            roles = frappe.get_roles()
+            if not ("System Manager" in roles or frappe.session.user == "Administrator"):
+                customer_projects = frappe.get_all("Project", filters={"customer": customer}, pluck="name")
+                if not customer_projects or not any(
+                    frappe.has_permission("Project", doc=p, ptype="read") for p in customer_projects
+                ):
+                    frappe.throw(_("Not permitted to view feedback for {0}").format(customer), frappe.PermissionError)
 
     rating_fields = RATING_FIELDS["Project"]
     text_fields = TEXT_FIELDS["Project"]
