@@ -148,16 +148,17 @@ def get_project_feedback_breakdown(feedback_name: str, project: str | None = Non
     ensure_customer_feedback_available()
 
     if project:
-        frappe.has_permission("Project", doc=project, ptype="read", throw=True)
+        frappe.has_permission("Project", doc=project, ptype="read", user=frappe.session.user, throw=True)
         ensure_feedback_belongs_to_project(feedback_name, project)
     else:
         customer = frappe.db.get_value("Customer Feedback", feedback_name, "customer")
         if customer:
-            roles = frappe.get_roles()
-            if not ("System Manager" in roles or frappe.session.user == "Administrator"):
+            user = frappe.session.user
+            roles = frappe.get_roles(user)
+            if not ("System Manager" in roles or user == "Administrator"):
                 customer_projects = frappe.get_all("Project", filters={"customer": customer}, pluck="name")
                 if not customer_projects or not any(
-                    frappe.has_permission("Project", doc=p, ptype="read") for p in customer_projects
+                    frappe.has_permission("Project", doc=p, ptype="read", user=user) for p in customer_projects
                 ):
                     frappe.throw(_("Not permitted to view feedback for {0}").format(customer), frappe.PermissionError)
 
@@ -299,7 +300,7 @@ def get_team_feedback_list(project: str, start: int = 0, limit: int = 20):
 
 @frappe.whitelist(methods=["GET"])
 @frappe.read_only()
-def get_team_feedback_breakdown(feedback_name: str):
+def get_team_feedback_breakdown(feedback_name: str, project: str | None = None):
     """Per-record breakdown for a single resource (team member) evaluation.
 
     The rating questions returned depend on the record's ``evaluation_type``.
@@ -307,6 +308,7 @@ def get_team_feedback_breakdown(feedback_name: str):
     Params:
         feedback_name: Customer Feedback name (any non-Project ``evaluation_type``), as
             returned in ``get_team_feedback_list``'s ``name``.
+        project: Optional Project name for scoping access.
 
     Returns:
         dict: ``{ feedback_id, evaluation_type, employee, employee_name, avatar_url,
@@ -318,6 +320,21 @@ def get_team_feedback_breakdown(feedback_name: str):
     """
     only_for(ALLOWED_ROLES, message=True)
     ensure_customer_feedback_available()
+
+    if project:
+        frappe.has_permission("Project", doc=project, ptype="read", user=frappe.session.user, throw=True)
+        ensure_feedback_belongs_to_project(feedback_name, project)
+    else:
+        customer = frappe.db.get_value("Customer Feedback", feedback_name, "customer")
+        if customer:
+            user = frappe.session.user
+            roles = frappe.get_roles(user)
+            if not ("System Manager" in roles or user == "Administrator"):
+                customer_projects = frappe.get_all("Project", filters={"customer": customer}, pluck="name")
+                if not customer_projects or not any(
+                    frappe.has_permission("Project", doc=p, ptype="read", user=user) for p in customer_projects
+                ):
+                    frappe.throw(_("Not permitted to view feedback for {0}").format(customer), frappe.PermissionError)
 
     evaluation_type = frappe.db.get_value("Customer Feedback", feedback_name, "evaluation_type")
     if not evaluation_type:
