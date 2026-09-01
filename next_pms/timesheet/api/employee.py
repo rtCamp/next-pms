@@ -206,7 +206,7 @@ def get_workable_days_for_employee(employee: str, start_date: str | datetime.dat
     from frappe.utils import date_diff, getdate
 
     from next_pms.resource_management.api.utils.query import get_employee_leaves
-    from next_pms.timesheet.api.team import get_holidays
+    from next_pms.timesheet.api.utils import get_holidays
 
     if not employee or not start_date or not end_date:
         return None
