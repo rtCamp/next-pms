@@ -84,6 +84,7 @@ def get_project_feedback_timeline(
         frappe.throw(_("Project is required"))
     if not frappe.db.exists("Project", project):
         frappe.throw(_("Project {0} not found").format(project), frappe.DoesNotExistError)
+    frappe.has_permission("Project", doc=project, ptype="read", user=frappe.session.user, throw=True)
 
     CFS = DocType("Customer Feedback Schedule")
     CFP = DocType("Customer Feedback Project")
@@ -155,7 +156,10 @@ def get_project_feedback_breakdown(feedback_name: str, project: str | None = Non
         if customer:
             user = frappe.session.user
             roles = frappe.get_roles(user)
-            if not ("System Manager" in roles or user == "Administrator"):
+            if (
+                not any(r in roles for r in ("System Manager", "Projects Manager", "Timesheet Manager"))
+                and user != "Administrator"
+            ):
                 customer_projects = frappe.get_all("Project", filters={"customer": customer}, pluck="name")
                 if not customer_projects or not any(
                     frappe.has_permission("Project", doc=p, ptype="read", user=user) for p in customer_projects
@@ -235,6 +239,7 @@ def get_team_feedback_list(project: str, start: int = 0, limit: int = 20):
         frappe.throw(_("Project is required"))
     if not frappe.db.exists("Project", project):
         frappe.throw(_("Project {0} not found").format(project), frappe.DoesNotExistError)
+    frappe.has_permission("Project", doc=project, ptype="read", user=frappe.session.user, throw=True)
 
     start = cint(start)
     limit = cint(limit)
@@ -329,7 +334,10 @@ def get_team_feedback_breakdown(feedback_name: str, project: str | None = None):
         if customer:
             user = frappe.session.user
             roles = frappe.get_roles(user)
-            if not ("System Manager" in roles or user == "Administrator"):
+            if (
+                not any(r in roles for r in ("System Manager", "Projects Manager", "Timesheet Manager"))
+                and user != "Administrator"
+            ):
                 customer_projects = frappe.get_all("Project", filters={"customer": customer}, pluck="name")
                 if not customer_projects or not any(
                     frappe.has_permission("Project", doc=p, ptype="read", user=user) for p in customer_projects
