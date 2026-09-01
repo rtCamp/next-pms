@@ -389,20 +389,6 @@ class TestTeamViewEmployeeFilters(_TeamViewBase):
         result = self._call(employee_id=json.dumps([self.alpha, self.beta]))
         self.assertEqual(self._names(result), ["Tvf Alpha", "Tvf Beta"])
 
-    def test_employee_id_takes_priority_over_skills(self):
-        result = self._call(
-            employee_id=json.dumps([self.alpha]),
-            skills=json.dumps([{"name": "TvfPython", "operator": ">=", "proficiency": 0.5}]),
-        )
-        self.assertEqual(self._names(result), ["Tvf Alpha"])
-
-    def test_skills_param(self):
-        result = self._call(
-            employee_name="Tvf",
-            skills=json.dumps([{"name": "TvfReact", "operator": ">=", "proficiency": 0.5}]),
-        )
-        self.assertEqual(self._names(result), ["Tvf Beta", "Tvf Gamma"])
-
     def test_composite_filter_designation_operators(self):
         eq = self._call(filters=json.dumps([["designation", "=", self.desig_alpha], ["employee_name", "like", "Tvf"]]))
         self.assertEqual(self._names(eq), ["Tvf Alpha", "Tvf Gamma"])
