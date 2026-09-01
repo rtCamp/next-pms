@@ -27,6 +27,8 @@
   "report_configuration_section",
   "pm_report_api_key",
   "tab_break_34k6",
+  "rate_display_section",
+  "default_currency",
   "notifications_section",
   "send_missing_allocation_reminder",
   "remind_on",
@@ -227,12 +229,25 @@
    "fieldname": "pm_report_api_key",
    "fieldtype": "Password",
    "label": "PM Report API Key"
+  },
+  {
+   "fieldname": "rate_display_section",
+   "fieldtype": "Section Break",
+   "label": "Rate Display"
+  },
+  {
+   "default": "USD",
+   "description": "Currency used to display employee hourly rates across the resource management views. Rates held in another currency are converted at the current exchange rate.",
+   "fieldname": "default_currency",
+   "fieldtype": "Link",
+   "label": "Default Currency",
+   "options": "Currency"
   }
  ],
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2026-04-29 19:10:48.300804",
+ "modified": "2026-08-31 15:43:28.904082",
  "modified_by": "Administrator",
  "module": "Timesheet",
  "name": "Timesheet Settings",

@@ -8,6 +8,7 @@ from next_pms.resource_management.api.utils.helpers import (
     _parse_multi_select_filter,
     add_customer_data_if_not_exists,
     allocation_hours_for_date,
+    convert_ctc_to_allocation_currency,
     find_worked_hours,
     get_allocation_objects,
     get_dates_date,
@@ -115,9 +116,9 @@ def get_resource_management_team_view_data(
                     "custom_work_schedule": "Per Day",
                     "custom_working_hours": 8.0,
                     "reports_to": "HR-EMP-00002",
-                    # write permission only:
+                    # write permission only; restated in the configured display currency:
                     "ctc": "120000",
-                    "salary_currency": "INR",
+                    "salary_currency": "USD",
                 },
             ],
             "leaves": [
@@ -174,9 +175,9 @@ def get_resource_management_team_view_data(
                     "working_frequency": "Per Day",
                     "employee_daily_working_hours": 8.0,
                     "max_allocation_count_for_single_date": 2,
-                    # write permission only:
+                    # write permission only; restated in the configured display currency:
                     "ctc": "120000",
-                    "salary_currency": "INR",
+                    "salary_currency": "USD",
                     # sparse — only days with allocations or leave are included
                     "all_dates_data": {
                         "2026-05-21": {
@@ -483,6 +484,7 @@ def _get_resource_management_team_view_data(
         return res
 
     apply_working_hours_fallback(employees)
+    convert_ctc_to_allocation_currency(employees)
 
     resource_allocation_data = get_allocation_list_for_employee_for_given_range(
         [
