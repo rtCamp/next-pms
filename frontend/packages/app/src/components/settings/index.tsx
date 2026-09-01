@@ -19,6 +19,8 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
   const toast = useToasts();
   const [activePage, setActivePage] = useState<SettingsPage>("profile");
   const [autoExpandWeeks, setAutoExpandWeeks] = useState("");
+  const [useSystemAutoExpandWeeks, setUseSystemAutoExpandWeeks] =
+    useState(true);
   const { employeeName, userName, userId, image } = useUser(({ state }) => ({
     employeeName: state.employeeName,
     userName: state.userName,
@@ -43,6 +45,9 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
     setAutoExpandWeeks(
       value === null || value === undefined ? "" : String(value),
     );
+    setUseSystemAutoExpandWeeks(
+      Boolean(pmsSettings?.use_system_auto_expand_weeks),
+    );
   }, [pmsSettings]);
 
   useEffect(() => {
@@ -57,6 +62,7 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
         settings: {
           auto_expand_weeks_by_default:
             autoExpandWeeks === "" ? null : Number(autoExpandWeeks),
+          use_system_auto_expand_weeks: useSystemAutoExpandWeeks ? 1 : 0,
         },
       });
       await mutate();
@@ -108,8 +114,10 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
               email={userId}
               image={image}
               autoExpandWeeks={autoExpandWeeks}
+              useSystemAutoExpandWeeks={useSystemAutoExpandWeeks}
               isLoading={isLoading}
               onAutoExpandWeeksChange={setAutoExpandWeeks}
+              onUseSystemAutoExpandWeeksChange={setUseSystemAutoExpandWeeks}
             />
           </div>
           {activePageConfig.showSave && (
