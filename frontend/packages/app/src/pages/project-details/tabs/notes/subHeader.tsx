@@ -69,26 +69,26 @@ export function NotesSubHeader() {
           ]}
         />
       </div>
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <div className="flex flex-1 gap-2">
+      <div className="flex flex-wrap items-center justify-between gap-2 max-md:flex-col max-md:items-stretch">
+        <div className="flex flex-1 gap-2 max-md:flex-col">
           <TextInput
             value={titleInput}
             onChange={(e) => onTitleInputChange(e.target.value)}
             placeholder="Search title"
-            className="w-full max-w-64"
+            className="w-full max-w-64 max-md:max-w-none"
           />
           <TextInput
             value={descriptionInput}
             onChange={(e) => onDescriptionInputChange(e.target.value)}
             placeholder="Search description"
-            className="w-full max-w-64"
+            className="w-full max-w-64 max-md:max-w-none"
           />
         </div>
         <Select
           size="sm"
           placeholder="Select Author"
           placeholderClassName="text-ink-gray-7"
-          className="w-fit"
+          className="w-fit max-md:w-full"
           value={author}
           onChange={(value) => onAuthorChange((value ?? "") as string)}
           options={authorOptions}

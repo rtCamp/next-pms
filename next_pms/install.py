@@ -23,13 +23,12 @@ def setup_timesheet_rejection_reason_field():
 
     create_custom_fields(
         {
-            "Timesheet": [
+            "Timesheet Detail": [
                 {
                     "fieldname": "custom_rejection_reason",
                     "fieldtype": "Text Editor",
                     "label": "Rejection Reason",
-                    "insert_after": "note",
-                    "depends_on": 'eval:doc.custom_approval_status=="Rejected"',
+                    "insert_after": "description",
                     "read_only": 1,
                     "no_copy": 1,
                     "module": "Timesheet",
@@ -49,7 +48,7 @@ def setup_timesheet_weekly_rejection_reason_field():
                     "fieldname": "custom_weekly_rejection_reason",
                     "fieldtype": "Text Editor",
                     "label": "Weekly Rejection Reason",
-                    "insert_after": "custom_rejection_reason",
+                    "insert_after": "note",
                     "depends_on": 'eval:doc.custom_weekly_approval_status=="Rejected"',
                     "read_only": 1,
                     "no_copy": 1,

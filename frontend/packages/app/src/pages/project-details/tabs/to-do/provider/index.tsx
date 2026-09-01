@@ -13,12 +13,21 @@ import {
 /**
  * Internal dependencies.
  */
-import { parseFrappeErrorMsg } from "@/lib/utils";
+import { hasTodoCustomFields, parseFrappeErrorMsg } from "@/lib/utils";
 import { useProjectDetail } from "@/pages/project-details/context";
 import { TodosContext, type TodosContextProps } from "./context";
 import type { TodoStatus } from "../create-todo/schema";
 import type { CreateTodoInput, TodoDoc } from "../types";
 import { useTodosData } from "../useTodosData";
+
+const customFieldValues = (input: CreateTodoInput) =>
+  hasTodoCustomFields()
+    ? {
+        custom_title: input.title,
+        custom_from_time: input.startAt,
+        custom_to_time: input.endAt,
+      }
+    : {};
 
 export function TodosProvider({ children }: PropsWithChildren) {
   const projectId = useProjectDetail((s) => s.projectId);
@@ -34,15 +43,13 @@ export function TodosProvider({ children }: PropsWithChildren) {
       setPending(true);
       try {
         const doc = (await createDoc("ToDo", {
-          custom_title: input.title,
           description: input.description,
           status: input.status,
           allocated_to: input.assignee,
-          custom_from_time: input.startAt,
-          custom_to_time: input.endAt,
           priority: input.priority,
           reference_type: "Project",
           reference_name: projectId,
+          ...customFieldValues(input),
         })) as TodoDoc;
         toast.success("To-do created");
         await mutate();
@@ -62,13 +69,11 @@ export function TodosProvider({ children }: PropsWithChildren) {
       setPending(true);
       try {
         const doc = (await updateDoc("ToDo", name, {
-          custom_title: input.title,
           description: input.description,
           status: input.status,
           allocated_to: input.assignee,
-          custom_from_time: input.startAt,
-          custom_to_time: input.endAt,
           priority: input.priority,
+          ...customFieldValues(input),
         })) as TodoDoc;
         toast.success("To-do updated");
         await mutate();

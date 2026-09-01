@@ -108,7 +108,7 @@ export function SubHeader() {
 
   const { options: designationOptions, isLoading: isDesignationLookupLoading } =
     useDesignationLookup({
-      shouldFetch: true,
+      shouldFetch: showFilters,
       query: designationQuery,
     });
 

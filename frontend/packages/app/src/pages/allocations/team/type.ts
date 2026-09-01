@@ -24,6 +24,12 @@ export interface Leave {
   name: string;
 }
 
+export interface Holiday {
+  employee: string;
+  holiday_date: string;
+  description: string;
+}
+
 export interface ResourceAllocation {
   name: string;
   employee: string;
@@ -60,6 +66,7 @@ export interface Permissions {
 export interface TeamAllocationResponse {
   employees: Employee[];
   leaves: Leave[];
+  holidays: Holiday[];
   resource_allocations: ResourceAllocation[];
   customer: Record<string, Customer>;
   total_count: number;

@@ -13,6 +13,7 @@ export const ROUTES = {
   desk: "/desk",
   apps: "/apps",
   "not-found": "/not-found",
+  "no-employee": "/no-employee",
 };
 export const IMPORTED_TASKS_STORAGE_KEY = "next-pms:importedTasks";
 

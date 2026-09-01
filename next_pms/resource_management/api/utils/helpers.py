@@ -1,10 +1,13 @@
 import datetime
+from collections.abc import Iterable
 
 import frappe
 from frappe.utils import cint, flt
 from frappe.utils.data import add_days, getdate
 
 from next_pms.timesheet.api.team import get_week_dates
+
+DEFAULT_ALLOCATION_RATE_CURRENCY = "USD"
 
 
 def add_customer_data_if_not_exists(customer: dict, customer_name: str | None) -> dict:
@@ -42,6 +45,55 @@ def add_customer_data_if_not_exists(customer: dict, customer_name: str | None) -
         }
 
     return customer
+
+
+def get_allocation_rate_currency() -> str:
+    """Currency the resource management views display employee rates in.
+
+    Configured per install at Timesheet Settings > Resource Management > Default Currency,
+    so the display currency is an operator's choice rather than a deployment-specific
+    constant baked into the app.
+    """
+    return frappe.db.get_single_value("Timesheet Settings", "default_currency") or DEFAULT_ALLOCATION_RATE_CURRENCY
+
+
+def convert_ctc_to_allocation_currency(employees: Iterable[dict], currency: str | None = None) -> None:
+    """Restate every employee's CTC in the currency the allocation views report rates in.
+
+    The allocation hover cards derive an hourly rate from ctc/salary_currency, so without this
+    the rate swings with each rtCamper's local currency and the cards cannot be compared
+    against one another. Rows whose currency has no usable exchange rate are left untouched
+    rather than relabelled while still holding an unconverted amount.
+
+    Args:
+        employees (Iterable[dict]): Employee rows carrying ctc and salary_currency — absent on
+            callers without write permission, in which case there is nothing to convert.
+            Mutated in place.
+        currency (str | None): Target currency. Resolved from Timesheet Settings when omitted.
+    """
+    from erpnext.setup.utils import get_exchange_rate
+
+    if not currency:
+        currency = get_allocation_rate_currency()
+
+    exchange_rates = {}
+
+    for employee in employees:
+        salary_currency = employee.get("salary_currency")
+        if not salary_currency or not employee.get("ctc"):
+            continue
+
+        if salary_currency != currency:
+            if salary_currency not in exchange_rates:
+                exchange_rates[salary_currency] = get_exchange_rate(salary_currency, currency)
+
+            exchange_rate = exchange_rates[salary_currency]
+            if not exchange_rate:
+                continue
+
+            employee["ctc"] = flt(employee["ctc"]) * exchange_rate
+
+        employee["salary_currency"] = currency
 
 
 def get_allocation_objects(employee_resource_allocation: list[object]) -> object:
@@ -490,42 +542,3 @@ def resource_api_permissions_check():
         return {"read": True, "write": True, "delete": True}
 
     return {"read": False, "write": False, "delete": False}
-
-
-def get_employees_by_skills(skill_criteria):
-    """
-    Retrieve employee IDs from Employee Skill Map Doctype based on skill and proficiency criteria.
-
-    Args:
-        skill_criteria (list[dict]): A list of dictionaries where each dictionary contains:
-            - name (str): Skill name.
-            - proficiency (int): Proficiency level.
-            - operator (str): Comparison operator (>, <, =, >=, <=).
-
-    Returns:
-        list: List of employee IDs matching the skill criteria.
-    """
-    try:
-        where_condition = ""
-        conditions = []
-
-        for criteria in skill_criteria:
-            sub_condition = "(`skill` = '{0}' and `proficiency` {1} {2})".format(
-                criteria["name"], criteria["operator"], criteria["proficiency"]
-            )
-            conditions.append(sub_condition)
-
-        where_condition = " OR ".join(conditions)
-
-        # nosemgrep
-        res = frappe.db.sql(
-            """SELECT parent FROM `tabEmployee Skill` WHERE {0} GROUP BY parent HAVING COUNT(DISTINCT skill) = {1}""".format(
-                where_condition, len(skill_criteria)
-            ),
-            as_dict=True,
-        )
-
-        return [r.get("parent") for r in res]
-    except Exception as e:
-        frappe.log_error(f"Error fetching employees by skills: {e}")
-        return []

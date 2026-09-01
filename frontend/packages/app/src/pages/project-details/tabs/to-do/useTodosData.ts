@@ -7,7 +7,7 @@ import { useFrappeGetDocList } from "frappe-react-sdk";
 /**
  * Internal dependencies.
  */
-import { hashString } from "@/lib/utils";
+import { hasTodoCustomFields, hashString } from "@/lib/utils";
 import { useProjectDetail } from "@/pages/project-details/context";
 import type { Todo, TodoDoc, TodoUserDetails } from "./types";
 
@@ -23,27 +23,32 @@ export function useTodosData() {
     [projectId],
   );
 
+  const fields = useMemo(
+    () => [
+      "name",
+      "allocated_to",
+      "assigned_by",
+      "assigned_by_full_name",
+      ...(hasTodoCustomFields()
+        ? ["custom_from_time", "custom_title", "custom_to_time"]
+        : []),
+      "date",
+      "description",
+      "priority",
+      "reference_name",
+      "reference_type",
+      "status",
+      "owner",
+      "creation",
+      "modified",
+    ],
+    [],
+  );
+
   const { data, isLoading, error, mutate } = useFrappeGetDocList<TodoDoc>(
     "ToDo",
     {
-      fields: [
-        "name",
-        "allocated_to",
-        "assigned_by",
-        "assigned_by_full_name",
-        "custom_from_time",
-        "custom_title",
-        "custom_to_time",
-        "date",
-        "description",
-        "priority",
-        "reference_name",
-        "reference_type",
-        "status",
-        "owner",
-        "creation",
-        "modified",
-      ],
+      fields,
       filters: filters as never,
       orderBy: { field: "creation", order: "desc" },
       limit: 500,
