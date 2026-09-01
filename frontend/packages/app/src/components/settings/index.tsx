@@ -25,8 +25,14 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
     userId: state.userId,
     image: state.image,
   }));
-  const { isLoading, isSaving, mutate, pmsSettings, updatePMSSettings } =
-    usePMSSettings(open);
+  const {
+    error: settingsError,
+    isLoading,
+    isSaving,
+    mutate,
+    pmsSettings,
+    updatePMSSettings,
+  } = usePMSSettings(open);
   const activePageConfig =
     USER_CONFIGURATION_PAGES.find(({ id }) => id === activePage) ??
     USER_CONFIGURATION_PAGES[0];
@@ -38,6 +44,12 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
       value === null || value === undefined ? "" : String(value),
     );
   }, [pmsSettings]);
+
+  useEffect(() => {
+    if (settingsError) {
+      toast.error(parseFrappeErrorMsg(settingsError));
+    }
+  }, [settingsError, toast]);
 
   const saveSettings = async () => {
     try {
