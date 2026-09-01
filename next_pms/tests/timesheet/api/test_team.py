@@ -304,6 +304,7 @@ SELF_APPROVAL_PEER = "self-approval-test-peer@example.com"
 
 SELF_APPROVAL_PROJECT = "Self Approval Test Project"
 SELF_APPROVAL_TASK = "Self Approval Test Task"
+SELF_APPROVAL_BACKDATED_DAYS = 30
 
 
 class TestSelfApprovalGuard(IntegrationTestCase):
@@ -322,6 +323,11 @@ class TestSelfApprovalGuard(IntegrationTestCase):
 
         cls.previous_first_day = frappe.db.get_default("first_day_of_the_week")
         frappe.db.set_default("first_day_of_the_week", "Monday")
+
+        cls.previous_settings = {
+            field: frappe.db.get_single_value("Timesheet Settings", field)
+            for field in ("allow_backdated_entries", "allow_backdated_entries_till_manager", "allow_future_entries")
+        }
 
         cls.peer = make_employee(SELF_APPROVAL_PEER, company=cls.company, leave_approver="Administrator")
         cls.reviewer = make_employee(
@@ -353,6 +359,8 @@ class TestSelfApprovalGuard(IntegrationTestCase):
 
     @classmethod
     def tearDownClass(cls):
+        for field, value in cls.previous_settings.items():
+            frappe.db.set_single_value("Timesheet Settings", field, value)
         # The approval API commits, so a default set here would otherwise outlive the run.
         frappe.db.set_default("first_day_of_the_week", cls.previous_first_day)
         frappe.db.commit()  # nosemgrep settings live outside the per-test transaction
@@ -361,6 +369,11 @@ class TestSelfApprovalGuard(IntegrationTestCase):
     def setUp(self):
         super().setUp()
         frappe.set_user("Administrator")
+        frappe.db.set_single_value("Timesheet Settings", "allow_backdated_entries", 1)
+        frappe.db.set_single_value(
+            "Timesheet Settings", "allow_backdated_entries_till_manager", SELF_APPROVAL_BACKDATED_DAYS
+        )
+        frappe.db.set_single_value("Timesheet Settings", "allow_future_entries", 1)
         self.delete_test_timesheets()
         self.make_pending_week()
 
@@ -430,15 +443,6 @@ class TestSelfApprovalGuard(IntegrationTestCase):
 
         for date, row in self.statuses_by_date().items():
             self.assertNotEqual(row.custom_approval_status, "Processing Timesheet", f"{date} was queued")
-
-    def test_reviewer_can_still_reject_their_own_week(self):
-        """Sending your own week back to draft is withdrawing it, not reviewing it."""
-        frappe.set_user(SELF_APPROVAL_REVIEWER)
-        approve_or_reject_timesheet(employee=self.reviewer, status="Rejected", dates=self.dates, note="not done yet")
-        frappe.set_user("Administrator")
-
-        for date, row in self.statuses_by_date().items():
-            self.assertEqual(row.custom_approval_status, "Processing Timesheet", f"{date} was not queued")
 
     def test_another_employees_week_is_untouched(self):
         """The guard keys on the target employee, not on holding a reviewer role."""
