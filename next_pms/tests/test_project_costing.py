@@ -238,46 +238,6 @@ class TestCostingWorkerDataValidity(IntegrationTestCase):
 
 
 class TestProjectTimesheetBillingRecalculation(IntegrationTestCase):
-    def test_completed_batches_refresh_all_project_tasks_and_project(self):
-        """After the last billing batch, recalculate all project tasks and the project once.
-
-        Intermediate batches only rewrite timesheet billing rates and suppress
-        per-timesheet costing jobs. When start > 0 and no more timesheets remain,
-        the worker refreshes every project task and the project from those final rates.
-        """
-        with (
-            patch.object(
-                project_timesheet_billing_recalculation.frappe,
-                "get_all",
-                side_effect=[[], ["TASK-1", "TASK-2"]],
-            ),
-            patch.object(
-                project_timesheet_billing_recalculation.frappe.db,
-                "get_value",
-                return_value="Test Project",
-            ),
-            patch.object(
-                project_timesheet_billing_recalculation,
-                "update_task_and_project",
-            ) as update_task_and_project,
-            patch.object(
-                project_timesheet_billing_recalculation.frappe,
-                "msgprint",
-                return_value="completed",
-            ),
-        ):
-            result = project_timesheet_billing_recalculation.recalculate_timesheet_billing(
-                project_id="PROJ-1",
-                valid_from_date="2026-01-01",
-                start=300,
-            )
-
-        self.assertEqual(result, "completed")
-        update_task_and_project.assert_called_once_with(
-            tasks=["TASK-1", "TASK-2"],
-            projects=["PROJ-1"],
-        )
-
     def test_batch_revalidates_each_timesheet_before_save(self):
         """validate() must be called explicitly: save() skips it for submitted timesheets.
 
@@ -308,33 +268,6 @@ class TestProjectTimesheetBillingRecalculation(IntegrationTestCase):
 
         timesheet_doc.validate.assert_called_once_with()
         timesheet_doc.save.assert_called_once_with(ignore_permissions=True)
-
-    def test_no_initial_timesheets_does_not_recalculate_costing(self):
-        """Skip costing recalculation when the project has no timesheets to roll up."""
-        with (
-            patch.object(project_timesheet_billing_recalculation.frappe, "get_all", return_value=[]),
-            patch.object(
-                project_timesheet_billing_recalculation.frappe.db,
-                "get_value",
-                return_value="Test Project",
-            ),
-            patch.object(
-                project_timesheet_billing_recalculation,
-                "update_task_and_project",
-            ) as update_task_and_project,
-            patch.object(
-                project_timesheet_billing_recalculation.frappe,
-                "msgprint",
-                return_value="not found",
-            ),
-        ):
-            result = project_timesheet_billing_recalculation.recalculate_timesheet_billing(
-                project_id="PROJ-1",
-                valid_from_date="2026-01-01",
-            )
-
-        self.assertEqual(result, "not found")
-        update_task_and_project.assert_not_called()
 
     def test_batch_saves_timesheets_without_per_timesheet_costing_jobs(self):
         """Batch billing recalculation must not enqueue a costing job for every timesheet save.

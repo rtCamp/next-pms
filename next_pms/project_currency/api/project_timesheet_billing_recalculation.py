@@ -1,6 +1,5 @@
 import frappe
 
-from next_pms.project_currency.background_jobs.project_costing import update_task_and_project
 from next_pms.project_currency.helpers.error import generate_the_error_log
 
 
@@ -41,8 +40,9 @@ def recalculate_timesheet_billing(project_id: str, valid_from_date: str, start: 
                     realtime=True,
                 )
             else:
-                tasks = frappe.get_all("Task", filters={"project": project_id}, pluck="name")
-                update_task_and_project(tasks=tasks, projects=[project_id])
+                project_doc = frappe.get_doc("Project", project_id)
+                project_doc.update_project()
+                project_doc.save(ignore_permissions=True)
 
                 return frappe.msgprint(
                     f"Timesheet billing recalculation completed for project: {project_id}-{project_name}.",
