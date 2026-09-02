@@ -36,13 +36,13 @@
    "default": "1",
    "fieldname": "use_system_auto_expand_weeks",
    "fieldtype": "Check",
-   "label": "Use System auto expand weeks"
+   "label": "Use System Auto Expand Weeks"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-09-01 23:46:37.556408",
+ "modified": "2026-09-02 13:46:21.588496",
  "modified_by": "Administrator",
  "module": "Next PMS",
  "name": "PMS User Setting",
