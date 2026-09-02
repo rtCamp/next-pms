@@ -203,7 +203,7 @@ scheduler_events = {
         "next_pms.next_pms.notifications.send_review_reminders",
     ],
     "weekly": [
-        "next_pms.project_currency.tasks.reminde_project_threshold.send_reminder_mail",
+        "next_pms.project_currency.tasks.reminder_project_threshold.send_reminder_mail",
     ],
 }
 
