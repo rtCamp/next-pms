@@ -60,7 +60,7 @@ DEFAULT_AUTO_EXPAND_WEEKS = 4
 def _get_system_auto_expand_weeks() -> int:
     """Return the global Timesheet auto-expand setting with an application fallback."""
     value = frappe.db.get_single_value("Timesheet Settings", "auto_expand_weeks_by_default")
-    return value if value is not None else DEFAULT_AUTO_EXPAND_WEEKS
+    return value or DEFAULT_AUTO_EXPAND_WEEKS
 
 
 def _get_or_create_settings() -> PMSUserSetting:
