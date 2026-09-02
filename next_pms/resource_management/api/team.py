@@ -236,7 +236,7 @@ def get_resource_management_team_view_data(
     )
 
 
-@redis_cache()
+@redis_cache(user=True)
 def _get_resource_management_team_view_data(
     permissions: str,
     date: str,
@@ -431,7 +431,12 @@ def _get_resource_management_team_view_data(
             else:
                 ids = matching_emp_ids
 
-    privileged_fields = ["ctc", "salary_currency"] if permissions["write"] else []
+    roles = set(frappe.get_roles(frappe.session.user))
+    can_see_comp = (
+        bool(roles & {"HR Manager", "HR User", "Accounts Manager", "System Manager"})
+        or frappe.session.user == "Administrator"
+    )
+    privileged_fields = ["ctc", "salary_currency"] if can_see_comp else []
     employees, total_count = filter_employees(
         employee_name,
         business_unit=business_unit,
@@ -698,5 +703,13 @@ def get_leave_information(employee: str, start_date: str, end_date: str):
     from next_pms.timesheet.api.employee import get_workable_days_for_employee
 
     frappe.only_for(["Timesheet Manager", "Timesheet User", "Projects Manager"], message=True)
+
+    roles = set(frappe.get_roles(frappe.session.user))
+    if not (roles & {"Timesheet Manager", "Projects Manager"}) and frappe.session.user != "Administrator":
+        own_employee = frappe.db.get_value("Employee", {"user_id": frappe.session.user}, "name")
+        if not own_employee or own_employee != employee:
+            frappe.throw(
+                frappe._("Not permitted to view leave information for other employees"), frappe.PermissionError
+            )
 
     return get_workable_days_for_employee(employee, start_date, end_date)
