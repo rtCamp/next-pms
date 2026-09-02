@@ -1,4 +1,3 @@
-import type { ComponentType } from "react";
 import type { LucideIcon } from "lucide-react";
 
 export type SettingsPage = "profile" | "timesheets";
@@ -14,10 +13,13 @@ export type SettingsModalProps = {
   onOpenChange: (open: boolean) => void;
 };
 
-export type SettingsPageProps = {
+export type ProfilePageProps = {
   displayName: string;
   email: string;
   image: string;
+};
+
+export type TimesheetsPageProps = {
   autoExpandWeeks: string;
   useSystemAutoExpandWeeks: boolean;
   isLoading: boolean;
@@ -29,6 +31,5 @@ export type SettingsPageConfig = {
   id: SettingsPage;
   label: string;
   icon: LucideIcon;
-  component: ComponentType<SettingsPageProps>;
   showSave?: boolean;
 };

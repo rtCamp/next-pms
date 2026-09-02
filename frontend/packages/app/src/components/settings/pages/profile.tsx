@@ -3,9 +3,9 @@
  */
 import { Avatar, Button } from "@rtcamp/frappe-ui-react";
 
-import type { SettingsPageProps } from "../types";
+import type { ProfilePageProps } from "../types";
 
-export function ProfilePage({ displayName, email, image }: SettingsPageProps) {
+export function ProfilePage({ displayName, email, image }: ProfilePageProps) {
   return (
     <div className="max-w-3xl">
       <div>

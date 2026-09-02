@@ -1,12 +1,12 @@
 /**
  * External dependencies.
  */
-import { Checkbox, TextInput } from "@rtcamp/frappe-ui-react";
+import { Checkbox, FormLabel, TextInput } from "@rtcamp/frappe-ui-react";
 
 /**
  * Internal dependencies.
  */
-import type { SettingsPageProps } from "../types";
+import type { TimesheetsPageProps } from "../types";
 
 export function TimesheetsPage({
   autoExpandWeeks,
@@ -14,7 +14,7 @@ export function TimesheetsPage({
   isLoading,
   onAutoExpandWeeksChange,
   onUseSystemAutoExpandWeeksChange,
-}: SettingsPageProps) {
+}: TimesheetsPageProps) {
   return (
     <div className="max-w-3xl">
       <div>
@@ -24,10 +24,15 @@ export function TimesheetsPage({
         </p>
       </div>
       <div className="mt-10 max-w-sm">
-        <label className="block text-base font-medium text-ink-gray-8">
+        <FormLabel
+          id="auto-expand-weeks"
+          size="md"
+          className="text-ink-gray-8!"
+        >
           Default Expanded Weeks in Timesheet View
-        </label>
+        </FormLabel>
         <TextInput
+          htmlId="auto-expand-weeks"
           type="number"
           min="0"
           step="1"

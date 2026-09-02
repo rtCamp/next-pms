@@ -13,6 +13,8 @@ import { usePMSSettings } from "@/hooks/usePMSSettings";
 import { parseFrappeErrorMsg } from "@/lib/utils";
 import { useUser } from "@/providers/user";
 import { USER_CONFIGURATION_PAGES } from "./constants";
+import { ProfilePage } from "./pages/profile";
+import { TimesheetsPage } from "./pages/timesheets";
 import type { SettingsModalProps, SettingsPage } from "./types";
 
 export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
@@ -38,7 +40,6 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
   const activePageConfig =
     USER_CONFIGURATION_PAGES.find(({ id }) => id === activePage) ??
     USER_CONFIGURATION_PAGES[0];
-  const ActivePage = activePageConfig.component;
 
   useEffect(() => {
     const value = pmsSettings?.auto_expand_weeks_by_default;
@@ -93,6 +94,7 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
                 key={id}
                 type="button"
                 onClick={() => setActivePage(id)}
+                aria-current={activePage === id ? "page" : undefined}
                 className={cn(
                   "flex h-7.5 w-full items-center gap-1.5 rounded px-2 py-1.75 text-left text-sm text-ink-gray-8",
                   activePage === id
@@ -109,16 +111,21 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
 
         <main className="flex flex-1 flex-col overflow-y-auto bg-surface-modal">
           <div className="p-8">
-            <ActivePage
-              displayName={employeeName || userName || userId}
-              email={userId}
-              image={image}
-              autoExpandWeeks={autoExpandWeeks}
-              useSystemAutoExpandWeeks={useSystemAutoExpandWeeks}
-              isLoading={isLoading}
-              onAutoExpandWeeksChange={setAutoExpandWeeks}
-              onUseSystemAutoExpandWeeksChange={setUseSystemAutoExpandWeeks}
-            />
+            {activePage === "profile" ? (
+              <ProfilePage
+                displayName={employeeName || userName || userId}
+                email={userId}
+                image={image}
+              />
+            ) : activePage === "timesheets" ? (
+              <TimesheetsPage
+                autoExpandWeeks={autoExpandWeeks}
+                useSystemAutoExpandWeeks={useSystemAutoExpandWeeks}
+                isLoading={isLoading}
+                onAutoExpandWeeksChange={setAutoExpandWeeks}
+                onUseSystemAutoExpandWeeksChange={setUseSystemAutoExpandWeeks}
+              />
+            ) : null}
           </div>
           {activePageConfig.showSave && (
             <div className="mt-auto flex justify-end border-t border-outline-gray-1 px-8 py-5">
@@ -126,7 +133,7 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
                 variant="solid"
                 label="Save"
                 loading={isSaving}
-                disabled={isLoading || isSaving}
+                disabled={isLoading || isSaving || Boolean(settingsError)}
                 onClick={saveSettings}
               />
             </div>
