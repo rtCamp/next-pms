@@ -482,11 +482,15 @@ def resource_api_permissions_check():
             frappe._("You don't have permission to access this resource"),
             frappe.PermissionError,
         )
-    frappe.only_for(["Projects Manager", "Projects User", "Employee"], message=True)
+    frappe.only_for(
+        ["Projects Manager", "Projects User", "Delivery Manager", "Delivery User", "Employee", "System Manager"],
+        message=True,
+    )
 
-    roles = frappe.get_roles()
+    roles = set(frappe.get_roles())
+    manager_roles = {"Projects Manager", "Projects User", "Delivery Manager", "Delivery User", "System Manager"}
 
-    if ("Projects Manager" in roles) or ("Projects User" in roles):
+    if (manager_roles & roles) or (frappe.session.user == "Administrator"):
         return {"read": True, "write": True, "delete": True}
 
     return {"read": False, "write": False, "delete": False}
