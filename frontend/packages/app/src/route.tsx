@@ -101,6 +101,11 @@ export const routeConfig: Record<
     allowedRoles: [],
     title: "Page Not Found",
   },
+  "no-employee": {
+    Component: ReactLazyPreload(() => import("@/pages/noEmployee")),
+    allowedRoles: [],
+    title: "Access Restricted",
+  },
 };
 
 export function Router() {
@@ -114,6 +119,7 @@ export function Router() {
   const AllocationsProject = routeConfig["allocations-project"].Component;
   const TaskList = routeConfig["task"].Component;
   const NotFound = routeConfig["not-found"].Component;
+  const NoEmployee = routeConfig["no-employee"].Component;
 
   return (
     <BaseRoute>
@@ -188,11 +194,19 @@ export function Router() {
             />
           </BaseRoute>
           <BaseRoute
-            path={`${ROUTES.project}/:projectId`}
-            element={<ProjectDetail />}
+            element={
+              <RoleProtectedRoute
+                allowedRoles={routeConfig["project"].allowedRoles}
+              />
+            }
           >
-            <BaseRoute path="notes/new" element={<NoteEditor />} />
-            <BaseRoute path="notes/:noteId/edit" element={<NoteEditor />} />
+            <BaseRoute
+              path={`${ROUTES.project}/:projectId`}
+              element={<ProjectDetail />}
+            >
+              <BaseRoute path="notes/new" element={<NoteEditor />} />
+              <BaseRoute path="notes/:noteId/edit" element={<NoteEditor />} />
+            </BaseRoute>
           </BaseRoute>
           <BaseRoute element={<PersonalTimesheetLayout />}>
             <BaseRoute
@@ -204,25 +218,41 @@ export function Router() {
               }
             />
           </BaseRoute>
-          <BaseRoute element={<TeamTimesheetLayout />}>
-            <BaseRoute
-              path={ROUTES["timesheet-team"]}
-              element={
-                <Route title={routeConfig["timesheet-team"].title}>
-                  <TimesheetTeam />
-                </Route>
-              }
-            />
+          <BaseRoute
+            element={
+              <RoleProtectedRoute
+                allowedRoles={routeConfig["timesheet-team"].allowedRoles}
+              />
+            }
+          >
+            <BaseRoute element={<TeamTimesheetLayout />}>
+              <BaseRoute
+                path={ROUTES["timesheet-team"]}
+                element={
+                  <Route title={routeConfig["timesheet-team"].title}>
+                    <TimesheetTeam />
+                  </Route>
+                }
+              />
+            </BaseRoute>
           </BaseRoute>
-          <BaseRoute element={<ProjectTimesheetLayout />}>
-            <BaseRoute
-              path={ROUTES["timesheet-project"]}
-              element={
-                <Route title={routeConfig["timesheet-project"].title}>
-                  <TimesheetProject />
-                </Route>
-              }
-            />
+          <BaseRoute
+            element={
+              <RoleProtectedRoute
+                allowedRoles={routeConfig["timesheet-project"].allowedRoles}
+              />
+            }
+          >
+            <BaseRoute element={<ProjectTimesheetLayout />}>
+              <BaseRoute
+                path={ROUTES["timesheet-project"]}
+                element={
+                  <Route title={routeConfig["timesheet-project"].title}>
+                    <TimesheetProject />
+                  </Route>
+                }
+              />
+            </BaseRoute>
           </BaseRoute>
           <BaseRoute element={<AllocationsTeamLayout />}>
             <BaseRoute
@@ -254,38 +284,58 @@ export function Router() {
           </Route>
         }
       />
+      <BaseRoute
+        path={ROUTES["no-employee"]}
+        element={
+          <Route title={routeConfig["no-employee"].title}>
+            <NoEmployee />
+          </Route>
+        }
+      />
       <BaseRoute path="*" element={<Navigate to={"/not-found"} replace />} />
     </BaseRoute>
   );
 }
 
 const AuthenticatedRoute = () => {
-  const { isLoading: isUserLoading, currentUser } = useUser(({ state }) => ({
+  const {
+    isLoading: isUserLoading,
+    currentUser,
+    hasEmployee,
+  } = useUser(({ state }) => ({
     isLoading: state.isLoading,
     currentUser: state.currentUser,
+    hasEmployee: state.hasEmployee,
   }));
 
   if (isUserLoading) {
     return <Spinner isFull />;
-  } else if (!currentUser || currentUser === "Guest") {
+  }
+
+  if (!currentUser || currentUser === "Guest") {
     window.location.replace("/login?redirect-to=/next-pms/timesheet");
     return <Spinner isFull />;
   }
 
-  if (!isUserLoading && currentUser && currentUser !== "Guest") {
-    return <Outlet />;
+  if (hasEmployee === null) {
+    return <Spinner isFull />;
   }
 
-  return null;
+  if (!hasEmployee) {
+    return <Navigate to={ROUTES["no-employee"]} replace />;
+  }
+
+  return <Outlet />;
 };
 
 const RoleProtectedRoute = ({ allowedRoles }: { allowedRoles: Role[] }) => {
-  const { isLoading, roles } = useUser(({ state }) => ({
+  const { isLoading, isAppDataLoading, roles } = useUser(({ state }) => ({
     isLoading: state.isLoading,
+    isAppDataLoading: state.isAppDataLoading,
     roles: state.roles,
   }));
 
-  if (isLoading) {
+  if (isLoading || isAppDataLoading) {
     return <Spinner isFull />;
   }
 
@@ -293,10 +343,7 @@ const RoleProtectedRoute = ({ allowedRoles }: { allowedRoles: Role[] }) => {
     return <Outlet />;
   }
 
-  const hasAccess =
-    roles.length >= 0
-      ? roles.some((role) => allowedRoles.includes(role))
-      : true;
+  const hasAccess = roles.some((role) => allowedRoles.includes(role));
 
   if (!hasAccess) {
     return <Navigate to={ROUTES["not-found"]} replace />;

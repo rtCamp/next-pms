@@ -40,9 +40,16 @@ function AboutThisProjectContent({ className }: { className: string }) {
   const sidebar = useSidebar((state) => state.sidebar);
   const risk = useSidebar((state) => state.risk);
 
+  const costAccrued = currencyFormat(currency).format(
+    sidebar.burn.cost_accrued,
+  );
+  const totalBudget = currencyFormat(currency).format(
+    sidebar.burn.total_budget,
+  );
+
   return (
     <section className={mergeClassNames("flex h-full flex-col", className)}>
-      <h2 className="h-10 border-b border-outline-gray-1 px-5 py-3 text-lg font-medium text-ink-gray-8">
+      <h2 className="h-10 border-b border-outline-gray-1 px-5 py-3 text-lg font-medium text-ink-gray-8 truncate">
         About this project
       </h2>
       <Accordion.Root
@@ -70,6 +77,7 @@ function AboutThisProjectContent({ className }: { className: string }) {
           suffix={
             <Tooltip text="Open in Desk">
               <Button
+                className="shrink-0"
                 icon={ArrowUpRight}
                 label="Open in Desk"
                 link={`/desk/project/${encodeURIComponent(projectId)}`}
@@ -80,26 +88,39 @@ function AboutThisProjectContent({ className }: { className: string }) {
           <div className="grid grid-cols-[auto_1fr] items-center gap-x-3 gap-y-4.5 text-base text-ink-gray-5">
             <span>Project name</span>
             <div className="flex min-w-0 items-center gap-2">
-              <span className="flex-1 truncate text-ink-gray-7">
-                {sidebar.details.project_name}
-              </span>
+              <Tooltip text={sidebar.details.project_name} showWhen="truncated">
+                <span className="flex-1 truncate text-ink-gray-7">
+                  {sidebar.details.project_name}
+                </span>
+              </Tooltip>
               {risk && <Dot risk={risk} />}
             </div>
 
             <span>Customer</span>
-            <span className="truncate text-ink-gray-7">
-              {sidebar.details.customer}
-            </span>
+
+            <Tooltip text={sidebar.details.customer} showWhen="truncated">
+              <span className="truncate text-ink-gray-7">
+                {sidebar.details.customer}
+              </span>
+            </Tooltip>
 
             <span>Project status</span>
-            <span className="truncate text-ink-gray-7">
-              {sidebar.details.status}
-            </span>
+            <Tooltip text={sidebar.details.status} showWhen="truncated">
+              <span className="truncate text-ink-gray-7">
+                {sidebar.details.status}
+              </span>
+            </Tooltip>
 
             <span>Current phase</span>
-            <span className="truncate text-ink-gray-7">
-              {sidebar.details.phase}
-            </span>
+            <Tooltip
+              disabled={!sidebar.details.phase}
+              text={sidebar.details.phase ?? ""}
+              showWhen="truncated"
+            >
+              <span className="truncate text-ink-gray-7">
+                {sidebar.details.phase}
+              </span>
+            </Tooltip>
           </div>
         </Section>
 
@@ -108,12 +129,16 @@ function AboutThisProjectContent({ className }: { className: string }) {
         <Section value="budget" title="Budget burn">
           <div className="flex flex-col gap-2.5">
             <div className="flex items-center justify-between">
-              <span className="text-base font-medium text-ink-gray-7">
-                {currencyFormat(currency).format(sidebar.burn.cost_accrued)}
-              </span>
-              <span className="text-base text-ink-gray-5">
-                {currencyFormat(currency).format(sidebar.burn.total_budget)}
-              </span>
+              <Tooltip text={costAccrued} showWhen="truncated">
+                <span className="text-base font-medium text-ink-gray-7 truncate">
+                  {costAccrued}
+                </span>
+              </Tooltip>
+              <Tooltip text={totalBudget} showWhen="truncated">
+                <span className="text-base text-ink-gray-5 truncate">
+                  {totalBudget}
+                </span>
+              </Tooltip>
             </div>
             <BudgetBurnBar
               value={sidebar.burn.cost_accrued}

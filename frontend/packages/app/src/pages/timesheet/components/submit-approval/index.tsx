@@ -143,8 +143,11 @@ const SubmitApproval = ({
           name="note"
           children={(field) => (
             <div className="space-y-1.5">
-              <label className="block text-base text-ink-gray-5">Note</label>
+              <FormLabel id="note" size="md">
+                Note
+              </FormLabel>
               <Textarea
+                id="note"
                 value={field.state.value}
                 placeholder="Comment"
                 onChange={(e) => field.handleChange(e.target.value)}
@@ -161,10 +164,11 @@ const SubmitApproval = ({
           name="sendTo"
           children={(field) => (
             <div className="space-y-1.5">
-              <FormLabel size="md" required>
+              <FormLabel id="send-to" size="md" required>
                 Send to
               </FormLabel>
               <Combobox
+                id="send-to"
                 inputClassName="bg-surface-white h-8 border-outline-gray-2 text-ink-gray-7"
                 value={field.state.value}
                 placeholder="Select approver"

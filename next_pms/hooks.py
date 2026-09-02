@@ -192,7 +192,7 @@ override_doctype_class = {  # nosemgrep - existing legacy overrides; migration t
 
 scheduler_events = {
     "cron": {
-        "30 2 * * 1": [
+        "0 8 * * 1": [
             "next_pms.tasks.scheduled_audit.trigger_weekly_audits",
         ],
     },
@@ -303,6 +303,28 @@ doc_events = {
     },
     "Holiday List": {
         "validate": "next_pms.timesheet.doc_events.holiday_list.validate",
+        "on_update": [
+            "next_pms.resource_management.doctype.resource_allocation.resource_allocation.clear_cache",
+        ],
+        "on_trash": [
+            "next_pms.resource_management.doctype.resource_allocation.resource_allocation.clear_cache",
+        ],
+    },
+    # An employee's holidays resolve through their Holiday List Assignment, so reassigning
+    # one changes the holidays the cached resource payloads were built from.
+    "Holiday List Assignment": {
+        "on_submit": [
+            "next_pms.resource_management.doctype.resource_allocation.resource_allocation.clear_cache",
+        ],
+        "on_update_after_submit": [
+            "next_pms.resource_management.doctype.resource_allocation.resource_allocation.clear_cache",
+        ],
+        "on_cancel": [
+            "next_pms.resource_management.doctype.resource_allocation.resource_allocation.clear_cache",
+        ],
+        "on_trash": [
+            "next_pms.resource_management.doctype.resource_allocation.resource_allocation.clear_cache",
+        ],
     },
 }
 #

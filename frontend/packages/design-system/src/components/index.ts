@@ -108,10 +108,9 @@ export {
 export * from "./date-chip";
 export { DeleteActionDialog } from "./delete-action-dialog";
 export {
-  SortButton,
-  type SortButtonProps,
+  SortSelector,
+  type SortSelectorProps,
   type SortField,
   type SortState,
   type SortOrder,
-} from "./sort-button";
-export { SortSelector, type SortSelectorProps } from "./sort-selector";
+} from "./sort-selector";

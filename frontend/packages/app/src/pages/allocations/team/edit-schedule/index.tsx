@@ -2,7 +2,13 @@
  * External dependencies.
  */
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Button, Dialog, Select, useToasts } from "@rtcamp/frappe-ui-react";
+import {
+  Button,
+  Dialog,
+  FormLabel,
+  Select,
+  useToasts,
+} from "@rtcamp/frappe-ui-react";
 import { revalidateLogic, useForm, useStore } from "@tanstack/react-form";
 import { format, parseISO } from "date-fns";
 import {
@@ -449,10 +455,11 @@ function EditScheduleModal({
 
         {isRecurringAllocation ? (
           <div className="space-y-1.5">
-            <label className="block text-base text-ink-gray-5">
+            <FormLabel id="apply-edits-to" size="md">
               Apply edits to
-            </label>
+            </FormLabel>
             <Select
+              id="apply-edits-to"
               value={applyMode}
               options={[
                 { value: "only_this", label: propagationModeLabels.only_this },
@@ -473,9 +480,7 @@ function EditScheduleModal({
         ) : null}
 
         <div className="space-y-1.5">
-          <label className="block text-base text-ink-gray-5">
-            Schedule summary
-          </label>
+          <FormLabel size="md">Schedule summary</FormLabel>
           <ScheduleSummaryTable
             rows={scheduleDraft.previewRows}
             variant={applyMode === "this_and_future" ? "day" : "date"}
