@@ -1063,8 +1063,6 @@ def get_project_tracking(project: str):
     Returns
     -------
     dict
-        company : str
-            Company linked to the project.
         billing_type : str
             One of Non-Billable, Fixed Cost, Retainer, Time and Material.
         currency : str
@@ -1088,11 +1086,19 @@ def get_project_tracking(project: str):
             at each member's billable rate), total_budget. None for Non-Billable, which
             has no budget to burn.
         total_project_value : float
-            Total budget/value for the project.
+            Total budget/value for the project. Also the projected project value.
         project_profit : float
-            Total project value minus actual and forecasted costs.
+            Projected profit: total project value minus actual and forecasted costs.
         projected_profit_margin : float
             Projected profit as a percentage of total project value.
+        current_project_value : float
+            Value earned so far, with no forecast in it. For Time and Material this is
+            the billable hours logged priced at each member's billing rate; for every
+            other billable type it is total_project_value, which forecast never moved.
+        current_profit : float
+            Current project value minus the cost of the hours logged.
+        current_profit_margin : float
+            Current profit as a percentage of current project value.
         actual_cost_incurred : float
             Actual cost incurred from Timesheet Detail costing amounts.
         forecasted_cost_to_completion : float
@@ -1127,7 +1133,6 @@ def get_project_tracking(project: str):
         "Project",
         project,
         [
-            "company",
             "custom_billing_type",
             "total_costing_amount",
             "total_sales_amount",
@@ -1159,6 +1164,13 @@ def get_project_tracking(project: str):
     total_project_value = flt(p.total_sales_amount)
     projected_profit = total_project_value - (actual_cost_incurred + forecasted_cost_to_completion)
     projected_profit_margin = (projected_profit / total_project_value * 100) if total_project_value else 0
+
+    # Current figures ignore forecast entirely and read only what has been logged:
+    # Time and Material earns per billable hour logged, every other billable type is
+    # sold for a fixed value regardless of hours.
+    current_project_value = flt(p.total_billable_amount) if billing_type == "Time and Material" else total_project_value
+    current_profit = current_project_value - actual_cost_incurred
+    current_profit_margin = (current_profit / current_project_value * 100) if current_project_value else 0
 
     hours_utilised_billable, hours_utilised_non_billable = _get_hours_split(project)
     hours_utilised = hours_utilised_billable + hours_utilised_non_billable
@@ -1236,12 +1248,14 @@ def get_project_tracking(project: str):
         }
 
     return {
-        "company": p.company,
         "billing_type": billing_type,
         "currency": p.custom_currency,
         "total_project_value": total_project_value if is_billable else None,
         "project_profit": projected_profit if is_billable else None,
         "projected_profit_margin": projected_profit_margin if is_billable else None,
+        "current_project_value": current_project_value if is_billable else None,
+        "current_profit": current_profit if is_billable else None,
+        "current_profit_margin": current_profit_margin if is_billable else None,
         "actual_cost_incurred": actual_cost_incurred,
         "forecasted_cost_to_completion": forecasted_cost_to_completion,
         "expected_total_cost": flt(p.custom_target_cost),
@@ -1275,7 +1289,7 @@ def get_project_sidebar(project: str):
 
     Response shape:
         summary       - short summary text
-        details       - project name, phase, status, customer
+        details       - project name, company, phase, status, customer
         links         - slack, google_drive, website, github, opportunity
         burn          - total_budget, cost_accrued, cost_forecasted, budget_forecasted,
                         target_cost
@@ -1306,6 +1320,7 @@ def get_project_sidebar(project: str):
         "summary": project_doc.get("custom_short_summary"),
         "details": {
             "project_name": project_doc.project_name,
+            "company": project_doc.company,
             "phase": project_doc.custom_project_phase,
             "status": project_doc.status,
             "customer": project_doc.customer,
