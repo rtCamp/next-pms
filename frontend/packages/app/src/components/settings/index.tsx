@@ -3,6 +3,7 @@
  */
 import { useEffect, useState } from "react";
 import { mergeClassNames as cn } from "@next-pms/design-system";
+import { Spinner } from "@next-pms/design-system/components";
 import { Button, Dialog, useToasts } from "@rtcamp/frappe-ui-react";
 import type { FrappeError } from "frappe-react-sdk";
 
@@ -40,6 +41,8 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
   const activePageConfig =
     USER_CONFIGURATION_PAGES.find(({ id }) => id === activePage) ??
     USER_CONFIGURATION_PAGES[0];
+  const systemAutoExpandWeeks =
+    pmsSettings?.system_auto_expand_weeks_by_default;
 
   useEffect(() => {
     const value = pmsSettings?.auto_expand_weeks_by_default;
@@ -111,7 +114,9 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
 
         <main className="flex flex-1 flex-col overflow-y-auto bg-surface-modal">
           <div className="p-8">
-            {activePage === "profile" ? (
+            {isLoading ? (
+              <Spinner isFull />
+            ) : activePage === "profile" ? (
               <ProfilePage
                 displayName={employeeName || userName || userId}
                 email={userId}
@@ -120,8 +125,8 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
             ) : activePage === "timesheets" ? (
               <TimesheetsPage
                 autoExpandWeeks={autoExpandWeeks}
+                systemAutoExpandWeeks={systemAutoExpandWeeks}
                 useSystemAutoExpandWeeks={useSystemAutoExpandWeeks}
-                isLoading={isLoading}
                 onAutoExpandWeeksChange={setAutoExpandWeeks}
                 onUseSystemAutoExpandWeeksChange={setUseSystemAutoExpandWeeks}
               />

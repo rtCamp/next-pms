@@ -21,8 +21,8 @@ export type ProfilePageProps = {
 
 export type TimesheetsPageProps = {
   autoExpandWeeks: string;
+  systemAutoExpandWeeks: number | undefined;
   useSystemAutoExpandWeeks: boolean;
-  isLoading: boolean;
   onAutoExpandWeeksChange: (value: string) => void;
   onUseSystemAutoExpandWeeksChange: (value: boolean) => void;
 };

@@ -14,14 +14,15 @@ import {
  */
 import { InfiniteScroll } from "@/components/infiniteScroll";
 import { HeaderRow } from "@/components/timesheet-row/components/row/headerRow";
-import { useDefaultExpandedWeeks } from "@/hooks/useDefaultExpandedWeeks";
+import { usePMSSettings } from "@/hooks/usePMSSettings";
+import { getDefaultExpandedWeeks } from "@/lib/utils";
 import { useProjectTimesheet } from "./context";
 import { ProjectTimesheetWeek } from "./projectTimesheetWeek";
 import { SubHeader } from "./subHeader";
 
 const ProjectTimesheetGrid = () => {
-  const { defaultExpandedWeeks, isLoading: isLoadingSettings } =
-    useDefaultExpandedWeeks();
+  const { pmsSettings, isLoading: isLoadingSettings } = usePMSSettings(true);
+  const defaultExpandedWeeks = getDefaultExpandedWeeks(pmsSettings);
   const weeks = useProjectTimesheet(({ state }) => state.weeks);
   const hasMoreWeeks = useProjectTimesheet(({ state }) => state.hasMoreWeeks);
   const isLoadingWeeks = useProjectTimesheet(

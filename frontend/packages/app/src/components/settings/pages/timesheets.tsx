@@ -10,11 +10,15 @@ import type { TimesheetsPageProps } from "../types";
 
 export function TimesheetsPage({
   autoExpandWeeks,
+  systemAutoExpandWeeks,
   useSystemAutoExpandWeeks,
-  isLoading,
   onAutoExpandWeeksChange,
   onUseSystemAutoExpandWeeksChange,
 }: TimesheetsPageProps) {
+  const displayedValue = useSystemAutoExpandWeeks
+    ? String(systemAutoExpandWeeks)
+    : autoExpandWeeks;
+
   return (
     <div className="max-w-3xl">
       <div>
@@ -36,8 +40,8 @@ export function TimesheetsPage({
           type="number"
           min="0"
           step="1"
-          value={autoExpandWeeks}
-          disabled={isLoading || useSystemAutoExpandWeeks}
+          value={displayedValue}
+          disabled={useSystemAutoExpandWeeks}
           className="mt-2"
           onChange={(event) => onAutoExpandWeeksChange(event.target.value)}
         />
@@ -45,7 +49,6 @@ export function TimesheetsPage({
           <Checkbox
             label="Use system default"
             value={useSystemAutoExpandWeeks}
-            disabled={isLoading}
             onChange={onUseSystemAutoExpandWeeksChange}
           />
         </div>

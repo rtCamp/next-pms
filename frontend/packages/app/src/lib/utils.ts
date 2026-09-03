@@ -24,10 +24,15 @@ import { twMerge } from "tailwind-merge";
 /**
  * Internal dependencies.
  */
+import type { PMSSettings } from "@/components/settings/types";
 import { timeStringToFloat } from "@/schema/timesheet";
 import { WorkingFrequency } from "@/types";
 import { HolidayProp, LeaveProps, TaskProps } from "@/types/timesheet";
-import { NO_VALUE_OPERATORS, NUMBER_OF_WEEKS_TO_FETCH } from "./constant";
+import {
+  DEFAULT_AUTO_EXPAND_WEEKS,
+  NO_VALUE_OPERATORS,
+  NUMBER_OF_WEEKS_TO_FETCH,
+} from "./constant";
 
 export const NO_VALUE_FIELDS = [
   "Section Break",
@@ -44,6 +49,12 @@ export const NO_VALUE_FIELDS = [
 
 export function mergeClassNames(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
+}
+
+export function getDefaultExpandedWeeks(settings?: PMSSettings): number {
+  return settings?.use_system_auto_expand_weeks
+    ? settings.system_auto_expand_weeks_by_default
+    : (settings?.auto_expand_weeks_by_default ?? DEFAULT_AUTO_EXPAND_WEEKS);
 }
 
 export function pickAllowed<T extends string>(

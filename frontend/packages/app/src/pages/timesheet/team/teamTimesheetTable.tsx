@@ -15,7 +15,8 @@ import {
 import { InfiniteScroll } from "@/components/infiniteScroll";
 import TeamTaskLog from "@/components/task-log/teamTaskLog";
 import { HeaderRow } from "@/components/timesheet-row/components/row/headerRow";
-import { useDefaultExpandedWeeks } from "@/hooks/useDefaultExpandedWeeks";
+import { usePMSSettings } from "@/hooks/usePMSSettings";
+import { getDefaultExpandedWeeks } from "@/lib/utils";
 import { useTeamTimesheet } from "./context";
 import { SubHeader } from "./subHeader";
 import { TeamTimesheetWeek } from "./teamTimesheetWeek";
@@ -27,8 +28,8 @@ const TeamTimesheetGrid = () => {
     employee: string;
     startDate: string;
   } | null>(null);
-  const { defaultExpandedWeeks, isLoading: isLoadingSettings } =
-    useDefaultExpandedWeeks();
+  const { pmsSettings, isLoading: isLoadingSettings } = usePMSSettings(true);
+  const defaultExpandedWeeks = getDefaultExpandedWeeks(pmsSettings);
 
   const weeks = useTeamTimesheet(({ state }) => state.weeks);
   const hasMoreWeeks = useTeamTimesheet(({ state }) => state.hasMoreWeeks);

@@ -13,8 +13,9 @@ import {
  * Internal dependencies.
  */
 import PersonalTaskLog from "@/components/task-log/personalTaskLog";
-import { useDefaultExpandedWeeks } from "@/hooks/useDefaultExpandedWeeks";
+import { usePMSSettings } from "@/hooks/usePMSSettings";
 import { NUMBER_OF_WEEKS_TO_FETCH } from "@/lib/constant";
+import { getDefaultExpandedWeeks } from "@/lib/utils";
 import { useUser } from "@/providers/user";
 import type { WorkingFrequency } from "@/types";
 import { usePersonalTimesheet } from "./context";
@@ -26,8 +27,8 @@ import { useTimesheetOutletContext } from "../outletContext";
 
 const PersonalTimesheetGrid = () => {
   const [selectedTask, setSelectedTask] = useState<string | null>(null);
-  const { defaultExpandedWeeks, isLoading: isLoadingSettings } =
-    useDefaultExpandedWeeks();
+  const { pmsSettings, isLoading: isLoadingSettings } = usePMSSettings(true);
+  const defaultExpandedWeeks = getDefaultExpandedWeeks(pmsSettings);
 
   const hasMoreWeeks = usePersonalTimesheet(({ state }) => state.hasMoreWeeks);
   const isLoadingPersonalData = usePersonalTimesheet(
