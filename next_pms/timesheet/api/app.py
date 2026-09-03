@@ -49,8 +49,13 @@ def get_current_user_roles(user: str = None):
     """returns the roles for the current user or for the user passed as argument"""
     import frappe
 
+    if user and user != frappe.session.user and frappe.session.user != "Administrator":
+        if "System Manager" not in frappe.get_roles():
+            user = frappe.session.user
+
     if not user:
         user = frappe.session.user
+
     roles = frappe.get_roles(user)
     return roles
 
@@ -60,7 +65,7 @@ def get_currencies():
 
 
 @whitelist(methods=["GET"])
-@redis_cache()
+@redis_cache(user=True)
 def get_doc_meta(doctype: str):
     """returns the meta for the given doctype with only the fields that the user has permission to access"""
     from frappe import get_meta
@@ -110,26 +115,34 @@ def get_doc_meta(doctype: str):
 
 
 @whitelist(methods=["GET"])
-def get_liked_documents(doctype: str, fields: list = None):
+def get_liked_documents(doctype: str, fields: list | str | None = None):
     """returns the documents liked by the user for the given doctype and fields if provided"""
+    import json
+
     from frappe import get_all
+
+    if isinstance(fields, str):
+        try:
+            fields = json.loads(fields)
+        except Exception:
+            fields = [fields]
 
     doc_names = get_all(
         "Comment",
         filters={
-            "comment_type": "like",
+            "comment_type": ["in", ["Like", "like"]],
             "owner": frappe.session.user,
             "reference_doctype": doctype,
         },
         page_length=0,
         pluck="reference_name",
     )
-    fieldList = ["*"]
-    if fields:
-        fieldList.extend(fields)
-    return frappe.get_all(
+    if not doc_names:
+        return []
+
+    return frappe.get_list(
         doctype,
         filters={"name": ["in", doc_names]},
-        fields=fieldList,
+        fields=fields or ["name"],
         page_length=0,
     )
