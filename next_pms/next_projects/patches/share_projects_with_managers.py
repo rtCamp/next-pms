@@ -1,7 +1,7 @@
 import frappe
 from frappe.share import add_docshare
 
-MANAGER_FIELDS = ["custom_project_manager", "custom_engineering_manager", "custom_account_manager_"]
+MANAGER_FIELDS = ["custom_project_manager", "custom_engineering_manager", "custom_account_manager"]
 
 
 def execute():
