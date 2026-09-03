@@ -15,6 +15,8 @@ import {
 import { InfiniteScroll } from "@/components/infiniteScroll";
 import TeamTaskLog from "@/components/task-log/teamTaskLog";
 import { HeaderRow } from "@/components/timesheet-row/components/row/headerRow";
+import { usePMSSettings } from "@/hooks/usePMSSettings";
+import { getDefaultExpandedWeeks } from "@/lib/utils";
 import { useTeamTimesheet } from "./context";
 import { SubHeader } from "./subHeader";
 import { TeamTimesheetWeek } from "./teamTimesheetWeek";
@@ -26,6 +28,8 @@ const TeamTimesheetGrid = () => {
     employee: string;
     startDate: string;
   } | null>(null);
+  const { pmsSettings, isLoading: isLoadingSettings } = usePMSSettings(true);
+  const defaultExpandedWeeks = getDefaultExpandedWeeks(pmsSettings);
 
   const weeks = useTeamTimesheet(({ state }) => state.weeks);
   const hasMoreWeeks = useTeamTimesheet(({ state }) => state.hasMoreWeeks);
@@ -72,7 +76,7 @@ const TeamTimesheetGrid = () => {
         />
       )}
 
-      {isLoadingWeeks && weeks.length === 0 ? (
+      {isLoadingSettings || (isLoadingWeeks && weeks.length === 0) ? (
         <Spinner isFull />
       ) : (
         <LoadingOverlay active={isFilteredDataLoading}>
@@ -119,7 +123,7 @@ const TeamTimesheetGrid = () => {
                     >
                       <TeamTimesheetWeek
                         week={week}
-                        defaultExpanded={index === 0}
+                        defaultExpanded={index < defaultExpandedWeeks}
                         setSelectedTask={setSelectedTask}
                         openWeeklyApproval={(employee, date) =>
                           setWeeklyApproval({ employee, startDate: date })

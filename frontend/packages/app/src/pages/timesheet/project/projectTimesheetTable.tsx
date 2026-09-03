@@ -14,11 +14,15 @@ import {
  */
 import { InfiniteScroll } from "@/components/infiniteScroll";
 import { HeaderRow } from "@/components/timesheet-row/components/row/headerRow";
+import { usePMSSettings } from "@/hooks/usePMSSettings";
+import { getDefaultExpandedWeeks } from "@/lib/utils";
 import { useProjectTimesheet } from "./context";
 import { ProjectTimesheetWeek } from "./projectTimesheetWeek";
 import { SubHeader } from "./subHeader";
 
 const ProjectTimesheetGrid = () => {
+  const { pmsSettings, isLoading: isLoadingSettings } = usePMSSettings(true);
+  const defaultExpandedWeeks = getDefaultExpandedWeeks(pmsSettings);
   const weeks = useProjectTimesheet(({ state }) => state.weeks);
   const hasMoreWeeks = useProjectTimesheet(({ state }) => state.hasMoreWeeks);
   const isLoadingWeeks = useProjectTimesheet(
@@ -44,7 +48,7 @@ const ProjectTimesheetGrid = () => {
 
   return (
     <>
-      {isLoadingWeeks && weeks.length === 0 ? (
+      {isLoadingSettings || (isLoadingWeeks && weeks.length === 0) ? (
         <Spinner isFull />
       ) : (
         <LoadingOverlay active={isFilteredDataLoading}>
@@ -92,7 +96,7 @@ const ProjectTimesheetGrid = () => {
                       >
                         <ProjectTimesheetWeek
                           week={week}
-                          defaultExpanded={index === 0}
+                          defaultExpanded={index < defaultExpandedWeeks}
                         />
                       </div>
                     </Fragment>
