@@ -7,6 +7,7 @@ def after_install():
     create_roles()
     add_project_manager_perm()
     setup_email_template()
+    setup_project_threshold_reminder_template()
     create_default_project_phases()
     create_default_risk_masters()
     setup_project_custom_fields()
@@ -250,6 +251,26 @@ def setup_email_template():
         }
     )
     create_docs(records)
+
+
+def setup_project_threshold_reminder_template():
+    from next_pms.project_currency.constant import PROJECT_THRESHOLD_REMINDER_EMAIL_TEMPLATE
+
+    base_path = get_app_path("next_pms", "templates", "project_currency")
+    response = read_file(os.path.join(base_path, "project_threshold_reminder.html"))
+
+    create_docs(
+        [
+            {
+                "doctype": "Email Template",
+                "name": PROJECT_THRESHOLD_REMINDER_EMAIL_TEMPLATE,
+                "subject": _("Project threshold reached for {{ project.project_name }}"),
+                "response_html": response,
+                "use_html": 1,
+                "owner": "Administrator",
+            }
+        ]
+    )
 
 
 def create_docs(records: list):
