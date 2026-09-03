@@ -26,6 +26,7 @@ export interface TaskDataProps {
 
 export interface TaskDataItemProps {
   hours: number;
+  rejected_hours: number;
   description: string;
   name: string;
   parent: string;

@@ -2,7 +2,7 @@ from collections import defaultdict
 
 import frappe
 from frappe import _, get_value, throw
-from frappe.utils import add_days, date_diff, formatdate, get_link_to_form, getdate, today
+from frappe.utils import add_days, date_diff, flt, formatdate, get_link_to_form, getdate, today
 
 ROLES = {
     "Projects Manager",
@@ -15,6 +15,7 @@ ROLES = {
 #  Doc Events for Timesheet DocType
 def validate(doc, method=None):
     set_date(doc)
+    validate_rejected_rows_unchanged(doc)
     validate_time(doc)
     validate_dates(doc)
     update_note(doc)
@@ -64,6 +65,7 @@ def after_delete(doc, method=None):
 
 def before_validate(doc, method=None):
     set_parent_project(doc)
+    move_rejected_hours(doc)
 
 
 def before_submit(doc, method=None):
@@ -104,11 +106,54 @@ def validate_time(doc):
     if not doc.employee:
         throw(_("Employee is required."))
     for data in doc.get("time_logs"):
-        if not data.hours or data.hours == 0:
+        if not flt(data.hours) and not flt(data.rejected_hours):
             throw(_("Hour should be greater than 0."))
 
     if doc.total_hours > 24:
         throw(_("You cannot log more than 24 hours in a single day."))
+
+
+def move_rejected_hours(doc):
+    """Park the hours of a newly rejected timesheet in rejected_hours and zero hours, so the
+    rejected work stays on record without counting toward any total."""
+    if doc.custom_approval_status != "Rejected":
+        return
+    previous = doc.get_doc_before_save()
+    if previous and previous.custom_approval_status == "Rejected":
+        return
+    for row in doc.time_logs:
+        if flt(row.hours):
+            row.rejected_hours = row.hours
+            row.hours = 0
+
+
+def validate_rejected_rows_unchanged(doc):
+    """Refuse changes to rows holding rejected hours, so a rejection stays on record and the
+    corrected work is logged as a new entry."""
+    previous = doc.get_doc_before_save()
+    if not previous:
+        return
+    current = {row.name: row for row in doc.time_logs}
+    for old in previous.time_logs:
+        if not flt(old.rejected_hours):
+            continue
+        new = current.get(old.name)
+        if (
+            not new
+            or getdate(new.from_time) != getdate(old.from_time)
+            or any(
+                new.get(field) != old.get(field)
+                for field in (
+                    "task",
+                    "description",
+                    "is_billable",
+                    "hours",
+                    "rejected_hours",
+                    "custom_rejection_reason",
+                )
+            )
+        ):
+            throw(_("Rejected time entries cannot be changed or removed."))
 
 
 def validate_is_time_billable(doc, method=None):

@@ -82,6 +82,7 @@ ALLOWED_TIMESHET_DETAIL_FIELDS = [
     "project_name",
     "is_billable",
     "hours",
+    "rejected_hours",
     "parent",
     "docstatus",
 ]

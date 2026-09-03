@@ -367,6 +367,15 @@ export const InlineTimeEntry = ({
     <div className="animate-fade-in min-w-68 w-fit max-w-[min(720px,90vw)] max-h-[min(500px,90dvh)] overflow-auto scrollbar-thin shadow bg-surface-modal rounded-lg flex flex-col gap-2 p-2">
       {displayTasks.map((entry: TaskDataItemProps, index: number) => {
         const isEntryApproved = entry.custom_approval_status === "Approved";
+        const isEntryRejected = Boolean(entry.rejected_hours);
+        const entryStatus = isEntryRejected
+          ? "Rejected"
+          : entry.custom_approval_status !== "Rejected"
+            ? entry.custom_approval_status
+            : null;
+        const displayedHours = isEntryRejected
+          ? entry.rejected_hours
+          : entry.hours;
         const isEditingThisEntry =
           entryFormMode === ENTRY_FORM_MODE.EDIT &&
           selectedEntry?.name === entry.name;
@@ -420,13 +429,13 @@ export const InlineTimeEntry = ({
                             className="gap-0 lining-nums tabular-nums text-ink-gray-8"
                           >
                             <span>
-                              {entry.hours
-                                ? floatToTime(entry.hours, 2)
+                              {displayedHours
+                                ? floatToTime(displayedHours, 2)
                                 : "00:00"}
                             </span>
-                            {entry.custom_approval_status && (
+                            {entryStatus && (
                               <ApprovalStatus
-                                status={entry.custom_approval_status}
+                                status={entryStatus}
                                 className="w-3 m-1"
                               />
                             )}
@@ -443,7 +452,7 @@ export const InlineTimeEntry = ({
                               : null}
                           </span>
                         ) : null}
-                        {!disabled && !isEntryApproved ? (
+                        {!disabled && !isEntryApproved && !isEntryRejected ? (
                           <Button
                             className={cn(
                               "w-5 h-5 absolute right-0 top-0 opacity-0 pointer-events-none",
@@ -508,8 +517,7 @@ export const InlineTimeEntry = ({
                             "contain-[inline-size] wrap-anywhere **:max-w-full **:wrap-anywhere",
                           )}
                         />
-                        {entry.custom_approval_status === "Rejected" &&
-                        entry.custom_rejection_reason ? (
+                        {isEntryRejected && entry.custom_rejection_reason ? (
                           <Alert
                             title="Rejection reason"
                             variant="outline"

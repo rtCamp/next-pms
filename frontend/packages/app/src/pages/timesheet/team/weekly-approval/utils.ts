@@ -127,6 +127,7 @@ export const convertTimesheetToEntries = (response: TimesheetApiResponse) => {
           projectId: task.project_name,
           projectName: entry.project_name || task.project_name,
           hours: entry.hours,
+          rejectedHours: entry.rejected_hours ?? 0,
           description: entry.description,
           day: formatDay(entry.from_time),
           date,
@@ -137,8 +138,14 @@ export const convertTimesheetToEntries = (response: TimesheetApiResponse) => {
           leaveHours,
           leaveLabel:
             leaveHours > 0 ? getLeaveLabelForDate(leaves, date) : undefined,
-          approvalStatus: entry.custom_approval_status || undefined,
-          rejectionReason: entry.custom_rejection_reason || undefined,
+          approvalStatus: entry.rejected_hours
+            ? "Rejected"
+            : entry.custom_approval_status !== "Rejected"
+              ? entry.custom_approval_status || undefined
+              : undefined,
+          rejectionReason: entry.rejected_hours
+            ? entry.custom_rejection_reason || undefined
+            : undefined,
           weeklyRejectionReason:
             entry.custom_weekly_rejection_reason || undefined,
         });

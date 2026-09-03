@@ -29,6 +29,7 @@ export interface TimesheetEntry {
   projectId: string;
   projectName: string;
   hours: number;
+  rejectedHours: number;
   description: string;
   day: string;
   date: string;
@@ -53,6 +54,7 @@ export interface TaskDataEntry {
   project_name: string;
   is_billable: number;
   hours: number;
+  rejected_hours: number;
   parent: string;
   docstatus: number;
   custom_approval_status?: ApprovalStatusLabelType | null;
