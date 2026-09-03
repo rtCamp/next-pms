@@ -60,6 +60,21 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
     }
   }, [settingsError, toast]);
 
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (
+        event.code === "Comma" &&
+        event.shiftKey &&
+        (event.metaKey || event.ctrlKey)
+      ) {
+        event.preventDefault();
+        onOpenChange(!open);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [onOpenChange, open]);
+
   const saveSettings = async () => {
     try {
       await updatePMSSettings({
@@ -80,18 +95,18 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
     <Dialog
       open={open}
       onOpenChange={onOpenChange}
-      options={{ title: "Settings", size: "5xl" }}
+      options={{ title: "Settings", size: "4xl" }}
       classNames={{
         content: "p-0!",
         header: "sr-only",
       }}
     >
-      <div className="flex h-[calc(100vh-8rem)] bg-surface-menu-bar">
-        <aside className="m-1 flex w-56 shrink-0 flex-col overflow-y-auto rounded-l-lg bg-surface-menu-bar">
-          <p className="my-0.75 h-7.5 px-2 py-1.75 text-xs font-medium text-ink-gray-5">
+      <div className="flex h-[min(860px,calc(100vh-8rem))] bg-surface-menu-bar">
+        <aside className="flex w-56 shrink-0 flex-col overflow-y-auto border-r border-outline-gray-1 bg-surface-menu-bar p-2">
+          <p className="flex h-7 items-center px-2 text-base text-ink-gray-5">
             User Configuration
           </p>
-          <nav className="space-y-0.75 px-1" aria-label="Settings sections">
+          <nav className="flex flex-col gap-0.5" aria-label="Settings sections">
             {USER_CONFIGURATION_PAGES.map(({ id, label, icon: Icon }) => (
               <button
                 key={id}
@@ -99,13 +114,13 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
                 onClick={() => setActivePage(id)}
                 aria-current={activePage === id ? "page" : undefined}
                 className={cn(
-                  "flex h-7.5 w-full items-center gap-1.5 rounded px-2 py-1.75 text-left text-sm text-ink-gray-8",
+                  "flex h-7 w-full items-center gap-2 rounded px-2 text-left text-base text-ink-gray-7",
                   activePage === id
-                    ? "bg-surface-selected shadow-sm hover:bg-surface-selected"
-                    : "hover:bg-surface-gray-3",
+                    ? "bg-surface-selected shadow-sm"
+                    : "hover:bg-surface-gray-2",
                 )}
               >
-                <Icon size={16} />
+                <Icon size={16} className="shrink-0 text-ink-gray-6" />
                 {label}
               </button>
             ))}
@@ -113,7 +128,7 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
         </aside>
 
         <main className="flex flex-1 flex-col overflow-y-auto bg-surface-modal">
-          <div className="p-8">
+          <div className="px-[4.4rem] pt-10 pb-16">
             {isLoading ? (
               <Spinner isFull />
             ) : activePage === "profile" ? (
