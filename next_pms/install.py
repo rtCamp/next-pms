@@ -7,6 +7,7 @@ def after_install():
     create_roles()
     add_project_manager_perm()
     setup_email_template()
+    setup_project_threshold_reminder_template()
     create_default_project_phases()
     create_default_risk_masters()
     setup_project_custom_fields()
@@ -250,6 +251,37 @@ def setup_email_template():
         }
     )
     create_docs(records)
+
+
+def setup_project_threshold_reminder_template():
+    """Create or refresh the project threshold reminder Email Template from the shipped HTML file."""
+    import frappe
+
+    from next_pms.project_currency.constant import PROJECT_THRESHOLD_REMINDER_EMAIL_TEMPLATE
+
+    base_path = get_app_path("next_pms", "templates", "project_currency")
+    values = {
+        "subject": _("Project threshold reached for {{ project.project_name }}"),
+        "response_html": read_file(os.path.join(base_path, "project_threshold_reminder.html")),
+        "use_html": 1,
+    }
+
+    if frappe.db.exists("Email Template", PROJECT_THRESHOLD_REMINDER_EMAIL_TEMPLATE):
+        template = get_doc("Email Template", PROJECT_THRESHOLD_REMINDER_EMAIL_TEMPLATE)
+        template.update(values)
+        template.save(ignore_permissions=True)
+        return
+
+    create_docs(
+        [
+            {
+                "doctype": "Email Template",
+                "name": PROJECT_THRESHOLD_REMINDER_EMAIL_TEMPLATE,
+                "owner": "Administrator",
+                **values,
+            }
+        ]
+    )
 
 
 def create_docs(records: list):

@@ -42,3 +42,4 @@ next_pms.timesheet.patches.restore_stuck_processing_timesheets
 next_pms.next_pms.patches.backfill_risk_owner_and_initial_log
 next_pms.next_projects.patches.setup_todo_permissions
 next_pms.timesheet.patches.move_rejection_reason_to_timesheet_detail
+next_pms.project_currency.patches.setup_project_threshold_reminder_template
