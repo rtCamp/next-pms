@@ -3,13 +3,28 @@ from frappe import get_all, get_list, get_roles, get_value, whitelist
 
 
 @whitelist(methods=["GET"])
-def get_employee_with_role(role: str | list[str]):
+def get_employee_with_role(role: str | list[str] | None = None):
     """returns a list of all approvers for the given role like ["Projects Manager","Projects User"]"""
     ## TODO : Deprecate this method and use get_approver_details instead, as it returns only approver details and does not expose role-based output.
     import json
 
+    ALLOWED_ROLES = {"Projects Manager", "Projects User"}
+
     if isinstance(role, str):
-        role = json.loads(role)
+        try:
+            role = json.loads(role)
+        except Exception:
+            role = [role]
+
+    if not role:
+        role = list(ALLOWED_ROLES)
+    elif isinstance(role, list):
+        role = [r for r in role if r in ALLOWED_ROLES]
+    else:
+        role = [role] if role in ALLOWED_ROLES else []
+
+    if not role:
+        return []
 
     user_ids = get_all(
         "Has Role",
