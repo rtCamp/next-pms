@@ -368,11 +368,12 @@ export const InlineTimeEntry = ({
       {displayTasks.map((entry: TaskDataItemProps, index: number) => {
         const isEntryApproved = entry.custom_approval_status === "Approved";
         const isEntryRejected = Boolean(entry.rejected_hours);
+        // A parent marked Rejected says nothing about a row logged after that rejection.
         const entryStatus = isEntryRejected
           ? "Rejected"
-          : entry.custom_approval_status !== "Rejected"
-            ? entry.custom_approval_status
-            : null;
+          : entry.custom_approval_status === "Rejected"
+            ? "Not Submitted"
+            : entry.custom_approval_status;
         const displayedHours = isEntryRejected
           ? entry.rejected_hours
           : entry.hours;

@@ -140,9 +140,9 @@ export const convertTimesheetToEntries = (response: TimesheetApiResponse) => {
             leaveHours > 0 ? getLeaveLabelForDate(leaves, date) : undefined,
           approvalStatus: entry.rejected_hours
             ? "Rejected"
-            : entry.custom_approval_status !== "Rejected"
-              ? entry.custom_approval_status || undefined
-              : undefined,
+            : entry.custom_approval_status === "Rejected"
+              ? "Not Submitted"
+              : entry.custom_approval_status || undefined,
           rejectionReason: entry.rejected_hours
             ? entry.custom_rejection_reason || undefined
             : undefined,

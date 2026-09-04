@@ -50,7 +50,7 @@ class TestZeroHoursValidation(IntegrationTestCase):
         frappe.set_user("Administrator")
         # The one-Timesheet-per-employee-day-project check runs before validate and would mask the guard.
         for name in frappe.get_all("Timesheet", filters={"employee": self.employee}, pluck="name"):
-            frappe.delete_doc("Timesheet", name, force=True, ignore_permissions=True)
+            frappe.delete_doc("Timesheet", name, force=True, ignore_permissions=True, ignore_on_trash=True)
 
     def make_timesheet(self, *hours, rejected=()):
         """Return an unsaved Timesheet with one row per value in hours plus one zero-hour row per

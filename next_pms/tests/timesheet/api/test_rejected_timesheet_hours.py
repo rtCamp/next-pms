@@ -95,7 +95,7 @@ class TestRejectedTimesheetHours(IntegrationTestCase):
             doc = frappe.get_doc("Timesheet", name)
             if doc.docstatus == 1:
                 doc.cancel()
-            frappe.delete_doc("Timesheet", name, force=True, ignore_permissions=True)
+            frappe.delete_doc("Timesheet", name, force=True, ignore_permissions=True, ignore_on_trash=True)
 
     def log(self, date, hours, description):
         save_timesheet(date=date, description=description, task=self.task, hours=hours, employee=self.employee)
@@ -221,3 +221,14 @@ class TestRejectedTimesheetHours(IntegrationTestCase):
             delete_time_entry(parent=parent.name, name=first.name)
 
         self.assert_rows(self.rows(parent.name), [(0, hours, REASON) for hours in MON_HOURS])
+
+    def test_last_rejected_row_cannot_be_deleted_with_its_parent(self):
+        self.decide("Rejected", TUE, REASON)
+        parent = self.parent(TUE)
+        (only_row,) = self.rows(parent.name)
+
+        with self.assertRaisesRegex(frappe.ValidationError, "Rejected time entries cannot be changed or removed"):
+            delete_time_entry(parent=parent.name, name=only_row.name)
+
+        self.assertTrue(frappe.db.exists("Timesheet", parent.name))
+        self.assert_rows(self.rows(parent.name), [(0, TUE_HOURS, REASON)])

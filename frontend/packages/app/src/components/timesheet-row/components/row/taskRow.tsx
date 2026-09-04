@@ -107,11 +107,15 @@ export const TaskRow = ({
           continue;
         }
 
-        // A parent marked Rejected says nothing about a row logged after that rejection.
-        const approvalStatus = entry.custom_approval_status;
-        if (!approvalStatus || approvalStatus === "Rejected") {
+        if (!entry.custom_approval_status) {
           continue;
         }
+
+        // A parent marked Rejected says nothing about a row logged after that rejection.
+        const approvalStatus =
+          entry.custom_approval_status === "Rejected"
+            ? "Not Submitted"
+            : entry.custom_approval_status;
 
         const priority = statusPriority[approvalStatus] ?? 1;
         if (priority > highestPriority) {

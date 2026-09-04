@@ -73,6 +73,10 @@ def before_submit(doc, method=None):
     doc.custom_approval_status = "Approved"
 
 
+def on_trash(doc, method=None):
+    validate_no_rejected_rows(doc)
+
+
 def on_cancel(doc, method=None):
     flush_cache(doc)
     # The attribute ignore_backdated_validation is only available when re-caclulating
@@ -154,6 +158,13 @@ def validate_rejected_rows_unchanged(doc):
             )
         ):
             throw(_("Rejected time entries cannot be changed or removed."))
+
+
+def validate_no_rejected_rows(doc):
+    """Refuse deleting a timesheet that holds rejected hours, since removing the whole document
+    would drop the rejection record the row lock protects."""
+    if any(flt(row.rejected_hours) for row in doc.time_logs):
+        throw(_("Rejected time entries cannot be changed or removed."))
 
 
 def validate_is_time_billable(doc, method=None):

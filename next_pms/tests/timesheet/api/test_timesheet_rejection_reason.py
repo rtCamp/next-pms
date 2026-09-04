@@ -157,7 +157,7 @@ class TestTimesheetRejectionReason(IntegrationTestCase):
             doc = frappe.get_doc("Timesheet", name)
             if doc.docstatus == 1:
                 doc.cancel()
-            frappe.delete_doc("Timesheet", name, force=True, ignore_permissions=True)
+            frappe.delete_doc("Timesheet", name, force=True, ignore_permissions=True, ignore_on_trash=True)
 
     def get_timesheets_by_date(self):
         rows = frappe.get_all(

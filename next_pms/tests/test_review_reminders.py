@@ -90,7 +90,7 @@ class TestSendReviewReminders(IntegrationTestCase):
     def tearDownClass(cls):
         for name in (cls.active_timesheet, cls.left_timesheet, cls.not_submitted_timesheet):
             if name and frappe.db.exists("Timesheet", name):
-                frappe.delete_doc("Timesheet", name, force=True, ignore_permissions=True)
+                frappe.delete_doc("Timesheet", name, force=True, ignore_permissions=True, ignore_on_trash=True)
         super().tearDownClass()
 
     def _delete_manager_notifications(self):
@@ -159,4 +159,4 @@ class TestSendReviewReminders(IntegrationTestCase):
             self.assertEqual(len(notifications), 1)
             self.assertIn("2 timesheets to review", notifications[0].label)
         finally:
-            frappe.delete_doc("Timesheet", extra_timesheet, force=True, ignore_permissions=True)
+            frappe.delete_doc("Timesheet", extra_timesheet, force=True, ignore_permissions=True, ignore_on_trash=True)

@@ -3,20 +3,18 @@ from frappe.utils import flt
 
 
 def execute():
-    """Park the hours of every draft time entry that carries a rejection reason, so work rejected
-    before rejected_hours existed stops counting."""
-    parents = frappe.get_all(
-        "Timesheet Detail",
-        filters={"docstatus": 0, "custom_rejection_reason": ["is", "set"], "hours": [">", 0]},
-        pluck="parent",
-        distinct=True,
-    )
-    for name in parents:
+    """Park the hours of rows rejected before rejected_hours existed, so they stop counting.
+    Only drafts still marked Rejected qualify: a resubmitted day keeps stale reasons on rows the
+    employee has already corrected, and rows without a reason were logged after the rejection."""
+    names = frappe.get_all("Timesheet", filters={"docstatus": 0, "custom_approval_status": "Rejected"}, pluck="name")
+    for name in names:
         doc = frappe.get_doc("Timesheet", name)
-        for row in doc.time_logs:
-            if row.custom_rejection_reason and flt(row.hours):
-                row.rejected_hours = row.hours
-                row.hours = 0
+        rejected_rows = [row for row in doc.time_logs if row.custom_rejection_reason and flt(row.hours)]
+        if not rejected_rows:
+            continue
+        for row in rejected_rows:
+            row.rejected_hours = row.hours
+            row.hours = 0
         doc.ignore_backdated_validation = True
         try:
             doc.save(ignore_permissions=True)
