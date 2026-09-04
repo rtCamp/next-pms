@@ -1,5 +1,5 @@
 import frappe
-from frappe import get_all, get_list, get_roles, get_value, whitelist
+from frappe import get_all, get_list, get_value, whitelist
 
 
 @whitelist(methods=["GET"])
@@ -129,11 +129,6 @@ def filter_employees(
         ```
     """
     import json
-
-    user_roles = get_roles()
-
-    if not ignore_permissions:
-        ignore_permissions = set(user_roles).intersection(["Timesheet User", "Timesheet Manager"])
 
     fields = ["name", "image", "employee_name", "department", "designation"]
     if extra_fields:
