@@ -1,3 +1,4 @@
+import type { EmployeeLeaveDay } from "../types";
 import type { AllocationApiRecord } from "../utils";
 
 export interface ProjectEmployee {
@@ -45,13 +46,6 @@ export interface ProjectDateData {
     name: string;
     date: string;
   }>;
-}
-
-export interface EmployeeLeaveDay {
-  is_on_leave: boolean;
-  is_holiday: boolean;
-  total_leave_hours: number;
-  holiday_name?: string;
 }
 
 export interface ProjectResourceAllocation extends AllocationApiRecord {

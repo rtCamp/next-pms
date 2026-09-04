@@ -5,14 +5,20 @@ from datetime import date, timedelta
 import frappe
 from erpnext.setup.doctype.employee.employee import get_holiday_list_for_employee
 from frappe.automation.doctype.auto_repeat.auto_repeat import add_days
-from frappe.utils import cint, flt, getdate
+from frappe.utils import cint, flt, getdate, strip_html_tags
 
 from next_pms.resource_management.api.utils.helpers import (
     is_on_leave,
     override_hours_by_date,
     resource_api_permissions_check,
 )
-from next_pms.resource_management.api.utils.leave_sync import effective_hours
+from next_pms.resource_management.api.utils.leave_sync import (
+    LEAVE_SOURCE,
+    allocation_dates,
+    availability_factor,
+    effective_hours,
+    get_leave_calendar,
+)
 from next_pms.resource_management.api.utils.query import (
     attach_extra_entries,
     get_allocation_list_for_employee_for_given_range,
@@ -271,6 +277,10 @@ def upsert_day_override(doc_name: str, override_date: str, override_fields: dict
     - Setting ``cancelled=1`` clears ``hours`` to 0.
     - Setting ``hours`` to a value clears ``cancelled`` to 0.
 
+    A row derived from a leave or a holiday is left untouched, so a caller cannot book
+    hours against a day off. That matters most for a series propagation, where the target
+    dates are derived by weekday and the caller never saw them.
+
     Args:
         doc_name (str): Name of the Resource Allocation document.
         override_date (str): The specific date to override (``"YYYY-MM-DD"``).
@@ -295,10 +305,17 @@ def upsert_day_override(doc_name: str, override_date: str, override_fields: dict
     existing_row = frappe.db.get_value(
         "Resource Allocation Extra Entry",
         {"parent": doc_name, "parenttype": "Resource Allocation", "date": override_date},
-        "name",
+        ["name", "source"],
+        as_dict=True,
     )
     if existing_row:
-        frappe.db.set_value("Resource Allocation Extra Entry", existing_row, fields)
+        if existing_row.source == LEAVE_SOURCE:
+            # A leave-derived row is re-derived from the leave on every save, and this write
+            # path is a `set_value` that skips validate, so honouring the caller here would
+            # book hours against a day off and leave the row's own source lying about it.
+            return
+
+        frappe.db.set_value("Resource Allocation Extra Entry", existing_row.name, fields)
         clear_cache()  # set_value bypasses on_update, so invalidate manually
     else:
         doc = frappe.get_doc("Resource Allocation", doc_name)
@@ -776,3 +793,71 @@ def get_over_allocated_dates(
 
     total_excess_hours = round(sum(entry["excess_hours"] for entry in result), 2)
     return {"dates": result, "total_excess_hours": total_excess_hours}
+
+
+@frappe.whitelist(methods=["GET"])
+def get_employee_availability(employee: str, start_date: str, end_date: str, include_weekends: bool = False) -> dict:
+    """Return the days in a range on which an employee is not fully available.
+
+    Derived from the same helpers that reduce an allocation on save
+    (:func:`next_pms.resource_management.api.utils.leave_sync.sync_leave_overrides`), so a
+    caller can show the hours a day will actually book before the allocation is written
+    instead of after.
+
+    Args:
+        employee (str): Employee to read availability for.
+        start_date (str): Range start, inclusive ("YYYY-MM-DD").
+        end_date (str): Range end, inclusive ("YYYY-MM-DD").
+        include_weekends (bool): When False, weekend days are skipped, matching what an
+            allocation with the same setting books.
+
+    Returns:
+        dict: ``daily_working_hours`` — the employee's normal hours for a single day — and
+        ``dates``, sparse and keyed by date, carrying only the days the employee is away:
+
+        ```py
+        {
+            "daily_working_hours": 8.0,
+            "dates": {
+                "2026-08-26": {
+                    "availability_factor": 0.5,
+                    "available_hours": 4.0,
+                    "is_holiday": False,
+                },
+                "2026-08-27": {
+                    "availability_factor": 0.0,
+                    "available_hours": 0.0,
+                    "is_holiday": True,
+                    "holiday_name": "Independence Day",
+                },
+            },
+        }
+        ```
+    """
+    permission = resource_api_permissions_check()
+    if not permission["read"]:
+        frappe.throw(frappe._("You are not allowed to perform this action."), exc=frappe.PermissionError)
+
+    range_start, range_end = getdate(start_date), getdate(end_date)
+    if range_start > range_end:
+        frappe.throw(frappe._("start_date must be on or before end_date."), exc=frappe.ValidationError)
+
+    daily_working_hours = flt(get_employee_daily_working_norm(employee))
+    leaves, holidays = get_leave_calendar(employee, range_start, range_end, include_weekends)
+    holiday_names = {holiday.holiday_date: strip_html_tags(holiday.description or "").strip() for holiday in holidays}
+
+    dates = {}
+    for current in allocation_dates(range_start, range_end, include_weekends):
+        factor = availability_factor(current, leaves, holidays)
+        if factor >= 1:
+            continue
+
+        holiday_name = holiday_names.get(current)
+        dates[current.strftime("%Y-%m-%d")] = {
+            "availability_factor": factor,
+            "available_hours": flt(daily_working_hours * factor, 2),
+            "is_holiday": current in holiday_names,
+            **({"holiday_name": holiday_name} if holiday_name else {}),
+        }
+
+    return {"daily_working_hours": daily_working_hours, "dates": dates}

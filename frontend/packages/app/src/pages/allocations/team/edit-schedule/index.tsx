@@ -28,12 +28,18 @@ import ScheduleHoursPerDayField from "./components/scheduleHoursPerDayField";
 import ScheduleSummaryTable from "./components/scheduleSummaryTable";
 import ScheduleTotalHoursField from "./components/scheduleTotalHoursField";
 import { editScheduleFormSchema, type EditScheduleFormValues } from "./schema";
-import type { EditScheduleApplyMode, EditScheduleModalProps } from "./types";
+import type {
+  EditScheduleApplyMode,
+  EditScheduleModalProps,
+  EmployeeAvailabilityResponse,
+} from "./types";
 import {
   buildDays,
   buildScheduleDraft,
   getErrorMessage,
+  getSeedHoursPerDay,
   isEditScheduleApplyMode,
+  mapEmployeeAvailability,
   normalizeRange,
   toDisplayHours,
 } from "./utils";
@@ -112,6 +118,23 @@ function EditScheduleModal({
     };
   }, [seriesData]);
 
+  const { data: availabilityData } = useFrappeGetCall<{
+    message: EmployeeAvailabilityResponse;
+  }>(
+    "next_pms.resource_management.api.allocation.get_employee_availability",
+    {
+      employee: safeValues.employeeId,
+      start_date: fullRange.startDate,
+      end_date: fullRange.endDate,
+      include_weekends: safeValues.includeWeekends ? 1 : 0,
+    },
+    open && safeValues.employeeId ? undefined : false,
+  );
+  const availability = useMemo(
+    () => mapEmployeeAvailability(availabilityData?.message),
+    [availabilityData],
+  );
+
   const recurrenceHelperText = useMemo(() => {
     if (
       !isRecurringAllocation ||
@@ -125,8 +148,8 @@ function EditScheduleModal({
   }, [applyMode, isRecurringAllocation, seriesInfo]);
 
   const days = useMemo(
-    () => buildDays(fullRange.startDate, fullRange.endDate),
-    [fullRange.endDate, fullRange.startDate],
+    () => buildDays(fullRange.startDate, fullRange.endDate, availability),
+    [availability, fullRange.endDate, fullRange.startDate],
   );
 
   const allocationContext = useMemo(
@@ -175,6 +198,7 @@ function EditScheduleModal({
         rangeEnd: fullRange.endDate,
         defaultHoursPerDay,
         override: safeValues.override,
+        availability,
         schedule: value.schedule,
       });
       const schedulePayload = draft.selection
@@ -241,9 +265,11 @@ function EditScheduleModal({
         rangeEnd: fullRange.endDate,
         defaultHoursPerDay,
         override: safeValues.override,
+        availability,
         schedule,
       }),
     [
+      availability,
       defaultHoursPerDay,
       fullRange.endDate,
       fullRange.startDate,
@@ -354,17 +380,24 @@ function EditScheduleModal({
                   recurrenceHelperText={recurrenceHelperText}
                   selection={scheduleDraft.selection}
                   onDayClick={(date) => {
-                    if (!selectionAnchor) {
-                      setSelectionAnchor(date);
-                      startField.handleChange(date);
-                      endField.handleChange(date);
-                      return;
-                    }
+                    const next = selectionAnchor
+                      ? normalizeRange(selectionAnchor, date)
+                      : { startDate: date, endDate: date };
 
-                    const next = normalizeRange(selectionAnchor, date);
-                    setSelectionAnchor(null);
+                    setSelectionAnchor(selectionAnchor ? null : date);
                     startField.handleChange(next.startDate);
                     endField.handleChange(next.endDate);
+                    form.setFieldValue("schedule.input.mode", "hoursPerDay");
+                    form.setFieldValue(
+                      "schedule.input.value",
+                      getSeedHoursPerDay({
+                        ...next,
+                        anchorDate: selectionAnchor ?? date,
+                        defaultHoursPerDay,
+                        override: safeValues.override,
+                        availability,
+                      }),
+                    );
                   }}
                   error={
                     getErrorMessage(startField.state.meta.errors[0]) ??

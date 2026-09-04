@@ -30,6 +30,8 @@ export const propagationModeLabels = {
   this_and_future: "This and future",
 } as const;
 
+export const LEAVE_OVERRIDE_SOURCE = "Leave";
+
 export const EDIT_SCHEDULE_APPLY_MODES = new Set([
   "only_this",
   "this_and_future",
