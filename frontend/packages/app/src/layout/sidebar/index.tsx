@@ -245,7 +245,11 @@ const Sidebar = () => {
     });
   }
 
-  if (roles.includes("Timesheet Manager") || roles.includes("Timesheet User")) {
+  if (
+    roles.includes("Timesheet Manager") ||
+    roles.includes("Timesheet User") ||
+    roles.includes("Projects Manager")
+  ) {
     searchItems.push({
       label: "Timesheet - Team",
       action: () =>

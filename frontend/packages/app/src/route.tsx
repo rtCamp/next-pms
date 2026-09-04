@@ -83,7 +83,7 @@ export const routeConfig: Record<
   },
   "timesheet-project": {
     Component: ReactLazyPreload(() => import("./pages/timesheet/project")),
-    allowedRoles: ["Timesheet Manager", "Timesheet User"],
+    allowedRoles: ["Timesheet Manager", "Timesheet User", "Projects Manager"],
     title: "Project Timesheet",
   },
   "allocations-team": {
