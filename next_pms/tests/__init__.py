@@ -39,7 +39,7 @@ def cleanup_test_timesheets():
         doc = frappe.get_doc("Timesheet", name)
         if doc.docstatus == 1:
             doc.cancel()
-        frappe.delete_doc("Timesheet", name, force=1)
+        frappe.delete_doc("Timesheet", name, force=1, ignore_on_trash=True)
     frappe.db.commit()  # nosemgrep — deletes must survive the class-teardown rollback
 
 

@@ -45,7 +45,8 @@ const EntryRow = ({
   const [hours, setHours] = useState(entry.hours);
   const [descriptionError, setDescriptionError] = useState<string | null>(null);
   const [isHovered, setIsHovered] = useState(false);
-  const isReadOnly = readOnly || entry.docstatus === 1;
+  const isRejected = entry.rejectedHours > 0;
+  const isReadOnly = readOnly || entry.docstatus === 1 || isRejected;
 
   const handleEdit = useCallback(() => {
     if (isReadOnly) {
@@ -187,11 +188,16 @@ const EntryRow = ({
           ) : null}
         </div>
       </div>
-      <span className="relative size-fit text-base text-ink-gray-6 rounded-sm outline outline-offset-6 outline-outline-gray-modals">
+      <span
+        className={cn(
+          "relative size-fit text-base rounded-sm outline outline-offset-6 outline-outline-gray-modals",
+          isRejected ? "text-ink-red-4" : "text-ink-gray-6",
+        )}
+      >
         {!entry.isBillable ? (
           <span className="block absolute z-10 -bottom-1 left-1/2 w-1 h-1 rounded-full bg-surface-amber-3 transform -translate-x-1/2"></span>
         ) : null}
-        {floatToTime(entry.hours, 2, 2)}
+        {floatToTime(isRejected ? entry.rejectedHours : entry.hours, 2, 2)}
       </span>
       <Button
         className={cn(

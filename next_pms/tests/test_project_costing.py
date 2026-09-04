@@ -368,7 +368,7 @@ class TestCostingWorkerBusinessValues(IntegrationTestCase):
 
     def delete_timesheet(self, name):
         with patch.object(project_costing.frappe, "enqueue"):
-            frappe.delete_doc("Timesheet", name, force=1)
+            frappe.delete_doc("Timesheet", name, force=1, ignore_on_trash=True)
 
     def run_worker(self, tasks, projects):
         project_costing.update_task_and_project(tasks=tasks, projects=projects)
