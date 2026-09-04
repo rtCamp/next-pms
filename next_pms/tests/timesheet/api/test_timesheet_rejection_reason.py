@@ -20,7 +20,9 @@ EMPLOYEE_USER = "rejection-reason-test-employee@example.com"
 
 CUSTOMER_NAME = "Rejection Reason Test Customer"
 PROJECT_NAME = "Rejection Reason Test Project"
+PROJECT_NAME_B = "Rejection Reason Test Project B"
 TASK_SUBJECT = "Rejection Reason Test Task"
+TASK_SUBJECT_B = "Rejection Reason Test Task B"
 HOLIDAY_LIST = "Rejection Reason Test Holiday List"
 
 MON, TUE, WED, THU, FRI = "2026-09-07", "2026-09-08", "2026-09-09", "2026-09-10", "2026-09-11"
@@ -118,6 +120,24 @@ class TestTimesheetRejectionReason(IntegrationTestCase):
                 ignore_permissions=True
             )
         cls.task = frappe.db.get_value("Task", {"subject": TASK_SUBJECT})
+
+        if not frappe.db.exists("Project", {"project_name": PROJECT_NAME_B}):
+            frappe.get_doc(
+                {
+                    "doctype": "Project",
+                    "project_name": PROJECT_NAME_B,
+                    "company": cls.company,
+                    "customer": cls.customer,
+                    "custom_billing_type": "Non-Billable",
+                }
+            ).insert(ignore_permissions=True)
+        cls.project_b = frappe.db.get_value("Project", {"project_name": PROJECT_NAME_B})
+
+        if not frappe.db.exists("Task", {"subject": TASK_SUBJECT_B}):
+            frappe.get_doc({"doctype": "Task", "subject": TASK_SUBJECT_B, "project": cls.project_b}).insert(
+                ignore_permissions=True
+            )
+        cls.task_b = frappe.db.get_value("Task", {"subject": TASK_SUBJECT_B})
 
         frappe.clear_cache()
         get_holidays.clear_cache()
@@ -326,6 +346,51 @@ class TestTimesheetRejectionReason(IntegrationTestCase):
             self.assert_day_row_reasons(by_date, date, None)
             self.assertEqual(by_date[date].custom_weekly_approval_status, "Approved")
         self.assert_weekly_rejection_reason(by_date, None)
+
+    def test_day_rejection_propagates_to_new_same_day_timesheet(self):
+        # Reject Tuesday on project A, then open a new project B timesheet that day.
+        self.decide_timesheets("Rejected", [TUE], note=TUE_REASON)
+        save_timesheet(
+            date=TUE,
+            description="New project work after Tuesday was rejected",
+            task=self.task_b,
+            hours=1,
+            employee=self.employee,
+        )
+
+        tue_timesheets = frappe.get_all(
+            "Timesheet",
+            filters={
+                "employee": self.employee,
+                "start_date": TUE,
+                "end_date": TUE,
+                "docstatus": ["!=", 2],
+            },
+            fields=["name", "parent_project", "custom_approval_status", "custom_rejection_reason"],
+        )
+        self.assertEqual(len(tue_timesheets), 2)
+        for ts in tue_timesheets:
+            self.assertEqual(ts.custom_approval_status, "Rejected")
+            self.assertEqual(ts.custom_rejection_reason, TUE_REASON)
+
+        # Other days stay pending and untouched.
+        by_date = {
+            str(row.start_date): row
+            for row in frappe.get_all(
+                "Timesheet",
+                filters={
+                    "employee": self.employee,
+                    "start_date": [">=", MON],
+                    "end_date": ["<=", FRI],
+                    "parent_project": self.project,
+                    "docstatus": ["!=", 2],
+                },
+                fields=["start_date", "custom_approval_status", "custom_rejection_reason"],
+            )
+        }
+        for date in (MON, WED, THU, FRI):
+            self.assertEqual(by_date[date].custom_approval_status, "Approval Pending")
+            self.assertEqual(by_date[date].custom_rejection_reason or "", "")
 
     def test_full_week_reject_sets_shared_weekly_rejection_reason(self):
         self.decide_timesheets("Rejected", WEEK_DATES, note=WEEK_REASON)
