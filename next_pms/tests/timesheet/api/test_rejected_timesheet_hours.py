@@ -13,6 +13,7 @@ from next_pms.timesheet.utils.constant import ALLOWED_TIMESHET_DETAIL_FIELDS
 
 MANAGER_USER = "rejected-hours-test-manager@example.com"
 EMPLOYEE_USER = "rejected-hours-test-employee@example.com"
+SYSTEM_MANAGER_USER = "rejected-hours-test-system-manager@example.com"
 PROJECT_NAME = "Rejected Hours Test Project"
 TASK_SUBJECT = "Rejected Hours Test Task"
 
@@ -41,6 +42,16 @@ class TestRejectedTimesheetHours(IntegrationTestCase):
         cls.employee = make_employee(
             EMPLOYEE_USER, company=company, reports_to=cls.manager, leave_approver="Administrator"
         )
+        if not frappe.db.exists("User", SYSTEM_MANAGER_USER):
+            frappe.get_doc(
+                {
+                    "doctype": "User",
+                    "email": SYSTEM_MANAGER_USER,
+                    "first_name": "Rejected Hours System Manager",
+                    "send_welcome_email": 0,
+                }
+            ).insert(ignore_permissions=True)
+        frappe.get_doc("User", SYSTEM_MANAGER_USER).add_roles("System Manager", "Timesheet Manager")
 
         if not frappe.db.exists("Project", {"project_name": PROJECT_NAME}):
             frappe.get_doc(
@@ -80,8 +91,8 @@ class TestRejectedTimesheetHours(IntegrationTestCase):
         self.decide("Rejected", MON, REASON)
 
     def tearDown(self):
-        self.delete_test_timesheets()
         frappe.set_user("Administrator")
+        self.delete_test_timesheets()
         super().tearDown()
 
     def delete_test_timesheets(self):
@@ -200,6 +211,7 @@ class TestRejectedTimesheetHours(IntegrationTestCase):
     def test_rejected_row_cannot_be_edited(self):
         parent = self.parent(MON)
         row = self.rows(parent.name)[0]
+        frappe.set_user(EMPLOYEE_USER)
 
         with self.assertRaisesRegex(frappe.ValidationError, "Rejected time entries cannot be changed or removed"):
             update_timesheet_detail(
@@ -216,6 +228,7 @@ class TestRejectedTimesheetHours(IntegrationTestCase):
     def test_rejected_row_cannot_be_deleted_while_other_rows_remain(self):
         parent = self.parent(MON)
         first = self.rows(parent.name)[0]
+        frappe.set_user(EMPLOYEE_USER)
 
         with self.assertRaisesRegex(frappe.ValidationError, "Rejected time entries cannot be changed or removed"):
             delete_time_entry(parent=parent.name, name=first.name)
@@ -226,9 +239,36 @@ class TestRejectedTimesheetHours(IntegrationTestCase):
         self.decide("Rejected", TUE, REASON)
         parent = self.parent(TUE)
         (only_row,) = self.rows(parent.name)
+        frappe.set_user(EMPLOYEE_USER)
 
         with self.assertRaisesRegex(frappe.ValidationError, "Rejected time entries cannot be changed or removed"):
             delete_time_entry(parent=parent.name, name=only_row.name)
 
         self.assertTrue(frappe.db.exists("Timesheet", parent.name))
         self.assert_rows(self.rows(parent.name), [(0, TUE_HOURS, REASON)])
+
+    def test_system_manager_can_edit_a_rejected_row(self):
+        parent = frappe.get_doc("Timesheet", self.parent(MON).name)
+        frappe.set_user(SYSTEM_MANAGER_USER)
+
+        parent.time_logs[0].hours = 1
+        parent.time_logs[0].rejected_hours = 0
+        parent.time_logs[0].custom_rejection_reason = None
+        parent.save()
+
+        self.assert_rows(self.rows(parent.name), [(1, 0, None), (0, MON_HOURS[1], REASON)])
+
+    def test_system_manager_can_delete_a_timesheet_holding_rejected_rows(self):
+        parent = self.parent(MON)
+        frappe.set_user(SYSTEM_MANAGER_USER)
+
+        frappe.delete_doc("Timesheet", parent.name)
+
+        self.assertFalse(frappe.db.exists("Timesheet", parent.name))
+
+    def test_administrator_can_delete_a_timesheet_holding_rejected_rows(self):
+        parent = self.parent(MON)
+
+        frappe.delete_doc("Timesheet", parent.name)
+
+        self.assertFalse(frappe.db.exists("Timesheet", parent.name))

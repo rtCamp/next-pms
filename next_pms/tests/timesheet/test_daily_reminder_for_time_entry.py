@@ -45,6 +45,8 @@ class TestDailyReminderForTimeEntry(IntegrationTestCase):
     @classmethod
     def tearDownClass(cls):
         frappe.flags.mute_emails = cls.original_mute_emails
+        if hasattr(frappe.local, "outgoing_email_account"):
+            del frappe.local.outgoing_email_account
         cls._restore_settings()
         super().tearDownClass()
 

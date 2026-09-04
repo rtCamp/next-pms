@@ -133,9 +133,10 @@ def move_rejected_hours(doc):
 
 def validate_rejected_rows_unchanged(doc):
     """Refuse changes to rows holding rejected hours, so a rejection stays on record and the
-    corrected work is logged as a new entry."""
+    corrected work is logged as a new entry. System Managers are exempt so a wrong rejection can
+    still be corrected from the desk."""
     previous = doc.get_doc_before_save()
-    if not previous:
+    if not previous or _can_override_rejection_lock():
         return
     current = {row.name: row for row in doc.time_logs}
     for old in previous.time_logs:
@@ -162,9 +163,16 @@ def validate_rejected_rows_unchanged(doc):
 
 def validate_no_rejected_rows(doc):
     """Refuse deleting a timesheet that holds rejected hours, since removing the whole document
-    would drop the rejection record the row lock protects."""
+    would drop the rejection record the row lock protects. System Managers are exempt so the
+    document can still be removed from the desk."""
+    if _can_override_rejection_lock():
+        return
     if any(flt(row.rejected_hours) for row in doc.time_logs):
         throw(_("Rejected time entries cannot be changed or removed."))
+
+
+def _can_override_rejection_lock() -> bool:
+    return frappe.session.user == "Administrator" or "System Manager" in frappe.get_roles()
 
 
 def validate_is_time_billable(doc, method=None):
