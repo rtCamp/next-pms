@@ -14,7 +14,7 @@ class TestProjectHoursFallback(IntegrationTestCase):
         cls.company = get_default_company()
         cls.projects = {}
 
-        employee = make_employee("hours.fallback@example.com", company=cls.company)
+        employee = make_employee("hours-fallback@example.com", company=cls.company)
         activity_type = frappe.db.get_value("Activity Type", {}, "name")
 
         fixtures = {
