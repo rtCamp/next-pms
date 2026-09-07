@@ -12,6 +12,7 @@ import { addDays, isSameDay, parseISO } from "date-fns";
 /**
  * Internal dependencies.
  */
+import type { EmployeeLeaveDay } from "../types";
 import {
   calculateAllocationHourlyRate,
   formatAllocationCapacity,
@@ -20,7 +21,6 @@ import {
 } from "../utils";
 import type {
   Customer,
-  EmployeeLeaveDay,
   ManagerNameMap,
   ProjectAllocationResponse,
   ProjectEmployee,
