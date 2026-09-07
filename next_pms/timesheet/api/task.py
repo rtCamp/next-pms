@@ -269,6 +269,10 @@ def add_task(
     exp_end_date: str | None = None,
 ):
     """API to add task, it will create a task under the given project with the given details."""
+    if not frappe.db.exists("Project", project):
+        frappe.throw(frappe._("Project '{0}' does not exist").format(project), frappe.DoesNotExistError)
+    frappe.has_permission("Project", doc=project, ptype="write", user=frappe.session.user, throw=True)
+
     task = frappe.get_doc(
         {
             "doctype": "Task",
@@ -301,6 +305,8 @@ def get_task(task: str, start_date: str | datetime.date, end_date: str | datetim
     # if task has project field set.
     if project:
         frappe.has_permission(doctype="Project", doc=project, throw=True)
+    else:
+        frappe.has_permission("Task", doc=task, ptype="read", throw=True)
 
     task = frappe.get_doc("Task", task)
     timesheet = DocType("Timesheet")
@@ -341,10 +347,28 @@ def get_task(task: str, start_date: str | datetime.date, end_date: str | datetim
 @frappe.whitelist(methods=["GET"])
 def get_task_log(task: str, start_date: str = None, end_date: str = None, employee: str = None):
     """API to get the time log details for a task between the given start date and end date. with an optional parameter of passing in employee"""
+    from next_pms.timesheet.api.employee import get_employee_from_user
+
     project = frappe.db.get_value("Task", task, "project")
 
     if project:
         frappe.has_permission(doctype="Project", doc=project, throw=True)
+    else:
+        frappe.has_permission("Task", doc=task, ptype="read", throw=True)
+
+    roles = set(frappe.get_roles(frappe.session.user))
+    manager_roles = {
+        "Projects Manager",
+        "Timesheet Manager",
+        "Delivery Manager",
+        "Delivery User",
+        "HR Manager",
+        "HR User",
+        "System Manager",
+    }
+    if not (manager_roles & roles) and frappe.session.user != "Administrator":
+        employee = get_employee_from_user()
+
     timesheet = DocType("Timesheet")
     timesheet_detail = DocType("Timesheet Detail")
     start_date = getdate(start_date)
