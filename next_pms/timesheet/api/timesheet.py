@@ -294,6 +294,9 @@ def save(date: str, description: str, task: str, hours: float = 0, employee: str
     """create time entry in Timesheet Detail child table."""
     if not employee:
         employee = get_employee_from_user()
+    elif not employee_has_higher_access(employee, ptype="write"):
+        frappe.throw(_("You are not authorized to log time entries for this employee."), frappe.PermissionError)
+
     if not task:
         throw(_("Task is mandatory for creating time entry."), frappe.MandatoryError)
 
@@ -339,9 +342,11 @@ def save(date: str, description: str, task: str, hours: float = 0, employee: str
 @error_logger
 def delete(parent: str, name: str):
     """Delete single time entry (child table entry) from timesheet doctype."""
-    employee = get_employee_from_user()
-    ignore_permissions = employee_has_higher_access(employee, ptype="write")
     parent_doc = frappe.get_doc("Timesheet", parent)
+    if not employee_has_higher_access(parent_doc.employee, ptype="write"):
+        frappe.throw(_("You are not authorized to delete time entries for this employee."), frappe.PermissionError)
+
+    ignore_permissions = employee_has_higher_access(parent_doc.employee, ptype="write")
     for log in parent_doc.time_logs:
         if log.name == name:
             parent_doc.remove(log)
@@ -363,15 +368,27 @@ def submit_for_approval(start_date: str, notes: str = None, employee: str = None
 
     if not employee:
         employee = get_employee_from_user()
+    elif not employee_has_higher_access(employee, ptype="write"):
+        frappe.throw(_("You are not authorized to submit timesheets for this employee."), frappe.PermissionError)
+
     if not approver:
         reporting_manager = frappe.get_value("Employee", employee, "reports_to")
         if not reporting_manager:
             throw(_("Reporting Manager is not set for the employee."))
     else:
+        if not frappe.db.exists("Employee", approver):
+            throw(_("Reporting Manager does not exist."), frappe.DoesNotExistError)
+
+        if approver == employee and frappe.session.user != "Administrator":
+            frappe.throw(_("You cannot select yourself as the approver."), frappe.PermissionError)
+
+        allowed_approver_roles = {"Projects Manager", "Projects User", "Timesheet Manager", "System Manager"}
+        approver_user = frappe.get_value("Employee", approver, "user_id")
+        approver_roles = set(frappe.get_roles(approver_user)) if approver_user else set()
+        if not (approver_roles & allowed_approver_roles) and approver_user != "Administrator":
+            frappe.throw(_("Selected approver is not authorized to approve timesheets."), frappe.PermissionError)
         reporting_manager = approver
 
-    if not frappe.db.exists("Employee", reporting_manager):
-        throw(_("Reporting Manager does not exist."), frappe.DoesNotExistError)
     reporting_manager_name = frappe.get_value("Employee", reporting_manager, "employee_name")
 
     start_date = get_first_day_of_week(start_date)
@@ -427,6 +444,9 @@ def update_timesheet_detail(
 ):
     """Update time entry in Timesheet Detail child table."""
     parent_doc = frappe.get_doc("Timesheet", parent)
+    if not employee_has_higher_access(parent_doc.employee, ptype="write"):
+        frappe.throw(_("You are not authorized to update time entries for this employee."), frappe.PermissionError)
+
     ignore_permissions = employee_has_higher_access(parent_doc.employee, ptype="write")
     logs_to_remove = []
     new_logs = []
