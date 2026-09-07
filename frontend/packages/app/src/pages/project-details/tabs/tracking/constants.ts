@@ -1,7 +1,23 @@
 /**
  * Internal dependencies.
  */
-import type { ContractRow, RateRow } from "./types";
+import type { ContractRow, RateRow, TrackingLayout } from "./types";
+
+/**
+ * Returns the default layout for the tracking tab based on the billing type.
+ */
+export function getDefaultLayout(billingType: string): TrackingLayout {
+  const isBillable = billingType !== "Non-Billable";
+
+  return [
+    isBillable ? ["financials", "task_completion"] : ["task_completion"],
+    ["hours_usage", "invoice_burn"],
+    ["budget_burn", "cost_burn"],
+    ["lifetime_to_date", "lifetime_expected", "lifetime_vs_billed"],
+    ["contracts"],
+    ["rates"],
+  ];
+}
 
 export type ColumnDef<K extends string = string> = {
   key: K;
