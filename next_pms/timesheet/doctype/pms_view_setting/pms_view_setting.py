@@ -5,6 +5,11 @@ import frappe
 from frappe.model.document import Document
 from frappe.utils import parse_json
 
+TRACKING_VIEW_TYPE = "Tracking"
+
+
+TRACKING_LAYOUT_ROLES = frozenset({"Projects Manager"})
+
 
 class PMSViewSetting(Document):
     def validate(self):
@@ -12,12 +17,27 @@ class PMSViewSetting(Document):
             self.user = None
 
 
+def check_tracking_layout_permission(project: str):
+    if not TRACKING_LAYOUT_ROLES & set(frappe.get_roles()):
+        frappe.throw(frappe._("Not permitted to customize the tracking page"), frappe.PermissionError)
+    if not frappe.has_permission("Project", "write", project):
+        frappe.throw(frappe._("Not permitted to customize this project"), frappe.PermissionError)
+
+
 @frappe.whitelist(methods=["GET", "POST"])
-def get_view(dt: str):
-    """Endpoint to get all views for a doctype. It accepts doctype as parameter and returns list of views for that doctype."""
+def get_view(dt: str, project: str | None = None):
+    """Endpoint to get all views for a doctype. It accepts doctype as parameter and returns list of views for that doctype.
+
+    Passing a project returns that project's tracking layout instead. Tracking
+    layouts are excluded otherwise so they never reach the list view switcher.
+    """
+    # Filtered on project rather than type because "type != Tracking" would drop
+    # any legacy row whose type is NULL, and ifnull is what "is not set" emits.
+    filters = {"dt": dt, "project": project if project else ["is", "not set"]}
+
     views = frappe.get_all(
         "PMS View Setting",
-        filters={"dt": dt},
+        filters=filters,
         or_filters=[{"user": frappe.session.user}, {"public": 1}],
         fields=["*"],
     )
@@ -36,6 +56,7 @@ def get_views():
     views = frappe.get_all(
         "PMS View Setting",
         fields=["*"],
+        filters={"project": ["is", "not set"]},
         or_filters=[{"user": frappe.session.user}, {"public": 1}],
     )
     for view in views:
@@ -53,6 +74,9 @@ def create_view(view: dict):
     import json
 
     view = frappe._dict(view)
+    if view.type == TRACKING_VIEW_TYPE:
+        check_tracking_layout_permission(view.project)
+
     view.filters = parse_json(view.filters) or {}
     view.order_by = parse_json(view.order_by or "[]")
     view.rows = parse_json(view.rows or "[]")
@@ -72,8 +96,13 @@ def create_view(view: dict):
     doc.default = view.default or 0
     doc.public = view.public or 0
     doc.icon = view.icon
+    doc.project = view.project
     doc.pinned_columns = json.dumps(view.pinnedColumns)
     doc.insert(ignore_permissions=True)
+
+    if doc.type == TRACKING_VIEW_TYPE:
+        return as_view(doc)
+
     return get_views()
 
 
@@ -84,6 +113,16 @@ def update_view(view: dict):
 
     view = frappe._dict(view)
     doc = frappe.get_doc("PMS View Setting", view.name)
+
+    # A tracking layout is shared by everyone on the project, so it is saved
+    # against project write access rather than doc ownership, and only its rows
+    # change - the caller never round-trips the rest of the document.
+    if doc.type == TRACKING_VIEW_TYPE:
+        check_tracking_layout_permission(doc.project)
+        doc.rows = json.dumps(parse_json(view.rows or "[]"))
+        doc.save(ignore_permissions=True)
+        return as_view(doc)
+
     if (view.public or doc.public) and frappe.session.user not in ("Administrator", doc.owner):
         frappe.throw(
             frappe._("Only Administrator or Owner can update public view"),
@@ -109,11 +148,17 @@ def update_view(view: dict):
     doc.icon = view.icon
     doc.pinned_columns = json.dumps(view.pinnedColumns)
     doc.save()
-    updated_view = doc.as_dict()
-    updated_view.filters = frappe.parse_json(updated_view.filters)
-    updated_view.order_by = frappe.parse_json(updated_view.order_by)
-    updated_view.rows = frappe.parse_json(updated_view.rows)
-    updated_view.columns = frappe.parse_json(updated_view.columns)
-    updated_view.pinnedColumns = frappe.parse_json(updated_view.pinned_columns)
 
-    return updated_view
+    return as_view(doc)
+
+
+def as_view(doc):
+    """Serialises a saved view with its JSON fields parsed, as the endpoints return them."""
+    view = doc.as_dict()
+    view.filters = frappe.parse_json(view.filters)
+    view.order_by = frappe.parse_json(view.order_by)
+    view.rows = frappe.parse_json(view.rows)
+    view.columns = frappe.parse_json(view.columns)
+    view.pinnedColumns = frappe.parse_json(view.pinned_columns)
+
+    return view

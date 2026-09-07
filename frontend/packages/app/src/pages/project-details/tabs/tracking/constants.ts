@@ -1,7 +1,30 @@
 /**
  * Internal dependencies.
  */
-import type { ContractRow, RateRow, TrackingLayout } from "./types";
+import type { Role } from "@/types";
+import type { ContractRow, RateRow, TrackingLayout, WidgetKey } from "./types";
+
+export const CUSTOMIZATION_ROLES: Role[] = [
+  "Projects Manager",
+  "Delivery Manager",
+  "Delivery User",
+];
+
+export const CUSTOMIZABLE_WIDGETS: { key: WidgetKey; label: string }[] = [
+  { key: "task_completion", label: "Task completion" },
+  { key: "budget_burn", label: "Budget burn" },
+  { key: "cost_burn", label: "Cost burn" },
+];
+
+export const CUSTOMIZABLE_WIDGET_KEYS: WidgetKey[] = CUSTOMIZABLE_WIDGETS.map(
+  ({ key }) => key,
+);
+
+export const ROW_COLUMNS: Record<number, string> = {
+  1: "lg:grid-cols-1",
+  2: "lg:grid-cols-2",
+  3: "lg:grid-cols-3",
+};
 
 /**
  * Returns the default layout for the tracking tab based on the billing type.

@@ -342,7 +342,7 @@ doc_events = {
 # Ignore links to specified DocTypes when deleting documents
 # -----------------------------------------------------------
 
-ignore_links_on_delete = ["NextPMS Notifications"]
+ignore_links_on_delete = ["NextPMS Notifications", "PMS View Setting"]
 
 # Request Events
 # ----------------
