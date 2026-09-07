@@ -4,11 +4,7 @@
 import type { Role } from "@/types";
 import type { ContractRow, RateRow, TrackingLayout, WidgetKey } from "./types";
 
-export const CUSTOMIZATION_ROLES: Role[] = [
-  "Projects Manager",
-  "Delivery Manager",
-  "Delivery User",
-];
+export const CUSTOMIZATION_ROLES: Role[] = ["Projects Manager"];
 
 export const CUSTOMIZABLE_WIDGETS: { key: WidgetKey; label: string }[] = [
   { key: "task_completion", label: "Task completion" },

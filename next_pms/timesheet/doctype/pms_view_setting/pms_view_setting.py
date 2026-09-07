@@ -31,9 +31,16 @@ def get_view(dt: str, project: str | None = None):
     Passing a project returns that project's tracking layout instead. Tracking
     layouts are excluded otherwise so they never reach the list view switcher.
     """
-    # Filtered on project rather than type because "type != Tracking" would drop
-    # any legacy row whose type is NULL, and ifnull is what "is not set" emits.
-    filters = {"dt": dt, "project": project if project else ["is", "not set"]}
+    filters = {"dt": dt}
+    if project:
+        # Type is matched too, so a view of any other type that somehow carries a
+        # project can never be served as that project's shared layout.
+        filters["project"] = project
+        filters["type"] = TRACKING_VIEW_TYPE
+    else:
+        # Excluded by project rather than by type because "type != Tracking" drops
+        # any legacy row whose type is NULL, while "is not set" emits ifnull.
+        filters["project"] = ["is", "not set"]
 
     views = frappe.get_all(
         "PMS View Setting",
@@ -74,8 +81,25 @@ def create_view(view: dict):
     import json
 
     view = frappe._dict(view)
-    if view.type == TRACKING_VIEW_TYPE:
+
+    # A project scoped row is only ever a shared tracking layout, so it has to be
+    # authorised here. Without this a caller could post any other type with a
+    # project and have its rows served to everyone on that project.
+    if view.project or view.type == TRACKING_VIEW_TYPE:
+        if not view.project or view.type != TRACKING_VIEW_TYPE:
+            frappe.throw(frappe._("A project scoped view must be of type Tracking"))
+
         check_tracking_layout_permission(view.project)
+
+        # Two managers can both read no layout and both post a create, so the
+        # second one updates the first one's row instead of adding a rival.
+        existing = frappe.db.get_value(
+            "PMS View Setting",
+            {"project": view.project, "type": TRACKING_VIEW_TYPE},
+            "name",
+        )
+        if existing:
+            return update_view({"name": existing, "rows": view.rows})
 
     view.filters = parse_json(view.filters) or {}
     view.order_by = parse_json(view.order_by or "[]")
@@ -123,6 +147,11 @@ def update_view(view: dict):
         doc.save(ignore_permissions=True)
         return as_view(doc)
 
+    # Stops a personal list view being converted into a project's shared layout,
+    # which would otherwise bypass the tracking authorisation above.
+    if view.type == TRACKING_VIEW_TYPE or view.project:
+        frappe.throw(frappe._("A list view cannot be turned into a tracking layout"))
+
     if (view.public or doc.public) and frappe.session.user not in ("Administrator", doc.owner):
         frappe.throw(
             frappe._("Only Administrator or Owner can update public view"),
@@ -150,6 +179,17 @@ def update_view(view: dict):
     doc.save()
 
     return as_view(doc)
+
+
+def delete_project_views(doc, method=None):
+    """Clears a project's tracking layouts when the project is deleted.
+
+    `ignore_links_on_delete` lets the project go while these rows still point at
+    it, so without this they linger, and a later project reusing the same name
+    would silently inherit the old layout.
+    """
+    for name in frappe.get_all("PMS View Setting", filters={"project": doc.name}, pluck="name"):
+        frappe.delete_doc("PMS View Setting", name, ignore_permissions=True, force=True)
 
 
 def as_view(doc):

@@ -2,6 +2,7 @@
  * External dependencies.
  */
 import { useCallback, useMemo, useState } from "react";
+import { DeleteActionDialog } from "@next-pms/design-system/components";
 
 /**
  * Internal dependencies.
@@ -39,8 +40,12 @@ function TrackingContent() {
     save: saveLayout,
   } = useTrackingLayout(projectId);
 
-  const [stagedHidden, setStagedHidden] = useState<WidgetKey[] | null>(null);
+  const [isEditing, setIsEditing] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [pendingRemoval, setPendingRemoval] = useState<{
+    key: WidgetKey;
+    label: string;
+  } | null>(null);
 
   const defaultLayout = useMemo(
     () => getDefaultLayout(billingType),
@@ -53,58 +58,40 @@ function TrackingContent() {
   );
 
   const layout = useMemo(
-    () => applyHiddenWidgets(defaultLayout, stagedHidden ?? hidden),
-    [defaultLayout, stagedHidden, hidden],
+    () => applyHiddenWidgets(defaultLayout, hidden),
+    [defaultLayout, hidden],
   );
 
-  const startEditing = useCallback(() => setStagedHidden(hidden), [hidden]);
+  const confirmRemoval = useCallback(
+    async (key: WidgetKey) => {
+      await saveLayout(applyHiddenWidgets(defaultLayout, [...hidden, key]));
+    },
+    [saveLayout, defaultLayout, hidden],
+  );
 
-  const cancelEditing = useCallback(() => {
-    setStagedHidden(null);
-    setIsModalOpen(false);
-  }, []);
-
-  const save = useCallback(async () => {
-    const saved = await saveLayout(
-      applyHiddenWidgets(defaultLayout, stagedHidden ?? []),
-    );
-    if (saved) {
-      setStagedHidden(null);
-      setIsModalOpen(false);
-    }
-  }, [saveLayout, defaultLayout, stagedHidden]);
-
-  const addWidget = useCallback((key: WidgetKey) => {
-    setStagedHidden((current) => (current ?? []).filter((it) => it !== key));
-  }, []);
-
-  const removeWidget = useCallback((key: WidgetKey) => {
-    setStagedHidden((current) =>
-      current?.includes(key) ? current : [...(current ?? []), key],
-    );
-  }, []);
+  const saveFromModal = useCallback(
+    async (next: WidgetKey[]) => {
+      const saved = await saveLayout(applyHiddenWidgets(defaultLayout, next));
+      if (saved) {
+        setIsModalOpen(false);
+      }
+    },
+    [saveLayout, defaultLayout],
+  );
 
   if (isLoading || isLayoutLoading) {
     return <TrackingSkeleton />;
   }
 
   const canCustomize = CUSTOMIZATION_ROLES.some((role) => roles.includes(role));
-  const isEditing = stagedHidden !== null;
-  const isDirty =
-    stagedHidden !== null &&
-    (stagedHidden.length !== hidden.length ||
-      stagedHidden.some((key) => !hidden.includes(key)));
 
   return (
     <div className="flex flex-col gap-6">
       <TrackingHeader
         canCustomize={canCustomize}
         isEditing={isEditing}
-        isDirty={isDirty}
         isSaving={isSaving}
-        onEdit={startEditing}
-        onCancel={cancelEditing}
-        onSave={() => void save()}
+        onToggleEdit={() => setIsEditing((editing) => !editing)}
         onAddWidgets={() => setIsModalOpen(true)}
       />
 
@@ -127,7 +114,7 @@ function TrackingContent() {
                   <WidgetShell
                     key={key}
                     label={customizable.label}
-                    onRemove={() => removeWidget(key)}
+                    onRemove={() => setPendingRemoval(customizable)}
                   >
                     <Widget layout={widgetLayout} />
                   </WidgetShell>
@@ -142,11 +129,21 @@ function TrackingContent() {
 
       <AddWidgetModal
         open={isModalOpen}
-        onOpenChange={setIsModalOpen}
-        hidden={stagedHidden ?? []}
-        onAdd={addWidget}
-        onRemove={removeWidget}
+        hidden={hidden}
+        isSaving={isSaving}
+        onClose={() => setIsModalOpen(false)}
+        onSave={saveFromModal}
       />
+
+      {pendingRemoval && (
+        <DeleteActionDialog
+          title="Remove widget"
+          description={`Remove "${pendingRemoval.label}" from this project's tracking page? Everyone on the project sees this change.`}
+          confirmLabel="Remove"
+          onClose={() => setPendingRemoval(null)}
+          onConfirm={() => confirmRemoval(pendingRemoval.key)}
+        />
+      )}
     </div>
   );
 }
