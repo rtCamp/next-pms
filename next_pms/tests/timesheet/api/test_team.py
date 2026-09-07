@@ -190,7 +190,11 @@ class TestBackdatedApprovalGuard(IntegrationTestCase):
         self.assertIn(formatdate(boundary), message)
 
     def test_week_inside_the_limit_is_still_accepted(self):
-        dates = [str(add_days(self.current_week, offset)) for offset in range(2)]
+        start = max(
+            getdate(self.current_week),
+            add_days(getdate(nowdate()), -(BACKDATED_DAYS_ALLOWED - 1)),
+        )
+        dates = [str(add_days(start, offset)) for offset in range(2)]
         self.make_pending_week(dates)
 
         frappe.set_user(MANAGER_USER)
