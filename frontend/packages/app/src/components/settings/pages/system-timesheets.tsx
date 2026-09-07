@@ -3,16 +3,20 @@
  */
 import { useEffect, useState } from "react";
 import {
+  Button,
   Checkbox,
   FormLabel,
   Password,
   TextInput,
+  useToasts,
 } from "@rtcamp/frappe-ui-react";
+import type { FrappeError } from "frappe-react-sdk";
 
 /**
  * Internal dependencies.
  */
 import { usePMSSystemApiKey } from "@/hooks/usePMSSettings";
+import { parseFrappeErrorMsg } from "@/lib/utils";
 import {
   SettingsDaySelect,
   SettingsLinkField,
@@ -21,7 +25,8 @@ import {
 import type { SystemTimesheetsPageProps } from "../types";
 
 function ApiKeyField() {
-  const { value, isSaving, updateSystemApiKey } = usePMSSystemApiKey();
+  const toast = useToasts();
+  const { value, isSaving, mutate, updateSystemApiKey } = usePMSSystemApiKey();
   const [draft, setDraft] = useState<string | null>(null);
 
   useEffect(() => {
@@ -30,11 +35,17 @@ function ApiKeyField() {
 
   const isDirty = draft !== value;
 
-  const save = () => {
+  const save = async () => {
     if (!isDirty) {
       return;
     }
-    updateSystemApiKey(draft ?? "");
+    try {
+      await updateSystemApiKey(draft ?? "");
+      await mutate();
+      toast.success("PM Report API Key saved");
+    } catch (error) {
+      toast.error(parseFrappeErrorMsg(error as FrappeError));
+    }
   };
 
   return (
@@ -48,14 +59,13 @@ function ApiKeyField() {
         onChange={(event) => setDraft(event.target.value)}
       />
       {isDirty && (
-        <button
-          type="button"
-          disabled={isSaving}
+        <Button
+          variant="subtle"
+          label="Save"
+          loading={isSaving}
+          className="mt-2"
           onClick={save}
-          className="mt-2 text-base text-ink-gray-6 underline-offset-2 hover:text-ink-gray-9 hover:underline disabled:text-ink-gray-4 disabled:hover:no-underline"
-        >
-          Save
-        </button>
+        />
       )}
     </div>
   );
