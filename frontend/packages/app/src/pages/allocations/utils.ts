@@ -248,6 +248,12 @@ export function mapResourceAllocation<T extends AllocationApiRecord>(
  * Splits an allocation into visible contiguous segments after applying per-day overrides.
  * Each segment is treated as its own visible allocation entry while still pointing at
  * the same underlying allocation document id.
+ *
+ * An allocation whose every day has been reduced to zero — by approved leave, by holidays,
+ * or by manual day overrides — produces no visible segment at all. It still exists, and it
+ * still blocks a second allocation for the same employee and project, so it falls back to a
+ * single zero-hour segment spanning the full range: without it the manager has nothing to
+ * click to edit or delete the allocation that is rejecting their input.
  */
 export function mapResourceAllocationSegments<T extends AllocationApiRecord>(
   allocation: T,
@@ -314,6 +320,10 @@ export function mapResourceAllocationSegments<T extends AllocationApiRecord>(
   }
 
   pushSegment();
+
+  if (!segments.length) {
+    return [{ ...baseAllocation, hours: 0, fullyReduced: true }];
+  }
 
   return segments;
 }

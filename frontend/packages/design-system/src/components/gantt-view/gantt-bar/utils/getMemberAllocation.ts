@@ -45,6 +45,13 @@ export function getAllocationSummary(
   const dayKeys = new Set<number>();
 
   for (const alloc of allocations) {
+    // Zero-hour placeholders exist only to keep the underlying allocation reachable in the
+    // expanded row. They book no time, so letting them claim day keys here would suppress
+    // the "free" capacity chips those days should still show.
+    if (alloc.fullyReduced) {
+      continue;
+    }
+
     for (const day of eachDayOfInterval({
       start: alloc.startDate,
       end: alloc.endDate,
