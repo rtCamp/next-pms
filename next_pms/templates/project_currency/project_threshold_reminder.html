@@ -1,0 +1,17 @@
+<p>Hello,</p>
+<br>
+<p>This is to let you know that the {{ project.custom_reminder_threshold_percentage }}% threshold limit for the Project - <a href="/app/project/{{ project.name }}">{{ project.project_name }}</a> has been reached.</p>
+<br>
+{% if project.custom_billing_type == "Retainer" %}
+{% set budget = project.custom_project_budget_hours[-1] %}
+<p>Total Budget: {{ budget.hours_purchased }} hours</p>
+<p>Spent: {{ budget.consumed_hours }} hours</p>
+<p>Remaining: {{ budget.remaining_hours }} hours</p>
+{% else %}
+{% set currency_field = project.meta.get_field("estimated_costing") %}
+<p>Total Budget: {{ project.get_formatted("estimated_costing") }}</p>
+<p>Spent: {{ project.get_formatted("total_billable_amount") }}</p>
+<p>Remaining: {{ frappe.format_value(project.estimated_costing - project.total_billable_amount, currency_field, project) }}</p>
+{% endif %}
+<br>
+<p>Thanks!</p>

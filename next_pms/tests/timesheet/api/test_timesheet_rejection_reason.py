@@ -6,6 +6,7 @@ from frappe.tests import IntegrationTestCase
 from frappe.utils import add_days, getdate
 
 from next_pms.install import (
+    setup_timesheet_rejected_hours_field,
     setup_timesheet_rejection_reason_field,
     setup_timesheet_weekly_rejection_reason_field,
 )
@@ -52,6 +53,7 @@ class TestTimesheetRejectionReason(IntegrationTestCase):
 
         setup_timesheet_rejection_reason_field()
         setup_timesheet_weekly_rejection_reason_field()
+        setup_timesheet_rejected_hours_field()
 
         weekends = []
         date = getdate("2026-01-01")
@@ -155,7 +157,7 @@ class TestTimesheetRejectionReason(IntegrationTestCase):
             doc = frappe.get_doc("Timesheet", name)
             if doc.docstatus == 1:
                 doc.cancel()
-            frappe.delete_doc("Timesheet", name, force=True, ignore_permissions=True)
+            frappe.delete_doc("Timesheet", name, force=True, ignore_permissions=True, ignore_on_trash=True)
 
     def get_timesheets_by_date(self):
         rows = frappe.get_all(
@@ -316,14 +318,14 @@ class TestTimesheetRejectionReason(IntegrationTestCase):
         self.assert_day_row_reasons(by_date, THU, THU_REASON)
         self.assert_weekly_rejection_reason(by_date, None)
 
-        # Step 4: manager approves the whole week; reasons are cleared on approval.
+        # Step 4: manager approves the whole week; rows that were rejected keep their reason on record.
         self.decide_timesheets("Approved", WEEK_DATES)
 
         by_date = self.get_timesheets_by_date()
         for date in WEEK_DATES:
             self.assertEqual(by_date[date].custom_approval_status, "Approved")
             self.assertEqual(by_date[date].docstatus, 1)
-            self.assert_day_row_reasons(by_date, date, None)
+            self.assert_day_row_reasons(by_date, date, {TUE: TUE_REASON, THU: THU_REASON}.get(date))
             self.assertEqual(by_date[date].custom_weekly_approval_status, "Approved")
         self.assert_weekly_rejection_reason(by_date, None)
 
@@ -376,7 +378,7 @@ class TestTimesheetRejectionReason(IntegrationTestCase):
         by_date = self.get_timesheets_by_date()
         for date in WEEK_DATES:
             self.assertEqual(by_date[date].custom_approval_status, "Approved")
-            self.assert_day_row_reasons(by_date, date, None)
+            self.assert_day_row_reasons(by_date, date, WEEK_REASON)
             self.assertEqual(by_date[date].custom_weekly_approval_status, "Approved")
         self.assert_weekly_rejection_reason(by_date, None)
 

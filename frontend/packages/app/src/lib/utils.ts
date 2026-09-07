@@ -27,7 +27,12 @@ import { twMerge } from "tailwind-merge";
 import type { PMSSettings } from "@/components/settings/types";
 import { timeStringToFloat } from "@/schema/timesheet";
 import { WorkingFrequency } from "@/types";
-import { HolidayProp, LeaveProps, TaskProps } from "@/types/timesheet";
+import {
+  HolidayProp,
+  LeaveProps,
+  TaskDataItemProps,
+  TaskProps,
+} from "@/types/timesheet";
 import {
   DEFAULT_AUTO_EXPAND_WEEKS,
   NO_VALUE_OPERATORS,
@@ -567,6 +572,19 @@ export const getDefaultView = (
   };
 };
 
+const sumEntryHoursForDate = (
+  tasks: TaskProps,
+  date: string,
+  pick: (entry: TaskDataItemProps) => number,
+) => {
+  return Object.values(tasks).reduce((total, taskData) => {
+    const taskHours = taskData.data
+      .filter((data) => getDateFromDateAndTimeString(data.from_time) === date)
+      .reduce((sum, item) => sum + pick(item), 0);
+    return total + taskHours;
+  }, 0);
+};
+
 /**
  * Calculates the total hours for a given date across all tasks.
  *
@@ -574,14 +592,18 @@ export const getDefaultView = (
  * @param date Date string for which to calculate total hours.
  * @returns Total hours for the given date.
  */
-export const calculateTotalHours = (tasks: TaskProps, date: string) => {
-  return Object.values(tasks).reduce((total, taskData) => {
-    const taskHours = taskData.data
-      .filter((data) => getDateFromDateAndTimeString(data.from_time) === date)
-      .reduce((sum, item) => sum + item.hours, 0);
-    return total + taskHours;
-  }, 0);
-};
+export const calculateTotalHours = (tasks: TaskProps, date: string) =>
+  sumEntryHoursForDate(tasks, date, (entry) => entry.hours);
+
+/**
+ * Calculates the hours parked by rejection for a given date across all tasks.
+ *
+ * @param tasks TaskProps object containing task data.
+ * @param date Date string for which to calculate rejected hours.
+ * @returns Rejected hours for the given date.
+ */
+export const calculateRejectedHours = (tasks: TaskProps, date: string) =>
+  sumEntryHoursForDate(tasks, date, (entry) => entry.rejected_hours ?? 0);
 
 /**
  * Calculates the total leave hours for a given date.
