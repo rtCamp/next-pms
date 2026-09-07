@@ -58,10 +58,22 @@ def create_view(view: dict):
     view.rows = parse_json(view.rows or "[]")
     view.columns = parse_json(view.columns or "{}")
 
+    roles = set(frappe.get_roles(frappe.session.user))
+    manager_roles = {"Administrator", "System Manager", "Projects Manager", "Timesheet Manager"}
+
+    if view.public:
+        if not (roles & manager_roles) and frappe.session.user != "Administrator":
+            frappe.throw(frappe._("Only Managers or Administrator can create public views"), frappe.PermissionError)
+
+    user = frappe.session.user
+    if view.user and view.user != frappe.session.user:
+        if "System Manager" not in roles and frappe.session.user != "Administrator":
+            frappe.throw(frappe._("You cannot create views for other users"), frappe.PermissionError)
+        user = view.user
+
     doc = frappe.new_doc("PMS View Setting")
-    user = view.user or frappe.session.user
     doc.label = view.label
-    doc.type = view.type or "list"
+    doc.type = view.type or "List"
     doc.dt = view.dt
     doc.user = user if not view.public else ""
     doc.filters = json.dumps(view.filters)
@@ -83,20 +95,47 @@ def update_view(view: dict):
     import json
 
     view = frappe._dict(view)
+    if not frappe.db.exists("PMS View Setting", view.name):
+        frappe.throw(frappe._("View '{0}' does not exist").format(view.name), frappe.DoesNotExistError)
+
     doc = frappe.get_doc("PMS View Setting", view.name)
-    if (view.public or doc.public) and frappe.session.user not in ("Administrator", doc.owner):
-        frappe.throw(
-            frappe._("Only Administrator or Owner can update public view"),
-            frappe.PermissionError,
-        )
+    roles = set(frappe.get_roles(frappe.session.user))
+    is_admin = frappe.session.user == "Administrator" or "System Manager" in roles
+    is_owner = frappe.session.user in (doc.owner, doc.user)
+
+    if view.public or doc.public:
+        if not (is_admin or is_owner):
+            frappe.throw(
+                frappe._("Only Administrator or Owner can update public view"),
+                frappe.PermissionError,
+            )
+        manager_roles = {"Administrator", "System Manager", "Projects Manager", "Timesheet Manager"}
+        if view.public and not doc.public and not (roles & manager_roles) and not is_admin:
+            frappe.throw(
+                frappe._("Only Managers or Administrator can make a view public"),
+                frappe.PermissionError,
+            )
+    else:
+        if not (is_admin or is_owner):
+            frappe.throw(
+                frappe._("You do not have permission to update this view"),
+                frappe.PermissionError,
+            )
+
     view.filters = parse_json(view.filters) or {}
     view.order_by = parse_json(view.order_by or "[]")
     view.rows = parse_json(view.rows or "[]")
     view.columns = parse_json(view.columns or "{}")
     view.pinnedColumns = parse_json(view.pinnedColumns or "[]")
-    user = view.user or frappe.session.user
+
+    user = doc.user
+    if view.user and view.user != doc.user:
+        if not is_admin:
+            frappe.throw(frappe._("You cannot reassign view ownership to another user"), frappe.PermissionError)
+        user = view.user
+
     doc.label = view.label
-    doc.type = view.type or "list"
+    doc.type = view.type or "List"
     doc.dt = view.dt
     doc.user = user if not view.public else ""
     doc.filters = json.dumps(view.filters)
