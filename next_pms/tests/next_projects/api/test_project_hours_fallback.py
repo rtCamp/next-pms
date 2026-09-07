@@ -4,6 +4,7 @@ from frappe.tests import IntegrationTestCase
 from frappe.utils import add_days, nowdate
 
 from next_pms.next_projects.api.project import get_project_sidebar, get_project_tracking
+from next_pms.tests.utils import make_employee
 
 
 class TestProjectHoursFallback(IntegrationTestCase):
@@ -13,7 +14,7 @@ class TestProjectHoursFallback(IntegrationTestCase):
         cls.company = get_default_company()
         cls.projects = {}
 
-        employee = frappe.db.get_value("Employee", {"status": "Active"}, "name")
+        employee = make_employee("hours-fallback@example.com", company=cls.company)
         activity_type = frappe.db.get_value("Activity Type", {}, "name")
 
         fixtures = {
