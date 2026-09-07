@@ -38,12 +38,14 @@ export interface TrackingContextProps {
 }
 
 export const DEFAULT_TRACKING: Tracking = {
-  company: "",
   billing_type: "",
   currency: "INR",
   total_project_value: 0,
   project_profit: 0,
   projected_profit_margin: 0,
+  current_project_value: 0,
+  current_profit: 0,
+  current_profit_margin: 0,
   actual_cost_incurred: 0,
   forecasted_cost_to_completion: 0,
   expected_total_cost: 0,

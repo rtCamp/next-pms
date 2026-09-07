@@ -79,12 +79,14 @@ export type TrackingLifetimeValues = {
 };
 
 export type TrackingMessage = {
-  company: string;
   billing_type: string;
   currency: string | null;
   total_project_value: number | null;
   project_profit: number | null;
   projected_profit_margin: number | null;
+  current_project_value: number | null;
+  current_profit: number | null;
+  current_profit_margin: number | null;
   actual_cost_incurred: number;
   forecasted_cost_to_completion: number;
   expected_total_cost: number;
