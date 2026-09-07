@@ -79,11 +79,13 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
     setUseSystemAutoExpandWeeks(
       Boolean(pmsSettings?.use_system_auto_expand_weeks),
     );
+  }, [pmsSettings]);
 
+  useEffect(() => {
     if (systemSettings) {
       setSystemForm(systemSettings);
     }
-  }, [pmsSettings, systemSettings]);
+  }, [systemSettings]);
 
   useEffect(() => {
     const error = settingsError ?? systemError;
@@ -137,13 +139,10 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
     setSystemForm((previous) => ({ ...previous, [field]: value }));
   };
 
-  const isSaveDisabled =
-    isLoading ||
-    isSystemLoading ||
-    isSaving ||
-    isSystemSaving ||
-    Boolean(settingsError) ||
-    Boolean(systemError);
+  const isSystemTab = activeTab?.id.startsWith("system-") ?? false;
+  const isSaveDisabled = isSystemTab
+    ? isSystemLoading || isSystemSaving || Boolean(systemError)
+    : isLoading || isSaving || Boolean(settingsError);
 
   return (
     <Dialog

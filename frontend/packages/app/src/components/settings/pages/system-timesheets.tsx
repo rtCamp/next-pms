@@ -26,14 +26,15 @@ import type { SystemTimesheetsPageProps } from "../types";
 
 function ApiKeyField() {
   const toast = useToasts();
-  const { value, isSaving, mutate, updateSystemApiKey } = usePMSSystemApiKey();
+  const { value, isSaving, error, mutate, updateSystemApiKey } =
+    usePMSSystemApiKey();
   const [draft, setDraft] = useState<string | null>(null);
 
   useEffect(() => {
     setDraft(value ?? "");
   }, [value]);
 
-  const isDirty = draft !== value;
+  const isDirty = draft !== null && draft !== (value ?? "");
 
   const save = async () => {
     if (!isDirty) {
@@ -43,10 +44,16 @@ function ApiKeyField() {
       await updateSystemApiKey(draft ?? "");
       await mutate();
       toast.success("PM Report API Key saved");
-    } catch (error) {
-      toast.error(parseFrappeErrorMsg(error as FrappeError));
+    } catch (saveError) {
+      toast.error(parseFrappeErrorMsg(saveError as FrappeError));
     }
   };
+
+  useEffect(() => {
+    if (error) {
+      toast.error(parseFrappeErrorMsg(error as FrappeError));
+    }
+  }, [error, toast]);
 
   return (
     <div>
@@ -63,6 +70,7 @@ function ApiKeyField() {
           variant="subtle"
           label="Save"
           loading={isSaving}
+          disabled={Boolean(error)}
           className="mt-2"
           onClick={save}
         />
@@ -272,20 +280,22 @@ export function SystemTimesheetsPage({
                   updateField("weekly_approval_reminder_template", value)
                 }
               />
-              <SettingsMultiSelectField
-                label="Allowed Departments"
-                doctype="Department"
-                value={(form.allowed_departments ?? [])
-                  .map((row) => row.department)
-                  .filter((value): value is string => Boolean(value))}
-                onChange={(values) =>
-                  updateField(
-                    "allowed_departments",
-                    values.map((department) => ({ department })),
-                  )
-                }
-              />
             </>
+          )}
+          {(dailyReminder || weeklyReminder) && (
+            <SettingsMultiSelectField
+              label="Allowed Departments"
+              doctype="Department"
+              value={(form.allowed_departments ?? [])
+                .map((row) => row.department)
+                .filter((value): value is string => Boolean(value))}
+              onChange={(values) =>
+                updateField(
+                  "allowed_departments",
+                  values.map((department) => ({ department })),
+                )
+              }
+            />
           )}
         </div>
       </section>
