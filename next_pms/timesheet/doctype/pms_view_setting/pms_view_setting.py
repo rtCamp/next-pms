@@ -33,6 +33,11 @@ def get_view(dt: str, project: str | None = None):
     """
     filters = {"dt": dt}
     if project:
+        # The layout is public so that everyone on the project shares it, which means
+        # the read has to be gated on the project itself rather than on the row.
+        if not frappe.has_permission("Project", "read", project):
+            frappe.throw(frappe._("Not permitted to read this project"), frappe.PermissionError)
+
         # Type is matched too, so a view of any other type that somehow carries a
         # project can never be served as that project's shared layout.
         filters["project"] = project
@@ -91,6 +96,11 @@ def create_view(view: dict):
 
         check_tracking_layout_permission(view.project)
 
+        # Always public: the layout belongs to the project, not to whoever saved it.
+        # A private row would take the project's only slot while staying invisible to
+        # everyone else, and their saves would land in a row they cannot read back.
+        view.public = 1
+
         # Two managers can both read no layout and both post a create, so the
         # second one updates the first one's row instead of adding a rival.
         existing = frappe.db.get_value(
@@ -143,6 +153,7 @@ def update_view(view: dict):
     # change - the caller never round-trips the rest of the document.
     if doc.type == TRACKING_VIEW_TYPE:
         check_tracking_layout_permission(doc.project)
+        doc.public = 1
         doc.rows = json.dumps(parse_json(view.rows or "[]"))
         doc.save(ignore_permissions=True)
         return as_view(doc)

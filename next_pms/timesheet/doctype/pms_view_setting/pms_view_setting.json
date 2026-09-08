@@ -75,7 +75,8 @@
    "fieldname": "project",
    "fieldtype": "Link",
    "label": "Project",
-   "options": "Project"
+   "options": "Project",
+   "unique": 1
   },
   {
    "fieldname": "filters",
