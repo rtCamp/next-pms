@@ -52,6 +52,7 @@ export type ResourceManagementSettings = {
 export type SystemSettings = TimesheetSettings &
   ResourceManagementSettings & {
     name: string;
+    pm_report_api_key?: string | null;
   };
 
 export type FieldUpdater<T> = <K extends keyof T>(
@@ -81,6 +82,7 @@ export type TimesheetsPageProps = {
 export type SystemTimesheetsPageProps = {
   form: TimesheetSettings;
   updateField: FieldUpdater<SystemSettings>;
+  hasApiKey: boolean;
 };
 
 export type SystemResourceManagementPageProps = {

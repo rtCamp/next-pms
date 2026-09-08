@@ -3,57 +3,45 @@
  */
 import { useEffect, useState } from "react";
 import {
-  Button,
   Checkbox,
   FormLabel,
   Password,
   TextInput,
-  useToasts,
 } from "@rtcamp/frappe-ui-react";
-import type { FrappeError } from "frappe-react-sdk";
 
 /**
  * Internal dependencies.
  */
 import { usePMSSystemApiKey } from "@/hooks/usePMSSettings";
-import { parseFrappeErrorMsg } from "@/lib/utils";
 import {
   SettingsDaySelect,
   SettingsLinkField,
   SettingsMultiSelectField,
 } from "../fields";
-import type { SystemTimesheetsPageProps } from "../types";
+import type {
+  FieldUpdater,
+  SystemSettings,
+  SystemTimesheetsPageProps,
+} from "../types";
 
-function ApiKeyField() {
-  const toast = useToasts();
-  const { value, isSaving, error, mutate, updateSystemApiKey } =
-    usePMSSystemApiKey();
+function ApiKeyField({
+  hasApiKey,
+  updateField,
+}: {
+  hasApiKey: boolean;
+  updateField: FieldUpdater<SystemSettings>;
+}) {
+  const { value } = usePMSSystemApiKey(hasApiKey);
   const [draft, setDraft] = useState<string | null>(null);
 
   useEffect(() => {
     setDraft(value ?? "");
   }, [value]);
 
-  const isDirty = draft !== null && draft !== (value ?? "");
-
-  const save = async () => {
-    if (!isDirty) {
-      return;
-    }
-    try {
-      await updateSystemApiKey(draft ?? "");
-      await mutate();
-      toast.success("PM Report API Key saved");
-    } catch (saveError) {
-      toast.error(parseFrappeErrorMsg(saveError as FrappeError));
-    }
+  const onChange = (next: string) => {
+    setDraft(next);
+    updateField("pm_report_api_key", next);
   };
-
-  useEffect(() => {
-    if (error) {
-      toast.error(parseFrappeErrorMsg(error as FrappeError));
-    }
-  }, [error, toast]);
 
   return (
     <div>
@@ -63,18 +51,8 @@ function ApiKeyField() {
       <Password
         value={draft ?? ""}
         placeholder="Enter API key"
-        onChange={(event) => setDraft(event.target.value)}
+        onChange={(event) => onChange(event.target.value)}
       />
-      {isDirty && (
-        <Button
-          variant="subtle"
-          label="Save"
-          loading={isSaving}
-          disabled={Boolean(error)}
-          className="mt-2"
-          onClick={save}
-        />
-      )}
     </div>
   );
 }
@@ -82,6 +60,7 @@ function ApiKeyField() {
 export function SystemTimesheetsPage({
   form,
   updateField,
+  hasApiKey,
 }: SystemTimesheetsPageProps) {
   const backdated = Boolean(form.allow_backdated_entries);
   const dailyReminder = Boolean(form.send_daily_reminder);
@@ -305,7 +284,7 @@ export function SystemTimesheetsPage({
           Report Configuration
         </h3>
         <div className="mt-5 max-w-sm">
-          <ApiKeyField />
+          <ApiKeyField hasApiKey={hasApiKey} updateField={updateField} />
         </div>
       </section>
     </div>

@@ -83,7 +83,9 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
 
   useEffect(() => {
     if (systemSettings) {
-      setSystemForm(systemSettings);
+      const { pm_report_api_key, ...form } = systemSettings;
+      void pm_report_api_key;
+      setSystemForm(form);
     }
   }, [systemSettings]);
 
@@ -207,6 +209,7 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
               <SystemTimesheetsPage
                 form={systemForm}
                 updateField={updateSystemField}
+                hasApiKey={Boolean(systemSettings?.pm_report_api_key)}
               />
             ) : activePage === "system-resource-management" ? (
               <SystemResourceManagementPage

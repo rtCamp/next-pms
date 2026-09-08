@@ -60,28 +60,24 @@ export function usePMSSystemSettings(enabled: boolean) {
   };
 }
 
-export function usePMSSystemApiKey() {
+export function usePMSSystemApiKey(hasApiKey: boolean) {
   const fieldname = "pm_report_api_key";
-  const { data, mutate, isLoading, error } = useFrappeGetCall<{
+  const method = "frappe.client.get_password";
+  const { data, isLoading, error } = useFrappeGetCall<{
     message: string;
-  }>("frappe.client.get_password", {
-    doctype: SYSTEM_SETTINGS_DOCTYPE,
-    name: SYSTEM_SETTINGS_DOCTYPE,
-    fieldname,
-  });
-  const { updateDoc, loading: isSaving } = useFrappeUpdateDoc();
-
-  const updateSystemApiKey = (value: string) =>
-    updateDoc(SYSTEM_SETTINGS_DOCTYPE, SYSTEM_SETTINGS_DOCTYPE, {
-      [fieldname]: value,
-    });
+  }>(
+    method,
+    {
+      doctype: SYSTEM_SETTINGS_DOCTYPE,
+      name: SYSTEM_SETTINGS_DOCTYPE,
+      fieldname,
+    },
+    hasApiKey ? `${method}:${fieldname}` : null,
+  );
 
   return {
     value: data?.message ?? null,
     isLoading,
-    isSaving,
     error,
-    mutate,
-    updateSystemApiKey,
   };
 }
