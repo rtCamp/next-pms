@@ -1,106 +1,162 @@
 import frappe
+from frappe.utils import flt
 
 from next_pms.project_currency.api.project_timesheet_billing_recalculation import (
     generate_the_error_log,
 )
 
+BILLING_TYPES_WITH_THRESHOLD = ("Retainer", "Time and Material")
+
 
 def send_reminder_mail():
     try:
-        project_list = frappe.get_all(
-            "Project",
-            filters={
-                "custom_send_reminder_when_approaching_project_threshold_limit": 1,
-                "status": "Open",
-            },
-            fields=["name"],
-        )
+        projects = get_projects_over_threshold()
+        if not projects:
+            return
 
-        need_to_send_reminder_project_list = filter_project_list(project_list)
+        project_names = [project.name for project in projects]
+        recipients_by_project = get_project_manager_recipients(project_names)
+        templates = get_email_templates({project.custom_email_template for project in projects})
 
-        for project in need_to_send_reminder_project_list:
-            send_reminder_mail_for_project(project)
+        for project in projects:
+            send_reminder_mail_for_project(
+                project,
+                recipients_by_project.get(project.name, []),
+                templates.get(project.custom_email_template),
+            )
     except Exception:
         generate_the_error_log(
             "send_reminder_project_threshold_mail_failed",
         )
 
 
-def send_reminder_mail_for_project(project: str):
-    if not project:
-        return frappe.throw(frappe._("Project not found"))
-
-    if not project.custom_email_template:
+def send_reminder_mail_for_project(project, recipients: list, template):
+    if not recipients or not template:
         return
 
-    user_list = frappe.get_all(
-        "DocShare",
-        fields=["name", "user"],
-        filters=dict(share_doctype=project.doctype, share_name=project.name),
-    )
-
-    user_list = [user["user"] for user in user_list]
-
-    all_pms = [
-        d.parent
-        for d in frappe.get_all(
-            "Has Role",
-            filters={
-                "role": "Projects Manager",
-                "parenttype": "User",
-                "parent": ["in", user_list],
-            },
-            fields=["parent"],
-        )
-    ]
-
-    reminder_template = frappe.get_doc("Email Template", project.custom_email_template)
-
-    email_message = ""
-    if reminder_template.use_html:
-        email_message = reminder_template.response_html
-    else:
-        email_message = reminder_template.response
-
-    email_subject = reminder_template.subject
-    recipients = all_pms
-
-    args = {
-        "project": project,
-    }
+    email_message = template.response_html if template.use_html else template.response
+    args = {"project": project}
 
     message = frappe.render_template(email_message, args)  # nosemgrep - trusted Email Template from DB
-    subject = frappe.render_template(email_subject, args)  # nosemgrep - trusted Email Template from DB
+    subject = frappe.render_template(template.subject, args)  # nosemgrep - trusted Email Template from DB
 
     frappe.sendmail(recipients=recipients, subject=subject, message=message)
 
 
-def filter_project_list(project_list: list):
-    need_to_send_reminder_project_list = []
-    for project_name in project_list:
-        project = frappe.get_doc("Project", project_name)
+def get_projects_over_threshold() -> list:
+    """Load every reminder-enabled open project in two queries and keep the ones past their threshold.
 
-        project_threshold = 0
+    Returns:
+        list: Project documents (with budget rows attached) whose consumed percentage
+        has reached custom_reminder_threshold_percentage.
+    """
+    projects = frappe.get_all(
+        "Project",
+        filters={
+            "custom_send_reminder_when_approaching_project_threshold_limit": 1,
+            "status": "Open",
+            "custom_billing_type": ["in", BILLING_TYPES_WITH_THRESHOLD],
+            "custom_email_template": ["is", "set"],
+        },
+        fields=["*"],
+    )
+    if not projects:
+        return []
 
-        if project.custom_billing_type == "Retainer":
-            custom_project_budget_hours = project.custom_project_budget_hours
-            if len(custom_project_budget_hours) == 0:
-                continue
+    budget_rows_by_project = get_budget_rows_by_project([project.name for project in projects])
 
-            custom_project_budget_hours = custom_project_budget_hours[-1]
-            project_threshold = (
-                custom_project_budget_hours.consumed_hours * 100
-            ) / custom_project_budget_hours.hours_purchased
+    over_threshold = []
+    for project in projects:
+        project.custom_project_budget_hours = budget_rows_by_project.get(project.name, [])
 
-        elif project.custom_billing_type == "Time and Material":
-            project_threshold = (
-                custom_project_budget_hours.total_billable_amount * 100
-            ) / custom_project_budget_hours.estimated_costing
-
-        else:
+        consumed_percentage = get_consumed_percentage(project)
+        if consumed_percentage is None:
             continue
 
-        if project.custom_reminder_threshold_percentage <= project_threshold and project.custom_email_template:
-            need_to_send_reminder_project_list.append(project)
+        if flt(project.custom_reminder_threshold_percentage) <= consumed_percentage:
+            over_threshold.append(frappe.get_doc({"doctype": "Project", **project}))
 
-    return need_to_send_reminder_project_list
+    return over_threshold
+
+
+def get_consumed_percentage(project) -> float | None:
+    """Return how much of the project's budget is consumed, as a percentage.
+
+    Args:
+        project (dict): Project row with custom_project_budget_hours attached, ordered by idx.
+
+    Returns:
+        float | None: Consumed percentage, or None when the project has no usable budget.
+    """
+    if project.custom_billing_type == "Retainer":
+        if not project.custom_project_budget_hours:
+            return None
+        latest_budget = project.custom_project_budget_hours[-1]
+        consumed, purchased = latest_budget.consumed_hours, latest_budget.hours_purchased
+    else:
+        consumed, purchased = project.total_billable_amount, project.estimated_costing
+
+    if not flt(purchased):
+        return None
+    return flt(consumed) * 100 / flt(purchased)
+
+
+def get_budget_rows_by_project(project_names: list) -> dict:
+    rows = frappe.get_all(
+        "Project Budget",
+        filters={"parenttype": "Project", "parent": ["in", project_names]},
+        fields=["*"],
+        order_by="parent asc, idx asc",
+    )
+    rows_by_project = {}
+    for row in rows:
+        rows_by_project.setdefault(row.parent, []).append(row)
+    return rows_by_project
+
+
+def get_project_manager_recipients(project_names: list) -> dict:
+    """Map each project to the users it is shared with who hold the Projects Manager role.
+
+    Args:
+        project_names (list): Project names to look up shares for.
+
+    Returns:
+        dict: Project name mapped to a list of recipient user ids.
+    """
+    shares = frappe.get_all(
+        "DocShare",
+        filters={"share_doctype": "Project", "share_name": ["in", project_names]},
+        fields=["share_name", "user"],
+    )
+    shared_users = {share.user for share in shares if share.user}
+    if not shared_users:
+        return {}
+
+    project_managers = set(
+        frappe.get_all(
+            "Has Role",
+            filters={
+                "role": "Projects Manager",
+                "parenttype": "User",
+                "parent": ["in", list(shared_users)],
+            },
+            pluck="parent",
+        )
+    )
+
+    recipients_by_project = {}
+    for share in shares:
+        if share.user in project_managers:
+            recipients = recipients_by_project.setdefault(share.share_name, [])
+            if share.user not in recipients:
+                recipients.append(share.user)
+    return recipients_by_project
+
+
+def get_email_templates(template_names: set) -> dict:
+    templates = frappe.get_all(
+        "Email Template",
+        filters={"name": ["in", list(template_names)]},
+        fields=["name", "subject", "use_html", "response", "response_html"],
+    )
+    return {template.name: template for template in templates}

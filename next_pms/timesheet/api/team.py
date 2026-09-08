@@ -16,7 +16,7 @@ from frappe import (
     throw,
     whitelist,
 )
-from frappe.utils.data import add_days, getdate
+from frappe.utils.data import add_days, flt, getdate
 
 from next_pms.api.utils import error_logger
 from next_pms.timesheet.doc_events.timesheet import (
@@ -422,6 +422,8 @@ def _approve_or_reject_timesheet(
             doc = get_doc("Timesheet", timesheet.name)
             doc.custom_approval_status = status
             for log in doc.time_logs:
+                if flt(log.rejected_hours):
+                    continue
                 log.custom_rejection_reason = note if status == "Rejected" else None
             doc.save(ignore_permissions=has_permission)
             if status == "Approved":

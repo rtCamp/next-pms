@@ -28,7 +28,7 @@ interface UseDoctypeLinkLookupOptions {
   /** Raw user search text before debounce is applied. */
   query: string;
   /** Keeps the current selection visible when it is not in the latest results. */
-  selectedOption?: LookupOption | null;
+  selectedOption?: LookupOption | LookupOption[] | null;
 }
 
 /**

@@ -115,8 +115,21 @@ def get_employee_working_hours(employee: str | None = None) -> dict:
         # daily hours = 40.0 / 5 = 8.0
         ```
     """
-    if not employee:
+    roles = set(frappe.get_roles(frappe.session.user))
+    manager_roles = {
+        "Projects Manager",
+        "Timesheet Manager",
+        "Delivery Manager",
+        "Delivery User",
+        "HR Manager",
+        "HR User",
+        "System Manager",
+    }
+    if not (manager_roles & roles) and frappe.session.user != "Administrator":
         employee = get_employee_from_user()
+    elif not employee:
+        employee = get_employee_from_user()
+
     if not employee:
         return _empty_working_hours()
 
@@ -180,7 +193,7 @@ def get_employee_list(
         user_group=user_group,
         reports_to=reports_to,
         roles=roles,
-        ignore_permissions=status is not None,
+        ignore_permissions=False,
         ignore_default_filters=ignore_default_filters,
         extra_fields=["user_id"],
     )

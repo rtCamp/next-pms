@@ -1,25 +1,5 @@
 import frappe
-from frappe import get_all, get_list, get_roles, get_value, whitelist
-
-
-@whitelist(methods=["GET"])
-def get_employee_with_role(role: str | list[str]):
-    """returns a list of all approvers for the given role like ["Projects Manager","Projects User"]"""
-    ## TODO : Deprecate this method and use get_approver_details instead, as it returns only approver details and does not expose role-based output.
-    import json
-
-    if isinstance(role, str):
-        role = json.loads(role)
-
-    user_ids = get_all(
-        "Has Role",
-        filters={"role": ["in", role], "parenttype": "User", "parent": ["!=", "Administrator"]},
-        pluck="parent",
-    )
-    employees = get_all(
-        "Employee", filters={"user_id": ["in", user_ids], "status": "Active"}, fields=["name", "employee_name"]
-    )
-    return employees
+from frappe import get_all, get_list, get_value, whitelist
 
 
 @whitelist(methods=["GET"])
@@ -29,11 +9,17 @@ def get_approver_details():
 
     user_ids = get_all(
         "Has Role",
-        filters={"role": ["in", roles], "parenttype": "User", "parent": ["!=", "Administrator"]},
+        filters={
+            "role": ["in", roles],
+            "parenttype": "User",
+            "parent": ["!=", "Administrator"],
+        },
         pluck="parent",
     )
     employees = get_all(
-        "Employee", filters={"user_id": ["in", user_ids], "status": "Active"}, fields=["name", "employee_name", "image"]
+        "Employee",
+        filters={"user_id": ["in", user_ids], "status": "Active"},
+        fields=["name", "employee_name", "image"],
     )
     return employees
 
@@ -115,11 +101,6 @@ def filter_employees(
     """
     import json
 
-    user_roles = get_roles()
-
-    if not ignore_permissions:
-        ignore_permissions = set(user_roles).intersection(["Timesheet User", "Timesheet Manager"])
-
     fields = ["name", "image", "employee_name", "department", "designation"]
     if extra_fields:
         fields.extend(extra_fields)
@@ -132,6 +113,13 @@ def filter_employees(
     has_membership_filter = ids is not None
     filters = {"status": ["in", ["Active"]]}
     or_filters = {}
+
+    user_roles = frappe.get_roles()
+    if not ignore_permissions:
+        if set(user_roles).intersection(["Timesheet Manager", "Projects Manager"]):
+            ignore_permissions = True
+        elif has_membership_filter and set(user_roles).intersection(["Timesheet User", "Projects User"]):
+            ignore_permissions = True
 
     if reports_to:
         if isinstance(reports_to, str):
@@ -189,7 +177,11 @@ def filter_employees(
         is_shared_with_everyone = bool(
             get_all(
                 "DocShare",
-                filters={"share_doctype": "Project", "share_name": ["in", project], "everyone": 1},
+                filters={
+                    "share_doctype": "Project",
+                    "share_name": ["in", project],
+                    "everyone": 1,
+                },
                 limit=1,
             )
         )
@@ -197,7 +189,11 @@ def filter_employees(
             has_membership_filter = True
             project_employee = get_all(
                 "DocShare",
-                filters={"share_doctype": "Project", "share_name": ["in", project], "everyone": 0},
+                filters={
+                    "share_doctype": "Project",
+                    "share_name": ["in", project],
+                    "everyone": 0,
+                },
                 pluck="user",
             )
             ids = [get_value("Employee", {"user_id": employee}) for employee in project_employee]
@@ -216,7 +212,11 @@ def filter_employees(
         has_membership_filter = True
         user_ids = get_all(
             "Has Role",
-            filters={"role": ["in", roles], "parenttype": "User", "parent": ["!=", "Administrator"]},
+            filters={
+                "role": ["in", roles],
+                "parenttype": "User",
+                "parent": ["!=", "Administrator"],
+            },
             pluck="parent",
         )
         ids = get_all("Employee", filters={"user_id": ["in", user_ids]}, pluck="name")

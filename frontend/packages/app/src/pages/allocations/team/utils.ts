@@ -126,8 +126,14 @@ export function mapTeamAllocationToMembers(
   response: TeamAllocationResponse,
   managerNameMap?: ManagerNameMap,
 ): Member[] {
-  const { employees, resource_allocations, customer, leaves, holidays } =
-    response;
+  const {
+    employees,
+    resource_allocations,
+    customer,
+    leaves,
+    employee_leaves,
+    holidays,
+  } = response;
 
   const employeeList = employees ?? [];
   const allocationList = resource_allocations ?? [];
@@ -165,6 +171,27 @@ export function mapTeamAllocationToMembers(
         : {}),
     });
     leavesByEmployee.set(leave.employee, employeeLeaves);
+  }
+
+  // Holidays never reach the grid through leave applications, and they carry a name worth
+  // showing, so each one stays its own single-day range.
+  for (const [employeeId, daysOff] of Object.entries(employee_leaves ?? {})) {
+    const holidays = Object.entries(daysOff)
+      .filter(([, dayOff]) => dayOff.is_holiday)
+      .map(([date, dayOff]) => ({
+        startDate: parseISO(date),
+        endDate: parseISO(date),
+        label: dayOff.holiday_name || "Holiday",
+      }));
+
+    if (holidays.length === 0) {
+      continue;
+    }
+
+    leavesByEmployee.set(employeeId, [
+      ...(leavesByEmployee.get(employeeId) ?? []),
+      ...holidays,
+    ]);
   }
 
   for (const alloc of allocationList) {
