@@ -10,13 +10,20 @@ import type { FrappeError } from "frappe-react-sdk";
 /**
  * Internal dependencies.
  */
-import { usePMSSettings } from "@/hooks/usePMSSettings";
+import { usePMSSettings, usePMSSystemSettings } from "@/hooks/usePMSSettings";
 import { parseFrappeErrorMsg } from "@/lib/utils";
 import { useUser } from "@/providers/user";
-import { USER_CONFIGURATION_PAGES } from "./constants";
+import { SETTINGS_SECTIONS } from "./constants";
 import { ProfilePage } from "./pages/profile";
+import { SystemResourceManagementPage } from "./pages/system-resource-management";
+import { SystemTimesheetsPage } from "./pages/system-timesheets";
 import { TimesheetsPage } from "./pages/timesheets";
-import type { SettingsModalProps, SettingsPage } from "./types";
+import type {
+  FieldUpdater,
+  SettingsModalProps,
+  SettingsPage,
+  SystemSettings,
+} from "./types";
 
 export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
   const toast = useToasts();
@@ -24,12 +31,18 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
   const [autoExpandWeeks, setAutoExpandWeeks] = useState("");
   const [useSystemAutoExpandWeeks, setUseSystemAutoExpandWeeks] =
     useState(true);
-  const { employeeName, userName, userId, image } = useUser(({ state }) => ({
-    employeeName: state.employeeName,
-    userName: state.userName,
-    userId: state.userId,
-    image: state.image,
-  }));
+  const [systemForm, setSystemForm] = useState<SystemSettings>({ name: "" });
+  const { employeeName, userName, userId, image, roles } = useUser(
+    ({ state }) => ({
+      employeeName: state.employeeName,
+      userName: state.userName,
+      userId: state.userId,
+      image: state.image,
+      roles: state.roles,
+    }),
+  );
+  const isSystemManager = roles.includes("System Manager");
+
   const {
     error: settingsError,
     isLoading,
@@ -38,9 +51,23 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
     pmsSettings,
     updatePMSSettings,
   } = usePMSSettings(open);
-  const activePageConfig =
-    USER_CONFIGURATION_PAGES.find(({ id }) => id === activePage) ??
-    USER_CONFIGURATION_PAGES[0];
+  const {
+    error: systemError,
+    isLoading: isSystemLoading,
+    isSaving: isSystemSaving,
+    mutate: mutateSystem,
+    systemSettings,
+    updateSystemSettings,
+  } = usePMSSystemSettings(open && isSystemManager);
+
+  const sections = isSystemManager
+    ? SETTINGS_SECTIONS
+    : SETTINGS_SECTIONS.filter(({ tabs }) =>
+        tabs.some(({ id }) => !id.startsWith("system-")),
+      );
+  const activeTab = sections
+    .flatMap(({ tabs }) => tabs)
+    .find(({ id }) => id === activePage);
   const systemAutoExpandWeeks =
     pmsSettings?.system_auto_expand_weeks_by_default;
 
@@ -55,10 +82,19 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
   }, [pmsSettings]);
 
   useEffect(() => {
-    if (settingsError) {
-      toast.error(parseFrappeErrorMsg(settingsError));
+    if (systemSettings) {
+      const { pm_report_api_key, ...form } = systemSettings;
+      void pm_report_api_key;
+      setSystemForm(form);
     }
-  }, [settingsError, toast]);
+  }, [systemSettings]);
+
+  useEffect(() => {
+    const error = settingsError ?? systemError;
+    if (error) {
+      toast.error(parseFrappeErrorMsg(error));
+    }
+  }, [settingsError, systemError, toast]);
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -91,6 +127,25 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
     }
   };
 
+  const saveSystemSettings = async () => {
+    try {
+      await updateSystemSettings(systemForm);
+      await mutateSystem();
+      toast.success("Settings saved");
+    } catch (error) {
+      toast.error(parseFrappeErrorMsg(error as FrappeError));
+    }
+  };
+
+  const updateSystemField: FieldUpdater<SystemSettings> = (field, value) => {
+    setSystemForm((previous) => ({ ...previous, [field]: value }));
+  };
+
+  const isSystemTab = activeTab?.id.startsWith("system-") ?? false;
+  const isSaveDisabled = isSystemTab
+    ? isSystemLoading || isSystemSaving || Boolean(systemError)
+    : isLoading || isSaving || Boolean(settingsError);
+
   return (
     <Dialog
       open={open}
@@ -103,33 +158,38 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
     >
       <div className="flex h-[min(860px,calc(100vh-8rem))] bg-surface-menu-bar">
         <aside className="flex w-56 shrink-0 flex-col overflow-y-auto border-r border-outline-gray-1 bg-surface-menu-bar p-2">
-          <p className="flex h-7 items-center px-2 text-base text-ink-gray-5">
-            User Configuration
-          </p>
-          <nav className="flex flex-col gap-0.5" aria-label="Settings sections">
-            {USER_CONFIGURATION_PAGES.map(({ id, label, icon: Icon }) => (
-              <button
-                key={id}
-                type="button"
-                onClick={() => setActivePage(id)}
-                aria-current={activePage === id ? "page" : undefined}
-                className={cn(
-                  "flex h-7 w-full items-center gap-2 rounded px-2 text-left text-base text-ink-gray-7",
-                  activePage === id
-                    ? "bg-surface-selected shadow-sm"
-                    : "hover:bg-surface-gray-2",
-                )}
-              >
-                <Icon size={16} className="shrink-0 text-ink-gray-6" />
+          {sections.map(({ label, tabs }) => (
+            <div key={label} className="flex flex-col">
+              <p className="flex h-7 items-center px-2 text-base text-ink-gray-5">
                 {label}
-              </button>
-            ))}
-          </nav>
+              </p>
+              <nav className="flex flex-col gap-0.5" aria-label={label}>
+                {tabs.map(({ id, label: tabLabel, icon: Icon }) => (
+                  <button
+                    key={id}
+                    type="button"
+                    onClick={() => setActivePage(id)}
+                    aria-current={activePage === id ? "page" : undefined}
+                    className={cn(
+                      "flex h-7 w-full items-center gap-2 rounded px-2 text-left text-base text-ink-gray-7",
+                      activePage === id
+                        ? "bg-surface-selected shadow-sm"
+                        : "hover:bg-surface-gray-2",
+                    )}
+                  >
+                    <Icon size={16} className="shrink-0 text-ink-gray-6" />
+                    {tabLabel}
+                  </button>
+                ))}
+              </nav>
+            </div>
+          ))}
         </aside>
 
         <main className="flex flex-1 flex-col overflow-y-auto bg-surface-modal">
           <div className="px-[4.4rem] pt-10 pb-16">
-            {isLoading ? (
+            {isLoading ||
+            (activeTab?.id.startsWith("system-") && isSystemLoading) ? (
               <Spinner isFull />
             ) : activePage === "profile" ? (
               <ProfilePage
@@ -145,16 +205,31 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
                 onAutoExpandWeeksChange={setAutoExpandWeeks}
                 onUseSystemAutoExpandWeeksChange={setUseSystemAutoExpandWeeks}
               />
+            ) : activePage === "system-timesheets" ? (
+              <SystemTimesheetsPage
+                form={systemForm}
+                updateField={updateSystemField}
+                hasApiKey={Boolean(systemSettings?.pm_report_api_key)}
+              />
+            ) : activePage === "system-resource-management" ? (
+              <SystemResourceManagementPage
+                form={systemForm}
+                updateField={updateSystemField}
+              />
             ) : null}
           </div>
-          {activePageConfig.showSave && (
+          {activeTab?.showSave && (
             <div className="mt-auto flex justify-end border-t border-outline-gray-1 px-8 py-5">
               <Button
                 variant="solid"
                 label="Save"
-                loading={isSaving}
-                disabled={isLoading || isSaving || Boolean(settingsError)}
-                onClick={saveSettings}
+                loading={isSaving || isSystemSaving}
+                disabled={isSaveDisabled}
+                onClick={
+                  activeTab.id.startsWith("system-")
+                    ? saveSystemSettings
+                    : saveSettings
+                }
               />
             </div>
           )}
