@@ -115,7 +115,6 @@ def get_liked_documents(doctype: str, fields: list | str | None = None):
     import json
 
     from frappe import get_all
-    from frappe.model import get_permitted_fields
 
     if isinstance(fields, str):
         try:
@@ -124,11 +123,6 @@ def get_liked_documents(doctype: str, fields: list | str | None = None):
             fields = [fields]
     if isinstance(fields, str):
         fields = [fields]
-
-    # Drop anything the user is not allowed to read on this doctype, so a crafted
-    # `fields` payload cannot pull in unpermitted columns or arbitrary expressions.
-    allowed_fields = set(get_permitted_fields(doctype))
-    fields = [field for field in (fields or []) if isinstance(field, str) and field in allowed_fields]
 
     doc_names = get_all(
         "Comment",
