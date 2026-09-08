@@ -10,7 +10,20 @@ import { ArrowDown, ArrowUp, Sort } from "@rtcamp/frappe-ui-react/icons";
  * Internal dependencies.
  */
 import { mergeClassNames as cn } from "../../utils";
-import type { SortField, SortState } from "../sort-button";
+
+export type SortOrder = "asc" | "desc";
+
+export interface SortField {
+  field: string;
+  label: string;
+  disabled?: boolean;
+  tooltipText?: string;
+}
+
+export interface SortState {
+  field: string;
+  order: SortOrder;
+}
 
 export interface SortSelectorProps {
   className?: string;

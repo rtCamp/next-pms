@@ -12,6 +12,7 @@
   "column_break_cypz",
   "allow_future_entries",
   "allow_weekend_entries",
+  "auto_expand_weeks_by_default",
   "reminder_setting_section",
   "send_daily_reminder",
   "daily_reminder_template",
@@ -27,6 +28,8 @@
   "report_configuration_section",
   "pm_report_api_key",
   "tab_break_34k6",
+  "rate_display_section",
+  "default_currency",
   "notifications_section",
   "send_missing_allocation_reminder",
   "remind_on",
@@ -227,12 +230,33 @@
    "fieldname": "pm_report_api_key",
    "fieldtype": "Password",
    "label": "PM Report API Key"
+  },
+  {
+   "fieldname": "rate_display_section",
+   "fieldtype": "Section Break",
+   "label": "Rate Display"
+  },
+  {
+   "default": "USD",
+   "description": "Currency used to display employee hourly rates across the resource management views. Rates held in another currency are converted at the current exchange rate.",
+   "fieldname": "default_currency",
+   "fieldtype": "Link",
+   "label": "Default Currency",
+   "options": "Currency"
+  },
+  {
+   "default": "4",
+   "description": "Number of recent weeks expanded by default on Timesheets page when a user uses the system setting.",
+   "fieldname": "auto_expand_weeks_by_default",
+   "fieldtype": "Int",
+   "label": "Auto Expand Weeks by Default",
+   "non_negative": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2026-04-29 19:10:48.300804",
+ "modified": "2026-09-02 00:07:36.473428",
  "modified_by": "Administrator",
  "module": "Timesheet",
  "name": "Timesheet Settings",

@@ -86,6 +86,7 @@ declare global {
         show_rag_trigger_page?: boolean;
         desk_theme?: string;
         has_todo_custom_fields?: boolean;
+        optional_project_fields?: Record<string, boolean>;
         is_calendar_setup: boolean;
         global_filters: GlobalFilters;
         allow_weekend_entries?: boolean;

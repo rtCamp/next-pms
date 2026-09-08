@@ -1,6 +1,7 @@
 /**
  * Internal dependencies.
  */
+import { mergeClassNames as cn } from "@/lib/utils";
 import { useTracking } from "../context";
 
 // Full circle normalized to 200 units; the rotated dash keeps only the
@@ -8,7 +9,13 @@ import { useTracking } from "../context";
 const CIRCLE_PATH_LENGTH = 200;
 const SEMICIRCLE = CIRCLE_PATH_LENGTH / 2;
 
-export function TaskCompletionCell() {
+type TaskCompletionCellProps = {
+  layout?: "stacked" | "row";
+};
+
+export function TaskCompletionCell({
+  layout = "row",
+}: TaskCompletionCellProps) {
   const tasks = useTracking((state) => state.tracking.tasks);
   const totalIssuesCreated = tasks.total;
   const issuesOpen = tasks.open;
@@ -23,8 +30,18 @@ export function TaskCompletionCell() {
       <span className="text-base font-medium text-ink-gray-8">
         Task completion
       </span>
-      <div className="flex items-center gap-6">
-        <div className="relative shrink-0 w-[167px]">
+      <div
+        className={cn(
+          "flex flex-1 flex-col items-center justify-center gap-5",
+          layout === "row" && "md:flex-row",
+        )}
+      >
+        <div
+          className={cn(
+            "relative shrink-0",
+            layout === "row" ? "w-41.75" : "w-55",
+          )}
+        >
           <svg
             viewBox="0 0 200 110"
             className="block w-full h-auto"
@@ -66,7 +83,12 @@ export function TaskCompletionCell() {
             <span className="text-xs text-ink-gray-6">completed</span>
           </div>
         </div>
-        <div className="flex flex-1 flex-col gap-2 text-base text-ink-gray-6">
+        <div
+          className={cn(
+            "flex w-full max-w-60 flex-col gap-2 text-base text-ink-gray-6",
+            layout === "row" && "md:flex-1",
+          )}
+        >
           <div className="flex items-center justify-between gap-2">
             <span className="min-w-0 truncate">Total issues created</span>
             <span className="font-medium">{totalIssuesCreated}</span>

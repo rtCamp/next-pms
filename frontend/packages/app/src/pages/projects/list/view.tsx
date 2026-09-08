@@ -86,9 +86,7 @@ function ProjectList() {
                   aria-disabled={isDisabled}
                   className={cn(
                     "flex h-7 min-w-0 items-center gap-1 rounded-sm py-1.5 select-none",
-                    isDisabled
-                      ? "cursor-not-allowed text-ink-gray-5"
-                      : "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-outline-gray-3",
+                    isDisabled && "cursor-not-allowed text-ink-gray-5",
                   )}
                   onClick={() => handleHeaderClick(column.sortField!)}
                 >

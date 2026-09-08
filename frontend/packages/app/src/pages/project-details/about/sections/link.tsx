@@ -1,6 +1,7 @@
 /**
  * External dependencies.
  */
+import { useMemo } from "react";
 import { Github } from "@next-pms/design-system/components";
 import {
   Hashtag,
@@ -11,6 +12,7 @@ import {
 /**
  * Internal dependencies.
  */
+import { safeExternalUrl } from "@/lib/utils";
 import { Section } from "../section";
 import { useSidebar } from "../sidebarContext";
 
@@ -20,18 +22,28 @@ const LINK_CLASS =
 export function LinkSection() {
   const links = useSidebar((state) => state.sidebar.links);
 
+  // Link values come from unvalidated `Data` fields, so an unusable one drops
+  // its icon rather than rendering an anchor that goes nowhere safe.
+  const href = useMemo(
+    () => ({
+      website: safeExternalUrl(links.website),
+      googleDrive: safeExternalUrl(links.google_drive),
+      slack: safeExternalUrl(links.slack),
+      github: safeExternalUrl(links.github),
+    }),
+    [links.website, links.google_drive, links.slack, links.github],
+  );
+
   return (
     <Section
       value="links"
       title="Links"
-      empty={
-        !links.website && !links.google_drive && !links.slack && !links.github
-      }
+      empty={!href.website && !href.googleDrive && !href.slack && !href.github}
     >
       <div className="flex items-center gap-2">
-        {links.website && (
+        {href.website && (
           <a
-            href={links.website}
+            href={href.website}
             target="_blank"
             rel="noreferrer"
             aria-label="Project website"
@@ -40,9 +52,9 @@ export function LinkSection() {
             <SolidExternalLink className="h-4 w-4" />
           </a>
         )}
-        {links.google_drive && (
+        {href.googleDrive && (
           <a
-            href={links.google_drive}
+            href={href.googleDrive}
             target="_blank"
             rel="noreferrer"
             aria-label="Drive folder"
@@ -51,9 +63,9 @@ export function LinkSection() {
             <SolidSharedFolder className="h-4 w-4" />
           </a>
         )}
-        {links.slack && (
+        {href.slack && (
           <a
-            href={links.slack}
+            href={href.slack}
             target="_blank"
             rel="noreferrer"
             aria-label="Slack channel"
@@ -62,9 +74,9 @@ export function LinkSection() {
             <Hashtag className="h-4 w-4" />
           </a>
         )}
-        {links.github && (
+        {href.github && (
           <a
-            href={links.github}
+            href={href.github}
             target="_blank"
             rel="noreferrer"
             aria-label="GitHub repository"

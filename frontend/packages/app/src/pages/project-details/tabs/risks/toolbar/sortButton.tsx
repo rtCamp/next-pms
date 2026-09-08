@@ -1,7 +1,7 @@
 /**
  * External dependencies.
  */
-import { SortButton as SortButtonBase } from "@next-pms/design-system/components";
+import { SortSelector } from "@next-pms/design-system/components";
 
 /**
  * Internal dependencies.
@@ -20,7 +20,7 @@ export function SortButton() {
   const setSort = useRisks((c) => c.actions.setSort);
 
   return (
-    <SortButtonBase
+    <SortSelector
       className="text-ink-gray-7 text-base"
       fields={SORT_FIELDS}
       sort={sort}

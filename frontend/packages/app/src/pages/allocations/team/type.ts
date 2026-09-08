@@ -1,3 +1,4 @@
+import type { EmployeeLeaveDay } from "../types";
 import type { AllocationOverrideEntry } from "../utils";
 
 export interface Employee {
@@ -22,6 +23,12 @@ export interface Leave {
   custom_first_halfsecond_half: string | null;
   total_leave_days: number;
   name: string;
+}
+
+export interface Holiday {
+  employee: string;
+  holiday_date: string;
+  description: string;
 }
 
 export interface ResourceAllocation {
@@ -60,6 +67,8 @@ export interface Permissions {
 export interface TeamAllocationResponse {
   employees: Employee[];
   leaves: Leave[];
+  employee_leaves?: Record<string, Record<string, EmployeeLeaveDay>>;
+  holidays: Holiday[];
   resource_allocations: ResourceAllocation[];
   customer: Record<string, Customer>;
   total_count: number;

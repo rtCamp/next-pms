@@ -30,7 +30,7 @@ export function CostBurnCell() {
           href={`/desk/timesheet?parent_project=${projectId}`}
           target="_blank"
           rel="noreferrer noopener"
-          className="flex items-center gap-2 text-base text-ink-gray-6 hover:text-ink-gray-8"
+          className="flex items-center gap-2 rounded-sm text-base text-ink-gray-6 hover:text-ink-gray-8"
         >
           All Timesheets
           <ArrowUpRight aria-hidden className="size-4" />

@@ -13,6 +13,7 @@ import {
 import { teamAllocationStatusOptionValues } from "./constants";
 import type {
   AllocationTypeSelection,
+  Holiday,
   ManagerNameMap,
   TeamAllocationResponse,
 } from "./type";
@@ -91,6 +92,30 @@ function parseLeaveHalfDayPortion(
 }
 
 /**
+ * Groups each employee's public holidays into single-day LeaveAllocation ranges, one per
+ * holiday, labelled with the holiday's name so they render distinctly from approved leave
+ * (which falls back to the generic "N days off" wording when no label is set).
+ */
+function buildEmployeeHolidayAllocations(
+  holidayList: Holiday[],
+): Map<string, LeaveAllocation[]> {
+  const holidaysByEmployee = new Map<string, LeaveAllocation[]>();
+
+  for (const holiday of holidayList) {
+    const date = parseISO(holiday.holiday_date);
+    const employeeHolidays = holidaysByEmployee.get(holiday.employee) ?? [];
+    employeeHolidays.push({
+      startDate: date,
+      endDate: date,
+      label: holiday.description.trim() || "Holiday",
+    });
+    holidaysByEmployee.set(holiday.employee, employeeHolidays);
+  }
+
+  return holidaysByEmployee;
+}
+
+/**
  * Converts a TeamAllocationResponse from the API into a Member[] array
  * suitable for the GanttGrid component.
  *
@@ -101,11 +126,19 @@ export function mapTeamAllocationToMembers(
   response: TeamAllocationResponse,
   managerNameMap?: ManagerNameMap,
 ): Member[] {
-  const { employees, resource_allocations, customer, leaves } = response;
+  const {
+    employees,
+    resource_allocations,
+    customer,
+    leaves,
+    employee_leaves,
+    holidays,
+  } = response;
 
   const employeeList = employees ?? [];
   const allocationList = resource_allocations ?? [];
   const leaveList = leaves ?? [];
+  const holidaysByEmployee = buildEmployeeHolidayAllocations(holidays ?? []);
 
   // Group allocations by employee, then by project
   const allocationsByEmployee = new Map<
@@ -138,6 +171,27 @@ export function mapTeamAllocationToMembers(
         : {}),
     });
     leavesByEmployee.set(leave.employee, employeeLeaves);
+  }
+
+  // Holidays never reach the grid through leave applications, and they carry a name worth
+  // showing, so each one stays its own single-day range.
+  for (const [employeeId, daysOff] of Object.entries(employee_leaves ?? {})) {
+    const holidays = Object.entries(daysOff)
+      .filter(([, dayOff]) => dayOff.is_holiday)
+      .map(([date, dayOff]) => ({
+        startDate: parseISO(date),
+        endDate: parseISO(date),
+        label: dayOff.holiday_name || "Holiday",
+      }));
+
+    if (holidays.length === 0) {
+      continue;
+    }
+
+    leavesByEmployee.set(employeeId, [
+      ...(leavesByEmployee.get(employeeId) ?? []),
+      ...holidays,
+    ]);
   }
 
   for (const alloc of allocationList) {
@@ -178,7 +232,10 @@ export function mapTeamAllocationToMembers(
         )
       : [];
 
-    const memberLeaves = leavesByEmployee.get(employee.name) ?? [];
+    const memberLeaves = [
+      ...(leavesByEmployee.get(employee.name) ?? []),
+      ...(holidaysByEmployee.get(employee.name) ?? []),
+    ];
 
     return {
       id: employee.name,

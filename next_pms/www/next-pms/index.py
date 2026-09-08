@@ -44,6 +44,7 @@ def get_context(context):
     boot["has_customer_feedback"] = is_customer_feedback_available()
     boot["show_rag_trigger_page"] = show_rag_trigger_page()
     boot["has_todo_custom_fields"] = has_todo_custom_fields()
+    boot["optional_project_fields"] = optional_project_fields()
     boot["is_calendar_setup"] = is_google_calendar_enabled()
     boot["global_filters"] = get_global_filters()
     boot["allow_weekend_entries"] = bool(
@@ -89,6 +90,7 @@ def get_boot():
     boot["has_customer_feedback"] = is_customer_feedback_available()
     boot["show_rag_trigger_page"] = show_rag_trigger_page()
     boot["has_todo_custom_fields"] = has_todo_custom_fields()
+    boot["optional_project_fields"] = optional_project_fields()
     boot["is_calendar_setup"] = is_google_calendar_enabled()
     boot["app_name"] = "Next PMS"
     boot["global_filters"] = get_global_filters()
@@ -117,6 +119,27 @@ def has_todo_custom_fields():
     """
     meta = frappe.get_meta("ToDo")
     return all(meta.has_field(fieldname) for fieldname in ("custom_title", "custom_from_time", "custom_to_time"))
+
+
+OPTIONAL_PROJECT_FIELDS = (
+    "custom_source",
+    "custom_territory",
+    "custom_previous_cms",
+    "custom_restricted_under_nda",
+    "custom_permission_for_case_study",
+    "custom_permission_for_testimonial",
+)
+
+
+def optional_project_fields():
+    """Availability map for Project custom fields that Next PMS renders but does not ship.
+
+    They come from other apps installed alongside Next PMS, so the frontend must check
+    each one before binding an editor to it - writes to a field that has no column are
+    silently discarded by the REST layer.
+    """
+    meta = frappe.get_meta("Project")
+    return {fieldname: bool(meta.has_field(fieldname)) for fieldname in OPTIONAL_PROJECT_FIELDS}
 
 
 def get_global_filters():

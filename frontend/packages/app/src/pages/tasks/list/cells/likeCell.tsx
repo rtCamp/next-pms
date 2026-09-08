@@ -35,37 +35,22 @@ export function LikeCell({ name, likedBy }: { name: string; likedBy: string }) {
 
   return (
     <Tooltip text={liked ? "Unstar task" : "Star task"}>
-      {/* A native <button> can't be used here: ListRow already wraps every
-      cell in a <button>, and nested buttons are invalid HTML / trigger a
-      React DOM-nesting warning. */}
-      <div
-        role="button"
-        tabIndex={isToggling ? -1 : 0}
-        aria-disabled={isToggling}
+      <button
+        type="button"
+        disabled={isToggling}
         onClick={(e) => {
           e.stopPropagation();
-          if (!isToggling) toggle();
-        }}
-        onKeyDown={(e) => {
-          if (
-            !isToggling &&
-            e.target === e.currentTarget &&
-            (e.key === "Enter" || e.key === " ")
-          ) {
-            e.preventDefault();
-            e.stopPropagation();
-            toggle();
-          }
+          toggle();
         }}
         aria-label={liked ? "Unstar task" : "Star task"}
-        className="inline-flex w-4 h-4 shrink-0 cursor-pointer items-center justify-center focus:outline-none focus-visible:ring focus-visible:ring-outline-gray-3 rounded"
+        className="inline-flex w-4 h-4 shrink-0 cursor-pointer items-center justify-center rounded disabled:cursor-not-allowed"
       >
         {liked ? (
           <SolidStar className="text-ink-amber-2 size-4" />
         ) : (
           <Star className="text-ink-gray-4 size-4" />
         )}
-      </div>
+      </button>
     </Tooltip>
   );
 }

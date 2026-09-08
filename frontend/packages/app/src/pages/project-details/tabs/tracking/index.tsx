@@ -2,10 +2,11 @@
  * Internal dependencies.
  */
 import { ROUTES } from "@/lib/constant";
-import { currencyFormat, formatPercentage } from "@/lib/utils";
+import { currencyFormat, mergeClassNames as cn } from "@/lib/utils";
 import { BudgetBurnCell } from "./components/budgetBurn";
 import { ContractsTable } from "./components/contractsTable";
 import { CostBurnCell } from "./components/costBurn";
+import { FinancialsBlock } from "./components/financialsBlock";
 import { HoursUsageCell } from "./components/hoursUsage";
 import { InvoiceBurnCell } from "./components/invoiceBurn";
 import { KnowledgePoint } from "./components/knowledgePoint";
@@ -28,49 +29,54 @@ function TrackingContent() {
   const currency = useProjectDetail((s) => s.project?.custom_currency);
   const tracking = useTracking((state) => state.tracking);
 
+  const salesOrderHref = `${ROUTES.desk}/sales-order?status=${encodeURIComponent(
+    JSON.stringify(["!=", "Cancelled"]),
+  )}&project=${encodeURIComponent(projectId)}`;
+
+  const isBillable = tracking.billing_type !== "Non-Billable";
+
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex gap-3 *:basis-1/2!">
-        <div className="flex min-w-0 flex-1 flex-col justify-between gap-3">
-          <div className="flex gap-3">
-            <KnowledgePoint title="Company" value={tracking.company} />
-            <KnowledgePoint
-              title="Total project value"
-              value={currencyFormat(currency).format(
-                tracking.total_project_value ?? 0,
-              )}
-              href={`${ROUTES.desk}/sales-order?status=${encodeURIComponent(
-                JSON.stringify(["!=", "Cancelled"]),
-              )}&project=${encodeURIComponent(projectId)}`}
-            />
+      <div
+        className={cn(
+          "flex flex-col gap-3 lg:flex-row",
+          isBillable && "lg:*:basis-1/2!",
+        )}
+      >
+        {isBillable && (
+          <div className="flex min-w-0 flex-1 flex-col justify-between gap-3">
+            {tracking.billing_type === "Time and Material" ? (
+              <FinancialsBlock showProjectValue />
+            ) : (
+              <>
+                <div className="flex shrink-0">
+                  <KnowledgePoint
+                    title="Total project value"
+                    value={currencyFormat(currency).format(
+                      tracking.total_project_value ?? 0,
+                    )}
+                    href={salesOrderHref}
+                  />
+                </div>
+                <FinancialsBlock showProjectValue={false} />
+              </>
+            )}
           </div>
-          <div className="flex gap-3">
-            <KnowledgePoint
-              title="Projected profit"
-              value={currencyFormat(currency).format(
-                tracking.project_profit ?? 0,
-              )}
-            />
-            <KnowledgePoint
-              title="Projected profit margin"
-              value={formatPercentage(tracking.projected_profit_margin ?? 0)}
-            />
-          </div>
-        </div>
-        <TaskCompletionCell />
+        )}
+        <TaskCompletionCell layout={isBillable ? "stacked" : "row"} />
       </div>
 
-      <div className="flex gap-3">
+      <div className="flex flex-col gap-3 lg:flex-row">
         <HoursUsageCell />
         <InvoiceBurnCell />
       </div>
 
-      <div className="flex gap-3">
+      <div className="flex flex-col gap-3 lg:flex-row">
         <BudgetBurnCell />
         <CostBurnCell />
       </div>
 
-      <div className="flex gap-3">
+      <div className="flex flex-col gap-3 lg:flex-row">
         <KnowledgePoint
           title="Lifetime value to date"
           value={currencyFormat(currency).format(

@@ -1,4 +1,9 @@
 /**
+ * External dependencies.
+ */
+import { Holiday } from "@rtcamp/frappe-ui-react/icons";
+
+/**
  * Internal dependencies.
  */
 import { CELL_WIDTH } from "../constants";
@@ -25,13 +30,13 @@ export function GanttTimeoffBar({
   width,
 }: GanttTimeoffBarProps) {
   const resolvedLabel = label ?? getTimeoffLabel(startDate, endDate, timeoff);
+  const isHoliday = label !== undefined;
 
   return (
     <GanttBar
       variant="timeoff"
       label={resolvedLabel}
-      // A single narrow day-column has room for the icon only; rendering the label
-      // span anyway would still reserve its flex gap and shift the icon off-centre.
+      icon={isHoliday ? Holiday : undefined}
       showInlineLabel={width > CELL_WIDTH}
       left={left}
       width={width}

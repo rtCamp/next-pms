@@ -76,11 +76,13 @@ ALLOWED_TIMESHET_DETAIL_FIELDS = [
     "from_time",
     "to_time",
     "description",
+    "custom_rejection_reason",
     "project",
     "task",
     "project_name",
     "is_billable",
     "hours",
+    "rejected_hours",
     "parent",
     "docstatus",
 ]

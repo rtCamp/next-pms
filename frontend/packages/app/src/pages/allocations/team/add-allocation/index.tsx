@@ -418,10 +418,11 @@ function AddAllocationModal({
       name="employeeId"
       children={(field) => (
         <>
-          <FormLabel size="md" className="mb-1.5" required>
+          <FormLabel id="employee" size="md" className="mb-1.5" required>
             Employee
           </FormLabel>
           <Combobox
+            id="employee"
             inputClassName="bg-surface-white h-8 border-outline-gray-2 text-ink-gray-7"
             loading={isEmployeeLookupLoading || isProjectEmployeeAccessLoading}
             options={employeeOptions}
@@ -452,10 +453,11 @@ function AddAllocationModal({
       name="projectId"
       children={(field) => (
         <>
-          <FormLabel size="md" className="mb-1.5" required>
+          <FormLabel id="project" size="md" className="mb-1.5" required>
             Project
           </FormLabel>
           <Combobox
+            id="project"
             inputClassName="bg-surface-white h-8 border-outline-gray-2 text-ink-gray-7"
             loading={isProjectLookupLoading || isProjectEmployeeAccessLoading}
             options={projectOptions}
@@ -485,10 +487,11 @@ function AddAllocationModal({
       name="customer"
       children={(field) => (
         <>
-          <label className="block text-base text-ink-gray-5 mb-1.5">
+          <FormLabel id="customer" size="md" className="mb-1.5">
             Customer
-          </label>
+          </FormLabel>
           <Combobox
+            id="customer"
             inputClassName="bg-surface-white h-8 border-outline-gray-2 text-ink-gray-7"
             loading={isCustomerLookupLoading || isProjectLookupLoading}
             options={customerOptions}
@@ -511,9 +514,9 @@ function AddAllocationModal({
         name="recurrence"
         children={(field) => (
           <>
-            <label className="block text-base text-ink-gray-5 mb-1.5">
+            <FormLabel size="md" className="mb-1.5">
               Recurrence
-            </label>
+            </FormLabel>
             <TabButtons
               className="[&_button:not([data-pressed])]:text-ink-gray-5 [&_[data-pressed]]:text-ink-gray-8"
               value={field.state.value}
@@ -532,9 +535,9 @@ function AddAllocationModal({
       />
     ) : isRecurringEdit ? (
       <div>
-        <label className="block text-base text-ink-gray-5 mb-1.5">
+        <FormLabel size="md" className="mb-1.5">
           Recurrence
-        </label>
+        </FormLabel>
         <TabButtons
           className="[&_button:not([data-pressed])]:text-ink-gray-5 [&_[data-pressed]]:text-ink-gray-8"
           value="recurring"
@@ -553,9 +556,9 @@ function AddAllocationModal({
         name="recurrence"
         children={(field) => (
           <>
-            <label className="block text-base text-ink-gray-5 mb-1.5">
+            <FormLabel size="md" className="mb-1.5">
               Recurrence
-            </label>
+            </FormLabel>
             <TabButtons
               className="[&_button:not([data-pressed])]:text-ink-gray-5 [&_[data-pressed]]:text-ink-gray-8"
               value={field.state.value}
@@ -671,7 +674,7 @@ function AddAllocationModal({
               children={(toField) => (
                 <div className="flex w-full flex-col gap-1.5">
                   <div className="flex justify-between">
-                    <FormLabel size="md" required>
+                    <FormLabel id="date-range" size="md" required>
                       Start and end date
                     </FormLabel>
                     {variant === "edit" ? (
@@ -694,7 +697,7 @@ function AddAllocationModal({
                     formatter={formatDateRange}
                     placeholder="Start Date - End Date"
                   >
-                    {({ displayValue, disabled }) => (
+                    {({ displayValue, disabled, onTriggerKeyDown }) => (
                       <div
                         className={cn(
                           "w-full h-7 relative flex items-center border border-outline-gray-2 px-2.5 py-1 rounded",
@@ -704,8 +707,11 @@ function AddAllocationModal({
                         <input
                           readOnly
                           disabled={disabled}
+                          tabIndex={-1}
+                          onMouseDown={(e) => e.preventDefault()}
+                          onKeyDown={onTriggerKeyDown}
                           type="text"
-                          id="start"
+                          id="date-range"
                           value={displayValue}
                           className={cn(
                             "flex-1 text-base text-ink-gray-7",
@@ -736,10 +742,11 @@ function AddAllocationModal({
             name="hoursPerDay"
             children={(field) => (
               <div className="shrink-0 flex flex-1 flex-col gap-1.5">
-                <FormLabel size="md" required>
+                <FormLabel id="hours-per-day" size="md" required>
                   Hours / day
                 </FormLabel>
                 <DurationInput
+                  id="hours-per-day"
                   snap="smooth"
                   variant="outline"
                   size="md"
@@ -760,11 +767,12 @@ function AddAllocationModal({
               name="repeatFor"
               children={(field) => (
                 <div className="shrink-0 flex flex-1 flex-col gap-1.5">
-                  <FormLabel size="md" required>
+                  <FormLabel id="repeat-for" size="md" required>
                     Repeat for
                   </FormLabel>
                   <div className="relative">
                     <TextInput
+                      htmlId="repeat-for"
                       type="number"
                       size="md"
                       variant="outline"
@@ -804,10 +812,11 @@ function AddAllocationModal({
           )}
 
           <div className="shrink-0 flex flex-1 flex-col gap-1.5">
-            <label className="block text-base text-ink-gray-5">
+            <FormLabel id="total-hours" size="md">
               Total hours
-            </label>
+            </FormLabel>
             <TextInput
+              htmlId="total-hours"
               disabled={true}
               size="md"
               value={totalHours}
@@ -855,8 +864,11 @@ function AddAllocationModal({
           name="note"
           children={(field) => (
             <div className="flex flex-col gap-1.5">
-              <label className="block text-base text-ink-gray-5">Note</label>
+              <FormLabel id="allocation-note" size="md">
+                Note
+              </FormLabel>
               <Textarea
+                id="allocation-note"
                 variant="outline"
                 value={field.state.value ?? ""}
                 disabled={isLockedAllocationMetadataEdit}

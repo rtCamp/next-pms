@@ -2,7 +2,7 @@
  * External dependencies.
  */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { getTodayDate } from "@next-pms/design-system/date"
+import { getTodayDate } from "@next-pms/design-system/date";
 import { PayloadAction, createSlice } from "@reduxjs/toolkit";
 
 /**
@@ -107,7 +107,6 @@ const timesheetSlice = createSlice({
       state.isEditDialogOpen = action.payload;
       if (!action.payload) {
         state.timesheet = initialState.timesheet;
-
       }
     },
   },

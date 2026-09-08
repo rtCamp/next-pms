@@ -1,7 +1,7 @@
 /**
  * External dependencies.
  */
-import React from "react";
+import React, { type ComponentType, type SVGProps } from "react";
 import { Tooltip } from "@rtcamp/frappe-ui-react";
 import { TimeOff } from "@rtcamp/frappe-ui-react/icons";
 import { cva, type VariantProps } from "class-variance-authority";
@@ -79,6 +79,7 @@ interface GanttBarProps
   renderLabel?: (state: GanttBarRenderState) => React.ReactNode;
   renderFloatingLabel?: (state: GanttBarRenderState) => React.ReactNode;
   showInlineLabel?: boolean;
+  icon?: ComponentType<SVGProps<SVGSVGElement>>;
   trailingLabel?: React.ReactNode;
   trailingLabelVariant?: GanttBarTrailingLabelVariant;
   /**
@@ -110,6 +111,7 @@ export const GanttBar = React.forwardRef<HTMLDivElement, GanttBarProps>(
       showInlineLabel = true,
       trailingLabel,
       trailingLabelVariant,
+      icon: Icon = TimeOff,
       passive = false,
       onClick,
       style,
@@ -168,7 +170,7 @@ export const GanttBar = React.forwardRef<HTMLDivElement, GanttBarProps>(
         {isTimeoff ? (
           <Tooltip text={label}>
             <div className="absolute inset-0 px-2.5 py-2 w-full flex items-center justify-center gap-1.5">
-              <TimeOff
+              <Icon
                 className="shrink-0 size-4 text-ink-gray-5"
                 size={16}
                 strokeWidth={1.5}

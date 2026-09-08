@@ -1,4 +1,5 @@
 import json
+from unittest.mock import patch
 
 import frappe
 from erpnext import get_default_company
@@ -13,10 +14,11 @@ from next_pms.resource_management.api.project import (
 )
 from next_pms.resource_management.api.utils.leave_calendar import get_leave_calendars
 from next_pms.resource_management.api.utils.query import get_employee_leaves
-from next_pms.tests.utils import assign_empty_holiday_list
+from next_pms.tests.utils import assign_empty_holiday_list, make_employee
 
 WRITE_USER = "priya.sharma@example.com"
 READ_ONLY_USER = "arjun.mehta@example.com"
+RATE_CURRENCY_USER = "rate.currency@example.com"
 
 START_DATE = "2026-06-15"
 END_DATE = "2026-06-19"
@@ -569,3 +571,76 @@ class TestProjectLeaveReporting(IntegrationTestCase):
         get_employee_leaves.clear_cache()
         with self.assertQueryCount(3):
             get_leave_calendars(employees, START_DATE, LEAVE_VIEW_END)
+
+
+class TestProjectViewRateCurrency(IntegrationTestCase):
+    """Both project endpoints restate CTC in the configured display currency.
+
+    The allocation hover cards derive an hourly rate from the ctc/salary_currency the payload
+    carries, so an endpoint that skips the conversion reports rates in whichever currency the
+    employee happens to be paid in and the cards stop being comparable.
+    """
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.company = get_default_company()
+        cls.customer = frappe.db.get_value("Customer", {}, "name")
+        cls.project = frappe.get_doc(
+            {
+                "doctype": "Project",
+                "project_name": "Rate Currency Project",
+                "company": cls.company,
+                "customer": cls.customer,
+                "custom_billing_type": "Non-Billable",
+            }
+        ).insert(ignore_permissions=True)
+        cls.employee = make_employee(RATE_CURRENCY_USER, cls.company, ctc=100000, salary_currency="INR")
+        assign_empty_holiday_list(cls.employee)
+
+        frappe.get_doc(
+            {
+                "doctype": "Resource Allocation",
+                "employee": cls.employee,
+                "project": cls.project.name,
+                "allocation_start_date": START_DATE,
+                "allocation_end_date": END_DATE,
+                "hours_allocated_per_day": 8,
+                "status": "Confirmed",
+                "is_billable": 0,
+            }
+        ).insert(ignore_permissions=True)
+
+    def setUp(self):
+        self.original_currency = frappe.db.get_single_value("Timesheet Settings", "default_currency")
+        frappe.db.set_single_value("Timesheet Settings", "default_currency", "USD")
+        self._clear_caches()
+
+    def tearDown(self):
+        frappe.db.set_single_value("Timesheet Settings", "default_currency", self.original_currency)
+        self._clear_caches()
+
+    @staticmethod
+    def _clear_caches():
+        _get_resource_management_project_view_data.clear_cache()
+        _get_employees_resrouce_data_for_given_project.clear_cache()
+
+    def test_project_view_reports_the_display_currency(self):
+        with patch("erpnext.setup.utils.get_exchange_rate", return_value=0.012):
+            result = get_resource_management_project_view_data(
+                date=END_DATE, project_id=json.dumps([self.project.name])
+            )
+
+        employee = result["employees"][self.employee]
+        self.assertEqual(employee["salary_currency"], "USD")
+        self.assertAlmostEqual(employee["ctc"], 1200.0)
+
+    def test_employee_view_reports_the_display_currency(self):
+        with patch("erpnext.setup.utils.get_exchange_rate", return_value=0.012):
+            result = get_employees_resrouce_data_for_given_project(
+                project=self.project.name, start_date=START_DATE, end_date=END_DATE
+            )
+
+        entry = next(entry for entry in result["data"] if entry["name"] == self.employee)
+        self.assertEqual(entry["salary_currency"], "USD")
+        self.assertAlmostEqual(entry["ctc"], 1200.0)

@@ -27,6 +27,7 @@
 - [ ] This code is adequately covered by unit tests to validate its functionality.
 - [ ] I have conducted thorough testing to ensure it functions as intended.
 - [ ] A member of the QA team has reviewed and tested this PR (To be checked by QA or code reviewer)
+- [ ] I have reviewed and updated the documentation as needed.
 
 <!--
 Example:

@@ -30,7 +30,7 @@ def get_project_emails(project: str) -> list[dict]:
     with any Gmail threads linked to the project via ``frappe_gmail_thread``.
     """
     only_for(ALLOWED_ROLES, message=True)
-
+    frappe.has_permission("Project", doc=project, ptype="read", throw=True)
     if not project:
         frappe.throw(_("Project is required"))
     if not frappe.db.exists("Project", project):

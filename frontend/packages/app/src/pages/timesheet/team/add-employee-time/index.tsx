@@ -280,10 +280,11 @@ const AddEmployeeTime = ({
           children={(field) => {
             return (
               <>
-                <FormLabel size="md" className="mb-1.5" required>
+                <FormLabel id="employee" size="md" className="mb-1.5" required>
                   Employee
                 </FormLabel>
                 <Combobox
+                  id="employee"
                   inputClassName="bg-surface-white h-8 border-outline-gray-2 text-ink-gray-7"
                   loading={isEmployeeLookupLoading}
                   options={employeeOptions}
@@ -308,10 +309,11 @@ const AddEmployeeTime = ({
           children={(field) => {
             return (
               <>
-                <FormLabel size="md" className="mb-1.5" required>
+                <FormLabel id="project" size="md" className="mb-1.5" required>
                   Project
                 </FormLabel>
                 <Combobox
+                  id="project"
                   inputClassName="bg-surface-white h-8 border-outline-gray-2 text-ink-gray-7"
                   loading={isProjectLookupLoading}
                   options={projectOptions}
@@ -349,10 +351,11 @@ const AddEmployeeTime = ({
           children={(field) => {
             return (
               <>
-                <FormLabel size="md" className="mb-1.5" required>
+                <FormLabel id="task" size="md" className="mb-1.5" required>
                   Task
                 </FormLabel>
                 <Combobox
+                  id="task"
                   inputClassName="bg-surface-white h-8 border-outline-gray-2 text-ink-gray-7"
                   loading={isTaskLookupLoading}
                   options={taskOptions}
@@ -394,34 +397,35 @@ const AddEmployeeTime = ({
             name="date"
             children={(field) => {
               return (
-                <div className="flex-1">
+                <div className="flex-1 flex w-full flex-col space-y-1.5">
+                  <FormLabel id="start" size="md" required>
+                    Date
+                  </FormLabel>
                   <DatePicker
-                    label="From"
                     onChange={(val) => field.handleChange(val as string)}
                     placeholder="Placeholder"
                     value={field.state.value}
                     footer={datePickerFooter}
                   >
-                    {({ displayValue }) => {
+                    {({ displayValue, onTriggerKeyDown }) => {
                       return (
-                        <div className="flex-1 flex w-full flex-col space-y-1.5 ">
-                          <FormLabel size="md" required>
-                            Date
-                          </FormLabel>
-                          <div
-                            className={
-                              "flex relative items-center rounded border border-outline-gray-2 px-2.5"
-                            }
-                          >
-                            <input
-                              type="text"
-                              id="start"
-                              value={displayValue}
-                              className="h-7.5 flex-1 text-ink-gray-7 text-base"
-                              placeholder="Today"
-                            />
-                            <Calendar className="size-4" />
-                          </div>
+                        <div
+                          className={
+                            "flex relative items-center rounded border border-outline-gray-2 px-2.5"
+                          }
+                        >
+                          <input
+                            type="text"
+                            id="start"
+                            value={displayValue}
+                            readOnly
+                            tabIndex={-1}
+                            onMouseDown={(e) => e.preventDefault()}
+                            onKeyDown={onTriggerKeyDown}
+                            className="h-7.5 flex-1 text-ink-gray-7 text-base"
+                            placeholder="Today"
+                          />
+                          <Calendar className="size-4" />
                         </div>
                       );
                     }}

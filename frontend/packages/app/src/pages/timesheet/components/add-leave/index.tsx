@@ -162,22 +162,29 @@ const AddLeave = ({ open = false, onOpenChange }: LeaveTimeProps) => {
             children={(field) => {
               return (
                 <div className="flex-1 flex w-full flex-col space-y-1.5">
-                  <FormLabel size="md" className="mb-1.5" required>
+                  <FormLabel
+                    id="from-date"
+                    size="md"
+                    className="mb-1.5"
+                    required
+                  >
                     From
                   </FormLabel>
                   <DatePicker
-                    label="From"
                     onChange={(val) => field.handleChange(val as string)}
                     placeholder="Start date"
                     value={field.state.value}
                   >
-                    {({ displayValue }) => {
+                    {({ displayValue, onTriggerKeyDown }) => {
                       return (
                         <div className="w-full h-8 relative flex items-center border border-outline-gray-2 px-2.5 py-2 rounded">
                           <input
                             readOnly
+                            tabIndex={-1}
+                            onMouseDown={(e) => e.preventDefault()}
+                            onKeyDown={onTriggerKeyDown}
                             type="text"
-                            id="start"
+                            id="from-date"
                             value={displayValue}
                             className="w-full text-base text-ink-gray-7"
                             placeholder="Select start date"
@@ -201,22 +208,24 @@ const AddLeave = ({ open = false, onOpenChange }: LeaveTimeProps) => {
             children={(field) => {
               return (
                 <div className="flex-1 flex w-full flex-col space-y-1.5">
-                  <FormLabel size="md" className="mb-1.5" required>
+                  <FormLabel id="to-date" size="md" className="mb-1.5" required>
                     To
                   </FormLabel>
                   <DatePicker
-                    label="To"
                     onChange={(val) => field.handleChange(val as string)}
                     placeholder="End date"
                     value={field.state.value}
                   >
-                    {({ displayValue }) => {
+                    {({ displayValue, onTriggerKeyDown }) => {
                       return (
                         <div className="w-full h-8 relative flex items-center border border-outline-gray-2 px-2.5 py-2 rounded">
                           <input
                             readOnly
+                            tabIndex={-1}
+                            onMouseDown={(e) => e.preventDefault()}
+                            onKeyDown={onTriggerKeyDown}
                             type="text"
-                            id="start"
+                            id="to-date"
                             value={displayValue}
                             className="w-full text-base text-ink-gray-7"
                             placeholder="Select end date"
@@ -282,20 +291,27 @@ const AddLeave = ({ open = false, onOpenChange }: LeaveTimeProps) => {
                 children={(field) => {
                   return (
                     <div className="flex flex-col space-y-1.5">
-                      <FormLabel size="md" className="mb-1.5" required>
+                      <FormLabel
+                        id="half-day-date"
+                        size="md"
+                        className="mb-1.5"
+                        required
+                      >
                         Half Day Date
                       </FormLabel>
                       <DatePicker
-                        label="Half Day Date"
                         onChange={(val) => field.handleChange(val as string)}
                         placeholder="Half day date"
                         value={field.state.value}
                       >
-                        {({ displayValue }) => {
+                        {({ displayValue, onTriggerKeyDown }) => {
                           return (
                             <div className="w-full h-8 relative flex items-center border border-outline-gray-2 px-2.5 py-2 rounded">
                               <input
                                 readOnly
+                                tabIndex={-1}
+                                onMouseDown={(e) => e.preventDefault()}
+                                onKeyDown={onTriggerKeyDown}
                                 type="text"
                                 id="half-day-date"
                                 value={displayValue}
@@ -325,10 +341,16 @@ const AddLeave = ({ open = false, onOpenChange }: LeaveTimeProps) => {
           children={(field) => {
             return (
               <>
-                <FormLabel size="md" className="mb-1.5" required>
+                <FormLabel
+                  id="leave-type"
+                  size="md"
+                  className="mb-1.5"
+                  required
+                >
                   Leave type
                 </FormLabel>
                 <Select
+                  id="leave-type"
                   value={field.state.value}
                   onChange={(val) => field.handleChange(val as string)}
                   variant="outline"
@@ -348,10 +370,11 @@ const AddLeave = ({ open = false, onOpenChange }: LeaveTimeProps) => {
           children={(field) => {
             return (
               <>
-                <FormLabel size="md" className="mb-1.5" required>
+                <FormLabel id="reason" size="md" className="mb-1.5" required>
                   Reason
                 </FormLabel>
                 <Textarea
+                  id="reason"
                   variant="outline"
                   value={field.state.value}
                   onChange={(e) => field.handleChange(e.target.value)}

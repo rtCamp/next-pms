@@ -13,7 +13,9 @@ import {
  * Internal dependencies.
  */
 import PersonalTaskLog from "@/components/task-log/personalTaskLog";
+import { usePMSSettings } from "@/hooks/usePMSSettings";
 import { NUMBER_OF_WEEKS_TO_FETCH } from "@/lib/constant";
+import { getDefaultExpandedWeeks } from "@/lib/utils";
 import { useUser } from "@/providers/user";
 import type { WorkingFrequency } from "@/types";
 import { usePersonalTimesheet } from "./context";
@@ -25,6 +27,8 @@ import { useTimesheetOutletContext } from "../outletContext";
 
 const PersonalTimesheetGrid = () => {
   const [selectedTask, setSelectedTask] = useState<string | null>(null);
+  const { pmsSettings, isLoading: isLoadingSettings } = usePMSSettings(true);
+  const defaultExpandedWeeks = getDefaultExpandedWeeks(pmsSettings);
 
   const hasMoreWeeks = usePersonalTimesheet(({ state }) => state.hasMoreWeeks);
   const isLoadingPersonalData = usePersonalTimesheet(
@@ -58,9 +62,10 @@ const PersonalTimesheetGrid = () => {
 
   return (
     <>
-      {isInitialLoad &&
-      isLoadingPersonalData &&
-      Object.keys(timesheetData?.data).length == 0 ? (
+      {isLoadingSettings ||
+      (isInitialLoad &&
+        isLoadingPersonalData &&
+        Object.keys(timesheetData?.data).length == 0) ? (
         <Spinner isFull />
       ) : (
         <>
@@ -132,7 +137,7 @@ const PersonalTimesheetGrid = () => {
                               holidays={timesheetData.holidays}
                               leaves={timesheetData.leaves}
                               tasks={value.tasks}
-                              collapsed={index >= 6}
+                              collapsed={index >= defaultExpandedWeeks}
                               disabled={value.status === "Approved"}
                               setSelectedTask={setSelectedTask}
                               onButtonClick={() =>

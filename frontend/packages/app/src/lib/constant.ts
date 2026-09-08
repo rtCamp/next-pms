@@ -13,6 +13,7 @@ export const ROUTES = {
   desk: "/desk",
   apps: "/apps",
   "not-found": "/not-found",
+  "no-employee": "/no-employee",
 };
 export const IMPORTED_TASKS_STORAGE_KEY = "next-pms:importedTasks";
 
@@ -36,6 +37,9 @@ export const CustomTime = [
 ];
 
 export const NUMBER_OF_WEEKS_TO_FETCH = 4;
+
+/** Fallback number of weeks expanded by default when no user/system value is set. */
+export const DEFAULT_AUTO_EXPAND_WEEKS = 4;
 
 /** Default daily working hours used when an employee's configured hours are unavailable. */
 export const FALLBACK_DAILY_WORKING_HOURS = 8;

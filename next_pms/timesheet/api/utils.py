@@ -146,7 +146,7 @@ def update_weekly_status_of_timesheet(employee: str, date: str):
             "end_date": ["<=", end_date],
             "docstatus": ["<", 2],
         },
-        ["name", "custom_approval_status", "custom_rejection_reason", "start_date"],
+        ["name", "custom_approval_status", "start_date"],
     )
     if not current_week_timesheet:
         return
@@ -212,12 +212,21 @@ def update_weekly_status_of_timesheet(employee: str, date: str):
 
     weekly_rejection_reason = None
     if week_status == "Rejected":
+        rejected_ts_order = {
+            ts.name: (ts.start_date, ts.name)
+            for ts in sorted(current_week_timesheet, key=lambda ts: ts.start_date)
+            if ts.get("custom_approval_status") == "Rejected"
+        }
+        rejected_rows = frappe.get_all(
+            "Timesheet Detail",
+            filters={"parent": ["in", list(rejected_ts_order)]},
+            fields=["parent", "custom_rejection_reason", "idx"],
+        )
+        rejected_rows.sort(key=lambda row: (rejected_ts_order[row.parent], row.idx))
         reasons = []
         seen = set()
-        for ts in current_week_timesheet:
-            if ts.get("custom_approval_status") != "Rejected":
-                continue
-            reason = (ts.get("custom_rejection_reason") or "").strip()
+        for row in rejected_rows:
+            reason = (row.get("custom_rejection_reason") or "").strip()
             if reason and reason not in seen:
                 seen.add(reason)
                 reasons.append(reason)
@@ -1215,8 +1224,8 @@ def build_chunk_context(employees: list, dates: list, parsed_filters: dict):
             "total_hours",
             "note",
             "custom_approval_status",
-            "custom_rejection_reason",
             "custom_weekly_approval_status",
+            "custom_weekly_rejection_reason",
         ],
     )
     ts_parent_map = {ts.name: ts for ts in all_timesheets}
@@ -1366,7 +1375,9 @@ def build_employee_week_details(
                 entry = {field: log.get(field) for field in ALLOWED_TIMESHET_DETAIL_FIELDS}
                 parent_ts = ts_parent_map.get(ts_name)
                 entry["custom_approval_status"] = parent_ts.get("custom_approval_status") if parent_ts else None
-                entry["custom_rejection_reason"] = parent_ts.get("custom_rejection_reason") if parent_ts else None
+                entry["custom_weekly_rejection_reason"] = (
+                    parent_ts.get("custom_weekly_rejection_reason") if parent_ts else None
+                )
                 tasks[task_name]["data"].append(entry)
 
         week_status = context["week_status_map"].get((employee_name, date_info["start_date"]), "Not Submitted")
