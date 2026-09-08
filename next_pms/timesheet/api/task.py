@@ -271,7 +271,6 @@ def add_task(
     """API to add task, it will create a task under the given project with the given details."""
     if not frappe.db.exists("Project", project):
         frappe.throw(frappe._("Project '{0}' does not exist").format(project), frappe.DoesNotExistError)
-    frappe.has_permission("Project", doc=project, ptype="write", user=frappe.session.user, throw=True)
 
     task = frappe.get_doc(
         {
@@ -286,7 +285,7 @@ def add_task(
         task.priority = priority
     if exp_end_date:
         task.exp_end_date = exp_end_date
-    task.insert(ignore_permissions=True)
+    task.insert()
     return frappe._("Task Created Successfully")
 
 
