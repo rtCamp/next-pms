@@ -22,11 +22,19 @@ import {
   LogOut,
   Summary,
 } from "@rtcamp/frappe-ui-react/icons";
-import { ArrowLeftRight, Briefcase, BarChart2, Moon, Sun } from "lucide-react";
+import {
+  ArrowLeftRight,
+  Briefcase,
+  BarChart2,
+  Moon,
+  Settings,
+  Sun,
+} from "lucide-react";
 /**
  * Internal dependencies.
  */
 import LinkWithPreload from "@/components/linkWithPreload";
+import { SettingsModal } from "@/components/settings";
 import { ROUTES } from "@/lib/constant";
 import logo from "@/logo.svg";
 import { useNotifications } from "@/providers/notifications";
@@ -35,6 +43,7 @@ import { useUser } from "@/providers/user";
 
 const Sidebar = () => {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const notifications = useNotifications(({ state }) => state.notifications);
   const isNotificationsOpen = useNotifications(({ state }) => state.isTrayOpen);
   const markAsViewed = useNotifications(({ actions }) => actions.markAsViewed);
@@ -245,7 +254,11 @@ const Sidebar = () => {
     });
   }
 
-  if (roles.includes("Timesheet Manager") || roles.includes("Timesheet User")) {
+  if (
+    roles.includes("Timesheet Manager") ||
+    roles.includes("Timesheet User") ||
+    roles.includes("Projects Manager")
+  ) {
     searchItems.push({
       label: "Timesheet - Team",
       action: () =>
@@ -287,6 +300,11 @@ const Sidebar = () => {
               onClick: () => {
                 window.location.assign(ROUTES.desk);
               },
+            },
+            {
+              label: "Settings",
+              icon: <Settings size={16} className="text-ink-gray-6 mr-2" />,
+              onClick: () => setIsSettingsOpen(true),
             },
             {
               label: "Toggle Theme",
@@ -354,6 +372,7 @@ const Sidebar = () => {
         onOpenChange={setIsSearchOpen}
         items={searchItems}
       />
+      <SettingsModal open={isSettingsOpen} onOpenChange={setIsSettingsOpen} />
 
       {hasNotificationAccess && (
         <NotificationTray
