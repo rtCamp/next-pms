@@ -6,7 +6,7 @@ import { eachDayOfInterval, format, parseISO } from "date-fns";
 /**
  * Internal dependencies.
  */
-import type { AllocationOverrideEntry } from "./utils";
+import { isLeaveOwnedOverride, type AllocationOverrideEntry } from "./utils";
 
 interface AllocationScheduleContext {
   allocationStartDate: string;
@@ -177,18 +177,32 @@ export const buildScheduleSelectionPayload = ({
     return {
       allocationHoursPerDay: next.hoursPerDay,
       dayOverrides: [],
-      deletedDayOverrides: [],
+      // The edit covers the whole allocation, so a manual override has nothing left to say
+      // and is dropped. Leave-derived rows stay: the backend re-derives them from the new base.
+      deletedDayOverrides: (allocation.override ?? [])
+        .filter((entry) => !isLeaveOwnedOverride(entry))
+        .map((entry) => entry.date),
     };
   }
 
   const currentHoursByDate = buildEffectiveHoursByDate(allocation);
   const desiredHoursByDate = new Map(currentHoursByDate);
   const normalizedNextRange = normalizeRange(next.startDate, next.endDate);
+  const leaveOwnedDates = new Set(
+    (allocation.override ?? [])
+      .filter(isLeaveOwnedOverride)
+      .map((entry) => entry.date),
+  );
 
   for (const date of getDateKeysInRange(
     normalizedNextRange.startDate,
     normalizedNextRange.endDate,
   )) {
+    // A leave day's hours are re-derived on save, so writing them here only produces a row the backend replaces with the value it already holds.
+    if (leaveOwnedDates.has(date)) {
+      continue;
+    }
+
     desiredHoursByDate.set(date, next.hoursPerDay);
   }
 
