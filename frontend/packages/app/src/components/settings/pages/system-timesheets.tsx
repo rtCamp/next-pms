@@ -48,11 +48,13 @@ function ApiKeyField({
       <FormLabel size="md" className="text-ink-gray-8!">
         PM Report API Key
       </FormLabel>
-      <Password
-        value={draft ?? ""}
-        placeholder="Enter API key"
-        onChange={(event) => onChange(event.target.value)}
-      />
+      <div className="mt-2">
+        <Password
+          value={draft ?? ""}
+          placeholder="Enter API key"
+          onChange={(event) => onChange(event.target.value)}
+        />
+      </div>
     </div>
   );
 }
