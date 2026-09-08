@@ -20,10 +20,10 @@ def has_industry_field():
 
 
 @whitelist(methods=["GET"])
-def get_data(user: str = None):
+def get_data():
     """returns roles.currencies, has_business_unit, has_industry  data for the current user or passed in user"""
     return {
-        "roles": get_current_user_roles(user),
+        "roles": get_current_user_roles(),
         "currencies": get_currencies(),
         "has_business_unit": has_bu_field(),
         "has_industry": has_industry_field(),
@@ -36,7 +36,9 @@ def get_own_backdate_restriction_boundary():
     entry for - any date before this is restricted. See
     doc_events.timesheet.get_backdate_restriction_boundary for the shared calculation."""
     from next_pms.timesheet.api.employee import get_employee_from_user
-    from next_pms.timesheet.doc_events.timesheet import get_backdate_restriction_boundary
+    from next_pms.timesheet.doc_events.timesheet import (
+        get_backdate_restriction_boundary,
+    )
 
     employee = get_employee_from_user()
     if not employee:
@@ -45,18 +47,11 @@ def get_own_backdate_restriction_boundary():
 
 
 @whitelist(methods=["GET"])
-def get_current_user_roles(user: str = None):
+def get_current_user_roles():
     """returns the roles for the current user or for the user passed as argument"""
     import frappe
 
-    if user and user != frappe.session.user and frappe.session.user != "Administrator":
-        if "System Manager" not in frappe.get_roles():
-            user = frappe.session.user
-
-    if not user:
-        user = frappe.session.user
-
-    roles = frappe.get_roles(user)
+    roles = frappe.get_roles()
     return roles
 
 
