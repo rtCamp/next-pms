@@ -115,10 +115,11 @@ def filter_employees(
     or_filters = {}
 
     user_roles = frappe.get_roles()
-    if not ignore_permissions and has_membership_filter:
-        ignore_permissions = bool(
-            set(user_roles).intersection(["Timesheet User", "Timesheet Manager", "Projects User", "Projects Manager"])
-        )
+    if not ignore_permissions:
+        if set(user_roles).intersection(["Timesheet Manager", "Projects Manager"]):
+            ignore_permissions = True
+        elif has_membership_filter and set(user_roles).intersection(["Timesheet User", "Projects User"]):
+            ignore_permissions = True
 
     if reports_to:
         if isinstance(reports_to, str):
