@@ -19,7 +19,20 @@ class PMSUserSetting(Document):
         user: DF.Link
     # end: auto-generated types
 
-    pass
+    def validate(self):
+        _validate_user_auto_expand_weeks(self.auto_expand_weeks_by_default)
+
+
+MAX_USER_AUTO_EXPAND_WEEKS = 12
+
+
+def _validate_user_auto_expand_weeks(value: int) -> None:
+    """Reject a user Auto Expand Weeks value above the upper limit."""
+    if value is not None and value > MAX_USER_AUTO_EXPAND_WEEKS:
+        frappe.throw(
+            frappe._("Auto Expand Weeks by Default cannot exceed {0}.").format(MAX_USER_AUTO_EXPAND_WEEKS),
+            frappe.ValidationError,
+        )
 
 
 def _validate_non_negative_int(value: int | float | str | None) -> int | None:
