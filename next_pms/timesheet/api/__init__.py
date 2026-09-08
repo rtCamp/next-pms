@@ -114,6 +114,12 @@ def filter_employees(
     filters = {"status": ["in", ["Active"]]}
     or_filters = {}
 
+    user_roles = frappe.get_roles()
+    if not ignore_permissions and has_membership_filter:
+        ignore_permissions = bool(
+            set(user_roles).intersection(["Timesheet User", "Timesheet Manager", "Projects User", "Projects Manager"])
+        )
+
     if reports_to:
         if isinstance(reports_to, str):
             # if it was a json encoded string, it'll be loaded into a list (multi select)
