@@ -65,7 +65,7 @@ def get_currencies():
 
 
 @whitelist(methods=["GET"])
-@redis_cache(user=True)
+@redis_cache()
 def get_doc_meta(doctype: str):
     """returns the meta for the given doctype with only the fields that the user has permission to access"""
     from frappe import get_meta

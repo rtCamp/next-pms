@@ -236,7 +236,7 @@ def get_resource_management_team_view_data(
     )
 
 
-@redis_cache(user=True)
+@redis_cache()
 def _get_resource_management_team_view_data(
     permissions: str,
     date: str,

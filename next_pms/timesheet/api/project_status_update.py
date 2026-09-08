@@ -93,9 +93,6 @@ def get_project_status_update(name: str) -> dict[str, Any]:
     if not frappe.db.exists("Project Status Update", name):
         frappe.throw(_("Project Status Update '{name}' does not exist").format(name=name))
 
-    doc = frappe.get_doc("Project Status Update", name)
-    frappe.has_permission("Project", doc=doc.project, ptype="read", user=frappe.session.user, throw=True)
-
     return get_project_status_update_details(name)
 
 
@@ -175,8 +172,7 @@ def update_project_status_update(
     if not frappe.db.exists("Project Status Update", name):
         frappe.throw(_("Project Status Update '{name}' does not exist").format(name=name))
 
-    doc = frappe.get_doc("Project Status Update", name)
-    frappe.has_permission("Project", doc=doc.project, ptype="write", user=frappe.session.user, throw=True)
+    doc = frappe.get_doc("Project Status Update", name, check_permission="write")
 
     if title is not None:
         doc.title = title
@@ -209,8 +205,7 @@ def delete_project_status_update(name: str) -> dict[str, Any]:
     if not frappe.db.exists("Project Status Update", name):
         frappe.throw(_("Project Status Update '{name}' does not exist").format(name=name))
 
-    doc = frappe.get_doc("Project Status Update", name)
-    frappe.has_permission("Project", doc=doc.project, ptype="write", user=frappe.session.user, throw=True)
+    doc = frappe.get_doc("Project Status Update", name, check_permission="write")
 
     if frappe.session.user != "Administrator" and doc.owner != frappe.session.user:
         frappe.throw(_("You do not have permission to delete this update"), frappe.PermissionError)
@@ -239,8 +234,7 @@ def add_comment_to_project_status_update(name: str, comment: str, reply_to: str 
     if not frappe.db.exists("Project Status Update", name):
         frappe.throw(_("Project Status Update '{name}' does not exist").format(name=name))
 
-    doc = frappe.get_doc("Project Status Update", name)
-    frappe.has_permission("Project", doc=doc.project, ptype="read", user=frappe.session.user, throw=True)
+    doc = frappe.get_doc("Project Status Update", name, check_permission=True)
 
     if reply_to:
         existing_names = {row.name for row in doc.comments}
@@ -288,8 +282,7 @@ def update_comment_in_project_status_update(
     if not frappe.db.exists("Project Status Update", name):
         frappe.throw(_("Project Status Update '{name}' does not exist").format(name=name))
 
-    doc = frappe.get_doc("Project Status Update", name)
-    frappe.has_permission("Project", doc=doc.project, ptype="read", user=frappe.session.user, throw=True)
+    doc = frappe.get_doc("Project Status Update", name, check_permission=True)
 
     target_row = None
     for row in doc.comments:
@@ -335,8 +328,7 @@ def delete_comment_from_project_status_update(name: str, comment_name: str) -> d
     if not frappe.db.exists("Project Status Update", name):
         frappe.throw(_("Project Status Update '{name}' does not exist").format(name=name))
 
-    doc = frappe.get_doc("Project Status Update", name)
-    frappe.has_permission("Project", doc=doc.project, ptype="read", user=frappe.session.user, throw=True)
+    doc = frappe.get_doc("Project Status Update", name, check_permission=True)
 
     target_row = None
     for row in doc.comments:
@@ -460,7 +452,7 @@ def get_project_status_update_details(name: str) -> dict[str, Any]:
     Returns:
         Dict[str, Any]: Detailed document data
     """
-    doc = frappe.get_doc("Project Status Update", name)
+    doc = frappe.get_doc("Project Status Update", name, check_permission=True)
 
     # make a list of all user ids part of this document
     all_user_ids = [c.user for c in doc.comments if c.user] + [doc.owner]

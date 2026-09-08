@@ -3,52 +3,23 @@ from frappe import get_all, get_list, get_value, whitelist
 
 
 @whitelist(methods=["GET"])
-def get_employee_with_role(role: str | list[str] | None = None):
-    """returns a list of all approvers for the given role like ["Projects Manager","Projects User"]"""
-    ## TODO : Deprecate this method and use get_approver_details instead, as it returns only approver details and does not expose role-based output.
-    import json
-
-    ALLOWED_ROLES = {"Projects Manager", "Projects User"}
-
-    if isinstance(role, str):
-        try:
-            role = json.loads(role)
-        except Exception:
-            role = [role]
-
-    if not role:
-        role = list(ALLOWED_ROLES)
-    elif isinstance(role, list):
-        role = [r for r in role if r in ALLOWED_ROLES]
-    else:
-        role = [role] if role in ALLOWED_ROLES else []
-
-    if not role:
-        return []
-
-    user_ids = get_all(
-        "Has Role",
-        filters={"role": ["in", role], "parenttype": "User", "parent": ["!=", "Administrator"]},
-        pluck="parent",
-    )
-    employees = get_all(
-        "Employee", filters={"user_id": ["in", user_ids], "status": "Active"}, fields=["name", "employee_name"]
-    )
-    return employees
-
-
-@whitelist(methods=["GET"])
 def get_approver_details():
     """returns a list of approver details"""
     roles = ["Projects Manager", "Projects User"]
 
     user_ids = get_all(
         "Has Role",
-        filters={"role": ["in", roles], "parenttype": "User", "parent": ["!=", "Administrator"]},
+        filters={
+            "role": ["in", roles],
+            "parenttype": "User",
+            "parent": ["!=", "Administrator"],
+        },
         pluck="parent",
     )
     employees = get_all(
-        "Employee", filters={"user_id": ["in", user_ids], "status": "Active"}, fields=["name", "employee_name", "image"]
+        "Employee",
+        filters={"user_id": ["in", user_ids], "status": "Active"},
+        fields=["name", "employee_name", "image"],
     )
     return employees
 
@@ -199,7 +170,11 @@ def filter_employees(
         is_shared_with_everyone = bool(
             get_all(
                 "DocShare",
-                filters={"share_doctype": "Project", "share_name": ["in", project], "everyone": 1},
+                filters={
+                    "share_doctype": "Project",
+                    "share_name": ["in", project],
+                    "everyone": 1,
+                },
                 limit=1,
             )
         )
@@ -207,7 +182,11 @@ def filter_employees(
             has_membership_filter = True
             project_employee = get_all(
                 "DocShare",
-                filters={"share_doctype": "Project", "share_name": ["in", project], "everyone": 0},
+                filters={
+                    "share_doctype": "Project",
+                    "share_name": ["in", project],
+                    "everyone": 0,
+                },
                 pluck="user",
             )
             ids = [get_value("Employee", {"user_id": employee}) for employee in project_employee]
@@ -226,7 +205,11 @@ def filter_employees(
         has_membership_filter = True
         user_ids = get_all(
             "Has Role",
-            filters={"role": ["in", roles], "parenttype": "User", "parent": ["!=", "Administrator"]},
+            filters={
+                "role": ["in", roles],
+                "parenttype": "User",
+                "parent": ["!=", "Administrator"],
+            },
             pluck="parent",
         )
         ids = get_all("Employee", filters={"user_id": ["in", user_ids]}, pluck="name")
