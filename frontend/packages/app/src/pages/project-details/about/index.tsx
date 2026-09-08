@@ -86,6 +86,13 @@ function AboutThisProjectContent({ className }: { className: string }) {
           }
         >
           <div className="grid grid-cols-[auto_1fr] items-center gap-x-3 gap-y-4.5 text-base text-ink-gray-5">
+            <span>Financial company</span>
+            <Tooltip text={sidebar.details.company ?? ""} showWhen="truncated">
+              <span className="truncate text-ink-gray-7">
+                {sidebar.details.company}
+              </span>
+            </Tooltip>
+
             <span>Project name</span>
             <div className="flex min-w-0 items-center gap-2">
               <Tooltip text={sidebar.details.project_name} showWhen="truncated">

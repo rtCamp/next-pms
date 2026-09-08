@@ -41,7 +41,13 @@ export interface SidebarContextProps {
 
 export const DEFAULT_SIDEBAR: ProjectSidebar = {
   summary: "",
-  details: { project_name: "", phase: "", status: "", customer: "" },
+  details: {
+    company: "",
+    project_name: "",
+    phase: "",
+    status: "",
+    customer: "",
+  },
   links: {
     slack: null,
     google_drive: null,
