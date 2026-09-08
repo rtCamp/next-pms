@@ -8,6 +8,7 @@ from frappe.automation.doctype.auto_repeat.auto_repeat import add_days
 from frappe.utils import cint, flt, getdate, strip_html_tags
 
 from next_pms.resource_management.api.utils.helpers import (
+    RESOURCE_MANAGER_ROLES,
     is_on_leave,
     override_hours_by_date,
     resource_api_permissions_check,
@@ -146,6 +147,9 @@ def handle_allocation(allocation: AllocationPayload, repeat_till_week_count: int
             frappe._("Use edit_allocation to update an existing allocation."),
             exc=frappe.ValidationError,
         )
+
+    if allocation.project:
+        frappe.has_permission("Project", doc=allocation.project, ptype="write", user=frappe.session.user, throw=True)
 
     if allocation.include_weekends and not cint(
         frappe.db.get_single_value("Timesheet Settings", "allow_weekend_entries")
@@ -469,6 +473,10 @@ def edit_allocation(
     if not permission["write"]:
         frappe.throw(frappe._("You are not allowed to perform this action."), exc=frappe.PermissionError)
 
+    target_project = getattr(allocation, "project", None) or frappe.db.get_value("Resource Allocation", name, "project")
+    if target_project:
+        frappe.has_permission("Project", doc=target_project, ptype="write", user=frappe.session.user, throw=True)
+
     if edit_mode not in VALID_EDIT_MODES:
         frappe.throw(
             frappe._("Invalid edit_mode '{0}'. Allowed values: {1}.").format(
@@ -647,6 +655,10 @@ def delete_allocation(name: str, delete_mode: str):
     if not permission["write"]:
         frappe.throw(frappe._("You are not allowed to perform this action."), exc=frappe.PermissionError)
 
+    target_project = frappe.db.get_value("Resource Allocation", name, "project")
+    if target_project:
+        frappe.has_permission("Project", doc=target_project, ptype="write", user=frappe.session.user, throw=True)
+
     if delete_mode not in VALID_DELETE_MODES:
         frappe.throw(
             frappe._("Invalid delete_mode '{0}'. Allowed values: {1}.").format(
@@ -733,6 +745,18 @@ def get_over_allocated_dates(
     permission = resource_api_permissions_check()
     if not permission["read"]:
         frappe.throw(frappe._("You are not allowed to perform this action."), exc=frappe.PermissionError)
+
+    # Every allocation-writing role may check any employee here: the add-allocation dialog runs
+    # this for the team member being allocated, so a narrower set would block that flow before
+    # submission. Roles without allocation access are already rejected by the read check above.
+    roles = set(frappe.get_roles(frappe.session.user))
+    if not (RESOURCE_MANAGER_ROLES & roles) and frappe.session.user != "Administrator":
+        own_employee = frappe.db.get_value("Employee", {"user_id": frappe.session.user}, "name")
+        if not own_employee or own_employee != employee:
+            frappe.throw(
+                frappe._("Not permitted to view allocation data for {0}").format(employee),
+                frappe.PermissionError,
+            )
 
     base_start = getdate(start_date)
     base_end = getdate(end_date)

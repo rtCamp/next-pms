@@ -39,10 +39,12 @@ def create_project_status_update(
     """
     only_for(ROLES, message=True)
 
+    if not frappe.db.exists("Project", project):
+        frappe.throw(_("Project '{project}' does not exist").format(project=project))
+    frappe.has_permission("Project", doc=project, ptype="write", user=frappe.session.user, throw=True)
+
     try:
         should_enqueue_publish_notification = False
-        if not frappe.db.exists("Project", project):
-            frappe.throw(_("Project '{project}' does not exist").format(project=project))
 
         doc = frappe.new_doc("Project Status Update")
         doc.project = project
@@ -111,6 +113,7 @@ def get_project_status_updates_by_project(project: str, author: str | None = Non
 
     if not frappe.db.exists("Project", project):
         frappe.throw(_("Project '{project}' does not exist").format(project=project))
+    frappe.has_permission("Project", doc=project, ptype="read", user=frappe.session.user, throw=True)
 
     filters: dict[str, str] = {"project": project}
     if author:
@@ -180,7 +183,7 @@ def update_project_status_update(
     if pinned is not None:
         doc.pinned = cint(pinned)
 
-    doc.save(ignore_permissions=True)
+    doc.save()
 
     return get_project_status_update_details(doc.name)
 
@@ -207,7 +210,7 @@ def delete_project_status_update(name: str) -> dict[str, Any]:
     if frappe.session.user != "Administrator" and doc.owner != frappe.session.user:
         frappe.throw(_("You do not have permission to delete this update"), frappe.PermissionError)
 
-    doc.delete(ignore_permissions=True)
+    doc.delete()
 
     return {"name": name}
 
@@ -246,7 +249,7 @@ def add_comment_to_project_status_update(name: str, comment: str, reply_to: str 
     comment_row.created_at = current_time
     comment_row.modified_at = current_time
 
-    doc.save(ignore_permissions=True)
+    doc.save()
 
     enqueue_note_mentions(comment, doc)
 
@@ -299,7 +302,7 @@ def update_comment_in_project_status_update(
     target_row.comment = comment
     target_row.edited = 1
     target_row.modified_at = now_datetime()
-    doc.save(ignore_permissions=True)
+    doc.save()
 
     return get_project_status_update_details(doc.name)
 
@@ -347,7 +350,7 @@ def delete_comment_from_project_status_update(name: str, comment_name: str) -> d
     target_row.deleted = 1
     target_row.deleted_at = deleted_at
     target_row.modified_at = deleted_at
-    doc.save(ignore_permissions=True)
+    doc.save()
 
     return get_project_status_update_details(doc.name)
 
@@ -449,7 +452,7 @@ def get_project_status_update_details(name: str) -> dict[str, Any]:
     Returns:
         Dict[str, Any]: Detailed document data
     """
-    doc = frappe.get_doc("Project Status Update", name)
+    doc = frappe.get_doc("Project Status Update", name, check_permission=True)
 
     # make a list of all user ids part of this document
     all_user_ids = [c.user for c in doc.comments if c.user] + [doc.owner]

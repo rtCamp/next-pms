@@ -1008,7 +1008,7 @@ def get_employees_on_leave() -> list:
     return _get_employees_on_leave(manager_employee)
 
 
-@redis_cache(user=True)
+@redis_cache()
 def _get_employees_on_leave(manager_employee: str) -> list:
     reportee_ids = frappe.get_all(
         "Employee",
