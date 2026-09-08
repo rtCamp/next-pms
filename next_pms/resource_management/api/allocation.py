@@ -8,6 +8,7 @@ from frappe.automation.doctype.auto_repeat.auto_repeat import add_days
 from frappe.utils import cint, flt, getdate
 
 from next_pms.resource_management.api.utils.helpers import (
+    RESOURCE_MANAGER_ROLES,
     is_on_leave,
     override_hours_by_date,
     resource_api_permissions_check,
@@ -728,9 +729,11 @@ def get_over_allocated_dates(
     if not permission["read"]:
         frappe.throw(frappe._("You are not allowed to perform this action."), exc=frappe.PermissionError)
 
+    # Every allocation-writing role may check any employee here: the add-allocation dialog runs
+    # this for the team member being allocated, so a narrower set would block that flow before
+    # submission. Roles without allocation access are already rejected by the read check above.
     roles = set(frappe.get_roles(frappe.session.user))
-    leadership_roles = {"Projects Manager", "Delivery Manager", "System Manager"}
-    if not (leadership_roles & roles) and frappe.session.user != "Administrator":
+    if not (RESOURCE_MANAGER_ROLES & roles) and frappe.session.user != "Administrator":
         own_employee = frappe.db.get_value("Employee", {"user_id": frappe.session.user}, "name")
         if not own_employee or own_employee != employee:
             frappe.throw(

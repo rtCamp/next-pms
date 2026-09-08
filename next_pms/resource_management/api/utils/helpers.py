@@ -6,6 +6,13 @@ from frappe.utils.data import add_days, getdate
 
 from next_pms.timesheet.api.team import get_week_dates
 
+# Roles that resource_api_permissions_check grants full read/write/delete on allocations.
+# Anything gating allocation access by role must use this set, so a role that can write an
+# allocation is never blocked from the data the write depends on.
+RESOURCE_MANAGER_ROLES = frozenset(
+    {"Projects Manager", "Projects User", "Delivery Manager", "Delivery User", "System Manager"}
+)
+
 
 def add_customer_data_if_not_exists(customer: dict, customer_name: str | None) -> dict:
     """If customer is not present in the customer dictionary then add it with name, image and abbr information.
@@ -488,9 +495,8 @@ def resource_api_permissions_check():
     )
 
     roles = set(frappe.get_roles())
-    manager_roles = {"Projects Manager", "Projects User", "Delivery Manager", "Delivery User", "System Manager"}
 
-    if (manager_roles & roles) or (frappe.session.user == "Administrator"):
+    if (RESOURCE_MANAGER_ROLES & roles) or (frappe.session.user == "Administrator"):
         return {"read": True, "write": True, "delete": True}
 
     return {"read": False, "write": False, "delete": False}
