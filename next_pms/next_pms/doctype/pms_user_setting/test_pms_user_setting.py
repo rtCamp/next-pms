@@ -68,6 +68,16 @@ class TestPMSUserSetting(IntegrationTestCase):
         with self.assertRaises(frappe.ValidationError):
             update_pms_settings({"not_a_setting": 1})
 
+    def test_auto_expand_weeks_accepts_upper_limit(self):
+        get_pms_settings()
+        settings = update_pms_settings({"auto_expand_weeks_by_default": 12})
+        self.assertEqual(settings["auto_expand_weeks_by_default"], 12)
+
+    def test_auto_expand_weeks_rejects_beyond_upper_limit(self):
+        get_pms_settings()
+        with self.assertRaises(frappe.ValidationError):
+            update_pms_settings({"auto_expand_weeks_by_default": 13})
+
     def test_settings_are_scoped_to_the_current_user(self):
         get_pms_settings()
         update_pms_settings({"auto_expand_weeks_by_default": 3})
