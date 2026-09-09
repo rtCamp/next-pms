@@ -165,7 +165,13 @@ def get_timesheet_data(
     """Get timesheet data for the given employee for the given number of weeks."""
     if not employee:
         employee = get_employee_from_user(throw_exception=frappe.session.user != "Administrator")
-    apply_role_permission_for_doctype(["Timesheet User", "Timesheet Manager"], "Employee", "read", employee)
+    # "Projects Manager" joins the two Timesheet roles because it already reads any
+    # employee's week through get_team_timesheet_data and get_project_timesheet_data, and a
+    # project manager reviewing their project's entries reaches this endpoint from there.
+    # Leaving it out gated the review of a week behind a role the reviewer need not hold.
+    apply_role_permission_for_doctype(
+        ["Timesheet User", "Timesheet Manager", "Projects Manager"], "Employee", "read", employee
+    )
     return build_timesheet_data(
         employee=employee,
         start_date=start_date,
