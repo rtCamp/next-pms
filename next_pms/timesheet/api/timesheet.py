@@ -27,6 +27,7 @@ from .utils import (
     has_write_access,
     normalize_status_filter,
     parse_filters,
+    update_weekly_status_of_timesheet,
 )
 
 
@@ -164,9 +165,38 @@ def get_timesheet_data(
     """Get timesheet data for the given employee for the given number of weeks."""
     if not employee:
         employee = get_employee_from_user(throw_exception=frappe.session.user != "Administrator")
+    apply_role_permission_for_doctype(["Timesheet User", "Timesheet Manager"], "Employee", "read", employee)
+    return build_timesheet_data(
+        employee=employee,
+        start_date=start_date,
+        max_week=max_week,
+        search=search,
+        approval_status=approval_status,
+        filters=filters,
+        skip_empty_weeks=skip_empty_weeks,
+    )
+
+
+def build_timesheet_data(
+    employee: str,
+    start_date: str | None = None,
+    max_week: int = 4,
+    search: str | None = None,
+    approval_status: str | list | None = None,
+    filters: str | list | None = None,
+    skip_empty_weeks: bool = False,
+):
+    """The body of `get_timesheet_data`, without its access check.
+
+    Deliberately not whitelisted. It exists for `publish_timesheet_update`, which runs as
+    whoever wrote the timesheet and decides who may see the payload by choosing the room it
+    publishes to - the same reason `get_team_timesheet_member_week` and
+    `get_project_timesheet_member_week` take `by_pass_access_check`. Without it a project
+    manager who holds neither Timesheet role cannot approve at all: the publish that follows
+    the decision throws on a permission the publisher never needed.
+    """
     if not start_date:
         start_date = nowdate()
-    apply_role_permission_for_doctype(["Timesheet User", "Timesheet Manager"], "Employee", "read", employee)
     filter_lookback_weeks = FILTER_LOOKBACK_WEEKS
     approval_status = normalize_status_filter(approval_status)
 
@@ -411,15 +441,12 @@ def submit_for_approval(start_date: str, notes: str = None, employee: str = None
     for timesheet in draft_timesheets:
         frappe.db.set_value("Timesheet", timesheet.name, "custom_approval_status", "Approval Pending")
 
-    for timesheet in timesheets:
-        frappe.db.set_value(
-            "Timesheet",
-            timesheet.name,
-            {
-                "custom_weekly_approval_status": "Approval Pending",
-                "custom_weekly_rejection_reason": None,
-            },
-        )
+    # Derived rather than written flat as "Approval Pending": a week a project manager has
+    # already partly approved must stay "Partially Approved", or resubmitting the rest of it
+    # would erase their decision from every view that reads the weekly field. For a week that
+    # is entirely drafts - every week before project-wise approval existed - the rollup
+    # yields "Approval Pending" anyway.
+    update_weekly_status_of_timesheet(employee, start_date)
     frappe.db.commit()  # nosemgrep Need to do as we need to publish status changes.
 
     doc = frappe._dict({"employee": employee, "start_date": start_date, "end_date": end_date})
