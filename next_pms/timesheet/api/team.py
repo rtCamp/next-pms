@@ -573,7 +573,7 @@ def trigger_notification_for_approved_or_rejected_timesheet(
         "employee": employee,
         "note": note,
         "dates": dates,
-        "project": get_value("Project", project, "project_name") or project if project else None,
+        "project": (get_value("Project", project, "project_name") or project) if project else None,
         "updated_by": get_value("User", frappe.session.user, "full_name"),
     }
     message = frappe.render_template(email_message, args)  # nosemgrep - trusted Email Template from DB
