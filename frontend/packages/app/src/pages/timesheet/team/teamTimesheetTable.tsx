@@ -20,14 +20,13 @@ import { getDefaultExpandedWeeks } from "@/lib/utils";
 import { useTeamTimesheet } from "./context";
 import { SubHeader } from "./subHeader";
 import { TeamTimesheetWeek } from "./teamTimesheetWeek";
-import WeeklyApproval from "./weekly-approval";
+import WeeklyApproval from "../components/weekly-approval";
+import type { WeeklyApprovalTarget } from "../components/weekly-approval/types";
 
 const TeamTimesheetGrid = () => {
   const [selectedTask, setSelectedTask] = useState<string | null>(null);
-  const [weeklyApproval, setWeeklyApproval] = useState<{
-    employee: string;
-    startDate: string;
-  } | null>(null);
+  const [weeklyApproval, setWeeklyApproval] =
+    useState<WeeklyApprovalTarget | null>(null);
   const { pmsSettings, isLoading: isLoadingSettings } = usePMSSettings(true);
   const defaultExpandedWeeks = getDefaultExpandedWeeks(pmsSettings);
 
@@ -56,8 +55,7 @@ const TeamTimesheetGrid = () => {
     <>
       {weeklyApproval && (
         <WeeklyApproval
-          employee={weeklyApproval.employee}
-          startDate={weeklyApproval.startDate}
+          {...weeklyApproval}
           open={!!weeklyApproval}
           onOpenChange={(open) => {
             if (!open) setWeeklyApproval(null);
@@ -125,9 +123,7 @@ const TeamTimesheetGrid = () => {
                         week={week}
                         defaultExpanded={index < defaultExpandedWeeks}
                         setSelectedTask={setSelectedTask}
-                        openWeeklyApproval={(employee, date) =>
-                          setWeeklyApproval({ employee, startDate: date })
-                        }
+                        openWeeklyApproval={setWeeklyApproval}
                       />
                     </div>
                   </Fragment>

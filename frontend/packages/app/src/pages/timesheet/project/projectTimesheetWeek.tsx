@@ -9,6 +9,7 @@ import { useInfiniteScroll } from "@next-pms/hooks";
  */
 import { useScrollRoot } from "@/components/scrollRoot";
 import { ProjectTimesheetRow } from "@/components/timesheet-row/projectTimesheetRow";
+import type { WeeklyApprovalTarget } from "@/pages/timesheet/components/weekly-approval/types";
 import { useProjectTimesheet } from "./context";
 import type { ProjectWeekSummary } from "./types";
 import { useProjectWeekProjects } from "./useProjectWeekProjects";
@@ -16,11 +17,13 @@ import { useProjectWeekProjects } from "./useProjectWeekProjects";
 type ProjectTimesheetWeekProps = {
   week: ProjectWeekSummary;
   defaultExpanded: boolean;
+  openProjectApproval: (target: WeeklyApprovalTarget) => void;
 };
 
 export const ProjectTimesheetWeek = ({
   week,
   defaultExpanded,
+  openProjectApproval,
 }: ProjectTimesheetWeekProps) => {
   const filterArgs = useProjectTimesheet(({ state }) => state.filterArgs);
   const isFilterRequest = useProjectTimesheet(
@@ -72,6 +75,7 @@ export const ProjectTimesheetWeek = ({
         !isFilterRequest && (isLoadingProjects || isNextPageLoading)
       }
       loadMoreRef={loadMoreRef}
+      openProjectApproval={openProjectApproval}
     />
   );
 };

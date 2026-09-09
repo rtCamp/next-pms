@@ -24,6 +24,7 @@ const RejectionPopup = () => {
     avatarUrl,
     dateRange,
     totalHours,
+    projectName,
     handleRejectionSubmit,
     rejectionError,
   } = useWeeklyApproval();
@@ -60,6 +61,11 @@ const RejectionPopup = () => {
             <Avatar size="xs" image={avatarUrl} label={employeeName} />
             <span className="text-ink-gray-7">{employeeName}</span>
             <span className="text-ink-gray-5 font-[420]">· {dateRange}</span>
+            {projectName ? (
+              <span className="text-ink-gray-5 font-[420] truncate">
+                · {projectName}
+              </span>
+            ) : null}
           </div>
           <span className="text-ink-red-4">
             {floatToTime(totalHours, 2, 2)}

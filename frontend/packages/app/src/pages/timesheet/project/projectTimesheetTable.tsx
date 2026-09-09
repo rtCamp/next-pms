@@ -1,7 +1,7 @@
 /**
  * External dependencies.
  */
-import { Fragment } from "react";
+import { Fragment, useState } from "react";
 import { mergeClassNames as cn } from "@next-pms/design-system";
 import {
   LoadingOverlay,
@@ -19,8 +19,12 @@ import { getDefaultExpandedWeeks } from "@/lib/utils";
 import { useProjectTimesheet } from "./context";
 import { ProjectTimesheetWeek } from "./projectTimesheetWeek";
 import { SubHeader } from "./subHeader";
+import WeeklyApproval from "../components/weekly-approval";
+import type { WeeklyApprovalTarget } from "../components/weekly-approval/types";
 
 const ProjectTimesheetGrid = () => {
+  const [approvalTarget, setApprovalTarget] =
+    useState<WeeklyApprovalTarget | null>(null);
   const { pmsSettings, isLoading: isLoadingSettings } = usePMSSettings(true);
   const defaultExpandedWeeks = getDefaultExpandedWeeks(pmsSettings);
   const weeks = useProjectTimesheet(({ state }) => state.weeks);
@@ -48,6 +52,15 @@ const ProjectTimesheetGrid = () => {
 
   return (
     <>
+      {approvalTarget && (
+        <WeeklyApproval
+          {...approvalTarget}
+          open={!!approvalTarget}
+          onOpenChange={(open) => {
+            if (!open) setApprovalTarget(null);
+          }}
+        />
+      )}
       {isLoadingSettings || (isLoadingWeeks && weeks.length === 0) ? (
         <Spinner isFull />
       ) : (
@@ -97,6 +110,7 @@ const ProjectTimesheetGrid = () => {
                         <ProjectTimesheetWeek
                           week={week}
                           defaultExpanded={index < defaultExpandedWeeks}
+                          openProjectApproval={setApprovalTarget}
                         />
                       </div>
                     </Fragment>

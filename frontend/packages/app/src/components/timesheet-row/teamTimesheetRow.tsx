@@ -12,6 +12,7 @@ import { Skeleton } from "@rtcamp/frappe-ui-react";
 /**
  * Internal dependencies
  */
+import type { WeeklyApprovalTarget } from "@/pages/timesheet/components/weekly-approval/types";
 import { useTimesheetOutletContext } from "@/pages/timesheet/outletContext";
 import type { WorkingFrequency } from "@/types";
 import type { HolidayProp, LeaveProps, TaskProps } from "@/types/timesheet";
@@ -46,7 +47,7 @@ type TeamTimesheetRowProps = {
   loadMoreRef?: (element: HTMLElement | null) => void;
   onCollapsedChange?: (collapsed: boolean) => void;
   setSelectedTask?: (task: string) => void;
-  openWeeklyApproval?: (employee: string, date: string) => void;
+  openWeeklyApproval?: (target: WeeklyApprovalTarget) => void;
 };
 
 export const TeamTimesheetRow = ({
@@ -114,7 +115,12 @@ export const TeamTimesheetRow = ({
                   })
                 }
                 onButtonClick={() =>
-                  openWeeklyApproval?.(member.employee, dates[0])
+                  openWeeklyApproval?.({
+                    employee: member.employee,
+                    employeeName: member.label,
+                    avatarUrl: member.avatarUrl,
+                    startDate: dates[0],
+                  })
                 }
               >
                 {({ totalTimeEntriesInHours, dailyWorkingHours }) => (

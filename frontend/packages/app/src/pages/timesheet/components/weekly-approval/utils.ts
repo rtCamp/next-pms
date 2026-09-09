@@ -85,7 +85,6 @@ export const convertTimesheetToEntries = (response: TimesheetApiResponse) => {
     return {
       dateRange: "",
       totalHours: 0,
-      status: "",
       entries,
       dailyWorkingHours: FALLBACK_DAILY_WORKING_HOURS,
     };
@@ -161,11 +160,18 @@ export const convertTimesheetToEntries = (response: TimesheetApiResponse) => {
   return {
     dateRange: thisWeekDateRange,
     totalHours: Object.values(weeklyData)[0].total_hours + displayedLeaveHours,
-    status: thisWeek.status,
     entries,
     dailyWorkingHours,
   };
 };
+/**
+ * An entry that is already submitted or mid-decision cannot be decided again. A day made
+ * only of those is out of the reviewer's hands, which is how a week another approver has
+ * partly decided still offers the days that are left.
+ */
+const isEntryDecided = (entry: TimesheetEntry): boolean =>
+  entry.docstatus === 1 || entry.approvalStatus === "Processing Timesheet";
+
 /**
  * Groups entries by day and calculates total hours per day
  */
@@ -177,10 +183,12 @@ export const groupEntriesByDay = (entries: TimesheetEntry[]): GroupedDay[] => {
         date: entry.date,
         totalHours: entry.leaveHours,
         leaveLabel: entry.leaveLabel,
+        isDecided: true,
         entries: [],
       };
     }
     acc[entry.day].totalHours += entry.hours;
+    acc[entry.day].isDecided &&= isEntryDecided(entry);
     acc[entry.day].entries.push(entry);
     return acc;
   }, {});

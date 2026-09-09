@@ -9,6 +9,7 @@ import { useInfiniteScroll } from "@next-pms/hooks";
  */
 import { useScrollRoot } from "@/components/scrollRoot";
 import { TeamTimesheetRow } from "@/components/timesheet-row/teamTimesheetRow";
+import type { WeeklyApprovalTarget } from "@/pages/timesheet/components/weekly-approval/types";
 import { useTeamTimesheet } from "./context";
 import type { TeamWeekSummary } from "./types";
 import { useTeamWeekMembers } from "./useTeamWeekMembers";
@@ -17,7 +18,7 @@ type TeamTimesheetWeekProps = {
   week: TeamWeekSummary;
   defaultExpanded: boolean;
   setSelectedTask: (task: string) => void;
-  openWeeklyApproval: (employee: string, date: string) => void;
+  openWeeklyApproval: (target: WeeklyApprovalTarget) => void;
 };
 
 export const TeamTimesheetWeek = ({

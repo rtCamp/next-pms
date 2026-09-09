@@ -46,6 +46,8 @@ export type ProjectMemberPayload = {
 export type ProjectWeekProjectPayload = {
   project: string;
   project_name: string | null;
+  /** Whether the viewer may approve or reject this project's entries. */
+  can_approve?: boolean;
   members: ProjectMemberPayload[];
 };
 

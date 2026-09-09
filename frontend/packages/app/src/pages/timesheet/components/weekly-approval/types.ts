@@ -7,9 +7,18 @@ import type { HolidayProp, LeaveProps } from "@/types/timesheet";
 
 export type ModalView = "approval" | "rejection";
 
-export type WeeklyApprovalProps = {
+/** Identifies the week under review, and the project it is narrowed to, if any. */
+export type WeeklyApprovalTarget = {
   employee: string;
+  employeeName: string;
+  avatarUrl?: string;
   startDate: string;
+  /** Restricts the review to one project, for the Project Manager persona. */
+  project?: string;
+  projectName?: string;
+};
+
+export type WeeklyApprovalProps = WeeklyApprovalTarget & {
   open: boolean;
   onOpenChange: (open: boolean) => void;
 };
@@ -19,6 +28,8 @@ export interface GroupedDay {
   date: string;
   totalHours: number;
   leaveLabel?: string;
+  /** Every entry is already decided, so the day cannot be approved or rejected again. */
+  isDecided: boolean;
   entries: TimesheetEntry[];
 }
 

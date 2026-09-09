@@ -26,6 +26,7 @@ const ApprovalPopup = () => {
     totalHours,
     dailyWorkingHours,
     isReadOnly,
+    projectName,
     groupedByDay,
     checkedDays,
     handleDayCheckChange,
@@ -49,6 +50,11 @@ const ApprovalPopup = () => {
             {employeeName}
           </h1>
           <p className="text-base text-ink-gray-5">{dateRange}</p>
+          {projectName ? (
+            <p className="text-base text-ink-gray-5 truncate">
+              · {projectName}
+            </p>
+          ) : null}
         </div>
         <div className="flex items-center gap-3">
           <span className="text-lg font-medium text-ink-green-4 tabular-nums lining-nums">
@@ -103,7 +109,7 @@ const ApprovalPopup = () => {
                   >
                     <Checkbox
                       value={checkedDays.has(dayGroup.day)}
-                      disabled={isReadOnly}
+                      disabled={isReadOnly || dayGroup.isDecided}
                       onChange={(checked) =>
                         handleDayCheckChange(dayGroup.day, checked)
                       }
@@ -116,7 +122,7 @@ const ApprovalPopup = () => {
                   <EntryRow
                     key={entry.timesheetId}
                     entry={entry}
-                    readOnly={isReadOnly}
+                    readOnly={isReadOnly || dayGroup.isDecided}
                     maxDuration={dailyWorkingHours}
                     onSave={handleTimesheetUpdate}
                   />

@@ -39,6 +39,7 @@ export const toProjectGroup = (
 ): ProjectTimesheetProject => ({
   project: project.project,
   projectName: project.project_name,
+  canApprove: Boolean(project.can_approve),
   members: project.members.map(toProjectMember),
 });
 
