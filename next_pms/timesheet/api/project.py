@@ -15,7 +15,9 @@ from . import filter_employees, get_count
 from .utils import (
     build_chunk_context,
     build_employee_week_details,
+    derive_week_approval_status,
     employee_has_higher_access,
+    get_project_approver_map,
     get_week_dates,
     has_scoped_project_timesheets_before,
     normalize_status_filter,
@@ -190,6 +192,22 @@ def _group_week_tasks_by_project(tasks: dict):
     return project_tasks_map
 
 
+def _project_week_status(project_tasks: dict) -> str:
+    """The week's approval status for one project alone.
+
+    A Timesheet is one document per employee, day and project, so every entry a project has
+    on a day carries that day's decision for that project - collect one status per day and
+    roll them up. Reporting the week-wide status here instead would show a project as
+    pending because some *other* project has not been reviewed yet.
+    """
+    status_by_day = {}
+    for task in project_tasks.values():
+        for entry in task.get("data") or []:
+            status_by_day[getdate(entry.get("from_time"))] = entry.get("custom_approval_status")
+
+    return derive_week_approval_status(list(status_by_day.values()))
+
+
 def _build_project_member_payload(employee, employee_data: dict, project_tasks: dict):
     """One member's row inside one project for one week.
 
@@ -208,7 +226,7 @@ def _build_project_member_payload(employee, employee_data: dict, project_tasks: 
         "backdate_restricted_before": employee_data["backdate_restricted_before"],
         "working_hour": working_hours.get("working_hour", 8),
         "working_frequency": working_hours.get("working_frequency", "Per Day"),
-        "status": employee_data["status"],
+        "status": _project_week_status(project_tasks),
     }
 
 
@@ -245,7 +263,6 @@ def _collect_employee_week_data(employees: list, week: dict, context: dict, scop
             "holidays": list(context["holidays_by_employee"].get(employee.name, [])),
             "leaves": list(context["leaves_by_employee"].get(employee.name, [])),
             "backdate_restricted_before": context["backdate_boundary_by_employee"].get(employee.name),
-            "status": week_detail.get("status", "Not Submitted"),
             "project_tasks": project_tasks_map,
         }
     return employee_data_map
@@ -351,6 +368,15 @@ def get_project_timesheet_data(
         ]
         if members:
             projects.append({"project": project.name, "project_name": project.project_name, "members": members})
+
+    # Resolved once for the page rather than per member, so the row only offers an approval
+    # the endpoint would accept.
+    approver_map = get_project_approver_map(
+        [project["project"] for project in projects],
+        {project["project"]: {member["employee"] for member in project["members"]} for project in projects},
+    )
+    for project in projects:
+        project["can_approve"] = approver_map.get(project["project"], False)
 
     response["projects"] = projects
     return response
@@ -465,6 +491,8 @@ def get_project_timesheet_member_week(employee: str, start_date: str, by_pass_ac
     if not employee_data:
         return response
 
+    # No `can_approve` here: this runs as whoever saved the timesheet, not as the viewer, and
+    # the client keeps the project-level fields it already loaded when it merges this payload.
     for project, project_tasks in employee_data["project_tasks"].items():
         first_task = next(iter(project_tasks.values()))
         response["projects"][project] = {

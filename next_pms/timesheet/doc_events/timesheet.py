@@ -454,9 +454,9 @@ def publish_timesheet_update(employee, start_date):
 
     from next_pms.timesheet.api.project import get_project_timesheet_member_week
     from next_pms.timesheet.api.team import get_team_timesheet_member_week
-    from next_pms.timesheet.api.timesheet import get_timesheet_data
+    from next_pms.timesheet.api.timesheet import build_timesheet_data
 
-    data = get_timesheet_data(employee, start_date, 1)
+    data = build_timesheet_data(employee, start_date, 1)
     publish_realtime(
         f"timesheet_update::{employee}",
         {"message": data},

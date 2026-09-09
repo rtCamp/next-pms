@@ -298,6 +298,93 @@ def employee_has_higher_access(employee: str, ptype: str = "read") -> bool:
     return employee == session_employee
 
 
+# Roles that may decide any project's timesheets, regardless of who manages the project.
+GLOBAL_APPROVER_ROLES = ("System Manager", "Timesheet Manager")
+
+# Ordered from the most to the least conclusive. A week made only of one of these reads as
+# that status; a mix falls back to the partial states below.
+_DAY_STATUS_PRIORITY = ("Processing Timesheet", "Rejected", "Approved", "Approval Pending", NOT_SUBMITTED_STATUS)
+
+
+def can_approve_project_timesheets(project: str, employee: str) -> bool:
+    """Whether the session user may decide `employee`'s timesheets for `project`.
+
+    Three personas qualify: a global approver, the project's own manager - the persona the
+    project-wise flow exists for - and the employee's reporting manager, who keeps the
+    authority they already hold over the whole week.
+    """
+    if frappe.session.user == "Administrator":
+        return True
+    if set(frappe.get_roles()).intersection(GLOBAL_APPROVER_ROLES):
+        return True
+    if frappe.db.get_value("Project", project, "custom_project_manager") == frappe.session.user:
+        return True
+
+    from .employee import get_employee_from_user
+
+    session_employee = get_employee_from_user()
+    return bool(session_employee) and frappe.db.get_value("Employee", employee, "reports_to") == session_employee
+
+
+def get_project_approver_map(projects: list[str], employee_by_project: dict | None = None) -> dict:
+    """`{project: bool}` saying which of `projects` the session user may decide.
+
+    Asked once per rendered page so the UI never offers an action the endpoint would
+    refuse. `employee_by_project` is unused for the global and project-manager personas and
+    only matters for the reporting-manager one, which is settled per project by whether the
+    session user manages *any* of that project's members.
+    """
+    if not projects:
+        return {}
+    if frappe.session.user == "Administrator" or set(frappe.get_roles()).intersection(GLOBAL_APPROVER_ROLES):
+        return dict.fromkeys(projects, True)
+
+    managed = set(
+        get_all(
+            "Project",
+            filters={"name": ["in", projects], "custom_project_manager": frappe.session.user},
+            pluck="name",
+        )
+    )
+    if not employee_by_project:
+        return {project: project in managed for project in projects}
+
+    from .employee import get_employee_from_user
+
+    session_employee = get_employee_from_user()
+    reports = (
+        set(get_all("Employee", filters={"reports_to": session_employee}, pluck="name")) if session_employee else set()
+    )
+    return {
+        project: project in managed or bool(reports.intersection(employee_by_project.get(project) or set()))
+        for project in projects
+    }
+
+
+def derive_week_approval_status(day_statuses: list[str]) -> str:
+    """Roll a set of per-day approval statuses up into one week-level status.
+
+    The project-scoped counterpart of `update_weekly_status_of_timesheet`: that one weighs
+    the days against the employee's working days because it describes the whole week, while
+    a single project is only worked on the days it is worked on - so a project touched on
+    two days and approved on both is Approved, not partially so.
+    """
+    statuses = {status or NOT_SUBMITTED_STATUS for status in day_statuses}
+    if not statuses:
+        return NOT_SUBMITTED_STATUS
+
+    for status in _DAY_STATUS_PRIORITY:
+        if statuses == {status}:
+            return status
+    if "Processing Timesheet" in statuses:
+        return "Processing Timesheet"
+    if "Rejected" in statuses:
+        return "Partially Rejected"
+    if "Approved" in statuses:
+        return "Partially Approved"
+    return "Approval Pending"
+
+
 def normalize_status_filter(status_filter, coerce_non_list: bool = False):
     """Normalize an approval-status filter into a list of status labels.
 
