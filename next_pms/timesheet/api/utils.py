@@ -209,6 +209,11 @@ def update_weekly_status_of_timesheet(employee: str, date: str):
         week_status = "Partially Rejected"
     elif status_count["Approved"] > 0:
         week_status = "Partially Approved"
+    elif status_count["Approval Pending"] > 0:
+        # A week awaiting review on fewer days than the employee is expected to work - a
+        # short week, or one submitted with days still unlogged. Without this the counts
+        # above all fall short and the week reads "Not Submitted", losing the submission.
+        week_status = "Approval Pending"
 
     weekly_rejection_reason = None
     if week_status == "Rejected":
