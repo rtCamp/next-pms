@@ -132,9 +132,6 @@ after_install = "next_pms.install.after_install"
 # -----------
 # Permissions evaluated in scripted ways
 
-# permission_query_conditions = {
-# 	"Event": "frappe.desk.doctype.event.event.get_permission_query_conditions",
-# }
 
 has_permission = {
     "Risk": "next_pms.next_pms.doctype.risk.risk.has_permission",
@@ -148,7 +145,13 @@ fixtures = [
             [
                 "module",
                 "in",
-                ["Next PMS", "Project Currency", "Timesheet", "Resource Management", "Next Projects"],
+                [
+                    "Next PMS",
+                    "Project Currency",
+                    "Timesheet",
+                    "Resource Management",
+                    "Next Projects",
+                ],
             ]
         ],
     },
@@ -158,7 +161,13 @@ fixtures = [
             [
                 "module",
                 "in",
-                ["Next PMS", "Project Currency", "Timesheet", "Resource Management", "Next Projects"],
+                [
+                    "Next PMS",
+                    "Project Currency",
+                    "Timesheet",
+                    "Resource Management",
+                    "Next Projects",
+                ],
             ]
         ],
     },
@@ -236,6 +245,7 @@ doc_events = {
         "after_delete": "next_pms.timesheet.doc_events.timesheet.after_delete",
         "on_cancel": "next_pms.timesheet.doc_events.timesheet.on_cancel",
         "on_trash": [
+            "next_pms.timesheet.doc_events.timesheet.on_trash",
             "next_pms.resource_management.doctype.resource_allocation.resource_allocation.clear_cache",
         ],
     },

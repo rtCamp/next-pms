@@ -17,7 +17,7 @@ from next_pms.resource_management.api.utils.helpers import (
     override_hours_by_date,
     resource_api_permissions_check,
 )
-from next_pms.resource_management.api.utils.leave_calendar import get_leave_calendars
+from next_pms.resource_management.api.utils.leave_calendar import build_leave_map, get_leave_calendars
 from next_pms.resource_management.api.utils.query import (
     attach_extra_entries,
     get_allocation_list_for_employee_for_given_range,
@@ -66,15 +66,12 @@ def get_resource_management_team_view_data(
         allocation_status (list | str | None): Allocation status filter. Defaults to None.
         page_length (int): Number of employees per page. Defaults to 10.
         start (int): Pagination offset. Defaults to 0.
-        skills (list | str | None): JSON-encoded list of skill names. When provided and
-            `employee_id` is absent, only employees possessing all listed skills are
-            returned. Defaults to None.
         tag (list | str | None): Tag(s) to match via the Tag Link doctype; restricts
             results to the employees carrying any of the given tags. Accepts a single
             value or a multi-select list/JSON. Ignored when the caller lacks write
             permission. Defaults to None.
-        employee_id (list | str | None): JSON-encoded list of employee IDs. Takes
-            priority over `skills` when both are provided. Defaults to None.
+        employee_id (list | str | None): JSON-encoded list of employee IDs. Defaults
+            to None.
         need_hours_summary (bool): Switches the response shape.
             False → flat grid response (raw employees, allocations, leaves).
             True  → per-employee per-day hours breakdown. Defaults to False.
@@ -418,6 +415,7 @@ def _get_resource_management_team_view_data(
                     res["employees"] = []
                     res["resource_allocations"] = []
                     res["leaves"] = []
+                    res["employee_leaves"] = {}
                     res["holidays"] = []
                 res["customer"] = customer
                 res["total_count"] = 0
@@ -427,7 +425,12 @@ def _get_resource_management_team_view_data(
             else:
                 ids = matching_emp_ids
 
-    privileged_fields = ["ctc", "salary_currency"] if permissions["write"] else []
+    roles = set(frappe.get_roles(frappe.session.user))
+    can_see_comp = (
+        bool(roles & {"HR Manager", "HR User", "Accounts Manager", "System Manager"})
+        or frappe.session.user == "Administrator"
+    )
+    privileged_fields = ["ctc", "salary_currency"] if can_see_comp else []
     employees, total_count = filter_employees(
         employee_name,
         business_unit=business_unit,
@@ -455,6 +458,7 @@ def _get_resource_management_team_view_data(
             res["employees"] = []
             res["resource_allocations"] = []
             res["leaves"] = []
+            res["employee_leaves"] = {}
             res["holidays"] = []
         res["customer"] = customer
         res["total_count"] = total_count
@@ -473,6 +477,7 @@ def _get_resource_management_team_view_data(
             "allocation_start_date",
             "allocation_end_date",
             "hours_allocated_per_day",
+            "total_allocated_hours",
             "project",
             "project_name",
             "customer",
@@ -528,8 +533,15 @@ def _get_resource_management_team_view_data(
             for holiday in holidays
             if not holiday.get("weekly_off")
         ]
+        leaves_map, holidays_map = get_leave_calendars(employees, dates[0].get("start_date"), dates[-1].get("end_date"))
         res["employees"] = employees
         res["leaves"] = all_leave_data
+        res["employee_leaves"] = build_leave_map(
+            employees,
+            [date for date_info in dates for date in date_info.get("dates")],
+            leaves_map,
+            holidays_map,
+        )
         res["holidays"] = all_holiday_data
         res["resource_allocations"] = resource_allocation_data
         res["customer"] = customer
@@ -732,5 +744,13 @@ def get_leave_information(employee: str, start_date: str, end_date: str):
     from next_pms.timesheet.api.employee import get_workable_days_for_employee
 
     frappe.only_for(["Timesheet Manager", "Timesheet User", "Projects Manager"], message=True)
+
+    roles = set(frappe.get_roles(frappe.session.user))
+    if not (roles & {"Timesheet Manager", "Projects Manager"}) and frappe.session.user != "Administrator":
+        own_employee = frappe.db.get_value("Employee", {"user_id": frappe.session.user}, "name")
+        if not own_employee or own_employee != employee:
+            frappe.throw(
+                frappe._("Not permitted to view leave information for other employees"), frappe.PermissionError
+            )
 
     return get_workable_days_for_employee(employee, start_date, end_date)

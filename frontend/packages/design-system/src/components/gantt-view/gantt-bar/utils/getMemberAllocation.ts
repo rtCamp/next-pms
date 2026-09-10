@@ -45,6 +45,11 @@ export function getAllocationSummary(
   const dayKeys = new Set<number>();
 
   for (const alloc of allocations) {
+    // Placeholders book no time, so claiming day keys here would hide the free chips.
+    if (alloc.fullyReduced) {
+      continue;
+    }
+
     for (const day of eachDayOfInterval({
       start: alloc.startDate,
       end: alloc.endDate,

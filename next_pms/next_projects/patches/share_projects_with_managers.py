@@ -1,21 +1,27 @@
 import frappe
 from frappe.share import add_docshare
 
-MANAGER_FIELDS = ["custom_project_manager", "custom_engineering_manager", "custom_account_manager_"]
+MANAGER_FIELDS = ["custom_project_manager", "custom_engineering_manager"]
+## Field in another private app
+OPTIONAL_MANAGER_FIELDS = ["custom_account_manager_"]
 
 
 def execute():
     """Share every project with its project, engineering and account managers (read access) if not shared already."""
+    manager_fields = MANAGER_FIELDS + [
+        field for field in OPTIONAL_MANAGER_FIELDS if frappe.db.has_column("Project", field)
+    ]
+
     projects = frappe.get_all(
         "Project",
-        or_filters=[[field, "is", "set"] for field in MANAGER_FIELDS],
-        fields=["name", *MANAGER_FIELDS],
+        or_filters=[[field, "is", "set"] for field in manager_fields],
+        fields=["name", *manager_fields],
     )
 
     user_exists = {}
 
     for project in projects:
-        for user in {project.get(field) for field in MANAGER_FIELDS}:
+        for user in {project.get(field) for field in manager_fields}:
             if not user:
                 continue
             if user not in user_exists:

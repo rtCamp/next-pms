@@ -57,7 +57,7 @@ class TimesheetOverwrite(Timesheet):
             if not data.from_time and not data.to_time:
                 frappe.throw(frappe._("Row {0}: From Time and To Time is mandatory.").format(data.idx))
 
-            if flt(data.hours) == 0.0:
+            if flt(data.hours) == 0.0 and not flt(data.rejected_hours):
                 frappe.throw(frappe._("Row {0}: Hours value must be greater than zero.").format(data.idx))
 
     def update_cost(self):

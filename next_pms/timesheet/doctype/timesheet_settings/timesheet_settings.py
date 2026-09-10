@@ -1,10 +1,12 @@
 # Copyright (c) 2024, rtCamp and contributors
 # For license information, please see license.txt
 
-# import frappe
+import frappe
 from frappe.model.document import Document
 
 from next_pms.resource_management.doctype.resource_allocation.resource_allocation import clear_cache
+
+MAX_SYSTEM_AUTO_EXPAND_WEEKS = 12
 
 
 class TimesheetSettings(Document):
@@ -28,6 +30,7 @@ class TimesheetSettings(Document):
         allow_weekend_entries: DF.Check
         allowed_departments: DF.TableMultiSelect[TimesheetDepartment]
         approval_request_reminder_template: DF.Link | None
+        auto_expand_weeks_by_default: DF.Int
         daily_reminder_template: DF.Link | None
         day_to_send_reminder: DF.Literal["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
         default_currency: DF.Link | None
@@ -49,3 +52,15 @@ class TimesheetSettings(Document):
             # The resource management views cache their payload with the rates already
             # restated in this currency, so a stale cache keeps serving the old one.
             clear_cache()
+
+    def validate(self):
+        _validate_system_auto_expand_weeks(self.auto_expand_weeks_by_default)
+
+
+def _validate_system_auto_expand_weeks(value: int) -> None:
+    """Reject an Auto Expand Weeks value above the system upper limit."""
+    if value is not None and value > MAX_SYSTEM_AUTO_EXPAND_WEEKS:
+        frappe.throw(
+            frappe._("Auto Expand Weeks by Default cannot exceed {0}.").format(MAX_SYSTEM_AUTO_EXPAND_WEEKS),
+            frappe.ValidationError,
+        )

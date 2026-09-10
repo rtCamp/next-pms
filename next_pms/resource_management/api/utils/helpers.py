@@ -7,6 +7,13 @@ from frappe.utils.data import add_days, getdate
 
 from next_pms.timesheet.api.team import get_week_dates
 
+# Roles that resource_api_permissions_check grants full read/write/delete on allocations.
+# Anything gating allocation access by role must use this set, so a role that can write an
+# allocation is never blocked from the data the write depends on.
+RESOURCE_MANAGER_ROLES = frozenset(
+    {"Projects Manager", "Projects User", "Delivery Manager", "Delivery User", "System Manager"}
+)
+
 DEFAULT_ALLOCATION_RATE_CURRENCY = "USD"
 
 
@@ -534,11 +541,14 @@ def resource_api_permissions_check():
             frappe._("You don't have permission to access this resource"),
             frappe.PermissionError,
         )
-    frappe.only_for(["Projects Manager", "Projects User", "Employee"], message=True)
+    frappe.only_for(
+        ["Projects Manager", "Projects User", "Delivery Manager", "Delivery User", "Employee", "System Manager"],
+        message=True,
+    )
 
-    roles = frappe.get_roles()
+    roles = set(frappe.get_roles())
 
-    if ("Projects Manager" in roles) or ("Projects User" in roles):
+    if (RESOURCE_MANAGER_ROLES & roles) or (frappe.session.user == "Administrator"):
         return {"read": True, "write": True, "delete": True}
 
     return {"read": False, "write": False, "delete": False}

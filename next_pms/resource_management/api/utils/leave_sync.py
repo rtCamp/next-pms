@@ -50,7 +50,7 @@ def get_leave_calendar(employee: str, start_date, end_date, include_weekends=Fal
     if cint(include_weekends):
         holiday_filters["weekly_off"] = 0
 
-    holidays = frappe.get_all("Holiday", filters=holiday_filters, fields=["holiday_date"])
+    holidays = frappe.get_all("Holiday", filters=holiday_filters, fields=["holiday_date", "description"])
 
     return leaves, holidays
 

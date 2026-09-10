@@ -130,7 +130,7 @@ class TestBackdatedApprovalGuard(IntegrationTestCase):
             doc = frappe.get_doc("Timesheet", name)
             if doc.docstatus == 1:
                 doc.cancel()
-            frappe.delete_doc("Timesheet", name, force=True, ignore_permissions=True)
+            frappe.delete_doc("Timesheet", name, force=True, ignore_permissions=True, ignore_on_trash=True)
 
     def make_pending_week(self, dates):
         """Log a day per date and put the week in front of the reviewer.
@@ -190,7 +190,11 @@ class TestBackdatedApprovalGuard(IntegrationTestCase):
         self.assertIn(formatdate(boundary), message)
 
     def test_week_inside_the_limit_is_still_accepted(self):
-        dates = [str(add_days(self.current_week, offset)) for offset in range(2)]
+        start = max(
+            getdate(self.current_week),
+            add_days(getdate(nowdate()), -(BACKDATED_DAYS_ALLOWED - 1)),
+        )
+        dates = [str(add_days(start, offset)) for offset in range(2)]
         self.make_pending_week(dates)
 
         frappe.set_user(MANAGER_USER)
@@ -388,7 +392,7 @@ class TestSelfApprovalGuard(IntegrationTestCase):
             doc = frappe.get_doc("Timesheet", name)
             if doc.docstatus == 1:
                 doc.cancel()
-            frappe.delete_doc("Timesheet", name, force=True, ignore_permissions=True)
+            frappe.delete_doc("Timesheet", name, force=True, ignore_permissions=True, ignore_on_trash=True)
 
     def make_pending_week(self):
         """Put the reviewer's own week in front of them, awaiting a decision."""
@@ -471,4 +475,4 @@ class TestSelfApprovalGuard(IntegrationTestCase):
             self.assertEqual(row.custom_approval_status, "Processing Timesheet")
         for name in [row.name for row in rows]:
             doc = frappe.get_doc("Timesheet", name)
-            frappe.delete_doc("Timesheet", doc.name, force=True, ignore_permissions=True)
+            frappe.delete_doc("Timesheet", doc.name, force=True, ignore_permissions=True, ignore_on_trash=True)

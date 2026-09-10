@@ -8,6 +8,9 @@ def calculate(project_id: str, valid_from_date: str):
     """Endpoint to enqueue the timesheet billing recalculation for a project."""
     if not project_id:
         return frappe.throw(frappe._("Please select a project."))
+    if not frappe.db.exists("Project", project_id):
+        frappe.throw(frappe._("Project {0} not found").format(project_id), frappe.DoesNotExistError)
+    frappe.has_permission("Project", doc=project_id, ptype="write", user=frappe.session.user, throw=True)
 
     frappe.enqueue(
         recalculate_timesheet_billing,
