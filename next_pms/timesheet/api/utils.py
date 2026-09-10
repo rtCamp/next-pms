@@ -22,6 +22,10 @@ from . import filter_employees
 READ_ONLY_ROLE = ["Timesheet User", "Projects User"]
 READ_WRITE_ROLE = ["Timesheet Manager", "Projects Manager"]
 
+# Stands in for a day whose projects do not agree on one status. Never stored - it only
+# keeps such a day out of the whole-week totals in update_weekly_status_of_timesheet.
+MIXED_DAY_STATUS = "Mixed"
+
 
 def has_write_access():
     roles = frappe.get_roles()
@@ -156,28 +160,21 @@ def update_weekly_status_of_timesheet(employee: str, date: str):
     for ts in current_week_timesheet:
         timesheet_by_start_date[ts["start_date"]].append(ts)
 
-    priority = {
-        "Rejected": 5,
-        "Approval Pending": 4,
-        "Approved": 3,
-        "Not Submitted": 2,
-        "Processing Timesheet": 1,
-        None: 0,
-    }
-
+    # One Timesheet per project per day, so a day holding more than one status is partly
+    # decided: some project on it has been reviewed and some has not. Such a day counts
+    # toward no "the whole week is X" total below, which is what turns a week where one
+    # project manager has signed off their project into "Partially Approved" instead of
+    # reading as though nothing had been reviewed at all.
     final_status_per_day = {}
 
     for day, timesheets in timesheet_by_start_date.items():
-        highest_status = None
-        highest_value = 0
-        for ts in timesheets:
-            status = ts["custom_approval_status"]
-            if priority.get(status, 0) > highest_value:
-                highest_status = status
-                highest_value = priority[status]
-        final_status_per_day[day] = highest_status or "Not Submitted"
+        day_statuses = {ts["custom_approval_status"] or NOT_SUBMITTED_STATUS for ts in timesheets}
+        final_status_per_day[day] = day_statuses.pop() if len(day_statuses) == 1 else MIXED_DAY_STATUS
 
-    week_status = "Not Submitted"
+    # Presence across the week, ignoring how the days group, for the partial results.
+    week_statuses = {ts["custom_approval_status"] or NOT_SUBMITTED_STATUS for ts in current_week_timesheet}
+
+    week_status = NOT_SUBMITTED_STATUS
 
     status_count = {
         "Not Submitted": 0,
@@ -203,13 +200,13 @@ def update_weekly_status_of_timesheet(employee: str, date: str):
         week_status = "Rejected"
     elif effective_total_days > 0 and status_count["Approved"] >= effective_total_days:
         week_status = "Approved"
-    elif status_count["Processing Timesheet"] > 0:
+    elif "Processing Timesheet" in week_statuses:
         week_status = "Processing Timesheet"
-    elif status_count["Rejected"] > 0:
+    elif "Rejected" in week_statuses:
         week_status = "Partially Rejected"
-    elif status_count["Approved"] > 0:
+    elif "Approved" in week_statuses:
         week_status = "Partially Approved"
-    elif status_count["Approval Pending"] > 0:
+    elif "Approval Pending" in week_statuses:
         # A week awaiting review on fewer days than the employee is expected to work - a
         # short week, or one submitted with days still unlogged. Without this the counts
         # above all fall short and the week reads "Not Submitted", losing the submission.
@@ -306,10 +303,6 @@ def employee_has_higher_access(employee: str, ptype: str = "read") -> bool:
 # Roles that may decide any project's timesheets, regardless of who manages the project.
 GLOBAL_APPROVER_ROLES = ("System Manager", "Timesheet Manager")
 
-# Ordered from the most to the least conclusive. A week made only of one of these reads as
-# that status; a mix falls back to the partial states below.
-_DAY_STATUS_PRIORITY = ("Processing Timesheet", "Rejected", "Approved", "Approval Pending", NOT_SUBMITTED_STATUS)
-
 
 def can_approve_project_timesheets(project: str, employee: str) -> bool:
     """Whether the session user may decide `employee`'s timesheets for `project`.
@@ -364,30 +357,6 @@ def get_project_approver_map(projects: list[str], employee_by_project: dict | No
         project: project in managed or bool(reports.intersection(employee_by_project.get(project) or set()))
         for project in projects
     }
-
-
-def derive_week_approval_status(day_statuses: list[str]) -> str:
-    """Roll a set of per-day approval statuses up into one week-level status.
-
-    The project-scoped counterpart of `update_weekly_status_of_timesheet`: that one weighs
-    the days against the employee's working days because it describes the whole week, while
-    a single project is only worked on the days it is worked on - so a project touched on
-    two days and approved on both is Approved, not partially so.
-    """
-    statuses = {status or NOT_SUBMITTED_STATUS for status in day_statuses}
-    if not statuses:
-        return NOT_SUBMITTED_STATUS
-
-    for status in _DAY_STATUS_PRIORITY:
-        if statuses == {status}:
-            return status
-    if "Processing Timesheet" in statuses:
-        return "Processing Timesheet"
-    if "Rejected" in statuses:
-        return "Partially Rejected"
-    if "Approved" in statuses:
-        return "Partially Approved"
-    return "Approval Pending"
 
 
 def normalize_status_filter(status_filter, coerce_non_list: bool = False):
