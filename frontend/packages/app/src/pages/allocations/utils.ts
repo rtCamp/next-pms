@@ -39,6 +39,7 @@ export type AllocationApiRecord = {
   customer?: string | null;
   recurrence_id?: string | null;
   hours_allocated_per_day: number;
+  total_allocated_hours: number;
   allocation_start_date: string;
   allocation_end_date: string;
   is_billable: number;
@@ -249,17 +250,20 @@ export function mapResourceAllocation<T extends AllocationApiRecord>(
  * Each segment is treated as its own visible allocation entry while still pointing at
  * the same underlying allocation document id.
  *
- * An allocation whose every day has been reduced to zero — by approved leave, by holidays,
- * or by manual day overrides — produces no visible segment at all. It still exists, and it
- * still blocks a second allocation for the same employee and project, so it falls back to a
- * single zero-hour segment spanning the full range: without it the manager has nothing to
- * click to edit or delete the allocation that is rejecting their input.
+ * An allocation reduced to zero hours still blocks overlapping ones, so it keeps a single
+ * zero-hour segment to stay clickable. That reads the backend total, not the segments below,
+ * which count weekend days the allocation never books.
  */
 export function mapResourceAllocationSegments<T extends AllocationApiRecord>(
   allocation: T,
   customerName?: string,
 ): Array<Allocation & { customerName?: string }> {
   const baseAllocation = mapResourceAllocation(allocation, customerName);
+
+  if (!allocation.total_allocated_hours) {
+    return [{ ...baseAllocation, hours: 0, fullyReduced: true }];
+  }
+
   const overrideByDate = new Map(
     (allocation.override ?? []).map((entry) => [entry.date, entry]),
   );
@@ -320,10 +324,6 @@ export function mapResourceAllocationSegments<T extends AllocationApiRecord>(
   }
 
   pushSegment();
-
-  if (!segments.length) {
-    return [{ ...baseAllocation, hours: 0, fullyReduced: true }];
-  }
 
   return segments;
 }

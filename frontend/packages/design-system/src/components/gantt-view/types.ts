@@ -45,12 +45,7 @@ export interface Allocation {
   allocationHoursPerDay?: number;
   /** Whether the allocation includes weekend days. */
   includeWeekends?: boolean;
-  /**
-   * Set on the placeholder segment emitted when every day of an allocation has
-   * been reduced to zero hours. The underlying allocation still exists and still
-   * blocks overlapping allocations, so it needs a handle in the grid even though
-   * it books no time.
-   */
+  /** Whether this is the placeholder segment for an allocation reduced to zero hours. */
   fullyReduced?: boolean;
 }
 

@@ -45,9 +45,7 @@ export function getAllocationSummary(
   const dayKeys = new Set<number>();
 
   for (const alloc of allocations) {
-    // Zero-hour placeholders exist only to keep the underlying allocation reachable in the
-    // expanded row. They book no time, so letting them claim day keys here would suppress
-    // the "free" capacity chips those days should still show.
+    // Placeholders book no time, so claiming day keys here would hide the free chips.
     if (alloc.fullyReduced) {
       continue;
     }
@@ -94,7 +92,8 @@ export function getAllocationSummary(
       billable: !dayHasNonBillable.get(ts),
       tentative: Boolean(dayHasTentative.get(ts)),
       type: (dayTimeoff.has(ts) ? "timeoff" : "default") as
-        "default" | "timeoff",
+        | "default"
+        | "timeoff",
       timeoff: dayTimeoff.get(ts),
       label: dayLabel.get(ts),
     }));
