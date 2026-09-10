@@ -94,7 +94,7 @@ export function SystemTimesheetsPage({
             <>
               <div>
                 <FormLabel size="md" className="text-ink-gray-8!">
-                  Allow Backdated Entries Till (Employee)
+                  Allow backdated time entry for days limit - Employee
                 </FormLabel>
                 <TextInput
                   type="number"
@@ -114,7 +114,7 @@ export function SystemTimesheetsPage({
               </div>
               <div>
                 <FormLabel size="md" className="text-ink-gray-8!">
-                  Allow Backdated Entries Till (Manager)
+                  Allow backdated time entry for days limit - Manager
                 </FormLabel>
                 <TextInput
                   type="number"
@@ -133,7 +133,7 @@ export function SystemTimesheetsPage({
                 />
               </div>
               <SettingsMultiSelectField
-                label="Ignored Roles"
+                label="Backdated Entry Limit - Exempted Roles"
                 doctype="Role"
                 value={(form.ignored_role ?? [])
                   .map((row) => row.role)
