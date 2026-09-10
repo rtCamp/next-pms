@@ -252,7 +252,7 @@ apps/next_pms/
 │       ├── design-system/ # shared UI primitives (shadcn-style)
 │       └── hooks/         # shared hooks
 ├── frappe-ui-react/       # git submodule — shared rtCamp UI kit (pnpm workspace)
-│   │                       # submodule URL: rtCamp/frappe-ui-react, branch feat/timesheet
+│   │                       # submodule URL: rtCamp/frappe-ui-react, branch develop
 │   └── packages/frappe-ui-react/
 ├── tests/                 # Playwright e2e + visual tests
 ├── package.json           # top-level scripts (build runs submodule + frontend)
