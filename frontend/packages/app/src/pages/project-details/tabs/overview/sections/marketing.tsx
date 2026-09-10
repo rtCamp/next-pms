@@ -60,7 +60,7 @@ export function Marketing({ form, isEditing, submitting }: MarketingProps) {
               >
                 <Select
                   value={field.state.value}
-                  onChange={(v) => field.handleChange(v || "0")}
+                  onValueChange={(v) => field.handleChange(v || "0")}
                   options={YES_NO_OPTIONS}
                   disabled={submitting}
                 />
@@ -80,7 +80,7 @@ export function Marketing({ form, isEditing, submitting }: MarketingProps) {
               >
                 <Select
                   value={field.state.value}
-                  onChange={(v) => field.handleChange(v || "0")}
+                  onValueChange={(v) => field.handleChange(v || "0")}
                   options={YES_NO_OPTIONS}
                   disabled={submitting}
                 />
@@ -100,7 +100,7 @@ export function Marketing({ form, isEditing, submitting }: MarketingProps) {
               >
                 <Select
                   value={field.state.value}
-                  onChange={(v) => field.handleChange(v || "0")}
+                  onValueChange={(v) => field.handleChange(v || "0")}
                   options={YES_NO_OPTIONS}
                   disabled={submitting}
                 />

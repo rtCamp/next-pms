@@ -352,7 +352,7 @@ const AddLeave = ({ open = false, onOpenChange }: LeaveTimeProps) => {
                 <Select
                   id="leave-type"
                   value={field.state.value}
-                  onChange={(val) => field.handleChange(val as string)}
+                  onValueChange={(val) => field.handleChange(val as string)}
                   variant="outline"
                   className="h-8 text-ink-gray-7"
                   options={[...unpaidLeaveOptions, ...allocatedLeaveOptions]}

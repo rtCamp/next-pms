@@ -180,7 +180,7 @@ export function AddUpdateModal({
                 variant="outline"
                 options={statusOptions}
                 value={field.state.value ?? ""}
-                onChange={(val) =>
+                onValueChange={(val) =>
                   field.handleChange((val ?? null) as string | null)
                 }
                 placeholder="Select status"
@@ -202,7 +202,7 @@ export function AddUpdateModal({
                 variant="outline"
                 options={riskLevelOptions}
                 value={field.state.value ?? ""}
-                onChange={(val) =>
+                onValueChange={(val) =>
                   field.handleChange((val ?? null) as string | null)
                 }
                 placeholder="Select risk level"

@@ -238,7 +238,7 @@ export function CreateTodoModal({ open, onClose, todo }: CreateTodoModalProps) {
                 variant="subtle"
                 value={field.state.value}
                 options={STATUS_OPTIONS.map((o) => ({ ...o }))}
-                onChange={(value) =>
+                onValueChange={(value) =>
                   value &&
                   field.handleChange(value as CreateTodoValues["status"])
                 }
@@ -354,7 +354,7 @@ export function CreateTodoModal({ open, onClose, todo }: CreateTodoModalProps) {
                 variant="subtle"
                 value={field.state.value}
                 options={PRIORITY_OPTIONS.map((o) => ({ ...o }))}
-                onChange={(value) =>
+                onValueChange={(value) =>
                   value &&
                   field.handleChange(value as CreateTodoValues["priority"])
                 }

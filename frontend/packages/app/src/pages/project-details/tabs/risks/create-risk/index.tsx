@@ -270,7 +270,7 @@ export function CreateRiskModal({
                     variant="outline"
                     options={riskLevelOptions}
                     value={field.state.value}
-                    onChange={(val) => field.handleChange(val ?? "")}
+                    onValueChange={(val) => field.handleChange(val ?? "")}
                     placeholder="Select level"
                   />
                   {!field.state.meta.isValid && (
@@ -308,7 +308,7 @@ export function CreateRiskModal({
                     variant="outline"
                     options={statusOptions}
                     value={field.state.value}
-                    onChange={(val) => field.handleChange(val ?? "")}
+                    onValueChange={(val) => field.handleChange(val ?? "")}
                     placeholder="Select status"
                   />
                   {!field.state.meta.isValid && (

@@ -155,7 +155,7 @@ export function SettingsDaySelect({
       <Select
         options={options}
         value={value ?? ""}
-        onChange={(val) => onChange(val ?? "")}
+        onValueChange={(val) => onChange(val ?? "")}
         className="mt-2"
       />
     </div>

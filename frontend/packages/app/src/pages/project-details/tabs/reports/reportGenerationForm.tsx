@@ -187,7 +187,7 @@ export function ReportGenerationForm() {
                 variant="outline"
                 className="text-ink-gray-7"
                 value={field.state.value}
-                onChange={(value) => field.handleChange(value ?? "")}
+                onValueChange={(value) => field.handleChange(value ?? "")}
                 options={repositoryOptions}
                 placeholder="Select repository…"
               />

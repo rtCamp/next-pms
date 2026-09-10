@@ -54,7 +54,7 @@ export function ProjectBoardField({
         variant="outline"
         className="text-ink-gray-7"
         value={value}
-        onChange={(selected) => onChange(selected ?? "")}
+        onValueChange={(selected) => onChange(selected ?? "")}
         options={options}
         disabled={options.length === 0}
         placeholder="Select project board…"

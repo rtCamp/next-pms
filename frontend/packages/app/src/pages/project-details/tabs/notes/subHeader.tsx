@@ -90,7 +90,7 @@ export function NotesSubHeader() {
           placeholderClassName="text-ink-gray-7"
           className="w-fit max-md:w-full"
           value={author}
-          onChange={(value) => onAuthorChange((value ?? "") as string)}
+          onValueChange={(value) => onAuthorChange((value ?? "") as string)}
           options={authorOptions}
         />
       </div>

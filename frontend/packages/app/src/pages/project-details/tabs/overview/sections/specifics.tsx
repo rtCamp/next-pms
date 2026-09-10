@@ -72,7 +72,7 @@ export function Specifics({ form, isEditing, submitting }: SpecificsProps) {
             >
               <Select
                 value={field.state.value}
-                onChange={(v) => field.handleChange(v || "")}
+                onValueChange={(v) => field.handleChange(v || "")}
                 options={PRIORITY_OPTIONS}
                 disabled={submitting}
               />
@@ -89,7 +89,7 @@ export function Specifics({ form, isEditing, submitting }: SpecificsProps) {
             >
               <Select
                 value={field.state.value}
-                onChange={(v) => field.handleChange(v || "")}
+                onValueChange={(v) => field.handleChange(v || "")}
                 options={COMPLEXITY_OPTIONS}
                 disabled={submitting}
               />
@@ -106,7 +106,7 @@ export function Specifics({ form, isEditing, submitting }: SpecificsProps) {
             >
               <Select
                 value={field.state.value}
-                onChange={(v) => field.handleChange(v || "")}
+                onValueChange={(v) => field.handleChange(v || "")}
                 options={KEY_ACCOUNT_OPTIONS}
                 disabled={submitting}
               />

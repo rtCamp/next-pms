@@ -468,7 +468,7 @@ function EditScheduleModal({
                   label: propagationModeLabels.this_and_future,
                 },
               ]}
-              onChange={(value) => {
+              onValueChange={(value) => {
                 if (value && isEditScheduleApplyMode(value)) {
                   setApplyMode(value);
                 }

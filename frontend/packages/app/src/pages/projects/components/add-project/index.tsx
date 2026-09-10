@@ -149,7 +149,7 @@ function AddProjectModal({
                 options={PHASE_SELECT_OPTIONS}
                 placeholder="Select phase"
                 value={field.state.value}
-                onChange={(value) => field.handleChange(value as string)}
+                onValueChange={(value) => field.handleChange(value as string)}
               />
               {!field.state.meta.isValid && (
                 <ErrorMessage message={field.state.meta.errors[0]?.message} />
