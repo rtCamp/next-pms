@@ -86,7 +86,7 @@ export function Communication({
             >
               <Select
                 value={field.state.value}
-                onValueChange={(v) => field.handleChange(v || "")}
+                onChange={(e) => field.handleChange(e.target.value)}
                 options={frequencyOptions}
                 disabled={submitting}
               />

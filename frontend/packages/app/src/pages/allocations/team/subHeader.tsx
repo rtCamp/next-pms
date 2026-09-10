@@ -198,9 +198,11 @@ export function SubHeader() {
           className="w-fit text-ink-gray-7"
           options={durationOptions}
           value={duration}
-          onValueChange={(value) =>
+          onChange={(e) =>
             guard(() =>
-              setDuration((value || "this-quarter") as typeof duration),
+              setDuration(
+                (e.target.value || "this-quarter") as typeof duration,
+              ),
             )
           }
         />

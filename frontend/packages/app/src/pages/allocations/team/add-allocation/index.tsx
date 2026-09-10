@@ -868,7 +868,7 @@ function AddAllocationModal({
                 Note
               </FormLabel>
               <Textarea
-                id="allocation-note"
+                htmlId="allocation-note"
                 variant="outline"
                 value={field.state.value ?? ""}
                 disabled={isLockedAllocationMetadataEdit}

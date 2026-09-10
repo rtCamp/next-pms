@@ -114,8 +114,8 @@ export function DeleteAllocationDialog({
           </label>
           <Select
             value={deleteMode}
-            onValueChange={(value) =>
-              setDeleteMode(value as DeleteAllocationMode)
+            onChange={(e) =>
+              setDeleteMode(e.target.value as DeleteAllocationMode)
             }
             variant="outline"
             className="h-8"

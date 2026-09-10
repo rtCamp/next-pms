@@ -113,8 +113,8 @@ const TeamTaskLog: React.FC<TeamTaskLogProps> = ({
             <Select
               variant="ghost"
               className="w-auto"
-              onValueChange={(value) => {
-                handleDateRangeChange(value);
+              onChange={(e) => {
+                handleDateRangeChange(e.target.value);
               }}
               options={dateMap}
               placeholder="Select option"

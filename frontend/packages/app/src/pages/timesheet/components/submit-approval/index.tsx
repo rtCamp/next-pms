@@ -147,7 +147,7 @@ const SubmitApproval = ({
                 Note
               </FormLabel>
               <Textarea
-                id="note"
+                htmlId="note"
                 value={field.state.value}
                 placeholder="Comment"
                 onChange={(e) => field.handleChange(e.target.value)}

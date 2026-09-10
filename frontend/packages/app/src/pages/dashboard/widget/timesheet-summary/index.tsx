@@ -94,7 +94,7 @@ export default function Timesheets() {
           className="w-fit shrink-0 bg-surface-gray-2 text-ink-gray-7"
           options={PERIOD_OPTIONS}
           value={period}
-          onValueChange={(value) => setPeriod(value ?? LAST_WEEK_VALUE)}
+          onChange={(e) => setPeriod(e.target.value ?? LAST_WEEK_VALUE)}
         />
       </div>
       {rows.length === 0 ? (

@@ -350,9 +350,9 @@ const AddLeave = ({ open = false, onOpenChange }: LeaveTimeProps) => {
                   Leave type
                 </FormLabel>
                 <Select
-                  id="leave-type"
+                  htmlId="leave-type"
                   value={field.state.value}
-                  onValueChange={(val) => field.handleChange(val as string)}
+                  onChange={(e) => field.handleChange(e.target.value as string)}
                   variant="outline"
                   className="h-8 text-ink-gray-7"
                   options={[...unpaidLeaveOptions, ...allocatedLeaveOptions]}
@@ -374,7 +374,7 @@ const AddLeave = ({ open = false, onOpenChange }: LeaveTimeProps) => {
                   Reason
                 </FormLabel>
                 <Textarea
-                  id="reason"
+                  htmlId="reason"
                   variant="outline"
                   value={field.state.value}
                   onChange={(e) => field.handleChange(e.target.value)}

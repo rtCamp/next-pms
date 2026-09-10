@@ -280,9 +280,9 @@ const AddTask = ({
                   placeholder="Priority"
                   options={TASK_PRIORITY_OPTIONS}
                   value={field.state.value}
-                  onValueChange={(value) =>
+                  onChange={(e) =>
                     field.handleChange(
-                      (value ?? "") as AddTaskFormValues["priority"],
+                      e.target.value as AddTaskFormValues["priority"],
                     )
                   }
                 />
