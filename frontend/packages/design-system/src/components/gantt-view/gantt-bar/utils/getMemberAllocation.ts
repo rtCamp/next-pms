@@ -92,8 +92,7 @@ export function getAllocationSummary(
       billable: !dayHasNonBillable.get(ts),
       tentative: Boolean(dayHasTentative.get(ts)),
       type: (dayTimeoff.has(ts) ? "timeoff" : "default") as
-        | "default"
-        | "timeoff",
+        "default" | "timeoff",
       timeoff: dayTimeoff.get(ts),
       label: dayLabel.get(ts),
     }));
