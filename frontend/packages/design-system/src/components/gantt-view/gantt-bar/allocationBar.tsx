@@ -19,6 +19,7 @@ import {
 } from "./ganttBar";
 import { allocationBarToEntry } from "./utils/allocationBarToEntry";
 import { getCapacityStatus } from "./utils/getCapacityStatus";
+import { getEditableHoursPerDay } from "./utils/getEditableHoursPerDay";
 import { withPendingDeleteEntry } from "./utils/withPendingDeleteEntry";
 import { mergeClassNames as cn } from "../../../utils";
 
@@ -72,7 +73,8 @@ export function GanttAllocationBar({
 
   const left = allocation.barOffset + headerWidth;
   const { width, fullNumDays } = allocation;
-  const canResize = resizable && !allocation.recurrenceId;
+  const canResize =
+    resizable && !allocation.recurrenceId && !allocation.fullyReduced;
   const [previewGeometry, setPreviewGeometry] = useState({ left, width });
   const [previewOpen, setPreviewOpen] = useState(false);
   const isModified =
@@ -206,7 +208,7 @@ export function GanttAllocationBar({
         customerName: allocation.customerName,
         startDate,
         endDate,
-        hoursPerDay: allocation.hours,
+        hoursPerDay: getEditableHoursPerDay(allocation),
         billable: allocation.billable,
         tentative: allocation.tentative,
         note: allocation.note,
@@ -320,7 +322,7 @@ export function GanttAllocationBar({
         render={
           <GanttBar
             ref={allocationBarRef}
-            variant="allocation"
+            variant={allocation.fullyReduced ? "empty" : "allocation"}
             theme={allocation.tentative ? "crosshatch" : "default"}
             label={dayCountLabel}
             renderLabel={renderLabel}

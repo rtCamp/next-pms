@@ -39,6 +39,7 @@ export interface ResourceAllocation {
   allocation_start_date: string;
   allocation_end_date: string;
   hours_allocated_per_day: number;
+  total_allocated_hours: number;
   project: string;
   project_name: string;
   customer: string;

@@ -477,6 +477,7 @@ def _get_resource_management_team_view_data(
             "allocation_start_date",
             "allocation_end_date",
             "hours_allocated_per_day",
+            "total_allocated_hours",
             "project",
             "project_name",
             "customer",
