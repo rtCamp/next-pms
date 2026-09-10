@@ -40,22 +40,16 @@ export type EmployeeAvailabilityResponse = {
   >;
 };
 
-export type NormalizedSelection = {
-  startDate: string;
-  endDate: string;
-};
-
 export type EditScheduleValueMode = "hoursPerDay" | "totalHours";
 export type EditScheduleApplyMode = "only_this" | "this_and_future";
 
 export type EditScheduleDraft = {
-  selection: NormalizedSelection | null;
+  selection: string[];
   hasSelection: boolean;
   hoursPerDay: number;
   totalHours: number;
   previewRows: PreviewRow[];
   headerRangeLabel: string;
-  hasMeaningfulChange: boolean;
 };
 
 export interface EditScheduleInitialValues {
