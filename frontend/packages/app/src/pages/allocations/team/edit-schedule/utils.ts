@@ -80,6 +80,15 @@ const getDayCount = (startDate: string, endDate: string): number => {
 };
 
 /**
+ * Lists every calendar date in an inclusive range as `yyyy-MM-dd` strings.
+ */
+const getDateKeysInRange = (startDate: string, endDate: string): string[] =>
+  eachDayOfInterval({
+    start: parseISO(startDate),
+    end: parseISO(endDate),
+  }).map((date) => format(date, "yyyy-MM-dd"));
+
+/**
  * Calculates the total hours for a given date range and hours per day.
  */
 export const getRangeHours = (
@@ -170,7 +179,7 @@ export const getSeedHoursPerDay = ({
 };
 
 /**
- * Sums the selected dates in whole-day terms. A day the employee is partly away books its
+ * Sums the given dates in whole-day terms. A day the employee is partly away books its
  * share of the hours-per-day, so it weighs its availability factor rather than a full day,
  * which keeps a total the user types and the total the allocation saves in step.
  */
@@ -184,17 +193,12 @@ const getEffectiveDayCount = (
   );
 
 /**
- * Calculates hours per day from a total hours value for the selected dates.
+ * Calculates hours per day from a total hours value spread over the days it covers.
  */
-export const getHoursPerDayFromTotalHours = (
-  dates: string[],
+const getHoursPerDayFromTotalHours = (
   totalHours: number,
-  availability: AvailabilityByDate = {},
-): number => {
-  const effectiveDayCount = getEffectiveDayCount(dates, availability);
-
-  return effectiveDayCount > 0 ? totalHours / effectiveDayCount : 0;
-};
+  effectiveDayCount: number,
+): number => (effectiveDayCount > 0 ? totalHours / effectiveDayCount : 0);
 
 /**
  * Formats a date range into a human-readable string.
@@ -302,14 +306,9 @@ const coversEverySelectableDay = (
   availability: AvailabilityByDate,
 ): boolean =>
   selectedDates.size > 0 &&
-  eachDayOfInterval({
-    start: parseISO(rangeStart),
-    end: parseISO(rangeEnd),
-  }).every((date) => {
-    const dateKey = format(date, "yyyy-MM-dd");
-
-    return selectedDates.has(dateKey) || Boolean(availability[dateKey]);
-  });
+  getDateKeysInRange(rangeStart, rangeEnd).every(
+    (date) => selectedDates.has(date) || Boolean(availability[date]),
+  );
 
 /**
  * Builds preview rows for the schedule summary, applying stored overrides first and
@@ -326,6 +325,7 @@ export const buildPreviewRows = ({
   override = [],
   availability = {},
   selection,
+  isBaseHoursEdit,
 }: {
   rangeStart: string;
   rangeEnd: string;
@@ -336,24 +336,15 @@ export const buildPreviewRows = ({
     dates: string[];
     hoursPerDay: number;
   } | null;
+  isBaseHoursEdit: boolean;
 }): PreviewRow[] => {
   const rows: PreviewRow[] = [];
   const overrideByDate = new Map(override.map((entry) => [entry.date, entry]));
   const selectedDates = new Set(selection?.dates ?? []);
-  const isBaseHoursEdit = coversEverySelectableDay(
-    rangeStart,
-    rangeEnd,
-    selectedDates,
-    availability,
-  );
 
   let currentRow: PreviewRow | null = null;
 
-  for (const currentDate of eachDayOfInterval({
-    start: parseISO(rangeStart),
-    end: parseISO(rangeEnd),
-  })) {
-    const dateKey = format(currentDate, "yyyy-MM-dd");
+  for (const dateKey of getDateKeysInRange(rangeStart, rangeEnd)) {
     const dayOverride = overrideByDate.get(dateKey);
     const dayOff = availability[dateKey];
     const dayOffLabel = dayOff ? getDayOffLabel(dayOff) : undefined;
@@ -420,19 +411,25 @@ export const buildScheduleDraft = ({
 }): EditScheduleDraft => {
   const selection = [...schedule.selection].sort();
   const hasSelection = selection.length > 0;
+  const isBaseHoursEdit = coversEverySelectableDay(
+    rangeStart,
+    rangeEnd,
+    new Set(selection),
+    availability,
+  );
+  const effectiveDayCount = getEffectiveDayCount(
+    isBaseHoursEdit ? getDateKeysInRange(rangeStart, rangeEnd) : selection,
+    availability,
+  );
   const hoursPerDay = hasSelection
     ? schedule.input.mode === "totalHours"
-      ? getHoursPerDayFromTotalHours(
-          selection,
-          schedule.input.value,
-          availability,
-        )
+      ? getHoursPerDayFromTotalHours(schedule.input.value, effectiveDayCount)
       : schedule.input.value
     : defaultHoursPerDay;
   const totalHours = hasSelection
     ? schedule.input.mode === "totalHours"
       ? schedule.input.value
-      : getEffectiveDayCount(selection, availability) * schedule.input.value
+      : effectiveDayCount * schedule.input.value
     : getRangeHours(rangeStart, rangeEnd, defaultHoursPerDay);
   const previewRows = buildPreviewRows({
     rangeStart,
@@ -441,6 +438,7 @@ export const buildScheduleDraft = ({
     override,
     availability,
     selection: hasSelection ? { dates: selection, hoursPerDay } : null,
+    isBaseHoursEdit,
   });
 
   return {
