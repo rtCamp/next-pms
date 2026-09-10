@@ -106,7 +106,7 @@ export function ProjectFilters() {
             placeholderClassName="text-ink-gray-7"
             className="w-full text-ink-gray-7"
             value={phase}
-            onChange={(v) => setPhase((v || "") as Phase | "")}
+            onChange={(e) => setPhase(e.target.value as Phase | "")}
             options={PHASE_OPTIONS}
           />
         </div>
@@ -116,7 +116,7 @@ export function ProjectFilters() {
             placeholderClassName="text-ink-gray-7"
             className="w-full text-ink-gray-7"
             value={status}
-            onChange={(v) => setStatus((v || "") as ProjectStatus | "")}
+            onChange={(e) => setStatus(e.target.value as ProjectStatus | "")}
             options={STATUS_OPTIONS}
           />
         </div>

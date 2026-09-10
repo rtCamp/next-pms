@@ -459,7 +459,7 @@ function EditScheduleModal({
               Apply edits to
             </FormLabel>
             <Select
-              id="apply-edits-to"
+              htmlId="apply-edits-to"
               value={applyMode}
               options={[
                 { value: "only_this", label: propagationModeLabels.only_this },
@@ -468,9 +468,9 @@ function EditScheduleModal({
                   label: propagationModeLabels.this_and_future,
                 },
               ]}
-              onChange={(value) => {
-                if (value && isEditScheduleApplyMode(value)) {
-                  setApplyMode(value);
+              onChange={(e) => {
+                if (e.target.value && isEditScheduleApplyMode(e.target.value)) {
+                  setApplyMode(e.target.value);
                 }
               }}
               variant="outline"

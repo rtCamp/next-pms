@@ -125,7 +125,7 @@ export function CalendarToolbar() {
               className="w-min"
               value={filterValue}
               options={filterOptions}
-              onChange={(val) => setFilterType(val ?? "all")}
+              onChange={(e) => setFilterType(e.target.value ?? "all")}
               size="sm"
               variant="subtle"
             />

@@ -89,7 +89,7 @@ export function RisksToolbar() {
           className="w-36 text-ink-gray-7"
           matchTriggerWidth
           value={filters.riskOwner}
-          onChange={(v) => setFilters({ riskOwner: (v ?? "") as string })}
+          onChange={(e) => setFilters({ riskOwner: e.target.value as string })}
           options={riskOwnerOptions}
         />
         <Select
@@ -99,7 +99,7 @@ export function RisksToolbar() {
           className="w-36 text-ink-gray-7"
           matchTriggerWidth
           value={filters.owner}
-          onChange={(v) => setFilters({ owner: (v ?? "") as string })}
+          onChange={(e) => setFilters({ owner: e.target.value as string })}
           options={ownerOptions}
         />
         <Select
@@ -109,7 +109,9 @@ export function RisksToolbar() {
           className="w-30 text-ink-gray-7"
           matchTriggerWidth
           value={filters.status}
-          onChange={(v) => setFilters({ status: (v ?? "") as RiskStatus | "" })}
+          onChange={(e) =>
+            setFilters({ status: e.target.value as RiskStatus | "" })
+          }
           options={STATUS_OPTIONS}
         />
         <Select
@@ -119,7 +121,7 @@ export function RisksToolbar() {
           className="w-30 text-ink-gray-7"
           matchTriggerWidth
           value={filters.riskLevel}
-          onChange={(v) => setFilters({ riskLevel: (v ?? "") as string })}
+          onChange={(e) => setFilters({ riskLevel: e.target.value as string })}
           options={RISK_LEVEL_OPTIONS}
         />
       </div>
