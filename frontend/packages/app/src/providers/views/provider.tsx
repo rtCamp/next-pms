@@ -26,6 +26,7 @@ import {
 import CreateViewModal from "@/components/create-view";
 import EditViewModal from "@/components/edit-view";
 import { parseFrappeErrorMsg } from "@/lib/utils";
+import { useUser } from "@/providers/user";
 import type { View } from "@/types";
 import { ViewsContext } from ".";
 
@@ -38,6 +39,7 @@ export const ViewsProvider: FC<
 > = ({ doctype, defaultViews, filterParamKeys, children }) => {
   const [searchParams, setSearchParams] = useSearchParams();
   const toast = useToasts();
+  const currentUser = useUser(({ state }) => state.currentUser);
 
   const [isCreateViewModal, setIsCreateViewModal] = useState(false);
   const [type, settype] = useState("");
@@ -270,6 +272,13 @@ export const ViewsProvider: FC<
     [toast, deleteDoc, mutate],
   );
 
+  const canManageView = useCallback(
+    (view: View) =>
+      currentUser === "Administrator" ||
+      (!!currentUser && view.owner === currentUser),
+    [currentUser],
+  );
+
   const refresh = useCallback(async () => {
     await mutate();
   }, [mutate]);
@@ -283,6 +292,7 @@ export const ViewsProvider: FC<
         savedViews,
         activeView,
         isLoading,
+        canManageView,
       },
       actions: {
         createView,
@@ -301,6 +311,7 @@ export const ViewsProvider: FC<
       savedViews,
       activeView,
       isLoading,
+      canManageView,
       createView,
       applyView,
       duplicateView,
