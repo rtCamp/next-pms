@@ -209,7 +209,6 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
               <SystemTimesheetsPage
                 form={systemForm}
                 updateField={updateSystemField}
-                hasApiKey={Boolean(systemSettings?.pm_report_api_key)}
               />
             ) : activePage === "system-resource-management" ? (
               <SystemResourceManagementPage

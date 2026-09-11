@@ -82,7 +82,6 @@ export type TimesheetsPageProps = {
 export type SystemTimesheetsPageProps = {
   form: TimesheetSettings;
   updateField: FieldUpdater<SystemSettings>;
-  hasApiKey: boolean;
 };
 
 export type SystemResourceManagementPageProps = {

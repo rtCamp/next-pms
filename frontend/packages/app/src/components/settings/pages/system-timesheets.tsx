@@ -1,68 +1,21 @@
 /**
  * External dependencies.
  */
-import { useEffect, useState } from "react";
-import {
-  Checkbox,
-  FormLabel,
-  Password,
-  TextInput,
-} from "@rtcamp/frappe-ui-react";
+import { Checkbox, FormLabel, TextInput } from "@rtcamp/frappe-ui-react";
 
 /**
  * Internal dependencies.
  */
-import { usePMSSystemApiKey } from "@/hooks/usePMSSettings";
 import {
   SettingsDaySelect,
   SettingsLinkField,
   SettingsMultiSelectField,
 } from "../fields";
-import type {
-  FieldUpdater,
-  SystemSettings,
-  SystemTimesheetsPageProps,
-} from "../types";
-
-function ApiKeyField({
-  hasApiKey,
-  updateField,
-}: {
-  hasApiKey: boolean;
-  updateField: FieldUpdater<SystemSettings>;
-}) {
-  const { value } = usePMSSystemApiKey(hasApiKey);
-  const [draft, setDraft] = useState<string | null>(null);
-
-  useEffect(() => {
-    setDraft(value ?? "");
-  }, [value]);
-
-  const onChange = (next: string) => {
-    setDraft(next);
-    updateField("pm_report_api_key", next);
-  };
-
-  return (
-    <div>
-      <FormLabel size="md" className="text-ink-gray-8!">
-        PM Report API Key
-      </FormLabel>
-      <div className="mt-2">
-        <Password
-          value={draft ?? ""}
-          placeholder="Enter API key"
-          onChange={(event) => onChange(event.target.value)}
-        />
-      </div>
-    </div>
-  );
-}
+import type { SystemTimesheetsPageProps } from "../types";
 
 export function SystemTimesheetsPage({
   form,
   updateField,
-  hasApiKey,
 }: SystemTimesheetsPageProps) {
   const backdated = Boolean(form.allow_backdated_entries);
   const dailyReminder = Boolean(form.send_daily_reminder);
@@ -94,7 +47,7 @@ export function SystemTimesheetsPage({
             <>
               <div>
                 <FormLabel size="md" className="text-ink-gray-8!">
-                  Allow Backdated Entries Till (Employee)
+                  Allow backdated time entry for days limit - Employee
                 </FormLabel>
                 <TextInput
                   type="number"
@@ -114,7 +67,7 @@ export function SystemTimesheetsPage({
               </div>
               <div>
                 <FormLabel size="md" className="text-ink-gray-8!">
-                  Allow Backdated Entries Till (Manager)
+                  Allow backdated time entry for days limit - Manager
                 </FormLabel>
                 <TextInput
                   type="number"
@@ -133,7 +86,7 @@ export function SystemTimesheetsPage({
                 />
               </div>
               <SettingsMultiSelectField
-                label="Ignored Roles"
+                label="Backdated Entry Limit - Exempted Roles"
                 doctype="Role"
                 value={(form.ignored_role ?? [])
                   .map((row) => row.role)
@@ -278,15 +231,6 @@ export function SystemTimesheetsPage({
               }
             />
           )}
-        </div>
-      </section>
-
-      <section className="mt-10">
-        <h3 className="text-lg font-semibold text-ink-gray-8">
-          Report Configuration
-        </h3>
-        <div className="mt-5 max-w-sm">
-          <ApiKeyField hasApiKey={hasApiKey} updateField={updateField} />
         </div>
       </section>
     </div>

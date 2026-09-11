@@ -59,25 +59,3 @@ export function usePMSSystemSettings(enabled: boolean) {
     updateSystemSettings,
   };
 }
-
-export function usePMSSystemApiKey(hasApiKey: boolean) {
-  const fieldname = "pm_report_api_key";
-  const method = "frappe.client.get_password";
-  const { data, isLoading, error } = useFrappeGetCall<{
-    message: string;
-  }>(
-    method,
-    {
-      doctype: SYSTEM_SETTINGS_DOCTYPE,
-      name: SYSTEM_SETTINGS_DOCTYPE,
-      fieldname,
-    },
-    hasApiKey ? `${method}:${fieldname}` : null,
-  );
-
-  return {
-    value: data?.message ?? null,
-    isLoading,
-    error,
-  };
-}
