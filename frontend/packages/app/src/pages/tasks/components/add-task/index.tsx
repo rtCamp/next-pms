@@ -233,6 +233,7 @@ const AddTask = ({
                   field.handleChange(nextProject);
                 }}
                 openOnFocus
+                tooltipOnTruncate
               />
               {!field.state.meta.isValid && (
                 <div className="mt-4">

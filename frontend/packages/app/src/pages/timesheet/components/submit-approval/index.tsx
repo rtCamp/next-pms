@@ -175,6 +175,7 @@ const SubmitApproval = ({
                 onChange={(val) => field.handleChange(val as string)}
                 options={approverComboboxOptions}
                 openOnFocus
+                tooltipOnTruncate
               />
               {!field.state.meta.isValid && (
                 <ErrorMessage message={field.state.meta.errors[0]?.message} />

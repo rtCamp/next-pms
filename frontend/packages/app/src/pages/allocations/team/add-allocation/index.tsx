@@ -438,6 +438,7 @@ function AddAllocationModal({
                 : undefined
             }
             openOnFocus
+            tooltipOnTruncate
           />
           {!field.state.meta.isValid && (
             <ErrorMessage message={field.state.meta.errors[0]?.message} />
@@ -473,6 +474,7 @@ function AddAllocationModal({
                 : undefined
             }
             openOnFocus
+            tooltipOnTruncate
           />
           {!field.state.meta.isValid && (
             <ErrorMessage message={field.state.meta.errors[0]?.message} />

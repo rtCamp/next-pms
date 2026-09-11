@@ -190,6 +190,7 @@ const AddEmployeeLeave = ({
                   onChange={(val) => {
                     field.handleChange(val as string);
                   }}
+                  tooltipOnTruncate
                 />
                 {!field.state.meta.isValid && (
                   <ErrorMessage message={field.state.meta.errors[0]?.message} />

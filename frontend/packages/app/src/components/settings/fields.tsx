@@ -59,6 +59,7 @@ export function SettingsLinkField({
         placeholder={`Select ${label}`}
         onChange={(val) => onChange(val ?? null)}
         className="mt-2"
+        tooltipOnTruncate
       />
     </div>
   );

@@ -175,6 +175,7 @@ function AddProjectModal({
                 value={field.state.value || null}
                 onChange={(value) => field.handleChange(value ?? "")}
                 openOnFocus
+                tooltipOnTruncate
               />
               {!field.state.meta.isValid && (
                 <ErrorMessage message={field.state.meta.errors[0]?.message} />

@@ -296,6 +296,7 @@ const AddEmployeeTime = ({
                   onChange={(val) => {
                     field.handleChange(val as string);
                   }}
+                  tooltipOnTruncate
                 />
                 {!field.state.meta.isValid && (
                   <ErrorMessage message={field.state.meta.errors[0]?.message} />
@@ -338,6 +339,7 @@ const AddEmployeeTime = ({
                     );
                     field.handleChange(nextProject);
                   }}
+                  tooltipOnTruncate
                 />
                 {!field.state.meta.isValid && (
                   <ErrorMessage message={field.state.meta.errors[0]?.message} />
@@ -384,6 +386,7 @@ const AddEmployeeTime = ({
                       );
                     }
                   }}
+                  tooltipOnTruncate
                 />
                 {!field.state.meta.isValid && (
                   <ErrorMessage message={field.state.meta.errors[0]?.message} />
