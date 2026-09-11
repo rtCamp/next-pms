@@ -115,6 +115,7 @@ def create_view(view: dict):
     view.order_by = parse_json(view.order_by or "[]")
     view.rows = parse_json(view.rows or "[]")
     view.columns = parse_json(view.columns or "{}")
+    view.pinnedColumns = parse_json(view.pinnedColumns or "[]")
 
     doc = frappe.new_doc("PMS View Setting")
     user = view.user or frappe.session.user
