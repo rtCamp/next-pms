@@ -18,6 +18,7 @@ import type {
 
 export interface TrackingContextProps {
   tracking: Tracking;
+  isLoading: boolean;
   contracts: ContractRow[] | null;
   rates: RateRow[] | null;
   flatRate: { amount: string; date: string } | undefined;
@@ -68,6 +69,7 @@ export const DEFAULT_TRACKING: Tracking = {
 
 export const TrackingContext = createContext<TrackingContextProps>({
   tracking: DEFAULT_TRACKING,
+  isLoading: false,
   contracts: [],
   rates: [],
   flatRate: undefined,

@@ -47,7 +47,7 @@ export function TrackingProvider({ children }: PropsWithChildren) {
     null,
   );
 
-  const { data, mutate } = useFrappeGetCall<Response>(
+  const { data, isLoading, mutate } = useFrappeGetCall<Response>(
     "next_pms.next_projects.api.project.get_project_tracking",
     {
       project: projectId,
@@ -252,6 +252,7 @@ export function TrackingProvider({ children }: PropsWithChildren) {
 
     return {
       tracking,
+      isLoading,
       contracts,
       rates,
       flatRate,
@@ -272,6 +273,7 @@ export function TrackingProvider({ children }: PropsWithChildren) {
     };
   }, [
     tracking,
+    isLoading,
     deleteRate,
     createRate,
     editRate,

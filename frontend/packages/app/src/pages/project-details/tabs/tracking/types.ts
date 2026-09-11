@@ -157,6 +157,23 @@ export type RateRow = {
   date: string;
 };
 
+export type WidgetKey =
+  | "financials"
+  | "task_completion"
+  | "hours_usage"
+  | "invoice_burn"
+  | "budget_burn"
+  | "cost_burn"
+  | "lifetime_to_date"
+  | "lifetime_expected"
+  | "lifetime_vs_billed"
+  | "contracts"
+  | "rates";
+
+export type WidgetLayout = "stacked" | "row";
+
+export type TrackingLayout = WidgetKey[][];
+
 export type TrackingData = {
   company: KpiValue;
   totalProjectValue: KpiValue;
