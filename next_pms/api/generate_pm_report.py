@@ -494,41 +494,34 @@ def get_hours_breakdown(project, from_date, to_date):
         if not timesheet_details:
             return []
 
-        # Group by task - sum hours_consumed
+        # Group billable hours by task ID
         task_map = {}
         for entry in timesheet_details:
-            task = entry.get("task") or "No Task"
-            if task not in task_map:
-                task_map[task] = {"hours_consumed": 0.0}
-            task_map[task]["hours_consumed"] += entry.get("hours") or 0
+            task_id = entry.get("task")
+            if task_id:
+                task_map[task_id] = task_map.get(task_id, 0.0) + (entry.get("hours") or 0)
 
-        task_ids = list(set(t for t in task_map if t != "No Task"))
-        task_titles = {}
-        if task_ids:
-            task_data = frappe.db.get_all(
-                "Task",
-                filters={"name": ["in", task_ids]},
-                fields=["name", "subject", "custom_is_billable"],
-            )
-            # Exclude tasks explicitly marked as non-billable
-            non_billable_task_ids = {t["name"] for t in task_data if t.get("custom_is_billable") == 0}
-            for non_billable_id in non_billable_task_ids:
-                task_map.pop(non_billable_id, None)
+        if not task_map:
+            return []
 
-            task_titles = {t["name"]: t["subject"] for t in task_data if t["name"] not in non_billable_task_ids}
+        # Fetch only billable tasks matching the timesheets
+        task_data = frappe.db.get_all(
+            "Task",
+            filters={"name": ["in", list(task_map.keys())], "custom_is_billable": 1},
+            fields=["name", "subject"],
+        )
+        task_titles = {t["name"]: t["subject"] for t in task_data}
 
         breakdown = []
-        for task_id, data in task_map.items():
-            hours = round(data["hours_consumed"], 2)
-            if hours <= 0:
-                continue
-            task_title = "No Task" if task_id == "No Task" else (task_titles.get(task_id) or task_id)
-            breakdown.append(
-                {
-                    "task_title": task_title,
-                    "hours_consumed": hours,
-                }
-            )
+        for task_id, title in task_titles.items():
+            hours = round(task_map[task_id], 2)
+            if hours > 0:
+                breakdown.append(
+                    {
+                        "task_title": title,
+                        "hours_consumed": hours,
+                    }
+                )
 
         return breakdown
 
