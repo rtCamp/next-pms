@@ -473,10 +473,10 @@ def get_github_metadata(project_doc, selected_repo: str | None = None, selected_
 
 def get_hours_breakdown(project, from_date, to_date):
     """
-    Fetch timesheet hours grouped by task for the report period.
+    Fetch timesheet hours grouped by task for the report period (billable hours only).
     """
     try:
-        # Fetch all timesheet details for this project in date range
+        # Fetch all billable timesheet details for this project in date range
         timesheet_details = frappe.db.get_all(
             "Timesheet Detail",
             filters={
@@ -486,6 +486,7 @@ def get_hours_breakdown(project, from_date, to_date):
                     [f"{from_date} 00:00:00", f"{to_date} 23:59:59"],
                 ],
                 "docstatus": ["in", [0, 1]],
+                "is_billable": 1,
             },
             fields=["task", "hours"],
         )
@@ -504,16 +505,28 @@ def get_hours_breakdown(project, from_date, to_date):
         task_ids = list(set(t for t in task_map if t != "No Task"))
         task_titles = {}
         if task_ids:
-            task_data = frappe.db.get_all("Task", filters={"name": ["in", task_ids]}, fields=["name", "subject"])
-            task_titles = {t["name"]: t["subject"] for t in task_data}
+            task_data = frappe.db.get_all(
+                "Task",
+                filters={"name": ["in", task_ids]},
+                fields=["name", "subject", "custom_is_billable"],
+            )
+            # Exclude tasks explicitly marked as non-billable
+            non_billable_task_ids = {t["name"] for t in task_data if t.get("custom_is_billable") == 0}
+            for non_billable_id in non_billable_task_ids:
+                task_map.pop(non_billable_id, None)
+
+            task_titles = {t["name"]: t["subject"] for t in task_data if t["name"] not in non_billable_task_ids}
 
         breakdown = []
         for task_id, data in task_map.items():
+            hours = round(data["hours_consumed"], 2)
+            if hours <= 0:
+                continue
             task_title = "No Task" if task_id == "No Task" else (task_titles.get(task_id) or task_id)
             breakdown.append(
                 {
                     "task_title": task_title,
-                    "hours_consumed": round(data["hours_consumed"], 2),
+                    "hours_consumed": hours,
                 }
             )
 
