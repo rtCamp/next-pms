@@ -59,7 +59,6 @@ function EditScheduleModal({
     "next_pms.resource_management.api.allocation.edit_allocation",
   );
   const today = useMemo(() => format(new Date(), "yyyy-MM-dd"), []);
-  const [selectionAnchor, setSelectionAnchor] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [applyMode, setApplyMode] =
     useState<EditScheduleApplyMode>("only_this");
@@ -172,7 +171,7 @@ function EditScheduleModal({
   const formDefaultValues = useMemo<EditScheduleFormValues>(
     () => ({
       schedule: {
-        selection: { startDate: "", endDate: "" },
+        selection: [],
         input: { value: defaultHoursPerDay, mode: "hoursPerDay" },
       },
     }),
@@ -201,12 +200,11 @@ function EditScheduleModal({
         availability,
         schedule: value.schedule,
       });
-      const schedulePayload = draft.selection
+      const schedulePayload = draft.hasSelection
         ? buildScheduleSelectionPayload({
             allocation: allocationContext,
             next: {
-              startDate: draft.selection.startDate,
-              endDate: draft.selection.endDate,
+              dates: draft.selection,
               hoursPerDay: draft.hoursPerDay,
             },
           })
@@ -280,12 +278,11 @@ function EditScheduleModal({
 
   const schedulePayload = useMemo(
     () =>
-      allocationContext && scheduleDraft.selection
+      allocationContext && scheduleDraft.hasSelection
         ? buildScheduleSelectionPayload({
             allocation: allocationContext,
             next: {
-              startDate: scheduleDraft.selection.startDate,
-              endDate: scheduleDraft.selection.endDate,
+              dates: scheduleDraft.selection,
               hoursPerDay: scheduleDraft.hoursPerDay,
             },
           })
@@ -317,14 +314,12 @@ function EditScheduleModal({
     }
 
     form.reset(formDefaultValues);
-    setSelectionAnchor(null);
     setApplyMode("only_this");
   }, [form, formDefaultValues, open]);
 
   const closeModal = useCallback(() => {
     onOpenChange(false);
     form.reset(formDefaultValues);
-    setSelectionAnchor(null);
     setApplyMode("only_this");
   }, [form, formDefaultValues, onOpenChange]);
 
@@ -370,42 +365,34 @@ function EditScheduleModal({
       }}
     >
       <div className="space-y-3">
-        <form.Field name="schedule.selection.startDate">
-          {(startField) => (
-            <form.Field name="schedule.selection.endDate">
-              {(endField) => (
-                <ScheduleDateSelectionField
-                  days={days}
-                  headerRangeLabel={scheduleDraft.headerRangeLabel}
-                  recurrenceHelperText={recurrenceHelperText}
-                  selection={scheduleDraft.selection}
-                  onDayClick={(date) => {
-                    const next = selectionAnchor
-                      ? normalizeRange(selectionAnchor, date)
-                      : { startDate: date, endDate: date };
+        <form.Field name="schedule.selection">
+          {(selectionField) => (
+            <ScheduleDateSelectionField
+              days={days}
+              headerRangeLabel={scheduleDraft.headerRangeLabel}
+              recurrenceHelperText={recurrenceHelperText}
+              selection={scheduleDraft.selection}
+              onDayClick={(date) => {
+                const current = selectionField.state.value;
+                const next = current.includes(date)
+                  ? current.filter((selected) => selected !== date)
+                  : [...current, date];
 
-                    setSelectionAnchor(selectionAnchor ? null : date);
-                    startField.handleChange(next.startDate);
-                    endField.handleChange(next.endDate);
-                    form.setFieldValue("schedule.input.mode", "hoursPerDay");
-                    form.setFieldValue(
-                      "schedule.input.value",
-                      getSeedHoursPerDay({
-                        ...next,
-                        anchorDate: selectionAnchor ?? date,
-                        defaultHoursPerDay,
-                        override: safeValues.override,
-                        availability,
-                      }),
-                    );
-                  }}
-                  error={
-                    getErrorMessage(startField.state.meta.errors[0]) ??
-                    getErrorMessage(endField.state.meta.errors[0])
-                  }
-                />
-              )}
-            </form.Field>
+                selectionField.handleChange(next);
+                form.setFieldValue("schedule.input.mode", "hoursPerDay");
+                form.setFieldValue(
+                  "schedule.input.value",
+                  getSeedHoursPerDay({
+                    dates: next,
+                    anchorDate: date,
+                    defaultHoursPerDay,
+                    override: safeValues.override,
+                    availability,
+                  }),
+                );
+              }}
+              error={getErrorMessage(selectionField.state.meta.errors[0])}
+            />
           )}
         </form.Field>
 

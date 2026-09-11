@@ -9,13 +9,13 @@ import { ErrorMessage } from "@rtcamp/frappe-ui-react";
 /**
  * Internal dependencies.
  */
-import type { DayItem, NormalizedSelection } from "../types";
+import type { DayItem } from "../types";
 
 interface ScheduleDateSelectionFieldProps {
   days: DayItem[];
   headerRangeLabel: string;
   recurrenceHelperText?: string;
-  selection: NormalizedSelection | null;
+  selection: string[];
   onDayClick: (date: string) => void;
   error?: string;
 }
@@ -28,6 +28,7 @@ function ScheduleDateSelectionField({
   onDayClick,
   error,
 }: ScheduleDateSelectionFieldProps) {
+  const selectedDates = new Set(selection);
   const showInlineRecurrenceHelper =
     Boolean(recurrenceHelperText) && days.length <= 3;
 
@@ -85,9 +86,7 @@ function ScheduleDateSelectionField({
               state={
                 day.dayOffTooltip
                   ? "disabled"
-                  : selection &&
-                      day.date >= selection.startDate &&
-                      day.date <= selection.endDate
+                  : selectedDates.has(day.date)
                     ? "active"
                     : "default"
               }
