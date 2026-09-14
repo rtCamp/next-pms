@@ -24,6 +24,7 @@ const RejectionPopup = () => {
     avatarUrl,
     dateRange,
     totalHours,
+    projectName,
     handleRejectionSubmit,
     rejectionError,
   } = useWeeklyApproval();
@@ -56,12 +57,19 @@ const RejectionPopup = () => {
       <div className="px-6 py-4 space-y-4">
         {/* Employee info row */}
         <div className="flex items-center justify-between bg-surface-gray-2 rounded-md p-2 text-base font-medium">
-          <div className="flex items-center gap-2">
-            <Avatar size="xs" image={avatarUrl} label={employeeName} />
-            <span className="text-ink-gray-7">{employeeName}</span>
-            <span className="text-ink-gray-5 font-[420]">· {dateRange}</span>
+          <div className="min-w-0">
+            <div className="flex items-center gap-2">
+              <Avatar size="xs" image={avatarUrl} label={employeeName} />
+              <span className="text-ink-gray-7 truncate">{employeeName}</span>
+              <span className="shrink-0 text-ink-gray-5">· {dateRange}</span>
+            </div>
+            {projectName ? (
+              <span className="block pl-6 text-ink-gray-5 truncate">
+                {projectName}
+              </span>
+            ) : null}
           </div>
-          <span className="text-ink-red-4">
+          <span className="shrink-0 text-ink-red-4">
             {floatToTime(totalHours, 2, 2)}
           </span>
         </div>

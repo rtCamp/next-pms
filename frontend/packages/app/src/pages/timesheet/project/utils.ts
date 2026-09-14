@@ -1,10 +1,16 @@
 /**
+ * External dependencies.
+ */
+import type { ApprovalStatusLabelType } from "@next-pms/design-system/components";
+
+/**
  * Internal dependencies.
  */
 import type {
   ProjectTimesheetMember,
   ProjectTimesheetProject,
 } from "@/components/timesheet-row/projectTimesheetRow";
+import type { TaskProps } from "@/types/timesheet";
 import type {
   ProjectMemberPayload,
   ProjectMemberWeekPayload,
@@ -12,6 +18,37 @@ import type {
   ProjectWeekProjectsPayload,
   ProjectWeekProjectsResponse,
 } from "./types";
+
+/**
+ * Resolves the overall approval status for a project based on its tasks.
+ */
+export const resolveProjectApprovalStatus = (
+  tasks: TaskProps,
+): ApprovalStatusLabelType => {
+  const statuses = Object.values(tasks).flatMap((task) =>
+    task.data.map((entry) => entry.custom_approval_status || "Not Submitted"),
+  );
+
+  if (statuses.length === 0) {
+    return "Not Submitted";
+  }
+  if (statuses.includes("Processing Timesheet")) {
+    return "Processing Timesheet";
+  }
+  if (statuses.includes("Rejected")) {
+    return "Rejected";
+  }
+  if (statuses.every((status) => status === "Approved")) {
+    return "Approved";
+  }
+  if (statuses.includes("Approval Pending")) {
+    return "Approval Pending";
+  }
+  if (statuses.includes("Approved")) {
+    return "Partially Approved";
+  }
+  return "Not Submitted";
+};
 
 /**
  * Maps an API member payload to the shape the project rows render.
@@ -28,6 +65,7 @@ export const toProjectMember = (
   workingHour: member.working_hour,
   workingFrequency: member.working_frequency,
   status: member.status,
+  projectStatus: resolveProjectApprovalStatus(member.tasks),
   backdateRestrictedBefore: member.backdate_restricted_before,
 });
 
@@ -39,6 +77,7 @@ export const toProjectGroup = (
 ): ProjectTimesheetProject => ({
   project: project.project,
   projectName: project.project_name,
+  canApprove: Boolean(project.can_approve),
   members: project.members.map(toProjectMember),
 });
 

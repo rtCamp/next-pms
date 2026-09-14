@@ -85,7 +85,6 @@ export const convertTimesheetToEntries = (response: TimesheetApiResponse) => {
     return {
       dateRange: "",
       totalHours: 0,
-      status: "",
       entries,
       dailyWorkingHours: FALLBACK_DAILY_WORKING_HOURS,
     };
@@ -161,11 +160,17 @@ export const convertTimesheetToEntries = (response: TimesheetApiResponse) => {
   return {
     dateRange: thisWeekDateRange,
     totalHours: Object.values(weeklyData)[0].total_hours + displayedLeaveHours,
-    status: thisWeek.status,
     entries,
     dailyWorkingHours,
   };
 };
+
+/**
+ * Determines if a timesheet entry has been decided (submitted or in processing).
+ */
+const isEntryDecided = (entry: TimesheetEntry): boolean =>
+  entry.docstatus === 1 || entry.approvalStatus === "Processing Timesheet";
+
 /**
  * Groups entries by day and calculates total hours per day
  */
@@ -177,10 +182,12 @@ export const groupEntriesByDay = (entries: TimesheetEntry[]): GroupedDay[] => {
         date: entry.date,
         totalHours: entry.leaveHours,
         leaveLabel: entry.leaveLabel,
+        isDecided: true,
         entries: [],
       };
     }
     acc[entry.day].totalHours += entry.hours;
+    acc[entry.day].isDecided &&= isEntryDecided(entry);
     acc[entry.day].entries.push(entry);
     return acc;
   }, {});

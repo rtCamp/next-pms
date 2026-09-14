@@ -13,6 +13,7 @@ import { Skeleton } from "@rtcamp/frappe-ui-react";
  * Internal dependencies
  */
 import { useTimesheetOutletContext } from "@/pages/timesheet/outletContext";
+import type { WeeklyApprovalTarget } from "@/pages/timesheet/team/weekly-approval/types";
 import type { WorkingFrequency } from "@/types";
 import type { HolidayProp, LeaveProps, TaskProps } from "@/types/timesheet";
 import { MemberRow } from "./components/row/memberRow";
@@ -32,12 +33,15 @@ export type ProjectTimesheetMember = {
   leaves: LeaveProps[];
   holidays: HolidayProp[];
   status: ApprovalStatusLabelType;
+  /** This project's own share of the week, as opposed to `status`, which is the whole week. */
+  projectStatus: ApprovalStatusLabelType;
   backdateRestrictedBefore: string | null;
 };
 
 export type ProjectTimesheetProject = {
   project: string;
   projectName: string | null;
+  canApprove: boolean;
   members: ProjectTimesheetMember[];
 };
 
@@ -50,6 +54,7 @@ export type ProjectTimesheetRowProps = {
   isLoadingProjects?: boolean;
   loadMoreRef?: (element: HTMLElement | null) => void;
   onCollapsedChange?: (collapsed: boolean) => void;
+  openProjectApproval?: (target: WeeklyApprovalTarget) => void;
 };
 
 export const ProjectTimesheetRow = ({
@@ -61,6 +66,7 @@ export const ProjectTimesheetRow = ({
   isLoadingProjects,
   loadMoreRef,
   onCollapsedChange,
+  openProjectApproval,
 }: ProjectTimesheetRowProps) => {
   const { openAddTimeDialog } = useTimesheetOutletContext();
   const projectsData = useMemo(() => {
@@ -112,7 +118,21 @@ export const ProjectTimesheetRow = ({
                     holidays={member.holidays}
                     workingHour={member.workingHour}
                     workingFrequency={member.workingFrequency}
-                    status="None"
+                    status={member.projectStatus}
+                    hideAction={
+                      !project.canApprove ||
+                      member.projectStatus === "Not Submitted"
+                    }
+                    onButtonClick={() =>
+                      openProjectApproval?.({
+                        employee: member.employee,
+                        employeeName: member.label,
+                        avatarUrl: member.avatarUrl,
+                        startDate: dates[0],
+                        project: project.project,
+                        projectName: project.projectName || project.project,
+                      })
+                    }
                     className="pl-13.5"
                     collapsed={true}
                     disabled={member.status === "Approved"}
