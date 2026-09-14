@@ -35,6 +35,7 @@ jobs:
           submodules: recursive
 
       - uses: actions/setup-python@v6
+        id: setup-python
         with:
           python-version: "3.14"
 
@@ -50,14 +51,38 @@ jobs:
           key: ${{ runner.os }}-pip-uv-${{ hashFiles('**/pyproject.toml') }}
           restore-keys: ${{ runner.os }}-pip-
 
-      - name: Setup bench
+      # The venv records the interpreter's absolute path, so the exact patch
+      # release has to be part of the key. The date bucket rebuilds the bench
+      # once a day so it cannot drift far behind the upstream branches; there
+      # are deliberately no restore-keys, since a prefix match would serve an
+      # arbitrarily stale bench forever.
+      - name: Resolve bench cache key
+        id: bench-cache-key
         run: |
-          pip install frappe-bench
-          bench init --skip-redis-config-generation --skip-assets --frappe-branch version-16 --python "$(which python)" ~/frappe-bench
+          echo "key=bench-${{ runner.os }}-py${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('.github/workflows/unit-tests.yml') }}-$(date -u +%Y-%m-%d)" >> "$GITHUB_OUTPUT"
+
+      - name: Restore bench
+        id: bench-cache
+        uses: actions/cache/restore@v6
+        with:
+          path: /home/runner/frappe-bench
+          key: ${{ steps.bench-cache-key.outputs.key }}
+
+      # bench lives in the runner's Python, not in the cached tree.
+      - name: Install bench
+        run: pip install frappe-bench
+
+      - name: Configure MariaDB
+        run: |
           mysql --host 127.0.0.1 --port 3306 -u root -proot -e "SET GLOBAL character_set_server = 'utf8mb4'"
           mysql --host 127.0.0.1 --port 3306 -u root -proot -e "SET GLOBAL collation_server = 'utf8mb4_unicode_ci'"
 
-      - name: Install
+      - name: Setup bench
+        if: steps.bench-cache.outputs.cache-hit != 'true'
+        run: bench init --skip-redis-config-generation --skip-assets --frappe-branch version-16 --python "$(which python)" ~/frappe-bench
+
+      - name: Install shared apps
+        if: steps.bench-cache.outputs.cache-hit != 'true'
         working-directory: /home/runner/frappe-bench
         run: |
           bench get-app erpnext --branch version-16 --skip-assets
@@ -65,6 +90,24 @@ jobs:
           bench get-app frappe_gmail_thread https://github.com/rtCamp/frappe-gmail-thread --branch version-16-hotfix --skip-assets
           bench get-app frappe_comment_xt https://github.com/rtCamp/frappe-comment-xt --branch version-16-hotfix --skip-assets
           bench get-app frappe_slack_connector https://github.com/rtCamp/frappe-slack-connector --branch version-16-hotfix --skip-assets
+        env:
+          CI: "Yes"
+
+      # Saved here, before any token-gated app is fetched, so the cache holds
+      # only sources every run pulls anyway. next-pms is public, and a fork PR
+      # can restore caches from the base branch, so nothing reachable only with
+      # RTBOT_TOKEN may be written into one. Saving before the test step also
+      # means a run with failing tests still seeds the cache.
+      - name: Save bench
+        if: steps.bench-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v6
+        with:
+          path: /home/runner/frappe-bench
+          key: ${{ steps.bench-cache-key.outputs.key }}
+
+      - name: Install token-gated apps
+        working-directory: /home/runner/frappe-bench
+        run: |
           if [ -n "$RTBOT_TOKEN" ]; then
             git config --global "url.https://rtbot:${RTBOT_TOKEN}@github.com/rtCamp/.insteadOf" "https://github.com/rtCamp/"
             bench get-app telephony --branch develop --skip-assets
@@ -74,20 +117,26 @@ jobs:
             bench get-app india_compliance https://github.com/resilient-tech/india-compliance --branch version-16 --skip-assets
             bench get-app rtcamp "https://${RTCAMP_APP}" --branch version-16-hotfix --skip-assets
             git config --global --unset "url.https://rtbot:${RTBOT_TOKEN}@github.com/rtCamp/.insteadOf"
-            PRIVATE_APPS="telephony helpdesk crm frappe_appointment india_compliance rtcamp"
+            echo "PRIVATE_APPS=telephony helpdesk crm frappe_appointment india_compliance rtcamp" >> "$GITHUB_ENV"
           else
             echo "RTBOT_TOKEN unavailable (fork PR) — skipping private rtcamp app; rtcamp-gated tests will skip"
             echo "> [!WARNING]" >> "$GITHUB_STEP_SUMMARY"
             echo "> RTBOT_TOKEN unavailable (fork PR) — private apps were not installed; rtcamp-gated tests will skip." >> "$GITHUB_STEP_SUMMARY"
-            PRIVATE_APPS=""
+            echo "PRIVATE_APPS=" >> "$GITHUB_ENV"
           fi
+        env:
+          CI: "Yes"
+          RTBOT_TOKEN: ${{ secrets.RTBOT_TOKEN }}
+          RTCAMP_APP: ${{ secrets.RTCAMP_APP }}
+
+      - name: Install
+        working-directory: /home/runner/frappe-bench
+        run: |
           bench get-app next_pms "$GITHUB_WORKSPACE" --skip-assets
           bench new-site --db-root-password root --admin-password admin --no-mariadb-socket test_site
           bench --site test_site install-app erpnext hrms frappe_gmail_thread frappe_comment_xt frappe_slack_connector $PRIVATE_APPS next_pms
         env:
           CI: "Yes"
-          RTBOT_TOKEN: ${{ secrets.RTBOT_TOKEN }}
-          RTCAMP_APP: ${{ secrets.RTCAMP_APP }}
 
       - name: Run tests
         working-directory: /home/runner/frappe-bench
