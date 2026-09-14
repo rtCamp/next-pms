@@ -15,9 +15,8 @@ interface AllocationScheduleContext {
   override?: AllocationOverrideEntry[];
 }
 
-interface AllocationEditRange {
-  startDate: string;
-  endDate: string;
+interface AllocationEditSelection {
+  dates: string[];
   hoursPerDay: number;
 }
 
@@ -46,33 +45,30 @@ const getDateKeysInRange = (startDate: string, endDate: string) =>
   }).map((date) => format(date, "yyyy-MM-dd"));
 
 /**
- * Orders a date range so the start is on or before the end.
- */
-const normalizeRange = (startDate: string, endDate: string) =>
-  startDate <= endDate
-    ? { startDate, endDate }
-    : { startDate: endDate, endDate: startDate };
-
-/**
- * Checks if the proposed edit range is the same as the allocation's current range, ignoring hours-per-day.
- * This is used to determine if the edit is a base-hours change or a day-override change.
+ * Checks whether the picked dates cover the allocation's whole range, which makes the edit a
+ * base-hours change rather than a day-override change. A leave day cannot be picked and the
+ * backend re-derives its hours from the base, so it counts as covered.
  */
 const isFullAllocationRangeEdit = ({
   allocation,
   next,
+  leaveOwnedDates,
 }: {
   allocation: AllocationScheduleContext;
-  next: Pick<AllocationEditRange, "startDate" | "endDate">;
+  next: Pick<AllocationEditSelection, "dates">;
+  leaveOwnedDates: Set<string>;
 }): boolean => {
-  const normalizedNextRange = normalizeRange(next.startDate, next.endDate);
-  const normalizedAllocationRange = normalizeRange(
-    allocation.allocationStartDate,
-    allocation.allocationEndDate,
-  );
+  const selectedDates = new Set(next.dates);
+  const [rangeStart, rangeEnd] =
+    allocation.allocationStartDate <= allocation.allocationEndDate
+      ? [allocation.allocationStartDate, allocation.allocationEndDate]
+      : [allocation.allocationEndDate, allocation.allocationStartDate];
 
   return (
-    normalizedNextRange.startDate === normalizedAllocationRange.startDate &&
-    normalizedNextRange.endDate === normalizedAllocationRange.endDate
+    selectedDates.size > 0 &&
+    getDateKeysInRange(rangeStart, rangeEnd).every(
+      (date) => selectedDates.has(date) || leaveOwnedDates.has(date),
+    )
   );
 };
 
@@ -155,19 +151,25 @@ const buildDayOverrideDiff = (
 };
 
 /**
- * Builds the payload for an Edit Schedule submission. Full-allocation range edits
- * update the allocation's base hours and partial edits become day-override diffs.
+ * Builds the payload for an Edit Schedule submission. Edits covering the whole allocation
+ * update its base hours and partial edits become day-override diffs.
  */
 export const buildScheduleSelectionPayload = ({
   allocation,
   next,
 }: {
   allocation: AllocationScheduleContext;
-  next: AllocationEditRange;
+  next: AllocationEditSelection;
 }): ScheduleSelectionPayload => {
+  const leaveOwnedDates = new Set(
+    (allocation.override ?? [])
+      .filter(isLeaveOwnedOverride)
+      .map((entry) => entry.date),
+  );
   const isBaseHoursEdit = isFullAllocationRangeEdit({
     allocation,
     next,
+    leaveOwnedDates,
   });
 
   if (
@@ -187,17 +189,8 @@ export const buildScheduleSelectionPayload = ({
 
   const currentHoursByDate = buildEffectiveHoursByDate(allocation);
   const desiredHoursByDate = new Map(currentHoursByDate);
-  const normalizedNextRange = normalizeRange(next.startDate, next.endDate);
-  const leaveOwnedDates = new Set(
-    (allocation.override ?? [])
-      .filter(isLeaveOwnedOverride)
-      .map((entry) => entry.date),
-  );
 
-  for (const date of getDateKeysInRange(
-    normalizedNextRange.startDate,
-    normalizedNextRange.endDate,
-  )) {
+  for (const date of next.dates) {
     // A leave day's hours are re-derived on save, so writing them here only produces a row the backend replaces with the value it already holds.
     if (leaveOwnedDates.has(date)) {
       continue;

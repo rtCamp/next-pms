@@ -32,11 +32,13 @@ export function useProjectEmployeeAccess({
     { project: projectId || undefined, employee: employeeId || undefined },
     enabled && (projectId || employeeId) ? undefined : null,
   );
+  const access = data?.message;
 
   return {
-    hasAnyMember: data?.message?.has_any_member ?? false,
-    hasAnyProject: data?.message?.has_any_project ?? false,
-    isValid: data?.message?.is_valid ?? false,
+    hasAnyMember: access?.has_any_member ?? false,
+    hasAnyProject: access?.has_any_project ?? false,
+    isValid: access?.is_valid ?? false,
+    hasAnswer: access !== undefined,
     isLoading,
   };
 }

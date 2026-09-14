@@ -292,6 +292,7 @@ function AddAllocationModal({
     hasAnyMember: projectHasAnyMember,
     hasAnyProject: employeeHasAnyProject,
     isValid: isProjectEmployeePairValid,
+    hasAnswer: hasProjectEmployeeAccess,
     isLoading: isProjectEmployeeAccessLoading,
   } = useProjectEmployeeAccess({
     projectId,
@@ -300,19 +301,15 @@ function AddAllocationModal({
   });
 
   const projectHasNoAssignedMembers =
-    Boolean(projectId) &&
-    !isProjectEmployeeAccessLoading &&
-    !projectHasAnyMember;
+    Boolean(projectId) && hasProjectEmployeeAccess && !projectHasAnyMember;
 
   const employeeHasNoAssignedProjects =
-    Boolean(employeeId) &&
-    !isProjectEmployeeAccessLoading &&
-    !employeeHasAnyProject;
+    Boolean(employeeId) && hasProjectEmployeeAccess && !employeeHasAnyProject;
 
   const isProjectEmployeeMismatch =
     Boolean(projectId) &&
     Boolean(employeeId) &&
-    !isProjectEmployeeAccessLoading &&
+    hasProjectEmployeeAccess &&
     !isProjectEmployeePairValid;
 
   const projectEmployeeMismatchError = isProjectEmployeeMismatch ? (
