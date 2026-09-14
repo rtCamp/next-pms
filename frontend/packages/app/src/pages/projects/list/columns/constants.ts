@@ -1,11 +1,16 @@
 /**
  * External dependencies.
  */
+import type { Plugins } from "@dnd-kit/abstract";
 import {
   RestrictToHorizontalAxis,
   RestrictToVerticalAxis,
 } from "@dnd-kit/abstract/modifiers";
-import { PointerActivationConstraints, PointerSensor } from "@dnd-kit/dom";
+import {
+  Feedback,
+  PointerActivationConstraints,
+  PointerSensor,
+} from "@dnd-kit/dom";
 
 /**
  * Internal dependencies.
@@ -123,3 +128,8 @@ export const COLUMN_PARAM_KEYS = {
 export const COLUMN_DRAG_MODIFIERS = [RestrictToHorizontalAxis];
 
 export const PANEL_DRAG_MODIFIERS = [RestrictToVerticalAxis];
+
+export const COLUMN_DRAG_PLUGINS = (defaults: Plugins) => [
+  ...defaults,
+  Feedback.configure({ dropAnimation: null }),
+];

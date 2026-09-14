@@ -141,7 +141,12 @@ export function ProjectFilters() {
               <Button
                 variant="ghost"
                 label="Cancel"
-                onClick={() => activeView && applyView(activeView)}
+                onClick={() => {
+                  if (activeView) {
+                    applyView(activeView);
+                    columnLayout.revert();
+                  }
+                }}
               />
               <Button
                 variant="subtle"

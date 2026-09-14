@@ -183,6 +183,14 @@ export function useColumnLayout() {
     [writeLayout],
   );
 
+  /**
+   * Reverts the column layout to the last saved state.
+   */
+  const revert = useCallback(
+    () => writeLayout({ order: savedOrder, pinned: savedPinned }),
+    [writeLayout, savedOrder, savedPinned],
+  );
+
   // Keeps track of the view that was applied to ensure the layout is only reset when switching views.
   const appliedView = useRef<string | undefined>(undefined);
   useEffect(() => {
@@ -198,8 +206,8 @@ export function useColumnLayout() {
     if (opened || previous === appliedView.current) {
       return;
     }
-    writeLayout({ order: savedOrder, pinned: savedPinned });
-  }, [activeView, searchParams, savedOrder, savedPinned, writeLayout]);
+    revert();
+  }, [activeView, searchParams, revert]);
 
   return {
     columns,
@@ -214,6 +222,7 @@ export function useColumnLayout() {
     reorderPinned,
     togglePinned,
     handleDragEnd,
+    revert,
     reset,
   };
 }

@@ -24,6 +24,7 @@ import { InfiniteScroll } from "@/components/infiniteScroll";
 import { ProjectListCell } from "./cells";
 import {
   COLUMN_DRAG_MODIFIERS,
+  COLUMN_DRAG_PLUGINS,
   COLUMN_DRAG_SENSORS,
 } from "./columns/constants";
 import { ColumnHeader } from "./columns/header";
@@ -78,6 +79,7 @@ function ProjectList() {
         >
           sensors={COLUMN_DRAG_SENSORS}
           modifiers={COLUMN_DRAG_MODIFIERS}
+          plugins={COLUMN_DRAG_PLUGINS}
           onDragEnd={handleDragEnd}
         >
           <div className="flex min-h-0 flex-1 flex-col px-5">

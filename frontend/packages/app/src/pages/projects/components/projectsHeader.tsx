@@ -15,6 +15,7 @@ import { SmallDown } from "@rtcamp/frappe-ui-react/icons";
  */
 import ViewsDropdown, { renderViewIcon } from "@/components/viewsDropdown";
 import { Header } from "@/layout/header";
+import { useColumnLayout } from "../list/columns/useColumnLayout";
 import { useProjectViews } from "../views";
 
 type ProjectsHeaderProps = PropsWithChildren<{
@@ -34,6 +35,7 @@ function ProjectsHeader({ label, children }: ProjectsHeaderProps) {
   const updateView = useProjectViews((state) => state.actions.updateView);
   const deleteView = useProjectViews((state) => state.actions.deleteView);
   const canManageView = useProjectViews((state) => state.state.canManageView);
+  const columnLayout = useColumnLayout();
 
   if (isLoading || !activeView) {
     return <Spinner isFull />;
@@ -56,6 +58,7 @@ function ProjectsHeader({ label, children }: ProjectsHeaderProps) {
           filters: Object.fromEntries(
             [...searchParams.entries()].filter(([key]) => key !== "view"),
           ),
+          fields: columnLayout.layout,
         })
       }
     >

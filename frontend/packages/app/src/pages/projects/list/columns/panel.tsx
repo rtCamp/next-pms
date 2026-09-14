@@ -14,7 +14,11 @@ import { VerticalColumn } from "@rtcamp/frappe-ui-react/icons";
 /**
  * Internal dependencies.
  */
-import { COLUMN_DRAG_SENSORS, PANEL_DRAG_MODIFIERS } from "./constants";
+import {
+  COLUMN_DRAG_PLUGINS,
+  COLUMN_DRAG_SENSORS,
+  PANEL_DRAG_MODIFIERS,
+} from "./constants";
 import { ColumnsPanelRow } from "./panelRow";
 import { useColumnLayout } from "./useColumnLayout";
 
@@ -47,6 +51,7 @@ export function ColumnsPanel() {
             >
               sensors={COLUMN_DRAG_SENSORS}
               modifiers={PANEL_DRAG_MODIFIERS}
+              plugins={COLUMN_DRAG_PLUGINS}
               onDragEnd={handleDragEnd}
             >
               <div className="flex flex-col px-1">
