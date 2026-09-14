@@ -206,6 +206,10 @@ export function Router() {
             >
               <BaseRoute path="notes/new" element={<NoteEditor />} />
               <BaseRoute path="notes/:noteId/edit" element={<NoteEditor />} />
+              <BaseRoute
+                path="notes/templates/:templateId/edit"
+                element={<NoteEditor />}
+              />
             </BaseRoute>
           </BaseRoute>
           <BaseRoute element={<PersonalTimesheetLayout />}>

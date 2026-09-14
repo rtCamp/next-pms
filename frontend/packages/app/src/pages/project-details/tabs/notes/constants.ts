@@ -4,6 +4,8 @@ export const CREATE_OPTIONS = {
   createTemplate: "create-template",
 } as const;
 
+export const TEMPLATE_DOCTYPE = "Project Status Update Template";
+
 export const TEMPLATE_PARAM = "template";
 
 export const NOTE_PARAM = "note";
