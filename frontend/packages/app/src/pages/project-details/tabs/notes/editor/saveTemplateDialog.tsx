@@ -20,9 +20,11 @@ import { FrappeError, useFrappeCreateDoc } from "frappe-react-sdk";
 import { useNoteTemplateCategoryLookup } from "@/hooks/useNoteTemplateCategoryLookup";
 import { parseFrappeErrorMsg } from "@/lib/utils";
 import { noteTemplateFormSchema } from "./schema";
-import { TEMPLATE_DESCRIPTION_MAX_LENGTH } from "../constants";
+import {
+  TEMPLATE_DESCRIPTION_MAX_LENGTH,
+  TEMPLATE_DOCTYPE,
+} from "../constants";
 
-const TEMPLATE_DOCTYPE = "Project Status Update Template";
 const CATEGORY_DOCTYPE = "Project Status Update Template Category";
 
 type SaveTemplateDialogProps = {

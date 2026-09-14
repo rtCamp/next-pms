@@ -5,8 +5,15 @@ import { useState } from "react";
 import { useNavigate } from "react-router";
 import { Spinner } from "@next-pms/design-system/components";
 import { stripTags } from "@next-pms/design-system/utils";
-import { Button, Combobox, Dialog, TextInput } from "@rtcamp/frappe-ui-react";
-import { Search } from "@rtcamp/frappe-ui-react/icons";
+import {
+  Button,
+  Combobox,
+  Dialog,
+  TextInput,
+  useToasts,
+} from "@rtcamp/frappe-ui-react";
+import { DeleteAlt, Search } from "@rtcamp/frappe-ui-react/icons";
+import { useFrappeDeleteDoc, type FrappeError } from "frappe-react-sdk";
 
 /**
  * Internal dependencies.
@@ -17,8 +24,8 @@ import {
   type NoteTemplateOption,
 } from "@/hooks/useNoteTemplateLookup";
 import { ROUTES } from "@/lib/constant";
-import { mergeClassNames as cn } from "@/lib/utils";
-import { TEMPLATE_PARAM } from "./constants";
+import { mergeClassNames as cn, parseFrappeErrorMsg } from "@/lib/utils";
+import { TEMPLATE_DOCTYPE, TEMPLATE_PARAM } from "./constants";
 
 type TemplateDialogProps = {
   open: boolean;
@@ -36,8 +43,12 @@ export function TemplateDialog({
   const [category, setCategory] = useState<string | null>(null);
   const [categorySearch, setCategorySearch] = useState("");
   const [selected, setSelected] = useState<NoteTemplateOption | null>(null);
+  const [confirmingDelete, setConfirmingDelete] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const toast = useToasts();
+  const { deleteDoc } = useFrappeDeleteDoc();
 
-  const { options, isLoading } = useNoteTemplateLookup({
+  const { options, isLoading, mutate } = useNoteTemplateLookup({
     shouldFetch: open,
     keepPreviousData: true,
     query,
@@ -50,6 +61,23 @@ export function TemplateDialog({
       query: categorySearch,
       keepPreviousData: true,
     });
+
+  const handleDeleteTemplate = async (template: NoteTemplateOption) => {
+    setIsDeleting(true);
+    try {
+      await deleteDoc(TEMPLATE_DOCTYPE, template.value);
+      setSelected((current) =>
+        current?.value === template.value ? null : current,
+      );
+      await mutate();
+      setConfirmingDelete(null);
+      toast.success("Template deleted");
+    } catch (err) {
+      toast.error(parseFrappeErrorMsg(err as FrappeError));
+    } finally {
+      setIsDeleting(false);
+    }
+  };
 
   const handleUseTemplate = () => {
     if (!selected) return;
@@ -104,6 +132,7 @@ export function TemplateDialog({
           onChange={(e) => {
             setQuery(e.target.value);
             setSelected(null);
+            setConfirmingDelete(null);
           }}
         />
         <Combobox
@@ -119,6 +148,7 @@ export function TemplateDialog({
           onChange={(value) => {
             setCategory(value);
             setSelected(null);
+            setConfirmingDelete(null);
           }}
         />
         <div className="relative flex flex-col gap-2">
@@ -137,30 +167,67 @@ export function TemplateDialog({
               )}
             >
               {options.map((template) => (
-                <button
+                <div
                   key={template.value}
-                  type="button"
-                  onClick={() => setSelected(template)}
                   className={cn(
-                    "flex flex-col items-start gap-1 rounded-md px-3 py-2 text-left text-ink-gray-8 hover:bg-surface-gray-2",
+                    "flex items-center gap-1 rounded-md pr-3 text-ink-gray-8 hover:bg-surface-gray-2",
                     selected?.value === template.value && "bg-surface-gray-3",
                   )}
                 >
-                  <div className="flex w-full items-center gap-2">
-                    <span className="min-w-0 flex-1 truncate text-base font-medium text-ink-gray-8">
-                      {template.label}
-                    </span>
-                    {template.category && (
-                      <span className="text-xs text-ink-gray-7 px-1.5 py-0.75 border border-outline-gray-2 rounded-[5px]">
-                        {template.category}
+                  <button
+                    type="button"
+                    onClick={() => setSelected(template)}
+                    className="flex min-w-0 flex-1 flex-col items-start gap-1 rounded-md px-3 py-2 text-left"
+                  >
+                    <div className="flex w-full items-center gap-2">
+                      <span className="min-w-0 flex-1 truncate text-base font-medium text-ink-gray-8">
+                        {template.label}
                       </span>
-                    )}
-                  </div>
-                  <span className="w-full truncate text-sm text-ink-gray-5">
-                    {template.template_description ||
-                      stripTags(template.description)}
-                  </span>
-                </button>
+                      {template.category && (
+                        <span className="text-xs text-ink-gray-7 px-1.5 py-0.75 border border-outline-gray-2 rounded-[5px]">
+                          {template.category}
+                        </span>
+                      )}
+                    </div>
+                    <span className="w-full truncate text-sm text-ink-gray-5">
+                      {template.template_description ||
+                        stripTags(template.description)}
+                    </span>
+                  </button>
+                  {confirmingDelete === template.value ? (
+                    <div className="flex shrink-0 items-center gap-1">
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        theme="gray"
+                        size="sm"
+                        label="Cancel"
+                        disabled={isDeleting}
+                        onClick={() => setConfirmingDelete(null)}
+                      />
+                      <Button
+                        type="button"
+                        variant="solid"
+                        theme="red"
+                        size="sm"
+                        label="Delete"
+                        loading={isDeleting}
+                        onClick={() => void handleDeleteTemplate(template)}
+                      />
+                    </div>
+                  ) : (
+                    <Button
+                      className="shrink-0"
+                      type="button"
+                      variant="ghost"
+                      theme="gray"
+                      size="sm"
+                      icon={DeleteAlt}
+                      aria-label={`Delete ${template.label}`}
+                      onClick={() => setConfirmingDelete(template.value)}
+                    />
+                  )}
+                </div>
               ))}
             </div>
           )}
