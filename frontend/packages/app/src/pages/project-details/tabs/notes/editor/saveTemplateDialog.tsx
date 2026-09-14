@@ -12,7 +12,12 @@ import {
   useToasts,
 } from "@rtcamp/frappe-ui-react";
 import { useForm } from "@tanstack/react-form";
-import { FrappeError, useFrappeCreateDoc } from "frappe-react-sdk";
+import {
+  FrappeError,
+  useFrappeCreateDoc,
+  useFrappePostCall,
+  useFrappeUpdateDoc,
+} from "frappe-react-sdk";
 
 /**
  * Internal dependencies.
@@ -30,8 +35,14 @@ const CATEGORY_DOCTYPE = "Project Status Update Template Category";
 type SaveTemplateDialogProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  /** Name of the template being edited; absent when creating a new one. */
+  templateName?: string;
   /** Note title carried over from the editor. */
   defaultTitle: string;
+  /** Category carried over from the template being edited. */
+  defaultCategory?: string | null;
+  /** Short description carried over from the template being edited. */
+  defaultDescription?: string;
   /** Note body stored as the template content. */
   description: string;
   onSaved: () => void;
@@ -40,14 +51,23 @@ type SaveTemplateDialogProps = {
 export function SaveTemplateDialog({
   open,
   onOpenChange,
+  templateName,
   defaultTitle,
+  defaultCategory = null,
+  defaultDescription = "",
   description,
   onSaved,
 }: SaveTemplateDialogProps) {
   const toast = useToasts();
   const [categorySearch, setCategorySearch] = useState("");
   const [submitError, setSubmitError] = useState<string | null>(null);
-  const { createDoc, loading: isSaving } = useFrappeCreateDoc();
+  const { createDoc, loading: isCreating } = useFrappeCreateDoc();
+  const { updateDoc, loading: isUpdating } = useFrappeUpdateDoc();
+  const { call: renameDoc, loading: isRenaming } = useFrappePostCall(
+    "frappe.client.rename_doc",
+  );
+  const isEditing = Boolean(templateName);
+  const isSaving = isCreating || isUpdating || isRenaming;
 
   const { options: existingCategories, isLoading: isCategoryLoading } =
     useNoteTemplateCategoryLookup({
@@ -97,8 +117,8 @@ export function SaveTemplateDialog({
   const form = useForm({
     defaultValues: {
       title: defaultTitle,
-      category: null as string | null,
-      template_description: "",
+      category: defaultCategory,
+      template_description: defaultDescription,
     },
     validators: {
       onSubmit: noteTemplateFormSchema,
@@ -109,17 +129,38 @@ export function SaveTemplateDialog({
       try {
         const category = await resolveCategory(value.category);
 
-        await createDoc(TEMPLATE_DOCTYPE, {
-          template_name: value.title,
-          title: value.title,
-          description,
-          ...(category ? { category } : {}),
-          ...(value.template_description
-            ? { template_description: value.template_description }
-            : {}),
-        });
+        if (templateName) {
+          // Template name is the document name (autoname: field:template_name).
+          if (value.title !== templateName) {
+            await renameDoc({
+              doctype: TEMPLATE_DOCTYPE,
+              old_name: templateName,
+              new_name: value.title,
+            });
+          }
 
-        toast.success("Template saved");
+          await updateDoc(TEMPLATE_DOCTYPE, value.title, {
+            title: value.title,
+            description,
+            category: category ?? "",
+            template_description: value.template_description,
+          });
+
+          toast.success("Template updated");
+        } else {
+          await createDoc(TEMPLATE_DOCTYPE, {
+            template_name: value.title,
+            title: value.title,
+            description,
+            ...(category ? { category } : {}),
+            ...(value.template_description
+              ? { template_description: value.template_description }
+              : {}),
+          });
+
+          toast.success("Template saved");
+        }
+
         onSaved();
       } catch (err) {
         setSubmitError(parseFrappeErrorMsg(err as FrappeError));
@@ -132,12 +173,12 @@ export function SaveTemplateDialog({
 
     form.reset({
       title: defaultTitle,
-      category: null,
-      template_description: "",
+      category: defaultCategory,
+      template_description: defaultDescription,
     });
-    setCategorySearch("");
+    setCategorySearch(defaultCategory ?? "");
     setSubmitError(null);
-  }, [open, defaultTitle, form]);
+  }, [open, defaultTitle, defaultCategory, defaultDescription, form]);
 
   return (
     <Dialog
@@ -150,7 +191,10 @@ export function SaveTemplateDialog({
         content: "pt-5 pb-4",
         footer: "pb-6",
       }}
-      options={{ title: "New template", size: "md" }}
+      options={{
+        title: isEditing ? "Edit template" : "New template",
+        size: "md",
+      }}
       actions={
         <form.Subscribe selector={(state) => state.values.title.trim()}>
           {(title) => (
@@ -158,7 +202,7 @@ export function SaveTemplateDialog({
               className="w-full h-7"
               variant="solid"
               theme="gray"
-              label="Save template"
+              label={isEditing ? "Save changes" : "Save template"}
               onClick={() => form.handleSubmit()}
               disabled={isSaving || !title}
               loading={isSaving}

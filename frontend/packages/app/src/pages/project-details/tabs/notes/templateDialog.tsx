@@ -12,7 +12,7 @@ import {
   TextInput,
   useToasts,
 } from "@rtcamp/frappe-ui-react";
-import { DeleteAlt, Search } from "@rtcamp/frappe-ui-react/icons";
+import { DeleteAlt, EditAlt, Search } from "@rtcamp/frappe-ui-react/icons";
 import { useFrappeDeleteDoc, type FrappeError } from "frappe-react-sdk";
 
 /**
@@ -77,6 +77,13 @@ export function TemplateDialog({
     } finally {
       setIsDeleting(false);
     }
+  };
+
+  const handleEditTemplate = (template: NoteTemplateOption) => {
+    onOpenChange(false);
+    navigate(
+      `${ROUTES.project}/${projectId}/notes/templates/${encodeURIComponent(template.value)}/edit`,
+    );
   };
 
   const handleUseTemplate = () => {
@@ -210,22 +217,32 @@ export function TemplateDialog({
                         variant="solid"
                         theme="red"
                         size="sm"
-                        label="Delete"
+                        label="Confirm"
                         loading={isDeleting}
-                        onClick={() => void handleDeleteTemplate(template)}
+                        onClick={() => handleDeleteTemplate(template)}
                       />
                     </div>
                   ) : (
-                    <Button
-                      className="shrink-0"
-                      type="button"
-                      variant="ghost"
-                      theme="gray"
-                      size="sm"
-                      icon={DeleteAlt}
-                      aria-label={`Delete ${template.label}`}
-                      onClick={() => setConfirmingDelete(template.value)}
-                    />
+                    <div className="flex shrink-0 items-center gap-1">
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        theme="gray"
+                        size="sm"
+                        icon={EditAlt}
+                        aria-label={`Edit ${template.label}`}
+                        onClick={() => handleEditTemplate(template)}
+                      />
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        theme="gray"
+                        size="sm"
+                        icon={DeleteAlt}
+                        aria-label={`Delete ${template.label}`}
+                        onClick={() => setConfirmingDelete(template.value)}
+                      />
+                    </div>
                   )}
                 </div>
               ))}
