@@ -1,7 +1,42 @@
 /**
  * Internal dependencies.
  */
-import type { ContractRow, RateRow } from "./types";
+import type { Role } from "@/types";
+import type { ContractRow, RateRow, TrackingLayout, WidgetKey } from "./types";
+
+export const CUSTOMIZATION_ROLES: Role[] = ["Projects Manager"];
+
+export const CUSTOMIZABLE_WIDGETS: { key: WidgetKey; label: string }[] = [
+  { key: "task_completion", label: "Task completion" },
+  { key: "budget_burn", label: "Budget burn" },
+  { key: "cost_burn", label: "Cost burn" },
+];
+
+export const CUSTOMIZABLE_WIDGET_KEYS: WidgetKey[] = CUSTOMIZABLE_WIDGETS.map(
+  ({ key }) => key,
+);
+
+export const ROW_COLUMNS: Record<number, string> = {
+  1: "lg:grid-cols-1",
+  2: "lg:grid-cols-2",
+  3: "lg:grid-cols-3",
+};
+
+/**
+ * Returns the default layout for the tracking tab based on the billing type.
+ */
+export function getDefaultLayout(billingType: string): TrackingLayout {
+  const isBillable = billingType !== "Non-Billable";
+
+  return [
+    isBillable ? ["financials", "task_completion"] : ["task_completion"],
+    ["hours_usage", "invoice_burn"],
+    ["budget_burn", "cost_burn"],
+    ["lifetime_to_date", "lifetime_expected", "lifetime_vs_billed"],
+    ["contracts"],
+    ["rates"],
+  ];
+}
 
 export type ColumnDef<K extends string = string> = {
   key: K;
