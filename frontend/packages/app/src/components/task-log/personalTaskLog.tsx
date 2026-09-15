@@ -121,8 +121,8 @@ const PersonalTaskLog: React.FC<PersonalTaskLogProps> = ({
 
             <Select
               className="w-auto text-ink-gray-7 text-sm"
-              onChange={(value) => {
-                handleDateRangeChange(value);
+              onChange={(e) => {
+                handleDateRangeChange(e.target.value);
               }}
               options={dateMap}
               placeholder="Select option"

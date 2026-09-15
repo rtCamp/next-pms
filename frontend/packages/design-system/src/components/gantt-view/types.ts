@@ -45,6 +45,8 @@ export interface Allocation {
   allocationHoursPerDay?: number;
   /** Whether the allocation includes weekend days. */
   includeWeekends?: boolean;
+  /** Whether this is the placeholder segment for an allocation reduced to zero hours. */
+  fullyReduced?: boolean;
 }
 
 export type TimeoffPortion = "full" | "first" | "second" | "half";

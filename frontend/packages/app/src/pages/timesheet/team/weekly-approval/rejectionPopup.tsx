@@ -72,7 +72,7 @@ const RejectionPopup = () => {
             Reason
           </FormLabel>
           <Textarea
-            id="rejection-reason"
+            htmlId="rejection-reason"
             value={reason}
             placeholder="Enter reason for rejection"
             onChange={(e) => {

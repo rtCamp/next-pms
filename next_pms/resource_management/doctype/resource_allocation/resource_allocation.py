@@ -84,23 +84,36 @@ class ResourceAllocation(Document):
         existing = frappe.db.get_value(
             "Resource Allocation",
             filters,
-            ["name", "allocation_start_date", "allocation_end_date"],
+            ["name", "allocation_start_date", "allocation_end_date", "total_allocated_hours"],
             as_dict=True,
         )
-        if existing:
-            frappe.throw(
-                frappe._(
-                    "{0} is already allocated to {1} between {2} and {3}. "
-                    "Overlapping allocations for the same project are not allowed."
-                ).format(
-                    self.employee_name or self.employee,
-                    self.project_name or self.project,
-                    frappe.format(existing.allocation_start_date, {"fieldtype": "Date"}),
-                    frappe.format(existing.allocation_end_date, {"fieldtype": "Date"}),
-                ),
-                title=frappe._("Overlapping Allocation"),
-                exc=frappe.ValidationError,
+        if not existing:
+            return
+
+        # An allocation fully consumed by leave, holidays or day overrides books no hours and
+        # renders as an inert placeholder, so "already allocated" reads as a contradiction.
+        # Name the real situation and the action that resolves it.
+        if not flt(existing.total_allocated_hours):
+            message = frappe._(
+                "{0} already has an allocation on {1} between {2} and {3} that currently books "
+                "no hours. Edit or delete that allocation instead of creating a new one."
             )
+        else:
+            message = frappe._(
+                "{0} is already allocated to {1} between {2} and {3}. "
+                "Overlapping allocations for the same project are not allowed."
+            )
+
+        frappe.throw(
+            message.format(
+                self.employee_name or self.employee,
+                self.project_name or self.project,
+                frappe.format(existing.allocation_start_date, {"fieldtype": "Date"}),
+                frappe.format(existing.allocation_end_date, {"fieldtype": "Date"}),
+            ),
+            title=frappe._("Overlapping Allocation"),
+            exc=frappe.ValidationError,
+        )
 
     def validate_project_and_customer(self):
         """Reject allocations pointed at a cancelled/inactive project or a disabled customer.

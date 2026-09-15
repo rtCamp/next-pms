@@ -103,6 +103,8 @@ export type Project = {
 export interface View {
   name: string;
   label: string;
+  /** User the view belongs to. Absent on client-side default views. */
+  owner?: string;
   icon?: string | ComponentType<{ className?: string }>;
   user?: string | null;
   default: 0 | 1;

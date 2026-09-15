@@ -280,6 +280,7 @@ const Sidebar = () => {
         collapsed={isSidebarCollapsed}
         onCollapseChange={updateIsSidebarCollapsed}
         activeItemClassName="text-ink-gray-8"
+        sectionDividers
         header={{
           title: "Next PMS",
           subtitle: employeeName,
@@ -346,6 +347,7 @@ const Sidebar = () => {
                 {
                   label: "Dashboards",
                   collapsible: true,
+                  defaultOpen: dashboardItems.some((item) => item.isActive),
                   items: dashboardItems,
                 },
               ]
@@ -355,6 +357,7 @@ const Sidebar = () => {
                 {
                   label: "Timesheet",
                   collapsible: true,
+                  defaultOpen: timesheetItems.some((item) => item.isActive),
                   items: timesheetItems,
                 },
               ]
@@ -362,6 +365,7 @@ const Sidebar = () => {
           {
             label: "Allocations",
             collapsible: true,
+            defaultOpen: allocationItems.some((item) => item.isActive),
             items: allocationItems,
           },
         ]}
