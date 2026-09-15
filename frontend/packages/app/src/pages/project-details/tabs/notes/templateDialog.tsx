@@ -53,6 +53,7 @@ export function TemplateDialog({
     keepPreviousData: true,
     query,
     category: category ?? undefined,
+    orderBy: "modified desc",
   });
 
   const { options: categoryOptions, isLoading: isCategoryLoading } =

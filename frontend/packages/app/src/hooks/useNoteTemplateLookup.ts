@@ -26,6 +26,8 @@ interface UseNoteTemplateLookupOptions {
   query: string;
   /** Restricts templates to a single category. */
   category?: string;
+  /** Sorts the templates using a backend order_by clause. */
+  orderBy?: string;
   /** Caps the number of template rows fetched per request. */
   pageSize?: number;
   /** Revalidates the lookup when the window regains focus. */
@@ -41,6 +43,7 @@ export const useNoteTemplateLookup = ({
   shouldFetch,
   query,
   category,
+  orderBy,
   pageSize = 20,
   revalidateOnFocus,
   keepPreviousData,
@@ -66,6 +69,7 @@ export const useNoteTemplateLookup = ({
         "category",
       ],
       limit_page_length: pageSize,
+      order_by: orderBy,
       filters: category
         ? [["Project Status Update Template", "category", "=", category]]
         : undefined,
