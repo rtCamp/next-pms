@@ -532,7 +532,6 @@ def _get_resource_management_team_view_data(
             for holiday in holidays
             if not holiday.get("weekly_off")
         ]
-        leaves_map, holidays_map = get_leave_calendars(employees, dates[0].get("start_date"), dates[-1].get("end_date"))
         res["employees"] = employees
         res["leaves"] = all_leave_data
         res["employee_leaves"] = build_leave_map(
@@ -621,41 +620,45 @@ def _get_resource_management_team_view_data(
                 is_holiday = date in holiday_names_by_date
                 holiday_name = holiday_names_by_date.get(date)
 
-                if leave_object.get("on_leave") and not leave_object.get("leave_work_hours"):
-                    # If employee is on leave and not working on that day then total working hours will be 0
-                    total_working_hours_for_given_date = 0
-                else:
-                    if leave_object.get("leave_work_hours"):
-                        # Handle the half day leave hear
-                        total_working_hours_for_given_date = leave_object.get("leave_work_hours")
+                is_fully_away = leave_object.get("on_leave") and not leave_object.get("leave_work_hours")
 
-                    # If employee is not on leave then calculate the total working hours for that day
-                    for resource_allocation in employee_resource_allocation:
-                        if (
-                            resource_allocation.allocation_start_date <= date
-                            and resource_allocation.allocation_end_date >= date
-                        ):
-                            total_allocated_hours_for_given_date += allocation_hours_for_date(
-                                resource_allocation,
-                                date,
-                                override_maps.get(resource_allocation.name),
-                            )
-                            total_worked_hours_resource_allocation = find_worked_hours(
-                                timesheet_data=timesheet_data,
-                                date=date,
-                                project=resource_allocation.project,
-                            )
-                            total_worked_hours_for_given_date += total_worked_hours_resource_allocation
-                            total_allocation_count += 1
+                if leave_object.get("on_leave"):
+                    # A full day away leaves no working hours; a half day keeps the part that remains.
+                    total_working_hours_for_given_date = leave_object.get("leave_work_hours") or 0
 
-                            employee_resource_allocation_for_given_date.append(
-                                {
-                                    "name": resource_allocation.name,
-                                    "date": date,
-                                    "total_worked_hours_resource_allocation": total_worked_hours_resource_allocation,
-                                    "is_tentative": resource_allocation.get("status") == "Tentative",
-                                }
-                            )
+                # An allocation can book hours on a day the employee is away — through its
+                # `include_holidays` toggle or a manual day override — so the loop runs whatever
+                # the leave says, and only rows that genuinely book nothing are skipped.
+                for resource_allocation in employee_resource_allocation:
+                    if (
+                        resource_allocation.allocation_start_date <= date
+                        and resource_allocation.allocation_end_date >= date
+                    ):
+                        allocated_hours = allocation_hours_for_date(
+                            resource_allocation,
+                            date,
+                            override_maps.get(resource_allocation.name),
+                        )
+                        if is_fully_away and not allocated_hours:
+                            continue
+
+                        total_allocated_hours_for_given_date += allocated_hours
+                        total_worked_hours_resource_allocation = find_worked_hours(
+                            timesheet_data=timesheet_data,
+                            date=date,
+                            project=resource_allocation.project,
+                        )
+                        total_worked_hours_for_given_date += total_worked_hours_resource_allocation
+                        total_allocation_count += 1
+
+                        employee_resource_allocation_for_given_date.append(
+                            {
+                                "name": resource_allocation.name,
+                                "date": date,
+                                "total_worked_hours_resource_allocation": total_worked_hours_resource_allocation,
+                                "is_tentative": resource_allocation.get("status") == "Tentative",
+                            }
+                        )
 
                 if leave_object.get("on_leave"):
                     # If employee is on leave then leave hours calculation will come from subtracting total working hours from leave hours (total_working_hours_for_given_date)
