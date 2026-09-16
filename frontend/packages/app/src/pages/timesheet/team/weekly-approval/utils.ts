@@ -166,10 +166,12 @@ export const convertTimesheetToEntries = (response: TimesheetApiResponse) => {
 };
 
 /**
- * Determines if a timesheet entry has been decided (submitted or in processing).
+ * Determines if a timesheet entry has been decided, meaning it is either submitted, rejected, or currently being processed.
  */
 const isEntryDecided = (entry: TimesheetEntry): boolean =>
-  entry.docstatus === 1 || entry.approvalStatus === "Processing Timesheet";
+  entry.docstatus === 1 ||
+  entry.rejectedHours > 0 ||
+  entry.approvalStatus === "Processing Timesheet";
 
 /**
  * Groups entries by day and calculates total hours per day

@@ -20,7 +20,7 @@ import type {
 } from "./types";
 
 /**
- * Resolves the overall approval status for a project based on its tasks.
+ * Resolves this project's own approval status for one member, from that project's entries.
  */
 export const resolveProjectApprovalStatus = (
   tasks: TaskProps,
@@ -32,20 +32,26 @@ export const resolveProjectApprovalStatus = (
   if (statuses.length === 0) {
     return "Not Submitted";
   }
-  if (statuses.includes("Processing Timesheet")) {
-    return "Processing Timesheet";
+  if (statuses.every((status) => status === "Approval Pending")) {
+    return "Approval Pending";
   }
-  if (statuses.includes("Rejected")) {
+  if (statuses.every((status) => status === "Rejected")) {
     return "Rejected";
   }
   if (statuses.every((status) => status === "Approved")) {
     return "Approved";
   }
-  if (statuses.includes("Approval Pending")) {
-    return "Approval Pending";
+  if (statuses.includes("Processing Timesheet")) {
+    return "Processing Timesheet";
+  }
+  if (statuses.includes("Rejected")) {
+    return "Partially Rejected";
   }
   if (statuses.includes("Approved")) {
     return "Partially Approved";
+  }
+  if (statuses.includes("Approval Pending")) {
+    return "Approval Pending";
   }
   return "Not Submitted";
 };
@@ -77,7 +83,7 @@ export const toProjectGroup = (
 ): ProjectTimesheetProject => ({
   project: project.project,
   projectName: project.project_name,
-  canApprove: Boolean(project.can_approve),
+  approvableEmployees: new Set(project.approvable_employees ?? []),
   members: project.members.map(toProjectMember),
 });
 

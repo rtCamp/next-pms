@@ -41,7 +41,7 @@ export type ProjectTimesheetMember = {
 export type ProjectTimesheetProject = {
   project: string;
   projectName: string | null;
-  canApprove: boolean;
+  approvableEmployees: Set<string>;
   members: ProjectTimesheetMember[];
 };
 
@@ -120,7 +120,7 @@ export const ProjectTimesheetRow = ({
                     workingFrequency={member.workingFrequency}
                     status={member.projectStatus}
                     hideAction={
-                      !project.canApprove ||
+                      !project.approvableEmployees.has(member.employee) ||
                       member.projectStatus === "Not Submitted"
                     }
                     onButtonClick={() =>
