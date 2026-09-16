@@ -6,7 +6,7 @@ from frappe import _
 from frappe.desk.notifications import extract_mentions
 from frappe.utils import formatdate, get_fullname, get_url, getdate, strip_html
 
-from next_pms.next_pms.doctype.nextpms_notifications.nextpms_notifications import create_notification
+from next_pms.next_pms.doctype.nextpms_notifications.nextpms_notifications import create_notification, truncate
 
 MENTION_EMAIL_TEMPLATE = "next_pms/templates/mention_notification.html"
 
@@ -136,9 +136,7 @@ def risk_owner_on_update(doc, method=None):
 
 def risk_summary_label(doc, max_length=80):
     label = strip_html(doc.summary or "").strip()
-    if len(label) > max_length:
-        return f"{label[: max_length - 3].rstrip()}..."
-    return label or _("Risk")
+    return truncate(label, max_length) or _("Risk")
 
 
 def render_risk_owner_email(user, doc, project_name):

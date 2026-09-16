@@ -17,7 +17,7 @@ class NextPMSNotifications(Document):
         from frappe.types import DF
 
         email_message: DF.LongText | None
-        email_subject: DF.Data | None
+        email_subject: DF.SmallText | None
         label: DF.Data
         linked_doctype: DF.Link
         linked_document: DF.DynamicLink
@@ -71,18 +71,29 @@ class NextPMSNotifications(Document):
             )
 
 
+def truncate(text: str | None, max_length: int) -> str | None:
+    """Trim `text` to `max_length` characters, marking the cut with an ellipsis."""
+    if not text or len(text) <= max_length:
+        return text
+    return f"{text[: max_length - 3].rstrip()}..."
+
+
 def create_notification(user, title, label, linked_doctype, linked_document, url=None, email=None):
     """Queue an in-app notification, optionally with an email delivered alongside it.
 
     `email` is a {"subject", "message"} dict rendered by the caller, since only the caller has the
     source document in hand. Both land when the deferred queue is flushed.
+
+    `title` and `label` are trimmed to the varchar limit here: they interpolate user-supplied names
+    that can each fill a Data column on their own, and `deferred_insert` turns the resulting length
+    error into a log line, dropping the notification and its email without a trace.
     """
     deferred_insert(
         "NextPMS Notifications",
         {
             "user": user,
-            "title": title,
-            "label": label,
+            "title": truncate(title, frappe.db.VARCHAR_LEN),
+            "label": truncate(label, frappe.db.VARCHAR_LEN),
             "linked_doctype": linked_doctype,
             "linked_document": linked_document,
             "url": url,

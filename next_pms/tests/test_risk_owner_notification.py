@@ -80,7 +80,7 @@ class IntegrationTestRiskOwnerNotification(IntegrationTestCase):
         return frappe.get_all(
             "NextPMS Notifications",
             filters={"user": user, "title": "Risk assigned"},
-            fields=["label", "linked_document", "url"],
+            fields=["label", "linked_document", "url", "email_subject"],
         )
 
     def _flush(self):
@@ -186,3 +186,25 @@ class IntegrationTestRiskOwnerNotification(IntegrationTestCase):
             self._flush()
 
         self.assertEqual(len(self._owner_notifications(OWNER_USER)), 1)
+
+    def test_oversized_label_still_delivers_both_channels(self):
+        # A maximum-length project name plus the summary overflows the Data column the label lives
+        # in; the insert is deferred, so an unhandled length error would drop both channels silently.
+        project_name = "L" * frappe.db.VARCHAR_LEN
+        project = frappe.get_doc(
+            {"doctype": "Project", "project_name": project_name, "custom_project_manager": OWNER_USER}
+        ).insert(ignore_permissions=True)
+        self.addCleanup(frappe.delete_doc, "Project", project.name, force=True, ignore_permissions=True)
+
+        frappe.set_user(ACTOR_USER)
+        self._make_risk(project=project.name, summary=f"<p>{'S' * 200}</p>")
+        sendmail = self._flush_capturing_mail()
+
+        notifications = self._owner_notifications(OWNER_USER)
+        self.assertEqual(len(notifications), 1)
+        self.assertLessEqual(len(notifications[0].label), frappe.db.VARCHAR_LEN)
+        # The subject is not a Data field, so the full project name survives.
+        self.assertIn(project_name, notifications[0].email_subject)
+
+        sendmail.assert_called_once()
+        self.assertEqual(sendmail.call_args.kwargs["recipients"], [OWNER_USER])

@@ -72,7 +72,7 @@
   },
   {
    "fieldname": "email_subject",
-   "fieldtype": "Data",
+   "fieldtype": "Small Text",
    "hidden": 1,
    "label": "Email Subject",
    "permlevel": 1,
