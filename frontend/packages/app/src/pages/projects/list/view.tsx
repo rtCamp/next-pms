@@ -33,6 +33,7 @@ import { getColumnCellClasses, getStickyOffsets } from "./columns/utils";
 import { useProjectList } from "./context";
 import { useProjectFilters } from "../components/project-filters/useProjectFilters";
 import { MONETARY_SORT_FIELDS, PROJECT_LIST_PAGE_SIZE } from "../constants";
+import { useProjectViews } from "../views";
 
 function ProjectList() {
   const data = useProjectList((c) => c.state.data);
@@ -41,6 +42,9 @@ function ProjectList() {
   const isFilterRequest = useProjectList((c) => c.state.isFilterRequest);
   const hasMore = useProjectList((c) => c.state.hasMore);
   const loadMore = useProjectList((c) => c.actions.loadMore);
+  const activeView = useProjectViews((state) => state.state.activeView);
+  const isLoadingView = useProjectViews((state) => state.state.isLoading);
+
   const { sort, setSort, filters } = useProjectFilters();
   const currency = filters.currency;
 
@@ -69,7 +73,7 @@ function ProjectList() {
 
   return (
     <LoadingOverlay active={isFilterRequest}>
-      {isInitialLoad ? (
+      {isInitialLoad || isLoadingView || !activeView ? (
         <Spinner isFull />
       ) : (
         <DragDropProvider<
