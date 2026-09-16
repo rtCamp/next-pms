@@ -123,8 +123,15 @@ def risk_owner_on_update(doc, method=None):
     label = _('{0} assigned you the risk "{1}" in {2}').format(
         get_fullname(frappe.session.user), risk_summary_label(doc), project_name
     )
-    create_notification(owner, _("Risk assigned"), label, "Risk", doc.name, url=risk_deep_link(doc))
-    send_risk_owner_email(owner, doc, project_name)
+    create_notification(
+        owner,
+        _("Risk assigned"),
+        label,
+        "Risk",
+        doc.name,
+        url=risk_deep_link(doc),
+        email=render_risk_owner_email(owner, doc, project_name),
+    )
 
 
 def risk_summary_label(doc, max_length=80):
@@ -134,10 +141,15 @@ def risk_summary_label(doc, max_length=80):
     return label or _("Risk")
 
 
-def send_risk_owner_email(user, doc, project_name):
+def render_risk_owner_email(user, doc, project_name):
+    """Render the assignment email now, for delivery when the notification insert is flushed.
+
+    Rendering here rather than at flush time keeps the email describing the assignment as it was:
+    the risk may be reassigned or deleted before the queue drains.
+    """
     user_details = frappe.db.get_value("User", user, ["email", "enabled", "full_name"], as_dict=True)
     if not user_details or not user_details.email or not user_details.enabled:
-        return
+        return None
 
     message = frappe.render_template(  # nosemgrep - trusted template file
         "next_pms/templates/risk/risk_owner_assigned.html",
@@ -148,14 +160,10 @@ def send_risk_owner_email(user, doc, project_name):
             "risk_url": get_url(risk_deep_link(doc)),
         },
     )
-    subject = _("You have been assigned as the owner of a risk in {0}").format(project_name)
-    frappe.sendmail(
-        recipients=[user_details.email],
-        subject=subject,
-        message=message,
-        reference_doctype="Risk",
-        reference_name=doc.name,
-    )
+    return {
+        "subject": _("You have been assigned as the owner of a risk in {0}").format(project_name),
+        "message": message,
+    }
 
 
 def project_on_update(doc, method=None):
