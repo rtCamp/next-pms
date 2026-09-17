@@ -4,7 +4,11 @@
 import { FC, PropsWithChildren, useCallback, useMemo, useState } from "react";
 import type { NotificationEntry } from "@next-pms/design-system/components";
 import { formatDistanceToNow, parseISO } from "date-fns";
-import { useFrappeGetDocList, useFrappeUpdateDoc } from "frappe-react-sdk";
+import {
+  useFrappeEventListener,
+  useFrappeGetDocList,
+  useFrappeUpdateDoc,
+} from "frappe-react-sdk";
 
 /**
  * Internal dependencies.
@@ -50,6 +54,11 @@ export const NotificationsProvider: FC<PropsWithChildren> = ({ children }) => {
     },
     userId ? undefined : null,
   );
+
+  useFrappeEventListener("pm_report_ready", () => {
+    mutate();
+    setTimeout(() => mutate(), 300);
+  });
 
   const notifications = useMemo<NotificationEntry[]>(() => {
     if (!data?.length) return [];

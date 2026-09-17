@@ -30,6 +30,11 @@ class TestPmReport(TestNextPms):
             if self.project_name
             else []
         )
+        self._original_notification_names = set(
+            frappe.db.get_values(
+                "NextPMS Notifications", {"user": "next-project-manager@example.com"}, "name", pluck=True
+            )
+        )
         self._original_project_fields = frappe.db.get_value(
             "Project",
             self.project_name,
@@ -87,6 +92,15 @@ class TestPmReport(TestNextPms):
                 frappe.delete_doc("Project Report", name, force=True, ignore_permissions=True)
             frappe.db.commit()
 
+        current_notification_names = set(
+            frappe.db.get_values(
+                "NextPMS Notifications", {"user": "next-project-manager@example.com"}, "name", pluck=True
+            )
+        )
+        for name in current_notification_names - getattr(self, "_original_notification_names", set()):
+            frappe.delete_doc("NextPMS Notifications", name, force=True, ignore_permissions=True)
+        frappe.db.commit()
+
         if getattr(self, "project_name", None) and getattr(self, "_original_project_fields", None):
             frappe.db.set_value("Project", self.project_name, self._original_project_fields)
             frappe.db.commit()
@@ -138,6 +152,49 @@ class TestPmReport(TestNextPms):
             notify_kwargs = mock_notify.call_args.kwargs
             self.assertEqual(notify_kwargs.get("status"), "Failed")
             self.assertIn("Google Drive folder", notify_kwargs.get("error"))
+
+    def test_send_pms_notification_success_and_failure(self):
+        """Verify _send_pms_notification inserts NextPMS Notifications for both completed and failed reports"""
+        from next_pms.api.generate_pm_report import _send_pms_notification
+
+        user = "next-project-manager@example.com"
+
+        # Success notification
+        _send_pms_notification(
+            project=self.project_name,
+            user=user,
+            status="Done",
+            document_url="https://docs.google.com/test-doc",
+        )
+        success_notif = frappe.db.get_value(
+            "NextPMS Notifications",
+            {"user": user, "title": ["like", "%Ready%"]},
+            ["name", "title", "label", "url", "linked_doctype", "linked_document"],
+            as_dict=True,
+        )
+        self.assertIsNotNone(success_notif)
+        self.assertIn("Next PMS", success_notif.title)
+        self.assertEqual(success_notif.linked_doctype, "Project")
+        self.assertEqual(success_notif.linked_document, self.project_name)
+        self.assertEqual(success_notif.url, f"/next-pms/projects/{self.project_name}?tab=reports")
+
+        # Failure notification
+        _send_pms_notification(
+            project=self.project_name,
+            user=user,
+            status="Failed",
+            failure_reason="The report bot cannot see the Google Drive folder.",
+        )
+        failed_notif = frappe.db.get_value(
+            "NextPMS Notifications",
+            {"user": user, "title": ["like", "%Failed%"]},
+            ["name", "title", "label", "url"],
+            as_dict=True,
+        )
+        self.assertIsNotNone(failed_notif)
+        self.assertIn("Next PMS", failed_notif.title)
+        self.assertIn("Google Drive folder", failed_notif.label)
+        self.assertEqual(failed_notif.url, f"/next-pms/projects/{self.project_name}?tab=reports")
 
     # ------------------------------------------------------------------ #
     # generate_pm_report — happy path
