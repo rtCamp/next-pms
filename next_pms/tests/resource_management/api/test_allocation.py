@@ -5,8 +5,10 @@ from frappe.utils import add_days, getdate
 
 from next_pms.resource_management.api.allocation import (
     AllocationPayload,
+    delete_day_override,
     edit_allocation,
     get_over_allocated_dates,
+    handle_allocation,
     upsert_day_override,
 )
 from next_pms.resource_management.api.utils.leave_sync import LEAVE_SOURCE, MANUAL_SOURCE
@@ -186,7 +188,7 @@ class TestLeaveAwareAllocation(IntegrationTestCase):
 
     # --- fixtures ---------------------------------------------------------
 
-    def _allocate(self, start=MON, end=FRI, hours=DAILY_HOURS):
+    def _allocate(self, start=MON, end=FRI, hours=DAILY_HOURS, include_weekends=0, include_holidays=0):
         return frappe.get_doc(
             {
                 "doctype": "Resource Allocation",
@@ -196,7 +198,8 @@ class TestLeaveAwareAllocation(IntegrationTestCase):
                 "allocation_start_date": start,
                 "allocation_end_date": end,
                 "hours_allocated_per_day": hours,
-                "include_weekends": 0,
+                "include_weekends": include_weekends,
+                "include_holidays": include_holidays,
                 "status": "Confirmed",
             }
         ).insert(ignore_permissions=True)
@@ -396,3 +399,175 @@ class TestLeaveAwareAllocation(IntegrationTestCase):
         overrides = self._overrides(allocation)
         self.assertEqual(set(overrides), {WED, THU})
         self.assertEqual(allocation.total_allocated_hours, 3 * 6)
+
+    # --- a manual override outranks the automatic reduction ------------------
+
+    def test_manual_override_on_a_half_day_is_stored_verbatim(self):
+        """The 50% cut applies to what the system derives, never to a number a manager typed."""
+        self._apply_leave(WED, WED, half_day=True)
+        allocation = self._allocate()
+        self.assertEqual(self._overrides(allocation)[WED].hours, DAILY_HOURS / 2)
+
+        upsert_day_override(allocation.name, WED, {"hours": 6})
+
+        override = self._overrides(allocation)[WED]
+        self.assertEqual(override.hours, 6)
+        self.assertEqual(override.cancelled, 0)
+        self.assertEqual(override.source, MANUAL_SOURCE)
+        self.assertEqual(allocation.total_allocated_hours, 4 * DAILY_HOURS + 6)
+
+    def test_manual_override_on_a_full_day_of_leave_is_booked(self):
+        self._apply_leave(WED, THU)
+        allocation = self._allocate()
+
+        upsert_day_override(allocation.name, WED, {"hours": 5})
+
+        overrides = self._overrides(allocation)
+        self.assertEqual(overrides[WED].hours, 5)
+        self.assertEqual(overrides[WED].cancelled, 0)
+        self.assertEqual(overrides[WED].source, MANUAL_SOURCE)
+        self.assertEqual(overrides[THU].cancelled, 1)
+        self.assertEqual(allocation.total_allocated_hours, 3 * DAILY_HOURS + 5)
+
+    def test_manual_override_on_a_public_holiday_is_booked(self):
+        allocation = self._allocate(start=HOLIDAY_MON, end=HOLIDAY_FRI)
+        self.assertEqual(self._overrides(allocation)[PUBLIC_HOLIDAY].cancelled, 1)
+
+        upsert_day_override(allocation.name, PUBLIC_HOLIDAY, {"hours": 4})
+
+        override = self._overrides(allocation)[PUBLIC_HOLIDAY]
+        self.assertEqual(override.hours, 4)
+        self.assertEqual(override.source, MANUAL_SOURCE)
+        self.assertEqual(allocation.total_allocated_hours, 4 * DAILY_HOURS + 4)
+
+    def test_manual_override_on_a_leave_day_survives_an_ordinary_save(self):
+        """Path B: any save that is not driven by a Leave Application must preserve it."""
+        self._apply_leave(WED, WED, half_day=True)
+        allocation = self._allocate()
+        upsert_day_override(allocation.name, WED, {"hours": 6})
+
+        allocation.reload()
+        allocation.note = "touched"
+        allocation.save(ignore_permissions=True)
+
+        override = self._overrides(allocation)[WED]
+        self.assertEqual(override.hours, 6)
+        self.assertEqual(override.source, MANUAL_SOURCE)
+
+    def test_deleting_a_manual_override_restores_the_leave_derived_value(self):
+        self._apply_leave(WED, WED, half_day=True)
+        allocation = self._allocate()
+        upsert_day_override(allocation.name, WED, {"hours": 6})
+
+        delete_day_override(allocation.name, WED)
+
+        override = self._overrides(allocation)[WED]
+        self.assertEqual(override.hours, DAILY_HOURS / 2)
+        self.assertEqual(override.source, LEAVE_SOURCE)
+
+    def test_editing_an_existing_override_updates_the_parent_total(self):
+        allocation = self._allocate()
+
+        upsert_day_override(allocation.name, TUE, {"hours": 5})
+        allocation.reload()
+        self.assertEqual(allocation.total_allocated_hours, 4 * DAILY_HOURS + 5)
+
+        upsert_day_override(allocation.name, TUE, {"hours": 2})
+        allocation.reload()
+        self.assertEqual(allocation.total_allocated_hours, 4 * DAILY_HOURS + 2)
+
+    # --- include_holidays ---------------------------------------------------
+
+    def test_public_holiday_is_booked_when_include_holidays_is_on(self):
+        allocation = self._allocate(start=HOLIDAY_MON, end=HOLIDAY_FRI, include_holidays=1)
+
+        self.assertEqual(self._overrides(allocation), {})
+        self.assertEqual(allocation.total_allocated_hours, 5 * DAILY_HOURS)
+
+    def test_full_day_leave_is_booked_when_include_holidays_is_on(self):
+        self._apply_leave(WED, THU)
+        allocation = self._allocate(include_holidays=1)
+
+        self.assertEqual(self._overrides(allocation), {})
+        self.assertEqual(allocation.total_allocated_hours, 5 * DAILY_HOURS)
+
+    def test_half_day_leave_is_not_reduced_when_include_holidays_is_on(self):
+        self._apply_leave(WED, WED, half_day=True)
+        allocation = self._allocate(include_holidays=1)
+
+        self.assertEqual(self._overrides(allocation), {})
+        self.assertEqual(allocation.total_allocated_hours, 5 * DAILY_HOURS)
+
+    def test_include_weekends_alone_still_cancels_a_public_holiday(self):
+        """The two toggles are independent: weekends on does not imply holidays on."""
+        allocation = self._allocate(start=HOLIDAY_MON, end=HOLIDAY_FRI, include_weekends=1)
+
+        override = self._overrides(allocation)[PUBLIC_HOLIDAY]
+        self.assertEqual(override.cancelled, 1)
+        self.assertEqual(override.source, LEAVE_SOURCE)
+
+    def test_include_holidays_needs_no_weekend_setting(self):
+        """`include_holidays` is ungated; only `include_weekends` consults Timesheet Settings."""
+        frappe.db.set_single_value("Timesheet Settings", "allow_weekend_entries", 0)
+
+        handle_allocation(
+            AllocationPayload(
+                doctype="Resource Allocation",
+                employee=self.employee,
+                customer=self.customer,
+                project=self.project,
+                allocation_start_date=HOLIDAY_MON,
+                allocation_end_date=HOLIDAY_FRI,
+                hours_allocated_per_day=DAILY_HOURS,
+                include_weekends=False,
+                include_holidays=True,
+            )
+        )
+
+        allocation = frappe.get_last_doc("Resource Allocation", filters={"employee": self.employee})
+        self.assertEqual(allocation.include_holidays, 1)
+        self.assertEqual(self._overrides(allocation), {})
+
+    # --- edit must not fragment the allocation ------------------------------
+
+    def test_edit_allocation_does_not_split_a_multi_week_allocation(self):
+        """A no-op edit used to shrink the doc to week one and create a sibling per week."""
+        expected_end = getdate(add_days(getdate(FRI), 14))
+        allocation = self._allocate(start=MON, end=str(expected_end))
+
+        edit_allocation(
+            name=allocation.name,
+            edit_mode="only_this",
+            allocation=AllocationPayload(
+                doctype="Resource Allocation",
+                employee=self.employee,
+                customer=self.customer,
+                project=self.project,
+                allocation_start_date=MON,
+                allocation_end_date=str(expected_end),
+                hours_allocated_per_day=DAILY_HOURS,
+                include_weekends=False,
+            ),
+        )
+
+        allocation.reload()
+        self.assertEqual(allocation.allocation_end_date, expected_end)
+        self.assertEqual(frappe.db.count("Resource Allocation", {"employee": self.employee}), 1)
+        # 15 weekdays across the three weeks, less PUBLIC_HOLIDAY, which the one document still
+        # cancels over its whole range -- the reduction fragmentation used to lose.
+        self.assertEqual(self._overrides(allocation)[PUBLIC_HOLIDAY].cancelled, 1)
+        self.assertEqual(allocation.total_allocated_hours, 14 * DAILY_HOURS)
+
+    def test_a_leave_change_only_resets_overrides_within_its_own_range(self):
+        """A September leave must not re-derive a manager's override on a November holiday."""
+        allocation = self._allocate(start=MON, end=HOLIDAY_FRI)
+        upsert_day_override(allocation.name, PUBLIC_HOLIDAY, {"hours": 4})
+        upsert_day_override(allocation.name, WED, {"hours": 6})
+
+        self._apply_leave(WED, WED, half_day=True)
+
+        overrides = self._overrides(allocation)
+        self.assertEqual(overrides[WED].hours, DAILY_HOURS / 2)
+        self.assertEqual(overrides[WED].source, LEAVE_SOURCE)
+        self.assertEqual(overrides[PUBLIC_HOLIDAY].hours, 4)
+        self.assertEqual(overrides[PUBLIC_HOLIDAY].source, MANUAL_SOURCE)
