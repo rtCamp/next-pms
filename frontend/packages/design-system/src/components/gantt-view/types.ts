@@ -1,5 +1,7 @@
 export type DeleteAllocationMode =
-  "only_this" | "this_and_future" | "all_in_series";
+  | "only_this"
+  | "this_and_future"
+  | "all_in_series";
 
 export interface Allocation {
   /** Unique identifier for the allocation. */
@@ -47,6 +49,8 @@ export interface Allocation {
   includeWeekends?: boolean;
   /** Whether this is the placeholder segment for an allocation reduced to zero hours. */
   fullyReduced?: boolean;
+  /** Whether the allocation includes public holidays. */
+  includeHolidays?: boolean;
 }
 
 export type TimeoffPortion = "full" | "first" | "second" | "half";
@@ -150,6 +154,8 @@ export interface AllocationCallbackData {
   allocationHoursPerDay?: number;
   /** Whether the allocation includes weekend days. */
   includeWeekends?: boolean;
+  /** Whether the allocation includes public holidays. */
+  includeHolidays?: boolean;
   /** Visible segment start date before the current edit. */
   segmentStartDate?: Date;
   /** Visible segment end date before the current edit. */

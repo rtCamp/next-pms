@@ -86,16 +86,20 @@ export function getAllocationSummary(
   // Sort days and merge contiguous runs with the same total hours
   const sortedDays = [...dayKeys]
     .sort((a, b) => a - b)
-    .map((ts) => ({
-      date: new Date(ts),
-      hours: dayTimeoff.has(ts) ? 0 : (dayHours.get(ts) ?? 0),
-      billable: !dayHasNonBillable.get(ts),
-      tentative: Boolean(dayHasTentative.get(ts)),
-      type: (dayTimeoff.has(ts) ? "timeoff" : "default") as
-        "default" | "timeoff",
-      timeoff: dayTimeoff.get(ts),
-      label: dayLabel.get(ts),
-    }));
+    .map((ts) => {
+      const hours = dayHours.get(ts) ?? 0;
+      const timeoff = dayTimeoff.get(ts);
+
+      return {
+        date: new Date(ts),
+        hours,
+        billable: !dayHasNonBillable.get(ts),
+        tentative: Boolean(dayHasTentative.get(ts)),
+        type: (timeoff ? "timeoff" : "default") as "default" | "timeoff",
+        timeoff,
+        label: dayLabel.get(ts),
+      };
+    });
 
   const merged: MemberBarAllocation[] = [];
   for (const {

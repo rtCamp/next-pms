@@ -8,6 +8,7 @@ export type DayItem = {
   monthLabel?: string;
   isMonthBoundary: boolean;
   dayOffTooltip?: string;
+  isLocked?: boolean;
 };
 
 export type PreviewRow = {
@@ -66,6 +67,7 @@ export interface EditScheduleInitialValues {
   isBillable?: boolean;
   isTentative?: boolean;
   includeWeekends?: boolean;
+  includeHolidays?: boolean;
   note?: string;
   override?: AllocationOverrideEntry[];
   recurrenceId?: string;

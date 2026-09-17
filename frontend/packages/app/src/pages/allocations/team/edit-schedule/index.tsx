@@ -37,6 +37,7 @@ import {
   buildDays,
   buildScheduleDraft,
   getErrorMessage,
+  getLockedDates,
   getSeedHoursPerDay,
   isEditScheduleApplyMode,
   mapEmployeeAvailability,
@@ -133,6 +134,10 @@ function EditScheduleModal({
     () => mapEmployeeAvailability(availabilityData?.message),
     [availabilityData],
   );
+  const lockedDates = useMemo(
+    () => getLockedDates(availability, safeValues.includeHolidays),
+    [availability, safeValues.includeHolidays],
+  );
 
   const recurrenceHelperText = useMemo(() => {
     if (
@@ -147,8 +152,14 @@ function EditScheduleModal({
   }, [applyMode, isRecurringAllocation, seriesInfo]);
 
   const days = useMemo(
-    () => buildDays(fullRange.startDate, fullRange.endDate, availability),
-    [availability, fullRange.endDate, fullRange.startDate],
+    () =>
+      buildDays(
+        fullRange.startDate,
+        fullRange.endDate,
+        availability,
+        lockedDates,
+      ),
+    [availability, fullRange.endDate, fullRange.startDate, lockedDates],
   );
 
   const allocationContext = useMemo(
@@ -198,6 +209,8 @@ function EditScheduleModal({
         defaultHoursPerDay,
         override: safeValues.override,
         availability,
+        lockedDates,
+        includeHolidays: Boolean(safeValues.includeHolidays),
         schedule: value.schedule,
       });
       const schedulePayload = draft.hasSelection
@@ -206,6 +219,7 @@ function EditScheduleModal({
             next: {
               dates: draft.selection,
               hoursPerDay: draft.hoursPerDay,
+              lockedDates,
             },
           })
         : {
@@ -228,6 +242,7 @@ function EditScheduleModal({
             allocation_end_date: allocationContext.allocationEndDate,
             hours_allocated_per_day: schedulePayload.allocationHoursPerDay,
             include_weekends: initialValues.includeWeekends ?? false,
+            include_holidays: initialValues.includeHolidays ?? false,
             is_billable: Number(initialValues.isBillable ?? true),
             status: initialValues.isTentative ? "Tentative" : "Confirmed",
             note: initialValues.note ?? "",
@@ -264,6 +279,8 @@ function EditScheduleModal({
         defaultHoursPerDay,
         override: safeValues.override,
         availability,
+        lockedDates,
+        includeHolidays: Boolean(safeValues.includeHolidays),
         schedule,
       }),
     [
@@ -271,6 +288,8 @@ function EditScheduleModal({
       defaultHoursPerDay,
       fullRange.endDate,
       fullRange.startDate,
+      lockedDates,
+      safeValues.includeHolidays,
       safeValues.override,
       schedule,
     ],
@@ -284,6 +303,7 @@ function EditScheduleModal({
             next: {
               dates: scheduleDraft.selection,
               hoursPerDay: scheduleDraft.hoursPerDay,
+              lockedDates,
             },
           })
         : {
@@ -292,7 +312,7 @@ function EditScheduleModal({
             dayOverrides: [],
             deletedDayOverrides: [],
           },
-    [allocationContext, defaultHoursPerDay, scheduleDraft],
+    [allocationContext, defaultHoursPerDay, lockedDates, scheduleDraft],
   );
   const hasScheduleChange =
     schedulePayload.dayOverrides.length > 0 ||
@@ -371,6 +391,9 @@ function EditScheduleModal({
               days={days}
               headerRangeLabel={scheduleDraft.headerRangeLabel}
               recurrenceHelperText={recurrenceHelperText}
+              statusText={
+                safeValues.includeHolidays ? "Includes holidays" : undefined
+              }
               selection={scheduleDraft.selection}
               onDayClick={(date) => {
                 const current = selectionField.state.value;
@@ -387,7 +410,7 @@ function EditScheduleModal({
                     anchorDate: date,
                     defaultHoursPerDay,
                     override: safeValues.override,
-                    availability,
+                    lockedDates,
                   }),
                 );
               }}

@@ -135,6 +135,7 @@ function AddAllocationModal({
             status: value.isTentative ? "Tentative" : "Confirmed",
             note: value.note ?? "",
             include_weekends: value.includeWeekends,
+            include_holidays: value.includeHolidays,
           },
           // Repeat weeks are only applied when creating a recurring allocation.
           repeat_till_week_count:
@@ -360,6 +361,10 @@ function AddAllocationModal({
     form.store,
     (state) => state.values.includeWeekends,
   );
+  const includeHolidaysValue = useSelector(
+    form.store,
+    (state) => state.values.includeHolidays,
+  );
 
   const overAllocatedDays = useOverAllocation({
     employeeId,
@@ -367,6 +372,7 @@ function AddAllocationModal({
     toDate,
     hoursPerDay,
     includeWeekends: includeWeekendsValue,
+    includeHolidays: includeHolidaysValue,
     repeatWeeks: recurrence === "recurring" ? repeatFor : 0,
     allocationName,
   });
@@ -647,23 +653,45 @@ function AddAllocationModal({
 
         {recurrenceSection}
 
-        <form.Field
-          name="includeWeekends"
-          children={(field) =>
-            weekendEntriesAllowed || field.state.value ? (
-              <label className="inline-flex items-center gap-2 text-base text-ink-gray-6">
-                <Checkbox
-                  value={field.state.value}
-                  disabled={
-                    !weekendEntriesAllowed || isLockedAllocationMetadataEdit
-                  }
-                  onChange={(checked) => field.handleChange(Boolean(checked))}
-                />
-                Include weekends
-              </label>
-            ) : null
-          }
-        />
+        <div>
+          <FormLabel id="project" size="md" className="mb-1.5">
+            Days to include
+          </FormLabel>
+          <div className="flex flex-col gap-1.5">
+            <form.Field
+              name="includeWeekends"
+              children={(field) =>
+                weekendEntriesAllowed || field.state.value ? (
+                  <label className="inline-flex items-center gap-2 text-base text-ink-gray-6">
+                    <Checkbox
+                      value={field.state.value}
+                      disabled={
+                        !weekendEntriesAllowed || isLockedAllocationMetadataEdit
+                      }
+                      onChange={(checked) =>
+                        field.handleChange(Boolean(checked))
+                      }
+                    />
+                    Include weekends
+                  </label>
+                ) : null
+              }
+            />
+
+            <form.Field
+              name="includeHolidays"
+              children={(field) => (
+                <label className="inline-flex items-center gap-2 text-base text-ink-gray-6">
+                  <Checkbox
+                    value={field.state.value}
+                    onChange={(checked) => field.handleChange(Boolean(checked))}
+                  />
+                  Include holidays
+                </label>
+              )}
+            />
+          </div>
+        </div>
 
         <form.Field
           name="fromDate"
@@ -682,7 +710,9 @@ function AddAllocationModal({
                         label="Edit Schedule"
                         className="p-0 bg-transparent h-fit text-ink-gray-5 hover:bg-transparent focus:bg-transparent active:bg-transparent disabled:cursor-not-allowed!"
                         disabled={isProjectEmployeeMismatch}
-                        onClick={onEditScheduleClick}
+                        onClick={() =>
+                          onEditScheduleClick?.(form.store.state.values)
+                        }
                       />
                     ) : null}
                   </div>

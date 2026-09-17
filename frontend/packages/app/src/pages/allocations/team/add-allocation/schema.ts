@@ -25,6 +25,7 @@ export const addAllocationFormSchema = z
       Object.keys(allocationRecurrenceLabels) as ["one-time", "recurring"],
     ),
     includeWeekends: z.boolean(),
+    includeHolidays: z.boolean(),
     fromDate: z
       .string({
         required_error: "Please select a start and end date.",

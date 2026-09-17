@@ -45,6 +45,7 @@ export type AllocationApiRecord = {
   allocation_end_date: string;
   is_billable: number;
   include_weekends?: number;
+  include_holidays?: number;
   note?: string | null;
   status?: string | null;
   creation?: string | null;
@@ -235,6 +236,7 @@ export function mapResourceAllocation<T extends AllocationApiRecord>(
     allocationEndDate: parseISO(allocation.allocation_end_date),
     allocationHoursPerDay: allocation.hours_allocated_per_day,
     includeWeekends: Boolean(allocation.include_weekends),
+    includeHolidays: Boolean(allocation.include_holidays),
     billable: Boolean(allocation.is_billable),
     tentative: allocation.status === "Tentative",
     note: allocation.note ?? undefined,

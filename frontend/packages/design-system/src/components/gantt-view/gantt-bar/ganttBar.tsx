@@ -79,6 +79,7 @@ interface GanttBarProps
   renderLabel?: (state: GanttBarRenderState) => React.ReactNode;
   renderFloatingLabel?: (state: GanttBarRenderState) => React.ReactNode;
   showInlineLabel?: boolean;
+  showTooltip?: boolean;
   icon?: ComponentType<SVGProps<SVGSVGElement>>;
   trailingLabel?: React.ReactNode;
   trailingLabelVariant?: GanttBarTrailingLabelVariant;
@@ -109,6 +110,7 @@ export const GanttBar = React.forwardRef<HTMLDivElement, GanttBarProps>(
       renderLabel,
       renderFloatingLabel,
       showInlineLabel = true,
+      showTooltip = true,
       trailingLabel,
       trailingLabelVariant,
       icon: Icon = TimeOff,
@@ -168,7 +170,7 @@ export const GanttBar = React.forwardRef<HTMLDivElement, GanttBarProps>(
           variant !== "empty" &&
           isCrosshatch && <CrosshatchLayer variant={variant ?? "allocation"} />}
         {isTimeoff ? (
-          <Tooltip text={label}>
+          <Tooltip text={label} disabled={!showTooltip}>
             <div className="absolute inset-0 px-2.5 py-2 w-full flex items-center justify-center gap-1.5">
               <Icon
                 className="shrink-0 size-4 text-ink-gray-5"

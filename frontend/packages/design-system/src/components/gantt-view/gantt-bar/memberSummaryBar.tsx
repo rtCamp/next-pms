@@ -14,6 +14,7 @@ import { GanttTimeoffBar } from "./timeoffBar";
 import { allocationBarToEntry } from "./utils/allocationBarToEntry";
 import { getCapacityStatus } from "./utils/getCapacityStatus";
 import { getOverlappingAllocations } from "./utils/getOverlappingAllocations";
+import { getTimeoffLabel } from "./utils/getTimeoffLabel";
 import { withPendingDeleteEntry } from "./utils/withPendingDeleteEntry";
 
 interface GanttMemberSummaryBarProps {
@@ -47,12 +48,11 @@ export function GanttMemberSummaryBar({
 
   const left = summary.barOffset + headerWidth;
   const { width } = summary;
+  const member = members[memberInd];
+  const isTimeoff = summary.type === "timeoff";
 
   if (summary.type === "free") {
-    const { label } = getCapacityStatus(
-      0,
-      members[memberInd].capacityHoursPerDay,
-    );
+    const { label } = getCapacityStatus(0, member.capacityHoursPerDay);
 
     return (
       <GanttBar
@@ -65,7 +65,7 @@ export function GanttMemberSummaryBar({
     );
   }
 
-  if (summary.type === "timeoff") {
+  if (isTimeoff && !summary.hours) {
     return (
       <GanttTimeoffBar
         startDate={summary.startDate}
@@ -78,7 +78,6 @@ export function GanttMemberSummaryBar({
     );
   }
 
-  const member = members[memberInd];
   const capacityStatus = getCapacityStatus(
     summary.hours,
     member.capacityHoursPerDay,
@@ -101,6 +100,15 @@ export function GanttMemberSummaryBar({
     ),
   );
 
+  const dayOff = isTimeoff
+    ? {
+        label:
+          summary.label ??
+          getTimeoffLabel(summary.startDate, summary.endDate, summary.timeoff),
+        isHoliday: summary.label !== undefined,
+      }
+    : undefined;
+
   const handleAdd = onAddAllocation
     ? () =>
         onAddAllocation({
@@ -120,14 +128,26 @@ export function GanttMemberSummaryBar({
         nativeButton={false}
         aria-label="Allocation summary"
         render={
-          <GanttBar
-            variant={capacityStatus.variant}
-            theme={summary.tentative ? "crosshatch" : "default"}
-            label={capacityStatus.label}
-            left={left}
-            width={width}
-            billable={summary.billable}
-          />
+          dayOff ? (
+            <GanttTimeoffBar
+              startDate={summary.startDate}
+              endDate={summary.endDate}
+              timeoff={summary.timeoff}
+              label={summary.label}
+              left={left}
+              width={width}
+              showTooltip={false}
+            />
+          ) : (
+            <GanttBar
+              variant={capacityStatus.variant}
+              theme={summary.tentative ? "crosshatch" : "default"}
+              label={capacityStatus.label}
+              left={left}
+              width={width}
+              billable={summary.billable}
+            />
+          )
         }
       />
       <Popover.Portal>
@@ -138,6 +158,7 @@ export function GanttMemberSummaryBar({
               variant={variant}
               onAdd={handleAdd}
               hasRoleAccess={hasRoleAccess}
+              dayOff={dayOff}
             />
           </Popover.Popup>
         </Popover.Positioner>
