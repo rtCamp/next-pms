@@ -324,38 +324,37 @@ def can_approve_project_timesheets(project: str, employee: str) -> bool:
     return bool(session_employee) and frappe.db.get_value("Employee", employee, "reports_to") == session_employee
 
 
-def get_project_approver_map(projects: list[str], employee_by_project: dict | None = None) -> dict:
-    """`{project: bool}` saying which of `projects` the session user may decide.
+def get_project_approvable_employees(employee_by_project: dict) -> dict:
+    """`{project: [employee, ...]}` naming, per project, whose timesheets the session user may decide.
 
-    Asked once per rendered page so the UI never offers an action the endpoint would
-    refuse. `employee_by_project` is unused for the global and project-manager personas and
-    only matters for the reporting-manager one, which is settled per project by whether the
-    session user manages *any* of that project's members.
+    Asked once per rendered page so a row never offers an action the endpoint would refuse.
+    Resolved per member rather than per project because the reporting-manager persona is
+    settled by the employee and not by the project: a manager with one direct report on a
+    project may decide that report's week and nobody else's on it.
     """
-    if not projects:
-        return {}
-    if frappe.session.user == "Administrator" or set(frappe.get_roles()).intersection(GLOBAL_APPROVER_ROLES):
-        return dict.fromkeys(projects, True)
-
-    managed = set(
-        get_all(
-            "Project",
-            filters={"name": ["in", projects], "custom_project_manager": frappe.session.user},
-            pluck="name",
-        )
-    )
     if not employee_by_project:
-        return {project: project in managed for project in projects}
+        return {}
 
     from .employee import get_employee_from_user
 
     session_employee = get_employee_from_user()
+    if frappe.session.user == "Administrator" or set(frappe.get_roles()).intersection(GLOBAL_APPROVER_ROLES):
+        return {project: sorted(employees - {session_employee}) for project, employees in employee_by_project.items()}
+
+    managed = set(
+        get_all(
+            "Project",
+            filters={"name": ["in", list(employee_by_project)], "custom_project_manager": frappe.session.user},
+            pluck="name",
+        )
+    )
     reports = (
         set(get_all("Employee", filters={"reports_to": session_employee}, pluck="name")) if session_employee else set()
     )
+
     return {
-        project: project in managed or bool(reports.intersection(employee_by_project.get(project) or set()))
-        for project in projects
+        project: sorted((employees if project in managed else employees & reports) - {session_employee})
+        for project, employees in employee_by_project.items()
     }
 
 

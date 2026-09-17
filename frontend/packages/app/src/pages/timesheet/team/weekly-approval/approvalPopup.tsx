@@ -26,6 +26,7 @@ const ApprovalPopup = () => {
     totalHours,
     dailyWorkingHours,
     isReadOnly,
+    projectName,
     groupedByDay,
     checkedDays,
     handleDayCheckChange,
@@ -43,14 +44,21 @@ const ApprovalPopup = () => {
     <Dialog.Popup className="fixed right-0 top-0 max-w-120 w-full h-[calc(100vh-20px)] m-2.5 z-101 bg-surface-modal rounded-xl shadow-xl flex flex-col">
       {/* Header */}
       <div className="flex items-center justify-between px-3.5 py-4 border-b border-outline-gray-modals">
-        <div className="flex items-center gap-3">
-          <Avatar size="xs" image={avatarUrl} label={employeeName} />
-          <h1 className="text-lg font-medium text-ink-gray-8">
-            {employeeName}
-          </h1>
-          <p className="text-base text-ink-gray-5">{dateRange}</p>
+        <div className="min-w-0">
+          <div className="flex items-center gap-3">
+            <Avatar size="xs" image={avatarUrl} label={employeeName} />
+            <h1 className="text-lg font-medium text-ink-gray-8 truncate">
+              {employeeName}
+            </h1>
+            <p className="shrink-0 text-base text-ink-gray-5">{dateRange}</p>
+          </div>
+          {projectName ? (
+            <p className="pl-7 text-base text-ink-gray-5 truncate">
+              {projectName}
+            </p>
+          ) : null}
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 shrink-0">
           <span className="text-lg font-medium text-ink-green-4 tabular-nums lining-nums">
             {floatToTime(totalHours, 2, 2)}
           </span>
@@ -103,7 +111,7 @@ const ApprovalPopup = () => {
                   >
                     <Checkbox
                       value={checkedDays.has(dayGroup.day)}
-                      disabled={isReadOnly}
+                      disabled={isReadOnly || dayGroup.isDecided}
                       onChange={(checked) =>
                         handleDayCheckChange(dayGroup.day, checked)
                       }
@@ -116,7 +124,7 @@ const ApprovalPopup = () => {
                   <EntryRow
                     key={entry.timesheetId}
                     entry={entry}
-                    readOnly={isReadOnly}
+                    readOnly={isReadOnly || dayGroup.isDecided}
                     maxDuration={dailyWorkingHours}
                     onSave={handleTimesheetUpdate}
                   />
