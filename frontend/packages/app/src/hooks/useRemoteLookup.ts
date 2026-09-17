@@ -74,7 +74,9 @@ export const useRemoteLookup = <TMessage, TItem, TOption extends LookupOption>({
   selectedOption,
 }: UseRemoteLookupOptions<TMessage, TItem, TOption>) => {
   const debouncedQuery = useDebounce(query, debounceMs);
-  const { data, isLoading, error } = useFrappeGetCall<FrappeResponse<TMessage>>(
+  const { data, isLoading, error, mutate } = useFrappeGetCall<
+    FrappeResponse<TMessage>
+  >(
     method,
     params({ query: debouncedQuery, pageSize }),
     shouldFetch ? undefined : null,
@@ -118,5 +120,6 @@ export const useRemoteLookup = <TMessage, TItem, TOption extends LookupOption>({
     options,
     isLoading,
     error,
+    mutate,
   };
 };

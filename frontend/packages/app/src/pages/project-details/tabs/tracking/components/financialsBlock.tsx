@@ -1,7 +1,7 @@
 /**
  * External dependencies.
  */
-import { useState } from "react";
+import { Fragment, useState } from "react";
 import { Dropdown, Tooltip } from "@rtcamp/frappe-ui-react";
 import { Check, DotHorizontal } from "@rtcamp/frappe-ui-react/icons";
 
@@ -103,27 +103,44 @@ export function FinancialsBlock({
       </div>
       <div
         className={cn(
-          "flex flex-1 divide-outline-gray-1",
-          layout === "row" ? "divide-x py-3" : "flex-col divide-y px-3",
+          "flex flex-1 flex-col px-3",
+          layout === "row" &&
+            "lg:flex-row lg:items-center lg:py-3 lg:pl-0 lg:pr-10",
         )}
       >
-        {rows.map((row) => (
-          <div
-            key={row.key}
-            className={cn(
-              "flex min-w-0 flex-1 flex-col justify-center gap-2",
-              layout === "row" ? "px-3" : "py-3",
+        {rows.map((row, index) => (
+          <Fragment key={row.key}>
+            {index > 0 && (
+              <div
+                className={cn(
+                  "flex w-full shrink-0 justify-center",
+                  layout === "row" && "lg:w-auto lg:flex-1 lg:self-stretch",
+                )}
+              >
+                <div
+                  className={cn(
+                    "h-px w-full bg-outline-gray-1",
+                    layout === "row" && "lg:h-auto lg:w-px",
+                  )}
+                />
+              </div>
             )}
-          >
-            <span className="truncate pr-6 text-base font-normal text-ink-gray-5">
-              {row.label}
-            </span>
-            <Tooltip text={row.value} showWhen="truncated">
-              <span className="truncate text-xl font-medium text-ink-gray-8">
-                {row.value}
+            <div
+              className={cn(
+                "flex min-w-0 flex-1 flex-col justify-center gap-2 py-3",
+                layout === "row" && "lg:flex-[0_1_auto] lg:px-3 lg:py-0",
+              )}
+            >
+              <span className="truncate pr-6 text-base font-normal text-ink-gray-5">
+                {row.label}
               </span>
-            </Tooltip>
-          </div>
+              <Tooltip text={row.value} showWhen="truncated">
+                <span className="truncate text-xl font-medium text-ink-gray-8">
+                  {row.value}
+                </span>
+              </Tooltip>
+            </div>
+          </Fragment>
         ))}
       </div>
     </div>

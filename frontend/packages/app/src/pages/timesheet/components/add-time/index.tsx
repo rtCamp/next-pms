@@ -332,6 +332,7 @@ const AddTime = ({
                     );
                     field.handleChange(nextProject);
                   }}
+                  tooltipOnTruncate
                 />
                 {!field.state.meta.isValid && (
                   <ErrorMessage message={field.state.meta.errors[0]?.message} />
@@ -378,6 +379,7 @@ const AddTime = ({
                       );
                     }
                   }}
+                  tooltipOnTruncate
                 />
                 {!field.state.meta.isValid && (
                   <ErrorMessage message={field.state.meta.errors[0]?.message} />

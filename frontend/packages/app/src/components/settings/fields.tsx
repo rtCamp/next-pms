@@ -59,6 +59,7 @@ export function SettingsLinkField({
         placeholder={`Select ${label}`}
         onChange={(val) => onChange(val ?? null)}
         className="mt-2"
+        tooltipOnTruncate
       />
     </div>
   );
@@ -155,7 +156,7 @@ export function SettingsDaySelect({
       <Select
         options={options}
         value={value ?? ""}
-        onChange={(val) => onChange(val ?? "")}
+        onChange={(e) => onChange(e.target.value)}
         className="mt-2"
       />
     </div>

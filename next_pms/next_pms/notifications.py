@@ -4,9 +4,9 @@ from urllib.parse import urlencode
 import frappe
 from frappe import _
 from frappe.desk.notifications import extract_mentions
-from frappe.utils import formatdate, get_fullname, getdate
+from frappe.utils import formatdate, get_fullname, get_url, getdate, strip_html
 
-from next_pms.next_pms.doctype.nextpms_notifications.nextpms_notifications import create_notification
+from next_pms.next_pms.doctype.nextpms_notifications.nextpms_notifications import create_notification, truncate
 
 MENTION_EMAIL_TEMPLATE = "next_pms/templates/mention_notification.html"
 
@@ -97,11 +97,71 @@ def risk_on_update(doc, method=None):
     label = _("{0} updated the risk status to {1} in {2}").format(get_fullname(actor), doc.status, project_name)
 
     title = _("Risk update")
-    url = f"/next-pms/projects/{doc.project}?tab=risks&risk={doc.name}"
+    url = risk_deep_link(doc)
     for user in get_followers("Risk", doc.name):
         if user == actor:
             continue
         create_notification(user, title, label, "Risk", doc.name, url=url)
+
+
+def risk_deep_link(doc):
+    return f"/next-pms/projects/{doc.project}?tab=risks&risk={doc.name}"
+
+
+def risk_owner_on_update(doc, method=None):
+    """Notify a user when they are assigned or reassigned as the owner of a Risk."""
+    owner = doc.risk_owner
+    if not owner:
+        return
+
+    previous = doc.get_doc_before_save()
+    previous_owner = previous.risk_owner if previous else None
+    if owner == previous_owner or owner == frappe.session.user:
+        return
+
+    project_name = frappe.db.get_value("Project", doc.project, "project_name") or doc.project
+    label = _('{0} assigned you the risk "{1}" in {2}').format(
+        get_fullname(frappe.session.user), risk_summary_label(doc), project_name
+    )
+    create_notification(
+        owner,
+        _("Risk assigned"),
+        label,
+        "Risk",
+        doc.name,
+        url=risk_deep_link(doc),
+        email=render_risk_owner_email(owner, doc, project_name),
+    )
+
+
+def risk_summary_label(doc, max_length=80):
+    label = strip_html(doc.summary or "").strip()
+    return truncate(label, max_length) or _("Risk")
+
+
+def render_risk_owner_email(user, doc, project_name):
+    """Render the assignment email now, for delivery when the notification insert is flushed.
+
+    Rendering here rather than at flush time keeps the email describing the assignment as it was:
+    the risk may be reassigned or deleted before the queue drains.
+    """
+    user_details = frappe.db.get_value("User", user, ["email", "enabled", "full_name"], as_dict=True)
+    if not user_details or not user_details.email or not user_details.enabled:
+        return None
+
+    message = frappe.render_template(  # nosemgrep - trusted template file
+        "next_pms/templates/risk/risk_owner_assigned.html",
+        {
+            "full_name": user_details.full_name or user,
+            "risk": doc,
+            "project_name": project_name,
+            "risk_url": get_url(risk_deep_link(doc)),
+        },
+    )
+    return {
+        "subject": _("You have been assigned as the owner of a risk in {0}").format(project_name),
+        "message": message,
+    }
 
 
 def project_on_update(doc, method=None):

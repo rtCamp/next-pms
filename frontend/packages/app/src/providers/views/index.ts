@@ -20,6 +20,8 @@ export interface ViewsContextProps {
     activeView: View | undefined;
     /** Indicates whether views are still being fetched. */
     isLoading: boolean;
+    /** Whether the current user may edit, change the visibility of or delete the given view. */
+    canManageView: (view: View) => boolean;
   };
   actions: {
     /** Creates a new view for the provider's doctype and refreshes the list. */
@@ -49,6 +51,7 @@ export const ViewsContext = createContext<ViewsContextProps>({
     savedViews: [],
     activeView: undefined,
     isLoading: false,
+    canManageView: () => false,
   },
   actions: {
     createView: () => null,

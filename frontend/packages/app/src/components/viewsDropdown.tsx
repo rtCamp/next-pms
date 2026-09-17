@@ -27,6 +27,7 @@ type ViewsDropdownProps = PropsWithChildren<{
   editView: ViewsContextProps["actions"]["editView"];
   updateView: ViewsContextProps["actions"]["updateView"];
   deleteView: ViewsContextProps["actions"]["deleteView"];
+  canManageView: ViewsContextProps["state"]["canManageView"];
   createView: () => void;
 }>;
 
@@ -50,6 +51,7 @@ function ViewsDropdown({
   editView,
   updateView,
   deleteView,
+  canManageView,
   createView,
   children,
 }: ViewsDropdownProps) {
@@ -103,6 +105,7 @@ function ViewsDropdown({
         if (!view) {
           return <div {...menuProps} />;
         }
+        const canManage = canManageView(view);
         const savedViewActions: DropdownOptions = [
           {
             group: "",
@@ -113,31 +116,39 @@ function ViewsDropdown({
                 icon: <Duplicate className="size-4 mr-2" />,
                 onClick: () => duplicateView(view),
               },
-              {
-                label: "Edit",
-                icon: <Edit className="size-4 mr-2" />,
-                onClick: () => editView(view),
-              },
-              {
-                label: view.public ? "Make Private" : "Make Public",
-                icon: <Lock className="size-4 mr-2" />,
-                onClick: () =>
-                  updateView({ ...view, public: view.public ? 0 : 1 }),
-              },
+              ...(canManage
+                ? [
+                    {
+                      label: "Edit",
+                      icon: <Edit className="size-4 mr-2" />,
+                      onClick: () => editView(view),
+                    },
+                    {
+                      label: view.public ? "Make Private" : "Make Public",
+                      icon: <Lock className="size-4 mr-2" />,
+                      onClick: () =>
+                        updateView({ ...view, public: view.public ? 0 : 1 }),
+                    },
+                  ]
+                : []),
             ],
           },
-          {
-            group: "",
-            key: "saved-view-danger-actions",
-            items: [
-              {
-                label: "Delete",
-                icon: <Delete className="size-4 mr-2" />,
-                theme: "red",
-                onClick: () => deleteView(view),
-              },
-            ],
-          },
+          ...(canManage
+            ? [
+                {
+                  group: "",
+                  key: "saved-view-danger-actions",
+                  items: [
+                    {
+                      label: "Delete",
+                      icon: <Delete className="size-4 mr-2" />,
+                      theme: "red" as const,
+                      onClick: () => deleteView(view),
+                    },
+                  ],
+                },
+              ]
+            : []),
         ];
 
         return (

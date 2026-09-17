@@ -7,6 +7,8 @@ import { Button, Dialog } from "@rtcamp/frappe-ui-react";
 interface DeleteActionDialogProps {
   title: string;
   description: string;
+  cancelLabel?: string;
+  confirmLabel?: string;
   onClose: () => void;
   onConfirm: () => Promise<void>;
 }
@@ -14,6 +16,8 @@ interface DeleteActionDialogProps {
 export function DeleteActionDialog({
   title,
   description,
+  cancelLabel = "Cancel",
+  confirmLabel = "Delete",
   onClose,
   onConfirm,
 }: DeleteActionDialogProps) {
@@ -42,7 +46,7 @@ export function DeleteActionDialog({
             variant="ghost"
             theme="gray"
             size="sm"
-            label="Cancel"
+            label={cancelLabel}
             onClick={onClose}
             disabled={deleting}
           />
@@ -50,7 +54,7 @@ export function DeleteActionDialog({
             variant="solid"
             theme="red"
             size="sm"
-            label="Delete"
+            label={confirmLabel}
             onClick={() => void handleDelete()}
             disabled={deleting}
             loading={deleting}

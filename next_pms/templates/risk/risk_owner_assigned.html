@@ -1,0 +1,17 @@
+<p>{{ _("Hello") }} {{ full_name }},</p>
+<p>
+    {{ _("You have been assigned as the owner of the following risk in") }}
+    <strong>{{ project_name }}</strong>.
+</p>
+<ul>
+    <li>{{ _("Risk Category") }}: {{ risk.risk_category or "-" }}</li>
+    <li>{{ _("Risk Level") }}: {{ risk.risk_level or "-" }}</li>
+    <li>{{ _("Status") }}: {{ risk.status or "-" }}</li>
+</ul>
+<p>{{ _("Summary") }}:</p>
+<div style="padding: 12px; border-left: 4px solid #f59e0b; background: #fffbeb; margin: 10px 0;">
+    {{ risk.summary or "-" }}
+</div>
+<p>
+    <a href="{{ risk_url }}" target="_blank" rel="noopener noreferrer">{{ _("View risk") }}</a>
+</p>

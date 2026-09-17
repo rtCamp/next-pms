@@ -13,6 +13,7 @@
   "column_break_fljv",
   "dt",
   "type",
+  "project",
   "route",
   "list_tab",
   "columns",
@@ -67,7 +68,15 @@
    "fieldname": "type",
    "fieldtype": "Select",
    "label": "Type",
-   "options": "List\nCustom"
+   "options": "List\nCustom\nTracking"
+  },
+  {
+   "depends_on": "eval:doc.type == \"Tracking\"",
+   "fieldname": "project",
+   "fieldtype": "Link",
+   "label": "Project",
+   "options": "Project",
+   "unique": 1
   },
   {
    "fieldname": "filters",

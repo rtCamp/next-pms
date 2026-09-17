@@ -147,7 +147,7 @@ const SubmitApproval = ({
                 Note
               </FormLabel>
               <Textarea
-                id="note"
+                htmlId="note"
                 value={field.state.value}
                 placeholder="Comment"
                 onChange={(e) => field.handleChange(e.target.value)}
@@ -175,6 +175,7 @@ const SubmitApproval = ({
                 onChange={(val) => field.handleChange(val as string)}
                 options={approverComboboxOptions}
                 openOnFocus
+                tooltipOnTruncate
               />
               {!field.state.meta.isValid && (
                 <ErrorMessage message={field.state.meta.errors[0]?.message} />
