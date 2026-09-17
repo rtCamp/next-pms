@@ -159,6 +159,8 @@ class TestPmReport(TestNextPms):
 
         user = "next-project-manager@example.com"
 
+        project_title = frappe.db.get_value("Project", self.project_name, "project_name") or self.project_name
+
         # Success notification
         _send_pms_notification(
             project=self.project_name,
@@ -173,7 +175,8 @@ class TestPmReport(TestNextPms):
             as_dict=True,
         )
         self.assertIsNotNone(success_notif)
-        self.assertIn("Next PMS", success_notif.title)
+        self.assertIn("PM Report Ready", success_notif.title)
+        self.assertIn(project_title, success_notif.title)
         self.assertEqual(success_notif.linked_doctype, "Project")
         self.assertEqual(success_notif.linked_document, self.project_name)
         self.assertEqual(success_notif.url, f"/next-pms/projects/{self.project_name}?tab=reports")
@@ -192,7 +195,8 @@ class TestPmReport(TestNextPms):
             as_dict=True,
         )
         self.assertIsNotNone(failed_notif)
-        self.assertIn("Next PMS", failed_notif.title)
+        self.assertIn("PM Report Failed", failed_notif.title)
+        self.assertIn(project_title, failed_notif.title)
         self.assertIn("Google Drive folder", failed_notif.label)
         self.assertEqual(failed_notif.url, f"/next-pms/projects/{self.project_name}?tab=reports")
 
