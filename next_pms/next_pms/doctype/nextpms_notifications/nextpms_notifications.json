@@ -11,7 +11,9 @@
   "linked_doctype",
   "linked_document",
   "url",
-  "viewed"
+  "viewed",
+  "email_subject",
+  "email_message"
  ],
  "fields": [
   {
@@ -67,12 +69,28 @@
    "fieldtype": "Small Text",
    "label": "URL",
    "permlevel": 1
+  },
+  {
+   "fieldname": "email_subject",
+   "fieldtype": "Small Text",
+   "hidden": 1,
+   "label": "Email Subject",
+   "permlevel": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "email_message",
+   "fieldtype": "Long Text",
+   "hidden": 1,
+   "label": "Email Message",
+   "permlevel": 1,
+   "read_only": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-07-22 14:11:23.300567",
+ "modified": "2026-09-16 17:05:00.000000",
  "modified_by": "Administrator",
  "module": "Next PMS",
  "name": "NextPMS Notifications",
