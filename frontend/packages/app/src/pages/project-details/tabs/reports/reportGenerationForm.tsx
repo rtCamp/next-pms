@@ -14,7 +14,11 @@ import {
 } from "@rtcamp/frappe-ui-react";
 import { Calendar } from "@rtcamp/frappe-ui-react/icons";
 import { useForm } from "@tanstack/react-form";
-import { FrappeError, useFrappePostCall } from "frappe-react-sdk";
+import {
+  FrappeError,
+  useFrappeEventListener,
+  useFrappePostCall,
+} from "frappe-react-sdk";
 
 /**
  * Internal dependencies.
@@ -37,6 +41,14 @@ const defaultValues = {
   includePreviousReport: false,
 };
 
+interface PmReportReadyEvent {
+  project?: string;
+  doc_link?: string;
+  error?: string;
+  run_id?: string;
+  status?: string;
+}
+
 export function ReportGenerationForm() {
   const toast = useToasts();
   const projectId = useProjectDetail((state) => state.projectId);
@@ -56,6 +68,17 @@ export function ReportGenerationForm() {
   const isReportGenerating = reports.some(
     (report) => report.status === "Generating",
   );
+
+  useFrappeEventListener<PmReportReadyEvent>("pm_report_ready", (data) => {
+    if (data?.project === projectId) {
+      mutate();
+      if (data?.doc_link) {
+        toast.success("Project report generated successfully!");
+      } else if (data?.error) {
+        toast.error(data.error);
+      }
+    }
+  });
 
   useEffect(() => {
     if (!isReportGenerating) return;

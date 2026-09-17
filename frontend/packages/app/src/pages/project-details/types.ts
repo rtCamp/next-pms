@@ -24,7 +24,11 @@ export interface ProjectRepositoryConnection {
 }
 
 export type ProjectReportStatus =
-  "Generating" | "Completed" | "Failed" | "Done" | "";
+  | "Generating"
+  | "Completed"
+  | "Failed"
+  | "Done"
+  | "";
 
 export interface ProjectReportRow {
   name?: string;
@@ -33,6 +37,7 @@ export interface ProjectReportRow {
   date_range: string;
   generated_on?: string;
   status: ProjectReportStatus;
+  failure_reason?: string;
 }
 
 export interface ProjectUser {
@@ -134,7 +139,10 @@ export interface ProjectDoc {
   subject?: string;
   message?: string;
   custom_billing_type?:
-    "Non-Billable" | "Fixed Cost" | "Retainer" | "Time and Material";
+    | "Non-Billable"
+    | "Fixed Cost"
+    | "Retainer"
+    | "Time and Material";
   company: string;
   custom_currency?: string;
   total_consumed_material_cost?: number;
@@ -163,7 +171,10 @@ export interface ProjectDoc {
   custom_total_hours_purchased?: number;
   percent_complete?: number;
   percent_complete_method?:
-    "Manual" | "Task Completion" | "Task Progress" | "Task Weight";
+    | "Manual"
+    | "Task Completion"
+    | "Task Progress"
+    | "Task Weight";
   custom_short_summary?: string;
   custom_executive_summary?: string;
   custom_key_goals?: string;

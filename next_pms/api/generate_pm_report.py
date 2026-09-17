@@ -197,26 +197,45 @@ def check_and_save_report(project, run_id, user, from_date, to_date):
         # Timeout check
         if elapsed >= MAX_POLL_DURATION:
             frappe.log_error(f"run_id: {run_id} | project: {project}", "PM Report — Poll Timeout")
-            update_report_row(project, run_id, status="Failed", generated_on=frappe.utils.now())
-            _notify(project, user, error="Polling timed out after 10 minutes.")
+            err_msg = "Polling timed out after 10 minutes."
+            update_report_row(
+                project,
+                run_id,
+                status="Failed",
+                generated_on=frappe.utils.now(),
+                failure_reason=err_msg,
+            )
+            _notify(project, user, error=err_msg, run_id=run_id, status="Failed")
             return
 
         try:
             response = requests.get(f"{LLM_STATUS_URL}/{run_id}", headers={"x-api-key": api_key}, timeout=30)
             response.raise_for_status()
-            data = response.json()
+            raw_json = response.json()
 
-            # Empty data — Inngest not ready yet
-            if not data or not data.get("data"):
+            if not raw_json:
                 time.sleep(POLL_INTERVAL)
                 continue
 
-            run = data["data"][0]
-            status = run.get("status")
-            output = run.get("output")
+            # Support both array response {"data": [{...}]} and direct dict {...}
+            if isinstance(raw_json, dict) and "data" in raw_json and isinstance(raw_json["data"], list):
+                if not raw_json["data"]:
+                    time.sleep(POLL_INTERVAL)
+                    continue
+                run = raw_json["data"][0]
+            elif isinstance(raw_json, dict):
+                run = raw_json
+            else:
+                time.sleep(POLL_INTERVAL)
+                continue
 
-            if status == "Completed":
-                document_url = output.get("document_url") if output else None
+            status_raw = run.get("status") or ""
+            status_lower = status_raw.lower()
+            is_terminal = run.get("is_terminal", status_lower in ("completed", "failed", "cancelled"))
+            output = run.get("output") if isinstance(run.get("output"), dict) else {}
+
+            if status_lower == "completed":
+                document_url = run.get("document_url") or output.get("document_url")
                 if document_url:
                     # Update row with actual URL and datetime
                     update_report_row(
@@ -225,32 +244,51 @@ def check_and_save_report(project, run_id, user, from_date, to_date):
                         report_link=document_url,
                         generated_on=frappe.utils.now(),
                         status="Done",
+                        failure_reason="",
                     )
-                    _notify(project, user, doc_link=document_url)
+                    _notify(project, user, doc_link=document_url, run_id=run_id, status="Done")
                     _send_bell_notification(project, user, document_url)
                     return
                 else:
                     output_retry_count += 1
                     if output_retry_count >= MAX_OUTPUT_RETRIES:
-                        # Completed but no doc_url — keep run_id for resync
+                        err_msg = "Process completed but no document was generated."
                         update_report_row(
                             project=project,
                             run_id=run_id,
-                            status="Completed",
+                            status="Failed",
                             generated_on=frappe.utils.now(),
+                            failure_reason=err_msg,
                         )
-                        _notify(
-                            project,
-                            user,
-                            error="Process completed but no document was generated.",
-                        )
+                        _notify(project, user, error=err_msg, run_id=run_id, status="Failed")
                         return
                     time.sleep(COMPLETION_POLL_INTERVAL)
                     continue
 
-            elif status in ("Failed", "Cancelled"):
+            elif status_lower in ("failed", "cancelled") or is_terminal:
+                # Inngest proxy returns formatted message directly on the root
+                failure_reason = run.get("message")
+
+                if not failure_reason:
+                    error_info = run.get("error") if isinstance(run.get("error"), dict) else {}
+                    user_msg = error_info.get("user_message") or ""
+                    action = error_info.get("action") or ""
+                    if user_msg and action:
+                        failure_reason = f"{user_msg} {action}".strip()
+                    elif user_msg:
+                        failure_reason = user_msg
+                    else:
+                        failure_reason = f"Report generation failed. Event ID: {run_id}"
+
+                tech_detail = (
+                    (run.get("error") or {}).get("technical_detail")
+                    if isinstance(run.get("error"), dict)
+                    else failure_reason
+                )
+
                 frappe.log_error(
-                    f"run_id: {run_id} | status: {status}",
+                    f"run_id: {run_id} | status: {status_raw}\n"
+                    f"Reason: {failure_reason}\nTechnical Detail: {tech_detail}",
                     "PM Report — Failed/Cancelled",
                 )
                 update_report_row(
@@ -258,11 +296,18 @@ def check_and_save_report(project, run_id, user, from_date, to_date):
                     run_id=run_id,
                     status="Failed",
                     generated_on=frappe.utils.now(),
+                    failure_reason=failure_reason,
                 )
-                _notify(project, user, error=f"Report generation {status.lower()}.")
+                _notify(
+                    project,
+                    user,
+                    error=failure_reason,
+                    run_id=run_id,
+                    status="Failed",
+                )
                 return
 
-            # "Running" → continue polling
+            # "Running" / "Pending" → continue polling
 
         except Exception:
             frappe.log_error(frappe.get_traceback(), "PM Report — Poll Exception")
@@ -289,7 +334,7 @@ def save_report_to_child_table(project, run_id, date_range):
 
 
 # update_report_row — match by run_id field
-def update_report_row(project, run_id, report_link=None, generated_on=None, status=None):
+def update_report_row(project, run_id, report_link=None, generated_on=None, status=None, failure_reason=None):
     try:
         project_doc = frappe.get_doc("Project", project)
         for row in project_doc.custom_project_reports:
@@ -300,6 +345,8 @@ def update_report_row(project, run_id, report_link=None, generated_on=None, stat
                     row.generated_on = generated_on
                 if status is not None:
                     row.status = status
+                if failure_reason is not None:
+                    row.failure_reason = failure_reason
                 break
         project_doc.save(ignore_permissions=True)
         frappe.db.commit()
@@ -347,18 +394,30 @@ def resync_report(project: str, run_id: str) -> dict:
                 timeout=30,
             )
             response.raise_for_status()
-            data = response.json()
+            raw_json = response.json()
 
-            if not data or not data.get("data"):
+            if not raw_json:
                 time.sleep(RESYNC_POLL_INTERVAL)
                 continue
 
-            run = data["data"][0]
-            status = run.get("status")
-            output = run.get("output")
+            if isinstance(raw_json, dict) and "data" in raw_json and isinstance(raw_json["data"], list):
+                if not raw_json["data"]:
+                    time.sleep(RESYNC_POLL_INTERVAL)
+                    continue
+                run = raw_json["data"][0]
+            elif isinstance(raw_json, dict):
+                run = raw_json
+            else:
+                time.sleep(RESYNC_POLL_INTERVAL)
+                continue
 
-            if status == "Completed":
-                document_url = output.get("document_url") if output else None
+            status_raw = run.get("status") or ""
+            status_lower = status_raw.lower()
+            is_terminal = run.get("is_terminal", status_lower in ("completed", "failed", "cancelled"))
+            output = run.get("output") if isinstance(run.get("output"), dict) else {}
+
+            if status_lower == "completed":
+                document_url = run.get("document_url") or output.get("document_url")
                 if document_url:
                     update_report_row(
                         project=project,
@@ -366,6 +425,7 @@ def resync_report(project: str, run_id: str) -> dict:
                         report_link=document_url,
                         generated_on=frappe.utils.now(),
                         status="Done",
+                        failure_reason="",
                     )
                     return {"status": "success", "document_url": document_url}
 
@@ -374,14 +434,27 @@ def resync_report(project: str, run_id: str) -> dict:
                 continue
 
             # If Failed/Cancelled during resync
-            if status in ("Failed", "Cancelled"):
+            if status_lower in ("failed", "cancelled") or is_terminal:
+                failure_reason = run.get("message")
+                if not failure_reason:
+                    error_info = run.get("error") if isinstance(run.get("error"), dict) else {}
+                    user_msg = error_info.get("user_message") or ""
+                    action = error_info.get("action") or ""
+                    if user_msg and action:
+                        failure_reason = f"{user_msg} {action}".strip()
+                    elif user_msg:
+                        failure_reason = user_msg
+                    else:
+                        failure_reason = f"Report generation failed. Event ID: {run_id}"
+
                 update_report_row(
                     project=project,
                     run_id=run_id,
                     status="Failed",
                     generated_on=frappe.utils.now(),
+                    failure_reason=failure_reason,
                 )
-                return {"status": "failed"}
+                return {"status": "failed", "failure_reason": failure_reason}
 
             time.sleep(RESYNC_POLL_INTERVAL)
 
@@ -390,13 +463,17 @@ def resync_report(project: str, run_id: str) -> dict:
         frappe.throw(_("Failed to resync report. Please try again."))
 
 
-def _notify(project, user, doc_link=None, error=None):
+def _notify(project, user, doc_link=None, error=None, run_id=None, status=None):
     """Send realtime notification to frontend"""
     message = {"project": project}
     if doc_link:
         message["doc_link"] = doc_link
     if error:
         message["error"] = error
+    if run_id:
+        message["run_id"] = run_id
+    if status:
+        message["status"] = status
     frappe.publish_realtime(event="pm_report_ready", message=message, user=user)
 
 
