@@ -1,7 +1,7 @@
 /**
  * External dependencies.
  */
-import { useEffect, useMemo } from "react";
+import { useContext, useEffect, useMemo } from "react";
 import { formatDateRange, getTodayDate } from "@next-pms/design-system/date";
 import {
   Button,
@@ -15,8 +15,8 @@ import {
 import { Calendar } from "@rtcamp/frappe-ui-react/icons";
 import { useForm } from "@tanstack/react-form";
 import {
+  FrappeContext,
   FrappeError,
-  useFrappeEventListener,
   useFrappePostCall,
 } from "frappe-react-sdk";
 
@@ -69,16 +69,26 @@ export function ReportGenerationForm() {
     (report) => report.status === "Generating",
   );
 
-  useFrappeEventListener<PmReportReadyEvent>("pm_report_ready", (data) => {
-    if (data?.project === projectId) {
-      mutate();
-      if (data?.doc_link) {
-        toast.success("Project report generated successfully!");
-      } else if (data?.error) {
-        toast.error(data.error);
+  const { socket } = useContext(FrappeContext) ?? {};
+
+  useEffect(() => {
+    if (!socket) return;
+    const handleReportReady = (data?: PmReportReadyEvent) => {
+      if (data?.project === projectId) {
+        mutate();
+        if (data?.doc_link) {
+          toast.success("Project report generated successfully!");
+        } else if (data?.error) {
+          toast.error(data.error);
+        }
       }
-    }
-  });
+    };
+
+    socket.on("pm_report_ready", handleReportReady);
+    return () => {
+      socket.off("pm_report_ready", handleReportReady);
+    };
+  }, [socket, projectId, mutate, toast]);
 
   useEffect(() => {
     if (!isReportGenerating) return;
