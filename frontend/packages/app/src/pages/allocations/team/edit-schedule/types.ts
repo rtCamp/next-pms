@@ -20,27 +20,6 @@ export type PreviewRow = {
   dayOffLabel?: string;
 };
 
-export type DayAvailability = {
-  availabilityFactor: number;
-  isHoliday: boolean;
-  holidayName?: string;
-};
-
-export type AvailabilityByDate = Record<string, DayAvailability>;
-
-export type EmployeeAvailabilityResponse = {
-  daily_working_hours: number;
-  dates: Record<
-    string,
-    {
-      availability_factor: number;
-      available_hours: number;
-      is_holiday: boolean;
-      holiday_name?: string;
-    }
-  >;
-};
-
 export type EditScheduleValueMode = "hoursPerDay" | "totalHours";
 export type EditScheduleApplyMode = "only_this" | "this_and_future";
 

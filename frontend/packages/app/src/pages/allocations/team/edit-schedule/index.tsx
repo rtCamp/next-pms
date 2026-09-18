@@ -23,16 +23,13 @@ import {
 import { parseFrappeErrorMsg } from "@/lib/utils";
 import { propagationModeLabels } from "@/pages/allocations/constants";
 import { buildScheduleSelectionPayload } from "@/pages/allocations/overrideUtils";
+import { useEmployeeAvailability } from "@/pages/allocations/useEmployeeAvailability";
 import ScheduleDateSelectionField from "./components/scheduleDateSelectionField";
 import ScheduleHoursPerDayField from "./components/scheduleHoursPerDayField";
 import ScheduleSummaryTable from "./components/scheduleSummaryTable";
 import ScheduleTotalHoursField from "./components/scheduleTotalHoursField";
 import { editScheduleFormSchema, type EditScheduleFormValues } from "./schema";
-import type {
-  EditScheduleApplyMode,
-  EditScheduleModalProps,
-  EmployeeAvailabilityResponse,
-} from "./types";
+import type { EditScheduleApplyMode, EditScheduleModalProps } from "./types";
 import {
   buildDays,
   buildScheduleDraft,
@@ -40,7 +37,6 @@ import {
   getLockedDates,
   getSeedHoursPerDay,
   isEditScheduleApplyMode,
-  mapEmployeeAvailability,
   normalizeRange,
   toDisplayHours,
 } from "./utils";
@@ -118,22 +114,13 @@ function EditScheduleModal({
     };
   }, [seriesData]);
 
-  const { data: availabilityData } = useFrappeGetCall<{
-    message: EmployeeAvailabilityResponse;
-  }>(
-    "next_pms.resource_management.api.allocation.get_employee_availability",
-    {
-      employee: safeValues.employeeId,
-      start_date: fullRange.startDate,
-      end_date: fullRange.endDate,
-      include_weekends: safeValues.includeWeekends ? 1 : 0,
-    },
-    open && safeValues.employeeId ? undefined : false,
-  );
-  const availability = useMemo(
-    () => mapEmployeeAvailability(availabilityData?.message),
-    [availabilityData],
-  );
+  const availability = useEmployeeAvailability({
+    employeeId: safeValues.employeeId ?? "",
+    startDate: fullRange.startDate,
+    endDate: fullRange.endDate,
+    includeWeekends: safeValues.includeWeekends ?? false,
+    enabled: open,
+  });
   const lockedDates = useMemo(
     () => getLockedDates(availability, safeValues.includeHolidays),
     [availability, safeValues.includeHolidays],

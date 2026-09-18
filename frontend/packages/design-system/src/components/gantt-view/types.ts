@@ -1,7 +1,5 @@
 export type DeleteAllocationMode =
-  | "only_this"
-  | "this_and_future"
-  | "all_in_series";
+  "only_this" | "this_and_future" | "all_in_series";
 
 export interface Allocation {
   /** Unique identifier for the allocation. */

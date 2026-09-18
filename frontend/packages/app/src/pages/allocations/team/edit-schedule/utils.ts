@@ -14,18 +14,20 @@ import {
  * Internal dependencies.
  */
 import { EDIT_SCHEDULE_APPLY_MODES } from "@/pages/allocations/constants";
+import type {
+  AvailabilityByDate,
+  DayAvailability,
+} from "@/pages/allocations/types";
 import {
+  getReducingFactor,
   isLeaveOwnedOverride,
   type AllocationOverrideEntry,
 } from "@/pages/allocations/utils";
 import type {
-  AvailabilityByDate,
-  DayAvailability,
   DayItem,
   EditScheduleApplyMode,
   EditScheduleDraft,
   EditScheduleValueMode,
-  EmployeeAvailabilityResponse,
   PreviewRow,
 } from "./types";
 
@@ -101,23 +103,6 @@ export const getRangeHours = (
 ): number => getDayCount(startDate, endDate) * hoursPerDay;
 
 /**
- * Reshapes the availability payload into the camelCase map the modal works with.
- */
-export const mapEmployeeAvailability = (
-  response?: EmployeeAvailabilityResponse,
-): AvailabilityByDate =>
-  Object.fromEntries(
-    Object.entries(response?.dates ?? {}).map(([date, day]) => [
-      date,
-      {
-        availabilityFactor: day.availability_factor,
-        isHoliday: day.is_holiday,
-        ...(day.holiday_name ? { holidayName: day.holiday_name } : {}),
-      },
-    ]),
-  );
-
-/**
  * Names what a day is, wording it the way the timeline does.
  */
 const getDayOffLabel = (day: DayAvailability): string => {
@@ -127,14 +112,6 @@ const getDayOffLabel = (day: DayAvailability): string => {
 
   return day.availabilityFactor > 0 ? "Half day off" : "Day off";
 };
-
-/**
- * Determines the reducing factor for a given day, considering holidays and availability.
- */
-const getReducingFactor = (
-  day: DayAvailability | undefined,
-  includeHolidays: boolean,
-): number => (!day || includeHolidays ? 1 : day.availabilityFactor);
 
 /**
  * The hours a single day books today, reading its override before the allocation default.

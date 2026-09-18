@@ -11,3 +11,11 @@ export interface EmployeeLeaveDay {
   total_leave_hours: number;
   holiday_name?: string;
 }
+
+export type DayAvailability = {
+  availabilityFactor: number;
+  isHoliday: boolean;
+  holidayName?: string;
+};
+
+export type AvailabilityByDate = Record<string, DayAvailability>;
