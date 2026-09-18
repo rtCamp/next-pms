@@ -56,3 +56,5 @@ scripts/seed_timesheet_perf.py
 /yarn.lock
 
 tsconfig.tsbuildinfo
+
+/.agents
