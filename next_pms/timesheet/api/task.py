@@ -269,6 +269,9 @@ def add_task(
     exp_end_date: str | None = None,
 ):
     """API to add task, it will create a task under the given project with the given details."""
+    if not frappe.db.exists("Project", project):
+        frappe.throw(frappe._("Project '{0}' does not exist").format(project), frappe.DoesNotExistError)
+
     task = frappe.get_doc(
         {
             "doctype": "Task",
@@ -282,7 +285,7 @@ def add_task(
         task.priority = priority
     if exp_end_date:
         task.exp_end_date = exp_end_date
-    task.insert(ignore_permissions=True)
+    task.insert()
     return frappe._("Task Created Successfully")
 
 
@@ -301,6 +304,8 @@ def get_task(task: str, start_date: str | datetime.date, end_date: str | datetim
     # if task has project field set.
     if project:
         frappe.has_permission(doctype="Project", doc=project, throw=True)
+    else:
+        frappe.has_permission("Task", doc=task, ptype="read", throw=True)
 
     task = frappe.get_doc("Task", task)
     timesheet = DocType("Timesheet")
@@ -341,10 +346,28 @@ def get_task(task: str, start_date: str | datetime.date, end_date: str | datetim
 @frappe.whitelist(methods=["GET"])
 def get_task_log(task: str, start_date: str = None, end_date: str = None, employee: str = None):
     """API to get the time log details for a task between the given start date and end date. with an optional parameter of passing in employee"""
+    from next_pms.timesheet.api.employee import get_employee_from_user
+
     project = frappe.db.get_value("Task", task, "project")
 
     if project:
         frappe.has_permission(doctype="Project", doc=project, throw=True)
+    else:
+        frappe.has_permission("Task", doc=task, ptype="read", throw=True)
+
+    roles = set(frappe.get_roles(frappe.session.user))
+    manager_roles = {
+        "Projects Manager",
+        "Timesheet Manager",
+        "Delivery Manager",
+        "Delivery User",
+        "HR Manager",
+        "HR User",
+        "System Manager",
+    }
+    if not (manager_roles & roles) and frappe.session.user != "Administrator":
+        employee = get_employee_from_user()
+
     timesheet = DocType("Timesheet")
     timesheet_detail = DocType("Timesheet Detail")
     start_date = getdate(start_date)
@@ -390,12 +413,68 @@ def get_task_log(task: str, start_date: str = None, end_date: str = None, employ
     return log_entries
 
 
+# Direct Task columns needed to render a liked task as a timesheet row. `project_name` is
+# deliberately absent: it lives on Project and is resolved separately, since get_liked_documents
+# only accepts fields that Task itself permits.
+LIKED_TASK_FIELDS = (
+    "name",
+    "subject",
+    "project",
+    "custom_is_billable",
+    "expected_time",
+    "actual_time",
+    "status",
+    "exp_end_date",
+)
+
+
 @frappe.whitelist(methods=["GET"])
 def get_liked_tasks():
     """API to get the list of tasks that the user has liked, along with the project name."""
     from next_pms.timesheet.api.app import get_liked_documents
 
-    return get_liked_documents("Task", fields=["project.project_name"])
+    meta = frappe.get_meta("Task")
+    fields = [field for field in LIKED_TASK_FIELDS if field == "name" or meta.has_field(field)]
+
+    tasks = get_liked_documents("Task", fields=fields)
+    if not tasks:
+        return []
+
+    project_names = get_project_names([task.get("project") for task in tasks])
+
+    return [
+        {
+            "name": task.get("name"),
+            "subject": task.get("subject"),
+            "project": task.get("project"),
+            "project_name": project_names.get(task.get("project")),
+            "is_billable": task.get("custom_is_billable"),
+            "expected_time": task.get("expected_time"),
+            "actual_time": task.get("actual_time"),
+            "status": task.get("status"),
+            "exp_end_date": task.get("exp_end_date") or "",
+            "data": [],
+        }
+        for task in tasks
+    ]
+
+
+def get_project_names(projects: list) -> dict:
+    """Map the given project ids to their titles, falling back to the id when there is no title."""
+    project_ids = {project for project in projects if project}
+    if not project_ids:
+        return {}
+
+    rows = frappe.get_all(
+        "Project",
+        filters={"name": ["in", list(project_ids)]},
+        fields=["name", "project_name"],
+        page_length=0,
+    )
+    names = {row.name: row.project_name or row.name for row in rows}
+
+    # Keep deleted or otherwise unreadable projects labelled by their id instead of blank.
+    return {project_id: names.get(project_id, project_id) for project_id in project_ids}
 
 
 def get_recent_log_tasks():

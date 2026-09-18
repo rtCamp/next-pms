@@ -35,7 +35,7 @@ export function LegendItem({
           labelContent
         )}
       </span>
-      <span className={cn(valueClassName)}>{value}</span>
+      <span className={cn("shrink-0", valueClassName)}>{value}</span>
     </div>
   );
 }

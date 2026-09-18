@@ -12,16 +12,10 @@ export type Status = "Open" | "Completed" | "Cancelled";
 export type Priority = "Low" | "Medium" | "High";
 
 export type Billability =
-  | "Non-Billable"
-  | "Fixed Cost"
-  | "Retainer"
-  | "Time and Material";
+  "Non-Billable" | "Fixed Cost" | "Retainer" | "Time and Material";
 
 export type CompletionMethod =
-  | "Manual"
-  | "Task Completion"
-  | "Task Progress"
-  | "Task Weight";
+  "Manual" | "Task Completion" | "Task Progress" | "Task Weight";
 
 export interface ProjectData {
   name: string;
@@ -108,7 +102,7 @@ export const projectSlice = createSlice({
         data: Array<ProjectData>;
         total_count: number;
         has_more: boolean;
-      }>
+      }>,
     ) => {
       state.data = action.payload.data;
       state.totalCount = action.payload.total_count;
@@ -197,7 +191,7 @@ export const projectSlice = createSlice({
         selectedBillingType: Array<string>;
         tag: Array<string>;
         selectedIndustry: Array<string>;
-      }>
+      }>,
     ) => {
       state.selectedProjectType = action.payload.selectedProjectType;
       state.selectedStatus = action.payload.selectedStatus;
@@ -219,7 +213,7 @@ export const projectSlice = createSlice({
     },
     setOrderBy: (
       state,
-      action: PayloadAction<{ order: sortOrder; orderColumn: string }>
+      action: PayloadAction<{ order: sortOrder; orderColumn: string }>,
     ) => {
       const pageLength = state.data.length;
       state.pageLength = pageLength;

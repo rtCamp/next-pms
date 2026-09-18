@@ -4,7 +4,9 @@ import frappe
 from requests.models import Response
 
 from next_pms.api.generate_pm_report import (
+    check_and_save_report,
     generate_pm_report,
+    get_hours_breakdown,
     get_repository_project_boards,
     resync_report,
 )
@@ -15,11 +17,24 @@ class TestPmReport(TestNextPms):
     def setUp(self):
         super().setUp()
 
+        self.test_timesheets = []
+        self.test_tasks = []
+
         # Bypass link validation to prevent failures on missing DocTypes (e.g. Slack Channel) in CI
         self.link_patcher = patch("frappe.model.base_document.BaseDocument.get_invalid_links", return_value=([], []))
         self.link_patcher.start()
 
         self.project_name = frappe.db.get_value("Project", {"project_name": "Next Pms"}, "name")
+        self._original_report_names = set(
+            frappe.db.get_values("Project Report", {"parent": self.project_name}, "name", pluck=True)
+            if self.project_name
+            else []
+        )
+        self._original_notification_names = set(
+            frappe.db.get_values(
+                "NextPMS Notifications", {"user": "next-project-manager@example.com"}, "name", pluck=True
+            )
+        )
         self._original_project_fields = frappe.db.get_value(
             "Project",
             self.project_name,
@@ -58,6 +73,34 @@ class TestPmReport(TestNextPms):
         frappe.conf.llm_status_url = "https://mock-status-url"
 
     def tearDown(self):
+        for ts_name in getattr(self, "test_timesheets", []):
+            if frappe.db.exists("Timesheet", ts_name):
+                doc = frappe.get_doc("Timesheet", ts_name)
+                if doc.docstatus == 1:
+                    doc.cancel()
+                frappe.delete_doc("Timesheet", ts_name, force=True, ignore_permissions=True)
+        for task_name in getattr(self, "test_tasks", []):
+            if frappe.db.exists("Task", task_name):
+                frappe.delete_doc("Task", task_name, force=True, ignore_permissions=True)
+        frappe.db.commit()
+
+        if getattr(self, "project_name", None):
+            current_report_names = set(
+                frappe.db.get_values("Project Report", {"parent": self.project_name}, "name", pluck=True)
+            )
+            for name in current_report_names - getattr(self, "_original_report_names", set()):
+                frappe.delete_doc("Project Report", name, force=True, ignore_permissions=True)
+            frappe.db.commit()
+
+        current_notification_names = set(
+            frappe.db.get_values(
+                "NextPMS Notifications", {"user": "next-project-manager@example.com"}, "name", pluck=True
+            )
+        )
+        for name in current_notification_names - getattr(self, "_original_notification_names", set()):
+            frappe.delete_doc("NextPMS Notifications", name, force=True, ignore_permissions=True)
+        frappe.db.commit()
+
         if getattr(self, "project_name", None) and getattr(self, "_original_project_fields", None):
             frappe.db.set_value("Project", self.project_name, self._original_project_fields)
             frappe.db.commit()
@@ -68,6 +111,94 @@ class TestPmReport(TestNextPms):
         if hasattr(self, "old_status_url"):
             frappe.conf.llm_status_url = self.old_status_url
         super().tearDown()
+
+    # ------------------------------------------------------------------ #
+    # check_and_save_report — structured error handling
+    # ------------------------------------------------------------------ #
+
+    def test_check_and_save_report_structured_failure(self):
+        """Test that check_and_save_report correctly extracts user_message and action on failure"""
+        mock_resp = Response()
+        mock_resp.status_code = 200
+        mock_resp._content = b"""{
+            "status": "failed",
+            "is_terminal": true,
+            "message": "The report bot cannot see the project\'s Google Drive folder. Share the Drive folder with service account.",
+            "error": {
+                "error_code": "drive_folder_not_shared",
+                "user_message": "The report bot cannot see the project\'s Google Drive folder.",
+                "action": "Share the Drive folder with service account.",
+                "trace_id": "mock-trace-123"
+            }
+        }"""
+
+        with (
+            patch("time.sleep", return_value=None),
+            patch("requests.get", return_value=mock_resp),
+            patch("next_pms.api.generate_pm_report.update_report_row") as mock_update,
+            patch("next_pms.api.generate_pm_report._notify") as mock_notify,
+        ):
+            check_and_save_report(self.project_name, "mock-run-123", "test-user", "2026-06-01", "2026-06-15")
+
+            mock_update.assert_called_once()
+            call_kwargs = mock_update.call_args.kwargs
+            self.assertEqual(call_kwargs.get("status"), "Failed")
+            self.assertIn(
+                "The report bot cannot see the project's Google Drive folder.", call_kwargs.get("failure_reason")
+            )
+            self.assertIn("Share the Drive folder with service account.", call_kwargs.get("failure_reason"))
+
+            mock_notify.assert_called_once()
+            notify_kwargs = mock_notify.call_args.kwargs
+            self.assertEqual(notify_kwargs.get("status"), "Failed")
+            self.assertIn("Google Drive folder", notify_kwargs.get("error"))
+
+    def test_send_pms_notification_success_and_failure(self):
+        """Verify _send_pms_notification inserts NextPMS Notifications for both completed and failed reports"""
+        from next_pms.api.generate_pm_report import _send_pms_notification
+
+        user = "next-project-manager@example.com"
+
+        project_title = frappe.db.get_value("Project", self.project_name, "project_name") or self.project_name
+
+        # Success notification
+        _send_pms_notification(
+            project=self.project_name,
+            user=user,
+            status="Done",
+            document_url="https://docs.google.com/test-doc",
+        )
+        success_notif = frappe.db.get_value(
+            "NextPMS Notifications",
+            {"user": user, "title": ["like", "%Ready%"]},
+            ["name", "title", "label", "url", "linked_doctype", "linked_document"],
+            as_dict=True,
+        )
+        self.assertIsNotNone(success_notif)
+        self.assertIn("PM Report Ready", success_notif.title)
+        self.assertIn(project_title, success_notif.title)
+        self.assertEqual(success_notif.linked_doctype, "Project")
+        self.assertEqual(success_notif.linked_document, self.project_name)
+        self.assertEqual(success_notif.url, f"/next-pms/projects/{self.project_name}?tab=reports")
+
+        # Failure notification
+        _send_pms_notification(
+            project=self.project_name,
+            user=user,
+            status="Failed",
+            failure_reason="The report bot cannot see the Google Drive folder.",
+        )
+        failed_notif = frappe.db.get_value(
+            "NextPMS Notifications",
+            {"user": user, "title": ["like", "%Failed%"]},
+            ["name", "title", "label", "url"],
+            as_dict=True,
+        )
+        self.assertIsNotNone(failed_notif)
+        self.assertIn("PM Report Failed", failed_notif.title)
+        self.assertIn(project_title, failed_notif.title)
+        self.assertIn("Google Drive folder", failed_notif.label)
+        self.assertEqual(failed_notif.url, f"/next-pms/projects/{self.project_name}?tab=reports")
 
     # ------------------------------------------------------------------ #
     # generate_pm_report — happy path
@@ -227,6 +358,193 @@ class TestPmReport(TestNextPms):
         mock_repo = MagicMock()
         mock_repo.get.return_value = [MagicMock(board_name="Board A"), MagicMock(board_name="Board B")]
 
-        with patch("frappe.get_doc", return_value=mock_repo):
+        with (
+            patch("frappe.has_permission"),
+            patch("frappe.get_doc", return_value=mock_repo),
+        ):
             res = get_repository_project_boards("mock-repo")
             self.assertEqual(res, ["Board A", "Board B"])
+
+    # ------------------------------------------------------------------ #
+    # get_hours_breakdown — Billable Hours Only (Issue #183)
+    # ------------------------------------------------------------------ #
+
+    def _create_test_timesheet(self, time_logs):
+        employee = frappe.db.get_value("Employee", {"user_id": "next-employee@example.com"}, "name")
+        for log in time_logs:
+            if not log.get("description"):
+                log["description"] = "Test timesheet description"
+        ts = frappe.get_doc(
+            {
+                "doctype": "Timesheet",
+                "employee": employee,
+                "note": "Test PM Report Timesheet",
+                "time_logs": time_logs,
+            }
+        )
+        ts.flags.ignore_validate = True
+        ts.insert(ignore_permissions=True)
+        self.test_timesheets.append(ts.name)
+        return ts
+
+    def test_get_hours_breakdown_only_billable_hours(self):
+        """Verify that get_hours_breakdown returns only billable hours and excludes non-billable entries"""
+        # Create a billable task
+        billable_task = frappe.get_doc(
+            {
+                "doctype": "Task",
+                "subject": "Billable Task Alpha",
+                "project": self.project_name,
+                "custom_is_billable": 1,
+            }
+        ).insert(ignore_permissions=True)
+        self.test_tasks.append(billable_task.name)
+
+        # Create a non-billable task
+        non_billable_task = frappe.get_doc(
+            {
+                "doctype": "Task",
+                "subject": "Non-Billable Internal Sync",
+                "project": self.project_name,
+                "custom_is_billable": 0,
+            }
+        ).insert(ignore_permissions=True)
+        self.test_tasks.append(non_billable_task.name)
+
+        self._create_test_timesheet(
+            [
+                {
+                    "task": billable_task.name,
+                    "project": self.project_name,
+                    "hours": 5.0,
+                    "from_time": "2026-06-05 09:00:00",
+                    "to_time": "2026-06-05 14:00:00",
+                    "is_billable": 1,
+                },
+                {
+                    "task": billable_task.name,
+                    "project": self.project_name,
+                    "hours": 3.0,
+                    "from_time": "2026-06-06 09:00:00",
+                    "to_time": "2026-06-06 12:00:00",
+                    "is_billable": 1,
+                },
+                {
+                    "task": non_billable_task.name,
+                    "project": self.project_name,
+                    "hours": 4.0,
+                    "from_time": "2026-06-05 14:00:00",
+                    "to_time": "2026-06-05 18:00:00",
+                    "is_billable": 0,
+                },
+                {
+                    "task": billable_task.name,
+                    "project": self.project_name,
+                    "hours": 2.0,
+                    "from_time": "2026-05-20 09:00:00",
+                    "to_time": "2026-05-20 11:00:00",
+                    "is_billable": 1,
+                },
+            ]
+        )
+
+        breakdown = get_hours_breakdown(self.project_name, "2026-06-01", "2026-06-15")
+
+        # Expect only 1 entry: Billable Task Alpha with 8.0 hours (5.0 + 3.0)
+        self.assertEqual(len(breakdown), 1)
+        self.assertEqual(breakdown[0]["task_title"], "Billable Task Alpha")
+        self.assertEqual(breakdown[0]["hours_consumed"], 8.0)
+
+    def test_get_hours_breakdown_excludes_task_marked_non_billable(self):
+        """Verify that tasks marked custom_is_billable=0 on Task doctype are excluded even if Timesheet Detail has is_billable=1"""
+        task = frappe.get_doc(
+            {
+                "doctype": "Task",
+                "subject": "Changed To Non-Billable Task",
+                "project": self.project_name,
+                "custom_is_billable": 0,
+            }
+        ).insert(ignore_permissions=True)
+        self.test_tasks.append(task.name)
+
+        self._create_test_timesheet(
+            [
+                {
+                    "task": task.name,
+                    "project": self.project_name,
+                    "hours": 3.0,
+                    "from_time": "2026-06-05 09:00:00",
+                    "to_time": "2026-06-05 12:00:00",
+                    "is_billable": 1,
+                }
+            ]
+        )
+
+        breakdown = get_hours_breakdown(self.project_name, "2026-06-01", "2026-06-15")
+        self.assertEqual(breakdown, [])
+
+    def test_get_hours_breakdown_empty(self):
+        """Verify get_hours_breakdown returns empty list when no timesheets exist in range"""
+        breakdown = get_hours_breakdown(self.project_name, "2026-01-01", "2026-01-05")
+        self.assertEqual(breakdown, [])
+
+    def test_generate_pm_report_payload_contains_only_billable_hours(self):
+        """Verify that generate_pm_report passes the billable hours breakdown into the LLM payload"""
+        billable_task = frappe.get_doc(
+            {
+                "doctype": "Task",
+                "subject": "Billable Task Beta",
+                "project": self.project_name,
+                "custom_is_billable": 1,
+            }
+        ).insert(ignore_permissions=True)
+        self.test_tasks.append(billable_task.name)
+
+        non_billable_task = frappe.get_doc(
+            {
+                "doctype": "Task",
+                "subject": "Non-Billable Internal Retro",
+                "project": self.project_name,
+                "custom_is_billable": 0,
+            }
+        ).insert(ignore_permissions=True)
+        self.test_tasks.append(non_billable_task.name)
+
+        self._create_test_timesheet(
+            [
+                {
+                    "task": billable_task.name,
+                    "project": self.project_name,
+                    "hours": 6.5,
+                    "from_time": "2026-06-05 09:00:00",
+                    "to_time": "2026-06-05 15:30:00",
+                    "is_billable": 1,
+                },
+                {
+                    "task": non_billable_task.name,
+                    "project": self.project_name,
+                    "hours": 3.0,
+                    "from_time": "2026-06-05 15:30:00",
+                    "to_time": "2026-06-05 18:30:00",
+                    "is_billable": 0,
+                },
+            ]
+        )
+
+        mock_resp = Response()
+        mock_resp.status_code = 200
+        mock_resp._content = b'{"run_ids": ["mock-run-id-456"], "status": "triggered"}'
+
+        with patch("requests.post", return_value=mock_resp) as mock_post:
+            generate_pm_report(self.project_name, "2026-06-01", "2026-06-15")
+
+            mock_post.assert_called_once()
+            call_kwargs = mock_post.call_args.kwargs
+            import json
+
+            payload = json.loads(call_kwargs.get("data"))
+            hours_breakdown = payload.get("hours_breakdown", [])
+
+            self.assertEqual(len(hours_breakdown), 1)
+            self.assertEqual(hours_breakdown[0]["task_title"], "Billable Task Beta")
+            self.assertEqual(hours_breakdown[0]["hours_consumed"], 6.5)

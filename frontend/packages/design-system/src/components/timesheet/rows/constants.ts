@@ -14,12 +14,14 @@ import { cva } from "class-variance-authority";
  * Internal dependencies.
  */
 import { TaskStatusType } from "@/components/task-status";
+import Spinner from "../../spinner";
 
 export type ApprovalStatusType =
   | "not-submitted"
   | "approved"
   | "rejected"
   | "approval-pending"
+  | "processing"
   | "partially-approved"
   | "partially-rejected"
   | "none";
@@ -39,6 +41,7 @@ export type ApprovalStatusDisplayLabelType =
   | "Approved"
   | "Rejected"
   | "Approval pending"
+  | "Processing timesheet"
   | "None"
   | "Partially approved"
   | "Partially rejected";
@@ -51,6 +54,7 @@ export const ApprovalStatusLabelMap: Record<
   approved: "Approved",
   rejected: "Rejected",
   "approval-pending": "Approval Pending",
+  processing: "Processing Timesheet",
   "partially-approved": "Partially Approved",
   "partially-rejected": "Partially Rejected",
   none: "None",
@@ -64,6 +68,7 @@ export const ApprovalStatusDisplayLabelMap: Record<
   approved: "Approved",
   rejected: "Rejected",
   "approval-pending": "Approval pending",
+  processing: "Processing timesheet",
   "partially-approved": "Partially approved",
   "partially-rejected": "Partially rejected",
   none: "None",
@@ -79,7 +84,7 @@ export const ApprovalStatusMap: Record<
   "Approval Pending": "approval-pending",
   "Partially Approved": "partially-approved",
   "Partially Rejected": "partially-rejected",
-  "Processing Timesheet": "approval-pending",
+  "Processing Timesheet": "processing",
   None: "none",
 };
 
@@ -88,6 +93,7 @@ export const approvalStatusCanSubmitMap: Record<ApprovalStatusType, boolean> = {
   approved: false,
   rejected: true,
   "approval-pending": false,
+  processing: false,
   "partially-approved": true,
   "partially-rejected": true,
   none: false,
@@ -145,6 +151,7 @@ export const approvalStatusTheme: Record<
   approved: "green",
   rejected: "red",
   "approval-pending": "orange",
+  processing: "orange",
   "partially-approved": "green",
   "partially-rejected": "red",
   none: "gray",
@@ -172,6 +179,10 @@ export const approvalStatusIcon: Record<
   "approval-pending": {
     variant: "ghost",
     icon: Hourglass,
+  },
+  processing: {
+    variant: "ghost",
+    icon: Spinner,
   },
   "partially-approved": {
     variant: "ghost",

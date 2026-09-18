@@ -27,6 +27,7 @@ export const buttonVariants = cva("", {
       approved: "text-ink-green-4",
       rejected: "text-ink-red-4",
       "approval-pending": "text-ink-white",
+      processing: "text-ink-amber-4",
       "partially-approved": "text-ink-green-4",
       "partially-rejected": "text-ink-red-4",
       none: "",

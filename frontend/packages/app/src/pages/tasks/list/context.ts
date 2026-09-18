@@ -14,6 +14,8 @@ export interface TaskListContextProps {
     data: TaskListItem[];
     hasMore: boolean;
     isLoading: boolean;
+    isInitialLoad: boolean;
+    isFilterRequest: boolean;
     error: unknown;
     addTaskOpen: boolean;
     addTaskPrefill: AddTaskPrefill | null;
@@ -37,6 +39,8 @@ export const TaskListContext = createContext<TaskListContextProps>({
     data: [],
     hasMore: false,
     isLoading: false,
+    isInitialLoad: false,
+    isFilterRequest: false,
     error: null,
     addTaskOpen: false,
     addTaskPrefill: null,

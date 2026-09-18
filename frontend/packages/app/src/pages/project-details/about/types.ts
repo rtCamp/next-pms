@@ -75,6 +75,7 @@ export type ProjectAboutData = {
 export type ProjectSidebar = {
   summary: string | null;
   details: {
+    company: string | null;
     project_name: string;
     phase: string | null;
     status: string;

@@ -233,6 +233,7 @@ const AddTask = ({
                   field.handleChange(nextProject);
                 }}
                 openOnFocus
+                tooltipOnTruncate
               />
               {!field.state.meta.isValid && (
                 <div className="mt-4">
@@ -280,9 +281,9 @@ const AddTask = ({
                   placeholder="Priority"
                   options={TASK_PRIORITY_OPTIONS}
                   value={field.state.value}
-                  onChange={(value) =>
+                  onChange={(e) =>
                     field.handleChange(
-                      (value ?? "") as AddTaskFormValues["priority"],
+                      e.target.value as AddTaskFormValues["priority"],
                     )
                   }
                 />

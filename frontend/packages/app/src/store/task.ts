@@ -105,14 +105,14 @@ export const taskSlice = createSlice({
     },
     setSelectedTask: (
       state,
-      action: PayloadAction<{ task: string; isOpen: boolean }>
+      action: PayloadAction<{ task: string; isOpen: boolean }>,
     ) => {
       state.selectedTask = action.payload.task;
       state.isTaskLogDialogBoxOpen = action.payload.isOpen;
     },
     setOrderBy: (
       state,
-      action: PayloadAction<{ order: sortOrder; orderColumn: string }>
+      action: PayloadAction<{ order: sortOrder; orderColumn: string }>,
     ) => {
       const pageLength = state.task.length;
       state.pageLength = pageLength;
@@ -135,7 +135,7 @@ export const taskSlice = createSlice({
     },
     setSelectedStatus: (
       state,
-      action: PayloadAction<Array<TaskStatusType>>
+      action: PayloadAction<Array<TaskStatusType>>,
     ) => {
       state.selectedStatus = action.payload;
       state.start = initialState.start;
@@ -150,7 +150,7 @@ export const taskSlice = createSlice({
         selectedStatus: Array<TaskStatusType>;
         search: string;
         selectedProject: Array<string>;
-      }>
+      }>,
     ) => {
       state.selectedProject = action.payload.selectedProject;
       state.selectedStatus = action.payload.selectedStatus;

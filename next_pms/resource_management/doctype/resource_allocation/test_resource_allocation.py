@@ -210,6 +210,24 @@ class TestResourceAllocationValidation(IntegrationTestCase):
             overlapping.insert(ignore_permissions=True)
         self.assertIn("already allocated", str(cm.exception).lower())
 
+    def test_overlapping_zero_hour_allocation_names_the_real_situation(self):
+        """An allocation fully reduced to 0 hours still blocks, but "already allocated"
+        contradicts a bar the grid renders as booking nothing. The message has to point at
+        the allocation the manager cannot otherwise account for."""
+        project = self._make_project("Zero Hour Overlap Project", self.customer)
+        existing = self._make_allocation_doc(project=project)
+        existing.insert(ignore_permissions=True)
+        frappe.db.set_value("Resource Allocation", existing.name, "total_allocated_hours", 0)
+
+        overlapping = self._make_allocation_doc(project=project)
+        with self.assertRaises(ValidationError) as cm:
+            overlapping.insert(ignore_permissions=True)
+
+        message = str(cm.exception).lower()
+        self.assertIn("books no hours", message)
+        self.assertIn("edit or delete", message)
+        self.assertNotIn("already allocated", message)
+
     def test_non_overlapping_allocation_same_project_allowed(self):
         project = self._make_project("Adjacent Project", self.customer)
         self._make_allocation_doc(project=project).insert(ignore_permissions=True)

@@ -2,7 +2,7 @@ from collections import defaultdict
 
 import frappe
 from frappe import _, get_value, throw
-from frappe.utils import add_days, date_diff, get_link_to_form, getdate, today
+from frappe.utils import add_days, date_diff, flt, formatdate, get_link_to_form, getdate, today
 
 ROLES = {
     "Projects Manager",
@@ -15,6 +15,7 @@ ROLES = {
 #  Doc Events for Timesheet DocType
 def validate(doc, method=None):
     set_date(doc)
+    validate_rejected_rows_unchanged(doc)
     validate_time(doc)
     validate_dates(doc)
     update_note(doc)
@@ -64,11 +65,16 @@ def after_delete(doc, method=None):
 
 def before_validate(doc, method=None):
     set_parent_project(doc)
+    move_rejected_hours(doc)
 
 
 def before_submit(doc, method=None):
     validate_self_approval(doc)
     doc.custom_approval_status = "Approved"
+
+
+def on_trash(doc, method=None):
+    validate_no_rejected_rows(doc)
 
 
 def on_cancel(doc, method=None):
@@ -104,11 +110,69 @@ def validate_time(doc):
     if not doc.employee:
         throw(_("Employee is required."))
     for data in doc.get("time_logs"):
-        if not data.hours or data.hours == 0:
+        if not flt(data.hours) and not flt(data.rejected_hours):
             throw(_("Hour should be greater than 0."))
 
     if doc.total_hours > 24:
         throw(_("You cannot log more than 24 hours in a single day."))
+
+
+def move_rejected_hours(doc):
+    """Park the hours of a newly rejected timesheet in rejected_hours and zero hours, so the
+    rejected work stays on record without counting toward any total."""
+    if doc.custom_approval_status != "Rejected":
+        return
+    previous = doc.get_doc_before_save()
+    if previous and previous.custom_approval_status == "Rejected":
+        return
+    for row in doc.time_logs:
+        if flt(row.hours):
+            row.rejected_hours = row.hours
+            row.hours = 0
+
+
+def validate_rejected_rows_unchanged(doc):
+    """Refuse changes to rows holding rejected hours, so a rejection stays on record and the
+    corrected work is logged as a new entry. System Managers are exempt so a wrong rejection can
+    still be corrected from the desk."""
+    previous = doc.get_doc_before_save()
+    if not previous or _can_override_rejection_lock():
+        return
+    current = {row.name: row for row in doc.time_logs}
+    for old in previous.time_logs:
+        if not flt(old.rejected_hours):
+            continue
+        new = current.get(old.name)
+        if (
+            not new
+            or getdate(new.from_time) != getdate(old.from_time)
+            or any(
+                new.get(field) != old.get(field)
+                for field in (
+                    "task",
+                    "description",
+                    "is_billable",
+                    "hours",
+                    "rejected_hours",
+                    "custom_rejection_reason",
+                )
+            )
+        ):
+            throw(_("Rejected time entries cannot be changed or removed."))
+
+
+def validate_no_rejected_rows(doc):
+    """Refuse deleting a timesheet that holds rejected hours, since removing the whole document
+    would drop the rejection record the row lock protects. System Managers are exempt so the
+    document can still be removed from the desk."""
+    if _can_override_rejection_lock():
+        return
+    if any(flt(row.rejected_hours) for row in doc.time_logs):
+        throw(_("Rejected time entries cannot be changed or removed."))
+
+
+def _can_override_rejection_lock() -> bool:
+    return frappe.session.user == "Administrator" or "System Manager" in frappe.get_roles()
 
 
 def validate_is_time_billable(doc, method=None):
@@ -125,19 +189,38 @@ def validate_dates(doc):
     if date_diff(doc.end_date, doc.start_date) > 0:
         throw(_("Timesheet should not exceed more than one day."))
 
+    message = get_date_restriction_message(doc.employee, [doc.start_date])
+    if message:
+        throw(message)
+
+
+def get_date_restriction_message(employee: str, dates: list) -> str | None:
+    """The reason the current session user may not write a timesheet for `employee` on `dates`,
+    or None when every date is writable. Same rule validate_dates enforces per document, asked
+    once for a whole set of dates - so a caller that hands the write off to a background job can
+    refuse up front instead of parking the week mid-flight when the job dies on the same check."""
+    if _is_exempt_from_backdate_validation():
+        return None
+
+    dates = [getdate(date) for date in dates]
+    if not dates:
+        return None
+
     today_date = getdate(today())
-    date_gap = date_diff(doc.start_date, today_date)
 
     #  Check if the future time entry is allowed.
-    allow_future_entry = frappe.db.get_single_value("Timesheet Settings", "allow_future_entries")
-    if not allow_future_entry and date_gap > 0:
-        throw(_("Future time entries are not allowed."))
+    if max(dates) > today_date and not frappe.db.get_single_value("Timesheet Settings", "allow_future_entries"):
+        return _("Future time entries are not allowed.")
 
     #  Check if the backdated time entry falls within the allowed working-day window.
-    if date_gap < 0:
-        boundary = get_backdate_restriction_boundary(doc.employee)
-        if boundary and doc.start_date < getdate(boundary):
-            throw(_("Backdated time entries are not allowed."))
+    if min(dates) < today_date:
+        boundary = get_backdate_restriction_boundary(employee)
+        if boundary and min(dates) < getdate(boundary):
+            return _("Backdated time entries are not allowed. The earliest date you can log time for is {0}.").format(
+                formatdate(boundary)
+            )
+
+    return None
 
 
 def _is_exempt_from_backdate_validation() -> bool:
@@ -369,6 +452,7 @@ def publish_timesheet_update(employee, start_date):
     from frappe.realtime import get_site_room
     from frappe.utils import get_date_str
 
+    from next_pms.timesheet.api.project import get_project_timesheet_member_week
     from next_pms.timesheet.api.team import get_team_timesheet_member_week
     from next_pms.timesheet.api.timesheet import get_timesheet_data
 
@@ -401,6 +485,29 @@ def publish_timesheet_update(employee, start_date):
     }
     publish_realtime("timesheet_info", payload, after_commit=True, room=get_site_room())
     publish_realtime("timesheet_info", payload, after_commit=True, user=frappe.session.user)
+
+    # The project timesheet groups by project, so it needs the employee's whole week keyed
+    # by project - a single member-week would not tell it which project rows to update, nor
+    # which to remove when an entry moves off a project.
+    project_member = get_project_timesheet_member_week(
+        employee=employee,
+        start_date=get_date_str(start_date),
+        by_pass_access_check=True,
+    )
+    # The detailed week carries another employee's tasks, hours, leave and approval
+    # status, so the site room - which holds every logged-in client, including ones that
+    # would fail get_project_timesheet_data's only_for - gets an invalidation only.
+    # Authorized viewers reload the week through that checked endpoint. The editor, who is
+    # authorized by virtue of having just written the timesheet, still gets the payload so
+    # their own row swaps in without a round trip.
+    invalidation = {"employee": employee, "start_date": get_date_str(start_date)}
+    publish_realtime("project_timesheet_info", invalidation, after_commit=True, room=get_site_room())
+    publish_realtime(
+        "project_timesheet_info",
+        {**invalidation, "message": project_member},
+        after_commit=True,
+        user=frappe.session.user,
+    )
 
 
 def validate_start_date(doc):

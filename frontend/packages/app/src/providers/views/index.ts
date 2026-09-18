@@ -20,19 +20,25 @@ export interface ViewsContextProps {
     activeView: View | undefined;
     /** Indicates whether views are still being fetched. */
     isLoading: boolean;
+    /** Whether the current user may edit, change the visibility of or delete the given view. */
+    canManageView: (view: View) => boolean;
+    /** Filters, sort or column layout in the URL differ from the active view. */
+    isDirty: boolean;
   };
   actions: {
     /** Creates a new view for the provider's doctype and refreshes the list. */
     createView: (args?: {
       type?: string;
       filters?: Record<string, unknown>;
+      /** Extra view fields to save, such as a list's column layout. */
+      fields?: Partial<View>;
     }) => void;
     /** Selects a view: syncs the `view`, filter and sort search params to it. */
     applyView: (view: View, options?: { replace?: boolean }) => void;
     /** Creates a private copy of the given view and refreshes the list. */
     duplicateView: (view: View) => Promise<void>;
     /** Opens the edit-view modal prefilled with the given saved view. */
-    editView: (view: View) => void;
+    editView: (view: View, fields?: Partial<View>) => void;
     /** Updates an existing view and refreshes the list. The provider's doctype is applied automatically. */
     updateView: (view: Omit<Partial<View>, "dt">) => Promise<void>;
     /** Opens the delete confirmation dialog for the given saved view. */
@@ -49,6 +55,8 @@ export const ViewsContext = createContext<ViewsContextProps>({
     savedViews: [],
     activeView: undefined,
     isLoading: false,
+    canManageView: () => false,
+    isDirty: false,
   },
   actions: {
     createView: () => null,

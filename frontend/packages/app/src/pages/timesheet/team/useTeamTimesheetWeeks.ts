@@ -95,10 +95,10 @@ export function useTeamTimesheetWeeks({
       revalidateFirstPage: false,
       keepPreviousData: true,
       persistSize: false,
-      shouldRetryOnError: false,
-      errorRetryCount: 0,
       onError: (err) => {
-        toast.error(parseFrappeErrorMsg(err as FrappeError));
+        toast.error(parseFrappeErrorMsg(err as FrappeError), {
+          id: "team-timesheet-weeks-fetch-error",
+        });
       },
     },
   );

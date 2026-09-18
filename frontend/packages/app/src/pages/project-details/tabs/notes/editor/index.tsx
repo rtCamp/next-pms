@@ -32,6 +32,7 @@ import { SaveTemplateDialog } from "./saveTemplateDialog";
 import { noteFormSchema } from "./schema";
 import {
   EDITOR_MODE_PARAM,
+  TEMPLATE_DOCTYPE,
   TEMPLATE_EDITOR_MODE,
   TEMPLATE_PARAM,
 } from "../constants";
@@ -39,15 +40,18 @@ import { useNotes } from "../context";
 
 function NoteEditor() {
   const navigate = useNavigate();
-  const { noteId } = useParams<{
+  const { noteId, templateId } = useParams<{
     noteId?: string;
+    templateId?: string;
   }>();
   const mode: "edit" | "new" = noteId ? "edit" : "new";
   const [searchParams] = useSearchParams();
   const isTemplateMode =
-    mode === "new" &&
-    searchParams.get(EDITOR_MODE_PARAM) === TEMPLATE_EDITOR_MODE;
-  const templateName = mode === "new" ? searchParams.get(TEMPLATE_PARAM) : null;
+    Boolean(templateId) ||
+    (mode === "new" &&
+      searchParams.get(EDITOR_MODE_PARAM) === TEMPLATE_EDITOR_MODE);
+  const templateName =
+    templateId ?? (mode === "new" ? searchParams.get(TEMPLATE_PARAM) : null);
   const userName = useUser((s) => s.state.userName);
   const userImage = useUser((s) => s.state.image);
   const projectId = useProjectDetail((s) => s.projectId);
@@ -76,7 +80,7 @@ function NoteEditor() {
     error: templateError,
   } = useFrappeGetCall(
     "frappe.client.get",
-    { doctype: "Project Status Update Template", name: templateName },
+    { doctype: TEMPLATE_DOCTYPE, name: templateName },
     templateName ? undefined : null,
     { shouldRetryOnError: false },
   );
@@ -84,7 +88,11 @@ function NoteEditor() {
   const form = useForm({
     defaultValues: {
       project: projectId,
-      title: noteData?.message.title || templateData?.message?.title || "",
+      title:
+        noteData?.message.title ||
+        templateData?.message?.title ||
+        templateData?.message?.template_name ||
+        "",
       description:
         noteData?.message.description ||
         templateData?.message?.description ||
@@ -221,7 +229,12 @@ function NoteEditor() {
             <SaveTemplateDialog
               open
               onOpenChange={setIsSaveTemplateDialogOpen}
+              templateName={templateId}
               defaultTitle={form.state.values.title}
+              defaultCategory={templateData?.message?.category ?? null}
+              defaultDescription={
+                templateData?.message?.template_description ?? ""
+              }
               description={form.state.values.description}
               onSaved={handleTemplateSaved}
             />

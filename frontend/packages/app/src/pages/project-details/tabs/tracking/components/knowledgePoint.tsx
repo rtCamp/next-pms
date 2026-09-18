@@ -25,7 +25,7 @@ export function KnowledgePoint({ title, value, href }: KnowledgePointProps) {
           {title}
         </span>
       </div>
-      <Tooltip text={value}>
+      <Tooltip text={value} showWhen="truncated">
         <span className="truncate text-xl font-medium text-ink-gray-8">
           {value}
         </span>

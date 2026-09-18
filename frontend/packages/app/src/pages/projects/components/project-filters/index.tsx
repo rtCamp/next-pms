@@ -2,8 +2,10 @@
  * External dependencies.
  */
 import { useEffect, useRef, useState } from "react";
+import { useSearchParams } from "react-router";
 import { SortSelector } from "@next-pms/design-system/components";
 import {
+  Button,
   Combobox,
   Select,
   TextInput,
@@ -16,9 +18,12 @@ import {
  */
 import { FilterLinkValue } from "@/components/filters/FilterLinkValue";
 import { useDebounce } from "@/hooks/useDebounce";
+import { getDefaultCurrency } from "@/lib/utils";
 import { useUser } from "@/providers/user";
 import { useProjectFilters } from "./useProjectFilters";
 import { PHASE_OPTIONS, RAG_OPTIONS, STATUS_OPTIONS } from "../../constants";
+import { ColumnsPanel } from "../../list/columns/panel";
+import { useColumnLayout } from "../../list/columns/useColumnLayout";
 import { Phase, type ProjectStatus, type RagStatus } from "../../types";
 import { useProjectViews } from "../../views";
 
@@ -37,6 +42,13 @@ export function ProjectFilters() {
   } = useProjectFilters();
   const currencies = useUser((s) => s.state.currencies);
 
+  const didInitCurrency = useRef(false);
+  useEffect(() => {
+    if (didInitCurrency.current) return;
+    didInitCurrency.current = true;
+    if (!currency) setCurrency(getDefaultCurrency());
+  }, [currency, setCurrency]);
+
   const externalFilterCount =
     (search !== "" ? 1 : 0) +
     (ragStatus.length > 0 ? 1 : 0) +
@@ -44,7 +56,16 @@ export function ProjectFilters() {
     (status ? 1 : 0);
 
   const activeView = useProjectViews((state) => state.state.activeView);
+  const savedViews = useProjectViews((state) => state.state.savedViews);
+  const hasFilterChanges = useProjectViews((state) => state.state.isDirty);
+  const applyView = useProjectViews((state) => state.actions.applyView);
+  const editView = useProjectViews((state) => state.actions.editView);
+  const createView = useProjectViews((state) => state.actions.createView);
+  const [searchParams] = useSearchParams();
   const isKanban = activeView?.type.toLowerCase() === "custom";
+  const isSavedView = savedViews.some((view) => view.name === activeView?.name);
+  const columnLayout = useColumnLayout();
+  const isDirty = hasFilterChanges || columnLayout.isDirty;
 
   const [searchInput, setSearchInput] = useState(search);
   const isUserInput = useRef(false);
@@ -98,7 +119,7 @@ export function ProjectFilters() {
             placeholderClassName="text-ink-gray-7"
             className="w-full text-ink-gray-7"
             value={phase}
-            onChange={(v) => setPhase((v || "") as Phase | "")}
+            onChange={(e) => setPhase(e.target.value as Phase | "")}
             options={PHASE_OPTIONS}
           />
         </div>
@@ -108,12 +129,50 @@ export function ProjectFilters() {
             placeholderClassName="text-ink-gray-7"
             className="w-full text-ink-gray-7"
             value={status}
-            onChange={(v) => setStatus((v || "") as ProjectStatus | "")}
+            onChange={(e) => setStatus(e.target.value as ProjectStatus | "")}
             options={STATUS_OPTIONS}
           />
         </div>
       </div>
       <div className="flex gap-2">
+        {isDirty &&
+          (isSavedView ? (
+            <>
+              <Button
+                variant="ghost"
+                label="Cancel"
+                onClick={() => {
+                  if (activeView) {
+                    applyView(activeView);
+                    columnLayout.revert();
+                  }
+                }}
+              />
+              <Button
+                variant="subtle"
+                label="Save changes"
+                onClick={() =>
+                  activeView && editView(activeView, columnLayout.layout)
+                }
+              />
+            </>
+          ) : (
+            <Button
+              variant="subtle"
+              label="Create view"
+              onClick={() =>
+                createView({
+                  type: activeView?.type,
+                  filters: Object.fromEntries(searchParams.entries()),
+                  fields: columnLayout.layout,
+                })
+              }
+            />
+          ))}
+        {isDirty && (
+          <div className="h-7 w-px shrink-0 self-center bg-outline-gray-2" />
+        )}
+        {!isKanban && <ColumnsPanel />}
         {!isKanban && (
           <SortSelector
             sort={sort}
@@ -121,7 +180,23 @@ export function ProjectFilters() {
             fields={[
               { field: "project_name", label: "Project name" },
               { field: "custom_project_phase", label: "Phase" },
+              {
+                field: "burn_rate_per_week",
+                label: "Burn rate/week",
+                disabled: !currency,
+                tooltipText: !currency
+                  ? "Select a currency to enable this sort"
+                  : undefined,
+              },
               { field: "cost_burn_percent", label: "Cost burn" },
+              {
+                field: "total_budget",
+                label: "Total budget",
+                disabled: !currency,
+                tooltipText: !currency
+                  ? "Select a currency to enable this sort"
+                  : undefined,
+              },
               { field: "profit_margin", label: "Profit margin" },
               { field: "expected_start_date", label: "Start date" },
               { field: "custom_next_milestone", label: "Next milestone" },

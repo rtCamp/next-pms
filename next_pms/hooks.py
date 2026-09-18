@@ -132,13 +132,10 @@ after_install = "next_pms.install.after_install"
 # -----------
 # Permissions evaluated in scripted ways
 
-# permission_query_conditions = {
-# 	"Event": "frappe.desk.doctype.event.event.get_permission_query_conditions",
-# }
-#
-# has_permission = {
-# 	"Event": "frappe.desk.doctype.event.event.has_permission",
-# }
+
+has_permission = {
+    "Risk": "next_pms.next_pms.doctype.risk.risk.has_permission",
+}
 
 
 fixtures = [
@@ -148,7 +145,13 @@ fixtures = [
             [
                 "module",
                 "in",
-                ["Next PMS", "Project Currency", "Timesheet", "Resource Management", "Next Projects"],
+                [
+                    "Next PMS",
+                    "Project Currency",
+                    "Timesheet",
+                    "Resource Management",
+                    "Next Projects",
+                ],
             ]
         ],
     },
@@ -158,7 +161,13 @@ fixtures = [
             [
                 "module",
                 "in",
-                ["Next PMS", "Project Currency", "Timesheet", "Resource Management", "Next Projects"],
+                [
+                    "Next PMS",
+                    "Project Currency",
+                    "Timesheet",
+                    "Resource Management",
+                    "Next Projects",
+                ],
             ]
         ],
     },
@@ -191,6 +200,11 @@ override_doctype_class = {  # nosemgrep - existing legacy overrides; migration t
 # ---------------
 
 scheduler_events = {
+    "cron": {
+        "0 8 * * 1": [
+            "next_pms.tasks.scheduled_audit.trigger_weekly_audits",
+        ],
+    },
     "daily_long": [
         "next_pms.timesheet.tasks.daily_reminder_for_time_entry.send_reminder",
         "next_pms.timesheet.tasks.send_weekly_reminder.send_reminder",
@@ -231,6 +245,7 @@ doc_events = {
         "after_delete": "next_pms.timesheet.doc_events.timesheet.after_delete",
         "on_cancel": "next_pms.timesheet.doc_events.timesheet.on_cancel",
         "on_trash": [
+            "next_pms.timesheet.doc_events.timesheet.on_trash",
             "next_pms.resource_management.doctype.resource_allocation.resource_allocation.clear_cache",
         ],
     },
@@ -278,10 +293,16 @@ doc_events = {
             "next_pms.resource_management.doctype.resource_allocation.resource_allocation.clear_cache",
             "next_pms.next_pms.notifications.project_on_update",
         ],
-        "on_trash": ["next_pms.resource_management.doctype.resource_allocation.resource_allocation.clear_cache"],
+        "on_trash": [
+            "next_pms.resource_management.doctype.resource_allocation.resource_allocation.clear_cache",
+            "next_pms.timesheet.doctype.pms_view_setting.pms_view_setting.delete_project_views",
+        ],
     },
     "Risk": {
-        "on_update": "next_pms.next_pms.notifications.risk_on_update",
+        "on_update": [
+            "next_pms.next_pms.notifications.risk_on_update",
+            "next_pms.next_pms.notifications.risk_owner_on_update",
+        ],
     },
     "Customer Feedback": {
         "on_submit": "next_pms.next_pms.notifications.customer_feedback_on_submit",
@@ -298,6 +319,28 @@ doc_events = {
     },
     "Holiday List": {
         "validate": "next_pms.timesheet.doc_events.holiday_list.validate",
+        "on_update": [
+            "next_pms.resource_management.doctype.resource_allocation.resource_allocation.clear_cache",
+        ],
+        "on_trash": [
+            "next_pms.resource_management.doctype.resource_allocation.resource_allocation.clear_cache",
+        ],
+    },
+    # An employee's holidays resolve through their Holiday List Assignment, so reassigning
+    # one changes the holidays the cached resource payloads were built from.
+    "Holiday List Assignment": {
+        "on_submit": [
+            "next_pms.resource_management.doctype.resource_allocation.resource_allocation.clear_cache",
+        ],
+        "on_update_after_submit": [
+            "next_pms.resource_management.doctype.resource_allocation.resource_allocation.clear_cache",
+        ],
+        "on_cancel": [
+            "next_pms.resource_management.doctype.resource_allocation.resource_allocation.clear_cache",
+        ],
+        "on_trash": [
+            "next_pms.resource_management.doctype.resource_allocation.resource_allocation.clear_cache",
+        ],
     },
 }
 #
@@ -315,7 +358,7 @@ doc_events = {
 # Ignore links to specified DocTypes when deleting documents
 # -----------------------------------------------------------
 
-ignore_links_on_delete = ["NextPMS Notifications"]
+ignore_links_on_delete = ["NextPMS Notifications", "PMS View Setting"]
 
 # Request Events
 # ----------------

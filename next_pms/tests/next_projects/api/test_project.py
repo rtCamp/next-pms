@@ -35,6 +35,8 @@ FORECAST_FIXTURE_PREFIX = "CostForecast"
 ADJUSTED_FIXTURE_PREFIX = "CostAdjusted"
 BUDGET_FIXTURE_PREFIX = "BudgetForecast"
 TAG_FIXTURE_PREFIX = "TagFilter"
+CURRENCY_FIXTURE_PREFIX = "CurrSort"
+PROFIT_FIXTURE_PREFIX = "TrackingProfit"
 
 # 2026-05-04 is a Monday, so 05-08 is Friday and 05-09/05-10 are the weekend.
 MONDAY = date(2026, 5, 4)
@@ -187,6 +189,100 @@ class TestGetProjectsViewComputedSort(IntegrationTestCase):
         result = self.call("cost_burn_percent desc", view="kanban")
         self.assertEqual(result["total_count"], 4)
         self.assertIn("columns", result)
+
+
+class TestGetProjectsViewMonetarySortConversion(IntegrationTestCase):
+    """Monetary sort fields are converted to the selected currency before
+    ranking, so the order matches the displayed values.
+
+    Two projects use different currencies with an exchange rate that reverses
+    their raw numeric order: USD 100 vs INR 5000. Raw order is [INR, USD];
+    converted to INR the USD project becomes 8500, flipping the order to
+    [USD, INR].
+    """
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.company = get_default_company()
+
+        for code in ("INR", "USD"):
+            if not frappe.db.exists("Currency", code):
+                frappe.get_doc({"doctype": "Currency", "currency_name": code, "enabled": 1}).insert(
+                    ignore_permissions=True
+                )
+
+        frappe.get_doc(
+            {
+                "doctype": "Currency Exchange",
+                "from_currency": "USD",
+                "to_currency": "INR",
+                "exchange_rate": 85,
+                "date": today(),
+            }
+        ).insert(ignore_permissions=True)
+
+        # suffix -> (currency, total_sales_amount)
+        # total_budget = total_sales_amount for Fixed Cost projects.
+        fixture_rows = {
+            "USD": ("USD", 100),
+            "INR": ("INR", 5000),
+        }
+        cls.projects = {}
+        for suffix, (currency, sales) in fixture_rows.items():
+            name = (
+                frappe.get_doc(
+                    {
+                        "doctype": "Project",
+                        "project_name": f"{CURRENCY_FIXTURE_PREFIX} {suffix}",
+                        "company": cls.company,
+                    }
+                )
+                .insert(ignore_permissions=True)
+                .name
+            )
+            frappe.db.set_value(
+                "Project",
+                name,
+                {
+                    "custom_billing_type": "Fixed Cost",
+                    "total_sales_amount": sales,
+                    "custom_currency": currency,
+                },
+                update_modified=False,
+            )
+            cls.projects[suffix] = name
+
+        frappe.set_user("Administrator")
+        frappe.clear_cache()
+
+    def fixture_order(self, result):
+        by_name = {name: suffix for suffix, name in self.projects.items()}
+        return [by_name[row["name"]] for row in result["data"]]
+
+    def test_total_budget_sort_converts_to_selected_currency(self):
+        raw = get_projects_view(
+            view="list",
+            search=CURRENCY_FIXTURE_PREFIX,
+            start=0,
+            limit=20,
+            order_by="total_budget desc",
+        )
+        self.assertEqual(self.fixture_order(raw), ["INR", "USD"])
+
+        converted = get_projects_view(
+            view="list",
+            search=CURRENCY_FIXTURE_PREFIX,
+            start=0,
+            limit=20,
+            order_by="total_budget desc",
+            currency="INR",
+        )
+        self.assertEqual(self.fixture_order(converted), ["USD", "INR"])
+
+        budget_by_name = {row["name"]: row["total_budget"] for row in converted["data"]}
+        self.assertEqual(budget_by_name[self.projects["USD"]], 8500)
+        self.assertEqual(budget_by_name[self.projects["INR"]], 5000)
 
 
 class TestBudgetBurnAccrued(IntegrationTestCase):
@@ -750,6 +846,168 @@ class TestTrackingBillingTables(IntegrationTestCase):
         tracking = get_project_tracking(self.projects["NONBILL"])
         self.assertIsNone(tracking["contracts"])
         self.assertIsNone(tracking["project_rates"])
+
+
+class TestTrackingCurrentVsProjectedProfit(IntegrationTestCase):
+    """get_project_tracking reports profit twice over: projected, which prices the
+    allocations still ahead, and current, which reads only what has been logged.
+
+    Every fixture carries a not-yet-started allocation worth ALLOCATION_COST, so the
+    forecast is exactly that and the two figures can never coincide. Sales, billable
+    and costing amounts all differ, so each assertion pins which one the value came
+    from. The Non-Billable fixture is given the same amounts as the rest, which makes
+    its nulls a property of the billing type rather than of empty data.
+    """
+
+    SALES = 10000.0
+    BILLABLE = 7000.0
+    COSTING = 3000.0
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.company = get_default_company()
+        cls.customer = TestCostForecastedProration._get_customer()
+        cls.employee = cls._make_employee()
+
+        # suffix -> (billing type, billable amount)
+        specs = {
+            "FIXED": ("Fixed Cost", cls.BILLABLE),
+            "RETAINER": ("Retainer", cls.BILLABLE),
+            "TNM": ("Time and Material", cls.BILLABLE),
+            "TNM_NOTHING_BILLED": ("Time and Material", 0),
+            "NONBILL": ("Non-Billable", cls.BILLABLE),
+        }
+        cls.projects = {}
+        for suffix, (billing_type, billable) in specs.items():
+            name = (
+                frappe.get_doc(
+                    {
+                        "doctype": "Project",
+                        "project_name": f"{PROFIT_FIXTURE_PREFIX} {suffix}",
+                        "company": cls.company,
+                        "customer": cls.customer,
+                        "custom_billing_type": billing_type,
+                    }
+                )
+                .insert(ignore_permissions=True)
+                .name
+            )
+            cls._make_allocation(name)
+            # Pinned after the allocation, whose insert saves the project and would
+            # otherwise recompute these three from the (empty) timesheets.
+            frappe.db.set_value(
+                "Project",
+                name,
+                {
+                    "total_sales_amount": cls.SALES,
+                    "total_billable_amount": billable,
+                    "total_costing_amount": cls.COSTING,
+                },
+                update_modified=False,
+            )
+            cls.projects[suffix] = name
+
+        frappe.set_user("Administrator")
+        frappe.clear_cache()
+
+    @classmethod
+    def _make_employee(cls):
+        employee = frappe.new_doc("Employee")
+        employee.update(
+            {
+                "naming_series": "EMP-",
+                "first_name": f"{PROFIT_FIXTURE_PREFIX} Resource",
+                "company": cls.company,
+                "gender": "Female",
+                "date_of_birth": "1990-05-08",
+                "date_of_joining": "2013-01-01",
+                "status": "Active",
+                "employment_type": "Intern",
+                "leave_approver": "Administrator",
+                "ctc": 100000,
+                "salary_currency": "INR",
+            }
+        )
+        employee.insert(ignore_permissions=True)
+        assign_empty_holiday_list(employee.name)
+        return employee.name
+
+    @classmethod
+    def _make_allocation(cls, project):
+        allocation = frappe.get_doc(
+            {
+                "doctype": "Resource Allocation",
+                "employee": cls.employee,
+                "project": project,
+                "allocation_start_date": add_days(today(), 1),
+                "allocation_end_date": add_days(today(), 5),
+                "hours_allocated_per_day": 8,
+                "include_weekends": 1,
+                "is_billable": 1,
+                "status": "Confirmed",
+            }
+        ).insert(ignore_permissions=True)
+        # Starts tomorrow, so the whole pinned cost is forecast with nothing to prorate.
+        frappe.db.set_value(
+            "Resource Allocation", allocation.name, "total_cost", ALLOCATION_COST, update_modified=False
+        )
+        return allocation.name
+
+    def tracking(self, suffix):
+        return get_project_tracking(self.projects[suffix])
+
+    def test_fixed_and_retainer_are_worth_their_sales_amount_either_way(self):
+        # Sold for a fixed value, so no amount of logging moves it: the current value
+        # must be the sales amount and never the billable amount.
+        for suffix in ("FIXED", "RETAINER"):
+            tracking = self.tracking(suffix)
+            self.assertEqual(tracking["total_project_value"], self.SALES, msg=suffix)
+            self.assertEqual(tracking["current_project_value"], self.SALES, msg=suffix)
+
+    def test_time_and_material_earns_its_current_value_per_billable_hour(self):
+        tracking = self.tracking("TNM")
+        self.assertEqual(tracking["total_project_value"], self.SALES)
+        self.assertEqual(tracking["current_project_value"], self.BILLABLE)
+
+    def test_projected_profit_prices_the_allocations_still_ahead(self):
+        expected = self.SALES - self.COSTING - ALLOCATION_COST
+        for suffix in ("FIXED", "RETAINER", "TNM"):
+            tracking = self.tracking(suffix)
+            self.assertEqual(tracking["forecasted_cost_to_completion"], ALLOCATION_COST, msg=suffix)
+            self.assertEqual(tracking["project_profit"], expected, msg=suffix)
+            self.assertAlmostEqual(tracking["projected_profit_margin"], expected / self.SALES * 100, msg=suffix)
+
+    def test_current_profit_drops_the_forecast_and_keeps_the_logged_cost(self):
+        expected = self.SALES - self.COSTING
+        for suffix in ("FIXED", "RETAINER"):
+            tracking = self.tracking(suffix)
+            self.assertEqual(tracking["current_profit"], expected, msg=suffix)
+            self.assertAlmostEqual(tracking["current_profit_margin"], expected / self.SALES * 100, msg=suffix)
+
+    def test_time_and_material_current_profit_runs_off_its_current_value(self):
+        tracking = self.tracking("TNM")
+        expected = self.BILLABLE - self.COSTING
+        self.assertEqual(tracking["current_profit"], expected)
+        self.assertAlmostEqual(tracking["current_profit_margin"], expected / self.BILLABLE * 100)
+
+    def test_current_margin_is_zero_when_nothing_billable_is_logged(self):
+        tracking = self.tracking("TNM_NOTHING_BILLED")
+        self.assertEqual(tracking["current_project_value"], 0)
+        self.assertEqual(tracking["current_profit"], -self.COSTING)
+        self.assertEqual(tracking["current_profit_margin"], 0)
+
+    def test_non_billable_reports_neither_pair(self):
+        tracking = self.tracking("NONBILL")
+        for key in (
+            "total_project_value",
+            "project_profit",
+            "projected_profit_margin",
+            "current_project_value",
+            "current_profit",
+            "current_profit_margin",
+        ):
+            self.assertIsNone(tracking[key], msg=key)
 
 
 class TestResolveBillingRate(IntegrationTestCase):

@@ -15,7 +15,11 @@ import { useToasts } from "@rtcamp/frappe-ui-react";
  * Internal dependencies
  */
 import TaskPopover from "@/components/taskPopover";
-import { calculateTotalHours, parseFrappeErrorMsg } from "@/lib/utils";
+import {
+  calculateRejectedHours,
+  calculateTotalHours,
+  parseFrappeErrorMsg,
+} from "@/lib/utils";
 import { useGuardedAction } from "@/pages/allocations/unsavedChanges/useUnsavedChanges";
 import { usePersonalTimesheet } from "@/pages/timesheet/personal/context";
 import { isDateBackdateRestricted } from "@/pages/timesheet/utils";
@@ -24,7 +28,6 @@ import type { TaskRowProps } from "./types";
 import { InlineTimeEntry } from "../inline-time-entry";
 
 const statusPriority: Record<string, number> = {
-  Rejected: 5,
   "Approval Pending": 4,
   "Processing Timesheet": 3,
   Approved: 2,
@@ -83,7 +86,9 @@ export const TaskRow = ({
     const tasksForDates: TaskDataItemProps[][] = [];
     for (const date of dates) {
       const currentTotal = calculateTotalHours(tasks, date);
-      // Build per-day status metadata from approval status.
+      const rejectedTotal = calculateRejectedHours(tasks, date);
+      // Rejected hours stay visible on a day that has nothing else logged.
+      const displayedTotal = currentTotal > 0 ? currentTotal : rejectedTotal;
       const tasksForDate = tasks[taskKey].data.filter((entry) =>
         entry.from_time.includes(date),
       );
@@ -97,26 +102,36 @@ export const TaskRow = ({
         );
 
       for (const entry of tasksForDate) {
-        const approvalStatus = entry.custom_approval_status;
-        if (!approvalStatus) {
+        if (entry.rejected_hours) {
+          rejectionReason ??= entry.custom_rejection_reason ?? null;
           continue;
         }
+
+        if (!entry.custom_approval_status) {
+          continue;
+        }
+
+        // A parent marked Rejected says nothing about a row logged after that rejection.
+        const approvalStatus =
+          entry.custom_approval_status === "Rejected"
+            ? "Not Submitted"
+            : entry.custom_approval_status;
 
         const priority = statusPriority[approvalStatus] ?? 1;
         if (priority > highestPriority) {
           highestPriority = priority;
           dayStatus = approvalStatus;
         }
+      }
 
-        if (!rejectionReason && approvalStatus === "Rejected") {
-          rejectionReason = entry.custom_rejection_reason ?? null;
-        }
+      if (currentTotal === 0 && rejectedTotal > 0) {
+        dayStatus = "Rejected";
       }
 
       const timeEntry: TaskRowTimeEntry = {
-        time: currentTotal === 0 ? "" : floatToTime(currentTotal, 2),
+        time: displayedTotal === 0 ? "" : floatToTime(displayedTotal, 2),
         nonBillable:
-          currentTotal === 0 || (taskKey && tasks[taskKey]?.is_billable)
+          displayedTotal === 0 || (taskKey && tasks[taskKey]?.is_billable)
             ? false
             : true,
         disabled:

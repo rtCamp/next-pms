@@ -9,7 +9,7 @@
   "private": true,
   "scripts": {
     "dev": "cd frontend && npm run dev",
-    "build": "git submodule update --init --recursive && npx pnpm --dir frappe-ui-react install --frozen-lockfile && npx pnpm --dir frappe-ui-react build && npm --prefix frontend install && npm --prefix frontend run build",
+    "build": "git submodule update --init --recursive && npm --prefix frontend run build",
     "e2e:tests": "npx playwright test --config=tests/e2e/playwright.config.js",
     "lint:precommit": "eslint --fix --config eslint.config.js",
     "allure:report": "allure generate allure-results --clean -o allure-report-for-count-extraction",
@@ -29,7 +29,7 @@
     "@playwright/test": "^1.58.0",
     "allure-commandline": "^2.36.0",
     "allure-playwright": "^3.4.5",
-    "eslint": "^10.8.0",
+    "eslint": "^10.10.0",
     "playwright": "^1.56.1"
   },
   "dependencies": {

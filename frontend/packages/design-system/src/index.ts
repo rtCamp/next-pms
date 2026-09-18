@@ -1,4 +1,4 @@
-import "./index.css"
+import "./index.css";
 
-export * from "./utils"
-export * from "./utils/date"
+export * from "./utils";
+export * from "./utils/date";

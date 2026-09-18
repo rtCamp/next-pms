@@ -7,6 +7,7 @@ import { addDays, eachDayOfInterval, isSameDay, startOfDay } from "date-fns";
  * Internal dependencies.
  */
 import {
+  getAllocationSummary,
   getCoveredDayKeys,
   getFreeCapacitySegments,
   getMemberAllocation,
@@ -59,6 +60,7 @@ export type ProjectMemberAllocationBar = ProjectAllocationBar;
 
 export interface ProjectMember extends SourceProjectMember {
   allocations: ProjectMemberAllocationBar[];
+  leaveBars: MemberSummaryBar[];
 }
 
 export interface ProjectGroup extends SourceProjectGroup {
@@ -369,20 +371,32 @@ export const prepareProjectBars = (
     );
 
     const members: ProjectGroup["members"] = (project.members ?? []).map(
-      (member) => ({
-        ...member,
-        allocations: prepareAllocationBars(
-          member.allocations ?? [],
-          weekStart,
-          columnCount,
-          showWeekend,
-          columnWidth,
-        ).map((allocation) => ({
-          ...allocation,
-          projectName: project.name,
-          customerName: project.client,
-        })),
-      }),
+      (member) => {
+        const rawAllocations = member.allocations ?? [];
+        const leaveSegments = getAllocationSummary([], member.leaves ?? []);
+
+        return {
+          ...member,
+          allocations: prepareAllocationBars(
+            rawAllocations,
+            weekStart,
+            columnCount,
+            showWeekend,
+            columnWidth,
+          ).map((allocation) => ({
+            ...allocation,
+            projectName: project.name,
+            customerName: project.client,
+          })),
+          leaveBars: prepareMemberSummaryBars(
+            leaveSegments,
+            weekStart,
+            columnCount,
+            showWeekend,
+            columnWidth,
+          ),
+        };
+      },
     );
 
     const projectSummaryBars = prepareProjectSummaryBars(

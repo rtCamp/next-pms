@@ -4,6 +4,8 @@ import {
 } from "@next-pms/design-system/components";
 import { MultiSelect } from "@rtcamp/frappe-ui-react";
 
+const NON_FILTERABLE_STATUSES: ApprovalStatusType[] = ["none", "processing"];
+
 type ApprovalStatusFilterProps = {
   value?: ApprovalStatusType[];
   onChange: (value: ApprovalStatusType[]) => void;
@@ -18,7 +20,8 @@ const ApprovalStatusFilter: React.FC<ApprovalStatusFilterProps> = ({
   const options = Object.entries(ApprovalStatusDisplayLabelMap)
     .filter(
       ([key]) =>
-        key !== "none" && !excludeOptions.includes(key as ApprovalStatusType),
+        !NON_FILTERABLE_STATUSES.includes(key as ApprovalStatusType) &&
+        !excludeOptions.includes(key as ApprovalStatusType),
     )
     .map(([key, label]) => ({ label, value: key }));
 

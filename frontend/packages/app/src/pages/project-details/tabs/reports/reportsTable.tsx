@@ -39,6 +39,26 @@ function StatusCell({ report }: { report: ProjectReportRow }) {
       </span>
     );
   }
+  if (report.status === "Failed") {
+    return (
+      <div className="flex flex-col gap-1 w-full min-w-0">
+        <span className="font-semibold text-ink-red leading-tight">Failed</span>
+        {report.failure_reason ? (
+          <p
+            className="text-xs text-ink-gray-7 break-words leading-relaxed line-clamp-3"
+            title={report.failure_reason}
+          >
+            {report.failure_reason}
+          </p>
+        ) : null}
+        {report.run_id ? (
+          <span className="text-[11px] text-ink-gray-5 font-mono select-all truncate shrink-0">
+            Trace ID: {report.run_id}
+          </span>
+        ) : null}
+      </div>
+    );
+  }
   return <span className="truncate">{report.status}</span>;
 }
 
@@ -91,7 +111,14 @@ export function ReportsTable({ reports }: ReportsTableProps) {
           columns={REPORT_COLUMNS}
           rows={rows}
           rowKey="id"
-          options={{ options: { selectable: false, resizeColumn: false } }}
+          className="w-full min-w-0"
+          options={{
+            options: {
+              selectable: false,
+              resizeColumn: false,
+              rowHeight: "auto",
+            },
+          }}
         >
           <ListHeader className="mb-0 rounded-none border-b border-outline-gray-1 bg-transparent p-1 px-2 gap-4">
             {REPORT_COLUMNS.map((column) => (
@@ -101,14 +128,22 @@ export function ReportsTable({ reports }: ReportsTableProps) {
             ))}
           </ListHeader>
           <ListRows>
-            {rows.map((row) => (
-              <ListRow key={row.id} row={row} className="gap-4">
+            {rows.map((row, index) => (
+              <ListRow
+                key={row.id}
+                row={row}
+                isLastRow={index === rows.length - 1}
+                className="gap-4 min-h-[44px] py-2.5 items-start"
+              >
                 {REPORT_COLUMNS.map((column) => (
                   <div
                     key={column.key}
                     className={mergeClassNames(
-                      "flex items-center text-base text-ink-gray-7",
-                      { "justify-end": column.align === "right" },
+                      "flex items-center text-base text-ink-gray-7 min-w-0",
+                      {
+                        "justify-end": column.align === "right",
+                        "items-start pt-0.5": column.key !== "reportLink",
+                      },
                     )}
                   >
                     {column.key === "reportLink" ? (

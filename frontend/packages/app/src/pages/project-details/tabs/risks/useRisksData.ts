@@ -23,6 +23,7 @@ export function useRisksData(filters: RiskFilters, sort: RiskSort | null) {
     const base: unknown[] = [["project", "=", projectId]];
 
     if (filters.owner) base.push(["owner", "=", filters.owner]);
+    if (filters.riskOwner) base.push(["risk_owner", "=", filters.riskOwner]);
     if (filters.status) base.push(["status", "=", filters.status]);
     if (filters.riskLevel) base.push(["risk_level", "=", filters.riskLevel]);
 
@@ -41,6 +42,7 @@ export function useRisksData(filters: RiskFilters, sort: RiskSort | null) {
   }, [
     projectId,
     filters.owner,
+    filters.riskOwner,
     filters.status,
     filters.riskLevel,
     filters.advanced,
@@ -65,6 +67,7 @@ export function useRisksData(filters: RiskFilters, sort: RiskSort | null) {
         "status",
         "summary",
         "owner",
+        "risk_owner",
       ],
       filters: frappeFilters as never,
       orderBy,
@@ -76,36 +79,49 @@ export function useRisksData(filters: RiskFilters, sort: RiskSort | null) {
     },
   );
 
-  const { data: allOwnersData } = useFrappeGetDocList<{ owner: string }>(
-    "Risk",
-    {
-      fields: ["owner"],
-      filters: [["project", "=", projectId]] as never,
-      limit: 500,
-    },
-  );
+  const { data: allOwnersData } = useFrappeGetDocList<{
+    owner: string;
+    risk_owner: string | null;
+  }>("Risk", {
+    fields: ["owner", "risk_owner"],
+    filters: [["project", "=", projectId]] as never,
+    limit: 500,
+  });
 
   const allOwners = useMemo(() => {
     if (!allOwnersData?.length) return [];
-    const emails = allOwnersData
-      .map((r) => r.owner)
-      .filter(Boolean) as string[];
-    return [...new Set(emails)];
+    return [
+      ...new Set(allOwnersData.map((r) => r.owner).filter(Boolean) as string[]),
+    ];
   }, [allOwnersData]);
+
+  const allRiskOwners = useMemo(() => {
+    if (!allOwnersData?.length) return [];
+    return [
+      ...new Set(
+        allOwnersData.map((r) => r.risk_owner).filter(Boolean) as string[],
+      ),
+    ];
+  }, [allOwnersData]);
+
+  const allUserEmails = useMemo(
+    () => [...new Set([...allOwners, ...allRiskOwners])],
+    [allOwners, allRiskOwners],
+  );
 
   // Build a stable SWR key so the user list re-fetches only when the set of owners changes.
   // Pass null when there are no owners to skip the request entirely.
   const usersSwrKey = useMemo(() => {
-    if (!allOwners.length) return null;
-    return `risks-users-${hashString(allOwners.slice().sort().join(","))}`;
-  }, [allOwners]);
+    if (!allUserEmails.length) return null;
+    return `risks-users-${hashString(allUserEmails.slice().sort().join(","))}`;
+  }, [allUserEmails]);
 
   const { data: usersData } = useFrappeGetDocList<UserDetails>(
     "User",
     {
       fields: ["name", "full_name", "user_image"],
-      filters: allOwners.length ? [["name", "in", allOwners]] : [],
-      limit: allOwners.length || 1,
+      filters: allUserEmails.length ? [["name", "in", allUserEmails]] : [],
+      limit: allUserEmails.length || 1,
     },
     usersSwrKey,
   );
@@ -120,6 +136,7 @@ export function useRisksData(filters: RiskFilters, sort: RiskSort | null) {
     return data.map((risk) => ({
       ...risk,
       owner_details: userMap[risk.owner],
+      risk_owner_details: risk.risk_owner ? userMap[risk.risk_owner] : null,
     }));
   }, [data, userMap]);
 
@@ -131,5 +148,20 @@ export function useRisksData(filters: RiskFilters, sort: RiskSort | null) {
     [allOwners, userMap],
   );
 
-  return { data: enrichedData, isLoading, error, mutate, allOwnersWithDetails };
+  const allRiskOwnersWithDetails = useMemo(
+    () =>
+      Object.fromEntries(
+        allRiskOwners.map((email) => [email, userMap[email]]),
+      ) as Record<string, UserDetails | undefined>,
+    [allRiskOwners, userMap],
+  );
+
+  return {
+    data: enrichedData,
+    isLoading,
+    error,
+    mutate,
+    allOwnersWithDetails,
+    allRiskOwnersWithDetails,
+  };
 }

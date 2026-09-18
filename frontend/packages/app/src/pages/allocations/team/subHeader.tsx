@@ -108,7 +108,7 @@ export function SubHeader() {
 
   const { options: designationOptions, isLoading: isDesignationLookupLoading } =
     useDesignationLookup({
-      shouldFetch: true,
+      shouldFetch: showFilters,
       query: designationQuery,
     });
 
@@ -198,9 +198,11 @@ export function SubHeader() {
           className="w-fit text-ink-gray-7"
           options={durationOptions}
           value={duration}
-          onChange={(value) =>
+          onChange={(e) =>
             guard(() =>
-              setDuration((value || "this-quarter") as typeof duration),
+              setDuration(
+                (e.target.value || "this-quarter") as typeof duration,
+              ),
             )
           }
         />
