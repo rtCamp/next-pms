@@ -36,6 +36,7 @@ def get_resource_management_team_view_data(
     employee_name: str | None = None,
     business_unit: str | None = None,
     designation: str | None = None,
+    department: list | str | None = None,
     reports_to: list | str | None = None,
     is_billable: list | str | None = None,
     allocation_status: list | str | None = None,
@@ -58,6 +59,8 @@ def get_resource_management_team_view_data(
             Ignored when the caller lacks write permission. Defaults to None.
         designation (str | None): JSON-encoded list of designations to filter by.
             Ignored when the caller lacks write permission. Defaults to None.
+        department (list | str | None): JSON-encoded list of departments to filter by.
+            Ignored when the caller lacks write permission. Defaults to None.
         reports_to (list | str | None): Employee ID or JSON-encoded list of IDs;
             restricts results to direct reports of any of the given managers.
             Ignored when the caller lacks write permission. Defaults to None.
@@ -78,7 +81,7 @@ def get_resource_management_team_view_data(
         filters (str | list | None): A JSON list (or already-parsed list) of
             [field, operator, value] conditions, ANDed with each other and with the
             dedicated params above. Allowed operators: =, !=, like, not like. Supported
-            fields: employee_name, business_unit, designation, reports_to,
+            fields: employee_name, business_unit, designation, department, reports_to,
             reporting_manager, employee_id, skills, tag, is_billable. reports_to matches
             the manager's Employee id (Link); reporting_manager matches the manager's name
             (custom_reporting_manager) and is LIKE-searchable. skills is resolved against
@@ -241,6 +244,7 @@ def get_resource_management_team_view_data(
         employee_name,
         business_unit,
         designation,
+        department,
         reports_to,
         is_billable,
         allocation_status,
@@ -262,6 +266,7 @@ def _get_resource_management_team_view_data(
     employee_name: str | None = None,
     business_unit: str | None = None,
     designation: str | None = None,
+    department: list | str | None = None,
     reports_to: list | str | None = None,
     is_billable: list | str | None = None,
     allocation_status: list | str | None = None,
@@ -281,6 +286,7 @@ def _get_resource_management_team_view_data(
         no_allocation = False
         business_unit = None
         designation = None
+        department = None
         reports_to = None
         customer = None
         employee_id = None
@@ -435,6 +441,7 @@ def _get_resource_management_team_view_data(
         employee_name,
         business_unit=business_unit,
         designation=designation,
+        department=department,
         page_length=page_length,
         reports_to=reports_to,
         start=start,
