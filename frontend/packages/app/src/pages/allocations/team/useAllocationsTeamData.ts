@@ -26,6 +26,7 @@ type UseAllocationsTeamDataOptions = {
   weekCount: number;
   search: string;
   designation: string[];
+  department: string[];
   allocationsType: string[];
   compositeFilters: FilterCondition[];
   pageLength: number;
@@ -52,6 +53,7 @@ export function useAllocationsTeamData({
   weekCount,
   search,
   designation,
+  department,
   allocationsType,
   compositeFilters,
   pageLength,
@@ -80,6 +82,15 @@ export function useAllocationsTeamData({
       ? JSON.stringify(normalizedDesignation)
       : null;
   }, [designation]);
+  const departmentParam = useMemo(() => {
+    const normalizedDepartment = Array.from(new Set(department)).sort(
+      (left, right) => left.localeCompare(right),
+    );
+
+    return normalizedDepartment.length
+      ? JSON.stringify(normalizedDepartment)
+      : null;
+  }, [department]);
   const filtersParam = useMemo(
     () => (filters.length > 0 ? JSON.stringify(filters) : null),
     [filters],
@@ -100,6 +111,7 @@ export function useAllocationsTeamData({
           String(maxWeek),
           search,
           designationParam ?? "",
+          departmentParam ?? "",
           allocationStatusParam ?? "",
           isBillableParam ?? "",
           filtersParam ?? "",
@@ -108,6 +120,7 @@ export function useAllocationsTeamData({
       )}`,
     [
       allocationStatusParam,
+      departmentParam,
       designationParam,
       filtersParam,
       includeUnallocated,
@@ -124,6 +137,7 @@ export function useAllocationsTeamData({
       max_week: maxWeek,
       employee_name: search || null,
       designation: designationParam,
+      department: departmentParam,
       allocation_status: allocationStatusParam,
       is_billable: isBillableParam,
       filters: filtersParam,
@@ -132,6 +146,7 @@ export function useAllocationsTeamData({
     }),
     [
       allocationStatusParam,
+      departmentParam,
       designationParam,
       filtersParam,
       includeUnallocated,
