@@ -10,6 +10,7 @@ from next_pms.timesheet.utils.constant import (
     MAX_PROJECT_TIMESHEET_PAGE_LENGTH,
     PROJECT_TIMESHEET_PAGE_LENGTH,
 )
+from next_pms.utils.currency import require_exchange_rate
 
 from . import filter_employees, get_count
 from .utils import (
@@ -83,7 +84,9 @@ def get_projects(
         project_currency = project.custom_currency
         if project_currency == currency:
             continue
-        rate = get_rate_as_at(date, project_currency, currency)
+        rate = get_rate_as_at(date, project_currency, currency) or require_exchange_rate(
+            project_currency, currency, date
+        )
         for field in currency_fields:
             if field in project:
                 project[field] = convert(project.get(field), rate)
@@ -105,8 +108,7 @@ def get_currency_fields(meta_fields):
 
 
 def convert(value, rate):
-    converted_value = flt(value) * (rate or 1)
-    return converted_value
+    return flt(value) * rate
 
 
 def get_project_filter_for_contractor(only_list=False):

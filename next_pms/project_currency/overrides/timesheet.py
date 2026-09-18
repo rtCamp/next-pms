@@ -1,7 +1,6 @@
 import frappe
 from erpnext import get_company_currency
 from erpnext.projects.doctype.timesheet.timesheet import Timesheet
-from erpnext.setup.utils import get_exchange_rate
 from frappe.utils.data import flt, nowdate
 
 from next_pms.project_currency.background_jobs.project_costing import (
@@ -9,6 +8,7 @@ from next_pms.project_currency.background_jobs.project_costing import (
     get_affected_tasks_and_projects,
 )
 from next_pms.project_currency.billing_rate import BILLING_RATE_COST_MULTIPLIER
+from next_pms.utils.currency import require_exchange_rate
 from next_pms.utils.employee import get_employee_salary
 
 
@@ -73,14 +73,14 @@ class TimesheetOverwrite(Timesheet):
 
         if self.customer:
             self.currency = frappe.db.get_value("Customer", self.customer, "default_currency")
-            self.exchange_rate = get_exchange_rate(
+            self.exchange_rate = require_exchange_rate(
                 self.currency,
                 frappe.defaults.get_global_default("currency"),
                 self.start_date,
             )
         elif self.company:
             self.currency = get_company_currency(self.company)
-            self.exchange_rate = get_exchange_rate(
+            self.exchange_rate = require_exchange_rate(
                 self.currency,
                 frappe.defaults.get_global_default("currency"),
                 self.start_date,
@@ -240,8 +240,7 @@ def get_employee_billing_rate(
         )
 
     if currency != timesheet_currency:
-        rate = get_exchange_rate(currency, timesheet_currency, start_date)
-        return billing_rate * (rate or 1)
+        return billing_rate * require_exchange_rate(currency, timesheet_currency, start_date)
 
     return billing_rate
 
