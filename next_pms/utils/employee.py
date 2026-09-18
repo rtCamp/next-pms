@@ -39,7 +39,7 @@ def get_employee_salary(
     ctc: float | None = None,
     salary_currency: str | None = None,
 ):
-    from erpnext.setup.utils import get_exchange_rate
+    from next_pms.utils.currency import require_exchange_rate
 
     if not ctc or not salary_currency:
         ctc, salary_currency = get_cached_value("Employee", employee, ["ctc", "salary_currency"])
@@ -47,8 +47,7 @@ def get_employee_salary(
             error(_("Salary Currency or CTC not set for employee {0}").format(employee))
 
     if salary_currency != to_currency:
-        exchange_rate = get_exchange_rate(salary_currency, to_currency, date)
-        ctc = ctc * (exchange_rate or 1)
+        ctc = ctc * require_exchange_rate(salary_currency, to_currency, date)
 
     monthly_working_hours = get_employee_monthly_working_hours(employee)
     monthly_salary = ctc / 12
@@ -75,13 +74,12 @@ def convert_currency(
     to_currency: str,
     date: str = None,
 ):
-    from erpnext.setup.utils import get_exchange_rate
+    from next_pms.utils.currency import require_exchange_rate
 
     if from_currency == to_currency:
         return amount
 
-    exchange_rate = get_exchange_rate(from_currency, to_currency, date)
-    return amount * (exchange_rate or 1)
+    return amount * require_exchange_rate(from_currency, to_currency, date)
 
 
 def generate_flat_tree(doctype: str, nsm_field: str, filters: dict, fields: list[str] | None = None):
