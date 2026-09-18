@@ -26,6 +26,7 @@ const ApprovalPopup = () => {
     totalHours,
     dailyWorkingHours,
     isReadOnly,
+    hasSelection,
     projectName,
     groupedByDay,
     checkedDays,
@@ -34,6 +35,8 @@ const ApprovalPopup = () => {
     handleApproveSubmit,
     handleReject,
   } = useWeeklyApproval();
+
+  const isBlocked = isReadOnly || !hasSelection;
 
   const allEntries = groupedByDay.flatMap((dayGroup) => dayGroup.entries);
   const weeklyRejectionReason = allEntries
@@ -141,18 +144,18 @@ const ApprovalPopup = () => {
           variant="solid"
           label="Reject"
           iconLeft={() => <CloseCircle size={16} className="text-ink-white" />}
-          disabled={isReadOnly}
+          disabled={isBlocked}
           onClick={handleReject}
-          className={isReadOnly ? "text-ink-white" : undefined}
+          className={isBlocked ? "text-ink-white" : undefined}
         />
         <Button
           theme="green"
           variant="solid"
           label="Approve"
           iconLeft={() => <Success size={16} className="text-ink-white" />}
-          disabled={isReadOnly}
+          disabled={isBlocked}
           onClick={handleApproveSubmit}
-          className={isReadOnly ? "text-ink-white" : "bg-surface-green-5"}
+          className={isBlocked ? "text-ink-white" : "bg-surface-green-5"}
         />
       </div>
     </Dialog.Popup>

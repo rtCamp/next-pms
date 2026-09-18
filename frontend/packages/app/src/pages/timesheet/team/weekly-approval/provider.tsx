@@ -36,6 +36,7 @@ export interface WeeklyApprovalContextValue {
   totalHours: number;
   dailyWorkingHours: number;
   isReadOnly: boolean;
+  hasSelection: boolean;
   projectName?: string;
   rejectionError: string | null;
   groupedByDay: GroupedDay[];
@@ -93,6 +94,7 @@ export const WeeklyApprovalProvider = ({
   const toast = useToasts();
   const [currentView, setCurrentView] = useState<ModalView>("approval");
   const [checkedDays, setCheckedDays] = useState<Set<string>>(new Set());
+  const [seededDays, setSeededDays] = useState<string | null>(null);
   const [rejectionError, setRejectionError] = useState<string | null>(null);
 
   const { call: updateTimesheet } = useFrappePostCall(
@@ -131,11 +133,19 @@ export const WeeklyApprovalProvider = ({
     groupedByDay.every((dayGroup) => dayGroup.isDecided);
   const dateRange = timesheetData.dateRange;
 
-  // Initialize checkedDays with every day still open to a decision when data loads
+  // Every day still open to a decision starts checked. Keyed on those days rather than on an
+  // empty selection, so clearing the last checkbox stays cleared while a refetch that changes
+  // which days are open still reseeds. Done in render so the first paint is already correct.
   const actionableDays = groupedByDay.filter((dayGroup) => !dayGroup.isDecided);
-  if (checkedDays.size === 0 && actionableDays.length > 0) {
+  const actionableKey = actionableDays
+    .map((dayGroup) => dayGroup.day)
+    .join("|");
+  if (actionableDays.length > 0 && seededDays !== actionableKey) {
+    setSeededDays(actionableKey);
     setCheckedDays(new Set(actionableDays.map((dayGroup) => dayGroup.day)));
   }
+
+  const hasSelection = checkedDays.size > 0;
 
   const handleDayCheckChange = useCallback(
     (day: string, checked: boolean) => {
@@ -163,14 +173,14 @@ export const WeeklyApprovalProvider = ({
   }, [groupedByDay, checkedDays]);
 
   const handleReject = useCallback(() => {
-    if (isReadOnly) {
+    if (isReadOnly || !hasSelection) {
       return;
     }
 
     setRejectionError(null);
     mutate();
     setCurrentView("rejection");
-  }, [isReadOnly, mutate]);
+  }, [isReadOnly, hasSelection, mutate]);
 
   const handleOpenChange = useCallback(
     (nextOpen: boolean) => {
@@ -217,7 +227,7 @@ export const WeeklyApprovalProvider = ({
   );
 
   const handleApproveSubmit = useCallback(async () => {
-    if (isReadOnly) {
+    if (isReadOnly || !hasSelection) {
       return;
     }
 
@@ -242,6 +252,7 @@ export const WeeklyApprovalProvider = ({
     employee,
     project,
     isReadOnly,
+    hasSelection,
     toast,
     mutate,
     handleOpenChange,
@@ -249,7 +260,7 @@ export const WeeklyApprovalProvider = ({
 
   const handleRejectionSubmit = useCallback(
     async (reason: string) => {
-      if (isReadOnly) {
+      if (isReadOnly || !hasSelection) {
         return;
       }
 
@@ -276,6 +287,7 @@ export const WeeklyApprovalProvider = ({
       employee,
       project,
       isReadOnly,
+      hasSelection,
       toast,
       mutate,
       handleOpenChange,
@@ -296,6 +308,7 @@ export const WeeklyApprovalProvider = ({
       totalHours,
       dailyWorkingHours,
       isReadOnly,
+      hasSelection,
       projectName,
       rejectionError,
       groupedByDay,
@@ -318,6 +331,7 @@ export const WeeklyApprovalProvider = ({
       totalHours,
       dailyWorkingHours,
       isReadOnly,
+      hasSelection,
       projectName,
       rejectionError,
       groupedByDay,
