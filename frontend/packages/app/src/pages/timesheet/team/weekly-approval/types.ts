@@ -7,9 +7,16 @@ import type { HolidayProp, LeaveProps } from "@/types/timesheet";
 
 export type ModalView = "approval" | "rejection";
 
-export type WeeklyApprovalProps = {
+export type WeeklyApprovalTarget = {
   employee: string;
+  employeeName: string;
+  avatarUrl?: string;
   startDate: string;
+  project?: string;
+  projectName?: string;
+};
+
+export type WeeklyApprovalProps = WeeklyApprovalTarget & {
   open: boolean;
   onOpenChange: (open: boolean) => void;
 };
@@ -19,6 +26,7 @@ export interface GroupedDay {
   date: string;
   totalHours: number;
   leaveLabel?: string;
+  isDecided: boolean;
   entries: TimesheetEntry[];
 }
 
