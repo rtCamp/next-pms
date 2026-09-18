@@ -1,0 +1,135 @@
+/**
+ * External dependencies.
+ */
+import type { Plugins } from "@dnd-kit/abstract";
+import {
+  RestrictToHorizontalAxis,
+  RestrictToVerticalAxis,
+} from "@dnd-kit/abstract/modifiers";
+import {
+  Feedback,
+  PointerActivationConstraints,
+  PointerSensor,
+} from "@dnd-kit/dom";
+
+/**
+ * Internal dependencies.
+ */
+import type { ProjectListColumn } from "../../types";
+
+export const PROJECT_LIST_COLUMNS: ProjectListColumn[] = [
+  {
+    key: "name",
+    label: "Project name",
+    width: "240px",
+    sortField: "project_name",
+  },
+  {
+    key: "phase",
+    label: "Phase",
+    width: "160px",
+    sortField: "custom_project_phase",
+  },
+  {
+    key: "burn_rate_per_week",
+    label: "Burn rate/week",
+    width: "130px",
+    sortField: "burn_rate_per_week",
+  },
+  {
+    key: "cost_burn_percent",
+    label: "Cost burn",
+    width: "140px",
+    sortField: "cost_burn_percent",
+  },
+  {
+    key: "total_budget",
+    label: "Total budget",
+    width: "130px",
+    sortField: "total_budget",
+  },
+  {
+    key: "profit_margin",
+    label: "Profit margin",
+    width: "120px",
+    sortField: "profit_margin",
+  },
+  {
+    key: "start_date",
+    label: "Start date",
+    width: "130px",
+    sortField: "expected_start_date",
+  },
+  {
+    key: "next_milestone",
+    label: "Next milestone",
+    width: "140px",
+    sortField: "custom_next_milestone",
+  },
+  {
+    key: "end_date",
+    label: "End date",
+    width: "120px",
+    sortField: "expected_end_date",
+  },
+  {
+    key: "project_manager",
+    label: "Project manager",
+    width: "200px",
+    sortField: "custom_project_manager_name",
+  },
+  {
+    key: "engineering_manager",
+    label: "Lead engineer",
+    width: "200px",
+    sortField: "custom_engineering_manager_name",
+  },
+  {
+    key: "project_type",
+    label: "Project type",
+    width: "120px",
+    sortField: "project_type",
+  },
+  {
+    key: "customer",
+    label: "Client name",
+    width: "180px",
+    sortField: "customer",
+  },
+  {
+    key: "contract_end_date",
+    label: "Contract end date",
+    width: "160px",
+    sortField: "contract_end_date",
+  },
+];
+
+/**
+ * Configuration for the column drag sensors used in the project list.
+ */
+export const COLUMN_DRAG_SENSORS = [
+  PointerSensor.configure({
+    activationConstraints: [
+      new PointerActivationConstraints.Distance({ value: 6 }),
+    ],
+    preventActivation: () => false,
+  }),
+];
+
+/**
+ * Search params the list keeps its column layout in, mirroring the fields the
+ * view is saved with.
+ */
+export const COLUMN_PARAM_KEYS = {
+  columns: "columnOrder",
+  pinnedColumns: "pinned",
+} as const;
+
+export const COLUMN_DRAG_MODIFIERS = [RestrictToHorizontalAxis];
+
+export const PANEL_DRAG_MODIFIERS = [RestrictToVerticalAxis];
+
+export const COLUMN_DRAG_PLUGINS = (defaults: Plugins) => [
+  ...defaults,
+  Feedback.configure({ dropAnimation: null }),
+];
