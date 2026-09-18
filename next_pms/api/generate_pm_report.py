@@ -172,7 +172,7 @@ def check_and_save_report(project, run_id, user, from_date, to_date):
 
     api_key = get_api_key()
     if not api_key:
-        err_msg = "PM Report is not configured correctly. Please contact your system administrator."
+        err_msg = _("PM Report is not configured correctly. Please contact your system administrator.")
         update_report_row(
             project,
             run_id,
@@ -191,7 +191,7 @@ def check_and_save_report(project, run_id, user, from_date, to_date):
 
     urls = get_llm_urls()
     if not urls:
-        err_msg = "PM Report is not configured correctly. Please contact your system administrator."
+        err_msg = _("PM Report is not configured correctly. Please contact your system administrator.")
         update_report_row(
             project,
             run_id,
@@ -215,7 +215,7 @@ def check_and_save_report(project, run_id, user, from_date, to_date):
         # Timeout check
         if elapsed >= MAX_POLL_DURATION:
             frappe.log_error(f"run_id: {run_id} | project: {project}", "PM Report — Poll Timeout")
-            err_msg = "Polling timed out after 10 minutes."
+            err_msg = _("Polling timed out after 10 minutes.")
             update_report_row(
                 project,
                 run_id,
@@ -269,7 +269,7 @@ def check_and_save_report(project, run_id, user, from_date, to_date):
                 else:
                     output_retry_count += 1
                     if output_retry_count >= MAX_OUTPUT_RETRIES:
-                        err_msg = "Process completed but no document was generated."
+                        err_msg = _("Process completed but no document was generated.")
                         update_report_row(
                             project=project,
                             run_id=run_id,
@@ -295,7 +295,7 @@ def check_and_save_report(project, run_id, user, from_date, to_date):
                     elif user_msg:
                         failure_reason = user_msg
                     else:
-                        failure_reason = f"Report generation failed. Event ID: {run_id}"
+                        failure_reason = _("Report generation failed. Event ID: {0}").format(run_id)
 
                 tech_detail = (
                     (run.get("error") or {}).get("technical_detail")
@@ -462,7 +462,7 @@ def resync_report(project: str, run_id: str) -> dict:
                     elif user_msg:
                         failure_reason = user_msg
                     else:
-                        failure_reason = f"Report generation failed. Event ID: {run_id}"
+                        failure_reason = _("Report generation failed. Event ID: {0}").format(run_id)
 
                 update_report_row(
                     project=project,
@@ -511,12 +511,12 @@ def _send_pms_notification(project, user, status, document_url=None, failure_rea
 
         project_name = frappe.db.get_value("Project", project, "project_name") or project
         if status in ("Done", "Completed"):
-            title = f"PM Report Ready: {project_name}"
-            label = f"PM report for {project_name} has been generated successfully."
+            title = _("PM Report Ready: {0}").format(project_name)
+            label = _("PM report for {0} has been generated successfully.").format(project_name)
             url = f"/next-pms/projects/{project}?tab=reports"
         else:
-            title = f"PM Report Failed: {project_name}"
-            reason = failure_reason or f"Report generation failed for {project_name}."
+            title = _("PM Report Failed: {0}").format(project_name)
+            reason = failure_reason or _("Report generation failed for {0}.").format(project_name)
             label = reason[:137] + "..." if len(reason) > 140 else reason
             url = f"/next-pms/projects/{project}?tab=reports"
 
