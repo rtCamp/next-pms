@@ -1,3 +1,4 @@
+import type { AddAllocationFormValues } from "./schema";
 import type { AllocationRefreshTargets } from "../../types";
 import type { AllocationOverrideEntry } from "../../utils";
 
@@ -13,6 +14,7 @@ export interface AddAllocationInitialValues {
   customerLabel?: string;
   recurrence?: "one-time" | "recurring";
   includeWeekends?: boolean;
+  includeHolidays?: boolean;
   fromDate?: string;
   toDate?: string;
   hoursPerDay?: number;
@@ -35,7 +37,7 @@ export interface AddAllocationModalProps {
   onOpenChange: (open: boolean) => void;
   variant?: "add" | "edit";
   layoutVariant?: AddAllocationLayoutVariant;
-  onEditScheduleClick?: () => void;
+  onEditScheduleClick?: (values: AddAllocationFormValues) => void;
   initialValues?: AddAllocationInitialValues;
   onSuccess?: (targets?: AllocationRefreshTargets) => void | Promise<void>;
 }
