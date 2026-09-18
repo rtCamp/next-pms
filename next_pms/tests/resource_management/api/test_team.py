@@ -217,11 +217,25 @@ class _TeamViewBase(IntegrationTestCase):
         return name
 
     @classmethod
+    def _make_department(cls, department_name):
+        # Department.autoname suffixes the company abbreviation when a default company is
+        # set, so the doc name differs from department_name; resolve the actual name.
+        existing = frappe.db.get_value("Department", {"department_name": department_name})
+        if existing:
+            return existing
+        return (
+            frappe.get_doc({"doctype": "Department", "department_name": department_name})
+            .insert(ignore_permissions=True)
+            .name
+        )
+
+    @classmethod
     def _make_employee(
         cls,
         employee_name,
         user_id=None,
         designation=None,
+        department=None,
         business_unit=None,
         reports_to=None,
         skills=(),
@@ -240,6 +254,7 @@ class _TeamViewBase(IntegrationTestCase):
                 "leave_approver": "Administrator",
                 "user_id": user_id,
                 "designation": designation,
+                "department": department,
                 "custom_business_unit": business_unit,
                 "reports_to": reports_to,
             }
@@ -345,15 +360,24 @@ class TestTeamViewEmployeeFilters(_TeamViewBase):
             cls.bu_alpha = cls.bu_beta = None
         cls.desig_alpha = cls._make_master("Designation", "designation_name", "Tvf Desig Alpha")
         cls.desig_beta = cls._make_master("Designation", "designation_name", "Tvf Desig Beta")
+        cls.dept_alpha = cls._make_department("Tvf Dept Alpha")
+        cls.dept_beta = cls._make_department("Tvf Dept Beta")
 
-        cls.mgr = cls._make_employee("Tvf Mgr", designation=cls.desig_beta, business_unit=cls.bu_beta)
+        cls.mgr = cls._make_employee(
+            "Tvf Mgr", designation=cls.desig_beta, business_unit=cls.bu_beta, department=cls.dept_beta
+        )
         cls.alpha = cls._make_employee(
-            "Tvf Alpha", designation=cls.desig_alpha, business_unit=cls.bu_alpha, skills=[("TvfPython", 0.8)]
+            "Tvf Alpha",
+            designation=cls.desig_alpha,
+            business_unit=cls.bu_alpha,
+            department=cls.dept_alpha,
+            skills=[("TvfPython", 0.8)],
         )
         cls.beta = cls._make_employee(
             "Tvf Beta",
             designation=cls.desig_beta,
             business_unit=cls.bu_beta,
+            department=cls.dept_beta,
             reports_to=cls.mgr,
             skills=[("TvfReact", 0.7)],
         )
@@ -361,6 +385,7 @@ class TestTeamViewEmployeeFilters(_TeamViewBase):
             "Tvf Gamma",
             designation=cls.desig_alpha,
             business_unit=cls.bu_alpha,
+            department=cls.dept_alpha,
             reports_to=cls.mgr,
             skills=[("TvfPython", 0.6), ("TvfReact", 0.9)],
         )
@@ -374,6 +399,14 @@ class TestTeamViewEmployeeFilters(_TeamViewBase):
     def test_designation(self):
         result = self._call(employee_name="Tvf", designation=json.dumps([self.desig_alpha]))
         self.assertEqual(self._names(result), ["Tvf Alpha", "Tvf Gamma"])
+
+    def test_department(self):
+        result = self._call(employee_name="Tvf", department=json.dumps([self.dept_alpha]))
+        self.assertEqual(self._names(result), ["Tvf Alpha", "Tvf Gamma"])
+
+    def test_department_multiple_values_union(self):
+        result = self._call(employee_name="Tvf", department=json.dumps([self.dept_alpha, self.dept_beta]))
+        self.assertEqual(self._names(result), ["Tvf Alpha", "Tvf Beta", "Tvf Gamma", "Tvf Mgr"])
 
     def test_business_unit(self):
         if not self.has_business_unit:
@@ -398,6 +431,13 @@ class TestTeamViewEmployeeFilters(_TeamViewBase):
         )
         self.assertEqual(self._names(neq), ["Tvf Beta", "Tvf Mgr"])
 
+    def test_composite_filter_department_operators(self):
+        eq = self._call(filters=json.dumps([["department", "=", self.dept_alpha], ["employee_name", "like", "Tvf"]]))
+        self.assertEqual(self._names(eq), ["Tvf Alpha", "Tvf Gamma"])
+
+        neq = self._call(filters=json.dumps([["department", "!=", self.dept_alpha], ["employee_name", "like", "Tvf"]]))
+        self.assertEqual(self._names(neq), ["Tvf Beta", "Tvf Mgr"])
+
     def test_composite_filter_skills(self):
         result = self._call(filters=json.dumps([["skills", "=", "TvfPython"], ["employee_name", "like", "Tvf"]]))
         self.assertEqual(self._names(result), ["Tvf Alpha", "Tvf Gamma"])
@@ -419,6 +459,17 @@ class TestTeamViewEmployeeFilters(_TeamViewBase):
         if not self.has_business_unit:
             self.skipTest("Business Unit doctype / custom_business_unit field not installed")
         result = self._call(user=FILTER_READ_ONLY_USER, employee_name="Tvf", business_unit=json.dumps([self.bu_alpha]))
+        self.assertFalse(result["permissions"]["write"])
+        self.assertEqual(self._names(result), ["Tvf Alpha", "Tvf Beta", "Tvf Gamma", "Tvf Mgr"])
+
+    def test_department_ignored_without_write_permission(self):
+        # department=[dept_alpha] would drop Beta/Mgr if honored; a read-only caller must
+        # ignore it and return all four Tvf employees via the name filter.
+        result = self._call(
+            user=FILTER_READ_ONLY_USER,
+            employee_name="Tvf",
+            department=json.dumps([self.dept_alpha]),
+        )
         self.assertFalse(result["permissions"]["write"])
         self.assertEqual(self._names(result), ["Tvf Alpha", "Tvf Beta", "Tvf Gamma", "Tvf Mgr"])
 
