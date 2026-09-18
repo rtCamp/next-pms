@@ -1,6 +1,11 @@
 import path from "path";
 import fs from "fs";
-import { deleteByTaskName, readAndCleanAllOrphanData } from "../helpers/timesheetHelper";
+import {
+  deleteByTaskName,
+  deleteTimesheetsCreatedThisRun,
+  deleteViewsForTestCases,
+  readAndCleanAllOrphanData,
+} from "../helpers/timesheetHelper";
 import { deleteUserGroupForEmployee } from "../helpers/teamTabHelper";
 // ------------------------------------------------------------------------------------------
 
@@ -21,12 +26,18 @@ const globalTeardown = async () => {
     console.warn("⚠️ Could not load TC IDs:", err.message);
   }
 
+  const jsonDir = path.resolve(projectRoot, "data/json-files");
+
   //Clean up Data
   await deleteByTaskName();
+  // Before readAndCleanAllOrphanData: that step deletes the seeded employees,
+  // and Frappe refuses to delete an employee a timesheet still points at.
+  await deleteTimesheetsCreatedThisRun(jsonDir);
   await readAndCleanAllOrphanData();
 
   //Pass allTCIds to cleanup function
-  await deleteUserGroupForEmployee(allTCIds, path.resolve(projectRoot, "data/json-files"));
+  await deleteViewsForTestCases(allTCIds, jsonDir);
+  await deleteUserGroupForEmployee(allTCIds, jsonDir);
 };
 
 export default globalTeardown;

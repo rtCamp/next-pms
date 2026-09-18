@@ -1,22 +1,5 @@
 import { request } from "@playwright/test";
-import path from "path";
-import fs from "fs";
-import config from "../../playwright.config";
-
-const baseURL = config.use?.baseURL;
-// ------------------------------------------------------------------------------------------
-
-/**
- * Load the storage state for a given role.
- */
-const loadAuthState = (role) => {
-  const filePath = path.resolve(__dirname, `../../auth/${role}-API.json`);
-  if (!fs.existsSync(filePath)) {
-    throw new Error(`Auth state file for ${role} not found: ${filePath}`);
-  }
-  return filePath;
-};
-// ------------------------------------------------------------------------------------------
+import { baseURL, loadAuthState, fetchWithRetry, deleteDocument } from "./apiClient";
 
 /**
  * Reusable API request wrapper.
@@ -25,7 +8,8 @@ export const apiRequest = async (endpoint, options = {}, role = "manager") => {
   const authFilePath = loadAuthState(role);
   const requestContext = await request.newContext({ baseURL, storageState: authFilePath });
 
-  const response = await requestContext.fetch(endpoint, {
+  const response = await fetchWithRetry(requestContext, endpoint, {
+    timeout: 120000,
     ...options,
     method: options.method || "GET",
     headers: {
@@ -112,11 +96,5 @@ export const getLeaveDetails = async (name, role = "manager") => {
  * Deletes leave of an employee
  */
 export const deleteLeave = async (leaveID, role = "admin") => {
-  return apiRequest(
-    `/api/resource/Leave Application/${leaveID}`,
-    {
-      method: "DELETE",
-    },
-    role
-  );
+  return await deleteDocument("Leave Application", leaveID, role);
 };

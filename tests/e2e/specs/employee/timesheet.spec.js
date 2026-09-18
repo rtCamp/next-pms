@@ -1,6 +1,6 @@
 const { test, expect } = require("../../playwright.fixture.cjs");
 import path from "path";
-import { TimesheetPage } from "../../pageObjects/timesheetPage";
+import { TimesheetPage, removeHtmlTags } from "../../pageObjects/timesheetPage";
 import { TaskPage } from "../../pageObjects/taskPage";
 import * as allure from "allure-js-commons";
 import { readJSONFile } from "../../utils/fileUtils";
@@ -41,17 +41,36 @@ test.describe("Employee : Timesheet", () => {
       newDesc,
       newDuration,
     });
+
+    // Verify the edit actually landed. Without this the test only proved the
+    // edit action did not throw - it passed for as long as nothing errored,
+    // whatever the entry ended up holding.
+    await timesheetPage.page.reload();
+
+    // The cell total reflects the new duration.
+    const cellText = await timesheetPage.getCellText(cell);
+    expect(cellText, `cell should show the edited duration ${newDuration}`).toContain(newDuration);
+
+    // ...and the entry itself carries the new description, not the old one.
+    const entries = await timesheetPage.getTimeEntriesInCell(cell);
+    expect(entries, "entry should carry the edited description").toContain(newDesc);
+    expect(entries, "old description should be gone").not.toContain(removeHtmlTags(description));
   });
 
-  test("TC9: Open task details popup", async () => {
+  test("TC9: Open task details popup", async ({ jsonDir }) => {
     allure.story("Timesheet");
+    const stubPath = path.join(jsonDir, "TC9.json");
+    const data = await readJSONFile(stubPath);
+    const task = data.TC9.cell.rowName;
+
     // Import liked tasks
     await timesheetPage.importLikedTasks();
-    // Open random task details
-    const randomTask = await timesheetPage.openRandomTaskDetails();
+    // Open this test's own task - picking a random one lands on tasks whose
+    // project the employee has no access to.
+    await timesheetPage.openTaskDetails(task);
 
     // Assertions
-    const isTaskDetailsDialogVisible = await timesheetPage.isTaskDetailsDialogVisible(randomTask);
+    const isTaskDetailsDialogVisible = await timesheetPage.isTaskDetailsDialogVisible(task);
     expect(isTaskDetailsDialogVisible).toBeTruthy();
   });
 
@@ -126,7 +145,7 @@ test.describe("Employee : Timesheet", () => {
     await taskPage.searchTask(TC23data.payloadCreateTask.subject);
     await taskPage.clickClockIcon();
     await taskPage.addTime("8", TC23data.payloadCreateTask.description);
-    await expect(page.getByText("New Timesheet created successfully.", { exact: true })).toBeVisible();
+    await expect(timesheetPage.toastNotification("Time Entry submitted successfully")).toBeVisible();
   });
 
   test("TC82: Verify hourly consulting rate when no default billing rate is used for Fixed cost project   ", async ({

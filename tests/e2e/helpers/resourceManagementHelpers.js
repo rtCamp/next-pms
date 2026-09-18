@@ -40,7 +40,13 @@ export const createAllocationsForTestCases = async (testCaseIDs, jsonDir) => {
     }
 
     // Call API to create allocation
-    const res = await createAllocation(allocPayload);
+    let res;
+    try {
+      res = await createAllocation(allocPayload);
+    } catch (err) {
+      console.error(`❌ Failed to create allocation for ${tcId} (${allocationKey}): ${err.message}`);
+      continue;
+    }
 
     //save the allocation ID back to the stub for teardown:
     if (res?.data?.name) {

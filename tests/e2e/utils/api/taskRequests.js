@@ -1,23 +1,5 @@
 import { request } from "@playwright/test";
-import path from "path";
-import fs from "fs";
-import config from "../../playwright.config";
-
-// Load config variables
-const baseURL = config.use?.baseURL;
-// ------------------------------------------------------------------------------------------
-
-/**
- * Helper function to ensure storage state is loaded for respective roles.
- */
-const loadAuthState = (role) => {
-  const filePath = path.resolve(__dirname, `../../auth/${role}-API.json`);
-  if (!fs.existsSync(filePath)) {
-    throw new Error(`Auth state file for ${role} not found: ${filePath}`);
-  }
-  return filePath;
-};
-// ------------------------------------------------------------------------------------------
+import { baseURL, loadAuthState, fetchWithRetry, deleteWithLockRetry, deleteDocument } from "./apiClient";
 
 /**
  * Helper function to load build the API request
@@ -25,7 +7,8 @@ const loadAuthState = (role) => {
 export const apiRequest = async (endpoint, options = {}, role = "manager") => {
   const authFilePath = loadAuthState(role);
   const requestContext = await request.newContext({ baseURL, storageState: authFilePath });
-  const response = await requestContext.fetch(endpoint, {
+  const response = await fetchWithRetry(requestContext, endpoint, {
+    timeout: 120000,
     ...options,
     postData: options.data ? JSON.stringify(options.data) : undefined, // Transform to json format
     headers: {
@@ -39,9 +22,12 @@ export const apiRequest = async (endpoint, options = {}, role = "manager") => {
     responseData = await response.json();
     //console.warn(`Endpoint type: ${options.data} successfully done for enpoint: ${endpoint}`)
   } else {
+    // Include the body: Frappe puts the actual reason (row lock, LinkExistsError,
+    // permission) in there, and without it every failure reads as a bare 500.
+    const text = await response.text().catch(() => "");
     await requestContext.dispose();
     throw new Error(
-      `API request failed for ${role} and endpoint ${endpoint}: ${response.status()} ${response.statusText()}`
+      `API request failed for ${role} and endpoint ${endpoint}: ${response.status()} ${response.statusText()}\n${text}`
     );
   }
 
@@ -69,14 +55,8 @@ export const createTask = async ({ subject, project, description, custom_is_bill
 /**
  * Delete a Task.
  */
-export const deleteTask = async (taskID, role) => {
-  return await apiRequest(
-    `/api/resource/Task/${taskID}`,
-    {
-      method: "DELETE",
-    },
-    role
-  );
+export const deleteTask = async (taskID, role = "admin") => {
+  return await deleteWithLockRetry(() => deleteDocument("Task", taskID, role), { label: `Task ${taskID}` });
 };
 // ------------------------------------------------------------------------------------------
 

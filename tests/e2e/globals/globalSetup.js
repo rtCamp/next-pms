@@ -5,14 +5,22 @@ import fs from "fs";
 import { execSync } from "child_process";
 import {
   createTimeEntries,
+  submitTimesheetForTestCases,
   updateTimeEntries,
   createProjectForTestCases,
   createTaskForTestCases,
   calculateHourlyBilling,
   readAndCleanAllOrphanData,
+  createViewForTestCases,
+  writeRunMarker,
 } from "../helpers/timesheetHelper";
 import { updateLeaveEntries } from "../helpers/leaveHelper";
-import { createEmployees } from "../helpers/employeeHelper";
+import {
+  createEmployees,
+  createRevieweeForTestCases,
+  createTimeEntriesForSeededEmployees,
+  registerRevieweesInTeamRoster,
+} from "../helpers/employeeHelper";
 import { createUserGroupForEmployee } from "../helpers/teamTabHelper";
 import { createAllocationsForTestCases } from "../helpers/resourceManagementHelpers";
 
@@ -66,6 +74,10 @@ const globalSetup = async () => {
 
   const jsonDir = path.resolve(__dirname, "../data/json-files");
   await fs.promises.mkdir(jsonDir, { recursive: true });
+
+  // Marks when this run began, so teardown's timesheet sweep can bound itself to
+  // records this run created instead of deleting whatever it finds.
+  await writeRunMarker(jsonDir);
   for (const tcId of allTCIds) {
     const filePath = path.join(jsonDir, `${tcId}.json`);
     await createJSONFile(filePath, { [tcId]: {} });
@@ -93,14 +105,29 @@ const globalSetup = async () => {
     console.log(`➡️ Processing ${tcId}`);
     await createEmployees([tcId], jsonDir);
     await updateTimeEntries([tcId], jsonDir);
+    // AFTER updateTimeEntries, not before: that step rebuilds the stub from the
+    // imported data modules and writes it over whatever is on disk, so a pin
+    // written earlier is silently lost and the timesheet lands on the default
+    // shared employee instead.
+    await createRevieweeForTestCases([tcId], jsonDir);
     await createProjectForTestCases([tcId], jsonDir);
+    await createViewForTestCases([tcId], jsonDir);
     await createTaskForTestCases([tcId], jsonDir);
+    // After the task exists - that is what the seeded employees book against.
+    await createTimeEntriesForSeededEmployees([tcId], jsonDir);
     await createAllocationsForTestCases([tcId], jsonDir);
     await createTimeEntries([tcId], jsonDir);
+    // Must follow createTimeEntries - there is nothing to submit before it.
+    await submitTimesheetForTestCases([tcId], jsonDir);
     await calculateHourlyBilling([tcId], jsonDir);
     await updateLeaveEntries([tcId], jsonDir);
     await createUserGroupForEmployee([tcId], jsonDir);
   }
+
+  // After the loop, not inside it: seeding walks the TC ids in order and TC53's
+  // own turn rewrites its stub from the static data module, wiping any reviewee
+  // registered before that point.
+  await registerRevieweesInTeamRoster(allTCIds, jsonDir);
 
   console.log("✅ Data generation completed for all TC IDs! Global setup done.");
 };

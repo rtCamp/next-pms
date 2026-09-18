@@ -1,24 +1,6 @@
 import { request } from "@playwright/test";
-import path from "path";
-import fs from "fs";
-import config from "../../playwright.config";
+import { baseURL, loadAuthState, fetchWithRetry, deleteWithLockRetry, deleteDocument } from "./apiClient";
 import { deleteAllocationsByEmployee } from "../../helpers/employeeHelper";
-
-// Base URL from config
-const baseURL = config.use?.baseURL;
-// ------------------------------------------------------------------------------------------
-
-/**
- * Ensure the storage‑state file for the given role exists, and return its path.
- */
-const loadAuthState = (role) => {
-  const filePath = path.resolve(__dirname, `../../auth/${role}-API.json`);
-  if (!fs.existsSync(filePath)) {
-    throw new Error(`Auth state file for ${role} not found: ${filePath}`);
-  }
-  return filePath;
-};
-// ------------------------------------------------------------------------------------------
 
 /**
  * Fire off an API request using Playwright’s requestContext + storageState.
@@ -28,7 +10,8 @@ export const apiRequest = async (endpoint, options = {}, role = "manager") => {
   const authFilePath = loadAuthState(role);
   const ctx = await request.newContext({ baseURL, storageState: authFilePath });
 
-  const response = await ctx.fetch(endpoint, {
+  const response = await fetchWithRetry(ctx, endpoint, {
+    timeout: 120000,
     method: options.method || "GET",
     headers: {
       "Content-Type": "application/json",
@@ -85,16 +68,22 @@ export const createProject = async (payload) => {
  * On HTTP 417, fall back to deleting allocations first.
  */
 export const deleteProject = async (projectId) => {
-  try {
-    await apiRequest(`/api/resource/Project/${projectId}`, { method: "DELETE" }, "admin");
-  } catch (err) {
-    // if the server signals “Expectation Failed” (417), clean up allocations
-    if (err.message.includes("417")) {
-      await deleteAllocationsByEmployee(projectId);
-    } else {
-      throw err;
-    }
+  // Retry while the row is locked: teardown fires while the app is still
+  // committing its own post-write hooks, and Frappe's delete uses NOWAIT.
+  const { deleted, reason } = await deleteWithLockRetry(() => deleteDocument("Project", projectId, "admin"), {
+    label: `Project ${projectId}`,
+  });
+
+  // A project still carrying allocations is refused with LinkExistsError.
+  // Clear those and retry once - otherwise the project survives the run.
+  if (!deleted && reason === "LinkExistsError") {
+    await deleteAllocationsByEmployee(projectId);
+    return await deleteWithLockRetry(() => deleteDocument("Project", projectId, "admin"), {
+      label: `Project ${projectId} (retry after allocations)`,
+    });
   }
+
+  return { deleted, reason };
 };
 // ------------------------------------------------------------------------------------------
 
@@ -110,5 +99,49 @@ export const getProjectDetails = async (projectId) => {
  * Delete a Resource Allocation by its ID.
  */
 export const deleteAllocation = async (allocationId) => {
-  return await apiRequest(`/api/resource/Resource%20Allocation/${allocationId}`, { method: "DELETE" }, "admin");
+  return await deleteWithLockRetry(() => deleteDocument("Resource Allocation", allocationId, "admin"), {
+    label: `Resource Allocation ${allocationId}`,
+  });
+};
+
+// ------------------------------------------------------------------------------------------
+
+/**
+ * Create a saved view (PMS View Setting).
+ *
+ * Views are ordinary documents, so tests that need one as a precondition seed it
+ * rather than depending on a view somebody created by hand on the environment.
+ */
+export const createView = async (payload) => {
+  return await apiRequest(
+    "/api/resource/PMS View Setting",
+    {
+      method: "POST",
+      data: payload,
+    },
+    "admin"
+  );
+};
+// ------------------------------------------------------------------------------------------
+
+/**
+ * Delete a saved view by its document name.
+ */
+export const deleteView = async (viewId) => {
+  return await deleteDocument("PMS View Setting", viewId, "admin");
+};
+
+/**
+ * Find saved views by their visible label.
+ */
+export const getViewsByLabel = async (label) => {
+  const filters = encodeURIComponent(JSON.stringify([["label", "=", label]]));
+  const fields = encodeURIComponent(JSON.stringify(["name", "label", "public"]));
+  const result = await apiRequest(
+    `/api/method/frappe.client.get_list?doctype=PMS View Setting&fields=${fields}&filters=${filters}&limit_page_length=0`,
+    { method: "GET" },
+    "admin"
+  );
+
+  return result?.message || result?.data?.message || [];
 };
