@@ -1,24 +1,5 @@
 import { request } from "@playwright/test";
-import path from "path";
-import fs from "fs";
-import config from "../../playwright.config";
-
-// Load config variables
-const baseURL = config.use?.baseURL;
-// ------------------------------------------------------------------------------------------
-
-/**
- * Helper function to ensure storage state is loaded for respective roles.
- */
-
-const loadAuthState = (role) => {
-  const filePath = path.resolve(__dirname, `../../auth/${role}-API.json`);
-  if (!fs.existsSync(filePath)) {
-    throw new Error(`Auth state file for ${role} not found: ${filePath}`);
-  }
-  return filePath;
-};
-// ------------------------------------------------------------------------------------------
+import { baseURL, loadAuthState, fetchWithRetry, deleteDocument } from "./apiClient";
 
 /**
  * Helper function to load build the API request
@@ -33,7 +14,8 @@ export const apiRequest = async (endpoint, options = {}, role = "manager") => {
   const method = options.method || "GET";
   const postData = options.data ? JSON.stringify(options.data) : undefined;
 
-  const response = await requestContext.fetch(endpoint, {
+  const response = await fetchWithRetry(requestContext, endpoint, {
+    timeout: 120000,
     ...options,
     method,
     postData,
@@ -99,12 +81,8 @@ export const createTimesheet = async ({ task, description, hours, date, employee
 /**
  * Delete a timesheet entry by Timesheet ID (resource API).
  */
-export const deleteTimesheetbyID = async (timesheetID, role = "manager") => {
-  const endpoint = `/api/resource/Timesheet/${timesheetID}`;
-  const options = {
-    method: "DELETE",
-  };
-  return await apiRequest(endpoint, options, role);
+export const deleteTimesheetbyID = async (timesheetID, role = "admin") => {
+  return await deleteDocument("Timesheet", timesheetID, role);
 };
 // ------------------------------------------------------------------------------------------
 

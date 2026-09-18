@@ -1,23 +1,5 @@
 import { request } from "@playwright/test";
-import path from "path";
-import fs from "fs";
-import config from "../../playwright.config";
-
-// Load config variables
-const baseURL = config.use?.baseURL;
-// ------------------------------------------------------------------------------------------
-
-/**
- * Helper function to ensure storage state is loaded for respective roles.
- */
-const loadAuthState = (role) => {
-  const filePath = path.resolve(__dirname, `../../auth/${role}-API.json`);
-  if (!fs.existsSync(filePath)) {
-    throw new Error(`Auth state file for ${role} not found: ${filePath}`);
-  }
-  return filePath;
-};
-// ------------------------------------------------------------------------------------------
+import { baseURL, loadAuthState, fetchWithRetry, deleteDocument } from "./apiClient";
 
 /**
  * Helper function to load build the API request
@@ -25,7 +7,8 @@ const loadAuthState = (role) => {
 export const apiRequest = async (endpoint, options = {}, role = "admin") => {
   const authFilePath = loadAuthState(role);
   const requestContext = await request.newContext({ baseURL, storageState: authFilePath });
-  const response = await requestContext.fetch(endpoint, {
+  const response = await fetchWithRetry(requestContext, endpoint, {
+    timeout: 120000,
     ...options,
     postData: options.data ? JSON.stringify(options.data) : undefined, // Transform to json format
     headers: {
@@ -84,7 +67,5 @@ export const createUserGroup = async ({ user, name }) => {
  * Delete a User Group
  */
 export const deleteUserGroup = async (userGroupName) => {
-  return await apiRequest(`/api/resource/User Group/${userGroupName}`, {
-    method: "DELETE",
-  });
+  return await deleteDocument("User Group", userGroupName, "admin");
 };

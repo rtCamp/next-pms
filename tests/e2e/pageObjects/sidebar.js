@@ -26,7 +26,7 @@ export class Sidebar {
 
  */
   async isTabAvailable(name) {
-    await this.page.waitForSelector("#app-logo");
+    await this.page.getByRole("img", { name: "Logo" }).first().waitFor();
 
     return this.page.getByRole("link", { name: `${name}` }).isVisible();
   }

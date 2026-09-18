@@ -1,22 +1,5 @@
 import { request } from "@playwright/test";
-import path from "path";
-import fs from "fs";
-import config from "../../playwright.config";
-
-// Load config variables
-const baseURL = config.use?.baseURL;
-// ------------------------------------------------------------------------------------------
-
-/**
- * Helper function to ensure storage state is loaded for respective roles.
- */
-const loadAuthState = (role) => {
-  const filePath = path.resolve(__dirname, `../../auth/${role}-API.json`);
-  if (!fs.existsSync(filePath)) {
-    throw new Error(`Auth state file for ${role} not found: ${filePath}`);
-  }
-  return filePath;
-};
+import { baseURL, loadAuthState, fetchWithRetry } from "./apiClient";
 // ------------------------------------------------------------------------------------------
 
 /**
@@ -44,12 +27,13 @@ export const apiRequest = async (endpoint, options = {}, role = "manager") => {
   const fetchOptions = {
     method: options.method || (body ? "POST" : "GET"),
     headers,
+    timeout: 120000,
   };
   if (body) {
     fetchOptions.data = body;
   }
 
-  const response = await requestContext.fetch(endpoint, fetchOptions);
+  const response = await fetchWithRetry(requestContext, endpoint, fetchOptions);
 
   if (!response.ok()) {
     const text = await response.text();

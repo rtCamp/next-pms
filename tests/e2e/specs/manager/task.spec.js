@@ -50,7 +50,15 @@ test.describe("Manager : Task", () => {
     expect(isTaskDetailsDialogVisible).toBeTruthy();
   });
 
-  test("TC20: The information table columns should be customizable using the ‘Columns’ button at the top.   ", async ({
+  // The "Columns" button this case exists to exercise is gone from the redesign:
+  // the task table ships a fixed set of columns (Subject, Project, Status,
+  // Expected time, Priority, Due date) and there is no add/remove control for
+  // them anywhere on the page. Nothing is left to drive, and unlike TC25/TC26 -
+  // which lost the same control but could be rescoped onto the surviving
+  // "Is Billable" filter field - customisable columns have no replacement to
+  // point at. Skipped rather than deleted pending a call from @ayushnirwal on
+  // whether column customisation was dropped deliberately.
+  test.skip("TC20: The information table columns should be customizable using the ‘Columns’ button at the top.   ", async ({
     jsonDir,
   }) => {
     allure.story("Task");
@@ -91,13 +99,12 @@ test.describe("Manager : Task", () => {
     const data = await readJSONFile(stubPath);
     const TC22data = data.TC22;
     const taskName = TC22data.payloadCreateTask.subject;
-    const taskID = TC22data.payloadLikeTask.name;
 
     // Search task
     await taskPage.searchTask(taskName);
 
     //Assertion to verify if the task liked is showing red heart
-    await taskPage.assertTaskIsLiked(taskID);
+    await taskPage.assertTaskIsLiked(taskName);
   });
 
   test("TC24: Verify task addition", async ({ jsonDir }) => {
@@ -119,16 +126,17 @@ test.describe("Manager : Task", () => {
     expect(isTaskDetailsDialogVisible).toBeTruthy();
   });
 
+  // TC25/TC26 used to add an "Is Billable" column and read the cell. The
+  // redesign removed the Columns button, but kept "Is Billable" as a filter
+  // field, so both now assert the status through the filter instead. Each runs
+  // two filter passes plus a search, which is more than the 30s default budget
+  // allows once slowMo's half-second per action is counted.
   test("TC25: Verify the billable status of a billable task.    ", async ({ jsonDir }) => {
     allure.story("Task");
+    test.setTimeout(90000);
     const stubPath = path.join(jsonDir, "TC25.json");
     const data = await readJSONFile(stubPath);
     const TC25data = data.TC25;
-    // Add column to view
-    await taskPage.addColumn("Is Billable");
-
-    // Search task
-    await taskPage.searchTask(TC25data.payloadCreateTask.subject);
 
     // Assertions
     const isTaskBillable = await taskPage.isTaskBillable(TC25data.payloadCreateTask.subject);
@@ -137,14 +145,10 @@ test.describe("Manager : Task", () => {
 
   test("TC26: Verify the billable status of a non-billable task.    ", async ({ jsonDir }) => {
     allure.story("Task");
+    test.setTimeout(90000);
     const stubPath = path.join(jsonDir, "TC26.json");
     const data = await readJSONFile(stubPath);
     const TC26data = data.TC26;
-    // Add column to view
-    await taskPage.addColumn("Is Billable");
-
-    // Search task
-    await taskPage.searchTask(TC26data.payloadCreateTask.subject);
 
     // Assertions
     const isTaskBillable = await taskPage.isTaskBillable(TC26data.payloadCreateTask.subject);
