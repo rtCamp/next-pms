@@ -4,6 +4,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { SortSelector } from "@next-pms/design-system/components";
 import {
+  ColumnSelector,
   Combobox,
   Filter,
   MultiSelect,
@@ -15,13 +16,18 @@ import {
  */
 import { useDebounce } from "@/hooks/useDebounce";
 import { useDoctypeLinkLookup } from "@/hooks/useDoctypeLinkLookup";
+import { toSelectorColumns } from "@/lib/utils";
 import {
   TASK_PRIORITY_OPTIONS,
   TASK_SORTABLE_FIELDS,
   TASK_STATUS_OPTIONS,
 } from "../constants";
+import { TASK_LIST_COLUMNS } from "../list/columns";
+import { useTaskColumns } from "../list/useTaskColumns";
 import type { TaskStatus } from "../types";
 import { useTaskFilters } from "../useTaskFilters";
+
+const AVAILABLE_COLUMNS = toSelectorColumns(TASK_LIST_COLUMNS);
 
 export function TaskListSubHeader() {
   const {
@@ -34,6 +40,11 @@ export function TaskListSubHeader() {
     setSort,
     resetFilters,
   } = useTaskFilters();
+  const taskColumns = useTaskColumns();
+  const selectedColumns = useMemo(
+    () => toSelectorColumns(taskColumns.selectableColumns),
+    [taskColumns.selectableColumns],
+  );
 
   const externalFilterCount =
     (search !== "" ? 1 : 0) +
@@ -112,6 +123,14 @@ export function TaskListSubHeader() {
         </div>
       </div>
       <div className="flex gap-2">
+        <ColumnSelector
+          columns={selectedColumns}
+          availableColumns={AVAILABLE_COLUMNS}
+          onColumnsChange={(next) =>
+            taskColumns.setColumns(next.map((column) => column.value))
+          }
+          onReset={taskColumns.isDefault ? undefined : taskColumns.reset}
+        />
         <SortSelector
           sort={sort.field ? sort : null}
           onSortChange={setSort}
