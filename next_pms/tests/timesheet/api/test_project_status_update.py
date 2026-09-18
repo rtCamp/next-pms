@@ -402,11 +402,22 @@ class TestProjectStatusUpdateComments(IntegrationTestCase):
         self.assertIn("Weekly note", nextpms[0].label)
         self.assertIn("Comment Thread Project", nextpms[0].label)
 
+    def _assert_direct_crud_allowed(self, user):
+        created = self._make_update()
+        frappe.set_user(user)
+
+        new_update = frappe.new_doc("Project Status Update")
+        new_update.project = self.project
+        new_update.title = "direct create"
+        new_update.insert()
+
+        doc = frappe.get_doc("Project Status Update", created["name"])
+        doc.title = "direct edit"
+        doc.save()
+
+        frappe.get_doc("Project Status Update", created["name"]).delete()
+
     def _assert_direct_crud_forbidden(self, user):
-        # Acting as `user` through the permission-checked ORM (the Desk path),
-        # every write must raise PermissionError because the doctype grants the
-        # role no create/write/delete. This is what forces all access through
-        # the API, where only_for + author-only ownership checks apply.
         created = self._make_update()
         frappe.set_user(user)
 
@@ -424,8 +435,11 @@ class TestProjectStatusUpdateComments(IntegrationTestCase):
         with self.assertRaises(frappe.PermissionError):
             frappe.get_doc("Project Status Update", created["name"]).delete()
 
-    def test_projects_manager_cannot_edit_via_direct_crud(self):
-        self._assert_direct_crud_forbidden(AUTHOR_USER)
+    def test_projects_manager_can_edit_via_direct_crud(self):
+        self._assert_direct_crud_allowed(AUTHOR_USER)
 
-    def test_projects_user_cannot_edit_via_direct_crud(self):
-        self._assert_direct_crud_forbidden(PROJECTS_USER)
+    def test_projects_user_can_edit_via_direct_crud(self):
+        self._assert_direct_crud_allowed(PROJECTS_USER)
+
+    def test_no_role_user_cannot_edit_via_direct_crud(self):
+        self._assert_direct_crud_forbidden(NO_ROLE_USER)

@@ -25,6 +25,7 @@ interface RiskDetailContentProps {
   mutate: () => void;
   mutateAttachments: () => void;
   onDeleteUpdateEntry: (entry: EnrichedRiskUpdateEntry) => Promise<void>;
+  canEditRisk: boolean;
 }
 
 export function RiskDetailContent({
@@ -33,6 +34,7 @@ export function RiskDetailContent({
   mutate,
   mutateAttachments,
   onDeleteUpdateEntry,
+  canEditRisk,
 }: RiskDetailContentProps) {
   const [isAddUpdateOpen, setIsAddUpdateOpen] = useState(false);
   const [editEntry, setEditEntry] = useState<EnrichedRiskUpdateEntry | null>(
@@ -102,13 +104,15 @@ export function RiskDetailContent({
             <h3 className="text-lg font-medium text-ink-gray-7">
               Additional documents
             </h3>
-            <DocumentUploadButton
-              riskName={risk.name}
-              onSuccess={() => {
-                mutate();
-                mutateAttachments();
-              }}
-            />
+            {canEditRisk && (
+              <DocumentUploadButton
+                riskName={risk.name}
+                onSuccess={() => {
+                  mutate();
+                  mutateAttachments();
+                }}
+              />
+            )}
           </div>
 
           {attachments.length > 0 ? (
@@ -126,13 +130,15 @@ export function RiskDetailContent({
         <section>
           <div className="flex justify-between items-center mb-3">
             <h3 className="text-lg font-medium text-ink-gray-7">Updates</h3>
-            <Button
-              type="button"
-              variant="ghost"
-              onClick={() => setIsAddUpdateOpen(true)}
-              aria-label="Add update"
-              icon={() => <AddSm className="size-4" />}
-            ></Button>
+            {canEditRisk && (
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={() => setIsAddUpdateOpen(true)}
+                aria-label="Add update"
+                icon={() => <AddSm className="size-4" />}
+              ></Button>
+            )}
           </div>
 
           {risk.risk_update_log?.length > 0 ? (
@@ -141,6 +147,7 @@ export function RiskDetailContent({
                 <UpdateEntry
                   key={entry.name}
                   entry={entry}
+                  canEdit={canEditRisk}
                   onEdit={() => setEditEntry(entry)}
                   onDelete={() => setDeleteEntry(entry)}
                 />

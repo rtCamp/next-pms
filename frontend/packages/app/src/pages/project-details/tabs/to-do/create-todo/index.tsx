@@ -238,9 +238,11 @@ export function CreateTodoModal({ open, onClose, todo }: CreateTodoModalProps) {
                 variant="subtle"
                 value={field.state.value}
                 options={STATUS_OPTIONS.map((o) => ({ ...o }))}
-                onChange={(value) =>
-                  value &&
-                  field.handleChange(value as CreateTodoValues["status"])
+                onChange={(e) =>
+                  e.target.value &&
+                  field.handleChange(
+                    e.target.value as CreateTodoValues["status"],
+                  )
                 }
                 prefix={() => <StatusIcon status={field.state.value} />}
                 option={({ option }) => (
@@ -354,9 +356,11 @@ export function CreateTodoModal({ open, onClose, todo }: CreateTodoModalProps) {
                 variant="subtle"
                 value={field.state.value}
                 options={PRIORITY_OPTIONS.map((o) => ({ ...o }))}
-                onChange={(value) =>
-                  value &&
-                  field.handleChange(value as CreateTodoValues["priority"])
+                onChange={(e) =>
+                  e.target.value &&
+                  field.handleChange(
+                    e.target.value as CreateTodoValues["priority"],
+                  )
                 }
                 prefix={() => <PriorityDot priority={field.state.value} />}
               />

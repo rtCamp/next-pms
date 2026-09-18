@@ -14,9 +14,9 @@ export interface TodoDoc {
   allocated_to: string;
   assigned_by: string;
   assigned_by_full_name: string;
-  custom_from_time: string;
-  custom_title: string;
-  custom_to_time: string;
+  custom_from_time?: string;
+  custom_title?: string;
+  custom_to_time?: string;
   date: string;
   description: string;
   priority: TodoPriority;

@@ -216,10 +216,10 @@ export function usePersonalTimesheetData({
       revalidateFirstPage: false,
       keepPreviousData: true,
       persistSize: false,
-      shouldRetryOnError: false,
-      errorRetryCount: 0,
       onError: (err) => {
-        toast.error(parseFrappeErrorMsg(err as FrappeError));
+        toast.error(parseFrappeErrorMsg(err as FrappeError), {
+          id: "personal-timesheet-fetch-error",
+        });
       },
     },
   );

@@ -3,20 +3,24 @@ import json
 import frappe
 from erpnext.accounts.report.utils import get_rate_as_at
 from frappe import get_all, get_list, get_meta, get_value, only_for, whitelist
-from frappe.utils import flt, getdate
+from frappe.utils import add_days, flt, getdate
 
 from next_pms.api.utils import error_logger
+from next_pms.timesheet.utils.constant import (
+    MAX_PROJECT_TIMESHEET_PAGE_LENGTH,
+    PROJECT_TIMESHEET_PAGE_LENGTH,
+)
 
 from . import filter_employees, get_count
 from .utils import (
-    build_aggregate_dates,
     build_chunk_context,
     build_employee_week_details,
     employee_has_higher_access,
-    get_employees_for_projects,
-    get_qualifying_project_ids,
+    get_week_dates,
+    has_scoped_project_timesheets_before,
     normalize_status_filter,
-    parse_filters,
+    resolve_project_participation,
+    resolve_project_scope,
 )
 
 
@@ -172,152 +176,6 @@ def get_project_employee_access(project: str | None = None, employee: str | None
     return {"has_any_member": has_any_member, "has_any_project": has_any_project, "is_valid": is_valid}
 
 
-def _coerce_project_skip_empty_weeks(skip_empty_weeks: bool | str):
-    if isinstance(skip_empty_weeks, str):
-        return skip_empty_weeks.lower() in ("true", "1")
-
-    return skip_empty_weeks
-
-
-def _normalize_project_timesheet_inputs(
-    start: int | str,
-    page_length: int | str,
-    max_week: int | str,
-    approval_status: str | list | None,
-    skip_empty_weeks: bool | str,
-):
-    return (
-        max(0, int(start)),
-        max(0, int(page_length)),
-        int(max_week),
-        normalize_status_filter(approval_status, coerce_non_list=True),
-        _coerce_project_skip_empty_weeks(skip_empty_weeks),
-    )
-
-
-def _apply_employee_filters(parsed_filters: dict):
-    """Translate Employee-level filters into a Timesheet ``employee IN (...)`` constraint.
-
-    The qualifying-project, employee-selection and render queries all read
-    ``parsed_filters["Timesheet"]``, so resolving Employee filters to employee IDs here
-    applies them consistently everywhere instead of being silently dropped.
-    """
-    employee_filters = parsed_filters.get("Employee")
-    if not employee_filters:
-        return
-
-    employee_names = frappe.get_all("Employee", filters=employee_filters, pluck="name")
-    parsed_filters["Timesheet"] = [*parsed_filters.get("Timesheet", []), ["employee", "in", employee_names]]
-
-
-def _prepare_project_timesheet_context(
-    date: str,
-    max_week: int,
-    filters: str | list | None,
-    search: str | None,
-    approval_statuses: list[str] | None,
-):
-    parsed_filters = parse_filters(filters)
-    has_filters = bool(search or approval_statuses or any(parsed_filters.values()))
-    _apply_employee_filters(parsed_filters)
-    dates, _ = build_aggregate_dates(date=date, max_week=max_week, has_filters=has_filters)
-
-    return {
-        "parsed_filters": parsed_filters,
-        "has_filters": has_filters,
-        "dates": dates,
-        # Under filters, `dates` spans the full (up to 12-week) lookback used to locate
-        # matching data and empty weeks are dropped downstream — render that whole span so
-        # data in older weeks is not hidden by trimming to the most recent `max_week`.
-        "response_dates": dates,
-        "candidate_project_ids": get_qualifying_project_ids(
-            dates=dates,
-            parsed_filters=parsed_filters,
-            search=search,
-            approval_status=approval_statuses,
-        ),
-    }
-
-
-def _filter_project_week_details(week_details: dict):
-    filtered_week_details = {}
-
-    for week_key, week_detail in week_details.items():
-        project_tasks = {
-            task_name: task_data
-            for task_name, task_data in week_detail.get("tasks", {}).items()
-            if task_data.get("project")
-        }
-        if not project_tasks:
-            continue
-
-        filtered_week_details[week_key] = {
-            **week_detail,
-            "tasks": project_tasks,
-        }
-
-    return filtered_week_details
-
-
-def _trim_project_week_details(
-    week_details: dict,
-    response_dates: list,
-    has_filters: bool,
-    skip_empty_weeks: bool,
-):
-    if has_filters and skip_empty_weeks:
-        response_week_keys = {date_info["key"] for date_info in response_dates}
-        week_details = {
-            week_key: week_detail for week_key, week_detail in week_details.items() if week_key in response_week_keys
-        }
-
-    if has_filters and len(week_details) > len(response_dates):
-        sorted_keys = list(week_details.keys())
-        week_details = {key: week_details[key] for key in sorted_keys[-len(response_dates) :]}
-
-    return week_details
-
-
-def _build_project_employee_payload(
-    employee,
-    context: dict,
-    dates: list,
-    response_dates: list,
-    has_filters: bool,
-    skip_empty_weeks: bool,
-    approval_statuses: list[str] | None = None,
-):
-    week_details = build_employee_week_details(
-        employee_name=employee.name,
-        dates=dates,
-        context=context,
-        has_filters=has_filters,
-        skip_empty_weeks=skip_empty_weeks,
-        approval_status=approval_statuses,
-    )
-    week_details = _filter_project_week_details(week_details)
-    week_details = _trim_project_week_details(
-        week_details=week_details,
-        response_dates=response_dates,
-        has_filters=has_filters,
-        skip_empty_weeks=skip_empty_weeks,
-    )
-
-    if not week_details:
-        return None
-
-    working_hours = context["working_hours_map"].get(employee.name, {"working_hour": 0, "working_frequency": "Per Day"})
-    return employee.name, {
-        "employee_name": employee.employee_name,
-        "image": employee.image,
-        "working_hours": working_hours,
-        "holidays": list(context["holidays_by_employee"].get(employee.name, [])),
-        "leaves": list(context["leaves_by_employee"].get(employee.name, [])),
-        "backdate_restricted_before": context["backdate_boundary_by_employee"].get(employee.name),
-        "week_details": week_details,
-    }
-
-
 def _group_week_tasks_by_project(tasks: dict):
     project_tasks_map = {}
 
@@ -332,157 +190,287 @@ def _group_week_tasks_by_project(tasks: dict):
     return project_tasks_map
 
 
-def _build_project_week_groups(response_dates: list, employee_data_map: dict):
-    week_groups = []
+def _build_project_member_payload(employee, employee_data: dict, project_tasks: dict):
+    """One member's row inside one project for one week.
 
-    for date_info in response_dates:
-        week_key = date_info["key"]
-        project_groups = {}
+    Shared by `get_project_timesheet_data` and `get_project_timesheet_member_week`, so the
+    realtime payload is the same object the page already renders rather than a parallel
+    shape that can drift out of step with it.
+    """
+    working_hours = employee_data["working_hours"]
+    return {
+        "label": employee_data["employee_name"],
+        "employee": employee,
+        "avatar_url": employee_data["image"],
+        "tasks": project_tasks,
+        "holidays": employee_data["holidays"],
+        "leaves": employee_data["leaves"],
+        "backdate_restricted_before": employee_data["backdate_restricted_before"],
+        "working_hour": working_hours.get("working_hour", 8),
+        "working_frequency": working_hours.get("working_frequency", "Per Day"),
+        "status": employee_data["status"],
+    }
 
-        for emp_name, emp_data in employee_data_map.items():
-            week_detail = emp_data["week_details"].get(week_key)
-            if not week_detail:
-                continue
 
-            project_tasks_map = _group_week_tasks_by_project(week_detail.get("tasks", {}))
-            if not project_tasks_map:
-                continue
+def _collect_employee_week_data(employees: list, week: dict, context: dict, scope, approval_statuses):
+    """Resolve each employee's week once, grouped by project.
 
-            for project, project_tasks in project_tasks_map.items():
-                if project not in project_groups:
-                    first_task = next(iter(project_tasks.values()))
-                    project_groups[project] = {
-                        "project": project,
-                        "project_name": first_task.get("project_name"),
-                        "members": [],
-                    }
-
-                project_groups[project]["members"].append(
-                    {
-                        "label": emp_data["employee_name"],
-                        "employee": emp_name,
-                        "avatar_url": emp_data["image"],
-                        "tasks": project_tasks,
-                        "holidays": emp_data["holidays"],
-                        "leaves": emp_data["leaves"],
-                        "backdate_restricted_before": emp_data["backdate_restricted_before"],
-                        "working_hour": emp_data["working_hours"].get("working_hour", 8),
-                        "working_frequency": emp_data["working_hours"].get("working_frequency", "Per Day"),
-                        "status": week_detail.get("status", "Not Submitted"),
-                    }
-                )
-
-        week_groups.append(
-            {
-                "key": week_key,
-                "start_date": date_info["start_date"],
-                "end_date": date_info["end_date"],
-                "dates": date_info["dates"],
-                "projects": list(project_groups.values()),
-            }
+    Done up front rather than per project because one employee can appear under several
+    projects in the same week, and rebuilding their week for each would repeat the work.
+    """
+    employee_data_map = {}
+    for employee in employees:
+        week_details = build_employee_week_details(
+            employee_name=employee.name,
+            dates=[week],
+            context=context,
+            has_filters=scope.has_filters,
+            skip_empty_weeks=False,
+            approval_status=approval_statuses,
         )
+        week_detail = week_details.get(week["key"])
+        if not week_detail:
+            continue
 
-    return week_groups
+        project_tasks_map = _group_week_tasks_by_project(week_detail.get("tasks", {}))
+        if not project_tasks_map:
+            continue
+
+        employee_data_map[employee.name] = {
+            "employee_name": employee.employee_name,
+            "image": employee.image,
+            "working_hours": context["working_hours_map"].get(
+                employee.name, {"working_hour": 0, "working_frequency": "Per Day"}
+            ),
+            "holidays": list(context["holidays_by_employee"].get(employee.name, [])),
+            "leaves": list(context["leaves_by_employee"].get(employee.name, [])),
+            "backdate_restricted_before": context["backdate_boundary_by_employee"].get(employee.name),
+            "status": week_detail.get("status", "Not Submitted"),
+            "project_tasks": project_tasks_map,
+        }
+    return employee_data_map
 
 
 @whitelist(methods=["GET", "POST"])
 @error_logger
 def get_project_timesheet_data(
-    date: str,
-    max_week: int = 2,
-    page_length: int = 10,
+    start_date: str,
+    page_length: int = PROJECT_TIMESHEET_PAGE_LENGTH,
     start: int = 0,
     filters: str | list | None = None,
     search: str | None = None,
     approval_status: str | list | None = None,
-    skip_empty_weeks: bool = False,
 ):
+    """Projects of a single week, paginated, with their members.
+
+    `start_date` is any day inside the wanted week; the week boundaries come from
+    `get_week_dates`, so the caller does not supply an end date.
+
+    Pairs with `get_project_timesheet_weeks`, which supplies the week structure and the
+    counts. Both derive membership from `resolve_project_participation`, so this endpoint's
+    `total_count` and that endpoint's `project_count` cannot drift.
+    """
     only_for(["Timesheet Manager", "Timesheet User", "Projects Manager"], message=True)
 
-    start, page_length, max_week, approval_status, skip_empty_weeks = _normalize_project_timesheet_inputs(
-        start=start,
-        page_length=page_length,
-        max_week=max_week,
-        approval_status=approval_status,
-        skip_empty_weeks=skip_empty_weeks,
-    )
+    start = max(0, int(start))
+    page_length = max(0, min(int(page_length), MAX_PROJECT_TIMESHEET_PAGE_LENGTH))
+    week = get_week_dates(date=start_date)
+
+    approval_status = normalize_status_filter(approval_status, coerce_non_list=True)
     approval_statuses = approval_status if isinstance(approval_status, list) else None
 
-    project_context = _prepare_project_timesheet_context(
+    scope = resolve_project_scope(
+        date=start_date,
+        max_week=1,
+        filters=filters,
+        search=search,
+        approval_status=approval_statuses,
+    )
+
+    response = {
+        "start_date": week["start_date"],
+        "end_date": week["end_date"],
+        "dates": week["dates"],
+        "projects": [],
+        "total_count": 0,
+        "has_more": False,
+    }
+
+    participation = resolve_project_participation(scope, [week])
+    bucket = participation.get(week["start_date"]) or {}
+    qualifying = bucket.get("projects") or set()
+    response["total_count"] = len(qualifying)
+
+    if not qualifying or not page_length or start >= len(qualifying):
+        return response
+
+    response["has_more"] = start + page_length < len(qualifying)
+
+    # Ordered by the name the UI displays, and paginated in the database. Ordering by
+    # project id instead would let page 2 interleave into page 1 once the client sorts
+    # by name.
+    ordered_projects = get_all(
+        "Project",
+        filters=[["name", "in", sorted(qualifying)]],
+        fields=["name", "project_name"],
+        order_by="project_name asc, name asc",
+        limit_start=start,
+        limit_page_length=page_length,
+    )
+    if not ordered_projects:
+        return response
+
+    selected_project_ids = [project.name for project in ordered_projects]
+    employees_by_project = bucket.get("employees_by_project") or {}
+    employee_ids = sorted(
+        {employee for project in selected_project_ids for employee in employees_by_project.get(project, set())}
+    )
+    if not employee_ids:
+        return response
+
+    # `ignore_default_filters` because participation was resolved from Timesheet rows,
+    # which carry no employee-status condition. Letting `filter_employees` re-apply its
+    # default `status = Active` would drop a departed employee's rows while their project
+    # still occupies a slot in `total_count` and in this page, rendering it memberless.
+    # Employee status stays filterable - `resolve_project_scope` folds an explicit
+    # `Employee.status` filter into the participation query, so it is honoured there.
+    employees, _ = filter_employees(
+        page_length=len(employee_ids), start=0, ids=employee_ids, ignore_default_filters=True
+    )
+    # Context spans only this week. It used to be built across the whole (up to 12-week)
+    # lookback and then mostly discarded, which dominated the cost of a filtered request.
+    context = build_chunk_context(employees=employees, dates=[week], parsed_filters=scope.parsed_filters)
+    employee_data_map = _collect_employee_week_data(employees, week, context, scope, approval_statuses)
+
+    projects = []
+    for project in ordered_projects:
+        members = [
+            _build_project_member_payload(employee, employee_data, employee_data["project_tasks"][project.name])
+            for employee, employee_data in employee_data_map.items()
+            if project.name in employee_data["project_tasks"]
+        ]
+        if members:
+            projects.append({"project": project.name, "project_name": project.project_name, "members": members})
+
+    response["projects"] = projects
+    return response
+
+
+@whitelist(methods=["GET", "POST"])
+@error_logger
+def get_project_timesheet_weeks(
+    date: str,
+    max_week: int = 4,
+    filters: str | list | None = None,
+    search: str | None = None,
+    approval_status: str | list | None = None,
+):
+    """Week structure and per-week project counts, without project or member payloads.
+
+    Feeds first paint: the page can render its week rows before any project data is
+    fetched, and `get_project_timesheet_data` then fills one week at a time.
+
+    Pairs with that endpoint - both derive membership from `resolve_project_participation`,
+    so this endpoint's `project_count` and its `total_count` cannot drift apart.
+    """
+    only_for(["Timesheet Manager", "Timesheet User", "Projects Manager"], message=True)
+
+    max_week = int(max_week)
+    approval_status = normalize_status_filter(approval_status, coerce_non_list=True)
+    approval_statuses = approval_status if isinstance(approval_status, list) else None
+
+    scope = resolve_project_scope(
         date=date,
         max_week=max_week,
         filters=filters,
         search=search,
-        approval_statuses=approval_statuses,
-    )
-
-    all_project_ids = project_context["candidate_project_ids"]
-    if not all_project_ids:
-        return {
-            "week_groups": _build_project_week_groups(project_context["response_dates"], {}),
-            "total_count": 0,
-            "has_more": False,
-        }
-
-    # Paginate project IDs directly — no DB round-trip needed. `start`/`page_length` are
-    # already clamped to >= 0, so an empty/zero page can never report `has_more`.
-    total_count = len(all_project_ids)
-    end = start + page_length
-    selected_project_ids = all_project_ids[start:end]
-    has_more = page_length > 0 and end < total_count
-
-    # Get the employees who logged time to this page's projects.
-    employee_ids = get_employees_for_projects(
-        project_ids=selected_project_ids,
-        dates=project_context["dates"],
-        parsed_filters=project_context["parsed_filters"],
         approval_status=approval_statuses,
     )
-    if not employee_ids:
-        return {
-            "week_groups": _build_project_week_groups(project_context["response_dates"], {}),
-            "total_count": total_count,
-            "has_more": has_more,
-        }
+    weeks = scope.response_dates
+    if not weeks:
+        return {"weeks": [], "has_more_weeks": False, "next_date": None}
 
-    employees, _ = filter_employees(page_length=len(employee_ids), start=0, ids=employee_ids)
-    context = build_chunk_context(
-        employees=employees,
-        dates=project_context["dates"],
-        parsed_filters=project_context["parsed_filters"],
-    )
+    participation = resolve_project_participation(scope, weeks)
 
-    employee_data_map = {}
-    for employee in employees:
-        payload = _build_project_employee_payload(
-            employee=employee,
-            context=context,
-            dates=project_context["dates"],
-            response_dates=project_context["response_dates"],
-            has_filters=project_context["has_filters"],
-            skip_empty_weeks=skip_empty_weeks,
-            approval_statuses=approval_statuses,
+    week_payloads = []
+    for week in weeks:
+        projects = participation.get(week["start_date"], {}).get("projects", set())
+        if scope.skip_empty_weeks and not projects:
+            continue
+
+        week_payloads.append(
+            {
+                "key": str(week["start_date"]),
+                "start_date": week["start_date"],
+                "end_date": week["end_date"],
+                "label": week["key"],
+                "dates": week["dates"],
+                "project_count": len(projects),
+                "has_more_projects": len(projects) > PROJECT_TIMESHEET_PAGE_LENGTH,
+            }
         )
-        if payload:
-            emp_name, emp_data = payload
-            employee_data_map[emp_name] = emp_data
 
-    week_groups = _build_project_week_groups(project_context["response_dates"], employee_data_map)
-
-    # Restrict each week to only the selected projects — employees may have
-    # logged to other projects that should appear on a different page.
-    selected_project_set = set(selected_project_ids)
-    for week_group in week_groups:
-        week_group["projects"] = [p for p in week_group["projects"] if p["project"] in selected_project_set]
-
-    # Under filters the render span is the full lookback, so collapse it to the weeks that
-    # actually hold matching data — otherwise older empty weeks would pad the response.
-    # Runs after the project restriction so weeks emptied by it are dropped too.
-    if project_context["has_filters"]:
-        week_groups = [week_group for week_group in week_groups if week_group.get("projects")]
+    # Asked against this caller's scope rather than the Timesheet table as a whole: with
+    # empty weeks dropped, `week_payloads` can legitimately come back empty, and a global
+    # probe would then keep the frontend paging backwards to the oldest timesheet in
+    # history.
+    earliest = weeks[0]["start_date"]
+    has_more_weeks = has_scoped_project_timesheets_before(scope, earliest)
 
     return {
-        "week_groups": week_groups,
-        "total_count": total_count,
-        "has_more": has_more,
+        "weeks": week_payloads,
+        "has_more_weeks": has_more_weeks,
+        "next_date": add_days(getdate(earliest), -1) if has_more_weeks else None,
     }
+
+
+@error_logger
+def get_project_timesheet_member_week(employee: str, start_date: str, by_pass_access_check: bool = False):
+    """One employee's week, grouped by project - the unit the realtime publisher swaps in.
+
+    Deliberately not whitelisted. `by_pass_access_check` exists for the publisher, which
+    runs as whoever saved the timesheet and so cannot be assumed to hold the viewing roles;
+    exposing that switch over HTTP would let any logged-in user skip `only_for` and read
+    another employee's tasks, hours and leave. The page never calls this directly - it
+    reads `get_project_timesheet_data` - so there is nothing to expose.
+
+    Keyed by project rather than returning a single project because one employee-week can
+    span several projects, and an edit can *remove* them from one (task reassigned, last
+    entry deleted). Returning the complete per-project state for the week lets a listener
+    both replace and remove rows; a single-project payload could not express removal.
+
+    Each `member` is exactly one element of `get_project_timesheet_data`'s `members`.
+    """
+    if not by_pass_access_check:
+        only_for(["Timesheet Manager", "Timesheet User", "Projects Manager"], message=True)
+
+    week = get_week_dates(date=start_date)
+    employee_rows, _ = filter_employees(page_length=1, start=0, ids=[employee], ignore_default_filters=True)
+
+    response = {
+        "employee": employee,
+        "start_date": week["start_date"],
+        "end_date": week["end_date"],
+        "dates": week["dates"],
+        "projects": {},
+    }
+    if not employee_rows:
+        return response
+
+    scope = resolve_project_scope(date=start_date, max_week=1)
+    context = build_chunk_context(employees=employee_rows, dates=[week], parsed_filters=scope.parsed_filters)
+    employee_data_map = _collect_employee_week_data(employee_rows, week, context, scope, None)
+
+    employee_data = employee_data_map.get(employee)
+    if not employee_data:
+        return response
+
+    for project, project_tasks in employee_data["project_tasks"].items():
+        first_task = next(iter(project_tasks.values()))
+        response["projects"][project] = {
+            "project": project,
+            "project_name": first_task.get("project_name"),
+            "member": _build_project_member_payload(employee, employee_data, project_tasks),
+        }
+
+    return response

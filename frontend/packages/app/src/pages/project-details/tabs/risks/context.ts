@@ -19,6 +19,7 @@ export interface RisksContextProps {
     editRiskName: string | null;
     deleteRiskName: string | null;
     allOwnersWithDetails: Record<string, UserDetails | undefined>;
+    allRiskOwnersWithDetails: Record<string, UserDetails | undefined>;
   };
   actions: {
     setFilters: (filters: Partial<RiskFilters>) => void;
@@ -43,6 +44,7 @@ export const RisksContext = createContext<RisksContextProps>({
     error: null,
     filters: {
       owner: "",
+      riskOwner: "",
       status: "",
       riskLevel: "",
       advanced: [],
@@ -52,6 +54,7 @@ export const RisksContext = createContext<RisksContextProps>({
     editRiskName: null,
     deleteRiskName: null,
     allOwnersWithDetails: {},
+    allRiskOwnersWithDetails: {},
   },
   actions: {
     setFilters: noop,

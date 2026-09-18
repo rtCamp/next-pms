@@ -16,10 +16,13 @@ import {
 import { EDIT_SCHEDULE_APPLY_MODES } from "@/pages/allocations/constants";
 import type { AllocationOverrideEntry } from "@/pages/allocations/utils";
 import type {
+  AvailabilityByDate,
+  DayAvailability,
   DayItem,
   EditScheduleApplyMode,
   EditScheduleDraft,
   EditScheduleValueMode,
+  EmployeeAvailabilityResponse,
   PreviewRow,
 } from "./types";
 
@@ -68,13 +71,22 @@ export const normalizeRange = (startDate: string, endDate: string) =>
 /**
  * Returns the number of days in a date range, inclusive.
  */
-export const getDayCount = (startDate: string, endDate: string): number => {
+const getDayCount = (startDate: string, endDate: string): number => {
   const safe = normalizeRange(startDate, endDate);
   return (
     differenceInCalendarDays(parseISO(safe.endDate), parseISO(safe.startDate)) +
     1
   );
 };
+
+/**
+ * Lists every calendar date in an inclusive range as `yyyy-MM-dd` strings.
+ */
+const getDateKeysInRange = (startDate: string, endDate: string): string[] =>
+  eachDayOfInterval({
+    start: parseISO(startDate),
+    end: parseISO(endDate),
+  }).map((date) => format(date, "yyyy-MM-dd"));
 
 /**
  * Calculates the total hours for a given date range and hours per day.
@@ -86,13 +98,107 @@ export const getRangeHours = (
 ): number => getDayCount(startDate, endDate) * hoursPerDay;
 
 /**
- * Calculates hours per day from a total hours value for a date range.
+ * Reshapes the availability payload into the camelCase map the modal works with.
  */
-export const getHoursPerDayFromTotalHours = (
-  startDate: string,
-  endDate: string,
+export const mapEmployeeAvailability = (
+  response?: EmployeeAvailabilityResponse,
+): AvailabilityByDate =>
+  Object.fromEntries(
+    Object.entries(response?.dates ?? {}).map(([date, day]) => [
+      date,
+      {
+        availabilityFactor: day.availability_factor,
+        isHoliday: day.is_holiday,
+        ...(day.holiday_name ? { holidayName: day.holiday_name } : {}),
+      },
+    ]),
+  );
+
+/**
+ * Names why a day cannot be scheduled, wording it the way the timeline does.
+ */
+const getDayOffLabel = (day: DayAvailability): string => {
+  if (day.isHoliday) {
+    return day.holidayName || "Holiday";
+  }
+
+  return day.availabilityFactor > 0 ? "Half day off" : "Day off";
+};
+
+/**
+ * The hours a single day books today, reading its override before the allocation default.
+ */
+const resolveDayHours = (
+  dayOverride: AllocationOverrideEntry | undefined,
+  defaultHoursPerDay: number,
+): number =>
+  dayOverride?.cancelled === 1 ? 0 : (dayOverride?.hours ?? defaultHoursPerDay);
+
+/**
+ * Returns the hours per day to seed the input with, preferring the anchor date's value
+ * if the selected dates are not uniform.
+ *
+ * If every selected date is unavailable, returns the allocation default.
+ */
+export const getSeedHoursPerDay = ({
+  dates,
+  anchorDate,
+  defaultHoursPerDay,
+  override = [],
+  availability = {},
+}: {
+  dates: string[];
+  anchorDate: string;
+  defaultHoursPerDay: number;
+  override?: AllocationOverrideEntry[];
+  availability?: AvailabilityByDate;
+}): number => {
+  const overrideByDate = new Map(override.map((entry) => [entry.date, entry]));
+  const hoursByDate = new Map<string, number>();
+
+  for (const date of dates) {
+    if (availability[date]) {
+      continue;
+    }
+
+    hoursByDate.set(
+      date,
+      resolveDayHours(overrideByDate.get(date), defaultHoursPerDay),
+    );
+  }
+
+  const hours = [...hoursByDate.values()];
+
+  if (hours.length === 0) {
+    return defaultHoursPerDay;
+  }
+
+  return hours.every((value) => value === hours[0])
+    ? hours[0]
+    : (hoursByDate.get(anchorDate) ?? hours[0]);
+};
+
+/**
+ * Sums the given dates in whole-day terms. A day the employee is partly away books its
+ * share of the hours-per-day, so it weighs its availability factor rather than a full day,
+ * which keeps a total the user types and the total the allocation saves in step.
+ */
+const getEffectiveDayCount = (
+  dates: string[],
+  availability: AvailabilityByDate = {},
+): number =>
+  dates.reduce(
+    (total, date) => total + (availability[date]?.availabilityFactor ?? 1),
+    0,
+  );
+
+/**
+ * Calculates hours per day from a total hours value spread over the days it covers.
+ */
+const getHoursPerDayFromTotalHours = (
   totalHours: number,
-): number => totalHours / getDayCount(startDate, endDate);
+  effectiveDayCount: number,
+): number => (effectiveDayCount > 0 ? totalHours / effectiveDayCount : 0);
 
 /**
  * Formats a date range into a human-readable string.
@@ -127,10 +233,43 @@ export const formatRange = (
 };
 
 /**
+ * Formats a set of individually picked dates, collapsing consecutive dates into a range
+ * so a week-long pick still reads as "Sep 15 - 19".
+ */
+export const formatSelectedDates = (dates: string[]): string => {
+  const sorted = [...dates].sort();
+  const groups: string[][] = [];
+
+  for (const date of sorted) {
+    const currentGroup = groups[groups.length - 1];
+    const previous = currentGroup?.[currentGroup.length - 1];
+
+    if (
+      currentGroup &&
+      previous &&
+      differenceInCalendarDays(parseISO(date), parseISO(previous)) === 1
+    ) {
+      currentGroup.push(date);
+      continue;
+    }
+
+    groups.push([date]);
+  }
+
+  return groups
+    .map((group) => formatRange(group[0], group[group.length - 1]))
+    .join(", ");
+};
+
+/**
  * Generates an array of DayItem objects representing each day in a given date range,
  * including labels for the day of the week and month boundaries.
  */
-export const buildDays = (rangeStart: string, rangeEnd: string): DayItem[] => {
+export const buildDays = (
+  rangeStart: string,
+  rangeEnd: string,
+  availability: AvailabilityByDate = {},
+): DayItem[] => {
   const safe = normalizeRange(rangeStart, rangeEnd);
   const start = parseISO(safe.startDate);
   const dayCount = getDayCount(safe.startDate, safe.endDate);
@@ -139,69 +278,92 @@ export const buildDays = (rangeStart: string, rangeEnd: string): DayItem[] => {
     const date = addDays(start, index);
     const prev = index > 0 ? addDays(start, index - 1) : null;
     const isMonthBoundary = !prev || !isSameMonth(prev, date);
+    const dateKey = format(date, "yyyy-MM-dd");
+    const dayOff = availability[dateKey];
 
     return {
-      date: format(date, "yyyy-MM-dd"),
+      date: dateKey,
       dayLabel: format(date, "EEE"),
       dayNumber: Number(format(date, "d")),
       monthLabel: isMonthBoundary
         ? format(date, "MMM").toUpperCase()
         : undefined,
       isMonthBoundary,
+      ...(dayOff ? { dayOffTooltip: getDayOffLabel(dayOff) } : {}),
     };
   });
 };
 
 /**
+ * Whether the picked dates cover every day the strip lets the user pick, which makes the edit
+ * a change of the allocation's base hours. A day the employee is away is never selectable and
+ * the backend re-derives its hours from that base, so it counts as covered.
+ */
+const coversEverySelectableDay = (
+  rangeStart: string,
+  rangeEnd: string,
+  selectedDates: Set<string>,
+  availability: AvailabilityByDate,
+): boolean =>
+  selectedDates.size > 0 &&
+  getDateKeysInRange(rangeStart, rangeEnd).every(
+    (date) => selectedDates.has(date) || Boolean(availability[date]),
+  );
+
+/**
  * Builds preview rows for the schedule summary, applying stored overrides first and
  * then layering the current in-modal selection on top.
+ *
+ * A day the employee is away is reported at its share of the base hours, which is what the
+ * allocation actually books for it, and never takes the selection's value: the backend
+ * re-derives those hours from the leave on every save.
  */
 export const buildPreviewRows = ({
   rangeStart,
   rangeEnd,
   defaultHoursPerDay,
   override = [],
+  availability = {},
   selection,
+  isBaseHoursEdit,
 }: {
   rangeStart: string;
   rangeEnd: string;
   defaultHoursPerDay: number;
   override?: AllocationOverrideEntry[];
+  availability?: AvailabilityByDate;
   selection?: {
-    startDate: string;
-    endDate: string;
+    dates: string[];
     hoursPerDay: number;
   } | null;
+  isBaseHoursEdit: boolean;
 }): PreviewRow[] => {
   const rows: PreviewRow[] = [];
   const overrideByDate = new Map(override.map((entry) => [entry.date, entry]));
+  const selectedDates = new Set(selection?.dates ?? []);
 
   let currentRow: PreviewRow | null = null;
 
-  for (const currentDate of eachDayOfInterval({
-    start: parseISO(rangeStart),
-    end: parseISO(rangeEnd),
-  })) {
-    const dateKey = format(currentDate, "yyyy-MM-dd");
+  for (const dateKey of getDateKeysInRange(rangeStart, rangeEnd)) {
     const dayOverride = overrideByDate.get(dateKey);
-    const inSelection =
-      selection !== null &&
-      selection !== undefined &&
-      dateKey >= selection.startDate &&
-      dateKey <= selection.endDate;
-    const currentHoursPerDay =
-      dayOverride?.cancelled === 1
-        ? 0
-        : (dayOverride?.hours ?? defaultHoursPerDay);
-    const hoursPerDay = inSelection
-      ? selection.hoursPerDay
-      : currentHoursPerDay;
+    const dayOff = availability[dateKey];
+    const dayOffLabel = dayOff ? getDayOffLabel(dayOff) : undefined;
+    const inSelection = !dayOff && selectedDates.has(dateKey);
+    // The hours-per-day the allocation books for this day, ignoring the selection.
+    const baseHoursPerDay =
+      isBaseHoursEdit && selection ? selection.hoursPerDay : defaultHoursPerDay;
+    const currentHoursPerDay = dayOff
+      ? baseHoursPerDay * dayOff.availabilityFactor
+      : resolveDayHours(dayOverride, defaultHoursPerDay);
+    const hoursPerDay =
+      inSelection && selection ? selection.hoursPerDay : currentHoursPerDay;
     const isModified = inSelection && hoursPerDay !== currentHoursPerDay;
 
     if (
       currentRow &&
       currentRow.hoursPerDay === hoursPerDay &&
-      currentRow.isSelected === inSelection
+      currentRow.isSelected === inSelection &&
+      currentRow.dayOffLabel === dayOffLabel
     ) {
       currentRow.endDate = dateKey;
       currentRow.isModified = currentRow.isModified || isModified;
@@ -214,6 +376,7 @@ export const buildPreviewRows = ({
       hoursPerDay,
       isSelected: inSelection,
       isModified,
+      ...(dayOffLabel ? { dayOffLabel } : {}),
     };
     rows.push(currentRow);
   }
@@ -230,59 +393,52 @@ export const buildScheduleDraft = ({
   rangeEnd,
   defaultHoursPerDay,
   override = [],
+  availability = {},
   schedule,
 }: {
   rangeStart: string;
   rangeEnd: string;
   defaultHoursPerDay: number;
   override?: AllocationOverrideEntry[];
+  availability?: AvailabilityByDate;
   schedule: {
-    selection: {
-      startDate: string;
-      endDate: string;
-    };
+    selection: string[];
     input: {
       value: number;
       mode: EditScheduleValueMode;
     };
   };
 }): EditScheduleDraft => {
-  const hasSelection = Boolean(
-    schedule.selection.startDate && schedule.selection.endDate,
+  const selection = [...schedule.selection].sort();
+  const hasSelection = selection.length > 0;
+  const isBaseHoursEdit = coversEverySelectableDay(
+    rangeStart,
+    rangeEnd,
+    new Set(selection),
+    availability,
   );
-  const selection = hasSelection
-    ? normalizeRange(schedule.selection.startDate, schedule.selection.endDate)
-    : null;
-  const hoursPerDay = selection
+  const effectiveDayCount = getEffectiveDayCount(
+    isBaseHoursEdit ? getDateKeysInRange(rangeStart, rangeEnd) : selection,
+    availability,
+  );
+  const hoursPerDay = hasSelection
     ? schedule.input.mode === "totalHours"
-      ? getHoursPerDayFromTotalHours(
-          selection.startDate,
-          selection.endDate,
-          schedule.input.value,
-        )
+      ? getHoursPerDayFromTotalHours(schedule.input.value, effectiveDayCount)
       : schedule.input.value
     : defaultHoursPerDay;
-  const totalHours = selection
+  const totalHours = hasSelection
     ? schedule.input.mode === "totalHours"
       ? schedule.input.value
-      : getRangeHours(
-          selection.startDate,
-          selection.endDate,
-          schedule.input.value,
-        )
+      : effectiveDayCount * schedule.input.value
     : getRangeHours(rangeStart, rangeEnd, defaultHoursPerDay);
   const previewRows = buildPreviewRows({
     rangeStart,
     rangeEnd,
     defaultHoursPerDay,
     override,
-    selection: selection
-      ? {
-          startDate: selection.startDate,
-          endDate: selection.endDate,
-          hoursPerDay,
-        }
-      : null,
+    availability,
+    selection: hasSelection ? { dates: selection, hoursPerDay } : null,
+    isBaseHoursEdit,
   });
 
   return {
@@ -291,9 +447,8 @@ export const buildScheduleDraft = ({
     hoursPerDay,
     totalHours,
     previewRows,
-    headerRangeLabel: selection
-      ? formatRange(selection.startDate, selection.endDate)
+    headerRangeLabel: hasSelection
+      ? formatSelectedDates(selection)
       : formatRange(rangeStart, rangeEnd),
-    hasMeaningfulChange: previewRows.some((row) => row.isModified),
   };
 };

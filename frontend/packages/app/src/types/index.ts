@@ -76,6 +76,9 @@ declare global {
           can_create: string[];
         };
         currencies?: string[];
+        sysdefaults?: {
+          currency?: string;
+        };
         has_business_unit?: boolean;
         has_industry?: boolean;
         has_repository_connections?: boolean;
@@ -83,6 +86,7 @@ declare global {
         show_rag_trigger_page?: boolean;
         desk_theme?: string;
         has_todo_custom_fields?: boolean;
+        optional_project_fields?: Record<string, boolean>;
         is_calendar_setup: boolean;
         global_filters: GlobalFilters;
         allow_weekend_entries?: boolean;
@@ -99,6 +103,8 @@ export type Project = {
 export interface View {
   name: string;
   label: string;
+  /** User the view belongs to. Absent on client-side default views. */
+  owner?: string;
   icon?: string | ComponentType<{ className?: string }>;
   user?: string | null;
   default: 0 | 1;
@@ -106,7 +112,7 @@ export interface View {
   dt: string;
   type: "List" | "Custom";
   route?: string;
-  columns: unknown[];
+  columns: string[];
   rows: string[];
   filters: Record<string, unknown>;
   order_by: unknown[];

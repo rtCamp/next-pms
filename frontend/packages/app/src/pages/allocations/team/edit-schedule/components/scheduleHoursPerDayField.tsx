@@ -22,10 +22,11 @@ function ScheduleHoursPerDayField({
 }: ScheduleHoursPerDayFieldProps) {
   return (
     <div className="flex-1 space-y-1.5">
-      <FormLabel size="md" required>
+      <FormLabel id="edit-hours-per-day" size="md" required>
         Edit hours / day
       </FormLabel>
       <DurationInput
+        id="edit-hours-per-day"
         snap="smooth"
         variant="outline"
         value={value}

@@ -8,6 +8,9 @@ def calculate(project_id: str, valid_from_date: str):
     """Endpoint to enqueue the timesheet billing recalculation for a project."""
     if not project_id:
         return frappe.throw(frappe._("Please select a project."))
+    if not frappe.db.exists("Project", project_id):
+        frappe.throw(frappe._("Project {0} not found").format(project_id), frappe.DoesNotExistError)
+    frappe.has_permission("Project", doc=project_id, ptype="write", user=frappe.session.user, throw=True)
 
     frappe.enqueue(
         recalculate_timesheet_billing,
@@ -23,7 +26,7 @@ def calculate(project_id: str, valid_from_date: str):
 
 def recalculate_timesheet_billing(project_id: str, valid_from_date: str, start: int = 0):
     try:
-        timsheets = frappe.get_all(
+        timesheets = frappe.get_all(
             "Timesheet",
             filters={"parent_project": project_id, "start_date": [">=", valid_from_date]},
             fields=["name"],
@@ -32,7 +35,7 @@ def recalculate_timesheet_billing(project_id: str, valid_from_date: str, start: 
             order_by="start_date asc",
         )
 
-        if not timsheets or len(timsheets) < 1:
+        if not timesheets:
             project_name = frappe.db.get_value("Project", project_id, "project_name")
             if start == 0:
                 return frappe.msgprint(
@@ -49,11 +52,12 @@ def recalculate_timesheet_billing(project_id: str, valid_from_date: str, start: 
                     realtime=True,
                 )
 
-        for timesheet in timsheets:
+        for timesheet in timesheets:
             timesheet_doc = frappe.get_doc("Timesheet", timesheet.name)
             timesheet_doc.flags.ignore_validate_update_after_submit = True
-            timesheet_doc.validate()
+            timesheet_doc.flags.costing_calculation_queued = True
             timesheet_doc.ignore_backdated_validation = True
+            timesheet_doc.validate()
             timesheet_doc.save(ignore_permissions=True)
 
         frappe.enqueue(

@@ -48,7 +48,7 @@ function renderCell(column: ColumnDef, row: RagTrigger | RagHistory) {
   switch (column.key) {
     case "type":
       return (
-        <Tooltip text={row.type_label}>
+        <Tooltip text={row.type_label} showWhen="truncated">
           <span className="truncate">{row.type_label}</span>
         </Tooltip>
       );

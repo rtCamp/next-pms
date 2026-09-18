@@ -134,6 +134,9 @@ def get_project_timeline_items(
 
     if not project:
         frappe.throw(frappe._("project is required"))
+    if not frappe.db.exists("Project", project):
+        frappe.throw(frappe._("Project {0} not found").format(project), frappe.DoesNotExistError)
+    frappe.has_permission("Project", doc=project, ptype="read", user=frappe.session.user, throw=True)
 
     is_calendar = bool(cint(is_calendar))
 
@@ -216,6 +219,9 @@ def create_project_timeline_item(
 
     if not project:
         frappe.throw(frappe._("Project is required"))
+    if not frappe.db.exists("Project", project):
+        frappe.throw(frappe._("Project {0} not found").format(project), frappe.DoesNotExistError)
+    frappe.has_permission("Project", doc=project, ptype="write", user=frappe.session.user, throw=True)
     if not title:
         frappe.throw(frappe._("Title is required"))
     if not item_owner:
@@ -283,6 +289,7 @@ def edit_project_timeline_item(
         frappe.throw(frappe._("Name is required"))
 
     doc = frappe.get_doc("Project Timeline Item", name)
+    frappe.has_permission("Project", doc=doc.project, ptype="write", user=frappe.session.user, throw=True)
 
     if start_date is not None and doc.type == "Touchpoint":
         frappe.throw(frappe._("start_date cannot be set for a Touchpoint"))
@@ -349,6 +356,7 @@ def mark_timeline_item_complete(name: str, is_complete: int = 1):
         frappe.throw(frappe._("Name is required"))
 
     doc = frappe.get_doc("Project Timeline Item", name)
+    frappe.has_permission("Project", doc=doc.project, ptype="write", user=frappe.session.user, throw=True)
     doc.is_complete = cint(is_complete)
     doc.actual_end_date = getdate() if cint(is_complete) else None
     doc.save(ignore_permissions=False)

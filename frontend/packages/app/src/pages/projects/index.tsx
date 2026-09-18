@@ -30,6 +30,7 @@ function ProjectsPage() {
 
 function ProjectsPageContent() {
   const activeView = useProjectViews((state) => state.state.activeView);
+  const isLoading = useProjectViews((state) => state.state.isLoading);
   const { mutate } = useSWRConfig();
 
   const [addProjectOpen, setAddProjectOpen] = useState(false);
@@ -63,15 +64,19 @@ function ProjectsPageContent() {
 
   return (
     <>
-      <ProjectsHeader label="Projects">
-        <Button
-          variant="solid"
-          label="Add project"
-          iconLeft={() => <AddSm />}
-          onClick={() => openAddProject()}
-        />
-      </ProjectsHeader>
-      <ProjectFilters />
+      {!isLoading && activeView && (
+        <>
+          <ProjectsHeader label="Projects">
+            <Button
+              variant="solid"
+              label="Add project"
+              iconLeft={() => <AddSm />}
+              onClick={() => openAddProject()}
+            />
+          </ProjectsHeader>
+          <ProjectFilters />
+        </>
+      )}
       {activeView &&
         (isKanban ? (
           <ProjectKanbanProvider>

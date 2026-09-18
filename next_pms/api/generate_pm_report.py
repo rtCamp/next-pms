@@ -37,7 +37,8 @@ def get_api_key() -> str | None:
         api_key = api_key.strip()
     if not api_key:
         frappe.log_error(
-            "PM Report API key is not configured. Please set it in Timesheet Settings.", "PM Report — Config Error"
+            "PM Report API key is not configured. Please set it in Timesheet Settings.",
+            "PM Report — Config Error",
         )
         return None
     return api_key
@@ -87,7 +88,11 @@ def generate_pm_report(
         frappe.throw(_("Please add a valid Report Drive Link before generating."))
 
     payload = {
-        "llm_model_overrides": {"provider": "google_genai", "model": "gemini-2.5-flash", "temperature": 0.7},
+        "llm_model_overrides": {
+            "provider": "google_genai",
+            "model": "gemini-2.5-flash",
+            "temperature": 0.7,
+        },
         "project_metadata": {
             "start_date": from_date,
             "end_date": to_date,
@@ -153,7 +158,8 @@ def generate_pm_report(
             error_detail = response.text if response else "No response"
 
         frappe.log_error(
-            f"Error: {e!s}\nResponse: {error_detail}\nPayload: {json.dumps(payload, indent=2)}", "PM Report — API Error"
+            f"Error: {e!s}\nResponse: {error_detail}\nPayload: {json.dumps(payload, indent=2)}",
+            "PM Report — API Error",
         )
         frappe.throw(_("Failed to trigger PM Report: {0}").format(str(e)))
 
@@ -166,14 +172,40 @@ def check_and_save_report(project, run_id, user, from_date, to_date):
 
     api_key = get_api_key()
     if not api_key:
-        update_report_row(project, run_id, status="Failed", generated_on=frappe.utils.now())
-        _notify(project, user, error="PM Report is not configured correctly. Please contact your system administrator.")
+        err_msg = _("PM Report is not configured correctly. Please contact your system administrator.")
+        update_report_row(
+            project,
+            run_id,
+            status="Failed",
+            generated_on=frappe.utils.now(),
+            failure_reason=err_msg,
+        )
+        _notify(
+            project,
+            user,
+            error=err_msg,
+            run_id=run_id,
+            status="Failed",
+        )
         return
 
     urls = get_llm_urls()
     if not urls:
-        update_report_row(project, run_id, status="Failed", generated_on=frappe.utils.now())
-        _notify(project, user, error="PM Report is not configured correctly. Please contact your system administrator.")
+        err_msg = _("PM Report is not configured correctly. Please contact your system administrator.")
+        update_report_row(
+            project,
+            run_id,
+            status="Failed",
+            generated_on=frappe.utils.now(),
+            failure_reason=err_msg,
+        )
+        _notify(
+            project,
+            user,
+            error=err_msg,
+            run_id=run_id,
+            status="Failed",
+        )
         return
     LLM_STATUS_URL = urls[1]
 
@@ -183,26 +215,45 @@ def check_and_save_report(project, run_id, user, from_date, to_date):
         # Timeout check
         if elapsed >= MAX_POLL_DURATION:
             frappe.log_error(f"run_id: {run_id} | project: {project}", "PM Report — Poll Timeout")
-            update_report_row(project, run_id, status="Failed", generated_on=frappe.utils.now())
-            _notify(project, user, error="Polling timed out after 10 minutes.")
+            err_msg = _("Polling timed out after 10 minutes.")
+            update_report_row(
+                project,
+                run_id,
+                status="Failed",
+                generated_on=frappe.utils.now(),
+                failure_reason=err_msg,
+            )
+            _notify(project, user, error=err_msg, run_id=run_id, status="Failed")
             return
 
         try:
             response = requests.get(f"{LLM_STATUS_URL}/{run_id}", headers={"x-api-key": api_key}, timeout=30)
             response.raise_for_status()
-            data = response.json()
+            raw_json = response.json()
 
-            # Empty data — Inngest not ready yet
-            if not data or not data.get("data"):
+            if not raw_json:
                 time.sleep(POLL_INTERVAL)
                 continue
 
-            run = data["data"][0]
-            status = run.get("status")
-            output = run.get("output")
+            # Support both array response {"data": [{...}]} and direct dict {...}
+            if isinstance(raw_json, dict) and "data" in raw_json and isinstance(raw_json["data"], list):
+                if not raw_json["data"]:
+                    time.sleep(POLL_INTERVAL)
+                    continue
+                run = raw_json["data"][0]
+            elif isinstance(raw_json, dict):
+                run = raw_json
+            else:
+                time.sleep(POLL_INTERVAL)
+                continue
 
-            if status == "Completed":
-                document_url = output.get("document_url") if output else None
+            status_raw = run.get("status") or ""
+            status_lower = status_raw.lower()
+            is_terminal = run.get("is_terminal", status_lower in ("completed", "failed", "cancelled"))
+            output = run.get("output") if isinstance(run.get("output"), dict) else {}
+
+            if status_lower == "completed":
+                document_url = run.get("document_url") or output.get("document_url")
                 if document_url:
                     # Update row with actual URL and datetime
                     update_report_row(
@@ -211,32 +262,69 @@ def check_and_save_report(project, run_id, user, from_date, to_date):
                         report_link=document_url,
                         generated_on=frappe.utils.now(),
                         status="Done",
+                        failure_reason="",
                     )
-                    _notify(project, user, doc_link=document_url)
-                    _send_bell_notification(project, user, document_url)
+                    _notify(project, user, doc_link=document_url, run_id=run_id, status="Done")
                     return
                 else:
                     output_retry_count += 1
                     if output_retry_count >= MAX_OUTPUT_RETRIES:
-                        # Completed but no doc_url — keep run_id for resync
+                        err_msg = _("Process completed but no document was generated.")
                         update_report_row(
                             project=project,
                             run_id=run_id,
-                            status="Completed",
+                            status="Failed",
                             generated_on=frappe.utils.now(),
+                            failure_reason=err_msg,
                         )
-                        _notify(project, user, error="Process completed but no document was generated.")
+                        _notify(project, user, error=err_msg, run_id=run_id, status="Failed")
                         return
                     time.sleep(COMPLETION_POLL_INTERVAL)
                     continue
 
-            elif status in ("Failed", "Cancelled"):
-                frappe.log_error(f"run_id: {run_id} | status: {status}", "PM Report — Failed/Cancelled")
-                update_report_row(project=project, run_id=run_id, status="Failed", generated_on=frappe.utils.now())
-                _notify(project, user, error=f"Report generation {status.lower()}.")
+            elif status_lower in ("failed", "cancelled") or is_terminal:
+                # Inngest proxy returns formatted message directly on the root
+                failure_reason = run.get("message")
+
+                if not failure_reason:
+                    error_info = run.get("error") if isinstance(run.get("error"), dict) else {}
+                    user_msg = error_info.get("user_message") or ""
+                    action = error_info.get("action") or ""
+                    if user_msg and action:
+                        failure_reason = f"{user_msg} {action}".strip()
+                    elif user_msg:
+                        failure_reason = user_msg
+                    else:
+                        failure_reason = _("Report generation failed. Event ID: {0}").format(run_id)
+
+                tech_detail = (
+                    (run.get("error") or {}).get("technical_detail")
+                    if isinstance(run.get("error"), dict)
+                    else failure_reason
+                )
+
+                frappe.log_error(
+                    f"run_id: {run_id} | status: {status_raw}\n"
+                    f"Reason: {failure_reason}\nTechnical Detail: {tech_detail}",
+                    "PM Report — Failed/Cancelled",
+                )
+                update_report_row(
+                    project=project,
+                    run_id=run_id,
+                    status="Failed",
+                    generated_on=frappe.utils.now(),
+                    failure_reason=failure_reason,
+                )
+                _notify(
+                    project,
+                    user,
+                    error=failure_reason,
+                    run_id=run_id,
+                    status="Failed",
+                )
                 return
 
-            # "Running" → continue polling
+            # "Running" / "Pending" → continue polling
 
         except Exception:
             frappe.log_error(frappe.get_traceback(), "PM Report — Poll Exception")
@@ -263,7 +351,7 @@ def save_report_to_child_table(project, run_id, date_range):
 
 
 # update_report_row — match by run_id field
-def update_report_row(project, run_id, report_link=None, generated_on=None, status=None):
+def update_report_row(project, run_id, report_link=None, generated_on=None, status=None, failure_reason=None):
     try:
         project_doc = frappe.get_doc("Project", project)
         for row in project_doc.custom_project_reports:
@@ -274,6 +362,8 @@ def update_report_row(project, run_id, report_link=None, generated_on=None, stat
                     row.generated_on = generated_on
                 if status is not None:
                     row.status = status
+                if failure_reason is not None:
+                    row.failure_reason = failure_reason
                 break
         project_doc.save(ignore_permissions=True)
         frappe.db.commit()
@@ -297,7 +387,8 @@ def resync_report(project: str, run_id: str) -> dict:
 
     project_doc = frappe.get_doc("Project", project)
     matching_row = next(
-        (row for row in project_doc.custom_project_reports if row.run_id == run_id and row.status == "Completed"), None
+        (row for row in project_doc.custom_project_reports if row.run_id == run_id and row.status == "Completed"),
+        None,
     )
     if not matching_row:
         frappe.throw(_("Invalid run ID or report is not in a resyncable state."))
@@ -320,18 +411,30 @@ def resync_report(project: str, run_id: str) -> dict:
                 timeout=30,
             )
             response.raise_for_status()
-            data = response.json()
+            raw_json = response.json()
 
-            if not data or not data.get("data"):
+            if not raw_json:
                 time.sleep(RESYNC_POLL_INTERVAL)
                 continue
 
-            run = data["data"][0]
-            status = run.get("status")
-            output = run.get("output")
+            if isinstance(raw_json, dict) and "data" in raw_json and isinstance(raw_json["data"], list):
+                if not raw_json["data"]:
+                    time.sleep(RESYNC_POLL_INTERVAL)
+                    continue
+                run = raw_json["data"][0]
+            elif isinstance(raw_json, dict):
+                run = raw_json
+            else:
+                time.sleep(RESYNC_POLL_INTERVAL)
+                continue
 
-            if status == "Completed":
-                document_url = output.get("document_url") if output else None
+            status_raw = run.get("status") or ""
+            status_lower = status_raw.lower()
+            is_terminal = run.get("is_terminal", status_lower in ("completed", "failed", "cancelled"))
+            output = run.get("output") if isinstance(run.get("output"), dict) else {}
+
+            if status_lower == "completed":
+                document_url = run.get("document_url") or output.get("document_url")
                 if document_url:
                     update_report_row(
                         project=project,
@@ -339,6 +442,7 @@ def resync_report(project: str, run_id: str) -> dict:
                         report_link=document_url,
                         generated_on=frappe.utils.now(),
                         status="Done",
+                        failure_reason="",
                     )
                     return {"status": "success", "document_url": document_url}
 
@@ -347,14 +451,27 @@ def resync_report(project: str, run_id: str) -> dict:
                 continue
 
             # If Failed/Cancelled during resync
-            if status in ("Failed", "Cancelled"):
+            if status_lower in ("failed", "cancelled") or is_terminal:
+                failure_reason = run.get("message")
+                if not failure_reason:
+                    error_info = run.get("error") if isinstance(run.get("error"), dict) else {}
+                    user_msg = error_info.get("user_message") or ""
+                    action = error_info.get("action") or ""
+                    if user_msg and action:
+                        failure_reason = f"{user_msg} {action}".strip()
+                    elif user_msg:
+                        failure_reason = user_msg
+                    else:
+                        failure_reason = _("Report generation failed. Event ID: {0}").format(run_id)
+
                 update_report_row(
                     project=project,
                     run_id=run_id,
                     status="Failed",
                     generated_on=frappe.utils.now(),
+                    failure_reason=failure_reason,
                 )
-                return {"status": "failed"}
+                return {"status": "failed", "failure_reason": failure_reason}
 
             time.sleep(RESYNC_POLL_INTERVAL)
 
@@ -363,40 +480,59 @@ def resync_report(project: str, run_id: str) -> dict:
         frappe.throw(_("Failed to resync report. Please try again."))
 
 
-def _notify(project, user, doc_link=None, error=None):
-    """Send realtime notification to frontend"""
+def _notify(project, user, doc_link=None, error=None, run_id=None, status=None):
+    """Send persistent notification to NextPMS Notifications and realtime notification to frontend"""
+    resolved_status = status or ("Done" if doc_link else "Failed")
+    _send_pms_notification(
+        project=project,
+        user=user,
+        status=resolved_status,
+        document_url=doc_link,
+        failure_reason=error,
+    )
+
     message = {"project": project}
     if doc_link:
         message["doc_link"] = doc_link
     if error:
         message["error"] = error
-    frappe.publish_realtime(event="pm_report_ready", message=message, user=user)
+    if run_id:
+        message["run_id"] = run_id
+    if status:
+        message["status"] = status
+    frappe.publish_realtime(event="pm_report_ready", message=message, user=user, after_commit=True)
 
 
-def _send_bell_notification(project, user, document_url):
-    """Send Frappe bell notification"""
+def _send_pms_notification(project, user, status, document_url=None, failure_reason=None):
+    """Send persistent notification to NextPMS Notifications for the frontend sidebar tray"""
     try:
-        if not _is_valid_document_url(document_url):
-            frappe.log_error(f"Invalid or untrusted document_url: {document_url}", "PM Report — Invalid Document URL")
+        if not user or not frappe.db.exists("User", user):
             return
 
-        from html import escape
-
-        safe_document_url = escape(document_url, quote=True)
+        project_name = frappe.db.get_value("Project", project, "project_name") or project
+        if status in ("Done", "Completed"):
+            title = _("PM Report Ready: {0}").format(project_name)
+            label = _("PM report for {0} has been generated successfully.").format(project_name)
+            url = f"/next-pms/projects/{project}?tab=reports"
+        else:
+            title = _("PM Report Failed: {0}").format(project_name)
+            reason = failure_reason or _("Report generation failed for {0}.").format(project_name)
+            label = reason[:137] + "..." if len(reason) > 140 else reason
+            url = f"/next-pms/projects/{project}?tab=reports"
 
         frappe.get_doc(
             {
-                "doctype": "Notification Log",
-                "subject": f"PM Report Ready: {project}",
-                "email_content": f'<a href="{safe_document_url}">📄 View PM Report</a>',
-                "for_user": user,
-                "document_type": "Project",
-                "document_name": project,
-                "type": "Alert",
+                "doctype": "NextPMS Notifications",
+                "user": user,
+                "title": title,
+                "label": label,
+                "linked_doctype": "Project",
+                "linked_document": project,
+                "url": url,
             }
         ).insert(ignore_permissions=True)
     except Exception:
-        frappe.log_error(frappe.get_traceback(), "PM Report — Bell Notification Error")
+        frappe.log_error(frappe.get_traceback(), "PM Report — Notification Error")
 
 
 def get_github_metadata(project_doc, selected_repo: str | None = None, selected_board: str | None = None):
@@ -434,21 +570,29 @@ def get_github_metadata(project_doc, selected_repo: str | None = None, selected_
     if not project_board:
         project_board = project_doc.get("project_name") or ""
 
-    return {"repo_name": repo_name, "owner_name": owner_name, "project_board": project_board}
+    return {
+        "repo_name": repo_name,
+        "owner_name": owner_name,
+        "project_board": project_board,
+    }
 
 
 def get_hours_breakdown(project, from_date, to_date):
     """
-    Fetch timesheet hours grouped by task for the report period.
+    Fetch timesheet hours grouped by task for the report period (billable hours only).
     """
     try:
-        # Fetch all timesheet details for this project in date range
+        # Fetch all billable timesheet details for this project in date range
         timesheet_details = frappe.db.get_all(
             "Timesheet Detail",
             filters={
                 "project": project,
-                "from_time": ["between", [f"{from_date} 00:00:00", f"{to_date} 23:59:59"]],
+                "from_time": [
+                    "between",
+                    [f"{from_date} 00:00:00", f"{to_date} 23:59:59"],
+                ],
                 "docstatus": ["in", [0, 1]],
+                "is_billable": 1,
             },
             fields=["task", "hours"],
         )
@@ -456,29 +600,34 @@ def get_hours_breakdown(project, from_date, to_date):
         if not timesheet_details:
             return []
 
-        # Group by task - sum hours_consumed
+        # Group billable hours by task ID
         task_map = {}
         for entry in timesheet_details:
-            task = entry.get("task") or "No Task"
-            if task not in task_map:
-                task_map[task] = {"hours_consumed": 0.0}
-            task_map[task]["hours_consumed"] += entry.get("hours") or 0
+            task_id = entry.get("task")
+            if task_id:
+                task_map[task_id] = task_map.get(task_id, 0.0) + (entry.get("hours") or 0)
 
-        task_ids = list(set(t for t in task_map if t != "No Task"))
-        task_titles = {}
-        if task_ids:
-            task_data = frappe.db.get_all("Task", filters={"name": ["in", task_ids]}, fields=["name", "subject"])
-            task_titles = {t["name"]: t["subject"] for t in task_data}
+        if not task_map:
+            return []
+
+        # Fetch only billable tasks matching the timesheets
+        task_data = frappe.db.get_all(
+            "Task",
+            filters={"name": ["in", list(task_map.keys())], "custom_is_billable": 1},
+            fields=["name", "subject"],
+        )
+        task_titles = {t["name"]: t["subject"] for t in task_data}
 
         breakdown = []
-        for task_id, data in task_map.items():
-            task_title = "No Task" if task_id == "No Task" else (task_titles.get(task_id) or task_id)
-            breakdown.append(
-                {
-                    "task_title": task_title,
-                    "hours_consumed": round(data["hours_consumed"], 2),
-                }
-            )
+        for task_id, title in task_titles.items():
+            hours = round(task_map[task_id], 2)
+            if hours > 0:
+                breakdown.append(
+                    {
+                        "task_title": title,
+                        "hours_consumed": hours,
+                    }
+                )
 
         return breakdown
 
@@ -512,8 +661,11 @@ def _is_valid_document_url(url: str) -> bool:
 def get_repository_project_boards(repository: str | None = None) -> list[str]:
     if not repository:
         return []
+
     try:
-        repo_doc = frappe.get_doc("GitHub Repository", repository)
+        repo_doc = frappe.get_doc("GitHub Repository", repository, check_permission=True)
         return [b.board_name for b in repo_doc.get("project_boards") or [] if b.board_name]
+    except frappe.PermissionError:
+        raise
     except Exception:
         return []

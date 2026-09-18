@@ -13,6 +13,8 @@ export interface ProjectListContextProps {
     data: ProjectListItem[];
     hasMore: boolean;
     isLoading: boolean;
+    isInitialLoad: boolean;
+    isFilterRequest: boolean;
     error: unknown;
   };
   actions: {
@@ -27,6 +29,8 @@ export const ProjectListContext = createContext<ProjectListContextProps>({
     data: [],
     hasMore: false,
     isLoading: false,
+    isInitialLoad: false,
+    isFilterRequest: false,
     error: null,
   },
   actions: {

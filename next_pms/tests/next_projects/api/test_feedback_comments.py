@@ -83,6 +83,8 @@ class TestFeedbackComments(IntegrationTestCase):
             ).insert(ignore_permissions=True)
         if roles:
             frappe.get_doc("User", email).add_roles(*roles)
+        if frappe.db.exists("Notification Settings", email):
+            frappe.db.set_value("Notification Settings", email, "enable_email_notifications", 0)
         return email
 
     @classmethod

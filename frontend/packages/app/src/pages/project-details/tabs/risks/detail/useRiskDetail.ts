@@ -38,6 +38,7 @@ export function useRiskDetail(riskId: string) {
     if (!risk) return [];
     const emails = [
       risk.owner,
+      risk.risk_owner,
       ...(risk.risk_update_log?.map((e) => e.updated_by) ?? []),
     ].filter(Boolean) as string[];
     return [...new Set(emails)];
@@ -100,6 +101,9 @@ export function useRiskDetail(riskId: string) {
     return {
       ...risk,
       owner_details: usersMap[risk.owner] ?? null,
+      risk_owner_details: risk.risk_owner
+        ? (usersMap[risk.risk_owner] ?? null)
+        : null,
       risk_update_log: enrichedLog,
     };
   }, [risk, usersData]);

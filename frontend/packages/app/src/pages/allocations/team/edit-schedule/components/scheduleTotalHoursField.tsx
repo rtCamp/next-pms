@@ -18,10 +18,11 @@ function ScheduleTotalHoursField({
 }: ScheduleTotalHoursFieldProps) {
   return (
     <div className="flex-1 space-y-1.5">
-      <FormLabel size="md" required>
+      <FormLabel id="edit-total-hours" size="md" required>
         Edit total hours
       </FormLabel>
       <TextInput
+        htmlId="edit-total-hours"
         type="number"
         value={value}
         disabled={disabled}

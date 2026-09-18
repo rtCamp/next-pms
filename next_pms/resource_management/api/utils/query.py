@@ -170,7 +170,7 @@ def attach_extra_entries(allocations: list[dict]) -> list[dict]:
     rows = frappe.db.get_all(
         "Resource Allocation Extra Entry",
         filters={"parent": ["in", parent_names], "parenttype": "Resource Allocation"},
-        fields=["name", "parent", "date", "hours", "cancelled"],
+        fields=["name", "parent", "date", "hours", "cancelled", "source"],
         order_by="parent, date",
     )
 

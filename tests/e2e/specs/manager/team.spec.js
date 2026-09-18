@@ -2,7 +2,10 @@ const path = require("path");
 const { test, expect } = require("../../playwright.fixture.cjs");
 import { TeamPage } from "../../pageObjects/teamPage";
 import { TimesheetPage } from "../../pageObjects/timesheetPage";
-import { getDateForWeekday, getShortFormattedDate } from "../../utils/dateUtils";
+import {
+  getDateForWeekday,
+  getShortFormattedDate,
+} from "../../utils/dateUtils";
 import * as allure from "allure-js-commons";
 import { readJSONFile } from "../../utils/fileUtils";
 import { randomApprovalStatus } from "../../helpers/teamTabHelper";
@@ -42,7 +45,9 @@ test.describe("Manager: Team Tab", () => {
     }
   });
 
-  test("TC42: Validate Next/Previous week change buttons", async ({ jsonDir }) => {
+  test("TC42: Validate Next/Previous week change buttons", async ({
+    jsonDir,
+  }) => {
     allure.story("Team");
     const stubPath = path.join(jsonDir, "TC42.json");
     const data = await readJSONFile(stubPath);
@@ -53,7 +58,9 @@ test.describe("Manager: Team Tab", () => {
     await teamPage.viewNextWeek();
     await teamPage.viewPreviousWeek();
     const prevColDate = await teamPage.getColDate(TC42data.col);
-    const expectedColDate = getShortFormattedDate(getDateForWeekday(TC42data.col));
+    const expectedColDate = getShortFormattedDate(
+      getDateForWeekday(TC42data.col),
+    );
     expect(prevColDate).toBe(expectedColDate);
     expect(nextColDate).toBe(expectedColDate);
   });
@@ -76,7 +83,9 @@ test.describe("Manager: Team Tab", () => {
     expect(await teamPage.getEmployeeDetailRows()).not.toHaveLength(0);
   });
 
-  test("TC45: Change selected employee and verify timesheets update", async ({ jsonDir }) => {
+  test("TC45: Change selected employee and verify timesheets update", async ({
+    jsonDir,
+  }) => {
     allure.story("Team");
     const stubPath = path.join(jsonDir, "TC45.json");
     const data = await readJSONFile(stubPath);
@@ -95,7 +104,10 @@ test.describe("Manager: Team Tab", () => {
     expect(secondEmployeeRows).not.toEqual(firstEmployeeRows);
   });
 
-  test("TC47: Modify or delete employee time entries", async ({ page, jsonDir }) => {
+  test("TC47: Modify or delete employee time entries", async ({
+    page,
+    jsonDir,
+  }) => {
     allure.story("Team");
     const stubPath = path.join(jsonDir, "TC47.json");
 
@@ -124,7 +136,9 @@ test.describe("Manager: Team Tab", () => {
       desc: TC47data.taskInfo.desc,
       newDuration: TC47data.taskInfo.duration,
     });
-    await teamPage.toastNotification(TC47data.taskInfo.toastNotification).waitFor({ state: "visible" });
+    await teamPage
+      .toastNotification(TC47data.taskInfo.toastNotification)
+      .waitFor({ state: "visible" });
     await page.reload();
     await teamPage.viewNextWeek();
     await teamPage.searchEmployee(reviewee);
@@ -148,7 +162,9 @@ test.describe("Manager: Team Tab", () => {
       employee: empName,
       task: TC50data.payloadCreateTask.subject,
     });
-    const isDialogVisible = await teamPage.isTaskDetailsDialogVisible(TC50data.task);
+    const isDialogVisible = await teamPage.isTaskDetailsDialogVisible(
+      TC50data.task,
+    );
     expect(isDialogVisible).toBeTruthy();
   });
 
@@ -160,7 +176,9 @@ test.describe("Manager: Team Tab", () => {
     const employees = await teamPage.getEmployees();
 
     const expectedEmployees =
-      process.env.REP_MAN_ID !== "EMP-00519" ? TC53data.employeesInQE : TC53data.employeesInStaging;
+      process.env.REP_MAN_ID !== "EMP-00519"
+        ? TC53data.employeesInQE
+        : TC53data.employeesInStaging;
 
     // Normalize function to trim and collapse multiple spaces
     const normalize = (name) => name.replace(/\s+/g, " ").trim();
@@ -171,7 +189,9 @@ test.describe("Manager: Team Tab", () => {
     expect(normalizedActual).toEqual(normalizedExpected);
   });
 
-  test("TC91: Employee Status filter shows correct results", async ({ jsonDir }) => {
+  test("TC91: Employee Status filter shows correct results", async ({
+    jsonDir,
+  }) => {
     allure.story("Team");
     const stubPath = path.join(jsonDir, "TC91.json");
     const data = await readJSONFile(stubPath);
@@ -225,12 +245,16 @@ test.describe("Manager: Team Tab", () => {
     }
   });
 
-  test("TC93: Project Filter shows employee under project", async ({ jsonDir }) => {
+  test("TC93: Project Filter shows employee under project", async ({
+    jsonDir,
+  }) => {
     allure.story("Team");
     const stubPath = path.join(jsonDir, "TC93.json");
     const data = await readJSONFile(stubPath);
     const TC93data = data.TC93;
-    await teamPage.checkProjectStatus(TC93data.payloadCreateProject.project_name);
+    await teamPage.checkProjectStatus(
+      TC93data.payloadCreateProject.project_name,
+    );
     for (const employee of TC93data.projectSharedWithEmps) {
       await expect(teamPage.employeeNameInTable(employee)).toBeVisible();
     }
@@ -249,7 +273,9 @@ test.describe("Manager: Team Tab", () => {
     const data = await readJSONFile(stubPath);
     const TC94data = data.TC94;
     await teamPage.checkUserGroup(TC94data.payloadCreateUserGroup.__newname);
-    await expect(teamPage.employeeNameInTable(TC94data.employeeName)).toBeVisible();
+    await expect(
+      teamPage.employeeNameInTable(TC94data.employeeName),
+    ).toBeVisible();
   });
 
   test("TC95: Verify multiple filters at a time", async ({ jsonDir }) => {
@@ -319,7 +345,9 @@ test.describe("Manager: Team Tab", () => {
     expect(status).toMatch(/rejected/i);
   });
 
-  test("TC112: Verify no results when search does not return any results", async ({ page }) => {
+  test("TC112: Verify no results when search does not return any results", async ({
+    page,
+  }) => {
     allure.story("Team");
 
     await teamPage.searchEmployee("Negative Test");
@@ -374,7 +402,9 @@ test.describe("Manager: Team Tab2", () => {
     await teamPage.goto();
   });
 
-  test("TC92: Approval Status filter shows correct results", async ({ jsonDir }) => {
+  test("TC92: Approval Status filter shows correct results", async ({
+    jsonDir,
+  }) => {
     allure.story("Team");
     const stubPath = path.join(jsonDir, "TC92.json");
     const data = await readJSONFile(stubPath);

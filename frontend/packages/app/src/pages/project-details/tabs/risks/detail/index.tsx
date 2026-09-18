@@ -6,6 +6,7 @@ import { Spinner } from "@next-pms/design-system/components";
 /**
  * Internal dependencies.
  */
+import { useRiskPermissions } from "../useRiskPermissions";
 import { RiskDetailContent } from "./riskDetailContent";
 import { RiskDetailHeader } from "./riskDetailHeader";
 import { useRiskDetail } from "./useRiskDetail";
@@ -25,6 +26,7 @@ export function RiskDetailView({ riskId }: RiskDetailViewProps) {
     mutateFollowers,
     deleteUpdateEntry,
   } = useRiskDetail(riskId);
+  const { canEditRisk } = useRiskPermissions(risk?.risk_owner);
 
   if (isLoading) {
     return (
@@ -55,6 +57,7 @@ export function RiskDetailView({ riskId }: RiskDetailViewProps) {
         mutate={mutate}
         mutateAttachments={mutateAttachments}
         onDeleteUpdateEntry={deleteUpdateEntry}
+        canEditRisk={canEditRisk}
       />
     </div>
   );

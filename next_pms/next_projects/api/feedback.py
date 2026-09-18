@@ -84,6 +84,7 @@ def get_project_feedback_timeline(
         frappe.throw(_("Project is required"))
     if not frappe.db.exists("Project", project):
         frappe.throw(_("Project {0} not found").format(project), frappe.DoesNotExistError)
+    frappe.has_permission("Project", doc=project, ptype="read", user=frappe.session.user, throw=True)
 
     CFS = DocType("Customer Feedback Schedule")
     CFP = DocType("Customer Feedback Project")
@@ -219,6 +220,7 @@ def get_team_feedback_list(project: str, start: int = 0, limit: int = 20):
         frappe.throw(_("Project is required"))
     if not frappe.db.exists("Project", project):
         frappe.throw(_("Project {0} not found").format(project), frappe.DoesNotExistError)
+    frappe.has_permission("Project", doc=project, ptype="read", user=frappe.session.user, throw=True)
 
     start = cint(start)
     limit = cint(limit)

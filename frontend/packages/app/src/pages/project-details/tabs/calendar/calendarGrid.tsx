@@ -85,11 +85,7 @@ export function CalendarGrid() {
                   {/* Events */}
                   <div className="flex flex-col gap-0.5">
                     {dayItems.map((item) => (
-                      <EventPill
-                        key={item.id}
-                        item={item}
-                        truncate={dayItems.length > 1}
-                      />
+                      <EventPill key={item.id} item={item} />
                     ))}
                   </div>
                 </div>

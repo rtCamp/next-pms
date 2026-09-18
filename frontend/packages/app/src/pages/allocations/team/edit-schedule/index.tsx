@@ -2,7 +2,13 @@
  * External dependencies.
  */
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Button, Dialog, Select, useToasts } from "@rtcamp/frappe-ui-react";
+import {
+  Button,
+  Dialog,
+  FormLabel,
+  Select,
+  useToasts,
+} from "@rtcamp/frappe-ui-react";
 import { revalidateLogic, useForm, useStore } from "@tanstack/react-form";
 import { format, parseISO } from "date-fns";
 import {
@@ -22,12 +28,18 @@ import ScheduleHoursPerDayField from "./components/scheduleHoursPerDayField";
 import ScheduleSummaryTable from "./components/scheduleSummaryTable";
 import ScheduleTotalHoursField from "./components/scheduleTotalHoursField";
 import { editScheduleFormSchema, type EditScheduleFormValues } from "./schema";
-import type { EditScheduleApplyMode, EditScheduleModalProps } from "./types";
+import type {
+  EditScheduleApplyMode,
+  EditScheduleModalProps,
+  EmployeeAvailabilityResponse,
+} from "./types";
 import {
   buildDays,
   buildScheduleDraft,
   getErrorMessage,
+  getSeedHoursPerDay,
   isEditScheduleApplyMode,
+  mapEmployeeAvailability,
   normalizeRange,
   toDisplayHours,
 } from "./utils";
@@ -47,7 +59,6 @@ function EditScheduleModal({
     "next_pms.resource_management.api.allocation.edit_allocation",
   );
   const today = useMemo(() => format(new Date(), "yyyy-MM-dd"), []);
-  const [selectionAnchor, setSelectionAnchor] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [applyMode, setApplyMode] =
     useState<EditScheduleApplyMode>("only_this");
@@ -106,6 +117,23 @@ function EditScheduleModal({
     };
   }, [seriesData]);
 
+  const { data: availabilityData } = useFrappeGetCall<{
+    message: EmployeeAvailabilityResponse;
+  }>(
+    "next_pms.resource_management.api.allocation.get_employee_availability",
+    {
+      employee: safeValues.employeeId,
+      start_date: fullRange.startDate,
+      end_date: fullRange.endDate,
+      include_weekends: safeValues.includeWeekends ? 1 : 0,
+    },
+    open && safeValues.employeeId ? undefined : false,
+  );
+  const availability = useMemo(
+    () => mapEmployeeAvailability(availabilityData?.message),
+    [availabilityData],
+  );
+
   const recurrenceHelperText = useMemo(() => {
     if (
       !isRecurringAllocation ||
@@ -119,8 +147,8 @@ function EditScheduleModal({
   }, [applyMode, isRecurringAllocation, seriesInfo]);
 
   const days = useMemo(
-    () => buildDays(fullRange.startDate, fullRange.endDate),
-    [fullRange.endDate, fullRange.startDate],
+    () => buildDays(fullRange.startDate, fullRange.endDate, availability),
+    [availability, fullRange.endDate, fullRange.startDate],
   );
 
   const allocationContext = useMemo(
@@ -143,7 +171,7 @@ function EditScheduleModal({
   const formDefaultValues = useMemo<EditScheduleFormValues>(
     () => ({
       schedule: {
-        selection: { startDate: "", endDate: "" },
+        selection: [],
         input: { value: defaultHoursPerDay, mode: "hoursPerDay" },
       },
     }),
@@ -169,14 +197,14 @@ function EditScheduleModal({
         rangeEnd: fullRange.endDate,
         defaultHoursPerDay,
         override: safeValues.override,
+        availability,
         schedule: value.schedule,
       });
-      const schedulePayload = draft.selection
+      const schedulePayload = draft.hasSelection
         ? buildScheduleSelectionPayload({
             allocation: allocationContext,
             next: {
-              startDate: draft.selection.startDate,
-              endDate: draft.selection.endDate,
+              dates: draft.selection,
               hoursPerDay: draft.hoursPerDay,
             },
           })
@@ -235,9 +263,11 @@ function EditScheduleModal({
         rangeEnd: fullRange.endDate,
         defaultHoursPerDay,
         override: safeValues.override,
+        availability,
         schedule,
       }),
     [
+      availability,
       defaultHoursPerDay,
       fullRange.endDate,
       fullRange.startDate,
@@ -248,12 +278,11 @@ function EditScheduleModal({
 
   const schedulePayload = useMemo(
     () =>
-      allocationContext && scheduleDraft.selection
+      allocationContext && scheduleDraft.hasSelection
         ? buildScheduleSelectionPayload({
             allocation: allocationContext,
             next: {
-              startDate: scheduleDraft.selection.startDate,
-              endDate: scheduleDraft.selection.endDate,
+              dates: scheduleDraft.selection,
               hoursPerDay: scheduleDraft.hoursPerDay,
             },
           })
@@ -285,14 +314,12 @@ function EditScheduleModal({
     }
 
     form.reset(formDefaultValues);
-    setSelectionAnchor(null);
     setApplyMode("only_this");
   }, [form, formDefaultValues, open]);
 
   const closeModal = useCallback(() => {
     onOpenChange(false);
     form.reset(formDefaultValues);
-    setSelectionAnchor(null);
     setApplyMode("only_this");
   }, [form, formDefaultValues, onOpenChange]);
 
@@ -338,35 +365,34 @@ function EditScheduleModal({
       }}
     >
       <div className="space-y-3">
-        <form.Field name="schedule.selection.startDate">
-          {(startField) => (
-            <form.Field name="schedule.selection.endDate">
-              {(endField) => (
-                <ScheduleDateSelectionField
-                  days={days}
-                  headerRangeLabel={scheduleDraft.headerRangeLabel}
-                  recurrenceHelperText={recurrenceHelperText}
-                  selection={scheduleDraft.selection}
-                  onDayClick={(date) => {
-                    if (!selectionAnchor) {
-                      setSelectionAnchor(date);
-                      startField.handleChange(date);
-                      endField.handleChange(date);
-                      return;
-                    }
+        <form.Field name="schedule.selection">
+          {(selectionField) => (
+            <ScheduleDateSelectionField
+              days={days}
+              headerRangeLabel={scheduleDraft.headerRangeLabel}
+              recurrenceHelperText={recurrenceHelperText}
+              selection={scheduleDraft.selection}
+              onDayClick={(date) => {
+                const current = selectionField.state.value;
+                const next = current.includes(date)
+                  ? current.filter((selected) => selected !== date)
+                  : [...current, date];
 
-                    const next = normalizeRange(selectionAnchor, date);
-                    setSelectionAnchor(null);
-                    startField.handleChange(next.startDate);
-                    endField.handleChange(next.endDate);
-                  }}
-                  error={
-                    getErrorMessage(startField.state.meta.errors[0]) ??
-                    getErrorMessage(endField.state.meta.errors[0])
-                  }
-                />
-              )}
-            </form.Field>
+                selectionField.handleChange(next);
+                form.setFieldValue("schedule.input.mode", "hoursPerDay");
+                form.setFieldValue(
+                  "schedule.input.value",
+                  getSeedHoursPerDay({
+                    dates: next,
+                    anchorDate: date,
+                    defaultHoursPerDay,
+                    override: safeValues.override,
+                    availability,
+                  }),
+                );
+              }}
+              error={getErrorMessage(selectionField.state.meta.errors[0])}
+            />
           )}
         </form.Field>
 
@@ -416,10 +442,11 @@ function EditScheduleModal({
 
         {isRecurringAllocation ? (
           <div className="space-y-1.5">
-            <label className="block text-base text-ink-gray-5">
+            <FormLabel id="apply-edits-to" size="md">
               Apply edits to
-            </label>
+            </FormLabel>
             <Select
+              htmlId="apply-edits-to"
               value={applyMode}
               options={[
                 { value: "only_this", label: propagationModeLabels.only_this },
@@ -428,9 +455,9 @@ function EditScheduleModal({
                   label: propagationModeLabels.this_and_future,
                 },
               ]}
-              onChange={(value) => {
-                if (value && isEditScheduleApplyMode(value)) {
-                  setApplyMode(value);
+              onChange={(e) => {
+                if (e.target.value && isEditScheduleApplyMode(e.target.value)) {
+                  setApplyMode(e.target.value);
                 }
               }}
               variant="outline"
@@ -440,9 +467,7 @@ function EditScheduleModal({
         ) : null}
 
         <div className="space-y-1.5">
-          <label className="block text-base text-ink-gray-5">
-            Schedule summary
-          </label>
+          <FormLabel size="md">Schedule summary</FormLabel>
           <ScheduleSummaryTable
             rows={scheduleDraft.previewRows}
             variant={applyMode === "this_and_future" ? "day" : "date"}

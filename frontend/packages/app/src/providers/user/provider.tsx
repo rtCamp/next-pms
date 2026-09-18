@@ -36,9 +36,6 @@ export const UserProvider: FC<PropsWithChildren> = ({ children }) => {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState<
     UserContextProps["state"]["isSidebarCollapsed"]
   >(getLocalStorage("next-pms:isSidebarCollapsed", false));
-  const [roles, setRoles] = useState<UserContextProps["state"]["roles"]>(
-    window.frappe?.boot?.user?.roles || [],
-  );
   const [currencies, setCurrencies] = useState<
     UserContextProps["state"]["currencies"]
   >(window.frappe?.boot?.currencies || []);
@@ -63,12 +60,16 @@ export const UserProvider: FC<PropsWithChildren> = ({ children }) => {
       : null,
   );
 
+  const isAppDataLoading = isAuthenticated && !appData && !appDataError;
+
+  const roles: UserContextProps["state"]["roles"] =
+    appData?.message?.roles ?? window.frappe?.boot?.user?.roles ?? [];
+
   useEffect(() => {
     if (!appData) {
       return;
     }
 
-    setRoles(appData?.message?.roles || []);
     setCurrencies(appData?.message?.currencies || []);
     setHasBuField(appData?.message?.has_business_unit || false);
     setHasIndustryField(appData?.message?.has_industry || false);
@@ -94,6 +95,10 @@ export const UserProvider: FC<PropsWithChildren> = ({ children }) => {
       throw new Error(parseFrappeErrorMsg(employeeDataError));
     }
   }
+
+  const hasEmployee = employeeData
+    ? Boolean(employeeData.message?.employee)
+    : null;
 
   useEffect(() => {
     if (!employeeData) {
@@ -127,7 +132,6 @@ export const UserProvider: FC<PropsWithChildren> = ({ children }) => {
   const handleLogout = async () => {
     return logout().then(() => {
       window.location.replace("/login?redirect-to=/timesheet");
-      window.location.reload();
     });
   };
 
@@ -136,7 +140,9 @@ export const UserProvider: FC<PropsWithChildren> = ({ children }) => {
       value={{
         state: {
           isLoading: isAuthLoading,
+          isAppDataLoading,
           employeeId,
+          hasEmployee,
           employeeName,
           workingHours,
           workingFrequency,

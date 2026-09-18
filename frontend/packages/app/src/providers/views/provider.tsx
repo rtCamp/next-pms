@@ -26,6 +26,7 @@ import {
 import CreateViewModal from "@/components/create-view";
 import EditViewModal from "@/components/edit-view";
 import { parseFrappeErrorMsg } from "@/lib/utils";
+import { useUser } from "@/providers/user";
 import type { View } from "@/types";
 import { ViewsContext } from ".";
 
@@ -38,10 +39,14 @@ export const ViewsProvider: FC<
 > = ({ doctype, defaultViews, filterParamKeys, children }) => {
   const [searchParams, setSearchParams] = useSearchParams();
   const toast = useToasts();
+  const currentUser = useUser(({ state }) => state.currentUser);
 
   const [isCreateViewModal, setIsCreateViewModal] = useState(false);
   const [type, settype] = useState("");
   const [filters, setFilters] = useState<Record<string, unknown>>({});
+  // Fields the caller wants saved with the view beyond the ones the provider
+  // manages itself, such as a list's column layout.
+  const [viewFields, setViewFields] = useState<Partial<View>>({});
   const [editingView, setEditingView] = useState<View | null>(null);
   const [deletingView, setDeletingView] = useState<View | null>(null);
 
@@ -121,11 +126,16 @@ export const ViewsProvider: FC<
   }, [isLoading, activeView, views, applyView]);
 
   const createView = useCallback(
-    (args?: { type?: string; filters?: Record<string, unknown> }) => {
+    (args?: {
+      type?: string;
+      filters?: Record<string, unknown>;
+      fields?: Partial<View>;
+    }) => {
       if (args?.type) {
         settype(args.type);
       }
       setFilters(args?.filters ?? {});
+      setViewFields(args?.fields ?? {});
       setIsCreateViewModal(true);
     },
     [],
@@ -154,6 +164,7 @@ export const ViewsProvider: FC<
       try {
         const { message } = await createViewCall({
           view: {
+            ...viewFields,
             label: label,
             public: isPublic ? 1 : 0,
             icon: icon,
@@ -181,6 +192,7 @@ export const ViewsProvider: FC<
       toast,
       applyView,
       filterParamKeys,
+      viewFields,
     ],
   );
 
@@ -206,8 +218,9 @@ export const ViewsProvider: FC<
     [createViewCall, mutate, doctype, toast],
   );
 
-  const editView = useCallback((view: View) => {
+  const editView = useCallback((view: View, fields?: Partial<View>) => {
     setEditingView(view);
+    setViewFields(fields ?? {});
   }, []);
 
   const _editView = useCallback(
@@ -226,6 +239,7 @@ export const ViewsProvider: FC<
       await updateViewCall({
         view: {
           ...editingView,
+          ...viewFields,
           filters: { ...editingView.filters, ...currentFilters },
           label: label,
           icon: icon,
@@ -235,7 +249,7 @@ export const ViewsProvider: FC<
       });
       await mutate();
     },
-    [updateViewCall, mutate, doctype, editingView, currentFilters],
+    [updateViewCall, mutate, doctype, editingView, currentFilters, viewFields],
   );
 
   const updateView = useCallback(
@@ -270,9 +284,36 @@ export const ViewsProvider: FC<
     [toast, deleteDoc, mutate],
   );
 
+  const canManageView = useCallback(
+    (view: View) =>
+      currentUser === "Administrator" ||
+      (!!currentUser && view.owner === currentUser),
+    [currentUser],
+  );
+
   const refresh = useCallback(async () => {
     await mutate();
   }, [mutate]);
+
+  const isDirty = useMemo(() => {
+    if (!activeView) {
+      return false;
+    }
+    const differs = (key: string, saved: string) =>
+      (searchParams.get(key) ?? "") !== saved;
+
+    return (filterParamKeys ?? []).some((key) => {
+      const saved = activeView.filters?.[key];
+      return differs(
+        key,
+        saved == null
+          ? ""
+          : typeof saved === "string"
+            ? saved
+            : JSON.stringify(saved),
+      );
+    });
+  }, [activeView, searchParams, filterParamKeys]);
 
   const value = useMemo(
     () => ({
@@ -283,6 +324,8 @@ export const ViewsProvider: FC<
         savedViews,
         activeView,
         isLoading,
+        canManageView,
+        isDirty,
       },
       actions: {
         createView,
@@ -301,6 +344,8 @@ export const ViewsProvider: FC<
       savedViews,
       activeView,
       isLoading,
+      canManageView,
+      isDirty,
       createView,
       applyView,
       duplicateView,

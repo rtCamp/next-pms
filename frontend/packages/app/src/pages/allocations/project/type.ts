@@ -1,3 +1,4 @@
+import type { EmployeeLeaveDay } from "../types";
 import type { AllocationApiRecord } from "../utils";
 
 export interface ProjectEmployee {
@@ -77,6 +78,7 @@ export interface ProjectAllocationResponse {
   data: ProjectRecord[];
   customer: Record<string, Customer>;
   employees: Record<string, ProjectEmployee>;
+  employee_leaves?: Record<string, Record<string, EmployeeLeaveDay>>;
   total_count: number;
   has_more: boolean;
   permissions: Permissions;

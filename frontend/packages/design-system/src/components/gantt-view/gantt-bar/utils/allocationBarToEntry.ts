@@ -9,6 +9,7 @@ import { format } from "date-fns";
 import type { AllocationCallbackData, DeleteAllocationMode } from "../../types";
 import type { ProjectAllocationBar } from "../../utils";
 import type { AllocationEntry } from "../allocationPopover";
+import { getEditableHoursPerDay } from "./getEditableHoursPerDay";
 
 /** Convert a ProjectAllocationBar to a display-ready AllocationEntry. */
 export function allocationBarToEntry(
@@ -30,7 +31,7 @@ export function allocationBarToEntry(
     customerName: alloc.customerName,
     startDate: alloc.startDate,
     endDate: alloc.endDate,
-    hoursPerDay: alloc.hours,
+    hoursPerDay: getEditableHoursPerDay(alloc),
     billable: alloc.billable,
     tentative: alloc.tentative,
     note: alloc.note,

@@ -42,7 +42,7 @@ export const hourSchema = z.preprocess(
     ])
     .refine((val) => /^\d+(\.\d{1,3})?$/.test(val.toString()), {
       message: "Hours must be a number with at most two decimal places.",
-    })
+    }),
 );
 
 export const TimesheetSchema = z

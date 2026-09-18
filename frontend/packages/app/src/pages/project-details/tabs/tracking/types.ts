@@ -79,12 +79,14 @@ export type TrackingLifetimeValues = {
 };
 
 export type TrackingMessage = {
-  company: string;
   billing_type: string;
   currency: string | null;
   total_project_value: number | null;
   project_profit: number | null;
   projected_profit_margin: number | null;
+  current_project_value: number | null;
+  current_profit: number | null;
+  current_profit_margin: number | null;
   actual_cost_incurred: number;
   forecasted_cost_to_completion: number;
   expected_total_cost: number;
@@ -154,6 +156,23 @@ export type RateRow = {
   hourlyRate: number;
   date: string;
 };
+
+export type WidgetKey =
+  | "financials"
+  | "task_completion"
+  | "hours_usage"
+  | "invoice_burn"
+  | "budget_burn"
+  | "cost_burn"
+  | "lifetime_to_date"
+  | "lifetime_expected"
+  | "lifetime_vs_billed"
+  | "contracts"
+  | "rates";
+
+export type WidgetLayout = "stacked" | "row";
+
+export type TrackingLayout = WidgetKey[][];
 
 export type TrackingData = {
   company: KpiValue;
