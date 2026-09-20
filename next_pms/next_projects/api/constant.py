@@ -1,5 +1,14 @@
 # Permission helpers
-ALLOWED_ROLES = ["Projects Manager", "Projects User", "Timesheet Manager"]
+ALLOWED_ROLES = [
+    "Projects Manager",
+    "Projects User",
+    "Timesheet Manager",
+    "Delivery Manager",
+    "System Manager",
+]
+
+# Project-detail endpoints additionally allow Timesheet User (detail-only, no list).
+PROJECT_DETAIL_ROLES = [*ALLOWED_ROLES, "Timesheet User"]
 
 # Task.status values counted in get_project_tracking task totals (excludes Template, Cancelled)
 TASK_TRACKING_TOTAL_STATUSES = (

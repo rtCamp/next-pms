@@ -270,7 +270,9 @@ def get_project_timesheet_data(
     counts. Both derive membership from `resolve_project_participation`, so this endpoint's
     `total_count` and that endpoint's `project_count` cannot drift.
     """
-    only_for(["Timesheet Manager", "Timesheet User", "Projects Manager"], message=True)
+    only_for(
+        ["Timesheet Manager", "Timesheet User", "Projects Manager", "Delivery Manager", "System Manager"], message=True
+    )
 
     start = max(0, int(start))
     page_length = max(0, min(int(page_length), MAX_PROJECT_TIMESHEET_PAGE_LENGTH))
@@ -373,7 +375,9 @@ def get_project_timesheet_weeks(
     Pairs with that endpoint - both derive membership from `resolve_project_participation`,
     so this endpoint's `project_count` and its `total_count` cannot drift apart.
     """
-    only_for(["Timesheet Manager", "Timesheet User", "Projects Manager"], message=True)
+    only_for(
+        ["Timesheet Manager", "Timesheet User", "Projects Manager", "Delivery Manager", "System Manager"], message=True
+    )
 
     max_week = int(max_week)
     approval_status = normalize_status_filter(approval_status, coerce_non_list=True)
@@ -442,7 +446,10 @@ def get_project_timesheet_member_week(employee: str, start_date: str, by_pass_ac
     Each `member` is exactly one element of `get_project_timesheet_data`'s `members`.
     """
     if not by_pass_access_check:
-        only_for(["Timesheet Manager", "Timesheet User", "Projects Manager"], message=True)
+        only_for(
+            ["Timesheet Manager", "Timesheet User", "Projects Manager", "Delivery Manager", "System Manager"],
+            message=True,
+        )
 
     week = get_week_dates(date=start_date)
     employee_rows, _ = filter_employees(page_length=1, start=0, ids=[employee], ignore_default_filters=True)

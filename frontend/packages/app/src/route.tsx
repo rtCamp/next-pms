@@ -53,17 +53,34 @@ export const routeConfig: Record<
 > = {
   "dashboard-leadership": {
     Component: ReactLazyPreload(() => import("@/pages/dashboard/leadership")),
-    allowedRoles: ["Delivery Manager", "Delivery User"],
+    allowedRoles: [
+      "Delivery Manager",
+      "Delivery User",
+      "Timesheet Manager",
+      "System Manager",
+    ],
     title: "Leadership Dashboard",
   },
   "dashboard-manager": {
     Component: ReactLazyPreload(() => import("@/pages/dashboard/manager")),
-    allowedRoles: ["Projects Manager", "Projects User"],
+    allowedRoles: [
+      "Projects Manager",
+      "Projects User",
+      "Delivery Manager",
+      "Timesheet Manager",
+      "System Manager",
+    ],
     title: "Manager Dashboard",
   },
   project: {
     Component: ReactLazyPreload(() => import("@/pages/projects")),
-    allowedRoles: ["Projects Manager", "Timesheet Manager", "Projects User"],
+    allowedRoles: [
+      "Projects Manager",
+      "Timesheet Manager",
+      "Projects User",
+      "Delivery Manager",
+      "System Manager",
+    ],
     title: "Projects",
   },
   task: {
@@ -78,12 +95,24 @@ export const routeConfig: Record<
   },
   "timesheet-team": {
     Component: ReactLazyPreload(() => import("@/pages/timesheet/team")),
-    allowedRoles: ["Timesheet Manager", "Timesheet User", "Projects Manager"],
+    allowedRoles: [
+      "Timesheet Manager",
+      "Timesheet User",
+      "Projects Manager",
+      "Delivery Manager",
+      "System Manager",
+    ],
     title: "Team Timesheet",
   },
   "timesheet-project": {
     Component: ReactLazyPreload(() => import("./pages/timesheet/project")),
-    allowedRoles: ["Timesheet Manager", "Timesheet User", "Projects Manager"],
+    allowedRoles: [
+      "Timesheet Manager",
+      "Timesheet User",
+      "Projects Manager",
+      "Delivery Manager",
+      "System Manager",
+    ],
     title: "Project Timesheet",
   },
   "allocations-team": {
@@ -196,7 +225,10 @@ export function Router() {
           <BaseRoute
             element={
               <RoleProtectedRoute
-                allowedRoles={routeConfig["project"].allowedRoles}
+                allowedRoles={[
+                  ...routeConfig["project"].allowedRoles,
+                  "Timesheet User",
+                ]}
               />
             }
           >

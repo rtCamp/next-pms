@@ -18,6 +18,7 @@ const NOTIFICATION_ROLES: Role[] = [
   "Delivery User",
   "Projects Manager",
   "Projects User",
+  "System Manager",
 ];
 
 const LayoutWithSidebar = () => {

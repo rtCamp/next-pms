@@ -41,7 +41,8 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
       roles: state.roles,
     }),
   );
-  const isSystemManager = roles.includes("System Manager");
+  const isSystemManager =
+    roles.includes("System Manager") || roles.includes("Delivery Manager");
 
   const {
     error: settingsError,

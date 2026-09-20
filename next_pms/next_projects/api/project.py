@@ -18,6 +18,7 @@ from next_pms.next_projects.api.constant import (
     KANBAN_VIEW_FIELDS,
     LIST_VIEW_FIELDS,
     MONETARY_SORT_FIELDS,
+    PROJECT_DETAIL_ROLES,
     SORT_KEY_FIELDS,
     TASK_TRACKING_COMPLETED_STATUS,
     TASK_TRACKING_OPEN_STATUSES,
@@ -1119,7 +1120,7 @@ def get_project_tracking(project: str):
             Subsequent elements are per-member rows. hourly_billing_rate and
             valid_from fall back to the flat-rate values when blank.
     """
-    only_for(ALLOWED_ROLES, message=True)
+    only_for(PROJECT_DETAIL_ROLES, message=True)
 
     if not project:
         frappe.throw(frappe._("Project is required"), frappe.MandatoryError)
@@ -1299,7 +1300,7 @@ def get_project_sidebar(project: str):
         billing_team  - billing team members (name, employee_id, user_id);
                         empty unless billing type is Time and Material
     """
-    only_for(ALLOWED_ROLES, message=True)
+    only_for(PROJECT_DETAIL_ROLES, message=True)
 
     if not project:
         frappe.throw(frappe._("Project is required"), frappe.MandatoryError)

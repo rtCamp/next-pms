@@ -102,10 +102,21 @@ const Sidebar = () => {
 
   const dashboardItems: SidebarSectionType["items"] = [];
 
-  if (roles.includes("Delivery Manager") || roles.includes("Delivery User")) {
+  if (
+    roles.includes("Delivery Manager") ||
+    roles.includes("Delivery User") ||
+    roles.includes("Timesheet Manager") ||
+    roles.includes("System Manager")
+  ) {
     dashboardItems.push(leadershipDashboard);
   }
-  if (roles.includes("Projects Manager") || roles.includes("Projects User")) {
+  if (
+    roles.includes("Projects Manager") ||
+    roles.includes("Projects User") ||
+    roles.includes("Delivery Manager") ||
+    roles.includes("Timesheet Manager") ||
+    roles.includes("System Manager")
+  ) {
     dashboardItems.push(managerDashbaord);
   }
 
@@ -142,7 +153,9 @@ const Sidebar = () => {
   if (
     roles.includes("Timesheet Manager") ||
     roles.includes("Timesheet User") ||
-    roles.includes("Projects Manager")
+    roles.includes("Projects Manager") ||
+    roles.includes("Delivery Manager") ||
+    roles.includes("System Manager")
   ) {
     timesheetItems[0].label = "Personal";
     timesheetItems.push(teamTimesheet);
@@ -162,7 +175,9 @@ const Sidebar = () => {
   if (
     roles.includes("Projects Manager") ||
     roles.includes("Projects User") ||
-    roles.includes("Timesheet Manager")
+    roles.includes("Timesheet Manager") ||
+    roles.includes("Delivery Manager") ||
+    roles.includes("System Manager")
   ) {
     projectItems.push(projects);
   }
@@ -191,7 +206,8 @@ const Sidebar = () => {
     roles.includes("Delivery Manager") ||
     roles.includes("Delivery User") ||
     roles.includes("Projects User") ||
-    roles.includes("Projects Manager");
+    roles.includes("Projects Manager") ||
+    roles.includes("System Manager");
 
   if (hasNotificationAccess) {
     notificationItems.push(notificationsOption);
@@ -236,14 +252,25 @@ const Sidebar = () => {
     },
   ];
 
-  if (roles.includes("System Manager")) {
+  if (
+    roles.includes("Delivery Manager") ||
+    roles.includes("Delivery User") ||
+    roles.includes("Timesheet Manager") ||
+    roles.includes("System Manager")
+  ) {
     searchItems.push({
       label: "Dashboard - Leadership",
       action: () => navigate(ROUTES["dashboard-leadership"]),
     });
   }
 
-  if (roles.includes("Projects Manager")) {
+  if (
+    roles.includes("Projects Manager") ||
+    roles.includes("Projects User") ||
+    roles.includes("Delivery Manager") ||
+    roles.includes("Timesheet Manager") ||
+    roles.includes("System Manager")
+  ) {
     searchItems.push({
       label: "Dashboard - Manager",
       action: () => navigate(ROUTES["dashboard-manager"]),
@@ -257,7 +284,9 @@ const Sidebar = () => {
   if (
     roles.includes("Timesheet Manager") ||
     roles.includes("Timesheet User") ||
-    roles.includes("Projects Manager")
+    roles.includes("Projects Manager") ||
+    roles.includes("Delivery Manager") ||
+    roles.includes("System Manager")
   ) {
     searchItems.push({
       label: "Timesheet - Team",

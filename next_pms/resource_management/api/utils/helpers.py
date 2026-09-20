@@ -11,7 +11,15 @@ from next_pms.timesheet.api.team import get_week_dates
 # Anything gating allocation access by role must use this set, so a role that can write an
 # allocation is never blocked from the data the write depends on.
 RESOURCE_MANAGER_ROLES = frozenset(
-    {"Projects Manager", "Projects User", "Delivery Manager", "Delivery User", "System Manager"}
+    {
+        "Projects Manager",
+        "Projects User",
+        "Delivery Manager",
+        "Delivery User",
+        "System Manager",
+        "Timesheet Manager",
+        "Timesheet User",
+    }
 )
 
 DEFAULT_ALLOCATION_RATE_CURRENCY = "USD"
@@ -542,7 +550,16 @@ def resource_api_permissions_check():
             frappe.PermissionError,
         )
     frappe.only_for(
-        ["Projects Manager", "Projects User", "Delivery Manager", "Delivery User", "Employee", "System Manager"],
+        [
+            "Projects Manager",
+            "Projects User",
+            "Delivery Manager",
+            "Delivery User",
+            "Employee",
+            "System Manager",
+            "Timesheet Manager",
+            "Timesheet User",
+        ],
         message=True,
     )
 
