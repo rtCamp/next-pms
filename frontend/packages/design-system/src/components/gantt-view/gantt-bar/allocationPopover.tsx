@@ -9,8 +9,10 @@ import {
   DeleteAlt,
   EditAlt,
   Folder,
+  Holiday,
   Tentative,
   Time,
+  TimeOff,
 } from "@rtcamp/frappe-ui-react/icons";
 import { format } from "date-fns";
 
@@ -177,6 +179,7 @@ interface GanttAllocationPopoverProps {
   variant: GanttGridVariant;
   onAdd?: () => void;
   hasRoleAccess?: boolean;
+  dayOff?: { label: string; isHoliday: boolean };
 }
 
 export function GanttAllocationPopover({
@@ -184,9 +187,21 @@ export function GanttAllocationPopover({
   variant,
   onAdd,
   hasRoleAccess = false,
+  dayOff,
 }: GanttAllocationPopoverProps) {
+  const DayOffIcon = dayOff?.isHoliday ? Holiday : TimeOff;
+
   return (
     <div className="flex flex-col gap-4 p-3 rounded-xl shadow-2xl w-70 bg-surface-modal animate-fade-in max-h-[min(550px,90dvh)] overflow-y-auto scrollbar-thin">
+      {dayOff && (
+        <div className="flex gap-2 items-center">
+          <DayOffIcon className="size-4 text-ink-gray-6 shrink-0" />
+          <span className="text-base font-medium truncate text-ink-gray-7">
+            {dayOff.label}
+          </span>
+        </div>
+      )}
+
       <div className="flex flex-col">
         {entries.map((entry, index) => (
           <div key={index}>
