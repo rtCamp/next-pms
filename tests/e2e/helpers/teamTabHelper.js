@@ -157,8 +157,8 @@ export const deleteUserGroupForEmployee = async (testCaseIDs, jsonDir) => {
 
     try {
       console.warn(`Attempting to delete user group '${groupName}' for ${tcId}`);
-      await deleteUserGroup(groupName);
-      console.log(`✅ Deleted user group '${groupName}' for ${tcId}`);
+      const { deleted } = await deleteUserGroup(groupName);
+      if (deleted) console.log(`🗑  Deleted user group '${groupName}' for ${tcId}`);
     } catch (e) {
       console.warn(`❌ Failed to delete group '${groupName}' for ${tcId}: ${e.message}`);
     }
