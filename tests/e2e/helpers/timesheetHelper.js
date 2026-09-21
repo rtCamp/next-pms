@@ -430,7 +430,8 @@ export const deleteProjects = async (testCaseIDs = [], jsonDir) => {
       console.warn(`⚠️ No ${deleteKey}.projectId found for TC ${tcId}`);
       continue;
     }
-    await deleteProject(projId);
+    const { deleted, reason } = await deleteProject(projId);
+    if (!deleted) console.warn(`⚠️ [${tcId}] project ${projId} survived: ${reason}`);
   }
 };
 
@@ -568,11 +569,10 @@ export const deleteTasks = async (testCaseIDs, jsonDir) => {
     }
 
     try {
-      if (adminCases.has(tcId)) {
-        await deleteTask(taskID, "admin");
-      } else {
-        await deleteTask(taskID);
-      }
+      const { deleted, reason } = adminCases.has(tcId)
+        ? await deleteTask(taskID, "admin")
+        : await deleteTask(taskID);
+      if (!deleted) console.warn(`⚠️ [${tcId}] task ${taskID} survived: ${reason}`);
     } catch (err) {
       console.error(`❌ [${tcId}] Failed to delete task ${taskID}: ${err.message}`);
     }
@@ -747,7 +747,8 @@ export const cleanUpProjects = async (data) => {
           continue;
         }
         try {
-          await deleteTimesheetbyID(timesheetId, "admin");
+          const { deleted } = await deleteTimesheetbyID(timesheetId, "admin");
+          if (!deleted) failures.push(`Timesheet ${timesheetId}`);
         } catch (err) {
           failures.push(`Timesheet ${timesheetId}`);
           console.error(`Failed to delete timesheet ${timesheetId}:`, err.message);
@@ -757,7 +758,8 @@ export const cleanUpProjects = async (data) => {
       // Delete Tasks
       for (const taskId of taskIds) {
         try {
-          await deleteTask(taskId);
+          const { deleted } = await deleteTask(taskId);
+          if (!deleted) failures.push(`Task ${taskId}`);
         } catch (err) {
           failures.push(`Task ${taskId}`);
           console.error(`Failed to delete task ${taskId}:`, err.message);
@@ -771,7 +773,8 @@ export const cleanUpProjects = async (data) => {
           continue;
         }
         try {
-          await deleteAllocation(allocationId);
+          const { deleted } = await deleteAllocation(allocationId);
+          if (!deleted) failures.push(`Resource Allocation ${allocationId}`);
         } catch (err) {
           failures.push(`Resource Allocation ${allocationId}`);
           console.error(`Failed to delete resource allocation ${allocationId}:`, err.message);
@@ -781,7 +784,8 @@ export const cleanUpProjects = async (data) => {
       // Delete Project
       if (projectId) {
         try {
-          await deleteProject(projectId);
+          const { deleted } = await deleteProject(projectId);
+          if (!deleted) failures.push(`Project ${projectId} (${projectName})`);
         } catch (err) {
           failures.push(`Project ${projectId} (${projectName})`);
           console.error(`Failed to delete project ${projectId}:`, err.message);
