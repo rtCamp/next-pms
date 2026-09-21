@@ -39,14 +39,10 @@ export const createAllocationsForTestCases = async (testCaseIDs, jsonDir) => {
       continue;
     }
 
-    // Call API to create allocation
-    let res;
-    try {
-      res = await createAllocation(allocPayload);
-    } catch (err) {
-      console.error(`❌ Failed to create allocation for ${tcId} (${allocationKey}): ${err.message}`);
-      continue;
-    }
+    // Abort rather than continue: a test whose allocation never got created
+    // fails later on a selector or a count, which reads as a broken test rather
+    // than missing fixture data - the phantom failure this suite is full of.
+    const res = await createAllocation(allocPayload);
 
     //save the allocation ID back to the stub for teardown:
     if (res?.data?.name) {

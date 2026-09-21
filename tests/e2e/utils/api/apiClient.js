@@ -128,6 +128,10 @@ export const deleteDocument = async (doctype, name, role = "admin") => {
       throw new Error(`Lock wait timeout exceeded deleting ${doctype} ${name}: ${res.status()}`);
     }
     const reason = body.match(/frappe\.exceptions\.(\w+)/)?.[1] ?? body.match(/"exc_type":\s*"(\w+)"/)?.[1] ?? `HTTP ${res.status()}`;
+    // Warn here rather than leaving it to each caller: this resolves instead of
+    // throwing, and the try/catch the callers already had no longer sees a
+    // refusal, so a silent `deleted: false` would read as a clean teardown.
+    console.warn(`⚠️ Could not delete ${doctype} ${name}: ${reason}`);
     return { deleted: false, reason };
   } finally {
     await requestContext.dispose();

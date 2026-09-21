@@ -529,11 +529,10 @@ export const deleteByTaskName = async () => {
         continue;
       }
       for (const row of rows) {
-        const { deleted, reason } = await deleteWithLockRetry(() => deleteDocument("Task", row.name), {
+        const { deleted } = await deleteWithLockRetry(() => deleteDocument("Task", row.name), {
           label: `Task ${row.name}`,
         });
         if (deleted) console.log(`🗑  Deleted task ${row.name} ("${taskName}")`);
-        else console.warn(`⚠️ Could not delete task ${row.name} ("${taskName}"): ${reason}`);
       }
     }
 
@@ -831,8 +830,8 @@ export const deleteLeaveOfEmployee = async () => {
   //Delete leave if leave ID is found in the filter request
   if (filterResponse?.message?.values[0]) {
     const leaveID = filterResponse.message.values[0];
-    await deleteLeave(leaveID);
-    console.warn("✅ A leave request for employee was found and deleted");
+    const { deleted } = await deleteLeave(leaveID);
+    if (deleted) console.log(`🗑  Deleted leave ${leaveID}`);
   }
 };
 
@@ -859,9 +858,8 @@ export const deleteViewsForTestCases = async (testCaseIDs = [], jsonDir) => {
       const { viewId, seeded } = entry[key] ?? {};
       if (!viewId || !seeded) continue;
 
-      const { deleted, reason } = await deleteDocument("PMS View Setting", String(viewId));
+      const { deleted } = await deleteDocument("PMS View Setting", String(viewId));
       if (deleted) console.log(`🗑  Deleted view ${viewId} for ${tcId}`);
-      else console.warn(`⚠️ Could not delete view ${viewId} for ${tcId}: ${reason}`);
     }
   }
 };
@@ -923,14 +921,16 @@ export const deleteTimesheetsCreatedThisRun = async (jsonDir) => {
       { fields: ["name", "docstatus"] }
     );
 
+    let cleared = 0;
     for (const ts of timesheets) {
       if (ts.docstatus === 1) await cancelDocument("Timesheet", ts.name);
-      const { deleted, reason } = await deleteWithLockRetry(() => deleteDocument("Timesheet", ts.name), {
+      const { deleted } = await deleteWithLockRetry(() => deleteDocument("Timesheet", ts.name), {
         label: `Timesheet ${ts.name}`,
       });
-      if (!deleted) console.warn(`⚠️ Could not delete ${ts.name} for ${employee}: ${reason}`);
+      if (deleted) cleared += 1;
     }
-    if (timesheets.length) console.log(`🗑  Cleared ${timesheets.length} timesheet(s) for ${employee}`);
+    // Report what actually went, not what was attempted.
+    if (timesheets.length) console.log(`🗑  Cleared ${cleared}/${timesheets.length} timesheet(s) for ${employee}`);
   }
 };
 

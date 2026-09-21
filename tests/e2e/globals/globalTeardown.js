@@ -28,11 +28,12 @@ const globalTeardown = async () => {
 
   const jsonDir = path.resolve(projectRoot, "data/json-files");
 
-  //Clean up Data
-  await deleteByTaskName();
-  // Before readAndCleanAllOrphanData: that step deletes the seeded employees,
-  // and Frappe refuses to delete an employee a timesheet still points at.
+  // Timesheets first: Frappe refuses to delete anything a timesheet still points
+  // at, so a UI-created task with time logged against it survives if the task
+  // sweep runs first, and nothing retries it. The same applies to the seeded
+  // employees that readAndCleanAllOrphanData deletes.
   await deleteTimesheetsCreatedThisRun(jsonDir);
+  await deleteByTaskName();
   await readAndCleanAllOrphanData();
 
   //Pass allTCIds to cleanup function

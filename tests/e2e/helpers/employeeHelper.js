@@ -354,10 +354,9 @@ export const deleteEmployeeByName = async () => {
     });
     for (const ts of timesheets) {
       if (ts.docstatus === 1) await cancelDocument("Timesheet", ts.name);
-      const { deleted, reason } = await deleteWithLockRetry(() => deleteDocument("Timesheet", ts.name), {
+      await deleteWithLockRetry(() => deleteDocument("Timesheet", ts.name), {
         label: `Timesheet ${ts.name}`,
       });
-      if (!deleted) console.warn(`⚠️ Could not delete ${ts.name} for ${emp.name}: ${reason}`);
     }
 
     const { deleted, reason } = await deleteWithLockRetry(() => deleteDocument("Employee", emp.name), {
