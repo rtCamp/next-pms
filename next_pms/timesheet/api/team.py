@@ -2,6 +2,7 @@ import json
 
 from frappe import (
     DoesNotExistError,
+    PermissionError,
     _,
     _dict,
     db,
@@ -36,6 +37,7 @@ from .employee import get_employee_from_user
 from .utils import (
     build_chunk_context,
     build_employee_week_details,
+    can_approve_project_timesheets,
     employee_condition_kwargs,
     employee_has_higher_access,
     get_week_dates,
@@ -240,8 +242,16 @@ def get_team_timesheet_member_week(employee: str, start_date: str, by_pass_acces
 
 @whitelist(methods=["POST"])
 @error_logger
-def approve_or_reject_timesheet(employee: str, status: str, dates: list[str] | None = None, note: str = ""):
-    """API to approve or reject the timesheet for the given employee and date range. It will update the custom_approval_status and custom_weekly_approval_status field of the timesheet to "Processing Timesheet" and then enqueue a background job to approve or reject the timesheet. The background job will update the status of the timesheet to "Approved" or "Rejected" based on the status parameter passed in the API and then trigger a notification to the employee about the approval or rejection of the timesheet."""
+def approve_or_reject_timesheet(
+    employee: str, status: str, dates: list[str] | None = None, note: str = "", project: str | None = None
+):
+    """API to approve or reject the timesheet for the given employee and date range. It will update the custom_approval_status and custom_weekly_approval_status field of the timesheet to "Processing Timesheet" and then enqueue a background job to approve or reject the timesheet. The background job will update the status of the timesheet to "Approved" or "Rejected" based on the status parameter passed in the API and then trigger a notification to the employee about the approval or rejection of the timesheet.
+
+    Passing `project` decides only that project's entries, leaving every other project in
+    the same week untouched - the Project Manager persona. A Timesheet is one document per
+    employee, day and project, so the subset is a plain filter on `parent_project` rather
+    than a partial write to a shared document.
+    """
     only_for(["Timesheet Manager", "Timesheet User", "Projects Manager"], message=True)
 
     # No role approves its own week - a reviewer role is permission to review someone else.
@@ -250,15 +260,23 @@ def approve_or_reject_timesheet(employee: str, status: str, dates: list[str] | N
 
     if not dates:
         return throw(_("Please select the dates to approve or reject the timesheet."))
+
+    if project and not can_approve_project_timesheets(project, employee):
+        return throw(
+            _("You are not authorized to approve or reject timesheets for this project."),
+            exc=PermissionError,
+        )
+
     current_week = get_week_dates(dates[0])
+    week_filters = {
+        "employee": employee,
+        "start_date": [">=", current_week.get("start_date")],
+        "end_date": ["<=", current_week.get("end_date")],
+        "docstatus": ["=", 0],
+    }
     timesheets = get_all(
         "Timesheet",
-        {
-            "employee": employee,
-            "start_date": [">=", current_week.get("start_date")],
-            "end_date": ["<=", current_week.get("end_date")],
-            "docstatus": ["=", 0],
-        },
+        {**week_filters, **({"parent_project": project} if project else {})},
         ["name", "start_date", "employee", "custom_approval_status"],
     )
     if not timesheets:
@@ -269,6 +287,12 @@ def approve_or_reject_timesheet(employee: str, status: str, dates: list[str] | N
     dates_set = set(dates)
     timesheets_to_process = [ts for ts in timesheets if str(ts.start_date) in dates_set]
 
+    if not timesheets_to_process:
+        return throw(
+            _("No timesheet found for the given date range."),
+            exc=DoesNotExistError,
+        )
+
     # Refuse before anything is written: the background job below saves each document, which
     # runs the very same check per document - and by then the rows are already parked in
     # "Processing Timesheet" and committed, leaving the week unactionable forever (#2075).
@@ -276,16 +300,18 @@ def approve_or_reject_timesheet(employee: str, status: str, dates: list[str] | N
     if restriction:
         return throw(restriction)
 
+    week_timesheets = _lock_week(employee, current_week)
+    if any(ts.custom_weekly_approval_status == "Processing Timesheet" for ts in week_timesheets):
+        return throw(_("This week is already being processed. Please wait for it to finish."))
+
     for timesheet in timesheets_to_process:
-        db.set_value(
-            "Timesheet",
-            timesheet.name,
-            {
-                "custom_approval_status": "Processing Timesheet",
-                "custom_weekly_approval_status": "Processing Timesheet",
-                "custom_weekly_rejection_reason": None,
-            },
-        )
+        db.set_value("Timesheet", timesheet.name, "custom_approval_status", "Processing Timesheet")
+
+    # The weekly fields are denormalised onto every row of the week and read back from
+    # whichever row a query happens to return first, so they are written week-wide even for
+    # a project-scoped decision - otherwise the week reads differently depending on the row.
+    _park_week(week_timesheets)
+
     doc = _dict(
         {
             "employee": employee,
@@ -304,6 +330,7 @@ def approve_or_reject_timesheet(employee: str, status: str, dates: list[str] | N
         enqueue_after_commit=True,
         queue="long",
         note=note,
+        project=project,
         job_name=f"Timesheet Approval for {employee} - {status}",
         at_front=True,
     )
@@ -311,6 +338,40 @@ def approve_or_reject_timesheet(employee: str, status: str, dates: list[str] | N
     return _(
         "Timesheet approval or rejection has been queued for processing. Please do not make any changes to it. You may continue with other tasks."
     )
+
+
+def _lock_week(employee: str, week: dict) -> list:
+    """Every Timesheet of the week, row-locked until the caller's transaction ends.
+
+    The lock is what lets the caller decide on a week's processing state and act on that
+    decision without a second reviewer slipping between the two.
+    """
+    return db.get_values(
+        "Timesheet",
+        {
+            "employee": employee,
+            "start_date": [">=", week.get("start_date")],
+            "end_date": ["<=", week.get("end_date")],
+            "docstatus": ["<", 2],
+        },
+        ["name", "custom_weekly_approval_status"],
+        as_dict=True,
+        for_update=True,
+    )
+
+
+def _park_week(week_timesheets: list):
+    """Mark every Timesheet of the week as processing, whatever project it belongs to."""
+    for timesheet in week_timesheets:
+        db.set_value(
+            "Timesheet",
+            timesheet.name,
+            {
+                "custom_weekly_approval_status": "Processing Timesheet",
+                "custom_weekly_rejection_reason": None,
+            },
+            update_modified=False,
+        )
 
 
 def filter_employee_by_timesheet_status(
@@ -400,6 +461,7 @@ def _approve_or_reject_timesheet(
     employee: str,
     dates: list[str] | None = None,
     note: str = "",
+    project: str | None = None,
 ):
     if not dates:
         return
@@ -415,8 +477,10 @@ def _approve_or_reject_timesheet(
 
     db.begin()
     try:
-        # Calculate permission once instead of per timesheet
-        has_permission = employee_has_higher_access(employee, ptype="write")
+        # Calculate permission once instead of per timesheet. A project manager deciding a
+        # project of someone who does not report to them has no higher access to the
+        # employee, but the endpoint has already authorised this decision.
+        has_permission = employee_has_higher_access(employee, ptype="write") or bool(project)
 
         for timesheet in timesheets_to_process:
             doc = get_doc("Timesheet", timesheet.name)
@@ -436,6 +500,7 @@ def _approve_or_reject_timesheet(
             employee=employee,
             dates=dates,
             note=note,
+            project=project,
             job_name="Timesheet Approval Notification",
         )
         db.commit()
@@ -501,7 +566,7 @@ def _restore_parked_timesheets(timesheets: list, employee: str):
 
 
 def trigger_notification_for_approved_or_rejected_timesheet(
-    status: str, employee: str, dates: list[str] | None = None, note: str = ""
+    status: str, employee: str, dates: list[str] | None = None, note: str = "", project: str | None = None
 ):
     import frappe
 
@@ -527,6 +592,7 @@ def trigger_notification_for_approved_or_rejected_timesheet(
         "employee": employee,
         "note": note,
         "dates": dates,
+        "project": (get_value("Project", project, "project_name") or project) if project else None,
         "updated_by": get_value("User", frappe.session.user, "full_name"),
     }
     message = frappe.render_template(email_message, args)  # nosemgrep - trusted Email Template from DB
