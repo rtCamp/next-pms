@@ -301,7 +301,7 @@ def employee_has_higher_access(employee: str, ptype: str = "read") -> bool:
 
 
 # Roles that may decide any project's timesheets, regardless of who manages the project.
-GLOBAL_APPROVER_ROLES = ("System Manager", "Timesheet Manager")
+GLOBAL_APPROVER_ROLES = ("System Manager", "Timesheet Manager", "Projects Manager")
 
 
 def can_approve_project_timesheets(project: str, employee: str) -> bool:
