@@ -287,6 +287,12 @@ def approve_or_reject_timesheet(
     dates_set = set(dates)
     timesheets_to_process = [ts for ts in timesheets if str(ts.start_date) in dates_set]
 
+    if not timesheets_to_process:
+        return throw(
+            _("No timesheet found for the given date range."),
+            exc=DoesNotExistError,
+        )
+
     # Refuse before anything is written: the background job below saves each document, which
     # runs the very same check per document - and by then the rows are already parked in
     # "Processing Timesheet" and committed, leaving the week unactionable forever (#2075).
@@ -294,14 +300,17 @@ def approve_or_reject_timesheet(
     if restriction:
         return throw(restriction)
 
+    week_timesheets = _lock_week(employee, current_week)
+    if any(ts.custom_weekly_approval_status == "Processing Timesheet" for ts in week_timesheets):
+        return throw(_("This week is already being processed. Please wait for it to finish."))
+
     for timesheet in timesheets_to_process:
         db.set_value("Timesheet", timesheet.name, "custom_approval_status", "Processing Timesheet")
 
     # The weekly fields are denormalised onto every row of the week and read back from
     # whichever row a query happens to return first, so they are written week-wide even for
     # a project-scoped decision - otherwise the week reads differently depending on the row.
-    # Parking the whole week also keeps a second reviewer out while this one is in flight.
-    _park_week(employee, current_week)
+    _park_week(week_timesheets)
 
     doc = _dict(
         {
@@ -331,9 +340,13 @@ def approve_or_reject_timesheet(
     )
 
 
-def _park_week(employee: str, week: dict):
-    """Mark every Timesheet of the week as processing, whatever project it belongs to."""
-    week_timesheets = get_all(
+def _lock_week(employee: str, week: dict) -> list:
+    """Every Timesheet of the week, row-locked until the caller's transaction ends.
+
+    The lock is what lets the caller decide on a week's processing state and act on that
+    decision without a second reviewer slipping between the two.
+    """
+    return db.get_values(
         "Timesheet",
         {
             "employee": employee,
@@ -341,12 +354,18 @@ def _park_week(employee: str, week: dict):
             "end_date": ["<=", week.get("end_date")],
             "docstatus": ["<", 2],
         },
-        pluck="name",
+        ["name", "custom_weekly_approval_status"],
+        as_dict=True,
+        for_update=True,
     )
-    for name in week_timesheets:
+
+
+def _park_week(week_timesheets: list):
+    """Mark every Timesheet of the week as processing, whatever project it belongs to."""
+    for timesheet in week_timesheets:
         db.set_value(
             "Timesheet",
-            name,
+            timesheet.name,
             {
                 "custom_weekly_approval_status": "Processing Timesheet",
                 "custom_weekly_rejection_reason": None,

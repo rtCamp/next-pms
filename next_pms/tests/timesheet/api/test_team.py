@@ -476,3 +476,133 @@ class TestSelfApprovalGuard(IntegrationTestCase):
         for name in [row.name for row in rows]:
             doc = frappe.get_doc("Timesheet", name)
             frappe.delete_doc("Timesheet", doc.name, force=True, ignore_permissions=True, ignore_on_trash=True)
+
+
+PARKING_MANAGER = "week-parking-test-manager@example.com"
+PARKING_EMPLOYEE = "week-parking-test-employee@example.com"
+
+PARKING_PROJECT = "Week Parking Test Project"
+PARKING_TASK = "Week Parking Test Task"
+PARKING_BACKDATED_DAYS = 30
+
+
+class TestWeekParkingGuards(IntegrationTestCase):
+    """The week is parked week-wide, so it must only be parked for a run that will clear it.
+
+    Two ways it can be left in "Processing Timesheet" with nothing to act on it: a selection
+    that matches no row - the job returns before restoring anything - and a second reviewer
+    starting a run while the first is still in flight.
+    """
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.company = get_default_company()
+
+        cls.previous_first_day = frappe.db.get_default("first_day_of_the_week")
+        frappe.db.set_default("first_day_of_the_week", "Monday")
+
+        cls.previous_settings = {
+            field: frappe.db.get_single_value("Timesheet Settings", field)
+            for field in ("allow_backdated_entries", "allow_backdated_entries_till_manager", "allow_future_entries")
+        }
+
+        cls.manager = make_employee(PARKING_MANAGER, company=cls.company, leave_approver="Administrator")
+        cls.employee = make_employee(
+            PARKING_EMPLOYEE, company=cls.company, reports_to=cls.manager, leave_approver="Administrator"
+        )
+        frappe.get_doc("User", PARKING_MANAGER).add_roles("Projects Manager", "Timesheet Manager")
+
+        if not frappe.db.exists("Project", {"project_name": PARKING_PROJECT}):
+            frappe.get_doc(
+                {
+                    "doctype": "Project",
+                    "project_name": PARKING_PROJECT,
+                    "company": cls.company,
+                    "custom_billing_type": "Non-Billable",
+                }
+            ).insert(ignore_permissions=True)
+        cls.project = frappe.db.get_value("Project", {"project_name": PARKING_PROJECT})
+
+        if not frappe.db.exists("Task", {"subject": PARKING_TASK}):
+            frappe.get_doc({"doctype": "Task", "subject": PARKING_TASK, "project": cls.project}).insert(
+                ignore_permissions=True
+            )
+        cls.task = frappe.db.get_value("Task", {"subject": PARKING_TASK})
+
+        week_start = get_first_day_of_week(nowdate())
+        cls.logged_date = str(week_start)
+        cls.unlogged_date = str(add_days(week_start, 1))
+
+        frappe.clear_cache()
+        get_holidays.clear_cache()
+
+    @classmethod
+    def tearDownClass(cls):
+        for field, value in cls.previous_settings.items():
+            frappe.db.set_single_value("Timesheet Settings", field, value)
+        frappe.db.set_default("first_day_of_the_week", cls.previous_first_day)
+        frappe.db.commit()  # nosemgrep settings live outside the per-test transaction
+        super().tearDownClass()
+
+    def setUp(self):
+        super().setUp()
+        frappe.set_user("Administrator")
+        frappe.db.set_single_value("Timesheet Settings", "allow_backdated_entries", 1)
+        frappe.db.set_single_value("Timesheet Settings", "allow_backdated_entries_till_manager", PARKING_BACKDATED_DAYS)
+        frappe.db.set_single_value("Timesheet Settings", "allow_future_entries", 1)
+        self.delete_test_timesheets()
+        self.make_pending_week()
+
+    def tearDown(self):
+        frappe.set_user("Administrator")
+        self.delete_test_timesheets()
+        super().tearDown()
+
+    def delete_test_timesheets(self):
+        # The approval API commits, so a previous test's rows survive the rollback.
+        for name in frappe.get_all("Timesheet", filters={"employee": self.employee}, pluck="name"):
+            doc = frappe.get_doc("Timesheet", name)
+            if doc.docstatus == 1:
+                doc.cancel()
+            frappe.delete_doc("Timesheet", name, force=True, ignore_permissions=True, ignore_on_trash=True)
+
+    def make_pending_week(self):
+        """One logged day in the week - the other day of interest carries no Timesheet."""
+        save_timesheet(
+            date=self.logged_date,
+            description=f"Work logged on {self.logged_date}",
+            task=self.task,
+            hours=2,
+            employee=self.employee,
+        )
+        submit_for_approval(start_date=self.logged_date, employee=self.employee, approver=self.manager)
+
+    def weekly_statuses(self):
+        return frappe.get_all(
+            "Timesheet",
+            filters={"employee": self.employee, "docstatus": ["<", 2]},
+            fields=["name", "custom_approval_status", "custom_weekly_approval_status"],
+        )
+
+    def test_selection_matching_no_row_is_refused_before_parking(self):
+        frappe.set_user(PARKING_MANAGER)
+        with self.assertRaises(frappe.DoesNotExistError):
+            approve_or_reject_timesheet(employee=self.employee, status="Approved", dates=[self.unlogged_date])
+        frappe.set_user("Administrator")
+
+        rows = self.weekly_statuses()
+        self.assertTrue(rows)
+        for row in rows:
+            self.assertNotEqual(row.custom_approval_status, "Processing Timesheet")
+            self.assertNotEqual(row.custom_weekly_approval_status, "Processing Timesheet")
+
+    def test_week_already_processing_is_refused(self):
+        frappe.set_user(PARKING_MANAGER)
+        approve_or_reject_timesheet(employee=self.employee, status="Approved", dates=[self.logged_date])
+        with self.assertRaises(frappe.ValidationError):
+            approve_or_reject_timesheet(employee=self.employee, status="Rejected", dates=[self.logged_date])
+        frappe.set_user("Administrator")
+
+        for row in self.weekly_statuses():
+            self.assertEqual(row.custom_approval_status, "Processing Timesheet")
