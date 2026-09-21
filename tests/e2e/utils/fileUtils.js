@@ -163,7 +163,6 @@ export const writeDataToFile = async (filePath, data, maxRetries = 5) => {
         await release();
       }
 
-      //console.log(`✅ Successfully wrote to ${absolutePath} (attempt ${attempt})`);
       return;
     } catch (error) {
       // Always try to release lock on error
@@ -246,7 +245,6 @@ export const populateJsonStubs = async (jsonDir, testCaseIDs) => {
     if (Object.keys(dataToWrite).length > 0) {
       try {
         await writeDataToFile(filePath, dataToWrite);
-        //console.log(`✅ Populated ${tcId}.json with data from source modules`);
       } catch (err) {
         console.error(`❌ Failed to populate ${tcId}.json:`, err.message);
         throw err;

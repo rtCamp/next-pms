@@ -20,7 +20,6 @@ export const apiRequest = async (endpoint, options = {}, role = "manager") => {
   let responseData;
   if (response.ok()) {
     responseData = await response.json();
-    //console.warn(`Endpoint type: ${options.data} successfully done for enpoint: ${endpoint}`)
   } else {
     // Include the body: Frappe puts the actual reason (row lock, LinkExistsError,
     // permission) in there, and without it every failure reads as a bare 500.

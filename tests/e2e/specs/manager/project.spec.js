@@ -22,14 +22,10 @@ test.describe("Project Tab", () => {
 
     //List of project before search
     const projectListBeforeSearch = await projectPage.getProjectList();
-    //console.log("Project Names Before Search:", projectListBeforeSearch.projectNames);
-    //console.log("Total Count Before Search:", projectListBeforeSearch.totalCount);
 
     //List of projects after search
     await projectPage.searchProject(TC28data.payloadCreateProject.project_name);
     const projectListAfterSearch = await projectPage.getProjectList();
-    //console.log("Project Names After Search:", projectListAfterSearch.projectNames);
-    //console.log("Total Count After Search:", projectListAfterSearch.totalCount);
 
     // Assertions:
     expect(projectListBeforeSearch).not.toEqual(projectListAfterSearch);
@@ -193,7 +189,6 @@ test.describe("Project Tab", () => {
 
     //Get list of project names, verify if the project name is one among the list
     const projectList = await projectPage.getProjectListInRetainerView();
-    //console.log("Project Names in Retainer Public View:", projectList.projectNames);
     expect(projectList.projectNames).toContain(TC106data.payloadCreateProject.project_name);
   });
 
