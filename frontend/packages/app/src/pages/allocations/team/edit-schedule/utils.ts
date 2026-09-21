@@ -94,13 +94,36 @@ const getDateKeysInRange = (startDate: string, endDate: string): string[] =>
   }).map((date) => format(date, "yyyy-MM-dd"));
 
 /**
- * Calculates the total hours for a given date range and hours per day.
+ * Whether a date falls on a Saturday or a Sunday.
+ */
+const isWeekendDate = (dateKey: string): boolean => {
+  const weekday = parseISO(dateKey).getDay();
+
+  return weekday === 0 || weekday === 6;
+};
+
+/**
+ * Whether the allocation books this date at all, before leave and day overrides are applied.
+ * A weekends-off allocation can span a weekend without booking any of it.
+ */
+const booksDate = (dateKey: string, includeWeekends: boolean): boolean =>
+  includeWeekends || !isWeekendDate(dateKey);
+
+/**
+ * Calculates the total hours for a given date range and hours per day, counting only the
+ * days the allocation books.
  */
 export const getRangeHours = (
   startDate: string,
   endDate: string,
   hoursPerDay: number,
-): number => getDayCount(startDate, endDate) * hoursPerDay;
+  includeWeekends = true,
+): number =>
+  includeWeekends
+    ? getDayCount(startDate, endDate) * hoursPerDay
+    : getDateKeysInRange(startDate, endDate).filter((date) =>
+        booksDate(date, includeWeekends),
+      ).length * hoursPerDay;
 
 /**
  * Names what a day is, wording it the way the timeline does.
@@ -173,10 +196,13 @@ const getEffectiveDayCount = (
   dates: string[],
   availability: AvailabilityByDate = {},
   includeHolidays = false,
+  includeWeekends = true,
 ): number =>
   dates.reduce(
     (total, date) =>
-      total + getReducingFactor(availability[date], includeHolidays),
+      booksDate(date, includeWeekends)
+        ? total + getReducingFactor(availability[date], includeHolidays)
+        : total,
     0,
   );
 
@@ -250,19 +276,41 @@ export const formatSelectedDates = (dates: string[]): string => {
 };
 
 /**
- * Determines which dates are locked based on availability and the includeHolidays flag.
+ * The dates the strip refuses to select: the ones this allocation books no hours on, so
+ * there is nothing to override.
+ *
+ * `includeHolidays` books public holidays and full-day leave straight through, which leaves
+ * nothing for availability to lock -- the day is still labelled, it is just editable like any
+ * other. A half day is never locked either way, since it books the half that remains.
+ *
+ * Weekends are locked from `range` rather than from availability, which only carries the days
+ * the allocation books and so never mentions them.
  */
 export const getLockedDates = (
   availability: AvailabilityByDate,
   includeHolidays = false,
-): Set<string> =>
-  new Set(
-    Object.entries(availability)
-      .filter(([, day]) =>
-        day.isHoliday ? !includeHolidays : day.availabilityFactor === 0,
-      )
-      .map(([date]) => date),
-  );
+  range?: { startDate: string; endDate: string; includeWeekends: boolean },
+): Set<string> => {
+  const locked = new Set<string>();
+
+  if (!includeHolidays) {
+    for (const [date, day] of Object.entries(availability)) {
+      if (day.availabilityFactor === 0) {
+        locked.add(date);
+      }
+    }
+  }
+
+  if (range && !range.includeWeekends) {
+    for (const date of getDateKeysInRange(range.startDate, range.endDate)) {
+      if (!booksDate(date, range.includeWeekends)) {
+        locked.add(date);
+      }
+    }
+  }
+
+  return locked;
+};
 
 /**
  * Generates an array of DayItem objects representing each day in a given date range,
@@ -331,6 +379,7 @@ export const buildPreviewRows = ({
   availability = {},
   lockedDates = new Set(),
   includeHolidays = false,
+  includeWeekends = true,
   selection,
   isBaseHoursEdit,
 }: {
@@ -341,6 +390,7 @@ export const buildPreviewRows = ({
   availability?: AvailabilityByDate;
   lockedDates?: Set<string>;
   includeHolidays?: boolean;
+  includeWeekends?: boolean;
   selection?: {
     dates: string[];
     hoursPerDay: number;
@@ -362,8 +412,9 @@ export const buildPreviewRows = ({
     const baseHoursPerDay =
       isBaseHoursEdit && selection ? selection.hoursPerDay : defaultHoursPerDay;
     // A manual override outranks the leave, so only a day still owned by it is reported at its reduced share of the base hours.
-    const currentHoursPerDay =
-      dayOff && (!dayOverride || isLeaveOwnedOverride(dayOverride))
+    const currentHoursPerDay = !booksDate(dateKey, includeWeekends)
+      ? 0
+      : dayOff && (!dayOverride || isLeaveOwnedOverride(dayOverride))
         ? baseHoursPerDay * getReducingFactor(dayOff, includeHolidays)
         : resolveDayHours(dayOverride, defaultHoursPerDay);
     const hoursPerDay =
@@ -407,6 +458,7 @@ export const buildScheduleDraft = ({
   availability = {},
   lockedDates = new Set(),
   includeHolidays = false,
+  includeWeekends = true,
   schedule,
 }: {
   rangeStart: string;
@@ -416,6 +468,7 @@ export const buildScheduleDraft = ({
   availability?: AvailabilityByDate;
   lockedDates?: Set<string>;
   includeHolidays?: boolean;
+  includeWeekends?: boolean;
   schedule: {
     selection: string[];
     input: {
@@ -439,6 +492,7 @@ export const buildScheduleDraft = ({
         getDateKeysInRange(rangeStart, rangeEnd),
         availability,
         includeHolidays,
+        includeWeekends,
       )
     : selection.length;
   const hoursPerDay = hasSelection
@@ -450,7 +504,7 @@ export const buildScheduleDraft = ({
     ? schedule.input.mode === "totalHours"
       ? schedule.input.value
       : effectiveDayCount * schedule.input.value
-    : getRangeHours(rangeStart, rangeEnd, defaultHoursPerDay);
+    : getRangeHours(rangeStart, rangeEnd, defaultHoursPerDay, includeWeekends);
   const previewRows = buildPreviewRows({
     rangeStart,
     rangeEnd,
@@ -459,6 +513,7 @@ export const buildScheduleDraft = ({
     availability,
     lockedDates,
     includeHolidays,
+    includeWeekends,
     selection: hasSelection ? { dates: selection, hoursPerDay } : null,
     isBaseHoursEdit,
   });

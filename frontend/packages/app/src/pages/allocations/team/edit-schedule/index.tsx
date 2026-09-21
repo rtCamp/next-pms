@@ -121,9 +121,21 @@ function EditScheduleModal({
     includeWeekends: safeValues.includeWeekends ?? false,
     enabled: open,
   });
+  const includeWeekends = safeValues.includeWeekends ?? false;
   const lockedDates = useMemo(
-    () => getLockedDates(availability, safeValues.includeHolidays),
-    [availability, safeValues.includeHolidays],
+    () =>
+      getLockedDates(availability, safeValues.includeHolidays, {
+        startDate: fullRange.startDate,
+        endDate: fullRange.endDate,
+        includeWeekends,
+      }),
+    [
+      availability,
+      fullRange.endDate,
+      fullRange.startDate,
+      includeWeekends,
+      safeValues.includeHolidays,
+    ],
   );
 
   const recurrenceHelperText = useMemo(() => {
@@ -198,6 +210,7 @@ function EditScheduleModal({
         availability,
         lockedDates,
         includeHolidays: Boolean(safeValues.includeHolidays),
+        includeWeekends,
         schedule: value.schedule,
       });
       const schedulePayload = draft.hasSelection
@@ -268,6 +281,7 @@ function EditScheduleModal({
         availability,
         lockedDates,
         includeHolidays: Boolean(safeValues.includeHolidays),
+        includeWeekends,
         schedule,
       }),
     [
@@ -275,6 +289,7 @@ function EditScheduleModal({
       defaultHoursPerDay,
       fullRange.endDate,
       fullRange.startDate,
+      includeWeekends,
       lockedDates,
       safeValues.includeHolidays,
       safeValues.override,
@@ -481,6 +496,7 @@ function EditScheduleModal({
           <ScheduleSummaryTable
             rows={scheduleDraft.previewRows}
             variant={applyMode === "this_and_future" ? "day" : "date"}
+            includeWeekends={includeWeekends}
           />
         </div>
       </div>

@@ -3,7 +3,7 @@
 
 import frappe
 from frappe.model.document import Document
-from frappe.utils import flt, today
+from frappe.utils import flt, getdate, today
 from frappe.utils.background_jobs import is_job_enqueued
 
 from next_pms.resource_management.api.project import (
@@ -67,9 +67,25 @@ class ResourceAllocation(Document):
         if project_currency:
             self.currency = project_currency
 
+    def books_a_day_shared_with(self, other) -> bool:
+        """Whether this allocation and `other` both book at least one of the days their ranges share.
+
+        Overlapping on the calendar is not the same as competing for a day. A weekends-off
+        allocation can span a weekend without booking any of it, so it does not collide with a
+        weekend-only allocation that sits inside its range.
+        """
+        start = max(getdate(self.allocation_start_date), getdate(other.allocation_start_date))
+        end = min(getdate(self.allocation_end_date), getdate(other.allocation_end_date))
+        if start > end:
+            return False
+
+        mine = set(leave_sync.allocation_dates(start, end, self.include_weekends))
+        theirs = set(leave_sync.allocation_dates(start, end, other.include_weekends))
+
+        return bool(mine & theirs)
+
     def validate_no_overlap(self):
-        """Block a second allocation for the same employee + project whose date range
-        overlaps an existing one (partial or exact overlap)."""
+        """Block a second allocation for the same employee + project that books a day this one books."""
         if not self.project:
             return
 
@@ -82,12 +98,19 @@ class ResourceAllocation(Document):
             ["name", "!=", self.name or ""],
         ]
 
-        existing = frappe.db.get_value(
+        candidates = frappe.get_all(
             "Resource Allocation",
-            filters,
-            ["name", "allocation_start_date", "allocation_end_date", "total_allocated_hours"],
-            as_dict=True,
+            filters=filters,
+            fields=[
+                "name",
+                "allocation_start_date",
+                "allocation_end_date",
+                "total_allocated_hours",
+                "include_weekends",
+            ],
         )
+
+        existing = next((row for row in candidates if self.books_a_day_shared_with(row)), None)
         if not existing:
             return
 

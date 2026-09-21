@@ -558,6 +558,67 @@ class TestLeaveAwareAllocation(IntegrationTestCase):
         self.assertEqual(self._overrides(allocation)[PUBLIC_HOLIDAY].cancelled, 1)
         self.assertEqual(allocation.total_allocated_hours, 14 * DAILY_HOURS)
 
+    def test_whole_series_edit_persists_include_holidays(self):
+        """`include_holidays` is a non-date field, so a series edit has to carry it to every doc."""
+        first = handle_allocation(
+            AllocationPayload(
+                doctype="Resource Allocation",
+                employee=self.employee,
+                customer=self.customer,
+                project=self.project,
+                allocation_start_date=MON,
+                allocation_end_date=FRI,
+                hours_allocated_per_day=DAILY_HOURS,
+                include_weekends=False,
+            ),
+            repeat_till_week_count=2,
+        )
+
+        edit_allocation(
+            name=first.name,
+            edit_mode="whole_series",
+            allocation=AllocationPayload(
+                doctype="Resource Allocation",
+                employee=self.employee,
+                customer=self.customer,
+                project=self.project,
+                allocation_start_date=MON,
+                allocation_end_date=FRI,
+                hours_allocated_per_day=DAILY_HOURS,
+                include_weekends=False,
+                include_holidays=True,
+            ),
+        )
+
+        series = frappe.get_all(
+            "Resource Allocation",
+            filters={"recurrence_id": first.recurrence_id},
+            pluck="include_holidays",
+        )
+        self.assertEqual(len(series), 3)
+        self.assertTrue(all(series))
+
+    # --- overlap is about booked days, not calendar ranges -------------------
+
+    def test_weekend_allocation_fits_inside_a_weekends_off_range(self):
+        """A weekends-off allocation spanning a weekend books none of it, so it cannot collide."""
+        self._allocate(start=MON, end=str(getdate(add_days(getdate(FRI), 7))))
+
+        weekend = self._allocate(
+            start=str(getdate(add_days(getdate(FRI), 1))),
+            end=str(getdate(add_days(getdate(FRI), 2))),
+            include_weekends=1,
+        )
+
+        self.assertEqual(weekend.total_allocated_hours, 2 * DAILY_HOURS)
+
+    def test_overlapping_weekdays_still_collide(self):
+        """The weekday case the range check has always caught must keep throwing."""
+        self._allocate(start=MON, end=FRI)
+
+        with self.assertRaises(frappe.ValidationError):
+            self._allocate(start=WED, end=THU)
+
     def test_a_leave_change_only_resets_overrides_within_its_own_range(self):
         """A September leave must not re-derive a manager's override on a November holiday."""
         allocation = self._allocate(start=MON, end=HOLIDAY_FRI)
