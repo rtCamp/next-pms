@@ -50,7 +50,6 @@ export const apiRequest = async (endpoint, options = {}, role = "manager") => {
  * Create a new Project entry.
  */
 export const createAllocation = async (payload) => {
-  //console.log("Payload received in create allocation is:", payload);
   const result = await apiRequest(
     "/api/resource/Resource%20Allocation",
     {
@@ -59,7 +58,6 @@ export const createAllocation = async (payload) => {
     },
     "manager"
   );
-  //console.log("Result of create allocation is: ", result);
   return result;
 };
 // ------------------------------------------------------------------------------------------

@@ -97,23 +97,12 @@ export const deleteWithLockRetry = async (deleteFn, { label = "document", retrie
 // ------------------------------------------------------------------------------------------
 
 /**
- * Deletes a document and reports whether it actually went.
+ * Deletes a document, returning { deleted, reason } rather than throwing, so
+ * teardown can clear dependants and report what survived.
  *
- * Every delete helper in the suite used to call apiRequest(), which throws on a
- * non-2xx and left each caller to catch-and-log. Frappe refuses a delete whose
- * document is still referenced (LinkExistsError - an employee with a timesheet,
- * a project with allocations), so those throws were routine, and swallowing
- * them meant test data accumulated on staging run after run with nothing in the
- * log to show for it. Returning { deleted, reason } lets teardown clear the
- * dependants and retry, and report what survived.
- *
- * Do NOT reach for a CSRF token here. The `<role>-API.json` states come from
- * `/api/method/login` and carry no csrf_token, which is exactly why Frappe skips
- * CSRF validation for them and these deletes work. Fetching `/app` on one of
- * these sessions mints a token onto it server-side, and from then on every
- * CSRF-less POST and DELETE on that session - all of the seeding - fails with
- * CSRFTokenError. If a session ever gets into that state, delete its auth file
- * and let the fixture log in again.
+ * Do NOT fetch a CSRF token here. The `<role>-API.json` states carry no
+ * csrf_token, which is why Frappe skips CSRF for them; hitting `/app` mints one
+ * onto the session and every later CSRF-less write on it fails.
  */
 export const deleteDocument = async (doctype, name, role = "admin") => {
   if (!name) return { deleted: false, reason: "no name given" };

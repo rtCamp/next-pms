@@ -76,7 +76,6 @@ export const randomApprovalStatus = async (
 
     // Persist mutated stub, wrapped under its own TC key
     await writeDataToFile(stubPath, { [tcId]: entry });
-    //console.log(`✅ Updated approval status for ${tcId} in ${stubPath}`);
   }
 };
 // ------------------------------------------------------------------------------------------
@@ -111,7 +110,6 @@ export const createUserGroupForEmployee = async (testCaseIDs, jsonDir) => {
 
     try {
       await createUserGroup({ user: emp3, name });
-      //console.log(`✅ Created group '${name}' for '${emp3}' on ${tcId}`);
 
       // update stub payloads
       entry.payloadCreateUserGroup.user_group_members[0].user = emp3;
@@ -120,7 +118,6 @@ export const createUserGroupForEmployee = async (testCaseIDs, jsonDir) => {
 
       // write back updated stub
       await writeDataToFile(stubPath, { [tcId]: entry });
-      //console.log(`✏️  Updated user-group stub for ${tcId} in ${stubPath}`);
     } catch (err) {
       console.error(`Failed to create user group for ${tcId}: ${err.message}`);
     }

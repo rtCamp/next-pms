@@ -171,13 +171,10 @@ export async function updateTimeEntries(testCaseIDs = [], jsonDir) {
 export async function createTimeEntries(testCaseIDs = [], jsonDir) {
   if (!Array.isArray(testCaseIDs) || testCaseIDs.length === 0) return;
 
-  // 1) Extract the single test‐case ID
   const [tcId] = testCaseIDs;
 
-  // 2) Build path to its JSON stub
   const filePath = path.join(jsonDir, `${tcId}.json`);
 
-  // 3) Read & parse the stub
   const testCaseData = await readJSONFile(filePath);
   ////console.log("JSON FILE PRESENT AT CREATE TIME ENTRIES IS:   \n", JSON.stringify(testCaseData, null, 2));
 
@@ -187,14 +184,13 @@ export async function createTimeEntries(testCaseIDs = [], jsonDir) {
     return;
   }
 
-  // 4) Grab every timesheet payload - a test can seed several (see TC93).
+  // A test can seed several timesheet payloads (see TC93).
   const keys = Object.keys(entry).filter((k) => k.startsWith("payloadCreateTimesheet"));
   if (keys.length === 0) {
     console.warn(`⚠️ No payloadCreateTimesheet found for TC ${tcId}`);
     return;
   }
 
-  // 5) Create them in order
   for (const key of keys) {
     const payload = entry[key];
     if (!payload) continue;
@@ -250,8 +246,6 @@ export const deleteTimeEntries = async (testCaseIDs = [], jsonDir) => {
     // derive parent & name identifiers
     const { parent, name } = await filterTimesheetEntry(entry);
 
-    //console.log(`Deleting timesheet for TC ${tcId}: parent=${parent}, name=${name}`);
-
     await deleteTimesheet({ parent, name }, actor);
 
     // any special-case logging you still want
@@ -274,9 +268,7 @@ export const filterTimesheetEntry = async (opts) => {
   const res = await getTimesheetDetails({ employee, start_date: from_time, max_week });
   const json = res && typeof res.json === "function" ? await res.json() : res;
   const data = json.message.data;
-  //console.dir(json.message, { depth: null, colors: true });
   ////console.log("\nGAP BETWEEN DATA\n");
-  //console.dir(data, { depth: null, colors: true });
 
   // strip HTML from your input `description`
   const searchText = stripHtmlTags(description || "");
@@ -297,7 +289,6 @@ export const filterTimesheetEntry = async (opts) => {
       });
 
       if (match) {
-        //console.warn("✅ MATCH FOUND FOR FILTER TIMESHEET ENTRY   :", match);
         return match;
       }
     }
@@ -440,7 +431,6 @@ export const deleteProjects = async (testCaseIDs = [], jsonDir) => {
       continue;
     }
     await deleteProject(projId);
-    //console.log(`🗑️  Deleted project ${projId} for TC ${tcId} (${deleteKey})`);
   }
 };
 
@@ -531,10 +521,8 @@ export const deleteByTaskName = async () => {
     }
 
     for (const taskName of tasksToBeDeleted) {
-      // Every match, not just the first: a UI-created task keeps its subject, so
-      // a run that failed to clean up leaves a second row with the same name and
-      // the old `values[0]` only ever reached one of them. Two TC24 tasks from
-      // March 2025 survived every run since on exactly this.
+      // Every match, not just the first: a failed cleanup leaves another row
+      // with the same subject, and `values[0]` only ever reached one of them.
       const rows = await getDocList("Task", [["subject", "=", taskName]], { fields: ["name"] });
       if (rows.length === 0) {
         console.log(`Task "${taskName}" not found in system to delete. Skipping...`);
@@ -550,7 +538,6 @@ export const deleteByTaskName = async () => {
     }
 
     // Optionally clear the file after deletion
-    // await fs.writeFile(TASK_TRACKER_PATH, JSON.stringify([], null, 2), "utf-8");
     // //console.log("Deleted all listed tasks and cleared tracking file.");
   } catch (error) {
     console.error("Error while deleting tasks by name:", error.message);
@@ -584,10 +571,8 @@ export const deleteTasks = async (testCaseIDs, jsonDir) => {
     try {
       if (adminCases.has(tcId)) {
         await deleteTask(taskID, "admin");
-        //console.log(`🗑️  [${tcId}] deleted task ${taskID} as admin`);
       } else {
         await deleteTask(taskID);
-        //console.log(`🗑️  [${tcId}] deleted task ${taskID}`);
       }
     } catch (err) {
       console.error(`❌ [${tcId}] Failed to delete task ${taskID}: ${err.message}`);
@@ -603,39 +588,30 @@ export const deleteTasks = async (testCaseIDs, jsonDir) => {
 export const calculateHourlyBilling = async (testCaseIDs = [], jsonDir) => {
   if (!Array.isArray(testCaseIDs) || testCaseIDs.length === 0) return;
 
-  // 1) Fetch employee info once
   const empRes = await getEmployeeDetails(empID, "admin");
   const employee_CTC = empRes.data.ctc;
-  //console.log("EMPLOYEE SALARY: ", employee_CTC);
   const employee_currency = empRes.data.salary_currency;
-  //console.log("EMPLOYEE CURRENCY: ", employee_currency);
 
-  // 2) Loop through each TC
   for (const tcId of testCaseIDs) {
     const stubPath = path.join(jsonDir, `${tcId}.json`);
 
-    // 3) Read the wrapped stub { "TCn": { … } }
     const fullStub = await readJSONFile(stubPath);
     const entry = fullStub[tcId];
     if (!entry) {
       console.warn(`⚠️ No data found under key "${tcId}" in ${stubPath}`);
       continue;
     }
-    // 4) Only process if there's a billing payload
     const ratePayload = entry.payloadCalculateBillingRate;
     if (!ratePayload) {
       continue; // nothing to do for this TC
     }
 
-    // 5) Determine hourly rate, converting currency if needed
     let hourly_billing_rate;
     if (employee_currency !== ratePayload.custom_currency_for_project) {
       const convertRes = await getExchangeRate(employee_currency, ratePayload.custom_currency_for_project);
 
       const convertedCTC = convertRes.message * employee_CTC;
-      //console.log("CONVERTED EMPLOYEE CTC ", convertedCTC);
       hourly_billing_rate = convertedCTC / 12 / 160;
-      //console.log("HOURLY BILLING RATE: ", hourly_billing_rate);
     } else {
       hourly_billing_rate = employee_CTC / 12 / 160;
     }
@@ -666,9 +642,7 @@ export const calculateHourlyBilling = async (testCaseIDs = [], jsonDir) => {
     ratePayload.total_costing_amount = projRes.data.total_costing_amount;
     ratePayload.hourly_billing_rate = hourly_billing_rate;
 
-    // 7) Write it back wrapped under the TC key
     await writeDataToFile(stubPath, { [tcId]: entry });
-    //console.log(`✅ Updated billing for ${tcId} in ${stubPath}`);
   }
 };
 
@@ -682,10 +656,8 @@ export const cleanUpProjects = async (data) => {
   // sweep - which also means failures scroll past unnoticed in a long run. Tally
   // them and print a summary at the end.
   const failures = [];
-  // Counted so a teardown that reached nothing cannot report success: when the
-  // site is mid-deploy every lookup returns empty, and the old summary printed
-  // "deleted all 0 seeded project(s)" - indistinguishable from a clean run while
-  // a full run's worth of data stayed on staging.
+  // Counted so a teardown that reached nothing cannot report success - an
+  // unreachable site and a clean slate both resolve zero projects.
   let looked = 0;
   let responded = 0;
   let found = 0;
@@ -899,12 +871,9 @@ export const deleteViewsForTestCases = async (testCaseIDs = [], jsonDir) => {
 /**
  * Records when this run began, on the server's clock.
  *
- * Frappe stamps `creation` in the server's own timezone, which the runner's
- * clock does not necessarily share - a marker taken from `toISOString()` (UTC)
- * against an IST server opened the sweep window 5.5 hours too wide and reached
- * back past the start of the run. Creating one throwaway document and reading
- * its `creation` back gives the server's clock in the server's own format, with
- * no timezone arithmetic to get wrong.
+ * Frappe stamps `creation` in the server's timezone, which the runner's clock
+ * need not share, so a UTC marker widens the sweep window. Reading `creation`
+ * back off a throwaway document avoids the timezone arithmetic entirely.
  */
 export const writeRunMarker = async (jsonDir) => {
   let startedAt = null;

@@ -85,7 +85,6 @@ const globalSetup = async () => {
   }
 
   // Verify JSON files
-  //console.log("🔍 Verifying JSON stubs...");
   for (const tcId of allTCIds) {
     const filePath = path.join(jsonDir, `${tcId}.json`);
     const content = await fs.promises.readFile(filePath, "utf-8");
@@ -94,7 +93,6 @@ const globalSetup = async () => {
       throw new Error(`Missing data for ${tcId}`);
     }
   }
-  //console.log("✅ JSON stubs created and verified!");
 
   // 3) Clean up orphan data
   await readAndCleanAllOrphanData();

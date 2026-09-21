@@ -89,7 +89,6 @@ export const createEmployees = async (testCaseIDs, jsonDir) => {
   // Write back primary stub
   await writeDataToFile(stubPath, { [tcId]: entry });
   const verify = await readJSONFile(stubPath);
-  //console.log("✅ Verified from disk:");
 
   console.dir(verify, { depth: null, colors: true });
   // Write back any side files that were loaded
@@ -229,13 +228,9 @@ export const createRevieweeForTestCases = async (testCaseIDs = [], jsonDir) => {
 /**
  * Registers every reviewee this run created in TC53's expected roster.
  *
- * Reviewees are created with reports_to = the manager, so they show in the
- * manager's team view for as long as the run lasts and TC53 asserts that roster
- * exactly. This cannot be done from createRevieweeForTestCases: seeding walks the
- * TC ids in order, TC53's own turn rewrites its stub from the static data module,
- * and any reviewee registered before that point is wiped. TC47 (index 71) was
- * lost that way while TC49 (index 77) survived, which is why TC53 failed with one
- * unexpected name rather than two. Run this after the whole loop instead.
+ * Reviewees report to the manager, so TC53 sees them for the length of the run.
+ * Must run after the seeding loop, not inside createRevieweeForTestCases:
+ * TC53's own turn rewrites its stub, wiping anything registered before it.
  */
 export const registerRevieweesInTeamRoster = async (testCaseIDs = [], jsonDir) => {
   const rosterPath = path.join(jsonDir, "TC53.json");
@@ -393,15 +388,12 @@ export const deleteAllocationsByEmployee = async (projectID, employeeID = employ
     ],
     "admin"
   );
-  //console.log(filterResponse.message?.values?.length);
   if (filterResponse.message?.values?.length > 0) {
     const allocations = filterResponse.message.values;
     for (const row of allocations) {
       const allocationName = row[0];
-      //console.log(`Deleting allocation: ${allocationName}`);
       try {
         await deleteAllocation(allocationName);
-        //console.log(`Deleted ${allocationName}`);
       } catch (error) {
         console.error(`Failed to delete ${allocationName}:`, error);
       }

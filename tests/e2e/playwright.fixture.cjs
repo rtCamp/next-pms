@@ -48,8 +48,6 @@ const test = base.extend({
       const fileName = `${role}-w${workerIndex}.json`;
       const outPath = path.resolve(__dirname, "./auth", fileName);
 
-      //console.log(`🔐 Setting up auth state for role: ${role}, worker: ${workerIndex}`);
-
       if (!(await hasUsableSession(outPath))) {
         console.log(`🔐 Refreshing auth state for ${role} (worker ${workerIndex}) - no usable session on disk.`);
         // Generate storage state with CSRF (isApi=false)
@@ -64,12 +62,10 @@ const test = base.extend({
   // Fixed JSON directory - same for all workers
   jsonDir: [
     async ({}, use) => {
-      //console.log(`📁 Using shared JSON directory: ${SHARED_JSON_DIR}`);
 
       // Verify directory exists (should be created in global setup)
       try {
         await fs.access(SHARED_JSON_DIR);
-        //console.log("✅ JSON directory exists");
       } catch {
         console.error("❌ JSON directory missing - was global setup run?");
         throw new Error(

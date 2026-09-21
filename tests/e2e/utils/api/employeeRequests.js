@@ -48,9 +48,7 @@ export const getEmployeeDetails = async (empId, role) => {
  */
 export const addEmployee = async (employeePayload, role) => {
   const endpoint = `/api/resource/Employee`;
-  //const { first_name, last_name, status, gender, date_of_joining, date_of_birth } = employeePayload;
 
-  //console.warn(`\n Data present in the ADD EMPLOYEE IS : \n
   //FIRST NAME : ${first_name} LAST NAME : ${last_name} \n STATUS : ${status} \n GENDER : ${gender} \n DATE OF JOINING : ${date_of_joining} \n DATE OF BIRTH : ${date_of_birth} \n ROLE : ${role} \n`);
 
   return await apiRequest(

@@ -95,21 +95,15 @@ test.describe("Manager : Resource Management Tab", () => {
     await expect(teamPage.memberRow(employeeName).first()).toBeVisible();
   });
 
-  // The four filters no longer share one affordance: Business Unit and Skill are
-  // query-builder conditions, Designation and Allocation Type are standalone
-  // comboboxes. All four still feed one filter state.
+  // Skipped pending an app fix, not a test problem: "Clear all filters" empties
+  // the condition rows without committing, so the final count stays at 3. Re-enable
+  // once that lands rather than relaxing the assertion.
   //
-  // This case now seeds its own project and a *billable* allocation for the
-  // employee it asserts on, and pins the Business Unit / Designation values to
-  // what that employee actually is on the environment. Before that, no employee
-  // could satisfy the combination, every filter step returned an empty grid, and
-  // the "each filter narrows the result" checks all held trivially against zero
-  // rows - the test was green without verifying anything.
-  //
-  // The Skill filter is deliberately not exercised here: the employee has no
-  // Employee Skill Map at all (404), so there is no skill to match, and Skill is
-  // not part of what this case's title covers. It needs its own case once skill
-  // seeding exists.
+  // Business Unit and Skill are query-builder conditions; Designation and
+  // Allocation Type are standalone comboboxes. All four feed one filter state.
+  // Skill is deliberately not exercised - the employee has no Employee Skill Map
+  // (404), so there is nothing to match; it needs its own case once skill seeding
+  // exists.
   test.skip("TC59: Validate the Business Unit, Designation, and Allocation Type ensuring that the results are checked after clearing all applied filters", async ({
     jsonDir,
   }) => {
@@ -323,10 +317,6 @@ test.describe("Manager : Resource Management Tab", () => {
     );
     createdAllocations.push(allocationName);
     await expect(page.getByText("Allocation created successfully")).toBeVisible();
-    //await teamPage.goto();
-    //await timelinePage.filterEmployeeByName(employeeName);
-    //await teamPage.deleteAllocationFromTeamTab(employeeName, date, day);
-    //await expect(page.getByText("The allocation has been deleted successfully")).toBeVisible();
   });
 
   test("TC104: Verify add Allocation workflow by clicking on a specfic cell wrt Project and Date", async ({
@@ -388,8 +378,6 @@ test.describe("Manager : Resource Management Tab", () => {
     await expect(page.getByText("Allocation created successfully")).toBeVisible();
     await projectPage.goto();
     await projectPage.filterByProject(projectName);
-    // await projectPage.deleteAllocationFromProjectTab(projectName, date, day);
-    // await expect(page.getByText("The allocation has been deleted successfully")).toBeVisible();
   });
 
   // The copy/clipboard shortcut this case covers was removed in the redesign -
@@ -422,7 +410,6 @@ test.describe("Manager : Resource Management Tab", () => {
       day,
       "4",
     );
-    //console.log(`Allocation Name: ${allocationName}`);
     createdAllocations.push(allocationName);
     await expect(page.getByText("Allocation created successfully")).toBeVisible();
     await projectPage.goto();
