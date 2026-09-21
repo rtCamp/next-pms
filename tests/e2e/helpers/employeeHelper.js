@@ -392,7 +392,8 @@ export const deleteAllocationsByEmployee = async (projectID, employeeID = employ
     for (const row of allocations) {
       const allocationName = row[0];
       try {
-        await deleteAllocation(allocationName);
+        const { deleted, reason } = await deleteAllocation(allocationName);
+        if (!deleted) console.warn(`⚠️ Allocation ${allocationName} survived: ${reason}`);
       } catch (error) {
         console.error(`Failed to delete ${allocationName}:`, error);
       }

@@ -91,8 +91,9 @@ export const deleteAllocationsForTestCases = async (testCaseIDs, jsonDir) => {
     }
 
     try {
-      await deleteAllocation(allocationId);
-      console.log(`🗑️  Allocation deleted for ${tcId} (${deleteKey}): ${allocationID}`);
+      const { deleted, reason } = await deleteAllocation(allocationId);
+      if (deleted) console.log(`🗑️  Allocation deleted for ${tcId} (${deleteKey}): ${allocationId}`);
+      else console.warn(`⚠️ Allocation ${allocationId} for ${tcId} (${deleteKey}) survived: ${reason}`);
     } catch (err) {
       console.error(`❌ Failed to delete allocation for ${tcId} (${deleteKey}): ${err.message}`);
     }
