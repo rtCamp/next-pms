@@ -356,6 +356,7 @@ def normalize_team_view_filters(
         "employee_name": "employee_name",
         "business_unit": "custom_business_unit",
         "designation": "designation",
+        "department": "department",
         "reports_to": "reports_to",
         "reporting_manager": "custom_reporting_manager",
         "employee_id": "name",

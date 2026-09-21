@@ -16,6 +16,7 @@ from .utils import (
     build_chunk_context,
     build_employee_week_details,
     employee_has_higher_access,
+    get_project_approvable_employees,
     get_week_dates,
     has_scoped_project_timesheets_before,
     normalize_status_filter,
@@ -208,6 +209,8 @@ def _build_project_member_payload(employee, employee_data: dict, project_tasks: 
         "backdate_restricted_before": employee_data["backdate_restricted_before"],
         "working_hour": working_hours.get("working_hour", 8),
         "working_frequency": working_hours.get("working_frequency", "Per Day"),
+        # The employee's whole week, not this project's share of it: approving one project
+        # does not approve the week, and every surface reports the same status for a week.
         "status": employee_data["status"],
     }
 
@@ -354,6 +357,15 @@ def get_project_timesheet_data(
         if members:
             projects.append({"project": project.name, "project_name": project.project_name, "members": members})
 
+    # Resolved once for the page rather than per member, so the row only offers an approval
+    # the endpoint would accept. Kept on the project rather than on the member because the
+    # realtime payload replaces a member wholesale and would drop anything carried there.
+    approvable = get_project_approvable_employees(
+        {project["project"]: {member["employee"] for member in project["members"]} for project in projects}
+    )
+    for project in projects:
+        project["approvable_employees"] = approvable.get(project["project"], [])
+
     response["projects"] = projects
     return response
 
@@ -472,6 +484,9 @@ def get_project_timesheet_member_week(employee: str, start_date: str, by_pass_ac
     if not employee_data:
         return response
 
+    # No `approvable_employees` here: this runs as whoever saved the timesheet, not as the
+    # viewer, and the client keeps the project-level fields it already loaded when it merges
+    # this payload.
     for project, project_tasks in employee_data["project_tasks"].items():
         first_task = next(iter(project_tasks.values()))
         response["projects"][project] = {

@@ -13,7 +13,6 @@ import { useToasts } from "@rtcamp/frappe-ui-react";
 import {
   FrappeError,
   useFrappeGetCall,
-  useFrappeGetDoc,
   useFrappePostCall,
 } from "frappe-react-sdk";
 
@@ -21,7 +20,7 @@ import {
  * Internal Dependencies
  */
 import { parseFrappeErrorMsg } from "@/lib/utils";
-import { GroupedDay, ModalView } from "./types";
+import { GroupedDay, ModalView, WeeklyApprovalTarget } from "./types";
 import { convertTimesheetToEntries, groupEntriesByDay } from "./utils";
 
 export interface WeeklyApprovalContextValue {
@@ -32,11 +31,13 @@ export interface WeeklyApprovalContextValue {
   isLoading: boolean;
   employee: string;
   employeeName: string;
-  avatarUrl: string;
+  avatarUrl?: string;
   dateRange: string;
   totalHours: number;
   dailyWorkingHours: number;
   isReadOnly: boolean;
+  hasSelection: boolean;
+  projectName?: string;
   rejectionError: string | null;
   groupedByDay: GroupedDay[];
   checkedDays: Set<string>;
@@ -58,9 +59,7 @@ const WeeklyApprovalContext = createContext<WeeklyApprovalContextValue | null>(
   null,
 );
 
-interface WeeklyApprovalProviderProps {
-  employee: string;
-  startDate: string;
+interface WeeklyApprovalProviderProps extends WeeklyApprovalTarget {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   children: ReactNode;
@@ -71,21 +70,31 @@ interface WeeklyApprovalProviderProps {
  * Manages all state, data fetching, and callbacks for the approval workflow.
  *
  * @param employee - The employee ID whose timesheet is being reviewed
+ * @param employeeName - That employee's display name, supplied by the page that opened the
+ *   modal rather than refetched, since a project manager cannot read the Employee document
+ * @param avatarUrl - That employee's avatar, supplied the same way
  * @param startDate - The start date of the week to review in "YYYY-MM-DD" format
  * @param open - Whether the modal is open
  * @param onOpenChange - Callback to update the modal open state
+ * @param project - Restricts the review to one project, for the Project Manager persona
+ * @param projectName - Display name of that project
  * @param children - Child components that will have access to the context
  */
 export const WeeklyApprovalProvider = ({
   employee,
+  employeeName,
+  avatarUrl,
   startDate,
   open,
   onOpenChange,
+  project,
+  projectName,
   children,
 }: WeeklyApprovalProviderProps) => {
   const toast = useToasts();
   const [currentView, setCurrentView] = useState<ModalView>("approval");
   const [checkedDays, setCheckedDays] = useState<Set<string>>(new Set());
+  const [seededDays, setSeededDays] = useState<string | null>(null);
   const [rejectionError, setRejectionError] = useState<string | null>(null);
 
   const { call: updateTimesheet } = useFrappePostCall(
@@ -102,10 +111,15 @@ export const WeeklyApprovalProvider = ({
       employee: employee,
       start_date: startDate,
       max_week: 1,
+      ...(project
+        ? {
+            filters: JSON.stringify([
+              ["Timesheet", "parent_project", "=", project],
+            ]),
+          }
+        : {}),
     },
   );
-
-  const { data: employeeData } = useFrappeGetDoc("Employee", employee);
 
   const timesheetData = useMemo(() => convertTimesheetToEntries(data), [data]);
   const groupedByDay = useMemo(
@@ -115,16 +129,23 @@ export const WeeklyApprovalProvider = ({
   const totalHours = timesheetData.totalHours;
   const dailyWorkingHours = timesheetData.dailyWorkingHours;
   const isReadOnly =
-    timesheetData.status === "Approved" ||
-    timesheetData.status === "Processing Timesheet";
+    groupedByDay.length > 0 &&
+    groupedByDay.every((dayGroup) => dayGroup.isDecided);
   const dateRange = timesheetData.dateRange;
-  const employeeName = employeeData?.employee_name || "";
-  const avatarUrl = employeeData?.image || "";
 
-  // Initialize checkedDays with all days when data loads
-  if (checkedDays.size === 0 && groupedByDay.length > 0) {
-    setCheckedDays(new Set(groupedByDay.map((dayGroup) => dayGroup.day)));
+  // Every day still open to a decision starts checked. Keyed on those days rather than on an
+  // empty selection, so clearing the last checkbox stays cleared while a refetch that changes
+  // which days are open still reseeds. Done in render so the first paint is already correct.
+  const actionableDays = groupedByDay.filter((dayGroup) => !dayGroup.isDecided);
+  const actionableKey = actionableDays
+    .map((dayGroup) => dayGroup.day)
+    .join("|");
+  if (actionableDays.length > 0 && seededDays !== actionableKey) {
+    setSeededDays(actionableKey);
+    setCheckedDays(new Set(actionableDays.map((dayGroup) => dayGroup.day)));
   }
+
+  const hasSelection = checkedDays.size > 0;
 
   const handleDayCheckChange = useCallback(
     (day: string, checked: boolean) => {
@@ -152,14 +173,14 @@ export const WeeklyApprovalProvider = ({
   }, [groupedByDay, checkedDays]);
 
   const handleReject = useCallback(() => {
-    if (isReadOnly) {
+    if (isReadOnly || !hasSelection) {
       return;
     }
 
     setRejectionError(null);
     mutate();
     setCurrentView("rejection");
-  }, [isReadOnly, mutate]);
+  }, [isReadOnly, hasSelection, mutate]);
 
   const handleOpenChange = useCallback(
     (nextOpen: boolean) => {
@@ -206,7 +227,7 @@ export const WeeklyApprovalProvider = ({
   );
 
   const handleApproveSubmit = useCallback(async () => {
-    if (isReadOnly) {
+    if (isReadOnly || !hasSelection) {
       return;
     }
 
@@ -216,6 +237,7 @@ export const WeeklyApprovalProvider = ({
         dates,
         status: "Approved",
         employee,
+        project,
       });
       toast.success(res.message);
       mutate();
@@ -228,7 +250,9 @@ export const WeeklyApprovalProvider = ({
     getCheckedDates,
     approveOrRejectTimesheet,
     employee,
+    project,
     isReadOnly,
+    hasSelection,
     toast,
     mutate,
     handleOpenChange,
@@ -236,7 +260,7 @@ export const WeeklyApprovalProvider = ({
 
   const handleRejectionSubmit = useCallback(
     async (reason: string) => {
-      if (isReadOnly) {
+      if (isReadOnly || !hasSelection) {
         return;
       }
 
@@ -248,6 +272,7 @@ export const WeeklyApprovalProvider = ({
           status: "Rejected",
           employee,
           note: reason,
+          project,
         });
         toast.success(res.message);
         mutate();
@@ -260,7 +285,9 @@ export const WeeklyApprovalProvider = ({
       getCheckedDates,
       approveOrRejectTimesheet,
       employee,
+      project,
       isReadOnly,
+      hasSelection,
       toast,
       mutate,
       handleOpenChange,
@@ -281,6 +308,8 @@ export const WeeklyApprovalProvider = ({
       totalHours,
       dailyWorkingHours,
       isReadOnly,
+      hasSelection,
+      projectName,
       rejectionError,
       groupedByDay,
       checkedDays,
@@ -302,6 +331,8 @@ export const WeeklyApprovalProvider = ({
       totalHours,
       dailyWorkingHours,
       isReadOnly,
+      hasSelection,
+      projectName,
       rejectionError,
       groupedByDay,
       checkedDays,
