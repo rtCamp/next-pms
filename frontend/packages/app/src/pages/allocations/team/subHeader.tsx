@@ -3,7 +3,6 @@
  */
 import { useEffect, useMemo, useState } from "react";
 import {
-  Autocomplete,
   Button,
   Filter,
   MultiSelect,
@@ -13,7 +12,6 @@ import {
 import {
   SmallLeftChevron,
   SmallRightChevron,
-  SmallDown,
 } from "@rtcamp/frappe-ui-react/icons";
 
 /**
@@ -21,6 +19,7 @@ import {
  */
 import { FilterLinkValue } from "@/components/filters/FilterLinkValue";
 import { useDebounce } from "@/hooks/useDebounce";
+import { useDepartmentLookup } from "@/hooks/useDepartmentLookup";
 import { useDesignationLookup } from "@/hooks/useDesignationLookup";
 import { useGuardedAction } from "@/pages/allocations/unsavedChanges/useUnsavedChanges";
 import { useUser } from "@/providers/user";
@@ -41,6 +40,7 @@ export function SubHeader() {
   const search = useAllocationsTeam(({ state }) => state.search);
   const duration = useAllocationsTeam(({ state }) => state.duration);
   const designation = useAllocationsTeam(({ state }) => state.designation);
+  const department = useAllocationsTeam(({ state }) => state.department);
   const allocationsType = useAllocationsTeam(
     ({ state }) => state.allocationsType,
   );
@@ -52,6 +52,9 @@ export function SubHeader() {
   const setDuration = useAllocationsTeam(({ actions }) => actions.setDuration);
   const setDesignation = useAllocationsTeam(
     ({ actions }) => actions.setDesignation,
+  );
+  const setDepartment = useAllocationsTeam(
+    ({ actions }) => actions.setDepartment,
   );
   const setAllocationsType = useAllocationsTeam(
     ({ actions }) => actions.setAllocationsType,
@@ -79,6 +82,7 @@ export function SubHeader() {
   const externalFilterCount =
     (search !== "" ? 1 : 0) +
     (designation.length > 0 ? 1 : 0) +
+    (department.length > 0 ? 1 : 0) +
     (duration !== DEFAULT_DURATION ? 1 : 0) +
     (allocationsType.length > 0 ? 1 : 0);
 
@@ -102,14 +106,31 @@ export function SubHeader() {
 
   const [searchInput, setSearchInput] = useState(search);
   const [designationQuery, setDesignationQuery] = useState("");
-  const [isDesignationOpen, setIsDesignationOpen] = useState(false);
+  const [departmentQuery, setDepartmentQuery] = useState("");
   const [isAllocationTypeOpen, setIsAllocationTypeOpen] = useState(false);
   const debouncedSearch = useDebounce(searchInput, 400);
+
+  const selectedDesignationOptions = useMemo(
+    () => designation.map((value) => ({ label: value, value })),
+    [designation],
+  );
+  const selectedDepartmentOptions = useMemo(
+    () => department.map((value) => ({ label: value, value })),
+    [department],
+  );
 
   const { options: designationOptions, isLoading: isDesignationLookupLoading } =
     useDesignationLookup({
       shouldFetch: showFilters,
       query: designationQuery,
+      selectedOption: selectedDesignationOptions,
+    });
+
+  const { options: departmentOptions, isLoading: isDepartmentLookupLoading } =
+    useDepartmentLookup({
+      shouldFetch: showFilters,
+      query: departmentQuery,
+      selectedOption: selectedDepartmentOptions,
     });
 
   useEffect(() => {
@@ -135,63 +156,56 @@ export function SubHeader() {
           value={searchInput}
         />
         {showFilters ? (
-          <Autocomplete
-            className="w-42"
-            bodyClasses="w-64"
-            listClassName="scrollbar-thin"
-            placeholder="Designation"
-            options={designationOptions}
-            multiple
-            value={designation}
-            open={isDesignationOpen}
-            searchValue={designationQuery}
-            keepSelectedVisible
-            loading={isDesignationLookupLoading}
-            onOpenChange={(value) => guard(() => setIsDesignationOpen(value))}
-            onSearchChange={setDesignationQuery}
-            onChange={(value) =>
-              guard(() =>
-                setDesignation(Array.isArray(value) ? value.map(String) : []),
-              )
-            }
-            renderFooter={({ clearAll, selectedOption }) => {
-              const hasSelectedDesignation = Array.isArray(selectedOption)
-                ? selectedOption.length > 0
-                : Boolean(selectedOption);
-              const hasActiveDesignationFilter =
-                hasSelectedDesignation || Boolean(designationQuery);
-
-              return (
-                <div className="flex items-center justify-end gap-2">
-                  <Button
-                    variant="subtle"
-                    label="Clear"
-                    className="justify-start"
-                    disabled={!hasActiveDesignationFilter}
-                    onClick={() => {
-                      clearAll();
-                      setDesignationQuery("");
-                      setIsDesignationOpen(false);
-                    }}
-                  />
-                </div>
-              );
-            }}
-          >
-            {({ displayValue }) => (
-              <Button
-                variant="subtle"
-                className="justify-between w-full"
-                iconRight={() => (
-                  <SmallDown className="size-4 shrink-0 text-ink-gray-8" />
+          <>
+            <div className="w-42">
+              <MultiSelect
+                options={designationOptions}
+                value={designation}
+                placeholder="Select designation"
+                triggerClassName="text-ink-gray-7"
+                popupClassName="w-64"
+                searchValue={designationQuery}
+                loading={isDesignationLookupLoading}
+                onSearchChange={setDesignationQuery}
+                onChange={(value) => guard(() => setDesignation(value))}
+                renderFooter={({ clearAll }) => (
+                  <div className="flex items-center justify-end gap-2">
+                    <Button
+                      variant="subtle"
+                      label="Clear"
+                      className="justify-start"
+                      disabled={!designation.length && !designationQuery}
+                      onClick={clearAll}
+                    />
+                  </div>
                 )}
-              >
-                <span className="truncate text-ink-gray-7">
-                  {displayValue || "Select designation"}
-                </span>
-              </Button>
-            )}
-          </Autocomplete>
+              />
+            </div>
+            <div className="w-42">
+              <MultiSelect
+                options={departmentOptions}
+                value={department}
+                placeholder="Select department"
+                triggerClassName="text-ink-gray-7"
+                popupClassName="w-64"
+                searchValue={departmentQuery}
+                loading={isDepartmentLookupLoading}
+                onSearchChange={setDepartmentQuery}
+                onChange={(value) => guard(() => setDepartment(value))}
+                renderFooter={({ clearAll }) => (
+                  <div className="flex items-center justify-end gap-2">
+                    <Button
+                      variant="subtle"
+                      label="Clear"
+                      className="justify-start"
+                      disabled={!department.length && !departmentQuery}
+                      onClick={clearAll}
+                    />
+                  </div>
+                )}
+              />
+            </div>
+          </>
         ) : null}
         <Select
           placeholder="Duration"
