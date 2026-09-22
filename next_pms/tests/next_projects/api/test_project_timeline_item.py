@@ -164,6 +164,21 @@ class TestProjectTimelineItemCategory(IntegrationTestCase):
         with self.assertRaises(frappe.ValidationError):
             edit_project_timeline_item(name, category="Follow-up - Touchpoint")
 
+    def test_get_returns_the_bare_category_label(self):
+        # The hover card shows this; the name carries a type suffix the user must not see.
+        self.create(category="Other - Milestone")
+        self.create(category="Invoice - Milestone")
+        labels = {item["category"]: item["category_label"] for item in get_project_timeline_items(self.project)["data"]}
+        self.assertEqual(labels["Other - Milestone"], "Other")
+        self.assertEqual(labels["Invoice - Milestone"], "Invoice")
+
+    def test_calendar_mode_returns_the_category_label(self):
+        self.create(category="Other - Milestone")
+        items = get_project_timeline_items(self.project, is_calendar=1)["data"]
+        self.assertTrue(items)
+        for item in items:
+            self.assertEqual(item["category_label"], "Other")
+
     def test_get_returns_category_and_is_internal(self):
         self.create(category="Invoice - Milestone", is_internal=1)
         items = get_project_timeline_items(self.project)["data"]

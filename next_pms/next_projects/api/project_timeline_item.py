@@ -70,6 +70,7 @@ def enrich_timeline_item(
         "project": item.get("project"),
         "type": item.get("type"),
         "category": item.get("category"),
+        "category_label": item.get("category_label"),
         "is_complete": cint(item.get("is_complete")),
         "is_internal": cint(item.get("is_internal")),
         "start_date": item.get("start_date"),
@@ -143,6 +144,7 @@ def get_project_timeline_items(
     is_calendar = bool(cint(is_calendar))
 
     PTI = frappe.qb.DocType("Project Timeline Item")
+    PTIC = frappe.qb.DocType("Project Timeline Item Category")
     query_base = frappe.qb.from_(PTI).where(PTI.project == project)
 
     if type:
@@ -159,7 +161,9 @@ def get_project_timeline_items(
         query_base = query_base.where(PTI.title.like(f"%{search}%"))
 
     items = (
-        query_base.select(*[PTI[field] for field in TIMELINE_ITEM_FIELDS])
+        query_base.left_join(PTIC)
+        .on(PTI.category == PTIC.name)
+        .select(*[PTI[field] for field in TIMELINE_ITEM_FIELDS], PTIC.category_name.as_("category_label"))
         .orderby(PTI.start_date)
         .orderby(PTI.planned_end_date)
         .offset(cint(start))
