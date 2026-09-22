@@ -22,6 +22,7 @@ import { getDefaultCurrency } from "@/lib/utils";
 import { useUser } from "@/providers/user";
 import { useProjectFilters } from "./useProjectFilters";
 import { PHASE_OPTIONS, RAG_OPTIONS, STATUS_OPTIONS } from "../../constants";
+import { IS_COLUMN_LAYOUT_ENABLED } from "../../list/columns/constants";
 import { ColumnsPanel } from "../../list/columns/panel";
 import { useColumnLayout } from "../../list/columns/useColumnLayout";
 import { Phase, type ProjectStatus, type RagStatus } from "../../types";
@@ -65,7 +66,8 @@ export function ProjectFilters() {
   const isKanban = activeView?.type.toLowerCase() === "custom";
   const isSavedView = savedViews.some((view) => view.name === activeView?.name);
   const columnLayout = useColumnLayout();
-  const isDirty = hasFilterChanges || columnLayout.isDirty;
+  const isDirty =
+    IS_COLUMN_LAYOUT_ENABLED && (hasFilterChanges || columnLayout.isDirty);
 
   const [searchInput, setSearchInput] = useState(search);
   const isUserInput = useRef(false);
@@ -172,7 +174,7 @@ export function ProjectFilters() {
         {isDirty && (
           <div className="h-7 w-px shrink-0 self-center bg-outline-gray-2" />
         )}
-        {!isKanban && <ColumnsPanel />}
+        {!isKanban && IS_COLUMN_LAYOUT_ENABLED && <ColumnsPanel />}
         {!isKanban && (
           <SortSelector
             sort={sort}
