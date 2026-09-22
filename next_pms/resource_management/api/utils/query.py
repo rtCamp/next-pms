@@ -14,6 +14,7 @@ def get_allocation_list_for_employee_for_given_range(
     end_date: str | datetime.date,
     is_billable: list | int | None = None,
     allocation_status: list | None = None,
+    is_ai_created: int | None = None,
 ) -> list[dict]:
     """Return Resource Allocation records for a list of employees or projects.
 
@@ -32,6 +33,7 @@ def get_allocation_list_for_employee_for_given_range(
             ``[]`` also skips the filter. Defaults to None.
         allocation_status (list | None): Status values to match, e.g. ``["Confirmed", "Tentative"]``.
             ``None`` or ``[]`` skips the filter. Defaults to None.
+        is_ai_created (int | None): AI-created filter (1 or 0). Defaults to None.
 
     Returns:
         ```py
@@ -78,6 +80,8 @@ def get_allocation_list_for_employee_for_given_range(
         query = query.where(ResourceAllocation.is_billable.isin(billable_values))
     if allocation_status:
         query = query.where(ResourceAllocation.status.isin(allocation_status))
+    if is_ai_created is not None:
+        query = query.where(ResourceAllocation.is_ai_created == is_ai_created)
 
     return query.run(as_dict=True)
 
@@ -87,6 +91,7 @@ def get_projects_with_allocations(
     end_date: str | datetime.date,
     is_billable: list | int | None = None,
     allocation_status: list | None = None,
+    is_ai_created: int | None = None,
 ) -> list[str]:
     """Return the distinct projects having at least one Resource Allocation in the window.
 
@@ -101,6 +106,7 @@ def get_projects_with_allocations(
             get_allocation_list_for_employee_for_given_range. Defaults to None.
         allocation_status (list | None): Status values to match. ``None`` or ``[]``
             skips the filter. Defaults to None.
+        is_ai_created (int | None): AI-created filter (1 or 0). Defaults to None.
 
     Returns:
         list[str]: Distinct project names with a matching allocation in the window.
@@ -120,13 +126,19 @@ def get_projects_with_allocations(
         query = query.where(ResourceAllocation.is_billable.isin(billable_values))
     if allocation_status:
         query = query.where(ResourceAllocation.status.isin(allocation_status))
+    if is_ai_created is not None:
+        query = query.where(ResourceAllocation.is_ai_created == is_ai_created)
 
     return query.run(pluck=True)
 
 
-def has_active_allocation_filter(is_billable: list | int | None, allocation_status: list | None) -> bool:
-    """Whether the caller requested an allocation-level filter (billable or status)."""
-    return bool(allocation_status) or bool(_normalize_is_billable_filter(is_billable))
+def has_active_allocation_filter(
+    is_billable: list | int | None,
+    allocation_status: list | None,
+    is_ai_created: int | None = None,
+) -> bool:
+    """Whether the caller requested an allocation-level filter (billable, status, or is_ai_created)."""
+    return bool(allocation_status) or bool(_normalize_is_billable_filter(is_billable)) or is_ai_created is not None
 
 
 def _normalize_is_billable_filter(is_billable: list | int | None) -> list[int]:
@@ -204,6 +216,7 @@ def get_remaining_allocation_hours_by_project(
     on_or_after: datetime.date,
     is_billable: list[int] | int | None = None,
     allocation_status: list[str] | None = None,
+    is_ai_created: int | None = None,
 ) -> dict[str, float]:
     """Return still-to-come allocated hours per project, keyed by project name.
 
@@ -237,6 +250,8 @@ def get_remaining_allocation_hours_by_project(
         query = query.where(ResourceAllocation.is_billable.isin(billable_values))
     if allocation_status:
         query = query.where(ResourceAllocation.status.isin(allocation_status))
+    if is_ai_created is not None:
+        query = query.where(ResourceAllocation.is_ai_created == is_ai_created)
 
     allocations = attach_extra_entries(query.run(as_dict=True))
 

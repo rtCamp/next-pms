@@ -10,6 +10,7 @@
   "employee_name",
   "status",
   "is_billable",
+  "is_ai_created",
   "recurrence_id",
   "column_break_wngn",
   "project",
@@ -135,6 +136,12 @@
    "fieldname": "is_billable",
    "fieldtype": "Check",
    "label": "Is Billable"
+  },
+  {
+   "default": "0",
+   "fieldname": "is_ai_created",
+   "fieldtype": "Check",
+   "label": "Is AI Created"
   },
   {
    "fetch_from": "project.project_name",

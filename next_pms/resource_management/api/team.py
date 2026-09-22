@@ -2,7 +2,7 @@ import json
 
 import frappe
 from frappe.core.doctype.recorder.recorder import redis_cache
-from frappe.utils import DATE_FORMAT, strip_html_tags
+from frappe.utils import DATE_FORMAT, cint, strip_html_tags
 
 from next_pms.resource_management.api.utils.helpers import (
     _parse_multi_select_filter,
@@ -47,6 +47,7 @@ def get_resource_management_team_view_data(
     need_hours_summary: bool = False,
     filters: str | list | None = None,
     no_allocation: bool = False,
+    is_ai_created: int | bool | str | None = None,
 ):
     """Get resource management team view data for the given filters and date range.
 
@@ -255,6 +256,7 @@ def get_resource_management_team_view_data(
         need_hours_summary,
         filters,
         no_allocation,
+        is_ai_created,
     )
 
 
@@ -277,12 +279,14 @@ def _get_resource_management_team_view_data(
     need_hours_summary: bool = False,
     filters: str | list | None = None,
     no_allocation: bool = False,
+    is_ai_created: int | bool | str | None = None,
 ):
     permissions = json.loads(permissions)
 
     if not permissions["write"]:
         is_billable = None
         allocation_status = None
+        is_ai_created = None
         no_allocation = False
         business_unit = None
         designation = None
@@ -303,6 +307,11 @@ def _get_resource_management_team_view_data(
         is_billable = frappe.parse_json(is_billable)
     if isinstance(allocation_status, str):
         allocation_status = frappe.parse_json(allocation_status)
+    if is_ai_created is not None:
+        if isinstance(is_ai_created, str):
+            is_ai_created = cint(is_ai_created)
+        else:
+            is_ai_created = 1 if is_ai_created else 0
 
     employee_conditions, skill_conditions, tag_conditions, filter_is_billable = normalize_team_view_filters(
         filters, allow_privileged=permissions["write"]
@@ -360,7 +369,7 @@ def _get_resource_management_team_view_data(
             employee_id = frappe.parse_json(employee_id)
         ids = employee_id
 
-    if is_billable or allocation_status or no_allocation:
+    if is_billable or allocation_status or no_allocation or is_ai_created is not None:
         # narrow `ids` to employees with matching allocations in the window before
         # paginating. Without this, the billable/status filter is applied after
         # pagination and page 1 can come back blank when the first N employees
@@ -377,6 +386,8 @@ def _get_resource_management_team_view_data(
             allocation_filters["is_billable"] = ["in", is_billable]
         if allocation_status:
             allocation_filters["status"] = ["in", allocation_status]
+        if is_ai_created is not None:
+            allocation_filters["is_ai_created"] = is_ai_created
 
         if no_allocation and (is_billable or allocation_status):
             # `no_allocation` is an independent leg of the allocation-type multi-select,
@@ -496,6 +507,7 @@ def _get_resource_management_team_view_data(
             "status",
             "recurrence_id",
             "include_weekends",
+            "is_ai_created",
         ],
         "employee",
         [employee.name for employee in employees],
@@ -503,6 +515,7 @@ def _get_resource_management_team_view_data(
         dates[-1].get("end_date"),
         is_billable=is_billable,
         allocation_status=allocation_status,
+        is_ai_created=is_ai_created,
     )
     resource_allocation_data = attach_extra_entries(resource_allocation_data)
     override_maps = {a["name"]: override_hours_by_date(a) for a in resource_allocation_data}
@@ -662,6 +675,7 @@ def _get_resource_management_team_view_data(
                                     "date": date,
                                     "total_worked_hours_resource_allocation": total_worked_hours_resource_allocation,
                                     "is_tentative": resource_allocation.get("status") == "Tentative",
+                                    "is_ai_created": cint(resource_allocation.get("is_ai_created")),
                                 }
                             )
 
