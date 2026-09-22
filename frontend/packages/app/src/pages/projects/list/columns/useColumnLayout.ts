@@ -54,6 +54,24 @@ function isDefaultOrder(order: string[]) {
   );
 }
 
+/**
+ * Maps a layout onto its search params, leaving a default layout unsaid.
+ */
+function toLayoutParams(next: { order?: string[]; pinned?: string[] }) {
+  const params: Record<string, string | null> = {};
+  if (next.order) {
+    params[COLUMN_PARAM_KEYS.columns] = isDefaultOrder(next.order)
+      ? null
+      : next.order.join(",");
+  }
+  if (next.pinned) {
+    params[COLUMN_PARAM_KEYS.pinnedColumns] = next.pinned.length
+      ? next.pinned.join(",")
+      : null;
+  }
+  return params;
+}
+
 export function useColumnLayout() {
   const [searchParams, setSearchParams] = useSearchParams();
   const activeView = useProjectViews((state) => state.state.activeView);
@@ -94,22 +112,11 @@ export function useColumnLayout() {
     (next: { order?: string[]; pinned?: string[] }) => {
       setSearchParams(
         (params) => {
-          // A default layout is left unsaid rather than spelled out.
-          if (next.order) {
-            if (isDefaultOrder(next.order)) {
-              params.delete(COLUMN_PARAM_KEYS.columns);
+          for (const [key, value] of Object.entries(toLayoutParams(next))) {
+            if (value) {
+              params.set(key, value);
             } else {
-              params.set(COLUMN_PARAM_KEYS.columns, next.order.join(","));
-            }
-          }
-          if (next.pinned) {
-            if (next.pinned.length === 0) {
-              params.delete(COLUMN_PARAM_KEYS.pinnedColumns);
-            } else {
-              params.set(
-                COLUMN_PARAM_KEYS.pinnedColumns,
-                next.pinned.join(","),
-              );
+              params.delete(key);
             }
           }
           return params;
@@ -183,6 +190,11 @@ export function useColumnLayout() {
     [writeLayout],
   );
 
+  const savedParams = useMemo(
+    () => toLayoutParams({ order: savedOrder, pinned: savedPinned }),
+    [savedOrder, savedPinned],
+  );
+
   /**
    * Reverts the column layout to the last saved state.
    */
@@ -218,11 +230,12 @@ export function useColumnLayout() {
       pinnedColumns.join(",") !== savedPinned.join(","),
     /** The layout as it is saved onto the view. */
     layout: { columns: baseOrder, pinnedColumns: pinnedColumns },
+    /** The saved layout as search params, to restore it in someone else's update. */
+    savedParams,
     reorderScrolling,
     reorderPinned,
     togglePinned,
     handleDragEnd,
-    revert,
     reset,
   };
 }

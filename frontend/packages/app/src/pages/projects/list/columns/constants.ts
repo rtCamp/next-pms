@@ -104,8 +104,6 @@ export const PROJECT_LIST_COLUMNS: ProjectListColumn[] = [
   },
 ];
 
-export const IS_COLUMN_LAYOUT_ENABLED = false;
-
 /**
  * Configuration for the column drag sensors used in the project list.
  */

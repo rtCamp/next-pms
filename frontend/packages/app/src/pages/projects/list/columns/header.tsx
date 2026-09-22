@@ -16,7 +16,6 @@ import {
 /**
  * Internal dependencies.
  */
-import { IS_COLUMN_LAYOUT_ENABLED } from "./constants";
 import { getColumnCellClasses, getSortableInput } from "./utils";
 import type { ProjectListColumn } from "../../types";
 
@@ -43,10 +42,9 @@ export function ColumnHeader({
 }: ColumnHeaderProps) {
   const isPinned = index < pinnedCount;
   const isSorted = sort.field === column.sortField;
-  const { ref, isDragging } = useSortable({
-    ...getSortableInput(column.key, index, pinnedCount),
-    disabled: !IS_COLUMN_LAYOUT_ENABLED,
-  });
+  const { ref, isDragging } = useSortable(
+    getSortableInput(column.key, index, pinnedCount),
+  );
 
   const label = (
     <>
@@ -90,7 +88,7 @@ export function ColumnHeader({
           : undefined
       }
       className={cn(
-        "group/header flex min-w-0 items-center gap-1 text-sm text-ink-gray-5",
+        "flex min-w-0 items-center gap-1 text-sm text-ink-gray-5",
         getColumnCellClasses({
           index,
           pinnedCount,
@@ -108,36 +106,34 @@ export function ColumnHeader({
       ) : (
         headerControl
       )}
-      {IS_COLUMN_LAYOUT_ENABLED && (
-        <Dropdown
-          side="bottom"
-          options={[
-            {
-              group: "",
-              key: "pin",
-              items: [
-                {
-                  label: isPinned ? "Unpin column" : "Pin column",
-                  icon: isPinned ? (
-                    <Unpin className="size-4 mr-2" />
-                  ) : (
-                    <Pin className="size-4 mr-2" />
-                  ),
-                  onClick: () => onTogglePinned(column.key),
-                },
-              ],
-            },
-          ]}
+      <Dropdown
+        side="bottom"
+        options={[
+          {
+            group: "",
+            key: "pin",
+            items: [
+              {
+                label: isPinned ? "Unpin column" : "Pin column",
+                icon: isPinned ? (
+                  <Unpin className="size-4 mr-2" />
+                ) : (
+                  <Pin className="size-4 mr-2" />
+                ),
+                onClick: () => onTogglePinned(column.key),
+              },
+            ],
+          },
+        ]}
+      >
+        <button
+          type="button"
+          aria-label={`${column.label} column options`}
+          className="shrink-0 rounded-sm p-0.5"
         >
-          <button
-            type="button"
-            aria-label={`${column.label} column options`}
-            className="shrink-0 rounded-sm p-0.5 opacity-0 focus-visible:opacity-100 group-hover/header:opacity-100"
-          >
-            <SmallDown className="size-3.5 text-ink-gray-6" />
-          </button>
-        </Dropdown>
-      )}
+          <SmallDown className="size-3.5 text-ink-gray-6" />
+        </button>
+      </Dropdown>
     </div>
   );
 }
