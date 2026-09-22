@@ -1,6 +1,8 @@
 # Copyright (c) 2026, rtCamp and Contributors
 # See license.txt
 
+import json
+
 import frappe
 from erpnext import get_default_company
 from frappe.tests import IntegrationTestCase
@@ -85,6 +87,13 @@ class IntegrationTestProjectTimelineItem(IntegrationTestCase):
     def test_unknown_category_is_rejected(self):
         with self.assertRaises(frappe.ValidationError):
             self.make_item("Milestone", category="No Such Category")
+
+    def test_category_picker_is_scoped_to_the_item_type(self):
+        link_filters = frappe.get_meta("Project Timeline Item").get_field("category").link_filters
+        self.assertEqual(
+            json.loads(link_filters),
+            [["Project Timeline Item Category", "applies_to", "=", "eval:doc.type"]],
+        )
 
     def test_is_internal_defaults_to_zero(self):
         self.assertEqual(self.make_item().is_internal, 0)
