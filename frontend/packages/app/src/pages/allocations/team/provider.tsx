@@ -38,6 +38,7 @@ import {
 } from "../utils";
 
 const DESIGNATION_PARAM_KEY = "designation";
+const DEPARTMENT_PARAM_KEY = "department";
 export function AllocationsTeamProvider({
   children,
 }: {
@@ -53,6 +54,10 @@ export function AllocationsTeamProvider({
   );
   const designation = useMemo(
     () => parseAllocationStringArray(searchParams.get(DESIGNATION_PARAM_KEY)),
+    [searchParams],
+  );
+  const department = useMemo(
+    () => parseAllocationStringArray(searchParams.get(DEPARTMENT_PARAM_KEY)),
     [searchParams],
   );
   const duration =
@@ -81,6 +86,7 @@ export function AllocationsTeamProvider({
   const weekCount = getWeekCountForDuration(duration);
 
   const debouncedDesignation = useDebounce(designation, 400);
+  const debouncedDepartment = useDebounce(department, 400);
 
   const {
     members,
@@ -95,6 +101,7 @@ export function AllocationsTeamProvider({
     weekCount,
     search: searchParam,
     designation: debouncedDesignation,
+    department: debouncedDepartment,
     allocationsType,
     compositeFilters,
     pageLength: ALLOCATIONS_PAGE_SIZE,
@@ -145,6 +152,16 @@ export function AllocationsTeamProvider({
     [updateSearchParams],
   );
 
+  const setDepartment = useCallback(
+    (value: string[]) =>
+      updateSearchParams({
+        [DEPARTMENT_PARAM_KEY]: value.length
+          ? JSON.stringify(value)
+          : undefined,
+      }),
+    [updateSearchParams],
+  );
+
   const setAllocationsType = useCallback(
     (value: string[]) => {
       const nextValue = value.filter((item) =>
@@ -175,6 +192,7 @@ export function AllocationsTeamProvider({
       updateSearchParams({
         [SEARCH_PARAM_KEY]: undefined,
         [DESIGNATION_PARAM_KEY]: undefined,
+        [DEPARTMENT_PARAM_KEY]: undefined,
         [DURATION_PARAM_KEY]: undefined,
         [ALLOCATION_TYPE_PARAM_KEY]: undefined,
         [COMPOSITE_FILTERS_PARAM_KEY]: undefined,
@@ -223,6 +241,7 @@ export function AllocationsTeamProvider({
         todayResetKey,
         search: searchParam,
         designation,
+        department,
         duration,
         allocationsType,
         compositeFilters,
@@ -233,6 +252,7 @@ export function AllocationsTeamProvider({
         setSearch,
         setDuration,
         setDesignation,
+        setDepartment,
         setAllocationsType,
         setCompositeFilters,
         handleClearAllFilters,
@@ -253,6 +273,7 @@ export function AllocationsTeamProvider({
       searchParam,
       duration,
       designation,
+      department,
       allocationsType,
       compositeFilters,
       weekCount,
@@ -260,6 +281,7 @@ export function AllocationsTeamProvider({
       setSearch,
       setDuration,
       setDesignation,
+      setDepartment,
       setAllocationsType,
       setCompositeFilters,
       handleClearAllFilters,

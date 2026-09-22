@@ -299,7 +299,10 @@ doc_events = {
         ],
     },
     "Risk": {
-        "on_update": "next_pms.next_pms.notifications.risk_on_update",
+        "on_update": [
+            "next_pms.next_pms.notifications.risk_on_update",
+            "next_pms.next_pms.notifications.risk_owner_on_update",
+        ],
     },
     "Customer Feedback": {
         "on_submit": "next_pms.next_pms.notifications.customer_feedback_on_submit",

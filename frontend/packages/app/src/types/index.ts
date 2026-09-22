@@ -112,7 +112,7 @@ export interface View {
   dt: string;
   type: "List" | "Custom";
   route?: string;
-  columns: unknown[];
+  columns: string[];
   rows: string[];
   filters: Record<string, unknown>;
   order_by: unknown[];

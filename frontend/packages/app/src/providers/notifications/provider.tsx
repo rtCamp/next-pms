@@ -1,10 +1,22 @@
 /**
  * External dependencies.
  */
-import { FC, PropsWithChildren, useCallback, useMemo, useState } from "react";
+import {
+  FC,
+  PropsWithChildren,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import type { NotificationEntry } from "@next-pms/design-system/components";
 import { formatDistanceToNow, parseISO } from "date-fns";
-import { useFrappeGetDocList, useFrappeUpdateDoc } from "frappe-react-sdk";
+import {
+  FrappeContext,
+  useFrappeGetDocList,
+  useFrappeUpdateDoc,
+} from "frappe-react-sdk";
 
 /**
  * Internal dependencies.
@@ -50,6 +62,20 @@ export const NotificationsProvider: FC<PropsWithChildren> = ({ children }) => {
     },
     userId ? undefined : null,
   );
+
+  const { socket } = useContext(FrappeContext) ?? {};
+
+  useEffect(() => {
+    if (!socket) return;
+    const handleReportReady = () => {
+      mutate();
+    };
+
+    socket.on("pm_report_ready", handleReportReady);
+    return () => {
+      socket.off("pm_report_ready", handleReportReady);
+    };
+  }, [socket, mutate]);
 
   const notifications = useMemo<NotificationEntry[]>(() => {
     if (!data?.length) return [];

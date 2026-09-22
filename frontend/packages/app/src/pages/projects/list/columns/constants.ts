@@ -1,4 +1,21 @@
-import type { ProjectListColumn } from "../types";
+/**
+ * External dependencies.
+ */
+import type { Plugins } from "@dnd-kit/abstract";
+import {
+  RestrictToHorizontalAxis,
+  RestrictToVerticalAxis,
+} from "@dnd-kit/abstract/modifiers";
+import {
+  Feedback,
+  PointerActivationConstraints,
+  PointerSensor,
+} from "@dnd-kit/dom";
+
+/**
+ * Internal dependencies.
+ */
+import type { ProjectListColumn } from "../../types";
 
 export const PROJECT_LIST_COLUMNS: ProjectListColumn[] = [
   {
@@ -85,4 +102,36 @@ export const PROJECT_LIST_COLUMNS: ProjectListColumn[] = [
     width: "160px",
     sortField: "contract_end_date",
   },
+];
+
+export const IS_COLUMN_LAYOUT_ENABLED = false;
+
+/**
+ * Configuration for the column drag sensors used in the project list.
+ */
+export const COLUMN_DRAG_SENSORS = [
+  PointerSensor.configure({
+    activationConstraints: [
+      new PointerActivationConstraints.Distance({ value: 6 }),
+    ],
+    preventActivation: () => false,
+  }),
+];
+
+/**
+ * Search params the list keeps its column layout in, mirroring the fields the
+ * view is saved with.
+ */
+export const COLUMN_PARAM_KEYS = {
+  columns: "columnOrder",
+  pinnedColumns: "pinned",
+} as const;
+
+export const COLUMN_DRAG_MODIFIERS = [RestrictToHorizontalAxis];
+
+export const PANEL_DRAG_MODIFIERS = [RestrictToVerticalAxis];
+
+export const COLUMN_DRAG_PLUGINS = (defaults: Plugins) => [
+  ...defaults,
+  Feedback.configure({ dropAnimation: null }),
 ];
