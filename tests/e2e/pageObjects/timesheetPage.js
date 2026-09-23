@@ -59,11 +59,9 @@ export class TimesheetPage {
     // opens from a timesheet cell (duration + comment only).
     this.addTimeModal = page.getByRole("dialog");
     this.editTimeModal = page.getByRole("dialog");
-    this.submitTimesheetModal = page
-      .getByRole("dialog")
-      .filter({
-        has: page.getByRole("heading", { name: "Submit for approval" }),
-      });
+    this.submitTimesheetModal = page.getByRole("dialog").filter({
+      has: page.getByRole("heading", { name: "Submit for approval" }),
+    });
 
     this.addHours = (timeEntryCount) =>
       page.locator(`//input[@name="${timeEntryCount}"]`);

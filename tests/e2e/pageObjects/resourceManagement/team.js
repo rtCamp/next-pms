@@ -43,11 +43,9 @@ export class TeamPage extends TimelinePage {
       .getByRole("button", { name: /^View .* details$/ });
     // The grid has no ARIA roles, so anchor a member's row on that control.
     this.memberRow = (employeeName) =>
-      page
-        .locator("table tr")
-        .filter({
-          has: page.locator(`[aria-label="View ${employeeName} details"]`),
-        });
+      page.locator("table tr").filter({
+        has: page.locator(`[aria-label="View ${employeeName} details"]`),
+      });
     this.leftSidebar = page.getByText(
       "Next PMSHomeTimesheetTeamProjectTaskResource",
     );
