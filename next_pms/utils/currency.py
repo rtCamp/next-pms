@@ -18,15 +18,15 @@ def require_exchange_rate(from_currency: str, to_currency: str, transaction_date
         return 1.0
     rate = get_exchange_rate(from_currency, to_currency, transaction_date)
     if not rate:
-        frappe.throw(
-            _(
-                "No exchange rate found from {0} to {1}{2}. Create a Currency Exchange record "
+        if transaction_date:
+            message = _(
+                "No exchange rate found from {0} to {1} as at {2}. Create a Currency Exchange record "
                 "or enable the currency exchange rate service."
-            ).format(
-                from_currency,
-                to_currency,
-                _(" as at {0}").format(transaction_date) if transaction_date else "",
-            ),
-            title=_("Missing Exchange Rate"),
-        )
+            ).format(from_currency, to_currency, transaction_date)
+        else:
+            message = _(
+                "No exchange rate found from {0} to {1}. Create a Currency Exchange record "
+                "or enable the currency exchange rate service."
+            ).format(from_currency, to_currency)
+        frappe.throw(message, title=_("Missing Exchange Rate"))
     return rate

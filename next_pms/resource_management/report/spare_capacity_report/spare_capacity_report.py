@@ -120,7 +120,7 @@ def get_data(filters=None, has_bu_field=False):
     # Pre-fetch exchange rates for all currencies
     from next_pms.utils.currency import require_exchange_rate
 
-    currencies = {e.currency for e in employees if e.get("currency") and e.currency != currency}
+    currencies = {e.currency for e in employees if e.get("currency") and e.get("ctc") and e.currency != currency}
     exchange_rates = {currency: 1}  # Base currency
     for curr in currencies:
         exchange_rates[curr] = require_exchange_rate(curr, currency)
