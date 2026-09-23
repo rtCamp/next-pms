@@ -52,12 +52,14 @@ function AddAllocationModal({
   onEditScheduleClick,
   initialValues,
   onSuccess,
+  onDelete,
 }: AddAllocationModalProps) {
   const toast = useToasts();
   const weekendEntriesAllowed: boolean = isWeekendEntryAllowed();
   const [employeeSearch, setEmployeeSearch] = useState("");
   const [projectSearch, setProjectSearch] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [employeeSelectionCache, setEmployeeSelectionCache] = useState<{
     id: string;
     label: string;
@@ -96,6 +98,7 @@ function AddAllocationModal({
     delete initialFormValues.employeeLabel;
     delete initialFormValues.projectLabel;
     delete initialFormValues.customerLabel;
+    delete initialFormValues.isAiCreated;
 
     return {
       ...addAllocationDefaultValues,
@@ -133,6 +136,7 @@ function AddAllocationModal({
             total_allocated_hours: totalAllocatedHours,
             is_billable: Number(value.isBillable),
             status: value.isTentative ? "Tentative" : "Confirmed",
+            ...(initialValues?.isAiCreated ? { is_ai_created: 0 } : {}),
             note: value.note ?? "",
             include_weekends: value.includeWeekends,
           },
@@ -154,9 +158,11 @@ function AddAllocationModal({
         }
 
         toast.success(
-          variant === "edit"
-            ? "Allocation updated successfully"
-            : "Allocation created successfully",
+          initialValues?.isAiCreated
+            ? "Allocation approved successfully"
+            : variant === "edit"
+              ? "Allocation updated successfully"
+              : "Allocation created successfully",
         );
 
         closeModal();
@@ -593,9 +599,20 @@ function AddAllocationModal({
       }}
       options={{
         title: () => (
-          <span className="text-lg font-medium text-ink-gray-7">
-            {variant === "add" ? "Add allocation" : "Edit allocation"}
-          </span>
+          <div className="flex flex-col gap-0.5">
+            <span className="text-lg font-medium text-ink-gray-7">
+              {initialValues?.isAiCreated
+                ? "Approve / Edit Allocation"
+                : variant === "add"
+                  ? "Add allocation"
+                  : "Edit allocation"}
+            </span>
+            {initialValues?.isAiCreated && (
+              <span className="text-sm font-normal text-ink-gray-5">
+                This allocation was created by Ai
+              </span>
+            )}
+          </div>
         ),
       }}
       actions={
@@ -614,13 +631,43 @@ function AddAllocationModal({
             )}
           />
           <div className="flex items-center justify-end w-full gap-2">
-            <Button variant="ghost" label="Cancel" onClick={closeModal} />
+            {initialValues?.isAiCreated && onDelete ? (
+              <Button
+                variant="ghost"
+                label="Delete"
+                onClick={async () => {
+                  setDeleting(true);
+                  try {
+                    await onDelete();
+                    closeModal();
+                  } finally {
+                    setDeleting(false);
+                  }
+                }}
+                disabled={submitting || deleting}
+                loading={deleting}
+              />
+            ) : (
+              <Button
+                variant="ghost"
+                label="Cancel"
+                onClick={closeModal}
+                disabled={submitting || deleting}
+              />
+            )}
             <Button
               variant="solid"
-              label={variant === "add" ? "Allocate" : "Save Changes"}
+              label={
+                initialValues?.isAiCreated
+                  ? "Approve"
+                  : variant === "add"
+                    ? "Allocate"
+                    : "Save Changes"
+              }
               onClick={() => form.handleSubmit()}
               disabled={
                 submitting ||
+                deleting ||
                 isLockedAllocationMetadataEdit ||
                 isProjectEmployeeMismatch
               }

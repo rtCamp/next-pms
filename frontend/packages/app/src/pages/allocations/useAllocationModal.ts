@@ -89,7 +89,8 @@ export function useAllocationModal(refresh: RefreshAllocations) {
           ? data.allocationHoursPerDay
           : data.hoursPerDay,
       isBillable: data.billable,
-      isTentative: data.tentative,
+      isTentative: data.isAiCreated ? false : data.tentative,
+      isAiCreated: data.isAiCreated,
       includeWeekends: Boolean(data.includeWeekends),
       note: data.note,
       allocationStartDate: data.allocationStartDate
@@ -180,7 +181,21 @@ export function useAllocationModal(refresh: RefreshAllocations) {
       open: isOpen,
       onOpenChange: handleOpenChange,
       initialValues,
-      onSuccess: handleSuccess,
+      onDelete: initialValues?.allocationName
+        ? async () => {
+            await handleDelete(
+              {
+                allocationId: initialValues.allocationName,
+                employeeId: initialValues.employeeId,
+                projectId: initialValues.projectId,
+              },
+              "only_this",
+            );
+            setIsOpen(false);
+            setInitialValues(undefined);
+            setVariant("add");
+          }
+        : undefined,
       onEditScheduleClick: () => {
         setIsOpen(false);
         setEditScheduleInitialValues({
@@ -210,7 +225,14 @@ export function useAllocationModal(refresh: RefreshAllocations) {
         setIsEditScheduleOpen(true);
       },
     }),
-    [variant, isOpen, handleOpenChange, initialValues, handleSuccess],
+    [
+      variant,
+      isOpen,
+      handleOpenChange,
+      initialValues,
+      handleSuccess,
+      handleDelete,
+    ],
   );
 
   const handleEditScheduleSuccess = useCallback(
