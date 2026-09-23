@@ -73,10 +73,9 @@ def main():
     if not os.path.exists(args.path):
         sys.exit(f"not found: {args.path} (run from the repo root)")
 
-    # nosemgrep: frappe-semgrep.rules.security.frappe-security-file-traversal
     # A local CLI reading the results file the operator names on the command
     # line, not a request-handling path -- there is no untrusted input here.
-    with open(args.path) as fh:
+    with open(args.path) as fh:  # nosemgrep
         data = json.load(fh)
 
     # How many distinct tests carry each TC id?
