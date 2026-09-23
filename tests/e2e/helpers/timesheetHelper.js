@@ -1,6 +1,10 @@
 import path from "path";
 import fs from "fs";
-import { getWeekdayName, getFormattedDate, getDateForWeekday } from "../utils/dateUtils";
+import {
+  getWeekdayName,
+  getFormattedDate,
+  getDateForWeekday,
+} from "../utils/dateUtils";
 import {
   createTimesheet,
   getTimesheetDetails,
@@ -21,7 +25,12 @@ import {
   getProjectDetails,
   getViewsByLabel,
 } from "../utils/api/projectRequests";
-import { createTask, deleteTask, likeTask, updateTask } from "../utils/api/taskRequests";
+import {
+  createTask,
+  deleteTask,
+  likeTask,
+  updateTask,
+} from "../utils/api/taskRequests";
 import { getExchangeRate } from "../utils/api/erpNextRequests";
 import { getEmployeeDetails } from "../utils/api/employeeRequests";
 import { filterApi, shareProjectWithUser } from "../utils/api/frappeRequests";
@@ -52,7 +61,10 @@ const emp2ID = process.env.EMP2_ID;
 const emp3ID = process.env.EMP3_ID;
 
 // Define file paths for shared JSON data files
-const TASK_TRACKER_PATH = path.resolve(__dirname, "../data/manager/tasks-to-delete.json");
+const TASK_TRACKER_PATH = path.resolve(
+  __dirname,
+  "../data/manager/tasks-to-delete.json",
+);
 
 // ------------------------------------------------------------------------------------------
 
@@ -83,7 +95,9 @@ export async function updateTimeEntries(testCaseIDs = [], jsonDir) {
       let employeeID;
       if (["TC2", "TC3"].includes(testCaseID)) {
         employeeID = emp2ID;
-      } else if (["TC5", "TC6", "TC7", "TC74", "TC92", "TC60"].includes(testCaseID)) {
+      } else if (
+        ["TC5", "TC6", "TC7", "TC74", "TC92", "TC60"].includes(testCaseID)
+      ) {
         employeeID = emp3ID;
       } else {
         employeeID = empID;
@@ -185,7 +199,9 @@ export async function createTimeEntries(testCaseIDs = [], jsonDir) {
   }
 
   // A test can seed several timesheet payloads (see TC93).
-  const keys = Object.keys(entry).filter((k) => k.startsWith("payloadCreateTimesheet"));
+  const keys = Object.keys(entry).filter((k) =>
+    k.startsWith("payloadCreateTimesheet"),
+  );
   if (keys.length === 0) {
     console.warn(`⚠️ No payloadCreateTimesheet found for TC ${tcId}`);
     return;
@@ -195,7 +211,9 @@ export async function createTimeEntries(testCaseIDs = [], jsonDir) {
     const payload = entry[key];
     if (!payload) continue;
     await createTimesheet(payload);
-    console.log(`✅ Timesheet created for ${tcId} -> ${key} (${payload.employee} on ${payload.date})`);
+    console.log(
+      `✅ Timesheet created for ${tcId} -> ${key} (${payload.employee} on ${payload.date})`,
+    );
   }
 }
 // ------------------------------------------------------------------------------------------
@@ -250,7 +268,9 @@ export const deleteTimeEntries = async (testCaseIDs = [], jsonDir) => {
 
     // any special-case logging you still want
     if (entry.project_name === "TC02 Project") {
-      console.warn(`RESPONSE OF DELETE TIMESHEET FOR TC02: ${entry.project_name}`);
+      console.warn(
+        `RESPONSE OF DELETE TIMESHEET FOR TC02: ${entry.project_name}`,
+      );
     }
   }
 };
@@ -262,10 +282,15 @@ export const deleteTimeEntries = async (testCaseIDs = [], jsonDir) => {
  * Optional params: start_date, max_week.
  */
 export const filterTimesheetEntry = async (opts) => {
-  const { subject, description, project_name, from_time, employee, max_week } = opts;
+  const { subject, description, project_name, from_time, employee, max_week } =
+    opts;
 
   // fetch & unwrap…
-  const res = await getTimesheetDetails({ employee, start_date: from_time, max_week });
+  const res = await getTimesheetDetails({
+    employee,
+    start_date: from_time,
+    max_week,
+  });
   const json = res && typeof res.json === "function" ? await res.json() : res;
   const data = json.message.data;
   ////console.log("\nGAP BETWEEN DATA\n");
@@ -320,7 +345,9 @@ export const createProjectForTestCases = async (testCaseIDs, jsonDir) => {
   }
 
   // 1. Find all keys starting with 'payloadCreateProject'
-  const createProjectKeys = Object.keys(entry).filter((key) => PROJECT_KEY_REGEX.test(key));
+  const createProjectKeys = Object.keys(entry).filter((key) =>
+    PROJECT_KEY_REGEX.test(key),
+  );
   if (createProjectKeys.length === 0) {
     console.warn(`⚠️ No payloadCreateProject key for ${tcId}`);
     return;
@@ -340,7 +367,9 @@ export const createProjectForTestCases = async (testCaseIDs, jsonDir) => {
     // Create project
     const res = await createProject(projectPayload);
     if (!res?.data?.name) {
-      console.error(`Failed to create project for ${tcId} (${projectKey}) as there is no data.name`);
+      console.error(
+        `Failed to create project for ${tcId} (${projectKey}) as there is no data.name`,
+      );
       continue;
     }
     const projectId = res.data.name;
@@ -350,7 +379,10 @@ export const createProjectForTestCases = async (testCaseIDs, jsonDir) => {
 
     // Share project, if needed (with the same pattern logic)
     // e.g., payloadShareProject1, payloadShareProjectABC, etc.
-    const shareKey = projectKey.replace("payloadCreateProject", "payloadShareProject");
+    const shareKey = projectKey.replace(
+      "payloadCreateProject",
+      "payloadShareProject",
+    );
     if (Array.isArray(entry[shareKey])) {
       for (const sharePayload of entry[shareKey]) {
         await shareProjectWithUser({ ...sharePayload, name: projectId });
@@ -385,7 +417,9 @@ export const createProjectForTestCases = async (testCaseIDs, jsonDir) => {
       });
     }
 
-    console.log(`✅ CREATE PROJECT SUCCESS for ${tcId} -> ${projectKey} (projectId=${projectId})`);
+    console.log(
+      `✅ CREATE PROJECT SUCCESS for ${tcId} -> ${projectKey} (projectId=${projectId})`,
+    );
   }
 
   // Write back updated stub
@@ -418,7 +452,9 @@ export const deleteProjects = async (testCaseIDs = [], jsonDir) => {
   }
 
   // Find all payloadDeleteProject keys (e.g., payloadDeleteProject, payloadDeleteProject2, ...)
-  const projectDeleteKeys = Object.keys(entry).filter((key) => key.startsWith("payloadDeleteProject"));
+  const projectDeleteKeys = Object.keys(entry).filter((key) =>
+    key.startsWith("payloadDeleteProject"),
+  );
   if (projectDeleteKeys.length === 0) {
     console.warn(`⚠️ No payloadDeleteProject key(s) found for TC ${tcId}`);
     return;
@@ -431,7 +467,8 @@ export const deleteProjects = async (testCaseIDs = [], jsonDir) => {
       continue;
     }
     const { deleted, reason } = await deleteProject(projId);
-    if (!deleted) console.warn(`⚠️ [${tcId}] project ${projId} survived: ${reason}`);
+    if (!deleted)
+      console.warn(`⚠️ [${tcId}] project ${projId} survived: ${reason}`);
   }
 };
 
@@ -492,7 +529,10 @@ export const createTaskForTestCases = async (testCaseIDs, jsonDir) => {
   Object.keys(entry)
     .filter((k) => k.startsWith("payloadCreateTimesheet"))
     .forEach((k) => {
-      if (!entry[k].task || String(entry[k].task).startsWith("filled-automatically")) {
+      if (
+        !entry[k].task ||
+        String(entry[k].task).startsWith("filled-automatically")
+      ) {
         entry[k].task = taskID;
       }
     });
@@ -524,15 +564,22 @@ export const deleteByTaskName = async () => {
     for (const taskName of tasksToBeDeleted) {
       // Every match, not just the first: a failed cleanup leaves another row
       // with the same subject, and `values[0]` only ever reached one of them.
-      const rows = await getDocList("Task", [["subject", "=", taskName]], { fields: ["name"] });
+      const rows = await getDocList("Task", [["subject", "=", taskName]], {
+        fields: ["name"],
+      });
       if (rows.length === 0) {
-        console.log(`Task "${taskName}" not found in system to delete. Skipping...`);
+        console.log(
+          `Task "${taskName}" not found in system to delete. Skipping...`,
+        );
         continue;
       }
       for (const row of rows) {
-        const { deleted } = await deleteWithLockRetry(() => deleteDocument("Task", row.name), {
-          label: `Task ${row.name}`,
-        });
+        const { deleted } = await deleteWithLockRetry(
+          () => deleteDocument("Task", row.name),
+          {
+            label: `Task ${row.name}`,
+          },
+        );
         if (deleted) console.log(`🗑  Deleted task ${row.name} ("${taskName}")`);
       }
     }
@@ -572,9 +619,12 @@ export const deleteTasks = async (testCaseIDs, jsonDir) => {
       const { deleted, reason } = adminCases.has(tcId)
         ? await deleteTask(taskID, "admin")
         : await deleteTask(taskID);
-      if (!deleted) console.warn(`⚠️ [${tcId}] task ${taskID} survived: ${reason}`);
+      if (!deleted)
+        console.warn(`⚠️ [${tcId}] task ${taskID} survived: ${reason}`);
     } catch (err) {
-      console.error(`❌ [${tcId}] Failed to delete task ${taskID}: ${err.message}`);
+      console.error(
+        `❌ [${tcId}] Failed to delete task ${taskID}: ${err.message}`,
+      );
     }
   }
 };
@@ -607,7 +657,10 @@ export const calculateHourlyBilling = async (testCaseIDs = [], jsonDir) => {
 
     let hourly_billing_rate;
     if (employee_currency !== ratePayload.custom_currency_for_project) {
-      const convertRes = await getExchangeRate(employee_currency, ratePayload.custom_currency_for_project);
+      const convertRes = await getExchangeRate(
+        employee_currency,
+        ratePayload.custom_currency_for_project,
+      );
 
       const convertedCTC = convertRes.message * employee_CTC;
       hourly_billing_rate = convertedCTC / 12 / 160;
@@ -625,7 +678,11 @@ export const calculateHourlyBilling = async (testCaseIDs = [], jsonDir) => {
     // immediately, while the Project still reads 0 and is correct a moment
     // later. Poll until it lands.
     let projRes = await getProjectDetails(ratePayload.project);
-    for (let attempt = 0; attempt < 8 && !projRes?.data?.total_costing_amount; attempt++) {
+    for (
+      let attempt = 0;
+      attempt < 8 && !projRes?.data?.total_costing_amount;
+      attempt++
+    ) {
       await new Promise((resolve) => setTimeout(resolve, 1000));
       projRes = await getProjectDetails(ratePayload.project);
     }
@@ -633,7 +690,7 @@ export const calculateHourlyBilling = async (testCaseIDs = [], jsonDir) => {
     if (!projRes?.data?.total_costing_amount) {
       console.warn(
         `⚠️ ${tcId}: project ${ratePayload.project} still reports no costing after waiting - ` +
-          `billing assertions for this test will compare against 0.`
+          `billing assertions for this test will compare against 0.`,
       );
     }
 
@@ -666,7 +723,7 @@ export const cleanUpProjects = async (data) => {
 
     // Find all project creation keys
     const createProjectKeys = Object.keys(tc).filter(
-      (k) => k.startsWith("payloadCreateProject") || k === "createProjectByUI"
+      (k) => k.startsWith("payloadCreateProject") || k === "createProjectByUI",
     );
 
     for (const projectKey of createProjectKeys) {
@@ -676,7 +733,9 @@ export const cleanUpProjects = async (data) => {
       const projectName = projectPayload.project_name;
 
       // Get Project ID by project_name
-      const projectRes = await filterApi("Project", [["Project", "project_name", "=", projectName]]);
+      const projectRes = await filterApi("Project", [
+        ["Project", "project_name", "=", projectName],
+      ]);
       looked += 1;
       // reportview answers `{message: []}` when nothing matches and
       // `{message: {keys, values}}` when something does, so the presence of
@@ -687,24 +746,39 @@ export const cleanUpProjects = async (data) => {
       if (!projectId) continue;
       found += 1;
 
-      console.warn(`\nObtained ProjectId value for ${key} -> ${projectKey} is: ${projectId}`);
+      console.warn(
+        `\nObtained ProjectId value for ${key} -> ${projectKey} is: ${projectId}`,
+      );
 
       // Get Task IDs for this projectId
-      const taskRes = await filterApi("Task", [["Task", "project", "=", projectId]]);
-      const taskIds = Array.isArray(taskRes?.message?.values) ? taskRes.message.values.map((v) => v[0]) : [];
+      const taskRes = await filterApi("Task", [
+        ["Task", "project", "=", projectId],
+      ]);
+      const taskIds = Array.isArray(taskRes?.message?.values)
+        ? taskRes.message.values.map((v) => v[0])
+        : [];
 
       if (taskIds.length) {
         console.warn(`OBTAINED TASKS for ${key} -> ${projectKey}:`, taskIds);
       }
 
       // Get Timesheet IDs for this projectId
-      const timesheetRes = await filterApi("Timesheet", [["Timesheet", "parent_project", "=", projectId]], "admin");
+      const timesheetRes = await filterApi(
+        "Timesheet",
+        [["Timesheet", "parent_project", "=", projectId]],
+        "admin",
+      );
       const timesheetIds = Array.isArray(timesheetRes?.message?.values)
-        ? timesheetRes.message.values.flat().filter((v) => typeof v === "string")
+        ? timesheetRes.message.values
+            .flat()
+            .filter((v) => typeof v === "string")
         : [];
 
       if (timesheetIds.length) {
-        console.warn(`OBTAINED TIMESHEET IDS FOR ${key} -> ${projectKey}:`, timesheetIds);
+        console.warn(
+          `OBTAINED TIMESHEET IDS FOR ${key} -> ${projectKey}:`,
+          timesheetIds,
+        );
       }
 
       // Get Resource Allocation IDs for this projectId
@@ -722,12 +796,17 @@ export const cleanUpProjects = async (data) => {
       ) {
         const nameIndex = allocationRes.message.keys.indexOf("name");
         if (nameIndex >= 0) {
-          allocationIds = allocationRes.message.values.map((row) => row[nameIndex]);
+          allocationIds = allocationRes.message.values.map(
+            (row) => row[nameIndex],
+          );
         }
       }
 
       if (allocationIds.length) {
-        console.warn(`OBTAINED ALLOCATION IDS FOR ${key} -> ${projectKey}:`, allocationIds);
+        console.warn(
+          `OBTAINED ALLOCATION IDS FOR ${key} -> ${projectKey}:`,
+          allocationIds,
+        );
       }
 
       // Collect deletion info
@@ -751,7 +830,10 @@ export const cleanUpProjects = async (data) => {
           if (!deleted) failures.push(`Timesheet ${timesheetId}`);
         } catch (err) {
           failures.push(`Timesheet ${timesheetId}`);
-          console.error(`Failed to delete timesheet ${timesheetId}:`, err.message);
+          console.error(
+            `Failed to delete timesheet ${timesheetId}:`,
+            err.message,
+          );
         }
       }
 
@@ -777,7 +859,10 @@ export const cleanUpProjects = async (data) => {
           if (!deleted) failures.push(`Resource Allocation ${allocationId}`);
         } catch (err) {
           failures.push(`Resource Allocation ${allocationId}`);
-          console.error(`Failed to delete resource allocation ${allocationId}:`, err.message);
+          console.error(
+            `Failed to delete resource allocation ${allocationId}:`,
+            err.message,
+          );
         }
       }
 
@@ -798,17 +883,17 @@ export const cleanUpProjects = async (data) => {
     console.error(
       `\n❌ Teardown looked up ${looked} seeded project(s) and not one lookup came back. That is the API failing, ` +
         `not a clean slate - check the site is up (a deploy answers every request with 503) and re-run teardown. ` +
-        `Seeded data is still on staging.`
+        `Seeded data is still on staging.`,
     );
   } else if (failures.length) {
     console.warn(
-      `\n⚠️  Teardown could not delete ${failures.length} record(s) - they will be swept by the next run's setup:`
+      `\n⚠️  Teardown could not delete ${failures.length} record(s) - they will be swept by the next run's setup:`,
     );
     for (const f of failures) console.warn(`    - ${f}`);
   } else {
     console.log(
       `\n✅ Teardown deleted all ${deletedData.length} seeded project(s) and their child records ` +
-        `(${found} of ${looked} lookups matched; the rest were already gone).`
+        `(${found} of ${looked} lookups matched; the rest were already gone).`,
     );
   }
 
@@ -828,7 +913,7 @@ export const deleteLeaveOfEmployee = async () => {
       ["Leave Application", "employee", "=", `${emp2ID}`],
       ["Leave Application", "status", "=", "Open"],
     ],
-    "admin"
+    "admin",
   );
 
   //Delete leave if leave ID is found in the filter request
@@ -858,11 +943,16 @@ export const deleteViewsForTestCases = async (testCaseIDs = [], jsonDir) => {
     }
     if (!entry) continue;
 
-    for (const key of Object.keys(entry).filter((k) => k.startsWith("payloadDeleteView"))) {
+    for (const key of Object.keys(entry).filter((k) =>
+      k.startsWith("payloadDeleteView"),
+    )) {
       const { viewId, seeded } = entry[key] ?? {};
       if (!viewId || !seeded) continue;
 
-      const { deleted } = await deleteDocument("PMS View Setting", String(viewId));
+      const { deleted } = await deleteDocument(
+        "PMS View Setting",
+        String(viewId),
+      );
       if (deleted) console.log(`🗑  Deleted view ${viewId} for ${tcId}`);
     }
   }
@@ -880,14 +970,18 @@ export const deleteViewsForTestCases = async (testCaseIDs = [], jsonDir) => {
 export const writeRunMarker = async (jsonDir) => {
   let startedAt = null;
   try {
-    const doc = await createDocument("ToDo", { description: "next-pms e2e run marker" });
+    const doc = await createDocument("ToDo", {
+      description: "next-pms e2e run marker",
+    });
     startedAt = doc?.creation ?? null;
     if (doc?.name) await deleteDocument("ToDo", doc.name);
   } catch (err) {
     console.warn(`⚠️ Could not establish a run marker: ${err.message}`);
   }
   await writeDataToFile(path.join(jsonDir, "_run-meta.json"), { startedAt });
-  console.log(`🕒 Run marker: ${startedAt ?? "none - teardown will skip the timesheet sweep"}`);
+  console.log(
+    `🕒 Run marker: ${startedAt ?? "none - teardown will skip the timesheet sweep"}`,
+  );
 };
 
 // ------------------------------------------------------------------------------------------
@@ -905,16 +999,23 @@ export const writeRunMarker = async (jsonDir) => {
 export const deleteTimesheetsCreatedThisRun = async (jsonDir) => {
   let startedAt;
   try {
-    startedAt = (await readJSONFile(path.join(jsonDir, "_run-meta.json")))?.startedAt;
+    startedAt = (await readJSONFile(path.join(jsonDir, "_run-meta.json")))
+      ?.startedAt;
   } catch {
     startedAt = null;
   }
   if (!startedAt) {
-    console.warn("⚠️ No run-start marker found; skipping the timesheet sweep rather than guessing a cutoff.");
+    console.warn(
+      "⚠️ No run-start marker found; skipping the timesheet sweep rather than guessing a cutoff.",
+    );
     return;
   }
 
-  const employeeIds = [process.env.EMP_ID, process.env.EMP2_ID, process.env.EMP3_ID].filter(Boolean);
+  const employeeIds = [
+    process.env.EMP_ID,
+    process.env.EMP2_ID,
+    process.env.EMP3_ID,
+  ].filter(Boolean);
   for (const employee of employeeIds) {
     const timesheets = await getDocList(
       "Timesheet",
@@ -922,19 +1023,25 @@ export const deleteTimesheetsCreatedThisRun = async (jsonDir) => {
         ["employee", "=", employee],
         ["creation", ">=", startedAt],
       ],
-      { fields: ["name", "docstatus"] }
+      { fields: ["name", "docstatus"] },
     );
 
     let cleared = 0;
     for (const ts of timesheets) {
       if (ts.docstatus === 1) await cancelDocument("Timesheet", ts.name);
-      const { deleted } = await deleteWithLockRetry(() => deleteDocument("Timesheet", ts.name), {
-        label: `Timesheet ${ts.name}`,
-      });
+      const { deleted } = await deleteWithLockRetry(
+        () => deleteDocument("Timesheet", ts.name),
+        {
+          label: `Timesheet ${ts.name}`,
+        },
+      );
       if (deleted) cleared += 1;
     }
     // Report what actually went, not what was attempted.
-    if (timesheets.length) console.log(`🗑  Cleared ${cleared}/${timesheets.length} timesheet(s) for ${employee}`);
+    if (timesheets.length)
+      console.log(
+        `🗑  Cleared ${cleared}/${timesheets.length} timesheet(s) for ${employee}`,
+      );
   }
 };
 
@@ -970,7 +1077,7 @@ export const submitTimesheetForApproval = async (empId, managerID, role) => {
       approver: managerID,
       employee: empId,
     },
-    (role = role)
+    (role = role),
   );
 };
 
@@ -990,7 +1097,10 @@ export const submitTimesheetForApproval = async (empId, managerID, role) => {
  * The submit is done as the employee, since that is who submits their own
  * timesheet; `role` names the API auth state to use.
  */
-export const submitTimesheetForTestCases = async (testCaseIDs = [], jsonDir) => {
+export const submitTimesheetForTestCases = async (
+  testCaseIDs = [],
+  jsonDir,
+) => {
   if (!Array.isArray(testCaseIDs) || testCaseIDs.length === 0) return;
 
   const [tcId] = testCaseIDs;
@@ -1017,7 +1127,7 @@ export const submitTimesheetForTestCases = async (testCaseIDs = [], jsonDir) => 
     console.warn(
       `⚠️ Skipping timesheet submit for ${tcId}: no employee pinned. If this test declares ` +
         `payloadCreateReviewee, its employee could not be created (Employee creation is ` +
-        `currently failing on this environment).`
+        `currently failing on this environment).`,
     );
     return;
   }
@@ -1036,9 +1146,11 @@ export const submitTimesheetForTestCases = async (testCaseIDs = [], jsonDir) => 
         approver,
         employee,
       },
-      role
+      role,
     );
-    console.log(`✅ Timesheet submitted for approval for ${tcId} (${employee} -> ${approver})`);
+    console.log(
+      `✅ Timesheet submitted for approval for ${tcId} (${employee} -> ${approver})`,
+    );
   } catch (err) {
     // Only an already-submitted timesheet is benign. Match that phrase exactly:
     // a loose /submitted/ test also matches the word inside the echoed request
@@ -1048,7 +1160,9 @@ export const submitTimesheetForTestCases = async (testCaseIDs = [], jsonDir) => 
       console.log(`ℹ️ Timesheet for ${tcId} was already submitted.`);
       return;
     }
-    console.warn(`❌ Timesheet submit FAILED for ${tcId} - the review pane will not be reachable: ${err.message}`);
+    console.warn(
+      `❌ Timesheet submit FAILED for ${tcId} - the review pane will not be reachable: ${err.message}`,
+    );
   }
 };
 
@@ -1072,7 +1186,9 @@ export const createViewForTestCases = async (testCaseIDs, jsonDir) => {
     const entry = fullStub?.[tcId];
     if (!entry) continue;
 
-    for (const viewKey of Object.keys(entry).filter((key) => VIEW_KEY_REGEX.test(key))) {
+    for (const viewKey of Object.keys(entry).filter((key) =>
+      VIEW_KEY_REGEX.test(key),
+    )) {
       const payload = entry[viewKey];
       if (!payload?.label) continue;
 
@@ -1088,9 +1204,13 @@ export const createViewForTestCases = async (testCaseIDs, jsonDir) => {
           console.error(`Failed to create view for ${tcId} (${viewKey})`);
           continue;
         }
-        console.warn(`✅ CREATE VIEW SUCCESS for ${tcId} -> ${viewKey} (${payload.label}, id=${viewId})`);
+        console.warn(
+          `✅ CREATE VIEW SUCCESS for ${tcId} -> ${viewKey} (${payload.label}, id=${viewId})`,
+        );
       } else {
-        console.warn(`↩️ Reusing existing view "${payload.label}" (id=${viewId}) for ${tcId}`);
+        console.warn(
+          `↩️ Reusing existing view "${payload.label}" (id=${viewId}) for ${tcId}`,
+        );
       }
 
       const postfix = viewKey.slice("payloadCreateView".length);
@@ -1098,7 +1218,11 @@ export const createViewForTestCases = async (testCaseIDs, jsonDir) => {
       // `seeded` records whether this run created the view or merely reused one
       // that was already there. Teardown deletes only the ones it created - a
       // view someone made by hand can share a label and must survive the run.
-      entry[deleteKey] = { ...(entry[deleteKey] || {}), viewId, seeded: !existing?.[0]?.name };
+      entry[deleteKey] = {
+        ...(entry[deleteKey] || {}),
+        viewId,
+        seeded: !existing?.[0]?.name,
+      };
       await writeDataToFile(stubPath, fullStub);
     }
   }

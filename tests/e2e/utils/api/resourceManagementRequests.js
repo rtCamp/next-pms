@@ -1,5 +1,11 @@
 import { request } from "@playwright/test";
-import { baseURL, loadAuthState, fetchWithRetry, deleteWithLockRetry, deleteDocument } from "./apiClient";
+import {
+  baseURL,
+  loadAuthState,
+  fetchWithRetry,
+  deleteWithLockRetry,
+  deleteDocument,
+} from "./apiClient";
 
 /**
  * Fire off an API request using Playwright’s requestContext + storageState.
@@ -34,8 +40,8 @@ export const apiRequest = async (endpoint, options = {}, role = "manager") => {
     await ctx.dispose();
     throw new Error(
       `API request failed for ${role} @ ${endpoint} in the resource management with status as: ${status} ${statusText}. Error body: ${JSON.stringify(
-        errorBody
-      )}`
+        errorBody,
+      )}`,
     );
   }
 
@@ -56,7 +62,7 @@ export const createAllocation = async (payload) => {
       method: "POST",
       data: payload,
     },
-    "manager"
+    "manager",
   );
   return result;
 };
@@ -66,7 +72,10 @@ export const createAllocation = async (payload) => {
  * Delete a Resource Allocation by its ID.
  */
 export const deleteAllocation = async (allocationId) => {
-  return await deleteWithLockRetry(() => deleteDocument("Resource Allocation", allocationId, "admin"), {
-    label: `Resource Allocation ${allocationId}`,
-  });
+  return await deleteWithLockRetry(
+    () => deleteDocument("Resource Allocation", allocationId, "admin"),
+    {
+      label: `Resource Allocation ${allocationId}`,
+    },
+  );
 };

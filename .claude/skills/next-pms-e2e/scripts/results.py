@@ -27,8 +27,7 @@ ANSI = re.compile(r"\x1b\[[0-9;]*m")
 
 def walk(suites):
     for suite in suites:
-        for spec in suite.get("specs", []):
-            yield spec
+        yield from suite.get("specs", [])
         yield from walk(suite.get("suites", []))
 
 

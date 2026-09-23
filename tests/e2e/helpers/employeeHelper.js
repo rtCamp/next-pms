@@ -1,12 +1,25 @@
 import { readdir } from "fs/promises";
 import path from "path";
-import { getFormattedDate, getYesterdayDate, getDateForWeekday } from "../utils/dateUtils";
+import {
+  getFormattedDate,
+  getYesterdayDate,
+  getDateForWeekday,
+} from "../utils/dateUtils";
 import { readJSONFile, writeDataToFile } from "../utils/fileUtils";
-import { addEmployee, deleteEmployee, updateEmployee } from "../utils/api/employeeRequests";
+import {
+  addEmployee,
+  deleteEmployee,
+  updateEmployee,
+} from "../utils/api/employeeRequests";
 import { deleteAllocation } from "../utils/api/projectRequests";
 import { getRandomString } from "../utils/stringUtils";
 import { filterApi } from "../utils/api/frappeRequests";
-import { getDocList, cancelDocument, deleteDocument, deleteWithLockRetry } from "../utils/api/apiClient";
+import {
+  getDocList,
+  cancelDocument,
+  deleteDocument,
+  deleteWithLockRetry,
+} from "../utils/api/apiClient";
 import { createTimesheet } from "../utils/api/timesheetRequests";
 
 // Load env variables
@@ -39,7 +52,9 @@ export const createEmployees = async (testCaseIDs, jsonDir) => {
 
   // Discover side files in the folder
   const allFiles = await readdir(jsonDir);
-  const sideFiles = allFiles.filter((f) => f === "TC39.json" || f === "TC53.json");
+  const sideFiles = allFiles.filter(
+    (f) => f === "TC39.json" || f === "TC53.json",
+  );
 
   // Load side files into memory
   const sideData = {};
@@ -58,7 +73,9 @@ export const createEmployees = async (testCaseIDs, jsonDir) => {
       custom_reporting_manager: managerName,
       reports_to: managerId,
       leave_approver: managerMail,
-      ...(status === "Left" && { relieving_date: getFormattedDate(new Date()) }),
+      ...(status === "Left" && {
+        relieving_date: getFormattedDate(new Date()),
+      }),
     };
 
     try {
@@ -100,11 +117,13 @@ export const createEmployees = async (testCaseIDs, jsonDir) => {
   // creation had failed, which is how TC91 came to look healthy while its
   // assertions had nothing to run against.
   if (entry.createdEmployees.length === employeeStatuses.length) {
-    console.log(`✅ Created ${entry.createdEmployees.length} employee(s) for ${tcId}`);
+    console.log(
+      `✅ Created ${entry.createdEmployees.length} employee(s) for ${tcId}`,
+    );
   } else {
     console.error(
       `❌ Created only ${entry.createdEmployees.length} of ${employeeStatuses.length} employee(s) for ${tcId} - ` +
-        `any test relying on them cannot verify anything.`
+        `any test relying on them cannot verify anything.`,
     );
   }
 };
@@ -122,7 +141,9 @@ export async function deleteEmployees(testCaseID, jsonDir) {
   try {
     testCase = await readJSONFile(filePath);
   } catch (err) {
-    console.warn(`⚠️ Could not read JSON for ${testCaseID} in createEmployees function: ${err.message}`);
+    console.warn(
+      `⚠️ Could not read JSON for ${testCaseID} in createEmployees function: ${err.message}`,
+    );
     return;
   }
   if (!testCase || !Array.isArray(testCase.createdEmployees)) {
@@ -133,7 +154,9 @@ export async function deleteEmployees(testCaseID, jsonDir) {
     if (!emp.name) continue;
     const { deleted, reason } = await deleteEmployee(emp.name, "admin");
     if (!deleted) {
-      console.warn(`⚠️ Failed to delete ${emp.name} for ${testCaseID}: ${reason}`);
+      console.warn(
+        `⚠️ Failed to delete ${emp.name} for ${testCaseID}: ${reason}`,
+      );
     }
   }
 }
@@ -207,7 +230,9 @@ export const createRevieweeForTestCases = async (testCaseIDs = [], jsonDir) => {
     }
 
     await writeDataToFile(stubPath, { [tcId]: entry });
-    console.log(`✅ Created reviewee for ${tcId}: ${employeeName} (${employeeId})`);
+    console.log(
+      `✅ Created reviewee for ${tcId}: ${employeeName} (${employeeId})`,
+    );
   } catch (err) {
     console.error(`❌ Could not create reviewee for ${tcId}: ${err.message}`);
   }
@@ -232,7 +257,10 @@ export const createRevieweeForTestCases = async (testCaseIDs = [], jsonDir) => {
  * Must run after the seeding loop, not inside createRevieweeForTestCases:
  * TC53's own turn rewrites its stub, wiping anything registered before it.
  */
-export const registerRevieweesInTeamRoster = async (testCaseIDs = [], jsonDir) => {
+export const registerRevieweesInTeamRoster = async (
+  testCaseIDs = [],
+  jsonDir,
+) => {
   const rosterPath = path.join(jsonDir, "TC53.json");
 
   let roster;
@@ -247,7 +275,9 @@ export const registerRevieweesInTeamRoster = async (testCaseIDs = [], jsonDir) =
   const names = [];
   for (const tcId of testCaseIDs) {
     try {
-      const entry = (await readJSONFile(path.join(jsonDir, `${tcId}.json`)))?.[tcId];
+      const entry = (await readJSONFile(path.join(jsonDir, `${tcId}.json`)))?.[
+        tcId
+      ];
       if (entry?.revieweeName) names.push(entry.revieweeName);
     } catch {
       // no stub for this TC - nothing to register
@@ -261,12 +291,17 @@ export const registerRevieweesInTeamRoster = async (testCaseIDs = [], jsonDir) =
   }
 
   await writeDataToFile(rosterPath, roster);
-  console.log(`👥 Registered ${names.length} reviewee(s) in TC53's expected roster: ${names.join(", ")}`);
+  console.log(
+    `👥 Registered ${names.length} reviewee(s) in TC53's expected roster: ${names.join(", ")}`,
+  );
 };
 
 // ------------------------------------------------------------------------------------------
 
-export const createTimeEntriesForSeededEmployees = async (testCaseIDs = [], jsonDir) => {
+export const createTimeEntriesForSeededEmployees = async (
+  testCaseIDs = [],
+  jsonDir,
+) => {
   if (!Array.isArray(testCaseIDs) || testCaseIDs.length === 0) return;
 
   const [tcId] = testCaseIDs;
@@ -286,11 +321,15 @@ export const createTimeEntriesForSeededEmployees = async (testCaseIDs = [], json
 
   const taskID = entry?.payloadDeleteTask?.taskID;
   if (!taskID || String(taskID).startsWith("filled-automatically")) {
-    console.warn(`⚠️ ${tcId}: no task to book against, seeded employees will not appear on the team grid.`);
+    console.warn(
+      `⚠️ ${tcId}: no task to book against, seeded employees will not appear on the team grid.`,
+    );
     return;
   }
 
-  const date = entry?.cell?.col ? getFormattedDate(getDateForWeekday(entry.cell.col)) : getFormattedDate(new Date());
+  const date = entry?.cell?.col
+    ? getFormattedDate(getDateForWeekday(entry.cell.col))
+    : getFormattedDate(new Date());
 
   for (const employee of employees) {
     if (!employee?.name) continue;
@@ -315,17 +354,27 @@ export const createTimeEntriesForSeededEmployees = async (testCaseIDs = [], json
         date,
         employee: employee.name,
       });
-      console.log(`✅ Booked 1h for ${tcId} employee ${employee.name} (${targetStatus}) on ${date}`);
+      console.log(
+        `✅ Booked 1h for ${tcId} employee ${employee.name} (${targetStatus}) on ${date}`,
+      );
     } catch (err) {
-      console.error(`❌ Could not book time for ${tcId} employee ${employee.name}: ${err.message}`);
+      console.error(
+        `❌ Could not book time for ${tcId} employee ${employee.name}: ${err.message}`,
+      );
     } finally {
       // Restore the status even if the booking failed, or the test would be
       // filtering on a status the employee no longer has.
       if (needsToggle) {
         try {
-          await updateEmployee(employee.name, { status: targetStatus }, "admin");
+          await updateEmployee(
+            employee.name,
+            { status: targetStatus },
+            "admin",
+          );
         } catch (err) {
-          console.error(`❌ Could not restore status "${targetStatus}" on ${employee.name}: ${err.message}`);
+          console.error(
+            `❌ Could not restore status "${targetStatus}" on ${employee.name}: ${err.message}`,
+          );
         }
       }
     }
@@ -334,9 +383,13 @@ export const createTimeEntriesForSeededEmployees = async (testCaseIDs = [], json
 // ------------------------------------------------------------------------------------------
 
 export const deleteEmployeeByName = async () => {
-  const employees = await getDocList("Employee", [["employee_name", "like", "Playwright-%"]], {
-    fields: ["name", "employee_name"],
-  });
+  const employees = await getDocList(
+    "Employee",
+    [["employee_name", "like", "Playwright-%"]],
+    {
+      fields: ["name", "employee_name"],
+    },
+  );
 
   if (employees.length === 0) {
     console.log("🧹 No seeded employees left to clean up.");
@@ -349,9 +402,13 @@ export const deleteEmployeeByName = async () => {
     // and every seeded employee has a timesheet booked against it, so the
     // timesheets have to go first. Submitted ones need cancelling before they
     // can be deleted.
-    const timesheets = await getDocList("Timesheet", [["employee", "=", emp.name]], {
-      fields: ["name", "docstatus"],
-    });
+    const timesheets = await getDocList(
+      "Timesheet",
+      [["employee", "=", emp.name]],
+      {
+        fields: ["name", "docstatus"],
+      },
+    );
     for (const ts of timesheets) {
       if (ts.docstatus === 1) await cancelDocument("Timesheet", ts.name);
       await deleteWithLockRetry(() => deleteDocument("Timesheet", ts.name), {
@@ -359,9 +416,12 @@ export const deleteEmployeeByName = async () => {
       });
     }
 
-    const { deleted, reason } = await deleteWithLockRetry(() => deleteDocument("Employee", emp.name), {
-      label: `Employee ${emp.name}`,
-    });
+    const { deleted, reason } = await deleteWithLockRetry(
+      () => deleteDocument("Employee", emp.name),
+      {
+        label: `Employee ${emp.name}`,
+      },
+    );
     if (deleted) {
       console.log(`🗑  Deleted ${emp.name} (${emp.employee_name})`);
     } else {
@@ -372,20 +432,25 @@ export const deleteEmployeeByName = async () => {
   // Say what survived. These accumulate silently otherwise, and once enough of
   // them report to the manager, TC53's expected roster no longer matches.
   if (survivors.length) {
-    console.warn(`⚠️ ${survivors.length} seeded employee(s) could not be deleted:`);
+    console.warn(
+      `⚠️ ${survivors.length} seeded employee(s) could not be deleted:`,
+    );
     survivors.forEach((s) => console.warn(`   - ${s}`));
   }
 };
 // ------------------------------------------------------------------------------------------
 
-export const deleteAllocationsByEmployee = async (projectID, employeeID = employeeId) => {
+export const deleteAllocationsByEmployee = async (
+  projectID,
+  employeeID = employeeId,
+) => {
   const filterResponse = await filterApi(
     "Resource Allocation",
     [
       ["Resource Allocation", "employee", "=", employeeID],
       ["Resource Allocation", "project", "=", projectID],
     ],
-    "admin"
+    "admin",
   );
   if (filterResponse.message?.values?.length > 0) {
     const allocations = filterResponse.message.values;
@@ -393,7 +458,8 @@ export const deleteAllocationsByEmployee = async (projectID, employeeID = employ
       const allocationName = row[0];
       try {
         const { deleted, reason } = await deleteAllocation(allocationName);
-        if (!deleted) console.warn(`⚠️ Allocation ${allocationName} survived: ${reason}`);
+        if (!deleted)
+          console.warn(`⚠️ Allocation ${allocationName} survived: ${reason}`);
       } catch (error) {
         console.error(`Failed to delete ${allocationName}:`, error);
       }

@@ -11,11 +11,13 @@ const FILTER_FIELD_LABELS = {
   projectManager: "Project Manager",
 };
 
-const exactly = (text) => new RegExp(`^${String(text).replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`, "i");
+const exactly = (text) =>
+  new RegExp(`^${String(text).replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`, "i");
 
 // The endpoint every project-list read ultimately waits on. Mirrors
 // PROJECTS_VIEW_METHOD in frontend/packages/app/src/pages/projects/constants.ts.
-const PROJECTS_VIEW_METHOD = "next_pms.next_projects.api.project.get_projects_view";
+const PROJECTS_VIEW_METHOD =
+  "next_pms.next_projects.api.project.get_projects_view";
 
 export class ProjectPage {
   /**
@@ -29,7 +31,9 @@ export class ProjectPage {
     //List of projects displayed in the project table
     // Scoped to project links only - the Project manager / Lead engineer cells
     // also render links (to /desk/user/<email>) inside the same table.
-    this.projectListItems = page.getByRole("table", { name: "Projects" }).locator('a[href^="/next-pms/projects/"]');
+    this.projectListItems = page
+      .getByRole("table", { name: "Projects" })
+      .locator('a[href^="/next-pms/projects/"]');
 
     //Filter panel - a query-builder: "Where <Field> <Operator> <Value>"
     this.filterButton = page.getByRole("button", { name: "Filter" }).first();
@@ -45,10 +49,12 @@ export class ProjectPage {
     this.currencySearchBar = page.getByPlaceholder("Currency");
 
     //Select filter option
-    this.selectFilterOption = (filterOption) => page.getByRole("option", { name: `${filterOption}` });
+    this.selectFilterOption = (filterOption) =>
+      page.getByRole("option", { name: `${filterOption}` });
 
     //Sort by Button
-    this.sortByButton = (buttonText) => page.locator(`//button[text()="${buttonText}"]`);
+    this.sortByButton = (buttonText) =>
+      page.locator(`//button[text()="${buttonText}"]`);
 
     // Sorting now sits behind a single "Sort" button whose panel lists the
     // sortable fields; the button's own label grows to "Sort <field>" once one
@@ -71,21 +77,36 @@ export class ProjectPage {
     // one menu behind the active-view button, which is labelled "List view"
     // until a saved view is open and then shows that view's icon. The menu
     // lists the built-in views, every saved view, and "Create View".
-    this.viewMenuButton = page.getByRole("button", { name: /^(List view|Kanban view|📋|📁)$/ }).first();
-    this.viewMenuItem = (viewName) => page.getByRole("menuitem").filter({ hasText: viewName }).first();
+    this.viewMenuButton = page
+      .getByRole("button", { name: /^(List view|Kanban view|📋|📁)$/ })
+      .first();
+    this.viewMenuItem = (viewName) =>
+      page.getByRole("menuitem").filter({ hasText: viewName }).first();
 
     //Create View
-    this.createViewButton = page.getByRole("menuitem").filter({ hasText: /^Create View$/ });
+    this.createViewButton = page
+      .getByRole("menuitem")
+      .filter({ hasText: /^Create View$/ });
     this.viewNameInput = page.getByPlaceholder("View Name");
-    this.createButton = page.getByRole("button", { name: "Create", exact: true });
+    this.createButton = page.getByRole("button", {
+      name: "Create",
+      exact: true,
+    });
     // Views are private unless this is ticked in the create dialog.
     this.makeViewPublicCheckbox = page.getByText("Make this view public");
 
     // Per-view actions (Duplicate / Edit / Make Public / Delete) sit behind an
     // unlabelled menu button that only appears while its row is hovered.
     this.viewRowMenuButton = (viewName) =>
-      page.getByRole("menuitem").filter({ hasText: viewName }).first().locator("button[aria-haspopup='menu']").first();
-    this.deleteViewButton = page.getByRole("menuitem").filter({ hasText: /^Delete$/ });
+      page
+        .getByRole("menuitem")
+        .filter({ hasText: viewName })
+        .first()
+        .locator("button[aria-haspopup='menu']")
+        .first();
+    this.deleteViewButton = page
+      .getByRole("menuitem")
+      .filter({ hasText: /^Delete$/ });
 
     //Private Views
     this.privateViewsButton = page.getByRole("button", {
@@ -95,15 +116,20 @@ export class ProjectPage {
     //Public views
     this.publicViewsButton = page.getByRole("button", { name: "Public Views" });
 
-    this.gotoPublicView = (publicViewName) => page.locator(`a[title="${publicViewName}"]`);
+    this.gotoPublicView = (publicViewName) =>
+      page.locator(`a[title="${publicViewName}"]`);
 
     //List of projects displayed in the Retainer public view
-    this.projectListItemsInRetainerView = page.locator("//table//tbody//tr//td[2]//p");
+    this.projectListItemsInRetainerView = page.locator(
+      "//table//tbody//tr//td[2]//p",
+    );
 
     // Toasts render inside the notifications region, with the message split
     // across nested elements - match on text rather than an exact-text node.
     this.toastNotification = (notificationMessage) =>
-      page.getByRole("region", { name: /notification/i }).getByText(notificationMessage);
+      page
+        .getByRole("region", { name: /notification/i })
+        .getByText(notificationMessage);
 
     //Project table headers
     // Each header wraps a "<name> column options" button, so its accessible name
@@ -112,7 +138,10 @@ export class ProjectPage {
     // "Project name" from matching the "Project type" header.
     this.projectTableHeader = (headerName) =>
       page.getByRole("columnheader", {
-        name: new RegExp(`^${headerName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`, "i"),
+        name: new RegExp(
+          `^${headerName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`,
+          "i",
+        ),
       });
 
     //Project row locators
@@ -123,19 +152,30 @@ export class ProjectPage {
 
     // The redesigned name cell sets no title attribute; it renders a link.
     this.projectNameCell = (projectName) =>
-      page.getByRole("table", { name: "Projects" }).getByRole("link", { name: projectName, exact: true }).first();
+      page
+        .getByRole("table", { name: "Projects" })
+        .getByRole("link", { name: projectName, exact: true })
+        .first();
 
     this.projectTypeCell = (projectName, projectType) =>
-      this.projectRow(projectName).getByRole("cell", { name: projectType, exact: true }).first();
+      this.projectRow(projectName)
+        .getByRole("cell", { name: projectType, exact: true })
+        .first();
 
     this.statusCell = (projectName, status) =>
-      this.projectRow(projectName).locator(`xpath=.//td//div[normalize-space(text())="${status}"]`);
+      this.projectRow(projectName).locator(
+        `xpath=.//td//div[normalize-space(text())="${status}"]`,
+      );
 
     this.businessUnitCell = (projectName, businessUnit) =>
-      this.projectRow(projectName).locator(`xpath=.//p[@title="${businessUnit}"]`);
+      this.projectRow(projectName).locator(
+        `xpath=.//p[@title="${businessUnit}"]`,
+      );
 
     this.billingTypeCell = (projectName, billingType) =>
-      this.projectRow(projectName).locator(`xpath=.//td//div[normalize-space(text())="${billingType}"]`);
+      this.projectRow(projectName).locator(
+        `xpath=.//td//div[normalize-space(text())="${billingType}"]`,
+      );
 
     this.currencyCell = (projectName, currency) =>
       this.projectRow(projectName).locator(`xpath=.//p[@title="${currency}"]`);
@@ -173,7 +213,9 @@ export class ProjectPage {
   async searchProject(query) {
     await this.searchBar.fill(query);
     await this.searchBar.press("Enter"); // Simulate pressing Enter to trigger the search
-    await this.page.waitForLoadState("networkidle", { timeout: 5000 }).catch(() => {}); // Wait for the search results to load
+    await this.page
+      .waitForLoadState("networkidle", { timeout: 5000 })
+      .catch(() => {}); // Wait for the search results to load
   }
 
   /**
@@ -200,7 +242,9 @@ export class ProjectPage {
   }
 
   async getProjectList() {
-    await this.page.waitForLoadState("networkidle", { timeout: 5000 }).catch(() => {});
+    await this.page
+      .waitForLoadState("networkidle", { timeout: 5000 })
+      .catch(() => {});
     const projectNames = await this.projectListItems.allTextContents();
     const totalCount = projectNames.length;
     return { projectNames, totalCount };
@@ -250,7 +294,9 @@ export class ProjectPage {
           .first()
           .click();
         await refetched;
-        await this.page.waitForLoadState("networkidle", { timeout: 5000 }).catch(() => {});
+        await this.page
+          .waitForLoadState("networkidle", { timeout: 5000 })
+          .catch(() => {});
         continue;
       }
 
@@ -287,7 +333,9 @@ export class ProjectPage {
       await this.searchBar.waitFor({ state: "visible", timeout: 20000 });
       await this.page.waitForTimeout(1500);
       await this.filterButton.click();
-      await this.filterFieldInput.first().waitFor({ state: "visible", timeout: 20000 });
+      await this.filterFieldInput
+        .first()
+        .waitFor({ state: "visible", timeout: 20000 });
     }
     if (needsNewRow) {
       await this.addFilterButton.click();
@@ -327,7 +375,9 @@ export class ProjectPage {
       .click();
 
     await refetched;
-    await this.page.waitForLoadState("networkidle", { timeout: 5000 }).catch(() => {});
+    await this.page
+      .waitForLoadState("networkidle", { timeout: 5000 })
+      .catch(() => {});
   }
 
   /**
@@ -337,7 +387,9 @@ export class ProjectPage {
    */
   waitForProjectList() {
     return this.page
-      .waitForResponse((resp) => resp.url().includes(PROJECTS_VIEW_METHOD), { timeout: 15000 })
+      .waitForResponse((resp) => resp.url().includes(PROJECTS_VIEW_METHOD), {
+        timeout: 15000,
+      })
       .catch(() => {});
   }
 
@@ -348,7 +400,9 @@ export class ProjectPage {
   async clearFilters() {
     if (await this.clearAllFiltersButton.isVisible().catch(() => false)) {
       await this.clearAllFiltersButton.click();
-      await this.page.waitForLoadState("networkidle", { timeout: 5000 }).catch(() => {});
+      await this.page
+        .waitForLoadState("networkidle", { timeout: 5000 })
+        .catch(() => {});
     }
   }
 
@@ -362,7 +416,9 @@ export class ProjectPage {
     await this.viewNameInput.fill(viewName);
     // Leave "Make this view public" unticked - that is what makes it private.
     await this.createButton.click();
-    await this.page.waitForLoadState("networkidle", { timeout: 5000 }).catch(() => {});
+    await this.page
+      .waitForLoadState("networkidle", { timeout: 5000 })
+      .catch(() => {});
     await this.page.waitForTimeout(2000);
 
     // Creating a view activates it (?view=<id>), and while a view is active the
@@ -392,7 +448,9 @@ export class ProjectPage {
       return;
     }
     await this.viewMenuButton.click({ force: true });
-    await this.createViewButton.first().waitFor({ state: "visible", timeout: 15000 });
+    await this.createViewButton
+      .first()
+      .waitFor({ state: "visible", timeout: 15000 });
   }
 
   async closeViewMenu() {
@@ -421,24 +479,32 @@ export class ProjectPage {
     await this.page.waitForTimeout(600);
 
     await this.viewRowMenuButton(viewName).click({ force: true });
-    await this.deleteViewButton.first().waitFor({ state: "visible", timeout: 10000 });
+    await this.deleteViewButton
+      .first()
+      .waitFor({ state: "visible", timeout: 10000 });
     await this.deleteViewButton.first().click();
     await this.page.waitForTimeout(1500);
 
     // A confirmation step may follow; take it when it appears.
-    const confirm = this.page.getByRole("button", { name: /^(Delete|Confirm|Yes)$/ }).first();
+    const confirm = this.page
+      .getByRole("button", { name: /^(Delete|Confirm|Yes)$/ })
+      .first();
     if (await confirm.isVisible().catch(() => false)) {
       await confirm.click();
     }
 
-    await expect(this.toastNotification(notification)).toBeVisible({ timeout: 15000 });
+    await expect(this.toastNotification(notification)).toBeVisible({
+      timeout: 15000,
+    });
   }
   /**
    * Create a project using the provided payload.
    * @param {Object} payload - The project data to create.
    */
   async createProject(payload) {
-    await this.page.getByRole("button", { name: "Add project", exact: true }).click();
+    await this.page
+      .getByRole("button", { name: "Add project", exact: true })
+      .click();
     await this.page.getByPlaceholder("Project Name").fill(payload.project_name);
 
     // Company is a required field in the redesigned dialog.
@@ -446,10 +512,15 @@ export class ProjectPage {
       const company = this.page.getByPlaceholder("Select company");
       await company.click();
       await company.fill(payload.company);
-      await this.page.getByRole("option", { name: payload.company }).first().click();
+      await this.page
+        .getByRole("option", { name: payload.company })
+        .first()
+        .click();
     }
     await this.page.getByRole("button", { name: "Add Project" }).click();
-    await expect(this.toastNotification("Project created successfully")).toBeVisible();
+    await expect(
+      this.toastNotification("Project created successfully"),
+    ).toBeVisible();
     await expect(this.projectRow(payload.project_name)).toHaveCount(1);
   }
   /**
@@ -496,7 +567,9 @@ export class ProjectPage {
 
     const actions = (await this.page.getByRole("menuitem").allTextContents())
       .map((text) => text.replace(/\n/g, "").trim())
-      .filter((text) => /^(Duplicate|Edit|Make Public|Make Private|Delete)$/.test(text));
+      .filter((text) =>
+        /^(Duplicate|Edit|Make Public|Make Private|Delete)$/.test(text),
+      );
 
     return actions;
   }
@@ -509,7 +582,9 @@ export class ProjectPage {
     const view = this.viewMenuItem(viewName);
     await view.waitFor({ state: "visible", timeout: 15000 });
     await view.click();
-    await this.page.waitForLoadState("networkidle", { timeout: 5000 }).catch(() => {});
+    await this.page
+      .waitForLoadState("networkidle", { timeout: 5000 })
+      .catch(() => {});
     await this.page.waitForTimeout(2500);
   }
 }
