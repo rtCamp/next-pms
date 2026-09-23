@@ -7,10 +7,10 @@ We accept contributions in the form of Issues & Pull Requests. To create a Pull 
 ```bash
 bench get-app erpnext --branch version-16
 bench get-app hrms --branch version-16
-bench get-app frappe_gmail_thread https://github.com/rtCamp/frappe-gmail-thread --branch version-16-hotfix
-bench get-app frappe_comment_xt https://github.com/rtCamp/frappe-comment-xt --branch version-16-hotfix
-bench get-app frappe_slack_connector https://github.com/rtCamp/frappe-slack-connector --branch version-16-hotfix
-bench get-app next_pms https://github.com/rtCamp/next-pms --branch version-16-hotfix
+bench get-app frappe_gmail_thread https://github.com/rtCamp/frappe-gmail-thread --branch develop
+bench get-app frappe_comment_xt https://github.com/rtCamp/frappe-comment-xt --branch develop
+bench get-app frappe_slack_connector https://github.com/rtCamp/frappe-slack-connector --branch develop
+bench get-app next_pms https://github.com/rtCamp/next-pms --branch develop
 
 bench --site [site-name] install-app erpnext hrms frappe_gmail_thread frappe_comment_xt frappe_slack_connector next_pms
 
