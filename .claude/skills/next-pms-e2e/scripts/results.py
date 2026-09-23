@@ -159,11 +159,7 @@ def main():
                 continue
             err = r["errors"][0]
             loc = err.get("location", {})
-            where = (
-                f"{loc.get('file', '').split('tests/e2e/')[-1]}:{loc.get('line', '')}"
-                if loc
-                else "(no location)"
-            )
+            where = f"{loc.get('file', '').split('tests/e2e/')[-1]}:{loc.get('line', '')}" if loc else "(no location)"
             print(f"\n{'=' * 74}\n{r['tc']}  {r['title'][:64]}\n  at {where}")
             print(f"  {first_useful_line(err.get('message'))}")
 
