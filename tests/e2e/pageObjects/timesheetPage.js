@@ -26,13 +26,30 @@ export class TimesheetPage {
     this.page = page;
 
     // Column Index Map
-    this.dayIndexObj = { task: 0, mon: 1, tue: 2, wed: 3, thu: 4, fri: 5, sat: 6, sun: 7, total: 8 };
+    this.dayIndexObj = {
+      task: 0,
+      mon: 1,
+      tue: 2,
+      wed: 3,
+      thu: 4,
+      fri: 5,
+      sat: 6,
+      sun: 7,
+      total: 8,
+    };
 
     // Header Buttons
-    this.employeeButton = page.locator("//header//button[@aria-haspopup='dialog']");
-    this.leaveButton = page.getByRole("button", { name: "Add time-off", exact: true });
+    this.employeeButton = page.locator(
+      "//header//button[@aria-haspopup='dialog']",
+    );
+    this.leaveButton = page.getByRole("button", {
+      name: "Add time-off",
+      exact: true,
+    });
     // Scoped to the page header: "Add time" also names all ~100 day cells.
-    this.timeButton = page.getByRole("banner").getByRole("button", { name: "Add time", exact: true });
+    this.timeButton = page
+      .getByRole("banner")
+      .getByRole("button", { name: "Add time", exact: true });
 
     // Modals
     // The dialog exposes no accessible name; only one is open at a time.
@@ -44,15 +61,20 @@ export class TimesheetPage {
     this.editTimeModal = page.getByRole("dialog");
     this.submitTimesheetModal = page
       .getByRole("dialog")
-      .filter({ has: page.getByRole("heading", { name: "Submit for approval" }) });
+      .filter({
+        has: page.getByRole("heading", { name: "Submit for approval" }),
+      });
 
-    this.addHours = (timeEntryCount) => page.locator(`//input[@name="${timeEntryCount}"]`);
+    this.addHours = (timeEntryCount) =>
+      page.locator(`//input[@name="${timeEntryCount}"]`);
 
     this.updateDescription = (timeSheetDescription) =>
       page.locator(
         `//p[contains(text(),"${timeSheetDescription}")]//parent::div[@data-placeholder="Update your progress"]`,
       );
-    this.insertDescription = page.locator('div.ql-editor.ql-blank[data-placeholder="Update your progress"]');
+    this.insertDescription = page.locator(
+      'div.ql-editor.ql-blank[data-placeholder="Update your progress"]',
+    );
 
     // Review Timesheet Pane (Not a part of this page)
     this.reviewTimesheetPane = page.getByRole("dialog").filter({
@@ -62,17 +84,28 @@ export class TimesheetPage {
     });
 
     // Latest Timesheet Elements
-    this.latestTimesheetDiv = page.locator("//div[@data-orientation='vertical']").first();
+    this.latestTimesheetDiv = page
+      .locator("//div[@data-orientation='vertical']")
+      .first();
     // The timesheet grid has no table semantics. Every line is a row div whose
     // indentation class encodes its level: week header (pl-3), weekly totals /
     // project / time-off (pl-7.5) and task (pl-13.5).
-    this.latestTimesheetRows = this.latestTimesheetDiv.locator("div.border-b.transition-colors");
+    this.latestTimesheetRows = this.latestTimesheetDiv.locator(
+      "div.border-b.transition-colors",
+    );
     this.latestTimesheetHeaderRow = this.latestTimesheetRows.first();
-    this.latestTimesheetTaskRows = this.latestTimesheetDiv.locator('div.border-b.transition-colors[class*="pl-13.5"]');
-    this.timesheetStatusBadge = this.latestTimesheetHeaderRow.locator("div.rounded-full").first();
-    this.submitForApprovalButton = this.latestTimesheetHeaderRow.getByRole("button", {
-      name: "Submit for approval",
-    });
+    this.latestTimesheetTaskRows = this.latestTimesheetDiv.locator(
+      'div.border-b.transition-colors[class*="pl-13.5"]',
+    );
+    this.timesheetStatusBadge = this.latestTimesheetHeaderRow
+      .locator("div.rounded-full")
+      .first();
+    this.submitForApprovalButton = this.latestTimesheetHeaderRow.getByRole(
+      "button",
+      {
+        name: "Submit for approval",
+      },
+    );
 
     //Success Banner : Deleted Time Entry
     // Toasts render inside the notifications region with the message split
@@ -85,10 +118,14 @@ export class TimesheetPage {
     // Toasts render inside the notifications region, with the message split
     // across nested elements - match on text rather than an exact-text node.
     this.toastNotification = (notificationMessage) =>
-      page.getByRole("region", { name: /notification/i }).getByText(notificationMessage);
+      page
+        .getByRole("region", { name: /notification/i })
+        .getByText(notificationMessage);
 
     //Timesheet Description
-    this.descriptionNewEntry = page.locator(`//div[@data-placeholder = "Explain your progress"]`);
+    this.descriptionNewEntry = page.locator(
+      `//div[@data-placeholder = "Explain your progress"]`,
+    );
   }
 
   // --------------------------------------
@@ -99,7 +136,9 @@ export class TimesheetPage {
    * Navigates to the timesheet page and waits for it to fully load.
    */
   async goto() {
-    await this.page.goto("/next-pms/timesheet", { waitUntil: "domcontentloaded" });
+    await this.page.goto("/next-pms/timesheet", {
+      waitUntil: "domcontentloaded",
+    });
   }
 
   /**
@@ -114,7 +153,9 @@ export class TimesheetPage {
    */
   async searchAndSelectOption(placeholder, value) {
     const searchButton = this.page.getByRole("button", { name: placeholder });
-    const searchInput = this.page.getByRole("dialog").getByPlaceholder(`${placeholder}`);
+    const searchInput = this.page
+      .getByRole("dialog")
+      .getByPlaceholder(`${placeholder}`);
 
     await searchButton.click();
     await searchInput.fill(value);
@@ -175,14 +216,20 @@ export class TimesheetPage {
    * Selects an employee and displays their timesheet.
    */
   async selectEmployee(name) {
-    const searchInput = this.page.getByRole("dialog").getByPlaceholder("Search Employee");
+    const searchInput = this.page
+      .getByRole("dialog")
+      .getByPlaceholder("Search Employee");
 
     await this.employeeButton.click();
     await searchInput.fill(name);
-    await this.page.waitForLoadState("networkidle", { timeout: 5000 }).catch(() => {});
+    await this.page
+      .waitForLoadState("networkidle", { timeout: 5000 })
+      .catch(() => {});
 
     await this.page.getByRole("option", { name: name }).click();
-    await this.page.waitForLoadState("networkidle", { timeout: 5000 }).catch(() => {});
+    await this.page
+      .waitForLoadState("networkidle", { timeout: 5000 })
+      .catch(() => {});
   }
 
   // --------------------------------------
@@ -200,12 +247,17 @@ export class TimesheetPage {
     // today), a Full/First/Second Half choice and a reason textarea.
     const dialog = this.addLeaveModal;
     await dialog.getByRole("combobox").first().click();
-    await this.page.getByRole("option", { name: "Unpaid Time Off" }).first().click();
+    await this.page
+      .getByRole("option", { name: "Unpaid Time Off" })
+      .first()
+      .click();
     await this.page.waitForTimeout(500);
 
     await dialog.locator("textarea").first().fill(reason);
     await this.page.waitForTimeout(500);
-    await dialog.getByRole("button", { name: "Add time-off", exact: true }).click();
+    await dialog
+      .getByRole("button", { name: "Add time-off", exact: true })
+      .click();
   }
 
   // --------------------------------------
@@ -237,7 +289,10 @@ export class TimesheetPage {
    * Clicks on timesheet status to open 'Submit For Approval' modal.
    */
   async clickonTimesheetStatus() {
-    await this.submitForApprovalButton.waitFor({ state: "visible", timeout: 30000 });
+    await this.submitForApprovalButton.waitFor({
+      state: "visible",
+      timeout: 30000,
+    });
     await this.submitForApprovalButton.click();
   }
 
@@ -253,7 +308,9 @@ export class TimesheetPage {
    */
   async submitTimesheet() {
     await this.clickonTimesheetStatus();
-    await this.submitTimesheetModal.getByRole("button", { name: "Submit", exact: true }).click();
+    await this.submitTimesheetModal
+      .getByRole("button", { name: "Submit", exact: true })
+      .click();
   }
 
   // --------------------------------------
@@ -443,7 +500,9 @@ export class TimesheetPage {
     if (desc) {
       await this.editTimeModal.locator("[contenteditable]").last().fill(desc);
     }
-    await this.editTimeModal.getByRole("button", { name: "Save entry" }).click();
+    await this.editTimeModal
+      .getByRole("button", { name: "Save entry" })
+      .click();
   }
 
   /**
@@ -471,7 +530,9 @@ export class TimesheetPage {
     await this.page.waitForTimeout(500);
 
     await this.editTimeModal.locator("[contenteditable]").first().fill(newDesc);
-    await this.editTimeModal.getByRole("button", { name: "Save entry" }).click();
+    await this.editTimeModal
+      .getByRole("button", { name: "Save entry" })
+      .click();
     await this.page.waitForLoadState("networkidle");
   }
 
@@ -489,7 +550,10 @@ export class TimesheetPage {
     // anywhere in the timesheet dialog (that class is only used by
     // taskStatusIndicator now). Find the entry by its description, then step
     // back to its header, whose nested icon button is the delete.
-    const region = this.editTimeModal.getByRole("region").filter({ hasText: desc }).first();
+    const region = this.editTimeModal
+      .getByRole("region")
+      .filter({ hasText: desc })
+      .first();
     await region.waitFor({ state: "visible", timeout: 15000 });
 
     // The delete control is an unlabelled icon button that only exists visually
@@ -503,11 +567,15 @@ export class TimesheetPage {
     // That hover control opens the entry's edit form; deleting is a named
     // button inside it. Two steps, not one - the old single-click assumption is
     // why this looked unfixable.
-    const editButton = item.locator('button[class*="absolute"][class*="right-0"]').first();
+    const editButton = item
+      .locator('button[class*="absolute"][class*="right-0"]')
+      .first();
     await editButton.waitFor({ state: "visible", timeout: 10000 });
     await editButton.click();
 
-    const deleteButton = this.editTimeModal.getByRole("button", { name: "Delete entry" });
+    const deleteButton = this.editTimeModal.getByRole("button", {
+      name: "Delete entry",
+    });
     await deleteButton.waitFor({ state: "visible", timeout: 15000 });
     await deleteButton.click();
     //Assert : Banner to be displayed when a time entry is deleted
@@ -530,7 +598,9 @@ export class TimesheetPage {
    * Imports liked tasks into the timesheet by clicking the import button.
    */
   async importLikedTasks() {
-    const button = this.page.getByRole("button", { name: "Import liked tasks to this week" }).first();
+    const button = this.page
+      .getByRole("button", { name: "Import liked tasks to this week" })
+      .first();
     await this.page.waitForTimeout(2000);
     await button.waitFor({ state: "visible", timeout: 10000 }).catch(() => {});
 
@@ -558,7 +628,9 @@ export class TimesheetPage {
   async getTimeEntriesInCell(cellInfo) {
     const cell = await this.getCell(cellInfo);
     await this.openCell(cell);
-    await this.editTimeModal.first().waitFor({ state: "visible", timeout: 15000 });
+    await this.editTimeModal
+      .first()
+      .waitFor({ state: "visible", timeout: 15000 });
 
     const text = (await this.editTimeModal.first().innerText()) || "";
 
@@ -569,7 +641,11 @@ export class TimesheetPage {
   }
 
   async openTaskDetails(task) {
-    const taskSpan = this.latestTimesheetTaskRows.filter({ hasText: task }).last().locator("span.truncate").first();
+    const taskSpan = this.latestTimesheetTaskRows
+      .filter({ hasText: task })
+      .last()
+      .locator("span.truncate")
+      .first();
 
     await taskSpan.click();
     await this.page.waitForTimeout(2000);
@@ -591,7 +667,10 @@ export class TimesheetPage {
    */
   async isTaskDetailsDialogVisible(name) {
     // The dialog carries no accessible name, so match on the task it shows.
-    const dialog = this.page.getByRole("dialog").filter({ hasText: name }).first();
+    const dialog = this.page
+      .getByRole("dialog")
+      .filter({ hasText: name })
+      .first();
     await dialog.waitFor({ state: "visible", timeout: 15000 }).catch(() => {});
 
     return await dialog.isVisible().catch(() => false);

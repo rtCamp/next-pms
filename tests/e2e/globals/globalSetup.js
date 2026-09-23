@@ -70,7 +70,10 @@ const globalSetup = async () => {
   // 2) Create and populate JSON stubs for each TC ID
   console.log("📁 Creating JSON stubs for each TC ID...");
   //Create json file to store array of task to be deleted
-  await createJSONFile(path.resolve(__dirname, "../data/manager/tasks-to-delete.json"), []); // Create empty stub and populate
+  await createJSONFile(
+    path.resolve(__dirname, "../data/manager/tasks-to-delete.json"),
+    [],
+  ); // Create empty stub and populate
 
   const jsonDir = path.resolve(__dirname, "../data/json-files");
   await fs.promises.mkdir(jsonDir, { recursive: true });
@@ -127,7 +130,9 @@ const globalSetup = async () => {
   // registered before that point.
   await registerRevieweesInTeamRoster(allTCIds, jsonDir);
 
-  console.log("✅ Data generation completed for all TC IDs! Global setup done.");
+  console.log(
+    "✅ Data generation completed for all TC IDs! Global setup done.",
+  );
 };
 
 export default globalSetup;

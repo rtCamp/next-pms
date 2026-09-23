@@ -137,7 +137,8 @@ module.exports = {
       // Submitted as admin on the employee's behalf - the new employee has no
       // login of its own, and submit_for_approval accepts an explicit employee.
       role: "admin",
-      notes: "TC47 - submitted by automation so the manager can edit its entries.",
+      notes:
+        "TC47 - submitted by automation so the manager can edit its entries.",
     },
     payloadCreateTimesheet: {
       task: "filled-automatically-from-createTasks",
@@ -272,7 +273,11 @@ module.exports = {
   TC53: {
     // Aishwarrya Pande was moved under this manager in the org chart; she shows
     // in the team view for real, so the expected roster has to carry her.
-    employeesInQE: [process.env.EMP_NAME, process.env.EMP3_NAME, "Aishwarrya Pande"],
+    employeesInQE: [
+      process.env.EMP_NAME,
+      process.env.EMP3_NAME,
+      "Aishwarrya Pande",
+    ],
     employeesInStaging: [
       process.env.EMP_NAME,
       process.env.EMP3_NAME,

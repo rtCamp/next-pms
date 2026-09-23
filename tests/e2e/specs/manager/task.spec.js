@@ -46,7 +46,8 @@ test.describe("Manager : Task", () => {
     await taskPage.openTaskDetails(taskName);
 
     // Assertions
-    const isTaskDetailsDialogVisible = await taskPage.isTaskDetailsDialogVisible(taskName);
+    const isTaskDetailsDialogVisible =
+      await taskPage.isTaskDetailsDialogVisible(taskName);
     expect(isTaskDetailsDialogVisible).toBeTruthy();
   });
 
@@ -122,7 +123,8 @@ test.describe("Manager : Task", () => {
     await taskPage.openTaskDetails(TC24data.taskInfo.task);
 
     // Assertions to verify that created task is visible
-    const isTaskDetailsDialogVisible = await taskPage.isTaskDetailsDialogVisible(TC24data.taskInfo.task);
+    const isTaskDetailsDialogVisible =
+      await taskPage.isTaskDetailsDialogVisible(TC24data.taskInfo.task);
     expect(isTaskDetailsDialogVisible).toBeTruthy();
   });
 
@@ -131,7 +133,9 @@ test.describe("Manager : Task", () => {
   // field, so both now assert the status through the filter instead. Each runs
   // two filter passes plus a search, which is more than the 30s default budget
   // allows once slowMo's half-second per action is counted.
-  test("TC25: Verify the billable status of a billable task.    ", async ({ jsonDir }) => {
+  test("TC25: Verify the billable status of a billable task.    ", async ({
+    jsonDir,
+  }) => {
     allure.story("Task");
     test.setTimeout(90000);
     const stubPath = path.join(jsonDir, "TC25.json");
@@ -139,11 +143,15 @@ test.describe("Manager : Task", () => {
     const TC25data = data.TC25;
 
     // Assertions
-    const isTaskBillable = await taskPage.isTaskBillable(TC25data.payloadCreateTask.subject);
+    const isTaskBillable = await taskPage.isTaskBillable(
+      TC25data.payloadCreateTask.subject,
+    );
     expect(isTaskBillable).toBeTruthy();
   });
 
-  test("TC26: Verify the billable status of a non-billable task.    ", async ({ jsonDir }) => {
+  test("TC26: Verify the billable status of a non-billable task.    ", async ({
+    jsonDir,
+  }) => {
     allure.story("Task");
     test.setTimeout(90000);
     const stubPath = path.join(jsonDir, "TC26.json");
@@ -151,7 +159,9 @@ test.describe("Manager : Task", () => {
     const TC26data = data.TC26;
 
     // Assertions
-    const isTaskBillable = await taskPage.isTaskBillable(TC26data.payloadCreateTask.subject);
+    const isTaskBillable = await taskPage.isTaskBillable(
+      TC26data.payloadCreateTask.subject,
+    );
     expect(isTaskBillable).toBeFalsy();
   });
 });

@@ -41,7 +41,10 @@ test.afterAll(async () => {
       if (error.message.includes("404")) {
         console.info(`Allocation ${allocationName} deleted through UI.`);
       } else {
-        console.warn(`Unexpected error while deleting allocation ${allocationName}:`, error);
+        console.warn(
+          `Unexpected error while deleting allocation ${allocationName}:`,
+          error,
+        );
       }
     }
   }
@@ -71,7 +74,10 @@ test.describe("Manager : Resource Management Tab", () => {
     // started adding employees under this manager.
     expect(after.length).toBeLessThanOrEqual(before.length);
     const dropped = before.filter((name) => !after.includes(name));
-    expect(dropped.length, "filtering by reporting manager should drop members who do not report to them").toBeGreaterThan(0);
+    expect(
+      dropped.length,
+      "filtering by reporting manager should drop members who do not report to them",
+    ).toBeGreaterThan(0);
 
     await expect(page.getByText(employeeName)).toBeVisible();
   });
@@ -155,7 +161,9 @@ test.describe("Manager : Resource Management Tab", () => {
   // still guarantees is that allocating an employee consumes their capacity, so
   // that is what this now asserts. The test-case sheet still describes the old
   // sheet-view behaviour and needs reconciling.
-  test("TC60: Allocating an employee reduces their free capacity on the team view", async ({ jsonDir }) => {
+  test("TC60: Allocating an employee reduces their free capacity on the team view", async ({
+    jsonDir,
+  }) => {
     allure.story("Resource Management");
 
     // Creating or editing an allocation is a ~15-25s flow at slowMo's half second
@@ -170,7 +178,9 @@ test.describe("Manager : Resource Management Tab", () => {
     const projectName = TC60data.payloadCreateProject.project_name;
     const employeeName = TC60data.employee;
     const customerName = TC60data.payloadCreateProject.customer;
-    const formattedDate = getFormattedDate(getDateForWeekday(TC60data.cell.col));
+    const formattedDate = getFormattedDate(
+      getDateForWeekday(TC60data.cell.col),
+    );
 
     // Baseline first: every member shows "8h free" by default, so asserting on
     // the post-allocation state alone would pass without creating anything.
@@ -180,7 +190,12 @@ test.describe("Manager : Resource Management Tab", () => {
 
     await timelinePage.goto();
     await timelinePage.isPageVisible();
-    const allocationName = await timelinePage.addAllocation(projectName, customerName, employeeName, formattedDate);
+    const allocationName = await timelinePage.addAllocation(
+      projectName,
+      customerName,
+      employeeName,
+      formattedDate,
+    );
     createdAllocations.push(allocationName);
 
     await teamPage.goto();
@@ -205,7 +220,9 @@ test.describe("Manager : Resource Management Tab", () => {
   // that tells you where the window sits is "This quarter" and the buttons are
   // Previous/Next Quarter. The behaviour being checked is unchanged - step away
   // from today and the marker goes, step back and it returns.
-  test("TC62: Validate the functionality of the ‘Next’ and ‘Previous’ quarter change buttons.", async ({ page }) => {
+  test("TC62: Validate the functionality of the ‘Next’ and ‘Previous’ quarter change buttons.", async ({
+    page,
+  }) => {
     allure.story("Resource Management");
     await teamPage.goto();
     await page.waitForTimeout(150);
@@ -245,17 +262,25 @@ test.describe("Manager : Resource Management Tab", () => {
     const customerName = TC68data.payloadCreateProject.customer;
     await timelinePage.goto();
     await timelinePage.isPageVisible();
-    const allocationName = await timelinePage.addAllocation(projectName, customerName, employeeName);
+    const allocationName = await timelinePage.addAllocation(
+      projectName,
+      customerName,
+      employeeName,
+    );
     createdAllocations.push(allocationName);
     await teamPage.goto();
     await teamPage.filterEmployeeByName(employeeName);
     await teamPage.clickFirstEmployeeFromTable();
-    const ResourceAllocationRowIsVisible = await teamPage.checkIfExtendedResourceAllocationIsVisible();
+    const ResourceAllocationRowIsVisible =
+      await teamPage.checkIfExtendedResourceAllocationIsVisible();
     await expect(ResourceAllocationRowIsVisible).toBe(true);
     await expect(page.getByText(projectName)).toBeVisible({ timeout: 5000 });
   });
 
-  test("TC102: Verify add Allocation workflow by the Plus button", async ({ page, jsonDir }) => {
+  test("TC102: Verify add Allocation workflow by the Plus button", async ({
+    page,
+    jsonDir,
+  }) => {
     allure.story("Resource Management");
 
     // Creating or editing an allocation is a ~15-25s flow at slowMo's half second
@@ -274,16 +299,24 @@ test.describe("Manager : Resource Management Tab", () => {
 
     await timelinePage.goto();
     await timelinePage.isPageVisible();
-    const allocationName = await timelinePage.addAllocation(projectName, customerName, employeeName);
+    const allocationName = await timelinePage.addAllocation(
+      projectName,
+      customerName,
+      employeeName,
+    );
     createdAllocations.push(allocationName);
-    await expect(page.getByText("Allocation created successfully")).toBeVisible();
+    await expect(
+      page.getByText("Allocation created successfully"),
+    ).toBeVisible();
 
     await timelinePage.goto();
     // The Project tab filters by project, and deleteAllocation locates the
     // allocation by project too, so narrow down that way.
     await timelinePage.filterByProjectName(projectName);
     await timelinePage.deleteAllocation(projectName);
-    await expect(page.getByText("The allocation has been deleted successfully")).toBeVisible();
+    await expect(
+      page.getByText("The allocation has been deleted successfully"),
+    ).toBeVisible();
   });
 
   // Scope changed: a member row is 13 cells wide - one per week of the quarter,
@@ -316,7 +349,9 @@ test.describe("Manager : Resource Management Tab", () => {
       day,
     );
     createdAllocations.push(allocationName);
-    await expect(page.getByText("Allocation created successfully")).toBeVisible();
+    await expect(
+      page.getByText("Allocation created successfully"),
+    ).toBeVisible();
   });
 
   test("TC104: Verify add Allocation workflow by clicking on a specfic cell wrt Project and Date", async ({
@@ -348,14 +383,21 @@ test.describe("Manager : Resource Management Tab", () => {
       day,
     );
     createdAllocations.push(allocationName);
-    await expect(page.getByText("Allocation created successfully")).toBeVisible();
+    await expect(
+      page.getByText("Allocation created successfully"),
+    ).toBeVisible();
     await projectPage.goto();
     await projectPage.filterByProject(projectName);
     await projectPage.deleteAllocationFromProjectTab(projectName, date, day);
-    await expect(page.getByText("The allocation has been deleted successfully")).toBeVisible();
+    await expect(
+      page.getByText("The allocation has been deleted successfully"),
+    ).toBeVisible();
   });
 
-  test("TC107: Verify adding allocation on a past day", async ({ page, jsonDir }) => {
+  test("TC107: Verify adding allocation on a past day", async ({
+    page,
+    jsonDir,
+  }) => {
     allure.story("Resource Management");
 
     // Creating or editing an allocation is a ~15-25s flow at slowMo's half second
@@ -373,9 +415,16 @@ test.describe("Manager : Resource Management Tab", () => {
     const customerName = TC107data.payloadCreateProject.customer;
     const { date } = getFormattedPastWorkday(-1);
     await projectPage.goto();
-    const allocationName = await projectPage.addAllocation(projectName, customerName, employeeName, date);
+    const allocationName = await projectPage.addAllocation(
+      projectName,
+      customerName,
+      employeeName,
+      date,
+    );
     createdAllocations.push(allocationName);
-    await expect(page.getByText("Allocation created successfully")).toBeVisible();
+    await expect(
+      page.getByText("Allocation created successfully"),
+    ).toBeVisible();
     await projectPage.goto();
     await projectPage.filterByProject(projectName);
   });
@@ -390,7 +439,10 @@ test.describe("Manager : Resource Management Tab", () => {
   // restore if a duplicate action ever comes back. clickClipboardIcon() in
   // resourceManagement/project.js still throws an explaining error for the same
   // reason.
-  test.skip("TC108: Verify adding allocation from the clipboard icon", async ({ page, jsonDir }) => {
+  test.skip("TC108: Verify adding allocation from the clipboard icon", async ({
+    page,
+    jsonDir,
+  }) => {
     allure.story("Resource Management");
 
     const stubPath = path.join(jsonDir, "TC108.json");
@@ -411,13 +463,18 @@ test.describe("Manager : Resource Management Tab", () => {
       "4",
     );
     createdAllocations.push(allocationName);
-    await expect(page.getByText("Allocation created successfully")).toBeVisible();
+    await expect(
+      page.getByText("Allocation created successfully"),
+    ).toBeVisible();
     await projectPage.goto();
     await projectPage.filterByProject(projectName);
     await projectPage.clickClipboardIcon(projectName, date, day);
-    const { updatedAllocationName } = await projectPage.addAllocationFromProjectTabFromClipboard("8");
+    const { updatedAllocationName } =
+      await projectPage.addAllocationFromProjectTabFromClipboard("8");
     createdAllocations.push(updatedAllocationName);
-    await expect(page.getByText("Allocation created successfully")).toBeVisible();
+    await expect(
+      page.getByText("Allocation created successfully"),
+    ).toBeVisible();
   });
 
   test("TC109: Verify Changing/updating the billable/non billable on a project allocation", async ({
@@ -456,7 +513,9 @@ test.describe("Manager : Resource Management Tab", () => {
     await projectPage.clickEditIcon(projectName, date, day);
     await projectPage.clickOnBillableToggle();
     await projectPage.clickSaveButton();
-    await expect(page.getByText("Allocation updated successfully")).toBeVisible();
+    await expect(
+      page.getByText("Allocation updated successfully"),
+    ).toBeVisible();
   });
 
   test("TC110: Verify Editing a time allocation", async ({ page, jsonDir }) => {
@@ -493,8 +552,14 @@ test.describe("Manager : Resource Management Tab", () => {
     await projectPage.clickEditIcon(projectName, date, day);
     await projectPage.editAllocationFromProjectTab(updatedHours, updatedHours);
     await projectPage.clickSaveButton();
-    await expect(page.getByText("Allocation updated successfully")).toBeVisible();
-    let allocationTime = await projectPage.getAllocationFromProjectTab(projectName, date, day);
+    await expect(
+      page.getByText("Allocation updated successfully"),
+    ).toBeVisible();
+    let allocationTime = await projectPage.getAllocationFromProjectTab(
+      projectName,
+      date,
+      day,
+    );
     expect(allocationTime).toEqual(updatedHours);
   });
 
@@ -539,7 +604,9 @@ test.describe("Manager : Resource Management Tab", () => {
     createdAllocations.push(allocationName);
     await projectPage.goto();
     await projectPage.filterByProject(projectName);
-    const allocatedHours = Number(await projectPage.getAllocationFromProjectTab(projectName, date, day));
+    const allocatedHours = Number(
+      await projectPage.getAllocationFromProjectTab(projectName, date, day),
+    );
     expect(allocatedHours).toBeGreaterThan(0);
     expect(allocatedHours).toBeLessThanOrEqual(24);
   });

@@ -8,7 +8,10 @@ import { baseURL, loadAuthState, fetchWithRetry } from "./apiClient";
  */
 export const apiRequest = async (endpoint, options = {}, role = "manager") => {
   const authFilePath = loadAuthState(role);
-  const requestContext = await request.newContext({ baseURL, storageState: authFilePath });
+  const requestContext = await request.newContext({
+    baseURL,
+    storageState: authFilePath,
+  });
 
   // Determine payload and headers
   let body;
@@ -17,7 +20,8 @@ export const apiRequest = async (endpoint, options = {}, role = "manager") => {
   if (options.form) {
     // form-encoded
     body = new URLSearchParams(options.form).toString();
-    headers["Content-Type"] = "application/x-www-form-urlencoded; charset=UTF-8";
+    headers["Content-Type"] =
+      "application/x-www-form-urlencoded; charset=UTF-8";
   } else if (options.data) {
     // JSON body
     body = JSON.stringify(options.data);
@@ -39,7 +43,7 @@ export const apiRequest = async (endpoint, options = {}, role = "manager") => {
     const text = await response.text();
     await requestContext.dispose();
     throw new Error(
-      `API request failed for ${role} and endpoint ${endpoint}: ${response.status()} ${response.statusText()}\n${text}`
+      `API request failed for ${role} and endpoint ${endpoint}: ${response.status()} ${response.statusText()}\n${text}`,
     );
   }
 
@@ -77,7 +81,7 @@ export const filterApi = async (docType, filters, role = "manager") => {
       method: "POST",
       form: formPayload,
     },
-    role
+    role,
   );
 };
 // ------------------------------------------------------------------------------------------
@@ -115,6 +119,6 @@ export const shareProjectWithUser = async ({
       method: "POST",
       form: formPayload,
     },
-    role
+    role,
   );
 };

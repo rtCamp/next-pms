@@ -14,7 +14,8 @@ const RM_FILTER_FIELD_LABELS = {
   tag: "Tag",
 };
 
-const rmExactly = (text) => new RegExp(`^${String(text).replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`, "i");
+const rmExactly = (text) =>
+  new RegExp(`^${String(text).replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`, "i");
 
 // "Allocation type" is its own combobox, outside the query-builder, and its
 // options are worded differently from the values the tests pass in.
@@ -28,14 +29,18 @@ const ALLOCATION_TYPE_OPTIONS = {
 export class ProjectPage extends TimelinePage {
   constructor(page) {
     super(page);
-    this.filterByProjectInput = page.getByRole("textbox", { name: "Search project" });
+    this.filterByProjectInput = page.getByRole("textbox", {
+      name: "Search project",
+    });
 
     //Search bar on project page
     this.searchBar = page.getByRole("textbox", { name: "Search project" });
 
     // Filter panel - a query-builder: "Where <Field> <Operator> <Value>"
     this.filterButton = page.getByRole("button", { name: "Filter" }).first();
-    this.clearAllFiltersButton = page.getByRole("button", { name: "Clear all filters" });
+    this.clearAllFiltersButton = page.getByRole("button", {
+      name: "Clear all filters",
+    });
     this.addFilterButton = page.getByText("Add filter");
     this.filterFieldInput = page.getByPlaceholder("Field");
     this.filterOperatorInput = page.getByPlaceholder("Operator");
@@ -55,19 +60,29 @@ export class ProjectPage extends TimelinePage {
     this.allocationTypeSearchBar = page.getByPlaceholder("Allocation Type");
 
     //Filter Clear Selection
-    this.filterClearSelection = page.getByRole("button", { name: "Clear Selection" });
+    this.filterClearSelection = page.getByRole("button", {
+      name: "Clear Selection",
+    });
 
     //table elements - names render as buttons ("View <name> details"), not title attributes
     this.projectNameCell = (projectName) =>
-      page.getByRole("button", { name: `View ${projectName} details`, exact: true }).first();
-    this.employeeNameCell = (employeeName) => page.getByRole("table").getByText(employeeName, { exact: true }).first();
+      page
+        .getByRole("button", {
+          name: `View ${projectName} details`,
+          exact: true,
+        })
+        .first();
+    this.employeeNameCell = (employeeName) =>
+      page.getByRole("table").getByText(employeeName, { exact: true }).first();
     this.projectTableTitle = page.getByRole("cell", { name: "Projects" });
     this.deleteButton = page.getByRole("img", { name: "Delete" }).first();
     this.editIcon = page.getByRole("img", { name: "Edit" }).first();
     this.clipboardIcon = page.getByRole("img", { name: "Copy" }).first();
 
     // One "View <name> details" button per project row.
-    this.projectListItems = page.getByRole("table").getByRole("button", { name: /^View .* details$/ });
+    this.projectListItems = page
+      .getByRole("table")
+      .getByRole("button", { name: /^View .* details$/ });
 
     //Locator targetting the total hours text field in the allocation modal
     this.projectNameWithDate = (projectName, startDate) => {
@@ -87,7 +102,9 @@ export class ProjectPage extends TimelinePage {
    * Navigates to the project page and waits for it to fully load.
    */
   async goto() {
-    await this.page.goto("/next-pms/allocations/project", { waitUntil: "domcontentloaded" });
+    await this.page.goto("/next-pms/allocations/project", {
+      waitUntil: "domcontentloaded",
+    });
   }
 
   /**
@@ -111,7 +128,14 @@ export class ProjectPage extends TimelinePage {
   /**
    * Adds an allocation for a specific employee by clicking on their cell and filling the allocation form.
    */
-  async addAllocationFromProjectTab(projectName, customerName, employeeName, date, day, allocation = "8") {
+  async addAllocationFromProjectTab(
+    projectName,
+    customerName,
+    employeeName,
+    date,
+    day,
+    allocation = "8",
+  ) {
     if (!(await this.filterByProjectInput.isVisible())) {
       await this.filterByProject(projectName);
     }
@@ -120,7 +144,13 @@ export class ProjectPage extends TimelinePage {
     // column inside a quarter view, and an empty cell is not clickable. The
     // allocation dialog is the surviving entry point, and it takes the target
     // date through its own "Start and end date" picker.
-    const allocationName = await this.addAllocation(projectName, customerName, employeeName, date, allocation);
+    const allocationName = await this.addAllocation(
+      projectName,
+      customerName,
+      employeeName,
+      date,
+      allocation,
+    );
 
     return { allocationName };
   }
@@ -156,7 +186,10 @@ export class ProjectPage extends TimelinePage {
   /**
    * Add a allocated time on a add allocation modal
    */
-  async addAllocationFromProjectTabFromClipboard(hoursPerDay, totalAllocatedHours = "100") {
+  async addAllocationFromProjectTabFromClipboard(
+    hoursPerDay,
+    totalAllocatedHours = "100",
+  ) {
     // Same guard as editAllocationFromProjectTab: "Total hours" is derived and
     // ships disabled, so an awaited fill() would block until the test times
     // out. These two were also missing their await, which hid that.
@@ -169,8 +202,11 @@ export class ProjectPage extends TimelinePage {
     const [response] = await Promise.all([
       this.page.waitForResponse(
         (response) =>
-          response.url().includes("/api/method/next_pms.resource_management.api.allocation.handle_allocation") &&
-          response.status() === 200,
+          response
+            .url()
+            .includes(
+              "/api/method/next_pms.resource_management.api.allocation.handle_allocation",
+            ) && response.status() === 200,
       ),
       this.clickCreateButton(),
     ]);
@@ -243,7 +279,9 @@ export class ProjectPage extends TimelinePage {
   async searchProject(query) {
     await this.searchBar.fill(query);
     await this.searchBar.press("Enter"); // Simulate pressing Enter to trigger the search
-    await this.page.waitForLoadState("networkidle", { timeout: 5000 }).catch(() => {}); // Wait for the search results to load
+    await this.page
+      .waitForLoadState("networkidle", { timeout: 5000 })
+      .catch(() => {}); // Wait for the search results to load
   }
   /**
    * Clears specified filter dropdowns by clicking on each and selecting 'Clear Selection'
@@ -255,7 +293,9 @@ export class ProjectPage extends TimelinePage {
     // cleared one at a time, so any argument is ignored.
     if (await this.clearAllFiltersButton.isVisible().catch(() => false)) {
       await this.clearAllFiltersButton.click();
-      await this.page.waitForLoadState("networkidle", { timeout: 5000 }).catch(() => {});
+      await this.page
+        .waitForLoadState("networkidle", { timeout: 5000 })
+        .catch(() => {});
     }
   }
 
@@ -280,7 +320,9 @@ export class ProjectPage extends TimelinePage {
           .getByRole("option", { name: rmExactly(optionLabel) })
           .first()
           .click();
-        await this.page.waitForLoadState("networkidle", { timeout: 5000 }).catch(() => {});
+        await this.page
+          .waitForLoadState("networkidle", { timeout: 5000 })
+          .catch(() => {});
         continue;
       }
 
@@ -336,11 +378,15 @@ export class ProjectPage extends TimelinePage {
     await valueInput.fill(value).catch(() => {});
     await this.page.waitForTimeout(800);
 
-    const option = this.page.getByRole("option", { name: rmExactly(value) }).first();
+    const option = this.page
+      .getByRole("option", { name: rmExactly(value) })
+      .first();
     await option.waitFor({ state: "visible", timeout: 10000 });
     await option.click();
 
-    await this.page.waitForLoadState("networkidle", { timeout: 5000 }).catch(() => {});
+    await this.page
+      .waitForLoadState("networkidle", { timeout: 5000 })
+      .catch(() => {});
   }
   /**
    * Select view as either planned or Actual vs Planned based on the parameter
@@ -356,9 +402,13 @@ export class ProjectPage extends TimelinePage {
 
       // Click the correct option based on the view passed
       if (view === "Planned") {
-        await this.page.getByRole("option", { name: "Planned", exact: true }).click();
+        await this.page
+          .getByRole("option", { name: "Planned", exact: true })
+          .click();
       } else if (view === "Actual vs Planned") {
-        await this.page.getByRole("option", { name: "Actual vs Planned" }).click();
+        await this.page
+          .getByRole("option", { name: "Actual vs Planned" })
+          .click();
       } else {
         throw new Error(`Unknown sheet view: ${view}`);
       }
@@ -371,16 +421,22 @@ export class ProjectPage extends TimelinePage {
   async expandProjectRow(projectName) {
     // "Expand" sits as a sibling just before the project's name button, so
     // anchor on the name and step back to it rather than relying on row roles.
-    const nameButton = this.page.getByRole("button", { name: `View ${projectName} details`, exact: true }).first();
+    const nameButton = this.page
+      .getByRole("button", { name: `View ${projectName} details`, exact: true })
+      .first();
     await nameButton.waitFor({ state: "visible", timeout: 15000 });
 
-    const expand = nameButton.locator("xpath=preceding-sibling::button[1]").first();
+    const expand = nameButton
+      .locator("xpath=preceding-sibling::button[1]")
+      .first();
     // A full-size transparent button ("absolute inset-0 z-10") covers the row
     // and swallows the pointer event, so a normal click never reaches the
     // chevron. Dispatching the event hits the chevron directly, and unlike
     // click({force:true}) it does not also fire the overlay's own handler.
     await expand.dispatchEvent("click");
-    await this.page.waitForLoadState("networkidle", { timeout: 5000 }).catch(() => {});
+    await this.page
+      .waitForLoadState("networkidle", { timeout: 5000 })
+      .catch(() => {});
     await this.page.waitForTimeout(1500);
   }
 

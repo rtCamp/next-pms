@@ -1,12 +1,21 @@
 import { request } from "@playwright/test";
-import { baseURL, loadAuthState, fetchWithRetry, deleteWithLockRetry, deleteDocument } from "./apiClient";
+import {
+  baseURL,
+  loadAuthState,
+  fetchWithRetry,
+  deleteWithLockRetry,
+  deleteDocument,
+} from "./apiClient";
 
 /**
  * Helper function to load build the API request
  */
 export const apiRequest = async (endpoint, options = {}, role = "manager") => {
   const authFilePath = loadAuthState(role);
-  const requestContext = await request.newContext({ baseURL, storageState: authFilePath });
+  const requestContext = await request.newContext({
+    baseURL,
+    storageState: authFilePath,
+  });
   const response = await fetchWithRetry(requestContext, endpoint, {
     timeout: 120000,
     ...options,
@@ -26,7 +35,7 @@ export const apiRequest = async (endpoint, options = {}, role = "manager") => {
     const text = await response.text().catch(() => "");
     await requestContext.dispose();
     throw new Error(
-      `API request failed for ${role} and endpoint ${endpoint}: ${response.status()} ${response.statusText()}\n${text}`
+      `API request failed for ${role} and endpoint ${endpoint}: ${response.status()} ${response.statusText()}\n${text}`,
     );
   }
 
@@ -38,7 +47,12 @@ export const apiRequest = async (endpoint, options = {}, role = "manager") => {
 /**
  * Create a new Task.
  */
-export const createTask = async ({ subject, project, description, custom_is_billable }) => {
+export const createTask = async ({
+  subject,
+  project,
+  description,
+  custom_is_billable,
+}) => {
   return await apiRequest("/api/resource/Task", {
     method: "POST",
     data: {
@@ -55,7 +69,9 @@ export const createTask = async ({ subject, project, description, custom_is_bill
  * Delete a Task.
  */
 export const deleteTask = async (taskID, role = "admin") => {
-  return await deleteWithLockRetry(() => deleteDocument("Task", taskID, role), { label: `Task ${taskID}` });
+  return await deleteWithLockRetry(() => deleteDocument("Task", taskID, role), {
+    label: `Task ${taskID}`,
+  });
 };
 // ------------------------------------------------------------------------------------------
 
@@ -73,7 +89,7 @@ export const likeTask = async (taskID, role = "manager") => {
         add: "Yes",
       },
     },
-    role
+    role,
   );
 };
 // ------------------------------------------------------------------------------------------

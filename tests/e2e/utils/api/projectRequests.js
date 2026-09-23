@@ -1,5 +1,11 @@
 import { request } from "@playwright/test";
-import { baseURL, loadAuthState, fetchWithRetry, deleteWithLockRetry, deleteDocument } from "./apiClient";
+import {
+  baseURL,
+  loadAuthState,
+  fetchWithRetry,
+  deleteWithLockRetry,
+  deleteDocument,
+} from "./apiClient";
 import { deleteAllocationsByEmployee } from "../../helpers/employeeHelper";
 
 /**
@@ -34,7 +40,7 @@ export const apiRequest = async (endpoint, options = {}, role = "manager") => {
     }
     await ctx.dispose();
     throw new Error(
-      `API request failed for ${role} @ ${endpoint}: ${status} ${statusText}. Error body: ${JSON.stringify(errorBody)}`
+      `API request failed for ${role} @ ${endpoint}: ${status} ${statusText}. Error body: ${JSON.stringify(errorBody)}`,
     );
   }
 
@@ -56,7 +62,7 @@ export const createProject = async (payload) => {
       method: "POST",
       data: payload,
     },
-    "admin"
+    "admin",
   );
   ////console.log("Result of create project is: ", result);
   return result;
@@ -70,17 +76,23 @@ export const createProject = async (payload) => {
 export const deleteProject = async (projectId) => {
   // Retry while the row is locked: teardown fires while the app is still
   // committing its own post-write hooks, and Frappe's delete uses NOWAIT.
-  const { deleted, reason } = await deleteWithLockRetry(() => deleteDocument("Project", projectId, "admin"), {
-    label: `Project ${projectId}`,
-  });
+  const { deleted, reason } = await deleteWithLockRetry(
+    () => deleteDocument("Project", projectId, "admin"),
+    {
+      label: `Project ${projectId}`,
+    },
+  );
 
   // A project still carrying allocations is refused with LinkExistsError.
   // Clear those and retry once - otherwise the project survives the run.
   if (!deleted && reason === "LinkExistsError") {
     await deleteAllocationsByEmployee(projectId);
-    return await deleteWithLockRetry(() => deleteDocument("Project", projectId, "admin"), {
-      label: `Project ${projectId} (retry after allocations)`,
-    });
+    return await deleteWithLockRetry(
+      () => deleteDocument("Project", projectId, "admin"),
+      {
+        label: `Project ${projectId} (retry after allocations)`,
+      },
+    );
   }
 
   return { deleted, reason };
@@ -91,7 +103,11 @@ export const deleteProject = async (projectId) => {
  * Get details of a Project entry.
  */
 export const getProjectDetails = async (projectId) => {
-  return await apiRequest(`/api/resource/Project/${projectId}`, { method: "GET" }, "admin");
+  return await apiRequest(
+    `/api/resource/Project/${projectId}`,
+    { method: "GET" },
+    "admin",
+  );
 };
 // ------------------------------------------------------------------------------------------
 
@@ -99,9 +115,12 @@ export const getProjectDetails = async (projectId) => {
  * Delete a Resource Allocation by its ID.
  */
 export const deleteAllocation = async (allocationId) => {
-  return await deleteWithLockRetry(() => deleteDocument("Resource Allocation", allocationId, "admin"), {
-    label: `Resource Allocation ${allocationId}`,
-  });
+  return await deleteWithLockRetry(
+    () => deleteDocument("Resource Allocation", allocationId, "admin"),
+    {
+      label: `Resource Allocation ${allocationId}`,
+    },
+  );
 };
 
 // ------------------------------------------------------------------------------------------
@@ -119,7 +138,7 @@ export const createView = async (payload) => {
       method: "POST",
       data: payload,
     },
-    "admin"
+    "admin",
   );
 };
 // ------------------------------------------------------------------------------------------
@@ -136,11 +155,13 @@ export const deleteView = async (viewId) => {
  */
 export const getViewsByLabel = async (label) => {
   const filters = encodeURIComponent(JSON.stringify([["label", "=", label]]));
-  const fields = encodeURIComponent(JSON.stringify(["name", "label", "public"]));
+  const fields = encodeURIComponent(
+    JSON.stringify(["name", "label", "public"]),
+  );
   const result = await apiRequest(
     `/api/method/frappe.client.get_list?doctype=PMS View Setting&fields=${fields}&filters=${filters}&limit_page_length=0`,
     { method: "GET" },
-    "admin"
+    "admin",
   );
 
   return result?.message || result?.data?.message || [];

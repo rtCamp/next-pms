@@ -6,7 +6,10 @@ import { baseURL, loadAuthState, fetchWithRetry } from "./apiClient";
  */
 export const apiRequest = async (endpoint, options = {}, role = "manager") => {
   const authFilePath = loadAuthState(role);
-  const requestContext = await request.newContext({ baseURL, storageState: authFilePath });
+  const requestContext = await request.newContext({
+    baseURL,
+    storageState: authFilePath,
+  });
   const response = await fetchWithRetry(requestContext, endpoint, {
     timeout: 120000,
     ...options,
@@ -23,7 +26,7 @@ export const apiRequest = async (endpoint, options = {}, role = "manager") => {
   } else {
     await requestContext.dispose();
     throw new Error(
-      `API request failed for ${role} and endpoint ${endpoint}: ${response.status()} ${response.statusText()}`
+      `API request failed for ${role} and endpoint ${endpoint}: ${response.status()} ${response.statusText()}`,
     );
   }
 

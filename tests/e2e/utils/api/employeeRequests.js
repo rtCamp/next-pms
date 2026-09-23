@@ -1,12 +1,20 @@
 import { request } from "@playwright/test";
-import { baseURL, loadAuthState, fetchWithRetry, deleteDocument } from "./apiClient";
+import {
+  baseURL,
+  loadAuthState,
+  fetchWithRetry,
+  deleteDocument,
+} from "./apiClient";
 
 /**
  * Helper function to load build the API request
  */
 export const apiRequest = async (endpoint, options = {}, role = "manager") => {
   const authFilePath = loadAuthState(role);
-  const requestContext = await request.newContext({ baseURL, storageState: authFilePath });
+  const requestContext = await request.newContext({
+    baseURL,
+    storageState: authFilePath,
+  });
   const response = await fetchWithRetry(requestContext, endpoint, {
     timeout: 120000,
     ...options,
@@ -25,7 +33,7 @@ export const apiRequest = async (endpoint, options = {}, role = "manager") => {
     throw new Error(
       `API request failed for ${role} with endpoint type ${
         options.method
-      } and endpoint ${endpoint}: ${response.status()} ${response.statusText()}`
+      } and endpoint ${endpoint}: ${response.status()} ${response.statusText()}`,
     );
   }
 
@@ -57,7 +65,7 @@ export const addEmployee = async (employeePayload, role) => {
       method: "POST",
       data: employeePayload,
     },
-    role
+    role,
   );
 };
 // ------------------------------------------------------------------------------------------
@@ -81,6 +89,6 @@ export const updateEmployee = async (empId, employeePayload, role) => {
       method: "PUT",
       data: employeePayload,
     },
-    role
+    role,
   );
 };

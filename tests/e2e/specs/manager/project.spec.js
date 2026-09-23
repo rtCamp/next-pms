@@ -30,12 +30,18 @@ test.describe("Project Tab", () => {
     // Assertions:
     expect(projectListBeforeSearch).not.toEqual(projectListAfterSearch);
 
-    expect(projectListAfterSearch.totalCount, "Total count of projects = 1 ").toBe(1);
-    expect(projectListAfterSearch.projectNames[0], "Correct project name is displayed").toEqual(
-      TC28data.payloadCreateProject.project_name,
-    );
+    expect(
+      projectListAfterSearch.totalCount,
+      "Total count of projects = 1 ",
+    ).toBe(1);
+    expect(
+      projectListAfterSearch.projectNames[0],
+      "Correct project name is displayed",
+    ).toEqual(TC28data.payloadCreateProject.project_name);
   });
-  test("TC29: Create a project using the + Project button", async ({ jsonDir }) => {
+  test("TC29: Create a project using the + Project button", async ({
+    jsonDir,
+  }) => {
     allure.story("Project");
 
     const stubPath = path.join(jsonDir, "TC29.json");
@@ -45,7 +51,9 @@ test.describe("Project Tab", () => {
     // Create a project using the + Project button
     await projectPage.createProject(TC29data.createProjectByUI);
   });
-  test("TC113: Verify multiple filter results for project tab", async ({ jsonDir }) => {
+  test("TC113: Verify multiple filter results for project tab", async ({
+    jsonDir,
+  }) => {
     allure.story("Project");
 
     // This case drives the query-builder seven times (four conditions, a clear,
@@ -72,11 +80,21 @@ test.describe("Project Tab", () => {
 
     //Assertion: Verify if the project name = TC113 Project: Fixed Cost is displayed
     const projectListAfterFilter = await projectPage.getProjectList();
-    console.log("Project Names After Filter:", projectListAfterFilter.projectNames);
-    expect(projectListAfterFilter.projectNames).toContain(TC113data.payloadCreateProject.project_name);
+    console.log(
+      "Project Names After Filter:",
+      projectListAfterFilter.projectNames,
+    );
+    expect(projectListAfterFilter.projectNames).toContain(
+      TC113data.payloadCreateProject.project_name,
+    );
 
     //Clear all applied filters
-    await projectPage.clearFilters(["projectType", "businessUnit", "billingType", "currency"]);
+    await projectPage.clearFilters([
+      "projectType",
+      "businessUnit",
+      "billingType",
+      "currency",
+    ]);
 
     //Filter : Negative test case
     const negativeFilters = {
@@ -113,7 +131,14 @@ test.describe("Project Tab", () => {
     allure.story("Project");
 
     //Add columns and verify if they are visible as column headers
-    const columnsToCheck = ["Project Name", "Project Type", "Status", "Business Unit", "Billing Type", "Currency"];
+    const columnsToCheck = [
+      "Project Name",
+      "Project Type",
+      "Status",
+      "Business Unit",
+      "Billing Type",
+      "Currency",
+    ];
 
     await projectPage.verifyColumnHeaders(columnsToCheck);
     for (const column of columnsToCheck) {
@@ -133,10 +158,14 @@ test.describe("Project Tab", () => {
     const firstPass = (await projectPage.getProjectList()).projectNames;
     const ascending = [...firstPass].sort((a, b) => a.localeCompare(b));
     const descending = [...firstPass].sort((a, b) => b.localeCompare(a));
-    const startedAscending = JSON.stringify(firstPass) === JSON.stringify(ascending);
+    const startedAscending =
+      JSON.stringify(firstPass) === JSON.stringify(ascending);
 
     // Whichever way it landed, the list must be ordered by name.
-    expect(startedAscending || JSON.stringify(firstPass) === JSON.stringify(descending)).toBeTruthy();
+    expect(
+      startedAscending ||
+        JSON.stringify(firstPass) === JSON.stringify(descending),
+    ).toBeTruthy();
 
     // Flipping the direction must reorder the list the opposite way.
     await projectPage.sortBy("Project name");
@@ -148,7 +177,9 @@ test.describe("Project Tab", () => {
     expect(secondPass).toEqual(expectedSecondPass);
   });
 
-  test("TC35: Validate the project details page by clicking on the project title.", async ({ jsonDir }) => {
+  test("TC35: Validate the project details page by clicking on the project title.", async ({
+    jsonDir,
+  }) => {
     allure.story("Project");
 
     // Load test data
@@ -164,12 +195,15 @@ test.describe("Project Tab", () => {
 
     // The redesigned details page has no editable name input (no textboxes at
     // all), so verify the click actually opened that project's detail route.
-    await expect(projectPage.page, "Clicking the title opens the project details page").toHaveURL(
-      /\/next-pms\/projects\/[A-Za-z0-9-]+$/,
-    );
+    await expect(
+      projectPage.page,
+      "Clicking the title opens the project details page",
+    ).toHaveURL(/\/next-pms\/projects\/[A-Za-z0-9-]+$/);
   });
 
-  test("TC106: Verify the details of a project from public view", async ({ jsonDir }) => {
+  test("TC106: Verify the details of a project from public view", async ({
+    jsonDir,
+  }) => {
     allure.story("Project");
 
     // Load test data
@@ -185,14 +219,20 @@ test.describe("Project Tab", () => {
     // so narrow to the project inside the view before reading the list. The
     // search still honours the view's own filters, so a project the view
     // excludes would return nothing and still fail this assertion.
-    await projectPage.searchProject(TC106data.payloadCreateProject.project_name);
+    await projectPage.searchProject(
+      TC106data.payloadCreateProject.project_name,
+    );
 
     //Get list of project names, verify if the project name is one among the list
     const projectList = await projectPage.getProjectListInRetainerView();
-    expect(projectList.projectNames).toContain(TC106data.payloadCreateProject.project_name);
+    expect(projectList.projectNames).toContain(
+      TC106data.payloadCreateProject.project_name,
+    );
   });
 
-  test("TC118: There should be no delete view option for a public view for manager", async ({ jsonDir }) => {
+  test("TC118: There should be no delete view option for a public view for manager", async ({
+    jsonDir,
+  }) => {
     allure.story("Project");
 
     // Load test data
@@ -206,9 +246,14 @@ test.describe("Project Tab", () => {
     // The old assertion read getByText("Delete View"), which no longer matches
     // anything, so it passed without checking anything. Read the actions the
     // redesigned row menu actually offers instead.
-    const actions = await projectPage.getViewRowActions(TC118data.publicViewName);
+    const actions = await projectPage.getViewRowActions(
+      TC118data.publicViewName,
+    );
 
-    expect(actions, "A manager who does not own a public view must not be offered Delete").not.toContain("Delete");
+    expect(
+      actions,
+      "A manager who does not own a public view must not be offered Delete",
+    ).not.toContain("Delete");
   });
 });
 
@@ -251,7 +296,9 @@ test.describe("Project Tab: Single Filters", () => {
     }
 
     //Search the project
-    await projectPage.searchProject(TC112data.payloadCreateProject.project_name);
+    await projectPage.searchProject(
+      TC112data.payloadCreateProject.project_name,
+    );
     // Apply single filter for Project Type and verify results
     const projectListBeforeFilter = await projectPage.getProjectList();
     await projectPage.applyFilters({
@@ -330,24 +377,43 @@ test.describe("Project Tab: Single Filters", () => {
     const projectName = TC114data.createProject3Info.project_name;
     const status = TC114data.createProject3Info.status;
 
-    await expect(projectPage.statusCell(projectName, status), "Single Status Filter : Correct").toBeVisible();
+    await expect(
+      projectPage.statusCell(projectName, status),
+      "Single Status Filter : Correct",
+    ).toBeVisible();
 
     await projectPage.clearFilters(["status"]);
 
     ///////////2:Apply multiple filters for Status and verify results///////////
     await projectPage.applyFilters({
-      status: [TC114data.createProject3Info.status, TC114data.createProject4Info.status],
+      status: [
+        TC114data.createProject3Info.status,
+        TC114data.createProject4Info.status,
+      ],
     });
     const projectListAfterMultipleFilters = await projectPage.getProjectList();
-    console.log("Project Names After applying multiple status filters:", projectListAfterMultipleFilters.projectNames);
-    expect(projectListAfterMultipleFilters.projectNames).toContain(TC114data.createProject3Info.project_name);
-    expect(projectListAfterMultipleFilters.projectNames).toContain(TC114data.createProject4Info.project_name);
+    console.log(
+      "Project Names After applying multiple status filters:",
+      projectListAfterMultipleFilters.projectNames,
+    );
+    expect(projectListAfterMultipleFilters.projectNames).toContain(
+      TC114data.createProject3Info.project_name,
+    );
+    expect(projectListAfterMultipleFilters.projectNames).toContain(
+      TC114data.createProject4Info.project_name,
+    );
     await expect(
-      projectPage.statusCell(TC114data.createProject3Info.project_name, TC114data.createProject3Info.status),
+      projectPage.statusCell(
+        TC114data.createProject3Info.project_name,
+        TC114data.createProject3Info.status,
+      ),
       "Multiple Status Filter1 : Correct",
     ).toBeVisible();
     await expect(
-      projectPage.statusCell(TC114data.createProject4Info.project_name, TC114data.createProject4Info.status),
+      projectPage.statusCell(
+        TC114data.createProject4Info.project_name,
+        TC114data.createProject4Info.status,
+      ),
       "Multiple Status Filter2 : Correct",
     ).toBeVisible();
   });
@@ -367,19 +433,23 @@ test.describe("Project Tab: Single Filters", () => {
 
     ///////////1:  Apply single filter for Business Unit and verify results///////////
     const projectListBeforeFilter = await projectPage.getProjectList();
-    await projectPage.applyFilters({ businessUnit: matching.custom_business_unit });
+    await projectPage.applyFilters({
+      businessUnit: matching.custom_business_unit,
+    });
     const projectListAfterFilter = await projectPage.getProjectList();
 
     expect(projectListAfterFilter).not.toEqual(projectListBeforeFilter);
-    expect(projectListAfterFilter.projectNames, "Single Business Unit filter keeps the matching project").toContain(
-      matching.project_name,
-    );
+    expect(
+      projectListAfterFilter.projectNames,
+      "Single Business Unit filter keeps the matching project",
+    ).toContain(matching.project_name);
 
     // A project in a different unit must be excluded - this is what catches a
     // filter that silently returns everything.
-    expect(projectListAfterFilter.projectNames, "Single Business Unit filter excludes other units").not.toContain(
-      other.project_name,
-    );
+    expect(
+      projectListAfterFilter.projectNames,
+      "Single Business Unit filter excludes other units",
+    ).not.toContain(other.project_name);
 
     // The original step 2 applied two business units at once and expected both
     // projects back. The filter panel is AND-only now - it has no OR, only a
@@ -404,13 +474,16 @@ test.describe("Project Tab: Single Filters", () => {
 
     ///////////1:  Apply single filter for Billing Type and verify results///////////
     const projectListBeforeFilter = await projectPage.getProjectList();
-    await projectPage.applyFilters({ billingType: matching.custom_billing_type });
+    await projectPage.applyFilters({
+      billingType: matching.custom_billing_type,
+    });
     const projectListAfterFilter = await projectPage.getProjectList();
 
     expect(projectListAfterFilter).not.toEqual(projectListBeforeFilter);
-    expect(projectListAfterFilter.projectNames, "Single Billing Type filter keeps the matching project").toContain(
-      matching.project_name,
-    );
+    expect(
+      projectListAfterFilter.projectNames,
+      "Single Billing Type filter keeps the matching project",
+    ).toContain(matching.project_name);
 
     // A project with a different billing type must be excluded - this is what
     // catches a filter that silently returns everything.

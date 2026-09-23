@@ -21,42 +21,73 @@ export class TeamPage extends TimelinePage {
     super(page);
     this.deleteButton = page.getByRole("img", { name: "Delete" });
     // Member rows carry no ARIA roles, so anchor on the per-row name control.
-    this.memberRows = page.locator("table tr").filter({ has: page.locator('[aria-label^="View "]') });
-    this.firstEmployeeFromTable = this.memberRows.first().locator('[aria-label^="View "]').first();
+    this.memberRows = page
+      .locator("table tr")
+      .filter({ has: page.locator('[aria-label^="View "]') });
+    this.firstEmployeeFromTable = this.memberRows
+      .first()
+      .locator('[aria-label^="View "]')
+      .first();
     // The chevron that expands a member into their allocated projects. Its label
     // stays "Expand" while aria-expanded flips, so match either wording.
     this.firstMemberExpandButton = this.memberRows
       .first()
       .getByRole("button", { name: /^(Expand|Collapse)$/ })
       .first();
-    this.reportsToDropdown = page.getByRole("button", { name: "Reporting Manager" });
+    this.reportsToDropdown = page.getByRole("button", {
+      name: "Reporting Manager",
+    });
     // One "View <name> details" control per member row.
-    this.employeeCountFromTable = page.getByRole("table").getByRole("button", { name: /^View .* details$/ });
+    this.employeeCountFromTable = page
+      .getByRole("table")
+      .getByRole("button", { name: /^View .* details$/ });
     // The grid has no ARIA roles, so anchor a member's row on that control.
     this.memberRow = (employeeName) =>
-      page.locator("table tr").filter({ has: page.locator(`[aria-label="View ${employeeName} details"]`) });
-    this.leftSidebar = page.getByText("Next PMSHomeTimesheetTeamProjectTaskResource");
+      page
+        .locator("table tr")
+        .filter({
+          has: page.locator(`[aria-label="View ${employeeName} details"]`),
+        });
+    this.leftSidebar = page.getByText(
+      "Next PMSHomeTimesheetTeamProjectTaskResource",
+    );
 
     // filter locators related to skill filter dropdown
     this.skillFilterDropdown = page.getByRole("button", { name: "Skill" });
-    this.searchSkillInput = page.getByRole("textbox", { name: "Search skills..." });
-    this.skillSelectorFromModal = (value) => page.getByRole("button", { name: value });
-    this.twoStarsSelector = page.getByRole("dialog").getByRole("button").filter({ hasText: /^$/ }).nth(1);
+    this.searchSkillInput = page.getByRole("textbox", {
+      name: "Search skills...",
+    });
+    this.skillSelectorFromModal = (value) =>
+      page.getByRole("button", { name: value });
+    this.twoStarsSelector = page
+      .getByRole("dialog")
+      .getByRole("button")
+      .filter({ hasText: /^$/ })
+      .nth(1);
     this.searchSkillButton = page.getByRole("button", { name: "Search" });
     this.clearSkillButton = page.getByRole("button", { name: "Clear" });
 
     // filter locators related to business unit filter dropdown
-    this.businessUnitFilterDropdown = page.getByRole("button", { name: "Business Unit" });
-    this.businessUnitOptionSelector = (value) => page.getByRole("option", { name: value, exact: true });
+    this.businessUnitFilterDropdown = page.getByRole("button", {
+      name: "Business Unit",
+    });
+    this.businessUnitOptionSelector = (value) =>
+      page.getByRole("option", { name: value, exact: true });
 
     // filter locators related to designation filter dropdown
-    this.designationFilterDropdown = page.getByRole("button", { name: "Designation" });
+    this.designationFilterDropdown = page.getByRole("button", {
+      name: "Designation",
+    });
     this.designationSearchDropdown = page.getByPlaceholder("Designation");
-    this.designationOptionSelector = (value) => page.getByRole("option", { name: value });
+    this.designationOptionSelector = (value) =>
+      page.getByRole("option", { name: value });
 
     // filter locators related to allocation type filter dropdown
-    this.allocationTypeFilterDropdown = page.getByRole("button", { name: "Allocation Type" });
-    this.allocationTypeOptionSelector = (value) => page.getByRole("option", { name: value, exact: true });
+    this.allocationTypeFilterDropdown = page.getByRole("button", {
+      name: "Allocation Type",
+    });
+    this.allocationTypeOptionSelector = (value) =>
+      page.getByRole("option", { name: value, exact: true });
 
     // filter locators related to views filter dropdown
     this.viewsFilterDropdown = page.getByRole("combobox");
@@ -80,10 +111,13 @@ export class TeamPage extends TimelinePage {
         (resp) =>
           resp
             .url()
-            .includes("/api/method/next_pms.resource_management.api.team.get_resource_management_team_view_data") &&
-          resp.status() === 200,
+            .includes(
+              "/api/method/next_pms.resource_management.api.team.get_resource_management_team_view_data",
+            ) && resp.status() === 200,
       ),
-      this.page.goto("/next-pms/allocations/team", { waitUntil: "domcontentloaded" }),
+      this.page.goto("/next-pms/allocations/team", {
+        waitUntil: "domcontentloaded",
+      }),
     ]);
   }
 
@@ -101,11 +135,24 @@ export class TeamPage extends TimelinePage {
    * employee X on date Y" left to click, and the date has to go through the
    * allocation dialog's own picker. Same conclusion as the project tab.
    */
-  async addAllocationFromTeamTab(projectName, customerName, employeeName, date, day) {
+  async addAllocationFromTeamTab(
+    projectName,
+    customerName,
+    employeeName,
+    date,
+    day,
+  ) {
     await this.filterEmployeeByName(employeeName);
-    await this.memberRow(employeeName).first().waitFor({ state: "visible", timeout: 20000 });
+    await this.memberRow(employeeName)
+      .first()
+      .waitFor({ state: "visible", timeout: 20000 });
 
-    const allocationName = await this.addAllocation(projectName, customerName, employeeName, date);
+    const allocationName = await this.addAllocation(
+      projectName,
+      customerName,
+      employeeName,
+      date,
+    );
 
     return { allocationName };
   }
@@ -144,7 +191,10 @@ export class TeamPage extends TimelinePage {
   async checkIfExtendedResourceAllocationIsVisible() {
     // Expanding reveals the member's project rows inline rather than opening a
     // separate panel, so the row's own expanded state is the signal.
-    return (await this.firstMemberExpandButton.getAttribute("aria-expanded")) === "true";
+    return (
+      (await this.firstMemberExpandButton.getAttribute("aria-expanded")) ===
+      "true"
+    );
   }
 
   /**
@@ -186,17 +236,26 @@ export class TeamPage extends TimelinePage {
     await this.page.waitForTimeout(200);
 
     const labels = await this.employeeCountFromTable.evaluateAll((els) =>
-      els.map((e) => e.getAttribute("aria-label") || "")
+      els.map((e) => e.getAttribute("aria-label") || ""),
     );
 
-    return labels.map((l) => l.replace(/^View\s+/, "").replace(/\s+details$/, "").trim()).filter(Boolean);
+    return labels
+      .map((l) =>
+        l
+          .replace(/^View\s+/, "")
+          .replace(/\s+details$/, "")
+          .trim(),
+      )
+      .filter(Boolean);
   }
 
   /**
    * Performs a search and selection within a modal based on a placeholder text.
    */
   async searchAndSelectOption(placeholder, value) {
-    const searchInput = this.page.getByRole("dialog").getByPlaceholder(`${placeholder}`);
+    const searchInput = this.page
+      .getByRole("dialog")
+      .getByPlaceholder(`${placeholder}`);
     await searchInput.fill(value);
     await this.page.waitForTimeout(1000);
     await this.page.getByRole("option", { name: value }).click();
@@ -232,7 +291,10 @@ export class TeamPage extends TimelinePage {
 
       case "Allocation Type":
         // The options are reworded: "Billable" is offered as "Billable only".
-        await this.pickFromLabelledCombobox("Select options", ALLOCATION_TYPE_LABELS[value] ?? value);
+        await this.pickFromLabelledCombobox(
+          "Select options",
+          ALLOCATION_TYPE_LABELS[value] ?? value,
+        );
         return;
 
       default:
@@ -248,12 +310,16 @@ export class TeamPage extends TimelinePage {
    * rather than visible field names.
    */
   async pickFromLabelledCombobox(ariaLabel, value) {
-    const combobox = this.page.getByRole("combobox", { name: ariaLabel }).first();
+    const combobox = this.page
+      .getByRole("combobox", { name: ariaLabel })
+      .first();
     await combobox.waitFor({ state: "visible", timeout: 15000 });
     await combobox.click({ force: true });
     await this.page.waitForTimeout(1000);
 
-    const option = this.page.getByRole("option", { name: value, exact: true }).first();
+    const option = this.page
+      .getByRole("option", { name: value, exact: true })
+      .first();
     await option.waitFor({ state: "visible", timeout: 10000 });
     await option.click();
     await this.page.waitForTimeout(1500);
@@ -329,7 +395,8 @@ export class TeamPage extends TimelinePage {
       await this.page.getByText("Add filter").click();
       await this.page.waitForTimeout(700);
     }
-    const exact = (t) => new RegExp(`^${String(t).replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`, "i");
+    const exact = (t) =>
+      new RegExp(`^${String(t).replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`, "i");
 
     const field = fieldInput.last();
     await field.click();
@@ -352,7 +419,9 @@ export class TeamPage extends TimelinePage {
 
     if (FREE_TEXT_FILTER_FIELDS.has(fieldLabel)) {
       // The typed text *is* the value; the grid refetches on a debounce.
-      await this.page.waitForLoadState("networkidle", { timeout: 5000 }).catch(() => {});
+      await this.page
+        .waitForLoadState("networkidle", { timeout: 5000 })
+        .catch(() => {});
       return;
     }
 
@@ -367,6 +436,8 @@ export class TeamPage extends TimelinePage {
     await option.waitFor({ state: "visible", timeout: 10000 });
     await option.click();
 
-    await this.page.waitForLoadState("networkidle", { timeout: 5000 }).catch(() => {});
+    await this.page
+      .waitForLoadState("networkidle", { timeout: 5000 })
+      .catch(() => {});
   }
 }

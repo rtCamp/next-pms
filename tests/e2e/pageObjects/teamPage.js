@@ -12,7 +12,18 @@ export class TeamPage {
     this.page = page;
 
     // Column Index Map
-    this.dayIndexObj = { member: 0, mon: 1, tue: 2, wed: 3, thu: 4, fri: 5, sat: 6, sun: 7, total: 8, status: 9 };
+    this.dayIndexObj = {
+      member: 0,
+      mon: 1,
+      tue: 2,
+      wed: 3,
+      thu: 4,
+      fri: 5,
+      sat: 6,
+      sun: 7,
+      total: 8,
+      status: 9,
+    };
 
     // Header Filters
     this.searchInput = page.getByPlaceholder("Search members");
@@ -24,11 +35,14 @@ export class TeamPage {
     // Filters moved into a query-builder panel behind one toolbar button, whose
     // label carries the active-condition count ("Filter" / "Filter 1").
     this.filterButton = page.getByRole("button", { name: /^Filter/ }).first();
-    this.clearAllFiltersButton = page.getByRole("button", { name: "Clear all filters" });
+    this.clearAllFiltersButton = page.getByRole("button", {
+      name: "Clear all filters",
+    });
     this.projectFilterSearchBar = page.getByPlaceholder("Project");
 
     //employeeStatus Filter Dialog
-    this.selectEmpStatus = (empStatus) => page.locator(`//div[@data-value="${empStatus}"]`);
+    this.selectEmpStatus = (empStatus) =>
+      page.locator(`//div[@data-value="${empStatus}"]`);
     this.clearSelection = page.getByRole("button", { name: "Clear Selection" });
 
     // Prev & Next Buttons
@@ -38,7 +52,11 @@ export class TeamPage {
     // the others.
     this.weekButton = (label) =>
       page
-        .getByRole("button", { name: new RegExp(`^${String(label).replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}`) })
+        .getByRole("button", {
+          name: new RegExp(
+            `^${String(label).replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}`,
+          ),
+        })
         .first();
     this.prevButton = page.getByRole("button", { name: "prev-week" });
     this.nextButton = page.getByRole("button", { name: "next-week" });
@@ -50,11 +68,20 @@ export class TeamPage {
     // "h2" that matched nothing and hung every caller).
     this.rejectTimesheetModal = page
       .getByRole("dialog")
-      .filter({ has: page.getByRole("heading", { name: "Reason for timesheet rejection" }) })
+      .filter({
+        has: page.getByRole("heading", {
+          name: "Reason for timesheet rejection",
+        }),
+      })
       .first();
-    this.rejectReasonInput = page.getByPlaceholder("Enter reason for rejection");
+    this.rejectReasonInput = page.getByPlaceholder(
+      "Enter reason for rejection",
+    );
     // "Reject" alone also matches this, so the confirm button needs exact.
-    this.confirmRejectButton = page.getByRole("button", { name: "Reject timesheet", exact: true });
+    this.confirmRejectButton = page.getByRole("button", {
+      name: "Reject timesheet",
+      exact: true,
+    });
 
     // Review Timesheet Pane
     // One object cannot carry three `has:` keys - only the last survived, so
@@ -74,8 +101,13 @@ export class TeamPage {
     // status / action slot. The header row of a week section has the same shape.
     // Depth is carried by the indentation class: pl-7.5 member, pl-13.5
     // project, pl-19.5 task.
-    this.rowDepthClass = { member: "pl-7.5", project: "pl-13.5", task: "pl-19.5" };
-    this.rowsIn = (section) => section.locator("div.border-b.border-outline-gray-1");
+    this.rowDepthClass = {
+      member: "pl-7.5",
+      project: "pl-13.5",
+      task: "pl-19.5",
+    };
+    this.rowsIn = (section) =>
+      section.locator("div.border-b.border-outline-gray-1");
 
     // Member rows. The team grid exposes no table semantics, so rows are
     // identified by the avatar that every member row renders (and week-group
@@ -89,7 +121,9 @@ export class TeamPage {
         .locator("div.animate-fade-in")
         .filter({
           has: page.getByRole("button", {
-            name: new RegExp(`^${String(label).replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}`),
+            name: new RegExp(
+              `^${String(label).replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}`,
+            ),
           }),
         })
         .first();
@@ -111,7 +145,8 @@ export class TeamPage {
 
     // Employee Name in the table
     // No <p> elements in the redesigned grid - match the member name text.
-    this.employeeNameInTable = (employeeName) => page.getByText(employeeName, { exact: true }).first();
+    this.employeeNameInTable = (employeeName) =>
+      page.getByText(employeeName, { exact: true }).first();
 
     //Toast Notification
     // Toasts render inside a live region and split their text across nested
@@ -140,16 +175,21 @@ export class TeamPage {
    * Navigates to the team page and waits for it to fully load.
    */
   async goto() {
-    await this.page.goto(`/next-pms/timesheet/team?reportsTo=${process.env.REP_MAN_ID}`, {
-      waitUntil: "domcontentloaded",
-    });
+    await this.page.goto(
+      `/next-pms/timesheet/team?reportsTo=${process.env.REP_MAN_ID}`,
+      {
+        waitUntil: "domcontentloaded",
+      },
+    );
   }
 
   /**
    * Performs a search and selection within a modal based on a placeholder text.
    */
   async searchAndSelectOption(placeholder, value) {
-    const searchInput = this.page.getByRole("dialog").getByPlaceholder(`${placeholder}`);
+    const searchInput = this.page
+      .getByRole("dialog")
+      .getByPlaceholder(`${placeholder}`);
 
     await searchInput.fill(value);
     await this.page.waitForTimeout(1000);
@@ -182,7 +222,9 @@ export class TeamPage {
     // to come first in the DOM rather than the one under test.
     const section = await this.getEmployeeTimesheet(name);
     await section.getByText(name, { exact: true }).first().click();
-    await this.page.waitForLoadState("networkidle", { timeout: 5000 }).catch(() => {});
+    await this.page
+      .waitForLoadState("networkidle", { timeout: 5000 })
+      .catch(() => {});
     await this.page.waitForTimeout(2000);
   }
 
@@ -214,7 +256,9 @@ export class TeamPage {
     await this.reportsToDropdown.fill(name);
     await this.page.waitForTimeout(1000);
     await this.page.getByRole("option", { name }).first().click();
-    await this.page.waitForLoadState("networkidle", { timeout: 5000 }).catch(() => {});
+    await this.page
+      .waitForLoadState("networkidle", { timeout: 5000 })
+      .catch(() => {});
     await this.page.waitForTimeout(2000);
   }
 
@@ -241,7 +285,13 @@ export class TeamPage {
       .map((line) => line.trim())
       .filter(Boolean);
 
-    return lines.find((line) => /^(Not submitted|Approval pending|Approved|Rejected|Partially)/i.test(line)) ?? null;
+    return (
+      lines.find((line) =>
+        /^(Not submitted|Approval pending|Approved|Rejected|Partially)/i.test(
+          line,
+        ),
+      ) ?? null
+    );
   }
 
   /**
@@ -251,14 +301,23 @@ export class TeamPage {
     // goto() only waits for domcontentloaded, and the week list renders after
     // its data fetch, so wait for the current week before enumerating - reading
     // too early returns an empty list and callers end up with an undefined label.
-    await this.weekButton("This week").waitFor({ state: "visible", timeout: 20000 });
+    await this.weekButton("This week").waitFor({
+      state: "visible",
+      timeout: 20000,
+    });
 
     return await this.page
       .getByRole("button")
       .evaluateAll((els) =>
         els
-          .map((el) => (el.getAttribute("aria-label") || el.innerText || "").split("\n")[0].trim())
-          .filter((text) => /^(This week|Last week|[A-Z][a-z]{2} \d{1,2} -)/.test(text)),
+          .map((el) =>
+            (el.getAttribute("aria-label") || el.innerText || "")
+              .split("\n")[0]
+              .trim(),
+          )
+          .filter((text) =>
+            /^(This week|Last week|[A-Z][a-z]{2} \d{1,2} -)/.test(text),
+          ),
       );
   }
 
@@ -270,7 +329,9 @@ export class TeamPage {
     const open = [];
 
     for (const label of labels) {
-      if ((await this.weekButton(label).getAttribute("aria-expanded")) === "true") {
+      if (
+        (await this.weekButton(label).getAttribute("aria-expanded")) === "true"
+      ) {
         open.push(label);
       }
     }
@@ -283,13 +344,18 @@ export class TeamPage {
    */
   async toggleWeek(label, expanded) {
     if (!label) {
-      throw new Error("toggleWeek: no week label resolved - the week list did not render in time.");
+      throw new Error(
+        "toggleWeek: no week label resolved - the week list did not render in time.",
+      );
     }
 
     const button = this.weekButton(label);
     await button.waitFor({ state: "visible", timeout: 15000 });
 
-    if (((await button.getAttribute("aria-expanded")) === "true") !== expanded) {
+    if (
+      ((await button.getAttribute("aria-expanded")) === "true") !==
+      expanded
+    ) {
       // Row overlays swallow pointer events, so target the control directly.
       await button.dispatchEvent("click");
       await this.page.waitForTimeout(1200);
@@ -305,7 +371,10 @@ export class TeamPage {
     const open = await this.getOpenWeekLabels();
     const oldestOpen = open.length ? labels.indexOf(open[open.length - 1]) : 0;
 
-    await this.toggleWeek(labels[Math.min(oldestOpen + 1, labels.length - 1)], true);
+    await this.toggleWeek(
+      labels[Math.min(oldestOpen + 1, labels.length - 1)],
+      true,
+    );
   }
 
   /**
@@ -336,15 +405,25 @@ export class TeamPage {
     await this.openReviewTimesheetPane(employee);
     await this.actOnTimeEntry("Reject");
 
-    await this.rejectTimesheetModal.waitFor({ state: "visible", timeout: 20000 });
+    await this.rejectTimesheetModal.waitFor({
+      state: "visible",
+      timeout: 20000,
+    });
     await this.rejectReasonInput.fill(reason);
     await this.confirmRejectButton.click();
-    await this.toastNotification(notification).waitFor({ state: "visible", timeout: 20000 });
+    await this.toastNotification(notification).waitFor({
+      state: "visible",
+      timeout: 20000,
+    });
 
     // Wait until the row reports a rejected state. The status is the aria-label
     // of the status column's button now - the old check read an svg's
     // stroke-destructive class, which the icon no longer carries.
-    await expect.poll(async () => await this.getTimesheetStatus(employee), { timeout: 30000 }).toMatch(/rejected/i);
+    await expect
+      .poll(async () => await this.getTimesheetStatus(employee), {
+        timeout: 30000,
+      })
+      .toMatch(/rejected/i);
   }
 
   // --------------------------------------
@@ -365,18 +444,27 @@ export class TeamPage {
     // The status column holds an icon-only button whose aria-label is the
     // status text ("Not submitted", "Partially rejected", ...); clicking it
     // opens the review pane. The cell itself is not the click target.
-    const cell = await this.getCell({ employee: employee, rowName: "employee header", col: "status" });
+    const cell = await this.getCell({
+      employee: employee,
+      rowName: "employee header",
+      col: "status",
+    });
     const trigger = cell.getByRole("button").first();
     await trigger.waitFor({ state: "visible", timeout: 20000 });
     await trigger.click();
-    await this.reviewTimesheetPane.waitFor({ state: "visible", timeout: 20000 });
+    await this.reviewTimesheetPane.waitFor({
+      state: "visible",
+      timeout: 20000,
+    });
   }
 
   /**
    * Retrieves the time entry section for the specified date.
    */
   async getTimeEntrySection(date) {
-    return this.reviewTimesheetPane.locator(`//p[contains(text(),'${date}')]/parent::div/parent::div`);
+    return this.reviewTimesheetPane.locator(
+      `//p[contains(text(),'${date}')]/parent::div/parent::div`,
+    );
   }
 
   /**
@@ -390,7 +478,9 @@ export class TeamPage {
     //
     // `date` is accepted for signature compatibility but not needed to
     // disambiguate: task + description is unique per seeded entry.
-    let entry = this.reviewTimesheetPane.locator('div[class*="px-3.5"][class*="py-4"][class*="gap-3"]');
+    let entry = this.reviewTimesheetPane.locator(
+      'div[class*="px-3.5"][class*="py-4"][class*="gap-3"]',
+    );
 
     for (const text of [task, project, desc]) {
       if (text) entry = entry.filter({ hasText: text });
@@ -411,14 +501,21 @@ export class TeamPage {
    * Updates duration of the specified time entry.
    */
   async updateDurationOfTimeEntry({ date, project, task, desc, newDuration }) {
-    const row = await this.getTimeEntryRow({ date: date, project: project, task: task, desc: desc });
+    const row = await this.getTimeEntryRow({
+      date: date,
+      project: project,
+      task: task,
+      desc: desc,
+    });
     await row.waitFor({ state: "visible", timeout: 20000 });
 
     // Editing happens inline, and the pencil only exists on hover ("opacity-0
     // pointer-events-none" until then). It is also disabled for entries that
     // are already approved or rejected - only a pending one can be changed.
     await row.hover();
-    const editButton = row.getByRole("button", { name: "Edit time entry" }).first();
+    const editButton = row
+      .getByRole("button", { name: "Edit time entry" })
+      .first();
     await editButton.waitFor({ state: "visible", timeout: 15000 });
 
     if (!(await editButton.isEnabled())) {
@@ -450,14 +547,18 @@ export class TeamPage {
       .filter({ has: this.page.locator("svg.text-ink-green-4") })
       .first()
       .dispatchEvent("click");
-    await this.page.waitForLoadState("networkidle", { timeout: 5000 }).catch(() => {});
+    await this.page
+      .waitForLoadState("networkidle", { timeout: 5000 })
+      .catch(() => {});
   }
 
   /**
    * Performs an action on a time entry by clicking the corresponding button.
    */
   async actOnTimeEntry(action) {
-    await this.reviewTimesheetPane.getByRole("button", { name: action }).click();
+    await this.reviewTimesheetPane
+      .getByRole("button", { name: action })
+      .click();
   }
 
   // --------------------------------------
@@ -509,7 +610,10 @@ export class TeamPage {
     const rows = await this.getEmployeeRows();
 
     for (const row of await rows.all()) {
-      const employee = await row.locator("span.font-medium.truncate").first().textContent();
+      const employee = await row
+        .locator("span.font-medium.truncate")
+        .first()
+        .textContent();
       employees.push(employee.trim());
     }
 
@@ -543,7 +647,10 @@ export class TeamPage {
     // the employee once per week (12 times for 12 weeks of history).
     const section = this.weekSectionFor(weekLabel);
     await section.waitFor({ state: "visible", timeout: 20000 });
-    await section.getByText(name, { exact: true }).first().waitFor({ state: "visible", timeout: 20000 });
+    await section
+      .getByText(name, { exact: true })
+      .first()
+      .waitFor({ state: "visible", timeout: 20000 });
 
     return section;
   }
@@ -562,8 +669,15 @@ export class TeamPage {
     // The status is the aria-label of the status column's icon-only button -
     // the old approach read an svg's stroke-* class, and the icon no longer
     // carries the status that way.
-    const cell = await this.getCell({ employee: name, rowName: "employee header", col: "status" });
-    const label = await cell.getByRole("button").first().getAttribute("aria-label");
+    const cell = await this.getCell({
+      employee: name,
+      rowName: "employee header",
+      col: "status",
+    });
+    const label = await cell
+      .getByRole("button")
+      .first()
+      .getAttribute("aria-label");
 
     return (label || "").trim();
   }
@@ -585,7 +699,9 @@ export class TeamPage {
         // The member's own row. Depth lives in the row's *own* class, so select
         // on it directly - filter({hasNot}) inspects descendants, not self.
         return section
-          .locator(`div.border-b.border-outline-gray-1[class*="${this.rowDepthClass.member}"]`)
+          .locator(
+            `div.border-b.border-outline-gray-1[class*="${this.rowDepthClass.member}"]`,
+          )
           .filter({ hasText: employee })
           .first();
       case "time off":
@@ -605,7 +721,9 @@ export class TeamPage {
 
     const colIndex = this.dayIndexObj[col.toLowerCase()];
     if (colIndex === undefined) {
-      throw new Error(`getCell: unknown column "${col}". Known: ${Object.keys(this.dayIndexObj).join(", ")}`);
+      throw new Error(
+        `getCell: unknown column "${col}". Known: ${Object.keys(this.dayIndexObj).join(", ")}`,
+      );
     }
     // Direct children only - the row's own flex columns.
     const cell = row.locator("> div").nth(colIndex);
@@ -687,7 +805,10 @@ export class TeamPage {
    */
   async isTaskDetailsDialogVisible(name) {
     // The dialog carries no accessible name, so match on the task it shows.
-    const dialog = this.page.getByRole("dialog").filter({ hasText: name }).first();
+    const dialog = this.page
+      .getByRole("dialog")
+      .filter({ hasText: name })
+      .first();
     await dialog.waitFor({ state: "visible", timeout: 15000 }).catch(() => {});
 
     return await dialog.isVisible().catch(() => false);
@@ -756,7 +877,11 @@ export class TeamPage {
     // Business Unit, not Project Type: this page's panel offers exactly
     // Project, Task, Date, Member, Member Status and Business Unit - typing
     // "Project Type" returns zero options and hangs the field lookup.
-    await this.addFilterCondition("Business Unit", businessUnit, lastValue !== "");
+    await this.addFilterCondition(
+      "Business Unit",
+      businessUnit,
+      lastValue !== "",
+    );
   }
 
   /**
@@ -770,7 +895,10 @@ export class TeamPage {
    */
   async checkUserGroup(userGroupName) {
     await this.page.getByRole("button", { name: "User Group" }).click();
-    await this.page.getByRole("option", { name: userGroupName }).getByRole("checkbox").check();
+    await this.page
+      .getByRole("option", { name: userGroupName })
+      .getByRole("checkbox")
+      .check();
     await this.page.getByPlaceholder("User Group").press("Escape");
   }
 
@@ -804,7 +932,9 @@ export class TeamPage {
       await this.page.waitForTimeout(1000);
     }
 
-    const values = await this.page.getByPlaceholder("Field").evaluateAll((els) => els.map((e) => e.value));
+    const values = await this.page
+      .getByPlaceholder("Field")
+      .evaluateAll((els) => els.map((e) => e.value));
 
     return values.map((v) => (v || "").trim()).filter(Boolean);
   }
@@ -839,7 +969,9 @@ export class TeamPage {
       const remove = this.page.getByRole("button", { name: "Remove filter" });
       if ((await remove.count()) === 0) break;
       await remove.first().click();
-      await this.page.waitForLoadState("networkidle", { timeout: 5000 }).catch(() => {});
+      await this.page
+        .waitForLoadState("networkidle", { timeout: 5000 })
+        .catch(() => {});
       await this.page.waitForTimeout(400);
     }
   }
@@ -908,7 +1040,8 @@ export class TeamPage {
       await this.page.getByText("Add filter").click();
       await this.page.waitForTimeout(700);
     }
-    const exact = (t) => new RegExp(`^${String(t).replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`, "i");
+    const exact = (t) =>
+      new RegExp(`^${String(t).replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`, "i");
 
     const field = fieldInput.last();
     await field.click();
@@ -946,6 +1079,8 @@ export class TeamPage {
     // option click has already committed the condition, so this is a settle,
     // not a barrier - where a read genuinely needs a barrier, wait on the list
     // response instead (see ProjectPage.waitForProjectList).
-    await this.page.waitForLoadState("networkidle", { timeout: 5000 }).catch(() => {});
+    await this.page
+      .waitForLoadState("networkidle", { timeout: 5000 })
+      .catch(() => {});
   }
 }

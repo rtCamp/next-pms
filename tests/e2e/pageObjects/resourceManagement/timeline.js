@@ -12,7 +12,11 @@ const parseShortDate = (formatted) => {
     return new Date(Number(iso[1]), Number(iso[2]) - 1, Number(iso[3]));
   }
 
-  const candidates = [today.getFullYear() - 1, today.getFullYear(), today.getFullYear() + 1]
+  const candidates = [
+    today.getFullYear() - 1,
+    today.getFullYear(),
+    today.getFullYear() + 1,
+  ]
     .map((year) => new Date(`${formatted}, ${year}`))
     .filter((date) => !Number.isNaN(date.getTime()));
 
@@ -20,40 +24,62 @@ const parseShortDate = (formatted) => {
     throw new Error(`addDateRange: could not parse date "${formatted}"`);
   }
 
-  return candidates.reduce((best, date) => (Math.abs(date - today) < Math.abs(best - today) ? date : best));
+  return candidates.reduce((best, date) =>
+    Math.abs(date - today) < Math.abs(best - today) ? date : best,
+  );
 };
 
 export class TimelinePage {
   constructor(page) {
     this.page = page;
     this.currentDate = new Date();
-    this.dayOfWeek = this.currentDate.toLocaleDateString("en-US", { weekday: "short" }); // Thu
+    this.dayOfWeek = this.currentDate.toLocaleDateString("en-US", {
+      weekday: "short",
+    }); // Thu
     this.formattedDate = getFormattedCurrentDate(); // June 12
 
     // header elements
-    this.addAllocatioButtton = page.getByRole("button", { name: "Add allocation" });
+    this.addAllocatioButtton = page.getByRole("button", {
+      name: "Add allocation",
+    });
     this.searchEmployeeFilter = page.getByPlaceholder("Search members");
     // The Project tab searches by project, the Team tab by member.
     this.searchProjectFilter = page.getByPlaceholder("Search project");
     // Allocation chips in the grid; opening one reveals Edit/Delete actions.
-    this.allocationChip = page.getByRole("button", { name: "Allocation summary" });
-    this.deleteAllocationAction = page.getByRole("button", { name: "Delete allocation" });
-    this.editAllocationAction = page.getByRole("button", { name: "Edit allocation" });
+    this.allocationChip = page.getByRole("button", {
+      name: "Allocation summary",
+    });
+    this.deleteAllocationAction = page.getByRole("button", {
+      name: "Delete allocation",
+    });
+    this.editAllocationAction = page.getByRole("button", {
+      name: "Edit allocation",
+    });
     // The old per-chip clear icons lived in a "div#filters" strip that the
     // redesign removed. Clearing now happens inside the filter panel: an
     // icon-only "Clear all filters" button, plus one "Remove filter" per
     // condition row. Both are unlabelled visually and only carry aria-labels.
     // Both allocations grids render a quarter of week columns and step by
     // quarter; the per-week controls the tests used to drive are gone.
-    this.prevQuarterButton = page.getByRole("button", { name: "Previous Quarter" });
+    this.prevQuarterButton = page.getByRole("button", {
+      name: "Previous Quarter",
+    });
     this.nextQuarterButton = page.getByRole("button", { name: "Next Quarter" });
     // One week-range label per column, e.g. "Sep 7 - 13".
     this.weekRangeSpans = page.locator("thead th span.truncate");
     // Day numbers sit a level deeper than they used to, so match on content.
-    this.dayHeaderSpans = page.locator("thead th span").filter({ hasText: /^\d+$/ });
-    this.filterPanelButton = page.getByRole("button", { name: /^Filter/ }).first();
-    this.clearAllFiltersButton = page.getByRole("button", { name: "Clear all filters" });
-    this.removeFilterButtons = page.getByRole("button", { name: "Remove filter" });
+    this.dayHeaderSpans = page
+      .locator("thead th span")
+      .filter({ hasText: /^\d+$/ });
+    this.filterPanelButton = page
+      .getByRole("button", { name: /^Filter/ })
+      .first();
+    this.clearAllFiltersButton = page.getByRole("button", {
+      name: "Clear all filters",
+    });
+    this.removeFilterButtons = page.getByRole("button", {
+      name: "Remove filter",
+    });
 
     //add allocation modal elements
     // The dialog is now: three comboboxes (Project / Customer / Employee), a
@@ -66,13 +92,19 @@ export class TimelinePage {
     this.employeeSelector = page.getByLabel("Suggestions");
     this.customerDropdown = page.getByPlaceholder("Select Customer");
     this.projectDropdown = page.getByPlaceholder("Select Project");
-    this.allocateButton = page.getByRole("button", { name: "Allocate", exact: true });
+    this.allocateButton = page.getByRole("button", {
+      name: "Allocate",
+      exact: true,
+    });
     // "Hours / day" is a masked duration input ("00:00") carrying no id - the
     // label's `for="hours-per-day"` points at nothing - so the placeholder is
     // what identifies it. Exactly one exists on the page while the dialog is
     // open. See setHoursPerDay for why fill() alone does not commit it.
     this.hoursPerDayField = page.getByPlaceholder("00:00");
-    this.dateRangeField = page.getByRole("textbox").filter({ hasText: /-/ }).first();
+    this.dateRangeField = page
+      .getByRole("textbox")
+      .filter({ hasText: /-/ })
+      .first();
     // Billability is a "Mark as non-billable" checkbox, not a toggle switch.
     this.billableToggle = page.getByLabel("Mark as non-billable");
     this.startDateSelector = page.locator(
@@ -93,12 +125,20 @@ export class TimelinePage {
     // placeholder or role lookups.
     this.totalHoursTextField = page.locator("#total-hours");
     this.noteField = page.getByPlaceholder("Add a note");
-    this.createButton = page.getByRole("button", { name: "Allocate", exact: true });
-    this.saveButton = page.getByRole("button", { name: "Save Changes", exact: true });
+    this.createButton = page.getByRole("button", {
+      name: "Allocate",
+      exact: true,
+    });
+    this.saveButton = page.getByRole("button", {
+      name: "Save Changes",
+      exact: true,
+    });
 
     // "Start and end date" is a read-only input that opens a one-month calendar.
     this.dateRangeInput = page.locator("#date-range");
-    this.calendarPrevMonth = page.getByRole("button", { name: "Previous month" });
+    this.calendarPrevMonth = page.getByRole("button", {
+      name: "Previous month",
+    });
     this.calendarNextMonth = page.getByRole("button", { name: "Next month" });
     this.calendarCaption = page
       .locator("span")
@@ -109,7 +149,9 @@ export class TimelinePage {
     // trailing spill the next month's head, so an early day is the first match
     // and a late day the last - no dependence on the muted-text styling.
     this.calendarDayCell = (dayNumber) => {
-      const cells = page.getByRole("grid").getByRole("gridcell", { name: String(dayNumber), exact: true });
+      const cells = page
+        .getByRole("grid")
+        .getByRole("gridcell", { name: String(dayNumber), exact: true });
 
       return dayNumber <= 15 ? cells.first() : cells.last();
     };
@@ -119,7 +161,10 @@ export class TimelinePage {
     this.tentativeCheckbox = page.getByLabel("Mark as tentative");
 
     this.deleteAllocationIcon = page.locator(".rct-item ").first();
-    this.confirmDeleteButton = page.getByRole("button", { name: "Delete", exact: true });
+    this.confirmDeleteButton = page.getByRole("button", {
+      name: "Delete",
+      exact: true,
+    });
     this.timeAllocationRow = page.locator(".rct-hl-even");
     this.formattedDate = getFormattedCurrentDate();
     this.clearFilterIcon = page.getByRole("button", { name: "Clear search" });
@@ -133,7 +178,9 @@ export class TimelinePage {
     // 404s). The same "Add allocation" workflow lives on the Project tab, so
     // tests that only need the allocation dialog land here instead.
     // ProjectPage and TeamPage override this with their own routes.
-    await this.page.goto("/next-pms/allocations/project", { waitUntil: "domcontentloaded" });
+    await this.page.goto("/next-pms/allocations/project", {
+      waitUntil: "domcontentloaded",
+    });
   }
 
   /**
@@ -208,11 +255,16 @@ export class TimelinePage {
       return;
     }
     await this.dateRangeInput.click();
-    await this.page.getByRole("grid").waitFor({ state: "visible", timeout: 10000 });
+    await this.page
+      .getByRole("grid")
+      .waitFor({ state: "visible", timeout: 10000 });
 
     // Walk to the target month. Every caller allocates within a few days of
     // today, so this usually does not iterate at all.
-    const wantedCaption = target.toLocaleDateString("en-US", { month: "short", year: "numeric" });
+    const wantedCaption = target.toLocaleDateString("en-US", {
+      month: "short",
+      year: "numeric",
+    });
 
     for (let step = 0; step < 24; step++) {
       const caption = (await this.calendarCaption.textContent())?.trim();
@@ -222,7 +274,9 @@ export class TimelinePage {
       }
 
       const shownMonth = new Date(`${caption} 1`);
-      await (shownMonth > target ? this.calendarPrevMonth : this.calendarNextMonth).click();
+      await (
+        shownMonth > target ? this.calendarPrevMonth : this.calendarNextMonth
+      ).click();
       await this.page.waitForTimeout(300);
     }
 
@@ -342,7 +396,13 @@ export class TimelinePage {
   /**
    * Adds a new allocation.
    */
-  async addAllocation(projectName, customerName, employeeName, date, hoursPerDay = "8") {
+  async addAllocation(
+    projectName,
+    customerName,
+    employeeName,
+    date,
+    hoursPerDay = "8",
+  ) {
     await this.clickAddAllocationButton();
 
     // Project comes first in the redesigned dialog: Customer is derived from it
@@ -363,8 +423,11 @@ export class TimelinePage {
     const [response] = await Promise.all([
       this.page.waitForResponse(
         (response) =>
-          response.url().includes("/api/method/next_pms.resource_management.api.allocation.handle_allocation") &&
-          response.status() === 200,
+          response
+            .url()
+            .includes(
+              "/api/method/next_pms.resource_management.api.allocation.handle_allocation",
+            ) && response.status() === 200,
       ),
       this.clickCreateButton(),
     ]);
@@ -404,7 +467,9 @@ export class TimelinePage {
     // textContent() on an absent locator waits for the full test timeout, so
     // check the element exists before reading it.
     if (await this.modalErrorMessage.count()) {
-      return (await this.modalErrorMessage.first().textContent())?.trim() ?? null;
+      return (
+        (await this.modalErrorMessage.first().textContent())?.trim() ?? null
+      );
     }
 
     // Rules the backend owns (overlapping allocations, weekend-only ranges)
@@ -419,7 +484,12 @@ export class TimelinePage {
         raw
           .split("\n")
           .map((line) => line.trim())
-          .find((line) => line && !line.includes("toast-root") && !line.includes("transition")) ?? null
+          .find(
+            (line) =>
+              line &&
+              !line.includes("toast-root") &&
+              !line.includes("transition"),
+          ) ?? null
       );
     }
 
@@ -459,7 +529,9 @@ export class TimelinePage {
     for (let i = 0; i < 10 && (await this.getAppliedFilterCount()) > 0; i++) {
       if ((await this.removeFilterButtons.count()) === 0) break;
       await this.removeFilterButtons.first().click();
-      await this.page.waitForLoadState("networkidle", { timeout: 5000 }).catch(() => {});
+      await this.page
+        .waitForLoadState("networkidle", { timeout: 5000 })
+        .catch(() => {});
     }
     await this.closeFilterPanel();
   }
@@ -500,7 +572,9 @@ export class TimelinePage {
    * The week-range labels across the header, e.g. ["Sep 7 - 13", "Sep 14 - 20"].
    */
   async getVisibleWeekRanges() {
-    await this.weekRangeSpans.first().waitFor({ state: "attached", timeout: 15000 });
+    await this.weekRangeSpans
+      .first()
+      .waitFor({ state: "attached", timeout: 15000 });
     // One round trip for all of them - there are a quarter's worth of columns.
     return (await this.weekRangeSpans.allInnerTexts()).map((t) => t.trim());
   }
@@ -509,7 +583,9 @@ export class TimelinePage {
    * The day numbers across the header.
    */
   async getVisibleDayHeaders() {
-    await this.dayHeaderSpans.first().waitFor({ state: "attached", timeout: 15000 });
+    await this.dayHeaderSpans
+      .first()
+      .waitFor({ state: "attached", timeout: 15000 });
     return (await this.dayHeaderSpans.allInnerTexts()).map((t) => t.trim());
   }
 

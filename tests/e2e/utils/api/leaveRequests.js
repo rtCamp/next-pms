@@ -1,12 +1,20 @@
 import { request } from "@playwright/test";
-import { baseURL, loadAuthState, fetchWithRetry, deleteDocument } from "./apiClient";
+import {
+  baseURL,
+  loadAuthState,
+  fetchWithRetry,
+  deleteDocument,
+} from "./apiClient";
 
 /**
  * Reusable API request wrapper.
  */
 export const apiRequest = async (endpoint, options = {}, role = "manager") => {
   const authFilePath = loadAuthState(role);
-  const requestContext = await request.newContext({ baseURL, storageState: authFilePath });
+  const requestContext = await request.newContext({
+    baseURL,
+    storageState: authFilePath,
+  });
 
   const response = await fetchWithRetry(requestContext, endpoint, {
     timeout: 120000,
@@ -21,7 +29,9 @@ export const apiRequest = async (endpoint, options = {}, role = "manager") => {
 
   if (!response.ok()) {
     await requestContext.dispose();
-    throw new Error(`API request failed for ${role} at ${endpoint}: ${response.status()} ${response.statusText()}`);
+    throw new Error(
+      `API request failed for ${role} at ${endpoint}: ${response.status()} ${response.statusText()}`,
+    );
   }
 
   const data = await response.json();
@@ -34,7 +44,10 @@ export const apiRequest = async (endpoint, options = {}, role = "manager") => {
 /**
  * Creates a leave application.
  */
-export const createLeave = async ({ employee, from_date, to_date, description }, role = "manager") => {
+export const createLeave = async (
+  { employee, from_date, to_date, description },
+  role = "manager",
+) => {
   return await apiRequest(
     `/api/resource/Leave Application`,
     {
@@ -46,7 +59,7 @@ export const createLeave = async ({ employee, from_date, to_date, description },
         description,
       },
     },
-    role
+    role,
   );
 };
 
@@ -55,7 +68,10 @@ export const createLeave = async ({ employee, from_date, to_date, description },
 /**
  * Approves or rejects a leave application.
  */
-export const actOnLeave = async ({ action, leaveDetails }, role = "manager") => {
+export const actOnLeave = async (
+  { action, leaveDetails },
+  role = "manager",
+) => {
   return await apiRequest(
     `/api/method/frappe.model.workflow.apply_workflow`,
     {
@@ -65,7 +81,7 @@ export const actOnLeave = async ({ action, leaveDetails }, role = "manager") => 
         action,
       },
     },
-    role
+    role,
   );
 };
 
@@ -76,7 +92,7 @@ export const actOnLeave = async ({ action, leaveDetails }, role = "manager") => 
  */
 export const getLeaves = async (filters, role = "manager") => {
   const endpoint = `/api/resource/Leave Application?fields=["*"]&filters=${encodeURIComponent(
-    JSON.stringify(filters)
+    JSON.stringify(filters),
   )}`;
   return await apiRequest(endpoint, {}, role);
 };

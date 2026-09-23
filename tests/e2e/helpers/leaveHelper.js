@@ -1,6 +1,14 @@
 import path from "path";
-import { getWeekdayName, getDateForWeekday, getFormattedDate } from "../utils/dateUtils";
-import { getLeaves, getLeaveDetails, actOnLeave } from "../utils/api/leaveRequests";
+import {
+  getWeekdayName,
+  getDateForWeekday,
+  getFormattedDate,
+} from "../utils/dateUtils";
+import {
+  getLeaves,
+  getLeaveDetails,
+  actOnLeave,
+} from "../utils/api/leaveRequests";
 import { readJSONFile, writeDataToFile } from "../utils/fileUtils";
 
 // ------------------------------------------------------------------------------------------
@@ -84,7 +92,6 @@ export const rejectLeaveEntries = async (testCaseIDs = [], jsonDir) => {
       // 4) Get leave details and reject
       const detailsRes = await getLeaveDetails(firstLeave.name);
       await actOnLeave({ action: "Reject", leaveDetails: detailsRes.data });
-
     } catch (err) {
       console.error(`❌ Failed to reject leave for ${tcId}: ${err.message}`);
     }

@@ -124,7 +124,10 @@ test.describe("Manager: Team Tab", () => {
     // currently broken on this environment (the Employee POST 500s with
     // "AttributeError: 'EmployeeMaster' object has no attribute
     // 'job_applicant'"), which also makes TC91 pass without asserting anything.
-    expect(reviewee, "globalSetup did not create this test's own employee").toBeTruthy();
+    expect(
+      reviewee,
+      "globalSetup did not create this test's own employee",
+    ).toBeTruthy();
 
     await teamPage.viewNextWeek();
     await teamPage.openReviewTimesheetPane(reviewee);
@@ -215,17 +218,22 @@ test.describe("Manager: Team Tab", () => {
     // attribute 'job_applicant'", so all four creations fail silently.
     expect(
       TC91data.createdEmployees,
-      "globalSetup created no employees for TC91 - without them this test asserts nothing"
+      "globalSetup created no employees for TC91 - without them this test asserts nothing",
     ).toBeTruthy();
     expect(TC91data.createdEmployees.length).toBeGreaterThan(0);
 
     for (const empStatus of employeeStatuses) {
       console.warn(`Verifying results for Employee Status: ${empStatus}`);
       await teamPage.checkEmployeeStatus(empStatus);
-      const employeesWithStatus = TC91data.createdEmployees.filter((emp) => emp.status === empStatus);
+      const employeesWithStatus = TC91data.createdEmployees.filter(
+        (emp) => emp.status === empStatus,
+      );
 
       // Each status needs a seeded employee, or that status is not being tested.
-      expect(employeesWithStatus.length, `no seeded employee with status "${empStatus}"`).toBeGreaterThan(0);
+      expect(
+        employeesWithStatus.length,
+        `no seeded employee with status "${empStatus}"`,
+      ).toBeGreaterThan(0);
 
       for (const employee of employeesWithStatus) {
         const fullName = `${employee.first_name} ${employee.last_name}`;
@@ -267,7 +275,9 @@ test.describe("Manager: Team Tab", () => {
   // control exists anywhere on either page - "Toggle options" is the reporting
   // manager selector. Skipped rather than deleted pending a call from
   // @ayushnirwal on whether group-based filtering was dropped deliberately.
-  test.skip("TC94: User group Filter shows correct results", async ({ jsonDir }) => {
+  test.skip("TC94: User group Filter shows correct results", async ({
+    jsonDir,
+  }) => {
     allure.story("Team");
     const stubPath = path.join(jsonDir, "TC94.json");
     const data = await readJSONFile(stubPath);
@@ -297,7 +307,9 @@ test.describe("Manager: Team Tab", () => {
     // (TC93 applies one) would still be counted below.
     await teamPage.removeAllFilterConditions();
 
-    await teamPage.checkProjectStatus(TC95data.payloadCreateProject.project_name);
+    await teamPage.checkProjectStatus(
+      TC95data.payloadCreateProject.project_name,
+    );
     await teamPage.checkBusinessUnit(TC95data.businessUnit);
     const employees = await teamPage.getEmployees();
     expect(employees).toContain(TC95data.employee);
@@ -325,7 +337,10 @@ test.describe("Manager: Team Tab", () => {
     // currently broken on this environment (the Employee POST 500s with
     // "AttributeError: 'EmployeeMaster' object has no attribute
     // 'job_applicant'"), which also makes TC91 pass without asserting anything.
-    expect(reviewee, "globalSetup did not create this test's own employee").toBeTruthy();
+    expect(
+      reviewee,
+      "globalSetup did not create this test's own employee",
+    ).toBeTruthy();
 
     await teamPage.viewNextWeek();
     await teamPage.rejectTimesheet({
@@ -355,7 +370,9 @@ test.describe("Manager: Team Tab", () => {
     // matches once per week (4 at the time of writing). Assert on the first -
     // an unscoped locator throws a strict-mode violation, and the count varies
     // with how many weeks are on screen.
-    await expect(page.getByText("No timesheet for this week").first()).toBeVisible();
+    await expect(
+      page.getByText("No timesheet for this week").first(),
+    ).toBeVisible();
   });
 
   // Skipped: the capability is gone. There is no "Save changes" control on the
@@ -374,7 +391,9 @@ test.describe("Manager: Team Tab", () => {
   // a different mechanism, so skipped pending a call on whether saving filters
   // to a view was dropped deliberately. The test-case sheet still describes the
   // old behaviour.
-  test.skip("TC114: Save changes for team tab and validate if the same changes are displayed are not.", async ({ page }) => {
+  test.skip("TC114: Save changes for team tab and validate if the same changes are displayed are not.", async ({
+    page,
+  }) => {
     allure.story("Team");
     test.setTimeout(60000);
     await teamPage.saveNewView(manName);
@@ -382,7 +401,11 @@ test.describe("Manager: Team Tab", () => {
     await Promise.all([
       page.waitForResponse(
         (resp) =>
-          resp.url().includes("/api/method/next_pms.timesheet.api.team.get_compact_view_data") && resp.status() === 200
+          resp
+            .url()
+            .includes(
+              "/api/method/next_pms.timesheet.api.team.get_compact_view_data",
+            ) && resp.status() === 200,
       ),
       teamPage.goto(),
     ]);
@@ -427,7 +450,9 @@ test.describe("Manager: Team Tab2", () => {
     if (expectedStatus === "Partially Rejected") {
       expect(status).toMatch(/rejected/i);
     } else {
-      expect(status).toMatch(new RegExp(expectedStatus.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i"));
+      expect(status).toMatch(
+        new RegExp(expectedStatus.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i"),
+      );
     }
   });
 });
