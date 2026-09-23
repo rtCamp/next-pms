@@ -36,7 +36,7 @@ def get_designations(search: str | None = None, page_length: int = DEFAULT_PAGE_
         list[dict]: {"name": <designation>} per row, ordered by active-employee
             count descending then name ascending.
     """
-    frappe.only_for(["Projects Manager", "Projects User", "Delivery Manager"], message=True)
+    frappe.only_for(["Projects Manager", "Projects User", "Delivery Manager", "System Manager"], message=True)
 
     page_length = min(max(page_length, 1), MAX_PAGE_LENGTH)
     start = max(start, 0)

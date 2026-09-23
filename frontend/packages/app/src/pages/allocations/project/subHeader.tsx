@@ -19,6 +19,8 @@ import {
  */
 import { FilterLinkValue } from "@/components/filters/FilterLinkValue";
 import { useDebounce } from "@/hooks/useDebounce";
+import { ROLE_ACCESS } from "@/lib/constant";
+import { hasAnyRole } from "@/lib/utils";
 import { useGuardedAction } from "@/pages/allocations/unsavedChanges/useUnsavedChanges";
 import { useUser } from "@/providers/user";
 import {
@@ -65,8 +67,7 @@ export function SubHeader() {
 
   const guard = useGuardedAction();
   const roles = useUser(({ state }) => state.roles);
-  const showFilters =
-    roles.includes("Projects Manager") || roles.includes("Projects User");
+  const showFilters = hasAnyRole(roles, ROLE_ACCESS.manageAllocations);
 
   const externalFilterCount =
     (search !== "" ? 1 : 0) +
