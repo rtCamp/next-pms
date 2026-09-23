@@ -35,7 +35,8 @@ import {
  */
 import LinkWithPreload from "@/components/linkWithPreload";
 import { SettingsModal } from "@/components/settings";
-import { ROUTES } from "@/lib/constant";
+import { ROLE_ACCESS, ROUTES } from "@/lib/constant";
+import { hasAnyRole } from "@/lib/utils";
 import logo from "@/logo.svg";
 import { useNotifications } from "@/providers/notifications";
 import { useTheme } from "@/providers/theme/hook";
@@ -102,10 +103,10 @@ const Sidebar = () => {
 
   const dashboardItems: SidebarSectionType["items"] = [];
 
-  if (roles.includes("Delivery Manager") || roles.includes("Delivery User")) {
+  if (hasAnyRole(roles, ROLE_ACCESS.leadershipDashboard)) {
     dashboardItems.push(leadershipDashboard);
   }
-  if (roles.includes("Projects Manager") || roles.includes("Projects User")) {
+  if (hasAnyRole(roles, ROLE_ACCESS.managerDashboard)) {
     dashboardItems.push(managerDashbaord);
   }
 
@@ -139,11 +140,7 @@ const Sidebar = () => {
 
   const timesheetItems: SidebarSectionType["items"] = [personalTimesheet];
 
-  if (
-    roles.includes("Timesheet Manager") ||
-    roles.includes("Timesheet User") ||
-    roles.includes("Projects Manager")
-  ) {
+  if (hasAnyRole(roles, ROLE_ACCESS.reviewTimesheets)) {
     timesheetItems[0].label = "Personal";
     timesheetItems.push(teamTimesheet);
     timesheetItems.push(projectTimesheet);
@@ -159,11 +156,7 @@ const Sidebar = () => {
 
   const projectItems: SidebarSectionType["items"] = [];
 
-  if (
-    roles.includes("Projects Manager") ||
-    roles.includes("Projects User") ||
-    roles.includes("Timesheet Manager")
-  ) {
+  if (hasAnyRole(roles, ROLE_ACCESS.projects)) {
     projectItems.push(projects);
   }
 
@@ -187,11 +180,7 @@ const Sidebar = () => {
 
   const notificationItems = [];
 
-  const hasNotificationAccess =
-    roles.includes("Delivery Manager") ||
-    roles.includes("Delivery User") ||
-    roles.includes("Projects User") ||
-    roles.includes("Projects Manager");
+  const hasNotificationAccess = hasAnyRole(roles, ROLE_ACCESS.notifications);
 
   if (hasNotificationAccess) {
     notificationItems.push(notificationsOption);
@@ -236,29 +225,28 @@ const Sidebar = () => {
     },
   ];
 
-  if (roles.includes("System Manager")) {
+  if (hasAnyRole(roles, ROLE_ACCESS.leadershipDashboard)) {
     searchItems.push({
       label: "Dashboard - Leadership",
       action: () => navigate(ROUTES["dashboard-leadership"]),
     });
   }
 
-  if (roles.includes("Projects Manager")) {
+  if (hasAnyRole(roles, ROLE_ACCESS.managerDashboard)) {
     searchItems.push({
       label: "Dashboard - Manager",
       action: () => navigate(ROUTES["dashboard-manager"]),
     });
+  }
+
+  if (hasAnyRole(roles, ROLE_ACCESS.projects)) {
     searchItems.push({
       label: "Projects",
       action: () => navigate(ROUTES["project"]),
     });
   }
 
-  if (
-    roles.includes("Timesheet Manager") ||
-    roles.includes("Timesheet User") ||
-    roles.includes("Projects Manager")
-  ) {
+  if (hasAnyRole(roles, ROLE_ACCESS.reviewTimesheets)) {
     searchItems.push({
       label: "Timesheet - Team",
       action: () =>

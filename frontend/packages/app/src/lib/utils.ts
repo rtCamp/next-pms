@@ -26,7 +26,7 @@ import { twMerge } from "tailwind-merge";
  */
 import type { PMSSettings } from "@/components/settings/types";
 import { timeStringToFloat } from "@/schema/timesheet";
-import { WorkingFrequency } from "@/types";
+import type { Role, WorkingFrequency } from "@/types";
 import {
   HolidayProp,
   LeaveProps,
@@ -68,6 +68,9 @@ export function pickAllowed<T extends string>(
 ): T | undefined {
   return allowed.includes(value as T) ? (value as T) : undefined;
 }
+
+export const hasAnyRole = (roles: Role[], allowed: readonly Role[]) =>
+  allowed.some((role) => roles.includes(role));
 
 export function formatProjectDate(isoDate: string): string {
   const date = parse(isoDate, "yyyy-MM-dd", new Date());
