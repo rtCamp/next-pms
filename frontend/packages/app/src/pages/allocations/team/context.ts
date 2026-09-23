@@ -19,6 +19,7 @@ export interface AllocationsTeamContextProps {
     querySignature: string;
     todayResetKey: number;
     designation: string[];
+    department: string[];
     search: string;
     duration: AllocationsDuration;
     allocationsType: string[];
@@ -30,6 +31,7 @@ export interface AllocationsTeamContextProps {
     setSearch: (value: string) => void;
     setDuration: (value: AllocationsDuration) => void;
     setDesignation: (value: string[]) => void;
+    setDepartment: (value: string[]) => void;
     setAllocationsType: (value: string[]) => void;
     setCompositeFilters: (value: FilterCondition[]) => void;
     handleClearAllFilters: () => void;
@@ -55,6 +57,7 @@ export const AllocationsTeamContext =
       allocationsType: [],
       compositeFilters: [],
       designation: [],
+      department: [],
       weekCount: 13,
       anchorDate: new Date(),
     },
@@ -62,6 +65,7 @@ export const AllocationsTeamContext =
       setSearch: () => null,
       setDuration: () => null,
       setDesignation: () => null,
+      setDepartment: () => null,
       setAllocationsType: () => null,
       setCompositeFilters: () => null,
       handleClearAllFilters: () => null,
