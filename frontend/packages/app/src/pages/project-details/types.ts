@@ -33,6 +33,7 @@ export interface ProjectReportRow {
   date_range: string;
   generated_on?: string;
   status: ProjectReportStatus;
+  failure_reason?: string;
 }
 
 export interface ProjectUser {

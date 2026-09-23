@@ -24,6 +24,7 @@ import { useUser } from "@/providers/user";
 import { useProjectFilters } from "./useProjectFilters";
 import { PHASE_OPTIONS, RAG_OPTIONS, STATUS_OPTIONS } from "../../constants";
 import { PROJECT_LIST_COLUMNS } from "../../list/columns/constants";
+import { IS_COLUMN_LAYOUT_ENABLED } from "../../list/columns/constants";
 import { useColumnLayout } from "../../list/columns/useColumnLayout";
 import { Phase, type ProjectStatus, type RagStatus } from "../../types";
 import { useProjectViews } from "../../views";
@@ -68,11 +69,12 @@ export function ProjectFilters() {
   const isKanban = activeView?.type.toLowerCase() === "custom";
   const isSavedView = savedViews.some((view) => view.name === activeView?.name);
   const columnLayout = useColumnLayout();
-  const isDirty = hasFilterChanges || columnLayout.isDirty;
   const selectedColumns = useMemo(
     () => toSelectorColumns(columnLayout.columns, columnLayout.pinnedColumns),
     [columnLayout.columns, columnLayout.pinnedColumns],
   );
+  const isDirty =
+    IS_COLUMN_LAYOUT_ENABLED && (hasFilterChanges || columnLayout.isDirty);
 
   const [searchInput, setSearchInput] = useState(search);
   const isUserInput = useRef(false);

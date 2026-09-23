@@ -46,6 +46,7 @@ export type ProjectMemberPayload = {
 export type ProjectWeekProjectPayload = {
   project: string;
   project_name: string | null;
+  approvable_employees?: string[];
   members: ProjectMemberPayload[];
 };
 

@@ -4,6 +4,7 @@ import frappe
 from requests.models import Response
 
 from next_pms.api.generate_pm_report import (
+    check_and_save_report,
     generate_pm_report,
     get_hours_breakdown,
     get_repository_project_boards,
@@ -24,6 +25,16 @@ class TestPmReport(TestNextPms):
         self.link_patcher.start()
 
         self.project_name = frappe.db.get_value("Project", {"project_name": "Next Pms"}, "name")
+        self._original_report_names = set(
+            frappe.db.get_values("Project Report", {"parent": self.project_name}, "name", pluck=True)
+            if self.project_name
+            else []
+        )
+        self._original_notification_names = set(
+            frappe.db.get_values(
+                "NextPMS Notifications", {"user": "next-project-manager@example.com"}, "name", pluck=True
+            )
+        )
         self._original_project_fields = frappe.db.get_value(
             "Project",
             self.project_name,
@@ -73,6 +84,23 @@ class TestPmReport(TestNextPms):
                 frappe.delete_doc("Task", task_name, force=True, ignore_permissions=True)
         frappe.db.commit()
 
+        if getattr(self, "project_name", None):
+            current_report_names = set(
+                frappe.db.get_values("Project Report", {"parent": self.project_name}, "name", pluck=True)
+            )
+            for name in current_report_names - getattr(self, "_original_report_names", set()):
+                frappe.delete_doc("Project Report", name, force=True, ignore_permissions=True)
+            frappe.db.commit()
+
+        current_notification_names = set(
+            frappe.db.get_values(
+                "NextPMS Notifications", {"user": "next-project-manager@example.com"}, "name", pluck=True
+            )
+        )
+        for name in current_notification_names - getattr(self, "_original_notification_names", set()):
+            frappe.delete_doc("NextPMS Notifications", name, force=True, ignore_permissions=True)
+        frappe.db.commit()
+
         if getattr(self, "project_name", None) and getattr(self, "_original_project_fields", None):
             frappe.db.set_value("Project", self.project_name, self._original_project_fields)
             frappe.db.commit()
@@ -83,6 +111,94 @@ class TestPmReport(TestNextPms):
         if hasattr(self, "old_status_url"):
             frappe.conf.llm_status_url = self.old_status_url
         super().tearDown()
+
+    # ------------------------------------------------------------------ #
+    # check_and_save_report — structured error handling
+    # ------------------------------------------------------------------ #
+
+    def test_check_and_save_report_structured_failure(self):
+        """Test that check_and_save_report correctly extracts user_message and action on failure"""
+        mock_resp = Response()
+        mock_resp.status_code = 200
+        mock_resp._content = b"""{
+            "status": "failed",
+            "is_terminal": true,
+            "message": "The report bot cannot see the project\'s Google Drive folder. Share the Drive folder with service account.",
+            "error": {
+                "error_code": "drive_folder_not_shared",
+                "user_message": "The report bot cannot see the project\'s Google Drive folder.",
+                "action": "Share the Drive folder with service account.",
+                "trace_id": "mock-trace-123"
+            }
+        }"""
+
+        with (
+            patch("time.sleep", return_value=None),
+            patch("requests.get", return_value=mock_resp),
+            patch("next_pms.api.generate_pm_report.update_report_row") as mock_update,
+            patch("next_pms.api.generate_pm_report._notify") as mock_notify,
+        ):
+            check_and_save_report(self.project_name, "mock-run-123", "test-user", "2026-06-01", "2026-06-15")
+
+            mock_update.assert_called_once()
+            call_kwargs = mock_update.call_args.kwargs
+            self.assertEqual(call_kwargs.get("status"), "Failed")
+            self.assertIn(
+                "The report bot cannot see the project's Google Drive folder.", call_kwargs.get("failure_reason")
+            )
+            self.assertIn("Share the Drive folder with service account.", call_kwargs.get("failure_reason"))
+
+            mock_notify.assert_called_once()
+            notify_kwargs = mock_notify.call_args.kwargs
+            self.assertEqual(notify_kwargs.get("status"), "Failed")
+            self.assertIn("Google Drive folder", notify_kwargs.get("error"))
+
+    def test_send_pms_notification_success_and_failure(self):
+        """Verify _send_pms_notification inserts NextPMS Notifications for both completed and failed reports"""
+        from next_pms.api.generate_pm_report import _send_pms_notification
+
+        user = "next-project-manager@example.com"
+
+        project_title = frappe.db.get_value("Project", self.project_name, "project_name") or self.project_name
+
+        # Success notification
+        _send_pms_notification(
+            project=self.project_name,
+            user=user,
+            status="Done",
+            document_url="https://docs.google.com/test-doc",
+        )
+        success_notif = frappe.db.get_value(
+            "NextPMS Notifications",
+            {"user": user, "title": ["like", "%Ready%"]},
+            ["name", "title", "label", "url", "linked_doctype", "linked_document"],
+            as_dict=True,
+        )
+        self.assertIsNotNone(success_notif)
+        self.assertIn("PM Report Ready", success_notif.title)
+        self.assertIn(project_title, success_notif.title)
+        self.assertEqual(success_notif.linked_doctype, "Project")
+        self.assertEqual(success_notif.linked_document, self.project_name)
+        self.assertEqual(success_notif.url, f"/next-pms/projects/{self.project_name}?tab=reports")
+
+        # Failure notification
+        _send_pms_notification(
+            project=self.project_name,
+            user=user,
+            status="Failed",
+            failure_reason="The report bot cannot see the Google Drive folder.",
+        )
+        failed_notif = frappe.db.get_value(
+            "NextPMS Notifications",
+            {"user": user, "title": ["like", "%Failed%"]},
+            ["name", "title", "label", "url"],
+            as_dict=True,
+        )
+        self.assertIsNotNone(failed_notif)
+        self.assertIn("PM Report Failed", failed_notif.title)
+        self.assertIn(project_title, failed_notif.title)
+        self.assertIn("Google Drive folder", failed_notif.label)
+        self.assertEqual(failed_notif.url, f"/next-pms/projects/{self.project_name}?tab=reports")
 
     # ------------------------------------------------------------------ #
     # generate_pm_report — happy path
@@ -295,11 +411,6 @@ class TestPmReport(TestNextPms):
         ).insert(ignore_permissions=True)
         self.test_tasks.append(non_billable_task.name)
 
-        # Log timesheet with:
-        # 1. Billable log in range (5.0 hrs)
-        # 2. Billable log in range (3.0 hrs)
-        # 3. Non-billable log in range (4.0 hrs) -> must be excluded
-        # 4. Billable log outside range (2.0 hrs) -> must be excluded
         self._create_test_timesheet(
             [
                 {

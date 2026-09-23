@@ -16,8 +16,8 @@ export const getDurationPresets = (): DurationPreset[] => {
 
 export const REPORT_COLUMNS: ReportColumn[] = [
   { key: "index", label: "#", width: "48px" },
-  { key: "dateRange", label: "Date Range", width: "1fr" },
-  { key: "generatedOn", label: "Generated On", width: "1fr" },
-  { key: "status", label: "Status", width: "80px" },
+  { key: "dateRange", label: "Date Range", width: "190px" },
+  { key: "generatedOn", label: "Generated On", width: "160px" },
+  { key: "status", label: "Status", width: "minmax(0, 1fr)" },
   { key: "reportLink", label: "Report", width: "80px", align: "right" },
 ];
