@@ -159,7 +159,7 @@ function ProjectList() {
             ) : (
               <InfiniteScroll
                 role="presentation"
-                className="grid min-h-0 flex-1 content-start overflow-auto scrollbar-thin"
+                className="@container grid min-h-0 flex-1 content-start overflow-auto scrollbar-thin"
                 isLoading={isLoading}
                 hasMore={hasMore}
                 verticalLodMore={loadMore}
@@ -168,13 +168,13 @@ function ProjectList() {
                 <div
                   role="table"
                   aria-label="Projects"
-                  className="flex w-max min-w-full items-start"
+                  className="flex w-max min-w-full items-start has-[>:last-child_[data-dnd-dragging]]:pointer-events-none"
                 >
                   {pinned.length > 0 &&
                     renderList(
                       pinned,
                       0,
-                      "sticky left-0 z-20 w-auto flex-none overflow-visible border-r border-outline-gray-1 bg-surface-white",
+                      "left-0 z-20 @4xl:sticky w-auto flex-none overflow-visible border-r border-outline-gray-1 bg-surface-white",
                     )}
                   {renderList(
                     scrolling,

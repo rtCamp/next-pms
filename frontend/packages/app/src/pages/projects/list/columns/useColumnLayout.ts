@@ -9,7 +9,11 @@ import { move } from "@dnd-kit/helpers";
  * Internal dependencies.
  */
 import { parseColumnKeys } from "@/lib/utils";
-import { COLUMN_PARAM_KEYS, PROJECT_LIST_COLUMNS } from "./constants";
+import {
+  COLUMN_PARAM_KEYS,
+  MAX_PINNED_COLUMNS,
+  PROJECT_LIST_COLUMNS,
+} from "./constants";
 import { useProjectViews } from "../../views";
 
 const DEFAULT_ORDER = PROJECT_LIST_COLUMNS.filter(
@@ -144,12 +148,15 @@ export function useColumnLayout() {
   );
 
   const togglePinned = useCallback(
-    (key: string) =>
-      writeLayout({
-        pinned: pinnedColumns.includes(key)
-          ? pinnedColumns.filter((pinnedKey) => pinnedKey !== key)
-          : [...pinnedColumns, key],
-      }),
+    (key: string) => {
+      if (pinnedColumns.includes(key)) {
+        writeLayout({
+          pinned: pinnedColumns.filter((pinned) => pinned !== key),
+        });
+      } else if (pinnedColumns.length < MAX_PINNED_COLUMNS) {
+        writeLayout({ pinned: [...pinnedColumns, key] });
+      }
+    },
     [pinnedColumns, writeLayout],
   );
 

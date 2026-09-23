@@ -16,6 +16,7 @@ import {
 /**
  * Internal dependencies.
  */
+import { MAX_PINNED_COLUMNS } from "./constants";
 import { getSortableInput } from "./utils";
 import type { ProjectListColumn } from "../../types";
 
@@ -39,6 +40,7 @@ export function ColumnHeader({
   onTogglePinned,
 }: ColumnHeaderProps) {
   const isPinned = index < pinnedCount;
+  const isPinLimit = !isPinned && pinnedCount >= MAX_PINNED_COLUMNS;
   const isSorted = sort.field === column.sortField;
   const { ref, isDragging } = useSortable(
     getSortableInput(column.key, index, pinnedCount),
@@ -99,6 +101,21 @@ export function ColumnHeader({
       )}
       <Dropdown
         side="bottom"
+        renderMenuItem={(menuProps) =>
+          isPinLimit ? (
+            <Tooltip text={`You can pin up to ${MAX_PINNED_COLUMNS} columns`}>
+              <div
+                {...menuProps}
+                className={cn(
+                  menuProps.className,
+                  "cursor-not-allowed opacity-50",
+                )}
+              />
+            </Tooltip>
+          ) : (
+            <div {...menuProps} />
+          )
+        }
         options={[
           {
             group: "",
