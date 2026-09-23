@@ -13,15 +13,13 @@ export const RISK_LEVELS = ["Low", "Medium", "High"] as const;
 export type RiskStatus = (typeof RISK_STATUSES)[number];
 
 export const CREATE_RISK_ROLES = [
+  "System Manager",
   "Projects Manager",
   "Delivery Manager",
   "Delivery User",
 ] as const;
 
-export const MANAGE_ALL_RISK_ROLES = [
-  "System Manager",
-  ...CREATE_RISK_ROLES,
-] as const;
+export const MANAGE_ALL_RISK_ROLES = CREATE_RISK_ROLES;
 
 export const RISK_OWNER_GATED_ROLES = [
   "Timesheet Manager",
