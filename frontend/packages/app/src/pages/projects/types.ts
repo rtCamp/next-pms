@@ -4,7 +4,11 @@ import { PHASES, RAG_STATUS } from "./constants";
 
 export type ListViewColumn = { key: string; label: string; width?: string };
 
-export type ProjectListColumn = ListViewColumn & { sortField?: string };
+export type ProjectListColumn = ListViewColumn & {
+  sortField?: string;
+  /** Left out of the default layout; users add it back via the column selector. */
+  defaultHidden?: boolean;
+};
 
 export type Phase = (typeof PHASES)[number];
 

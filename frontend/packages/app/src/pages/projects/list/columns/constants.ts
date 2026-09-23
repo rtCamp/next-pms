@@ -2,10 +2,7 @@
  * External dependencies.
  */
 import type { Plugins } from "@dnd-kit/abstract";
-import {
-  RestrictToHorizontalAxis,
-  RestrictToVerticalAxis,
-} from "@dnd-kit/abstract/modifiers";
+import { RestrictToHorizontalAxis } from "@dnd-kit/abstract/modifiers";
 import {
   Feedback,
   PointerActivationConstraints,
@@ -89,6 +86,7 @@ export const PROJECT_LIST_COLUMNS: ProjectListColumn[] = [
     label: "Project type",
     width: "120px",
     sortField: "project_type",
+    defaultHidden: true,
   },
   {
     key: "customer",
@@ -101,6 +99,18 @@ export const PROJECT_LIST_COLUMNS: ProjectListColumn[] = [
     label: "Contract end date",
     width: "160px",
     sortField: "contract_end_date",
+  },
+  {
+    key: "lifetime_value_to_date",
+    label: "Lifetime value to date",
+    width: "170px",
+    defaultHidden: true,
+  },
+  {
+    key: "client_poc_name",
+    label: "Client POC",
+    width: "180px",
+    defaultHidden: true,
   },
 ];
 
@@ -126,8 +136,6 @@ export const COLUMN_PARAM_KEYS = {
 } as const;
 
 export const COLUMN_DRAG_MODIFIERS = [RestrictToHorizontalAxis];
-
-export const PANEL_DRAG_MODIFIERS = [RestrictToVerticalAxis];
 
 export const COLUMN_DRAG_PLUGINS = (defaults: Plugins) => [
   ...defaults,

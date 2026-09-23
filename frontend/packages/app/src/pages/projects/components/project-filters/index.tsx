@@ -1,11 +1,12 @@
 /**
  * External dependencies.
  */
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "react-router";
 import { SortSelector } from "@next-pms/design-system/components";
 import {
   Button,
+  ColumnSelector,
   Combobox,
   Select,
   TextInput,
@@ -18,14 +19,16 @@ import {
  */
 import { FilterLinkValue } from "@/components/filters/FilterLinkValue";
 import { useDebounce } from "@/hooks/useDebounce";
-import { getDefaultCurrency } from "@/lib/utils";
+import { getDefaultCurrency, toSelectorColumns } from "@/lib/utils";
 import { useUser } from "@/providers/user";
 import { useProjectFilters } from "./useProjectFilters";
 import { PHASE_OPTIONS, RAG_OPTIONS, STATUS_OPTIONS } from "../../constants";
-import { ColumnsPanel } from "../../list/columns/panel";
+import { PROJECT_LIST_COLUMNS } from "../../list/columns/constants";
 import { useColumnLayout } from "../../list/columns/useColumnLayout";
 import { Phase, type ProjectStatus, type RagStatus } from "../../types";
 import { useProjectViews } from "../../views";
+
+const AVAILABLE_COLUMNS = toSelectorColumns(PROJECT_LIST_COLUMNS);
 
 export function ProjectFilters() {
   const {
@@ -65,6 +68,10 @@ export function ProjectFilters() {
   const isKanban = activeView?.type.toLowerCase() === "custom";
   const isSavedView = savedViews.some((view) => view.name === activeView?.name);
   const columnLayout = useColumnLayout();
+  const selectedColumns = useMemo(
+    () => toSelectorColumns(columnLayout.columns, columnLayout.pinnedColumns),
+    [columnLayout.columns, columnLayout.pinnedColumns],
+  );
   const isDirty = hasFilterChanges || columnLayout.isDirty;
 
   const [searchInput, setSearchInput] = useState(search);
@@ -173,7 +180,20 @@ export function ProjectFilters() {
         {isDirty && (
           <div className="h-7 w-px shrink-0 self-center bg-outline-gray-2" />
         )}
-        {!isKanban && <ColumnsPanel />}
+        {!isKanban && (
+          <ColumnSelector
+            columns={selectedColumns}
+            availableColumns={AVAILABLE_COLUMNS}
+            pinnable
+            onColumnsChange={(next) =>
+              columnLayout.setColumns(
+                next.map((column) => column.value),
+                next.filter((column) => column.pinned).map((c) => c.value),
+              )
+            }
+            onReset={columnLayout.isDefault ? undefined : columnLayout.reset}
+          />
+        )}
         {!isKanban && (
           <SortSelector
             sort={sort}

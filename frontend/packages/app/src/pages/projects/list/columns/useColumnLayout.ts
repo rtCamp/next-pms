@@ -8,40 +8,27 @@ import { move } from "@dnd-kit/helpers";
 /**
  * Internal dependencies.
  */
+import { parseColumnKeys } from "@/lib/utils";
 import { COLUMN_PARAM_KEYS, PROJECT_LIST_COLUMNS } from "./constants";
 import { useProjectViews } from "../../views";
 
-const DEFAULT_ORDER = PROJECT_LIST_COLUMNS.map((column) => column.key);
+const DEFAULT_ORDER = PROJECT_LIST_COLUMNS.filter(
+  (column) => !column.defaultHidden,
+).map((column) => column.key);
 const COLUMN_BY_KEY = new Map(
   PROJECT_LIST_COLUMNS.map((column) => [column.key, column]),
 );
+const KNOWN_KEYS = new Set(COLUMN_BY_KEY.keys());
 
-/**
- * Parses a comma-separated string of column keys into an array of valid, unique keys.
- */
 function parseKeys(value: unknown) {
-  const keys =
-    typeof value === "string"
-      ? value.split(",")
-      : Array.isArray(value)
-        ? value
-        : [];
-  const seen = new Set<string>();
-  return keys.filter((key) => {
-    if (!COLUMN_BY_KEY.has(key) || seen.has(key)) {
-      return false;
-    }
-    seen.add(key);
-    return true;
-  });
+  return parseColumnKeys(value, KNOWN_KEYS);
 }
 
 /**
- * Completes the given column order by appending any columns that are present in the default order but missing from the provided order.
+ * Falls back to the default order when no explicit column order is stored.
  */
-function completeOrder(order: string[]) {
-  const seen = new Set(order);
-  return [...order, ...DEFAULT_ORDER.filter((key) => !seen.has(key))];
+function resolveOrder(order: string[]) {
+  return order.length > 0 ? order : DEFAULT_ORDER;
 }
 
 /**
@@ -77,7 +64,7 @@ export function useColumnLayout() {
   const activeView = useProjectViews((state) => state.state.activeView);
 
   const savedOrder = useMemo(
-    () => completeOrder(parseKeys(activeView?.columns)),
+    () => resolveOrder(parseKeys(activeView?.columns)),
     [activeView],
   );
   const savedPinned = useMemo(
@@ -87,7 +74,7 @@ export function useColumnLayout() {
 
   // The search params hold the layout in use, the view holds the saved one.
   const baseOrder = useMemo(
-    () => completeOrder(parseKeys(searchParams.get(COLUMN_PARAM_KEYS.columns))),
+    () => resolveOrder(parseKeys(searchParams.get(COLUMN_PARAM_KEYS.columns))),
     [searchParams],
   );
 
@@ -145,6 +132,14 @@ export function useColumnLayout() {
 
   const reorderPinned = useCallback(
     (nextPinned: string[]) => writeLayout({ pinned: nextPinned }),
+    [writeLayout],
+  );
+
+  /**
+   * Replaces the visible columns and the pinned subset in one write.
+   */
+  const setColumns = useCallback(
+    (order: string[], pinned: string[]) => writeLayout({ order, pinned }),
     [writeLayout],
   );
 
@@ -234,6 +229,7 @@ export function useColumnLayout() {
     savedParams,
     reorderScrolling,
     reorderPinned,
+    setColumns,
     togglePinned,
     handleDragEnd,
     reset,
