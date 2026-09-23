@@ -44,6 +44,7 @@ export interface ResourceAllocation {
   project_name: string;
   customer: string;
   is_billable: number;
+  is_ai_created?: number;
   note: string | null;
   modified_by: string;
   modified: string;
@@ -84,4 +85,5 @@ export interface AllocationTypeSelection {
   statusValues: string[];
   includeUnallocated: boolean;
   isStatusApplicable: boolean;
+  isAiCreatedOnly?: boolean;
 }

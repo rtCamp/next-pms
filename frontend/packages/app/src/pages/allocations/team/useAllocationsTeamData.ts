@@ -95,7 +95,7 @@ export function useAllocationsTeamData({
     () => (filters.length > 0 ? JSON.stringify(filters) : null),
     [filters],
   );
-  const { billableValues, statusValues, includeUnallocated } =
+  const { billableValues, statusValues, includeUnallocated, isAiCreatedOnly } =
     resolveAllocationTypeSelection(allocationsType);
   const allocationStatusParam = statusValues.length
     ? JSON.stringify(statusValues)
@@ -103,6 +103,7 @@ export function useAllocationsTeamData({
   const isBillableParam = billableValues.length
     ? JSON.stringify(billableValues)
     : null;
+  const isAiCreatedParam = isAiCreatedOnly ? 1 : null;
   const querySignature = useMemo(
     () =>
       `${QUERY_SIGNATURE_PREFIX}${hashString(
@@ -114,6 +115,7 @@ export function useAllocationsTeamData({
           departmentParam ?? "",
           allocationStatusParam ?? "",
           isBillableParam ?? "",
+          String(isAiCreatedParam ?? ""),
           filtersParam ?? "",
           String(includeUnallocated),
         ].join(":"),
@@ -124,6 +126,7 @@ export function useAllocationsTeamData({
       designationParam,
       filtersParam,
       includeUnallocated,
+      isAiCreatedParam,
       isBillableParam,
       maxWeek,
       requestDate,
@@ -140,6 +143,7 @@ export function useAllocationsTeamData({
       department: departmentParam,
       allocation_status: allocationStatusParam,
       is_billable: isBillableParam,
+      is_ai_created: isAiCreatedParam,
       filters: filtersParam,
       need_hours_summary: false,
       no_allocation: includeUnallocated,
@@ -150,6 +154,7 @@ export function useAllocationsTeamData({
       designationParam,
       filtersParam,
       includeUnallocated,
+      isAiCreatedParam,
       isBillableParam,
       maxWeek,
       requestDate,

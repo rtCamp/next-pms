@@ -1,5 +1,7 @@
 export type DeleteAllocationMode =
-  "only_this" | "this_and_future" | "all_in_series";
+  | "only_this"
+  | "this_and_future"
+  | "all_in_series";
 
 export interface Allocation {
   /** Unique identifier for the allocation. */
@@ -20,6 +22,8 @@ export interface Allocation {
   billable?: boolean;
   /** Whether the allocation is tentative. */
   tentative?: boolean;
+  /** Whether the allocation was created by AI. */
+  isAiCreated?: boolean;
   /** Note for the allocation. */
   note?: string;
   /** Created on date. */
