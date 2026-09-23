@@ -12,7 +12,9 @@ import { parseColumnKeys } from "@/lib/utils";
 import { COLUMN_PARAM_KEYS, PROJECT_LIST_COLUMNS } from "./constants";
 import { useProjectViews } from "../../views";
 
-const DEFAULT_ORDER = PROJECT_LIST_COLUMNS.map((column) => column.key);
+const DEFAULT_ORDER = PROJECT_LIST_COLUMNS.filter(
+  (column) => !column.defaultHidden,
+).map((column) => column.key);
 const COLUMN_BY_KEY = new Map(
   PROJECT_LIST_COLUMNS.map((column) => [column.key, column]),
 );
