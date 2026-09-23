@@ -16,14 +16,13 @@ import {
 /**
  * Internal dependencies.
  */
-import { getColumnCellClasses, getSortableInput } from "./utils";
+import { getSortableInput } from "./utils";
 import type { ProjectListColumn } from "../../types";
 
 type ColumnHeaderProps = {
   column: ProjectListColumn;
   index: number;
   pinnedCount: number;
-  stickyLeft?: number;
   sort: SortState;
   isSortDisabled: boolean;
   onSort: (sortField: string) => void;
@@ -34,7 +33,6 @@ export function ColumnHeader({
   column,
   index,
   pinnedCount,
-  stickyLeft,
   sort,
   isSortDisabled,
   onSort,
@@ -89,15 +87,8 @@ export function ColumnHeader({
       }
       className={cn(
         "flex min-w-0 items-center gap-1 text-sm text-ink-gray-5",
-        getColumnCellClasses({
-          index,
-          pinnedCount,
-          isHeader: true,
-          hideSeam: isDragging,
-        }),
         isDragging && "opacity-50",
       )}
-      style={isPinned ? { left: stickyLeft } : undefined}
     >
       {isSortDisabled ? (
         <Tooltip text="Select a currency to enable this sort">
