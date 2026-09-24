@@ -25,7 +25,7 @@ import {
   LEAVE_OVERRIDE_SOURCE,
   WEEKS_PER_MONTH,
 } from "./constants";
-import type { AllocationsDuration } from "./types";
+import type { AllocationsDuration, DayAvailability } from "./types";
 
 const DURATION_WEEK_COUNT: Record<AllocationsDuration, number> = {
   "this-week": 1,
@@ -45,6 +45,7 @@ export type AllocationApiRecord = {
   allocation_end_date: string;
   is_billable: number;
   include_weekends?: number;
+  include_holidays?: number;
   note?: string | null;
   status?: string | null;
   creation?: string | null;
@@ -67,6 +68,15 @@ export type AllocationOverrideEntry = {
  */
 export const isLeaveOwnedOverride = (entry: AllocationOverrideEntry): boolean =>
   entry.source === LEAVE_OVERRIDE_SOURCE;
+
+/**
+ * How much of a day an allocation books: a full day unless the employee is away and the
+ * allocation is set to be reduced on days off.
+ */
+export const getReducingFactor = (
+  day: DayAvailability | undefined,
+  includeHolidays: boolean,
+): number => (!day || includeHolidays ? 1 : day.availabilityFactor);
 
 type AllocationApiFilter = [string, string, string | string[] | number | null];
 
@@ -235,6 +245,7 @@ export function mapResourceAllocation<T extends AllocationApiRecord>(
     allocationEndDate: parseISO(allocation.allocation_end_date),
     allocationHoursPerDay: allocation.hours_allocated_per_day,
     includeWeekends: Boolean(allocation.include_weekends),
+    includeHolidays: Boolean(allocation.include_holidays),
     billable: Boolean(allocation.is_billable),
     tentative: allocation.status === "Tentative",
     note: allocation.note ?? undefined,

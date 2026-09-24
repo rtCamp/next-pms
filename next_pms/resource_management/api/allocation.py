@@ -1,9 +1,9 @@
 import uuid
+from collections import defaultdict
 from dataclasses import asdict, dataclass
 from datetime import date, timedelta
 
 import frappe
-from erpnext.setup.doctype.employee.employee import get_holiday_list_for_employee
 from frappe.automation.doctype.auto_repeat.auto_repeat import add_days
 from frappe.utils import cint, flt, getdate, strip_html_tags
 
@@ -15,21 +15,23 @@ from next_pms.resource_management.api.utils.helpers import (
 )
 from next_pms.resource_management.api.utils.leave_sync import (
     LEAVE_SOURCE,
+    MANUAL_SOURCE,
     allocation_dates,
     availability_factor,
     effective_hours,
     get_leave_calendar,
+    reducing_calendar,
 )
 from next_pms.resource_management.api.utils.query import (
     attach_extra_entries,
     get_allocation_list_for_employee_for_given_range,
-    get_employee_leaves,
 )
-from next_pms.resource_management.doctype.resource_allocation.resource_allocation import clear_cache
 from next_pms.resource_management.report.utils import get_employee_allocations_for_date
 from next_pms.timesheet.api.employee import get_employee_daily_working_norm
 
-NON_DATE_FIELDS = frozenset({"project", "customer", "is_billable", "status", "note", "hours_allocated_per_day"})
+NON_DATE_FIELDS = frozenset(
+    {"project", "customer", "is_billable", "status", "note", "hours_allocated_per_day", "include_holidays"}
+)
 RECURRING_IMMUTABLE_FIELDS = ("employee", "project", "customer")
 VALID_DELETE_MODES = frozenset({"only_this", "this_and_future", "all_in_series"})
 VALID_EDIT_MODES = frozenset({"only_this", "whole_series", "this_and_future"})
@@ -48,6 +50,7 @@ class AllocationPayload:
     allocation_end_date: str  # "YYYY-MM-DD"
     hours_allocated_per_day: float
     include_weekends: bool
+    include_holidays: bool = False
     project: str | None = None
     total_allocated_hours: float | None = None
     is_billable: int | None = None  # 1 or 0
@@ -225,71 +228,36 @@ def add_allocation(allocation: AllocationPayload, repeat_till_week_count: int = 
 
 
 def update_allocation(allocation: AllocationPayload):
-    """Update an existing resource allocation document."""
+    """Update an existing resource allocation document.
+
+    Edits the document in place over its whole range. A weekends-off allocation already books
+    only weekdays -- `allocation_dates` yields them and `effective_total_hours` sums over exactly
+    those -- so splitting the range into weekly documents here would fragment an allocation the
+    caller only meant to edit.
+    """
+
+    if not allocation.include_weekends and not get_weekday_chunks(
+        allocation.allocation_start_date, allocation.allocation_end_date
+    ):
+        frappe.throw(
+            frappe._(
+                "The selected date range contains no weekdays. Please choose a range that includes at least one weekday."
+            ),
+            exc=frappe.ValidationError,
+        )
 
     allocation_doc = frappe.get_doc("Resource Allocation", allocation.name)
-    doc_data = _to_doc_dict(allocation, include_name=True)
-
-    if not allocation.include_weekends:
-        chunks = get_weekday_chunks(allocation.allocation_start_date, allocation.allocation_end_date)
-
-        if not chunks:
-            frappe.throw(
-                frappe._(
-                    "The selected date range contains no weekdays. Please choose a range that includes at least one weekday."
-                ),
-                exc=frappe.ValidationError,
-            )
-
-        # shrink the existing allocation to the first chunk's date range
-        first_start, first_end = chunks[0]
-        allocation_doc.update(
-            {
-                **doc_data,
-                "allocation_start_date": first_start,
-                "allocation_end_date": first_end,
-            }
-        )
-        allocation_doc.save()
-
-        # create fresh allocations for the remaining weekly chunks
-        base = {k: v for k, v in doc_data.items() if k != "name"}
-        for chunk_start, chunk_end in chunks[1:]:
-            doc = frappe.get_doc(
-                {
-                    **base,
-                    "allocation_start_date": chunk_start,
-                    "allocation_end_date": chunk_end,
-                }
-            )
-            doc.save()
-
-        return allocation_doc
-
-    allocation_doc.update(doc_data)
+    allocation_doc.update(_to_doc_dict(allocation, include_name=True))
     allocation_doc.save()
     return allocation_doc
 
 
-def upsert_day_override(doc_name: str, override_date: str, override_fields: dict):
-    """Add or update a single day override row on a Resource Allocation doc.
-
-    If a row already exists for the given date it is updated in-place; otherwise
-    a new row is appended and the parent doc is saved.
+def _normalise_override_fields(override_fields: dict) -> dict:
+    """Validate and complete one override row's fields.
 
     ``hours`` and ``cancelled`` are mutually exclusive:
     - Setting ``cancelled=1`` clears ``hours`` to 0.
     - Setting ``hours`` to a value clears ``cancelled`` to 0.
-
-    A row derived from a leave or a holiday is left untouched, so a caller cannot book
-    hours against a day off. That matters most for a series propagation, where the target
-    dates are derived by weekday and the caller never saw them.
-
-    Args:
-        doc_name (str): Name of the Resource Allocation document.
-        override_date (str): The specific date to override (``"YYYY-MM-DD"``).
-        override_fields (dict): Fields to set on the row, e.g. ``{"cancelled": 1}``
-                                or ``{"hours": 4.0}``.
     """
     fields = dict(override_fields)
     is_cancelled = cint(fields.get("cancelled")) == 1
@@ -306,48 +274,78 @@ def upsert_day_override(doc_name: str, override_date: str, override_fields: dict
     elif has_hours:
         fields["cancelled"] = 0
 
-    existing_row = frappe.db.get_value(
-        "Resource Allocation Extra Entry",
-        {"parent": doc_name, "parenttype": "Resource Allocation", "date": override_date},
-        ["name", "source"],
-        as_dict=True,
-    )
-    if existing_row:
-        if existing_row.source == LEAVE_SOURCE:
-            # A leave-derived row is re-derived from the leave on every save, and this write
-            # path is a `set_value` that skips validate, so honouring the caller here would
-            # book hours against a day off and leave the row's own source lying about it.
-            return
+    return fields
 
-        frappe.db.set_value("Resource Allocation Extra Entry", existing_row.name, fields)
-        clear_cache()  # set_value bypasses on_update, so invalidate manually
-    else:
-        doc = frappe.get_doc("Resource Allocation", doc_name)
-        doc.append("override", {"date": override_date, **fields})
-        doc.save()
+
+def _apply_overrides_to_doc(
+    doc, day_overrides: list[dict] | None, deleted_dates: list[str] | None, preserve_leave_rows: bool = False
+) -> bool:
+    """Apply a batch of add/edit and delete operations to an allocation's override table.
+
+    Every write is recorded as ``source = "Manual"``: an explicit instruction from a manager
+    outranks whatever the leave sync derived for that date, and the row has to say so or the
+    next ``validate`` would re-derive it. That is what lets an override book hours on a holiday
+    or a leave day, and what stops a half day from halving a number a human typed.
+
+    `preserve_leave_rows` leaves a leave-derived row alone instead. It is set only for a series
+    propagation, where the target dates are derived by weekday and the caller never saw them --
+    a manager editing a plain Tuesday must not book hours on another occurrence's Tuesday that
+    turns out to be a holiday or a full day of leave. An allocation that books days off anyway
+    has no such row to protect.
+
+    Returns whether anything actually changed, so the caller can skip a no-op save.
+    """
+    rows_by_date = {getdate(row.date): row for row in doc.override}
+    changed = False
+
+    for override in day_overrides or []:
+        override_date = _require_override_date(override.get("date"))
+        fields = _normalise_override_fields({k: v for k, v in override.items() if k != "date"})
+
+        row = rows_by_date.get(override_date)
+        if preserve_leave_rows and row is not None and row.source == LEAVE_SOURCE and not cint(doc.include_holidays):
+            continue
+        if row:
+            row.update({**fields, "source": MANUAL_SOURCE})
+        else:
+            rows_by_date[override_date] = doc.append(
+                "override", {"date": override_date, **fields, "source": MANUAL_SOURCE}
+            )
+        changed = True
+
+    for deleted_date in deleted_dates or []:
+        row = rows_by_date.pop(_require_override_date(deleted_date), None)
+        if row:
+            doc.override = [entry for entry in doc.override if entry is not row]
+            changed = True
+
+    return changed
+
+
+def upsert_day_override(doc_name: str, override_date: str, override_fields: dict):
+    """Add or update a single day override row on a Resource Allocation doc.
+
+    Args:
+        doc_name (str): Name of the Resource Allocation document.
+        override_date (str): The specific date to override (``"YYYY-MM-DD"``).
+        override_fields (dict): Fields to set on the row, e.g. ``{"cancelled": 1}``
+                                or ``{"hours": 4.0}``.
+    """
+    apply_day_overrides(doc_name, [{"date": override_date, **override_fields}], None)
 
 
 def delete_day_override(doc_name: str, override_date: str):
     """Remove a single day override row from a Resource Allocation doc.
 
-    Deleting the row (as opposed to setting ``cancelled=1``) reverts the day back to the
-    allocation's default hours. No-op if no row exists for the given date.
+    Deleting the row (as opposed to setting ``cancelled=1``) reverts the day to the allocation's
+    default hours, or to its leave-derived value if the employee is away that day. No-op if no
+    row exists for the given date.
 
     Args:
         doc_name (str): Name of the Resource Allocation document.
         override_date (str): The specific date to clear (``"YYYY-MM-DD"``).
     """
-    existing_row = frappe.db.get_value(
-        "Resource Allocation Extra Entry",
-        {"parent": doc_name, "parenttype": "Resource Allocation", "date": override_date},
-        "name",
-    )
-    if not existing_row:
-        return
-
-    doc = frappe.get_doc("Resource Allocation", doc_name)
-    doc.override = [row for row in doc.override if row.name != existing_row]
-    doc.save()
+    apply_day_overrides(doc_name, None, [override_date])
 
 
 def _require_override_date(value) -> date:
@@ -370,15 +368,25 @@ def _require_override_date(value) -> date:
         )
 
 
-def apply_day_overrides(doc_name: str, day_overrides: list[dict] | None, deleted_day_overrides: list[str] | None):
+def apply_day_overrides(
+    doc_name: str,
+    day_overrides: list[dict] | None,
+    deleted_day_overrides: list[str] | None,
+    preserve_leave_rows: bool = False,
+):
     """Apply a batch of add/edit (``day_overrides``) and delete (``deleted_day_overrides``)
-    operations to a single Resource Allocation doc, keyed on the literal override dates."""
-    for override in day_overrides or []:
-        override_fields = {k: v for k, v in override.items() if k != "date"}
-        upsert_day_override(doc_name, str(_require_override_date(override.get("date"))), override_fields)
+    operations to a single Resource Allocation doc, keyed on the literal override dates.
 
-    for deleted_date in deleted_day_overrides or []:
-        delete_day_override(doc_name, str(_require_override_date(deleted_date)))
+    The whole batch runs against one loaded document and ends in a single ``save()``, so the
+    parent's ``total_allocated_hours`` is recomputed once from the final table rather than being
+    skipped by a direct row write.
+    """
+    if not (day_overrides or deleted_day_overrides):
+        return
+
+    doc = frappe.get_doc("Resource Allocation", doc_name)
+    if _apply_overrides_to_doc(doc, day_overrides, deleted_day_overrides, preserve_leave_rows):
+        doc.save()
 
 
 def _assert_recurring_immutable(allocation: AllocationPayload, stored: dict):
@@ -410,6 +418,9 @@ def _propagate_day_overrides_to_series(
 
     A source override date is mapped onto the corresponding weekday within each series doc's
     own date range, so e.g. a Tuesday override applies to every doc's Tuesday.
+
+    Targets are collected per document so each one is loaded and saved once, however many dates
+    of it the batch touches.
     """
 
     def each_series_target(source_date):
@@ -423,14 +434,25 @@ def _propagate_day_overrides_to_series(
             if target_date <= doc_end:
                 yield series_doc.name, str(target_date)
 
+    overrides_by_doc = defaultdict(list)
+    deletions_by_doc = defaultdict(list)
+
     for override in day_overrides or []:
         override_fields = {k: v for k, v in override.items() if k != "date"}
         for doc_name, target_date in each_series_target(override.get("date")):
-            upsert_day_override(doc_name, target_date, override_fields)
+            overrides_by_doc[doc_name].append({"date": target_date, **override_fields})
 
     for deleted_date in deleted_day_overrides or []:
         for doc_name, target_date in each_series_target(deleted_date):
-            delete_day_override(doc_name, target_date)
+            deletions_by_doc[doc_name].append(target_date)
+
+    for doc_name in overrides_by_doc.keys() | deletions_by_doc.keys():
+        apply_day_overrides(
+            doc_name,
+            overrides_by_doc.get(doc_name),
+            deletions_by_doc.get(doc_name),
+            preserve_leave_rows=True,
+        )
 
 
 @frappe.whitelist(methods=["POST"])
@@ -697,10 +719,15 @@ def _existing_hours_for_date(allocations: list[dict], override_maps: dict, targe
     """Sum the effective allocated hours of existing allocations active on a date.
 
     Uses a day-override value when present for that date, otherwise the allocation's
-    default ``hours_allocated_per_day``.
+    default ``hours_allocated_per_day``. A date the allocation does not book is skipped.
     """
     total = 0.0
     for allocation in get_employee_allocations_for_date(allocations, target_date):
+        # A weekends-off allocation writes no override for a weekend it spans, so without this
+        # its default hours would be charged to a day it books nothing on.
+        if not cint(allocation.get("include_weekends")) and target_date.weekday() >= 5:
+            continue
+
         override = override_maps.get(allocation["name"], {})
         if target_date in override:
             total += override[target_date]
@@ -716,6 +743,7 @@ def get_over_allocated_dates(
     end_date: str,
     hours_per_day: float,
     include_weekends: bool = False,
+    include_holidays: bool = False,
     repeat_till_week_count: int = 0,
     allocation_name: str | None = None,
 ) -> dict:
@@ -732,6 +760,9 @@ def get_over_allocated_dates(
         end_date (str): Proposed allocation end ("YYYY-MM-DD").
         hours_per_day (float): Proposed hours/day for the new allocation.
         include_weekends (bool): When False, weekend days are skipped.
+        include_holidays (bool): When True, the proposed allocation books public holidays and
+            leave days instead of being reduced on them. Availability still counts them as
+            time off, so booking one is reported here as over-allocation rather than blocked.
         repeat_till_week_count (int): Number of additional weekly copies; the window is
             also evaluated shifted by +7 days per copy (0 for one-time or edit).
         allocation_name (str | None): Allocation to exclude from the existing-hours sum
@@ -774,7 +805,13 @@ def get_over_allocated_dates(
     fetch_end = add_days(base_end, repeat_till_week_count * 7)
 
     existing = get_allocation_list_for_employee_for_given_range(
-        columns=["name", "allocation_start_date", "allocation_end_date", "hours_allocated_per_day"],
+        columns=[
+            "name",
+            "allocation_start_date",
+            "allocation_end_date",
+            "hours_allocated_per_day",
+            "include_weekends",
+        ],
         value_key="employee",
         values=[employee],
         start_date=base_start,
@@ -785,21 +822,11 @@ def get_over_allocated_dates(
     attach_extra_entries(existing)
     override_maps = {a["name"]: override_hours_by_date(a) for a in existing}
 
-    leaves = get_employee_leaves(employee=employee, start_date=str(base_start), end_date=str(fetch_end))
-    holiday_list = get_holiday_list_for_employee(employee, raise_exception=False)
-    holidays = (
-        frappe.get_all(
-            "Holiday",
-            filters={"parent": holiday_list, "holiday_date": ["between", (base_start, fetch_end)]},
-            fields=["holiday_date", "weekly_off"],
-        )
-        if holiday_list
-        else []
-    )
-    # Availability keeps counting weekly offs, so booking a weekend still reads as over-allocated.
+    leaves, holidays = get_leave_calendar(employee, base_start, fetch_end)
+    # Availability keeps counting every day off, so booking one still reads as over-allocated.
     # What the allocation would actually book does not, or it would silently reduce to nothing on
-    # the very days `include_weekends` asked for.
-    booking_holidays = [h for h in holidays if not cint(h.weekly_off)] if include_weekends else holidays
+    # the very days its toggles asked for.
+    booking_leaves, booking_holidays = reducing_calendar(leaves, holidays, include_weekends, include_holidays)
 
     result = []
     for week in range(repeat_till_week_count + 1):
@@ -809,7 +836,7 @@ def get_over_allocated_dates(
         while current <= week_end:
             if include_weekends or current.weekday() < 5:
                 available = is_on_leave(current, daily_working_hours, leaves, holidays)["leave_work_hours"]
-                proposed = effective_hours(hours_per_day, current, leaves, booking_holidays)
+                proposed = effective_hours(hours_per_day, current, booking_leaves, booking_holidays)
                 total = _existing_hours_for_date(existing, override_maps, current) + proposed
                 if total > available:
                     result.append({"date": current.strftime("%Y-%m-%d"), "excess_hours": round(total - available, 2)})
@@ -820,7 +847,13 @@ def get_over_allocated_dates(
 
 
 @frappe.whitelist(methods=["GET"])
-def get_employee_availability(employee: str, start_date: str, end_date: str, include_weekends: bool = False) -> dict:
+def get_employee_availability(
+    employee: str,
+    start_date: str,
+    end_date: str,
+    include_weekends: bool = False,
+    include_holidays: bool = False,
+) -> dict:
     """Return the days in a range on which an employee is not fully available.
 
     Derived from the same helpers that reduce an allocation on save
@@ -834,10 +867,15 @@ def get_employee_availability(employee: str, start_date: str, end_date: str, inc
         end_date (str): Range end, inclusive ("YYYY-MM-DD").
         include_weekends (bool): When False, weekend days are skipped, matching what an
             allocation with the same setting books.
+        include_holidays (bool): When True, public holidays and leave no longer reduce, matching
+            an allocation with the same setting. A named holiday is still reported, with an
+            ``availability_factor`` of 1.0, so a caller can label the day without treating it as
+            unavailable.
 
     Returns:
         dict: ``daily_working_hours`` — the employee's normal hours for a single day — and
-        ``dates``, sparse and keyed by date, carrying only the days the employee is away:
+        ``dates``, sparse and keyed by date, carrying the days the employee is away plus any
+        named holiday the allocation books straight through:
 
         ```py
         {
@@ -867,16 +905,23 @@ def get_employee_availability(employee: str, start_date: str, end_date: str, inc
         frappe.throw(frappe._("start_date must be on or before end_date."), exc=frappe.ValidationError)
 
     daily_working_hours = flt(get_employee_daily_working_norm(employee))
-    leaves, holidays = get_leave_calendar(employee, range_start, range_end, include_weekends)
-    holiday_names = {holiday.holiday_date: strip_html_tags(holiday.description or "").strip() for holiday in holidays}
+    leaves, holidays = get_leave_calendar(employee, range_start, range_end)
+    # Labels come from the full calendar so a day the allocation books through is still named;
+    # only the reducing subset decides how many hours remain.
+    holiday_names = {
+        holiday.holiday_date: strip_html_tags(holiday.description or "").strip()
+        for holiday in holidays
+        if not cint(holiday.weekly_off)
+    }
+    reducing_leaves, reducing_holidays = reducing_calendar(leaves, holidays, include_weekends, include_holidays)
 
     dates = {}
     for current in allocation_dates(range_start, range_end, include_weekends):
-        factor = availability_factor(current, leaves, holidays)
-        if factor >= 1:
+        factor = availability_factor(current, reducing_leaves, reducing_holidays)
+        holiday_name = holiday_names.get(current)
+        if factor >= 1 and not holiday_name:
             continue
 
-        holiday_name = holiday_names.get(current)
         dates[current.strftime("%Y-%m-%d")] = {
             "availability_factor": factor,
             "available_hours": flt(daily_working_hours * factor, 2),
