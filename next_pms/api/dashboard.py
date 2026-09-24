@@ -6,8 +6,9 @@ from datetime import timedelta
 
 import frappe
 from erpnext.setup.doctype.employee.employee import get_holiday_list_for_employee
-from frappe import only_for, whitelist
+from frappe import _, only_for, whitelist
 from frappe.core.doctype.recorder.recorder import redis_cache
+from frappe.model.workflow import apply_workflow, get_workflow_name
 from frappe.query_builder import DocType
 from frappe.query_builder.functions import Sum
 from frappe.utils import add_days, cint, flt, get_datetime, getdate, today
@@ -1059,6 +1060,30 @@ def _get_employees_on_leave(manager_employee: str) -> list:
             row["custom_first_halfsecond_half"] = None
 
     return results
+
+
+@whitelist(methods=["POST"])
+def approve_leave_application(name: str) -> None:
+    """Approve an open Leave Application on behalf of the current user.
+
+    Runs with the caller's permissions so HRMS's leave-approver validation applies.
+    Uses the active Leave Application workflow when one exists; otherwise marks the
+    document Approved and submits it.
+    """
+    only_for(ALL_ROLES, message=True)
+
+    leave = frappe.get_doc("Leave Application", name)
+    if leave.docstatus != 0 or leave.status != "Open":
+        frappe.throw(_("Only open leave applications can be approved."))
+
+    if get_workflow_name("Leave Application"):
+        apply_workflow(leave, "Approve")
+    else:
+        leave.status = "Approved"
+        leave.save()
+        leave.submit()
+
+    _get_employees_on_leave.clear_cache()
 
 
 @whitelist(methods=["GET"])
