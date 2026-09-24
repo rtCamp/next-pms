@@ -10,7 +10,10 @@ import { durationToSeconds, secondsToDuration } from "../../utils/dateUtils";
 let timesheetPage;
 const TIME_ENTRIES_UPDATED_MSG = "Time Entry submitted successfully";
 
-test.describe.serial("Employee3 : Timesheet", () => {
+// Configure the test suite to run in serial mode, ensuring tests execute one after another.
+test.describe.configure({ mode: "serial" });
+
+test.describe("Employee3 : Timesheet", () => {
   test.beforeEach(async ({ page }) => {
     // Instantiate page objects
     timesheetPage = new TimesheetPage(page);
