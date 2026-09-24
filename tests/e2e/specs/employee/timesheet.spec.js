@@ -11,6 +11,13 @@ import { readJSONFile } from "../../utils/fileUtils";
 let timesheetPage;
 let taskPage;
 
+// Serial: these tests share one account and one week, so they cannot run
+// concurrently. 22 tests on one employee's week; 10 call importLikedTasks() behind a
+// check-then-act guard, and TC4/TC23 write to the same grid.
+//
+// Note: in serial mode a failure skips the rest of the block.
+test.describe.configure({ mode: "serial" });
+
 test.describe("Employee : Timesheet", () => {
   test.beforeEach(async ({ page }) => {
     // Instantiate page objects
