@@ -10,6 +10,7 @@ def after_install():
     setup_project_threshold_reminder_template()
     create_default_project_phases()
     create_default_risk_masters()
+    create_default_growth_masters()
     setup_project_custom_fields()
     setup_project_target_hours_field()
     setup_timesheet_rejection_reason_field()
@@ -338,8 +339,6 @@ def create_default_project_phases():
 
 
 def create_default_risk_masters():
-    import frappe
-
     risk_categories = ("Internal Team", "Client", "Design", "Technical", "Timeline/Budget")
     risk_levels = ("Low", "Medium", "High")
     risk_statuses = ("To-do", "In Progress", "Escalated", "Blocked", "Mitigated")
@@ -349,8 +348,30 @@ def create_default_risk_masters():
         ("Risk Level", risk_levels),
         ("Risk Status", risk_statuses),
     ):
-        for name in names:
-            if frappe.db.exists(doctype, name):
-                continue
+        _insert_masters(doctype, [{"name": name} for name in names])
 
-            frappe.get_doc({"doctype": doctype, "name": name}).insert(ignore_permissions=True)
+
+def create_default_growth_masters():
+    growth_categories = ("Upsell", "Cross-sell", "Renewal/Extension", "New Service", "Referral")
+    growth_statuses = (
+        {"name": "Ideation", "status_type": "Status"},
+        {"name": "In Progress", "status_type": "Status"},
+        {"name": "On Hold", "status_type": "Status"},
+        {"name": "Closed", "status_type": "Status", "is_closed": 1},
+        {"name": "Won", "status_type": "Closed Status"},
+        {"name": "Lost", "status_type": "Closed Status"},
+        {"name": "Not Pursued", "status_type": "Closed Status"},
+    )
+
+    _insert_masters("PMS Growth Initiative Category", [{"name": name} for name in growth_categories])
+    _insert_masters("PMS Growth Initiative Status", growth_statuses)
+
+
+def _insert_masters(doctype, records):
+    import frappe
+
+    for record in records:
+        if frappe.db.exists(doctype, record["name"]):
+            continue
+
+        frappe.get_doc({"doctype": doctype, **record}).insert(ignore_permissions=True)
