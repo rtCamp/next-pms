@@ -1,6 +1,7 @@
 import { expect } from "@playwright/test";
 import path from "path";
 import { readJSONFile, writeDataToFile } from "../utils/fileUtils";
+import { gotoWithRetry } from "../utils/navigation.js";
 
 const TASK_TRACKER_PATH = path.resolve(
   __dirname,
@@ -107,7 +108,7 @@ export class TaskPage {
    * Navigates to the task page and waits for it to fully load.
    */
   async goto() {
-    await this.page.goto("/next-pms/tasks", { waitUntil: "domcontentloaded" });
+    await gotoWithRetry(this.page, "/next-pms/tasks");
   }
 
   // --------------------------------------

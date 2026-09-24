@@ -28,6 +28,7 @@ export class Sidebar {
   async isTabAvailable(name) {
     await this.page.getByRole("img", { name: "Logo" }).first().waitFor();
 
-    return this.page.getByRole("link", { name: `${name}` }).isVisible();
+    // Exact, so a link merely containing the name can't satisfy a negative check.
+    return this.page.getByRole("link", { name, exact: true }).isVisible();
   }
 }

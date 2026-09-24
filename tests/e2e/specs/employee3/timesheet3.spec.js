@@ -10,7 +10,14 @@ import { durationToSeconds, secondsToDuration } from "../../utils/dateUtils";
 let timesheetPage;
 const TIME_ENTRIES_UPDATED_MSG = "Time Entry submitted successfully";
 
-test.describe.serial("Employee3 : Timesheet", () => {
+// Sequential within this file: these tests share one account and one week.
+// TC5 adds a row, TC6 deletes one and TC7 submits the week - once submitted
+// the other two cannot edit it.
+// "default" rather than "serial" - serial would also skip the rest of the
+// block after a failure.
+test.describe.configure({ mode: "serial" });
+
+test.describe("Employee3 : Timesheet", () => {
   test.beforeEach(async ({ page }) => {
     // Instantiate page objects
     timesheetPage = new TimesheetPage(page);

@@ -8,12 +8,6 @@ import * as allure from "allure-js-commons";
 /** @type {TimesheetPage} */
 let timesheetPage;
 
-// Serial: these tests share one account and one week, so they cannot run
-// concurrently. TC2 and TC3 both add time to the same employee's week by different routes.
-//
-// Note: in serial mode a failure skips the rest of the block.
-test.describe.configure({ mode: "serial" });
-
 test.describe("Employee 2 : Timesheet", () => {
   // Runs before each test
   test.beforeEach(async ({ page }) => {

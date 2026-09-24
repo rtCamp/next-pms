@@ -1,4 +1,5 @@
 import { expect } from "@playwright/test";
+import { gotoWithRetry } from "../utils/navigation.js";
 
 /**
  * TeamPage class handles interactions with the team page.
@@ -174,12 +175,11 @@ export class TeamPage {
   /**
    * Navigates to the team page and waits for it to fully load.
    */
+  /** Opens the team view for the configured reporting manager. */
   async goto() {
-    await this.page.goto(
+    await gotoWithRetry(
+      this.page,
       `/next-pms/timesheet/team?reportsTo=${process.env.REP_MAN_ID}`,
-      {
-        waitUntil: "domcontentloaded",
-      },
     );
   }
 

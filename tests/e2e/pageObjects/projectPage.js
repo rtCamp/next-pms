@@ -1,6 +1,7 @@
 import { expect } from "allure-playwright";
 import path from "path";
 import { readJSONFile } from "../utils/fileUtils.js";
+import { gotoWithRetry } from "../utils/navigation.js";
 
 // Filter keys mapped to the labels the filter panel's "Field" dropdown offers.
 const FILTER_FIELD_LABELS = {
@@ -201,9 +202,7 @@ export class ProjectPage {
    * Navigates to the project page and waits for it to fully load.
    */
   async goto() {
-    await this.page.goto("/next-pms/projects?status=Open", {
-      waitUntil: "domcontentloaded",
-    });
+    await gotoWithRetry(this.page, "/next-pms/projects?status=Open");
   }
 
   /**
@@ -529,10 +528,8 @@ export class ProjectPage {
   async isColumnHeaderVisible(headerName) {
     const headerLocator = this.projectTableHeader(headerName);
 
-    // NOTE: the redesigned Projects list has a fixed column set (see
-    // frontend/packages/app/src/pages/projects/list/columns.ts) with no
-    // "Columns" / "Add Columns" menu to add missing ones anymore, so we can
-    // only assert on what's already rendered.
+    // Only asserts on the rendered layout. A column the list offers but does
+    // not show is added with ColumnSettings.ensureColumnVisible first.
     await expect(headerLocator).toBeVisible();
   }
   /**

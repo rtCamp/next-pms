@@ -61,7 +61,10 @@ export const durationToSeconds = (duration) => {
   } else if (!duration.includes(":")) {
     return parseInt(duration) * 3600;
   } else {
-    return parseInt(duration.split(":")[0]) * 3600 + parseInt(duration.split(":")[1]) * 60;
+    return (
+      parseInt(duration.split(":")[0]) * 3600 +
+      parseInt(duration.split(":")[1]) * 60
+    );
   }
 };
 
@@ -122,21 +125,31 @@ export const getFormattedCurrentDate = () => {
 };
 
 /**
- * Get the date n days from today in 'Jun 6' format along with day of the week as 'Wed'.
- * If the resulting day is Sat or Sun, move it to the next Monday.
+ * Get a working day n days from today, in 'Jun 6' format with its weekday name.
+ * Weekends move to Monday; the date is clamped inside the current quarter
+ * because allocation grids page by quarter and won't render a later date.
  */
 export const getFormattedDateNDaysFromToday = (n) => {
-  const date = new Date();
+  const today = new Date();
+  const quarterEnd = new Date(
+    today.getFullYear(),
+    Math.floor(today.getMonth() / 3) * 3 + 3,
+    0,
+  );
+
+  const date = new Date(today);
   date.setDate(date.getDate() + n);
 
-  // Adjust weekend days to Monday
-  const dayOfWeek = date.getDay();
-  if (dayOfWeek === 6) {
-    // Saturday
-    date.setDate(date.getDate() + 2);
-  } else if (dayOfWeek === 0) {
-    // Sunday
-    date.setDate(date.getDate() + 1);
+  // Weekend -> next Monday
+  if (date.getDay() === 6) date.setDate(date.getDate() + 2);
+  else if (date.getDay() === 0) date.setDate(date.getDate() + 1);
+
+  // Past the quarter end: fall back to the last working day inside it.
+  if (date > quarterEnd) {
+    date.setTime(quarterEnd.getTime());
+    while (date.getDay() === 0 || date.getDay() === 6) {
+      date.setDate(date.getDate() - 1);
+    }
   }
 
   return {

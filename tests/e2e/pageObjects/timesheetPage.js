@@ -1,4 +1,5 @@
 import { expect } from "@playwright/test";
+import { gotoWithRetry } from "../utils/navigation.js";
 
 /**
  * TimesheetPage class handles interactions with the timesheet page.
@@ -134,9 +135,7 @@ export class TimesheetPage {
    * Navigates to the timesheet page and waits for it to fully load.
    */
   async goto() {
-    await this.page.goto("/next-pms/timesheet", {
-      waitUntil: "domcontentloaded",
-    });
+    await gotoWithRetry(this.page, "/next-pms/timesheet");
   }
 
   /**
@@ -599,14 +598,24 @@ export class TimesheetPage {
     const button = this.page
       .getByRole("button", { name: "Import liked tasks to this week" })
       .first();
-    await this.page.waitForTimeout(2000);
-    await button.waitFor({ state: "visible", timeout: 10000 }).catch(() => {});
+    const firstRow = this.latestTimesheetTaskRows.first();
 
-    // The control is gone once the week already holds the liked tasks. Several
-    // tests share one employee and week, so whichever ran first imported them.
-    if (!(await button.isVisible().catch(() => false))) return;
+    await button.waitFor({ state: "visible", timeout: 30000 }).catch(() => {});
+
+    // The control is gone once the week already holds the liked tasks, so an
+    // absent button is only fine when rows are actually there.
+    if (!(await button.isVisible().catch(() => false))) {
+      if (await firstRow.isVisible().catch(() => false)) return;
+
+      throw new Error(
+        "Import liked tasks: no button and no task rows - nothing was imported.",
+      );
+    }
 
     await button.click();
+
+    // The import is async; wait for a row rather than assuming the click landed.
+    await firstRow.waitFor({ state: "visible", timeout: 30000 });
   }
 
   // --------------------------------------
@@ -639,13 +648,14 @@ export class TimesheetPage {
   }
 
   async openTaskDetails(task) {
-    const taskSpan = this.latestTimesheetTaskRows
-      .filter({ hasText: task })
-      .last()
-      .locator("span.truncate")
-      .first();
+    const row = this.latestTimesheetTaskRows.filter({ hasText: task }).last();
 
-    await taskSpan.click();
+    // Name the missing row instead of letting the click time out on it.
+    await row.waitFor({ state: "visible", timeout: 20000 }).catch(() => {
+      throw new Error(`No timesheet row for "${task}" in the current week.`);
+    });
+
+    await row.locator("span.truncate").first().click();
     await this.page.waitForTimeout(2000);
   }
 

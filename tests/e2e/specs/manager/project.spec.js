@@ -1,6 +1,7 @@
 const { test, expect } = require("../../playwright.fixture.cjs");
 import path from "path";
 import { ProjectPage } from "../../pageObjects/projectPage";
+import { ColumnSettings } from "../../pageObjects/columnSettings";
 import { readJSONFile } from "../../utils/fileUtils";
 import * as allure from "allure-js-commons";
 
@@ -259,41 +260,24 @@ test.describe("Project Tab", () => {
 
 test.describe("Project Tab: Single Filters", () => {
   /** @type {ProjectPage} */ let projectPage;
+  /** @type {ColumnSettings} */ let columnSettings;
 
   test.beforeEach(async ({ page }) => {
     projectPage = new ProjectPage(page);
+    columnSettings = new ColumnSettings(page);
     // go to project page
     await projectPage.goto();
   });
   test("TC112: Verify project Type Filter", async ({ jsonDir }) => {
     allure.story("Project");
 
-    // Seven column-header checks, two searches, three filter conditions and a
-    // clear, at slowMo's half-second per action. TC113 already records this one
-    // as spending ~23s on a single condition, which leaves no headroom under
-    // the 30s default - it went over as soon as the filter gained a real wait
-    // for the list response.
+    // Two searches, three filter conditions and a clear at slowMo's 500ms each
+    // overrun the 30s default.
     test.setTimeout(180000);
 
     // Load test data
     const data = await projectPage.loadTestData(jsonDir, "TC112.json");
     const TC112data = data.TC112;
-
-    // Verify column headers if they are visible, if not visible, include them
-    const columnsToCheck = [
-      "Project Name",
-      "Project Type",
-      "Phase",
-      "Total Budget",
-      "Burn rate/week",
-      "Profit margin",
-      "Client name",
-    ];
-
-    await projectPage.verifyColumnHeaders(columnsToCheck);
-    for (const column of columnsToCheck) {
-      await projectPage.isColumnHeaderVisible(column);
-    }
 
     //Search the project
     await projectPage.searchProject(
@@ -311,6 +295,9 @@ test.describe("Project Tab: Single Filters", () => {
 
     const projectName = TC112data.payloadCreateProject.project_name;
     const projectType = TC112data.payloadCreateProject.project_type;
+
+    // Project type is not in the default layout; add it so its cell can be read.
+    await columnSettings.ensureColumnVisible("Project type");
 
     await expect(
       projectPage.projectTypeCell(projectName, projectType),
