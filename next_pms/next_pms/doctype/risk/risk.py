@@ -4,9 +4,7 @@
 import frappe
 from frappe.model.document import Document
 
-OWNER_GATED_ROLES = frozenset({"Timesheet Manager", "Projects User"})
-UNRESTRICTED_ROLES = frozenset({"System Manager", "Projects Manager", "Delivery Manager", "Delivery User"})
-RISK_OWNER_REQUIRED_PTYPES = frozenset({"write", "delete", "share"})
+from next_pms.utils.permissions import has_owner_gated_permission
 
 
 class Risk(Document):
@@ -126,15 +124,4 @@ class Risk(Document):
 
 def has_permission(doc, ptype="read", user=None, debug=False):
     """Timesheet Manager / Projects User may write only when they are risk_owner."""
-    user = user or frappe.session.user
-    roles = frappe.get_roles(user)
-
-    for role in roles:
-        if role in UNRESTRICTED_ROLES:
-            return True
-    if ptype not in RISK_OWNER_REQUIRED_PTYPES:
-        return True
-    for role in roles:
-        if role in OWNER_GATED_ROLES:
-            return (doc.risk_owner or "").lower() == user.lower()
-    return True
+    return has_owner_gated_permission(doc.risk_owner, ptype, user or frappe.session.user)
