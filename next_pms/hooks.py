@@ -298,6 +298,9 @@ doc_events = {
             "next_pms.timesheet.doctype.pms_view_setting.pms_view_setting.delete_project_views",
         ],
     },
+    "Resource Allocation": {
+        "after_insert": "next_pms.next_pms.notifications.ai_allocation_after_insert",
+    },
     "Risk": {
         "on_update": [
             "next_pms.next_pms.notifications.risk_on_update",

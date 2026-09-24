@@ -282,3 +282,93 @@ def send_review_reminders():
         )
         url = f"/next-pms/timesheet/team?{query}"
         create_notification(reviewer_user, title, label, "Timesheet", entry["timesheet"], url=url)
+
+
+def ai_allocation_after_insert(doc, method=None):
+    """Notify Delivery Managers when an AI allocation is created."""
+    if not getattr(doc, "is_ai_created", 0):
+        return
+
+    sync_ai_allocation_notifications(doc.project, new_doc=doc)
+
+
+def sync_ai_allocation_notifications(project=None, new_doc=None):
+    delivery_managers = frappe.get_all(
+        "Has Role",
+        filters={"role": "Delivery Manager", "parenttype": "User"},
+        pluck="parent",
+    )
+    if not delivery_managers:
+        return
+
+    active_users = frappe.get_all(
+        "User",
+        filters={
+            "name": ["in", list(set(delivery_managers))],
+            "enabled": 1,
+            "user_type": "System User",
+        },
+        pluck="name",
+    )
+    active_users = [user for user in active_users if user not in ("Administrator", "Guest")]
+    if not active_users:
+        return
+
+    linked_doctype = "Project" if project else "Resource Allocation"
+    linked_document = project or (new_doc.name if new_doc else "")
+
+    if not linked_document:
+        return
+
+    # Resolve project title
+    project_name = None
+    if project:
+        project_name = frappe.db.get_value("Project", project, "project_name") or project
+    title = project_name or _("Resource Allocation")
+
+    label = _("You have AI-generated allocations that need to be reviewed.")
+
+    url = f"/next-pms/allocations/project?project={project}" if project else "/next-pms/allocations/team"
+
+    for user in active_users:
+        existing = frappe.db.get_value(
+            "NextPMS Notifications",
+            filters={
+                "user": user,
+                "linked_doctype": linked_doctype,
+                "linked_document": linked_document,
+                "viewed": 0,
+            },
+            fieldname="name",
+        )
+        if existing:
+            frappe.db.set_value(
+                "NextPMS Notifications",
+                existing,
+                {
+                    "title": truncate(title, frappe.db.VARCHAR_LEN),
+                    "label": truncate(label, frappe.db.VARCHAR_LEN),
+                    "url": url,
+                    "creation": frappe.utils.now(),
+                    "modified": frappe.utils.now(),
+                },
+            )
+        else:
+            frappe.get_doc(
+                {
+                    "doctype": "NextPMS Notifications",
+                    "user": user,
+                    "title": truncate(title, frappe.db.VARCHAR_LEN),
+                    "label": truncate(label, frappe.db.VARCHAR_LEN),
+                    "linked_doctype": linked_doctype,
+                    "linked_document": linked_document,
+                    "url": url,
+                    "viewed": 0,
+                }
+            ).insert(ignore_permissions=True)
+
+        frappe.publish_realtime(
+            event="notification",
+            user=user,
+            after_commit=True,
+        )
