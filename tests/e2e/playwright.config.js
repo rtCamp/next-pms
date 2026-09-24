@@ -24,15 +24,6 @@ module.exports = defineConfig({
   /* Test results directory */
   outputDir: "test-results",
 
-  /* Per-test budget.
-   *
-   * Playwright's default is 30s, which this suite cannot live inside:
-   * launchOptions.slowMo below adds 500ms to every action, so a 40-action flow
-   * spends 20s on slowMo before a single request. A worker's first test also
-   * pays browser launch and context creation out of the same budget, which is
-   * why the first test on each worker was the one timing out. */
-  timeout: 60_000,
-
   /* Run tests in files in parallel */
   fullyParallel: true,
 
