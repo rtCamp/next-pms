@@ -181,6 +181,7 @@ export function useAllocationModal(refresh: RefreshAllocations) {
       open: isOpen,
       onOpenChange: handleOpenChange,
       initialValues,
+      onSuccess: handleSuccess,
       onDelete: initialValues?.allocationName
         ? async () => {
             await handleDelete(
