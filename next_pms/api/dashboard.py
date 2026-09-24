@@ -989,12 +989,12 @@ def _get_forecast_breakdown(days: int) -> dict:
 
 @whitelist(methods=["GET"])
 def get_employees_on_leave() -> list:
-    """Return direct reports of the current user who are on leave today or upcoming.
+    """Return direct reports of the current user with approved or open leaves today or upcoming.
 
     Returns
     -------
     list of dict
-        employee, employee_name, from_date, to_date,
+        name, employee, employee_name, from_date, to_date, status,
         half_day, custom_first_halfsecond_half, user_image.
         Empty list if the user has no employee record or no direct reports.
         Ordered by from_date ascending.
@@ -1025,10 +1025,12 @@ def _get_employees_on_leave(manager_employee: str) -> list:
     has_first_half_column = frappe.db.has_column("Leave Application", "custom_first_halfsecond_half")
 
     select_fields = [
+        LeaveApplication.name,
         LeaveApplication.employee,
         LeaveApplication.employee_name,
         LeaveApplication.from_date,
         LeaveApplication.to_date,
+        LeaveApplication.status,
         LeaveApplication.half_day,
         User.user_image,
     ]
@@ -1042,8 +1044,10 @@ def _get_employees_on_leave(manager_employee: str) -> list:
         .left_join(User)
         .on(User.name == Employee.user_id)
         .select(*select_fields)
-        .where(LeaveApplication.docstatus == 1)
-        .where(LeaveApplication.status == "Approved")
+        .where(
+            ((LeaveApplication.docstatus == 1) & (LeaveApplication.status == "Approved"))
+            | ((LeaveApplication.docstatus == 0) & (LeaveApplication.status == "Open"))
+        )
         .where(LeaveApplication.to_date >= frappe.utils.today())
         .where(LeaveApplication.employee.isin(reportee_ids))
         .orderby(LeaveApplication.from_date)
