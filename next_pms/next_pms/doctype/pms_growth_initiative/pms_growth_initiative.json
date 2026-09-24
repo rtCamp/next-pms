@@ -1,0 +1,240 @@
+{
+ "actions": [],
+ "allow_bulk_edit": 1,
+ "allow_rename": 1,
+ "autoname": "hash",
+ "creation": "2026-09-24 12:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "details_section",
+  "project",
+  "activity",
+  "category",
+  "client_priority",
+  "column_break_wqpd",
+  "status",
+  "is_closed",
+  "closed_status",
+  "ideation_date",
+  "ownership_section",
+  "activity_owner",
+  "ideation_owner",
+  "column_break_xnrb",
+  "billable_outcome",
+  "description_section",
+  "description",
+  "desired_outcome"
+ ],
+ "fields": [
+  {
+   "fieldname": "details_section",
+   "fieldtype": "Section Break",
+   "label": "Details"
+  },
+  {
+   "fieldname": "project",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_preview": 1,
+   "in_standard_filter": 1,
+   "label": "Project",
+   "options": "Project",
+   "reqd": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "activity",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "in_preview": 1,
+   "label": "Activity",
+   "reqd": 1
+  },
+  {
+   "fieldname": "category",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Category",
+   "options": "PMS Growth Initiative Category"
+  },
+  {
+   "fieldname": "client_priority",
+   "fieldtype": "Select",
+   "label": "Priority for Client",
+   "options": "\nLow\nMedium\nHigh"
+  },
+  {
+   "fieldname": "column_break_wqpd",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "status",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Status",
+   "link_filters": "[[\"PMS Growth Initiative Status\",\"status_type\",\"=\",\"Status\"]]",
+   "options": "PMS Growth Initiative Status",
+   "reqd": 1
+  },
+  {
+   "default": "0",
+   "fetch_from": "status.is_closed",
+   "fieldname": "is_closed",
+   "fieldtype": "Check",
+   "hidden": 1,
+   "label": "Is Closed",
+   "read_only": 1
+  },
+  {
+   "depends_on": "eval:doc.is_closed",
+   "fieldname": "closed_status",
+   "fieldtype": "Link",
+   "label": "Closed Status",
+   "link_filters": "[[\"PMS Growth Initiative Status\",\"status_type\",\"=\",\"Closed Status\"]]",
+   "mandatory_depends_on": "eval:doc.is_closed",
+   "options": "PMS Growth Initiative Status"
+  },
+  {
+   "default": "Today",
+   "fieldname": "ideation_date",
+   "fieldtype": "Date",
+   "label": "Ideation Date",
+   "reqd": 1
+  },
+  {
+   "fieldname": "ownership_section",
+   "fieldtype": "Section Break",
+   "label": "Ownership & Outcome"
+  },
+  {
+   "fieldname": "activity_owner",
+   "fieldtype": "Link",
+   "in_standard_filter": 1,
+   "label": "Activity Owner",
+   "options": "User",
+   "search_index": 1
+  },
+  {
+   "fieldname": "ideation_owner",
+   "fieldtype": "Link",
+   "in_standard_filter": 1,
+   "label": "Ideation Owner",
+   "options": "User"
+  },
+  {
+   "fieldname": "column_break_xnrb",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "billable_outcome",
+   "fieldtype": "Currency",
+   "label": "Billable Outcome"
+  },
+  {
+   "fieldname": "description_section",
+   "fieldtype": "Section Break",
+   "label": "Description & Desired Outcome"
+  },
+  {
+   "fieldname": "description",
+   "fieldtype": "Text Editor",
+   "label": "Description"
+  },
+  {
+   "fieldname": "desired_outcome",
+   "fieldtype": "Text Editor",
+   "label": "Desired Outcome/ROI"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-09-24 12:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Next PMS",
+ "name": "PMS Growth Initiative",
+ "naming_rule": "Random",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Projects Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Timesheet Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Projects User",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Delivery Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Delivery User",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "rows_threshold_for_grid_search": 20,
+ "search_fields": "activity",
+ "show_title_field_in_link": 1,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "activity",
+ "track_changes": 1
+}
