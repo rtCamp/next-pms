@@ -135,6 +135,7 @@ after_install = "next_pms.install.after_install"
 
 has_permission = {
     "Risk": "next_pms.next_pms.doctype.risk.risk.has_permission",
+    "PMS Growth Initiative": "next_pms.next_pms.doctype.pms_growth_initiative.pms_growth_initiative.has_permission",
 }
 
 
