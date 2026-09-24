@@ -28,8 +28,8 @@ from next_pms.next_projects.api.project_timeline_item import enrich_timeline_ite
 from next_pms.resource_management.api.utils.query import attach_extra_entries, get_employee_leaves
 from next_pms.timesheet.api.employee import get_employee_daily_working_norm, get_employee_from_user
 
-DELIVERY_ROLES = ["Delivery Manager", "Delivery User"]
-ALL_ROLES = ["Delivery Manager", "Delivery User", "Projects Manager", "Projects User"]
+DELIVERY_ROLES = ["Delivery Manager", "Delivery User", "Timesheet Manager", "System Manager"]
+ALL_ROLES = [*DELIVERY_ROLES, "Projects Manager", "Projects User"]
 
 
 @whitelist(methods=["GET"])

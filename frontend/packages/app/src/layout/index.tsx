@@ -9,16 +9,10 @@ import { ErrorFallback } from "@next-pms/design-system/components";
  * Internal dependencies.
  */
 import Sidebar from "@/layout/sidebar";
+import { ROLE_ACCESS } from "@/lib/constant";
+import { hasAnyRole } from "@/lib/utils";
 import { NotificationsProvider } from "@/providers/notifications/provider";
 import { useUser } from "@/providers/user";
-import type { Role } from "@/types";
-
-const NOTIFICATION_ROLES: Role[] = [
-  "Delivery Manager",
-  "Delivery User",
-  "Projects Manager",
-  "Projects User",
-];
 
 const LayoutWithSidebar = () => {
   const { employeeId, roles } = useUser(({ state }) => ({
@@ -26,9 +20,7 @@ const LayoutWithSidebar = () => {
     roles: state.roles,
   }));
 
-  const canReceiveNotifications = roles.some((r) =>
-    NOTIFICATION_ROLES.includes(r),
-  );
+  const canReceiveNotifications = hasAnyRole(roles, ROLE_ACCESS.notifications);
 
   const layout = (
     <ErrorFallback>

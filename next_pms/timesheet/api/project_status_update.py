@@ -8,11 +8,7 @@ from frappe.utils.user import get_user_fullname
 
 from next_pms.api.utils import error_logger
 from next_pms.next_pms.notifications import send_mention_notifications
-
-ROLES = {
-    "Projects Manager",
-    "Projects User",
-}
+from next_pms.next_projects.api.constant import ALLOWED_ROLES
 
 
 @frappe.whitelist(methods=["POST"])
@@ -37,7 +33,7 @@ def create_project_status_update(
     Returns:
         Dict[str, Any]: Created document data
     """
-    only_for(ROLES, message=True)
+    only_for(ALLOWED_ROLES, message=True)
 
     if not frappe.db.exists("Project", project):
         frappe.throw(_("Project '{project}' does not exist").format(project=project))
@@ -88,7 +84,7 @@ def get_project_status_update(name: str) -> dict[str, Any]:
     Returns:
         Dict[str, Any]: Project Status Update data with comments
     """
-    only_for(ROLES, message=True)
+    only_for(ALLOWED_ROLES, message=True)
 
     if not frappe.db.exists("Project Status Update", name):
         frappe.throw(_("Project Status Update '{name}' does not exist").format(name=name))
@@ -109,7 +105,7 @@ def get_project_status_updates_by_project(project: str, author: str | None = Non
     Returns:
         List[Dict[str, Any]]: List of Project Status Updates
     """
-    only_for(ROLES, message=True)
+    only_for(ALLOWED_ROLES, message=True)
 
     if not frappe.db.exists("Project", project):
         frappe.throw(_("Project '{project}' does not exist").format(project=project))
@@ -167,7 +163,7 @@ def update_project_status_update(
     Returns:
         Dict[str, Any]: Updated document data
     """
-    only_for(ROLES, message=True)
+    only_for(ALLOWED_ROLES, message=True)
 
     if not frappe.db.exists("Project Status Update", name):
         frappe.throw(_("Project Status Update '{name}' does not exist").format(name=name))
@@ -200,7 +196,7 @@ def delete_project_status_update(name: str) -> dict[str, Any]:
     Returns:
         Dict[str, Any]: The name of the deleted document
     """
-    only_for(ROLES, message=True)
+    only_for(ALLOWED_ROLES, message=True)
 
     if not frappe.db.exists("Project Status Update", name):
         frappe.throw(_("Project Status Update '{name}' does not exist").format(name=name))
@@ -229,7 +225,7 @@ def add_comment_to_project_status_update(name: str, comment: str, reply_to: str 
     Returns:
         Dict[str, Any]: Updated document data
     """
-    only_for(ROLES, message=True)
+    only_for(ALLOWED_ROLES, message=True)
 
     if not frappe.db.exists("Project Status Update", name):
         frappe.throw(_("Project Status Update '{name}' does not exist").format(name=name))
@@ -274,7 +270,7 @@ def update_comment_in_project_status_update(
     Returns:
         Dict[str, Any]: Updated document data
     """
-    only_for(ROLES, message=True)
+    only_for(ALLOWED_ROLES, message=True)
 
     if not comment_name:
         frappe.throw(_("Comment name is required"))
@@ -320,7 +316,7 @@ def delete_comment_from_project_status_update(name: str, comment_name: str) -> d
     Returns:
         Dict[str, Any]: Updated document data
     """
-    only_for(ROLES, message=True)
+    only_for(ALLOWED_ROLES, message=True)
 
     if not comment_name:
         frappe.throw(_("Comment name is required"))
@@ -529,7 +525,7 @@ def send_publish_notifications(project: str, title: str, name: str):
     """Send email notifications to employees with specified roles"""
     # Disabling email notifications on project updates
     return
-    users = get_users_with_roles(ROLES)
+    users = get_users_with_roles(ALLOWED_ROLES)
     if not users:
         return
     project_url = frappe.utils.get_url(f"/next-pms/project/{project}?tab=Project+Updates&puid={name}")

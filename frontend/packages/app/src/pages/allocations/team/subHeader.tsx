@@ -21,6 +21,8 @@ import { FilterLinkValue } from "@/components/filters/FilterLinkValue";
 import { useDebounce } from "@/hooks/useDebounce";
 import { useDepartmentLookup } from "@/hooks/useDepartmentLookup";
 import { useDesignationLookup } from "@/hooks/useDesignationLookup";
+import { ROLE_ACCESS } from "@/lib/constant";
+import { hasAnyRole } from "@/lib/utils";
 import { useGuardedAction } from "@/pages/allocations/unsavedChanges/useUnsavedChanges";
 import { useUser } from "@/providers/user";
 import {
@@ -76,8 +78,7 @@ export function SubHeader() {
     roles: state.roles,
     hasBuField: state.hasBuField,
   }));
-  const showFilters =
-    roles.includes("Projects Manager") || roles.includes("Projects User");
+  const showFilters = hasAnyRole(roles, ROLE_ACCESS.manageAllocations);
 
   const externalFilterCount =
     (search !== "" ? 1 : 0) +
