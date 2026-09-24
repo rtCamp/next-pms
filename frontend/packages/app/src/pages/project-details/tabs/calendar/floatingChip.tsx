@@ -2,13 +2,14 @@
  * External dependencies.
  */
 import type { ComponentType, SVGProps } from "react";
-import { Tooltip } from "@rtcamp/frappe-ui-react";
+import { Lock } from "@rtcamp/frappe-ui-react/icons";
 
 /**
  * Internal dependencies.
  */
 import { mergeClassNames as cn } from "@/lib/utils";
 import { FLOATING_LABEL_FLIP_THRESHOLD } from "./constants";
+import { ItemHoverCard } from "./itemHoverCard";
 import type { ProjectTimelineItem } from "./types";
 
 type ItemPosition = { left: number; width: number };
@@ -35,7 +36,7 @@ export function FloatingChip({
   const flipLeft = spaceRight < FLOATING_LABEL_FLIP_THRESHOLD;
 
   return (
-    <Tooltip text={item.title}>
+    <ItemHoverCard item={item}>
       <div
         className={cn(
           "absolute top-1/2 -translate-y-1/2 z-1 flex items-center gap-2",
@@ -54,14 +55,16 @@ export function FloatingChip({
         </div>
         <span
           className={cn(
-            "text-sm whitespace-nowrap",
+            "flex items-center gap-1 text-sm whitespace-nowrap",
             textClassName,
-            item.isComplete && "line-through opacity-60",
           )}
         >
-          {item.title}
+          <span className={cn(item.isComplete && "line-through opacity-60")}>
+            {item.title}
+          </span>
+          {item.isInternal && <Lock className="size-3.5 shrink-0" />}
         </span>
       </div>
-    </Tooltip>
+    </ItemHoverCard>
   );
 }

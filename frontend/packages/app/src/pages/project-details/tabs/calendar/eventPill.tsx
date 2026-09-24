@@ -1,24 +1,22 @@
 /**
  * External dependencies.
  */
-import { useRef } from "react";
-import { Tooltip } from "@rtcamp/frappe-ui-react";
-import { Sparkle, Zap } from "@rtcamp/frappe-ui-react/icons";
+import { Lock, Sparkle, Zap } from "@rtcamp/frappe-ui-react/icons";
 
 /**
  * Internal dependencies.
  */
 import { mergeClassNames } from "@/lib/utils";
+import { ItemHoverCard } from "./itemHoverCard";
 import type { ProjectTimelineItem } from "./types";
 
 type EventPillProps = { item: ProjectTimelineItem };
 
 export function EventPill({ item }: EventPillProps) {
-  const titleRef = useRef<HTMLSpanElement>(null);
   const isMilestone = item.type === "Milestone";
 
   return (
-    <Tooltip text={item.title} showWhen="truncated" truncationRef={titleRef}>
+    <ItemHoverCard item={item}>
       <div
         className={mergeClassNames(
           "flex items-center gap-1 rounded p-1 text-xs w-full cursor-pointer",
@@ -35,7 +33,6 @@ export function EventPill({ item }: EventPillProps) {
           <Zap className="size-3 shrink-0" />
         )}
         <span
-          ref={titleRef}
           className={mergeClassNames(
             "min-w-0 leading-tight truncate max-md:w-0",
             item.isComplete && "line-through",
@@ -43,7 +40,10 @@ export function EventPill({ item }: EventPillProps) {
         >
           {item.title}
         </span>
+        {item.isInternal && (
+          <Lock className="size-3 shrink-0 ml-auto max-md:hidden" />
+        )}
       </div>
-    </Tooltip>
+    </ItemHoverCard>
   );
 }

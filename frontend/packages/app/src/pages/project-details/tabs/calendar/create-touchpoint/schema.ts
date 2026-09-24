@@ -10,4 +10,6 @@ export const createTouchpointSchema = z.object({
     .trim()
     .min(1, { message: "Please select a scheduled date." }),
   owner: z.string().trim().min(1, { message: "Please select an owner." }),
+  category: z.string().trim().min(1, { message: "Please select a type." }),
+  isInternal: z.boolean(),
 });
