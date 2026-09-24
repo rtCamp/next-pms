@@ -23,7 +23,7 @@ bench --site [site-name] migrate
 pre-commit install
 ```
 
-3. Open Pull Request to the `version-16-hotfix` branch. For branch names and commit messages, follow the guidelines at: https://www.conventionalcommits.org/en/v1.0.0/
+3. Open Pull Request to the `develop` branch. For branch names and commit messages, follow the guidelines at: https://www.conventionalcommits.org/en/v1.0.0/
 
 For local development, check out our dev-tool for seamlessly building Frappe apps: [frappe-manager](https://github.com/rtCamp/Frappe-Manager)
 
