@@ -10,6 +10,7 @@ def after_install():
     setup_project_threshold_reminder_template()
     create_default_project_phases()
     create_default_risk_masters()
+    create_default_timeline_item_categories()
     setup_project_custom_fields()
     setup_project_target_hours_field()
     setup_timesheet_rejection_reason_field()
@@ -354,3 +355,28 @@ def create_default_risk_masters():
                 continue
 
             frappe.get_doc({"doctype": doctype, "name": name}).insert(ignore_permissions=True)
+
+
+def create_default_timeline_item_categories():
+    import frappe
+
+    categories = (
+        {"category_name": "Contract", "applies_to": "Milestone", "position": 1},
+        {"category_name": "Delivery", "applies_to": "Milestone", "position": 2},
+        {"category_name": "Client-Requested", "applies_to": "Milestone", "position": 3},
+        {"category_name": "CSM", "applies_to": "Milestone", "position": 4},
+        {"category_name": "Invoice", "applies_to": "Milestone", "position": 5},
+        {"category_name": "Other", "applies_to": "Milestone", "position": 6},
+        {"category_name": "External Meeting", "applies_to": "Touchpoint", "position": 1},
+        {"category_name": "Internal Meeting", "applies_to": "Touchpoint", "position": 2},
+        {"category_name": "Follow-up", "applies_to": "Touchpoint", "position": 3},
+        {"category_name": "Check-in", "applies_to": "Touchpoint", "position": 4},
+        {"category_name": "Other", "applies_to": "Touchpoint", "position": 5},
+    )
+
+    for category in categories:
+        identity = {"category_name": category["category_name"], "applies_to": category["applies_to"]}
+        if frappe.db.exists("Project Timeline Item Category", identity):
+            continue
+
+        frappe.get_doc({"doctype": "Project Timeline Item Category", **category}).insert(ignore_permissions=True)
