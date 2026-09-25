@@ -11,6 +11,7 @@ export const addAllocationDefaultValues = {
   customer: "",
   recurrence: "one-time",
   includeWeekends: false,
+  includeHolidays: false,
   fromDate: getTodayDate(),
   toDate: getTodayDate(),
   hoursPerDay: 0,

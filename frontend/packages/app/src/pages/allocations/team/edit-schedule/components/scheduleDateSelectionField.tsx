@@ -15,6 +15,7 @@ interface ScheduleDateSelectionFieldProps {
   days: DayItem[];
   headerRangeLabel: string;
   recurrenceHelperText?: string;
+  statusText?: string;
   selection: string[];
   onDayClick: (date: string) => void;
   error?: string;
@@ -24,6 +25,7 @@ function ScheduleDateSelectionField({
   days,
   headerRangeLabel,
   recurrenceHelperText,
+  statusText,
   selection,
   onDayClick,
   error,
@@ -84,7 +86,7 @@ function ScheduleDateSelectionField({
               monthLabel={day.monthLabel}
               isMonthBoundary={day.isMonthBoundary}
               state={
-                day.dayOffTooltip
+                day.isLocked
                   ? "disabled"
                   : selectedDates.has(day.date)
                     ? "active"
@@ -109,6 +111,12 @@ function ScheduleDateSelectionField({
           ></div>
         )}
       </div>
+
+      {statusText ? (
+        <p className="flex items-center gap-1.5 text-sm text-ink-gray-5">
+          {statusText}
+        </p>
+      ) : null}
 
       {recurrenceHelperText && !showInlineRecurrenceHelper ? (
         <p className="text-sm text-ink-gray-4">{recurrenceHelperText}</p>

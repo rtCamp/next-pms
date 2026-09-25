@@ -21,6 +21,7 @@
   "total_allocated_hours",
   "hours_allocated_per_day",
   "include_weekends",
+  "include_holidays",
   "column_break_wppz",
   "allocation_start_date",
   "allocation_end_date",
@@ -77,6 +78,13 @@
    "fieldname": "include_weekends",
    "fieldtype": "Check",
    "label": "Include Weekends"
+  },
+  {
+   "default": "0",
+   "description": "Book this allocation on public holidays and leave days instead of reducing it.",
+   "fieldname": "include_holidays",
+   "fieldtype": "Check",
+   "label": "Include Holidays and Leaves"
   },
   {
    "fieldname": "allocation_start_date",

@@ -8,6 +8,7 @@ export type DayItem = {
   monthLabel?: string;
   isMonthBoundary: boolean;
   dayOffTooltip?: string;
+  isLocked?: boolean;
 };
 
 export type PreviewRow = {
@@ -17,27 +18,6 @@ export type PreviewRow = {
   isSelected: boolean;
   isModified: boolean;
   dayOffLabel?: string;
-};
-
-export type DayAvailability = {
-  availabilityFactor: number;
-  isHoliday: boolean;
-  holidayName?: string;
-};
-
-export type AvailabilityByDate = Record<string, DayAvailability>;
-
-export type EmployeeAvailabilityResponse = {
-  daily_working_hours: number;
-  dates: Record<
-    string,
-    {
-      availability_factor: number;
-      available_hours: number;
-      is_holiday: boolean;
-      holiday_name?: string;
-    }
-  >;
 };
 
 export type EditScheduleValueMode = "hoursPerDay" | "totalHours";
@@ -66,6 +46,7 @@ export interface EditScheduleInitialValues {
   isBillable?: boolean;
   isTentative?: boolean;
   includeWeekends?: boolean;
+  includeHolidays?: boolean;
   note?: string;
   override?: AllocationOverrideEntry[];
   recurrenceId?: string;

@@ -1,6 +1,7 @@
 /**
  * External dependencies.
  */
+import React from "react";
 import { Holiday } from "@rtcamp/frappe-ui-react/icons";
 
 /**
@@ -11,7 +12,7 @@ import type { TimeoffPortion } from "../types";
 import { GanttBar } from "./ganttBar";
 import { getTimeoffLabel } from "./utils/getTimeoffLabel";
 
-interface GanttTimeoffBarProps {
+interface GanttTimeoffBarProps extends React.HTMLAttributes<HTMLDivElement> {
   startDate: Date;
   endDate: Date;
   timeoff?: TimeoffPortion;
@@ -19,27 +20,41 @@ interface GanttTimeoffBarProps {
   label?: string;
   left: number;
   width: number;
+  showTooltip?: boolean;
 }
 
-export function GanttTimeoffBar({
-  startDate,
-  endDate,
-  timeoff,
-  label,
-  left,
-  width,
-}: GanttTimeoffBarProps) {
+export const GanttTimeoffBar = React.forwardRef<
+  HTMLDivElement,
+  GanttTimeoffBarProps
+>(function GanttTimeoffBar(
+  {
+    startDate,
+    endDate,
+    timeoff,
+    label,
+    left,
+    width,
+    showTooltip,
+    ...htmlProps
+  },
+  ref,
+) {
   const resolvedLabel = label ?? getTimeoffLabel(startDate, endDate, timeoff);
   const isHoliday = label !== undefined;
 
   return (
     <GanttBar
+      ref={ref}
       variant="timeoff"
       label={resolvedLabel}
       icon={isHoliday ? Holiday : undefined}
       showInlineLabel={width > CELL_WIDTH}
+      showTooltip={showTooltip}
       left={left}
       width={width}
+      {...htmlProps}
     />
   );
-}
+});
+
+GanttTimeoffBar.displayName = "GanttTimeoffBar";

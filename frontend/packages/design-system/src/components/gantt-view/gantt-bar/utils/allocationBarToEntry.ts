@@ -41,6 +41,7 @@ export function allocationBarToEntry(
     allocationEndDate: alloc.allocationEndDate,
     allocationHoursPerDay: alloc.allocationHoursPerDay,
     includeWeekends: alloc.includeWeekends,
+    includeHolidays: alloc.includeHolidays,
     segmentStartDate: alloc.startDate,
     segmentEndDate: alloc.endDate,
     segmentHoursPerDay: alloc.hours,

@@ -33,11 +33,13 @@ export function ProjectListCell({
       return <PhaseCell phase={toKebabCase(row[column.key])} />;
     case "burn_rate_per_week":
     case "total_budget":
+    case "lifetime_value_to_date":
       return <CurrencyCell value={row[column.key]} currency={row.currency} />;
     case "profit_margin":
       return <PercentCell value={row[column.key]} />;
     case "project_type":
     case "customer":
+    case "client_poc_name":
       return <TextCell text={row[column.key]} />;
     case "cost_burn_percent": {
       const { cost_accrued, cost_forecasted, target_cost, total_budget } =

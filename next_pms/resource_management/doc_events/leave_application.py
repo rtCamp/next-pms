@@ -40,6 +40,11 @@ def resync_allocations(doc, method=None):
 def resync_allocations_for_range(employee: str, start_date, end_date) -> None:
     """Resave every allocation overlapping the range so its leave overrides are re-derived.
 
+    A leave change outranks a manager's manual day override on the dates it touches: the
+    override was made without this information, so those dates are re-derived and it is left to
+    the manager to adjust again. The reset is scoped to the resynced range, so an override on an
+    unrelated day elsewhere in the allocation is untouched.
+
     Saved with `ignore_permissions` because the trigger is a leave approver, who is not
     expected to hold write access on Resource Allocation. A failure on one allocation is
     logged and skipped rather than raised, so a stale allocation can never block an approval.
@@ -58,7 +63,7 @@ def resync_allocations_for_range(employee: str, start_date, end_date) -> None:
         try:
             allocation = frappe.get_doc("Resource Allocation", name)
             before = leave_sync.override_signature(allocation)
-            leave_sync.sync_leave_overrides(allocation)
+            leave_sync.sync_leave_overrides(allocation, reset_manual_range=(start_date, end_date))
 
             if leave_sync.override_signature(allocation) == before:
                 continue

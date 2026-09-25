@@ -13,11 +13,13 @@ import { formatRange, getRangeHours, toDisplayHours } from "../utils";
 interface ScheduleSummaryTableProps {
   rows: PreviewRow[];
   variant?: "date" | "day";
+  includeWeekends?: boolean;
 }
 
 function ScheduleSummaryTable({
   rows,
   variant = "date",
+  includeWeekends = true,
 }: ScheduleSummaryTableProps) {
   return (
     <div className="overflow-hidden rounded border border-outline-gray-2">
@@ -70,6 +72,7 @@ function ScheduleSummaryTable({
                         row.startDate,
                         row.endDate,
                         row.hoursPerDay,
+                        includeWeekends,
                       ),
                     )} hours`}
                   </span>

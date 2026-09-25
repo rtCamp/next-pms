@@ -16,6 +16,7 @@ interface UseOverAllocationOptions {
   toDate: string;
   hoursPerDay: number;
   includeWeekends: boolean;
+  includeHolidays: boolean;
   /**
    * Number of additional weekly copies that will be created on save.
    * Pass 0 for one-time or edit.
@@ -38,6 +39,7 @@ export function useOverAllocation({
   toDate,
   hoursPerDay,
   includeWeekends,
+  includeHolidays,
   repeatWeeks,
   allocationName,
 }: UseOverAllocationOptions): OverAllocatedDay[] {
@@ -61,6 +63,7 @@ export function useOverAllocation({
       end_date: debouncedToDate,
       hours_per_day: debouncedHoursPerDay,
       include_weekends: includeWeekends,
+      include_holidays: includeHolidays,
       repeat_till_week_count: debouncedRepeatWeeks,
       ...(allocationName ? { allocation_name: allocationName } : {}),
     },
