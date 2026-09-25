@@ -38,11 +38,17 @@ export interface ProjectSummary {
 
 export type MyProjectsSummaryResponse = { message: ProjectSummary[] };
 
+export type LeaveApplicationStatus = "Open" | "Approved";
+
 export interface EmployeeOnLeave {
+  name: string;
   employee: string;
   employee_name: string;
   from_date: string;
   to_date: string;
+  status: LeaveApplicationStatus;
+  leave_type: string;
+  total_leave_days: number;
   half_day: 0 | 1;
   custom_first_halfsecond_half: string | null;
   user_image: string | null;
