@@ -118,15 +118,12 @@ def get_data(filters=None, has_bu_field=False):
             holidays_map[h.parent].append(h)
 
     # Pre-fetch exchange rates for all currencies
-    from erpnext.setup.utils import get_exchange_rate
+    from next_pms.utils.currency import require_exchange_rate
 
-    currencies = {e.currency for e in employees if e.get("currency") and e.currency != currency}
+    currencies = {e.currency for e in employees if e.get("currency") and e.get("ctc") and e.currency != currency}
     exchange_rates = {currency: 1}  # Base currency
     for curr in currencies:
-        try:
-            exchange_rates[curr] = get_exchange_rate(curr, currency) or 1
-        except Exception:
-            exchange_rates[curr] = 1
+        exchange_rates[curr] = require_exchange_rate(curr, currency)
 
     # Process employees with pre-fetched data
     for emp in employees:
