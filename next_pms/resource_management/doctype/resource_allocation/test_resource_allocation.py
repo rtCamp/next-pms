@@ -315,7 +315,7 @@ class TestResourceAllocationValidation(IntegrationTestCase):
         project_name = frappe.db.get_value("Project", project, "project_name")
         self.assertEqual(notif.title, project_name)
         self.assertEqual(notif.label, "You have AI-generated allocations that need to be reviewed.")
-        self.assertEqual(notif.url, f"/next-pms/allocations/project?project={project}")
+        self.assertEqual(notif.url, f"/next-pms/allocations/project?search={project_name}")
 
     def test_multiple_ai_allocations_use_one_grouped_notification(self):
         project = self._make_project("Multiple AI Project", self.customer)

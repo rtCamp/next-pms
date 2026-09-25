@@ -328,7 +328,11 @@ def sync_ai_allocation_notifications(project=None, new_doc=None):
 
     label = _("You have AI-generated allocations that need to be reviewed.")
 
-    url = f"/next-pms/allocations/project?project={project}" if project else "/next-pms/allocations/team"
+    url = (
+        f"/next-pms/allocations/project?{urlencode({'search': project_name})}"
+        if project
+        else "/next-pms/allocations/team"
+    )
 
     for user in active_users:
         existing = frappe.db.get_value(
