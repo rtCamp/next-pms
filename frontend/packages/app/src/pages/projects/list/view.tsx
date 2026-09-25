@@ -8,7 +8,6 @@ import type {
   SortableDroppable,
 } from "@dnd-kit/dom/sortable";
 import { DragDropProvider } from "@dnd-kit/react";
-import { mergeClassNames as cn } from "@next-pms/design-system";
 import { LoadingOverlay, Spinner } from "@next-pms/design-system/components";
 import {
   ListHeader,
@@ -29,11 +28,22 @@ import {
 } from "./columns/constants";
 import { ColumnHeader } from "./columns/header";
 import { useColumnLayout } from "./columns/useColumnLayout";
-import { getColumnCellClasses, getStickyOffsets } from "./columns/utils";
 import { useProjectList } from "./context";
+import type { ProjectListItem } from "./types";
 import { useProjectFilters } from "../components/project-filters/useProjectFilters";
 import { MONETARY_SORT_FIELDS, PROJECT_LIST_PAGE_SIZE } from "../constants";
+import type { ProjectListColumn } from "../types";
 import { useProjectViews } from "../views";
+
+const LIST_OPTIONS = {
+  options: {
+    selectable: false,
+    showTooltip: true,
+    resizeColumn: false,
+    rowHeight: 40,
+  },
+  slots: { cell: ProjectListCell },
+};
 
 function ProjectList() {
   const data = useProjectList((c) => c.state.data);
@@ -52,8 +62,8 @@ function ProjectList() {
     useColumnLayout();
 
   const pinnedCount = pinnedColumns.length;
-  const stickyOffsets = useMemo(
-    () => getStickyOffsets(columns, pinnedCount),
+  const [pinned, scrolling] = useMemo(
+    () => [columns.slice(0, pinnedCount), columns.slice(pinnedCount)],
     [columns, pinnedCount],
   );
 
@@ -71,6 +81,61 @@ function ProjectList() {
     }
   };
 
+  const renderList = (
+    listColumns: ProjectListColumn[],
+    offset: number,
+    containerClassName: string,
+  ) => (
+    <ListView
+      role="rowgroup"
+      columns={listColumns}
+      rows={data}
+      rowKey="name"
+      options={LIST_OPTIONS}
+      containerClassName={containerClassName}
+      className="py-0 overflow-y-visible"
+    >
+      <ListHeader
+        role="row"
+        className="sticky top-0 z-10 mb-0 gap-2 rounded-none border-b border-outline-gray-1 bg-surface-white p-2"
+      >
+        {listColumns.map((column, index) => (
+          <ColumnHeader
+            key={column.key}
+            column={column}
+            index={offset + index}
+            pinnedCount={pinnedCount}
+            sort={sort}
+            isSortDisabled={
+              !currency && MONETARY_SORT_FIELDS.includes(column.sortField ?? "")
+            }
+            onSort={handleHeaderClick}
+            onTogglePinned={togglePinned}
+          />
+        ))}
+      </ListHeader>
+      <ListRows role="presentation" className="h-auto overflow-y-visible">
+        {renderRows(listColumns)}
+      </ListRows>
+    </ListView>
+  );
+
+  const renderRows = (listColumns: ProjectListColumn[]) =>
+    data.map((row: ProjectListItem) => (
+      <ListRow
+        key={row.name}
+        role="row"
+        row={row}
+        separatorClassName="mx-0 border-outline-gray-1"
+      >
+        {listColumns.map((column) => (
+          <div key={column.key} role="cell" className="min-w-0">
+            <ProjectListCell row={row} column={column} />
+          </div>
+        ))}
+      </ListRow>
+    ));
+
   return (
     <LoadingOverlay active={isFilterRequest}>
       {isInitialLoad || isLoadingView || !activeView ? (
@@ -87,95 +152,38 @@ function ProjectList() {
           onDragEnd={handleDragEnd}
         >
           <div className="flex min-h-0 flex-1 flex-col px-5">
-            <ListView
-              role="table"
-              aria-label="Projects"
-              className="py-0 scrollbar-thin overflow-y-visible"
-              columns={columns}
-              rows={data}
-              rowKey="name"
-              options={{
-                options: {
-                  selectable: false,
-                  showTooltip: true,
-                  resizeColumn: false,
-                  rowHeight: 41,
-                },
-                slots: {
-                  cell: ProjectListCell,
-                },
-              }}
-            >
-              <ListHeader
-                role="row"
-                className="mb-0 rounded-none border-b border-outline-gray-1 p-2 pl-0 gap-2 sticky top-0 z-30 bg-surface-white"
+            {!isFilterRequest && data.length === 0 ? (
+              <p className="py-6 text-center text-base text-ink-gray-5">
+                No projects found.
+              </p>
+            ) : (
+              <InfiniteScroll
+                role="presentation"
+                className="@container grid min-h-0 flex-1 content-start overflow-auto scrollbar-thin"
+                isLoading={isLoading}
+                hasMore={hasMore}
+                verticalLodMore={loadMore}
+                count={PROJECT_LIST_PAGE_SIZE}
               >
-                {columns.map((column, index) => (
-                  <ColumnHeader
-                    key={column.key}
-                    column={column}
-                    index={index}
-                    pinnedCount={pinnedCount}
-                    stickyLeft={stickyOffsets.get(column.key)}
-                    sort={sort}
-                    isSortDisabled={
-                      !currency &&
-                      MONETARY_SORT_FIELDS.includes(column.sortField ?? "")
-                    }
-                    onSort={handleHeaderClick}
-                    onTogglePinned={togglePinned}
-                  />
-                ))}
-              </ListHeader>
-              <ListRows role="rowgroup" className="overflow-y-visible">
-                {!isFilterRequest && data.length === 0 ? (
-                  <div role="row">
-                    <p
-                      role="cell"
-                      className="py-6 text-center text-base text-ink-gray-5"
-                    >
-                      No projects found.
-                    </p>
-                  </div>
-                ) : (
-                  <InfiniteScroll
-                    role="presentation"
-                    isLoading={isLoading}
-                    hasMore={hasMore}
-                    verticalLodMore={loadMore}
-                    count={PROJECT_LIST_PAGE_SIZE}
-                  >
-                    {data.map((row) => (
-                      <ListRow
-                        key={row.name}
-                        role="row"
-                        row={row}
-                        isLastRow
-                        className="pl-0 border-b border-outline-gray-1"
-                      >
-                        {columns.map((column, index) => (
-                          <div
-                            key={column.key}
-                            role="cell"
-                            className={cn(
-                              "min-w-0",
-                              getColumnCellClasses({ index, pinnedCount }),
-                            )}
-                            style={
-                              index < pinnedCount
-                                ? { left: stickyOffsets.get(column.key) }
-                                : undefined
-                            }
-                          >
-                            <ProjectListCell row={row} column={column} />
-                          </div>
-                        ))}
-                      </ListRow>
-                    ))}
-                  </InfiniteScroll>
-                )}
-              </ListRows>
-            </ListView>
+                <div
+                  role="table"
+                  aria-label="Projects"
+                  className="flex w-max min-w-full items-start has-[>:last-child_[data-dnd-dragging]]:pointer-events-none"
+                >
+                  {pinned.length > 0 &&
+                    renderList(
+                      pinned,
+                      0,
+                      "left-0 z-20 @4xl:sticky w-auto flex-none overflow-visible border-r border-outline-gray-1 bg-surface-white",
+                    )}
+                  {renderList(
+                    scrolling,
+                    pinnedCount,
+                    "w-auto min-w-0 flex-1 overflow-visible",
+                  )}
+                </div>
+              </InfiniteScroll>
+            )}
           </div>
         </DragDropProvider>
       )}

@@ -9,7 +9,11 @@ import { move } from "@dnd-kit/helpers";
  * Internal dependencies.
  */
 import { parseColumnKeys } from "@/lib/utils";
-import { COLUMN_PARAM_KEYS, PROJECT_LIST_COLUMNS } from "./constants";
+import {
+  COLUMN_PARAM_KEYS,
+  MAX_PINNED_COLUMNS,
+  PROJECT_LIST_COLUMNS,
+} from "./constants";
 import { useProjectViews } from "../../views";
 
 const DEFAULT_ORDER = PROJECT_LIST_COLUMNS.filter(
@@ -39,6 +43,24 @@ function isDefaultOrder(order: string[]) {
     order.length === DEFAULT_ORDER.length &&
     order.every((key, index) => key === DEFAULT_ORDER[index])
   );
+}
+
+/**
+ * Maps a layout onto its search params, leaving a default layout unsaid.
+ */
+function toLayoutParams(next: { order?: string[]; pinned?: string[] }) {
+  const params: Record<string, string | null> = {};
+  if (next.order) {
+    params[COLUMN_PARAM_KEYS.columns] = isDefaultOrder(next.order)
+      ? null
+      : next.order.join(",");
+  }
+  if (next.pinned) {
+    params[COLUMN_PARAM_KEYS.pinnedColumns] = next.pinned.length
+      ? next.pinned.join(",")
+      : null;
+  }
+  return params;
 }
 
 export function useColumnLayout() {
@@ -81,22 +103,11 @@ export function useColumnLayout() {
     (next: { order?: string[]; pinned?: string[] }) => {
       setSearchParams(
         (params) => {
-          // A default layout is left unsaid rather than spelled out.
-          if (next.order) {
-            if (isDefaultOrder(next.order)) {
-              params.delete(COLUMN_PARAM_KEYS.columns);
+          for (const [key, value] of Object.entries(toLayoutParams(next))) {
+            if (value) {
+              params.set(key, value);
             } else {
-              params.set(COLUMN_PARAM_KEYS.columns, next.order.join(","));
-            }
-          }
-          if (next.pinned) {
-            if (next.pinned.length === 0) {
-              params.delete(COLUMN_PARAM_KEYS.pinnedColumns);
-            } else {
-              params.set(
-                COLUMN_PARAM_KEYS.pinnedColumns,
-                next.pinned.join(","),
-              );
+              params.delete(key);
             }
           }
           return params;
@@ -137,12 +148,15 @@ export function useColumnLayout() {
   );
 
   const togglePinned = useCallback(
-    (key: string) =>
-      writeLayout({
-        pinned: pinnedColumns.includes(key)
-          ? pinnedColumns.filter((pinnedKey) => pinnedKey !== key)
-          : [...pinnedColumns, key],
-      }),
+    (key: string) => {
+      if (pinnedColumns.includes(key)) {
+        writeLayout({
+          pinned: pinnedColumns.filter((pinned) => pinned !== key),
+        });
+      } else if (pinnedColumns.length < MAX_PINNED_COLUMNS) {
+        writeLayout({ pinned: [...pinnedColumns, key] });
+      }
+    },
     [pinnedColumns, writeLayout],
   );
 
@@ -176,6 +190,11 @@ export function useColumnLayout() {
   const reset = useCallback(
     () => writeLayout({ order: DEFAULT_ORDER, pinned: [] }),
     [writeLayout],
+  );
+
+  const savedParams = useMemo(
+    () => toLayoutParams({ order: savedOrder, pinned: savedPinned }),
+    [savedOrder, savedPinned],
   );
 
   /**
@@ -213,12 +232,13 @@ export function useColumnLayout() {
       pinnedColumns.join(",") !== savedPinned.join(","),
     /** The layout as it is saved onto the view. */
     layout: { columns: baseOrder, pinnedColumns: pinnedColumns },
+    /** The saved layout as search params, to restore it in someone else's update. */
+    savedParams,
     reorderScrolling,
     reorderPinned,
     setColumns,
     togglePinned,
     handleDragEnd,
-    revert,
     reset,
   };
 }

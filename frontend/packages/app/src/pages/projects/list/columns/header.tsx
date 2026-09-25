@@ -16,15 +16,14 @@ import {
 /**
  * Internal dependencies.
  */
-import { IS_COLUMN_LAYOUT_ENABLED } from "./constants";
-import { getColumnCellClasses, getSortableInput } from "./utils";
+import { MAX_PINNED_COLUMNS } from "./constants";
+import { getSortableInput } from "./utils";
 import type { ProjectListColumn } from "../../types";
 
 type ColumnHeaderProps = {
   column: ProjectListColumn;
   index: number;
   pinnedCount: number;
-  stickyLeft?: number;
   sort: SortState;
   isSortDisabled: boolean;
   onSort: (sortField: string) => void;
@@ -35,18 +34,17 @@ export function ColumnHeader({
   column,
   index,
   pinnedCount,
-  stickyLeft,
   sort,
   isSortDisabled,
   onSort,
   onTogglePinned,
 }: ColumnHeaderProps) {
   const isPinned = index < pinnedCount;
+  const isPinLimit = !isPinned && pinnedCount >= MAX_PINNED_COLUMNS;
   const isSorted = sort.field === column.sortField;
-  const { ref, isDragging } = useSortable({
-    ...getSortableInput(column.key, index, pinnedCount),
-    disabled: !IS_COLUMN_LAYOUT_ENABLED,
-  });
+  const { ref, isDragging } = useSortable(
+    getSortableInput(column.key, index, pinnedCount),
+  );
 
   const label = (
     <>
@@ -90,16 +88,9 @@ export function ColumnHeader({
           : undefined
       }
       className={cn(
-        "group/header flex min-w-0 items-center gap-1 text-sm text-ink-gray-5",
-        getColumnCellClasses({
-          index,
-          pinnedCount,
-          isHeader: true,
-          hideSeam: isDragging,
-        }),
+        "flex min-w-0 items-center gap-1 text-sm text-ink-gray-5",
         isDragging && "opacity-50",
       )}
-      style={isPinned ? { left: stickyLeft } : undefined}
     >
       {isSortDisabled ? (
         <Tooltip text="Select a currency to enable this sort">
@@ -108,36 +99,49 @@ export function ColumnHeader({
       ) : (
         headerControl
       )}
-      {IS_COLUMN_LAYOUT_ENABLED && (
-        <Dropdown
-          side="bottom"
-          options={[
-            {
-              group: "",
-              key: "pin",
-              items: [
-                {
-                  label: isPinned ? "Unpin column" : "Pin column",
-                  icon: isPinned ? (
-                    <Unpin className="size-4 mr-2" />
-                  ) : (
-                    <Pin className="size-4 mr-2" />
-                  ),
-                  onClick: () => onTogglePinned(column.key),
-                },
-              ],
-            },
-          ]}
+      <Dropdown
+        side="bottom"
+        renderMenuItem={(menuProps) =>
+          isPinLimit ? (
+            <Tooltip text={`You can pin up to ${MAX_PINNED_COLUMNS} columns`}>
+              <div
+                {...menuProps}
+                className={cn(
+                  menuProps.className,
+                  "cursor-not-allowed opacity-50",
+                )}
+              />
+            </Tooltip>
+          ) : (
+            <div {...menuProps} />
+          )
+        }
+        options={[
+          {
+            group: "",
+            key: "pin",
+            items: [
+              {
+                label: isPinned ? "Unpin column" : "Pin column",
+                icon: isPinned ? (
+                  <Unpin className="size-4 mr-2" />
+                ) : (
+                  <Pin className="size-4 mr-2" />
+                ),
+                onClick: () => onTogglePinned(column.key),
+              },
+            ],
+          },
+        ]}
+      >
+        <button
+          type="button"
+          aria-label={`${column.label} column options`}
+          className="shrink-0 rounded-sm p-0.5"
         >
-          <button
-            type="button"
-            aria-label={`${column.label} column options`}
-            className="shrink-0 rounded-sm p-0.5 opacity-0 focus-visible:opacity-100 group-hover/header:opacity-100"
-          >
-            <SmallDown className="size-3.5 text-ink-gray-6" />
-          </button>
-        </Dropdown>
-      )}
+          <SmallDown className="size-3.5 text-ink-gray-6" />
+        </button>
+      </Dropdown>
     </div>
   );
 }
