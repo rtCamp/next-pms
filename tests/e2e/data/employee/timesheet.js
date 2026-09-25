@@ -49,7 +49,7 @@ module.exports = {
     },
   },
   TC3: {
-    notification: "New Timesheet created successfully.",
+    notification: "Time Entry submitted successfully",
     cell: {
       rowName: "Task for TC03",
       col: "Fri",
@@ -290,6 +290,19 @@ module.exports = {
       business_unit: "NB",
       estimated_cost: 100000,
     },
+    // The task details dialog reads the project, so the employee needs access.
+    payloadShareProject: [
+      {
+        doctype: "Project",
+        name: "filled-automatically-from-createProjects",
+        user: process.env.EMP_EMAIL,
+        readValue: 1,
+        writeValue: 0,
+        submitValue: 0,
+        shareValue: 0,
+        notifyValue: 0,
+      },
+    ],
     payloadDeleteProject: {
       projectId: "filled-automatically-from-createProjects",
     },
@@ -343,7 +356,7 @@ module.exports = {
     payloadCreateProject: {
       project_name: "TC14 Project",
       company: "rtCamp Solutions Pvt. Ltd.",
-      customer: "Google",
+      customer: "Acme Corporation",
       billing_type: "Fixed Cost",
       currency: "INR",
       project_type: "Fixed Cost",
@@ -390,7 +403,7 @@ module.exports = {
     payloadCreateProject: {
       project_name: "TC15 Project",
       company: "rtCamp Solutions Pvt. Ltd.",
-      customer: "Google",
+      customer: "Acme Corporation",
       billing_type: "Fixed Cost",
       currency: "INR",
       project_type: "Fixed Cost",
@@ -473,13 +486,19 @@ module.exports = {
     payloadCreateProject: {
       project_name: "TC82 Project",
       company: "rtCamp Solutions Pvt. Ltd.",
-      customer: "Google",
+      customer: "Acme Corporation",
       custom_billing_type: "Fixed Cost",
+      // Ignored by the server: the *customer* decides a project's currency, and
+      // Google's projects are always created as USD. createProjectForTestCases
+      // records the currency off the created doc (res.data.custom_currency), so
+      // payloadCalculateBillingRate ends up with USD no matter what is asked
+      // for here. Use an INR customer (QA-INR, as TC83/TC85 do) if an INR
+      // project is actually wanted.
       custom_currency: "INR",
       project_type: "Fixed Cost",
       business_unit: "Jupitor",
       estimated_cost: 360000,
-      custom_default_hourly_billing_rate: 0,
+      custom_default_hourly_billing_rate: 100,
       custom_project_budget_hours: [],
     },
     payloadDeleteProject: {
@@ -570,7 +589,7 @@ module.exports = {
     payloadCreateProject: {
       project_name: "TC84 Project",
       company: "rtCamp Solutions Pvt. Ltd.",
-      customer: "Google",
+      customer: "Acme Corporation",
       billing_type: "Time and Material",
       project_type: "TnM",
       business_unit: "Jupitor",
@@ -861,7 +880,7 @@ module.exports = {
     payloadCreateProject: {
       project_name: "TC90 Project",
       company: "rtCamp Solutions Pvt. Ltd.",
-      customer: "Google",
+      customer: "Acme Corporation",
       custom_billing_type: "Fixed Cost",
       custom_currency: "INR",
       project_type: "Fixed Cost",
@@ -908,7 +927,7 @@ module.exports = {
     payloadCreateProject: {
       project_name: "TC96 Project",
       company: "rtCamp Solutions Pvt. Ltd.",
-      customer: "Google",
+      customer: "Acme Corporation",
       billing_type: "Retainer",
       currency: "INR",
       project_type: "Retainer",
@@ -955,7 +974,7 @@ module.exports = {
     payloadCreateProject: {
       project_name: "TC97 Project",
       company: "rtCamp Solutions Pvt. Ltd.",
-      customer: "Google",
+      customer: "Acme Corporation",
       billing_type: "Time and Material",
       currency: "INR",
       project_type: "TnM",
@@ -1002,7 +1021,7 @@ module.exports = {
     payloadCreateProject: {
       project_name: "TC98 Project",
       company: "rtCamp Solutions Pvt. Ltd.",
-      customer: "Google",
+      customer: "Acme Corporation",
       billing_type: "Non-Billable",
       currency: "INR",
       project_type: "Non Billable",
@@ -1049,7 +1068,7 @@ module.exports = {
     payloadCreateProject: {
       project_name: "TC99 Project",
       company: "rtCamp Solutions Pvt. Ltd.",
-      customer: "Google",
+      customer: "Acme Corporation",
       billing_type: "Fixed Cost",
       currency: "INR",
       project_type: "Fixed Cost",
@@ -1099,7 +1118,7 @@ module.exports = {
     payloadCreateProject: {
       project_name: "TC100 Project",
       company: "rtCamp Solutions Pvt. Ltd.",
-      customer: "Google",
+      customer: "Acme Corporation",
       billing_type: "Retainer",
       currency: "INR",
       project_type: "Retainer",
@@ -1149,7 +1168,7 @@ module.exports = {
     payloadCreateProject: {
       project_name: "TC101 Project",
       company: "rtCamp Solutions Pvt. Ltd.",
-      customer: "Google",
+      customer: "Acme Corporation",
       billing_type: "Time and Material",
       currency: "INR",
       project_type: "TnM",

@@ -1,11 +1,18 @@
 import path from "path";
 import { readJSONFile, writeDataToFile } from "../utils/fileUtils";
-import { getFormattedDate, getDateForWeekday, getShortFormattedDate } from "../utils/dateUtils";
+import {
+  getFormattedDate,
+  getDateForWeekday,
+  getShortFormattedDate,
+} from "../utils/dateUtils";
 import { getRandomValue } from "../utils/stringUtils";
 //import { deleteEmployee } from "../utils/api/employeeRequests";
 import { submitTimesheetForApproval } from "./timesheetHelper";
 import { actOnTimesheet } from "../utils/api/timesheetRequests";
-import { createUserGroup, deleteUserGroup } from "../utils/api/userGroupRequests";
+import {
+  createUserGroup,
+  deleteUserGroup,
+} from "../utils/api/userGroupRequests";
 // ------------------------------------------------------------------------------------------
 
 /**
@@ -16,7 +23,7 @@ import { createUserGroup, deleteUserGroup } from "../utils/api/userGroupRequests
 export const randomApprovalStatus = async (
   testCaseIDs,
   jsonDir,
-  approvalOptions = ["Approval Pending", "Partially Rejected"]
+  approvalOptions = ["Approval Pending", "Partially Rejected"],
 ) => {
   if (!Array.isArray(testCaseIDs) || testCaseIDs.length === 0) return;
 
@@ -39,7 +46,9 @@ export const randomApprovalStatus = async (
 
     // Select a random status
     const randomStatus = getRandomValue(approvalOptions);
-    console.warn(`Selected RANDOM Approval Status for ${tcId}: ${randomStatus}`);
+    console.warn(
+      `Selected RANDOM Approval Status for ${tcId}: ${randomStatus}`,
+    );
 
     // Assign status
     entry.payloadApprovalStatus.approvalStatus = randomStatus;
@@ -48,7 +57,7 @@ export const randomApprovalStatus = async (
     await submitTimesheetForApproval(
       entry.payloadApprovalStatus.empId,
       entry.payloadApprovalStatus.managerID,
-      entry.payloadApprovalStatus.employeeAPI
+      entry.payloadApprovalStatus.employeeAPI,
     );
 
     // Additional actions based on status
@@ -76,7 +85,6 @@ export const randomApprovalStatus = async (
 
     // Persist mutated stub, wrapped under its own TC key
     await writeDataToFile(stubPath, { [tcId]: entry });
-    //console.log(`✅ Updated approval status for ${tcId} in ${stubPath}`);
   }
 };
 // ------------------------------------------------------------------------------------------
@@ -105,13 +113,14 @@ export const createUserGroupForEmployee = async (testCaseIDs, jsonDir) => {
     // build group name based on today
     const shortDate = getShortFormattedDate(new Date()); // e.g. "Jun 11"
     const [month, day] = shortDate.split(" ");
-    let randomString = [...Array(5)].map(() => String.fromCharCode(97 + Math.floor(Math.random() * 26))).join("");
+    let randomString = [...Array(5)]
+      .map(() => String.fromCharCode(97 + Math.floor(Math.random() * 26)))
+      .join("");
 
     const name = `UserGroup-${day}${month}-${randomString}`;
 
     try {
       await createUserGroup({ user: emp3, name });
-      //console.log(`✅ Created group '${name}' for '${emp3}' on ${tcId}`);
 
       // update stub payloads
       entry.payloadCreateUserGroup.user_group_members[0].user = emp3;
@@ -120,7 +129,6 @@ export const createUserGroupForEmployee = async (testCaseIDs, jsonDir) => {
 
       // write back updated stub
       await writeDataToFile(stubPath, { [tcId]: entry });
-      //console.log(`✏️  Updated user-group stub for ${tcId} in ${stubPath}`);
     } catch (err) {
       console.error(`Failed to create user group for ${tcId}: ${err.message}`);
     }
@@ -159,11 +167,16 @@ export const deleteUserGroupForEmployee = async (testCaseIDs, jsonDir) => {
     }
 
     try {
-      console.warn(`Attempting to delete user group '${groupName}' for ${tcId}`);
-      await deleteUserGroup(groupName);
-      console.log(`✅ Deleted user group '${groupName}' for ${tcId}`);
+      console.warn(
+        `Attempting to delete user group '${groupName}' for ${tcId}`,
+      );
+      const { deleted } = await deleteUserGroup(groupName);
+      if (deleted)
+        console.log(`🗑  Deleted user group '${groupName}' for ${tcId}`);
     } catch (e) {
-      console.warn(`❌ Failed to delete group '${groupName}' for ${tcId}: ${e.message}`);
+      console.warn(
+        `❌ Failed to delete group '${groupName}' for ${tcId}: ${e.message}`,
+      );
     }
   }
 };

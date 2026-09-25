@@ -1,6 +1,10 @@
 import path from "path";
 import fs from "fs";
-import { getWeekdayName, getFormattedDate, getDateForWeekday } from "../utils/dateUtils";
+import {
+  getWeekdayName,
+  getFormattedDate,
+  getDateForWeekday,
+} from "../utils/dateUtils";
 import {
   createTimesheet,
   getTimesheetDetails,
@@ -13,14 +17,33 @@ import managerTeamData from "../data/manager/team";
 import managerTaskData from "../data/manager/task";
 import managerProjectData from "../data/manager/project";
 import { readJSONFile, writeDataToFile } from "../utils/fileUtils";
-import { createProject, deleteAllocation, deleteProject, getProjectDetails } from "../utils/api/projectRequests";
-import { createTask, deleteTask, likeTask, updateTask } from "../utils/api/taskRequests";
+import {
+  createProject,
+  createView,
+  deleteAllocation,
+  deleteProject,
+  getProjectDetails,
+  getViewsByLabel,
+} from "../utils/api/projectRequests";
+import {
+  createTask,
+  deleteTask,
+  likeTask,
+  updateTask,
+} from "../utils/api/taskRequests";
 import { getExchangeRate } from "../utils/api/erpNextRequests";
 import { getEmployeeDetails } from "../utils/api/employeeRequests";
 import { filterApi, shareProjectWithUser } from "../utils/api/frappeRequests";
 import { deleteLeave } from "../utils/api/leaveRequests";
 import { getWeekRange } from "../utils/dateUtils";
 import { deleteEmployeeByName } from "./employeeHelper";
+import {
+  getDocList,
+  cancelDocument,
+  createDocument,
+  deleteDocument,
+  deleteWithLockRetry,
+} from "../utils/api/apiClient";
 
 // Remove all HTML tags (repeatedly) from a string
 function stripHtmlTags(input) {
@@ -38,7 +61,10 @@ const emp2ID = process.env.EMP2_ID;
 const emp3ID = process.env.EMP3_ID;
 
 // Define file paths for shared JSON data files
-const TASK_TRACKER_PATH = path.resolve(__dirname, "../data/manager/tasks-to-delete.json");
+const TASK_TRACKER_PATH = path.resolve(
+  __dirname,
+  "../data/manager/tasks-to-delete.json",
+);
 
 // ------------------------------------------------------------------------------------------
 
@@ -69,17 +95,26 @@ export async function updateTimeEntries(testCaseIDs = [], jsonDir) {
       let employeeID;
       if (["TC2", "TC3"].includes(testCaseID)) {
         employeeID = emp2ID;
-      } else if (["TC5", "TC6", "TC7", "TC74", "TC92", "TC60"].includes(testCaseID)) {
+      } else if (
+        ["TC5", "TC6", "TC7", "TC74", "TC92", "TC60"].includes(testCaseID)
+      ) {
         employeeID = emp3ID;
       } else {
         employeeID = empID;
       }
 
       const formattedDate = getFormattedDate(getDateForWeekday(entry.cell.col));
-      if (entry.payloadCreateTimesheet) {
-        entry.payloadCreateTimesheet.date = formattedDate;
-        entry.payloadCreateTimesheet.employee = employeeID;
-      }
+      // A test may seed more than one entry (TC93 needs one per employee, so the
+      // project filter - which matches logged time, not project shares - returns
+      // both). An explicit `employee` in the payload wins, so a single test can
+      // book time for different people; otherwise it falls back to the per-TC
+      // employee resolved above.
+      Object.keys(entry)
+        .filter((k) => k.startsWith("payloadCreateTimesheet"))
+        .forEach((k) => {
+          entry[k].date = formattedDate;
+          entry[k].employee = entry[k].employee || employeeID;
+        });
       Object.keys(entry)
         .filter((k) => k.startsWith("payloadFilterTimeEntry"))
         .forEach((k) => {
@@ -150,13 +185,10 @@ export async function updateTimeEntries(testCaseIDs = [], jsonDir) {
 export async function createTimeEntries(testCaseIDs = [], jsonDir) {
   if (!Array.isArray(testCaseIDs) || testCaseIDs.length === 0) return;
 
-  // 1) Extract the single test‐case ID
   const [tcId] = testCaseIDs;
 
-  // 2) Build path to its JSON stub
   const filePath = path.join(jsonDir, `${tcId}.json`);
 
-  // 3) Read & parse the stub
   const testCaseData = await readJSONFile(filePath);
   ////console.log("JSON FILE PRESENT AT CREATE TIME ENTRIES IS:   \n", JSON.stringify(testCaseData, null, 2));
 
@@ -166,16 +198,23 @@ export async function createTimeEntries(testCaseIDs = [], jsonDir) {
     return;
   }
 
-  // 4) Grab the payload
-  const payload = entry.payloadCreateTimesheet;
-  if (!payload) {
+  // A test can seed several timesheet payloads (see TC93).
+  const keys = Object.keys(entry).filter((k) =>
+    k.startsWith("payloadCreateTimesheet"),
+  );
+  if (keys.length === 0) {
     console.warn(`⚠️ No payloadCreateTimesheet found for TC ${tcId}`);
     return;
   }
 
-  // 5) Create the timesheet
-  await createTimesheet(payload);
-  //console.log(`✅ Timesheet created for TC ${tcId}:`);
+  for (const key of keys) {
+    const payload = entry[key];
+    if (!payload) continue;
+    await createTimesheet(payload);
+    console.log(
+      `✅ Timesheet created for ${tcId} -> ${key} (${payload.employee} on ${payload.date})`,
+    );
+  }
 }
 // ------------------------------------------------------------------------------------------
 
@@ -225,13 +264,13 @@ export const deleteTimeEntries = async (testCaseIDs = [], jsonDir) => {
     // derive parent & name identifiers
     const { parent, name } = await filterTimesheetEntry(entry);
 
-    //console.log(`Deleting timesheet for TC ${tcId}: parent=${parent}, name=${name}`);
-
     await deleteTimesheet({ parent, name }, actor);
 
     // any special-case logging you still want
     if (entry.project_name === "TC02 Project") {
-      console.warn(`RESPONSE OF DELETE TIMESHEET FOR TC02: ${entry.project_name}`);
+      console.warn(
+        `RESPONSE OF DELETE TIMESHEET FOR TC02: ${entry.project_name}`,
+      );
     }
   }
 };
@@ -243,15 +282,18 @@ export const deleteTimeEntries = async (testCaseIDs = [], jsonDir) => {
  * Optional params: start_date, max_week.
  */
 export const filterTimesheetEntry = async (opts) => {
-  const { subject, description, project_name, from_time, employee, max_week } = opts;
+  const { subject, description, project_name, from_time, employee, max_week } =
+    opts;
 
   // fetch & unwrap…
-  const res = await getTimesheetDetails({ employee, start_date: from_time, max_week });
+  const res = await getTimesheetDetails({
+    employee,
+    start_date: from_time,
+    max_week,
+  });
   const json = res && typeof res.json === "function" ? await res.json() : res;
   const data = json.message.data;
-  //console.dir(json.message, { depth: null, colors: true });
   ////console.log("\nGAP BETWEEN DATA\n");
-  //console.dir(data, { depth: null, colors: true });
 
   // strip HTML from your input `description`
   const searchText = stripHtmlTags(description || "");
@@ -272,7 +314,6 @@ export const filterTimesheetEntry = async (opts) => {
       });
 
       if (match) {
-        //console.warn("✅ MATCH FOUND FOR FILTER TIMESHEET ENTRY   :", match);
         return match;
       }
     }
@@ -304,7 +345,9 @@ export const createProjectForTestCases = async (testCaseIDs, jsonDir) => {
   }
 
   // 1. Find all keys starting with 'payloadCreateProject'
-  const createProjectKeys = Object.keys(entry).filter((key) => PROJECT_KEY_REGEX.test(key));
+  const createProjectKeys = Object.keys(entry).filter((key) =>
+    PROJECT_KEY_REGEX.test(key),
+  );
   if (createProjectKeys.length === 0) {
     console.warn(`⚠️ No payloadCreateProject key for ${tcId}`);
     return;
@@ -324,7 +367,9 @@ export const createProjectForTestCases = async (testCaseIDs, jsonDir) => {
     // Create project
     const res = await createProject(projectPayload);
     if (!res?.data?.name) {
-      console.error(`Failed to create project for ${tcId} (${projectKey}) as there is no data.name`);
+      console.error(
+        `Failed to create project for ${tcId} (${projectKey}) as there is no data.name`,
+      );
       continue;
     }
     const projectId = res.data.name;
@@ -334,7 +379,10 @@ export const createProjectForTestCases = async (testCaseIDs, jsonDir) => {
 
     // Share project, if needed (with the same pattern logic)
     // e.g., payloadShareProject1, payloadShareProjectABC, etc.
-    const shareKey = projectKey.replace("payloadCreateProject", "payloadShareProject");
+    const shareKey = projectKey.replace(
+      "payloadCreateProject",
+      "payloadShareProject",
+    );
     if (Array.isArray(entry[shareKey])) {
       for (const sharePayload of entry[shareKey]) {
         await shareProjectWithUser({ ...sharePayload, name: projectId });
@@ -369,7 +417,9 @@ export const createProjectForTestCases = async (testCaseIDs, jsonDir) => {
       });
     }
 
-    console.log(`✅ CREATE PROJECT SUCCESS for ${tcId} -> ${projectKey} (projectId=${projectId})`);
+    console.log(
+      `✅ CREATE PROJECT SUCCESS for ${tcId} -> ${projectKey} (projectId=${projectId})`,
+    );
   }
 
   // Write back updated stub
@@ -402,7 +452,9 @@ export const deleteProjects = async (testCaseIDs = [], jsonDir) => {
   }
 
   // Find all payloadDeleteProject keys (e.g., payloadDeleteProject, payloadDeleteProject2, ...)
-  const projectDeleteKeys = Object.keys(entry).filter((key) => key.startsWith("payloadDeleteProject"));
+  const projectDeleteKeys = Object.keys(entry).filter((key) =>
+    key.startsWith("payloadDeleteProject"),
+  );
   if (projectDeleteKeys.length === 0) {
     console.warn(`⚠️ No payloadDeleteProject key(s) found for TC ${tcId}`);
     return;
@@ -414,8 +466,9 @@ export const deleteProjects = async (testCaseIDs = [], jsonDir) => {
       console.warn(`⚠️ No ${deleteKey}.projectId found for TC ${tcId}`);
       continue;
     }
-    await deleteProject(projId);
-    //console.log(`🗑️  Deleted project ${projId} for TC ${tcId} (${deleteKey})`);
+    const { deleted, reason } = await deleteProject(projId);
+    if (!deleted)
+      console.warn(`⚠️ [${tcId}] project ${projId} survived: ${reason}`);
   }
 };
 
@@ -472,10 +525,17 @@ export const createTaskForTestCases = async (testCaseIDs, jsonDir) => {
     }
   }
 
-  // TIMESHEET WIRING
-  if (entry.payloadCreateTimesheet) {
-    entry.payloadCreateTimesheet.task = taskID;
-  }
+  // TIMESHEET WIRING - every entry that has not pinned its own task.
+  Object.keys(entry)
+    .filter((k) => k.startsWith("payloadCreateTimesheet"))
+    .forEach((k) => {
+      if (
+        !entry[k].task ||
+        String(entry[k].task).startsWith("filled-automatically")
+      ) {
+        entry[k].task = taskID;
+      }
+    });
 
   // persist the mutated stub, wrapped under the TC key
   await writeDataToFile(stubPath, { [tcId]: entry });
@@ -502,22 +562,29 @@ export const deleteByTaskName = async () => {
     }
 
     for (const taskName of tasksToBeDeleted) {
-      console.warn("Checking for task:", taskName);
-
-      const filterResponse = await filterApi("Task", [["Task", "subject", "=", taskName]]);
-      console.warn("Response for getting TASK BY NAME IN DELETION OF TASK IS:", filterResponse);
-
-      if (filterResponse.message?.values?.length) {
-        const taskID = filterResponse.message.values[0];
-        //console.log("Task found and ID to delete:", taskID);
-        await deleteTask(taskID);
-      } else {
-        console.log(`Task "${taskName}" not found in system to delete. Skipping...`);
+      // Every match, not just the first: a failed cleanup leaves another row
+      // with the same subject, and `values[0]` only ever reached one of them.
+      const rows = await getDocList("Task", [["subject", "=", taskName]], {
+        fields: ["name"],
+      });
+      if (rows.length === 0) {
+        console.log(
+          `Task "${taskName}" not found in system to delete. Skipping...`,
+        );
+        continue;
+      }
+      for (const row of rows) {
+        const { deleted } = await deleteWithLockRetry(
+          () => deleteDocument("Task", row.name),
+          {
+            label: `Task ${row.name}`,
+          },
+        );
+        if (deleted) console.log(`🗑  Deleted task ${row.name} ("${taskName}")`);
       }
     }
 
     // Optionally clear the file after deletion
-    // await fs.writeFile(TASK_TRACKER_PATH, JSON.stringify([], null, 2), "utf-8");
     // //console.log("Deleted all listed tasks and cleared tracking file.");
   } catch (error) {
     console.error("Error while deleting tasks by name:", error.message);
@@ -549,15 +616,15 @@ export const deleteTasks = async (testCaseIDs, jsonDir) => {
     }
 
     try {
-      if (adminCases.has(tcId)) {
-        await deleteTask(taskID, "admin");
-        //console.log(`🗑️  [${tcId}] deleted task ${taskID} as admin`);
-      } else {
-        await deleteTask(taskID);
-        //console.log(`🗑️  [${tcId}] deleted task ${taskID}`);
-      }
+      const { deleted, reason } = adminCases.has(tcId)
+        ? await deleteTask(taskID, "admin")
+        : await deleteTask(taskID);
+      if (!deleted)
+        console.warn(`⚠️ [${tcId}] task ${taskID} survived: ${reason}`);
     } catch (err) {
-      console.error(`❌ [${tcId}] Failed to delete task ${taskID}: ${err.message}`);
+      console.error(
+        `❌ [${tcId}] Failed to delete task ${taskID}: ${err.message}`,
+      );
     }
   }
 };
@@ -570,52 +637,68 @@ export const deleteTasks = async (testCaseIDs, jsonDir) => {
 export const calculateHourlyBilling = async (testCaseIDs = [], jsonDir) => {
   if (!Array.isArray(testCaseIDs) || testCaseIDs.length === 0) return;
 
-  // 1) Fetch employee info once
   const empRes = await getEmployeeDetails(empID, "admin");
   const employee_CTC = empRes.data.ctc;
-  //console.log("EMPLOYEE SALARY: ", employee_CTC);
   const employee_currency = empRes.data.salary_currency;
-  //console.log("EMPLOYEE CURRENCY: ", employee_currency);
 
-  // 2) Loop through each TC
   for (const tcId of testCaseIDs) {
     const stubPath = path.join(jsonDir, `${tcId}.json`);
 
-    // 3) Read the wrapped stub { "TCn": { … } }
     const fullStub = await readJSONFile(stubPath);
     const entry = fullStub[tcId];
     if (!entry) {
       console.warn(`⚠️ No data found under key "${tcId}" in ${stubPath}`);
       continue;
     }
-    // 4) Only process if there's a billing payload
     const ratePayload = entry.payloadCalculateBillingRate;
     if (!ratePayload) {
       continue; // nothing to do for this TC
     }
 
-    // 5) Determine hourly rate, converting currency if needed
     let hourly_billing_rate;
     if (employee_currency !== ratePayload.custom_currency_for_project) {
-      const convertRes = await getExchangeRate(employee_currency, ratePayload.custom_currency_for_project);
+      const convertRes = await getExchangeRate(
+        employee_currency,
+        ratePayload.custom_currency_for_project,
+      );
 
       const convertedCTC = convertRes.message * employee_CTC;
-      //console.log("CONVERTED EMPLOYEE CTC ", convertedCTC);
       hourly_billing_rate = convertedCTC / 12 / 160;
-      //console.log("HOURLY BILLING RATE: ", hourly_billing_rate);
     } else {
       hourly_billing_rate = employee_CTC / 12 / 160;
     }
 
-    // 6) Fetch project financials
-    const projRes = await getProjectDetails(ratePayload.project);
+    // 6) Fetch project financials.
+    //
+    // The project's totals are rolled up from the timesheet *after* the entry is
+    // saved, and not before this call would otherwise read them - reading
+    // straight away returns 0 and those zeros get written into the stub, which
+    // is what makes TC82-TC89 fail with "expected <rate>, received 0". Verified
+    // directly: the Timesheet row carries the right costing_rate/billing_rate
+    // immediately, while the Project still reads 0 and is correct a moment
+    // later. Poll until it lands.
+    let projRes = await getProjectDetails(ratePayload.project);
+    for (
+      let attempt = 0;
+      attempt < 8 && !projRes?.data?.total_costing_amount;
+      attempt++
+    ) {
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+      projRes = await getProjectDetails(ratePayload.project);
+    }
+
+    if (!projRes?.data?.total_costing_amount) {
+      console.warn(
+        `⚠️ ${tcId}: project ${ratePayload.project} still reports no costing after waiting - ` +
+          `billing assertions for this test will compare against 0.`,
+      );
+    }
+
     ratePayload.total_billable_amount = projRes.data.total_billable_amount;
     ratePayload.total_costing_amount = projRes.data.total_costing_amount;
     ratePayload.hourly_billing_rate = hourly_billing_rate;
 
-    // 7) Write it back wrapped under the TC key
     await writeDataToFile(stubPath, { [tcId]: entry });
-    //console.log(`✅ Updated billing for ${tcId} in ${stubPath}`);
   }
 };
 
@@ -625,13 +708,22 @@ export const calculateHourlyBilling = async (testCaseIDs = [], jsonDir) => {
  */
 export const cleanUpProjects = async (data) => {
   const deletedData = [];
+  // Every delete below is wrapped in try/catch so one failure cannot abort the
+  // sweep - which also means failures scroll past unnoticed in a long run. Tally
+  // them and print a summary at the end.
+  const failures = [];
+  // Counted so a teardown that reached nothing cannot report success - an
+  // unreachable site and a clean slate both resolve zero projects.
+  let looked = 0;
+  let responded = 0;
+  let found = 0;
 
   for (const key in data) {
     const tc = data[key];
 
     // Find all project creation keys
     const createProjectKeys = Object.keys(tc).filter(
-      (k) => k.startsWith("payloadCreateProject") || k === "createProjectByUI"
+      (k) => k.startsWith("payloadCreateProject") || k === "createProjectByUI",
     );
 
     for (const projectKey of createProjectKeys) {
@@ -641,28 +733,52 @@ export const cleanUpProjects = async (data) => {
       const projectName = projectPayload.project_name;
 
       // Get Project ID by project_name
-      const projectRes = await filterApi("Project", [["Project", "project_name", "=", projectName]]);
+      const projectRes = await filterApi("Project", [
+        ["Project", "project_name", "=", projectName],
+      ]);
+      looked += 1;
+      // reportview answers `{message: []}` when nothing matches and
+      // `{message: {keys, values}}` when something does, so the presence of
+      // `message` - not of `values` - is what separates a lookup that ran from one
+      // that did not.
+      if (projectRes?.message !== undefined) responded += 1;
       const projectId = projectRes?.message?.values?.[0]?.[0];
       if (!projectId) continue;
+      found += 1;
 
-      console.warn(`\nObtained ProjectId value for ${key} -> ${projectKey} is: ${projectId}`);
+      console.warn(
+        `\nObtained ProjectId value for ${key} -> ${projectKey} is: ${projectId}`,
+      );
 
       // Get Task IDs for this projectId
-      const taskRes = await filterApi("Task", [["Task", "project", "=", projectId]]);
-      const taskIds = Array.isArray(taskRes?.message?.values) ? taskRes.message.values.map((v) => v[0]) : [];
+      const taskRes = await filterApi("Task", [
+        ["Task", "project", "=", projectId],
+      ]);
+      const taskIds = Array.isArray(taskRes?.message?.values)
+        ? taskRes.message.values.map((v) => v[0])
+        : [];
 
       if (taskIds.length) {
         console.warn(`OBTAINED TASKS for ${key} -> ${projectKey}:`, taskIds);
       }
 
       // Get Timesheet IDs for this projectId
-      const timesheetRes = await filterApi("Timesheet", [["Timesheet", "parent_project", "=", projectId]], "admin");
+      const timesheetRes = await filterApi(
+        "Timesheet",
+        [["Timesheet", "parent_project", "=", projectId]],
+        "admin",
+      );
       const timesheetIds = Array.isArray(timesheetRes?.message?.values)
-        ? timesheetRes.message.values.flat().filter((v) => typeof v === "string")
+        ? timesheetRes.message.values
+            .flat()
+            .filter((v) => typeof v === "string")
         : [];
 
       if (timesheetIds.length) {
-        console.warn(`OBTAINED TIMESHEET IDS FOR ${key} -> ${projectKey}:`, timesheetIds);
+        console.warn(
+          `OBTAINED TIMESHEET IDS FOR ${key} -> ${projectKey}:`,
+          timesheetIds,
+        );
       }
 
       // Get Resource Allocation IDs for this projectId
@@ -680,12 +796,17 @@ export const cleanUpProjects = async (data) => {
       ) {
         const nameIndex = allocationRes.message.keys.indexOf("name");
         if (nameIndex >= 0) {
-          allocationIds = allocationRes.message.values.map((row) => row[nameIndex]);
+          allocationIds = allocationRes.message.values.map(
+            (row) => row[nameIndex],
+          );
         }
       }
 
       if (allocationIds.length) {
-        console.warn(`OBTAINED ALLOCATION IDS FOR ${key} -> ${projectKey}:`, allocationIds);
+        console.warn(
+          `OBTAINED ALLOCATION IDS FOR ${key} -> ${projectKey}:`,
+          allocationIds,
+        );
       }
 
       // Collect deletion info
@@ -705,17 +826,24 @@ export const cleanUpProjects = async (data) => {
           continue;
         }
         try {
-          await deleteTimesheetbyID(timesheetId, "admin");
+          const { deleted } = await deleteTimesheetbyID(timesheetId, "admin");
+          if (!deleted) failures.push(`Timesheet ${timesheetId}`);
         } catch (err) {
-          console.error(`Failed to delete timesheet ${timesheetId}:`, err.message);
+          failures.push(`Timesheet ${timesheetId}`);
+          console.error(
+            `Failed to delete timesheet ${timesheetId}:`,
+            err.message,
+          );
         }
       }
 
       // Delete Tasks
       for (const taskId of taskIds) {
         try {
-          await deleteTask(taskId);
+          const { deleted } = await deleteTask(taskId);
+          if (!deleted) failures.push(`Task ${taskId}`);
         } catch (err) {
+          failures.push(`Task ${taskId}`);
           console.error(`Failed to delete task ${taskId}:`, err.message);
         }
       }
@@ -727,21 +855,46 @@ export const cleanUpProjects = async (data) => {
           continue;
         }
         try {
-          await deleteAllocation(allocationId);
+          const { deleted } = await deleteAllocation(allocationId);
+          if (!deleted) failures.push(`Resource Allocation ${allocationId}`);
         } catch (err) {
-          console.error(`Failed to delete resource allocation ${allocationId}:`, err.message);
+          failures.push(`Resource Allocation ${allocationId}`);
+          console.error(
+            `Failed to delete resource allocation ${allocationId}:`,
+            err.message,
+          );
         }
       }
 
       // Delete Project
       if (projectId) {
         try {
-          await deleteProject(projectId);
+          const { deleted } = await deleteProject(projectId);
+          if (!deleted) failures.push(`Project ${projectId} (${projectName})`);
         } catch (err) {
+          failures.push(`Project ${projectId} (${projectName})`);
           console.error(`Failed to delete project ${projectId}:`, err.message);
         }
       }
     }
+  }
+
+  if (looked > 0 && responded === 0) {
+    console.error(
+      `\n❌ Teardown looked up ${looked} seeded project(s) and not one lookup came back. That is the API failing, ` +
+        `not a clean slate - check the site is up (a deploy answers every request with 503) and re-run teardown. ` +
+        `Seeded data is still on staging.`,
+    );
+  } else if (failures.length) {
+    console.warn(
+      `\n⚠️  Teardown could not delete ${failures.length} record(s) - they will be swept by the next run's setup:`,
+    );
+    for (const f of failures) console.warn(`    - ${f}`);
+  } else {
+    console.log(
+      `\n✅ Teardown deleted all ${deletedData.length} seeded project(s) and their child records ` +
+        `(${found} of ${looked} lookups matched; the rest were already gone).`,
+    );
   }
 
   return deletedData;
@@ -760,14 +913,135 @@ export const deleteLeaveOfEmployee = async () => {
       ["Leave Application", "employee", "=", `${emp2ID}`],
       ["Leave Application", "status", "=", "Open"],
     ],
-    "admin"
+    "admin",
   );
 
   //Delete leave if leave ID is found in the filter request
   if (filterResponse?.message?.values[0]) {
     const leaveID = filterResponse.message.values[0];
-    await deleteLeave(leaveID);
-    console.warn("✅ A leave request for employee was found and deleted");
+    const { deleted } = await deleteLeave(leaveID);
+    if (deleted) console.log(`🗑  Deleted leave ${leaveID}`);
+  }
+};
+
+// ------------------------------------------------------------------------------------------
+
+/**
+ * Deletes the views this run created.
+ *
+ * createViewForTestCases() records the id under payloadDeleteView<postfix>, and
+ * `seeded` says whether it created the view or reused an existing one. Nothing
+ * called deleteView() before this, so seeded views simply accumulated.
+ */
+export const deleteViewsForTestCases = async (testCaseIDs = [], jsonDir) => {
+  for (const tcId of testCaseIDs) {
+    let entry;
+    try {
+      entry = (await readJSONFile(path.join(jsonDir, `${tcId}.json`)))?.[tcId];
+    } catch {
+      continue;
+    }
+    if (!entry) continue;
+
+    for (const key of Object.keys(entry).filter((k) =>
+      k.startsWith("payloadDeleteView"),
+    )) {
+      const { viewId, seeded } = entry[key] ?? {};
+      if (!viewId || !seeded) continue;
+
+      const { deleted } = await deleteDocument(
+        "PMS View Setting",
+        String(viewId),
+      );
+      if (deleted) console.log(`🗑  Deleted view ${viewId} for ${tcId}`);
+    }
+  }
+};
+
+// ------------------------------------------------------------------------------------------
+
+/**
+ * Records when this run began, on the server's clock.
+ *
+ * Frappe stamps `creation` in the server's timezone, which the runner's clock
+ * need not share, so a UTC marker widens the sweep window. Reading `creation`
+ * back off a throwaway document avoids the timezone arithmetic entirely.
+ */
+export const writeRunMarker = async (jsonDir) => {
+  let startedAt = null;
+  try {
+    const doc = await createDocument("ToDo", {
+      description: "next-pms e2e run marker",
+    });
+    startedAt = doc?.creation ?? null;
+    if (doc?.name) await deleteDocument("ToDo", doc.name);
+  } catch (err) {
+    console.warn(`⚠️ Could not establish a run marker: ${err.message}`);
+  }
+  await writeDataToFile(path.join(jsonDir, "_run-meta.json"), { startedAt });
+  console.log(
+    `🕒 Run marker: ${startedAt ?? "none - teardown will skip the timesheet sweep"}`,
+  );
+};
+
+// ------------------------------------------------------------------------------------------
+
+/**
+ * Deletes the timesheets this run booked onto the shared employee accounts.
+ *
+ * cleanUpProjects() finds timesheets through `parent_project`, so it only ever
+ * sees time booked against a project this run seeded. Most tests book onto the
+ * shared accounts and pre-existing projects instead, and that time was never
+ * cleaned up - EMP-00911 had accumulated timesheets going back months.
+ *
+ * Scoped by the run-start marker so it can only remove what this run created.
+ */
+export const deleteTimesheetsCreatedThisRun = async (jsonDir) => {
+  let startedAt;
+  try {
+    startedAt = (await readJSONFile(path.join(jsonDir, "_run-meta.json")))
+      ?.startedAt;
+  } catch {
+    startedAt = null;
+  }
+  if (!startedAt) {
+    console.warn(
+      "⚠️ No run-start marker found; skipping the timesheet sweep rather than guessing a cutoff.",
+    );
+    return;
+  }
+
+  const employeeIds = [
+    process.env.EMP_ID,
+    process.env.EMP2_ID,
+    process.env.EMP3_ID,
+  ].filter(Boolean);
+  for (const employee of employeeIds) {
+    const timesheets = await getDocList(
+      "Timesheet",
+      [
+        ["employee", "=", employee],
+        ["creation", ">=", startedAt],
+      ],
+      { fields: ["name", "docstatus"] },
+    );
+
+    let cleared = 0;
+    for (const ts of timesheets) {
+      if (ts.docstatus === 1) await cancelDocument("Timesheet", ts.name);
+      const { deleted } = await deleteWithLockRetry(
+        () => deleteDocument("Timesheet", ts.name),
+        {
+          label: `Timesheet ${ts.name}`,
+        },
+      );
+      if (deleted) cleared += 1;
+    }
+    // Report what actually went, not what was attempted.
+    if (timesheets.length)
+      console.log(
+        `🗑  Cleared ${cleared}/${timesheets.length} timesheet(s) for ${employee}`,
+      );
   }
 };
 
@@ -803,6 +1077,153 @@ export const submitTimesheetForApproval = async (empId, managerID, role) => {
       approver: managerID,
       employee: empId,
     },
-    (role = role)
+    (role = role),
   );
+};
+
+// ------------------------------------------------------------------------------------------
+
+/**
+ * Submits a seeded timesheet for approval, for any test case carrying a
+ * `payloadSubmitTimesheet` key.
+ *
+ * Needed because the team grid only renders a status control for a timesheet
+ * that is actually reviewable. A freshly created timesheet sits at "Not
+ * submitted", where the status column is empty - so there is nothing to click
+ * to open the review pane, and any test that approves or rejects has no way in.
+ * (Verified: "Not submitted" row has 7 buttons, all "Add time"; a submitted one
+ * has 8, the extra being the status trigger.)
+ *
+ * The submit is done as the employee, since that is who submits their own
+ * timesheet; `role` names the API auth state to use.
+ */
+export const submitTimesheetForTestCases = async (
+  testCaseIDs = [],
+  jsonDir,
+) => {
+  if (!Array.isArray(testCaseIDs) || testCaseIDs.length === 0) return;
+
+  const [tcId] = testCaseIDs;
+  const filePath = path.join(jsonDir, `${tcId}.json`);
+
+  let fullStub;
+  try {
+    fullStub = await readJSONFile(filePath);
+  } catch (err) {
+    console.warn(`⚠️ Failed to read stub for ${tcId}: ${err.message}`);
+    return;
+  }
+
+  const entry = fullStub[tcId];
+  const payload = entry?.payloadSubmitTimesheet;
+  if (!payload) return;
+
+  const { monday, friday } = getWeekRange();
+  // No fallback to the default account on purpose. A test that asks for its own
+  // employee (payloadCreateReviewee) must not silently submit a *shared* one -
+  // that is what broke TC11, whose employee has to stay unsubmitted.
+  const employee = payload.employee;
+  if (!employee) {
+    console.warn(
+      `⚠️ Skipping timesheet submit for ${tcId}: no employee pinned. If this test declares ` +
+        `payloadCreateReviewee, its employee could not be created (Employee creation is ` +
+        `currently failing on this environment).`,
+    );
+    return;
+  }
+  // The backend resolves the approver with frappe.db.exists("Employee", ...),
+  // so this is an Employee ID (EMP-000xx) - an email 404s with
+  // "Reporting Manager does not exist."
+  const approver = payload.approver ?? process.env.REP_MAN_ID;
+  const role = payload.role ?? "employee";
+
+  try {
+    await submitTimesheet(
+      {
+        start_date: payload.start_date ?? monday,
+        end_date: payload.end_date ?? friday,
+        notes: payload.notes ?? `submitted by global setup for ${tcId}`,
+        approver,
+        employee,
+      },
+      role,
+    );
+    console.log(
+      `✅ Timesheet submitted for approval for ${tcId} (${employee} -> ${approver})`,
+    );
+  } catch (err) {
+    // Only an already-submitted timesheet is benign. Match that phrase exactly:
+    // a loose /submitted/ test also matches the word inside the echoed request
+    // payload (the notes above), which silently turned a real 404 into a
+    // "already submitted" success line.
+    if (/already been submitted|already submitted/i.test(err.message)) {
+      console.log(`ℹ️ Timesheet for ${tcId} was already submitted.`);
+      return;
+    }
+    console.warn(
+      `❌ Timesheet submit FAILED for ${tcId} - the review pane will not be reachable: ${err.message}`,
+    );
+  }
+};
+
+// ------------------------------------------------------------------------------------------
+
+/**
+ * Seed saved views (PMS View Setting) for any test case carrying a
+ * payloadCreateView* key, and record the created document name back into the
+ * stub so teardown can remove it.
+ *
+ * A view is a precondition for the public/private view tests rather than the
+ * behaviour under test, so it is seeded like projects and tasks instead of
+ * depending on one created by hand on the environment.
+ */
+export const createViewForTestCases = async (testCaseIDs, jsonDir) => {
+  const VIEW_KEY_REGEX = /^payloadCreateView(\w*)$/;
+
+  for (const tcId of testCaseIDs) {
+    const stubPath = path.join(jsonDir, `${tcId}.json`);
+    const fullStub = await readJSONFile(stubPath);
+    const entry = fullStub?.[tcId];
+    if (!entry) continue;
+
+    for (const viewKey of Object.keys(entry).filter((key) =>
+      VIEW_KEY_REGEX.test(key),
+    )) {
+      const payload = entry[viewKey];
+      if (!payload?.label) continue;
+
+      // Reuse an existing view with the same label so repeated runs do not pile
+      // up duplicates - the label is what the UI shows and the test looks for.
+      const existing = await getViewsByLabel(payload.label);
+      let viewId = existing?.[0]?.name;
+
+      if (!viewId) {
+        const res = await createView(payload);
+        viewId = res?.data?.name;
+        if (!viewId) {
+          console.error(`Failed to create view for ${tcId} (${viewKey})`);
+          continue;
+        }
+        console.warn(
+          `✅ CREATE VIEW SUCCESS for ${tcId} -> ${viewKey} (${payload.label}, id=${viewId})`,
+        );
+      } else {
+        console.warn(
+          `↩️ Reusing existing view "${payload.label}" (id=${viewId}) for ${tcId}`,
+        );
+      }
+
+      const postfix = viewKey.slice("payloadCreateView".length);
+      const deleteKey = `payloadDeleteView${postfix}`;
+      // `seeded` records whether this run created the view or merely reused one
+      // that was already there. Teardown deletes only the ones it created - a
+      // view someone made by hand can share a label and must survive the run.
+      entry[deleteKey] = {
+        ...(entry[deleteKey] || {}),
+        viewId,
+        seeded: !existing?.[0]?.name,
+      };
+      await writeDataToFile(stubPath, fullStub);
+    }
+  }
 };

@@ -6,7 +6,7 @@ module.exports = {
     payloadCreateProject: {
       project_name: "TC28 Project",
       company: "rtCamp Solutions Pvt. Ltd.",
-      customer: "Google",
+      customer: "Acme Corporation",
       billing_type: "Fixed Cost",
       currency: "INR",
       project_type: "Fixed Cost",
@@ -23,7 +23,7 @@ module.exports = {
     createProjectByUI: {
       project_name: "TC29 Project",
       company: "rtCamp Solutions Pvt. Ltd.",
-      customer: "Google",
+      customer: "Acme Corporation",
       billing_type: "Fixed Cost",
       currency: "INR",
       project_type: "Fixed Cost",
@@ -37,7 +37,7 @@ module.exports = {
     payloadCreateProject: {
       project_name: "TC32 Project",
       company: "rtCamp Solutions Pvt. Ltd.",
-      customer: "Google",
+      customer: "Acme Corporation",
       billing_type: "Fixed Cost",
       currency: "INR",
       project_type: "Fixed Cost",
@@ -54,7 +54,7 @@ module.exports = {
     payloadCreateProject: {
       project_name: "TC35 Project",
       company: "rtCamp Solutions Pvt. Ltd.",
-      customer: "Google",
+      customer: "Acme Corporation",
       billing_type: "Fixed Cost",
       currency: "INR",
       project_type: "Fixed Cost",
@@ -73,14 +73,14 @@ module.exports = {
     },
     payloadDeleteView: {
       view_name: "TC105: Playwright-view",
-      notification: "View deleted successfully",
+      notification: "View Deleted",
     },
   },
   TC72: {
     payloadCreateProject: {
       project_name: "TC72 Project",
       company: "rtCamp Solutions Pvt. Ltd.",
-      customer: "Google",
+      customer: "Acme Corporation",
       billing_type: "Fixed Cost",
       currency: "INR",
       project_type: "Fixed Cost",
@@ -97,7 +97,7 @@ module.exports = {
     payloadCreateProject: {
       project_name: "TC73 Project: Fixed Cost",
       company: "rtCamp Solutions Pvt. Ltd.",
-      customer: "Google",
+      customer: "Acme Corporation",
       custom_billing_type: "Fixed Cost",
       currency: "INR",
       project_type: "Fixed Cost",
@@ -109,7 +109,7 @@ module.exports = {
     payloadCreateAllocation: {
       allocation_end_date: getFormattedDate(today),
       allocation_start_date: getFormattedDate(today),
-      customer: "Google",
+      customer: "Acme Corporation",
       employee: process.env.EMP3_ID,
       hours_allocated_per_day: "01",
       is_billable: 1,
@@ -132,7 +132,9 @@ module.exports = {
       currency: "INR",
       project_type: "Non Billable",
       custom_business_unit: "Jupiter",
-      status: "Cancelled",
+      // Not "Cancelled": the backend refuses allocations on cancelled
+      // projects, so payloadCreateAllocation2 below could never be created
+      // and TC78 (which reuses this project) had nothing to filter.
       estimated_cost: 235000,
       custom_billing_type: "Non-Billable",
       custom_project_budget_hours: [],
@@ -140,7 +142,7 @@ module.exports = {
     payloadCreateAllocation2: {
       allocation_end_date: getFormattedDate(today),
       allocation_start_date: getFormattedDate(today),
-      customer: "Google",
+      customer: "Acme Corporation",
       employee: process.env.EMP_ID,
       hours_allocated_per_day: "01",
       is_billable: 0,
@@ -164,7 +166,7 @@ module.exports = {
     payloadCreateProject: {
       project_name: "TC74 Project",
       company: "rtCamp Solutions Pvt. Ltd.",
-      customer: "Google",
+      customer: "Acme Corporation",
       billing_type: "Fixed Cost",
       currency: "INR",
       project_type: "Fixed Cost",
@@ -199,7 +201,7 @@ module.exports = {
     payloadCreateAllocation: {
       allocation_end_date: getWeekRange().friday,
       allocation_start_date: getWeekRange().monday,
-      customer: "Google",
+      customer: "Acme Corporation",
       employee: process.env.EMP3_ID,
       hours_allocated_per_day: "1",
       is_billable: 1,
@@ -216,7 +218,7 @@ module.exports = {
     infoPayloadCreateProject: {
       project_name: "TC73 Project: Fixed Cost",
       company: "rtCamp Solutions Pvt. Ltd.",
-      customer: "Google",
+      customer: "Acme Corporation",
       custom_billing_type: "Fixed Cost",
       currency: "INR",
       project_type: "Fixed Cost",
@@ -228,7 +230,7 @@ module.exports = {
     infoPayloadCreateAllocation: {
       allocation_end_date: getFormattedDate(today),
       allocation_start_date: getFormattedDate(today),
-      customer: "Google",
+      customer: "Acme Corporation",
       employee: process.env.EMP3_ID,
       hours_allocated_per_day: "01",
       is_billable: 1,
@@ -252,7 +254,7 @@ module.exports = {
     infoPayloadCreateAllocation2: {
       allocation_end_date: getFormattedDate(today),
       allocation_start_date: getFormattedDate(today),
-      customer: "Google",
+      customer: "Acme Corporation",
       employee: process.env.EMP_ID,
       hours_allocated_per_day: "01",
       is_billable: 0,
@@ -266,7 +268,7 @@ module.exports = {
     infoPayloadCreateProject: {
       project_name: "TC73 Project: Fixed Cost",
       company: "rtCamp Solutions Pvt. Ltd.",
-      customer: "Google",
+      customer: "Acme Corporation",
       custom_billing_type: "Fixed Cost",
       currency: "INR",
       project_type: "Fixed Cost",
@@ -278,7 +280,7 @@ module.exports = {
     infoPayloadCreateAllocation: {
       allocation_end_date: getFormattedDate(today),
       allocation_start_date: getFormattedDate(today),
-      customer: "Google",
+      customer: "Acme Corporation",
       employee: process.env.EMP3_ID,
       hours_allocated_per_day: "01",
       is_billable: 1,
@@ -302,7 +304,7 @@ module.exports = {
     infoPayloadCreateAllocation2: {
       allocation_end_date: getFormattedDate(today),
       allocation_start_date: getFormattedDate(today),
-      customer: "Google",
+      customer: "Acme Corporation",
       employee: process.env.EMP_ID,
       hours_allocated_per_day: "01",
       is_billable: 0,
@@ -315,7 +317,7 @@ module.exports = {
     payloadCreateProject: {
       project_name: "TC79 Project",
       company: "rtCamp Solutions Pvt. Ltd.",
-      customer: "Google",
+      customer: "Acme Corporation",
       billing_type: "Fixed Cost",
       currency: "INR",
       project_type: "Fixed Cost",
@@ -331,7 +333,7 @@ module.exports = {
     payloadCreateAllocation: {
       allocation_end_date: getWeekRange().monday,
       allocation_start_date: getWeekRange().monday,
-      customer: "Google",
+      customer: "Acme Corporation",
       employee: process.env.EMP3_ID,
       hours_allocated_per_day: "1",
       is_billable: 1,
@@ -348,7 +350,7 @@ module.exports = {
     infoPayloadCreateProject: {
       project_name: "TC73 Project: Fixed Cost",
       company: "rtCamp Solutions Pvt. Ltd.",
-      customer: "Google",
+      customer: "Acme Corporation",
       custom_billing_type: "Fixed Cost",
       currency: "INR",
       project_type: "Fixed Cost",
@@ -360,7 +362,7 @@ module.exports = {
     infoPayloadCreateAllocation: {
       allocation_end_date: getFormattedDate(today),
       allocation_start_date: getFormattedDate(today),
-      customer: "Google",
+      customer: "Acme Corporation",
       employee: process.env.EMP3_ID,
       hours_allocated_per_day: "01",
       is_billable: 1,
@@ -384,7 +386,7 @@ module.exports = {
     infoPayloadCreateAllocation2: {
       allocation_end_date: getFormattedDate(today),
       allocation_start_date: getFormattedDate(today),
-      customer: "Google",
+      customer: "Acme Corporation",
       employee: process.env.EMP_ID,
       hours_allocated_per_day: "01",
       is_billable: 0,
@@ -399,11 +401,34 @@ module.exports = {
     },
     payloadDeleteView: {
       view_name: "TC105: Playwright-view",
-      notification: "View deleted successfully",
+      notification: "View Deleted",
     },
   },
   TC106: {
     publicViewName: "Retainer",
+    // The "Retainer" public view is a precondition, not the thing under test, so
+    // seed it instead of relying on a view somebody created by hand. Views are
+    // ordinary PMS View Setting documents. Filters are left open (status null,
+    // no advanced conditions) so the seeded project shows regardless of status.
+    payloadCreateView: {
+      label: "Retainer",
+      public: 1,
+      dt: "Project",
+      type: "List",
+      icon: "\ud83d\udccb",
+      default: 0,
+      filters: JSON.stringify({
+        search: null,
+        rag: null,
+        phase: null,
+        status: null,
+        advanced: "[]",
+      }),
+      order_by: "[]",
+      rows: "[]",
+      columns: "{}",
+      pinned_columns: "[]",
+    },
     payloadCreateProject: {
       project_name: "TC106 Project: Retainer",
       company: "rtCamp Solutions Pvt. Ltd.",
@@ -426,7 +451,7 @@ module.exports = {
     payloadCreateProject: {
       project_name: "TC112 Project: Fixed Cost",
       company: "rtCamp Solutions Pvt. Ltd.",
-      customer: "Google",
+      customer: "Acme Corporation",
       custom_billing_type: "Fixed Cost",
       currency: "INR",
       project_type: "Fixed Cost",
@@ -441,7 +466,7 @@ module.exports = {
     payloadCreateProject2: {
       project_name: "TC112 Project : TnM",
       company: "rtCamp Solutions Pvt. Ltd.",
-      customer: "Google",
+      customer: "Acme Corporation",
       custom_currency: "USD",
       billing_type: "Time and Material",
       project_type: "TnM",
@@ -472,7 +497,7 @@ module.exports = {
     payloadCreateProject4: {
       project_name: "TC112 Project: Non-Billable",
       company: "rtCamp Solutions Pvt. Ltd.",
-      customer: "Google",
+      customer: "Acme Corporation",
       billing_type: "Non-Billable",
       currency: "INR",
       project_type: "Non Billable",
@@ -490,7 +515,7 @@ module.exports = {
     payloadCreateProject: {
       project_name: "TC113 Project: Fixed Cost",
       company: "rtCamp Solutions Pvt. Ltd.",
-      customer: "Google",
+      customer: "Acme Corporation",
       custom_billing_type: "Fixed Cost",
       currency: "INR",
       project_type: "Fixed Cost",
@@ -505,7 +530,7 @@ module.exports = {
     payloadCreateProject2: {
       project_name: "TC113 Project : TnM",
       company: "rtCamp Solutions Pvt. Ltd.",
-      customer: "Google",
+      customer: "Acme Corporation",
       billing_type: "Time and Material",
       project_type: "TnM",
       custom_business_unit: "Jupiter",
@@ -534,7 +559,7 @@ module.exports = {
     payloadCreateProject4: {
       project_name: "TC113 Project: Non-Billable",
       company: "rtCamp Solutions Pvt. Ltd.",
-      customer: "Google",
+      customer: "Acme Corporation",
       billing_type: "Non-Billable",
       currency: "INR",
       project_type: "Non Billable",
@@ -566,7 +591,7 @@ module.exports = {
     createProject4Info: {
       project_name: "TC112 Project: Non-Billable",
       company: "rtCamp Solutions Pvt. Ltd.",
-      customer: "Google",
+      customer: "Acme Corporation",
       billing_type: "Non-Billable",
       currency: "INR",
       project_type: "Non Billable",
@@ -578,63 +603,41 @@ module.exports = {
     },
   },
   TC115: {
+    // Points at TC112's two *Open* projects. Status is no longer filterable and
+    // the list is scoped by ?status=Open, so the Completed / Cancelled TC112
+    // projects can never appear here whatever filter is applied. These two
+    // still differ in both business unit and billing type, which is what the
+    // positive and negative assertions need.
     createProject3Info: {
-      project_name: "TC112 Project: Retainer",
-      company: "rtCamp Solutions Pvt. Ltd.",
-      customer: "QA: EUR",
-      custom_currency: "EUR",
-      billing_type: "Retainer",
-      project_type: "Retainer",
-      status: "Completed",
+      project_name: "TC112 Project : TnM",
       custom_business_unit: "Polaris",
-      estimated_costing: 245000,
-      custom_billing_type: "Retainer",
-      custom_default_hourly_billing_rate: 0,
-      custom_project_budget_hours: [],
+      custom_billing_type: "Time and Material",
+      billing_type: "Time and Material",
     },
-
     createProject4Info: {
-      project_name: "TC112 Project: Non-Billable",
-      company: "rtCamp Solutions Pvt. Ltd.",
-      customer: "Google",
-      billing_type: "Non-Billable",
-      currency: "INR",
-      project_type: "Non Billable",
+      project_name: "TC112 Project: Fixed Cost",
       custom_business_unit: "Jupiter",
-      status: "Cancelled",
-      estimated_cost: 235000,
-      custom_billing_type: "Non-Billable",
-      custom_project_budget_hours: [],
+      custom_billing_type: "Fixed Cost",
+      billing_type: "Fixed Cost",
     },
   },
   TC116: {
+    // Points at TC112's two *Open* projects. Status is no longer filterable and
+    // the list is scoped by ?status=Open, so the Completed / Cancelled TC112
+    // projects can never appear here whatever filter is applied. These two
+    // still differ in both business unit and billing type, which is what the
+    // positive and negative assertions need.
     createProject3Info: {
-      project_name: "TC112 Project: Retainer",
-      company: "rtCamp Solutions Pvt. Ltd.",
-      customer: "QA: EUR",
-      custom_currency: "EUR",
-      billing_type: "Retainer",
-      project_type: "Retainer",
-      status: "Completed",
+      project_name: "TC112 Project : TnM",
       custom_business_unit: "Polaris",
-      estimated_costing: 245000,
-      custom_billing_type: "Retainer",
-      custom_default_hourly_billing_rate: 0,
-      custom_project_budget_hours: [],
+      custom_billing_type: "Time and Material",
+      billing_type: "Time and Material",
     },
-
     createProject4Info: {
-      project_name: "TC112 Project: Non-Billable",
-      company: "rtCamp Solutions Pvt. Ltd.",
-      customer: "Google",
-      billing_type: "Non-Billable",
-      currency: "INR",
-      project_type: "Non Billable",
+      project_name: "TC112 Project: Fixed Cost",
       custom_business_unit: "Jupiter",
-      status: "Cancelled",
-      estimated_cost: 235000,
-      custom_billing_type: "Non-Billable",
-      custom_project_budget_hours: [],
+      custom_billing_type: "Fixed Cost",
+      billing_type: "Fixed Cost",
     },
   },
   TC117: {
@@ -656,7 +659,7 @@ module.exports = {
     createProject4Info: {
       project_name: "TC112 Project: Non-Billable",
       company: "rtCamp Solutions Pvt. Ltd.",
-      customer: "Google",
+      customer: "Acme Corporation",
       billing_type: "Non-Billable",
       currency: "INR",
       project_type: "Non Billable",
@@ -669,5 +672,26 @@ module.exports = {
   },
   TC118: {
     publicViewName: "Retainer",
+    // Seeded through the admin API so the view is owned by someone other than
+    // the manager under test - that ownership is the whole point of this case.
+    payloadCreateView: {
+      label: "Retainer",
+      public: 1,
+      dt: "Project",
+      type: "List",
+      icon: "\ud83d\udccb",
+      default: 0,
+      filters: JSON.stringify({
+        search: null,
+        rag: null,
+        phase: null,
+        status: null,
+        advanced: "[]",
+      }),
+      order_by: "[]",
+      rows: "[]",
+      columns: "{}",
+      pinned_columns: "[]",
+    },
   },
 };

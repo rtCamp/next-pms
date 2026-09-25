@@ -1,23 +1,11 @@
 import { request } from "@playwright/test";
-import path from "path";
-import fs from "fs";
-import config from "../../playwright.config";
-
-// Base URL from config
-const baseURL = config.use?.baseURL;
-// ------------------------------------------------------------------------------------------
-
-/**
- * Ensure the storage‑state file for the given role exists, and return its path.
- */
-const loadAuthState = (role) => {
-  const filePath = path.resolve(__dirname, `../../auth/${role}-API.json`);
-  if (!fs.existsSync(filePath)) {
-    throw new Error(`Auth state file for ${role} not found: ${filePath}`);
-  }
-  return filePath;
-};
-// ------------------------------------------------------------------------------------------
+import {
+  baseURL,
+  loadAuthState,
+  fetchWithRetry,
+  deleteWithLockRetry,
+  deleteDocument,
+} from "./apiClient";
 
 /**
  * Fire off an API request using Playwright’s requestContext + storageState.
@@ -27,7 +15,8 @@ export const apiRequest = async (endpoint, options = {}, role = "manager") => {
   const authFilePath = loadAuthState(role);
   const ctx = await request.newContext({ baseURL, storageState: authFilePath });
 
-  const response = await ctx.fetch(endpoint, {
+  const response = await fetchWithRetry(ctx, endpoint, {
+    timeout: 120000,
     method: options.method || "GET",
     headers: {
       "Content-Type": "application/json",
@@ -51,8 +40,8 @@ export const apiRequest = async (endpoint, options = {}, role = "manager") => {
     await ctx.dispose();
     throw new Error(
       `API request failed for ${role} @ ${endpoint} in the resource management with status as: ${status} ${statusText}. Error body: ${JSON.stringify(
-        errorBody
-      )}`
+        errorBody,
+      )}`,
     );
   }
 
@@ -67,16 +56,14 @@ export const apiRequest = async (endpoint, options = {}, role = "manager") => {
  * Create a new Project entry.
  */
 export const createAllocation = async (payload) => {
-  //console.log("Payload received in create allocation is:", payload);
   const result = await apiRequest(
     "/api/resource/Resource%20Allocation",
     {
       method: "POST",
       data: payload,
     },
-    "manager"
+    "manager",
   );
-  //console.log("Result of create allocation is: ", result);
   return result;
 };
 // ------------------------------------------------------------------------------------------
@@ -85,5 +72,10 @@ export const createAllocation = async (payload) => {
  * Delete a Resource Allocation by its ID.
  */
 export const deleteAllocation = async (allocationId) => {
-  return await apiRequest(`/api/resource/Resource%20Allocation/${allocationId}`, { method: "DELETE" }, "admin");
+  return await deleteWithLockRetry(
+    () => deleteDocument("Resource Allocation", allocationId, "admin"),
+    {
+      label: `Resource Allocation ${allocationId}`,
+    },
+  );
 };

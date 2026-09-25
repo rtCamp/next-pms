@@ -17,7 +17,10 @@ test.describe("Employee 2 : Timesheet", () => {
     await timesheetPage.goto();
   });
 
-  test("TC2: Time should be added using the ‘Add’ button at the top.", async ({ page, jsonDir }) => {
+  test("TC2: Time should be added using the ‘Add’ button at the top.", async ({
+    page,
+    jsonDir,
+  }) => {
     allure.story("Timesheet");
     const stubPath = path.join(jsonDir, "TC2.json");
     const data = await readJSONFile(stubPath);
@@ -32,7 +35,10 @@ test.describe("Employee 2 : Timesheet", () => {
     const cellText = await timesheetPage.getCellText(TC2data.cell);
     expect(cellText).toContain(TC2data.taskInfo.duration);
   });
-  test("TC3: Time should be added using the direct timesheet add buttons.", async ({ page, jsonDir }) => {
+  test("TC3: Time should be added using the direct timesheet add buttons.", async ({
+    page,
+    jsonDir,
+  }) => {
     allure.story("Timesheet");
     // 1) Build the path to your per‑TC JSON stub
     const stubPath = path.join(jsonDir, "TC3.json");
@@ -47,7 +53,9 @@ test.describe("Employee 2 : Timesheet", () => {
       duration: TC3data.taskInfo.duration,
       desc: TC3data.taskInfo.desc,
     });
-    await timesheetPage.toastNotification(TC3data.notification).waitFor({ state: "visible" });
+    await timesheetPage
+      .toastNotification(TC3data.notification)
+      .waitFor({ state: "visible" });
     // Reload page to ensure changes are reflected
     await page.reload();
 
@@ -56,7 +64,9 @@ test.describe("Employee 2 : Timesheet", () => {
     expect(cellText).toContain(TC3data.taskInfo.duration);
   });
 
-  test("TC13: Verify an employee can apply for leave via Timesheet tab.   ", async ({ jsonDir }) => {
+  test("TC13: Verify an employee can apply for leave via Timesheet tab.   ", async ({
+    jsonDir,
+  }) => {
     allure.story("Timesheet");
     const stubPath = path.join(jsonDir, "TC13.json");
     const data = await readJSONFile(stubPath);
