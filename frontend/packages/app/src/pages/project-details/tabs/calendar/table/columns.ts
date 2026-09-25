@@ -6,6 +6,7 @@ export type TableColumn = {
 
 export const MILESTONE_COLUMNS: TableColumn[] = [
   { key: "title", label: "Title" },
+  { key: "category", label: "Type", width: "w-28" },
   { key: "startDate", label: "Start date", width: "w-28" },
   { key: "plannedEndDate", label: "Planned end", width: "w-28" },
   { key: "actualEndDate", label: "Actual end", width: "w-28" },
@@ -16,6 +17,7 @@ export const MILESTONE_COLUMNS: TableColumn[] = [
 
 export const TOUCHPOINT_COLUMNS: TableColumn[] = [
   { key: "title", label: "Title" },
+  { key: "category", label: "Type", width: "w-28" },
   { key: "plannedEndDate", label: "Planned date", width: "w-28" },
   { key: "actualEndDate", label: "Actual date", width: "w-28" },
   { key: "owner", label: "Owners", width: "w-28" },
