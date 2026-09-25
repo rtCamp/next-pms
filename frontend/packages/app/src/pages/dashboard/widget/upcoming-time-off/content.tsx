@@ -1,6 +1,7 @@
 /**
  * External dependencies.
  */
+import { useState } from "react";
 import { mergeClassNames } from "@next-pms/design-system";
 import { Avatar, Badge, Button } from "@rtcamp/frappe-ui-react";
 import { Check, Close } from "@rtcamp/frappe-ui-react/icons";
@@ -9,14 +10,19 @@ import { Check, Close } from "@rtcamp/frappe-ui-react/icons";
  * Internal dependencies.
  */
 import { useUpcomingTimeOff } from "./context";
+import { RejectLeaveDialog } from "./rejectLeaveDialog";
 import { UpcomingTimeOffSkeleton } from "./skeleton";
 import { formatLeaveWindow } from "./utils";
+import type { EmployeeOnLeave } from "../../types";
 
 export function UpcomingTimeOffContent() {
   const leaves = useUpcomingTimeOff((state) => state.leaves);
   const pendingCount = useUpcomingTimeOff((state) => state.pendingCount);
   const isLoading = useUpcomingTimeOff((state) => state.isLoading);
   const approveLeave = useUpcomingTimeOff((state) => state.approveLeave);
+  const [rejectingLeave, setRejectingLeave] = useState<EmployeeOnLeave | null>(
+    null,
+  );
 
   if (isLoading) {
     return <UpcomingTimeOffSkeleton />;
@@ -93,7 +99,7 @@ export function UpcomingTimeOffContent() {
                       icon={() => (
                         <Close size={16} className="text-ink-white" />
                       )}
-                      onClick={() => approveLeave(leave.name)}
+                      onClick={() => setRejectingLeave(leave)}
                     />
                   </div>
                 )}
@@ -102,6 +108,10 @@ export function UpcomingTimeOffContent() {
           ))}
         </ul>
       )}
+      <RejectLeaveDialog
+        leave={rejectingLeave}
+        onClose={() => setRejectingLeave(null)}
+      />
     </>
   );
 }

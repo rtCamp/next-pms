@@ -996,7 +996,7 @@ def get_employees_on_leave() -> list:
     -------
     list of dict
         name, employee, employee_name, from_date, to_date, status,
-        half_day, custom_first_halfsecond_half, user_image.
+        leave_type, total_leave_days, half_day, custom_first_halfsecond_half, user_image.
         Empty list if the user has no employee record or no direct reports.
         Ordered by from_date ascending.
     """
@@ -1032,6 +1032,8 @@ def _get_employees_on_leave(manager_employee: str) -> list:
         LeaveApplication.from_date,
         LeaveApplication.to_date,
         LeaveApplication.status,
+        LeaveApplication.leave_type,
+        LeaveApplication.total_leave_days,
         LeaveApplication.half_day,
         User.user_image,
     ]
@@ -1072,14 +1074,41 @@ def approve_leave_application(name: str) -> None:
     """
     only_for(ALL_ROLES, message=True)
 
+    leave = _get_open_leave_application(name, _("approved"))
+    _finalize_leave_application(leave, workflow_action="Approve", status="Approved")
+
+
+@whitelist(methods=["POST"])
+def reject_leave_application(name: str, reason: str) -> None:
+    """Reject an open Leave Application on behalf of the current user.
+
+    Stores the reason in ``custom_rejection_reason`` before the status transition,
+    then follows the same workflow-or-submit path as approval.
+    """
+    only_for(ALL_ROLES, message=True)
+
+    reason = (reason or "").strip()
+    if not reason:
+        frappe.throw(_("Rejection reason is required."))
+
+    leave = _get_open_leave_application(name, _("rejected"))
+    leave.custom_rejection_reason = reason
+    leave.save()
+    _finalize_leave_application(leave, workflow_action="Reject", status="Rejected")
+
+
+def _get_open_leave_application(name: str, action: str):
     leave = frappe.get_doc("Leave Application", name)
     if leave.docstatus != 0 or leave.status != "Open":
-        frappe.throw(_("Only open leave applications can be approved."))
+        frappe.throw(_("Only open leave applications can be {0}.").format(action))
+    return leave
 
+
+def _finalize_leave_application(leave, workflow_action: str, status: str) -> None:
     if get_workflow_name("Leave Application"):
-        apply_workflow(leave, "Approve")
+        apply_workflow(leave, workflow_action)
     else:
-        leave.status = "Approved"
+        leave.status = status
         leave.save()
         leave.submit()
 

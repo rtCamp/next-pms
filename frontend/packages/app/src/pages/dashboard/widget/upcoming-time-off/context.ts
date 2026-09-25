@@ -13,6 +13,7 @@ export interface UpcomingTimeOffContextProps {
   pendingCount: number;
   isLoading: boolean;
   approveLeave: (name: string) => Promise<void>;
+  rejectLeave: (name: string, reason: string) => Promise<boolean>;
 }
 
 export const UpcomingTimeOffContext =
@@ -21,6 +22,7 @@ export const UpcomingTimeOffContext =
     pendingCount: 0,
     isLoading: true,
     approveLeave: async () => undefined,
+    rejectLeave: async () => false,
   });
 
 export const useUpcomingTimeOff = <T>(

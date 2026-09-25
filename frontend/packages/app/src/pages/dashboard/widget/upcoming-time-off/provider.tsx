@@ -27,6 +27,9 @@ export function UpcomingTimeOffProvider({ children }: PropsWithChildren) {
   const { call: approveLeaveApplication } = useFrappePostCall(
     "next_pms.api.dashboard.approve_leave_application",
   );
+  const { call: rejectLeaveApplication } = useFrappePostCall(
+    "next_pms.api.dashboard.reject_leave_application",
+  );
 
   const approveLeave = useCallback(
     async (name: string) => {
@@ -41,6 +44,21 @@ export function UpcomingTimeOffProvider({ children }: PropsWithChildren) {
     [approveLeaveApplication, mutate, toast],
   );
 
+  const rejectLeave = useCallback(
+    async (name: string, reason: string) => {
+      try {
+        await rejectLeaveApplication({ name, reason });
+        toast.success("Leave application rejected");
+        await mutate();
+        return true;
+      } catch (error) {
+        toast.error(parseFrappeErrorMsg(error as FrappeError));
+        return false;
+      }
+    },
+    [rejectLeaveApplication, mutate, toast],
+  );
+
   const value = useMemo(() => {
     const leaves = sortOpenLeavesFirst(data?.message ?? []);
     return {
@@ -48,8 +66,9 @@ export function UpcomingTimeOffProvider({ children }: PropsWithChildren) {
       pendingCount: leaves.filter((leave) => leave.status === "Open").length,
       isLoading,
       approveLeave,
+      rejectLeave,
     };
-  }, [data, isLoading, approveLeave]);
+  }, [data, isLoading, approveLeave, rejectLeave]);
 
   return (
     <UpcomingTimeOffContext.Provider value={value}>
