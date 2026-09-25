@@ -24,6 +24,7 @@ class TestResourceAllocationValidation(IntegrationTestCase):
         cls.customer = cls._make_customer("Globex")
         cls.project = cls._make_project("Active Project", cls.customer)
         cls.projects_user = cls._make_user("meera.iyer@example.com", roles=["Projects User"])
+        cls.delivery_manager = cls._make_user("dm.resource.alloc@example.com", roles=["Delivery Manager"])
 
     @classmethod
     def _make_user(cls, email, roles=None):
@@ -114,6 +115,8 @@ class TestResourceAllocationValidation(IntegrationTestCase):
 
     def tearDown(self):
         frappe.set_user("Administrator")
+        for notif in frappe.get_all("NextPMS Notifications", filters={"user": self.delivery_manager}, pluck="name"):
+            frappe.delete_doc("NextPMS Notifications", notif, force=1, ignore_permissions=True)
 
     def test_active_project_and_enabled_customer_saves(self):
         doc = self._make_allocation_doc(project=self.project)
@@ -287,3 +290,77 @@ class TestResourceAllocationValidation(IntegrationTestCase):
         doc = self._make_allocation_doc(customer=self.customer, currency="INR")
         doc.insert(ignore_permissions=True)
         self.assertEqual(doc.currency, "INR")
+
+    def test_ai_allocation_notifies_delivery_managers(self):
+        project = self._make_project("AI Notif Project", self.customer)
+        doc = self._make_allocation_doc(
+            project=project,
+            is_ai_created=1,
+            status="Tentative",
+        )
+        doc.insert(ignore_permissions=True)
+
+        notifications = frappe.get_all(
+            "NextPMS Notifications",
+            filters={
+                "user": self.delivery_manager,
+                "linked_doctype": "Project",
+                "linked_document": project,
+                "viewed": 0,
+            },
+            fields=["name", "title", "label", "url"],
+        )
+        self.assertEqual(len(notifications), 1)
+        notif = notifications[0]
+        project_name = frappe.db.get_value("Project", project, "project_name")
+        self.assertEqual(notif.title, project_name)
+        self.assertEqual(notif.label, "You have AI-generated allocations that need to be reviewed.")
+        self.assertEqual(notif.url, f"/next-pms/allocations/project?search={project_name}")
+
+    def test_multiple_ai_allocations_use_one_grouped_notification(self):
+        project = self._make_project("Multiple AI Project", self.customer)
+        doc1 = self._make_allocation_doc(
+            project=project,
+            allocation_start_date="2026-07-01",
+            allocation_end_date="2026-07-05",
+            is_ai_created=1,
+            status="Tentative",
+        )
+        doc1.insert(ignore_permissions=True)
+
+        doc2 = self._make_allocation_doc(
+            project=project,
+            allocation_start_date="2026-07-08",
+            allocation_end_date="2026-07-12",
+            is_ai_created=1,
+            status="Tentative",
+        )
+        doc2.insert(ignore_permissions=True)
+
+        notifications = frappe.get_all(
+            "NextPMS Notifications",
+            filters={
+                "user": self.delivery_manager,
+                "linked_doctype": "Project",
+                "linked_document": project,
+                "viewed": 0,
+            },
+            fields=["name", "label"],
+        )
+        self.assertEqual(len(notifications), 1)
+        self.assertEqual(notifications[0].label, "You have AI-generated allocations that need to be reviewed.")
+
+    def test_regular_allocation_does_not_notify_delivery_managers(self):
+        project = self._make_project("Regular Alloc Project", self.customer)
+        doc = self._make_allocation_doc(
+            project=project,
+            is_ai_created=0,
+            status="Confirmed",
+        )
+        doc.insert(ignore_permissions=True)
+
+        notif_count = frappe.db.count(
+            "NextPMS Notifications",
+            filters={"user": self.delivery_manager, "linked_document": project},
+        )
+        self.assertEqual(notif_count, 0)

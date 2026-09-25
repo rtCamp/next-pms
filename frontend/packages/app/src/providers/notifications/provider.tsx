@@ -67,13 +67,15 @@ export const NotificationsProvider: FC<PropsWithChildren> = ({ children }) => {
 
   useEffect(() => {
     if (!socket) return;
-    const handleReportReady = () => {
+    const handleNotificationUpdate = () => {
       mutate();
     };
 
-    socket.on("pm_report_ready", handleReportReady);
+    socket.on("pm_report_ready", handleNotificationUpdate);
+    socket.on("notification", handleNotificationUpdate);
     return () => {
-      socket.off("pm_report_ready", handleReportReady);
+      socket.off("pm_report_ready", handleNotificationUpdate);
+      socket.off("notification", handleNotificationUpdate);
     };
   }, [socket, mutate]);
 

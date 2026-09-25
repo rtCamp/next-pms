@@ -21,6 +21,7 @@ export interface AddAllocationInitialValues {
   repeatFor?: number;
   isBillable?: boolean;
   isTentative?: boolean;
+  isAiCreated?: boolean;
   note?: string;
   allocationStartDate?: string;
   allocationEndDate?: string;
@@ -40,6 +41,7 @@ export interface AddAllocationModalProps {
   onEditScheduleClick?: (values: AddAllocationFormValues) => void;
   initialValues?: AddAllocationInitialValues;
   onSuccess?: (targets?: AllocationRefreshTargets) => void | Promise<void>;
+  onDelete?: () => void | Promise<void>;
 }
 
 export type ComboboxOption = {

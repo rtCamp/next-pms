@@ -4,7 +4,7 @@ import frappe
 from frappe.automation.doctype.auto_repeat.auto_repeat import getdate
 from frappe.core.doctype.recorder.recorder import redis_cache
 from frappe.email.doctype.auto_email_report.auto_email_report import DATE_FORMAT
-from frappe.utils import add_days
+from frappe.utils import add_days, cint
 
 from next_pms.resource_management.api.utils.helpers import (
     add_customer_data_if_not_exists,
@@ -49,6 +49,7 @@ def get_resource_management_project_view_data(
     start: int = 0,
     project_id: str | list | None = None,
     filters: str | list | None = None,
+    is_ai_created: int | bool | str | None = None,
 ):
     """Return the data required for the resource management project view.
 
@@ -154,6 +155,7 @@ def get_resource_management_project_view_data(
         start,
         project_id,
         filters,
+        is_ai_created,
     )
 
 
@@ -175,11 +177,13 @@ def _get_resource_management_project_view_data(
     start: int = 0,
     project_id: str | list | None = None,
     filters: str | list | None = None,
+    is_ai_created: int | bool | str | None = None,
 ):
     permissions = json.loads(permissions)
     if not permissions["write"]:
         is_billable = None
         allocation_status = None
+        is_ai_created = None
         customer = None
         project_id = None
         billing_type = None
@@ -193,6 +197,11 @@ def _get_resource_management_project_view_data(
         allocation_status = json.loads(allocation_status)
     if allocation_status is not None and not isinstance(allocation_status, list):
         allocation_status = [allocation_status]
+    if is_ai_created is not None:
+        if isinstance(is_ai_created, str):
+            is_ai_created = cint(is_ai_created)
+        else:
+            is_ai_created = 1 if is_ai_created else 0
 
     project_conditions, tag_conditions, filter_is_billable = normalize_project_view_filters(
         filters, allow_privileged=permissions["write"]
@@ -214,9 +223,10 @@ def _get_resource_management_project_view_data(
         weeks[-1].get("end_date"),
         is_billable,
         allocation_status=allocation_status,
+        is_ai_created=is_ai_created,
     )
     prioritized_ids = None
-    if has_active_allocation_filter(is_billable, allocation_status):
+    if has_active_allocation_filter(is_billable, allocation_status, is_ai_created):
         project_conditions.append(["name", "in", allocated_projects or []])
     else:
         prioritized_ids = allocated_projects
@@ -260,6 +270,7 @@ def _get_resource_management_project_view_data(
             "creation",
             "recurrence_id",
             "include_weekends",
+            "is_ai_created",
             "include_holidays",
         ],
         "project",
@@ -268,6 +279,7 @@ def _get_resource_management_project_view_data(
         weeks[-1].get("end_date"),
         is_billable,
         allocation_status=allocation_status,
+        is_ai_created=is_ai_created,
     )
     resource_allocation_data = attach_extra_entries(resource_allocation_data)
     override_maps = {a["name"]: override_hours_by_date(a) for a in resource_allocation_data}
@@ -329,6 +341,7 @@ def _get_resource_management_project_view_data(
         getdate(today),
         is_billable,
         allocation_status=allocation_status,
+        is_ai_created=is_ai_created,
     )
 
     for project in projects:

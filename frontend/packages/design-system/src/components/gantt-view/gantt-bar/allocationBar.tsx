@@ -211,6 +211,7 @@ export function GanttAllocationBar({
         hoursPerDay: getEditableHoursPerDay(allocation),
         billable: allocation.billable,
         tentative: allocation.tentative,
+        isAiCreated: allocation.isAiCreated,
         note: allocation.note,
         override: allocation.override,
         allocationStartDate: allocation.allocationStartDate,
@@ -323,17 +324,33 @@ export function GanttAllocationBar({
         render={
           <GanttBar
             ref={allocationBarRef}
-            variant={allocation.fullyReduced ? "empty" : "allocation"}
-            theme={allocation.tentative ? "crosshatch" : "default"}
+            variant={
+              allocation.fullyReduced
+                ? "empty"
+                : allocation.isAiCreated
+                  ? "aiAllocation"
+                  : "allocation"
+            }
+            theme={
+              allocation.isAiCreated || allocation.tentative
+                ? "crosshatch"
+                : "default"
+            }
             label={dayCountLabel}
             renderLabel={renderLabel}
             trailingLabel={
-              showCapacityStatus ? capacityStatus.trailingLabel : undefined
+              allocation.isAiCreated
+                ? "Ai"
+                : showCapacityStatus
+                  ? capacityStatus.trailingLabel
+                  : undefined
             }
             trailingLabelVariant={
-              showCapacityStatus
-                ? capacityStatus.trailingLabelVariant
-                : undefined
+              allocation.isAiCreated
+                ? "ai"
+                : showCapacityStatus
+                  ? capacityStatus.trailingLabelVariant
+                  : undefined
             }
             left={previewGeometry.left}
             width={previewGeometry.width}

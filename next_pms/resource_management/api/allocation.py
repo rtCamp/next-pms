@@ -30,7 +30,16 @@ from next_pms.resource_management.report.utils import get_employee_allocations_f
 from next_pms.timesheet.api.employee import get_employee_daily_working_norm
 
 NON_DATE_FIELDS = frozenset(
-    {"project", "customer", "is_billable", "status", "note", "hours_allocated_per_day", "include_holidays"}
+    {
+        "project",
+        "customer",
+        "is_billable",
+        "is_ai_created",
+        "status",
+        "note",
+        "hours_allocated_per_day",
+        "include_holidays",
+    }
 )
 RECURRING_IMMUTABLE_FIELDS = ("employee", "project", "customer")
 VALID_DELETE_MODES = frozenset({"only_this", "this_and_future", "all_in_series"})
@@ -54,6 +63,7 @@ class AllocationPayload:
     project: str | None = None
     total_allocated_hours: float | None = None
     is_billable: int | None = None  # 1 or 0
+    is_ai_created: int | None = None  # 1 or 0
     status: str | None = None  # "Confirmed" or "Tentative"
     note: str | None = None
     name: str | None = None  # present only in the edit flow

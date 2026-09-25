@@ -31,6 +31,7 @@ export interface AllocationEntry {
   totalHours: string;
   status: "confirmed" | "tentative";
   billable: boolean;
+  isAiCreated?: boolean;
   updatedByName?: string;
   updatedByImage?: string;
   onEdit?: () => void;
@@ -120,7 +121,15 @@ function AllocationItem({
 
         {/* Created / Last edited row with avatar and edit/delete actions */}
         <div className="flex gap-2 justify-between items-center">
-          {(entry.createdOn || entry.updatedOn) && (
+          {entry.isAiCreated ? (
+            <div className="flex flex-1 gap-2 items-center">
+              <span className="text-sm truncate text-ink-gray-6 mr-10">
+                {entry.createdOn
+                  ? `Ai created on ${format(entry.createdOn, "MMM d")}`
+                  : "Ai created"}
+              </span>
+            </div>
+          ) : entry.createdOn || entry.updatedOn ? (
             <div className="flex flex-1 gap-2 items-center">
               {entry.updatedByName && (
                 <div className="shrink-0 flex items-center">
@@ -142,7 +151,7 @@ function AllocationItem({
                     : null}
               </span>
             </div>
-          )}
+          ) : null}
 
           {hasRoleAccess && (entry.onEdit || entry.onDelete) && (
             <div className="flex gap-2 items-center shrink-0">

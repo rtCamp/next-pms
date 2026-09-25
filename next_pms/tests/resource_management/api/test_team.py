@@ -661,6 +661,101 @@ class TestTeamViewNoAllocationFilter(_TeamViewBase):
         )
 
 
+class TestTeamViewAICreatedFilter(_TeamViewBase):
+    """is_ai_created narrows the employee set to those with AI-generated allocations.
+
+    Mirrors TestTeamViewAllocationFilters: employees are scoped with employee_id for
+    determinism. The filter is gated on write permission and the flag must be returned
+    in each allocation row so the frontend can style the Gantt bar.
+    """
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.company = get_default_company()
+        cls.write_user = cls._make_user(FILTER_WRITE_USER, projects_user=True)
+        cls.read_only_user = cls._make_user(FILTER_READ_ONLY_USER)
+        if not frappe.db.exists("Employee", {"user_id": cls.read_only_user}):
+            cls._make_employee("Tvai Readonly", user_id=cls.read_only_user)
+        cls.customer = cls._make_customer("TV AI Customer")
+        cls.project = cls._make_project("TV AI Portal", cls.customer)
+
+        cls.emp_ai = cls._make_employee("Tvai AiOnly")
+        cls.emp_manual = cls._make_employee("Tvai ManualOnly")
+        cls.emp_out = cls._make_employee("Tvai OutOfWindow")
+
+        # In-window AI allocation.
+        frappe.get_doc(
+            {
+                "doctype": "Resource Allocation",
+                "employee": cls.emp_ai,
+                "project": cls.project,
+                "allocation_start_date": TEAM_WINDOW_START,
+                "allocation_end_date": "2026-06-19",
+                "hours_allocated_per_day": 8,
+                "status": "Tentative",
+                "is_billable": 0,
+                "is_ai_created": 1,
+            }
+        ).insert(ignore_permissions=True)
+        # In-window manual (non-AI) allocation.
+        cls._make_allocation(cls.emp_manual, cls.project, "2026-06-16", "2026-06-20", status="Confirmed")
+        # AI allocation but entirely after the window — must not qualify the employee.
+        frappe.get_doc(
+            {
+                "doctype": "Resource Allocation",
+                "employee": cls.emp_out,
+                "project": cls.project,
+                "allocation_start_date": "2026-07-01",
+                "allocation_end_date": "2026-07-05",
+                "hours_allocated_per_day": 8,
+                "status": "Tentative",
+                "is_billable": 0,
+                "is_ai_created": 1,
+            }
+        ).insert(ignore_permissions=True)
+
+        cls.all_ids = json.dumps([cls.emp_ai, cls.emp_manual, cls.emp_out])
+        frappe.clear_cache()
+
+    def _ai_allocations_for(self, result, employee_name):
+        """Return all allocation rows for the named employee that carry is_ai_created=1."""
+        for emp in result.get("employees", []):
+            if emp["employee_name"] == employee_name:
+                return [a for a in result.get("resource_allocations", []) if a.get("is_ai_created") == 1]
+        return []
+
+    def test_is_ai_created_filter_returns_only_ai_employee(self):
+        result = self._call(employee_id=self.all_ids, is_ai_created=1)
+        self.assertEqual(self._names(result), ["Tvai AiOnly"])
+
+    def test_is_ai_created_zero_returns_manual_employee(self):
+        # is_ai_created=0 must narrow to non-AI, not be treated as "no filter".
+        result = self._call(employee_id=self.all_ids, is_ai_created=0)
+        self.assertEqual(self._names(result), ["Tvai ManualOnly"])
+
+    def test_out_of_window_ai_allocation_does_not_qualify_employee(self):
+        result = self._call(employee_id=json.dumps([self.emp_out]), is_ai_created=1)
+        self.assertEqual(result["employees"], [])
+
+    def test_is_ai_created_returned_in_allocation_payload(self):
+        # The frontend needs is_ai_created on every allocation row to style the Gantt bar.
+        result = self._call(employee_id=json.dumps([self.emp_ai]))
+        allocations = result.get("resource_allocations", [])
+        self.assertTrue(len(allocations) > 0)
+        for alloc in allocations:
+            self.assertIn("is_ai_created", alloc)
+
+    def test_is_ai_created_filter_ignored_without_write_permission(self):
+        # A read-only caller must not be narrowed by is_ai_created — the filter is blanked.
+        result = self._call(user=FILTER_READ_ONLY_USER, employee_name="Tvai", is_ai_created=1)
+        self.assertFalse(result["permissions"]["write"])
+        names = self._names(result)
+        # Both the AI employee and the manual employee must appear (filter was ignored).
+        self.assertIn("Tvai AiOnly", names)
+        self.assertIn("Tvai ManualOnly", names)
+
+
 class TestTeamViewHoursSummaryShape(_TeamViewBase):
     """The need_hours_summary response-shape switch."""
 

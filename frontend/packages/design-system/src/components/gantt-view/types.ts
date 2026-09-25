@@ -20,6 +20,8 @@ export interface Allocation {
   billable?: boolean;
   /** Whether the allocation is tentative. */
   tentative?: boolean;
+  /** Whether the allocation was created by AI. */
+  isAiCreated?: boolean;
   /** Note for the allocation. */
   note?: string;
   /** Created on date. */
@@ -136,6 +138,8 @@ export interface AllocationCallbackData {
   billable?: boolean;
   /** Whether the allocation is tentative. */
   tentative?: boolean;
+  /** Whether the allocation was created by AI. */
+  isAiCreated?: boolean;
   /** Note for the allocation. */
   note?: string;
   /** Existing day-level overrides attached to the allocation. */
