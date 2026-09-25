@@ -1,6 +1,9 @@
 import frappe
 
 from next_pms.install import create_default_timeline_item_categories
+from next_pms.next_projects.doctype.project_timeline_item_category.project_timeline_item_category import (
+    get_fallback_category,
+)
 
 
 def execute():
@@ -11,6 +14,6 @@ def execute():
             "Project Timeline Item",
             {"type": item_type, "category": ("in", (None, ""))},
             "category",
-            f"Other - {item_type}",
+            get_fallback_category(item_type),
             update_modified=False,
         )

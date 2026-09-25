@@ -1,7 +1,13 @@
 # Copyright (c) 2026, rtCamp and contributors
 # For license information, please see license.txt
 
+import frappe
+from frappe import _
 from frappe.model.document import Document
+
+
+def get_fallback_category(item_type: str) -> str:
+    return f"Other - {item_type}"
 
 
 class ProjectTimelineItemCategory(Document):
@@ -18,4 +24,8 @@ class ProjectTimelineItemCategory(Document):
         position: DF.Int
     # end: auto-generated types
 
-    pass
+    def on_trash(self):
+        if self.name == get_fallback_category(self.applies_to):
+            frappe.throw(
+                _("{0} is the fallback category for {1} items and cannot be deleted").format(self.name, self.applies_to)
+            )

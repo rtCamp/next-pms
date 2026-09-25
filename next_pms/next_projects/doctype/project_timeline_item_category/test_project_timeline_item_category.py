@@ -80,3 +80,22 @@ class IntegrationTestProjectTimelineItemCategory(IntegrationTestCase):
                     "applies_to": "Milestone",
                 }
             ).insert(ignore_permissions=True)
+
+    def test_categories_cannot_be_renamed(self):
+        with self.assertRaisesRegex(frappe.ValidationError, "not allowed to be renamed"):
+            frappe.rename_doc("Project Timeline Item Category", "Other - Milestone", "Misc - Milestone")
+
+    def test_applies_to_cannot_change(self):
+        category = frappe.get_doc("Project Timeline Item Category", "Contract - Milestone")
+        category.applies_to = "Touchpoint"
+        with self.assertRaises(frappe.CannotChangeConstantError):
+            category.save(ignore_permissions=True)
+
+    def test_fallback_category_cannot_be_deleted(self):
+        for item_type in ("Milestone", "Touchpoint"):
+            with self.assertRaisesRegex(frappe.ValidationError, "fallback category"):
+                frappe.delete_doc("Project Timeline Item Category", f"Other - {item_type}", ignore_permissions=True)
+            self.assertTrue(frappe.db.exists("Project Timeline Item Category", f"Other - {item_type}"))
+
+    def test_label_is_readable_with_select_permission(self):
+        self.assertIn("category_name", frappe.get_meta("Project Timeline Item Category").get_search_fields())

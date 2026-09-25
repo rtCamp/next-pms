@@ -5,6 +5,10 @@ import frappe
 from frappe import _
 from frappe.model.document import Document
 
+from next_pms.next_projects.doctype.project_timeline_item_category.project_timeline_item_category import (
+    get_fallback_category,
+)
+
 
 class ProjectTimelineItem(Document):
     # begin: auto-generated types
@@ -36,7 +40,7 @@ class ProjectTimelineItem(Document):
 
     def validate_category(self):
         if not self.category:
-            self.category = f"Other - {self.type}"
+            self.category = get_fallback_category(self.type)
             return
 
         applies_to = frappe.db.get_value("Project Timeline Item Category", self.category, "applies_to")
