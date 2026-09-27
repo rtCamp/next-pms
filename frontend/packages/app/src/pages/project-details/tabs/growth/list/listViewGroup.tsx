@@ -93,7 +93,11 @@ export function GrowthGroup({
                 className="w-8 shrink-0 flex justify-end"
                 onClick={(e) => e.stopPropagation()}
               >
-                <GrowthRowActions growthName={item.name} showFollow={false} />
+                <GrowthRowActions
+                  growthName={item.name}
+                  activityOwner={item.activity_owner}
+                  showFollow={false}
+                />
               </div>
             </div>
           ))}

@@ -1,11 +1,12 @@
-import type { CreateGrowthValues } from "./schema";
+import type { GrowthFormValues } from "./schema";
 
-export const EMPTY_GROWTH_VALUES: CreateGrowthValues = {
+export const EMPTY_GROWTH_VALUES: GrowthFormValues = {
   activity: "",
   category: null,
   description: "",
   client_priority: "",
   status: "",
+  closed_status: "",
   desired_outcome: "",
   ideation_date: "",
   activity_owner: "",

@@ -18,16 +18,6 @@ export const CREATE_RISK_ROLES = [
   "Delivery User",
 ] as const;
 
-export const MANAGE_ALL_RISK_ROLES = [
-  "System Manager",
-  ...CREATE_RISK_ROLES,
-] as const;
-
-export const RISK_OWNER_GATED_ROLES = [
-  "Timesheet Manager",
-  "Projects User",
-] as const;
-
 export const RISK_LIST_COLUMNS = [
   { key: "risk_category", label: "Risk category", width: "128px", flex: 1 },
   { key: "summary", label: "Risk Summary", width: "264px", flex: 4 },

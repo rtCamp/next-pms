@@ -80,6 +80,7 @@ export function GrowthDetailHeader({
         <FollowersBadge followers={followers} />
         <GrowthRowActions
           growthName={growth.name}
+          activityOwner={growth.activity_owner}
           isFollowing={isFollowing}
           onAfterFollow={onAfterFollow}
         />

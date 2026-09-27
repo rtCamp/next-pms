@@ -311,9 +311,6 @@ export const canExport = (doctype: string) => {
 export const canCreate = (doctype: string) => {
   return window.frappe?.boot?.user?.can_create?.includes(doctype) ?? true;
 };
-export const canDelete = (doctype: string) => {
-  return window.frappe?.boot?.user?.can_delete?.includes(doctype) ?? false;
-};
 
 export const currencyFormat = (currency: string = "INR"): Intl.NumberFormat => {
   // Currency-specific locale settings

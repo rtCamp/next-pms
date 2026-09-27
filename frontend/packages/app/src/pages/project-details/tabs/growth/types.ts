@@ -43,6 +43,11 @@ export interface NamedDoc {
   name: string;
 }
 
+export interface GrowthStatusDoc extends NamedDoc {
+  status_type: "Status" | "Closed Status";
+  is_closed: 0 | 1;
+}
+
 export interface ApiGrowthDetail extends ApiGrowthInitiativeItem {
   ideation_date: string;
   billable_outcome: number;

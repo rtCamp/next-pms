@@ -25,6 +25,7 @@ function GrowthContent() {
   const isLoading = useGrowth((c) => c.state.isLoading);
   const isCreateOpen = useGrowth((c) => c.state.isCreateOpen);
   const closeCreate = useGrowth((c) => c.actions.closeCreate);
+  const editName = useGrowth((c) => c.state.editName);
   const deleteName = useGrowth((c) => c.state.deleteName);
   const closeDelete = useGrowth((c) => c.actions.closeDelete);
   const deleteGrowth = useGrowth((c) => c.actions.deleteGrowth);
@@ -50,7 +51,11 @@ function GrowthContent() {
   return (
     <div className="relative flex flex-col h-full">
       {deleteDialog}
-      <CreateGrowthModal open={isCreateOpen} onClose={closeCreate} />
+      <CreateGrowthModal
+        open={isCreateOpen}
+        onClose={closeCreate}
+        growthName={editName}
+      />
       <GrowthHeader />
       <div
         className={cn("flex flex-col flex-1 min-h-0", {
