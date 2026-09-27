@@ -38,3 +38,7 @@ export interface GrowthSort {
   field: string;
   order: "asc" | "desc";
 }
+
+export interface NamedDoc {
+  name: string;
+}

@@ -29,13 +29,13 @@ import {
 import { useEmployeeLookup } from "@/hooks/useEmployeeLookup";
 import { parseFrappeErrorMsg } from "@/lib/utils";
 import { useProjectDetail } from "@/pages/project-details/context";
+import { toEmployeeUserOptions } from "@/pages/project-details/utils";
 import { RISK_LEVELS, RISK_STATUSES } from "../constants";
 import { useRisks } from "../context";
 import { EMPTY_RISK_VALUES } from "./constants";
 import { DisabledRiskField } from "./disabledRiskField";
 import { createRiskSchema, editRiskSchema } from "./schema";
 import type { CreateRiskModalProps } from "./types";
-import { toRiskOwnerOptions } from "./utils";
 import { RiskLevelBadge } from "../riskLevelBadge";
 import { RiskStatusBadge } from "../riskStatusBadge";
 import type { ApiRiskDetail } from "../types";
@@ -341,7 +341,7 @@ export function CreateRiskModal({
                 <Combobox
                   inputClassName="bg-surface-white h-8 border-outline-gray-2 text-ink-gray-7"
                   loading={employeesLoading}
-                  options={toRiskOwnerOptions(
+                  options={toEmployeeUserOptions(
                     employeeOptions,
                     field.state.value || undefined,
                     selectedOwnerLabel || undefined,

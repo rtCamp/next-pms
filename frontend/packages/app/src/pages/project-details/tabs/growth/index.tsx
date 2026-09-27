@@ -8,15 +8,19 @@ import { Spinner } from "@next-pms/design-system/components";
  * Internal dependencies.
  */
 import { useGrowth } from "./context";
+import { CreateGrowthModal } from "./create-growth";
 import { GrowthHeader } from "./header";
 import { GrowthListView } from "./list/listView";
 import { GrowthProvider } from "./provider";
 
 function GrowthContent() {
   const isLoading = useGrowth((c) => c.state.isLoading);
+  const isCreateOpen = useGrowth((c) => c.state.isCreateOpen);
+  const closeCreate = useGrowth((c) => c.actions.closeCreate);
 
   return (
     <div className="relative flex flex-col h-full">
+      <CreateGrowthModal open={isCreateOpen} onClose={closeCreate} />
       <GrowthHeader />
       <div
         className={cn("flex flex-col flex-1 min-h-0", {
