@@ -2,14 +2,23 @@
  * External dependencies.
  */
 import { useCallback, useMemo, useState, type PropsWithChildren } from "react";
-import { useFrappeGetDocList } from "frappe-react-sdk";
+import { useSearchParams } from "react-router";
+import { useToasts } from "@rtcamp/frappe-ui-react";
+import {
+  useFrappeDeleteDoc,
+  useFrappeGetDocList,
+  type FrappeError,
+} from "frappe-react-sdk";
 
 /**
  * Internal dependencies.
  */
+import { parseFrappeErrorMsg } from "@/lib/utils";
 import {
   DEFAULT_GROWTH_FILTERS,
   GROWTH_CATEGORY_DOCTYPE,
+  GROWTH_DETAIL_PARAM,
+  GROWTH_DOCTYPE,
   GROWTH_STATUS_DOCTYPE,
 } from "./constants";
 import { GrowthContext, type GrowthContextProps } from "./context";
@@ -22,6 +31,10 @@ export function GrowthProvider({ children }: PropsWithChildren) {
   );
   const [sort, setSort] = useState<GrowthSort | null>(null);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [deleteName, setDeleteName] = useState<string | null>(null);
+  const [, setSearchParams] = useSearchParams();
+  const { deleteDoc } = useFrappeDeleteDoc();
+  const toast = useToasts();
 
   const {
     data,
@@ -55,6 +68,36 @@ export function GrowthProvider({ children }: PropsWithChildren) {
   const openCreate = useCallback(() => setIsCreateOpen(true), []);
   const closeCreate = useCallback(() => setIsCreateOpen(false), []);
 
+  const openDetail = useCallback(
+    (name: string) => {
+      setSearchParams((prev) => {
+        prev.set(GROWTH_DETAIL_PARAM, name);
+        return prev;
+      });
+    },
+    [setSearchParams],
+  );
+
+  const openDelete = useCallback((name: string) => setDeleteName(name), []);
+  const closeDelete = useCallback(() => setDeleteName(null), []);
+
+  const deleteGrowth = useCallback(
+    async (name: string) => {
+      try {
+        await deleteDoc(GROWTH_DOCTYPE, name);
+        setSearchParams((prev) => {
+          prev.delete(GROWTH_DETAIL_PARAM);
+          return prev;
+        });
+        void mutate();
+        toast.success("Growth initiative deleted");
+      } catch (err) {
+        toast.error(parseFrappeErrorMsg(err as FrappeError));
+      }
+    },
+    [deleteDoc, setSearchParams, mutate, toast],
+  );
+
   const value = useMemo<GrowthContextProps>(
     () => ({
       state: {
@@ -66,11 +109,22 @@ export function GrowthProvider({ children }: PropsWithChildren) {
         activityOwnersWithDetails,
         ideationOwnersWithDetails,
         isCreateOpen,
+        deleteName,
         statuses: statuses ?? [],
         categories: categories ?? [],
         isMastersLoading: statusesLoading || categoriesLoading,
       },
-      actions: { setFilters, setSort, refresh, openCreate, closeCreate },
+      actions: {
+        setFilters,
+        setSort,
+        refresh,
+        openCreate,
+        closeCreate,
+        openDetail,
+        openDelete,
+        closeDelete,
+        deleteGrowth,
+      },
     }),
     [
       data,
@@ -81,6 +135,7 @@ export function GrowthProvider({ children }: PropsWithChildren) {
       activityOwnersWithDetails,
       ideationOwnersWithDetails,
       isCreateOpen,
+      deleteName,
       statuses,
       categories,
       statusesLoading,
@@ -89,6 +144,10 @@ export function GrowthProvider({ children }: PropsWithChildren) {
       refresh,
       openCreate,
       closeCreate,
+      openDetail,
+      openDelete,
+      closeDelete,
+      deleteGrowth,
     ],
   );
 

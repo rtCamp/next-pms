@@ -42,3 +42,16 @@ export interface GrowthSort {
 export interface NamedDoc {
   name: string;
 }
+
+export interface ApiGrowthDetail extends ApiGrowthInitiativeItem {
+  ideation_date: string;
+  billable_outcome: number;
+  description: string | null;
+  desired_outcome: string | null;
+  owner: string;
+}
+
+export interface GrowthDetail extends ApiGrowthDetail {
+  activity_owner_details: UserDetails | null;
+  ideation_owner_details: UserDetails | null;
+}
