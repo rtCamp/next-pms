@@ -23,7 +23,7 @@ const OWNER_COLUMN: GrowthListColumn = {
 const LAST_UPDATED_COLUMN: GrowthListColumn = {
   key: "modified",
   label: "Last Updated Date",
-  width: "128px",
+  width: "150px",
   flex: 0,
 };
 
@@ -64,7 +64,7 @@ export const GROWTH_SORT_FIELDS = [
   { field: "activity", label: "Activity" },
   { field: "status", label: "Status" },
   { field: "category", label: "Category" },
-  { field: "client_priority", label: "Priority for client" },
+  { field: "client_priority", label: "Priority for Client" },
 ];
 
 export const CLIENT_PRIORITIES = ["Low", "Medium", "High"] as const;

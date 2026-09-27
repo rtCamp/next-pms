@@ -68,7 +68,7 @@ export function GrowthGroup({
           </div>
 
           {items.length === 0 && (
-            <div className="py-6 text-center text-sm text-ink-gray-5">
+            <div className="sticky left-0 py-6 text-center text-sm text-ink-gray-5">
               No growth initiatives found
             </div>
           )}

@@ -266,7 +266,7 @@ export function CreateGrowthModal({
             children={(field) => (
               <div className="flex flex-col gap-1.5">
                 <label className="block text-base text-ink-gray-5">
-                  Priority for client
+                  Priority for Client
                 </label>
                 <Select
                   className="text-ink-gray-7 **:data-placeholder:text-ink-gray-4"

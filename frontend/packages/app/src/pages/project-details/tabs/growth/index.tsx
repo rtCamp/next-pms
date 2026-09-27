@@ -30,19 +30,28 @@ function GrowthContent() {
   const closeDelete = useGrowth((c) => c.actions.closeDelete);
   const deleteGrowth = useGrowth((c) => c.actions.deleteGrowth);
 
-  const deleteDialog = deleteName && (
-    <DeleteActionDialog
-      title="Delete growth initiative"
-      description="Are you sure you want to delete this growth initiative? This action cannot be undone."
-      onClose={closeDelete}
-      onConfirm={() => deleteGrowth(deleteName)}
-    />
+  const dialogs = (
+    <>
+      <CreateGrowthModal
+        open={isCreateOpen}
+        onClose={closeCreate}
+        growthName={editName}
+      />
+      {deleteName && (
+        <DeleteActionDialog
+          title="Delete growth initiative"
+          description="Are you sure you want to delete this growth initiative? This action cannot be undone."
+          onClose={closeDelete}
+          onConfirm={() => deleteGrowth(deleteName)}
+        />
+      )}
+    </>
   );
 
   if (growthId) {
     return (
       <>
-        {deleteDialog}
+        {dialogs}
         <GrowthDetailView growthId={growthId} />
       </>
     );
@@ -50,12 +59,7 @@ function GrowthContent() {
 
   return (
     <div className="relative flex flex-col h-full">
-      {deleteDialog}
-      <CreateGrowthModal
-        open={isCreateOpen}
-        onClose={closeCreate}
-        growthName={editName}
-      />
+      {dialogs}
       <GrowthHeader />
       <div
         className={cn("flex flex-col flex-1 min-h-0", {
