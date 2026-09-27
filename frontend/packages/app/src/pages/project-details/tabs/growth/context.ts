@@ -11,6 +11,7 @@ import type {
   GrowthFilters,
   GrowthInitiativeItem,
   GrowthSort,
+  GrowthStatusDoc,
   NamedDoc,
   UserDetailsMap,
 } from "./types";
@@ -25,8 +26,10 @@ export interface GrowthContextProps {
     activityOwnersWithDetails: UserDetailsMap;
     ideationOwnersWithDetails: UserDetailsMap;
     isCreateOpen: boolean;
+    editName: string | null;
     deleteName: string | null;
-    statuses: NamedDoc[];
+    statuses: GrowthStatusDoc[];
+    closedStatuses: NamedDoc[];
     categories: NamedDoc[];
     isMastersLoading: boolean;
   };
@@ -36,6 +39,7 @@ export interface GrowthContextProps {
     refresh: () => void;
     openCreate: () => void;
     closeCreate: () => void;
+    openEdit: (name: string) => void;
     openDetail: (name: string) => void;
     openDelete: (name: string) => void;
     closeDelete: () => void;
@@ -55,8 +59,10 @@ export const GrowthContext = createContext<GrowthContextProps>({
     activityOwnersWithDetails: {},
     ideationOwnersWithDetails: {},
     isCreateOpen: false,
+    editName: null,
     deleteName: null,
     statuses: [],
+    closedStatuses: [],
     categories: [],
     isMastersLoading: false,
   },
@@ -66,6 +72,7 @@ export const GrowthContext = createContext<GrowthContextProps>({
     refresh: noop,
     openCreate: noop,
     closeCreate: noop,
+    openEdit: noop,
     openDetail: noop,
     openDelete: noop,
     closeDelete: noop,
