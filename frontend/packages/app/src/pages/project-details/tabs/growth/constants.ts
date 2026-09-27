@@ -68,3 +68,5 @@ export const GROWTH_SORT_FIELDS = [
 ];
 
 export const CLIENT_PRIORITIES = ["Low", "Medium", "High"] as const;
+
+export const GROWTH_DETAIL_PARAM = "growth";

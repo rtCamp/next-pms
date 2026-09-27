@@ -25,6 +25,7 @@ export interface GrowthContextProps {
     activityOwnersWithDetails: UserDetailsMap;
     ideationOwnersWithDetails: UserDetailsMap;
     isCreateOpen: boolean;
+    deleteName: string | null;
     statuses: NamedDoc[];
     categories: NamedDoc[];
     isMastersLoading: boolean;
@@ -35,6 +36,10 @@ export interface GrowthContextProps {
     refresh: () => void;
     openCreate: () => void;
     closeCreate: () => void;
+    openDetail: (name: string) => void;
+    openDelete: (name: string) => void;
+    closeDelete: () => void;
+    deleteGrowth: (name: string) => Promise<void>;
   };
 }
 
@@ -50,6 +55,7 @@ export const GrowthContext = createContext<GrowthContextProps>({
     activityOwnersWithDetails: {},
     ideationOwnersWithDetails: {},
     isCreateOpen: false,
+    deleteName: null,
     statuses: [],
     categories: [],
     isMastersLoading: false,
@@ -60,6 +66,10 @@ export const GrowthContext = createContext<GrowthContextProps>({
     refresh: noop,
     openCreate: noop,
     closeCreate: noop,
+    openDetail: noop,
+    openDelete: noop,
+    closeDelete: noop,
+    deleteGrowth: async () => {},
   },
 });
 

@@ -74,6 +74,7 @@ declare global {
         user?: {
           roles?: Role[];
           can_create: string[];
+          can_delete?: string[];
         };
         currencies?: string[];
         sysdefaults?: {

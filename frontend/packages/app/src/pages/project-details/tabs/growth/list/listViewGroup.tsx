@@ -7,6 +7,8 @@ import { SmallDown } from "@rtcamp/frappe-ui-react/icons";
 /**
  * Internal dependencies.
  */
+import { useGrowth } from "../context";
+import { GrowthRowActions } from "../rowActions";
 import type { GrowthInitiativeItem, GrowthListColumn } from "../types";
 import { GrowthCell } from "./cells";
 
@@ -20,7 +22,8 @@ interface GrowthGroupProps {
 const rowMinWidth = (columns: GrowthListColumn[]) =>
   columns.reduce((total, col) => total + parseInt(col.width, 10), 0) +
   16 +
-  columns.length * 8;
+  columns.length * 8 +
+  32;
 
 export function GrowthGroup({
   value,
@@ -29,6 +32,7 @@ export function GrowthGroup({
   items,
 }: GrowthGroupProps) {
   const minWidth = rowMinWidth(columns);
+  const openDetail = useGrowth((c) => c.actions.openDetail);
 
   return (
     <Accordion.Item value={value}>
@@ -60,6 +64,7 @@ export function GrowthGroup({
                 {col.label}
               </div>
             ))}
+            <div className="w-8 shrink-0" />
           </div>
 
           {items.length === 0 && (
@@ -72,7 +77,8 @@ export function GrowthGroup({
             <div
               key={item.name}
               style={{ minWidth }}
-              className="flex items-center gap-2 px-1 py-1.5 border-b border-outline-gray-1 hover:bg-surface-gray-1 text-base text-ink-gray-6 last:mb-5"
+              className="flex items-center gap-2 px-1 py-1.5 border-b border-outline-gray-1 hover:bg-surface-gray-1 text-base text-ink-gray-6 cursor-pointer last:mb-5"
+              onClick={() => openDetail(item.name)}
             >
               {columns.map((col) => (
                 <div
@@ -83,6 +89,12 @@ export function GrowthGroup({
                   <GrowthCell column={col} item={item} />
                 </div>
               ))}
+              <div
+                className="w-8 shrink-0 flex justify-end"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <GrowthRowActions growthName={item.name} showFollow={false} />
+              </div>
             </div>
           ))}
         </div>
