@@ -17,9 +17,24 @@ export interface ApiGrowthInitiativeItem {
   is_closed: 0 | 1;
   closed_status: string | null;
   activity_owner: string | null;
+  ideation_owner: string | null;
   modified: string;
 }
 
 export interface GrowthInitiativeItem extends ApiGrowthInitiativeItem {
   owner_details?: UserDetails | null;
+}
+
+export type UserDetailsMap = Record<string, UserDetails | undefined>;
+
+export interface GrowthFilters {
+  activityOwner: string;
+  ideationOwner: string;
+  status: string;
+  category: string;
+}
+
+export interface GrowthSort {
+  field: string;
+  order: "asc" | "desc";
 }

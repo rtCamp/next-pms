@@ -1,4 +1,4 @@
-import type { GrowthListColumn } from "./types";
+import type { GrowthFilters, GrowthListColumn } from "./types";
 
 export const GROWTH_DOCTYPE = "PMS Growth Initiative";
 
@@ -47,4 +47,22 @@ export const CLOSED_GROWTH_COLUMNS: GrowthListColumn[] = [
   OWNER_COLUMN,
   LAST_UPDATED_COLUMN,
   { key: "closed_status", label: "Closed Status", width: "120px", flex: 1 },
+];
+
+export const GROWTH_STATUS_DOCTYPE = "PMS Growth Initiative Status";
+export const GROWTH_CATEGORY_DOCTYPE = "PMS Growth Initiative Category";
+
+export const DEFAULT_GROWTH_FILTERS: GrowthFilters = {
+  activityOwner: "",
+  ideationOwner: "",
+  status: "",
+  category: "",
+};
+
+export const GROWTH_SORT_FIELDS = [
+  { field: "modified", label: "Last updated on" },
+  { field: "activity", label: "Activity" },
+  { field: "status", label: "Status" },
+  { field: "category", label: "Category" },
+  { field: "client_priority", label: "Priority for client" },
 ];
