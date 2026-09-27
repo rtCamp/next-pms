@@ -3,23 +3,18 @@
  */
 import { useMemo } from "react";
 import { Button, Select } from "@rtcamp/frappe-ui-react";
-import { useFrappeGetDocList } from "frappe-react-sdk";
 
 /**
  * Internal dependencies.
  */
-import {
-  DEFAULT_GROWTH_FILTERS,
-  GROWTH_CATEGORY_DOCTYPE,
-  GROWTH_STATUS_DOCTYPE,
-} from "../constants";
+import { DEFAULT_GROWTH_FILTERS } from "../constants";
 import { useGrowth } from "../context";
 import { OwnerCombobox } from "./ownerCombobox";
 import { SortButton } from "./sortButton";
 
-const toNameOptions = (allLabel: string, docs?: { name: string }[]) => [
+const toNameOptions = (allLabel: string, docs: { name: string }[]) => [
   { label: allLabel, value: "" },
-  ...(docs ?? []).map((doc) => ({ label: doc.name, value: doc.name })),
+  ...docs.map((doc) => ({ label: doc.name, value: doc.name })),
 ];
 
 export function GrowthToolbar() {
@@ -28,18 +23,8 @@ export function GrowthToolbar() {
   const ideationOwners = useGrowth((c) => c.state.ideationOwnersWithDetails);
   const setFilters = useGrowth((c) => c.actions.setFilters);
 
-  const { data: statuses } = useFrappeGetDocList<{ name: string }>(
-    GROWTH_STATUS_DOCTYPE,
-    {
-      fields: ["name"],
-      filters: [["status_type", "=", "Status"]],
-      orderBy: { field: "name", order: "asc" },
-    },
-  );
-  const { data: categories } = useFrappeGetDocList<{ name: string }>(
-    GROWTH_CATEGORY_DOCTYPE,
-    { fields: ["name"], orderBy: { field: "name", order: "asc" } },
-  );
+  const statuses = useGrowth((c) => c.state.statuses);
+  const categories = useGrowth((c) => c.state.categories);
 
   const statusOptions = useMemo(
     () => toNameOptions("All statuses", statuses),

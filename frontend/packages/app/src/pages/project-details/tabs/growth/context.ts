@@ -11,6 +11,7 @@ import type {
   GrowthFilters,
   GrowthInitiativeItem,
   GrowthSort,
+  NamedDoc,
   UserDetailsMap,
 } from "./types";
 
@@ -23,11 +24,17 @@ export interface GrowthContextProps {
     sort: GrowthSort | null;
     activityOwnersWithDetails: UserDetailsMap;
     ideationOwnersWithDetails: UserDetailsMap;
+    isCreateOpen: boolean;
+    statuses: NamedDoc[];
+    categories: NamedDoc[];
+    isMastersLoading: boolean;
   };
   actions: {
     setFilters: (filters: Partial<GrowthFilters>) => void;
     setSort: (sort: GrowthSort | null) => void;
     refresh: () => void;
+    openCreate: () => void;
+    closeCreate: () => void;
   };
 }
 
@@ -42,8 +49,18 @@ export const GrowthContext = createContext<GrowthContextProps>({
     sort: null,
     activityOwnersWithDetails: {},
     ideationOwnersWithDetails: {},
+    isCreateOpen: false,
+    statuses: [],
+    categories: [],
+    isMastersLoading: false,
   },
-  actions: { setFilters: noop, setSort: noop, refresh: noop },
+  actions: {
+    setFilters: noop,
+    setSort: noop,
+    refresh: noop,
+    openCreate: noop,
+    closeCreate: noop,
+  },
 });
 
 export const useGrowth = <T>(selector: (state: GrowthContextProps) => T) =>

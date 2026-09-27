@@ -66,3 +66,5 @@ export const GROWTH_SORT_FIELDS = [
   { field: "category", label: "Category" },
   { field: "client_priority", label: "Priority for client" },
 ];
+
+export const CLIENT_PRIORITIES = ["Low", "Medium", "High"] as const;
