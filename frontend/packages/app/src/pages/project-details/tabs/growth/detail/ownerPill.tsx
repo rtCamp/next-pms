@@ -6,7 +6,7 @@ import { Avatar } from "@rtcamp/frappe-ui-react";
 /**
  * Internal dependencies.
  */
-import type { UserDetails } from "../../risks/types";
+import type { UserDetails } from "@/pages/project-details/types";
 
 interface OwnerPillProps {
   email: string | null;

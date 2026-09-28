@@ -8,9 +8,9 @@ import { ArrowLeft } from "@rtcamp/frappe-ui-react/icons";
 /**
  * Internal dependencies.
  */
+import { FollowersBadge } from "@/pages/project-details/components/followersBadge";
+import type { Follower } from "@/pages/project-details/types";
 import { useUser } from "@/providers/user";
-import { FollowersBadge } from "../../risks/detail/followersBadge";
-import type { Follower } from "../../risks/types";
 import { GROWTH_DETAIL_PARAM } from "../constants";
 import { OwnerPill } from "./ownerPill";
 import { PriorityBadge } from "../list/cells/priorityBadge";

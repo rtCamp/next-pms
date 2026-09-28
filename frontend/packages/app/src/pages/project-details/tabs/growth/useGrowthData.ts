@@ -9,6 +9,7 @@ import { useFrappeGetDocList } from "frappe-react-sdk";
  */
 import { hashString } from "@/lib/utils";
 import { useProjectDetail } from "@/pages/project-details/context";
+import type { UserDetails } from "@/pages/project-details/types";
 import { GROWTH_DOCTYPE } from "./constants";
 import type {
   ApiGrowthInitiativeItem,
@@ -17,7 +18,6 @@ import type {
   GrowthSort,
   UserDetailsMap,
 } from "./types";
-import type { UserDetails } from "../risks/types";
 
 const toUserMap = (emails: string[], users: UserDetails[]): UserDetailsMap =>
   Object.fromEntries(

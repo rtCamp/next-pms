@@ -6,6 +6,7 @@ import { Spinner } from "@next-pms/design-system/components";
 /**
  * Internal dependencies.
  */
+import { useOwnerGatedPermissions } from "@/pages/project-details/useOwnerGatedPermissions";
 import { GrowthDetailContent } from "./content";
 import { GrowthDetailHeader } from "./header";
 import { useGrowthDetail } from "./useGrowthDetail";
@@ -15,8 +16,15 @@ interface GrowthDetailViewProps {
 }
 
 export function GrowthDetailView({ growthId }: GrowthDetailViewProps) {
-  const { growth, isLoading, followers, mutateFollowers } =
-    useGrowthDetail(growthId);
+  const {
+    growth,
+    isLoading,
+    attachments,
+    followers,
+    mutateAttachments,
+    mutateFollowers,
+  } = useGrowthDetail(growthId);
+  const { canEdit } = useOwnerGatedPermissions(growth?.activity_owner);
 
   if (isLoading) {
     return (
@@ -41,7 +49,12 @@ export function GrowthDetailView({ growthId }: GrowthDetailViewProps) {
         followers={followers}
         onAfterFollow={() => void mutateFollowers()}
       />
-      <GrowthDetailContent growth={growth} />
+      <GrowthDetailContent
+        growth={growth}
+        attachments={attachments}
+        canEdit={canEdit}
+        onAttachmentsChange={() => void mutateAttachments()}
+      />
     </div>
   );
 }
