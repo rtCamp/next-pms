@@ -32,6 +32,8 @@ export type ProjectListItem = {
   contract_end_date: string | null;
   project_manager: Employee | null;
   engineering_manager: Employee | null;
+  lifetime_value_to_date: number | null;
+  client_poc_name: string | null;
 };
 
 export type ResponseProjectList = {

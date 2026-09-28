@@ -17,6 +17,14 @@ def get_user_image_map(users: list[str]) -> dict[str, str | None]:
     return {row.name: row.user_image for row in rows}
 
 
+def get_contact_name_map(contacts: list[str]) -> dict[str, str | None]:
+    """Fetch full_name for multiple contacts in a single query."""
+    if not contacts:
+        return {}
+    rows = frappe.get_all("Contact", filters={"name": ["in", contacts]}, fields=["name", "full_name"])
+    return {row.name: row.full_name for row in rows}
+
+
 def get_user_image(user: str) -> str | None:
     """Get user's avatar image URL."""
     if not user:

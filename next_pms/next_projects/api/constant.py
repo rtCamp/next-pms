@@ -25,7 +25,9 @@ TIMELINE_ITEM_FIELDS = [
     "item_owner",
     "item_owner_name",
     "type",
+    "category",
     "is_complete",
+    "is_internal",
     "start_date",
     "planned_end_date",
     "actual_end_date",
@@ -88,6 +90,8 @@ LIST_VIEW_FIELDS = [
     "custom_project_manager_name",
     "custom_engineering_manager",
     "custom_engineering_manager_name",
+    "custom_lifetime_value_to_date",
+    "custom_client_point_of_contact",
 ]
 
 KANBAN_VIEW_FIELDS = [

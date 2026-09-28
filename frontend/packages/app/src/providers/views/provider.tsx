@@ -79,7 +79,14 @@ export const ViewsProvider: FC<
   );
 
   const applyView = useCallback(
-    (view: View, options?: { replace?: boolean }) => {
+    (
+      view: View,
+      options?: {
+        replace?: boolean;
+        reset?: boolean;
+        params?: Record<string, string | null>;
+      },
+    ) => {
       appliedViewName.current = String(view.name);
       setSearchParams(
         (params) => {
@@ -92,7 +99,15 @@ export const ViewsProvider: FC<
                 key,
                 typeof value === "string" ? value : JSON.stringify(value),
               );
-            } else if (value === null) {
+            } else if (value === null || options?.reset) {
+              params.delete(key);
+            }
+          });
+
+          Object.entries(options?.params ?? {}).forEach(([key, value]) => {
+            if (value) {
+              params.set(key, value);
+            } else {
               params.delete(key);
             }
           });

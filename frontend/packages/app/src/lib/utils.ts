@@ -7,7 +7,7 @@ import {
   getUTCDateTime,
   normalizeDate,
 } from "@next-pms/design-system/date";
-import { FilterCondition } from "@rtcamp/frappe-ui-react";
+import { FilterCondition, SelectorColumn } from "@rtcamp/frappe-ui-react";
 import { type ClassValue, clsx } from "clsx";
 import {
   format,
@@ -859,4 +859,43 @@ export function getFileExtension(fileName: string): string {
   }
 
   return fileName.slice(lastDotIndex + 1).toUpperCase();
+}
+
+/**
+ * Parses a comma-separated string (or array) of column keys into the known,
+ * de-duplicated keys it names, preserving order.
+ */
+export function parseColumnKeys(
+  value: unknown,
+  knownKeys: ReadonlySet<string>,
+): string[] {
+  const keys =
+    typeof value === "string"
+      ? value.split(",")
+      : Array.isArray(value)
+        ? value
+        : [];
+  const seen = new Set<string>();
+  return keys.filter((key) => {
+    if (!knownKeys.has(key) || seen.has(key)) {
+      return false;
+    }
+    seen.add(key);
+    return true;
+  });
+}
+
+/**
+ * Maps list columns onto the shape `ColumnSelector` renders.
+ */
+export function toSelectorColumns(
+  columns: { key: string; label: string }[],
+  pinnedKeys: string[] = [],
+): SelectorColumn[] {
+  const pinned = new Set(pinnedKeys);
+  return columns.map(({ key, label }) => ({
+    value: key,
+    label,
+    pinned: pinned.has(key),
+  }));
 }

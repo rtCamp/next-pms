@@ -217,6 +217,7 @@ export function GanttAllocationBar({
         allocationEndDate: allocation.allocationEndDate,
         allocationHoursPerDay: allocation.allocationHoursPerDay,
         includeWeekends: allocation.includeWeekends,
+        includeHolidays: allocation.includeHolidays,
         segmentStartDate: allocation.startDate,
         segmentEndDate: allocation.endDate,
         segmentHoursPerDay: allocation.hours,

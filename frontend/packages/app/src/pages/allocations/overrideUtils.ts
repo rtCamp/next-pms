@@ -18,6 +18,7 @@ interface AllocationScheduleContext {
 interface AllocationEditSelection {
   dates: string[];
   hoursPerDay: number;
+  lockedDates?: Set<string>;
 }
 
 type DayOverridePayload = {
@@ -46,19 +47,18 @@ const getDateKeysInRange = (startDate: string, endDate: string) =>
 
 /**
  * Checks whether the picked dates cover the allocation's whole range, which makes the edit a
- * base-hours change rather than a day-override change. A leave day cannot be picked and the
- * backend re-derives its hours from the base, so it counts as covered.
+ * base-hours change rather than a day-override change. A leave day is pickable like any other,
+ * so it only counts as covered once it is actually picked, while a locked day always does.
  */
 const isFullAllocationRangeEdit = ({
   allocation,
   next,
-  leaveOwnedDates,
 }: {
   allocation: AllocationScheduleContext;
-  next: Pick<AllocationEditSelection, "dates">;
-  leaveOwnedDates: Set<string>;
+  next: Pick<AllocationEditSelection, "dates" | "lockedDates">;
 }): boolean => {
   const selectedDates = new Set(next.dates);
+  const lockedDates = next.lockedDates ?? new Set<string>();
   const [rangeStart, rangeEnd] =
     allocation.allocationStartDate <= allocation.allocationEndDate
       ? [allocation.allocationStartDate, allocation.allocationEndDate]
@@ -67,7 +67,7 @@ const isFullAllocationRangeEdit = ({
   return (
     selectedDates.size > 0 &&
     getDateKeysInRange(rangeStart, rangeEnd).every(
-      (date) => selectedDates.has(date) || leaveOwnedDates.has(date),
+      (date) => selectedDates.has(date) || lockedDates.has(date),
     )
   );
 };
@@ -123,9 +123,12 @@ const buildDayOverrideDiff = (
         return patch;
       }
 
+      const existingOverride = overrideByDate.get(date);
+
       if (
         desiredHours === allocation.allocationHoursPerDay &&
-        overrideByDate.has(date)
+        existingOverride &&
+        !isLeaveOwnedOverride(existingOverride)
       ) {
         patch.deletedDayOverrides.push(date);
         return patch;
@@ -161,15 +164,9 @@ export const buildScheduleSelectionPayload = ({
   allocation: AllocationScheduleContext;
   next: AllocationEditSelection;
 }): ScheduleSelectionPayload => {
-  const leaveOwnedDates = new Set(
-    (allocation.override ?? [])
-      .filter(isLeaveOwnedOverride)
-      .map((entry) => entry.date),
-  );
   const isBaseHoursEdit = isFullAllocationRangeEdit({
     allocation,
     next,
-    leaveOwnedDates,
   });
 
   if (
@@ -191,8 +188,7 @@ export const buildScheduleSelectionPayload = ({
   const desiredHoursByDate = new Map(currentHoursByDate);
 
   for (const date of next.dates) {
-    // A leave day's hours are re-derived on save, so writing them here only produces a row the backend replaces with the value it already holds.
-    if (leaveOwnedDates.has(date)) {
+    if (next.lockedDates?.has(date)) {
       continue;
     }
 

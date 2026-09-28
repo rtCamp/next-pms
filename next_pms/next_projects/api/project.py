@@ -25,6 +25,7 @@ from next_pms.next_projects.api.constant import (
 )
 from next_pms.next_projects.api.utils import (
     build_person_data,
+    get_contact_name_map,
     get_employee_image_map,
     get_user_image_map,
     resolve_tag_filters,
@@ -459,6 +460,7 @@ def enrich_project_with_calculated_fields(
     project: dict,
     cost_forecasted_map: dict[str, float] | None = None,
     user_image_map: dict[str, str | None] | None = None,
+    contact_name_map: dict[str, str | None] | None = None,
 ) -> dict:
     """Add calculated fields to a project dict for list view."""
     project_name = project.get("name")
@@ -473,6 +475,8 @@ def enrich_project_with_calculated_fields(
         else get_cost_forecasted(project_name)
     )
     target_cost = flt(project.get("custom_target_cost"))
+    lifetime_value_to_date = project.get("custom_lifetime_value_to_date")
+    client_poc = project.get("custom_client_point_of_contact")
 
     # Build response object
     enriched = {
@@ -496,6 +500,7 @@ def enrich_project_with_calculated_fields(
         },
         "total_budget": total_budget,
         "profit_margin": get_profit_margin(total_budget, cost_accrued, cost_forecasted),
+        "lifetime_value_to_date": flt(lifetime_value_to_date) if lifetime_value_to_date not in (None, "") else None,
         # Dates
         "start_date": project.get("expected_start_date"),
         "next_milestone": project.get("custom_next_milestone"),
@@ -512,6 +517,7 @@ def enrich_project_with_calculated_fields(
             project.get("custom_engineering_manager_name"),
             user_image_map,
         ),
+        "client_poc_name": (contact_name_map or {}).get(client_poc) if client_poc else None,
     }
 
     return enriched
@@ -561,6 +567,8 @@ def _apply_currency_conversion(enriched_projects: list[dict], to_currency: str) 
             project["burn_rate_per_week"] = flt(value) * rate
 
         project["total_budget"] = flt(project.get("total_budget")) * rate
+        if (value := project.get("lifetime_value_to_date")) is not None:
+            project["lifetime_value_to_date"] = flt(value) * rate
         project["currency"] = to_currency
 
 
@@ -675,9 +683,12 @@ def get_projects_view(
             {u for p in projects for u in [p.get("custom_project_manager"), p.get("custom_engineering_manager")] if u}
         )
         user_image_map = get_user_image_map(users)
+        contacts = list({c for p in projects if (c := p.get("custom_client_point_of_contact"))})
+        contact_name_map = get_contact_name_map(contacts)
 
         enriched_projects = [
-            enrich_project_with_calculated_fields(p, cost_forecasted_map, user_image_map) for p in projects
+            enrich_project_with_calculated_fields(p, cost_forecasted_map, user_image_map, contact_name_map)
+            for p in projects
         ]
 
         if currency:
