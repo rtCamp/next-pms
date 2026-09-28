@@ -9,7 +9,6 @@ import {
   FormLabel,
   Textarea,
 } from "@rtcamp/frappe-ui-react";
-import { AlertTriangle } from "@rtcamp/frappe-ui-react/icons";
 import { useForm } from "@tanstack/react-form";
 
 /**
@@ -126,19 +125,9 @@ export function RejectLeaveDialog({ leave, onClose }: RejectLeaveDialogProps) {
                   value={field.state.value}
                   placeholder="Explain why this leave request is being rejected..."
                   onChange={(event) => field.handleChange(event.target.value)}
-                  className={
-                    field.state.meta.isValid
-                      ? undefined
-                      : "border-outline-red-2 hover:border-outline-red-2"
-                  }
                 />
                 {!field.state.meta.isValid && (
-                  <div className="flex items-center gap-1 text-ink-red-4">
-                    <AlertTriangle className="size-4 shrink-0" />
-                    <ErrorMessage
-                      message={field.state.meta.errors[0]?.message}
-                    />
-                  </div>
+                  <ErrorMessage message={field.state.meta.errors[0]?.message} />
                 )}
               </div>
             )}
