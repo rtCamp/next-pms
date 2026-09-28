@@ -62,6 +62,20 @@ function AddAllocationModal({
   const [projectSearch, setProjectSearch] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [teamAddConfirmOpen, setTeamAddConfirmOpen] = useState(false);
+  const [pendingApprovalValues, setPendingApprovalValues] = useState<null | {
+    employeeId: string;
+    projectId: string;
+    customer: string;
+    fromDate: string;
+    toDate: string;
+    hoursPerDay: number;
+    isBillable: boolean;
+    isTentative: boolean;
+    note?: string;
+    includeWeekends: boolean;
+    includeHolidays: boolean;
+  }>(null);
   const [employeeSelectionCache, setEmployeeSelectionCache] = useState<{
     id: string;
     label: string;
@@ -117,66 +131,13 @@ function AddAllocationModal({
       setSubmitting(true);
 
       try {
-        const payload = {
-          allocation: {
-            doctype: "Resource Allocation",
-            employee: value.employeeId,
-            project: value.projectId,
-            customer: value.customer,
-            allocation_start_date: value.fromDate,
-            allocation_end_date: value.toDate,
-            hours_allocated_per_day: value.hoursPerDay,
-            is_billable: Number(value.isBillable),
-            status: value.isTentative ? "Tentative" : "Confirmed",
-            ...(initialValues?.isAiCreated ? { is_ai_created: 0 } : {}),
-            note: value.note ?? "",
-            include_weekends: value.includeWeekends,
-            include_holidays: value.includeHolidays,
-          },
-          // Repeat weeks are only applied when creating a recurring allocation.
-          repeat_till_week_count:
-            variant === "edit" || value.recurrence === "one-time"
-              ? 0
-              : value.repeatFor,
-        };
-
-        if (variant === "edit" && allocationName) {
-          await editAllocation({
-            name: allocationName,
-            edit_mode: "only_this",
-            ...payload,
-          });
-        } else {
-          await handleAllocation(payload);
+        if (initialValues?.isAiCreated && isProjectEmployeeMismatch) {
+          setPendingApprovalValues(value);
+          setTeamAddConfirmOpen(true);
+          return;
         }
 
-        toast.success(
-          initialValues?.isAiCreated
-            ? "Allocation approved successfully"
-            : variant === "edit"
-              ? "Allocation updated successfully"
-              : "Allocation created successfully",
-        );
-
-        closeModal();
-        const employeeIds = [
-          ...new Set(
-            [initialValues?.employeeId, value.employeeId].filter(Boolean),
-          ),
-        ] as string[];
-        const projectIds = [
-          ...new Set(
-            [initialValues?.projectId, value.projectId].filter(Boolean),
-          ),
-        ] as string[];
-        const refreshTargets = {
-          ...(employeeIds.length > 0 ? { employeeIds } : {}),
-          ...(projectIds.length > 0 ? { projectIds } : {}),
-        };
-
-        await onSuccess?.(
-          Object.keys(refreshTargets).length > 0 ? refreshTargets : undefined,
-        );
+        await submitAllocation(value);
       } catch (err) {
         const error = parseFrappeErrorMsg(err as FrappeError);
         toast.error(error);
@@ -185,6 +146,104 @@ function AddAllocationModal({
       }
     },
   });
+
+  const closeModal = useCallback(() => {
+    onOpenChange(false);
+    form.reset(mergedDefaultValues);
+  }, [form, mergedDefaultValues, onOpenChange]);
+
+  const submitAllocation = useCallback(
+    async (value: typeof mergedDefaultValues) => {
+      const payload = {
+        allocation: {
+          doctype: "Resource Allocation",
+          employee: value.employeeId,
+          project: value.projectId,
+          customer: value.customer,
+          allocation_start_date: value.fromDate,
+          allocation_end_date: value.toDate,
+          hours_allocated_per_day: value.hoursPerDay,
+          is_billable: Number(value.isBillable),
+          status: value.isTentative ? "Tentative" : "Confirmed",
+          ...(initialValues?.isAiCreated ? { is_ai_created: 0 } : {}),
+          note: value.note ?? "",
+          include_weekends: value.includeWeekends,
+          include_holidays: value.includeHolidays,
+        },
+        // Repeat weeks are only applied when creating a recurring allocation.
+        repeat_till_week_count:
+          variant === "edit" || value.recurrence === "one-time"
+            ? 0
+            : value.repeatFor,
+      };
+
+      if (variant === "edit" && allocationName) {
+        await editAllocation({
+          name: allocationName,
+          edit_mode: "only_this",
+          ...payload,
+        });
+      } else {
+        await handleAllocation(payload);
+      }
+
+      toast.success(
+        initialValues?.isAiCreated
+          ? "Allocation approved successfully"
+          : variant === "edit"
+            ? "Allocation updated successfully"
+            : "Allocation created successfully",
+      );
+
+      closeModal();
+      const employeeIds = [
+        ...new Set(
+          [initialValues?.employeeId, value.employeeId].filter(Boolean),
+        ),
+      ] as string[];
+      const projectIds = [
+        ...new Set([initialValues?.projectId, value.projectId].filter(Boolean)),
+      ] as string[];
+      const refreshTargets = {
+        ...(employeeIds.length > 0 ? { employeeIds } : {}),
+        ...(projectIds.length > 0 ? { projectIds } : {}),
+      };
+
+      await onSuccess?.(
+        Object.keys(refreshTargets).length > 0 ? refreshTargets : undefined,
+      );
+    },
+    [
+      allocationName,
+      closeModal,
+      editAllocation,
+      handleAllocation,
+      initialValues,
+      onSuccess,
+      toast,
+      variant,
+    ],
+  );
+
+  const handleTeamAddConfirm = useCallback(async () => {
+    if (!pendingApprovalValues) {
+      return;
+    }
+
+    setTeamAddConfirmOpen(false);
+    setSubmitting(true);
+
+    try {
+      // Approving an AI allocation grants project access on its own; no separate team-add call needed.
+      await submitAllocation(pendingApprovalValues);
+    } catch (err) {
+      const error = parseFrappeErrorMsg(err as FrappeError);
+      toast.error(error);
+    } finally {
+      setSubmitting(false);
+      setPendingApprovalValues(null);
+    }
+  }, [pendingApprovalValues, submitAllocation, toast]);
 
   const projectId = useSelector(form.store, (state) => state.values.projectId);
   const customerId = useSelector(form.store, (state) => state.values.customer);
@@ -324,11 +383,6 @@ function AddAllocationModal({
       </Link>
     </p>
   ) : null;
-
-  const closeModal = useCallback(() => {
-    onOpenChange(false);
-    form.reset(mergedDefaultValues);
-  }, [form, mergedDefaultValues, onOpenChange]);
 
   const handleOpenChange = useCallback(
     (nextOpen: boolean) => {
@@ -604,290 +658,298 @@ function AddAllocationModal({
     );
 
   return (
-    <Dialog
-      open={open}
-      onOpenChange={handleOpenChange}
-      className="my-0"
-      classNames={{
-        header: "mb-5",
-        content: "sm:p-3.5",
-        viewport: "justify-start pt-30",
-        footer: "pb-3.5 pt-5",
-      }}
-      options={{
-        title: () => (
-          <div className="flex flex-col gap-0.5">
+    <>
+      <Dialog
+        open={teamAddConfirmOpen}
+        onOpenChange={(nextOpen) => {
+          setTeamAddConfirmOpen(nextOpen);
+          if (!nextOpen) {
+            setPendingApprovalValues(null);
+          }
+        }}
+        className="my-0"
+        classNames={{
+          header: "mb-3",
+          content: "sm:p-3.5",
+          viewport: "justify-center",
+          footer: "pb-3.5 pt-3",
+        }}
+        options={{
+          title: () => (
             <span className="text-lg font-medium text-ink-gray-7">
-              {initialValues?.isAiCreated
-                ? "Approve / Edit Allocation"
-                : variant === "add"
-                  ? "Add allocation"
-                  : "Edit allocation"}
+              Approve allocation
             </span>
-            {initialValues?.isAiCreated && (
-              <span className="text-sm font-normal text-ink-gray-5">
-                This allocation was created by Ai
-              </span>
-            )}
-          </div>
-        ),
-      }}
-      actions={
-        <div className="flex items-center justify-between w-full gap-2 -mt-5">
-          <form.Field
-            name="isTentative"
-            children={(field) => (
-              <label className="inline-flex items-center gap-2 text-base shrink-0 text-ink-gray-7">
-                <Checkbox
-                  value={field.state.value}
-                  disabled={isLockedAllocationMetadataEdit}
-                  onChange={(checked) => field.handleChange(Boolean(checked))}
-                />
-                Mark as tentative
-              </label>
-            )}
-          />
+          ),
+        }}
+        actions={
           <div className="flex items-center justify-end w-full gap-2">
-            {initialValues?.isAiCreated && onDelete ? (
-              <Button
-                variant="ghost"
-                label="Delete"
-                onClick={async () => {
-                  setDeleting(true);
-                  try {
-                    await onDelete();
-                    closeModal();
-                  } finally {
-                    setDeleting(false);
-                  }
-                }}
-                disabled={submitting || deleting}
-                loading={deleting}
-              />
-            ) : (
-              <Button
-                variant="ghost"
-                label="Cancel"
-                onClick={closeModal}
-                disabled={submitting || deleting}
-              />
-            )}
+            <Button
+              variant="ghost"
+              label="Cancel"
+              onClick={() => {
+                setTeamAddConfirmOpen(false);
+                setPendingApprovalValues(null);
+              }}
+            />
             <Button
               variant="solid"
-              label={
-                initialValues?.isAiCreated
-                  ? "Approve"
-                  : variant === "add"
-                    ? "Allocate"
-                    : "Save Changes"
-              }
-              onClick={() => form.handleSubmit()}
-              disabled={
-                submitting ||
-                deleting ||
-                isLockedAllocationMetadataEdit ||
-                isProjectEmployeeMismatch
-              }
+              label="Approve"
+              onClick={handleTeamAddConfirm}
               loading={submitting}
             />
           </div>
+        }
+      >
+        <div className="space-y-2 text-sm text-ink-gray-7">
+          <p>
+            {pendingApprovalValues
+              ? `${initialValues?.employeeLabel || pendingApprovalValues.employeeId} is not part of ${initialValues?.projectLabel || pendingApprovalValues.projectId}'s team yet. Approving will give them access to the project. Continue?`
+              : "This employee is not part of the project's team yet. Approving will give them access to the project. Continue?"}
+          </p>
         </div>
-      }
-    >
-      <div className="space-y-4">
-        {layoutVariant === "project" ? (
-          <>
-            {projectField}
-            {customerField}
-            {employeeField}
-          </>
-        ) : (
-          <>
-            {employeeField}
-            {projectField}
-            {customerField}
-          </>
-        )}
+      </Dialog>
 
-        {recurrenceSection}
-
-        <div>
-          <FormLabel id="project" size="md" className="mb-1.5">
-            Days to include
-          </FormLabel>
-          <div className="flex flex-col gap-1.5">
+      <Dialog
+        open={open}
+        onOpenChange={handleOpenChange}
+        className="my-0"
+        classNames={{
+          header: "mb-5",
+          content: "sm:p-3.5",
+          viewport: "justify-start pt-30",
+          footer: "pb-3.5 pt-5",
+        }}
+        options={{
+          title: () => (
+            <div className="flex flex-col gap-0.5">
+              <span className="text-lg font-medium text-ink-gray-7">
+                {initialValues?.isAiCreated
+                  ? "Approve / Edit Allocation"
+                  : variant === "add"
+                    ? "Add allocation"
+                    : "Edit allocation"}
+              </span>
+              {initialValues?.isAiCreated && (
+                <span className="text-sm font-normal text-ink-gray-5">
+                  This allocation was created by Ai
+                </span>
+              )}
+            </div>
+          ),
+        }}
+        actions={
+          <div className="flex items-center justify-between w-full gap-2 -mt-5">
             <form.Field
-              name="includeWeekends"
-              children={(field) =>
-                weekendEntriesAllowed || field.state.value ? (
+              name="isTentative"
+              children={(field) => (
+                <label className="inline-flex items-center gap-2 text-base shrink-0 text-ink-gray-7">
+                  <Checkbox
+                    value={field.state.value}
+                    disabled={isLockedAllocationMetadataEdit}
+                    onChange={(checked) => field.handleChange(Boolean(checked))}
+                  />
+                  Mark as tentative
+                </label>
+              )}
+            />
+            <div className="flex items-center justify-end w-full gap-2">
+              {initialValues?.isAiCreated && onDelete ? (
+                <Button
+                  variant="ghost"
+                  label="Delete"
+                  onClick={async () => {
+                    setDeleting(true);
+                    try {
+                      await onDelete();
+                      closeModal();
+                    } finally {
+                      setDeleting(false);
+                    }
+                  }}
+                  disabled={submitting || deleting}
+                  loading={deleting}
+                />
+              ) : (
+                <Button
+                  variant="ghost"
+                  label="Cancel"
+                  onClick={closeModal}
+                  disabled={submitting || deleting}
+                />
+              )}
+              <Button
+                variant="solid"
+                label={
+                  initialValues?.isAiCreated
+                    ? "Approve"
+                    : variant === "add"
+                      ? "Allocate"
+                      : "Save Changes"
+                }
+                onClick={() => form.handleSubmit()}
+                disabled={
+                  submitting ||
+                  deleting ||
+                  isLockedAllocationMetadataEdit ||
+                  (isProjectEmployeeMismatch && !initialValues?.isAiCreated)
+                }
+                loading={submitting}
+              />
+            </div>
+          </div>
+        }
+      >
+        <div className="space-y-4">
+          {layoutVariant === "project" ? (
+            <>
+              {projectField}
+              {customerField}
+              {employeeField}
+            </>
+          ) : (
+            <>
+              {employeeField}
+              {projectField}
+              {customerField}
+            </>
+          )}
+
+          {recurrenceSection}
+
+          <div>
+            <FormLabel id="project" size="md" className="mb-1.5">
+              Days to include
+            </FormLabel>
+            <div className="flex flex-col gap-1.5">
+              <form.Field
+                name="includeWeekends"
+                children={(field) =>
+                  weekendEntriesAllowed || field.state.value ? (
+                    <label className="inline-flex items-center gap-2 text-base text-ink-gray-6">
+                      <Checkbox
+                        value={field.state.value}
+                        disabled={
+                          !weekendEntriesAllowed ||
+                          isLockedAllocationMetadataEdit
+                        }
+                        onChange={(checked) =>
+                          field.handleChange(Boolean(checked))
+                        }
+                      />
+                      Include weekends
+                    </label>
+                  ) : null
+                }
+              />
+
+              <form.Field
+                name="includeHolidays"
+                children={(field) => (
                   <label className="inline-flex items-center gap-2 text-base text-ink-gray-6">
                     <Checkbox
                       value={field.state.value}
-                      disabled={
-                        !weekendEntriesAllowed || isLockedAllocationMetadataEdit
-                      }
                       onChange={(checked) =>
                         field.handleChange(Boolean(checked))
                       }
                     />
-                    Include weekends
+                    Include holidays
                   </label>
-                ) : null
-              }
-            />
-
-            <form.Field
-              name="includeHolidays"
-              children={(field) => (
-                <label className="inline-flex items-center gap-2 text-base text-ink-gray-6">
-                  <Checkbox
-                    value={field.state.value}
-                    onChange={(checked) => field.handleChange(Boolean(checked))}
-                  />
-                  Include holidays
-                </label>
-              )}
-            />
+                )}
+              />
+            </div>
           </div>
-        </div>
 
-        <form.Field
-          name="fromDate"
-          children={(fromField) => (
-            <form.Field
-              name="toDate"
-              children={(toField) => (
-                <div className="flex w-full flex-col gap-1.5">
-                  <div className="flex justify-between">
-                    <FormLabel id="date-range" size="md" required>
-                      Start and end date
-                    </FormLabel>
-                    {variant === "edit" ? (
-                      <Button
-                        variant="ghost"
-                        label="Edit Schedule"
-                        className="p-0 bg-transparent h-fit text-ink-gray-5 hover:bg-transparent focus:bg-transparent active:bg-transparent disabled:cursor-not-allowed!"
-                        disabled={isProjectEmployeeMismatch}
-                        onClick={() =>
-                          onEditScheduleClick?.(form.store.state.values)
+          <form.Field
+            name="fromDate"
+            children={(fromField) => (
+              <form.Field
+                name="toDate"
+                children={(toField) => (
+                  <div className="flex w-full flex-col gap-1.5">
+                    <div className="flex justify-between">
+                      <FormLabel id="date-range" size="md" required>
+                        Start and end date
+                      </FormLabel>
+                      {variant === "edit" ? (
+                        <Button
+                          variant="ghost"
+                          label="Edit Schedule"
+                          className="p-0 bg-transparent h-fit text-ink-gray-5 hover:bg-transparent focus:bg-transparent active:bg-transparent disabled:cursor-not-allowed!"
+                          disabled={isProjectEmployeeMismatch}
+                          onClick={() =>
+                            onEditScheduleClick?.(form.store.state.values)
+                          }
+                        />
+                      ) : null}
+                    </div>
+                    <DateRangePicker
+                      value={[fromField.state.value, toField.state.value]}
+                      disabled={isLockedAllocationMetadataEdit}
+                      onChange={(value) => {
+                        fromField.handleChange(value?.[0] ?? "");
+                        toField.handleChange(value?.[1] ?? "");
+                      }}
+                      formatter={formatDateRange}
+                      placeholder="Start Date - End Date"
+                    >
+                      {({ displayValue, disabled, onTriggerKeyDown }) => (
+                        <div
+                          className={cn(
+                            "w-full h-7 relative flex items-center border border-outline-gray-2 px-2.5 py-1 rounded",
+                            disabled && "bg-surface-gray-1 text-ink-gray-5",
+                          )}
+                        >
+                          <input
+                            readOnly
+                            disabled={disabled}
+                            tabIndex={-1}
+                            onMouseDown={(e) => e.preventDefault()}
+                            onKeyDown={onTriggerKeyDown}
+                            type="text"
+                            id="date-range"
+                            value={displayValue}
+                            className={cn(
+                              "flex-1 text-base text-ink-gray-7",
+                              disabled && "text-ink-gray-5",
+                            )}
+                          />
+                          <Calendar className="size-4" />
+                        </div>
+                      )}
+                    </DateRangePicker>
+                    {(!fromField.state.meta.isValid ||
+                      !toField.state.meta.isValid) && (
+                      <ErrorMessage
+                        message={
+                          fromField.state.meta.errors[0]?.message ??
+                          toField.state.meta.errors[0]?.message
                         }
                       />
-                    ) : null}
-                  </div>
-                  <DateRangePicker
-                    value={[fromField.state.value, toField.state.value]}
-                    disabled={isLockedAllocationMetadataEdit}
-                    onChange={(value) => {
-                      fromField.handleChange(value?.[0] ?? "");
-                      toField.handleChange(value?.[1] ?? "");
-                    }}
-                    formatter={formatDateRange}
-                    placeholder="Start Date - End Date"
-                  >
-                    {({ displayValue, disabled, onTriggerKeyDown }) => (
-                      <div
-                        className={cn(
-                          "w-full h-7 relative flex items-center border border-outline-gray-2 px-2.5 py-1 rounded",
-                          disabled && "bg-surface-gray-1 text-ink-gray-5",
-                        )}
-                      >
-                        <input
-                          readOnly
-                          disabled={disabled}
-                          tabIndex={-1}
-                          onMouseDown={(e) => e.preventDefault()}
-                          onKeyDown={onTriggerKeyDown}
-                          type="text"
-                          id="date-range"
-                          value={displayValue}
-                          className={cn(
-                            "flex-1 text-base text-ink-gray-7",
-                            disabled && "text-ink-gray-5",
-                          )}
-                        />
-                        <Calendar className="size-4" />
-                      </div>
                     )}
-                  </DateRangePicker>
-                  {(!fromField.state.meta.isValid ||
-                    !toField.state.meta.isValid) && (
-                    <ErrorMessage
-                      message={
-                        fromField.state.meta.errors[0]?.message ??
-                        toField.state.meta.errors[0]?.message
-                      }
-                    />
-                  )}
-                </div>
-              )}
-            />
-          )}
-        />
-
-        <div className="flex gap-3">
-          <form.Field
-            name="hoursPerDay"
-            children={(field) => (
-              <div className="shrink-0 flex flex-1 flex-col gap-1.5">
-                <FormLabel id="hours-per-day" size="md" required>
-                  Hours / day
-                </FormLabel>
-                <DurationInput
-                  id="hours-per-day"
-                  snap="smooth"
-                  variant="outline"
-                  size="md"
-                  value={field.state.value}
-                  disabled={isLockedAllocationMetadataEdit}
-                  onChange={(value) => field.handleChange(value)}
-                  label={false}
-                />
-                {!field.state.meta.isValid && (
-                  <ErrorMessage message={field.state.meta.errors[0]?.message} />
+                  </div>
                 )}
-              </div>
+              />
             )}
           />
 
-          {(recurrence === "recurring" || isRecurringEdit) && (
+          <div className="flex gap-3">
             <form.Field
-              name="repeatFor"
+              name="hoursPerDay"
               children={(field) => (
                 <div className="shrink-0 flex flex-1 flex-col gap-1.5">
-                  <FormLabel id="repeat-for" size="md" required>
-                    Repeat for
+                  <FormLabel id="hours-per-day" size="md" required>
+                    Hours / day
                   </FormLabel>
-                  <div className="relative">
-                    <TextInput
-                      htmlId="repeat-for"
-                      type="number"
-                      size="md"
-                      variant="outline"
-                      min={1}
-                      disabled={variant === "edit"}
-                      value={
-                        field.state.value == null ||
-                        Number.isNaN(field.state.value)
-                          ? ""
-                          : field.state.value
-                      }
-                      onChange={(e) => {
-                        const raw = e.target.value;
-                        if (raw === "") {
-                          field.handleChange(NaN);
-                          return;
-                        }
-                        const parsed = Number(raw);
-                        if (Number.isFinite(parsed)) {
-                          field.handleChange(parsed);
-                        }
-                      }}
-                      inputClassName="pr-13"
-                    />
-                    <span className="absolute right-2 top-1/2 -translate-y-1/2 text-ink-gray-5 text-sm">
-                      {field.state.value === 1 ? "week" : "weeks"}
-                    </span>
-                  </div>
+                  <DurationInput
+                    id="hours-per-day"
+                    snap="smooth"
+                    variant="outline"
+                    size="md"
+                    value={field.state.value}
+                    disabled={isLockedAllocationMetadataEdit}
+                    onChange={(value) => field.handleChange(value)}
+                    label={false}
+                  />
                   {!field.state.meta.isValid && (
                     <ErrorMessage
                       message={field.state.meta.errors[0]?.message}
@@ -896,77 +958,126 @@ function AddAllocationModal({
                 </div>
               )}
             />
-          )}
 
-          <div className="shrink-0 flex flex-1 flex-col gap-1.5">
-            <FormLabel id="total-hours" size="md">
-              Total hours
-            </FormLabel>
-            <TextInput
-              htmlId="total-hours"
-              disabled={true}
-              size="md"
-              value={totalHours}
-              variant="outline"
-              inputClassName={
-                isLockedAllocationMetadataEdit
-                  ? ""
-                  : "text-ink-gray-7 bg-surface-white"
-              }
-            />
-          </div>
-        </div>
-
-        {isLockedAllocationMetadataEdit && (
-          <div className="flex items-center gap-2 bg-(--color-violet-50) rounded-lg px-2.5 py-2">
-            <AlertTriangle className="size-4 shrink-0 text-(--color-violet-700)" />
-            <p className="flex-1 min-w-0 text-xs text-ink-gray-9 text-left">
-              {isRecurringEdit
-                ? "Recurring allocations can only be modified using Edit Schedule."
-                : "This allocation has schedule changes. Use Edit Schedule to modify them."}
-            </p>
-          </div>
-        )}
-
-        {!(hasExistingOverrides || isRecurringEdit) ? (
-          <OverAllocationWarning overAllocatedDays={overAllocatedDays} />
-        ) : null}
-
-        <form.Field
-          name="isBillable"
-          children={(field) => (
-            <label className="inline-flex items-center gap-2 text-base text-ink-gray-6">
-              <Checkbox
-                value={!field.state.value}
-                disabled={isLockedAllocationMetadataEdit}
-                onChange={(checked) => field.handleChange(!checked)}
+            {(recurrence === "recurring" || isRecurringEdit) && (
+              <form.Field
+                name="repeatFor"
+                children={(field) => (
+                  <div className="shrink-0 flex flex-1 flex-col gap-1.5">
+                    <FormLabel id="repeat-for" size="md" required>
+                      Repeat for
+                    </FormLabel>
+                    <div className="relative">
+                      <TextInput
+                        htmlId="repeat-for"
+                        type="number"
+                        size="md"
+                        variant="outline"
+                        min={1}
+                        disabled={variant === "edit"}
+                        value={
+                          field.state.value == null ||
+                          Number.isNaN(field.state.value)
+                            ? ""
+                            : field.state.value
+                        }
+                        onChange={(e) => {
+                          const raw = e.target.value;
+                          if (raw === "") {
+                            field.handleChange(NaN);
+                            return;
+                          }
+                          const parsed = Number(raw);
+                          if (Number.isFinite(parsed)) {
+                            field.handleChange(parsed);
+                          }
+                        }}
+                        inputClassName="pr-13"
+                      />
+                      <span className="absolute right-2 top-1/2 -translate-y-1/2 text-ink-gray-5 text-sm">
+                        {field.state.value === 1 ? "week" : "weeks"}
+                      </span>
+                    </div>
+                    {!field.state.meta.isValid && (
+                      <ErrorMessage
+                        message={field.state.meta.errors[0]?.message}
+                      />
+                    )}
+                  </div>
+                )}
               />
-              Mark as non-billable
-              <span className="inline-block rounded-full size-1 bg-surface-amber-3" />
-            </label>
-          )}
-        />
+            )}
 
-        <form.Field
-          name="note"
-          children={(field) => (
-            <div className="flex flex-col gap-1.5">
-              <FormLabel id="allocation-note" size="md">
-                Note
+            <div className="shrink-0 flex flex-1 flex-col gap-1.5">
+              <FormLabel id="total-hours" size="md">
+                Total hours
               </FormLabel>
-              <Textarea
-                htmlId="allocation-note"
+              <TextInput
+                htmlId="total-hours"
+                disabled={true}
+                size="md"
+                value={totalHours}
                 variant="outline"
-                value={field.state.value ?? ""}
-                disabled={isLockedAllocationMetadataEdit}
-                onChange={(e) => field.handleChange(e.target.value)}
-                placeholder="Add a note"
+                inputClassName={
+                  isLockedAllocationMetadataEdit
+                    ? ""
+                    : "text-ink-gray-7 bg-surface-white"
+                }
               />
             </div>
+          </div>
+
+          {isLockedAllocationMetadataEdit && (
+            <div className="flex items-center gap-2 bg-(--color-violet-50) rounded-lg px-2.5 py-2">
+              <AlertTriangle className="size-4 shrink-0 text-(--color-violet-700)" />
+              <p className="flex-1 min-w-0 text-xs text-ink-gray-9 text-left">
+                {isRecurringEdit
+                  ? "Recurring allocations can only be modified using Edit Schedule."
+                  : "This allocation has schedule changes. Use Edit Schedule to modify them."}
+              </p>
+            </div>
           )}
-        />
-      </div>
-    </Dialog>
+
+          {!(hasExistingOverrides || isRecurringEdit) ? (
+            <OverAllocationWarning overAllocatedDays={overAllocatedDays} />
+          ) : null}
+
+          <form.Field
+            name="isBillable"
+            children={(field) => (
+              <label className="inline-flex items-center gap-2 text-base text-ink-gray-6">
+                <Checkbox
+                  value={!field.state.value}
+                  disabled={isLockedAllocationMetadataEdit}
+                  onChange={(checked) => field.handleChange(!checked)}
+                />
+                Mark as non-billable
+                <span className="inline-block rounded-full size-1 bg-surface-amber-3" />
+              </label>
+            )}
+          />
+
+          <form.Field
+            name="note"
+            children={(field) => (
+              <div className="flex flex-col gap-1.5">
+                <FormLabel id="allocation-note" size="md">
+                  Note
+                </FormLabel>
+                <Textarea
+                  htmlId="allocation-note"
+                  variant="outline"
+                  value={field.state.value ?? ""}
+                  disabled={isLockedAllocationMetadataEdit}
+                  onChange={(e) => field.handleChange(e.target.value)}
+                  placeholder="Add a note"
+                />
+              </div>
+            )}
+          />
+        </div>
+      </Dialog>
+    </>
   );
 }
 

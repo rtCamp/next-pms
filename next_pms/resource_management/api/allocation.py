@@ -262,6 +262,27 @@ def update_allocation(allocation: AllocationPayload):
     return allocation_doc
 
 
+def _share_project_with_approved_ai_employee(allocation_doc, was_ai_created: bool, was_confirmed: bool):
+    if not was_ai_created or was_confirmed or allocation_doc.status != "Confirmed" or not allocation_doc.project:
+        return
+
+    import frappe.share
+
+    user = frappe.db.get_value("Employee", allocation_doc.employee, "user_id")
+    if not user or frappe.db.exists(
+        "DocShare",
+        {"user": user, "share_name": allocation_doc.project, "share_doctype": "Project"},
+    ):
+        return
+
+    frappe.share.add_docshare(
+        "Project",
+        allocation_doc.project,
+        user=user,
+        flags={"ignore_share_permission": True},
+    )
+
+
 def _normalise_override_fields(override_fields: dict) -> dict:
     """Validate and complete one override row's fields.
 
@@ -535,6 +556,8 @@ def edit_allocation(
             "hours_allocated_per_day",
             "allocation_start_date",
             "include_weekends",
+            "is_ai_created",
+            "status",
         ),
         as_dict=True,
     )
@@ -584,12 +607,14 @@ def edit_allocation(
             if doc_hours_changed:
                 series_doc.override = []
             series_doc.save()
+            _share_project_with_approved_ai_employee(series_doc, stored.is_ai_created, stored.status == "Confirmed")
 
         if edit_mode == "this_and_future":
             _propagate_day_overrides_to_series(series, day_overrides, deleted_day_overrides)
         return frappe.get_doc("Resource Allocation", name)
 
     result = update_allocation(allocation)
+    _share_project_with_approved_ai_employee(result, stored.is_ai_created, stored.status == "Confirmed")
     if hours_changed:
         clear_day_overrides(name)
     apply_day_overrides(name, day_overrides, deleted_day_overrides)
