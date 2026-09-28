@@ -8,7 +8,7 @@ import { TimeOffRow as BaseTimeOffRow } from "@next-pms/design-system/components
 /**
  * Internal dependencies
  */
-import { calculateLeaveHours } from "@/lib/utils";
+import { calculateTimeOffHours } from "@/lib/utils";
 import type { TimeOffRowProps } from "./types";
 
 /**
@@ -34,16 +34,13 @@ export const TimeOffRow = ({
 
     for (const date of dates) {
       const holiday = holidays.find((holiday) => holiday.holiday_date === date);
-      const hour = calculateLeaveHours(leaves, date, expectedHours, holiday);
-      const isNamedHoliday = Boolean(holiday && !holiday.weekly_off);
-      hasVisibleHoliday = hasVisibleHoliday || isNamedHoliday;
+      const hour = calculateTimeOffHours(leaves, date, expectedHours, holiday);
+      hasVisibleHoliday =
+        hasVisibleHoliday || Boolean(holiday && !holiday.weekly_off);
 
       totalHours += hour;
-      // A named holiday shows the daily working hours, but is never added to
-      // any total.
-      const displayHour = isNamedHoliday ? expectedHours : hour;
       totalTimeEntries.push({
-        time: displayHour === 0 ? "" : floatToTime(displayHour, 2),
+        time: hour === 0 ? "" : floatToTime(hour, 2),
         holiday: Boolean(holiday),
         holidayDescription: stripTags(holiday?.description ?? ""),
       });
