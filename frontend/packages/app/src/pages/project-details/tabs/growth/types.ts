@@ -1,4 +1,4 @@
-import type { UserDetails } from "../risks/types";
+import type { UserDetails } from "@/pages/project-details/types";
 
 export interface GrowthListColumn {
   key: string;

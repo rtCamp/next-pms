@@ -8,7 +8,11 @@ import { useFrappeGetDoc, useFrappeGetDocList } from "frappe-react-sdk";
  * Internal dependencies.
  */
 import { hashString } from "@/lib/utils";
-import type { Follower, UserDetails } from "../../risks/types";
+import type {
+  FileAttachment,
+  Follower,
+  UserDetails,
+} from "@/pages/project-details/types";
 import { GROWTH_DOCTYPE } from "../constants";
 import type { ApiGrowthDetail, GrowthDetail } from "../types";
 
@@ -43,6 +47,16 @@ export function useGrowthDetail(growthId: string) {
     usersSwrKey,
   );
 
+  const { data: attachments, mutate: mutateAttachments } =
+    useFrappeGetDocList<FileAttachment>("File", {
+      fields: ["name", "file_name", "file_url", "file_size"],
+      filters: [
+        ["attached_to_doctype", "=", GROWTH_DOCTYPE],
+        ["attached_to_name", "=", growthId],
+      ],
+      limit: 50,
+    });
+
   const { data: followersData, mutate: mutateFollowers } =
     useFrappeGetDocList<Follower>("Document Follow", {
       fields: [
@@ -72,7 +86,9 @@ export function useGrowthDetail(growthId: string) {
     growth,
     isLoading,
     error,
+    attachments: attachments ?? [],
     followers: followersData ?? [],
+    mutateAttachments,
     mutateFollowers,
   };
 }
