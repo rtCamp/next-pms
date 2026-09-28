@@ -23,8 +23,10 @@ import { getDefaultCurrency, toSelectorColumns } from "@/lib/utils";
 import { useUser } from "@/providers/user";
 import { useProjectFilters } from "./useProjectFilters";
 import { PHASE_OPTIONS, RAG_OPTIONS, STATUS_OPTIONS } from "../../constants";
-import { PROJECT_LIST_COLUMNS } from "../../list/columns/constants";
-import { IS_COLUMN_LAYOUT_ENABLED } from "../../list/columns/constants";
+import {
+  MAX_PINNED_COLUMNS,
+  PROJECT_LIST_COLUMNS,
+} from "../../list/columns/constants";
 import { useColumnLayout } from "../../list/columns/useColumnLayout";
 import { Phase, type ProjectStatus, type RagStatus } from "../../types";
 import { useProjectViews } from "../../views";
@@ -73,8 +75,7 @@ export function ProjectFilters() {
     () => toSelectorColumns(columnLayout.columns, columnLayout.pinnedColumns),
     [columnLayout.columns, columnLayout.pinnedColumns],
   );
-  const isDirty =
-    IS_COLUMN_LAYOUT_ENABLED && (hasFilterChanges || columnLayout.isDirty);
+  const isDirty = hasFilterChanges || columnLayout.isDirty;
 
   const [searchInput, setSearchInput] = useState(search);
   const isUserInput = useRef(false);
@@ -150,12 +151,13 @@ export function ProjectFilters() {
               <Button
                 variant="ghost"
                 label="Cancel"
-                onClick={() => {
-                  if (activeView) {
-                    applyView(activeView);
-                    columnLayout.revert();
-                  }
-                }}
+                onClick={() =>
+                  activeView &&
+                  applyView(activeView, {
+                    reset: true,
+                    params: columnLayout.savedParams,
+                  })
+                }
               />
               <Button
                 variant="subtle"
@@ -186,6 +188,10 @@ export function ProjectFilters() {
             columns={selectedColumns}
             availableColumns={AVAILABLE_COLUMNS}
             pinnable
+            maxPinned={MAX_PINNED_COLUMNS}
+            labels={{
+              pinLimit: `You can pin up to ${MAX_PINNED_COLUMNS} columns`,
+            }}
             onColumnsChange={(next) =>
               columnLayout.setColumns(
                 next.map((column) => column.value),

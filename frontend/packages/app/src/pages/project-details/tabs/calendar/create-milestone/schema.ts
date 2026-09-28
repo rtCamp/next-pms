@@ -15,6 +15,8 @@ export const createMilestoneSchema = z
       .trim()
       .min(1, { message: "Please select a completion date." }),
     owner: z.string().trim().min(1, { message: "Please select an owner." }),
+    category: z.string().trim().min(1, { message: "Please select a type." }),
+    isInternal: z.boolean(),
   })
   .superRefine((value, ctx) => {
     if (
