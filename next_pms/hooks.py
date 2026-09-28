@@ -258,6 +258,7 @@ doc_events = {
             "next_pms.resource_management.doctype.resource_allocation.resource_allocation.clear_cache",
             "next_pms.timesheet.doc_events.leave_application.on_update",
             "next_pms.resource_management.doc_events.leave_application.resync_allocations",
+            "next_pms.api.dashboard.clear_employees_on_leave_cache",
         ],
         # `on_update` does not fire when a submitted leave changes status, so approval of an
         # already-submitted application would otherwise never reach the allocations.
@@ -265,15 +266,18 @@ doc_events = {
             "next_pms.resource_management.doctype.resource_allocation.resource_allocation.clear_cache",
             "next_pms.timesheet.doc_events.leave_application.on_update",
             "next_pms.resource_management.doc_events.leave_application.resync_allocations",
+            "next_pms.api.dashboard.clear_employees_on_leave_cache",
         ],
         "on_trash": [
             "next_pms.resource_management.doctype.resource_allocation.resource_allocation.clear_cache",
             "next_pms.timesheet.doc_events.leave_application.on_trash",
+            "next_pms.api.dashboard.clear_employees_on_leave_cache",
         ],
         "on_cancel": [
             "next_pms.resource_management.doctype.resource_allocation.resource_allocation.clear_cache",
             "next_pms.timesheet.doc_events.leave_application.on_cancel",
             "next_pms.resource_management.doc_events.leave_application.resync_allocations",
+            "next_pms.api.dashboard.clear_employees_on_leave_cache",
         ],
         # Deletion is resynced after the row is gone — on_trash still sees the leave in the DB.
         "after_delete": [

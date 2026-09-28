@@ -1112,6 +1112,8 @@ def _finalize_leave_application(leave, workflow_action: str, status: str) -> Non
         leave.save()
         leave.submit()
 
+
+def clear_employees_on_leave_cache(doc=None, method=None):
     _get_employees_on_leave.clear_cache()
 
 
