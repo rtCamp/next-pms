@@ -1,7 +1,7 @@
 /**
  * External dependencies.
  */
-import { useMemo } from "react";
+import { useCallback, useMemo } from "react";
 import { useFrappeGetDocList } from "frappe-react-sdk";
 
 /**
@@ -38,32 +38,36 @@ export function useGrowthData(filters: GrowthFilters, sort: GrowthSort | null) {
     return base;
   }, [projectId, filters]);
 
-  const { data, isLoading, error, mutate } =
-    useFrappeGetDocList<ApiGrowthInitiativeItem>(
-      GROWTH_DOCTYPE,
-      {
-        fields: [
-          "name",
-          "project",
-          "activity",
-          "category",
-          "client_priority",
-          "status",
-          "is_closed",
-          "closed_status",
-          "activity_owner",
-          "ideation_owner",
-          "modified",
-        ],
-        filters: frappeFilters,
-        orderBy: sort ?? { field: "modified", order: "desc" },
-        limit: 500,
-      },
-      undefined,
-      { keepPreviousData: true },
-    );
+  const {
+    data,
+    isLoading,
+    error,
+    mutate: mutateList,
+  } = useFrappeGetDocList<ApiGrowthInitiativeItem>(
+    GROWTH_DOCTYPE,
+    {
+      fields: [
+        "name",
+        "project",
+        "activity",
+        "category",
+        "client_priority",
+        "status",
+        "is_closed",
+        "closed_status",
+        "activity_owner",
+        "ideation_owner",
+        "modified",
+      ],
+      filters: frappeFilters,
+      orderBy: sort ?? { field: "modified", order: "desc" },
+      limit: 500,
+    },
+    undefined,
+    { keepPreviousData: true },
+  );
 
-  const { data: ownersData } = useFrappeGetDocList<
+  const { data: ownersData, mutate: mutateOwners } = useFrappeGetDocList<
     Pick<ApiGrowthInitiativeItem, "activity_owner" | "ideation_owner">
   >(GROWTH_DOCTYPE, {
     fields: ["activity_owner", "ideation_owner"],
@@ -112,6 +116,11 @@ export function useGrowthData(filters: GrowthFilters, sort: GrowthSort | null) {
   const ideationOwnersWithDetails = useMemo(
     () => toUserMap(ideationOwners, usersData ?? []),
     [ideationOwners, usersData],
+  );
+
+  const mutate = useCallback(
+    () => Promise.all([mutateList(), mutateOwners()]),
+    [mutateList, mutateOwners],
   );
 
   const enrichedData = useMemo<GrowthInitiativeItem[]>(
