@@ -1,11 +1,12 @@
 /**
  * External dependencies.
  */
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "react-router";
 import { SortSelector } from "@next-pms/design-system/components";
 import {
   Button,
+  ColumnSelector,
   Combobox,
   Select,
   TextInput,
@@ -18,15 +19,19 @@ import {
  */
 import { FilterLinkValue } from "@/components/filters/FilterLinkValue";
 import { useDebounce } from "@/hooks/useDebounce";
-import { getDefaultCurrency } from "@/lib/utils";
+import { getDefaultCurrency, toSelectorColumns } from "@/lib/utils";
 import { useUser } from "@/providers/user";
 import { useProjectFilters } from "./useProjectFilters";
 import { PHASE_OPTIONS, RAG_OPTIONS, STATUS_OPTIONS } from "../../constants";
-import { IS_COLUMN_LAYOUT_ENABLED } from "../../list/columns/constants";
-import { ColumnsPanel } from "../../list/columns/panel";
+import {
+  MAX_PINNED_COLUMNS,
+  PROJECT_LIST_COLUMNS,
+} from "../../list/columns/constants";
 import { useColumnLayout } from "../../list/columns/useColumnLayout";
 import { Phase, type ProjectStatus, type RagStatus } from "../../types";
 import { useProjectViews } from "../../views";
+
+const AVAILABLE_COLUMNS = toSelectorColumns(PROJECT_LIST_COLUMNS);
 
 export function ProjectFilters() {
   const {
@@ -66,8 +71,11 @@ export function ProjectFilters() {
   const isKanban = activeView?.type.toLowerCase() === "custom";
   const isSavedView = savedViews.some((view) => view.name === activeView?.name);
   const columnLayout = useColumnLayout();
-  const isDirty =
-    IS_COLUMN_LAYOUT_ENABLED && (hasFilterChanges || columnLayout.isDirty);
+  const selectedColumns = useMemo(
+    () => toSelectorColumns(columnLayout.columns, columnLayout.pinnedColumns),
+    [columnLayout.columns, columnLayout.pinnedColumns],
+  );
+  const isDirty = hasFilterChanges || columnLayout.isDirty;
 
   const [searchInput, setSearchInput] = useState(search);
   const isUserInput = useRef(false);
@@ -143,12 +151,13 @@ export function ProjectFilters() {
               <Button
                 variant="ghost"
                 label="Cancel"
-                onClick={() => {
-                  if (activeView) {
-                    applyView(activeView);
-                    columnLayout.revert();
-                  }
-                }}
+                onClick={() =>
+                  activeView &&
+                  applyView(activeView, {
+                    reset: true,
+                    params: columnLayout.savedParams,
+                  })
+                }
               />
               <Button
                 variant="subtle"
@@ -174,7 +183,24 @@ export function ProjectFilters() {
         {isDirty && (
           <div className="h-7 w-px shrink-0 self-center bg-outline-gray-2" />
         )}
-        {!isKanban && IS_COLUMN_LAYOUT_ENABLED && <ColumnsPanel />}
+        {!isKanban && (
+          <ColumnSelector
+            columns={selectedColumns}
+            availableColumns={AVAILABLE_COLUMNS}
+            pinnable
+            maxPinned={MAX_PINNED_COLUMNS}
+            labels={{
+              pinLimit: `You can pin up to ${MAX_PINNED_COLUMNS} columns`,
+            }}
+            onColumnsChange={(next) =>
+              columnLayout.setColumns(
+                next.map((column) => column.value),
+                next.filter((column) => column.pinned).map((c) => c.value),
+              )
+            }
+            onReset={columnLayout.isDefault ? undefined : columnLayout.reset}
+          />
+        )}
         {!isKanban && (
           <SortSelector
             sort={sort}

@@ -13,6 +13,7 @@ import { useFrappePostCall } from "frappe-react-sdk";
 /**
  * Internal dependencies.
  */
+import type { AddAllocationFormValues } from "@/pages/allocations/team/add-allocation/schema";
 import type { AddAllocationInitialValues } from "@/pages/allocations/team/add-allocation/types";
 import type { EditScheduleInitialValues } from "@/pages/allocations/team/edit-schedule/types";
 import type { AllocationOutletContext } from "./allocationOutletContext";
@@ -91,6 +92,7 @@ export function useAllocationModal(refresh: RefreshAllocations) {
       isBillable: data.billable,
       isTentative: data.tentative,
       includeWeekends: Boolean(data.includeWeekends),
+      includeHolidays: Boolean(data.includeHolidays),
       note: data.note,
       allocationStartDate: data.allocationStartDate
         ? format(data.allocationStartDate, "yyyy-MM-dd")
@@ -181,7 +183,7 @@ export function useAllocationModal(refresh: RefreshAllocations) {
       onOpenChange: handleOpenChange,
       initialValues,
       onSuccess: handleSuccess,
-      onEditScheduleClick: () => {
+      onEditScheduleClick: (values: AddAllocationFormValues) => {
         setIsOpen(false);
         setEditScheduleInitialValues({
           allocationName: initialValues?.allocationName ?? "",
@@ -203,6 +205,7 @@ export function useAllocationModal(refresh: RefreshAllocations) {
           isBillable: initialValues?.isBillable,
           isTentative: initialValues?.isTentative,
           includeWeekends: initialValues?.includeWeekends,
+          includeHolidays: values.includeHolidays,
           note: initialValues?.note,
           override: initialValues?.override,
           recurrenceId: initialValues?.recurrenceId,

@@ -27,8 +27,8 @@ import AddTime from "@/pages/timesheet/components/add-time";
 import type { OpenAddTimeDialogOptions } from "@/pages/timesheet/outletContext";
 import { useUser } from "@/providers/user";
 import { TaskListCell } from "./cells";
-import { TASK_LIST_COLUMNS } from "./columns";
 import { useTaskList } from "./context";
+import { useTaskColumns } from "./useTaskColumns";
 import { TASK_LIST_PAGE_SIZE, TASK_SORTABLE_FIELDS } from "../constants";
 import { useTaskFilters } from "../useTaskFilters";
 
@@ -46,6 +46,7 @@ function TaskList() {
   const deleteTask = useTaskList((c) => c.actions.deleteTask);
   const openEditTaskModal = useTaskList((c) => c.actions.openEditTaskModal);
   const { sort, setSort } = useTaskFilters();
+  const { columns } = useTaskColumns();
   const roles = useUser(({ state }) => state.roles);
   const userId = useUser(({ state }) => state.userId);
   const showTeamTaskLog =
@@ -82,7 +83,7 @@ function TaskList() {
             role="table"
             aria-label="Tasks"
             className="px-5 py-0 scrollbar-thin"
-            columns={TASK_LIST_COLUMNS}
+            columns={columns}
             rows={data}
             rowKey="name"
             options={{
@@ -100,7 +101,7 @@ function TaskList() {
               role="row"
               className="mb-0 rounded-none bg-transparent border-b border-outline-gray-1 p-2 gap-2"
             >
-              {TASK_LIST_COLUMNS.map((column) => {
+              {columns.map((column) => {
                 const sortField = SORT_FIELD_BY_COLUMN.get(column.key);
                 const isSorted = Boolean(sortField) && sort.field === sortField;
                 return (
@@ -161,7 +162,7 @@ function TaskList() {
                 >
                   {data.map((row) => (
                     <ListRow key={row.name} role="row" row={row}>
-                      {TASK_LIST_COLUMNS.map((column) => (
+                      {columns.map((column) => (
                         <div key={column.key} role="cell" className="min-w-0">
                           <TaskListCell
                             row={row}

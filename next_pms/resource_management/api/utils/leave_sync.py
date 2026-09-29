@@ -25,13 +25,12 @@ def effective_hours(base_hours: float, date: datetime.date, leaves: list[dict], 
     return flt(base_hours) * availability_factor(date, leaves, holidays)
 
 
-def get_leave_calendar(employee: str, start_date, end_date, include_weekends=False) -> tuple[list[dict], list]:
-    """Return the leave applications and holidays that shape an employee's availability.
+def get_leave_calendar(employee: str, start_date, end_date) -> tuple[list[dict], list]:
+    """Return every leave and every holiday an employee has in a date range.
 
-    Weekly-off rows are dropped when the allocation includes weekends: a holiday list marks
-    every Saturday and Sunday as a weekly off, so keeping them would cancel exactly the days
-    the allocation opted into. Weekends are excluded by date iteration instead — leaving real
-    public holidays as the only holidays that reduce an allocation.
+    The unfiltered calendar: the single source for both "what reduces an allocation" and "what
+    to label a day as". Which of these rows actually cut an allocation's hours depends on that
+    allocation's toggles — ask :func:`reducing_calendar` for that subset.
     """
     leaves = get_employee_leaves(
         employee=employee,
@@ -43,14 +42,37 @@ def get_leave_calendar(employee: str, start_date, end_date, include_weekends=Fal
     if not holiday_list:
         return leaves, []
 
-    holiday_filters = {
-        "parent": holiday_list,
-        "holiday_date": ["between", (getdate(start_date), getdate(end_date))],
-    }
-    if cint(include_weekends):
-        holiday_filters["weekly_off"] = 0
+    holidays = frappe.get_all(
+        "Holiday",
+        filters={
+            "parent": holiday_list,
+            "holiday_date": ["between", (getdate(start_date), getdate(end_date))],
+        },
+        fields=["holiday_date", "weekly_off", "description"],
+    )
 
-    holidays = frappe.get_all("Holiday", filters=holiday_filters, fields=["holiday_date", "description"])
+    return leaves, holidays
+
+
+def reducing_calendar(
+    leaves: list[dict], holidays: list, include_weekends=False, include_holidays=False
+) -> tuple[list[dict], list]:
+    """Narrow a leave calendar to the rows that actually reduce an allocation's hours.
+
+    The two toggles are independent. `include_weekends` opts into booking Saturdays and Sundays,
+    so the weekly-off rows that would cancel them are dropped; it is gated on a timesheet-wide
+    setting. `include_holidays` opts out of both public-holiday and leave reduction, and is not
+    gated. A manual day override outranks whatever survives here.
+
+    A weekly-off row only matters when `include_weekends` is set, because that is the only time
+    :func:`allocation_dates` yields a weekend date at all.
+    """
+    if cint(include_holidays):
+        leaves = []
+        holidays = [holiday for holiday in holidays if cint(holiday.weekly_off)]
+
+    if cint(include_weekends):
+        holidays = [holiday for holiday in holidays if not cint(holiday.weekly_off)]
 
     return leaves, holidays
 
@@ -74,14 +96,25 @@ def override_signature(doc) -> tuple:
     )
 
 
-def sync_leave_overrides(doc, leaves: list[dict] | None = None, holidays: list | None = None) -> None:
+def sync_leave_overrides(
+    doc,
+    leaves: list[dict] | None = None,
+    holidays: list | None = None,
+    reset_manual_range: tuple | None = None,
+) -> None:
     """Rewrite the leave-derived rows of an allocation's override table in place.
 
     Days on which the employee is fully unavailable (full-day leave or a public holiday) are
-    cancelled; half days are halved. Leave owns every day it touches: a manual row on a leave
-    date is replaced, so hours are never booked against leave. Manual rows on every other date
-    are left untouched, and rows this function previously wrote are dropped once the leave that
-    caused them is cancelled or moved — which is what returns those days to their base hours.
+    cancelled; half days are halved. Rows this function previously wrote are dropped once the
+    leave that caused them is cancelled or moved — which is what returns those days to their
+    base hours.
+
+    A `Manual` row is an explicit instruction from a manager and outranks anything derived here:
+    it is kept verbatim, never halved, and no `Leave` row is written for that date. The one
+    exception is `reset_manual_range`, an inclusive ``(start, end)`` passed only when a Leave
+    Application itself changed — that is new information the manager did not have, so within the
+    dates that leave moved the automatic rule re-asserts itself and the manager adjusts again.
+    Manual rows outside that window are none of the leave's business and are left alone.
 
     Idempotent: syncing an already-synced doc leaves the table unchanged.
     """
@@ -93,8 +126,9 @@ def sync_leave_overrides(doc, leaves: list[dict] | None = None, holidays: list |
             doc.employee,
             doc.allocation_start_date,
             doc.allocation_end_date,
-            doc.include_weekends,
         )
+
+    leaves, holidays = reducing_calendar(leaves, holidays, doc.include_weekends, doc.include_holidays)
 
     base_hours = flt(doc.hours_allocated_per_day)
     reduced_days = {}
@@ -103,6 +137,10 @@ def sync_leave_overrides(doc, leaves: list[dict] | None = None, holidays: list |
         if factor < 1:
             reduced_days[date] = base_hours * factor
 
+    reset_start, reset_end = (
+        (getdate(reset_manual_range[0]), getdate(reset_manual_range[1])) if reset_manual_range else (None, None)
+    )
+
     retained_rows, synced_dates = [], set()
 
     for row in doc.override:
@@ -110,9 +148,10 @@ def sync_leave_overrides(doc, leaves: list[dict] | None = None, holidays: list |
         is_leave_row = row.source == LEAVE_SOURCE
 
         if row_date in reduced_days:
-            if not is_leave_row:
-                continue
-            _apply_leave_hours(row, reduced_days[row_date])
+            if is_leave_row:
+                _apply_leave_hours(row, reduced_days[row_date])
+            elif reset_start and reset_start <= row_date <= reset_end:
+                continue  # the leave that changed covers this date: drop the row, re-derive below
             synced_dates.add(row_date)
         elif is_leave_row:
             continue

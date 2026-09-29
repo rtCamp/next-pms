@@ -7,7 +7,7 @@ import {
   getUTCDateTime,
   normalizeDate,
 } from "@next-pms/design-system/date";
-import { FilterCondition } from "@rtcamp/frappe-ui-react";
+import { FilterCondition, SelectorColumn } from "@rtcamp/frappe-ui-react";
 import { type ClassValue, clsx } from "clsx";
 import {
   format,
@@ -620,8 +620,8 @@ export const calculateLeaveHours = (
   daily_working_hours: number,
   holiday: HolidayProp | undefined,
 ) => {
-  // Holidays are already removed from the week's expected hours, so counting
-  // them here would count the day twice.
+  // A weekly off is not a working day and a named holiday is already counted
+  // as time off, so leave on either day is ignored.
   if (holiday) {
     return 0;
   }
@@ -636,6 +636,29 @@ export const calculateLeaveHours = (
     }
     return total;
   }, 0);
+};
+
+/**
+ * Calculates the time off hours for a given date, counting a named holiday as
+ * a full working day and ignoring weekly offs.
+ *
+ * @param leaves Array of LeaveProps containing leave data.
+ * @param date Date string for which to calculate time off hours.
+ * @param daily_working_hours Number of working hours in a day.
+ * @param holiday HolidayProp object for the given date (if any).
+ * @returns Total time off hours for the given date.
+ */
+export const calculateTimeOffHours = (
+  leaves: LeaveProps[],
+  date: string,
+  daily_working_hours: number,
+  holiday: HolidayProp | undefined,
+) => {
+  if (holiday && !holiday.weekly_off) {
+    return daily_working_hours;
+  }
+
+  return calculateLeaveHours(leaves, date, daily_working_hours, holiday);
 };
 
 /** Returns true when the operator does not require a value. */
@@ -859,4 +882,43 @@ export function getFileExtension(fileName: string): string {
   }
 
   return fileName.slice(lastDotIndex + 1).toUpperCase();
+}
+
+/**
+ * Parses a comma-separated string (or array) of column keys into the known,
+ * de-duplicated keys it names, preserving order.
+ */
+export function parseColumnKeys(
+  value: unknown,
+  knownKeys: ReadonlySet<string>,
+): string[] {
+  const keys =
+    typeof value === "string"
+      ? value.split(",")
+      : Array.isArray(value)
+        ? value
+        : [];
+  const seen = new Set<string>();
+  return keys.filter((key) => {
+    if (!knownKeys.has(key) || seen.has(key)) {
+      return false;
+    }
+    seen.add(key);
+    return true;
+  });
+}
+
+/**
+ * Maps list columns onto the shape `ColumnSelector` renders.
+ */
+export function toSelectorColumns(
+  columns: { key: string; label: string }[],
+  pinnedKeys: string[] = [],
+): SelectorColumn[] {
+  const pinned = new Set(pinnedKeys);
+  return columns.map(({ key, label }) => ({
+    value: key,
+    label,
+    pinned: pinned.has(key),
+  }));
 }

@@ -3,7 +3,7 @@
 
 import frappe
 from frappe.model.document import Document
-from frappe.utils import flt, today
+from frappe.utils import flt, getdate, today
 from frappe.utils.background_jobs import is_job_enqueued
 
 from next_pms.resource_management.api.project import (
@@ -12,6 +12,8 @@ from next_pms.resource_management.api.project import (
 )
 from next_pms.resource_management.api.team import _get_resource_management_team_view_data
 from next_pms.resource_management.api.utils import leave_sync
+from next_pms.resource_management.api.utils.helpers import allocation_hours_for_date, override_hours_by_date
+from next_pms.resource_management.api.utils.query import attach_extra_entries
 
 
 class ResourceAllocation(Document):
@@ -35,6 +37,7 @@ class ResourceAllocation(Document):
         employee_name: DF.Data | None
         hourly_cost_rate: DF.Currency
         hours_allocated_per_day: DF.Float
+        include_holidays: DF.Check
         include_weekends: DF.Check
         is_billable: DF.Check
         naming_series: DF.Literal["RA-.{employee}.-.YYYY.-.####."]
@@ -53,9 +56,11 @@ class ResourceAllocation(Document):
             frappe.throw(frappe._("End date should be greater than or equal to start date"))
 
         self.set_project_currency()
-        self.validate_no_overlap()
         self.validate_project_and_customer()
+        # Overlap is judged on the days each side actually books, so this document's
+        # leave-derived rows have to be in place before the check reads them.
         self.apply_leave_availability()
+        self.validate_no_overlap()
         self.calculate_cost()
 
     def set_project_currency(self):
@@ -66,9 +71,51 @@ class ResourceAllocation(Document):
         if project_currency:
             self.currency = project_currency
 
+    @staticmethod
+    def booked_dates(allocation: dict, start, end) -> set:
+        """The dates in [start, end] on which an allocation books more than zero hours.
+
+        The override table already carries every reduction -- a holiday or a full day of leave
+        is a cancelled row, a half day a reduced one, a manual entry whatever the manager typed,
+        and `include_holidays` simply leaves no row at all -- so reading it alongside the weekday
+        rule covers every way a day can end up unbooked.
+        """
+        override_hours = override_hours_by_date(allocation)
+
+        return {
+            day
+            for day in leave_sync.allocation_dates(start, end, allocation.get("include_weekends"))
+            if allocation_hours_for_date(allocation, day, override_hours) > 0
+        }
+
+    def books_a_day_shared_with(self, other) -> bool:
+        """Whether this allocation and `other` both book at least one of the days their ranges share.
+
+        Overlapping on the calendar is not the same as competing for a day: a weekends-off
+        allocation can span a weekend without booking any of it, and two allocations can meet
+        on nothing but a public holiday that neither books.
+        """
+        start = max(getdate(self.allocation_start_date), getdate(other.allocation_start_date))
+        end = min(getdate(self.allocation_end_date), getdate(other.allocation_end_date))
+        if start > end:
+            return False
+
+        mine = self.booked_dates(
+            {
+                "hours_allocated_per_day": self.hours_allocated_per_day,
+                "include_weekends": self.include_weekends,
+                "override": [
+                    {"date": row.date, "hours": row.hours, "cancelled": row.cancelled} for row in self.override
+                ],
+            },
+            start,
+            end,
+        )
+
+        return bool(mine) and bool(mine & self.booked_dates(other, start, end))
+
     def validate_no_overlap(self):
-        """Block a second allocation for the same employee + project whose date range
-        overlaps an existing one (partial or exact overlap)."""
+        """Block a second allocation for the same employee + project that books a day this one books."""
         if not self.project:
             return
 
@@ -81,12 +128,21 @@ class ResourceAllocation(Document):
             ["name", "!=", self.name or ""],
         ]
 
-        existing = frappe.db.get_value(
+        candidates = frappe.get_all(
             "Resource Allocation",
-            filters,
-            ["name", "allocation_start_date", "allocation_end_date", "total_allocated_hours"],
-            as_dict=True,
+            filters=filters,
+            fields=[
+                "name",
+                "allocation_start_date",
+                "allocation_end_date",
+                "total_allocated_hours",
+                "hours_allocated_per_day",
+                "include_weekends",
+            ],
         )
+        attach_extra_entries(candidates)
+
+        existing = next((row for row in candidates if self.books_a_day_shared_with(row)), None)
         if not existing:
             return
 

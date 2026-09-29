@@ -23,6 +23,7 @@ import {
 import { AlertTriangle, Calendar } from "@rtcamp/frappe-ui-react/icons";
 import { useForm } from "@tanstack/react-form";
 import { useSelector } from "@tanstack/react-store";
+import { addDays, format, parseISO } from "date-fns";
 import { FrappeError, useFrappePostCall } from "frappe-react-sdk";
 
 /**
@@ -33,6 +34,7 @@ import { useEmployeeLookup } from "@/hooks/useEmployeeLookup";
 import { useProjectLookup } from "@/hooks/useProjectLookup";
 import { ROUTES } from "@/lib/constant";
 import { isWeekendEntryAllowed, parseFrappeErrorMsg } from "@/lib/utils";
+import { useEmployeeAvailability } from "@/pages/allocations/useEmployeeAvailability";
 import {
   addAllocationDefaultValues,
   allocationRecurrenceLabels,
@@ -109,15 +111,6 @@ function AddAllocationModal({
       onSubmit: addAllocationFormSchema,
     },
     onSubmit: async ({ value }) => {
-      const totalAllocatedHours = computeTotalHours({
-        hoursPerDay: value.hoursPerDay,
-        recurrence: value.recurrence,
-        fromDate: value.fromDate,
-        toDate: value.toDate,
-        repeatFor: Number.isFinite(value.repeatFor) ? value.repeatFor : 0,
-        includeWeekends: value.includeWeekends,
-      });
-
       setSubmitting(true);
 
       try {
@@ -130,11 +123,11 @@ function AddAllocationModal({
             allocation_start_date: value.fromDate,
             allocation_end_date: value.toDate,
             hours_allocated_per_day: value.hoursPerDay,
-            total_allocated_hours: totalAllocatedHours,
             is_billable: Number(value.isBillable),
             status: value.isTentative ? "Tentative" : "Confirmed",
             note: value.note ?? "",
             include_weekends: value.includeWeekends,
+            include_holidays: value.includeHolidays,
           },
           // Repeat weeks are only applied when creating a recurring allocation.
           repeat_till_week_count:
@@ -360,6 +353,10 @@ function AddAllocationModal({
     form.store,
     (state) => state.values.includeWeekends,
   );
+  const includeHolidaysValue = useSelector(
+    form.store,
+    (state) => state.values.includeHolidays,
+  );
 
   const overAllocatedDays = useOverAllocation({
     employeeId,
@@ -367,8 +364,26 @@ function AddAllocationModal({
     toDate,
     hoursPerDay,
     includeWeekends: includeWeekendsValue,
+    includeHolidays: includeHolidaysValue,
     repeatWeeks: recurrence === "recurring" ? repeatFor : 0,
     allocationName,
+  });
+
+  // Recurring copies sit a week apart, so the last one ends this far past `toDate`.
+  const availabilityEndDate = useMemo(() => {
+    const copies = recurrence === "recurring" ? Math.max(0, repeatFor) : 0;
+
+    return toDate
+      ? format(addDays(parseISO(toDate), copies * 7), "yyyy-MM-dd")
+      : "";
+  }, [toDate, recurrence, repeatFor]);
+
+  const availability = useEmployeeAvailability({
+    employeeId,
+    startDate: fromDate,
+    endDate: availabilityEndDate,
+    includeWeekends: includeWeekendsValue,
+    enabled: open,
   });
 
   useEffect(() => {
@@ -392,6 +407,8 @@ function AddAllocationModal({
     toDate,
     repeatFor,
     includeWeekends: includeWeekendsValue,
+    includeHolidays: includeHolidaysValue,
+    availability,
   });
 
   const handleProjectChange = useCallback(
@@ -647,23 +664,45 @@ function AddAllocationModal({
 
         {recurrenceSection}
 
-        <form.Field
-          name="includeWeekends"
-          children={(field) =>
-            weekendEntriesAllowed || field.state.value ? (
-              <label className="inline-flex items-center gap-2 text-base text-ink-gray-6">
-                <Checkbox
-                  value={field.state.value}
-                  disabled={
-                    !weekendEntriesAllowed || isLockedAllocationMetadataEdit
-                  }
-                  onChange={(checked) => field.handleChange(Boolean(checked))}
-                />
-                Include weekends
-              </label>
-            ) : null
-          }
-        />
+        <div>
+          <FormLabel id="project" size="md" className="mb-1.5">
+            Days to include
+          </FormLabel>
+          <div className="flex flex-col gap-1.5">
+            <form.Field
+              name="includeWeekends"
+              children={(field) =>
+                weekendEntriesAllowed || field.state.value ? (
+                  <label className="inline-flex items-center gap-2 text-base text-ink-gray-6">
+                    <Checkbox
+                      value={field.state.value}
+                      disabled={
+                        !weekendEntriesAllowed || isLockedAllocationMetadataEdit
+                      }
+                      onChange={(checked) =>
+                        field.handleChange(Boolean(checked))
+                      }
+                    />
+                    Include weekends
+                  </label>
+                ) : null
+              }
+            />
+
+            <form.Field
+              name="includeHolidays"
+              children={(field) => (
+                <label className="inline-flex items-center gap-2 text-base text-ink-gray-6">
+                  <Checkbox
+                    value={field.state.value}
+                    onChange={(checked) => field.handleChange(Boolean(checked))}
+                  />
+                  Include holidays
+                </label>
+              )}
+            />
+          </div>
+        </div>
 
         <form.Field
           name="fromDate"
@@ -682,7 +721,9 @@ function AddAllocationModal({
                         label="Edit Schedule"
                         className="p-0 bg-transparent h-fit text-ink-gray-5 hover:bg-transparent focus:bg-transparent active:bg-transparent disabled:cursor-not-allowed!"
                         disabled={isProjectEmployeeMismatch}
-                        onClick={onEditScheduleClick}
+                        onClick={() =>
+                          onEditScheduleClick?.(form.store.state.values)
+                        }
                       />
                     ) : null}
                   </div>
