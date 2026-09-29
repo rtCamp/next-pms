@@ -36,7 +36,7 @@ export function StatusBadge({ status }: StatusBadgeProps) {
     ? (status as KnownStatus)
     : undefined;
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex min-w-0 items-center gap-2">
       <span className={statusDotVariants({ status: variant })}>
         <span className="absolute inset-0 m-auto size-1.5 rounded-full bg-white" />
       </span>

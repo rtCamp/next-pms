@@ -9,7 +9,7 @@ import {
 import { cva, type VariantProps } from "class-variance-authority";
 
 const priorityVariants = cva(
-  "inline-flex items-center gap-1 text-sm shrink-0 rounded-full px-2 py-1",
+  "inline-flex min-w-0 items-center gap-1 text-sm rounded-full px-2 py-1",
   {
     variants: {
       priority: {
@@ -38,8 +38,8 @@ export function PriorityBadge({ priority }: PriorityBadgeProps) {
   const Icon = PRIORITY_ICONS[priority as Priority];
   return (
     <span className={priorityVariants({ priority: priority as Priority })}>
-      <Icon className="size-3.5" />
-      <span>{priority}</span>
+      <Icon className="size-3.5 shrink-0" />
+      <span className="truncate">{priority}</span>
     </span>
   );
 }

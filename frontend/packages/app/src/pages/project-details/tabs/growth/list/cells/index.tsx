@@ -34,7 +34,7 @@ export function GrowthCell({ column, item }: GrowthCellProps) {
       if (!item.activity_owner) return <span>—</span>;
       const label = item.owner_details?.full_name ?? item.activity_owner;
       return (
-        <div className="flex items-center gap-2">
+        <div className="flex min-w-0 items-center gap-2">
           <Avatar
             size="xs"
             shape="circle"
