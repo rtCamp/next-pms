@@ -231,7 +231,7 @@ export function CreateMilestoneModal({
                 Type
               </FormLabel>
               <Select
-                className="text-ink-gray-7"
+                className="text-ink-gray-7 h-8"
                 variant="outline"
                 options={categoryOptions}
                 value={field.state.value}
@@ -249,7 +249,7 @@ export function CreateMilestoneModal({
           <form.Field
             name="startDate"
             children={(field) => (
-              <div className="flex-1 flex flex-col gap-1.5">
+              <div className="flex-1 min-w-0 flex flex-col gap-1.5">
                 <FormLabel size="md" required>
                   Start date
                 </FormLabel>
@@ -260,12 +260,12 @@ export function CreateMilestoneModal({
                   placeholder="Start date"
                 >
                   {({ displayValue }) => (
-                    <div className="flex relative items-center py-1 w-full rounded border border-outline-gray-2 px-2.5">
+                    <div className="flex relative items-center w-full rounded border border-outline-gray-2 px-2.5">
                       <input
                         readOnly
                         type="text"
                         value={displayValue}
-                        className="flex-1 text-base text-ink-gray-7"
+                        className="flex-1 h-7.5 min-w-0 text-base text-ink-gray-7"
                       />
                       <Calendar className="size-4" />
                     </div>
@@ -281,7 +281,7 @@ export function CreateMilestoneModal({
           <form.Field
             name="completionDate"
             children={(field) => (
-              <div className="flex-1 flex flex-col gap-1.5">
+              <div className="flex-1 min-w-0 flex flex-col gap-1.5">
                 <FormLabel size="md" required>
                   Completion date
                 </FormLabel>
@@ -292,12 +292,12 @@ export function CreateMilestoneModal({
                   placeholder="Completion date"
                 >
                   {({ displayValue }) => (
-                    <div className="flex relative items-center py-1 w-full rounded border border-outline-gray-2 px-2.5">
+                    <div className="flex relative items-center w-full rounded border border-outline-gray-2 px-2.5">
                       <input
                         readOnly
                         type="text"
                         value={displayValue}
-                        className="flex-1 text-base text-ink-gray-7"
+                        className="flex-1 h-7.5 min-w-0 text-base text-ink-gray-7"
                       />
                       <Calendar className="size-4" />
                     </div>

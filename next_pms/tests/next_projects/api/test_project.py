@@ -991,11 +991,11 @@ class TestTrackingCurrentVsProjectedProfit(IntegrationTestCase):
         self.assertEqual(tracking["current_profit"], expected)
         self.assertAlmostEqual(tracking["current_profit_margin"], expected / self.BILLABLE * 100)
 
-    def test_current_margin_is_zero_when_nothing_billable_is_logged(self):
+    def test_current_margin_is_none_when_nothing_billable_is_logged(self):
         tracking = self.tracking("TNM_NOTHING_BILLED")
         self.assertEqual(tracking["current_project_value"], 0)
         self.assertEqual(tracking["current_profit"], -self.COSTING)
-        self.assertEqual(tracking["current_profit_margin"], 0)
+        self.assertIsNone(tracking["current_profit_margin"])
 
     def test_non_billable_reports_neither_pair(self):
         tracking = self.tracking("NONBILL")

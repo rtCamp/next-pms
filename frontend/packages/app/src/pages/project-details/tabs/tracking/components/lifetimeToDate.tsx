@@ -15,7 +15,7 @@ export function LifetimeToDateCell() {
   return (
     <KnowledgePoint
       title="Lifetime value to date"
-      value={currencyFormat(currency).format(value ?? 0)}
+      value={value == null ? "N/A" : currencyFormat(currency).format(value)}
     />
   );
 }
