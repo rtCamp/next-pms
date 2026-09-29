@@ -19,7 +19,7 @@ export function OwnerPill({ email, details, role }: OwnerPillProps) {
   const label = details?.full_name ?? email;
   return (
     <div
-      className="flex items-center gap-1 bg-surface-gray-2 rounded-full px-2 py-1"
+      className="flex items-center gap-1 whitespace-nowrap bg-surface-gray-2 rounded-full px-2 py-1"
       title={role}
     >
       <Avatar

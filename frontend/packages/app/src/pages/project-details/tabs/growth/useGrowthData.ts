@@ -7,7 +7,7 @@ import { useFrappeGetDocList } from "frappe-react-sdk";
 /**
  * Internal dependencies.
  */
-import { hashString } from "@/lib/utils";
+import { useUserDetails } from "@/hooks/useUserDetails";
 import { useProjectDetail } from "@/pages/project-details/context";
 import type { UserDetails } from "@/pages/project-details/types";
 import { GROWTH_DOCTYPE } from "./constants";
@@ -94,20 +94,7 @@ export function useGrowthData(filters: GrowthFilters, sort: GrowthSort | null) {
     [activityOwners, ideationOwners],
   );
 
-  const usersSwrKey = useMemo(() => {
-    if (!allEmails.length) return null;
-    return `growth-users-${hashString(allEmails.slice().sort().join(","))}`;
-  }, [allEmails]);
-
-  const { data: usersData } = useFrappeGetDocList<UserDetails>(
-    "User",
-    {
-      fields: ["name", "full_name", "user_image"],
-      filters: allEmails.length ? [["name", "in", allEmails]] : [],
-      limit: allEmails.length || 1,
-    },
-    usersSwrKey,
-  );
+  const { data: usersData } = useUserDetails(allEmails);
 
   const activityOwnersWithDetails = useMemo(
     () => toUserMap(activityOwners, usersData ?? []),

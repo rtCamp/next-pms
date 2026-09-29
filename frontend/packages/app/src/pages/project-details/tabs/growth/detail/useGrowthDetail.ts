@@ -7,12 +7,8 @@ import { useFrappeGetDoc, useFrappeGetDocList } from "frappe-react-sdk";
 /**
  * Internal dependencies.
  */
-import { hashString } from "@/lib/utils";
-import type {
-  FileAttachment,
-  Follower,
-  UserDetails,
-} from "@/pages/project-details/types";
+import { useUserDetails } from "@/hooks/useUserDetails";
+import type { FileAttachment, Follower } from "@/pages/project-details/types";
 import { GROWTH_DOCTYPE } from "../constants";
 import type { ApiGrowthDetail, GrowthDetail } from "../types";
 
@@ -20,31 +16,6 @@ export function useGrowthDetail(growthId: string) {
   const { data, isLoading, error } = useFrappeGetDoc<ApiGrowthDetail>(
     GROWTH_DOCTYPE,
     growthId,
-  );
-
-  const userEmails = useMemo(
-    () =>
-      [
-        ...new Set(
-          [data?.activity_owner, data?.ideation_owner].filter(Boolean),
-        ),
-      ] as string[],
-    [data?.activity_owner, data?.ideation_owner],
-  );
-
-  const usersSwrKey = useMemo(() => {
-    if (!userEmails.length) return null;
-    return `growth-detail-users-${hashString(userEmails.slice().sort().join(","))}`;
-  }, [userEmails]);
-
-  const { data: usersData } = useFrappeGetDocList<UserDetails>(
-    "User",
-    {
-      fields: ["name", "full_name", "user_image"],
-      filters: [["name", "in", userEmails]],
-      limit: userEmails.length || 1,
-    },
-    usersSwrKey,
   );
 
   const { data: attachments, mutate: mutateAttachments } =
@@ -57,19 +28,28 @@ export function useGrowthDetail(growthId: string) {
       limit: 50,
     });
 
-  const { data: followersData, mutate: mutateFollowers } =
-    useFrappeGetDocList<Follower>("Document Follow", {
-      fields: [
-        "user",
-        "user.full_name as full_name",
-        "user.user_image as user_image",
-      ] as never,
-      filters: [
-        ["ref_doctype", "=", GROWTH_DOCTYPE],
-        ["ref_docname", "=", growthId],
-      ],
-      limit: 50,
-    });
+  const { data: followersData, mutate: mutateFollowers } = useFrappeGetDocList<
+    Pick<Follower, "user">
+  >("Document Follow", {
+    fields: ["user"],
+    filters: [
+      ["ref_doctype", "=", GROWTH_DOCTYPE],
+      ["ref_docname", "=", growthId],
+    ],
+    limit: 50,
+  });
+
+  const userEmails = useMemo(
+    () =>
+      [
+        data?.activity_owner,
+        data?.ideation_owner,
+        ...(followersData ?? []).map((f) => f.user),
+      ].filter(Boolean) as string[],
+    [data?.activity_owner, data?.ideation_owner, followersData],
+  );
+
+  const { data: usersData } = useUserDetails(userEmails);
 
   const growth = useMemo((): GrowthDetail | undefined => {
     if (!data) return undefined;
@@ -82,12 +62,25 @@ export function useGrowthDetail(growthId: string) {
     };
   }, [data, usersData]);
 
+  const followers = useMemo<Follower[]>(
+    () =>
+      (followersData ?? []).map(({ user }) => {
+        const details = usersData?.find((u) => u.name === user);
+        return {
+          user,
+          full_name: details?.full_name ?? null,
+          user_image: details?.user_image ?? null,
+        };
+      }),
+    [followersData, usersData],
+  );
+
   return {
     growth,
     isLoading,
     error,
     attachments: attachments ?? [],
-    followers: followersData ?? [],
+    followers,
     mutateAttachments,
     mutateFollowers,
   };

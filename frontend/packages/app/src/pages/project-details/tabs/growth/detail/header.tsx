@@ -55,7 +55,7 @@ export function GrowthDetailHeader({
         </h2>
       </div>
 
-      <div className="flex items-center gap-1 text-sm text-ink-gray-7">
+      <div className="flex flex-wrap items-center gap-1 text-sm text-ink-gray-7">
         {growth.client_priority && (
           <PriorityBadge priority={growth.client_priority} />
         )}
