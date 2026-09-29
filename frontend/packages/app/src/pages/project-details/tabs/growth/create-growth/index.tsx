@@ -38,7 +38,10 @@ import { EmployeeField } from "./employeeField";
 import { buildGrowthSchema, type GrowthFormValues } from "./schema";
 import type { CreateGrowthModalProps } from "./types";
 
-const today = () => format(new Date(), "yyyy-MM-dd");
+const emptyCreateValues = (): GrowthFormValues => ({
+  ...EMPTY_GROWTH_VALUES,
+  ideation_date: format(new Date(), "yyyy-MM-dd"),
+});
 
 const PRIORITY_OPTIONS = CLIENT_PRIORITIES.map((p) => ({
   label: p,
@@ -73,7 +76,9 @@ export function CreateGrowthModal({
   const closedStatuses = useGrowth((c) => c.state.closedStatuses);
   const categories = useGrowth((c) => c.state.categories);
   const mastersLoading = useGrowth((c) => c.state.isMastersLoading);
-  const [submitting, setSubmitting] = useState(false);
+  const [submittingAction, setSubmittingAction] = useState<
+    "createAnother" | "close" | null
+  >(null);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const toast = useToasts();
   const { createDoc } = useFrappeCreateDoc();
@@ -104,8 +109,9 @@ export function CreateGrowthModal({
   const form = useForm({
     defaultValues: EMPTY_GROWTH_VALUES,
     validators: { onSubmit: schema },
-    onSubmit: async ({ value }) => {
-      setSubmitting(true);
+    onSubmitMeta: { keepOpen: false },
+    onSubmit: async ({ value, meta }) => {
+      setSubmittingAction(meta.keepOpen ? "createAnother" : "close");
       setSubmitError(null);
       const payload = toPayload(value, isClosedStatus(value.status));
       try {
@@ -118,13 +124,17 @@ export function CreateGrowthModal({
           toast.success("Growth initiative created");
         }
         refresh();
+        if (meta.keepOpen) {
+          form.reset(emptyCreateValues(), { keepDefaultValues: true });
+          return;
+        }
         closeModal();
       } catch (err) {
         const message = parseFrappeErrorMsg(err as FrappeError);
         setSubmitError(message);
         toast.error(message);
       } finally {
-        setSubmitting(false);
+        setSubmittingAction(null);
       }
     },
   });
@@ -133,24 +143,27 @@ export function CreateGrowthModal({
     if (!open) return;
     if (isEditMode) {
       if (!existing) return;
-      form.reset({
-        activity: existing.activity ?? "",
-        category: existing.category ?? null,
-        description: existing.description ?? "",
-        client_priority: existing.client_priority ?? "",
-        status: existing.status ?? "",
-        closed_status: existing.closed_status ?? "",
-        desired_outcome: existing.desired_outcome ?? "",
-        ideation_date: existing.ideation_date ?? "",
-        activity_owner: existing.activity_owner ?? "",
-        ideation_owner: existing.ideation_owner ?? "",
-        billable_outcome: existing.billable_outcome
-          ? String(existing.billable_outcome)
-          : "",
-      });
+      form.reset(
+        {
+          activity: existing.activity ?? "",
+          category: existing.category ?? null,
+          description: existing.description ?? "",
+          client_priority: existing.client_priority ?? "",
+          status: existing.status ?? "",
+          closed_status: existing.closed_status ?? "",
+          desired_outcome: existing.desired_outcome ?? "",
+          ideation_date: existing.ideation_date ?? "",
+          activity_owner: existing.activity_owner ?? "",
+          ideation_owner: existing.ideation_owner ?? "",
+          billable_outcome: existing.billable_outcome
+            ? String(existing.billable_outcome)
+            : "",
+        },
+        { keepDefaultValues: true },
+      );
       return;
     }
-    form.reset({ ...EMPTY_GROWTH_VALUES, ideation_date: today() });
+    form.reset(emptyCreateValues(), { keepDefaultValues: true });
   }, [open, isEditMode, existing, form]);
 
   const closeModal = useCallback(() => {
@@ -158,6 +171,9 @@ export function CreateGrowthModal({
     setSubmitError(null);
     form.reset(EMPTY_GROWTH_VALUES);
   }, [form, onClose]);
+
+  const submitDisabled =
+    submittingAction !== null || mastersLoading || existingLoading;
 
   const handleOpenChange = useCallback(
     (nextOpen: boolean) => {
@@ -184,14 +200,26 @@ export function CreateGrowthModal({
         size: "md",
       }}
       actions={
-        <Button
-          className="w-full h-7"
-          variant="solid"
-          label={isEditMode ? "Save" : "Create"}
-          onClick={() => form.handleSubmit()}
-          disabled={submitting || mastersLoading || existingLoading}
-          loading={submitting}
-        />
+        <div className="flex items-center justify-between w-full gap-2">
+          {!isEditMode && (
+            <Button
+              className="w-full h-7"
+              variant="subtle"
+              label="Save and create another"
+              onClick={() => form.handleSubmit({ keepOpen: true })}
+              disabled={submitDisabled}
+              loading={submittingAction === "createAnother"}
+            />
+          )}
+          <Button
+            className="w-full h-7"
+            variant="solid"
+            label="Save"
+            onClick={() => form.handleSubmit()}
+            disabled={submitDisabled}
+            loading={submittingAction === "close"}
+          />
+        </div>
       }
     >
       {isEditMode && existingLoading ? (
