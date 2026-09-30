@@ -683,6 +683,7 @@ class TestTeamViewAICreatedFilter(_TeamViewBase):
         cls.emp_ai = cls._make_employee("Tvai AiOnly")
         cls.emp_manual = cls._make_employee("Tvai ManualOnly")
         cls.emp_out = cls._make_employee("Tvai OutOfWindow")
+        cls.ai_allocation_reason = "Selected for relevant experience and availability."
 
         # In-window AI allocation.
         frappe.get_doc(
@@ -696,6 +697,7 @@ class TestTeamViewAICreatedFilter(_TeamViewBase):
                 "status": "Tentative",
                 "is_billable": 0,
                 "is_ai_created": 1,
+                "ai_allocation_reason": cls.ai_allocation_reason,
             }
         ).insert(ignore_permissions=True)
         # In-window manual (non-AI) allocation.
@@ -743,8 +745,9 @@ class TestTeamViewAICreatedFilter(_TeamViewBase):
         result = self._call(employee_id=json.dumps([self.emp_ai]))
         allocations = result.get("resource_allocations", [])
         self.assertTrue(len(allocations) > 0)
-        for alloc in allocations:
-            self.assertIn("is_ai_created", alloc)
+        ai_allocations = [alloc for alloc in allocations if alloc.get("is_ai_created")]
+        self.assertEqual(len(ai_allocations), 1)
+        self.assertEqual(ai_allocations[0]["ai_allocation_reason"], self.ai_allocation_reason)
 
     def test_is_ai_created_filter_ignored_without_write_permission(self):
         # A read-only caller must not be narrowed by is_ai_created — the filter is blanked.

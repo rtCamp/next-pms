@@ -22,6 +22,8 @@ export interface Allocation {
   tentative?: boolean;
   /** Whether the allocation was created by AI. */
   isAiCreated?: boolean;
+  /** AI-provided explanation for the allocation. */
+  aiReason?: string;
   /** Note for the allocation. */
   note?: string;
   /** Created on date. */
@@ -140,6 +142,8 @@ export interface AllocationCallbackData {
   tentative?: boolean;
   /** Whether the allocation was created by AI. */
   isAiCreated?: boolean;
+  /** AI-provided explanation for the allocation. */
+  aiReason?: string;
   /** Note for the allocation. */
   note?: string;
   /** Existing day-level overrides attached to the allocation. */

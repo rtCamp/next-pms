@@ -295,12 +295,17 @@ class TestResourceAllocationValidation(IntegrationTestCase):
 
     def test_ai_allocation_notifies_delivery_managers(self):
         project = self._make_project("AI Notif Project", self.customer)
+        ai_reason = "Selected for relevant experience and availability."
         doc = self._make_allocation_doc(
             project=project,
             is_ai_created=1,
+            ai_allocation_reason=ai_reason,
             status="Tentative",
         )
         doc.insert(ignore_permissions=True)
+        doc.reload()
+
+        self.assertEqual(doc.ai_allocation_reason, ai_reason)
 
         notifications = frappe.get_all(
             "NextPMS Notifications",

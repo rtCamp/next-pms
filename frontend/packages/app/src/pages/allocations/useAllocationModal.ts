@@ -92,6 +92,7 @@ export function useAllocationModal(refresh: RefreshAllocations) {
       isBillable: data.billable,
       isTentative: data.isAiCreated ? false : data.tentative,
       isAiCreated: data.isAiCreated,
+      aiAllocationReason: data.aiReason,
       includeWeekends: Boolean(data.includeWeekends),
       includeHolidays: Boolean(data.includeHolidays),
       note: data.note,

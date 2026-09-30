@@ -22,6 +22,7 @@ export interface AddAllocationInitialValues {
   isBillable?: boolean;
   isTentative?: boolean;
   isAiCreated?: boolean;
+  aiAllocationReason?: string;
   note?: string;
   allocationStartDate?: string;
   allocationEndDate?: string;

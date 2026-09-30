@@ -105,6 +105,7 @@ function AddAllocationModal({
     delete initialFormValues.projectLabel;
     delete initialFormValues.customerLabel;
     delete initialFormValues.isAiCreated;
+    delete initialFormValues.aiAllocationReason;
 
     return {
       ...addAllocationDefaultValues,
@@ -724,6 +725,20 @@ function AddAllocationModal({
                   This allocation was created by Ai
                 </span>
               )}
+              {initialValues?.isAiCreated &&
+                initialValues.aiAllocationReason && (
+                  <div
+                    className="mt-2 flex min-w-0 max-w-full items-center gap-1 text-ink-amber-4"
+                    title={initialValues.aiAllocationReason}
+                  >
+                    <span className="shrink-0 text-sm font-medium">
+                      Remark:
+                    </span>
+                    <p className="min-w-0 truncate text-sm font-normal">
+                      {initialValues.aiAllocationReason}
+                    </p>
+                  </div>
+                )}
             </div>
           ),
         }}

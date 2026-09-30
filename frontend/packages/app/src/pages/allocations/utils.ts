@@ -45,6 +45,7 @@ export type AllocationApiRecord = {
   allocation_end_date: string;
   is_billable: number;
   is_ai_created?: number;
+  ai_allocation_reason?: string | null;
   include_weekends?: number;
   include_holidays?: number;
   note?: string | null;
@@ -250,6 +251,7 @@ export function mapResourceAllocation<T extends AllocationApiRecord>(
     billable: Boolean(allocation.is_billable),
     tentative: allocation.status === "Tentative",
     isAiCreated: Boolean(allocation.is_ai_created),
+    aiReason: allocation.ai_allocation_reason ?? undefined,
     note: allocation.note ?? undefined,
     override: allocation.override,
     createdOn: allocation.creation

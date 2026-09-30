@@ -501,6 +501,7 @@ def _get_resource_management_team_view_data(
             "customer",
             "is_billable",
             "note",
+            "ai_allocation_reason",
             "modified_by",
             "modified",
             "creation",

@@ -45,6 +45,7 @@ export interface ResourceAllocation {
   customer: string;
   is_billable: number;
   is_ai_created?: number;
+  ai_allocation_reason?: string | null;
   note: string | null;
   modified_by: string;
   modified: string;

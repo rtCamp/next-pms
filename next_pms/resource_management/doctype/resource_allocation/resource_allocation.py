@@ -29,6 +29,7 @@ class ResourceAllocation(Document):
             ResourceAllocationExtraEntry,
         )
 
+        ai_allocation_reason: DF.SmallText | None
         allocation_end_date: DF.Date
         allocation_start_date: DF.Date
         currency: DF.Link | None
@@ -39,6 +40,7 @@ class ResourceAllocation(Document):
         hours_allocated_per_day: DF.Float
         include_holidays: DF.Check
         include_weekends: DF.Check
+        is_ai_created: DF.Check
         is_billable: DF.Check
         naming_series: DF.Literal["RA-.{employee}.-.YYYY.-.####."]
         note: DF.Text | None

@@ -212,6 +212,7 @@ export function GanttAllocationBar({
         billable: allocation.billable,
         tentative: allocation.tentative,
         isAiCreated: allocation.isAiCreated,
+        aiReason: allocation.aiReason,
         note: allocation.note,
         override: allocation.override,
         allocationStartDate: allocation.allocationStartDate,

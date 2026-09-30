@@ -35,6 +35,7 @@ export function allocationBarToEntry(
     billable: alloc.billable,
     tentative: alloc.tentative,
     isAiCreated: alloc.isAiCreated,
+    aiReason: alloc.aiReason,
     note: alloc.note,
     override: alloc.override,
     allocationStartDate: alloc.allocationStartDate,
