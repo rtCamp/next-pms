@@ -47,3 +47,4 @@ next_pms.timesheet.patches.setup_timesheet_rejected_hours_field
 next_pms.timesheet.patches.park_rejected_hours_on_draft_timesheets
 next_pms.next_projects.patches.setup_timeline_item_categories
 next_pms.next_projects.patches.create_default_growth_masters
+next_pms.next_pms.patches.backfill_growth_initiative_update_log
